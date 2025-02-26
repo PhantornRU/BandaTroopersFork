@@ -8585,6 +8585,10 @@
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/mining_outpost/northeast)
+"awP" = (
+/obj/item/reagent_container/food/drinks/coffeecup,
+/turf/closed/wall/hybrisa/colony/reinforced/hull,
+/area/lv759/oob)
 "awR" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/pipes/standard/simple/hidden/dark{
@@ -31369,9 +31373,8 @@
 /turf/open/floor/hybrisa/tile/tilebeigecheckered,
 /area/lv759/indoors/colonial_marshals/press_room)
 "dNo" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -37051,10 +37054,9 @@
 /turf/open/floor/hybrisa/tile/supermartfloor2,
 /area/lv759/indoors/power_plant/workers_canteen_kitchen)
 "eGr" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
 	dir = 8;
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -40207,9 +40209,8 @@
 /turf/open/hybrisa/street/underground_unweedable,
 /area/lv759/indoors/electical_systems/substation1)
 "ffl" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "96";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -48804,9 +48805,8 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/north_street)
 "gvB" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "89";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -52040,9 +52040,8 @@
 /turf/open/floor/freezerfloor,
 /area/lv759/indoors/wy_research_complex/cafeteriakitchen)
 "gUZ" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "86";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -68788,9 +68787,8 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/central_caves)
 "jvj" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "98";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -71672,9 +71670,8 @@
 /turf/open/hybrisa/street/sidewalk/west,
 /area/lv759/outdoors/colony_streets/north_street)
 "jSU" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "96";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -75599,10 +75596,9 @@
 /turf/open/floor/hybrisa/metal/grated/north,
 /area/lv759/outdoors/colony_streets/central_streets)
 "kvx" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
 	dir = 4;
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -76107,9 +76103,8 @@
 /turf/open/floor/prison/cell_stripe/east,
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
 "kzd" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "103";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -83221,7 +83216,7 @@
 /turf/open/floor/hybrisa/engineership/engineer_floor3,
 /area/lv759/indoors/derelict_ship)
 "lBd" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	icon = 'icons/turf/ert_shuttle.dmi';
 	icon_state = "wy27";
 	name = "wall"
@@ -83697,9 +83692,8 @@
 /turf/open/floor/plating/platingdmg1,
 /area/lv759/indoors/caves/north_east_caves)
 "lFl" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -93090,9 +93084,8 @@
 /turf/open/floor/prison/ramptop/east,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_cargo)
 "nbv" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "98";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -123757,10 +123750,9 @@
 /turf/open/floor/hybrisa/metal/yellow_warning_floor,
 /area/lv759/indoors/colonial_marshals/prisoners_recreation_area)
 "rGM" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
 	dir = 1;
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -138401,9 +138393,8 @@
 /turf/open/floor/prison/blue/northeast,
 /area/lv759/indoors/power_plant/telecomms)
 "tNV" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "86";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -141813,9 +141804,8 @@
 /turf/closed/wall/hybrisa/rock,
 /area/lv759/indoors/caves/south_west_caves)
 "upc" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "97";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -144190,10 +144180,9 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/docking_bay_2)
 "uGF" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI StarGlider SG-200, a product of the collaborative ingenuity between Weyland Yutani and Lunnar-Welsun Industries, is a small dropship is designed for short-range commercial transport.";
 	dir = 1;
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI StarGlider SG-200"
 	},
@@ -149803,6 +149792,12 @@
 	worth = 10000;
 	name = "10000 dollars";
 	pixel_y = 11
+	},
+/obj/item/card/id/visa{
+	pixel_x = 1;
+	pixel_y = 7;
+	name = "PVE passport";
+	desc = "This was quite the challenge to port over from PVP. Thank you to everyone who made the map and Zennith for the help moving it over to PVE!"
 	},
 /turf/open/floor/hybrisa/tile/cuppajoesfloor,
 /area/lv759/bunker/gonzo)
@@ -157228,9 +157223,8 @@
 /turf/open/hybrisa/street/cement1,
 /area/lv759/outdoors/colony_streets/north_east_street_LZ)
 "wDk" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "103";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -163736,9 +163730,8 @@
 /turf/open/floor/hybrisa/carpet/rug_colorable/blue/west,
 /area/lv759/indoors/apartment/westbedrooms)
 "xAy" = (
-/turf/closed/shuttle/dropship2/transparent{
+/turf/closed/shuttle/dropship2/WY/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "89";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -180030,7 +180023,7 @@ evV
 jZg
 uTR
 bui
-hcI
+awP
 unn
 unn
 unn
