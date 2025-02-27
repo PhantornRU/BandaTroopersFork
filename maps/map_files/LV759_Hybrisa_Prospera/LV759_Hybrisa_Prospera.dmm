@@ -538,6 +538,12 @@
 	},
 /turf/closed/wall/hybrisa/colony/office,
 /area/lv759/indoors/weyyu_office/pressroom)
+"abA" = (
+/obj/structure/sign/safety/autodoc{
+	pixel_y = -8
+	},
+/turf/closed/wall/hybrisa/colony/hospital,
+/area/lv759/indoors/hospital/icu)
 "abB" = (
 /obj/structure/blocker/forcefield/vehicles,
 /obj/structure/blocker/forcefield/vehicles,
@@ -38783,9 +38789,11 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_security/checkpoint_west)
 "fcI" = (
-/obj/structure/machinery/medical_pod/sleeper,
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
+	},
+/obj/structure/machinery/medical_pod/autodoc{
+	dir = 1
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/hospital/cryo_room)
@@ -43548,10 +43556,12 @@
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/caves/sensory_tower)
 "fNX" = (
-/obj/structure/machinery/medical_pod/sleeper,
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
+	},
+/obj/structure/machinery/medical_pod/autodoc{
+	dir = 1
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/hospital/cryo_room)
@@ -69142,7 +69152,6 @@
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/wy_research_complex/dormsfoyer)
 "jDN" = (
-/obj/structure/machinery/sleep_console,
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -69154,6 +69163,7 @@
 /obj/item/stack/medical/bruise_pack{
 	pixel_x = 8
 	},
+/obj/structure/machinery/autodoc_console,
 /turf/open/floor/prison/whitegreen/east,
 /area/lv759/indoors/hospital/cryo_room)
 "jDO" = (
@@ -135460,7 +135470,6 @@
 /turf/open/hybrisa/street/sidewalk/east,
 /area/lv759/outdoors/colony_streets/central_streets)
 "tsF" = (
-/obj/structure/machinery/sleep_console,
 /obj/structure/machinery/iv_drip{
 	pixel_y = 19;
 	layer = 4
@@ -135472,6 +135481,7 @@
 	icon_state = "triagedecalleft";
 	color = "#d3d3d3"
 	},
+/obj/structure/machinery/autodoc_console,
 /turf/open/floor/prison/sterile_white,
 /area/lv759/indoors/hospital/cryo_room)
 "tsI" = (
@@ -208947,7 +208957,7 @@ smu
 quq
 hrq
 ogj
-smu
+abA
 smu
 oPQ
 uPX
