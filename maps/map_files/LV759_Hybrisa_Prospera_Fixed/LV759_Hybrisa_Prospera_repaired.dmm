@@ -393,13 +393,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/bar)
@@ -1134,8 +1132,7 @@
 /area/lv759/indoors/weyyu_office/supervisor)
 "ajV" = (
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/outdoors/colony_streets/east_central_street_left)
@@ -1210,14 +1207,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/lv759/indoors/wy_research_complex/head_research_office)
@@ -3707,13 +3702,11 @@
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = -4
 	},
@@ -7074,8 +7067,7 @@
 "bif" = (
 /obj/structure/barricade/handrail/hybrisa/road/metal/metaldark{
 	dir = 1;
-	pixel_y = 12;
-	plane = -5
+	pixel_y = 12
 	},
 /turf/open/hybrisa/street/sidewalkcenter/south,
 /area/lv759/outdoors/colony_streets/east_central_street)
@@ -8575,24 +8567,20 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -9564,13 +9552,11 @@
 /obj/item/trash/hybrisa/cuppa_joes/lid,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -10552,13 +10538,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk,
@@ -11349,13 +11333,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/east_central_street_left)
@@ -13366,8 +13348,7 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/barricade/handrail/hybrisa/road/metal/metaldark{
 	dir = 1;
-	pixel_y = 12;
-	plane = -5
+	pixel_y = 12
 	},
 /turf/open/hybrisa/street/sidewalkcenter/south,
 /area/lv759/outdoors/colony_streets/east_central_street)
@@ -14965,8 +14946,7 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/central_streets)
@@ -15649,12 +15629,10 @@
 /mob/living/simple_animal/mouse/rat/gray,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -19195,13 +19173,11 @@
 /obj/structure/platform/metal/hybrisa/metalplatform1,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -20311,22 +20287,18 @@
 "did" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -21370,14 +21342,12 @@
 "dqR" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -22215,13 +22185,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -22689,12 +22657,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -23454,13 +23420,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -23684,14 +23648,12 @@
 "dKp" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/pipes/standard/manifold/hidden/dark{
 	dir = 4
@@ -24012,12 +23974,10 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /turf/open/floor/almayer_hull,
@@ -26329,13 +26289,11 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -26805,20 +26763,17 @@
 /obj/item/trash/cigbutt,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 8
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 2;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
@@ -28993,11 +28948,9 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
@@ -30527,14 +30480,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -31492,13 +31443,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /obj/item/reagent_container/glass/bucket{
@@ -32498,12 +32447,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -33187,13 +33134,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -35759,13 +35704,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/south_east_street_comms)
@@ -37023,13 +36966,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -38118,11 +38059,9 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	level = 1;
 	pixel_x = 2
 	},
@@ -40744,13 +40683,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/central_streets)
@@ -42910,8 +42847,7 @@
 /area/lv759/indoors/hospital/emergency_room)
 "gPs" = (
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "S";
@@ -48774,13 +48710,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/bar)
@@ -49290,7 +49224,6 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -49780,12 +49713,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -51728,12 +51659,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -54864,13 +54793,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/north_west_street)
@@ -55372,13 +55299,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -55425,10 +55350,7 @@
 /turf/open/floor/corsat,
 /area/lv759/indoors/spaceport/maintenance_east)
 "iLQ" = (
-/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyleft{
-	plane = -5
-	},
-/turf/open/hybrisa/street/sidewalk/south,
+/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyleft/turf/open/hybrisa/street/sidewalk/south,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "iLR" = (
 /obj/structure/barricade/handrail/strata{
@@ -59566,7 +59488,6 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /turf/open/floor/almayer_hull,
@@ -60334,10 +60255,9 @@
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
 	level = 1;
-	plane = -7
+	
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -61919,11 +61839,9 @@
 /obj/effect/landmark/survivor_spawner,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	level = 1;
 	pixel_x = 2
 	},
@@ -63127,13 +63045,11 @@
 /obj/structure/platform_decoration/metal/hybrisa/metalplatformdeco1,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/item/trash/cigbutt,
@@ -63406,8 +63322,7 @@
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -64901,12 +64816,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -67838,8 +67751,7 @@
 /area/lv759/indoors/wy_research_complex/researchanddevelopment)
 "kKz" = (
 /obj/structure/cargo_container/hybrisa/containersextended/lightgreywyright{
-	layer = 4;
-	plane = -5
+	layer = 4
 	},
 /turf/open/hybrisa/street/sidewalk/south,
 /area/lv759/outdoors/colony_streets/north_west_street)
@@ -68146,13 +68058,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -68652,14 +68562,12 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -68772,14 +68680,12 @@
 "kSE" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -69717,8 +69623,7 @@
 /area/lv759/outdoors/landing_zone_2)
 "lai" = (
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "S";
@@ -69848,13 +69753,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = -4
 	},
@@ -70351,7 +70254,6 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /turf/open/floor/almayer_hull,
@@ -70467,24 +70369,20 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/item/bodybag,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
@@ -71248,14 +71146,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -74266,13 +74162,11 @@
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = -4
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 4
 	},
@@ -77360,13 +77254,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -78169,8 +78061,7 @@
 	icon_state = "S"
 	},
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -81499,14 +81390,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/south_east_street_comms)
@@ -84227,13 +84116,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/colonial_marshals/prisoners_foyer)
@@ -85606,12 +85493,10 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /turf/open/floor/almayer_hull,
@@ -85924,11 +85809,9 @@
 "nDA" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	level = 1
 	},
 /obj/structure/disposalpipe/segment{
@@ -86401,13 +86284,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk,
@@ -86704,13 +86585,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk,
@@ -87104,13 +86983,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -88017,14 +87894,12 @@
 "nUm" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -92736,13 +92611,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/central_streets)
@@ -95598,14 +95471,12 @@
 "pfv" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -95937,7 +95808,6 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /turf/open/floor/almayer_hull,
@@ -96239,14 +96109,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/lv759/indoors/wy_research_complex/head_research_office)
@@ -99115,12 +98983,10 @@
 /obj/structure/disposalpipe/tagger,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -99291,7 +99157,6 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /turf/open/floor/almayer_hull,
@@ -99499,13 +99364,11 @@
 "pLE" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -101045,13 +100908,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -101201,13 +101062,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/east_central_street)
@@ -101276,12 +101135,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -103444,15 +103301,13 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -106346,13 +106201,11 @@
 "qQV" = (
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -106776,11 +106629,9 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
@@ -109102,13 +108953,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -109905,13 +109754,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/south_east_street_comms)
@@ -110756,14 +110603,12 @@
 "rBX" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -111623,13 +111468,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -111857,23 +111700,19 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -112044,12 +111883,10 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /turf/open/floor/almayer_hull,
@@ -112379,15 +112216,13 @@
 "rND" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -112643,13 +112478,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -120816,13 +120649,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -121608,13 +121439,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /turf/open/floor/almayer_hull,
@@ -122853,12 +122682,10 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -123699,7 +123526,6 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -124802,14 +124628,12 @@
 /obj/item/trash/eat,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 4;
@@ -129702,20 +129526,17 @@
 "uzT" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	pixel_x = 8
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 2;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
-	plane = -7;
 	pixel_x = -4;
 	level = 1
 	},
@@ -130849,14 +130670,12 @@
 "uHG" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/hospital/morgue)
@@ -132899,13 +132718,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
@@ -136779,13 +136596,11 @@
 "vDJ" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = -4
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 4
 	},
@@ -137376,17 +137191,14 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -139331,14 +139143,12 @@
 "vXS" = (
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating/plating_catwalk/aicore,
@@ -140248,14 +140058,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -143328,13 +143136,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/colony_streets/north_west_street)
@@ -145951,14 +145757,12 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 8
@@ -147093,8 +146897,7 @@
 "xjT" = (
 /obj/effect/decal/hybrisa/WY/WY1,
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/decal/cleanable/blood/oil,
@@ -149231,13 +149034,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /obj/item/stack/sheet/cardboard{
@@ -149283,7 +149084,6 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
@@ -149825,8 +149625,7 @@
 	icon_state = "N"
 	},
 /obj/effect/decal/cleanable/dirt{
-	layer = 4;
-	plane = -6
+	layer = 4
 	},
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -150777,13 +150576,11 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	plane = -7
+	level = 1
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/colonial_marshals/prisoners_foyer)
@@ -152036,13 +151833,11 @@
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4;
 	level = 1;
-	layer = 2.3;
-	plane = -7
+	layer = 2.3
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
 	layer = 2.3;
-	plane = -7;
 	pixel_x = -4
 	},
 /turf/open/floor/almayer_hull,
@@ -152948,13 +152743,11 @@
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	level = 1;
-	plane = -7;
 	dir = 4;
 	pixel_y = 6
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
 	level = 1;
-	plane = -7;
 	dir = 4
 	},
 /turf/open/floor/plating/plating_catwalk/prison,
