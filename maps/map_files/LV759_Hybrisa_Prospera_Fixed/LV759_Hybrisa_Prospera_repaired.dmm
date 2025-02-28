@@ -32793,7 +32793,6 @@
 "fim" = (
 /obj/item/tool/shovel,
 /obj/structure/platform/stone/hybrisa/rockdark/east,
-/obj/structure/platform/stone/hybrisa/rockdark/east,
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/central_caves)
 "fir" = (
@@ -110358,16 +110357,6 @@
 	},
 /turf/open/floor/prison/bright_clean2/southwest,
 /area/lv759/indoors/hospital/virology)
-"rAo" = (
-/obj/structure/prop/invuln/lattice_prop{
-	icon_state = "lattice12";
-	pixel_y = 16
-	},
-/obj/structure/platform/metal/hybrisa/metalplatform2/north,
-/obj/structure/platform/metal/hybrisa/metalplatform2/north,
-/obj/structure/platform/metal/hybrisa/metalplatform6/east,
-/turf/open/auto_turf/hybrisa_auto_turf/layer2,
-/area/lv759/indoors/caves/wy_research_complex_entrance)
 "rAp" = (
 /obj/structure/cargo_container/kelland/left,
 /turf/open/hybrisa/street/cement3,
@@ -113922,11 +113911,6 @@
 /obj/effect/decal/hybrisa/dirt_2,
 /turf/open/hybrisa/street/sidewalk/north,
 /area/lv759/outdoors/colony_streets/south_east_street)
-"saP" = (
-/obj/structure/platform/metal/hybrisa/metalplatform3/north,
-/obj/structure/platform/metal/hybrisa/metalplatform3/north,
-/turf/open/floor/kutjevo/grey,
-/area/lv759/indoors/meridian/meridian_showroom)
 "saR" = (
 /obj/structure/prop/ice_colony/soil_net,
 /obj/structure/prop/ice_colony/ground_wire{
@@ -134906,7 +134890,6 @@
 /turf/open/floor/hybrisa/tile/tilegreen,
 /area/lv759/indoors/garage_reception)
 "vrh" = (
-/obj/structure/platform/metal/almayer/north,
 /obj/structure/platform/metal/almayer/north,
 /obj/structure/surface/table/almayer{
 	color = "#848484"
@@ -159268,7 +159251,7 @@ hlM
 kIa
 kDT
 pzO
-rAo
+jYJ
 qOO
 get
 mMe
@@ -177643,7 +177626,7 @@ iVu
 hpd
 bBZ
 uoy
-saP
+jqC
 oEb
 cwY
 fex
