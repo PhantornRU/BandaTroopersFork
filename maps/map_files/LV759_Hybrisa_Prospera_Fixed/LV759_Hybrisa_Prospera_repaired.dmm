@@ -60255,8 +60255,7 @@
 	},
 /obj/effect/hybrisa/misc/fake/wire/blue{
 	pixel_x = -4;
-	level = 1;
-	
+	level = 1
 	},
 /obj/effect/hybrisa/misc/fake/wire/yellow{
 	level = 1
