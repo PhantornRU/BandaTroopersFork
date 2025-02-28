@@ -81323,7 +81323,6 @@
 /area/lv759/outdoors/colony_streets/south_west_street)
 "mSE" = (
 /obj/structure/prop/hybrisa/misc/fake/lattice/full,
-/obj/structure/platform/metal/hybrisa/metalplatform1/west,
 /obj/effect/hybrisa/misc/fake/pipes/pipe1,
 /obj/structure/prop/hybrisa/misc/floorprops/grate,
 /obj/structure/platform/metal/hybrisa/metalplatform1/west,
@@ -146733,7 +146732,6 @@
 	dir = 4
 	},
 /obj/structure/platform/metal/hybrisa/metalplatform1/north,
-/obj/structure/platform/metal/hybrisa/metalplatform1/east,
 /obj/structure/prop/hybrisa/misc/floorprops/grate,
 /turf/open/hybrisa/street/underground_unweedable,
 /area/lv759/outdoors/colony_streets/central_streets)
