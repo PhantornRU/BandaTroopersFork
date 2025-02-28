@@ -6056,7 +6056,6 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/almayer/test_floor5,
@@ -6810,7 +6809,6 @@
 	},
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
@@ -9833,7 +9831,6 @@
 "bEI" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -9842,7 +9839,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -11523,7 +11519,6 @@
 /obj/effect/decal/strata_decals/catwalk/prison,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/shiva/radiator_tile2,
@@ -18912,7 +18907,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -18921,7 +18915,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -22762,7 +22755,6 @@
 "dCY" = (
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
@@ -24613,7 +24605,6 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
@@ -39015,7 +39006,6 @@
 	},
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/machinery/light/spot/blue{
@@ -41625,7 +41615,6 @@
 /obj/structure/platform/metal/strata/north,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/shiva/radiator_tile2,
@@ -42276,7 +42265,6 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/closet/hydrant{
@@ -44381,7 +44369,6 @@
 "hbU" = (
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/plating,
@@ -51028,7 +51015,6 @@
 "ieA" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -51533,7 +51519,6 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent3{
@@ -65734,7 +65719,6 @@
 "ktU" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart1";
 	icon_opened = "foodcart1_open";
 	icon_state = "foodcart1";
@@ -73500,7 +73484,7 @@
 "lFl" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "110";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -73603,7 +73587,6 @@
 "lGd" = (
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/strata/orange_edge/east,
@@ -75710,7 +75693,6 @@
 "lWt" = (
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/hybrisa/street/cement3,
@@ -76514,7 +76496,6 @@
 /obj/effect/decal/cleanable/liquid_fuel,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
@@ -89351,7 +89332,6 @@
 /obj/effect/decal/cleanable/liquid_fuel,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
@@ -100063,7 +100043,6 @@
 "pSi" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -100072,7 +100051,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -100422,7 +100400,6 @@
 	},
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/effect/hybrisa/misc/fake/wire/red{
@@ -105438,7 +105415,6 @@
 "qLn" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -111190,7 +111166,6 @@
 "rGc" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -111305,9 +111280,9 @@
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
 	dir = 1;
-	icon = 'icons/turf/dropship4.dmi';
 	icon_state = "110";
-	name = "\improper WY-LWI Horizon Runner HR-150"
+	name = "\improper WY-LWI Horizon Runner HR-150";
+	icon = 'icons/turf/dropship5.dmi'
 	},
 /area/lv759/indoors/spaceport/horizon_runner)
 "rGO" = (
@@ -124221,7 +124196,6 @@
 /obj/effect/decal/strata_decals/catwalk/prison,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/platform/metal/strata/west,
@@ -124489,7 +124463,6 @@
 	},
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /obj/structure/pipes/vents/pump_hybrisa,
@@ -136666,7 +136639,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -136675,7 +136647,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -138803,7 +138774,6 @@
 /obj/structure/platform_decoration/metal/strata/west,
 /obj/structure/reagent_dispensers/fueltank{
 	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	name = "spacecraft fuel-mix tank"
 	},
 /turf/open/floor/shiva/radiator_tile2,
@@ -139747,7 +139717,6 @@
 "wdc" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -139756,7 +139725,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -139765,7 +139733,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -140441,7 +140408,6 @@
 "whT" = (
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
@@ -140450,7 +140416,6 @@
 	},
 /obj/structure/closet/crate/trashcart{
 	desc = "A heavy, metal foodcart with wheels.";
-	icon = 'icons/obj/structures/props/hybrisarandomprops.dmi';
 	icon_closed = "foodcart2";
 	icon_opened = "foodcart2_open";
 	icon_state = "foodcart2";
