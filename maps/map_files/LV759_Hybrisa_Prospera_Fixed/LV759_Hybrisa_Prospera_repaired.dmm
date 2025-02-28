@@ -55350,7 +55350,8 @@
 /turf/open/floor/corsat,
 /area/lv759/indoors/spaceport/maintenance_east)
 "iLQ" = (
-/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyleft/turf/open/hybrisa/street/sidewalk/south,
+/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyleft,
+/turf/open/hybrisa/street/sidewalk/south,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "iLR" = (
 /obj/structure/barricade/handrail/strata{
