@@ -153296,14 +153296,12 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/north_street)
 "ykh" = (
-/obj/structure/platform/metal/hybrisa/metalplatform6/north,
 /obj/structure/roof/hybrisa/billboardsandsigns/billboardsmedium/billboard4{
 	dir = 8;
 	pixel_y = 32;
 	lazy_nodes = 0;
 	layer = 3
 	},
-/obj/structure/platform/metal/hybrisa/metalplatform6/north,
 /obj/item/hybrisa/misc/trash_bag_full_prop{
 	pixel_x = -3;
 	pixel_y = 6
