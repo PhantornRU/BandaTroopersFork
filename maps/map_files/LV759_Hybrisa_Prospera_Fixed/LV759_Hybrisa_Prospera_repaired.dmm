@@ -14891,7 +14891,7 @@
 	},
 /obj/structure/cargo_container/grant/rightmid{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain3_rm";
 	layer = 1;
 	name = "Vandalized Cargo Container"
@@ -18408,7 +18408,7 @@
 "cUb" = (
 /obj/structure/cargo_container/grant/left{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain2_r";
 	layer = 4;
 	name = "Vandalized Cargo Container"
@@ -23116,7 +23116,7 @@
 "dGi" = (
 /obj/structure/cargo_container/grant/left{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain_l";
 	layer = 4;
 	name = "Vandalized Cargo Container"
@@ -32714,7 +32714,7 @@
 	},
 /obj/structure/cargo_container/grant/rightmid{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain_rm";
 	name = "Vandalized Cargo Container"
 	},
@@ -76508,7 +76508,7 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/cargo_container/grant/right{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain_r";
 	layer = 5;
 	name = "Vandalized Cargo Container"
@@ -116888,7 +116888,7 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/cargo_container/grant/left{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain2_rm";
 	name = "Vandalized Cargo Container"
 	},
@@ -127829,7 +127829,7 @@
 "umP" = (
 /obj/structure/cargo_container/grant/left{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain3_l";
 	layer = 1;
 	name = "Vandalized Cargo Container"
@@ -132944,7 +132944,7 @@
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/cargo_container/grant/left{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain2_l";
 	layer = 4;
 	name = "Vandalized Cargo Container"
@@ -133864,7 +133864,7 @@
 "vib" = (
 /obj/structure/cargo_container/grant/right{
 	desc = "A huge industrial shipping container. Seems to have been vandalized.";
-	icon = 'icons/obj/structures/props/containersextended.dmi';
+	icon = 'icons/obj/structures/props/containers/containersextended.dmi';
 	icon_state = "grafcontain3_r";
 	layer = 1;
 	name = "Vandalized Cargo Container"
