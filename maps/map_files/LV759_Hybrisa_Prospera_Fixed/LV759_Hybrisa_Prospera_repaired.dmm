@@ -1,4 +1,12 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"aaa" = (
+/turf/closed/shuttle/dropship2/transparent{
+	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
+	icon_state = "103";
+	name = "\improper WY-LWI Horizon Runner HR-150";
+	icon = 'icons/turf/dropship5.dmi'
+	},
+/area/lv759/indoors/spaceport/horizon_runner)
 "aac" = (
 /obj/structure/grille,
 /obj/structure/barricade/handrail/wire{
@@ -6054,10 +6062,7 @@
 	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/decal/hybrisa/dirt,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/almayer/test_floor5,
 /area/lv759/indoors/spaceport/horizon_runner)
 "baa" = (
@@ -6807,10 +6812,7 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "N"
 	},
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/effect/decal/cleanable/liquid_fuel,
 /turf/open/floor/corsat,
 /area/lv759/indoors/spaceport/engineering)
@@ -11517,10 +11519,7 @@
 	name = "floor panel"
 	},
 /obj/effect/decal/strata_decals/catwalk/prison,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/shiva/radiator_tile2,
 /area/lv759/outdoors/landing_zone_1)
 "bSj" = (
@@ -22753,10 +22752,7 @@
 /turf/open/floor/prison/ramptop/east,
 /area/lv759/indoors/caves/central_caves)
 "dCY" = (
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/effect/decal/cleanable/liquid_fuel,
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/landing_zone_2)
@@ -24603,10 +24599,7 @@
 /area/lv759/indoors/spaceport/docking_bay_1)
 "dSK" = (
 /obj/effect/decal/hybrisa/dirt,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/effect/decal/cleanable/liquid_fuel,
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -32319,7 +32312,7 @@
 "ffl" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "96";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -39004,10 +38997,7 @@
 	icon_state = "igniter0";
 	name = "floor panel"
 	},
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/machinery/light/spot/blue{
 	dir = 4;
 	pixel_x = 8
@@ -41613,10 +41603,7 @@
 	name = "floor panel"
 	},
 /obj/structure/platform/metal/strata/north,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/shiva/radiator_tile2,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "gFE" = (
@@ -42263,10 +42250,7 @@
 "gKg" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/decal/hybrisa/dirt,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/closet/hydrant{
 	pixel_y = 32
 	},
@@ -43659,7 +43643,7 @@
 "gUZ" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "86";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -44367,10 +44351,7 @@
 /turf/open/hybrisa/street/sidewalk/west,
 /area/lv759/outdoors/colony_streets/central_streets)
 "hbU" = (
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/docking_bay_2)
 "hbX" = (
@@ -51517,10 +51498,7 @@
 "ihJ" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/effect/decal/hybrisa/dirt,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent3{
 	pixel_y = 28;
 	pixel_x = 4
@@ -73585,10 +73563,7 @@
 /turf/open/floor/prison/darkyellow2/southwest,
 /area/lv759/indoors/wy_research_complex/hallwaysoutheast)
 "lGd" = (
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/strata/orange_edge/east,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "lGg" = (
@@ -75691,10 +75666,7 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/north_east_street_LZ)
 "lWt" = (
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/hybrisa/street/cement3,
 /area/lv759/outdoors/landing_zone_2)
 "lWw" = (
@@ -76494,10 +76466,7 @@
 /area/lv759/indoors/spaceport/docking_bay_1)
 "mdy" = (
 /obj/effect/decal/cleanable/liquid_fuel,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/effect/decal/cleanable/liquid_fuel,
 /turf/open/floor/strata/blue3/east,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -82387,7 +82356,7 @@
 "nbv" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "98";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -89330,10 +89299,7 @@
 	pixel_y = 4
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/strata/multi_tiles/southeast,
 /area/lv759/indoors/wy_research_complex/hangarbay)
@@ -100398,10 +100364,7 @@
 	icon_state = "igniter0";
 	name = "floor panel"
 	},
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/effect/hybrisa/misc/fake/wire/red{
 	pixel_x = 4
 	},
@@ -124194,10 +124157,7 @@
 	layer = 3.33
 	},
 /obj/effect/decal/strata_decals/catwalk/prison,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/platform/metal/strata/west,
 /turf/open/floor/shiva/radiator_tile2,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -124461,10 +124421,7 @@
 	pixel_x = 4;
 	pixel_y = 7
 	},
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /obj/structure/pipes/vents/pump_hybrisa,
 /obj/structure/prop/invuln/overhead_pipe{
 	color = "#a6aeab";
@@ -138772,10 +138729,7 @@
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
 /obj/structure/platform_decoration/metal/strata/west,
-/obj/structure/reagent_dispensers/fueltank{
-	desc = "A fuel tank mix with fuel designed for various spacecraft, very combustible.";
-	name = "spacecraft fuel-mix tank"
-	},
+/obj/structure/reagent_dispensers/fueltank/spacecraft,
 /turf/open/floor/shiva/radiator_tile2,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "vVp" = (
@@ -142919,7 +142873,7 @@
 "wDk" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "103";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -149062,7 +149016,7 @@
 "xAy" = (
 /turf/closed/shuttle/dropship2/transparent{
 	desc = "The WY-LWI Horizon Runner HR-150, a collaborative creation of Lunnar-Welsun Industries and Weyland-Yutani. This small dropship is designed for short-range commercial transport.";
-	icon = 'icons/turf/dropship4.dmi';
+	icon = 'icons/turf/dropship5.dmi';
 	icon_state = "89";
 	name = "\improper WY-LWI Horizon Runner HR-150"
 	},
@@ -163778,7 +163732,7 @@ oUS
 umu
 kur
 oUS
-wDk
+aaa
 jIw
 fEi
 kPe
