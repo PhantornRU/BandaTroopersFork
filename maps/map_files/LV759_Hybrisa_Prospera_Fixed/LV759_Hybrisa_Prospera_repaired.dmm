@@ -71589,6 +71589,7 @@
 	health = 80
 	},
 /obj/structure/window/reinforced,
+/obj/item/clothing/glasses/hud/health,
 /turf/open/floor/prison/bright_clean2/southwest,
 /area/lv759/indoors/hospital/reception)
 "lqU" = (
@@ -81161,7 +81162,10 @@
 	pixel_x = -4;
 	pixel_y = 11
 	},
-/obj/item/clothing/glasses/hud/health,
+/obj/structure/phone_base/colony_net/rotary{
+	pixel_x = 5;
+	pixel_y = 9
+	},
 /turf/open/floor/prison/bright_clean2/southwest,
 /area/lv759/indoors/hospital/reception)
 "mRm" = (
@@ -83558,10 +83562,13 @@
 "nlv" = (
 /obj/structure/surface/table/woodentable/fancy,
 /obj/item/tool/pen/fountain{
-	pixel_x = 4
+	pixel_x = 6
 	},
 /obj/item/tool/stamp/cmo{
 	pixel_y = 8
+	},
+/obj/structure/phone_base/colony_net/rotary{
+	pixel_x = -5
 	},
 /turf/open/floor/bcarpet02/southeast,
 /area/lv759/indoors/hospital/cmo_office)
