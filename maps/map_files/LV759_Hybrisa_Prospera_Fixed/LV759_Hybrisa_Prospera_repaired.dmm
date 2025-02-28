@@ -64012,11 +64012,6 @@
 	},
 /turf/open/floor/hybrisa/metal/zbrownfloor_full,
 /area/lv759/indoors/meridian/meridian_showroom)
-"khV" = (
-/obj/structure/platform/metal/hybrisa/metalplatform6/north,
-/obj/structure/platform/metal/hybrisa/metalplatform6/north,
-/turf/open/auto_turf/hybrisa_auto_turf/layer0,
-/area/lv759/indoors/caves/north_west_caves)
 "khX" = (
 /obj/structure/window/framed/hybrisa/colony/office,
 /obj/structure/machinery/door/poddoor/hybrisa/open_shutters{
@@ -65601,7 +65596,6 @@
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_cargo)
 "ksY" = (
-/obj/structure/platform/metal/almayer/north,
 /obj/structure/platform/metal/almayer/north,
 /obj/structure/prop/hybrisa/misc/buildinggreeblies/greeble2{
 	pixel_x = -4
@@ -71259,15 +71253,6 @@
 	},
 /turf/open/hybrisa/street/cement3,
 /area/lv759/indoors/recycling_plant/garage)
-"lnO" = (
-/obj/structure/platform/metal/almayer/north,
-/obj/structure/platform/metal/almayer/north,
-/obj/structure/surface/table/almayer{
-	color = "#848484"
-	},
-/obj/effect/spawner/random/tool,
-/turf/open/floor/prison/cell_stripe,
-/area/lv759/indoors/meridian/meridian_factory)
 "lnP" = (
 /obj/item/trash/cigbutt/ucigbutt{
 	pixel_x = -13;
@@ -128399,7 +128384,6 @@
 /area/lv759/outdoors/colony_streets/north_west_street)
 "uqL" = (
 /obj/structure/platform/metal/hybrisa/metalplatform1/east,
-/obj/structure/platform/metal/hybrisa/metalplatform1/east,
 /obj/structure/barricade/handrail/strata{
 	dir = 4;
 	layer = 4
@@ -164296,7 +164280,7 @@ llh
 hxf
 mUS
 shN
-khV
+sqa
 unn
 unn
 hcI
@@ -187238,7 +187222,7 @@ bZs
 qdT
 qSt
 cJz
-lnO
+hdf
 xLb
 iHZ
 yfO
