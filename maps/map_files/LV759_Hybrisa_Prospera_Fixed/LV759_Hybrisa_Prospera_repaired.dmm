@@ -22681,12 +22681,10 @@
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/caves/west_caves)
 "dCe" = (
-/obj/structure/platform/metal/almayer/north,
 /obj/structure/machinery/light/spot/blue{
 	dir = 1;
 	pixel_y = 22
 	},
-/obj/structure/platform/metal/almayer/north,
 /obj/structure/machinery/autolathe,
 /turf/open/floor/prison/cell_stripe,
 /area/lv759/indoors/meridian/meridian_factory)
