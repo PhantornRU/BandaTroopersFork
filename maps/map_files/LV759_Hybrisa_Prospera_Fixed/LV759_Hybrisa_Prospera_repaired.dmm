@@ -56159,7 +56159,6 @@
 "iTi" = (
 /obj/structure/platform/stone/hybrisa/rockdark/east,
 /obj/structure/platform/stone/hybrisa/rockdark/north,
-/obj/structure/platform/stone/hybrisa/rockdark/east,
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/central_caves)
 "iTl" = (
@@ -135044,7 +135043,6 @@
 	},
 /obj/structure/platform/stone/hybrisa/rockdark/east,
 /obj/structure/platform/stone/hybrisa/rockdark/north,
-/obj/structure/platform/stone/hybrisa/rockdark/east,
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/central_caves)
 "vsm" = (
