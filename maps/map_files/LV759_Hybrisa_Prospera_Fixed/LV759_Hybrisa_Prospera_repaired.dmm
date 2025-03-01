@@ -304,6 +304,10 @@
 	},
 /turf/open/auto_turf/hybrisa_auto_turf/layer3,
 /area/lv759/indoors/caves/west_caves)
+"abe" = (
+/obj/structure/tunnel,
+/turf/open/auto_turf/hybrisa_auto_turf/layer1,
+/area/lv759/indoors/caves/central_caves)
 "abh" = (
 /obj/structure/platform/stone/hybrisa/rockdark/north,
 /obj/structure/prop/hybrisa/misc/fake/lattice/full,
@@ -11400,11 +11404,9 @@
 /area/lv759/indoors/apartment/eastbedrooms)
 "bSc" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -13128,11 +13130,9 @@
 /area/lv759/indoors/apartment/eastrestroomsshower)
 "cfe" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/mining_outpost/vehicledeployment)
@@ -21397,11 +21397,9 @@
 /area/lv759/indoors/bar/kitchen)
 "dsN" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -24481,11 +24479,9 @@
 /area/lv759/indoors/weyyu_office/pressroom)
 "dUv" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -26554,11 +26550,9 @@
 /area/lv759/outdoors/colony_streets/north_street)
 "elV" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/weymart/backrooms)
@@ -56719,11 +56713,9 @@
 "jkg" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -75913,11 +75905,9 @@
 /area/lv759/indoors/colonial_marshals/office)
 "moe" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -81086,11 +81076,9 @@
 /area/lv759/indoors/spaceport/docking_bay_2)
 "nhM" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/meridian/meridian_maintenance)
@@ -82467,11 +82455,9 @@
 /area/lv759/indoors/power_plant/equipment_east)
 "nsM" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating/platingdmg3/west,
@@ -85249,11 +85235,9 @@
 /area/lv759/indoors/wy_research_complex/cafeteria)
 "nPX" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/weymart/backrooms)
@@ -86610,11 +86594,9 @@
 /area/lv759/indoors/colonial_marshals/garage)
 "oan" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/colonial_marshals/southwest_maintenance)
@@ -87434,11 +87416,9 @@
 "ogO" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
@@ -88787,11 +88767,9 @@
 	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -99004,11 +98982,9 @@
 /area/lv759/indoors/wy_research_complex/hallwaysoutheast)
 "qfz" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /obj/effect/decal/hybrisa/dirt,
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -108401,11 +108377,9 @@
 "rGI" = (
 /obj/structure/window/framed/hybrisa/marshalls/reinforced,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/yellow_warning_floor,
@@ -116759,11 +116733,9 @@
 "sYs" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -118290,11 +118262,9 @@
 	explo_proof = 0
 	},
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -118863,11 +118833,9 @@
 "tnQ" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/mining_outpost/vehicledeployment)
@@ -129821,11 +129789,9 @@
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
 "vbm" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
@@ -133773,11 +133739,9 @@
 /area/lv759/indoors/wy_research_complex/xenobiology)
 "vKu" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
@@ -136727,11 +136691,9 @@
 /area/lv759/indoors/weymart)
 "whl" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -148244,11 +148206,9 @@
 /area/lv759/outdoors/colony_streets/north_west_street)
 "ybA" = (
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
-	needs_power = 0;
-	unacidable = 1
+	needs_power = 0
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
 /area/lv759/indoors/jacks_surplus)
@@ -148917,11 +148877,9 @@
 "ygk" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/poddoor/hybrisa/ultra_reinforced_door{
-	explo_proof = 1;
 	id = "hybrisacolonylockdown";
 	name = "Emergency Lockdown";
 	needs_power = 0;
-	unacidable = 1;
 	dir = 4
 	},
 /turf/open/floor/hybrisa/metal/red_warning_floor,
@@ -177604,8 +177562,8 @@ oYd
 bhk
 bhk
 oYd
-oYd
-oYd
+bhk
+abe
 unn
 unn
 unn
@@ -182879,8 +182837,8 @@ unn
 unn
 unn
 unn
-oYd
-oYd
+abe
+bhk
 bhk
 bhk
 oYd
