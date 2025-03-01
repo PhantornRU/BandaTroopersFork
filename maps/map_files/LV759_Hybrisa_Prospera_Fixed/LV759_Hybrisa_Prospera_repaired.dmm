@@ -9289,10 +9289,6 @@
 /obj/effect/landmark/monkey_spawn,
 /turf/open/floor/almayer/research/containment/corner/north,
 /area/lv759/indoors/wy_research_complex/xenobiology)
-"bzC" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer2,
-/area/lv759/indoors/caves/south_west_caves)
 "bzD" = (
 /obj/structure/largecrate/supply/supplies/water,
 /obj/structure/barricade/handrail/type_b{
@@ -12457,10 +12453,6 @@
 	},
 /turf/open/floor/corsat,
 /area/lv759/bunker/checkpoint)
-"bXY" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer1,
-/area/lv759/indoors/caves/south_west_caves)
 "bXZ" = (
 /obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent3{
 	pixel_y = 28;
@@ -24145,7 +24137,6 @@
 /obj/effect/decal/hybrisa/grate{
 	dir = 1
 	},
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/caves/central_caves)
 "dOB" = (
@@ -24574,10 +24565,6 @@
 	},
 /turf/open/hybrisa/street/cement1,
 /area/lv759/outdoors/colony_streets/east_central_street)
-"dSm" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer0,
-/area/lv759/indoors/caves/central_caves)
 "dSq" = (
 /obj/structure/machinery/door/airlock/almayer/generic/autoname,
 /obj/effect/decal/hybrisa/dirt_2,
@@ -41621,10 +41608,6 @@
 	},
 /turf/open/floor/almayer/plating/northeast,
 /area/lv759/indoors/power_plant/geothermal_generators)
-"gEU" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer3,
-/area/lv759/indoors/caves/south_west_caves)
 "gFa" = (
 /obj/structure/window/framed/hybrisa/colony/hospital,
 /turf/open/floor/plating,
@@ -61593,11 +61576,6 @@
 /obj/effect/decal/hybrisa/road/lines3,
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/south_east_street)
-"jNX" = (
-/obj/effect/decal/hybrisa/grate,
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer0,
-/area/lv759/indoors/caves/central_caves)
 "jNZ" = (
 /turf/open/floor/hybrisa/metal/zbrownfloor1/north,
 /area/lv759/indoors/meridian/meridian_factory)
@@ -75216,10 +75194,6 @@
 /obj/structure/window/framed/hybrisa/marshalls/reinforced,
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/armory_foyer)
-"lSX" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer1,
-/area/lv759/indoors/caves/south_caves/derelict_ship)
 "lTd" = (
 /obj/item/spacecash/c200,
 /mob/living/simple_animal/bunny/dave{
@@ -79517,13 +79491,6 @@
 	},
 /turf/open/floor/prison/cell_stripe/east,
 /area/lv759/indoors/caves/wy_research_complex_entrance)
-"mCt" = (
-/obj/effect/decal/hybrisa/grate{
-	dir = 1
-	},
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer0,
-/area/lv759/indoors/caves/central_caves)
 "mCu" = (
 /obj/structure/surface/table/reinforced/prison{
 	color = "#b7b8b2"
@@ -93454,10 +93421,6 @@
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/xenobiology)
-"oOT" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer2,
-/area/lv759/indoors/caves/central_caves)
 "oOZ" = (
 /obj/structure/prop/invuln/overhead_pipe{
 	color = "#a6aeab";
@@ -100102,10 +100065,6 @@
 	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/outdoors/colony_streets/south_east_street)
-"pSW" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/floor/plating/platingdmg3/west,
-/area/lv759/indoors/caves/central_caves)
 "pSX" = (
 /obj/effect/decal/hybrisa/dirt,
 /turf/closed/wall/hybrisa/colony/engineering/ribbed,
@@ -100339,10 +100298,6 @@
 /obj/effect/decal/hybrisa/dirt,
 /turf/open/floor/hybrisa/metal/grated/east,
 /area/lv759/outdoors/colony_streets/central_streets)
-"pUJ" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/floor/plating,
-/area/lv759/indoors/caves/south_west_caves)
 "pUQ" = (
 /obj/structure/showcase{
 	breakable = 1;
@@ -102481,10 +102436,6 @@
 	},
 /turf/open/floor/hybrisa/carpet/carpetbeige,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_south_office)
-"qnC" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/floor/plating/plating_catwalk/prison,
-/area/lv759/indoors/caves/central_caves)
 "qnK" = (
 /obj/structure/stairs/perspective{
 	dir = 9;
@@ -120551,10 +120502,6 @@
 /obj/structure/platform_decoration/metal/hybrisa/metalplatformdeco1/north,
 /turf/open/hybrisa/street/sidewalk/west,
 /area/lv759/outdoors/colony_streets/central_streets)
-"tei" = (
-/obj/effect/landmark/structure_spawner/setup/distress/xeno_weed_node,
-/turf/open/auto_turf/hybrisa_auto_turf/layer0,
-/area/lv759/indoors/caves/south_west_caves)
 "tek" = (
 /obj/structure/disposalpipe/segment,
 /obj/effect/hybrisa/misc/fake/wire/blue{
@@ -155809,7 +155756,7 @@ bkw
 oXo
 gSv
 vuP
-bzC
+vuP
 gbg
 gbg
 gbg
@@ -156070,7 +156017,7 @@ qpQ
 kDd
 vuP
 vuP
-bXY
+gbg
 wKx
 gbg
 gbg
@@ -156328,7 +156275,7 @@ vuP
 gbg
 gbg
 gbg
-bXY
+gbg
 vuP
 wKx
 hnk
@@ -156815,7 +156762,7 @@ fkx
 lpy
 bkw
 oXo
-pUJ
+gSv
 vuP
 vuP
 vuP
@@ -157338,7 +157285,7 @@ gbg
 gbg
 gbg
 gbg
-bXY
+gbg
 gbg
 vuP
 vuP
@@ -158080,7 +158027,7 @@ vuP
 vuP
 vuP
 gbg
-bzC
+vuP
 vuP
 jZM
 unn
@@ -158091,7 +158038,7 @@ unn
 wKx
 rhm
 vuP
-bXY
+gbg
 gbg
 gbg
 gbg
@@ -158601,7 +158548,7 @@ wKx
 gbg
 gbg
 gbg
-bzC
+vuP
 vuP
 unn
 unn
@@ -159588,7 +159535,7 @@ lpy
 bkw
 gdY
 xgP
-bzC
+vuP
 vuP
 gbg
 vuP
@@ -159846,7 +159793,7 @@ vuP
 hnk
 vuP
 gbg
-bXY
+gbg
 vuP
 smD
 unn
@@ -160360,7 +160307,7 @@ vuP
 vuP
 vuP
 gbg
-bzC
+vuP
 vuP
 unn
 sQm
@@ -160851,7 +160798,7 @@ rQB
 vuP
 vuP
 gbg
-bXY
+gbg
 gbg
 vuP
 unn
@@ -162371,7 +162318,7 @@ gbg
 gbg
 gbg
 gbg
-bXY
+gbg
 vuP
 vuP
 wKx
@@ -162615,7 +162562,7 @@ unn
 unn
 wKx
 gbg
-bzC
+vuP
 gbg
 gbg
 gbg
@@ -163870,7 +163817,7 @@ vxL
 jTE
 fbL
 vuE
-bzC
+vuP
 vuP
 vuP
 vuP
@@ -164631,7 +164578,7 @@ gbg
 gbg
 gbg
 gbg
-bzC
+vuP
 vuP
 unn
 unn
@@ -165636,7 +165583,7 @@ kDd
 vuP
 gbg
 gbg
-gEU
+wKx
 vuP
 gbg
 vuP
@@ -166638,7 +166585,7 @@ uXJ
 vuP
 gbg
 gbg
-bXY
+gbg
 gbg
 gbg
 gbg
@@ -167388,7 +167335,7 @@ vuP
 wKx
 gbg
 vuP
-bzC
+vuP
 gbg
 gbg
 gbg
@@ -167654,7 +167601,7 @@ vuP
 gbg
 gbg
 gbg
-bXY
+gbg
 wKx
 wKx
 unn
@@ -168135,7 +168082,7 @@ vuP
 vuP
 vuP
 vuP
-tei
+pLV
 vuP
 pLV
 vuP
@@ -168912,7 +168859,7 @@ unn
 unn
 wKx
 gbg
-bXY
+gbg
 gbg
 wKx
 unn
@@ -169132,7 +169079,7 @@ pLV
 vuP
 vuP
 pLV
-tei
+pLV
 pLV
 vuP
 vuP
@@ -169153,7 +169100,7 @@ unn
 unn
 vuP
 gbg
-bXY
+gbg
 vuP
 gbg
 vuP
@@ -169363,7 +169310,7 @@ prc
 prc
 prc
 oYd
-dSm
+prc
 prc
 prc
 oYd
@@ -169877,7 +169824,7 @@ smq
 smq
 smq
 prc
-qnC
+smq
 cdn
 vuP
 vuP
@@ -170364,7 +170311,7 @@ kak
 ltX
 oYd
 prc
-oOT
+oYd
 prc
 oYd
 oYd
@@ -170920,7 +170867,7 @@ iOu
 fRz
 vuP
 gbg
-bXY
+gbg
 gbg
 gbg
 vuP
@@ -171134,7 +171081,7 @@ prc
 smq
 smq
 prc
-dSm
+prc
 prc
 oYd
 unn
@@ -171179,7 +171126,7 @@ vuP
 wKx
 vuP
 vuP
-bXY
+gbg
 vuP
 vuP
 unn
@@ -171618,7 +171565,7 @@ smq
 vqr
 prc
 prc
-dSm
+prc
 prc
 oYd
 oYd
@@ -172138,7 +172085,7 @@ unn
 coN
 rHL
 prc
-qnC
+smq
 smq
 prc
 lhA
@@ -172182,7 +172129,7 @@ unn
 vuP
 gbg
 vuP
-bXY
+gbg
 vuP
 gbg
 gbg
@@ -172397,7 +172344,7 @@ unn
 rHL
 prc
 smq
-qnC
+smq
 rHL
 unn
 unn
@@ -172874,7 +172821,7 @@ unn
 tRA
 hvj
 rHL
-oOT
+oYd
 rHL
 oYd
 oYd
@@ -172938,7 +172885,7 @@ sQm
 gbg
 gbg
 vuP
-bzC
+vuP
 nbc
 afx
 uni
@@ -173637,7 +173584,7 @@ eGP
 prc
 eAa
 smq
-qnC
+smq
 gBY
 hfO
 doX
@@ -173911,7 +173858,7 @@ unn
 pSI
 rhO
 mNA
-qnC
+smq
 smq
 gBx
 fWR
@@ -175403,7 +175350,7 @@ unn
 unn
 rHL
 prc
-qnC
+smq
 smq
 vyO
 oYd
@@ -175676,7 +175623,7 @@ unn
 oYd
 prc
 smq
-qnC
+smq
 prc
 prc
 jvZ
@@ -175914,7 +175861,7 @@ prc
 prc
 mNA
 smq
-qnC
+smq
 sEw
 smq
 prc
@@ -176423,7 +176370,7 @@ prc
 prc
 prc
 oYd
-dSm
+prc
 oYd
 oYd
 prc
@@ -176919,7 +176866,7 @@ prc
 eAa
 smq
 smq
-mCt
+gBY
 prc
 fWR
 uni
@@ -177416,7 +177363,7 @@ unn
 rHL
 oYd
 oYd
-dSm
+prc
 smq
 smq
 prc
@@ -177436,7 +177383,7 @@ prc
 mNA
 smq
 smq
-jNX
+gBx
 smq
 smq
 prc
@@ -179179,7 +179126,7 @@ unn
 unn
 rHL
 mNA
-qnC
+smq
 smq
 gBx
 nqU
@@ -180435,7 +180382,7 @@ oYd
 prc
 smq
 smq
-qnC
+smq
 prc
 prc
 prc
@@ -181186,7 +181133,7 @@ unn
 sxW
 pUT
 eIW
-pSW
+pUT
 eIW
 prc
 prc
@@ -181194,7 +181141,7 @@ prc
 oYd
 prc
 prc
-dSm
+prc
 prc
 rHL
 unn
@@ -190355,7 +190302,7 @@ idU
 idU
 mwa
 uoE
-lSX
+yjt
 yjt
 yjt
 idU
