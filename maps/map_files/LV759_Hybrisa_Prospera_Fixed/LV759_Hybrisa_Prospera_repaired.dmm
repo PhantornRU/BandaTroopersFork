@@ -24952,7 +24952,8 @@
 /obj/structure/machinery/bioprinter{
 	pixel_y = 12;
 	layer = 4;
-	pixel_x = 4
+	pixel_x = 4;
+	density = 0
 	},
 /turf/open/floor/prison/whitegreen/north,
 /area/lv759/indoors/weymart)
@@ -53360,7 +53361,9 @@
 "iGh" = (
 /obj/structure/machinery/cm_vending/sorted/medical/no_access{
 	pixel_y = 12;
-	pixel_x = 4
+	pixel_x = 4;
+	density = 0;
+	wrenchable = 0
 	},
 /obj/structure/barricade/handrail/medical{
 	dir = 1;
