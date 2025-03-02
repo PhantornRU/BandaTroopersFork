@@ -364,6 +364,28 @@
 	},
 /turf/open/floor/plating,
 /area/lv759/outdoors/landing_zone_1)
+"abj" = (
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
+/turf/open/floor/plating,
+/area/lv759/indoors/wy_research_complex/southeastexit)
+"abk" = (
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
+/turf/open/floor/plating,
+/area/lv759/indoors/wy_research_complex/southeastexit)
+"abl" = (
+/obj/structure/barricade/handrail/kutjevo,
+/obj/structure/pipes/standard/simple/hidden/dark{
+	dir = 4
+	},
+/turf/open/floor/hybrisa/tile/tilegrey,
+/area/lv759/indoors/wy_research_complex/hallwaysouthwest{
+	soundscape_playlist = list(s'sound/soundscape/lv522/indoors/indoor_wind.ogg','sound/soundscape/lv522/indoors/indoor_wind2.ogg','sound/soundscape/lv759/indoors/vent_1.ogg','sound/soundscape/lv759/indoors/vent_2.ogg','sound/soundscape/lv759/indoors/vent_3.ogg','sound/soundscape/lv759/indoors/vent_4.ogg','sound/soundscape/lv759/indoors/vent_5.ogg','sound/soundscape/lv759/indoors/vent_6.ogg','sound/soundscape/lv759/indoors/vent_7.ogg','sound/soundscape/lv759/indoors/vent_6.ogg','sound/soundscape/lv759/indoors/distant_sounds_1.ogg','sound/soundscape/lv759/indoors/distant_sounds_2.ogg','sound/soundscape/lv759/indoors/distant_sounds_3.ogg','sound/soundscape/lv759/indoors/distant_sounds_4.ogg','sound/soundscape/lv759/indoors/distant_sounds_5.ogg','sound/soundscape/lv759/indoors/distant_sounds_6.ogg','sound/soundscape/lv759/indoors/distant_sounds_7.ogg','sound/soundscape/lv759/indoors/distant_sounds_8.ogg','sound/soundscape/lv759/indoors/distant_sounds_9.ogg','sound/soundscape/lv759/indoors/distant_sounds_10.ogg','sound/soundscape/engamb1.ogg','sound/soundscape/engamb2.ogg','sound/soundscape/engamb3.ogg','sound/soundscape/engamb4.ogg','sound/soundscape/engamb5.ogg','sound/soundscape/engamb6.ogg','sound/soundscape/engamb7.ogg')
+	})
 "abm" = (
 /obj/structure/cargo_container/hybrisa/containersextended/tanright{
 	layer = 6;
@@ -371,6 +393,33 @@
 	},
 /turf/open/hybrisa/street/sidewalk/south,
 /area/lv759/outdoors/colony_streets/south_east_street)
+"abn" = (
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal/autoname{
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
+/turf/open/floor/corsat/officetiles,
+/area/lv759/indoors/wy_research_complex/cafeteria)
+"abo" = (
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,201)
+	},
+/turf/open/floor/plating,
+/area/lv759/indoors/colonial_marshals/changing_room)
+"abp" = (
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
+	dir = 1;
+	req_one_access = list(104,106,201)
+	},
+/turf/open/floor/corsat/officetiles,
+/area/lv759/indoors/colonial_marshals/north_office)
+"abq" = (
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
+	},
+/turf/open/floor/plating,
+/area/lv759/indoors/hospital/cryo_room)
 "abu" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/prop/hybrisa/fakeplatforms/platform4/deco{
@@ -1026,7 +1075,8 @@
 /area/lv759/indoors/caves/south_caves)
 "ahB" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/medical_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/sterile_white,
 /area/lv759/indoors/hospital/medical_storage)
@@ -2433,7 +2483,9 @@
 "asJ" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(100)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -3304,7 +3356,10 @@
 /turf/open/floor/prison/cell_stripe,
 /area/lv759/outdoors/colony_streets/central_streets)
 "aAW" = (
-/obj/structure/closet/secure_closet/medical2,
+/obj/structure/closet/secure_closet/medical2{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /obj/item/storage/box/gloves{
 	pixel_x = -5;
 	pixel_y = -5
@@ -3478,7 +3533,9 @@
 "aCt" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(100)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/cargo)
@@ -3657,7 +3714,9 @@
 /turf/open/floor/kutjevo/grey,
 /area/lv759/indoors/mining_outpost/northeast)
 "aEd" = (
-/obj/structure/closet/secure_closet/engineering_personal,
+/obj/structure/closet/secure_closet/engineering_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/noticeboard{
 	pixel_y = 32
 	},
@@ -3952,7 +4011,8 @@
 /area/lv759/indoors/weymart/backrooms)
 "aGD" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/medical_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/bright_clean2/southwest,
 /area/lv759/indoors/hospital/virology)
@@ -4550,7 +4610,9 @@
 /turf/open/floor/prison/red/north,
 /area/lv759/indoors/hospital/icu)
 "aLA" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	icon = 'icons/obj/structures/doors/hybrisashutters.dmi';
@@ -5111,7 +5173,8 @@
 	layer = 3.4
 	},
 /obj/structure/machinery/door/window/southleft{
-	pixel_y = 13
+	pixel_y = 13;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/almayer/blackfull/west,
 /area/lv759/bunker/checkpoint)
@@ -5936,7 +5999,9 @@
 /turf/open/floor/hybrisa/carpet/carpetbeigedeco,
 /area/lv759/indoors/colonial_marshals/office)
 "aXy" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/cell_stripe/west,
 /area/lv759/indoors/wy_security/checkpoint_northwest)
 "aXC" = (
@@ -6282,7 +6347,8 @@
 /area/lv759/indoors/electical_systems/substation1)
 "baR" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -7389,7 +7455,8 @@
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "bkt" = (
 /obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/machinery/door/poddoor/hybrisa/shutters{
 	id = "bunker_shutters"
@@ -8074,7 +8141,8 @@
 /area/lv759/oob)
 "bqd" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = null
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -8282,7 +8350,10 @@
 /turf/open/floor/strata/floor3,
 /area/lv759/indoors/power_plant/geothermal_generators)
 "brL" = (
-/obj/structure/machinery/cm_vending/sorted/medical/blood,
+/obj/structure/machinery/cm_vending/sorted/medical/blood{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/hybrisa/tile/tilewhitecheckered,
 /area/lv759/indoors/hospital/medical_storage)
 "brQ" = (
@@ -8969,7 +9040,9 @@
 /turf/open/hybrisa/street/sidewalkfull,
 /area/lv759/outdoors/colony_streets/east_central_street)
 "bxl" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
@@ -8982,7 +9055,8 @@
 /area/lv759/indoors/hospital/reception)
 "bxq" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -9859,7 +9933,9 @@
 /turf/open/floor/hybrisa/carpet/carpetdarkerblue,
 /area/lv759/indoors/spaceport/docking_bay_1)
 "bEO" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "bER" = (
@@ -10212,7 +10288,8 @@
 /area/lv759/indoors/spaceport/docking_bay_2)
 "bHv" = (
 /obj/structure/closet/secure_closet/medical3{
-	req_access_txt = "100"
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/machinery/power/apc/power/west,
 /turf/open/floor/prison/whitered/southwest,
@@ -10780,7 +10857,9 @@
 /turf/open/floor/hybrisa/metal/zbrownfloor1/northwest,
 /area/lv759/indoors/meridian/meridian_showroom)
 "bMH" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/item/clothing/suit/storage/CMB/hybrisa/nspa_jacket,
 /obj/item/clothing/head/hybrisa/nspa_peaked_cap,
 /turf/open/floor/prison/redcorner/east,
@@ -10823,7 +10902,8 @@
 /area/lv759/indoors/meridian/meridian_factory)
 "bNj" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/machinery/door/poddoor/hybrisa/shutters{
 	dir = 8;
@@ -12002,7 +12082,10 @@
 /turf/open/floor/hybrisa/carpet/carpetred,
 /area/lv759/indoors/casino)
 "bVM" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/item/explosive/plastic{
 	desc = "A compact explosive charge for controlled demolitions. Looks to be made from C4";
 	name = "Mining explosives"
@@ -12476,7 +12559,8 @@
 /area/lv759/indoors/caves/north_west_caves)
 "bZq" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/prison/cell_stripe/north,
 /area/lv759/indoors/wy_security/checkpoint_northwest)
@@ -12511,7 +12595,8 @@
 	},
 /obj/structure/closet/secure_closet/medical2{
 	pixel_y = 20;
-	density = 0
+	density = 0;
+	req_access = null
 	},
 /obj/item/clothing/head/surgery/green,
 /obj/item/storage/box/gloves,
@@ -12632,7 +12717,10 @@
 /turf/open/floor/hybrisa/metal/bluemetal1/southeast,
 /area/lv759/indoors/spaceport/flight_control_room)
 "caa" = (
-/obj/structure/machinery/cm_vending/sorted/tech/tool_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/tool_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 5
 	},
@@ -13555,7 +13643,9 @@
 "ciH" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/comdoor/reinforced{
 	autoname = 1;
-	name = "\improper Reinforced Airlock"
+	name = "\improper Reinforced Airlock";
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/strata/multi_tiles/southeast,
 /area/lv759/indoors/spaceport/flight_control_room)
@@ -13705,7 +13795,9 @@
 /obj/structure/machinery/light{
 	dir = 8
 	},
-/obj/structure/closet/secure_closet/engineering_electrical,
+/obj/structure/closet/secure_closet/engineering_electrical{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/prison/darkyellow2/west,
 /area/lv759/indoors/garage_workshop)
 "cjZ" = (
@@ -14294,7 +14386,8 @@
 /area/lv759/outdoors/colony_streets/central_streets)
 "coJ" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -14451,7 +14544,8 @@
 /area/lv759/indoors/power_plant/workers_canteen)
 "cqk" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/head_research_office)
@@ -14487,7 +14581,9 @@
 /turf/open/floor/mech_bay_recharge_floor,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "cqy" = (
-/obj/structure/closet/secure_closet/engineering_electrical,
+/obj/structure/closet/secure_closet/engineering_electrical{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/machinery/light/small{
 	dir = 1;
 	pixel_y = 20
@@ -14835,7 +14931,8 @@
 /area/lv759/outdoors/colony_streets/central_streets)
 "ctI" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/prison/cell_stripe,
 /area/lv759/indoors/wy_security/checkpoint_east)
@@ -15583,7 +15680,8 @@
 /obj/structure/surface/table/reinforced,
 /obj/structure/machinery/door/window/southleft{
 	dir = 4;
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/item/storage/pill_bottle{
 	pixel_y = 5;
@@ -15807,7 +15905,8 @@
 /area/lv759/indoors/spaceport/security_office)
 "cBY" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	locked = 1
+	locked = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/sign/safety/restrictedarea{
 	pixel_x = 34;
@@ -16333,7 +16432,8 @@
 /area/lv759/indoors/colonial_marshals/armory_foyer)
 "cGy" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(102,104,106,200)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -16681,7 +16781,8 @@
 /area/lv759/indoors/garage_reception)
 "cIx" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/prison/cell_stripe/north,
@@ -17025,7 +17126,8 @@
 /area/lv759/indoors/mining_outpost/south)
 "cLo" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/south_maintenance)
@@ -17456,7 +17558,9 @@
 /turf/open/floor/hybrisa/metal/grated/north,
 /area/lv759/outdoors/colony_streets/central_streets)
 "cOq" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /turf/open/floor/prison/redcorner/north,
 /area/lv759/indoors/colonial_marshals/armory_foyer)
 "cOs" = (
@@ -18559,7 +18663,8 @@
 /area/lv759/indoors/weymart)
 "cXj" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_security/checkpoint_northeast)
@@ -20305,7 +20410,8 @@
 /area/lv759/outdoors/colony_streets/north_street)
 "djH" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -20533,7 +20639,8 @@
 /area/lv759/indoors/spaceport/horizon_runner)
 "dlN" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/wy_research_complex/southeastexit)
@@ -20898,7 +21005,8 @@
 /area/lv759/indoors/colonial_marshals/armory_foyer)
 "dpq" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -21898,7 +22006,8 @@
 /area/lv759/outdoors/landing_zone_2)
 "dxH" = (
 /obj/structure/machinery/door/window/northleft{
-	layer = 3
+	layer = 3;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/surface/table/reinforced/prison{
 	color = "#6b675e"
@@ -23499,7 +23608,9 @@
 "dLB" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/airlock/almayer/engineering/autoname{
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(100)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -23605,7 +23716,9 @@
 /turf/open/floor/almayer/w_y2/north,
 /area/lv759/indoors/spaceport/docking_bay_1)
 "dMH" = (
-/obj/structure/closet/secure_closet/engineering_welding,
+/obj/structure/closet/secure_closet/engineering_welding{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/corsat,
 /area/lv759/indoors/power_plant/equipment_west)
 "dMJ" = (
@@ -23726,7 +23839,10 @@
 /turf/open/floor/plating/platingdmg1,
 /area/lv759/indoors/caves/central_caves_north)
 "dNR" = (
-/obj/structure/machinery/door/window/brigdoor/northleft,
+/obj/structure/machinery/door/window/brigdoor/northleft{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /obj/structure/surface/table/reinforced/prison{
 	color = "#98a3ab"
 	},
@@ -26023,7 +26139,8 @@
 /area/lv759/indoors/southwest_public_restroom)
 "ehw" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -26400,7 +26517,8 @@
 	dir = 4
 	},
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_research_complex/cargo)
@@ -26515,7 +26633,9 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_maintenance_north)
 "elu" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/southwest_maintenance)
 "elA" = (
@@ -27537,7 +27657,9 @@
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/wy_research_complex/hangarbayshuttle)
 "etV" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(100)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -28530,7 +28652,9 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "eDK" = (
-/obj/structure/closet/secure_closet/engineering_personal,
+/obj/structure/closet/secure_closet/engineering_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/prop/hybrisa/misc/redmeter{
 	pixel_y = 32
 	},
@@ -29750,7 +29874,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/south_east_caves)
 "eOc" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/structure/machinery/light/double/blue{
 	dir = 8
 	},
@@ -29839,7 +29965,9 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/jacks_surplus)
 "ePa" = (
-/obj/structure/closet/secure_closet/atmos_personal,
+/obj/structure/closet/secure_closet/atmos_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/corsat,
 /area/lv759/indoors/power_plant/gas_generators)
 "ePb" = (
@@ -29989,7 +30117,10 @@
 /turf/open/hybrisa/street/sidewalk/north,
 /area/lv759/outdoors/colony_streets/south_east_street)
 "eQz" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/structure/window/reinforced{
 	dir = 8
 	},
@@ -30057,7 +30188,9 @@
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 2.8;
 	color = "#a6aeab";
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/effect/decal/hybrisa/colorable_rug{
 	color = "#3d3d3d";
@@ -30109,7 +30242,8 @@
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
 "eRB" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/mainlabs)
@@ -30144,7 +30278,10 @@
 /turf/open/floor/hybrisa/tile/cementflat,
 /area/lv759/indoors/mining_outpost/east_deploymentbay)
 "eRR" = (
-/obj/structure/machinery/door/airlock/almayer/engineering/autoname,
+/obj/structure/machinery/door/airlock/almayer/engineering/autoname{
+	req_one_access = list(102,104,106,200);
+	req_access = null
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant/geothermal_generators)
 "eRT" = (
@@ -30852,7 +30989,8 @@
 	layer = 5
 	},
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -32614,7 +32752,10 @@
 /area/lv759/bunker/checkpoint)
 "fmN" = (
 /obj/structure/platform/metal/almayer/west,
-/obj/structure/machinery/cm_vending/sorted/tech/tool_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/tool_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/prop/hybrisa/misc/redmeter{
 	pixel_y = 32
 	},
@@ -32862,7 +33003,9 @@
 /area/lv759/indoors/spaceport/cargo_maintenance)
 "foM" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass{
-	autoname = 1
+	autoname = 1;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -32990,7 +33133,8 @@
 /area/lv759/outdoors/caves/north_west_caves_outdoors)
 "fqa" = (
 /obj/structure/closet/secure_closet/medical3{
-	req_access_txt = "100"
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/item/clothing/head/helmet/hybrisa/medtech,
 /turf/open/floor/prison/whitered/southeast,
@@ -33381,7 +33525,9 @@
 	},
 /obj/structure/surface/table/reinforced,
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_security/checkpoint_west)
@@ -33549,7 +33695,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer0,
 /area/lv759/indoors/caves/central_caves)
 "fuF" = (
-/obj/structure/closet/secure_closet/brig,
+/obj/structure/closet/secure_closet/brig{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/red/southeast,
 /area/lv759/indoors/colonial_marshals/holding_cells)
 "fuH" = (
@@ -33716,14 +33864,19 @@
 /turf/open/hybrisa/street/cement3,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "fvO" = (
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_access = null;
+	req_one_access = null
+	},
 /obj/structure/machinery/light{
 	dir = 4
 	},
 /turf/open/floor/prison/whitered/east,
 /area/lv759/indoors/hospital/medical_storage)
 "fvX" = (
-/obj/structure/closet/secure_closet/security,
+/obj/structure/closet/secure_closet/security{
+	req_one_access = list(104,106,201)
+	},
 /obj/item/clothing/suit/armor/vest/hybrisa/nspa_vest,
 /obj/item/ammo_magazine/pistol/vp70,
 /obj/item/ammo_magazine/pistol/vp70,
@@ -34247,7 +34400,9 @@
 /area/lv759/indoors/power_plant/workers_canteen)
 "fAa" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass{
-	autoname = 1
+	autoname = 1;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/securitycommand)
@@ -35755,7 +35910,9 @@
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/caves/central_caves_north)
 "fOk" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /turf/open/floor/prison/red/southwest,
 /area/lv759/indoors/colonial_marshals/wardens_office)
 "fOn" = (
@@ -36724,7 +36881,9 @@
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/caves/north_caves/east)
 "fVW" = (
-/obj/structure/closet/secure_closet/engineering_personal,
+/obj/structure/closet/secure_closet/engineering_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/machinery/light{
 	dir = 1
 	},
@@ -38819,7 +38978,8 @@
 "gnH" = (
 /obj/structure/machinery/door/airlock/almayer/security/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -40725,7 +40885,9 @@
 /area/lv759/indoors/mining_outpost/south)
 "gEQ" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass{
-	autoname = 1
+	autoname = 1;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -40968,7 +41130,9 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "E"
 	},
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null
+	},
 /obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent3{
 	pixel_y = 28
 	},
@@ -41644,7 +41808,8 @@
 /area/lv759/indoors/apartment/eastentrance)
 "gLS" = (
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/prison/red/west,
 /area/lv759/indoors/colonial_marshals/press_room)
@@ -41851,7 +42016,9 @@
 /turf/open/floor/kutjevo/grey,
 /area/lv759/indoors/recycling_plant/garage)
 "gOn" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/structure/machinery/light/double/blue,
 /turf/open/floor/prison/red/north,
 /area/lv759/indoors/colonial_marshals/armory_foyer)
@@ -41919,7 +42086,8 @@
 "gOS" = (
 /obj/item/storage/belt/marine,
 /obj/structure/closet/secure_closet/guncabinet{
-	locked = 0
+	locked = 0;
+	req_access = null
 	},
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
@@ -42069,7 +42237,8 @@
 /area/lv759/indoors/wy_research_complex/cafeteria)
 "gPX" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/weyyu_office)
@@ -42236,7 +42405,8 @@
 /area/lv759/indoors/colonial_marshals/prisoners_foyer)
 "gRi" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/armory_firingrange)
@@ -42501,7 +42671,8 @@
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "gST" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -42630,7 +42801,10 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/east_central_street)
 "gTM" = (
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_access = null;
+	req_one_access = null
+	},
 /obj/structure/sign/nosmoking_1{
 	pixel_y = 32;
 	layer = 2.8
@@ -42944,7 +43118,8 @@
 "gWC" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/effect/decal/hybrisa/dirt,
 /turf/open/floor/corsat/officetiles,
@@ -43350,8 +43525,13 @@
 /turf/open/floor/almayer/black/north,
 /area/lv759/indoors/wy_research_complex/cargo)
 "haR" = (
-/obj/structure/machinery/door/window/brigdoor/eastleft,
-/obj/structure/machinery/door/window/brigdoor/westleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null
+	},
+/obj/structure/machinery/door/window/brigdoor/westleft{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /obj/item/clothing/head/hybrisa/nspa_peaked_cap,
 /obj/structure/surface/table/reinforced/prison{
 	color = "#98a3ab"
@@ -43360,7 +43540,8 @@
 /area/lv759/indoors/colonial_marshals/armory)
 "haT" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hallwaynorthexit)
@@ -45691,7 +45872,8 @@
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
 	name = "autoname";
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/armory)
@@ -45985,7 +46167,10 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/central_streets)
 "hyn" = (
-/obj/structure/machinery/cm_vending/sorted/tech/comp_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/comp_storage{
+	req_one_access = list(102,104,106,200);
+	req_access = null
+	},
 /turf/open/floor/corsat,
 /area/lv759/indoors/power_plant/equipment_west)
 "hyr" = (
@@ -46591,7 +46776,9 @@
 /area/lv759/indoors/jacks_surplus)
 "hDd" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname{
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/armory_foyer)
@@ -46810,7 +46997,9 @@
 /turf/open/floor/prison/cell_stripe,
 /area/lv759/outdoors/colony_streets/south_west_street)
 "hEA" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	icon = 'icons/obj/structures/doors/hybrisashutters.dmi';
 	id = "hybrisa_research_labs_lockdown"
@@ -47286,7 +47475,10 @@
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "hID" = (
-/obj/structure/machinery/cm_vending/sorted/medical/chemistry,
+/obj/structure/machinery/cm_vending/sorted/medical/chemistry{
+	req_access = null;
+	req_one_access = null
+	},
 /turf/open/floor/prison/blue,
 /area/lv759/indoors/hospital/pharmacy)
 "hIE" = (
@@ -47755,7 +47947,10 @@
 /turf/open/floor/prison/ramptop/east,
 /area/lv759/indoors/caves/north_west_caves)
 "hMN" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/sign/poster/wylogo{
 	pixel_y = 32
@@ -48109,7 +48304,9 @@
 /obj/effect/decal/cleanable/dirt{
 	layer = 5
 	},
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/morgue)
 "hPL" = (
@@ -48193,7 +48390,9 @@
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/caves/central_caves)
 "hQC" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hallwaysouthwest)
@@ -48470,7 +48669,8 @@
 "hSw" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/machinery/door/poddoor/hybrisa/shutters{
 	id = "bunker_shutters"
@@ -49586,7 +49786,9 @@
 /area/lv759/outdoors/landing_zone_2)
 "ibD" = (
 /obj/structure/machinery/light/small,
-/obj/structure/closet/secure_closet/engineering_personal,
+/obj/structure/closet/secure_closet/engineering_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/prison/darkbrown2/northwest,
 /area/lv759/indoors/power_plant/south_hallway)
 "ibR" = (
@@ -49849,7 +50051,9 @@
 "ieg" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant/south_hallway)
@@ -49880,7 +50084,10 @@
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
 "ieo" = (
-/obj/structure/machinery/smartfridge/secure/virology,
+/obj/structure/machinery/smartfridge/secure/virology{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/indoors/hospital/virology)
 "iet" = (
@@ -50674,7 +50881,8 @@
 	dir = 1
 	},
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/pizzaria)
@@ -50900,7 +51108,9 @@
 /turf/open/floor/prison/whitegreen/west,
 /area/lv759/indoors/hospital/central_hallway)
 "imM" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/hallway_north)
 "imN" = (
@@ -51797,7 +52007,9 @@
 /area/lv759/indoors/landing_zone_2/kmcc_hub_cargo)
 "iuj" = (
 /obj/structure/machinery/door/airlock/almayer/engineering/autoname{
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant/geothermal_generators)
@@ -52621,7 +52833,8 @@
 "izC" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/prisoners_foyer)
@@ -52757,7 +52970,9 @@
 /turf/open/floor/hybrisa/tile/tilewhite,
 /area/lv759/indoors/hospital/patient_ward)
 "iAT" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/reception)
@@ -52933,11 +53148,14 @@
 /area/lv759/indoors/wy_research_complex/securityarmory)
 "iCo" = (
 /obj/structure/machinery/door/window/southleft{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/prison,
 /area/lv759/indoors/wy_research_complex/securityarmory)
@@ -53048,7 +53266,9 @@
 /turf/open/floor/hybrisa/tile/tilewhite,
 /area/lv759/indoors/wy_research_complex/mainlabs)
 "iCN" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
+	req_one_access = list(104,106,201)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/hallway_reception)
@@ -53415,7 +53635,9 @@
 	pixel_y = 12;
 	pixel_x = 4;
 	density = 0;
-	wrenchable = 0
+	wrenchable = 0;
+	req_access = null;
+	req_one_access = null
 	},
 /obj/structure/barricade/handrail/medical{
 	dir = 1;
@@ -54259,7 +54481,9 @@
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/mining_outpost/south)
 "iNB" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/meridian/meridian_factory)
 "iNJ" = (
@@ -54310,7 +54534,10 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer3,
 /area/lv759/outdoors/caves/north_west_caves_outdoors)
 "iOl" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/item/explosive/plastic{
 	desc = "A compact explosive charge for controlled demolitions. Looks to be made from C4";
 	name = "Mining explosives"
@@ -54644,7 +54871,9 @@
 /obj/structure/machinery/door/airlock/almayer/engineering/glass{
 	dir = 1;
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(100)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/mining_outpost/northeast)
@@ -54740,7 +54969,9 @@
 "iRQ" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant/geothermal_generators)
@@ -55564,7 +55795,10 @@
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "iZJ" = (
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_access = null;
+	req_one_access = null
+	},
 /turf/open/floor/prison/blue/southeast,
 /area/lv759/indoors/hospital/pharmacy)
 "iZK" = (
@@ -55675,7 +55909,10 @@
 /turf/open/floor/hybrisa/metal/grated/north,
 /area/lv759/outdoors/colony_streets/east_central_street)
 "jay" = (
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_access = null;
+	req_one_access = null
+	},
 /turf/open/floor/prison/whitered/northeast,
 /area/lv759/indoors/hospital/medical_storage)
 "jaA" = (
@@ -56328,7 +56565,9 @@
 /turf/open/floor/kutjevo/fake_wood,
 /area/lv759/indoors/bar)
 "jgs" = (
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null
+	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "E"
 	},
@@ -56565,7 +56804,9 @@
 /turf/open/hybrisa/street/sidewalk/west,
 /area/lv759/outdoors/colony_streets/central_streets)
 "jiA" = (
-/obj/structure/closet/secure_closet/engineering_electrical,
+/obj/structure/closet/secure_closet/engineering_electrical{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/machinery/light/blue{
 	dir = 8
 	},
@@ -56580,7 +56821,8 @@
 /area/lv759/indoors/casino/casino_vault)
 "jiD" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/pizzaria)
@@ -57193,7 +57435,9 @@
 "jnS" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/comdoor/reinforced{
 	autoname = 1;
-	name = "\improper Reinforced Airlock"
+	name = "\improper Reinforced Airlock";
+	req_access = null;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/communications_office)
@@ -57687,7 +57931,10 @@
 /turf/open/floor/prison/red/north,
 /area/lv759/indoors/colonial_marshals/wardens_office)
 "jsu" = (
-/obj/structure/machinery/cm_vending/sorted/tech/tool_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/tool_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/pipes/standard/manifold/hidden/dark{
 	dir = 1
 	},
@@ -57740,7 +57987,7 @@
 	autoname = 1;
 	name = "autoname reinforced";
 	locked = 1;
-	req_one_access = null
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/hospital/morgue)
@@ -57961,7 +58208,8 @@
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
 "juo" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/maintenance_north)
@@ -58797,7 +59045,9 @@
 	pixel_x = -1
 	},
 /obj/structure/machinery/cm_vending/sorted/boozeomat{
-	pixel_y = 4
+	pixel_y = 4;
+	req_access = null;
+	req_one_access = null
 	},
 /obj/structure/sign/poster/pinup{
 	pixel_y = 32
@@ -59706,7 +59956,9 @@
 /turf/open/floor/almayer/plating/northeast,
 /area/lv759/indoors/weyyu_office/pressroom)
 "jJb" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,201)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -60603,7 +60855,9 @@
 /area/lv759/indoors/landing_zone_2/kmcc_hub_maintenance)
 "jRA" = (
 /obj/structure/pipes/standard/simple/hidden/dark,
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/solid/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/solid/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hallwayeast)
 "jRF" = (
@@ -63503,7 +63757,10 @@
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/outdoors/landing_zone_1)
 "kpr" = (
-/obj/structure/machinery/vending/security,
+/obj/structure/machinery/vending/security{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/red/west,
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
 "kps" = (
@@ -63654,7 +63911,8 @@
 "kqo" = (
 /obj/item/storage/belt/marine,
 /obj/structure/closet/secure_closet/guncabinet{
-	locked = 0
+	locked = 0;
+	req_access = null
 	},
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
@@ -63664,7 +63922,10 @@
 /obj/structure/sign/poster/corporate{
 	pixel_y = 32
 	},
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/machinery/light/small/blue{
 	dir = 8;
 	pixel_y = -16
@@ -63961,7 +64222,8 @@
 "krW" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/holding_cells)
@@ -64658,7 +64920,8 @@
 /area/lv759/indoors/electical_systems/substation2)
 "kwC" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/effect/decal/hybrisa/dirt_2,
 /turf/open/floor/plating,
@@ -65566,7 +65829,9 @@
 /turf/open/floor/almayer/cargo,
 /area/lv759/indoors/spaceport/baggagehandling)
 "kET" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/item/clothing/suit/storage/CMB/hybrisa/nspa_jacket,
 /turf/open/floor/prison/red/southeast,
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
@@ -67048,7 +67313,9 @@
 /turf/open/floor/strata/floor3,
 /area/lv759/indoors/power_plant/geothermal_generators)
 "kSf" = (
-/obj/structure/closet/secure_closet/engineering_electrical,
+/obj/structure/closet/secure_closet/engineering_electrical{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/plate,
 /area/lv759/indoors/colonial_marshals/garage)
@@ -67073,7 +67340,8 @@
 /area/lv759/indoors/caves/north_caves/east)
 "kSr" = (
 /obj/structure/machinery/door/airlock/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -67852,7 +68120,9 @@
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(103,104,105,106,200)
+	},
 /obj/effect/decal/hybrisa/dirt,
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/maintenance_north)
@@ -68425,7 +68695,9 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "S"
 	},
-/obj/structure/closet/secure_closet/security,
+/obj/structure/closet/secure_closet/security{
+	req_one_access = list(104,106,201)
+	},
 /obj/item/clothing/under/marine/veteran/pmc/corporate/hybrisa,
 /obj/item/clothing/suit/storage/marine/veteran/pmc/light/corporate/lead,
 /obj/item/clothing/head/helmet/marine/veteran/pmc/corporate/hybrisa,
@@ -68667,7 +68939,8 @@
 /area/lv759/indoors/wy_research_complex/hallwaysouthwest)
 "lfA" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -68778,7 +69051,8 @@
 /area/lv759/indoors/meridian/meridian_factory)
 "lgv" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
-	dir = 2
+	dir = 2;
+	req_one_access = list(100)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/weyyu_office/hallway)
@@ -69094,9 +69368,16 @@
 /turf/open/hybrisa/street/sidewalk/east,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "ljU" = (
-/obj/structure/closet/secure_closet/personal,
-/obj/item/attachable/magnetic_harness,
-/obj/item/storage/pouch/shotgun/large/buckshot,
+/obj/structure/closet/secure_closet/personal{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
+/obj/item/clothing/suit/storage/CMB/trenchcoat/grey,
+/obj/item/clothing/head/fedora/grey,
+/obj/item/clothing/accessory/storage/holster/armpit,
+/obj/item/weapon/gun/revolver/small,
+/obj/item/ammo_magazine/revolver/small,
+/obj/item/ammo_magazine/revolver/small,
 /turf/open/floor/hybrisa/wood/darkerwood,
 /area/lv759/indoors/colonial_marshals/head_office)
 "lka" = (
@@ -69107,7 +69388,10 @@
 /turf/open/floor/almayer/test_floor4,
 /area/lv759/indoors/wy_research_complex/xenoarcheology)
 "lkd" = (
-/obj/structure/closet/secure_closet/personal,
+/obj/structure/closet/secure_closet/personal{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /turf/open/floor/kutjevo/grey,
 /area/lv759/indoors/meridian/meridian_foyer)
 "lkh" = (
@@ -69745,7 +70029,8 @@
 	dir = 4
 	},
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hallwaynorth)
@@ -69794,7 +70079,9 @@
 /area/lv759/indoors/spaceport/maintenance_east)
 "lpw" = (
 /obj/structure/machinery/door/window/brigdoor/northleft{
-	dir = 8
+	dir = 8;
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/machinery/door/window/eastleft,
 /obj/structure/surface/table/reinforced/prison{
@@ -73452,7 +73739,8 @@
 	pixel_x = 1
 	},
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	icon = 'icons/obj/structures/doors/hybrisashutters.dmi';
@@ -74845,7 +75133,10 @@
 /turf/open/floor/hybrisa/tile/tilewhite,
 /area/lv759/indoors/wy_research_complex/mainlabs)
 "meK" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/mining_outpost/northeast)
 "meP" = (
@@ -75761,7 +76052,10 @@
 /turf/open/floor/prison/ramptop,
 /area/lv759/outdoors/colony_streets/south_west_street)
 "mml" = (
-/obj/structure/machinery/vending/security,
+/obj/structure/machinery/vending/security{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/red/north,
 /area/lv759/indoors/colonial_marshals/armory_foyer)
 "mmo" = (
@@ -76066,7 +76360,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer0,
 /area/lv759/indoors/caves/central_caves)
 "moR" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
+	req_one_access = list(100)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -76326,7 +76622,9 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/south_east_street)
 "mqN" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/item/clothing/suit/storage/CMB/hybrisa/nspa_formal_jacket,
 /obj/item/clothing/head/hybrisa/nspa_peaked_cap_goldandsilver,
 /turf/open/floor/prison/red/north,
@@ -77160,7 +77458,10 @@
 /turf/closed/wall/hybrisa/research/reinforced,
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "mye" = (
-/obj/structure/machinery/cm_vending/sorted/tech/tool_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/tool_storage{
+	req_one_access = list(102,104,106,200);
+	req_access = null
+	},
 /turf/open/floor/corsat,
 /area/lv759/indoors/power_plant/equipment_west)
 "myg" = (
@@ -77219,7 +77520,8 @@
 /area/lv759/indoors/spaceport/docking_bay_1)
 "myB" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -77232,7 +77534,9 @@
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/xenoarcheology)
 "myD" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /turf/open/floor/prison/red/southeast,
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
 "myF" = (
@@ -77979,7 +78283,9 @@
 /turf/open/floor/almayer/plating/northeast,
 /area/lv759/indoors/weyyu_office/pressroom)
 "mEP" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
+	req_one_access = list(100)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/apartment/northapartments)
 "mER" = (
@@ -78131,7 +78437,8 @@
 /area/lv759/indoors/weymart)
 "mFV" = (
 /obj/structure/machinery/door/airlock/hybrisa/medical/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/structure/machinery/door/poddoor/shutters/almayer{
@@ -78703,7 +79010,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street)
 "mLr" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -79986,7 +80294,10 @@
 /turf/open/floor/prison/darkbrown3,
 /area/lv759/indoors/caves/south_west_caves)
 "mXO" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/structure/machinery/light{
 	dir = 4
 	},
@@ -80360,7 +80671,9 @@
 /turf/open/floor/hybrisa/metal/bluemetalfull,
 /area/lv759/indoors/spaceport/flight_control_room)
 "naR" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/cell_stripe/east,
 /area/lv759/indoors/wy_security/checkpoint_west)
 "naS" = (
@@ -81001,14 +81314,18 @@
 "nfU" = (
 /obj/item/storage/belt/marine,
 /obj/structure/closet/secure_closet/guncabinet{
-	locked = 0
+	locked = 0;
+	req_access = null
 	},
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/weapon/gun/rifle/m41a/corporate/no_lock,
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/prison/bright_clean_marked/southwest,
 /area/lv759/indoors/wy_security/checkpoint_west)
 "nfW" = (
@@ -81145,7 +81462,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street)
 "nhE" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/bunker/checkpoint)
@@ -81978,7 +82296,9 @@
 	},
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 4;
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/weymart)
@@ -82837,7 +83157,10 @@
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/meridian/meridian_maintenance)
 "nuX" = (
-/obj/structure/closet/secure_closet/medical2,
+/obj/structure/closet/secure_closet/medical2{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/indoors/hospital/virology)
 "nvb" = (
@@ -82994,7 +83317,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street_left)
 "nwK" = (
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/almayer/plating_striped,
 /area/lv759/indoors/power_plant/fusion_generators)
@@ -84668,7 +84992,10 @@
 /turf/open/floor/strata/yellow3/west,
 /area/lv759/indoors/power_plant/geothermal_generators)
 "nLJ" = (
-/obj/structure/machinery/cm_vending/sorted/tech/comp_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/comp_storage{
+	req_one_access = list(102,104,106,200);
+	req_access = null
+	},
 /obj/structure/machinery/light{
 	dir = 1
 	},
@@ -84755,7 +85082,9 @@
 "nMi" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/prison/cell_stripe,
 /area/lv759/indoors/power_plant/fusion_generators)
@@ -84905,7 +85234,8 @@
 /area/lv759/outdoors/landing_zone_2/kmcc_hub_cargo_entrance_south)
 "nNt" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/prison/cell_stripe,
@@ -86585,7 +86915,8 @@
 /area/lv759/indoors/hospital/virology)
 "nZF" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -87368,7 +87699,9 @@
 /turf/open/hybrisa/street/sidewalkfull,
 /area/lv759/outdoors/colony_streets/south_east_street)
 "ofZ" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	icon = 'icons/obj/structures/doors/hybrisashutters.dmi';
 	id = "hybrisa_research_labs_lockdown"
@@ -87996,7 +88329,9 @@
 /obj/structure/machinery/door/window/brigdoor/westleft{
 	icon_state = "leftsecure";
 	id = "brg";
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/barricade/handrail/medical{
 	dir = 4
@@ -89907,7 +90242,10 @@
 /area/lv759/indoors/caves/central_caves)
 "oBV" = (
 /obj/structure/machinery/light/blue,
-/obj/structure/machinery/cm_vending/sorted/boozeomat,
+/obj/structure/machinery/cm_vending/sorted/boozeomat{
+	req_access = null;
+	req_one_access = null
+	},
 /turf/open/floor/strata/orange_icorner/east,
 /area/lv759/indoors/weymart)
 "oBY" = (
@@ -90070,7 +90408,8 @@
 /obj/structure/machinery/door/airlock/almayer/security/reinforced/colony{
 	autoname = 1;
 	name = "autoname";
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/spaceport/security)
@@ -90461,7 +90800,9 @@
 /turf/open/floor/hybrisa/carpet/carpet_colorable/blue,
 /area/lv759/indoors/bar/entertainment)
 "oHN" = (
-/obj/structure/closet/crate/secure/mortar_ammo/mortar_kit/hvh/pmc,
+/obj/structure/closet/crate/secure/mortar_ammo/mortar_kit/hvh/pmc{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/almayer/cargo,
 /area/lv759/indoors/wy_research_complex/cargo)
 "oIa" = (
@@ -91857,7 +92198,8 @@
 /area/lv759/indoors/caves/central_caves_north)
 "oTG" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/hangarbay)
@@ -92164,7 +92506,9 @@
 /turf/open/floor/hybrisa/tile/tilewhitecheckered,
 /area/lv759/indoors/hospital/virology)
 "oVF" = (
-/obj/structure/machinery/smartfridge/chemistry/virology,
+/obj/structure/machinery/smartfridge/chemistry/virology{
+	req_one_access = null
+	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/indoors/hospital/virology)
 "oVP" = (
@@ -92565,7 +92909,8 @@
 /area/lv759/outdoors/colony_streets/north_street)
 "oZZ" = (
 /obj/structure/closet/secure_closet/medical3{
-	req_access_txt = "100"
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/machinery/light,
 /turf/open/floor/prison/whitered,
@@ -93519,7 +93864,10 @@
 /turf/open/floor/prison/sterile_white,
 /area/lv759/indoors/hospital/reception)
 "piv" = (
-/obj/structure/machinery/cm_vending/sorted/tech/electronics_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/electronics_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent3{
 	pixel_y = 28
 	},
@@ -94912,7 +95260,9 @@
 /obj/structure/machinery/door/window/brigdoor/westleft{
 	icon_state = "leftsecure";
 	id = "brg";
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/whitegreen/southwest,
 /area/lv759/indoors/weymart)
@@ -95191,7 +95541,8 @@
 /area/lv759/indoors/caves/central_caves_north)
 "pwU" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/wardens_office)
@@ -95450,7 +95801,9 @@
 /area/lv759/indoors/apartment/westbedrooms)
 "pyH" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/autoname{
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(100)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/electical_systems/substation3)
@@ -95529,7 +95882,10 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/recycling_plant)
 "pzj" = (
-/obj/structure/machinery/cm_vending/sorted/tech/comp_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/comp_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/prop/hybrisa/misc/machinery/screens/frame{
 	pixel_y = 32
 	},
@@ -96026,7 +96382,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street_left)
 "pDy" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -96467,7 +96824,10 @@
 /area/lv759/indoors/jacks_surplus)
 "pHl" = (
 /obj/structure/platform_decoration/metal/strata/north,
-/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname{
+	req_access = null;
+	req_one_access = list(104,106,200,201)
+	},
 /turf/open/floor/strata/red1,
 /area/lv759/indoors/spaceport/security)
 "pHm" = (
@@ -96996,7 +97356,9 @@
 /area/lv759/indoors/bar)
 "pMd" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
-	dir = 1
+	dir = 1;
+	req_one_access = list(102,104,106,200);
+	req_access = null
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/power_plant)
@@ -98436,7 +98798,9 @@
 /turf/open/floor/prison/ramptop,
 /area/lv759/indoors/caves/north_west_caves)
 "pZb" = (
-/obj/structure/closet/secure_closet/chemical,
+/obj/structure/closet/secure_closet/chemical{
+	req_access = null
+	},
 /obj/item/storage/box/pillbottles,
 /obj/structure/machinery/light{
 	dir = 8
@@ -99163,7 +99527,9 @@
 /turf/open/floor/kutjevo/grey,
 /area/lv759/indoors/meridian/meridian_office)
 "qgm" = (
-/obj/structure/closet/secure_closet/hybrisa/nspa,
+/obj/structure/closet/secure_closet/hybrisa/nspa{
+	req_one_access = list(3,104,106,201)
+	},
 /obj/item/clothing/suit/storage/CMB/hybrisa/nspa_formal_jacket,
 /turf/open/floor/prison/redcorner,
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
@@ -100062,7 +100428,8 @@
 "qnX" = (
 /obj/structure/machinery/door/airlock/almayer/security/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/strata/floor3,
 /area/lv759/indoors/spaceport/security)
@@ -100078,7 +100445,7 @@
 	autoname = 1;
 	name = "autoname reinforced";
 	dir = 1;
-	req_one_access = null;
+	req_one_access = list(103,104,105,106,200);
 	locked = 1
 	},
 /turf/open/floor/plating,
@@ -100405,7 +100772,8 @@
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
 	name = "autoname";
-	dir = 1
+	dir = 1;
+	req_one_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/prisoners_cells)
@@ -100473,7 +100841,9 @@
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 2.8;
 	color = "#a6aeab";
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/weymart)
@@ -100890,7 +101260,9 @@
 "qux" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/comdoor/reinforced{
 	autoname = 1;
-	name = "\improper Reinforced Airlock"
+	name = "\improper Reinforced Airlock";
+	req_access = null;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/plating,
@@ -101028,7 +101400,8 @@
 /obj/structure/closet/secure_closet{
 	pixel_y = 20;
 	pixel_x = -6;
-	density = 0
+	density = 0;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/machinery/light/small/blue{
 	dir = 8
@@ -101255,7 +101628,8 @@
 /area/lv759/indoors/apartment/westhallway)
 "qxl" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/weaponresearchlabtesting)
@@ -101699,7 +102073,8 @@
 /area/lv759/outdoors/colony_streets/north_east_street_LZ)
 "qBz" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -102257,7 +102632,9 @@
 /area/lv759/indoors/spaceport/horizon_runner)
 "qHK" = (
 /obj/effect/decal/hybrisa/dirt,
-/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
+	req_one_access = list(100)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/cuppajoes)
 "qHP" = (
@@ -103039,7 +103416,9 @@
 	},
 /obj/structure/surface/table/reinforced,
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/prison,
 /area/lv759/indoors/wy_security/checkpoint_central)
@@ -103251,13 +103630,15 @@
 /area/lv759/indoors/power_plant/south_hallway)
 "qOI" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/power_plant/equipment_east)
 "qON" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/box,
 /area/lv759/indoors/wy_research_complex/head_research_office)
@@ -103304,7 +103685,8 @@
 /area/lv759/indoors/caves/north_west_caves)
 "qOT" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -103456,7 +103838,10 @@
 /turf/open/floor/hybrisa/metal/zbrownfloor1/east,
 /area/lv759/indoors/meridian/meridian_office)
 "qPS" = (
-/obj/structure/closet/secure_closet/medical_doctor,
+/obj/structure/closet/secure_closet/medical_doctor{
+	req_access = null;
+	req_one_access = list(105)
+	},
 /turf/open/floor/wood,
 /area/lv759/indoors/hospital/cmo_office)
 "qPZ" = (
@@ -104830,7 +105215,9 @@
 /turf/open/floor/hybrisa/tile/cementflat,
 /area/lv759/indoors/mining_outpost/east_deploymentbay)
 "rcf" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/prison/southwest,
 /area/lv759/indoors/hospital/virology)
 "rch" = (
@@ -105436,7 +105823,8 @@
 /area/lv759/indoors/spaceport/kitchen)
 "rgO" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
@@ -105519,7 +105907,9 @@
 /turf/open/floor/prison/darkbrown2/west,
 /area/lv759/indoors/recycling_plant/garage)
 "rhL" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(104,106,201)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -106608,7 +106998,8 @@
 "rrU" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -107325,7 +107716,9 @@
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/caves/central_caves)
 "ryr" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/reception)
 "ryu" = (
@@ -107548,7 +107941,10 @@
 /turf/open/floor/grimy,
 /area/lv759/indoors/apartment/westhallway)
 "rzK" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "SW-out"
 	},
@@ -108843,7 +109239,8 @@
 "rKf" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/comdoor/reinforced{
 	autoname = 1;
-	name = "\improper Reinforced Airlock"
+	name = "\improper Reinforced Airlock";
+	req_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/reception)
@@ -109880,7 +110277,9 @@
 /turf/open/floor/hybrisa/tile/tilegrey,
 /area/lv759/indoors/casino)
 "rRm" = (
-/obj/structure/closet/secure_closet/brig,
+/obj/structure/closet/secure_closet/brig{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/prison/red/southwest,
 /area/lv759/indoors/colonial_marshals/holding_cells)
 "rRq" = (
@@ -110307,7 +110706,8 @@
 /area/lv759/indoors/weyyu_office/floor)
 "rUq" = (
 /obj/structure/closet/secure_closet/guncabinet{
-	locked = 0
+	locked = 0;
+	req_access = null
 	},
 /obj/item/storage/belt/marine,
 /obj/structure/machinery/light/double/blue,
@@ -110749,7 +111149,9 @@
 /turf/open/floor/hybrisa/carpet/carpetbeigedeco,
 /area/lv759/indoors/colonial_marshals/office)
 "rYh" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/press_room)
 "rYi" = (
@@ -110784,7 +111186,8 @@
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "rYC" = (
 /obj/structure/machinery/door/airlock/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -111350,7 +111753,8 @@
 /area/lv759/indoors/power_plant/geothermal_generators)
 "scI" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/bunker/checkpoint)
@@ -111481,7 +111885,9 @@
 "sev" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/airlock/almayer/engineering/autoname{
-	dir = 8
+	dir = 8;
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant)
@@ -112489,7 +112895,8 @@
 	layer = 3.3
 	},
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/prison/darkbrown3,
 /area/lv759/indoors/meridian/meridian_factory)
@@ -112544,7 +112951,8 @@
 "snz" = (
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_security/checkpoint_central)
@@ -113123,7 +113531,9 @@
 	},
 /obj/structure/machinery/cm_vending/sorted/medical/no_access{
 	pixel_y = 16;
-	density = 0
+	density = 0;
+	req_access = null;
+	req_one_access = null
 	},
 /turf/open/floor/hybrisa/metal/greenmetal1/northeast,
 /area/lv759/bunker/checkpoint)
@@ -113159,7 +113569,9 @@
 /area/lv759/indoors/casino)
 "ssy" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass{
-	autoname = 1
+	autoname = 1;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/securitycommand)
@@ -113217,7 +113629,8 @@
 /area/lv759/indoors/mining_outpost/south)
 "ssL" = (
 /obj/structure/closet/secure_closet/engineering_electrical{
-	pixel_x = -16
+	pixel_x = -16;
+	req_one_access = list(102,104,106,200)
 	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/surface/rack{
@@ -114500,7 +114913,10 @@
 /turf/open/hybrisa/street/roadlines3,
 /area/lv759/indoors/colonial_marshals/garage)
 "sDi" = (
-/obj/structure/closet/secure_closet/personal,
+/obj/structure/closet/secure_closet/personal{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /obj/structure/curtain/colorable_transparent{
 	color = "#b3aa9b";
 	alpha = 220;
@@ -115401,7 +115817,9 @@
 /turf/open/floor/hybrisa/carpet/carpetgreen,
 /area/lv759/indoors/recycling_plant_office)
 "sLO" = (
-/obj/structure/closet/secure_closet/engineering_personal,
+/obj/structure/closet/secure_closet/engineering_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/prison/darkbrown2/north,
 /area/lv759/indoors/power_plant/south_hallway)
 "sLS" = (
@@ -115672,7 +116090,7 @@
 	pixel_x = -8;
 	pixel_y = 33;
 	phone_category = "Colony-Net";
-	phone_id = "Bar"
+	phone_id = "North Hybrisa Bar"
 	},
 /turf/open/floor/hybrisa/tile/tilered,
 /area/lv759/indoors/bar)
@@ -116089,7 +116507,9 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/south_west_street)
 "sRM" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_security/checkpoint_central)
 "sRQ" = (
@@ -116695,7 +117115,8 @@
 /area/lv759/indoors/wy_research_complex/cargo)
 "sXn" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid_white/autoname{
-	dir = 8
+	dir = 8;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	dir = 4;
@@ -117943,7 +118364,9 @@
 	},
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 4;
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_one_access = list(103,104,105,106,200);
+	req_access = null
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/weymart)
@@ -118402,7 +118825,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street)
 "tjN" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/black_double/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/meridian/meridian_foyer)
@@ -119506,7 +119930,8 @@
 "tsM" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/medical_solid/autoname{
 	dir = 1;
-	locked = 1
+	locked = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/virology)
@@ -120182,7 +120607,9 @@
 	},
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 4;
-	color = "#a6aeab"
+	color = "#a6aeab";
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/whitegreenfull,
 /area/lv759/indoors/weymart)
@@ -120689,7 +121116,10 @@
 /turf/open/floor/prison/darkyellow2/north,
 /area/lv759/indoors/wy_research_complex/hallwaynorth)
 "tCN" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/mining_outpost/east)
 "tCP" = (
@@ -121845,8 +122275,13 @@
 /turf/open/floor/almayer/cargo_arrow,
 /area/lv759/indoors/spaceport/heavyequip)
 "tME" = (
-/obj/structure/machinery/door/window/brigdoor/westright,
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/westright{
+	req_access = null
+	},
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /obj/item/card/id,
 /obj/structure/surface/table/reinforced/prison{
 	color = "#98a3ab"
@@ -122261,8 +122696,13 @@
 /turf/open/floor/hybrisa/tile/tilewhite,
 /area/lv759/indoors/wy_research_complex/mainlabs)
 "tQC" = (
-/obj/structure/machinery/door/window/brigdoor/eastleft,
-/obj/structure/machinery/door/window/brigdoor/westleft,
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null
+	},
+/obj/structure/machinery/door/window/brigdoor/westleft{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /obj/item/weapon/shield/riot/metal,
 /obj/structure/surface/table/reinforced/prison{
 	color = "#98a3ab"
@@ -123799,7 +124239,8 @@
 "udQ" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/prisoners_recreation_area)
@@ -124601,7 +125042,8 @@
 /area/lv759/indoors/caves/south_east_caves)
 "ulA" = (
 /obj/structure/machinery/door/airlock/hybrisa/medical_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/bunker/checkpoint)
@@ -125425,7 +125867,8 @@
 /area/lv759/outdoors/colony_streets/east_central_street)
 "uss" = (
 /obj/structure/machinery/door/window/southleft{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/surface/table/reinforced/prison{
 	color = "#8e98a0"
@@ -127180,8 +127623,7 @@
 /obj/structure/machinery/door/airlock/almayer/maint/reinforced/colony{
 	autoname = 1;
 	name = "autoname reinforced";
-	locked = 1;
-	req_one_access = null
+	locked = 1
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/docking_bay_2)
@@ -127762,7 +128204,9 @@
 /turf/open/floor/kutjevo/fake_wood,
 /area/lv759/indoors/bar)
 "uKA" = (
-/obj/structure/machinery/door/window/brigdoor/northleft,
+/obj/structure/machinery/door/window/brigdoor/northleft{
+	req_access = null
+	},
 /turf/open/floor/hybrisa/metal/greenmetal1/north,
 /area/lv759/indoors/colonial_marshals/prisoners_recreation_area)
 "uKC" = (
@@ -129127,7 +129571,8 @@
 /area/lv759/indoors/wy_research_complex/securityarmory)
 "uUH" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/power_plant/transformers_south)
@@ -129537,7 +129982,8 @@
 /area/lv759/indoors/wy_security/checkpoint_west)
 "uXV" = (
 /obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/pipes/standard/simple/hidden/dark,
@@ -129955,7 +130401,10 @@
 /turf/open/floor/almayer/black/west,
 /area/lv759/indoors/wy_research_complex/mainlabs)
 "vbL" = (
-/obj/structure/machinery/cm_vending/sorted/tech/electronics_storage,
+/obj/structure/machinery/cm_vending/sorted/tech/electronics_storage{
+	req_access = null;
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/corsat,
 /area/lv759/indoors/power_plant/equipment_west)
 "vbO" = (
@@ -130152,7 +130601,8 @@
 /area/lv759/indoors/spaceport/docking_bay_2)
 "vdl" = (
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/prison/red/east,
 /area/lv759/indoors/colonial_marshals/press_room)
@@ -131298,7 +131748,9 @@
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/wy_research_complex/vehicledeploymentbay)
 "voM" = (
-/obj/structure/machinery/door/window/brigdoor/southright,
+/obj/structure/machinery/door/window/brigdoor/southright{
+	req_access = null
+	},
 /turf/open/floor/almayer/plating_striped,
 /area/lv759/indoors/power_plant/fusion_generators)
 "voT" = (
@@ -131468,7 +131920,10 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/outdoors/landing_zone_2/kmcc_hub_cargo_entrance_south)
 "vqh" = (
-/obj/structure/machinery/cm_vending/sorted/medical/blood,
+/obj/structure/machinery/cm_vending/sorted/medical/blood{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /obj/structure/curtain/medical{
 	pixel_y = 32
 	},
@@ -132159,7 +132614,9 @@
 /turf/open/floor/hybrisa/metal/bluemetalfull,
 /area/lv759/indoors/spaceport/communications_office)
 "vvr" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/generic/autoname{
+	req_one_access = list(100)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/weyyu_office)
 "vvB" = (
@@ -132855,7 +133312,9 @@
 /obj/structure/machinery/door/window/brigdoor/westleft{
 	dir = 4;
 	icon_state = "leftsecure";
-	id = "brg"
+	id = "brg";
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /obj/item/paper_bin,
 /obj/item/tool/pen/blue{
@@ -132874,7 +133333,8 @@
 /area/lv759/outdoors/colony_streets/south_west_street)
 "vBr" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/prison/cell_stripe/north,
 /area/lv759/indoors/wy_security/checkpoint_west)
@@ -133096,7 +133556,8 @@
 "vDk" = (
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_flight_control_room)
@@ -133466,7 +133927,8 @@
 /area/lv759/outdoors/colony_streets/north_east_street_LZ)
 "vGv" = (
 /obj/structure/machinery/door/airlock/hybrisa/medical/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/prison/sterile_white,
 /area/lv759/indoors/hospital/pharmacy)
@@ -133501,7 +133963,9 @@
 /obj/structure/machinery/door/window/brigdoor/southleft{
 	layer = 2.8;
 	color = "#a6aeab";
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/effect/decal/hybrisa/colorable_rug{
 	color = "#3d3d3d";
@@ -133603,7 +134067,10 @@
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/caves/north_east_caves)
 "vHF" = (
-/obj/structure/machinery/cm_vending/sorted/medical/blood,
+/obj/structure/machinery/cm_vending/sorted/medical/blood{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/prison/red/north,
 /area/lv759/indoors/hospital/icu)
 "vHP" = (
@@ -134922,7 +135389,9 @@
 /turf/open/floor/strata/orange_edge/east,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "vSc" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_white/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_white/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	icon = 'icons/obj/structures/doors/hybrisashutters.dmi';
@@ -135465,7 +135934,9 @@
 /area/lv759/indoors/landing_zone_2/kmcc_hub_fuel)
 "vWD" = (
 /obj/structure/machinery/door/airlock/almayer/secure/autoname{
-	locked = 1
+	locked = 1;
+	req_access = null;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/sign/safety/restrictedarea{
 	pixel_x = -17;
@@ -135637,7 +136108,9 @@
 "vXV" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor/glass{
 	autoname = 1;
-	name = "\improper Airlock"
+	name = "\improper Airlock";
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -135929,7 +136402,8 @@
 /area/lv759/indoors/weymart)
 "waD" = (
 /obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/power_plant/transformers_north)
@@ -136243,7 +136717,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/wy_research_complex_entrance)
 "wdm" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
+	req_one_access = list(100)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_research_complex/dormsbedroom)
 "wdr" = (
@@ -137063,7 +137539,8 @@
 /area/lv759/outdoors/colony_streets/south_east_street)
 "wjv" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -137656,7 +138133,9 @@
 /turf/open/floor/plating/plating_catwalk/aicore/white,
 /area/lv759/indoors/hotel/hotel_rooms)
 "wof" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(104,106,200,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/spaceport/security_office)
 "wog" = (
@@ -137875,7 +138354,8 @@
 /area/lv759/indoors/hospital/cryo_room)
 "wpQ" = (
 /obj/structure/machinery/door/airlock/hybrisa/medical_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/paramedics_garage)
@@ -138858,7 +139338,8 @@
 "wzm" = (
 /obj/structure/machinery/door/airlock/almayer/security/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -139467,7 +139948,8 @@
 	pixel_x = 1
 	},
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /obj/structure/machinery/door_control{
 	id = "hybrisa_armory";
@@ -139559,9 +140041,13 @@
 /turf/open/floor/hybrisa/tile/tilegreen,
 /area/lv759/indoors/garage_managersoffice)
 "wEQ" = (
-/obj/structure/machinery/door/window/brigdoor/northleft,
 /obj/structure/machinery/door/window/brigdoor/northleft{
-	dir = 2
+	req_access = null
+	},
+/obj/structure/machinery/door/window/brigdoor/northleft{
+	dir = 2;
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
 	},
 /obj/structure/surface/table/reinforced/prison{
 	color = "#b7b8b2"
@@ -139874,7 +140360,10 @@
 /turf/open/floor/corsat,
 /area/lv759/indoors/spaceport/maintenance_east)
 "wHD" = (
-/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/hallway_north_locker)
 "wHF" = (
@@ -140067,7 +140556,9 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/meridian/meridian_showroom)
 "wJV" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -140151,7 +140642,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/north_east_caves)
 "wKS" = (
-/obj/structure/machinery/smartfridge/chemistry,
+/obj/structure/machinery/smartfridge/chemistry{
+	req_one_access = null
+	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
 	pixel_x = 1
@@ -140192,12 +140685,12 @@
 	dir = 1;
 	pixel_y = 20
 	},
-/obj/item/clothing/head/fedora,
 /obj/item/clothing/suit/storage/CMB/trenchcoat,
 /obj/structure/closet/cabinet,
 /obj/item/clothing/accessory/storage/holster/armpit,
 /obj/item/ammo_magazine/revolver,
 /obj/item/ammo_magazine/revolver,
+/obj/item/clothing/head/fedora/light,
 /turf/open/floor/hybrisa/wood/darkerwood,
 /area/lv759/indoors/colonial_marshals/head_office)
 "wLc" = (
@@ -141165,7 +141658,8 @@
 /area/lv759/outdoors/colony_streets/south_west_street)
 "wUf" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100)
 	},
 /obj/structure/machinery/door/poddoor/almayer/closed{
 	id = "hybrisaLZ2_2";
@@ -141356,7 +141850,8 @@
 /area/lv759/indoors/power_plant/workers_canteen)
 "wVL" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/almayer{
-	autoname = 1
+	autoname = 1;
+	req_one_access = list(103,104,105,106,200)
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/morgue)
@@ -141647,8 +142142,13 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/south_caves)
 "wYb" = (
-/obj/structure/machinery/door/window/brigdoor/westright,
-/obj/structure/machinery/door/window/brigdoor/eastleft,
+/obj/structure/machinery/door/window/brigdoor/westright{
+	req_access = null
+	},
+/obj/structure/machinery/door/window/brigdoor/eastleft{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /obj/item/reagent_container/food/drinks/coffeecup{
 	pixel_x = -7;
 	pixel_y = 11
@@ -142385,7 +142885,9 @@
 /turf/open/auto_turf/hybrisa_auto_turf/layer2,
 /area/lv759/indoors/caves/south_caves)
 "xeo" = (
-/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
+	req_one_access = list(104,106,200,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/weyyu_office/breakroom)
 "xep" = (
@@ -142454,7 +142956,9 @@
 /turf/open/floor/plating,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_maintenance)
 "xeF" = (
-/obj/structure/closet/secure_closet/atmos_personal,
+/obj/structure/closet/secure_closet/atmos_personal{
+	req_one_access = list(102,104,106,200)
+	},
 /turf/open/floor/corsat/squares,
 /area/lv759/indoors/power_plant/gas_generators)
 "xeK" = (
@@ -142794,7 +143298,10 @@
 /turf/open/floor/hybrisa/carpet/carpetfadedred,
 /area/lv759/indoors/colonial_marshals/head_office)
 "xhn" = (
-/obj/structure/closet/secure_closet/personal,
+/obj/structure/closet/secure_closet/personal{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/structure/machinery/light/blue,
 /turf/open/floor/hybrisa/metal/zbrownfloor_full,
 /area/lv759/indoors/meridian/meridian_foyer)
@@ -142849,7 +143356,8 @@
 	dir = 1
 	},
 /obj/structure/machinery/door/window/brigdoor/eastleft{
-	dir = 2
+	dir = 2;
+	req_access = null
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/pizzaria)
@@ -144171,7 +144679,10 @@
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/outdoors/colony_streets/north_street)
 "xsk" = (
-/obj/structure/closet/secure_closet/hybrisa/miner,
+/obj/structure/closet/secure_closet/hybrisa/miner{
+	req_access = null;
+	req_one_access = list(100)
+	},
 /obj/effect/decal/hybrisa/dirt,
 /obj/structure/sign/poster/kellandmining{
 	pixel_y = 32
@@ -144284,7 +144795,9 @@
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_cargo)
 "xtp" = (
-/obj/structure/machinery/door/airlock/multi_tile/hybrisa/medical_solid/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/hybrisa/medical_solid/autoname{
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/plating/plating_catwalk/prison,
 /area/lv759/indoors/hospital/virology)
 "xtq" = (
@@ -144647,7 +145160,9 @@
 /area/lv759/indoors/recycling_plant/garage)
 "xvZ" = (
 /obj/structure/machinery/door/window/brigdoor/northleft{
-	dir = 8
+	dir = 8;
+	req_access = null;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -144977,7 +145492,8 @@
 /area/lv759/outdoors/colony_streets/north_east_street_LZ)
 "xyh" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/reception)
@@ -145223,7 +145739,8 @@
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
 	name = "autoname";
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -145672,7 +146189,8 @@
 /obj/item/storage/belt/marine,
 /obj/structure/machinery/light/double/blue,
 /obj/structure/closet/secure_closet/guncabinet{
-	locked = 0
+	locked = 0;
+	req_access = null
 	},
 /obj/item/ammo_magazine/rifle/ap,
 /obj/item/ammo_magazine/rifle/ap,
@@ -146426,7 +146944,10 @@
 /turf/open/floor/hybrisa/wood/darkerwood,
 /area/lv759/indoors/colonial_marshals/office)
 "xKB" = (
-/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname,
+/obj/structure/machinery/door/airlock/multi_tile/almayer/secdoor/glass/reinforced/autoname{
+	req_access = null;
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/colonial_marshals/garage)
 "xKL" = (
@@ -146607,7 +147128,9 @@
 /turf/open/floor/strata/multi_tiles/southeast,
 /area/lv759/indoors/wy_research_complex/hangarbay)
 "xMb" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/personal/autoname{
+	req_one_access = list(104,106,201)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_security)
 "xMc" = (
@@ -146652,7 +147175,9 @@
 /obj/structure/machinery/door/airlock/almayer/engineering{
 	dir = 2;
 	name = "\improper Airlock";
-	autoname = 1
+	autoname = 1;
+	req_access = null;
+	req_one_access = list(106,102,101)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/prison,
@@ -147015,7 +147540,8 @@
 "xPl" = (
 /obj/structure/machinery/door/airlock/almayer/secure/autoname{
 	dir = 1;
-	name = "\improper WY-LWI Horizon Runner HR-150 cockpit"
+	name = "\improper WY-LWI Horizon Runner HR-150 cockpit";
+	req_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/spaceport/horizon_runner)
@@ -147180,7 +147706,8 @@
 "xQL" = (
 /obj/structure/machinery/door/airlock/almayer/security/glass/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = null
 	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
@@ -147283,7 +147810,9 @@
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
-/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname,
+/obj/structure/machinery/door/airlock/hybrisa/generic_solid/autoname{
+	req_one_access = list(103,104,105,106,200)
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/icu)
 "xRT" = (
@@ -147297,7 +147826,8 @@
 /obj/structure/closet/secure_closet{
 	pixel_y = 20;
 	pixel_x = -24;
-	density = 0
+	density = 0;
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/prison/floor_plate/southwest,
 /area/lv759/bunker/checkpoint)
@@ -147590,7 +148120,8 @@
 /area/lv759/indoors/caves/north_east_caves_comms)
 "xVm" = (
 /obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(100,103,106,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/hybrisa/tile/tilebeige,
@@ -147690,7 +148221,10 @@
 /turf/open/floor/almayer/plate,
 /area/lv759/indoors/landing_zone_2/kmcc_hub_cargo)
 "xVZ" = (
-/obj/structure/closet/secure_closet/medical2,
+/obj/structure/closet/secure_closet/medical2{
+	req_access = null;
+	req_one_access = list(103,104,105,106,200)
+	},
 /obj/item/storage/box/gloves{
 	pixel_x = -5;
 	pixel_y = -5
@@ -148052,7 +148586,10 @@
 /turf/open/hybrisa/street/asphalt,
 /area/lv759/outdoors/colony_streets/north_street)
 "xZg" = (
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_access = null;
+	req_one_access = null
+	},
 /obj/structure/curtain/medical{
 	pixel_y = 32
 	},
@@ -148799,7 +149336,9 @@
 /area/lv759/indoors/colonial_marshals/prisoners_recreation_area)
 "yeO" = (
 /obj/structure/machinery/door/airlock/almayer/engineering/autoname{
-	dir = 1
+	dir = 1;
+	req_access = null;
+	req_one_access = list(102,104,106,200)
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant)
@@ -149046,7 +149585,8 @@
 "ygv" = (
 /obj/structure/machinery/door/airlock/almayer/security/reinforced/colony{
 	autoname = 1;
-	name = "autoname"
+	name = "autoname";
+	req_one_access = list(104,106,200,201)
 	},
 /turf/open/floor/strata/floor3,
 /area/lv759/indoors/spaceport/security_office)
@@ -149123,7 +149663,8 @@
 /area/lv759/indoors/meridian/meridian_managersoffice)
 "yhq" = (
 /obj/structure/machinery/door/airlock/hybrisa/generic/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(104,106,200,201)
 	},
 /obj/structure/pipes/standard/simple/hidden/dark,
 /turf/open/floor/corsat/officetiles,
@@ -149647,7 +150188,8 @@
 /area/lv759/indoors/caves/north_west_caves)
 "yli" = (
 /obj/structure/machinery/door/airlock/multi_tile/hybrisa/personal_solid_white/autoname{
-	dir = 1
+	dir = 1;
+	req_one_access = list(103,104,106,200,201,206,207,210,211,213)
 	},
 /obj/structure/machinery/door/poddoor/almayer/biohazard/white{
 	dir = 4;
@@ -155474,7 +156016,7 @@ phW
 tjb
 wSf
 kLH
-rga
+abl
 xCb
 sYe
 cNA
@@ -158029,7 +158571,7 @@ hMi
 hMi
 hMi
 jqr
-ltK
+abj
 jqr
 eky
 jqr
@@ -159289,7 +159831,7 @@ mCo
 vsT
 xRl
 jqr
-ltK
+abj
 jqr
 cAb
 cAb
@@ -159758,7 +160300,7 @@ nRN
 xtb
 yjk
 lUt
-wkN
+abn
 oxJ
 xtb
 oxJ
@@ -160548,7 +161090,7 @@ dCf
 qGX
 xbw
 lAY
-fEz
+abk
 xjm
 bOs
 hiL
@@ -161046,7 +161588,7 @@ jqr
 jqr
 jqr
 jqr
-ltK
+abj
 jqr
 jqr
 ull
@@ -185934,7 +186476,7 @@ dvU
 gWC
 njU
 njU
-cfN
+abo
 njU
 uVz
 uVz
@@ -187591,7 +188133,7 @@ oNj
 cKh
 stN
 snD
-oyU
+abq
 sCS
 iZB
 iBG
@@ -189439,7 +189981,7 @@ wYb
 gjS
 siw
 gRE
-lEg
+abp
 siw
 tYA
 tYA
