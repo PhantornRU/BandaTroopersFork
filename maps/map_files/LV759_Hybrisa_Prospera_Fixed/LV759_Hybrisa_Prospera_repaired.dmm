@@ -9139,7 +9139,9 @@
 /turf/open/floor/strata/multi_tiles/southeast,
 /area/lv759/outdoors/power_plant/transformers_south)
 "bxV" = (
-/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname,
+/obj/structure/machinery/door/airlock/almayer/maint/colony/autoname{
+	req_one_access = list(102,104,106,200)
+	},
 /obj/structure/pipes/standard/simple/hidden/dark{
 	dir = 4
 	},
@@ -147305,7 +147307,9 @@
 "xND" = (
 /obj/structure/machinery/door/airlock/multi_tile/almayer/engidoor{
 	name = "\improper Airlock";
-	autoname = 1
+	autoname = 1;
+	req_one_access = list(102,104,106,200);
+	req_access = null
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv759/indoors/power_plant/gas_generators)
