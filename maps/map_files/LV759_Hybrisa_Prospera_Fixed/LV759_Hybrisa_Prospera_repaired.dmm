@@ -56823,11 +56823,8 @@
 /turf/closed/wall/hybrisa/colony/reinforced,
 /area/lv759/indoors/casino/casino_vault)
 "jiD" = (
-/obj/structure/machinery/door/airlock/hybrisa/personal_solid/autoname{
-	dir = 1;
-	req_one_access = list(100)
-	},
-/turf/open/floor/plating,
+/obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent2,
+/turf/closed/wall/hybrisa/colony,
 /area/lv759/indoors/pizzaria)
 "jiG" = (
 /obj/effect/decal/warning_stripes{
@@ -69691,8 +69688,14 @@
 	pixel_x = -26;
 	layer = 6
 	},
-/obj/structure/prop/hybrisa/misc/buildinggreebliessmall/smallvent2{
-	pixel_y = 25
+/obj/structure/sign/poster/ad{
+	pixel_x = 4;
+	pixel_y = 34
+	},
+/obj/structure/sign/poster/ad{
+	layer = 4;
+	pixel_x = 7;
+	pixel_y = 36
 	},
 /turf/open/hybrisa/street/sidewalk/north,
 /area/lv759/outdoors/colony_streets/north_street)
@@ -97714,6 +97717,12 @@
 /obj/item/stack/sheet/cardboard/full_stack,
 /obj/effect/spawner/random/technology_scanner,
 /obj/structure/pipes/vents/pump_hybrisa,
+/obj/item/pizzabox/pizza_galaxy{
+	pixel_y = 12
+	},
+/obj/item/pizzabox/pizza_galaxy{
+	pixel_y = 16
+	},
 /turf/open/floor/prison/darkbrown3/northwest,
 /area/lv759/indoors/pizzaria)
 "pPC" = (
@@ -115847,7 +115856,6 @@
 	dir = 1;
 	pixel_y = 20
 	},
-/obj/effect/spawner/random/attachment,
 /obj/item/storage/toolbox/electrical{
 	pixel_y = 9
 	},
@@ -125443,14 +125451,9 @@
 /turf/open/floor/almayer/fake_outerhull,
 /area/lv759/indoors/meridian/meridian_factory)
 "uoM" = (
-/obj/structure/sign/poster/ad{
-	pixel_x = 4;
-	pixel_y = 34
-	},
-/obj/structure/sign/poster/ad{
-	layer = 4;
-	pixel_x = 7;
-	pixel_y = 36
+/obj/structure/machinery/atm{
+	name = "Automatic Teller Machine";
+	pixel_y = 30
 	},
 /turf/open/hybrisa/street/sidewalkfull,
 /area/lv759/outdoors/colony_streets/north_street)
