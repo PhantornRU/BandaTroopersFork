@@ -377,6 +377,13 @@
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/wy_research_complex/southeastexit)
+"abl" = (
+/obj/effect/decal/cleanable/hybrisa/dirt,
+/obj/effect/vehicle_spawner/box_van/ambulance/fixed{
+	dir = 4
+	},
+/turf/open/floor/plating,
+/area/lv759/indoors/hospital/paramedics_garage)
 "abm" = (
 /obj/structure/cargo_container/hybrisa/containersextended/tanright{
 	layer = 6;
@@ -38226,8 +38233,8 @@
 "ggQ" = (
 /obj/effect/decal/cleanable/hybrisa/dirt,
 /obj/effect/decal/cleanable/hybrisa/dirt,
-/obj/structure/prop/hybrisa/vehicles/Meridian/Cop{
-	pixel_x = 4
+/obj/effect/vehicle_spawner/box_van/cop_car/fixed{
+	dir = 8
 	},
 /turf/open/floor/plating,
 /area/lv759/indoors/colonial_marshals/garage)
@@ -51547,6 +51554,9 @@
 "iqD" = (
 /obj/effect/decal/cleanable/hybrisa/dirt,
 /obj/effect/decal/cleanable/liquid_fuel,
+/obj/effect/vehicle_spawner/box_van/ambulance/fixed{
+	dir = 4
+	},
 /turf/open/floor/plating,
 /area/lv759/indoors/hospital/paramedics_garage)
 "iqQ" = (
@@ -83762,11 +83772,6 @@
 	layer = 5;
 	pixel_y = 19
 	},
-/obj/structure/machinery/door_control{
-	id = "marshalls_garage";
-	name = "CMB - Garage Lockdown";
-	pixel_y = -20
-	},
 /turf/open/hybrisa/street/cement3,
 /area/lv759/outdoors/colony_streets/south_east_street)
 "nBc" = (
@@ -115353,11 +115358,6 @@
 	name = "impact"
 	},
 /obj/effect/decal/cleanable/liquid_fuel,
-/obj/structure/prop/hybrisa/vehicles/Ambulance{
-	dir = 1;
-	pixel_y = 12;
-	pixel_x = 12
-	},
 /turf/open/floor/plating/warnplate/west,
 /area/lv759/indoors/hospital/paramedics_garage)
 "sHs" = (
@@ -132201,7 +132201,9 @@
 /area/lv759/indoors/caves/north_west_caves)
 "vso" = (
 /obj/effect/decal/cleanable/hybrisa/dirt,
-/obj/structure/prop/hybrisa/vehicles/Meridian/Cop,
+/obj/effect/vehicle_spawner/box_van/cop_car/fixed{
+	dir = 8
+	},
 /turf/open/floor/plating/platingdmg3/west,
 /area/lv759/indoors/colonial_marshals/garage)
 "vst" = (
@@ -144338,11 +144340,6 @@
 "xqh" = (
 /obj/effect/decal/cleanable/hybrisa/dirt,
 /obj/effect/decal/cleanable/hybrisa/dirt,
-/obj/structure/prop/hybrisa/vehicles/Ambulance{
-	dir = 1;
-	pixel_y = 12;
-	pixel_x = 12
-	},
 /turf/open/floor/plating/warnplate/west,
 /area/lv759/indoors/hospital/paramedics_garage)
 "xql" = (
@@ -186360,7 +186357,7 @@ jSM
 iqD
 jXm
 jXm
-jXm
+abl
 pYr
 gnl
 wCV
