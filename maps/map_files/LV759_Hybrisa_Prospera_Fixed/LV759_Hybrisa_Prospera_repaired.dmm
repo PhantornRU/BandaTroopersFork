@@ -4799,7 +4799,6 @@
 /area/lv759/indoors/mining_outpost/east_dorms)
 "aNJ" = (
 /obj/structure/window/framed/hybrisa/colony/reinforced,
-/obj/structure/machinery/door/poddoor/hybrisa/open_shutters,
 /obj/structure/machinery/door/poddoor/hybrisa/shutters,
 /turf/open/floor/plating,
 /area/lv759/indoors/pizzaria)
@@ -66475,9 +66474,7 @@
 /turf/open/floor/almayer/test_floor4,
 /area/lv759/indoors/wy_research_complex/researchanddevelopment)
 "kKz" = (
-/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyright{
-	layer = 4
-	},
+/obj/structure/cargo_container/hybrisa/containersextended/lightgreywyright,
 /turf/open/hybrisa/street/sidewalk/south,
 /area/lv759/outdoors/colony_streets/north_west_street)
 "kKB" = (
