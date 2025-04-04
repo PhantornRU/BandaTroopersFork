@@ -258,7 +258,7 @@
 		M.pixel_y = initial(buckled_mob.pixel_y)
 		M.old_y = initial(buckled_mob.pixel_y)
 
-	if(seats[VEHICLE_DRIVER] == null)
+	if(length(seats) == 1 && seats[VEHICLE_DRIVER] == null)
 		seats[VEHICLE_DRIVER] = M
 
 /obj/vehicle/unbuckle()
