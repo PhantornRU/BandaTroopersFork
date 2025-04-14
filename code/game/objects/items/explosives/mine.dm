@@ -477,6 +477,7 @@
 		iff_signal = user.faction
 
 	cause_data = create_cause_data(initial(name), user)
+	anchored = TRUE
 	if(user)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
@@ -593,6 +594,7 @@
 		iff_signal = user.faction
 
 	cause_data = create_cause_data(initial(name), user)
+	anchored = TRUE
 	if(user)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
@@ -706,6 +708,7 @@
 		iff_signal = user.faction
 
 	cause_data = create_cause_data(initial(name), user)
+	anchored = TRUE
 	if(user)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
@@ -768,6 +771,7 @@
 		iff_signal = user.faction
 
 	cause_data = create_cause_data(initial(name), user)
+	anchored = TRUE
 	if(user)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
@@ -945,6 +949,7 @@
 		iff_signal = user.faction
 
 	cause_data = create_cause_data(initial(name), user)
+	anchored = TRUE
 	if(user && user.get_held_item() == src)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
