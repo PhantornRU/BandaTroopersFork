@@ -9781,7 +9781,7 @@
 	pixel_x = -7;
 	pixel_y = 10
 	},
-/obj/item/storage/box/MRE,
+/obj/item/storage/box/mre,
 /turf/open/floor/plating/platingdmg3,
 /area/lv759/indoors/electical_systems/substation3)
 "bDP" = (
@@ -75095,8 +75095,8 @@
 /area/lv759/outdoors/colony_streets/north_street)
 "meq" = (
 /obj/structure/closet/crate/weapon,
-/obj/item/storage/box/nade_box/tear_gas,
-/obj/item/storage/box/nade_box/tear_gas{
+/obj/item/ammo_box/magazine/nade_box/ltl/tear_gas,
+/obj/item/ammo_box/magazine/nade_box/ltl/tear_gas{
 	pixel_x = 3;
 	pixel_y = 5
 	},
