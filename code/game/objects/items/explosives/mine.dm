@@ -396,9 +396,6 @@
 /obj/item/explosive/mine/m760ap/check_for_obstacles(mob/living/user)
 	return FALSE
 
-/obj/item/explosive/mine/m760ap/attackby(obj/item/W, mob/user)
-	return
-
 /obj/item/explosive/mine/m760ap/prime(mob/user)
 	set waitfor = 0
 	if(!cause_data)
@@ -541,9 +538,6 @@
 /obj/item/explosive/mine/m5a3betty/check_for_obstacles(mob/living/user)
 	return FALSE
 
-/obj/item/explosive/mine/m5a3betty/attackby(obj/item/W, mob/user)
-	return
-
 /obj/item/explosive/mine/m5a3betty/prime(mob/user)
 	set waitfor = 0
 	if(!cause_data)
@@ -676,9 +670,6 @@
 
 /obj/item/explosive/mine/fzd91/check_for_obstacles(mob/living/user)
 	return FALSE
-
-/obj/item/explosive/mine/fzd91/attackby(obj/item/W, mob/user)
-	return
 
 /obj/item/explosive/mine/fzd91/prime(mob/user)
 	set waitfor = 0
@@ -816,9 +807,6 @@
 
 /obj/item/explosive/mine/tn13/check_for_obstacles(mob/living/user)
 	return FALSE
-
-/obj/item/explosive/mine/tn13/attackby(obj/item/W, mob/user)
-	return
 
 /obj/item/explosive/mine/tn13/prime(mob/user)
 	set waitfor = 0
