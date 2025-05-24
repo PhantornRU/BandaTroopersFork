@@ -54,7 +54,6 @@
 		if(ispowered && turned_on)
 			toggle_lights()
 		ispowered = FALSE
-		turned_on = FALSE
 	else
 		ispowered = TRUE
 	update_icon()
