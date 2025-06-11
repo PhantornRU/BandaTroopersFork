@@ -344,28 +344,39 @@
 	base_icon_state = "m20"
 	map_deployed = TRUE
 
+/obj/item/explosive/mine/strong/no_iff
+	iff_signal = null
+
+/obj/item/explosive/mine/strong/active/no_iff
+	iff_signal = null
+
 /obj/item/explosive/mine/pmc
-	name = "\improper M20P Claymore anti-personnel mine"
-	desc = "The M20P Claymore is a directional anti-personnel smart mine modified for corporate PMC use. Generates 120 degree cone of shrapnel if a valid target crosses before or over it. On its face, it reads \"FRONT TOWARD ENEMY\"."
+	name = "\improper Mk.20 Claymore anti-personnel mine"
+	desc = "The Mk.20 claymore is the PMC adoption of the M20 claymore. Generates 120 degree cone of shrapnel if a valid target crosses before or over it. On its face, it reads \"FRONT TOWARD ENEMY\"."
 	icon_state = "m20p"
 	iff_signal = FACTION_PMC
 	hard_iff_lock = TRUE
-	shrapnel_count = 50
+
 
 /obj/item/explosive/mine/pmc/active
 	icon_state = "m20p_active"
 	base_icon_state = "m20p"
 	map_deployed = TRUE
 
+//secretly improved landmine... This should be given to players or deployed carefully.
 /obj/item/explosive/mine/pmc/strong
-	name = "\improper M20A2P Claymore anti-personnel mine"
-	shrapnel_count = 60
+	name = "\improper Mk.20 Claymore anti-personnel mine"
 	shrapnel_type = /datum/ammo/bullet/shrapnel/claymore/strong
 	explosive_power = 90
 	explosive_falloff = 35
 
 //PMC claymore predeployed
-/obj/item/explosive/mine/pmc/confetti/active
+/obj/item/explosive/mine/pmc/active
+	icon_state = "m20p_active"
+	base_icon_state = "m20p"
+	map_deployed = TRUE
+
+/obj/item/explosive/mine/pmc/strong/active
 	icon_state = "m20p_active"
 	base_icon_state = "m20p"
 	map_deployed = TRUE
@@ -385,8 +396,8 @@
 	icon_state = "m760"
 	angle = 360
 	var/disarmed = FALSE
-	var/explosion_power = 300
-	var/explosion_falloff = 140
+	explosive_power = 60
+	explosive_falloff = 140
 	base_disarm_fail_chance = 70
 	base_disarm_time = 40
 	has_tripwire = FALSE
@@ -400,7 +411,7 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
@@ -501,34 +512,34 @@
 	base_icon_state = "m760"
 	map_deployed = TRUE
 
-//M760 confetti version.
-/obj/item/explosive/mine/m760ap/confetti
-	explosion_power = 60
-	explosion_falloff = 25
+//M760 player version.
+/obj/item/explosive/mine/m760ap/strong
+	explosive_power = 300
+	explosive_falloff = 140
 
-/obj/item/explosive/mine/m760ap/confetti/prime(mob/user)
+/obj/item/explosive/mine/m760ap/strong/prime(mob/user)
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
-//M760 confetti but already active
-/obj/item/explosive/mine/m760ap/confetti/active
+//M760 strong ver but already active
+/obj/item/explosive/mine/m760ap/strong/active
 	icon_state = "m760_active"
 	base_icon_state = "m760"
 	map_deployed = TRUE
 
-//M5A3 bounding landmine.
+//M5A3 bounding landmine but shitty.
 /obj/item/explosive/mine/m5a3betty
-	name = "M5A3 bounding mine"
+	name = "M5A2 bounding mine"
 	desc = "An intelligent blast-resistant bounding landmine with enhanced fragmentation."
 	icon_state = "m5"
 	angle = 360
 	var/disarmed = FALSE
-	var/explosion_power = 120
-	var/explosion_falloff = 70
+	explosive_power = 30
+	explosive_falloff = 30
 	base_disarm_time = 60 //innately sensitive...
 	base_disarm_fail_chance = 30 //...but lacks robust anti-tamper implementation.
 	blast_tolerance = 25 //Even at its furthest point, C4 will disarm the mine. Gives some form of counterplay.
@@ -542,8 +553,8 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	create_shrapnel(loc, 54, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding, cause_data)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	create_shrapnel(loc, 12, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
@@ -563,11 +574,11 @@
 			var/disarm_fail_chance = base_disarm_fail_chance
 			if(user.skills)
 				if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MASTER))
-					to_chat(user, SPAN_WARNING("Landmine, M5A3. Trivial to break."))
+					to_chat(user, SPAN_WARNING("Landmine, bounding, M5. Trivial to break."))
 					disarm_time = 20
 					disarm_fail_chance = 0
 				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
-					to_chat(user, SPAN_WARNING("This shouldn't be too hard. The M5A3's actually pretty easy to disarm, to your experience."))
+					to_chat(user, SPAN_WARNING("This shouldn't be too hard. The M5's actually pretty easy to disarm, to your experience."))
 					disarm_time = 40
 					disarm_fail_chance = 0
 				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
@@ -640,19 +651,26 @@
 	base_icon_state = "m5"
 	map_deployed = TRUE
 
-//M5A3 confetti.
-/obj/item/explosive/mine/m5a3betty/confetti
-	explosion_power = 30
-	explosion_falloff = 30
+//M5A3 player version true and real.
+/obj/item/explosive/mine/m5a3betty/strong
+	name = "M5A3 bounding mine"
+	explosive_power = 120
+	explosive_falloff = 70
 
-/obj/item/explosive/mine/m5a3betty/confetti/prime(mob/user)
+/obj/item/explosive/mine/m5a3betty/strong/prime(mob/user)
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	create_shrapnel(loc, 12, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding/confetti, cause_data)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	create_shrapnel(loc, 54, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding/strong, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
+
+//M5A3 prearmed
+/obj/item/explosive/mine/m5a3betty/strong/active
+	icon_state = "m5_active"
+	base_icon_state = "m5"
+	map_deployed = TRUE
 
 /obj/item/explosive/mine/fzd91
 	name = "FZD-91 Landmine"
@@ -660,8 +678,8 @@
 	icon_state = "fzd91"
 	angle = 360
 	var/disarmed = FALSE
-	var/explosion_power = 210
-	var/explosion_falloff = 100
+	explosive_power = 40
+	explosive_falloff = 25
 	base_disarm_time = 45
 	base_disarm_fail_chance = 50
 	blast_tolerance = 95 //Will require a C4 directly on top of it...!
@@ -675,8 +693,8 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine, cause_data)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	create_shrapnel(loc, 18, dir, 360, /datum/ammo/bullet/shrapnel/landmine, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
@@ -771,22 +789,22 @@
 	base_icon_state = "fzd91"
 	map_deployed = TRUE
 
-//FZD-91 Confetti version.
-/obj/item/explosive/mine/fzd91/confetti
-	explosion_power = 40
-	explosion_falloff = 25
+//FZD-91 player version.
+/obj/item/explosive/mine/fzd91/strong
+	explosive_power = 210
+	explosive_falloff = 100
 
-/obj/item/explosive/mine/fzd91/confetti/prime(mob/user)
+/obj/item/explosive/mine/fzd91/strong/prime(mob/user)
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	create_shrapnel(loc, 9, dir, 360, /datum/ammo/bullet/shrapnel/landmine/confetti, cause_data)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine/strong, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
-//FZD-91 confetti but already active
-/obj/item/explosive/mine/fzd91/active/confetti
+//FZD-91 player version but already active
+/obj/item/explosive/mine/fzd91/strong/active
 	icon_state = "fzd91_active"
 	base_icon_state = "fzd91"
 	map_deployed = TRUE
@@ -797,8 +815,8 @@
 	icon_state = "tn13"
 	angle = 360
 	var/disarmed = FALSE
-	var/explosion_power = 75
-	var/explosion_falloff = 25
+	explosive_power = 50
+	explosive_falloff = 20
 	base_disarm_time = 30
 	base_disarm_fail_chance = 0
 	blast_tolerance = 0 //always goes off.
@@ -812,8 +830,8 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine/light, cause_data)
-	cell_explosion(loc, explosion_power, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	create_shrapnel(loc, 18, dir, 360, /datum/ammo/bullet/shrapnel/landmine/light, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
 	qdel(src)
 
@@ -883,82 +901,39 @@
 	base_icon_state = "tn13"
 	map_deployed = TRUE
 
+//TN13 but... well, it's still mid.
+/obj/item/explosive/mine/tn13/strong
+	explosive_power = 75
+	explosive_falloff = 25
+
+/obj/item/explosive/mine/tn13/strong/prime(mob/user)
+	set waitfor = 0
+	if(!cause_data)
+		cause_data = create_cause_data(initial(name), user)
+	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine/light/strong, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
+	qdel(src)
+
+//TN-13 but active.
+/obj/item/explosive/mine/tn13/strong/active
+	icon_state = "tn13_active"
+	base_icon_state = "tn13"
+	map_deployed = TRUE
+
 /obj/item/explosive/mine/sharp
-	name = "\improper P9 SHARP explosive dart"
-	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
-	icon = 'icons/obj/items/weapons/projectiles.dmi'
-	icon_state = "sonicharpoon"
+	name = "\improper XM9 SHARP explosive dart"
+	desc = "An experimental XM9 SHARP proximity mine designed by Armat Systems for use in the SHARP rifle. A series of passive IR sensors give it coverage in a 360 perimeter once embedded into the ground."
+	icon_state = "sonicharpoon_g"
 	angle = 360
-	light_color = "#D75555"
-	light_range = 2
-	light_power = 1
-	var/lit = TRUE
 	var/disarmed = FALSE
-	var/explosion_strength = 200
-	var/explosion_falloff = 100
-	var/mine_mode = ""
-	var/rearm_desc
-
-/obj/item/explosive/mine/sharp/Initialize()
-	. = ..()
-	set_light_on(lit)
-
-/obj/item/explosive/mine/sharp/proc/update_brightness()
-	if(lit)
-		set_light_range(light_range)
-		set_light_color(light_color)
-		set_light_on(TRUE)
-	else
-		set_light_on(FALSE)
-
-/obj/item/explosive/mine/sharp/proc/set_mine_mode(mode)
-	mine_mode = mode
+	explosive_power = 200
+	explosive_falloff = 100
 
 /obj/item/explosive/mine/sharp/check_for_obstacles(mob/living/user)
 	return FALSE
 
 /obj/item/explosive/mine/sharp/attackby(obj/item/W, mob/user)
-	if(user.action_busy)
-		return
-	if(!disarmed)
-		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
-			user.visible_message(SPAN_NOTICE("[user] starts adjusting [src]."), \
-			SPAN_NOTICE("You start adjusting the detonation mode of [src]."))
-			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
-				user.visible_message(SPAN_WARNING("[user] stops adjusting [src]."), \
-				SPAN_WARNING("You stop adjusting the detonation mode of [src]."))
-				return
-			if(!active)//someone beat us to it
-				return
-			var/mine_mode_notice = ""
-			switch(mine_mode)
-				if(SHARP_DANGER_MODE)
-					mine_mode = SHARP_DIRECTED_MODE
-					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
-				if(SHARP_SAFE_MODE)
-					mine_mode = SHARP_DANGER_MODE
-					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
-				if(SHARP_DIRECTED_MODE)
-					mine_mode = SHARP_DANGER_MODE
-					mine_mode_notice += "The placed dart will detonate regularly."
-			user.visible_message(SPAN_NOTICE("[user] finishes adjusting [src]."), \
-			SPAN_NOTICE("You finish adjusting the detonation mode of[src]. It's now set to [mine_mode], [mine_mode_notice]."))
-	else
-		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
-			if(!skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MAX) && user.skills.get_skill_level(SKILL_ENGINEER) != SKILL_ENGINEER_TRAINED)
-				to_chat(user, SPAN_WARNING("You don't seem to know how to rearm \the [src]..."))
-				return
-			user.visible_message(SPAN_NOTICE("[user] starts rearming [src]."), \
-			SPAN_NOTICE("You start rearming [src]."))
-			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
-				user.visible_message(SPAN_WARNING("[user] stops rearming [src]."), \
-				SPAN_WARNING("You stop rearming [src]."))
-				return
-			if(active)//someone beat us to it
-				return
-			user.visible_message(SPAN_NOTICE("[user] finishes rearming [src]."), \
-			SPAN_NOTICE("You finish rearming [src]."))
-			rearm(user)
 	return
 
 /obj/item/explosive/mine/sharp/set_tripwire()
@@ -974,16 +949,7 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
-	switch(mine_mode)
-		if(SHARP_DIRECTED_MODE)
-			explosion_falloff = (explosion_strength * 0.75)
-		if(SHARP_SAFE_MODE)
-			for(var/mob/living/carbon/human in range((explosion_strength / explosion_falloff), src))
-				if (human.get_target_lock(iff_signal))
-					disarm()
-					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
-					return
-	cell_explosion(loc, explosion_strength, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/gun_sharp_explode.ogg', 45)
 	qdel(src)
 
@@ -991,22 +957,10 @@
 	anchored = FALSE
 	active = FALSE
 	triggered = FALSE
-	icon_state = "sonicharpoon"
-	rearm_desc = desc
-	desc = "A disarmed P9 SHARP rifle dart. With the right training, it can potentially be rearmed with a security access tuner."
+	icon_state = base_icon_state + "_disarmed"
 	QDEL_NULL(tripwire)
 	disarmed = TRUE
-	lit = FALSE
-	update_brightness()
-	playsound(src, 'sound/weapons/smartgun_fail.ogg', src, 25)
-
-/obj/item/explosive/mine/sharp/proc/rearm(mob/user)
-	disarmed = FALSE
-	lit = TRUE
-	desc = rearm_desc
-	addtimer(CALLBACK(src, PROC_REF(disarm)), 10 MINUTES, TIMER_DELETE_ME)
-	update_brightness()
-	deploy_mine(user)
+	add_to_garbage(src)
 
 /obj/item/explosive/mine/sharp/attack_self(mob/living/user)
 	if(disarmed)
@@ -1021,7 +975,7 @@
 
 	cause_data = create_cause_data(initial(name), user)
 	anchored = TRUE
-	if(user && user.get_held_item() == src)
+	if(user)
 		user.drop_inv_item_on_ground(src)
 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
 	activate_sensors()
@@ -1034,39 +988,6 @@
 		..()
 	else
 		return
-
-/obj/item/explosive/mine/sharp/incendiary
-	name = "\improper P9 SHARP incendiary dart"
-	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
-	icon_state = "sharp_incendiary_dart"
-	light_color = "#FFB400"
-
-/obj/item/explosive/mine/sharp/incendiary/prime(mob/user)
-	set waitfor = FALSE
-	var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
-	var/datum/reagent/incendiary_reagent = new /datum/reagent/napalm/green
-	var/smoke_radius = 1
-	var/flame_radius = 2
-	if(!cause_data)
-		cause_data = create_cause_data(initial(name), user, src)
-	else if(user)
-		cause_data.weak_mob = WEAKREF(user)
-	playsound(loc, 'sound/weapons/gun_flamethrower3.ogg', 45)
-	switch(mine_mode)
-		if (SHARP_DIRECTED_MODE)
-			incendiary_reagent = new /datum/reagent/napalm/blue
-			flame_radius = 1
-			new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
-		if (SHARP_SAFE_MODE)
-			for(var/mob/living/carbon/human in range(smoke_radius, src))
-				if (human.get_target_lock(iff_signal))
-					disarm()
-					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
-					return
-	new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
-	smoke.set_up(smoke_radius, 0, get_turf(src))
-	smoke.start()
-	qdel(src)
 
 /obj/item/explosive/mine/sebb
 	name = "\improper G2 Electroshock grenade"
