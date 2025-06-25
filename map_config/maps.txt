@@ -123,6 +123,9 @@ endmap
 map lv818_featureless_desert
 endmap
 
+map lv522_featureless_barrens
+endmap
+
 map redemption_valley
 endmap
 
