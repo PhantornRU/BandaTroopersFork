@@ -393,9 +393,11 @@
 	SIGNAL_HANDLER
 	invalidate_nearby_item_search()
 	invalidate_halo_runtime_caches()
+	if(iszombie(tied_human))
+		return
 
 	if(dropped == primary_weapon)
-		if(!(gun_data.disposable && !primary_weapon.ai_can_use(tied_human, src)))
+		if(!(gun_data?.disposable && !primary_weapon.ai_can_use(tied_human, src)))
 			to_pickup |= dropped
 		set_primary_weapon(null)
 
