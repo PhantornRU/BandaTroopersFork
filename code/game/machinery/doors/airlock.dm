@@ -593,7 +593,7 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, flatten_numeric_alist(alist(
 				zombie_pry.attempting_pry = FALSE
 			else
 				zombie_pry.attempting_pry = FALSE
-			return
+		return
 
 	if((iswelder(attacking_item) && !operating && density))
 		var/obj/item/tool/weldingtool/W = attacking_item
