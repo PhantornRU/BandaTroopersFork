@@ -55,9 +55,7 @@ GLOBAL_LIST_EMPTY(human_ai_equipment_presets)
 		if("create_ai")
 			if(!params["path"])
 				return
-			var/delimb_multi = params["zombieDelimbMulti"]
-			if(delimb_multi < 0)
-				delimb_multi *= -1
+			var/delimb_multi = clamp(params["zombieDelimbMulti"], 0, 20)
 			if(delimb_multi == 1)
 				delimb_multi = null
 			GLOB.gm_set_zombie_delimb_multi = delimb_multi
@@ -70,9 +68,7 @@ GLOBAL_LIST_EMPTY(human_ai_equipment_presets)
 			else
 				GLOB.gm_set_zombie_random_helmet = FALSE
 
-			var/helmet_chance = params["helmetChance"]
-			if(100 < helmet_chance < 0)
-				helmet_chance = 25
+			var/helmet_chance = clamp(params["helmetChance"], 1, 100)
 			GLOB.gm_set_zombie_helmet_chance = helmet_chance
 			var/datum/human_ai_equipment_preset/gotten_path = text2path(params["path"])
 			if(!gotten_path)
