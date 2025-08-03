@@ -275,6 +275,8 @@
 		new_human.age = minimum_age
 
 /datum/equipment_preset/proc/load_rank(mob/living/carbon/human/new_human, client/mob_client)//Beagle-Code
+	if(isnull(paygrades))
+		return null
 	if(paygrades.len == 1)
 		return paygrades[1]
 	var/playtime
