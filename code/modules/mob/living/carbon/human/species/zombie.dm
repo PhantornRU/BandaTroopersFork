@@ -208,3 +208,6 @@
 			new /obj/effect/decal/cleanable/blood/gibs/zombie(zombie.loc)
 
 		qdel(zombie)
+		return TRUE
+	else
+		return FALSE
