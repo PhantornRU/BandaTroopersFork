@@ -272,7 +272,7 @@
 
 /obj/item/weapon/gun/launcher/grenade/m92
 	name = "\improper M92 grenade launcher"
-	desc = "A heavy, 6-shot grenade launcher used by the Colonial Marines for area denial and big explosions."
+	desc = "A heavy, 8-shot grenade launcher used by the Colonial Marines for area denial and big explosions."
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi'
 	icon_state = "m92"
 	item_state = "m92"
@@ -281,12 +281,14 @@
 	matter = list("metal" = 6000)
 	actions_types = list(/datum/action/item_action/toggle_firing_level)
 
-	attachable_allowed = list(/obj/item/attachable/magnetic_harness)
+	attachable_allowed = list(/obj/item/attachable/magnetic_harness, /obj/item/attachable/sling, /obj/item/attachable/scope/mini)
+	starting_attachment_types = list(/obj/item/attachable/scope/mini)
 	flags_item = TWOHANDED|NO_CRYO_STORE
 	map_specific_decoration = TRUE
 
 	is_lobbing = TRUE
-	internal_slots = 6
+	throw_range = 13
+	internal_slots = 8
 	direct_draw = FALSE
 
 /obj/item/weapon/gun/launcher/grenade/m92/set_gun_attachment_offsets()
@@ -294,7 +296,7 @@
 
 /obj/item/weapon/gun/launcher/grenade/m92/set_gun_config_values()
 	..()
-	set_fire_delay(FIRE_DELAY_TIER_4*4)
+	set_fire_delay(FIRE_DELAY_TIER_3)
 
 //UPP DEDICATED GL
 
@@ -308,6 +310,7 @@
 	map_specific_decoration = FALSE
 	preload = /obj/item/explosive/grenade/high_explosive/impact/upp
 	attachable_allowed = list(/obj/item/attachable/magnetic_harness, /obj/item/attachable/sling, /obj/item/attachable/verticalgrip/upp)
+	starting_attachment_types = list()
 
 /obj/item/weapon/gun/launcher/grenade/m92/upp/set_gun_config_values()
 	..()
@@ -361,6 +364,7 @@
 		/obj/item/explosive/grenade/high_explosive/impact/heap/rmc20mm,
 	)
 	preload = /obj/item/explosive/grenade/high_explosive/impact/rmc20mm
+	starting_attachment_types = list()
 
 	is_lobbing = TRUE
 	internal_slots = 8

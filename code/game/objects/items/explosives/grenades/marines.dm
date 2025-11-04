@@ -397,7 +397,27 @@
 
 /obj/item/explosive/grenade/incendiary/impact/upp/launch_impact(atom/hit_atom)
 	..()
-	cell_explosion(get_turf(hit_atom), 80, 40, EXPLOSION_FALLOFF_SHAPE_LINEAR, cause_data)
+	var/detonate = TRUE
+	var/turf/hit_turf = null
+	if(isobj(hit_atom) && !rebounding)
+		detonate = FALSE
+	if(isturf(hit_atom))
+		hit_turf = hit_atom
+		if(hit_turf.density && !rebounding)
+			detonate = FALSE
+	if(active && detonate) // Active, and we reached our destination.
+		var/angle = dir2angle(last_move_dir)
+		var/turf/target = locate(x + sin(angle)*radius, y + cos(angle)*radius, z)
+		if(target)
+			INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flame_radius), cause_data, radius, get_turf(src), flame_level, burn_level, flameshape, target)
+			cell_explosion(get_turf(hit_atom), 80, 40, EXPLOSION_FALLOFF_SHAPE_LINEAR, cause_data)
+		else
+			//Not stellar, but if we can't find a direction, fall back to HIDP behaviour.
+			INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flame_radius), cause_data, radius, get_turf(src), flame_level, burn_level, flameshape, target)
+			cell_explosion(get_turf(hit_atom), 80, 40, EXPLOSION_FALLOFF_SHAPE_LINEAR, cause_data)
+		playsound(src, 'sound/weapons/gun_flamethrower2.ogg', 35, 1, 4)
+		qdel(src)
+
 
 /obj/item/explosive/grenade/high_explosive/airburst/buckshot
 	name = "\improper 40mm Buckshot Shell"

@@ -348,7 +348,10 @@
 	creature.apply_damage(0.75, BRAIN)
 	creature.apply_damage(1, OXY)
 	lungs.take_damage(1)
-	to_chat(creature, SPAN_DANGER("Your body is going numb, almost as if paralyzed!"))
+	if(xeno_creature)
+		to_chat(xeno_creature, SPAN_XENODANGER("You are struggling to move, it's as if you're paralyzed!"))
+	else
+		to_chat(creature, SPAN_DANGER("Your body is going numb, almost as if paralyzed!"))
 	if(prob(stun_chance))
 		creature.apply_effect(1, WEAKEN)
 	if(prob(60 + round(amount*15))) //Highly likely to drop items due to arms/hands seizing up
@@ -370,6 +373,12 @@
 		creature.apply_damage(20, BRUTE)
 		xeno_creature.AddComponent(/datum/component/status_effect/interference, 10, 10)
 		xeno_creature.blinded = TRUE
+		var/stun_chance = 50
+		if(xeno_affecting)
+			stun_chance = 65
+		if(prob(stun_chance))
+			creature.KnockDown(2)
+
 
 /obj/effect/particle_effect/smoke/cn20/contact_eyes(mob/living/carbon/creature)
 	if(..())

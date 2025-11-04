@@ -3379,7 +3379,7 @@ Defined in conflicts.dm of the #defines folder.
 	update_icon()
 
 /obj/item/attachable/attached_gun/grenade/mk1/reload_attachment(obj/item/explosive/grenade/G, mob/user)
-	if(!istype(G) || istype(G, /obj/item/explosive/grenade/spawnergrenade/))
+	if(!istype(G) || (G.caliber != caliber))
 		to_chat(user, SPAN_WARNING("[src] doesn't accept that type of grenade."))
 		return
 	if(!G.active) //can't load live grenades
@@ -3523,10 +3523,6 @@ Defined in conflicts.dm of the #defines folder.
 	pixel_shift_y = 13
 	has_breech = FALSE
 
-/obj/item/attachable/attached_gun/grenade/type71/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
-
 /obj/item/attachable/attached_gun/grenade/type71/preloaded
 
 /obj/item/attachable/attached_gun/grenade/type71/preloaded/New()
@@ -3539,10 +3535,6 @@ Defined in conflicts.dm of the #defines folder.
 	icon_state = "grenade-ag80"
 	attach_icon = "grenade-ag80_a"
 	has_breech = TRUE
-
-/obj/item/attachable/attached_gun/grenade/type71/ag80/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
 
 /obj/item/attachable/attached_gun/grenade/type71/ag80/preloaded
 
