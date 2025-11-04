@@ -323,9 +323,11 @@
 	if(!.)
 		return
 
+/*
 	if(user.client?.view > 7)
 		to_chat(user, SPAN_WARNING("You cannot use [src] while using optics."))
 		return FALSE
+*/
 
 	if(!NVG_VISOR_USAGE(FALSE))
 		to_chat(user, SPAN_NOTICE("Your [src] is out of power! You'll need to recharge it."))
@@ -348,7 +350,7 @@
 
 /obj/item/device/helmet_visor/night_vision/proc/change_view(mob/user, new_size)
 	SIGNAL_HANDLER
-	if(new_size > 7) // cannot use binos with NVO
+	if(new_size > 20) // cannot use loooong-range optics with NVO
 		var/obj/item/clothing/head/helmet/marine/attached_helmet = loc
 		if(!istype(attached_helmet))
 			return
