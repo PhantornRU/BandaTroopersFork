@@ -6,7 +6,7 @@
 	icon_state = "kit_case"
 	var/kit_overlay = null
 	w_class = SIZE_HUGE
-	storage_slots = 14
+	storage_slots = 17
 	slowdown = 1
 	can_hold = list() //Nada. Once you take the stuff out it doesn't fit back in.
 	max_w_class = 0
@@ -145,12 +145,16 @@
 	kit_overlay = "grenadier"
 
 /obj/item/storage/box/spec/heavy_grenadier/fill_preset_inventory()
-	new /obj/item/weapon/gun/launcher/grenade/m92(src)
+	new /obj/item/weapon/gun/launcher/grenade/m92/scoped(src)
 	new /obj/item/storage/belt/grenade/large/full(src)
 	new /obj/item/storage/backpack/marine/grenadepack(src)
 	new /obj/item/storage/box/packet/phosphorus(src)
+	new /obj/item/storage/box/packet/bfab(src)
+	new /obj/item/storage/box/packet/high_explosive(src)
+	new /obj/item/storage/box/packet/incendiary(src)
 	new /obj/item/storage/box/packet/heap(src)
 	new /obj/item/storage/box/packet/canister(src)
+	new /obj/item/storage/box/packet/flare(src)
 	new /obj/item/clothing/gloves/marine/M3G(src)
 	new /obj/item/clothing/suit/storage/marine/M3G(src)
 	new /obj/item/clothing/head/helmet/marine/grenadier(src)
