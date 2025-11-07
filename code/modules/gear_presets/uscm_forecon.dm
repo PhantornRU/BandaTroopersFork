@@ -158,7 +158,7 @@
 	spawn_random_tech_headgear(new_human)
 
 /datum/equipment_preset/uscm/forecon/corpsman
-	name = "USCM USCM Reconnaissance Corpsman"
+	name = "USCM Reconnaissance Corpsman"
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 	assignment = JOB_FORECON_CORPSMAN
 	rank = JOB_SQUAD_MEDIC
