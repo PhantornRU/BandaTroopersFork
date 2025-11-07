@@ -39,9 +39,9 @@
 /datum/equipment_preset/survivor/forecon/proc/add_forecon_surv_jacket(mob/living/carbon/human/new_human)
 	var/random_gun = rand(1,3)
 	switch(random_gun)
-		if(1,2)
+		if(1)
 			new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/lamp(new_human), WEAR_JACKET)
-		if(3)
+		if(2,3)
 			new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/rto/forecon(new_human), WEAR_JACKET)
 
 /datum/equipment_preset/survivor/forecon/proc/add_forecon_surv_weapon(mob/living/carbon/human/new_human)
@@ -225,6 +225,7 @@
 
 /datum/equipment_preset/survivor/forecon/marksman/load_gear(mob/living/carbon/human/new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/m49a_custom(new_human), WEAR_L_HAND)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/glasses/night/M49A(new_human), WEAR_EYES)
 	..()
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/ranks/marine/e3(new_human), WEAR_ACCESSORY)
 	add_forecon_surv_jacket(new_human)
@@ -234,6 +235,7 @@
 	add_forecon_equipment(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m49a/custom(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m49a/custom(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m49a/custom/incendiary(new_human), WEAR_IN_BACK)
 
 ///*****************************//
 
@@ -303,9 +305,9 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/ranks/marine/e4(new_human), WEAR_ACCESSORY)
 	new_human.equip_to_slot(new /obj/item/clothing/suit/storage/marine/ghillie/forecon(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel(new_human), WEAR_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/sniper/basic(new_human), WEAR_IN_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/sniper/basic(new_human), WEAR_IN_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/spotter(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/sniper/basic(new_human), WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/sniper/basic(new_human), WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/spotter(new_human), WEAR_IN_JACKET)
 	..()
 	spawn_random_headgear(new_human)
 	add_forecon_equipment(new_human)
