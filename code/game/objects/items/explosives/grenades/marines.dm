@@ -1066,6 +1066,42 @@
 
 /*
 //================================================
+			Cryogenic Grenades
+//================================================
+*/
+/obj/item/explosive/grenade/cryo
+	name = "\improper NFG-1913 cryogenic canister grenade"
+	desc = "A canister grenade of aerosolized liquid neon with sufficient thermal cladding to prevent freezer-burn whilst handling. It is set to detonate in 4 seconds."
+	icon_state = "flashbang2"//temp icon
+	det_time = 40
+	item_state = "grenade_phos_clf"//temp icon
+	caliber = "non-standard"
+	underslug_launchable = FALSE
+	harmful = TRUE
+	antigrief_protection = FALSE
+	arm_sound = 'sound/weapons/pinpull.ogg'
+	var/datum/effect_system/smoke_spread/cryo/cryo_gas
+	var/cryo_gas_radius = 6
+	spent_case = /obj/item/trash/grenade/gas
+
+/obj/item/explosive/grenade/cryo/Initialize()
+	. = ..()
+	cryo_gas = new /datum/effect_system/smoke_spread/cryo
+	cryo_gas.attach(src)
+
+/obj/item/explosive/grenade/cryo/Destroy()
+	QDEL_NULL(cryo_gas)
+	return ..()
+
+/obj/item/explosive/grenade/cryo/prime()
+	playsound(src.loc, 'sound/effects/smoke.ogg', 25, 1, 4)
+	cryo_gas.set_up(cryo_gas_radius, 0, get_turf(src), null, 20)
+	cryo_gas.start()
+	new spent_case(get_turf(src))
+	qdel(src)
+
+/*
+//================================================
 			Tear Gas Grenades
 //================================================
 */

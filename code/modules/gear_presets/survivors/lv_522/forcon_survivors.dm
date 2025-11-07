@@ -33,7 +33,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel(new_human), WEAR_BACK)
 	//extremities & eyes
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
-	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof/survivor_forecon(new_human), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/forecon(new_human), WEAR_L_EAR)
 	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 
 /datum/equipment_preset/survivor/forecon/proc/add_forecon_surv_jacket(mob/living/carbon/human/new_human)
@@ -139,12 +139,12 @@
 ///*****************************//
 
 /datum/equipment_preset/survivor/forecon/radio
-	name = "Survivor - USCM Reconnaissance Radio-Telephone Operator"
+	name = "Survivor - USCM Reconnaissance Radio Telephone Operator"
 	assignment = JOB_FORECON_RTO
 	rank = JOB_SQUAD_RTO
 	role_comm_title = "RTO"
 	minimap_icon = ""
-	skills = /datum/skills/military/survivor/forecon_standard
+	skills = /datum/skills/military/survivor/forecon_radio
 
 /datum/equipment_preset/survivor/forecon/radio/load_gear(mob/living/carbon/human/new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/rto/small(new_human), WEAR_BACK)
@@ -194,7 +194,7 @@
 	rank = JOB_SQUAD_MEDIC
 	role_comm_title = "SARC"
 	minimap_icon = ""
-	skills = /datum/skills/military/survivor/forecon_techician
+	skills = /datum/skills/military/survivor/forecon_corpsman
 
 /datum/equipment_preset/survivor/forecon/corpsman/load_gear(mob/living/carbon/human/new_human)
 	//Back and other stuff we don't want missed
@@ -221,7 +221,7 @@
 	rank = JOB_SQUAD_SPOTTER
 	role_comm_title = "DM"
 	minimap_icon = ""
-	skills = /datum/skills/military/survivor/forecon_marksman
+	skills = /datum/skills/military/survivor/forecon_sharpshooter
 
 /datum/equipment_preset/survivor/forecon/marksman/load_gear(mob/living/carbon/human/new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/m49a_custom(new_human), WEAR_L_HAND)
@@ -272,7 +272,7 @@
 	rank = JOB_SQUAD_SPECIALIST
 	role_comm_title = "SctSnpr"
 	minimap_icon = ""
-	skills = /datum/skills/military/survivor/forecon_marksman
+	skills = /datum/skills/military/survivor/forecon_sharpshooter
 
 /datum/equipment_preset/survivor/forecon/sniper/load_gear(mob/living/carbon/human/new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/ranks/marine/e3(new_human), WEAR_ACCESSORY)
@@ -297,7 +297,7 @@
 	rank = JOB_SQUAD_SPOTTER
 	role_comm_title = "SctSnpr"
 	minimap_icon = ""
-	skills = /datum/skills/military/survivor/forecon_marksman
+	skills = /datum/skills/military/survivor/forecon_sharpshooter
 
 /datum/equipment_preset/survivor/forecon/spotter/load_gear(mob/living/carbon/human/new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/ranks/marine/e4(new_human), WEAR_ACCESSORY)
@@ -404,7 +404,7 @@
 	preset_human.equip_to_slot_or_del(new /obj/item/tool/weldingtool(preset_human), WEAR_IN_BACK)
 	preset_human.equip_to_slot_or_del(new /obj/item/storage/pouch/tools/full(preset_human), WEAR_R_STORE)
 	preset_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/full(preset_human), WEAR_L_STORE)
-	preset_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof/survivor_forecon(preset_human), WEAR_L_EAR)
+	preset_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/forecon/synth(preset_human), WEAR_L_EAR)
 
 /datum/equipment_preset/synth/survivor/forecon/ranked
 	name = "Survivor - Synthetic - USCM Reconnaissance Synth (Ranked)"
