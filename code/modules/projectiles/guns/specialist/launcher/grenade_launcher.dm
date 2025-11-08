@@ -291,7 +291,7 @@
 	set_fire_delay(FIRE_DELAY_TIER_3)
 
 /obj/item/weapon/gun/launcher/grenade/m92/scoped
-	desc = /obj/item/weapon/gun/launcher/grenade/m92::desc + " This one is outfitted with a low-power scope securely mounted to it."
+	desc = "A heavy, 8-shot grenade launcher used by the Colonial Marines for area denial and big explosions. This one is outfitted with a low-power scope securely mounted to it."
 
 /obj/item/weapon/gun/launcher/grenade/m92/scoped/handle_starting_attachment()
 	..()
