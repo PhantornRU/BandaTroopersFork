@@ -479,7 +479,8 @@
 		return
 	creature.hallucination += 15
 	creature.confused += 1
-	creature.jitteriness += 1
+	creature.dizziness += 5
+	creature.slurring += 1
 
 	if(prob(stun_chance))
 		creature.apply_effect(1, WEAKEN)
