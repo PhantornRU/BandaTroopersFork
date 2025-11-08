@@ -478,7 +478,8 @@
 	if(..())
 		return
 	creature.hallucination += 15
-	creature.druggy += 1
+	creature.confused += 1
+	creature.jitteriness += 1
 
 	if(prob(stun_chance))
 		creature.apply_effect(1, WEAKEN)
