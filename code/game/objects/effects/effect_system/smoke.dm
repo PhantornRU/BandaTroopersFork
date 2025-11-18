@@ -417,7 +417,7 @@
 	creature.apply_damage(10, BURN)
 	creature.apply_damage(2, OXY)
 	lungs.take_damage(2)
-	creature.reagents.add_reagent("frostoil", 15)
+	creature.reagents.add_reagent("neon", 5)
 
 	if(xeno_creature)
 		to_chat(xeno_creature, SPAN_XENODANGER("You are struggling to move, it's as if your chitin is freezing solid!"))
@@ -440,7 +440,7 @@
 		return
 	if(isxeno(creature))
 		creature.apply_damage(20, BURN)
-		creature.reagents.add_reagent("frostoil", 10)
+		creature.reagents.add_reagent("neon", 2)
 		xeno_creature.apply_effect(1, SUPERSLOW)
 		var/stun_chance = 20
 		if(xeno_affecting)
@@ -452,7 +452,7 @@
 	if(..())
 		return
 	to_chat(creature, SPAN_DANGER("Your eyes sting before you lose all feeling there and the world darkens. You can't see!"))
-	creature.reagents.add_reagent("frostoil", 5)
+	creature.reagents.add_reagent("neon", 1)
 	human_creature.SetEyeBlind(round(effect_amt/3))
 	eyes.take_damage(1)
 
