@@ -258,6 +258,15 @@
 	lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
 	hud_type = list(MOB_HUD_FACTION_TWE, MOB_HUD_FACTION_WY)
 
+/obj/item/clothing/glasses/night/m56_goggles/pmc
+	name = "\improper M56A3 head mounted sight"
+	desc = "A tweaked headset and optic system for the M56A3 Smartgun weapon system. Has a low-res short-range imager, allowing for view of terrain."
+	actions_types = list(/datum/action/item_action/toggle)
+	darkness_view = 0
+	vision_flags = 0
+	lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
+	hud_type = list(MOB_HUD_FACTION_PMC, MOB_HUD_FACTION_TWE, MOB_HUD_FACTION_WY)
+
 /obj/item/clothing/glasses/night/m56_goggles/whiteout
 	name = "\improper M56T head mounted sight"
 	desc = "A headset and goggles system for the M56T 'Terminator' Smartgun. Has a low-light vision processor as well as a system allowing detection of thermal signatures though solid surfaces."
