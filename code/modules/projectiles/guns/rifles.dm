@@ -1638,6 +1638,12 @@
 /obj/item/weapon/gun/rifle/m49a/marksman
 	starting_attachment_types = list(/obj/item/attachable/scope/variable_zoom, /obj/item/attachable/extended_barrel)
 
+/obj/item/weapon/gun/rifle/m49a/marksman/tactical
+	starting_attachment_types = list(/obj/item/attachable/scope/variable_zoom, /obj/item/attachable/suppressor, /obj/item/attachable/angledgrip)
+
+/obj/item/weapon/gun/rifle/m49a/mini
+	starting_attachment_types = list(/obj/item/attachable/scope/mini, /obj/item/attachable/extended_barrel)
+
 /obj/item/weapon/gun/rifle/m49a/army
 	desc = "The M49A battle rifle is a designated marksman rifle used by multiple branches of the UA armed forces. Sporting a bullpup configuration, the M49A battle rifle is perfect for reconnaissance and fire support teams."
 	current_mag = /obj/item/ammo_magazine/rifle/m49a/ap
