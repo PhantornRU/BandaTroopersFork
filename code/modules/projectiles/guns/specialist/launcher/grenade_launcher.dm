@@ -309,6 +309,7 @@
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/upp.dmi'
 	icon_state = "m92_upp"
 	item_state = "m92_upp"
+	internal_slots = 6
 	flags_item = TWOHANDED
 	map_specific_decoration = FALSE
 	preload = /obj/item/explosive/grenade/high_explosive/impact/upp
