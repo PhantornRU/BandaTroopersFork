@@ -52,6 +52,7 @@
 
 /datum/ammo/bullet/shotgun/slug/special/on_hit_mob(mob/M,obj/projectile/P)
 	knockback(M, P, 7)
+	pushback(M, P, 7)
 
 /datum/ammo/bullet/shotgun/beanbag
 	name = "beanbag slug"
