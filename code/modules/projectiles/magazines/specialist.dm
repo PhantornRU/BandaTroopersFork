@@ -301,9 +301,9 @@
 
 /obj/item/ammo_magazine/rocket/update_icon()
 	if(current_rounds <= 0)
-		name = "\improper 60mm spent rocket tube"
+		name = "\improper [caliber] spent rocket tube"
 		icon_state = "rocket_e"
-		desc = "Spent rocket tube for M5 RPG launcher. Activate in hand to disassemble for metal."
+		desc = "Spent rocket tube from a launcher. Activate in hand to disassemble for metal."
 		add_to_garbage(src)
 	else
 		icon_state = initial(icon_state)
