@@ -441,6 +441,10 @@
 	icon_state = "pmc_hat"
 	flags_marine_hat = HAT_GARB_OVERLAY
 
+/obj/item/clothing/head/cmcap/weyyu/black
+	name = "\improper PMC black tactical cap"
+	icon_state = "pmc_hat_dark"
+
 /obj/item/clothing/head/cmo
 	name = "\improper Chief Medical Officer's Peaked Cap"
 	desc = "A peaked cap given to high-ranking civilian medical officers. Looks just a touch silly."
@@ -612,6 +616,20 @@
 	item_icons = list(
 		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
 	)
+
+/obj/item/clothing/head/cmcap/pmc
+	name = "\improper PMC beret"
+	desc = "The pinnacle of fashion for any aspiring mercenary leader. Designed to protect the head from light impacts."
+	icon = 'icons/obj/items/clothing/cm_hats.dmi'
+	icon_state = "officer_hat"
+	item_icons = list(
+		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
+	)
+
+
+/obj/item/clothing/head/cmcap/pmc/fieldleader
+	name = "\improper PMC field officer beret"
+	icon_state = "field_officer_hat"
 
 //==========================//PROTECTIVE\\===============================\\
 //=======================================================================\\
