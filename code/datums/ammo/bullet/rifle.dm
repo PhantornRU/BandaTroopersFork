@@ -211,11 +211,11 @@
 	bullet_light_color = COLOR_SOFT_RED
 
 /datum/ammo/bullet/rifle/heavy/impdet
-	name = "impact-detonating 10x28 bullet"
+	name = "Impact-Detonating 10x28 bullet"
 	headshot_state = HEADSHOT_OVERLAY_MEDIUM
-	damage = 40
-	penetration = -ARMOR_PENETRATION_TIER_2
-	damage_falloff = DAMAGE_FALLOFF_TIER_5
+	damage = 80
+	penetration = ARMOR_PENETRATION_TIER_8
+	damage_falloff = DAMAGE_FALLOFF_TIER_9
 	icon_state = "bullet_red"
 	ammo_glowing = TRUE
 	bullet_light_color = COLOR_SOFT_RED
@@ -226,8 +226,8 @@
 /datum/ammo/bullet/rifle/heavy/heap
 	name = "high explosive armor-piercing 10x28 bullet"
 	headshot_state = HEADSHOT_OVERLAY_HEAVY
-	damage = 70
-	penetration = ARMOR_PENETRATION_TIER_10
+	damage = 80
+	penetration = ARMOR_PENETRATION_TIER_8
 	shrapnel_chance = SHRAPNEL_CHANCE_TIER_3
 
 /datum/ammo/bullet/rifle/heavy/heap/tracer
@@ -246,11 +246,11 @@
 /datum/ammo/bullet/rifle/heavy/ap/dirty
 	name = "irradiated armor-piercing 10x28 bullet"
 	debilitate = list(0,0,0,3,0,0,0,1)
-	damage = 45
+	damage = 65
 
 /datum/ammo/bullet/rifle/heavy/impdet/dirty
 	name = "irradiated impact-detonating 10x28 bullet"
-	damage = 45
+	damage = 50
 	shrapnel_chance = SHRAPNEL_CHANCE_TIER_7
 
 // RMC Smartgun
@@ -689,20 +689,18 @@
 
 /datum/ammo/bullet/rifle/lw317
 	name = "6x38 bullet"
-	damage = 35
-	penetration = ARMOR_PENETRATION_TIER_1
+	damage = 45
+	penetration = ARMOR_PENETRATION_TIER_2
 
 /datum/ammo/bullet/rifle/lw317/ap
 	name = "armor-piercing 6x38 bullet"
-	damage = 30
-	penetration = ARMOR_PENETRATION_TIER_5
+	damage = 50
+	penetration = ARMOR_PENETRATION_TIER_6
 
 /datum/ammo/bullet/rifle/isr
 	name = "heavy 9.2x34mm bullet"
-
-	damage = 35
-	penetration = ARMOR_PENETRATION_TIER_1
-
+	damage = 60
+	penetration = ARMOR_PENETRATION_TIER_3
 
 /datum/ammo/bullet/rifle/fn107
 	name = "7.5x28 bullet"

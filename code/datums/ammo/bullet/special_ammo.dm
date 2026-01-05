@@ -114,8 +114,8 @@
 
 	max_range = 18
 	accuracy = HIT_ACCURACY_TIER_5
-	damage = 35
-	penetration = ARMOR_PENETRATION_TIER_6
+	damage = 90
+	penetration = ARMOR_PENETRATION_TIER_8
 
 /datum/ammo/bullet/turret
 	name = "autocannon bullet"

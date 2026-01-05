@@ -43,7 +43,7 @@
 
 	damage = 25
 	accuracy = HIT_ACCURACY_TIER_2
-	penetration= ARMOR_PENETRATION_TIER_3
+	penetration= ARMOR_PENETRATION_TIER_4
 
 /datum/ammo/bullet/pistol/ap/penetrating
 	name = "wall-penetrating 9x19 bullet"
@@ -199,8 +199,8 @@
 	debilitate = list(0,0,0,0,0,0,0,2)
 
 	accuracy = HIT_ACCURACY_TIER_2
-	damage = 50
-	penetration = ARMOR_PENETRATION_TIER_2
+	damage = 60
+	penetration = ARMOR_PENETRATION_TIER_5
 	shrapnel_chance = SHRAPNEL_CHANCE_TIER_1
 	effective_range_max = 3 //hopefully this fixes the damage woes.
 	damage_falloff = DAMAGE_FALLOFF_TIER_6
