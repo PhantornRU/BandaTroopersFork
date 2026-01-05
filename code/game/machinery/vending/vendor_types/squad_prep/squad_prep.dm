@@ -246,6 +246,7 @@
 		list("6b82 Combat Helmet (Brown)", round(scale * 15), /obj/item/clothing/head/helmet/upp/alt, VENDOR_ITEM_REGULAR),
 		list("6B72-03 Pattern Vest", round(scale * 10), /obj/item/clothing/suit/marine/faction/UPP/light, VENDOR_ITEM_REGULAR),
 		list("6B90 Pattern Cuirass", round(scale * 15), /obj/item/clothing/suit/marine/faction/UPP, VENDOR_ITEM_REGULAR),
+		list("TNAP armor plate", round(scale * 5), /obj/item/clothing/accessory/health/ceramic_plate/upp, VENDOR_ITEM_REGULAR),
 		list("6B90 Crotch Guard", round(scale * 15), /obj/item/clothing/accessory/upppads/crotch, VENDOR_ITEM_REGULAR),
 		list("6B90 Leg Guards", round(scale * 15), /obj/item/clothing/accessory/upppads/legs, VENDOR_ITEM_REGULAR),
 		list("6B90 Arm Plates", round(scale * 15), /obj/item/clothing/accessory/upppads, VENDOR_ITEM_REGULAR),
@@ -585,6 +586,7 @@
 
 		list("ARMOR", -1, null, null),
 		list("M3-R Pattern Recon Armor", round(scale * 10), /obj/item/clothing/suit/marine/rto/forecon, VENDOR_ITEM_REGULAR),
+		list("ASAPP armor plate", round(scale * 4), /obj/item/clothing/accessory/health/ceramic_plate/marine, VENDOR_ITEM_REGULAR),
 		list("M3 Pattern Vambraces", round(scale * 10), /obj/item/clothing/accessory/pads/bracers/standard, VENDOR_ITEM_REGULAR),
 		list("M3 Pattern Greaves", round(scale * 10), /obj/item/clothing/accessory/pads/greaves/standard, VENDOR_ITEM_REGULAR),
 		list("M3 Pattern Kneepads", round(scale * 10), /obj/item/clothing/accessory/pads/kneepads/standard, VENDOR_ITEM_REGULAR),
@@ -687,6 +689,7 @@
 
 		list("ARMOR", -1, null, null),
 		list("Kestrel Armoured Cuirass", round(scale * 10), /obj/item/clothing/suit/marine/veteran/royal_marine, VENDOR_ITEM_REGULAR),
+		list("HASP armor plate", round(scale * 5), /obj/item/clothing/accessory/health/ceramic_plate/twe, VENDOR_ITEM_REGULAR),
 		list("Kestrel Shoulder Pads", round(scale * 10), /obj/item/clothing/accessory/twepads, VENDOR_ITEM_REGULAR),
 		list("Kestrel Leg Guards", round(scale * 10), /obj/item/clothing/accessory/twepads/legs, VENDOR_ITEM_REGULAR),
 

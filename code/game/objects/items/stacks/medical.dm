@@ -383,8 +383,8 @@
 	singular_name = "medical splint"
 	desc = "A collection of different splints and securing gauze. What, did you think we only broke legs out here?"
 	icon_state = "splint"
-	amount = 10
-	max_amount = 10
+	amount = 5
+	max_amount = 5
 	stack_id = "splint"
 
 	var/indestructible_splints = FALSE
