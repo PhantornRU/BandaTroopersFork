@@ -193,7 +193,8 @@
 /obj/item/clothing/accessory/health/ceramic_plate/twe/wy
 	desc = "Hyper Advanced Shield Plate is a modular clip-on armor plate, designed to provide additional protection for RMC combat personell, though this one has been painted white for service with Weyland Yutani's elite tactical teams. gives you extremely good protection against any bullet types, stops full metal jacket, armor piercing and even HEAP rounds. This plate includes titanium and can stop even super sonic rounds."
 	icon_state = "pmc_armor_plate_100"
-	base_icon_state = "regular2" //placeholder
+	overlay_state = "pmc_armor_plate_100"
+	base_icon_state = "pmc_armor_plate"
 
 /obj/item/clothing/accessory/health/ceramic_plate/upp
 	name = "TNAP armor plate"
