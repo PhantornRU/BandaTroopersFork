@@ -892,3 +892,18 @@
 		/obj/item/prop/helmetgarb/helmet_nvg/cosmetic = "icon_state",
 		/obj/item/prop/helmetgarb/helmet_nvg/marsoc = "icon_state",
 	)
+
+/obj/item/clothing/head/beret/royal_marine_pvp
+	name = "royal marine beret"
+	desc = "A green beret belonging to the royal marines commando. This beret symbolizes a royal marines ability to fight in any environment, desert, sea, artic or space a royal marine will always be ready."
+	icon_state = "rmc_beret"
+	item_state = "rmc_beret"
+	icon = 'icons/obj/items/clothing/hats/hats_by_faction/TWE.dmi'
+	flags_atom = NO_NAME_OVERRIDE
+	item_icons = list(
+		WEAR_HEAD = 'icons/mob/humans/onmob/clothing/head/hats_by_faction/TWE.dmi'
+	)
+
+/obj/item/clothing/head/beret/royal_marine_pvp/team_leader
+	icon_state = "rmc_beret_tl"
+	item_state = "rmc_beret_tl"

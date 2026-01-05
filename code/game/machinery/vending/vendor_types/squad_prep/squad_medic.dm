@@ -366,7 +366,6 @@ GLOBAL_LIST_INIT(cm_vending_clothing_rmc_medic, list(
 // Chemical vendor
 
 GLOBAL_LIST_INIT(cm_vending_chemical_medic, list(
-
 		list("ESSENTIAL MEDICATION (CHOOSE 1)", 0, null, null, null),
 		list("Pill Bottle (Imidazoline-Alkysine)", 0, /obj/item/storage/pill_bottle/imialk, MARINE_CAN_BUY_SHOES, VENDOR_ITEM_RECOMMENDED),
 		list("Liquid Bottle (Imidazoline-Alkysine)", 0, /obj/item/reagent_container/glass/bottle/imialk, MARINE_CAN_BUY_SHOES, VENDOR_ITEM_RECOMMENDED),
