@@ -410,6 +410,7 @@
 		list("Tactical Helmet", round(scale * 15), /obj/item/clothing/head/helmet/marine/veteran/pmc, VENDOR_ITEM_REGULAR),
 		list("Tactical Armor", round(scale * 15), /obj/item/clothing/suit/marine/veteran/pmc, VENDOR_ITEM_REGULAR),
 		list("Tactical Light Armor", round(scale * 10), /obj/item/clothing/suit/marine/veteran/pmc/light, VENDOR_ITEM_REGULAR),
+		list("HASP armor plate", round(scale * 5), /obj/item/clothing/accessory/health/ceramic_plate/twe/wy, VENDOR_ITEM_REGULAR),
 		list("M4 Pattern Pads", round(scale * 10), /obj/item/clothing/accessory/pmcpads, VENDOR_ITEM_REGULAR),
 		list("M4 Pattern Vambraces", round(scale * 10), /obj/item/clothing/accessory/pmcpads/bracers, VENDOR_ITEM_REGULAR),
 		list("M4 Pattern Greaves", round(scale * 10), /obj/item/clothing/accessory/pmcpads/greaves, VENDOR_ITEM_REGULAR),

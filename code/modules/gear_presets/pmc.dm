@@ -142,7 +142,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/prop/helmetgarb/rmc_platemask, WEAR_IN_HELMET)
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/pmc/balaclava, WEAR_FACE)
 	else
-		new_human.equip_to_slot_or_del(new /obj/item/clothing/head/cmcap/weyyu/black, WEAR_HEAD)
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/head/cmcap/weyyu, WEAR_HEAD)
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/pmc/balaclava/twohole, WEAR_FACE)
 	//uniform
 	var/obj/item/clothing/under/marine/veteran/pmc/uniform = new()
