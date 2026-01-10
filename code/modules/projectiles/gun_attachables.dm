@@ -2743,6 +2743,22 @@ Defined in conflicts.dm of the #defines folder.
 	melee_mod = 0
 	size_mod = 0
 
+/obj/item/attachable/r81m1a_barrel
+	name = "R81M1A barrel"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon_state = "fal_barrel"
+	attach_icon = "fal_barrel"
+	slot = "special"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+
+/obj/item/attachable/r81m1a_barrel/short
+	name = "R81M1C barrel"
+	icon_state = "fal_short_barrel"
+	attach_icon = "fal_short_barrel"
+
 /obj/item/attachable/stock/type71
 	name = "Type 71 Stock"
 	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
