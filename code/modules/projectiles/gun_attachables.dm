@@ -1280,6 +1280,12 @@ Defined in conflicts.dm of the #defines folder.
 	zoom_offset = 4
 	dynamic_aim_slowdown = SLOWDOWN_ADS_NONE
 
+/obj/item/attachable/scope/mini/r81
+	name = "ODS R92 2x advanced telescopic mini-scope"
+	desc = "An Orion Defence Systems R81M1D 2x advanced telescopic mini-scope, used mainly for the R81M1A and it's variants."
+	icon_state = "miniscope"
+	attach_icon = "miniscope_fal"
+
 /obj/item/attachable/scope/mini/nsg23/rmc
 	name = "L4A5 SUMSA mini-scope" //Sight Unit, General Marine Armaments was a serious contender for the name instead of this
 	desc = "Sight Unit, Marine Small-Arms. A modified ARMAT S4 telescoping eye piece, adopted by the RMC for use on their L23A1 rifles. This one is has been coated in a coat of dark matte paint."
@@ -2497,6 +2503,18 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/stock/ar10/New()//no stats, its cosmetic
 	..()
 
+/obj/item/attachable/stock/r81_saw
+	name = "\improper R81M1D stock"
+	desc = "You kinda need this to even use the gun properly."
+	icon_state = "riflestock"
+	attach_icon = "fal_saw_stock"
+	wield_delay_mod = WIELD_DELAY_MIN
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = 3
+
+/obj/item/attachable/stock/r81_saw/New()//no stats, its cosmetic
+	..()
+
 /obj/item/attachable/stock/m79
 	name = "\improper M79 hardened polykevlon stock"
 	desc = "Helps to mitigate the recoil of launching a 40mm grenade. Fits only to the M79."
@@ -2758,6 +2776,11 @@ Defined in conflicts.dm of the #defines folder.
 	name = "R81M1C barrel"
 	icon_state = "fal_short_barrel"
 	attach_icon = "fal_short_barrel"
+
+/obj/item/attachable/r81m1a_barrel/saw
+	name = "R81M1D barrel"
+	icon_state = "fal_saw_barrel"
+	attach_icon = "fal_saw_barrel"
 
 /obj/item/attachable/stock/type71
 	name = "Type 71 Stock"
@@ -4249,6 +4272,27 @@ Defined in conflicts.dm of the #defines folder.
 	attach_icon = "bipod_m60_a"
 
 	flags_attach_features = ATTACH_ACTIVATION
+
+/obj/item/attachable/bipod/r81
+	name = "R81M1D bipod"
+	desc = "An integral bipod for the R81M1D Pulse Squad Automatic Weapon."
+	icon_state = "bipod_a"
+	attach_icon = "bipod_fal_saw_a"
+	slot = "under"
+	size_mod = 0
+	melee_mod = 0
+	flags_attach_features = ATTACH_ACTIVATION
+	attachment_action_type = /datum/action/item_action/toggle
+
+/obj/item/attachable/bipod/r81/New()
+	..()
+
+	delay_mod = 0
+	wield_delay_mod = WIELD_DELAY_FAST
+	accuracy_mod = -HIT_ACCURACY_MULT_TIER_5
+	scatter_mod = SCATTER_AMOUNT_TIER_9
+	recoil_mod = -RECOIL_AMOUNT_TIER_2
+	fa_scatter_peak_mod = 15
 
 /obj/item/attachable/bipod/vulture
 	name = "heavy bipod"

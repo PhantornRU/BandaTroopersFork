@@ -478,6 +478,7 @@
 	caliber = "9x32mm"
 	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
 	icon_state = "fal"
+	bonus_overlay = "fal_overlay"
 	default_ammo = /datum/ammo/bullet/rifle/r81m1
 	max_rounds = 20
 	gun_type = /obj/item/weapon/gun/rifle/r81m1a
