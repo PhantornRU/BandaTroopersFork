@@ -27,13 +27,13 @@
 	path = /datum/equipment_preset/mercenary/pilot/driver
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel
-	name = "Black Dragoons Sentinel (SMG)"
-	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with a modified FP9000 and pistol."
+	name = "Black Dragoons Sentinel (SMG/Carbine/Rifle)"
+	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with either a modified FP9000, M20CW Carbine or a R81M1A rifle, alongside a pistol."
 	path = /datum/equipment_preset/mercenary/sentinel
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/carbine
-	name = "Black Dragoons Sentinel Lead (Carbine)"
-	desc = "The squad leader for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an M20CW Carbine and pistol."
+	name = "Black Dragoons Sentinel Lead (Rifle)"
+	desc = "The squad leader for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an R81M1A and pistol."
 	path = /datum/equipment_preset/mercenary/sentinel/carbine
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/medic
@@ -47,13 +47,13 @@
 	path = /datum/equipment_preset/mercenary/sentinel/tech
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/mg
-	name = "Black Dragoons Sentinel Machinegunner (LMG)"
-	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with a MK.7 ISR LMG and pistol."
+	name = "Black Dragoons Sentinel Machinegunner (SAW)"
+	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an R81M1D and pistol."
 	path = /datum/equipment_preset/mercenary/sentinel/mg
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/at
 	name = "Black Dragoons Sentinel Anti-Tank Specialist (SMG)"
-	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with a FP9000 SMG, a few SADARs and pistol."
+	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an M20CW Carbine, a couple of SADARs and pistol."
 	path = /datum/equipment_preset/mercenary/sentinel/mg
 
 /datum/human_ai_equipment_preset/mercenaries/supervisor
@@ -63,7 +63,7 @@
 
 /datum/human_ai_equipment_preset/mercenaries/supervisor/equipped
 	name = "Black Dragoons Supervisor (Equipped)"
-	desc = "An NCO for the Black Dragoons, armed and ready for some basic patrols and on-site incidents. Armed with an M20CW Carbine and revolver."
+	desc = "An NCO for the Black Dragoons, armed and ready for some basic patrols and on-site incidents. Armed with an R81M1C Carbine and pistol."
 	path = /datum/equipment_preset/mercenary/supervisor/equipped
 
 /datum/human_ai_equipment_preset/mercenaries/synth
@@ -72,9 +72,14 @@
 	path = /datum/equipment_preset/mercenary/synth
 
 /datum/human_ai_equipment_preset/mercenaries/bulwark
+	name = "Black Dragoons Bulwark (Heavy Response Rifleman)"
+	desc = "A heavily armoured and well equipped operative meant to act as shock troops against hostiles that Sentinels are unable to handle. This one has a rifle."
+	path = /datum/equipment_preset/mercenary/bulwark
+
+/datum/human_ai_equipment_preset/mercenaries/bulwark/breacher
 	name = "Black Dragoons Bulwark (Heavy Response Breacher)"
 	desc = "A heavily armoured and well equipped operative meant to act as shock troops against hostiles that Sentinels are unable to handle. This one has a shotgun."
-	path = /datum/equipment_preset/mercenary/bulwark
+	path = /datum/equipment_preset/mercenary/bulwark/breacher
 
 /datum/human_ai_equipment_preset/mercenaries/bulwark/machinegun
 	name = "Black Dragoons Bulwark (Heavy Response Suppressor)"
@@ -83,5 +88,5 @@
 
 /datum/human_ai_equipment_preset/mercenaries/infiltrator
 	name = "Black Dragoons Infiltrator"
-	desc = "The Black Dragoons' only force of stealth operatives, equipped for maximum manuverability and to strike fear in anyone who gets in their way."
+	desc = "The Black Dragoons' 'special forces', used mainly for scouting, sabotage and infiltration missions."
 	path = /datum/equipment_preset/mercenary/infiltrator
