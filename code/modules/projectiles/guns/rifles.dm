@@ -333,10 +333,10 @@
 	set_fire_delay(FIRE_DELAY_TIER_11)
 	set_burst_amount(BURST_AMOUNT_TIER_4)
 	set_burst_delay(FIRE_DELAY_TIER_11)
-	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_3
-	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_7
-	scatter = SCATTER_AMOUNT_TIER_9
-	burst_scatter_mult = SCATTER_AMOUNT_TIER_9
+	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_2
+	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_8
+	scatter = SCATTER_AMOUNT_TIER_6
+	burst_scatter_mult = SCATTER_AMOUNT_TIER_6
 	scatter_unwielded = SCATTER_AMOUNT_TIER_2
 	damage_mult = BASE_BULLET_DAMAGE_MULT
 	damage_falloff_mult = 0
@@ -1885,7 +1885,7 @@
 // R81M1A Rifle
 /obj/item/weapon/gun/rifle/r81m1a
 	name = "\improper R81M1A pulse rifle"
-	desc = "The R81M1A highpower pulse rifle is a very popular weapon within the civilian market, previously rejected by the Royal Marine Commandos due to it's heavy recoil and mediocre accuracy compared to other rifles in its class. However, it remains a favorite among mercenaries and private military contractors for its high damage output and reliability in harsh conditions."
+	desc = "The R81M1A highpower pulse rifle is a very popular weapon within the civilian market, previously rejected by the Royal Marine Commandos due to it's heavy recoil and mediocre accuracy compared to other rifles in its class. However, it remains a favorite among mercenaries and private military contractors for its high damage output and reliability in harsh conditions. Produced by Orion Defence Systems."
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
 	icon_state = "fal"
 	item_state = "fal"
@@ -1928,7 +1928,7 @@
 	recoil_unwielded = RECOIL_AMOUNT_TIER_1
 	recoil = RECOIL_AMOUNT_TIER_4
 	damage_falloff_mult = 0
-	scatter = SCATTER_AMOUNT_TIER_8
+	scatter = SCATTER_AMOUNT_TIER_7
 
 /obj/item/weapon/gun/rifle/r81m1a/handle_starting_attachment()
 	..()
@@ -1979,6 +1979,52 @@
 /obj/item/weapon/gun/rifle/r81m1a/m1c/handle_starting_attachment()
 	..()
 	var/obj/item/attachable/r81m1a_barrel/short/integrated = new(src)
+	integrated.flags_attach_features &= ~ATTACH_REMOVABLE
+	var/obj/item/attachable/old_barrel = attachments[integrated.slot]
+	if(old_barrel)
+		old_barrel.Detach(detaching_gub = src, drop_attachment = FALSE)
+		qdel(old_barrel)
+	integrated.Attach(src)
+	update_attachable(integrated.slot)
+
+// R81M1A Rifle
+/obj/item/weapon/gun/rifle/r81m1a/m1d
+	name = "\improper R81M1D pulse squad automatic weapon"
+	desc = "A SAW variant of the M81M series of pulse rifles, the M81M1D sacrifices some accuracy for a higher rate of fire and larger magazine capacity, though at the cost of increased recoil. Favored by private military contractors and security details operating in high-threat environments."
+	item_state = "fal"
+	icon_state = "fal_saw"
+	attachable_allowed = list(
+		/obj/item/attachable/sling,
+		/obj/item/attachable/lasersight,
+		/obj/item/attachable/flashlight,
+	)
+
+	flags_gun_features = GUN_CAN_POINTBLANK|GUN_AMMO_COUNTER
+	wield_delay = WIELD_DELAY_NORMAL
+	aim_slowdown = SLOWDOWN_ADS_QUICK
+	start_automatic = TRUE
+
+	starting_attachment_types = list(/obj/item/attachable/bipod/r81, /obj/item/attachable/stock/r81_saw, /obj/item/attachable/scope/mini/r81)
+
+/obj/item/weapon/gun/rifle/r81m1a/m1d/set_gun_attachment_offsets()
+	attachable_offset = list("muzzle_x" = 43, "muzzle_y" = 17,"rail_x" = 7, "rail_y" = 16, "under_x" = 30, "under_y" = 13, "stock_x" = 20, "stock_y" = 15, "side_rail_x" = 26, "side_rail_y" = 18, "special_x" = 32, "special_y" = 16)
+
+/obj/item/weapon/gun/rifle/r81m1a/m1d/set_gun_config_values()
+	..()
+	set_fire_delay(FIRE_DELAY_TIER_9)
+	set_burst_amount(BURST_AMOUNT_TIER_6)
+	set_burst_delay(FIRE_DELAY_TIER_11)
+	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_3
+	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_3
+	damage_mult = BASE_BULLET_DAMAGE_MULT
+	recoil_unwielded = RECOIL_AMOUNT_TIER_1
+	recoil = RECOIL_AMOUNT_TIER_2
+	damage_falloff_mult = 0
+	scatter = SCATTER_AMOUNT_TIER_6
+
+/obj/item/weapon/gun/rifle/r81m1a/m1d/handle_starting_attachment()
+	..()
+	var/obj/item/attachable/r81m1a_barrel/saw/integrated = new(src)
 	integrated.flags_attach_features &= ~ATTACH_REMOVABLE
 	var/obj/item/attachable/old_barrel = attachments[integrated.slot]
 	if(old_barrel)
