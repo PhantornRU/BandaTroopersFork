@@ -468,7 +468,7 @@
 
 /datum/equipment_preset/mercenary/sentinel/at
 	name = "Black Dragoons Sentinel AT Specialist (Anti-Tank)"
-	paygrades = list(PAY_SHORT_BD_S = JOB_PLAYTIME_TIER_0)
+	paygrades = list(PAY_SHORT_BD_CS = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "SNTL-AT"
 	flags = EQUIPMENT_PRESET_EXTRA
 	assignment = "Black Dragoons Sentinel AT Specialist"

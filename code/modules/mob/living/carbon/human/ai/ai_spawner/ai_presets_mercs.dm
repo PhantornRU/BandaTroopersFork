@@ -52,9 +52,9 @@
 	path = /datum/equipment_preset/mercenary/sentinel/mg
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/at
-	name = "Black Dragoons Sentinel Anti-Tank Specialist (SMG)"
+	name = "Black Dragoons Sentinel Anti-Tank Specialist (Carbine)"
 	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an M20CW Carbine, a couple of SADARs and pistol."
-	path = /datum/equipment_preset/mercenary/sentinel/mg
+	path = /datum/equipment_preset/mercenary/sentinel/at
 
 /datum/human_ai_equipment_preset/mercenaries/supervisor
 	name = "Black Dragoons Supervisor (Unequipped)"
