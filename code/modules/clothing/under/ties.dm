@@ -1811,7 +1811,7 @@
 	hold = /obj/item/storage/internal/accessory/black_vest/m3generic/recon/marsoc
 
 /obj/item/storage/internal/accessory/black_vest/m3generic/recon/marsoc/fill_preset_inventory()
-	new /obj/item/storage/surgical_case(src)
+	new /obj/item/storage/surgical_case/regular(src)
 	new /obj/item/tool/surgery/surgical_line(src)
 	new /obj/item/tool/surgery/synthgraft(src)
 	new /obj/item/storage/syringe_case/regular(src)
