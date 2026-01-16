@@ -1220,6 +1220,7 @@
 	rank = JOB_MARINE_RAIDER_SL
 	role_comm_title = "RTL"
 	paygrades = list(PAY_SHORT_ME6 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/commando/deathsquad/leader
 
 /datum/equipment_preset/uscm/marsoc/medic
 	name = "USCM Marine Raider Corpsman"
@@ -1227,6 +1228,7 @@
 	rank = JOB_MARINE_RAIDER_MED
 	role_comm_title = "SARC"
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/commando/deathsquad/medic
 
 /datum/equipment_preset/uscm/marsoc/medic/load_gear(mob/living/carbon/human/new_human)
 	//back
@@ -1235,7 +1237,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre/fsr(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/crowbar/tactical(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/shovel/etool/folded(new_human), WEAR_IN_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/softpack/regular(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/softpack/adv(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/softpack/adv(new_human), WEAR_IN_BACK)
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/glasses/hud/health(new_human), WEAR_EYES)
@@ -1251,13 +1253,14 @@
 	//jacket
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/leader(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m3/recon/medic/marsoc(new_human), WEAR_ACCESSORY)
+	add_marsoc_weapon(new_human)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/medical/lifesaver/full/forecon(new_human), WEAR_WAIST)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/jungle/knife(new_human), WEAR_FEET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine(new_human), WEAR_HANDS)
 	//pockets
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medical/socmed/not_op, WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/full/socmed, WEAR_L_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine/large, WEAR_R_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
