@@ -31,10 +31,10 @@
 	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with either a modified FP9000, M20CW Carbine or a R81M1A rifle, alongside a pistol."
 	path = /datum/equipment_preset/mercenary/sentinel
 
-/datum/human_ai_equipment_preset/mercenaries/sentinel/carbine
+/datum/human_ai_equipment_preset/mercenaries/sentinel/lead
 	name = "Black Dragoons Sentinel Lead (Rifle)"
 	desc = "The squad leader for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an R81M1A and pistol."
-	path = /datum/equipment_preset/mercenary/sentinel/carbine
+	path = /datum/equipment_preset/mercenary/sentinel/lead
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/medic
 	name = "Black Dragoons Sentinel Medic (SMG)"
