@@ -315,8 +315,8 @@
 
 //*****************************************************************************************************/
 
-/datum/equipment_preset/mercenary/sentinel/carbine
-	name = "Black Dragoons Sentinel Lead (Carbine)"
+/datum/equipment_preset/mercenary/sentinel/lead
+	name = "Black Dragoons Sentinel Lead (Rifle)"
 	paygrades = list(PAY_SHORT_BD_SC = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "SNTL-L"
 	flags = EQUIPMENT_PRESET_EXTRA
@@ -325,7 +325,7 @@
 	skills = /datum/skills/trooper
 	faction = FACTION_MERCENARY
 
-/datum/equipment_preset/mercenary/sentinel/carbine/load_gear(mob/living/carbon/human/new_human)
+/datum/equipment_preset/mercenary/sentinel/lead/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "undershirt"
 	//back
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/satchel/black, WEAR_BACK)
