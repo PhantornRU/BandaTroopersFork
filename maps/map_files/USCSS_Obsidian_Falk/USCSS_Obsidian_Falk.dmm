@@ -1556,6 +1556,16 @@
 	},
 /turf/open/floor/corsat/squares,
 /area/firefly/hangar)
+"aeu" = (
+/obj/structure/closet/secure_closet{
+	name = "team leader locker";
+	req_access_txt = "209;211"
+	},
+/obj/item/device/binoculars/range/designator,
+/obj/item/device/whistle,
+/obj/effect/decal/cleanable/dirt,
+/turf/open/floor/corsat/cargo,
+/area/firefly/squad_omega)
 "aev" = (
 /turf/closed/wall/r_wall/biodome/biodome_unmeltable,
 /area/firefly/briefing)
@@ -5449,6 +5459,11 @@
 	},
 /turf/open/floor/corsat/red/west,
 /area/firefly/cafeteria)
+"aoO" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/turf/open/floor/corsat/squares,
+/area/firefly/cafeteria)
 "aoP" = (
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/white/east,
@@ -9098,7 +9113,7 @@
 "ayj" = (
 /obj/structure/closet/secure_closet{
 	name = "heavy weapons specialist locker";
-	req_access_txt = "208;217"
+	req_access_txt = "209;217"
 	},
 /obj/item/weapon/gun/smartgun/dirty,
 /obj/item/smartgun_battery,
@@ -22216,7 +22231,10 @@
 /area/firefly/supply)
 "pgD" = (
 /obj/structure/medical_supply_link/green,
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
+/obj/structure/machinery/cm_vending/sorted/medical/no_access{
+	req_one_access = list(202);
+	hackable = 0
+	},
 /turf/open/floor/corsat/purple/north,
 /area/firefly/medical)
 "pgE" = (
@@ -40109,7 +40127,7 @@ aqA
 adk
 anq
 anq
-amY
+aoO
 amY
 anq
 anq
@@ -42218,7 +42236,7 @@ atf
 axq
 aeg
 axl
-axe
+aeu
 axe
 ayj
 axd
@@ -43678,9 +43696,9 @@ rNE
 sQd
 rNE
 aev
-rNE
 sQd
 rNE
+sQd
 aev
 siC
 aei
