@@ -47,7 +47,7 @@
 
 /datum/human_ai_squad_preset/mercs/squad
 	name = "Sentinel Response Squad"
-	desc = "A squad of sentinels, better armed to respond to hostile action. With better armor and equipment, they're a tougher foe to go up against, with a squad leader with an M20CW Carbine as well."
+	desc = "A squad of sentinels, better armed to respond to hostile action. With better armor and equipment, they're a tougher foe to go up against, with a squad leader with an R81M1C Carbine as well."
 	ai_to_spawn = list(
 		/datum/equipment_preset/mercenary/sentinel/lead = 1,
 		/datum/equipment_preset/mercenary/sentinel = 3,

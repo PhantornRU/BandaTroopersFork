@@ -28,7 +28,7 @@
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel
 	name = "Black Dragoons Sentinel (SMG/Carbine/Rifle)"
-	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with either a modified FP9000, M20CW Carbine or a R81M1A rifle, alongside a pistol."
+	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with either a modified FP9000, R81M1C Carbine or an R81M1A rifle, alongside a pistol."
 	path = /datum/equipment_preset/mercenary/sentinel
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/lead
@@ -53,7 +53,7 @@
 
 /datum/human_ai_equipment_preset/mercenaries/sentinel/at
 	name = "Black Dragoons Sentinel Anti-Tank Specialist (Carbine)"
-	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an M20CW Carbine, a couple of SADARs and pistol."
+	desc = "The primary infantryman for the Black Dragoons, equipped to act as a rapid response force against hostile action. Equipped with an R81M1C Carbine, a couple of SADARs and pistol."
 	path = /datum/equipment_preset/mercenary/sentinel/at
 
 /datum/human_ai_equipment_preset/mercenaries/supervisor
