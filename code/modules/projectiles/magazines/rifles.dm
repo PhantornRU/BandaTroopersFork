@@ -474,7 +474,7 @@
 
 /obj/item/ammo_magazine/rifle/r81m1
 	name = "\improper R81M1 magazine (9x32mm)"
-	desc = "A 9x32mm battle rifle magazine."
+	desc = "A 9x32mm high-velocity battle rifle magazine."
 	caliber = "9x32mm"
 	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
 	icon_state = "fal"
@@ -488,13 +488,13 @@
 
 /obj/item/ammo_magazine/rifle/r81m1/ap
 	name = "\improper R81M1 AP magazine (9x32mm)"
-	desc = "A 9x32mm battle rifle armor piercing magazine."
-	default_ammo = /datum/ammo/bullet/rifle/r81m1
+	desc = "A 9x32mm high-velocity battle rifle armor piercing magazine."
+	default_ammo = /datum/ammo/bullet/rifle/r81m1/ap
 	ammo_band_color = AMMO_BAND_COLOR_AP
 
 /obj/item/ammo_magazine/rifle/r81m1/hp
 	name = "\improper R81M1 HP magazine (9x32mm)"
-	desc = "A 9x32mm battle rifle hollow point magazine."
+	desc = "A 9x32mm high-velocity battle rifle hollow point magazine."
 	default_ammo = /datum/ammo/bullet/rifle/r81m1/hp
 	ammo_band_color = AMMO_BAND_COLOR_HOLLOWPOINT
 

@@ -287,6 +287,9 @@
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
 		if(2)
 			new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/r81m1a, WEAR_J_STORE)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
@@ -294,6 +297,9 @@
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_BELT)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
 		if(3)
 			new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/fp9000/tactical, WEAR_J_STORE)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_BELT)
@@ -301,6 +307,9 @@
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_BELT)
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_BELT)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+			new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/civilian/knife, WEAR_FEET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
@@ -340,6 +349,9 @@
 	//uniform + armour
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/darkblue(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/merc(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/veteran/merc, WEAR_HEAD)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/holobadge/cord, WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/armband, WEAR_ACCESSORY)
@@ -370,7 +382,7 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/mercenary/sentinel/mg
-	name = "Black Dragoons Sentinel Machinegunner (LMG)"
+	name = "Black Dragoons Sentinel Machinegunner (SAW)"
 	paygrades = list(PAY_SHORT_BD_CS = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "SNTL-MG"
 	flags = EQUIPMENT_PRESET_EXTRA
@@ -396,6 +408,9 @@
 	//uniform + armour
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/darkblue(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/merc(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new 	/obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
 	if(prob(35))
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/veteran/merc, WEAR_HEAD)
 	else
@@ -498,8 +513,7 @@
 	if(prob(20))
 		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/high_explosive/m15, WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre,WEAR_IN_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/device/flashlight/combat, WEAR_IN_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/weapon/telebaton, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/prop/folded_anti_tank_sadar, WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/prop/folded_anti_tank_sadar, WEAR_IN_BACK)
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/distress/merc, WEAR_L_EAR)
@@ -564,6 +578,9 @@
 	//uniform + armour
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/darkblue(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/merc/light(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/holobadge/cord, WEAR_ACCESSORY)
 	if(prob(35))
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/veteran/merc, WEAR_HEAD)
@@ -613,6 +630,9 @@
 	//uniform + armour
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/darkblue(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/merc/light(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/smg/fp9000, WEAR_IN_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/armband/engine(new_human), WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/holobadge/cord, WEAR_ACCESSORY)
 	if(prob(35))
@@ -701,6 +721,9 @@
 	//uniform + armour
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/darkblue(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/merc(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/r81m1, WEAR_IN_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/beret/sec/alt, WEAR_HEAD)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/holobadge/cord, WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/r81m1a/m1c, WEAR_J_STORE)
