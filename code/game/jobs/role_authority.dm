@@ -756,6 +756,10 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			M = /mob/living/carbon/xenomorph/king
 		if(RUNNER_ACIDER)
 			M = /mob/living/carbon/xenomorph/runner/acider
+		// SS220 ADDITION Start - Arachnid
+		if(ARACHNID_CASTE_WARRIOR)
+			M = /mob/living/carbon/xenomorph/arachnid
+		// SS220 ADDITION End - Arachnid
 	return M
 
 

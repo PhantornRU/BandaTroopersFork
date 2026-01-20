@@ -1,0 +1,20 @@
+
+//ARACHNID CASTES	===		TODO	===
+// #define ARACHNID_CASTE_LESSER_DRONE "Arachnid Lesser Drone"
+// #define ARACHNID_T0_CASTES    list(ARACHNID_CASTE_LESSER_DRONE)
+
+//t1	===		TODO	===
+// #define ARACHNID_CASTE_DRONE  "Arachnid Drone"
+// #define ARACHNID_T1_CASTES    list(ARACHNID_CASTE_DRONE)
+
+//t2
+#define ARACHNID_CASTE_WARRIOR   "Arachnid"
+#define ARACHNID_T2_CASTES    list(ARACHNID_CASTE_WARRIOR)
+
+//t3	===		TODO	===
+// #define ARACHNID_CASTE_TIGER "Arachnid Tiger"
+// #define ARACHNID_T3_CASTES    list(ARACHNID_CASTE_TIGER)
+
+
+// Шанс захвата в ИИ-поведении моба
+#define ARACHNID_GRAB_CHANCE 20
