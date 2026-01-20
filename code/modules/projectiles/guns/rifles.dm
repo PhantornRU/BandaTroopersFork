@@ -1864,10 +1864,6 @@
 		/obj/item/attachable/bayonet/co2,
 		/obj/item/attachable/reddot, // Rail
 		/obj/item/attachable/reflex,
-		/obj/item/attachable/magnetic_harness,
-		/obj/item/attachable/scope/mini,
-		/obj/item/attachable/scope/mini/army,
-		/obj/item/attachable/sling,
 		/obj/item/attachable/lasersight, // Side Rail
 		/obj/item/attachable/flashlight,
 	)
@@ -1912,8 +1908,6 @@
 	attachable_allowed = list(
 		/obj/item/attachable/reddot, // Rail
 		/obj/item/attachable/reflex,
-		/obj/item/attachable/magnetic_harness,
-		/obj/item/attachable/sling,
 		/obj/item/attachable/lasersight, // Side Rail
 		/obj/item/attachable/flashlight,
 	)
@@ -1924,7 +1918,7 @@
 	start_automatic = TRUE
 
 /obj/item/weapon/gun/rifle/r81m1a/m1c/set_gun_attachment_offsets()
-	attachable_offset = list("muzzle_x" = 43, "muzzle_y" = 17,"rail_x" = 22, "rail_y" = 21, "under_x" = 30, "under_y" = 13, "stock_x" = 24, "stock_y" = 13, "side_rail_x" = 31, "side_rail_y" = 18, "special_x" = 29, "special_y" = 16)
+	attachable_offset = list("muzzle_x" = 43, "muzzle_y" = 17,"rail_x" = 12, "rail_y" = 21, "under_x" = 30, "under_y" = 13, "stock_x" = 24, "stock_y" = 13, "side_rail_x" = 20, "side_rail_y" = 18, "special_x" = 29, "special_y" = 16)
 
 /obj/item/weapon/gun/rifle/r81m1a/m1c/set_gun_config_values()
 	..()
@@ -1957,7 +1951,6 @@
 	item_state = "fal"
 	icon_state = "fal_saw"
 	attachable_allowed = list(
-		/obj/item/attachable/sling,
 		/obj/item/attachable/lasersight,
 		/obj/item/attachable/flashlight,
 	)
