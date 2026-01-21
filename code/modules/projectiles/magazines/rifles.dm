@@ -498,6 +498,14 @@
 	default_ammo = /datum/ammo/bullet/rifle/r81m1/hp
 	ammo_band_color = AMMO_BAND_COLOR_HOLLOWPOINT
 
+/obj/item/ammo_magazine/rifle/r81m1/drum
+	name = "\improper R81M1D drum magazine (9x32mm)"
+	desc = "A 9x32mm high-velocity drum magazine."
+	icon_state = "fal_drum"
+	bonus_overlay = "fal_drum_overlay"
+	max_rounds = 80
+	gun_type = /obj/item/weapon/gun/rifle/r81m1a/m1d
+
 //M20A
 
 /obj/item/ammo_magazine/rifle/m20a

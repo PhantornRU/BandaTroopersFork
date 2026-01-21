@@ -1186,6 +1186,12 @@ Defined in conflicts.dm of the #defines folder.
 	desc = "A civilian-grade scope that can be switched between short and long range magnification, intended for use in extraterrestrial scouting. Looks ridiculous on a pistol."
 	aim_speed_mod = 0
 
+/obj/item/attachable/scope/variable_zoom/fal
+	name = "ODS R94 telescopic variable scope"
+	attach_icon = "sniperscope_fal"
+	desc = "A Orion Defence Systems telescopic scope used mainly for the R81M1D. Can switch between 2x and 4x magnification."
+	aim_speed_mod = 0
+
 /obj/item/attachable/scope/variable_zoom/canc
 	name = "LMR-72 4x smartscope"
 	desc = "Outdated CANC scope."
@@ -2515,6 +2521,18 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/stock/r81_saw/New()//no stats, its cosmetic
 	..()
 
+/obj/item/attachable/stock/r81_sniper
+	name = "\improper R81M1B stock"
+	desc = "You kinda need this to even use the gun properly."
+	icon_state = "riflestock"
+	attach_icon = "fal_sniper_stock"
+	wield_delay_mod = WIELD_DELAY_MIN
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = 3
+
+/obj/item/attachable/stock/r81_sniper/New()
+	..()
+
 /obj/item/attachable/stock/m79
 	name = "\improper M79 hardened polykevlon stock"
 	desc = "Helps to mitigate the recoil of launching a 40mm grenade. Fits only to the M79."
@@ -2781,6 +2799,11 @@ Defined in conflicts.dm of the #defines folder.
 	name = "R81M1D barrel"
 	icon_state = "fal_saw_barrel"
 	attach_icon = "fal_saw_barrel"
+
+/obj/item/attachable/r81m1a_barrel/sniper
+	name = "R81M1D barrel"
+	icon_state = "fal_sniper_barrel"
+	attach_icon = "fal_sniper_barrel"
 
 /obj/item/attachable/stock/type71
 	name = "Type 71 Stock"
