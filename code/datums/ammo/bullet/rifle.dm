@@ -607,7 +607,7 @@
 //R81M1
 /datum/ammo/bullet/rifle/r81m1
 	name = "9x32 high-velocity rifle bullet"
-	damage = 55
+	damage = 50
 	accuracy = HIT_ACCURACY_TIER_5
 
 /datum/ammo/bullet/rifle/r81m1/ap
@@ -617,7 +617,7 @@
 
 /datum/ammo/bullet/rifle/r81m1/hp
 	name = "9x32 high-velocity HP rifle bullet"
-	damage = 65
+	damage = 60
 	penetration = -ARMOR_PENETRATION_TIER_3
 	shrapnel_chance = SHRAPNEL_CHANCE_TIER_5
 
