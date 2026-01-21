@@ -15,6 +15,7 @@
 // #define ARACHNID_CASTE_TIGER "Arachnid Tiger"
 // #define ARACHNID_T3_CASTES    list(ARACHNID_CASTE_TIGER)
 
+#define ALL_ARACHNID_CASTES list(ARACHNID_CASTE_WARRIOR)
 
 // Шанс захвата в ИИ-поведении моба
 #define ARACHNID_GRAB_CHANCE 20

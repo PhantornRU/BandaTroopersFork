@@ -8,8 +8,8 @@
 	plasma_gain = XENO_PLASMA_GAIN_TIER_1
 	plasma_max = XENO_NO_PLASMA
 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_1 // 10
-	armor_deflection = XENO_ARMOR_TIER_1 // 20
-	max_health = XENO_HEALTH_TIER_3	// 350
+	armor_deflection = XENO_ARMOR_TIER_2 // 25
+	max_health = XENO_HEALTH_TIER_1	// 250
 	evasion = XENO_EVASION_NONE
 	speed = XENO_SPEED_TIER_5
 	attack_delay = -4
@@ -78,21 +78,6 @@
 	if(is_zoomed)
 		zoom_out()
 
-
- 			// !!!!!!! TODO УБРАТЬ скорее всего не нужно будет
-// /mob/living/carbon/xenomorph/arachnid/launch_towards(datum/launch_metadata/LM)
-// 	if(!current_target)
-// 		return ..()
-
-// 	pull_direction = turn(get_dir(src, current_target), 180)
-
-// 	if(!(pull_direction in GLOB.cardinals))
-// 		if(abs(x - current_target.x) < abs(y - current_target.y))
-// 			pull_direction &= (NORTH|SOUTH)
-// 		else
-// 			pull_direction &= (EAST|WEST)
-// 	return ..()
-
 /mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge, no_msg)
 	. = ..()
 	add_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
@@ -142,9 +127,7 @@
 	INVOKE_ASYNC(src, PROC_REF(start_pulling), current_target)
 	swap_hand()
 
- 			// !!!!!!! TODO УБРАТЬ скорее всего не нужно будет
-// Этот кусок кажется не нужный ибо нет необходимости наносить доп атаку
-// /mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
-// 	if(get_active_hand())
-// 		swap_hand()
-// 	return ..()
+/mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
+	if(get_active_hand())
+		swap_hand()
+	return ..()

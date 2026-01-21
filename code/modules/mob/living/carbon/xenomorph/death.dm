@@ -146,6 +146,13 @@
 	remains.icon_state = gib_state
 	remains.icon = icon_path
 
+	//SS220 EDIT - Start - Arachnid
+	if(is_arachnid)
+		icon_path = icon
+		remains.icon_state = get_custom_remains_icon_state()
+		remains.icon = get_custom_remains_icon()
+	//SS220 EDIT - END - Arachnid
+
 	check_blood_splash(35, BURN, 65, 1) //Some testing numbers. 35 burn, 65 chance.
 
 	..(cause)
@@ -166,6 +173,10 @@
 		if(XENO_CASTE_LARVA, XENO_CASTE_PREDALIEN_LARVA)
 			icon_path = 'icons/mob/xenos/larva.dmi'
 			to_flick = "larva_gib"
+	//SS220 EDIT - Start - Arachnid
+	if(is_arachnid)
+		icon_path = icon
+	//SS220 EDIT - END - Arachnid
 	new /obj/effect/overlay/temp/gib_animation/xeno(loc, src, to_flick, icon_path)
 
 /mob/living/carbon/xenomorph/spawn_gibs()

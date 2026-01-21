@@ -10,6 +10,8 @@
 	name = "едкие останки"
 	gender = PLURAL
 	desc = "Мерзотно..."
+	icon = 'modular/arachnid/icons/effects/arachnid_blood.dmi'
+	base_icon = 'modular/arachnid/icons/effects/arachnid_blood.dmi'
 	icon_state = "agib1"
 	random_icon_states = list(
 		"agib1", "agib2", "agib3", "agib4", "agib5", "agib6", "agib7", "agib8", "agib9", "agib10",
