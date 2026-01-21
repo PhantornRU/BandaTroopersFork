@@ -1899,10 +1899,50 @@
 /obj/item/weapon/gun/rifle/r81m1a/modded
 	starting_attachment_types = list(/obj/item/attachable/bayonet, /obj/item/attachable/reflex, /obj/item/attachable/lasersight)
 
-// R81M1A Rifle
+// R81M1B Marksman Rifle
+/obj/item/weapon/gun/rifle/r81m1a/m1b
+	name = "\improper R81M1B pulse marksman rifle"
+	desc = "A marksman variant of the M81M series of pulse rifles, the M81M1B sacrifices some rate of fire for a higher accuracy and longer effective range. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
+	item_state = "fal"
+	icon_state = "fal_sniper"
+	attachable_allowed = list(
+		/obj/item/attachable/lasersight,
+		/obj/item/attachable/flashlight,
+	)
+
+	starting_attachment_types = list(/obj/item/attachable/stock/r81_sniper, /obj/item/attachable/scope/variable_zoom/fal)
+
+/obj/item/weapon/gun/rifle/r81m1a/m1b/set_gun_attachment_offsets()
+	attachable_offset = list("muzzle_x" = 33, "muzzle_y" = 19,"rail_x" = 17, "rail_y" = 19, "under_x" = 33, "under_y" = 13, "stock_x" = 19, "stock_y" = 16, "side_rail_x" = 28, "side_rail_y" = 18, "special_x" = 36, "special_y" = 19)
+
+/obj/item/weapon/gun/rifle/r81m1a/m1b/set_gun_config_values()
+	..()
+	set_fire_delay(FIRE_DELAY_TIER_5)
+	set_burst_amount(BURST_AMOUNT_TIER_2)
+	set_burst_delay(FIRE_DELAY_TIER_7)
+	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_6
+	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_5
+	damage_mult = BASE_BULLET_DAMAGE_MULT
+	recoil_unwielded = RECOIL_AMOUNT_TIER_1
+	recoil = RECOIL_AMOUNT_TIER_4
+	damage_falloff_mult = 0
+	scatter = SCATTER_AMOUNT_TIER_8
+
+/obj/item/weapon/gun/rifle/r81m1a/m1b/handle_starting_attachment()
+	..()
+	var/obj/item/attachable/r81m1a_barrel/sniper/integrated = new(src)
+	integrated.flags_attach_features &= ~ATTACH_REMOVABLE
+	var/obj/item/attachable/old_barrel = attachments[integrated.slot]
+	if(old_barrel)
+		old_barrel.Detach(detaching_gub = src, drop_attachment = FALSE)
+		qdel(old_barrel)
+	integrated.Attach(src)
+	update_attachable(integrated.slot)
+
+// R81M1C Carbine
 /obj/item/weapon/gun/rifle/r81m1a/m1c
 	name = "\improper R81M1C pulse carbine"
-	desc = "A carbine variant of the M81M series of pulse rifles, the M81M1C sacrifices some range and accuracy for a more compact and maneuverable package. Favored by private military contractors and security details operating in urban environments."
+	desc = "A carbine variant of the M81M series of pulse rifles, the M81M1C sacrifices some range and accuracy for a more compact and maneuverable package. Favored by private military contractors and security details operating in urban environments. Produced by Orion Defence Systems."
 	item_state = "fal"
 	icon_state = "fal_short"
 	attachable_allowed = list(
@@ -1926,7 +1966,7 @@
 	set_burst_amount(BURST_AMOUNT_TIER_2)
 	set_burst_delay(FIRE_DELAY_TIER_10)
 	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_3
-	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_3
+	accuracy_mult_unwielded = BASE_ACCURACY_MULT - HIT_ACCURACY_MULT_TIER_6
 	damage_mult = BASE_BULLET_DAMAGE_MULT
 	recoil_unwielded = RECOIL_AMOUNT_TIER_1
 	recoil = RECOIL_AMOUNT_TIER_3
@@ -1944,16 +1984,17 @@
 	integrated.Attach(src)
 	update_attachable(integrated.slot)
 
-// R81M1A Rifle
+// R81M1D Squad Automatic Weapon
 /obj/item/weapon/gun/rifle/r81m1a/m1d
 	name = "\improper R81M1D pulse squad automatic weapon"
-	desc = "A SAW variant of the M81M series of pulse rifles, the M81M1D sacrifices some accuracy for a higher rate of fire and larger magazine capacity, though at the cost of increased recoil. Favored by private military contractors and security details operating in high-threat environments."
+	desc = "A SAW variant of the M81M series of pulse rifles, the M81M1D sacrifices some accuracy for a higher rate of fire and larger magazine capacity, though at the cost of increased recoil. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
 	item_state = "fal"
 	icon_state = "fal_saw"
 	attachable_allowed = list(
 		/obj/item/attachable/lasersight,
 		/obj/item/attachable/flashlight,
 	)
+	current_mag = /obj/item/ammo_magazine/rifle/r81m1/drum
 
 	flags_gun_features = GUN_CAN_POINTBLANK|GUN_AMMO_COUNTER
 	wield_delay = WIELD_DELAY_NORMAL
@@ -1963,7 +2004,7 @@
 	starting_attachment_types = list(/obj/item/attachable/bipod/r81, /obj/item/attachable/stock/r81_saw, /obj/item/attachable/scope/mini/r81)
 
 /obj/item/weapon/gun/rifle/r81m1a/m1d/set_gun_attachment_offsets()
-	attachable_offset = list("muzzle_x" = 43, "muzzle_y" = 17,"rail_x" = 7, "rail_y" = 16, "under_x" = 30, "under_y" = 13, "stock_x" = 20, "stock_y" = 15, "side_rail_x" = 26, "side_rail_y" = 18, "special_x" = 32, "special_y" = 16)
+	attachable_offset = list("muzzle_x" = 43, "muzzle_y" = 17,"rail_x" = 7, "rail_y" = 16, "under_x" = 32, "under_y" = 13, "stock_x" = 22, "stock_y" = 15, "side_rail_x" = 28, "side_rail_y" = 18, "special_x" = 34, "special_y" = 16)
 
 /obj/item/weapon/gun/rifle/r81m1a/m1d/set_gun_config_values()
 	..()
