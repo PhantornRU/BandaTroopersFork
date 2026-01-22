@@ -31,7 +31,7 @@
 
 /obj/effect/decal/cleanable/blood/gibs/arachnid/limb
 	random_icon_states = list(
-		"agibleg1", "agibleg2", "agibleg2", "agibleg3", "agibleg4", "agibleg5",
+		"agibleg1", "agibleg2", "agibleg3", "agibleg4", "agibleg5",
 		"agibleg6", "agibleg7", "agibleg8", "agibleg9", "agibleg10"
 		)
 
