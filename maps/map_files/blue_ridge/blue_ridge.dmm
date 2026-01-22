@@ -330,7 +330,7 @@
 /area/golden_arrow/platoon_commander_rooms)
 "aaL" = (
 /obj/structure/machinery/prop{
-	icon = 'icons\obj\vehicles\tank.dmi';
+	icon = 'icons/obj/vehicles/tank.dmi';
 	icon_state = "aev_base";
 	pixel_x = -31;
 	pixel_y = -38;
@@ -6109,7 +6109,7 @@
 "ayf" = (
 /obj/item/prop{
 	icon_state = "almflip";
-	icon = 'icons\obj\structures\barricades.dmi';
+	icon = 'icons/obj/structures/barricades.dmi';
 	name = "table barricade";
 	desc = "A square metal surface resting on its fat metal bottom. You can't flip something that doesn't have legs.";
 	layer = 3.1;
