@@ -7888,7 +7888,9 @@
 /turf/open/floor/almayer/edge/smooth,
 /area/golden_arrow/hangar)
 "aED" = (
-/obj/docking_port/stationary/marine_dropship/golden_arrow_hangar,
+/obj/docking_port/stationary/marine_dropship/golden_arrow_hangar{
+	roundstart_template = /datum/map_template/shuttle/tornado220
+	},
 /turf/open/floor/plating,
 /area/golden_arrow/hangar)
 "aEE" = (
@@ -14992,9 +14994,6 @@
 /area/golden_arrow/platoonprep)
 "eFT" = (
 /obj/item/paper/crumpled{
-	pixel_y = 17
-	},
-/obj/item/paper/crumpled{
 	layer = 2.7;
 	pixel_y = -10;
 	pixel_x = 5
@@ -15002,11 +15001,6 @@
 /obj/item/paper/crumpled{
 	pixel_y = 9;
 	pixel_x = 10
-	},
-/obj/item/paper/crumpled{
-	layer = 2.7;
-	pixel_y = 5;
-	pixel_x = -4
 	},
 /turf/open/floor/almayer,
 /area/golden_arrow/platoon_commander_rooms)
@@ -15933,6 +15927,19 @@
 	light_power = 0.3;
 	brightness = 9
 	},
+/obj/item/paper/crumpled{
+	layer = 2.7;
+	pixel_y = 5;
+	pixel_x = -4
+	},
+/obj/item/paper/crumpled{
+	pixel_y = 9;
+	pixel_x = 10
+	},
+/obj/item/paper/crumpled{
+	pixel_y = 17;
+	pixel_x = -3
+	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/platoon_commander_rooms)
 "gGG" = (
@@ -16401,6 +16408,14 @@
 /obj/structure/cargo_container/grant/right,
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/motor_pool)
+"hKL" = (
+/obj/item/paper/crumpled{
+	layer = 2.7;
+	pixel_y = -10;
+	pixel_x = 5
+	},
+/turf/open/floor/almayer,
+/area/golden_arrow/platoon_commander_rooms)
 "hKW" = (
 /obj/item/device/megaphone,
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -23837,6 +23852,13 @@
 /obj/structure/disposalpipe/segment,
 /turf/open/floor/almayer/edge/smooth,
 /area/golden_arrow/lower_cargo)
+"wOV" = (
+/obj/item/paper/crumpled{
+	pixel_y = 9;
+	pixel_x = 10
+	},
+/turf/open/floor/almayer,
+/area/golden_arrow/platoon_commander_rooms)
 "wPI" = (
 /turf/open/floor/almayer/uscm/directional/up_down/west,
 /area/golden_arrow/prep_hallway)
@@ -32697,7 +32719,7 @@ svr
 eES
 pZs
 aHw
-fpt
+wOV
 tXX
 ahl
 ayr
@@ -32874,7 +32896,7 @@ ayP
 tkm
 bCo
 eFT
-fpt
+hKL
 gFC
 ahl
 aTE

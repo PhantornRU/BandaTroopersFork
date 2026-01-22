@@ -21,7 +21,7 @@ map firefly
 endmap
 
 map golden_arrow
-	default
+	# default # SS220 EDIT
 endmap
 
 map chapaev
@@ -41,7 +41,11 @@ endmap
 
 map hms_brynhild
 endmap
-#SS220 EDIT
+
+# SS220 EDIT - START
+
 map blue_ridge
+	default
 endmap
 
+# SS220 EDIT - END
