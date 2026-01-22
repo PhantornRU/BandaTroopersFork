@@ -39,7 +39,13 @@
 /obj/structure/closet/secure_closet/marine_personal/proc/spawn_gear()
 	new /obj/item/clothing/under/marine(src)
 	new /obj/item/clothing/shoes/marine/knife(src)
-	new /obj/item/device/radio/headset/almayer/marine/solardevils(src)
+	// SS220 EDIT - START - Squad Frequency Fix
+	var/obj/item/device/radio/headset/headset = new /obj/item/device/radio/headset/almayer/marine/solardevils(src)
+	if(owner && ishuman(owner))
+		var/mob/living/carbon/human/H = owner
+		var/datum/squad/squad = H.assigned_squad
+		headset.frequency = squad.radio_freq
+	// SS220 EDIT - END - Squad Frequency Fix
 
 /obj/structure/closet/secure_closet/marine_personal/rifleman
 	job = JOB_SQUAD_MARINE
