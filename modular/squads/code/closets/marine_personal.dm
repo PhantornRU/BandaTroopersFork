@@ -5,7 +5,7 @@
 /obj/structure/closet/secure_closet/marine_personal/proc/is_correct_squad(mob/living/carbon/human/H)
 	if(!squad_type)
 		return TRUE
-	if(H.assigned_squad.name == squad_type)
+	if(H.assigned_squad && H.assigned_squad.name == squad_type)
 		return TRUE
 	return FALSE
 
