@@ -9,7 +9,7 @@
 	plasma_max = XENO_NO_PLASMA
 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_1 // 10
 	armor_deflection = XENO_ARMOR_TIER_2 // 25
-	max_health = XENO_HEALTH_TIER_1	// 250
+	max_health = XENO_HEALTH_TIER_3	// 350
 	evasion = XENO_EVASION_NONE
 	speed = XENO_SPEED_TIER_5
 	attack_delay = -4
@@ -67,67 +67,65 @@
 	var/pull_direction
 	var/pull_multiplier_value = 0.65
 
-/mob/living/carbon/xenomorph/arachnid/initialize_pass_flags(datum/pass_flags_container/pass_flags_container)
-	..()
-	if (pass_flags_container)
-		pass_flags_container.flags_pass |= PASS_FLAGS_CRAWLER
+// /mob/living/carbon/xenomorph/arachnid/initialize_pass_flags(datum/pass_flags_container/pass_flags_container)
+// 	..()
+// 	if (pass_flags_container)
+// 		pass_flags_container.flags_pass |= PASS_FLAGS_CRAWLER
 
-/mob/living/carbon/xenomorph/arachnid/recalculate_actions()
-	. = ..()
-	pull_multiplier *= pull_multiplier_value
-	if(is_zoomed)
-		zoom_out()
+// /mob/living/carbon/xenomorph/arachnid/recalculate_actions()
+// 	. = ..()
+// 	pull_multiplier *= pull_multiplier_value
 
-/mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge, no_msg)
-	. = ..()
-	add_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
+// /mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge, no_msg)
+// 	. = ..()
+// 	add_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
 
-/mob/living/carbon/xenomorph/arachnid/stop_pulling(bumped_movement = FALSE)
-	. = ..()
-	remove_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
+// /mob/living/carbon/xenomorph/arachnid/stop_pulling(bumped_movement = FALSE)
+// 	. = ..()
+// 	remove_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
 
 // ИИ-Поведение: Тип движения
 /mob/living/carbon/xenomorph/arachnid/init_movement_handler()
 	return new /datum/xeno_ai_movement(src)
 
 // ИИ-Поведение: Таскание
-/mob/living/carbon/xenomorph/arachnid/ai_move_target(delta_time)
-	if(throwing)
-		return
+// /mob/living/carbon/xenomorph/arachnid/ai_move_target(delta_time)
+// 	if(throwing)
+// 		return
 
-	if(pulling)
-		if(!current_target || get_dist(src, current_target) > 10)
-			INVOKE_ASYNC(src, PROC_REF(stop_pulling))
-			return ..()
-		if(can_move_and_apply_move_delay())
-			if(!Move(get_step(loc, pull_direction), pull_direction))
-				pull_direction = turn(pull_direction, pick(45, -45))
-		current_path = null
-		return
+// 	if(pulling)
+// 		if(!current_target || get_dist(src, current_target) > 10)
+// 			INVOKE_ASYNC(src, PROC_REF(stop_pulling))
+// 			return ..()
+// 		if(can_move_and_apply_move_delay())
+// 			if(!Move(get_step(loc, pull_direction), pull_direction))
+// 				pull_direction = turn(pull_direction, pick(45, -45))
+// 		current_path = null
+// 		return
 
-	..()
+// 	..()
 
-	if(get_dist(current_target, src) > 1)
-		return
+// 	if(get_dist(current_target, src) > 1)
+// 		return
 
-	if(!istype(current_target, /mob))
-		return
+// 	if(!istype(current_target, /mob))
+// 		return
 
-	var/mob/current_target_mob = current_target
+// 	var/mob/current_target_mob = current_target
 
-	if(!current_target_mob.is_mob_incapacitated())
-		return
+// 	if(!current_target_mob.is_mob_incapacitated())
+// 		return
 
-	if(isxeno(current_target.pulledby))
-		return
+// 	if(isxeno(current_target.pulledby))
+// 		return
 
-	if(!DT_PROB(ARACHNID_GRAB_CHANCE, delta_time))
-		return
+// 	if(!DT_PROB(ARACHNID_GRAB_CHANCE, delta_time))
+// 		return
 
-	INVOKE_ASYNC(src, PROC_REF(start_pulling), current_target)
-	swap_hand()
+// 	INVOKE_ASYNC(src, PROC_REF(start_pulling), current_target)
+// 	swap_hand()
 
-/mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
-	if(get_active_hand())
-		swap_hand()
-	return ..()
+// /mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
+// 	if(get_active_hand())
+// 		swap_hand()
+// 	return ..()
