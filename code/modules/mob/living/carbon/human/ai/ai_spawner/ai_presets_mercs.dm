@@ -81,12 +81,12 @@
 	desc = "A heavily armoured and well equipped operative meant to act as shock troops against hostiles that Sentinels are unable to handle. This one has a shotgun."
 	path = /datum/equipment_preset/mercenary/bulwark/breacher
 
-/datum/human_ai_equipment_preset/mercenaries/bulwark/machinegun
-	name = "Black Dragoons Bulwark (Heavy Response Suppressor)"
-	desc = "A heavily armoured and well equipped operative meant to act as shock troops against hostiles that Sentinels are unable to handle. This one has a machinegun."
-	path = /datum/equipment_preset/mercenary/bulwark/machinegun
-
 /datum/human_ai_equipment_preset/mercenaries/infiltrator
 	name = "Black Dragoons Infiltrator"
-	desc = "The Black Dragoons' 'special forces', used mainly for scouting, sabotage and infiltration missions."
+	desc = "The Black Dragoons' 'special forces', used mainly for scouting, sabotage and more covert missions."
 	path = /datum/equipment_preset/mercenary/infiltrator
+
+/datum/human_ai_equipment_preset/mercenaries/coordinator
+	name = "Black Dragoons Operations Coordinator (Unequipped)"
+	desc = "An CO for the Black Dragoons, in charge of larger operations and more executive duties."
+	path = /datum/equipment_preset/mercenary/coordinator
