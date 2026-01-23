@@ -65,7 +65,7 @@
 		var/people_on_page = min(PEOPLE_PER_PAGE, total_people - ((p - 1) * PEOPLE_PER_PAGE))
 
 		// +1.5 за каждые 5 человек, с округлением вниз
-		var/override_letters = LETTERS_BASE + FLOOR((people_on_page / LETTERS_PER_PEOPLE) * LETTERS_GAIN, 1)
+		var/override_letters = LETTERS_BASE + ROUND((people_on_page / LETTERS_PER_PEOPLE) * LETTERS_GAIN)
 
 		var/time_to_remove = BASE_REMOVE_TIME + (p * PAGE_REMOVE_TIME)
 		sleeping = max(1, (time_to_remove - 2 SECONDS) / 10) // Ensure a minimum sleep time of 0.1 seconds
