@@ -68,7 +68,7 @@
 		var/override_letters = LETTERS_BASE + FLOOR((people_on_page / LETTERS_PER_PEOPLE) * LETTERS_GAIN, 1)
 
 		var/time_to_remove = BASE_REMOVE_TIME + (p * PAGE_REMOVE_TIME)
-		sleeping = (time_to_remove - 2 SECONDS) / 10
+		sleeping = max(1, (time_to_remove - 2 SECONDS) / 10) // Ensure a minimum sleep time of 0.1 seconds
 
 		var/med_beep_time = 2.5 SECONDS
 		if(p == 1)
