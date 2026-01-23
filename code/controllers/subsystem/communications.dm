@@ -112,6 +112,13 @@ Radiochat range: 1441 to 1489 (most devices refuse to be tune to other frequency
 #define BUG_A_FREQ 1290
 #define BUG_B_FREQ 1291
 
+//CANC Channels (1300-1304)
+#define CANC_FREQ 1300
+#define CANC_CMD_FREQ 1301
+#define CANC_ENGI_FREQ 1302
+#define CANC_MED_FREQ 1303
+#define CANC_SOF_FREQ 1304
+
 //General Radio
 #define MIN_FREQ 1460 // ------------------------------------------------------
 #define PUB_FREQ 1461
@@ -216,8 +223,20 @@ GLOBAL_LIST_INIT(radiochannels, list(
 	RADIO_CHANNEL_CLF_CMD = CLF_CMD_FREQ,
 	RADIO_CHANNEL_CLF_ENGI = CLF_ENGI_FREQ,
 
+	RADIO_CHANNEL_CANC_GEN = CANC_FREQ,
+	RADIO_CHANNEL_CANC_CMD = CANC_CMD_FREQ,
+	RADIO_CHANNEL_CANC_ENGI = CANC_ENGI_FREQ,
+	RADIO_CHANNEL_CANC_MED = CANC_MED_FREQ,
+	RADIO_CHANNEL_CANC_SOF = CANC_SOF_FREQ,
+
 	RADIO_CHANNEL_BUG_A = BUG_A_FREQ,
 	RADIO_CHANNEL_BUG_B = BUG_B_FREQ,
+
+	RADIO_CHANNEL_CANC = CANC_FREQ,
+	RADIO_CHANNEL_CANC_CMD = CANC_CMD_FREQ,
+	RADIO_CHANNEL_CANC_ENGI = CANC_ENGI_FREQ,
+	RADIO_CHANNEL_CANC_MED = CANC_MED_FREQ,
+	RADIO_CHANNEL_CANC_SOF = CANC_SOF_FREQ,
 
 	RADIO_CHANNEL_REBEL_UA = PFA_FREQ,
 	RADIO_CHANNEL_REBEL_TWE = JSC_FREQ,
@@ -231,6 +250,9 @@ GLOBAL_LIST_INIT(radiochannels, list(
 
 // CLF Frequencies
 #define CLF_FREQS list(CLF_FREQ, CLF_CMD_FREQ, CLF_ENGI_FREQ)
+
+// CANC Frequencies
+#define CANC_FREQS list(CANC_FREQ, CANC_CMD_FREQ, CANC_ENGI_FREQ, CANC_MED_FREQ, CANC_SOF_FREQ)
 
 // Rebel Frequencies
 #define REBEL_FREQS list(PFA_FREQ, JSC_FREQ)
@@ -323,6 +345,11 @@ SUBSYSTEM_DEF(radio)
 		"[CLF_FREQ]" = "clfradio",
 		"[CLF_CMD_FREQ]" = "opforcmd",
 		"[CLF_ENGI_FREQ]" = "opforeng",
+		"[CANC_FREQ]" = "cancradio",
+		"[CANC_CMD_FREQ]" = "cancradio",
+		"[CANC_ENGI_FREQ]" = "cancradio",
+		"[CANC_MED_FREQ]" = "cancradio",
+		"[CANC_SOF_FREQ]" = "cancradio",
 		"[PFA_FREQ]" = "pfaradio",
 		"[JSC_FREQ]" = "jscradio",
 	)

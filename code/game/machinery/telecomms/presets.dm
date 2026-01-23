@@ -184,6 +184,10 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 	freq_listening = CLF_FREQS
 	faction_shorthand = "CLF"
 
+/obj/structure/machinery/telecomms/relay/preset/tower/faction/canc
+	freq_listening = CANC_FREQS
+	faction_shorthand = "CANC"
+
 /obj/structure/machinery/telecomms/relay/preset/tower/faction/pmc
 	freq_listening = PMC_FREQS
 	faction_shorthand = "PMC"
@@ -277,6 +281,8 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 						freq_listening |= SOF_FREQ
 				if(FACTION_CLF)
 					freq_listening |= CLF_FREQS
+				if(FACTION_LIST_CANC)
+					freq_listening |= CANC_FREQS
 				if(FACTION_UPP)
 					freq_listening |= UPP_FREQS
 				if(FACTION_WY,FACTION_PMC)

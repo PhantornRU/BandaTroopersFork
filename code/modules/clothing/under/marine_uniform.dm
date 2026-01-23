@@ -547,7 +547,7 @@
 	flags_jumpsuit = UNIFORM_SLEEVE_ROLLABLE|UNIFORM_JACKET_REMOVABLE
 	min_cold_protection_temperature = ICE_PLANET_MIN_COLD_PROT
 	has_sensor = UNIFORM_HAS_SENSORS
-	sensor_faction = FACTION_CANC
+	sensor_faction = FACTION_LIST_CANC
 	armor_internaldamage = CLOTHING_ARMOR_MEDIUMLOW
 
 //=========================//Freelancer\\================================\\
