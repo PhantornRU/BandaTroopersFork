@@ -32,8 +32,11 @@
 
 /obj/structure/closet/secure_closet/marine_personal/allowed(mob/M)
 	if(owner == M.real_name)
+		// SS220 EDIT - START - Squad Frequency Fix
+		if(!owner_mob)
+			owner_mob = M
+		// SS220 EDIT - END - Squad Frequency Fix
 		return TRUE
-	owner_mob = M // SS220 EDIT - Squad Frequency Fix
 	return FALSE
 
 // ==USCM Standard== //
