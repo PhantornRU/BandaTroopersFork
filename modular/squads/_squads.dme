@@ -1,0 +1,4 @@
+#include "_squads.dm"
+
+#include "code/squads.dm"
+#include "code/closets/marine_personal.dm"
