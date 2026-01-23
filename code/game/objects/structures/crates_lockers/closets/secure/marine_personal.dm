@@ -4,13 +4,14 @@
 	icon_state = "secure1"
 	can_be_stacked = TRUE
 	var/owner
-	var/mob/owner_mob // SS220 EDIT - Squad Frequency Fix
 	var/has_cryo_gear = TRUE
 
 	var/job = "DO NOT USE!!!"
 	var/x_to_linked_spawn_turf
 	var/y_to_linked_spawn_turf
 	var/turf/linked_spawn_turf
+
+	var/need_check_content = TRUE // SS220 edit fixes - переменная для единоразовой проверки контента
 
 /obj/structure/closet/secure_closet/marine_personal/get_examine_text(mob/user)
 	. = ..()
@@ -33,8 +34,13 @@
 /obj/structure/closet/secure_closet/marine_personal/allowed(mob/M)
 	if(owner == M.real_name)
 		// SS220 EDIT - START - Squad Frequency Fix
-		if(!owner_mob)
-			owner_mob = M
+		if(need_check_content && ishuman(M))
+			var/mob/living/carbon/human/H = M
+			message_admins("Присвоили owner human = [H]	- [M] - [owner]")
+			for(var/obj/item/device/radio/headset/headset in contents)
+				if(H.assigned_squad)
+					headset.set_frequency(H.assigned_squad.radio_freq)
+			need_check_content = FALSE
 		// SS220 EDIT - END - Squad Frequency Fix
 		return TRUE
 	return FALSE
@@ -44,13 +50,7 @@
 /obj/structure/closet/secure_closet/marine_personal/proc/spawn_gear()
 	new /obj/item/clothing/under/marine(src)
 	new /obj/item/clothing/shoes/marine/knife(src)
-	// SS220 EDIT - START - Squad Frequency Fix
-	var/obj/item/device/radio/headset/headset = new /obj/item/device/radio/headset/almayer/marine/solardevils(src)
-	if(owner_mob && ishuman(owner_mob))
-		var/mob/living/carbon/human/H = owner_mob
-		var/datum/squad/squad = H.assigned_squad
-		headset.frequency = squad.radio_freq
-	// SS220 EDIT - END - Squad Frequency Fix
+	new /obj/item/device/radio/headset/almayer/marine/solardevils(src)
 
 /obj/structure/closet/secure_closet/marine_personal/rifleman
 	job = JOB_SQUAD_MARINE
