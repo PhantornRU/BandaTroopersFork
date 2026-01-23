@@ -1,24 +1,27 @@
-/mob/living/carbon/human/play_manifest()
 #define PEOPLE_PER_PAGE 12
 #define LETTERS_BASE 1
 #define LETTERS_PER_PEOPLE 5
 #define LETTERS_GAIN 1.5
-#define BASE_REMOVE_TIME (3 SECONDS)
+#define BASE_REMOVE_TIME (5 SECONDS)
 #define PAGE_REMOVE_TIME (1.5 SECONDS)
 
+// Начальный манифест при выходе из крио
 /mob/living/carbon/human/play_manifest()
 	var/list/manifest_lines = list()
 	var/list/pages = list()
 
 	// --- сбор данных ---
 	for(var/mob/living/carbon/human/H as anything in GLOB.alive_human_list)
-		if(H.z != ZTRAIT_GROUND && H.faction == faction)
-			var/obj/item/card/id/card = H.get_idcard()
-			var/datum/paygrade/account_paygrade = "UNKWN"
-			if(card)
-				account_paygrade = GLOB.paygrades[card.paygrade]
+		if(H.z == ZTRAIT_GROUND)
+			continue
+		if(H.faction != faction)
+			continue
+		var/obj/item/card/id/card = H.get_idcard()
+		var/datum/paygrade/account_paygrade = "UNKWN"
+		if(card)
+			account_paygrade = GLOB.paygrades[card.paygrade]
 
-			manifest_lines += "[H.name]...[account_paygrade.prefix]/A[rand(1,99)]/TQ[rand(0,10)].0.[rand(100000,999999)]<br>"
+		manifest_lines += "[H.name]...[account_paygrade.prefix]/A[rand(1,99)]/TQ[rand(0,10)].0.[rand(100000,999999)]<br>"
 
 	var/total_people = length(manifest_lines)
 	if(!total_people)
@@ -67,10 +70,15 @@
 		var/time_to_remove = BASE_REMOVE_TIME + (p * PAGE_REMOVE_TIME)
 		sleeping = (time_to_remove - 2 SECONDS) / 10
 
-		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_beep.ogg', src, 80), time_to_remove - 2 SECONDS)
-
+		var/med_beep_time = 2.5 SECONDS
 		if(p == 1)
 			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_opening.ogg', src, 80), time_to_remove)
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_beep.ogg', src, 80), time_to_remove - 2 SECONDS)
+		else if(p == length(pages))
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_beep.ogg', src, 80), med_beep_time)
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_beep.ogg', src, 80), time_to_remove)
+		else
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound_client), src.client, 'sound/effects/cryo_beep.ogg', src, 80), med_beep_time)
 
 		var/page_header = "<b>PAGE [p]/[length(pages)]</b><br><br>"
 		var/text_to_show = page_header + pages[p]
