@@ -10,4 +10,5 @@
 #include "speech_filter/_speech_filter.dme"
 #include "text_to_speech/_tts.dme"
 #include "fullscreen/_fullscreen.dme"
+#include "squads/_squads.dme"
 #include "arachnid/_arachnid.dme"
