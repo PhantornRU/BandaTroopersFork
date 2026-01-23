@@ -464,6 +464,21 @@
 	name = "Tripoli"
 	shuttle_id = DROPSHIP_TRIPOLI
 
-/datum/map_template/shuttle/tornado220 // SS220 EDIT
+// SS220 EDIT - START
+/datum/map_template/shuttle/tornado220
 	name = "TRP-Tornado"
 	shuttle_id = DROPSHIP_TORNADO_220
+
+/obj/docking_port/mobile/marine_dropship/tornado_long
+	name = "TRP-Tornado B.U.S."
+	id = DROPSHIP_TORNADO_220_LONG
+	width = 11
+	height = 21
+
+	dwidth = 5
+	dheight = 10
+
+/datum/map_template/shuttle/tornado220_long
+	name = "TRP-Tornado B.U.S."
+	shuttle_id = DROPSHIP_TORNADO_220_LONG
+// SS220 EDIT - END
