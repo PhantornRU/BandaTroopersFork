@@ -907,10 +907,6 @@
 /obj/structure/machinery/landinglight/ds1/delaytwo,
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/hangar)
-"abU" = (
-/obj/structure/closet/secure_closet/marine_personal/rifleman,
-/turf/open/floor/almayer/mono,
-/area/golden_arrow/cryo_cells)
 "abV" = (
 /turf/open/floor/plating/plating_catwalk,
 /area/golden_arrow/lower_cargo)
@@ -31989,7 +31985,7 @@ djz
 acM
 aog
 acc
-abU
+aQr
 aQr
 abi
 aog
