@@ -86,7 +86,7 @@
 
 // ИИ-Поведение: Тип движения
 /mob/living/carbon/xenomorph/arachnid/init_movement_handler()
-	return new /datum/xeno_ai_movement(src)
+	return new /datum/xeno_ai_movement/assault(src) // с возможностью карабкаться
 
 // ИИ-Поведение: Таскание
 // /mob/living/carbon/xenomorph/arachnid/ai_move_target(delta_time)
