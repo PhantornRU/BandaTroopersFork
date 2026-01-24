@@ -375,6 +375,12 @@
 	icon_state = "pf199"
 	item_state = "pf199"
 
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/set_bullet_traits()
+	. = ..()
+	LAZYADD(traits_to_give, list(
+		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 70, GLOB.damage_boost_vehicles),
+	))
+
 /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/get_examine_text(mob/user)
 	. = ..()
 	. += SPAN_NOTICE("You can fold it up with unique-action.")
