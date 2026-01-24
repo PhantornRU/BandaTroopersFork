@@ -1853,7 +1853,7 @@
 	icon_state = "fal"
 	item_state = "fal"
 
-	fire_sound = 'sound/weapons/gun_m39.ogg'
+	fire_sound = 'sound/weapons/gun_fal.ogg'
 	reload_sound = 'sound/weapons/handling/l42_reload.ogg'
 	unload_sound = 'sound/weapons/handling/l42_unload.ogg'
 	current_mag = /obj/item/ammo_magazine/rifle/r81m1
