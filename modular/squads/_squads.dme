@@ -1,3 +1,4 @@
 #include "_squads.dm"
 
+#include "code/encryptionkey.dm"
 #include "code/closets/marine_personal.dm"
