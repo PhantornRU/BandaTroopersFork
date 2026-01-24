@@ -1902,7 +1902,7 @@
 // R81M1B Marksman Rifle
 /obj/item/weapon/gun/rifle/r81m1a/m1b
 	name = "\improper R81M1B pulse marksman rifle"
-	desc = "A marksman variant of the M81M series of pulse rifles, the M81M1B sacrifices some rate of fire for a higher accuracy and longer effective range. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
+	desc = "A marksman variant of the M81M series of pulse rifles, the M81M1B sacrifices some rate of fire and it's automatic firemode for a higher accuracy and longer effective range. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
 	item_state = "fal"
 	icon_state = "fal_sniper"
 	attachable_allowed = list(
@@ -1911,13 +1911,14 @@
 	)
 
 	starting_attachment_types = list(/obj/item/attachable/stock/r81_sniper, /obj/item/attachable/scope/variable_zoom/fal)
+	start_automatic = FALSE
 
 /obj/item/weapon/gun/rifle/r81m1a/m1b/set_gun_attachment_offsets()
 	attachable_offset = list("muzzle_x" = 33, "muzzle_y" = 19,"rail_x" = 17, "rail_y" = 19, "under_x" = 33, "under_y" = 13, "stock_x" = 19, "stock_y" = 16, "side_rail_x" = 28, "side_rail_y" = 18, "special_x" = 36, "special_y" = 19)
 
 /obj/item/weapon/gun/rifle/r81m1a/m1b/set_gun_config_values()
 	..()
-	set_fire_delay(FIRE_DELAY_TIER_5)
+	set_fire_delay(FIRE_DELAY_TIER_4)
 	set_burst_amount(BURST_AMOUNT_TIER_2)
 	set_burst_delay(FIRE_DELAY_TIER_7)
 	accuracy_mult = BASE_ACCURACY_MULT + HIT_ACCURACY_MULT_TIER_6
@@ -1983,6 +1984,9 @@
 		qdel(old_barrel)
 	integrated.Attach(src)
 	update_attachable(integrated.slot)
+
+/obj/item/weapon/gun/rifle/r81m1a/m1c/modded
+	starting_attachment_types = list(/obj/item/attachable/reflex, /obj/item/attachable/lasersight)
 
 // R81M1D Squad Automatic Weapon
 /obj/item/weapon/gun/rifle/r81m1a/m1d
