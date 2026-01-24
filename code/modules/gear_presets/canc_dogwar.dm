@@ -600,7 +600,6 @@
 		if(2,3,4)
 			add_rebel_upp_helmet(new_human)
 	//weapons
-	add_canc_rifle_newblood(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc, WEAR_R_HAND)
 
 /datum/equipment_preset/canc_dogwar/militia/lmg
@@ -1482,6 +1481,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/tool/kitchen/can_opener(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/reagent_container/food/drinks/flask/canteen(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/explosive/plastic/breaching_charge(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/prop/folded_anti_tank_sadar/canc(new_human), WEAR_IN_BACK)
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/canc/sof(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf/tan(new_human), WEAR_FACE)
@@ -1511,7 +1511,6 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/lw317/ap, WEAR_IN_BELT)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/lw317/ap, WEAR_IN_BELT)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/lw317/ap, WEAR_IN_BELT)
-	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc, WEAR_R_HAND)
 
 /datum/equipment_preset/canc_dogwar/specops/medic
 	name = "CANC Soldier, SOF Field Medic"
