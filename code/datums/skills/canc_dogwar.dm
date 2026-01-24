@@ -102,7 +102,7 @@ CANC Militia
 		SKILL_SPEC = SKILL_SPEC_UNTRAINED,
 		SKILL_PILOT = SKILL_PILOT_UNTRAINED,
 		SKILL_POWERLOADER = SKILL_POWERLOADER_UNTRAINED,
-		)
+	)
 
 /datum/skills/canc_soldier/militia/medic
 	name = "Militia Medic"

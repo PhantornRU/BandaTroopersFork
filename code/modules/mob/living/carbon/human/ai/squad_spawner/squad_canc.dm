@@ -161,7 +161,7 @@
 	desc = "CANCAF MG Team. 1 rifleman and 1 MG gunner."
 	ai_to_spawn = list(
 		/datum/equipment_preset/canc_dogwar/soldier/machinegunner = 1,
-		/datum/equipment_preset/canc_dogwar/upp = 1
+		/datum/equipment_preset/canc_dogwar/upp = 1,
 	)
 
 /datum/human_ai_squad_preset/canc_dogwar/upp/at_team
