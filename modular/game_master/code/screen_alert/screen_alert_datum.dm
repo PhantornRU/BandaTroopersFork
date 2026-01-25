@@ -132,7 +132,10 @@
 	save_slot_name = "Слот 3"
 
 /datum/screen_alert_save/save_slot_4
-	save_slot_name = "Слот 2"
+	save_slot_name = "Слот 4"
 
 /datum/screen_alert_save/save_slot_5
-	save_slot_name = "Слот 3"
+	save_slot_name = "Слот 5"
+
+/datum/screen_alert_save/save_slot_6
+	save_slot_name = "Слот 6"
