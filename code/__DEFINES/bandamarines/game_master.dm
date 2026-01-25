@@ -1,6 +1,8 @@
-GLOBAL_VAR_INIT(screen_alert_save_1, new /datum/screen_alert_save/save_slot_1)
-GLOBAL_VAR_INIT(screen_alert_save_2, new /datum/screen_alert_save/save_slot_2)
-GLOBAL_VAR_INIT(screen_alert_save_3, new /datum/screen_alert_save/save_slot_3)
-GLOBAL_VAR_INIT(screen_alert_save_4, new /datum/screen_alert_save/save_slot_4)
-GLOBAL_VAR_INIT(screen_alert_save_5, new /datum/screen_alert_save/save_slot_5)
-GLOBAL_VAR_INIT(screen_alert_save_6, new /datum/screen_alert_save/save_slot_6)
+GLOBAL_LIST_INIT(screen_alert_saves, list(
+    new /datum/screen_alert_save/save_slot_1,
+    new /datum/screen_alert_save/save_slot_2,
+    new /datum/screen_alert_save/save_slot_3,
+    new /datum/screen_alert_save/save_slot_4,
+    new /datum/screen_alert_save/save_slot_5,
+    new /datum/screen_alert_save/save_slot_6
+))

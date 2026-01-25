@@ -7,7 +7,7 @@
 	var/icon_choice
 	var/icon_choice_state
 
-	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_1 // SS220 EDIT
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_saves[1] // SS220 EDIT
 	var/selectable_factions = datum.selectable_factions // list(FACTION_MARINE, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE)
 	var/selectable_icons = datum.selectable_icons // list( ---- SS220 EDIT перенесено в screen_alert_datums
 		// "marine",

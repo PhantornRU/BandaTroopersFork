@@ -121,8 +121,8 @@
 			mob_receiver.play_screen_text("<span class='langchat_notification' style=text-align:center valign='top'><u>[uppertext(title)]</u></span><br>" + text, /atom/movable/screen/text/screen_text/command_order) //SS220 Fonts
 		else
 			mob_receiver.play_screen_text("<span class='langchat_notification' style=text-align:left valign='top'><u>[uppertext(title)]</u></span><br>" + text, new /atom/movable/screen/text/screen_text/potrait(null, null, name, icon_choice, icon_choice_state)) //SS220 Fonts
-	message_admins("[key_name_admin(C)] has made an admin screen alert from [name]. ")
-	log_admin("[key_name_admin(C)] made an admin screen alert: [name] - [text]")
+	message_admins("[key_name_admin(C)] has made an admin screen alert from [save_slot_name] [name]. ")
+	log_admin("[key_name_admin(C)] made an admin screen alert: [save_slot_name] [name] - [text]")
 
 
 // Слоты
