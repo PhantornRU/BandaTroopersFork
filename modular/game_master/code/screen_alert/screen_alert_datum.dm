@@ -52,7 +52,11 @@
 	else
 		choose_list = list(option_write_and_send, option_write)
 
-	var/choice_save = tgui_input_list(C, "Использовать сохранение сообщения или перезаписать его? Текущие настройки: [faction_to_send] [name] - [alert_type]([icon_choice_state])", "Настройка - [save_slot_name]", choose_list)
+	var/choice_save_description = "Настроить слот сохранения перед использованием."
+	if(alert_type)
+		choice_save_description = "Использовать сохранение слота или перезаписать его? \
+			Текущие настройки: [faction_to_send] [name] - [alert_type] ([icon_choice_state])"
+	var/choice_save = tgui_input_list(C, choice_save_description, "Настройка - [save_slot_name]", choose_list)
 	switch(choice_save)
 		if("Отправить текст сохранения")
 			input_text(C)
