@@ -64,68 +64,80 @@
 	weed_food_states = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
 	weed_food_states_flipped = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
 
-	var/pull_direction
-	var/pull_multiplier_value = 0.65
+	var/chance_to_grab = 40
+	var/chance_to_neckgrab = 30
+	var/chance_to_pulling_harm = 50
 
-// /mob/living/carbon/xenomorph/arachnid/initialize_pass_flags(datum/pass_flags_container/pass_flags_container)
-// 	..()
-// 	if (pass_flags_container)
-// 		pass_flags_container.flags_pass |= PASS_FLAGS_CRAWLER
-
-// /mob/living/carbon/xenomorph/arachnid/recalculate_actions()
-// 	. = ..()
-// 	pull_multiplier *= pull_multiplier_value
-
-// /mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge, no_msg)
-// 	. = ..()
-// 	add_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
-
-// /mob/living/carbon/xenomorph/arachnid/stop_pulling(bumped_movement = FALSE)
-// 	. = ..()
-// 	remove_temp_negative_pass_flags(PASS_FLAGS_CRAWLER)
-
-// ИИ-Поведение: Тип движения
 /mob/living/carbon/xenomorph/arachnid/init_movement_handler()
-	return new /datum/xeno_ai_movement/assault(src) // с возможностью карабкаться
+	return new /datum/xeno_ai_movement/arachnid(src) // с возможностью карабкаться
+
+/mob/living/carbon/xenomorph/arachnid/ai_move_idle(delta_time)
+	if(!ai_movement_handler)
+		CRASH("No valid movement handler for [src]!")
+
+	var/mob/living/pulling_target = pulling
+	return (istype(pulling_target) && length(GLOB.ai_hives)) ? ai_movement_handler.ai_move_hive(delta_time) : ai_movement_handler.ai_move_idle(delta_time)
+
+
+/mob/living/carbon/xenomorph/arachnid/ai_move_target(delta_time)
+	if(!ai_movement_handler)
+		CRASH("No valid movement handler for [src]!")
+
+	var/mob/living/pulling_target = pulling
+	return (istype(pulling_target) && length(GLOB.ai_hives)) ? ai_movement_handler.ai_move_hive(delta_time) : ai_movement_handler.ai_move_target(delta_time)
+
 
 // ИИ-Поведение: Таскание
-// /mob/living/carbon/xenomorph/arachnid/ai_move_target(delta_time)
-// 	if(throwing)
-// 		return
 
-// 	if(pulling)
-// 		if(!current_target || get_dist(src, current_target) > 10)
-// 			INVOKE_ASYNC(src, PROC_REF(stop_pulling))
-// 			return ..()
-// 		if(can_move_and_apply_move_delay())
-// 			if(!Move(get_step(loc, pull_direction), pull_direction))
-// 				pull_direction = turn(pull_direction, pick(45, -45))
-// 		current_path = null
-// 		return
+/// Similar to the woyer grab, but this one only inflicts pain without stuns and has a shorter range.
+/mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge)
+	if (!check_state() || agility || !isliving(AM)) return FALSE
 
-// 	..()
+	if(!prob(chance_to_grab))
+		return FALSE
 
-// 	if(get_dist(current_target, src) > 1)
-// 		return
+	var/mob/living/L = AM
+	var/should_neckgrab = !can_not_harm(L) && (lunge || prob(chance_to_neckgrab))
 
-// 	if(!istype(current_target, /mob))
-// 		return
+	if(!QDELETED(L) && !QDELETED(L.pulledby) && L != src ) //override pull of other mobs
+		visible_message(SPAN_WARNING("[src] вырвал [L.pulledby] из хватки [L]!"), null, null, 5)
+		L.pulledby.stop_pulling()
 
-// 	var/mob/current_target_mob = current_target
+	. = ..(L, lunge, should_neckgrab)
 
-// 	if(!current_target_mob.is_mob_incapacitated())
-// 		return
+	if(.)
+		var/pain_to_cause = PAIN_XENO_DRAG /// Basic amount of pain caused with each grab.
+		if(should_neckgrab && L.mob_size < MOB_SIZE_BIG)
+			pain_to_cause += PAIN_XENO_GRAB /// Neck grabs cause even more pain.
+			L.pulledby = src
+			visible_message(SPAN_XENOWARNING("\The [src] крепко зажал [L]!"), \
+			SPAN_XENOWARNING("Вы зажали [L]!"))
 
-// 	if(isxeno(current_target.pulledby))
-// 		return
+		L.pain.apply_pain(pain_to_cause)
+		grab_level = GRAB_XENO /// Alien-specific grab level, with its own logic for escaping. AI only for the moment. See /mob/living/resist_grab()
+		if(prob(10)) emote("hiss")
+		///	The actual pain processing for humans is handled in: /mob/living/carbon/proc/handle_grabbed() Other mobs don't process the effects of the grab, like other xenomorphs.
 
-// 	if(!DT_PROB(ARACHNID_GRAB_CHANCE, delta_time))
-// 		return
+/mob/living/carbon/xenomorph/arachnid/stop_pulling(bumped_movement = FALSE)
+	//Let's see if we can ignore this. If our direction is the same as where the mob went, we likely bumped into them. So we lasso them back.
+	if(bumped_movement && grab_level == GRAB_XENO && get_dir(src, pulling) == dir) /// Only on xeno grabs, so if they are on GRAB_PASSIVE, this doesn't trigger.
+		pulling.loc = get_step_towards(src, pulling) // GET OVER HERE!
+	else return ..()
 
-// 	INVOKE_ASYNC(src, PROC_REF(start_pulling), current_target)
-// 	swap_hand()
+/mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
+	var/mob/living/pulling_target = pulling /// Let's see if the alien is pulling anyone.
+	var/mob/living/potential_target = current_target
 
-// /mob/living/carbon/xenomorph/arachnid/process_ai(delta_time)
-// 	if(get_active_hand())
-// 		swap_hand()
-// 	return ..()
+	if(istype(pulling_target)) /// Our soldier is pulling someone.
+		if(get_active_hand()) swap_hand() /// Swap hand to either tackle or harm.
+		ai_active_intent = INTENT_DISARM /// If we are pulling someone and are not too aggressive, switch to disarm.
+
+	else if(istype(potential_target)) /// We have a target. We'll do more thorough checking in the main loop, for now we only need to know if they are being pulled by a hostile or friendly xeno.
+		var/mob/living/carbon/xenomorph/other_xenomorph = potential_target.pulledby /// Are they being pulled by an alien?
+		/// Need to make sure the alien dragging is friendly to us. If it is not friendly, or not a xeno, our alien will try to grab back.
+		ai_active_intent = (istype(other_xenomorph) && IS_SAME_HIVENUMBER(src, other_xenomorph)) ? INTENT_DISARM : INTENT_GRAB
+
+	/// I had it set up for slightly faster assignment, but this is easier to read.
+	ai_active_intent = (prob(chance_to_pulling_harm)) ? INTENT_HARM : ai_active_intent /// Override harm or continue with the previous intent.
+
+	return ..()

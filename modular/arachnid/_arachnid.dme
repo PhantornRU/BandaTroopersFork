@@ -3,6 +3,7 @@
 #include "code/blood/decals.dm"
 #include "code/blood/gibspawner.dm"
 #include "code/blood/splatter.dm"
+#include "code/caste/arachnid_movement.dm"
 #include "code/caste/arachnid_warrior.dm"
 #include "code/arachnid.dm"
 #include "code/wounds.dm"
