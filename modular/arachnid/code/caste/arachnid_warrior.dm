@@ -19,8 +19,8 @@
 	deevolves_to = list()
 
 	tackle_min = 2
-	tackle_max = 5
-	tackle_chance = 35
+	tackle_max = 4
+	tackle_chance = 45
 	tacklestrength_min = 4
 	tacklestrength_max = 5
 
