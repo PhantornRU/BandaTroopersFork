@@ -5,7 +5,7 @@
 	if(!check_rights(R_ADMIN))
 		return
 
-	var/datum/screen_alert_save/datum = SCREEN_ALERT_SAVE_1
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_1
 	datum.choose_or_use_save(src)
 
 /client/proc/screen_alert_menu_save_2()
@@ -15,7 +15,7 @@
 	if(!check_rights(R_ADMIN))
 		return
 
-	var/datum/screen_alert_save/datum = SCREEN_ALERT_SAVE_2
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_2
 	datum.choose_or_use_save(src)
 
 /client/proc/screen_alert_menu_save_3()
@@ -25,7 +25,7 @@
 	if(!check_rights(R_ADMIN))
 		return
 
-	var/datum/screen_alert_save/datum = SCREEN_ALERT_SAVE_3
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_3
 	datum.choose_or_use_save(src)
 
 /client/proc/screen_alert_menu_save_4()
@@ -35,7 +35,7 @@
 	if(!check_rights(R_ADMIN))
 		return
 
-	var/datum/screen_alert_save/datum = SCREEN_ALERT_SAVE_4
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_4
 	datum.choose_or_use_save(src)
 
 /client/proc/screen_alert_menu_save_5()
@@ -45,5 +45,15 @@
 	if(!check_rights(R_ADMIN))
 		return
 
-	var/datum/screen_alert_save/datum = SCREEN_ALERT_SAVE_5
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_5
+	datum.choose_or_use_save(src)
+
+/client/proc/screen_alert_menu_save_6()
+	set name = "Send Screen Alert - Save 6"
+	set category = "Game Master.Extras Screen Alert"
+
+	if(!check_rights(R_ADMIN))
+		return
+
+	var/datum/screen_alert_save/datum = GLOB.screen_alert_save_6
 	datum.choose_or_use_save(src)

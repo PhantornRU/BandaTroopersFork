@@ -39,10 +39,10 @@
 	var/text
 
 /datum/screen_alert_save/proc/choose_or_use_save(client/C)
-	var/option_text = "Отправка текста сохранения"
+	var/option_text = "Отправить текст сохранения"
 	var/option_repeat = "Повтор последнего сообщения"
-	var/option_rewrite_and_send = "Перезапись и отправка"
-	var/option_rewrite = "Перезапись без отправки"
+	var/option_rewrite_and_send = "Перезаписать и отправить"
+	var/option_rewrite = "Перезаписать без отправки"
 	var/option_write_and_send = "Записать и отправить"
 	var/option_write = "Записать без отправки"
 
@@ -93,7 +93,7 @@
 	if(alert_type == "Portrait")
 		name = tgui_input_text(C, "Введите имя, которое будет подписано под портретом.", title = "Name")
 
-	var/title = tgui_input_text(C, "Введите заголовок всплывающего уведомления. Оставьте поле пустым для заголовка по умолчанию.", title = "Announcement Title")
+	title = tgui_input_text(C, "Введите заголовок всплывающего уведомления. Оставьте поле пустым для заголовка по умолчанию.", title = "Announcement Title")
 	if(!title)
 		title = COMMAND_ANNOUNCE
 

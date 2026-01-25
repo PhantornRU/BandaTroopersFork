@@ -368,6 +368,9 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		add_verb(src, /client/proc/screen_alert_menu_save_1)
 		add_verb(src, /client/proc/screen_alert_menu_save_2)
 		add_verb(src, /client/proc/screen_alert_menu_save_3)
+		add_verb(src, /client/proc/screen_alert_menu_save_4)
+		add_verb(src, /client/proc/screen_alert_menu_save_5)
+		add_verb(src, /client/proc/screen_alert_menu_save_6)
 		//SS220 EDIT - END
 		add_verb(src, /client/proc/enable_fire_support)
 		add_verb(src, /client/proc/disable_fire_support)
@@ -422,6 +425,9 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		/client/proc/screen_alert_menu_save_1,
 		/client/proc/screen_alert_menu_save_2,
 		/client/proc/screen_alert_menu_save_3,
+		/client/proc/screen_alert_menu_save_4,
+		/client/proc/screen_alert_menu_save_5,
+		/client/proc/screen_alert_menu_save_6,
 		//SS220 EDIT - END
 		/client/proc/enable_fire_support,
 		/client/proc/set_fire_support_points,
