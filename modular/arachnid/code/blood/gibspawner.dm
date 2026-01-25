@@ -7,7 +7,7 @@
 		/obj/effect/decal/cleanable/blood/gibs/arachnid,
 		/obj/effect/decal/cleanable/blood/gibs/arachnid/limb,
 		/obj/effect/decal/cleanable/blood/gibs/arachnid/body,
-		/obj/effect/decal/cleanable/blood/gibs/arachnid/splat
+		/obj/effect/decal/cleanable/blood/gibs/arachnid/splat,
 		)
 	gibamounts = list(1,1,1,2)
 
