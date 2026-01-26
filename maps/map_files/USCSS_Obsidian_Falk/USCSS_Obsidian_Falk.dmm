@@ -5459,11 +5459,6 @@
 	},
 /turf/open/floor/corsat/red/west,
 /area/firefly/cafeteria)
-"aoO" = (
-/obj/effect/decal/cleanable/dirt,
-/obj/structure/machinery/cm_vending/sorted/medical/no_access,
-/turf/open/floor/corsat/squares,
-/area/firefly/cafeteria)
 "aoP" = (
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/white/east,
@@ -8788,7 +8783,6 @@
 	},
 /obj/item/weapon/gun/smartgun/dirty,
 /obj/item/smartgun_battery,
-/obj/item/clothing/suit/storage/marine/smartgunner/veteran/pmc,
 /obj/item/clothing/head/helmet/marine/veteran/pmc/gunner,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/ammo_magazine/smartgun,
@@ -8804,6 +8798,7 @@
 	},
 /obj/item/smartgun_battery,
 /obj/item/clothing/glasses/night/m56_goggles/pmc,
+/obj/item/clothing/suit/marine/smartgunner/veteran/pmc,
 /turf/open/floor/corsat/cargo,
 /area/firefly/squad_omega)
 "axe" = (
@@ -9117,7 +9112,6 @@
 	},
 /obj/item/weapon/gun/smartgun/dirty,
 /obj/item/smartgun_battery,
-/obj/item/clothing/suit/storage/marine/smartgunner/veteran/pmc,
 /obj/item/clothing/head/helmet/marine/veteran/pmc/gunner,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/ammo_magazine/smartgun,
@@ -9129,6 +9123,7 @@
 /obj/item/storage/belt/marine/smartgunner,
 /obj/item/smartgun_battery,
 /obj/item/clothing/glasses/night/m56_goggles/pmc,
+/obj/item/clothing/suit/marine/smartgunner/veteran/pmc,
 /turf/open/floor/corsat/cargo,
 /area/firefly/squad_omega)
 "ayk" = (
@@ -40127,7 +40122,7 @@ aqA
 adk
 anq
 anq
-aoO
+amY
 amY
 anq
 anq
