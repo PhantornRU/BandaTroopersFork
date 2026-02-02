@@ -6,6 +6,7 @@
 	max_smartgun = 2
 	max_leaders = 1
 	var/max_riflemen = 6 // Ограничиваем количество пехоты на один отряд
+	var/staff_per_squad = 1 // Оффицер на каждый отряд
 
 	/// После скольких READY игроков открывается этот отряд.
 	var/ready_players_usable
@@ -23,6 +24,13 @@
 /datum/squad/marine/alpha
 	equipment_color = "#db1d1d"
 	chat_color = "#db1d1d"
+	max_riflemen = 6
+	max_engineers = 0
+	max_medics = 2
+	max_specialists = 1
+	max_tl = 2
+	max_smartgun = 2
+	max_leaders = 1
 
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2
@@ -36,8 +44,15 @@
 	active = TRUE
 	squad_type = "Section"
 	usable = FALSE // Включается при ready_players_usable готовых игроков
-	ready_players_usable = 12
+	ready_players_usable = 10
 	platoon_associated_type = /datum/squad/marine/alpha
+	max_riflemen = 4
+	max_engineers = 4
+	max_medics = 0
+	max_specialists = 0
+	max_tl = 2
+	max_smartgun = 2
+	max_leaders = 1
 	
 
 /datum/squad/marine/charlie
@@ -50,8 +65,15 @@
 	active = TRUE
 	squad_type = "Section"
 	usable = FALSE // Включается при ready_players_usable готовых игроков
-	ready_players_usable = 1 // 24
+	ready_players_usable = 1 // 20
 	platoon_associated_type = /datum/squad/marine/alpha
+	max_riflemen = 4
+	max_engineers = 0
+	max_medics = 4
+	max_specialists = 0
+	max_tl = 2
+	max_smartgun = 2
+	max_leaders = 1
 
 /datum/squad/marine/delta
 	equipment_color = "#4148c8"
@@ -63,15 +85,20 @@
 	active = TRUE
 	squad_type = "Section"
 	usable = FALSE // Включается при ready_players_usable готовых игроков
-	ready_players_usable = 1 // 36
+	ready_players_usable = 1 // 28
 	platoon_associated_type = /datum/squad/marine/alpha
+	max_riflemen = 8
+	max_engineers = 0
+	max_medics = 2
+	max_specialists = 1
+	max_tl = 2
+	max_smartgun = 2
+	max_leaders = 1
 
 
-/datum/squad/marine/echo
-/datum/squad/marine/cryo
-/datum/squad/marine/intel
-/datum/squad/marine/sof
-/datum/squad/marine/cbrn
-/datum/squad/marine/solardevils
-/datum/squad/marine/pmc
-/datum/squad/marine/rmc
+// Предложение как можно переименовать отряды:
+// #define SQUAD_MARINE_1_RENAME "Assault A-Sct"
+// #define SQUAD_MARINE_2_RENAME "Auxiliary Tech B-Sct"
+// #define SQUAD_MARINE_3_RENAME "Auxiliary Care C-Sct"
+// #define SQUAD_MARINE_4_RENAME "Assault D-Sct"
+// #define SQUAD_MARINE_5_RENAME "Support E-Sct"

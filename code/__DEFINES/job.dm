@@ -3,10 +3,10 @@
 #define GET_DEFAULT_ROLE(title) (GLOB.RoleAuthority?.default_roles[title] ? GLOB.RoleAuthority.default_roles[title] : title)
 
 // Squad name defines
-#define SQUAD_MARINE_1 "Assault A-Sct" // SS220 EDIT
-#define SQUAD_MARINE_2 "Auxiliary Tech B-Sct" // SS220 EDIT
-#define SQUAD_MARINE_3 "Auxiliary Care C-Sct" // SS220 EDIT
-#define SQUAD_MARINE_4 "Assault D-Sct" // SS220 EDIT
+#define SQUAD_MARINE_1 "Alpha"
+#define SQUAD_MARINE_2 "Bravo"
+#define SQUAD_MARINE_3 "Charlie"
+#define SQUAD_MARINE_4 "Delta"
 #define SQUAD_MARINE_5 "Echo"
 #define SQUAD_MARINE_CRYO "Foxtrot"
 #define SQUAD_MARINE_INTEL "Intel"
@@ -27,7 +27,7 @@
 // Job name defines
 #define JOB_SQUAD_MARINE "Rifleman"
 #define JOB_SQUAD_LEADER "Squad Leader" // SS220 EDIT
-#define JOB_SQUAD_ENGI "Combat Engineer"
+#define JOB_SQUAD_ENGI "Combat Engineer" // SS220 EDIT
 #define JOB_SQUAD_MEDIC "Corpsman"
 #define JOB_SQUAD_SPECIALIST "Weapons Specialist"
 #define JOB_SQUAD_SPOTTER "Spotter"
@@ -35,7 +35,7 @@
 #define JOB_SQUAD_TEAM_LEADER "Group Leader" // SS220 EDIT
 #define JOB_SQUAD_SMARTGUN "Smartgunner"
 #define JOB_SQUAD_ROLES /datum/timelock/squad
-#define JOB_SQUAD_ROLES_LIST list(JOB_SQUAD_MARINE, JOB_SQUAD_LEADER, JOB_SQUAD_ENGI, JOB_SQUAD_MEDIC, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SMARTGUN, JOB_SQUAD_TEAM_LEADER)
+#define JOB_SQUAD_ROLES_LIST list(JOB_SQUAD_MARINE, JOB_SQUAD_LEADER, JOB_SQUAD_ENGI, JOB_SQUAD_MEDIC, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SMARTGUN, JOB_SQUAD_TEAM_LEADER, JOB_SQUAD_RTO) // SS220 EDIT
 
 #define JOB_SQUAD_MARINE_UPP "Infantryman"
 #define JOB_SQUAD_LEADER_UPP "Platoon Sergeant"
@@ -47,7 +47,7 @@
 #define JOB_SQUAD_TEAM_LEADER_FORECON "Assistant Recon Squad Leader"
 #define JOB_SQUAD_LEADER_FORECON  "Recon Squad Leader"
 #define JOB_SQUAD_MEDIC_FORECON "Recon Corpsman"
-#define JOB_SQUAD_RTO "Recon Radio Telephone Operator"
+#define JOB_SQUAD_RTO "Radio Operator" // SS220 EDIT - Original: Recon Radio Telephone Operator
 #define JOB_SQUAD_MARINE_FORECON "Recon Rifleman"
 #define JOB_SQUAD_SMARTGUN_FORECON "Recon Smartgunner"
 

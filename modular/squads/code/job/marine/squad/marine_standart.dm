@@ -1,29 +1,42 @@
-// Морпех 6*4
+
+// Слоты выставлены в соответствии с одним Alpha отрядом
+
+// Морпех
 /datum/job/marine/standard/ai
-	total_positions = 24
-	spawn_positions = 24
+	total_positions = 8
+	spawn_positions = 8
 
-// Медик 2*4
+// Инженер - у альфы нет, добавляется от тех. отряда
+/datum/job/marine/engineer/ai
+	total_positions = 0
+	spawn_positions = 0
+
+// Медик
 /datum/job/marine/medic/ai
-	total_positions = 8
-	spawn_positions = 8
+	total_positions = 2
+	spawn_positions = 2
 
-// Смартганнер 1*4
+// Смартганнер
 /datum/job/marine/smartgunner/ai
-	total_positions = 8
-	spawn_positions = 8
+	total_positions = 2
+	spawn_positions = 2
 
-// Лидер группы 3*4
+// Оператор
+/datum/job/marine/standard/ai/rto
+	total_positions = 1
+	spawn_positions = 1
+
+// Лидер группы
 /datum/job/marine/tl
-	total_positions = 12
-	spawn_positions = 12
+	total_positions = 2
+	spawn_positions = 2
 
-// Сквадной 1*4
+// Сквадной
 /datum/job/marine/leader/ai
-	total_positions = 4
-	spawn_positions = 4
+	total_positions = 1
+	spawn_positions = 1
 
-// СО 1*4
+// СО
 /datum/job/command/bridge/ai
-	total_positions = 4
-	spawn_positions = 4
+	total_positions = 1
+	spawn_positions = 1
