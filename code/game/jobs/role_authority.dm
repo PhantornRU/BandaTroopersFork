@@ -596,7 +596,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	//Non-standards are distributed regardless of squad population.
 	//If the number of available positions for the job are more than max_whatever, it will break.
 	//Ie. 8 squad medic jobs should be available, and total medics in squads should be 8.
-	if(H.job != JOB_SQUAD_MARINE && H.job != "Reinforcements")
+	if(/*H.job != JOB_SQUAD_MARINE &&*/ H.job != "Reinforcements") // SS220 EDIT - SQUADS - Марины тоже ограничены
 		var/pref_squad_name
 		if(H && H.client && H.client.prefs.preferred_squad && H.client.prefs.preferred_squad != "None")
 			pref_squad_name = H.client.prefs.preferred_squad
@@ -691,6 +691,22 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 						if(!lowest)
 							lowest = S
+
+			// SS220 EDIT - START - SQUADS - Марины тоже ограничены
+			if(JOB_SQUAD_MARINE)
+				for(var/datum/squad/S in mixed_squads)
+					if(S.usable && S.roundstart)
+						if(!skip_limit && S.num_riflemen >= S.max_riflemen) continue
+						if(pref_squad_name && S.name == pref_squad_name)
+							S.put_marine_in_squad(H) //fav squad has a spot for us.
+							return
+
+						if(!lowest)
+							lowest = S
+						else if(S.num_riflemen < lowest.num_riflemen)
+							lowest = S
+			// SS220 EDIT - END - SQUADS - Марины тоже ограничены
+
 		if(!lowest)
 			var/ranpick = rand(1,4)
 			lowest = mixed_squads[ranpick]
