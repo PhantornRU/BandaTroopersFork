@@ -3870,7 +3870,7 @@
 /area/golden_arrow/hangar)
 "aid" = (
 /obj/structure/largecrate/supply/explosives/mortar_smoke,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/silverfull,
 /area/golden_arrow/supply)
 "aie" = (
 /obj/structure/largecrate/supply/explosives/mortar_incend,
@@ -3879,7 +3879,7 @@
 /area/golden_arrow/supply)
 "aif" = (
 /obj/structure/largecrate/supply/explosives/mortar_he,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/redfull,
 /area/golden_arrow/supply)
 "aig" = (
 /obj/effect/decal/cleanable/dirt{
@@ -3917,7 +3917,7 @@
 /area/golden_arrow/cryo_cells)
 "aii" = (
 /obj/structure/largecrate/supply/explosives/mortar_flare,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/bluefull,
 /area/golden_arrow/supply)
 "aij" = (
 /obj/structure/closet/crate/ammo/alt,
@@ -4763,7 +4763,7 @@
 	dir = 8;
 	brightness = 9
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/silverfull,
 /area/golden_arrow/supply)
 "aji" = (
 /obj/effect/decal/warning_stripes{
@@ -5612,7 +5612,7 @@
 /area/golden_arrow/supply)
 "akq" = (
 /obj/structure/largecrate/supply/explosives/grenades,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/redfull,
 /area/golden_arrow/supply)
 "akr" = (
 /obj/effect/decal/warning_stripes{
@@ -5773,11 +5773,11 @@
 /area/golden_arrow/hangar)
 "akH" = (
 /obj/structure/largecrate/supply/explosives/himat_explosive,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/redfull,
 /area/golden_arrow/supply)
 "akI" = (
 /obj/structure/largecrate/supply/explosives/himat_antipersonnel,
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/sterile_green,
 /area/golden_arrow/supply)
 "akJ" = (
 /obj/effect/decal/cleanable/dirt{
@@ -5849,7 +5849,7 @@
 /obj/structure/largecrate/supply/ammo/m56d{
 	pixel_y = 11
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/bluefull,
 /area/golden_arrow/supply)
 "akS" = (
 /obj/structure/largecrate/supply/ammo/shotgun,
@@ -5904,7 +5904,7 @@
 /obj/structure/largecrate/supply/ammo/m41a_box{
 	pixel_y = 11
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/sterile_green,
 /area/golden_arrow/supply)
 "akX" = (
 /obj/structure/machinery/door_control{
@@ -6015,7 +6015,7 @@
 	dir = 8;
 	brightness = 9
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/redfull,
 /area/golden_arrow/supply)
 "all" = (
 /obj/effect/decal/cleanable/dirt,
@@ -6152,7 +6152,7 @@
 	dir = 4;
 	brightness = 9
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/sterile_green,
 /area/golden_arrow/supply)
 "alz" = (
 /obj/structure/machinery/door/poddoor/almayer/locked{
@@ -6196,7 +6196,7 @@
 	dir = 1;
 	brightness = 9
 	},
-/turf/open/floor/almayer/orangefull,
+/turf/open/floor/almayer/redfull,
 /area/golden_arrow/supply)
 "alE" = (
 /turf/open/floor/almayer/edge/north,
