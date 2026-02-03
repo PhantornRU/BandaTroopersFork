@@ -2,13 +2,17 @@
 	max_engineers = 3
 	max_medics = 2
 	max_specialists = 1
-	max_tl = 3
+	max_tl = 2
 	max_smartgun = 2
 	max_leaders = 1
-	var/max_riflemen = 4 // Ограничиваем количество пехоты на один отряд
+	/// Ограничение количества пехоты на отряд
+	var/max_riflemen = 4
+	/// Ограничение количества связистов
 	var/max_rto = 0
+	/// Количество уже имеющихся связистов
 	var/num_rto = 0
-	var/staff_per_squad = 1 // Оффицер на каждый отряд
+	// Добавочные офицеры после каждого отряда
+	var/staff_per_squad = 1
 
 	/// После скольких READY игроков открывается этот отряд.
 	var/ready_players_usable
