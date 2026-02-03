@@ -30,23 +30,16 @@
 	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 
 // RTO Equipped
-/datum/equipment_preset/uscm/rto_equipped
+/datum/equipment_preset/uscm/rto/equipped
 	name = "USCM Radio Telephone Operator (Equipped)"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
-	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_SPECPREP, ACCESS_MARINE_TL_PREP)
-	assignment = JOB_SQUAD_RTO
-	rank = JOB_SQUAD_RTO
-	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "RTO"
-	skills = /datum/skills/military/survivor/forecon_standard
-
-	minimap_icon = "rto"
-
-/datum/equipment_preset/uscm/rto_equipped/load_status(mob/living/carbon/human/new_human)
+/datum/equipment_preset/uscm/rto/equipped/load_status(mob/living/carbon/human/new_human)
+	. = ..()
 	new_human.nutrition = NUTRITION_NORMAL
 
-/datum/equipment_preset/uscm/rto_equipped/load_gear(mob/living/carbon/human/new_human)
+/datum/equipment_preset/uscm/rto/equipped/load_gear(mob/living/carbon/human/new_human)
+	. = ..()
 	add_forecon_uniform(new_human)
 	add_combat_gloves(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/ranks/marine/e5(new_human), WEAR_ACCESSORY)
@@ -60,8 +53,6 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/forecon(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/rto/forecon(new_human), WEAR_JACKET)
-
-	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 
 	new_human.equip_to_slot_or_del(new 	/obj/item/device/overwatch_camera(new_human), WEAR_R_EAR)
 	spawn_random_hat(new_human)
