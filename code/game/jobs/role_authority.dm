@@ -404,6 +404,20 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 				else
 					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
 					return
+			// SS220 EDIT - START
+			if(JOB_SQUAD_MARINE)
+				if(sq.num_riflemen > 0)
+					sq.num_riflemen--
+				else
+					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
+					return
+			if(JOB_SQUAD_RTO)
+				if(sq.num_rto > 0)
+					sq.num_rto--
+				else
+					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
+					return
+			// SS220 EDIT - END
 	J.current_positions--
 	message_admins("[key_name(user)] freed the [J.title] job slot[sq ? " in [sq.name] Squad" : ""].")
 	return 1
@@ -685,11 +699,14 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			if(JOB_SQUAD_RTO)
 				for(var/datum/squad/S in mixed_squads)
 					if(S.usable && S.roundstart)
+						if(!skip_limit && S.num_rto >= S.max_rto) continue // SS220 EDIT
 						if(pref_squad_name && S.name == pref_squad_name)
 							S.put_marine_in_squad(H) //fav squad has a spot for us.
 							return
 
 						if(!lowest)
+							lowest = S
+						else if(S.num_rto < lowest.num_rto) // SS220 EDIT
 							lowest = S
 
 			// SS220 EDIT - START - SQUADS - Марины тоже ограничены

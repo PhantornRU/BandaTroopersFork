@@ -52,8 +52,19 @@
 				additional_positions = associated_squad.max_leaders
 			if(JOB_SQUAD_TEAM_LEADER)
 				additional_positions = associated_squad.max_tl
-			if(JOB_SO, JOB_SQUAD_RTO)
+			if(JOB_SQUAD_RTO)
+				additional_positions = associated_squad.max_rto
+			if(JOB_SO)
 				additional_positions = associated_squad.staff_per_squad
 		message_admins("[associated_squad] +++ [job] было [job.total_positions] - станет [job.total_positions + additional_positions]")
 		job.total_positions += additional_positions
 		job.spawn_positions += additional_positions
+
+/datum/authority/branch/role/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
+	. = ..()
+	if(transfer_marine.job == JOB_SQUAD_TEAM_LEADER)
+		if(new_squad.num_rto >= new_squad.max_rto)
+			return TRUE
+	if(transfer_marine.job == JOB_SQUAD_MARINE)
+		if(new_squad.num_riflemen >= new_squad.max_riflemen)
+			return TRUE

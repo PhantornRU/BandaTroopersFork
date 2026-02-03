@@ -1,11 +1,13 @@
 /datum/squad
 	max_engineers = 3
-	max_medics = 3 // на 1 меньше, для более равномерного распределения по отрядам
+	max_medics = 2
 	max_specialists = 1
 	max_tl = 3
 	max_smartgun = 2
 	max_leaders = 1
-	var/max_riflemen = 6 // Ограничиваем количество пехоты на один отряд
+	var/max_riflemen = 4 // Ограничиваем количество пехоты на один отряд
+	var/max_rto = 0
+	var/num_rto = 0
 	var/staff_per_squad = 1 // Оффицер на каждый отряд
 
 	/// После скольких READY игроков открывается этот отряд.
@@ -31,6 +33,7 @@
 	max_tl = 2
 	max_smartgun = 2
 	max_leaders = 1
+	max_rto = 1
 
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2
@@ -53,6 +56,7 @@
 	max_tl = 2
 	max_smartgun = 2
 	max_leaders = 1
+	max_rto = 1
 	
 
 /datum/squad/marine/charlie
@@ -74,6 +78,8 @@
 	max_tl = 2
 	max_smartgun = 2
 	max_leaders = 1
+	max_rto = 1
+
 
 /datum/squad/marine/delta
 	equipment_color = "#4148c8"
@@ -94,6 +100,7 @@
 	max_tl = 2
 	max_smartgun = 2
 	max_leaders = 1
+	max_rto = 1
 
 
 // Предложение как можно переименовать отряды:

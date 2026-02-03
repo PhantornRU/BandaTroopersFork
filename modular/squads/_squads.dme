@@ -5,4 +5,5 @@
 #include "code/closets/squad_closets.dm"
 #include "code/job/squads.dm"
 #include "code/job/squads_setup.dm"
+#include "code/job/marine/equipment_preset.dm"
 #include "code/job/marine/squad/marine_standart.dm"
