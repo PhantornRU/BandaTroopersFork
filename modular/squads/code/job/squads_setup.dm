@@ -62,7 +62,7 @@
 
 /datum/authority/branch/role/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
 	. = ..()
-	if(transfer_marine.job == JOB_SQUAD_TEAM_LEADER)
+	if(transfer_marine.job == JOB_SQUAD_RTO)
 		if(new_squad.num_rto >= new_squad.max_rto)
 			return TRUE
 	if(transfer_marine.job == JOB_SQUAD_MARINE)
