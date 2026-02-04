@@ -14,7 +14,7 @@
 	firing_sound = 'sound/weapons/gun_flamethrower3.ogg'
 
 	choice_categories = list(
-		SENTRY_CATEGORY_ROF = list(ROF_SINGLE, ROF_BURST),
+		SENTRY_CATEGORY_ROF = list(ROF_SINGLE),
 		SENTRY_CATEGORY_IFF = list(FACTION_MARINE, SENTRY_FACTION_WEYLAND, SENTRY_FACTION_HUMAN),
 	)
 
