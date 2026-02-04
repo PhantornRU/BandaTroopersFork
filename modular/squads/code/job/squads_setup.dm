@@ -24,7 +24,6 @@
 			associated_squad_job_positions(sq.platoon_associated_type)
 
 		sq.usable = TRUE
-		message_admins(" +++ ПРОВЕРКА ПРОЙДЕНА [sq.name] - usable [sq.usable] - platoon [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 
 
 /datum/authority/branch/role/proc/associated_squad_job_positions(platoon_associated_type)
