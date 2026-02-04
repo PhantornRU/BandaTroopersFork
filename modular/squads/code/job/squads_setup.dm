@@ -17,7 +17,6 @@
 		if(!sq.ready_players_usable && !sq.platoon_associated_type) // Хотя бы один должен быть для продолжения
 			continue
 		if(sq.ready_players_usable && players_ready < sq.ready_players_usable)
-			message_admins(" - 1 -  Не прошел проверку [sq.name] - usable [sq.usable] - [sq.ready_players_usable]/[players_ready]")
 			continue
 		if(sq.platoon_associated_type)
 			if(sq.platoon_associated_type != MAIN_SHIP_PLATOON) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
