@@ -17,7 +17,7 @@
 	var/last_fired = 0
 	var/fire_delay = 1
 
-	var/burst_fire_delay = 1
+	var/burst_fire_delay = 0.1
 
 	var/immobile = FALSE //Used for prebuilt ones.
 	var/obj/item/ammo_magazine/ammo = new /obj/item/ammo_magazine/sentry
@@ -39,7 +39,7 @@
 
 	var/damage_mult = 1
 	var/accuracy_mult = 0.5
-	var/burst = 5
+	var/burst = 2
 	handheld_type = /obj/item/defenses/handheld/sentry
 
 	/// timer triggered when sentry gun shoots at a target to not spam the laptop
@@ -51,7 +51,7 @@
 
 	/// action list is configurable for all subtypes, this is just an example
 	choice_categories = list(
-		SENTRY_CATEGORY_ROF = list(ROF_SINGLE, ROF_BURST, ROF_FULL_AUTO),
+		SENTRY_CATEGORY_ROF = list(ROF_SINGLE, ROF_FULL_AUTO),
 		SENTRY_CATEGORY_IFF = list(FACTION_MARINE, SENTRY_FACTION_WEYLAND, SENTRY_FACTION_HUMAN, FACTION_UPP),
 	)
 
@@ -188,12 +188,12 @@
 	switch(level)
 		if(ROF_SINGLE)
 			burst = 1
-			accuracy_mult = 0.9
-			fire_delay = 5
+			accuracy_mult = 1
+			fire_delay = 4
 		if(ROF_BURST)
-			burst = 5
-			accuracy_mult = 0.7
-			fire_delay = 8
+			burst = 3
+			accuracy_mult = 0.6
+			fire_delay = 12
 		if(ROF_FULL_AUTO)
 			burst = 1
 			accuracy_mult = 0.5
