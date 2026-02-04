@@ -10,7 +10,6 @@
 
 	// Открываем сквад
 	for(var/datum/squad/sq in GLOB.RoleAuthority.squads)
-		message_admins("Проверяем [sq.name] - usable [sq.usable] - platoon [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 		if(!sq)
 			continue
 		if(sq.usable)
@@ -18,21 +17,17 @@
 		if(!sq.ready_players_usable && !sq.platoon_associated_type) // Хотя бы один должен быть для продолжения
 			continue
 		if(sq.ready_players_usable && players_ready < sq.ready_players_usable)
-			message_admins(" - 1 -  Не прошел проверку [sq.name] - usable [sq.usable] - [sq.ready_players_usable]/[players_ready]")
 			continue
 		if(sq.platoon_associated_type)
 			if(sq.platoon_associated_type != MAIN_SHIP_PLATOON) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
-				message_admins(" - 2 - Не прошел проверку [sq.name] - [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 				continue
 			associated_squad_job_positions(sq.platoon_associated_type)
 
 		sq.usable = TRUE
-		message_admins(" +++ ПРОВЕРКА ПРОЙДЕНА [sq.name] - usable [sq.usable] - platoon [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 
 
 /datum/authority/branch/role/proc/associated_squad_job_positions(platoon_associated_type)
 	var/datum/squad/associated_squad = GLOB.RoleAuthority.squads_by_type[platoon_associated_type]
-	message_admins("[platoon_associated_type] - проверяем ассоциативный [associated_squad]")
 	for(var/role in GLOB.RoleAuthority.roles_by_path)
 		var/datum/job/job = GLOB.RoleAuthority.roles_by_path[role]
 		// var/datum/job/job_mapped = GET_MAPPED_ROLE(job_path)
@@ -56,13 +51,12 @@
 				additional_positions = associated_squad.max_rto
 			if(JOB_SO)
 				additional_positions = associated_squad.staff_per_squad
-		message_admins("[associated_squad] +++ [job] было [job.total_positions] - станет [job.total_positions + additional_positions]")
 		job.total_positions += additional_positions
 		job.spawn_positions += additional_positions
 
 /datum/authority/branch/role/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
 	. = ..()
-	if(transfer_marine.job == JOB_SQUAD_TEAM_LEADER)
+	if(transfer_marine.job == JOB_SQUAD_RTO)
 		if(new_squad.num_rto >= new_squad.max_rto)
 			return TRUE
 	if(transfer_marine.job == JOB_SQUAD_MARINE)
