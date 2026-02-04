@@ -56,7 +56,6 @@
 				additional_positions = associated_squad.max_rto
 			if(JOB_SO)
 				additional_positions = associated_squad.staff_per_squad
-		message_admins("[associated_squad] +++ [job] было [job.total_positions] - станет [job.total_positions + additional_positions]")
 		job.total_positions += additional_positions
 		job.spawn_positions += additional_positions
 
