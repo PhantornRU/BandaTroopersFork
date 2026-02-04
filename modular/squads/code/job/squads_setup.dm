@@ -29,7 +29,6 @@
 
 /datum/authority/branch/role/proc/associated_squad_job_positions(platoon_associated_type)
 	var/datum/squad/associated_squad = GLOB.RoleAuthority.squads_by_type[platoon_associated_type]
-	message_admins("[platoon_associated_type] - проверяем ассоциативный [associated_squad]")
 	for(var/role in GLOB.RoleAuthority.roles_by_path)
 		var/datum/job/job = GLOB.RoleAuthority.roles_by_path[role]
 		// var/datum/job/job_mapped = GET_MAPPED_ROLE(job_path)
