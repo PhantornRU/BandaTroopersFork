@@ -20,7 +20,6 @@
 			continue
 		if(sq.platoon_associated_type)
 			if(sq.platoon_associated_type != MAIN_SHIP_PLATOON) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
-				message_admins(" - 2 - Не прошел проверку [sq.name] - [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 				continue
 			associated_squad_job_positions(sq.platoon_associated_type)
 
