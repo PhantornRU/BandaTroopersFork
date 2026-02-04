@@ -633,7 +633,6 @@
 	if(!istype(M))
 		return FALSE //Logic
 	if(!src.usable)
-		message_admins("put [name]")
 		return FALSE
 	if(!M.job)
 		return FALSE //Not yet
