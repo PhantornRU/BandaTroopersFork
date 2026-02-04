@@ -10,7 +10,6 @@
 
 	// Открываем сквад
 	for(var/datum/squad/sq in GLOB.RoleAuthority.squads)
-		message_admins("Проверяем [sq.name] - usable [sq.usable] - platoon [sq.platoon_associated_type] - MAIN_SHIP_PLATOON [MAIN_SHIP_PLATOON]")
 		if(!sq)
 			continue
 		if(sq.usable)
