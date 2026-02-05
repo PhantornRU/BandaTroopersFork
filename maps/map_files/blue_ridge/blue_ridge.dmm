@@ -6555,6 +6555,14 @@
 	},
 /turf/open/floor/almayer/orangecorner/east,
 /area/golden_arrow/platoonarmory)
+"amx" = (
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 2;
+	id = "squadarmory_alpha";
+	name = "\improper Gear Lockers"
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/golden_arrow/platoonarmory)
 "amy" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
@@ -6565,6 +6573,14 @@
 	},
 /turf/open/floor/almayer/blackcorner/north,
 /area/golden_arrow/vehicle_shuttle/two/upper)
+"amz" = (
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 2;
+	id = "squadarmory_charlie";
+	name = "\improper Gear Lockers"
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/golden_arrow/platoonarmory)
 "amA" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "S";
@@ -6592,6 +6608,25 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/dorms)
+"amD" = (
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 2;
+	id = "squadarmory_delta";
+	name = "\improper Gear Lockers"
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/golden_arrow/platoonarmory)
+"amE" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 2;
+	id = "squadarmory_delta";
+	name = "\improper Gear Lockers"
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/golden_arrow/platoonarmory)
 "amF" = (
 /obj/structure/bed/bedroll{
 	pixel_x = 6;
@@ -10398,10 +10433,32 @@
 	name = "CIC Lockdown"
 	},
 /obj/structure/machinery/door_control{
-	pixel_y = 10;
-	pixel_x = 6;
-	id = "squadarmory";
-	name = "gear lockers door-control"
+	pixel_y = 13;
+	pixel_x = 9;
+	id = "squadarmory_bravo";
+	name = "BRAVO gear lockers door-control";
+	color = "#ffc32d"
+	},
+/obj/structure/machinery/door_control{
+	pixel_y = 13;
+	pixel_x = 1;
+	id = "squadarmory_alpha";
+	name = "ALPHA gear lockers door-control";
+	color = "#db1d1d"
+	},
+/obj/structure/machinery/door_control{
+	pixel_y = 7;
+	pixel_x = 1;
+	id = "squadarmory_charlie";
+	name = "CHARLIE gear lockers door-control";
+	color = "#c864c8"
+	},
+/obj/structure/machinery/door_control{
+	pixel_y = 7;
+	pixel_x = 9;
+	id = "squadarmory_delta";
+	name = "DELTA gear lockers door-control";
+	color = "#828cff"
 	},
 /turf/open/floor/almayer/mono,
 /area/golden_arrow/platoon_commander_rooms)
@@ -10778,13 +10835,6 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/lower_cargo)
-"aDW" = (
-/obj/structure/machinery/door/poddoor/shutters/almayer{
-	name = "\improper Equipment Locker";
-	id = "squadarmory"
-	},
-/turf/open/floor/almayer/test_floor4,
-/area/golden_arrow/platoonarmory)
 "aDX" = (
 /turf/open/floor/almayer/uscm/directional/up_down/southwest,
 /area/golden_arrow/prep_hallway)
@@ -11599,8 +11649,9 @@
 	layer = 2.52
 	},
 /obj/structure/machinery/door/poddoor/shutters/almayer{
-	name = "\improper Equipment Locker";
-	id = "squadarmory"
+	dir = 2;
+	id = "squadarmory_alpha";
+	name = "\improper Gear Lockers"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/platoonarmory)
@@ -15959,7 +16010,7 @@
 /obj/structure/machinery/computer/crew/alt{
 	dir = 8;
 	pixel_y = -1;
-	pixel_x = 17;
+	pixel_x = 14;
 	layer = 3.04
 	},
 /obj/structure/machinery/prop/almayer/CICmap{
@@ -15968,7 +16019,7 @@
 	icon_state = "shuttle";
 	layer = 3.03;
 	name = "Tactical Map Display";
-	pixel_x = 17;
+	pixel_x = 14;
 	pixel_y = 14
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -21206,7 +21257,7 @@
 "lPm" = (
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 2;
-	id = "squadarmory";
+	id = "squadarmory_bravo";
 	name = "\improper Gear Lockers"
 	},
 /turf/open/floor/almayer/test_floor4,
@@ -38093,27 +38144,27 @@ tmN
 tmN
 bMS
 ssW
-lPm
+amD
 agT
 aDf
 azv
-lPm
+amD
 avc
 act
 pcZ
-lPm
+amz
 aZH
 aDf
 auP
-lPm
+amz
 aSC
 act
 aRK
-lPm
+amx
 nXv
 moW
 axW
-lPm
+amx
 avc
 act
 pcZ
@@ -38270,27 +38321,27 @@ tmN
 tmN
 bMS
 dvJ
-lPm
+amD
 ati
 aBt
 xLU
-lPm
+amD
 nfP
 act
 mtK
-lPm
+amz
 cZT
 aBt
 ati
-lPm
+amz
 afk
 act
 dAO
-lPm
+amx
 ati
 aBt
 ati
-lPm
+amx
 nfP
 act
 mtK
@@ -38451,11 +38502,11 @@ act
 aJY
 aMK
 aDL
-lPm
+amD
 gzS
 act
 syi
-lPm
+amz
 aBt
 aMK
 pKQ
@@ -38467,7 +38518,7 @@ act
 vgS
 aBt
 pJV
-lPm
+amx
 gzS
 act
 syi
@@ -38624,27 +38675,27 @@ aDh
 aDh
 act
 ace
-lPm
+amD
 ati
 aBt
 xLU
-lPm
+amD
 tBI
 act
 rhq
-lPm
+amz
 ati
 aBt
 ati
-lPm
+amz
 uMR
 act
 vHQ
-lPm
+amx
 ati
 aBt
 ati
-lPm
+amx
 tBI
 act
 rhq
@@ -38801,27 +38852,27 @@ aEG
 aEG
 act
 olf
-lPm
+amD
 aLk
 aDf
 aTh
-lPm
+amD
 dBq
 act
 dAo
-lPm
+amz
 avO
 moW
 aAo
-lPm
+amz
 cqk
 act
 pSQ
-lPm
+amx
 btA
 aOp
 aiQ
-lPm
+amx
 dBq
 act
 dAo
@@ -39155,23 +39206,23 @@ aEG
 aEG
 act
 aoc
-lPm
+amD
 arh
 ati
 aDL
-aGY
+amE
 cMX
 act
 cMX
-lPm
+amz
 aGC
 kUR
 mvw
-lPm
+amz
 aoc
 act
 aoc
-lPm
+amx
 ayn
 ati
 pJV
@@ -39332,23 +39383,23 @@ aEG
 aEG
 act
 uUf
-lPm
+amD
 cty
 aMK
 aDL
-aGY
+amE
 odS
 act
 vNW
-lPm
+amz
 eow
 aBt
 mvw
-lPm
+amz
 ojW
 act
 ojW
-lPm
+amx
 ayn
 aBt
 pJV
@@ -39509,23 +39560,23 @@ aEG
 aEG
 act
 ojW
-lPm
+amD
 arh
 aBt
 aDL
-aGY
+amE
 amm
 act
 amm
-lPm
+amz
 eow
 aMK
 mvw
-lPm
+amz
 ojW
 act
 ojW
-lPm
+amx
 ayn
 aMK
 gsQ
@@ -39686,27 +39737,27 @@ aEG
 aEG
 act
 ojW
-lPm
+amD
 cty
 ati
 aDL
-aDW
+amD
 aqL
 act
 aqL
-lPm
+amz
 eow
 ati
 mvw
-lPm
+amz
 ojW
 act
 ojW
-lPm
+amx
 ayn
 ati
 gsQ
-aDW
+amx
 aqL
 act
 aqL
@@ -39863,27 +39914,27 @@ aEG
 aEG
 act
 aEr
-lPm
+amD
 arh
 kUR
 aDL
-aDW
+amD
 ajA
 act
 ajA
-lPm
+amz
 fbl
 ati
 eXC
-lPm
+amz
 aEr
 act
 aEr
-lPm
+amx
 ayn
 kUR
 gsQ
-aDW
+amx
 ajA
 act
 ajA
@@ -40040,7 +40091,7 @@ aEG
 aEG
 act
 aAu
-lPm
+amD
 aGS
 aHc
 aHk
@@ -40052,11 +40103,11 @@ act
 aYp
 alS
 aAW
-lPm
+amz
 aAu
 act
 aAu
-lPm
+amx
 azT
 aZx
 aMI
