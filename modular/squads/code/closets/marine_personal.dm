@@ -87,10 +87,10 @@
 
 /obj/structure/closet/secure_closet/marine_personal/rto/spawn_gear()
 	. = ..()
-	new /obj/item/device/binoculars/fire_support/uscm
-	new /obj/item/device/binoculars/designator
-	new /obj/item/storage/box/flare/signal
-	new /obj/item/storage/box/flare/signal
+	new /obj/item/device/binoculars/fire_support/uscm(src)
+	new /obj/item/device/binoculars/designator(src)
+	new /obj/item/storage/box/flare/signal(src)
+	new /obj/item/storage/box/flare/signal(src)
 
 
 // ФТЛ
