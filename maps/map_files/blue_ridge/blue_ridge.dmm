@@ -938,6 +938,10 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/hangar)
+"abN" = (
+/obj/item/storage/box/flare/signal,
+/turf/open/floor/almayer,
+/area/golden_arrow/platoonprep)
 "abO" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/phone_base/rotary/no_dnd{
@@ -6551,12 +6555,6 @@
 	},
 /turf/open/floor/almayer/orangecorner/east,
 /area/golden_arrow/platoonarmory)
-"amx" = (
-/obj/item/device/binoculars/fire_support/uscm,
-/turf/closed/wall/almayer{
-	opacity = 0
-	},
-/area/golden_arrow/platoon_commander_rooms)
 "amy" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
@@ -11874,13 +11872,16 @@
 	pixel_y = 6
 	},
 /obj/item/tool/pen{
-	pixel_x = -8;
-	pixel_y = 2
+	pixel_x = -4;
+	pixel_y = 11
 	},
 /obj/structure/window/reinforced/toughened{
 	dir = 8
 	},
 /obj/structure/window/reinforced/toughened,
+/obj/item/device/binoculars/fire_support/uscm{
+	pixel_x = -4
+	},
 /turf/open/floor/almayer/mono,
 /area/golden_arrow/platoon_commander_rooms)
 "aIk" = (
@@ -26412,12 +26413,13 @@
 	pixel_x = 5
 	},
 /obj/structure/window/reinforced/toughened,
-/obj/item/device/binoculars{
-	layer = 4
-	},
 /obj/item/clothing/glasses/hud/health{
 	pixel_y = 2;
 	pixel_x = -1
+	},
+/obj/item/device/binoculars{
+	pixel_x = -5;
+	pixel_y = -1
 	},
 /turf/open/floor/almayer/mono,
 /area/golden_arrow/platoon_commander_rooms)
@@ -36479,7 +36481,7 @@ aeT
 aoT
 aOi
 aty
-amx
+amu
 ecj
 aIh
 aWZ
@@ -37217,7 +37219,7 @@ lTE
 aAO
 aAO
 aAO
-aAO
+abN
 aQf
 aAO
 aQf
