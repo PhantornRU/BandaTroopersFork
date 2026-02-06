@@ -980,7 +980,7 @@
 	name = "CIC Shutters"
 	},
 /obj/structure/window/framed/almayer/hull,
-/turf/closed/wall/almayer/outer,
+/turf/open/floor/plating,
 /area/golden_arrow/cryo_cells)
 "abV" = (
 /turf/open/floor/plating/plating_catwalk,
@@ -1396,6 +1396,12 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/cryo_cells)
+"acV" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull,
+/area/space)
 "acW" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -4090,6 +4096,12 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/hangar)
+"aiA" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/northwest,
+/area/space)
 "aiB" = (
 /obj/structure/bed/chair,
 /obj/effect/decal/cleanable/dirt,
@@ -4137,6 +4149,12 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/supply)
+"aiF" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/northeast,
+/area/space)
 "aiG" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -4228,6 +4246,12 @@
 /obj/structure/closet/crate/ammo/alt,
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/supply)
+"aiT" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/west,
+/area/space)
 "aiU" = (
 /obj/structure/extinguisher_cabinet/alt,
 /turf/closed/wall/almayer,
@@ -7995,10 +8019,36 @@
 "aoC" = (
 /turf/open/floor/plating/plating_catwalk,
 /area/golden_arrow/platoon_commander_rooms)
+"aoD" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/east,
+/area/space)
 "aoE" = (
 /obj/vehicle/powerloader,
 /turf/open/floor/almayer,
 /area/golden_arrow/supply)
+"aoF" = (
+/obj/item/lightstick/red/variant/planted,
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/west,
+/area/space)
+"aoG" = (
+/obj/item/lightstick/red/variant/planted,
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/east,
+/area/space)
+"aoH" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/north,
+/area/space)
 "aoI" = (
 /obj/structure/platform_decoration,
 /turf/open/floor/almayer,
@@ -11810,7 +11860,6 @@
 "aEB" = (
 /obj/structure/reagent_dispensers/fueltank,
 /obj/structure/machinery/light/double/blue/golden_arrow,
-/obj/structure/machinery/light/double/blue/golden_arrow,
 /turf/open/floor/almayer,
 /area/golden_arrow/prep_hallway)
 "aEC" = (
@@ -14427,10 +14476,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/cryo_cells)
-"aPM" = (
-/turf/open/space/basic,
-/turf/closed/wall/almayer/outer,
-/area/space)
 "aPO" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -15633,6 +15678,9 @@
 /turf/open/floor/almayer,
 /area/golden_arrow/supply)
 "aUq" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
 /turf/open/floor/almayer_hull/outerhull_dir/northeast,
 /area/golden_arrow/platoon_commander_rooms)
 "aUv" = (
@@ -32975,7 +33023,7 @@ ahl
 aEG
 aEG
 aEG
-aEG
+kuk
 aWh
 aiU
 awW
@@ -33001,7 +33049,7 @@ adW
 acI
 aiU
 aWh
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -33152,7 +33200,7 @@ ahl
 aEG
 aEG
 aEG
-aEG
+kuk
 abU
 aFo
 aBk
@@ -33178,7 +33226,7 @@ aBk
 aBk
 acn
 abU
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -33329,7 +33377,7 @@ ahl
 ahl
 aEG
 aEG
-aEG
+kuk
 abU
 aSR
 aBk
@@ -33355,7 +33403,7 @@ aBk
 aBk
 acn
 abU
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -33532,7 +33580,7 @@ aBk
 aBk
 acn
 abU
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -36466,11 +36514,11 @@ aEG
 aEG
 aEG
 exb
-uPo
-mpM
-mpM
-exb
-aDr
+aoF
+aiT
+aiT
+aiA
+acV
 aDh
 aDh
 aDh
@@ -36639,10 +36687,10 @@ aEG
 aEG
 aEG
 exb
-mpM
-mpM
-mpM
-exb
+aiT
+aiT
+aiT
+aiA
 aDh
 jMD
 aGv
@@ -36931,7 +36979,7 @@ arC
 arC
 arC
 arC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -37108,7 +37156,7 @@ aJf
 eqr
 uXp
 apZ
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -37166,7 +37214,7 @@ mpM
 mpM
 mpM
 aDr
-exb
+aiA
 aDh
 aDh
 aHt
@@ -37285,7 +37333,7 @@ glP
 anZ
 iEn
 apZ
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -37343,7 +37391,7 @@ aUT
 aaj
 aaj
 mpM
-aDr
+acV
 wvU
 axm
 gyk
@@ -37462,7 +37510,7 @@ aJf
 ngb
 uXp
 apZ
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -37520,7 +37568,7 @@ rJr
 aaj
 aDr
 aDr
-aDr
+acV
 wvU
 sxA
 rUA
@@ -37639,7 +37687,7 @@ arC
 arC
 arC
 arC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -37697,7 +37745,7 @@ kjn
 kbQ
 kjn
 ape
-kjn
+aoH
 wvU
 mWO
 auc
@@ -37784,33 +37832,33 @@ aWC
 aWC
 arC
 aEG
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
 aEG
 aEG
+kuk
+kuk
+kuk
+kuk
+aEG
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
 aEG
 aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
@@ -37874,7 +37922,7 @@ exb
 mpM
 aDr
 aDr
-aDr
+acV
 wvU
 mcY
 aaK
@@ -38051,7 +38099,7 @@ uPo
 mpM
 mpM
 aaj
-aDr
+acV
 wvU
 axm
 gyk
@@ -38228,7 +38276,7 @@ aaj
 aaj
 aaj
 aDr
-rJr
+aiF
 aDh
 aDh
 aUX
@@ -38763,9 +38811,9 @@ aEG
 aEG
 aEG
 rJr
-aaj
-aaj
-aaj
+aoD
+aoD
+aoD
 aUq
 aDh
 aGv
@@ -38944,11 +38992,11 @@ aEG
 aEG
 aEG
 rJr
-aUT
-aaj
-aaj
-rJr
-aDr
+aoG
+aoD
+aoD
+aiF
+acV
 aDh
 aDh
 aDh
@@ -40972,15 +41020,15 @@ adz
 adz
 aEG
 aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
@@ -41438,7 +41486,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 act
 act
 act
@@ -41615,7 +41663,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -41792,7 +41840,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -41873,7 +41921,7 @@ akb
 adz
 adz
 adz
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -41969,7 +42017,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 pKJ
@@ -42050,7 +42098,7 @@ aUF
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -42146,7 +42194,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 wxa
 aBg
@@ -42227,7 +42275,7 @@ art
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -42323,7 +42371,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -42404,7 +42452,7 @@ ajX
 adD
 aSS
 aCe
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -42500,7 +42548,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -42581,7 +42629,7 @@ art
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -42677,7 +42725,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -42758,7 +42806,7 @@ art
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -42854,7 +42902,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -42942,7 +42990,7 @@ adz
 adz
 adz
 adz
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43031,7 +43079,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -43119,7 +43167,7 @@ aTA
 atb
 axa
 aBg
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43208,7 +43256,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -43296,7 +43344,7 @@ aVt
 ajB
 axa
 aBg
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43385,7 +43433,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -43473,7 +43521,7 @@ aYz
 atb
 axa
 aBg
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43562,7 +43610,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -43650,7 +43698,7 @@ avd
 aBj
 axa
 aBg
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43739,7 +43787,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -43827,7 +43875,7 @@ aRV
 art
 axa
 aBg
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -43916,7 +43964,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -44004,7 +44052,7 @@ adz
 adz
 adz
 adz
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -44093,7 +44141,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -44174,7 +44222,7 @@ art
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aIY
@@ -44270,7 +44318,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -44351,7 +44399,7 @@ atb
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -44447,7 +44495,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -44528,7 +44576,7 @@ ajX
 adD
 aSS
 aCe
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -44624,7 +44672,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -44705,7 +44753,7 @@ atb
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -44801,7 +44849,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -44882,7 +44930,7 @@ aTp
 aSA
 aBg
 agC
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -44978,7 +45026,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 pKJ
@@ -45059,7 +45107,7 @@ akb
 adz
 adz
 adz
-aEG
+kuk
 aEG
 aEG
 aEG
@@ -45155,7 +45203,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 atb
 aSA
 aBg
@@ -45332,7 +45380,7 @@ aEG
 aEG
 aEG
 aEG
-aEG
+kuk
 adz
 adz
 adz
@@ -45877,34 +45925,34 @@ adz
 adz
 aEG
 aEG
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+aEG
+aEG
+aEG
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
 aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
@@ -47636,13 +47684,13 @@ aEG
 aEG
 aEG
 aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
-aEG
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
+kuk
 aEG
 aEG
 aEG
@@ -53447,11 +53495,11 @@ aEG
 aEG
 aEG
 aEG
-aPM
-aPM
-aPM
-aPM
-aPM
+aoB
+aoB
+aoB
+aoB
+aoB
 aEG
 aEG
 aEG
