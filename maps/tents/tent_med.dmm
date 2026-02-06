@@ -33,9 +33,6 @@
 	dir = 1
 	},
 /obj/structure/bed/roller,
-/obj/structure/machinery/cm_vending/sorted/medical/wall_med/tent{
-	pixel_y = 22
-	},
 /turf/template_noop,
 /area/template_noop)
 "H" = (
@@ -49,9 +46,9 @@
 /obj/structure/blocker/tent{
 	dir = 8
 	},
+/obj/structure/tent_curtain,
 /obj/structure/tent/med,
 /obj/structure/machinery/iv_drip,
-/obj/structure/tent_curtain,
 /turf/template_noop,
 /area/template_noop)
 
