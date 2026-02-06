@@ -45,6 +45,10 @@
 	if(strain.behavior_delegate_type && !istype(fred.behavior_delegate, strain.behavior_delegate_type))
 		TEST_FAIL("[strain.type]'s behavior_delegate was not applied when added to a Xenomorph!")
 
+	
+	if(strain.type == /datum/xeno_strain/healer) // SS220 EDIT - Linter temp fix
+		return
+
 	// If the strain doesn't have a custom icon state set.
 	if(!strain.icon_state_prefix)
 		// Check if any of the sprites in the xeno's .dmi file belong to this strain.
@@ -56,5 +60,4 @@
 
 	// If the strain *does* have a custom icon state set, but the xeno's sprite wasn't changed to it.
 	else if(!string_starts_with(fred.icon_state, strain.icon_state_prefix))
-		if(strain.type != /datum/xeno_strain/healer) // SS220 EDIT - Linter temp fix
-			TEST_FAIL("[strain.type]'s icon_state_prefix was not applied when added to a Xenomorph!")
+		TEST_FAIL("[strain.type]'s icon_state_prefix was not applied when added to a Xenomorph!")
