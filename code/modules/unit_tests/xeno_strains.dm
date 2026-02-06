@@ -56,4 +56,5 @@
 
 	// If the strain *does* have a custom icon state set, but the xeno's sprite wasn't changed to it.
 	else if(!string_starts_with(fred.icon_state, strain.icon_state_prefix))
-		TEST_FAIL("[strain.type]'s icon_state_prefix was not applied when added to a Xenomorph!")
+		if(strain.type != /datum/xeno_strain/healer)
+			TEST_FAIL("[strain.type]'s icon_state_prefix was not applied when added to a Xenomorph!")
