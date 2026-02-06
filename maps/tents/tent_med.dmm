@@ -33,6 +33,9 @@
 	dir = 1
 	},
 /obj/structure/bed/roller,
+/obj/structure/machinery/cm_vending/sorted/medical/wall_med/tent{
+	pixel_y = 22
+	},
 /turf/template_noop,
 /area/template_noop)
 "H" = (
