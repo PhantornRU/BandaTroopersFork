@@ -1396,12 +1396,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/cryo_cells)
-"acV" = (
-/obj/structure/blocker/invisible_wall{
-	opacity = 1
-	},
-/turf/open/floor/almayer_hull,
-/area/space)
 "acW" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -4096,12 +4090,6 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/hangar)
-"aiA" = (
-/obj/structure/blocker/invisible_wall{
-	opacity = 1
-	},
-/turf/open/floor/almayer_hull/outerhull_dir/northwest,
-/area/space)
 "aiB" = (
 /obj/structure/bed/chair,
 /obj/effect/decal/cleanable/dirt,
@@ -4149,12 +4137,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/supply)
-"aiF" = (
-/obj/structure/blocker/invisible_wall{
-	opacity = 1
-	},
-/turf/open/floor/almayer_hull/outerhull_dir/northeast,
-/area/space)
 "aiG" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -4246,12 +4228,6 @@
 /obj/structure/closet/crate/ammo/alt,
 /turf/open/floor/almayer/test_floor4,
 /area/golden_arrow/supply)
-"aiT" = (
-/obj/structure/blocker/invisible_wall{
-	opacity = 1
-	},
-/turf/open/floor/almayer_hull/outerhull_dir/west,
-/area/space)
 "aiU" = (
 /obj/structure/extinguisher_cabinet/alt,
 /turf/closed/wall/almayer,
@@ -8014,7 +7990,10 @@
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/supply)
 "aoB" = (
-/turf/closed/wall/almayer/outer,
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull,
 /area/space)
 "aoC" = (
 /turf/open/floor/plating/plating_catwalk,
@@ -8023,39 +8002,57 @@
 /obj/structure/blocker/invisible_wall{
 	opacity = 1
 	},
-/turf/open/floor/almayer_hull/outerhull_dir/east,
+/turf/open/floor/almayer_hull/outerhull_dir/northwest,
 /area/space)
 "aoE" = (
 /obj/vehicle/powerloader,
 /turf/open/floor/almayer,
 /area/golden_arrow/supply)
 "aoF" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/northeast,
+/area/space)
+"aoG" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/west,
+/area/space)
+"aoH" = (
+/obj/structure/blocker/invisible_wall{
+	opacity = 1
+	},
+/turf/open/floor/almayer_hull/outerhull_dir/east,
+/area/space)
+"aoI" = (
+/obj/structure/platform_decoration,
+/turf/open/floor/almayer,
+/area/golden_arrow/supply)
+"aoJ" = (
 /obj/item/lightstick/red/variant/planted,
 /obj/structure/blocker/invisible_wall{
 	opacity = 1
 	},
 /turf/open/floor/almayer_hull/outerhull_dir/west,
 /area/space)
-"aoG" = (
+"aoK" = (
 /obj/item/lightstick/red/variant/planted,
 /obj/structure/blocker/invisible_wall{
 	opacity = 1
 	},
 /turf/open/floor/almayer_hull/outerhull_dir/east,
 /area/space)
-"aoH" = (
+"aoL" = (
+/turf/open/floor/almayer/uscm/directional/up_down/north,
+/area/golden_arrow/prep_hallway)
+"aoM" = (
 /obj/structure/blocker/invisible_wall{
 	opacity = 1
 	},
 /turf/open/floor/almayer_hull/outerhull_dir/north,
 /area/space)
-"aoI" = (
-/obj/structure/platform_decoration,
-/turf/open/floor/almayer,
-/area/golden_arrow/supply)
-"aoL" = (
-/turf/open/floor/almayer/uscm/directional/up_down/north,
-/area/golden_arrow/prep_hallway)
 "aoN" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -14476,6 +14473,9 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/golden_arrow/cryo_cells)
+"aPM" = (
+/turf/closed/wall/almayer/outer,
+/area/space)
 "aPO" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -36514,11 +36514,11 @@ aEG
 aEG
 aEG
 exb
-aoF
-aiT
-aiT
-aiA
-acV
+aoJ
+aoG
+aoG
+aoD
+aoB
 aDh
 aDh
 aDh
@@ -36687,10 +36687,10 @@ aEG
 aEG
 aEG
 exb
-aiT
-aiT
-aiT
-aiA
+aoG
+aoG
+aoG
+aoD
 aDh
 jMD
 aGv
@@ -37214,7 +37214,7 @@ mpM
 mpM
 mpM
 aDr
-aiA
+aoD
 aDh
 aDh
 aHt
@@ -37391,7 +37391,7 @@ aUT
 aaj
 aaj
 mpM
-acV
+aoB
 wvU
 axm
 gyk
@@ -37568,7 +37568,7 @@ rJr
 aaj
 aDr
 aDr
-acV
+aoB
 wvU
 sxA
 rUA
@@ -37745,7 +37745,7 @@ kjn
 kbQ
 kjn
 ape
-aoH
+aoM
 wvU
 mWO
 auc
@@ -37922,7 +37922,7 @@ exb
 mpM
 aDr
 aDr
-acV
+aoB
 wvU
 mcY
 aaK
@@ -38099,7 +38099,7 @@ uPo
 mpM
 mpM
 aaj
-acV
+aoB
 wvU
 axm
 gyk
@@ -38276,7 +38276,7 @@ aaj
 aaj
 aaj
 aDr
-aiF
+aoF
 aDh
 aDh
 aUX
@@ -38811,9 +38811,9 @@ aEG
 aEG
 aEG
 rJr
-aoD
-aoD
-aoD
+aoH
+aoH
+aoH
 aUq
 aDh
 aGv
@@ -38992,11 +38992,11 @@ aEG
 aEG
 aEG
 rJr
-aoG
-aoD
-aoD
-aiF
-acV
+aoK
+aoH
+aoH
+aoF
+aoB
 aDh
 aDh
 aDh
@@ -44832,10 +44832,10 @@ mmm
 eEG
 aEG
 aEG
-aoB
-aoB
-aoB
-aoB
+aPM
+aPM
+aPM
+aPM
 aEG
 kuk
 kuk
@@ -45012,7 +45012,7 @@ abq
 gcB
 gWx
 cXg
-aoB
+aPM
 aEG
 kuk
 kuk
@@ -45186,10 +45186,10 @@ aeK
 eEG
 aEG
 abr
-aoB
+aPM
 cXg
 cXg
-aoB
+aPM
 aEG
 kuk
 kuk
@@ -45363,10 +45363,10 @@ wAd
 eEG
 aEG
 aEG
-aoB
-aoB
-aoB
-aoB
+aPM
+aPM
+aPM
+aPM
 aEG
 aEG
 aEG
@@ -53495,11 +53495,11 @@ aEG
 aEG
 aEG
 aEG
-aoB
-aoB
-aoB
-aoB
-aoB
+aPM
+aPM
+aPM
+aPM
+aPM
 aEG
 aEG
 aEG
