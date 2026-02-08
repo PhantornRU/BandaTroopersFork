@@ -73,7 +73,7 @@
 	active = TRUE
 	squad_type = "Section"
 	usable = FALSE // Включается при ready_players_usable готовых игроков
-	ready_players_usable = 20
+	ready_players_usable = 28 // Поменяли с дельта, т.к. дельта приоритет выше, т.к. пехотный отряд.
 	platoon_associated_type = /datum/squad/marine/alpha
 	max_riflemen = 4
 	max_engineers = 0
@@ -95,7 +95,7 @@
 	active = TRUE
 	squad_type = "Section"
 	usable = FALSE // Включается при ready_players_usable готовых игроков
-	ready_players_usable = 28
+	ready_players_usable = 20
 	platoon_associated_type = /datum/squad/marine/alpha
 	max_riflemen = 8
 	max_engineers = 0
