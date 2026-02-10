@@ -64,9 +64,6 @@
 	weed_food_states = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
 	weed_food_states_flipped = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
 
-	var/chance_to_grab = 40
-	var/chance_to_neckgrab = 30
-	var/chance_to_pulling_harm = 50
 
 /mob/living/carbon/xenomorph/arachnid/init_movement_handler()
 	return new /datum/xeno_ai_movement/arachnid(src) // с возможностью карабкаться
@@ -93,11 +90,11 @@
 /mob/living/carbon/xenomorph/arachnid/start_pulling(atom/movable/AM, lunge)
 	if (!check_state() || agility || !isliving(AM)) return FALSE
 
-	if(!prob(chance_to_grab))
+	if(!prob(ARACHNID_GRAB_CHANCE))
 		return FALSE
 
 	var/mob/living/L = AM
-	var/should_neckgrab = !can_not_harm(L) && (lunge || prob(chance_to_neckgrab))
+	var/should_neckgrab = !can_not_harm(L) && (lunge || prob(ARACHNID_NECKGRAB_CHANCE))
 
 	if(!QDELETED(L) && !QDELETED(L.pulledby) && L != src ) //override pull of other mobs
 		visible_message(SPAN_WARNING("[src] вырвал [L.pulledby] из хватки [L]!"), null, null, 5)
@@ -138,6 +135,6 @@
 		ai_active_intent = (istype(other_xenomorph) && IS_SAME_HIVENUMBER(src, other_xenomorph)) ? INTENT_DISARM : INTENT_GRAB
 
 	/// I had it set up for slightly faster assignment, but this is easier to read.
-	ai_active_intent = (prob(chance_to_pulling_harm)) ? INTENT_HARM : ai_active_intent /// Override harm or continue with the previous intent.
+	ai_active_intent = (prob(ARACHNID_HARM_PULL_CHANCE)) ? INTENT_HARM : ai_active_intent /// Override harm or continue with the previous intent.
 
 	return ..()
