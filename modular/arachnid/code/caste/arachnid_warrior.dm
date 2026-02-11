@@ -35,7 +35,7 @@
 	caste_type = ARACHNID_CASTE_WARRIOR
 	name = ARACHNID_CASTE_WARRIOR
 	desc = "A small red alien that looks like it could run fairly quickly..."
-	icon = 'modular/arachnid/icons/mobs/arachnid.dmi'
+	icon = 'modular/arachnid/icons/mobs/warrior/arachnid.dmi'
 	icon_state = "Arachnid Walking"
 	icon_size = 64
 	layer = MOB_LAYER
@@ -57,7 +57,7 @@
 		/datum/action/xeno_action/onclick/tacmap,
 	)
 
-	icon_xeno = 'modular/arachnid/icons/mobs/arachnid.dmi'
+	icon_xeno = 'modular/arachnid/icons/mobs/warrior/arachnid.dmi'
 	icon_xenonid = 'modular/arachnid/icons/mobs/arachnid_green2.dmi'
 
 	weed_food_icon = 'icons/mob/xenos/weeds_64x64.dmi'
