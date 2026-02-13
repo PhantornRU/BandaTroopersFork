@@ -56,6 +56,7 @@
 	base_actions = list(
 		/datum/action/xeno_action/onclick/xeno_resting,
 		/datum/action/xeno_action/watch_xeno,
+		/datum/action/xeno_action/onclick/xenohide,
 		/datum/action/xeno_action/activable/pounce/arachnid_bombardier,
 		/datum/action/xeno_action/onclick/tacmap,
 	)
@@ -112,6 +113,24 @@
 	freeze_self = FALSE
 	// freeze_time = 300
 	can_be_shield_blocked = TRUE
+
+// Отключаем отмену прыжка при блокировании пути
+/datum/action/xeno_action/activable/pounce/arachnid_bombardier/process_ai(mob/living/carbon/xenomorph/pouncing_xeno, delta_time)
+	var/mob/living/carbon/human/target_human = pouncing_xeno.current_target
+	if(!istype(target_human))
+		return FALSE
+
+	if(pouncing_xeno.can_not_harm(target_human))
+		return FALSE
+
+	if(get_dist(pouncing_xeno, target_human) > distance)
+		return FALSE
+
+	if(!DT_PROB(ai_prob_chance, delta_time))
+		return FALSE
+
+	use_ability_async(target_human)
+	return TRUE
 
 /datum/behavior_delegate/arachnid_bombardier
 	name = "Arachnid Bombardier Behavior Delegate"

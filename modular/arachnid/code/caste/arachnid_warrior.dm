@@ -38,7 +38,6 @@
 	icon = 'modular/arachnid/icons/mobs/warrior/arachnid.dmi'
 	icon_state = "Arachnid Walking"
 	icon_size = 64
-	layer = MOB_LAYER
 	plasma_types = list(PLASMA_CHITIN)
 	tier = 2
 	pixel_x = -16  //Needed for 2x2
