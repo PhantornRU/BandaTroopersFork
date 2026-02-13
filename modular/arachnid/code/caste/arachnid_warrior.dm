@@ -58,7 +58,7 @@
 	)
 
 	icon_xeno = 'modular/arachnid/icons/mobs/warrior/arachnid.dmi'
-	icon_xenonid = 'modular/arachnid/icons/mobs/arachnid_green2.dmi'
+	icon_xenonid = 'modular/arachnid/icons/mobs/warrior/Arachnid_Green2.dmi'
 
 	weed_food_icon = 'icons/mob/xenos/weeds_64x64.dmi'
 	weed_food_states = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
