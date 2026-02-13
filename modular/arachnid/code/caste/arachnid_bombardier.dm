@@ -46,14 +46,12 @@
 	layer = MOB_LAYER
 	plasma_types = list(PLASMA_CHITIN)
 	tier = 1
-	pixel_x = -16
-	old_x = -16
 	base_pixel_x = 0
-	base_pixel_y = -20
+	base_pixel_y = 0
 	pull_speed = -0.5
 	organ_value = 500
 
-	mob_size = MOB_SIZE_XENO
+	mob_size = MOB_SIZE_XENO_VERY_SMALL
 
 	base_actions = list(
 		/datum/action/xeno_action/onclick/xeno_resting,
@@ -68,6 +66,22 @@
 	weed_food_icon = 'icons/mob/xenos/weeds_48x48.dmi'
 	weed_food_states = list("Facehugger_1","Facehugger_2","Facehugger_3")
 	weed_food_states_flipped = list("Facehugger_1","Facehugger_2","Facehugger_3")
+
+/mob/living/carbon/xenomorph/arachnid/bombardier/Initialize(mapload, ...)
+    . = ..()
+    // Устанавливаем случайное смещение при создании объекта
+    pixel_x = rand(-16, 16)
+    pixel_y = rand(-8, 20)
+    
+    // Если в коде используются переменные старого смещения для анимаций:
+    old_x = pixel_x
+    old_y = pixel_y
+
+// Позволяет другим мобам проходить сквозь этого моба
+/mob/living/carbon/xenomorph/arachnid/bombardier/initialize_pass_flags(datum/pass_flags_container/pass_flags)
+	..()
+	if (pass_flags)
+		pass_flags.flags_pass = PASS_MOB_THRU|PASS_FLAGS_CRAWLER
 
 /mob/living/carbon/xenomorph/arachnid/bombardier/proc/prime_self_destruct()
 	var/datum/behavior_delegate/arachnid_bombardier/bombardier_delegate = behavior_delegate
