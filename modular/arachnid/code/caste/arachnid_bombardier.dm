@@ -65,9 +65,9 @@
 	icon_xeno = 'modular/arachnid/icons/mobs/bombardier/Arachnid_Bombardir.dmi'
 	icon_xenonid = 'modular/arachnid/icons/mobs/bombardier/Arachnid_Bombardir.dmi'
 
-	weed_food_icon = 'icons/mob/xenos/weeds_64x64.dmi'
-	weed_food_states = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
-	weed_food_states_flipped = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
+	weed_food_icon = 'icons/mob/xenos/weeds_48x48.dmi'
+	weed_food_states = list("Facehugger_1","Facehugger_2","Facehugger_3")
+	weed_food_states_flipped = list("Facehugger_1","Facehugger_2","Facehugger_3")
 
 /mob/living/carbon/xenomorph/arachnid/bombardier/proc/prime_self_destruct()
 	var/datum/behavior_delegate/arachnid_bombardier/bombardier_delegate = behavior_delegate
@@ -104,7 +104,7 @@
 
 	var/primed = FALSE
 	var/detonation_timer_id = TIMER_ID_NULL
-	var/detonation_delay = 1.5 SECONDS
+	var/detonation_delay = 2.5 SECONDS
 	var/explosion_power = BOMBARDIER_EXPLOSION_POWER
 	var/explosion_falloff = BOMBARDIER_EXPLOSION_FALLOFF
 
@@ -155,29 +155,6 @@
 	primed = FALSE
 
 	..()
-
-// /datum/behavior_delegate/arachnid_bombardier/on_update_icons()
-// 	if(!bound_xeno)
-// 		return FALSE
-
-// 	if(bound_xeno.stat == DEAD)
-// 		bound_xeno.icon_state = "Bombard Dead"
-// 		return TRUE
-
-// 	if(primed)
-// 		bound_xeno.icon_state = "Bombard Sleeping"
-// 		return TRUE
-
-// 	if(bound_xeno.body_position == LYING_DOWN)
-// 		if(!HAS_TRAIT(bound_xeno, TRAIT_INCAPACITATED) && !HAS_TRAIT(bound_xeno, TRAIT_FLOORED))
-// 			bound_xeno.icon_state = "Bombard Sleeping"
-// 		else
-// 			bound_xeno.icon_state = "Bombard Knocked Down"
-// 		return TRUE
-
-// 	var/movement_state = bound_xeno.m_intent != MOVE_INTENT_RUN ? "Walking" : "Running"
-// 	bound_xeno.icon_state = "Bombard [movement_state]"
-// 	return TRUE
 
 #undef BOMBARDIER_EXPLOSION_POWER
 #undef BOMBARDIER_EXPLOSION_FALLOFF
