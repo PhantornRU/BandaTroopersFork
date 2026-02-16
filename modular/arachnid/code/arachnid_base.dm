@@ -148,6 +148,7 @@
 /mob/living/carbon/xenomorph/arachnid
 	var/next_combat_sound = 0
 	var/sound_aliases_initialized = FALSE
+	var/list/sound_meta_map = list()
 
 	var/list/sound_meta_spawn = list(
 		list(ARACHNID_SOUND_META_PATH = 'modular/arachnid/sounds/arachnid_roar_5_sec_#1.ogg', ARACHNID_SOUND_META_TIER = ARACHNID_SOUND_TIER_LONG),
@@ -257,6 +258,13 @@
 			paths += sound_path
 	return paths
 
+/// Добавляет записи банка в кэш метаданных по ключу `path`.
+/mob/living/carbon/xenomorph/arachnid/proc/add_sound_meta_bank_to_map(list/meta_bank)
+	for(var/list/meta_entry as anything in meta_bank)
+		var/sound_path = get_sound_meta_path(meta_entry)
+		if(sound_path)
+			sound_meta_map[sound_path] = meta_entry
+
 /// Обновляет совместимые алиасы `sound_*` из банков метаданных.
 /mob/living/carbon/xenomorph/arachnid/proc/rebuild_sound_path_aliases()
 	sound_spawn = sound_meta_to_paths(sound_meta_spawn)
@@ -267,12 +275,25 @@
 	sound_emote_growl = sound_meta_to_paths(sound_meta_emote_growl)
 	sound_emote_needshelp = sound_meta_to_paths(sound_meta_emote_needshelp)
 	sound_combat_alert = sound_meta_to_paths(sound_meta_combat_alert)
+
+	sound_meta_map = list()
+	add_sound_meta_bank_to_map(sound_meta_spawn)
+	add_sound_meta_bank_to_map(sound_meta_speaking)
+	add_sound_meta_bank_to_map(sound_meta_death)
+	add_sound_meta_bank_to_map(sound_meta_emote_roar)
+	add_sound_meta_bank_to_map(sound_meta_emote_hiss)
+	add_sound_meta_bank_to_map(sound_meta_emote_growl)
+	add_sound_meta_bank_to_map(sound_meta_emote_needshelp)
+	add_sound_meta_bank_to_map(sound_meta_combat_alert)
+
 	sound_aliases_initialized = TRUE
 
 /mob/living/carbon/xenomorph/arachnid/bombardier/rebuild_sound_path_aliases()
 	..()
 	sound_bombardier_prime = sound_meta_to_paths(sound_meta_bombardier_prime)
 	sound_bombardier_pounce = sound_meta_to_paths(sound_meta_bombardier_pounce)
+	add_sound_meta_bank_to_map(sound_meta_bombardier_prime)
+	add_sound_meta_bank_to_map(sound_meta_bombardier_pounce)
 
 /// Отложенная инициализация алиасов, чтобы не дублировать работу.
 /mob/living/carbon/xenomorph/arachnid/proc/ensure_sound_aliases_initialized()
@@ -313,30 +334,12 @@
 			return sound_meta_bombardier_pounce
 	return ..()
 
-/// Линейный поиск записи метаданных среди банков данного моба.
+/// Поиск записи метаданных через кэш-карту `path -> meta_entry`.
 /mob/living/carbon/xenomorph/arachnid/get_sound_meta_by_path(sound_path)
 	if(!sound_path)
 		return null
-
-	var/list/all_banks = list(
-		sound_meta_spawn,
-		sound_meta_speaking,
-		sound_meta_death,
-		sound_meta_emote_roar,
-		sound_meta_emote_hiss,
-		sound_meta_emote_growl,
-		sound_meta_emote_needshelp,
-		sound_meta_combat_alert,
-	)
-	if(istype(src, /mob/living/carbon/xenomorph/arachnid/bombardier))
-		var/mob/living/carbon/xenomorph/arachnid/bombardier/bombardier = src
-		all_banks += list(bombardier.sound_meta_bombardier_prime, bombardier.sound_meta_bombardier_pounce)
-
-	for(var/list/meta_bank as anything in all_banks)
-		for(var/list/meta_entry as anything in meta_bank)
-			if(get_sound_meta_path(meta_entry) == sound_path)
-				return meta_entry
-	return null
+	ensure_sound_aliases_initialized()
+	return sound_meta_map[sound_path]
 
 /// Возвращает вес звука: либо явный в метаданных, либо дефолт для tier.
 /mob/living/carbon/xenomorph/arachnid/get_sound_meta_weight(list/meta_entry)
