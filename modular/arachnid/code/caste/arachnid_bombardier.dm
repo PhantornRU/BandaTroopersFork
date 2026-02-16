@@ -144,9 +144,9 @@
 	can_be_shield_blocked = TRUE
 
 /datum/action/xeno_action/activable/pounce/arachnid_bombardier/use_ability(atom/A)
-	var/mob/living/carbon/human/target_human = A
-	if(istype(target_human) && prob(BOMBARDIER_POUNCE_MISS_CHANCE))
-		var/turf/target_turf = get_turf(target_human)
+	var/mob/living/carbon/human/target_carbon = A
+	if(istype(target_carbon) && prob(BOMBARDIER_POUNCE_MISS_CHANCE))
+		var/turf/target_turf = get_turf(target_carbon)
 		if(target_turf)
 			var/list/turf/miss_turfs = list()
 			for(var/turf/open/open_turf in range(BOMBARDIER_POUNCE_MISS_RADIUS, target_turf))
@@ -168,20 +168,20 @@
 	return ..(A)
 
 /datum/action/xeno_action/activable/pounce/arachnid_bombardier/process_ai(mob/living/carbon/xenomorph/pouncing_xeno, delta_time)
-	var/mob/living/carbon/human/target_human = pouncing_xeno.current_target
-	if(!istype(target_human))
+	var/mob/living/carbon/human/target_carbon = pouncing_xeno.current_target
+	if(!istype(target_carbon))
 		return FALSE
 
-	if(pouncing_xeno.can_not_harm(target_human))
+	if(pouncing_xeno.can_not_harm(target_carbon))
 		return FALSE
 
-	if(get_dist(pouncing_xeno, target_human) > distance)
+	if(get_dist(pouncing_xeno, target_carbon) > distance)
 		return FALSE
 
 	if(!DT_PROB(ai_prob_chance, delta_time))
 		return FALSE
 
-	use_ability_async(target_human)
+	use_ability_async(target_carbon)
 	return TRUE
 
 /datum/behavior_delegate/arachnid_bombardier
