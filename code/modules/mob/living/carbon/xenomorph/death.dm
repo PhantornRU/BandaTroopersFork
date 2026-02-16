@@ -85,7 +85,7 @@
 			var/default_death_sound = prob(50) == 1 ? 'sound/voice/alien_death.ogg' : 'sound/voice/alien_death2.ogg'
 			var/death_sound = modular_sound_pick_death(default_death_sound)
 			if(death_sound)
-				playsound(loc, death_sound, 25, 1)
+				playsound(loc, death_sound, modular_get_sound_volume(25), 1)
 			// SS220 EDIT END
 
 		var/area/A = get_area(src)

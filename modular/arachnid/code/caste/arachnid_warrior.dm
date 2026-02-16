@@ -72,9 +72,6 @@
 		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
 	)
 	var/list/sound_speaking = list(
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
@@ -112,7 +109,6 @@
 	)
 	var/list/sound_combat_alert = list(
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
@@ -129,8 +125,12 @@
 	if(world.time < next_combat_sound || !length(sound_combat_alert))
 		return FALSE
 
-	playsound(src, pick(sound_combat_alert), volume, FALSE)
-	next_combat_sound = world.time + cooldown
+	var/combat_sound = pick_sound_or_default(sound_combat_alert, null)
+	if(!combat_sound)
+		return FALSE
+
+	playsound(src, combat_sound, modular_get_sound_volume(volume), FALSE)
+	next_combat_sound = world.time + modular_get_sound_cooldown(combat_sound, cooldown)
 	return TRUE
 
 /mob/living/carbon/xenomorph/arachnid/ai_move_idle(delta_time)

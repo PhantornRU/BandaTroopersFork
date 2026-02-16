@@ -163,7 +163,7 @@
 	if(istype(bombardier))
 		var/pounce_sound = bombardier.pick_sound_or_default(bombardier.sound_bombardier_pounce, null)
 		if(pounce_sound)
-			playsound(bombardier, pounce_sound, 55, FALSE)
+			playsound(bombardier, pounce_sound, bombardier.modular_get_sound_volume(55), FALSE)
 
 	return ..(A)
 
@@ -202,7 +202,7 @@
 	if(istype(bombardier))
 		var/prime_sound = bombardier.pick_sound_or_default(bombardier.sound_bombardier_prime, null)
 		if(prime_sound)
-			playsound(bound_xeno, prime_sound, 60, FALSE)
+			playsound(bound_xeno, prime_sound, bombardier.modular_get_sound_volume(60), FALSE)
 	flick("Normal Arachnid Bombardier Attacking", bound_xeno)
 	bound_xeno.Stun(detonation_delay)
 	bound_xeno.KnockDown(detonation_delay)
