@@ -1,9 +1,9 @@
 #define ARACHNID_SOUND_WEIGHT_DEFAULT 100
 #define ARACHNID_SOUND_WEIGHT_2_SEC 40
 #define ARACHNID_SOUND_WEIGHT_5_SEC 15
-#define ARACHNID_SOUND_COOLDOWN_SHORT 5 SECONDS
-#define ARACHNID_SOUND_COOLDOWN_MEDIUM 9 SECONDS
-#define ARACHNID_SOUND_COOLDOWN_LONG 15 SECONDS
+#define ARACHNID_SOUND_COOLDOWN_SHORT 3 SECONDS
+#define ARACHNID_SOUND_COOLDOWN_MEDIUM 6 SECONDS
+#define ARACHNID_SOUND_COOLDOWN_LONG 10 SECONDS
 
 /mob/living/carbon/xenomorph
 	var/next_modular_speaking_sound = 0
@@ -16,6 +16,17 @@
 
 /mob/living/carbon/xenomorph/proc/modular_get_sound_cooldown(sound_path, default_cooldown)
 	return default_cooldown
+
+/mob/living/carbon/xenomorph/proc/modular_get_sound_play_chance(event_key, sound_path)
+	return 100
+
+/mob/living/carbon/xenomorph/proc/modular_should_play_sound(event_key, sound_path)
+	var/chance = clamp(round(modular_get_sound_play_chance(event_key, sound_path)), 0, 100)
+	if(chance >= 100)
+		return TRUE
+	if(chance <= 0)
+		return FALSE
+	return prob(chance)
 
 /mob/living/carbon/xenomorph/proc/pick_weighted_sound(list/bank)
 	if(!length(bank))
@@ -65,7 +76,7 @@
 	playsound(loc, speaking_noise, 25, 1)
 
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_volume(base_volume)
-	return max(1, round(base_volume / 4))
+	return max(1, round(base_volume / 2.5))
 
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_pick_weight(sound_path)
 	var/sound_text = "[sound_path]"
@@ -82,6 +93,44 @@
 	if(findtext(sound_text, "_2_sec_"))
 		return max(default_cooldown, ARACHNID_SOUND_COOLDOWN_MEDIUM)
 	return max(default_cooldown, ARACHNID_SOUND_COOLDOWN_SHORT)
+
+/mob/living/carbon/xenomorph/arachnid/proc/get_sound_length_tier(sound_path)
+	var/sound_text = "[sound_path]"
+	if(findtext(sound_text, "_5_sec_"))
+		return 5
+	if(findtext(sound_text, "_2_sec_"))
+		return 2
+	return 1
+
+/mob/living/carbon/xenomorph/arachnid/modular_get_sound_play_chance(event_key, sound_path)
+	var/key = lowertext("[event_key]")
+	var/length_tier = get_sound_length_tier(sound_path)
+
+	switch(key)
+		if("death", "pounce")
+			return 100
+		if("spawn")
+			return 10
+		if("prime")
+			return 25
+		if("speaking", "emote")
+			switch(length_tier)
+				if(5)
+					return 8
+				if(2)
+					return 15
+				else
+					return 25
+		if("combat")
+			switch(length_tier)
+				if(5)
+					return 6
+				if(2)
+					return 12
+				else
+					return 20
+
+	return ..()
 
 /mob/living/carbon/xenomorph/arachnid/get_emote_bank(emote_key)
 	switch(lowertext(emote_key))
@@ -107,7 +156,7 @@
 
 /mob/living/carbon/xenomorph/arachnid/modular_sound_on_spawn()
 	var/spawn_sound = pick_sound_or_default(sound_spawn, null)
-	if(spawn_sound)
+	if(spawn_sound && modular_should_play_sound("spawn", spawn_sound))
 		playsound(src, spawn_sound, modular_get_sound_volume(45), FALSE)
 
 /mob/living/carbon/xenomorph/arachnid/modular_say()
@@ -116,6 +165,9 @@
 
 	var/speaking_sound = modular_sound_pick_speaking(speaking_noise)
 	if(!speaking_sound)
+		return
+
+	if(!modular_should_play_sound("speaking", speaking_sound))
 		return
 
 	playsound(loc, speaking_sound, modular_get_sound_volume(25), 1)
@@ -139,6 +191,10 @@
 
 	. = xeno_user.modular_sound_pick_emote(key, .)
 	if(!.)
+		return
+
+	if(!xeno_user.modular_should_play_sound("emote", .))
+		. = null
 		return
 
 	volume = xeno_user.modular_get_sound_volume(base_volume)

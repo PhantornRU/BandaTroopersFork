@@ -73,6 +73,8 @@
 	)
 	var/list/sound_speaking = list(
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#5.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#6.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
@@ -93,24 +95,26 @@
 		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
 	)
 	var/list/sound_emote_hiss = list(
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
 		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#5.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#6.ogg',
 	)
 	var/list/sound_emote_growl = list(
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#8.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#4_rumble.ogg',
 		'modular/arachnid/sounds/arachnid_roar_5_sec_#3_grind.ogg',
 	)
 	var/list/sound_emote_needshelp = list(
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
 	)
 	var/list/sound_combat_alert = list(
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
-		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
 		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#5.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#6.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#7.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#8.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
 		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
@@ -127,6 +131,9 @@
 
 	var/combat_sound = pick_sound_or_default(sound_combat_alert, null)
 	if(!combat_sound)
+		return FALSE
+
+	if(!modular_should_play_sound("combat", combat_sound))
 		return FALSE
 
 	playsound(src, combat_sound, modular_get_sound_volume(volume), FALSE)

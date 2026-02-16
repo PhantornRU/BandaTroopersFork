@@ -201,7 +201,7 @@
 	var/mob/living/carbon/xenomorph/arachnid/bombardier/bombardier = bound_xeno
 	if(istype(bombardier))
 		var/prime_sound = bombardier.pick_sound_or_default(bombardier.sound_bombardier_prime, null)
-		if(prime_sound)
+		if(prime_sound && bombardier.modular_should_play_sound("prime", prime_sound))
 			playsound(bound_xeno, prime_sound, bombardier.modular_get_sound_volume(60), FALSE)
 	flick("Normal Arachnid Bombardier Attacking", bound_xeno)
 	bound_xeno.Stun(detonation_delay)
