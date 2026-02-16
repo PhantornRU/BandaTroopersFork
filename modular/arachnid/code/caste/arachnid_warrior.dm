@@ -62,10 +62,76 @@
 	weed_food_icon = 'icons/mob/xenos/weeds_64x64.dmi'
 	weed_food_states = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
 	weed_food_states_flipped = list("Warrior_old_1","Warrior_old_2","Warrior_old_3")
+	var/next_combat_sound = 0
+
+/mob/living/carbon/xenomorph/arachnid
+	var/list/sound_spawn = list(
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#1.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#2.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#3_grind.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
+	)
+	var/list/sound_speaking = list(
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#4_rumble.ogg',
+	)
+	var/list/sound_death = list(
+		'sound/voice/alien_death.ogg',
+		'sound/voice/alien_death2.ogg',
+	)
+	var/list/sound_emote_roar = list(
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#4_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#1.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#2.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#3_grind.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
+	)
+	var/list/sound_emote_hiss = list(
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#4_chirps.ogg',
+	)
+	var/list/sound_emote_growl = list(
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#4_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_5_sec_#3_grind.ogg',
+	)
+	var/list/sound_emote_needshelp = list(
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
+	)
+	var/list/sound_combat_alert = list(
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#1_grind.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#2_whistle.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#3_scream.ogg',
+		'modular/arachnid/sounds/arachnid_roar_1_sec_#4_rumbles.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#1.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#2.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#3_low_rumble.ogg',
+		'modular/arachnid/sounds/arachnid_roar_2_sec_#4_rumble.ogg',
+	)
 
 
 /mob/living/carbon/xenomorph/arachnid/init_movement_handler()
 	return new /datum/xeno_ai_movement/arachnid(src) // с возможностью карабкаться
+
+/mob/living/carbon/xenomorph/arachnid/proc/play_combat_sound(volume = 45, cooldown = 5 SECONDS)
+	if(world.time < next_combat_sound || !length(sound_combat_alert))
+		return FALSE
+
+	playsound(src, pick(sound_combat_alert), volume, FALSE)
+	next_combat_sound = world.time + cooldown
+	return TRUE
 
 /mob/living/carbon/xenomorph/arachnid/ai_move_idle(delta_time)
 	if(!ai_movement_handler)
@@ -132,6 +198,8 @@
 		var/mob/living/carbon/xenomorph/other_xenomorph = potential_target.pulledby /// Are they being pulled by an alien?
 		/// Need to make sure the alien dragging is friendly to us. If it is not friendly, or not a xeno, our alien will try to grab back.
 		ai_active_intent = (istype(other_xenomorph) && IS_SAME_HIVENUMBER(src, other_xenomorph)) ? INTENT_DISARM : INTENT_GRAB
+		if(prob(8))
+			play_combat_sound()
 
 	/// I had it set up for slightly faster assignment, but this is easier to read.
 	ai_active_intent = (prob(ARACHNID_HARM_PULL_CHANCE)) ? INTENT_HARM : ai_active_intent /// Override harm or continue with the previous intent.

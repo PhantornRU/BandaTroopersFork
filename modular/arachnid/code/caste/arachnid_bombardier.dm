@@ -1,5 +1,8 @@
 #define BOMBARDIER_EXPLOSION_POWER 45
 #define BOMBARDIER_EXPLOSION_FALLOFF 15
+#define BOMBARDIER_POUNCE_RANGE 4
+#define BOMBARDIER_POUNCE_MISS_CHANCE 35
+#define BOMBARDIER_POUNCE_MISS_RADIUS 2
 
 /datum/caste_datum/arachnid/bombardier
 	caste_type = ARACHNID_CASTE_BOMBARDIER
@@ -68,17 +71,43 @@
 	weed_food_states = list("Facehugger_1","Facehugger_2","Facehugger_3")
 	weed_food_states_flipped = list("Facehugger_1","Facehugger_2","Facehugger_3")
 
-/mob/living/carbon/xenomorph/arachnid/bombardier/Initialize(mapload, ...)
-    . = ..()
-    // Устанавливаем случайное смещение при создании объекта
-    pixel_x = rand(-16, 16)
-    pixel_y = rand(-8, 20)
-    
-    // Если в коде используются переменные старого смещения для анимаций:
-    old_x = pixel_x
-    old_y = pixel_y
 
-// Позволяет другим мобам проходить сквозь этого моба
+/mob/living/carbon/xenomorph/arachnid/bombardier
+	sound_spawn = list(
+		'modular/arachnid/sounds/bombardir/bombardir_talk_1.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_click.ogg',
+	)
+	sound_speaking = list(
+		'modular/arachnid/sounds/bombardir/bombardir_click.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_1.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_2.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_3.ogg',
+	)
+	sound_death = list(
+		'modular/arachnid/sounds/bombardir/bombardir_died.ogg',
+	)
+	sound_combat_alert = list(
+		'modular/arachnid/sounds/bombardir/bombardir_click.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_1.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_2.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_talk_3.ogg',
+	)
+	var/list/sound_bombardier_prime = list(
+		'modular/arachnid/sounds/bombardir/bombardir_prepare_before_boom.ogg',
+	)
+	var/list/sound_bombardier_pounce = list(
+		'modular/arachnid/sounds/bombardir/bombardir_chirp_and_whoosh_1.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_chirp_and_whoosh_2.ogg',
+		'modular/arachnid/sounds/bombardir/bombardir_click.ogg',
+	)
+
+/mob/living/carbon/xenomorph/arachnid/bombardier/Initialize(mapload, ...)
+	. = ..()
+	pixel_x = rand(-16, 16)
+	pixel_y = rand(-8, 20)
+	old_x = pixel_x
+	old_y = pixel_y
+
 /mob/living/carbon/xenomorph/arachnid/bombardier/initialize_pass_flags(datum/pass_flags_container/pass_flags)
 	..()
 	if (pass_flags)
@@ -107,14 +136,37 @@
 	ability_primacy = XENO_PRIMARY_ACTION_1
 	xeno_cooldown = 10
 	plasma_cost = 0
-	distance = 6
+	distance = BOMBARDIER_POUNCE_RANGE
 	knockdown = TRUE
 	knockdown_duration = 1
 	freeze_self = FALSE
 	// freeze_time = 300
 	can_be_shield_blocked = TRUE
 
-// Отключаем отмену прыжка при блокировании пути
+/datum/action/xeno_action/activable/pounce/arachnid_bombardier/use_ability(atom/A)
+	var/mob/living/carbon/human/target_human = A
+	if(istype(target_human) && prob(BOMBARDIER_POUNCE_MISS_CHANCE))
+		var/turf/target_turf = get_turf(target_human)
+		if(target_turf)
+			var/list/turf/miss_turfs = list()
+			for(var/turf/open/open_turf in range(BOMBARDIER_POUNCE_MISS_RADIUS, target_turf))
+				if(get_dist(open_turf, target_turf) == 0)
+					continue
+				if(get_dist(open_turf, target_turf) > BOMBARDIER_POUNCE_MISS_RADIUS)
+					continue
+				miss_turfs += open_turf
+
+			if(length(miss_turfs))
+				A = pick(miss_turfs)
+
+	var/mob/living/carbon/xenomorph/arachnid/bombardier/bombardier = owner
+	if(istype(bombardier))
+		var/pounce_sound = bombardier.pick_sound_or_default(bombardier.sound_bombardier_pounce, null)
+		if(pounce_sound)
+			playsound(bombardier, pounce_sound, 55, FALSE)
+
+	return ..(A)
+
 /datum/action/xeno_action/activable/pounce/arachnid_bombardier/process_ai(mob/living/carbon/xenomorph/pouncing_xeno, delta_time)
 	var/mob/living/carbon/human/target_human = pouncing_xeno.current_target
 	if(!istype(target_human))
@@ -146,6 +198,11 @@
 		return
 
 	primed = TRUE
+	var/mob/living/carbon/xenomorph/arachnid/bombardier/bombardier = bound_xeno
+	if(istype(bombardier))
+		var/prime_sound = bombardier.pick_sound_or_default(bombardier.sound_bombardier_prime, null)
+		if(prime_sound)
+			playsound(bound_xeno, prime_sound, 60, FALSE)
 	flick("Normal Arachnid Bombardier Attacking", bound_xeno)
 	bound_xeno.Stun(detonation_delay)
 	bound_xeno.KnockDown(detonation_delay)
@@ -191,3 +248,6 @@
 
 #undef BOMBARDIER_EXPLOSION_POWER
 #undef BOMBARDIER_EXPLOSION_FALLOFF
+#undef BOMBARDIER_POUNCE_RANGE
+#undef BOMBARDIER_POUNCE_MISS_CHANCE
+#undef BOMBARDIER_POUNCE_MISS_RADIUS
