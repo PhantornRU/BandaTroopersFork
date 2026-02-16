@@ -103,8 +103,10 @@
 
 /mob/living/carbon/xenomorph/arachnid/bombardier/Initialize(mapload, ...)
 	. = ..()
+	// Устанавливаем случайное смещение при создании объекта
 	pixel_x = rand(-16, 16)
 	pixel_y = rand(-8, 20)
+	// Если в коде используются переменные старого смещения для анимаций:
 	old_x = pixel_x
 	old_y = pixel_y
 
