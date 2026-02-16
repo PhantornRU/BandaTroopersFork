@@ -275,14 +275,18 @@
 	sound_combat_alert = sound_meta_to_paths(sound_meta_combat_alert)
 
 	sound_meta_map = list()
-	add_sound_meta_bank_to_map(sound_meta_spawn)
-	add_sound_meta_bank_to_map(sound_meta_speaking)
-	add_sound_meta_bank_to_map(sound_meta_death)
-	add_sound_meta_bank_to_map(sound_meta_emote_roar)
-	add_sound_meta_bank_to_map(sound_meta_emote_hiss)
-	add_sound_meta_bank_to_map(sound_meta_emote_growl)
-	add_sound_meta_bank_to_map(sound_meta_emote_needshelp)
-	add_sound_meta_bank_to_map(sound_meta_combat_alert)
+	var/list/all_meta_banks = list(
+		sound_meta_spawn,
+		sound_meta_speaking,
+		sound_meta_death,
+		sound_meta_emote_roar,
+		sound_meta_emote_hiss,
+		sound_meta_emote_growl,
+		sound_meta_emote_needshelp,
+		sound_meta_combat_alert,
+	)
+	for(var/list/bank as anything in all_meta_banks)
+		add_sound_meta_bank_to_map(bank)
 
 	sound_aliases_initialized = TRUE
 
@@ -385,23 +389,29 @@
 		if(ARACHNID_SOUND_EVENT_PRIME)
 			return ARACHNID_SOUND_CHANCE_PRIME
 		if(ARACHNID_SOUND_EVENT_SPEAKING)
-			if(tier == ARACHNID_SOUND_TIER_LONG)
-				return ARACHNID_SOUND_CHANCE_SPEAKING_LONG
-			if(tier == ARACHNID_SOUND_TIER_MEDIUM)
-				return ARACHNID_SOUND_CHANCE_SPEAKING_MEDIUM
-			return ARACHNID_SOUND_CHANCE_SPEAKING_SHORT
+			switch(tier)
+				if(ARACHNID_SOUND_TIER_LONG)
+					return ARACHNID_SOUND_CHANCE_SPEAKING_LONG
+				if(ARACHNID_SOUND_TIER_MEDIUM)
+					return ARACHNID_SOUND_CHANCE_SPEAKING_MEDIUM
+				else
+					return ARACHNID_SOUND_CHANCE_SPEAKING_SHORT
 		if(ARACHNID_SOUND_EVENT_EMOTE)
-			if(tier == ARACHNID_SOUND_TIER_LONG)
-				return ARACHNID_SOUND_CHANCE_EMOTE_LONG
-			if(tier == ARACHNID_SOUND_TIER_MEDIUM)
-				return ARACHNID_SOUND_CHANCE_EMOTE_MEDIUM
-			return ARACHNID_SOUND_CHANCE_EMOTE_SHORT
+			switch(tier)
+				if(ARACHNID_SOUND_TIER_LONG)
+					return ARACHNID_SOUND_CHANCE_EMOTE_LONG
+				if(ARACHNID_SOUND_TIER_MEDIUM)
+					return ARACHNID_SOUND_CHANCE_EMOTE_MEDIUM
+				else
+					return ARACHNID_SOUND_CHANCE_EMOTE_SHORT
 		if(ARACHNID_SOUND_EVENT_COMBAT)
-			if(tier == ARACHNID_SOUND_TIER_LONG)
-				return ARACHNID_SOUND_CHANCE_COMBAT_LONG
-			if(tier == ARACHNID_SOUND_TIER_MEDIUM)
-				return ARACHNID_SOUND_CHANCE_COMBAT_MEDIUM
-			return ARACHNID_SOUND_CHANCE_COMBAT_SHORT
+			switch(tier)
+				if(ARACHNID_SOUND_TIER_LONG)
+					return ARACHNID_SOUND_CHANCE_COMBAT_LONG
+				if(ARACHNID_SOUND_TIER_MEDIUM)
+					return ARACHNID_SOUND_CHANCE_COMBAT_MEDIUM
+				else
+					return ARACHNID_SOUND_CHANCE_COMBAT_SHORT
 	return ..()
 
 /// Воспроизводит боевой звук арахнида через metadata-пайплайн.
