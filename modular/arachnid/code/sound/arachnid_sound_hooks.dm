@@ -1,25 +1,20 @@
-#define ARACHNID_SOUND_WEIGHT_DEFAULT 100
-#define ARACHNID_SOUND_WEIGHT_2_SEC 40
-#define ARACHNID_SOUND_WEIGHT_5_SEC 15
-#define ARACHNID_SOUND_COOLDOWN_SHORT 3 SECONDS
-#define ARACHNID_SOUND_COOLDOWN_MEDIUM 6 SECONDS
-#define ARACHNID_SOUND_COOLDOWN_LONG 10 SECONDS
-
-/mob/living/carbon/xenomorph
-	var/next_modular_speaking_sound = 0
-
+/// Возвращает итоговую громкость звука (может переопределяться модулем).
 /mob/living/carbon/xenomorph/proc/modular_get_sound_volume(base_volume)
 	return base_volume
 
+/// Возвращает вес выбора для конкретного пути звука.
 /mob/living/carbon/xenomorph/proc/modular_get_sound_pick_weight(sound_path)
-	return ARACHNID_SOUND_WEIGHT_DEFAULT
+	return ARACHNID_SOUND_WEIGHT_SHORT
 
+/// Возвращает кулдаун звука для конкретного пути звука.
 /mob/living/carbon/xenomorph/proc/modular_get_sound_cooldown(sound_path, default_cooldown)
 	return default_cooldown
 
+/// Возвращает шанс воспроизведения звука (0..100).
 /mob/living/carbon/xenomorph/proc/modular_get_sound_play_chance(event_key, sound_path)
 	return 100
 
+/// Гейт воспроизведения: общий фильтр по шансам для события.
 /mob/living/carbon/xenomorph/proc/modular_should_play_sound(event_key, sound_path)
 	var/chance = clamp(round(modular_get_sound_play_chance(event_key, sound_path)), 0, 100)
 	if(chance >= 100)
@@ -28,6 +23,7 @@
 		return FALSE
 	return prob(chance)
 
+/// Выбирает звук из простого банка путей по весам.
 /mob/living/carbon/xenomorph/proc/pick_weighted_sound(list/bank)
 	if(!length(bank))
 		return null
@@ -44,7 +40,7 @@
 	if(total_weight <= 0)
 		return null
 
-	var/roll = rand(1, total_weight)
+	var/roll = rand(ARACHNID_RANDOM_ROLL_MIN, total_weight)
 	var/current_weight = 0
 	for(var/sound_path in sound_weights)
 		current_weight += sound_weights[sound_path]
@@ -53,87 +49,58 @@
 
 	return null
 
+/// Совместимый хелпер: выбрать звук из банка или вернуть стандартный.
 /mob/living/carbon/xenomorph/proc/pick_sound_or_default(list/bank, default_sound)
 	var/picked_sound = pick_weighted_sound(bank)
 	return picked_sound ? picked_sound : default_sound
 
+/// Совместимый контракт получения emote-банка (legacy-путь).
 /mob/living/carbon/xenomorph/proc/get_emote_bank(emote_key)
 	return null
 
+/// Хук выбора звука речи.
 /mob/living/carbon/xenomorph/proc/modular_sound_pick_speaking(default_sound)
 	return default_sound
 
+/// Хук выбора звука смерти.
 /mob/living/carbon/xenomorph/proc/modular_sound_pick_death(default_sound)
 	return default_sound
 
+/// Хук выбора звука эмоута.
 /mob/living/carbon/xenomorph/proc/modular_sound_pick_emote(emote_key, default_sound)
 	return default_sound
 
+/// Хук звука при спавне.
 /mob/living/carbon/xenomorph/proc/modular_sound_on_spawn()
 	return
 
+/// Базовое воспроизведение голоса (резерв для не-арахнидов).
 /mob/living/carbon/xenomorph/proc/modular_say()
-	playsound(loc, speaking_noise, 25, 1)
+	playsound(loc, speaking_noise, ARACHNID_SOUND_VOLUME_SPEAKING, TRUE)
 
+/// Арахнид: снижает громкость через модульный делитель.
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_volume(base_volume)
-	return max(1, round(base_volume / 2.5))
+	return max(1, round(base_volume / ARACHNID_SOUND_VOLUME_DIVISOR))
 
+/// Арахнид: получает веса из записи метаданных.
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_pick_weight(sound_path)
-	var/sound_text = "[sound_path]"
-	if(findtext(sound_text, "_5_sec_"))
-		return ARACHNID_SOUND_WEIGHT_5_SEC
-	if(findtext(sound_text, "_2_sec_"))
-		return ARACHNID_SOUND_WEIGHT_2_SEC
-	return ..()
+	var/list/meta_entry = get_sound_meta_by_path(sound_path)
+	return get_sound_meta_weight(meta_entry)
 
+/// Арахнид: получает кулдаун из записи метаданных.
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_cooldown(sound_path, default_cooldown)
-	var/sound_text = "[sound_path]"
-	if(findtext(sound_text, "_5_sec_"))
-		return max(default_cooldown, ARACHNID_SOUND_COOLDOWN_LONG)
-	if(findtext(sound_text, "_2_sec_"))
-		return max(default_cooldown, ARACHNID_SOUND_COOLDOWN_MEDIUM)
-	return max(default_cooldown, ARACHNID_SOUND_COOLDOWN_SHORT)
+	var/list/meta_entry = get_sound_meta_by_path(sound_path)
+	return get_sound_meta_cooldown(meta_entry, default_cooldown)
 
-/mob/living/carbon/xenomorph/arachnid/proc/get_sound_length_tier(sound_path)
-	var/sound_text = "[sound_path]"
-	if(findtext(sound_text, "_5_sec_"))
-		return 5
-	if(findtext(sound_text, "_2_sec_"))
-		return 2
-	return 1
-
+/// Арахнид: получает шанс из записи метаданных.
 /mob/living/carbon/xenomorph/arachnid/modular_get_sound_play_chance(event_key, sound_path)
-	var/key = lowertext("[event_key]")
-	var/length_tier = get_sound_length_tier(sound_path)
+	var/list/meta_entry = get_sound_meta_by_path(sound_path)
+	return get_sound_meta_chance(event_key, meta_entry)
 
-	switch(key)
-		if("death", "pounce")
-			return 100
-		if("spawn")
-			return 10
-		if("prime")
-			return 25
-		if("speaking", "emote")
-			switch(length_tier)
-				if(5)
-					return 8
-				if(2)
-					return 15
-				else
-					return 25
-		if("combat")
-			switch(length_tier)
-				if(5)
-					return 6
-				if(2)
-					return 12
-				else
-					return 20
-
-	return ..()
-
+/// Совместимый emote-банк из алиасов sound_emote_*.
 /mob/living/carbon/xenomorph/arachnid/get_emote_bank(emote_key)
-	switch(lowertext(emote_key))
+	ensure_sound_aliases_initialized()
+	switch(lowertext("[emote_key]"))
 		if("roar")
 			return sound_emote_roar
 		if("hiss")
@@ -144,21 +111,29 @@
 			return sound_emote_needshelp
 	return null
 
+/// Выбор звука речи из банка метаданных арахнида.
 /mob/living/carbon/xenomorph/arachnid/modular_sound_pick_speaking(default_sound)
-	return pick_sound_or_default(sound_speaking, default_sound)
+	var/list/meta_bank = get_sound_meta_bank(ARACHNID_SOUND_EVENT_SPEAKING, null)
+	return pick_sound_meta_or_default(ARACHNID_SOUND_EVENT_SPEAKING, meta_bank, default_sound)
 
+/// Выбор звука смерти из банка метаданных арахнида.
 /mob/living/carbon/xenomorph/arachnid/modular_sound_pick_death(default_sound)
-	return pick_sound_or_default(sound_death, default_sound)
+	var/list/meta_bank = get_sound_meta_bank(ARACHNID_SOUND_EVENT_DEATH, null)
+	return pick_sound_meta_or_default(ARACHNID_SOUND_EVENT_DEATH, meta_bank, default_sound)
 
+/// Выбор звука эмоута из банка метаданных арахнида.
 /mob/living/carbon/xenomorph/arachnid/modular_sound_pick_emote(emote_key, default_sound)
-	var/list/emote_bank = get_emote_bank(emote_key)
-	return pick_sound_or_default(emote_bank, default_sound)
+	var/list/meta_bank = get_sound_meta_bank(ARACHNID_SOUND_EVENT_EMOTE, emote_key)
+	return pick_sound_meta_or_default(ARACHNID_SOUND_EVENT_EMOTE, meta_bank, default_sound)
 
+/// Спавн-звук арахнида с шанс-гейтом.
 /mob/living/carbon/xenomorph/arachnid/modular_sound_on_spawn()
-	var/spawn_sound = pick_sound_or_default(sound_spawn, null)
-	if(spawn_sound && modular_should_play_sound("spawn", spawn_sound))
-		playsound(src, spawn_sound, modular_get_sound_volume(45), FALSE)
+	var/list/meta_bank = get_sound_meta_bank(ARACHNID_SOUND_EVENT_SPAWN, null)
+	var/spawn_sound = pick_sound_meta_or_default(ARACHNID_SOUND_EVENT_SPAWN, meta_bank, null)
+	if(spawn_sound && modular_should_play_sound(ARACHNID_SOUND_EVENT_SPAWN, spawn_sound))
+		playsound(src, spawn_sound, modular_get_sound_volume(ARACHNID_SOUND_VOLUME_SPAWN), FALSE)
 
+/// Речь арахнида: подбор из метаданных + chance-gate + кулдаун.
 /mob/living/carbon/xenomorph/arachnid/modular_say()
 	if(!speaking_noise || world.time < next_modular_speaking_sound)
 		return
@@ -167,12 +142,14 @@
 	if(!speaking_sound)
 		return
 
-	if(!modular_should_play_sound("speaking", speaking_sound))
+	if(!modular_should_play_sound(ARACHNID_SOUND_EVENT_SPEAKING, speaking_sound))
 		return
 
-	playsound(loc, speaking_sound, modular_get_sound_volume(25), 1)
-	next_modular_speaking_sound = world.time + modular_get_sound_cooldown(speaking_sound, 2 SECONDS)
+	playsound(loc, speaking_sound, modular_get_sound_volume(ARACHNID_SOUND_VOLUME_SPEAKING), TRUE)
+	var/list/speaking_meta = get_sound_meta_by_path(speaking_sound)
+	next_modular_speaking_sound = world.time + get_sound_meta_cooldown(speaking_meta, ARACHNID_SOUND_COOLDOWN_SPEAKING_BASE)
 
+/// Injection в xeno emote: модульная подмена/гейтинг/кулдаун для арахнидов.
 /datum/emote/living/carbon/xeno/get_sound(mob/living/user)
 	. = ..()
 	if(ispredalien(user) && predalien_sound)
@@ -193,16 +170,10 @@
 	if(!.)
 		return
 
-	if(!xeno_user.modular_should_play_sound("emote", .))
+	if(!xeno_user.modular_should_play_sound(ARACHNID_SOUND_EVENT_EMOTE, .))
 		. = null
 		return
 
+	var/list/meta_entry = xeno_user.get_sound_meta_by_path(.)
 	volume = xeno_user.modular_get_sound_volume(base_volume)
-	audio_cooldown = xeno_user.modular_get_sound_cooldown(., base_audio_cooldown)
-
-#undef ARACHNID_SOUND_WEIGHT_DEFAULT
-#undef ARACHNID_SOUND_WEIGHT_2_SEC
-#undef ARACHNID_SOUND_WEIGHT_5_SEC
-#undef ARACHNID_SOUND_COOLDOWN_SHORT
-#undef ARACHNID_SOUND_COOLDOWN_MEDIUM
-#undef ARACHNID_SOUND_COOLDOWN_LONG
+	audio_cooldown = xeno_user.get_sound_meta_cooldown(meta_entry, base_audio_cooldown)
