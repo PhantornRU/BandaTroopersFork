@@ -100,8 +100,8 @@
 
 /datum/action/xeno_action/activable/pounce/arachnid_bombardier
 	ability_primacy = XENO_PRIMARY_ACTION_1
-	xeno_cooldown = ARACHNID_BOMBARDIER_POUNCE_XENO_COOLDOWN
-	plasma_cost = ARACHNID_BOMBARDIER_POUNCE_PLASMA_COST
+	xeno_cooldown = 10
+	plasma_cost = 0
 	distance = ARACHNID_BOMBARDIER_POUNCE_RANGE
 	knockdown = TRUE
 	knockdown_duration = ARACHNID_BOMBARDIER_POUNCE_KNOCKDOWN_DURATION
