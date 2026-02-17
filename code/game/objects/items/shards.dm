@@ -306,6 +306,11 @@
 /obj/item/sharp/explosive
 	name = "\improper 9X-E sticky explosive dart"
 
+/obj/item/sharp/incendiary
+	name = "\improper 9X-I Sticky Incendiary Dart"
+	desc = "It looks like a used 9X-T Sticky Incendiary Dart, useless now."
+	icon_state = "sonicharpoon_tracker"
+
 /obj/item/sharp/track
 	name = "\improper 9X-T sticky tracker dart"
 	desc = "It looks like a used 9X-T Sticky Tracker Dart, useless now."
