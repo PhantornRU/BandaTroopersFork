@@ -391,8 +391,9 @@
 	damage_type = BRUTE
 	shrapnel_type = /obj/item/sharp
 	flags_ammo_behavior = AMMO_SPECIAL_EMBED|AMMO_NO_DEFLECT|AMMO_STRIKES_SURFACE_ONLY|AMMO_HITS_TARGET_TURF
-	icon_state = "sonicharpoon"
+	icon_state = "sharp_explosive_dart"
 	var/embed_object = /obj/item/sharp/explosive
+	var/mine_mode = SHARP_DANGER_MODE
 
 	shrapnel_chance = 100
 	accuracy = HIT_ACCURACY_TIER_MAX
@@ -425,41 +426,114 @@
 /datum/ammo/rifle/sharp/explosive
 	name = "9X-E sticky explosive dart"
 
-/datum/ammo/rifle/sharp/explosive/on_hit_mob(mob/living/M, obj/projectile/P)
-	if(!M || M == P.firer) return
-	var/mob/shooter = P.firer
-	shake_camera(M, 2, 1)
+/datum/ammo/rifle/sharp/explosive/on_hit_mob(mob/living/target, obj/projectile/shot_dart)
+	if(!target || target == shot_dart.firer) return
+	var/mob/shooter = shot_dart.firer
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
+	shake_camera(target, 2, 1)
 	if(shooter && ismob(shooter))
-		if(!M.get_target_lock(shooter.faction_group))
-			var/obj/item/weapon/gun/rifle/sharp/weapon = P.shot_from
-			if(weapon && weapon.explosion_delay_sharp)
-				addtimer(CALLBACK(src, PROC_REF(delayed_explosion), P, M, shooter), 5 SECONDS)
-			else
-				addtimer(CALLBACK(src, PROC_REF(delayed_explosion), P, M, shooter), 1 SECONDS)
+		target.balloon_alert(target, "you have been hit by an explosive dart!", text_color = "#ce1e1e")
+		if(!target.get_target_lock(shooter.faction_group))
+			if(weapon)
+				mine_mode = weapon.current_mine_mode
+				addtimer(CALLBACK(src, PROC_REF(delayed_explosion), shot_dart, target, shooter), 2.5 SECONDS)
 
-/datum/ammo/rifle/sharp/explosive/drop_dart(loc, obj/projectile/P, mob/shooter)
+/datum/ammo/rifle/sharp/explosive/drop_dart(loc, obj/projectile/shot_dart, mob/shooter)
 	var/signal_explosion = FALSE
 	if(locate(/obj/item/explosive/mine) in get_turf(loc))
 		signal_explosion = TRUE
 	var/obj/item/explosive/mine/sharp/dart = new /obj/item/explosive/mine/sharp(loc)
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
+	if(weapon)
+		dart.set_mine_mode(weapon.current_mine_mode)
 	// if no darts on tile, don't arm, explode instead.
 	if(signal_explosion)
 		INVOKE_ASYNC(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, prime), shooter)
 	else
 		dart.anchored = TRUE
-		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, deploy_mine), shooter), 3 SECONDS, TIMER_DELETE_ME)
+		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, deploy_mine), shooter, weapon), 3 SECONDS, TIMER_DELETE_ME)
 		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 1 MINUTES, TIMER_DELETE_ME)
 
-/datum/ammo/rifle/sharp/explosive/proc/delayed_explosion(obj/projectile/P, mob/M, mob/shooter)
-	if(ismob(M))
-		var/explosion_size = 100
-		var/falloff_size = 50
+/datum/ammo/rifle/sharp/explosive/proc/delayed_explosion(obj/projectile/shot_dart, mob/target, mob/shooter)
+	if(ismob(target))
+		var/explosion_strength = 100
+		var/explosion_falloff = 50
 		var/cause_data = create_cause_data("P9 SHARP Rifle", shooter)
-		cell_explosion(get_turf(M), explosion_size, falloff_size, EXPLOSION_FALLOFF_SHAPE_LINEAR, P.dir, cause_data)
-		M.ex_act(150, P.dir, P.weapon_cause_data, 100)
-		M.apply_effect(2, WEAKEN)
-		M.apply_effect(2, PARALYZE)
-		playsound(get_turf(M), 'sound/weapons/gun_sharp_explode.ogg', 45)
+
+		switch(mine_mode)
+			if(SHARP_DIRECTED_MODE)
+				explosion_strength = 150
+				explosion_falloff = explosion_strength
+			if(SHARP_SAFE_MODE)
+				for(var/mob/living/carbon/human in range((explosion_strength / explosion_falloff) - 1, target))
+					if (human.get_target_lock(shooter.faction_group))
+						playsound(target, 'sound/weapons/smartgun_fail.ogg', target, 25)
+						to_chat(target, SPAN_WARNING("[shot_dart] releases itself from you!"))
+						target.balloon_alert(target, "an attached explosive dart releases itself from you!")
+						to_chat(shooter, SPAN_WARNING("[shot_dart] recognized an IFF marked target and did not detonate!"))
+						return
+		cell_explosion(get_turf(target), explosion_strength, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+		target.ex_act(150, shot_dart.dir, shot_dart.weapon_cause_data, 100)
+		target.apply_effect(2, WEAKEN)
+		target.apply_effect(2, PARALYZE)
+		playsound(get_turf(target), 'sound/weapons/gun_sharp_explode.ogg', 45)
+
+/datum/ammo/rifle/sharp/incendiary
+	name = "9X-I sticky incendiary dart"
+	icon_state = "sharp_incendiary_dart"
+	handful_state = "sharp_incendiary"
+	embed_object = /obj/item/sharp/incendiary
+
+/datum/ammo/rifle/sharp/incendiary/on_hit_mob(mob/living/target, obj/projectile/shot_dart)
+	if(!target || target == shot_dart.firer)
+		return
+	var/mob/shooter = shot_dart.firer
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
+	shake_camera(target, 2, 1)
+	if(shooter && ismob(shooter))
+		target.balloon_alert(target, "you have been hit by an incendiary dart!", text_color = "#ce7c1e")
+		if(!target.get_target_lock(shooter.faction_group))
+			playsound(get_turf(target), 'sound/weapons/gun_sharp_explode.ogg', 100)
+			if(weapon)
+				mine_mode = weapon.current_mine_mode
+				addtimer(CALLBACK(src, PROC_REF(delayed_fire), shot_dart, target, shooter), 2.5 SECONDS)
+
+/datum/ammo/rifle/sharp/incendiary/drop_dart(loc, obj/projectile/shot_dart, mob/shooter)
+	var/signal_explosion = FALSE
+	if(locate(/obj/item/explosive/mine) in get_turf(loc))
+		signal_explosion = TRUE
+	var/obj/item/explosive/mine/sharp/incendiary/dart = new /obj/item/explosive/mine/sharp/incendiary(loc)
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
+	if(weapon)
+		dart.set_mine_mode(weapon.current_mine_mode)
+	// if no darts on tile, don't arm, explode instead.
+	if(signal_explosion)
+		INVOKE_ASYNC(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp/incendiary, prime), shooter)
+	else
+		dart.anchored = TRUE
+		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, deploy_mine), shooter), 3 SECONDS, TIMER_DELETE_ME)
+		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 5 MINUTES, TIMER_DELETE_ME)
+
+/datum/ammo/rifle/sharp/incendiary/proc/delayed_fire(obj/projectile/shot_dart, mob/target, mob/shooter)
+	if(ismob(target))
+		var/datum/effect_system/smoke_spread/phosphorus/smoke = new /datum/effect_system/smoke_spread/phosphorus
+		var/smoke_radius = 2
+		switch(mine_mode)
+			if(SHARP_DIRECTED_MODE)
+				var/datum/reagent/napalm/gel/reagent = new()
+				var/flame_radius = 0
+				new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
+				return
+			if(SHARP_SAFE_MODE)
+				for(var/mob/living/carbon/human in range(smoke_radius, target))
+					if (human.get_target_lock(shooter.faction_group))
+						playsound(target, 'sound/weapons/smartgun_fail.ogg', target, 25)
+						to_chat(target, SPAN_WARNING("[shot_dart] releases itself from you!"))
+						target.balloon_alert(target, "an attached incendiary dart releases itself from you!")
+						to_chat(shooter, SPAN_WARNING("[shot_dart] recognized an IFF marked target and did not detonate!"))
+						return
+		smoke.set_up(smoke_radius, 0, get_turf(target))
+		smoke.start()
 
 /datum/ammo/rifle/sharp/track
 	name = "9X-T sticky tracker dart"
@@ -485,7 +559,7 @@
 
 /datum/ammo/rifle/sharp/flechette
 	name = "9X-F flechette dart"
-	icon_state = "sonicharpoon_flechette"
+	icon_state = "sharp_flechette_dart"
 	embed_object = /obj/item/sharp/flechette
 	shrapnel_type = /datum/ammo/bullet/shotgun/flechette_spread/awesome
 

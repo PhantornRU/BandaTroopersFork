@@ -165,12 +165,17 @@
 	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
 	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
 	new /obj/item/ammo_magazine/rifle/sharp/explosive(src)
+	new /obj/item/ammo_magazine/rifle/sharp/incendiary(src)
+	new /obj/item/ammo_magazine/rifle/sharp/incendiary(src)
+	new /obj/item/ammo_magazine/rifle/sharp/incendiary(src)
 	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
 	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
 	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
+	new /obj/item/storage/belt/marine/sharp(src)
 	new /obj/item/clothing/gloves/marine/M3G(src)
 	new /obj/item/clothing/suit/storage/marine/M3G(src)
 	new /obj/item/clothing/head/helmet/marine/grenadier(src)
+	new /obj/item/device/multitool(src)
 
 //maybe put in req for later use?
 /obj/item/storage/box/spec/B18

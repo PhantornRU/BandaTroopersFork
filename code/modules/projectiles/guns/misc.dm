@@ -371,7 +371,7 @@
 	flags_equip_slot = SLOT_BACK|SLOT_SUIT_STORE
 	unacidable = TRUE
 	map_specific_decoration = TRUE
-	indestructible = 1
+	indestructible = TRUE
 	fire_sound = 'sound/weapons/gun_xm99.ogg'
 	reload_sound = 'sound/weapons/handling/nsg23_reload.ogg'
 	unload_sound = 'sound/weapons/handling/nsg23_unload.ogg'
@@ -509,7 +509,7 @@
 
 /obj/item/weapon/gun/rifle/sharp
 	name = "\improper P9 SHARP rifle"
-	desc = "An experimental harpoon launcher rifle manufactured by Armat Systems. It's specialized for specific ammo types out of a 10-round magazine, best used for area denial and disruption.\n<b>Change firemode</b> in order to set fuse for delayed explosion darts. <b>Unique action</b> in order to track targets hit by tracker darts."
+	desc = "An experimental harpoon launcher rifle manufactured by Armat Systems. It's specialized for specific ammo types out of a 10-round magazine, best used for area denial and disruption.\n<b>Change firemode</b> in order to change the mode of operation of fired mines. DANGER mode sets mines with regular functionality. DIRECTED mode sets mines with concentrated intensity. SAFE mode sets mines with greater IFF which NEVER detonate when allies are nearby. <b>Unique action</b> in order to track targets hit by tracker darts."
 	icon_state = "sharprifle"
 	item_state = "sharp"
 	fire_sound = 'sound/weapons/gun_sharp.ogg'
@@ -530,15 +530,20 @@
 	start_semiauto = TRUE
 	start_automatic = FALSE
 
-
-	var/explosion_delay_sharp = FALSE
+	var/current_mine_mode = SHARP_DANGER_MODE
 	var/list/sharp_tracked_mob_list = list()
+
+/obj/item/weapon/gun/rifle/sharp/set_bullet_traits()
+	LAZYADD(traits_to_give, list(
+		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
+	))
 
 /obj/item/weapon/gun/rifle/sharp/set_gun_attachment_offsets()
 	attachable_offset = list("muzzle_x" = 32, "muzzle_y" = 17,"rail_x" = 12, "rail_y" = 24, "under_x" = 23, "under_y" = 13, "stock_x" = 24, "stock_y" = 13)
 
 /obj/item/weapon/gun/rifle/sharp/set_gun_config_values()
 	..()
+	set_burst_amount(BURST_AMOUNT_TIER_1)
 	fire_delay = FIRE_DELAY_TIER_1
 	accuracy_mult = BASE_ACCURACY_MULT
 	scatter = SCATTER_AMOUNT_NONE
@@ -575,13 +580,24 @@
 				to_chat(M, SPAN_NOTICE("\The [mob_tracked] is [target > 10 ? "approximately <b>[round(target, 10)]</b>" : "<b>[target]</b>"] paces <b>[dir2text(direction)]</b> in <b>[areaName]</b>."))
 	if(!output)
 		to_chat(M, SPAN_NOTICE("There is nothing currently tracked."))
-
 	return
 
 /obj/item/weapon/gun/rifle/sharp/cock()
 	return
 
-/obj/item/weapon/gun/rifle/sharp/do_toggle_firemode(datum/source, datum/keybinding, new_firemode)
-	explosion_delay_sharp = !explosion_delay_sharp
-	playsound(source, 'sound/weapons/handling/gun_burst_toggle.ogg', 15, 1)
-	to_chat(source, SPAN_NOTICE("You [explosion_delay_sharp ? SPAN_BOLD("enable") : SPAN_BOLD("disable")] [src]'s delayed fire mode. Explosive ammo will blow up in [explosion_delay_sharp ? SPAN_BOLD("five seconds") : SPAN_BOLD("one second")]."))
+/obj/item/weapon/gun/rifle/sharp/do_toggle_firemode(mob/user)
+	. = ..()
+	playsound(user, 'sound/weapons/handling/gun_burst_toggle.ogg', 15, 1)
+	var/mine_mode_notice = ""
+	switch(current_mine_mode)
+		if(SHARP_DANGER_MODE)
+			current_mine_mode = SHARP_DIRECTED_MODE
+			mine_mode_notice += "[icon2html(src, user)] You set [src]'s mine mode to [current_mine_mode]. Explosive ammo will concentrate the explosion on the target."
+		if(SHARP_DIRECTED_MODE)
+			current_mine_mode = SHARP_SAFE_MODE
+			mine_mode_notice += "[icon2html(src, user)] You set [src]'s mine mode to [current_mine_mode]. Explosive ammo will not blow up near detected IFF targets."
+		if(SHARP_SAFE_MODE)
+			current_mine_mode = SHARP_DANGER_MODE
+			mine_mode_notice += "[icon2html(src, user)] You set [src]'s mine mode to [current_mine_mode]. Explosive ammo will blow up regularly."
+	user.balloon_alert(user, "[current_mine_mode] mode activated")
+	to_chat(user, SPAN_NOTICE(mine_mode_notice))
