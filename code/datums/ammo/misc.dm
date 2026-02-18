@@ -520,8 +520,8 @@
 		var/smoke_radius = 2
 		switch(mine_mode)
 			if(SHARP_DIRECTED_MODE)
-				var/datum/reagent/napalm/gel/reagent = new()
-				var/flame_radius = 0
+				var/datum/reagent/napalm/blue/reagent = new()
+				flame_radius = 1
 				new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
 				return
 			if(SHARP_SAFE_MODE)
