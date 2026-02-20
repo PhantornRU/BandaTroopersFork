@@ -394,6 +394,9 @@
 	icon_state = "sharp_explosive_dart"
 	var/embed_object = /obj/item/sharp/explosive
 	var/mine_mode = SHARP_DANGER_MODE
+	var/holo_stacks = 100
+	var/bonus_damage_cap_increase = 0
+	var/stack_loss_multiplier = 20
 
 	shrapnel_chance = 100
 	accuracy = HIT_ACCURACY_TIER_MAX
@@ -437,6 +440,7 @@
 			if(weapon)
 				mine_mode = weapon.current_mine_mode
 				addtimer(CALLBACK(src, PROC_REF(delayed_explosion), shot_dart, target, shooter), 2.5 SECONDS)
+				target.AddComponent(/datum/component/bonus_damage_stack, holo_stacks, world.time, bonus_damage_cap_increase, stack_loss_multiplier)
 
 /datum/ammo/rifle/sharp/explosive/drop_dart(loc, obj/projectile/shot_dart, mob/shooter)
 	var/signal_explosion = FALSE
@@ -497,6 +501,7 @@
 			if(weapon)
 				mine_mode = weapon.current_mine_mode
 				addtimer(CALLBACK(src, PROC_REF(delayed_fire), shot_dart, target, shooter), 2.5 SECONDS)
+				target.AddComponent(/datum/component/bonus_damage_stack, holo_stacks, world.time, bonus_damage_cap_increase, stack_loss_multiplier)
 
 /datum/ammo/rifle/sharp/incendiary/drop_dart(loc, obj/projectile/shot_dart, mob/shooter)
 	var/signal_explosion = FALSE
@@ -518,13 +523,14 @@
 	if(ismob(target))
 		var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
 		var/smoke_radius = 1
-		var/datum/reagent/napalm/green/reagent = new()
+		var/datum/reagent/incendiary_reagent = new /datum/reagent/napalm/green
 		var/flame_radius = 2
 		switch(mine_mode)
 			if(SHARP_DIRECTED_MODE)
-				reagent = new /datum/reagent/napalm/blue
+				incendiary_reagent = new /datum/reagent/napalm/blue
 				flame_radius = 1
-				new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
+				new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), incendiary_reagent, flame_radius)
+				playsound(get_turf(target), 'sound/weapons/gun_flamethrower3.ogg', 45)
 				return
 			if(SHARP_SAFE_MODE)
 				for(var/mob/living/carbon/human in range(smoke_radius, target))
@@ -534,9 +540,10 @@
 						target.balloon_alert(target, "an attached incendiary dart releases itself from you!")
 						to_chat(shooter, SPAN_WARNING("[shot_dart] recognized an IFF marked target and did not detonate!"))
 						return
-		new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
+		new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), incendiary_reagent, flame_radius)
 		smoke.set_up(smoke_radius, 0, get_turf(target))
 		smoke.start()
+		playsound(get_turf(target), 'sound/weapons/gun_flamethrower3.ogg', 45)
 
 /datum/ammo/rifle/sharp/track
 	name = "9X-T sticky tracker dart"
@@ -544,18 +551,19 @@
 	embed_object = /obj/item/sharp/track
 	var/tracker_timer = 1 MINUTES
 
-/datum/ammo/rifle/sharp/track/on_hit_mob(mob/living/M, obj/projectile/P)
-	if(!M || M == P.firer) return
-	shake_camera(M, 2, 1)
-	var/obj/item/weapon/gun/rifle/sharp/weapon = P.shot_from
+/datum/ammo/rifle/sharp/track/on_hit_mob(mob/living/target, obj/projectile/shot_dart)
+	if(!target || target == shot_dart.firer) return
+	shake_camera(target, 2, 1)
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
 	if(weapon)
-		weapon.sharp_tracked_mob_list |= M
-	addtimer(CALLBACK(src, PROC_REF(remove_tracker), M, P), tracker_timer)
+		weapon.sharp_tracked_mob_list |= target
+	addtimer(CALLBACK(src, PROC_REF(remove_tracker), target, shot_dart), tracker_timer)
+	target.AddComponent(/datum/component/bonus_damage_stack, holo_stacks, world.time, bonus_damage_cap_increase, stack_loss_multiplier)
 
-/datum/ammo/rifle/sharp/track/proc/remove_tracker(mob/living/M, obj/projectile/P)
-	var/obj/item/weapon/gun/rifle/sharp/weapon = P.shot_from
+/datum/ammo/rifle/sharp/track/proc/remove_tracker(mob/living/target, obj/projectile/shot_dart)
+	var/obj/item/weapon/gun/rifle/sharp/weapon = shot_dart.shot_from
 	if(weapon)
-		weapon.sharp_tracked_mob_list -= M
+		weapon.sharp_tracked_mob_list -= target
 
 /datum/ammo/rifle/sharp/track/infinite
 	tracker_timer = 999 MINUTES
