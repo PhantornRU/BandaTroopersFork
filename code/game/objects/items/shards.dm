@@ -320,6 +320,7 @@
 	name = "\improper 9X-F flechette dart"
 	desc = "It looks like a used 9X-F Flechette Dart, useless now."
 	icon_state = "sharp_flechette_dart"
+
 /obj/item/shard/shrapnel/tutorial
 	damage_on_move = 0
 
