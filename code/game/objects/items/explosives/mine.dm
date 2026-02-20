@@ -474,7 +474,7 @@
 	set waitfor = FALSE
 	var/is_smoke = TRUE
 	var/datum/reagent
-	var/smoke_radius = 3
+	var/smoke_radius = 1
 	var/flame_radius = 2
 	reagent = /datum/reagent/napalm/green
 	if(!cause_data)
@@ -485,8 +485,8 @@
 	switch(mine_mode)
 		if (SHARP_DIRECTED_MODE)
 			reagent = /datum/reagent/napalm/blue
-			smoke_radius = 2
-			flame_radius = 3
+			smoke_radius = 0
+			flame_radius = 1
 		if (SHARP_SAFE_MODE)
 			for(var/mob/living/carbon/human in range(smoke_radius, src))
 				if (human.get_target_lock(iff_signal))
@@ -494,7 +494,7 @@
 					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
 					return
 	if(is_smoke)
-		var/datum/effect_system/smoke_spread/phosphorus/smoke = new /datum/effect_system/smoke_spread/phosphorus
+		var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
 		smoke.set_up(smoke_radius, 5, loc)
 		smoke.start()
 	else

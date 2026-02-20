@@ -140,7 +140,10 @@
 	scatter = SCATTER_AMOUNT_TIER_5
 
 /datum/ammo/bullet/shotgun/flechette_spread/awesome
-	damage = 80
+	damage = 50
+	max_range = 4
+	damage_var_low = PROJECTILE_VARIANCE_TIER_10
+	damage_var_high = PROJECTILE_VARIANCE_TIER_5
 
 /datum/ammo/bullet/shotgun/flechette/special
 	name = "flechette shell, USCM DU type"

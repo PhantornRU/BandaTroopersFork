@@ -516,12 +516,14 @@
 
 /datum/ammo/rifle/sharp/incendiary/proc/delayed_fire(obj/projectile/shot_dart, mob/target, mob/shooter)
 	if(ismob(target))
-		var/datum/effect_system/smoke_spread/phosphorus/smoke = new /datum/effect_system/smoke_spread/phosphorus
-		var/smoke_radius = 2
+		var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
+		var/smoke_radius = 1
+		var/datum/reagent/napalm/green/reagent = new()
+		var/flame_radius = 2
 		switch(mine_mode)
 			if(SHARP_DIRECTED_MODE)
-				var/datum/reagent/napalm/blue/reagent = new()
-				var/flame_radius = 1
+				reagent = new /datum/reagent/napalm/blue
+				flame_radius = 1
 				new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
 				return
 			if(SHARP_SAFE_MODE)
@@ -532,6 +534,7 @@
 						target.balloon_alert(target, "an attached incendiary dart releases itself from you!")
 						to_chat(shooter, SPAN_WARNING("[shot_dart] recognized an IFF marked target and did not detonate!"))
 						return
+		new /obj/flamer_fire(get_turf(target), WEAKREF(shooter), reagent, flame_radius)
 		smoke.set_up(smoke_radius, 0, get_turf(target))
 		smoke.start()
 
@@ -586,7 +589,7 @@
 
 /datum/ammo/rifle/sharp/flechette/proc/create_flechette(loc, obj/projectile/P)
 	var/shrapnel_count = 12
-	var/dispersion_angle = 20
+	var/dispersion_angle = 30
 	create_shrapnel(loc, shrapnel_count, P.dir, dispersion_angle, shrapnel_type, P.weapon_cause_data, FALSE, 100)
 	apply_explosion_overlay(loc)
 
