@@ -363,17 +363,27 @@
 		return
 	if(!disarmed)
 		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
-			user.visible_message(SPAN_NOTICE("[user] starts disarming [src]."), \
-			SPAN_NOTICE("You start disarming [src]."))
+			user.visible_message(SPAN_NOTICE("[user] starts adjusting [src]."), \
+			SPAN_NOTICE("You start adjusting the detonation mode of [src]."))
 			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
-				user.visible_message(SPAN_WARNING("[user] stops disarming [src]."), \
-				SPAN_WARNING("You stop disarming [src]."))
+				user.visible_message(SPAN_WARNING("[user] stops adjusting [src]."), \
+				SPAN_WARNING("You stop adjusting the detonation mode of [src]."))
 				return
 			if(!active)//someone beat us to it
 				return
-			user.visible_message(SPAN_NOTICE("[user] finishes disarming [src]."), \
-			SPAN_NOTICE("You finish disarming [src]."))
-			disarm()
+			var/mine_mode_notice = ""
+			switch(mine_mode)
+				if(SHARP_DANGER_MODE)
+					mine_mode = SHARP_DIRECTED_MODE
+					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
+				if(SHARP_SAFE_MODE)
+					mine_mode = SHARP_DANGER_MODE
+					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
+				if(SHARP_DIRECTED_MODE)
+					mine_mode = SHARP_DANGER_MODE
+					mine_mode_notice += "The placed dart will detonate regularly."
+			user.visible_message(SPAN_NOTICE("[user] finishes adjusting [src]."), \
+			SPAN_NOTICE("You finish adjusting the detonation mode of[src]. It's now set to [mine_mode], [mine_mode_notice]."))
 	else
 		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
 			if(!skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MAX) && user.skills.get_skill_level(SKILL_ENGINEER) != SKILL_ENGINEER_TRAINED)
@@ -411,7 +421,7 @@
 		cause_data = create_cause_data(initial(name), user)
 	switch(mine_mode)
 		if(SHARP_DIRECTED_MODE)
-			explosion_falloff = explosion_strength
+			explosion_falloff = (explosion_strength * 0.75)
 		if(SHARP_SAFE_MODE)
 			for(var/mob/living/carbon/human in range((explosion_strength / explosion_falloff), src))
 				if (human.get_target_lock(iff_signal))
@@ -472,11 +482,10 @@
 
 /obj/item/explosive/mine/sharp/incendiary/prime(mob/user)
 	set waitfor = FALSE
-	var/is_smoke = TRUE
-	var/datum/reagent
+	var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
+	var/datum/reagent/incendiary_reagent = new /datum/reagent/napalm/green
 	var/smoke_radius = 1
 	var/flame_radius = 2
-	reagent = /datum/reagent/napalm/green
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user, src)
 	else if(user)
@@ -484,21 +493,18 @@
 	playsound(loc, 'sound/weapons/gun_flamethrower3.ogg', 45)
 	switch(mine_mode)
 		if (SHARP_DIRECTED_MODE)
-			reagent = /datum/reagent/napalm/blue
-			smoke_radius = 0
+			incendiary_reagent = new /datum/reagent/napalm/blue
 			flame_radius = 1
+			new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
 		if (SHARP_SAFE_MODE)
 			for(var/mob/living/carbon/human in range(smoke_radius, src))
 				if (human.get_target_lock(iff_signal))
 					disarm()
 					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
 					return
-	if(is_smoke)
-		var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
-		smoke.set_up(smoke_radius, 5, loc)
-		smoke.start()
-	else
-		new /obj/flamer_fire(loc, cause_data, reagent, flame_radius)
+	new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
+	smoke.set_up(smoke_radius, 0, get_turf(src))
+	smoke.start()
 	qdel(src)
 
 /obj/item/explosive/mine/sebb
