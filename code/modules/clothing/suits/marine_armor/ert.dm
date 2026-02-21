@@ -888,6 +888,19 @@
 /atom/movable/marine_light
 	light_system = DIRECTIONAL_LIGHT
 
+/obj/item/clothing/suit/space/pressure/rmc
+	name = "\improper Ross-Smith Mk4 pressure suit"
+	desc = "A heavy, bulky military-grade space suit utilized by the Three World Empires Royal Marine Commando forces."
+	contained_sprite = TRUE
+	item_state = "pressure_suit_rmc"
+	icon_state = "pressure_suit_rmc"
+	icon = 'icons/mob/humans/onmob/contained/royal_marines_commando.dmi'
+	armor_melee = CLOTHING_ARMOR_MEDIUMHIGH
+	armor_bullet = CLOTHING_ARMOR_MEDIUMHIGH
+	armor_internaldamage = CLOTHING_ARMOR_MEDIUM
+	allowed = list(/obj/item/weapon/gun,/obj/item/weapon/baton,/obj/item/restraint/handcuffs,/obj/item/tank)
+	flags_inventory = SMARTGUN_HARNESS
+
 //CBRN
 /obj/item/clothing/suit/storage/marine/cbrn
 	name = "\improper M3-M armor"
