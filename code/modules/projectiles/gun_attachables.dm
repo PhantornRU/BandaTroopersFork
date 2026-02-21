@@ -511,7 +511,7 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/shotgun_barrel
 	name = "Ithaca barrel"
 	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
-	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
 	icon_state = "m37_barrel_a"
 	attach_icon = "m37_barrel_a"
 	slot = "muzzle"
@@ -523,7 +523,7 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/rpg_baffle
 	name = "M5 exhaust baffle"
 	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
-	icon = 'icons/obj/items/weapons/guns/attachments/stock.dmi'
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
 	icon_state = "m5_stock"
 	attach_icon = "m5_stock"
 	slot = "stock"
