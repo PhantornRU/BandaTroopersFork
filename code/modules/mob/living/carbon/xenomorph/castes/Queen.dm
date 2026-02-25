@@ -443,7 +443,7 @@
 	AddComponent(/datum/component/footstep, 2 , 35, 11, 4, "alien_footstep_large")
 	RegisterSignal(src, COMSIG_MOVABLE_PRE_MOVE, PROC_REF(check_block))
 
-	playsound(src, 'sound/voice/alien_death_unused.ogg', 100, TRUE, 30, falloff = 5)
+	playsound(src, 'sound/voice/alien_queen_screech.ogg', 100, TRUE, 30, falloff = 5)
 	if(!get_turf(src)) //autowiki compat, spawns in nullspace
 		return
 	for(var/mob/current_mob as anything in get_mobs_in_z_level_range(get_turf(src), 30) - src)
@@ -1010,7 +1010,7 @@
 /datum/action/xeno_action/onclick/screech/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
 	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
 	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
-	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 6)
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 6) && use_ability_async(parent.current_target)
 
 /datum/action/xeno_action/activable/xeno_spit/queen_macro/ai
 	default_ai_action = TRUE
@@ -1020,4 +1020,4 @@
 /datum/action/xeno_action/activable/xeno_spit/queen_macro/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
 	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
 	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
-	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin/queen])
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin/queen]) && use_ability_async(parent.current_target)

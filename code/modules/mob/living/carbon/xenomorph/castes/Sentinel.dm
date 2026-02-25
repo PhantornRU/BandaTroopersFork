@@ -116,18 +116,18 @@
 
 /datum/action/xeno_action/activable/scattered_spit/ai
 	default_ai_action = TRUE
-	ai_prob_chance = 70
+	ai_prob_chance = 40
 	xeno_cooldown = 10 SECONDS
 
 /datum/action/xeno_action/activable/slowing_spit/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
 	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
 	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
-	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin])
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin]) && use_ability_async(parent.current_target)
 
 /datum/action/xeno_action/activable/scattered_spit/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
 	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
 	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
-	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 3) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin/shotgun])
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 3) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/toxin/shotgun]) && use_ability_async(parent.current_target)
 
 /mob/living/carbon/xenomorph/sentinel/init_movement_handler()
 	var/datum/xeno_ai_movement/linger/linger_movement = new(src)
