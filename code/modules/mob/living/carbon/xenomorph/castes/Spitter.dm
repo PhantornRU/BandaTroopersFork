@@ -50,7 +50,7 @@
 		/datum/action/xeno_action/activable/corrosive_acid,
 		/datum/action/xeno_action/activable/xeno_spit/ai,
 		/datum/action/xeno_action/onclick/charge_spit,
-		/datum/action/xeno_action/activable/spray_acid/spitter,
+		/datum/action/xeno_action/activable/spray_acid/spitter/ai,
 		/datum/action/xeno_action/onclick/tacmap,
 	)
 	inherent_verbs = list(
@@ -65,7 +65,6 @@
 	weed_food_states_flipped = list("Drone_1","Drone_2","Drone_3")
 	var/linger_range = 5
 	var/linger_deviation = 1
-
 /datum/action/xeno_action/activable/xeno_spit/ai
 	default_ai_action = TRUE
 	ai_prob_chance = 70
@@ -74,25 +73,36 @@
 /datum/action/xeno_action/activable/xeno_spit/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
 	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
 	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
-	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/acid])
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target, GLOB.ammo_list[/datum/ammo/xeno/acid]) && use_ability_async(parent.current_target)
 
-/proc/check_for_obstacles_projectile(mob/firer, mob/target, obj/projectile/P)
+/datum/action/xeno_action/activable/spray_acid/spitter/ai
+	default_ai_action = TRUE
+	ai_prob_chance = 50
+	xeno_cooldown = 16 SECONDS
+
+/datum/action/xeno_action/activable/spray_acid/spitter/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
+	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
+	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
+	return DT_PROB(ai_prob_chance, delta_time) && (get_dist(parent, parent.current_target) <= 7) && !check_for_obstacles_projectile(parent, parent.current_target) && use_ability_async(parent.current_target)
+
+/proc/check_for_obstacles_projectile(mob/firer, mob/target, datum/ammo/ammo_datum)
 	var/list/turf/path = get_line(firer, target, include_start_atom = FALSE)
-	if(!length(path) || get_dist(firer, target) > P.ammo.max_range)
+	if(!length(path) || get_dist(firer, target) > ammo_datum.max_range)
 		return TRUE
 
-	var/blocked = FALSE
 	for(var/turf/T in path)
-		if(T.density && T.opacity)
-			blocked = TRUE
-			break
+		if(T == target.loc)
+			continue
+
+		if(T.density)
+			return TRUE
 
 		for(var/obj/O in T)
-			if(O.get_projectile_hit_boolean(P) && O.opacity)
-				blocked = TRUE
-				break
+			if(O == target) continue
+			if(O.density && !O.throwpass)
+				return TRUE
 
-	return blocked
+	return FALSE
 
 /mob/living/carbon/xenomorph/spitter/init_movement_handler()
 	var/datum/xeno_ai_movement/linger/linger_movement = new(src)
