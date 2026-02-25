@@ -1,6 +1,6 @@
 /datum/modpack/weapons
 	name = "weapons modpack"
-	desc = "Additional weapon behavior overrides."
+	desc = "Дополнительное вооружение"
 	author = "phantomru"
 
 /datum/modpack/weapons/pre_initialize()
