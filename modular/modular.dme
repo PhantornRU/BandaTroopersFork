@@ -12,5 +12,6 @@
 #include "game_master/_game_master.dme"
 #include "fullscreen/_fullscreen.dme"
 #include "squads/_squads.dme"
+#include "weapons/_weapons.dme"
 #include "arachnid/_arachnid.dme"
 #include "cyrillic_fixes/_cyrillic_fixes.dme"

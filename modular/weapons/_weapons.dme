@@ -1,0 +1,3 @@
+#include "_weapons.dm"
+
+#include "code/combat/sadar_direct_hit_limb_loss.dm"
