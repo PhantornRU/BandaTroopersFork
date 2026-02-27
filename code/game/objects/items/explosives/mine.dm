@@ -346,11 +346,27 @@
 	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
 	icon_state = "sharp_explosive_mine"
 	angle = 360
+	light_color = "#D75555"
+	light_range = 2
+	light_power = 1
+	var/lit = TRUE
 	var/disarmed = FALSE
 	var/explosion_strength = 200
 	var/explosion_falloff = 100
 	var/mine_mode = ""
 	var/rearm_desc
+
+/obj/item/explosive/mine/sharp/Initialize()
+	. = ..()
+	set_light_on(lit)
+
+/obj/item/explosive/mine/sharp/proc/update_brightness()
+	if(lit)
+		set_light_range(light_range)
+		set_light_color(light_color)
+		set_light_on(TRUE)
+	else
+		set_light_on(FALSE)
 
 /obj/item/explosive/mine/sharp/proc/set_mine_mode(mode)
 	mine_mode = mode
@@ -404,16 +420,12 @@
 
 /obj/item/explosive/mine/sharp/set_tripwire()
 	if(!active && !tripwire)
-		if (mine_mode == SHARP_DIRECTED_MODE)
-			tripwire = new(src)
+		for(var/direction in CARDINAL_ALL_DIRS)
+			var/tripwire_loc = get_turf(get_step(loc,direction))
+			tripwire = new(tripwire_loc)
 			tripwire.linked_claymore = src
 			active = TRUE
-		else
-			for(var/direction in CARDINAL_ALL_DIRS)
-				var/tripwire_loc = get_turf(get_step(loc,direction))
-				tripwire = new(tripwire_loc)
-				tripwire.linked_claymore = src
-				active = TRUE
+
 
 /obj/item/explosive/mine/sharp/prime(mob/user)
 	set waitfor = 0
@@ -441,12 +453,16 @@
 	desc = "A disarmed P9 SHARP rifle dart. With the right training, it can potentially be rearmed with a security access tuner."
 	QDEL_NULL(tripwire)
 	disarmed = TRUE
+	lit = FALSE
+	update_brightness()
 	playsound(src, 'sound/weapons/smartgun_fail.ogg', src, 25)
 
 /obj/item/explosive/mine/sharp/proc/rearm(mob/user)
 	disarmed = FALSE
+	lit = TRUE
 	desc = rearm_desc
-	addtimer(CALLBACK(src, PROC_REF(disarm)), 5 MINUTES, TIMER_DELETE_ME)
+	addtimer(CALLBACK(src, PROC_REF(disarm)), 10 MINUTES, TIMER_DELETE_ME)
+	update_brightness()
 	deploy_mine(user)
 
 /obj/item/explosive/mine/sharp/attack_self(mob/living/user)
@@ -479,6 +495,7 @@
 	name = "\improper P9 SHARP incendiary dart"
 	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
 	icon_state = "sharp_incendiary_mine"
+	light_color = "#FFB400"
 
 /obj/item/explosive/mine/sharp/incendiary/prime(mob/user)
 	set waitfor = FALSE

@@ -151,7 +151,7 @@
 	new /obj/item/storage/box/packet/canister(src)
 	new /obj/item/storage/box/packet/flare(src)
 	new /obj/item/clothing/gloves/marine/M3G(src)
-	new /obj/item/clothing/suit/storage/marine/M3G(src)
+	new /obj/item/clothing/suit/marine/M3G(src)
 	new /obj/item/clothing/head/helmet/marine/grenadier(src)
 
 /obj/item/storage/box/spec/sharp_operator
@@ -173,7 +173,7 @@
 	new /obj/item/ammo_magazine/rifle/sharp/flechette(src)
 	new /obj/item/storage/belt/marine/sharp(src)
 	new /obj/item/clothing/gloves/marine/M3G(src)
-	new /obj/item/clothing/suit/storage/marine/M3G(src)
+	new /obj/item/clothing/suit/marine/M3G(src)
 	new /obj/item/clothing/head/helmet/marine/grenadier(src)
 	new /obj/item/device/multitool(src)
 
@@ -186,7 +186,7 @@
 /obj/item/storage/box/spec/B18/fill_preset_inventory()
 	new /obj/item/clothing/gloves/marine/specialist(src)
 	new /obj/item/clothing/head/helmet/marine/specialist(src)
-	new /obj/item/clothing/suit/storage/marine/specialist(src)
+	new /obj/item/clothing/suit/marine/specialist(src)
 	new /obj/item/weapon/gun/rifle/m46c(src)
 
 //-----------------SPEC KIT BOX------------------

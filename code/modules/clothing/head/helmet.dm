@@ -868,8 +868,8 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 /obj/item/clothing/head/helmet/marine/specialist
 	name = "\improper B18 helmet"
 	desc = "Helmet and faceplate component of the B18 armor system. Nanobonded carbonfiber laminated with ultrahigh molecular density polymer, with an integral rebreather and heads up display."
-	icon_state = "grenadier_helmet"
-	item_state = "grenadier_helmet"
+	icon_state = "pyro_helmet"
+	item_state = "pyro_helmet"
 	armor_melee = CLOTHING_ARMOR_HIGH
 	armor_bullet = CLOTHING_ARMOR_HIGH
 	armor_bomb = CLOTHING_ARMOR_ULTRAHIGH
@@ -879,7 +879,8 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	unacidable = TRUE
 	anti_hug = 6
 	force = 20
-	flags_atom = NO_NAME_OVERRIDE
+	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
+	flags_inventory = COVEREYES|COVERMOUTH|BLOCKSHARPOBJ|BLOCKGASEFFECT|ALLOWCPR
 
 /obj/item/clothing/head/helmet/marine/grenadier
 	name = "\improper M12 grenadier helmet"
