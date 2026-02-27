@@ -564,7 +564,6 @@
 	gun_type = /obj/item/weapon/gun/rifle/sharp
 	transfer_handful_amount = 5
 	description_ammo = "darts"
-	flags_magazine = NO_FLAGS
 
 /obj/item/ammo_magazine/rifle/sharp/explosive
 	name = "\improper 9X-E sticky explosive dart magazine"

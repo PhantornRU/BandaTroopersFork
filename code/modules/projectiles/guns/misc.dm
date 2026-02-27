@@ -533,6 +533,10 @@
 	var/current_mine_mode = SHARP_DANGER_MODE
 	var/list/sharp_tracked_mob_list = list()
 
+/obj/item/weapon/gun/rifle/sharp/Initialize(mapload, ...)
+	LAZYADD(actions_types, /datum/action/item_action/sharp/track_target)
+	. = ..()
+
 /obj/item/weapon/gun/rifle/sharp/set_bullet_traits()
 	LAZYADD(traits_to_give, list(
 		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
@@ -550,8 +554,34 @@
 	damage_mult = BASE_BULLET_DAMAGE_MULT
 	recoil = RECOIL_OFF
 
-/obj/item/weapon/gun/rifle/sharp/unique_action(mob/user)
-	track(user)
+/datum/action/item_action/sharp/action_activate()
+	. = ..()
+	var/obj/item/weapon/gun/rifle/sharp/dartlauncher = holder_item
+	if(!ishuman(owner))
+		return
+	var/mob/living/carbon/human/user = owner
+	if(user.is_mob_incapacitated() || dartlauncher.get_active_firearm(user, FALSE) != holder_item)
+		return
+
+/datum/action/item_action/sharp/update_button_icon()
+	return
+
+/datum/action/item_action/sharp/track_target/New(Target, obj/item/holder)
+	. = ..()
+	name = "Track Marked Target"
+	action_icon_state = "vulture_tripod_close"
+	button.name = name
+	button.overlays.Cut()
+	button.overlays += image('icons/mob/hud/actions.dmi', button, action_icon_state)
+
+/datum/action/item_action/sharp/track_target/action_activate()
+	. = ..()
+	var/obj/item/weapon/gun/rifle/sharp/dartlauncher = holder_item
+	dartlauncher.track(usr)
+	button.overlays.Cut()
+	button.overlays += image('icons/mob/hud/actions.dmi', button, action_icon_state)
+
+// -- ability actions procs -- \\
 
 /obj/item/weapon/gun/rifle/sharp/proc/track(mob/user)
 	var/mob/living/carbon/human/M = user
@@ -578,11 +608,10 @@
 				output = TRUE
 				var/areaName = get_area_name(areaLoc)
 				to_chat(M, SPAN_NOTICE("\The [mob_tracked] is [target > 10 ? "approximately <b>[round(target, 10)]</b>" : "<b>[target]</b>"] paces <b>[dir2text(direction)]</b> in <b>[areaName]</b>."))
+				playsound(loc, 'sound/items/detector_turn_on.ogg', 30, FALSE, 5, 2)
 	if(!output)
 		to_chat(M, SPAN_NOTICE("There is nothing currently tracked."))
-	return
-
-/obj/item/weapon/gun/rifle/sharp/cock()
+		playsound(loc, 'sound/items/detector_turn_off.ogg', 30, FALSE, 5, 2)
 	return
 
 /obj/item/weapon/gun/rifle/sharp/do_toggle_firemode(mob/user)

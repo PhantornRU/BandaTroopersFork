@@ -392,6 +392,7 @@
 	shrapnel_type = /obj/item/sharp
 	flags_ammo_behavior = AMMO_SPECIAL_EMBED|AMMO_NO_DEFLECT|AMMO_STRIKES_SURFACE_ONLY|AMMO_HITS_TARGET_TURF
 	icon_state = "sharp_explosive_dart"
+	handful_state = "sharp_explosive"
 	var/embed_object = /obj/item/sharp/explosive
 	var/mine_mode = SHARP_DANGER_MODE
 	var/holo_stacks = 100
@@ -456,7 +457,7 @@
 	else
 		dart.anchored = TRUE
 		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, deploy_mine), shooter, weapon), 3 SECONDS, TIMER_DELETE_ME)
-		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 1 MINUTES, TIMER_DELETE_ME)
+		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 10 MINUTES, TIMER_DELETE_ME)
 
 /datum/ammo/rifle/sharp/explosive/proc/delayed_explosion(obj/projectile/shot_dart, mob/target, mob/shooter)
 	if(ismob(target))
@@ -517,7 +518,7 @@
 	else
 		dart.anchored = TRUE
 		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, deploy_mine), shooter), 3 SECONDS, TIMER_DELETE_ME)
-		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 5 MINUTES, TIMER_DELETE_ME)
+		addtimer(CALLBACK(dart, TYPE_PROC_REF(/obj/item/explosive/mine/sharp, disarm)), 10 MINUTES, TIMER_DELETE_ME)
 
 /datum/ammo/rifle/sharp/incendiary/proc/delayed_fire(obj/projectile/shot_dart, mob/target, mob/shooter)
 	if(ismob(target))
@@ -548,8 +549,9 @@
 /datum/ammo/rifle/sharp/track
 	name = "9X-T sticky tracker dart"
 	icon_state = "sonicharpoon_tracker"
+	handful_state = "sharp_tracker"
 	embed_object = /obj/item/sharp/track
-	var/tracker_timer = 1 MINUTES
+	var/tracker_timer = 5 MINUTES
 
 /datum/ammo/rifle/sharp/track/on_hit_mob(mob/living/target, obj/projectile/shot_dart)
 	if(!target || target == shot_dart.firer) return
@@ -571,6 +573,8 @@
 /datum/ammo/rifle/sharp/flechette
 	name = "9X-F flechette dart"
 	icon_state = "sharp_flechette_dart"
+	handful_state = "sharp_flechette"
+	flags_ammo_behavior = AMMO_SPECIAL_EMBED|AMMO_NO_DEFLECT|AMMO_STRIKES_SURFACE_ONLY|AMMO_HITS_TARGET_TURF|AMMO_PRONETARGET
 	embed_object = /obj/item/sharp/flechette
 	shrapnel_type = /datum/ammo/bullet/shotgun/flechette_spread/awesome
 
