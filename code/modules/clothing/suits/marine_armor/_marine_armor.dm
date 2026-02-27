@@ -1053,6 +1053,7 @@
 			return
 		wearer.reagents.add_reagent(chemical, chemicals_to_inject[chemical])
 	playsound(loc, "sound/items/air_release.ogg", 100, TRUE)
+	to_chat(wearer, SPAN_DANGER("You hold the two buttons and feel something cool flood into your arm!"))
 	injections = (current_injections - 1)
 
 //Army & USASF custom-armors\\
