@@ -784,8 +784,6 @@
 	frequency = CANC_FREQ
 	initial_keys = list(/obj/item/device/encryptionkey/canc/sof)
 
-
-
 /obj/item/device/radio/headset/almayer/cia
 	name = "radio headset"
 	desc = "A radio headset."
