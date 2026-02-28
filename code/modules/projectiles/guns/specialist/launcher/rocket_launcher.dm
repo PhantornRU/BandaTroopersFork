@@ -418,7 +418,7 @@
 /obj/item/weapon/gun/launcher/rocket/upp/set_bullet_traits()
 	. = ..()
 	LAZYADD(traits_to_give, list(
-		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 10, GLOB.damage_boost_vehicles),
+		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 70, GLOB.damage_boost_vehicles),
 		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
 	))
 
@@ -586,4 +586,3 @@
 	playsound(loc,'sound/machines/click.ogg', 25, 1)
 	var/datum/action/item_action/toggle_aerial_targeting/TAT = locate(/datum/action/item_action/toggle_aerial_targeting) in actions
 	TAT.update_icon()
-
