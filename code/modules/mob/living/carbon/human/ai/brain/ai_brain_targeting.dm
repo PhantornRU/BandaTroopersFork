@@ -131,8 +131,6 @@
 				if(istype(obstacle, /obj/structure/window) || istype(obstacle, /obj/structure/grille) || istype(obstacle, /obj/structure/barricade))
 					continue
 				return FALSE
-	if(iszombie(tied_human))
-		return TRUE
 	//модифицируем список для проверки на союзников, добавляя соседние тайлы и уберая тайл стрелка.
 	turf_list.Cut(1, 2) // starting turf
 	var/list/checked_turfs = list()// SS220 EDIT AI
