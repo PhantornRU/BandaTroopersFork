@@ -66,12 +66,12 @@
 	// if(fired)	// !!! Перенесено в родителя
 	// 	to_chat(user, SPAN_NOTICE("[src.name] уже использован и более его нельзя сложить!"))
 	// 	return
-	// if(!skillcheck(usr, skill_req, skill_skip_fold_time))
-	// 	to_chat(usr, SPAN_NOTICE("Вы складываете [src.name]."))
+	// if(!skillcheck(user, skill_req, skill_skip_fold_time))
+	// 	to_chat(user, SPAN_NOTICE("Вы складываете [src.name]."))
 	// 	if(!do_after(user, fold_time * user.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_BUILD))
-	// 		to_chat(usr, SPAN_WARNING("Вы прекратили складывать [src.name]."))
+	// 		to_chat(user, SPAN_WARNING("Вы прекратили складывать [src.name]."))
 	// 		return FALSE
-	// 	to_chat(usr, SPAN_NOTICE("Вы сложили [src.name]."))
+	// 	to_chat(user, SPAN_NOTICE("Вы сложили [src.name]."))
 	var/obj/O = new folded_type(src.loc)
 	transfer_label_component(O)
 	qdel(src)

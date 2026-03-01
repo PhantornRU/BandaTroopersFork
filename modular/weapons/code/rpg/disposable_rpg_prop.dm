@@ -28,12 +28,12 @@
 	// var/skill_skip_fold_time = SKILL_ENGINEER_ENGI
 
 /obj/item/prop/folded_anti_tank_sadar/common/unfold(mob/user)
-	// if(!skillcheck(usr, skill_req, skill_skip_fold_time))
-	// 	to_chat(usr, SPAN_NOTICE("Вы развертываете [src.name]."))
+	// if(!skillcheck(user, skill_req, skill_skip_fold_time))
+	// 	to_chat(user, SPAN_NOTICE("Вы развертываете [src.name]."))
 	// 	if(!do_after(user, unfold_time * user.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_BUILD))
-	// 		to_chat(usr, SPAN_WARNING("Вы прекратили развертывать [src.name]."))
+	// 		to_chat(user, SPAN_WARNING("Вы прекратили развертывать [src.name]."))
 	// 		return FALSE
-	// 	to_chat(usr, SPAN_NOTICE("Вы развернули [src.name]."))
+	// 	to_chat(user, SPAN_NOTICE("Вы развернули [src.name]."))
 	var/obj/O = new folded_type(src.loc)
 	transfer_label_component(O)
 	qdel(src)

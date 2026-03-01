@@ -308,7 +308,7 @@
 	// SS220 EDIT - Start
 	if(!skillcheck(usr, skill_req, skill_skip_fold_time))
 		if(!do_after(M, fold_time * M.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_GENERIC))
-			to_chat(usr, SPAN_WARNING("Вы прекратили складывать [src.name]."))
+			to_chat(M, SPAN_WARNING("Вы прекратили складывать [src.name]."))
 			return FALSE
 	// SS220 EDIT - End
 
@@ -357,9 +357,9 @@
 	playsound(src, 'sound/items/component_pickup.ogg', 20, TRUE, 5)
 
 	// SS220 EDIT - Start
-	if(!skillcheck(usr, skill_req, skill_skip_fold_time))
+	if(!skillcheck(user, skill_req, skill_skip_fold_time))
 		if(!do_after(user, unfold_time * user.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_GENERIC))
-			to_chat(usr, SPAN_WARNING("Вы прекратили развертывать [src.name]."))
+			to_chat(user, SPAN_WARNING("Вы прекратили развертывать [src.name]."))
 			return FALSE
 	// SS220 EDIT - End
 
