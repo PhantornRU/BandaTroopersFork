@@ -4,6 +4,8 @@
 /mob/living/carbon/human/proc/player_survival_is_damage_blocked()
 	if(!client)
 		return FALSE
+	if(stat == DEAD || health <= HEALTH_THRESHOLD_DEAD)
+		return FALSE
 	return world.time <= player_survival_damage_block_until
 
 /mob/living/carbon/human/proc/player_survival_activate_crit_grace()
@@ -44,7 +46,7 @@
 /mob/living/carbon/human/proc/player_survival_apply_non_gib_fallback(datum/cause_data/cause, explosion_damage = null)
 	if(!client)
 		return FALSE
-	if(stat == DEAD)
+	if(stat == DEAD || health <= HEALTH_THRESHOLD_DEAD)
 		return FALSE
 
 	if(!istype(cause))
@@ -71,4 +73,3 @@
 		player_survival_activate_crit_grace()
 
 	return TRUE
-
