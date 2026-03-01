@@ -148,7 +148,16 @@
 
 	last_damage_data = istype(cause_data) ? cause_data : create_cause_data(cause_data)
 
+	// SS220 EDIT - START
+	if(player_survival_is_damage_blocked())
+		return
+	// SS220 EDIT - END
+
 	if(damage >= EXPLOSION_THRESHOLD_GIB)
+		// SS220 EDIT - START
+		if(player_survival_apply_non_gib_fallback(last_damage_data, damage))
+			return
+		// SS220 EDIT - END
 		var/oldloc = loc
 		gib(last_damage_data)
 		create_shrapnel(oldloc, rand(5, 9), direction, 45, /datum/ammo/bullet/shrapnel/light/human, last_damage_data)

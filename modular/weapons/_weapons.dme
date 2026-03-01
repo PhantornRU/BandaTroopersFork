@@ -1,6 +1,5 @@
 #include "_weapons.dm"
 
-#include "code/combat/sadar_direct_hit_limb_loss.dm"
 #include "code/ammo/rocket_he_c.dm"
 #include "code/rpg/disposable_rpg_prop.dm"
 #include "code/rpg/disposable_rpg.dm"
