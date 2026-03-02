@@ -1,289 +1,212 @@
 # RTO Support: технический дизайн
 
-## 1. Цель документа
+## 1. Назначение
 
-Документ фиксирует реальную архитектуру модуля `RTO Support`, его границы ответственности и точки расширения.
+`RTO Support` реализует персональную систему вызова поддержки для роли `RTO` без привязки к singleton-runtime существующего `fire_support`.
 
-Это рабочая спецификация для разработки, code review и сопровождения. Она описывает уже реализованную модель, а не только целевую идею.
+Модуль держит:
 
-## 2. Архитектурная модель
+- персональный controller на конкретного RTO;
+- конфигурационные шаблоны поддержки;
+- серверную валидацию;
+- dispatch в свежие `datum/fire_support`;
+- интерфейсные action-кнопки и таргетинг через отдельный RTO-бинокль.
 
-Система разделена на четыре слоя:
+## 2. Главная архитектура
 
-1. `Configuration layer`
-   Пресеты и action templates.
-2. `Runtime orchestration layer`
-   Контроллер игрока, активный сектор, armed mode, кулдауны и action lifecycle.
-3. `Validation and dispatch layer`
-   Проверка правил и адаптация request к существующим `datum/fire_support`.
-4. `Interface layer`
-   TGUI меню пресетов, action-кнопки и бинокль как транспорт таргетинга.
+Система разбита на четыре слоя:
 
-Такое разбиение держит `Single Responsibility` и не допускает превращения контроллера в `god object`.
+1. `config`
+   `rto_support_template` и `rto_support_action_template`.
+2. `runtime`
+   `rto_support_controller`, `rto_visibility_zone`.
+3. `services`
+   `rto_support_validation_service`, `rto_support_dispatch_service`.
+4. `interaction`
+   `human_action`-кнопки, `RTO binoculars`, preset menu.
 
-## 3. Почему не используется singleton-модель fire support
+Это сохраняет `SRP`:
 
-Текущие `datum/fire_support` в апстриме удобны как payload-исполнители, но непригодны как runtime-состояние конкретного RTO:
+- controller координирует runtime, но не рисует TGUI и не исполняет payload сам;
+- validation валидирует, но не dispatch-ит;
+- dispatch исполняет, но не принимает решение “можно/нельзя”;
+- binocular остаётся транспортом наведения и live-laser поведения, а не владельцем всей бизнес-логики.
 
-- у них есть mutable state, например `cooldown_timer`;
-- они спроектированы вокруг глобальной экономики и GM semantics;
-- reuse одного экземпляра между игроками создаёт shared-state баги.
+## 3. Почему actions остались `human_action`
 
-Поэтому модуль делает иначе:
+HUD не был перенесён на `item_action`.
 
-- controller хранит персональные кулдауны и armed state;
-- dispatch создаёт свежий `datum/fire_support` на каждый вызов;
-- экземпляр удаляется отложенно через `QDEL_IN`, чтобы не утекать как singleton.
+Причина:
 
-Это ключевое архитектурное решение. Менять его без явной причины не стоит.
+- support-кнопки динамически зависят от выбранного пресета и состояния controller;
+- lifecycle этих action'ов уже завязан на controller;
+- миграция на `item_action` дала бы большой рефактор без достаточной продуктовой выгоды.
 
-## 4. Основные datums и ответственности
+Итог:
 
-### `/datum/rto_support_controller`
+- controller по-прежнему создаёт и хранит action-датумы;
+- actions не удаляются при убирании бинокля из рук;
+- actions скрываются и показываются через `hide_from()` / `unhide_from()` в зависимости от того, находится ли `RTO binoculars` в одной из рук владельца.
 
-Отвечает за:
+## 4. Controller
 
-- выбранный пресет;
-- активный сектор;
-- общий и персональные кулдауны;
+`/datum/rto_support_controller` хранит:
+
+- владельца;
+- активный template;
+- активный visibility zone;
 - armed mode;
-- lifecycle action-кнопок;
-- сборку request и оркестрацию вызова.
+- общий cooldown поддержки;
+- личные cooldown'ы способностей;
+- ссылки на RTO action-кнопки.
 
-Не отвечает за:
+Controller дополнительно умеет:
 
-- низкоуровневый dispatch payload;
-- правила LOS, потолков и доступности;
-- TGUI layout.
+- определять `RTO binoculars` именно в руках, а не где угодно в инвентаре;
+- скрывать/показывать действия на HUD;
+- строить structured state для action UI:
+  - `build_visibility_action_state()`
+  - `build_support_action_state(action_id)`
+- собирать комбинированные chat-сообщения о блокировке действия.
 
-### `/datum/rto_support_registry`
+## 5. Visibility actions only with binocular in hands
 
-Отвечает за:
+Все RTO actions скрываются, если:
 
-- поиск и создание контроллера по `mob/living/carbon/human`;
-- очистку контроллера при удалении владельца;
-- реакцию на смерть, revive и изменения инвентаря владельца;
-- выдачу controller через public API.
+- у владельца нет `RTO binoculars` в `l_hand` или `r_hand`;
+- владелец мёртв;
+- владелец больше не RTO.
 
-Контроллер создаётся только для `JOB_SQUAD_RTO`.
+Это правило распространяется на:
 
-### `/datum/rto_support_template`
+- `Выбрать пакет поддержки`;
+- `Развернуть сектор наведения`;
+- support abilities;
+- `Координаты`;
+- `Лазерная отметка`.
 
-Immutable-конфиг пресета:
+При потере бинокля из рук controller:
 
-- id;
-- название и описание;
-- параметры сектора;
-- список action templates;
-- optional visibility payload.
+- снимает armed mode;
+- останавливает live marker;
+- обновляет HUD.
 
-### `/datum/rto_support_action_template`
+## 6. Utility-режимы
 
-Immutable-конфиг способности:
+Utility-режимы остались частью `armed_action_id`, но теперь являются persistent mode, а не one-shot абилками.
 
-- stable `action_id`;
-- отображаемое имя и описание;
-- `scatter`;
-- `shared_cooldown`;
-- `personal_cooldown`;
-- требования к сектору и потолку;
-- `fire_support_path`.
+### `Координаты`
 
-### `/datum/rto_visibility_zone`
+- не имеют cooldown;
+- не создают лазер;
+- после успешного `Ctrl+Click` не выключаются;
+- только печатают координаты цели в чат.
 
-Runtime-объект сектора:
+### `Лазерная отметка`
 
-- центр;
-- радиус;
-- абсолютное время истечения;
-- центральный marker overlay.
+- не имеет cooldown;
+- после `Ctrl+Click` запускает или переносит живую подсветку;
+- не создаёт timed marker datum на земле;
+- держится только пока RTO реально продолжает вести цель через бинокль.
 
-Сейчас сектор показывает только центральную метку. Радиус проверяется серверно.
+Live marker сбрасывается, если:
 
-### `/datum/rto_support_request`
+- бинокль больше не в руке;
+- пользователь перестал смотреть через него;
+- armed mode больше не `RTO_SUPPORT_ARM_MARKER`;
+- нет LOS;
+- владелец умер или incapacitated.
 
-DTO между controller и dispatch:
+## 7. Visibility zone и support cooldown model
 
-- владелец;
-- target turf;
-- template;
-- action template;
-- visibility zone;
-- dispatch path;
-- display name;
-- request kind.
+Runtime-модель кулдаунов не была переписана. В controller уже живут отдельные таймеры:
 
-### `/datum/rto_support_validation_service`
+- `visibility_zone_cooldown_until`
+- `shared_cooldown_until`
+- `action_cooldowns[action_id]`
 
-Отвечает за серверные проверки:
+Исправление было сделано на уровне state presentation.
 
-- наличие пресета;
-- наличие и активное использование RTO-бинокля;
-- incapacitation;
-- LOS;
-- shipside restrictions;
-- радиус сектора;
-- altitude restrictions;
-- кулдауны.
+### Zone timings
 
-### `/datum/rto_support_dispatch_service`
+- `Mortar`: `75s active / 45s recovery`
+- `CAS`: `55s active / 70s recovery`
+- `Heavy Strike`: `40s active / 95s recovery`
+- `Logistics`: zones unsupported
 
-Отвечает только за выполнение уже валидированного request:
+Recovery зоны стартует после завершения или очистки зоны, а не в момент deploy.
 
-- создание нового `datum/fire_support`;
-- настройку `faction`, `name`, `scatter_range`;
-- запуск payload;
-- ghost notification для ударных вызовов;
-- cleanup request-local экземпляра.
+## 8. Как теперь строится UI-состояние support actions
 
-Dispatch не решает, можно вызывать поддержку или нет.
+Для support actions controller формирует state со следующими сущностями:
 
-## 5. Реальный runtime-flow
+- `zone_state`
+- `zone_ready_in`
+- `zone_expires_in`
+- `shared_cooldown_in`
+- `personal_cooldown_in`
+- `primary_label`
+- `secondary_labels`
 
-### 5.1. Инициализация роли
+Правило:
 
-Контроллер создаётся двумя путями:
+- primary label для zone-based шаблонов описывает именно сектор;
+- shared/personal cooldown идут отдельными secondary labels;
+- visibility action не читает support shared cooldown вообще.
 
-- основным: через модульные override `load_gear()` для RTO;
-- запасным: lazy-init через `ensure_rto_support_controller()` из RTO-бинокля.
+Примеры:
 
-Это уменьшает риск потери контроллера, если предмет выдан нестандартно или персонаж получен вне обычной ветки экипировки.
+- `Сектор CD: 34s; Общий КД: 12s`
+- `Сектор: 41s; Личный КД: 55s`
+- `Общий КД: 20s` для `Logistics`
 
-Дополнительно registry держит owner-сигналы, чтобы controller быстрее синхронизировал runtime:
+## 9. Бинокль и live laser
 
-- очищал armed state и сектор при смерти;
-- восстанавливал HUD после revive;
-- немедленно снимал наведение, если у владельца пропал `RTO binoculars`.
+`/obj/item/device/binoculars/rto` теперь хранит:
 
-### 5.2. Выбор пресета
+- `paired_pouch`
+- `live_marker_target`
+- `live_marker_overlay`
+- `live_marker_owner`
+- loop-timer проверки live marker
 
-Пока пресет не выбран:
+Подсветка использует стандартные overlay helper'ы:
 
-- у RTO есть только action `select_preset`;
-- TGUI показывает список доступных шаблонов;
-- после выбора пресет фиксируется на жизнь текущего моба.
+- `apply_fire_support_laser()`
+- `remove_fire_support_laser()`
 
-После выбора:
+То есть ручная лазерная отметка ведёт себя как настоящий designator-style laser, а не как временная точка-объект.
 
-- кнопка выбора удаляется;
-- появляются action сектора и action способностей пакета.
+## 10. Dedicated RTO sling pouch
 
-### 5.3. Armed mode
+Добавлен `/obj/item/storage/pouch/sling/rto`.
 
-Action-кнопка не вызывает поддержку напрямую.
+Семантика:
 
-Она только переводит controller в armed state:
+- pouch принимает только свой paired `RTO binoculars`;
+- другой предмет внутрь не вставляется;
+- ручное `attack_self()` не разрывает пару;
+- `empty()` не используется для ручного выброса бинокля;
+- если бинокль уронен, стандартный sling retrieval пытается вернуть его обратно;
+- если pouch сброшен, пока paired binocular в руке владельца, pouch пытается немедленно втянуть бинокль внутрь.
 
-- `RTO_SUPPORT_ARM_VISIBILITY_ZONE` для сектора;
-- `action_id` способности для удара.
+Комплект создаётся helper-процедурой `build_rto_support_binocular_kit()`.
 
-Следующий `Ctrl+Click` через активный бинокль завершает таргетинг.
+## 11. Loadout / locker
 
-### 5.4. Таргетинг
+RTO больше не получает loose binocular.
 
-Точка выбирается только через `/obj/item/device/binoculars/rto`.
+Теперь:
 
-Бинокль:
+- equipped preset создаёт paired `RTO sling pouch + RTO binoculars`;
+- kit сначала пытается занять `L_STORE`, затем `R_STORE`, затем backpack, затем руку;
+- locker также содержит paired-kit, а не отдельный бинокль;
+- старый tactical binocular для RTO не выдаётся.
 
-- работает только через zoom/interact flow;
-- без armed state показывает координаты;
-- с armed state передаёт turf в controller.
+## 12. Что не менять без причины
 
-### 5.5. Валидация и вызов
-
-Controller:
-
-1. получает turf из бинокля;
-2. вызывает validation service;
-3. при успехе собирает `rto_support_request`;
-4. отправляет request в dispatch service;
-5. обновляет кулдауны и armed state.
-
-## 6. Реализованные интеграции
-
-### Loadout
-
-Модуль переопределяет:
-
-- `/datum/equipment_preset/uscm/rto/load_gear`
-- `/datum/equipment_preset/uscm/rto/equipped/load_gear`
-
-Что делает интеграция:
-
-- сохраняет trait `spotter`;
-- выдаёт `RTO binoculars` вместо designator;
-- гарантирует наличие controller.
-
-### Locker
-
-Переопределён:
-
-- `/obj/structure/closet/secure_closet/marine_personal/rto/spawn_gear`
-
-Что выдаётся:
-
-- `RTO binoculars`;
-- две коробки сигнальных фальшфейеров.
-
-### TGUI
-
-Добавлены:
-
-- `/datum/rto_support_preset_menu`
-- `tgui/packages/tgui/interfaces/RtoSupportPresetMenu.jsx`
-
-### Runtime support payload
-
-Добавлен локальный payload:
-
-- `/datum/fire_support/rto_visibility/illumination`
-
-Он нужен для mortar-sector и не зависит от GM menu.
-
-## 7. OOP и SOLID в текущей реализации
-
-### Single Responsibility
-
-- template datums не знают про runtime;
-- validation не dispatch-ит;
-- dispatch не валидирует;
-- UI меню не содержит боевую логику;
-- бинокль только получает цель и делегирует controller.
-
-### Open/Closed
-
-Новый пресет добавляется расширением config-слоя:
-
-- новый subtype `rto_support_template`;
-- новые `rto_support_action_template`;
-- при необходимости новый local payload.
-
-Controller и TGUI не должны переписываться под каждый новый пакет.
-
-### Dependency Inversion
-
-Controller зависит от:
-
-- config datums;
-- validation service;
-- dispatch service.
-
-Он не зависит напрямую от конкретной реализации `datum/fire_support`.
-
-## 8. Известные ограничения
-
-- Один сектор на оператора.
-- Нет world-overlay радиуса сектора.
-- Dispatch сейчас ориентирован на marine faction flow.
-- Нет отдельного recovery flow для нештатной смены роли после спавна.
-- Кнопки обновляются таймером раз в секунду, а не реактивной системой событий.
-
-Эти ограничения допустимы на текущем этапе и не ломают модель ответственности.
-
-## 9. Что не делать дальше
-
-- Не переносить controller-логику в `code/...`.
-- Не читать внутренние списки кулдаунов напрямую из TGUI.
-- Не вызывать `datum/fire_support` напрямую из action datum.
-- Не вводить string-switch по имени пресета в core-flow.
-- Не превращать validation service в место side effects.
+- не переносить RTO HUD на `item_action`;
+- не возвращать timed coordinate marker;
+- не возвращать timed manual designation как ground marker;
+- не смешивать zone cooldown и support cooldown в одном primary label;
+- не выносить runtime-логику из `modular/rto_support` в апстрим без жёсткой необходимости.

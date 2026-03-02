@@ -7,30 +7,50 @@
 	if(!result.success)
 		return result
 	if(!controller.active_template)
-		return new /datum/rto_support_validation_result().set_failure("Сначала выберите пакет поддержки.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Сначала выберите пакет поддержки.")
+		return failure
 	if(!controller.template_requires_zone())
-		return new /datum/rto_support_validation_result().set_failure("Этот пакет не использует сектор наведения.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Этот пакет не использует сектор наведения.")
+		return failure
 	if(!controller.can_deploy_zone())
-		return new /datum/rto_support_validation_result().set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
+		return failure
 	if(controller.active_template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
-		return new /datum/rto_support_validation_result().set_failure("Точка недоступна для авиационного сектора.")
-	return new /datum/rto_support_validation_result().set_success()
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Точка недоступна для авиационного сектора.")
+		return failure
+	var/datum/rto_support_validation_result/success = new
+	success.set_success()
+	return success
 
 /// Validates a support call attempt.
 /datum/rto_support_validation_service/proc/validate_support_call(datum/rto_support_controller/controller, datum/rto_support_action_template/action_template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
 	if(!action_template)
-		return new /datum/rto_support_validation_result().set_failure("Способность поддержки недоступна.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Способность поддержки недоступна.")
+		return failure
 	var/require_zone = action_template.requires_visibility_zone && controller?.template_requires_zone()
 	var/datum/rto_support_validation_result/result = validate_support_context(controller, target_turf, user, binoculars, require_zone, action_template.allow_closed_turf)
 	if(!result.success)
 		return result
 	if(controller.get_remaining_shared_cooldown() > 0)
-		return new /datum/rto_support_validation_result().set_failure(controller.get_action_block_message(action_template.action_id))
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure(controller.get_action_block_message(action_template.action_id))
+		return failure
 	if(controller.get_remaining_action_cooldown(action_template.action_id) > 0)
-		return new /datum/rto_support_validation_result().set_failure(controller.get_action_block_message(action_template.action_id))
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure(controller.get_action_block_message(action_template.action_id))
+		return failure
 	if(action_template.altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
-		return new /datum/rto_support_validation_result().set_failure("Точка недоступна для этого типа поддержки.")
-	return new /datum/rto_support_validation_result().set_success()
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Точка недоступна для этого типа поддержки.")
+		return failure
+	var/datum/rto_support_validation_result/success = new
+	success.set_success()
+	return success
 
 /// Validates explicit coordinate acquisition.
 /datum/rto_support_validation_service/proc/validate_coordinate_target(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
@@ -44,45 +64,77 @@
 	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, TRUE, FALSE, allow_closed_turf, require_zone)
 	if(!result.success)
 		return result
-	return new /datum/rto_support_validation_result().set_success()
+	var/datum/rto_support_validation_result/success = new
+	success.set_success()
+	return success
 
 /datum/rto_support_validation_service/proc/validate_utility_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
 	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, FALSE, TRUE, TRUE, FALSE)
 	if(!result.success)
 		return result
-	return new /datum/rto_support_validation_result().set_success()
+	var/datum/rto_support_validation_result/success = new
+	success.set_success()
+	return success
 
 /datum/rto_support_validation_service/proc/validate_common_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_template, allow_shipside, allow_closed_turf, require_zone)
 	if(!controller || !controller.owner || user != controller.owner)
-		return new /datum/rto_support_validation_result().set_failure("Контроллер поддержки недоступен.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Контроллер поддержки недоступен.")
+		return failure
 	if(require_template && !controller.active_template)
-		return new /datum/rto_support_validation_result().set_failure("Сначала выберите пакет поддержки.")
-	if(!controller.has_rto_binocular())
-		return new /datum/rto_support_validation_result().set_failure("Нужен RTO-бинокль.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Сначала выберите пакет поддержки.")
+		return failure
+	if(!controller.has_rto_binocular_in_hand())
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Нужен RTO-бинокль.")
+		return failure
 	if(!target_turf || QDELETED(target_turf))
-		return new /datum/rto_support_validation_result().set_failure("Цель недоступна.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Цель недоступна.")
+		return failure
 	if(!binoculars || binoculars != user.interactee)
-		return new /datum/rto_support_validation_result().set_failure("Нужно смотреть через RTO-бинокль.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Нужно смотреть через RTO-бинокль.")
+		return failure
 	if(user.is_mob_incapacitated())
-		return new /datum/rto_support_validation_result().set_failure("Вы не можете использовать поддержку в текущем состоянии.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Вы не можете использовать поддержку в текущем состоянии.")
+		return failure
 	if(!allow_shipside && (is_mainship_level(user.z) || is_mainship_level(target_turf.z)))
-		return new /datum/rto_support_validation_result().set_failure("Поддержка недоступна на корабле.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Поддержка недоступна на корабле.")
+		return failure
 	if(user.z != target_turf.z)
-		return new /datum/rto_support_validation_result().set_failure("Цель должна находиться на том же уровне.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Цель должна находиться на том же уровне.")
+		return failure
 	if(!allow_closed_turf && istype(target_turf, /turf/closed))
-		return new /datum/rto_support_validation_result().set_failure("Цель должна быть на открытом тайле.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Цель должна быть на открытом тайле.")
+		return failure
 	if(!can_see_target(user, target_turf, binoculars))
-		return new /datum/rto_support_validation_result().set_failure("Нет прямой видимости до цели.")
+		var/datum/rto_support_validation_result/failure = new
+		failure.set_failure("Нет прямой видимости до цели.")
+		return failure
 	if(require_zone)
 		var/datum/rto_visibility_zone/zone = controller.get_active_zone()
 		if(!zone)
 			var/zone_state = controller.get_zone_state()
 			if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-				return new /datum/rto_support_validation_result().set_failure("Сектор наведения ещё перезаряжается.")
-			return new /datum/rto_support_validation_result().set_failure("Сначала разверните сектор наведения.")
+				var/datum/rto_support_validation_result/failure = new
+				failure.set_failure("Сектор наведения ещё перезаряжается.")
+				return failure
+			var/datum/rto_support_validation_result/failure = new
+			failure.set_failure("Сначала разверните сектор наведения.")
+			return failure
 		if(!zone.contains_turf(target_turf))
-			return new /datum/rto_support_validation_result().set_failure("Цель вне сектора наведения.")
-	return new /datum/rto_support_validation_result().set_success()
+			var/datum/rto_support_validation_result/failure = new
+			failure.set_failure("Цель вне сектора наведения.")
+			return failure
+	var/datum/rto_support_validation_result/success = new
+	success.set_success()
+	return success
 
 /datum/rto_support_validation_service/proc/can_see_target(mob/living/carbon/human/user, turf/target_turf, obj/item/device/binoculars/rto/binoculars)
 	if(QDELETED(target_turf))

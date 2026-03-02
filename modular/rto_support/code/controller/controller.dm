@@ -16,7 +16,9 @@
 	var/list/support_actions = list()
 	var/datum/rto_support_validation_service/validation_service
 	var/datum/rto_support_dispatch_service/dispatch_service
-	var/ui_refresh_timer_id = null
+	var/hud_tick_timer_id = null
+	var/zone_expiry_timer_id = null
+	var/last_binocular_in_hand = FALSE
 	var/runtime_initialized = FALSE
 
 /datum/rto_support_controller/New(mob/living/carbon/human/new_owner)
@@ -26,9 +28,8 @@
 /datum/rto_support_controller/Destroy()
 	runtime_initialized = FALSE
 	disarm_action()
-	if(ui_refresh_timer_id)
-		deltimer(ui_refresh_timer_id)
-	ui_refresh_timer_id = null
+	stop_hud_tick()
+	clear_zone_expiry_timer()
 	clear_active_zone(FALSE)
 	clear_manual_designation()
 	clear_actions()
@@ -54,10 +55,9 @@
 		action_handles = list()
 	if(!support_actions)
 		support_actions = list()
-	if(!ui_refresh_timer_id)
-		ui_refresh_timer_id = addtimer(CALLBACK(src, PROC_REF(refresh_action_handles)), 1 SECONDS, TIMER_LOOP|TIMER_STOPPABLE|TIMER_DELETE_ME)
 	runtime_initialized = TRUE
 	sync_actions()
+	last_binocular_in_hand = has_rto_binocular_in_hand()
 	refresh_action_handles()
 	return TRUE
 
@@ -91,7 +91,7 @@
 	refresh_action_handles()
 	return TRUE
 
-/datum/rto_support_controller/proc/get_active_template()
+/datum/rto_support_controller/proc/get_active_template() as /datum/rto_support_template
 	return active_template
 
 /datum/rto_support_controller/proc/get_action_templates()
@@ -126,23 +126,18 @@
 		clear_manual_designation()
 	return manual_designation
 
+/datum/rto_support_controller/proc/is_manual_marker_active()
+	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
+	return binoculars?.is_live_marker_active()
+
 /datum/rto_support_controller/proc/sync_runtime_state()
-	if(!owner || QDELETED(owner))
+	if(!validate_owner_runtime())
 		return FALSE
-	if(!has_required_role())
+	prune_zone_state()
+	prune_manual_state()
+	if(armed_action_id && !has_rto_binocular_in_hand())
 		reset_armed_action()
-		clear_active_zone(FALSE)
-		clear_manual_designation()
-		clear_actions()
-		return FALSE
-	if(owner.stat == DEAD)
-		reset_armed_action()
-		clear_active_zone()
-		clear_manual_designation()
-	if(armed_action_id && !has_rto_binocular())
-		reset_armed_action()
-	get_active_zone()
-	get_manual_designation()
+	last_binocular_in_hand = has_rto_binocular_in_hand()
 	return TRUE
 
 /datum/rto_support_controller/proc/can_deploy_zone()
@@ -203,8 +198,8 @@
 	ensure_runtime()
 	if(!owner || QDELETED(owner))
 		return FALSE
-	if(!has_rto_binocular())
-		to_chat(owner, SPAN_WARNING("Нужен RTO-бинокль."))
+	if(!has_rto_binocular_in_hand())
+		to_chat(owner, SPAN_WARNING("Нужен RTO-бинокль в руке."))
 		return FALSE
 	if(!can_arm_action(action_id))
 		var/message = get_action_block_message(action_id)
@@ -213,6 +208,7 @@
 		return FALSE
 	if(armed_action_id == action_id)
 		return disarm_action()
+	reset_armed_action()
 	armed_action_id = action_id
 	refresh_action_handles()
 	return TRUE
@@ -226,6 +222,8 @@
 /datum/rto_support_controller/proc/reset_armed_action()
 	if(!armed_action_id)
 		return FALSE
+	if(armed_action_id == RTO_SUPPORT_ARM_MARKER)
+		clear_manual_designation()
 	armed_action_id = null
 	return TRUE
 
@@ -246,7 +244,6 @@
 				to_chat(user, SPAN_WARNING("Координаты: [coordinate_result.message]"))
 			return FALSE
 		acquire_explicit_coordinates(target_turf, user)
-		disarm_action()
 		return TRUE
 
 	if(armed_action_id == RTO_SUPPORT_ARM_MARKER)
@@ -256,7 +253,6 @@
 				to_chat(user, SPAN_WARNING("Лазерная отметка: [marker_result.message]"))
 			return FALSE
 		place_manual_designation(target_turf, user)
-		disarm_action()
 		return TRUE
 
 	if(armed_action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
@@ -321,10 +317,12 @@
 /datum/rto_support_controller/proc/replace_active_zone(datum/rto_visibility_zone/new_zone)
 	clear_active_zone(FALSE)
 	active_zone = new_zone
+	schedule_zone_expiry()
 
 /datum/rto_support_controller/proc/clear_active_zone(apply_cooldown = TRUE)
 	var/datum/rto_visibility_zone/zone = active_zone
 	active_zone = null
+	clear_zone_expiry_timer()
 	if(!zone)
 		return FALSE
 
@@ -337,17 +335,23 @@
 	return TRUE
 
 /datum/rto_support_controller/proc/clear_manual_designation()
+	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
+	binoculars?.stop_live_marker(owner, TRUE)
 	if(!manual_designation)
-		return FALSE
+		return !!binoculars
 	manual_designation.expire()
 	qdel(manual_designation)
 	manual_designation = null
 	return TRUE
 
 /datum/rto_support_controller/proc/place_manual_designation(turf/target_turf, mob/living/carbon/human/user)
-	var/had_designation = !!get_manual_designation()
+	var/obj/item/device/binoculars/rto/binoculars = get_active_binocular()
+	if(!binoculars)
+		return FALSE
+	var/had_designation = binoculars.is_live_marker_active()
 	clear_manual_designation()
-	manual_designation = new(owner, target_turf, RTO_SUPPORT_MARKER_STATIC, RTO_SUPPORT_MANUAL_MARKER_DURATION)
+	if(!binoculars.start_live_marker(target_turf, user))
+		return FALSE
 	if(user)
 		if(had_designation)
 			to_chat(user, SPAN_NOTICE("Лазерная отметка обновлена."))
@@ -358,7 +362,6 @@
 	return TRUE
 
 /datum/rto_support_controller/proc/acquire_explicit_coordinates(turf/target_turf, mob/living/carbon/human/user)
-	spawn_rto_laser_marker(target_turf, RTO_SUPPORT_MARKER_COORDINATE, RTO_SUPPORT_COORDINATE_MARKER_DURATION)
 	send_coordinate_report(target_turf, user, "КООРДИНАТЫ")
 	playsound(user, 'sound/effects/binoctarget.ogg', 35)
 	refresh_action_handles()
@@ -404,6 +407,7 @@
 		remove_visibility_action()
 		remove_support_actions()
 		rebuild_action_handles()
+		sync_action_visibility()
 		return
 
 	remove_select_action()
@@ -413,6 +417,7 @@
 		remove_visibility_action()
 	ensure_support_actions()
 	rebuild_action_handles()
+	sync_action_visibility()
 
 /datum/rto_support_controller/proc/ensure_select_action()
 	if(select_action && !QDELETED(select_action))
@@ -516,45 +521,74 @@
 		if(action && !QDELETED(action))
 			action_handles += action
 
-/datum/rto_support_controller/proc/refresh_action_handles()
+/datum/rto_support_controller/proc/refresh_visible_actions()
 	if(!runtime_initialized)
-		return
-	if(!sync_runtime_state())
-		return
+		return FALSE
+	if(!validate_owner_runtime())
+		return FALSE
 	sync_actions()
+	sync_action_visibility()
+	last_binocular_in_hand = has_rto_binocular_in_hand()
 	for(var/datum/action/human_action/rto/action as anything in action_handles.Copy())
 		if(!action || QDELETED(action))
 			action_handles -= action
 			continue
+		if(action.hidden)
+			continue
 		action.refresh_from_controller()
+	return TRUE
+
+/datum/rto_support_controller/proc/refresh_action_handles()
+	if(!runtime_initialized)
+		return
+	prune_zone_state()
+	prune_manual_state()
+	if(!refresh_visible_actions())
+		update_hud_tick_state()
+		return
+	update_hud_tick_state()
 
 /datum/rto_support_controller/proc/handle_owner_death()
 	reset_armed_action()
 	clear_active_zone()
 	clear_manual_designation()
+	last_binocular_in_hand = FALSE
 	refresh_action_handles()
 	return TRUE
 
 /datum/rto_support_controller/proc/handle_owner_revived()
 	if(!ensure_runtime())
 		return FALSE
+	last_binocular_in_hand = has_rto_binocular_in_hand()
 	sync_actions()
 	refresh_action_handles()
 	return TRUE
 
-/datum/rto_support_controller/proc/handle_inventory_changed(obj/item/changed_item)
+/datum/rto_support_controller/proc/handle_inventory_changed(obj/item/changed_item, slot = null, signal_id = null)
 	if(!runtime_initialized)
 		return FALSE
-	var/had_armed_action = !!armed_action_id
-	if(changed_item && !istype(changed_item, /obj/item/device/binoculars/rto) && !had_armed_action)
+	var/was_in_hand = last_binocular_in_hand
+	var/is_in_hand = has_rto_binocular_in_hand()
+	if(!is_inventory_change_relevant(changed_item, slot, signal_id) && was_in_hand == is_in_hand)
 		return FALSE
-
-	if(had_armed_action && !has_rto_binocular())
+	if(armed_action_id && was_in_hand && !is_in_hand)
 		reset_armed_action()
 		if(owner && owner.stat != DEAD)
-			to_chat(owner, SPAN_WARNING("RTO-бинокль недоступен. Наведение отменено."))
+			to_chat(owner, SPAN_WARNING("RTO-бинокль недоступен в руках. Наведение отменено."))
+	if(!is_in_hand)
+		clear_manual_designation()
+	last_binocular_in_hand = is_in_hand
 	refresh_action_handles()
 	return TRUE
+
+/datum/rto_support_controller/proc/is_inventory_change_relevant(obj/item/changed_item, slot = null, signal_id = null)
+	if(istype(changed_item, /obj/item/device/binoculars/rto))
+		return TRUE
+	if(istype(changed_item, /obj/item/storage/pouch/sling/rto))
+		return TRUE
+	if(slot == WEAR_L_HAND || slot == WEAR_R_HAND)
+		return last_binocular_in_hand || has_rto_binocular_in_hand()
+	return FALSE
 
 /datum/rto_support_controller/proc/get_remaining_shared_cooldown()
 	return max(0, shared_cooldown_until - world.time)
@@ -566,37 +600,183 @@
 	var/cooldown_until = action_cooldowns[action_id]
 	return max(0, cooldown_until - world.time)
 
-/datum/rto_support_controller/proc/get_action_block_message(action_id)
+/datum/rto_support_controller/proc/format_block_messages(list/reasons)
+	return length(reasons) ? jointext(reasons, "\n") : null
+
+/datum/rto_support_controller/proc/build_visibility_action_state()
+	var/list/state = list(
+		"has_binocular_in_hand" = has_rto_binocular_in_hand(),
+		"is_armed" = is_action_armed(RTO_SUPPORT_ARM_VISIBILITY_ZONE),
+		"zone_state" = get_zone_state(),
+		"zone_ready_in" = get_zone_ready_in(),
+		"zone_expires_in" = get_zone_expires_in(),
+		"is_disabled" = FALSE,
+		"primary_label" = RTO_SUPPORT_STATUS_READY,
+		"countdown_text" = null,
+		"countdown_color" = "#f2f2f2"
+	)
+
+	if(!active_template || !template_requires_zone())
+		state["is_disabled"] = TRUE
+		return state
+	if(!state["has_binocular_in_hand"])
+		state["is_disabled"] = TRUE
+		state["primary_label"] = RTO_SUPPORT_STATUS_NO_BINOCULAR
+		state["countdown_text"] = "B"
+		state["countdown_color"] = "#c6c6c6"
+		return state
+	if(state["is_armed"])
+		state["primary_label"] = RTO_SUPPORT_STATUS_TARGETING
+		state["countdown_text"] = "ARM"
+		state["countdown_color"] = "#ffd25a"
+		return state
+
+	switch(state["zone_state"])
+		if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
+			var/remaining_active = round(get_zone_expires_in() / 10)
+			state["is_disabled"] = TRUE
+			state["primary_label"] = "[RTO_SUPPORT_STATUS_ACTIVE]: [remaining_active]s"
+			state["countdown_text"] = "[remaining_active]s"
+			state["countdown_color"] = "#7ee1ff"
+		if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+			var/remaining_cooldown = round(get_zone_ready_in() / 10)
+			state["is_disabled"] = TRUE
+			state["primary_label"] = "CD: [remaining_cooldown]s"
+			state["countdown_text"] = "[remaining_cooldown]s"
+			state["countdown_color"] = "#c6c6c6"
+	return state
+
+/datum/rto_support_controller/proc/build_support_action_state(action_id)
+	var/datum/rto_support_action_template/action_template = active_template?.get_action_template(action_id)
+	var/zone_state = get_zone_state()
+	var/zone_ready_in = get_zone_ready_in()
+	var/zone_expires_in = get_zone_expires_in()
+	var/shared_cooldown_in = get_remaining_shared_cooldown()
+	var/personal_cooldown_in = get_remaining_action_cooldown(action_id)
+	var/requires_zone = !!(action_template?.requires_visibility_zone && template_requires_zone())
+	var/list/secondary_labels = list()
+	var/list/state = list(
+		"has_binocular_in_hand" = has_rto_binocular_in_hand(),
+		"is_armed" = is_action_armed(action_id),
+		"requires_zone" = requires_zone,
+		"zone_state" = zone_state,
+		"zone_ready_in" = zone_ready_in,
+		"zone_expires_in" = zone_expires_in,
+		"shared_cooldown_in" = shared_cooldown_in,
+		"personal_cooldown_in" = personal_cooldown_in,
+		"is_disabled" = FALSE,
+		"primary_label" = RTO_SUPPORT_STATUS_READY,
+		"countdown_text" = null,
+		"countdown_color" = "#f2f2f2",
+		"secondary_labels" = secondary_labels
+	)
+
+	if(!action_template)
+		state["is_disabled"] = TRUE
+		return state
+	if(!state["has_binocular_in_hand"])
+		state["is_disabled"] = TRUE
+		state["primary_label"] = RTO_SUPPORT_STATUS_NO_BINOCULAR
+		state["countdown_text"] = "B"
+		state["countdown_color"] = "#c6c6c6"
+		return state
+	if(state["is_armed"])
+		state["primary_label"] = RTO_SUPPORT_STATUS_TARGETING
+		state["countdown_text"] = "ARM"
+		state["countdown_color"] = "#ffd25a"
+		return state
+
+	if(requires_zone)
+		if(shared_cooldown_in > 0)
+			secondary_labels += "Общий КД: [round(shared_cooldown_in / 10)]s"
+		if(personal_cooldown_in > 0)
+			secondary_labels += "Личный КД: [round(personal_cooldown_in / 10)]s"
+		switch(zone_state)
+			if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+				state["is_disabled"] = TRUE
+				state["primary_label"] = "Сектор CD: [round(zone_ready_in / 10)]s"
+				state["countdown_text"] = "[round(zone_ready_in / 10)]s"
+				state["countdown_color"] = "#c6c6c6"
+				return state
+			if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
+				state["primary_label"] = "Сектор: [round(zone_expires_in / 10)]s"
+				state["countdown_text"] = "[round(zone_expires_in / 10)]s"
+				state["countdown_color"] = "#7ee1ff"
+				if(shared_cooldown_in > 0 || personal_cooldown_in > 0)
+					state["is_disabled"] = TRUE
+				return state
+			if(RTO_SUPPORT_ZONE_STATE_READY)
+				state["is_disabled"] = TRUE
+				state["primary_label"] = RTO_SUPPORT_STATUS_NO_ZONE
+				state["countdown_text"] = "Z"
+				state["countdown_color"] = "#c6c6c6"
+				return state
+		state["is_disabled"] = TRUE
+		return state
+
+	if(shared_cooldown_in > 0)
+		state["is_disabled"] = TRUE
+		state["primary_label"] = "Общий КД: [round(shared_cooldown_in / 10)]s"
+		state["countdown_text"] = "[round(shared_cooldown_in / 10)]s"
+		state["countdown_color"] = "#c6c6c6"
+		if(personal_cooldown_in > 0)
+			secondary_labels += "Личный КД: [round(personal_cooldown_in / 10)]s"
+		return state
+	if(personal_cooldown_in > 0)
+		state["is_disabled"] = TRUE
+		state["primary_label"] = "Личный КД: [round(personal_cooldown_in / 10)]s"
+		state["countdown_text"] = "[round(personal_cooldown_in / 10)]s"
+		state["countdown_color"] = "#c6c6c6"
+		if(shared_cooldown_in > 0)
+			secondary_labels += "Общий КД: [round(shared_cooldown_in / 10)]s"
+		return state
+
+	return state
+
+/datum/rto_support_controller/proc/get_action_block_messages(action_id)
+	var/list/messages = list()
 	if(action_id == RTO_SUPPORT_ARM_COORDINATES || action_id == RTO_SUPPORT_ARM_MARKER)
-		return null
+		return messages
 	if(!active_template)
-		return "Сначала выберите пакет поддержки."
+		messages += "Сначала выберите пакет поддержки."
+		return messages
 	if(action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
 		if(!template_requires_zone())
-			return "Этот пакет не использует сектор наведения."
+			messages += "Этот пакет не использует сектор наведения."
+			return messages
 		if(get_active_zone())
-			return "[active_template.visibility_zone_name] уже активна: [round(get_zone_expires_in() / 10)] сек."
+			messages += "[active_template.visibility_zone_name] уже активна: [round(get_zone_expires_in() / 10)] сек."
+			return messages
 		var/zone_cooldown = get_remaining_visibility_cooldown()
 		if(zone_cooldown > 0)
-			return "[active_template.visibility_zone_name] перезаряжается: [round(zone_cooldown / 10)] сек."
-		return null
+			messages += "[active_template.visibility_zone_name] перезаряжается: [round(zone_cooldown / 10)] сек."
+		return messages
 
 	var/datum/rto_support_action_template/action_template = active_template.get_action_template(action_id)
 	if(!action_template)
-		return "Неизвестная способность поддержки."
+		messages += "Неизвестная способность поддержки."
+		return messages
+
+	if(action_template.requires_visibility_zone && template_requires_zone())
+		switch(get_zone_state())
+			if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+				messages += "Сектор наведения перезаряжается: [round(get_zone_ready_in() / 10)] сек."
+			if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
+				if(get_remaining_shared_cooldown() > 0 || get_remaining_action_cooldown(action_id) > 0)
+					messages += "Сектор активен: [round(get_zone_expires_in() / 10)] сек."
+			else
+				messages += "Сначала разверните сектор наведения."
+
 	var/shared_cooldown = get_remaining_shared_cooldown()
 	if(shared_cooldown > 0)
-		return "Общий кулдаун: [round(shared_cooldown / 10)] сек."
+		messages += "Общий кулдаун пакета: [round(shared_cooldown / 10)] сек."
 	var/personal_cooldown = get_remaining_action_cooldown(action_id)
 	if(personal_cooldown > 0)
-		return "[action_template.name] перезаряжается: [round(personal_cooldown / 10)] сек."
-	if(action_template.requires_visibility_zone && template_requires_zone())
-		var/zone_state = get_zone_state()
-		if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-			return "Сектор наведения перезаряжается: [round(get_zone_ready_in() / 10)] сек."
-		if(zone_state != RTO_SUPPORT_ZONE_STATE_ACTIVE)
-			return "Сначала разверните сектор наведения."
-	return null
+		messages += "Личный кулдаун [action_template.name]: [round(personal_cooldown / 10)] сек."
+	return messages
+
+/datum/rto_support_controller/proc/get_action_block_message(action_id)
+	return format_block_messages(get_action_block_messages(action_id))
 
 /datum/rto_support_controller/proc/is_action_armed(action_id)
 	return armed_action_id == action_id
@@ -604,14 +784,131 @@
 /datum/rto_support_controller/proc/has_rto_binocular()
 	return !!get_owned_binocular()
 
-/datum/rto_support_controller/proc/get_owned_binocular()
+/datum/rto_support_controller/proc/has_rto_binocular_in_hand()
+	return !!get_rto_binocular_in_hand()
+
+/datum/rto_support_controller/proc/get_rto_binocular_in_hand() as /obj/item/device/binoculars/rto
 	if(!owner)
 		return null
-	for(var/obj/item/device/binoculars/rto/binoculars as anything in owner.contents_recursive())
-		return binoculars
+	if(istype(owner.l_hand, /obj/item/device/binoculars/rto))
+		return owner.l_hand
+	if(istype(owner.r_hand, /obj/item/device/binoculars/rto))
+		return owner.r_hand
 	return null
 
-/datum/rto_support_controller/proc/get_active_binocular()
+/datum/rto_support_controller/proc/get_owned_binocular() as /obj/item/device/binoculars/rto
+	if(!owner)
+		return null
+	for(var/atom/movable/movable as anything in owner.contents_recursive())
+		if(istype(movable, /obj/item/device/binoculars/rto))
+			return movable
+	return null
+
+/datum/rto_support_controller/proc/get_active_binocular() as /obj/item/device/binoculars/rto
 	if(istype(owner?.interactee, /obj/item/device/binoculars/rto))
 		return owner.interactee
 	return null
+
+/datum/rto_support_controller/proc/sync_action_visibility()
+	if(!owner)
+		return FALSE
+	var/visible = has_required_role() && owner.stat != DEAD && has_rto_binocular_in_hand()
+	for(var/datum/action/human_action/rto/action as anything in action_handles)
+		if(!action || QDELETED(action) || !action.owner)
+			continue
+		if(visible)
+			if(action.hidden)
+				action.unhide_from(owner)
+		else
+			if(!action.hidden)
+				action.hide_from(owner)
+	return TRUE
+
+/datum/rto_support_controller/proc/validate_owner_runtime()
+	if(!owner || QDELETED(owner))
+		stop_hud_tick()
+		return FALSE
+	if(has_required_role())
+		return TRUE
+	reset_armed_action()
+	clear_active_zone(FALSE)
+	clear_manual_designation()
+	clear_actions()
+	stop_hud_tick()
+	return FALSE
+
+/datum/rto_support_controller/proc/prune_zone_state()
+	if(active_zone && !active_zone.is_active())
+		clear_active_zone()
+		return TRUE
+	return FALSE
+
+/datum/rto_support_controller/proc/prune_manual_state()
+	if(manual_designation && !manual_designation.is_active())
+		clear_manual_designation()
+		return TRUE
+	return FALSE
+
+/datum/rto_support_controller/proc/needs_hud_tick()
+	if(!runtime_initialized || !owner || QDELETED(owner))
+		return FALSE
+	if(!has_required_role())
+		return FALSE
+	if(owner.stat == DEAD)
+		return FALSE
+	if(!has_rto_binocular_in_hand())
+		return FALSE
+	if(!length(action_handles))
+		return FALSE
+	var/zone_state = get_zone_state()
+	if(zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE || zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+		return TRUE
+	if(get_remaining_shared_cooldown() > 0)
+		return TRUE
+	for(var/action_id in action_cooldowns)
+		if(get_remaining_action_cooldown(action_id) > 0)
+			return TRUE
+	return FALSE
+
+/datum/rto_support_controller/proc/start_hud_tick()
+	if(hud_tick_timer_id)
+		return FALSE
+	hud_tick_timer_id = addtimer(CALLBACK(src, PROC_REF(refresh_action_handles)), 1 SECONDS, TIMER_LOOP|TIMER_STOPPABLE|TIMER_DELETE_ME)
+	return TRUE
+
+/datum/rto_support_controller/proc/stop_hud_tick()
+	if(!hud_tick_timer_id)
+		return FALSE
+	deltimer(hud_tick_timer_id)
+	hud_tick_timer_id = null
+	return TRUE
+
+/datum/rto_support_controller/proc/update_hud_tick_state()
+	if(needs_hud_tick())
+		start_hud_tick()
+		return TRUE
+	stop_hud_tick()
+	return FALSE
+
+/datum/rto_support_controller/proc/clear_zone_expiry_timer()
+	if(!zone_expiry_timer_id)
+		return FALSE
+	deltimer(zone_expiry_timer_id)
+	zone_expiry_timer_id = null
+	return TRUE
+
+/datum/rto_support_controller/proc/schedule_zone_expiry()
+	clear_zone_expiry_timer()
+	if(!active_zone || !active_zone.expires_at)
+		return FALSE
+	var/time_left = max(1, active_zone.expires_at - world.time)
+	zone_expiry_timer_id = addtimer(CALLBACK(src, PROC_REF(handle_active_zone_expired)), time_left, TIMER_STOPPABLE|TIMER_DELETE_ME)
+	return TRUE
+
+/datum/rto_support_controller/proc/handle_active_zone_expired()
+	zone_expiry_timer_id = null
+	if(!active_zone)
+		return FALSE
+	clear_active_zone()
+	refresh_action_handles()
+	return TRUE

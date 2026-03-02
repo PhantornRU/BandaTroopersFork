@@ -15,8 +15,10 @@
 	return ..()
 
 /datum/action/human_action/rto/can_use_action()
+	if(!..())
+		return FALSE
 	var/mob/living/carbon/human/human = owner
-	return istype(human) && !human.is_mob_incapacitated() && !HAS_TRAIT(human, TRAIT_DAZED)
+	return istype(human) && !human.is_mob_incapacitated() && !HAS_TRAIT(human, TRAIT_DAZED) && controller?.has_rto_binocular_in_hand()
 
 /datum/action/human_action/rto/proc/refresh_from_controller()
 	return
@@ -44,6 +46,14 @@
 /datum/action/human_action/rto/proc/format_seconds(ds_value)
 	return "[round(max(0, ds_value) / 10)]s"
 
+/datum/action/human_action/rto/proc/build_action_name(base_name, primary_label, list/secondary_labels)
+	var/list/parts = list()
+	if(length(primary_label))
+		parts += primary_label
+	if(length(secondary_labels))
+		parts += secondary_labels
+	return length(parts) ? "[base_name] ([jointext(parts, "; ")])" : base_name
+
 /datum/action/human_action/rto/select_preset
 	name = "Выбрать пакет поддержки"
 	action_icon_state = "designator_swap_mortar"
@@ -58,9 +68,11 @@
 	new /datum/rto_support_preset_menu(owner, controller)
 
 /datum/action/human_action/rto/select_preset/refresh_from_controller()
-	set_name("Выбрать пакет поддержки")
-	set_button_state(RTO_SUPPORT_BUTTON_STATE_READY)
-	set_button_countdown(null)
+	var/list/secondary = list()
+	var/label = controller?.has_rto_binocular_in_hand() ? RTO_SUPPORT_STATUS_READY : RTO_SUPPORT_STATUS_NO_BINOCULAR
+	set_name(build_action_name("Выбрать пакет поддержки", label, secondary))
+	set_button_state(RTO_SUPPORT_BUTTON_STATE_READY, !controller?.has_rto_binocular_in_hand())
+	set_button_countdown(controller?.has_rto_binocular_in_hand() ? null : "B", "#c6c6c6")
 
 /datum/action/human_action/rto/visibility_zone
 	name = "Развернуть сектор наведения"
@@ -87,35 +99,14 @@
 		set_button_countdown(null)
 		return
 
-	var/zone_state = controller.get_zone_state()
-	var/remaining_zone = controller.get_zone_expires_in()
-	var/remaining_cooldown = controller.get_zone_ready_in()
-	var/disabled = FALSE
-	var/button_state = RTO_SUPPORT_BUTTON_STATE_READY
-	var/button_name = controller.active_template.visibility_zone_name
-
-	if(controller.is_action_armed(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
-		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_TARGETING])"
-		set_button_countdown("ARM", "#ffd25a")
-	else if(zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE)
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_ACTIVE]: [format_seconds(remaining_zone)])"
-		set_button_countdown(format_seconds(remaining_zone), "#7ee1ff")
-	else if(!controller.has_rto_binocular())
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_BINOCULAR])"
-		set_button_countdown("B", "#c6c6c6")
-	else if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-		disabled = TRUE
-		button_name = "[button_name] (CD: [format_seconds(remaining_cooldown)])"
-		set_button_countdown(format_seconds(remaining_cooldown), "#c6c6c6")
-	else
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_READY])"
-		set_button_countdown(null)
+	var/list/state = controller.build_visibility_action_state()
+	var/button_state = state["is_armed"] ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
+	var/disabled = state["is_disabled"]
+	var/button_name = build_action_name(controller.active_template.visibility_zone_name, state["primary_label"], null)
 
 	set_name(button_name)
 	set_button_state(button_state, disabled)
+	set_button_countdown(state["countdown_text"], state["countdown_color"])
 
 /datum/action/human_action/rto/coordinates
 	name = "Координаты"
@@ -132,24 +123,13 @@
 	controller?.arm_action(RTO_SUPPORT_ARM_COORDINATES)
 
 /datum/action/human_action/rto/coordinates/refresh_from_controller()
-	var/disabled = FALSE
-	var/button_state = RTO_SUPPORT_BUTTON_STATE_READY
-	var/button_name = "Координаты"
+	var/disabled = !controller?.has_rto_binocular_in_hand()
+	var/button_state = controller?.is_action_armed(RTO_SUPPORT_ARM_COORDINATES) ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
+	var/label = controller?.is_action_armed(RTO_SUPPORT_ARM_COORDINATES) ? RTO_SUPPORT_STATUS_TARGETING : (disabled ? RTO_SUPPORT_STATUS_NO_BINOCULAR : RTO_SUPPORT_STATUS_READY)
 
-	if(controller?.is_action_armed(RTO_SUPPORT_ARM_COORDINATES))
-		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_TARGETING])"
-		set_button_countdown("ARM", "#ffd25a")
-	else if(!controller?.has_rto_binocular())
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_BINOCULAR])"
-		set_button_countdown("B", "#c6c6c6")
-	else
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_READY])"
-		set_button_countdown(null)
-
-	set_name(button_name)
+	set_name(build_action_name("Координаты", label, null))
 	set_button_state(button_state, disabled)
+	set_button_countdown(controller?.is_action_armed(RTO_SUPPORT_ARM_COORDINATES) ? "ARM" : (disabled ? "B" : null), controller?.is_action_armed(RTO_SUPPORT_ARM_COORDINATES) ? "#ffd25a" : "#c6c6c6")
 
 /datum/action/human_action/rto/manual_marker
 	name = "Лазерная отметка"
@@ -166,29 +146,13 @@
 	controller?.arm_action(RTO_SUPPORT_ARM_MARKER)
 
 /datum/action/human_action/rto/manual_marker/refresh_from_controller()
-	var/datum/rto_manual_designation/designation = controller?.get_manual_designation()
-	var/remaining_designation = designation ? max(0, designation.expires_at - world.time) : 0
-	var/disabled = FALSE
-	var/button_state = RTO_SUPPORT_BUTTON_STATE_READY
-	var/button_name = "Лазерная отметка"
+	var/disabled = !controller?.has_rto_binocular_in_hand()
+	var/button_state = controller?.is_action_armed(RTO_SUPPORT_ARM_MARKER) ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
+	var/label = controller?.is_action_armed(RTO_SUPPORT_ARM_MARKER) ? RTO_SUPPORT_STATUS_TARGETING : (disabled ? RTO_SUPPORT_STATUS_NO_BINOCULAR : RTO_SUPPORT_STATUS_READY)
 
-	if(controller?.is_action_armed(RTO_SUPPORT_ARM_MARKER))
-		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_TARGETING])"
-		set_button_countdown("ARM", "#ffd25a")
-	else if(!controller?.has_rto_binocular())
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_BINOCULAR])"
-		set_button_countdown("B", "#c6c6c6")
-	else if(designation)
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_ACTIVE]: [format_seconds(remaining_designation)])"
-		set_button_countdown(format_seconds(remaining_designation), "#7ee1ff")
-	else
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_READY])"
-		set_button_countdown(null)
-
-	set_name(button_name)
+	set_name(build_action_name("Лазерная отметка", label, null))
 	set_button_state(button_state, disabled)
+	set_button_countdown(controller?.is_action_armed(RTO_SUPPORT_ARM_MARKER) ? "ARM" : (disabled ? "B" : null), controller?.is_action_armed(RTO_SUPPORT_ARM_MARKER) ? "#ffd25a" : "#c6c6c6")
 
 /datum/action/human_action/rto/support
 	unique = FALSE
@@ -221,48 +185,11 @@
 		set_button_countdown(null)
 		return
 
-	var/remaining_shared = controller.get_remaining_shared_cooldown()
-	var/remaining_personal = controller.get_remaining_action_cooldown(action_template.action_id)
-	var/remaining_cooldown = max(remaining_shared, remaining_personal)
-	var/has_binocular = controller.has_rto_binocular()
-	var/zone_required = action_template.requires_visibility_zone && controller.template_requires_zone()
-	var/zone_state = controller.get_zone_state()
-	var/zone_ready_in = controller.get_zone_ready_in()
-	var/zone_expires_in = controller.get_zone_expires_in()
-	var/disabled = FALSE
-	var/button_state = RTO_SUPPORT_BUTTON_STATE_READY
-	var/button_name = action_template.name
-
-	if(controller.is_action_armed(action_template.action_id))
-		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_TARGETING])"
-		set_button_countdown("ARM", "#ffd25a")
-	else if(!has_binocular)
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_BINOCULAR])"
-		set_button_countdown("B", "#c6c6c6")
-	else if(zone_required && zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-		disabled = TRUE
-		button_name = "[button_name] (Зона CD: [format_seconds(zone_ready_in)])"
-		set_button_countdown(format_seconds(zone_ready_in), "#c6c6c6")
-	else if(zone_required && zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE)
-		if(remaining_cooldown > 0)
-			disabled = TRUE
-			button_name = "[button_name] (Зона: [format_seconds(zone_expires_in)], КД: [format_seconds(remaining_cooldown)])"
-		else
-			button_name = "[button_name] (Зона: [format_seconds(zone_expires_in)])"
-		set_button_countdown(format_seconds(zone_expires_in), "#7ee1ff")
-	else if(remaining_cooldown > 0)
-		disabled = TRUE
-		button_name = "[button_name] (КД: [format_seconds(remaining_cooldown)])"
-		set_button_countdown(format_seconds(remaining_cooldown), "#c6c6c6")
-	else if(zone_required)
-		disabled = TRUE
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_ZONE])"
-		set_button_countdown("Z", "#c6c6c6")
-	else
-		button_name = "[button_name] ([RTO_SUPPORT_STATUS_READY])"
-		set_button_countdown(null)
+	var/list/state = controller.build_support_action_state(action_template.action_id)
+	var/button_state = state["is_armed"] ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
+	var/disabled = state["is_disabled"]
+	var/button_name = build_action_name(action_template.name, state["primary_label"], state["secondary_labels"])
 
 	set_name(button_name)
 	set_button_state(button_state, disabled)
+	set_button_countdown(state["countdown_text"], state["countdown_color"])

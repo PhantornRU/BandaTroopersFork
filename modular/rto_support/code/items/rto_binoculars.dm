@@ -6,6 +6,19 @@
 	uses_camo = FALSE
 	zoom_offset = 11
 	view_range = 12
+	var/obj/item/storage/pouch/sling/rto/paired_pouch
+	var/atom/live_marker_target
+	var/image/live_marker_overlay
+	var/mob/living/carbon/human/live_marker_owner
+	var/live_marker_active = FALSE
+	var/live_marker_refresh_timer_id = null
+
+/obj/item/device/binoculars/rto/Destroy()
+	stop_live_marker(null, TRUE)
+	if(paired_pouch?.paired_binocular == src)
+		paired_pouch.paired_binocular = null
+	paired_pouch = null
+	return ..()
 
 /obj/item/device/binoculars/rto/clicked(mob/user, list/mods)
 	if(!ishuman(user))
@@ -17,6 +30,11 @@
 			to_chat(user, SPAN_NOTICE("Наведение отменено."))
 			return TRUE
 	return ..()
+
+/obj/item/device/binoculars/rto/on_unset_interaction(mob/user)
+	. = ..()
+	if(istype(user) && live_marker_owner == user)
+		stop_live_marker(user, TRUE)
 
 /obj/item/device/binoculars/rto/handle_click(mob/living/carbon/human/user, atom/targeted_atom, list/mods)
 	if(!istype(user) || !mods[CTRL_CLICK])
@@ -51,8 +69,8 @@
 		return
 
 	. += SPAN_NOTICE("Ctrl+Click во время зума: навести выбранный режим.")
-	. += SPAN_NOTICE("Кнопка 'Координаты': получить координаты с временной меткой.")
-	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': поставить временную ручную метку.")
+	. += SPAN_NOTICE("Кнопка 'Координаты': постоянный режим получения координат без лазера.")
+	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': постоянный режим живой лазерной подсветки через бинокль.")
 
 	if(controller.active_template)
 		. += SPAN_NOTICE("Текущий пакет: [controller.active_template.name].")
@@ -73,10 +91,8 @@
 	var/armed_mode_name = controller.get_armed_mode_name()
 	if(armed_mode_name)
 		. += SPAN_NOTICE("Текущий режим наведения: [armed_mode_name].")
-
-	var/datum/rto_manual_designation/designation = controller.get_manual_designation()
-	if(designation)
-		. += SPAN_NOTICE("Ручная лазерная отметка активна: [round(max(0, designation.expires_at - world.time) / 10)] сек.")
+	if(is_live_marker_active())
+		. += SPAN_NOTICE("Лазерная отметка активна.")
 
 /obj/item/device/binoculars/rto/proc/acquire_coordinates(turf/target_turf, mob/living/carbon/human/user)
 	to_chat(user, SPAN_NOTICE("КООРДИНАТЫ: LONGITUDE [obfuscate_x(target_turf.x)]. LATITUDE [obfuscate_y(target_turf.y)]."))
@@ -94,4 +110,71 @@
 		for(var/turf/turf_in_path as anything in path)
 			if(turf_in_path.opacity)
 				return FALSE
+	return TRUE
+
+/obj/item/device/binoculars/rto/proc/is_in_user_hands(mob/living/carbon/human/user)
+	return istype(user) && (user.l_hand == src || user.r_hand == src)
+
+/obj/item/device/binoculars/rto/proc/pair_with_pouch(obj/item/storage/pouch/sling/rto/pouch)
+	if(!istype(pouch))
+		return FALSE
+	paired_pouch = pouch
+	if(pouch.paired_binocular != src)
+		pouch.paired_binocular = src
+	return TRUE
+
+/obj/item/device/binoculars/rto/proc/is_live_marker_active()
+	return live_marker_active && live_marker_target && live_marker_overlay
+
+/obj/item/device/binoculars/rto/proc/start_live_marker(atom/targeted_atom, mob/living/carbon/human/user)
+	if(!istype(user) || !targeted_atom)
+		return FALSE
+	stop_live_marker(user, TRUE)
+	live_marker_target = targeted_atom
+	live_marker_owner = user
+	live_marker_overlay = image('icons/obj/items/weapons/projectiles.dmi', icon_state = "laser_target2", layer = -LASER_LAYER)
+	live_marker_target.apply_fire_support_laser(live_marker_overlay)
+	live_marker_active = TRUE
+	if(!live_marker_refresh_timer_id)
+		live_marker_refresh_timer_id = addtimer(CALLBACK(src, PROC_REF(refresh_live_marker)), 0.5 SECONDS, TIMER_LOOP|TIMER_STOPPABLE|TIMER_DELETE_ME)
+	return TRUE
+
+/obj/item/device/binoculars/rto/proc/stop_live_marker(mob/living/carbon/human/user, silent = FALSE)
+	if(live_marker_target && live_marker_overlay)
+		live_marker_target.remove_fire_support_laser(live_marker_overlay)
+	if(live_marker_refresh_timer_id)
+		deltimer(live_marker_refresh_timer_id)
+	live_marker_refresh_timer_id = null
+	live_marker_target = null
+	live_marker_owner = null
+	live_marker_active = FALSE
+	QDEL_NULL(live_marker_overlay)
+	if(!silent && user)
+		to_chat(user, SPAN_NOTICE("Лазерная отметка снята."))
+	return TRUE
+
+/obj/item/device/binoculars/rto/proc/refresh_live_marker()
+	if(!can_continue_live_marker(live_marker_owner))
+		stop_live_marker(live_marker_owner, TRUE)
+	return TRUE
+
+/obj/item/device/binoculars/rto/proc/can_continue_live_marker(mob/living/carbon/human/user)
+	if(!istype(user) || QDELETED(user))
+		return FALSE
+	if(!is_live_marker_active())
+		return FALSE
+	if(user.stat == DEAD || user.is_mob_incapacitated())
+		return FALSE
+	if(!is_in_user_hands(user))
+		return FALSE
+	if(user.interactee != src)
+		return FALSE
+	var/datum/rto_support_controller/controller = get_rto_support_controller(user)
+	if(!controller || !controller.is_action_armed(RTO_SUPPORT_ARM_MARKER))
+		return FALSE
+	var/turf/target_turf = get_turf(live_marker_target)
+	if(!target_turf || QDELETED(target_turf))
+		return FALSE
+	if(!can_see_target(target_turf, user))
+		return FALSE
 	return TRUE

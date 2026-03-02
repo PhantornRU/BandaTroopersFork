@@ -69,10 +69,25 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	var/datum/rto_support_controller/controller = get_controller(human)
 	controller?.handle_owner_revived()
 
-/datum/rto_support_registry/proc/handle_owner_inventory_changed(mob/living/carbon/human/human, obj/item/changed_item)
+/datum/rto_support_registry/proc/handle_owner_item_equipped(mob/living/carbon/human/human, obj/item/changed_item, slot)
 	SIGNAL_HANDLER
 	var/datum/rto_support_controller/controller = get_controller(human)
-	controller?.handle_inventory_changed(changed_item)
+	controller?.handle_inventory_changed(changed_item, slot, COMSIG_HUMAN_EQUIPPED_ITEM)
+
+/datum/rto_support_registry/proc/handle_owner_item_unequipped(mob/living/carbon/human/human, obj/item/changed_item, slot)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_inventory_changed(changed_item, slot, COMSIG_HUMAN_UNEQUIPPED_ITEM)
+
+/datum/rto_support_registry/proc/handle_owner_item_picked_up(mob/living/carbon/human/human, obj/item/changed_item)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_inventory_changed(changed_item, null, COMSIG_MOB_PICKUP_ITEM)
+
+/datum/rto_support_registry/proc/handle_owner_item_dropped(mob/living/carbon/human/human, obj/item/changed_item)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_inventory_changed(changed_item, null, COMSIG_MOB_ITEM_DROPPED)
 
 /datum/rto_support_registry/proc/register_owner_signals(mob/living/carbon/human/human)
 	if(!human)
@@ -80,12 +95,10 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	RegisterSignal(human, COMSIG_PARENT_QDELETING, PROC_REF(handle_owner_deleted))
 	RegisterSignal(human, COMSIG_MOB_DEATH, PROC_REF(handle_owner_death))
 	RegisterSignal(human, COMSIG_HUMAN_REVIVED, PROC_REF(handle_owner_revived))
-	RegisterSignal(human, list(
-		COMSIG_HUMAN_EQUIPPED_ITEM,
-		COMSIG_HUMAN_UNEQUIPPED_ITEM,
-		COMSIG_MOB_PICKUP_ITEM,
-		COMSIG_MOB_ITEM_DROPPED,
-	), PROC_REF(handle_owner_inventory_changed))
+	RegisterSignal(human, COMSIG_HUMAN_EQUIPPED_ITEM, PROC_REF(handle_owner_item_equipped))
+	RegisterSignal(human, COMSIG_HUMAN_UNEQUIPPED_ITEM, PROC_REF(handle_owner_item_unequipped))
+	RegisterSignal(human, COMSIG_MOB_PICKUP_ITEM, PROC_REF(handle_owner_item_picked_up))
+	RegisterSignal(human, COMSIG_MOB_ITEM_DROPPED, PROC_REF(handle_owner_item_dropped))
 	return TRUE
 
 /datum/rto_support_registry/proc/unregister_owner_signals(mob/living/carbon/human/human)

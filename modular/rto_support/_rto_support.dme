@@ -18,5 +18,6 @@
 #include "code/actions/rto_actions.dm"
 #include "code/fire_support/logistics_payloads.dm"
 #include "code/fire_support/visibility_payloads.dm"
+#include "code/items/rto_sling_pouch.dm"
 #include "code/items/rto_binoculars.dm"
 #include "code/job/rto_integration.dm"

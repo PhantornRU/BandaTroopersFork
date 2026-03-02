@@ -1,151 +1,102 @@
-# RTO Support: сопровождение и развитие
+# RTO Support: сопровождение
 
-## 1. Цель документа
+## 1. Что важно не сломать
 
-Документ описывает, как безопасно поддерживать и расширять `RTO Support` после текущей реализации.
+При любых изменениях сохранять следующие инварианты:
 
-Фокус:
+- RTO HUD остаётся `human_action`-based;
+- controller владеет lifecycle action'ов;
+- actions скрываются, если бинокль не в руке;
+- `Координаты` и `Лазерная отметка` не получают cooldown;
+- `Координаты` не рисуют лазер;
+- `Лазерная отметка` остаётся live binocular laser, а не timed world marker;
+- `visibility_zone_cooldown` и `shared support cooldown` не смешиваются в один UI-state;
+- `RTO sling pouch` остаётся жёстко спаренным с одним биноклем.
 
-- не сломать архитектуру;
-- не вытащить логику из `modular/...`;
-- не смешать UI, validation и dispatch;
-- не потерять совместимость с апстримом.
+## 2. Ключевые файлы
 
-## 2. Как добавлять новый пресет
+Runtime:
 
-Минимальный путь:
-
-1. создать новый subtype `/datum/rto_support_template`;
-2. создать нужные `/datum/rto_support_action_template`;
-3. добавить новый template в `build_rto_support_template_catalog()`;
-4. при необходимости добавить local payload в `code/fire_support/visibility_payloads.dm`.
-
-Не нужно:
-
-- переписывать controller;
-- менять TGUI layout;
-- добавлять string-switch по имени пакета.
-
-## 3. Как добавлять новую способность
-
-Минимальный путь:
-
-1. описать новый `action_template`;
-2. указать `fire_support_path`, cooldown, scatter и ограничения;
-3. подключить action template к нужному preset template.
-
-Если нужен особый backend:
-
-- добавлять адаптацию в `dispatch_service`;
-- не в action datum;
-- не в TGUI;
-- не в binocular item.
-
-## 4. Как менять validation
-
-Все серверные правила должны жить в:
-
+- `modular/rto_support/code/controller/controller.dm`
 - `modular/rto_support/code/services/validation_service.dm`
+- `modular/rto_support/code/services/dispatch_service.dm`
 
-Если появляется новая карта, новый тип потолка или новое ограничение сектора, правка должна идти сюда.
+Интерфейс:
 
-Не нужно:
-
-- дублировать validation в бинокле;
-- дублировать validation в action-кнопке;
-- переносить validation в frontend.
-
-## 5. Как менять UI
-
-Frontend-файл:
-
-- `tgui/packages/tgui/interfaces/RtoSupportPresetMenu.jsx`
-
-Backend меню:
-
+- `modular/rto_support/code/actions/rto_actions.dm`
+- `modular/rto_support/code/items/rto_binoculars.dm`
 - `modular/rto_support/code/ui/preset_menu.dm`
 
-DTO:
+Выдача комплекта:
 
-- `modular/rto_support/code/ui/ui_contracts.dm`
+- `modular/rto_support/code/items/rto_sling_pouch.dm`
+- `modular/rto_support/code/job/rto_integration.dm`
 
-Связанные документы:
+## 3. Как безопасно менять HUD
 
-- `modular/rto_support/__docs/RTO_SUPPORT_PLAYER_GUIDE.md`
-- `modular/rto_support/__docs/RTO_SUPPORT_BALANCE.md`
+Если меняешь action-кнопки:
 
-Если интерфейсу нужны новые поля, их добавляют сначала в DTO и backend-меню, а потом в JSX.
+- не переводи их на `item_action` без отдельного архитектурного решения;
+- не удаляй и не пересоздавай их на каждый hand swap;
+- используй `hide_from()` / `unhide_from()`;
+- не вычисляй cooldown UI вручную в action datum, если это уже делает controller state builder.
 
-Не нужно:
+## 4. Как безопасно менять utility-режимы
 
-- читать controller internals напрямую из TGUI;
-- делать frontend authoritative по кулдаунам;
-- привязывать JSX к конкретным типам DM-datum path.
+Если меняется `Координаты` или `Лазерная отметка`:
 
-## 6. Anti-patterns
+- логика режима остаётся в controller;
+- предмет отвечает только за реальное поведение бинокля и live overlay;
+- utility-режимы не должны уходить в cooldown;
+- отключение режима обязано снимать live marker без оставшегося мусора.
 
-### Controller-as-god-object
+## 5. Как безопасно менять sling pouch
 
-Плохой признак:
+`RTO sling pouch` — это не generic storage pouch.
 
-- controller начинает валидировать всё сам;
-- строит TGUI payload вручную;
-- dispatch-ит поддержку напрямую;
-- хранит UI-only state.
+Не ломать:
 
-### Singleton runtime reuse
+- привязку `paired_pouch <-> paired_binocular`;
+- запрет на чужие предметы;
+- запрет на ручной unsling;
+- возврат бинокля в pouch при drop flow.
 
-Не переиспользовать один mutable `datum/fire_support` между игроками. Текущая реализация специально создаёт свежий экземпляр на каждый вызов.
+Если меняется `drop_retrieval` или storage API, первым делом перепроверять именно этот комплект.
 
-### Upstream sprawl
+## 6. Как безопасно менять cooldown UI
 
-Не выносить бизнес-логику в `code/...`, если модульный override или локальный adapter уже решают задачу.
+Support button должен разделять:
 
-### Preset string-switch
+- состояние сектора;
+- общий cooldown пакета;
+- личный cooldown способности.
 
-Не добавлять разветвления вида:
+Не допускается возвращать старое поведение, где:
 
-- `if(template_id == "mortar")`
-- `switch(template_id)`
+- секторный recovery выглядит как общий cooldown способности;
+- visibility action показывает cooldown support ability.
 
-в core-runtime, если задача решается через subtype config datum.
+Если меняется UI-модель, менять сначала controller state builder, а не размазывать условия по action-классам.
 
-## 7. Проверки после апстрим-синка
+## 7. Checklist после правок
 
-Проверить:
+1. Взять бинокль в руку: кнопки появились.
+2. Убрать бинокль из рук: кнопки скрылись.
+3. `Координаты` не создают лазер и не выключаются после одного клика.
+4. `Лазерная отметка` не имеет cooldown и держит живой laser overlay.
+5. `Logistics` не показывает кнопку сектора.
+6. Visibility action не показывает shared cooldown поддержки.
+7. Zone-based support actions показывают сектор и cooldown'ы раздельно.
+8. Locker и equipped RTO получают `pouch + binocular`, а не loose binocular.
+9. Старый tactical binocular не вернулся в locker flow.
 
-1. не изменились ли контракты `datum/action`;
-2. не изменился ли binocular interaction flow;
-3. не изменились ли пути gear preset и locker override для RTO;
-4. не изменились ли `datum/fire_support` path и их expected behavior;
-5. не изменились ли TGUI build requirements.
+## 8. Проверки сборки
 
-## 8. Базовые команды проверки
-
-Из корня репозитория:
+Минимум:
 
 1. `tools\build\build.bat dm`
+
+Если были правки фронтенда:
+
 2. `tools\build\build.bat tgui-eslint`
 3. `tools\build\build.bat tgui`
-
-На текущем этапе именно эти проверки уже проходили на модуле без ошибок.
-
-## 9. Checklist перед review
-
-1. Новый код остался в `modular/rto_support/...`, если не было объективной причины идти в апстрим.
-2. Controller не получил лишние обязанности.
-3. Validation не создаёт side effects.
-4. Dispatch не принимает решение “можно/нельзя”.
-5. TGUI не знает о внутреннем хранении кулдаунов.
-6. Все новые player-facing правила отражены в документации.
-7. Если менялись численные параметры, обновлён `RTO_SUPPORT_BALANCE.md`.
-8. Если менялся реальный пользовательский цикл, обновлён `RTO_SUPPORT_PLAYER_GUIDE.md`.
-
-## 10. Известные точки роста
-
-- реактивное обновление action-кнопок вместо секундного timer refresh;
-- расширение под другие фракции;
-- более явная визуализация радиуса сектора;
-- дополнительные payload-типы для visibility zone.
-
-Добавлять это стоит только если новая функциональность реально окупает рост сложности.
