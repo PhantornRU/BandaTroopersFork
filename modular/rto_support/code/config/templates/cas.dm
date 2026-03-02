@@ -7,8 +7,8 @@
 	restriction_summary = "Требует открытого неба и более жёсткого темпа, чем mortar."
 	visibility_zone_type = "Air corridor"
 	visibility_zone_radius = 5
-	visibility_zone_duration = 50 SECONDS
-	visibility_zone_cooldown = 95 SECONDS
+	visibility_zone_duration = 200 SECONDS
+	visibility_zone_cooldown = 500 SECONDS
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/cas_gun_run,

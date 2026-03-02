@@ -3,8 +3,8 @@
 	name = "Supply drop"
 	description = "Долгий сброс ящика снабжения для пополнения всего отделения."
 	scatter = 1
-	shared_cooldown = 90 SECONDS
-	personal_cooldown = 480 SECONDS
+	shared_cooldown = 120 SECONDS
+	personal_cooldown = 600 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop
@@ -18,7 +18,7 @@
 	description = "Долгий сброс ящика с минами для подготовки позиции."
 	scatter = 1
 	shared_cooldown = 90 SECONDS
-	personal_cooldown = 360 SECONDS
+	personal_cooldown = 420 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/mine_crate
@@ -32,7 +32,7 @@
 	description = "Долгий сброс облегчённой мини-турели с урезанным боезапасом."
 	scatter = 1
 	shared_cooldown = 120 SECONDS
-	personal_cooldown = 480 SECONDS
+	personal_cooldown = 540 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/mini
@@ -45,8 +45,8 @@
 	name = "Full sentry drop"
 	description = "Самый редкий сброс полноценной турели с максимальным кулдауном в пакете."
 	scatter = 1
-	shared_cooldown = 150 SECONDS
-	personal_cooldown = 720 SECONDS
+	shared_cooldown = 180 SECONDS
+	personal_cooldown = 780 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/full

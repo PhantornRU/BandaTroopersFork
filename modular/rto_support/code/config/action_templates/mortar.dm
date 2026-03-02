@@ -3,8 +3,8 @@
 	name = "HE mortar"
 	description = "Частый одиночный осколочно-фугасный выстрел для точечного давления."
 	scatter = 4
-	shared_cooldown = 10 SECONDS
-	personal_cooldown = 24 SECONDS
+	shared_cooldown = 6 SECONDS
+	personal_cooldown = 14 SECONDS
 	category = "mortar"
 	icon_state = "he_mortar"
 	fire_support_path = /datum/fire_support/mortar/rto_single
@@ -14,8 +14,8 @@
 	name = "Smoke mortar"
 	description = "Самый частый одиночный дымовой выстрел для перекрытия проходов и отхода."
 	scatter = 3
-	shared_cooldown = 8 SECONDS
-	personal_cooldown = 18 SECONDS
+	shared_cooldown = 5 SECONDS
+	personal_cooldown = 10 SECONDS
 	category = "mortar"
 	icon_state = "smoke_mortar"
 	fire_support_path = /datum/fire_support/mortar/smoke/rto_single
@@ -25,8 +25,8 @@
 	name = "Incendiary mortar"
 	description = "Одиночный зажигательный выстрел для выжигания узкой зоны и сдерживания."
 	scatter = 4
-	shared_cooldown = 14 SECONDS
-	personal_cooldown = 32 SECONDS
+	shared_cooldown = 8 SECONDS
+	personal_cooldown = 18 SECONDS
 	category = "mortar"
 	icon_state = "incendiary_mortar"
 	fire_support_path = /datum/fire_support/mortar/incendiary/rto_single

@@ -7,8 +7,8 @@
 	restriction_summary = "Лучше всего работает как частая утилита по заранее выбранной зоне, а не как тяжёлый залп."
 	visibility_zone_type = "Illumination"
 	visibility_zone_radius = 7
-	visibility_zone_duration = 60 SECONDS
-	visibility_zone_cooldown = 35 SECONDS
+	visibility_zone_duration = 100 SECONDS
+	visibility_zone_cooldown = 300 SECONDS
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/mortar_he,
