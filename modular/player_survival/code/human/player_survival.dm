@@ -2,7 +2,7 @@
 	var/player_survival_damage_block_until = 0
 	var/player_survival_last_damage_block_log_until = 0
 
-/mob/living/carbon/human/proc/player_survival_can_prevent_gib()
+/mob/living/carbon/human/proc/player_survival_is_protected_player()
 	if(!client)
 		return FALSE
 	if(stat == DEAD || health <= HEALTH_THRESHOLD_DEAD)
@@ -60,14 +60,19 @@
 		TRUE
 	)
 
-/mob/living/carbon/human/proc/player_survival_log_antigib_fallback(datum/cause_data/cause, explosion_damage, obj/limb/detached_limb, previous_health)
+/mob/living/carbon/human/proc/player_survival_log_antigib_fallback(datum/cause_data/cause, explosion_damage, explosion_severity, anti_gib_triggered, obj/limb/detached_limb, previous_health)
 	var/area/current_area = get_area(src)
 	var/cause_name = cause?.cause_name || "unknown"
 	var/mob/cause_mob = cause?.resolve_mob()
 	var/source_log_text = cause_mob ? " by [key_name(cause_mob)]" : ""
 	var/source_admin_text = cause_mob ? " by [key_name_admin(cause_mob)]" : ""
-	var/trigger_text = isnull(explosion_damage) ? "gib()" : "explosion_damage=[explosion_damage]"
 	var/limb_text = detached_limb ? detached_limb.name : "none"
+	var/list/trigger_details = list("anti_gib_triggered=[anti_gib_triggered]")
+	if(!isnull(explosion_damage))
+		trigger_details += "explosion_damage=[explosion_damage]"
+	if(!isnull(explosion_severity))
+		trigger_details += "explosion_severity=[explosion_severity]"
+	var/trigger_text = trigger_details.Join("; ")
 
 	player_survival_log_event(
 		"[key_name(src)] avoided gib via player_survival from [cause_name][source_log_text] in [current_area] ([x],[y],[z]); [trigger_text]; health=[previous_health]=>[health]; limb=[limb_text].",
@@ -76,7 +81,7 @@
 	)
 
 /mob/living/carbon/human/proc/player_survival_is_damage_blocked()
-	if(!player_survival_can_prevent_gib())
+	if(!player_survival_is_protected_player())
 		return FALSE
 	return world.time <= player_survival_damage_block_until
 
@@ -112,14 +117,14 @@
 		limb_candidates += limb
 
 	if(!length(limb_candidates))
-		return FALSE
+		return null
 
 	var/obj/limb/selected_limb = pick(limb_candidates)
 	selected_limb.droplimb(FALSE, FALSE, cause)
-	return TRUE
+	return selected_limb
 
-/mob/living/carbon/human/proc/player_survival_apply_non_gib_fallback(datum/cause_data/cause, explosion_damage = null)
-	if(!player_survival_can_prevent_gib())
+/mob/living/carbon/human/proc/player_survival_apply_non_gib_fallback(datum/cause_data/cause, explosion_damage = null, explosion_severity = null, anti_gib_triggered = FALSE)
+	if(!player_survival_is_protected_player())
 		return FALSE
 
 	if(!istype(cause))
@@ -140,14 +145,13 @@
 	Stun(1 SECONDS)
 	KnockOut(0.5 SECONDS)
 
-	var/sufficient_for_limb_loss = isnull(explosion_damage) || explosion_damage >= EXPLOSION_THRESHOLD_GIB
 	var/obj/limb/detached_limb = null
-	if(sufficient_for_limb_loss && prob(30))
+	if(anti_gib_triggered && prob(30))
 		detached_limb = player_survival_detach_random_extremity(cause)
 
 	if(health <= HEALTH_THRESHOLD_CRIT)
 		player_survival_activate_crit_grace()
 
-	player_survival_log_antigib_fallback(cause, explosion_damage, detached_limb, previous_health)
+	player_survival_log_antigib_fallback(cause, explosion_damage, explosion_severity, anti_gib_triggered, detached_limb, previous_health)
 
 	return TRUE

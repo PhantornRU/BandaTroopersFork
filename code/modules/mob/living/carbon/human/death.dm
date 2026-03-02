@@ -1,6 +1,6 @@
 /mob/living/carbon/human/gib(datum/cause_data/cause = create_cause_data("gibbing", src))
 	// SS220 EDIT - START
-	if(player_survival_apply_non_gib_fallback(cause))
+	if(player_survival_apply_non_gib_fallback(cause, null, null, TRUE))
 		return
 	// SS220 EDIT - END
 	var/is_a_synth = issynth(src)
