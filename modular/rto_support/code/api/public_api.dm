@@ -1,14 +1,11 @@
 /// Returns the RTO support controller bound to a human.
-/// Skeleton stage: intentionally returns null.
 /proc/get_rto_support_controller(mob/living/carbon/human/human)
-	return null
+	return GLOB.rto_support_registry?.get_controller(human)
 
-/// Returns an existing controller or creates one in a future runtime stage.
-/// Skeleton stage: intentionally returns null.
+/// Returns an existing controller or creates one.
 /proc/ensure_rto_support_controller(mob/living/carbon/human/human)
-	return null
+	return GLOB.rto_support_registry?.ensure_controller(human)
 
-/// Removes the controller bound to a human in a future runtime stage.
-/// Skeleton stage: intentionally returns FALSE.
+/// Removes the controller bound to a human.
 /proc/remove_rto_support_controller(mob/living/carbon/human/human)
-	return FALSE
+	return GLOB.rto_support_registry?.remove_controller(human)

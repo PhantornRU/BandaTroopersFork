@@ -1,9 +1,8 @@
-/// Prepared request object passed from controller logic into the future dispatch adapter.
-/// Skeleton stage: metadata only.
+/// Prepared request object passed from controller logic into the dispatch adapter.
 /datum/rto_support_request
-	/// Human that initiated the future support call.
+	/// Human that initiated the support call.
 	var/mob/living/carbon/human/owner
-	/// Target turf chosen through the future binocular flow.
+	/// Target turf chosen through the binocular flow.
 	var/turf/target_turf
 	/// Template active for the owner at request time.
 	var/datum/rto_support_template/template
@@ -13,10 +12,27 @@
 	var/datum/rto_visibility_zone/visibility_zone
 	/// Adapter-facing key copied from the action template.
 	var/dispatch_key
-	/// Future scatter override or runtime-adjusted spread.
+	/// Path dispatched by the adapter.
+	var/dispatch_path
+	/// Runtime-adjusted spread applied to a fresh support instance.
 	var/scatter_override = 0
+	/// Human-readable name used in logs and ghost notifications.
+	var/display_name = ""
+	/// Request family: support or visibility payload.
+	var/request_kind = RTO_SUPPORT_REQUEST_SUPPORT
 
 /// Checks whether the request is structurally valid.
-/// Skeleton stage: intentionally returns FALSE.
 /datum/rto_support_request/proc/is_valid()
+	if(!owner || QDELETED(owner))
+		return FALSE
+	if(!target_turf || QDELETED(target_turf))
+		return FALSE
+	if(!template || QDELETED(template))
+		return FALSE
+	if(request_kind == RTO_SUPPORT_REQUEST_SUPPORT && (!action_template || QDELETED(action_template)))
+		return FALSE
+	if(dispatch_path)
+		return TRUE
+	if(action_template?.fire_support_path)
+		return TRUE
 	return FALSE

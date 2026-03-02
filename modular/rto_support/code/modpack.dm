@@ -1,6 +1,6 @@
 /datum/modpack/rto_support
 	name = "rto support modpack"
-	desc = "Каркас модульной системы поддержки для роли RTO без игровой логики."
+	desc = "Модульная система выбора и вызова огневой поддержки для роли RTO."
 	author = "OpenAI"
 
 /datum/modpack/rto_support/pre_initialize()
