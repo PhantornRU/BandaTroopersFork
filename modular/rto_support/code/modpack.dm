@@ -1,7 +1,7 @@
 /datum/modpack/rto_support
 	name = "rto support modpack"
 	desc = "Модульная система выбора и вызова огневой поддержки для роли RTO."
-	author = "OpenAI"
+	author = "PhantomRU"
 
 /datum/modpack/rto_support/pre_initialize()
 	. = ..()

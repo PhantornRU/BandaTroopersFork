@@ -245,16 +245,17 @@
 		disabled = TRUE
 		button_name = "[button_name] (Зона CD: [format_seconds(zone_ready_in)])"
 		set_button_countdown(format_seconds(zone_ready_in), "#c6c6c6")
-	else if(remaining_cooldown > 0)
-		disabled = TRUE
-		if(zone_required && zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE)
+	else if(zone_required && zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE)
+		if(remaining_cooldown > 0)
+			disabled = TRUE
 			button_name = "[button_name] (Зона: [format_seconds(zone_expires_in)], КД: [format_seconds(remaining_cooldown)])"
 		else
-			button_name = "[button_name] (КД: [format_seconds(remaining_cooldown)])"
-		set_button_countdown(format_seconds(remaining_cooldown), "#c6c6c6")
-	else if(zone_required && zone_state == RTO_SUPPORT_ZONE_STATE_ACTIVE)
-		button_name = "[button_name] (Зона: [format_seconds(zone_expires_in)])"
+			button_name = "[button_name] (Зона: [format_seconds(zone_expires_in)])"
 		set_button_countdown(format_seconds(zone_expires_in), "#7ee1ff")
+	else if(remaining_cooldown > 0)
+		disabled = TRUE
+		button_name = "[button_name] (КД: [format_seconds(remaining_cooldown)])"
+		set_button_countdown(format_seconds(remaining_cooldown), "#c6c6c6")
 	else if(zone_required)
 		disabled = TRUE
 		button_name = "[button_name] ([RTO_SUPPORT_STATUS_NO_ZONE])"
