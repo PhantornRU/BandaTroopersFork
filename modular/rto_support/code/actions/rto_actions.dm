@@ -188,7 +188,7 @@
 	var/list/state = controller.build_support_action_state(action_template.action_id)
 	var/button_state = state["is_armed"] ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
 	var/disabled = state["is_disabled"]
-	var/button_name = build_action_name(action_template.name, state["primary_label"], state["secondary_labels"])
+	var/button_name = build_action_name(action_template.name, state["primary_label"], null)
 
 	set_name(button_name)
 	set_button_state(button_state, disabled)

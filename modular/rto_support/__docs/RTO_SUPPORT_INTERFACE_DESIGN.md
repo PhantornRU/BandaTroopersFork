@@ -56,8 +56,6 @@ RTO HUD показывается только если:
 - `Активна`
 - `Нужен бинокль`
 - `Нет сектора`
-- `Сектор CD: Ns`
-- `Сектор: Ns`
 - `Общий КД: Ns`
 - `Личный КД: Ns`
 
@@ -81,19 +79,19 @@ RTO HUD показывается только если:
 
 Для `Mortar`, `CAS`, `Heavy Strike` support button ведёт себя так:
 
-1. если сектор на recovery:
-   primary label `Сектор CD: Ns`
-2. если сектор активен:
-   primary label `Сектор: Ns`
-3. если сектор не выставлен, но готов:
+1. если сектора нет или он не активен:
    primary label `Нет сектора`
+2. если сектор активен и у абилки есть cooldown:
+   primary label показывает только таймер самой абилки
+3. если сектор активен и cooldown нет:
+   primary label `Готово`
 
-Shared и personal cooldown'ы показываются как secondary labels:
+Shared и personal cooldown'ы не рисуются как secondary labels.
 
-- `Общий КД: Ns`
-- `Личный КД: Ns`
+Если одновременно активны local и shared cooldown:
 
-Они не должны заменять собой состояние сектора.
+- на кнопке показывается больший из двух;
+- при равенстве приоритет отдаётся local cooldown.
 
 ### Logistics
 
@@ -101,8 +99,9 @@ Shared и personal cooldown'ы показываются как secondary labels:
 
 Primary label:
 
-- `Общий КД: Ns`, если активен shared cooldown;
+- больший из `Общий КД: Ns` и `Личный КД: Ns`, если активны оба;
 - иначе `Личный КД: Ns`, если активен personal cooldown;
+- иначе `Общий КД: Ns`, если активен shared cooldown;
 - иначе `Готово`.
 
 ## 7. Utility modes

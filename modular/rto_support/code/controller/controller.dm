@@ -640,6 +640,25 @@
 			state["countdown_color"] = "#c6c6c6"
 	return state
 
+/datum/rto_support_controller/proc/get_displayed_ability_cooldown(action_id)
+	var/personal_cooldown_in = get_remaining_action_cooldown(action_id)
+	var/shared_cooldown_in = get_remaining_shared_cooldown()
+	var/list/result = list(
+		"kind" = "none",
+		"value" = 0
+	)
+
+	if(personal_cooldown_in <= 0 && shared_cooldown_in <= 0)
+		return result
+	if(personal_cooldown_in >= shared_cooldown_in && personal_cooldown_in > 0)
+		result["kind"] = "personal"
+		result["value"] = personal_cooldown_in
+		return result
+	if(shared_cooldown_in > 0)
+		result["kind"] = "shared"
+		result["value"] = shared_cooldown_in
+	return result
+
 /datum/rto_support_controller/proc/build_support_action_state(action_id)
 	var/datum/rto_support_action_template/action_template = active_template?.get_action_template(action_id)
 	var/zone_state = get_zone_state()
@@ -647,8 +666,8 @@
 	var/zone_expires_in = get_zone_expires_in()
 	var/shared_cooldown_in = get_remaining_shared_cooldown()
 	var/personal_cooldown_in = get_remaining_action_cooldown(action_id)
+	var/list/display_cooldown = get_displayed_ability_cooldown(action_id)
 	var/requires_zone = !!(action_template?.requires_visibility_zone && template_requires_zone())
-	var/list/secondary_labels = list()
 	var/list/state = list(
 		"has_binocular_in_hand" = has_rto_binocular_in_hand(),
 		"is_armed" = is_action_armed(action_id),
@@ -658,11 +677,13 @@
 		"zone_expires_in" = zone_expires_in,
 		"shared_cooldown_in" = shared_cooldown_in,
 		"personal_cooldown_in" = personal_cooldown_in,
+		"display_cooldown_kind" = display_cooldown["kind"],
+		"display_cooldown_in" = display_cooldown["value"],
 		"is_disabled" = FALSE,
 		"primary_label" = RTO_SUPPORT_STATUS_READY,
 		"countdown_text" = null,
 		"countdown_color" = "#f2f2f2",
-		"secondary_labels" = secondary_labels
+		"secondary_labels" = list()
 	)
 
 	if(!action_template)
@@ -681,47 +702,29 @@
 		return state
 
 	if(requires_zone)
-		if(personal_cooldown_in > 0)
-			secondary_labels += "Личный КД [action_template.name]: [round(personal_cooldown_in / 10)]s"
-		if(shared_cooldown_in > 0)
-			secondary_labels += "Общий КД пакета: [round(shared_cooldown_in / 10)]s"
-		switch(zone_state)
-			if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-				state["is_disabled"] = TRUE
-				state["primary_label"] = "Сектор CD: [round(zone_ready_in / 10)]s"
-				state["countdown_text"] = "[round(zone_ready_in / 10)]s"
-				state["countdown_color"] = "#c6c6c6"
-				return state
-			if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
-				state["primary_label"] = "Сектор: [round(zone_expires_in / 10)]s"
-				state["countdown_text"] = "[round(zone_expires_in / 10)]s"
-				state["countdown_color"] = "#7ee1ff"
-				if(shared_cooldown_in > 0 || personal_cooldown_in > 0)
-					state["is_disabled"] = TRUE
-				return state
-			if(RTO_SUPPORT_ZONE_STATE_READY)
-				state["is_disabled"] = TRUE
-				state["primary_label"] = RTO_SUPPORT_STATUS_NO_ZONE
-				state["countdown_text"] = "Z"
-				state["countdown_color"] = "#c6c6c6"
-				return state
-		state["is_disabled"] = TRUE
-		return state
+		if(zone_state != RTO_SUPPORT_ZONE_STATE_ACTIVE)
+			state["is_disabled"] = TRUE
+			state["primary_label"] = RTO_SUPPORT_STATUS_NO_ZONE
+			state["countdown_text"] = null
+			state["countdown_color"] = "#c6c6c6"
+			return state
 
-	if(personal_cooldown_in > 0)
-		state["is_disabled"] = TRUE
-		state["primary_label"] = "Личный КД: [round(personal_cooldown_in / 10)]s"
-		state["countdown_text"] = "[round(personal_cooldown_in / 10)]s"
-		state["countdown_color"] = "#c6c6c6"
-		if(shared_cooldown_in > 0)
-			secondary_labels += "Общий КД пакета: [round(shared_cooldown_in / 10)]s"
-		return state
-	if(shared_cooldown_in > 0)
-		state["is_disabled"] = TRUE
-		state["primary_label"] = "Общий КД: [round(shared_cooldown_in / 10)]s"
-		state["countdown_text"] = "[round(shared_cooldown_in / 10)]s"
-		state["countdown_color"] = "#c6c6c6"
-		return state
+	switch(display_cooldown["kind"])
+		if("personal")
+			var/display_personal = round(display_cooldown["value"] / 10)
+			state["is_disabled"] = TRUE
+			state["primary_label"] = "Личный КД: [display_personal]s"
+			state["countdown_text"] = "[display_personal]s"
+			state["countdown_color"] = "#c6c6c6"
+			return state
+		if("shared")
+			var/display_shared = round(display_cooldown["value"] / 10)
+			state["is_disabled"] = TRUE
+			state["primary_label"] = "Общий КД: [display_shared]s"
+			state["countdown_text"] = "[display_shared]s"
+			state["countdown_color"] = "#c6c6c6"
+			return state
+
 	return state
 
 /datum/rto_support_controller/proc/get_action_block_messages(action_id)
