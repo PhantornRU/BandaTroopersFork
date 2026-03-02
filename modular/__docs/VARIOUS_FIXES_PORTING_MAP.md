@@ -388,3 +388,70 @@ git merge --abort
    - `smgs.dm`
    - `maps/lv759_hybrisa_prospera*.json`
    - `maps/map_files/LV759_Hybrisa_Prospera*`
+
+## Пересборка истории порта от 2026-03-02
+
+Пакет `#1239 + #1250 + #1235 + #1128 + #1252` был не просто перенесен как один squash-like набор, а затем
+пересобран в историю, где сохранены authored commits исходных PR, а ручная интеграция вынесена отдельно.
+
+Что сделано:
+- сначала были replay'нуты authored non-merge commits из:
+  - `pr-1148..pr-1239`
+  - `cm-pve/master..pr-1250`
+  - `cm-pve/master..pr-1235`
+  - `cm-pve/master..pr-1128`
+  - `cm-pve/master..pr-1252`
+- затем поверх них был наложен отдельный интеграционный fix-коммит:
+  - `fbe6292953` `Resolve port conflicts and restore integrated hardcode state`
+
+Почему это важно:
+- пользовательское требование для этой ветки: сохранять authored commits авторов исходных PR;
+- все реальные conflict-resolution и hardcode-актуализации должны быть видны отдельно от исходной авторской истории;
+- при будущих перепортах это место нужно воспринимать как canonical branch state, а не как случайный локальный rework.
+
+Важное исключение:
+- из follow-up ветки `#1239` сознательно не переносился `978ab70ce4` `Update rust_g 3.3.0 to 4.2.0 (#11327)`;
+- причина: это incidental base-branch baggage, а не смысловой hAI follow-up для `various_fixes`.
+
+Практический вывод:
+- если эту пачку придется переносить заново, сначала нужно восстанавливать authored history;
+- только после этого накладывать отдельный интеграционный fix-commit в духе `fbe6292953`.
+
+## TGUI/CI фиксы от 2026-03-02
+
+После пересборки истории локальный CI упал не на DM/map-части, а на `tgui`.
+
+### 1. `0bc7f8b5c7`
+
+- commit: `Fix HumanAISpawner preset typing for tgui-tsc`
+- файл:
+  - `tgui/packages/tgui/interfaces/HumanAISpawner.tsx`
+- суть:
+  - в `AIEquipmentPreset` добавлено поле `faction: string`
+- причина:
+  - UI уже использовал `chosenPreset.faction`, но локальный TS type этого поля не описывал;
+  - backend реально отдает это поле через preset dictionary, поэтому fix типовой, а не behavioral.
+
+### 2. `d4dadd3252`
+
+- commit: `Format Orbit UI file for prettier CI`
+- файл:
+  - `tgui/packages/tgui/interfaces/Orbit/index.tsx`
+- суть:
+  - файл приведен к текущему `prettier`-формату
+- причина:
+  - CI падал на `tgui-prettier`;
+  - commit не вносит смысловых изменений в поведение Orbit UI.
+
+### 3. Актуальный статус локального CI после фиксов
+
+Проверено локально:
+- `check_filedirs.sh colonialmarines.dme` — проходит
+- `validate_dme.py < colonialmarines.dme` — проходит
+- `tools/build/build.bat --ci tgui-tsc` — проходит после `0bc7f8b5c7`
+- `tools/build/build.bat --ci tgui-prettier` — проходит после `d4dadd3252`
+- `tools/bootstrap/python -m mapmerge2.dmm_test` — проходит
+
+Если похожий CI-fail повторится в будущем, сначала проверять:
+- `tgui/packages/tgui/interfaces/HumanAISpawner.tsx`
+- `tgui/packages/tgui/interfaces/Orbit/index.tsx`
