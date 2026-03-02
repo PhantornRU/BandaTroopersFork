@@ -455,3 +455,94 @@ git merge --abort
 Если похожий CI-fail повторится в будущем, сначала проверять:
 - `tgui/packages/tgui/interfaces/HumanAISpawner.tsx`
 - `tgui/packages/tgui/interfaces/Orbit/index.tsx`
+
+## Порт `ss220club/BandaTroopers#20` от 2026-03-02
+
+Источник:
+- `ss220club/BandaTroopers#20`
+- https://github.com/ss220club/BandaTroopers/pull/20
+- локальные refs:
+  - `pr-bt-20`
+  - `tm-20`
+- важный факт:
+  - `pr-bt-20` и `tm-20` указывают на один и тот же head `bf2116ef37`
+
+### Что именно перенесено
+
+PR добавляет CANC Dogwar пакет в hardcode:
+- новую фракцию `FACTION_CANC_DOGWAR`;
+- paygrades, skills и faction datum;
+- gear presets `canc_dogwar`;
+- human AI presets и squad presets для CANC Dogwar;
+- CANC radio/encryption/headset support;
+- CANC PF-199 disposable AT launcher;
+- связанные icon/dmi изменения;
+- DME include entries.
+
+### Авторские коммиты PR и их локальные replay-коммиты
+
+В `various_fixes` перенесены authored non-merge commits PR:
+
+1. original `48d679d005` `initial`
+   - local replay: `621b240f41`
+2. original `e45757c663` `renaming rebels`
+   - local replay: `e1694e63a4`
+3. original `d2b76f3af9` `fixes`
+   - local replay: `1080aa19ad`
+4. original `12752fbb45` `makes pf199 weaker`
+   - local replay: `4e56796a5a`
+5. original `bf2116ef37` `changes for AT gear presets`
+   - local replay: `6beea3388a`
+
+### Отдельный интеграционный fix-коммит
+
+- `6cd6d898e1` `Fix PR20 integration conflicts and tgui radio styles`
+
+Что исправляет этот commit:
+- удаляет невалидный duplicate alias-block `RADIO_CHANNEL_CANC = ...` из `code/controllers/subsystem/communications.dm`
+  - причина: в `code/__DEFINES/radio.dm` определены `RADIO_CHANNEL_CANC_GEN/_CMD/_MED/_ENGI/_SOF`, но не `RADIO_CHANNEL_CANC`;
+  - оставленный как есть блок давал бы несогласованный branch state и лишний риск compile/runtime проблем;
+- привязывает `code/modules/mob/living/carbon/human/ai/squad_spawner/squad_canc.dm` к `FACTION_CANC_DOGWAR`, а не к сырой строке;
+- закрывает SCSS-регрессию после merge-resolution в:
+  - `tgui/packages/tgui-panel/styles/goon/chat-dark.scss`
+  - `tgui/packages/tgui-panel/styles/goon/chat-light.scss`
+  - причина: `.cancradio` оказался вложен в незакрытый `.opformerc`, из-за чего валился `tgui-prettier`.
+
+### Какие конфликты пришлось сводить вручную при переносе
+
+Первый authored commit `48d679d005` конфликтовал в:
+
+1. `code/__DEFINES/mode.dm`
+   - решение:
+     - сохранить текущие веточные additions (`FIL`, `NSPA`, SS220 role-list edits);
+     - дополнительно добавить `FACTION_CANC_DOGWAR` в `FACTION_LIST_HUMANOID`;
+     - сохранить `FACTION_LIST_CANC = list(FACTION_CANC, FACTION_CANC_DOGWAR)`.
+2. `code/controllers/subsystem/communications.dm`
+   - решение:
+     - сохранить текущие FIL/SS220 radio changes;
+     - добавить CANC frequencies, channels, spans и `CANC_FREQS`;
+     - не возвращать старый `CLF_MED`.
+3. `tgui/packages/tgui-panel/styles/goon/chat-dark.scss`
+4. `tgui/packages/tgui-panel/styles/goon/chat-light.scss`
+   - решение:
+     - сохранить текущие squad-color overrides;
+     - добавить отдельный `.cancradio`;
+     - не затирать существующий `.opformerc`.
+
+Практический вывод:
+- этот PR нужно переносить не как "выбрать theirs", а как additive merge поверх уже существующих FIL/TM/tgui правок;
+- самый рискованный файл здесь не только `rocket_launcher.dm`, но и `communications.dm`, потому что там легко оставить невалидный alias state.
+
+### Что проверено после порта
+
+Локально проверено на итоговом состоянии с authored commits + `6cd6d898e1`:
+- `git diff --check` — проходит
+- `bash tools/ci/check_filedirs.sh colonialmarines.dme` — проходит
+- `validate_dme.py < colonialmarines.dme` — проходит
+- `tools/build/build.bat --ci lint tgui-test` — проходит
+
+Если этот порт придется повторять заново:
+1. fetch'ить именно `pull/20/head` в отдельный ref;
+2. replay'ить authored non-merge commits;
+3. затем отдельно повторять интеграционный fix по `communications.dm`, `squad_canc.dm` и `chat-*.scss`;
+4. после этого обязательно прогонять `lint tgui-test`, потому что SCSS ошибка проявилась только на CI-подобном прогоне.
