@@ -37,12 +37,11 @@
 		if(!M || !O) //Extra check in case the mob was deleted while we were transfering.
 			return
 		// SS220 EDIT - START
-		// change_ckey(M, O.ckey)
 		if(ishuman(M) && M.stat == DEAD)
 			var/mob/living/carbon/human/H = M
 			H.player_survival_mark_admin_second_chance_pending(src, O)
-		change_ckey(M, O.ckey)
 		// SS220 EDIT - END
+		change_ckey(M, O.ckey)
 	else return
 
 /client/proc/cmd_admin_check_contents(mob/living/M as mob in GLOB.living_mob_list)

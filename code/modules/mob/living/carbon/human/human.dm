@@ -152,9 +152,7 @@
 	if(player_survival_is_damage_blocked())
 		player_survival_log_damage_block("ex_act", damage, BRUTE, severity)
 		return
-	// SS220 EDIT - END
-
-	// SS220 EDIT - START
+		
 	if((severity >= EXPLOSION_THRESHOLD_GIB || damage >= EXPLOSION_THRESHOLD_GIB) && player_survival_apply_non_gib_fallback(last_damage_data, damage))
 		return
 	// SS220 EDIT - END
