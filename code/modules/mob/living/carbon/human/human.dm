@@ -150,14 +150,16 @@
 
 	// SS220 EDIT - START
 	if(player_survival_is_damage_blocked())
+		player_survival_log_damage_block("ex_act", damage, BRUTE, severity)
+		return
+	// SS220 EDIT - END
+
+	// SS220 EDIT - START
+	if((severity >= EXPLOSION_THRESHOLD_GIB || damage >= EXPLOSION_THRESHOLD_GIB) && player_survival_apply_non_gib_fallback(last_damage_data, damage))
 		return
 	// SS220 EDIT - END
 
 	if(damage >= EXPLOSION_THRESHOLD_GIB)
-		// SS220 EDIT - START
-		if(player_survival_apply_non_gib_fallback(last_damage_data, damage))
-			return
-		// SS220 EDIT - END
 		var/oldloc = loc
 		gib(last_damage_data)
 		create_shrapnel(oldloc, rand(5, 9), direction, 45, /datum/ammo/bullet/shrapnel/light/human, last_damage_data)
@@ -1734,4 +1736,3 @@
 	update_execute_hud()
 
 	return .
-

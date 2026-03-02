@@ -420,6 +420,7 @@ This function restores all limbs.
 )
 	// SS220 EDIT - START
 	if(damage > 0 && player_survival_is_damage_blocked())
+		player_survival_log_damage_block("apply_damage", damage, damagetype)
 		return FALSE
 	// SS220 EDIT - END
 	if(protection_aura && damage > 0)
