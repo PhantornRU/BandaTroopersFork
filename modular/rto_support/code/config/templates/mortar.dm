@@ -3,11 +3,11 @@
 	name = "Mortar"
 	description = "Частый утилитарный пакет с одиночными HE, дымовыми и зажигательными минами."
 	role_summary = "Частое давление, дым и сдерживание проходов одиночными минами."
-	targeting_summary = "Сначала разверните сектор, затем быстро вызывайте одиночные миномётные выстрелы внутри него."
-	restriction_summary = "Лучше всего работает как частая утилита по заранее выбранной зоне, а не как тяжёлый залп."
+	targeting_summary = "Сначала разверните сектор, затем спамьте одиночные миномётные выстрелы короткими интервалами, пока зона активна."
+	restriction_summary = "Лучше всего работает как частая утилита по заранее выбранной зоне, где важно быстро отстреляться до длинной перезарядки."
 	visibility_zone_type = "Illumination"
 	visibility_zone_radius = 7
-	visibility_zone_duration = 100 SECONDS
+	visibility_zone_duration = 30 SECONDS
 	visibility_zone_cooldown = 300 SECONDS
 	category = "support"
 	action_template_types = list(

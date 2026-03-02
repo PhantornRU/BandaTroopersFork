@@ -3,8 +3,8 @@
 	name = "Missile strike"
 	description = "Редкий мощный ракетный удар по точке."
 	scatter = 2
-	shared_cooldown = 32 SECONDS
-	personal_cooldown = 130 SECONDS
+	shared_cooldown = 16 SECONDS
+	personal_cooldown = 20 SECONDS
 	category = "heavy"
 	icon_state = "missile"
 	fire_support_path = /datum/fire_support/missile
@@ -15,8 +15,8 @@
 	name = "Napalm strike"
 	description = "Напалмовый удар по компактной зоне."
 	scatter = 3
-	shared_cooldown = 38 SECONDS
-	personal_cooldown = 160 SECONDS
+	shared_cooldown = 18 SECONDS
+	personal_cooldown = 22 SECONDS
 	category = "heavy"
 	icon_state = "napalm_missile"
 	fire_support_path = /datum/fire_support/missile/napalm

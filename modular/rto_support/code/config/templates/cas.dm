@@ -4,10 +4,10 @@
 	description = "Точный авиационный пакет для среднего по редкости штурмового сопровождения."
 	role_summary = "Точечная авиационная поддержка для быстрого продавливания."
 	targeting_summary = "Сначала разверните сектор, затем наводите авиаудары в его пределах."
-	restriction_summary = "Требует открытого неба и более жёсткого темпа, чем mortar."
+	restriction_summary = "Требует открытого неба и умеренного темпа: удары идут чаще heavy, но реже mortar."
 	visibility_zone_type = "Air corridor"
 	visibility_zone_radius = 5
-	visibility_zone_duration = 200 SECONDS
+	visibility_zone_duration = 60 SECONDS
 	visibility_zone_cooldown = 500 SECONDS
 	category = "support"
 	action_template_types = list(
