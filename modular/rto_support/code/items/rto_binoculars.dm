@@ -49,10 +49,15 @@
 	var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
 	if(!controller)
 		return
+	. += SPAN_NOTICE("Использование: выберите пакет, разверните сектор, вооружите поддержку и наведите точку через Ctrl+Click во время зума.")
 	if(controller.active_template)
 		. += SPAN_NOTICE("Текущий пакет: [controller.active_template.name].")
+	else
+		. += SPAN_NOTICE("Пакет поддержки ещё не выбран.")
 	if(controller.get_active_zone())
 		. += SPAN_NOTICE("Сектор наведения активен.")
+	else if(controller.active_template)
+		. += SPAN_NOTICE("Сектор наведения не развернут.")
 	if(controller.armed_action_id)
 		. += SPAN_NOTICE("Бинокль готов принять целеуказание.")
 

@@ -32,7 +32,7 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 		return controller
 	controller = new(human)
 	controllers[human] = controller
-	RegisterSignal(human, COMSIG_PARENT_QDELETING, PROC_REF(handle_owner_deleted))
+	register_owner_signals(human)
 	controller.ensure_runtime()
 	return controller
 
@@ -44,7 +44,7 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	controllers -= human
 	if(controller)
 		qdel(controller)
-	UnregisterSignal(human, COMSIG_PARENT_QDELETING)
+	unregister_owner_signals(human)
 	return TRUE
 
 /// Clears all tracked controllers.
@@ -58,3 +58,46 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 /datum/rto_support_registry/proc/handle_owner_deleted(mob/living/carbon/human/human)
 	SIGNAL_HANDLER
 	remove_controller(human)
+
+/datum/rto_support_registry/proc/handle_owner_death(mob/living/carbon/human/human)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_owner_death()
+
+/datum/rto_support_registry/proc/handle_owner_revived(mob/living/carbon/human/human)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_owner_revived()
+
+/datum/rto_support_registry/proc/handle_owner_inventory_changed(mob/living/carbon/human/human, obj/item/changed_item)
+	SIGNAL_HANDLER
+	var/datum/rto_support_controller/controller = get_controller(human)
+	controller?.handle_inventory_changed(changed_item)
+
+/datum/rto_support_registry/proc/register_owner_signals(mob/living/carbon/human/human)
+	if(!human)
+		return FALSE
+	RegisterSignal(human, COMSIG_PARENT_QDELETING, PROC_REF(handle_owner_deleted))
+	RegisterSignal(human, COMSIG_MOB_DEATH, PROC_REF(handle_owner_death))
+	RegisterSignal(human, COMSIG_HUMAN_REVIVED, PROC_REF(handle_owner_revived))
+	RegisterSignal(human, list(
+		COMSIG_HUMAN_EQUIPPED_ITEM,
+		COMSIG_HUMAN_UNEQUIPPED_ITEM,
+		COMSIG_MOB_PICKUP_ITEM,
+		COMSIG_MOB_ITEM_DROPPED,
+	), PROC_REF(handle_owner_inventory_changed))
+	return TRUE
+
+/datum/rto_support_registry/proc/unregister_owner_signals(mob/living/carbon/human/human)
+	if(!human)
+		return FALSE
+	UnregisterSignal(human, list(
+		COMSIG_PARENT_QDELETING,
+		COMSIG_MOB_DEATH,
+		COMSIG_HUMAN_REVIVED,
+		COMSIG_HUMAN_EQUIPPED_ITEM,
+		COMSIG_HUMAN_UNEQUIPPED_ITEM,
+		COMSIG_MOB_PICKUP_ITEM,
+		COMSIG_MOB_ITEM_DROPPED,
+	))
+	return TRUE

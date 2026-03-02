@@ -21,7 +21,7 @@
 - серверная валидация сектора, LOS, потолков и кулдаунов;
 - dispatch через свежие экземпляры `datum/fire_support`;
 - модульная интеграция с loadout и шкафчиком RTO;
-- документация по архитектуре, UI, балансу и сопровождению.
+- документация по архитектуре, UI, балансу, player-flow и сопровождению.
 
 Не реализованы:
 
@@ -33,12 +33,16 @@
 ## Что читать
 
 1. [RTO_SUPPORT_GAME_DESIGN.md](RTO_SUPPORT_GAME_DESIGN.md)
-   Продуктовая модель роли, набор пресетов, параметры и балансные допущения.
-2. [RTO_SUPPORT_TECHNICAL_DESIGN.md](RTO_SUPPORT_TECHNICAL_DESIGN.md)
+   Продуктовая модель роли и назначение стартовых пакетов.
+2. [RTO_SUPPORT_PLAYER_GUIDE.md](RTO_SUPPORT_PLAYER_GUIDE.md)
+   Короткая памятка для игрока: как реально пользоваться системой в раунде.
+3. [RTO_SUPPORT_BALANCE.md](RTO_SUPPORT_BALANCE.md)
+   Численные параметры пакетов, приоритеты тюнинга и балансные риски.
+4. [RTO_SUPPORT_TECHNICAL_DESIGN.md](RTO_SUPPORT_TECHNICAL_DESIGN.md)
    Архитектура модуля, runtime-flow, контракты datums и точки интеграции.
-3. [RTO_SUPPORT_INTERFACE_DESIGN.md](RTO_SUPPORT_INTERFACE_DESIGN.md)
+5. [RTO_SUPPORT_INTERFACE_DESIGN.md](RTO_SUPPORT_INTERFACE_DESIGN.md)
    Реализованный интерфейс выбора пресета, состояние action-кнопок и binocular-flow.
-4. [RTO_SUPPORT_MAINTENANCE.md](RTO_SUPPORT_MAINTENANCE.md)
+6. [RTO_SUPPORT_MAINTENANCE.md](RTO_SUPPORT_MAINTENANCE.md)
    Правила расширения, анти-паттерны, checklist сопровождения и команды проверки.
 
 ## Краткий словарь

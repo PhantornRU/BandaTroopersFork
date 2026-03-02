@@ -6,6 +6,10 @@
 	var/name = "RTO Support Template"
 	/// Design description shown in the preset menu.
 	var/description = ""
+	/// Short gameplay summary shown in the preset menu.
+	var/role_summary = ""
+	/// Targeting summary shown in the preset menu.
+	var/targeting_summary = ""
 	/// Display name for the visibility sector action.
 	var/visibility_zone_name = "Развернуть сектор наведения"
 	/// Short description of the sector type for UI.
@@ -54,11 +58,14 @@
 	entry.template_id = template_id
 	entry.name = name
 	entry.description = description
+	entry.role_summary = role_summary
+	entry.targeting_summary = targeting_summary
 	entry.visibility_zone_name = visibility_zone_name
 	entry.visibility_zone_type = visibility_zone_type
 	entry.visibility_zone_radius = visibility_zone_radius
 	entry.visibility_zone_duration = visibility_zone_duration
 	entry.visibility_zone_cooldown = visibility_zone_cooldown
+	entry.visibility_altitude_requirement = visibility_altitude_requirement
 	entry.actions = list()
 	for(var/datum/rto_support_action_template/action_template as anything in action_templates)
 		var/datum/rto_support_ui_action_entry/action_entry = action_template.build_ui_entry()
@@ -69,6 +76,8 @@
 	template_id = "mortar"
 	name = "Mortar"
 	description = "Площадной пакет с большим разбросом, дымом и зажигательными снарядами."
+	role_summary = "Контроль площади, дым и выжигание проходов."
+	targeting_summary = "Лучше всего работает по заранее выбранной зоне, где нужно долго держать давление."
 	visibility_zone_type = "Illumination"
 	visibility_zone_radius = 7
 	visibility_zone_duration = 90 SECONDS
@@ -85,6 +94,8 @@
 	template_id = "cas"
 	name = "CAS"
 	description = "Точный авиационный пакет для штурмового сопровождения."
+	role_summary = "Точечная авиационная поддержка для быстрого продавливания."
+	targeting_summary = "Требует открытого неба и хорошего обзора на точку захода."
 	visibility_zone_type = "Air corridor"
 	visibility_zone_radius = 5
 	visibility_zone_duration = 90 SECONDS
@@ -101,6 +112,8 @@
 	template_id = "heavy"
 	name = "Heavy Strike"
 	description = "Редкие тяжёлые удары с малым разбросом и длинными кулдаунами."
+	role_summary = "Редкие, дорогие по кулдауну тяжёлые удары по приоритетным целям."
+	targeting_summary = "Лучше всего использовать по заранее подтверждённым точкам с открытым небом."
 	visibility_zone_type = "Strike window"
 	visibility_zone_radius = 4
 	visibility_zone_duration = 90 SECONDS
@@ -116,6 +129,8 @@
 	template_id = "logistics"
 	name = "Logistics"
 	description = "Логистический пакет для выгрузки припасов и турелей."
+	role_summary = "Утилитарная поддержка для снабжения и развёртывания позиции."
+	targeting_summary = "Требует открытой площадки и не подходит для закрытых тайлов."
 	visibility_zone_name = "Подготовить зону выгрузки"
 	visibility_zone_type = "Landing window"
 	visibility_zone_radius = 6

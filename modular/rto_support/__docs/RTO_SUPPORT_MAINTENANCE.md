@@ -69,6 +69,11 @@ DTO:
 
 - `modular/rto_support/code/ui/ui_contracts.dm`
 
+Связанные документы:
+
+- `modular/rto_support/__docs/RTO_SUPPORT_PLAYER_GUIDE.md`
+- `modular/rto_support/__docs/RTO_SUPPORT_BALANCE.md`
+
 Если интерфейсу нужны новые поля, их добавляют сначала в DTO и backend-меню, а потом в JSX.
 
 Не нужно:
@@ -133,6 +138,8 @@ DTO:
 4. Dispatch не принимает решение “можно/нельзя”.
 5. TGUI не знает о внутреннем хранении кулдаунов.
 6. Все новые player-facing правила отражены в документации.
+7. Если менялись численные параметры, обновлён `RTO_SUPPORT_BALANCE.md`.
+8. Если менялся реальный пользовательский цикл, обновлён `RTO_SUPPORT_PLAYER_GUIDE.md`.
 
 ## 10. Известные точки роста
 

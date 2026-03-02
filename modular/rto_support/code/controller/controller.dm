@@ -36,6 +36,7 @@
 	. = ..()
 
 /datum/rto_support_controller/Destroy()
+	runtime_initialized = FALSE
 	disarm_action()
 	if(ui_refresh_timer_id)
 		deltimer(ui_refresh_timer_id)
@@ -71,6 +72,10 @@
 	sync_actions()
 	refresh_action_handles()
 	return TRUE
+
+/// Returns whether the current owner is still a valid RTO holder for this controller.
+/datum/rto_support_controller/proc/has_required_role()
+	return owner && !QDELETED(owner) && owner.job == JOB_SQUAD_RTO
 
 /// Returns all templates available to the owner.
 /datum/rto_support_controller/proc/get_available_templates()
@@ -113,6 +118,23 @@
 	if(active_zone && !active_zone.is_active())
 		clear_active_zone()
 	return active_zone
+
+/// Reconciles controller runtime state with current owner state.
+/datum/rto_support_controller/proc/sync_runtime_state()
+	if(!owner || QDELETED(owner))
+		return FALSE
+	if(!has_required_role())
+		reset_armed_action()
+		clear_active_zone()
+		clear_actions()
+		return FALSE
+	if(owner.stat == DEAD)
+		reset_armed_action()
+		clear_active_zone()
+	if(armed_action_id && !has_rto_binocular())
+		reset_armed_action()
+	get_active_zone()
+	return TRUE
 
 /// Checks whether the owner may deploy a visibility zone.
 /datum/rto_support_controller/proc/can_deploy_zone()
@@ -181,10 +203,16 @@
 
 /// Clears the current armed action.
 /datum/rto_support_controller/proc/disarm_action()
+	if(!reset_armed_action())
+		return FALSE
+	refresh_action_handles()
+	return TRUE
+
+/// Clears the current armed action without refreshing the HUD.
+/datum/rto_support_controller/proc/reset_armed_action()
 	if(!armed_action_id)
 		return FALSE
 	armed_action_id = null
-	refresh_action_handles()
 	return TRUE
 
 /// Handles a turf chosen through the RTO binocular flow.
@@ -357,12 +385,44 @@
 /datum/rto_support_controller/proc/refresh_action_handles()
 	if(!runtime_initialized)
 		return
-	get_active_zone()
+	if(!sync_runtime_state())
+		return
+	sync_actions()
 	for(var/datum/action/human_action/rto/action as anything in action_handles.Copy())
 		if(!action || QDELETED(action))
 			action_handles -= action
 			continue
 		action.refresh_from_controller()
+
+/// Clears temporary state that should not survive owner death.
+/datum/rto_support_controller/proc/handle_owner_death()
+	reset_armed_action()
+	clear_active_zone()
+	refresh_action_handles()
+	return TRUE
+
+/// Rebuilds HUD state after owner revival.
+/datum/rto_support_controller/proc/handle_owner_revived()
+	if(!ensure_runtime())
+		return FALSE
+	sync_actions()
+	refresh_action_handles()
+	return TRUE
+
+/// Reconciles armed state after inventory changes.
+/datum/rto_support_controller/proc/handle_inventory_changed(obj/item/changed_item)
+	if(!runtime_initialized)
+		return FALSE
+	if(changed_item && !istype(changed_item, /obj/item/device/binoculars/rto) && !armed_action_id)
+		return FALSE
+	var/had_armed_action = !!armed_action_id
+	var/has_binocular = has_rto_binocular()
+	if(had_armed_action && !has_binocular)
+		reset_armed_action()
+		if(owner && owner.stat != DEAD)
+			to_chat(owner, SPAN_WARNING("RTO-бинокль недоступен. Наведение отменено."))
+	refresh_action_handles()
+	return TRUE
 
 /datum/rto_support_controller/proc/get_remaining_shared_cooldown()
 	return max(0, shared_cooldown_until - world.time)

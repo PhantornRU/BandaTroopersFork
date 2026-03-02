@@ -41,6 +41,8 @@
 	entry.personal_cooldown = personal_cooldown
 	entry.requires_visibility_zone = requires_visibility_zone
 	entry.icon_state = icon_state
+	entry.altitude_requirement = altitude_requirement
+	entry.allow_closed_turf = allow_closed_turf
 	return entry
 
 /datum/rto_support_action_template/mortar_he

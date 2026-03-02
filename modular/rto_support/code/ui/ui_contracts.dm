@@ -3,11 +3,14 @@
 	var/template_id
 	var/name = ""
 	var/description = ""
+	var/role_summary = ""
+	var/targeting_summary = ""
 	var/visibility_zone_name = ""
 	var/visibility_zone_type = ""
 	var/visibility_zone_radius = 0
 	var/visibility_zone_duration = 0
 	var/visibility_zone_cooldown = 0
+	var/visibility_altitude_requirement = RTO_SUPPORT_ALTITUDE_ANY
 	var/list/actions = list()
 
 /// Converts the DTO into a list for the preset TGUI.
@@ -16,11 +19,14 @@
 		"template_id" = template_id,
 		"name" = name,
 		"description" = description,
+		"role_summary" = role_summary,
+		"targeting_summary" = targeting_summary,
 		"visibility_zone_name" = visibility_zone_name,
 		"visibility_zone_type" = visibility_zone_type,
 		"visibility_zone_radius" = visibility_zone_radius,
 		"visibility_zone_duration" = round(visibility_zone_duration / 10),
 		"visibility_zone_cooldown" = round(visibility_zone_cooldown / 10),
+		"visibility_altitude_requirement" = visibility_altitude_requirement,
 		"actions" = actions,
 	)
 
@@ -35,6 +41,8 @@
 	var/personal_cooldown = 0
 	var/requires_visibility_zone = TRUE
 	var/icon_state = null
+	var/altitude_requirement = RTO_SUPPORT_ALTITUDE_ANY
+	var/allow_closed_turf = TRUE
 
 /// Converts the DTO into a list for the preset TGUI.
 /datum/rto_support_ui_action_entry/proc/to_list()
@@ -48,4 +56,6 @@
 		"personal_cooldown" = round(personal_cooldown / 10),
 		"requires_visibility_zone" = requires_visibility_zone,
 		"icon_state" = icon_state,
+		"altitude_requirement" = altitude_requirement,
+		"allow_closed_turf" = allow_closed_turf,
 	)

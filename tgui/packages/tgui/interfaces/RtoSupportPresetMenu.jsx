@@ -2,6 +2,12 @@ import { useBackend } from '../backend';
 import { Box, Button, Divider, LabeledList, NoticeBox, Section, Stack } from '../components';
 import { Window } from '../layouts';
 
+const altitudeLabel = (altitudeRequirement) =>
+  altitudeRequirement === 'high' ? 'Требует открытого неба' : 'Любая видимая точка';
+
+const targetLabel = (allowClosedTurf) =>
+  allowClosedTurf ? 'Можно по закрытым тайлам' : 'Только открытый тайл';
+
 const ActionCard = (props) => {
   const { action } = props;
 
@@ -31,6 +37,12 @@ const ActionCard = (props) => {
         <LabeledList.Item label="Личный КД">
           {action.personal_cooldown} сек.
         </LabeledList.Item>
+        <LabeledList.Item label="Высотное окно">
+          {altitudeLabel(action.altitude_requirement)}
+        </LabeledList.Item>
+        <LabeledList.Item label="Тип цели">
+          {targetLabel(action.allow_closed_turf)}
+        </LabeledList.Item>
       </LabeledList>
     </Box>
   );
@@ -56,6 +68,12 @@ const TemplateCard = (props) => {
         </Button>
       )}>
       <Box mb={1}>{template.description}</Box>
+      <NoticeBox mb={1}>
+        <Box bold mb={0.5}>
+          Роль пакета
+        </Box>
+        <Box>{template.role_summary}</Box>
+      </NoticeBox>
       <LabeledList>
         <LabeledList.Item label="Сектор">
           {template.visibility_zone_name}
@@ -71,6 +89,12 @@ const TemplateCard = (props) => {
         </LabeledList.Item>
         <LabeledList.Item label="Кулдаун сектора">
           {template.visibility_zone_cooldown} сек.
+        </LabeledList.Item>
+        <LabeledList.Item label="Наведение">
+          {template.targeting_summary}
+        </LabeledList.Item>
+        <LabeledList.Item label="Высотное окно">
+          {altitudeLabel(template.visibility_altitude_requirement)}
         </LabeledList.Item>
       </LabeledList>
       <Divider />
@@ -97,6 +121,11 @@ export const RtoSupportPresetMenu = () => {
               <NoticeBox info>
                 Выбор выполняется один раз на жизнь текущего персонажа. После
                 выбора появится кнопка сектора наведения и способности пакета.
+              </NoticeBox>
+              <NoticeBox mt={1}>
+                Порядок использования: 1. выберите пакет. 2. разверните сектор.
+                3. вооружите нужную поддержку. 4. наведите точку через
+                Ctrl+Click во время зума через RTO-бинокль.
               </NoticeBox>
               {!!data.active_template_name && (
                 <NoticeBox warning mt={1}>

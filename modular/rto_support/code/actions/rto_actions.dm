@@ -93,11 +93,15 @@
 	set_name("[controller.active_template.visibility_zone_name]")
 	if(controller.is_action_armed(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
 		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		status = "Наведение"
+		status = RTO_SUPPORT_STATUS_TARGETING
 		set_button_countdown("ARM", "#ffd25a")
 	else if(zone)
 		status = RTO_SUPPORT_STATUS_ACTIVE
 		set_button_countdown("[round(remaining_zone / 10)]", "#7ee1ff")
+	else if(!controller.has_rto_binocular())
+		status = RTO_SUPPORT_STATUS_NO_BINOCULAR
+		disabled = TRUE
+		set_button_countdown("B", "#c6c6c6")
 	else if(remaining_cooldown > 0)
 		status = RTO_SUPPORT_STATUS_COOLDOWN
 		disabled = TRUE
@@ -143,14 +147,19 @@
 	var/remaining_personal = controller.get_remaining_action_cooldown(action_template.action_id)
 	var/remaining_cooldown = max(remaining_shared, remaining_personal)
 	var/zone_required_missing = action_template.requires_visibility_zone && !controller.get_active_zone()
+	var/has_binocular = controller.has_rto_binocular()
 	var/status = RTO_SUPPORT_STATUS_AVAILABLE
 	var/disabled = FALSE
 	var/button_state = RTO_SUPPORT_BUTTON_STATE_READY
 
 	if(controller.is_action_armed(action_template.action_id))
 		button_state = RTO_SUPPORT_BUTTON_STATE_ARMED
-		status = "Наведение"
+		status = RTO_SUPPORT_STATUS_TARGETING
 		set_button_countdown("ARM", "#ffd25a")
+	else if(!has_binocular)
+		status = RTO_SUPPORT_STATUS_NO_BINOCULAR
+		disabled = TRUE
+		set_button_countdown("B", "#c6c6c6")
 	else if(remaining_cooldown > 0)
 		status = RTO_SUPPORT_STATUS_COOLDOWN
 		disabled = TRUE
