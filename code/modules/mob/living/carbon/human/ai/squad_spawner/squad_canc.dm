@@ -1,6 +1,5 @@
 /datum/human_ai_squad_preset/canc_dogwar
-
-	faction = "Chinese Asian Nation Cooperative"
+	faction = FACTION_CANC_DOGWAR
 
 /datum/human_ai_squad_preset/canc_dogwar/patrol
 
