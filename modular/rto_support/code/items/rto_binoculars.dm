@@ -20,6 +20,22 @@
 	paired_pouch = null
 	return ..()
 
+/obj/item/device/binoculars/rto/equipped(mob/user, slot)
+	. = ..()
+	notify_controller_inventory_state(user, slot, COMSIG_HUMAN_EQUIPPED_ITEM)
+
+/obj/item/device/binoculars/rto/unequipped(mob/user, slot)
+	. = ..()
+	notify_controller_inventory_state(user, slot, COMSIG_HUMAN_UNEQUIPPED_ITEM)
+
+/obj/item/device/binoculars/rto/pickup(mob/user, silent)
+	. = ..()
+	notify_controller_inventory_state(user, null, COMSIG_MOB_PICKUP_ITEM)
+
+/obj/item/device/binoculars/rto/dropped(mob/user)
+	. = ..()
+	notify_controller_inventory_state(user, null, COMSIG_MOB_ITEM_DROPPED)
+
 /obj/item/device/binoculars/rto/clicked(mob/user, list/mods)
 	if(!ishuman(user))
 		return ..()
@@ -114,6 +130,17 @@
 
 /obj/item/device/binoculars/rto/proc/is_in_user_hands(mob/living/carbon/human/user)
 	return istype(user) && (user.l_hand == src || user.r_hand == src)
+
+/obj/item/device/binoculars/rto/proc/notify_controller_inventory_state(mob/user, slot = null, signal_id = null)
+	if(!ishuman(user))
+		return FALSE
+	var/mob/living/carbon/human/human_user = user
+	if(human_user.job != JOB_SQUAD_RTO)
+		return FALSE
+	var/datum/rto_support_controller/controller = get_rto_support_controller(human_user)
+	if(!controller)
+		controller = ensure_rto_support_controller(human_user)
+	return controller?.handle_inventory_changed(src, slot, signal_id)
 
 /obj/item/device/binoculars/rto/proc/pair_with_pouch(obj/item/storage/pouch/sling/rto/pouch)
 	if(!istype(pouch))

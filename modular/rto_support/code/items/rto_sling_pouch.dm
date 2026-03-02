@@ -1,9 +1,13 @@
 /// Dedicated sling pouch paired with one RTO binocular set.
 /obj/item/storage/pouch/sling/rto
-	name = "RTO sling pouch"
-	desc = "A dedicated sling pouch for a paired set of RTO binoculars."
+	name = "RTO подсумок-слинг"
+	desc = "Специальный подсумок-слинг для связанного комплекта RTO-бинокля."
 	can_hold = list(/obj/item/device/binoculars/rto)
 	var/obj/item/device/binoculars/rto/paired_binocular
+
+/obj/item/storage/pouch/sling/rto/Initialize()
+	. = ..()
+	ensure_paired_binocular()
 
 /obj/item/storage/pouch/sling/rto/Destroy()
 	if(paired_binocular?.paired_pouch == src)
@@ -14,28 +18,28 @@
 /obj/item/storage/pouch/sling/rto/attack_self(mob/user)
 	. = ..()
 	if(user)
-		to_chat(user, SPAN_NOTICE("[src] is locked to its paired binoculars."))
+		to_chat(user, SPAN_NOTICE("[src] жёстко привязан к своему RTO-биноклю."))
 	return .
 
 /obj/item/storage/pouch/sling/rto/empty(mob/user)
 	if(user)
-		to_chat(user, SPAN_NOTICE("[src] will not release its paired binoculars manually."))
+		to_chat(user, SPAN_NOTICE("[src] не позволяет вручную извлечь связанный RTO-бинокль."))
 	return
 
 /obj/item/storage/pouch/sling/rto/can_be_inserted(obj/item/item, mob/user, stop_messages = FALSE)
 	if(!istype(item, /obj/item/device/binoculars/rto))
 		if(!stop_messages && user)
-			to_chat(user, SPAN_WARNING("[src] only accepts its paired RTO binoculars."))
+			to_chat(user, SPAN_WARNING("[src] принимает только связанный RTO-бинокль."))
 		return FALSE
 
 	var/obj/item/device/binoculars/rto/binoculars = item
 	if(paired_binocular && paired_binocular != binoculars)
 		if(!stop_messages && user)
-			to_chat(user, SPAN_WARNING("[src] is already paired to another set of binoculars."))
+			to_chat(user, SPAN_WARNING("[src] уже привязан к другому комплекту бинокля."))
 		return FALSE
 	if(binoculars.paired_pouch && binoculars.paired_pouch != src)
 		if(!stop_messages && user)
-			to_chat(user, SPAN_WARNING("[binoculars] are already paired to another sling pouch."))
+			to_chat(user, SPAN_WARNING("[binoculars] уже привязан к другому подсумку-слингу."))
 		return FALSE
 
 	return ..()
@@ -55,7 +59,7 @@
 		return
 	if(paired_binocular == user.l_hand || paired_binocular == user.r_hand)
 		if(handle_item_insertion(paired_binocular, TRUE, user))
-			to_chat(user, SPAN_NOTICE("[paired_binocular] snap back into [src]."))
+			to_chat(user, SPAN_NOTICE("[paired_binocular] возвращается в [src]."))
 
 /obj/item/storage/pouch/sling/rto/proc/pair_with_binocular(obj/item/device/binoculars/rto/binoculars)
 	if(!istype(binoculars))
@@ -67,14 +71,28 @@
 		binoculars.pair_with_pouch(src)
 	return TRUE
 
+/obj/item/storage/pouch/sling/rto/proc/ensure_paired_binocular()
+	if(QDELETED(src))
+		return FALSE
+	if(paired_binocular && paired_binocular.loc == src)
+		if(!slung)
+			_item_insertion(paired_binocular, TRUE)
+		return TRUE
+
+	var/obj/item/device/binoculars/rto/binoculars = locate(/obj/item/device/binoculars/rto) in contents
+	if(!binoculars)
+		binoculars = new /obj/item/device/binoculars/rto(src)
+	if(!pair_with_binocular(binoculars))
+		return FALSE
+	if(slung != binoculars)
+		_item_insertion(binoculars, TRUE)
+	return TRUE
+
 /proc/build_rto_support_binocular_kit(atom/location)
 	if(!location)
 		return null
 	var/obj/item/storage/pouch/sling/rto/pouch = new(location)
-	var/obj/item/device/binoculars/rto/binoculars = new(location)
-	if(!pouch.pair_with_binocular(binoculars))
-		qdel(binoculars)
+	if(!pouch.ensure_paired_binocular())
 		qdel(pouch)
 		return null
-	pouch.handle_item_insertion(binoculars, TRUE)
 	return pouch

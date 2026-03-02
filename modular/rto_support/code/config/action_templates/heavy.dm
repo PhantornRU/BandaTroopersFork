@@ -1,0 +1,23 @@
+/datum/rto_support_action_template/heavy_missile
+	action_id = "heavy_missile"
+	name = "Missile strike"
+	description = "Редкий мощный ракетный удар по точке."
+	scatter = 2
+	shared_cooldown = 25 SECONDS
+	personal_cooldown = 85 SECONDS
+	category = "heavy"
+	icon_state = "missile"
+	fire_support_path = /datum/fire_support/missile
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+
+/datum/rto_support_action_template/heavy_napalm
+	action_id = "heavy_napalm"
+	name = "Napalm strike"
+	description = "Напалмовый удар по компактной зоне."
+	scatter = 3
+	shared_cooldown = 30 SECONDS
+	personal_cooldown = 100 SECONDS
+	category = "heavy"
+	icon_state = "napalm_missile"
+	fire_support_path = /datum/fire_support/missile/napalm
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH

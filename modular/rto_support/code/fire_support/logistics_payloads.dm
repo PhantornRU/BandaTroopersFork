@@ -23,7 +23,7 @@
 
 /obj/structure/machinery/defenses/sentry/launchable/mini
 	name = "\improper UA 512-M rapid deploy mini sentry"
-	desc = "A rapid-deploy mini sentry with a reduced magazine and a smaller internal reserve."
+	desc = "Быстроразворачиваемая мини-турель с уменьшенным магазином и меньшим внутренним запасом."
 	ammo = new /obj/item/ammo_magazine/sentry/dropped/mini
 	defense_type = "Mini"
 	fire_delay = 0.15 SECONDS

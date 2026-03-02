@@ -169,7 +169,7 @@
 		dispatch_service.dispatch_request(request)
 
 	if(owner)
-		to_chat(owner, SPAN_NOTICE("[active_template.visibility_zone_name]: активна."))
+		to_chat(owner, SPAN_NOTICE("[active_template.visibility_zone_name]: сектор развернут."))
 	refresh_action_handles()
 	return TRUE
 
@@ -193,7 +193,6 @@
 	if(action_template.requires_visibility_zone && template_requires_zone() && !get_active_zone())
 		return FALSE
 	return TRUE
-
 /datum/rto_support_controller/proc/arm_action(action_id)
 	ensure_runtime()
 	if(!owner || QDELETED(owner))
@@ -226,7 +225,6 @@
 		clear_manual_designation()
 	armed_action_id = null
 	return TRUE
-
 /datum/rto_support_controller/proc/handle_binocular_target(turf/target_turf, mob/living/carbon/human/user)
 	ensure_runtime()
 	if(!armed_action_id || !target_turf || user != owner)
@@ -259,7 +257,10 @@
 		var/datum/rto_support_validation_result/zone_result = validation_service.validate_zone_deploy(src, target_turf, user, binoculars)
 		if(!zone_result.success)
 			if(zone_result.message)
-				to_chat(user, SPAN_WARNING("[active_template?.visibility_zone_name || "Сектор наведения"]: [zone_result.message]"))
+				var/zone_name = active_template?.visibility_zone_name
+				if(!zone_name || !length(zone_name))
+					zone_name = "Сектор наведения"
+				to_chat(user, SPAN_WARNING("[zone_name]: [zone_result.message]"))
 			return FALSE
 		var/zone_success = deploy_zone(target_turf)
 		if(zone_success)
@@ -296,7 +297,7 @@
 
 	shared_cooldown_until = world.time + action_template.shared_cooldown
 	action_cooldowns[action_template.action_id] = world.time + action_template.personal_cooldown
-	to_chat(user, SPAN_NOTICE("[action_template.name] подтвержден."))
+	to_chat(user, SPAN_NOTICE("[action_template.name]: вызов подтвержден."))
 	disarm_action()
 	refresh_action_handles()
 	return TRUE
@@ -307,7 +308,6 @@
 		var/datum/rto_support_ui_preset_entry/entry = template.build_ui_entry()
 		data += list(entry.to_list())
 	return data
-
 /datum/rto_support_controller/proc/find_template(template_type)
 	for(var/datum/rto_support_template/template as anything in get_available_templates())
 		if(template.template_id == template_type)
@@ -354,23 +354,21 @@
 		return FALSE
 	if(user)
 		if(had_designation)
-			to_chat(user, SPAN_NOTICE("Лазерная отметка обновлена."))
+			to_chat(user, SPAN_NOTICE("Лазерная отметка перенесена."))
 		else
-			to_chat(user, SPAN_NOTICE("Лазерная отметка установлена."))
-		send_coordinate_report(target_turf, user, "ОТМЕТКА")
+			to_chat(user, SPAN_NOTICE("Лазерная отметка активирована."))
+		send_coordinate_report(target_turf, user, "Лазерная отметка")
 	refresh_action_handles()
 	return TRUE
 
 /datum/rto_support_controller/proc/acquire_explicit_coordinates(turf/target_turf, mob/living/carbon/human/user)
-	send_coordinate_report(target_turf, user, "КООРДИНАТЫ")
-	playsound(user, 'sound/effects/binoctarget.ogg', 35)
-	refresh_action_handles()
+	send_coordinate_report(target_turf, user, "Координаты")
 	return TRUE
 
-/datum/rto_support_controller/proc/send_coordinate_report(turf/target_turf, mob/living/carbon/human/user, label = "КООРДИНАТЫ")
+/datum/rto_support_controller/proc/send_coordinate_report(turf/target_turf, mob/living/carbon/human/user, label = "Координаты")
 	if(!target_turf || !user)
 		return FALSE
-	to_chat(user, SPAN_NOTICE("[label]: LONGITUDE [obfuscate_x(target_turf.x)]. LATITUDE [obfuscate_y(target_turf.y)]."))
+	to_chat(user, SPAN_NOTICE("[label]: долгота [obfuscate_x(target_turf.x)], широта [obfuscate_y(target_turf.y)]."))
 	return TRUE
 
 /datum/rto_support_controller/proc/get_armed_mode_name()
@@ -393,7 +391,6 @@
 	remove_manual_marker_action()
 	remove_support_actions()
 	action_handles = list()
-
 /datum/rto_support_controller/proc/sync_actions()
 	if(!owner || QDELETED(owner) || owner.job != JOB_SQUAD_RTO)
 		clear_actions()
@@ -565,8 +562,6 @@
 	return TRUE
 
 /datum/rto_support_controller/proc/handle_inventory_changed(obj/item/changed_item, slot = null, signal_id = null)
-	if(!runtime_initialized)
-		return FALSE
 	var/was_in_hand = last_binocular_in_hand
 	var/is_in_hand = has_rto_binocular_in_hand()
 	if(!is_inventory_change_relevant(changed_item, slot, signal_id) && was_in_hand == is_in_hand)
@@ -574,7 +569,7 @@
 	if(armed_action_id && was_in_hand && !is_in_hand)
 		reset_armed_action()
 		if(owner && owner.stat != DEAD)
-			to_chat(owner, SPAN_WARNING("RTO-бинокль недоступен в руках. Наведение отменено."))
+			to_chat(owner, SPAN_WARNING("RTO-бинокль убран из рук. Наведение отменено."))
 	if(!is_in_hand)
 		clear_manual_designation()
 	last_binocular_in_hand = is_in_hand
@@ -589,7 +584,6 @@
 	if(slot == WEAR_L_HAND || slot == WEAR_R_HAND)
 		return last_binocular_in_hand || has_rto_binocular_in_hand()
 	return FALSE
-
 /datum/rto_support_controller/proc/get_remaining_shared_cooldown()
 	return max(0, shared_cooldown_until - world.time)
 
@@ -687,10 +681,10 @@
 		return state
 
 	if(requires_zone)
-		if(shared_cooldown_in > 0)
-			secondary_labels += "Общий КД: [round(shared_cooldown_in / 10)]s"
 		if(personal_cooldown_in > 0)
-			secondary_labels += "Личный КД: [round(personal_cooldown_in / 10)]s"
+			secondary_labels += "Личный КД [action_template.name]: [round(personal_cooldown_in / 10)]s"
+		if(shared_cooldown_in > 0)
+			secondary_labels += "Общий КД пакета: [round(shared_cooldown_in / 10)]s"
 		switch(zone_state)
 			if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
 				state["is_disabled"] = TRUE
@@ -714,23 +708,20 @@
 		state["is_disabled"] = TRUE
 		return state
 
-	if(shared_cooldown_in > 0)
-		state["is_disabled"] = TRUE
-		state["primary_label"] = "Общий КД: [round(shared_cooldown_in / 10)]s"
-		state["countdown_text"] = "[round(shared_cooldown_in / 10)]s"
-		state["countdown_color"] = "#c6c6c6"
-		if(personal_cooldown_in > 0)
-			secondary_labels += "Личный КД: [round(personal_cooldown_in / 10)]s"
-		return state
 	if(personal_cooldown_in > 0)
 		state["is_disabled"] = TRUE
 		state["primary_label"] = "Личный КД: [round(personal_cooldown_in / 10)]s"
 		state["countdown_text"] = "[round(personal_cooldown_in / 10)]s"
 		state["countdown_color"] = "#c6c6c6"
 		if(shared_cooldown_in > 0)
-			secondary_labels += "Общий КД: [round(shared_cooldown_in / 10)]s"
+			secondary_labels += "Общий КД пакета: [round(shared_cooldown_in / 10)]s"
 		return state
-
+	if(shared_cooldown_in > 0)
+		state["is_disabled"] = TRUE
+		state["primary_label"] = "Общий КД: [round(shared_cooldown_in / 10)]s"
+		state["countdown_text"] = "[round(shared_cooldown_in / 10)]s"
+		state["countdown_color"] = "#c6c6c6"
+		return state
 	return state
 
 /datum/rto_support_controller/proc/get_action_block_messages(action_id)
@@ -744,12 +735,13 @@
 		if(!template_requires_zone())
 			messages += "Этот пакет не использует сектор наведения."
 			return messages
+		var/zone_name = active_template?.visibility_zone_name || "Сектор наведения"
 		if(get_active_zone())
-			messages += "[active_template.visibility_zone_name] уже активна: [round(get_zone_expires_in() / 10)] сек."
+			messages += "[zone_name] уже активен."
 			return messages
 		var/zone_cooldown = get_remaining_visibility_cooldown()
 		if(zone_cooldown > 0)
-			messages += "[active_template.visibility_zone_name] перезаряжается: [round(zone_cooldown / 10)] сек."
+			messages += "[zone_name] перезаряжается: [round(zone_cooldown / 10)] с."
 		return messages
 
 	var/datum/rto_support_action_template/action_template = active_template.get_action_template(action_id)
@@ -758,23 +750,20 @@
 		return messages
 
 	if(action_template.requires_visibility_zone && template_requires_zone())
-		switch(get_zone_state())
-			if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-				messages += "Сектор наведения перезаряжается: [round(get_zone_ready_in() / 10)] сек."
-			if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
-				if(get_remaining_shared_cooldown() > 0 || get_remaining_action_cooldown(action_id) > 0)
-					messages += "Сектор активен: [round(get_zone_expires_in() / 10)] сек."
-			else
-				messages += "Сначала разверните сектор наведения."
+		if(get_zone_state() == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+			messages += "Сектор наведения перезаряжается: [round(get_zone_ready_in() / 10)] с."
+		else if(get_zone_state() == RTO_SUPPORT_ZONE_STATE_ACTIVE)
+			messages += "Сектор активен: [round(get_zone_expires_in() / 10)] с."
+		else
+			messages += "Сначала разверните сектор наведения."
 
-	var/shared_cooldown = get_remaining_shared_cooldown()
-	if(shared_cooldown > 0)
-		messages += "Общий кулдаун пакета: [round(shared_cooldown / 10)] сек."
 	var/personal_cooldown = get_remaining_action_cooldown(action_id)
 	if(personal_cooldown > 0)
-		messages += "Личный кулдаун [action_template.name]: [round(personal_cooldown / 10)] сек."
+		messages += "Личный кулдаун [action_template.name]: [round(personal_cooldown / 10)] с."
+	var/shared_cooldown = get_remaining_shared_cooldown()
+	if(shared_cooldown > 0)
+		messages += "Общий кулдаун пакета: [round(shared_cooldown / 10)] с."
 	return messages
-
 /datum/rto_support_controller/proc/get_action_block_message(action_id)
 	return format_block_messages(get_action_block_messages(action_id))
 
@@ -912,3 +901,5 @@
 	clear_active_zone()
 	refresh_action_handles()
 	return TRUE
+
+
