@@ -37,7 +37,7 @@ Controller хранит:
 - личные cooldown способностей;
 - ссылки на RTO action-кнопки.
 
-Controller не должен содержать special-case branching под конкретные типы mortar. Все различия должны жить в конфигурации и `fire_support_path`.
+Controller не должен содержать special-case branching под конкретные типы mortar, CAS или heavy. Все различия живут в конфигурации и `fire_support_path`.
 
 ## 4. RTO single-shot mortar
 
@@ -51,7 +51,7 @@ RTO не использует апстримовые многоснарядны�
 
 Их ответственность:
 
-- сохранить базовое поведение апстримового mortar типа;
+- сохранить базовое поведение апстримового mortar-типа;
 - переопределить `impact_quantity = 1`;
 - заменить announce-сообщения с barrage wording на single-round wording.
 
@@ -73,14 +73,32 @@ Runtime-модель кулдаунов остаётся data-driven:
 
 Текущие zone timings:
 
-- `Mortar`: `60s active / 35s recovery`
-- `CAS`: `50s active / 95s recovery`
-- `Heavy Strike`: `35s active / 140s recovery`
+- `Mortar`: `100s active / 300s recovery`
+- `CAS`: `200s active / 500s recovery`
+- `Heavy Strike`: `300s active / 800s recovery`
 - `Logistics`: zones unsupported
 
 Recovery зоны стартует после завершения или очистки зоны, а не в момент deploy.
 
-## 6. Что не менять без причины
+## 6. Баланс как данные, а не runtime-логика
+
+Новый баланс остаётся полностью config-driven:
+
+- `Mortar` — короткий burst-window пакет;
+- `CAS` — средний пакет без экстремумов;
+- `Heavy Strike` — длинное, но контролируемое дорогое окно;
+- `Logistics` — no-zone пакет с самыми длинными ability cooldowns.
+
+Текущий целевой боевой tempo:
+
+- `Mortar` — меньше `10 секунд` между повторными ударами;
+- `CAS` — в среднем `10-20 секунд` между ударами;
+- `Heavy Strike` — тоже в среднем `10-20 секунд`, но с самым долгим recovery сектора;
+- `Logistics` не участвует в этом правиле и остаётся отдельной долгой экономикой.
+
+Никаких новых веток вида `if(template_id == "mortar")` или `if(template_id == "heavy")` для этого ребаланса не добавляется.
+
+## 7. Что не менять без причины
 
 - не переносить RTO HUD на `item_action`;
 - не возвращать timed coordinate marker;
