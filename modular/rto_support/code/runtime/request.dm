@@ -20,6 +20,14 @@
 	var/display_name = ""
 	/// Request family: support or visibility payload.
 	var/request_kind = RTO_SUPPORT_REQUEST_SUPPORT
+	/// Marker style used for target previews.
+	var/target_marker_style = RTO_SUPPORT_MARKER_STATIC
+	/// Marker duration in deciseconds.
+	var/target_marker_duration = 0
+	/// Whether the request came from a zone-dependent action.
+	var/requires_visibility_zone = FALSE
+	/// Whether ghosts should be notified about the request.
+	var/announce_to_ghosts = TRUE
 
 /// Checks whether the request is structurally valid.
 /datum/rto_support_request/proc/is_valid()

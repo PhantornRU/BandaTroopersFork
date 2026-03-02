@@ -1,7 +1,7 @@
 /// Dedicated binoculars for the RTO support workflow.
 /obj/item/device/binoculars/rto
 	name = "RTO binoculars"
-	desc = "Бинокль оператора связи. Ctrl+Click по цели во время зума наводит сектор или поддержку, если выбрана способность."
+	desc = "Бинокль оператора связи. Во время зума Ctrl+Click принимает целеуказание выбранного режима."
 	icon_state = "advanced_binoculars"
 	uses_camo = FALSE
 	zoom_offset = 11
@@ -14,7 +14,7 @@
 		var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
 		if(controller?.armed_action_id)
 			controller.disarm_action()
-			to_chat(user, SPAN_NOTICE("Наведение поддержки отменено."))
+			to_chat(user, SPAN_NOTICE("Наведение отменено."))
 			return TRUE
 	return ..()
 
@@ -49,17 +49,34 @@
 	var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
 	if(!controller)
 		return
-	. += SPAN_NOTICE("Использование: выберите пакет, разверните сектор, вооружите поддержку и наведите точку через Ctrl+Click во время зума.")
+
+	. += SPAN_NOTICE("Ctrl+Click во время зума: навести выбранный режим.")
+	. += SPAN_NOTICE("Кнопка 'Координаты': получить координаты с временной меткой.")
+	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': поставить временную ручную метку.")
+
 	if(controller.active_template)
 		. += SPAN_NOTICE("Текущий пакет: [controller.active_template.name].")
 	else
 		. += SPAN_NOTICE("Пакет поддержки ещё не выбран.")
-	if(controller.get_active_zone())
-		. += SPAN_NOTICE("Сектор наведения активен.")
-	else if(controller.active_template)
-		. += SPAN_NOTICE("Сектор наведения не развернут.")
-	if(controller.armed_action_id)
-		. += SPAN_NOTICE("Бинокль готов принять целеуказание.")
+
+	switch(controller.get_zone_state())
+		if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
+			. += SPAN_NOTICE("Сектор наведения активен: [round(controller.get_zone_expires_in() / 10)] сек.")
+		if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+			. += SPAN_NOTICE("Сектор наведения перезаряжается: [round(controller.get_zone_ready_in() / 10)] сек.")
+		if(RTO_SUPPORT_ZONE_STATE_READY)
+			. += SPAN_NOTICE("Сектор наведения готов к развёртыванию.")
+		if(RTO_SUPPORT_ZONE_STATE_UNSUPPORTED)
+			if(controller.active_template)
+				. += SPAN_NOTICE("Текущий пакет работает без сектора наведения.")
+
+	var/armed_mode_name = controller.get_armed_mode_name()
+	if(armed_mode_name)
+		. += SPAN_NOTICE("Текущий режим наведения: [armed_mode_name].")
+
+	var/datum/rto_manual_designation/designation = controller.get_manual_designation()
+	if(designation)
+		. += SPAN_NOTICE("Ручная лазерная отметка активна: [round(max(0, designation.expires_at - world.time) / 10)] сек.")
 
 /obj/item/device/binoculars/rto/proc/acquire_coordinates(turf/target_turf, mob/living/carbon/human/user)
 	to_chat(user, SPAN_NOTICE("КООРДИНАТЫ: LONGITUDE [obfuscate_x(target_turf.x)]. LATITUDE [obfuscate_y(target_turf.y)]."))

@@ -2,6 +2,7 @@
 /datum/rto_support_preset_menu
 	var/mob/living/carbon/human/user
 	var/datum/rto_support_controller/controller
+	var/closing = FALSE
 
 /datum/rto_support_preset_menu/New(mob/living/carbon/human/new_user, datum/rto_support_controller/new_controller)
 	user = new_user
@@ -11,10 +12,19 @@
 		tgui_interact(user)
 
 /datum/rto_support_preset_menu/Destroy()
-	SStgui.close_uis(src)
+	if(!closing)
+		closing = TRUE
+		SStgui.close_uis(src)
 	user = null
 	controller = null
 	return ..()
+
+/datum/rto_support_preset_menu/proc/request_close()
+	if(closing)
+		return FALSE
+	closing = TRUE
+	qdel(src)
+	return TRUE
 
 /datum/rto_support_preset_menu/tgui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -66,10 +76,14 @@
 				to_chat(user, SPAN_WARNING("Не удалось выбрать пакет поддержки."))
 				return FALSE
 			to_chat(user, SPAN_NOTICE("Пакет поддержки выбран: [controller.active_template.name]."))
-			qdel(src)
+			request_close()
 			return TRUE
 
 	return FALSE
 
 /datum/rto_support_preset_menu/ui_close(mob/user)
+	if(closing)
+		return FALSE
+	closing = TRUE
 	qdel(src)
+	return TRUE

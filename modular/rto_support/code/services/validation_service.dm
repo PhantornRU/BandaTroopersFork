@@ -1,11 +1,15 @@
-/// Validation service for zone deployment and support calls.
+/// Validation service for zone deployment, support calls, and utility targeting.
 /datum/rto_support_validation_service
 
 /// Validates a visibility zone deployment attempt.
 /datum/rto_support_validation_service/proc/validate_zone_deploy(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
-	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, FALSE, FALSE)
+	var/datum/rto_support_validation_result/result = validate_support_context(controller, target_turf, user, binoculars, FALSE, FALSE)
 	if(!result.success)
 		return result
+	if(!controller.active_template)
+		return new /datum/rto_support_validation_result().set_failure("Сначала выберите пакет поддержки.")
+	if(!controller.template_requires_zone())
+		return new /datum/rto_support_validation_result().set_failure("Этот пакет не использует сектор наведения.")
 	if(!controller.can_deploy_zone())
 		return new /datum/rto_support_validation_result().set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
 	if(controller.active_template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
@@ -14,7 +18,10 @@
 
 /// Validates a support call attempt.
 /datum/rto_support_validation_service/proc/validate_support_call(datum/rto_support_controller/controller, datum/rto_support_action_template/action_template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
-	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, action_template.requires_visibility_zone, action_template.allow_closed_turf)
+	if(!action_template)
+		return new /datum/rto_support_validation_result().set_failure("Способность поддержки недоступна.")
+	var/require_zone = action_template.requires_visibility_zone && controller?.template_requires_zone()
+	var/datum/rto_support_validation_result/result = validate_support_context(controller, target_turf, user, binoculars, require_zone, action_template.allow_closed_turf)
 	if(!result.success)
 		return result
 	if(controller.get_remaining_shared_cooldown() > 0)
@@ -25,18 +32,40 @@
 		return new /datum/rto_support_validation_result().set_failure("Точка недоступна для этого типа поддержки.")
 	return new /datum/rto_support_validation_result().set_success()
 
-/datum/rto_support_validation_service/proc/validate_common_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_zone, allow_closed_turf)
+/// Validates explicit coordinate acquisition.
+/datum/rto_support_validation_service/proc/validate_coordinate_target(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
+	return validate_utility_context(controller, target_turf, user, binoculars)
+
+/// Validates manual marker placement.
+/datum/rto_support_validation_service/proc/validate_manual_marker_target(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
+	return validate_utility_context(controller, target_turf, user, binoculars)
+
+/datum/rto_support_validation_service/proc/validate_support_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_zone, allow_closed_turf)
+	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, TRUE, FALSE, allow_closed_turf, require_zone)
+	if(!result.success)
+		return result
+	return new /datum/rto_support_validation_result().set_success()
+
+/datum/rto_support_validation_service/proc/validate_utility_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
+	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, FALSE, TRUE, TRUE, FALSE)
+	if(!result.success)
+		return result
+	return new /datum/rto_support_validation_result().set_success()
+
+/datum/rto_support_validation_service/proc/validate_common_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_template, allow_shipside, allow_closed_turf, require_zone)
 	if(!controller || !controller.owner || user != controller.owner)
 		return new /datum/rto_support_validation_result().set_failure("Контроллер поддержки недоступен.")
-	if(!controller.active_template)
+	if(require_template && !controller.active_template)
 		return new /datum/rto_support_validation_result().set_failure("Сначала выберите пакет поддержки.")
+	if(!controller.has_rto_binocular())
+		return new /datum/rto_support_validation_result().set_failure("Нужен RTO-бинокль.")
 	if(!target_turf || QDELETED(target_turf))
 		return new /datum/rto_support_validation_result().set_failure("Цель недоступна.")
 	if(!binoculars || binoculars != user.interactee)
 		return new /datum/rto_support_validation_result().set_failure("Нужно смотреть через RTO-бинокль.")
 	if(user.is_mob_incapacitated())
 		return new /datum/rto_support_validation_result().set_failure("Вы не можете использовать поддержку в текущем состоянии.")
-	if(is_mainship_level(user.z) || is_mainship_level(target_turf.z))
+	if(!allow_shipside && (is_mainship_level(user.z) || is_mainship_level(target_turf.z)))
 		return new /datum/rto_support_validation_result().set_failure("Поддержка недоступна на корабле.")
 	if(user.z != target_turf.z)
 		return new /datum/rto_support_validation_result().set_failure("Цель должна находиться на том же уровне.")
@@ -47,6 +76,9 @@
 	if(require_zone)
 		var/datum/rto_visibility_zone/zone = controller.get_active_zone()
 		if(!zone)
+			var/zone_state = controller.get_zone_state()
+			if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+				return new /datum/rto_support_validation_result().set_failure("Сектор наведения ещё перезаряжается.")
 			return new /datum/rto_support_validation_result().set_failure("Сначала разверните сектор наведения.")
 		if(!zone.contains_turf(target_turf))
 			return new /datum/rto_support_validation_result().set_failure("Цель вне сектора наведения.")

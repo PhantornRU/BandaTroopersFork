@@ -1,34 +1,22 @@
 /// Runtime coordinator for one RTO owner.
 /datum/rto_support_controller
-	/// Human that owns this controller.
 	var/mob/living/carbon/human/owner
-	/// Active template selected for the current owner.
 	var/datum/rto_support_template/active_template
-	/// Active visibility sector for the current owner.
 	var/datum/rto_visibility_zone/active_zone
-	/// Action identifier currently armed for binocular targeting.
+	var/datum/rto_manual_designation/manual_designation
 	var/armed_action_id
-	/// Shared cooldown timestamp for the operator.
 	var/shared_cooldown_until = 0
-	/// Visibility zone action cooldown timestamp.
 	var/visibility_zone_cooldown_until = 0
-	/// Per-action cooldown timestamps.
 	var/list/action_cooldowns = list()
-	/// References to action datums that need visual refreshes.
 	var/list/action_handles = list()
-	/// Select-preset action.
 	var/datum/action/human_action/rto/select_preset/select_action
-	/// Visibility zone action.
 	var/datum/action/human_action/rto/visibility_zone/visibility_action
-	/// Support action instances keyed by action id.
+	var/datum/action/human_action/rto/coordinates/coordinates_action
+	var/datum/action/human_action/rto/manual_marker/manual_marker_action
 	var/list/support_actions = list()
-	/// Validation service.
 	var/datum/rto_support_validation_service/validation_service
-	/// Dispatch service.
 	var/datum/rto_support_dispatch_service/dispatch_service
-	/// Looping timer for button refreshes.
 	var/ui_refresh_timer_id = null
-	/// Signal registration guard.
 	var/runtime_initialized = FALSE
 
 /datum/rto_support_controller/New(mob/living/carbon/human/new_owner)
@@ -41,7 +29,8 @@
 	if(ui_refresh_timer_id)
 		deltimer(ui_refresh_timer_id)
 	ui_refresh_timer_id = null
-	clear_active_zone()
+	clear_active_zone(FALSE)
+	clear_manual_designation()
 	clear_actions()
 	validation_service = null
 	dispatch_service = null
@@ -52,7 +41,6 @@
 	active_template = null
 	return ..()
 
-/// Ensures the controller has its runtime helpers and HUD actions.
 /datum/rto_support_controller/proc/ensure_runtime()
 	if(!owner || QDELETED(owner))
 		return FALSE
@@ -73,17 +61,14 @@
 	refresh_action_handles()
 	return TRUE
 
-/// Returns whether the current owner is still a valid RTO holder for this controller.
 /datum/rto_support_controller/proc/has_required_role()
 	return owner && !QDELETED(owner) && owner.job == JOB_SQUAD_RTO
 
-/// Returns all templates available to the owner.
 /datum/rto_support_controller/proc/get_available_templates()
 	if(!owner || owner.job != JOB_SQUAD_RTO)
 		return list()
 	return build_rto_support_template_catalog()
 
-/// Checks whether the owner may select a template.
 /datum/rto_support_controller/proc/can_select_template()
 	if(!owner || QDELETED(owner))
 		return FALSE
@@ -91,7 +76,6 @@
 		return FALSE
 	return !active_template
 
-/// Selects a template for the owner.
 /datum/rto_support_controller/proc/select_template(template_type)
 	ensure_runtime()
 	if(!can_select_template())
@@ -101,54 +85,80 @@
 		return FALSE
 	active_template = template
 	disarm_action()
+	clear_active_zone(FALSE)
+	visibility_zone_cooldown_until = 0
 	sync_actions()
 	refresh_action_handles()
 	return TRUE
 
-/// Returns the currently active template.
 /datum/rto_support_controller/proc/get_active_template()
 	return active_template
 
-/// Returns action template metadata for the current template.
 /datum/rto_support_controller/proc/get_action_templates()
 	return active_template ? active_template.get_action_templates() : list()
 
-/// Returns the active visibility zone for the owner.
+/datum/rto_support_controller/proc/template_requires_zone()
+	return !!active_template?.requires_visibility_zone
+
 /datum/rto_support_controller/proc/get_active_zone()
 	if(active_zone && !active_zone.is_active())
 		clear_active_zone()
 	return active_zone
 
-/// Reconciles controller runtime state with current owner state.
+/datum/rto_support_controller/proc/get_zone_state()
+	if(!active_template || !template_requires_zone())
+		return RTO_SUPPORT_ZONE_STATE_UNSUPPORTED
+	if(get_active_zone())
+		return RTO_SUPPORT_ZONE_STATE_ACTIVE
+	if(get_remaining_visibility_cooldown() > 0)
+		return RTO_SUPPORT_ZONE_STATE_COOLDOWN
+	return RTO_SUPPORT_ZONE_STATE_READY
+
+/datum/rto_support_controller/proc/get_zone_ready_in()
+	return get_zone_state() == RTO_SUPPORT_ZONE_STATE_COOLDOWN ? get_remaining_visibility_cooldown() : 0
+
+/datum/rto_support_controller/proc/get_zone_expires_in()
+	var/datum/rto_visibility_zone/zone = get_active_zone()
+	return zone ? max(0, zone.expires_at - world.time) : 0
+
+/datum/rto_support_controller/proc/get_manual_designation()
+	if(manual_designation && !manual_designation.is_active())
+		clear_manual_designation()
+	return manual_designation
+
 /datum/rto_support_controller/proc/sync_runtime_state()
 	if(!owner || QDELETED(owner))
 		return FALSE
 	if(!has_required_role())
 		reset_armed_action()
-		clear_active_zone()
+		clear_active_zone(FALSE)
+		clear_manual_designation()
 		clear_actions()
 		return FALSE
 	if(owner.stat == DEAD)
 		reset_armed_action()
 		clear_active_zone()
+		clear_manual_designation()
 	if(armed_action_id && !has_rto_binocular())
 		reset_armed_action()
 	get_active_zone()
+	get_manual_designation()
 	return TRUE
 
-/// Checks whether the owner may deploy a visibility zone.
 /datum/rto_support_controller/proc/can_deploy_zone()
-	if(!active_template)
+	if(!active_template || !template_requires_zone())
+		return FALSE
+	if(get_active_zone())
 		return FALSE
 	return get_remaining_visibility_cooldown() <= 0
 
-/// Deploys a visibility zone at the supplied turf.
 /datum/rto_support_controller/proc/deploy_zone(turf/target_turf)
 	ensure_runtime()
-	if(!active_template || !target_turf)
+	if(!active_template || !template_requires_zone() || !target_turf)
 		return FALSE
+
 	replace_active_zone(new /datum/rto_visibility_zone(owner, target_turf, active_template))
-	visibility_zone_cooldown_until = world.time + active_template.visibility_zone_cooldown
+
 	if(active_template.visibility_support_path)
 		var/datum/rto_support_request/request = new
 		request.owner = owner
@@ -159,18 +169,25 @@
 		request.dispatch_path = active_template.visibility_support_path
 		request.display_name = active_template.visibility_zone_name
 		request.request_kind = RTO_SUPPORT_REQUEST_VISIBILITY
+		request.target_marker_style = active_template.visibility_target_marker_style
+		request.announce_to_ghosts = FALSE
 		dispatch_service.dispatch_request(request)
+
 	if(owner)
-		to_chat(owner, SPAN_NOTICE("[active_template.visibility_zone_name]: [RTO_SUPPORT_STATUS_ACTIVE]."))
+		to_chat(owner, SPAN_NOTICE("[active_template.visibility_zone_name]: активна."))
 	refresh_action_handles()
 	return TRUE
 
-/// Checks whether a support action may be armed.
 /datum/rto_support_controller/proc/can_arm_action(action_id)
-	if(!active_template || !action_id)
+	if(!action_id)
+		return FALSE
+	if(action_id == RTO_SUPPORT_ARM_COORDINATES || action_id == RTO_SUPPORT_ARM_MARKER)
+		return TRUE
+	if(!active_template)
 		return FALSE
 	if(action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
 		return can_deploy_zone()
+
 	var/datum/rto_support_action_template/action_template = active_template.get_action_template(action_id)
 	if(!action_template)
 		return FALSE
@@ -178,17 +195,16 @@
 		return FALSE
 	if(get_remaining_action_cooldown(action_id) > 0)
 		return FALSE
-	if(action_template.requires_visibility_zone && !get_active_zone())
+	if(action_template.requires_visibility_zone && template_requires_zone() && !get_active_zone())
 		return FALSE
 	return TRUE
 
-/// Arms an action for future binocular targeting.
 /datum/rto_support_controller/proc/arm_action(action_id)
 	ensure_runtime()
 	if(!owner || QDELETED(owner))
 		return FALSE
 	if(!has_rto_binocular())
-		to_chat(owner, SPAN_WARNING("Для этого нужен RTO-бинокль."))
+		to_chat(owner, SPAN_WARNING("Нужен RTO-бинокль."))
 		return FALSE
 	if(!can_arm_action(action_id))
 		var/message = get_action_block_message(action_id)
@@ -201,39 +217,58 @@
 	refresh_action_handles()
 	return TRUE
 
-/// Clears the current armed action.
 /datum/rto_support_controller/proc/disarm_action()
 	if(!reset_armed_action())
 		return FALSE
 	refresh_action_handles()
 	return TRUE
 
-/// Clears the current armed action without refreshing the HUD.
 /datum/rto_support_controller/proc/reset_armed_action()
 	if(!armed_action_id)
 		return FALSE
 	armed_action_id = null
 	return TRUE
 
-/// Handles a turf chosen through the RTO binocular flow.
 /datum/rto_support_controller/proc/handle_binocular_target(turf/target_turf, mob/living/carbon/human/user)
 	ensure_runtime()
 	if(!armed_action_id || !target_turf || user != owner)
 		return FALSE
+
 	var/obj/item/device/binoculars/rto/binoculars = get_active_binocular()
 	if(!binoculars)
 		to_chat(user, SPAN_WARNING("Нужно смотреть через RTO-бинокль."))
 		return FALSE
+
+	if(armed_action_id == RTO_SUPPORT_ARM_COORDINATES)
+		var/datum/rto_support_validation_result/coordinate_result = validation_service.validate_coordinate_target(src, target_turf, user, binoculars)
+		if(!coordinate_result.success)
+			if(coordinate_result.message)
+				to_chat(user, SPAN_WARNING("Координаты: [coordinate_result.message]"))
+			return FALSE
+		acquire_explicit_coordinates(target_turf, user)
+		disarm_action()
+		return TRUE
+
+	if(armed_action_id == RTO_SUPPORT_ARM_MARKER)
+		var/datum/rto_support_validation_result/marker_result = validation_service.validate_manual_marker_target(src, target_turf, user, binoculars)
+		if(!marker_result.success)
+			if(marker_result.message)
+				to_chat(user, SPAN_WARNING("Лазерная отметка: [marker_result.message]"))
+			return FALSE
+		place_manual_designation(target_turf, user)
+		disarm_action()
+		return TRUE
+
 	if(armed_action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
 		var/datum/rto_support_validation_result/zone_result = validation_service.validate_zone_deploy(src, target_turf, user, binoculars)
 		if(!zone_result.success)
 			if(zone_result.message)
-				to_chat(user, SPAN_WARNING(zone_result.message))
+				to_chat(user, SPAN_WARNING("[active_template?.visibility_zone_name || "Сектор наведения"]: [zone_result.message]"))
 			return FALSE
-		var/success = deploy_zone(target_turf)
-		if(success)
+		var/zone_success = deploy_zone(target_turf)
+		if(zone_success)
 			disarm_action()
-		return success
+		return zone_success
 
 	var/datum/rto_support_action_template/action_template = active_template?.get_action_template(armed_action_id)
 	if(!action_template)
@@ -242,7 +277,7 @@
 	var/datum/rto_support_validation_result/support_result = validation_service.validate_support_call(src, action_template, target_turf, user, binoculars)
 	if(!support_result.success)
 		if(support_result.message)
-			to_chat(user, SPAN_WARNING(support_result.message))
+			to_chat(user, SPAN_WARNING("[action_template.name]: [support_result.message]"))
 		return FALSE
 
 	var/datum/rto_support_request/request = new
@@ -256,6 +291,9 @@
 	request.scatter_override = action_template.scatter
 	request.display_name = action_template.name
 	request.request_kind = RTO_SUPPORT_REQUEST_SUPPORT
+	request.target_marker_style = action_template.target_marker_style
+	request.requires_visibility_zone = action_template.requires_visibility_zone
+	request.announce_to_ghosts = TRUE
 
 	if(!dispatch_service.dispatch_request(request))
 		return FALSE
@@ -267,7 +305,6 @@
 	refresh_action_handles()
 	return TRUE
 
-/// Builds UI-facing preset data for the preset menu.
 /datum/rto_support_controller/proc/build_preset_ui_data()
 	var/list/data = list()
 	for(var/datum/rto_support_template/template as anything in get_available_templates())
@@ -282,18 +319,75 @@
 	return null
 
 /datum/rto_support_controller/proc/replace_active_zone(datum/rto_visibility_zone/new_zone)
-	clear_active_zone()
+	clear_active_zone(FALSE)
 	active_zone = new_zone
 
-/datum/rto_support_controller/proc/clear_active_zone()
-	if(active_zone)
-		active_zone.expire()
-		qdel(active_zone)
+/datum/rto_support_controller/proc/clear_active_zone(apply_cooldown = TRUE)
+	var/datum/rto_visibility_zone/zone = active_zone
 	active_zone = null
+	if(!zone)
+		return FALSE
+
+	var/datum/rto_support_template/source_template = zone.source_template
+	zone.expire()
+	qdel(zone)
+
+	if(apply_cooldown && source_template?.requires_visibility_zone && source_template.visibility_zone_cooldown > 0)
+		visibility_zone_cooldown_until = max(visibility_zone_cooldown_until, world.time + source_template.visibility_zone_cooldown)
+	return TRUE
+
+/datum/rto_support_controller/proc/clear_manual_designation()
+	if(!manual_designation)
+		return FALSE
+	manual_designation.expire()
+	qdel(manual_designation)
+	manual_designation = null
+	return TRUE
+
+/datum/rto_support_controller/proc/place_manual_designation(turf/target_turf, mob/living/carbon/human/user)
+	var/had_designation = !!get_manual_designation()
+	clear_manual_designation()
+	manual_designation = new(owner, target_turf, RTO_SUPPORT_MARKER_STATIC, RTO_SUPPORT_MANUAL_MARKER_DURATION)
+	if(user)
+		if(had_designation)
+			to_chat(user, SPAN_NOTICE("Лазерная отметка обновлена."))
+		else
+			to_chat(user, SPAN_NOTICE("Лазерная отметка установлена."))
+		send_coordinate_report(target_turf, user, "ОТМЕТКА")
+	refresh_action_handles()
+	return TRUE
+
+/datum/rto_support_controller/proc/acquire_explicit_coordinates(turf/target_turf, mob/living/carbon/human/user)
+	spawn_rto_laser_marker(target_turf, RTO_SUPPORT_MARKER_COORDINATE, RTO_SUPPORT_COORDINATE_MARKER_DURATION)
+	send_coordinate_report(target_turf, user, "КООРДИНАТЫ")
+	playsound(user, 'sound/effects/binoctarget.ogg', 35)
+	refresh_action_handles()
+	return TRUE
+
+/datum/rto_support_controller/proc/send_coordinate_report(turf/target_turf, mob/living/carbon/human/user, label = "КООРДИНАТЫ")
+	if(!target_turf || !user)
+		return FALSE
+	to_chat(user, SPAN_NOTICE("[label]: LONGITUDE [obfuscate_x(target_turf.x)]. LATITUDE [obfuscate_y(target_turf.y)]."))
+	return TRUE
+
+/datum/rto_support_controller/proc/get_armed_mode_name()
+	if(!armed_action_id)
+		return null
+	switch(armed_action_id)
+		if(RTO_SUPPORT_ARM_VISIBILITY_ZONE)
+			return active_template?.visibility_zone_name || "Сектор наведения"
+		if(RTO_SUPPORT_ARM_COORDINATES)
+			return "Координаты"
+		if(RTO_SUPPORT_ARM_MARKER)
+			return "Лазерная отметка"
+	var/datum/rto_support_action_template/action_template = active_template?.get_action_template(armed_action_id)
+	return action_template?.name
 
 /datum/rto_support_controller/proc/clear_actions()
 	remove_select_action()
 	remove_visibility_action()
+	remove_coordinates_action()
+	remove_manual_marker_action()
 	remove_support_actions()
 	action_handles = list()
 
@@ -301,14 +395,22 @@
 	if(!owner || QDELETED(owner) || owner.job != JOB_SQUAD_RTO)
 		clear_actions()
 		return
+
+	ensure_coordinates_action()
+	ensure_manual_marker_action()
+
 	if(!active_template)
 		ensure_select_action()
 		remove_visibility_action()
 		remove_support_actions()
 		rebuild_action_handles()
 		return
+
 	remove_select_action()
-	ensure_visibility_action()
+	if(template_requires_zone())
+		ensure_visibility_action()
+	else
+		remove_visibility_action()
 	ensure_support_actions()
 	rebuild_action_handles()
 
@@ -339,6 +441,34 @@
 		visibility_action.remove_from(visibility_action.owner)
 	qdel(visibility_action)
 	visibility_action = null
+
+/datum/rto_support_controller/proc/ensure_coordinates_action()
+	if(coordinates_action && !QDELETED(coordinates_action))
+		return
+	coordinates_action = new /datum/action/human_action/rto/coordinates(src)
+	coordinates_action.give_to(owner)
+
+/datum/rto_support_controller/proc/remove_coordinates_action()
+	if(!coordinates_action)
+		return
+	if(coordinates_action.owner)
+		coordinates_action.remove_from(coordinates_action.owner)
+	qdel(coordinates_action)
+	coordinates_action = null
+
+/datum/rto_support_controller/proc/ensure_manual_marker_action()
+	if(manual_marker_action && !QDELETED(manual_marker_action))
+		return
+	manual_marker_action = new /datum/action/human_action/rto/manual_marker(src)
+	manual_marker_action.give_to(owner)
+
+/datum/rto_support_controller/proc/remove_manual_marker_action()
+	if(!manual_marker_action)
+		return
+	if(manual_marker_action.owner)
+		manual_marker_action.remove_from(manual_marker_action.owner)
+	qdel(manual_marker_action)
+	manual_marker_action = null
 
 /datum/rto_support_controller/proc/ensure_support_actions()
 	var/list/valid_ids = list()
@@ -377,6 +507,10 @@
 		action_handles += select_action
 	if(visibility_action && !QDELETED(visibility_action))
 		action_handles += visibility_action
+	if(coordinates_action && !QDELETED(coordinates_action))
+		action_handles += coordinates_action
+	if(manual_marker_action && !QDELETED(manual_marker_action))
+		action_handles += manual_marker_action
 	for(var/action_id in support_actions)
 		var/datum/action/human_action/rto/support/action = support_actions[action_id]
 		if(action && !QDELETED(action))
@@ -394,14 +528,13 @@
 			continue
 		action.refresh_from_controller()
 
-/// Clears temporary state that should not survive owner death.
 /datum/rto_support_controller/proc/handle_owner_death()
 	reset_armed_action()
 	clear_active_zone()
+	clear_manual_designation()
 	refresh_action_handles()
 	return TRUE
 
-/// Rebuilds HUD state after owner revival.
 /datum/rto_support_controller/proc/handle_owner_revived()
 	if(!ensure_runtime())
 		return FALSE
@@ -409,15 +542,14 @@
 	refresh_action_handles()
 	return TRUE
 
-/// Reconciles armed state after inventory changes.
 /datum/rto_support_controller/proc/handle_inventory_changed(obj/item/changed_item)
 	if(!runtime_initialized)
 		return FALSE
-	if(changed_item && !istype(changed_item, /obj/item/device/binoculars/rto) && !armed_action_id)
-		return FALSE
 	var/had_armed_action = !!armed_action_id
-	var/has_binocular = has_rto_binocular()
-	if(had_armed_action && !has_binocular)
+	if(changed_item && !istype(changed_item, /obj/item/device/binoculars/rto) && !had_armed_action)
+		return FALSE
+
+	if(had_armed_action && !has_rto_binocular())
 		reset_armed_action()
 		if(owner && owner.stat != DEAD)
 			to_chat(owner, SPAN_WARNING("RTO-бинокль недоступен. Наведение отменено."))
@@ -435,13 +567,20 @@
 	return max(0, cooldown_until - world.time)
 
 /datum/rto_support_controller/proc/get_action_block_message(action_id)
+	if(action_id == RTO_SUPPORT_ARM_COORDINATES || action_id == RTO_SUPPORT_ARM_MARKER)
+		return null
 	if(!active_template)
 		return "Сначала выберите пакет поддержки."
 	if(action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
+		if(!template_requires_zone())
+			return "Этот пакет не использует сектор наведения."
+		if(get_active_zone())
+			return "[active_template.visibility_zone_name] уже активна: [round(get_zone_expires_in() / 10)] сек."
 		var/zone_cooldown = get_remaining_visibility_cooldown()
 		if(zone_cooldown > 0)
 			return "[active_template.visibility_zone_name] перезаряжается: [round(zone_cooldown / 10)] сек."
 		return null
+
 	var/datum/rto_support_action_template/action_template = active_template.get_action_template(action_id)
 	if(!action_template)
 		return "Неизвестная способность поддержки."
@@ -450,9 +589,13 @@
 		return "Общий кулдаун: [round(shared_cooldown / 10)] сек."
 	var/personal_cooldown = get_remaining_action_cooldown(action_id)
 	if(personal_cooldown > 0)
-		return "Кулдаун способности: [round(personal_cooldown / 10)] сек."
-	if(action_template.requires_visibility_zone && !get_active_zone())
-		return "Сначала разверните сектор наведения."
+		return "[action_template.name] перезаряжается: [round(personal_cooldown / 10)] сек."
+	if(action_template.requires_visibility_zone && template_requires_zone())
+		var/zone_state = get_zone_state()
+		if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
+			return "Сектор наведения перезаряжается: [round(get_zone_ready_in() / 10)] сек."
+		if(zone_state != RTO_SUPPORT_ZONE_STATE_ACTIVE)
+			return "Сначала разверните сектор наведения."
 	return null
 
 /datum/rto_support_controller/proc/is_action_armed(action_id)

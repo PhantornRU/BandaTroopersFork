@@ -1,10 +1,12 @@
-/// UI DTO for one template entry in the future preset selection interface.
+/// UI DTO for one template entry in the preset selection interface.
 /datum/rto_support_ui_preset_entry
 	var/template_id
 	var/name = ""
 	var/description = ""
 	var/role_summary = ""
 	var/targeting_summary = ""
+	var/restriction_summary = ""
+	var/requires_visibility_zone = TRUE
 	var/visibility_zone_name = ""
 	var/visibility_zone_type = ""
 	var/visibility_zone_radius = 0
@@ -21,9 +23,11 @@
 		"description" = description,
 		"role_summary" = role_summary,
 		"targeting_summary" = targeting_summary,
+		"restriction_summary" = restriction_summary,
+		"requires_visibility_zone" = requires_visibility_zone,
 		"visibility_zone_name" = visibility_zone_name,
 		"visibility_zone_type" = visibility_zone_type,
-		"visibility_zone_radius" = visibility_zone_radius,
+		"visibility_zone_radius" = round(visibility_zone_radius),
 		"visibility_zone_duration" = round(visibility_zone_duration / 10),
 		"visibility_zone_cooldown" = round(visibility_zone_cooldown / 10),
 		"visibility_altitude_requirement" = visibility_altitude_requirement,

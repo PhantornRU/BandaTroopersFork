@@ -28,6 +28,8 @@
 	var/altitude_requirement = RTO_SUPPORT_ALTITUDE_ANY
 	/// Whether the ability may target a closed turf.
 	var/allow_closed_turf = TRUE
+	/// Marker style used for the target preview.
+	var/target_marker_style = RTO_SUPPORT_MARKER_STATIC
 
 /// Builds a UI DTO for the action list.
 /datum/rto_support_action_template/proc/build_ui_entry()
@@ -148,18 +150,48 @@
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop
+	requires_visibility_zone = FALSE
 	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
 	allow_closed_turf = FALSE
 
-/datum/rto_support_action_template/logistics_sentry
-	action_id = "logistics_sentry"
-	name = "Sentry drop"
-	description = "Сброс турели в выбранную точку."
+/datum/rto_support_action_template/logistics_mine_crate
+	action_id = "logistics_mine_crate"
+	name = "Mine crate drop"
+	description = "Сброс ящика с минами в выбранную точку."
+	scatter = 1
+	shared_cooldown = 20 SECONDS
+	personal_cooldown = 100 SECONDS
+	category = "logistics"
+	icon_state = "ammo"
+	fire_support_path = /datum/fire_support/supply_drop/mine_crate
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_mini_sentry
+	action_id = "logistics_mini_sentry"
+	name = "Mini-sentry drop"
+	description = "Частый сброс облегчённой мини-турели с урезанным боезапасом."
 	scatter = 1
 	shared_cooldown = 20 SECONDS
 	personal_cooldown = 120 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
-	fire_support_path = /datum/fire_support/sentry_drop
+	fire_support_path = /datum/fire_support/sentry_drop/mini
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_full_sentry
+	action_id = "logistics_full_sentry"
+	name = "Full sentry drop"
+	description = "Редкий сброс полноценной турели с самым длинным кулдауном в пакете."
+	scatter = 1
+	shared_cooldown = 25 SECONDS
+	personal_cooldown = 180 SECONDS
+	category = "logistics"
+	icon_state = "sentry"
+	fire_support_path = /datum/fire_support/sentry_drop/full
+	requires_visibility_zone = FALSE
 	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
 	allow_closed_turf = FALSE
