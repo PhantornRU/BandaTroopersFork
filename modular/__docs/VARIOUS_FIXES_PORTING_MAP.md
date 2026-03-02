@@ -248,3 +248,143 @@ git merge --abort
 - конфликтные файлы;
 - rationale по каждому ручному решению;
 - вывод о том, нужен ли временный formatting/fix commit или его уже можно удалить.
+
+## Новая пачка портов от 2026-03-02
+
+Дополнительно в `various_fixes` были перенесены:
+
+1. `cmss13-pve#1250`
+   - https://github.com/cmss13-devs/cmss13-pve/pull/1250
+   - локальный ref: `pr-1250`
+   - practical summary: RP/PvE portable ARES laptop prop
+   - фактический перенос: `code/game/machinery/ARES/ARES_interface.dm`
+2. `cmss13-pve#1239`
+   - https://github.com/cmss13-devs/cmss13-pve/pull/1239
+   - локальный ref: `pr-1239`
+   - practical summary: hAI preset-management follow-up поверх zombie/hAI branch
+   - важное замечание:
+     - переносить не как `master...pr-1239`;
+     - переносить как diff поверх уже портированного `pr-1148`, то есть `pr-1148...pr-1239`;
+     - иначе повторно затягивается уже перенесенная zombie-база и старый rust-g related baggage.
+3. `cmss13-pve#1235`
+   - https://github.com/cmss13-devs/cmss13-pve/pull/1235
+   - локальный ref: `pr-1235`
+   - practical summary: Black Dragoons / mercenary weapons, gear, presets, attachments
+4. `cmss13-pve#1128`
+   - https://github.com/cmss13-devs/cmss13-pve/pull/1128
+   - локальный ref: `pr-1128`
+   - practical summary: FIL/FAAMI faction package
+   - важное замечание:
+     - PR старый и требует актуализации;
+     - shared файлы конфликтуют с `#1235` и текущим hardcode.
+5. `cmss13-pve#1252`
+   - https://github.com/cmss13-devs/cmss13-pve/pull/1252
+   - локальный ref: `pr-1252`
+   - practical summary: Hybrisa map/content/soundscape bundle
+   - includes:
+     - новая карта и map json;
+     - props, structures, ambience/soundscape, clothing, presets и supporting code.
+
+## Порядок порта для новой пачки
+
+Практически безопасный порядок оказался таким:
+
+1. `#1239` как follow-up поверх уже имеющегося `#1148`
+2. `#1250` как small independent content PR
+3. `#1235`
+4. `#1128`
+5. `#1252` последним, как большой map/content overlay
+
+Почему именно так:
+- `#1239` зависит от старого zombie/hAI фундамента и должен садиться до faction/content пакетов;
+- `#1235` и `#1128` оба трогают armor/weapons/faction files и должны быть сведены между собой до карты;
+- `#1252` трогает часть тех же shared content-файлов, но в основном является map/content bulk layer, поэтому его проще применять последним.
+
+## Конфликты новой пачки
+
+### 1. `#1239`
+
+Что переносилось:
+- `topic_events.dm` helper simplification:
+  - `paradrop()`
+  - `strip_all()`
+  - `strip_weapons()`
+- `ai_management_menu.dm`
+  - импорт словаря пресетов;
+- `ai_spawner.dm`
+  - расширенный preset dictionary / click-intercept / outfit-spawn / species/equipment selection;
+- `human_helpers.dm`
+  - helper logic под новый spawner flow;
+- `HumanAISpawner.tsx`
+  - новый UI для пресетов.
+
+Что сознательно НЕ переносилось из старой ветки:
+- rust-g update baggage;
+- старые бинарники/зависимости, идущие как incidental diff из древней базы ветки.
+
+Причина:
+- это не часть смысла `#1239` для `various_fixes`;
+- перенос таких файлов создает лишний риск отката актуального upstream/Banda состояния.
+
+### 2. `#1235` + `#1128`
+
+Основные shared conflict hotspots:
+- `code/__DEFINES/mode.dm`
+- `code/modules/clothing/masks/gasmask.dm`
+- `code/modules/mob/living/carbon/human/ai/action_datums/mg_nest.dm`
+- `code/modules/mob/living/carbon/human/ai/action_datums/sniper_nest.dm`
+- `code/modules/mob/living/carbon/human/ai/brain/ai_brain_factions.dm`
+- `code/modules/projectiles/magazines/rifles.dm`
+
+Принятые решения:
+
+1. `mode.dm`
+   - сохранить расширенный `FACTION_LIST_TWE` из текущей ветки;
+   - отдельно добавить `FACTION_LIST_FIL`.
+2. `gasmask.dm`
+   - сохранить уже существующие RMC/royal_marine свойства;
+   - добавить FIL gasmask отдельным блоком, без замены старого.
+3. `mg_nest.dm`
+   - оставить mercenary sentinel MG preset;
+   - добавить FIL MG preset.
+4. `sniper_nest.dm`
+   - оставить mercenary sentinel marksman;
+   - добавить mercenary infiltrator и FIL sniper.
+5. `ai_brain_factions.dm`
+   - для TWE сохранить текущую дружбу с PMC;
+   - дополнительно добавить FIL в friendly list.
+6. `magazines/rifles.dm`
+   - сохранить `vulture/terror` из текущей ветки;
+   - добавить FR F20 magazine family из FIL PR ниже по файлу.
+
+Общее правило:
+- в этих конфликтах почти всегда нужно объединять обе стороны, а не выбирать одну.
+
+### 3. `#1252`
+
+Единственный ручной текстовый конфликт после 3-way apply:
+- `code/modules/clothing/under/marine_uniform.dm`
+
+Суть:
+- FIL uniform из `#1128`
+- Hybrisa civilian/steward utility uniforms из `#1252`
+
+Решение:
+- сохранить оба блока;
+- конфликт был purely positional, не semantic.
+
+## Что помнить при следующем перепорте этой пачки
+
+1. Для `#1239` смотреть diff относительно `pr-1148`, а не относительно `master`.
+2. Для `#1128` заранее ожидать конфликты с `#1235`.
+3. Для `#1252` не пугаться огромного числа binary/map files:
+   - реальных текстовых конфликтов обычно мало;
+   - bulk assets через 3-way apply садятся нормально.
+4. После `#1252` отдельно перепроверять:
+   - `marine_uniform.dm`
+   - `headset.dm`
+   - `helmet.dm`
+   - `rifles.dm`
+   - `smgs.dm`
+   - `maps/lv759_hybrisa_prospera*.json`
+   - `maps/map_files/LV759_Hybrisa_Prospera*`

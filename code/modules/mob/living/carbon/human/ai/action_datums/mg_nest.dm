@@ -89,6 +89,7 @@
 		/datum/equipment_preset/rebel/soldier/machinegunner::name = /datum/equipment_preset/rebel/soldier/machinegunner,
 		/datum/equipment_preset/clf/soldier/machinegunner::name = /datum/equipment_preset/clf/soldier/machinegunner,
 		/datum/equipment_preset/mercenary/sentinel/mg::name = /datum/equipment_preset/mercenary/sentinel/mg,
+		/datum/equipment_preset/fil/rifleman/mg::name = /datum/equipment_preset/fil/rifleman/mg,
 	)
 
 	if(!check_rights(R_DEBUG))
@@ -129,4 +130,3 @@
 	ai_comp.ai_brain.machinegunner_dir = get_cardinal_dir(home_turf, target_turf)
 
 	to_chat(usr, SPAN_NOTICE("machinegunner has been created."))
-
