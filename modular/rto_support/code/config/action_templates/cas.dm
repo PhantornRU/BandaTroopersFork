@@ -15,8 +15,8 @@
 	name = "Laser run"
 	description = "Точный лазерный проход с малым разбросом."
 	scatter = 2
-	shared_cooldown = 14 SECONDS
-	personal_cooldown = 18 SECONDS
+	shared_cooldown = 16 SECONDS
+	personal_cooldown = 22 SECONDS
 	category = "cas"
 	icon_state = "laser"
 	fire_support_path = /datum/fire_support/laser
@@ -27,8 +27,8 @@
 	name = "Rocket barrage"
 	description = "Ракетный заход с умеренным разбросом."
 	scatter = 4
-	shared_cooldown = 20 SECONDS
-	personal_cooldown = 35 SECONDS
+	shared_cooldown = 22 SECONDS
+	personal_cooldown = 36 SECONDS
 	category = "cas"
 	icon_state = "rockets"
 	fire_support_path = /datum/fire_support/rockets
