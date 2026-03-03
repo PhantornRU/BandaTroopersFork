@@ -73,7 +73,7 @@
 		var/current_mask = signal_mask_by_id[id_key] || 0
 		signal_mask_by_id[id_key] = current_mask | STICKY_SIGNAL_CID
 
-	if(!SSipcheck.is_whitelisted(ckey))
+	if(!stickyban_ckey_has_ip_whitelist_exemption(ckey))
 		for(var/datum/view_record/stickyban_matched_ip/matched_ip as anything in get_impacted_ip_records(address))
 			var/id_key = "[matched_ip.linked_stickyban]"
 			sticky_id_by_key[id_key] = matched_ip.linked_stickyban
@@ -167,10 +167,8 @@
 	if(!cid)
 		return list()
 
-	var/list/ignored_cids = CONFIG_GET(str_list/ignored_cids)
-	if(islist(ignored_cids))
-		if(cid in ignored_cids)
-			return list()
+	if(stickyban_cid_is_ignored(cid))
+		return list()
 
 	return DB_VIEW(/datum/view_record/stickyban_matched_cid,
 		DB_COMP("cid", DB_EQUALS, cid)
