@@ -8,6 +8,8 @@
   3. Поиск существующих extension points, signals и modular hooks.
   4. Только после этого план правок и точечное изменение файлов.
 - Не читать крупные директории целиком, если задачу можно сузить выборочными запросами.
+- Для задач в `modular/**` сначала проверять `colonialmarines.dme`, `modular/modular.dme`, relevant `_*.dme`, затем целевой модуль и его callsites.
+- Для правок в upstream сначала проверять, существует ли уже modular hook, adapter или modpack-level abstraction, через которые можно закрыть задачу.
 
 ## Read-only и mutating границы
 - Read-only действия: поиск, чтение, diff, анализ include/call graph, dry-run проверки без изменения tracked файлов.
@@ -18,7 +20,8 @@
 - Сначала определить тип задачи: docs, DM-код, maps, tgui, build/CI или смешанный scope.
 - Для nontrivial изменений сначала формировать decision-complete plan с рисками, альтернативами и acceptance criteria.
 - Перед правками апстрима проверить, нельзя ли закрыть задачу через `modular/**`.
-- При изменении `code/**` учитывать требования `SS220 EDIT` из [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md).
+- При изменении upstream и согласованных config surfaces учитывать требования `SS220 EDIT` из [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md).
+- Existing `SS220 EDIT` в `modular/**` считать legacy markers и не использовать их как precedent для новых правок.
 
 ## Минимальные проверки по типам задач
 1. Docs-only:

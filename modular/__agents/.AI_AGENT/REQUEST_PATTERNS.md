@@ -17,7 +17,8 @@
 PLEASE IMPLEMENT THIS PLAN:
 - Сошлись на утвержденный challenge-block и принятые допущения.
 - Сначала реализуй modular-first вариант; в upstream оставь только минимальный glue.
-- Для правок вне modular/** соблюдай SS220 EDIT и не раздувай дифф.
+- Для upstream и согласованных config surfaces соблюдай SS220 EDIT и не раздувай дифф.
+- Не использовать legacy SS220 EDIT в modular/** как новый стандарт для свежих правок.
 - Не ломай build/CI контракты, map config semantics и существующие upstream-facing интерфейсы без отдельного согласования.
 - После изменений прогони релевантные проверки из repo docs / CI.
 - В ответе дай:
@@ -32,7 +33,7 @@ PLEASE IMPLEMENT THIS PLAN:
 ```text
 Пройдись по измененной зоне BandaTroopers:
 - найди несоответствия modular/upstream split,
-- проверь корректность SS220 EDIT в non-modular файлах,
+- проверь корректность SS220 EDIT в upstream и согласованных config surfaces,
 - проверь неиспользуемый код, лишние зависимости и дубли логики,
 - проверь кодировку и ссылки в документации,
 - проверь fallout для maps, tgui и build/CI, если задача их затрагивает,

@@ -14,8 +14,4 @@
 
 ## D-004: `SS220_DEVELOPMENT_RULES.md` становится overlay
 - Решение: [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md) больше не является главным документом и описывает только BandaTroopers/SS220-specific правила над общей agent-базой.
-- Почему: перенос должен сохранить модель исходного `.AI_AGENT`, но не потерять repo-specific политику по modular/upstream split и `SS220 EDIT`.
-
-## D-005: Текст ориентирован на Codex, но остается multi-agent-friendly
-- Решение: писать правила в нейтральной форме с явным упоминанием Codex как primary consumer.
-- Почему: основной target сейчас Codex, но структура должна оставаться переносимой на другие AI-агенты.
+- Почему: repo-specific политика по modular/upstream split и `SS220 EDIT` должна жить отдельным overlay, а не дублировать stable guidance.
