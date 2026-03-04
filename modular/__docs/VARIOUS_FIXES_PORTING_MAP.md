@@ -546,3 +546,211 @@ PR добавляет CANC Dogwar пакет в hardcode:
 2. replay'ить authored non-merge commits;
 3. затем отдельно повторять интеграционный fix по `communications.dm`, `squad_canc.dm` и `chat-*.scss`;
 4. после этого обязательно прогонять `lint tgui-test`, потому что SCSS ошибка проявилась только на CI-подобном прогоне.
+
+## Пакет портов от 2026-03-04: `#1253`, `#1251`, `#1228`, `RU-CMSS13#75`
+
+Источники:
+- `cmss13-devs/cmss13-pve#1253`
+- `cmss13-devs/cmss13-pve#1251`
+- `cmss13-devs/cmss13-pve#1228`
+- `RU-CMSS13/cmss13-pve#75`
+
+Локальные refs:
+- `pr-1253`
+- `pr-1251`
+- `pr-1228`
+- `ru-master`
+- `pr-ru-75`
+
+### `#1253`
+
+Что перенесено:
+- новый shipmap `SSV Rover Tethered`;
+- `maps/rover_tethered.json`;
+- `maps/map_files/rover_tethered/rover_tethered.dmm`;
+- запись в `map_config/shipmaps.txt`.
+
+Локальный replay-коммит:
+- original `d10c2d3f01` `Initial commit`
+  - local replay: `7df2dfe4c9`
+
+Конфликты:
+- существенных конфликтов не было;
+- `shipmaps.txt` смержился автоматически.
+
+### `#1251`
+
+Что перенесено:
+- `SSV Laituri` как UPP shipmap;
+- `dropship_korobka`;
+- расширение UPP platoon/squad/job/loadout набора;
+- UPP radio/encryption/rappel изменения;
+- сопутствующие preset/icon/map изменения.
+
+Локальные replay-коммиты:
+1. original `75d5a0f8fe` `first pass`
+   - local replay: `b49e2d4427`
+2. original `f539b007d4` `fixed some phone stuff & other tidbits`
+   - local replay: `768b3efe9e`
+3. original `6860af4b5e` `some fixes - rto lockers, para PKP and armor, new beret, 2 rifles now`
+   - local replay: `b9d85c8fe6`
+4. original `8cf499673d` `pandora fixes`
+   - local replay: `4dcb9520da`
+5. original `52accfbd64` `fixed some job/role defines. Fixed radio encryption key & recon radio using a prefix. Added a smidge of cool Nouns UPP lore to the beret desc. Swapped Type-88 crate to the regular version to avoid FF from flak rounds`
+   - local replay: `1b2da06c99`
+6. original `c6f69756ff` `specific UPP rappel button added`
+   - local replay: `ca832f3dc1`
+7. original `f417111648` `added amsel aka scythe's korobka shuttle`
+   - local replay: `4ebc0fc28f`
+
+Какие конфликты пришлось сводить:
+- `code/game/gamemodes/colonialmarines/colonialmarines.dm`
+  - сохранен SS220 font-fix интро;
+  - добавлен отдельный intro-case для `SQUAD_SISSI`.
+- `code/global.dm`
+  - сохранены и `SSV Laituri`, и `USS Blue Ridge` в `SHIP_MAP_NAMES`.
+- `code/__DEFINES/shuttles.dm`
+  - сохранены `DROPSHIP_TORNADO_220/_LONG`;
+  - добавлен `DROPSHIP_KOROBKA`.
+
+Практический вывод:
+- `#1251` конфликтует не по своей бизнес-логике, а в местах, где ветка уже расширяла shipmaps/shuttles/intro text;
+- повторный порт надо делать как additive merge, а не как blind cherry-pick.
+
+### `#1228`
+
+PR-title:
+- `Overhaul PMC-12`
+
+Что перенесено:
+- PMC overhaul в hardcode;
+- `Extended Armor Plates`;
+- `whiteout` / `WO` faction datum и gear-presets;
+- `WY commandos`;
+- `working joe` / `wy_droid` species, emotes, sounds и presets;
+- новые PMC/WY belts, pouches, webbings, armor parts, flamer/shotgun/weapon pieces;
+- IASF uniforms и дополнительный faction clothing pack;
+- сопутствующие карты/props/icons/sounds.
+
+Локальные replay-коммиты:
+1. original `d1a4b69c12` `test`
+   - local replay: `44ee2fc480`
+2. original `abd54f643d` `loadout fixes`
+   - local replay: `48ecf88c15`
+3. original `2ebe32c311` `few more sprites`
+   - local replay: `c8ea8e43d6`
+4. original `f2e36c1a93` `Extended Armor Plates (#58)`
+   - local replay: `5479575a60`
+5. original `847e46d3aa` `post_main-brainch_merge`
+   - local replay: `2644986f05`
+6. original `15b689f71f` `armor plate fix`
+   - local replay: `26b34b2f17`
+7. original `affa65830a` `Transferring clothing and patches from PVP to PVE (#57)`
+   - local replay: `fade24e3ba`
+8. original `38e8c4d022` `remove oxy`
+   - local replay: `9e9aba97ac`
+9. original `c6460c61ef` `reverts various changes to pain/nutrition`
+   - local replay: `9b4a818001`
+10. original `238c88c7b5` `revert dam values`
+   - local replay: `e3e9932048`
+11. original `a8428501e9` `revert SG drain`
+   - local replay: `98b14d3828`
+12. original `893e3bb7c0` `update from RU PVE`
+   - local replay: `6191f13ecf`
+
+Важное исключение:
+- не переносился original `978ab70ce4` `Update rust_g 3.3.0 to 4.2.0 (#11327)`;
+- причина:
+  - это incidental base-branch baggage;
+  - смыслового отношения к PMC overhaul для `various_fixes` не имеет;
+  - уже раньше такой же pattern сознательно пропускался при follow-up портах.
+
+Какие конфликты пришлось сводить:
+- `code/game/machinery/vending/vendor_types/squad_prep/squad_prep.dm`
+  - PMC vendor сведен как hybrid:
+    - сохранены новые WY/PMC armor-pads, webbings, backpacks и masks;
+    - возвращены полезные веточные utility-опции (tech/TWE packs и часть belt/pouch вариантов).
+- `code/game/objects/items/storage/belt.dm`
+  - сохранены и новые `WY-TM892` holster rigs, и веточный `pa76` fill preset.
+- `code/modules/clothing/head/helmet.dm`
+  - сохранены SS220/веточные visor hooks;
+  - взяты новые `pmc_helmet_enclosed` / `rmc_helmet_enclosed`.
+- `code/modules/clothing/suits/marine_armor/ert.dm`
+  - объединены веточные modular PMC armors и PR-шный `M5X Apesuit`.
+- `code/modules/clothing/under/ties.dm`
+  - объединены PMC armor pads, новые WY webbings и кастомные hold-правила ветки.
+- `code/modules/gear_presets/pmc.dm`
+  - оставлены branch-specific synth slots/headset'ы;
+  - поверх добавлены updated PMC masks/gloves/shoes.
+- `code/modules/projectiles/guns/rifles.dm`
+  - сохранены веточные `m41a/corporate`, `m20a/merc`;
+  - добавлены `whiteout`/WY follow-up definitions.
+- `maps/map_files/USCSS_Obsidian_Falk/USCSS_Obsidian_Falk.dmm`
+  - вручную снят `merge_conflict_marker`;
+  - на конфликтных heavy-weapon locker tiles сохранено новое PMC smartgun gear-state без возврата старых дублей.
+- `code/modules/clothing/under/marine_uniform.dm`
+  - объединены веточные FIL/utility uniforms и PR-шные IASF uniforms.
+
+Практический вывод:
+- `#1228` нельзя переносить как один "огромный theirs";
+- у него два слоя:
+  - authored PMC overhaul/history;
+  - финальный downstream-sized commit `893e3bb7c0`, который нужно принимать только после того, как earlier authored layer уже лег поверх ветки.
+
+### `RU-CMSS13#75`
+
+PR-title:
+- `XAI_actions_xenos`
+
+Важное замечание по base:
+- сравнивать `pr-ru-75` нужно именно с `ru-master`, а не с `cm-pve/master` и не с `pr-1228`;
+- сам PR маленький и состоит только из двух authored commits.
+
+Локальные replay-коммиты:
+1. original `ae83a82728` `init`
+   - local replay: `9f71b07b82`
+2. original `0fe62e76f0` `hm`
+   - local replay: `56bdc2e23b`
+
+Что перенесено:
+- follow-up правки xeno AI actions для:
+  - `Defender`
+  - `Praetorian`
+  - `Queen`
+  - `Ravager`
+  - `Sentinel`
+  - `Spitter`
+- расширение `GAME_MASTER_AI_XENOS`.
+
+Какие конфликты пришлось сводить:
+- `code/modules/admin/game_master/game_master.dm`
+  - branch already содержал `WARRIOR_DRONE` и arachnids;
+  - PR добавлял `Defender/Carrier/Predalien/King`;
+  - итоговое решение: объединить реальный доступный список каст.
+- `Queen/Sentinel/Spitter`
+  - взят более безопасный порядок short-circuit check'ов из PR;
+  - для `Spitter` взята исправленная сигнатура `check_for_obstacles_projectile(..., datum/ammo/ammo_datum)`, потому что веточная версия смешивала `projectile` и `ammo datum`.
+
+### Отдельный интеграционный fix-коммит поверх authored history
+
+- `e45cddff66` `Fix PR1228 and RU75 integration regressions`
+
+Что исправляет:
+- добавляет и правильно упорядочивает `#include "code\\datums\\factions\\wo.dm"` в `colonialmarines.dme`;
+- убирает оставшийся conflict-marker мусор в `code/modules/clothing/under/marine_uniform.dm`;
+- выкидывает из `GAME_MASTER_AI_XENOS` несуществующие в этой базе `PATHOGEN_CREATURE_*`, которые были валидны в PR-source, но отсутствуют в текущем hardcode.
+
+### Что проверено после порта
+
+Локально проверено:
+- `validate_dme.py` — проходит
+- `tools/build/build.bat --ci dm` — проходит
+- `tools/build/build.bat --ci lint` — проходит
+- `tools/build/build.bat --ci dm lint tgui-test`:
+  - изначально падал на интеграционных дырках, которые закрыты в `e45cddff66`;
+  - после фикса отдельные `dm` и `lint` цели проходят
+
+Оставшийся warning:
+- `code/modules/mob/living/carbon/human/ai/ai_management_menu.dm:224`
+- `unused_var: the_beast`
+- warning pre-existing и не относится к текущему пакету портов.
