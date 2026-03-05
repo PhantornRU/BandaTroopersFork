@@ -754,3 +754,76 @@ PR-title:
 - `code/modules/mob/living/carbon/human/ai/ai_management_menu.dm:224`
 - `unused_var: the_beast`
 - warning pre-existing и не относится к текущему пакету портов.
+
+## 2026-03-05 GroundSide stabilization (RU-CMSS13)
+
+Source scope:
+- RU GroundSide source of truth: `https://github.com/RU-CMSS13/cmss13-pve/tree/master`
+- Reference examples from request: `https://github.com/RU-CMSS13/cmss13-pve/pull/56`, `https://github.com/RU-CMSS13/cmss13-pve/pull/20`, `https://github.com/RU-CMSS13/cmss13-pve/pull/68`
+- Existing CM PVE refs used for reconciliation: `pr-1252`, `pr-1251`, `pr-1228`, `pr-1253`
+
+GroundSide inventory/reconcile outcome:
+- Missing rotation GroundSide maps (vs `ru-master`) were imported:
+  - `maps/lv671.json`
+  - `maps/oil_depot.json`
+  - `maps/derelict_almayer_infested.json`
+  - `maps/map_files/lv671/lv671.dmm`
+  - `maps/map_files/oil_depot/oil_depot.dmm`
+  - `maps/map_files/derelict_almayer_infested/derelict_almayer_infested.dmm`
+- Existing regressed maps were reconciled/fixed:
+  - `maps/map_files/BMG290_Otogi_Egress_Point/BMG290_Otogi_Egress_Point.dmm`
+  - `maps/map_files/kleschers_research_site/BigBlue.dmm`
+  - `maps/map_files/USCSS_Onyx_Karain/USCSS_Onyx_Karain.dmm`
+  - `maps/map_files/LV759_Hybrisa_Prospera/LV759_Hybrisa_Prospera.dmm`
+  - `maps/map_files/LV759_Hybrisa_Prospera_Fixed/LV759_Hybrisa_Prospera_repaired.dmm`
+
+Build/compat fixes required by map sources:
+- `code/game/machinery/telecomms/presets.dm`: `switch(user.faction)` changed from list-macro case to explicit constants (`FACTION_CANC`, `FACTION_CANC_DOGWAR`) to remove OD0500.
+- Added compatibility types for canonical source paths:
+  - `code/game/objects/items/storage/backpack.dm`: `/obj/item/storage/backpack/commando`
+  - `code/modules/clothing/head/head.dm`: `/obj/item/clothing/head/beret/royal_marine`
+  - `code/modules/projectiles/magazines/rifles.dm`: `/obj/item/ammo_magazine/rifle/nsg23/extended`
+- Minor compile cleanup:
+  - `code/modules/mob/living/carbon/human/ai/ai_management_menu.dm` static preset dictionary import path (`the_beast` warning removed)
+
+Maplint-specific GroundSide sanitation:
+- Converted imported maps to TGM via `mapmerge2.dmm` writer.
+- Applied canonical and local UpdatePaths scripts:
+  - `tools/UpdatePaths/Scripts/6656-no-more-open-turf-edits.txt`
+  - `tools/UpdatePaths/Scripts/797-plane-bans.txt`
+  - `tools/UpdatePaths/Scripts/6656-no-bad-dirs.txt`
+  - `tools/UpdatePaths/Scripts/ss220-groundside-derelict-almayer-infested-maplint.txt`
+  - `tools/UpdatePaths/Scripts/ss220-groundside-lv671-oildepot-maplint.txt`
+- Added maplint-compat subtype support (minimal integration in existing turf files):
+  - `code/game/turfs/floor_types.dm`
+  - `code/game/turfs/strata.dm`
+  - `code/game/turfs/open.dm`
+  - `code/game/turfs/floors/desert.dm`
+
+DMI overflow split (required by CI):
+- New split files:
+  - `icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi`
+  - `icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_wy_misc.dmi`
+  - `icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi`
+  - `icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi`
+- Repointed type groups to split files through `item_icons`:
+  - GroundSide/CANC/UPP/FIL/WY uniforms (marine/veteran + liaison/officer subsets)
+  - Bayonets, cameras, defibs, surgical/syringe cases, megaphone, UPP multitool/flare/binoculars, stethoscope, UPP handset
+- Base atlases were reduced under limit:
+  - `icons/mob/humans/onmob/uniform_0.dmi`
+  - `icons/mob/humans/onmob/items_lefthand_0.dmi`
+  - `icons/mob/humans/onmob/items_righthand_0.dmi`
+
+Scope guard:
+- No new shipmap content was ported from RU in this pass.
+- Ship-side DMM changes were applied only as compile/maplint stabilization (`USCSS_Onyx_Karain` regression fix).
+
+Validation executed:
+- `git diff --check` passed.
+- `tools/build/build.bat --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed.
+- `tools/build/build.bat --ci lint tgui-test` passed.
+- `tools/bootstrap/python -m dmi.test` passed.
+- `tools/bootstrap/python -c "import sys, runpy; sys.path.insert(0, '.'); runpy.run_module('tools.maplint.source', run_name='__main__')" --github` passed.
+- `tools/bootstrap/python -m mapmerge2.dmm_test` passed.
+- `tools/build/build.bat --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE` passed.
+- `tools/build/build.bat --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA` passed.

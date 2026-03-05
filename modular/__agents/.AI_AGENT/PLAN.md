@@ -1,30 +1,29 @@
 # PLAN
 
-## Активная задача
-Завершить `various_fixes` GroundSide-порт из `RU-CMSS13/cmss13-pve`, устранить compile/map regressions, разгрузить переполненные DMI и задокументировать итоговый перенос.
+## Active Task
+Complete `various_fixes` GroundSide stabilization for RU-CMSS13 source maps:
+- finish missing GroundSide ports;
+- fix compile/map regressions introduced by merge history;
+- resolve DMI state overflow with split files and explicit repoints;
+- document source mapping, conflicts, and compatibility decisions.
 
-## Scope
-- Исправить branch-wide compile blockers и missing compatibility types.
-- Сверить и починить уже портированные GroundSide DMM против `pr-1252` и `ru-master`.
-- Доперенести отсутствующие GroundSide карты из `ru-master`.
-- Вынести новые onmob/inhand состояния из переполненных `uniform_0.dmi`, `items_lefthand_0.dmi`, `items_righthand_0.dmi`.
-- Обновить `VARIOUS_FIXES_PORTING_MAP.md` и task-state.
+## Final Status
+Completed.
 
-## Out Of Scope
-- Порт новых shipmaps.
-- Несвязанный incidental upstream baggage.
-- Деструктивная перепись истории существующих authored commits.
+## Delivered Scope
+- Build blockers fixed (`telecomms`, compatibility types, AI menu warning cleanup).
+- Existing regressed maps reconciled (`Otogi`, `BigBlue`, `Onyx`).
+- Missing GroundSide maps imported (`lv671`, `oil_depot`, `derelict_almayer_infested`) with required wiring.
+- Maplint/map-format compatibility stabilized with targeted subtype support and UpdatePaths scripts.
+- DMI overflows removed via split assets and code-side icon repoints.
+- Porting documentation expanded in `modular/__docs/VARIOUS_FIXES_PORTING_MAP.md`.
 
-## Фазы
-1. Task-state + inventory missing GroundSide карт.
-2. Build stabilization: telecomms + compatibility types.
-3. Map reconciliation для уже лежащих карт.
-4. Порт missing RU GroundSide maps.
-5. DMI split и repoint ссылок.
-6. Документация и финальные проверки.
+## Out Of Scope Guard
+- No new RU shipmap content was ported.
+- Ship-side map edits were limited to compile/maplint stabilization only.
 
-## Acceptance Criteria
-- `dm` и `ALL_MAPS` сборки не падают на текущих undefined/unknown type regressions.
-- `dmi.test` не падает на переполненных onmob/inhand DMI.
-- Все missing GroundSide карты из `ru-master` присутствуют в `maps/` и `map_config/maps.txt`.
-- `VARIOUS_FIXES_PORTING_MAP.md` фиксирует sources, конфликты, aliases и DMI split.
+## Acceptance Snapshot
+- `dm` and `ALL_MAPS` compile: pass.
+- `dmi.test`: pass (no overflow errors for target atlases).
+- `maplint` and `mapmerge2`: pass.
+- Task-state files updated from baseline to task-specific completed state.
