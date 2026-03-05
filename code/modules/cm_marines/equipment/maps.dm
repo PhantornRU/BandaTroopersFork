@@ -169,6 +169,26 @@
 	html_link = ""
 	color = "cyan"
 
+// SS220 EDIT - START
+/obj/item/map/lv_671
+	name = "\improper LV-671 Map"
+	desc = "An orbital scan printout of the LV-671 colony."
+	html_link = ""
+	color = "cyan"
+
+/obj/item/map/oil_depot
+	name = "\improper Oil Depot Map"
+	desc = "A satellite printout of the oil depots on planet."
+	html_link = ""
+	color = "#e88a10"
+
+/obj/item/map/almayer/infested
+	name = "\improper USS Almayer map"
+	desc = "A labeled blueprint of the USS Almayer"
+	html_link = "images/5/54/USS_Almayer.png"
+	color = "cyan"
+// SS220 EDIT - END
+
 GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 
 /proc/setup_all_maps()
@@ -206,6 +226,11 @@ GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 		MAP_TAIPEI = new /obj/item/map/taipei(),
 		MAP_REDEMPTION_VALLEY = new /obj/item/map/lazarus_landing_map(),
 		MAP_BINHAI_SUPPLY_STATION = new /obj/item/map/FOP_map(),
+		// SS220 EDIT - START
+		MAP_LV_671 = new /obj/item/map/lv_671(),
+		MAP_OIL_DEPOT = new /obj/item/map/oil_depot(),
+		MAP_DERELICT_ALMAYER_INFESTED = new /obj/item/map/almayer/infested(),
+		// SS220 EDIT - END
 	)
 
 //used by marine equipment machines to spawn the correct map.
