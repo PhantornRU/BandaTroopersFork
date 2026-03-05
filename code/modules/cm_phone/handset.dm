@@ -181,4 +181,9 @@
 
 /obj/item/handset/upp
 	icon_state = "upp_rpb_phone"
+	item_state = "upp_rpb_phone" // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 #undef HANDSET_RANGE

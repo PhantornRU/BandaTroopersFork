@@ -586,6 +586,10 @@
 	icon = 'icons/obj/items/storage/medical.dmi'
 	icon_state = "syringe_case"
 	item_state = "syringe_case"
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 	throw_speed = SPEED_FAST
 	throw_range = 8
 	storage_slots = 3
@@ -692,6 +696,10 @@
 	icon = 'icons/obj/items/storage/medical.dmi'
 	icon_state = "surgical_case"
 	item_state = "surgical_case"
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 	throw_speed = SPEED_FAST
 	throw_range = 8
 	storage_slots = 3
@@ -723,6 +731,10 @@
 		\nStep four: Patch the damaged vein with a surgical line.\
 		\nStep five: Close the incision with a surgical line."
 	icon_state = "surgical_case_elite"
+	item_icons = list( // SS220 EDIT: elite case keeps its legacy inhand state in items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+	)
 	storage_slots = 5
 
 /obj/item/storage/surgical_case/elite/commando/fill_preset_inventory()
@@ -754,6 +766,10 @@
 	name = "\improper RMC surgical case"
 	desc = "It's a medical case for storing basic surgical tools. This one was made specifically for Royal Marine Commandos, allowing them to suture their wounds during prolonged operations or perform emergency surgeries. Given the lack of tools, non-standard methods may need to be employed for the latter."
 	icon_state = "rmc_surgical_case"
+	item_icons = list( // SS220 EDIT: RMC case keeps its legacy inhand state in items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+	)
 	storage_slots = 5
 
 /obj/item/storage/surgical_case/rmc_surgical_case/full/fill_preset_inventory()

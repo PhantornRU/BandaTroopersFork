@@ -284,8 +284,8 @@ Defined in conflicts.dm of the #defines folder.
 	item_state = "combat_bayonet"
 	item_icons = list(
 		WEAR_FACE = 'icons/mob/humans/onmob/mask.dmi',
-		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
-		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi', // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi' // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
 	)
 	desc = "An outdated rifle bayonet issued by the USCMC. Neatly fits into boot-mounted holsters, and can- in emergencies- be utilized to dig out shrapnel."
 	sharp = IS_SHARP_ITEM_ACCURATE
@@ -337,6 +337,11 @@ Defined in conflicts.dm of the #defines folder.
 	name = "\improper M8 cartridge bayonet"
 	desc = "A back issue USCM approved exclusive for Boots subscribers found in issue #255 'Inside the Night Raider - morale breaking alternatives with 2nd LT. Juliane Gerd'. A pressurized tube runs along the inside of the blade, and a button allows one to inject compressed CO2 into the stab wound. It feels cheap to the touch. Faulty even."
 	icon_state = "co2_knife"
+	item_icons = list( // SS220 EDIT: keep CO2 bayonet on legacy inhands; its state stayed in items_*_0.dmi
+		WEAR_FACE = 'icons/mob/humans/onmob/mask.dmi',
+		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+	)
 	attach_icon = "co2_bayonet_a"
 	var/filled = FALSE
 
