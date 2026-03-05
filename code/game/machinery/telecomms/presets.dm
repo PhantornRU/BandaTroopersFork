@@ -281,7 +281,10 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 						freq_listening |= SOF_FREQ
 				if(FACTION_CLF)
 					freq_listening |= CLF_FREQS
-				if(FACTION_LIST_CANC)
+				// SS220 EDIT - START
+				// if(FACTION_LIST_CANC)
+				if(FACTION_CANC, FACTION_CANC_DOGWAR)
+				// SS220 EDIT - END
 					freq_listening |= CANC_FREQS
 				if(FACTION_UPP)
 					freq_listening |= UPP_FREQS

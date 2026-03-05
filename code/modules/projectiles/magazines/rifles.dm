@@ -536,6 +536,12 @@
 	ammo_band_icon = "+nsg23_band"
 	ammo_band_icon_empty = "+nsg23_band_e"
 
+// SS220 EDIT - START
+/obj/item/ammo_magazine/rifle/nsg23/extended
+	name = "\improper NSG 23 extended magazine (8.5x33mm)"
+	desc = "A high-capacity drum magazine designed to fit the NSG 23 & L23A1 assault rifles."
+// SS220 EDIT - END
+
 /obj/item/ammo_magazine/rifle/nsg23/ap
 	name = "\improper NSG 23 armor-piercing magazine (8.5x33mm)"
 	desc = "A high-capacity drum magazine designed to fit the NSG 23 & L23A1 assault rifles. This one is loaded with armor piercing rounds."

@@ -1113,6 +1113,14 @@ GLOBAL_LIST_EMPTY_TYPED(radio_packs, /obj/item/storage/backpack/marine/satchel/r
 /obj/item/storage/backpack/lightpack/five_slot
 	max_storage_space = 15
 
+// SS220 EDIT - START
+/obj/item/storage/backpack/commando
+	name = "commando bag"
+	desc = "A heavy-duty bag carried by Weyland-Yutani commandos."
+	icon_state = "commandopack"
+	worn_accessible = TRUE
+// SS220 EDIT - END
+
 /obj/item/storage/backpack/marine/engineerpack/ert
 	name = "\improper lightweight technician welderpack"
 	desc = "A small, lightweight pack for expeditions and short-range operations. Features a small fueltank for quick blowtorch refueling."

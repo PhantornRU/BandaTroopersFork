@@ -266,6 +266,11 @@
 	var/base_state = "plating" //Post mapping
 	var/covered = TRUE
 
+// SS220 EDIT - START: GroundSide derelict almayer maplint compat
+/turf/open/floor/plating/plating_catwalk/no_build
+	allow_construction = FALSE
+// SS220 EDIT - END
+
 /turf/open/floor/plating/plating_catwalk/Initialize(mapload, ...)
 	. = ..()
 
@@ -1245,6 +1250,32 @@
 	allow_construction = FALSE
 	hull_floor = TRUE
 
+// SS220 EDIT - START: GroundSide derelict almayer maplint compat
+/turf/open/floor/almayer/no_build/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/cargo_arrow
+	icon_state = "cargo_arrow"
+
+/turf/open/floor/almayer/no_build/cargo_arrow/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/cargo_arrow/west
+	dir = WEST
+
+/turf/open/floor/almayer/no_build/silver
+	icon_state = "silver"
+
+/turf/open/floor/almayer/no_build/silver/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/silver/west
+	dir = WEST
+
+/turf/open/floor/almayer/no_build/tcomms
+	icon_state = "tcomms"
+// SS220 EDIT - END
+
 /turf/open/floor/almayer/no_build/ai_floors
 	icon_state = "ai_floors"
 
@@ -1504,6 +1535,11 @@
 /turf/open/floor/wood/wood_broken7
 	icon_state = "wood-broken7"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/wood/color_a39898
+	color = "#A39898"
+// SS220 EDIT - END
+
 /turf/open/floor/vault
 	icon_state = "rockvault"
 
@@ -1579,6 +1615,11 @@
 /turf/open/floor/bluegrid/bcircuitoff
 	icon_state = "bcircuitoff"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/bluegrid/bcircuita
+	icon_state = "bcircuita"
+// SS220 EDIT - END
+
 /turf/open/floor/bluegrid/damaged3
 	icon_state = "damaged3"
 
@@ -1591,6 +1632,11 @@
 /turf/open/floor/greengrid
 	icon = 'icons/turf/floors/floors.dmi'
 	icon_state = "gcircuit"
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/plating/gcircuit
+	icon_state = "gcircuit"
+// SS220 EDIT - END
 
 
 /turf/open/floor/grass
@@ -3084,6 +3130,11 @@
 /turf/open/floor/corsat/box
 	icon_state = "box"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/corsat/lightspiral
+	icon_state = "lightspiral"
+// SS220 EDIT - END
+
 /turf/open/floor/corsat/officetiles
 	icon_state = "officetiles"
 
@@ -3093,6 +3144,11 @@
 	light_on = 1
 	light_power = 2
 	light_range = 4
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/corsat/spiraloffice
+	icon_state = "spiraloffice"
+// SS220 EDIT - END
 
 /turf/open/floor/grey_dark2
 	color = "#525151"
