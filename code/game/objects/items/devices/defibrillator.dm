@@ -3,6 +3,10 @@
 	desc = "A handheld emergency defibrillator, used to restore fibrillating patients. Can optionally bring people back from the dead."
 	icon_state = "defib"
 	item_state = "defib"
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 	flags_atom = FPRINT|CONDUCT
 	flags_item = NOBLUDGEON
 	flags_equip_slot = SLOT_WAIST

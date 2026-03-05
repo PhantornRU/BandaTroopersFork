@@ -226,6 +226,9 @@
 	worn_state = "command_jumpsuit"
 	flags_jumpsuit = UNIFORM_SLEEVE_ROLLABLE|UNIFORM_JACKET_REMOVABLE
 	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/marine/officer/qm_suit
 	name = "logistics officer uniform"
@@ -439,6 +442,9 @@
 	icon_state = "marsoc_jumpsuit"
 	worn_state = "marsoc_jumpsuit"
 	flags_item = NO_SNOW_TYPE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 //=========================//PMC\\================================\\
 
@@ -540,6 +546,9 @@
 	has_sensor = UNIFORM_HAS_SENSORS
 	sensor_faction = FACTION_UPP
 	armor_internaldamage = CLOTHING_ARMOR_MEDIUMLOW
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/marine/veteran/UPP/boiler
 	name = "\improper UPP operations boilersuit"
@@ -584,6 +593,9 @@
 	has_sensor = UNIFORM_HAS_SENSORS
 	sensor_faction = FACTION_LIST_CANC
 	armor_internaldamage = CLOTHING_ARMOR_MEDIUMLOW
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 //=========================//Freelancer\\================================\\
 
@@ -942,12 +954,18 @@
 	desc = "A pair of grey slacks paired with a white shirt. A common pairing among corporate workers."
 	icon_state = "corporate_grey"
 	worn_state = "corporate_grey"
+	item_icons = list( // SS220 EDIT: split WY/corporate uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_wy_misc.dmi',
+	)
 
 /obj/item/clothing/under/liaison_suit/khaki
 	name = "khaki suit pants"
 	desc = "A pair of khaki slacks paired with a white shirt. A common pairing among corporate workers."
 	icon_state = "corporate_khaki"
 	worn_state = "corporate_khaki"
+	item_icons = list( // SS220 EDIT: split WY/corporate uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_wy_misc.dmi',
+	)
 
 /obj/item/clothing/under/marine/reporter
 	name = "combat correspondent uniform"
@@ -1377,6 +1395,9 @@
 	worn_state = "navy_jumpsuit"
 	desc = "Standard-issue USASF Security Forces uniform in a distintive blue steel color scheme, complete with venlar armor inserts at critical areas to protect from blades and ballistics."
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/marine/officer/engi/OT/navy
 	name = "\improper damage-control crew uniform"
@@ -1407,6 +1428,9 @@
 	worn_state = "jfo"
 	suit_restricted = null
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/marine/standard/army
 	name = "\improper army combat uniform"
@@ -1415,6 +1439,9 @@
 	worn_state = "army_jumpsuit"
 	desc = "Standard-issue Army uniform in a two-tone desert/temperate color scheme, complete with venlar armor inserts at critical areas to protect from blades and ballistics."
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/marine/veteran/fil
 	name = "\improper french combat uniform"
@@ -1422,6 +1449,9 @@
 	item_state = "fil_jumpsuit"
 	desc = "Standard-issue french military uniform, given out to most if not all of their soldiers in the field."
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
+	item_icons = list( // SS220 EDIT: split GroundSide military uniforms out of uniform_0.dmi
+		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
+	)
 
 /obj/item/clothing/under/colonist/steward
 	name = "steward utilities"

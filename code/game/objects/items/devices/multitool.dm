@@ -85,4 +85,7 @@
 /obj/item/device/multitool/upp
 	icon_state = "multitool_upp"
 	item_state = "multitool_upp"
-
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
