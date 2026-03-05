@@ -904,6 +904,11 @@
 		/obj/item/prop/helmetgarb/helmet_nvg/marsoc = "icon_state",
 	)
 
+// SS220 EDIT - START
+/obj/item/clothing/head/beret/royal_marine
+	parent_type = /obj/item/clothing/head/cmcap/royal_marine
+// SS220 EDIT - END
+
 /obj/item/clothing/head/beret/royal_marine_pvp
 	name = "royal marine beret"
 	desc = "A green beret belonging to the royal marines commando. This beret symbolizes a royal marines ability to fight in any environment, desert, sea, artic or space a royal marine will always be ready."
