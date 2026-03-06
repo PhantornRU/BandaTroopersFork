@@ -1,43 +1,29 @@
-GLOBAL_LIST_EMPTY(game_rule_panels)
-
-/proc/open_game_rule_panel(client/using_client)
-	if(using_client.game_rule_panel && !QDELETED(using_client.game_rule_panel))
-		using_client.game_rule_panel.tgui_interact(using_client.mob)
-		return
-
-	using_client.game_rule_panel = null
-	using_client.game_rule_panel = new /datum/game_rule_panel(using_client)
-
-/proc/update_game_rule_panel_uis()
-	for(var/datum/game_rule_panel/panel as anything in GLOB.game_rule_panels)
-		if(!panel || QDELETED(panel))
-			continue
-		SStgui.update_uis(panel)
-
 /client/proc/toggle_game_rule_panel()
 	set name = "Game Rule Panel"
-	set category = "Game Master"
+	set category = "Game Master.Extras"
 
 	if(!check_rights(R_ADMIN))
 		return
 
-	if(src)
-		open_game_rule_panel(src)
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(src && rules)
+		rules.open_panel(src)
 
 /datum/game_rule_panel
 	var/client/holder
 
 /datum/game_rule_panel/New(client/using_client)
 	holder = using_client
-	if(!(src in GLOB.game_rule_panels))
-		GLOB.game_rule_panels += src
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(rules && !(src in rules.open_panels))
+		rules.open_panels += src
 	. = ..()
 	tgui_interact(holder.mob)
 
 /datum/game_rule_panel/Destroy()
-	GLOB.game_rule_panels -= src
-	if(holder?.game_rule_panel == src)
-		holder.game_rule_panel = null
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(rules)
+		rules.open_panels -= src
 	holder = null
 	return ..()
 
@@ -158,5 +144,5 @@ GLOBAL_LIST_EMPTY(game_rule_panels)
 			updated = TRUE
 
 	if(updated)
-		update_game_rule_panel_uis()
+		rules.update_panel_uis()
 	return updated

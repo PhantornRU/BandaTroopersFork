@@ -2,5 +2,6 @@
 
 #include "code/modpack.dm"
 #include "code/state/game_rule_state.dm"
+#include "code/integration/firesupport_binoculars.dm"
 #include "code/ui/game_rule_panel.dm"
 

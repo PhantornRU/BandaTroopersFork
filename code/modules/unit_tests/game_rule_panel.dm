@@ -1,4 +1,63 @@
 // SS220 EDIT - START: Game Rule Panel unit tests
+/datum/unit_test/game_rule_panel
+	var/snapshot_rto_support_enabled
+	var/snapshot_rto_shared_cooldown_multiplier
+	var/snapshot_rto_personal_cooldown_multiplier
+	var/snapshot_fire_support_enabled
+	var/snapshot_fire_support_defaults_captured
+	var/list/snapshot_fire_support_default_points
+	var/list/snapshot_fire_support_default_availability
+	var/list/snapshot_fire_support_points
+	var/list/snapshot_fire_support_flags
+
+/datum/unit_test/game_rule_panel/New()
+	. = ..()
+
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	snapshot_rto_support_enabled = rules.rto_support_enabled
+	snapshot_rto_shared_cooldown_multiplier = rules.rto_shared_cooldown_multiplier
+	snapshot_rto_personal_cooldown_multiplier = rules.rto_personal_cooldown_multiplier
+	snapshot_fire_support_enabled = rules.fire_support_enabled
+	snapshot_fire_support_defaults_captured = rules.fire_support_defaults_captured
+	snapshot_fire_support_default_points = rules.fire_support_default_points ? rules.fire_support_default_points.Copy() : list()
+	snapshot_fire_support_default_availability = rules.fire_support_default_availability ? rules.fire_support_default_availability.Copy() : list()
+	snapshot_fire_support_points = GLOB.fire_support_points.Copy()
+	snapshot_fire_support_flags = list()
+
+	for(var/fire_support_type in GLOB.fire_support_types)
+		var/datum/fire_support/fire_support_option = GLOB.fire_support_types[fire_support_type]
+		if(!fire_support_option)
+			continue
+		snapshot_fire_support_flags[fire_support_type] = fire_support_option.fire_support_flags
+
+/datum/unit_test/game_rule_panel/Destroy()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.rto_support_enabled = snapshot_rto_support_enabled
+	rules.rto_shared_cooldown_multiplier = snapshot_rto_shared_cooldown_multiplier
+	rules.rto_personal_cooldown_multiplier = snapshot_rto_personal_cooldown_multiplier
+	rules.fire_support_enabled = snapshot_fire_support_enabled
+	rules.fire_support_defaults_captured = snapshot_fire_support_defaults_captured
+	rules.fire_support_default_points = snapshot_fire_support_default_points.Copy()
+	rules.fire_support_default_availability = snapshot_fire_support_default_availability.Copy()
+
+	if(!islist(GLOB.fire_support_points))
+		GLOB.fire_support_points = list()
+	else
+		GLOB.fire_support_points.Cut()
+	for(var/faction in snapshot_fire_support_points)
+		GLOB.fire_support_points[faction] = snapshot_fire_support_points[faction]
+
+	for(var/fire_support_type in snapshot_fire_support_flags)
+		var/datum/fire_support/fire_support_option = GLOB.fire_support_types[fire_support_type]
+		if(!fire_support_option)
+			continue
+		fire_support_option.fire_support_flags = snapshot_fire_support_flags[fire_support_type]
+
+	return ..()
+
+/datum/unit_test/game_rule_panel_rto_cooldowns
+	parent_type = /datum/unit_test/game_rule_panel
+
 /datum/unit_test/game_rule_panel_rto_cooldowns/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_rto_rules()
@@ -25,6 +84,9 @@
 
 	TEST_ASSERT_EQUAL(controller.shared_cooldown_until, previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
 	TEST_ASSERT_EQUAL(controller.action_cooldowns[action_template.action_id], previous_personal_until, "Existing personal cooldown was recalculated after multiplier change.")
+
+/datum/unit_test/game_rule_panel_rto_disable
+	parent_type = /datum/unit_test/game_rule_panel
 
 /datum/unit_test/game_rule_panel_rto_disable/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
@@ -67,6 +129,9 @@
 	TEST_ASSERT(support_state["is_disabled"], "Support action state was not disabled by game rules.")
 	TEST_ASSERT_EQUAL(support_state["primary_label"], "Disabled by Game Rule Panel", "Support action did not show the expected Game Rule Panel block reason.")
 
+/datum/unit_test/game_rule_panel_fire_support_master_toggle
+	parent_type = /datum/unit_test/game_rule_panel
+
 /datum/unit_test/game_rule_panel_fire_support_master_toggle/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_fire_support_rules()
@@ -88,6 +153,9 @@
 
 	rules.fire_support_enabled = TRUE
 
+/datum/unit_test/game_rule_panel_fire_support_points
+	parent_type = /datum/unit_test/game_rule_panel
+
 /datum/unit_test/game_rule_panel_fire_support_points/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_fire_support_rules()
@@ -95,6 +163,9 @@
 
 	TEST_ASSERT(rules.grant_fire_support_points(FACTION_MARINE, 7), "Granting fire support points returned FALSE.")
 	TEST_ASSERT_EQUAL(GLOB.fire_support_points[FACTION_MARINE], 7, "Fire support points were not added additively.")
+
+/datum/unit_test/game_rule_panel_fire_support_toggle_entry
+	parent_type = /datum/unit_test/game_rule_panel
 
 /datum/unit_test/game_rule_panel_fire_support_toggle_entry/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state

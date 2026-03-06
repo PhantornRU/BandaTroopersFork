@@ -115,12 +115,12 @@
 	user.update_sight()
 
 ///Selects a firemode
-// SS220 EDIT - START: added Game Rule Panel Fire Support master-toggle hook
-/obj/item/device/binoculars/fire_support/proc/is_fire_support_enabled_by_rules()
-	var/datum/game_rule_state/rules = GLOB.game_rule_state
-	if(!rules)
-		return TRUE
-	return !!rules.fire_support_enabled
+// SS220 EDIT - START: moved Game Rule Panel Fire Support rule lookup into modular/game_rule_panel integration layer
+// /obj/item/device/binoculars/fire_support/proc/is_fire_support_enabled_by_rules()
+// 	var/datum/game_rule_state/rules = GLOB.game_rule_state
+// 	if(!rules)
+// 		return TRUE
+// 	return !!rules.fire_support_enabled
 // SS220 EDIT - END
 
 /obj/item/device/binoculars/fire_support/proc/select_radial(mob/user)

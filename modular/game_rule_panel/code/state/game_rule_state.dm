@@ -5,9 +5,46 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	var/rto_shared_cooldown_multiplier = 1
 	var/rto_personal_cooldown_multiplier = 1
 	var/fire_support_enabled = TRUE
+	var/list/open_panels = list()
 	var/fire_support_defaults_captured = FALSE
 	var/list/fire_support_default_points = list()
 	var/list/fire_support_default_availability = list()
+
+/datum/game_rule_state/proc/cleanup_open_panels()
+	for(var/i = length(open_panels), i >= 1, i--)
+		var/datum/game_rule_panel/panel = open_panels[i]
+		if(panel && !QDELETED(panel) && panel.holder)
+			continue
+		open_panels.Cut(i, i + 1)
+	return TRUE
+
+/datum/game_rule_state/proc/find_open_panel(client/using_client)
+	if(!using_client)
+		return null
+
+	cleanup_open_panels()
+
+	for(var/datum/game_rule_panel/panel as anything in open_panels)
+		if(panel?.holder == using_client)
+			return panel
+	return null
+
+/datum/game_rule_state/proc/open_panel(client/using_client)
+	if(!using_client)
+		return null
+
+	var/datum/game_rule_panel/panel = find_open_panel(using_client)
+	if(panel)
+		panel.tgui_interact(using_client.mob)
+		return panel
+
+	return new /datum/game_rule_panel(using_client)
+
+/datum/game_rule_state/proc/update_panel_uis()
+	cleanup_open_panels()
+	for(var/datum/game_rule_panel/panel as anything in open_panels)
+		SStgui.update_uis(panel)
+	return TRUE
 
 /datum/game_rule_state/proc/sanitize_multiplier(value)
 	if(!isnum(value))
@@ -152,4 +189,3 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 		"enabled" = enabled,
 		"disabled" = disabled,
 	)
-
