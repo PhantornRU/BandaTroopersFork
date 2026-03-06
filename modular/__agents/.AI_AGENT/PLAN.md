@@ -1,18 +1,19 @@
-# PLAN
+﻿# PLAN
 
 ## Active Task
-HALO CORE port from `cmss13-pve-halo` into `modular/halo` (separate modular module), with only unavoidable glue in `code/**`.
+HALO map compile blockers + ODST gameplay parity (source pin `7e498b805686ab870ddcfaa3cdf348103c0e3f51`).
 
 ## Current Status
-- Module, content migration, assets, maps, and rotation are integrated.
-- Compile gate and maplint gate are green.
-- Compatibility pass for upstream API drift is completed.
+- Missing HALO map typepaths were ported into `modular/halo/**` and wired into `_halo.dme`.
+- ODST glue in `code/**` was added for squads/jobs/landmarks/radio/preferences/intro alerts.
+- HALO maplint passes for all 3 HALO maps.
+- CI-equivalent staged map compile (`ALL_MAPS_STAGE_BASE` + `ALL_MAPS_STAGE_EXTRA`) passes.
 
 ## Delivered Scope
-- `modular/halo/_halo.dme` + `modular/modular.dme` include wiring.
-- HALO CORE code in `modular/halo/code/**` (species/support, weapons/ammo, clothing/armor, objects, cryo/map-related content).
-- Required glue in `code/**` and `map_config/**` (with `SS220 EDIT` where required).
-- HALO assets and 3 map entries in rotation without changing defaults (`lv624`, `blue_ridge`).
+- New modular files for `dark_was_the_night` areas, UNSC airlocks/poddoors/decals/reagent dispensers/barrels/toolboxes/job lockers.
+- Expanded HALO ammo boxes (`/obj/item/ammo_box/magazine/unsc*`, `/misc/unsc/*`).
+- ODST constants/roles and runtime glue (`job/mode/communications/squads/landmarks/jobs/preferences/intro/maptext alerts`).
 
 ## Remaining Scope
-- Manual runtime smoke checklist on live host/session.
+- Optional: investigate DM compiler crash in local environment for monolithic `ALL_MAPS + CIBUILDING` invocation (`exit code 3221225477`), despite staged CI map compile passing.
+- Runtime smoke in-host (latejoin/start landmarks, ODST comms, FACTION_UNSC intro branch).

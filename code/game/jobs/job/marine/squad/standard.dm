@@ -83,6 +83,12 @@
 	gear_preset_tertiary = /datum/equipment_preset/uscm/pfc/forecon/corporal
 	job_options = list(PFC_VARIANT = "PFC", LCPL_VARIANT = "LCPL", CPL_VARIANT = "CPL")
 
+/datum/job/marine/standard/ai/odst
+	title = JOB_SQUAD_MARINE_ODST // SS220 EDIT: HALO ODST rifleman role
+	gear_preset = /datum/equipment_preset/unsc/pfc/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/pfc/odst/lesser_rank
+	job_options = list(PFC_VARIANT = "LCPL", PVT_VARIANT = "PFC")
+
 /datum/job/marine/standard/ai/forecon/handle_job_options(option)
 	gear_preset = initial(gear_preset)
 	if(option == PFC_VARIANT)
@@ -105,6 +111,12 @@
 		gear_preset = gear_preset_tertiary
 	if(option == LCPL_VARIANT)
 		gear_preset = gear_preset_secondary
+
+/datum/job/marine/standard/ai/rto/odst
+	title = JOB_SQUAD_RTO_ODST // SS220 EDIT: HALO ODST RTO role
+	gear_preset = /datum/equipment_preset/unsc/rto/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/rto/odst/lesser_rank
+	job_options = list(PFC_VARIANT = "PFC", LCPL_VARIANT = "LCPL")
 
 /obj/effect/landmark/start/marine/upp
 	name = JOB_SQUAD_MARINE_UPP
@@ -139,10 +151,20 @@
 	squad = SQUAD_LRRP
 	job = /datum/job/marine/standard/ai/forecon
 
+/obj/effect/landmark/start/marine/odst
+	name = JOB_SQUAD_MARINE_ODST // SS220 EDIT: HALO ODST rifleman spawn
+	squad = SQUAD_ODST
+	job = /datum/job/marine/standard/ai/odst
+
 /obj/effect/landmark/start/marine/rto
 	name = JOB_SQUAD_RTO
 	squad = SQUAD_LRRP
 	job = /datum/job/marine/standard/ai/rto
+
+/obj/effect/landmark/start/marine/rto/odst
+	name = JOB_SQUAD_RTO_ODST // SS220 EDIT: HALO ODST RTO spawn
+	squad = SQUAD_ODST
+	job = /datum/job/marine/standard/ai/rto/odst
 
 /datum/job/marine/standard/ai/rmc
 	title = JOB_TWE_RMC_RIFLEMAN

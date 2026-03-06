@@ -1,27 +1,21 @@
 ﻿# DECISIONS
 
-## D-2026-03-06-01: Scope delivery model
-- Decision: Implement HALO in phased mode, execute CORE now.
-- Rationale: Reduces risk and preserves mergeability with SS220 overlays.
+## D-2026-03-06-01: Source pin for HALO parity
+- Decision: Keep source baseline pinned to `7e498b805686ab870ddcfaa3cdf348103c0e3f51`.
+- Rationale: Deterministic backport and reproducible sync behavior.
 
-## D-2026-03-06-02: Integration policy
-- Decision: Modular-first (`modular/halo/**`) with only unavoidable glue in `code/**`.
-- Rationale: Keeps business logic isolated, limits upstream conflict surface.
+## D-2026-03-06-02: Modular-first map blocker fixes
+- Decision: Port missing map-critical typepaths into `modular/halo/**` and only keep ODST glue in `code/**`.
+- Rationale: Preserve upstream isolation while resolving `undefined/unknown type` map failures.
 
-## D-2026-03-06-03: Maps rollout
-- Decision: Add 3 HALO maps to rotation with source map types preserved.
-- Ground: `halo_new_irvine` in `map_config/maps.txt`.
-- Ship: `unsc_dark_was_the_night`, `unsc_dark_was_the_night_odst` in `map_config/shipmaps.txt`.
-- Default entries remain unchanged (`lv624`, `blue_ridge`).
+## D-2026-03-06-03: ODST parity without global constant overwrite
+- Decision: Add only ODST constants/roles/channels in `code/**`; do not overwrite non-ODST defaults.
+- Rationale: Meet parity target while minimizing regression risk in existing factions/roles.
 
-## D-2026-03-06-04: Source pin
-- Decision: Pin import source to commit `7e498b805686ab870ddcfaa3cdf348103c0e3f51`.
-- Rationale: Deterministic migration baseline for future syncs.
+## D-2026-03-06-04: Source deviation fix (intentional)
+- Decision: For `/obj/effect/landmark/start/marine/rto/odst`, point `job` to `/datum/job/marine/standard/ai/rto/odst`.
+- Rationale: Source mapping references generic `/ai/odst`; this is an obvious mismatch for RTO landmark and breaks role correctness.
 
-## D-2026-03-06-05: Runtime rollout
-- Decision: No runtime/compile feature flag for CORE phase.
-- Rationale: User requested immediate active integration.
-
-## D-2026-03-06-06: Upstream compatibility handling
-- Decision: Resolve missing upstream HALO dependencies with modular compatibility files in `modular/halo/code/mixed/compat/**` and minimal targeted glue in `code/**`.
-- Rationale: Keeps HALO business logic modular-first while avoiding broad unrelated upstream backports.
+## D-2026-03-06-05: Map compile validation strategy
+- Decision: Use staged CI-equivalent map compile (`ALL_MAPS_STAGE_BASE` + `ALL_MAPS_STAGE_EXTRA`) as the acceptance signal.
+- Rationale: Local monolithic `ALL_MAPS + CIBUILDING` invocation crashes with DM exit `3221225477` after map loading, while staged CI map compile passes with `0 errors`.
