@@ -1,14 +1,12 @@
 # TODO
 
-- [x] Reset task-state for GroundSide completion scope.
-- [x] Reconcile GroundSide inventory against RU master.
-- [x] Fix telecomms compile blocker (`OD0500` path).
-- [x] Restore compatibility types required by source maps (`commando`, `beret/royal_marine`, `nsg23/extended`).
-- [x] Repair regressed DMM paths/tokens (`Otogi`, `BigBlue`, `Onyx`).
-- [x] Import missing GroundSide maps (`lv671`, `oil_depot`, `derelict_almayer_infested`) and required wiring.
-- [x] Resolve maplint/map serialization issues for imported maps.
-- [x] Split overloaded onmob/inhand atlases and repoint icon routes.
-- [x] Update `VARIOUS_FIXES_PORTING_MAP.md` with source and conflict decisions.
-- [x] Run required validation set (`dm`, `lint/tgui`, `dmi.test`, `maplint`, `mapmerge2`, `ALL_MAPS` base+extra).
-
-No open items in current task scope.
+- [x] Revert the uncommitted `z_list == world.maxz` patch and remove transient test file.
+- [x] Reapply dynamic-z start/bounds fixes in `code/controllers/subsystem/mapping.dm`.
+- [x] Change `level_trait()` to treat compiled unmanaged z-levels as trait-less.
+- [x] Run `git diff --check`.
+- [x] Cut late-init work that still bootstrapped unmanaged compile-time z-levels (`lighting`, `telecomms`).
+- [ ] Run normal `dm-test` smoke.
+- [ ] Re-run normal `dm-test` smoke after the lighting/telecomms changes.
+- [ ] Get `ALL_MAPS` base `dm-test` to clean completion.
+- [ ] Run `ALL_MAPS` extra `dm-test` smoke.
+- [x] Update evidence with actual verification results.

@@ -1,36 +1,25 @@
 # DECISIONS
 
-## D-001: RU master is canonical for GroundSide inventory
-- Missing maps were identified by RU master map inventory and filtered to GroundSide scope only.
+## D-001: `z_list` remains managed-only
+- `z_list` represents mapping-managed runtime z-levels only.
+- `world.maxz` is allowed to be larger than `length(z_list)`.
 
-## D-002: Source-canonical map paths use code-side compatibility types
-- Added:
-  - `/obj/item/storage/backpack/commando`
-  - `/obj/item/clothing/head/beret/royal_marine`
-  - `/obj/item/ammo_magazine/rifle/nsg23/extended`
-- Reason: these paths are valid source references, not local corruption.
+## D-002: Dynamic map loading starts from managed z-count
+- `LoadGroup()` and `ground_start` use `length(z_list) + 1`.
+- Reason: `add_new_zlevel()` allocates from managed z-count, not from precompiled `world.maxz`.
 
-## D-003: Merge-corruption tokens are fixed map-side
-- Broken paths/tokens in `Otogi`, `BigBlue`, `Onyx` were repaired directly in DMM content.
-- Reason: these were local merge defects and must not become permanent aliases.
+## D-003: Compile-time unmanaged z-levels are trait-less, not invalid
+- `level_trait()` returns no trait for `z <= world.maxz` but `z > length(z_list)`.
+- Reason: `ALL_MAPS` compiles many physical z-levels that do not need `datum/space_level`.
 
-## D-004: Telecomms switch case uses explicit constants
-- Replaced list-macro case with `FACTION_CANC, FACTION_CANC_DOGWAR` in faction `switch`.
-- Reason: resolves DM `OD0500 Expected a constant`.
+## D-004: Strict `get_level()` is preserved
+- `get_level()` still crashes for unmanaged z-levels.
+- Reason: code asking for a managed `datum/space_level` is making a stronger contract than a trait lookup.
 
-## D-005: DMI overflow strategy is split + repoint
-- New states were moved out of overloaded base atlases to dedicated split files.
-- Repoint done with explicit `item_icons`/wear-slot routing.
+## D-005: No subsystem skips are allowed in this task
+- Startup hangs must be fixed through managed-z semantics, not through `ALL_MAPS` fast-paths.
 
-## D-006: Imported GroundSide maps must be normalized for repo contracts
-- Imported maps were converted/sanitized to satisfy current maplint and mapmerge2 expectations.
-- Support subtype additions were intentionally minimal integration points.
-
-## D-007: Shipmap scope remained closed
-- No RU shipmap ports were included.
-- Ship-side map edits were limited to strict compile/maplint stabilization.
-
-## D-008: Module-path maplint invocation workaround is accepted in this environment
-- `tools/bootstrap/python -m tools.maplint.source --github` fails due module path resolution.
-- Equivalent validated invocation:
-  - `tools/bootstrap/python -c "import sys, runpy; sys.path.insert(0, '.'); runpy.run_module('tools.maplint.source', run_name='__main__')" --github`
+## D-006: Unmanaged compile-time z-levels should not bootstrap late-init integrations
+- Static lighting objects are not created for `z > length(SSmapping.z_list)`.
+- Telecomms on `z > length(SSmapping.z_list)` stay dormant and do not register minimap markers.
+- Reason: these layers are physically compiled for `ALL_MAPS`, but they are not active managed runtime space levels.

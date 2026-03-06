@@ -2,17 +2,19 @@
 /datum/controller/subsystem/mapping/proc/level_trait(z, trait)
 	if (!isnum(z) || z < 1)
 		return null
+	if (z > world.maxz)
+		stack_trace("Unmanaged z-level [z]! maxz = [world.maxz], length(z_list) = [z_list ? length(z_list) : "null"]")
+		return null
 	if (z_list)
 		if (z > length(z_list))
-			stack_trace("Unmanaged z-level [z]! maxz = [world.maxz], length(z_list) = [length(z_list)]")
-			return list()
+			// Compiled ALL_MAPS z-levels can exist in world.maxz without being managed mapping levels.
+			return null
 		var/datum/space_level/S = get_level(z)
 		return S.traits[trait]
 	else
 		var/list/default = DEFAULT_MAP_TRAITS
 		if (z > length(default))
-			stack_trace("Unmanaged z-level [z]! maxz = [world.maxz], length(default) = [length(default)]")
-			return list()
+			return null
 		return default[z][DL_TRAITS][trait]
 
 // Check if levels[z] has any of the specified traits

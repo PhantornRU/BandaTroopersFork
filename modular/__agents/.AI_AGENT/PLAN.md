@@ -1,29 +1,28 @@
 # PLAN
 
 ## Active Task
-Complete `various_fixes` GroundSide stabilization for RU-CMSS13 source maps:
-- finish missing GroundSide ports;
-- fix compile/map regressions introduced by merge history;
-- resolve DMI state overflow with split files and explicit repoints;
-- document source mapping, conflicts, and compatibility decisions.
+Replace the reverted unmanaged-z patch with a managed-z implementation that:
+- keeps `z_list` limited to mapping-managed runtime levels;
+- keeps dynamic map loading based on `length(z_list) + 1`;
+- treats compile-time, unmanaged `ALL_MAPS` z-levels as trait-less instead of erroring;
+- removes startup hangs introduced by the reverted `z_list == world.maxz` approach.
 
-## Final Status
-Completed.
+## Status
+In progress.
 
-## Delivered Scope
-- Build blockers fixed (`telecomms`, compatibility types, AI menu warning cleanup).
-- Existing regressed maps reconciled (`Otogi`, `BigBlue`, `Onyx`).
-- Missing GroundSide maps imported (`lv671`, `oil_depot`, `derelict_almayer_infested`) with required wiring.
-- Maplint/map-format compatibility stabilized with targeted subtype support and UpdatePaths scripts.
-- DMI overflows removed via split assets and code-side icon repoints.
-- Porting documentation expanded in `modular/__docs/VARIOUS_FIXES_PORTING_MAP.md`.
+## Current Scope
+- Revert the uncommitted changes in `mapping.dm` and `zlevel_manager.dm`.
+- Reapply only the dynamic-z fixes needed in `mapping.dm`.
+- Update `traits.dm` so unmanaged compiled z-levels are safe for trait lookup.
+- Cut late-init integrations that still eagerly bootstrap compile-time unmanaged z-levels.
+- Verify normal `dm-test` and `ALL_MAPS` `dm-test` startup behavior.
 
 ## Out Of Scope Guard
-- No new RU shipmap content was ported.
-- Ship-side map edits were limited to compile/maplint stabilization only.
+- No subsystem skip or `ALL_MAPS` fast-path logic.
+- No unrelated runtime cleanup unless it directly blocks startup verification.
 
-## Acceptance Snapshot
-- `dm` and `ALL_MAPS` compile: pass.
-- `dmi.test`: pass (no overflow errors for target atlases).
-- `maplint` and `mapmerge2`: pass.
-- Task-state files updated from baseline to task-specific completed state.
+## Acceptance Target
+- No `list index out of bounds` from mapping startup.
+- No `Unmanaged z-level` spam for valid compiled-but-unmanaged z-levels.
+- Normal runtime starts.
+- `ALL_MAPS` runtime completes without startup hang.
