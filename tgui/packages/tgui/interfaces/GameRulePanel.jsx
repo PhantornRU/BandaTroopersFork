@@ -1,3 +1,4 @@
+// SS220 EDIT - START: Game Rule Panel TGUI interface
 import { useEffect, useState } from 'react';
 
 import { useBackend } from '../backend';
@@ -26,6 +27,9 @@ const PAGES = [
     icon: 'crosshairs',
   },
 ];
+
+const sanitizeNumberInputValue = (value, fallback) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 
 const FactionBadge = ({ faction }) => (
   <Box
@@ -75,6 +79,8 @@ const RtoSupportPage = ({
   setPersonalMultiplier,
 }) => {
   const { act } = useBackend();
+  const safeSharedMultiplier = sanitizeNumberInputValue(sharedMultiplier, 1);
+  const safePersonalMultiplier = sanitizeNumberInputValue(personalMultiplier, 1);
 
   return (
     <Section fill title="RTO Support">
@@ -105,9 +111,11 @@ const RtoSupportPage = ({
                   maxValue={10}
                   step={0.1}
                   stepPixelSize={20}
-                  value={sharedMultiplier}
+                  value={safeSharedMultiplier}
                   width="6em"
-                  onChange={(e, value) => setSharedMultiplier(value)}
+                  onChange={(value) =>
+                    setSharedMultiplier(sanitizeNumberInputValue(value, 1))
+                  }
                 />
               </Stack.Item>
               <Stack.Item>
@@ -115,7 +123,7 @@ const RtoSupportPage = ({
                   color="good"
                   onClick={() =>
                     act('set_rto_shared_multiplier', {
-                      value: sharedMultiplier,
+                      value: safeSharedMultiplier,
                     })
                   }
                 >
@@ -136,9 +144,11 @@ const RtoSupportPage = ({
                   maxValue={10}
                   step={0.1}
                   stepPixelSize={20}
-                  value={personalMultiplier}
+                  value={safePersonalMultiplier}
                   width="6em"
-                  onChange={(e, value) => setPersonalMultiplier(value)}
+                  onChange={(value) =>
+                    setPersonalMultiplier(sanitizeNumberInputValue(value, 1))
+                  }
                 />
               </Stack.Item>
               <Stack.Item>
@@ -146,7 +156,7 @@ const RtoSupportPage = ({
                   color="good"
                   onClick={() =>
                     act('set_rto_personal_multiplier', {
-                      value: personalMultiplier,
+                      value: safePersonalMultiplier,
                     })
                   }
                 >
@@ -193,49 +203,56 @@ const FireSupportPage = ({ data, grantAmounts, setGrantAmounts }) => {
 
       <Section level={2} title="Support Points">
         <Stack vertical>
-          {fireSupportPoints.map((entry) => (
-            <Stack.Item key={entry.faction}>
-              <Stack align="center">
-                <Stack.Item grow>
-                  <Box bold>{entry.faction}</Box>
-                  <Box color="label">Current points: {entry.points}</Box>
-                </Stack.Item>
-                <Stack.Item>
-                  <NumberInput
-                    minValue={0}
-                    maxValue={9999}
-                    step={1}
-                    stepPixelSize={10}
-                    value={grantAmounts[entry.faction] || 0}
-                    width="6em"
-                    onChange={(e, value) =>
-                      setGrantAmounts((prev) => ({
-                        ...prev,
-                        [entry.faction]: value,
-                      }))
-                    }
-                  />
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    color="good"
-                    onClick={() => {
-                      act('grant_fire_support_points', {
-                        faction: entry.faction,
-                        amount: grantAmounts[entry.faction] || 0,
-                      });
-                      setGrantAmounts((prev) => ({
-                        ...prev,
-                        [entry.faction]: 0,
-                      }));
-                    }}
-                  >
-                    Grant
-                  </Button>
-                </Stack.Item>
-              </Stack>
-            </Stack.Item>
-          ))}
+          {fireSupportPoints.map((entry) => {
+            const safeGrantAmount = sanitizeNumberInputValue(
+              grantAmounts[entry.faction],
+              0,
+            );
+
+            return (
+              <Stack.Item key={entry.faction}>
+                <Stack align="center">
+                  <Stack.Item grow>
+                    <Box bold>{entry.faction}</Box>
+                    <Box color="label">Current points: {entry.points}</Box>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <NumberInput
+                      minValue={0}
+                      maxValue={9999}
+                      step={1}
+                      stepPixelSize={10}
+                      value={safeGrantAmount}
+                      width="6em"
+                      onChange={(value) =>
+                        setGrantAmounts((prev) => ({
+                          ...prev,
+                          [entry.faction]: sanitizeNumberInputValue(value, 0),
+                        }))
+                      }
+                    />
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Button
+                      color="good"
+                      onClick={() => {
+                        act('grant_fire_support_points', {
+                          faction: entry.faction,
+                          amount: safeGrantAmount,
+                        });
+                        setGrantAmounts((prev) => ({
+                          ...prev,
+                          [entry.faction]: 0,
+                        }));
+                      }}
+                    >
+                      Grant
+                    </Button>
+                  </Stack.Item>
+                </Stack>
+              </Stack.Item>
+            );
+          })}
         </Stack>
       </Section>
 
@@ -285,26 +302,30 @@ export const GameRulePanel = () => {
   const { data } = useBackend();
   const [page, setPage] = useState('rto');
   const [sharedMultiplier, setSharedMultiplier] = useState(
-    data.rto_shared_cooldown_multiplier || 1,
+    sanitizeNumberInputValue(data.rto_shared_cooldown_multiplier, 1),
   );
   const [personalMultiplier, setPersonalMultiplier] = useState(
-    data.rto_personal_cooldown_multiplier || 1,
+    sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
   );
   const [grantAmounts, setGrantAmounts] = useState({});
 
   useEffect(() => {
-    setSharedMultiplier(data.rto_shared_cooldown_multiplier || 1);
+    setSharedMultiplier(
+      sanitizeNumberInputValue(data.rto_shared_cooldown_multiplier, 1),
+    );
   }, [data.rto_shared_cooldown_multiplier]);
 
   useEffect(() => {
-    setPersonalMultiplier(data.rto_personal_cooldown_multiplier || 1);
+    setPersonalMultiplier(
+      sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
+    );
   }, [data.rto_personal_cooldown_multiplier]);
 
   useEffect(() => {
     setGrantAmounts((prev) => {
       const next = {};
       (data.fire_support_points || []).forEach((entry) => {
-        next[entry.faction] = prev[entry.faction] || 0;
+        next[entry.faction] = sanitizeNumberInputValue(prev[entry.faction], 0);
       });
       return next;
     });
@@ -354,4 +375,4 @@ export const GameRulePanel = () => {
     </Window>
   );
 };
-
+// SS220 EDIT - END
