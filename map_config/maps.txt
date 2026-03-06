@@ -109,3 +109,8 @@ endmap
 
 map binhai_supply_station
 endmap
+
+# SS220 EDIT - START: HALO ground map rotation
+map halo_new_irvine
+endmap
+# SS220 EDIT - END

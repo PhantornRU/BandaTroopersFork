@@ -1,17 +1,27 @@
-# DECISIONS
+﻿# DECISIONS
 
-## D-001: Корневой `AGENTS.md` остается каноническим entrypoint
-- Решение: добавить routing-only `AGENTS.md` в корне репозитория.
-- Почему: это дает Codex стандартную точку входа без дублирования полной agent-базы в корне.
+## D-2026-03-06-01: Scope delivery model
+- Decision: Implement HALO in phased mode, execute CORE now.
+- Rationale: Reduces risk and preserves mergeability with SS220 overlays.
 
-## D-002: Agent hub живет в `modular/__agents/.AI_AGENT/`
-- Решение: разместить все stable docs и task-state именно в `modular/__agents/.AI_AGENT/`.
-- Почему: это соответствует выбранному layout и держит SS220/BandaTroopers-specific агентную инфраструктуру рядом с модульным слоем.
+## D-2026-03-06-02: Integration policy
+- Decision: Modular-first (`modular/halo/**`) with only unavoidable glue in `code/**`.
+- Rationale: Keeps business logic isolated, limits upstream conflict surface.
 
-## D-003: Task-state tracked в git
-- Решение: `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` коммитятся в репозиторий, а сырые логи выносятся в ignored `logs/`.
-- Почему: это повторяет модель источника и делает текущее состояние задачи явным для следующих сессий.
+## D-2026-03-06-03: Maps rollout
+- Decision: Add 3 HALO maps to rotation with source map types preserved.
+- Ground: `halo_new_irvine` in `map_config/maps.txt`.
+- Ship: `unsc_dark_was_the_night`, `unsc_dark_was_the_night_odst` in `map_config/shipmaps.txt`.
+- Default entries remain unchanged (`lv624`, `blue_ridge`).
 
-## D-004: `SS220_DEVELOPMENT_RULES.md` становится overlay
-- Решение: [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md) больше не является главным документом и описывает только BandaTroopers/SS220-specific правила над общей agent-базой.
-- Почему: repo-specific политика по modular/upstream split и `SS220 EDIT` должна жить отдельным overlay, а не дублировать stable guidance.
+## D-2026-03-06-04: Source pin
+- Decision: Pin import source to commit `7e498b805686ab870ddcfaa3cdf348103c0e3f51`.
+- Rationale: Deterministic migration baseline for future syncs.
+
+## D-2026-03-06-05: Runtime rollout
+- Decision: No runtime/compile feature flag for CORE phase.
+- Rationale: User requested immediate active integration.
+
+## D-2026-03-06-06: Upstream compatibility handling
+- Decision: Resolve missing upstream HALO dependencies with modular compatibility files in `modular/halo/code/mixed/compat/**` and minimal targeted glue in `code/**`.
+- Rationale: Keeps HALO business logic modular-first while avoiding broad unrelated upstream backports.
