@@ -46,14 +46,17 @@
 	TEST_ASSERT_NOTNULL(action_template, "Failed to retrieve RTO action template for disable rules test.")
 
 	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, template)
-	controller.armed_action_id = "__visibility_zone__"
+	// controller.armed_action_id = "__visibility_zone__"
+	controller.armed_action_id = RTO_SUPPORT_ARM_VISIBILITY_ZONE // SS220 EDIT: switched unit test back to shared hardcode define
 	controller.apply_rules_update()
 
 	TEST_ASSERT_NULL(controller.active_zone, "Active RTO visibility zone was not cleared after disabling support.")
 	TEST_ASSERT_NULL(controller.armed_action_id, "Restricted armed action remained armed after disabling support.")
 	TEST_ASSERT_EQUAL(controller.visibility_zone_cooldown_until, 0, "Disabling RTO support applied a new visibility zone cooldown.")
-	TEST_ASSERT(controller.can_arm_action("__coordinates__"), "Coordinates action should remain available when RTO support is disabled.")
-	TEST_ASSERT(controller.can_arm_action("__manual_marker__"), "Manual marker action should remain available when RTO support is disabled.")
+	// TEST_ASSERT(controller.can_arm_action("__coordinates__"), "Coordinates action should remain available when RTO support is disabled.")
+	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_COORDINATES), "Coordinates action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
+	// TEST_ASSERT(controller.can_arm_action("__manual_marker__"), "Manual marker action should remain available when RTO support is disabled.")
+	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_MARKER), "Manual marker action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
 	TEST_ASSERT(!controller.can_arm_action(action_template.action_id), "Strike action remained armable while RTO support was disabled.")
 
 	var/list/visibility_state = controller.build_visibility_action_state()

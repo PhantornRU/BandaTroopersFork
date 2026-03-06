@@ -131,6 +131,7 @@
 #include "code\__DEFINES\bandamarines\arachnid.dm"
 #include "code\__DEFINES\bandamarines\cyrillic.dm"
 #include "code\__DEFINES\bandamarines\game_master.dm"
+#include "code\__DEFINES\bandamarines\rto_support.dm" // SS220 EDIT: shared RTO action id defines for modular and hardcode
 #include "code\__DEFINES\bandamarines\pronouns.dm"
 #include "code\__DEFINES\bandamarines\ru_jobs.dm"
 #include "code\__DEFINES\bandamarines\rust_g.dm"
