@@ -1,37 +1,48 @@
 # EVIDENCE
 
-## Baseline
-- The uncommitted patch that expanded `z_list` to `world.maxz` was reverted.
-- New implementation keeps `zlevel_manager.dm` on managed-only initialization.
+## Runtime Evidence
+- `data/logs/tests.log` currently enumerates the `gun_lineart` offenders:
+  - `/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc`
+  - `/obj/item/weapon/gun/rifle/m20a/merc`
+  - `/obj/item/weapon/gun/rifle/m20a/merc/tactical`
+  - `/obj/item/weapon/gun/rifle/m20a/merc/unloaded`
+  - `/obj/item/weapon/gun/rifle/r81m1a/m1b`
+  - `/obj/item/weapon/gun/rifle/r81m1a/m1c`
+  - `/obj/item/weapon/gun/rifle/r81m1a/m1c/modded`
+  - `/obj/item/weapon/gun/rifle/r81m1a/m1d`
+  - `/obj/item/weapon/gun/shotgun/p79s`
+  - `/obj/item/weapon/gun/shotgun/p79s/unloaded`
+  - `/obj/item/weapon/gun/shotgun/p79s/slug`
+  - `/obj/item/weapon/gun/smartgun/l56a2`
+  - `/obj/item/weapon/gun/smartgun/l56a2/elite`
 
-## Current Code Changes
-- `code/controllers/subsystem/mapping.dm`
-  - `LoadGroup()` now starts dynamic z-allocation from `length(z_list) + 1`.
-  - Added a managed-z invariant after `add_new_zlevel()`.
-  - `zlevel.bounds` are rebound using world z-values instead of local DMM z-values.
-  - `ground_start` now follows managed z-count.
-- `code/modules/mapping/space_management/traits.dm`
-  - `level_trait()` now treats `z <= world.maxz && z > length(z_list)` as compile-time unmanaged and trait-less.
-- `code/modules/lighting/lighting_static/static_lighting_setup.dm`
-  - Static lighting bootstrap now skips compile-time unmanaged z-levels.
-- `code/game/machinery/telecomms/telecomunications.dm`
-  - Telecomms machines on compile-time unmanaged z-levels stay dormant instead of joining active tcomms startup.
-- `code/game/machinery/telecomms/presets.dm`
-  - Telecomms tower minimap markers are only registered on managed z-levels.
+## Confirmed `forceMove(null)` Stack
+- `data/logs/2026/03-March/06-Friday/round-153/runtime.log`
+  - `LW-317 Barrel (/obj/item/attachable/lw317barrel): Detach(null, the LW/RS-317 pulse carbine, 1)`
+  - `the suppressor: Attach(the LW/RS-317 pulse carbine)`
+  - `the LW/RS-317 pulse carbine: handle starting attachment()`
+  - `gunlineart (/datum/asset/spritesheet/gun_lineart): register()`
+- `data/logs/2026/03-March/06-Friday/round-149/runtime.log`
+  - `the rail flashlight: Detach(null, the M41A2 pulse rifle MK2, 1)`
+  - `the laser sight: Attach(the M41A2 pulse rifle MK2)`
+  - `the M41A2 pulse rifle MK2: handle random attachments()`
+  - `gunlineart (/datum/asset/spritesheet/gun_lineart): register()`
+
+## Current Fix Direction
+- Use explicit type-level `base_gun_icon` aliases for variant weapons with existing family lineart, but consume them only from `initial(base_gun_icon)` inside `gun_lineart.register()`.
+- Add a dedicated `p79s` lineart state.
+- Keep `forceMove()` strict and fix `/obj/item/attachable/proc/Detach()` for off-map attachment replacement.
 
 ## Verification
 - `git diff --check`
-  - Passed.
-- `rg -n "list index out of bounds|Unmanaged z-level" data/logs/2026/03-March/06-Friday/round-149 data/logs/2026/03-March/06-Friday/round-151 data/logs/2026/03-March/06-Friday/round-152`
-  - No matches.
-- normal `dm-test`
-  - Earlier smoke run reached `Round started` in `round-149`.
-  - Not re-run after the later lighting/telecomms cuts.
-- `ALL_MAPS` base `dm-test`
-  - `round-151` confirmed that the server no longer died immediately after managed-z setup and continued progressing through late init.
-  - `round-152` showed reduced early side effects after the lighting/telecomms managed-z cuts.
-  - `clean_run.lk` was still not produced before the test run was stopped manually.
+  - Passed after the final lineart-only alias fix.
+- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
+  - Passed: `colonialmarines.dmb - 0 errors, 0 warnings (3/6/26 9:10 pm)`.
+- fresh runtime/log verification
+  - `data/logs/2026/03-March/06-Friday/round-157/runtime.log` contains no `does not have a valid lineart icon state`.
+  - `data/logs/2026/03-March/06-Friday/round-157/runtime.log` contains no `No valid destination passed into forceMove`.
+  - `data/logs/2026/03-March/06-Friday/round-157/game.log` reaches `Round started at Fri Mar 06 21:13:42 2026`.
 
-## Residual Risk
-- `ALL_MAPS` runtime still appears dominated by compile-time map content initializing outside the active managed z-set.
-- The original `mapping` root bug is fixed, but full `ALL_MAPS` clean completion remains unproven.
+## Residuals
+- `dm-test` was stopped after the target runtime path validated cleanly because the run had already progressed into unrelated `missing_icons.dm` failures (`armor_plate_100`, `commandopack`, `m20a_tactical`, several attachment icons).
+- Those failures were pre-existing scope-external icon issues and were not part of this lineart/attachment runtime task.

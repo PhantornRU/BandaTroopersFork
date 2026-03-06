@@ -185,8 +185,14 @@ Defined in conflicts.dm of the #defines folder.
 			qdel(X)
 			break
 
+	// SS220 EDIT - START
 	if(drop_attachment)
-		forceMove(get_turf(detaching_gub))
+		var/turf/drop_turf = get_turf(detaching_gub)
+		if(drop_turf)
+			forceMove(drop_turf)
+		else
+			qdel(src) // off-map gun init can replace attachments before the gun has a turf
+	// SS220 EDIT - END
 
 	if(sharp)
 		detaching_gub.sharp = 0

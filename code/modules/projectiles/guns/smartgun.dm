@@ -548,6 +548,7 @@
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/WY/machineguns.dmi'
 	icon_state = "l56d"
 	item_state = "l56d"
+	base_gun_icon = "m56" // SS220 EDIT: L56A2 reuses the existing smartgun lineart
 	item_icons = list(
 		WEAR_BACK = 'icons/mob/humans/onmob/clothing/suit_storage/guns_by_type/smartguns.dmi',
 		WEAR_J_STORE = 'icons/mob/humans/onmob/clothing/suit_storage/guns_by_type/smartguns.dmi',

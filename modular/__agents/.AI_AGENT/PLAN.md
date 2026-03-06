@@ -1,28 +1,27 @@
 # PLAN
 
 ## Active Task
-Replace the reverted unmanaged-z patch with a managed-z implementation that:
-- keeps `z_list` limited to mapping-managed runtime levels;
-- keeps dynamic map loading based on `length(z_list) + 1`;
-- treats compile-time, unmanaged `ALL_MAPS` z-levels as trait-less instead of erroring;
-- removes startup hangs introduced by the reverted `z_list == world.maxz` approach.
+Stabilize gun asset registration after the recent content ports by:
+- fixing every current `gun_lineart` runtime offender through canonical `base_gun_icon` aliases or a new `p79s` lineart state;
+- fixing the confirmed `forceMove(null)` runtime in `gun_attachables.dm` during off-map gun initialization;
+- proving the fixes with compile/runtime checks and refreshed task evidence.
 
 ## Status
 In progress.
 
 ## Current Scope
-- Revert the uncommitted changes in `mapping.dm` and `zlevel_manager.dm`.
-- Reapply only the dynamic-z fixes needed in `mapping.dm`.
-- Update `traits.dm` so unmanaged compiled z-levels are safe for trait lookup.
-- Cut late-init integrations that still eagerly bootstrap compile-time unmanaged z-levels.
-- Verify normal `dm-test` and `ALL_MAPS` `dm-test` startup behavior.
+- Audit the current `gun_lineart` offenders from runtime logs and code.
+- Patch gun subtypes that currently resolve to missing lineart states.
+- Add `p79s` into `icons/obj/items/weapons/guns/lineart.dmi`.
+- Keep `forceMove()` strict and fix the confirmed caller in attachment detachment flow.
+- Verify the asset registration path through build/runtime checks.
 
 ## Out Of Scope Guard
-- No subsystem skip or `ALL_MAPS` fast-path logic.
-- No unrelated runtime cleanup unless it directly blocks startup verification.
+- No gun lineart registry redesign.
+- No silent-fail fallback in `forceMove()`.
+- No unrelated runtime cleanup outside this asset/attachment scope.
 
 ## Acceptance Target
-- No `list index out of bounds` from mapping startup.
-- No `Unmanaged z-level` spam for valid compiled-but-unmanaged z-levels.
-- Normal runtime starts.
-- `ALL_MAPS` runtime completes without startup hang.
+- No `does not have a valid lineart icon state` runtimes for the audited offenders.
+- No `No valid destination passed into forceMove` during `gun_lineart.register()`.
+- Task-state reflects this runtime stabilization task.

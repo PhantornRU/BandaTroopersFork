@@ -741,6 +741,7 @@
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
 	icon_state = "m20a_tactical"
 	item_state = "m20a_tactical"
+	base_gun_icon = "m20a" // SS220 EDIT: M20CW shares M20A lineart
 	attachable_allowed = list(
 		/obj/item/attachable/suppressor,
 		/obj/item/attachable/bayonet,
@@ -2159,6 +2160,7 @@
 	desc = "A marksman variant of the M81M series of pulse rifles, the M81M1B sacrifices some rate of fire and it's automatic firemode for a higher accuracy and longer effective range. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
 	item_state = "fal"
 	icon_state = "fal_sniper"
+	base_gun_icon = "fal" // SS220 EDIT: R81 marksman variants share the base FAL lineart
 	attachable_allowed = list(
 		/obj/item/attachable/lasersight,
 		/obj/item/attachable/flashlight,
@@ -2200,6 +2202,7 @@
 	desc = "A carbine variant of the M81M series of pulse rifles, the M81M1C sacrifices some range and accuracy for a more compact and maneuverable package. Favored by private military contractors and security details operating in urban environments. Produced by Orion Defence Systems."
 	item_state = "fal"
 	icon_state = "fal_short"
+	base_gun_icon = "fal" // SS220 EDIT: R81 carbine variants share the base FAL lineart
 	attachable_allowed = list(
 		/obj/item/attachable/reddot, // Rail
 		/obj/item/attachable/reflex,
@@ -2248,6 +2251,7 @@
 	desc = "A SAW variant of the M81M series of pulse rifles, the M81M1D sacrifices some accuracy for a higher rate of fire and larger magazine capacity, though at the cost of increased recoil. Favored by private military contractors and security details operating in high-threat environments. Produced by Orion Defence Systems."
 	item_state = "fal_saw"
 	icon_state = "fal_saw"
+	base_gun_icon = "fal" // SS220 EDIT: R81 SAW variants share the base FAL lineart
 	attachable_allowed = list(
 		/obj/item/attachable/lasersight,
 		/obj/item/attachable/flashlight,

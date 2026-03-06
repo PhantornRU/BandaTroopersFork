@@ -1,12 +1,11 @@
 # TODO
 
-- [x] Revert the uncommitted `z_list == world.maxz` patch and remove transient test file.
-- [x] Reapply dynamic-z start/bounds fixes in `code/controllers/subsystem/mapping.dm`.
-- [x] Change `level_trait()` to treat compiled unmanaged z-levels as trait-less.
+- [x] Confirm the current `gun_lineart` offender list from runtime evidence.
+- [x] Confirm the real `forceMove(null)` caller from runtime stack traces.
+- [x] Add `base_gun_icon` aliases for PF-199, M20CW, R81 variants, and L56A2.
+- [x] Make attachment detachment safe when a replaced attachment has no turf to drop onto.
+- [x] Add the dedicated `p79s` lineart state to `icons/obj/items/weapons/guns/lineart.dmi`.
 - [x] Run `git diff --check`.
-- [x] Cut late-init work that still bootstrapped unmanaged compile-time z-levels (`lighting`, `telecomms`).
-- [ ] Run normal `dm-test` smoke.
-- [ ] Re-run normal `dm-test` smoke after the lighting/telecomms changes.
-- [ ] Get `ALL_MAPS` base `dm-test` to clean completion.
-- [ ] Run `ALL_MAPS` extra `dm-test` smoke.
-- [x] Update evidence with actual verification results.
+- [x] Run `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`.
+- [x] Re-run the runtime path that builds `gun_lineart` and confirm no `forceMove`/lineart crashes remain.
+- [x] Refresh evidence with the final verification results.
