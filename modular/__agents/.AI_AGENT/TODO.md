@@ -7,7 +7,9 @@
 - [x] Add ODST squad datum + latejoin/start landmarks + ODST job datums.
 - [x] Add ODST preference preset routing and FACTION_UNSC intro branches.
 - [x] Add missing intro picture typepaths in `code/modules/maptext_alerts/misc_alert.dm`.
+- [x] Fix runtime crash in `/obj/item/map/current_map/Initialize` for HALO ground map (`New Irvine`) by restoring map-item routing.
+- [x] Restore missing reagent `liquidhydrogen` used by HALO barrels and fuel dispensers.
 - [x] Validate map compile via CI-equivalent staged ALL_MAPS builds.
 - [x] Validate HALO maps with maplint.
 - [ ] Optional follow-up: root-cause local DM crash for monolithic `ALL_MAPS + CIBUILDING` run.
-- [ ] Runtime smoke on live round (ODST latejoin/start flow, ODST channel span presentation, UNSC intro screens).
+- [ ] Runtime smoke on live round (ODST latejoin/start flow, ODST channel span presentation, UNSC intro screens, no `liquidhydrogen` warnings).

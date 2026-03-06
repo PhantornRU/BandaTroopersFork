@@ -19,3 +19,11 @@
 ## D-2026-03-06-05: Map compile validation strategy
 - Decision: Use staged CI-equivalent map compile (`ALL_MAPS_STAGE_BASE` + `ALL_MAPS_STAGE_EXTRA`) as the acceptance signal.
 - Rationale: Local monolithic `ALL_MAPS + CIBUILDING` invocation crashes with DM exit `3221225477` after map loading, while staged CI map compile passes with `0 errors`.
+
+## D-2026-03-07-01: HALO runtime fix strategy for current map item
+- Decision: Backport source-pinned HALO map key routing (`MAP_HALO_NEW_IRVINE`) instead of broad behavioral rewrites in `/obj/item/map/current_map/Initialize`.
+- Rationale: Directly resolves `Cannot read null.name` for HALO map while keeping existing upstream behavior unchanged.
+
+## D-2026-03-07-02: `liquidhydrogen` reagent placement
+- Decision: Define `/datum/reagent/hydrogen/liquid` in `modular/halo/**` (HALO module scope) rather than patching base reagent files in `code/**`.
+- Rationale: The reagent is required by HALO-specific objects (`barrel/liquidhydrogen`, `fueltank/liquidhydrogen`) and fits modular-first containment.

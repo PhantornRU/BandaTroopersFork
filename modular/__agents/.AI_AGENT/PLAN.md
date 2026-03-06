@@ -6,6 +6,9 @@ HALO map compile blockers + ODST gameplay parity (source pin `7e498b805686ab870d
 ## Current Status
 - Missing HALO map typepaths were ported into `modular/halo/**` and wired into `_halo.dme`.
 - ODST glue in `code/**` was added for squads/jobs/landmarks/radio/preferences/intro alerts.
+- Fixed HALO regressions from runtime checks:
+  - Added `MAP_HALO_NEW_IRVINE` map routing in map item selection (`null.name` runtime fix in `current_map.Initialize` path).
+  - Added `liquidhydrogen` reagent subtype required by HALO barrels/dispensers.
 - HALO maplint passes for all 3 HALO maps.
 - CI-equivalent staged map compile (`ALL_MAPS_STAGE_BASE` + `ALL_MAPS_STAGE_EXTRA`) passes.
 

@@ -78,3 +78,8 @@
 	overdose_critical = MED_REAGENTS_OVERDOSE_CRITICAL
 	chemclass = CHEM_CLASS_UNCOMMON
 	properties = list(PROPERTY_CORROSIVE = 4)
+
+/datum/reagent/hydrogen/liquid
+	name = "Liquid Hydrogen"
+	id = "liquidhydrogen"
+	reagent_state = LIQUID
