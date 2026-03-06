@@ -326,9 +326,11 @@
 		visibility_zone_cooldown_until = max(visibility_zone_cooldown_until, world.time + source_template.visibility_zone_cooldown)
 	return TRUE
 
-/datum/rto_support_controller/proc/clear_manual_designation(obj/item/device/binoculars/rto/binoculars_override)
-	var/obj/item/device/binoculars/rto/binoculars = binoculars_override
-	if(!binoculars || QDELETED(binoculars))
+/datum/rto_support_controller/proc/clear_manual_designation(obj/item/binoculars_override)
+	var/obj/item/device/binoculars/rto/binoculars = null
+	if(istype(binoculars_override, /obj/item/device/binoculars/rto) && !QDELETED(binoculars_override))
+		binoculars = binoculars_override
+	if(!binoculars)
 		binoculars = get_owned_binocular()
 	if(!binoculars)
 		binoculars = get_rto_binocular_in_hand()
@@ -561,7 +563,7 @@
 		if(owner && owner.stat != DEAD)
 			to_chat(owner, SPAN_WARNING("RTO-бинокль убран из рук. Наведение отменено."))
 	if(!is_in_hand)
-		var/obj/item/device/binoculars/rto/dropped_binocular = changed_item
+		var/obj/item/device/binoculars/rto/dropped_binocular = istype(changed_item, /obj/item/device/binoculars/rto) ? changed_item : null
 		clear_manual_designation(dropped_binocular)
 	last_binocular_in_hand = is_in_hand
 	refresh_action_handles()
