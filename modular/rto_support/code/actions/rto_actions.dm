@@ -62,6 +62,9 @@
 	. = ..()
 	if(!can_use_action())
 		return
+	if(!controller?.is_support_enabled_by_rules())
+		to_chat(owner, SPAN_WARNING("Disabled by Game Rule Panel"))
+		return
 	if(!controller?.can_select_template())
 		to_chat(owner, SPAN_WARNING("Пакет поддержки уже выбран."))
 		return
@@ -69,10 +72,12 @@
 
 /datum/action/human_action/rto/select_preset/refresh_from_controller()
 	var/list/secondary = list()
-	var/label = controller?.has_rto_binocular_in_hand() ? RTO_SUPPORT_STATUS_READY : RTO_SUPPORT_STATUS_NO_BINOCULAR
+	var/disabled_by_rules = !controller?.is_support_enabled_by_rules()
+	var/has_binocular = controller?.has_rto_binocular_in_hand()
+	var/label = disabled_by_rules ? "Disabled by Game Rule Panel" : (has_binocular ? RTO_SUPPORT_STATUS_READY : RTO_SUPPORT_STATUS_NO_BINOCULAR)
 	set_name(build_action_name("Выбрать пакет поддержки", label, secondary))
-	set_button_state(RTO_SUPPORT_BUTTON_STATE_READY, !controller?.has_rto_binocular_in_hand())
-	set_button_countdown(controller?.has_rto_binocular_in_hand() ? null : "B", "#c6c6c6")
+	set_button_state(RTO_SUPPORT_BUTTON_STATE_READY, disabled_by_rules || !has_binocular)
+	set_button_countdown(disabled_by_rules ? "GM" : (has_binocular ? null : "B"), "#c6c6c6")
 
 /datum/action/human_action/rto/visibility_zone
 	name = "Развернуть сектор наведения"

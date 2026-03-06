@@ -137,6 +137,9 @@
 	/// Holds the game master datum for this client
 	var/datum/game_master/game_master_menu
 
+	/// Holds the game rule panel datum for this client
+	var/datum/game_rule_panel/game_rule_panel
+
 	/// Holds the human AI manager panel for this client
 	var/datum/human_ai_management_menu/human_ai_menu
 

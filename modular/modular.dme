@@ -10,6 +10,7 @@
 #include "speech_filter/_speech_filter.dme"
 #include "text_to_speech/_tts.dme"
 #include "game_master/_game_master.dme"
+#include "game_rule_panel/_game_rule_panel.dme"
 #include "fullscreen/_fullscreen.dme"
 #include "squads/_squads.dme"
 #include "arachnid/_arachnid.dme"

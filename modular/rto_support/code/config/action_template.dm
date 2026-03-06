@@ -32,15 +32,15 @@
 	var/target_marker_style = RTO_SUPPORT_MARKER_STATIC
 
 /// Builds a UI DTO for the action list.
-/datum/rto_support_action_template/proc/build_ui_entry()
+/datum/rto_support_action_template/proc/build_ui_entry(datum/rto_support_controller/controller = null)
 	var/datum/rto_support_ui_action_entry/entry = new
 	entry.action_id = action_id
 	entry.name = name
 	entry.description = description
 	entry.dispatch_key = dispatch_key
 	entry.scatter = scatter
-	entry.shared_cooldown = shared_cooldown
-	entry.personal_cooldown = personal_cooldown
+	entry.shared_cooldown = controller ? controller.get_effective_shared_cooldown(src) : shared_cooldown
+	entry.personal_cooldown = controller ? controller.get_effective_personal_cooldown(src) : personal_cooldown
 	entry.requires_visibility_zone = requires_visibility_zone
 	entry.icon_state = icon_state
 	entry.altitude_requirement = altitude_requirement

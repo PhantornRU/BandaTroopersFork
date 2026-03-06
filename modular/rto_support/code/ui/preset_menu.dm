@@ -54,12 +54,15 @@
 /datum/rto_support_preset_menu/ui_data(mob/user)
 	var/can_select_template = FALSE
 	var/active_template_name = null
+	var/list/templates = list()
 	if(controller)
 		can_select_template = controller.can_select_template()
 		active_template_name = controller.get_active_template()?.name
+		templates = controller.build_preset_ui_data()
 	return list(
 		"can_select_template" = can_select_template,
-		"active_template_name" = active_template_name
+		"active_template_name" = active_template_name,
+		"templates" = templates
 	)
 
 /datum/rto_support_preset_menu/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)

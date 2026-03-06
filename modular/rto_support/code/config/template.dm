@@ -67,7 +67,7 @@
 	return null
 
 /// Builds a UI DTO for the preset menu.
-/datum/rto_support_template/proc/build_ui_entry()
+/datum/rto_support_template/proc/build_ui_entry(datum/rto_support_controller/controller = null)
 	var/datum/rto_support_ui_preset_entry/entry = new
 	entry.template_id = template_id
 	entry.name = name
@@ -84,6 +84,6 @@
 	entry.visibility_altitude_requirement = visibility_altitude_requirement
 	entry.actions = list()
 	for(var/datum/rto_support_action_template/action_template as anything in action_templates)
-		var/datum/rto_support_ui_action_entry/action_entry = action_template.build_ui_entry()
+		var/datum/rto_support_ui_action_entry/action_entry = action_template.build_ui_entry(controller)
 		entry.actions += list(action_entry.to_list())
 	return entry

@@ -74,6 +74,8 @@
 		return FALSE
 	if(owner.job != JOB_SQUAD_RTO)
 		return FALSE
+	if(!is_support_enabled_by_rules())
+		return FALSE
 	return !active_template
 
 /datum/rto_support_controller/proc/select_template(template_type)
@@ -172,6 +174,8 @@
 		return FALSE
 	if(action_id == RTO_SUPPORT_ARM_COORDINATES || action_id == RTO_SUPPORT_ARM_MARKER)
 		return TRUE
+	if(!is_support_enabled_by_rules())
+		return FALSE
 	if(!active_template)
 		return FALSE
 	if(action_id == RTO_SUPPORT_ARM_VISIBILITY_ZONE)
@@ -289,8 +293,8 @@
 	if(!dispatch_service.dispatch_request(request))
 		return FALSE
 
-	shared_cooldown_until = world.time + action_template.shared_cooldown
-	action_cooldowns[action_template.action_id] = world.time + action_template.personal_cooldown
+	shared_cooldown_until = world.time + get_effective_shared_cooldown(action_template)
+	action_cooldowns[action_template.action_id] = world.time + get_effective_personal_cooldown(action_template)
 	to_chat(user, SPAN_NOTICE("[action_template.name]: вызов подтвержден."))
 	disarm_action()
 	refresh_action_handles()
@@ -299,12 +303,47 @@
 /datum/rto_support_controller/proc/build_preset_ui_data()
 	var/list/data = list()
 	for(var/datum/rto_support_template/template as anything in get_available_templates())
-		var/datum/rto_support_ui_preset_entry/entry = template.build_ui_entry()
+		var/datum/rto_support_ui_preset_entry/entry = template.build_ui_entry(src)
 		data += list(entry.to_list())
 	return data
 
 /datum/rto_support_controller/proc/find_template(template_type)
 	return GLOB.rto_support_registry?.find_template(template_type)
+
+/datum/rto_support_controller/proc/is_support_enabled_by_rules()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(!rules)
+		return TRUE
+	return !!rules.rto_support_enabled
+
+/datum/rto_support_controller/proc/get_effective_shared_cooldown(datum/rto_support_action_template/action_template)
+	if(!action_template)
+		return 0
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/multiplier = rules ? rules.rto_shared_cooldown_multiplier : 1
+	return max(1, round(max(1, action_template.shared_cooldown) * multiplier))
+
+/datum/rto_support_controller/proc/get_effective_personal_cooldown(datum/rto_support_action_template/action_template)
+	if(!action_template)
+		return 0
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/multiplier = rules ? rules.rto_personal_cooldown_multiplier : 1
+	return max(1, round(max(1, action_template.personal_cooldown) * multiplier))
+
+/datum/rto_support_controller/proc/is_action_restricted_by_rules(action_id)
+	if(is_support_enabled_by_rules())
+		return FALSE
+	if(!action_id)
+		return FALSE
+	return action_id != RTO_SUPPORT_ARM_COORDINATES && action_id != RTO_SUPPORT_ARM_MARKER
+
+/datum/rto_support_controller/proc/apply_rules_update()
+	if(is_action_restricted_by_rules(armed_action_id))
+		reset_armed_action()
+	if(!is_support_enabled_by_rules() && active_zone)
+		clear_active_zone(FALSE)
+	refresh_action_handles()
+	return TRUE
 
 /datum/rto_support_controller/proc/replace_active_zone(datum/rto_visibility_zone/new_zone)
 	clear_active_zone(FALSE)
@@ -606,6 +645,12 @@
 	if(!active_template || !template_requires_zone())
 		state["is_disabled"] = TRUE
 		return state
+	if(!is_support_enabled_by_rules())
+		state["is_disabled"] = TRUE
+		state["primary_label"] = "Disabled by Game Rule Panel"
+		state["countdown_text"] = "GM"
+		state["countdown_color"] = "#c6c6c6"
+		return state
 	if(!state["has_binocular_in_hand"])
 		state["is_disabled"] = TRUE
 		state["primary_label"] = RTO_SUPPORT_STATUS_NO_BINOCULAR
@@ -682,6 +727,12 @@
 	if(!action_template)
 		state["is_disabled"] = TRUE
 		return state
+	if(!is_support_enabled_by_rules())
+		state["is_disabled"] = TRUE
+		state["primary_label"] = "Disabled by Game Rule Panel"
+		state["countdown_text"] = "GM"
+		state["countdown_color"] = "#c6c6c6"
+		return state
 	if(!state["has_binocular_in_hand"])
 		state["is_disabled"] = TRUE
 		state["primary_label"] = RTO_SUPPORT_STATUS_NO_BINOCULAR
@@ -723,6 +774,9 @@
 /datum/rto_support_controller/proc/get_action_block_messages(action_id)
 	var/list/messages = list()
 	if(action_id == RTO_SUPPORT_ARM_COORDINATES || action_id == RTO_SUPPORT_ARM_MARKER)
+		return messages
+	if(is_action_restricted_by_rules(action_id))
+		messages += "Disabled by Game Rule Panel"
 		return messages
 	if(!active_template)
 		messages += "Сначала выберите пакет поддержки."

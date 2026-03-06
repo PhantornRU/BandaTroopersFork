@@ -100,6 +100,14 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 		initialize_template_catalog()
 	return template_by_id[template_id]
 
+/datum/rto_support_registry/proc/propagate_rules_update()
+	if(!length(controllers))
+		return FALSE
+	for(var/mob/living/carbon/human/human as anything in controllers)
+		var/datum/rto_support_controller/controller = get_controller(human)
+		controller?.apply_rules_update()
+	return TRUE
+
 /datum/rto_support_registry/proc/handle_owner_deleted(mob/living/carbon/human/human)
 	SIGNAL_HANDLER
 	remove_controller(human)
