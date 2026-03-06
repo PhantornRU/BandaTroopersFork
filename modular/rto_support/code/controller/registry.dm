@@ -4,10 +4,21 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 /datum/rto_support_registry
 	/// Lookup storage keyed by owner identity.
 	var/list/controllers = list()
+	/// Immutable support template instances shared by all controllers.
+	var/list/template_catalog = list()
+	/// Template lookup keyed by stable template id.
+	var/list/template_by_id = list()
+
+/datum/rto_support_registry/New()
+	. = ..()
+	initialize_template_catalog()
 
 /datum/rto_support_registry/Destroy()
 	clear_controllers()
+	clear_template_catalog()
 	controllers = null
+	template_catalog = null
+	template_by_id = null
 	return ..()
 
 /// Returns a controller bound to a human.
@@ -54,6 +65,40 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	for(var/mob/living/carbon/human/human as anything in controllers)
 		remove_controller(human)
 	return TRUE
+
+/datum/rto_support_registry/proc/initialize_template_catalog()
+	if(length(template_catalog))
+		return FALSE
+	template_catalog = list(
+		new /datum/rto_support_template/mortar,
+		new /datum/rto_support_template/cas,
+		new /datum/rto_support_template/heavy,
+		new /datum/rto_support_template/logistics,
+	)
+	template_by_id = list()
+	for(var/datum/rto_support_template/template as anything in template_catalog)
+		if(!template?.template_id)
+			continue
+		template_by_id[template.template_id] = template
+	return TRUE
+
+/datum/rto_support_registry/proc/clear_template_catalog()
+	if(length(template_catalog))
+		for(var/datum/rto_support_template/template as anything in template_catalog)
+			qdel(template)
+	template_catalog = list()
+	template_by_id = list()
+	return TRUE
+
+/datum/rto_support_registry/proc/get_template_catalog()
+	if(!length(template_catalog))
+		initialize_template_catalog()
+	return template_catalog.Copy()
+
+/datum/rto_support_registry/proc/find_template(template_id)
+	if(!length(template_by_id))
+		initialize_template_catalog()
+	return template_by_id[template_id]
 
 /datum/rto_support_registry/proc/handle_owner_deleted(mob/living/carbon/human/human)
 	SIGNAL_HANDLER

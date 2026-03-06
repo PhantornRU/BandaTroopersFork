@@ -48,4 +48,16 @@
 	if(duration <= 0)
 		duration = max(1 SECONDS, fire_support?.delay_to_impact || 1 SECONDS)
 
-	return spawn_rto_laser_marker(request.target_turf, marker_style, duration)
+	return create_request_marker(request.target_turf, marker_style, duration)
+
+/datum/rto_support_dispatch_service/proc/create_request_marker(turf/target_turf, marker_style = RTO_SUPPORT_MARKER_STATIC, duration = 10)
+	if(!target_turf || QDELETED(target_turf))
+		return null
+
+	switch(marker_style)
+		if(RTO_SUPPORT_MARKER_SLOW_BLINK)
+			return new /obj/effect/overlay/rto_laser_marker/slow_blink(target_turf, duration)
+		if(RTO_SUPPORT_MARKER_COORDINATE)
+			return new /obj/effect/overlay/rto_laser_marker/coordinate(target_turf, duration)
+		else
+			return new /obj/effect/overlay/rto_laser_marker/static(target_turf, duration)

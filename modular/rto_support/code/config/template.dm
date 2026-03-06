@@ -47,6 +47,14 @@
 	for(var/action_type in action_template_types)
 		action_templates += new action_type
 
+/datum/rto_support_template/Destroy()
+	if(length(action_templates))
+		for(var/datum/rto_support_action_template/action_template as anything in action_templates)
+			qdel(action_template)
+	action_templates = null
+	action_template_types = null
+	return ..()
+
 /// Returns action templates bound to this support template.
 /datum/rto_support_template/proc/get_action_templates()
 	return action_templates.Copy()
@@ -79,12 +87,3 @@
 		var/datum/rto_support_ui_action_entry/action_entry = action_template.build_ui_entry()
 		entry.actions += list(action_entry.to_list())
 	return entry
-
-/// Returns a fresh catalog of available RTO templates.
-/proc/build_rto_support_template_catalog()
-	return list(
-		new /datum/rto_support_template/mortar,
-		new /datum/rto_support_template/cas,
-		new /datum/rto_support_template/heavy,
-		new /datum/rto_support_template/logistics,
-	)

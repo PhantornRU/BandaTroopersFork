@@ -3,7 +3,6 @@
 	var/mob/living/carbon/human/owner
 	var/datum/rto_support_template/active_template
 	var/datum/rto_visibility_zone/active_zone
-	var/datum/rto_manual_designation/manual_designation
 	var/armed_action_id
 	var/shared_cooldown_until = 0
 	var/visibility_zone_cooldown_until = 0
@@ -67,7 +66,8 @@
 /datum/rto_support_controller/proc/get_available_templates()
 	if(!owner || owner.job != JOB_SQUAD_RTO)
 		return list()
-	return build_rto_support_template_catalog()
+	var/list/templates = GLOB.rto_support_registry?.get_template_catalog()
+	return templates ? templates : list()
 
 /datum/rto_support_controller/proc/can_select_template()
 	if(!owner || QDELETED(owner))
@@ -121,11 +121,6 @@
 	var/datum/rto_visibility_zone/zone = get_active_zone()
 	return zone ? max(0, zone.expires_at - world.time) : 0
 
-/datum/rto_support_controller/proc/get_manual_designation()
-	if(manual_designation && !manual_designation.is_active())
-		clear_manual_designation()
-	return manual_designation
-
 /datum/rto_support_controller/proc/is_manual_marker_active()
 	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
 	return binoculars?.is_live_marker_active()
@@ -134,7 +129,6 @@
 	if(!validate_owner_runtime())
 		return FALSE
 	prune_zone_state()
-	prune_manual_state()
 	if(armed_action_id && !has_rto_binocular_in_hand())
 		reset_armed_action()
 	last_binocular_in_hand = has_rto_binocular_in_hand()
@@ -308,11 +302,9 @@
 		var/datum/rto_support_ui_preset_entry/entry = template.build_ui_entry()
 		data += list(entry.to_list())
 	return data
+
 /datum/rto_support_controller/proc/find_template(template_type)
-	for(var/datum/rto_support_template/template as anything in get_available_templates())
-		if(template.template_id == template_type)
-			return template
-	return null
+	return GLOB.rto_support_registry?.find_template(template_type)
 
 /datum/rto_support_controller/proc/replace_active_zone(datum/rto_visibility_zone/new_zone)
 	clear_active_zone(FALSE)
@@ -334,15 +326,14 @@
 		visibility_zone_cooldown_until = max(visibility_zone_cooldown_until, world.time + source_template.visibility_zone_cooldown)
 	return TRUE
 
-/datum/rto_support_controller/proc/clear_manual_designation()
-	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
+/datum/rto_support_controller/proc/clear_manual_designation(obj/item/device/binoculars/rto/binoculars_override)
+	var/obj/item/device/binoculars/rto/binoculars = binoculars_override
+	if(!binoculars || QDELETED(binoculars))
+		binoculars = get_owned_binocular()
+	if(!binoculars)
+		binoculars = get_rto_binocular_in_hand()
 	binoculars?.stop_live_marker(owner, TRUE)
-	if(!manual_designation)
-		return !!binoculars
-	manual_designation.expire()
-	qdel(manual_designation)
-	manual_designation = null
-	return TRUE
+	return !!binoculars
 
 /datum/rto_support_controller/proc/place_manual_designation(turf/target_turf, mob/living/carbon/human/user)
 	var/obj/item/device/binoculars/rto/binoculars = get_active_binocular()
@@ -539,7 +530,6 @@
 	if(!runtime_initialized)
 		return
 	prune_zone_state()
-	prune_manual_state()
 	if(!refresh_visible_actions())
 		update_hud_tick_state()
 		return
@@ -571,7 +561,8 @@
 		if(owner && owner.stat != DEAD)
 			to_chat(owner, SPAN_WARNING("RTO-бинокль убран из рук. Наведение отменено."))
 	if(!is_in_hand)
-		clear_manual_designation()
+		var/obj/item/device/binoculars/rto/dropped_binocular = changed_item
+		clear_manual_designation(dropped_binocular)
 	last_binocular_in_hand = is_in_hand
 	refresh_action_handles()
 	return TRUE
@@ -835,12 +826,6 @@
 		return TRUE
 	return FALSE
 
-/datum/rto_support_controller/proc/prune_manual_state()
-	if(manual_designation && !manual_designation.is_active())
-		clear_manual_designation()
-		return TRUE
-	return FALSE
-
 /datum/rto_support_controller/proc/needs_hud_tick()
 	if(!runtime_initialized || !owner || QDELETED(owner))
 		return FALSE
@@ -904,5 +889,3 @@
 	clear_active_zone()
 	refresh_action_handles()
 	return TRUE
-
-

@@ -1,11 +1,11 @@
-/// Returns the RTO support controller bound to a human.
-/proc/get_rto_support_controller(mob/living/carbon/human/human)
-	return GLOB.rto_support_registry?.get_controller(human)
+/// Returns the RTO support controller bound to this human.
+/mob/living/carbon/human/proc/get_rto_support_controller()
+	return GLOB.rto_support_registry?.get_controller(src)
 
-/// Returns an existing controller or creates one.
-/proc/ensure_rto_support_controller(mob/living/carbon/human/human)
-	return GLOB.rto_support_registry?.ensure_controller(human)
+/// Returns an existing controller or creates one for this human.
+/mob/living/carbon/human/proc/ensure_rto_support_controller()
+	return GLOB.rto_support_registry?.ensure_controller(src)
 
-/// Removes the controller bound to a human.
-/proc/remove_rto_support_controller(mob/living/carbon/human/human)
-	return GLOB.rto_support_registry?.remove_controller(human)
+/// Removes the controller bound to this human.
+/mob/living/carbon/human/proc/remove_rto_support_controller()
+	return GLOB.rto_support_registry?.remove_controller(src)

@@ -7,9 +7,13 @@
 
 /obj/item/storage/pouch/sling/rto/Initialize()
 	. = ..()
-	ensure_paired_binocular()
+	if(!ensure_paired_binocular())
+		qdel(src)
+		return INITIALIZE_HINT_QDEL
+	return .
 
 /obj/item/storage/pouch/sling/rto/Destroy()
+	cleanup_paired_runtime()
 	if(paired_binocular?.paired_pouch == src)
 		paired_binocular.paired_pouch = null
 	paired_binocular = null
@@ -88,11 +92,11 @@
 		_item_insertion(binoculars, TRUE)
 	return TRUE
 
-/proc/build_rto_support_binocular_kit(atom/location)
-	if(!location)
-		return null
-	var/obj/item/storage/pouch/sling/rto/pouch = new(location)
-	if(!pouch.ensure_paired_binocular())
-		qdel(pouch)
-		return null
-	return pouch
+/obj/item/storage/pouch/sling/rto/proc/cleanup_paired_runtime()
+	if(slung)
+		if(!QDELETED(slung))
+			slung.RemoveElement(/datum/element/drop_retrieval/pouch_sling, src)
+		slung = null
+	if(paired_binocular?.paired_pouch == src)
+		paired_binocular.paired_pouch = null
+	return TRUE

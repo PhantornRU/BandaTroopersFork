@@ -40,7 +40,8 @@
 	if(!ishuman(user))
 		return ..()
 	if(mods[CTRL_CLICK] && CAN_PICKUP(user, src))
-		var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
+		var/mob/living/carbon/human/human_user = user
+		var/datum/rto_support_controller/controller = human_user.ensure_rto_support_controller()
 		if(controller?.armed_action_id)
 			controller.disarm_action()
 			to_chat(user, SPAN_NOTICE("Наведение отменено."))
@@ -65,7 +66,7 @@
 	if(!target_turf || target_turf.z == 0)
 		return FALSE
 
-	var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
+	var/datum/rto_support_controller/controller = user.ensure_rto_support_controller()
 	if(controller?.armed_action_id)
 		return controller.handle_binocular_target(target_turf, user)
 
@@ -80,7 +81,8 @@
 	. = ..()
 	if(!ishuman(user))
 		return
-	var/datum/rto_support_controller/controller = ensure_rto_support_controller(user)
+	var/mob/living/carbon/human/human_user = user
+	var/datum/rto_support_controller/controller = human_user.ensure_rto_support_controller()
 	if(!controller)
 		return
 
@@ -137,9 +139,9 @@
 	var/mob/living/carbon/human/human_user = user
 	if(human_user.job != JOB_SQUAD_RTO)
 		return FALSE
-	var/datum/rto_support_controller/controller = get_rto_support_controller(human_user)
+	var/datum/rto_support_controller/controller = human_user.get_rto_support_controller()
 	if(!controller)
-		controller = ensure_rto_support_controller(human_user)
+		controller = human_user.ensure_rto_support_controller()
 	return controller?.handle_inventory_changed(src, slot, signal_id)
 
 /obj/item/device/binoculars/rto/proc/pair_with_pouch(obj/item/storage/pouch/sling/rto/pouch)
@@ -196,7 +198,7 @@
 		return FALSE
 	if(user.interactee != src)
 		return FALSE
-	var/datum/rto_support_controller/controller = get_rto_support_controller(user)
+	var/datum/rto_support_controller/controller = user.get_rto_support_controller()
 	if(!controller || !controller.is_action_armed(RTO_SUPPORT_ARM_MARKER))
 		return FALSE
 	var/turf/target_turf = get_turf(live_marker_target)
