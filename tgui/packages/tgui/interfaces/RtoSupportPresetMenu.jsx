@@ -1,9 +1,19 @@
 import { useBackend } from '../backend';
-import { Box, Button, Divider, LabeledList, NoticeBox, Section, Stack } from '../components';
+import {
+  Box,
+  Button,
+  Divider,
+  LabeledList,
+  NoticeBox,
+  Section,
+  Stack,
+} from '../components';
 import { Window } from '../layouts';
 
 const altitudeLabel = (altitudeRequirement) =>
-  altitudeRequirement === 'high' ? 'Требуется открытое небо' : 'Любая видимая точка';
+  altitudeRequirement === 'high'
+    ? 'Требуется открытое небо'
+    : 'Любая видимая точка';
 
 const targetLabel = (allowClosedTurf) =>
   allowClosedTurf ? 'Можно по закрытым тайлам' : 'Только открытый тайл';
@@ -17,7 +27,8 @@ const ModeBadge = ({ color, text }) => (
     style={{
       borderRadius: '999px',
       display: 'inline-block',
-    }}>
+    }}
+  >
     {text}
   </Box>
 );
@@ -30,7 +41,8 @@ const ActionCard = ({ action }) => (
     style={{
       border: '1px solid rgba(255, 255, 255, 0.08)',
       borderRadius: '4px',
-    }}>
+    }}
+  >
     <Box bold mb={0.5}>
       {action.name}
     </Box>
@@ -38,9 +50,7 @@ const ActionCard = ({ action }) => (
       {action.description}
     </Box>
     <LabeledList>
-      <LabeledList.Item label="Разброс">
-        {action.scatter}
-      </LabeledList.Item>
+      <LabeledList.Item label="Разброс">{action.scatter}</LabeledList.Item>
       <LabeledList.Item label="Общий КД">
         {action.shared_cooldown} сек.
       </LabeledList.Item>
@@ -66,17 +76,21 @@ const TemplateCard = ({ template }) => {
   return (
     <Section
       title={template.name}
-      buttons={(
+      buttons={
         <Button
           color="good"
           disabled={!data.can_select_template}
           icon="crosshairs"
-          onClick={() => act('select_template', {
-            template_id: template.template_id,
-          })}>
+          onClick={() =>
+            act('select_template', {
+              template_id: template.template_id,
+            })
+          }
+        >
           Выбрать
         </Button>
-      )}>
+      }
+    >
       <Box mb={1}>{template.description}</Box>
       <Box mb={1}>
         {template.requires_visibility_zone ? (
@@ -107,7 +121,9 @@ const TemplateCard = ({ template }) => {
       )}
       <LabeledList>
         <LabeledList.Item label="Режим">
-          {template.requires_visibility_zone ? 'Боевой пакет через сектор' : 'Прямой логистический сброс'}
+          {template.requires_visibility_zone
+            ? 'Боевой пакет через сектор'
+            : 'Прямой логистический сброс'}
         </LabeledList.Item>
         {template.requires_visibility_zone && (
           <>
@@ -129,9 +145,7 @@ const TemplateCard = ({ template }) => {
           </>
         )}
         {!template.requires_visibility_zone && (
-          <LabeledList.Item label="Сектор">
-            Не используется
-          </LabeledList.Item>
+          <LabeledList.Item label="Сектор">Не используется</LabeledList.Item>
         )}
         <LabeledList.Item label="Высотное окно">
           {altitudeLabel(template.visibility_altitude_requirement)}
@@ -162,11 +176,13 @@ export const RtoSupportPresetMenu = () => {
                 Выбор выполняется один раз на жизнь текущего персонажа.
               </NoticeBox>
               <NoticeBox mt={1}>
-                1. Выберите темплейт. 2. Для боевых пакетов разверните сектор. 3. Вооружите нужную
-                кнопку. 4. Наведите точку через Ctrl+Click во время зума через RTO-бинокль.
+                1. Выберите темплейт. 2. Для боевых пакетов разверните сектор.
+                3. Вооружите нужную кнопку. 4. Наведите точку через Ctrl+Click
+                во время зума через RTO-бинокль.
               </NoticeBox>
               <NoticeBox mt={1} warning>
-                Logistics работает без сектора и вызывает сбросы напрямую через бинокль.
+                Logistics работает без сектора и вызывает сбросы напрямую через
+                бинокль.
               </NoticeBox>
               {!!data.active_template_name && (
                 <NoticeBox warning mt={1}>
@@ -175,16 +191,15 @@ export const RtoSupportPresetMenu = () => {
               )}
             </Section>
           </Stack.Item>
-          {!!templates.length && templates.map((template) => (
-            <Stack.Item key={template.template_id}>
-              <TemplateCard template={template} />
-            </Stack.Item>
-          ))}
+          {!!templates.length &&
+            templates.map((template) => (
+              <Stack.Item key={template.template_id}>
+                <TemplateCard template={template} />
+              </Stack.Item>
+            ))}
           {!templates.length && (
             <Stack.Item>
-              <NoticeBox danger>
-                Нет доступных пресетов поддержки.
-              </NoticeBox>
+              <NoticeBox danger>Нет доступных пресетов поддержки.</NoticeBox>
             </Stack.Item>
           )}
         </Stack>
