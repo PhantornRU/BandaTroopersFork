@@ -1,3 +1,4 @@
+// SS220 EDIT - START: Game Rule Panel unit tests
 /datum/unit_test/game_rule_panel_rto_cooldowns/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_rto_rules()
@@ -104,4 +105,4 @@
 	TEST_ASSERT_EQUAL(!!(fire_support_option.fire_support_flags & FIRESUPPORT_AVAILABLE), !original_available, "Fire support availability flag did not flip after panel toggle.")
 
 	TEST_ASSERT(rules.set_fire_support_type_enabled(FIRESUPPORT_TYPE_GUN, original_available), "Failed to restore original fire support availability after toggle test.")
-
+// SS220 EDIT - END

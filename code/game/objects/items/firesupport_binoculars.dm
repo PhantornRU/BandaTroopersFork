@@ -71,7 +71,7 @@
 	if(faction)
 		. += SPAN_BOLDNOTICE("[GLOB.fire_support_points[faction]] points left.")
 	if(!is_fire_support_enabled_by_rules())
-		. += SPAN_WARNING("Fire Support disabled by Game Rule Panel.")
+		. += SPAN_WARNING("Fire Support disabled by Game Rule Panel.") // SS220 EDIT: added global Fire Support master-toggle examine warning
 	if(!mode)
 		return
 	. += SPAN_BOLDNOTICE("They are currently set to [mode.name] mode.")
@@ -115,16 +115,20 @@
 	user.update_sight()
 
 ///Selects a firemode
+// SS220 EDIT - START: added Game Rule Panel Fire Support master-toggle hook
 /obj/item/device/binoculars/fire_support/proc/is_fire_support_enabled_by_rules()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	if(!rules)
 		return TRUE
 	return !!rules.fire_support_enabled
+// SS220 EDIT - END
 
 /obj/item/device/binoculars/fire_support/proc/select_radial(mob/user)
+	// SS220 EDIT - START: block radial selection when Game Rule Panel disables Fire Support
 	if(!is_fire_support_enabled_by_rules())
 		user.balloon_alert(user, "disabled by game rule panel")
 		return
+	// SS220 EDIT - END
 	var/list/radial_options = list()
 	for(var/fire_support_type in mode_list)
 		if(!(mode_list[fire_support_type].fire_support_flags & FIRESUPPORT_AVAILABLE))
@@ -183,9 +187,11 @@
 
 ///Internal bino checks, mainly around firemode
 /obj/item/device/binoculars/fire_support/proc/bino_checks(atom/target, mob/living/user)
+	// SS220 EDIT - START: block binocular call flow when Game Rule Panel disables Fire Support
 	if(!is_fire_support_enabled_by_rules())
 		balloon_alert_to_viewers("disabled by game rule panel")
 		return FALSE
+	// SS220 EDIT - END
 	if(!mode)
 		balloon_alert_to_viewers("select a mode!")
 		return FALSE

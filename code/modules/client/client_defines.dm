@@ -138,7 +138,7 @@
 	var/datum/game_master/game_master_menu
 
 	/// Holds the game rule panel datum for this client
-	var/datum/game_rule_panel/game_rule_panel
+	var/datum/game_rule_panel/game_rule_panel // SS220 EDIT: stores per-client Game Rule Panel datum
 
 	/// Holds the human AI manager panel for this client
 	var/datum/human_ai_management_menu/human_ai_menu
