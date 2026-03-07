@@ -478,6 +478,9 @@
 /datum/squad/marine/proc/rename_platoon(datum/source, new_name, old_name)
 	SIGNAL_HANDLER
 
+	if(name != old_name) // SS220 EDIT
+		return
+
 	name = new_name
 
 	for(var/mob/living/carbon/human/marine in marines_list)
@@ -780,6 +783,8 @@
 
 	marines_list += M
 	M.assigned_squad = src //Add them to the squad
+	if(GET_DEFAULT_ROLE(M.job) == JOB_SQUAD_LEADER) // SS220 EDIT
+		squad_name_try_apply_leader_preference(M)
 	C.access += (src.access + extra_access) //Add their squad access to their ID
 	if(prepend_squad_name_to_assignment)
 		C.assignment = "[name] [id_assignment]"
@@ -850,6 +855,11 @@
 			num_tl--
 		if(JOB_SQUAD_LEADER)
 			num_leaders--
+
+	apply_modular_forget_role_counters(M) // SS220 EDIT
+
+/datum/squad/proc/apply_modular_forget_role_counters(mob/living/carbon/human/M)
+	return
 
 //proc for demoting current Squad Leader
 /datum/squad/proc/demote_squad_leader(leader_killed)
