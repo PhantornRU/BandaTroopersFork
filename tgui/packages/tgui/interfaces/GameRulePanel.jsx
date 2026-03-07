@@ -80,7 +80,10 @@ const RtoSupportPage = ({
 }) => {
   const { act } = useBackend();
   const safeSharedMultiplier = sanitizeNumberInputValue(sharedMultiplier, 1);
-  const safePersonalMultiplier = sanitizeNumberInputValue(personalMultiplier, 1);
+  const safePersonalMultiplier = sanitizeNumberInputValue(
+    personalMultiplier,
+    1,
+  );
 
   return (
     <Section fill title="RTO Support">
@@ -171,7 +174,11 @@ const RtoSupportPage = ({
       </Section>
 
       <Section level={2} title="Reset">
-        <Button color="average" icon="undo" onClick={() => act('reset_rto_rules')}>
+        <Button
+          color="average"
+          icon="undo"
+          onClick={() => act('reset_rto_rules')}
+        >
           Reset to defaults
         </Button>
       </Section>
@@ -267,7 +274,9 @@ const FireSupportPage = ({ data, grantAmounts, setGrantAmounts }) => {
                   enabled={false}
                 />
               ))}
-              {!disabledEntries.length && <NoticeBox>No disabled entries.</NoticeBox>}
+              {!disabledEntries.length && (
+                <NoticeBox>No disabled entries.</NoticeBox>
+              )}
             </Section>
           </Stack.Item>
           <Stack.Item grow={1} basis={0}>
@@ -279,7 +288,9 @@ const FireSupportPage = ({ data, grantAmounts, setGrantAmounts }) => {
                   enabled
                 />
               ))}
-              {!enabledEntries.length && <NoticeBox>No enabled entries.</NoticeBox>}
+              {!enabledEntries.length && (
+                <NoticeBox>No enabled entries.</NoticeBox>
+              )}
             </Section>
           </Stack.Item>
         </Stack>
