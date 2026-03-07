@@ -6,6 +6,7 @@
 1. [`modular/__agents/.AI_AGENT/README.md`](./modular/__agents/.AI_AGENT/README.md)
 2. Stable guidance:
    - [`modular/__agents/.AI_AGENT/PROJECT_CONTEXT.md`](./modular/__agents/.AI_AGENT/PROJECT_CONTEXT.md)
+   - [`modular/__agents/.AI_AGENT/CONFIRMED_UNRESOLVED_ERRORS.md`](./modular/__agents/.AI_AGENT/CONFIRMED_UNRESOLVED_ERRORS.md)
    - [`modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`](./modular/__agents/.AI_AGENT/WORKFLOW_RULES.md)
    - [`modular/__agents/.AI_AGENT/POLICIES.md`](./modular/__agents/.AI_AGENT/POLICIES.md)
    - [`modular/__agents/.AI_AGENT/REQUEST_PATTERNS.md`](./modular/__agents/.AI_AGENT/REQUEST_PATTERNS.md)
