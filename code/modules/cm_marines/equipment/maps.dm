@@ -233,16 +233,39 @@ GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 		// SS220 EDIT - END
 	)
 
+/proc/find_map_type_by_item_type(map_item_type)
+	if(!map_item_type)
+		return
+
+	for(var/map_key in GLOB.map_type_list)
+		var/obj/item/map/map = GLOB.map_type_list[map_key]
+		if(istype(map, map_item_type))
+			return map
+
+/proc/resolve_current_map_type(datum/map_config/ground_map_config)
+	if(!ground_map_config)
+		return
+
+	var/obj/item/map/map = GLOB.map_type_list[ground_map_config.map_name]
+	if(map)
+		return map
+
+	return find_map_type_by_item_type(ground_map_config.map_item_type)
+
 //used by marine equipment machines to spawn the correct map.
 /obj/item/map/current_map
 
 /obj/item/map/current_map/Initialize(mapload, ...)
 	. = ..()
 
-	var/map_name = SSmapping.configs[GROUND_MAP].map_name
-	var/obj/item/map/map = GLOB.map_type_list[map_name]
+	var/datum/map_config/ground_map_config = SSmapping.configs[GROUND_MAP]
+	var/map_name = ground_map_config?.map_name
+	var/obj/item/map/map = resolve_current_map_type(ground_map_config)
 	if (!map && (map_name == MAP_RUNTIME || map_name == MAP_CHINOOK || (map_name in SHIP_MAP_NAMES)))
 		return // "Maps" we don't have maps for so we don't need to throw a runtime for (namely in unit_testing)
+	if(!map)
+		log_runtime("Unable to resolve current map item for [map_name || "null map_name"] (type: [ground_map_config?.map_item_type || "null"], config: [ground_map_config?.config_filename || "unknown"])")
+		return
 	name = map.name
 	desc = map.desc
 	desc_lore = map.desc_lore
