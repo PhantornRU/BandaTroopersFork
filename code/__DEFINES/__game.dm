@@ -57,7 +57,7 @@
 #define MAP_BINHAI_SUPPLY_STATION "Binhai Supply Station" //UPP asteroid base
 // SS220 EDIT - START
 #define MAP_LV_671 "LV-671 Ark Borealis"
-#define MAP_OIL_DEPOT "Oil Depot"
+#define MAP_OIL_DEPOT "Oil Depot 276"
 #define MAP_DERELICT_ALMAYER_INFESTED "Infested Almayer"
 // SS220 EDIT - END
 
