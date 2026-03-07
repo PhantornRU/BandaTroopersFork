@@ -148,6 +148,16 @@
 
 	last_damage_data = istype(cause_data) ? cause_data : create_cause_data(cause_data)
 
+	// SS220 EDIT - START
+	if(player_survival_is_damage_blocked())
+		player_survival_log_damage_block("ex_act", damage, BRUTE, severity)
+		return
+
+	var/anti_gib_triggered = (severity >= EXPLOSION_THRESHOLD_GIB || damage >= EXPLOSION_THRESHOLD_GIB)
+	if(anti_gib_triggered && player_survival_apply_non_gib_fallback(last_damage_data, damage, severity, TRUE))
+		return
+	// SS220 EDIT - END
+
 	if(damage >= EXPLOSION_THRESHOLD_GIB)
 		var/oldloc = loc
 		gib(last_damage_data)
@@ -1736,4 +1746,3 @@
 	update_execute_hud()
 
 	return .
-
