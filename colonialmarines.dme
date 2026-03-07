@@ -842,7 +842,6 @@
 #include "code\game\area\LV295_Blacksite.dm"
 #include "code\game\area\LV522_Chances_Claim.dm"
 #include "code\game\area\LV624.dm"
-// SS220 EDIT: include LV671 area definitions for RU GroundSide port
 #include "code\game\area\LV671.dm"
 #include "code\game\area\LV759_Hybrisa_Prospera.dm"
 #include "code\game\area\Oread_Garrison.dm"
