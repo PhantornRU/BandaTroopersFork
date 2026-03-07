@@ -614,7 +614,7 @@
 		new /obj/item/ammo_magazine/smartgun/dirty(src)
 
 /obj/item/storage/pouch/magazine/large/pmc_sg/marsoc
-	icon_state = "socdrums"
+	icon_state = "wy_sgdrums_ammo" // SS220 EDIT: map MARSOC pouch to the existing smartgun drum pouch sprite
 
 /obj/item/storage/pouch/magazine/large/pmc_sg/marsoc/full/fill_preset_inventory()
 	for(var/i = 1 to storage_slots)

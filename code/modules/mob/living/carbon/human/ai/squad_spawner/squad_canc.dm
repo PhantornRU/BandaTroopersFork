@@ -215,7 +215,7 @@
 	name = "CANC Armed Forces, Full Platoon (UPP)"
 	desc = "CANCAF Full Platoon. 12 rifleman, 2 medic, 2 squad leader and 1 platoon leader."
 	ai_to_spawn = list(
-		/datum/equipment_preset/canc_dogwar/soldier/upp/pl_leader = 1,
+		/datum/equipment_preset/canc_dogwar/upp/pl_leader = 1, // SS220 EDIT: match the real UPP platoon leader preset path
 		/datum/equipment_preset/canc_dogwar/upp/leader = 2,
 		/datum/equipment_preset/canc_dogwar/upp = 12,
 		/datum/equipment_preset/canc_dogwar/upp/medic = 2,

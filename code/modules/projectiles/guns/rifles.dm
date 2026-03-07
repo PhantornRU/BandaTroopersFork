@@ -738,9 +738,11 @@
 /obj/item/weapon/gun/rifle/m20a/merc
 	name = "\improper M20CW pulse carbine"
 	desc = "A heavily modified black market version of the M20A pulse rifle, often used for CQC scenarios where SMGs just aren't cutting it. Comes with an integrated grip instead of an underbarrel shotgun and downsized barrel, alongside the removed stock. It can also now shoot in automatic!"
-	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
-	icon_state = "m20a_tactical"
-	item_state = "m20a_tactical"
+	// SS220 EDIT - START
+	icon = 'icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi'
+	icon_state = "m20a"
+	item_state = "m20a"
+	// SS220 EDIT - END
 	base_gun_icon = "m20a" // SS220 EDIT: M20CW shares M20A lineart
 	attachable_allowed = list(
 		/obj/item/attachable/suppressor,

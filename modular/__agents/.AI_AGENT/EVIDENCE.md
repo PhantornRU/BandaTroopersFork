@@ -1,48 +1,55 @@
 # EVIDENCE
 
-## Runtime Evidence
-- `data/logs/tests.log` currently enumerates the `gun_lineart` offenders:
-  - `/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc`
-  - `/obj/item/weapon/gun/rifle/m20a/merc`
-  - `/obj/item/weapon/gun/rifle/m20a/merc/tactical`
-  - `/obj/item/weapon/gun/rifle/m20a/merc/unloaded`
-  - `/obj/item/weapon/gun/rifle/r81m1a/m1b`
-  - `/obj/item/weapon/gun/rifle/r81m1a/m1c`
-  - `/obj/item/weapon/gun/rifle/r81m1a/m1c/modded`
-  - `/obj/item/weapon/gun/rifle/r81m1a/m1d`
-  - `/obj/item/weapon/gun/shotgun/p79s`
-  - `/obj/item/weapon/gun/shotgun/p79s/unloaded`
-  - `/obj/item/weapon/gun/shotgun/p79s/slug`
-  - `/obj/item/weapon/gun/smartgun/l56a2`
-  - `/obj/item/weapon/gun/smartgun/l56a2/elite`
+## Icon State Audit
+- `icons/obj/items/clothing/backpacks.dmi` contains `commando_backpack`, not `commandopack`.
+- `icons/obj/items/clothing/pouches.dmi` contains `wy_sgdrums_ammo`, not `socdrums`.
+- `icons/obj/items/misc.dmi` contains `rpb_phone`, not `upp_rpb_phone`.
+- `icons/obj/items/weapons/guns/attachments/attachments_pr.dmi` contains:
+  - `sniperscope_fal`
+  - `miniscope_fal`
+  - `fal_saw_stock`
+  - `bipod_fal_saw_a`
+- `icons/obj/items/weapons/guns/guns_by_faction/colony.dmi` contains neither `m20a_tactical` nor `m20a`; `icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi` contains `m20a`.
+- `icons/obj/items/items.dmi` contains neither `armor_plate_100` nor any `armor_plate_*` family states.
 
-## Confirmed `forceMove(null)` Stack
-- `data/logs/2026/03-March/06-Friday/round-153/runtime.log`
-  - `LW-317 Barrel (/obj/item/attachable/lw317barrel): Detach(null, the LW/RS-317 pulse carbine, 1)`
-  - `the suppressor: Attach(the LW/RS-317 pulse carbine)`
-  - `the LW/RS-317 pulse carbine: handle starting attachment()`
-  - `gunlineart (/datum/asset/spritesheet/gun_lineart): register()`
-- `data/logs/2026/03-March/06-Friday/round-149/runtime.log`
-  - `the rail flashlight: Detach(null, the M41A2 pulse rifle MK2, 1)`
-  - `the laser sight: Attach(the M41A2 pulse rifle MK2)`
-  - `the M41A2 pulse rifle MK2: handle random attachments()`
-  - `gunlineart (/datum/asset/spritesheet/gun_lineart): register()`
+## Lookup Overlap Audit
+- `setup_gear_name_presets()` and `setup_species()` both fail on duplicate `name` keys.
+- `code/modules/gear_presets/canc_dogwar.dm` defines `/datum/equipment_preset/canc_dogwar/upp/pl_leader`, but its `load_gear` proc is accidentally attached to `/datum/equipment_preset/canc_dogwar/soldier/upp/pl_leader`.
+- `code/modules/mob/living/carbon/human/ai/squad_spawner/squad_canc.dm` still references `/datum/equipment_preset/canc_dogwar/soldier/upp/pl_leader`.
+- `SYNTH_COMBAT` is used by Whiteout presets and `/mob/living/carbon/human/synthetic/combat/Initialize(mapload)`, while `wy_droid` already carries the intended W-Y android naming/theme.
 
-## Current Fix Direction
-- Use explicit type-level `base_gun_icon` aliases for variant weapons with existing family lineart, but consume them only from `initial(base_gun_icon)` inside `gun_lineart.register()`.
-- Add a dedicated `p79s` lineart state.
-- Keep `forceMove()` strict and fix `/obj/item/attachable/proc/Detach()` for off-map attachment replacement.
+## Map Sanitation Audit
+- `tools/ci/check_grep.sh` fails on any `^\ttag = "icon` line in map files.
+- `maps/map_files/lv671/lv671.dmm` currently contains repeated `tag = "icon-pottedplant_10"` var edits on potted plants.
 
 ## Verification
 - `git diff --check`
-  - Passed after the final lineart-only alias fix.
-- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
-  - Passed: `colonialmarines.dmb - 0 errors, 0 warnings (3/6/26 9:10 pm)`.
-- fresh runtime/log verification
-  - `data/logs/2026/03-March/06-Friday/round-157/runtime.log` contains no `does not have a valid lineart icon state`.
-  - `data/logs/2026/03-March/06-Friday/round-157/runtime.log` contains no `No valid destination passed into forceMove`.
-  - `data/logs/2026/03-March/06-Friday/round-157/game.log` reaches `Round started at Fri Mar 06 21:13:42 2026`.
+  - Passed.
+- quick structural greps
+  - No remaining matches for:
+    - `tag = "icon-` in `maps/map_files/lv671/lv671.dmm`
+    - `/datum/equipment_preset/canc_dogwar/soldier/upp`
+    - `commandopack`
+    - `socdrums`
+    - `icon_state = "upp_rpb_phone"`
+    - `icon_state = "m20a_tactical"`
+- targeted maplint
+  - Cached bootstrap Python + `tools.maplint.source --github maps/map_files/lv671/lv671.dmm`
+  - Passed: `maps/map_files/lv671/lv671.dmm OK`
+- DMI parse test
+  - Cached bootstrap Python + `dmi.test`
+  - Passed: `successfully parsed 1321 .dmi files`
+- compile
+  - `cmd /c BUILD.cmd --ci dm -DCIBUILDING -DANSICOLORS -Werror`
+  - Passed: `colonialmarines.dmb - 0 errors, 0 warnings (3/7/26 2:42 pm)`
+- frontend lint/test path
+  - `cmd /c tools\\build\\build.bat --ci lint tgui-test`
+  - Passed: Prettier/ESLint/TypeScript clean, `15 passed` test suites.
+- local unit-test run
+  - PowerShell-equivalent of `tools/ci/run_server.sh lv671` using local `DreamDaemon`
+  - `clean_run.lk` returned `Success!`
+  - No `FAIL`, `Missing icon_state`, or `overlaps with` matches were found under the generated test logs before cleanup.
 
 ## Residuals
-- `dm-test` was stopped after the target runtime path validated cleanly because the run had already progressed into unrelated `missing_icons.dm` failures (`armor_plate_100`, `commandopack`, `m20a_tactical`, several attachment icons).
-- Those failures were pre-existing scope-external icon issues and were not part of this lineart/attachment runtime task.
+- `armor_plate_*` wearable overlay states are still not present in `icons/mob/humans/onmob/ties.dmi`.
+- Current fix restores the item icon contract for `/obj/item/clothing/accessory/health/ceramic_plate/marine`, but there is no confirmed local source of truth for the missing marine/UPP overlay sprite family, so that debt remains outside this unit-test/lint blocker fix.

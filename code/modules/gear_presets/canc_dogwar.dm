@@ -1270,7 +1270,7 @@
 	assignment = "Platoon Leader"
 	skills = /datum/skills/canc_soldier/pl
 
-/datum/equipment_preset/canc_dogwar/soldier/upp/pl_leader/load_gear(mob/living/carbon/human/new_human)
+/datum/equipment_preset/canc_dogwar/upp/pl_leader/load_gear(mob/living/carbon/human/new_human) // SS220 EDIT: fix the proc path so it does not create hidden /soldier/upp preset types
 	new_human.undershirt = "undershirt"
 	//back
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/lightpack/upp(new_human), WEAR_BACK)

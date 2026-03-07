@@ -1,11 +1,14 @@
 # TODO
 
-- [x] Confirm the current `gun_lineart` offender list from runtime evidence.
-- [x] Confirm the real `forceMove(null)` caller from runtime stack traces.
-- [x] Add `base_gun_icon` aliases for PF-199, M20CW, R81 variants, and L56A2.
-- [x] Make attachment detachment safe when a replaced attachment has no turf to drop onto.
-- [x] Add the dedicated `p79s` lineart state to `icons/obj/items/weapons/guns/lineart.dmi`.
+- [x] Confirm the current failing icon states against real `.dmi` state inventories.
+- [x] Confirm the real source of the CANC preset overlap.
+- [x] Confirm which synthetic lookup name must keep `SYNTH_COMBAT`.
+- [x] Patch the audited item and attachment icon references.
+- [x] Fix the CANC UPP platoon leader preset path typo and bad callsite.
+- [x] Rename the legacy combat synthetic species lookup entry to a unique name.
+- [x] Remove generated `tag = "icon-..."` lines from `maps/map_files/lv671/lv671.dmm`.
+- [x] Add a changelog entry for the player-visible fixes.
 - [x] Run `git diff --check`.
-- [x] Run `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`.
-- [x] Re-run the runtime path that builds `gun_lineart` and confirm no `forceMove`/lineart crashes remain.
-- [x] Refresh evidence with the final verification results.
+- [x] Run lint-oriented checks for grep/map files and targeted maplint.
+- [x] Run compile and, if feasible locally, the unit-test server path.
+- [x] Refresh evidence with final verification results.

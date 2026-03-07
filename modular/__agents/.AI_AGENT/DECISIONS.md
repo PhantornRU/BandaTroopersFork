@@ -1,25 +1,18 @@
 # DECISIONS
 
-## D-001: Variant gun regressions are fixed through `base_gun_icon`
-- If a weapon is a visual/content variant of an existing family, it reuses the family lineart state through `initial(base_gun_icon)` in `gun_lineart.register()`, not through the live runtime sprite path.
-- Applied mappings:
-  - `pf199 -> m83a2`
-  - `m20a_tactical -> m20a`
-  - `fal_sniper/fal_short/fal_saw -> fal`
-  - `l56d -> m56`
+## D-001: Missing icon failures are fixed by repointing to confirmed existing atlas states
+- If the intended state already exists in the current atlas family, the type is pointed at that exact state.
+- If the current icon file itself is wrong, the type is moved back to the existing canonical atlas/state pair.
+- We are not importing or drawing new sprites without a confirmed local source of truth.
 
-## D-002: `p79s` gets a dedicated lineart state
-- `p79s` is not aliased to `m37` or `m79`.
-- Reason: it is a separate platform and needs its own lineart state for the asset contract.
+## D-002: `SYNTH_COMBAT` stays bound to the W-Y android species
+- `SYNTH_COMBAT` is still used by Whiteout and generic combat-synthetic entrypoints.
+- The duplicate legacy `/datum/species/synthetic/colonial/combat` lookup name must change instead of `wy_droid`.
 
-## D-003: `forceMove()` stays strict
-- `forceMove()` continues to crash on invalid destinations.
-- The fix must happen in the confirmed caller, not in the movement core proc.
+## D-003: The CANC overlap is caused by a hidden subtype created by a proc path typo
+- `/datum/equipment_preset/canc_dogwar/soldier/upp/pl_leader/load_gear` implicitly creates `/datum/equipment_preset/canc_dogwar/soldier/upp` and `/soldier/upp/pl_leader`.
+- The proc path and the one remaining squad spawner callsite must be moved to `/datum/equipment_preset/canc_dogwar/upp/pl_leader`.
 
-## D-004: The confirmed `forceMove(null)` caller is attachment detachment during off-map gun init
-- Runtime stacks point to `/obj/item/attachable/proc/Detach()` being called while `gun_lineart.register()` instantiates guns with conflicting starter/random attachments.
-- When no turf exists for a replaced attachment, the detached transient attachment is deleted instead of being dropped.
-
-## D-005: Live gun sprites keep the original `base_gun_icon` semantics
-- `/obj/item/weapon/gun/Initialize()` continues to reset `base_gun_icon = icon_state`.
-- Reason: preserving lineart aliases in `Initialize()` would silently reskin live weapon sprites and overlays.
+## D-004: `lv671` tag cleanup is a raw map sanitation fix
+- CI catches `^\ttag = "icon` with `tools/ci/check_grep.sh`.
+- The fix is to remove those generated var-edit lines directly, not to rewrite the potted plant type or the whole map.
