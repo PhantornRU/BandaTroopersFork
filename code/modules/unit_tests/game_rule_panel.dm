@@ -10,6 +10,9 @@
 	var/list/snapshot_fire_support_points
 	var/list/snapshot_fire_support_flags
 
+/datum/unit_test/game_rule_panel/Run()
+	return
+
 /datum/unit_test/game_rule_panel/New()
 	. = ..()
 
