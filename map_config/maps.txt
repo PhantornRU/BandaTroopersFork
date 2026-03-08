@@ -112,5 +112,6 @@ endmap
 
 # SS220 EDIT - START: HALO ground map rotation
 map halo_new_irvine
+	default # SS220 EDIT
 endmap
 # SS220 EDIT - END
