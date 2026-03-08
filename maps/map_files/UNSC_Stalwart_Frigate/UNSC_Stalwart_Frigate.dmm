@@ -61,6 +61,13 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/upper_hallway)
+"ah" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	dir = 1
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night/canteen)
 "ai" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -100,6 +107,10 @@
 	},
 /turf/open/floor/almayer/edge/smooth/southwest,
 /area/dark_was_the_night/bathroom)
+"ao" = (
+/obj/structure/barricade/handrail,
+/turf/open/floor/almayer/edge/smooth/north,
+/area/dark_was_the_night/canteen)
 "ap" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -118,6 +129,13 @@
 	},
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/kitchen)
+"ar" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/barricade/handrail,
+/turf/open/floor/almayer/edge/smooth/north,
+/area/dark_was_the_night/canteen)
 "as" = (
 /obj/structure/desertdam/decals/road_edge{
 	icon_state = "road_edge_decal4";
@@ -165,6 +183,12 @@
 	},
 /turf/open/floor/almayer/sterile_green_side/northeast,
 /area/dark_was_the_night/medical)
+"ay" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning"
+	},
+/turf/open/floor/almayer/edge/smooth/north,
+/area/dark_was_the_night/canteen)
 "az" = (
 /obj/structure/machinery/power/terminal{
 	dir = 4
@@ -4745,6 +4769,14 @@
 	pixel_x = -2;
 	pixel_y = 8
 	},
+/obj/item/ammo_box/magazine/misc/unsc/medical_packets{
+	pixel_x = -2;
+	pixel_y = 8
+	},
+/obj/item/ammo_box/magazine/misc/unsc/medical_packets{
+	pixel_x = -2;
+	pixel_y = 8
+	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/armory)
 "lX" = (
@@ -5413,6 +5445,14 @@
 	pixel_x = 0;
 	pixel_y = 7
 	},
+/obj/item/ammo_box/magazine/misc/unsc/mre{
+	pixel_x = 0;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/mre{
+	pixel_x = 0;
+	pixel_y = 7
+	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/armory)
 "nB" = (
@@ -5436,6 +5476,12 @@
 "nE" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/closet/crate/unsc,
+/obj/structure/closet/crate/unsc{
+	pixel_y = 11
+	},
+/obj/structure/closet/crate/unsc{
+	pixel_y = 21
+	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/armory)
 "nG" = (
@@ -6390,9 +6436,6 @@
 	pixel_y = 4
 	},
 /turf/open/floor/almayer/plating_striped,
-/area/dark_was_the_night/armory)
-"qe" = (
-/turf/open/space/basic,
 /area/dark_was_the_night/armory)
 "qf" = (
 /obj/structure/curtain/medical,
@@ -28465,7 +28508,7 @@ FD
 EU
 zZ
 ME
-cQ
+ah
 er
 fR
 es
@@ -28658,7 +28701,7 @@ AG
 AG
 NH
 gF
-ME
+ao
 cQ
 hY
 es
@@ -28852,7 +28895,7 @@ RH
 qF
 uC
 YU
-EZ
+ar
 qT
 iB
 es
@@ -29046,7 +29089,7 @@ vn
 ti
 qI
 YU
-EZ
+ar
 cQ
 fQ
 es
@@ -29240,7 +29283,7 @@ tE
 FD
 zn
 YU
-EZ
+ar
 cQ
 fQ
 es
@@ -29434,7 +29477,7 @@ ZB
 AG
 NH
 kR
-ME
+ao
 cQ
 nM
 Hl
@@ -29628,7 +29671,7 @@ RH
 qF
 jS
 YU
-ME
+ay
 qT
 er
 ya
@@ -31954,9 +31997,9 @@ qJ
 oG
 fj
 dI
-rs
-rs
 Vh
+rs
+rs
 ag
 YG
 Yy
@@ -33093,9 +33136,9 @@ LB
 LB
 LB
 LB
-qe
-qe
-qe
+LB
+LB
+LB
 LB
 LB
 nJ
@@ -33287,9 +33330,9 @@ LB
 LB
 LB
 LB
-qe
-qe
-qe
+LB
+LB
+LB
 LB
 LB
 nL
@@ -33481,9 +33524,9 @@ LB
 LB
 LB
 LB
-qe
-qe
-qe
+LB
+LB
+LB
 LB
 LB
 LB
@@ -33675,12 +33718,12 @@ LB
 LB
 LB
 LB
-qe
-qe
-qe
 LB
 LB
-py
+LB
+LB
+LB
+lZ
 iC
 iC
 iC
@@ -33874,7 +33917,7 @@ LB
 LB
 LB
 LB
-py
+lZ
 pj
 pi
 oC
@@ -34068,7 +34111,7 @@ LB
 LB
 LB
 LB
-py
+lZ
 pj
 pi
 oH
@@ -39312,12 +39355,12 @@ jW
 iC
 nE
 LB
-lZ
+py
 iC
 iC
 nE
 LB
-lZ
+py
 iC
 iC
 kd
@@ -40285,17 +40328,17 @@ nS
 JQ
 JQ
 JQ
-bx
-bx
+lc
+lc
 JQ
 Se
 ty
 wT
 gh
 JQ
-bx
-bx
-bx
+lc
+lc
+lc
 JQ
 JQ
 JQ
@@ -40479,23 +40522,23 @@ nS
 nS
 JQ
 JQ
-bx
-bx
+lc
+lc
 JQ
 dE
 dK
 qk
 ci
 JQ
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
 lc
 lc
 lc
@@ -40673,23 +40716,23 @@ Fn
 nY
 if
 JQ
-bx
-bx
+lc
+lc
 JQ
 hd
 dK
 qk
 gh
 JQ
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
 lc
 lc
 lc
@@ -40867,23 +40910,23 @@ aZ
 HJ
 if
 JQ
-bx
-bx
+lc
+lc
 JQ
 hd
 bP
 Xa
 gh
 JQ
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
 lc
 lc
 lc
@@ -41061,23 +41104,23 @@ mk
 LY
 if
 JQ
-bx
-bx
+lc
+lc
 JQ
 JQ
 eV
 lK
 JQ
 JQ
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
-bx
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
+lc
 lc
 lc
 lc
@@ -41255,7 +41298,7 @@ nS
 nS
 JQ
 JQ
-bx
+lc
 iK
 jw
 dt
@@ -41269,9 +41312,9 @@ iK
 iK
 iK
 iK
-bx
-bx
-bx
+lc
+lc
+lc
 lc
 lc
 lc
@@ -41449,7 +41492,7 @@ Fn
 nY
 if
 JQ
-bx
+lc
 iK
 iK
 iK
@@ -41463,9 +41506,9 @@ fP
 eW
 iK
 iK
-bx
-bx
-bx
+lc
+lc
+lc
 lc
 lc
 lc
@@ -41643,7 +41686,7 @@ aZ
 HJ
 if
 JQ
-bJ
+iK
 ic
 mf
 ic
@@ -41837,7 +41880,7 @@ mk
 LY
 if
 JQ
-bJ
+iK
 ic
 iQ
 ic
@@ -42031,7 +42074,7 @@ am
 am
 JQ
 JQ
-bJ
+iK
 ic
 iQ
 ic
@@ -42225,7 +42268,7 @@ JQ
 JQ
 JQ
 JQ
-bJ
+iK
 mS
 mg
 id
@@ -42419,7 +42462,7 @@ fc
 fc
 fc
 fc
-bJ
+iK
 ic
 ic
 ic
@@ -42613,7 +42656,7 @@ fc
 fc
 fc
 fc
-bJ
+iK
 ic
 ic
 ic
@@ -42807,7 +42850,7 @@ fc
 fc
 fc
 fc
-bJ
+iK
 ic
 iR
 ic
@@ -43001,8 +43044,8 @@ fc
 fc
 fc
 fc
-bJ
-bJ
+iK
+iK
 iK
 ly
 kV
