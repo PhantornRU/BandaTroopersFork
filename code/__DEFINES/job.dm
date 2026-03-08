@@ -64,6 +64,12 @@
 #define JOB_SQUAD_TEAM_LEADER_ODST "ODST Fireteam Leader" // SS220 EDIT: HALO ODST role
 #define JOB_SQUAD_RTO_ODST "ODST Radio Telephone Operator" // SS220 EDIT: HALO ODST role
 #define JOB_SQUAD_LEADER_ODST "ODST Squad Sergeant" // SS220 EDIT: HALO ODST role
+#define JOB_SQUAD_MARINE_UNSC "UNSC Rifleman"
+#define JOB_SQUAD_SPECIALIST_UNSC "UNSC Weapons Specialist"
+#define JOB_SQUAD_MEDIC_UNSC "UNSC Hospital Corpsman"
+#define JOB_SQUAD_TEAM_LEADER_UNSC "UNSC Fireteam Leader"
+#define JOB_SQUAD_RTO_UNSC "UNSC Radio Telephone Operator"
+#define JOB_SQUAD_LEADER_UNSC "UNSC Squad Leader"
 
 GLOBAL_LIST_INIT(job_squad_roles, JOB_SQUAD_ROLES_LIST)
 

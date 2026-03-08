@@ -33,39 +33,15 @@
 
 /datum/game_mode/colonialmarines/ai/pre_setup()
 	RegisterSignal(SSdcs, COMSIG_GLOB_XENO_SPAWN, PROC_REF(handle_xeno_spawn))
-	squad_limit.Cut()
-	squad_limit += MAIN_SHIP_PLATOON
-	for(var/i in squad_limit)
-		role_mappings = GLOB.platoon_to_jobs[i]
+	squad_limit = get_main_ship_lowpop_keep_types()
+	role_mappings = get_main_ship_role_mappings(TRUE)
+	refresh_main_ship_gamemode_roles()
 	GLOB.RoleAuthority.reset_roles()
-	for(var/datum/squad/sq in GLOB.RoleAuthority.squads)
-		if(sq.type in squad_limit)
-			GLOB.main_platoon_name = sq.name
-			GLOB.main_platoon_initial_name = sq.name
-
-	squad_limit += USCM_AUXILIARY_PLATOON // SS220 EDIT
-	squad_limit += FORECON_AUXILIARY_PLATOON
-	squad_limit += UPP_AUXILIARY_PLATOON
-	squad_limit += PMC_AUXILIARY_PLATOON
-
-	for(var/datum/squad/squad in GLOB.RoleAuthority.squads)
-		if(squad.type in squad_limit)
-			continue
-		GLOB.RoleAuthority.squads -= squad
-		GLOB.RoleAuthority.squads_by_type -= squad.type
-
-	GLOB.RoleAuthority.squads += USCM_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads += USCM_AUXILIARY_SECOND_PLATOON // SS220 EDIT
-	GLOB.RoleAuthority.squads += USCM_AUXILIARY_THIRD_PLATOON // SS220 EDIT
-	GLOB.RoleAuthority.squads += FORECON_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads += UPP_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads += PMC_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads_by_type += USCM_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads_by_type += USCM_AUXILIARY_SECOND_PLATOON // SS220 EDIT
-	GLOB.RoleAuthority.squads_by_type += USCM_AUXILIARY_THIRD_PLATOON // SS220 EDIT
-	GLOB.RoleAuthority.squads_by_type += FORECON_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads_by_type += UPP_AUXILIARY_PLATOON
-	GLOB.RoleAuthority.squads_by_type += PMC_AUXILIARY_PLATOON
+	filter_role_authority_squads_to_types(squad_limit)
+	var/datum/squad/main_squad = GLOB.RoleAuthority.squads_by_type[MAIN_SHIP_PLATOON]
+	if(main_squad)
+		GLOB.main_platoon_name = main_squad.name
+		GLOB.main_platoon_initial_name = main_squad.name
 
 	. = ..()
 
@@ -92,7 +68,7 @@
 		return
 
 /datum/game_mode/colonialmarines/ai/get_roles_list()
-	return GLOB.platoon_to_role_list[MAIN_SHIP_PLATOON]
+	return get_main_ship_lowpop_roles()
 
 /datum/game_mode/colonialmarines/ai/check_queen_status()
 	return

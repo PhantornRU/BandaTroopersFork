@@ -271,6 +271,19 @@
 			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
 		if(JOB_SQUAD_RTO_ODST)
 			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
+//UNSC Section
+		if(JOB_SQUAD_MARINE_UNSC)
+			return /datum/equipment_preset/unsc/pfc/equipped
+		if(JOB_SQUAD_LEADER_UNSC)
+			return /datum/equipment_preset/unsc/leader/equipped
+		if(JOB_SQUAD_MEDIC_UNSC)
+			return /datum/equipment_preset/unsc/medic/equipped
+		if(JOB_SQUAD_SPECIALIST_UNSC)
+			return /datum/equipment_preset/unsc/spec/equipped_spnkr
+		if(JOB_SQUAD_TEAM_LEADER_UNSC)
+			return /datum/equipment_preset/unsc/tl/equipped
+		if(JOB_SQUAD_RTO_UNSC)
+			return /datum/equipment_preset/unsc/rto/equipped
 //USCM Aux forces (not part of pre-round role select normally)
 		if(JOB_SQUAD_SPECIALIST)
 			return /datum/equipment_preset/uscm/specialist_equipped

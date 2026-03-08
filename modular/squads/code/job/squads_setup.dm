@@ -35,9 +35,8 @@
 		var/datum/job/job = GLOB.RoleAuthority.roles_by_path[role]
 		if(!job)
 			continue
-		// var/datum/job/job_mapped = GET_MAPPED_ROLE(job_path)
 		var/additional_positions = 0
-		switch(job.title)
+		switch(GET_DEFAULT_ROLE(job.title))
 			if(JOB_SQUAD_MARINE)
 				additional_positions = associated_squad.max_riflemen
 			if(JOB_SQUAD_ENGI)
@@ -61,9 +60,13 @@
 
 /datum/authority/branch/role/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
 	. = ..()
-	if(transfer_marine.job == JOB_SQUAD_RTO)
+	if(.)
+		return
+
+	var/default_role = GET_DEFAULT_ROLE(transfer_marine.job)
+	if(default_role == JOB_SQUAD_RTO)
 		if(new_squad.num_rto >= new_squad.max_rto)
 			return TRUE
-	if(transfer_marine.job == JOB_SQUAD_MARINE)
+	if(default_role == JOB_SQUAD_MARINE)
 		if(new_squad.num_riflemen >= new_squad.max_riflemen)
 			return TRUE
