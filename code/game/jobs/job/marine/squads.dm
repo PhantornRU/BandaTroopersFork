@@ -205,17 +205,7 @@
 	minimap_color = "#32CD32"
 	usable = TRUE
 	squad_type = "Squad"
-
-/datum/squad/marine/odst
-	name = SQUAD_ODST // SS220 EDIT: HALO ODST squad
-	access = list(ACCESS_MARINE_ALPHA)
-	radio_freq = ODST_FREQ
-	faction = FACTION_UNSC
-	use_stripe_overlay = FALSE
-	equipment_color = "#32CD32"
-	chat_color = "#32CD32"
-	minimap_color = "#32CD32"
-	usable = TRUE
+// SS220 EDIT: HALO ODST squad datum lives in modular/halo.
 
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2

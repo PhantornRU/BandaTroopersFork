@@ -71,6 +71,7 @@
 #include "code\__DEFINES\human.dm"
 #include "code\__DEFINES\human_ai.dm"
 #include "code\__DEFINES\job.dm"
+#include "code\__DEFINES\bandamarines\halo_jobs.dm"
 #include "code\__DEFINES\keybinding.dm"
 #include "code\__DEFINES\language.dm"
 #include "code\__DEFINES\layers.dm"

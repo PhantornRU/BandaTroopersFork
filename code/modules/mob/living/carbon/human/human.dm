@@ -1696,7 +1696,7 @@
 	overlay_fullscreen_timer(time_to_remove + 2 SECONDS, 20, "roundstart_fade", /atom/movable/screen/fullscreen/spawning_in)
 	var/alert_type = /atom/movable/screen/text/screen_text/picture/starting
 	var/platoon = "3rd Bat. 'Solar Devils"
-	var/list/halo_profile = faction == FACTION_UNSC ? get_halo_main_ship_display_profile() : null
+	var/list/ship_profile = faction == FACTION_UNSC ? get_main_ship_display_profile() : null
 	switch(faction)
 		if(FACTION_MARINE)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting
@@ -1714,9 +1714,9 @@
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting/twe
 			platoon = "Gamma Troop"
 		if(FACTION_UNSC) // SS220 EDIT: HALO UNSC manifest branch
-			if(halo_profile)
-				alert_type = halo_profile["manifest_picture"]
-				platoon = halo_profile["label"]
+			if(ship_profile)
+				alert_type = ship_profile["manifest_picture"]
+				platoon = ship_profile["label"]
 	play_screen_text("<u>[SSmapping.configs[SHIP_MAP].map_name]<br></u>" + "[platoon]<br><br>" + human_manifest, alert_type)
 
 /mob/living/carbon/human/point_to_atom(atom/A, turf/T)

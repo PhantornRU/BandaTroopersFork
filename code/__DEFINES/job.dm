@@ -28,8 +28,7 @@
 #define SQUAD_PMCPLT_SMALL "AZURE-16"
 #define SQUAD_RMC "Gamma Troop"
 #define SQUAD_LRRP "Snake Eaters"
-#define SQUAD_ODST "The Ferrymen" // SS220 EDIT: HALO ODST squad
-#define SQUAD_ODST_2 "The Ferrymen Sq. 2" // SS220 EDIT: HALO ODST secondary squad label
+// SS220 EDIT: HALO squad string contracts moved to code/__DEFINES/bandamarines/halo_jobs.dm.
 #define SQUAD_LRRP_2 "Ocelot Grapplers"
 
 // Job name defines
@@ -58,18 +57,7 @@
 #define JOB_SQUAD_RTO "Radio Operator" // SS220 EDIT - Original: Recon Radio Telephone Operator
 #define JOB_SQUAD_MARINE_FORECON "Recon Rifleman"
 #define JOB_SQUAD_SMARTGUN_FORECON "Recon Smartgunner"
-#define JOB_SQUAD_MARINE_ODST "ODST Rifleman" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_SPECIALIST_ODST "ODST Weapons Specialist" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_MEDIC_ODST "ODST Hospital Corpsman" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_TEAM_LEADER_ODST "ODST Fireteam Leader" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_RTO_ODST "ODST Radio Telephone Operator" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_LEADER_ODST "ODST Squad Sergeant" // SS220 EDIT: HALO ODST role
-#define JOB_SQUAD_MARINE_UNSC "UNSC Rifleman"
-#define JOB_SQUAD_SPECIALIST_UNSC "UNSC Weapons Specialist"
-#define JOB_SQUAD_MEDIC_UNSC "UNSC Hospital Corpsman"
-#define JOB_SQUAD_TEAM_LEADER_UNSC "UNSC Fireteam Leader"
-#define JOB_SQUAD_RTO_UNSC "UNSC Radio Telephone Operator"
-#define JOB_SQUAD_LEADER_UNSC "UNSC Squad Leader"
+// SS220 EDIT: HALO role string contracts moved to code/__DEFINES/bandamarines/halo_jobs.dm.
 
 GLOBAL_LIST_INIT(job_squad_roles, JOB_SQUAD_ROLES_LIST)
 

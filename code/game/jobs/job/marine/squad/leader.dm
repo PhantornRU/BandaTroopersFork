@@ -56,11 +56,7 @@ OverrideTimelock(/datum/job/marine/leader, list(
 	total_positions = 1
 	spawn_positions = 1
 	prime_priority = TRUE
-
-/datum/job/marine/leader/ai/odst
-	title = JOB_SQUAD_LEADER_ODST // SS220 EDIT: HALO ODST squad lead role
-	gear_preset = /datum/equipment_preset/unsc/leader/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/leader/odst/lesser_rank
+// SS220 EDIT: HALO ODST leader role lives in modular/halo.
 
 /datum/job/marine/leader/ai/upp
 	title = JOB_SQUAD_LEADER_UPP
@@ -115,11 +111,7 @@ OverrideTimelock(/datum/job/marine/leader, list(
 	name = JOB_SQUAD_LEADER_FORECON
 	squad = SQUAD_LRRP
 	job = /datum/job/marine/leader/ai/forecon
-
-/obj/effect/landmark/start/marine/leader/odst
-	name = JOB_SQUAD_LEADER_ODST // SS220 EDIT: HALO ODST squad lead spawn
-	squad = SQUAD_ODST
-	job = /datum/job/marine/leader/ai/odst
+// SS220 EDIT: HALO ODST leader landmark lives in modular/halo.
 
 //-- RMC Platoon --//
 // Second-in-command under LT, handles the mortar calls //

@@ -244,6 +244,10 @@
 			highest_priority_job = job
 			highest_priority = job_preference_list[job]
 
+	var/modular_preview_preset = get_modular_job_pref_to_gear_preset(highest_priority_job) // SS220 EDIT: modular preview routing
+	if(modular_preview_preset)
+		return modular_preview_preset
+
 	switch(highest_priority_job)
 //USCM Section
 		if(JOB_SQUAD_MARINE)
@@ -258,32 +262,6 @@
 			return /datum/equipment_preset/uscm/tl_equipped
 		if(JOB_SO)
 			return /datum/equipment_preset/uscm_ship/so_equipped
-//ODST Section
-		if(JOB_SQUAD_MARINE_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-		if(JOB_SQUAD_LEADER_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-		if(JOB_SQUAD_MEDIC_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-		if(JOB_SQUAD_SPECIALIST_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-		if(JOB_SQUAD_TEAM_LEADER_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-		if(JOB_SQUAD_RTO_ODST)
-			return /datum/equipment_preset/unsc/pfc/odst/equipped // SS220 EDIT: HALO ODST preview routing
-//UNSC Section
-		if(JOB_SQUAD_MARINE_UNSC)
-			return /datum/equipment_preset/unsc/pfc/equipped
-		if(JOB_SQUAD_LEADER_UNSC)
-			return /datum/equipment_preset/unsc/leader/equipped
-		if(JOB_SQUAD_MEDIC_UNSC)
-			return /datum/equipment_preset/unsc/medic/equipped
-		if(JOB_SQUAD_SPECIALIST_UNSC)
-			return /datum/equipment_preset/unsc/spec/equipped_spnkr
-		if(JOB_SQUAD_TEAM_LEADER_UNSC)
-			return /datum/equipment_preset/unsc/tl/equipped
-		if(JOB_SQUAD_RTO_UNSC)
-			return /datum/equipment_preset/unsc/rto/equipped
 //USCM Aux forces (not part of pre-round role select normally)
 		if(JOB_SQUAD_SPECIALIST)
 			return /datum/equipment_preset/uscm/specialist_equipped
