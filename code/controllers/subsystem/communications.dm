@@ -158,6 +158,7 @@ Radiochat range: 1441 to 1489 (most devices refuse to be tune to other frequency
 #define COLONY_FREQ 1469
 
 #define AI_FREQ 1500
+#define ODST_FREQ 1503 // SS220 EDIT: HALO ODST squad frequency
 
 #define MAX_FREE_FREQ 1599 // -------------------------------------------------
 
@@ -197,6 +198,7 @@ GLOBAL_LIST_INIT(radiochannels, list(
 	SQUAD_FORECON = FORECON_FREQ,
 	SQUAD_SOLAR = SOF_FREQ,
 	SQUAD_SISSI = UPP_FORECON_FREQ,
+	SQUAD_ODST = ODST_FREQ, // SS220 EDIT: HALO ODST squad radio mapping
 
 	RADIO_CHANNEL_ALAMO = DS1_FREQ,
 	RADIO_CHANNEL_NORMANDY = DS2_FREQ,
@@ -324,6 +326,7 @@ SUBSYSTEM_DEF(radio)
 		"[DELTA_FREQ]" = "deltaradio",
 		"[ECHO_FREQ]" = "echoradio",
 		"[CRYO_FREQ]" = "cryoradio",
+		"[ODST_FREQ]" = "odstradio", // SS220 EDIT: HALO ODST radio span
 		"[CBRN_FREQ]" = "hcradio",
 		"[FORECON_FREQ]" = "hcradio",
 		"[SOF_FREQ]" = "hcradio",

@@ -9,6 +9,7 @@
   4. Только после этого план правок и точечное изменение файлов.
 - Не читать крупные директории целиком, если задачу можно сузить выборочными запросами.
 - Для задач в `modular/**` сначала проверять `colonialmarines.dme`, `modular/modular.dme`, relevant `_*.dme`, затем целевой модуль и его callsites.
+- Для HALO port/sync/update задач до анализа кода открыть [`../../halo/__docs/HALO_PORT_STATE.md`](../../halo/__docs/HALO_PORT_STATE.md); pinned upstream commit из него считать каноническим baseline, пока этот документ не обновлен в той же задаче.
 - Для правок в upstream сначала проверять, существует ли уже modular hook, adapter или modpack-level abstraction, через которые можно закрыть задачу.
 
 ## Read-only и mutating границы
