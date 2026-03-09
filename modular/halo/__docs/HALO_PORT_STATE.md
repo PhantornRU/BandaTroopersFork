@@ -20,10 +20,13 @@
 ## Intentional Source Deviations
 - `/obj/effect/landmark/start/marine/rto/odst` points to `/datum/job/marine/standard/ai/rto/odst` instead of generic `/ai/odst` to preserve ODST RTO role correctness.
 - Legacy single-squad ODST compat paths remain available even though active HALO ship maps are expected to use the HALO platoon families.
+- HALO human AI faction datums for `UNSC`, `UNSC Navy`, `ONI`, `UEG Police`, `Insurgency`, and `Covenant` are a local BandaTroopers extension; pinned upstream does not ship HALO `human_ai_faction` datums.
+- `FACTION_MARINE -> HALO allied bloc` friendship is bridged at runtime by the modular HALO modpack after `SShuman_ai` initializes, instead of being hard-patched into upstream `ai_brain_factions.dm`.
 
 ## Compatibility Hotspots
 - Recheck `modular/halo/code/mixed/compat/**` on every upstream sync.
 - Recheck ODST/HALO glue surfaces in `code/**`: `code/__DEFINES/{job,mode}.dm`, `code/controllers/subsystem/communications.dm`, `code/game/jobs/job/marine/{squads.dm,squad/*}.dm`, `code/game/objects/effects/landmarks/landmarks.dm`, `code/modules/mob/new_player/preferences_setup.dm`, `code/game/gamemodes/colonialmarines/colonialmarines.dm`, `code/modules/mob/living/carbon/human/human.dm`, `code/modules/maptext_alerts/misc_alert.dm`.
+- Recheck HALO human-AI integration surfaces on upstream syncs: `code/controllers/subsystem/human_ai.dm`, `code/modules/mob/living/carbon/human/ai/brain/ai_brain_factions.dm`, `modular/halo/_halo.dm`, and `modular/halo/code/modules/mob/living/carbon/human/ai/brain/halo_ai_factions.dm`.
 - Recheck HALO map activation/config surfaces: `map_config/maps.txt` and `map_config/shipmaps.txt`.
 
 ## Last Validation Snapshot
