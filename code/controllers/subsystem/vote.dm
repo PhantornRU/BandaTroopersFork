@@ -160,7 +160,7 @@ SUBSYSTEM_DEF(vote)
 			if("gamemode")
 				SSticker.save_mode(.)
 				GLOB.master_mode = . // SS220 EDIT: selected ship mode stays UI-synced through modular roster helpers
-				handle_main_ship_mode_changed() // SS220 EDIT: refresh ship-mode role cache after vote mode change
+				GLOB.RoleAuthority?.handle_main_ship_mode_changed() // SS220 EDIT: refresh ship-mode role cache after vote mode change
 				to_chat(world, SPAN_BOLDNOTICE("Notice: The Gamemode for next round has been set to [.]"))
 			if("restart")
 				if(. == "Restart Round")

@@ -32,7 +32,7 @@
 
 /datum/game_mode/colonialmarines/get_roles_list()
 	// return GLOB.ROLES_DISTRESS_SIGNAL
-	return get_main_ship_distress_roles() // SS220 EDIT: ship-side distress roster resolves through modular platoon helpers
+	return GLOB.RoleAuthority?.get_main_ship_distress_roles() || GLOB.ROLES_DISTRESS_SIGNAL // SS220 EDIT: ship-side distress roster resolves through modular platoon helpers when RoleAuthority is available
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //Temporary, until we sort this out properly.
@@ -81,9 +81,9 @@
 	QDEL_LIST(GLOB.crap_items)
 	QDEL_LIST(GLOB.good_items)
 	// SS220 EDIT - START: ship-side roster and squad family are selected through modular platoon helpers
-	role_mappings = get_main_ship_role_mappings()
-	handle_main_ship_mode_changed()
-	filter_role_authority_squads_to_types(get_main_ship_primary_family_types(), TRUE)
+	role_mappings = GLOB.RoleAuthority.get_main_ship_role_mappings()
+	GLOB.RoleAuthority.handle_main_ship_mode_changed()
+	GLOB.RoleAuthority.filter_role_authority_squads_to_types(GLOB.RoleAuthority.get_main_ship_primary_family_types(), TRUE)
 	// SS220 EDIT - END
 
 	// Spawn gamemode-specific map items
@@ -405,7 +405,7 @@
 					human.play_screen_text("<span class='maptext' style=text-align:left valign='top'><u>[uppertext(GLOB.round_statistics.round_name)]</u></span><br>" + "[SSmapping.configs[GROUND_MAP].map_name]<br>" + "[worldtime2text("hh:mm")], [time2text(REALTIMEOFDAY, "DD-MMM-[GLOB.game_year]")]<br>" + "Gamma Troop<br>" + "[human.job], [human]<br>", /atom/movable/screen/text/screen_text/picture/gamma_troop) // SS220 FONTS FIX
 				if(FACTION_UNSC) // SS220 EDIT: HALO UNSC intro branch
 					// SS220 EDIT - START: platoon label and art now come from the active ship display profile
-					var/list/ship_profile = get_main_ship_display_profile()
+					var/list/ship_profile = GLOB.RoleAuthority.get_main_ship_display_profile()
 					var/set_squad = ship_profile ? ship_profile["label"] : ""
 					var/intro_picture = ship_profile ? ship_profile["intro_picture"] : /atom/movable/screen/text/screen_text/picture/dark_was_the_night
 					human.play_screen_text("<span class='maptext' style=text-align:left valign='top'><u>[uppertext(GLOB.round_statistics.round_name)]</u></span><br>" + "[SSmapping.configs[GROUND_MAP].map_name]<br>" + "[worldtime2text("hh:mm")], [time2text(REALTIMEOFDAY, "DD-MMM-[GLOB.game_year]")]<br>" + "[set_squad]<br>" + "[human.job], [human]<br>", intro_picture)

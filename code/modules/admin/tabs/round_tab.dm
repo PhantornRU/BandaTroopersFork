@@ -95,7 +95,7 @@
 	var/roles[] = new
 	var/datum/job/J
 
-	var/active_role_names = get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
+	var/active_role_names = GLOB.RoleAuthority.get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 

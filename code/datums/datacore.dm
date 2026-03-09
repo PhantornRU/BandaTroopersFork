@@ -46,7 +46,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 		)
 		departments += marines_by_squad
 		var/list/manifest_out = list()
-		var/datum/squad/marine/main_ship_platoon = get_active_ship_platoon_type() // SS220 EDIT: manifest faction follows active ship platoon resolver
+		var/datum/squad/marine/main_ship_platoon = GLOB.RoleAuthority.get_active_ship_platoon_type() // SS220 EDIT: manifest faction follows active ship platoon resolver
 		for(var/datum/data/record/record_entry in GLOB.data_core.general)
 			if(record_entry.fields["mob_faction"] != main_ship_platoon.faction) //we process only humans of the same faction as the ship forces
 				continue
@@ -117,7 +117,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 	var/dept_flags = NO_FLAGS //Is there anybody in the department?.
 	var/list/squad_sublists = GLOB.ROLES_SQUAD_ALL.Copy() //Are there any marines in the squad?
 
-	var/datum/squad/marine/main_ship_platoon = get_active_ship_platoon_type() // SS220 EDIT: datacore faction filters use active ship platoon resolver
+	var/datum/squad/marine/main_ship_platoon = GLOB.RoleAuthority.get_active_ship_platoon_type() // SS220 EDIT: datacore faction filters use active ship platoon resolver
 	for(var/datum/data/record/record_entry in GLOB.data_core.general)
 		if(record_entry.fields["mob_faction"] != main_ship_platoon.faction) //we process only humans of the same faction as the ship forces
 			continue

@@ -43,7 +43,7 @@
 	// --- титульник ---
 	var/alert_type = /atom/movable/screen/text/screen_text/picture/starting
 	var/platoon = "3rd Bat. 'Banda Troopers"
-	var/list/ship_profile = faction == FACTION_UNSC ? get_main_ship_display_profile() : null
+	var/list/ship_profile = faction == FACTION_UNSC ? GLOB.RoleAuthority?.get_main_ship_display_profile() : null
 
 	switch(faction)
 		if(FACTION_MARINE)

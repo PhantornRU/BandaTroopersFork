@@ -1696,7 +1696,7 @@
 	overlay_fullscreen_timer(time_to_remove + 2 SECONDS, 20, "roundstart_fade", /atom/movable/screen/fullscreen/spawning_in)
 	var/alert_type = /atom/movable/screen/text/screen_text/picture/starting
 	var/platoon = "3rd Bat. 'Solar Devils"
-	var/list/ship_profile = faction == FACTION_UNSC ? get_main_ship_display_profile() : null // SS220 EDIT: HALO ship display data resolves through modular helpers
+	var/list/ship_profile = faction == FACTION_UNSC ? GLOB.RoleAuthority?.get_main_ship_display_profile() : null // SS220 EDIT: HALO ship display data resolves through modular helpers
 	switch(faction)
 		if(FACTION_MARINE)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting

@@ -736,7 +736,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
+	var/list/active_role_names = GLOB.RoleAuthority.get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 
@@ -857,7 +857,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
+	var/list/active_role_names = GLOB.RoleAuthority.get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 
@@ -965,7 +965,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	job_preference_list = list()
 	for(var/role in GLOB.RoleAuthority.roles_by_path)
 		var/datum/job/J = GLOB.RoleAuthority.roles_by_path[role]
-		job_preference_list[get_job_preference_bucket_key(J.title)] = NEVER_PRIORITY // SS220 EDIT: seed canonical preference buckets for ship-side role variants
+		job_preference_list[GLOB.RoleAuthority.get_job_preference_bucket_key(J.title)] = NEVER_PRIORITY // SS220 EDIT: seed canonical preference buckets for ship-side role variants
 
 /datum/preferences/proc/get_job_priority(J)
 	if(!J)
@@ -974,11 +974,15 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	if(!length(job_preference_list))
 		ResetJobs()
 
-	var/bucket_key = get_job_preference_bucket_key(J)
+	var/direct_key = J
+	if(istype(J, /datum/job))
+		var/datum/job/job_datum = J
+		direct_key = job_datum.title
+	var/bucket_key = GLOB.RoleAuthority?.get_job_preference_bucket_key(J)
 	if(bucket_key in job_preference_list)
 		return job_preference_list[bucket_key]
-	if(J in job_preference_list)
-		return job_preference_list[J]
+	if(direct_key in job_preference_list)
+		return job_preference_list[direct_key]
 	return NEVER_PRIORITY
 
 /// Returns a list of all the proference's jobs set to the priority argument
@@ -993,7 +997,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	for(var/job in job_preference_list)
 		if(job_preference_list[job] != priority)
 			continue
-		var/bucket_key = get_job_preference_bucket_key(job)
+		var/bucket_key = GLOB.RoleAuthority?.get_job_preference_bucket_key(job) || job
 		if(!bucket_key || bucket_key in seen_buckets)
 			continue
 		seen_buckets += bucket_key
@@ -1031,7 +1035,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 			if(job_preference_list[job] == HIGH_PRIORITY)
 				job_preference_list[job] = MED_PRIORITY
 
-	job_preference_list[get_job_preference_bucket_key(J.title)] = priority // SS220 EDIT: store priorities by canonical ship-side role bucket
+	job_preference_list[(GLOB.RoleAuthority?.get_job_preference_bucket_key(J.title) || J.title)] = priority // SS220 EDIT: store priorities by canonical ship-side role bucket
 	return TRUE
 
 /datum/preferences/proc/assign_job_slot(mob/user, target_job)
@@ -1045,11 +1049,11 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 			slot_options["[slot_name] (slot #[slot])"] = slot
 	var/chosen_slot = tgui_input_list(user, "Assign character for [target_job] job", "Slot assignment", slot_options)
 	if(chosen_slot)
-		pref_job_slots[get_job_preference_bucket_key(target_job)] = slot_options[chosen_slot] // SS220 EDIT: store slot assignment by canonical ship-side role bucket
+		pref_job_slots[(GLOB.RoleAuthority?.get_job_preference_bucket_key(target_job) || target_job)] = slot_options[chosen_slot] // SS220 EDIT: store slot assignment by canonical ship-side role bucket
 	set_job_slots(user)
 
 /datum/preferences/proc/get_job_slot_assignment(job_title)
-	var/bucket_key = get_job_preference_bucket_key(job_title)
+	var/bucket_key = GLOB.RoleAuthority?.get_job_preference_bucket_key(job_title) || job_title
 	if(bucket_key in pref_job_slots)
 		return pref_job_slots[bucket_key]
 	if(job_title in pref_job_slots)
@@ -1072,7 +1076,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	var/datum/job/J
 	for(var/role in GLOB.RoleAuthority.roles_by_path)
 		J = GLOB.RoleAuthority.roles_by_path[role]
-		pref_job_slots[get_job_preference_bucket_key(J.title)] = JOB_SLOT_CURRENT_SLOT // SS220 EDIT: seed canonical slot buckets for ship-side role variants
+		pref_job_slots[GLOB.RoleAuthority.get_job_preference_bucket_key(J.title)] = JOB_SLOT_CURRENT_SLOT // SS220 EDIT: seed canonical slot buckets for ship-side role variants
 
 /datum/preferences/proc/process_link(mob/user, list/href_list)
 

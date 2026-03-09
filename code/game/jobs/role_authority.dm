@@ -42,6 +42,7 @@ GLOBAL_VAR_INIT(players_preassigned, 0)
 	/// List of mapped roles that should be used in place of usual ones
 	var/list/role_mappings
 	var/list/default_roles
+	var/list/ship_role_title_mappings_cache
 
 	var/list/unassigned_players
 	var/list/squads
@@ -278,6 +279,89 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		cycled_unassigned.client.player_data.adjust_stat(PLAYER_STAT_UNASSIGNED_ROUND_STREAK, STAT_CATEGORY_MISC, 1)
 
 	return roles_to_assign
+
+/datum/authority/branch/role/proc/resolve_job_title(job_or_title)
+	if(isnull(job_or_title))
+		return null
+
+	if(istype(job_or_title, /datum/job))
+		var/datum/job/job_datum = job_or_title
+		return job_datum.title
+
+	if(ispath(job_or_title, /datum/job))
+		if(!islist(roles_by_path))
+			return null
+		var/datum/job/job_by_path = roles_by_path[job_or_title]
+		return job_by_path?.title
+
+	return job_or_title
+
+/datum/authority/branch/role/proc/get_default_role_title(job_title)
+	if(!job_title)
+		return null
+
+	// Preference buckets can be queried before mode-specific role mappings are populated.
+	if(!islist(default_roles))
+		return job_title
+
+	var/default_role = default_roles[job_title]
+	if(default_role)
+		return default_role
+
+	return job_title
+
+/datum/authority/branch/role/proc/get_ship_role_title_mappings()
+	if(!islist(roles_by_path))
+		return null
+
+	if(length(ship_role_title_mappings_cache))
+		return ship_role_title_mappings_cache
+
+	ship_role_title_mappings_cache = list()
+	for(var/platoon_type in get_known_ship_platoon_types())
+		var/list/profile = get_ship_platoon_profile(platoon_type)
+		var/list/role_mappings = profile?["role_mappings"]
+		if(!islist(role_mappings) || !length(role_mappings))
+			role_mappings = GLOB.platoon_to_jobs[platoon_type]
+		if(!islist(role_mappings))
+			continue
+
+		for(var/role_path in role_mappings)
+			var/datum/job/job_datum = roles_by_path[role_path]
+			if(!job_datum?.title)
+				continue
+			if(!(job_datum.title in ship_role_title_mappings_cache))
+				ship_role_title_mappings_cache[job_datum.title] = role_mappings[role_path]
+
+	return ship_role_title_mappings_cache
+
+/datum/authority/branch/role/proc/get_job_preference_bucket_key(job_or_title)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return null
+
+	var/default_role = get_default_role_title(job_title)
+	if(default_role != job_title)
+		return default_role
+
+	var/list/title_mappings = get_ship_role_title_mappings()
+	var/mapped_title = islist(title_mappings) ? title_mappings[job_title] : null
+	if(mapped_title)
+		return mapped_title
+
+	return job_title
+
+/datum/authority/branch/role/proc/get_active_role_title_for_preference_bucket(bucket_key, mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
+	if(!bucket_key)
+		return null
+
+	var/list/active_role_titles = get_gamemode_role_titles(mode_name)
+	if(islist(active_role_titles))
+		for(var/role_title as anything in active_role_titles)
+			if(get_job_preference_bucket_key(role_title) == bucket_key)
+				return role_title
+
+	return bucket_key
 
 /datum/authority/branch/role/proc/assign_role_to_player_by_priority(mob/new_player/cycled_unassigned, list/roles_to_assign, list/unassigned_players, priority)
 	var/wanted_role_buckets = shuffle(cycled_unassigned.client.prefs.get_jobs_by_priority(priority))

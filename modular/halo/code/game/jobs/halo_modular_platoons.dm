@@ -282,4 +282,4 @@
 	return null
 
 /proc/get_halo_main_ship_display_profile()
-	return get_main_ship_display_profile()
+	return GLOB.RoleAuthority?.get_main_ship_display_profile()
