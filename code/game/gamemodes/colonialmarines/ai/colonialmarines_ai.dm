@@ -40,7 +40,7 @@
 	// SS220 EDIT - END
 	GLOB.RoleAuthority.reset_roles()
 	filter_role_authority_squads_to_types(squad_limit) // SS220 EDIT: trim active squad pool to the current ship-mode family
-	var/datum/squad/main_squad = GLOB.RoleAuthority.squads_by_type[MAIN_SHIP_PLATOON]
+	var/datum/squad/main_squad = GLOB.RoleAuthority.squads_by_type[get_active_ship_platoon_type()] // SS220 EDIT: lowpop main platoon follows active ship-profile resolver
 	if(main_squad)
 		GLOB.main_platoon_name = main_squad.name
 		GLOB.main_platoon_initial_name = main_squad.name

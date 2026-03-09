@@ -154,7 +154,7 @@
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/motor_pool/heavy)
 "au" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/specialist,
+/obj/structure/closet/secure_closet/marine_personal/unsc/specialist,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/one)
 "av" = (
@@ -1371,10 +1371,10 @@
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/motor_pool/heavy)
 "dj" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/squad_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/squad_leader{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rto{
+/obj/structure/closet/secure_closet/marine_personal/unsc/rto{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -1538,7 +1538,7 @@
 /turf/open/floor/almayer/plating,
 /area/dark_was_the_night/motor_pool)
 "dC" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/corpsman,
+/obj/structure/closet/secure_closet/marine_personal/unsc/corpsman,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/two)
 "dD" = (
@@ -3181,7 +3181,7 @@
 /turf/open/floor/almayer/edge/smooth/east,
 /area/dark_was_the_night/hangar)
 "hv" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/corpsman,
+/obj/structure/closet/secure_closet/marine_personal/unsc/corpsman,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/one)
 "hw" = (
@@ -3844,10 +3844,10 @@
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/supply)
 "ji" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/team_leader{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/team_leader{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -3868,7 +3868,7 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/briefing)
 "jl" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman,
+/obj/structure/closet/secure_closet/marine_personal/unsc/rifleman,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/two)
 "jm" = (
@@ -3957,7 +3957,7 @@
 /turf/closed/wall/unsc,
 /area/dark_was_the_night/briefing)
 "jy" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/specialist,
+/obj/structure/closet/secure_closet/marine_personal/unsc/specialist,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/two)
 "jz" = (
@@ -4067,6 +4067,12 @@
 /obj/structure/platform_decoration,
 /turf/open/floor/almayer,
 /area/dark_was_the_night/briefing)
+"jO" = (
+/obj/docking_port/stationary/marine_dropship/golden_arrow_hangar{
+	roundstart_template = /datum/map_template/shuttle/tornado220
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/hangar)
 "jP" = (
 /obj/structure/stairs/perspective{
 	dir = 4
@@ -4118,6 +4124,14 @@
 "jV" = (
 /turf/open/floor/almayer/edge/smooth/corner/east,
 /area/dark_was_the_night/upper_hallway)
+"jW" = (
+/obj/docking_port/stationary/marine_dropship/golden_arrow_hangar{
+	name = "Hangar Bay Aft";
+	id = "golden arrow lz2";
+	roundstart_template = null
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/hangar)
 "jY" = (
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay/two)
@@ -4150,10 +4164,10 @@
 /turf/open/floor/almayer/plating_striped/west,
 /area/dark_was_the_night/cryo_bay/two)
 "ke" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/team_leader{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/team_leader{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -4199,7 +4213,7 @@
 /turf/closed/wall/unsc,
 /area/dark_was_the_night/armory)
 "kk" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman,
+/obj/structure/closet/secure_closet/marine_personal/unsc/rifleman,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/one)
 "kl" = (
@@ -4374,10 +4388,10 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/briefing)
 "kP" = (
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/squad_leader{
+/obj/structure/closet/secure_closet/marine_personal/unsc/squad_leader{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rto{
+/obj/structure/closet/secure_closet/marine_personal/unsc/rto{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -30632,7 +30646,7 @@ QW
 QW
 QW
 QW
-QW
+jO
 QW
 QW
 QW
@@ -32456,7 +32470,7 @@ QW
 QW
 QW
 QW
-QW
+jW
 QW
 QW
 QW

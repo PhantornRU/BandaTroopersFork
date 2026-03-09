@@ -1,6 +1,7 @@
 
 /datum/authority/branch/role/setup_candidates_and_roles(list/overwritten_roles_for_mode)
 	. = ..()
+	var/active_ship_platoon = get_active_ship_platoon_type()
 
 	// Подсчитываем игроков
 	var/players_ready = 0
@@ -19,7 +20,7 @@
 		if(sq.ready_players_usable && players_ready < sq.ready_players_usable)
 			continue
 		if(sq.platoon_associated_type)
-			if(sq.platoon_associated_type != MAIN_SHIP_PLATOON) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
+			if(sq.platoon_associated_type != active_ship_platoon) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
 				continue
 			associated_squad_job_positions(sq.platoon_associated_type)
 

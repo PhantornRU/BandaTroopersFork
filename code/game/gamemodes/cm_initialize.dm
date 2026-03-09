@@ -86,6 +86,8 @@ Additional game mode variables.
 	//Role Authority set up.
 	/// List of role titles to override to different roles when starting game
 	var/list/role_mappings
+	/// Optional ship-side platoon override used instead of the ship map default. // SS220 EDIT: allow gamemode-selected ship platoon profiles
+	var/ship_platoon_override = null
 
 	//current amount of survivors by type
 	var/list/survivors_by_type_amounts = list()

@@ -280,24 +280,31 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	return roles_to_assign
 
 /datum/authority/branch/role/proc/assign_role_to_player_by_priority(mob/new_player/cycled_unassigned, list/roles_to_assign, list/unassigned_players, priority)
-	var/wanted_jobs_by_name = shuffle(cycled_unassigned.client.prefs.get_jobs_by_priority(priority))
+	var/wanted_role_buckets = shuffle(cycled_unassigned.client.prefs.get_jobs_by_priority(priority))
 	var/player_assigned_job = FALSE
 
-	for(var/job_name in wanted_jobs_by_name)
-		if(job_name in roles_to_assign)
+	for(var/role_bucket in wanted_role_buckets)
+		for(var/job_name in roles_to_assign)
+			if(get_job_preference_bucket_key(job_name) != role_bucket)
+				continue
+
 			var/datum/job/actual_job = roles_to_assign[job_name]
+			if(!assign_role(cycled_unassigned, actual_job))
+				continue
 
-			if(assign_role(cycled_unassigned, actual_job))
-				log_debug("ASSIGNMENT: We have assigned [job_name] to [cycled_unassigned] at priority [priority].")
-				cycled_unassigned.client.player_data?.adjust_stat(PLAYER_STAT_UNASSIGNED_ROUND_STREAK, STAT_CATEGORY_MISC, 0, TRUE)
-				unassigned_players -= cycled_unassigned
+			log_debug("ASSIGNMENT: We have assigned [job_name] to [cycled_unassigned] at priority [priority] via bucket [role_bucket].")
+			cycled_unassigned.client.player_data?.adjust_stat(PLAYER_STAT_UNASSIGNED_ROUND_STREAK, STAT_CATEGORY_MISC, 0, TRUE)
+			unassigned_players -= cycled_unassigned
 
-				if(actual_job.spawn_positions != -1 && actual_job.current_positions >= actual_job.spawn_positions)
-					roles_to_assign -= job_name
-					log_debug("ASSIGNMENT: We have ran out of slots for [job_name] and it has been removed from roles to assign.")
+			if(actual_job.spawn_positions != -1 && actual_job.current_positions >= actual_job.spawn_positions)
+				roles_to_assign -= job_name
+				log_debug("ASSIGNMENT: We have ran out of slots for [job_name] and it has been removed from roles to assign.")
 
-				player_assigned_job = TRUE
-				break
+			player_assigned_job = TRUE
+			break
+
+		if(player_assigned_job)
+			break
 
 	if(player_assigned_job)
 		return player_assigned_job
