@@ -109,3 +109,10 @@
 		/datum/equipment_preset/covenant/unggoy/ai/support_medical = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)
+
+/datum/human_ai_squad_preset/covenant/unggoy_suicide_pack
+	name = "Unggoy Suicide Pack"
+	desc = "A dedicated pack of suicidal Unggoy bombers that prime paired plasma grenades and rush hostile contacts."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber = 3,
+	)

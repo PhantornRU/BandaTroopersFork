@@ -60,3 +60,8 @@
 	name = "Unggoy Deacon (Command)"
 	desc = "Command Unggoy with deacon harness, plasma sidearm and combat injectors."
 	path = /datum/equipment_preset/covenant/unggoy/ai/deacon_command
+
+/datum/human_ai_equipment_preset/covenant/unggoy/suicide_bomber
+	name = "Unggoy Suicide Bomber"
+	desc = "Kamikaze Unggoy that primes paired plasma grenades, ignores loot and rushes hostile targets."
+	path = /datum/equipment_preset/covenant/unggoy/ai/suicide_bomber

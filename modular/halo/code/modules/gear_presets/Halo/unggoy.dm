@@ -250,6 +250,10 @@
 		var/injector_path = injector_paths[i]
 		new_human.equip_to_slot_or_del(new injector_path(new_human), pocket_slots[i])
 
+/datum/equipment_preset/covenant/unggoy/ai/proc/add_plasma_grenades(mob/living/carbon/human/new_human, count = 2)
+	for(var/i in 1 to count)
+		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/high_explosive/covenant/plasma(new_human), WEAR_IN_BELT)
+
 /datum/equipment_preset/covenant/unggoy/ai/minor_plasma
 	name = "Unggoy Minor (Plasma)"
 	assignment = JOB_COV_MINOR
@@ -397,3 +401,24 @@
 	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/deacon, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber
+	name = "Unggoy Suicide Bomber"
+	assignment = JOB_COV_MINOR
+	rank = JOB_COV_MINOR
+	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Bomber"
+
+/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	add_plasma_grenades(new_human, 2)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
+	if(!brain)
+		return
+
+	brain.halo_suicide_bomber = TRUE
+	brain.halo_suicide_prime_range = 5
+	brain.grenading_allowed = FALSE
+	brain.ignore_looting = TRUE
