@@ -736,12 +736,13 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = GLOB.RoleAuthority.get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/list/active_role_names = role_authority?.get_gamemode_role_titles() || GLOB.gamemode_roles[GLOB.master_mode] // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 
 	for(var/role_name as anything in active_role_names)
-		var/datum/job/job = GLOB.RoleAuthority.roles_by_name[role_name]
+		var/datum/job/job = role_authority?.roles_by_name[role_name]
 		if(!job)
 			debug_log("Missing job for prefs: [role_name]")
 			continue
@@ -857,12 +858,13 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = GLOB.RoleAuthority.get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/list/active_role_names = role_authority?.get_gamemode_role_titles() || GLOB.gamemode_roles[GLOB.master_mode] // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 
 	for(var/role_name as anything in active_role_names)
-		var/datum/job/job = GLOB.RoleAuthority.roles_by_name[role_name]
+		var/datum/job/job = role_authority?.roles_by_name[role_name]
 		if(!job)
 			debug_log("Missing job for prefs: [role_name]")
 			continue

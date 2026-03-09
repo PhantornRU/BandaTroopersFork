@@ -40,7 +40,7 @@
 /obj/structure/machinery/computer/overwatch/Initialize()
 	. = ..()
 
-	var/datum/squad/main_squad_path = GLOB.RoleAuthority.get_active_ship_platoon_type() // SS220 EDIT: overwatch faction gate follows active ship platoon resolver
+	var/datum/squad/main_squad_path = GLOB.RoleAuthority?.get_active_ship_platoon_type() || MAIN_SHIP_PLATOON || text2path(MAIN_SHIP_DEFAULT_PLATOON) // SS220 EDIT: overwatch faction gate follows active ship platoon resolver with vanilla fallback
 	if (faction == main_squad_path::faction)
 		tacmap = new /datum/tacmap/drawing(src, minimap_type)
 	else

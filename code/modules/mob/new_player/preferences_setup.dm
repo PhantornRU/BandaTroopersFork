@@ -245,8 +245,8 @@
 			highest_priority = job_preference_list[job]
 
 	var/preview_role_title = GLOB.RoleAuthority?.get_active_role_title_for_preference_bucket(highest_priority_job) || highest_priority_job // SS220 EDIT: preview resolves canonical bucket to the active ship-mode role title
- 	// SS220 EDIT: modular preview routing
-	var/modular_preview_preset = get_modular_job_pref_to_gear_preset(preview_role_title)
+	// SS220 EDIT: modular preview routing
+	var/modular_preview_preset = GLOB.RoleAuthority?.get_modular_job_pref_to_gear_preset(preview_role_title)
 	if(modular_preview_preset)
 		return modular_preview_preset
 	// SS220 EDIT - END

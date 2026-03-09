@@ -170,42 +170,7 @@
 	max_leaders = 1
 	max_rto = 1
 
-/proc/get_halo_unsc_marine_jobs()
-	return list(
-		JOB_SQUAD_LEADER_UNSC,
-		JOB_SQUAD_TEAM_LEADER_UNSC,
-		JOB_SQUAD_SPECIALIST_UNSC,
-		JOB_SQUAD_MEDIC_UNSC,
-		JOB_SQUAD_MARINE_UNSC,
-		JOB_SQUAD_RTO_UNSC,
-	)
-
-/proc/get_halo_odst_marine_jobs()
-	return list(
-		JOB_SQUAD_LEADER_ODST,
-		JOB_SQUAD_TEAM_LEADER_ODST,
-		JOB_SQUAD_SPECIALIST_ODST,
-		JOB_SQUAD_MEDIC_ODST,
-		JOB_SQUAD_MARINE_ODST,
-		JOB_SQUAD_RTO_ODST,
-	)
-
-/proc/get_additional_marine_jobs()
-	return get_halo_unsc_marine_jobs() + get_halo_odst_marine_jobs()
-
-/proc/get_halo_unsc_lowpop_roles()
-	return list(JOB_SO) + get_halo_unsc_marine_jobs()
-
-/proc/get_halo_odst_lowpop_roles()
-	return list(JOB_SO) + get_halo_odst_marine_jobs()
-
-/proc/get_halo_unsc_distress_roles()
-	return GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + get_halo_unsc_marine_jobs() + GLOB.ROLES_GROUND
-
-/proc/get_halo_odst_distress_roles()
-	return GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + get_halo_odst_marine_jobs() + GLOB.ROLES_GROUND
-
-/proc/get_modular_job_pref_to_gear_preset(job_title)
+/datum/authority/branch/role/proc/get_modular_job_pref_to_gear_preset(job_title)
 	switch(job_title)
 		if(JOB_SQUAD_MARINE_ODST, JOB_SQUAD_LEADER_ODST, JOB_SQUAD_MEDIC_ODST, JOB_SQUAD_SPECIALIST_ODST, JOB_SQUAD_TEAM_LEADER_ODST, JOB_SQUAD_RTO_ODST)
 			return /datum/equipment_preset/unsc/pfc/odst/equipped
@@ -223,7 +188,7 @@
 			return /datum/equipment_preset/unsc/rto/equipped
 	return null
 
-/proc/get_halo_main_ship_profile(platoon_type = MAIN_SHIP_PLATOON)
+/datum/authority/branch/role/proc/get_halo_main_ship_profile(platoon_type = MAIN_SHIP_PLATOON)
 	switch(platoon_type)
 		if(/datum/squad/marine/halo/unsc/alpha)
 			return list(
@@ -246,8 +211,8 @@
 					/datum/job/marine/leader/ai/halo/unsc = JOB_SQUAD_LEADER,
 					/datum/job/marine/specialist/ai/halo/unsc = JOB_SQUAD_SPECIALIST,
 				),
-				"distress_roles" = get_halo_unsc_distress_roles(),
-				"lowpop_roles" = get_halo_unsc_lowpop_roles(),
+				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_UNSC_MARINES_LIST + GLOB.ROLES_GROUND,
+				"lowpop_roles" = list(JOB_SO) + JOB_HALO_UNSC_MARINES_LIST,
 				"platoon_label" = "7th RECOM Div. \"Rock Hoppers\"",
 				"manifest_picture" = /atom/movable/screen/text/screen_text/picture/starting/unsc,
 				"intro_picture" = /atom/movable/screen/text/screen_text/picture/dark_was_the_night,
@@ -273,13 +238,10 @@
 					/datum/job/marine/leader/ai/odst = JOB_SQUAD_LEADER,
 					/datum/job/marine/specialist/ai/odst = JOB_SQUAD_SPECIALIST,
 				),
-				"distress_roles" = get_halo_odst_distress_roles(),
-				"lowpop_roles" = get_halo_odst_lowpop_roles(),
+				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND,
+				"lowpop_roles" = list(JOB_SO) + JOB_HALO_ODST_MARINES_LIST,
 				"platoon_label" = "33rd Drop Jet Batt. \"The Ferrymen\"",
 				"manifest_picture" = /atom/movable/screen/text/screen_text/picture/starting/odst,
 				"intro_picture" = /atom/movable/screen/text/screen_text/picture/dark_was_the_night,
 			)
 	return null
-
-/proc/get_halo_main_ship_display_profile()
-	return GLOB.RoleAuthority?.get_main_ship_display_profile()

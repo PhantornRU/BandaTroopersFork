@@ -61,4 +61,4 @@
 			JOB_DI,
 			JOB_MARINE
 			// ) // SS220 EDIT: original helper ended here
-			) + get_additional_marine_jobs() // SS220 EDIT: append modular marine roles
+			) + JOB_HALO_MARINES_LIST // SS220 EDIT: append modular marine roles

@@ -33,14 +33,19 @@
 
 /datum/game_mode/colonialmarines/ai/pre_setup()
 	RegisterSignal(SSdcs, COMSIG_GLOB_XENO_SPAWN, PROC_REF(handle_xeno_spawn))
-	// SS220 EDIT - START: lowpop ship-side roster and squad family are selected through modular platoon helpers
-	squad_limit = GLOB.RoleAuthority.get_main_ship_lowpop_keep_types()
-	role_mappings = GLOB.RoleAuthority.get_main_ship_role_mappings(TRUE)
-	GLOB.RoleAuthority.handle_main_ship_mode_changed()
-	// SS220 EDIT - END
-	GLOB.RoleAuthority.reset_roles()
-	GLOB.RoleAuthority.filter_role_authority_squads_to_types(squad_limit) // SS220 EDIT: trim active squad pool to the current ship-mode family
-	var/datum/squad/main_squad = GLOB.RoleAuthority.squads_by_type[GLOB.RoleAuthority.get_active_ship_platoon_type()] // SS220 EDIT: lowpop main platoon follows active ship-profile resolver
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	if(role_authority) // SS220 EDIT: lowpop ship-side roster and squad family are selected through modular platoon helpers
+		squad_limit = role_authority.get_main_ship_lowpop_keep_types()
+		role_mappings = role_authority.get_main_ship_role_mappings(TRUE)
+		role_authority.handle_main_ship_mode_changed()
+		role_authority.reset_roles()
+		role_authority.filter_role_authority_squads_to_types(squad_limit) // SS220 EDIT: trim active squad pool to the current ship-mode family
+	else
+		squad_limit = list(MAIN_SHIP_PLATOON || text2path(MAIN_SHIP_DEFAULT_PLATOON))
+	var/datum/squad/main_squad
+	if(role_authority) // SS220 EDIT: lowpop main platoon follows active ship-profile resolver when RoleAuthority is available
+		var/active_ship_platoon = role_authority.get_active_ship_platoon_type()
+		main_squad = role_authority.squads_by_type[active_ship_platoon]
 	if(main_squad)
 		GLOB.main_platoon_name = main_squad.name
 		GLOB.main_platoon_initial_name = main_squad.name
