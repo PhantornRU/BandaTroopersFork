@@ -184,6 +184,7 @@
 // AI-ONLY ROLES
 
 /datum/equipment_preset/covenant/sangheili/ai
+	name = "Sangheili AI"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)

@@ -227,6 +227,7 @@
 // AI-ONLY ROLES
 
 /datum/equipment_preset/covenant/unggoy/ai
+	name = "Unggoy AI"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
@@ -379,7 +380,7 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/kelotane/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/specops_ultra
-	name = "Unggoy SpecOps Ultra"
+	name = "Unggoy SpecOps Ultra (AI)"
 	assignment = JOB_COV_SPECOPS_ULTRA
 	rank = JOB_COV_SPECOPS_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
