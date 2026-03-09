@@ -28,7 +28,6 @@
 #define SQUAD_PMCPLT_SMALL "AZURE-16"
 #define SQUAD_RMC "Gamma Troop"
 #define SQUAD_LRRP "Snake Eaters"
-// SS220 EDIT: HALO squad string contracts moved to code/__DEFINES/bandamarines/halo_jobs.dm.
 #define SQUAD_LRRP_2 "Ocelot Grapplers"
 
 // Job name defines
@@ -57,7 +56,6 @@
 #define JOB_SQUAD_RTO "Radio Operator" // SS220 EDIT - Original: Recon Radio Telephone Operator
 #define JOB_SQUAD_MARINE_FORECON "Recon Rifleman"
 #define JOB_SQUAD_SMARTGUN_FORECON "Recon Smartgunner"
-// SS220 EDIT: HALO role string contracts moved to code/__DEFINES/bandamarines/halo_jobs.dm.
 
 GLOBAL_LIST_INIT(job_squad_roles, JOB_SQUAD_ROLES_LIST)
 

@@ -128,10 +128,10 @@
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/cryo_bay)
 "ap" = (
-/obj/structure/closet/secure_closet/marine_personal/odst/corpsman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/corpsman{
 	pixel_x = 8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/corpsman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/corpsman{
 	pixel_x = -8
 	},
 /turf/open/floor/almayer/plate,
@@ -141,10 +141,10 @@
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/engineering)
 "ar" = (
-/obj/structure/closet/secure_closet/marine_personal/odst/rifleman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rifleman{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/rifleman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rifleman{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -201,10 +201,10 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/engineering)
 "ay" = (
-/obj/structure/closet/secure_closet/marine_personal/odst/specialist{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/specialist{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/specialist{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/specialist{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -213,25 +213,25 @@
 /turf/open/floor/almayer/edge/smooth/north,
 /area/dark_was_the_night/briefing/one)
 "aA" = (
-/obj/structure/closet/secure_closet/marine_personal/odst/rto{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rto{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/squad_leader{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/squad_leader{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay)
 "aB" = (
-/obj/structure/closet/secure_closet/marine_personal/odst/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/team_leader{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/team_leader{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/team_leader{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay)
 "aC" = (
-/obj/structure/closet/secure_closet/marine_personal/odst{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rto{
 	pixel_x = 8;
 	job = "Radio Telephone Operator"
 	},
@@ -728,10 +728,10 @@
 /turf/open/floor/almayer/edge/smooth/north,
 /area/dark_was_the_night/lower_hallway)
 "bX" = (
-/obj/effect/landmark/start/marine/medic/odst,
+/obj/effect/landmark/start/marine/medic/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "bZ" = (
@@ -748,32 +748,32 @@
 "cc" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
-/obj/effect/landmark/start/marine/spec/odst,
+/obj/effect/landmark/late_join/alpha,
+/obj/effect/landmark/start/marine/spec/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cf" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
-/obj/effect/landmark/start/marine/medic/odst,
+/obj/effect/landmark/late_join/alpha,
+/obj/effect/landmark/start/marine/medic/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "ch" = (
-/obj/effect/landmark/start/marine/spec/odst,
+/obj/effect/landmark/start/marine/spec/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cj" = (
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/ready_bay)
 "cl" = (
-/obj/effect/landmark/start/marine/odst,
+/obj/effect/landmark/start/marine/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay)
 "cm" = (
@@ -785,7 +785,7 @@
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/cryo_bay)
 "cr" = (
-/obj/effect/landmark/start/marine/odst,
+/obj/effect/landmark/start/marine/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
 /obj/item/device/radio/intercom{
@@ -793,7 +793,7 @@
 	name = "General Listening Channel";
 	pixel_y = 26
 	},
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay)
 "ct" = (
@@ -833,10 +833,10 @@
 	dir = 1;
 	pixel_x = 16
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/rifleman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rifleman{
 	pixel_x = -8
 	},
-/obj/structure/closet/secure_closet/marine_personal/odst/rifleman{
+/obj/structure/closet/secure_closet/marine_personal/odst/alpha/rifleman{
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
@@ -858,13 +858,13 @@
 /turf/open/floor/almayer/edge/smooth/corner,
 /area/dark_was_the_night/briefing/two)
 "cG" = (
-/obj/effect/landmark/start/marine/rto/odst,
+/obj/effect/landmark/start/marine/rto/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
 	},
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cH" = (
@@ -917,17 +917,17 @@
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cM" = (
-/obj/effect/landmark/start/marine/tl/odst,
+/obj/effect/landmark/start/marine/tl/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cO" = (
-/obj/effect/landmark/start/marine/leader/odst,
+/obj/effect/landmark/start/marine/leader/alpha,
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/alpha,
-/obj/effect/landmark/late_join/odst,
+/obj/effect/landmark/late_join/alpha,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay)
 "cZ" = (

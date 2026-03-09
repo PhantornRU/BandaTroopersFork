@@ -205,7 +205,8 @@ SUBSYSTEM_DEF(mapping)
 
 /datum/controller/subsystem/mapping/proc/Loadship(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE, override_map_path = "maps/")
 	LoadGroup(errorList, name, path, files, traits, default_traits, silent, override_map_path = override_map_path)
-	refresh_main_ship_gamemode_roles()
+	// GLOB.gamemode_roles["Distress Signal: Lowpop"] = GLOB.platoon_to_role_list[MAIN_SHIP_PLATOON]
+	handle_main_ship_mode_changed() // SS220 EDIT: refresh ship-mode role cache after ship map load
 
 /datum/controller/subsystem/mapping/proc/Loadground(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE, override_map_path = "maps/")
 	LoadGroup(errorList, name, path, files, traits, default_traits, silent, override_map_path = override_map_path)

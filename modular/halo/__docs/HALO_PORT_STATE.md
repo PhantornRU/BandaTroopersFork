@@ -10,7 +10,8 @@
 ## Scope Summary
 - HALO CORE parity currently covers species/support, weapons/ammo, armor/clothing, radios/scanners, chemistry, cryo/monitor/organs.
 - HALO map-critical runtime typepaths required by `halo_new_irvine` and `unsc_dark_was_the_night*` are present in `modular/halo/**`.
-- ODST gameplay glue landed in `code/**` for squads/jobs/constants/landmarks/comms/preferences/intro alerts.
+- Active HALO ship maps use HALO platoon families selected by ship-map `platoon` config and are restricted to `Distress Signal` / `Distress Signal: Lowpop`.
+- Legacy single-squad ODST jobs/landmarks/squad datum remain only as compat surfaces for older ported content and are owned by `modular/halo`, not by generic squad modules.
 
 ## BandaTroopers Sync Anchor
 - Last local sync anchor commit: `e87823c878970babe535ddd0fe239516ebb8e8b8` (2026-03-06, `ODST part port`)
@@ -18,6 +19,7 @@
 
 ## Intentional Source Deviations
 - `/obj/effect/landmark/start/marine/rto/odst` points to `/datum/job/marine/standard/ai/rto/odst` instead of generic `/ai/odst` to preserve ODST RTO role correctness.
+- Legacy single-squad ODST compat paths remain available even though active HALO ship maps are expected to use the HALO platoon families.
 
 ## Compatibility Hotspots
 - Recheck `modular/halo/code/mixed/compat/**` on every upstream sync.

@@ -205,7 +205,6 @@
 	minimap_color = "#32CD32"
 	usable = TRUE
 	squad_type = "Squad"
-// SS220 EDIT: HALO ODST squad datum lives in modular/halo.
 
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2

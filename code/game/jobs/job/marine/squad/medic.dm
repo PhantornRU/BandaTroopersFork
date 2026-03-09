@@ -84,7 +84,6 @@
 
 /datum/job/marine/medic/ai/get_total_positions(latejoin=0)
 	return latejoin ? total_positions : spawn_positions
-// SS220 EDIT: HALO ODST medic role lives in modular/halo.
 
 /datum/job/marine/medic/ai/upp
 	title = JOB_SQUAD_MEDIC_UPP
@@ -150,7 +149,6 @@
 	name = JOB_SQUAD_MEDIC_FORECON
 	squad = SQUAD_LRRP
 	job = /datum/job/marine/medic/ai/forecon
-// SS220 EDIT: HALO ODST medic landmark lives in modular/halo.
 
 //-- RMC Platoon --//
 //Medical Assistant//

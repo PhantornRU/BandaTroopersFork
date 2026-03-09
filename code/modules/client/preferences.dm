@@ -736,7 +736,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = get_gamemode_role_titles()
+	var/list/active_role_names = get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 
@@ -857,7 +857,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 
 	//The job before the current job. I only use this to get the previous jobs color when I'm filling in blank rows.
 
-	var/list/active_role_names = get_gamemode_role_titles()
+	var/list/active_role_names = get_gamemode_role_titles() // SS220 EDIT: resolve active ship-mode roster through modular helpers
 	if(!active_role_names)
 		active_role_names = GLOB.ROLES_DISTRESS_SIGNAL
 

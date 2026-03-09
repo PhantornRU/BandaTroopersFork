@@ -155,7 +155,7 @@
 
 /obj/effect/landmark/start/marine/rto/delta
 	squad = SQUAD_MARINE_4
-// SS220 EDIT: HALO ODST rifleman/RTO landmarks live in modular/**.
+
 
 /datum/job/marine/standard/ai/rmc
 	title = JOB_TWE_RMC_RIFLEMAN

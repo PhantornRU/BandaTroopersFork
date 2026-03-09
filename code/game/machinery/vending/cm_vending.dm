@@ -147,6 +147,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 	return turf
 
 /obj/structure/machinery/cm_vending/proc/vendor_role_matches(role_title)
+	// SS220 EDIT - START: vendor role checks use canonical squad-role contracts for modular variants
 	if(!LAZYLEN(vendor_role))
 		return FALSE
 
@@ -155,6 +156,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 		if(GET_DEFAULT_ROLE(allowed_role) == default_role)
 			return TRUE
 	return FALSE
+	// SS220 EDIT - END
 
 /obj/structure/machinery/cm_vending/get_examine_text(mob/living/carbon/human/user)
 	. = ..()
@@ -566,9 +568,9 @@ GLOBAL_LIST_EMPTY(vending_products)
 				var/can_buy_flags = itemspec[4]
 				if(can_buy_flags)
 					if(can_buy_flags == MARINE_CAN_BUY_ESSENTIALS)
-						if(vendor_role_matches(JOB_SQUAD_SPECIALIST))
+						if(vendor_role_matches(JOB_SQUAD_SPECIALIST)) // SS220 EDIT: specialist essentials are keyed off canonical squad roles
 							// handle specalist essential gear assignment
-							if(GET_DEFAULT_ROLE(user.job) != JOB_SQUAD_SPECIALIST)
+							if(GET_DEFAULT_ROLE(user.job) != JOB_SQUAD_SPECIALIST) // SS220 EDIT: modular specialist variants still consume the specialist essential path
 								to_chat(user, SPAN_WARNING("Only specialists can take specialist sets."))
 								vend_fail()
 								return FALSE
@@ -807,7 +809,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 				vend_fail()
 			return FALSE
 
-		if(LAZYLEN(vendor_role) && !vendor_role_matches(user.job))
+		if(LAZYLEN(vendor_role) && !vendor_role_matches(user.job)) // SS220 EDIT: vendor gating uses canonical squad-role matching
 			if(display)
 				to_chat(user, SPAN_WARNING("This machine isn't for you."))
 				vend_fail()

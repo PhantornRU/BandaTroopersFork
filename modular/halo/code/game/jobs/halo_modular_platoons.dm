@@ -12,11 +12,6 @@
 	gear_preset_secondary = /datum/equipment_preset/unsc/rto/lesser_rank
 	job_options = list("Private First Class" = "PFC", "Lance Corporal" = "LCPL")
 
-/datum/job/marine/leader/ai/odst
-	title = JOB_SQUAD_LEADER_ODST
-	gear_preset = /datum/equipment_preset/unsc/leader/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/leader/odst/lesser_rank
-
 /datum/job/marine/medic/ai/halo/unsc
 	title = JOB_SQUAD_MEDIC_UNSC
 	total_positions = 2
@@ -42,27 +37,6 @@
 	spawn_positions = 2
 	gear_preset = /datum/equipment_preset/unsc/spec
 	gear_preset_secondary = /datum/equipment_preset/unsc/spec/lesser_rank
-
-/datum/job/marine/medic/ai/odst
-	title = JOB_SQUAD_MEDIC_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/medic/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/medic/odst/lesser_rank
-
-/datum/job/marine/tl/ai/odst
-	title = JOB_SQUAD_TEAM_LEADER_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/tl/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/tl/odst/lesser_rank
-
-/datum/job/marine/specialist/ai/odst
-	title = JOB_SQUAD_SPECIALIST_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/spec/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/spec/odst/lesser_rank
 
 /datum/squad/marine/halo/unsc/alpha
 	parent_type = /datum/squad/marine/alpha
@@ -195,41 +169,6 @@
 	max_smartgun = 0
 	max_leaders = 1
 	max_rto = 1
-
-/obj/effect/landmark/start/marine/leader/odst
-	name = JOB_SQUAD_LEADER_ODST
-	squad = SQUAD_ODST
-	job = /datum/job/marine/leader/ai/odst
-
-/obj/effect/landmark/start/marine/medic/odst
-	name = JOB_SQUAD_MEDIC_ODST
-	squad = SQUAD_ODST
-	job = /datum/job/marine/medic/ai/odst
-
-/obj/effect/landmark/start/marine/spec/odst
-	name = JOB_SQUAD_SPECIALIST_ODST
-	squad = SQUAD_ODST
-	job = /datum/job/marine/specialist/ai/odst
-
-/obj/effect/landmark/start/marine/tl/odst
-	name = JOB_SQUAD_TEAM_LEADER_ODST
-	squad = SQUAD_ODST
-	job = /datum/job/marine/tl/ai/odst
-
-/obj/effect/landmark/late_join/odst
-	name = "ODST late join"
-	squad = SQUAD_ODST
-
-/datum/squad/marine/odst
-	name = SQUAD_ODST
-	access = list(ACCESS_MARINE_ALPHA)
-	radio_freq = ODST_FREQ
-	faction = FACTION_UNSC
-	use_stripe_overlay = FALSE
-	equipment_color = "#32CD32"
-	chat_color = "#32CD32"
-	minimap_color = "#32CD32"
-	usable = TRUE
 
 /proc/get_halo_unsc_marine_jobs()
 	return list(
@@ -418,6 +357,9 @@
 	GLOB.gamemode_roles["Distress Signal"] = get_main_ship_distress_roles()
 	GLOB.gamemode_roles["Distress Signal: Lowpop"] = get_main_ship_lowpop_roles()
 	return TRUE
+
+/proc/handle_main_ship_mode_changed()
+	return refresh_main_ship_gamemode_roles()
 
 /proc/get_gamemode_role_titles(mode_name = GLOB.master_mode)
 	var/list/role_titles = GLOB.gamemode_roles[mode_name]

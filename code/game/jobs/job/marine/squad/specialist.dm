@@ -79,4 +79,3 @@
 	name = JOB_TWE_RMC_MARKSMAN
 	squad = SQUAD_RMC
 	job = /datum/job/marine/specialist/ai/rmc
-// SS220 EDIT: HALO ODST specialist role and landmark live in modular/halo.

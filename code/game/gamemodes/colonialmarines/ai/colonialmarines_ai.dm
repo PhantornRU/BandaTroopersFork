@@ -33,11 +33,13 @@
 
 /datum/game_mode/colonialmarines/ai/pre_setup()
 	RegisterSignal(SSdcs, COMSIG_GLOB_XENO_SPAWN, PROC_REF(handle_xeno_spawn))
+	// SS220 EDIT - START: lowpop ship-side roster and squad family are selected through modular platoon helpers
 	squad_limit = get_main_ship_lowpop_keep_types()
 	role_mappings = get_main_ship_role_mappings(TRUE)
-	refresh_main_ship_gamemode_roles()
+	handle_main_ship_mode_changed()
+	// SS220 EDIT - END
 	GLOB.RoleAuthority.reset_roles()
-	filter_role_authority_squads_to_types(squad_limit)
+	filter_role_authority_squads_to_types(squad_limit) // SS220 EDIT: trim active squad pool to the current ship-mode family
 	var/datum/squad/main_squad = GLOB.RoleAuthority.squads_by_type[MAIN_SHIP_PLATOON]
 	if(main_squad)
 		GLOB.main_platoon_name = main_squad.name
@@ -68,7 +70,8 @@
 		return
 
 /datum/game_mode/colonialmarines/ai/get_roles_list()
-	return get_main_ship_lowpop_roles()
+	// return GLOB.platoon_to_role_list[MAIN_SHIP_PLATOON]
+	return get_main_ship_lowpop_roles() // SS220 EDIT: ship-side lowpop roster resolves through modular platoon helpers
 
 /datum/game_mode/colonialmarines/ai/check_queen_status()
 	return

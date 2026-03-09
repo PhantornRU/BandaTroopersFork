@@ -358,7 +358,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 //here is the main reason this proc exists - to remove freed squad jobs from squad,
 //so latejoining person ends in the squad which's job was freed and not random one
 	var/datum/squad/sq = null
-	var/default_role = GET_DEFAULT_ROLE(J.title)
+	var/default_role = GET_DEFAULT_ROLE(J.title) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
 	if(GLOB.job_squad_roles.Find(default_role))
 		var/list/squad_list = list()
 		for(sq in GLOB.RoleAuthority.squads)
@@ -618,7 +618,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	if(H.assigned_squad) //Wait, we already have a squad. Get outta here!
 		return
 
-	var/default_role = GET_DEFAULT_ROLE(H.job)
+	var/default_role = GET_DEFAULT_ROLE(H.job) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
 
 	//we make a list of squad that is randomized so alpha isn't always lowest squad.
 	var/list/squads_copy = squads.Copy()
@@ -658,7 +658,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 		var/datum/squad/lowest
 
-		switch(default_role)
+		switch(default_role) // SS220 EDIT: squad assignment logic runs on canonical squad roles
 			if(JOB_SQUAD_ENGI)
 				for(var/datum/squad/S in mixed_squads)
 					if(S.usable && S.roundstart)
@@ -884,7 +884,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 // returns TRUE if transfer_marine's role is at max capacity in the new squad
 /datum/authority/branch/role/proc/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
-	switch(GET_DEFAULT_ROLE(transfer_marine.job))
+	switch(GET_DEFAULT_ROLE(transfer_marine.job)) // SS220 EDIT: squad caps use canonical squad roles for modular variants
 		if(JOB_SQUAD_LEADER)
 			if(new_squad.num_leaders >= new_squad.max_leaders)
 				return TRUE

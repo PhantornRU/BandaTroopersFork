@@ -809,7 +809,8 @@
 	else if(href_list["c_mode2"])
 		if(!check_rights(R_ADMIN|R_SERVER)) return
 
-		GLOB.master_mode = href_list["c_mode2"]
+		GLOB.master_mode = href_list["c_mode2"] // SS220 EDIT: selected ship mode stays UI-synced through modular roster helpers
+		handle_main_ship_mode_changed() // SS220 EDIT: refresh ship-mode role cache after admin mode change
 		message_admins("[key_name_admin(usr)] set the mode as [GLOB.master_mode].")
 		to_world(SPAN_NOTICE("<b><i>The mode is now: [GLOB.master_mode]!</i></b>"))
 		Game() // updates the main game menu

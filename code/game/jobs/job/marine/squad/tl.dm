@@ -73,7 +73,6 @@
 	gear_preset = initial(gear_preset)
 	if(option == SGT_VARIANT)
 		gear_preset = gear_preset_secondary
-// SS220 EDIT: HALO ODST fireteam leader role lives in modular/halo.
 
 /obj/effect/landmark/start/marine/tl/upp
 	name = JOB_SQUAD_TEAM_LEADER_UPP
@@ -107,7 +106,6 @@
 	name = JOB_SQUAD_TEAM_LEADER_FORECON
 	squad = SQUAD_LRRP
 	job = /datum/job/marine/tl/ai/forecon
-// SS220 EDIT: HALO ODST fireteam leader landmark lives in modular/halo.
 
 //-- RMC Platoon --//
 //Section/squad leader & team leader//

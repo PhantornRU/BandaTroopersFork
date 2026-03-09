@@ -485,7 +485,6 @@
 /obj/effect/landmark/late_join/forecon
 	name = "forecon late join"
 	squad = SQUAD_LRRP
-// SS220 EDIT: HALO ODST latejoin landmark lives in modular/halo.
 
 /obj/effect/landmark/late_join/pmc
 	name = "pmc late join"

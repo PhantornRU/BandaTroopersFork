@@ -244,9 +244,11 @@
 			highest_priority_job = job
 			highest_priority = job_preference_list[job]
 
-	var/modular_preview_preset = get_modular_job_pref_to_gear_preset(highest_priority_job) // SS220 EDIT: modular preview routing
+ 	// SS220 EDIT: modular preview routing
+	var/modular_preview_preset = get_modular_job_pref_to_gear_preset(highest_priority_job)
 	if(modular_preview_preset)
 		return modular_preview_preset
+	// SS220 EDIT - END
 
 	switch(highest_priority_job)
 //USCM Section
