@@ -180,3 +180,70 @@
 		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/carbine, WEAR_IN_BELT)
 		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/carbine, WEAR_IN_BELT)
 		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/carbine, WEAR_IN_BELT)
+
+// AI-ONLY ROLES
+
+/datum/equipment_preset/covenant/sangheili/ai
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
+	idtype = /obj/item/card/id/covenant
+	access = list(ACCESS_MARINE_PREP)
+	languages = list(LANGUAGE_SANGHEILI)
+	skills = /datum/skills/covenant/sangheili
+
+/datum/equipment_preset/covenant/sangheili/ai/proc/equip_sangheili_ai_basics(mob/living/carbon/human/new_human, helmet_type, suit_type, gloves_type, shoes_type, belt_type)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/sangheili(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new helmet_type(new_human), WEAR_HEAD)
+	new_human.equip_to_slot_or_del(new suit_type(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new gloves_type(new_human), WEAR_HANDS)
+	new_human.equip_to_slot_or_del(new shoes_type(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new belt_type(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
+
+/datum/equipment_preset/covenant/sangheili/ai/proc/add_carbine_mags(mob/living/carbon/human/new_human, count = 5)
+	for(var/i in 1 to count)
+		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/carbine(new_human), WEAR_IN_BELT)
+
+/datum/equipment_preset/covenant/sangheili/ai/minor_plasma
+	name = "Sangheili Minor (Plasma)"
+	assignment = JOB_COV_MINOR
+	rank = JOB_COV_MINOR
+	paygrades = list(PAY_SHORT_SANG_MINOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Minor"
+
+/datum/equipment_preset/covenant/sangheili/ai/minor_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_ai_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/minor, /obj/item/clothing/suit/marine/shielded/sangheili/minor, /obj/item/clothing/gloves/marine/sangheili/minor, /obj/item/clothing/shoes/sangheili/minor, /obj/item/storage/belt/marine/covenant/sangheili/minor)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/sangheili/ai/major_carbine
+	name = "Sangheili Major (Carbine)"
+	assignment = JOB_COV_MAJOR
+	rank = JOB_COV_MAJOR
+	paygrades = list(PAY_SHORT_SANG_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Major"
+
+/datum/equipment_preset/covenant/sangheili/ai/major_carbine/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_ai_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/major, /obj/item/clothing/suit/marine/shielded/sangheili/major, /obj/item/clothing/gloves/marine/sangheili/major, /obj/item/clothing/shoes/sangheili/major, /obj/item/storage/belt/marine/covenant/sangheili/major)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/covenant_carbine(new_human), WEAR_J_STORE)
+	add_carbine_mags(new_human, 5)
+
+/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma
+	name = "Sangheili Ultra (Plasma)"
+	assignment = JOB_COV_ULTRA
+	rank = JOB_COV_ULTRA
+	paygrades = list(PAY_SHORT_SANG_ULTRA = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Ultra"
+
+/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_ai_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/ultra, /obj/item/clothing/suit/marine/shielded/sangheili/ultra, /obj/item/clothing/gloves/marine/sangheili/ultra, /obj/item/clothing/shoes/sangheili/ultra, /obj/item/storage/belt/marine/covenant/sangheili/ultra)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/sangheili/ai/zealot_command
+	name = "Sangheili Zealot (Command)"
+	assignment = JOB_COV_ZEALOT
+	rank = JOB_COV_ZEALOT
+	paygrades = list(PAY_SHORT_SANG_ZEALOT = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Zealot"
+
+/datum/equipment_preset/covenant/sangheili/ai/zealot_command/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_ai_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/zealot, /obj/item/clothing/suit/marine/shielded/sangheili/zealot, /obj/item/clothing/gloves/marine/sangheili/zealot, /obj/item/clothing/shoes/sangheili/zealot, /obj/item/storage/belt/marine/covenant/sangheili/zealot)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)

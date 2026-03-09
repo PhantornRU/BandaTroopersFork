@@ -10,6 +10,15 @@
 	item_icons = list(
 		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/unggoy/armor.dmi'
 	)
+	allowed = list(
+		/obj/item/weapon/gun,
+		/obj/item/prop/prop_gun,
+		/obj/item/device/flashlight/flare,
+		/obj/item/explosive/grenade,
+		/obj/item/ammo_magazine/needler_crystal,
+		/obj/item/ammo_magazine/carbine,
+		/obj/item/storage/belt/marine/covenant,
+	)
 	allowed_species_list = list(SPECIES_UNGGOY)
 
 	armor_melee = CLOTHING_ARMOR_MEDIUMLOW

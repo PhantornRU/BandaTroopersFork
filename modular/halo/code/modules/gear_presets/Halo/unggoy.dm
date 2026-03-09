@@ -223,3 +223,177 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/unggoy(new_human), WEAR_FACE)
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+
+// AI-ONLY ROLES
+
+/datum/equipment_preset/covenant/unggoy/ai
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
+	idtype = /obj/item/card/id/covenant
+	access = list(ACCESS_MARINE_PREP)
+	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
+	skills = /datum/skills/covenant/unggoy
+
+/datum/equipment_preset/covenant/unggoy/ai/proc/equip_unggoy_ai_basics(mob/living/carbon/human/new_human, suit_type, belt_type)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/unggoy(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new suit_type(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/unggoy(new_human), WEAR_FACE)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new belt_type(new_human), WEAR_WAIST)
+
+/datum/equipment_preset/covenant/unggoy/ai/proc/add_needler_crystals(mob/living/carbon/human/new_human, count = 5)
+	for(var/i in 1 to count)
+		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/needler_crystal(new_human), WEAR_IN_BELT)
+
+/datum/equipment_preset/covenant/unggoy/ai/proc/add_ai_injectors(mob/living/carbon/human/new_human, list/injector_paths)
+	var/list/pocket_slots = list(WEAR_L_STORE, WEAR_R_STORE)
+	for(var/i in 1 to min(length(injector_paths), length(pocket_slots)))
+		var/injector_path = injector_paths[i]
+		new_human.equip_to_slot_or_del(new injector_path(new_human), pocket_slots[i])
+
+/datum/equipment_preset/covenant/unggoy/ai/minor_plasma
+	name = "Unggoy Minor (Plasma)"
+	assignment = JOB_COV_MINOR
+	rank = JOB_COV_MINOR
+	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Minor"
+
+/datum/equipment_preset/covenant/unggoy/ai/minor_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/minor_needler
+	name = "Unggoy Minor (Needler)"
+	assignment = JOB_COV_MINOR
+	rank = JOB_COV_MINOR
+	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Minor"
+
+/datum/equipment_preset/covenant/unggoy/ai/minor_needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
+	add_needler_crystals(new_human, 4)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/major_plasma
+	name = "Unggoy Major (Plasma)"
+	assignment = JOB_COV_MAJOR
+	rank = JOB_COV_MAJOR
+	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Major"
+
+/datum/equipment_preset/covenant/unggoy/ai/major_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/major_needler
+	name = "Unggoy Major (Needler)"
+	assignment = JOB_COV_MAJOR
+	rank = JOB_COV_MAJOR
+	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Major"
+
+/datum/equipment_preset/covenant/unggoy/ai/major_needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
+	add_needler_crystals(new_human, 5)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma
+	name = "Unggoy Heavy (Plasma Rifle)"
+	assignment = JOB_COV_HEAVY
+	rank = JOB_COV_HEAVY
+	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Heavy"
+
+/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/heavy_needler
+	name = "Unggoy Heavy (Needler)"
+	assignment = JOB_COV_HEAVY
+	rank = JOB_COV_HEAVY
+	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Heavy"
+
+/datum/equipment_preset/covenant/unggoy/ai/heavy_needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
+	add_needler_crystals(new_human, 5)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/kelotane/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/anti_tank_temp
+	name = "Unggoy Heavy (Temporary AT)"
+	assignment = JOB_COV_HEAVY
+	rank = JOB_COV_HEAVY
+	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Heavy"
+
+/datum/equipment_preset/covenant/unggoy/ai/anti_tank_temp/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/support_medical
+	name = "Unggoy Support (Medical)"
+	assignment = JOB_COV_MAJOR
+	rank = JOB_COV_MAJOR
+	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Support"
+
+/datum/equipment_preset/covenant/unggoy/ai/support_medical/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_plasma
+	name = "Unggoy SpecOps (Plasma)"
+	assignment = JOB_COV_SPECOPS
+	rank = JOB_COV_SPECOPS
+	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "SpecOps"
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_plasma/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_needler
+	name = "Unggoy SpecOps (Needler)"
+	assignment = JOB_COV_SPECOPS
+	rank = JOB_COV_SPECOPS
+	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "SpecOps"
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
+	add_needler_crystals(new_human, 5)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/kelotane/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_ultra
+	name = "Unggoy SpecOps Ultra"
+	assignment = JOB_COV_SPECOPS_ULTRA
+	rank = JOB_COV_SPECOPS_ULTRA
+	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "SpecOps Ultra"
+
+/datum/equipment_preset/covenant/unggoy/ai/specops_ultra/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
+
+/datum/equipment_preset/covenant/unggoy/ai/deacon_command
+	name = "Unggoy Deacon (Command)"
+	assignment = JOB_COV_DEACON
+	rank = JOB_COV_DEACON
+	paygrades = list(PAY_SHORT_COV_DEACON = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Deacon"
+
+/datum/equipment_preset/covenant/unggoy/ai/deacon_command/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/deacon, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))

@@ -124,6 +124,15 @@
 	item_icons = list(
 		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi'
 	)
+	allowed = list(
+		/obj/item/weapon/gun,
+		/obj/item/prop/prop_gun,
+		/obj/item/device/flashlight/flare,
+		/obj/item/explosive/grenade,
+		/obj/item/ammo_magazine/needler_crystal,
+		/obj/item/ammo_magazine/carbine,
+		/obj/item/storage/belt/marine/covenant,
+	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
