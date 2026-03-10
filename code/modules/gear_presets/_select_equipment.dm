@@ -405,6 +405,8 @@
 	EquipCustomItems(new_human)
 
 /datum/equipment_preset/proc/load_vanity(mob/living/carbon/human/new_human, client/mob_client)
+	if(new_human)
+		new_human.clear_personal_locker_spawn_context()
 	if(!new_human.client || !new_human.client.prefs || !new_human.client.prefs.gear)
 		return//We want to equip them with custom stuff second, after they are equipped with everything else.
 	for(var/gear_name in new_human.client.prefs.gear)

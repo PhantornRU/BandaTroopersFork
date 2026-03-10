@@ -261,6 +261,9 @@
 			job_whitelist = "[title][whitelist_status]"
 
 		human.job = title //TODO Why is this a mob variable at all?
+		// SS220 EDIT - START - mark real spawn for one-shot personal locker miss diagnostics
+		human.mark_personal_locker_spawn_context(FALSE)
+		// SS220 EDIT - END
 
 		if(gear_preset_whitelist[job_whitelist])
 			arm_equipment(human, gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = FALSE)

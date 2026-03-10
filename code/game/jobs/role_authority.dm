@@ -550,6 +550,9 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		job_whitelist = "[new_job.title][whitelist_status]"
 
 	new_human.job = new_job.title //TODO Why is this a mob variable at all?
+	// SS220 EDIT - START - mark real spawn for one-shot personal locker miss diagnostics
+	new_human.mark_personal_locker_spawn_context(late_join)
+	// SS220 EDIT - END
 
 	if(new_job.gear_preset_whitelist[job_whitelist])
 		arm_equipment(new_human, new_job.gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = late_join)
