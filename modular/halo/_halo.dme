@@ -63,6 +63,7 @@
 #include "code/mixed/organs/halo_organ_objects.dm"
 #include "code/mixed/structures/halo_crates_and_containers.dm"
 #include "code/mixed/structures/halo_gun_racks.dm"
+#include "code/mixed/structures/halo_visible_disposalpipes.dm"
 #include "code/mixed/structures/halo_unsc_reagent_dispensers.dm"
 #include "code/mixed/structures/halo_windows.dm"
 #include "code/mixed/turfs/halo_floors.dm"
