@@ -472,6 +472,20 @@
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1,
 /turf/open/floor/almayer/plating_striped/west,
 /area/dark_was_the_night/armory)
+"abc" = (
+/obj/structure/closet/secure_closet/marine_personal/corpsman,
+/turf/open/floor/almayer/edge/smooth/corner/west,
+/area/dark_was_the_night/cryo_bay/two)
+"abd" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer{
+	dir = 2
+	},
+/obj/structure/machinery/door/poddoor/two_tile/four_tile/five_tile{
+	pixel_y = 0;
+	id = "cargo_cryo_red_gate"
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/dark_was_the_night/upper_hallway)
 "abG" = (
 /obj/structure/pipes/vents/pump,
 /obj/structure/machinery/shower{
@@ -10559,7 +10573,7 @@
 /obj/structure/machinery/door_control/brbutton/alt{
 	pixel_x = 1;
 	pixel_y = -17;
-	req_one_access_txt = "19;12"
+	id = "cargo_cryo_red_gate"
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/upper_hallway)
@@ -12484,7 +12498,8 @@
 	icon_state = "triagedecaltopright"
 	},
 /obj/structure/machinery/door_control/brbutton{
-	pixel_y = 15
+	pixel_y = 15;
+	id = "cargo_cryo_red_gate"
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/upper_hallway)
@@ -18496,8 +18511,7 @@
 	},
 /obj/structure/machinery/door_control/brbutton/alt{
 	pixel_x = 1;
-	pixel_y = -17;
-	req_one_access_txt = "19;12"
+	pixel_y = -17
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/upper_hallway)
@@ -31862,7 +31876,7 @@ qrG
 mba
 pLi
 bJl
-oGW
+abd
 sIQ
 tOG
 rrV
@@ -33437,7 +33451,7 @@ aPF
 quj
 fEG
 hYZ
-kIW
+abc
 dqU
 hdK
 vqg
