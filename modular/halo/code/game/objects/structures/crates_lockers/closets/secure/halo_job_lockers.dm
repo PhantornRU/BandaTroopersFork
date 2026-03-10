@@ -17,6 +17,11 @@
 	var/role_lock = TRUE
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/togglelock(mob/living/user)
+	var/static/list/allowed_specialist_jobs = list(
+		JOB_SQUAD_SPECIALIST,
+		JOB_SQUAD_SPECIALIST_UNSC,
+		JOB_SQUAD_SPECIALIST_ODST,
+	)
 	if(!allowed(user))
 		to_chat(user, SPAN_WARNING("You do not have access to the contents of the locker."))
 		return
@@ -26,7 +31,7 @@
 		var/mob/living/carbon/human/human = user
 		var/obj/item/card/id/card = human.get_idcard()
 		if(card)
-			if(human.job != "Weapons Specialist")
+			if(!(human.job in allowed_specialist_jobs))
 				to_chat(user, SPAN_WARNING("You aren't the right occupation for this locker."))
 				return
 			equipment_giver(user)
