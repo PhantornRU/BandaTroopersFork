@@ -71,6 +71,23 @@
 
 	return get_default_ship_platoon_profile(platoon_type)
 
+/datum/authority/branch/role/proc/get_ship_platoon_label(platoon_type)
+	if(!platoon_type)
+		return null
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/platoon_label = profile?["platoon_label"]
+	if(istext(platoon_label) && length(platoon_label))
+		return platoon_label
+
+	if(ispath(platoon_type, /datum/squad/marine))
+		var/datum/squad/marine/platoon_datum = platoon_type
+		var/static_name = initial(platoon_datum.name)
+		if(static_name)
+			return static_name
+
+	return "[platoon_type]"
+
 /datum/authority/branch/role/proc/get_ship_mode_platoon_override(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	if(istype(mode_datum) && !isnull(mode_datum.ship_platoon_override))
 		return mode_datum.ship_platoon_override

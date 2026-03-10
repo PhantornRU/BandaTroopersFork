@@ -3,6 +3,9 @@
     "map_path": "map_files/UNSC_Stalwart_Frigate",
     "map_file": "UNSC_Stalwart_Frigate.dmm",
     "traits": [{"Marine Main Ship": true}],
-    "gamemodes": ["Distress Signal", "Distress Signal: Lowpop"],
-    "platoon": "/datum/squad/marine/halo/unsc/alpha"
+    "platoon": "/datum/squad/marine/halo/unsc/alpha",
+    "allowed_platoons": [
+        "/datum/squad/marine/halo/unsc/alpha",
+        "/datum/squad/marine/halo/odst/alpha"
+    ]
 }
