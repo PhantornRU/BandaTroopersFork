@@ -1,5 +1,5 @@
 // SS220 EDIT: HALO squad and role string contracts shared by code/** and modular/halo.
-// This file is intentionally included before code/__DEFINES/mode.dm so early role lists can consume the same macros.
+// This file lives in top-level code/__DEFINES so DME include ordering stays validator-compliant while mode.dm can consume these macros early.
 #define SQUAD_ODST "The Ferrymen"
 #define SQUAD_ODST_2 "The Ferrymen Sq. 2"
 
