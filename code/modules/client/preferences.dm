@@ -1000,7 +1000,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 		if(job_preference_list[job] != priority)
 			continue
 		var/bucket_key = GLOB.RoleAuthority?.get_job_preference_bucket_key(job) || job
-		if(!bucket_key || bucket_key in seen_buckets)
+		if(!bucket_key || (bucket_key in seen_buckets))
 			continue
 		seen_buckets += bucket_key
 		jobs_to_return += bucket_key

@@ -54,7 +54,7 @@ map blue_ridge
 	# default
 endmap
 
-map UNSC_Stalwart_Frigate
+map unsc_stalwart_frigate
 	default
 endmap
 
