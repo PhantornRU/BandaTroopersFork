@@ -4,9 +4,7 @@
 	light_color = "#dae2ff";
 	dir = 4
 	},
-/turf/open/floor/almayer/edge/smooth/east{
-	dir = 8
-	},
+/turf/open/floor/almayer/edge/smooth/east/west,
 /area/dark_was_the_night/upper_hallway)
 "aab" = (
 /obj/item/tool/wet_sign{
@@ -74,10 +72,6 @@
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/supply)
-"aaf" = (
-/obj/structure/window/framed/unsc,
-/turf/closed/wall/unsc,
-/area/dark_was_the_night/bathroom)
 "aah" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/item/ammo_box/magazine/unsc/ma5c{
@@ -880,9 +874,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/dark_was_the_night/armory)
 "aef" = (
 /turf/open/shuttle/escapepod/floor0/west,
@@ -1859,9 +1851,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/dark_was_the_night/upper_hallway)
 "ahe" = (
 /obj/structure/platform{
@@ -2107,9 +2097,7 @@
 	layer = 3;
 	dir = 1
 	},
-/turf/open/shuttle/escapepod/floor0/north{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/north/east,
 /area/dark_was_the_night/upper_hallway)
 "ahB" = (
 /obj/structure/platform{
@@ -2404,21 +2392,6 @@
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
-"aid" = (
-/obj/structure/platform{
-	dir = 4
-	},
-/obj/structure/platform,
-/obj/structure/platform_decoration{
-	dir = 6
-	},
-/obj/structure/barricade/handrail{
-	layer = 4
-	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 8
-	},
-/area/dark_was_the_night/upper_hallway)
 "aie" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
@@ -5884,9 +5857,7 @@
 /area/golden_arrow/platoon_commander_rooms)
 "apq" = (
 /obj/structure/flora/pottedplant/random/unanchored,
-/turf/open/floor/almayer/blackcorner{
-	dir = 4
-	},
+/turf/open/floor/almayer/blackcorner/east,
 /area/golden_arrow/platoon_commander_rooms)
 "apr" = (
 /obj/structure/machinery/light/double/blue/golden_arrow{
@@ -5895,9 +5866,7 @@
 /obj/structure/bed/chair/office/dark{
 	dir = 4
 	},
-/turf/open/floor/almayer/black{
-	dir = 1
-	},
+/turf/open/floor/almayer/black/north,
 /area/golden_arrow/platoon_commander_rooms)
 "aps" = (
 /obj/item/tool/pen/clicky{
@@ -5909,9 +5878,7 @@
 	pixel_y = 6
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
-/turf/open/floor/almayer/black{
-	dir = 1
-	},
+/turf/open/floor/almayer/black/north,
 /area/golden_arrow/platoon_commander_rooms)
 "apt" = (
 /obj/structure/machinery/computer/emails{
@@ -5922,9 +5889,7 @@
 	pixel_y = 8
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
-/turf/open/floor/almayer/black{
-	dir = 1
-	},
+/turf/open/floor/almayer/black/north,
 /area/golden_arrow/platoon_commander_rooms)
 "apu" = (
 /obj/structure/machinery/faxmachine/uscm/command/capt{
@@ -5933,9 +5898,7 @@
 	pixel_y = 3
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
-/turf/open/floor/almayer/blackcorner{
-	dir = 1
-	},
+/turf/open/floor/almayer/blackcorner/north,
 /area/golden_arrow/platoon_commander_rooms)
 "apw" = (
 /obj/effect/decal/warning_stripes{
@@ -5962,9 +5925,7 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/canteen)
 "apz" = (
-/turf/open/floor/almayer/black{
-	dir = 4
-	},
+/turf/open/floor/almayer/black/east,
 /area/golden_arrow/platoon_commander_rooms)
 "apA" = (
 /turf/open/floor/strata/floor2,
@@ -5982,9 +5943,7 @@
 	pixel_x = 6
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
-/turf/open/floor/almayer/black{
-	dir = 8
-	},
+/turf/open/floor/almayer/black/west,
 /area/golden_arrow/platoon_commander_rooms)
 "apE" = (
 /obj/structure/stairs/perspective{
@@ -6015,9 +5974,7 @@
 /obj/structure/platform_decoration{
 	dir = 5
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/dark_was_the_night/upper_hallway)
 "apJ" = (
 /obj/structure/platform{
@@ -6089,9 +6046,7 @@
 "apQ" = (
 /obj/item/bedsheet/hop,
 /obj/structure/bed,
-/turf/open/floor/almayer/blackcorner{
-	dir = 8
-	},
+/turf/open/floor/almayer/blackcorner/west,
 /area/golden_arrow/platoon_commander_rooms)
 "aqc" = (
 /obj/structure/window/framed/unsc,
@@ -8774,9 +8729,7 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/motor_pool/heavy)
 "dEl" = (
-/turf/open/floor/almayer/sterile_green_corner{
-	dir = 1
-	},
+/turf/open/floor/almayer/sterile_green_corner/north,
 /area/dark_was_the_night/medical)
 "dFa" = (
 /obj/structure/bed/chair/comfy/bench/south/east,
@@ -11953,9 +11906,7 @@
 /obj/structure/barricade/handrail{
 	dir = 4
 	},
-/turf/open/floor/almayer/edge/smooth/east{
-	dir = 8
-	},
+/turf/open/floor/almayer/edge/smooth/east/west,
 /area/dark_was_the_night/upper_hallway)
 "hBo" = (
 /obj/structure/desertdam/decals/road_edge{
@@ -13266,9 +13217,7 @@
 	dir = 9
 	},
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod/floor0/north{
-	dir = 2
-	},
+/turf/open/shuttle/escapepod/floor0/north/south,
 /area/dark_was_the_night/upper_hallway)
 "jiR" = (
 /obj/structure/platform,
@@ -21124,9 +21073,7 @@
 /obj/structure/platform_decoration{
 	dir = 5
 	},
-/turf/open/shuttle/escapepod/floor0/north{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/north/east,
 /area/dark_was_the_night/upper_hallway)
 "tjJ" = (
 /obj/effect/decal/cleanable/dirt{
@@ -24922,9 +24869,7 @@
 /obj/structure/barricade/handrail{
 	layer = 4
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/floor0/west,
 /area/dark_was_the_night/bathroom)
 "xwh" = (
 /turf/open/floor/almayer/edge/smooth,
@@ -25204,9 +25149,7 @@
 /turf/open/floor/almayer/edge/smooth/southwest,
 /area/dark_was_the_night/hangar)
 "xPq" = (
-/turf/open/floor/almayer/edge/smooth/east{
-	dir = 8
-	},
+/turf/open/floor/almayer/edge/smooth/east/west,
 /area/dark_was_the_night/upper_hallway)
 "xRs" = (
 /obj/effect/decal/cleanable/dirt{
@@ -43170,7 +43113,7 @@ ajj
 aiT
 aiB
 tOG
-aid
+aih
 xOz
 pLi
 hvI
@@ -46672,7 +46615,7 @@ afJ
 aMo
 kSg
 rGg
-aaf
+qWE
 wYO
 bWF
 cCG
@@ -47448,7 +47391,7 @@ ahh
 eXD
 fPg
 izA
-aaf
+qWE
 hMW
 jaG
 gwo
@@ -47642,7 +47585,7 @@ afJ
 aMo
 uxI
 rGg
-aaf
+qWE
 tSQ
 jaG
 bRZ

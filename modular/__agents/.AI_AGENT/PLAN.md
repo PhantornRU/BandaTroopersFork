@@ -1,33 +1,23 @@
 # PLAN
 
 ## Active task
-Refactor HALO ship platoon integration in PR 61 so that:
-- `allowed_platoons` is the only ship platoon selection surface.
-- active HALO ODST runtime no longer depends on legacy `/datum/squad/marine/odst`.
-- HALO marine roles stop expanding upstream global role lists.
-- IDE-only noise is removed from the branch.
+Implemented PR `#61` HALO UNSC/ODST refactor so active squads, platoons, and ship-side role logic now inherit from and conform to the `modular/squads` runtime, with legacy ODST compat removed.
 
-## Scope
-- `modular/squads/**` ship platoon resolver and HALO squad/job definitions.
-- Minimal integration points in `code/**` that still need to classify current-round HALO roles as marine-equivalent or shipside.
-- Unit tests for ship platoon override persistence, HALO role classification, and legacy ODST compatibility.
-- Branch cleanup for `.vscode/launch.json` and generated test artifacts.
+## Delivery status
+- [x] Task-state rewritten for the full PR `#61` scope.
+- [x] Obvious PR noise removed from the final worktree.
+- [x] HALO shared defines moved to `code/__DEFINES/bandamarines/halo_jobs.dm`.
+- [x] Legacy ODST compat datums, landmarks, file includes, and string contracts removed.
+- [x] `marine_standart.dm` renamed to `marine_standard.dm`.
+- [x] Dead `auto_squad_name_unsc` preset routing removed.
+- [x] `modular/squads` remains the owner of active HALO platoon profiles, jobs, squads, lockers, and ship-role helpers.
+- [x] Shared consumers in `code/**` now use `RoleAuthority` helper APIs or canonical default-role mapping instead of HALO-specific role-list widening.
+- [x] HALO ship maps and tests synced to the final platoon contracts.
+- [x] HALO documentation refreshed to the no-legacy contract.
 
-## Out of scope
-- Unrelated dirty worktree changes outside this refactor.
-- New map content or `allowed_platoons` schema changes.
-- Gameplay balance changes unrelated to ship-platoon modularization.
-
-## Phases
-1. Remove dead `ship_platoon_override` path and keep platoon selection on ship config plus `next_ship.json`.
-2. Move active HALO ODST role mappings to namespaced HALO job paths and keep legacy ODST as compat-only wrappers.
-3. Revert upstream global role-list widening and add modular helpers for active marine-equivalent and shipside role classification.
-4. Add regression tests and run compile and diff verification.
-
-## Acceptance criteria
-- No runtime path uses `ship_platoon_override`.
-- Active ship platoon registry uses `/datum/squad/marine/halo/odst/alpha`, not legacy `/datum/squad/marine/odst`.
-- `ROLES_MARINES`, `ROLES_USCM`, `ROLES_SQUAD_ALL`, and `get_marine_jobs()` no longer include HALO-only expansions.
-- Shared UIs and counters still treat active HALO marine jobs as marine-equivalent through modular helpers.
-- `git diff --check` is clean.
-- `tools/build/build.bat dm --ci -DCIBUILDING -DANSICOLORS -Werror` succeeds.
+## Acceptance status
+- Passed: no runtime code or map path remains on legacy `/datum/squad/marine/odst`, non-namespaced ODST job paths, `SQUAD_ODST_2`, or `auto_squad_name_unsc`.
+- Passed: active HALO runtime uses only `/datum/squad/marine/halo/unsc/*`, `/datum/squad/marine/halo/odst/*`, and `/datum/job/marine/.../halo/{unsc,odst}`.
+- Passed: latejoin, preferences, lockers/vendors, manifest/datacore, who/end-round counters, and ship-role grouping resolve through `RoleAuthority` helpers or canonical default-role mapping.
+- Passed: HALO ship maps keep `allowed_platoons` as the only platoon-selection surface and use only active HALO platoon typepaths.
+- Passed with tooling caveat: `git diff --check`, main compile, all-maps compile, and maplint are clean; `tools/build/build dm-test` still returns a non-zero wrapper exit on Windows even when the produced `data/unit_tests.json` and `data/logs/ci/clean_run.lk` show a clean run.

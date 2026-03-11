@@ -566,8 +566,10 @@
 
 /datum/game_mode/colonialmarines/proc/add_current_round_status_to_end_results(special_round_status as text)
 	var/players = GLOB.clients
-	var/list/active_marine_roles = GLOB.RoleAuthority?.get_marine_equivalent_role_titles(TRUE) || GLOB.ROLES_MARINES
-	var/main_ship_faction = GLOB.RoleAuthority?.get_main_ship_faction() || FACTION_MARINE
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/list/active_marine_roles = role_authority ? role_authority.get_marine_equivalent_role_titles(TRUE) : GLOB.ROLES_MARINES
+	var/list/active_auxiliary_roles = role_authority ? role_authority.get_non_marine_shipside_role_titles(TRUE) : (GLOB.ROLES_USCM - GLOB.ROLES_MARINES)
+	var/main_ship_faction = role_authority?.get_main_ship_faction() || FACTION_MARINE
 	var/list/counted_humans = list(
 		"Squad Marines" = list(),
 		"Auxiliary Marines" = list(),
@@ -577,7 +579,7 @@
 	//organize our jobs in a readable and standard way
 	for(var/job in active_marine_roles)
 		counted_humans["Squad Marines"][job] = 0
-	for(var/job in GLOB.ROLES_USCM - GLOB.ROLES_MARINES)
+	for(var/job in active_auxiliary_roles)
 		counted_humans["Auxiliary Marines"][job] = 0
 	for(var/job in GLOB.ROLES_SPECIAL)
 		counted_humans["Non-Standard Humans"][job] = 0
@@ -598,7 +600,7 @@
 		if(player_client.mob && player_client.mob.stat != DEAD)
 			if(ishuman(player_client.mob))
 				if(player_client.mob.faction == main_ship_faction)
-					if((GLOB.RoleAuthority?.is_marine_equivalent_role(player_client.mob.job, TRUE)) || (player_client.mob.job in GLOB.ROLES_MARINES))
+					if(role_authority ? role_authority.is_marine_equivalent_role(player_client.mob.job, TRUE) : (player_client.mob.job in GLOB.ROLES_MARINES))
 						counted_humans["Squad Marines"][player_client.mob.job]++
 					else
 						counted_humans["Auxiliary Marines"][player_client.mob.job]++

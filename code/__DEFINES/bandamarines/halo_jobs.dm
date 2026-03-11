@@ -1,7 +1,6 @@
-// SS220 EDIT: HALO squad and role string contracts shared by code/** and modular/halo.
-// This file lives in top-level code/__DEFINES so DME include ordering stays validator-compliant while mode.dm can consume these macros early.
+// Shared HALO squad and role string contracts consumed by code/** and modular/**.
+// This file lives in code/__DEFINES/bandamarines so it can still be included before mode.dm.
 #define SQUAD_ODST "The Ferrymen"
-#define SQUAD_ODST_2 "The Ferrymen Sq. 2"
 
 #define JOB_SQUAD_MARINE_ODST "ODST Rifleman"
 #define JOB_SQUAD_SPECIALIST_ODST "ODST Weapons Specialist"

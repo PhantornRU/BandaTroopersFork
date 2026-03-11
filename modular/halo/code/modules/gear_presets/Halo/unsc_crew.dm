@@ -4,8 +4,6 @@
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
 	idtype = /obj/item/card/id/dogtag
-	var/auto_squad_name_unsc
-	var/ert_squad_halo = FALSE
 
 /datum/equipment_preset/unsc_crew/load_name(mob/living/carbon/human/new_human, randomise)
 	new_human.gender = pick(MALE, FEMALE)

@@ -229,6 +229,18 @@
 
 	return role_titles
 
+/datum/authority/branch/role/proc/get_non_marine_shipside_role_titles(active_only = FALSE)
+	var/list/role_titles = get_shipside_role_titles(active_only)
+	if(!islist(role_titles))
+		return active_only ? list() : (GLOB.ROLES_USCM - GLOB.ROLES_MARINES)
+
+	var/list/non_marine_titles = role_titles.Copy()
+	var/list/marine_titles = get_marine_equivalent_role_titles(active_only)
+	if(islist(marine_titles) && length(marine_titles))
+		non_marine_titles -= marine_titles
+
+	return non_marine_titles
+
 /datum/authority/branch/role/proc/filter_role_authority_squads_to_types(list/keep_types, conflict_only = FALSE)
 	if(!islist(keep_types) || !length(keep_types))
 		return FALSE

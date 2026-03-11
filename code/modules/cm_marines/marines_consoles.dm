@@ -318,7 +318,7 @@
 		)
 	else if(Check_WO())
 		// I am not sure about WOs departments so it may need adjustment
-		var/list/marine_department_jobs = GLOB.RoleAuthority?.get_marine_equivalent_role_titles(TRUE) || GLOB.ROLES_MARINES
+		var/list/marine_department_jobs = GLOB.RoleAuthority ? GLOB.RoleAuthority.get_marine_equivalent_role_titles(TRUE) : GLOB.ROLES_MARINES
 		departments = list(
 			CARDCON_DEPARTMENT_COMMAND = GLOB.ROLES_CIC & GLOB.ROLES_WO,
 			CARDCON_DEPARTMENT_AUXCOM = GLOB.ROLES_AUXIL_SUPPORT & GLOB.ROLES_WO,
@@ -330,7 +330,7 @@
 			CARDCON_DEPARTMENT_MARINE = marine_department_jobs
 		)
 	else
-		var/list/marine_department_jobs = GLOB.RoleAuthority?.get_marine_equivalent_role_titles(TRUE) || GLOB.ROLES_MARINES
+		var/list/marine_department_jobs = GLOB.RoleAuthority ? GLOB.RoleAuthority.get_marine_equivalent_role_titles(TRUE) : GLOB.ROLES_MARINES
 		departments = list(
 			CARDCON_DEPARTMENT_COMMAND = GLOB.ROLES_CIC - GLOB.ROLES_WO,
 			CARDCON_DEPARTMENT_AUXCOM = GLOB.ROLES_AUXIL_SUPPORT - GLOB.ROLES_WO,

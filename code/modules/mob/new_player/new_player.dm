@@ -321,6 +321,7 @@
 	var/positions = FALSE
 	var/position_dat = "Choose from the following open positions:<br>"
 	var/roles_show = FLAG_SHOW_ALL_JOBS
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 
 	for(var/i in GLOB.RoleAuthority.roles_for_mode)
 		var/datum/job/J = GLOB.RoleAuthority.roles_for_mode[i]
@@ -359,7 +360,7 @@
 			dat += "<hr>Medbay:<br>"
 			roles_show ^= FLAG_SHOW_MEDICAL
 
-		else if(roles_show & FLAG_SHOW_MARINES && ((GLOB.RoleAuthority?.is_marine_equivalent_role(J.title, TRUE)) || GLOB.ROLES_MARINES.Find(J.title)))
+		else if(roles_show & FLAG_SHOW_MARINES && (role_authority ? role_authority.is_marine_equivalent_role(J.title, TRUE) : GLOB.ROLES_MARINES.Find(J.title)))
 			dat += "<hr>Marines:<br>"
 			roles_show ^= FLAG_SHOW_MARINES
 
