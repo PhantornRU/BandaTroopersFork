@@ -586,7 +586,7 @@
 			if("Medicaldept")
 				joblist += get_job_titles_from_list(GLOB.ROLES_MEDICAL)
 			if("Marinesdept")
-				joblist += get_job_titles_from_list(GLOB.ROLES_MARINES)
+				joblist += get_job_titles_from_list(GLOB.RoleAuthority?.get_marine_equivalent_role_titles() || GLOB.ROLES_MARINES)
 			if("Miscdept")
 				joblist += get_job_titles_from_list(GLOB.ROLES_MISC)
 			if("Xenosdept")

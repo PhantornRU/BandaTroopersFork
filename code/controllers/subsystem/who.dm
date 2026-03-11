@@ -117,9 +117,10 @@ SUBSYSTEM_DEF(who)
 							counted_additional["humans"]++
 							if(client_mob.status_flags & XENO_HOST)
 								counted_additional["infected_humans"]++
-							if(client_mob.faction == FACTION_MARINE)
+							var/main_ship_faction = GLOB.RoleAuthority?.get_main_ship_faction() || FACTION_MARINE
+							if(client_mob.faction == main_ship_faction)
 								counted_additional["uscm"]++
-								if(client_mob.job in (GLOB.ROLES_MARINES))
+								if((GLOB.RoleAuthority?.is_marine_equivalent_role(client_mob.job, TRUE)) || (client_mob.job in GLOB.ROLES_MARINES))
 									counted_additional["uscm_marines"]++
 							else
 								counted_factions[client_mob.faction]++

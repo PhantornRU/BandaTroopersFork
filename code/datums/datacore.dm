@@ -29,9 +29,10 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 	var/list/eng = GLOB.ROLES_ENGINEERING.Copy()
 	var/list/req = GLOB.ROLES_REQUISITION.Copy()
 	var/list/med = GLOB.ROLES_MEDICAL.Copy()
+	var/list/active_marine_roles = GLOB.RoleAuthority?.get_marine_equivalent_role_titles(TRUE) || GLOB.ROLES_MARINES
 	var/list/marines_by_squad = GLOB.ROLES_SQUAD_ALL.Copy()
 	for(var/squad_name in marines_by_squad)
-		marines_by_squad[squad_name] = GLOB.ROLES_MARINES.Copy()
+		marines_by_squad[squad_name] = active_marine_roles.Copy()
 	var/list/isactive = new()
 
 // If we need not the HTML table, but list
@@ -162,7 +163,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 		else if(real_rank in GLOB.ROLES_MEDICAL)
 			dept_flags |= FLAG_SHOW_MEDICAL
 			LAZYSET(med[real_rank], name, rank)
-		else if(real_rank in GLOB.ROLES_MARINES)
+		else if((GLOB.RoleAuthority?.is_marine_equivalent_role(real_rank, TRUE)) || (real_rank in GLOB.ROLES_MARINES))
 			if(isnull(squad_name))
 				continue
 			// SS220 EDIT - START
@@ -252,7 +253,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 		if(!nosleep)
 			sleep(40)
 
-		var/list/jobs_to_check = GLOB.ROLES_CIC + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_POLICE + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + GLOB.ROLES_MARINES
+		var/list/jobs_to_check = GLOB.ROLES_CIC + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_POLICE + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + (GLOB.RoleAuthority?.get_marine_equivalent_role_titles(TRUE) || GLOB.ROLES_MARINES)
 		for(var/mob/living/carbon/human/H as anything in GLOB.human_mob_list)
 			if(should_block_game_interaction(H))
 				continue

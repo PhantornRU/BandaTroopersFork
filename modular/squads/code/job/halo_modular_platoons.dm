@@ -38,6 +38,67 @@
 	gear_preset = /datum/equipment_preset/unsc/spec
 	gear_preset_secondary = /datum/equipment_preset/unsc/spec/lesser_rank
 
+/datum/job/marine/standard/ai/halo/odst
+	title = JOB_SQUAD_MARINE_ODST
+	gear_preset = /datum/equipment_preset/unsc/pfc/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/pfc/odst/lesser_rank
+	job_options = list(PFC_VARIANT = "LCPL", PVT_VARIANT = "PFC")
+
+/datum/job/marine/standard/ai/rto/halo/odst
+	title = JOB_SQUAD_RTO_ODST
+	gear_preset = /datum/equipment_preset/unsc/rto/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/rto/odst/lesser_rank
+	job_options = list(PFC_VARIANT = "PFC", LCPL_VARIANT = "LCPL")
+
+/datum/job/marine/leader/ai/halo/odst
+	title = JOB_SQUAD_LEADER_ODST
+	gear_preset = /datum/equipment_preset/unsc/leader/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/leader/odst/lesser_rank
+
+/datum/job/marine/medic/ai/halo/odst
+	title = JOB_SQUAD_MEDIC_ODST
+	total_positions = 2
+	spawn_positions = 2
+	gear_preset = /datum/equipment_preset/unsc/medic/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/medic/odst/lesser_rank
+
+/datum/job/marine/tl/ai/halo/odst
+	title = JOB_SQUAD_TEAM_LEADER_ODST
+	total_positions = 2
+	spawn_positions = 2
+	gear_preset = /datum/equipment_preset/unsc/tl/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/tl/odst/lesser_rank
+
+/datum/job/marine/specialist/ai/halo/odst
+	title = JOB_SQUAD_SPECIALIST_ODST
+	total_positions = 2
+	spawn_positions = 2
+	gear_preset = /datum/equipment_preset/unsc/spec/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/spec/odst/lesser_rank
+
+/datum/authority/branch/role/New()
+	. = ..()
+	prefer_role_title_path(JOB_SQUAD_MARINE_UNSC, /datum/job/marine/standard/ai/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_RTO_UNSC, /datum/job/marine/standard/ai/rto/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_MEDIC_UNSC, /datum/job/marine/medic/ai/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_TEAM_LEADER_UNSC, /datum/job/marine/tl/ai/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_LEADER_UNSC, /datum/job/marine/leader/ai/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_SPECIALIST_UNSC, /datum/job/marine/specialist/ai/halo/unsc)
+	prefer_role_title_path(JOB_SQUAD_MARINE_ODST, /datum/job/marine/standard/ai/halo/odst)
+	prefer_role_title_path(JOB_SQUAD_RTO_ODST, /datum/job/marine/standard/ai/rto/halo/odst)
+	prefer_role_title_path(JOB_SQUAD_MEDIC_ODST, /datum/job/marine/medic/ai/halo/odst)
+	prefer_role_title_path(JOB_SQUAD_TEAM_LEADER_ODST, /datum/job/marine/tl/ai/halo/odst)
+	prefer_role_title_path(JOB_SQUAD_LEADER_ODST, /datum/job/marine/leader/ai/halo/odst)
+	prefer_role_title_path(JOB_SQUAD_SPECIALIST_ODST, /datum/job/marine/specialist/ai/halo/odst)
+
+/datum/authority/branch/role/proc/prefer_role_title_path(role_title, role_path)
+	if(!role_title || !role_path || !islist(roles_by_path) || !islist(roles_by_name))
+		return
+
+	var/datum/job/preferred_role = roles_by_path[role_path]
+	if(preferred_role)
+		roles_by_name[role_title] = preferred_role
+
 /datum/squad/marine/halo/unsc/alpha
 	parent_type = /datum/squad/marine/alpha
 	faction = FACTION_UNSC
@@ -231,12 +292,12 @@
 					/datum/squad/marine/halo/odst/delta,
 				),
 				"role_mappings" = list(
-					/datum/job/marine/standard/ai/odst = JOB_SQUAD_MARINE,
-					/datum/job/marine/standard/ai/rto/odst = JOB_SQUAD_RTO,
-					/datum/job/marine/medic/ai/odst = JOB_SQUAD_MEDIC,
-					/datum/job/marine/tl/ai/odst = JOB_SQUAD_TEAM_LEADER,
-					/datum/job/marine/leader/ai/odst = JOB_SQUAD_LEADER,
-					/datum/job/marine/specialist/ai/odst = JOB_SQUAD_SPECIALIST,
+					/datum/job/marine/standard/ai/halo/odst = JOB_SQUAD_MARINE,
+					/datum/job/marine/standard/ai/rto/halo/odst = JOB_SQUAD_RTO,
+					/datum/job/marine/medic/ai/halo/odst = JOB_SQUAD_MEDIC,
+					/datum/job/marine/tl/ai/halo/odst = JOB_SQUAD_TEAM_LEADER,
+					/datum/job/marine/leader/ai/halo/odst = JOB_SQUAD_LEADER,
+					/datum/job/marine/specialist/ai/halo/odst = JOB_SQUAD_SPECIALIST,
 				),
 				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND,
 				"lowpop_roles" = list(JOB_SO) + JOB_HALO_ODST_MARINES_LIST,

@@ -404,7 +404,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 /datum/authority/branch/role/proc/calculate_role_weight(datum/job/J)
 	if(!J)
 		return 0
-	if(GLOB.ROLES_MARINES.Find(J.title))
+	if(is_marine_equivalent_role(J.title, TRUE) || GLOB.ROLES_MARINES.Find(J.title))
 		return 1
 	if(GLOB.ROLES_XENO.Find(J.title))
 		return 1

@@ -359,7 +359,7 @@
 			dat += "<hr>Medbay:<br>"
 			roles_show ^= FLAG_SHOW_MEDICAL
 
-		else if(roles_show & FLAG_SHOW_MARINES && GLOB.ROLES_MARINES.Find(J.title))
+		else if(roles_show & FLAG_SHOW_MARINES && ((GLOB.RoleAuthority?.is_marine_equivalent_role(J.title, TRUE)) || GLOB.ROLES_MARINES.Find(J.title)))
 			dat += "<hr>Marines:<br>"
 			roles_show ^= FLAG_SHOW_MARINES
 

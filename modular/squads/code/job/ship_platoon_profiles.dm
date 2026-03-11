@@ -12,7 +12,6 @@
 		/datum/squad/marine/pmc/small,
 		/datum/squad/marine/forecon,
 		/datum/squad/marine/rmc,
-		/datum/squad/marine/odst,
 		/datum/squad/marine/halo/unsc/alpha,
 		/datum/squad/marine/halo/odst/alpha,
 	)
@@ -56,8 +55,6 @@
 				/datum/squad/marine/charlie,
 				/datum/squad/marine/delta,
 			)
-		if(/datum/squad/marine/odst)
-			profile["family_types"] = list(/datum/squad/marine/odst)
 
 	return profile
 
@@ -88,28 +85,7 @@
 
 	return "[platoon_type]"
 
-/datum/authority/branch/role/proc/get_ship_mode_platoon_override(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
-	if(istype(mode_datum) && !isnull(mode_datum.ship_platoon_override))
-		return mode_datum.ship_platoon_override
-
-	if(!mode_name)
-		return null
-
-	for(var/mode_type in subtypesof(/datum/game_mode))
-		var/datum/game_mode/mode = mode_type
-		if(initial(mode.config_tag) != mode_name)
-			continue
-		if(!isnull(initial(mode.ship_platoon_override)))
-			return initial(mode.ship_platoon_override)
-		break
-
-	return null
-
 /datum/authority/branch/role/proc/get_active_ship_platoon_type(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
-	var/platoon_override = get_ship_mode_platoon_override(mode_name, mode_datum)
-	if(platoon_override)
-		return platoon_override
-
 	var/platoon_type = MAIN_SHIP_PLATOON
 	if(platoon_type)
 		return platoon_type
@@ -166,7 +142,6 @@
 	var/list/conflicting_types = list()
 	for(var/platoon_type in list(
 		/datum/squad/marine/alpha,
-		/datum/squad/marine/odst,
 		/datum/squad/marine/halo/unsc/alpha,
 		/datum/squad/marine/halo/odst/alpha,
 	))
@@ -193,6 +168,66 @@
 		add_unique_ship_platoon_value(keep_types, extra_type)
 
 	return keep_types
+
+/datum/authority/branch/role/proc/get_main_ship_faction(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
+	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
+	if(!ispath(platoon_type, /datum/squad/marine))
+		return null
+
+	var/datum/squad/marine/platoon_datum = platoon_type
+	return initial(platoon_datum.faction)
+
+/datum/authority/branch/role/proc/get_role_bucket_title(job_or_title, active_only = FALSE)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return null
+
+	if(active_only)
+		return get_default_role_title(job_title)
+
+	return get_job_preference_bucket_key(job_title)
+
+/datum/authority/branch/role/proc/is_marine_equivalent_role(job_or_title, active_only = FALSE)
+	var/bucket_title = get_role_bucket_title(job_or_title, active_only)
+	return !!(bucket_title && GLOB.ROLES_MARINES.Find(bucket_title))
+
+/datum/authority/branch/role/proc/get_marine_equivalent_role_titles(active_only = FALSE)
+	var/list/role_titles = active_only ? list() : GLOB.ROLES_MARINES.Copy()
+	var/list/source_titles = active_only ? roles_for_mode : roles_by_name
+
+	if(!islist(source_titles) || !length(source_titles))
+		return role_titles
+
+	for(var/role_title in source_titles)
+		if(!is_marine_equivalent_role(role_title, active_only))
+			continue
+		add_unique_ship_platoon_value(role_titles, role_title)
+
+	return role_titles
+
+/datum/authority/branch/role/proc/is_shipside_role(job_or_title, active_only = FALSE)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return FALSE
+
+	if(GLOB.ROLES_USCM.Find(job_title))
+		return TRUE
+
+	return is_marine_equivalent_role(job_title, active_only)
+
+/datum/authority/branch/role/proc/get_shipside_role_titles(active_only = FALSE)
+	var/list/role_titles = active_only ? list() : GLOB.ROLES_USCM.Copy()
+	var/list/source_titles = active_only ? roles_for_mode : roles_by_name
+
+	if(!islist(source_titles) || !length(source_titles))
+		return role_titles
+
+	for(var/role_title in source_titles)
+		if(!is_shipside_role(role_title, active_only))
+			continue
+		add_unique_ship_platoon_value(role_titles, role_title)
+
+	return role_titles
 
 /datum/authority/branch/role/proc/filter_role_authority_squads_to_types(list/keep_types, conflict_only = FALSE)
 	if(!islist(keep_types) || !length(keep_types))

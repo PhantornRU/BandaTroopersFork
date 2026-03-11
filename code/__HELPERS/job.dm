@@ -60,5 +60,4 @@
 			JOB_WARDEN,
 			JOB_DI,
 			JOB_MARINE
-			// ) // SS220 EDIT: original helper ended here
-			) + JOB_HALO_MARINES_LIST // SS220 EDIT: append modular marine roles
+			)

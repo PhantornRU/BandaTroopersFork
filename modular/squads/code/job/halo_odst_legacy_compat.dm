@@ -1,40 +1,20 @@
 /datum/job/marine/standard/ai/odst
-	title = JOB_SQUAD_MARINE_ODST
-	gear_preset = /datum/equipment_preset/unsc/pfc/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/pfc/odst/lesser_rank
-	job_options = list(PFC_VARIANT = "LCPL", PVT_VARIANT = "PFC")
+	parent_type = /datum/job/marine/standard/ai/halo/odst
 
 /datum/job/marine/standard/ai/rto/odst
-	title = JOB_SQUAD_RTO_ODST
-	gear_preset = /datum/equipment_preset/unsc/rto/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/rto/odst/lesser_rank
-	job_options = list(PFC_VARIANT = "PFC", LCPL_VARIANT = "LCPL")
+	parent_type = /datum/job/marine/standard/ai/rto/halo/odst
 
 /datum/job/marine/leader/ai/odst
-	title = JOB_SQUAD_LEADER_ODST
-	gear_preset = /datum/equipment_preset/unsc/leader/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/leader/odst/lesser_rank
+	parent_type = /datum/job/marine/leader/ai/halo/odst
 
 /datum/job/marine/medic/ai/odst
-	title = JOB_SQUAD_MEDIC_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/medic/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/medic/odst/lesser_rank
+	parent_type = /datum/job/marine/medic/ai/halo/odst
 
 /datum/job/marine/tl/ai/odst
-	title = JOB_SQUAD_TEAM_LEADER_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/tl/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/tl/odst/lesser_rank
+	parent_type = /datum/job/marine/tl/ai/halo/odst
 
 /datum/job/marine/specialist/ai/odst
-	title = JOB_SQUAD_SPECIALIST_ODST
-	total_positions = 2
-	spawn_positions = 2
-	gear_preset = /datum/equipment_preset/unsc/spec/odst
-	gear_preset_secondary = /datum/equipment_preset/unsc/spec/odst/lesser_rank
+	parent_type = /datum/job/marine/specialist/ai/halo/odst
 
 /obj/effect/landmark/start/marine/odst
 	name = JOB_SQUAD_MARINE_ODST
