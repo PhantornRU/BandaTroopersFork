@@ -242,14 +242,30 @@
 	new_human.equip_to_slot_or_del(new belt_type(new_human), WEAR_WAIST)
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/add_needler_crystals(mob/living/carbon/human/new_human, count = 5)
-	for(var/i in 1 to count)
+	var/pouch_rounds = 0
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine/covenant(new_human), WEAR_R_STORE)
+	if(istype(new_human.r_store, /obj/item/storage/pouch/magazine/covenant))
+		pouch_rounds = min(count, 3)
+		for(var/i in 1 to pouch_rounds)
+			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/needler_crystal(new_human), WEAR_IN_R_STORE)
+
+	for(var/i in 1 to max(count - pouch_rounds, 0))
 		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/needler_crystal(new_human), WEAR_IN_BELT)
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/add_ai_injectors(mob/living/carbon/human/new_human, list/injector_paths)
-	var/list/pocket_slots = list(WEAR_L_STORE, WEAR_R_STORE)
-	for(var/i in 1 to min(length(injector_paths), length(pocket_slots)))
-		var/injector_path = injector_paths[i]
-		new_human.equip_to_slot_or_del(new injector_path(new_human), pocket_slots[i])
+	if(!length(injector_paths))
+		return
+
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid(new_human), WEAR_L_STORE)
+	if(!istype(new_human.l_store, /obj/item/storage/pouch/firstaid))
+		var/list/pocket_slots = list(WEAR_L_STORE, WEAR_R_STORE)
+		for(var/i in 1 to min(length(injector_paths), length(pocket_slots)))
+			var/injector_path = injector_paths[i]
+			new_human.equip_to_slot_or_del(new injector_path(new_human), pocket_slots[i])
+		return
+
+	for(var/injector_path in injector_paths)
+		new_human.equip_to_slot_or_del(new injector_path(new_human), WEAR_IN_L_STORE)
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/add_plasma_grenades(mob/living/carbon/human/new_human, count = 2)
 	for(var/i in 1 to count)
