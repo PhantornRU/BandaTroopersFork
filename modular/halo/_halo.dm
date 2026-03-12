@@ -1,7 +1,7 @@
 /datum/modpack/halo
 	name = "HALO"
 	desc = "Modular HALO content and integration hooks."
-	author = "BandaTroopers"
+	author = "CMSS13-PVE-HALO, PhantomRU"
 
 /datum/modpack/halo/initialize()
 	. = ..()

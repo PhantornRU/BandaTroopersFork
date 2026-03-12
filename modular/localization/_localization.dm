@@ -1,7 +1,7 @@
 /datum/modpack/localization
 	name = "Localization"
 	desc = "Modular localization hooks and localized Human AI speech packs."
-	author = "CMSS13-PVE-HALO, PhantomRU"
+	author = "PhantomRU"
 
 /datum/modpack/localization/initialize()
 	. = ..()
