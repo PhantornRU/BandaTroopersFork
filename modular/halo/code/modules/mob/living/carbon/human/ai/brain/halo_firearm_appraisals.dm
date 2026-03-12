@@ -7,7 +7,6 @@
 		/obj/item/weapon/gun/energy/plasma/plasma_pistol,
 	)
 	primary_weight = 2
-	match_priority = 50
 
 /datum/firearm_appraisal/halo_plasma_rifle
 	minimum_range = 2
@@ -18,7 +17,6 @@
 		/obj/item/weapon/gun/energy/plasma/plasma_rifle,
 	)
 	primary_weight = 5
-	match_priority = 50
 
 /datum/firearm_appraisal/halo_needler
 	minimum_range = 1
@@ -29,4 +27,3 @@
 		/obj/item/weapon/gun/smg/covenant_needler,
 	)
 	primary_weight = 4
-	match_priority = 50

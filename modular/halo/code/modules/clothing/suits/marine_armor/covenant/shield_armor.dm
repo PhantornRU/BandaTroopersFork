@@ -26,6 +26,7 @@
 	actions_types = list(/datum/action/item_action/toggle_shield)
 
 	var/mob/living/carbon/human/user
+	var/mob/living/carbon/human/shield_signal_owner
 
 // ------------------ PROCS ------------------
 
@@ -36,6 +37,66 @@
 	max_shield_strength = shield.max_shield_strength
 	recovery_time = shield.recovery_time
 	shield_regen_rate = ((max_shield_strength / recovery_time) * 0.5) * 10
+	addtimer(CALLBACK(src, PROC_REF(sync_projectile_damage_signal)), 0)
+
+/obj/item/clothing/suit/marine/shielded/Destroy()
+	STOP_PROCESSING(SSfastobj, src)
+	unregister_projectile_damage_signal()
+	user = null
+	return ..()
+
+/obj/item/clothing/suit/marine/shielded/equipped(mob/user, slot, silent)
+	. = ..()
+	sync_projectile_damage_signal()
+
+/obj/item/clothing/suit/marine/shielded/unequipped(mob/user, slot)
+	. = ..()
+	sync_projectile_damage_signal()
+
+/obj/item/clothing/suit/marine/shielded/proc/register_projectile_damage_signal(mob/living/carbon/human/target)
+	if(!istype(target) || shield_signal_owner == target)
+		return
+
+	unregister_projectile_damage_signal()
+	RegisterSignal(target, COMSIG_HUMAN_PROJECTILE_DAMAGE, PROC_REF(on_projectile_damage))
+	RegisterSignal(target, COMSIG_PARENT_QDELETING, PROC_REF(on_signal_owner_qdel))
+	shield_signal_owner = target
+
+/obj/item/clothing/suit/marine/shielded/proc/unregister_projectile_damage_signal()
+	if(!shield_signal_owner)
+		return
+
+	UnregisterSignal(shield_signal_owner, list(COMSIG_HUMAN_PROJECTILE_DAMAGE, COMSIG_PARENT_QDELETING))
+	shield_signal_owner = null
+	user = null
+
+/obj/item/clothing/suit/marine/shielded/proc/on_signal_owner_qdel(mob/living/carbon/human/source, force)
+	SIGNAL_HANDLER
+
+	unregister_projectile_damage_signal()
+
+/obj/item/clothing/suit/marine/shielded/proc/sync_projectile_damage_signal()
+	var/mob/living/carbon/human/current_user = src.loc
+	if(istype(current_user) && current_user.wear_suit == src)
+		register_projectile_damage_signal(current_user)
+		return
+
+	unregister_projectile_damage_signal()
+
+/obj/item/clothing/suit/marine/shielded/proc/on_projectile_damage(mob/living/carbon/human/target, list/projectile_damage_data)
+	SIGNAL_HANDLER
+
+	if(target != shield_signal_owner || target.wear_suit != src)
+		return
+
+	var/damage_taken = projectile_damage_data["damage_result"]
+	if(damage_taken <= 0)
+		return
+
+	damage_taken = take_damage(damage_taken, target)
+	projectile_damage_data["damage_result"] = damage_taken
+	if(damage_taken <= 0)
+		projectile_damage_data["cancel_bullet_act"] = TRUE
 
 /obj/item/clothing/suit/marine/shielded/proc/toggle_shield()
 	user = src.loc
@@ -66,23 +127,35 @@
 		return
 
 /obj/item/clothing/suit/marine/shielded/proc/take_damage(damage_taken, mob/living/carbon/human/user)
-	user = src.loc
-	if(ishuman(user))
-		if(damage_taken)
-			playsound(src, "shield_hit")
-			if(!shield_effect)
-				flick_overlay(user, image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', null, "+flicker"), 22)
-				user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
-				shield_effect = TRUE
-				addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 22)
-			var/obj/shield_hit_fx = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
-			shield_hit_fx.pixel_x = rand(-5, 5)
-			shield_hit_fx.pixel_y = rand(-16, 16)
-			shield_strength = max(shield_strength - damage_taken, 0)
-			COOLDOWN_START(src, time_to_regen, shield.time_to_regen)
-			if(shield_strength <= 0 && !shield_broken)
-				shield_pop(user)
-				shield_broken = TRUE
+	if(!ishuman(user))
+		user = src.loc
+	if(!ishuman(user) || damage_taken <= 0)
+		return max(damage_taken, 0)
+	if(!shield_enabled || shield_broken || shield_strength <= 0)
+		return damage_taken
+
+	playsound(src, "shield_hit")
+	if(!shield_effect)
+		var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
+		shield_flicker.dir = user.dir
+		flick_overlay(user, shield_flicker, 22)
+		user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
+		shield_effect = TRUE
+		addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 22)
+
+	var/obj/shield_hit_fx = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
+	shield_hit_fx.pixel_x = rand(-5, 5)
+	shield_hit_fx.pixel_y = rand(-16, 16)
+
+	var/absorbed_damage = min(damage_taken, shield_strength)
+	shield_strength = max(shield_strength - absorbed_damage, 0)
+	COOLDOWN_START(src, time_to_regen, shield.time_to_regen)
+
+	if(shield_strength <= 0 && !shield_broken)
+		shield_pop(user)
+		shield_broken = TRUE
+
+	return max(damage_taken - absorbed_damage, 0)
 
 
 /obj/item/clothing/suit/marine/shielded/proc/shield_pop(mob/living/carbon/human/user)
@@ -104,6 +177,7 @@
 	COOLDOWN_RESET(src, time_to_regen)
 
 /obj/item/clothing/suit/marine/shielded/process(delta_time)
+	sync_projectile_damage_signal()
 	user = src.loc
 	if(ishuman(user))
 		if(!shield_enabled)
@@ -130,7 +204,8 @@
 
 /obj/item/clothing/suit/marine/shielded/proc/remove_shield_effect()
 	user = src.loc
-	user.remove_filter("shield")
+	if(ishuman(user))
+		user.remove_filter("shield")
 	shield_effect = FALSE
 
 // ------------------ ARMOR ------------------
@@ -178,6 +253,7 @@
 	desc_lore = "Given a greater breadth of experience, Majors command both Minors of their own species, and all of the lesser rates as field officers."
 
 	icon_state = "sang_major"
+	item_state = "sang_major"
 
 	shield = SANG_SHIELD_MAJOR
 	armor_melee = CLOTHING_ARMOR_HIGHPLUS
@@ -197,6 +273,7 @@
 	desc_lore = "An Evocatii may of served over a century or more in the Covenant's forces, and provide critical advice and tactical experience to younger officers or those seeking council, though they excel most readily in direct combat, leading vicious charges and undertaking special taskings."
 
 	icon_state = "sang_ultra"
+	item_state = "sang_ultra"
 
 	shield = SANG_SHIELD_ULTRA
 	armor_melee = CLOTHING_ARMOR_VERYHIGH
@@ -216,6 +293,7 @@
 	desc_lore = "Be it leading troops directly in glorious combat, or securing Holy Relics in daring and softly spoken of operations, the bearer of this harness is not to be trifled with, let alone crossed."
 
 	icon_state = "sang_zealot"
+	item_state = "sang_zealot"
 
 	shield = SANG_SHIELD_ZEALOT
 	armor_melee = CLOTHING_ARMOR_ULTRAHIGH

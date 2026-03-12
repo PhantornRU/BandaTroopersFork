@@ -1017,6 +1017,21 @@
 			visible_message(SPAN_AVOIDHARM("[src]'s armor deflects [P]!"))
 			if(P.ammo.sound_armor) playsound(src, P.ammo.sound_armor, 50, 1)
 
+	// SS220 EDIT - START: give modular shield systems a mutable projectile-damage hook before human flesh damage is applied
+	var/list/projectile_damage_data = list(
+		"damage_result" = damage_result,
+		"ammo_flags" = ammo_flags,
+		"projectile" = P,
+		"organ" = organ,
+		"cancel_bullet_act" = FALSE,
+	)
+	SEND_SIGNAL(src, COMSIG_HUMAN_PROJECTILE_DAMAGE, projectile_damage_data)
+	damage_result = max(projectile_damage_data["damage_result"], 0)
+	if(projectile_damage_data["cancel_bullet_act"])
+		bullet_message(P)
+		return TRUE
+	// SS220 EDIT - END
+
 	if(P.ammo.debilitate && stat != DEAD && ( damage || ( ammo_flags & AMMO_IGNORE_RESIST) ) )  //They can't be dead and damage must be inflicted (or it's a xeno toxin).
 		//Predators and synths are immune to these effects to cut down on the stun spam. This should later be moved to their apply_effects proc, but right now they're just humans.
 		if(!isspeciesyautja(src) && !isspeciessynth(src))

@@ -24,6 +24,7 @@
 /obj/item/clothing/shoes/sangheili/major
 	name = "Sangheili Major combat boots"
 	icon_state = "sangboots_major"
+	item_state = "sangboots_major"
 
 	armor_melee = CLOTHING_ARMOR_HIGHPLUS
 	armor_bullet = CLOTHING_ARMOR_HIGHPLUS
@@ -33,6 +34,7 @@
 /obj/item/clothing/shoes/sangheili/ultra
 	name = "Sangheili Ultra combat boots"
 	icon_state = "sangboots_ultra"
+	item_state = "sangboots_ultra"
 
 	armor_melee = CLOTHING_ARMOR_VERYHIGH
 	armor_bullet = CLOTHING_ARMOR_VERYHIGH
@@ -42,6 +44,7 @@
 /obj/item/clothing/shoes/sangheili/zealot
 	name = "Sangheili Zealot combat boots"
 	icon_state = "sangboots_zealot"
+	item_state = "sangboots_zealot"
 
 	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
 	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH

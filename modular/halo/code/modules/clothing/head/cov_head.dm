@@ -28,6 +28,7 @@
 /obj/item/clothing/head/helmet/marine/sangheili/major
 	name = "\improper Sangheili Major helmet"
 	icon_state = "sanghelmet_major"
+	item_state = "sanghelmet_major"
 
 	armor_melee = CLOTHING_ARMOR_HIGHPLUS
 	armor_bullet = CLOTHING_ARMOR_HIGHPLUS
@@ -37,6 +38,7 @@
 /obj/item/clothing/head/helmet/marine/sangheili/ultra
 	name = "\improper Sangheili Ultra helmet"
 	icon_state = "sanghelmet_ultra"
+	item_state = "sanghelmet_ultra"
 
 	armor_melee = CLOTHING_ARMOR_VERYHIGH
 	armor_bullet = CLOTHING_ARMOR_VERYHIGH
@@ -46,6 +48,7 @@
 /obj/item/clothing/head/helmet/marine/sangheili/zealot
 	name = "\improper Sangheili Zealot helmet"
 	icon_state = "sanghelmet_zealot"
+	item_state = "sanghelmet_zealot"
 
 	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
 	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH

@@ -1,9 +1,21 @@
 GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firearm_appraisal_list())
 
+// SS220 EDIT - START: keep subtype-specific appraisals ahead of generic bases so modular HALO guns resolve correctly
+/proc/get_firearm_appraisal_specificity(datum/firearm_appraisal/appraisal)
+	var/max_specificity = 0
+	for(var/gun_type as anything in appraisal.gun_types)
+		max_specificity = max(max_specificity, length(splittext("[gun_type]", "/")))
+	return max_specificity
+
+/proc/cmp_firearm_appraisal_specificity(datum/firearm_appraisal/a, datum/firearm_appraisal/b)
+	return get_firearm_appraisal_specificity(b) - get_firearm_appraisal_specificity(a)
+// SS220 EDIT - END
+
 /proc/build_firearm_appraisal_list()
 	. = list()
 	for(var/type in subtypesof(/datum/firearm_appraisal))
 		. += new type
+	. = sortTim(., GLOBAL_PROC_REF(cmp_firearm_appraisal_specificity)) // SS220 EDIT: prefer most-specific firearm appraisal matches before generic weapon families
 
 /proc/get_firearm_appraisal(obj/item/weapon/gun/firearm)
 	for(var/datum/firearm_appraisal/appraisal as anything in GLOB.firearm_appraisals)

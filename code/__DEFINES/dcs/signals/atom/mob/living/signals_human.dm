@@ -12,6 +12,8 @@
 #define COMSIG_HUMAN_REVIVED "human_revived"
 /// From /mob/living/carbon/human/bullet_act
 #define COMSIG_HUMAN_PRE_BULLET_ACT "human_pre_bullet_act"
+/// From /mob/living/carbon/human/bullet_act(): (list/projectile_damage_data)
+#define COMSIG_HUMAN_PROJECTILE_DAMAGE "human_projectile_damage" // SS220 EDIT: mutable pre-apply projectile damage hook for modular shield systems
 /// From /mob/living/carbon/human/bullet_act(): (damage_result, ammo_flags, obj/projectile/P)
 #define COMSIG_HUMAN_BULLET_ACT "human_bullet_act"
 	#define COMPONENT_CANCEL_BULLET_ACT (1<<0)
