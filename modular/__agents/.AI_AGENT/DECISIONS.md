@@ -1,29 +1,25 @@
 # DECISIONS
 
-## D-001: HALO platoon runtime is owned by `modular/squads`
-- Decision: active HALO UNSC/ODST platoon profiles, squad/job datums, lockers, and ship-role helper APIs live in `modular/squads`.
-- Why: this matches the repository's modular split and prevents a second HALO-owned squad runtime.
+## D-001: Keep HALO runtime ownership split from the PR #61 refactor
+- Decision: `modular/halo/**` continues to own HALO content and map support, while `modular/squads/**` continues to own active HALO platoons, squads, jobs, and ship-role helpers.
+- Why: the upstream sync must land on top of the modular SQUADS architecture instead of partially reverting it.
 
-## D-002: Legacy ODST compat is removed in the same wave
-- Decision: delete legacy `/datum/squad/marine/odst`, legacy ODST job paths, compat landmarks, and supporting tests/docs instead of keeping wrappers.
-- Why: the task explicitly requires full cleanup, and dual runtime surfaces keep the refactor incomplete.
+## D-002: Port new HALO runtime/content into modular paths first
+- Decision: new weapons, visuals, ODST pods, and other HALO-specific runtime content are landed in `modular/halo/**`, with only the smallest required glue left in `code/**`.
+- Why: this keeps the sync modular-first and avoids leaking HALO business logic back into upstream-owned paths.
 
-## D-003: HALO public string contracts stay stable but move to bandamarines defines
-- Decision: preserve existing HALO job-title and platoon-label strings, but move the shared macros to `code/__DEFINES/bandamarines/halo_jobs.dm`.
-- Why: these are stable cross-layer contracts and should live in the upstream define surface reserved for shared SS220 identifiers.
+## D-003: Do not resurrect legacy ODST landmark or squad paths
+- Decision: upstream map references such as `/obj/effect/landmark/late_join/odst`, `/obj/effect/landmark/start/marine/*/odst`, and the old single-squad ODST runtime are not restored.
+- Why: the repository already removed that legacy surface; the correct fix is to migrate HALO maps to the current SQUADS-compatible landmark contract.
 
-## D-004: `RoleAuthority` is the only ship-side HALO API for shared consumers
-- Decision: latejoin, preferences, vendor/locker gating, manifest/datacore, HUD/counters, and ship profile UI use `RoleAuthority` helpers and default-role mapping instead of widening upstream role lists or branching on HALO strings.
-- Why: shared consumers still need correct HALO behavior, but the integration point must stay narrow and reusable.
+## D-004: Keep HALO ship JSON on HALO platoon families
+- Decision: local HALO ship JSON files keep `/datum/squad/marine/halo/{unsc,odst}/alpha` and optional `allowed_platoons` instead of taking upstream's fallback to generic or legacy squad paths.
+- Why: the local runtime now selects HALO platoons through ship profiles and `allowed_platoons`, so the JSON must stay aligned with that contract.
 
-## D-005: `allowed_platoons` remains the only ship platoon selection surface
-- Decision: HALO ship maps continue to resolve platoon choice from ship JSON `platoon` plus optional `allowed_platoons` admin override persisted in `data/next_ship.json`.
-- Why: this is already the data-driven selection surface and does not need an additional runtime override path.
+## D-005: Keep the local drop pod reservation fix
+- Decision: the local ODST pod port requests `/datum/turf_reservation/transit/drop_pod` and releases the reservation after landing.
+- Why: upstream was not using its own reservation subtype and leaked the reservation object after drop completion.
 
-## D-006: PR cleanup removes only non-deliverable noise
-- Decision: strip obvious IDE/UI/noise changes that do not support HALO ship runtime, HALO maps, or verification, but keep map-critical HALO content required by the ship maps.
-- Why: the PR must be cleaner, but map-supporting HALO content still belongs to the same delivery.
-
-## D-007: Windows `dm-test` wrapper noise does not redefine the HALO refactor result
-- Decision: treat the current non-zero `tools/build/build dm-test` wrapper exit on Windows as a tooling caveat, not as evidence of failing HALO runtime tests, when `data/unit_tests.json` and `data/logs/ci/clean_run.lk` are both clean for the same run.
-- Why: the produced unit-test artifacts show a successful suite, including the HALO ship platoon tests, and the failure appears in the wrapper layer rather than in the runtime or test logic.
+## D-006: Accept the current Windows `dm-test` wrapper caveat
+- Decision: treat a non-zero `tools/build/build dm-test` wrapper exit as a tooling caveat, not a runtime failure, when the matching `data/unit_tests.json` and `data/logs/ci/clean_run.lk` both show a clean run.
+- Why: the generated artifacts are the reliable signal for this environment, and they show the suite passing after the HALO sync.

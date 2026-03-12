@@ -1,32 +1,42 @@
 # EVIDENCE
 
-## E-001: Legacy ODST compat runtime was removed
-- `modular/squads/_squads.dme` no longer includes `code/job/halo_odst_legacy_compat.dm`.
-- `modular/squads/code/job/halo_odst_legacy_compat.dm` was deleted.
-- `modular/squads/code/job/marine/squad/marine_standard.dm` replaced the legacy typo-named `marine_standart.dm`.
-- `code/modules/unit_tests/halo_ship_platoons.dm` now asserts that only namespaced HALO ODST runtime paths remain loadable.
+## E-001: Upstream delta was mapped before editing
+- Previous HALO pin in `HALO_PORT_STATE.md`: `7e498b805686ab870ddcfaa3cdf348103c0e3f51`.
+- Current upstream head used for sync: `95a84ab9f59f9118e5543f664b2793e7a1841c55`.
+- Runtime/content commits in the delta included the weapons and fixes wave, ODST pods, elite shield sprite/effects, and follow-up HALO fixes.
 
-## E-002: Shared HALO contracts were moved to the bandamarines define surface
-- `colonialmarines.dme` now includes `code/__DEFINES/bandamarines/halo_jobs.dm` before `code/__DEFINES/mode.dm`.
-- `code/__DEFINES/halo_jobs.dm` was deleted.
-- `code/__DEFINES/bandamarines/halo_jobs.dm` preserves the public HALO job and platoon macros while dropping `SQUAD_ODST_2`.
+## E-002: HALO weapons, visuals, and assets were ported into modular HALO
+- Updated or added HALO runtime/content files include:
+- `modular/halo/code/modules/projectiles/guns/halo/{unsc_guns,unsc_magazines,unsc_gun_attachables,cov_guns,cov_melee,spnkr}.dm`
+- `modular/halo/code/datums/ammo/bullet/halo_unsc_ammo.dm`
+- `modular/halo/code/mixed/effects/halo_temp_visuals.dm`
+- `modular/halo/code/modules/clothing/suits/marine_armor/covenant/{shield_armor,unggoy}.dm`
+- `modular/halo/code/modules/mob/living/carbon/human/species/halo/{sangheili/unggoy}/*.dm`
+- HALO sounds, onmob icons, weapon icons, lineart, mouse pointers, and drop pod assets were copied from upstream where required.
 
-## E-003: HALO presets no longer bypass SQUADS ownership through string routing
-- `modular/halo/code/modules/gear_presets/Halo/unsc_marines.dm` no longer declares `auto_squad_name_unsc`, `ert_squad_halo`, or a `get_squad_by_name(...)` assignment path.
-- `modular/halo/code/modules/gear_presets/Halo/unsc_crew.dm` no longer carries `auto_squad_name_unsc`.
+## E-003: ODST drop pods were ported with modular support layers
+- Added `modular/halo/code/__DEFINES/halo_pod.dm`.
+- Added `modular/halo/code/modules/admin/game_master/drop_pod_menu.dm`.
+- Added `modular/halo/code/modules/halo_drop_pod/drop_pod.dm`.
+- Added `modular/halo/code/mixed/compat/halo_droppod_support.dm`.
+- Added `tgui/packages/tgui/interfaces/GameMasterDroppodMenu.jsx`.
+- Minimal glue was added in `code/game/sound.dm`, `code/modules/admin/{admin_verbs,topic/topic}.dm`, and `code/modules/mob/living/living_verbs.dm`.
 
-## E-004: Shared ship-side consumers now resolve through `RoleAuthority`
-- `modular/squads/code/job/ship_platoon_profiles.dm` now exposes `get_non_marine_shipside_role_titles(active_only = FALSE)` beside the existing HALO ship-profile helpers.
-- Shared consumers were moved onto helper-based role classification in `code/controllers/subsystem/who.dm`, `code/datums/datacore.dm`, `code/game/gamemodes/cm_initialize.dm`, `code/game/gamemodes/extended/extended.dm`, `code/game/gamemodes/extended/infection.dm`, `code/game/gamemodes/colonialmarines/colonialmarines.dm`, `code/game/jobs/role_authority.dm`, `code/modules/admin/banjob.dm`, `code/modules/admin/topic/topic.dm`, `code/modules/cm_marines/marines_consoles.dm`, `code/modules/mob/living/carbon/human/human.dm`, and `code/modules/mob/new_player/new_player.dm`.
+## E-004: The HALO map sync was adapted to the local SQUADS contract
+- `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm` and `maps/map_files/unsc_dark_was_the_night_odst/unsc_dark_was_the_night_odst.dmm` were synced from upstream.
+- `maps/map_files/unsc_dark_was_the_night_odst/unsc_dark_was_the_night_odst.dmm` was then migrated off removed legacy ODST landmark typepaths onto current `alpha` marine landmarks.
+- `modular/halo/code/mixed/structures/halo_gun_racks.dm` gained MA5B rack paths required by the synced maps.
+- `modular/halo/code/mixed/ammo_boxes/halo_unsc_boxes.dm` gained MA5B ammo-box paths required by the synced maps.
 
-## E-005: HALO ship docs and tests now enforce the no-legacy contract
-- `modular/halo/__docs/HALO_PORT_STATE.md` documents the final runtime ownership split and namespaced HALO squad/job paths.
-- `code/modules/unit_tests/halo_ship_platoons.dm` now checks allowed-platoon flow, shipside-role classification, preview/preference resolution, and the absence of legacy ODST runtime paths.
+## E-005: Existing user local changes were preserved
+- `modular/squads/code/job/halo_modular_platoons.dm` already had local label edits and was not overwritten.
+- `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm` already had local map edits and was not overwritten.
 
-## E-006: Verification completed on March 12, 2026
-- `git diff --check` completed clean.
-- Static legacy search across runtime code and maps was re-run with legacy doc/task-state paths excluded; no runtime or map matches remained for `/datum/squad/marine/odst`, `SQUAD_ODST_2`, `auto_squad_name_unsc`, or `halo_odst_legacy_compat`.
-- `tools/build/build dm --ci -DCIBUILDING -DANSICOLORS -Werror` completed clean.
-- `tools/build/build dm --ci -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE` and `tools/build/build dm --ci -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA` completed clean after the HALO map fixes.
-- Maplint completed clean for `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm`, `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm`, and `maps/map_files/unsc_dark_was_the_night_odst/unsc_dark_was_the_night_odst.dmm`.
-- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror` still returned a non-zero Windows wrapper exit, but the latest `data/unit_tests.json` and `data/logs/ci/clean_run.lk` produced on March 12, 2026 showed all unit tests green, including the HALO ship platoon suite.
+## E-006: Verification completed on 2026-03-12
+- `git diff --check`: clean.
+- Clean-tree verification ran in `C:\Users\Alexey\Documents\GitHub\_tmp_bt_halo_buildcheck2`.
+- `tools/build/build dm --ci -DCIBUILDING -DANSICOLORS -Werror`: passed.
+- `tools/build/build dm --ci -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE`: passed.
+- `tools/build/build dm --ci -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA`: passed.
+- `tools/bootstrap/python -m maplint.source ...` with `PYTHONPATH=tools`: passed for all three HALO ship maps.
+- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror` still returned a non-zero Windows wrapper exit, but the latest `data/unit_tests.json` showed all listed tests at `status: 0` and `data/logs/ci/clean_run.lk` contained `Success!`.

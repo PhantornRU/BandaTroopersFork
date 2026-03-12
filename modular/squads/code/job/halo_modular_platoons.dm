@@ -274,7 +274,7 @@
 				),
 				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_UNSC_MARINES_LIST + GLOB.ROLES_GROUND,
 				"lowpop_roles" = list(JOB_SO) + JOB_HALO_UNSC_MARINES_LIST,
-				"platoon_label" = "7th RECOM Div. \"Rock Hoppers\"",
+				"platoon_label" = "UNSC - Marine Troopers \"War Hogs\"",
 				"manifest_picture" = /atom/movable/screen/text/screen_text/picture/starting/unsc,
 				"intro_picture" = /atom/movable/screen/text/screen_text/picture/dark_was_the_night,
 			)
@@ -301,7 +301,7 @@
 				),
 				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND,
 				"lowpop_roles" = list(JOB_SO) + JOB_HALO_ODST_MARINES_LIST,
-				"platoon_label" = "33rd Drop Jet Batt. \"The Ferrymen\"",
+				"platoon_label" = "ODST - 7th Shock Troops Battalion. \"War Cogs\"",
 				"manifest_picture" = /atom/movable/screen/text/screen_text/picture/starting/odst,
 				"intro_picture" = /atom/movable/screen/text/screen_text/picture/dark_was_the_night,
 			)

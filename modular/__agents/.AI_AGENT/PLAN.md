@@ -1,23 +1,19 @@
 # PLAN
 
 ## Active task
-Implemented PR `#61` HALO UNSC/ODST refactor so active squads, platoons, and ship-side role logic now inherit from and conform to the `modular/squads` runtime, with legacy ODST compat removed.
+Update `modular/halo` from upstream `cmss13-pve-halo` and port the missing runtime/content delta on top of the already-finished HALO SQUADS refactor.
 
 ## Delivery status
-- [x] Task-state rewritten for the full PR `#61` scope.
-- [x] Obvious PR noise removed from the final worktree.
-- [x] HALO shared defines moved to `code/__DEFINES/bandamarines/halo_jobs.dm`.
-- [x] Legacy ODST compat datums, landmarks, file includes, and string contracts removed.
-- [x] `marine_standart.dm` renamed to `marine_standard.dm`.
-- [x] Dead `auto_squad_name_unsc` preset routing removed.
-- [x] `modular/squads` remains the owner of active HALO platoon profiles, jobs, squads, lockers, and ship-role helpers.
-- [x] Shared consumers in `code/**` now use `RoleAuthority` helper APIs or canonical default-role mapping instead of HALO-specific role-list widening.
-- [x] HALO ship maps and tests synced to the final platoon contracts.
-- [x] HALO documentation refreshed to the no-legacy contract.
+- [x] Rewrite task-state for the HALO upstream sync scope.
+- [x] Map the upstream delta from `7e498b805686ab870ddcfaa3cdf348103c0e3f51` to `95a84ab9f59f9118e5543f664b2793e7a1841c55`.
+- [x] Port the HALO weapons, ammo, assets, temporary visuals, and shield-effects wave into `modular/halo`.
+- [x] Port ODST drop pods into `modular/halo` with modular compat support and minimal glue in `code/**`.
+- [x] Sync the `dark_was_the_night` HALO maps to the new content without reintroducing legacy ODST runtime paths.
+- [x] Add the missing modular MA5B gun rack and ammo box types required by the upstream map content.
+- [x] Refresh `HALO_PORT_STATE.md` and agent-state files to the new baseline.
+- [x] Preserve existing user local changes in `modular/squads/code/job/halo_modular_platoons.dm` and `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm`.
 
 ## Acceptance status
-- Passed: no runtime code or map path remains on legacy `/datum/squad/marine/odst`, non-namespaced ODST job paths, `SQUAD_ODST_2`, or `auto_squad_name_unsc`.
-- Passed: active HALO runtime uses only `/datum/squad/marine/halo/unsc/*`, `/datum/squad/marine/halo/odst/*`, and `/datum/job/marine/.../halo/{unsc,odst}`.
-- Passed: latejoin, preferences, lockers/vendors, manifest/datacore, who/end-round counters, and ship-role grouping resolve through `RoleAuthority` helpers or canonical default-role mapping.
-- Passed: HALO ship maps keep `allowed_platoons` as the only platoon-selection surface and use only active HALO platoon typepaths.
-- Passed with tooling caveat: `git diff --check`, main compile, all-maps compile, and maplint are clean; `tools/build/build dm-test` still returns a non-zero wrapper exit on Windows even when the produced `data/unit_tests.json` and `data/logs/ci/clean_run.lk` show a clean run.
+- Passed: HALO compile, all-maps compile, and maplint are clean after the sync.
+- Passed: `data/unit_tests.json` and `data/logs/ci/clean_run.lk` from the latest `dm-test` run are clean, including the HALO ship platoon suite.
+- Passed with tooling caveat: the Windows `tools/build/build dm-test` wrapper still exits non-zero even when the produced test artifacts are clean.
