@@ -231,33 +231,6 @@
 	icon_state = "pistolmag_large"
 	storage_slots = 6
 
-/obj/item/storage/pouch/magazine/covenant
-	name = "\improper Covenant ammunition pouch"
-	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
-	can_hold = list(
-		/obj/item/attachable/bayonet,
-		/obj/item/device/flashlight/flare,
-		/obj/item/ammo_magazine/rifle,
-		/obj/item/ammo_magazine/smg,
-		/obj/item/ammo_magazine/pistol,
-		/obj/item/ammo_magazine/revolver,
-		/obj/item/ammo_magazine/sniper,
-		/obj/item/ammo_magazine/handful,
-		/obj/item/explosive/grenade,
-		/obj/item/explosive/mine,
-		/obj/item/reagent_container/food/snacks,
-		/obj/item/ammo_magazine/plasma,
-		/obj/item/ammo_magazine/needler_crystal,
-		/obj/item/ammo_magazine/carbine,
-	)
-	bypass_w_limit = list(
-		/obj/item/ammo_magazine/rifle,
-		/obj/item/ammo_magazine/smg,
-		/obj/item/ammo_magazine/plasma,
-		/obj/item/ammo_magazine/needler_crystal,
-		/obj/item/ammo_magazine/carbine,
-	)
-
 //======================
 // BACKPACKS
 //======================
@@ -415,6 +388,7 @@
 		/obj/item/explosive/grenade,
 		/obj/item/explosive/mine,
 		/obj/item/reagent_container/food/snacks,
+		/obj/item/reagent_container/hypospray/autoinjector,
 		/obj/item/ammo_magazine/needler_crystal,
 		/obj/item/ammo_magazine/carbine,
 	)

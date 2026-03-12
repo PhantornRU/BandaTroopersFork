@@ -82,6 +82,20 @@
 		var/turf/locker_turf = get_turf(locker)
 		if(isfloorturf(locker_turf) && is_mainship_level(locker_turf.z))
 			return locker_turf
+
+	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in GLOB.personal_closets)
+		var/turf/locker_turf = get_turf(locker)
+		if(isfloorturf(locker_turf) && is_mainship_level(locker_turf.z))
+			return locker_turf
+
+	var/turf/mainship_center = SSmapping?.get_mainship_center()
+	if(mainship_center && is_mainship_level(mainship_center.z))
+		return mainship_center
+
+	var/list/mainship_levels = SSmapping?.levels_by_trait(ZTRAIT_MARINE_MAIN_SHIP)
+	if(length(mainship_levels))
+		return locate(1, 1, mainship_levels[1])
+
 	return null
 
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
