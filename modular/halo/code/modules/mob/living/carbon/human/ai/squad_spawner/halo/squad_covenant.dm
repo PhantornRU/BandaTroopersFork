@@ -34,11 +34,12 @@
 
 /datum/human_ai_squad_preset/covenant/unggoy_heavy_team
 	name = "Unggoy Heavy Team"
-	desc = "A compact heavy-weapons team built around plasma rifle and needler heavies."
+	desc = "A veteran heavy-support team led by an Ultra with plasma rifle and needler heavies."
 	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_needler = 1,
-		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
+		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 1,
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_support_team
@@ -51,12 +52,13 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_at_team
-	name = "Unggoy AT Team"
-	desc = "A temporary anti-tank team with one disposable launcher bearer, one heavy plasma escort and line support."
+	name = "Unggoy Breach Team"
+	desc = "A veteran breach team built around an Ultra leader, heavy support and a medical attendant."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/unggoy/ai/anti_tank_temp = 1,
+		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
-		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
+		/datum/equipment_preset/covenant/unggoy/ai/support_medical = 1,
+		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 1,
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_specops_cell
@@ -100,11 +102,11 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/covenant_at_lance
-	name = "Covenant AT Lance"
-	desc = "A mixed anti-armor lance with a zealot commander, one temporary AT bearer, support and line screens."
+	name = "Covenant Breach Lance"
+	desc = "A mixed breach lance with a zealot commander, veteran Ultra support and heavy plasma screens."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/zealot_command = 1,
-		/datum/equipment_preset/covenant/unggoy/ai/anti_tank_temp = 1,
+		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/support_medical = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,

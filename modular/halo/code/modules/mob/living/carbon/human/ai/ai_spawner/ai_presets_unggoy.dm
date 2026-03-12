@@ -31,10 +31,10 @@
 	desc = "Heavy combat harness, needler with spare crystals and pain/burn treatment injectors."
 	path = /datum/equipment_preset/covenant/unggoy/ai/heavy_needler
 
-/datum/human_ai_equipment_preset/covenant/unggoy/anti_tank_temp
-	name = "Unggoy Heavy (Temporary AT)"
-	desc = "Temporary anti-tank Unggoy using a disposable launcher plus emergency combat injectors."
-	path = /datum/equipment_preset/covenant/unggoy/ai/anti_tank_temp
+/datum/human_ai_equipment_preset/covenant/unggoy/ultra
+	name = "Unggoy Ultra"
+	desc = "Veteran Ultra harness, plasma rifle and command-grade combat injectors."
+	path = /datum/equipment_preset/covenant/unggoy/ai/ultra
 
 /datum/human_ai_equipment_preset/covenant/unggoy/support_medical
 	name = "Unggoy Support (Medical)"
