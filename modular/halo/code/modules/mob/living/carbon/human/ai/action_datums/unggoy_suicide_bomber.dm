@@ -109,13 +109,45 @@
 			second_grenade = null
 		tied_human.swap_hand()
 
-	first_grenade.attack_self(tied_human)
+	if(!prime_grenade_no_sleep(first_grenade, tied_human))
+		return FALSE
 	if(second_grenade)
-		second_grenade.attack_self(tied_human)
+		prime_grenade_no_sleep(second_grenade, tied_human)
 	if(tied_human.throw_mode)
 		tied_human.toggle_throw_mode(THROW_MODE_OFF)
 
 	return TRUE
+
+/datum/ai_action/unggoy_suicide_bomber/proc/prime_grenade_no_sleep(obj/item/explosive/grenade/grenade, mob/living/carbon/human/user)
+	if(!grenade || !user || grenade.active)
+		return FALSE
+
+	if(!grenade.can_use_grenade(user))
+		return FALSE
+
+	if(QDELETED(grenade) || isnull(grenade.loc))
+		return FALSE
+
+	if(grenade.antigrief_protection && user.faction == FACTION_MARINE && explosive_antigrief_check(grenade, user))
+		to_chat(user, SPAN_WARNING("\The [grenade.name]'s safe-area accident inhibitor prevents you from priming the grenade!"))
+		msg_admin_niche("[key_name(user)] attempted to prime \a [grenade.name] in [get_area(grenade)] [ADMIN_JMP(grenade.loc)]")
+		return FALSE
+
+	if(SEND_SIGNAL(user, COMSIG_GRENADE_PRE_PRIME) & COMPONENT_GRENADE_PRIME_CANCEL)
+		return FALSE
+
+	grenade.add_fingerprint(user)
+	grenade.activate(user)
+	grenade.cause_data = create_cause_data(initial(grenade.name), user)
+
+	user.visible_message(SPAN_WARNING("[user] primes \a [grenade.name]!"), \
+	SPAN_WARNING("You prime \a [grenade.name]!"))
+	msg_admin_attack("[key_name(user)] primed \a grenade ([grenade.name]) in [get_area(grenade)] ([grenade.loc.x],[grenade.loc.y],[grenade.loc.z]).", grenade.loc.x, grenade.loc.y, grenade.loc.z)
+	user.attack_log += text("\[[time_stamp()]\] <font color='red'> [key_name(user)] primed \a grenade ([grenade.name]) at ([grenade.loc.x],[grenade.loc.y],[grenade.loc.z])</font>")
+	if(!user.throw_mode)
+		user.toggle_throw_mode(THROW_MODE_NORMAL)
+
+	return grenade.active
 
 /datum/ai_action/unggoy_suicide_bomber/proc/move_towards_target(atom/charge_target)
 	var/turf/charge_turf = get_turf(charge_target)
