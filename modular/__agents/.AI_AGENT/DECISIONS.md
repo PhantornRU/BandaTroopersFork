@@ -1,21 +1,13 @@
 # DECISIONS
 
-## D-001: Keep Human AI speech localization modular-first
-- Decision: store Russian AI line banks in a dedicated `modular/localization/**` modpack and apply them at runtime to existing `human_ai_faction` datums.
-- Why: this matches SS220 modularity rules better than coupling shared localization data to `modular/halo/**`.
+## D-001: Keep HALO TTS selection data HALO-local
+- Decision: store canonical HALO race packs and defaults in `modular/halo/.../halo_tts.dm`.
+- Why: the shortlist is Halo content logic on top of the shared TTS module, so the data belongs in `modular/halo/**`, not in upstream or the generic TTS seed registry.
 
-## D-002: Avoid global localization helper procs
-- Decision: bind localization helpers to `/datum/modpack/localization` instead of free `/proc` helpers.
-- Why: the localization logic is module-owned business logic and should not leak global utility surfaces.
+## D-002: Preserve explicit player preferences
+- Decision: skip the HALO race default whenever `client.prefs.tts_seed` resolves to an available seed.
+- Why: the task is to provide race defaults, not to override a player's deliberate voice choice.
 
-## D-003: Covenant species split happens after brain creation
-- Decision: apply Sangheili and Unggoy speech profiles through existing `modular_apply_human_ai_brain_overrides` hooks in HALO equipment presets.
-- Why: both species share `FACTION_COVENANT`, so faction-level localization alone cannot preserve their distinct HALO voices.
-
-## D-004: Missing faction categories use Russian fallback banks
-- Decision: if a faction leaves any communication category empty, the fresh AI brain receives a Russian fallback list for that category through a minimal upstream post-create hook.
-- Why: several factions define only partial speech banks, and leaving the defaults untouched would leak stock English lines.
-
-## D-005: Emote tokens stay untranslated
-- Decision: preserve `*warcry`, `*pain`, and `*scream` exactly as command tokens.
-- Why: they trigger emotes rather than player-visible natural-language text.
+## D-003: Apply the default in two phases
+- Decision: apply the HALO race default both from `species.handle_post_spawn()` and again after HALO `load_preset()`.
+- Why: species changes outside equipment presets should still get the correct default, and preset-level reapplication keeps randomised preset flows from drifting back to a generic random TTS seed.

@@ -98,5 +98,5 @@
 				limb.max_damage = 150 // 1 minute to self heal bone break, time is in tenths of a second
 
 	unggoy.set_languages(list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY))
+	unggoy.halo_apply_species_tts_seed()
 	return ..()
-

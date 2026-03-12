@@ -1,22 +1,20 @@
 # PLAN
 
 ## Active task
-Implement Russian localization for Human AI speech banks in a dedicated `modular/localization/**` module, with HALO Covenant speech profiles split into HALO-specific localization files.
+Implement HALO race-specific TTS defaults and canonical shortlist packs for `Sangheili` and `Unggoy`, while preserving explicit player `prefs.tts_seed`.
 
 ## Delivery status
-- [x] Rewrite `PLAN/TODO/DECISIONS/EVIDENCE` for the AI speech localization scope.
-- [x] Move shared Human AI speech localization into `modular/localization/**`.
-- [x] Split localization data into general Human AI packs and HALO-specific packs.
-- [x] Replace global localization helper procs with methods on `datum/modpack/localization`.
-- [x] Add Covenant species-specific speech overrides for Sangheili and Unggoy AI presets.
-- [x] Localize HALO language speech verbs for Covenant chat output.
-- [x] Add unit tests for localized faction banks, fallback behavior, and Covenant species speech packs.
-- [x] Run compile verification.
-- [ ] Re-run the full `dm-test` runtime suite to completion.
+- [x] Identify HALO-local speech cues and approved Silero shortlist/default seeds.
+- [x] Add a HALO-local TTS helper with canonical packs and species defaults.
+- [x] Apply HALO defaults from both species spawn and HALO equipment preset flows.
+- [x] Preserve explicit player `prefs.tts_seed` instead of overwriting it with the race default.
+- [x] Add focused unit tests for canonical packs, direct species application, and preset application.
+- [x] Run targeted compile verification for `dm`.
+- [x] Run `dm-test` through successful `.test.dmb` compilation; the Windows wrapper then hung and stopped exiting on its own.
 
 ## Acceptance status
-- Confirmed by code and compile: representative Human AI factions route through Russian localized line packs.
-- Confirmed by code and tests: missing faction categories fall back to Russian default banks instead of stock English.
-- Confirmed by code and tests: Sangheili and Unggoy AI use distinct HALO-canon Russian speech banks.
-- Confirmed by code: Sangheili and Unggoy chat verbs render in Russian.
-- Pending: full `dm-test` runtime suite completion.
+- Confirmed by code and unit tests: `Sangheili` resolve to `Alarak` by default when no explicit player preference exists.
+- Confirmed by code and unit tests: `Unggoy` resolve to `Dobby` by default when no explicit player preference exists.
+- Confirmed by code and docs: canonical fallback packs remain queryable in code and documented in HALO docs.
+- Confirmed by `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`: passed.
+- Confirmed by `dm-test` compile output: `colonialmarines.test.dmb - 0 errors, 0 warnings`, but the Windows wrapper did not terminate cleanly afterward.

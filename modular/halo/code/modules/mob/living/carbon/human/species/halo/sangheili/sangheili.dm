@@ -113,5 +113,5 @@
 	give_action(sangheili, /datum/action/human_action/activable/covenant/sangheili_kick)
 
 	sangheili.set_languages(list(LANGUAGE_SANGHEILI))
+	sangheili.halo_apply_species_tts_seed()
 	return ..()
-

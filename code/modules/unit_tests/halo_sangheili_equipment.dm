@@ -43,6 +43,30 @@
 
 	return locate(origin.x + distance, origin.y, origin.z)
 
+/datum/unit_test/halo_sangheili_equipment/proc/get_belt_sword(mob/living/carbon/human/human)
+	if(!human?.belt)
+		return null
+
+	return locate(/obj/item/weapon/covenant/energy_sword) in human.belt
+
+/datum/unit_test/halo_sangheili_equipment/proc/put_sword_in_active_hand(mob/living/carbon/human/human)
+	var/obj/item/weapon/covenant/energy_sword/sword = get_belt_sword(human)
+	if(!human || !sword || !istype(human.belt, /obj/item/storage))
+		return null
+
+	var/obj/item/storage/belt_storage = human.belt
+	belt_storage.remove_from_storage(sword, human)
+	if(sword.loc != human)
+		return null
+
+	if(human.get_active_hand())
+		human.drop_held_item(human.get_active_hand())
+
+	if(!human.put_in_active_hand(sword))
+		return null
+
+	return sword
+
 /datum/unit_test/halo_sangheili_equipment/Run()
 	return
 
@@ -257,6 +281,65 @@
 	var/obj/item/weapon/gun/energy/plasma/minor_plasma_weapon = minor_plasma.primary_weapon
 	COOLDOWN_START(minor_plasma_weapon, cooldown, 5 SECONDS)
 	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(minor_plasma) > 0, "A non-sword Sangheili should use the HALO overheat fallback while its plasma weapon cools.")
+
+/datum/unit_test/halo_sangheili_ai_sword_auto_activation
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_sword_auto_activation/Run()
+	var/datum/human_ai_brain/ultra_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_sword)
+	TEST_ASSERT_NOTNULL(ultra_sword, "Failed to create the HALO Ultra sword AI for sword auto-activation testing.")
+
+	var/mob/living/carbon/human/human = ultra_sword.tied_human
+	var/obj/item/weapon/covenant/energy_sword/sword = ultra_sword.halo_sangheili_draw_sword()
+	TEST_ASSERT_NOTNULL(sword, "Failed to draw the HALO AI Sangheili sword for sword auto-activation testing.")
+	TEST_ASSERT(sword.activated, "The HALO AI sword draw helper should still activate the sword before the test reset.")
+
+	sword.toggle_activation(human)
+	TEST_ASSERT(!sword.activated, "The HALO AI sword test setup failed to return the sword to its inactive state.")
+
+	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	TEST_ASSERT_NOTNULL(target, "Failed to allocate a target for HALO AI Sangheili sword auto-activation testing.")
+	human.a_intent_change(INTENT_HARM)
+	sword.attack(target, human)
+
+	TEST_ASSERT(sword.activated, "Sword-only HALO Sangheili AI should auto-activate its energy sword before attacking.")
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_auto_activation
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_auto_activation/Run()
+	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO mixed Sangheili AI for sword auto-activation testing.")
+
+	var/mob/living/carbon/human/human = ultra_plasma.tied_human
+	var/obj/item/weapon/covenant/energy_sword/sword = put_sword_in_active_hand(human)
+	TEST_ASSERT_NOTNULL(sword, "Failed to move the HALO mixed Sangheili sword into the active hand for sword auto-activation testing.")
+	TEST_ASSERT(!sword.activated, "Mixed HALO Sangheili sword test setup should begin with an inactive sword.")
+
+	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	TEST_ASSERT_NOTNULL(target, "Failed to allocate a target for HALO mixed Sangheili sword auto-activation testing.")
+	human.a_intent_change(INTENT_HARM)
+	sword.attack(target, human)
+
+	TEST_ASSERT(sword.activated, "Mixed HALO Sangheili AI should auto-activate its sword even outside the dedicated draw helper path.")
+
+/datum/unit_test/halo_sangheili_player_sword_manual_activation_guard
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_player_sword_manual_activation_guard/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/ultra)
+	TEST_ASSERT_NOTNULL(human, "Failed to create the HALO player Sangheili for manual sword activation guard testing.")
+
+	var/obj/item/weapon/covenant/energy_sword/sword = put_sword_in_active_hand(human)
+	TEST_ASSERT_NOTNULL(sword, "Failed to move the HALO player Sangheili sword into the active hand for guard testing.")
+	TEST_ASSERT(!sword.activated, "Player Sangheili sword guard test should begin with an inactive sword.")
+
+	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	TEST_ASSERT_NOTNULL(target, "Failed to allocate a target for HALO player sword guard testing.")
+	human.a_intent_change(INTENT_HARM)
+	sword.attack(target, human)
+
+	TEST_ASSERT(!sword.activated, "Player-controlled Sangheili should still require manual sword activation.")
 
 /datum/unit_test/halo_sangheili_ai_speech_profiles
 	parent_type = /datum/unit_test/halo_sangheili_equipment

@@ -38,6 +38,11 @@
 	new_human.g_eyes = eye_color_list[eye_color][2]
 	new_human.b_eyes = eye_color_list[eye_color][3]
 
+/datum/equipment_preset/covenant/unggoy/load_preset(mob/living/carbon/human/new_human, randomise = FALSE, count_participant = FALSE, client/mob_client, show_job_gear = TRUE, late_join)
+	. = ..()
+	if(new_human)
+		new_human.halo_apply_species_tts_seed()
+
 // BASIC ROLES
 
 // MINOR

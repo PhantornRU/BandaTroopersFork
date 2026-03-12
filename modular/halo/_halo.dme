@@ -6,6 +6,7 @@
 #include "code/mixed/compat/halo_core_globals.dm"
 #include "code/mixed/compat/halo_core_procs.dm"
 #include "code/mixed/compat/halo_droppod_support.dm"
+#include "code/mixed/compat/halo_tts.dm"
 
 #include "code/__DEFINES/halo_blood.dm"
 #include "code/__DEFINES/halo_colors.dm"

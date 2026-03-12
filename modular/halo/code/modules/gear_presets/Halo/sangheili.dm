@@ -48,6 +48,11 @@
 	new_human.g_eyes = eye_color_list[eye_color][2]
 	new_human.b_eyes = eye_color_list[eye_color][3]
 
+/datum/equipment_preset/covenant/sangheili/load_preset(mob/living/carbon/human/new_human, randomise = FALSE, count_participant = FALSE, client/mob_client, show_job_gear = TRUE, late_join)
+	. = ..()
+	if(new_human)
+		new_human.halo_apply_species_tts_seed()
+
 /datum/equipment_preset/covenant/sangheili/proc/equip_sangheili_basics(mob/living/carbon/human/new_human, helmet_type, suit_type, gloves_type, shoes_type, belt_type)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/sangheili(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new helmet_type(new_human), WEAR_HEAD)

@@ -83,6 +83,22 @@
 	. = ..()
 	toggle_activation(user)
 
+/obj/item/weapon/covenant/energy_sword/proc/should_auto_activate_for_ai(mob/living/user)
+	if(activated || nonfunctional || !ishuman(user) || !issangheili(user))
+		return FALSE
+
+	var/mob/living/carbon/human/human_user = user
+	if(human_user.client)
+		return FALSE
+
+	return !isnull(human_user.get_ai_brain())
+
+/obj/item/weapon/covenant/energy_sword/attack(mob/living/target, mob/living/user)
+	if(should_auto_activate_for_ai(user))
+		var/mob/living/carbon/human/human_user = user
+		toggle_activation(human_user)
+
+	return ..()
 
 /obj/item/weapon/covenant/energy_sword/proc/toggle_activation(mob/living/carbon/human/user)
 	if(nonfunctional)
