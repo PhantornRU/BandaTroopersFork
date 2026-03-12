@@ -391,6 +391,7 @@
 		/obj/item/reagent_container/hypospray/autoinjector,
 		/obj/item/ammo_magazine/needler_crystal,
 		/obj/item/ammo_magazine/carbine,
+		/obj/item/weapon/covenant/energy_sword,
 	)
 	bypass_w_limit = list(
 		/obj/item/ammo_magazine/rifle,
@@ -403,6 +404,7 @@
 	name = "\improper Sangheili ammunition belt"
 	icon_state = "sangbelt_minor"
 	item_state = "sangbelt_minor"
+	storage_slots = 9
 	item_icons = list(
 		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/sangheili/belts.dmi'
 		)

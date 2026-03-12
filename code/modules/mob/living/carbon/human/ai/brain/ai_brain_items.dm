@@ -437,6 +437,11 @@
 					active_grenade_found = thing
 					continue
 
+			// SS220 EDIT - START: ignore_looting must also suppress pickup candidates, not only the Item Pickup action.
+			if(ignore_looting)
+				continue
+			// SS220 EDIT - END
+
 			if(!primary_weapon && isgun(thing))
 				var/obj/item/weapon/gun/thing_gun = thing
 				for(var/item in to_pickup)

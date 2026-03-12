@@ -118,3 +118,43 @@
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber = 3,
 	)
+
+/datum/human_ai_squad_preset/covenant/sangheili_pair
+	name = "Sangheili Pair"
+	desc = "A light two-warrior Sangheili patrol armed with plasma rifles."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 2,
+	)
+
+/datum/human_ai_squad_preset/covenant/sangheili_fireteam
+	name = "Sangheili Fireteam"
+	desc = "A disciplined Sangheili fireteam led by a major with two plasma-armed minors."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 2,
+	)
+
+/datum/human_ai_squad_preset/covenant/sangheili_elite_team
+	name = "Sangheili Elite Team"
+	desc = "A veteran Sangheili element built around an Ultra, a carbine major and supporting minors."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 2,
+	)
+
+/datum/human_ai_squad_preset/covenant/sangheili_sword_pair
+	name = "Sangheili Sword Pair"
+	desc = "A shock pair of Sangheili Ultras carrying only energy swords."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword = 2,
+	)
+
+/datum/human_ai_squad_preset/covenant/sangheili_zealot_strike_cell
+	name = "Sangheili Zealot Strike Cell"
+	desc = "A Zealot-led strike cell with sword-bearing Ultras and plasma support."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/sangheili/ai/zealot_sword = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
+	)

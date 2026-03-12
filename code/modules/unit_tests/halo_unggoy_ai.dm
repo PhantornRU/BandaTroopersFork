@@ -9,6 +9,8 @@
 		TEST_FAIL("Failed to resolve a human AI brain for the HALO Unggoy test mob.")
 		return null
 	ai_component.ai_brain.appraise_inventory(armor = TRUE)
+	if(isgun(human.s_store))
+		ai_component.ai_brain.set_primary_weapon(human.s_store)
 	return ai_component.ai_brain
 
 /datum/unit_test/halo_unggoy_ai/Run()
@@ -17,6 +19,13 @@
 /datum/unit_test/halo_unggoy_ai/proc/get_first_assoc_key(list/assoc_list)
 	for(var/entry as anything in assoc_list)
 		return entry
+
+/datum/unit_test/halo_unggoy_ai/proc/set_target_turf(datum/human_ai_brain/brain, distance)
+	var/turf/origin = get_turf(brain?.tied_human)
+	if(!origin)
+		return null
+
+	return locate(origin.x + distance, origin.y, origin.z)
 
 /datum/unit_test/halo_unggoy_ai_equipment_matrix
 	parent_type = /datum/unit_test/halo_unggoy_ai
@@ -82,6 +91,7 @@
 	TEST_ASSERT(brain.ignore_looting, "Unggoy suicide bomber should ignore looting while charging.")
 	TEST_ASSERT(!brain.grenading_allowed, "Unggoy suicide bomber should not use the generic grenade-throw action.")
 	TEST_ASSERT(brain.halo_unggoy_ignore_panic, "Unggoy suicide bomber should bypass panic-retreat behavior.")
+	TEST_ASSERT(!brain.halo_unggoy_overheat_retreat, "Unggoy suicide bomber should remain exempt from the HALO overheat-retreat behavior.")
 
 /datum/unit_test/halo_unggoy_ai_panic_behavior
 	parent_type = /datum/unit_test/halo_unggoy_ai
@@ -115,6 +125,47 @@
 		brain.tied_human.health = brain.tied_human.maxHealth * 0.1
 		TEST_ASSERT(!brain.halo_unggoy_should_panic(), "[preset_type] should not enable HALO panic-retreat when heavily wounded.")
 
+/datum/unit_test/halo_unggoy_ai_overheat_retreat
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_overheat_retreat/Run()
+	var/datum/human_ai_brain/leader = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/major_plasma)
+	var/datum/human_ai_brain/member = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(leader, "Failed to create the HALO Unggoy leader AI for overheat testing.")
+	TEST_ASSERT_NOTNULL(member, "Failed to create the HALO Unggoy member AI for overheat testing.")
+
+	var/datum/human_ai_squad/squad = SShuman_ai.create_new_squad()
+	squad.add_to_squad(leader)
+	squad.add_to_squad(member)
+	squad.set_squad_leader(leader)
+
+	member.in_combat = TRUE
+	member.target_turf = set_target_turf(member, 3)
+	TEST_ASSERT_NOTNULL(member.target_turf, "Failed to allocate an Unggoy overheat target turf.")
+	var/obj/item/weapon/gun/energy/plasma/member_plasma = member.primary_weapon
+	COOLDOWN_START(member_plasma, cooldown, 5 SECONDS)
+
+	TEST_ASSERT(member.halo_unggoy_should_retreat_on_overheat(), "A plasma-armed Unggoy should retreat while its Covenant weapon cools.")
+	TEST_ASSERT(member.halo_unggoy_should_hold_anchor_on_overheat(), "A leader-supported Unggoy should keep local cohesion during overheat retreat.")
+	TEST_ASSERT(!member.halo_unggoy_should_flee_on_overheat(), "A leader-supported Unggoy should not use the leaderless overheat flee branch.")
+
+	squad.set_squad_leader(null)
+	TEST_ASSERT(member.halo_unggoy_should_retreat_on_overheat(), "Leaderless Unggoy should still retreat while their weapon cools.")
+	TEST_ASSERT(member.halo_unggoy_should_flee_on_overheat(), "Leaderless Unggoy should use the HALO flee branch during overheat retreat.")
+
+	COOLDOWN_RESET(member_plasma, cooldown)
+	COOLDOWN_RESET(member_plasma, manual_cooldown)
+	TEST_ASSERT(!member.halo_unggoy_should_retreat_on_overheat(), "Unggoy overheat retreat should end immediately after the plasma cooldown finishes.")
+
+	var/datum/human_ai_brain/bomber = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber)
+	TEST_ASSERT_NOTNULL(bomber, "Failed to create the HALO Unggoy bomber AI for overheat testing.")
+	bomber.in_combat = TRUE
+	bomber.target_turf = set_target_turf(bomber, 3)
+	TEST_ASSERT_NOTNULL(bomber.target_turf, "Failed to allocate an Unggoy bomber overheat target turf.")
+	TEST_ASSERT(!bomber.halo_unggoy_should_retreat_on_overheat(), "Unggoy suicide bombers should remain exempt from overheat retreat.")
+
+	qdel(squad)
+
 /datum/unit_test/halo_unggoy_ai_firearm_appraisals
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -141,6 +192,11 @@
 		/datum/human_ai_squad_preset/covenant/covenant_lance = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma,
 		/datum/human_ai_squad_preset/covenant/covenant_heavy_lance = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
 		/datum/human_ai_squad_preset/covenant/covenant_at_lance = /datum/equipment_preset/covenant/sangheili/ai/zealot_command,
+		/datum/human_ai_squad_preset/covenant/sangheili_pair = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma,
+		/datum/human_ai_squad_preset/covenant/sangheili_fireteam = /datum/equipment_preset/covenant/sangheili/ai/major_carbine,
+		/datum/human_ai_squad_preset/covenant/sangheili_elite_team = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
+		/datum/human_ai_squad_preset/covenant/sangheili_sword_pair = /datum/equipment_preset/covenant/sangheili/ai/ultra_sword,
+		/datum/human_ai_squad_preset/covenant/sangheili_zealot_strike_cell = /datum/equipment_preset/covenant/sangheili/ai/zealot_sword,
 	)
 
 	for(var/preset_type as anything in leader_matrix)
@@ -152,3 +208,5 @@
 		var/datum/human_ai_squad_preset/preset = allocate(squad_type)
 		for(var/equipment_path as anything in preset.ai_to_spawn)
 			TEST_ASSERT(!findtext("[equipment_path]", "anti_tank_temp"), "[squad_type] still references the retired temporary anti-tank Unggoy role.")
+			if(findtext("[squad_type]", "/sangheili_"))
+				TEST_ASSERT(findtext("[equipment_path]", "/sangheili/"), "[squad_type] should only contain Sangheili equipment presets.")

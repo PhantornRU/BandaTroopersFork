@@ -3,6 +3,20 @@
 	arm_equipment(human, preset_type, FALSE)
 	return human
 
+/datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
+	var/mob/living/carbon/human/human = create_sangheili(preset_type)
+	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
+	if(!ai_component)
+		TEST_FAIL("Failed to add a human AI component to the HALO Sangheili test mob.")
+		return null
+	if(!ai_component.ai_brain)
+		TEST_FAIL("Failed to resolve a human AI brain for the HALO Sangheili test mob.")
+		return null
+	ai_component.ai_brain.appraise_inventory(armor = TRUE)
+	if(isgun(human.s_store))
+		ai_component.ai_brain.set_primary_weapon(human.s_store)
+	return ai_component.ai_brain
+
 /datum/unit_test/halo_sangheili_equipment/proc/count_belt_items(mob/living/carbon/human/human, item_type)
 	if(!human || !human.belt)
 		return 0
@@ -21,6 +35,13 @@
 	projectile.def_zone = "chest"
 	projectile.firer = firer
 	return projectile
+
+/datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
+	var/turf/origin = get_turf(brain?.tied_human)
+	if(!origin)
+		return null
+
+	return locate(origin.x + distance, origin.y, origin.z)
 
 /datum/unit_test/halo_sangheili_equipment/Run()
 	return
@@ -100,10 +121,10 @@
 
 /datum/unit_test/halo_sangheili_player_rank_utility/Run()
 	var/list/utility_matrix = list(
-		/datum/equipment_preset/covenant/sangheili/minor = list("bicaridine" = 0, "oxycodone" = 0, "grenades" = 0),
-		/datum/equipment_preset/covenant/sangheili/major = list("bicaridine" = 1, "oxycodone" = 0, "grenades" = 0),
-		/datum/equipment_preset/covenant/sangheili/ultra = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1),
-		/datum/equipment_preset/covenant/sangheili/zealot = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1),
+		/datum/equipment_preset/covenant/sangheili/minor = list("bicaridine" = 0, "oxycodone" = 0, "grenades" = 0, "swords" = 0),
+		/datum/equipment_preset/covenant/sangheili/major = list("bicaridine" = 1, "oxycodone" = 0, "grenades" = 0, "swords" = 0),
+		/datum/equipment_preset/covenant/sangheili/ultra = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1, "swords" = 1),
+		/datum/equipment_preset/covenant/sangheili/zealot = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1, "swords" = 1),
 	)
 
 	for(var/preset_type as anything in utility_matrix)
@@ -113,6 +134,7 @@
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo), expected["bicaridine"], "[preset_type] drifted from the intended Sangheili bicaridine count.")
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo), expected["oxycodone"], "[preset_type] drifted from the intended Sangheili oxycodone count.")
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/explosive/grenade/high_explosive/covenant/plasma), expected["grenades"], "[preset_type] drifted from the intended Sangheili plasma grenade count.")
+		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), expected["swords"], "[preset_type] drifted from the intended Sangheili energy sword count.")
 
 /datum/unit_test/halo_sangheili_ai_rank_utility
 	parent_type = /datum/unit_test/halo_sangheili_equipment
@@ -125,6 +147,7 @@
 			"bicaridine" = 0,
 			"oxycodone" = 0,
 			"grenades" = 0,
+			"swords" = 0,
 		),
 		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = list(
 			"weapon" = /obj/item/weapon/gun/rifle/covenant_carbine,
@@ -132,6 +155,7 @@
 			"bicaridine" = 1,
 			"oxycodone" = 0,
 			"grenades" = 0,
+			"swords" = 0,
 		),
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = list(
 			"weapon" = /obj/item/weapon/gun/energy/plasma/plasma_rifle,
@@ -139,6 +163,7 @@
 			"bicaridine" = 1,
 			"oxycodone" = 1,
 			"grenades" = 1,
+			"swords" = 1,
 		),
 		/datum/equipment_preset/covenant/sangheili/ai/zealot_command = list(
 			"weapon" = /obj/item/weapon/gun/energy/plasma/plasma_rifle,
@@ -146,6 +171,7 @@
 			"bicaridine" = 1,
 			"oxycodone" = 1,
 			"grenades" = 1,
+			"swords" = 1,
 		),
 	)
 
@@ -158,6 +184,79 @@
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo), expected["bicaridine"], "[preset_type] drifted from the intended Sangheili bicaridine count.")
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo), expected["oxycodone"], "[preset_type] drifted from the intended Sangheili oxycodone count.")
 		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/explosive/grenade/high_explosive/covenant/plasma), expected["grenades"], "[preset_type] drifted from the intended Sangheili plasma grenade count.")
+		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), expected["swords"], "[preset_type] drifted from the intended Sangheili energy sword count.")
+
+/datum/unit_test/halo_sangheili_ai_sword_presets
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_sword_presets/Run()
+	var/list/sword_presets = list(
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword,
+		/datum/equipment_preset/covenant/sangheili/ai/zealot_sword,
+	)
+
+	for(var/preset_type as anything in sword_presets)
+		var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
+		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili sword AI for [preset_type].")
+		var/mob/living/carbon/human/human = brain.tied_human
+		var/obj/item/weapon/gun/energy/plasma/plasma_rifle/loose_plasma = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, get_turf(human))
+
+		TEST_ASSERT_NULL(human.s_store, "[preset_type] should not keep a firearm in suit storage.")
+		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), 1, "[preset_type] should equip exactly one energy sword in the belt.")
+		TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] lost its HALO sword-bearing metadata.")
+		TEST_ASSERT(brain.halo_sangheili_sword_only, "[preset_type] should commit to the sword-only behavior tree.")
+		TEST_ASSERT(brain.ignore_looting, "[preset_type] should ignore looting to remain sword-only.")
+		TEST_ASSERT_NOTNULL(loose_plasma, "Failed to allocate a dropped plasma rifle for the ignore_looting Sangheili test.")
+		brain.item_search(range(1, human))
+		TEST_ASSERT(!length(brain.to_pickup), "[preset_type] should not queue dropped firearms while ignore_looting is enabled.")
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_flags
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_flags/Run()
+	var/list/mixed_presets = list(
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
+		/datum/equipment_preset/covenant/sangheili/ai/zealot_command,
+	)
+
+	for(var/preset_type as anything in mixed_presets)
+		var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
+		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO mixed Sangheili AI for [preset_type].")
+		var/mob/living/carbon/human/human = brain.tied_human
+
+		TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun), "[preset_type] should retain its primary firearm.")
+		TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] should expose the HALO sword-bearing metadata.")
+		TEST_ASSERT(!brain.halo_sangheili_sword_only, "[preset_type] should remain a mixed ranged/melee archetype.")
+
+/datum/unit_test/halo_sangheili_ai_action_weights
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_action_weights/Run()
+	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO Ultra plasma AI for action-weight testing.")
+	ultra_plasma.in_combat = TRUE
+	ultra_plasma.target_turf = set_target_turf(ultra_plasma, 4)
+	TEST_ASSERT_NOTNULL(ultra_plasma.target_turf, "Failed to allocate an Ultra plasma target turf for action-weight testing.")
+	var/obj/item/weapon/gun/energy/plasma/ultra_plasma_weapon = ultra_plasma.primary_weapon
+	COOLDOWN_START(ultra_plasma_weapon, cooldown, 5 SECONDS)
+	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_sword_charge].get_weight(ultra_plasma) > 0, "An overheated Ultra plasma AI should prefer the HALO sword charge when the target is nearby.")
+	TEST_ASSERT_EQUAL(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(ultra_plasma), 0, "Sword-bearing Sangheili should not take the generic overheat fallback while sword charge is available.")
+
+	var/datum/human_ai_brain/ultra_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_sword)
+	TEST_ASSERT_NOTNULL(ultra_sword, "Failed to create the HALO Ultra sword AI for action-weight testing.")
+	ultra_sword.in_combat = TRUE
+	ultra_sword.target_turf = set_target_turf(ultra_sword, 4)
+	TEST_ASSERT_NOTNULL(ultra_sword.target_turf, "Failed to allocate an Ultra sword target turf for action-weight testing.")
+	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_sword_charge].get_weight(ultra_sword) > 0, "Sword-only Sangheili should always favor the HALO sword charge when a target exists.")
+
+	var/datum/human_ai_brain/minor_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(minor_plasma, "Failed to create the HALO Minor plasma AI for action-weight testing.")
+	minor_plasma.in_combat = TRUE
+	minor_plasma.target_turf = set_target_turf(minor_plasma, 2)
+	TEST_ASSERT_NOTNULL(minor_plasma.target_turf, "Failed to allocate a Minor plasma target turf for action-weight testing.")
+	var/obj/item/weapon/gun/energy/plasma/minor_plasma_weapon = minor_plasma.primary_weapon
+	COOLDOWN_START(minor_plasma_weapon, cooldown, 5 SECONDS)
+	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(minor_plasma) > 0, "A non-sword Sangheili should use the HALO overheat fallback while its plasma weapon cools.")
 
 /datum/unit_test/halo_sangheili_shield_flicker
 	parent_type = /datum/unit_test/halo_sangheili_equipment

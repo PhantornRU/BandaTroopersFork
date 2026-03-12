@@ -14,6 +14,9 @@
 	paygrades = list(PAY_SHORT_COV_CIV = JOB_PLAYTIME_TIER_0)
 	faction = FACTION_COVENANT
 	skills = /datum/skills/covenant/sangheili
+	var/halo_sangheili_sword_only = FALSE
+	var/halo_sangheili_sword_charge_range = 5
+	var/halo_sangheili_unarmed_commit_range = 2
 
 /datum/equipment_preset/covenant/sangheili/load_race(mob/living/carbon/human/new_human, client/mob_client)
 	new_human.set_species(SPECIES_SANGHEILI)
@@ -73,6 +76,32 @@
 	for(var/i in 1 to count)
 		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/high_explosive/covenant/plasma(new_human), WEAR_IN_BELT)
 
+/datum/equipment_preset/covenant/sangheili/proc/sangheili_rank_has_sword(rank_value = rank)
+	return rank_value in list(JOB_COV_ULTRA, JOB_COV_ZEALOT, "ultra", "zealot")
+
+/datum/equipment_preset/covenant/sangheili/proc/add_energy_sword(mob/living/carbon/human/new_human)
+	if(!new_human?.belt)
+		return
+
+	if(locate(/obj/item/weapon/covenant/energy_sword) in new_human.belt)
+		return
+
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/covenant/energy_sword(new_human), WEAR_IN_BELT)
+
+/datum/equipment_preset/covenant/sangheili/proc/apply_sangheili_ai_behavior(datum/human_ai_brain/brain)
+	if(!brain)
+		return
+
+	brain.halo_sangheili_has_sword = sangheili_rank_has_sword(rank) || halo_sangheili_sword_only
+	brain.halo_sangheili_sword_only = halo_sangheili_sword_only
+	brain.halo_sangheili_sword_charge_range = halo_sangheili_sword_charge_range
+	brain.halo_sangheili_unarmed_commit_range = halo_sangheili_unarmed_commit_range
+	if(halo_sangheili_sword_only)
+		brain.ignore_looting = TRUE
+
+/datum/equipment_preset/covenant/sangheili/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
+	apply_sangheili_ai_behavior(brain)
+
 /datum/equipment_preset/covenant/sangheili/proc/add_rank_utility(mob/living/carbon/human/new_human, rank_tier)
 	switch(rank_tier)
 		if("major")
@@ -80,6 +109,9 @@
 		if("ultra", "zealot")
 			add_sangheili_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 			add_plasma_grenades(new_human, 1)
+
+	if(sangheili_rank_has_sword(rank_tier))
+		add_energy_sword(new_human)
 
 // =================================
 // Minor
@@ -236,4 +268,28 @@
 /datum/equipment_preset/covenant/sangheili/ai/zealot_command/load_gear(mob/living/carbon/human/new_human)
 	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/zealot, /obj/item/clothing/suit/marine/shielded/sangheili/zealot, /obj/item/clothing/gloves/marine/sangheili/zealot, /obj/item/clothing/shoes/sangheili/zealot, /obj/item/storage/belt/marine/covenant/sangheili/zealot)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	add_rank_utility(new_human, "zealot")
+
+/datum/equipment_preset/covenant/sangheili/ai/ultra_sword
+	name = "Sangheili Ultra (Sword)"
+	assignment = JOB_COV_ULTRA
+	rank = JOB_COV_ULTRA
+	paygrades = list(PAY_SHORT_SANG_ULTRA = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Ultra"
+	halo_sangheili_sword_only = TRUE
+
+/datum/equipment_preset/covenant/sangheili/ai/ultra_sword/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/ultra, /obj/item/clothing/suit/marine/shielded/sangheili/ultra, /obj/item/clothing/gloves/marine/sangheili/ultra, /obj/item/clothing/shoes/sangheili/ultra, /obj/item/storage/belt/marine/covenant/sangheili/ultra)
+	add_rank_utility(new_human, "ultra")
+
+/datum/equipment_preset/covenant/sangheili/ai/zealot_sword
+	name = "Sangheili Zealot (Sword)"
+	assignment = JOB_COV_ZEALOT
+	rank = JOB_COV_ZEALOT
+	paygrades = list(PAY_SHORT_SANG_ZEALOT = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "Zealot"
+	halo_sangheili_sword_only = TRUE
+
+/datum/equipment_preset/covenant/sangheili/ai/zealot_sword/load_gear(mob/living/carbon/human/new_human)
+	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/zealot, /obj/item/clothing/suit/marine/shielded/sangheili/zealot, /obj/item/clothing/gloves/marine/sangheili/zealot, /obj/item/clothing/shoes/sangheili/zealot, /obj/item/storage/belt/marine/covenant/sangheili/zealot)
 	add_rank_utility(new_human, "zealot")

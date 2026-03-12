@@ -237,6 +237,7 @@
 	var/halo_unggoy_panic_health_pct = 0.55
 	var/halo_unggoy_panics_without_leader = TRUE
 	var/halo_unggoy_ignore_panic = FALSE
+	var/halo_unggoy_overheat_retreat = TRUE
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/equip_unggoy_ai_basics(mob/living/carbon/human/new_human, suit_type, belt_type)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/unggoy(new_human), WEAR_BODY)
@@ -253,6 +254,7 @@
 	brain.halo_unggoy_panic_health_pct = halo_unggoy_panic_health_pct
 	brain.halo_unggoy_panics_without_leader = halo_unggoy_panics_without_leader
 	brain.halo_unggoy_ignore_panic = halo_unggoy_ignore_panic
+	brain.halo_unggoy_overheat_retreat = halo_unggoy_overheat_retreat
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
 	apply_unggoy_ai_behavior(brain)
@@ -464,6 +466,7 @@
 	role_comm_title = "Bomber"
 	halo_unggoy_role = "bomber"
 	halo_unggoy_ignore_panic = TRUE
+	halo_unggoy_overheat_retreat = FALSE
 
 /datum/equipment_preset/covenant/unggoy/ai/suicide_bomber/load_gear(mob/living/carbon/human/new_human)
 	equip_unggoy_ai_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
