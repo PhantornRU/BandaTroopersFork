@@ -178,6 +178,25 @@
 	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_rifle)?.type, /datum/firearm_appraisal/halo_plasma_rifle, "Plasma rifle lost its HALO-specific firearm appraisal.")
 	TEST_ASSERT_EQUAL(get_firearm_appraisal(needler)?.type, /datum/firearm_appraisal/halo_needler, "Needler lost its HALO-specific firearm appraisal.")
 
+/datum/unit_test/halo_unggoy_ai_speech_profiles
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_speech_profiles/Run()
+	var/datum/human_ai_brain/minor = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	var/datum/human_ai_brain/support = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/support_medical)
+	var/datum/human_ai_brain/bomber = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber)
+	TEST_ASSERT_NOTNULL(minor, "Failed to create the HALO Unggoy minor AI for speech-profile testing.")
+	TEST_ASSERT_NOTNULL(support, "Failed to create the HALO Unggoy support AI for speech-profile testing.")
+	TEST_ASSERT_NOTNULL(bomber, "Failed to create the HALO Unggoy bomber AI for speech-profile testing.")
+
+	halo_unit_test_assert_localized_lines(src, minor.enter_combat_lines, "Unggoy minor enter_combat_lines")
+	halo_unit_test_assert_localized_lines(src, support.need_healing_lines, "Unggoy support need_healing_lines")
+	halo_unit_test_assert_localized_lines(src, bomber.enter_combat_lines, "Unggoy bomber enter_combat_lines")
+
+	TEST_ASSERT(minor.enter_combat_lines.Find("Начальник, помоги!"), "Unggoy AI lost its baseline panic-flavored speech lines.")
+	TEST_ASSERT(support.need_healing_lines.Find("Не дайте мне умереть, я же медик!"), "Unggoy support AI lost its medical-role speech lines.")
+	TEST_ASSERT(bomber.enter_combat_lines.Find("Я вас с собой заберу!"), "Unggoy bomber AI lost its suicide-role speech lines.")
+
 /datum/unit_test/halo_unggoy_ai_squad_compositions
 	parent_type = /datum/unit_test/halo_unggoy_ai
 

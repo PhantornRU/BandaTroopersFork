@@ -1,13 +1,17 @@
 # EVIDENCE
 
-## E-001: Stock human AI does not understand Covenant overheat
-- `fire_at_target`, `keep_distance`, and `select_primary` only reason about ammo and generic gun usability.
-- Covenant plasma cooldown lives on HALO gun-side `cooldown` and `manual_cooldown`, so overheated weapons still look usable to stock AI.
+## E-001: Stock Human AI defaults are English fallback banks
+- `code/modules/mob/living/carbon/human/ai/brain/ai_brain_communication.dm` initializes default line lists directly on `/datum/human_ai_brain`.
+- Any faction without a full override can still speak those stock English defaults.
 
-## E-002: Stock human AI melee support does not fit Sangheili swords
-- `unholster_melee()` only pulls melee from shoes and `holster_melee()` only tries to return it to shoes.
-- HALO energy swords are belt/suit-store items, so Sangheili need HALO-specific draw/holster handling.
+## E-002: Human AI factions are instantiated once and can be patched at runtime
+- `code/controllers/subsystem/human_ai.dm` builds `SShuman_ai.human_ai_factions` from `subtypesof(/datum/human_ai_faction)` during subsystem init.
+- `reapply_faction_data()` already exists and can push updated speech banks to live AI brains.
 
-## E-003: Current HALO Unggoy retreat only covers health panic and lost-leader panic
-- Existing `unggoy_panic_retreat.dm` exposes health-threshold panic and no-leader panic helpers, but it has no overheat-specific branch.
-- Suicide bomber behavior already uses HALO-specific brain metadata and remains the intended exemption point for new overheat retreat logic.
+## E-003: HALO already owns a modular post-init bridge into Human AI
+- `modular/halo/_halo.dm` registers a post-initialize hook for `SShuman_ai`.
+- That bridge is the correct modular surface for applying runtime localization without widening the upstream diff.
+
+## E-004: HALO Covenant presets already support per-brain overrides
+- `code/datums/components/human_ai.dm` calls `modular_apply_human_ai_brain_overrides` on the assigned equipment preset after creating the AI brain.
+- HALO Sangheili and Unggoy presets already use that hook for behavior metadata, so speech profile overrides can reuse the same surface.

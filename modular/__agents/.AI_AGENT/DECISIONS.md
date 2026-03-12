@@ -1,17 +1,17 @@
 # DECISIONS
 
-## D-001: Keep Covenant AI changes modular-first
-- Decision: implement the new behavior in `modular/halo/**` via HALO brain helpers, action datums, and preset overrides.
-- Why: stock human AI does not understand Covenant overheat or belt-carried energy swords, and widening the fix in `code/**` would be too invasive.
+## D-001: Keep Human AI speech localization modular-first
+- Decision: store Russian AI line banks in `modular/halo/**` and apply them at runtime to existing `human_ai_faction` datums.
+- Why: directly rewriting 1400+ upstream strings in `code/**` would create a large sync-hostile diff.
 
-## D-002: Sword-bearing Sangheili ranks stay restricted to Ultra and Zealot
-- Decision: guaranteed belt swords are added only to Ultra and Zealot variants, including their AI plasma presets and new sword-only presets.
-- Why: this matches the requested HALO rank fantasy and keeps Minor/Major loadouts unchanged.
+## D-002: Covenant species split happens after brain creation
+- Decision: apply Sangheili and Unggoy speech profiles through existing `modular_apply_human_ai_brain_overrides` hooks in HALO equipment presets.
+- Why: both species share `FACTION_COVENANT`, so faction-level localization alone cannot preserve their distinct HALO voices.
 
-## D-003: Unggoy overheat retreat applies to all roles except suicide bomber
-- Decision: overheat retreat is enabled for every HALO Unggoy AI preset except the dedicated suicide bomber.
-- Why: the user explicitly asked for retreat-on-overheat as the default Unggoy behavior, while the bomber archetype must keep its charge role.
+## D-003: Missing faction categories use Russian fallback banks
+- Decision: if a faction leaves any communication category empty, the fresh AI brain receives a Russian fallback list for that category.
+- Why: several factions define only partial speech banks, and leaving the defaults untouched would leak stock English lines.
 
-## D-004: Sword-only Sangheili do not loot fallback firearms
-- Decision: the new `ultra_sword` and `zealot_sword` presets set `ignore_looting = TRUE`.
-- Why: without that guard they could pick up guns and stop behaving like pure melee elites.
+## D-004: Emote tokens stay untranslated
+- Decision: preserve `*warcry`, `*pain`, and `*scream` exactly as command tokens.
+- Why: they trigger emotes rather than player-visible natural-language text.

@@ -35,6 +35,8 @@
 	marine_faction.add_friendly_faction(FACTION_ONI)
 	marine_faction.add_friendly_faction(FACTION_UEG_POLICE)
 
+	halo_ai_localize_human_ai_factions(subsystem)
+
 /datum/modpack/halo/proc/require_human_ai_faction(datum/controller/subsystem/human_ai/subsystem, faction_name)
 	if(!subsystem)
 		CRASH("HALO human AI faction bridge ran without the Human AI subsystem.")

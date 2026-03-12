@@ -258,6 +258,24 @@
 	COOLDOWN_START(minor_plasma_weapon, cooldown, 5 SECONDS)
 	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(minor_plasma) > 0, "A non-sword Sangheili should use the HALO overheat fallback while its plasma weapon cools.")
 
+/datum/unit_test/halo_sangheili_ai_speech_profiles
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_speech_profiles/Run()
+	var/datum/human_ai_brain/major = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/major_carbine)
+	var/datum/human_ai_brain/zealot_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/zealot_sword)
+	TEST_ASSERT_NOTNULL(major, "Failed to create the HALO Sangheili major AI for speech-profile testing.")
+	TEST_ASSERT_NOTNULL(zealot_sword, "Failed to create the HALO Sangheili zealot sword AI for speech-profile testing.")
+
+	halo_unit_test_assert_localized_lines(src, major.enter_combat_lines, "Sangheili major enter_combat_lines")
+	halo_unit_test_assert_localized_lines(src, major.need_healing_lines, "Sangheili major need_healing_lines")
+	halo_unit_test_assert_localized_lines(src, zealot_sword.enter_combat_lines, "Sangheili zealot sword enter_combat_lines")
+
+	TEST_ASSERT(major.enter_combat_lines.Find("Покажите честь в бою."), "Sangheili major AI lost its HALO-formal base speech profile.")
+	TEST_ASSERT(major.enter_combat_lines.Find("По моему слову."), "Sangheili major AI lost its rank-specific speech lines.")
+	TEST_ASSERT(zealot_sword.enter_combat_lines.Find("Во имя Священного Круга!"), "Sangheili zealot AI lost its zealot-specific speech lines.")
+	TEST_ASSERT(zealot_sword.enter_combat_lines.Find("Клинки к бою!"), "Sword-only Sangheili lost its sword-charge speech lines.")
+
 /datum/unit_test/halo_sangheili_shield_flicker
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 

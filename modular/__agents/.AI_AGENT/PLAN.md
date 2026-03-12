@@ -1,21 +1,19 @@
 # PLAN
 
 ## Active task
-Implement HALO Covenant AI overheat fallback, Sangheili sword behavior, sword-only Sangheili presets, and new pure-Sangheili squads in `modular/halo/**`.
+Implement Russian localization for Human AI speech banks, plus HALO-specific Covenant speech profiles for Sangheili and Unggoy in `modular/halo/**`.
 
 ## Delivery status
-- [x] Rewrite task-state for the Covenant AI scope.
-- [ ] Add HALO brain helpers for Covenant overheat and Sangheili sword metadata.
-- [ ] Implement Sangheili overheat response and sword charge action datums.
-- [ ] Extend Unggoy panic retreat with overheat-aware branches.
-- [ ] Update Sangheili gear presets, AI presets, and Covenant belt storage for swords.
-- [ ] Add pure-Sangheili squad presets.
-- [ ] Extend HALO unit tests for swords, overheat branches, and squad compositions.
+- [x] Rewrite `PLAN/TODO/DECISIONS/EVIDENCE` for the AI speech localization scope.
+- [ ] Add a modular HALO runtime localization layer for Human AI factions and fallback banks.
+- [ ] Add Covenant species-specific speech overrides for Sangheili and Unggoy AI presets.
+- [ ] Localize HALO language speech verbs for Covenant chat output.
+- [ ] Add unit tests for localized faction banks, fallback behavior, and Covenant species speech packs.
 - [ ] Run compile and `dm-test` verification.
 
 ## Acceptance status
-- Pending: Sangheili no longer freeze on Covenant gun overheat.
-- Pending: Unggoy retreat on plasma overheat and rejoin combat after cooldown.
-- Pending: Ultra and Zealot presets carry one energy sword on the belt.
-- Pending: sword-only Sangheili AI presets and pure-Sangheili squads are spawnable.
-- Pending: HALO compile and unit tests are green.
+- Pending: representative Human AI factions speak only Russian localized lines.
+- Pending: missing faction categories fall back to Russian default banks instead of stock English.
+- Pending: Sangheili and Unggoy AI use distinct HALO-canon Russian speech banks.
+- Pending: Sangheili and Unggoy chat verbs render in Russian.
+- Pending: compile and `dm-test` are green.
