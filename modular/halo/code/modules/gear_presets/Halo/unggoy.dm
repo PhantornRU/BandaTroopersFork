@@ -258,7 +258,11 @@
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
 	apply_unggoy_ai_behavior(brain)
-	halo_ai_apply_unggoy_speech_profile(brain, halo_unggoy_role)
+	var/datum/modpack/localization/localization_pack
+	if(SSmodpacks)
+		localization_pack = SSmodpacks.get_modpack(/datum/modpack/localization)
+	if(localization_pack)
+		localization_pack.halo_ai_apply_unggoy_speech_profile(brain, halo_unggoy_role)
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/add_needler_crystals(mob/living/carbon/human/new_human, count = 5)
 	for(var/i in 1 to count)

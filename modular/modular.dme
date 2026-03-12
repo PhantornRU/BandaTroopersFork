@@ -22,3 +22,4 @@
 #include "rto_support/_rto_support.dme"
 #include "cyrillic_fixes/_cyrillic_fixes.dme"
 #include "halo/_halo.dme"
+#include "localization/_localization.dme"

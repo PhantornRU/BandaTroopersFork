@@ -8,10 +8,14 @@
 - `code/controllers/subsystem/human_ai.dm` builds `SShuman_ai.human_ai_factions` from `subtypesof(/datum/human_ai_faction)` during subsystem init.
 - `reapply_faction_data()` already exists and can push updated speech banks to live AI brains.
 
-## E-003: HALO already owns a modular post-init bridge into Human AI
-- `modular/halo/_halo.dm` registers a post-initialize hook for `SShuman_ai`.
-- That bridge is the correct modular surface for applying runtime localization without widening the upstream diff.
+## E-003: The repo has a modular modpack layer suitable for shared localization ownership
+- `modular/modular.dme` wires standalone modpacks, so speech localization can live outside `modular/halo/**`.
+- `modular/_modpacks.dm` now exposes a typed `get_modpack()` lookup for module-owned services.
 
-## E-004: HALO Covenant presets already support per-brain overrides
+## E-004: Fresh Human AI brains now have a minimal upstream post-create modular hook
 - `code/datums/components/human_ai.dm` calls `modular_apply_human_ai_brain_overrides` on the assigned equipment preset after creating the AI brain.
-- HALO Sangheili and Unggoy presets already use that hook for behavior metadata, so speech profile overrides can reuse the same surface.
+- The same proc now also calls `modular_finalize_human_ai_brain` if present, which lets modular localization fill missing speech categories without overriding the whole upstream component proc.
+
+## E-005: HALO Covenant presets already support per-brain speech profile overlays
+- HALO Sangheili and Unggoy presets use `modular_apply_human_ai_brain_overrides`.
+- Those presets can fetch `/datum/modpack/localization` and apply species-specific speech packs without global helper procs.

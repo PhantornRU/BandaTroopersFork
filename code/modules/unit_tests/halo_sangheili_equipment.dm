@@ -267,9 +267,9 @@
 	TEST_ASSERT_NOTNULL(major, "Failed to create the HALO Sangheili major AI for speech-profile testing.")
 	TEST_ASSERT_NOTNULL(zealot_sword, "Failed to create the HALO Sangheili zealot sword AI for speech-profile testing.")
 
-	halo_unit_test_assert_localized_lines(src, major.enter_combat_lines, "Sangheili major enter_combat_lines")
-	halo_unit_test_assert_localized_lines(src, major.need_healing_lines, "Sangheili major need_healing_lines")
-	halo_unit_test_assert_localized_lines(src, zealot_sword.enter_combat_lines, "Sangheili zealot sword enter_combat_lines")
+	assert_human_ai_localized_lines(major.enter_combat_lines, "Sangheili major enter_combat_lines")
+	assert_human_ai_localized_lines(major.need_healing_lines, "Sangheili major need_healing_lines")
+	assert_human_ai_localized_lines(zealot_sword.enter_combat_lines, "Sangheili zealot sword enter_combat_lines")
 
 	TEST_ASSERT(major.enter_combat_lines.Find("Покажите честь в бою."), "Sangheili major AI lost its HALO-formal base speech profile.")
 	TEST_ASSERT(major.enter_combat_lines.Find("По моему слову."), "Sangheili major AI lost its rank-specific speech lines.")

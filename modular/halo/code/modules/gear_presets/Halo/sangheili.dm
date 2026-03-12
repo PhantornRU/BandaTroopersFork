@@ -101,7 +101,11 @@
 
 /datum/equipment_preset/covenant/sangheili/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
 	apply_sangheili_ai_behavior(brain)
-	halo_ai_apply_sangheili_speech_profile(brain, rank, halo_sangheili_sword_only)
+	var/datum/modpack/localization/localization_pack
+	if(SSmodpacks)
+		localization_pack = SSmodpacks.get_modpack(/datum/modpack/localization)
+	if(localization_pack)
+		localization_pack.halo_ai_apply_sangheili_speech_profile(brain, rank, halo_sangheili_sword_only)
 
 /datum/equipment_preset/covenant/sangheili/proc/add_rank_utility(mob/living/carbon/human/new_human, rank_tier)
 	switch(rank_tier)
