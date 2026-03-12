@@ -16,12 +16,15 @@
 	var/claimed = FALSE
 	var/role_lock = TRUE
 
-/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/togglelock(mob/living/user)
-	var/static/list/allowed_specialist_jobs = list(
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/get_allowed_specialist_jobs()
+	return list(
 		JOB_SQUAD_SPECIALIST,
 		JOB_SQUAD_SPECIALIST_UNSC,
 		JOB_SQUAD_SPECIALIST_ODST,
 	)
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/togglelock(mob/living/user)
+	var/list/allowed_specialist_jobs = get_allowed_specialist_jobs()
 	if(!allowed(user))
 		to_chat(user, SPAN_WARNING("You do not have access to the contents of the locker."))
 		return

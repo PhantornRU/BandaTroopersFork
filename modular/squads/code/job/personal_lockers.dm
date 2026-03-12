@@ -182,6 +182,9 @@
 	if(locker.owner)
 		squads_debug_log("[new_human] reinitializing reclaimed locker [locker] with owner [locker.owner].")
 		locker.reinitialize_for_personal_locker_reuse()
+	else if(locker.has_cryo_gear && !length(locker.contents))
+		squads_debug_log("[new_human] matched empty locker [locker], restoring baseline spawn gear before claim.")
+		locker.spawn_gear()
 
 	locker.owner = new_human.real_name
 	locker.name = "личный шкафчик [locker.owner]"
