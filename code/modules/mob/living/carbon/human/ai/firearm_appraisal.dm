@@ -17,7 +17,7 @@ GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firea
 		. += new type
 	. = sortTim(., GLOBAL_PROC_REF(cmp_firearm_appraisal_specificity)) // SS220 EDIT: prefer most-specific firearm appraisal matches before generic weapon families
 
-/proc/get_firearm_appraisal(obj/item/weapon/gun/firearm)
+/proc/get_firearm_appraisal(obj/item/weapon/gun/firearm) as /datum/firearm_appraisal
 	for(var/datum/firearm_appraisal/appraisal as anything in GLOB.firearm_appraisals)
 		if(is_type_in_list(firearm, appraisal.gun_types))
 			return appraisal

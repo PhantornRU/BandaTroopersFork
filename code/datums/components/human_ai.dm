@@ -23,8 +23,8 @@
 	var/datum/equipment_preset/equipment_preset = ai_human.assigned_equipment_preset
 	if(equipment_preset && hascall(equipment_preset, "modular_apply_human_ai_brain_overrides"))
 		call(equipment_preset, "modular_apply_human_ai_brain_overrides")(ai_brain, ai_human)
-	if(hascall(ai_brain, HUMAN_AI_BRAIN_FINALIZE_PROC_NAME))
-		call(ai_brain, HUMAN_AI_BRAIN_FINALIZE_PROC_NAME)(ai_human)
+	if(hascall(ai_brain, "modular_finalize_human_ai_brain"))
+		call(ai_brain, "modular_finalize_human_ai_brain")(ai_human)
 	// SS220 EDIT - END
 	GLOB.ai_humans += ai_human
 	ai_human.mob_flags |= AI_CONTROLLED

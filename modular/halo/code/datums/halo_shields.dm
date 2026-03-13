@@ -21,7 +21,7 @@
 
 /datum/halo_shield/sangheili/minor
 	max_shield_strength = 150
-	recovery_time = 6 SECONDS
+	recovery_time = 4 SECONDS
 
 /datum/halo_shield/sangheili/major
 	max_shield_strength = 200
@@ -29,11 +29,11 @@
 
 /datum/halo_shield/sangheili/ultra
 	max_shield_strength = 300
-	recovery_time = 5 SECONDS
+	recovery_time = 8 SECONDS
 
 /datum/halo_shield/sangheili/zealot
 	max_shield_strength = 400
-	recovery_time = 5 SECONDS
+	recovery_time = 10 SECONDS
 
 /datum/halo_shield/sangheili/stealth
 	max_shield_strength = 100

@@ -125,7 +125,14 @@
 					return TRUE
 				if(!client.prefs?.preview_dummy)
 					client.prefs.update_preview_icon()
-				var/mob/dead/observer/observer = new /mob/dead/observer(get_turf(pick(GLOB.latejoin)), client.prefs.preview_dummy)
+				// SS220 EDIT - START - observer creation uses safe latejoin fallback to avoid pick(empty list) runtime
+				var/turf/observer_spawn_turf = get_modular_safe_latejoin_turf()
+				if(!observer_spawn_turf)
+					observer_spawn_turf = get_turf(SAFEPICK(GLOB.observer_starts))
+				if(!observer_spawn_turf)
+					observer_spawn_turf = locate(1, 1, 1)
+				var/mob/dead/observer/observer = new /mob/dead/observer(observer_spawn_turf, client.prefs.preview_dummy)
+				// SS220 EDIT - END
 				observer.set_lighting_alpha_from_pref(client)
 				spawning = TRUE
 				observer.started_as_observer = TRUE

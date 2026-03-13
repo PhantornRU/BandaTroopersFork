@@ -108,6 +108,8 @@
 
 	UnregisterSignal(source, COMSIG_PARENT_QDELETING)
 	to_pickup -= source
+	if(source == active_grenade_found) // SS220 EDIT: purge deleted grenade threat refs immediately
+		active_grenade_found = null
 
 	for(var/name in container_refs)
 		if(source == container_refs[name])
@@ -361,6 +363,8 @@
 		set_primary_weapon(picked_up)
 
 	to_pickup -= picked_up
+	if(picked_up == active_grenade_found) // SS220 EDIT: once someone holds the grenade, stop floor-threat gating
+		active_grenade_found = null
 
 /datum/human_ai_brain/proc/on_item_drop(datum/source, obj/item/dropped)
 	SIGNAL_HANDLER
@@ -421,6 +425,10 @@
 		gun_data = default
 
 /datum/human_ai_brain/proc/item_search(list/things_around)
+	// SS220 EDIT - START: grenade threat must come only from the current local scan, not from stale refs.
+	active_grenade_found = null
+	var/can_handle_live_grenade = !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
+	// SS220 EDIT - END
 	search_loop:
 		for(var/obj/item/thing in things_around)
 			if(!isturf(thing.loc))
@@ -433,7 +441,7 @@
 				var/obj/item/explosive/grenade/nade = thing
 				if(nade.active && (nade.fuse_type == IMPACT_FUSE))
 					return
-				else if(nade.active && (nade.fuse_type == TIMED_FUSE))
+				else if(nade.active && (nade.fuse_type == TIMED_FUSE) && can_handle_live_grenade) // SS220 EDIT: only enter throw-back mode if we can actually manipulate the grenade
 					active_grenade_found = thing
 					continue
 

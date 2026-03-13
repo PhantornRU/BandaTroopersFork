@@ -33,8 +33,13 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	/// A targeted turf that we should quickly approach
 	var/turf/quick_approach
 
+	// SS220 EDIT - START: upstream AI glue hardens modular HALO actions against owner teardown and projectile re-entry
 	/// Nearby turfs that we're watching for bullets
 	var/list/detection_turfs = list()
+	/// Prevent repeated projectile detection re-entry in the same tick
+	var/atom/movable/last_detected_projectile
+	var/last_detected_projectile_time = -1
+	// SS220 EDIT - END
 
 	/// If TRUE, then we're actively fighting someone or saw a bullet go by or saw someone else go into combat
 	var/in_combat = FALSE
@@ -94,10 +99,16 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 	return ..()
 
+/datum/human_ai_brain/proc/has_valid_tied_human()
+	return tied_human && !QDELETED(tied_human) && !isnull(tied_human.loc)
+
 /datum/human_ai_brain/proc/reset_ai()
 	end_cover()
 
 	in_combat = FALSE
+	active_grenade_found = null // SS220 EDIT: reset stale grenade threat state so AI can leave throw-back mode cleanly
+	last_detected_projectile = null // SS220 EDIT: clear projectile detection debounce when brain is reset
+	last_detected_projectile_time = -1
 	target_turf = null
 	shot_at = null
 	drawn_melee_weapon = null
@@ -113,6 +124,11 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	lose_injured_ally()
 
 /datum/human_ai_brain/process(delta_time)
+	if(!has_valid_tied_human()) // SS220 EDIT: upstream process loop must no-op once modular AI owner is gone
+		clear_detection_radius() // SS220 EDIT: stop listening to turf signals once the owner is gone
+		reset_ai()
+		return
+
 	if(tied_human.is_mob_incapacitated())
 		for(var/action in ongoing_actions)
 			qdel(action)
@@ -195,6 +211,10 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	current_target = null
 
 /datum/human_ai_brain/proc/update_target_pos()
+	if(!has_valid_tied_human())
+		target_turf = null
+		return
+
 	if(current_target)
 		if(tied_human in viewers(view_distance, current_target))
 			target_turf = get_turf(current_target)
@@ -218,6 +238,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 /datum/human_ai_brain/proc/on_human_delete(datum/source, force)
 	SIGNAL_HANDLER
+	clear_detection_radius() // SS220 EDIT: aggressively tear down brain state before component qdel catches up
+	reset_ai()
 	tied_human = null
 
 /datum/human_ai_brain/proc/on_species_change(datum/source, new_species)
@@ -228,6 +250,10 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		ignore_looting = FALSE
 
 /datum/human_ai_brain/proc/setup_detection_radius()
+	if(!has_valid_tied_human())
+		clear_detection_radius()
+		return
+
 	if(length(detection_turfs))
 		clear_detection_radius()
 
@@ -243,6 +269,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 /datum/human_ai_brain/proc/on_detection_turf_enter(datum/source, atom/movable/entering)
 	SIGNAL_HANDLER
+	if(!has_valid_tied_human())
+		return
+
 	if(tied_human.client)
 		return
 
@@ -251,6 +280,12 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 	if(istype(entering, /obj/projectile))
 		var/obj/projectile/bullet = entering
+		if((last_detected_projectile == bullet) && (last_detected_projectile_time == world.time)) // SS220 EDIT: debounce same-tick projectile re-entry storms
+			return
+		last_detected_projectile = bullet
+		last_detected_projectile_time = world.time
+		if(!bullet.firer)
+			return
 
 		enter_combat()
 
@@ -276,6 +311,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 			target_turf = get_turf(bullet.firer)
 
 /datum/human_ai_brain/proc/on_move(atom/oldloc, direction, forced)
+	if(!has_valid_tied_human())
+		return
+
 	setup_detection_radius()
 
 	if(in_cover && (get_dist(tied_human, current_cover) > gun_data?.minimum_range))
@@ -285,9 +323,14 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 /datum/human_ai_brain/proc/enter_combat()
 	SIGNAL_HANDLER
+	if(!has_valid_tied_human())
+		return
+
 	if(squad_id) // call for help
 		var/datum/human_ai_squad/squad = SShuman_ai.squad_id_dict["[squad_id]"]
 		for(var/datum/human_ai_brain/squaddie as anything in squad.ai_in_squad)
+			if(!squaddie.has_valid_tied_human())
+				continue
 			if(squaddie.target_turf)
 				continue
 			if(get_dist(squaddie.tied_human, tied_human) > squaddie.view_distance)
@@ -310,6 +353,13 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	SShuman_ai.combat_ever_started = TRUE
 
 /datum/human_ai_brain/proc/exit_combat()
+	if(!has_valid_tied_human())
+		lose_target()
+		target_turf = null
+		end_cover()
+		in_combat = FALSE
+		return
+
 	if(tied_human.client)
 		return
 
@@ -332,6 +382,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 /datum/human_ai_brain/proc/on_shot(datum/source, damage_result, ammo_flags, obj/projectile/bullet)
 	SIGNAL_HANDLER
+	if(!has_valid_tied_human() || !bullet || !bullet.firer)
+		return
+
 	if(tied_human.client)
 		return
 

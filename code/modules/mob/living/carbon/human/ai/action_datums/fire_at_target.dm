@@ -5,6 +5,9 @@
 	var/currently_firing
 
 /datum/ai_action/fire_at_target/get_weight(datum/human_ai_brain/brain)
+	if(!brain.has_valid_tied_human()) // SS220 EDIT: upstream action glue must not schedule work for detached modular AI owners
+		return 0
+
 	if(!brain.in_combat)
 		return 0
 
@@ -41,11 +44,17 @@
 	currently_firing = FALSE
 	rounds_burst_fired = 0
 
-	UnregisterSignal(brain.tied_human, COMSIG_MOB_FIRED_GUN)
+	if(!brain)
+		return
+
+	if(brain.has_valid_tied_human())
+		UnregisterSignal(brain.tied_human, COMSIG_MOB_FIRED_GUN)
 	brain.primary_weapon?.set_target(null)
 
 /datum/ai_action/fire_at_target/trigger_action()
 	. = ..()
+	if(!brain?.has_valid_tied_human()) // SS220 EDIT: firing action exits cleanly if the modular AI owner disappears mid-combat
+		return ONGOING_ACTION_COMPLETED
 
 	var/obj/item/weapon/gun/primary_weapon = brain.primary_weapon
 	if(!primary_weapon || brain.active_grenade_found || !COOLDOWN_FINISHED(brain, stop_fire_cooldown))
@@ -91,6 +100,9 @@
 	return ONGOING_ACTION_UNFINISHED
 
 /datum/ai_action/fire_at_target/proc/firing_line_check(datum/human_ai_brain/brain, atom/target)
+	if(!brain.has_valid_tied_human()) // SS220 EDIT: avoid post-delete signal work from upstream firing callbacks
+		return FALSE
+
 	var/mob/living/carbon/tied_human = brain.tied_human
 	var/list/turf_list = get_line(get_turf(tied_human), get_turf(target))
 	for(var/turf/tile in turf_list)
@@ -125,7 +137,7 @@
 /datum/ai_action/fire_at_target/proc/on_gun_fire(datum/source, obj/item/weapon/gun/fired)
 	SIGNAL_HANDLER
 
-	if(!brain)
+	if(!brain?.has_valid_tied_human()) // SS220 EDIT: late gun callbacks can outlive the modular AI owner for a tick
 		qdel(src)
 		return
 
