@@ -11,6 +11,10 @@
 	var/halo_sangheili_unarmed_commit_range = 2
 	var/obj/item/weapon/covenant/energy_sword/halo_sangheili_drawn_sword
 	var/halo_sangheili_sword_storage_loc
+	var/halo_sangheili_melee_committed = FALSE
+	var/obj/item/weapon/gun/halo_sangheili_committed_primary_weapon
+	var/halo_sangheili_committed_tried_reload = FALSE
+	var/halo_sangheili_committed_ignore_looting = FALSE
 
 /datum/human_ai_brain/proc/halo_covenant_get_threat_atom()
 	return current_target || target_turf
@@ -173,26 +177,51 @@
 	if(istype(tied_human?.belt, /obj/item/storage))
 		return locate(/obj/item/weapon/covenant/energy_sword) in tied_human.belt
 
-/datum/human_ai_brain/proc/halo_sangheili_should_sword_charge(atom/charge_target = null)
-	if(!charge_target)
-		charge_target = halo_covenant_get_threat_atom()
+	if(halo_sangheili_melee_committed)
+		halo_sangheili_clear_melee_commit()
 
-	if(!tied_human || !charge_target)
+/datum/human_ai_brain/proc/halo_sangheili_primary_weapon_unavailable()
+	if(!tied_human)
+		return TRUE
+
+	if(!primary_weapon)
+		return TRUE
+
+	if(!primary_weapon.ai_can_use(tied_human, src))
+		return TRUE
+
+	if(halo_covenant_weapon_is_cooling(primary_weapon))
+		return TRUE
+
+	return should_reload()
+
+/datum/human_ai_brain/proc/halo_sangheili_should_use_sword_mode(atom/threat = null)
+	if(!threat)
+		threat = halo_covenant_get_threat_atom()
+
+	if(!tied_human || !threat)
 		return FALSE
 
 	if(!halo_sangheili_has_sword && !halo_sangheili_sword_only)
 		return FALSE
 
-	if(get_dist(tied_human, charge_target) > halo_sangheili_sword_charge_range)
+	if(!halo_sangheili_find_sword())
+		return FALSE
+
+	var/distance_to_threat = get_dist(tied_human, threat)
+	if(distance_to_threat > halo_sangheili_sword_charge_range)
 		return FALSE
 
 	if(halo_sangheili_sword_only)
 		return TRUE
 
-	if(!halo_covenant_weapon_is_cooling(primary_weapon))
-		return FALSE
+	if(distance_to_threat <= halo_sangheili_unarmed_commit_range)
+		return TRUE
 
-	return halo_sangheili_find_sword() ? TRUE : FALSE
+	return halo_sangheili_primary_weapon_unavailable()
+
+/datum/human_ai_brain/proc/halo_sangheili_should_sword_charge(atom/charge_target = null)
+	return halo_sangheili_should_use_sword_mode(charge_target)
 
 /datum/human_ai_brain/proc/halo_sangheili_should_overheat_response(atom/threat = null)
 	if(!threat)
@@ -226,6 +255,108 @@
 
 	halo_sangheili_drawn_sword = null
 	halo_sangheili_sword_storage_loc = null
+	halo_sangheili_clear_melee_commit()
+
+/datum/human_ai_brain/proc/halo_sangheili_get_commit_action_blacklist()
+	var/static/list/commit_action_blacklist = list(
+		/datum/ai_action/fire_at_target,
+		/datum/ai_action/keep_distance,
+		/datum/ai_action/reload,
+		/datum/ai_action/select_primary,
+		/datum/ai_action/machinegunner_nest,
+		/datum/ai_action/sniper_nest,
+	)
+	return commit_action_blacklist
+
+/datum/human_ai_brain/proc/halo_sangheili_cancel_committed_actions()
+	var/list/commit_action_blacklist = halo_sangheili_get_commit_action_blacklist()
+	for(var/datum/ai_action/action as anything in ongoing_actions)
+		if(action.type in commit_action_blacklist)
+			qdel(action)
+
+/datum/human_ai_brain/proc/halo_sangheili_owns_item(obj/item/item)
+	if(!tied_human || !item || QDELETED(item))
+		return FALSE
+
+	if(item.loc == tied_human)
+		return TRUE
+
+	return item in tied_human.GetAllContents()
+
+/datum/human_ai_brain/proc/halo_sangheili_begin_melee_commit(obj/item/weapon/covenant/energy_sword/sword)
+	if(halo_sangheili_melee_committed)
+		return TRUE
+
+	if(!tied_human || !sword || sword.loc != tied_human)
+		return FALSE
+
+	halo_sangheili_melee_committed = TRUE
+	halo_sangheili_committed_primary_weapon = primary_weapon
+	halo_sangheili_committed_tried_reload = tried_reload
+	halo_sangheili_committed_ignore_looting = ignore_looting
+
+	if(primary_weapon)
+		set_primary_weapon(null)
+
+	tried_reload = TRUE
+	ignore_looting = TRUE
+
+	if(!action_blacklist)
+		action_blacklist = list()
+
+	var/list/commit_action_blacklist = halo_sangheili_get_commit_action_blacklist()
+	for(var/action_type as anything in commit_action_blacklist)
+		action_blacklist |= action_type
+
+	halo_sangheili_cancel_committed_actions()
+	return TRUE
+
+/datum/human_ai_brain/proc/halo_sangheili_restore_ranged_state(atom/threat = null)
+	if(halo_sangheili_sword_only || !halo_sangheili_melee_committed)
+		return FALSE
+
+	if(halo_sangheili_should_use_sword_mode(threat))
+		return FALSE
+
+	if(halo_sangheili_holster_sword())
+		return TRUE
+
+	halo_sangheili_clear_melee_commit()
+	return TRUE
+
+/datum/human_ai_brain/proc/halo_sangheili_clear_melee_commit(restore_firearm = TRUE)
+	if(!halo_sangheili_melee_committed && !halo_sangheili_committed_primary_weapon)
+		return
+
+	var/obj/item/weapon/gun/committed_primary_weapon = halo_sangheili_committed_primary_weapon
+	var/committed_tried_reload = halo_sangheili_committed_tried_reload
+	var/committed_ignore_looting = halo_sangheili_committed_ignore_looting
+
+	halo_sangheili_melee_committed = FALSE
+	halo_sangheili_committed_primary_weapon = null
+	halo_sangheili_committed_tried_reload = FALSE
+	halo_sangheili_committed_ignore_looting = FALSE
+
+	var/list/commit_action_blacklist = halo_sangheili_get_commit_action_blacklist()
+	if(action_blacklist)
+		for(var/action_type as anything in commit_action_blacklist)
+			action_blacklist -= action_type
+		if(!length(action_blacklist))
+			action_blacklist = null
+
+	tried_reload = committed_tried_reload
+	ignore_looting = committed_ignore_looting
+
+	if(!restore_firearm || primary_weapon || !committed_primary_weapon || !halo_sangheili_owns_item(committed_primary_weapon))
+		return
+
+	set_primary_weapon(committed_primary_weapon)
+
+/datum/human_ai_brain/proc/halo_sangheili_should_keep_sword_drawn()
+	if(!halo_sangheili_melee_committed)
+		return FALSE
+
+	return halo_sangheili_should_use_sword_mode()
 
 /datum/human_ai_brain/proc/halo_sangheili_track_drawn_sword(obj/item/weapon/covenant/energy_sword/sword, storage_loc = null)
 	if(!sword)
@@ -269,6 +400,7 @@
 		halo_sangheili_track_drawn_sword(sword, halo_sangheili_sword_storage_loc)
 		if(human.get_inactive_hand() == sword)
 			human.swap_hand()
+		halo_sangheili_begin_melee_commit(sword)
 		return sword
 
 	if(!halo_covenant_clear_hands())
@@ -296,6 +428,8 @@
 
 	if(!human.put_in_active_hand(sword))
 		return null
+
+	halo_sangheili_begin_melee_commit(sword)
 
 	if(!sword.activated && !sword.nonfunctional)
 		sword.set_activation_state(TRUE, human)
@@ -328,3 +462,12 @@
 		return TRUE
 
 	return FALSE
+
+/datum/human_ai_brain/reset_ai()
+	. = ..()
+	halo_sangheili_clear_melee_commit(FALSE)
+
+/datum/human_ai_brain/exit_combat()
+	. = ..()
+	if(halo_sangheili_melee_committed || halo_sangheili_drawn_sword)
+		halo_sangheili_holster_sword()

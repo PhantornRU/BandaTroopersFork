@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: Keep the fix on the HALO weapon
-- Decision: the auto-activation guard belongs on HALO `energy_sword.attack()`, not in shared upstream AI helpers.
-- Why: both HALO sword-charge and generic AI melee fallback converge on item attack flow, so the item is the narrowest correct choke point.
+## D-001: Keep the switching logic HALO-local
+- Decision: keep sword/ranged switching inside HALO Sangheili helper/action code instead of rewriting shared upstream firearm action selection.
+- Why: the behavior is HALO-specific and the helper layer already owns sword draw/holster flow.
 
-## D-002: Restrict auto-activation to AI Sangheili only
-- Decision: require an inactive, functional sword; a human Sangheili user; no live client; and a resolved `/datum/human_ai_brain`.
-- Why: this preserves manual behavior for players and avoids changing other sword owners.
+## D-002: Sword mode is conditional, not combat-long
+- Decision: mixed Sangheili stay in sword mode only while the target is close enough for melee pressure or the firearm is temporarily unavailable.
+- Why: the requested behavior is "draw sword for close or dry/unusable gun, then return to ranged once the fight opens back up."
 
-## D-003: Keep draw/holster behavior unchanged
-- Decision: leave the existing HALO sword draw helper and related deactivation/self-destruct flows intact.
-- Why: the reported bug is closed by pre-hit activation on melee use; broader draw/holster changes would expand scope without improving correctness for this task.
+## D-003: Preserve the overlay refresh fix
+- Decision: keep the held-item overlay refresh in `energy_sword.set_activation_state()` and do not change DMI art in this task.
+- Why: the reported missing activation visuals are code-side and the hand DMI states already exist.

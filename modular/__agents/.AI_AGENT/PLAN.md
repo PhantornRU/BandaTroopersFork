@@ -1,20 +1,19 @@
 # PLAN
 
 ## Active task
-Confirm and, if needed, carry the HALO Sangheili energy sword AI auto-activation fix that guarantees AI-controlled Sangheili activate an inactive sword before melee attacks without changing player behavior.
+Refine HALO mixed Sangheili sword behavior so they switch to the sword only while the target is too close or the firearm is unavailable, then return to ranged combat once the target dies or moves far away.
 
 ## Delivery status
-- [x] Verify the fix stays HALO-local inside `energy_sword`.
-- [x] Verify the gate only matches AI-controlled Sangheili with `human_ai_brain`.
-- [x] Verify the hook lives in `attack()` so it covers both HALO sword-charge and generic melee fallback.
-- [x] Verify focused unit coverage exists for sword-only AI, mixed AI, and player/manual guard behavior.
-- [x] Rewrite active task-state away from the unrelated HALO TTS task.
-- [x] Run targeted compile verification for `dm`.
-- [x] Attempt `dm-test`; wrapper still hangs on Windows after rebuilding the test binary.
+- [x] Narrow the HALO melee-commit logic to conditional sword mode instead of combat-long commitment.
+- [x] Keep firearm parking/action suppression only while sword conditions hold.
+- [x] Restore the parked firearm when the melee target moves back out of sword range or disappears.
+- [x] Keep the held-sword overlay refresh fix in place.
+- [x] Update Sangheili unit tests for close-range sword switching and return-to-ranged behavior.
+- [x] Run `dm` verification.
+- [x] Attempt `dm-test` verification through the standard wrapper.
 
 ## Acceptance status
-- Confirmed by code: `modular/halo/code/modules/projectiles/guns/halo/cov_melee.dm` already auto-activates inactive functional swords only for AI Sangheili without a live client and with an attached AI brain.
-- Confirmed by code: manual activation flow, self-destruct, dropped-floor deactivation, and non-Sangheili behavior remain unchanged.
-- Confirmed by code: `code/modules/unit_tests/halo_sangheili_equipment.dm` already contains the three focused sword auto-activation guards requested for this task.
+- Confirmed by code: mixed HALO Sangheili now draw the sword for close-range pressure or firearm-unavailable fights, and restore ranged state when the target moves back out of sword range or disappears.
+- Confirmed by code: `energy_sword.set_activation_state()` still refreshes held hand overlays immediately for AI and players.
 - Confirmed by `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`: passed on 2026-03-13.
-- Confirmed by `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: `colonialmarines.test.dmb` rebuilt on 2026-03-13, but the Windows wrapper did not terminate within the timeout.
+- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror` still timed out in the Windows wrapper on 2026-03-13.

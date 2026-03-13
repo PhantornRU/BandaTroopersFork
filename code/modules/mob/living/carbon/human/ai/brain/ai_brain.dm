@@ -98,6 +98,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	end_cover()
 
 	in_combat = FALSE
+	active_grenade_found = null // SS220 EDIT: reset stale grenade threat state so AI can leave throw-back mode cleanly
 	target_turf = null
 	shot_at = null
 	drawn_melee_weapon = null

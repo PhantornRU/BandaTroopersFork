@@ -1,9 +1,9 @@
 # TODO
 
-- [x] Confirm the HALO sword fix stays weapon-local instead of changing shared AI melee helpers.
-- [x] Confirm the AI gate requires `human`, `Sangheili`, no client, and `human_ai_brain`.
-- [x] Confirm `energy_sword.attack()` performs activation before normal melee flow.
-- [x] Confirm existing tests cover sword-only AI, mixed AI, and player/manual guard behavior.
-- [x] Rewrite `PLAN.md`, `TODO.md`, `DECISIONS.md`, and `EVIDENCE.md` for this task.
+- [x] Replace the sticky HALO melee-commit behavior with a conditional sword-mode check.
+- [x] Make mixed Sangheili draw the sword when the target is too close or the firearm cannot be used.
+- [x] Restore the parked firearm when the target is far away again or no longer exists.
+- [x] Keep the sword overlay refresh logic intact.
+- [x] Update unit coverage for close-range switching and return-to-ranged behavior.
 - [x] Compile `dm`.
-- [x] Re-run `dm-test` far enough to confirm the current Windows wrapper hang behavior.
+- [x] Run `dm-test`.

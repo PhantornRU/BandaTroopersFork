@@ -1,3 +1,6 @@
+#define HALO_TEST_R_HAND_LAYER 5
+#define HALO_TEST_L_HAND_LAYER 6
+
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili(preset_type)
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	arm_equipment(human, preset_type, FALSE)
@@ -66,6 +69,18 @@
 		return null
 
 	return sword
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_held_sword_overlay_icon_state(mob/living/carbon/human/human, obj/item/weapon/covenant/energy_sword/sword)
+	if(!human || !sword)
+		return null
+
+	if(human.r_hand == sword)
+		return human.overlays_standing[HALO_TEST_R_HAND_LAYER]?.icon_state
+
+	if(human.l_hand == sword)
+		return human.overlays_standing[HALO_TEST_L_HAND_LAYER]?.icon_state
+
+	return null
 
 /datum/unit_test/halo_sangheili_equipment/Run()
 	return
@@ -266,6 +281,13 @@
 	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_sword_charge].get_weight(ultra_plasma) > 0, "An overheated Ultra plasma AI should prefer the HALO sword charge when the target is nearby.")
 	TEST_ASSERT_EQUAL(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(ultra_plasma), 0, "Sword-bearing Sangheili should not take the generic overheat fallback while sword charge is available.")
 
+	var/datum/human_ai_brain/ultra_plasma_close = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma_close, "Failed to create the HALO Ultra plasma AI for close-range sword switching tests.")
+	ultra_plasma_close.in_combat = TRUE
+	ultra_plasma_close.target_turf = set_target_turf(ultra_plasma_close, ultra_plasma_close.halo_sangheili_unarmed_commit_range)
+	TEST_ASSERT_NOTNULL(ultra_plasma_close.target_turf, "Failed to allocate a close-range target turf for the HALO sword-switch action-weight test.")
+	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_sword_charge].get_weight(ultra_plasma_close) > 0, "Mixed HALO Sangheili should switch to the sword when a target is too close even if the firearm is still usable.")
+
 	var/datum/human_ai_brain/ultra_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_sword)
 	TEST_ASSERT_NOTNULL(ultra_sword, "Failed to create the HALO Ultra sword AI for action-weight testing.")
 	ultra_sword.in_combat = TRUE
@@ -323,6 +345,78 @@
 
 	TEST_ASSERT(sword.activated, "Mixed HALO Sangheili AI should auto-activate its sword even outside the dedicated draw helper path.")
 
+/datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch/Run()
+	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO mixed Sangheili AI for close-range sword switching testing.")
+
+	var/obj/item/weapon/gun/original_primary = ultra_plasma.primary_weapon
+	TEST_ASSERT_NOTNULL(original_primary, "The HALO mixed Sangheili close-range sword-switch test requires an initial primary firearm.")
+
+	ultra_plasma.in_combat = TRUE
+	ultra_plasma.target_turf = set_target_turf(ultra_plasma, ultra_plasma.halo_sangheili_unarmed_commit_range)
+	TEST_ASSERT_NOTNULL(ultra_plasma.target_turf, "Failed to allocate a close-range target turf for HALO mixed Sangheili sword switching.")
+
+	var/datum/ai_action/sangheili_sword_charge/charge_action = new(ultra_plasma)
+	charge_action.trigger_action()
+
+	var/mob/living/carbon/human/human = ultra_plasma.tied_human
+	var/obj/item/weapon/covenant/energy_sword/sword = ultra_plasma.halo_sangheili_drawn_sword
+	TEST_ASSERT_NOTNULL(sword, "Mixed HALO Sangheili should draw the sword automatically when the target is too close.")
+
+	TEST_ASSERT(ultra_plasma.halo_sangheili_melee_committed, "Mixed HALO Sangheili should enter melee mode after drawing the sword for a close target.")
+	TEST_ASSERT_NULL(ultra_plasma.primary_weapon, "Mixed HALO Sangheili should park the firearm while fighting with the sword.")
+	TEST_ASSERT_EQUAL(ultra_plasma.halo_sangheili_committed_primary_weapon, original_primary, "The parked HALO Sangheili firearm was not preserved for later restoration.")
+	TEST_ASSERT(ultra_plasma.ignore_looting, "Mixed HALO Sangheili should stop looking for replacement loot while the sword is out.")
+	TEST_ASSERT(ultra_plasma.tried_reload, "Mixed HALO Sangheili should unlock the generic melee movement flow while sword-committed.")
+	TEST_ASSERT(/datum/ai_action/fire_at_target in ultra_plasma.action_blacklist, "Mixed HALO Sangheili should suppress firearm firing actions while the sword is active.")
+	TEST_ASSERT(/datum/ai_action/select_primary in ultra_plasma.action_blacklist, "Mixed HALO Sangheili should suppress firearm reselection while the sword is active.")
+	TEST_ASSERT_EQUAL(sword.loc, human, "The active HALO Sangheili sword should remain in the wielder's possession.")
+
+	qdel(charge_action)
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_return_to_ranged
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_mixed_sword_return_to_ranged/Run()
+	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO mixed Sangheili AI for ranged-restore testing.")
+
+	var/obj/item/weapon/gun/original_primary = ultra_plasma.primary_weapon
+	TEST_ASSERT_NOTNULL(original_primary, "The HALO mixed Sangheili ranged-restore test requires an initial primary firearm.")
+
+	ultra_plasma.in_combat = TRUE
+	ultra_plasma.target_turf = set_target_turf(ultra_plasma, ultra_plasma.halo_sangheili_unarmed_commit_range)
+	TEST_ASSERT_NOTNULL(ultra_plasma.target_turf, "Failed to allocate a close-range target turf for HALO mixed Sangheili ranged-restore testing.")
+
+	var/datum/ai_action/sangheili_sword_charge/charge_action = new(ultra_plasma)
+	charge_action.trigger_action()
+
+	var/mob/living/carbon/human/human = ultra_plasma.tied_human
+	var/obj/item/weapon/covenant/energy_sword/sword = ultra_plasma.halo_sangheili_drawn_sword
+	TEST_ASSERT_NOTNULL(sword, "The HALO mixed Sangheili ranged-restore test requires the sword to be drawn first.")
+
+	ultra_plasma.target_turf = set_target_turf(ultra_plasma, ultra_plasma.halo_sangheili_sword_charge_range + 2)
+	TEST_ASSERT_NOTNULL(ultra_plasma.target_turf, "Failed to allocate a far target turf for HALO mixed Sangheili ranged-restore testing.")
+
+	var/result = charge_action.trigger_action()
+	TEST_ASSERT_EQUAL(result, ONGOING_ACTION_COMPLETED, "The HALO sword charge action should complete once the target moves back out of sword range.")
+
+	TEST_ASSERT(!ultra_plasma.halo_sangheili_melee_committed, "Mixed HALO Sangheili should leave melee mode once the enemy is far away again.")
+	TEST_ASSERT_EQUAL(ultra_plasma.primary_weapon, original_primary, "Mixed HALO Sangheili should restore its parked firearm when returning to ranged combat.")
+	TEST_ASSERT(!ultra_plasma.ignore_looting, "Mixed HALO Sangheili should restore its original looting behavior after leaving sword mode.")
+	TEST_ASSERT(!ultra_plasma.action_blacklist || !(/datum/ai_action/fire_at_target in ultra_plasma.action_blacklist), "Mixed HALO Sangheili should remove firearm action suppression after leaving sword mode.")
+	TEST_ASSERT(!sword.activated, "HALO Sangheili should deactivate the sword when switching back to ranged combat.")
+	TEST_ASSERT_NOTEQUAL(sword.loc, human, "HALO Sangheili should no longer keep the sword in hand once ranged combat resumes.")
+
+	ultra_plasma.target_turf = null
+	ultra_plasma.lose_target()
+	TEST_ASSERT(!ultra_plasma.halo_sangheili_should_sword_charge(), "Mixed HALO Sangheili should not remain in sword mode without a live melee target.")
+
+	qdel(charge_action)
+
 /datum/unit_test/halo_sangheili_player_sword_manual_activation_guard
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -340,6 +434,44 @@
 	sword.attack(target, human)
 
 	TEST_ASSERT(!sword.activated, "Player-controlled Sangheili should still require manual sword activation.")
+
+/datum/unit_test/halo_sangheili_sword_overlay_refresh
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_sword_overlay_refresh/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/ultra)
+	TEST_ASSERT_NOTNULL(human, "Failed to create the HALO Sangheili for sword overlay refresh testing.")
+
+	var/obj/item/weapon/covenant/energy_sword/sword = put_sword_in_active_hand(human)
+	TEST_ASSERT_NOTNULL(sword, "Failed to move the HALO Sangheili sword into the active hand for overlay refresh testing.")
+
+	human.update_inv_l_hand()
+	human.update_inv_r_hand()
+	TEST_ASSERT_EQUAL(get_held_sword_overlay_icon_state(human, sword), "energy_sword", "Inactive HALO sword overlay should start with the inactive hand state.")
+
+	sword.set_activation_state(TRUE, human)
+	TEST_ASSERT_EQUAL(get_held_sword_overlay_icon_state(human, sword), "energy_sword_activated", "Activating the HALO sword should refresh the held overlay immediately.")
+
+	sword.set_activation_state(FALSE, human)
+	TEST_ASSERT_EQUAL(get_held_sword_overlay_icon_state(human, sword), "energy_sword", "Deactivating the HALO sword should refresh the held overlay back to the inactive state.")
+
+/datum/unit_test/halo_sangheili_sword_hand_icon_dirs
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_sword_hand_icon_dirs/Run()
+	var/list/hand_icons = list(
+		"left" = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
+		"right" = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi',
+	)
+	var/list/required_states = list("energy_sword", "energy_sword_activated")
+	var/list/required_dirs = list(SOUTH, NORTH, EAST, WEST)
+
+	for(var/hand_label in hand_icons)
+		var/icon/hand_icon = hand_icons[hand_label]
+		for(var/state in required_states)
+			TEST_ASSERT(state in icon_states(hand_icon, 1), "HALO [hand_label]-hand sword DMI is missing the [state] state.")
+			for(var/direction in required_dirs)
+				TEST_ASSERT(length(icon_states(icon(hand_icon, state, direction))), "HALO [hand_label]-hand sword DMI is missing [state] for dir [direction].")
 
 /datum/unit_test/halo_sangheili_ai_speech_profiles
 	parent_type = /datum/unit_test/halo_sangheili_equipment
@@ -450,3 +582,6 @@
 	TEST_ASSERT_EQUAL(projectile_damage_data["damage_result"], 15, "An unequipped Sangheili harness should not still absorb projectile damage.")
 	TEST_ASSERT(!projectile_damage_data["cancel_bullet_act"], "An unequipped Sangheili harness should not cancel projectile damage.")
 	TEST_ASSERT_EQUAL(harness.shield_strength, starting_shield, "An unequipped Sangheili harness should not mutate its shield pool on human projectile signals.")
+
+#undef HALO_TEST_R_HAND_LAYER
+#undef HALO_TEST_L_HAND_LAYER

@@ -100,6 +100,21 @@
 
 	return ..()
 
+/obj/item/weapon/covenant/energy_sword/proc/get_human_holder(mob/living/carbon/human/user)
+	if(user)
+		return user
+
+	if(ishuman(loc))
+		return loc
+
+/obj/item/weapon/covenant/energy_sword/proc/refresh_holder_hand_overlays(mob/living/carbon/human/user)
+	var/mob/living/carbon/human/human_holder = get_human_holder(user)
+	if(!human_holder)
+		return
+
+	human_holder.update_inv_l_hand()
+	human_holder.update_inv_r_hand()
+
 /obj/item/weapon/covenant/energy_sword/proc/set_activation_state(should_activate, mob/living/carbon/human/user)
 	if(should_activate)
 		if(nonfunctional)
@@ -125,6 +140,7 @@
 		playsound(src, on_sound, 30)
 		activated = TRUE
 		set_light_on(TRUE)
+		refresh_holder_hand_overlays(user)
 		return TRUE
 
 	if(!activated)
@@ -142,6 +158,7 @@
 	playsound(src, off_sound, 30)
 	activated = FALSE
 	set_light_on(FALSE)
+	refresh_holder_hand_overlays(user)
 	return TRUE
 
 /obj/item/weapon/covenant/energy_sword/proc/toggle_activation(mob/living/carbon/human/user)
