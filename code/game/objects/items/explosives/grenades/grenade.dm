@@ -128,7 +128,7 @@
 	. = ..()
 
 /obj/item/explosive/grenade/launch_towards(datum/launch_metadata/LM)
-	if(active && ismob(LM.thrower))
+	if(active && istype(LM) && ismob(LM.thrower))
 		var/mob/M = LM.thrower
 		M.count_niche_stat(STATISTICS_NICHE_GRENADES)
 	. = ..()
