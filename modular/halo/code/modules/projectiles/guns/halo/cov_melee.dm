@@ -96,9 +96,53 @@
 /obj/item/weapon/covenant/energy_sword/attack(mob/living/target, mob/living/user)
 	if(should_auto_activate_for_ai(user))
 		var/mob/living/carbon/human/human_user = user
-		toggle_activation(human_user)
+		set_activation_state(TRUE, human_user)
 
 	return ..()
+
+/obj/item/weapon/covenant/energy_sword/proc/set_activation_state(should_activate, mob/living/carbon/human/user)
+	if(should_activate)
+		if(nonfunctional)
+			if(issangheili(user) && user)
+				to_chat(user, SPAN_NOTICE("The self destruct mechanism built into \the [src] has damaged this weapon beyond all repair."))
+			else if(user)
+				to_chat(user, SPAN_NOTICE("You fiddle with \the [src] for a moment, but it doesn't do anything. Seems like it's fried."))
+			return FALSE
+		if(activated)
+			return TRUE
+		if(user)
+			if(issangheili(user))
+				user.visible_message(SPAN_DANGER("[user] expertly activates the [src], flicking their wrist as the hot plasma slides out of the hilt!"), SPAN_NOTICE("You activate your [src] with ease!"))
+		w_class = SIZE_HUGE
+		force = activated_force
+		attack_verb = list("sliced", "slashed")
+		sharp = IS_SHARP_ITEM_ACCURATE
+		edge = TRUE
+		flags_equip_slot = null
+		icon_state = "[initial(icon_state)]_activated"
+		item_state = "[initial(item_state)]_activated"
+		hitsound = activated_hitsound
+		playsound(src, on_sound, 30)
+		activated = TRUE
+		set_light_on(TRUE)
+		return TRUE
+
+	if(!activated)
+		return TRUE
+
+	w_class = SIZE_MEDIUM
+	force = MELEE_FORCE_TIER_2
+	flags_equip_slot = SLOT_STORE|SLOT_SUIT_STORE
+	attack_verb = list("whacked", "hit")
+	sharp = FALSE
+	edge = FALSE
+	icon_state = "[initial(icon_state)]"
+	item_state = "[initial(item_state)]"
+	hitsound = initial(hitsound)
+	playsound(src, off_sound, 30)
+	activated = FALSE
+	set_light_on(FALSE)
+	return TRUE
 
 /obj/item/weapon/covenant/energy_sword/proc/toggle_activation(mob/living/carbon/human/user)
 	if(nonfunctional)
@@ -119,34 +163,9 @@
 				user.visible_message(SPAN_DANGER("[user] fails to safely activate \the [src], burning themselves with hot plasma in the process!"), SPAN_NOTICE("You fail to activate \the [src] safely, scorching yourself with hot plasma in the process! IT BURNS!!!"))
 				user.apply_armoured_damage(activated_force/2, ARMOR_LASER, BURN, penetration = 25)
 				user.apply_armoured_damage(activated_force/2, ARMOR_MELEE, BRUTE, penetration = 25)
-		else
-			if(user)
-				user.visible_message(SPAN_DANGER("[user] expertly activates the [src], flicking their wrist as the hot plasma slides out of the hilt!"), SPAN_NOTICE("You activate your [src] with ease!"))
-		w_class = SIZE_HUGE
-		force = activated_force
-		attack_verb = list("sliced", "slashed")
-		sharp = IS_SHARP_ITEM_ACCURATE
-		edge = TRUE
-		flags_equip_slot = null
-		icon_state = "[initial(icon_state)]_activated"
-		item_state = "[initial(item_state)]_activated"
-		hitsound = activated_hitsound
-		playsound(src, on_sound, 30)
-		activated = TRUE
-		set_light_on(TRUE)
-	else
-		w_class = SIZE_MEDIUM
-		force = MELEE_FORCE_TIER_2
-		flags_equip_slot = SLOT_STORE|SLOT_SUIT_STORE
-		attack_verb = list("whacked", "hit")
-		sharp = FALSE
-		edge = FALSE
-		icon_state = "[initial(icon_state)]"
-		item_state = "[initial(item_state)]"
-		hitsound = initial(hitsound)
-		playsound(src, off_sound, 30)
-		activated = FALSE
-		set_light_on(FALSE)
+		return set_activation_state(TRUE, user)
+
+	return set_activation_state(FALSE, user)
 
 /obj/item/weapon/covenant/energy_sword/dropped()
 	. = ..()
@@ -161,12 +180,12 @@
 			nonfunctional = TRUE
 			icon_state = "[initial(icon_state)]_broken"
 			if(activated)
-				toggle_activation()
+				set_activation_state(FALSE)
 			playsound(src, break_sound, 50)
 			name = "nonfunctional [initial(name)]"
 		else
 			if(activated)
-				toggle_activation()
+				set_activation_state(FALSE)
 
 /obj/item/weapon/covenant/energy_sword/self_destructing
 	self_destructs = TRUE

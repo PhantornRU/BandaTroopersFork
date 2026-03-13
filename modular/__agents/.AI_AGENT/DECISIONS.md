@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: Keep HALO TTS selection data HALO-local
-- Decision: store canonical HALO race packs and defaults in `modular/halo/.../halo_tts.dm`.
-- Why: the shortlist is Halo content logic on top of the shared TTS module, so the data belongs in `modular/halo/**`, not in upstream or the generic TTS seed registry.
+## D-001: Keep the fix on the HALO weapon
+- Decision: the auto-activation guard belongs on HALO `energy_sword.attack()`, not in shared upstream AI helpers.
+- Why: both HALO sword-charge and generic AI melee fallback converge on item attack flow, so the item is the narrowest correct choke point.
 
-## D-002: Preserve explicit player preferences
-- Decision: skip the HALO race default whenever `client.prefs.tts_seed` resolves to an available seed.
-- Why: the task is to provide race defaults, not to override a player's deliberate voice choice.
+## D-002: Restrict auto-activation to AI Sangheili only
+- Decision: require an inactive, functional sword; a human Sangheili user; no live client; and a resolved `/datum/human_ai_brain`.
+- Why: this preserves manual behavior for players and avoids changing other sword owners.
 
-## D-003: Apply the default in two phases
-- Decision: apply the HALO race default both from `species.handle_post_spawn()` and again after HALO `load_preset()`.
-- Why: species changes outside equipment presets should still get the correct default, and preset-level reapplication keeps randomised preset flows from drifting back to a generic random TTS seed.
+## D-003: Keep draw/holster behavior unchanged
+- Decision: leave the existing HALO sword draw helper and related deactivation/self-destruct flows intact.
+- Why: the reported bug is closed by pre-hit activation on melee use; broader draw/holster changes would expand scope without improving correctness for this task.

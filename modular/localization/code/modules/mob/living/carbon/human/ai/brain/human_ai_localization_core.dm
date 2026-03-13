@@ -33,8 +33,9 @@
 		return copied_pack
 
 	for(var/key in halo_ai_line_pack_keys())
-		if(islist(source_pack[key]))
-			copied_pack[key] = source_pack[key].Copy()
+		var/list/source_lines = source_pack[key]
+		if(islist(source_lines))
+			copied_pack[key] = source_lines.Copy()
 
 	return copied_pack
 
@@ -44,15 +45,16 @@
 		return merged_pack
 
 	for(var/key in halo_ai_line_pack_keys())
-		if(!islist(extra_pack[key]))
+		var/list/extra_lines = extra_pack[key]
+		if(!islist(extra_lines))
 			continue
 
 		if(!islist(merged_pack[key]))
-			merged_pack[key] = extra_pack[key].Copy()
+			merged_pack[key] = extra_lines.Copy()
 			continue
 
 		var/list/combined_lines = merged_pack[key]
-		combined_lines += extra_pack[key]
+		combined_lines += extra_lines
 		merged_pack[key] = combined_lines
 
 	return merged_pack
@@ -62,16 +64,17 @@
 		return
 
 	for(var/key in halo_ai_line_pack_keys())
-		if(!islist(pack[key]))
+		var/list/pack_lines = pack[key]
+		if(!islist(pack_lines))
 			continue
 
 		if(!append || !islist(target.vars[key]))
-			target.vars[key] = pack[key].Copy()
+			target.vars[key] = pack_lines.Copy()
 			continue
 
 		var/list/existing_lines = target.vars[key]
 		existing_lines = existing_lines.Copy()
-		existing_lines += pack[key]
+		existing_lines += pack_lines
 		target.vars[key] = existing_lines
 
 /datum/modpack/localization/proc/halo_ai_get_faction_localization_pack(faction_name)
@@ -106,9 +109,10 @@
 	for(var/key in halo_ai_line_pack_keys())
 		if(length(faction_datum?.vars[key]))
 			continue
-		brain.vars[key] = default_pack[key].Copy()
+		var/list/default_lines = default_pack[key]
+		brain.vars[key] = default_lines.Copy()
 
-/datum/human_ai_brain/proc/HUMAN_AI_BRAIN_FINALIZE_PROC(mob/living/carbon/human/new_human)
+/datum/human_ai_brain/proc/modular_finalize_human_ai_brain(mob/living/carbon/human/new_human)
 	var/datum/modpack/localization/localization_pack
 	if(SSmodpacks)
 		localization_pack = SSmodpacks.get_modpack(/datum/modpack/localization)

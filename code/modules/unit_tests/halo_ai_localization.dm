@@ -26,6 +26,13 @@
 	TEST_ASSERT_NOTNULL(localization_pack, "Failed to resolve the Localization modpack.")
 	return localization_pack
 
+/datum/unit_test/proc/get_human_ai_line_bank(datum/source, key)
+	if(!source || !key)
+		return null
+
+	var/list/line_bank = source.vars[key]
+	return line_bank
+
 /datum/unit_test/halo_ai_localization/proc/create_human_ai_brain_for_faction(faction_name)
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	human.faction = faction_name
@@ -92,13 +99,15 @@
 	var/datum/modpack/localization/localization_pack = get_localization_modpack()
 	var/datum/human_ai_faction/deathsquad_faction = SShuman_ai.human_ai_factions[FACTION_WY_DEATHSQUAD]
 	TEST_ASSERT_NOTNULL(deathsquad_faction, "Failed to resolve the WY deathsquad faction for fallback testing.")
-	TEST_ASSERT_EQUAL(length(deathsquad_faction.reload_lines), 0, "WY deathsquad reload lines should stay empty at the faction layer so the fallback path remains testable.")
+	var/list/deathsquad_reload_lines = get_human_ai_line_bank(deathsquad_faction, "reload_lines")
+	TEST_ASSERT_EQUAL(length(deathsquad_reload_lines), 0, "WY deathsquad reload lines should stay empty at the faction layer so the fallback path remains testable.")
 
 	var/datum/human_ai_brain/deathsquad_brain = create_human_ai_brain_for_faction(FACTION_WY_DEATHSQUAD)
 	TEST_ASSERT_NOTNULL(deathsquad_brain, "Failed to create the WY deathsquad AI brain for fallback testing.")
 	assert_human_ai_localized_lines(deathsquad_brain.enter_combat_lines, "WY deathsquad enter_combat_lines")
 	assert_human_ai_localized_lines(deathsquad_brain.reload_lines, "WY deathsquad reload fallback")
-	TEST_ASSERT_EQUAL(deathsquad_brain.enter_combat_lines[1], deathsquad_faction.enter_combat_lines[1], "Fallback should not replace existing faction combat lines.")
+	var/list/deathsquad_enter_combat_lines = get_human_ai_line_bank(deathsquad_faction, "enter_combat_lines")
+	TEST_ASSERT_EQUAL(deathsquad_brain.enter_combat_lines[1], deathsquad_enter_combat_lines[1], "Fallback should not replace existing faction combat lines.")
 
 	var/datum/human_ai_brain/malf_brain = create_human_ai_brain_for_faction(FACTION_MALF_SYNTH)
 	TEST_ASSERT_NOTNULL(malf_brain, "Failed to create the malfunctioning synth AI brain for fallback testing.")

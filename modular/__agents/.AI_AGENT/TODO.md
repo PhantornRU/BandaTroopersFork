@@ -1,9 +1,9 @@
 # TODO
 
-- [x] Register canonical HALO TTS defaults and fallback packs in code.
-- [x] Apply `Alarak` to `Sangheili` spawns and `Dobby` to `Unggoy` spawns when no explicit player preference exists.
-- [x] Reapply the species default after HALO equipment preset loading to keep randomised preset flows aligned.
-- [x] Document the shortlist and rejected defaults in HALO docs.
-- [x] Add focused unit coverage for the defaults and shortlist registry.
+- [x] Confirm the HALO sword fix stays weapon-local instead of changing shared AI melee helpers.
+- [x] Confirm the AI gate requires `human`, `Sangheili`, no client, and `human_ai_brain`.
+- [x] Confirm `energy_sword.attack()` performs activation before normal melee flow.
+- [x] Confirm existing tests cover sword-only AI, mixed AI, and player/manual guard behavior.
+- [x] Rewrite `PLAN.md`, `TODO.md`, `DECISIONS.md`, and `EVIDENCE.md` for this task.
 - [x] Compile `dm`.
-- [x] Compile `dm-test` through the successful compile stage; Windows wrapper cleanup still hangs afterward.
+- [x] Re-run `dm-test` far enough to confirm the current Windows wrapper hang behavior.

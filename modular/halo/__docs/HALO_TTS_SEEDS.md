@@ -1,6 +1,6 @@
 # HALO TTS Seeds
 
-Канонический shortlist для Halo-рас, использующих `Silero`-сидов из TTS-модуля.
+Canonical HALO shortlist data for Covenant race defaults that use `Silero` seeds from the shared TTS module.
 
 ## Defaults
 - `Sangheili -> Alarak`
@@ -19,7 +19,25 @@
 ## Integration rule
 - Halo race defaults apply automatically for `Sangheili` and `Unggoy`.
 - Explicit player `prefs.tts_seed` wins over the Halo race default and is preserved.
-- The default is reapplied after Halo equipment presets finish loading so randomised preset flows do not drift away from the species mapping.
+- The default is reapplied after Halo equipment presets finish loading so randomized preset flows do not drift away from the species mapping.
+
+## Audit status
+- Audited against repo state on `2026-03-13`.
+- Runtime mapping lives in `modular/halo/code/mixed/compat/halo_tts.dm`.
+- The default-apply path is called from both HALO species spawn handlers and HALO equipment preset loading.
+- `modular/text_to_speech/code/seeds/silero.dm` currently defines `848` `/datum/tts_seed/silero` entries.
+- Approved shortlist registry buckets at audit time:
+  - `Alarak`, `Arthas`, `Malganis`, `Sion`, `Dobby`, `Ziggs`, `Twitch`, `Gazlowe`: `male`
+  - `Cicero`: `any`
+
+## Manual audio verification
+- Audio audition is an external manual step, not something that can be validated from repo state alone.
+- Recommended Russian check lines:
+  - `Sangheili`: `Во имя Священного Круга!`, `Очистите их!`, `Клинки к бою!`
+  - `Unggoy`: `Ой-ой, враг!`, `Начальник, помоги!`, `Не бросайте меня.`
+- Acceptance targets:
+  - `Sangheili`: low, clear, authoritative, not comedic
+  - `Unggoy`: high, fast, nervous, slightly frantic, not child-cartoon
 
 ## Rejected defaults
 - `Grunt` for `Unggoy`: too low and brutish for the repo-local `тараторит/пищит/визжит` speech profile.

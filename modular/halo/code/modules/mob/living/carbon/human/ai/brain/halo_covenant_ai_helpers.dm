@@ -298,7 +298,7 @@
 		return null
 
 	if(!sword.activated && !sword.nonfunctional)
-		sword.toggle_activation(human)
+		sword.set_activation_state(TRUE, human)
 	ensure_primary_hand(sword)
 	return sword
 
@@ -310,7 +310,7 @@
 		return TRUE
 
 	if(sword.activated)
-		sword.toggle_activation(human)
+		sword.set_activation_state(FALSE, human)
 
 	if(sword.loc != human)
 		on_halo_sangheili_sword_dropped()
