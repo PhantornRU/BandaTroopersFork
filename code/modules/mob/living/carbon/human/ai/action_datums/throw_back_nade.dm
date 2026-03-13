@@ -5,6 +5,8 @@
 /datum/ai_action/throw_back_nade
 	name = "Throw Back Grenade"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
+	var/mid_throw = FALSE // SS220 EDIT: transient async state keeps trigger_action() no-sleep while the real throw runs separately
+	var/throw_finished = FALSE // SS220 EDIT: transient async state completes the action on the next scheduler tick
 
 /datum/ai_action/throw_back_nade/get_weight(datum/human_ai_brain/brain)
 	if(QDELETED(brain.active_grenade_found))
@@ -17,6 +19,8 @@
 
 /datum/ai_action/throw_back_nade/Destroy(force, ...)
 	brain.active_grenade_found = null // Mr. Grenade is not our friend now
+	mid_throw = FALSE // SS220 EDIT: drop transient async throw state when the action is torn down
+	throw_finished = FALSE // SS220 EDIT: drop transient async throw state when the action is torn down
 	return ..()
 
 /datum/ai_action/throw_back_nade/proc/try_hold_grenade(mob/living/carbon/human/tied_human, obj/item/explosive/grenade/grenade)
@@ -45,6 +49,11 @@
 
 /datum/ai_action/throw_back_nade/trigger_action()
 	. = ..()
+	if(throw_finished)
+		return ONGOING_ACTION_COMPLETED
+
+	if(mid_throw)
+		return ONGOING_ACTION_UNFINISHED
 
 	var/obj/item/explosive/grenade/active_grenade_found = brain.active_grenade_found
 	if(QDELETED(active_grenade_found) || !isturf(active_grenade_found.loc) || !active_grenade_found.active)
@@ -121,11 +130,35 @@
 		brain.active_grenade_found = null
 		return ONGOING_ACTION_COMPLETED
 
+	if(QDELETED(active_grenade_found) || (active_grenade_found.loc != tied_human) || !active_grenade_found.active)
+		brain.active_grenade_found = null // SS220 EDIT: grenade throw-back must abort cleanly if the primed grenade left our hands before scheduling
+		return ONGOING_ACTION_COMPLETED
+
 	if(!tied_human.throw_mode)
 		tied_human.toggle_throw_mode(THROW_MODE_NORMAL)
 
 	tied_human.face_atom(place_to_throw)
 	brain.active_grenade_found = null // SS220 EDIT: the grenade is already under this AI's control, stop blocking the rest of its combat state
 	brain.to_pickup -= active_grenade_found // Do NOT play fetch. Please.
-	tied_human.throw_item(place_to_throw) // SS220 EDIT: throw synchronously so failure cannot silently leave the AI in a fake-completed state
-	return ONGOING_ACTION_COMPLETED
+	mid_throw = TRUE // SS220 EDIT: actual throw runs asynchronously so trigger_action() stays no-sleep for DreamChecker
+	INVOKE_ASYNC(src, PROC_REF(async_throw_grenade), tied_human, active_grenade_found, place_to_throw) // SS220 EDIT: async throw avoids DreamChecker sleep violations from throw_item/launch paths
+	return ONGOING_ACTION_UNFINISHED
+
+/datum/ai_action/throw_back_nade/proc/finish_async_throw()
+	mid_throw = FALSE
+	throw_finished = TRUE
+
+/datum/ai_action/throw_back_nade/proc/async_throw_grenade(mob/living/carbon/human/tied_human, obj/item/explosive/grenade/grenade, turf/place_to_throw)
+	if(QDELETED(src))
+		return
+
+	if(!brain?.has_valid_tied_human() || (brain.tied_human != tied_human))
+		finish_async_throw()
+		return
+
+	if(QDELETED(grenade) || !grenade.active || (grenade.loc != tied_human) || !place_to_throw)
+		finish_async_throw()
+		return
+
+	tied_human.throw_item(place_to_throw) // SS220 EDIT: actual throw runs outside SHOULD_NOT_SLEEP action processing
+	finish_async_throw()

@@ -121,10 +121,12 @@
 		return null
 
 	if(human.r_hand == sword)
-		return human.overlays_standing[HALO_TEST_R_HAND_LAYER]?.icon_state
+		var/image/held_overlay = human.overlays_standing[HALO_TEST_R_HAND_LAYER] // SS220 EDIT: type overlay lookup for DreamChecker before reading icon_state
+		return held_overlay?.icon_state
 
 	if(human.l_hand == sword)
-		return human.overlays_standing[HALO_TEST_L_HAND_LAYER]?.icon_state
+		var/image/held_overlay = human.overlays_standing[HALO_TEST_L_HAND_LAYER] // SS220 EDIT: type overlay lookup for DreamChecker before reading icon_state
+		return held_overlay?.icon_state
 
 	return null
 
