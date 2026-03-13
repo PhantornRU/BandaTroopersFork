@@ -52,20 +52,41 @@
 
 	return locate(/obj/item/weapon/covenant/energy_sword) in human.belt
 
-/datum/unit_test/halo_sangheili_equipment/proc/put_sword_in_active_hand(mob/living/carbon/human/human)
-	var/obj/item/weapon/covenant/energy_sword/sword = get_belt_sword(human)
-	if(!human || !sword || !istype(human.belt, /obj/item/storage))
+/datum/unit_test/halo_sangheili_equipment/proc/find_accessible_sword(mob/living/carbon/human/human)
+	if(!human)
 		return null
 
-	var/obj/item/storage/belt_storage = human.belt
-	belt_storage.remove_from_storage(sword, human)
-	if(sword.loc != human)
+	var/obj/item/weapon/covenant/energy_sword/sword = get_belt_sword(human)
+	if(sword)
+		return sword
+
+	if(istype(human.l_hand, /obj/item/weapon/covenant/energy_sword))
+		return human.l_hand
+
+	if(istype(human.r_hand, /obj/item/weapon/covenant/energy_sword))
+		return human.r_hand
+
+	if(istype(human.s_store, /obj/item/weapon/covenant/energy_sword))
+		return human.s_store
+
+	return locate(/obj/item/weapon/covenant/energy_sword) in get_turf(human)
+
+/datum/unit_test/halo_sangheili_equipment/proc/put_sword_in_active_hand(mob/living/carbon/human/human)
+	var/obj/item/weapon/covenant/energy_sword/sword = find_accessible_sword(human)
+	if(!human || !sword)
+		return null
+
+	if(istype(sword.loc, /obj/item/storage))
+		var/obj/item/storage/storage = sword.loc
+		storage.remove_from_storage(sword, human)
+
+	if(sword.loc != human && sword.loc != get_turf(human))
 		return null
 
 	if(human.get_active_hand())
 		human.drop_held_item(human.get_active_hand())
 
-	if(!human.put_in_active_hand(sword))
+	if(!human.put_in_hands(sword, FALSE))
 		return null
 
 	return sword
@@ -74,16 +95,26 @@
 	if(!human)
 		return null
 
+	var/obj/item/weapon/covenant/energy_sword/sword = find_accessible_sword(human)
+	if(!sword)
+		return null
+
+	if(human.l_hand)
+		human.drop_held_item(human.l_hand)
+	if(human.r_hand)
+		human.drop_held_item(human.r_hand)
+
+	if(istype(sword.loc, /obj/item/storage))
+		var/obj/item/storage/storage = sword.loc
+		storage.remove_from_storage(sword, human)
+
+	if(sword.loc != human && sword.loc != get_turf(human))
+		return null
+
 	if(slot == WEAR_L_HAND)
-		human.swap_hand()
+		return human.put_in_l_hand(sword) ? sword : null
 
-	var/obj/item/weapon/covenant/energy_sword/sword = put_sword_in_active_hand(human)
-	if(slot == WEAR_R_HAND && human.l_hand == sword)
-		human.swap_hand()
-	else if(slot == WEAR_L_HAND && human.r_hand == sword)
-		human.swap_hand()
-
-	return sword
+	return human.put_in_r_hand(sword) ? sword : null
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_held_sword_overlay_icon_state(mob/living/carbon/human/human, obj/item/weapon/covenant/energy_sword/sword)
 	if(!human || !sword)
@@ -390,6 +421,8 @@
 /datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch/Run()
 	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
 	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO mixed Sangheili AI for close-range sword switching testing.")
+	TEST_ASSERT(ultra_plasma.halo_sangheili_runtime, "HALO mixed Sangheili AI should mark itself for HALO sword runtime behavior.")
+	TEST_ASSERT_NOTNULL(ultra_plasma.halo_sangheili_find_sword(), "HALO mixed Sangheili should spawn with a recoverable sword before testing close-range switching.")
 
 	var/obj/item/weapon/gun/original_primary = ultra_plasma.primary_weapon
 	TEST_ASSERT_NOTNULL(original_primary, "The HALO mixed Sangheili close-range sword-switch test requires an initial primary firearm.")
@@ -610,6 +643,26 @@
 	harness.take_damage(5, human)
 	TEST_ASSERT(length(human.overlays) > overlays_before, "Sangheili shield damage no longer adds the onmob flicker overlay.")
 
+/datum/unit_test/halo_sangheili_shield_processing_lifecycle
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_processing_lifecycle/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the processing lifecycle test.")
+
+	harness.update_shield_runtime_state()
+	TEST_ASSERT(!(harness in SSfastobj.processing), "An idle Sangheili shield harness should not stay in SSfastobj while fully charged.")
+
+	harness.take_damage(10, human)
+	TEST_ASSERT(harness in SSfastobj.processing, "A damaged Sangheili shield harness should enter SSfastobj while it is recovering.")
+
+	harness.shield_strength = harness.max_shield_strength
+	harness.shield_broken = FALSE
+	COOLDOWN_RESET(harness, time_to_regen)
+	harness.update_shield_runtime_state()
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully recovered Sangheili shield harness should leave SSfastobj once it becomes idle again.")
+
 /datum/unit_test/halo_sangheili_shield_full_absorb
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -619,7 +672,6 @@
 	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
 	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the bullet absorb test.")
 
-	harness.sync_projectile_damage_signal()
 	var/starting_shield = harness.shield_strength
 	var/starting_brute = human.getBruteLoss()
 	var/starting_fire = human.getFireLoss()
@@ -641,21 +693,11 @@
 	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
 	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the partial absorb test.")
 
-	harness.sync_projectile_damage_signal()
 	harness.shield_strength = 5
 	harness.shield_broken = FALSE
-	var/list/projectile_damage_data = list(
-		"damage_result" = 12,
-		"ammo_flags" = NONE,
-		"projectile" = null,
-		"organ" = null,
-		"cancel_bullet_act" = FALSE,
-	)
+	var/residual_damage = harness.intercept_projectile_damage(human, 12)
 
-	SEND_SIGNAL(human, COMSIG_HUMAN_PROJECTILE_DAMAGE, projectile_damage_data)
-
-	TEST_ASSERT_EQUAL(projectile_damage_data["damage_result"], 7, "Sangheili shield partial absorb no longer returns the expected residual damage.")
-	TEST_ASSERT(!projectile_damage_data["cancel_bullet_act"], "Sangheili shield partial absorb should not cancel the downstream bullet act.")
+	TEST_ASSERT_EQUAL(residual_damage, 7, "Sangheili shield partial absorb no longer returns the expected residual damage.")
 	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "Sangheili shield partial absorb should deplete the remaining shield strength.")
 	TEST_ASSERT(harness.shield_broken, "Sangheili shield partial absorb should overload and break the harness when the shield reaches zero.")
 
@@ -667,27 +709,30 @@
 	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
 	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the signal cleanup test.")
 
-	harness.sync_projectile_damage_signal()
-	TEST_ASSERT_NOTNULL(harness.shield_signal_owner, "Sangheili shield harness failed to register its projectile damage signal while worn.")
+	harness.take_damage(5, human)
+	TEST_ASSERT(harness in SSfastobj.processing, "A worn Sangheili harness should begin processing after taking shield damage.")
 
 	human.u_equip(harness, run_loc_floor_top_right)
-	harness.sync_projectile_damage_signal()
+	harness.update_shield_runtime_state()
 
 	var/starting_shield = harness.shield_strength
-	var/list/projectile_damage_data = list(
-		"damage_result" = 15,
-		"ammo_flags" = NONE,
-		"projectile" = null,
-		"organ" = null,
-		"cancel_bullet_act" = FALSE,
-	)
+	var/residual_damage = harness.intercept_projectile_damage(human, 15)
 
-	SEND_SIGNAL(human, COMSIG_HUMAN_PROJECTILE_DAMAGE, projectile_damage_data)
-
-	TEST_ASSERT_NULL(harness.shield_signal_owner, "Sangheili shield harness kept its projectile damage signal after being unequipped.")
-	TEST_ASSERT_EQUAL(projectile_damage_data["damage_result"], 15, "An unequipped Sangheili harness should not still absorb projectile damage.")
-	TEST_ASSERT(!projectile_damage_data["cancel_bullet_act"], "An unequipped Sangheili harness should not cancel projectile damage.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "An unequipped Sangheili harness should leave SSfastobj immediately.")
+	TEST_ASSERT_EQUAL(residual_damage, 15, "An unequipped Sangheili harness should not still absorb projectile damage.")
 	TEST_ASSERT_EQUAL(harness.shield_strength, starting_shield, "An unequipped Sangheili harness should not mutate its shield pool on human projectile signals.")
+
+/datum/unit_test/halo_sangheili_ai_item_search_throttle
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_item_search_throttle/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili AI for the item-search throttling test.")
+	TEST_ASSERT(brain.nearby_item_search_interval > 0, "HALO Sangheili AI should enable nearby item-search throttling.")
+	TEST_ASSERT(brain.should_run_nearby_item_search(), "A freshly created HALO Sangheili AI should allow its first nearby item scan.")
+	TEST_ASSERT(!brain.should_run_nearby_item_search(), "HALO nearby item-search throttling should block an immediate second scan in the same state.")
+	brain.invalidate_nearby_item_search()
+	TEST_ASSERT(brain.should_run_nearby_item_search(), "Invalidating HALO nearby item-search throttling should force the next scan to run immediately.")
 
 #undef HALO_TEST_R_HAND_LAYER
 #undef HALO_TEST_L_HAND_LAYER

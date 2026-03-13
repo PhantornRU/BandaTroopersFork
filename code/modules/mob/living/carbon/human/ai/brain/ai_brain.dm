@@ -71,6 +71,10 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 	/// If TRUE, the AI will not move at all
 	var/hold_position = FALSE
+	/// Optional throttle for nearby item scans. Zero means run every tick.
+	var/nearby_item_search_interval = 0
+	COOLDOWN_DECLARE(nearby_item_search_cooldown)
+	var/nearby_item_search_dirty = FALSE
 
 /datum/human_ai_brain/New(mob/living/carbon/human/tied_human)
 	. = ..()
@@ -122,6 +126,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	ongoing_actions.Cut()
 	to_pickup.Cut()
 	lose_injured_ally()
+	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/process(delta_time)
 	if(!has_valid_tied_human()) // SS220 EDIT: upstream process loop must no-op once modular AI owner is gone
@@ -148,7 +153,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if(current_target)
 		enter_combat()
 
-	item_search(range(2, tied_human))
+	if(should_run_nearby_item_search())
+		item_search(range(2, tied_human))
 
 	// List all allowed action types for AI to consider
 	var/list/allowed_actions = action_whitelist || (GLOB.AI_actions.Copy() - action_blacklist)
@@ -202,6 +208,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	RegisterSignal(new_target, COMSIG_MOVABLE_MOVED, PROC_REF(on_target_move), TRUE)
 	current_target = new_target
 	target_turf = get_turf(current_target)
+	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/proc/lose_target()
 	if(current_target)
@@ -209,6 +216,21 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		UnregisterSignal(current_target, COMSIG_MOB_DEATH)
 		UnregisterSignal(current_target, COMSIG_MOVABLE_MOVED)
 	current_target = null
+	invalidate_nearby_item_search()
+
+/datum/human_ai_brain/proc/should_run_nearby_item_search()
+	if(nearby_item_search_interval <= 0)
+		return TRUE
+
+	if(!nearby_item_search_dirty && !COOLDOWN_FINISHED(src, nearby_item_search_cooldown))
+		return FALSE
+
+	nearby_item_search_dirty = FALSE
+	COOLDOWN_START(src, nearby_item_search_cooldown, nearby_item_search_interval)
+	return TRUE
+
+/datum/human_ai_brain/proc/invalidate_nearby_item_search()
+	nearby_item_search_dirty = TRUE
 
 /datum/human_ai_brain/proc/update_target_pos()
 	if(!has_valid_tied_human())

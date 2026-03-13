@@ -97,10 +97,13 @@
 	if(!brain)
 		return
 
+	brain.halo_sangheili_runtime = TRUE
 	brain.halo_sangheili_has_sword = sangheili_rank_has_sword(rank) || halo_sangheili_sword_only
 	brain.halo_sangheili_sword_only = halo_sangheili_sword_only
 	brain.halo_sangheili_sword_charge_range = halo_sangheili_sword_charge_range
 	brain.halo_sangheili_unarmed_commit_range = halo_sangheili_unarmed_commit_range
+	brain.nearby_item_search_interval = 0.5 SECONDS
+	brain.nearby_item_search_dirty = TRUE
 	if(halo_sangheili_sword_only)
 		brain.ignore_looting = TRUE
 

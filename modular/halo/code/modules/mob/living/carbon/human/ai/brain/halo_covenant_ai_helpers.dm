@@ -1,4 +1,6 @@
 /datum/human_ai_brain
+	var/halo_sangheili_runtime = FALSE
+	var/halo_unggoy_runtime = FALSE
 	var/halo_unggoy_role
 	var/halo_unggoy_panic_health_pct = 0
 	var/halo_unggoy_panics_without_leader = FALSE
@@ -15,9 +17,19 @@
 	var/obj/item/weapon/gun/halo_sangheili_committed_primary_weapon
 	var/halo_sangheili_committed_tried_reload = FALSE
 	var/halo_sangheili_committed_ignore_looting = FALSE
+	var/halo_cached_ranged_fallback_time = -1
+	var/halo_cached_ranged_fallback_available
+	var/halo_cached_squad_anchor_time = -1
+	var/turf/halo_cached_squad_anchor
 
 /datum/human_ai_brain/proc/halo_covenant_get_threat_atom()
 	return current_target || target_turf
+
+/datum/human_ai_brain/proc/invalidate_halo_runtime_caches()
+	halo_cached_ranged_fallback_time = -1
+	halo_cached_ranged_fallback_available = null
+	halo_cached_squad_anchor_time = -1
+	halo_cached_squad_anchor = null
 
 /datum/human_ai_brain/proc/halo_covenant_weapon_is_cooling(obj/item/weapon/gun/gun = null)
 	if(!gun)
@@ -79,13 +91,23 @@
 	return TRUE
 
 /datum/human_ai_brain/proc/halo_unggoy_get_squad_anchor()
+	if(!halo_unggoy_runtime)
+		return null
+
+	if(halo_cached_squad_anchor_time == world.time)
+		return halo_cached_squad_anchor
+
 	var/datum/human_ai_brain/leader = halo_unggoy_get_squad_leader()
 	var/turf/anchor = get_turf(leader?.tied_human)
 	if(anchor)
+		halo_cached_squad_anchor_time = world.time
+		halo_cached_squad_anchor = anchor
 		return anchor
 
 	var/datum/human_ai_squad/squad = halo_unggoy_get_squad()
 	if(!squad)
+		halo_cached_squad_anchor_time = world.time
+		halo_cached_squad_anchor = null
 		return null
 
 	var/anchor_x = 0
@@ -109,9 +131,13 @@
 		valid_members++
 
 	if(!valid_members)
+		halo_cached_squad_anchor_time = world.time
+		halo_cached_squad_anchor = null
 		return null
 
-	return locate(round(anchor_x / valid_members), round(anchor_y / valid_members), anchor_z)
+	halo_cached_squad_anchor_time = world.time
+	halo_cached_squad_anchor = locate(round(anchor_x / valid_members), round(anchor_y / valid_members), anchor_z)
+	return halo_cached_squad_anchor
 
 /datum/human_ai_brain/proc/halo_unggoy_get_health_pct()
 	if(!tied_human?.maxHealth)
@@ -119,7 +145,7 @@
 	return max(tied_human.health, 0) / tied_human.maxHealth
 
 /datum/human_ai_brain/proc/halo_unggoy_should_panic()
-	if(halo_unggoy_ignore_panic || !tied_human)
+	if(!halo_unggoy_runtime || halo_unggoy_ignore_panic || !tied_human)
 		return FALSE
 
 	if((halo_unggoy_panic_health_pct > 0) && (halo_unggoy_get_health_pct() <= halo_unggoy_panic_health_pct))
@@ -131,7 +157,7 @@
 	return !halo_unggoy_has_active_squad_leader()
 
 /datum/human_ai_brain/proc/halo_unggoy_should_retreat_on_overheat()
-	if(!halo_unggoy_overheat_retreat || !tied_human)
+	if(!halo_unggoy_runtime || !halo_unggoy_overheat_retreat || !tied_human)
 		return FALSE
 
 	if(!halo_covenant_get_threat_atom())
@@ -196,20 +222,36 @@
 	return should_reload()
 
 /datum/human_ai_brain/proc/halo_sangheili_has_usable_ranged_fallback()
+	if(!halo_sangheili_runtime)
+		return FALSE
+
+	if(halo_cached_ranged_fallback_time == world.time)
+		return halo_cached_ranged_fallback_available
+
 	var/obj/item/weapon/gun/fallback_weapon = halo_sangheili_committed_primary_weapon || primary_weapon
 	if(!tied_human || !fallback_weapon || QDELETED(fallback_weapon))
+		halo_cached_ranged_fallback_time = world.time
+		halo_cached_ranged_fallback_available = FALSE
 		return FALSE
 
 	if(!halo_sangheili_owns_item(fallback_weapon))
+		halo_cached_ranged_fallback_time = world.time
+		halo_cached_ranged_fallback_available = FALSE
 		return FALSE
 
 	if(!fallback_weapon.ai_can_use(tied_human, src))
+		halo_cached_ranged_fallback_time = world.time
+		halo_cached_ranged_fallback_available = FALSE
 		return FALSE
 
 	if(fallback_weapon.has_ammunition())
+		halo_cached_ranged_fallback_time = world.time
+		halo_cached_ranged_fallback_available = TRUE
 		return TRUE
 
-	return !isnull(weapon_ammo_search(fallback_weapon))
+	halo_cached_ranged_fallback_time = world.time
+	halo_cached_ranged_fallback_available = !isnull(weapon_ammo_search(fallback_weapon))
+	return halo_cached_ranged_fallback_available
 
 /datum/human_ai_brain/proc/halo_sangheili_should_preserve_drawn_sword()
 	if(!halo_sangheili_find_sword())
@@ -221,6 +263,9 @@
 	return !halo_sangheili_has_usable_ranged_fallback()
 
 /datum/human_ai_brain/proc/halo_sangheili_should_use_sword_mode(atom/threat = null)
+	if(!halo_sangheili_runtime)
+		return FALSE
+
 	if(!threat)
 		threat = halo_covenant_get_threat_atom()
 
@@ -249,6 +294,9 @@
 	return halo_sangheili_should_use_sword_mode(charge_target)
 
 /datum/human_ai_brain/proc/halo_sangheili_should_overheat_response(atom/threat = null)
+	if(!halo_sangheili_runtime)
+		return FALSE
+
 	if(!threat)
 		threat = halo_covenant_get_threat_atom()
 
@@ -264,6 +312,9 @@
 	return TRUE
 
 /datum/human_ai_brain/proc/halo_sangheili_should_unarmed_commit(atom/threat = null)
+	if(!halo_sangheili_runtime)
+		return FALSE
+
 	if(!threat)
 		threat = halo_covenant_get_threat_atom()
 
@@ -278,6 +329,7 @@
 	if(halo_sangheili_drawn_sword)
 		UnregisterSignal(halo_sangheili_drawn_sword, COMSIG_ITEM_DROPPED)
 
+	invalidate_halo_runtime_caches()
 	halo_sangheili_drawn_sword = null
 	halo_sangheili_sword_storage_loc = null
 	halo_sangheili_clear_melee_commit()
@@ -306,7 +358,8 @@
 	if(item.loc == tied_human)
 		return TRUE
 
-	return item in tied_human.GetAllContents()
+	var/atom/item_loc = item.loc
+	return item_loc?.loc == tied_human
 
 /datum/human_ai_brain/proc/halo_sangheili_begin_melee_commit(obj/item/weapon/covenant/energy_sword/sword)
 	if(halo_sangheili_melee_committed)
@@ -319,6 +372,7 @@
 	halo_sangheili_committed_primary_weapon = primary_weapon
 	halo_sangheili_committed_tried_reload = tried_reload
 	halo_sangheili_committed_ignore_looting = ignore_looting
+	invalidate_halo_runtime_caches()
 
 	if(primary_weapon)
 		set_primary_weapon(null)
@@ -364,6 +418,7 @@
 	halo_sangheili_committed_primary_weapon = null
 	halo_sangheili_committed_tried_reload = FALSE
 	halo_sangheili_committed_ignore_looting = FALSE
+	invalidate_halo_runtime_caches()
 
 	var/list/commit_action_blacklist = halo_sangheili_get_commit_action_blacklist()
 	if(action_blacklist)
@@ -427,10 +482,14 @@
 	if(!sword)
 		return null
 
+	var/storage_loc = halo_sangheili_sword_storage_loc
+
 	if(sword.loc == human)
-		halo_sangheili_track_drawn_sword(sword, halo_sangheili_sword_storage_loc)
 		if(human.get_inactive_hand() == sword)
 			human.swap_hand()
+		else if(!human.get_active_hand())
+			human.put_in_active_hand(sword)
+		halo_sangheili_track_drawn_sword(sword, storage_loc)
 		halo_sangheili_begin_melee_commit(sword)
 		return sword
 
@@ -438,28 +497,23 @@
 		return null
 
 	if(sword == human.s_store)
-		halo_sangheili_track_drawn_sword(sword, "suit_slot")
+		storage_loc = "suit_slot"
 		human.u_equip(sword)
 	else if(sword.loc == human.belt)
-		halo_sangheili_track_drawn_sword(sword, "belt")
+		storage_loc = "belt"
 		var/obj/item/storage/belt_storage = human.belt
 		belt_storage.remove_from_storage(sword, human)
 	else if(istype(sword.loc, /obj/item/storage))
-		halo_sangheili_track_drawn_sword(sword, halo_sangheili_sword_storage_loc)
 		var/obj/item/storage/storage = sword.loc
 		storage.remove_from_storage(sword, human)
-	else
-		halo_sangheili_track_drawn_sword(sword, halo_sangheili_sword_storage_loc)
 
 	if(sword.loc != human)
 		return null
 
-	if(human.get_active_hand())
-		human.swap_hand()
-
-	if(!human.put_in_active_hand(sword))
+	if(!human.put_in_hands(sword, FALSE))
 		return null
 
+	halo_sangheili_track_drawn_sword(sword, storage_loc)
 	halo_sangheili_begin_melee_commit(sword)
 
 	if(!sword.activated && !sword.nonfunctional)
@@ -499,6 +553,7 @@
 
 /datum/human_ai_brain/reset_ai()
 	. = ..()
+	invalidate_halo_runtime_caches()
 	halo_sangheili_clear_melee_commit(FALSE)
 
 /datum/human_ai_brain/exit_combat()

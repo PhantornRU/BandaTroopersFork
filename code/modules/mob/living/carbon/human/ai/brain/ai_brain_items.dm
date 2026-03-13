@@ -110,6 +110,8 @@
 	to_pickup -= source
 	if(source == active_grenade_found) // SS220 EDIT: purge deleted grenade threat refs immediately
 		active_grenade_found = null
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	for(var/name in container_refs)
 		if(source == container_refs[name])
@@ -125,6 +127,8 @@
 /datum/human_ai_brain/proc/on_item_equip(datum/source, obj/item/equipment, slot)
 	SIGNAL_HANDLER
 	to_pickup -= equipment
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	if((slot in important_storage_slots) && istype(equipment, /obj/item/storage))
 		recalculate_containers()
@@ -138,6 +142,8 @@
 
 /datum/human_ai_brain/proc/on_item_unequip(datum/source, obj/item/equipment, slot)
 	SIGNAL_HANDLER
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	if((important_storage_slots_bitflag & slot) && istype(equipment, /obj/item/storage))
 		recalculate_containers()
@@ -359,15 +365,20 @@
 /datum/human_ai_brain/proc/on_item_pickup(datum/source, obj/item/picked_up)
 	SIGNAL_HANDLER
 
+	invalidate_halo_runtime_caches()
+
 	if(!primary_weapon && isgun(picked_up))
 		set_primary_weapon(picked_up)
 
 	to_pickup -= picked_up
 	if(picked_up == active_grenade_found) // SS220 EDIT: once someone holds the grenade, stop floor-threat gating
 		active_grenade_found = null
+	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/proc/on_item_drop(datum/source, obj/item/dropped)
 	SIGNAL_HANDLER
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	if(dropped == primary_weapon)
 		if(!(gun_data.disposable && !primary_weapon.ai_can_use(tied_human, src)))
@@ -390,6 +401,8 @@
 		UnregisterSignal(primary_weapon, COMSIG_PARENT_QDELETING)
 	primary_weapon = new_gun
 	appraise_primary()
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 	if(primary_weapon)
 		RegisterSignal(primary_weapon, COMSIG_PARENT_QDELETING, PROC_REF(on_primary_delete), TRUE)
 
@@ -398,6 +411,8 @@
 
 	set_primary_weapon(null)
 	to_pickup -= source
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 /*datum/human_ai_brain/proc/set_primary_melee(obj/item/weapon/new_melee)
 	if(primary_melee)

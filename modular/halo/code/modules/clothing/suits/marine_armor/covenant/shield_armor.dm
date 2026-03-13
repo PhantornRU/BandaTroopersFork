@@ -28,77 +28,64 @@
 	actions_types = list(/datum/action/item_action/toggle_shield)
 
 	var/mob/living/carbon/human/user
-	var/mob/living/carbon/human/shield_signal_owner
 
 // ------------------ PROCS ------------------
 
 /obj/item/clothing/suit/marine/shielded/Initialize()
 	. = ..()
-	start_process()
 	shield_strength = shield.max_shield_strength
 	max_shield_strength = shield.max_shield_strength
 	recovery_time = shield.recovery_time
-	shield_regen_rate = ((max_shield_strength / recovery_time) * 0.5) * 10
-	addtimer(CALLBACK(src, PROC_REF(sync_projectile_damage_signal)), 0)
+	shield_regen_rate = max_shield_strength / max(recovery_time * 0.1, 0.1)
+	addtimer(CALLBACK(src, PROC_REF(update_shield_runtime_state)), 0)
 
 /obj/item/clothing/suit/marine/shielded/Destroy()
 	STOP_PROCESSING(SSfastobj, src)
-	unregister_projectile_damage_signal()
 	user = null
 	return ..()
 
 /obj/item/clothing/suit/marine/shielded/equipped(mob/user, slot, silent)
 	. = ..()
-	sync_projectile_damage_signal()
+	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/unequipped(mob/user, slot)
 	. = ..()
-	sync_projectile_damage_signal()
+	update_shield_runtime_state()
 
-/obj/item/clothing/suit/marine/shielded/proc/register_projectile_damage_signal(mob/living/carbon/human/target)
-	if(!istype(target) || shield_signal_owner == target)
-		return
-
-	unregister_projectile_damage_signal()
-	RegisterSignal(target, COMSIG_HUMAN_PROJECTILE_DAMAGE, PROC_REF(on_projectile_damage))
-	RegisterSignal(target, COMSIG_PARENT_QDELETING, PROC_REF(on_signal_owner_qdel))
-	shield_signal_owner = target
-
-/obj/item/clothing/suit/marine/shielded/proc/unregister_projectile_damage_signal()
-	if(!shield_signal_owner)
-		return
-
-	UnregisterSignal(shield_signal_owner, list(COMSIG_HUMAN_PROJECTILE_DAMAGE, COMSIG_PARENT_QDELETING))
-	shield_signal_owner = null
-	user = null
-
-/obj/item/clothing/suit/marine/shielded/proc/on_signal_owner_qdel(mob/living/carbon/human/source, force)
-	SIGNAL_HANDLER
-
-	unregister_projectile_damage_signal()
-
-/obj/item/clothing/suit/marine/shielded/proc/sync_projectile_damage_signal()
+/obj/item/clothing/suit/marine/shielded/proc/get_shield_user()
 	var/mob/living/carbon/human/current_user = src.loc
 	if(istype(current_user) && current_user.wear_suit == src)
-		register_projectile_damage_signal(current_user)
+		return current_user
+
+/obj/item/clothing/suit/marine/shielded/proc/should_process_shield()
+	var/mob/living/carbon/human/current_user = get_shield_user()
+	if(!current_user || !shield_enabled)
+		return FALSE
+
+	if(current_user.stat == DEAD)
+		return TRUE
+
+	if(shield_broken)
+		return TRUE
+
+	if(shield_strength < max_shield_strength)
+		return TRUE
+
+	return !COOLDOWN_FINISHED(src, time_to_regen)
+
+/obj/item/clothing/suit/marine/shielded/proc/update_shield_runtime_state()
+	user = get_shield_user()
+	if(should_process_shield())
+		start_process()
 		return
 
-	unregister_projectile_damage_signal()
+	end_process()
 
-/obj/item/clothing/suit/marine/shielded/proc/on_projectile_damage(mob/living/carbon/human/target, list/projectile_damage_data)
-	SIGNAL_HANDLER
+/obj/item/clothing/suit/marine/shielded/proc/intercept_projectile_damage(mob/living/carbon/human/target, damage_taken)
+	if(target != get_shield_user())
+		return max(damage_taken, 0)
 
-	if(target != shield_signal_owner || target.wear_suit != src)
-		return
-
-	var/damage_taken = projectile_damage_data["damage_result"]
-	if(damage_taken <= 0)
-		return
-
-	damage_taken = take_damage(damage_taken, target)
-	projectile_damage_data["damage_result"] = damage_taken
-	if(damage_taken <= 0)
-		projectile_damage_data["cancel_bullet_act"] = TRUE
+	return take_damage(damage_taken, target)
 
 /obj/item/clothing/suit/marine/shielded/proc/toggle_shield()
 	user = src.loc
@@ -107,14 +94,14 @@
 			shield_enabled = FALSE
 			shield_strength = 0
 			playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
-			end_process()
+			end_process(TRUE)
 			to_chat(user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
 			return
 		if(!shield_enabled)
 			shield_enabled = TRUE
 			playsound(src, 'sound/effects/shields/shield_manual_up.ogg')
 			COOLDOWN_START(src, time_to_regen, shield.time_to_regen)
-			start_process()
+			update_shield_runtime_state()
 			to_chat(user, SPAN_NOTICE("You hear a low hum as your shield powers on."))
 			return
 
@@ -125,7 +112,7 @@
 		shield_strength = 0
 		playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
 		to_chat(user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
-		end_process()
+		end_process(TRUE)
 		return
 
 /obj/item/clothing/suit/marine/shielded/proc/take_damage(damage_taken, mob/living/carbon/human/user)
@@ -160,6 +147,8 @@
 		shield_pop(user)
 		shield_broken = TRUE
 
+	update_shield_runtime_state()
+
 	return max(damage_taken - absorbed_damage, 0)
 
 
@@ -177,35 +166,41 @@
 /obj/item/clothing/suit/marine/shielded/proc/start_process()
 	START_PROCESSING(SSfastobj, src)
 
-/obj/item/clothing/suit/marine/shielded/proc/end_process()
+/obj/item/clothing/suit/marine/shielded/proc/end_process(reset_regen_cooldown = FALSE)
 	STOP_PROCESSING(SSfastobj, src)
-	COOLDOWN_RESET(src, time_to_regen)
+	if(reset_regen_cooldown)
+		COOLDOWN_RESET(src, time_to_regen)
 
 /obj/item/clothing/suit/marine/shielded/process(delta_time)
-	sync_projectile_damage_signal()
-	user = src.loc
-	if(ishuman(user))
-		if(!shield_enabled)
-			return
-		if(shield_broken || user.stat == DEAD)
-			if(COOLDOWN_FINISHED(src, shield_sparks))
-				var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
-				shield_sparkle.pixel_x = rand(-5, 5)
-				shield_sparkle.pixel_y = rand(-16, 16)
-				user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
-				addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
-				shield_effect = TRUE
-				COOLDOWN_START(src, shield_sparks, rand(3, 5) SECONDS)
-		if(user.stat == DEAD)
-			disable_shield()
-		if(COOLDOWN_FINISHED(src, time_to_regen))
-			if(shield_strength < max_shield_strength)
-				shield_strength = min(shield_strength + shield_regen_rate, max_shield_strength)
-				shield_broken = FALSE
-				if(COOLDOWN_FINISHED(src, shield_noise_cd))
-					playsound(src, "shield_charge", vary = TRUE)
-					user.visible_message(SPAN_NOTICE("[user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
-					COOLDOWN_START(src, shield_noise_cd, shield.time_to_regen)
+	user = get_shield_user()
+	if(!ishuman(user) || !shield_enabled)
+		end_process()
+		return
+
+	if(shield_broken || user.stat == DEAD)
+		if(COOLDOWN_FINISHED(src, shield_sparks))
+			var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
+			shield_sparkle.pixel_x = rand(-5, 5)
+			shield_sparkle.pixel_y = rand(-16, 16)
+			user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
+			addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
+			shield_effect = TRUE
+			COOLDOWN_START(src, shield_sparks, rand(4, 6) SECONDS)
+
+	if(user.stat == DEAD)
+		disable_shield()
+		return
+
+	if(COOLDOWN_FINISHED(src, time_to_regen) && shield_strength < max_shield_strength)
+		shield_strength = min(shield_strength + (shield_regen_rate * delta_time), max_shield_strength)
+		if(shield_strength > 0)
+			shield_broken = FALSE
+		if(COOLDOWN_FINISHED(src, shield_noise_cd))
+			playsound(src, "shield_charge", vary = TRUE)
+			user.visible_message(SPAN_NOTICE("[user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
+			COOLDOWN_START(src, shield_noise_cd, shield.time_to_regen)
+
+	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/proc/remove_shield_effect()
 	user = src.loc
