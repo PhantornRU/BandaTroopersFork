@@ -100,6 +100,44 @@
 
 	return ..()
 
+/obj/item/weapon/covenant/energy_sword/proc/get_sangheili_hand_shift(mob/living/carbon/human/user, slot)
+	if(!issangheili(user) || (slot != WEAR_L_HAND && slot != WEAR_R_HAND))
+		return null
+
+	var/datum/species/species = user.species
+	if(!species?.equip_adjust)
+		return null
+
+	var/list/slot_shifts = species.equip_adjust[slot]
+	if(!slot_shifts)
+		return null
+
+	return slot_shifts["[user.dir]"]
+
+/obj/item/weapon/covenant/energy_sword/proc/apply_sangheili_hand_shift(image/overlay_img, mob/living/carbon/human/user, slot)
+	var/list/shift = get_sangheili_hand_shift(user, slot)
+	if(!overlay_img || !shift)
+		return overlay_img
+
+	overlay_img.pixel_x += shift["x"]
+	overlay_img.pixel_y += shift["y"]
+	return overlay_img
+
+/obj/item/weapon/covenant/energy_sword/get_mob_overlay(mob/user_mob, slot)
+	if(!ishuman(user_mob) || !issangheili(user_mob) || (slot != WEAR_L_HAND && slot != WEAR_R_HAND))
+		return ..()
+
+	var/mob_state = get_icon_state(user_mob, slot)
+	var/mob_icon
+	if(LAZYISIN(item_icons, slot))
+		mob_icon = item_icons[slot]
+	else
+		mob_icon = GLOB.default_onmob_icons[slot]
+
+	var/image/overlay_img = overlay_image(mob_icon, mob_state, color, RESET_COLOR)
+	center_image(overlay_img, inhand_x_dimension, inhand_y_dimension)
+	return apply_sangheili_hand_shift(overlay_img, user_mob, slot)
+
 /obj/item/weapon/covenant/energy_sword/proc/get_human_holder(mob/living/carbon/human/user)
 	if(user)
 		return user

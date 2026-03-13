@@ -195,6 +195,31 @@
 
 	return should_reload()
 
+/datum/human_ai_brain/proc/halo_sangheili_has_usable_ranged_fallback()
+	var/obj/item/weapon/gun/fallback_weapon = halo_sangheili_committed_primary_weapon || primary_weapon
+	if(!tied_human || !fallback_weapon || QDELETED(fallback_weapon))
+		return FALSE
+
+	if(!halo_sangheili_owns_item(fallback_weapon))
+		return FALSE
+
+	if(!fallback_weapon.ai_can_use(tied_human, src))
+		return FALSE
+
+	if(fallback_weapon.has_ammunition())
+		return TRUE
+
+	return !isnull(weapon_ammo_search(fallback_weapon))
+
+/datum/human_ai_brain/proc/halo_sangheili_should_preserve_drawn_sword()
+	if(!halo_sangheili_find_sword())
+		return FALSE
+
+	if(halo_sangheili_sword_only)
+		return TRUE
+
+	return !halo_sangheili_has_usable_ranged_fallback()
+
 /datum/human_ai_brain/proc/halo_sangheili_should_use_sword_mode(atom/threat = null)
 	if(!threat)
 		threat = halo_covenant_get_threat_atom()
@@ -315,6 +340,9 @@
 	if(halo_sangheili_sword_only || !halo_sangheili_melee_committed)
 		return FALSE
 
+	if(!halo_sangheili_has_usable_ranged_fallback())
+		return FALSE
+
 	if(halo_sangheili_should_use_sword_mode(threat))
 		return FALSE
 
@@ -353,6 +381,9 @@
 	set_primary_weapon(committed_primary_weapon)
 
 /datum/human_ai_brain/proc/halo_sangheili_should_keep_sword_drawn()
+	if(halo_sangheili_should_preserve_drawn_sword())
+		return TRUE
+
 	if(!halo_sangheili_melee_committed)
 		return FALSE
 
@@ -436,12 +467,15 @@
 	ensure_primary_hand(sword)
 	return sword
 
-/datum/human_ai_brain/proc/halo_sangheili_holster_sword()
+/datum/human_ai_brain/proc/halo_sangheili_holster_sword(force = FALSE)
 	var/mob/living/carbon/human/human = tied_human
 	var/obj/item/weapon/covenant/energy_sword/sword = halo_sangheili_drawn_sword || halo_sangheili_find_sword()
 	if(!human || !sword)
 		on_halo_sangheili_sword_dropped()
 		return TRUE
+
+	if(!force && halo_sangheili_should_preserve_drawn_sword())
+		return FALSE
 
 	if(sword.activated)
 		sword.set_activation_state(FALSE, human)
@@ -469,5 +503,8 @@
 
 /datum/human_ai_brain/exit_combat()
 	. = ..()
+	if(halo_sangheili_should_preserve_drawn_sword())
+		halo_sangheili_clear_melee_commit(FALSE)
+		return
 	if(halo_sangheili_melee_committed || halo_sangheili_drawn_sword)
 		halo_sangheili_holster_sword()

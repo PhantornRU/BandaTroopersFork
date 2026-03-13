@@ -1,19 +1,16 @@
 # PLAN
 
 ## Active task
-Refine HALO mixed Sangheili sword behavior so they switch to the sword only while the target is too close or the firearm is unavailable, then return to ranged combat once the target dies or moves far away.
+Keep HALO Sangheili swords active when an AI has no usable ranged fallback, and fix the missing hand-render issue for Sangheili sword overlays across all directions.
 
 ## Delivery status
-- [x] Narrow the HALO melee-commit logic to conditional sword mode instead of combat-long commitment.
-- [x] Keep firearm parking/action suppression only while sword conditions hold.
-- [x] Restore the parked firearm when the melee target moves back out of sword range or disappears.
-- [x] Keep the held-sword overlay refresh fix in place.
-- [x] Update Sangheili unit tests for close-range sword switching and return-to-ranged behavior.
-- [x] Run `dm` verification.
-- [x] Attempt `dm-test` verification through the standard wrapper.
+- [x] Add a HALO-local no-ranged-fallback guard for drawn-sword persistence.
+- [x] Prevent incidental sword holster/deactivation when that AI has no firearm it can return to.
+- [x] Fix the Sangheili sword hand render path so 64x64 inhand overlays are not clipped by species offset handling.
+- [x] Replace the old metadata-only sword dir guard with stronger sword render tests.
+- [ ] Run `dm` verification.
+- [ ] Attempt `dm-test` verification through the standard wrapper.
 
 ## Acceptance status
-- Confirmed by code: mixed HALO Sangheili now draw the sword for close-range pressure or firearm-unavailable fights, and restore ranged state when the target moves back out of sword range or disappears.
-- Confirmed by code: `energy_sword.set_activation_state()` still refreshes held hand overlays immediately for AI and players.
-- Confirmed by `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`: passed on 2026-03-13.
-- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror` still timed out in the Windows wrapper on 2026-03-13.
+- Pending verification: no-gun HALO Sangheili should keep the sword drawn and active instead of deactivating it on combat/action teardown.
+- Pending verification: HALO Sangheili sword overlays should render visibly in both hands for `SOUTH`, `NORTH`, `EAST`, and `WEST`.

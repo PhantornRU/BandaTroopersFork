@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: Keep the switching logic HALO-local
-- Decision: keep sword/ranged switching inside HALO Sangheili helper/action code instead of rewriting shared upstream firearm action selection.
-- Why: the behavior is HALO-specific and the helper layer already owns sword draw/holster flow.
+## D-001: Keep the persistence logic HALO-local
+- Decision: implement the no-gun sword persistence check in HALO Sangheili helper/action code.
+- Why: this is a HALO Sangheili behavior issue and does not justify widening shared upstream human AI logic.
 
-## D-002: Sword mode is conditional, not combat-long
-- Decision: mixed Sangheili stay in sword mode only while the target is close enough for melee pressure or the firearm is temporarily unavailable.
-- Why: the requested behavior is "draw sword for close or dry/unusable gun, then return to ranged once the fight opens back up."
+## D-002: Fix the actual render bug, not the earlier assumption
+- Decision: fix Sangheili sword visibility through a HALO-local hand-overlay override on the sword item.
+- Why: investigation showed the hand DMI states exist, but Sangheili species offset handling clips 64x64 inhand overlays during runtime rendering.
 
-## D-003: Preserve the overlay refresh fix
-- Decision: keep the held-item overlay refresh in `energy_sword.set_activation_state()` and do not change DMI art in this task.
-- Why: the reported missing activation visuals are code-side and the hand DMI states already exist.
+## D-003: Preserve mixed ranged fallback behavior
+- Decision: mixed Sangheili still holster the sword when they truly can return to a usable firearm.
+- Why: only no-fallback terminal-sword cases should stop deactivating the blade.

@@ -1,18 +1,17 @@
 # EVIDENCE
 
-## E-001: Sticky sword commitment was too broad for the requested behavior
-- The earlier HALO helper logic kept mixed Sangheili in sword mode until combat end or sword loss.
-- The clarified requirement is narrower: switch to melee for close or unusable-gun cases, then return to ranged when the target is far or gone.
+## E-001: The sword persistence bug is a no-fallback teardown problem
+- `sangheili_sword_charge` and `exit_combat()` could still holster/deactivate the sword after the AI no longer had a firearm to return to.
+- That leaves no-gun Sangheili empty-clicking unless they redraw/reactivate again.
 
-## E-002: The HALO AI graph already has the right choke points
-- `halo_sangheili_should_sword_charge()` controls when the dedicated sword action is eligible.
-- `halo_sangheili_draw_sword()` and `halo_sangheili_holster_sword()` already own the actual equip transitions.
-- That makes the HALO helper layer the minimal place to change behavior.
+## E-002: The hand-DMI files are not missing states
+- `items_lefthand_halo_64.dmi` and `items_righthand_halo_64.dmi` both declare `energy_sword` and `energy_sword_activated` with `dirs = 4`.
+- The user-facing invisibility report therefore required checking the runtime overlay path, not only DMI metadata.
 
-## E-003: The visual issue is still code-side
-- `cov_melee.dm` refreshes hand overlays after sword activation changes.
-- The HALO hand DMI files already expose `energy_sword` and `energy_sword_activated` for all four directions, so no art change is required for this task.
+## E-003: The real render failure is runtime clipping
+- Generic item rendering asks species `get_offset_overlay_image()` to rebuild direction-adjusted overlays on a 32x32 template.
+- Sangheili hand offsets work for standard-sized items, but they clip the HALO sword's 64x64 inhand art.
+- A HALO-local sword overlay override avoids that clipping while preserving Sangheili hand shifts.
 
 ## E-004: Verification status
-- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed locally on 2026-03-13 after the conditional sword-switch update.
-- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror` still timed out in the Windows wrapper on 2026-03-13.
+- Verification has not yet been rerun after the persistence and runtime render fixes.
