@@ -1065,7 +1065,7 @@ Additional game mode variables.
 		log_debug("Null client attempted to transform_joe")
 		return
 
-	var/turf/spawn_point = get_turf(pick(GLOB.latejoin_by_job[JOB_WORKING_JOE]))
+	var/turf/spawn_point = get_modular_safe_latejoin_turf(JOB_WORKING_JOE) // SS220 EDIT: safe latejoin fallback skips empty Working Joe bucket
 	var/mob/living/carbon/human/synthetic/new_joe = new(spawn_point)
 	joe_candidate.mind.transfer_to(new_joe, TRUE)
 	var/datum/job/joe_job = GLOB.RoleAuthority.roles_by_name[JOB_WORKING_JOE]

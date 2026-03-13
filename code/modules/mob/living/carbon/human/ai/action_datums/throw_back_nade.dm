@@ -52,7 +52,12 @@
 				break
 
 		if(!place_to_throw)
-			place_to_throw = turf_pathfind_list[4]
+			if(length(turf_pathfind_list) >= 4)
+				place_to_throw = turf_pathfind_list[4]
+			else if(length(turf_pathfind_list))
+				place_to_throw = turf_pathfind_list[length(turf_pathfind_list)]
+			else
+				return ONGOING_ACTION_COMPLETED
 
 	else // We haven't found an enemy in range that we can throw to, so we'll just throw in a direction that doesn't have friendlies
 		var/list/directions = list(

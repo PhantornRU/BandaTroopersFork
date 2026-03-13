@@ -22,6 +22,8 @@
 
 	// sounds
 	COOLDOWN_DECLARE(shield_noise_cd)
+	COOLDOWN_DECLARE(shield_hit_sound_cd)
+	COOLDOWN_DECLARE(shield_hit_visual_cd)
 
 	actions_types = list(/datum/action/item_action/toggle_shield)
 
@@ -134,18 +136,21 @@
 	if(!shield_enabled || shield_broken || shield_strength <= 0)
 		return damage_taken
 
-	playsound(src, "shield_hit")
-	if(!shield_effect)
+	if(COOLDOWN_FINISHED(src, shield_hit_sound_cd))
+		playsound(src, "shield_hit")
+		COOLDOWN_START(src, shield_hit_sound_cd, 3 DECISECONDS)
+
+	if(!shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
 		var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
 		shield_flicker.dir = user.dir
 		flick_overlay(user, shield_flicker, 22)
 		user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
 		shield_effect = TRUE
+		COOLDOWN_START(src, shield_hit_visual_cd, 22)
 		addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 22)
-
-	var/obj/shield_hit_fx = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
-	shield_hit_fx.pixel_x = rand(-5, 5)
-	shield_hit_fx.pixel_y = rand(-16, 16)
+		var/obj/shield_hit_fx = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
+		shield_hit_fx.pixel_x = rand(-5, 5)
+		shield_hit_fx.pixel_y = rand(-16, 16)
 
 	var/absorbed_damage = min(damage_taken, shield_strength)
 	shield_strength = max(shield_strength - absorbed_damage, 0)

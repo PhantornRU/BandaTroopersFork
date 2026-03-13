@@ -590,12 +590,11 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		if(!late_join_turf)
 			// if(GLOB.latejoin_by_squad[assigned_squad])
 			// 	late_join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
-			if(GLOB.latejoin_by_squad[assigned_squad])
-				late_join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
-			else if(GLOB.latejoin_by_job[new_job.title])
-				late_join_turf = get_turf(pick(GLOB.latejoin_by_job[new_job.title]))
-			else
-				late_join_turf = get_turf(pick(GLOB.latejoin))
+			// else if(GLOB.latejoin_by_job[new_job.title])
+			// 	late_join_turf = get_turf(pick(GLOB.latejoin_by_job[new_job.title]))
+			// else
+			// 	late_join_turf = get_turf(pick(GLOB.latejoin))
+			late_join_turf = get_modular_safe_latejoin_turf(new_job.title, assigned_squad) // SS220 EDIT: safe latejoin fallback skips empty buckets before global latejoin
 		// SS220 EDIT - END
 		new_human.forceMove(late_join_turf)
 	else
@@ -625,11 +624,11 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			// else if(assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
 			// 	join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
 			else if(!is_squad_role && assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
-				join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
+				join_turf = get_modular_safe_latejoin_turf(null, assigned_squad, FALSE) // SS220 EDIT: safe latejoin fallback skips empty squad buckets
 			// else
 			// 	join_turf = get_turf(pick(GLOB.latejoin))
 			else if(!is_squad_role)
-				join_turf = get_turf(pick(GLOB.latejoin))
+				join_turf = get_modular_safe_latejoin_turf(null, null, FALSE) // SS220 EDIT: safe latejoin fallback avoids pick(empty list)
 		// SS220 EDIT - END
 		new_human.forceMove(join_turf)
 
