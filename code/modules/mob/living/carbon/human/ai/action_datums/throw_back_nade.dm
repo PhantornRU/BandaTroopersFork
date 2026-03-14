@@ -5,6 +5,7 @@
 /datum/ai_action/throw_back_nade
 	name = "Throw Back Grenade"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
+	var/min_safe_throw_distance = 4 // SS220 EDIT: throw-back should not deliberately choose turf inside the expected grenade danger radius
 	var/mid_throw = FALSE // SS220 EDIT: transient async state keeps trigger_action() no-sleep while the real throw runs separately
 	var/throw_finished = FALSE // SS220 EDIT: transient async state completes the action on the next scheduler tick
 
@@ -47,6 +48,37 @@
 	tied_human.swap_hand()
 	return FALSE
 
+/datum/ai_action/throw_back_nade/proc/get_directional_throw_target(mob/living/carbon/human/tied_human)
+	var/list/directions = list(
+		locate(tied_human.x, tied_human.y + min_safe_throw_distance, tied_human.z),
+		locate(tied_human.x + min_safe_throw_distance, tied_human.y, tied_human.z),
+		locate(tied_human.x, tied_human.y - min_safe_throw_distance, tied_human.z),
+		locate(tied_human.x - min_safe_throw_distance, tied_human.y, tied_human.z),
+	)
+
+	dir_loop:
+		for(var/turf/location as anything in directions)
+			if(location)
+				var/list/turf/path = get_line(tied_human, location, include_start_atom = FALSE)
+				for(var/turf/possible_blocker as anything in path)
+					if(possible_blocker.density)
+						continue dir_loop
+
+					for(var/obj/possible_object_blocker in path)
+						if(possible_object_blocker.density)
+							continue dir_loop
+
+				var/has_friendly = FALSE
+				for(var/mob/possible_friendly in range(3, location))
+					if(!brain.can_target(possible_friendly))
+						has_friendly = TRUE
+						break
+
+				if(!has_friendly)
+					return location
+
+	return null
+
 /datum/ai_action/throw_back_nade/trigger_action()
 	. = ..()
 	if(throw_finished)
@@ -79,49 +111,17 @@
 	if(length(possible_targets))
 		var/mob/living/carbon/chosen_target = pick(possible_targets)
 		var/list/turf_pathfind_list = AStar(get_turf(tied_human), get_turf(chosen_target), /turf/proc/AdjacentTurfs, /turf/proc/Distance, view_distance)
-		for(var/i = length(turf_pathfind_list); i >= 4; i--) // We cut it off at 4 because we want to avoid most of the nade blast
+		for(var/i = length(turf_pathfind_list); i >= min_safe_throw_distance; i--) // We cut it off at 4 because we want to avoid most of the nade blast
 			var/turf/target_turf = turf_pathfind_list[i]
 			if(tied_human in viewers(view_distance, target_turf))
 				place_to_throw = target_turf
 				break
 
-		if(!place_to_throw)
-			if(length(turf_pathfind_list) >= 4)
-				place_to_throw = turf_pathfind_list[4]
-			else if(length(turf_pathfind_list))
-				place_to_throw = turf_pathfind_list[length(turf_pathfind_list)]
-			else
-				return ONGOING_ACTION_COMPLETED
+	if(place_to_throw && (get_dist(tied_human, place_to_throw) < min_safe_throw_distance))
+		place_to_throw = null // SS220 EDIT: short A* paths must not degrade into self-throws when the target is already too close
 
-	else // We haven't found an enemy in range that we can throw to, so we'll just throw in a direction that doesn't have friendlies
-		var/list/directions = list(
-			locate(tied_human.x, tied_human.y + 4, tied_human.z),
-			locate(tied_human.x + 4, tied_human.y, tied_human.z),
-			locate(tied_human.x, tied_human.y - 4, tied_human.z),
-			locate(tied_human.x - 4, tied_human.y, tied_human.z),
-		)
-		dir_loop:
-			for(var/turf/location as anything in directions)
-				if(location)
-					var/list/turf/path = get_line(tied_human, location, include_start_atom = FALSE)
-					for(var/turf/possible_blocker as anything in path)
-						if(possible_blocker.density)
-							continue dir_loop
-
-						for(var/obj/possible_object_blocker in path)
-							if(possible_object_blocker.density)
-								continue dir_loop
-
-					var/has_friendly = FALSE
-					for(var/mob/possible_friendly in range(3, location))
-						if(!brain.can_target(possible_friendly))
-							has_friendly = TRUE
-							break
-
-					if(!has_friendly)
-						place_to_throw = location
-						break
-
+	if(!place_to_throw)
+		place_to_throw = get_directional_throw_target(tied_human) // SS220 EDIT: fallback keeps the primed grenade moving away from nearby friendlies and the thrower
 		if(!place_to_throw)
 			// There's friendlies all around us, apparently. Just uh. Die ig.
 			return ONGOING_ACTION_COMPLETED
@@ -152,11 +152,22 @@
 	if(QDELETED(src))
 		return
 
-	if(!brain?.has_valid_tied_human() || (brain.tied_human != tied_human))
+	if(!brain || !brain.has_valid_tied_human() || (brain.tied_human != tied_human))
 		finish_async_throw()
 		return
 
 	if(QDELETED(grenade) || !grenade.active || (grenade.loc != tied_human) || !place_to_throw)
+		finish_async_throw()
+		return
+
+	if(tied_human.get_active_hand() != grenade)
+		if(tied_human.get_inactive_hand() == grenade)
+			tied_human.swap_hand() // SS220 EDIT: async throw must reselect the exact grenade chosen during sync target resolution
+		else
+			finish_async_throw()
+			return
+
+	if(tied_human.get_active_hand() != grenade)
 		finish_async_throw()
 		return
 

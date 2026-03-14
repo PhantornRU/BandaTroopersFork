@@ -53,7 +53,7 @@
 
 /datum/ai_action/fire_at_target/trigger_action()
 	. = ..()
-	if(!brain?.has_valid_tied_human()) // SS220 EDIT: firing action exits cleanly if the modular AI owner disappears mid-combat
+	if(!brain || !brain.has_valid_tied_human()) // SS220 EDIT: firing action exits cleanly if the modular AI owner disappears mid-combat
 		return ONGOING_ACTION_COMPLETED
 
 	var/obj/item/weapon/gun/primary_weapon = brain.primary_weapon
@@ -137,7 +137,7 @@
 /datum/ai_action/fire_at_target/proc/on_gun_fire(datum/source, obj/item/weapon/gun/fired)
 	SIGNAL_HANDLER
 
-	if(!brain?.has_valid_tied_human()) // SS220 EDIT: late gun callbacks can outlive the modular AI owner for a tick
+	if(!brain || !brain.has_valid_tied_human()) // SS220 EDIT: late gun callbacks can outlive the modular AI owner for a tick
 		qdel(src)
 		return
 

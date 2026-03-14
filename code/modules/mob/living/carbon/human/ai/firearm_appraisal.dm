@@ -53,18 +53,28 @@ GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firea
 
 /// Reload sequence per weapon type, override as needed
 /datum/firearm_appraisal/proc/do_reload(obj/item/weapon/gun/firearm, obj/item/ammo_magazine/mag, mob/living/carbon/user, datum/human_ai_brain/AI)
+	if(QDELETED(firearm) || QDELETED(mag) || QDELETED(user) || !AI || !AI.has_valid_tied_human())
+		return
 	AI.unholster_primary()
 	AI.ensure_primary_hand(firearm)
 	firearm.unwield(user)
 	sleep(AI.short_action_delay * AI.action_delay_mult)
+	if(QDELETED(firearm) || QDELETED(user) || !AI.has_valid_tied_human())
+		return
 	if(!(firearm?.flags_gun_features & GUN_INTERNAL_MAG) && firearm?.current_mag)
 		firearm?.unload(user, FALSE, TRUE, FALSE)
 	user.swap_hand()
 	sleep(AI.micro_action_delay * AI.action_delay_mult)
+	if(QDELETED(firearm) || QDELETED(mag) || QDELETED(user) || !AI.has_valid_tied_human())
+		return
 	AI.equip_item_from_equipment_map(HUMAN_AI_AMMUNITION, mag)
 	sleep(AI.short_action_delay * AI.action_delay_mult)
+	if(QDELETED(firearm) || QDELETED(mag) || QDELETED(user) || !AI.has_valid_tied_human())
+		return
 	if(istype(mag, /obj/item/ammo_magazine/handful))
 		for(var/i in 1 to mag.current_rounds)
+			if(QDELETED(firearm) || QDELETED(mag) || QDELETED(user) || !AI.has_valid_tied_human())
+				return
 			firearm?.attackby(mag, user)
 			sleep(AI.micro_action_delay * AI.action_delay_mult)
 		if(!QDELETED(mag) && (mag.current_rounds > 0))
@@ -76,6 +86,8 @@ GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firea
 	else
 		firearm?.attackby(mag, user)
 	sleep(AI.short_action_delay * AI.action_delay_mult)
+	if(QDELETED(user) || !AI.has_valid_tied_human())
+		return
 	user.swap_hand()
 	AI.wield_primary_sleep()
 

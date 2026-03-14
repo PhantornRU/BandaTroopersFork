@@ -73,6 +73,20 @@
 
 	var/object_loc = equipment_map[object_type][object_ref]
 	var/obj/item/storage/storage_object = get_object_from_loc(object_loc)
+	if(object_ref.loc == tied_human)
+		equipped_items_original_loc[object_ref] = object_loc
+		RegisterSignal(object_ref, COMSIG_ITEM_DROPPED, PROC_REF(on_equipment_dropped), override = TRUE)
+		return tied_human.put_in_active_hand(object_ref)
+
+	if(!storage_object)
+		equipment_map[object_type] -= object_ref
+		equipped_items_original_loc -= object_ref
+		return
+
+	if(object_ref.loc != storage_object)
+		equipment_map[object_type] -= object_ref
+		equipped_items_original_loc -= object_ref
+		return
 
 	storage_object.remove_from_storage(object_ref, tied_human)
 	equipped_items_original_loc[object_ref] = object_loc

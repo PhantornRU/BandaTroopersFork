@@ -108,6 +108,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 
 /datum/human_ai_brain/proc/reset_ai()
 	end_cover()
+	clear_detection_radius()
 
 	in_combat = FALSE
 	active_grenade_found = null // SS220 EDIT: reset stale grenade threat state so AI can leave throw-back mode cleanly
@@ -135,11 +136,15 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		return
 
 	if(tied_human.is_mob_incapacitated())
+		clear_detection_radius() // SS220 EDIT: stunned or dead AI should not keep turf-enter listeners alive
 		for(var/action in ongoing_actions)
 			qdel(action)
 		ongoing_actions.Cut()
 		lose_target()
 		return
+
+	if(!length(detection_turfs))
+		setup_detection_radius() // SS220 EDIT: restore projectile detection after recovering from incap or reset
 
 	if(tied_human.resting)
 		tied_human.set_resting(FALSE, TRUE)

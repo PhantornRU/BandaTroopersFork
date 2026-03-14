@@ -319,6 +319,7 @@
 	attachable_offset = null
 
 /obj/item/weapon/gun/Destroy()
+	SEND_SIGNAL(src, COMSIG_GUN_INTERRUPT_FIRE)
 	in_chamber = null
 	ammo = null
 	QDEL_NULL(current_mag)
@@ -859,6 +860,8 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 //Hardcoded and horrible
 /obj/item/weapon/gun/proc/cock_gun(mob/user)
 	set waitfor = 0
+	if(QDELETED(src))
+		return
 	if(cocked_sound)
 		addtimer(CALLBACK(src, PROC_REF(cock_sound), user), 0.5 SECONDS)
 

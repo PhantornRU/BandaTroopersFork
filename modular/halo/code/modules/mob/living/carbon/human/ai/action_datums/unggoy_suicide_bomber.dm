@@ -87,7 +87,7 @@
 		return grenade
 
 /datum/ai_action/unggoy_suicide_bomber/proc/clear_both_hands()
-	if(!brain?.has_valid_tied_human())
+	if(!brain || !brain.has_valid_tied_human())
 		return
 
 	brain.clear_main_hand()
@@ -96,7 +96,7 @@
 	brain.tied_human.swap_hand()
 
 /datum/ai_action/unggoy_suicide_bomber/proc/prime_grenades()
-	if(!brain?.has_valid_tied_human())
+	if(!brain || !brain.has_valid_tied_human())
 		return FALSE
 
 	var/mob/living/carbon/human/tied_human = brain.tied_human
@@ -161,7 +161,7 @@
 	return grenade.active
 
 /datum/ai_action/unggoy_suicide_bomber/proc/move_towards_target(atom/charge_target)
-	if(!brain?.has_valid_tied_human())
+	if(!brain || !brain.has_valid_tied_human())
 		return FALSE
 
 	var/turf/charge_turf = get_turf(charge_target)
