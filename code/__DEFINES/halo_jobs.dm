@@ -1,5 +1,5 @@
 // Shared HALO squad and role string contracts consumed by code/** and modular/**.
-// This file lives in code/__DEFINES/bandamarines so it can still be included before mode.dm.
+// This file lives in code/__DEFINES so DME include-order validation stays stable.
 #define SQUAD_ODST "The Ferrymen"
 
 #define JOB_SQUAD_MARINE_ODST "ODST Rifleman"

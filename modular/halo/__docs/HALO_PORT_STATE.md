@@ -21,7 +21,7 @@ Canonical source of truth for the current HALO upstream baseline. For HALO port,
 
 ## Intentional Source Deviations
 - HALO squad and platoon runtime is not returned to upstream `code/game/jobs/**`; it stays in `modular/squads/**`.
-- HALO shared string contracts stay in `code/__DEFINES/bandamarines/halo_jobs.dm`.
+- HALO shared string contracts stay in `code/__DEFINES/halo_jobs.dm`.
 - Upstream legacy ODST map landmarks and single-squad ODST typepaths are not restored. HALO maps must target current `modular/squads` runtime and existing marine `alpha/bravo/charlie/delta` landmark surfaces.
 - HALO ship JSON stays on `/datum/squad/marine/halo/{unsc,odst}/alpha` plus optional `allowed_platoons`, even though upstream `unsc_dark_was_the_night*.json` reverted to old non-HALO squad paths.
 - ODST drop pod transit support uses the modular compat layer in `modular/halo/code/mixed/compat/halo_droppod_support.dm` instead of scattering direct upstream changes across the non-modular tree.

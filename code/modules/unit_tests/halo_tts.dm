@@ -14,6 +14,9 @@
 	TEST_ASSERT_NOTNULL(seed, "Approved HALO TTS seed [seed_name] is missing from the registry.")
 	TEST_ASSERT_EQUAL(seed.gender, expected_gender, "Approved HALO TTS seed [seed_name] drifted away from the expected gender bucket.")
 
+/datum/unit_test/halo_tts/Run()
+	return
+
 /datum/unit_test/halo_tts_shortlists
 	parent_type = /datum/unit_test/halo_tts
 

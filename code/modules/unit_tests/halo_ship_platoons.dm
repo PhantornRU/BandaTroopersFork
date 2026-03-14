@@ -5,6 +5,8 @@
 	var/list/snapshot_roles_for_mode = null
 	var/list/snapshot_personal_closets = null
 	var/list/snapshot_custom_items = null
+	var/synthetic_mainship_z = null
+	var/synthetic_mainship_prev = null
 
 /datum/unit_test/halo_ship_platoons/Run()
 	return
@@ -24,6 +26,13 @@
 	snapshot_custom_items = GLOB.custom_items ? GLOB.custom_items.Copy() : list()
 
 /datum/unit_test/halo_ship_platoons/Destroy()
+	if(synthetic_mainship_z)
+		var/datum/space_level/level = SSmapping?.get_level(synthetic_mainship_z)
+		if(level && islist(level.traits))
+			level.traits[ZTRAIT_MARINE_MAIN_SHIP] = synthetic_mainship_prev
+		synthetic_mainship_z = null
+		synthetic_mainship_prev = null
+
 	if(next_ship_exists)
 		rustg_file_write(next_ship_snapshot || "", "data/next_ship.json")
 	else
@@ -96,7 +105,18 @@
 	if(length(mainship_levels))
 		return locate(1, 1, mainship_levels[1])
 
-	return null
+	var/turf/fallback = run_loc_floor_top_right
+	if(!isfloorturf(fallback))
+		return null
+
+	var/datum/space_level/level = SSmapping?.get_level(fallback.z)
+	if(level && islist(level.traits))
+		if(isnull(synthetic_mainship_z))
+			synthetic_mainship_z = fallback.z
+			synthetic_mainship_prev = level.traits[ZTRAIT_MARINE_MAIN_SHIP]
+			level.traits[ZTRAIT_MARINE_MAIN_SHIP] = TRUE
+
+	return fallback
 
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
 	parent_type = /datum/unit_test/halo_ship_platoons
