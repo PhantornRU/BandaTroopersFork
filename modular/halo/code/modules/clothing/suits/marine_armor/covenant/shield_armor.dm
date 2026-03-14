@@ -27,8 +27,6 @@
 
 	actions_types = list(/datum/action/item_action/toggle_shield)
 
-	var/mob/living/carbon/human/user
-
 // ------------------ PROCS ------------------
 
 /obj/item/clothing/suit/marine/shielded/Initialize()
@@ -41,7 +39,6 @@
 
 /obj/item/clothing/suit/marine/shielded/Destroy()
 	STOP_PROCESSING(SSfastobj, src)
-	user = null
 	return ..()
 
 /obj/item/clothing/suit/marine/shielded/equipped(mob/user, slot, silent)
@@ -74,7 +71,6 @@
 	return !COOLDOWN_FINISHED(src, time_to_regen)
 
 /obj/item/clothing/suit/marine/shielded/proc/update_shield_runtime_state()
-	user = get_shield_user()
 	if(should_process_shield())
 		start_process()
 		return
@@ -88,30 +84,30 @@
 	return take_damage(damage_taken, target)
 
 /obj/item/clothing/suit/marine/shielded/proc/toggle_shield()
-	user = src.loc
-	if(ishuman(user))
+	var/mob/living/carbon/human/current_user = src.loc
+	if(ishuman(current_user))
 		if(shield_enabled)
 			shield_enabled = FALSE
 			shield_strength = 0
 			playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
 			end_process(TRUE)
-			to_chat(user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
+			to_chat(current_user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
 			return
 		if(!shield_enabled)
 			shield_enabled = TRUE
 			playsound(src, 'sound/effects/shields/shield_manual_up.ogg')
 			COOLDOWN_START(src, time_to_regen, shield.time_to_regen)
 			update_shield_runtime_state()
-			to_chat(user, SPAN_NOTICE("You hear a low hum as your shield powers on."))
+			to_chat(current_user, SPAN_NOTICE("You hear a low hum as your shield powers on."))
 			return
 
 /obj/item/clothing/suit/marine/shielded/proc/disable_shield()
-	user = src.loc
-	if(ishuman(user))
+	var/mob/living/carbon/human/current_user = src.loc
+	if(ishuman(current_user))
 		shield_enabled = FALSE
 		shield_strength = 0
 		playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
-		to_chat(user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
+		to_chat(current_user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
 		end_process(TRUE)
 		return
 
@@ -153,13 +149,13 @@
 
 
 /obj/item/clothing/suit/marine/shielded/proc/shield_pop(mob/living/carbon/human/user)
-	user = src.loc
-	if(ishuman(user))
+	var/mob/living/carbon/human/current_user = src.loc
+	if(ishuman(current_user))
 		playsound(src, "shield_pop", falloff = 5)
-		new /obj/effect/temp_visual/plasma_explosion/shield_pop(user.loc)
-		new /obj/effect/temp_visual/shield_spark(user.loc)
+		new /obj/effect/temp_visual/plasma_explosion/shield_pop(current_user.loc)
+		new /obj/effect/temp_visual/shield_spark(current_user.loc)
 		remove_shield_effect()
-		user.visible_message(SPAN_NOTICE("[user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
+		current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
 
 // ------------------ PROCESS PROCS ------------------
 
@@ -172,22 +168,22 @@
 		COOLDOWN_RESET(src, time_to_regen)
 
 /obj/item/clothing/suit/marine/shielded/process(delta_time)
-	user = get_shield_user()
-	if(!ishuman(user) || !shield_enabled)
+	var/mob/living/carbon/human/current_user = get_shield_user()
+	if(!ishuman(current_user) || !shield_enabled)
 		end_process()
 		return
 
-	if(shield_broken || user.stat == DEAD)
+	if(shield_broken || current_user.stat == DEAD)
 		if(COOLDOWN_FINISHED(src, shield_sparks))
-			var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
+			var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(current_user.loc)
 			shield_sparkle.pixel_x = rand(-5, 5)
 			shield_sparkle.pixel_y = rand(-16, 16)
-			user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
+			current_user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
 			addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
 			shield_effect = TRUE
 			COOLDOWN_START(src, shield_sparks, rand(4, 6) SECONDS)
 
-	if(user.stat == DEAD)
+	if(current_user.stat == DEAD)
 		disable_shield()
 		return
 
@@ -197,15 +193,15 @@
 			shield_broken = FALSE
 		if(COOLDOWN_FINISHED(src, shield_noise_cd))
 			playsound(src, "shield_charge", vary = TRUE)
-			user.visible_message(SPAN_NOTICE("[user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
+			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
 			COOLDOWN_START(src, shield_noise_cd, shield.time_to_regen)
 
 	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/proc/remove_shield_effect()
-	user = src.loc
-	if(ishuman(user))
-		user.remove_filter("shield")
+	var/mob/living/carbon/human/current_user = src.loc
+	if(ishuman(current_user))
+		current_user.remove_filter("shield")
 	shield_effect = FALSE
 
 // ------------------ ARMOR ------------------
