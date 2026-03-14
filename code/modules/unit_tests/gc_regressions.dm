@@ -83,3 +83,41 @@
 	TEST_ASSERT(!(squad_key in SShuman_ai.squad_id_dict), "Human AI squad id should be removed from squad_id_dict during Destroy().")
 	TEST_ASSERT(!(squad in SShuman_ai.squads), "Human AI squad should be removed from the subsystem squad list during Destroy().")
 	TEST_ASSERT_NULL(SShuman_ai.get_squad(squad_key), "Human AI squad lookup should return null after qdel cleanup.")
+
+/datum/unit_test/gc_regressions_xeno_ai_action_cleanup
+	parent_type = /datum/unit_test/gc_regressions
+
+/datum/unit_test/gc_regressions_xeno_ai_action_cleanup/Run()
+	var/list/required_action_types = list(
+		/datum/action/xeno_action/activable/fling/charger,
+		/datum/action/xeno_action/onclick/charger_charge,
+		/datum/action/xeno_action/onclick/crusher_stomp,
+	)
+
+	var/mob/living/carbon/xenomorph/crusher/action_cleanup_crusher = allocate(/mob/living/carbon/xenomorph/crusher, run_loc_floor_top_right)
+	var/datum/action/xeno_action/onclick/charger_charge/charge_action = get_action(action_cleanup_crusher, /datum/action/xeno_action/onclick/charger_charge)
+	TEST_ASSERT_NOTNULL(charge_action, "Crusher should start with Toggle Charging for xeno AI action cleanup testing.")
+	TEST_ASSERT(charge_action in action_cleanup_crusher.registered_ai_abilities, "Toggle Charging should be tracked in registered_ai_abilities before qdel.")
+
+	qdel(charge_action, force = TRUE)
+
+	TEST_ASSERT(QDELETED(charge_action), "Toggle Charging should qdel immediately during xeno AI action cleanup testing.")
+	TEST_ASSERT(!(charge_action in action_cleanup_crusher.registered_ai_abilities), "Qdeleted xeno AI actions should remove themselves from registered_ai_abilities.")
+	TEST_ASSERT_NULL(charge_action.owner, "Qdeleted xeno AI actions should drop their owner reference during cleanup.")
+
+	var/mob/living/carbon/xenomorph/crusher/destroy_cleanup_crusher = allocate(/mob/living/carbon/xenomorph/crusher, run_loc_floor_bottom_left)
+	var/list/tracked_actions = list()
+
+	for(var/action_type as anything in required_action_types)
+		var/datum/action/xeno_action/action = get_action(destroy_cleanup_crusher, action_type)
+		TEST_ASSERT_NOTNULL(action, "Crusher was missing [action_type] during xeno AI action cleanup testing.")
+		TEST_ASSERT(action in destroy_cleanup_crusher.registered_ai_abilities, "[action.type] should be tracked in registered_ai_abilities before crusher deletion.")
+		tracked_actions += action
+
+	qdel(destroy_cleanup_crusher, force = TRUE)
+
+	TEST_ASSERT(QDELETED(destroy_cleanup_crusher), "Crusher should qdel immediately during xeno AI action cleanup testing.")
+	TEST_ASSERT(!length(destroy_cleanup_crusher.registered_ai_abilities), "Crusher Destroy() should clear registered_ai_abilities before action GC runs.")
+
+	for(var/datum/action/xeno_action/tracked_action as anything in tracked_actions)
+		TEST_ASSERT_NULL(tracked_action.owner, "[tracked_action.type] should drop its owner reference during crusher cleanup.")
