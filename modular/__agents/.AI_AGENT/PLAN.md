@@ -1,16 +1,17 @@
 # PLAN
 
 ## Active task
-Keep HALO Sangheili swords active when an AI has no usable ranged fallback, and fix the missing hand-render issue for Sangheili sword overlays across all directions.
+Translate player-facing HALO object text into Russian for Wave 1 without changing behavior, typepaths, config surfaces, or include graph.
 
 ## Delivery status
-- [x] Add a HALO-local no-ranged-fallback guard for drawn-sword persistence.
-- [x] Prevent incidental sword holster/deactivation when that AI has no firearm it can return to.
-- [x] Fix the Sangheili sword hand render path so 64x64 inhand overlays are not clipped by species offset handling.
-- [x] Replace the old metadata-only sword dir guard with stronger sword render tests.
-- [ ] Run `dm` verification.
-- [ ] Attempt `dm-test` verification through the standard wrapper.
+- [x] Re-scope task-state from the previous HALO bugfix to the HALO object translation task.
+- [ ] Translate HALO weapons, ammo, and related static text under `modular/halo/code/modules/projectiles/guns/halo/**`.
+- [ ] Translate HALO carried-item text under `modular/halo/code/game/objects/items/**` and HALO vending/storage/medical files.
+- [ ] Translate HALO wearable text under `modular/halo/code/mixed/clothing/**` and `modular/halo/code/modules/clothing/**`.
+- [ ] Translate remaining visible HALO structure, machinery, loose-item, and organ text under the remaining scoped files.
+- [ ] Run text-safety and compile verification.
 
 ## Acceptance status
-- Pending verification: no-gun HALO Sangheili should keep the sword drawn and active instead of deactivating it on combat/action teardown.
-- Pending verification: HALO Sangheili sword overlays should render visibly in both hands for `SOUTH`, `NORTH`, `EAST`, and `WEST`.
+- Pending verification: touched HALO object names, descriptions, and related static examine text are consistently Russian.
+- Pending verification: model codes and major abbreviations such as `MA5C`, `M6D`, `SRS99-AM`, `UNSC`, `ODST`, and `SPNKr` remain recognizable and unchanged.
+- Pending verification: touched files remain valid UTF-8 with no mojibake and compile cleanly.

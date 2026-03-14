@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: Keep the persistence logic HALO-local
-- Decision: implement the no-gun sword persistence check in HALO Sangheili helper/action code.
-- Why: this is a HALO Sangheili behavior issue and does not justify widening shared upstream human AI logic.
+## D-001: Translate object text in place
+- Decision: update HALO object strings directly inside `modular/halo/code/**`.
+- Why: the repo has no general HALO object-localization layer, and existing `modular/localization` coverage is for AI speech rather than item metadata.
 
-## D-002: Fix the actual render bug, not the earlier assumption
-- Decision: fix Sangheili sword visibility through a HALO-local hand-overlay override on the sword item.
-- Why: investigation showed the hand DMI states exist, but Sangheili species offset handling clips 64x64 inhand overlays during runtime rendering.
+## D-002: Keep translation scope object-focused
+- Decision: include static player-facing object text such as `name`, `desc`, `desc_lore`, injector examine/instruction strings, and object-specific `attack_verb`, but exclude broader gameplay/system chat messages.
+- Why: this covers visible HALO objects without expanding the task into full gameplay text localization.
 
-## D-003: Preserve mixed ranged fallback behavior
-- Decision: mixed Sangheili still holster the sword when they truly can return to a usable firearm.
-- Why: only no-fallback terminal-sword cases should stop deactivating the blade.
+## D-003: Preserve canonical identifiers
+- Decision: keep model codes and major abbreviations such as `MA5C`, `M6D`, `SRS99-AM`, `UNSC`, `ODST`, and `SPNKr` unchanged while translating surrounding nouns and descriptions into Russian.
+- Why: this keeps franchise items recognizable and avoids accidental contract or readability regressions.

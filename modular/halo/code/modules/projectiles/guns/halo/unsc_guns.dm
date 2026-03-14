@@ -1,7 +1,7 @@
 // Rifles
 
 /obj/item/weapon/gun/rifle/halo
-	name = "Halo rifle holder"
+	name = "держатель винтовки Halo"
 	mouse_pointer = 'icons/halo/effects/mouse_pointer/ma5c.dmi'
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
@@ -13,8 +13,8 @@
 	)
 
 /obj/item/weapon/gun/rifle/halo/ma5c
-	name = "MA5C ICWS assault rifle"
-	desc = "Belonging to the MA5 individual combat weapons system platform and produced by Misriah Armory, the MA5C is a staple weapon among the UNSC marine corps. It uses a box magazine capable of holding 32 7.62x51mm full-metal-jacket rounds."
+	name = "штурмовая винтовка MA5C ICWS"
+	desc = "MA5C относится к платформе индивидуального боевого оружия MA5 и выпускается Misriah Armory. Это одна из основных винтовок корпуса морской пехоты UNSC. Использует коробчатый магазин на 32 патрона 7.62x51 мм FMJ."
 	icon_state = "ma5c"
 	item_state = "ma5c"
 	caliber = "7.62x51mm"
@@ -69,9 +69,9 @@
 	current_mag = null
 
 /obj/item/weapon/gun/rifle/halo/ma5b
-	name = "MA5B ICWS assault rifle"
-	desc = "The MA5B is an older member of the MA5 line produced by Misriah Armory, though still in use by the Marine Corps and Army. Fires a standard 7.62x51mm round in 60 round magazines, with superior firerate to the MA5C, though less stability and accuracy."
-	desc_lore = "While the MA5C was developed to meet many of the issues the UNSC Marine Corps found with the MA5B rifle, primarily its unreliable magazines and poor long-range performance, it remains popular among veterans and close quarter specialists. Especially when paired with 'shredder' ammunition."
+	name = "штурмовая винтовка MA5B ICWS"
+	desc = "MA5B - более старый представитель линейки MA5 производства Misriah Armory, который до сих пор используется морской пехотой и армией. Стреляет стандартным патроном 7.62x51 мм из магазинов на 60 патронов, превосходя MA5C по темпу огня, но уступая ей в устойчивости и точности."
+	desc_lore = "Хотя MA5C и была создана, чтобы решить многие проблемы, которые корпус морской пехоты UNSC видел в MA5B, прежде всего ненадёжные магазины и слабую дальнюю эффективность, винтовка по-прежнему популярна у ветеранов и специалистов по ближнему бою. Особенно в паре с боеприпасами Shredder."
 	icon_state = "ma5b"
 	item_state = "ma5b"
 	caliber = "7.62x51mm"
@@ -131,8 +131,8 @@
 	current_mag = null
 
 /obj/item/weapon/gun/rifle/halo/ma3a
-	name = "MA3A assault rifle"
-	desc = "An old predecessor to the MA5 line, the MA3A had a notably short service history before being replaced by the more comprehensively designed MA5 series, nonetheless, enough were made to feed the private-security and would-be rebel markets for decades to come. Lacking the integrated combat suite of the MA5 rifles, the MA3A instead most commonly featured a over-designed and prone to malfunction multi-mode conventional computer optic. While robust in its capabilities, the constant adjustments and poor battery-life led to its quick abandonment by mainline UNSCDF units."
+	name = "штурмовая винтовка MA3A"
+	desc = "Старый предшественник линейки MA5, MA3A прослужила сравнительно недолго, прежде чем её вытеснила более продуманная серия MA5. Тем не менее винтовок было выпущено достаточно, чтобы на десятилетия вперёд насытить рынки частной охраны и начинающих мятежников. В отличие от MA5, MA3A чаще всего оснащалась перегруженной и склонной к поломкам многорежимной оптикой на базе обычного вычислительного блока. Возможностей у неё хватало, но постоянная перенастройка и слабый ресурс батареи быстро вывели её из строевого использования в основных частях UNSCDF."
 	icon_state = "ma3a"
 	item_state = "ma5c"
 	caliber = "7.62x51mm"
@@ -187,8 +187,8 @@
 	current_mag = null
 
 /obj/item/weapon/gun/rifle/halo/vk78
-	name = "VK78 surplus rifle"
-	desc = "The Colonial-Military-Authorities replacement for the ageing HMG-38, this 6.5x48mm rifle spent more of its life-time shooting targets than it had any combatant. Benefiting from a more ergonomically conventional layout, and exceptional mechanical simplicity, the Vk78 has long survived the CMA's downfall in the hands of militia-men, criminals, homesteaders and rebels alike. Listen for that distinct bark on patrol, it's probably not friendly."
+	name = "винтовка из запасов VK78"
+	desc = "Эта винтовка 6.5x48 мм разрабатывалась Colonial Military Authority как замена устаревающей HMG-38, но за свою жизнь чаще стреляла по мишеням, чем по живым противникам. Благодаря удобной классической компоновке и исключительной механической простоте VK78 пережила падение CMA и до сих пор служит ополченцам, преступникам, поселенцам и мятежникам. Услышите на патруле её характерный лай - вряд ли это свои."
 	icon_state = "vk78"
 	item_state = "vk78"
 	caliber = "6.5x48mm"
@@ -246,8 +246,8 @@
 
 
 /obj/item/weapon/gun/rifle/halo/br55
-	name = "BR55 battle rifle"
-	desc = "A standard-issue marksman rifle in use by the UNSC Marine Corps, the BR55 battle rifle has a reasonably high power, acceptable rate of fire, and high accuracy. It comes with a standard 36-round detachable box magazine of 9.5x40mm experimental HP-SAP-HE rounds, allowing it to reach higher velocities than the MA5 series despite the smaller propellant."
+	name = "боевая винтовка BR55"
+	desc = "Штатная марксманская винтовка корпуса морской пехоты UNSC. BR55 сочетает достойную мощность, приемлемый темп стрельбы и высокую точность. Оснащается стандартным съёмным коробчатым магазином на 36 экспериментальных патронов 9.5x40 мм HP-SAP-HE, что позволяет ей развивать большую скорость пули, чем серия MA5, несмотря на меньший метательный заряд."
 	icon_state = "br55"
 	item_state = "br55"
 	caliber = "9.5x40mm"
@@ -302,8 +302,8 @@
 	current_mag = null
 
 /obj/item/weapon/gun/rifle/halo/dmr
-	name = "M392 DMR"
-	desc = "The M392 Designated-Marksman-Rifle is a 7.62x51mm bullpup rifle featuring a 15 round magazine and commonly, a scope. The weapon was most notably used by UNSCDF Army units and the defunct Colonial-Military-Authority before and during the Insurrection. The rifle is mechanically simple compared to its contemporary brethren and this has led to its popularity on the black market, alongside its greater availability ever since the shuttering of the CMA."
+	name = "винтовка M392 DMR"
+	desc = "M392 Designated Marksman Rifle - компоновки bullpup под патрон 7.62x51 мм, обычно оснащаемая прицелом и магазином на 15 патронов. Наиболее широко использовалась армейскими подразделениями UNSCDF и расформированной Colonial Military Authority до и во время Восстания. На фоне современников винтовка механически проста, что вместе с массовым выбросом на рынок после падения CMA сделало её популярной на чёрном рынке."
 	icon_state = "dmr"
 	item_state = "dmr"
 	caliber = "7.62x51mm"
@@ -356,7 +356,7 @@
 // SMGs
 
 /obj/item/weapon/gun/smg/halo
-	name = "halo smg holder"
+	name = "держатель ПП Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	item_icons = list(
@@ -368,8 +368,8 @@
 	)
 
 /obj/item/weapon/gun/smg/halo/m7
-	name = "M7 submachine gun"
-	desc = "The M7 SMG is a relatively small caseless SMG that fires 5mm rounds. Coming with a folding stock and foldable grip, the M7 SMG has found its home in boarding action and special operations units for its compact size and low caliber."
+	name = "пистолет-пулемёт M7"
+	desc = "M7 - сравнительно компактный безгильзовый пистолет-пулемёт под 5-мм боеприпас. Благодаря складному прикладу и складывающейся передней рукояти он особенно прижился у абордажных групп и подразделений специальных операций, где ценятся компактность и умеренная мощность."
 	icon_state = "m7"
 	item_state = "m7"
 	caliber = "5x23mm"
@@ -418,7 +418,7 @@
 	fa_max_scatter = 3
 
 /obj/item/weapon/gun/smg/halo/m7/socom
-	name = "M7 submachine gun"
+	name = "пистолет-пулемёт M7"
 	starting_attachment_types = list(
 		/obj/item/attachable/stock/m7,
 		/obj/item/attachable/stock/m7/grip/folded_down,
@@ -439,7 +439,7 @@
 // shotguns
 
 /obj/item/weapon/gun/shotgun/pump/halo
-	name = "Halo shotgun holder"
+	name = "держатель дробовика Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	item_icons = list(
@@ -451,7 +451,7 @@
 
 /obj/item/weapon/gun/shotgun/pump/halo/m90
 	name = "\improper M90 CAWS"
-	desc = "Built and produced by Weapon System Technology, the M90 CAWS is a contemporary pump-action shotgun employed by the UNSC for CQC scenarios. It feeds twelve 8-gauge shotgun shells from it's internal tubular magazine."
+	desc = "Разработанный и производимый Weapon System Technology, M90 CAWS - современный помповый дробовик, который UNSC использует для ближнего боя. Питается двенадцатью патронами 8-го калибра из внутреннего трубчатого магазина."
 	icon_state = "m90"
 	item_state = "m90"
 	fire_sound = "gun_m90"
@@ -491,8 +491,8 @@
 	flags_gun_features = GUN_AUTO_EJECT_CASINGS|GUN_CAN_POINTBLANK|GUN_INTERNAL_MAG|GUN_TRIGGER_SAFETY
 
 /obj/item/weapon/gun/shotgun/pump/halo/m90/police
-	name = "\improper WMT Law Enforcement Shotgun"
-	desc = "Made and produced by WMT, it is a civilian variation of the M90 CAWS for use by Law Enforcement... though can sometimes be found in the hands of civilians."
+	name = "\improper полицейский дробовик WMT"
+	desc = "Гражданская вариация M90 CAWS производства WMT, рассчитанная на правоохранительные структуры... хотя временами она оказывается и в руках обычных граждан."
 	icon_state = "m90_police"
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90/police)
 	starting_attachment_types = list(/obj/item/attachable/flashlight/m90/police)
@@ -501,8 +501,8 @@
 // snipers
 
 /obj/item/weapon/gun/rifle/sniper/halo
-	name = "SRS99-AM sniper rifle"
-	desc = "The SRS99-AM sniper rifle is the standard issue sniper rifle across all branches of the UNSC due to it's extreme capabilities. It has a 4 round detachable box magazine of 14.5x114mm APFSDS ammunition and modularity allowing the entire barrel system to be removed and replaced with alternative variants."
+	name = "снайперская винтовка SRS99-AM"
+	desc = "SRS99-AM - штатная снайперская винтовка всех родов войск UNSC благодаря своим выдающимся возможностям. Использует съёмный коробчатый магазин на 4 патрона 14.5x114 мм APFSDS и модульную систему, позволяющую снять весь стволовой узел и заменить его альтернативным вариантом."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = "srs99"
 	item_state = "srs99"
@@ -569,8 +569,8 @@
 	current_mag = null
 
 /obj/item/weapon/mateba_key/halo_sniper
-	name = "SRS99 barrel key"
-	desc = "A key for the SRS99 barrel, used to unlock the mechanism and allow the user to remove the barrel."
+	name = "ключ ствола SRS99"
+	desc = "Ключ для ствола SRS99, которым отпирают механизм и снимают ствол."
 
 /obj/item/weapon/gun/rifle/sniper/halo/attackby(obj/item/subject, mob/user)
 	if(istype(subject, /obj/item/weapon/mateba_key/halo_sniper) && can_change_barrel)
@@ -601,7 +601,7 @@
 // Pistols
 
 /obj/item/weapon/gun/pistol/halo
-	name = "Halo pistol holder"
+	name = "держатель пистолета Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	item_icons = list(
@@ -620,8 +620,8 @@
 	empty_sound = null
 
 /obj/item/weapon/gun/pistol/halo/m6c
-	name = "M6C service magnum"
-	desc = "The M6C is a semi-automatic 12.7x40mm recoil-operated handgun with a standard 12 round magazine. It's set apart from other M6 platform sidearms in that it does not come equipped with a smart-link scope attached to the top of it. Some marines reportedly prefer it due to the less cumbersome nature."
+	name = "служебный магнум M6C"
+	desc = "M6C - полуавтоматический пистолет под патрон 12.7x40 мм с автоматикой на отдаче и стандартным магазином на 12 патронов. От прочих боковых образцов платформы M6 он отличается отсутствием верхнего смарт-прицела. Некоторые морпехи, по слухам, ценят его именно за меньшую громоздкость."
 	icon_state = "m6c"
 	item_state = "m6"
 	caliber = "12.7x40mm"
@@ -646,8 +646,8 @@
 	damage_mult = BASE_BULLET_DAMAGE_MULT
 
 /obj/item/weapon/gun/pistol/halo/m6c/socom
-	name = "M6C/SOCOM \"Automag\" pistol"
-	desc = "A Special Operations Command modified M6C, otherwise known as the M6C/SOCOM. This sidearm features a variety of fine-tuned adjustments to better improve its performance in the field, while also receiving a slick new paintjob."
+	name = "пистолет M6C/SOCOM \"Automag\""
+	desc = "Модифицированный Special Operations Command вариант M6C, известный как M6C/SOCOM. Этот пистолет получил целый набор тонких доработок для улучшения боевой эффективности, а заодно и более эффектную окраску."
 	icon_state = "m6c_socom"
 	current_mag = /obj/item/ammo_magazine/pistol/halo/m6c/socom
 	attachable_allowed = list(/obj/item/attachable/flashlight/m6c_socom, /obj/item/attachable/suppressor/m6c_socom)
@@ -669,8 +669,8 @@
 	attachable_offset = list("muzzle_x" = 19, "muzzle_y" = 15,"rail_x" = 16, "rail_y" = 16, "under_x" = 19, "under_y" = 16, "stock_x" = 0, "stock_y" = 0)
 
 /obj/item/weapon/gun/pistol/halo/m6c/m4a
-	name = "M4A pistol"
-	desc = "An antiquated 12.7x40mm pistol, popular among civilians and criminals alike. The M4A is a predecessor to the more commonly recognized M6 series of pistols by Misriah, removed from official service in 2414 when the M6 took stage.  It's regarded as being inaccurate with a blinding muzzle flash and deafening report, making it unsuited for most practical purposes, features that make it even more attractive to its most common users."
+	name = "пистолет M4A"
+	desc = "Устаревший пистолет под 12.7x40 мм, одинаково популярный у гражданских и преступников. M4A - предшественник куда более известной серии M6 от Misriah, снятый с официального вооружения в 2414 году, когда на сцену вышла M6. Его считают неточным, ослепительно ярким при выстреле и оглушительно громким, то есть непригодным для большинства практических задач, - именно поэтому он так нравится своей основной аудитории."
 	icon_state = "m4a"
 	current_mag = /obj/item/ammo_magazine/pistol/halo/m6c
 	attachable_allowed = list(/obj/item/attachable/flashlight/m6)
@@ -692,8 +692,8 @@
 	damage_mult = BASE_BULLET_DAMAGE_MULT - BULLET_DAMAGE_MULT_TIER_1
 
 /obj/item/weapon/gun/pistol/halo/m6g
-	name = "M6G service magnum"
-	desc = "The M6G service magnum is a high-power sidearm utilized by the UNSC, using 12.7x40mm rounds held in a 8 round magazine. With a longer barrel, the M6G is more accurate and has a higher velocity than the M6C."
+	name = "служебный магнум M6G"
+	desc = "Служебный магнум M6G - мощное табельное оружие UNSC, использующее патроны 12.7x40 мм из магазина на 8 патронов. За счёт более длинного ствола M6G точнее и обеспечивает большую начальную скорость, чем M6C."
 	icon_state = "m6g"
 	item_state = "m6"
 	caliber = "12.7x40mm"
@@ -718,9 +718,9 @@
 	velocity_add = AMMO_SPEED_TIER_1
 
 /obj/item/weapon/gun/pistol/halo/m6d
-	name = "M6D service magnum"
-	desc = "The M6D service magnum is a high-power sidearm in use by the UNSC, particularly with officers and some special forces troops. Fires 12.7x40mm Semi-Armour-Piercing-High-Explosive (SAPHE) rounds out of a 12 round magazine."
-	desc_lore = "Its extended magazine and custom grip give it a striking profile which many consider unwieldy and bulky, though others will swear on the weapons power and accuracy with its integrated KFA-2 scope."
+	name = "служебный магнум M6D"
+	desc = "Служебный магнум M6D - мощный пистолет, используемый UNSC, особенно офицерами и некоторыми бойцами спецподразделений. Стреляет патронами 12.7x40 мм Semi-Armour-Piercing-High-Explosive (SAPHE) из магазина на 12 патронов."
+	desc_lore = "Увеличенный магазин и особая рукоять придают ему выразительный силуэт, который одни считают неуклюжим и громоздким, а другие готовы защищать за мощь и точность в сочетании с интегрированным прицелом KFA-2."
 	icon_state = "m6d"
 	item_state = "m6"
 	caliber = "12.7x40mm"
@@ -757,8 +757,8 @@
 	update_attachable(scope.slot)
 
 /obj/item/weapon/gun/pistol/halo/m6a
-	name = "M6A service magnum"
-	desc = "The M6A is a semi-automatic 12.7x40mm recoil-operated handgun with a standard 12 round magazine. This variation is often given out to security and law enforcement firms as a more compact version of the standard template, though with less stopping power."
+	name = "служебный магнум M6A"
+	desc = "M6A - полуавтоматический пистолет под 12.7x40 мм с автоматикой на отдаче и стандартным магазином на 12 патронов. Этот вариант часто выдаётся охранным и правоохранительным структурам как более компактная версия базового шаблона, хотя и с меньшим останавливающим действием."
 	icon_state = "m6a"
 	item_state = "m6"
 	caliber = "12.7x40mm"
@@ -785,17 +785,17 @@
 // Grenades
 
 /obj/item/explosive/grenade/high_explosive/m15/unsc
-	name = "M9 fragmentation grenade"
-	desc = "A high explosive fragmentation grenade utilized by the UNSC."
-	desc_lore = "Rumors spread about how every new posting someone gets, the design of the M9 fragmentation grenade looks different from the last ones they held."
+	name = "осколочная граната M9"
+	desc = "Осколочно-фугасная граната, используемая UNSC."
+	desc_lore = "Ходят слухи, что с каждым новым назначением дизайн осколочной гранаты M9 снова чем-то отличается от тех, что держали в руках раньше."
 	icon = 'icons/halo/obj/items/weapons/grenades.dmi'
 	icon_state = "m9"
 	item_state = "m9"
 	falloff_mode = EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL_HALF
 
 /obj/item/explosive/grenade/high_explosive/m15/unsc/launchable
-	name = "40mm explosive grenade"
-	desc = "A 40mm explosive grenade. It's unable to be primed by hand and must be loaded into the bottom of a rifle's grenade launcher."
+	name = "40-мм фугасная граната"
+	desc = "40-мм фугасная граната. Её нельзя привести в боевое положение вручную - она должна быть заряжена в подствольный гранатомёт винтовки."
 	icon = 'icons/halo/obj/items/weapons/grenades.dmi'
 	icon_state = "he_40mm"
 	item_state = "he_40mm"

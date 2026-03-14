@@ -1,6 +1,6 @@
 /obj/item/weapon/gun/energy/plasma
-	name = "Covenant weapon"
-	desc = "An alien weapon that shoots plasma. You shouldn't be seeing this one though."
+	name = "оружие Ковенанта"
+	desc = "Инопланетное оружие, стреляющее плазмой. В норме вы не должны видеть этот базовый экземпляр."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "plasma_pistol"
 	flags_gun_features = GUN_CAN_POINTBLANK
@@ -69,7 +69,7 @@
 
 /obj/item/weapon/gun/energy/plasma/get_examine_text(mob/user)
 	. = ..()
-	. += SPAN_NOTICE("The heat reads [get_heat_percent()]%.")
+	. += SPAN_NOTICE("Уровень нагрева: [get_heat_percent()]%.")
 
 /obj/item/weapon/gun/energy/plasma/proc/get_heat_percent()
 	return 100.0*heat/max_heat
@@ -199,7 +199,7 @@
 
 
 /obj/item/weapon/gun/energy/plasma/plasma_pistol
-	name = "\improper plasma pistol"
+	name = "\improper плазменный пистолет"
 	desc = null
 	icon_state = "plasma_pistol"
 	item_state = "plasma_pistol"
@@ -224,13 +224,13 @@
 	var/list/origin = .
 	var/insert_line
 	if(isunggoy(user) || issangheili(user))
-		origin[1] = "[icon2html(src, user)] This is a Eos'Mak-pattern plasma pistol"
-		insert_line = "The reliable work horse of the Covenant's innumerable host, seen in the hands of the most honoured admirals and councillors, or the lowest menials. A deceptively powerful weapon capable of severing limbs and killing with a singular blow through even strong armours. Has the ability to pool excessive charge into a single bolt, dispelling shields and destroying bodies alike."
+		origin[1] = "[icon2html(src, user)] Это плазменный пистолет образца Eos'Mak"
+		insert_line = "Надёжная рабочая лошадка бесчисленных воинств Ковенанта, которую можно увидеть как в руках почитаемых адмиралов и советников, так и у самых низших слуг. Обманчиво мощное оружие, способное отсекать конечности и убивать одним попаданием даже сквозь крепкую броню. Может накапливать избыточный заряд в один усиленный выстрел, сбивая щиты и разрывая тела."
 	else
-		origin[1] = "[icon2html(src, user)] This is a Type-25 plasma pistol"
-		insert_line = "Standard Covenant direct energy weapon, firing magnetically contained balls of high-energy plasma, with significant kinetic punch. Despite being called a \"pistol\", the Type-25 is more than capable of killing fully armoured marines with a single well aimed bolt. Some Covies overcharge this thing, can obliterate a mans whole torso."
+		origin[1] = "[icon2html(src, user)] Это плазменный пистолет Тип-25"
+		insert_line = "Стандартное энергетическое оружие Ковенанта, стреляющее магнитно удерживаемыми сгустками высокоэнергетической плазмы с заметным кинетическим ударом. Несмотря на слово \"пистолет\", Тип-25 вполне способен убить полностью бронированного морпеха одним точным выстрелом. Некоторые бойцы Ковенанта ещё и перегружают его, превращая торс жертвы в месиво."
 	origin.Insert(2, insert_line)
-	. += SPAN_NOTICE("You could overcharge this for a powerful shot by holding down the trigger with <b>unique action</b>.")
+	. += SPAN_NOTICE("Вы можете перегрузить оружие для мощного выстрела, удерживая спуск через <b>уникальное действие</b>.")
 
 /obj/item/weapon/gun/energy/plasma/plasma_pistol/set_gun_config_values()
 	..()
@@ -306,7 +306,7 @@
 		fire_sound = "gun_lightplasma"
 
 /obj/item/weapon/gun/energy/plasma/plasma_rifle
-	name = "\improper plasma rifle"
+	name = "\improper плазменная винтовка"
 	desc = null
 	icon_state = "plasma_rifle"
 	item_state = "plasma_rifle"
@@ -326,11 +326,11 @@
 	var/list/origin = .
 	var/insert_line
 	if(isunggoy(user) || issangheili(user))
-		origin[1] = "[icon2html(src, user)] This is a Okarda'phaa-pattern plasma rifle"
-		insert_line = "An ancient and venerable weapon which has served the Covenant for many centuries in the hands of its most honoured warriors. A truly brutal tool, capable of immense kinetic and raw thermal damage, blasting armour to pieces and rendering flesh nothing but boiled mist. Most commonly seen in the hands of Sangheili warriors, or the veterans of lesser rates."
+		origin[1] = "[icon2html(src, user)] Это плазменная винтовка образца Okarda'phaa"
+		insert_line = "Древнее и почтенное оружие, служившее Ковенанту многие столетия в руках его самых прославленных воинов. По-настоящему жестокий инструмент, наносящий чудовищный кинетический и тепловой урон, разнося броню в клочья и превращая плоть в кипящий туман. Чаще всего встречается у воинов-сангхейли и у ветеранов низших каст."
 	else
-		origin[1] = "[icon2html(src, user)] This is a Type-25 plasma rifle"
-		insert_line = "This devastating weapon is in use by Covenant Elites and their more competent troops. The distinct rapid fire report of a plasma rifle is one of the most terrifying things on the battlefield, most marines have seen the violent annihilation of these first hand, in the disfigured corpses of their comrades. Don't let it overheat, gloves won't save your skin."
+		origin[1] = "[icon2html(src, user)] Это плазменная винтовка Тип-25"
+		insert_line = "Это разрушительное оружие используют элиты Ковенанта и их более умелые бойцы. Характерный треск скорострельной плазменной винтовки - один из самых страшных звуков на поле боя; большинство морпехов видели её работу на изуродованных телах своих товарищей. И не перегревайте её: перчатки кожу не спасут."
 	origin.Insert(2, insert_line)
 
 /obj/item/weapon/gun/energy/plasma/plasma_rifle/set_gun_config_values()
@@ -348,7 +348,7 @@
 	fa_scatter_peak = FULL_AUTO_SCATTER_PEAK_TIER_2
 
 /obj/item/weapon/gun/smg/covenant_needler
-	name = "\improper needler"
+	name = "\improper игольник"
 	desc = null
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "needler"
@@ -377,11 +377,11 @@
 	var/list/origin = .
 	var/insert_line
 	if(isunggoy(user) || issangheili(user))
-		origin[1] = "[icon2html(src, user)] This is a Eket'Vauh-pattern needler"
-		insert_line = "Automatic guided munitions launcher, firing charged Subanese crystals shaved from a central core. The Eket'Vauh pattern is produced on High Charity, within the Sacred Promissory's Assembly-Forges. A less common variant used by those given favour by the High Council, the purple-pink shards fired by this weapon ensure efficient judgement in a violent detonation."
+		origin[1] = "[icon2html(src, user)] Это игольник образца Eket'Vauh"
+		insert_line = "Автоматическая пусковая установка самонаводящихся боеприпасов, стреляющая заряжёнными субанскими кристаллами, срезанными с центрального ядра. Образец Eket'Vauh производится на Высшей Милости, в сборочных кузнях Священного Обета. Более редкий вариант для тех, кто удостоился благосклонности Высшего Совета; фиолетово-розовые осколки этого оружия выносят приговор в виде яростной детонации."
 	else
-		origin[1] = "[icon2html(src, user)] This is a Type-33 needler"
-		insert_line = "An esoteric Covenant \"ballistic\" weapon firing bright pink-purple shards of energized crystal, which home in on targets through currently unknown means. A weapon seemingly developed out of pure cruelty, the \"Needler\"'s every shot is a nigh-lethal explosive, rending armour, flesh and bone, littering the body with microscopic shrapnel and significant burns. God help you if someone gets \"Super-Combined\", nothing but pink mist."
+		origin[1] = "[icon2html(src, user)] Это игольник Тип-33"
+		insert_line = "Экзотическое \"баллистическое\" оружие Ковенанта, выпускающее яркие розово-фиолетовые осколки заряжённого кристалла, самонаводящиеся по пока неясному принципу. Каждое попадание игольника почти смертельно само по себе: оно рвёт броню, плоть и кости, оставляя в теле микроскопические осколки и тяжёлые ожоги. Если кто-то словит \"суперкомбинацию\", от него останется только розовый туман."
 	origin.Insert(2, insert_line)
 
 /obj/item/weapon/gun/smg/covenant_needler/unique_action(mob/user)
@@ -434,7 +434,7 @@
 	update_icon()
 
 /obj/item/weapon/gun/rifle/covenant_carbine
-	name = "\improper carbine"
+	name = "\improper карабин"
 	desc = null
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "carbine"
@@ -468,11 +468,11 @@
 	var/list/origin = .
 	var/insert_line
 	if(isunggoy(user) || issangheili(user))
-		origin[1] = "[icon2html(src, user)] This is a Vostu-pattern carbine"
-		insert_line = "One of the few ballistic weapons in use by the Covenant, the Vostu Pattern Carbine fires a 8x60mm caseless radioactive slug, which commonly fragments upon penetrating a target, potentially turning even minor wounds lethal with the toxic material left behind. Used by Sangheili warriors and many a Kig'yar marksmen who seek a cruel and precise weapon."
+		origin[1] = "[icon2html(src, user)] Это карабин образца Vostu"
+		insert_line = "Одно из немногих баллистических оружий Ковенанта, карабин образца Vostu стреляет безгильзовой радиоактивной пулей 8x60 мм, которая часто раскалывается после пробития цели, превращая даже небольшие раны в смертельные за счёт оставленного токсичного материала. Используется воинами-сангхейли и многими стрелками-киг'яр, которым нужно жестокое и точное оружие."
 	else
-		origin[1] = "[icon2html(src, user)] This is a Type-XX carbine"
-		insert_line = "An esoteric Covenant \"ballistic\" weapon firing bright pink-purple shards of energized crystal, which home in on targets through currently unknown means. A weapon seemingly developed out of pure cruelty, the \"Needler\"'s every shot is a nigh-lethal explosive, rending armour, flesh and bone, littering the body with microscopic shrapnel and significant burns. God help you if someone gets \"Super-Combined\", nothing but pink mist."
+		origin[1] = "[icon2html(src, user)] Это карабин Тип-51"
+		insert_line = "Одно из немногих баллистических оружий Ковенанта. Карабин стреляет радиоактивными безгильзовыми пулями, сочетая высокую точность с тяжёлыми последствиями даже после неполного пробития. Им чаще всего вооружают элитных стрелков Ковенанта, и лучше не оказываться у них на линии огня."
 	origin.Insert(2, insert_line)
 
 /obj/item/weapon/gun/rifle/covenant_carbine/set_gun_attachment_offsets()

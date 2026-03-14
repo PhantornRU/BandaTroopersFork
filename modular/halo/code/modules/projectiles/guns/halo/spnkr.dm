@@ -28,7 +28,7 @@
 
 /obj/item/weapon/gun/halo_launcher/spnkr
 	name = "\improper M41 SPNKr"
-	desc = "The M41 SPNKr is a reusable rocket launcher system with multi-role capabilities, including the ability to lock onto air and ground targets. Commonly referred to as the Jackhammer by the UNSC forces equipped with it."
+	desc = "M41 SPNKr - многоцелевая многоразовая ракетная система, способная захватывать как воздушные, так и наземные цели. Среди бойцов UNSC, которым она досталась, её часто называют Jackhammer."
 	icon_state = "spnkr"
 	item_state = "spnkr"
 	layer = ABOVE_OBJ_LAYER
@@ -183,9 +183,9 @@
 /obj/item/weapon/gun/halo_launcher/spnkr/get_examine_text(mob/user)
 	. = ..()
 	if(!cover_open)
-		. += SPAN_NOTICE("The cover is closed.")
+		. += SPAN_NOTICE("Крышка закрыта.")
 	else
-		. += SPAN_NOTICE("The cover is open.")
+		. += SPAN_NOTICE("Крышка открыта.")
 
 /obj/item/weapon/gun/halo_launcher/spnkr/proc/toggle_cover(mob/user)
 	if(!cover_open)

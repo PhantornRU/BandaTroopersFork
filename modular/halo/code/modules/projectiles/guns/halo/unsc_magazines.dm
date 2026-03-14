@@ -1,15 +1,15 @@
 // rifle magazines
 
 /obj/item/ammo_magazine/rifle/halo
-	name = "halo magazine"
+	name = "магазин Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = null
 	ammo_band_icon = null
 	ammo_band_icon_empty = null
 
 /obj/item/ammo_magazine/rifle/halo/ma5c
-	name = "\improper MA5C magazine (7.62x51mm FMJ)"
-	desc = "A rectangular box magazine for the MA5C holding 48 rounds of 7.62x51 FMJ ammunitions."
+	name = "\improper магазин MA5C (7.62x51 мм FMJ)"
+	desc = "Прямоугольный коробчатый магазин для MA5C, вмещающий 48 патронов 7.62x51 FMJ."
 	icon_state = "ma5c"
 	max_rounds = 48
 	gun_type = /obj/item/weapon/gun/rifle/halo/ma5c
@@ -19,8 +19,8 @@
 	ammo_band_icon_empty = "+ma5c_band_e"
 
 /obj/item/ammo_magazine/rifle/halo/ma5c/shredder
-	name = "\improper MA5C magazine (7.62x51mm Shredder)"
-	desc = "A rectangular box magazine for the MA5C holding 48 rounds of 7.62x51 shredder ammunitions, a specialized ammunition that pierces armor and splinters in the target."
+	name = "\improper магазин MA5C (7.62x51 мм Shredder)"
+	desc = "Прямоугольный коробчатый магазин для MA5C, вмещающий 48 патронов 7.62x51 Shredder - специализированных боеприпасов, пробивающих броню и фрагментирующихся в цели."
 	max_rounds = 48
 	gun_type = /obj/item/weapon/gun/rifle/halo/ma5c
 	default_ammo = /datum/ammo/bullet/rifle/ma5/shredder
@@ -28,8 +28,8 @@
 	ammo_band_color = "#994545"
 
 /obj/item/ammo_magazine/rifle/halo/ma5b
-	name = "\improper MA5B magazine (7.62x51mm FMJ)"
-	desc = "A rectangular box magazine for the MA5C holding 60 rounds of 7.62x51 FMJ ammunitions."
+	name = "\improper магазин MA5B (7.62x51 мм FMJ)"
+	desc = "Прямоугольный коробчатый магазин для MA5B, вмещающий 60 патронов 7.62x51 FMJ."
 	icon_state = "ma5b"
 	max_rounds = 60
 	gun_type = /obj/item/weapon/gun/rifle/halo/ma5b
@@ -39,8 +39,8 @@
 	ammo_band_icon_empty = "+ma5b_band_e"
 
 /obj/item/ammo_magazine/rifle/halo/ma5b/shredder
-	name = "\improper MA5B magazine (7.62x51mm Shredder)"
-	desc = "A rectangular box magazine for the MA5B holding 60 rounds of 7.62x51 shredder ammunitions, a specialized ammunition that pierces armor and splinters in the target."
+	name = "\improper магазин MA5B (7.62x51 мм Shredder)"
+	desc = "Прямоугольный коробчатый магазин для MA5B, вмещающий 60 патронов 7.62x51 Shredder - специализированных боеприпасов, пробивающих броню и фрагментирующихся в цели."
 	max_rounds = 60
 	gun_type = /obj/item/weapon/gun/rifle/halo/ma5b
 	default_ammo = /datum/ammo/bullet/rifle/ma5/shredder
@@ -48,8 +48,8 @@
 	ammo_band_color = "#994545"
 
 /obj/item/ammo_magazine/rifle/halo/ma3a
-	name = "\improper MA3A magazine (7.62x51mm FMJ)"
-	desc = "A rectangular box magazine for the MA3A holding 32 rounds of 7.62x51 FMJ ammunitions."
+	name = "\improper магазин MA3A (7.62x51 мм FMJ)"
+	desc = "Прямоугольный коробчатый магазин для MA3A, вмещающий 32 патрона 7.62x51 FMJ."
 	icon_state = "ma3a"
 	max_rounds = 32
 	gun_type = /obj/item/weapon/gun/rifle/halo/ma3a
@@ -57,8 +57,8 @@
 	caliber = "7.62x51"
 
 /obj/item/ammo_magazine/rifle/halo/vk78
-	name = "\improper VK78 magazine (6.5x48mm FMJ)"
-	desc = "An angular box magazine for the VK78 holding 20 rounds of 6.5x48mm FMJ ammunitions."
+	name = "\improper магазин VK78 (6.5x48 мм FMJ)"
+	desc = "Угловатый коробчатый магазин для VK78, вмещающий 20 патронов 6.5x48 мм FMJ."
 	icon_state = "vk78"
 	max_rounds = 20
 	gun_type = /obj/item/weapon/gun/rifle/halo/vk78
@@ -66,8 +66,8 @@
 	caliber = "6.5x48"
 
 /obj/item/ammo_magazine/rifle/halo/br55
-	name = "\improper BR55 magazine (9.5x40mm X-HP SAP-HE)"
-	desc = "A rectangular box magazine for the BR55 holding 36 rounds of 9.5x40mm X-HP SAP-HE ammunitions."
+	name = "\improper магазин BR55 (9.5x40 мм X-HP SAP-HE)"
+	desc = "Прямоугольный коробчатый магазин для BR55, вмещающий 36 патронов 9.5x40 мм X-HP SAP-HE."
 	icon_state = "br55"
 	max_rounds = 36
 	gun_type = /obj/item/weapon/gun/rifle/halo/br55
@@ -76,15 +76,15 @@
 	bonus_overlay = "br55_overlay"
 
 /obj/item/ammo_magazine/rifle/halo/br55/extended
-	name = "\improper quad-stack BR55 magazine (9.5x40mm X-HP SAP-HE)"
-	desc = "A quad-stack rectangular box magazine for the BR55 holding 60 rounds of 9.5x40mm X-HP SAP-HE ammunitions."
+	name = "\improper четырёхрядный магазин BR55 (9.5x40 мм X-HP SAP-HE)"
+	desc = "Четырёхрядный прямоугольный магазин для BR55, вмещающий 60 патронов 9.5x40 мм X-HP SAP-HE."
 	icon_state = "br55_quadstack"
 	max_rounds = 60
 	bonus_overlay = "br55_ext_overlay"
 
 /obj/item/ammo_magazine/rifle/halo/dmr
-	name = "\improper M392 DMR magazine (7.62x51mm FMJ)"
-	desc = "A rectangular 15 round box magazine for the M392 DMR filled with 7.62x51mm FMJ ammo."
+	name = "\improper магазин M392 DMR (7.62x51 мм FMJ)"
+	desc = "Прямоугольный 15-зарядный магазин для M392 DMR, снаряжённый патронами 7.62x51 мм FMJ."
 	icon_state = "dmr"
 	max_rounds = 15
 	gun_type = /obj/item/weapon/gun/rifle/halo/dmr
@@ -93,15 +93,15 @@
 
 // smg magazines
 /obj/item/ammo_magazine/smg/halo
-	name = "halo smg magazine"
+	name = "магазин ПП Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = null
 	ammo_band_icon = null
 	ammo_band_icon_empty = null
 
 /obj/item/ammo_magazine/smg/halo/m7
-	name = "\improper M7 magazine (5×23mm M443 Caseless FMJ)"
-	desc = "A rectangular magazine to be inserted into the side of the M7 submachine gun. It holds 60 rounds of 5×23mm M443 Caseless FMJ."
+	name = "\improper магазин M7 (5×23 мм M443 Caseless FMJ)"
+	desc = "Прямоугольный магазин, вставляемый сбоку в пистолет-пулемёт M7. Вмещает 60 патронов 5×23 мм M443 Caseless FMJ."
 	icon_state = "m7"
 	max_rounds = 60
 	gun_type = /obj/item/weapon/gun/smg/halo/
@@ -111,8 +111,8 @@
 // sniper magazines
 
 /obj/item/ammo_magazine/rifle/halo/sniper
-	name = "\improper SRS99-AM magazine (14.5x114mm APFSDS)"
-	desc = "A rectangular box magazine for the SRS99-AM holding four rounds of 14.5x114mm armor-piercing, fin-stabilized, discarding sabot."
+	name = "\improper магазин SRS99-AM (14.5x114 мм APFSDS)"
+	desc = "Прямоугольный коробчатый магазин для SRS99-AM, вмещающий четыре бронебойных подкалиберных оперённых снаряда 14.5x114 мм."
 	icon_state = "srs99"
 	max_rounds = 4
 	gun_type = /obj/item/weapon/gun/rifle/sniper/halo
@@ -136,8 +136,8 @@
 // shotgun shells
 
 /obj/item/ammo_magazine/shotgun/buckshot/unsc
-	name = "UNSC 8-gauge shotgun shell box"
-	desc = "A box filled with 8-gauge MAG 15P-00B buckshot shells."
+	name = "коробка дробовых патронов UNSC 8-го калибра"
+	desc = "Коробка, заполненная дробовыми патронами MAG 15P-00B 8-го калибра."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = "8g"
 	default_ammo = /datum/ammo/bullet/shotgun/buckshot/unsc
@@ -146,8 +146,8 @@
 	caliber = "8g"
 
 /obj/item/ammo_magazine/shotgun/beanbag/unsc
-	name = "UNSC 8-gauge shotgun beanbag box"
-	desc = "A box filled with 8-gauge MAG LLHB beanbag shells."
+	name = "коробка травматических патронов UNSC 8-го калибра"
+	desc = "Коробка, заполненная травматическими патронами MAG LLHB 8-го калибра."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = "8g_beanbag"
 	default_ammo = /datum/ammo/bullet/shotgun/beanbag/unsc
@@ -158,8 +158,8 @@
 // rockets
 
 /obj/item/ammo_magazine/spnkr
-	name = "\improper M19 SSM tube assembly"
-	desc = "A 102mm dual-tubed rocket assembly intended to be loaded into an M41 spnkr."
+	name = "\improper трубный блок M19 SSM"
+	desc = "Двухтрубный 102-мм ракетный блок, предназначенный для загрузки в M41 SPNKr."
 	caliber = "102mm"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/special.dmi'
 	icon_state = "spnkr_rockets"
@@ -172,8 +172,8 @@
 /obj/item/ammo_magazine/spnkr/update_icon()
 	..()
 	if(current_rounds <= 0)
-		name = "\improper spent M19 SSM tube assembly"
-		desc = "A spent 102mm dual-tubed rocket assembly previously loaded into a spnkr. Of no use to you now..."
+		name = "\improper отстрелянный трубный блок M19 SSM"
+		desc = "Отстрелянный двухтрубный 102-мм ракетный блок, ранее заряженный в SPNKr. Теперь он вам уже ни к чему..."
 
 /obj/item/ammo_magazine/spnkr/attack(mob/living/carbon/human/carbon, mob/living/carbon/human/user)
 	if(!istype(carbon) || !istype(user) || get_dist(user, carbon) > 1)
@@ -226,7 +226,7 @@
 // pistol magazines
 
 /obj/item/ammo_magazine/pistol/halo
-	name = "halo magazine"
+	name = "магазин Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = null
 	ammo_band_icon = null
@@ -234,8 +234,8 @@
 	caliber = "12.7x40mm"
 
 /obj/item/ammo_magazine/pistol/halo/m6c
-	name = "\improper M6C magazine (12.7x40mm SAP-HE)"
-	desc = "A rectangular and slanted magazine for the M6C, holding 12 rounds of 12.7x40mm SAP-HE ammunition."
+	name = "\improper магазин M6C (12.7x40 мм SAP-HE)"
+	desc = "Прямоугольный скошенный магазин для M6C, вмещающий 12 патронов 12.7x40 мм SAP-HE."
 	icon_state = "m6c"
 	gun_type = /obj/item/weapon/gun/pistol/halo/m6c
 	default_ammo = /datum/ammo/bullet/pistol/magnum
@@ -243,31 +243,31 @@
 	bonus_overlay = "m6c_overlay"
 
 /obj/item/ammo_magazine/pistol/halo/m6c/socom
-	name = "\improper M6C/SOCOM magazine (12.7x40mm SAP-HE)"
-	desc = "An extended capacity M6C magazine, capable of holding 16 rounds compared to the standard 12. Comes in special-ops black, for the true clandestine operative."
+	name = "\improper магазин M6C/SOCOM (12.7x40 мм SAP-HE)"
+	desc = "Увеличенный магазин для M6C, вмещающий 16 патронов вместо стандартных 12. Выполнен в спецоперативном чёрном цвете - для настоящего скрытного оперативника."
 	max_rounds = 16
 	icon_state = "m6c_socom"
 	bonus_overlay = "m6c_ext_overlay"
 
 /obj/item/ammo_magazine/pistol/halo/m6a
-	name = "\improper M6A magazine (12.7x40mm SAP-HE)"
-	desc = "A rectangular and slanted magazine for the M6A, holding 12 rounds of 12.7x40mm SAP-HE ammunition."
+	name = "\improper магазин M6A (12.7x40 мм SAP-HE)"
+	desc = "Прямоугольный скошенный магазин для M6A, вмещающий 12 патронов 12.7x40 мм SAP-HE."
 	icon_state = "m6c"
 	gun_type = /obj/item/weapon/gun/pistol/halo/m6a
 	default_ammo = /datum/ammo/bullet/pistol/magnum
 	max_rounds = 12
 
 /obj/item/ammo_magazine/pistol/halo/m6g
-	name = "\improper M6G magazine (12.7x40mm SAP-HE)"
-	desc = "A rectangular slanted magazine for the M6G, holding 8 rounds of 12.7x40mm SAP-HE ammunition."
+	name = "\improper магазин M6G (12.7x40 мм SAP-HE)"
+	desc = "Прямоугольный скошенный магазин для M6G, вмещающий 8 патронов 12.7x40 мм SAP-HE."
 	icon_state = "m6g"
 	gun_type = /obj/item/weapon/gun/pistol/halo/m6g
 	default_ammo = /datum/ammo/bullet/pistol/magnum
 	max_rounds = 8
 
 /obj/item/ammo_magazine/pistol/halo/m6d
-	name = "\improper M6D magazine (12.7x40mm SAP-HE)"
-	desc = "A rectangular slanted magazine for the M6D, holding 12 rounds of 12.7x40mm SAP-HE ammunition. Chrome finish."
+	name = "\improper магазин M6D (12.7x40 мм SAP-HE)"
+	desc = "Прямоугольный скошенный магазин для M6D, вмещающий 12 патронов 12.7x40 мм SAP-HE. Хромированная отделка."
 	icon_state = "m6d"
 	gun_type = /obj/item/weapon/gun/pistol/halo/m6d
 	default_ammo = /datum/ammo/bullet/pistol/magnum

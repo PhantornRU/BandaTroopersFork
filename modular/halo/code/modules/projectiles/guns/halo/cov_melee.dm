@@ -1,6 +1,6 @@
 /obj/item/weapon/covenant
-	name = "covenant weapon holder"
-	desc = "You shouldn't see this. If you do, let a maintainer know."
+	name = "держатель оружия Ковенанта"
+	desc = "Вы не должны это видеть. Если всё же видите, сообщите сопровождающему проекта."
 	icon = 'icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
 	embeddable = FALSE
 	var/mouse_pointer = 'icons/halo/effects/mouse_pointer/energy_sword.dmi'
@@ -44,7 +44,7 @@
 		update_mouse_pointer(user, TRUE)
 
 /obj/item/weapon/covenant/energy_sword
-	name = "energy sword"
+	name = "энергетический меч"
 	desc = null
 	icon_state = "energy_sword"
 	item_state = "energy_sword"
@@ -52,7 +52,7 @@
 	damtype = BRUTE
 	force = MELEE_FORCE_TIER_2
 	attack_speed = 1 SECONDS
-	attack_verb = list("whacked", "hit")
+	attack_verb = list("ударил", "огрел")
 	sharp = FALSE
 	edge = FALSE
 	flags_atom = NOBLOODY|FPRINT|QUICK_DRAWABLE
@@ -168,7 +168,7 @@
 				user.visible_message(SPAN_DANGER("[user] expertly activates the [src], flicking their wrist as the hot plasma slides out of the hilt!"), SPAN_NOTICE("You activate your [src] with ease!"))
 		w_class = SIZE_HUGE
 		force = activated_force
-		attack_verb = list("sliced", "slashed")
+		attack_verb = list("рассёк", "разрубил")
 		sharp = IS_SHARP_ITEM_ACCURATE
 		edge = TRUE
 		flags_equip_slot = null
@@ -187,7 +187,7 @@
 	w_class = SIZE_MEDIUM
 	force = MELEE_FORCE_TIER_2
 	flags_equip_slot = SLOT_STORE|SLOT_SUIT_STORE
-	attack_verb = list("whacked", "hit")
+	attack_verb = list("ударил", "огрел")
 	sharp = FALSE
 	edge = FALSE
 	icon_state = "[initial(icon_state)]"
@@ -238,7 +238,7 @@
 			if(activated)
 				set_activation_state(FALSE)
 			playsound(src, break_sound, 50)
-			name = "nonfunctional [initial(name)]"
+			name = "неработающий [initial(name)]"
 		else
 			if(activated)
 				set_activation_state(FALSE)
@@ -264,16 +264,16 @@
 	var/list/origin = .
 	var/insert_line
 	if(isunggoy(user) || issangheili(user))
-		origin[1] = "[icon2html(src, user)] This is a Pelosus-Pattern Energy Sword"
-		insert_line = "A standard issue energy sword given to Sangheili warriors who achieve either battlefield excellence, or sufficient rank. A mass produced and disposable tool employing rudimentary technology to create a blade capable of defeating any defence that it meets."
+		origin[1] = "[icon2html(src, user)] Это энергетический меч образца Pelosus"
+		insert_line = "Стандартный энергетический меч, выдаваемый воинам сангхейли, достигшим либо выдающихся успехов на поле боя, либо достаточного ранга. Массово производимый и в целом одноразовый инструмент, использующий сравнительно примитивную технологию для создания клинка, способного прорезать почти любую защиту."
 	else
-		origin[1] = "[icon2html(src, user)] Type-1 Energy Sword"
-		insert_line = " An advanced piece of precision technology that captures stable high-energy plasma in a magnetic containment field. Seen used exclusively by Elites and capable of destroying any armour or material it comes into contact with, do not let this thing hit you."
+		origin[1] = "[icon2html(src, user)] Энергетический меч Тип-1"
+		insert_line = "Высокоточное устройство, удерживающее стабильную высокоэнергетическую плазму в магнитном поле. Почти исключительно используется элитами и способно разрушить практически любую броню или материал, с которыми соприкасается. Лучше не позволяйте этой штуке вас задеть."
 	origin.Insert(2, insert_line)
 
 
 /obj/item/weapon/twohanded/covenant
-	name = "covenant weapon holder"
-	desc = "You shouldn't see this. If you do, let a maintainer know."
+	name = "держатель оружия Ковенанта"
+	desc = "Вы не должны это видеть. Если всё же видите, сообщите сопровождающему проекта."
 	icon = 'icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
 	embeddable = FALSE

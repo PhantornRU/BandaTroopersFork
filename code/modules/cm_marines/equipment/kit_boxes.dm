@@ -242,9 +242,9 @@
 	if(!job_title || !length(allowed_roles_list))
 		return FALSE
 
-	var/default_job_title = GET_DEFAULT_ROLE(job_title)
+	var/default_job_title = GLOB.RoleAuthority?.get_job_preference_bucket_key(job_title) || job_title // SS220 EDIT: match ship-side role variants through canonical preference buckets
 	for(var/allowed_role in allowed_roles_list)
-		if(default_job_title == GET_DEFAULT_ROLE(allowed_role))
+		if(default_job_title == (GLOB.RoleAuthority?.get_job_preference_bucket_key(allowed_role) || allowed_role)) // SS220 EDIT: normalize allowed HALO role titles into the same canonical bucket
 			return TRUE
 
 	return FALSE

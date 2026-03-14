@@ -2,12 +2,14 @@
 	var/list/created_accounts
 	var/list/created_squads
 	var/list/created_squad_ids
+	var/list/created_traits
 
 /datum/unit_test/gc_regressions/New()
 	. = ..()
 	created_accounts = list()
 	created_squads = list()
 	created_squad_ids = list()
+	created_traits = list()
 
 /datum/unit_test/gc_regressions/Destroy()
 	for(var/datum/money_account/account as anything in created_accounts)
@@ -28,6 +30,10 @@
 	for(var/datum/human_ai_squad/squad as anything in created_squads)
 		if(!QDELETED(squad))
 			qdel(squad, force = TRUE)
+
+	for(var/datum/character_trait/trait as anything in created_traits)
+		if(!QDELETED(trait))
+			qdel(trait, force = TRUE)
 
 	return ..()
 
@@ -121,3 +127,20 @@
 
 	for(var/datum/action/xeno_action/tracked_action as anything in tracked_actions)
 		TEST_ASSERT_NULL(tracked_action.owner, "[tracked_action.type] should drop its owner reference during crusher cleanup.")
+
+/datum/unit_test/gc_regressions_character_trait_cleanup
+	parent_type = /datum/unit_test/gc_regressions
+
+/datum/unit_test/gc_regressions_character_trait_cleanup/Run()
+	var/datum/character_trait_group/biology/biology_group = GLOB.character_trait_groups[/datum/character_trait_group/biology]
+	TEST_ASSERT_NOTNULL(biology_group, "Failed to resolve the biology trait group for character-trait GC regression testing.")
+
+	var/datum/character_trait/biology/hardcore/runtime_trait = new
+	created_traits += runtime_trait
+
+	TEST_ASSERT(runtime_trait in biology_group.traits, "Runtime-created biology trait should register itself in the biology group list before cleanup.")
+
+	qdel(runtime_trait, force = TRUE)
+
+	TEST_ASSERT(QDELETED(runtime_trait), "Runtime-created biology trait should qdel immediately during the GC regression test.")
+	TEST_ASSERT(!(runtime_trait in biology_group.traits), "Character trait Destroy() should remove runtime-created traits from their trait group list.")
