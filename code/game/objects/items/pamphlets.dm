@@ -68,7 +68,7 @@
 	bypass_pamphlet_limit = TRUE
 
 /obj/item/pamphlet/skill/spotter/can_use(mob/living/carbon/human/user)
-	if(user.job != JOB_SQUAD_MARINE)
+	if(GET_DEFAULT_ROLE(user.job) != JOB_SQUAD_MARINE)
 		to_chat(user, SPAN_WARNING("Only squad riflemen can use this."))
 		return
 	var/obj/item/card/id/ID = user.get_idcard()
@@ -98,7 +98,7 @@
 	bypass_pamphlet_limit = TRUE
 
 /obj/item/pamphlet/skill/loader/can_use(mob/living/carbon/human/user)
-	if(user.job != JOB_SQUAD_MARINE)
+	if(GET_DEFAULT_ROLE(user.job) != JOB_SQUAD_MARINE)
 		to_chat(user, SPAN_WARNING("Only squad riflemen can use this."))
 		return
 	var/obj/item/card/id/ID = user.get_idcard()

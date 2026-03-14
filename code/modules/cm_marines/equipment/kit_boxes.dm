@@ -238,21 +238,28 @@
 		to_chat(user, SPAN_WARNING("You can't use this [name]!"))
 	return
 
+/obj/item/spec_kit/proc/role_matches_allowed_list(job_title)
+	if(!job_title || !length(allowed_roles_list))
+		return FALSE
+
+	var/default_job_title = GET_DEFAULT_ROLE(job_title)
+	for(var/allowed_role in allowed_roles_list)
+		if(default_job_title == GET_DEFAULT_ROLE(allowed_role))
+			return TRUE
+
+	return FALSE
+
 /obj/item/spec_kit/proc/can_use(mob/living/carbon/human/user)
 	if(!length(allowed_roles_list))
 		return TRUE
 
-	for(var/allowed_role in allowed_roles_list)
-		if(user.job == allowed_role)
-			return TRUE
+	return role_matches_allowed_list(user.job)
 
 /obj/item/spec_kit/rifleman/can_use(mob/living/carbon/human/user)
 	if(!length(allowed_roles_list))
 		return TRUE
 
-	for(var/allowed_role in allowed_roles_list)
-		if(user.job == allowed_role)//Alternate check to normal kit as this is distributed to people without SKILL_SPEC_TRAINED.
-			return TRUE
+	return role_matches_allowed_list(user.job) //Alternate check to normal kit as this is distributed to people without SKILL_SPEC_TRAINED.
 
 /obj/item/spec_kit/proc/select_and_spawn(mob/living/carbon/human/user)
 	var/list/available_specialist_kits = list()

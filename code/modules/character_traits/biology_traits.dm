@@ -120,7 +120,7 @@
 	cost = 1
 
 /datum/character_trait/biology/hardcore/apply_trait(mob/living/carbon/human/target, datum/equipment_preset/preset)
-	if(target.job != JOB_SQUAD_MARINE)
+	if(GET_DEFAULT_ROLE(target.job) != JOB_SQUAD_MARINE)
 		to_chat(target, SPAN_WARNING("Only riflemen can have the Hardcore trait."))
 		return
 
