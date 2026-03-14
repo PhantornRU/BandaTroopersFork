@@ -80,6 +80,7 @@
 #include "create_and_destroy.dm"
 #include "emote_panels.dm"
 #include "game_rule_panel.dm" // SS220 EDIT: include Game Rule Panel unit tests
+#include "gc_regressions.dm"
 #include "halo_ai_localization.dm"
 #include "halo_sangheili_equipment.dm"
 #include "halo_tts.dm"
