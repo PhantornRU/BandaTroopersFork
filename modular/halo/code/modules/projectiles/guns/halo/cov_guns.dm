@@ -60,7 +60,12 @@
 	. = ..()
 	overheat_overlay = image(icon, icon_state = "[initial(icon_state)]_o")
 	venting_overlay = image(icon, icon_state = "[initial(icon_state)]_v")
-	start_process()
+	heat_overlay = image(icon, icon_state = "[initial(icon_state)]_h0")
+	update_heat_overlay()
+
+/obj/item/weapon/gun/energy/plasma/Destroy()
+	STOP_PROCESSING(SSdcs, src)
+	return ..()
 
 /obj/item/weapon/gun/energy/plasma/get_examine_text(mob/user)
 	. = ..()
@@ -82,6 +87,8 @@
 	if(.)
 		heat += heat_per_shot
 		COOLDOWN_START(src, dispersion_cooldown, dispersion_delay)
+		start_process()
+		update_heat_overlay()
 		if(heat >= max_heat)
 			overheat()
 
@@ -101,6 +108,8 @@
 		flick_overlay(src, venting_overlay, manual_dispersion_delay)
 	addtimer(CALLBACK(src, PROC_REF(end_overheat), src), manual_dispersion_delay)
 	dispersing = TRUE
+	start_process()
+	update_heat_overlay()
 
 /obj/item/weapon/gun/energy/plasma/proc/overheat()
 	COOLDOWN_START(src, cooldown, overheat_time)
@@ -116,34 +125,69 @@
 		flick_overlay(src, overheat_overlay, overheat_time)
 	addtimer(CALLBACK(src, PROC_REF(end_overheat), src), overheat_time)
 	dispersing = TRUE
+	start_process()
+	update_heat_overlay()
 
 /obj/item/weapon/gun/energy/plasma/proc/start_process()
 	START_PROCESSING(SSdcs, src)
+
+/obj/item/weapon/gun/energy/plasma/proc/end_process()
+	STOP_PROCESSING(SSdcs, src)
+
+/obj/item/weapon/gun/energy/plasma/proc/should_process()
+	if(heat > 0)
+		return TRUE
+
+	if(dispersing)
+		return TRUE
+
+	if(!COOLDOWN_FINISHED(src, cooldown))
+		return TRUE
+
+	if(!COOLDOWN_FINISHED(src, manual_cooldown))
+		return TRUE
+
+	return FALSE
+
+/obj/item/weapon/gun/energy/plasma/proc/get_heat_overlay_state()
+	switch(get_heat_percent())
+		if(90 to 100)
+			return "[initial(icon_state)]_h4"
+		if(60 to 89)
+			return "[initial(icon_state)]_h3"
+		if(30 to 59)
+			return "[initial(icon_state)]_h2"
+		if(10 to 29)
+			return "[initial(icon_state)]_h1"
+		else
+			return "[initial(icon_state)]_h0"
+
+/obj/item/weapon/gun/energy/plasma/proc/update_heat_overlay()
+	if(!has_heat_overlay || !heat_overlay)
+		return
+
+	overlays -= heat_overlay
+	heat_overlay.icon_state = get_heat_overlay_state()
+	overlays += heat_overlay
 
 /obj/item/weapon/gun/energy/plasma/process()
 	heat = max(heat - passive_dispersion, 0)
 	if(COOLDOWN_FINISHED(src, dispersion_cooldown))
 		heat = max(heat - active_dispersion, 0)
 
-	if(has_heat_overlay == TRUE)
-		switch(get_heat_percent())
-			if(90 to 100)
-				overlays += heat_overlay + "[initial(icon_state)]_h4"
-			if(60 to 89)
-				overlays += heat_overlay + "[initial(icon_state)]_h3"
-			if(30 to 59)
-				overlays += heat_overlay + "[initial(icon_state)]_h2"
-			if(10 to 29)
-				overlays += heat_overlay + "[initial(icon_state)]_h1"
-			else
-				overlays += heat_overlay + "[initial(icon_state)]_h0"
+	update_heat_overlay()
+	if(!should_process())
+		end_process()
 
 /obj/item/weapon/gun/energy/plasma/proc/reset_icon()
 	icon_state = initial(icon_state)
+	update_heat_overlay()
 
 /obj/item/weapon/gun/energy/plasma/proc/end_overheat()
 	playsound(src, close_vent_sound)
 	dispersing = FALSE
+	if(!should_process())
+		end_process()
 
 /obj/item/weapon/gun/energy/plasma/update_icon()
 	. = ..()
@@ -151,18 +195,7 @@
 	if(!cell)
 		return
 
-	if(has_heat_overlay == TRUE)
-		switch(get_heat_percent())
-			if(90 to 100)
-				overlays += heat_overlay + "[initial(icon_state)]_h4"
-			if(60 to 89)
-				overlays += heat_overlay + "[initial(icon_state)]_h3"
-			if(30 to 59)
-				overlays += heat_overlay + "[initial(icon_state)]_h2"
-			if(10 to 29)
-				overlays += heat_overlay + "[initial(icon_state)]_h1"
-			else
-				overlays += heat_overlay + "[initial(icon_state)]_h0"
+	update_heat_overlay()
 
 
 /obj/item/weapon/gun/energy/plasma/plasma_pistol

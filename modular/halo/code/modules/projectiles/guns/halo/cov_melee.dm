@@ -224,7 +224,8 @@
 
 /obj/item/weapon/covenant/energy_sword/dropped()
 	. = ..()
-	addtimer(CALLBACK(src, PROC_REF(check_for_floor)), 0.1 SECONDS)
+	if(!QDELETED(src))
+		addtimer(CALLBACK(src, PROC_REF(check_for_floor)), 0.1 SECONDS)
 
 /obj/item/weapon/covenant/energy_sword/proc/check_for_floor()
 	if(istype(loc, /turf))
