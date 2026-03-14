@@ -215,8 +215,8 @@
 // ------------------ ARMOR ------------------
 
 /obj/item/clothing/suit/marine/shielded/sangheili
-	name = "YOU SHOULDN'T SEE THIS"
-	desc = "The central piece to a set of advanced combat armor manufactured by the Covenant. Made with nanolaminate and equipped with shielding, the armor is much more durable than any other species' equipment."
+	name = "ВЫ НЕ ДОЛЖНЫ ЭТО ВИДЕТЬ"
+	desc = "Центральный элемент комплекта продвинутой боевой брони производства Ковенанта. Выполнен из наноламината и оснащён энергетическими щитами, поэтому намного прочнее экипировки большинства других видов."
 	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
 	icon_state = "sang_minor"
 	item_state = "sang_minor"
@@ -236,8 +236,8 @@
 
 /obj/item/clothing/suit/marine/shielded/sangheili/minor
 	name = "\improper Sangheili Minor combat harness"
-	desc = "A blue coloured harness worn by 'Minors', the lowest rank of Sangheili warrior. Worn over a 'tech-suit' the armour consists of a thoracic-cage over the torso, with pauldrons, vambraces, cuisses, and greaves attached, providing a high level of protection, though the most important defensive feature of the harness is its energy-shielding."
-	desc_lore = "Though Minor is the lowest rank a Sangheili can hold, this blue marks them out as still superior to any lesser-caste species. A fact that some abuse."
+	desc = "Синяя боевая сбруя, которую носят 'миноры' - самый низкий ранг воинов сангхейли. Надеваемая поверх техкостюма, эта броня состоит из грудной клетки-каркаса на торсе с наплечниками, наручами, набедренниками и поножами, обеспечивая высокий уровень защиты, хотя главным оборонительным достоинством всё равно остаются энергетические щиты."
+	desc_lore = "Хотя ранг Minor - самый низкий, который может носить сангхейли, сам синий цвет уже отделяет его от любых низших каст. И некоторые этим охотно пользуются."
 
 	shield = SANG_SHIELD_MINOR
 	armor_melee = CLOTHING_ARMOR_HIGH
@@ -253,8 +253,8 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/major
 
 	name = "\improper Sangheili Major combat harness"
-	desc = "This red harness denotes the wearer as a 'Major', a veteran and more experienced Sangheili warrior. While the only true difference between the harness of a Major and the harness of a Minor is its colouration, the Major's harness does benefit from superior shielding."
-	desc_lore = "Given a greater breadth of experience, Majors command both Minors of their own species, and all of the lesser rates as field officers."
+	desc = "Эта красная сбруя обозначает владельца как 'майора' - более опытного и закалённого воина сангхейли. Формально от доспеха минора её по-настоящему отличает лишь окраска, но у майора эта броня всё же получает более мощные энергетические щиты."
+	desc_lore = "Благодаря большему опыту майоры командуют как минорами своего вида, так и всеми низшими кастами в роли полевых офицеров."
 
 	icon_state = "sang_major"
 	item_state = "sang_major"
@@ -273,8 +273,8 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/ultra
 
 	name = "\improper Sangheili Ultra combat harness"
-	desc = "The white harness worn by a Sangheili 'Ultra', an exceptionally veteran warrior who exists outside of a Legions regular ranks as a member of the Evocati. Features  superior technology in comparison to the more standard harnesses worn by other rates, designed for shock assaults and brutal single combat, with vastly stronger energy shielding."
-	desc_lore = "An Evocatii may of served over a century or more in the Covenant's forces, and provide critical advice and tactical experience to younger officers or those seeking council, though they excel most readily in direct combat, leading vicious charges and undertaking special taskings."
+	desc = "Белая сбруя, которую носит сангхейли ранга 'ультра' - исключительно опытный ветеран, стоящий вне обычной легионной иерархии как член Evocati. По сравнению со стандартными комплектами других рангов эта броня использует более совершенные технологии, рассчитана на штурмовые атаки и жестокие поединки и обладает значительно более мощными щитами."
+	desc_lore = "Evocatii нередко служат в силах Ковенанта век и дольше, передавая младшим офицерам и тем, кто ищет совета, критически важный боевой и тактический опыт. Но лучше всего они проявляют себя в прямом бою - ведут яростные атаки и берутся за особые задания."
 
 	icon_state = "sang_ultra"
 	item_state = "sang_ultra"
@@ -293,8 +293,8 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/zealot
 
 	name = "\improper Sangheili Zealot combat harness"
-	desc = "The golden sheen of this harness marks the proud Sangheili out as one of the vaunted Zealots, warriors belonging to honourable Orders. Vastly superior to any lesser harness, the nanolaminate alloys used in it are said to be imbued with holy-metals directly, allowing it to be not only exceptionally light, but absurdly sturdy as well. This conventional strength is paired with powerful energy-shields, turning the warrior into an unstoppable object as they pursue their goals."
-	desc_lore = "Be it leading troops directly in glorious combat, or securing Holy Relics in daring and softly spoken of operations, the bearer of this harness is not to be trifled with, let alone crossed."
+	desc = "Золотой блеск этой сбруи выдаёт в гордом сангхейли одного из прославленных зилотов - воинов почётных Орденов. Она неизмеримо превосходит любые более низкие комплекты: говорят, её наноламинатные сплавы напрямую насыщены священными металлами, благодаря чему броня одновременно удивительно лёгкая и нелепо прочная. К этой обычной прочности добавляются мощные энергетические щиты, превращающие воина в неудержимую силу на пути к цели."
+	desc_lore = "Будь то личное ведение войск в славный бой или захват Святых Реликвий в дерзких и не слишком афишируемых операциях, с носителем этой сбруи лучше не шутить и тем более не становиться у него на пути."
 
 	icon_state = "sang_zealot"
 	item_state = "sang_zealot"
