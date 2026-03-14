@@ -1,6 +1,6 @@
 /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
-	name = "гарнитура UNSC"
-	desc = "Специальная гарнитура, используемая United Nations Space Command во всех родах войск."
+	name = "гарнитура ККОН"
+	desc = "Специальная гарнитура, используемая Космическим Командованием Объединённых Наций во всех родах войск."
 	frequency = CRYO_FREQ
 	has_hud = TRUE
 	hud_type = list(MOB_HUD_FACTION_UNSC)

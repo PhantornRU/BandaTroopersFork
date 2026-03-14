@@ -37,9 +37,48 @@
 		tied_human.next_move_slowdown = 0
 	return TRUE
 
-/datum/human_ai_brain/proc/move_to_next_turf(turf/T, max_range = max_travel_distance)
-	if(!T)
+/datum/human_ai_brain/proc/try_adjacent_move_to_turf(turf/next_turf, clear_navigation_state = TRUE)
+	if(!tied_human || !next_turf || get_dist(next_turf, tied_human) != 1)
 		return FALSE
+
+	if(!can_move_and_apply_move_delay())
+		return TRUE
+
+	var/list/L = LinkBlocked(tied_human, tied_human.loc, next_turf, list(tied_human), TRUE)
+	L += SSpathfinding.check_special_blockers(tied_human, next_turf)
+	for(var/a in L)
+		var/atom/A = a
+		if(A.human_ai_obstacle(tied_human, src, get_dir(tied_human.loc, next_turf)) == INFINITY)
+			return FALSE
+		INVOKE_ASYNC(A, TYPE_PROC_REF(/atom, human_ai_act), tied_human, src)
+
+	var/successful_move = tied_human.Move(next_turf, get_dir(tied_human, next_turf))
+	if(successful_move)
+		ai_timeout_time = world.time
+		if(clear_navigation_state)
+			current_path = null
+			current_path_target = null
+		no_path_found = FALSE
+		no_path_found_amount = 0
+
+	return successful_move
+
+/datum/human_ai_brain/proc/move_to_next_turf(turf/T, max_range = max_travel_distance)
+	if(!tied_human || !T)
+		return FALSE
+
+	// SS220 EDIT - START: adjacent destinations do not need a full SSpathfinding round-trip
+	if(get_dist(T, tied_human) <= 0)
+		current_path = null
+		current_path_target = null
+		return TRUE
+
+	if(try_adjacent_move_to_turf(T))
+		return TRUE
+
+	if(get_dist(T, tied_human) == 1)
+		return FALSE
+	// SS220 EDIT - END
 
 	if(no_path_found)
 		if(no_path_found_amount > 0)
@@ -76,21 +115,10 @@
 		current_path = null
 		return TRUE
 
-	// Unable to move, try next time.
-	if(!can_move_and_apply_move_delay())
-		return TRUE
-
-	var/list/L = LinkBlocked(tied_human, tied_human.loc, next_turf, list(tied_human), TRUE)
-	L += SSpathfinding.check_special_blockers(tied_human, next_turf)
-	for(var/a in L)
-		var/atom/A = a
-		if(A.human_ai_obstacle(tied_human, src, get_dir(tied_human.loc, next_turf)) == INFINITY)
-			return FALSE
-		INVOKE_ASYNC(A, TYPE_PROC_REF(/atom, human_ai_act), tied_human, src)
-	var/successful_move = tied_human.Move(next_turf, get_dir(tied_human, next_turf))
+	var/successful_move = try_adjacent_move_to_turf(next_turf, FALSE)
 	if(successful_move)
-		ai_timeout_time = world.time
-		current_path.len--
+		if(length(current_path))
+			current_path.len--
 
 	return TRUE
 

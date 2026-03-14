@@ -4,7 +4,7 @@
 //======================
 /obj/item/storage/belt/gun/m6
 	name = "\improper разгрузка-кобура под пистолет M6"
-	desc = "M276 - стандартная система разгрузочного снаряжения UNSC. Она состоит из модульного пояса с различными креплениями. В этой версии установлен кобурный модуль, позволяющий носить самые распространённые пистолеты, а также боковые подсумки под большинство пистолетных магазинов."
+	desc = "M276 - стандартная система разгрузочного снаряжения ККОН. Она состоит из модульного пояса с различными креплениями. В этой версии установлен кобурный модуль, позволяющий носить самые распространённые пистолеты, а также боковые подсумки под большинство пистолетных магазинов."
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m6_holster"
 	item_state = "s_marinebelt"
@@ -51,7 +51,7 @@
 
 /obj/item/storage/belt/gun/m7
 	name = "\improper разгрузка-кобура M7"
-	desc = "Специальная разгрузка под M7, редко выдаваемая вспомогательному и специализированному персоналу UNSC в качестве PDW."
+	desc = "Специальная разгрузка под M7, редко выдаваемая вспомогательному и специализированному персоналу ККОН в качестве PDW."
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m7_holster"
 	item_state = "s_marinebelt"
@@ -88,7 +88,7 @@
 /obj/item/storage/belt/medical/unsc
 	name = "\improper медицинская разгрузка образца M8A"
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
-	desc = "M8A - один из стандартных разгрузочных комплектов UNSC. Он состоит из модульного пояса с различными креплениями. Эта конфигурация встречается реже и предназначена для переноски более громоздких медицинских принадлежностей. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
+	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. Он состоит из модульного пояса с различными креплениями. Эта конфигурация встречается реже и предназначена для переноски более громоздких медицинских принадлежностей. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicalbelt"
 	item_state = "medicalbelt"
 	has_gamemode_skin = FALSE
@@ -120,7 +120,7 @@
 /obj/item/storage/belt/medical/lifesaver/unsc
 	name = "\improper разгрузка медика образца M8A"
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
-	desc = "M8A - один из стандартных разгрузочных комплектов UNSC. В этой конфигурации к нему крепится сумка, заполненная различными инжекторами и лёгкими медицинскими средствами, поэтому она особенно популярна у медиков. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
+	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. В этой конфигурации к нему крепится сумка, заполненная различными инжекторами и лёгкими медицинскими средствами, поэтому она особенно популярна у медиков. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicbag"
 	item_state = "medicbag"
 	can_hold = list(
@@ -172,7 +172,7 @@
 //======================
 
 /obj/item/storage/pouch/medkit/unsc
-	name = "подсумок меднабора UNSC"
+	name = "подсумок меднабора ККОН"
 	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "medpouch"
 	can_hold_skill = list(
@@ -236,7 +236,7 @@
 //======================
 
 /obj/item/storage/backpack/marine/satchel/rto/unsc
-	name = "ранец радиста UNSC"
+	name = "ранец радиста ККОН"
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "radiopack"
 	item_state = "radiopack"
@@ -249,8 +249,8 @@
 	phone_category = PHONE_UNSC
 
 /obj/item/storage/backpack/marine/satchel/unsc
-	name = "задний подсумок UNSC"
-	desc = "Штатный задний подсумок пехоты UNSC."
+	name = "задний подсумок ККОН"
+	desc = "Штатный задний подсумок пехоты ККОН."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "buttpack"
 	item_state = "buttpack"
@@ -260,8 +260,8 @@
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
 /obj/item/storage/backpack/marine/unsc
-	name = "рюкзак UNSC"
-	desc = "Большой песочный рюкзак, крепящийся прямо к точкам подвеса брони M52B. Штатное снаряжение, используемое почти всеми ветвями UNSC с XXV века."
+	name = "рюкзак ККОН"
+	desc = "Большой песочный рюкзак, крепящийся прямо к точкам подвеса брони M52B. Штатное снаряжение, используемое почти всеми ветвями ККОН с XXV века."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "rucksack"
 	item_state = "rucksack"
@@ -295,7 +295,7 @@
 //======================
 
 /obj/item/storage/unsc_speckit
-	name = "ящик специалиста UNSC"
+	name = "ящик специалиста ККОН"
 	desc = "Неподписанный и никак не маркированный ящик со специализированным снаряжением. Остаётся лишь гадать, что лежит внутри."
 	icon = 'icons/halo/obj/items/storage/spec_kits.dmi'
 	icon_state = "template"
@@ -332,7 +332,7 @@
 
 /obj/item/storage/unsc_speckit/spnkr
 	name = "кейс снаряжения SPNKr"
-	desc = "Кейс с самым необходимым для оружейного специалиста UNSC. На крышке этого экземпляра нанесена эмблема SPNKr."
+	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SPNKr."
 	icon_state = "spnkr"
 	open_state = "spnkr_o"
 	icon_full = "spnkr"
@@ -348,7 +348,7 @@
 
 /obj/item/storage/unsc_speckit/srs99
 	name = "кейс снаряжения SRS99-AM"
-	desc = "Кейс с самым необходимым для оружейного специалиста UNSC. На крышке этого экземпляра нанесена эмблема SRS99-AM."
+	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SRS99-AM."
 	icon_state = "srs99"
 	open_state = "srs99_o"
 	icon_full = "srs99"

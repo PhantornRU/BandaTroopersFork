@@ -910,12 +910,20 @@
 
 
 /obj/projectile/proc/play_hit_effect(mob/hit_mob)
+	// SS220 EDIT - START: skip HALO heavy hit FX during AI-vs-AI firefights to reduce appearance churn
+	if(halo_should_skip_projectile_impact_fx(src, hit_mob))
+		return
+	// SS220 EDIT - END
 	if(ammo.sound_hit)
 		playsound(hit_mob, ammo.sound_hit, 50, 1)
 	if(hit_mob.stat != DEAD && !isnull(hit_effect_color))
 		animation_flash_color(hit_mob, hit_effect_color)
 
 /obj/projectile/proc/play_shielded_hit_effect(mob/hit_mob)
+	// SS220 EDIT - START: skip HALO heavy shield-hit FX during AI-vs-AI firefights to reduce appearance churn
+	if(halo_should_skip_projectile_impact_fx(src, hit_mob))
+		return
+	// SS220 EDIT - END
 	if(ammo.sound_shield_hit)
 		playsound(hit_mob, ammo.sound_shield_hit, 50, 1)
 	if(hit_mob.stat != DEAD && !isnull(hit_effect_color))

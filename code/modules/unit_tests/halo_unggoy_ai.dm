@@ -13,6 +13,15 @@
 		ai_component.ai_brain.set_primary_weapon(human.s_store)
 	return ai_component.ai_brain
 
+/datum/unit_test/halo_unggoy_ai/proc/create_test_projectile(mob/living/carbon/human/firer, ammo_type)
+	var/obj/projectile/projectile = allocate(/obj/projectile, run_loc_floor_top_right)
+	var/datum/ammo/ammo = allocate(ammo_type)
+	projectile.generate_bullet(ammo, 0, 0, firer)
+	projectile.starting = get_turf(firer)
+	projectile.def_zone = "chest"
+	projectile.firer = firer
+	return projectile
+
 /datum/unit_test/halo_unggoy_ai/Run()
 	return
 
@@ -165,6 +174,46 @@
 	TEST_ASSERT(!bomber.halo_unggoy_should_retreat_on_overheat(), "Unggoy suicide bombers should remain exempt from overheat retreat.")
 
 	qdel(squad)
+
+/datum/unit_test/halo_unggoy_ai_adjacent_move_shortcut
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_adjacent_move_shortcut/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for adjacent-move shortcut testing.")
+
+	var/turf/origin = run_loc_floor_bottom_left
+	var/turf/adjacent_turf = get_step(origin, EAST)
+	TEST_ASSERT(isfloorturf(origin), "The unit-test origin turf for adjacent-move shortcut testing was not a floor ([origin]).")
+	TEST_ASSERT(isfloorturf(adjacent_turf), "The adjacent destination turf for adjacent-move shortcut testing was not a floor ([adjacent_turf]).")
+
+	brain.tied_human.forceMove(origin)
+	brain.ai_move_delay = 0
+	brain.current_path = list(run_loc_floor_top_right)
+	brain.current_path_target = run_loc_floor_top_right
+
+	TEST_ASSERT(brain.move_to_next_turf(adjacent_turf), "Adjacent HALO AI movement should use the cheap direct-step path instead of failing.")
+	TEST_ASSERT_EQUAL(get_turf(brain.tied_human), adjacent_turf, "Adjacent HALO AI movement did not move the human onto the requested turf.")
+	TEST_ASSERT_NULL(brain.current_path, "Adjacent HALO AI movement should clear stale path data after a direct step.")
+	TEST_ASSERT_NULL(brain.current_path_target, "Adjacent HALO AI movement should clear the stale path target after a direct step.")
+
+/datum/unit_test/halo_ai_projectile_low_fx
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_ai_projectile_low_fx/Run()
+	var/mob/living/carbon/human/firer = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	firer.mob_flags |= AI_CONTROLLED
+	target.mob_flags |= AI_CONTROLLED
+
+	var/obj/projectile/plasma_projectile = create_test_projectile(firer, /datum/ammo/energy/halo_plasma/plasma_rifle)
+	TEST_ASSERT(halo_should_skip_projectile_impact_fx(plasma_projectile, target), "AI-only HALO plasma combat should enter the low-FX projectile impact path.")
+
+	var/obj/projectile/ballistic_projectile = create_test_projectile(firer, /datum/ammo/bullet/rifle)
+	TEST_ASSERT(!halo_should_skip_projectile_impact_fx(ballistic_projectile, target), "Non-HALO rifle rounds should not enter the HALO low-FX projectile impact path.")
+
+	target.mob_flags &= ~AI_CONTROLLED
+	TEST_ASSERT(!halo_should_skip_projectile_impact_fx(plasma_projectile, target), "A non-AI target should keep the regular HALO projectile impact FX path.")
 
 /datum/unit_test/halo_unggoy_ai_firearm_appraisals
 	parent_type = /datum/unit_test/halo_unggoy_ai

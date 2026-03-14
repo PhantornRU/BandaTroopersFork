@@ -15,3 +15,12 @@
 ## E-004: Verification requirements for this task
 - Workflow rules require UTF-8-safe edits and DM compile verification via `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`.
 - Text-safety checks should include `git diff --check` and a targeted mojibake scan on touched files.
+
+## E-005: Canonical `ККОН` wording already exists in repo-local HALO localization
+- `modular/localization/code/modules/mob/living/carbon/human/ai/brain/human_ai_localization_halo.dm` already uses `ККОН` in Russian HALO lines.
+- HALO vendor product labels are stored inline in `modular/halo/code/game/machinery/vending/vendor_types/**`, so they are directly editable without adding a runtime translation layer.
+
+## E-006: Final verification passed after vendor-label and `ККОН` update
+- `git diff --check` returned no whitespace or patch-formatting issues.
+- Targeted scans found no remaining English `listed_products` labels in HALO vendor files and no remaining player-facing `UNSC` object strings in the scoped HALO object/vending files.
+- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` completed successfully with `0 errors, 0 warnings`.

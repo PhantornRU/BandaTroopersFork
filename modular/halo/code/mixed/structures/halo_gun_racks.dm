@@ -1,6 +1,6 @@
 /obj/structure/gun_rack/halo
 	name = "стойка для оружия HALO"
-	desc = "Оружейная стойка UNSC."
+	desc = "Оружейная стойка ККОН."
 	icon = 'icons/halo/obj/structures/gun_racks.dmi'
 	icon_state = "template"
 

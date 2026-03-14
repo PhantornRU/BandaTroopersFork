@@ -1,5 +1,5 @@
 /obj/item/storage/firstaid/unsc
-	name = "аптечка UNSC"
+	name = "аптечка ККОН"
 	desc = "Первоклассные армейские медикаменты обычно лежат именно в этих восьмиугольных аптечках."
 	icon = 'icons/halo/obj/items/storage/medical.dmi'
 	icon_state = "healthpack"
@@ -98,7 +98,7 @@
 
 /obj/item/storage/syringe_case/unsc/morphine
 	name = "футляр с морфином"
-	desc = "Стандартное содержимое индивидуальных аптечных пакетов UNSC. Внутри три одноразовые сиретты с морфином."
+	desc = "Стандартное содержимое индивидуальных аптечных пакетов ККОН. Внутри три одноразовые сиретты с морфином."
 	icon_state = "morphinecase"
 	can_hold = list(
 		/obj/item/reagent_container/hypospray/autoinjector/primeable/morphine,

@@ -136,7 +136,7 @@
 // shotgun shells
 
 /obj/item/ammo_magazine/shotgun/buckshot/unsc
-	name = "коробка дробовых патронов UNSC 8-го калибра"
+	name = "коробка дробовых патронов ККОН 8-го калибра"
 	desc = "Коробка, заполненная дробовыми патронами MAG 15P-00B 8-го калибра."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = "8g"
@@ -146,7 +146,7 @@
 	caliber = "8g"
 
 /obj/item/ammo_magazine/shotgun/beanbag/unsc
-	name = "коробка травматических патронов UNSC 8-го калибра"
+	name = "коробка травматических патронов ККОН 8-го калибра"
 	desc = "Коробка, заполненная травматическими патронами MAG LLHB 8-го калибра."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
 	icon_state = "8g_beanbag"

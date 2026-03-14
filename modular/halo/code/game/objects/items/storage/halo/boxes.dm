@@ -30,7 +30,7 @@
 		use_sound = "rustle"
 
 /obj/item/storage/box/tear_packet/medical_packet
-	name = "медицинский пакет UNSC"
+	name = "медицинский пакет ККОН"
 	desc = "Боевой медицинский пакет первой помощи с самым необходимым минимумом, чтобы вы или ваши товарищи не умерли прямо на поле боя."
 	icon_state = "medical_packet"
 	w_class = 3

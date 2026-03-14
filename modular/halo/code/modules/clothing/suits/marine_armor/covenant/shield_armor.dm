@@ -122,7 +122,7 @@
 
 	var/ai_low_fx = halo_is_ai_only_human(user)
 
-	if(COOLDOWN_FINISHED(src, shield_hit_sound_cd))
+	if(!ai_low_fx && COOLDOWN_FINISHED(src, shield_hit_sound_cd))
 		playsound(src, "shield_hit")
 		COOLDOWN_START(src, shield_hit_sound_cd, 3 DECISECONDS)
 
@@ -154,12 +154,13 @@
 /obj/item/clothing/suit/marine/shielded/proc/shield_pop(mob/living/carbon/human/user)
 	var/mob/living/carbon/human/current_user = src.loc
 	if(ishuman(current_user))
-		playsound(src, "shield_pop", falloff = 5)
-		if(!halo_is_ai_only_human(current_user))
+		var/ai_low_fx = halo_is_ai_only_human(current_user)
+		if(!ai_low_fx)
+			playsound(src, "shield_pop", falloff = 5)
 			new /obj/effect/temp_visual/plasma_explosion/shield_pop(current_user.loc)
 			new /obj/effect/temp_visual/shield_spark(current_user.loc)
 		remove_shield_effect()
-		if(!halo_is_ai_only_human(current_user))
+		if(!ai_low_fx)
 			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
 
 // ------------------ PROCESS PROCS ------------------

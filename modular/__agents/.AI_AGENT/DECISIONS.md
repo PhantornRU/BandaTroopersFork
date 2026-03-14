@@ -9,5 +9,9 @@
 - Why: this covers visible HALO objects without expanding the task into full gameplay text localization.
 
 ## D-003: Preserve canonical identifiers
-- Decision: keep model codes and major abbreviations such as `MA5C`, `M6D`, `SRS99-AM`, `UNSC`, `ODST`, and `SPNKr` unchanged while translating surrounding nouns and descriptions into Russian.
-- Why: this keeps franchise items recognizable and avoids accidental contract or readability regressions.
+- Decision: keep model codes and major abbreviations such as `MA5C`, `M6D`, `SRS99-AM`, `ODST`, and `SPNKr` unchanged, but render player-facing `UNSC` text canonically as `ККОН`.
+- Why: this keeps franchise hardware recognizable while matching the requested Russian canon for the faction name.
+
+## D-004: Translate HALO vendor selection labels in place
+- Decision: translate HALO `listed_products` labels and related HALO vendor selectable gear strings directly in the HALO vending definitions.
+- Why: HALO vendor selections are inline string data in the same content layer as the objects themselves, so translating them locally keeps scope tight and avoids a new localization surface.

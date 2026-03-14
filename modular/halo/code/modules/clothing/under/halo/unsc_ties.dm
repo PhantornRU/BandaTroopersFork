@@ -2,7 +2,7 @@
 
 /obj/item/clothing/accessory/pads/unsc
 	name = "\improper наплечники M52B"
-	desc = "Комплект наплечников, крепящихся к бронекомплекту M52B, который носит UNSC."
+	desc = "Комплект наплечников, крепящихся к бронекомплекту M52B, который носит ККОН."
 	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "pads"
 	item_state = "pads"
@@ -12,7 +12,7 @@
 
 /obj/item/clothing/accessory/pads/unsc/bracers
 	name = "\improper наручи M52B"
-	desc = "Комплект наручей, носимых вместе с бронекомплектом M52B UNSC."
+	desc = "Комплект наручей, носимых вместе с бронекомплектом M52B ККОН."
 	icon_state = "bracers"
 	item_state = "bracers"
 	slot = ACCESSORY_SLOT_DECORBRACER
@@ -26,7 +26,7 @@
 
 /obj/item/clothing/accessory/pads/unsc/neckguard
 	name = "\improper защита шеи M52B"
-	desc = "Съёмный модуль защиты шеи для бронекомплекта M52B, который носит UNSC."
+	desc = "Съёмный модуль защиты шеи для бронекомплекта M52B, который носит ККОН."
 	icon_state = "neckguard"
 	item_state = "neckguard"
 	slot = ACCESSORY_SLOT_DECORNECK
@@ -48,7 +48,7 @@
 
 /obj/item/clothing/accessory/pads/unsc/groin
 	name = "\improper паховая пластина M52B"
-	desc = "Пластина, крепящаяся к бронекомплекту M52B, чтобы защищать самое ценное у Корпуса. Стандартизированный элемент защиты UNSC, который чаще носят, чем нет."
+	desc = "Пластина, крепящаяся к бронекомплекту M52B, чтобы защищать самое ценное у Корпуса. Стандартизированный элемент защиты ККОН, который чаще носят, чем нет."
 	icon_state = "groinplate"
 	item_state = "groinplate"
 	slot = ACCESSORY_SLOT_DECORGROIN
@@ -132,7 +132,7 @@
 
 /obj/item/clothing/accessory/storage/webbing/m52b
 	name = "\improper разгрузка образца M52B"
-	desc = "Крепкая сеть ремней и пряжек из синткоттона, предназначенная для крепления к стандартной броне M52B UNSC. Этот вариант - облегчённая модель для хранения предметов общего назначения."
+	desc = "Крепкая сеть ремней и пряжек из синткоттона, предназначенная для крепления к стандартной броне M52B ККОН. Этот вариант - облегчённая модель для хранения предметов общего назначения."
 	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "m52b_webbing"
 	hold = /obj/item/storage/internal/accessory/webbing/m52bgeneric
