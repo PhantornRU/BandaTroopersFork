@@ -120,13 +120,11 @@
 	if(!shield_enabled || shield_broken || shield_strength <= 0)
 		return damage_taken
 
-	var/ai_low_fx = halo_is_ai_only_human(user)
-
-	if(!ai_low_fx && COOLDOWN_FINISHED(src, shield_hit_sound_cd))
+	if(COOLDOWN_FINISHED(src, shield_hit_sound_cd))
 		playsound(src, "shield_hit")
 		COOLDOWN_START(src, shield_hit_sound_cd, 3 DECISECONDS)
 
-	if(!ai_low_fx && !shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
+	if(!shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
 		var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
 		shield_flicker.dir = user.dir
 		flick_overlay(user, shield_flicker, 22)
@@ -154,14 +152,11 @@
 /obj/item/clothing/suit/marine/shielded/proc/shield_pop(mob/living/carbon/human/user)
 	var/mob/living/carbon/human/current_user = src.loc
 	if(ishuman(current_user))
-		var/ai_low_fx = halo_is_ai_only_human(current_user)
-		if(!ai_low_fx)
-			playsound(src, "shield_pop", falloff = 5)
-			new /obj/effect/temp_visual/plasma_explosion/shield_pop(current_user.loc)
-			new /obj/effect/temp_visual/shield_spark(current_user.loc)
+		playsound(src, "shield_pop", falloff = 5)
+		new /obj/effect/temp_visual/plasma_explosion/shield_pop(current_user.loc)
+		new /obj/effect/temp_visual/shield_spark(current_user.loc)
 		remove_shield_effect()
-		if(!ai_low_fx)
-			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
+		current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
 
 // ------------------ PROCESS PROCS ------------------
 
@@ -183,13 +178,12 @@
 
 	if(shield_broken || current_user.stat == DEAD)
 		if(COOLDOWN_FINISHED(src, shield_sparks))
-			if(!halo_is_ai_only_human(current_user))
-				var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(current_user.loc)
-				shield_sparkle.pixel_x = rand(-5, 5)
-				shield_sparkle.pixel_y = rand(-16, 16)
-				current_user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
-				addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
-				shield_effect = TRUE
+			var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(current_user.loc)
+			shield_sparkle.pixel_x = rand(-5, 5)
+			shield_sparkle.pixel_y = rand(-16, 16)
+			current_user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
+			addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
+			shield_effect = TRUE
 			COOLDOWN_START(src, shield_sparks, rand(4, 6) SECONDS)
 
 	if(current_user.stat == DEAD)
@@ -200,7 +194,7 @@
 		shield_strength = min(shield_strength + (shield_regen_rate * delta_time), max_shield_strength)
 		if(shield_strength > 0)
 			shield_broken = FALSE
-		if(COOLDOWN_FINISHED(src, shield_noise_cd) && !halo_is_ai_only_human(current_user))
+		if(COOLDOWN_FINISHED(src, shield_noise_cd))
 			playsound(src, "shield_charge", vary = TRUE)
 			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
 			COOLDOWN_START(src, shield_noise_cd, shield.time_to_regen)

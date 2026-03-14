@@ -224,6 +224,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/proc/should_run_nearby_item_search()
+	if(halo_should_suspend_nearby_item_search())
+		return FALSE
+
 	if(nearby_item_search_interval <= 0)
 		return TRUE
 

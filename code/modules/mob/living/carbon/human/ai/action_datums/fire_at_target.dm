@@ -28,6 +28,9 @@
 	if((get_dist(brain.tied_human, brain.target_turf) > brain.view_distance) && !should_fire_offscreen)
 		return 0
 
+	if(brain.halo_should_defer_ranged_fire(brain.current_target || brain.target_turf))
+		return 0
+
 	if(!firing_line_check(brain, brain.target_turf))
 		return 0
 
@@ -62,6 +65,9 @@
 
 	var/should_fire_offscreen = (brain.target_turf && !COOLDOWN_FINISHED(brain, fire_offscreen))
 	if(!brain.current_target && !should_fire_offscreen)
+		return ONGOING_ACTION_COMPLETED
+
+	if(brain.halo_should_defer_ranged_fire(brain.current_target || brain.target_turf))
 		return ONGOING_ACTION_COMPLETED
 
 	if(currently_firing || !COOLDOWN_FINISHED(brain, fire_overload_cooldown))
@@ -183,6 +189,11 @@
 			brain.lose_target()
 			qdel(src)
 			return
+
+	if(brain.halo_should_defer_ranged_fire(shoot_next))
+		stop_firing(brain)
+		qdel(src)
+		return
 
 	if(rounds_burst_fired >= gun_data.burst_amount_max)
 		var/short_action_delay = brain.short_action_delay

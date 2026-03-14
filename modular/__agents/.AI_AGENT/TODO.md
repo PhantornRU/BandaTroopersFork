@@ -1,12 +1,11 @@
 # TODO
 
-- [x] Replace stale task-state from the previous HALO task.
-- [x] Translate HALO weapons and ammo strings.
-- [x] Translate HALO carried items, storage, vending, scanners, radios, and medical strings.
-- [x] Translate HALO uniforms, armor, helmets, gloves, boots, masks, and accessories.
-- [x] Translate remaining visible HALO structures, machinery, loose items, and organ-object strings.
-- [x] Translate HALO vendor product labels in `listed_products` and HALO vendor gear presets.
-- [x] Replace player-facing `UNSC` wording with canonical `ККОН` where applicable.
-- [x] Run `git diff --check`.
-- [x] Scan touched files for mojibake/UTF-8 regressions.
-- [x] Compile with `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`.
+- [x] Confirm what local logs exist for round `204`.
+- [x] Verify what HALO perf counters currently surface in MC stat output and CSV logging.
+- [x] Capture the `round-204` runtime tied to `unggoy_panic_retreat`.
+- [x] Refactor projectile-pressure helpers so AI and gun layers share one source of truth.
+- [x] Add HALO AI early-outs for projectile overload in `fire_at_target` and related cheap-path checks.
+- [x] Suppress non-critical HALO nearby-item/cover work during projectile overload.
+- [x] Remove any now-unused HALO perf helpers or low-FX remnants left from earlier experiments.
+- [x] Update `DECISIONS.md` and `EVIDENCE.md`.
+- [x] Compile-check the final refactor.

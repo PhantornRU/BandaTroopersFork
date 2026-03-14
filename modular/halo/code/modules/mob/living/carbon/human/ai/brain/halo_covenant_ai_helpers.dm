@@ -24,6 +24,7 @@
 	var/halo_cached_threat_turf_time = -1
 	var/atom/halo_cached_threat_atom
 	var/turf/halo_cached_threat_turf
+	var/halo_ranged_fire_backoff_until = 0
 
 /datum/human_ai_brain/proc/halo_covenant_get_threat_atom()
 	return current_target || target_turf
@@ -52,6 +53,42 @@
 	halo_cached_threat_turf_time = -1
 	halo_cached_threat_atom = null
 	halo_cached_threat_turf = null
+	halo_ranged_fire_backoff_until = 0
+
+/datum/human_ai_brain/proc/halo_runtime_uses_projectile_pressure_controls()
+	return halo_unggoy_runtime || halo_sangheili_runtime
+
+/datum/human_ai_brain/proc/halo_should_suspend_nearby_item_search(queued_projectiles_override = null)
+	if(!halo_runtime_uses_projectile_pressure_controls() || !in_combat)
+		return FALSE
+
+	return halo_is_projectile_queue_soft_limited(queued_projectiles_override)
+
+/datum/human_ai_brain/proc/halo_should_disable_cover_retreat(queued_projectiles_override = null)
+	if(!halo_runtime_uses_projectile_pressure_controls() || !in_combat)
+		return FALSE
+
+	return halo_is_projectile_queue_hard_limited(queued_projectiles_override)
+
+/datum/human_ai_brain/proc/halo_should_defer_ranged_fire(atom/threat = null, queued_projectiles_override = null)
+	if(!halo_runtime_uses_projectile_pressure_controls())
+		return FALSE
+
+	if(halo_ranged_fire_backoff_until > world.time)
+		return TRUE
+
+	if(!threat)
+		threat = halo_covenant_get_threat_atom()
+
+	if(!tied_human || !primary_weapon || !threat)
+		return FALSE
+
+	if(!halo_should_backpressure_ai_only_gun_fire(primary_weapon, tied_human, threat, queued_projectiles_override))
+		return FALSE
+
+	halo_ranged_fire_backoff_until = world.time + 0.6 SECONDS
+	halo_perf_bump_projectile_throttles()
+	return TRUE
 
 /datum/human_ai_brain/proc/halo_covenant_weapon_is_cooling(obj/item/weapon/gun/gun = null)
 	if(!gun)
@@ -200,6 +237,9 @@
 	return !halo_unggoy_has_active_squad_leader()
 
 /datum/human_ai_brain/proc/halo_unggoy_should_use_cover_retreat()
+	if(halo_should_disable_cover_retreat())
+		return FALSE
+
 	return halo_unggoy_should_panic() || halo_unggoy_should_hold_anchor_on_overheat()
 
 /datum/human_ai_brain/proc/halo_unggoy_should_retreat()

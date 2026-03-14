@@ -197,23 +197,48 @@
 	TEST_ASSERT_NULL(brain.current_path, "Adjacent HALO AI movement should clear stale path data after a direct step.")
 	TEST_ASSERT_NULL(brain.current_path_target, "Adjacent HALO AI movement should clear the stale path target after a direct step.")
 
-/datum/unit_test/halo_ai_projectile_low_fx
+/datum/unit_test/halo_ai_projectile_backpressure
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
-/datum/unit_test/halo_ai_projectile_low_fx/Run()
+/datum/unit_test/halo_ai_projectile_backpressure/Run()
 	var/mob/living/carbon/human/firer = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
 	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	firer.mob_flags |= AI_CONTROLLED
 	target.mob_flags |= AI_CONTROLLED
 
-	var/obj/projectile/plasma_projectile = create_test_projectile(firer, /datum/ammo/energy/halo_plasma/plasma_rifle)
-	TEST_ASSERT(halo_should_skip_projectile_impact_fx(plasma_projectile, target), "AI-only HALO plasma combat should enter the low-FX projectile impact path.")
+	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/plasma_rifle = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, run_loc_floor_top_right)
+	var/obj/item/weapon/gun/smg/covenant_needler/needler = allocate(/obj/item/weapon/gun/smg/covenant_needler, run_loc_floor_top_right)
+	var/obj/item/weapon/gun/rifle/covenant_carbine/carbine = allocate(/obj/item/weapon/gun/rifle/covenant_carbine, run_loc_floor_top_right)
 
-	var/obj/projectile/ballistic_projectile = create_test_projectile(firer, /datum/ammo/bullet/rifle)
-	TEST_ASSERT(!halo_should_skip_projectile_impact_fx(ballistic_projectile, target), "Non-HALO rifle rounds should not enter the HALO low-FX projectile impact path.")
+	TEST_ASSERT_NOTNULL(plasma_rifle.GetComponent(/datum/component/halo_projectile_backpressure), "Plasma rifle should register the HALO projectile backpressure component.")
+	TEST_ASSERT_NOTNULL(needler.GetComponent(/datum/component/halo_projectile_backpressure), "Needler should register the HALO projectile backpressure component.")
+	TEST_ASSERT_NOTNULL(carbine.GetComponent(/datum/component/halo_projectile_backpressure), "Carbine should register the HALO projectile backpressure component.")
+
+	var/datum/ammo/energy/halo_plasma/plasma_ammo = allocate(/datum/ammo/energy/halo_plasma/plasma_rifle)
+	TEST_ASSERT(!halo_should_backpressure_ai_only_projectile_fire(firer, target, plasma_ammo, 119), "HALO AI projectile backpressure should stay idle below the queue limit.")
+	TEST_ASSERT(halo_should_backpressure_ai_only_projectile_fire(firer, target, plasma_ammo, 120), "HALO AI projectile backpressure should trigger at the queue limit.")
+	TEST_ASSERT(halo_should_backpressure_ai_only_gun_fire(plasma_rifle, firer, target, 120), "HALO gun-level backpressure should reuse the same projectile-pressure gate.")
 
 	target.mob_flags &= ~AI_CONTROLLED
-	TEST_ASSERT(!halo_should_skip_projectile_impact_fx(plasma_projectile, target), "A non-AI target should keep the regular HALO projectile impact FX path.")
+	TEST_ASSERT(!halo_should_backpressure_ai_only_projectile_fire(firer, target, plasma_ammo, 120), "HALO projectile backpressure should not throttle player-facing fire.")
+
+/datum/unit_test/halo_ai_projectile_pressure_ai_helpers
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_ai_projectile_pressure_ai_helpers/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_needler)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for projectile-pressure helper testing.")
+
+	brain.in_combat = TRUE
+	brain.target_turf = set_target_turf(brain, 3)
+	TEST_ASSERT_NOTNULL(brain.target_turf, "Failed to allocate a HALO projectile-pressure target turf.")
+
+	TEST_ASSERT(!brain.halo_should_suspend_nearby_item_search(119), "HALO AI should keep nearby-item scans below the projectile soft limit.")
+	TEST_ASSERT(brain.halo_should_suspend_nearby_item_search(120), "HALO AI should suspend nearby-item scans once projectile pressure reaches the soft limit.")
+	TEST_ASSERT(!brain.halo_should_disable_cover_retreat(179), "HALO AI should keep cover retreat available below the hard projectile limit.")
+	TEST_ASSERT(brain.halo_should_disable_cover_retreat(180), "HALO AI should prefer cheap retreat once projectile pressure reaches the hard limit.")
+	TEST_ASSERT(!brain.halo_should_defer_ranged_fire(brain.target_turf, 119), "HALO AI should keep ranged fire enabled below the projectile soft limit.")
+	TEST_ASSERT(brain.halo_should_defer_ranged_fire(brain.target_turf, 120), "HALO AI should defer ranged fire at the projectile soft limit.")
 
 /datum/unit_test/halo_unggoy_ai_firearm_appraisals
 	parent_type = /datum/unit_test/halo_unggoy_ai

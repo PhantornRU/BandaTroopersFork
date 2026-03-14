@@ -20,7 +20,7 @@
 /datum/ai_action/unggoy_panic_retreat/trigger_action()
 	. = ..()
 
-	if(!brain.halo_unggoy_runtime || !brain.in_combat || !brain.halo_unggoy_should_retreat())
+	if(!brain || !brain.halo_unggoy_runtime || !brain.in_combat || !brain.halo_unggoy_should_retreat())
 		return ONGOING_ACTION_COMPLETED
 
 	var/mob/living/carbon/human/tied_human = brain.tied_human

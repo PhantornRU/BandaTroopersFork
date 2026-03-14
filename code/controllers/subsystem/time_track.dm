@@ -62,6 +62,13 @@ SUBSYSTEM_DEF(time_track)
 			"num_timers",
 			"in_progress",
 			"in_callback",
+			"halo_ai_brains",
+			"halo_temp_visuals",
+			"halo_cover_scans",
+			"halo_path_requests",
+			"halo_active_shields",
+			"halo_projectile_queue",
+			"halo_projectile_throttles",
 		) + sendmaps_headers
 	)
 	return SS_INIT_SUCCESS
@@ -121,5 +128,12 @@ SUBSYSTEM_DEF(time_track)
 			length(SStimer.timer_id_dict),
 			SSdatabase.in_progress,
 			SSdatabase.in_callback,
+			length(GLOB.human_ai_brains),
+			halo_perf_get_temp_visuals(),
+			halo_perf_get_cover_scans(),
+			halo_perf_get_path_requests(),
+			halo_active_shield_harness_count(),
+			halo_get_projectile_queue_length(),
+			halo_perf_get_projectile_throttles(),
 		) + send_maps_values
 	)

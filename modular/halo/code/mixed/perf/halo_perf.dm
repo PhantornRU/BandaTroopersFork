@@ -4,29 +4,8 @@
 /proc/halo_is_ai_only_combat_pair(mob/living/carbon/human/source_human, mob/living/carbon/human/target_human)
 	return halo_is_ai_only_human(source_human) && halo_is_ai_only_human(target_human)
 
-/proc/halo_is_heavy_projectile_fx_ammo(datum/ammo/ammo_datum)
+/proc/halo_is_projectile_pressure_relevant_ammo(datum/ammo/ammo_datum)
 	return istype(ammo_datum, /datum/ammo/energy/halo_plasma) || istype(ammo_datum, /datum/ammo/needler) || istype(ammo_datum, /datum/ammo/bullet/rifle/carbine)
-
-/proc/halo_should_use_ai_only_projectile_low_fx(atom/firer_atom, atom/target_atom, datum/ammo/ammo_datum)
-	if(!halo_is_heavy_projectile_fx_ammo(ammo_datum))
-		return FALSE
-
-	if(!istype(firer_atom, /mob/living/carbon/human) || !istype(target_atom, /mob/living/carbon/human))
-		return FALSE
-
-	return halo_is_ai_only_combat_pair(firer_atom, target_atom)
-
-/proc/halo_should_skip_projectile_light(atom/firer_atom, atom/target_atom, datum/ammo/ammo_datum)
-	if(!ammo_datum?.ammo_glowing)
-		return FALSE
-
-	return halo_should_use_ai_only_projectile_low_fx(firer_atom, target_atom, ammo_datum)
-
-/proc/halo_should_skip_projectile_impact_fx(obj/projectile/projectile, mob/hit_mob)
-	if(!projectile || !istype(hit_mob, /mob/living/carbon/human))
-		return FALSE
-
-	return halo_should_use_ai_only_projectile_low_fx(projectile.firer, hit_mob, projectile.ammo)
 
 /proc/halo_perf_debug_enabled()
 	return CONFIG_GET(flag/halo_perf_debug)
@@ -36,6 +15,7 @@ GLOBAL_LIST_INIT(halo_perf_window_counts, list(
 	"temp_visuals" = 0,
 	"cover_scans" = 0,
 	"path_requests" = 0,
+	"projectile_throttles" = 0,
 ))
 GLOBAL_VAR_INIT(halo_perf_window_id, -1)
 
@@ -104,3 +84,9 @@ GLOBAL_VAR_INIT(halo_perf_window_id, -1)
 
 /proc/halo_perf_get_path_requests()
 	return halo_perf_get("path_requests")
+
+/proc/halo_perf_bump_projectile_throttles(amount = 1)
+	halo_perf_bump("projectile_throttles", amount)
+
+/proc/halo_perf_get_projectile_throttles()
+	return halo_perf_get("projectile_throttles")

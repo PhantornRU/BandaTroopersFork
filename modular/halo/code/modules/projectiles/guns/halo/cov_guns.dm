@@ -321,6 +321,10 @@
 	muzzle_flash_color = COLOR_PLASMA_BLUE
 	mouse_pointer = 'icons/halo/effects/mouse_pointer/plasma_rifle.dmi'
 
+/obj/item/weapon/gun/energy/plasma/plasma_rifle/Initialize(mapload, spawn_empty)
+	. = ..()
+	AddComponent(/datum/component/halo_projectile_backpressure)
+
 /obj/item/weapon/gun/energy/plasma/plasma_rifle/get_examine_text(mob/living/carbon/human/user)
 	. = ..()
 	var/list/origin = .
@@ -371,6 +375,10 @@
 		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
+
+/obj/item/weapon/gun/smg/covenant_needler/Initialize(mapload, spawn_empty)
+	. = ..()
+	AddComponent(/datum/component/halo_projectile_backpressure)
 
 /obj/item/weapon/gun/smg/covenant_needler/get_examine_text(mob/living/carbon/human/user)
 	. = ..()
@@ -462,6 +470,10 @@
 		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
 	)
+
+/obj/item/weapon/gun/rifle/covenant_carbine/Initialize(mapload, spawn_empty)
+	. = ..()
+	AddComponent(/datum/component/halo_projectile_backpressure)
 
 /obj/item/weapon/gun/rifle/covenant_carbine/get_examine_text(mob/living/carbon/human/user)
 	. = ..()

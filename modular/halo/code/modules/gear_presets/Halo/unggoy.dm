@@ -261,7 +261,7 @@
 	brain.halo_unggoy_panics_without_leader = halo_unggoy_panics_without_leader
 	brain.halo_unggoy_ignore_panic = halo_unggoy_ignore_panic
 	brain.halo_unggoy_overheat_retreat = halo_unggoy_overheat_retreat
-	brain.nearby_item_search_interval = 0.5 SECONDS
+	brain.nearby_item_search_interval = 1 SECONDS
 	brain.nearby_item_search_dirty = TRUE
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
