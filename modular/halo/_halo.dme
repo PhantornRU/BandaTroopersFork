@@ -13,6 +13,7 @@
 #include "code/__DEFINES/halo_pod.dm"
 #include "code/__DEFINES/halo_shields.dm"
 #include "code/__DEFINES/halo_walls.dm"
+#include "code/configuration.dm"
 #include "code/__DEFINES/job_covenant.dm"
 #include "code/__DEFINES/paygrade_defs/covenant.dm"
 #include "code/__DEFINES/sangheili.dm"

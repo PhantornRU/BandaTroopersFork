@@ -35,6 +35,13 @@ Canonical source of truth for the current HALO upstream baseline. For HALO port,
 - Recheck HALO ship JSON and map files together: `maps/{unsc_stalwart_frigate,unsc_dark_was_the_night,unsc_dark_was_the_night_odst}.json` and the three HALO ship DMMs.
 - Recheck `tgui/packages/tgui/interfaces/GameMasterDroppodMenu.jsx` on future upstream UI syncs.
 
+## Runtime Toggle
+- `HALO_PERF_DEBUG` is a runtime config flag for temporary HALO combat profiling.
+- Config surface: add `HALO_PERF_DEBUG` to `config/config.txt` or uncomment it in the example config template.
+- Default state: off.
+- Effect when enabled: exposes HALO-specific counters in MC stat output for projectile FX, human AI cover/path churn, and active shield harness processing.
+- Production guidance: leave it off in normal production. Enable only for local repros or short diagnostic sessions around HALO AI-vs-AI battle stalls.
+
 ## Last Validation Snapshot
 - Validation date: 2026-03-12
 - Clean verification tree: `C:\Users\Alexey\Documents\GitHub\_tmp_bt_halo_buildcheck2`

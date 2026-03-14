@@ -1,58 +1,8 @@
-GLOBAL_LIST_EMPTY_TYPED(halo_perf_active_shield_harnesses, /obj/item/clothing/suit/marine/shielded)
-GLOBAL_LIST_INIT(halo_perf_window_counts, list(
-	"temp_visuals" = 0,
-	"cover_scans" = 0,
-	"path_requests" = 0,
-))
-GLOBAL_VAR_INIT(halo_perf_window_id, -1)
-
-/proc/halo_perf_sync_window()
-	var/current_window_id = world.time - (world.time % 10)
-	if(GLOB.halo_perf_window_id == current_window_id)
-		return
-
-	GLOB.halo_perf_window_id = current_window_id
-	for(var/metric in GLOB.halo_perf_window_counts)
-		GLOB.halo_perf_window_counts[metric] = 0
-
-/proc/halo_perf_bump(metric, amount = 1)
-	if(!metric)
-		return
-
-	halo_perf_sync_window()
-	GLOB.halo_perf_window_counts[metric] = (GLOB.halo_perf_window_counts[metric] || 0) + amount
-
-/proc/halo_perf_get(metric)
-	if(!metric)
-		return 0
-
-	halo_perf_sync_window()
-	return GLOB.halo_perf_window_counts[metric] || 0
-
 /proc/halo_is_ai_only_human(mob/living/carbon/human/human)
 	return istype(human) && !human.client && (human.mob_flags & AI_CONTROLLED)
 
 /proc/halo_is_ai_only_combat_pair(mob/living/carbon/human/source_human, mob/living/carbon/human/target_human)
 	return halo_is_ai_only_human(source_human) && halo_is_ai_only_human(target_human)
-
-/proc/halo_register_active_shield_harness(obj/item/clothing/suit/marine/shielded/harness)
-	if(!istype(harness))
-		return
-
-	GLOB.halo_perf_active_shield_harnesses |= harness
-
-/proc/halo_unregister_active_shield_harness(obj/item/clothing/suit/marine/shielded/harness)
-	if(!istype(harness))
-		return
-
-	GLOB.halo_perf_active_shield_harnesses -= harness
-
-/proc/halo_active_shield_harness_count()
-	for(var/obj/item/clothing/suit/marine/shielded/harness as anything in GLOB.halo_perf_active_shield_harnesses)
-		if(QDELETED(harness))
-			GLOB.halo_perf_active_shield_harnesses -= harness
-
-	return length(GLOB.halo_perf_active_shield_harnesses)
 
 /proc/halo_should_skip_projectile_light(atom/firer_atom, atom/target_atom, datum/ammo/ammo_datum)
 	if(!ammo_datum?.ammo_glowing)
@@ -65,6 +15,65 @@ GLOBAL_VAR_INIT(halo_perf_window_id, -1)
 		return FALSE
 
 	return halo_is_ai_only_combat_pair(firer_atom, target_atom)
+
+/proc/halo_perf_debug_enabled()
+	return CONFIG_GET(flag/halo_perf_debug)
+
+GLOBAL_LIST_EMPTY_TYPED(halo_perf_active_shield_harnesses, /obj/item/clothing/suit/marine/shielded)
+GLOBAL_LIST_INIT(halo_perf_window_counts, list(
+	"temp_visuals" = 0,
+	"cover_scans" = 0,
+	"path_requests" = 0,
+))
+GLOBAL_VAR_INIT(halo_perf_window_id, -1)
+
+/proc/halo_perf_sync_window()
+	if(!halo_perf_debug_enabled())
+		return
+
+	var/current_window_id = world.time - (world.time % 10)
+	if(GLOB.halo_perf_window_id == current_window_id)
+		return
+
+	GLOB.halo_perf_window_id = current_window_id
+	for(var/metric in GLOB.halo_perf_window_counts)
+		GLOB.halo_perf_window_counts[metric] = 0
+
+/proc/halo_perf_bump(metric, amount = 1)
+	if(!metric || !halo_perf_debug_enabled())
+		return
+
+	halo_perf_sync_window()
+	GLOB.halo_perf_window_counts[metric] = (GLOB.halo_perf_window_counts[metric] || 0) + amount
+
+/proc/halo_perf_get(metric)
+	if(!metric || !halo_perf_debug_enabled())
+		return 0
+
+	halo_perf_sync_window()
+	return GLOB.halo_perf_window_counts[metric] || 0
+
+/proc/halo_register_active_shield_harness(obj/item/clothing/suit/marine/shielded/harness)
+	if(!istype(harness) || !halo_perf_debug_enabled())
+		return
+
+	GLOB.halo_perf_active_shield_harnesses |= harness
+
+/proc/halo_unregister_active_shield_harness(obj/item/clothing/suit/marine/shielded/harness)
+	if(!istype(harness) || !halo_perf_debug_enabled())
+		return
+
+	GLOB.halo_perf_active_shield_harnesses -= harness
+
+/proc/halo_active_shield_harness_count()
+	if(!halo_perf_debug_enabled())
+		return 0
+
+	for(var/obj/item/clothing/suit/marine/shielded/harness as anything in GLOB.halo_perf_active_shield_harnesses)
+		if(QDELETED(harness))
+			GLOB.halo_perf_active_shield_harnesses -= harness
+
+	return length(GLOB.halo_perf_active_shield_harnesses)
 
 /proc/halo_perf_bump_temp_visuals(amount = 1)
 	halo_perf_bump("temp_visuals", amount)

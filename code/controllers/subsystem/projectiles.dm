@@ -28,8 +28,9 @@ SUBSYSTEM_DEF(projectiles)
 	 */
 
 /datum/controller/subsystem/projectiles/stat_entry(msg)
-	// SS220 EDIT - START: surface HALO projectile pressure and combat FX counters while investigating AI battle stalls
-	msg = " | #Proj: [length(projectiles)] | HALO FX/s:[halo_perf_get_temp_visuals()]"
+	// SS220 EDIT - START: surface HALO projectile pressure only when HALO perf debug config is enabled
+	if(CONFIG_GET(flag/halo_perf_debug))
+		msg = " | #Proj: [length(projectiles)] | HALO FX/s:[halo_perf_get_temp_visuals()]"
 	// SS220 EDIT - END
 	return ..()
 

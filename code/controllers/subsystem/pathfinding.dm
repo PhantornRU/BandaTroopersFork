@@ -12,8 +12,9 @@ SUBSYSTEM_DEF(pathfinding)
 	var/current_position = 1
 
 /datum/controller/subsystem/pathfinding/stat_entry(msg)
-	// SS220 EDIT - START: mirror HALO path request pressure beside queued pathfinding work
-	msg = "P:[length(paths_to_calculate)] | HALO Path/s:[halo_perf_get_path_requests()]"
+	// SS220 EDIT - START: mirror HALO path request pressure only when HALO perf debug config is enabled
+	if(CONFIG_GET(flag/halo_perf_debug))
+		msg = "P:[length(paths_to_calculate)] | HALO Path/s:[halo_perf_get_path_requests()]"
 	// SS220 EDIT - END
 	return ..()
 
