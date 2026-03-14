@@ -165,6 +165,8 @@
 		return FALSE
 
 	var/turf/charge_turf = get_turf(charge_target)
+	if(brain.halo_unggoy_runtime)
+		charge_turf = brain.halo_covenant_get_cached_threat_turf()
 	if(!charge_turf)
 		return FALSE
 

@@ -21,15 +21,37 @@
 	var/halo_cached_ranged_fallback_available
 	var/halo_cached_squad_anchor_time = -1
 	var/turf/halo_cached_squad_anchor
+	var/halo_cached_threat_turf_time = -1
+	var/atom/halo_cached_threat_atom
+	var/turf/halo_cached_threat_turf
 
 /datum/human_ai_brain/proc/halo_covenant_get_threat_atom()
 	return current_target || target_turf
+
+/datum/human_ai_brain/proc/halo_covenant_get_cached_threat_turf(cache_duration = 0.5 SECONDS)
+	var/atom/threat = halo_covenant_get_threat_atom()
+	if(!threat)
+		halo_cached_threat_turf_time = -1
+		halo_cached_threat_atom = null
+		halo_cached_threat_turf = null
+		return null
+
+	if(halo_cached_threat_atom == threat && halo_cached_threat_turf_time >= (world.time - cache_duration))
+		return halo_cached_threat_turf
+
+	halo_cached_threat_atom = threat
+	halo_cached_threat_turf = get_turf(threat)
+	halo_cached_threat_turf_time = world.time
+	return halo_cached_threat_turf
 
 /datum/human_ai_brain/proc/invalidate_halo_runtime_caches()
 	halo_cached_ranged_fallback_time = -1
 	halo_cached_ranged_fallback_available = null
 	halo_cached_squad_anchor_time = -1
 	halo_cached_squad_anchor = null
+	halo_cached_threat_turf_time = -1
+	halo_cached_threat_atom = null
+	halo_cached_threat_turf = null
 
 /datum/human_ai_brain/proc/halo_covenant_weapon_is_cooling(obj/item/weapon/gun/gun = null)
 	if(!gun)

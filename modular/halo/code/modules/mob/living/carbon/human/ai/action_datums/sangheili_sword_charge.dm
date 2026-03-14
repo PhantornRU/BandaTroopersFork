@@ -55,7 +55,11 @@
 		INVOKE_ASYNC(tied_human, TYPE_PROC_REF(/mob, do_click), threat, "", list())
 		return ONGOING_ACTION_UNFINISHED_BLOCK
 
-	if(!brain.move_to_next_turf(get_turf(threat)))
+	var/turf/threat_turf = brain.halo_covenant_get_cached_threat_turf()
+	if(!threat_turf)
+		return ONGOING_ACTION_COMPLETED
+
+	if(!brain.move_to_next_turf(threat_turf))
 		return ONGOING_ACTION_COMPLETED
 
 	tied_human.face_atom(threat)

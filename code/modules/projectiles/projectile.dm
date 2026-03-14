@@ -230,7 +230,10 @@
 		M.track_shot(weapon_cause_data.cause_name)
 	if(!suppress_light)
 		if(ammo.ammo_glowing)
-			set_light(1.5, 3, ammo.bullet_light_color)
+			// SS220 EDIT - START: skip movable light on HALO AI-vs-AI tracer spam to reduce client-loop pressure
+			if(!halo_should_skip_projectile_light(firer, target, ammo))
+				set_light(1.5, 3, ammo.bullet_light_color)
+			// SS220 EDIT - END
 
 	//If we have the right kind of ammo, we can fire several projectiles at once.
 	if(ammo.bonus_projectiles_amount && ammo.bonus_projectiles_type)

@@ -119,6 +119,7 @@
 
 /obj/effect/temp_visual/plasma_explosion/Initialize(mapload)
 	. = ..()
+	halo_perf_bump_temp_visuals()
 	particles = new particles_used
 	add_filter("pixel_outline", 1, outline_filter(1, outline_color, OUTLINE_SHARP))
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 5, 1, outline_color))
@@ -196,6 +197,7 @@
 
 /obj/effect/temp_visual/shield_spark/Initialize(mapload)
 	. = ..()
+	halo_perf_bump_temp_visuals()
 	particles = new /particles/shield_spark
 	addtimer(VARSET_CALLBACK(particles, count, 0), 1)
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 3, 1, "#77b6ff"))

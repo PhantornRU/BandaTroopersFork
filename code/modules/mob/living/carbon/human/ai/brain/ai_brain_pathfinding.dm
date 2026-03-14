@@ -52,6 +52,8 @@
 
 	if((!current_path || (next_path_generation < world.time && current_path_target != T)) && COOLDOWN_FINISHED(src, no_path_found_cooldown))
 		if(!CALCULATING_PATH(tied_human) || current_path_target != T)
+			// SS220 EDIT: keep a lightweight count of human AI path requests during HALO perf investigations
+			halo_perf_bump_path_requests()
 			SSpathfinding.calculate_path(tied_human, T, max_range, tied_human, CALLBACK(src, PROC_REF(set_path)), list(tied_human, current_target))
 			current_path_target = T
 		next_path_generation = world.time + path_update_period

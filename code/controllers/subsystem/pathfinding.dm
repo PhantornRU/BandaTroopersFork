@@ -12,7 +12,9 @@ SUBSYSTEM_DEF(pathfinding)
 	var/current_position = 1
 
 /datum/controller/subsystem/pathfinding/stat_entry(msg)
-	msg = "P:[length(paths_to_calculate)]"
+	// SS220 EDIT - START: mirror HALO path request pressure beside queued pathfinding work
+	msg = "P:[length(paths_to_calculate)] | HALO Path/s:[halo_perf_get_path_requests()]"
+	// SS220 EDIT - END
 	return ..()
 
 /datum/controller/subsystem/pathfinding/fire(resumed = FALSE)

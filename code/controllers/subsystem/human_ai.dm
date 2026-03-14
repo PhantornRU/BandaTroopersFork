@@ -32,7 +32,9 @@ SUBSYSTEM_DEF(human_ai)
 	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/human_ai/stat_entry(msg)
-	msg = "P:[length(GLOB.human_ai_brains)]"
+	// SS220 EDIT - START: expose HALO AI perf counters in MC stat output while profiling AI-vs-AI combat
+	msg = "P:[length(GLOB.human_ai_brains)] | HALO Cover/s:[halo_perf_get_cover_scans()] Path/s:[halo_perf_get_path_requests()] Shields:[halo_active_shield_harness_count()]"
+	// SS220 EDIT - END
 	return ..()
 
 /datum/admins/proc/toggle_human_ai()

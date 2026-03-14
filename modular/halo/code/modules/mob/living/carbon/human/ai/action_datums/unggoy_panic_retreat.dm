@@ -60,7 +60,7 @@
 
 /datum/ai_action/unggoy_panic_retreat/proc/step_away_from_threat(atom/threat)
 	var/mob/living/carbon/human/tied_human = brain.tied_human
-	var/turf/threat_turf = get_turf(threat)
+	var/turf/threat_turf = brain.halo_covenant_get_cached_threat_turf()
 	if(!tied_human || !threat_turf)
 		return FALSE
 
