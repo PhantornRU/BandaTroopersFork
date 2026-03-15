@@ -48,6 +48,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	var/combat_decay_time_min = 15 SECONDS
 	/// The maximum amount of time that can pass before this AI can leave combat
 	var/combat_decay_time_max = 30 SECONDS
+	/// Minimum spacing between AI combat voicelines to avoid runaway chatter loops in prolonged fights.
+	var/combat_voiceline_cooldown_time = 4 SECONDS
 
 	/// If this AI can seek cover while not possessing a gun
 	var/cover_without_gun = FALSE
@@ -75,6 +77,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	var/nearby_item_search_interval = 0
 	COOLDOWN_DECLARE(nearby_item_search_cooldown)
 	var/nearby_item_search_dirty = FALSE
+	COOLDOWN_DECLARE(combat_voiceline_cooldown)
 
 /datum/human_ai_brain/New(mob/living/carbon/human/tied_human)
 	. = ..()
