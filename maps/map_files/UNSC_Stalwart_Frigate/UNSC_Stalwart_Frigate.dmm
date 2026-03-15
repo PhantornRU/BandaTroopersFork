@@ -2457,6 +2457,18 @@
 /obj/item/device/flashlight/lamp/tripod,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
+"aec" = (
+/obj/structure/closet/secure_closet/marine_personal/platoon_commander{
+	pixel_x = -8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night)
+"aed" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night)
 "aee" = (
 /obj/structure/platform{
 	dir = 8
@@ -2472,6 +2484,9 @@
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
+"aeh" = (
+/turf/open/floor/almayer,
+/area/dark_was_the_night)
 "aei" = (
 /obj/structure/platform{
 	dir = 4
@@ -2482,12 +2497,58 @@
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/cryo_bay/one)
+"aej" = (
+/obj/structure/closet/secure_closet/marine_personal/platoon_commander{
+	pixel_x = 8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night)
+"aek" = (
+/obj/structure/machinery/cryopod/big/halo/flipped,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night)
+"ael" = (
+/obj/effect/landmark/late_join,
+/obj/effect/landmark/start/bridge,
+/turf/open/floor/almayer,
+/area/dark_was_the_night)
+"aem" = (
+/obj/structure/machinery/cryopod/big/halo,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night)
+"aen" = (
+/obj/effect/landmark/late_join,
+/obj/effect/landmark/start/bridge,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night)
 "aeo" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/bravo,
 /obj/effect/landmark/start/marine/leader/bravo,
 /turf/open/floor/almayer,
 /area/dark_was_the_night/cryo_bay/one)
+"aep" = (
+/obj/effect/landmark/late_join,
+/obj/effect/landmark/start/bridge,
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night)
+"aeq" = (
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night)
+"aer" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 4
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night)
+"aes" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 8
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night)
 "aeB" = (
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1;
@@ -36167,11 +36228,11 @@ ksg
 ksg
 iHB
 iHB
+aec
+aek
 mJG
-mJG
-mJG
-mJG
-mJG
+aek
+aec
 mJG
 mJG
 mJG
@@ -36360,12 +36421,12 @@ cQz
 tHW
 dAc
 xrk
-lVp
-mJG
-mJG
-mJG
-mJG
-mJG
+gfT
+aeh
+ael
+aeq
+ael
+aed
 mJG
 mJG
 mJG
@@ -36554,12 +36615,12 @@ eBH
 tef
 hSp
 qYZ
-lVp
-mJG
-mJG
-mJG
-mJG
-mJG
+gfT
+aeh
+ael
+aer
+ael
+aeh
 mJG
 mJG
 mJG
@@ -36749,11 +36810,11 @@ wbZ
 bzW
 iHB
 phZ
+aej
+aem
 mJG
-mJG
-mJG
-mJG
-mJG
+aem
+aej
 mJG
 mJG
 mJG
@@ -37137,11 +37198,11 @@ kWD
 kWD
 iHB
 phZ
+aec
+aek
 mJG
-mJG
-mJG
-mJG
-mJG
+aek
+aec
 mJG
 mJG
 mJG
@@ -37330,12 +37391,12 @@ eBH
 tef
 hSp
 xrk
-lVp
-mJG
-mJG
-mJG
-mJG
-mJG
+gfT
+aeh
+ael
+aes
+aen
+aeh
 mJG
 mJG
 mJG
@@ -37524,12 +37585,12 @@ dty
 hVv
 dAc
 qYZ
-lVp
-mJG
-mJG
-mJG
-mJG
-mJG
+gfT
+aeh
+ael
+aeq
+aep
+aed
 mJG
 mJG
 mJG
@@ -37719,11 +37780,11 @@ qbA
 qbA
 iHB
 iHB
+aej
+aem
 mJG
-mJG
-mJG
-mJG
-mJG
+aem
+aej
 mJG
 mJG
 mJG
