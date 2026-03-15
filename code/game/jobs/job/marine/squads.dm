@@ -228,7 +228,6 @@
 	chat_color = "#32CD32"
 	minimap_color = "#32CD32"
 	usable = TRUE
-
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2
 	equipment_color = "#ffc32d"
@@ -698,6 +697,10 @@
 		if(JOB_SQUAD_SPECIALIST)
 			assignment = JOB_SQUAD_SPECIALIST
 			num_specialists++
+			// SS220 EDIT - START
+			var/squad_number = (num_specialists > 2) ? pick(1, 2) : num_specialists
+			assign_fireteam("SQ[squad_number]", M)
+			// SS220 EDIT - END
 		if(JOB_SQUAD_TEAM_LEADER)
 			assignment = JOB_SQUAD_TEAM_LEADER
 			num_tl++

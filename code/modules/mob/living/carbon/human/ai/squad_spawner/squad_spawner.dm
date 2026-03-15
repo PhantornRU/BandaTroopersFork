@@ -113,8 +113,9 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 				reducing_viable_turfs -= selected_turf
 
 			var/mob/living/carbon/human/ai_human = new(selected_turf)
-			var/datum/component/human_ai/ai_comp = ai_human.AddComponent(/datum/component/human_ai)
 			arm_equipment(ai_human, ai_equipment, TRUE)
+			var/datum/component/human_ai/ai_comp = ai_human.AddComponent(/datum/component/human_ai)
+			ai_comp.ai_brain?.appraise_inventory(armor = TRUE)
 			new_squad.add_to_squad(ai_comp.ai_brain)
 			if(!squad_leader_selected)
 				new_squad.set_squad_leader(ai_comp.ai_brain)
