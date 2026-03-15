@@ -247,23 +247,24 @@
 	var/turf/origin = run_loc_floor_bottom_left
 	var/turf/blocked_turf = get_step(origin, EAST)
 	var/turf/detour_north = get_step(origin, NORTH)
-	var/turf/destination = set_target_turf(brain, 6)
 	TEST_ASSERT(isfloorturf(origin), "The HALO detour origin turf was not a floor ([origin]).")
 	TEST_ASSERT(isfloorturf(blocked_turf), "The blocked path turf for HALO detour testing was not a floor ([blocked_turf]).")
 	TEST_ASSERT(isfloorturf(detour_north), "The detour turf for HALO detour testing was not a floor ([detour_north]).")
+	// SS220 EDIT - START: choose a non-adjacent destination that stays inside the tiny unit-test floor strip
+	brain.tied_human.forceMove(origin)
+	var/turf/destination = set_target_turf(brain, 4)
+	// SS220 EDIT - END
 	TEST_ASSERT(isfloorturf(destination), "The HALO detour destination turf was not a floor ([destination]).")
 
-	brain.tied_human.forceMove(origin)
 	brain.ai_move_delay = 0
 	brain.current_path = list(destination, blocked_turf)
 	brain.current_path_target = destination
 
-	var/mob/living/carbon/human/blocker = allocate(/mob/living/carbon/human, blocked_turf)
-	TEST_ASSERT_NOTNULL(blocker, "Failed to create the crowd blocker for HALO detour testing.")
-
-	TEST_ASSERT(brain.move_to_next_turf(destination), "HALO AI should keep movement alive by taking a local detour when the next path turf is crowd-blocked.")
-	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), origin, "HALO AI remained stuck on the origin turf instead of taking a local detour around the crowd blocker.")
-	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), blocked_turf, "HALO AI incorrectly walked into the crowd-blocked next turf instead of side-stepping.")
+	// SS220 EDIT - START: exercise the local-detour helper directly because human mobs do not form a reliable hard blocker on a shared turf
+	TEST_ASSERT(brain.try_local_detour_towards_turf(destination, blocked_turf), "HALO AI should keep movement alive by taking a local detour when the next path turf is blocked.")
+	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), origin, "HALO AI remained stuck on the origin turf instead of taking a local detour around the blocked path step.")
+	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), blocked_turf, "HALO AI incorrectly walked into the blocked path step instead of side-stepping.")
+	// SS220 EDIT - END
 	TEST_ASSERT_NULL(brain.current_path, "HALO local detour pathing should clear the stale path after taking a side-step.")
 	TEST_ASSERT_NULL(brain.current_path_target, "HALO local detour pathing should clear the stale path target after taking a side-step.")
 
@@ -273,8 +274,10 @@
 /datum/unit_test/halo_ai_pathfinding_repath_reset/Run()
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
 	var/turf/start = get_turf(human)
-	var/turf/first_destination = locate(start.x + 5, start.y, start.z)
-	var/turf/second_destination = locate(start.x + 6, start.y, start.z)
+	// SS220 EDIT - START: stay on valid floor turfs inside the reserved unit-test map
+	var/turf/first_destination = locate(start.x + 3, start.y, start.z)
+	var/turf/second_destination = locate(start.x + 4, start.y, start.z)
+	// SS220 EDIT - END
 	TEST_ASSERT(isfloorturf(first_destination), "The first pathfinding reset destination was not a floor ([first_destination]).")
 	TEST_ASSERT(isfloorturf(second_destination), "The second pathfinding reset destination was not a floor ([second_destination]).")
 

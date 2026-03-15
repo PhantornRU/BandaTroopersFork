@@ -93,7 +93,17 @@
 	if(!tied_human || !primary_weapon || !threat)
 		return FALSE
 
-	if(!halo_should_backpressure_ai_only_gun_fire(primary_weapon, tied_human, threat, queued_projectiles_override))
+	var/datum/ammo/gun_ammo = halo_get_gun_combat_ammo(primary_weapon)
+	if(halo_should_backpressure_ai_only_projectile_fire(tied_human, threat, gun_ammo, queued_projectiles_override))
+		halo_ranged_fire_backoff_until = world.time + 0.6 SECONDS
+		halo_perf_bump_projectile_throttles()
+		return TRUE
+
+	// When the AI has only a remembered threat turf, still shed ranged pressure for HALO runtime loops.
+	if(!isturf(threat) || !halo_is_ai_only_human(tied_human) || !halo_is_projectile_pressure_relevant_ammo(gun_ammo))
+		return FALSE
+
+	if(!halo_is_projectile_queue_soft_limited(queued_projectiles_override))
 		return FALSE
 
 	halo_ranged_fire_backoff_until = world.time + 0.6 SECONDS

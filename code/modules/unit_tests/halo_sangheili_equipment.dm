@@ -385,7 +385,12 @@
 	TEST_ASSERT_EQUAL(ultra_plasma.short_step_pathing_range, ultra_plasma.halo_sangheili_sword_charge_range + 1, "HALO Sangheili AI should use nearby short-step movement for sword-charge range fights.")
 	TEST_ASSERT_EQUAL(ultra_plasma.path_target_retarget_slack, 2, "HALO Sangheili AI should tolerate small target drift before rebuilding a melee path.")
 
-	var/turf/reference_target = set_target_turf(ultra_plasma, 3)
+	// SS220 EDIT - START: keep the retarget-slack test inside the tiny unit-test template floor band
+	var/turf/origin = run_loc_floor_bottom_left
+	TEST_ASSERT(isfloorturf(origin), "The HALO Sangheili pathing-tuning origin turf was not a floor ([origin]).")
+	ultra_plasma.tied_human.forceMove(origin)
+	var/turf/reference_target = set_target_turf(ultra_plasma, 1)
+	// SS220 EDIT - END
 	TEST_ASSERT_NOTNULL(reference_target, "Failed to allocate the HALO Sangheili reference target turf for pathing-tuning tests.")
 	var/turf/slack_target = get_step(reference_target, EAST)
 	var/turf/far_target = get_step(get_step(slack_target, EAST), EAST)
