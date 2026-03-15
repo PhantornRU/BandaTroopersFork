@@ -90,3 +90,67 @@ GLOBAL_VAR_INIT(halo_perf_window_id, -1)
 
 /proc/halo_perf_get_projectile_throttles()
 	return halo_perf_get("projectile_throttles")
+
+/proc/halo_build_human_ai_stat_suffix()
+	if(!halo_perf_debug_enabled())
+		return null
+
+	return "HALO Cover/s:[halo_perf_get_cover_scans()] Path/s:[halo_perf_get_path_requests()] Shields:[halo_active_shield_harness_count()]"
+
+/proc/halo_build_pathfinding_stat_suffix()
+	if(!halo_perf_debug_enabled())
+		return null
+
+	return "HALO Path/s:[halo_perf_get_path_requests()]"
+
+/proc/halo_build_projectile_stat_suffix()
+	if(!halo_perf_debug_enabled())
+		return null
+
+	return "HALO FX/s:[halo_perf_get_temp_visuals()] | HALO Throt/s:[halo_perf_get_projectile_throttles()]"
+
+/proc/halo_perf_csv_headers()
+	if(!halo_perf_debug_enabled())
+		return list()
+
+	return list(
+		"halo_ai_brains",
+		"halo_temp_visuals",
+		"halo_cover_scans",
+		"halo_path_requests",
+		"halo_active_shields",
+		"halo_projectile_queue",
+		"halo_projectile_throttles",
+	)
+
+/proc/halo_perf_csv_values()
+	if(!halo_perf_debug_enabled())
+		return list()
+
+	return list(
+		length(GLOB.human_ai_brains),
+		halo_perf_get_temp_visuals(),
+		halo_perf_get_cover_scans(),
+		halo_perf_get_path_requests(),
+		halo_active_shield_harness_count(),
+		halo_get_projectile_queue_length(),
+		halo_perf_get_projectile_throttles(),
+	)
+
+/datum/controller/subsystem/human_ai/proc/modular_stat_entry_suffix()
+	return halo_build_human_ai_stat_suffix()
+
+/datum/controller/subsystem/pathfinding/proc/modular_stat_entry_suffix()
+	return halo_build_pathfinding_stat_suffix()
+
+/datum/controller/subsystem/projectiles/proc/modular_stat_entry_suffix()
+	return halo_build_projectile_stat_suffix()
+
+/datum/controller/subsystem/time_track/proc/modular_perf_headers()
+	return halo_perf_csv_headers()
+
+/datum/controller/subsystem/time_track/proc/modular_perf_values()
+	return halo_perf_csv_values()
+
+/datum/human_ai_brain/proc/modular_on_navigation_path_queued(turf/destination, max_range)
+	halo_perf_bump_path_requests()

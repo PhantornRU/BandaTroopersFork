@@ -102,10 +102,7 @@
 	brain.halo_sangheili_sword_only = halo_sangheili_sword_only
 	brain.halo_sangheili_sword_charge_range = halo_sangheili_sword_charge_range
 	brain.halo_sangheili_unarmed_commit_range = halo_sangheili_unarmed_commit_range
-	brain.short_step_pathing_range = max(brain.short_step_pathing_range, halo_sangheili_sword_charge_range + 1)
-	brain.path_target_retarget_slack = max(brain.path_target_retarget_slack, 2)
-	brain.nearby_item_search_interval = 1 SECONDS
-	brain.nearby_item_search_dirty = TRUE
+	brain.halo_apply_navigation_profile(halo_sangheili_sword_charge_range + 1, 2, 1 SECONDS)
 	if(halo_sangheili_sword_only)
 		brain.ignore_looting = TRUE
 

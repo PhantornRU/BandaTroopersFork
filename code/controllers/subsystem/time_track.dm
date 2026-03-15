@@ -50,27 +50,24 @@ SUBSYSTEM_DEF(time_track)
 		sendmaps_headers += sendmaps_names_map[proper_name]
 		sendmaps_headers += "[sendmaps_names_map[proper_name]]_count"
 
-	log_perf(
-		list(
-			"time",
-			"players",
-			"tidi",
-			"tidi_fastavg",
-			"tidi_avg",
-			"tidi_slowavg",
-			"maptick",
-			"num_timers",
-			"in_progress",
-			"in_callback",
-			"halo_ai_brains",
-			"halo_temp_visuals",
-			"halo_cover_scans",
-			"halo_path_requests",
-			"halo_active_shields",
-			"halo_projectile_queue",
-			"halo_projectile_throttles",
-		) + sendmaps_headers
+	var/list/perf_headers = list(
+		"time",
+		"players",
+		"tidi",
+		"tidi_fastavg",
+		"tidi_avg",
+		"tidi_slowavg",
+		"maptick",
+		"num_timers",
+		"in_progress",
+		"in_callback",
 	)
+	// SS220 EDIT: modular packs may extend the CSV with their own perf columns
+	if(hascall(src, "modular_perf_headers"))
+		var/list/modular_headers = call(src, "modular_perf_headers")()
+		if(islist(modular_headers) && length(modular_headers))
+			perf_headers += modular_headers
+	log_perf(perf_headers + sendmaps_headers)
 	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/time_track/fire()
@@ -116,24 +113,21 @@ SUBSYSTEM_DEF(time_track)
 		send_maps_values += packet["value"]
 		send_maps_values += packet["calls"]
 
-	log_perf(
-		list(
-			world.time,
-			length(GLOB.clients),
-			time_dilation_current,
-			time_dilation_avg_fast,
-			time_dilation_avg,
-			time_dilation_avg_slow,
-			MAPTICK_LAST_INTERNAL_TICK_USAGE,
-			length(SStimer.timer_id_dict),
-			SSdatabase.in_progress,
-			SSdatabase.in_callback,
-			length(GLOB.human_ai_brains),
-			halo_perf_get_temp_visuals(),
-			halo_perf_get_cover_scans(),
-			halo_perf_get_path_requests(),
-			halo_active_shield_harness_count(),
-			halo_get_projectile_queue_length(),
-			halo_perf_get_projectile_throttles(),
-		) + send_maps_values
+	var/list/perf_values = list(
+		world.time,
+		length(GLOB.clients),
+		time_dilation_current,
+		time_dilation_avg_fast,
+		time_dilation_avg,
+		time_dilation_avg_slow,
+		MAPTICK_LAST_INTERNAL_TICK_USAGE,
+		length(SStimer.timer_id_dict),
+		SSdatabase.in_progress,
+		SSdatabase.in_callback,
 	)
+	// SS220 EDIT: modular packs may append values for the extra perf columns they registered at init
+	if(hascall(src, "modular_perf_values"))
+		var/list/modular_values = call(src, "modular_perf_values")()
+		if(islist(modular_values) && length(modular_values))
+			perf_values += modular_values
+	log_perf(perf_values + send_maps_values)

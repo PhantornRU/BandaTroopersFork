@@ -208,8 +208,9 @@
 	if(CALCULATING_PATH(tied_human) && !refresh_path_target)
 		return FALSE
 
-	// SS220 EDIT: keep a lightweight count of human AI path requests during HALO perf investigations
-	halo_perf_bump_path_requests()
+	// SS220 EDIT: modular brains may observe or meter path requests without forking shared navigation flow
+	if(hascall(src, "modular_on_navigation_path_queued"))
+		call(src, "modular_on_navigation_path_queued")(destination, max_range)
 	SSpathfinding.calculate_path(tied_human, destination, max_range, tied_human, CALLBACK(src, PROC_REF(set_path)), list(tied_human, current_target))
 	current_path_target = destination
 	next_path_generation = world.time + path_update_period

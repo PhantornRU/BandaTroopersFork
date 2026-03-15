@@ -6,29 +6,14 @@
             "request": "launch",
             "name": "Launch DreamSeeker",
             "preLaunchTask": "Build All",
-            "dmb": "${workspaceFolder}/colonialmarines.dmb"
+            "dmb": "${workspaceFolder}/${command:CurrentDMB}"
         },
         {
             "type": "byond",
             "request": "launch",
             "name": "Launch DreamDaemon",
             "preLaunchTask": "Build All",
-            "dmb": "${workspaceFolder}/colonialmarines.dmb",
-            "dreamDaemon": true
-        },
-        {
-            "type": "byond",
-            "request": "launch",
-            "name": "Launch DreamSeeker (Unit Tests)",
-            "preLaunchTask": "Build All",
-            "dmb": "${workspaceFolder}/colonialmarines.test.dmb"
-        },
-        {
-            "type": "byond",
-            "request": "launch",
-            "name": "Launch DreamDaemon (Unit Tests)",
-            "preLaunchTask": "Build All",
-            "dmb": "${workspaceFolder}/colonialmarines.test.dmb",
+            "dmb": "${workspaceFolder}/${command:CurrentDMB}",
             "dreamDaemon": true
         }
     ]

@@ -132,7 +132,6 @@
 #include "code\__DEFINES\bandamarines\arachnid.dm"
 #include "code\__DEFINES\bandamarines\cyrillic.dm"
 #include "code\__DEFINES\bandamarines\game_master.dm"
-#include "code\__DEFINES\bandamarines\human_ai.dm"
 #include "code\__DEFINES\bandamarines\pronouns.dm"
 #include "code\__DEFINES\bandamarines\rto_support.dm"
 #include "code\__DEFINES\bandamarines\ru_jobs.dm"

@@ -53,6 +53,7 @@
 /datum/component/automatedfire/autofire/Destroy(force, silent)
 	shooting = FALSE
 	bursting = FALSE
+	// Detach from any queued bucket before callbacks are dropped during teardown.
 	bucket_eject()
 	QDEL_NULL(callback_fire)
 	QDEL_NULL(callback_reset_fire)

@@ -261,10 +261,7 @@
 	brain.halo_unggoy_panics_without_leader = halo_unggoy_panics_without_leader
 	brain.halo_unggoy_ignore_panic = halo_unggoy_ignore_panic
 	brain.halo_unggoy_overheat_retreat = halo_unggoy_overheat_retreat
-	brain.short_step_pathing_range = max(brain.short_step_pathing_range, 4)
-	brain.path_target_retarget_slack = max(brain.path_target_retarget_slack, 1)
-	brain.nearby_item_search_interval = 1 SECONDS
-	brain.nearby_item_search_dirty = TRUE
+	brain.halo_apply_navigation_profile(4, 1, 1 SECONDS)
 
 /datum/equipment_preset/covenant/unggoy/ai/proc/modular_apply_human_ai_brain_overrides(datum/human_ai_brain/brain, mob/living/carbon/human/new_human)
 	apply_unggoy_ai_behavior(brain)

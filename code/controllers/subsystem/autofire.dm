@@ -65,6 +65,7 @@ SUBSYSTEM_DEF(automatedfire)
 
 		while (shooter)
 			next_shooter = shooter.next
+			// Clear the bucket links before async processing so a reschedule starts from a clean queue state.
 			shooter.next = null
 			shooter.prev = null
 			shooter.bucket_pos = 0

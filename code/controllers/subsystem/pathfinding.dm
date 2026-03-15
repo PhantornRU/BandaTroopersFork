@@ -12,10 +12,12 @@ SUBSYSTEM_DEF(pathfinding)
 	var/current_position = 1
 
 /datum/controller/subsystem/pathfinding/stat_entry(msg)
-	// SS220 EDIT - START: mirror HALO path request pressure only when HALO perf debug config is enabled
-	if(CONFIG_GET(flag/halo_perf_debug))
-		msg = "P:[length(paths_to_calculate)] | HALO Path/s:[halo_perf_get_path_requests()]"
-	// SS220 EDIT - END
+	msg = "P:[length(paths_to_calculate)]"
+	// SS220 EDIT: let modular packs append subsystem-specific diagnostics without baking them into hardcode
+	if(hascall(src, "modular_stat_entry_suffix"))
+		var/suffix = call(src, "modular_stat_entry_suffix")()
+		if(suffix)
+			msg += " | [suffix]"
 	return ..()
 
 /datum/controller/subsystem/pathfinding/fire(resumed = FALSE)
@@ -76,7 +78,7 @@ SUBSYSTEM_DEF(pathfinding)
 
 				if(distance_between < distances[neighbor])
 					distances[neighbor] = distance_between
-					var/f_distance = distance_between + ASTAR_COST_FUNCTION(neighbor)
+					var/f_distance = distance_between + ASTAR_COST_FUNCTION(neighbor, target)
 					f_distances[neighbor] = f_distance
 					prev[neighbor] = current_run.current_node
 					if(neighbor in visited_nodes)
@@ -212,7 +214,7 @@ SUBSYSTEM_DEF(pathfinding)
 	ignore = new_ignore
 	distances[current_node] = 0
 	var/turf/target = finish
-	f_distances[current_node] = ASTAR_COST_FUNCTION(current_node)
+	f_distances[current_node] = ASTAR_COST_FUNCTION(current_node, target)
 	visited_nodes += current_node
 
 /datum/xeno_pathinfo/Destroy(force)

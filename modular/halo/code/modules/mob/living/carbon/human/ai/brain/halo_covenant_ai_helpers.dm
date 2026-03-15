@@ -58,6 +58,16 @@
 /datum/human_ai_brain/proc/halo_runtime_uses_projectile_pressure_controls()
 	return halo_unggoy_runtime || halo_sangheili_runtime
 
+/datum/human_ai_brain/proc/halo_apply_navigation_profile(short_step_range = 0, path_retarget_slack = 0, nearby_item_interval = 1 SECONDS)
+	if(short_step_range > 0)
+		short_step_pathing_range = max(short_step_pathing_range, short_step_range)
+
+	if(path_retarget_slack > 0)
+		path_target_retarget_slack = max(path_target_retarget_slack, path_retarget_slack)
+
+	nearby_item_search_interval = nearby_item_interval
+	nearby_item_search_dirty = TRUE
+
 /datum/human_ai_brain/proc/halo_should_suspend_nearby_item_search(queued_projectiles_override = null)
 	if(!halo_runtime_uses_projectile_pressure_controls() || !in_combat)
 		return FALSE
