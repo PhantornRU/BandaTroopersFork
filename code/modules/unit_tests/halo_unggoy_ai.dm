@@ -197,6 +197,59 @@
 	TEST_ASSERT_NULL(brain.current_path, "Adjacent HALO AI movement should clear stale path data after a direct step.")
 	TEST_ASSERT_NULL(brain.current_path_target, "Adjacent HALO AI movement should clear the stale path target after a direct step.")
 
+/datum/unit_test/halo_unggoy_ai_short_step_pathing
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_short_step_pathing/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for short-step pathing tests.")
+	TEST_ASSERT_EQUAL(brain.short_step_pathing_range, 4, "HALO Unggoy AI should opt into the nearby short-step pathing helper.")
+	TEST_ASSERT_EQUAL(brain.path_target_retarget_slack, 1, "HALO Unggoy AI should tolerate one tile of moving-target drift before rebuilding a path.")
+
+	var/turf/origin = run_loc_floor_bottom_left
+	brain.tied_human.forceMove(origin)
+	brain.ai_move_delay = 0
+
+	var/turf/reference_target = set_target_turf(brain, 2)
+	TEST_ASSERT(isfloorturf(reference_target), "The reference target turf for HALO Unggoy retarget-slack testing was not a floor ([reference_target]).")
+	var/turf/slack_target = get_step(reference_target, EAST)
+	var/turf/far_target = get_step(slack_target, EAST)
+	TEST_ASSERT(isfloorturf(slack_target), "The one-tile drift target for HALO Unggoy retarget-slack testing was not a floor ([slack_target]).")
+	TEST_ASSERT(isfloorturf(far_target), "The two-tile drift target for HALO Unggoy retarget-slack testing was not a floor ([far_target]).")
+
+	brain.current_path = list(reference_target)
+	brain.current_path_target = reference_target
+	TEST_ASSERT(!brain.path_target_needs_refresh(slack_target), "HALO Unggoy AI should keep the current path target when the destination only drifts by one tile.")
+	TEST_ASSERT(brain.path_target_needs_refresh(far_target), "HALO Unggoy AI should rebuild the path once the destination drifts beyond the configured slack.")
+
+	var/turf/destination = set_target_turf(brain, 3)
+	TEST_ASSERT(isfloorturf(destination), "The non-adjacent HALO Unggoy short-step destination was not a floor ([destination]).")
+
+	brain.ai_move_delay = 0
+	brain.current_path = list(run_loc_floor_top_right)
+	brain.current_path_target = run_loc_floor_top_right
+
+	TEST_ASSERT(brain.move_to_next_turf(destination), "HALO Unggoy AI should take a cheap local step toward nearby destinations before requesting full pathfinding.")
+	TEST_ASSERT_EQUAL(get_turf(brain.tied_human), get_step(origin, EAST), "HALO Unggoy short-step pathing did not advance the AI one turf toward the destination.")
+	TEST_ASSERT_NULL(brain.current_path, "HALO Unggoy short-step pathing should clear stale path data after the direct local move.")
+	TEST_ASSERT_NULL(brain.current_path_target, "HALO Unggoy short-step pathing should clear the stale path target after the direct local move.")
+
+/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for clientless vehicle-locker interaction testing.")
+
+	var/obj/structure/vehicle_locker/cabinet/cups/cabinet = allocate(/obj/structure/vehicle_locker/cabinet/cups, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(cabinet?.container, "Vehicle locker test setup failed to initialize the cabinet's internal storage.")
+	TEST_ASSERT(!brain.tied_human.client, "The HALO AI vehicle-locker interaction test expects a clientless AI human.")
+
+	cabinet.human_ai_act(brain.tied_human, brain)
+
+	TEST_ASSERT(!length(cabinet.container.content_watchers), "Clientless HALO AI should not register as a vehicle-locker storage watcher.")
+	TEST_ASSERT_NULL(brain.tied_human.s_active, "Clientless HALO AI should not open a vehicle-locker storage UI.")
+
 /datum/unit_test/halo_ai_projectile_backpressure
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -247,10 +300,15 @@
 	var/obj/item/weapon/gun/energy/plasma/plasma_pistol/plasma_pistol = allocate(/obj/item/weapon/gun/energy/plasma/plasma_pistol, run_loc_floor_top_right)
 	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/plasma_rifle = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, run_loc_floor_top_right)
 	var/obj/item/weapon/gun/smg/covenant_needler/needler = allocate(/obj/item/weapon/gun/smg/covenant_needler, run_loc_floor_top_right)
+	var/obj/item/weapon/gun/rifle/covenant_carbine/carbine = allocate(/obj/item/weapon/gun/rifle/covenant_carbine, run_loc_floor_top_right)
 
 	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_pistol)?.type, /datum/firearm_appraisal/halo_plasma_pistol, "Plasma pistol lost its HALO-specific firearm appraisal.")
 	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_rifle)?.type, /datum/firearm_appraisal/halo_plasma_rifle, "Plasma rifle lost its HALO-specific firearm appraisal.")
 	TEST_ASSERT_EQUAL(get_firearm_appraisal(needler)?.type, /datum/firearm_appraisal/halo_needler, "Needler lost its HALO-specific firearm appraisal.")
+	TEST_ASSERT_EQUAL(get_firearm_appraisal(carbine)?.type, /datum/firearm_appraisal/halo_carbine, "Carbine lost its HALO-specific firearm appraisal.")
+	TEST_ASSERT(get_firearm_appraisal(plasma_rifle)?.count_every_shot_toward_burst_limit, "HALO plasma rifle AI appraisal should count each shot toward the sustained-fire cap.")
+	TEST_ASSERT(get_firearm_appraisal(needler)?.count_every_shot_toward_burst_limit, "HALO needler AI appraisal should count each shot toward the sustained-fire cap.")
+	TEST_ASSERT(get_firearm_appraisal(carbine)?.count_every_shot_toward_burst_limit, "HALO carbine AI appraisal should count each shot toward the sustained-fire cap.")
 
 /datum/unit_test/halo_unggoy_ai_speech_profiles
 	parent_type = /datum/unit_test/halo_unggoy_ai

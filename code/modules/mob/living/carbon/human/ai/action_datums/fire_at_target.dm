@@ -195,6 +195,10 @@
 		qdel(src)
 		return
 
+	var/count_shot_against_burst_limit = ((brain.primary_weapon.gun_firemode == GUN_FIREMODE_AUTOMATIC) || gun_data.count_every_shot_toward_burst_limit)
+	if(count_shot_against_burst_limit)
+		rounds_burst_fired++
+
 	if(rounds_burst_fired >= gun_data.burst_amount_max)
 		var/short_action_delay = brain.short_action_delay
 		COOLDOWN_START(brain, fire_overload_cooldown, max(short_action_delay, short_action_delay * brain.action_delay_mult))
@@ -254,9 +258,6 @@
 	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_SEMIAUTO)
 		currently_firing = FALSE
 		addtimer(CALLBACK(brain.primary_weapon, TYPE_PROC_REF(/obj/item/weapon/gun, start_fire), null, brain.current_target, null, null, null, TRUE), brain.primary_weapon.get_fire_delay())
-
-	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_AUTOMATIC)
-		rounds_burst_fired++
 
 	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_BURSTFIRE)
 		currently_firing = FALSE

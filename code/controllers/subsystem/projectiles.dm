@@ -40,6 +40,9 @@ SUBSYSTEM_DEF(projectiles)
 	sleepers = list()
 	return SS_INIT_SUCCESS
 
+/datum/controller/subsystem/projectiles/proc/get_projectile_queue_length()
+	return length(projectiles)
+
 /datum/controller/subsystem/projectiles/fire(resumed = FALSE)
 	if(!resumed)
 		flying = projectiles.Copy()

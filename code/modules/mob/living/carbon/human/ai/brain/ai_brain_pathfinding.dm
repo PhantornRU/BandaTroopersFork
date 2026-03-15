@@ -5,6 +5,10 @@
 	var/list/current_path
 	/// The next turf in current_path that the AI is moving to
 	var/turf/current_path_target
+	/// How much a moving target may drift before we throw away the current path target.
+	var/path_target_retarget_slack = 0
+	/// Prefer a cheap local step over full pathfinding while the destination stays nearby.
+	var/short_step_pathing_range = 0
 	/// How long to wait if the AI can't find a path
 	var/path_update_period = (0.5 SECONDS)
 	/// If TRUE, pathfinding has failed to find a path and a cooldown will soon begin.
@@ -37,19 +41,34 @@
 		tied_human.next_move_slowdown = 0
 	return TRUE
 
-/datum/human_ai_brain/proc/try_adjacent_move_to_turf(turf/next_turf, clear_navigation_state = TRUE)
+/datum/human_ai_brain/proc/get_adjacent_move_interactions(turf/next_turf)
+	if(!tied_human || !next_turf || get_dist(next_turf, tied_human) != 1)
+		return null
+
+	var/list/L = LinkBlocked(tied_human, tied_human.loc, next_turf, list(tied_human), TRUE)
+	L += SSpathfinding.check_special_blockers(tied_human, next_turf)
+	var/direction = get_dir(tied_human.loc, next_turf)
+	for(var/a in L)
+		var/atom/A = a
+		if(A.human_ai_obstacle(tied_human, src, direction) == INFINITY)
+			return null
+
+	return L
+
+/datum/human_ai_brain/proc/complete_adjacent_move_to_turf(turf/next_turf, clear_navigation_state = TRUE, list/interactions)
 	if(!tied_human || !next_turf || get_dist(next_turf, tied_human) != 1)
 		return FALSE
+
+	if(isnull(interactions))
+		interactions = get_adjacent_move_interactions(next_turf)
+		if(isnull(interactions))
+			return FALSE
 
 	if(!can_move_and_apply_move_delay())
 		return TRUE
 
-	var/list/L = LinkBlocked(tied_human, tied_human.loc, next_turf, list(tied_human), TRUE)
-	L += SSpathfinding.check_special_blockers(tied_human, next_turf)
-	for(var/a in L)
+	for(var/a in interactions)
 		var/atom/A = a
-		if(A.human_ai_obstacle(tied_human, src, get_dir(tied_human.loc, next_turf)) == INFINITY)
-			return FALSE
 		INVOKE_ASYNC(A, TYPE_PROC_REF(/atom, human_ai_act), tied_human, src)
 
 	var/successful_move = tied_human.Move(next_turf, get_dir(tied_human, next_turf))
@@ -62,6 +81,61 @@
 		no_path_found_amount = 0
 
 	return successful_move
+
+/datum/human_ai_brain/proc/try_adjacent_move_to_turf(turf/next_turf, clear_navigation_state = TRUE)
+	return complete_adjacent_move_to_turf(next_turf, clear_navigation_state)
+
+/datum/human_ai_brain/proc/try_short_step_towards_turf(turf/destination, clear_navigation_state = TRUE)
+	if(!tied_human || !destination || short_step_pathing_range <= 1)
+		return FALSE
+
+	var/current_distance = get_dist(destination, tied_human)
+	if(current_distance <= 1 || current_distance > short_step_pathing_range)
+		return FALSE
+
+	var/preferred_direction = get_dir(tied_human, destination)
+	var/turf/best_destination
+	var/list/best_interactions
+	var/best_score = INFINITY
+
+	for(var/direction in GLOB.cardinals)
+		var/turf/next_turf = get_step(tied_human, direction)
+		if(!next_turf)
+			continue
+
+		var/list/interactions = get_adjacent_move_interactions(next_turf)
+		if(isnull(interactions))
+			continue
+
+		var/next_distance = get_dist(destination, next_turf)
+		if(next_distance > current_distance)
+			continue
+
+		var/score = next_distance * 10
+		if(direction != preferred_direction)
+			score++
+
+		if(score < best_score)
+			best_score = score
+			best_destination = next_turf
+			best_interactions = interactions
+
+	if(!best_destination)
+		return FALSE
+
+	return complete_adjacent_move_to_turf(best_destination, clear_navigation_state, best_interactions)
+
+/datum/human_ai_brain/proc/path_target_needs_refresh(turf/destination)
+	if(!destination || !current_path_target)
+		return TRUE
+
+	if(current_path_target == destination)
+		return FALSE
+
+	if(path_target_retarget_slack <= 0)
+		return TRUE
+
+	return get_dist(current_path_target, destination) > path_target_retarget_slack
 
 /datum/human_ai_brain/proc/move_to_next_turf(turf/T, max_range = max_travel_distance)
 	if(!tied_human || !T)
@@ -80,6 +154,9 @@
 		return FALSE
 	// SS220 EDIT - END
 
+	if(try_short_step_towards_turf(T))
+		return TRUE
+
 	if(no_path_found)
 		if(no_path_found_amount > 0)
 			COOLDOWN_START(src, no_path_found_cooldown, no_path_found_period)
@@ -89,8 +166,10 @@
 
 	no_path_found_amount = 0
 
-	if((!current_path || (next_path_generation < world.time && current_path_target != T)) && COOLDOWN_FINISHED(src, no_path_found_cooldown))
-		if(!CALCULATING_PATH(tied_human) || current_path_target != T)
+	var/refresh_path_target = path_target_needs_refresh(T)
+
+	if((!current_path || (next_path_generation < world.time && refresh_path_target)) && COOLDOWN_FINISHED(src, no_path_found_cooldown))
+		if(!CALCULATING_PATH(tied_human) || refresh_path_target)
 			// SS220 EDIT: keep a lightweight count of human AI path requests during HALO perf investigations
 			halo_perf_bump_path_requests()
 			SSpathfinding.calculate_path(tied_human, T, max_range, tied_human, CALLBACK(src, PROC_REF(set_path)), list(tied_human, current_target))

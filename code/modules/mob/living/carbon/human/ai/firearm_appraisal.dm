@@ -31,6 +31,8 @@ GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firea
 	var/maximum_range = 16
 	/// How many rounds to fire in 1 burst at most
 	var/burst_amount_max = 8
+	/// If TRUE, every fired shot counts toward the burst cap even for semiauto or burstfire weapons.
+	var/count_every_shot_toward_burst_limit = FALSE
 	/// List of types that set the human AI to this appraisal type
 	var/list/gun_types = list()
 	/// If TRUE, this gun is disposable and isn't worth trying to reload

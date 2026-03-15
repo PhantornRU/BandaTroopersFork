@@ -376,6 +376,27 @@
 	COOLDOWN_START(minor_plasma_weapon, cooldown, 5 SECONDS)
 	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(minor_plasma) > 0, "A non-sword Sangheili should use the HALO overheat fallback while its plasma weapon cools.")
 
+/datum/unit_test/halo_sangheili_ai_pathing_tuning
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_pathing_tuning/Run()
+	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO Ultra plasma AI for pathing-tuning tests.")
+	TEST_ASSERT_EQUAL(ultra_plasma.short_step_pathing_range, ultra_plasma.halo_sangheili_sword_charge_range + 1, "HALO Sangheili AI should use nearby short-step movement for sword-charge range fights.")
+	TEST_ASSERT_EQUAL(ultra_plasma.path_target_retarget_slack, 2, "HALO Sangheili AI should tolerate small target drift before rebuilding a melee path.")
+
+	var/turf/reference_target = set_target_turf(ultra_plasma, 3)
+	TEST_ASSERT_NOTNULL(reference_target, "Failed to allocate the HALO Sangheili reference target turf for pathing-tuning tests.")
+	var/turf/slack_target = get_step(reference_target, EAST)
+	var/turf/far_target = get_step(get_step(slack_target, EAST), EAST)
+	TEST_ASSERT(isfloorturf(slack_target), "The one-tile HALO Sangheili drift target for pathing-tuning tests was not a floor ([slack_target]).")
+	TEST_ASSERT(isfloorturf(far_target), "The far HALO Sangheili drift target for pathing-tuning tests was not a floor ([far_target]).")
+
+	ultra_plasma.current_path = list(reference_target)
+	ultra_plasma.current_path_target = reference_target
+	TEST_ASSERT(!ultra_plasma.path_target_needs_refresh(slack_target), "HALO Sangheili melee pathing should keep the current target while the enemy only drifts by one tile.")
+	TEST_ASSERT(ultra_plasma.path_target_needs_refresh(far_target), "HALO Sangheili melee pathing should refresh once the enemy drifts beyond the configured slack.")
+
 /datum/unit_test/halo_sangheili_ai_sword_auto_activation
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 

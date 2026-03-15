@@ -44,3 +44,45 @@
 ## E-009: Final verification passed after the refactor
 - `git diff --check` returned clean for the touched optimization and task-state files.
 - `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` completed successfully with `0 errors, 0 warnings`.
+
+## E-010: Round 205 shifted the main live bottleneck from projectiles to pathfinding
+- Reported round-`205` live MC numbers before Sangheili spawn were approximately:
+- `CPU 80`
+- `Human AI 80`
+- `Human Life 120`
+- `Old effects 40`
+- `Pathfinding 600`
+- `Projectiles 60-90`
+- After spawning Sangheili, the reported live numbers became approximately:
+- `CPU 80-100`
+- `Human AI 80`
+- `Human Life 200`
+- `Old effects 30`
+- `Pathfinding 1300`
+- `Projectiles 173`
+- This strongly suggests the projectile mitigation helped, but HALO Covenant melee/retreat behavior still drives excessive path recalculation.
+
+## E-011: Current refactor now targets nearby movement and moving-target churn directly
+- `human_ai_brain` now supports cheap nearby short-step movement and configurable retarget slack before rebuilding a path.
+- HALO Unggoy and Sangheili presets opt into those controls through their existing AI override hooks.
+- Regression coverage now checks both the short-step movement path and the retarget-slack contract for HALO brains.
+
+## E-012: Round 206 still looked like projectile backlog, not a shield runaway
+- Reported live numbers for the last round included approximately `AI/LIFE 100/120`, `Pathfinding 600`, `Projectiles 300`, followed by `Human AI 20`, `Human Life 90`, `Pathfinding 20`, `Projectiles 0` near the end of the battle.
+- `perf-206-New Irvine.csv` shows `halo_projectile_queue` spiking above `200`, while `halo_active_shields` stays around `8-12` and `halo_temp_visuals` stays near `0-4`.
+- This pattern matches a projectile backlog that later drains, not a shield-specific loop that stays hot for the whole fight.
+
+## E-013: Round 206 runtime exposed a separate clientless storage path
+- `data/logs/2026/03-March/15-Sunday/round-206/runtime.log` contains `Cannot execute null.remove from screen()` in `code/game/objects/items/storage/storage.dm`.
+- The call stack shows `Human AI` invoking `human_ai_act()` on a `vehicle_locker/cabinet/cups`, which reached `storage.show_to()` with a clientless AI mob.
+- This is correctness noise in `Human AI`, but it is independent from the projectile queue problem.
+
+## E-014: HALO appraisals still allowed unbounded sustained fire chains before the latest fix
+- HALO plasma rifle and needler had HALO-specific appraisals but still depended on the generic action logic, which only counted `AUTOMATIC` fire toward the burst cap.
+- HALO carbine had no HALO-specific appraisal at all and inherited the generic rifle appraisal.
+- This left a credible path for long semiauto and automatic fire chains to keep feeding `SSprojectiles` even after backpressure was added.
+
+## E-015: CI later exposed a helper mismatch on magazine-fed HALO guns
+- The failing unit test `halo_ai_projectile_pressure_ai_helpers` asserted that a `minor_needler` brain should defer ranged fire at queue `120`, but the helper only looked at `in_chamber` and `gun.ammo`.
+- HALO `needler` and `carbine` use magazine-fed state, so the helper now resolves ammo from `current_mag.default_ammo` and only reads `chamber_contents/chamber_position` through `/obj/item/ammo_magazine/internal`.
+- DreamChecker also warned that `halo_projectile_backpressure.dm` touched private `SSprojectiles.projectiles`; that was replaced with a public subsystem getter, and `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed again with `0 errors, 0 warnings`.

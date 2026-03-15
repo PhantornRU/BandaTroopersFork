@@ -7,7 +7,7 @@ GLOBAL_VAR_INIT(halo_projectile_pressure_cache_queue, 0)
 /proc/halo_get_projectile_queue_length()
 	if(GLOB.halo_projectile_pressure_cache_time != world.time)
 		GLOB.halo_projectile_pressure_cache_time = world.time
-		GLOB.halo_projectile_pressure_cache_queue = length(SSprojectiles.projectiles)
+		GLOB.halo_projectile_pressure_cache_queue = SSprojectiles.get_projectile_queue_length()
 
 	return GLOB.halo_projectile_pressure_cache_queue
 
@@ -25,6 +25,20 @@ GLOBAL_VAR_INIT(halo_projectile_pressure_cache_queue, 0)
 
 	if(gun.in_chamber?.ammo)
 		return gun.in_chamber.ammo
+
+	if(gun.current_mag?.current_rounds > 0)
+		var/obj/item/ammo_magazine/magazine = gun.current_mag
+		if(istype(magazine, /obj/item/ammo_magazine/internal))
+			var/obj/item/ammo_magazine/internal/internal_magazine = magazine
+			if(length(internal_magazine.chamber_contents) && internal_magazine.chamber_contents[internal_magazine.chamber_position] != "empty")
+				var/datum/ammo/chambered_ammo = GLOB.ammo_list[internal_magazine.chamber_contents[internal_magazine.chamber_position]]
+				if(istype(chambered_ammo))
+					return chambered_ammo
+
+		if(magazine.default_ammo)
+			var/datum/ammo/default_mag_ammo = GLOB.ammo_list[magazine.default_ammo]
+			if(istype(default_mag_ammo))
+				return default_mag_ammo
 
 	if(istype(gun.ammo))
 		return gun.ammo
