@@ -2462,13 +2462,7 @@
 	pixel_x = -8
 	},
 /turf/open/floor/almayer/plate,
-/area/dark_was_the_night)
-"aed" = (
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff"
-	},
-/turf/open/floor/almayer,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aee" = (
 /obj/structure/platform{
 	dir = 8
@@ -2484,9 +2478,6 @@
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
-"aeh" = (
-/turf/open/floor/almayer,
-/area/dark_was_the_night)
 "aei" = (
 /obj/structure/platform{
 	dir = 4
@@ -2502,25 +2493,25 @@
 	pixel_x = 8
 	},
 /turf/open/floor/almayer/plate,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aek" = (
 /obj/structure/machinery/cryopod/big/halo/flipped,
 /turf/open/floor/almayer/plate,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "ael" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/start/bridge,
 /turf/open/floor/almayer,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aem" = (
 /obj/structure/machinery/cryopod/big/halo,
 /turf/open/floor/almayer/plate,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aen" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/start/bridge,
 /turf/open/floor/almayer/plate,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aeo" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/bravo,
@@ -2531,24 +2522,78 @@
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/start/bridge,
 /turf/open/floor/plating/plating_catwalk,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
 "aeq" = (
-/turf/open/floor/plating/plating_catwalk,
-/area/dark_was_the_night)
-"aer" = (
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 4
-	},
-/turf/open/floor/plating/plating_catwalk,
-/area/dark_was_the_night)
-"aes" = (
 /obj/structure/machinery/light/double/blue{
 	light_color = "#dae2ff";
 	dir = 8
 	},
 /turf/open/floor/plating/plating_catwalk,
-/area/dark_was_the_night)
+/area/dark_was_the_night/cryo_bay/one)
+"aet" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/machinery/light/small{
+	light_color = "#C02526";
+	color = "#C02526";
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/shuttle/escapepod/west,
+/area/dark_was_the_night/cryo_bay/one)
+"aeu" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/west,
+/area/dark_was_the_night/cryo_bay/one)
+"aev" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/shuttle/escapepod/east,
+/area/dark_was_the_night/cryo_bay/one)
+"aew" = (
+/obj/structure/barricade/handrail,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_bay/one)
+"aex" = (
+/obj/structure/barricade/handrail,
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_bay/one)
+"aey" = (
+/obj/structure/window/framed/unsc,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_bay/one)
+"aez" = (
+/obj/structure/window/framed/unsc,
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/cryo_bay/one)
+"aeA" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 4
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/cryo_bay/one)
 "aeB" = (
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1;
@@ -36034,14 +36079,14 @@ iHB
 iHB
 iHB
 phZ
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -36230,12 +36275,12 @@ iHB
 iHB
 aec
 aek
-mJG
+phZ
 aek
 aec
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -36422,14 +36467,14 @@ tHW
 dAc
 xrk
 gfT
-aeh
+eBH
 ael
 aeq
 ael
-aed
-mJG
-mJG
-mJG
+eBH
+aew
+aet
+phZ
 mJG
 mJG
 mJG
@@ -36616,14 +36661,14 @@ tef
 hSp
 qYZ
 gfT
-aeh
+eBH
 ael
-aer
+xFE
 ael
-aeh
-mJG
-mJG
-mJG
+eBH
+aew
+aeu
+phZ
 mJG
 mJG
 mJG
@@ -36812,12 +36857,12 @@ iHB
 phZ
 aej
 aem
-mJG
+aez
 aem
 aej
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -37004,14 +37049,14 @@ cSO
 hvC
 iHB
 phZ
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
+aey
+phZ
+aez
+phZ
+aey
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -37200,12 +37245,12 @@ iHB
 phZ
 aec
 aek
-mJG
+aez
 aek
 aec
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -37392,14 +37437,14 @@ tef
 hSp
 xrk
 gfT
-aeh
+eBH
 ael
-aes
+xFE
 aen
-aeh
-mJG
-mJG
-mJG
+eBH
+aew
+aeu
+phZ
 mJG
 mJG
 mJG
@@ -37586,14 +37631,14 @@ hVv
 dAc
 qYZ
 gfT
-aeh
+eBH
 ael
-aeq
+aeA
 aep
-aed
-mJG
-mJG
-mJG
+eBH
+aex
+aev
+phZ
 mJG
 mJG
 mJG
@@ -37782,12 +37827,12 @@ iHB
 iHB
 aej
 aem
-mJG
+phZ
 aem
 aej
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -37974,14 +38019,14 @@ iHB
 iHB
 iHB
 phZ
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -38167,15 +38212,15 @@ iHB
 phZ
 phZ
 phZ
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
@@ -38361,15 +38406,15 @@ phZ
 phZ
 phZ
 phZ
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
-mJG
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
+phZ
 mJG
 mJG
 mJG
