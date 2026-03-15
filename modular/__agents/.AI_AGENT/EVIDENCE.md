@@ -86,3 +86,21 @@
 - The failing unit test `halo_ai_projectile_pressure_ai_helpers` asserted that a `minor_needler` brain should defer ranged fire at queue `120`, but the helper only looked at `in_chamber` and `gun.ammo`.
 - HALO `needler` and `carbine` use magazine-fed state, so the helper now resolves ammo from `current_mag.default_ammo` and only reads `chamber_contents/chamber_position` through `/obj/item/ammo_magazine/internal`.
 - DreamChecker also warned that `halo_projectile_backpressure.dm` touched private `SSprojectiles.projectiles`; that was replaced with a public subsystem getter, and `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed again with `0 errors, 0 warnings`.
+
+## E-016: Round 207 stalled in pathfinding after stacked Unggoy spawns and separate UNSC squads
+- User-reported live numbers for round `207` were approximately `CPU 101`, `Pathfinding 1011`, followed by a total hang after spawning many Unggoy in one tile and then multiple UNSC squads in separate positions.
+- `data/logs/2026/03-March/15-Sunday/round-207/runtime.log` contains only startup lines, so the stall did not come with a visible runtime storm.
+- `perf-207-New Irvine.csv` shows peaks around `halo_ai_brains 71-76`, `halo_projectile_queue` up to `105`, `movables_examined` above `2.5M`, but `halo_path_requests` near `0-6` at the same snapshots.
+- This points away from "too many fresh path requests" and toward expensive in-flight path runs or repeated crowd-blocked movement on already-issued paths.
+
+## E-017: The new mitigation resets stale A* state and lets crowd-blocked human AI sidestep locally
+- `SSpathfinding.calculate_path()` now resets reused `datum/xeno_pathinfo` frontier state before starting a new destination for the same agent.
+- `human_ai_brain.move_to_next_turf()` now tries a cheap local detour when the next path turf is blocked, instead of hammering the same failed adjacent step forever.
+- Regression coverage was added for both behaviors in `code/modules/unit_tests/halo_unggoy_ai.dm`.
+- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed after these changes with `0 errors, 0 warnings`.
+
+## E-018: The follow-up safe refactor made navigation lifecycle explicit without widening scope
+- `human_ai_brain` navigation now has dedicated helpers for clearing path state, resetting navigation failures, consuming `no_path_found`, queueing a path request, and following an existing path.
+- `SSpathfinding` now resolves or creates reusable `xeno_pathinfo` through a dedicated helper, and `xeno_pathinfo` configures a new search through a single proc instead of scattered field writes.
+- This refactor preserved the existing external action datum API (`move_to_next_turf`) while making the shared navigation layer easier to reason about and safer to extend.
+- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed after the refactor with `0 errors, 0 warnings`.

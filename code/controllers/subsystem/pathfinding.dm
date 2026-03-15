@@ -146,36 +146,25 @@ SUBSYSTEM_DEF(pathfinding)
 	var/datum/xeno_pathinfo/data = hash_path[agent]
 	qdel(data)
 
+/datum/controller/subsystem/pathfinding/proc/get_or_create_pathinfo(mob/agent)
+	var/datum/xeno_pathinfo/data = hash_path[agent]
+	SSpathfinding.current_processing -= data
+
+	if(data)
+		return data
+
+	data = new()
+	data.RegisterSignal(agent, COMSIG_PARENT_QDELETING, TYPE_PROC_REF(/datum/xeno_pathinfo, qdel_wrapper))
+	hash_path[agent] = data
+	paths_to_calculate += data
+	return data
+
 /datum/controller/subsystem/pathfinding/proc/calculate_path(atom/start, atom/finish, path_range, mob/agent, datum/callback/CB, list/ignore)
 	if(!get_turf(start) || !get_turf(finish))
 		return
 
-	var/datum/xeno_pathinfo/data = hash_path[agent]
-	SSpathfinding.current_processing -= data
-
-
-	if(!data)
-		data = new()
-		data.RegisterSignal(agent, COMSIG_PARENT_QDELETING, TYPE_PROC_REF(/datum/xeno_pathinfo, qdel_wrapper))
-
-		hash_path[agent] = data
-		paths_to_calculate += data
-
-	data.current_node = get_turf(start)
-	data.start = data.current_node
-
-	var/turf/target = get_turf(finish)
-
-	data.finish = target
-	data.agent = agent
-	data.to_return = CB
-	data.path_range = path_range
-	data.ignore = ignore
-
-	data.distances[data.current_node] = 0
-	data.f_distances[data.current_node] = ASTAR_COST_FUNCTION(data.current_node)
-
-	data.visited_nodes += data.current_node
+	var/datum/xeno_pathinfo/data = get_or_create_pathinfo(agent)
+	data.configure_search(get_turf(start), get_turf(finish), path_range, agent, CB, ignore)
 
 /datum/xeno_pathinfo
 	var/turf/start
@@ -201,6 +190,30 @@ SUBSYSTEM_DEF(pathfinding)
 	distances = list()
 	f_distances = list()
 	prev = list()
+
+/datum/xeno_pathinfo/proc/reset_search_state()
+	current_node = null
+	ignore = null
+	visited_nodes.Cut()
+	distances.Cut()
+	f_distances.Cut()
+	prev.Cut()
+
+/datum/xeno_pathinfo/proc/configure_search(turf/new_start, turf/new_finish, new_path_range, mob/new_agent, datum/callback/new_callback, list/new_ignore)
+	// Re-pathing can happen while an older search is still queued or mid-flight.
+	// Reset the search frontier so stale nodes do not keep inflating the next run.
+	reset_search_state()
+	current_node = new_start
+	start = new_start
+	finish = new_finish
+	agent = new_agent
+	to_return = new_callback
+	path_range = new_path_range
+	ignore = new_ignore
+	distances[current_node] = 0
+	var/turf/target = finish
+	f_distances[current_node] = ASTAR_COST_FUNCTION(current_node)
+	visited_nodes += current_node
 
 /datum/xeno_pathinfo/Destroy(force)
 	SSpathfinding.hash_path -= agent

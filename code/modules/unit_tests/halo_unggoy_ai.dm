@@ -22,6 +22,9 @@
 	projectile.firer = firer
 	return projectile
 
+/datum/unit_test/halo_unggoy_ai/proc/pathfinding_noop_callback(list/path)
+	return
+
 /datum/unit_test/halo_unggoy_ai/Run()
 	return
 
@@ -233,6 +236,65 @@
 	TEST_ASSERT_EQUAL(get_turf(brain.tied_human), get_step(origin, EAST), "HALO Unggoy short-step pathing did not advance the AI one turf toward the destination.")
 	TEST_ASSERT_NULL(brain.current_path, "HALO Unggoy short-step pathing should clear stale path data after the direct local move.")
 	TEST_ASSERT_NULL(brain.current_path_target, "HALO Unggoy short-step pathing should clear the stale path target after the direct local move.")
+
+/datum/unit_test/halo_unggoy_ai_local_detour_pathing
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_local_detour_pathing/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for local-detour pathing tests.")
+
+	var/turf/origin = run_loc_floor_bottom_left
+	var/turf/blocked_turf = get_step(origin, EAST)
+	var/turf/detour_north = get_step(origin, NORTH)
+	var/turf/destination = set_target_turf(brain, 6)
+	TEST_ASSERT(isfloorturf(origin), "The HALO detour origin turf was not a floor ([origin]).")
+	TEST_ASSERT(isfloorturf(blocked_turf), "The blocked path turf for HALO detour testing was not a floor ([blocked_turf]).")
+	TEST_ASSERT(isfloorturf(detour_north), "The detour turf for HALO detour testing was not a floor ([detour_north]).")
+	TEST_ASSERT(isfloorturf(destination), "The HALO detour destination turf was not a floor ([destination]).")
+
+	brain.tied_human.forceMove(origin)
+	brain.ai_move_delay = 0
+	brain.current_path = list(destination, blocked_turf)
+	brain.current_path_target = destination
+
+	var/mob/living/carbon/human/blocker = allocate(/mob/living/carbon/human, blocked_turf)
+	TEST_ASSERT_NOTNULL(blocker, "Failed to create the crowd blocker for HALO detour testing.")
+
+	TEST_ASSERT(brain.move_to_next_turf(destination), "HALO AI should keep movement alive by taking a local detour when the next path turf is crowd-blocked.")
+	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), origin, "HALO AI remained stuck on the origin turf instead of taking a local detour around the crowd blocker.")
+	TEST_ASSERT_NOTEQUAL(get_turf(brain.tied_human), blocked_turf, "HALO AI incorrectly walked into the crowd-blocked next turf instead of side-stepping.")
+	TEST_ASSERT_NULL(brain.current_path, "HALO local detour pathing should clear the stale path after taking a side-step.")
+	TEST_ASSERT_NULL(brain.current_path_target, "HALO local detour pathing should clear the stale path target after taking a side-step.")
+
+/datum/unit_test/halo_ai_pathfinding_repath_reset
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_ai_pathfinding_repath_reset/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	var/turf/start = get_turf(human)
+	var/turf/first_destination = locate(start.x + 5, start.y, start.z)
+	var/turf/second_destination = locate(start.x + 6, start.y, start.z)
+	TEST_ASSERT(isfloorturf(first_destination), "The first pathfinding reset destination was not a floor ([first_destination]).")
+	TEST_ASSERT(isfloorturf(second_destination), "The second pathfinding reset destination was not a floor ([second_destination]).")
+
+	SSpathfinding.calculate_path(human, first_destination, 20, human, CALLBACK(src, TYPE_PROC_REF(/datum/unit_test/halo_unggoy_ai, pathfinding_noop_callback)), list(human))
+	var/datum/xeno_pathinfo/data = SSpathfinding.hash_path[human]
+	TEST_ASSERT_NOTNULL(data, "Pathfinding reset test failed to register a queued path for the test human.")
+
+	data.visited_nodes += run_loc_floor_top_right
+	data.distances[run_loc_floor_top_right] = 99
+	data.f_distances[run_loc_floor_top_right] = 199
+	data.prev[run_loc_floor_top_right] = start
+
+	SSpathfinding.calculate_path(human, second_destination, 20, human, CALLBACK(src, TYPE_PROC_REF(/datum/unit_test/halo_unggoy_ai, pathfinding_noop_callback)), list(human))
+
+	TEST_ASSERT_EQUAL(length(data.visited_nodes), 1, "Re-pathing should reset stale visited nodes before starting the new A* search.")
+	TEST_ASSERT_EQUAL(data.visited_nodes[1], start, "Re-pathing should restart the frontier from the agent's current turf.")
+	TEST_ASSERT_EQUAL(length(data.distances), 1, "Re-pathing should discard stale distance state before recalculating.")
+	TEST_ASSERT_EQUAL(data.distances[start], 0, "Re-pathing should reset the start turf distance to zero.")
+	TEST_ASSERT_NULL(data.distances[run_loc_floor_top_right], "Re-pathing should discard stale distances from the previous unfinished search.")
+	TEST_ASSERT_EQUAL(data.finish, second_destination, "Re-pathing should replace the old destination with the latest requested turf.")
 
 /datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction
 	parent_type = /datum/unit_test/halo_unggoy_ai

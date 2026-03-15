@@ -10,6 +10,7 @@
 - [x] Move the next optimization layer into path reuse and short-range steering instead of more FX removal.
 - [x] Tune HALO Covenant presets to use the new pathing controls where melee/retreat churn was observed.
 - [x] Add regression tests for HALO short-step movement and retarget slack.
+- [x] Refactor navigation internals so path clearing, path request setup, and path following are explicit helper contracts instead of duplicated inline state changes.
 - [x] Inspect round-`206` logs for shield-specific evidence versus generic projectile backlog.
 - [x] Fix the clientless storage runtime reached through `vehicle_locker` and generic storage UI code.
 - [x] Cap sustained HALO AI firing for semiauto/automatic Covenant guns through appraisal logic.

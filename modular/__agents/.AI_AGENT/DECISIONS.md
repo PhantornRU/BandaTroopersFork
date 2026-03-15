@@ -47,3 +47,11 @@
 ## D-008: Resolve HALO projectile-pressure ammo lookup through stable gun state, not private subsystem fields
 - Decision: make HALO projectile-pressure helpers use a public `SSprojectiles` queue-length proc and resolve magazine-fed HALO ammo via `current_mag.default_ammo` with an internal-mag branch for chambered ammo.
 - Why: CI showed the helper missing `needler/carbine` combat ammo in unit tests, and DreamChecker flagged direct reads of `SSprojectiles.projectiles` as a private-field access.
+
+## D-009: Treat round-207 pathfinding stalls as a re-path/crowd-navigation bug, not a new projectile runaway
+- Decision: fix the pathfinding hot path by resetting reused A* state on re-path and by letting human AI take a cheap local detour when the next path step is crowd-blocked.
+- Why: round `207` reported `Pathfinding ~1011` with a full hang after clumped Unggoy spawns, while local `perf-207` snapshots showed low `halo_path_requests` but many active AI brains, which fits long-lived or corrupted path runs plus crowd-blocked navigation better than another projectile-dominant failure.
+
+## D-010: Keep the navigation refactor internal-first and behavior-preserving
+- Decision: reorganize `human_ai_brain` navigation and `SSpathfinding` setup around explicit helper procs, while keeping external action datum callsites and gameplay-facing movement rules intact.
+- Why: the hot spots now span multiple action datums and two shared layers, so future fixes need stable internal contracts more than another outward behavior rewrite.
