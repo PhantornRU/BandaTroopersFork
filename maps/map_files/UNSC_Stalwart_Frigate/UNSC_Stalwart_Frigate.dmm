@@ -21215,13 +21215,6 @@
 	},
 /turf/open/floor/almayer/emerald/east,
 /area/golden_arrow/platoon_commander_rooms)
-"qbf" = (
-/obj/structure/platform{
-	dir = 1
-	},
-/obj/structure/machinery/power/apc/almayer/south,
-/turf/open/shuttle/escapepod/floor4,
-/area/dark_was_the_night/cryo_bay/two)
 "qbh" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -22560,6 +22553,7 @@
 "rGD" = (
 /obj/structure/platform,
 /obj/structure/cable/heavyduty/west,
+/obj/structure/machinery/power/apc/almayer/north,
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/cryo_bay/two)
 "rIe" = (
@@ -24576,6 +24570,7 @@
 "tYA" = (
 /obj/structure/platform,
 /obj/structure/cable/heavyduty/west,
+/obj/structure/machinery/power/apc/almayer/north,
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/cryo_bay/one)
 "tZe" = (
@@ -28079,13 +28074,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth/north,
 /area/dark_was_the_night/supply)
-"xYi" = (
-/obj/structure/platform{
-	dir = 1
-	},
-/obj/structure/machinery/power/apc/almayer/south,
-/turf/open/shuttle/escapepod/floor4,
-/area/dark_was_the_night/cryo_bay/one)
 "xYT" = (
 /obj/structure/closet/secure_closet/fridge/organic/stock,
 /turf/open/floor/strata/white_cyan2/west,
@@ -35073,7 +35061,7 @@ iME
 dqU
 eza
 fkt
-qbf
+hzM
 dqU
 rGD
 xkG
@@ -35107,7 +35095,7 @@ cSO
 phZ
 eBH
 eBH
-xYi
+usU
 phZ
 tYA
 tef
@@ -37983,7 +37971,7 @@ iME
 dqU
 eza
 fkt
-qbf
+hzM
 dqU
 rGD
 xkG
@@ -38017,7 +38005,7 @@ cSO
 phZ
 eBH
 eBH
-xYi
+usU
 phZ
 tYA
 tef
