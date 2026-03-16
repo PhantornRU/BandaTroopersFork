@@ -1,4 +1,6 @@
 #define COMMAND_ANNOUNCE "Command Announcement"
+#define COVENANT_COMMAND_ANNOUNCE "Covenant Command Announcement" // SS220 EDIT - END: HALO-specific faction announcement titles
+
 #define UPP_COMMAND_ANNOUNCE "UPP Command Announcement"
 #define CLF_COMMAND_ANNOUNCE "CLF Command Announcement"
 #define PMC_COMMAND_ANNOUNCE "PMC Command Announcement"
@@ -12,9 +14,44 @@
 // SS220 ADD START - TTS
 #define TTS_DEFAULT_ANNOUNCER new /datum/announcer
 #define TTS_ARES_ANNOUNCER new /datum/announcer/ares
+#define TTS_COVENANT_ANNOUNCER new /datum/announcer/covenant
 #define TTS_YAUTJA_ANNOUNCER new /datum/announcer/yautja
 #define TTS_QUEEN_MOTHER_ANNOUNCER new /datum/announcer/queen_mother
 // SS220 ADD END - TTS
+
+// SS220 EDIT - START: unify human faction routing for announcements and faction-targeted alerts
+/proc/faction_announcement_matches_human(mob/living/carbon/human/human, faction_to_display, add_PMCs = TRUE)
+	if(!istype(human) || human.stat != CONSCIOUS || isyautja(human))
+		return FALSE
+
+	if(faction_to_display == FACTION_MARINE)
+		if(is_mainship_level(human.z))
+			return TRUE
+
+		var/obj/item/card/id/card = human.get_idcard()
+		if((FACTION_MARINE in card?.faction_group) && (istype(human.wear_l_ear, /obj/item/device/radio/headset/almayer) || istype(human.wear_r_ear, /obj/item/device/radio/headset/almayer)))
+			return TRUE
+
+		if(human.faction in FACTION_LIST_UA || (FACTION_MARINE in human.faction_group))
+			return TRUE
+		if(human.faction in FACTION_LIST_UNSC || (FACTION_UNSC in human.faction_group))
+			return TRUE
+		if(add_PMCs && (human.faction in FACTION_LIST_WY))
+			return TRUE
+		return FALSE
+
+	if(faction_to_display == FACTION_UNSC)
+		return human.faction == faction_to_display || (faction_to_display in human.faction_group)
+
+	return human.faction == faction_to_display
+// SS220 EDIT - END: unify human faction routing for announcements and faction-targeted alerts
+
+/proc/get_faction_announcement_announcer(faction_to_display)
+	switch(faction_to_display)
+		if(FACTION_COVENANT)
+			return TTS_COVENANT_ANNOUNCER
+		else
+			return TTS_ARES_ANNOUNCER
 
 
 //xenomorph hive announcement
@@ -41,23 +78,12 @@
 //general marine announcement
 /proc/marine_announcement(message, title = COMMAND_ANNOUNCE, sound_to_play = sound('sound/misc/notice2.ogg'), faction_to_display = FACTION_MARINE, add_PMCs = TRUE, signature, logging = ARES_LOG_MAIN)
 	var/list/targets = GLOB.human_mob_list + GLOB.dead_mob_list
-	if(faction_to_display == FACTION_MARINE)
+	if(faction_to_display == FACTION_MARINE || faction_to_display == FACTION_UNSC)
 		for(var/mob/M in targets)
-			if(isobserver(M)) //observers see everything
+			if(isobserver(M))
 				continue
 			var/mob/living/carbon/human/H = M
-			if(!istype(H) || H.stat != CONSCIOUS || isyautja(H)) //base human checks
-				targets.Remove(H)
-				continue
-			if(is_mainship_level(H.z)) // People on ship see everything
-				continue
-
-			// If they have iff AND a marine headset they will recieve announcements
-			var/obj/item/card/id/card = H.get_idcard()
-			if ((FACTION_MARINE in card?.faction_group) && (istype(H.wear_l_ear, /obj/item/device/radio/headset/almayer) || istype(H.wear_r_ear, /obj/item/device/radio/headset/almayer)))
-				continue
-
-			if((H.faction != faction_to_display && !add_PMCs) || (H.faction != faction_to_display && add_PMCs && !(H.faction in FACTION_LIST_WY)) && !(faction_to_display in H.faction_group)) //faction checks
+			if(!faction_announcement_matches_human(H, faction_to_display, add_PMCs)) // SS220 EDIT: route USCM/UNSC announcements through the shared faction matcher
 				targets.Remove(H)
 
 		switch(logging)
@@ -88,7 +114,7 @@
 	if(!isnull(signature))
 		message += "<br><br><i> Signed by, <br> [signature]</i>"
 
-	announcement_helper(message, title, targets, sound_to_play, TTS_ARES_ANNOUNCER) // SS220 EDIT - TTS
+	announcement_helper(message, title, targets, sound_to_play, get_faction_announcement_announcer(faction_to_display)) // SS220 EDIT: faction-specific TTS announcers
 
 //yautja ship AI announcement
 /proc/yautja_announcement(message, title = YAUTJA_ANNOUNCE, sound_to_play = sound('sound/misc/notice1.ogg'))

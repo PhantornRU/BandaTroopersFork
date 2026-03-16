@@ -77,13 +77,13 @@
 		list("Медицинский флакон (диловен)", floor(scale * 3), /obj/item/reagent_container/glass/beaker/unsc/dylovene, VENDOR_ITEM_REGULAR),
 		list("Медицинский флакон (хоротазин)", floor(scale * 3), /obj/item/reagent_container/glass/beaker/unsc/chorotazine, VENDOR_ITEM_RECOMMENDED),
 
-		list("МЕДИЦИНСКИЕ ИНСТРУМЕНТЫ", -1, null, null),
-		list("Хирургическая леска", floor(scale * 2), /obj/item/tool/surgery/surgical_line, VENDOR_ITEM_REGULAR),
-		list("Синт-графт", floor(scale * 2), /obj/item/tool/surgery/synthgraft, VENDOR_ITEM_REGULAR),
-		list("Анализатор здоровья", floor(scale * 5), /obj/item/device/healthanalyzer/halo, VENDOR_ITEM_REGULAR),
-		list("Медразгрузка M8A", floor(scale * 2), /obj/item/storage/belt/medical/unsc, VENDOR_ITEM_REGULAR),
-		list("Сумка спасателя M8A", floor(scale * 2), /obj/item/storage/belt/medical/lifesaver/unsc, VENDOR_ITEM_REGULAR),
-		list("Медицинские HUD-очки", floor(scale * 3), /obj/item/clothing/glasses/hud/health, VENDOR_ITEM_REGULAR)
+		list("MEDICAL UTILITIES", -1, null, null),
+		list("Surgical Line", floor(scale * 2), /obj/item/tool/surgery/surgical_line, VENDOR_ITEM_REGULAR),
+		list("Synth-Graft", floor(scale * 2), /obj/item/tool/surgery/synthgraft, VENDOR_ITEM_REGULAR),
+		list("Health Analyzer", floor(scale * 5), /obj/item/device/healthanalyzer/halo, VENDOR_ITEM_REGULAR),
+		list("M8A Pattern Medical Storage Rig", floor(scale * 2), /obj/item/storage/belt/medical/unsc, VENDOR_ITEM_REGULAR),
+		list("M8A Pattern Lifesaver Bag", floor(scale * 2), /obj/item/storage/belt/medical/lifesaver/unsc, VENDOR_ITEM_REGULAR),
+		list("Medical HUD Glasses", floor(scale * 3), /obj/item/clothing/glasses/hud/health, VENDOR_ITEM_REGULAR)
 	)
 
 GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
