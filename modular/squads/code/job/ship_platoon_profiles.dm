@@ -145,6 +145,32 @@
 	var/list/profile = get_ship_platoon_profile(platoon_type)
 	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
 
+/datum/authority/branch/role/proc/apply_active_ship_cryo_reinforcement(mob/living/carbon/human/human, canonical_role, fallback_title = canonical_role, fallback_preset = null, late_join = TRUE, platoon_type = get_active_ship_platoon_type())
+	if(!istype(human) || !canonical_role)
+		return FALSE
+
+	var/use_profile_cryo = has_active_ship_cryo_reinforcement_overrides(platoon_type)
+	var/effective_title = fallback_title || canonical_role
+	var/effective_preset = fallback_preset
+
+	if(use_profile_cryo)
+		effective_title = get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type) || effective_title
+		effective_preset = get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+		if(!effective_title || !effective_preset)
+			return FALSE
+
+	human.job = effective_title // SS220 EDIT: cryo profile application owns the effective runtime role title
+	human.client?.prefs.copy_all_to(human, effective_title, TRUE, TRUE)
+	if(effective_preset)
+		arm_equipment(human, effective_preset, late_join, TRUE)
+
+	if(use_profile_cryo)
+		randomize_squad(human)
+		human.sec_hud_set_ID()
+		human.hud_set_squad()
+
+	return TRUE
+
 /datum/authority/branch/role/proc/is_lowpop_ship_mode(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	if(istype(mode_datum, /datum/game_mode/colonialmarines/ai))
 		return TRUE

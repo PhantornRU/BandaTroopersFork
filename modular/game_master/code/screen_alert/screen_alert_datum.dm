@@ -130,7 +130,7 @@
 	for(var/mob/living/carbon/human/human as anything in GLOB.alive_human_list)
 		if(!faction_to_send)
 			alert_receivers += human
-		else if(faction_announcement_matches_human(human, faction_to_send, FALSE))
+		else if(human.matches_faction_announcement_target(faction_to_send, FALSE))
 			alert_receivers += human
 	alert_receivers += GLOB.observer_list
 	for(var/mob/mob_receiver in alert_receivers)

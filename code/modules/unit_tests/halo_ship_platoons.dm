@@ -220,10 +220,13 @@
 	TEST_ASSERT_EQUAL(marine_squad.get_sub_squad_label(), "Group", "Marine sub-squad label regressed.")
 	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL squad-info token regressed.")
 	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SqLdr", "Marine leader squad-info token regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL comm-title restoration regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_LEADER), "SqLdr", "Marine leader comm-title restoration regressed.")
 
 	var/datum/squad/marine/upp/upp_squad = allocate(/datum/squad/marine/upp)
 	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_LEADER), "Platoon Sergeant", "UPP leader label regressed.")
 	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Squad Sergeant", "UPP sublead label regressed.")
+	TEST_ASSERT_EQUAL(upp_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SctSgt", "UPP leader squad-info token regressed.")
 
 	var/datum/squad/marine/pmc/pmc_squad = allocate(/datum/squad/marine/pmc)
 	TEST_ASSERT_EQUAL(pmc_squad.get_role_label(JOB_SQUAD_LEADER), "Operations Leader", "PMC leader label regressed.")
@@ -363,6 +366,10 @@
 /datum/unit_test/halo_ship_platoons_so_preset_override/Run()
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO SO preset override test.")
+	var/datum/job/so_job = role_authority.roles_by_name[JOB_SO]
+	TEST_ASSERT_NOTNULL(so_job, "SO job was unavailable for HALO preset-resolution helper test.")
+	TEST_ASSERT_EQUAL(so_job.get_spawn_equip_preset(JOB_SO, role_authority, /datum/squad/marine/halo/unsc/alpha), /datum/equipment_preset/unsc/platco, "HALO UNSC SO job helper did not reuse the shared preset-resolution contract.")
+	TEST_ASSERT_EQUAL(so_job.get_spawn_equip_preset(JOB_SO, role_authority, /datum/squad/marine/halo/odst/alpha), /datum/equipment_preset/unsc/platco/odst, "HALO ODST SO job helper did not reuse the shared preset-resolution contract.")
 	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/unsc/alpha), /datum/equipment_preset/unsc/platco, "HALO UNSC SO override did not resolve to the UNSC Platoon Commander preset.")
 	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so/lesser_rank, /datum/squad/marine/halo/unsc/alpha), /datum/equipment_preset/unsc/platco/lesser_rank, "HALO UNSC lesser-rank SO override did not resolve to the UNSC lesser-rank Platoon Commander preset.")
 	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/odst/alpha), /datum/equipment_preset/unsc/platco/odst, "HALO ODST SO override did not resolve to the ODST Platoon Commander preset.")
@@ -419,6 +426,44 @@
 	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Medic", JOB_SQUAD_MEDIC_UNSC, /datum/equipment_preset/unsc/medic/equipped, /datum/squad/marine/halo/unsc)
 	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Leader", JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader/equipped, /datum/squad/marine/halo/unsc)
 	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Specialist", JOB_SQUAD_SPECIALIST_UNSC, /datum/equipment_preset/unsc/spec/equipped_spnkr, /datum/squad/marine/halo/unsc)
+
+/datum/unit_test/halo_ship_platoons_cryo_application_flow
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_cryo_application_flow/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo application-flow test.")
+
+	var/mob/living/carbon/human/halo_medic = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(halo_medic, "HALO Cryo Medic", JOB_SQUAD_MEDIC)
+	TEST_ASSERT(role_authority.apply_active_ship_cryo_reinforcement(halo_medic, JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC, null, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO UNSC cryo application helper failed to apply a supported medic override.")
+	TEST_ASSERT_EQUAL(halo_medic.job, JOB_SQUAD_MEDIC_UNSC, "HALO UNSC cryo application helper did not apply the effective profile title.")
+	TEST_ASSERT_NOTNULL(halo_medic.assigned_squad, "HALO UNSC cryo application helper did not randomize the medic into a squad.")
+	TEST_ASSERT(ispath(halo_medic.assigned_squad?.type, /datum/squad/marine/halo/unsc), "HALO UNSC cryo application helper assigned the medic outside the HALO UNSC squad family.")
+	TEST_ASSERT_EQUAL(halo_medic.faction, FACTION_UNSC, "HALO UNSC cryo application helper did not equip the effective profile preset.")
+
+	var/mob/living/carbon/human/unsupported_engineer = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(unsupported_engineer, "Unsupported HALO Engineer", JOB_SQUAD_ENGI)
+	TEST_ASSERT(!role_authority.apply_active_ship_cryo_reinforcement(unsupported_engineer, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO cryo application helper incorrectly accepted an unsupported engineer profile override.")
+
+/datum/unit_test/halo_ship_platoons_announcement_routing
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_announcement_routing/Run()
+	var/mob/living/carbon/human/unsc_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(unsc_human, "UNSC Listener", JOB_SQUAD_MARINE_UNSC)
+	unsc_human.faction = FACTION_UNSC
+	unsc_human.faction_group = list(FACTION_UNSC)
+	TEST_ASSERT(unsc_human.matches_faction_announcement_target(FACTION_UNSC, FALSE), "UNSC listener no longer matches direct UNSC faction announcements.")
+	TEST_ASSERT(unsc_human.matches_faction_announcement_target(FACTION_MARINE, FALSE), "UNSC listener no longer matches shared marine/UNSC announcement routing.")
+
+	var/mob/living/carbon/human/covenant_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(covenant_human, "Covenant Listener", JOB_SQUAD_MARINE)
+	covenant_human.faction = FACTION_COVENANT
+	TEST_ASSERT(!covenant_human.matches_faction_announcement_target(FACTION_MARINE, FALSE), "Covenant listener incorrectly matched marine-targeted announcements.")
+
+	TEST_ASSERT(istype(GLOB.tts_announcers[TTS_COVENANT_ANNOUNCER_KEY], /datum/announcer/covenant), "Covenant announcements no longer resolve through the shared announcer registry.")
+	TEST_ASSERT(istype(GLOB.tts_announcers[TTS_YAUTJA_ANNOUNCER_KEY], /datum/announcer/yautja), "Yautja announcements no longer resolve through the shared announcer registry.")
 
 /datum/unit_test/halo_ship_platoons_odst_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons

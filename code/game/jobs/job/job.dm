@@ -247,6 +247,12 @@
 
 	return new_character
 
+/datum/job/proc/get_spawn_equip_preset(job_whitelist = title, datum/authority/branch/role/role_authority = GLOB.RoleAuthority, platoon_type = null)
+	var/equip_preset = gear_preset_whitelist[job_whitelist] ? gear_preset_whitelist[job_whitelist] : gear_preset
+	if(isnull(platoon_type))
+		return role_authority?.get_active_ship_spawn_preset_override(title, equip_preset) || equip_preset // SS220 EDIT: effective spawn preset resolves in one job-owned path
+	return role_authority?.get_active_ship_spawn_preset_override(title, equip_preset, platoon_type) || equip_preset // SS220 EDIT: explicit platoon type keeps helper deterministic in tests
+
 /datum/job/proc/equip_job(mob/living/M)
 	if(!istype(M))
 		return
@@ -265,8 +271,7 @@
 		human.mark_personal_locker_spawn_context(FALSE)
 		// SS220 EDIT - END
 
-		var/equip_preset = gear_preset_whitelist[job_whitelist] ? gear_preset_whitelist[job_whitelist] : gear_preset
-		equip_preset = GLOB.RoleAuthority?.get_active_ship_spawn_preset_override(title, equip_preset) || equip_preset // SS220 EDIT: spawn preset override resolves through the active ship profile without role-specific upstream hardcode
+		var/equip_preset = get_spawn_equip_preset(job_whitelist, GLOB.RoleAuthority) // SS220 EDIT: reuse the single effective preset resolution path
 
 		if(gear_preset_whitelist[job_whitelist])
 			arm_equipment(human, equip_preset, FALSE, TRUE, late_join = FALSE)

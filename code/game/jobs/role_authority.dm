@@ -554,8 +554,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	new_human.mark_personal_locker_spawn_context(late_join)
 	// SS220 EDIT - END
 
-	var/equip_preset = new_job.gear_preset_whitelist[job_whitelist] ? new_job.gear_preset_whitelist[job_whitelist] : new_job.gear_preset
-	equip_preset = get_active_ship_spawn_preset_override(new_job.title, equip_preset) || equip_preset // SS220 EDIT: spawn preset override resolves through the active ship profile without role-specific upstream hardcode
+	var/equip_preset = new_job.get_spawn_equip_preset(job_whitelist, src) // SS220 EDIT: effective spawn preset resolves through the shared job-owned helper
 
 	if(new_job.gear_preset_whitelist[job_whitelist])
 		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join)

@@ -9,6 +9,8 @@
 	var/lead_icon
 	var/sub_squad
 	var/sub_leader
+	var/list/role_rank_tokens // SS220 EDIT: squad-owned rank icon contract replaces marine-specific runtime switch
+	var/list/role_comm_restore_titles // SS220 EDIT: squad-owned comm-title restoration contract avoids hardcoded marine strings
 
 /datum/squad_type/marine_squad
 	name = "Section"
@@ -16,6 +18,25 @@
 	lead_icon = "leader"
 	sub_squad = "Group" // SS220 EDIT: marine fireteams are exposed as groups in runtime labels
 	sub_leader = "Group Leader" // SS220 EDIT: marine team-lead display contract uses Group Leader
+	role_rank_tokens = list(
+		JOB_SQUAD_MARINE = "Mar",
+		JOB_SQUAD_ENGI = "Eng",
+		JOB_SQUAD_MEDIC = "HM",
+		JOB_SQUAD_SMARTGUN = "SG",
+		JOB_SQUAD_SPECIALIST = "Spc",
+		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
+		JOB_SQUAD_LEADER = "SqLdr",
+		JOB_SQUAD_RTO = "RTO",
+	)
+	role_comm_restore_titles = list(
+		JOB_SQUAD_SPECIALIST = "Spc",
+		JOB_SQUAD_ENGI = "ComEng",
+		JOB_SQUAD_MEDIC = "HM",
+		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
+		JOB_SQUAD_SMARTGUN = "SG",
+		JOB_SQUAD_LEADER = "SqLdr",
+		JOB_SQUAD_RTO = "RTO",
+	)
 
 /datum/squad_type/marsoc_team
 	name = "Team"
@@ -37,6 +58,7 @@
 	lead_icon = "leader"
 	sub_squad = "Squad"
 	sub_leader = "Squad Sergeant"
+	role_rank_tokens = list(JOB_SQUAD_LEADER = "SctSgt")
 
 /datum/squad_type/pmc_squad
 	name = "Taskforce"
@@ -538,25 +560,50 @@
 
 	return prefix ? "[prefix]-[label]" : label
 
+/datum/squad/proc/get_role_rank_token(canonical_role)
+	var/datum/squad_type/profile = get_squad_type_profile()
+	if(profile?.role_rank_tokens)
+		return profile.role_rank_tokens[canonical_role]
+	return null
+
 /datum/squad/proc/get_squad_info_rank_token(canonical_role)
-	switch(canonical_role)
-		if(JOB_SQUAD_MARINE)
-			return "Mar"
-		if(JOB_SQUAD_ENGI)
-			return "Eng"
-		if(JOB_SQUAD_MEDIC)
-			return "HM"
-		if(JOB_SQUAD_SMARTGUN)
-			return "SG"
-		if(JOB_SQUAD_SPECIALIST)
-			return "Spc"
-		if(JOB_SQUAD_TEAM_LEADER)
-			return "GrpLdr"
-		if(JOB_SQUAD_LEADER)
-			return "SqLdr"
-		if(JOB_SQUAD_RTO)
-			return "RTO"
-	return ""
+	var/rank_token = get_role_rank_token(canonical_role) // SS220 EDIT: squad-info icon token resolves from the squad-owned role contract
+	if(rank_token)
+		return rank_token
+
+	var/static/list/default_rank_tokens = list(
+		JOB_SQUAD_MARINE = "Mar",
+		JOB_SQUAD_ENGI = "Eng",
+		JOB_SQUAD_MEDIC = "HM",
+		JOB_SQUAD_SMARTGUN = "SG",
+		JOB_SQUAD_SPECIALIST = "Spc",
+		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
+		JOB_SQUAD_LEADER = "SqLdr",
+		JOB_SQUAD_RTO = "RTO",
+	)
+	return default_rank_tokens[canonical_role] || ""
+
+/datum/squad/proc/get_role_comm_restore_title(canonical_role, leader_killed = FALSE)
+	var/datum/squad_type/profile = get_squad_type_profile()
+	var/comm_title = null
+	if(profile?.role_comm_restore_titles)
+		comm_title = profile.role_comm_restore_titles[canonical_role]
+	if(comm_title)
+		return comm_title
+
+	var/static/list/default_comm_restore_titles = list(
+		JOB_SQUAD_SPECIALIST = "Spc",
+		JOB_SQUAD_ENGI = "ComEng",
+		JOB_SQUAD_MEDIC = "HM",
+		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
+		JOB_SQUAD_SMARTGUN = "SG",
+		JOB_SQUAD_LEADER = "SqLdr",
+		JOB_SQUAD_RTO = "RTO",
+	)
+	if(canonical_role == JOB_SQUAD_LEADER && leader_killed)
+		return null
+
+	return default_comm_restore_titles[canonical_role]
 
 /datum/squad/marine/alpha/New()
 	. = ..()
@@ -963,20 +1010,21 @@
 	squad_leader = null
 	switch(GET_DEFAULT_ROLE(old_lead.job))
 		if(JOB_SQUAD_SPECIALIST)
-			old_lead.comm_title = "Spc"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_SPECIALIST) || "Spc"
 		if(JOB_SQUAD_ENGI)
-			old_lead.comm_title = "ComEng"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_ENGI) || "ComEng"
 		if(JOB_SQUAD_MEDIC)
-			old_lead.comm_title = "HM"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_MEDIC) || "HM"
 		if(JOB_SQUAD_TEAM_LEADER)
-			old_lead.comm_title = "GrpLdr"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_TEAM_LEADER) || "GrpLdr"
 		if(JOB_SQUAD_SMARTGUN)
-			old_lead.comm_title = "SG"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_SMARTGUN) || "SG"
 		if(JOB_SQUAD_LEADER)
-			if(!leader_killed)
-				old_lead.comm_title = "SqLdr"
+			var/leader_comm_title = get_role_comm_restore_title(JOB_SQUAD_LEADER, leader_killed)
+			if(leader_comm_title)
+				old_lead.comm_title = leader_comm_title
 		if(JOB_SQUAD_RTO)
-			old_lead.comm_title = "RTO"
+			old_lead.comm_title = get_role_comm_restore_title(JOB_SQUAD_RTO) || "RTO"
 		if(JOB_MARINE_RAIDER)
 			old_lead.comm_title = "Op."
 		if(JOB_MARINE_RAIDER_SL)
