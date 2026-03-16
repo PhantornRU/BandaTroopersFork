@@ -11,6 +11,9 @@
 	arm_equipment(human, preset_type, FALSE)
 	return human
 
+/datum/unit_test/halo_sangheili_equipment/proc/create_baseline_human()
+	return allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
 	var/mob/living/carbon/human/human = create_sangheili(preset_type)
 	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
@@ -564,6 +567,51 @@
 	ultra_plasma.current_path_target = reference_target
 	TEST_ASSERT(!ultra_plasma.path_target_needs_refresh(slack_target), "HALO Sangheili melee pathing should keep the current target while the enemy only drifts by one tile.")
 	TEST_ASSERT(ultra_plasma.path_target_needs_refresh(far_target), "HALO Sangheili melee pathing should refresh once the enemy drifts beyond the configured slack.")
+
+/datum/unit_test/halo_sangheili_recovery_reduction
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_recovery_reduction/Run()
+	var/mob/living/carbon/human/baseline_human = create_baseline_human()
+	var/mob/living/carbon/human/sangheili = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	TEST_ASSERT_NOTNULL(baseline_human, "Failed to allocate the baseline human for Sangheili recovery testing.")
+	TEST_ASSERT_NOTNULL(sangheili, "Failed to create the Sangheili mob for recovery testing.")
+
+	var/base_stun = baseline_human.GetStunDuration(30)
+	var/base_knockdown = baseline_human.GetKnockDownDuration(30)
+	var/base_knockout = baseline_human.GetKnockOutDuration(30)
+	var/sangheili_stun = sangheili.GetStunDuration(30)
+	var/sangheili_knockdown = sangheili.GetKnockDownDuration(30)
+	var/sangheili_knockout = sangheili.GetKnockOutDuration(30)
+
+	TEST_ASSERT(sangheili_stun < base_stun, "Sangheili stun recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockdown < base_knockdown, "Sangheili knockdown recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockout < base_knockout, "Sangheili knockout recovery should now be faster than the baseline human duration.")
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Sangheili AI for wake-up rethink testing.")
+
+	brain.action_blacklist = list(/datum/ai_action/throw_back_nade) // SS220 EDIT: keep the wake-up regression focused on the nearby-item rethink instead of the throw-back follow-up action
+	brain.nearby_item_search_interval = 10 SECONDS
+	TEST_ASSERT(brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should consume the nearby-item scan throttle once during setup.")
+	TEST_ASSERT(!brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should confirm the nearby-item scan throttle is active before standing up.")
+
+	var/turf/grenade_turf = get_step(get_turf(brain.tied_human), EAST)
+	TEST_ASSERT(isfloorturf(grenade_turf), "Failed to allocate an adjacent grenade turf for the HALO Sangheili wake-up rethink test.")
+	var/obj/item/explosive/grenade/grenade = allocate(/obj/item/explosive/grenade, grenade_turf)
+	grenade.active = TRUE
+	grenade.fuse_type = TIMED_FUSE
+	brain.active_grenade_found = null
+
+	brain.tied_human.set_body_position(LYING_DOWN)
+	brain.tied_human.set_body_position(STANDING_UP)
+	sleep(world.tick_lag)
+
+	TEST_ASSERT_EQUAL(brain.active_grenade_found, grenade, "Standing back up should invalidate nearby-item throttling and immediately rediscover an adjacent live grenade.")
 
 /datum/unit_test/halo_sangheili_ai_sword_auto_activation
 	parent_type = /datum/unit_test/halo_sangheili_equipment
