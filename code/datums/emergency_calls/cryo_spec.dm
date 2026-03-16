@@ -42,8 +42,13 @@
 		FOR_DVIEW_END
 
 	sleep(5)
-	human.client?.prefs.copy_all_to(human, JOB_SQUAD_SPECIALIST, TRUE, TRUE)
-	arm_equipment(human, /datum/equipment_preset/uscm/specialist_equipped,  mind == null, TRUE)
+	var/use_profile_cryo = GLOB.RoleAuthority?.has_active_ship_cryo_reinforcement_overrides()
+	human.client?.prefs.copy_all_to(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_SPECIALIST) || JOB_SQUAD_SPECIALIST : JOB_SQUAD_SPECIALIST, TRUE, TRUE)
+	arm_equipment(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_SPECIALIST) : /datum/equipment_preset/uscm/specialist_equipped, mind == null, TRUE)
+	if(use_profile_cryo)
+		GLOB.RoleAuthority.randomize_squad(human)
+		human.sec_hud_set_ID()
+		human.hud_set_squad()
 	to_chat(human, SPAN_ROLE_HEADER("You are a Weapons Specialist in the USCM"))
 	to_chat(human, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 	to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))

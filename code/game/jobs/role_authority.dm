@@ -554,13 +554,16 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	new_human.mark_personal_locker_spawn_context(late_join)
 	// SS220 EDIT - END
 
+	var/equip_preset = new_job.gear_preset_whitelist[job_whitelist] ? new_job.gear_preset_whitelist[job_whitelist] : new_job.gear_preset
+	equip_preset = get_active_ship_spawn_preset_override(new_job.title, equip_preset) || equip_preset // SS220 EDIT: spawn preset override resolves through the active ship profile without role-specific upstream hardcode
+
 	if(new_job.gear_preset_whitelist[job_whitelist])
-		arm_equipment(new_human, new_job.gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = late_join)
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join)
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account, whitelist_status) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human, whitelist_status) //Do any other thing that relates to their spawn.
 	else
-		arm_equipment(new_human, new_job.gear_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human) //Do any other thing that relates to their spawn.

@@ -36,32 +36,49 @@
 
 	sleep(5)
 	var/datum/squad/marine/cryo/cryo_squad = GLOB.RoleAuthority.squads_by_type[/datum/squad/marine/cryo]
+	var/use_profile_cryo = GLOB.RoleAuthority?.has_active_ship_cryo_reinforcement_overrides()
 	if(leaders < cryo_squad.max_leaders && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_LEADER) && check_timelock(H.client, JOB_SQUAD_LEADER, time_required_for_job))
 		leader = H
 		leaders++
+		if(use_profile_cryo)
+			H.client?.prefs.copy_all_to(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_LEADER) || JOB_SQUAD_LEADER, TRUE, TRUE)
+			arm_equipment(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_LEADER), TRUE, TRUE)
 		to_chat(H, SPAN_ROLE_HEADER("You are a Squad Leader in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
 	else if (heavies < max_heavies && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_HEAVY) && check_timelock(H.client, JOB_SQUAD_SPECIALIST, time_required_for_job))
 		heavies++
-		arm_equipment(H, /datum/equipment_preset/uscm/specialist_equipped, TRUE, TRUE)
+		if(use_profile_cryo)
+			H.client?.prefs.copy_all_to(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_SPECIALIST) || JOB_SQUAD_SPECIALIST, TRUE, TRUE)
+		arm_equipment(H, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_SPECIALIST) : /datum/equipment_preset/uscm/specialist_equipped, TRUE, TRUE)
 		to_chat(H, SPAN_ROLE_HEADER("You are a Weapons Specialist in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(smartgunners < max_smartgunners && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_SMARTGUNNER) && check_timelock(H.client, JOB_SQUAD_SMARTGUN, time_required_for_job))
+	else if(!use_profile_cryo && smartgunners < max_smartgunners && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_SMARTGUNNER) && check_timelock(H.client, JOB_SQUAD_SMARTGUN, time_required_for_job))
 		smartgunners++
 		to_chat(H, SPAN_ROLE_HEADER("You are a Smartgunner in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(engineers < max_engineers && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(H.client, JOB_SQUAD_ENGI, time_required_for_job))
+	else if(!use_profile_cryo && engineers < max_engineers && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(H.client, JOB_SQUAD_ENGI, time_required_for_job))
 		engineers++
 		arm_equipment(H, /datum/equipment_preset/uscm/engineer_equipped, TRUE, TRUE)
 		to_chat(H, SPAN_ROLE_HEADER("You are an Engineer in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
 	else if (medics < max_medics && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_MEDIC) && check_timelock(H.client, JOB_SQUAD_MEDIC, time_required_for_job))
 		medics++
+		if(use_profile_cryo)
+			H.client?.prefs.copy_all_to(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_MEDIC) || JOB_SQUAD_MEDIC, TRUE, TRUE)
+			arm_equipment(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_MEDIC), TRUE, TRUE)
 		to_chat(H, SPAN_ROLE_HEADER("You are a Hospital Corpsman in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
 	else
+		if(use_profile_cryo)
+			H.client?.prefs.copy_all_to(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_MARINE) || JOB_SQUAD_MARINE, TRUE, TRUE)
+			arm_equipment(H, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_MARINE), TRUE, TRUE)
 		to_chat(H, SPAN_ROLE_HEADER("You are a Rifleman in the USCM"))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
+
+	if(use_profile_cryo)
+		GLOB.RoleAuthority.randomize_squad(H)
+		H.sec_hud_set_ID()
+		H.hud_set_squad()
 
 	sleep(10)
 	to_chat(H, SPAN_BOLD("Objectives: [objectives]"))

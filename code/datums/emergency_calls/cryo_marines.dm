@@ -45,27 +45,32 @@
 
 	sleep(5)
 	var/datum/squad/marine/cryo/cryo_squad = GLOB.RoleAuthority.squads_by_type[/datum/squad/marine/cryo]
+	var/use_profile_cryo = GLOB.RoleAuthority?.has_active_ship_cryo_reinforcement_overrides()
 	if(leaders < cryo_squad.max_leaders && (!mind || (HAS_FLAG(human.client.prefs.toggles_ert, PLAY_LEADER) && check_timelock(human.client, JOB_SQUAD_LEADER, time_required_for_job))))
 		leader = human
 		leaders++
-		human.client?.prefs.copy_all_to(human, JOB_SQUAD_LEADER, TRUE, TRUE)
+		human.client?.prefs.copy_all_to(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_LEADER) || JOB_SQUAD_LEADER : JOB_SQUAD_LEADER, TRUE, TRUE)
+		if(use_profile_cryo)
+			arm_equipment(human, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_LEADER), mind == null, TRUE)
 		to_chat(human, SPAN_ROLE_HEADER("You are a Squad Leader in the USCM"))
 		to_chat(human, SPAN_ROLE_BODY("You are here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 		to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))
 	else if (heavies < max_heavies && (!mind || (HAS_FLAG(human.client.prefs.toggles_ert, PLAY_HEAVY) && check_timelock(human.client, JOB_SQUAD_SPECIALIST, time_required_for_job))))
 		heavies++
-		human.client?.prefs.copy_all_to(human, JOB_SQUAD_SPECIALIST, TRUE, TRUE)
-		arm_equipment(human, /datum/equipment_preset/uscm/specialist_equipped,  mind == null, TRUE)
+		human.client?.prefs.copy_all_to(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_SPECIALIST) || JOB_SQUAD_SPECIALIST : JOB_SQUAD_SPECIALIST, TRUE, TRUE)
+		arm_equipment(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_SPECIALIST) : /datum/equipment_preset/uscm/specialist_equipped, mind == null, TRUE)
 		to_chat(human, SPAN_ROLE_HEADER("You are a Weapons Specialist in the USCM"))
 		to_chat(human, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 		to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))
 	else if (medics < max_medics && (!mind || (HAS_FLAG(human.client.prefs.toggles_ert, PLAY_MEDIC) && check_timelock(human.client, JOB_SQUAD_MEDIC, time_required_for_job))))
 		medics++
-		human.client?.prefs.copy_all_to(human, JOB_SQUAD_MEDIC, TRUE, TRUE)
+		human.client?.prefs.copy_all_to(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_MEDIC) || JOB_SQUAD_MEDIC : JOB_SQUAD_MEDIC, TRUE, TRUE)
+		if(use_profile_cryo)
+			arm_equipment(human, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_MEDIC), mind == null, TRUE)
 		to_chat(human, SPAN_ROLE_HEADER("You are a Hospital Corpsman in the USCM"))
 		to_chat(human, SPAN_ROLE_BODY("You are here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 		to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))
-	else if (engineers < max_engineers && (!mind || (HAS_FLAG(human.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(human.client, JOB_SQUAD_ENGI, time_required_for_job))))
+	else if (!use_profile_cryo && engineers < max_engineers && (!mind || (HAS_FLAG(human.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(human.client, JOB_SQUAD_ENGI, time_required_for_job))))
 		engineers++
 		human.client?.prefs.copy_all_to(human, JOB_SQUAD_ENGI, TRUE, TRUE)
 		arm_equipment(human, /datum/equipment_preset/uscm/engineer_equipped,  mind == null, TRUE)
@@ -73,10 +78,17 @@
 		to_chat(human, SPAN_ROLE_BODY("You are here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 		to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))
 	else
-		human.client?.prefs.copy_all_to(human, JOB_SQUAD_MARINE, TRUE, TRUE)
+		human.client?.prefs.copy_all_to(human, use_profile_cryo ? GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_MARINE) || JOB_SQUAD_MARINE : JOB_SQUAD_MARINE, TRUE, TRUE)
+		if(use_profile_cryo)
+			arm_equipment(human, GLOB.RoleAuthority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_MARINE), mind == null, TRUE)
 		to_chat(human, SPAN_ROLE_HEADER("You are a Rifleman in the USCM"))
 		to_chat(human, SPAN_ROLE_BODY("You are here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 		to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))
+
+	if(use_profile_cryo)
+		GLOB.RoleAuthority.randomize_squad(human)
+		human.sec_hud_set_ID()
+		human.hud_set_squad()
 
 	sleep(10)
 	if(!mind)

@@ -118,6 +118,28 @@
 
 	return fallback
 
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_randomize_assigns_squad(real_name, job_title, preset_path, expected_squad_family)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, job_title)
+	arm_equipment(human, preset_path, FALSE, TRUE)
+	GLOB.RoleAuthority.randomize_squad(human, TRUE)
+
+	TEST_ASSERT_NOTNULL(human.assigned_squad, "[real_name] did not receive a squad assignment.")
+	TEST_ASSERT(ispath(human.assigned_squad.type, expected_squad_family), "[real_name] joined [human.assigned_squad?.type] instead of the expected HALO squad family [expected_squad_family].")
+
+	var/datum/squad/assigned_squad = human.assigned_squad
+	assigned_squad.remove_marine_from_squad(human, human.get_idcard())
+
+/datum/unit_test/halo_ship_platoons/proc/holder_has_overlay_state(image/holder, icon_state)
+	if(!holder || !icon_state)
+		return FALSE
+
+	for(var/image/overlay as anything in holder.overlays)
+		if(overlay.icon_state == icon_state)
+			return TRUE
+
+	return FALSE
+
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -149,6 +171,11 @@
 	TEST_ASSERT_EQUAL(role_authority.get_job_preference_bucket_key(JOB_SQUAD_RTO_ODST), JOB_SQUAD_RTO, "ODST HALO RTO title did not resolve to the canonical preference bucket.")
 	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_MARINE_UNSC), /datum/equipment_preset/unsc/pfc/equipped, "UNSC HALO marine preview preset did not resolve through the modular helper.")
 	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_MARINE_ODST), /datum/equipment_preset/unsc/pfc/odst/equipped, "ODST HALO marine preview preset did not resolve through the modular helper.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_MEDIC_ODST), /datum/equipment_preset/unsc/medic/odst/equipped, "ODST HALO corpsman preview preset did not resolve through the role-specific helper.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_RTO_ODST), /datum/equipment_preset/unsc/rto/odst/equipped, "ODST HALO RTO preview preset did not resolve through the role-specific helper.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_TEAM_LEADER_ODST), /datum/equipment_preset/unsc/tl/odst/equipped, "ODST HALO fireteam leader preview preset did not resolve through the role-specific helper.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_LEADER_ODST), /datum/equipment_preset/unsc/leader/odst/equipped, "ODST HALO section leader preview preset did not resolve through the role-specific helper.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_SPECIALIST_ODST), /datum/equipment_preset/unsc/spec/odst/equipped_spnkr, "ODST HALO specialist preview preset did not resolve through the role-specific helper.")
 
 	var/list/title_mappings = role_authority.get_ship_role_title_mappings()
 	TEST_ASSERT_EQUAL(title_mappings[JOB_SQUAD_MARINE_UNSC], JOB_SQUAD_MARINE, "UNSC HALO marine title did not map back to the canonical marine bucket.")
@@ -279,6 +306,140 @@
 		var/role_path_text = "[role_path]"
 		if(!findtext(role_path_text, "/halo/odst"))
 			TEST_FAIL("HALO ODST profile contained a non-namespaced role path: [role_path_text]")
+
+/datum/unit_test/halo_ship_platoons_so_preset_override
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_so_preset_override/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO SO preset override test.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/unsc/alpha), /datum/equipment_preset/unsc/platco, "HALO UNSC SO override did not resolve to the UNSC Platoon Commander preset.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so/lesser_rank, /datum/squad/marine/halo/unsc/alpha), /datum/equipment_preset/unsc/platco/lesser_rank, "HALO UNSC lesser-rank SO override did not resolve to the UNSC lesser-rank Platoon Commander preset.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/odst/alpha), /datum/equipment_preset/unsc/platco/odst, "HALO ODST SO override did not resolve to the ODST Platoon Commander preset.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so/lesser_rank, /datum/squad/marine/halo/odst/alpha), /datum/equipment_preset/unsc/platco/odst/lesser_rank, "HALO ODST lesser-rank SO override did not resolve to the ODST lesser-rank Platoon Commander preset.")
+	TEST_ASSERT_NULL(role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/alpha), "Vanilla USCM SO preset should not be overridden outside ship profiles that define an override.")
+	TEST_ASSERT_NULL(role_authority.get_active_ship_cryo_reinforcement_preset(JOB_SQUAD_MEDIC, /datum/squad/marine/alpha), "Vanilla USCM cryo roles should not receive profile-specific reinforcement presets.")
+	TEST_ASSERT_NULL(role_authority.get_active_ship_cryo_reinforcement_title(JOB_SQUAD_MEDIC, /datum/squad/marine/alpha), "Vanilla USCM cryo roles should not receive profile-specific reinforcement titles.")
+
+/datum/unit_test/halo_ship_platoons_so_faction
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_so_faction/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO SO faction test.")
+
+	var/mob/living/carbon/human/halo_so = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(halo_so, "HALO SO", JOB_SO)
+	arm_equipment(halo_so, role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/unsc/alpha), FALSE, TRUE)
+	TEST_ASSERT_EQUAL(halo_so.faction, FACTION_UNSC, "HALO UNSC SO did not inherit FACTION_UNSC from the override preset.")
+
+	var/mob/living/carbon/human/vanilla_so = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(vanilla_so, "Vanilla SO", JOB_SO)
+	arm_equipment(vanilla_so, /datum/equipment_preset/uscm_ship/so, FALSE, TRUE)
+	TEST_ASSERT(vanilla_so.faction != FACTION_UNSC, "Vanilla USCM SO incorrectly inherited FACTION_UNSC without a HALO platoon override.")
+
+/datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO UNSC cryo mapping test.")
+
+	var/list/expected_presets = list(
+		JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/equipped,
+		JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/equipped,
+		JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/equipped,
+		JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/equipped,
+		JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/equipped,
+		JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/equipped_spnkr,
+	)
+	var/list/expected_titles = list(
+		JOB_SQUAD_MARINE = JOB_SQUAD_MARINE_UNSC,
+		JOB_SQUAD_MEDIC = JOB_SQUAD_MEDIC_UNSC,
+		JOB_SQUAD_RTO = JOB_SQUAD_RTO_UNSC,
+		JOB_SQUAD_TEAM_LEADER = JOB_SQUAD_TEAM_LEADER_UNSC,
+		JOB_SQUAD_LEADER = JOB_SQUAD_LEADER_UNSC,
+		JOB_SQUAD_SPECIALIST = JOB_SQUAD_SPECIALIST_UNSC,
+	)
+	for(var/role_title in expected_titles)
+		TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_title(role_title, /datum/squad/marine/halo/unsc/alpha), expected_titles[role_title], "HALO UNSC cryo role-title mapping regressed for [role_title].")
+	for(var/role_title in expected_presets)
+		TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_preset(role_title, /datum/squad/marine/halo/unsc/alpha), expected_presets[role_title], "HALO UNSC cryo preset mapping regressed for [role_title].")
+
+	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Medic", JOB_SQUAD_MEDIC_UNSC, /datum/equipment_preset/unsc/medic/equipped, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Leader", JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader/equipped, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Specialist", JOB_SQUAD_SPECIALIST_UNSC, /datum/equipment_preset/unsc/spec/equipped_spnkr, /datum/squad/marine/halo/unsc)
+
+/datum/unit_test/halo_ship_platoons_odst_cryo_preset_mapping
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_odst_cryo_preset_mapping/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO ODST cryo mapping test.")
+
+	var/list/expected_presets = list(
+		JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/odst/equipped,
+		JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/odst/equipped,
+		JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/odst/equipped,
+		JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/odst/equipped,
+		JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/odst/equipped,
+		JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/odst/equipped_spnkr,
+	)
+	var/list/expected_titles = list(
+		JOB_SQUAD_MARINE = JOB_SQUAD_MARINE_ODST,
+		JOB_SQUAD_MEDIC = JOB_SQUAD_MEDIC_ODST,
+		JOB_SQUAD_RTO = JOB_SQUAD_RTO_ODST,
+		JOB_SQUAD_TEAM_LEADER = JOB_SQUAD_TEAM_LEADER_ODST,
+		JOB_SQUAD_LEADER = JOB_SQUAD_LEADER_ODST,
+		JOB_SQUAD_SPECIALIST = JOB_SQUAD_SPECIALIST_ODST,
+	)
+	for(var/role_title in expected_titles)
+		TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_title(role_title, /datum/squad/marine/halo/odst/alpha), expected_titles[role_title], "HALO ODST cryo role-title mapping regressed for [role_title].")
+	for(var/role_title in expected_presets)
+		TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_preset(role_title, /datum/squad/marine/halo/odst/alpha), expected_presets[role_title], "HALO ODST cryo preset mapping regressed for [role_title].")
+
+	assert_halo_randomize_assigns_squad("HALO ODST Cryo Medic", JOB_SQUAD_MEDIC_ODST, /datum/equipment_preset/unsc/medic/odst/equipped, /datum/squad/marine/halo/odst)
+	assert_halo_randomize_assigns_squad("HALO ODST Cryo Leader", JOB_SQUAD_LEADER_ODST, /datum/equipment_preset/unsc/leader/odst/equipped, /datum/squad/marine/halo/odst)
+	assert_halo_randomize_assigns_squad("HALO ODST Cryo Specialist", JOB_SQUAD_SPECIALIST_ODST, /datum/equipment_preset/unsc/spec/odst/equipped_spnkr, /datum/squad/marine/halo/odst)
+
+/datum/unit_test/halo_ship_platoons_roundstart_assignment_parity
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_roundstart_assignment_parity/Run()
+	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart Corpsman", JOB_SQUAD_MEDIC_UNSC, /datum/equipment_preset/unsc/medic, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart Section Leader", JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart RTO", JOB_SQUAD_RTO_UNSC, /datum/equipment_preset/unsc/rto, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart FTL", JOB_SQUAD_TEAM_LEADER_UNSC, /datum/equipment_preset/unsc/tl, /datum/squad/marine/halo/unsc)
+	assert_halo_randomize_assigns_squad("HALO ODST Roundstart Corpsman", JOB_SQUAD_MEDIC_ODST, /datum/equipment_preset/unsc/medic/odst, /datum/squad/marine/halo/odst)
+	assert_halo_randomize_assigns_squad("HALO ODST Roundstart Section Leader", JOB_SQUAD_LEADER_ODST, /datum/equipment_preset/unsc/leader/odst, /datum/squad/marine/halo/odst)
+	assert_halo_randomize_assigns_squad("HALO ODST Roundstart RTO", JOB_SQUAD_RTO_ODST, /datum/equipment_preset/unsc/rto/odst, /datum/squad/marine/halo/odst)
+	assert_halo_randomize_assigns_squad("HALO ODST Roundstart FTL", JOB_SQUAD_TEAM_LEADER_ODST, /datum/equipment_preset/unsc/tl/odst, /datum/squad/marine/halo/odst)
+
+/datum/unit_test/halo_ship_platoons_leader_hud_icon
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_leader_hud_icon/Run()
+	var/datum/faction/unsc/faction = allocate(/datum/faction/unsc)
+	var/image/unsc_holder = image(null)
+	var/image/odst_holder = image(null)
+
+	var/mob/living/carbon/human/unsc_leader = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/datum/squad/marine/halo/unsc/bravo/unsc_section = allocate(/datum/squad/marine/halo/unsc/bravo)
+	var/unsc_lead_icon = unsc_section.lead_icon || "leader"
+	configure_test_human(unsc_leader, "HALO UNSC Section Leader", JOB_SQUAD_LEADER_UNSC)
+	unsc_leader.assigned_squad = unsc_section
+	unsc_section.squad_leader = unsc_leader
+	faction.modify_hud_holder(unsc_holder, unsc_leader)
+	TEST_ASSERT(holder_has_overlay_state(unsc_holder, "hudsquad_[unsc_lead_icon]"), "HALO UNSC Section leader did not receive the leader HUD overlay.")
+
+	var/mob/living/carbon/human/odst_leader = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/datum/squad/marine/halo/odst/bravo/odst_section = allocate(/datum/squad/marine/halo/odst/bravo)
+	var/odst_lead_icon = odst_section.lead_icon || "leader"
+	configure_test_human(odst_leader, "HALO ODST Section Leader", JOB_SQUAD_LEADER_ODST)
+	odst_leader.assigned_squad = odst_section
+	odst_section.squad_leader = odst_leader
+	faction.modify_hud_holder(odst_holder, odst_leader)
+	TEST_ASSERT(holder_has_overlay_state(odst_holder, "hudsquad_[odst_lead_icon]"), "HALO ODST Section leader did not receive the leader HUD overlay.")
 
 /datum/unit_test/halo_ship_platoons_unsc_specialist_job_locker_access
 	parent_type = /datum/unit_test/halo_ship_platoons

@@ -220,7 +220,7 @@
 	role_comm_title = "PltCo-ODST"
 	skills = /datum/skills/SO
 
-/datum/equipment_preset/unsc/platco/lesser_rank
+/datum/equipment_preset/unsc/platco/odst/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
@@ -599,6 +599,11 @@
 /datum/equipment_preset/unsc/platco/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
 
+/datum/equipment_preset/unsc/platco/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/platco/equipped
+	name = "ODST Platoon Commander (Equipped)"
+	role_comm_title = "PltCo-ODST"
+
 /datum/equipment_preset/unsc/pilot/equipped
 	name = parent_type::name + " (Equipped)"
 
@@ -679,3 +684,33 @@
 
 /datum/equipment_preset/unsc/pfc/odst/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
+
+/datum/equipment_preset/unsc/medic/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/medic/equipped
+	name = "ODST Hospital Corpsman (Equipped)"
+	role_comm_title = "ODST-HC"
+
+/datum/equipment_preset/unsc/rto/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/rto/equipped
+	name = "ODST Radio Telephone Operator (Equipped)"
+	role_comm_title = "ODST-RTO"
+
+/datum/equipment_preset/unsc/tl/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/tl/equipped
+	name = "ODST Fireteam Leader (Equipped)"
+	role_comm_title = "ODST-FTL"
+
+/datum/equipment_preset/unsc/leader/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/leader/equipped
+	name = "ODST Squad Sergeant (Equipped)"
+	role_comm_title = "ODST-SL"
+
+/datum/equipment_preset/unsc/spec/odst/equipped_sniper
+	parent_type = /datum/equipment_preset/unsc/spec/equipped_sniper
+	name = "ODST Squad Weapons Specialist (Sniper)"
+	role_comm_title = "ODST-Spc"
+
+/datum/equipment_preset/unsc/spec/odst/equipped_spnkr
+	parent_type = /datum/equipment_preset/unsc/spec/equipped_spnkr
+	name = "ODST Squad Weapons Specialist (SPNKr)"
+	role_comm_title = "ODST-Spc"

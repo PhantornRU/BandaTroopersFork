@@ -40,6 +40,9 @@
 		"distress_roles" = GLOB.ROLES_DISTRESS_SIGNAL,
 		"lowpop_roles" = GLOB.platoon_to_role_list[platoon_type],
 		"role_mappings" = null,
+		"spawn_preset_overrides" = null,
+		"cryo_reinforcement_titles" = null,
+		"cryo_reinforcement_presets" = null,
 	)
 
 	switch(platoon_type)
@@ -91,6 +94,56 @@
 		return platoon_type
 
 	return text2path(MAIN_SHIP_DEFAULT_PLATOON)
+
+/datum/authority/branch/role/proc/get_ship_spawn_preset_override(job_title, current_preset, platoon_type)
+	if(!job_title || !current_preset || !platoon_type)
+		return null
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/spawn_preset_overrides = profile?["spawn_preset_overrides"]
+	if(!islist(spawn_preset_overrides))
+		return null
+
+	var/list/job_overrides = spawn_preset_overrides[job_title]
+	if(!islist(job_overrides))
+		return null
+
+	return job_overrides[current_preset]
+
+/datum/authority/branch/role/proc/get_active_ship_spawn_preset_override(job_title, current_preset, platoon_type = get_active_ship_platoon_type())
+	return get_ship_spawn_preset_override(job_title, current_preset, platoon_type)
+
+/datum/authority/branch/role/proc/get_ship_cryo_reinforcement_title(canonical_role, platoon_type)
+	if(!canonical_role || !platoon_type)
+		return null
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/cryo_reinforcement_titles = profile?["cryo_reinforcement_titles"]
+	if(!islist(cryo_reinforcement_titles))
+		return null
+
+	return cryo_reinforcement_titles[canonical_role]
+
+/datum/authority/branch/role/proc/get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type = get_active_ship_platoon_type())
+	return get_ship_cryo_reinforcement_title(canonical_role, platoon_type)
+
+/datum/authority/branch/role/proc/get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+	if(!canonical_role || !platoon_type)
+		return null
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/cryo_reinforcement_presets = profile?["cryo_reinforcement_presets"]
+	if(!islist(cryo_reinforcement_presets))
+		return null
+
+	return cryo_reinforcement_presets[canonical_role]
+
+/datum/authority/branch/role/proc/get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type = get_active_ship_platoon_type())
+	return get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+
+/datum/authority/branch/role/proc/has_active_ship_cryo_reinforcement_overrides(platoon_type = get_active_ship_platoon_type())
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
 
 /datum/authority/branch/role/proc/is_lowpop_ship_mode(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	if(istype(mode_datum, /datum/game_mode/colonialmarines/ai))
