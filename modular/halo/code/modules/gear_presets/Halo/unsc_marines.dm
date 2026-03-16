@@ -138,16 +138,16 @@
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
-/// Fire Team Leader
+/// Group Leader
 /datum/equipment_preset/unsc/tl
-	name = "UNSC Fireteam Leader"
+	name = "UNSC Group Leader"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "FTL"
+	role_comm_title = "GrpLdr"
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
 
@@ -156,23 +156,23 @@
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/tl/odst
-	name = "ODST Fireteam Leader"
-	role_comm_title = "ODST-FTL"
+	name = "ODST Group Leader"
+	role_comm_title = "ODST-GrpLdr"
 	skills = /datum/skills/tl
 
 /datum/equipment_preset/unsc/tl/odst/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
-/// Marine Squad Sergeant
+/// Marine Squad Leader
 /datum/equipment_preset/unsc/leader
-	name = "UNSC Squad Sergeant"
+	name = "UNSC Squad Leader"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME6 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SL"
+	role_comm_title = "SqLdr"
 	minimum_age = 27
 	skills = /datum/skills/SL
 	minimap_icon = "leader"
@@ -182,8 +182,8 @@
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/leader/odst
-	name = "ODST Squad Sergeant"
-	role_comm_title = "ODST-SL"
+	name = "ODST Squad Leader"
+	role_comm_title = "ODST-SqLdr"
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -455,7 +455,7 @@
 /datum/equipment_preset/unsc/rto/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
 
-//fireteam leader
+//group leader
 /datum/equipment_preset/unsc/tl/equipped
 	name = parent_type::name + " (Equipped)"
 
@@ -697,13 +697,13 @@
 
 /datum/equipment_preset/unsc/tl/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/tl/equipped
-	name = "ODST Fireteam Leader (Equipped)"
-	role_comm_title = "ODST-FTL"
+	name = "ODST Group Leader (Equipped)"
+	role_comm_title = "ODST-GrpLdr"
 
 /datum/equipment_preset/unsc/leader/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/leader/equipped
-	name = "ODST Squad Sergeant (Equipped)"
-	role_comm_title = "ODST-SL"
+	name = "ODST Squad Leader (Equipped)"
+	role_comm_title = "ODST-SqLdr"
 
 /datum/equipment_preset/unsc/spec/odst/equipped_sniper
 	parent_type = /datum/equipment_preset/unsc/spec/equipped_sniper

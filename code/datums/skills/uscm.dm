@@ -69,7 +69,7 @@ United States Colonial Marines
 	)
 
 /datum/skills/tl
-	name = "Fireteam Leader"
+	name = "Group Leader"
 	skills = list(
 		SKILL_JTAC = SKILL_JTAC_TRAINED,
 		SKILL_LEADERSHIP = SKILL_LEAD_TRAINED,
@@ -77,7 +77,7 @@ United States Colonial Marines
 	)
 
 /datum/skills/tl/recon
-	name = "Recon Fireteam Leader"
+	name = "Recon Group Leader"
 	skills = list(
 		SKILL_JTAC = SKILL_JTAC_TRAINED,
 		SKILL_LEADERSHIP = SKILL_LEAD_TRAINED,
@@ -471,7 +471,7 @@ SOLAR DEVILS (PvE Marines)
 	)
 
 /datum/skills/tl_pve
-	name = "Fireteam Leader"
+	name = "Group Leader"
 	skills = list(
 		SKILL_ENGINEER = SKILL_ENGINEER_ENGI,
 		SKILL_CONSTRUCTION = SKILL_CONSTRUCTION_ENGI,

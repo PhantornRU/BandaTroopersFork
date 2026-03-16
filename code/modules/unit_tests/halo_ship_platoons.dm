@@ -210,6 +210,56 @@
 	TEST_ASSERT(role_authority.is_marine_equivalent_role(JOB_SQUAD_MARINE_ODST, TRUE), "Active-role marine classification failed for ODST HALO marine.")
 	TEST_ASSERT(role_authority.is_shipside_role(JOB_SQUAD_MARINE_ODST, TRUE), "HALO ODST marine role was not treated as shipside after canonical mapping.")
 
+/datum/unit_test/halo_ship_platoons_squad_label_contracts
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_squad_label_contracts/Run()
+	var/datum/squad/marine/alpha/marine_squad = allocate(/datum/squad/marine/alpha)
+	TEST_ASSERT_EQUAL(marine_squad.get_role_label(JOB_SQUAD_LEADER), "Squad Leader", "Marine squad leader label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Group Leader", "Marine group leader label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_sub_squad_label(), "Group", "Marine sub-squad label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL squad-info token regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SqLdr", "Marine leader squad-info token regressed.")
+
+	var/datum/squad/marine/upp/upp_squad = allocate(/datum/squad/marine/upp)
+	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_LEADER), "Platoon Sergeant", "UPP leader label regressed.")
+	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Squad Sergeant", "UPP sublead label regressed.")
+
+	var/datum/squad/marine/pmc/pmc_squad = allocate(/datum/squad/marine/pmc)
+	TEST_ASSERT_EQUAL(pmc_squad.get_role_label(JOB_SQUAD_LEADER), "Operations Leader", "PMC leader label regressed.")
+	TEST_ASSERT_EQUAL(pmc_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Team Leader", "PMC sublead label regressed.")
+
+	var/datum/squad/marine/rmc/rmc_squad = allocate(/datum/squad/marine/rmc)
+	TEST_ASSERT_EQUAL(rmc_squad.get_role_label(JOB_SQUAD_LEADER), "Troop Commander", "RMC leader label regressed.")
+	TEST_ASSERT_EQUAL(rmc_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Section Leader", "RMC sublead label regressed.")
+
+/datum/unit_test/halo_ship_platoons_tracker_target_resolution
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_tracker_target_resolution/Run()
+	var/datum/squad/marine/alpha/squad = allocate(/datum/squad/marine/alpha)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, "Tracker Marine", JOB_SQUAD_MARINE)
+	squad.marines_list += human
+	squad.count = 1
+	human.assigned_squad = squad
+
+	var/obj/item/device/radio/headset/headset = allocate(/obj/item/device/radio/headset)
+	headset.tracking_options = list(
+		"Primary Lead" = TRACKER_SL,
+		"Support Lead" = TRACKER_FTL,
+	)
+	headset.forceMove(human)
+
+	TEST_ASSERT(headset.set_tracker_target(TRACKER_SL), "Headset failed to accept tracker selection by tracker id.")
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_SL, "Headset did not store TRACKER_SL after tracker-id selection.")
+
+	squad.assign_fireteam("SQ1", human, FALSE)
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_FTL, "Assigning a marine to a fireteam no longer targets TRACKER_FTL by tracker id.")
+
+	squad.unassign_fireteam(human, FALSE)
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_SL, "Removing a marine from a fireteam no longer targets TRACKER_SL by tracker id.")
+
 /datum/unit_test/halo_ship_platoons_spec_kit_access
 	parent_type = /datum/unit_test/halo_ship_platoons
 

@@ -14,8 +14,8 @@
 	name = "Section"
 	lead_name = "Squad Leader" // SS220 EDIT
 	lead_icon = "leader"
-	sub_squad = "Squad"
-	sub_leader = "Squad NCO"
+	sub_squad = "Group" // SS220 EDIT: marine fireteams are exposed as groups in runtime labels
+	sub_leader = "Group Leader" // SS220 EDIT: marine team-lead display contract uses Group Leader
 
 /datum/squad_type/marsoc_team
 	name = "Team"
@@ -97,6 +97,9 @@
 	/// Which faction the squad is in
 	var/faction = FACTION_MARINE
 
+	/// Runtime label profile for display strings and tracker labels
+	var/squad_type_datum = /datum/squad_type/marine_squad
+
 	/// What will the assistant squad leader be called
 	var/squad_type = "Section" //Referenced for aSL details. Squad/Team/Cell etc.
 	/// Squad leaders icon
@@ -154,6 +157,7 @@
 	active = TRUE
 	faction = FACTION_MARINE
 	lead_icon = "leader"
+	squad_type_datum = /datum/squad_type/marine_squad
 
 /datum/squad/marine/alpha
 	name = SQUAD_MARINE_1
@@ -176,6 +180,7 @@
 	usable = TRUE
 	faction = FACTION_UPP
 	squad_type = "Platoon"
+	squad_type_datum = /datum/squad_type/upp_squad
 	squad_one_access = ACCESS_UPP_SQUAD_ONE
 	squad_two_access = ACCESS_UPP_SQUAD_TWO
 
@@ -205,6 +210,7 @@
 	minimap_color = "#32CD32"
 	usable = TRUE
 	squad_type = "Squad"
+	squad_type_datum = /datum/squad_type/forecon_squad
 
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2
@@ -281,6 +287,7 @@
 	chat_color = "#400000"
 	radio_freq = SOF_FREQ
 	squad_type = "Team"
+	squad_type_datum = /datum/squad_type/marsoc_team
 	lead_icon = "soctl"
 	minimap_color = MINIMAP_SQUAD_SOF
 
@@ -295,6 +302,7 @@
 	chat_color = "#8f5e30"
 	minimap_color = "#8f5e30"
 	squad_type = "Squad"
+	squad_type_datum = /datum/squad_type/forecon_squad
 	access = list(ACCESS_MARINE_ALPHA)
 	usable = FALSE
 	locked = FALSE
@@ -340,6 +348,7 @@
 	usable = TRUE
 	omni_squad_vendor = TRUE
 	faction = FACTION_UPP
+	squad_type_datum = /datum/squad_type/upp_squad
 
 /datum/squad/upp/one
 	name = "UPPS1"
@@ -375,6 +384,7 @@
 	faction = FACTION_PMC
 	usable = TRUE
 	omni_squad_vendor = TRUE
+	squad_type_datum = /datum/squad_type/pmc_squad
 
 /datum/squad/pmc/one
 	name = "Team Upsilon"
@@ -404,6 +414,7 @@
 	squad_two_access = ACCESS_PMC_SQUAD_TWO
 	faction = FACTION_PMC
 	squad_type = "Taskforce"
+	squad_type_datum = /datum/squad_type/pmc_squad
 
 /datum/squad/marine/pmc/secondary
 	name = SQUAD_PMCPLT_2
@@ -432,6 +443,7 @@
 	squad_one_access = ACCESS_TWE_SQUAD_ONE
 	squad_two_access = ACCESS_TWE_SQUAD_TWO
 	faction = FACTION_TWE
+	squad_type_datum = /datum/squad_type/rmc_troop
 
 /datum/squad/marine/rmc/New()
 	. = ..()
@@ -469,6 +481,82 @@
 	update_all_squad_info()
 
 	RegisterSignal(SSdcs, COMSIG_GLOB_MODE_POSTSETUP, PROC_REF(setup_supply_drop_list))
+
+/datum/squad/proc/get_squad_type_profile()
+	if(!squad_type_datum)
+		return null
+
+	var/static/list/profile_cache = list()
+	if(!profile_cache[squad_type_datum])
+		profile_cache[squad_type_datum] = new squad_type_datum
+	return profile_cache[squad_type_datum]
+
+/datum/squad/proc/get_unit_label()
+	var/datum/squad_type/profile = get_squad_type_profile()
+	return profile?.name || squad_type || "Section"
+
+/datum/squad/proc/get_sub_squad_label()
+	var/datum/squad_type/profile = get_squad_type_profile()
+	return profile?.sub_squad || "Group"
+
+/datum/squad/proc/get_role_label(canonical_role)
+	var/datum/squad_type/profile = get_squad_type_profile()
+	switch(canonical_role)
+		if(JOB_SQUAD_LEADER)
+			return profile?.lead_name || "Squad Leader"
+		if(JOB_SQUAD_TEAM_LEADER)
+			return profile?.sub_leader || "Group Leader"
+	return canonical_role
+
+/datum/squad/proc/get_tracker_label(tracker_id, prefixed = FALSE)
+	var/label
+	switch(tracker_id)
+		if(TRACKER_SL, TRACKER_ASL, TRACKER_BSL, TRACKER_CSL, TRACKER_DSL, TRACKER_ESL, TRACKER_FSL)
+			label = get_role_label(JOB_SQUAD_LEADER)
+		if(TRACKER_FTL)
+			label = get_role_label(JOB_SQUAD_TEAM_LEADER)
+		else
+			return null
+
+	if(!prefixed)
+		return label
+
+	var/prefix
+	switch(tracker_id)
+		if(TRACKER_ASL)
+			prefix = "A"
+		if(TRACKER_BSL)
+			prefix = "B"
+		if(TRACKER_CSL)
+			prefix = "C"
+		if(TRACKER_DSL)
+			prefix = "D"
+		if(TRACKER_ESL)
+			prefix = "E"
+		if(TRACKER_FSL)
+			prefix = "F"
+
+	return prefix ? "[prefix]-[label]" : label
+
+/datum/squad/proc/get_squad_info_rank_token(canonical_role)
+	switch(canonical_role)
+		if(JOB_SQUAD_MARINE)
+			return "Mar"
+		if(JOB_SQUAD_ENGI)
+			return "Eng"
+		if(JOB_SQUAD_MEDIC)
+			return "HM"
+		if(JOB_SQUAD_SMARTGUN)
+			return "SG"
+		if(JOB_SQUAD_SPECIALIST)
+			return "Spc"
+		if(JOB_SQUAD_TEAM_LEADER)
+			return "GrpLdr"
+		if(JOB_SQUAD_LEADER)
+			return "SqLdr"
+		if(JOB_SQUAD_RTO)
+			return "RTO"
+	return ""
 
 /datum/squad/marine/alpha/New()
 	. = ..()
@@ -695,7 +783,7 @@
 				var/old_lead = squad_leader
 				demote_squad_leader() //replaced by the real one
 				SStracking.start_tracking(tracking_id, old_lead)
-			assignment = squad_type + " Sergeant"
+			assignment = get_role_label(JOB_SQUAD_LEADER)
 			squad_leader = M
 			SStracking.set_leader(tracking_id, M)
 			SStracking.start_tracking("marine_sl", M)
@@ -881,12 +969,12 @@
 		if(JOB_SQUAD_MEDIC)
 			old_lead.comm_title = "HM"
 		if(JOB_SQUAD_TEAM_LEADER)
-			old_lead.comm_title = "SqLdr"
+			old_lead.comm_title = "GrpLdr"
 		if(JOB_SQUAD_SMARTGUN)
 			old_lead.comm_title = "SG"
 		if(JOB_SQUAD_LEADER)
 			if(!leader_killed)
-				old_lead.comm_title = "SctSgt"
+				old_lead.comm_title = "SqLdr"
 		if(JOB_SQUAD_RTO)
 			old_lead.comm_title = "RTO"
 		if(JOB_MARINE_RAIDER)
@@ -912,7 +1000,7 @@
 	old_lead.hud_set_squad()
 	old_lead.update_inv_head() //updating marine helmet leader overlays
 	old_lead.update_inv_wear_suit()
-	to_chat(old_lead, FONT_SIZE_BIG(SPAN_BLUE("You're no longer the [squad_type] Leader for [src]!")))
+	to_chat(old_lead, FONT_SIZE_BIG(SPAN_BLUE("You're no longer the [get_role_label(JOB_SQUAD_LEADER)] for [src]!")))
 
 //Not a safe proc. Returns null if squads or jobs aren't set up.
 //Mostly used in the marine squad console in marine_consoles.dm.
@@ -957,7 +1045,7 @@
 		if(fireteam_leaders[fireteam]) //if TL exists -> FT group, otherwise -> SL group
 			SStracking.start_tracking(fireteam, H)
 			if(H.stat == CONSCIOUS)
-				to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned to [fireteam]. Report to your Fireteam Leader ASAP.")))
+				to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned to [fireteam]. Report to your [get_role_label(JOB_SQUAD_TEAM_LEADER)] ASAP.")))
 			to_chat(fireteam_leaders[fireteam], FONT_SIZE_BIG(SPAN_BLUE("[H.mind ? H.comm_title : ""] [H] was assigned to your fireteam.")))
 		else
 			SStracking.start_tracking(tracking_id, H)
@@ -972,7 +1060,7 @@
 			SStracking.stop_tracking(tracking_id, H) //remove from previous FT group
 			SStracking.start_tracking(fireteam, H)
 			if(H.stat == CONSCIOUS)
-				to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned to [fireteam]. Report to your Fireteam Leader ASAP.")))
+				to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned to [fireteam]. Report to your [get_role_label(JOB_SQUAD_TEAM_LEADER)] ASAP.")))
 			to_chat(fireteam_leaders[fireteam], FONT_SIZE_BIG(SPAN_BLUE("[H.mind ? H.comm_title : ""] [H] was assigned to your fireteam.")))
 		if(H.stat == CONSCIOUS)
 			to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned to [fireteam].")))
@@ -987,10 +1075,8 @@
 			id.access += squad_two_access
 
 	for(var/obj/item/device/radio/headset/cycled_headset in H)
-		if(!("Squad Leader" in cycled_headset.tracking_options))
+		if(!cycled_headset.set_tracker_target(TRACKER_FTL))
 			continue
-
-		cycled_headset.locate_setting = cycled_headset.tracking_options["Squad Leader"]
 
 /datum/squad/proc/unassign_fireteam(mob/living/carbon/human/H, upd_ui = TRUE)
 	fireteams[H.assigned_fireteam].Remove(H)
@@ -1011,10 +1097,8 @@
 		id.access.Remove(squad_one_access, squad_two_access)
 
 	for(var/obj/item/device/radio/headset/cycled_headset in H)
-		if(!("Section Sergeant" in cycled_headset.tracking_options))
+		if(!cycled_headset.set_tracker_target(TRACKER_SL))
 			continue
-
-		cycled_headset.locate_setting = cycled_headset.tracking_options["Section Sergeant"]
 
 /datum/squad/proc/assign_ft_leader(fireteam, mob/living/carbon/human/H, upd_ui = TRUE)
 	if(fireteam_leaders[fireteam])
@@ -1025,13 +1109,11 @@
 	SStracking.set_leader(H.assigned_fireteam, H) //Set FT leader as leader of this group
 	SStracking.start_tracking("marine_sl", H)
 	if(H.stat == CONSCIOUS)
-		to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned as [fireteam] Team Leader.")))
+		to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were assigned as [fireteam] [get_role_label(JOB_SQUAD_TEAM_LEADER)].")))
 
 	for(var/obj/item/device/radio/headset/cycled_headset in H)
-		if(!("Section Sergeant" in cycled_headset.tracking_options))
+		if(!cycled_headset.set_tracker_target(TRACKER_SL))
 			continue
-
-		cycled_headset.locate_setting = cycled_headset.tracking_options["Section Sergeant"]
 
 /datum/squad/proc/unassign_ft_leader(fireteam, clear_group_id, upd_ui = TRUE)
 	if(!fireteam_leaders[fireteam])
@@ -1043,7 +1125,7 @@
 		reassign_ft_tracker_group(fireteam, H.assigned_fireteam, tracking_id) //transfer whole FT to SL group
 		update_fireteam(fireteam)
 	if(!H.stat)
-		to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were unassigned as [fireteam] Team Leader.")))
+		to_chat(H, FONT_SIZE_HUGE(SPAN_BLUE("You were unassigned as [fireteam] [get_role_label(JOB_SQUAD_TEAM_LEADER)].")))
 
 /datum/squad/proc/reassign_ft_tracker_group(fireteam, old_id, new_id)
 	for(var/mob/living/carbon/human/H in fireteams[fireteam])

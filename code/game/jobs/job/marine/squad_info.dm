@@ -19,6 +19,9 @@
 	data["squad"] = name
 	data["squad_color"] = equipment_color
 	data["is_lead"] = get_leadership(user)
+	data["lead_label"] = get_role_label(JOB_SQUAD_LEADER)
+	data["sublead_label"] = get_role_label(JOB_SQUAD_TEAM_LEADER)
+	data["sub_squad_label"] = get_sub_squad_label()
 	data["objective"] = list(
 		"primary" = primary_objective,
 		"secondary" = secondary_objective,
@@ -114,7 +117,7 @@
 	var/i = 1
 	for(var/team in fireteams)
 		squad_info_data["fireteams"][team] = list()
-		squad_info_data["fireteams"][team]["name"] = "Squad [i]"
+		squad_info_data["fireteams"][team]["name"] = "[get_sub_squad_label()] [i]"
 		update_fireteam(team)
 		i++
 	squad_info_data["mar_free"] = list()
@@ -159,34 +162,19 @@
 		if(ID)
 			squad_info_data["fireteams"][team]["sqldr"] += list("paygrade" = get_paygrades(ID.paygrade, 1))
 			var/rank = ID.rank
-			switch(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: display canonical squad abbreviations for modular variants
-				if(JOB_SQUAD_MARINE)
-					rank = "Mar"
-				if(JOB_SQUAD_ENGI)
-					rank = "Eng"
-				if(JOB_SQUAD_MEDIC)
-					rank = "HM"
-				if(JOB_SQUAD_SMARTGUN)
-					rank = "SG"
-				if(JOB_SQUAD_SPECIALIST)
-					rank = "Spc"
-				if(JOB_SQUAD_TEAM_LEADER)
-					rank = "SqLdr"
-				if(JOB_SQUAD_LEADER)
-					rank = "SctSgt"
-				if(JOB_SQUAD_RTO)
-					rank = "RTO"
-				else
-					rank = ""
+			rank = get_squad_info_rank_token(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: squad info rank token comes from runtime squad label contract
 			squad_info_data["fireteams"][team]["sqldr"] += list("rank" = rank)
+			squad_info_data["fireteams"][team]["sqldr"] += list("role_bucket" = GET_DEFAULT_ROLE(ID.rank))
 		else
 			squad_info_data["fireteams"][team]["sqldr"] += list("paygrade" = "N/A")
 			squad_info_data["fireteams"][team]["sqldr"] += list("rank" = "")
+			squad_info_data["fireteams"][team]["sqldr"] += list("role_bucket" = "")
 	else
 		squad_info_data["fireteams"][team]["sqldr"] = list(
 							"name" = "Not assigned",
 							"paygrade" = "",
 							"rank" = "",
+							"role_bucket" = "",
 							"med" = FALSE,
 							"eng" = FALSE,
 							"status" = null,
@@ -238,31 +226,15 @@
 			if(ID)
 				mar[H.real_name] += list("paygrade" = get_paygrades(ID.paygrade, 1))
 				var/rank = ID.rank
-				switch(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: display canonical squad abbreviations for modular variants
-					if(JOB_SQUAD_MARINE)
-						rank = "Mar"
-					if(JOB_SQUAD_ENGI)
-						rank = "Eng"
-					if(JOB_SQUAD_MEDIC)
-						rank = "HM"
-					if(JOB_SQUAD_SMARTGUN)
-						rank = "SG"
-					if(JOB_SQUAD_SPECIALIST)
-						rank = "Spc"
-					if(JOB_SQUAD_TEAM_LEADER)
-						rank = "SqLdr"
-					if(JOB_SQUAD_LEADER)
-						rank = "SctSgt"
-					if(JOB_SQUAD_RTO)
-						rank = "RTO"
-					else
-						rank = ""
+				rank = get_squad_info_rank_token(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: squad info rank token comes from runtime squad label contract
 				if(H.rank_fallback)
 					rank = H.rank_fallback
 				mar[H.real_name] += list("rank" = rank)
+				mar[H.real_name] += list("role_bucket" = GET_DEFAULT_ROLE(ID.rank))
 			else
 				mar[H.real_name] += list("paygrade" = "N/A")
 				mar[H.real_name] += list("rank" = "")
+				mar[H.real_name] += list("role_bucket" = "")
 
 	else
 		for(var/mob/living/carbon/human/H in fireteams[team])
@@ -287,27 +259,11 @@
 			if(ID)
 				mar[H.real_name] += list("paygrade" = get_paygrades(ID.paygrade, 1))
 				var/rank = ID.rank
-				switch(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: display canonical squad abbreviations for modular variants
-					if(JOB_SQUAD_MARINE)
-						rank = "Mar"
-					if(JOB_SQUAD_ENGI)
-						rank = "Eng"
-					if(JOB_SQUAD_MEDIC)
-						rank = "HM"
-					if(JOB_SQUAD_SMARTGUN)
-						rank = "SG"
-					if(JOB_SQUAD_SPECIALIST)
-						rank = "Spc"
-					if(JOB_SQUAD_TEAM_LEADER)
-						rank = "SqLdr"
-					if(JOB_SQUAD_LEADER)
-						rank = "SctSgt"
-					if(JOB_SQUAD_RTO)
-						rank = "RTO"
-					else
-						rank = ""
+				rank = get_squad_info_rank_token(GET_DEFAULT_ROLE(rank)) // SS220 EDIT: squad info rank token comes from runtime squad label contract
 				mar[H.real_name] += list("rank" = rank)
+				mar[H.real_name] += list("role_bucket" = GET_DEFAULT_ROLE(ID.rank))
 			else
 				mar[H.real_name] += list("paygrade" = "N/A")
 				mar[H.real_name] += list("rank" = "")
+				mar[H.real_name] += list("role_bucket" = "")
 	return mar
