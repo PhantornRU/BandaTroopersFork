@@ -24,9 +24,9 @@
 		if((FACTION_MARINE in card?.faction_group) && (istype(wear_l_ear, /obj/item/device/radio/headset/almayer) || istype(wear_r_ear, /obj/item/device/radio/headset/almayer)))
 			return TRUE
 
-		if(faction in FACTION_LIST_UA || (FACTION_MARINE in faction_group))
+		if((faction in FACTION_LIST_UA) || (FACTION_MARINE in faction_group))
 			return TRUE
-		if(faction in FACTION_LIST_UNSC || (FACTION_UNSC in faction_group))
+		if((faction in FACTION_LIST_UNSC) || (FACTION_UNSC in faction_group))
 			return TRUE
 		if(add_PMCs && (faction in FACTION_LIST_WY))
 			return TRUE
