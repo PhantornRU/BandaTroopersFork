@@ -8378,18 +8378,17 @@
 	pixel_x = 7;
 	pixel_y = 17
 	},
-/turf/open/floor/almayer/black,
-/area/golden_arrow/platoon_commander_rooms)
-"apO" = (
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/reagent_container/food/drinks/drinkingglass{
-	pixel_x = 5;
-	pixel_y = 4
-	},
 /obj/item/storage/box/drinkingglasses{
 	pixel_x = -6;
 	pixel_y = 2
 	},
+/obj/item/reagent_container/food/drinks/drinkingglass{
+	pixel_x = 5;
+	pixel_y = 4
+	},
+/turf/open/floor/almayer/black,
+/area/golden_arrow/platoon_commander_rooms)
+"apO" = (
 /turf/open/floor/almayer/black,
 /area/golden_arrow/platoon_commander_rooms)
 "apP" = (
@@ -8841,15 +8840,27 @@
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/briefing)
-"aqH" = (
-/turf/open/space/basic,
-/area/dark_was_the_night/armory)
 "aqI" = (
 /obj/structure/extinguisher_cabinet/alt{
 	pixel_x = 9;
 	pixel_y = 26
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
+/area/dark_was_the_night/briefing)
+"aqJ" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/turf/open/floor/corsat/blue,
+/area/dark_was_the_night/briefing)
+"aqK" = (
+/obj/structure/machinery/light/double/blue/golden_arrow{
+	light_power = 0.7
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/turf/open/floor/corsat/blue,
 /area/dark_was_the_night/briefing)
 "aqV" = (
 /obj/structure/prop/unsc_crate/stack,
@@ -8956,6 +8967,12 @@
 /obj/item/notepad/black{
 	pixel_y = 4;
 	pixel_x = 2
+	},
+/obj/structure/phone_base/rotary/no_dnd{
+	name = "Briefing Table Map";
+	phone_id = "briefing_table_map";
+	pixel_x = 16;
+	pixel_y = -9
 	},
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/briefing)
@@ -13139,10 +13156,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/upper_hallway)
-"fBd" = (
-/obj/structure/machinery/prop/almayer/CICmap/table/horizontal/segment/five,
-/turf/open/floor/almayer/mono,
-/area/dark_was_the_night/briefing)
 "fBF" = (
 /obj/structure/surface/table/almayer,
 /obj/item/clothing/suit/storage/jacket/marine/service{
@@ -45944,7 +45957,7 @@ ajY
 ajj
 ajj
 aiT
-aiB
+ajZ
 tOG
 aih
 aeY
@@ -46328,11 +46341,11 @@ dvX
 dvX
 akT
 aku
-aiD
-ajk
-ajk
-aiV
-aiD
+aiT
+aiT
+aiT
+aiU
+ajN
 tOG
 aif
 aeZ
@@ -46522,11 +46535,11 @@ aiW
 dvX
 aqu
 akv
-aiB
-bGX
-tZG
-aiW
-aiE
+aiD
+ajk
+ajk
+aiV
+aqJ
 tOG
 adz
 aeZ
@@ -46716,11 +46729,11 @@ alw
 aja
 aiT
 akv
-aiT
-fBd
-ohx
-aiT
-aiF
+aiB
+bGX
+tZG
+aiW
+aqK
 tOG
 adA
 aeZ
@@ -47492,10 +47505,10 @@ alx
 aja
 aiT
 aku
-aiU
-fBd
-ohx
-aiT
+aiD
+oGd
+hgA
+aiX
 aiE
 tOG
 ghy
@@ -47686,10 +47699,10 @@ aiX
 dvX
 ajK
 aku
-aiD
-oGd
-hgA
-aiX
+ajZ
+aiS
+aiS
+aiW
 aiF
 tOG
 aig
@@ -47880,10 +47893,10 @@ dvX
 dvX
 akT
 aku
-ajZ
-aiS
-aiS
-aiW
+aiT
+aiT
+aiT
+aiU
 aiG
 tOG
 mpI
@@ -53300,9 +53313,9 @@ aoJ
 aoJ
 mxy
 glc
-aqH
-aqH
-aqH
+red
+red
+red
 cIn
 cIn
 had
@@ -53494,9 +53507,9 @@ aoJ
 aoJ
 mxy
 glc
-aqH
-aqH
-aqH
+red
+red
+red
 cIn
 cIn
 alG
@@ -53688,9 +53701,9 @@ aoJ
 aoJ
 mxy
 glc
-aqH
-aqH
-aqH
+red
+red
+red
 cIn
 cIn
 cIn
