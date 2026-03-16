@@ -56,6 +56,24 @@
 		if(brain?.tied_human)
 			created_humans += brain.tied_human
 
+// SS220 EDIT - START: shared assertions for modular Human AI species validation regressions
+/datum/unit_test/human_ai_squad_spawner/proc/track_spawned_human(mob/living/carbon/human/human)
+	if(human)
+		created_humans += human
+
+/datum/unit_test/human_ai_squad_spawner/proc/assert_spawned_ai_species(mob/living/carbon/human/human, expected_species, context)
+	TEST_ASSERT_NOTNULL(human, "[context] did not return a spawned human.")
+	TEST_ASSERT_NOTNULL(human.get_ai_brain(), "[context] did not attach a human AI brain.")
+	TEST_ASSERT_EQUAL(human.species?.name, expected_species, "[context] spawned with an unexpected species.")
+
+/datum/unit_test/human_ai_squad_spawner/proc/assert_spawned_ai_matches_expected_species(mob/living/carbon/human/human, context)
+	var/datum/equipment_preset/preset = human?.assigned_equipment_preset
+	var/expected_species = preset?.expected_species
+	if(!expected_species)
+		expected_species = SPECIES_HUMAN
+	assert_spawned_ai_species(human, expected_species, context)
+// SS220 EDIT - END
+
 /datum/human_ai_squad_preset/unit_test_spawn
 	name = ""
 	desc = ""
@@ -122,6 +140,7 @@
 
 	TEST_ASSERT_NOTNULL(mob_target, "Failed to find a turf for dense-mob accessibility testing.")
 	var/mob/living/carbon/human/dense_mob = allocate(/mob/living/carbon/human, mob_target)
+	TEST_ASSERT_NOTNULL(dense_mob, "Failed to allocate a dense mob for accessibility testing.")
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(mob_target in filtered_candidates, "A dense mob should not invalidate a turf for Human AI squad spawning.")
 
@@ -164,3 +183,72 @@
 		TEST_ASSERT(spawn_turf in allowed_turfs, "Fallback spawn used a turf outside the filtered candidate set.")
 
 	TEST_ASSERT_EQUAL(fallback_squad.squad_leader, fallback_squad.ai_in_squad[1], "The first spawned unit should remain the squad leader after the radius/filter changes.")
+
+// SS220 EDIT - START: regression coverage for modular Human AI species validation in both single and squad spawners
+/datum/unit_test/human_ai_spawner_species_helper
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_spawner_species_helper/Run()
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for Human AI species helper tests.")
+
+	var/turf/sangheili_turf = origin
+	var/turf/unggoy_turf = get_step(origin, NORTH)
+	var/turf/human_turf = get_step(origin, SOUTH)
+	TEST_ASSERT(isfloorturf(unggoy_turf), "Failed to find an open turf for the Unggoy AI spawn helper test.")
+	TEST_ASSERT(isfloorturf(human_turf), "Failed to find an open turf for the human AI spawn helper test.")
+
+	var/mob/living/carbon/human/sangheili = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma, sangheili_turf, TRUE)
+	track_spawned_human(sangheili)
+	assert_spawned_ai_species(sangheili, SPECIES_SANGHEILI, "Sangheili AI helper spawn")
+
+	var/mob/living/carbon/human/unggoy = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma, unggoy_turf, TRUE)
+	track_spawned_human(unggoy)
+	assert_spawned_ai_species(unggoy, SPECIES_UNGGOY, "Unggoy AI helper spawn")
+
+	var/mob/living/carbon/human/unsc_marine = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/unsc/pfc/equipped, human_turf, TRUE)
+	track_spawned_human(unsc_marine)
+	assert_spawned_ai_species(unsc_marine, SPECIES_HUMAN, "UNSC AI helper spawn")
+
+/datum/unit_test/human_ai_squad_spawner_species_unggoy_only
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_squad_spawner_species_unggoy_only/Run()
+	var/datum/human_ai_squad_preset/covenant/unggoy_pair/preset = allocate(/datum/human_ai_squad_preset/covenant/unggoy_pair)
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for the Unggoy squad species test.")
+
+	var/datum/human_ai_squad/squad = preset.spawn_ai(origin, 2, FALSE)
+	TEST_ASSERT_NOTNULL(squad, "Unggoy-only squad preset failed to spawn.")
+	track_spawned_squad(squad)
+	TEST_ASSERT_EQUAL(length(squad.ai_in_squad), 2, "Unggoy-only squad preset spawned an unexpected number of AI members.")
+
+	for(var/datum/human_ai_brain/brain as anything in squad.ai_in_squad)
+		assert_spawned_ai_matches_expected_species(brain?.tied_human, "Unggoy-only squad spawn")
+		TEST_ASSERT_EQUAL(brain?.tied_human?.species?.name, SPECIES_UNGGOY, "Unggoy-only squad preset spawned a non-Unggoy AI.")
+
+/datum/unit_test/human_ai_squad_spawner_species_mixed_covenant
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_squad_spawner_species_mixed_covenant/Run()
+	var/datum/human_ai_squad_preset/covenant/covenant_lance/preset = allocate(/datum/human_ai_squad_preset/covenant/covenant_lance)
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for the mixed Covenant squad species test.")
+
+	var/datum/human_ai_squad/squad = preset.spawn_ai(origin, 3, FALSE)
+	TEST_ASSERT_NOTNULL(squad, "Mixed Covenant squad preset failed to spawn.")
+	track_spawned_squad(squad)
+
+	var/found_sangheili = FALSE
+	var/found_unggoy = FALSE
+	for(var/datum/human_ai_brain/brain as anything in squad.ai_in_squad)
+		var/mob/living/carbon/human/human = brain?.tied_human
+		assert_spawned_ai_matches_expected_species(human, "Mixed Covenant squad spawn")
+		if(human?.species?.name == SPECIES_SANGHEILI)
+			found_sangheili = TRUE
+		if(human?.species?.name == SPECIES_UNGGOY)
+			found_unggoy = TRUE
+
+	TEST_ASSERT(found_sangheili, "Mixed Covenant squad preset should include at least one Sangheili AI.")
+	TEST_ASSERT(found_unggoy, "Mixed Covenant squad preset should include at least one Unggoy AI.")
+// SS220 EDIT - END

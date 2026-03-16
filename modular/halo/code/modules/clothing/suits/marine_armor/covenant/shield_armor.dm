@@ -15,6 +15,8 @@
 	var/shield_effect = FALSE
 	/// Tracks whether the debug counters currently consider the shield filter active on the wearer.
 	var/shield_filter_active = FALSE
+	/// Human currently subscribed to the death signal for immediate shield shutdown.
+	var/mob/living/carbon/human/shield_signal_owner
 	/// Time in seconds until the shield begins to regenerate after taking damage
 	COOLDOWN_DECLARE(time_to_regen)
 	/// Time that it takes for the shield to reach full strength
@@ -40,22 +42,53 @@
 	queue_shield_timer(CALLBACK(src, PROC_REF(update_shield_runtime_state)), 0)
 
 /obj/item/clothing/suit/marine/shielded/Destroy()
+	unregister_wearer_death_signal()
 	remove_shield_effect()
 	end_process()
 	return ..()
 
 /obj/item/clothing/suit/marine/shielded/equipped(mob/user, slot, silent)
 	. = ..()
+	register_wearer_death_signal(user)
 	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/unequipped(mob/user, slot)
 	. = ..()
+	unregister_wearer_death_signal(user)
 	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/proc/get_shield_user()
 	var/mob/living/carbon/human/current_user = src.loc
 	if(istype(current_user) && current_user.wear_suit == src)
 		return current_user
+
+/obj/item/clothing/suit/marine/shielded/proc/register_wearer_death_signal(mob/living/carbon/human/user = get_shield_user())
+	if(user == shield_signal_owner)
+		return
+
+	unregister_wearer_death_signal()
+	if(!ishuman(user) || user.wear_suit != src)
+		return
+
+	RegisterSignal(user, COMSIG_MOB_DEATH, PROC_REF(handle_wearer_death))
+	shield_signal_owner = user
+
+/obj/item/clothing/suit/marine/shielded/proc/unregister_wearer_death_signal(mob/living/carbon/human/user = shield_signal_owner)
+	if(!ishuman(user))
+		user = shield_signal_owner
+	if(!ishuman(user))
+		return
+
+	UnregisterSignal(user, COMSIG_MOB_DEATH)
+	if(user == shield_signal_owner)
+		shield_signal_owner = null
+
+/obj/item/clothing/suit/marine/shielded/proc/handle_wearer_death(mob/living/carbon/human/source, gibbed)
+	SIGNAL_HANDLER
+	if(source != get_shield_user())
+		return
+
+	disable_shield()
 
 /obj/item/clothing/suit/marine/shielded/proc/should_process_shield()
 	var/mob/living/carbon/human/current_user = get_shield_user()

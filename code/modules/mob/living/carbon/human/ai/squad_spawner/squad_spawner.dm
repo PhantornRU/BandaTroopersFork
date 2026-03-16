@@ -173,11 +173,14 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 			else
 				chosen_turf = pick(viable_turfs)
 
-			// var/mob/living/carbon/human/ai_human = new(pick(viable_turfs))
-			var/mob/living/carbon/human/ai_human = new(chosen_turf)
-			arm_equipment(ai_human, ai_equipment, TRUE)
-			var/datum/component/human_ai/ai_comp = ai_human.AddComponent(/datum/component/human_ai)
-			ai_comp.ai_brain?.appraise_inventory(armor = TRUE)
+			var/mob/living/carbon/human/ai_human = modular_spawn_human_ai_from_equipment_preset(ai_equipment, chosen_turf, TRUE) // SS220 EDIT: modular HALO spawn flow validates preset species before the AI brain is attached
+			if(!ai_human)
+				continue
+
+			var/datum/component/human_ai/ai_comp = ai_human.GetComponent(/datum/component/human_ai) // SS220 EDIT: shared modular spawn helper already attached the component; squad glue only consumes it
+			if(!ai_comp?.ai_brain)
+				continue
+
 			new_squad.add_to_squad(ai_comp.ai_brain)
 			if(!squad_leader_selected)
 				new_squad.set_squad_leader(ai_comp.ai_brain)

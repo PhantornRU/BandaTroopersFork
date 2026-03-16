@@ -902,6 +902,47 @@
 	harness.update_shield_runtime_state()
 	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully recovered Sangheili shield harness should leave SSfastobj once it becomes idle again.")
 
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the idle death shutdown test.")
+
+	harness.shield_strength = harness.max_shield_strength
+	harness.shield_broken = FALSE
+	COOLDOWN_RESET(harness, time_to_regen)
+	harness.update_shield_runtime_state()
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully charged Sangheili shield harness should be idle before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the idle death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its shield harness disabled immediately even while idle.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili should lose its remaining shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili idle harness should not enter or remain in SSfastobj.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili idle harness should not absorb projectile damage.")
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the processing death shutdown test.")
+
+	harness.take_damage(10, human)
+	TEST_ASSERT(harness in SSfastobj.processing, "A damaged Sangheili shield harness should be processing before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the processing death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its processing shield harness disabled immediately.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili processing harness should drop to zero shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili processing harness should leave SSfastobj immediately.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili processing harness should not absorb projectile damage.")
+
 /datum/unit_test/halo_sangheili_shield_full_absorb
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
