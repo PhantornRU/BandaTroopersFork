@@ -114,10 +114,24 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 		return TRUE
 
 	for(var/atom/blocker as anything in checking_turf)
-		if(ismob(blocker) || !blocker.density || (blocker.flags_atom & ON_BORDER))
+		if(ismob(blocker) || !blocker.density)
+			continue
+		if(istype(blocker, /obj/structure/window))
+			return TRUE
+		if(blocker.flags_atom & ON_BORDER)
 			continue
 
 		return TRUE
+
+	return FALSE
+
+/datum/human_ai_squad_preset/proc/is_spawn_turf_occupied(turf/checking_turf)
+	if(!checking_turf)
+		return FALSE
+
+	for(var/mob/occupant as anything in checking_turf)
+		if(!QDELETED(occupant))
+			return TRUE
 
 	return FALSE
 
@@ -140,20 +154,34 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	if(!spawn_loc)
 		return viable_turfs
 
-	if(only_accessible_tiles && is_spawn_turf_center_blocked(spawn_loc))
+	if(is_spawn_turf_center_blocked(spawn_loc))
 		return viable_turfs
 
 	// for(var/turf/open/floor_tile in range(1, spawn_loc))
 	for(var/turf/open/floor_tile in range(spawn_radius, spawn_loc))
-		if(only_accessible_tiles)
-			if(is_spawn_turf_center_blocked(floor_tile))
-				continue
-			if(!is_spawn_turf_reachable(spawn_loc, floor_tile))
-				continue
+		if(is_spawn_turf_center_blocked(floor_tile))
+			continue
+		if(only_accessible_tiles && !is_spawn_turf_reachable(spawn_loc, floor_tile))
+			continue
 
 		viable_turfs += floor_tile
 
 	return viable_turfs
+
+/datum/human_ai_squad_preset/proc/categorize_spawn_candidate_turfs(list/candidate_turfs)
+	var/list/categorized_turfs = list(
+		"free" = list(),
+		"occupied" = list(),
+	)
+
+	for(var/turf/candidate_turf as anything in candidate_turfs)
+		if(is_spawn_turf_center_blocked(candidate_turf))
+			continue
+
+		var/list/target_bucket = is_spawn_turf_occupied(candidate_turf) ? categorized_turfs["occupied"] : categorized_turfs["free"]
+		target_bucket += candidate_turf
+
+	return categorized_turfs
 
 /datum/human_ai_squad_preset/proc/spawn_ai(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE)
 	var/list/viable_turfs = get_spawn_candidate_turfs(spawn_loc, spawn_radius, only_accessible_tiles)
@@ -161,17 +189,28 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 		return null
 
 	var/datum/human_ai_squad/new_squad = SShuman_ai.create_new_squad()
-	var/list/unused_turfs = viable_turfs.Copy()
+	var/list/categorized_turfs = categorize_spawn_candidate_turfs(viable_turfs)
+	var/list/free_turfs = categorized_turfs["free"]
+	var/list/occupied_turfs = categorized_turfs["occupied"]
+	var/list/usable_turfs = free_turfs.Copy()
+	usable_turfs += occupied_turfs
 
 	var/squad_leader_selected = FALSE
 	for(var/datum/equipment_preset/ai_equipment as anything in ai_to_spawn)
 		for(var/i in 1 to ai_to_spawn[ai_equipment])
 			var/turf/chosen_turf
-			if(length(unused_turfs))
-				chosen_turf = pick(unused_turfs)
-				unused_turfs -= chosen_turf
-			else
-				chosen_turf = pick(viable_turfs)
+			if(length(free_turfs))
+				chosen_turf = pick(free_turfs)
+				free_turfs -= chosen_turf
+				if(!(chosen_turf in occupied_turfs))
+					occupied_turfs += chosen_turf
+			else if(length(occupied_turfs))
+				chosen_turf = pick(occupied_turfs)
+			else if(length(usable_turfs))
+				chosen_turf = pick(usable_turfs)
+
+			if(!chosen_turf)
+				continue
 
 			var/mob/living/carbon/human/ai_human = modular_spawn_human_ai_from_equipment_preset(ai_equipment, chosen_turf, TRUE) // SS220 EDIT: modular HALO spawn flow validates preset species before the AI brain is attached
 			if(!ai_human)

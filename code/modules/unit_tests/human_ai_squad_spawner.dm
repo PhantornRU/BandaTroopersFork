@@ -131,9 +131,22 @@
 	TEST_ASSERT(!(object_blocked_target in filtered_candidates), "A turf with a dense object on its center should not remain a valid spawn candidate.")
 	qdel(object_blocker, force = TRUE)
 
-	var/turf/mob_target = null
+	var/turf/window_blocked_target = null
 	for(var/turf/candidate as anything in base_candidates)
 		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate in blocked_ring_turfs)
+			continue
+		window_blocked_target = candidate
+		break
+
+	TEST_ASSERT_NOTNULL(window_blocked_target, "Failed to find a turf for window-blocker accessibility testing.")
+	var/obj/structure/window/window_blocker = allocate(/obj/structure/window, window_blocked_target)
+	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
+	TEST_ASSERT(!(window_blocked_target in filtered_candidates), "A turf with a window on it should not remain a valid spawn candidate.")
+	qdel(window_blocker, force = TRUE)
+
+	var/turf/mob_target = null
+	for(var/turf/candidate as anything in base_candidates)
+		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == window_blocked_target || candidate in blocked_ring_turfs)
 			continue
 		mob_target = candidate
 		break
@@ -152,6 +165,17 @@
 	var/turf/origin = get_open_test_origin()
 	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for Human AI squad spawn distribution tests.")
 
+	var/turf/occupied_target = null
+	for(var/turf/open/floor/candidate as anything in range(1, origin))
+		if(candidate == origin)
+			continue
+		occupied_target = candidate
+		break
+
+	TEST_ASSERT_NOTNULL(occupied_target, "Failed to find an occupied-target turf for open-priority spawn testing.")
+	var/mob/living/carbon/human/existing_occupant = allocate(/mob/living/carbon/human, occupied_target)
+	track_spawned_human(existing_occupant)
+
 	var/datum/human_ai_squad/open_squad = preset.spawn_ai(origin, 1, FALSE)
 	TEST_ASSERT_NOTNULL(open_squad, "Human AI squad spawner failed to create a squad on open nearby tiles.")
 	track_spawned_squad(open_squad)
@@ -161,6 +185,7 @@
 	for(var/datum/human_ai_brain/brain as anything in open_squad.ai_in_squad)
 		var/turf/spawn_turf = get_turf(brain.tied_human)
 		TEST_ASSERT(get_dist(origin, spawn_turf) <= 1, "Unit-test squad member spawned outside radius 1.")
+		TEST_ASSERT(spawn_turf != occupied_target, "Open-area spawn should prefer free turfs over an already occupied turf.")
 		open_spawn_turf_keys[REF(spawn_turf)] = TRUE
 
 	TEST_ASSERT_EQUAL(length(open_spawn_turf_keys), 3, "Open-area spawn should distribute squad members across unique tiles when enough candidates exist.")
@@ -168,6 +193,8 @@
 	var/turf/fallback_target = get_enclosable_target(origin)
 	TEST_ASSERT_NOTNULL(fallback_target, "Failed to find an enclosable fallback turf for repeat-spawn testing.")
 	var/list/allowed_turfs = list(fallback_target)
+	var/mob/living/carbon/human/fallback_occupant = allocate(/mob/living/carbon/human, fallback_target)
+	track_spawned_human(fallback_occupant)
 	for(var/direction in GLOB.cardinals)
 		var/turf/blocker_turf = get_step(fallback_target, direction)
 		TEST_ASSERT(isfloorturf(blocker_turf), "Fallback ring turf [blocker_turf] was not a floor.")

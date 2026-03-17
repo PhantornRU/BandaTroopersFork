@@ -8,6 +8,7 @@
 	var/list/snapshot_latejoin = null
 	var/list/snapshot_latejoin_by_squad = null
 	var/list/snapshot_latejoin_by_job = null
+	var/snapshot_ship_platoon = null
 	var/synthetic_mainship_z = null
 	var/synthetic_mainship_prev = null
 
@@ -30,6 +31,7 @@
 	snapshot_latejoin = GLOB.latejoin ? GLOB.latejoin.Copy() : list()
 	snapshot_latejoin_by_squad = GLOB.latejoin_by_squad ? GLOB.latejoin_by_squad.Copy() : list()
 	snapshot_latejoin_by_job = GLOB.latejoin_by_job ? GLOB.latejoin_by_job.Copy() : list()
+	snapshot_ship_platoon = SSmapping?.configs?[SHIP_MAP]?.platoon
 
 /datum/unit_test/halo_ship_platoons/Destroy()
 	if(synthetic_mainship_z)
@@ -53,6 +55,8 @@
 	GLOB.latejoin = snapshot_latejoin ? snapshot_latejoin.Copy() : list()
 	GLOB.latejoin_by_squad = snapshot_latejoin_by_squad ? snapshot_latejoin_by_squad.Copy() : list()
 	GLOB.latejoin_by_job = snapshot_latejoin_by_job ? snapshot_latejoin_by_job.Copy() : list()
+	if(SSmapping?.configs?[SHIP_MAP])
+		SSmapping.configs[SHIP_MAP].platoon = snapshot_ship_platoon
 
 	return ..()
 
@@ -454,6 +458,61 @@
 	var/mob/living/carbon/human/unsupported_engineer = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(unsupported_engineer, "Unsupported HALO Engineer", JOB_SQUAD_ENGI)
 	TEST_ASSERT(!role_authority.apply_active_ship_cryo_reinforcement(unsupported_engineer, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO cryo application helper incorrectly accepted an unsupported engineer profile override.")
+
+/datum/unit_test/halo_ship_platoons_cryo_followup_preserves_unsc_context
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_cryo_followup_preserves_unsc_context/Run()
+	var/datum/map_config/ship_config = SSmapping?.configs?[SHIP_MAP]
+	TEST_ASSERT_NOTNULL(ship_config, "Failed to resolve the active ship config for HALO cryo follow-up testing.")
+	ship_config.platoon = "/datum/squad/marine/halo/unsc/alpha"
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, "HALO Cryo Followup", JOB_SQUAD_MEDIC_UNSC)
+	arm_equipment(human, /datum/equipment_preset/unsc/medic/equipped, FALSE, TRUE)
+	human.assigned_squad = null
+
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	cryo_call.finalize_profile_cryo_reinforcement(human)
+
+	TEST_ASSERT_EQUAL(human.job, JOB_SQUAD_MEDIC_UNSC, "Cryo follow-up handling regressed the HALO corpsman title back to a canonical USCM role.")
+	TEST_ASSERT_NOTNULL(human.assigned_squad, "Cryo follow-up handling did not restore squad assignment for a HALO corpsman.")
+	TEST_ASSERT(ispath(human.assigned_squad?.type, /datum/squad/marine/halo/unsc), "Cryo follow-up handling assigned the HALO corpsman outside the UNSC squad family.")
+
+/datum/unit_test/halo_ship_platoons_unsc_medical_vendor_access
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_unsc_medical_vendor_access/Run()
+	var/turf/vendor_turf = run_loc_floor_top_right
+	var/turf/user_turf = get_step(vendor_turf, SOUTH)
+	if(!isfloorturf(user_turf))
+		user_turf = get_step(vendor_turf, NORTH)
+	TEST_ASSERT(isfloorturf(user_turf), "Failed to find a user turf for HALO medical vendor access testing.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, user_turf)
+	configure_test_human(human, "UNSC Vendor Corpsman", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT_NOTNULL(prepare_test_human_for_squad(human, /datum/equipment_preset/unsc/medic, JOB_SQUAD_MEDIC_UNSC), "Failed to equip an ID onto the HALO medical vendor access test mob.")
+
+	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chem_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, vendor_turf)
+	TEST_ASSERT(chem_vendor.can_access_to_vend(human, FALSE), "HALO UNSC corpsman lost access to the chemical medic vendor.")
+
+	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/med_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc, vendor_turf)
+	med_vendor.req_access = list(ACCESS_MARINE_MEDPREP)
+	TEST_ASSERT(med_vendor.can_access_to_vend(human, FALSE), "HALO UNSC corpsman lost access to the medical vendor when medprep access was required.")
+
+	var/list/lifesaver_item = null
+	for(var/list/product as anything in med_vendor.get_listed_products(human))
+		if(product[3] == /obj/item/storage/belt/medical/lifesaver/unsc)
+			lifesaver_item = product
+			break
+
+	TEST_ASSERT_NOTNULL(lifesaver_item, "Failed to resolve the Lifesaver Bag listing in the HALO medical vendor.")
+	med_vendor.vendor_successful_vend(lifesaver_item, human)
+
+	var/obj/item/storage/belt/medical/lifesaver/unsc/lifesaver_bag = human.l_hand
+	if(!istype(lifesaver_bag))
+		lifesaver_bag = human.r_hand
+	TEST_ASSERT_NOTNULL(lifesaver_bag, "HALO medical vendor failed to hand over the Lifesaver Bag to the corpsman.")
 
 /datum/unit_test/halo_ship_platoons_announcement_routing
 	parent_type = /datum/unit_test/halo_ship_platoons
