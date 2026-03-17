@@ -169,8 +169,8 @@
 		for(var/obj/effect/landmark/late_join/landmark as anything in squad_bucket)
 			if(exact_job && !latejoin_landmark_matches_target_job(landmark))
 				continue
-				if(!(landmark in landmarks))
-					landmarks += landmark
+			if(!(landmark in landmarks))
+				landmarks += landmark
 
 	return landmarks
 

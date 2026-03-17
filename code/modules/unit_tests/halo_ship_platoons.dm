@@ -5,6 +5,9 @@
 	var/list/snapshot_roles_for_mode = null
 	var/list/snapshot_personal_closets = null
 	var/list/snapshot_custom_items = null
+	var/list/snapshot_latejoin = null
+	var/list/snapshot_latejoin_by_squad = null
+	var/list/snapshot_latejoin_by_job = null
 	var/synthetic_mainship_z = null
 	var/synthetic_mainship_prev = null
 
@@ -24,6 +27,9 @@
 
 	snapshot_personal_closets = GLOB.personal_closets ? GLOB.personal_closets.Copy() : list()
 	snapshot_custom_items = GLOB.custom_items ? GLOB.custom_items.Copy() : list()
+	snapshot_latejoin = GLOB.latejoin ? GLOB.latejoin.Copy() : list()
+	snapshot_latejoin_by_squad = GLOB.latejoin_by_squad ? GLOB.latejoin_by_squad.Copy() : list()
+	snapshot_latejoin_by_job = GLOB.latejoin_by_job ? GLOB.latejoin_by_job.Copy() : list()
 
 /datum/unit_test/halo_ship_platoons/Destroy()
 	if(synthetic_mainship_z)
@@ -44,6 +50,9 @@
 
 	GLOB.personal_closets = snapshot_personal_closets ? snapshot_personal_closets.Copy() : list()
 	GLOB.custom_items = snapshot_custom_items ? snapshot_custom_items.Copy() : list()
+	GLOB.latejoin = snapshot_latejoin ? snapshot_latejoin.Copy() : list()
+	GLOB.latejoin_by_squad = snapshot_latejoin_by_squad ? snapshot_latejoin_by_squad.Copy() : list()
+	GLOB.latejoin_by_job = snapshot_latejoin_by_job ? snapshot_latejoin_by_job.Copy() : list()
 
 	return ..()
 
@@ -709,6 +718,55 @@
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST), "Specialist job locker allowlist lost the canonical specialist title.")
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST_UNSC), "Specialist job locker allowlist lost the HALO UNSC specialist title.")
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST_ODST), "Specialist job locker allowlist lost the HALO ODST specialist title.")
+
+/datum/unit_test/halo_ship_platoons_latejoin_resolver_prefers_squad_bucket
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_latejoin_resolver_prefers_squad_bucket/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO latejoin resolver regression test.")
+
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SQUAD_MEDIC_UNSC]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SQUAD_MEDIC_UNSC datum for HALO latejoin resolver regression test.")
+
+	var/turf/squad_turf = run_loc_floor_top_right
+	var/turf/job_turf = get_step(squad_turf, WEST)
+	if(!isfloorturf(job_turf))
+		job_turf = get_step(squad_turf, EAST)
+	if(!isfloorturf(job_turf))
+		job_turf = get_step(squad_turf, NORTH)
+	if(!isfloorturf(job_turf))
+		job_turf = get_step(squad_turf, SOUTH)
+	TEST_ASSERT(isfloorturf(job_turf), "Failed to find a fallback turf for HALO latejoin resolver regression test.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	configure_test_human(human, "HALO Latejoin Resolver", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT_NOTNULL(human.assigned_squad, "Failed to assign a HALO squad for latejoin resolver regression test.")
+
+	var/obj/effect/landmark/late_join/squad_landmark = allocate(/obj/effect/landmark/late_join, squad_turf)
+	var/obj/effect/landmark/late_join/job_landmark = allocate(/obj/effect/landmark/late_join, job_turf)
+	GLOB.latejoin -= squad_landmark
+	GLOB.latejoin -= job_landmark
+
+	squad_landmark.job = job_datum.title
+	job_landmark.job = job_datum.title
+	GLOB.latejoin_by_squad = list(human.assigned_squad.name = list(squad_landmark))
+	GLOB.latejoin_by_job = list(job_datum.title = list(job_landmark))
+
+	var/datum/modular_squad_spawn_resolver/resolver = new(human, job_datum, TRUE)
+	var/list/own_squad_keys = resolver.get_own_squad_keys()
+	var/list/other_squad_keys = resolver.get_other_squad_keys(own_squad_keys)
+	var/list/own_landmarks = resolver.collect_latejoin_landmarks(own_squad_keys, exact_job = TRUE)
+	TEST_ASSERT(own_landmarks.Find(squad_landmark), "Latejoin resolver exact squad tier did not collect the squad landmark.")
+
+	var/list/job_landmarks = resolver.collect_latejoin_job_landmarks()
+	TEST_ASSERT(job_landmarks.Find(job_landmark), "Latejoin resolver regression test did not expose the job fallback landmark.")
+
+	var/datum/modular_squad_spawn_result/result = resolver.pick_result_for_step("latejoin", 1, own_squad_keys, other_squad_keys, require_free_pod = FALSE)
+	TEST_ASSERT_NOTNULL(result, "Latejoin resolver tier 1 failed to produce a result when a squad landmark existed.")
+	TEST_ASSERT_EQUAL(result.landmark, squad_landmark, "Latejoin resolver tier 1 fell through instead of using the squad latejoin landmark.")
+	TEST_ASSERT_EQUAL(result.source_tag, "latejoin", "Latejoin resolver regression test produced an unexpected source tag.")
+	TEST_ASSERT_EQUAL(result.tier_tag, "tier_1", "Latejoin resolver regression test produced an unexpected tier tag.")
 
 /datum/unit_test/halo_ship_platoons_so_spawn_roundstart
 	parent_type = /datum/unit_test/halo_ship_platoons
