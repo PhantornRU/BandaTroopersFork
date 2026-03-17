@@ -2773,9 +2773,33 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/medical)
+"aeQ" = (
+/obj/structure/machinery/firealarm{
+	dir = 4;
+	pixel_x = 23;
+	pixel_y = 8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_hall)
 "aeR" = (
 /turf/open/floor/almayer/redcorner/east,
 /area/dark_was_the_night/hangar)
+"aeS" = (
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "General Listening Channel";
+	pixel_x = -23
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_bay/two)
+"aeT" = (
+/obj/structure/machinery/firealarm{
+	dir = 4;
+	pixel_x = 23;
+	pixel_y = 8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/cryo_bay/two)
 "aeU" = (
 /obj/structure/filingcabinet/medical{
 	pixel_y = 17;
@@ -8789,6 +8813,11 @@
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_hall)
 "aqO" = (
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "General Listening Channel";
+	pixel_x = -23
+	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_hall)
 "aqP" = (
@@ -8953,27 +8982,19 @@
 /obj/structure/machinery/door/airlock/multi_tile/unsc/glass,
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/cryo_bay/two)
-"ari" = (
-/obj/structure/machinery/cryopod/big/halo/flipped,
-/turf/open/floor/almayer/plate,
-/area/dark_was_the_night/cryo_bay/two)
 "arj" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/start/bridge,
 /turf/open/floor/almayer,
 /area/dark_was_the_night/cryo_bay/two)
 "ark" = (
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	pixel_y = null
 	},
-/obj/structure/cable/heavyduty{
-	icon_state = "1-2"
-	},
-/turf/open/floor/almayer/plate,
-/area/dark_was_the_night/cryo_bay/two)
-"arl" = (
-/obj/structure/machinery/cryopod/big/halo,
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/cryo_bay/two)
 "arm" = (
@@ -9015,14 +9036,6 @@
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/hangar)
 "arr" = (
-/obj/structure/cable/heavyduty/west_east,
-/turf/open/floor/plating/plating_catwalk,
-/area/dark_was_the_night/cryo_bay/two)
-"ars" = (
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 4
-	},
 /obj/structure/cable/heavyduty/west_east,
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/cryo_bay/two)
@@ -12579,7 +12592,7 @@
 /area/dark_was_the_night/upper_hallway)
 "eEl" = (
 /obj/structure/machinery/light/double/blue,
-/turf/closed/wall/unsc/reinforced/hull,
+/turf/closed/wall/unsc,
 /area/dark_was_the_night/armory)
 "eFP" = (
 /obj/effect/decal/warning_stripes{
@@ -32304,7 +32317,7 @@ mJG
 mJG
 mJG
 mJG
-mJG
+xTT
 xTT
 xTT
 xTT
@@ -32498,8 +32511,8 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
+dqU
 dqU
 dqU
 dqU
@@ -32692,17 +32705,17 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 dqU
 dqU
-ari
+tJO
 dqU
-ari
+tJO
 dqU
-ari
+tJO
 dqU
-ari
+tJO
+dqU
 dqU
 arb
 aqX
@@ -32886,17 +32899,17 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 arv
 gKd
 arj
 arm
 arj
-arm
+dYK
 arj
 arm
 arj
+aeS
 dqU
 arc
 fkt
@@ -33080,7 +33093,6 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 arw
 aru
@@ -33090,6 +33102,7 @@ aro
 arp
 aro
 arn
+aro
 ark
 arh
 ard
@@ -33274,7 +33287,6 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 arx
 gKd
@@ -33284,6 +33296,7 @@ fkt
 arr
 fkt
 dYK
+fkt
 aqS
 vwT
 ard
@@ -33468,23 +33481,23 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 arx
 gKd
 arj
 art
 arj
-ars
+arr
 arj
-dYK
+art
 arj
+aeT
 dqU
 are
 fkt
 gKd
-xTT
-aqO
+dqU
+aeQ
 aqM
 aqM
 rrV
@@ -33662,23 +33675,23 @@ mJG
 mJG
 mJG
 mJG
-mJG
 xTT
 dqU
 dqU
-arl
+uPx
 dqU
-arl
+uPx
 dqU
-arl
+uPx
 dqU
-arl
+uPx
+dqU
 dqU
 arf
 aqY
 aqT
-xTT
-qgA
+dqU
+rrV
 cQJ
 lDX
 rrV
@@ -33851,13 +33864,13 @@ tOG
 tOG
 tOG
 tOG
-dqU
-dqU
-dqU
-dqU
-dqU
-dqU
 xTT
+xTT
+xTT
+xTT
+xTT
+xTT
+dqU
 dqU
 dqU
 dqU
@@ -33871,8 +33884,8 @@ dqU
 aqU
 aqZ
 aqU
-xTT
-qgA
+dqU
+rrV
 aqN
 wdv
 rrV
@@ -34045,28 +34058,28 @@ tOG
 tOG
 tOG
 tOG
+xTT
 dqU
 dqU
 dqU
 dqU
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-xTT
-qgA
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+dqU
+rrV
 wkK
 jDV
 vWR
@@ -34241,9 +34254,9 @@ tOG
 sEI
 xTT
 xTT
-xTT
-xTT
-xTT
+dqU
+dqU
+dqU
 tJO
 tJO
 tJO
@@ -34254,13 +34267,13 @@ tJO
 dqU
 dqU
 dqU
-xTT
+dqU
 acK
 amf
-xTT
+dqU
 acD
 ngQ
-xTT
+dqU
 dJb
 jDV
 hxX
@@ -34454,7 +34467,7 @@ jNK
 psI
 jNK
 tNV
-xTT
+dqU
 qNS
 qXE
 rrV
@@ -58504,7 +58517,7 @@ red
 red
 cIn
 red
-cIn
+red
 dwN
 jhM
 kYf
@@ -58698,7 +58711,7 @@ red
 red
 cIn
 red
-cIn
+red
 laD
 fjl
 kYf
@@ -59086,7 +59099,7 @@ red
 red
 cIn
 red
-cIn
+red
 eTK
 exG
 kYf
@@ -59474,7 +59487,7 @@ red
 red
 cIn
 red
-cIn
+red
 laD
 fjl
 kYf
