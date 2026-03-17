@@ -1,10 +1,6 @@
 /// Builds a hardcrit attribution suffix for admin logs.
 /// Returns a string like " to <cause> with <source> from <attacker>" with safe fallbacks.
 /mob/living/carbon/human/proc/format_hardcrit_attribution_suffix(attribution)
-	var/mob/living/carbon/human/victim = src
-	if(!istype(victim))
-		return " from unknown source"
-
 	var/datum/cause_data/cause_data = null
 	if(istype(attribution, /datum/cause_data))
 		cause_data = attribution
