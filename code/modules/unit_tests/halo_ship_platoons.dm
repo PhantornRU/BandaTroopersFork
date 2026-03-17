@@ -747,3 +747,42 @@
 	human.forceMove(spawn_candidate["spawn_turf"])
 	TEST_ASSERT(human.try_enter_nearby_free_cryopod(job_datum, spawn_candidate["preferred_pod"]), "SO failed to enter preferred cryopod on roundstart.")
 	TEST_ASSERT_EQUAL(human.loc, pod, "SO did not end up inside the expected cryopod.")
+
+/mob/living/carbon/human/modular_spawn_probe
+	var/tmp/modular_spawn_called = FALSE
+
+/mob/living/carbon/human/modular_spawn_probe/get_modular_spawn_candidate(datum/job/job_datum, late_join = FALSE)
+	modular_spawn_called = TRUE
+	return ..()
+
+/datum/unit_test/halo_ship_platoons_so_roundstart_callers
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_so_roundstart_callers/Run()
+	var/turf/center_turf = run_loc_floor_top_right
+	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for SO roundstart caller test.")
+
+	var/turf/pod_turf = get_step(center_turf, WEST)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, EAST)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, NORTH)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, SOUTH)
+	TEST_ASSERT_NOTNULL(pod_turf, "Failed to find adjacent turf for SO roundstart caller test cryopod.")
+
+	allocate(/obj/effect/landmark/start/bridge, center_turf)
+	allocate(/obj/structure/machinery/cryopod, pod_turf)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for SO roundstart caller test.")
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SO]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SO datum for SO roundstart caller test.")
+
+	var/mob/living/carbon/human/modular_spawn_probe/job_human = allocate(/mob/living/carbon/human/modular_spawn_probe, center_turf)
+	job_datum.equip_job(job_human)
+	TEST_ASSERT(job_human.modular_spawn_called, "equip_job did not request modular spawn candidate for roundstart SO.")
+
+	var/mob/living/carbon/human/modular_spawn_probe/role_human = allocate(/mob/living/carbon/human/modular_spawn_probe, center_turf)
+	role_authority.equip_role(role_human, job_datum, FALSE)
+	TEST_ASSERT(role_human.modular_spawn_called, "role_authority equip_role did not request modular spawn candidate for roundstart SO.")
