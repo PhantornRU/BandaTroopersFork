@@ -453,3 +453,41 @@
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST), "Specialist job locker allowlist lost the canonical specialist title.")
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST_UNSC), "Specialist job locker allowlist lost the HALO UNSC specialist title.")
 	TEST_ASSERT(allowed_specialist_jobs.Find(JOB_SQUAD_SPECIALIST_ODST), "Specialist job locker allowlist lost the HALO ODST specialist title.")
+
+/datum/unit_test/halo_ship_platoons_so_spawn_roundstart
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_so_spawn_roundstart/Run()
+	var/turf/center_turf = run_loc_floor_top_right
+	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for SO spawn roundstart test.")
+
+	var/turf/pod_turf = get_step(center_turf, WEST)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, EAST)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, NORTH)
+	if(!isturf(pod_turf))
+		pod_turf = get_step(center_turf, SOUTH)
+	TEST_ASSERT_NOTNULL(pod_turf, "Failed to find adjacent turf for SO spawn roundstart test cryopod.")
+
+	var/obj/effect/landmark/start/bridge/landmark = allocate(/obj/effect/landmark/start/bridge, center_turf)
+	var/obj/structure/machinery/cryopod/pod = allocate(/obj/structure/machinery/cryopod, pod_turf)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for SO spawn roundstart test.")
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SO]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SO datum for SO spawn roundstart test.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, center_turf)
+	var/list/spawn_candidate = human.get_modular_spawn_candidate(job_datum, FALSE)
+
+	TEST_ASSERT_NOTNULL(spawn_candidate, "Modular spawn candidate was null for SO roundstart test.")
+	TEST_ASSERT_EQUAL(spawn_candidate["spawn_turf"], get_turf(landmark), "SO spawn candidate did not use start_job landmark turf.")
+	TEST_ASSERT_EQUAL(spawn_candidate["preferred_pod"], pod, "SO spawn candidate did not select adjacent cryopod.")
+	TEST_ASSERT_EQUAL(spawn_candidate["source_tag"], "start_job", "SO spawn candidate source tag was not start_job.")
+	TEST_ASSERT_EQUAL(spawn_candidate["tier_tag"], "job", "SO spawn candidate tier tag was not job.")
+	TEST_ASSERT_EQUAL(spawn_candidate["no_pod_expected"], FALSE, "SO spawn candidate unexpectedly marked no_pod_expected.")
+
+	human.forceMove(spawn_candidate["spawn_turf"])
+	TEST_ASSERT(human.try_enter_nearby_free_cryopod(job_datum, spawn_candidate["preferred_pod"]), "SO failed to enter preferred cryopod on roundstart.")
+	TEST_ASSERT_EQUAL(human.loc, pod, "SO did not end up inside the expected cryopod.")

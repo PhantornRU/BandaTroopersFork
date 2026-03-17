@@ -610,10 +610,9 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
-		if(is_squad_role)
-			// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
-			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE)
-			join_turf = spawn_candidate?["spawn_turf"]
+		// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
+		spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)
 			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])

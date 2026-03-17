@@ -289,7 +289,7 @@
 
 		var/turf/join_turf
 		var/list/spawn_candidate // SS220 EDIT: added modular spawn candidate (spawn_turf + preferred_pod)
-		// SS220 EDIT - START - roundstart for squad roles uses modular spawn candidate first
+		// SS220 EDIT - START - roundstart uses modular spawn candidate first
 		// if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][type])
 		// 	join_turf = get_turf(pick(GLOB.spawns_by_squad_and_job[assigned_squad][type]))
 		// else if(GLOB.spawns_by_job[type])
@@ -302,10 +302,9 @@
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
-		if(is_squad_role)
-			// join_turf = human.get_modular_spawn_turf(src, FALSE)
-			spawn_candidate = human.get_modular_spawn_candidate(src, FALSE)
-			join_turf = spawn_candidate?["spawn_turf"]
+		// join_turf = human.get_modular_spawn_turf(src, FALSE)
+		spawn_candidate = human.get_modular_spawn_candidate(src, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)
 			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][type])
