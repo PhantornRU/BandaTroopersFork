@@ -7,6 +7,9 @@
 	created_squads = list()
 	created_humans = list()
 
+/datum/unit_test/human_ai_squad_spawner/Run()
+	return
+
 /datum/unit_test/human_ai_squad_spawner/Destroy()
 	for(var/mob/living/carbon/human/human as anything in created_humans)
 		if(!QDELETED(human))
@@ -145,7 +148,7 @@
 	qdel(window_blocker, force = TRUE)
 
 	var/turf/mob_target = null
-	for(var/turf/candidate as anything in base_candidates)
+	for(var/turf/candidate as anything in filtered_candidates)
 		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == window_blocked_target || candidate in blocked_ring_turfs)
 			continue
 		mob_target = candidate
@@ -190,15 +193,23 @@
 
 	TEST_ASSERT_EQUAL(length(open_spawn_turf_keys), 3, "Open-area spawn should distribute squad members across unique tiles when enough candidates exist.")
 
-	var/turf/fallback_target = get_enclosable_target(origin)
-	TEST_ASSERT_NOTNULL(fallback_target, "Failed to find an enclosable fallback turf for repeat-spawn testing.")
-	var/list/allowed_turfs = list(fallback_target)
+	var/turf/fallback_target = null
+	for(var/turf/open/floor/candidate as anything in range(1, origin))
+		if(candidate == origin || candidate == occupied_target)
+			continue
+		fallback_target = candidate
+		break
+
+	TEST_ASSERT_NOTNULL(fallback_target, "Failed to find a nearby fallback turf for repeat-spawn testing.")
 	var/mob/living/carbon/human/fallback_occupant = allocate(/mob/living/carbon/human, fallback_target)
 	track_spawned_human(fallback_occupant)
 	for(var/direction in GLOB.cardinals)
 		var/turf/blocker_turf = get_step(fallback_target, direction)
 		TEST_ASSERT(isfloorturf(blocker_turf), "Fallback ring turf [blocker_turf] was not a floor.")
 		allocate(/obj/structure/blocker, blocker_turf)
+
+	var/list/allowed_turfs = preset.get_spawn_candidate_turfs(fallback_target, 1, TRUE)
+	TEST_ASSERT(length(allowed_turfs), "Fallback spawn scenario no longer exposes any backend-approved candidate turfs.")
 
 	var/datum/human_ai_squad/fallback_squad = preset.spawn_ai(fallback_target, 1, TRUE)
 	TEST_ASSERT_NOTNULL(fallback_squad, "Human AI squad spawner should still create a squad when only one accessible turf remains.")

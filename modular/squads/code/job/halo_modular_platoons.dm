@@ -247,6 +247,22 @@
 
 	return get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
 
+/datum/authority/branch/role/proc/get_halo_job_family_types(job_title)
+	var/platoon_type
+	if(job_title in JOB_HALO_UNSC_MARINES_LIST)
+		platoon_type = /datum/squad/marine/halo/unsc/alpha
+	else if(job_title in JOB_HALO_ODST_MARINES_LIST)
+		platoon_type = /datum/squad/marine/halo/odst/alpha
+
+	if(!platoon_type)
+		return null
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	if(islist(profile?["family_types"]) && length(profile["family_types"]))
+		return profile["family_types"]
+
+	return list(platoon_type)
+
 /datum/authority/branch/role/proc/get_halo_ship_spawn_preset_overrides(platoon_type)
 	switch(platoon_type)
 		if(/datum/squad/marine/halo/unsc/alpha)

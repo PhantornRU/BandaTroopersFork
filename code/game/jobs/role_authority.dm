@@ -713,6 +713,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		return
 
 	var/default_role = GET_DEFAULT_ROLE(H.job) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
+	var/list/halo_family_types = get_halo_job_family_types(H.job)
 
 	//we make a list of squad that is randomized so alpha isn't always lowest squad.
 	var/list/squads_copy = squads.Copy()
@@ -720,6 +721,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	// The following code removes non useable squads from the lists of squads we assign marines too.
 	for(var/i= 1 to length(squads_copy))
 		var/datum/squad/S = pick_n_take(squads_copy)
+		if(islist(halo_family_types) && length(halo_family_types) && !(S.type in halo_family_types))
+			continue
 		if (S.roundstart && S.usable && S.faction == H.faction && S.name != "Root")
 			mixed_squads += S
 

@@ -27,7 +27,8 @@
 	return ..()
 
 /datum/unit_test/human_ai_grenade_throws/proc/create_test_ai_brain()
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	var/turf/origin = find_clear_throw_origin()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, origin)
 	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
 	if(!ai_component)
 		TEST_FAIL("Failed to add a human AI component to the shared grenade-throw test mob.")
@@ -41,15 +42,53 @@
 	for(var/action_type in GLOB.AI_actions)
 		brain.action_blacklist += action_type // SS220 EDIT: keep the unit test deterministic by disabling autonomous scheduler actions
 	brain.in_combat = TRUE
-	human.forceMove(run_loc_floor_bottom_left)
+	human.forceMove(origin)
 	return brain
+
+/datum/unit_test/human_ai_grenade_throws/proc/find_clear_throw_origin(distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	for(var/turf/open/floor/origin as anything in block(run_loc_floor_bottom_left, run_loc_floor_top_right))
+		for(var/direction in GLOB.cardinals)
+			var/turf/current_turf = origin
+			var/path_clear = TRUE
+			for(var/i in 1 to distance)
+				current_turf = get_step(current_turf, direction)
+				if(!isfloorturf(current_turf))
+					path_clear = FALSE
+					break
+				for(var/atom/movable/blocker as anything in current_turf)
+					if(blocker.density)
+						path_clear = FALSE
+						break
+				if(!path_clear)
+					break
+			if(path_clear)
+				return origin
+
+	return run_loc_floor_bottom_left
 
 /datum/unit_test/human_ai_grenade_throws/proc/create_target_turf(datum/human_ai_brain/brain, distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
 	var/turf/origin = get_turf(brain?.tied_human)
 	if(!origin)
 		return null
 
-	return locate(origin.x + distance, origin.y, origin.z)
+	for(var/direction in GLOB.cardinals)
+		var/turf/current_turf = origin
+		var/path_clear = TRUE
+		for(var/i in 1 to distance)
+			current_turf = get_step(current_turf, direction)
+			if(!isfloorturf(current_turf))
+				path_clear = FALSE
+				break
+			for(var/atom/movable/blocker as anything in current_turf)
+				if(blocker.density)
+					path_clear = FALSE
+					break
+			if(!path_clear)
+				break
+		if(path_clear)
+			return current_turf
+
+	return null
 
 /datum/unit_test/human_ai_grenade_throws/proc/give_test_grenade(datum/human_ai_brain/brain)
 	var/mob/living/carbon/human/human = brain?.tied_human

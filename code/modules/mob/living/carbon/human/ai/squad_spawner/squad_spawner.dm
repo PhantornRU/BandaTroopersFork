@@ -142,7 +142,24 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	if(start_turf == target_turf)
 		return TRUE
 
-	return !!AStar(start_turf, target_turf, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0)
+	if(AStar(start_turf, target_turf, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
+		return TRUE
+
+	if(!is_spawn_turf_occupied(target_turf))
+		return FALSE
+
+	// Occupied tiles are still valid spawn destinations for this system, so fall back to
+	// checking whether the turf is otherwise reachable when another mob is standing on it.
+	for(var/direction in GLOB.cardinals)
+		var/turf/adjacent_turf = get_step(target_turf, direction)
+		if(!isturf(adjacent_turf) || is_spawn_turf_center_blocked(adjacent_turf))
+			continue
+		if(adjacent_turf == start_turf)
+			return TRUE
+		if(AStar(start_turf, adjacent_turf, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
+			return TRUE
+
+	return FALSE
 
 // SS220 EDIT - END
 

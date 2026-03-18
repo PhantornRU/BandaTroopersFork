@@ -52,7 +52,30 @@
 	if(!origin)
 		return null
 
-	return locate(origin.x + distance, origin.y, origin.z)
+	for(var/direction in GLOB.cardinals)
+		var/turf/current_turf = origin
+		var/path_clear = TRUE
+		for(var/i in 1 to distance)
+			current_turf = get_step(current_turf, direction)
+			if(!isfloorturf(current_turf))
+				path_clear = FALSE
+				break
+			for(var/atom/movable/blocker as anything in current_turf)
+				if(blocker.density)
+					path_clear = FALSE
+					break
+			if(!path_clear)
+				break
+		if(path_clear)
+			return current_turf
+
+	for(var/turf/open/floor/floor_tile as anything in range(distance, origin))
+		if(get_dist(origin, floor_tile) < distance)
+			continue
+		if(AStar(origin, floor_tile, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
+			return floor_tile
+
+	return null
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_belt_sword(mob/living/carbon/human/human)
 	if(!human?.belt)
@@ -600,7 +623,7 @@
 	TEST_ASSERT(brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should consume the nearby-item scan throttle once during setup.")
 	TEST_ASSERT(!brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should confirm the nearby-item scan throttle is active before standing up.")
 
-	var/turf/grenade_turf = get_step(get_turf(brain.tied_human), EAST)
+	var/turf/grenade_turf = set_target_turf(brain, 1)
 	TEST_ASSERT(isfloorturf(grenade_turf), "Failed to allocate an adjacent grenade turf for the HALO Sangheili wake-up rethink test.")
 	var/obj/item/explosive/grenade/grenade = allocate(/obj/item/explosive/grenade, grenade_turf)
 	grenade.active = TRUE
