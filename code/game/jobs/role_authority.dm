@@ -554,13 +554,15 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	new_human.mark_personal_locker_spawn_context(late_join)
 	// SS220 EDIT - END
 
+	var/equip_preset = new_job.get_spawn_equip_preset(job_whitelist, src) // SS220 EDIT: effective spawn preset resolves through the shared job-owned helper
+
 	if(new_job.gear_preset_whitelist[job_whitelist])
-		arm_equipment(new_human, new_job.gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = late_join)
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join)
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account, whitelist_status) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human, whitelist_status) //Do any other thing that relates to their spawn.
 	else
-		arm_equipment(new_human, new_job.gear_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human) //Do any other thing that relates to their spawn.
@@ -610,10 +612,9 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
-		if(is_squad_role)
-			// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
-			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE)
-			join_turf = spawn_candidate?["spawn_turf"]
+		// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
+		spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)
 			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])
@@ -712,6 +713,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		return
 
 	var/default_role = GET_DEFAULT_ROLE(H.job) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
+	var/list/halo_family_types = get_halo_job_family_types(H.job)
 
 	//we make a list of squad that is randomized so alpha isn't always lowest squad.
 	var/list/squads_copy = squads.Copy()
@@ -719,6 +721,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	// The following code removes non useable squads from the lists of squads we assign marines too.
 	for(var/i= 1 to length(squads_copy))
 		var/datum/squad/S = pick_n_take(squads_copy)
+		if(islist(halo_family_types) && length(halo_family_types) && !(S.type in halo_family_types))
+			continue
 		if (S.roundstart && S.usable && S.faction == H.faction && S.name != "Root")
 			mixed_squads += S
 

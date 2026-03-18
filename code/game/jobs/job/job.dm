@@ -247,6 +247,12 @@
 
 	return new_character
 
+/datum/job/proc/get_spawn_equip_preset(job_whitelist = title, datum/authority/branch/role/role_authority = GLOB.RoleAuthority, platoon_type = null)
+	var/equip_preset = gear_preset_whitelist[job_whitelist] ? gear_preset_whitelist[job_whitelist] : gear_preset
+	if(isnull(platoon_type))
+		return role_authority?.get_active_ship_spawn_preset_override(title, equip_preset) || equip_preset // SS220 EDIT: effective spawn preset resolves in one job-owned path
+	return role_authority?.get_active_ship_spawn_preset_override(title, equip_preset, platoon_type) || equip_preset // SS220 EDIT: explicit platoon type keeps helper deterministic in tests
+
 /datum/job/proc/equip_job(mob/living/M)
 	if(!istype(M))
 		return
@@ -265,13 +271,15 @@
 		human.mark_personal_locker_spawn_context(FALSE)
 		// SS220 EDIT - END
 
+		var/equip_preset = get_spawn_equip_preset(job_whitelist, GLOB.RoleAuthority) // SS220 EDIT: reuse the single effective preset resolution path
+
 		if(gear_preset_whitelist[job_whitelist])
-			arm_equipment(human, gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = FALSE)
+			arm_equipment(human, equip_preset, FALSE, TRUE, late_join = FALSE)
 			var/generated_account = generate_money_account(human)
 			announce_entry_message(human, generated_account, whitelist_status) //Tell them their spawn info.
 			generate_entry_conditions(human, whitelist_status) //Do any other thing that relates to their spawn.
 		else
-			arm_equipment(human, gear_preset, FALSE, TRUE, FALSE) //After we move them, we want to equip anything else they should have.
+			arm_equipment(human, equip_preset, FALSE, TRUE, FALSE) //After we move them, we want to equip anything else they should have.
 			var/generated_account = generate_money_account(human)
 			announce_entry_message(human, generated_account) //Tell them their spawn info.
 			generate_entry_conditions(human) //Do any other thing that relates to their spawn.
@@ -289,7 +297,7 @@
 
 		var/turf/join_turf
 		var/list/spawn_candidate // SS220 EDIT: added modular spawn candidate (spawn_turf + preferred_pod)
-		// SS220 EDIT - START - roundstart for squad roles uses modular spawn candidate first
+		// SS220 EDIT - START - roundstart uses modular spawn candidate first
 		// if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][type])
 		// 	join_turf = get_turf(pick(GLOB.spawns_by_squad_and_job[assigned_squad][type]))
 		// else if(GLOB.spawns_by_job[type])
@@ -302,10 +310,9 @@
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
-		if(is_squad_role)
-			// join_turf = human.get_modular_spawn_turf(src, FALSE)
-			spawn_candidate = human.get_modular_spawn_candidate(src, FALSE)
-			join_turf = spawn_candidate?["spawn_turf"]
+		// join_turf = human.get_modular_spawn_turf(src, FALSE)
+		spawn_candidate = human.get_modular_spawn_candidate(src, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)
 			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][type])
