@@ -310,8 +310,10 @@
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
+		var/use_modular_spawn_candidate = is_squad_role || src.uses_modular_job_landmark_spawn() // SS220 EDIT: modular job-landmark resolver stays opt-in for intended non-squad jobs
 		// join_turf = human.get_modular_spawn_turf(src, FALSE)
-		spawn_candidate = human.get_modular_spawn_candidate(src, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		if(use_modular_spawn_candidate)
+			spawn_candidate = human.get_modular_spawn_candidate(src, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
 		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)

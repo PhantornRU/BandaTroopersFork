@@ -164,8 +164,16 @@
 /datum/equipment_preset/unsc/spec/load_name(mob/living/carbon/human/new_human, randomise)
 	load_halo_preset_name(new_human)
 
+/datum/equipment_preset/unsc/spec/proc/get_roundstart_specialist_loadout_preset()
+	return /datum/equipment_preset/unsc/spec/equipped_spnkr
+
+/datum/equipment_preset/unsc/spec/odst/get_roundstart_specialist_loadout_preset()
+	return /datum/equipment_preset/unsc/spec/odst/equipped_spnkr
+
 /datum/equipment_preset/unsc/spec/load_gear(mob/living/carbon/human/new_human, client/mob_client)
-	return
+	var/loadout_preset_type = get_roundstart_specialist_loadout_preset()
+	var/datum/equipment_preset/loadout_preset = GLOB.gear_path_presets_list?[loadout_preset_type]
+	loadout_preset?.load_gear(new_human, mob_client)
 
 /datum/equipment_preset/unsc/spec/load_status(mob/living/carbon/human/new_human, client/mob_client)
 	new_human.nutrition = NUTRITION_VERYLOW
