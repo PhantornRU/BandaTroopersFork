@@ -60,6 +60,7 @@
 #include "code/mixed/machinery/halo_unsc_poddoors.dm"
 #include "code/mixed/machinery/halo_crew_monitor.dm"
 #include "code/mixed/machinery/halo_cryopod.dm"
+#include "code/mixed/machinery/halo_announcement_surfaces.dm"
 #include "code/mixed/organs/halo_brain_items.dm"
 #include "code/mixed/organs/halo_internal_organs.dm"
 #include "code/mixed/organs/halo_organ_objects.dm"

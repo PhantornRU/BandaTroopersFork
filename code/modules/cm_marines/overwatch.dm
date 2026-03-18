@@ -121,6 +121,9 @@
 		return data
 
 	data["current_squad"] = current_squad.name
+	data["unit_label"] = current_squad.get_unit_label()
+	data["lead_label"] = current_squad.get_role_label(JOB_SQUAD_LEADER)
+	data["sublead_label"] = current_squad.get_role_label(JOB_SQUAD_TEAM_LEADER)
 
 	data["primary_objective"] = current_squad.primary_objective
 	data["secondary_objective"] = current_squad.secondary_objective
@@ -280,7 +283,18 @@
 				if(mob_state != "Dead")
 					marines_alive++
 
-		var/marine_data = list(list("name" = mob_name, "state" = mob_state, "has_helmet" = has_helmet, "role" = role, "acting_sl" = acting_sl, "fteam" = fteam, "distance" = distance, "area_name" = area_name,"ref" = REF(marine)))
+		var/marine_data = list(list(
+			"name" = mob_name,
+			"state" = mob_state,
+			"has_helmet" = has_helmet,
+			"role" = role,
+			"role_bucket" = GET_DEFAULT_ROLE(role),
+			"acting_sl" = acting_sl,
+			"fteam" = fteam,
+			"distance" = distance,
+			"area_name" = area_name,
+			"ref" = REF(marine),
+		))
 		data["marines"] += marine_data
 		if(is_squad_leader)
 			if(!data["squad_leader"])
@@ -383,12 +397,12 @@
 			if(!current_squad)
 				return TRUE
 
-			var/input = tgui_input_text(user, "Please write a message to announce to the section:", "Section Message")
+			var/input = tgui_input_text(user, "Please write a message to announce to the [current_squad.get_unit_label()].", "[current_squad.get_unit_label()] Message")
 			if(!input)
 				return TRUE
 
 			current_squad.send_message(input, 1) //message, adds username
-			current_squad.send_maptext(input, "Section Message:")
+			current_squad.send_maptext(input, "[current_squad.get_unit_label()] Message:")
 			visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("Message '[input]' sent to all Marines of platoon '[current_squad]'.")]")
 			log_overwatch("[key_name(user)] sent '[input]' to platoon [current_squad].")
 
@@ -405,20 +419,20 @@
 			if(!current_squad)
 				return TRUE
 
-			var/input = tgui_input_text(user, "Please write a message to announce to the Section Leader:", "SL Message")
+			var/input = tgui_input_text(user, "Please write a message to announce to the [current_squad.get_role_label(JOB_SQUAD_LEADER)].", "[current_squad.get_role_label(JOB_SQUAD_LEADER)] Message")
 			if(!input)
 				return TRUE
 
 			current_squad.send_message(input, 1, 1) //message, adds username, only to leader
-			current_squad.send_maptext(input, "Section Sergeant Message:", 1)
-			visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("Message '[input]' sent to Section Sergeant [current_squad.squad_leader] of platoon '[current_squad]'.")]")
-			log_overwatch("[key_name(user)] sent '[input]' to Section Sergeant [current_squad.squad_leader] of squad [current_squad].")
+			current_squad.send_maptext(input, "[current_squad.get_role_label(JOB_SQUAD_LEADER)] Message:", 1)
+			visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("Message '[input]' sent to [current_squad.get_role_label(JOB_SQUAD_LEADER)] [current_squad.squad_leader] of platoon '[current_squad]'.")]")
+			log_overwatch("[key_name(user)] sent '[input]' to [current_squad.get_role_label(JOB_SQUAD_LEADER)] [current_squad.squad_leader] of squad [current_squad].")
 
 			var/comm_paygrade = user.get_paygrade()
 
 			for(var/mob/dead/observer/cycled_observer in GLOB.player_list)
 				if(cycled_observer.client && cycled_observer.client.prefs && (cycled_observer.client.prefs.toggles_chat & CHAT_GHOSTRADIO))
-					var/ghost_message = "<span class='medium'><span class='orange'><span class='name'>[comm_paygrade][user] (<a href='byond://?src=\ref[cycled_observer];track=\ref[user]'>F</a>)</span> messaged platoon leader of '[current_squad]': <span class='body'>\"[input]\"</span></span></span>"
+					var/ghost_message = "<span class='medium'><span class='orange'><span class='name'>[comm_paygrade][user] (<a href='byond://?src=\ref[cycled_observer];track=\ref[user]'>F</a>)</span> messaged [current_squad.get_role_label(JOB_SQUAD_LEADER)] of '[current_squad]': <span class='body'>\"[input]\"</span></span></span>"
 					cycled_observer.show_message(ghost_message)
 
 			return TRUE
@@ -583,22 +597,22 @@
 		to_chat(user, "[icon2html(src, usr)] [SPAN_WARNING("[selected_sl] is KIA!")]")
 		return
 	if(selected_sl == current_squad.squad_leader)
-		to_chat(user, "[icon2html(src, usr)] [SPAN_WARNING("[selected_sl] is already the Squad Leader!")]")
+		to_chat(user, "[icon2html(src, usr)] [SPAN_WARNING("[selected_sl] is already the [current_squad.get_role_label(JOB_SQUAD_LEADER)]!")]")
 		return
 	if(jobban_isbanned(selected_sl, JOB_SQUAD_LEADER))
 		to_chat(user, "[icon2html(src, usr)] [SPAN_WARNING("[selected_sl] is unfit to lead!")]")
 		return
 	if(current_squad.squad_leader)
-		current_squad.send_message("Attention: [current_squad.squad_leader] is [current_squad.squad_leader.stat == DEAD ? "stepping down" : "demoted"]. A new Squad Leader has been set: [selected_sl.real_name].")
-		visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("Squad Leader [current_squad.squad_leader] of squad '[current_squad]' has been [current_squad.squad_leader.stat == DEAD ? "replaced" : "demoted and replaced"] by [selected_sl.real_name]! Logging to enlistment files.")]")
+		current_squad.send_message("Attention: [current_squad.squad_leader] is [current_squad.squad_leader.stat == DEAD ? "stepping down" : "demoted"]. A new [current_squad.get_role_label(JOB_SQUAD_LEADER)] has been set: [selected_sl.real_name].")
+		visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("[current_squad.get_role_label(JOB_SQUAD_LEADER)] [current_squad.squad_leader] of squad '[current_squad]' has been [current_squad.squad_leader.stat == DEAD ? "replaced" : "demoted and replaced"] by [selected_sl.real_name]! Logging to enlistment files.")]")
 		var/old_lead = current_squad.squad_leader
 		current_squad.demote_squad_leader(current_squad.squad_leader.stat != DEAD)
 		SStracking.start_tracking(current_squad.tracking_id, old_lead)
 	else
-		current_squad.send_message("Attention: A new Squad Leader has been set: [selected_sl.real_name].")
-		visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("[selected_sl.real_name] is the new Squad Leader of squad '[current_squad]'! Logging to enlistment file.")]")
+		current_squad.send_message("Attention: A new [current_squad.get_role_label(JOB_SQUAD_LEADER)] has been set: [selected_sl.real_name].")
+		visible_message("[icon2html(src, viewers(src))] [SPAN_BOLDNOTICE("[selected_sl.real_name] is the new [current_squad.get_role_label(JOB_SQUAD_LEADER)] of squad '[current_squad]'! Logging to enlistment file.")]")
 
-	to_chat(selected_sl, "[icon2html(src, selected_sl)] <font size='3' color='blue'><B>Overwatch: You've been promoted to \'[GET_DEFAULT_ROLE(selected_sl.job) == JOB_SQUAD_LEADER ? "SQUAD LEADER" : "ACTING SQUAD LEADER"]\' for [current_squad.name]. Your headset has access to the command channel (:v).</B></font>") // SS220 EDIT: overwatch promotion text uses canonical squad-role contracts
+	to_chat(selected_sl, "[icon2html(src, selected_sl)] <font size='3' color='blue'><B>Overwatch: You've been promoted to \'[GET_DEFAULT_ROLE(selected_sl.job) == JOB_SQUAD_LEADER ? uppertext(current_squad.get_role_label(JOB_SQUAD_LEADER)) : "ACTING [uppertext(current_squad.get_role_label(JOB_SQUAD_LEADER))]"]\' for [current_squad.name]. Your headset has access to the command channel (:v).</B></font>") // SS220 EDIT: overwatch promotion text uses runtime squad labels
 	to_chat(user, "[icon2html(src, usr)] [selected_sl.real_name] is [current_squad]'s new leader!")
 
 	if(selected_sl.assigned_fireteam)

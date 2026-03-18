@@ -7,8 +7,8 @@
 /datum/squad_type/marine_squad
 	name_ru = "Отряда"
 	lead_name = "Командир Отряда"
-	sub_squad = "Боевой Группы"
-	sub_leader = "Лидер Боевой Группы"
+	sub_squad = "Группы"
+	sub_leader = "Лидер Группы"
 
 /datum/squad_type/marsoc_team
 	name_ru = "Команды"

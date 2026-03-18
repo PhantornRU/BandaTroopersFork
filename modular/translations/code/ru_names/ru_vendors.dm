@@ -12,14 +12,21 @@
 /proc/translate_vendor_entries_to_ru(list/entries)
 	if(!length(entries))
 		return
+	var/static/regex/non_ascii_regex = new(@"[^\x00-\x7F]")
 	for(var/list/product_entry in entries)
 		if(!length(product_entry))
 			return
+		var/current_name = product_entry[1]
+		if(!istext(current_name))
+			continue
 		// Add original name for searching purposes
-		if(!product_entry["english_name"])
-			product_entry["english_name"] = product_entry[1]
+		if(!product_entry["english_name"] && !non_ascii_regex.Find(current_name))
+			product_entry["english_name"] = current_name
+		// Halo and other already-localized vendor surfaces should keep their source names intact.
+		if(non_ascii_regex.Find(current_name))
+			continue
 		// Do we have override name for this, such as "Flare Pouch (Full)"
-		var/new_name = declent_ru_initial(product_entry[1])
+		var/new_name = declent_ru_initial(current_name)
 		// Try to get translated item name if not
 		if(isnull(new_name) && product_entry[3] && ispath(product_entry[3], /atom))
 			var/atom/product_entry_item = product_entry[3]
