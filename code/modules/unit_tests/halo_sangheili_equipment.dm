@@ -2,9 +2,35 @@
 #define HALO_TEST_L_HAND_LAYER 6
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili(preset_type)
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/turf/spawn_turf = get_sangheili_test_origin(8)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, spawn_turf)
 	arm_equipment(human, preset_type, FALSE)
+	track_sangheili_test_human(human)
 	return human
+
+/datum/unit_test/halo_sangheili_equipment/proc/create_baseline_human()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, get_sangheili_test_origin(1))
+	track_sangheili_test_human(human)
+	return human
+
+/datum/unit_test/halo_sangheili_equipment
+	var/list/tracked_test_humans
+
+/datum/unit_test/halo_sangheili_equipment/New()
+	. = ..()
+	tracked_test_humans = list()
+
+/datum/unit_test/halo_sangheili_equipment/Destroy()
+	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
+		if(!QDELETED(human))
+			qdel(human)
+
+	tracked_test_humans = null
+	return ..()
+
+/datum/unit_test/halo_sangheili_equipment/proc/track_sangheili_test_human(mob/living/carbon/human/human)
+	if(human)
+		tracked_test_humans += human
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
 	var/mob/living/carbon/human/human = create_sangheili(preset_type)
@@ -39,12 +65,119 @@
 	projectile.firer = firer
 	return projectile
 
+/datum/unit_test/halo_sangheili_equipment/proc/find_target_turf_from_origin(turf/origin, distance)
+	if(!origin)
+		return null
+
+	for(var/direction in GLOB.cardinals)
+		var/turf/current_turf = origin
+		var/path_clear = TRUE
+		for(var/i in 1 to distance)
+			current_turf = get_step(current_turf, direction)
+			if(!is_clear_sangheili_path_turf(current_turf))
+				path_clear = FALSE
+				break
+		if(path_clear)
+			return current_turf
+
+	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/is_clear_sangheili_path_turf(turf/current_turf)
+	if(!isfloorturf(current_turf))
+		return FALSE
+
+	if(current_turf.density)
+		return FALSE
+
+	for(var/obj/object in current_turf)
+		if(object.density)
+			return FALSE
+
+	return TRUE
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_sangheili_test_origin(min_clear_distance = 1)
+	var/search_radius = max(min_clear_distance + 4, 6)
+	var/list/search_roots = list(run_loc_floor_top_right, run_loc_floor_bottom_left, SSmapping?.get_mainship_center())
+	var/list/search_levels = list()
+	for(var/turf/root as anything in search_roots)
+		if(!isfloorturf(root))
+			continue
+		if(!(root.z in search_levels))
+			search_levels += root.z
+		for(var/turf/floor_tile as anything in range(search_radius, root))
+			if(!isfloorturf(floor_tile))
+				continue
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	for(var/z_level as anything in search_levels)
+		var/turf/start_corner = locate(1, 1, z_level)
+		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
+		if(!start_corner || !end_corner)
+			continue
+		for(var/turf/floor_tile as anything in block(start_corner, end_corner))
+			if(!isfloorturf(floor_tile))
+				continue
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	var/turf/fallback_origin = isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
+	return ensure_clear_sangheili_lane(fallback_origin, EAST, min_clear_distance)
+
+/datum/unit_test/halo_sangheili_equipment/proc/ensure_clear_sangheili_lane(turf/origin, direction, distance)
+	if(!isturf(origin))
+		return null
+
+	var/turf/current_turf = origin
+	for(var/i in 0 to distance)
+		if(!isturf(current_turf))
+			return null
+		if(!isfloorturf(current_turf))
+			current_turf = current_turf.ChangeTurf(/turf/open/floor/plating)
+		for(var/atom/movable/blocker as anything in current_turf)
+			if(ismob(blocker) || !blocker.density)
+				continue
+			qdel(blocker)
+		if(i < distance)
+			current_turf = get_step(current_turf, direction)
+
+	return origin
+
 /datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
 	var/turf/origin = get_turf(brain?.tied_human)
 	if(!origin)
 		return null
 
-	return locate(origin.x + distance, origin.y, origin.z)
+	var/turf/linear_target = find_target_turf_from_origin(origin, distance)
+	if(linear_target)
+		return linear_target
+
+	for(var/direction in GLOB.cardinals)
+		var/turf/prepared_origin = ensure_clear_sangheili_lane(origin, direction, distance)
+		if(!prepared_origin)
+			continue
+		linear_target = get_offset_turf_from_direction(prepared_origin, direction, distance)
+		if(isfloorturf(linear_target))
+			return linear_target
+
+	for(var/turf/floor_tile as anything in range(distance, origin))
+		if(!isfloorturf(floor_tile))
+			continue
+		if(get_dist(origin, floor_tile) < distance)
+			continue
+		if(AStar(origin, floor_tile, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
+			return floor_tile
+
+	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_offset_turf_from_direction(turf/origin, direction, distance)
+	var/turf/current_turf = origin
+	for(var/i in 1 to distance)
+		current_turf = get_step(current_turf, direction)
+		if(!isturf(current_turf))
+			return null
+
+	return current_turf
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_belt_sword(mob/living/carbon/human/human)
 	if(!human?.belt)
@@ -402,6 +535,51 @@
 	TEST_ASSERT(!ultra_plasma.path_target_needs_refresh(slack_target), "HALO Sangheili melee pathing should keep the current target while the enemy only drifts by one tile.")
 	TEST_ASSERT(ultra_plasma.path_target_needs_refresh(far_target), "HALO Sangheili melee pathing should refresh once the enemy drifts beyond the configured slack.")
 
+/datum/unit_test/halo_sangheili_recovery_reduction
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_recovery_reduction/Run()
+	var/mob/living/carbon/human/baseline_human = create_baseline_human()
+	var/mob/living/carbon/human/sangheili = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	TEST_ASSERT_NOTNULL(baseline_human, "Failed to allocate the baseline human for Sangheili recovery testing.")
+	TEST_ASSERT_NOTNULL(sangheili, "Failed to create the Sangheili mob for recovery testing.")
+
+	var/base_stun = baseline_human.GetStunDuration(30)
+	var/base_knockdown = baseline_human.GetKnockDownDuration(30)
+	var/base_knockout = baseline_human.GetKnockOutDuration(30)
+	var/sangheili_stun = sangheili.GetStunDuration(30)
+	var/sangheili_knockdown = sangheili.GetKnockDownDuration(30)
+	var/sangheili_knockout = sangheili.GetKnockOutDuration(30)
+
+	TEST_ASSERT(sangheili_stun < base_stun, "Sangheili stun recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockdown < base_knockdown, "Sangheili knockdown recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockout < base_knockout, "Sangheili knockout recovery should now be faster than the baseline human duration.")
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Sangheili AI for wake-up rethink testing.")
+
+	brain.action_blacklist = list(/datum/ai_action/throw_back_nade) // SS220 EDIT: keep the wake-up regression focused on the nearby-item rethink instead of the throw-back follow-up action
+	brain.nearby_item_search_interval = 10 SECONDS
+	TEST_ASSERT(brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should consume the nearby-item scan throttle once during setup.")
+	TEST_ASSERT(!brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should confirm the nearby-item scan throttle is active before standing up.")
+
+	var/turf/grenade_turf = set_target_turf(brain, 1)
+	TEST_ASSERT(isfloorturf(grenade_turf), "Failed to allocate an adjacent grenade turf for the HALO Sangheili wake-up rethink test.")
+	var/obj/item/explosive/grenade/grenade = allocate(/obj/item/explosive/grenade, grenade_turf)
+	grenade.active = TRUE
+	grenade.fuse_type = TIMED_FUSE
+	brain.active_grenade_found = null
+
+	brain.tied_human.set_body_position(LYING_DOWN)
+	brain.tied_human.set_body_position(STANDING_UP)
+	sleep(world.tick_lag)
+
+	TEST_ASSERT_EQUAL(brain.active_grenade_found, grenade, "Standing back up should invalidate nearby-item throttling and immediately rediscover an adjacent live grenade.")
+
 /datum/unit_test/halo_sangheili_ai_sword_auto_activation
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -690,6 +868,47 @@
 	COOLDOWN_RESET(harness, time_to_regen)
 	harness.update_shield_runtime_state()
 	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully recovered Sangheili shield harness should leave SSfastobj once it becomes idle again.")
+
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the idle death shutdown test.")
+
+	harness.shield_strength = harness.max_shield_strength
+	harness.shield_broken = FALSE
+	COOLDOWN_RESET(harness, time_to_regen)
+	harness.update_shield_runtime_state()
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully charged Sangheili shield harness should be idle before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the idle death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its shield harness disabled immediately even while idle.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili should lose its remaining shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili idle harness should not enter or remain in SSfastobj.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili idle harness should not absorb projectile damage.")
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the processing death shutdown test.")
+
+	harness.take_damage(10, human)
+	TEST_ASSERT(harness in SSfastobj.processing, "A damaged Sangheili shield harness should be processing before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the processing death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its processing shield harness disabled immediately.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili processing harness should drop to zero shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili processing harness should leave SSfastobj immediately.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili processing harness should not absorb projectile damage.")
 
 /datum/unit_test/halo_sangheili_shield_full_absorb
 	parent_type = /datum/unit_test/halo_sangheili_equipment
