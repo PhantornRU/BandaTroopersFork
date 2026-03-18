@@ -83,9 +83,11 @@
 #include "gc_regressions.dm"
 #include "halo_ai_localization.dm"
 #include "halo_sangheili_equipment.dm"
+#include "halo_ship_platoons.dm"
 #include "halo_tts.dm"
 #include "halo_unggoy_ai.dm"
-#include "halo_ship_platoons.dm"
+#include "human_ai_grenade_throws.dm"
+#include "human_ai_squad_spawner.dm" // SS220 EDIT: include Squad Spawner radius/accessibility unit tests
 #include "missing_icons.dm"
 #include "resist.dm"
 #include "spawn_humans.dm"

@@ -21,6 +21,7 @@ GLOBAL_VAR_INIT(running_create_and_destroy, FALSE)
 		/atom/movable/lighting_mask, //leave it alone
 		//This is meant to fail extremely loud every single time it occurs in any environment in any context, and it falsely alarms when this unit test iterates it. Let's not spawn it in.
 		/obj/merge_conflict_marker,
+		/mob/living/carbon/human/modular_spawn_probe,
 	)
 	//This turf existing is an error in and of itself
 	ignore += typesof(/turf/baseturf_skipover)
