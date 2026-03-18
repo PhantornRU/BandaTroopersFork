@@ -85,7 +85,7 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 				return FALSE
 
 			// preset_squad.spawn_ai(get_turf(ui.user))
-			var/datum/human_ai_squad/new_squad = preset_squad.spawn_ai(spawn_turf, spawn_radius, only_accessible_tiles)
+			var/datum/human_ai_squad/new_squad = preset_squad.spawn_ai(spawn_turf, spawn_radius, only_accessible_tiles, spawn_candidates)
 			if(!new_squad || !length(new_squad.ai_in_squad))
 				if(new_squad)
 					qdel(new_squad)
@@ -154,37 +154,76 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 
 	return FALSE
 
-/datum/human_ai_squad_preset/proc/is_spawn_turf_reachable(turf/start_turf, turf/target_turf)
-	if(!start_turf || !target_turf)
-		return FALSE
+/datum/human_ai_squad_preset/proc/get_accessible_spawn_candidate_refs(turf/start_turf, list/candidate_turfs, spawn_radius)
+	var/list/accessible_candidate_refs = list()
+	if(!start_turf || !length(candidate_turfs))
+		return accessible_candidate_refs
 
-	if(start_turf == target_turf)
-		return TRUE
+	var/list/pending_candidate_refs = list()
+	var/list/occupied_candidate_refs = list()
+	var/list/occupied_candidate_adjacency = list()
+	for(var/turf/candidate_turf as anything in candidate_turfs)
+		var/candidate_ref = REF(candidate_turf)
+		pending_candidate_refs[candidate_ref] = TRUE
 
-	if(AStar(start_turf, target_turf, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
-		return TRUE
-
-	if(!is_spawn_turf_occupied(target_turf))
-		return FALSE
-
-	// Occupied tiles are still valid spawn destinations for this system, so fall back to
-	// checking whether the turf is otherwise reachable when another mob is standing on it.
-	for(var/direction in GLOB.cardinals)
-		var/turf/adjacent_turf = get_step(target_turf, direction)
-		if(!isturf(adjacent_turf) || is_spawn_turf_center_blocked(adjacent_turf))
+		if(!is_spawn_turf_occupied(candidate_turf))
 			continue
-		if(adjacent_turf == start_turf)
-			return TRUE
-		if(AStar(start_turf, adjacent_turf, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
-			return TRUE
 
-	return FALSE
+		occupied_candidate_refs[candidate_ref] = TRUE
+		for(var/direction in GLOB.cardinals)
+			var/turf/adjacent_turf = get_step(candidate_turf, direction)
+			if(!isturf(adjacent_turf) || is_spawn_turf_center_blocked(adjacent_turf))
+				continue
+
+			var/adjacent_ref = REF(adjacent_turf)
+			if(!occupied_candidate_adjacency[adjacent_ref])
+				occupied_candidate_adjacency[adjacent_ref] = list()
+			occupied_candidate_adjacency[adjacent_ref][candidate_ref] = TRUE
+
+	var/list/visited_turf_refs = list(
+		REF(start_turf) = TRUE,
+	)
+	var/list/open_turfs = list(start_turf)
+	var/search_index = 1
+	var/max_search_radius = max(spawn_radius * 2, 1)
+	while(search_index <= length(open_turfs) && (length(pending_candidate_refs) || length(occupied_candidate_refs)))
+		var/turf/current_turf = open_turfs[search_index++]
+		var/current_ref = REF(current_turf)
+
+		if(pending_candidate_refs[current_ref])
+			accessible_candidate_refs[current_ref] = TRUE
+			pending_candidate_refs -= current_ref
+			if(occupied_candidate_refs[current_ref])
+				occupied_candidate_refs -= current_ref
+
+		var/list/unlocked_occupied_candidates = occupied_candidate_adjacency[current_ref]
+		if(unlocked_occupied_candidates)
+			for(var/candidate_ref in unlocked_occupied_candidates)
+				accessible_candidate_refs[candidate_ref] = TRUE
+				if(pending_candidate_refs[candidate_ref])
+					pending_candidate_refs -= candidate_ref
+				if(occupied_candidate_refs[candidate_ref])
+					occupied_candidate_refs -= candidate_ref
+
+		for(var/turf/adjacent_turf as anything in current_turf.AdjacentTurfs())
+			if(get_dist(start_turf, adjacent_turf) > max_search_radius)
+				continue
+
+			var/adjacent_ref = REF(adjacent_turf)
+			if(visited_turf_refs[adjacent_ref])
+				continue
+
+			visited_turf_refs[adjacent_ref] = TRUE
+			open_turfs += adjacent_turf
+
+	return accessible_candidate_refs
 
 // SS220 EDIT - END
 
 // SS220 EDIT - START: split candidate filtering from actual spawning so accessibility rules stay testable
 /datum/human_ai_squad_preset/proc/get_spawn_candidate_turfs(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE)
 	var/list/viable_turfs = list()
+	var/list/base_candidate_turfs = list()
 	spawn_radius = normalize_spawn_radius(spawn_radius)
 
 	if(!spawn_loc)
@@ -193,14 +232,19 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	if(is_spawn_turf_center_blocked(spawn_loc))
 		return viable_turfs
 
-	// for(var/turf/open/floor_tile in range(1, spawn_loc))
 	for(var/turf/open/floor_tile in range(spawn_radius, spawn_loc))
 		if(is_spawn_turf_center_blocked(floor_tile))
 			continue
-		if(only_accessible_tiles && !is_spawn_turf_reachable(spawn_loc, floor_tile))
-			continue
 
-		viable_turfs += floor_tile
+		base_candidate_turfs += floor_tile
+
+	if(!only_accessible_tiles || !length(base_candidate_turfs))
+		return base_candidate_turfs
+
+	var/list/accessible_candidate_refs = get_accessible_spawn_candidate_refs(spawn_loc, base_candidate_turfs, spawn_radius)
+	for(var/turf/candidate_turf as anything in base_candidate_turfs)
+		if(accessible_candidate_refs[REF(candidate_turf)])
+			viable_turfs += candidate_turf
 
 	return viable_turfs
 
@@ -219,8 +263,10 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 
 	return categorized_turfs
 
-/datum/human_ai_squad_preset/proc/spawn_ai(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE)
-	var/list/viable_turfs = get_spawn_candidate_turfs(spawn_loc, spawn_radius, only_accessible_tiles)
+/datum/human_ai_squad_preset/proc/spawn_ai(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE, list/precomputed_candidate_turfs = null)
+	var/list/viable_turfs = precomputed_candidate_turfs
+	if(!islist(viable_turfs))
+		viable_turfs = get_spawn_candidate_turfs(spawn_loc, spawn_radius, only_accessible_tiles)
 	if(!length(viable_turfs))
 		return null
 
