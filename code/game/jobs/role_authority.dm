@@ -586,8 +586,10 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	else if(late_join)
 		// SS220 EDIT - START - раундстарт для squad-ролей сначала использует модульный резолвер спавна
 		var/turf/late_join_turf
+		var/use_modular_spawn_candidate = new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: latejoin modular job-landmark resolution stays opt-in for intended non-squad jobs
 		// late_join_turf = new_human.get_modular_spawn_turf(new_job, TRUE)
-		spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
 		late_join_turf = spawn_candidate?["spawn_turf"]
 		if(!late_join_turf)
 			// if(GLOB.latejoin_by_squad[assigned_squad])
@@ -612,8 +614,10 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
+		var/use_modular_spawn_candidate = is_squad_role || new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: modular job-landmark resolver stays opt-in for intended non-squad jobs
 		// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
-		spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
 		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)

@@ -204,6 +204,31 @@
 	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO rank on the equipped ID metadata.")
 	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO assignment on the equipped ID metadata.")
 
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_specialist_roundstart_loadout(real_name, preset_path, expected_role_title, expected_squad_family)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/list/profile = role_authority?.get_ship_platoon_profile(expected_squad_family)
+	var/list/expected_family_types = islist(profile?["family_types"]) ? profile["family_types"] : list(expected_squad_family)
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, expected_role_title)
+	arm_equipment(human, preset_path, FALSE, TRUE)
+	role_authority.randomize_squad(human, TRUE)
+
+	var/obj/item/card/id/id = human.get_idcard()
+	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, preset_path, "[real_name] did not keep the expected HALO specialist roundstart preset.")
+	TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "[real_name] no longer keeps FACTION_UNSC after HALO specialist roundstart equipping.")
+	TEST_ASSERT_EQUAL(human.job, expected_role_title, "[real_name] did not keep the expected HALO specialist runtime job.")
+	TEST_ASSERT_EQUAL(human.title, expected_role_title, "[real_name] did not keep the expected HALO specialist runtime title.")
+	TEST_ASSERT_NOTNULL(id, "[real_name] did not receive an ID card from the HALO specialist roundstart preset.")
+	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO specialist rank on the ID metadata.")
+	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO specialist assignment on the ID metadata.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_BACK), /obj/item/weapon/gun/halo_launcher/spnkr), "[real_name] did not receive the HALO specialist SPNKr roundstart loadout.")
+	TEST_ASSERT_NOTNULL(human.assigned_squad, "[real_name] did not receive a squad assignment after HALO specialist roundstart randomization.")
+	TEST_ASSERT(expected_family_types.Find(human.assigned_squad?.type), "[real_name] joined [human.assigned_squad?.type] instead of one of the expected HALO squad types [english_list(expected_family_types)].")
+
+	var/datum/squad/assigned_squad = human.assigned_squad
+	assigned_squad.remove_marine_from_squad(human, id)
+
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -598,12 +623,14 @@
 	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart Section Leader", JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader, /datum/squad/marine/halo/unsc/alpha)
 	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart RTO", JOB_SQUAD_RTO_UNSC, /datum/equipment_preset/unsc/rto, /datum/squad/marine/halo/unsc/alpha)
 	assert_halo_randomize_assigns_squad("HALO UNSC Roundstart FTL", JOB_SQUAD_TEAM_LEADER_UNSC, /datum/equipment_preset/unsc/tl, /datum/squad/marine/halo/unsc/alpha)
+	assert_halo_specialist_roundstart_loadout("HALO UNSC Roundstart Specialist", /datum/equipment_preset/unsc/spec, JOB_SQUAD_SPECIALIST_UNSC, /datum/squad/marine/halo/unsc/alpha)
 
 	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart Corpsman", JOB_SQUAD_MEDIC_ODST, /datum/equipment_preset/unsc/medic/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart Section Leader", JOB_SQUAD_LEADER_ODST, /datum/equipment_preset/unsc/leader/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart RTO", JOB_SQUAD_RTO_ODST, /datum/equipment_preset/unsc/rto/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart FTL", JOB_SQUAD_TEAM_LEADER_ODST, /datum/equipment_preset/unsc/tl/odst, /datum/squad/marine/halo/odst/alpha)
+	assert_halo_specialist_roundstart_loadout("HALO ODST Roundstart Specialist", /datum/equipment_preset/unsc/spec/odst, JOB_SQUAD_SPECIALIST_ODST, /datum/squad/marine/halo/odst/alpha)
 
 /datum/unit_test/halo_ship_platoons_unsc_specialist_job_locker_access
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -909,3 +936,26 @@
 	tracked_test_humans += role_human
 	role_authority.equip_role(role_human, job_datum, FALSE)
 	TEST_ASSERT(role_human.modular_spawn_called, "role_authority equip_role did not request modular spawn candidate for roundstart SO.")
+
+/datum/unit_test/halo_ship_platoons_non_so_roundstart_callers
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_non_so_roundstart_callers/Run()
+	var/turf/center_turf = run_loc_floor_top_right
+	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for non-SO roundstart caller test.")
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for non-SO roundstart caller test.")
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_DROPSHIP_PILOT]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_DROPSHIP_PILOT datum for non-SO roundstart caller test.")
+	TEST_ASSERT(!job_datum.uses_modular_job_landmark_spawn(), "Non-SO regression test picked a job that is now unexpectedly opted into modular non-squad spawn resolution.")
+
+	var/mob/living/carbon/human/modular_spawn_probe/job_human = allocate(/mob/living/carbon/human/modular_spawn_probe, center_turf)
+	tracked_test_humans += job_human
+	job_datum.equip_job(job_human)
+	TEST_ASSERT(!job_human.modular_spawn_called, "equip_job unexpectedly requested modular spawn candidate for a non-SO non-squad job.")
+
+	var/mob/living/carbon/human/modular_spawn_probe/role_human = allocate(/mob/living/carbon/human/modular_spawn_probe, center_turf)
+	tracked_test_humans += role_human
+	role_authority.equip_role(role_human, job_datum, FALSE)
+	TEST_ASSERT(!role_human.modular_spawn_called, "role_authority equip_role unexpectedly requested modular spawn candidate for a non-SO non-squad job.")

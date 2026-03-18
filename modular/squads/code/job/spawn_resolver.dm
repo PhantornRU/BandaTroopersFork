@@ -362,6 +362,10 @@
 
 	var/is_squad_role = is_target_job_squad_role()
 	if(!is_squad_role)
+		if(!job_datum.uses_modular_job_landmark_spawn())
+			squads_debug_log("[owner] job [job_datum.title] is not allowed to use modular non-squad job-landmark resolution.")
+			return null
+
 		if(!has_start_job_landmarks() && !(late_join_mode && has_latejoin_job_landmarks()))
 			squads_debug_log("[owner] job [job_datum.title] has no job landmarks for modular spawn resolver.")
 			return null
