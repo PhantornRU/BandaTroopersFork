@@ -41,8 +41,8 @@
 	name = "UNSC Squad Rifleman"
 	flags = EQUIPMENT_PRESET_START_OF_ROUND|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP)
-	assignment = JOB_SQUAD_MARINE
-	rank = JOB_SQUAD_MARINE
+	assignment = JOB_SQUAD_MARINE_UNSC
+	rank = JOB_SQUAD_MARINE_UNSC
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "RFN"
 	skills = /datum/skills/pfc
@@ -54,6 +54,8 @@
 
 /datum/equipment_preset/unsc/pfc/odst
 	name = "ODST Squad Rifleman"
+	assignment = JOB_SQUAD_MARINE_ODST
+	rank = JOB_SQUAD_MARINE_ODST
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "ODST-RFN"
 	skills = /datum/skills/pfc
@@ -67,8 +69,8 @@
 	name = "UNSC Hospital Corpsman"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_MEDPREP, ACCESS_MARINE_MEDBAY)
-	assignment = JOB_SQUAD_MEDIC
-	rank = JOB_SQUAD_MEDIC
+	assignment = JOB_SQUAD_MEDIC_UNSC
+	rank = JOB_SQUAD_MEDIC_UNSC
 	paygrades = list(PAY_SHORT_NE5 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "HC"
 	skills = /datum/skills/combat_medic
@@ -80,6 +82,8 @@
 
 /datum/equipment_preset/unsc/medic/odst
 	name = "ODST Hospital Corpsman"
+	assignment = JOB_SQUAD_MEDIC_ODST
+	rank = JOB_SQUAD_MEDIC_ODST
 	role_comm_title = "ODST-HC"
 	skills = /datum/skills/combat_medic
 
@@ -92,8 +96,8 @@
 	name = "UNSC Radio Telephone Operator"
 	flags = EQUIPMENT_PRESET_START_OF_ROUND|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_SMARTPREP)
-	assignment = JOB_SQUAD_RTO
-	rank = JOB_SQUAD_RTO
+	assignment = JOB_SQUAD_RTO_UNSC
+	rank = JOB_SQUAD_RTO_UNSC
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "RTO"
 	skills = /datum/skills/pfc
@@ -105,6 +109,8 @@
 
 /datum/equipment_preset/unsc/rto/odst
 	name = "ODST Radio Telephone Operator"
+	assignment = JOB_SQUAD_RTO_ODST
+	rank = JOB_SQUAD_RTO_ODST
 	role_comm_title = "ODST-RTO"
 	skills = /datum/skills/pfc
 
@@ -118,8 +124,8 @@
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_SPECPREP)
-	assignment = JOB_SQUAD_SPECIALIST
-	rank = JOB_SQUAD_SPECIALIST
+	assignment = JOB_SQUAD_SPECIALIST_UNSC
+	rank = JOB_SQUAD_SPECIALIST_UNSC
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "Spc"
 	skills = /datum/skills/specialist
@@ -131,6 +137,8 @@
 
 /datum/equipment_preset/unsc/spec/odst
 	name = "ODST Squad Weapons Specialist"
+	assignment = JOB_SQUAD_SPECIALIST_ODST
+	rank = JOB_SQUAD_SPECIALIST_ODST
 	role_comm_title = "ODST-Spc"
 	skills = /datum/skills/specialist
 
@@ -138,16 +146,16 @@
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
-/// Fire Team Leader
+/// Group Leader
 /datum/equipment_preset/unsc/tl
-	name = "UNSC Fireteam Leader"
+	name = "UNSC Group Leader"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
-	assignment = JOB_SQUAD_TEAM_LEADER
-	rank = JOB_SQUAD_TEAM_LEADER
+	assignment = JOB_SQUAD_TEAM_LEADER_UNSC
+	rank = JOB_SQUAD_TEAM_LEADER_UNSC
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "FTL"
+	role_comm_title = "GrpLdr"
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
 
@@ -156,23 +164,25 @@
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/tl/odst
-	name = "ODST Fireteam Leader"
-	role_comm_title = "ODST-FTL"
+	name = "ODST Group Leader"
+	assignment = JOB_SQUAD_TEAM_LEADER_ODST
+	rank = JOB_SQUAD_TEAM_LEADER_ODST
+	role_comm_title = "ODST-GrpLdr"
 	skills = /datum/skills/tl
 
 /datum/equipment_preset/unsc/tl/odst/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
-/// Marine Squad Sergeant
+/// Marine Squad Leader
 /datum/equipment_preset/unsc/leader
-	name = "UNSC Squad Sergeant"
+	name = "UNSC Squad Leader"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
-	assignment = JOB_SQUAD_LEADER
-	rank = JOB_SQUAD_LEADER
+	assignment = JOB_SQUAD_LEADER_UNSC
+	rank = JOB_SQUAD_LEADER_UNSC
 	paygrades = list(PAY_SHORT_ME6 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SL"
+	role_comm_title = "SqLdr"
 	minimum_age = 27
 	skills = /datum/skills/SL
 	minimap_icon = "leader"
@@ -182,8 +192,10 @@
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/leader/odst
-	name = "ODST Squad Sergeant"
-	role_comm_title = "ODST-SL"
+	name = "ODST Squad Leader"
+	assignment = JOB_SQUAD_LEADER_ODST
+	rank = JOB_SQUAD_LEADER_ODST
+	role_comm_title = "ODST-SqLdr"
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -220,7 +232,7 @@
 	role_comm_title = "PltCo-ODST"
 	skills = /datum/skills/SO
 
-/datum/equipment_preset/unsc/platco/lesser_rank
+/datum/equipment_preset/unsc/platco/odst/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
@@ -455,7 +467,7 @@
 /datum/equipment_preset/unsc/rto/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
 
-//fireteam leader
+//group leader
 /datum/equipment_preset/unsc/tl/equipped
 	name = parent_type::name + " (Equipped)"
 
@@ -599,6 +611,11 @@
 /datum/equipment_preset/unsc/platco/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
 
+/datum/equipment_preset/unsc/platco/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/platco/equipped
+	name = "ODST Platoon Commander (Equipped)"
+	role_comm_title = "PltCo-ODST"
+
 /datum/equipment_preset/unsc/pilot/equipped
 	name = parent_type::name + " (Equipped)"
 
@@ -679,3 +696,45 @@
 
 /datum/equipment_preset/unsc/pfc/odst/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
+
+/datum/equipment_preset/unsc/medic/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/medic/equipped
+	name = "ODST Hospital Corpsman (Equipped)"
+	assignment = JOB_SQUAD_MEDIC_ODST
+	rank = JOB_SQUAD_MEDIC_ODST
+	role_comm_title = "ODST-HC"
+
+/datum/equipment_preset/unsc/rto/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/rto/equipped
+	name = "ODST Radio Telephone Operator (Equipped)"
+	assignment = JOB_SQUAD_RTO_ODST
+	rank = JOB_SQUAD_RTO_ODST
+	role_comm_title = "ODST-RTO"
+
+/datum/equipment_preset/unsc/tl/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/tl/equipped
+	name = "ODST Group Leader (Equipped)"
+	assignment = JOB_SQUAD_TEAM_LEADER_ODST
+	rank = JOB_SQUAD_TEAM_LEADER_ODST
+	role_comm_title = "ODST-GrpLdr"
+
+/datum/equipment_preset/unsc/leader/odst/equipped
+	parent_type = /datum/equipment_preset/unsc/leader/equipped
+	name = "ODST Squad Leader (Equipped)"
+	assignment = JOB_SQUAD_LEADER_ODST
+	rank = JOB_SQUAD_LEADER_ODST
+	role_comm_title = "ODST-SqLdr"
+
+/datum/equipment_preset/unsc/spec/odst/equipped_sniper
+	parent_type = /datum/equipment_preset/unsc/spec/equipped_sniper
+	name = "ODST Squad Weapons Specialist (Sniper)"
+	assignment = JOB_SQUAD_SPECIALIST_ODST
+	rank = JOB_SQUAD_SPECIALIST_ODST
+	role_comm_title = "ODST-Spc"
+
+/datum/equipment_preset/unsc/spec/odst/equipped_spnkr
+	parent_type = /datum/equipment_preset/unsc/spec/equipped_spnkr
+	name = "ODST Squad Weapons Specialist (SPNKr)"
+	assignment = JOB_SQUAD_SPECIALIST_ODST
+	rank = JOB_SQUAD_SPECIALIST_ODST
+	role_comm_title = "ODST-Spc"
