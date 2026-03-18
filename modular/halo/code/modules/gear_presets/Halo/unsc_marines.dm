@@ -5,10 +5,10 @@
 	languages = list(LANGUAGE_ENGLISH)
 	idtype = /obj/item/card/id/dogtag
 
-/datum/equipment_preset/unsc/load_status(mob/living/carbon/human/new_human)
-	new_human.nutrition = NUTRITION_VERYLOW
+/proc/load_halo_preset_name(mob/living/carbon/human/new_human)
+	if(!istype(new_human))
+		return
 
-/datum/equipment_preset/unsc/load_name(mob/living/carbon/human/new_human, randomise)
 	new_human.gender = pick(75;MALE,25;FEMALE)
 	var/datum/preferences/A = new
 	A.randomize_appearance(new_human)
@@ -34,12 +34,22 @@
 	new_human.change_real_name(new_human, random_name)
 	new_human.age = rand(20,35)
 
+/datum/equipment_preset/unsc/load_status(mob/living/carbon/human/new_human)
+	new_human.nutrition = NUTRITION_VERYLOW
+
+/datum/equipment_preset/unsc/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
+
 ///Equipped Presets need doing///
 
 /// Marine Rifleman
 /datum/equipment_preset/unsc/pfc
+	parent_type = /datum/equipment_preset/uscm/pfc
 	name = "UNSC Squad Rifleman"
-	flags = EQUIPMENT_PRESET_START_OF_ROUND|EQUIPMENT_PRESET_MARINE
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_SQUAD_MARINE_UNSC
 	rank = JOB_SQUAD_MARINE_UNSC
@@ -47,6 +57,9 @@
 	role_comm_title = "RFN"
 	skills = /datum/skills/pfc
 	minimap_icon = "private"
+
+/datum/equipment_preset/unsc/pfc/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/pfc/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -66,8 +79,12 @@
 
 /// Marine Corpsman
 /datum/equipment_preset/unsc/medic
+	parent_type = /datum/equipment_preset/uscm/medic
 	name = "UNSC Hospital Corpsman"
-	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_MEDPREP, ACCESS_MARINE_MEDBAY)
 	assignment = JOB_SQUAD_MEDIC_UNSC
 	rank = JOB_SQUAD_MEDIC_UNSC
@@ -75,6 +92,9 @@
 	role_comm_title = "HC"
 	skills = /datum/skills/combat_medic
 	minimap_icon = "medic"
+
+/datum/equipment_preset/unsc/medic/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/medic/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -93,8 +113,12 @@
 
 /// Marine RTO
 /datum/equipment_preset/unsc/rto
+	parent_type = /datum/equipment_preset/uscm/rto
 	name = "UNSC Radio Telephone Operator"
-	flags = EQUIPMENT_PRESET_START_OF_ROUND|EQUIPMENT_PRESET_MARINE
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_SMARTPREP)
 	assignment = JOB_SQUAD_RTO_UNSC
 	rank = JOB_SQUAD_RTO_UNSC
@@ -102,6 +126,9 @@
 	role_comm_title = "RTO"
 	skills = /datum/skills/pfc
 	minimap_icon = "rto"
+
+/datum/equipment_preset/unsc/rto/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/rto/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -120,9 +147,12 @@
 
 /// Marine Spec
 /datum/equipment_preset/unsc/spec
+	parent_type = /datum/equipment_preset/uscm/specialist_equipped
 	name = "UNSC Squad Weapons Specialist"
-	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
-
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_SPECPREP)
 	assignment = JOB_SQUAD_SPECIALIST_UNSC
 	rank = JOB_SQUAD_SPECIALIST_UNSC
@@ -130,6 +160,15 @@
 	role_comm_title = "Spc"
 	skills = /datum/skills/specialist
 	minimap_icon = "spec"
+
+/datum/equipment_preset/unsc/spec/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
+
+/datum/equipment_preset/unsc/spec/load_gear(mob/living/carbon/human/new_human, client/mob_client)
+	return
+
+/datum/equipment_preset/unsc/spec/load_status(mob/living/carbon/human/new_human, client/mob_client)
+	new_human.nutrition = NUTRITION_VERYLOW
 
 /datum/equipment_preset/unsc/spec/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -148,9 +187,12 @@
 
 /// Group Leader
 /datum/equipment_preset/unsc/tl
+	parent_type = /datum/equipment_preset/uscm/tl
 	name = "UNSC Group Leader"
-	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
-
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER_UNSC
 	rank = JOB_SQUAD_TEAM_LEADER_UNSC
@@ -158,6 +200,9 @@
 	role_comm_title = "GrpLdr"
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
+
+/datum/equipment_preset/unsc/tl/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/tl/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -176,8 +221,12 @@
 
 /// Marine Squad Leader
 /datum/equipment_preset/unsc/leader
+	parent_type = /datum/equipment_preset/uscm/leader
 	name = "UNSC Squad Leader"
-	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
+	idtype = /obj/item/card/id/dogtag
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER_UNSC
 	rank = JOB_SQUAD_LEADER_UNSC
@@ -186,6 +235,9 @@
 	minimum_age = 27
 	skills = /datum/skills/SL
 	minimap_icon = "leader"
+
+/datum/equipment_preset/unsc/leader/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/leader/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -205,9 +257,11 @@
 
 // PlatCo
 /datum/equipment_preset/unsc/platco
+	parent_type = /datum/equipment_preset/uscm_ship/so
 	name = "UNSC Platoon Commander"
-	flags = EQUIPMENT_PRESET_START_OF_ROUND|EQUIPMENT_PRESET_MARINE
-	idtype = /obj/item/card/id/dogtag
+	faction = FACTION_UNSC
+	faction_group = FACTION_LIST_UNSC
+	languages = list(LANGUAGE_ENGLISH)
 	assignment = JOB_SO
 	rank = JOB_SO
 	paygrades = list(PAY_SHORT_MO2 = JOB_PLAYTIME_TIER_0)
@@ -216,11 +270,9 @@
 	skills = /datum/skills/SO
 	minimap_icon = list("cic" = COLOR_SILVER)
 	minimap_background = MINIMAP_ICON_BACKGROUND_CIC
-	var/access_list = ACCESS_LIST_MARINE_MAIN
 
-/datum/equipment_preset/unsc/platco/New()
-	. = ..()
-	access = get_access(access_list)
+/datum/equipment_preset/unsc/platco/load_name(mob/living/carbon/human/new_human, randomise)
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/platco/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"

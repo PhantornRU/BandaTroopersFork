@@ -409,6 +409,40 @@
 	arm_equipment(vanilla_so, /datum/equipment_preset/uscm_ship/so, FALSE, TRUE)
 	TEST_ASSERT(vanilla_so.faction != FACTION_UNSC, "Vanilla USCM SO incorrectly inherited FACTION_UNSC without a HALO platoon override.")
 
+/datum/unit_test/halo_ship_platoons_so_lifecycle_hooks
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_so_lifecycle_hooks/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO SO lifecycle testing.")
+	role_authority.squads_by_type[/datum/squad/marine/alpha] = role_authority.squads_by_type[/datum/squad/marine/halo/unsc/alpha]
+	role_authority.squads_by_type[/datum/squad/marine/bravo] = role_authority.squads_by_type[/datum/squad/marine/halo/unsc/bravo]
+	role_authority.squads_by_type[/datum/squad/marine/charlie] = role_authority.squads_by_type[/datum/squad/marine/halo/unsc/charlie]
+	role_authority.squads_by_type[/datum/squad/marine/delta] = role_authority.squads_by_type[/datum/squad/marine/halo/unsc/delta]
+
+	TEST_ASSERT(ispath(/datum/equipment_preset/unsc/platco, /datum/equipment_preset/uscm_ship/so), "HALO UNSC Platoon Commander preset no longer inherits the vanilla SO lifecycle hooks.")
+	TEST_ASSERT(ispath(/datum/equipment_preset/unsc/platco/lesser_rank, /datum/equipment_preset/uscm_ship/so/lesser_rank), "HALO UNSC lesser-rank Platoon Commander preset no longer inherits the vanilla lesser-rank SO lifecycle hooks.")
+	TEST_ASSERT(ispath(/datum/equipment_preset/unsc/platco/odst, /datum/equipment_preset/uscm_ship/so), "HALO ODST Platoon Commander preset no longer inherits the vanilla SO lifecycle hooks.")
+	TEST_ASSERT(ispath(/datum/equipment_preset/unsc/platco/odst/lesser_rank, /datum/equipment_preset/uscm_ship/so/lesser_rank), "HALO ODST lesser-rank Platoon Commander preset no longer inherits the vanilla lesser-rank SO lifecycle hooks.")
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for HALO SO lifecycle testing.")
+	manager.apply_roundstart_defaults()
+	manager.reset_first_platoon_commander()
+
+	var/datum/squad/alpha_squad = manager.get_squad_by_static(SQUAD_MARINE_1)
+	TEST_ASSERT_NOTNULL(alpha_squad, "Failed to resolve Alpha squad for HALO SO lifecycle testing.")
+	var/rename_result = manager.rename_squad(alpha_squad, "Unit Test Alpha", null, "halo_so_lifecycle_test", TRUE)
+	TEST_ASSERT_EQUAL(rename_result, TRUE, "Failed to seed a non-default Alpha squad name before HALO SO latejoin lifecycle testing.")
+	TEST_ASSERT_EQUAL(alpha_squad.name, "Unit Test Alpha", "Alpha squad setup for HALO SO lifecycle testing did not take effect.")
+
+	var/mob/living/carbon/human/halo_so = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(halo_so, "HALO Platoon Commander", JOB_SO, null, "halo_so_lifecycle")
+	arm_equipment(halo_so, /datum/equipment_preset/unsc/platco, FALSE, TRUE, null, TRUE, TRUE)
+
+	TEST_ASSERT_EQUAL(alpha_squad.name, manager.get_default_name_by_static(SQUAD_MARINE_1), "HALO SO latejoin lifecycle no longer restores the first-platoon-commander squad-name fallback.")
+
 /datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -445,8 +479,15 @@
 	parent_type = /datum/unit_test/halo_ship_platoons
 
 /datum/unit_test/halo_ship_platoons_cryo_application_flow/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo application-flow test.")
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo emergency-call helper for HALO cryo application-flow testing.")
+	TEST_ASSERT(cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_MEDIC, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly treated the supported medic override as unsupported.")
+	TEST_ASSERT(!cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_ENGI, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly accepted an unsupported engineer override.")
+	TEST_ASSERT(!cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_SMARTGUN, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly accepted an unsupported smartgunner override.")
 
 	var/mob/living/carbon/human/halo_medic = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(halo_medic, "HALO Cryo Medic", JOB_SQUAD_MEDIC)
@@ -463,6 +504,10 @@
 	var/mob/living/carbon/human/unsupported_engineer = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(unsupported_engineer, "Unsupported HALO Engineer", JOB_SQUAD_ENGI)
 	TEST_ASSERT(!role_authority.apply_active_ship_cryo_reinforcement(unsupported_engineer, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO cryo application helper incorrectly accepted an unsupported engineer profile override.")
+
+	var/mob/living/carbon/human/unsupported_smartgunner = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(unsupported_smartgunner, "Unsupported HALO Smartgunner", JOB_SQUAD_SMARTGUN)
+	TEST_ASSERT(!role_authority.apply_active_ship_cryo_reinforcement(unsupported_smartgunner, JOB_SQUAD_SMARTGUN, JOB_SQUAD_SMARTGUN, /datum/equipment_preset/uscm/smartgunner_equipped, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO cryo application helper incorrectly accepted an unsupported smartgunner profile override.")
 
 /datum/unit_test/halo_ship_platoons_halo_preset_faction_resolution
 	parent_type = /datum/unit_test/halo_ship_platoons
