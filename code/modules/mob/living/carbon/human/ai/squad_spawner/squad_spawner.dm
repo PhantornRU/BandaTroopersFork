@@ -56,21 +56,42 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	switch(action)
 		if("create_squad")
 			if(!params["path"])
-				return
+				return FALSE
 
 			var/gotten_path = params["path"]
 			if(!gotten_path)
-				return
+				return FALSE
 
 			var/datum/human_ai_squad_preset/preset_squad = GLOB.human_ai_squad_presets[gotten_path]
+			if(!preset_squad)
+				return FALSE
+
+			var/turf/spawn_turf = get_turf(ui.user)
+			if(!spawn_turf)
+				return FALSE
 
 			// SS220 EDIT - START: pass spawn radius and accessibility toggle from the panel to squad spawning
 			var/spawn_radius = preset_squad.normalize_spawn_radius(params["radius"])
 			var/only_accessible_raw = params["only_accessible"]
 			var/only_accessible_tiles = isnull(only_accessible_raw) ? TRUE : !!text2num("[only_accessible_raw]")
+			var/preset_name = preset_squad.name
+			if(!preset_name)
+				preset_name = "[gotten_path]"
+
+			var/list/spawn_candidates = preset_squad.get_spawn_candidate_turfs(spawn_turf, spawn_radius, only_accessible_tiles)
+			if(!length(spawn_candidates))
+				to_chat(ui.user, SPAN_WARNING("Failed to spawn [preset_name]: no valid spawn turfs were found."))
+				log_admin("[key_name(ui.user)] failed to spawn Human AI squad [preset_name] at ([spawn_turf.x],[spawn_turf.y],[spawn_turf.z]): no valid spawn turfs were found.")
+				return FALSE
 
 			// preset_squad.spawn_ai(get_turf(ui.user))
-			preset_squad.spawn_ai(get_turf(ui.user), spawn_radius, only_accessible_tiles)
+			var/datum/human_ai_squad/new_squad = preset_squad.spawn_ai(spawn_turf, spawn_radius, only_accessible_tiles)
+			if(!new_squad || !length(new_squad.ai_in_squad))
+				if(new_squad)
+					qdel(new_squad)
+				to_chat(ui.user, SPAN_WARNING("Failed to spawn [preset_name]: squad creation did not produce any AI members."))
+				log_admin("[key_name(ui.user)] failed to spawn Human AI squad [preset_name] at ([spawn_turf.x],[spawn_turf.y],[spawn_turf.z]): squad creation produced no AI members.")
+				return FALSE
 			// SS220 EDIT - END
 			return TRUE
 
@@ -116,8 +137,6 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	for(var/atom/blocker as anything in checking_turf)
 		if(ismob(blocker) || !blocker.density)
 			continue
-		if(istype(blocker, /obj/structure/window))
-			return TRUE
 		if(blocker.flags_atom & ON_BORDER)
 			continue
 
@@ -241,6 +260,10 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 			if(!squad_leader_selected)
 				new_squad.set_squad_leader(ai_comp.ai_brain)
 				squad_leader_selected = TRUE
+
+	if(!length(new_squad.ai_in_squad))
+		qdel(new_squad)
+		return null
 
 	return new_squad
 // SS220 EDIT - END

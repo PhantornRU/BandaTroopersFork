@@ -1,11 +1,13 @@
 /datum/unit_test/human_ai_squad_spawner
 	var/list/created_squads
 	var/list/created_humans
+	var/list/registered_preset_keys
 
 /datum/unit_test/human_ai_squad_spawner/New()
 	. = ..()
 	created_squads = list()
 	created_humans = list()
+	registered_preset_keys = list()
 
 /datum/unit_test/human_ai_squad_spawner/Run()
 	return
@@ -19,8 +21,12 @@
 		if(!QDELETED(squad))
 			qdel(squad)
 
+	for(var/preset_key as anything in registered_preset_keys)
+		GLOB.human_ai_squad_presets -= preset_key
+
 	created_humans = null
 	created_squads = null
+	registered_preset_keys = null
 
 	return ..()
 
@@ -84,6 +90,12 @@
 	if(human)
 		created_humans += human
 
+/datum/unit_test/human_ai_squad_spawner/proc/register_test_preset(datum/human_ai_squad_preset/preset)
+	var/preset_key = "[preset.type]"
+	GLOB.human_ai_squad_presets[preset_key] = preset
+	registered_preset_keys += preset_key
+	return preset_key
+
 /datum/unit_test/human_ai_squad_spawner/proc/assert_spawned_ai_species(mob/living/carbon/human/human, expected_species, context)
 	TEST_ASSERT_NOTNULL(human, "[context] did not return a spawned human.")
 	TEST_ASSERT_NOTNULL(human.get_ai_brain(), "[context] did not attach a human AI brain.")
@@ -104,6 +116,23 @@
 		/datum/equipment_preset/colonist/cook = 3,
 	)
 
+// SS220 EDIT - START: unit-test-only presets for Human AI squad spawner ui_act and failure regressions
+/datum/human_ai_squad_preset/unit_test_spawn/ui_capture
+	var/last_spawn_radius
+	var/last_only_accessible_tiles
+	var/datum/human_ai_squad/last_spawned_squad
+
+/datum/human_ai_squad_preset/unit_test_spawn/ui_capture/spawn_ai(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE)
+	last_spawn_radius = spawn_radius
+	last_only_accessible_tiles = only_accessible_tiles
+	last_spawned_squad = ..()
+	return last_spawned_squad
+
+/datum/human_ai_squad_preset/unit_test_spawn/empty_spawn
+/datum/human_ai_squad_preset/unit_test_spawn/empty_spawn/spawn_ai(turf/spawn_loc, spawn_radius = 1, only_accessible_tiles = TRUE)
+	return SShuman_ai.create_new_squad()
+// SS220 EDIT - END
+
 /datum/unit_test/human_ai_squad_spawner_radius_normalization
 	parent_type = /datum/unit_test/human_ai_squad_spawner
 
@@ -111,6 +140,7 @@
 	var/datum/human_ai_squad_preset/unit_test_spawn/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
 	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius(null), 1, "Null spawn radius should fall back to 1.")
 	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius("oops"), 1, "Nonnumeric spawn radius should fall back to 1.")
+	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius(2.6), 2, "Spawn radius should follow the current round() behavior before clamping.")
 	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius(0), 1, "Spawn radius should clamp to the minimum.")
 	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius(11), 10, "Spawn radius should clamp to the maximum.")
 	TEST_ASSERT_EQUAL(preset.normalize_spawn_radius(4), 4, "Valid spawn radius should pass through unchanged.")
@@ -122,6 +152,10 @@
 	var/datum/human_ai_squad_preset/unit_test_spawn/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
 	var/turf/origin = get_candidate_test_origin(preset, 10, 20)
 	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for Human AI squad spawner candidate filtering.")
+
+	var/list/radius_one_candidates = preset.get_spawn_candidate_turfs(origin, 1, FALSE)
+	var/list/radius_two_candidates = preset.get_spawn_candidate_turfs(origin, 2, FALSE)
+	TEST_ASSERT(length(radius_two_candidates) > length(radius_one_candidates), "Increasing the spawn radius should expand the candidate pool on an open turf.")
 
 	var/list/base_candidates = preset.get_spawn_candidate_turfs(origin, 10, FALSE)
 	TEST_ASSERT(length(base_candidates), "Candidate selection without accessibility filtering returned no floor tiles.")
@@ -154,39 +188,58 @@
 	TEST_ASSERT(!(object_blocked_target in filtered_candidates), "A turf with a dense object on its center should not remain a valid spawn candidate.")
 	qdel(object_blocker)
 
+	var/turf/mob_origin = get_candidate_test_origin(preset, 1, 5)
+	TEST_ASSERT(isfloorturf(mob_origin), "Failed to find an open origin turf for dense-mob accessibility testing.")
+	var/list/mob_candidates = preset.get_spawn_candidate_turfs(mob_origin, 1, TRUE)
+	var/turf/mob_target = null
+	for(var/turf/candidate as anything in mob_candidates)
+		if(candidate == mob_origin)
+			continue
+		mob_target = candidate
+		break
+	TEST_ASSERT_NOTNULL(mob_target, "Failed to find a reachable turf for dense-mob accessibility testing.")
+	var/mob/living/carbon/human/dense_mob = allocate(/mob/living/carbon/human, mob_target)
+	TEST_ASSERT_NOTNULL(dense_mob, "Failed to allocate a dense mob for accessibility testing.")
+	track_spawned_human(dense_mob)
+	filtered_candidates = preset.get_spawn_candidate_turfs(mob_origin, 1, TRUE)
+	TEST_ASSERT(mob_target in filtered_candidates, "A dense mob should not invalidate a turf for Human AI squad spawning.")
+
 	var/turf/window_blocked_target = null
 	for(var/turf/candidate as anything in base_candidates)
-		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate in blocked_ring_turfs)
+		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == mob_target || candidate in blocked_ring_turfs)
 			continue
 		window_blocked_target = candidate
 		break
 
 	TEST_ASSERT_NOTNULL(window_blocked_target, "Failed to find a turf for window-blocker accessibility testing.")
-	var/obj/structure/window/window_blocker = allocate(/obj/structure/window, window_blocked_target)
+	var/obj/structure/window/full/window_blocker = allocate(/obj/structure/window/full, window_blocked_target)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
-	TEST_ASSERT(!(window_blocked_target in filtered_candidates), "A turf with a window on it should not remain a valid spawn candidate.")
+	TEST_ASSERT(!(window_blocked_target in filtered_candidates), "A turf with a full window on it should not remain a valid spawn candidate.")
 	qdel(window_blocker)
-
-	var/turf/mob_target = null
-	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
-	for(var/turf/candidate as anything in base_candidates)
-		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == window_blocked_target || candidate in blocked_ring_turfs)
-			continue
-		if(!(candidate in filtered_candidates))
-			continue
-		mob_target = candidate
-		break
-
-	TEST_ASSERT_NOTNULL(mob_target, "Failed to find a turf for dense-mob accessibility testing.")
-	var/mob/living/carbon/human/dense_mob = allocate(/mob/living/carbon/human, mob_target)
-	TEST_ASSERT_NOTNULL(dense_mob, "Failed to allocate a dense mob for accessibility testing.")
-	track_spawned_human(dense_mob)
-	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
-	TEST_ASSERT(mob_target in filtered_candidates, "A dense mob should not invalidate a turf for Human AI squad spawning.")
 
 	for(var/obj/structure/blocker/blocker as anything in blockers)
 		if(!QDELETED(blocker))
 			qdel(blocker)
+
+/datum/unit_test/human_ai_squad_spawner_border_window_regression
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_squad_spawner_border_window_regression/Run()
+	var/datum/human_ai_squad_preset/unit_test_spawn/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for the border-window regression test.")
+
+	var/turf/candidate = get_step(origin, EAST)
+	TEST_ASSERT(isfloorturf(candidate), "Failed to find an adjacent floor turf for the border-window regression test.")
+
+	var/obj/structure/window/border_window = allocate(/obj/structure/window, candidate)
+	border_window.setDir(NORTH)
+
+	var/list/unfiltered_candidates = preset.get_spawn_candidate_turfs(origin, 1, FALSE)
+	TEST_ASSERT(candidate in unfiltered_candidates, "A border window on a candidate turf should not remove it from the unfiltered candidate set.")
+
+	var/list/reachable_candidates = preset.get_spawn_candidate_turfs(origin, 1, TRUE)
+	TEST_ASSERT(candidate in reachable_candidates, "A border window that does not block the path should not remove a reachable candidate turf.")
 
 /datum/unit_test/human_ai_squad_spawner_spawn_distribution
 	parent_type = /datum/unit_test/human_ai_squad_spawner
@@ -257,6 +310,69 @@
 
 	TEST_ASSERT_EQUAL(fallback_squad.squad_leader, fallback_squad.ai_in_squad[1], "The first spawned unit should remain the squad leader after the radius/filter changes.")
 
+/datum/unit_test/human_ai_squad_spawner_ui_act_flow
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_squad_spawner_ui_act_flow/Run()
+	var/datum/human_ai_squad_preset/unit_test_spawn/ui_capture/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn/ui_capture)
+	var/preset_key = register_test_preset(preset)
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for the HumanSquadSpawner ui_act flow test.")
+
+	var/mob/living/carbon/human/admin_user = allocate(/mob/living/carbon/human, origin)
+	track_spawned_human(admin_user)
+	var/datum/human_squad_spawner_menu/menu = allocate(/datum/human_squad_spawner_menu)
+	var/datum/tgui/ui = allocate(/datum/tgui, admin_user, menu, "HumanSquadSpawner")
+
+	var/success = menu.ui_act("create_squad", list(
+		"path" = preset_key,
+		"radius" = 4,
+		"only_accessible" = 0,
+	), ui, menu.ui_state(admin_user))
+	TEST_ASSERT(success, "HumanSquadSpawner ui_act should succeed for a valid squad spawn request.")
+	TEST_ASSERT_EQUAL(preset.last_spawn_radius, 4, "HumanSquadSpawner ui_act did not forward the configured spawn radius.")
+	TEST_ASSERT_EQUAL(preset.last_only_accessible_tiles, FALSE, "HumanSquadSpawner ui_act did not forward only_accessible = FALSE.")
+	TEST_ASSERT_NOTNULL(preset.last_spawned_squad, "HumanSquadSpawner ui_act did not produce a squad object for a successful request.")
+	track_spawned_squad(preset.last_spawned_squad)
+
+/datum/unit_test/human_ai_squad_spawner_failure_paths
+	parent_type = /datum/unit_test/human_ai_squad_spawner
+
+/datum/unit_test/human_ai_squad_spawner_failure_paths/Run()
+	var/turf/origin = get_open_test_origin()
+	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for HumanSquadSpawner failure-path tests.")
+
+	var/mob/living/carbon/human/admin_user = allocate(/mob/living/carbon/human, origin)
+	track_spawned_human(admin_user)
+	var/datum/human_squad_spawner_menu/menu = allocate(/datum/human_squad_spawner_menu)
+	var/datum/tgui/ui = allocate(/datum/tgui, admin_user, menu, "HumanSquadSpawner")
+
+	var/datum/human_ai_squad_preset/unit_test_spawn/no_candidates_preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
+	var/no_candidates_key = register_test_preset(no_candidates_preset)
+	var/obj/structure/window/full/origin_blocker = allocate(/obj/structure/window/full, origin)
+	var/no_candidates_result = menu.ui_act("create_squad", list(
+		"path" = no_candidates_key,
+		"radius" = 1,
+		"only_accessible" = 1,
+	), ui, menu.ui_state(admin_user))
+	TEST_ASSERT_EQUAL(no_candidates_result, FALSE, "HumanSquadSpawner ui_act should fail when there are no valid spawn candidates.")
+	qdel(origin_blocker)
+
+	var/turf/second_origin = get_step(origin, SOUTH)
+	TEST_ASSERT(isfloorturf(second_origin), "Failed to find a secondary open turf for the empty-spawn failure-path test.")
+	var/mob/living/carbon/human/second_admin_user = allocate(/mob/living/carbon/human, second_origin)
+	track_spawned_human(second_admin_user)
+	var/datum/tgui/second_ui = allocate(/datum/tgui, second_admin_user, menu, "HumanSquadSpawner")
+
+	var/datum/human_ai_squad_preset/unit_test_spawn/empty_spawn/empty_spawn_preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn/empty_spawn)
+	var/empty_spawn_key = register_test_preset(empty_spawn_preset)
+	var/empty_spawn_result = menu.ui_act("create_squad", list(
+		"path" = empty_spawn_key,
+		"radius" = 1,
+		"only_accessible" = 1,
+	), second_ui, menu.ui_state(second_admin_user))
+	TEST_ASSERT_EQUAL(empty_spawn_result, FALSE, "HumanSquadSpawner ui_act should fail when squad creation returns no AI members.")
+
 // SS220 EDIT - START: regression coverage for modular Human AI species validation in both single and squad spawners
 /datum/unit_test/human_ai_spawner_species_helper
 	parent_type = /datum/unit_test/human_ai_squad_spawner
@@ -271,17 +387,20 @@
 	TEST_ASSERT(isfloorturf(unggoy_turf), "Failed to find an open turf for the Unggoy AI spawn helper test.")
 	TEST_ASSERT(isfloorturf(human_turf), "Failed to find an open turf for the human AI spawn helper test.")
 
-	var/mob/living/carbon/human/sangheili = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma, sangheili_turf, TRUE)
+	var/mob/living/carbon/human/sangheili = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma, sangheili_turf, TRUE, EAST)
 	track_spawned_human(sangheili)
 	assert_spawned_ai_species(sangheili, SPECIES_SANGHEILI, "Sangheili AI helper spawn")
+	TEST_ASSERT_EQUAL(sangheili.dir, EAST, "Sangheili AI helper spawn did not preserve the requested facing direction.")
 
-	var/mob/living/carbon/human/unggoy = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma, unggoy_turf, TRUE)
+	var/mob/living/carbon/human/unggoy = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma, unggoy_turf, TRUE, NORTH)
 	track_spawned_human(unggoy)
 	assert_spawned_ai_species(unggoy, SPECIES_UNGGOY, "Unggoy AI helper spawn")
+	TEST_ASSERT_EQUAL(unggoy.dir, NORTH, "Unggoy AI helper spawn did not preserve the requested facing direction.")
 
-	var/mob/living/carbon/human/unsc_marine = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/unsc/pfc/equipped, human_turf, TRUE)
+	var/mob/living/carbon/human/unsc_marine = modular_spawn_human_ai_from_equipment_preset(/datum/equipment_preset/unsc/pfc/equipped, human_turf, TRUE, SOUTH)
 	track_spawned_human(unsc_marine)
 	assert_spawned_ai_species(unsc_marine, SPECIES_HUMAN, "UNSC AI helper spawn")
+	TEST_ASSERT_EQUAL(unsc_marine.dir, SOUTH, "Human AI helper spawn did not preserve the requested facing direction.")
 
 /datum/unit_test/human_ai_squad_spawner_species_unggoy_only
 	parent_type = /datum/unit_test/human_ai_squad_spawner

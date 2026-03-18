@@ -1,7 +1,14 @@
 import { useState } from 'react';
 
 import { useBackend } from '../backend';
-import { Button, Collapsible, Divider, Section, Stack } from '../components';
+import {
+  Button,
+  Collapsible,
+  Divider,
+  NumberInput,
+  Section,
+  Stack,
+} from '../components';
 import { Window } from '../layouts';
 
 type Squad = {
@@ -15,9 +22,19 @@ type BackendContext = {
   squads: { [key: string]: Squad[] };
 };
 
+const normalizeRadius = (value: number) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.max(1, Math.min(10, Math.round(value)));
+};
+
 export const HumanSquadSpawner = (props) => {
   const { data, act } = useBackend<BackendContext>();
   const [chosenSquad, setSquad] = useState<Squad | null>(null);
+  const [spawnRadius, setSpawnRadius] = useState(1);
+  const [onlyAccessible, setOnlyAccessible] = useState(true);
   const { squads } = data;
   return (
     <Window title="Human Squad Spawner" width={800} height={900}>
@@ -59,12 +76,40 @@ export const HumanSquadSpawner = (props) => {
                       ))}
                     </Stack.Item>
                     <Stack.Item>
+                      <Stack align="center">
+                        <Stack.Item grow>Spawn Radius</Stack.Item>
+                        <Stack.Item>
+                          <NumberInput
+                            width="5em"
+                            step={1}
+                            minValue={1}
+                            maxValue={10}
+                            value={spawnRadius}
+                            onChange={(value) =>
+                              setSpawnRadius(normalizeRadius(value))
+                            }
+                          />
+                        </Stack.Item>
+                      </Stack>
+                    </Stack.Item>
+                    <Stack.Item>
+                      <Button.Checkbox
+                        checked={onlyAccessible}
+                        fluid
+                        onClick={() => setOnlyAccessible(!onlyAccessible)}
+                      >
+                        Only accessible tiles
+                      </Button.Checkbox>
+                    </Stack.Item>
+                    <Stack.Item>
                       <Button
                         textAlign="center"
                         width="100%"
                         onClick={() =>
                           act('create_squad', {
                             path: chosenSquad.path,
+                            radius: spawnRadius,
+                            only_accessible: onlyAccessible ? 1 : 0,
                           })
                         }
                       >
