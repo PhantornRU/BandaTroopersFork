@@ -189,6 +189,21 @@
 	var/datum/squad/assigned_squad = human.assigned_squad
 	assigned_squad.remove_marine_from_squad(human, human.get_idcard())
 
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_equipment_metadata(real_name, preset_path, expected_role_title)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, expected_role_title)
+	arm_equipment(human, preset_path, FALSE, TRUE)
+
+	var/obj/item/card/id/id = human.get_idcard()
+	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, preset_path, "[real_name] did not keep the expected HALO preset after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "[real_name] no longer keeps FACTION_UNSC after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.job, expected_role_title, "[real_name] did not keep the expected HALO runtime job after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.title, expected_role_title, "[real_name] did not keep the expected HALO runtime title after arm_equipment().")
+	TEST_ASSERT_NOTNULL(id, "[real_name] did not receive an ID card from the HALO preset.")
+	TEST_ASSERT_EQUAL(id?.faction, FACTION_UNSC, "[real_name] did not keep FACTION_UNSC on the equipped ID metadata.")
+	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO rank on the equipped ID metadata.")
+	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO assignment on the equipped ID metadata.")
+
 /datum/unit_test/halo_ship_platoons/proc/holder_has_overlay_state(image/holder, icon_state)
 	if(!holder || !icon_state)
 		return FALSE
@@ -500,10 +515,13 @@
 	configure_test_human(halo_medic, "HALO Cryo Medic", JOB_SQUAD_MEDIC)
 	TEST_ASSERT(role_authority.apply_active_ship_cryo_reinforcement(halo_medic, JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC, null, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO UNSC cryo application helper failed to apply a supported medic override.")
 	TEST_ASSERT_EQUAL(halo_medic.job, JOB_SQUAD_MEDIC_UNSC, "HALO UNSC cryo application helper did not apply the effective profile title.")
+	TEST_ASSERT_EQUAL(halo_medic.title, JOB_SQUAD_MEDIC_UNSC, "HALO UNSC cryo application helper did not keep the effective HALO title metadata.")
+	TEST_ASSERT_EQUAL(halo_medic.assigned_equipment_preset?.type, /datum/equipment_preset/unsc/medic/equipped, "HALO UNSC cryo application helper did not apply the effective HALO medic preset.")
 	TEST_ASSERT_NOTNULL(halo_medic.assigned_squad, "HALO UNSC cryo application helper did not randomize the medic into a squad.")
 	var/list/unsc_family_types = role_authority.get_halo_job_family_types(JOB_SQUAD_MEDIC_UNSC)
 	TEST_ASSERT(unsc_family_types.Find(halo_medic.assigned_squad?.type), "HALO UNSC cryo application helper assigned the medic outside the HALO UNSC squad family.")
 	TEST_ASSERT_EQUAL(halo_medic.faction, FACTION_UNSC, "HALO UNSC cryo application helper did not equip the effective profile preset.")
+	TEST_ASSERT_EQUAL(halo_medic.get_idcard()?.faction, FACTION_UNSC, "HALO UNSC cryo application helper did not keep FACTION_UNSC on the medic ID metadata.")
 
 	var/mob/living/carbon/human/unsupported_engineer = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(unsupported_engineer, "Unsupported HALO Engineer", JOB_SQUAD_ENGI)
@@ -526,17 +544,10 @@
 	TEST_ASSERT_EQUAL(odst_rifleman_job?.get_spawn_equip_preset(), /datum/equipment_preset/unsc/pfc/odst, "ODST rifleman no longer resolves through the HALO preset path.")
 	TEST_ASSERT_EQUAL(odst_medic_job?.get_spawn_equip_preset(), /datum/equipment_preset/unsc/medic/odst, "ODST Corpsman no longer resolves through the HALO preset path.")
 
-	var/list/preset_matrix = list(
-		list("name" = "UNSC Rifleman", "path" = /datum/equipment_preset/unsc/pfc/equipped, "job" = JOB_SQUAD_MARINE_UNSC),
-		list("name" = "UNSC Corpsman", "path" = /datum/equipment_preset/unsc/medic/equipped, "job" = JOB_SQUAD_MEDIC_UNSC),
-		list("name" = "ODST Rifleman", "path" = /datum/equipment_preset/unsc/pfc/odst/equipped, "job" = JOB_SQUAD_MARINE_ODST),
-		list("name" = "ODST Corpsman", "path" = /datum/equipment_preset/unsc/medic/odst/equipped, "job" = JOB_SQUAD_MEDIC_ODST),
-	)
-	for(var/list/entry as anything in preset_matrix)
-		var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-		configure_test_human(human, entry["name"], entry["job"])
-		arm_equipment(human, entry["path"], FALSE, TRUE)
-		TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "[entry["name"]] no longer keeps FACTION_UNSC after arm_equipment().")
+	assert_halo_equipment_metadata("UNSC Rifleman", /datum/equipment_preset/unsc/pfc/equipped, JOB_SQUAD_MARINE_UNSC)
+	assert_halo_equipment_metadata("UNSC Corpsman", /datum/equipment_preset/unsc/medic/equipped, JOB_SQUAD_MEDIC_UNSC)
+	assert_halo_equipment_metadata("ODST Rifleman", /datum/equipment_preset/unsc/pfc/odst/equipped, JOB_SQUAD_MARINE_ODST)
+	assert_halo_equipment_metadata("ODST Corpsman", /datum/equipment_preset/unsc/medic/odst/equipped, JOB_SQUAD_MEDIC_ODST)
 
 /datum/unit_test/halo_ship_platoons_cryo_followup_preserves_unsc_context
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -555,6 +566,9 @@
 	cryo_call.finalize_profile_cryo_reinforcement(human)
 
 	TEST_ASSERT_EQUAL(human.job, JOB_SQUAD_MEDIC_UNSC, "Cryo follow-up handling regressed the HALO corpsman title back to a canonical USCM role.")
+	TEST_ASSERT_EQUAL(human.title, JOB_SQUAD_MEDIC_UNSC, "Cryo follow-up handling regressed the HALO corpsman assignment metadata back to a canonical USCM role.")
+	TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "Cryo follow-up handling regressed the HALO corpsman faction metadata.")
+	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, /datum/equipment_preset/unsc/medic/equipped, "Cryo follow-up handling regressed the HALO corpsman preset metadata.")
 	TEST_ASSERT_NOTNULL(human.assigned_squad, "Cryo follow-up handling did not restore squad assignment for a HALO corpsman.")
 	var/list/unsc_family_types = GLOB.RoleAuthority.get_halo_job_family_types(JOB_SQUAD_MEDIC_UNSC)
 	TEST_ASSERT(unsc_family_types.Find(human.assigned_squad?.type), "Cryo follow-up handling assigned the HALO corpsman outside the UNSC squad family.")
