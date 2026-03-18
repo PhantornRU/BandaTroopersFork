@@ -42,8 +42,8 @@
 		FOR_DVIEW_END
 
 	sleep(5)
-	GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(human, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SPECIALIST, /datum/equipment_preset/uscm/specialist_equipped, mind == null)
-	finalize_profile_cryo_reinforcement(human)
+	if(!apply_profile_cryo_reinforcement(human, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SPECIALIST, /datum/equipment_preset/uscm/specialist_equipped, mind == null))
+		return
 	to_chat(human, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(human)))
 	to_chat(human, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]. Listen to the chain of command."))
 	to_chat(human, SPAN_BOLDWARNING("If you wish to cryo or ghost upon spawning in, you must ahelp and inform staff so you can be replaced."))

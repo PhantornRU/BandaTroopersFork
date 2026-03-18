@@ -36,34 +36,28 @@
 
 	sleep(5)
 	var/datum/squad/marine/cryo/cryo_squad = GLOB.RoleAuthority.squads_by_type[/datum/squad/marine/cryo]
-	var/use_profile_cryo = GLOB.RoleAuthority?.has_active_ship_cryo_reinforcement_overrides()
-	if(leaders < cryo_squad.max_leaders && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_LEADER) && check_timelock(H.client, JOB_SQUAD_LEADER, time_required_for_job) && GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(H, JOB_SQUAD_LEADER, JOB_SQUAD_LEADER, null, TRUE))
+	if(leaders < cryo_squad.max_leaders && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_LEADER) && check_timelock(H.client, JOB_SQUAD_LEADER, time_required_for_job) && apply_profile_cryo_reinforcement(H, JOB_SQUAD_LEADER, JOB_SQUAD_LEADER, null, TRUE))
 		leader = H
 		leaders++
-		finalize_profile_cryo_reinforcement(H)
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(heavies < max_heavies && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_HEAVY) && check_timelock(H.client, JOB_SQUAD_SPECIALIST, time_required_for_job) && GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(H, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SPECIALIST, /datum/equipment_preset/uscm/specialist_equipped, TRUE))
+	else if(heavies < max_heavies && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_HEAVY) && check_timelock(H.client, JOB_SQUAD_SPECIALIST, time_required_for_job) && apply_profile_cryo_reinforcement(H, JOB_SQUAD_SPECIALIST, JOB_SQUAD_SPECIALIST, /datum/equipment_preset/uscm/specialist_equipped, TRUE))
 		heavies++
-		finalize_profile_cryo_reinforcement(H)
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(!use_profile_cryo && smartgunners < max_smartgunners && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_SMARTGUNNER) && check_timelock(H.client, JOB_SQUAD_SMARTGUN, time_required_for_job))
+	else if(smartgunners < max_smartgunners && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_SMARTGUNNER) && check_timelock(H.client, JOB_SQUAD_SMARTGUN, time_required_for_job) && apply_profile_cryo_reinforcement(H, JOB_SQUAD_SMARTGUN, JOB_SQUAD_SMARTGUN, /datum/equipment_preset/uscm/smartgunner_equipped, TRUE))
 		smartgunners++
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(!use_profile_cryo && engineers < max_engineers && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(H.client, JOB_SQUAD_ENGI, time_required_for_job) && GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(H, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, TRUE))
+	else if(engineers < max_engineers && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_ENGINEER) && check_timelock(H.client, JOB_SQUAD_ENGI, time_required_for_job) && apply_profile_cryo_reinforcement(H, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, TRUE))
 		engineers++
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else if(medics < max_medics && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_MEDIC) && check_timelock(H.client, JOB_SQUAD_MEDIC, time_required_for_job) && GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(H, JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC, null, TRUE))
+	else if(medics < max_medics && HAS_FLAG(H.client.prefs.toggles_ert, PLAY_MEDIC) && check_timelock(H.client, JOB_SQUAD_MEDIC, time_required_for_job) && apply_profile_cryo_reinforcement(H, JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC, null, TRUE))
 		medics++
-		finalize_profile_cryo_reinforcement(H)
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
-	else
-		GLOB.RoleAuthority.apply_active_ship_cryo_reinforcement(H, JOB_SQUAD_MARINE, JOB_SQUAD_MARINE, null, TRUE)
-		finalize_profile_cryo_reinforcement(H)
+	else if(apply_profile_cryo_reinforcement(H, JOB_SQUAD_MARINE, JOB_SQUAD_MARINE, null, TRUE))
 		to_chat(H, SPAN_ROLE_HEADER(get_cryo_reinforcement_role_header(H)))
 		to_chat(H, SPAN_ROLE_BODY("Your squad is here to assist in the defence of [SSmapping.configs[GROUND_MAP].map_name]."))
 
