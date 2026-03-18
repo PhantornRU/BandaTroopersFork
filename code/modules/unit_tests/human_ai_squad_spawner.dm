@@ -13,11 +13,11 @@
 /datum/unit_test/human_ai_squad_spawner/Destroy()
 	for(var/mob/living/carbon/human/human as anything in created_humans)
 		if(!QDELETED(human))
-			qdel(human, force = TRUE)
+			qdel(human)
 
 	for(var/datum/human_ai_squad/squad as anything in created_squads)
 		if(!QDELETED(squad))
-			qdel(squad, force = TRUE)
+			qdel(squad)
 
 	created_humans = null
 	created_squads = null
@@ -25,7 +25,9 @@
 	return ..()
 
 /datum/unit_test/human_ai_squad_spawner/proc/get_open_test_origin()
-	for(var/turf/open/floor/floor_tile as anything in block(run_loc_floor_bottom_left, run_loc_floor_top_right))
+	for(var/turf/floor_tile as anything in block(run_loc_floor_bottom_left, run_loc_floor_top_right))
+		if(!isfloorturf(floor_tile))
+			continue
 		var/all_cardinals_open = TRUE
 		for(var/direction in GLOB.cardinals)
 			if(!isfloorturf(get_step(floor_tile, direction)))
@@ -42,7 +44,9 @@
 	for(var/turf/root as anything in search_roots)
 		if(!isfloorturf(root))
 			continue
-		for(var/turf/open/floor/floor_tile as anything in range(radius + 3, root))
+		for(var/turf/floor_tile as anything in range(radius + 3, root))
+			if(!isfloorturf(floor_tile))
+				continue
 			var/list/candidates = preset?.get_spawn_candidate_turfs(floor_tile, radius, FALSE)
 			if(length(candidates) >= min_candidates)
 				return floor_tile
@@ -55,13 +59,13 @@
 		if(floor_tile == origin)
 			continue
 
-		var/all_cardinals_open = TRUE
-		for(var/direction in GLOB.cardinals)
+		var/all_adjacent_open = TRUE
+		for(var/direction in GLOB.alldirs)
 			if(!isfloorturf(get_step(floor_tile, direction)))
-				all_cardinals_open = FALSE
+				all_adjacent_open = FALSE
 				break
 
-		if(all_cardinals_open)
+		if(all_adjacent_open)
 			return floor_tile
 
 	return null
@@ -148,7 +152,7 @@
 	var/obj/structure/blocker/object_blocker = allocate(/obj/structure/blocker, object_blocked_target)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(!(object_blocked_target in filtered_candidates), "A turf with a dense object on its center should not remain a valid spawn candidate.")
-	qdel(object_blocker, force = TRUE)
+	qdel(object_blocker)
 
 	var/turf/window_blocked_target = null
 	for(var/turf/candidate as anything in base_candidates)
@@ -161,11 +165,14 @@
 	var/obj/structure/window/window_blocker = allocate(/obj/structure/window, window_blocked_target)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(!(window_blocked_target in filtered_candidates), "A turf with a window on it should not remain a valid spawn candidate.")
-	qdel(window_blocker, force = TRUE)
+	qdel(window_blocker)
 
 	var/turf/mob_target = null
-	for(var/turf/candidate as anything in filtered_candidates)
+	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
+	for(var/turf/candidate as anything in base_candidates)
 		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == window_blocked_target || candidate in blocked_ring_turfs)
+			continue
+		if(!(candidate in filtered_candidates))
 			continue
 		mob_target = candidate
 		break
@@ -173,8 +180,13 @@
 	TEST_ASSERT_NOTNULL(mob_target, "Failed to find a turf for dense-mob accessibility testing.")
 	var/mob/living/carbon/human/dense_mob = allocate(/mob/living/carbon/human, mob_target)
 	TEST_ASSERT_NOTNULL(dense_mob, "Failed to allocate a dense mob for accessibility testing.")
+	track_spawned_human(dense_mob)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(mob_target in filtered_candidates, "A dense mob should not invalidate a turf for Human AI squad spawning.")
+
+	for(var/obj/structure/blocker/blocker as anything in blockers)
+		if(!QDELETED(blocker))
+			qdel(blocker)
 
 /datum/unit_test/human_ai_squad_spawner_spawn_distribution
 	parent_type = /datum/unit_test/human_ai_squad_spawner

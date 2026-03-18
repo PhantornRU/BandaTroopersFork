@@ -267,6 +267,33 @@
 	switch(platoon_type)
 		if(/datum/squad/marine/halo/unsc/alpha)
 			return list(
+				JOB_SQUAD_MARINE = list(
+					/datum/equipment_preset/uscm/pfc = /datum/equipment_preset/unsc/pfc,
+					/datum/equipment_preset/uscm/pfc/private = /datum/equipment_preset/unsc/pfc/lesser_rank,
+					/datum/equipment_preset/uscm/pfc/lance_corporal = /datum/equipment_preset/unsc/pfc,
+				),
+				JOB_SQUAD_RTO = list(
+					/datum/equipment_preset/uscm/rto = /datum/equipment_preset/unsc/rto,
+					/datum/equipment_preset/uscm/rto/lance_corporal = /datum/equipment_preset/unsc/rto/lesser_rank,
+					/datum/equipment_preset/uscm/rto/pfc = /datum/equipment_preset/unsc/rto/lesser_rank,
+				),
+				JOB_SQUAD_MEDIC = list(
+					/datum/equipment_preset/uscm/medic = /datum/equipment_preset/unsc/medic,
+					/datum/equipment_preset/uscm/medic/lance_corporal = /datum/equipment_preset/unsc/medic/lesser_rank,
+					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/lesser_rank,
+					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/lesser_rank,
+				),
+				JOB_SQUAD_TEAM_LEADER = list(
+					/datum/equipment_preset/uscm/tl = /datum/equipment_preset/unsc/tl,
+					/datum/equipment_preset/uscm/tl/corporal = /datum/equipment_preset/unsc/tl/lesser_rank,
+				),
+				JOB_SQUAD_LEADER = list(
+					/datum/equipment_preset/uscm/leader = /datum/equipment_preset/unsc/leader,
+					/datum/equipment_preset/uscm/leader/staff_sergeant = /datum/equipment_preset/unsc/leader/lesser_rank,
+				),
+				JOB_SQUAD_SPECIALIST = list(
+					/datum/equipment_preset/uscm/specialist_equipped = /datum/equipment_preset/unsc/spec,
+				),
 				JOB_SO = list(
 					/datum/equipment_preset/uscm_ship/so = /datum/equipment_preset/unsc/platco,
 					/datum/equipment_preset/uscm_ship/so/lesser_rank = /datum/equipment_preset/unsc/platco/lesser_rank,
@@ -274,6 +301,33 @@
 			)
 		if(/datum/squad/marine/halo/odst/alpha)
 			return list(
+				JOB_SQUAD_MARINE = list(
+					/datum/equipment_preset/uscm/pfc = /datum/equipment_preset/unsc/pfc/odst,
+					/datum/equipment_preset/uscm/pfc/private = /datum/equipment_preset/unsc/pfc/odst/lesser_rank,
+					/datum/equipment_preset/uscm/pfc/lance_corporal = /datum/equipment_preset/unsc/pfc/odst,
+				),
+				JOB_SQUAD_RTO = list(
+					/datum/equipment_preset/uscm/rto = /datum/equipment_preset/unsc/rto/odst,
+					/datum/equipment_preset/uscm/rto/lance_corporal = /datum/equipment_preset/unsc/rto/odst/lesser_rank,
+					/datum/equipment_preset/uscm/rto/pfc = /datum/equipment_preset/unsc/rto/odst/lesser_rank,
+				),
+				JOB_SQUAD_MEDIC = list(
+					/datum/equipment_preset/uscm/medic = /datum/equipment_preset/unsc/medic/odst,
+					/datum/equipment_preset/uscm/medic/lance_corporal = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
+					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
+					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
+				),
+				JOB_SQUAD_TEAM_LEADER = list(
+					/datum/equipment_preset/uscm/tl = /datum/equipment_preset/unsc/tl/odst,
+					/datum/equipment_preset/uscm/tl/corporal = /datum/equipment_preset/unsc/tl/odst/lesser_rank,
+				),
+				JOB_SQUAD_LEADER = list(
+					/datum/equipment_preset/uscm/leader = /datum/equipment_preset/unsc/leader/odst,
+					/datum/equipment_preset/uscm/leader/staff_sergeant = /datum/equipment_preset/unsc/leader/odst/lesser_rank,
+				),
+				JOB_SQUAD_SPECIALIST = list(
+					/datum/equipment_preset/uscm/specialist_equipped = /datum/equipment_preset/unsc/spec/odst,
+				),
 				JOB_SO = list(
 					/datum/equipment_preset/uscm_ship/so = /datum/equipment_preset/unsc/platco/odst,
 					/datum/equipment_preset/uscm_ship/so/lesser_rank = /datum/equipment_preset/unsc/platco/odst/lesser_rank,

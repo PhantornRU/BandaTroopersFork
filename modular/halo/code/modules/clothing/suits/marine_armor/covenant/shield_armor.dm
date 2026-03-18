@@ -231,7 +231,6 @@
 		if(shield_fx_enabled())
 			playsound(src, "shield_pop", falloff = 5)
 		spawn_shield_pop_fx(current_user.loc)
-		remove_shield_effect()
 		if(shield_fx_enabled())
 			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
 

@@ -26,6 +26,40 @@
 	last_throw_final_turf = get_turf(src)
 	return ..()
 
+/datum/unit_test/human_ai_grenade_throws
+	var/list/created_humans
+	var/list/created_items
+	var/list/created_actions
+	var/turf/prepared_throw_origin
+	var/turf/prepared_throw_target
+
+/datum/unit_test/human_ai_grenade_throws/New()
+	. = ..()
+	created_humans = list()
+	created_items = list()
+	created_actions = list()
+
+/datum/unit_test/human_ai_grenade_throws/Destroy()
+	for(var/datum/ai_action/action as anything in created_actions)
+		if(!QDELETED(action))
+			qdel(action)
+
+	for(var/obj/item/item as anything in created_items)
+		if(!QDELETED(item))
+			qdel(item)
+
+	for(var/mob/living/carbon/human/human as anything in created_humans)
+		if(!QDELETED(human))
+			qdel(human)
+
+	created_humans = null
+	created_items = null
+	created_actions = null
+	prepared_throw_origin = null
+	prepared_throw_target = null
+
+	return ..()
+
 /datum/unit_test/human_ai_grenade_throws/proc/create_test_ai_brain()
 	var/turf/origin = find_clear_throw_origin()
 	if(!isfloorturf(origin))
@@ -33,6 +67,7 @@
 		return null
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, origin)
+	created_humans += human
 	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
 	if(!ai_component)
 		TEST_FAIL("Failed to add a human AI component to the shared grenade-throw test mob.")
@@ -58,21 +93,30 @@
 		var/path_clear = TRUE
 		for(var/i in 1 to distance)
 			current_turf = get_step(current_turf, direction)
-			if(!isfloorturf(current_turf))
+			if(!is_clear_throw_corridor_turf(current_turf))
 				path_clear = FALSE
 				break
-			for(var/atom/movable/blocker as anything in current_turf)
-				if(blocker.density)
-					path_clear = FALSE
-					break
-			if(!path_clear)
-				break
-		if(path_clear)
+		if(path_clear && isfloorturf(current_turf))
 			return current_turf
 
 	return null
 
+/datum/unit_test/human_ai_grenade_throws/proc/is_clear_throw_corridor_turf(turf/current_turf)
+	if(!isfloorturf(current_turf))
+		return FALSE
+
+	if(current_turf.density)
+		return FALSE
+
+	for(var/obj/object in current_turf)
+		if(object.density)
+			return FALSE
+
+	return TRUE
+
 /datum/unit_test/human_ai_grenade_throws/proc/find_clear_throw_origin(distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	prepared_throw_origin = null
+	prepared_throw_target = null
 	var/search_radius = distance + 6
 	var/list/search_roots = list(run_loc_floor_bottom_left, run_loc_floor_top_right, SSmapping?.get_mainship_center())
 	var/list/search_levels = list()
@@ -81,7 +125,9 @@
 			continue
 		if(!(root.z in search_levels))
 			search_levels += root.z
-		for(var/turf/open/floor/origin as anything in range(search_radius, root))
+		for(var/turf/origin as anything in range(search_radius, root))
+			if(!isfloorturf(origin))
+				continue
 			if(find_clear_throw_target_from_origin(origin, distance))
 				return origin
 
@@ -90,16 +136,65 @@
 		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
 		if(!start_corner || !end_corner)
 			continue
-		for(var/turf/open/floor/origin as anything in block(start_corner, end_corner))
+		for(var/turf/origin as anything in block(start_corner, end_corner))
+			if(!isfloorturf(origin))
+				continue
 			if(find_clear_throw_target_from_origin(origin, distance))
 				return origin
 
+	return prepare_throw_lane(distance)
+
+/datum/unit_test/human_ai_grenade_throws/proc/prepare_throw_lane(distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	var/list/search_roots = list(run_loc_floor_bottom_left, run_loc_floor_top_right, SSmapping?.get_mainship_center())
+	for(var/turf/root as anything in search_roots)
+		if(!isturf(root))
+			continue
+		for(var/direction in GLOB.cardinals)
+			var/turf/origin = ensure_clear_throw_lane(root, direction, distance)
+			if(!isfloorturf(origin))
+				continue
+			prepared_throw_origin = origin
+			prepared_throw_target = get_offset_turf(origin, direction, distance)
+			if(isfloorturf(prepared_throw_target))
+				return prepared_throw_origin
+
 	return null
+
+/datum/unit_test/human_ai_grenade_throws/proc/ensure_clear_throw_lane(turf/origin, direction, distance)
+	if(!isturf(origin))
+		return null
+
+	var/turf/current_turf = origin
+	for(var/i in 0 to distance)
+		if(!isturf(current_turf))
+			return null
+		if(!isfloorturf(current_turf))
+			current_turf = current_turf.ChangeTurf(/turf/open/floor/plating)
+		for(var/atom/movable/blocker as anything in current_turf)
+			if(ismob(blocker) || !blocker.density)
+				continue
+			qdel(blocker)
+		if(i < distance)
+			current_turf = get_step(current_turf, direction)
+
+	return origin
+
+/datum/unit_test/human_ai_grenade_throws/proc/get_offset_turf(turf/origin, direction, distance)
+	var/turf/current_turf = origin
+	for(var/i in 1 to distance)
+		current_turf = get_step(current_turf, direction)
+		if(!isturf(current_turf))
+			return null
+
+	return current_turf
 
 /datum/unit_test/human_ai_grenade_throws/proc/create_target_turf(datum/human_ai_brain/brain, distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
 	var/turf/origin = get_turf(brain?.tied_human)
 	if(!origin)
 		return null
+
+	if(origin == prepared_throw_origin && isfloorturf(prepared_throw_target))
+		return prepared_throw_target
 
 	return find_clear_throw_target_from_origin(origin, distance)
 
@@ -109,6 +204,7 @@
 		return null
 
 	var/obj/item/explosive/grenade/unit_test/ai_throw/grenade = allocate(/obj/item/explosive/grenade/unit_test/ai_throw, human)
+	created_items += grenade
 	brain.equipment_map[HUMAN_AI_GRENADES][grenade] = "unit_test"
 	return grenade
 
@@ -130,6 +226,7 @@
 	TEST_ASSERT_NOTNULL(grenade, "Failed to give the shared grenade-throw AI a test grenade.")
 
 	var/datum/ai_action/throw_grenade/action = new(brain)
+	created_actions += action
 	var/result = action.trigger_action()
 	TEST_ASSERT_EQUAL(result, ONGOING_ACTION_UNFINISHED_BLOCK, "The shared grenade throw action should enter its async prime/throw phase.")
 
@@ -155,6 +252,7 @@
 	TEST_ASSERT_NOTNULL(grenade, "Failed to give the shared grenade-throw interference AI a test grenade.")
 
 	var/datum/ai_action/throw_grenade/action = new(brain)
+	created_actions += action
 	var/result = action.trigger_action()
 	TEST_ASSERT_EQUAL(result, ONGOING_ACTION_UNFINISHED_BLOCK, "The shared grenade throw action should begin asynchronously before the hand-interference window.")
 

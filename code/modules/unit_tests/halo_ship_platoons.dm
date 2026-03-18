@@ -44,11 +44,11 @@
 /datum/unit_test/halo_ship_platoons/Destroy()
 	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
 		if(!QDELETED(human))
-			qdel(human, force = TRUE)
+			qdel(human)
 
 	for(var/datum/squad/squad as anything in tracked_test_squads)
 		if(!QDELETED(squad))
-			qdel(squad, force = TRUE)
+			qdel(squad)
 
 	if(synthetic_mainship_z)
 		var/datum/space_level/level = SSmapping?.get_level(synthetic_mainship_z)
@@ -983,8 +983,6 @@
 	var/obj/structure/machinery/cryopod/expected_pod = spawn_candidate["preferred_pod"]
 	TEST_ASSERT(human.try_enter_nearby_free_cryopod(job_datum, expected_pod), "SO failed to enter preferred cryopod on roundstart.")
 	TEST_ASSERT_EQUAL(human.loc, expected_pod, "SO did not end up inside the resolver-selected cryopod.")
-	tracked_test_humans -= human
-	qdel(human, force = TRUE)
 
 /mob/living/carbon/human/modular_spawn_probe
 	var/tmp/modular_spawn_called = FALSE
@@ -1021,12 +1019,8 @@
 	tracked_test_humans += job_human
 	job_datum.equip_job(job_human)
 	TEST_ASSERT(job_human.modular_spawn_called, "equip_job did not request modular spawn candidate for roundstart SO.")
-	tracked_test_humans -= job_human
-	qdel(job_human, force = TRUE)
 
 	var/mob/living/carbon/human/modular_spawn_probe/role_human = allocate(/mob/living/carbon/human/modular_spawn_probe, center_turf)
 	tracked_test_humans += role_human
 	role_authority.equip_role(role_human, job_datum, FALSE)
 	TEST_ASSERT(role_human.modular_spawn_called, "role_authority equip_role did not request modular spawn candidate for roundstart SO.")
-	tracked_test_humans -= role_human
-	qdel(role_human, force = TRUE)

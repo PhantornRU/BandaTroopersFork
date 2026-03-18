@@ -10,10 +10,32 @@
 	var/turf/spawn_turf = get_sangheili_test_origin(8)
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, spawn_turf)
 	arm_equipment(human, preset_type, FALSE)
+	track_sangheili_test_human(human)
 	return human
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_baseline_human()
-	return allocate(/mob/living/carbon/human, get_sangheili_test_origin(1))
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, get_sangheili_test_origin(1))
+	track_sangheili_test_human(human)
+	return human
+
+/datum/unit_test/halo_sangheili_equipment
+	var/list/tracked_test_humans
+
+/datum/unit_test/halo_sangheili_equipment/New()
+	. = ..()
+	tracked_test_humans = list()
+
+/datum/unit_test/halo_sangheili_equipment/Destroy()
+	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
+		if(!QDELETED(human))
+			qdel(human)
+
+	tracked_test_humans = null
+	return ..()
+
+/datum/unit_test/halo_sangheili_equipment/proc/track_sangheili_test_human(mob/living/carbon/human/human)
+	if(human)
+		tracked_test_humans += human
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
 	var/mob/living/carbon/human/human = create_sangheili(preset_type)
@@ -57,19 +79,26 @@
 		var/path_clear = TRUE
 		for(var/i in 1 to distance)
 			current_turf = get_step(current_turf, direction)
-			if(!isfloorturf(current_turf))
+			if(!is_clear_sangheili_path_turf(current_turf))
 				path_clear = FALSE
-				break
-			for(var/atom/movable/blocker as anything in current_turf)
-				if(blocker.density)
-					path_clear = FALSE
-					break
-			if(!path_clear)
 				break
 		if(path_clear)
 			return current_turf
 
 	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/is_clear_sangheili_path_turf(turf/current_turf)
+	if(!isfloorturf(current_turf))
+		return FALSE
+
+	if(current_turf.density)
+		return FALSE
+
+	for(var/obj/object in current_turf)
+		if(object.density)
+			return FALSE
+
+	return TRUE
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_sangheili_test_origin(min_clear_distance = 1)
 	var/search_radius = max(min_clear_distance + 4, 6)
@@ -80,7 +109,9 @@
 			continue
 		if(!(root.z in search_levels))
 			search_levels += root.z
-		for(var/turf/open/floor/floor_tile as anything in range(search_radius, root))
+		for(var/turf/floor_tile as anything in range(search_radius, root))
+			if(!isfloorturf(floor_tile))
+				continue
 			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
 				return floor_tile
 
@@ -89,11 +120,33 @@
 		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
 		if(!start_corner || !end_corner)
 			continue
-		for(var/turf/open/floor/floor_tile as anything in block(start_corner, end_corner))
+		for(var/turf/floor_tile as anything in block(start_corner, end_corner))
+			if(!isfloorturf(floor_tile))
+				continue
 			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
 				return floor_tile
 
-	return isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
+	var/turf/fallback_origin = isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
+	return ensure_clear_sangheili_lane(fallback_origin, EAST, min_clear_distance)
+
+/datum/unit_test/halo_sangheili_equipment/proc/ensure_clear_sangheili_lane(turf/origin, direction, distance)
+	if(!isturf(origin))
+		return null
+
+	var/turf/current_turf = origin
+	for(var/i in 0 to distance)
+		if(!isturf(current_turf))
+			return null
+		if(!isfloorturf(current_turf))
+			current_turf = current_turf.ChangeTurf(/turf/open/floor/plating)
+		for(var/atom/movable/blocker as anything in current_turf)
+			if(ismob(blocker) || !blocker.density)
+				continue
+			qdel(blocker)
+		if(i < distance)
+			current_turf = get_step(current_turf, direction)
+
+	return origin
 
 /datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
 	var/turf/origin = get_turf(brain?.tied_human)
@@ -104,13 +157,32 @@
 	if(linear_target)
 		return linear_target
 
-	for(var/turf/open/floor/floor_tile as anything in range(distance, origin))
+	for(var/direction in GLOB.cardinals)
+		var/turf/prepared_origin = ensure_clear_sangheili_lane(origin, direction, distance)
+		if(!prepared_origin)
+			continue
+		linear_target = get_offset_turf_from_direction(prepared_origin, direction, distance)
+		if(isfloorturf(linear_target))
+			return linear_target
+
+	for(var/turf/floor_tile as anything in range(distance, origin))
+		if(!isfloorturf(floor_tile))
+			continue
 		if(get_dist(origin, floor_tile) < distance)
 			continue
 		if(AStar(origin, floor_tile, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
 			return floor_tile
 
 	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_offset_turf_from_direction(turf/origin, direction, distance)
+	var/turf/current_turf = origin
+	for(var/i in 1 to distance)
+		current_turf = get_step(current_turf, direction)
+		if(!isturf(current_turf))
+			return null
+
+	return current_turf
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_belt_sword(mob/living/carbon/human/human)
 	if(!human?.belt)
