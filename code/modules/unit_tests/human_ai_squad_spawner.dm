@@ -19,6 +19,9 @@
 		if(!QDELETED(squad))
 			qdel(squad, force = TRUE)
 
+	created_humans = null
+	created_squads = null
+
 	return ..()
 
 /datum/unit_test/human_ai_squad_spawner/proc/get_open_test_origin()
@@ -34,8 +37,21 @@
 
 	return run_loc_floor_bottom_left
 
-/datum/unit_test/human_ai_squad_spawner/proc/get_enclosable_target(turf/origin, max_distance = 10)
-	for(var/turf/open/floor/floor_tile as anything in range(max_distance, origin))
+/datum/unit_test/human_ai_squad_spawner/proc/get_candidate_test_origin(datum/human_ai_squad_preset/preset, radius = 10, min_candidates = 8)
+	var/list/search_roots = list(run_loc_floor_bottom_left, run_loc_floor_top_right, SSmapping?.get_mainship_center())
+	for(var/turf/root as anything in search_roots)
+		if(!isfloorturf(root))
+			continue
+		for(var/turf/open/floor/floor_tile as anything in range(radius + 3, root))
+			var/list/candidates = preset?.get_spawn_candidate_turfs(floor_tile, radius, FALSE)
+			if(length(candidates) >= min_candidates)
+				return floor_tile
+
+	return get_open_test_origin()
+
+/datum/unit_test/human_ai_squad_spawner/proc/get_enclosable_target(datum/human_ai_squad_preset/preset, turf/origin, max_distance = 10)
+	var/list/candidates = preset?.get_spawn_candidate_turfs(origin, max_distance, FALSE)
+	for(var/turf/open/floor/floor_tile as anything in candidates)
 		if(floor_tile == origin)
 			continue
 
@@ -100,7 +116,7 @@
 
 /datum/unit_test/human_ai_squad_spawner_candidate_filter/Run()
 	var/datum/human_ai_squad_preset/unit_test_spawn/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
-	var/turf/origin = get_open_test_origin()
+	var/turf/origin = get_candidate_test_origin(preset, 10, 20)
 	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for Human AI squad spawner candidate filtering.")
 
 	var/list/base_candidates = preset.get_spawn_candidate_turfs(origin, 10, FALSE)
@@ -108,11 +124,11 @@
 	for(var/turf/candidate as anything in base_candidates)
 		TEST_ASSERT(get_dist(origin, candidate) <= 10, "Spawn candidate [candidate] exceeded the configured radius.")
 
-	var/turf/blocked_target = get_enclosable_target(origin)
+	var/turf/blocked_target = get_enclosable_target(preset, origin)
 	TEST_ASSERT_NOTNULL(blocked_target, "Failed to find an enclosable target turf for accessibility filtering.")
 	var/list/blockers = list()
 	var/list/blocked_ring_turfs = list()
-	for(var/direction in GLOB.cardinals)
+	for(var/direction in GLOB.alldirs)
 		var/turf/blocker_turf = get_step(blocked_target, direction)
 		TEST_ASSERT(isfloorturf(blocker_turf), "Blocked-target ring turf [blocker_turf] was not a floor.")
 		blocked_ring_turfs += blocker_turf
@@ -165,11 +181,12 @@
 
 /datum/unit_test/human_ai_squad_spawner_spawn_distribution/Run()
 	var/datum/human_ai_squad_preset/unit_test_spawn/preset = allocate(/datum/human_ai_squad_preset/unit_test_spawn)
-	var/turf/origin = get_open_test_origin()
+	var/turf/origin = get_candidate_test_origin(preset, 1, 5)
 	TEST_ASSERT(isfloorturf(origin), "Failed to find an open origin turf for Human AI squad spawn distribution tests.")
 
+	var/list/radius_candidates = preset.get_spawn_candidate_turfs(origin, 1, FALSE)
 	var/turf/occupied_target = null
-	for(var/turf/open/floor/candidate as anything in range(1, origin))
+	for(var/turf/open/floor/candidate as anything in radius_candidates)
 		if(candidate == origin)
 			continue
 		occupied_target = candidate
@@ -194,11 +211,17 @@
 	TEST_ASSERT_EQUAL(length(open_spawn_turf_keys), 3, "Open-area spawn should distribute squad members across unique tiles when enough candidates exist.")
 
 	var/turf/fallback_target = null
-	for(var/turf/open/floor/candidate as anything in range(1, origin))
+	for(var/turf/open/floor/candidate as anything in radius_candidates)
 		if(candidate == origin || candidate == occupied_target)
 			continue
-		fallback_target = candidate
-		break
+		var/all_cardinals_open = TRUE
+		for(var/direction in GLOB.cardinals)
+			if(!isfloorturf(get_step(candidate, direction)))
+				all_cardinals_open = FALSE
+				break
+		if(all_cardinals_open)
+			fallback_target = candidate
+			break
 
 	TEST_ASSERT_NOTNULL(fallback_target, "Failed to find a nearby fallback turf for repeat-spawn testing.")
 	var/mob/living/carbon/human/fallback_occupant = allocate(/mob/living/carbon/human, fallback_target)

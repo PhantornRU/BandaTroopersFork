@@ -7,12 +7,13 @@
 #define HALO_SHIELD_TEST_LONG_SOAK_DURATION (8 SECONDS)
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili(preset_type)
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/turf/spawn_turf = get_sangheili_test_origin(8)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, spawn_turf)
 	arm_equipment(human, preset_type, FALSE)
 	return human
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_baseline_human()
-	return allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
+	return allocate(/mob/living/carbon/human, get_sangheili_test_origin(1))
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
 	var/mob/living/carbon/human/human = create_sangheili(preset_type)
@@ -47,8 +48,7 @@
 	projectile.firer = firer
 	return projectile
 
-/datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
-	var/turf/origin = get_turf(brain?.tied_human)
+/datum/unit_test/halo_sangheili_equipment/proc/find_target_turf_from_origin(turf/origin, distance)
 	if(!origin)
 		return null
 
@@ -68,6 +68,41 @@
 				break
 		if(path_clear)
 			return current_turf
+
+	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_sangheili_test_origin(min_clear_distance = 1)
+	var/search_radius = max(min_clear_distance + 4, 6)
+	var/list/search_roots = list(run_loc_floor_top_right, run_loc_floor_bottom_left, SSmapping?.get_mainship_center())
+	var/list/search_levels = list()
+	for(var/turf/root as anything in search_roots)
+		if(!isfloorturf(root))
+			continue
+		if(!(root.z in search_levels))
+			search_levels += root.z
+		for(var/turf/open/floor/floor_tile as anything in range(search_radius, root))
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	for(var/z_level as anything in search_levels)
+		var/turf/start_corner = locate(1, 1, z_level)
+		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
+		if(!start_corner || !end_corner)
+			continue
+		for(var/turf/open/floor/floor_tile as anything in block(start_corner, end_corner))
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	return isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
+
+/datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
+	var/turf/origin = get_turf(brain?.tied_human)
+	if(!origin)
+		return null
+
+	var/turf/linear_target = find_target_turf_from_origin(origin, distance)
+	if(linear_target)
+		return linear_target
 
 	for(var/turf/open/floor/floor_tile as anything in range(distance, origin))
 		if(get_dist(origin, floor_tile) < distance)

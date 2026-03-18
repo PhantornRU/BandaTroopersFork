@@ -28,6 +28,10 @@
 
 /datum/unit_test/human_ai_grenade_throws/proc/create_test_ai_brain()
 	var/turf/origin = find_clear_throw_origin()
+	if(!isfloorturf(origin))
+		TEST_FAIL("Failed to find a deterministic open origin turf for the shared grenade-throw tests.")
+		return null
+
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, origin)
 	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
 	if(!ai_component)
@@ -45,30 +49,8 @@
 	human.forceMove(origin)
 	return brain
 
-/datum/unit_test/human_ai_grenade_throws/proc/find_clear_throw_origin(distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
-	for(var/turf/open/floor/origin as anything in block(run_loc_floor_bottom_left, run_loc_floor_top_right))
-		for(var/direction in GLOB.cardinals)
-			var/turf/current_turf = origin
-			var/path_clear = TRUE
-			for(var/i in 1 to distance)
-				current_turf = get_step(current_turf, direction)
-				if(!isfloorturf(current_turf))
-					path_clear = FALSE
-					break
-				for(var/atom/movable/blocker as anything in current_turf)
-					if(blocker.density)
-						path_clear = FALSE
-						break
-				if(!path_clear)
-					break
-			if(path_clear)
-				return origin
-
-	return run_loc_floor_bottom_left
-
-/datum/unit_test/human_ai_grenade_throws/proc/create_target_turf(datum/human_ai_brain/brain, distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
-	var/turf/origin = get_turf(brain?.tied_human)
-	if(!origin)
+/datum/unit_test/human_ai_grenade_throws/proc/find_clear_throw_target_from_origin(turf/origin, distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	if(!isfloorturf(origin))
 		return null
 
 	for(var/direction in GLOB.cardinals)
@@ -89,6 +71,37 @@
 			return current_turf
 
 	return null
+
+/datum/unit_test/human_ai_grenade_throws/proc/find_clear_throw_origin(distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	var/search_radius = distance + 6
+	var/list/search_roots = list(run_loc_floor_bottom_left, run_loc_floor_top_right, SSmapping?.get_mainship_center())
+	var/list/search_levels = list()
+	for(var/turf/root as anything in search_roots)
+		if(!isfloorturf(root))
+			continue
+		if(!(root.z in search_levels))
+			search_levels += root.z
+		for(var/turf/open/floor/origin as anything in range(search_radius, root))
+			if(find_clear_throw_target_from_origin(origin, distance))
+				return origin
+
+	for(var/z_level as anything in search_levels)
+		var/turf/start_corner = locate(1, 1, z_level)
+		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
+		if(!start_corner || !end_corner)
+			continue
+		for(var/turf/open/floor/origin as anything in block(start_corner, end_corner))
+			if(find_clear_throw_target_from_origin(origin, distance))
+				return origin
+
+	return null
+
+/datum/unit_test/human_ai_grenade_throws/proc/create_target_turf(datum/human_ai_brain/brain, distance = HUMAN_AI_GRENADE_TEST_DISTANCE)
+	var/turf/origin = get_turf(brain?.tied_human)
+	if(!origin)
+		return null
+
+	return find_clear_throw_target_from_origin(origin, distance)
 
 /datum/unit_test/human_ai_grenade_throws/proc/give_test_grenade(datum/human_ai_brain/brain)
 	var/mob/living/carbon/human/human = brain?.tied_human
