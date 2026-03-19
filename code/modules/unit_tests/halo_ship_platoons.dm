@@ -255,6 +255,20 @@
 	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_BODY), "[real_name] preview mannequin lost the equipped uniform/body slot.")
 	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_L_EAR), "[real_name] preview mannequin lost the equipped headset slot.")
 
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_odst_preview_visual_core(real_name, preview_role_title)
+	var/preset_type = GLOB.RoleAuthority?.get_modular_job_pref_to_gear_preset(preview_role_title)
+
+	TEST_ASSERT_NOTNULL(preset_type, "[real_name] did not resolve an ODST HALO preview preset through the modular preview helper.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, preview_role_title)
+	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
+
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen), "[real_name] preview mannequin did not use the ODST ferrymen headset.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_HEAD), /obj/item/clothing/head/helmet/marine/unsc/odst), "[real_name] preview mannequin did not use the ODST helmet.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_BODY), /obj/item/clothing/under/marine/odst), "[real_name] preview mannequin did not use the ODST uniform.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_JACKET), /obj/item/clothing/suit/marine/unsc/odst), "[real_name] preview mannequin did not use the ODST armor.")
+
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_specialist_roundstart_loadout(real_name, preset_path, expected_role_title, expected_squad_family)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	var/list/profile = role_authority?.get_ship_platoon_profile(expected_squad_family)
@@ -363,6 +377,12 @@
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC FTL", JOB_SQUAD_TEAM_LEADER_UNSC)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Squad Leader", JOB_SQUAD_LEADER_UNSC)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Specialist", JOB_SQUAD_SPECIALIST_UNSC)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST Platoon Commander", JOB_SO_ODST)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST Corpsman", JOB_SQUAD_MEDIC_ODST)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST RTO", JOB_SQUAD_RTO_ODST)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST FTL", JOB_SQUAD_TEAM_LEADER_ODST)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST Squad Leader", JOB_SQUAD_LEADER_ODST)
+	assert_halo_odst_preview_visual_core("HALO Preview ODST Specialist", JOB_SQUAD_SPECIALIST_ODST)
 	assert_halo_equipment_metadata("UNSC Platoon Commander", /datum/equipment_preset/unsc/platco/equipped, JOB_SO_UNSC)
 	assert_halo_equipment_metadata("ODST Platoon Commander", /datum/equipment_preset/unsc/platco/odst/equipped, JOB_SO_ODST)
 
