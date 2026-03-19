@@ -15,6 +15,9 @@
 	var/list/tracked_test_squads = null
 	var/list/tracked_test_atoms = null
 	var/snapshot_ship_platoon = null
+	var/snapshot_ship_map_name = null
+	var/snapshot_ship_map_path = null
+	var/list/snapshot_ship_allowed_platoons = null
 	var/synthetic_mainship_z = null
 	var/synthetic_mainship_prev = null
 	var/list/snapshot_runtime_name_by_static = null
@@ -49,6 +52,9 @@
 	tracked_test_squads = list()
 	tracked_test_atoms = list()
 	snapshot_ship_platoon = SSmapping?.configs?[SHIP_MAP]?.platoon
+	snapshot_ship_map_name = SSmapping?.configs?[SHIP_MAP]?.map_name
+	snapshot_ship_map_path = SSmapping?.configs?[SHIP_MAP]?.map_path
+	snapshot_ship_allowed_platoons = SSmapping?.configs?[SHIP_MAP]?.allowed_platoons ? SSmapping.configs[SHIP_MAP].allowed_platoons.Copy() : null
 	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
 	snapshot_runtime_name_by_static = manager?.runtime_name_by_static ? manager.runtime_name_by_static.Copy() : null
 	snapshot_leader_lock_by_static = manager?.leader_lock_by_static ? manager.leader_lock_by_static.Copy() : null
@@ -103,6 +109,9 @@
 	GLOB.main_platoon_initial_name = snapshot_main_platoon_initial_name
 	if(SSmapping?.configs?[SHIP_MAP])
 		SSmapping.configs[SHIP_MAP].platoon = snapshot_ship_platoon
+		SSmapping.configs[SHIP_MAP].map_name = snapshot_ship_map_name
+		SSmapping.configs[SHIP_MAP].map_path = snapshot_ship_map_path
+		SSmapping.configs[SHIP_MAP].allowed_platoons = snapshot_ship_allowed_platoons ? snapshot_ship_allowed_platoons.Copy() : null
 
 	tracked_test_humans = null
 	tracked_test_squads = null
@@ -184,18 +193,36 @@
 		if(movable.type == content_type)
 			.++
 
-/datum/unit_test/halo_ship_platoons/proc/get_mainship_test_turf()
+// SS220 EDIT - START - locker replacement fixtures need an optional adjacent floor for linked spawn turf assertions
+/datum/unit_test/halo_ship_platoons/proc/get_adjacent_floor_turf(turf/center_turf)
+	if(!isfloorturf(center_turf))
+		return null
+
+	for(var/cardinal_dir in GLOB.cardinals)
+		var/turf/candidate_turf = get_step(center_turf, cardinal_dir)
+		if(isfloorturf(candidate_turf))
+			return candidate_turf
+
+	return null
+
+/datum/unit_test/halo_ship_platoons/proc/get_mainship_test_turf(require_adjacent_floor = FALSE)
 	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in snapshot_personal_closets)
 		var/turf/locker_turf = get_turf(locker)
+		if(require_adjacent_floor && !get_adjacent_floor_turf(locker_turf))
+			continue
 		if(isfloorturf(locker_turf) && is_mainship_level(locker_turf.z))
 			return locker_turf
 
 	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in GLOB.personal_closets)
 		var/turf/locker_turf = get_turf(locker)
+		if(require_adjacent_floor && !get_adjacent_floor_turf(locker_turf))
+			continue
 		if(isfloorturf(locker_turf) && is_mainship_level(locker_turf.z))
 			return locker_turf
 
 	var/turf/mainship_center = SSmapping?.get_mainship_center()
+	if(require_adjacent_floor && !get_adjacent_floor_turf(mainship_center))
+		mainship_center = null
 	if(mainship_center && is_mainship_level(mainship_center.z))
 		return mainship_center
 
@@ -215,6 +242,7 @@
 			level.traits[ZTRAIT_MARINE_MAIN_SHIP] = TRUE
 
 	return fallback
+// SS220 EDIT - END
 
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_randomize_assigns_squad(real_name, job_title, preset_path, expected_squad_family)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
@@ -321,7 +349,13 @@
 
 	var/resolved_preset = job_datum.get_spawn_equip_preset(role_title, role_authority, expected_squad_family)
 	TEST_ASSERT_EQUAL(resolved_preset, expected_preset, "[real_name] resolved to [resolved_preset] instead of the expected HALO medic preset [expected_preset].")
-	TEST_ASSERT(!ispath(resolved_preset, /datum/equipment_preset/uscm/medic), "[real_name] regressed back to a vanilla USCM medic preset through HALO rank-option handling.")
+	var/list/vanilla_medic_presets = list(
+		/datum/equipment_preset/uscm/medic,
+		/datum/equipment_preset/uscm/medic/lance_corporal,
+		/datum/equipment_preset/uscm/medic/pfc,
+		/datum/equipment_preset/uscm/medic/private,
+	)
+	TEST_ASSERT(!(resolved_preset in vanilla_medic_presets), "[real_name] regressed back to an exact vanilla USCM medic preset through HALO rank-option handling.") // SS220 EDIT: exact-path check avoids false positives from HALO presets inheriting vanilla medic hooks
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(human, real_name, role_title)
@@ -541,7 +575,7 @@
 	var/list/halo_odst_profile = role_authority.get_ship_platoon_profile(/datum/squad/marine/halo/odst/alpha)
 	var/list/halo_odst_role_mappings = halo_odst_profile["role_mappings"]
 	TEST_ASSERT_EQUAL(halo_odst_role_mappings[/datum/job/marine/standard/ai/halo/odst], JOB_SQUAD_MARINE, "HALO ODST profile did not point at the namespaced rifleman job path.")
-	TEST_ASSERT_EQUAL(length(halo_odst_role_mappings), 6, "HALO ODST profile should expose exactly the six namespaced ODST marine role mappings.")
+	TEST_ASSERT_EQUAL(length(halo_odst_role_mappings), 7, "HALO ODST profile should expose the seven namespaced ODST ship-role mappings, including the platoon commander.")
 	for(var/role_path in halo_odst_role_mappings)
 		var/role_path_text = "[role_path]"
 		if(!findtext(role_path_text, "/halo/odst"))
@@ -1326,16 +1360,10 @@
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for locker ship surface replacement test.")
 
-	var/turf/mainship_turf = get_mainship_test_turf()
+	var/turf/mainship_turf = get_mainship_test_turf(TRUE) // SS220 EDIT: locker replacement fixture needs an adjacent floor for linked spawn routing
 	TEST_ASSERT_NOTNULL(mainship_turf, "Failed to resolve a mainship turf for locker ship surface replacement test.")
 
-	var/turf/linked_turf = get_step(mainship_turf, EAST)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, NORTH)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, SOUTH)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, WEST)
+	var/turf/linked_turf = get_adjacent_floor_turf(mainship_turf) // SS220 EDIT: helper keeps the test fixture aligned with linked turf requirements
 	TEST_ASSERT(isfloorturf(linked_turf), "Failed to resolve linked spawn turf for locker ship surface replacement test.")
 
 	var/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman, mainship_turf)
@@ -1545,6 +1573,8 @@
 
 	var/datum/map_config/pending_ship_config = load_map_config("maps/unsc_stalwart_frigate.json", maptype = SHIP_MAP)
 	TEST_ASSERT_NOTNULL(pending_ship_config, "Failed to load the HALO ship config for pending same-ship platoon sync testing.")
+	current_ship_config.map_name = pending_ship_config.map_name // SS220 EDIT: same-ship sync only applies when the loaded ship already matches the queued ship
+	current_ship_config.map_path = pending_ship_config.map_path // SS220 EDIT: fixture must mirror the loaded Stalwart config before testing same-map platoon sync
 	pending_ship_config.platoon = "/datum/squad/marine/halo/odst/alpha"
 	SSmapping.next_map_configs = list(SHIP_MAP = pending_ship_config)
 
