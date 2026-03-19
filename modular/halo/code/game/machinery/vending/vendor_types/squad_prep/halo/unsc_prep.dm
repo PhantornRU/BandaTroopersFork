@@ -296,6 +296,8 @@ GLOBAL_LIST_INIT(cm_vending_clothing_medic_unsc, list(
 /obj/structure/machinery/cm_vending/clothing/medic/unsc/get_listed_products(mob/user)
 	return GLOB.cm_vending_clothing_medic_unsc
 
+/obj/structure/machinery/cm_vending/clothing/medic/unsc/odst
+
 //===========================//PRESETS\\================================\\
 
 /obj/effect/essentials_set/medic/unsc

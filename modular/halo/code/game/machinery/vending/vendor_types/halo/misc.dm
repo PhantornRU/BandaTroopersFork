@@ -12,6 +12,11 @@
 /obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt
 	icon_state = "unsc_food"
 
+/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/odst
+
+/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/odst/alt
+	parent_type = /obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt
+
 /obj/structure/machinery/vending/dinnerware/unsc
 	name = "\improper автомат военных столовых приборов"
 	desc = "В паре с пищевым автоматом эта машина выглядит куда проще и требует лишь ручного пополнения."
@@ -36,6 +41,8 @@
 	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
+
+/obj/structure/machinery/cm_vending/sorted/medical/unsc/odst
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/populate_product_list(scale)
 	listed_products = list(
@@ -106,3 +113,5 @@ GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
 
 /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/get_listed_products(mob/user)
 	return GLOB.cm_vending_chemical_medic_halo
+
+/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/odst

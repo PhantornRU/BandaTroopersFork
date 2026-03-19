@@ -18,6 +18,7 @@
 #include "code/closets/halo_unsc_crew_personal.dm"
 #include "code/job/halo_modular_platoons.dm"
 #include "code/job/ship_platoon_profiles.dm"
+#include "code/job/ship_surface_profiles.dm"
 #include "code/job/squads.dm"
 #include "code/job/squads_setup.dm"
 #include "code/job/spawn_resolver.dm"
