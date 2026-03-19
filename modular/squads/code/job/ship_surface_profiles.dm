@@ -14,12 +14,14 @@
 #define SHIP_SURFACE_VENDOR_MARINE_FOOD_ALT "marine_food_alt"
 
 /datum/authority/branch/role/proc/get_ship_surface_family(platoon_type)
-	if(ispath(platoon_type, /datum/squad/marine/halo/unsc))
-		return SHIP_SURFACE_FAMILY_UNSC
-	if(ispath(platoon_type, /datum/squad/marine/halo/odst))
-		return SHIP_SURFACE_FAMILY_ODST
-	if(platoon_type == /datum/squad/marine/alpha)
-		return SHIP_SURFACE_FAMILY_USCM
+	platoon_type = normalize_ship_platoon_type(platoon_type)
+	switch(platoon_type)
+		if(/datum/squad/marine/alpha, /datum/squad/marine/bravo, /datum/squad/marine/charlie, /datum/squad/marine/delta)
+			return SHIP_SURFACE_FAMILY_USCM
+		if(/datum/squad/marine/halo/unsc/alpha, /datum/squad/marine/halo/unsc/bravo, /datum/squad/marine/halo/unsc/charlie, /datum/squad/marine/halo/unsc/delta)
+			return SHIP_SURFACE_FAMILY_UNSC
+		if(/datum/squad/marine/halo/odst/alpha, /datum/squad/marine/halo/odst/bravo, /datum/squad/marine/halo/odst/charlie, /datum/squad/marine/halo/odst/delta)
+			return SHIP_SURFACE_FAMILY_ODST
 
 	return null
 
@@ -64,9 +66,9 @@
 
 	if(istype(fixture, /obj/structure/closet/secure_closet/marine_personal))
 		var/obj/structure/closet/secure_closet/marine_personal/locker = fixture
-		var/canonical_role = GET_DEFAULT_ROLE(locker.job)
+		var/canonical_role = get_job_preference_bucket_key(locker.job) || locker.job
 		switch(canonical_role)
-			if(JOB_SQUAD_MARINE, JOB_SQUAD_MEDIC, JOB_SQUAD_SPECIALIST, JOB_SQUAD_RTO, JOB_SQUAD_TEAM_LEADER, JOB_SQUAD_LEADER)
+			if(JOB_SO, JOB_SQUAD_MARINE, JOB_SQUAD_MEDIC, JOB_SQUAD_SPECIALIST, JOB_SQUAD_RTO, JOB_SQUAD_TEAM_LEADER, JOB_SQUAD_LEADER)
 				return list(
 					"kind" = SHIP_SURFACE_KIND_LOCKER,
 					"role" = canonical_role,
@@ -101,6 +103,8 @@
 	switch(target_family)
 		if(SHIP_SURFACE_FAMILY_USCM)
 			switch(canonical_role)
+				if(JOB_SO)
+					return /obj/structure/closet/secure_closet/marine_personal/platoon_commander
 				if(JOB_SQUAD_MARINE)
 					return /obj/structure/closet/secure_closet/marine_personal/rifleman
 				if(JOB_SQUAD_MEDIC)
@@ -426,9 +430,15 @@
 		return FALSE
 
 	var/list/covered_squad_markers = get_ship_surface_related_squad_markers(platoon_type)
-	var/list/lockers_to_check = GLOB.personal_closets ? GLOB.personal_closets.Copy() : list()
-	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in lockers_to_check)
+	var/list/lockers_to_check = list()
+	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in world)
 		if(QDELETED(locker) || !is_mainship_level(locker.z))
+			continue
+		if(get_ship_surface_key(locker))
+			lockers_to_check += locker
+
+	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in lockers_to_check)
+		if(QDELETED(locker))
 			continue
 		replace_ship_surface_fixture(locker, target_family, covered_squad_markers)
 
