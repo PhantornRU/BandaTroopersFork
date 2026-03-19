@@ -13,14 +13,8 @@
 	locate_setting = TRACKER_FTL
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
-	name = "РіР°СЂРЅРёС‚СѓСЂР° ODST"
+	name = "гарнитура ODST"
 	frequency = ODST_FREQ
-
-/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers
-	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
-
-/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen
-	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
 
 /obj/item/device/radio/headset/distress/oni
 	name = "гарнитура охраны ONI"
