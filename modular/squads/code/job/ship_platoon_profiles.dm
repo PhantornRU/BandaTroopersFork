@@ -370,9 +370,10 @@
 	GLOB.gamemode_roles["Distress Signal: Lowpop"] = get_active_ship_lowpop_roles("Distress Signal: Lowpop", null)
 	return TRUE
 
-/datum/authority/branch/role/proc/handle_main_ship_mode_changed()
+/datum/authority/branch/role/proc/handle_main_ship_mode_changed(apply_surfaces = TRUE)
 	refresh_main_ship_gamemode_roles()
-	apply_main_ship_surface_profile()
+	if(apply_surfaces)
+		apply_main_ship_surface_profile()
 	return TRUE
 
 /datum/authority/branch/role/proc/get_gamemode_role_titles(mode_name = GLOB.master_mode)

@@ -156,11 +156,14 @@
 		to_chat(usr, SPAN_WARNING("Failed to change the ship map."))
 		return
 
-	var/datum/map_config/current_ship_config = SSmapping?.configs?[SHIP_MAP]
-	if(current_ship_config && current_ship_config.map_path == VM.map_path && current_ship_config.map_file == VM.map_file && ship_map_overrides?["platoon"] && current_ship_config.platoon != ship_map_overrides["platoon"])
-		current_ship_config.platoon = ship_map_overrides["platoon"] // SS220 EDIT: live same-map ship platoon switches must update current runtime profile, not just next_ship.json
-		GLOB.RoleAuthority?.handle_main_ship_mode_changed() // SS220 EDIT: reapply runtime ship-side lockers/vendors and active role caches for the new platoon profile
-		to_chat(usr, SPAN_NOTICE("Applied the selected platoon profile to the currently loaded ship map as well."))
+	// SS220 EDIT - START: ship platoon changes from Change Ship Map must stay deferred until the next round
+	// var/datum/map_config/current_ship_config = SSmapping?.configs?[SHIP_MAP]
+	// if(current_ship_config && current_ship_config.map_path == VM.map_path && current_ship_config.map_file == VM.map_file && ship_map_overrides?["platoon"] && current_ship_config.platoon != ship_map_overrides["platoon"])
+	// 	current_ship_config.platoon = ship_map_overrides["platoon"]
+	// 	GLOB.RoleAuthority?.handle_main_ship_mode_changed()
+	// 	to_chat(usr, SPAN_NOTICE("Applied the selected platoon profile to the currently loaded ship map as well."))
+	to_chat(usr, SPAN_NOTICE("The selected ship map[chosen_platoon_label ? " with [chosen_platoon_label]" : ""] will apply next round."))
+	// SS220 EDIT - END
 
 	var/platoon_suffix = chosen_platoon_label ? " with [chosen_platoon_label]" : ""
 	log_admin("[key_name(usr)] changed the ship map to [VM.map_name][platoon_suffix].")
