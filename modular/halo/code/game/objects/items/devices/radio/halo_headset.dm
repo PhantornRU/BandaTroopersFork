@@ -16,6 +16,14 @@
 	name = "гарнитура ODST"
 	frequency = ODST_FREQ
 
+/obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc
+	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
+	initial_keys = list(/obj/item/device/encryptionkey/mcom/alt/squads, /obj/item/device/encryptionkey/squadlead)
+
+/obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst
+	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
+	initial_keys = list(/obj/item/device/encryptionkey/mcom/alt/squads, /obj/item/device/encryptionkey/squadlead)
+
 /obj/item/device/radio/headset/distress/oni
 	name = "гарнитура охраны ONI"
 	desc = "Гарнитура, используемая силами безопасности ONI."

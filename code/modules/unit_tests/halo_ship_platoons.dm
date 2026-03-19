@@ -1417,6 +1417,50 @@
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement incorrectly carried over UNSC baseline gear into the ODST locker.")
 	TEST_ASSERT(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
 
+/datum/unit_test/halo_ship_platoons_ship_surface_platoon_commander_locker_replacement
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_ship_surface_platoon_commander_locker_replacement/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO platoon commander locker replacement testing.")
+
+	var/turf/mainship_turf = get_mainship_test_turf()
+	TEST_ASSERT_NOTNULL(mainship_turf, "Failed to resolve a mainship turf for HALO platoon commander locker replacement testing.")
+	var/turf/linked_turf = locate(mainship_turf.x + 1, mainship_turf.y, mainship_turf.z)
+	TEST_ASSERT_NOTNULL(linked_turf, "Failed to resolve a linked turf for HALO platoon commander locker replacement testing.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander, mainship_turf)
+	isolate_personal_lockers(source_locker)
+	track_test_atom(source_locker)
+	source_locker.pixel_x = 7
+	source_locker.pixel_y = -3
+	source_locker.dir = EAST
+	source_locker.owner = "Mapper Platoon Commander Locker"
+	source_locker.x_to_linked_spawn_turf = linked_turf.x - source_locker.x
+	source_locker.y_to_linked_spawn_turf = linked_turf.y - source_locker.y
+	source_locker.linked_spawn_turf = linked_turf
+
+	TEST_ASSERT(count_personal_locker_contents_by_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc) >= 1, "UNSC platoon commander locker baseline headset was missing before ship surface replacement test.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/target_locker = role_authority.replace_ship_surface_fixture(
+		source_locker,
+		"odst",
+		role_authority.get_ship_surface_related_squad_markers(/datum/squad/marine/halo/odst/alpha)
+	)
+	track_test_atom(target_locker)
+
+	TEST_ASSERT_NOTNULL(target_locker, "Platoon commander locker ship surface replacement did not produce a target locker.")
+	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander, "UNSC platoon commander locker did not swap into the ODST platoon commander locker.")
+	TEST_ASSERT_EQUAL(target_locker.pixel_x, 7, "Platoon commander locker ship surface replacement did not preserve pixel_x.")
+	TEST_ASSERT_EQUAL(target_locker.pixel_y, -3, "Platoon commander locker ship surface replacement did not preserve pixel_y.")
+	TEST_ASSERT_EQUAL(target_locker.dir, EAST, "Platoon commander locker ship surface replacement did not preserve direction.")
+	TEST_ASSERT_EQUAL(target_locker.owner, "Mapper Platoon Commander Locker", "Platoon commander locker ship surface replacement did not preserve locker owner metadata.")
+	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Platoon commander locker ship surface replacement did not preserve linked spawn turf.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc), 0, "Platoon commander locker ship surface replacement incorrectly carried over the UNSC command headset into the ODST locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst) >= 1, "Platoon commander locker ship surface replacement did not keep the ODST command headset.")
+
 /datum/unit_test/halo_ship_platoons_ship_surface_vendor_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons
 

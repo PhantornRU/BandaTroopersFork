@@ -10,7 +10,7 @@
 		list("Униформа морпеха, адаптивный камуфляж", floor(scale * 15), /obj/item/clothing/under/marine, VENDOR_ITEM_REGULAR),
 		list("Униформа морпеха, джунглевый BDU", floor(scale * 15), /obj/item/clothing/under/marine/standard, VENDOR_ITEM_REGULAR),
 		list("Боевые перчатки морпеха", floor(scale * 15), /obj/item/clothing/gloves/marine, VENDOR_ITEM_REGULAR),
-		list("Радиогарнитура морпеха", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils, VENDOR_ITEM_REGULAR),
+		list("Радиогарнитура ККОН", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc, VENDOR_ITEM_REGULAR),
 		list("Шлем морпеха образца CH252", floor(scale * 15), /obj/item/clothing/head/helmet/marine/unsc, VENDOR_ITEM_REGULAR),
 		list("Гарнитура с камерой образца M5", floor(scale * 15), /obj/item/device/overwatch_camera, VENDOR_ITEM_REGULAR),
 		list("Служебная кепка, джунгли", floor(scale * 15), /obj/item/clothing/head/cmcap, VENDOR_ITEM_REGULAR),
