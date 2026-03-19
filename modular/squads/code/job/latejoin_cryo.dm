@@ -4,7 +4,7 @@
 	var/tmp/cached_modular_spawn_late_join = FALSE
 
 /datum/job/proc/uses_modular_job_landmark_spawn()
-	return title == JOB_SO
+	return GET_DEFAULT_ROLE(title) == JOB_SO
 
 /mob/living/carbon/human/proc/find_free_cardinal_cryopod(turf/center_turf)
 	if(!isturf(center_turf))

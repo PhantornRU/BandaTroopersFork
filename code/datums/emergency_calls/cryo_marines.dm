@@ -19,6 +19,11 @@
 
 	human.sec_hud_set_ID()
 	human.hud_set_squad()
+	if(human.assigned_squad?.squad_leader == human && GET_DEFAULT_ROLE(human.job) == JOB_SQUAD_LEADER)
+		human.assigned_squad.update_squad_leader()
+		human.update_inv_head()
+		human.update_inv_wear_suit()
+	human.clear_halo_runtime_spawn_context()
 
 /datum/emergency_call/proc/profile_cryo_role_is_supported(canonical_role, platoon_type = GLOB.RoleAuthority?.get_active_ship_platoon_type())
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
@@ -35,7 +40,10 @@
 	if(!profile_cryo_role_is_supported(canonical_role, platoon_type))
 		return FALSE
 
+	human?.mark_personal_locker_spawn_context(late_join)
+	human?.mark_halo_runtime_spawn_context("cryo")
 	if(!role_authority?.apply_active_ship_cryo_reinforcement(human, canonical_role, fallback_title, fallback_preset, late_join, platoon_type))
+		human?.clear_halo_runtime_spawn_context()
 		return FALSE
 
 	finalize_profile_cryo_reinforcement(human)

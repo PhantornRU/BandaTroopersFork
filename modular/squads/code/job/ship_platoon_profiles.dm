@@ -162,9 +162,12 @@
 	human.job = effective_title // SS220 EDIT: cryo profile application owns the effective runtime role title
 	human.client?.prefs.copy_all_to(human, effective_title, TRUE, TRUE)
 	if(effective_preset)
-		arm_equipment(human, effective_preset, late_join, TRUE)
+		arm_equipment(human, effective_preset, late_join, TRUE, late_join = late_join)
 
 	if(use_profile_cryo)
+		var/list/halo_family_types = get_halo_job_family_types(human.job)
+		if(islist(halo_family_types) && length(halo_family_types) && human.assigned_squad && !(human.assigned_squad.type in halo_family_types))
+			human.assigned_squad.remove_marine_from_squad(human, human.get_idcard())
 		randomize_squad(human)
 		human.sec_hud_set_ID()
 		human.hud_set_squad()
@@ -289,10 +292,11 @@
 	if(!job_title)
 		return FALSE
 
-	if(GLOB.ROLES_USCM.Find(job_title))
+	var/bucket_title = get_role_bucket_title(job_title, active_only)
+	if(bucket_title && GLOB.ROLES_USCM.Find(bucket_title))
 		return TRUE
 
-	return is_marine_equivalent_role(job_title, active_only)
+	return is_marine_equivalent_role(bucket_title || job_title, active_only)
 
 /datum/authority/branch/role/proc/get_shipside_role_titles(active_only = FALSE)
 	var/list/role_titles = active_only ? list() : GLOB.ROLES_USCM.Copy()
