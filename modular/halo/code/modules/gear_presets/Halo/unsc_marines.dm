@@ -40,6 +40,15 @@
 /datum/equipment_preset/unsc/load_name(mob/living/carbon/human/new_human, randomise)
 	load_halo_preset_name(new_human)
 
+/mob/living/carbon/human
+	var/tmp/halo_runtime_spawn_context = null
+
+/mob/living/carbon/human/proc/mark_halo_runtime_spawn_context(context)
+	halo_runtime_spawn_context = context
+
+/mob/living/carbon/human/proc/clear_halo_runtime_spawn_context()
+	halo_runtime_spawn_context = null
+
 ///Equipped Presets need doing///
 
 /// Marine Rifleman
@@ -100,6 +109,14 @@
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/unsc/medic/pfc
+	name = "UNSC Hospital Corpsman (Private First Class Equivalent)"
+	paygrades = list(PAY_SHORT_NE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/unsc/medic/private
+	name = "UNSC Hospital Corpsman (Private Equivalent)"
+	paygrades = list(PAY_SHORT_NE2 = JOB_PLAYTIME_TIER_0)
+
 /datum/equipment_preset/unsc/medic/odst
 	name = "ODST Hospital Corpsman"
 	assignment = JOB_SQUAD_MEDIC_ODST
@@ -110,6 +127,14 @@
 /datum/equipment_preset/unsc/medic/odst/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/unsc/medic/odst/pfc
+	name = "ODST Hospital Corpsman (Private First Class Equivalent)"
+	paygrades = list(PAY_SHORT_NE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/unsc/medic/odst/private
+	name = "ODST Hospital Corpsman (Private Equivalent)"
+	paygrades = list(PAY_SHORT_NE2 = JOB_PLAYTIME_TIER_0)
 
 /// Marine RTO
 /datum/equipment_preset/unsc/rto
@@ -170,10 +195,30 @@
 /datum/equipment_preset/unsc/spec/odst/get_roundstart_specialist_loadout_preset()
 	return /datum/equipment_preset/unsc/spec/odst/equipped_spnkr
 
+/datum/equipment_preset/unsc/spec/proc/uses_non_roundstart_specialist_baseline(mob/living/carbon/human/new_human, late_join)
+	if(late_join)
+		return TRUE
+
+	return new_human?.halo_runtime_spawn_context == "cryo"
+
+/datum/equipment_preset/unsc/spec/proc/load_non_roundstart_specialist_gear(mob/living/carbon/human/new_human)
+	return
+
+/datum/equipment_preset/unsc/spec/odst/load_non_roundstart_specialist_gear(mob/living/carbon/human/new_human)
+	return
+
+/datum/equipment_preset/unsc/spec/load_preset(mob/living/carbon/human/new_human, randomise = FALSE, count_participant = FALSE, client/mob_client, show_job_gear = TRUE, late_join)
+	if(uses_non_roundstart_specialist_baseline(new_human, late_join))
+		new_human?.mark_halo_runtime_spawn_context(late_join ? "latejoin" : "cryo")
+
+	. = ..()
+
+	if(new_human?.halo_runtime_spawn_context == "latejoin" || new_human?.halo_runtime_spawn_context == "cryo")
+		new_human.clear_halo_runtime_spawn_context()
+
 /datum/equipment_preset/unsc/spec/load_gear(mob/living/carbon/human/new_human, client/mob_client)
-	var/loadout_preset_type = get_roundstart_specialist_loadout_preset()
-	var/datum/equipment_preset/loadout_preset = GLOB.gear_path_presets_list?[loadout_preset_type]
-	loadout_preset?.load_gear(new_human, mob_client)
+	load_non_roundstart_specialist_gear(new_human)
+	return
 
 /datum/equipment_preset/unsc/spec/load_status(mob/living/carbon/human/new_human, client/mob_client)
 	new_human.nutrition = NUTRITION_VERYLOW
@@ -270,8 +315,8 @@
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
-	assignment = JOB_SO
-	rank = JOB_SO
+	assignment = JOB_SO_UNSC
+	rank = JOB_SO_UNSC
 	paygrades = list(PAY_SHORT_MO2 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "PltCo"
 	minimum_age = 25
@@ -291,18 +336,20 @@
 	change_dropship_name(new_human.client.prefs.dropship_name)
 
 /datum/equipment_preset/unsc/platco/lesser_rank
-	parent_type = /datum/equipment_preset/uscm_ship/so/lesser_rank
+	parent_type = /datum/equipment_preset/unsc/platco
 	name = "UNSC Platoon Commander (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/platco/odst
 	name = "ODST Platoon Commander"
+	assignment = JOB_SO_ODST
+	rank = JOB_SO_ODST
 	paygrades = list(PAY_SHORT_MO2 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "PltCo-ODST"
 	skills = /datum/skills/SO
 
 /datum/equipment_preset/unsc/platco/odst/lesser_rank
-	parent_type = /datum/equipment_preset/uscm_ship/so/lesser_rank
+	parent_type = /datum/equipment_preset/unsc/platco/odst
 	name = "ODST Platoon Commander (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 

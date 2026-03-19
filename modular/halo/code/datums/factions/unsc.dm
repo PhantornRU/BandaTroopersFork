@@ -34,7 +34,10 @@
 			if(JOB_SQUAD_TECH) marine_rk = "tech"
 		if(squad.squad_leader == current_human)
 			switch(squad.squad_type)
+				if("Section") marine_rk = "leader_a"
+				if("Platoon") marine_rk = "leader_a"
 				if("Squad") marine_rk = "leader_a"
+				if("Taskforce") marine_rk = "leader_a"
 			current_human.langchat_styles = "langchat_bolded" // bold text for bold leaders
 		else if(squad.fireteam_leaders["SQ1"] == current_human || squad.fireteam_leaders["SQ2"] == current_human)
 			current_human.langchat_styles = "langchat_smaller_bolded"
@@ -80,7 +83,7 @@
 			if(JOB_USCM_OBSV)
 				marine_rk = "vo"
 				border_rk = "command"
-			if(JOB_SO)
+			if(JOB_SO, JOB_SO_UNSC, JOB_SO_ODST)
 				marine_rk = "wo_co"
 				border_rk = "command"
 			if(JOB_AUXILIARY_OFFICER)

@@ -1,16 +1,21 @@
+#define HALO_CPL_VARIANT "Corporal"
+#define HALO_LCPL_VARIANT "Lance Corporal"
+#define HALO_PFC_VARIANT "Private First Class"
+#define HALO_PVT_VARIANT "Private"
+
 /datum/job/marine/standard/ai/halo/unsc
 	title = JOB_SQUAD_MARINE_UNSC
 	total_positions = 4
 	spawn_positions = 4
 	gear_preset = /datum/equipment_preset/unsc/pfc
 	gear_preset_secondary = /datum/equipment_preset/unsc/pfc/lesser_rank
-	job_options = list("Private First Class" = "PFC", "Private" = "PVT")
+	job_options = list(HALO_PFC_VARIANT = "PFC", HALO_PVT_VARIANT = "PVT")
 
 /datum/job/marine/standard/ai/rto/halo/unsc
 	title = JOB_SQUAD_RTO_UNSC
 	gear_preset = /datum/equipment_preset/unsc/rto
 	gear_preset_secondary = /datum/equipment_preset/unsc/rto/lesser_rank
-	job_options = list("Private First Class" = "PFC", "Lance Corporal" = "LCPL")
+	job_options = list(HALO_PFC_VARIANT = "PFC", HALO_LCPL_VARIANT = "LCPL")
 
 /datum/job/marine/medic/ai/halo/unsc
 	title = JOB_SQUAD_MEDIC_UNSC
@@ -18,6 +23,18 @@
 	spawn_positions = 2
 	gear_preset = /datum/equipment_preset/unsc/medic
 	gear_preset_secondary = /datum/equipment_preset/unsc/medic/lesser_rank
+	gear_preset_tertiary = /datum/equipment_preset/unsc/medic/pfc
+	gear_preset_quaternary = /datum/equipment_preset/unsc/medic/private
+	job_options = list(HALO_CPL_VARIANT = "CPL", HALO_LCPL_VARIANT = "LCPL", HALO_PFC_VARIANT = "PFC", HALO_PVT_VARIANT = "PVT")
+
+/datum/job/marine/medic/ai/halo/unsc/handle_job_options(option)
+	gear_preset = initial(gear_preset)
+	if(option == HALO_PVT_VARIANT)
+		gear_preset = gear_preset_quaternary
+	if(option == HALO_PFC_VARIANT)
+		gear_preset = gear_preset_tertiary
+	if(option == HALO_LCPL_VARIANT)
+		gear_preset = gear_preset_secondary
 
 /datum/job/marine/tl/ai/halo/unsc
 	title = JOB_SQUAD_TEAM_LEADER_UNSC
@@ -42,13 +59,13 @@
 	title = JOB_SQUAD_MARINE_ODST
 	gear_preset = /datum/equipment_preset/unsc/pfc/odst
 	gear_preset_secondary = /datum/equipment_preset/unsc/pfc/odst/lesser_rank
-	job_options = list(PFC_VARIANT = "LCPL", PVT_VARIANT = "PFC")
+	job_options = list(HALO_PFC_VARIANT = "LCPL", HALO_PVT_VARIANT = "PFC")
 
 /datum/job/marine/standard/ai/rto/halo/odst
 	title = JOB_SQUAD_RTO_ODST
 	gear_preset = /datum/equipment_preset/unsc/rto/odst
 	gear_preset_secondary = /datum/equipment_preset/unsc/rto/odst/lesser_rank
-	job_options = list(PFC_VARIANT = "PFC", LCPL_VARIANT = "LCPL")
+	job_options = list(HALO_PFC_VARIANT = "PFC", HALO_LCPL_VARIANT = "LCPL")
 
 /datum/job/marine/leader/ai/halo/odst
 	title = JOB_SQUAD_LEADER_ODST
@@ -61,6 +78,18 @@
 	spawn_positions = 2
 	gear_preset = /datum/equipment_preset/unsc/medic/odst
 	gear_preset_secondary = /datum/equipment_preset/unsc/medic/odst/lesser_rank
+	gear_preset_tertiary = /datum/equipment_preset/unsc/medic/odst/pfc
+	gear_preset_quaternary = /datum/equipment_preset/unsc/medic/odst/private
+	job_options = list(HALO_CPL_VARIANT = "CPL", HALO_LCPL_VARIANT = "LCPL", HALO_PFC_VARIANT = "PFC", HALO_PVT_VARIANT = "PVT")
+
+/datum/job/marine/medic/ai/halo/odst/handle_job_options(option)
+	gear_preset = initial(gear_preset)
+	if(option == HALO_PVT_VARIANT)
+		gear_preset = gear_preset_quaternary
+	if(option == HALO_PFC_VARIANT)
+		gear_preset = gear_preset_tertiary
+	if(option == HALO_LCPL_VARIANT)
+		gear_preset = gear_preset_secondary
 
 /datum/job/marine/tl/ai/halo/odst
 	title = JOB_SQUAD_TEAM_LEADER_ODST
@@ -76,8 +105,20 @@
 	gear_preset = /datum/equipment_preset/unsc/spec/odst
 	gear_preset_secondary = /datum/equipment_preset/unsc/spec/odst/lesser_rank
 
+/datum/job/command/bridge/ai/halo/unsc
+	title = JOB_SO_UNSC
+	gear_preset = /datum/equipment_preset/unsc/platco
+	gear_preset_secondary = /datum/equipment_preset/unsc/platco/lesser_rank
+
+/datum/job/command/bridge/ai/halo/odst
+	title = JOB_SO_ODST
+	gear_preset = /datum/equipment_preset/unsc/platco/odst
+	gear_preset_secondary = /datum/equipment_preset/unsc/platco/odst/lesser_rank
+
 /datum/authority/branch/role/New()
 	. = ..()
+	prefer_role_title_path(JOB_SO_UNSC, /datum/job/command/bridge/ai/halo/unsc)
+	prefer_role_title_path(JOB_SO_ODST, /datum/job/command/bridge/ai/halo/odst)
 	prefer_role_title_path(JOB_SQUAD_MARINE_UNSC, /datum/job/marine/standard/ai/halo/unsc)
 	prefer_role_title_path(JOB_SQUAD_RTO_UNSC, /datum/job/marine/standard/ai/rto/halo/unsc)
 	prefer_role_title_path(JOB_SQUAD_MEDIC_UNSC, /datum/job/marine/medic/ai/halo/unsc)
@@ -241,9 +282,9 @@
 
 /datum/authority/branch/role/proc/get_modular_job_pref_to_gear_preset(job_title)
 	var/platoon_type
-	if(job_title in JOB_HALO_UNSC_MARINES_LIST)
+	if(job_title in JOB_HALO_UNSC_SHIPSIDE_LIST)
 		platoon_type = /datum/squad/marine/halo/unsc/alpha
-	else if(job_title in JOB_HALO_ODST_MARINES_LIST)
+	else if(job_title in JOB_HALO_ODST_SHIPSIDE_LIST)
 		platoon_type = /datum/squad/marine/halo/odst/alpha
 
 	if(!platoon_type)
@@ -253,13 +294,42 @@
 	if(!canonical_role)
 		return null
 
-	return get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+	var/list/preview_presets = get_halo_job_preference_preview_presets(platoon_type)
+	if(!islist(preview_presets))
+		return null
+
+	return preview_presets[canonical_role]
+
+/datum/authority/branch/role/proc/get_halo_job_preference_preview_presets(platoon_type)
+	switch(platoon_type)
+		if(/datum/squad/marine/halo/unsc/alpha)
+			return list(
+				JOB_SO = /datum/equipment_preset/unsc/platco/equipped,
+				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/equipped,
+				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/equipped,
+				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/equipped,
+				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/equipped,
+				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/equipped,
+				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/equipped_spnkr,
+			)
+		if(/datum/squad/marine/halo/odst/alpha)
+			return list(
+				JOB_SO = /datum/equipment_preset/unsc/platco/odst/equipped,
+				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/odst/equipped,
+				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/odst/equipped,
+				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/odst/equipped,
+				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/odst/equipped,
+				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/odst/equipped,
+				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/odst/equipped_spnkr,
+			)
+
+	return null
 
 /datum/authority/branch/role/proc/get_halo_job_family_types(job_title)
 	var/platoon_type
-	if(job_title in JOB_HALO_UNSC_MARINES_LIST)
+	if(job_title in JOB_HALO_UNSC_SHIPSIDE_LIST)
 		platoon_type = /datum/squad/marine/halo/unsc/alpha
-	else if(job_title in JOB_HALO_ODST_MARINES_LIST)
+	else if(job_title in JOB_HALO_ODST_SHIPSIDE_LIST)
 		platoon_type = /datum/squad/marine/halo/odst/alpha
 
 	if(!platoon_type)
@@ -348,6 +418,7 @@
 	switch(platoon_type)
 		if(/datum/squad/marine/halo/unsc/alpha)
 			return list(
+				JOB_SO = JOB_SO_UNSC,
 				JOB_SQUAD_MARINE = JOB_SQUAD_MARINE_UNSC,
 				JOB_SQUAD_MEDIC = JOB_SQUAD_MEDIC_UNSC,
 				JOB_SQUAD_RTO = JOB_SQUAD_RTO_UNSC,
@@ -357,6 +428,7 @@
 			)
 		if(/datum/squad/marine/halo/odst/alpha)
 			return list(
+				JOB_SO = JOB_SO_ODST,
 				JOB_SQUAD_MARINE = JOB_SQUAD_MARINE_ODST,
 				JOB_SQUAD_MEDIC = JOB_SQUAD_MEDIC_ODST,
 				JOB_SQUAD_RTO = JOB_SQUAD_RTO_ODST,
@@ -371,21 +443,23 @@
 	switch(platoon_type)
 		if(/datum/squad/marine/halo/unsc/alpha)
 			return list(
-				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/equipped,
-				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/equipped,
-				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/equipped,
-				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/equipped,
-				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/equipped,
-				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/equipped_spnkr,
+				JOB_SO = /datum/equipment_preset/unsc/platco,
+				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc,
+				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic,
+				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto,
+				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl,
+				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader,
+				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec,
 			)
 		if(/datum/squad/marine/halo/odst/alpha)
 			return list(
-				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/odst/equipped,
-				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/odst/equipped,
-				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/odst/equipped,
-				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/odst/equipped,
-				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/odst/equipped,
-				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/odst/equipped_spnkr,
+				JOB_SO = /datum/equipment_preset/unsc/platco/odst,
+				JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/odst,
+				JOB_SQUAD_MEDIC = /datum/equipment_preset/unsc/medic/odst,
+				JOB_SQUAD_RTO = /datum/equipment_preset/unsc/rto/odst,
+				JOB_SQUAD_TEAM_LEADER = /datum/equipment_preset/unsc/tl/odst,
+				JOB_SQUAD_LEADER = /datum/equipment_preset/unsc/leader/odst,
+				JOB_SQUAD_SPECIALIST = /datum/equipment_preset/unsc/spec/odst,
 			)
 
 	return null
@@ -406,6 +480,7 @@
 					/datum/squad/marine/halo/unsc/delta,
 				),
 				"role_mappings" = list(
+					/datum/job/command/bridge/ai/halo/unsc = JOB_SO,
 					/datum/job/marine/standard/ai/halo/unsc = JOB_SQUAD_MARINE,
 					/datum/job/marine/standard/ai/rto/halo/unsc = JOB_SQUAD_RTO,
 					/datum/job/marine/medic/ai/halo/unsc = JOB_SQUAD_MEDIC,
@@ -413,8 +488,8 @@
 					/datum/job/marine/leader/ai/halo/unsc = JOB_SQUAD_LEADER,
 					/datum/job/marine/specialist/ai/halo/unsc = JOB_SQUAD_SPECIALIST,
 				),
-				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_UNSC_MARINES_LIST + GLOB.ROLES_GROUND,
-				"lowpop_roles" = list(JOB_SO) + JOB_HALO_UNSC_MARINES_LIST,
+				"distress_roles" = (GLOB.ROLES_CIC - JOB_SO) + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + list(JOB_SO_UNSC) + JOB_HALO_UNSC_MARINES_LIST + GLOB.ROLES_GROUND,
+				"lowpop_roles" = list(JOB_SO_UNSC) + JOB_HALO_UNSC_MARINES_LIST,
 				"spawn_preset_overrides" = get_halo_ship_spawn_preset_overrides(platoon_type),
 				"cryo_reinforcement_titles" = get_halo_ship_cryo_reinforcement_titles(platoon_type),
 				"cryo_reinforcement_presets" = get_halo_ship_cryo_reinforcement_presets(platoon_type),
@@ -436,6 +511,7 @@
 					/datum/squad/marine/halo/odst/delta,
 				),
 				"role_mappings" = list(
+					/datum/job/command/bridge/ai/halo/odst = JOB_SO,
 					/datum/job/marine/standard/ai/halo/odst = JOB_SQUAD_MARINE,
 					/datum/job/marine/standard/ai/rto/halo/odst = JOB_SQUAD_RTO,
 					/datum/job/marine/medic/ai/halo/odst = JOB_SQUAD_MEDIC,
@@ -443,8 +519,8 @@
 					/datum/job/marine/leader/ai/halo/odst = JOB_SQUAD_LEADER,
 					/datum/job/marine/specialist/ai/halo/odst = JOB_SQUAD_SPECIALIST,
 				),
-				"distress_roles" = GLOB.ROLES_CIC + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND,
-				"lowpop_roles" = list(JOB_SO) + JOB_HALO_ODST_MARINES_LIST,
+				"distress_roles" = (GLOB.ROLES_CIC - JOB_SO) + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + list(JOB_SO_ODST) + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND,
+				"lowpop_roles" = list(JOB_SO_ODST) + JOB_HALO_ODST_MARINES_LIST,
 				"spawn_preset_overrides" = get_halo_ship_spawn_preset_overrides(platoon_type),
 				"cryo_reinforcement_titles" = get_halo_ship_cryo_reinforcement_titles(platoon_type),
 				"cryo_reinforcement_presets" = get_halo_ship_cryo_reinforcement_presets(platoon_type),
