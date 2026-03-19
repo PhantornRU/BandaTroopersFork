@@ -1,6 +1,6 @@
 // Shared HALO squad and role string contracts consumed by code/** and modular/**.
 // This file lives in code/__DEFINES so DME include-order validation stays stable.
-#define SQUAD_ODST "The Ferrymen"
+#define SQUAD_ODST "War Cogs"
 
 #define JOB_SQUAD_MARINE_ODST "ODST Rifleman"
 #define JOB_SQUAD_SPECIALIST_ODST "ODST Weapons Specialist"
