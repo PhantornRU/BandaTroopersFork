@@ -82,6 +82,7 @@
 	QDEL_LIST(GLOB.good_items)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	if(role_authority) // SS220 EDIT: ship-side roster and squad family are selected through modular platoon helpers
+		role_authority.sync_pending_same_ship_platoon_for_round_start() // SS220 EDIT: Start Round on the already loaded ship must still apply same-map platoon overrides from next_ship.json
 		role_mappings = role_authority.get_main_ship_role_mappings()
 		role_authority.handle_main_ship_mode_changed()
 		role_authority.filter_role_authority_squads_to_types(role_authority.get_main_ship_primary_family_types(), TRUE)

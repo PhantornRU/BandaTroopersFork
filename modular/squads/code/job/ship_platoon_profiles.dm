@@ -4,6 +4,14 @@
 	if(!(value in target_list))
 		target_list += value
 
+/datum/authority/branch/role/proc/normalize_ship_platoon_type(platoon_type)
+	if(ispath(platoon_type, /datum/squad))
+		return platoon_type
+	if(istext(platoon_type))
+		return text2path(platoon_type)
+
+	return null
+
 /datum/authority/branch/role/proc/get_known_ship_platoon_types()
 	var/list/known_types = list(
 		/datum/squad/marine/alpha,
@@ -30,6 +38,7 @@
 	return known_types
 
 /datum/authority/branch/role/proc/get_default_ship_platoon_profile(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -62,6 +71,7 @@
 	return profile
 
 /datum/authority/branch/role/proc/get_ship_platoon_profile(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -72,6 +82,7 @@
 	return get_default_ship_platoon_profile(platoon_type)
 
 /datum/authority/branch/role/proc/get_ship_platoon_label(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -259,6 +270,22 @@
 	var/datum/squad/marine/platoon_datum = platoon_type
 	return initial(platoon_datum.faction)
 
+/datum/authority/branch/role/proc/sync_pending_same_ship_platoon_for_round_start()
+	var/datum/map_config/current_ship_config = SSmapping?.configs?[SHIP_MAP]
+	var/datum/map_config/pending_ship_config = SSmapping?.next_map_configs?[SHIP_MAP]
+	if(!current_ship_config || !pending_ship_config)
+		return FALSE
+
+	// Start Round does not reload the map, so same-map ship profile changes must be applied to the loaded ship config.
+	if(current_ship_config.map_name != pending_ship_config.map_name || current_ship_config.map_path != pending_ship_config.map_path)
+		return FALSE
+	if(!pending_ship_config.platoon || current_ship_config.platoon == pending_ship_config.platoon)
+		return FALSE
+
+	current_ship_config.platoon = pending_ship_config.platoon
+	current_ship_config.allowed_platoons = pending_ship_config.allowed_platoons ? pending_ship_config.allowed_platoons.Copy() : list()
+	return TRUE
+
 /datum/authority/branch/role/proc/get_role_bucket_title(job_or_title, active_only = FALSE)
 	var/job_title = resolve_job_title(job_or_title)
 	if(!job_title)
@@ -344,7 +371,9 @@
 	return TRUE
 
 /datum/authority/branch/role/proc/handle_main_ship_mode_changed()
-	return refresh_main_ship_gamemode_roles()
+	refresh_main_ship_gamemode_roles()
+	apply_main_ship_surface_profile()
+	return TRUE
 
 /datum/authority/branch/role/proc/get_gamemode_role_titles(mode_name = GLOB.master_mode)
 	var/list/role_titles = GLOB.gamemode_roles[mode_name]
