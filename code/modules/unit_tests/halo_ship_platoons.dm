@@ -12,6 +12,7 @@
 	var/list/snapshot_squads_by_type = null
 	var/list/tracked_test_humans = null
 	var/list/tracked_test_squads = null
+	var/list/tracked_test_atoms = null
 	var/snapshot_ship_platoon = null
 	var/synthetic_mainship_z = null
 	var/synthetic_mainship_prev = null
@@ -44,6 +45,7 @@
 	snapshot_squads_by_type = GLOB.RoleAuthority?.squads_by_type ? GLOB.RoleAuthority.squads_by_type.Copy() : list()
 	tracked_test_humans = list()
 	tracked_test_squads = list()
+	tracked_test_atoms = list()
 	snapshot_ship_platoon = SSmapping?.configs?[SHIP_MAP]?.platoon
 	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
 	snapshot_runtime_name_by_static = manager?.runtime_name_by_static ? manager.runtime_name_by_static.Copy() : null
@@ -60,6 +62,10 @@
 	for(var/datum/squad/squad as anything in tracked_test_squads)
 		if(!QDELETED(squad))
 			qdel(squad)
+
+	for(var/atom/atom as anything in tracked_test_atoms)
+		if(!QDELETED(atom))
+			qdel(atom)
 
 	if(synthetic_mainship_z)
 		var/datum/space_level/level = SSmapping?.get_level(synthetic_mainship_z)
@@ -96,6 +102,7 @@
 
 	tracked_test_humans = null
 	tracked_test_squads = null
+	tracked_test_atoms = null
 	snapshot_squads = null
 	snapshot_squads_by_type = null
 
@@ -103,6 +110,11 @@
 
 /datum/unit_test/halo_ship_platoons/proc/isolate_personal_lockers(obj/structure/closet/secure_closet/marine_personal/locker)
 	GLOB.personal_closets = locker ? list(locker) : list()
+
+/datum/unit_test/halo_ship_platoons/proc/track_test_atom(atom/tracked_atom)
+	if(tracked_atom && !(tracked_atom in tracked_test_atoms))
+		tracked_test_atoms += tracked_atom
+	return tracked_atom
 
 /datum/unit_test/halo_ship_platoons/proc/configure_test_human(mob/living/carbon/human/human, real_name, job_title, squad_type = null, key_name = null)
 	if(human && !(human in tracked_test_humans))
@@ -1250,3 +1262,136 @@
 	tracked_test_humans += role_human
 	role_authority.equip_role(role_human, job_datum, FALSE)
 	TEST_ASSERT(!role_human.modular_spawn_called, "role_authority equip_role unexpectedly requested modular spawn candidate for a non-SO non-squad job.")
+
+/datum/unit_test/halo_ship_platoons_ship_surface_registry
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_ship_surface_registry/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for ship surface registry test.")
+
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_family(/datum/squad/marine/alpha), "uscm", "USCM platoon did not resolve to the USCM ship surface family.")
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_family(/datum/squad/marine/halo/unsc/alpha), "unsc", "UNSC platoon did not resolve to the UNSC ship surface family.")
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_family(/datum/squad/marine/halo/odst/alpha), "odst", "ODST platoon did not resolve to the ODST ship surface family.")
+
+	var/list/halo_markers = role_authority.get_ship_surface_related_squad_markers(/datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT_EQUAL(length(halo_markers), 4, "HALO ship surface coverage did not include all related Alpha/Bravo/Charlie/Delta squads.")
+	TEST_ASSERT(halo_markers.Find(SQUAD_MARINE_1), "HALO ship surface coverage missed Alpha.")
+	TEST_ASSERT(halo_markers.Find(SQUAD_MARINE_2), "HALO ship surface coverage missed Bravo.")
+	TEST_ASSERT(halo_markers.Find(SQUAD_MARINE_3), "HALO ship surface coverage missed Charlie.")
+	TEST_ASSERT(halo_markers.Find(SQUAD_MARINE_4), "HALO ship surface coverage missed Delta.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader/ftl_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/team_leader)
+	var/list/ftl_key = role_authority.get_ship_surface_key(ftl_locker)
+	TEST_ASSERT_NOTNULL(ftl_key, "HALO FTL locker did not resolve to a ship surface key.")
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(ftl_key, "uscm"), /obj/structure/closet/secure_closet/marine_personal/squad_leader/s1, "HALO team leader locker did not map back to the USCM fireteam-leader locker.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/squad_leader/sl_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/squad_leader)
+	var/list/sl_key = role_authority.get_ship_surface_key(sl_locker)
+	TEST_ASSERT_NOTNULL(sl_key, "HALO squad leader locker did not resolve to a ship surface key.")
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(sl_key, "uscm"), /obj/structure/closet/secure_closet/marine_personal/platoon_leader/s1, "HALO squad leader locker did not map back to the USCM platoon-leader locker.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/unsc_crew/crew_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc_crew)
+	TEST_ASSERT_NULL(role_authority.get_ship_surface_key(crew_locker), "UNSC crew lockers should stay out of marine ship surface replacement scope.")
+
+	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/med_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc)
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(role_authority.get_ship_surface_key(med_vendor), "odst"), /obj/structure/machinery/cm_vending/sorted/medical/unsc/odst, "UNSC medbay vendor did not map to the ODST medbay subtype.")
+
+	var/obj/structure/machinery/cm_vending/clothing/medic/unsc/medic_vendor = allocate(/obj/structure/machinery/cm_vending/clothing/medic/unsc)
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(role_authority.get_ship_surface_key(medic_vendor), "odst"), /obj/structure/machinery/cm_vending/clothing/medic/unsc/odst, "UNSC medic clothing vendor did not map to the ODST medic subtype.")
+
+	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chem_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc)
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(role_authority.get_ship_surface_key(chem_vendor), "odst"), /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/odst, "UNSC medic chemical vendor did not map to the ODST medic chemical subtype.")
+
+	var/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt/food_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt)
+	TEST_ASSERT_EQUAL(role_authority.get_ship_surface_target_type(role_authority.get_ship_surface_key(food_vendor), "uscm"), /obj/structure/machinery/cm_vending/sorted/marine_food, "UNSC alternate food vendor did not map back to the USCM food vendor.")
+
+/datum/unit_test/halo_ship_platoons_ship_surface_locker_replacement
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_ship_surface_locker_replacement/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for locker ship surface replacement test.")
+
+	var/turf/mainship_turf = get_mainship_test_turf()
+	TEST_ASSERT_NOTNULL(mainship_turf, "Failed to resolve a mainship turf for locker ship surface replacement test.")
+
+	var/turf/linked_turf = get_step(mainship_turf, EAST)
+	if(!isfloorturf(linked_turf))
+		linked_turf = get_step(mainship_turf, NORTH)
+	if(!isfloorturf(linked_turf))
+		linked_turf = get_step(mainship_turf, SOUTH)
+	if(!isfloorturf(linked_turf))
+		linked_turf = get_step(mainship_turf, WEST)
+	TEST_ASSERT(isfloorturf(linked_turf), "Failed to resolve linked spawn turf for locker ship surface replacement test.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman, mainship_turf)
+	source_locker.pixel_x = 11
+	source_locker.pixel_y = -6
+	source_locker.dir = WEST
+	source_locker.density = FALSE
+	source_locker.owner = "Mapper Locker"
+	source_locker.x_to_linked_spawn_turf = linked_turf.x - source_locker.x
+	source_locker.y_to_linked_spawn_turf = linked_turf.y - source_locker.y
+	source_locker.linked_spawn_turf = linked_turf
+
+	TEST_ASSERT(count_personal_locker_contents_by_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers) >= 1, "UNSC locker baseline headset was missing before ship surface replacement test.")
+	var/obj/item/device/flashlight/mapper_item = allocate(/obj/item/device/flashlight, source_locker)
+	TEST_ASSERT(mapper_item in source_locker.contents, "Failed to seed mapper-added content into the source locker before replacement.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/target_locker = role_authority.replace_ship_surface_fixture(
+		source_locker,
+		"odst",
+		role_authority.get_ship_surface_related_squad_markers(/datum/squad/marine/halo/odst/alpha)
+	)
+	track_test_atom(target_locker)
+
+	TEST_ASSERT_NOTNULL(target_locker, "Locker ship surface replacement did not produce a target locker.")
+	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/odst/alpha/rifleman, "UNSC Alpha rifleman locker did not swap into the ODST Alpha rifleman locker.")
+	TEST_ASSERT_EQUAL(target_locker.pixel_x, 11, "Locker ship surface replacement did not preserve pixel_x.")
+	TEST_ASSERT_EQUAL(target_locker.pixel_y, -6, "Locker ship surface replacement did not preserve pixel_y.")
+	TEST_ASSERT_EQUAL(target_locker.dir, WEST, "Locker ship surface replacement did not preserve direction.")
+	TEST_ASSERT_EQUAL(target_locker.density, FALSE, "Locker ship surface replacement did not preserve density.")
+	TEST_ASSERT_EQUAL(target_locker.owner, "Mapper Locker", "Locker ship surface replacement did not preserve locker owner metadata.")
+	TEST_ASSERT_EQUAL(target_locker.x_to_linked_spawn_turf, linked_turf.x - mainship_turf.x, "Locker ship surface replacement did not preserve linked spawn X offset.")
+	TEST_ASSERT_EQUAL(target_locker.y_to_linked_spawn_turf, linked_turf.y - mainship_turf.y, "Locker ship surface replacement did not preserve linked spawn Y offset.")
+	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Locker ship surface replacement did not preserve linked spawn turf.")
+	TEST_ASSERT(mapper_item in target_locker.contents, "Locker ship surface replacement lost mapper-added contents.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers), 0, "Locker ship surface replacement incorrectly carried over UNSC baseline gear into the ODST locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
+
+/datum/unit_test/halo_ship_platoons_ship_surface_vendor_replacement
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_ship_surface_vendor_replacement/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for vendor ship surface replacement test.")
+
+	var/turf/mainship_turf = get_mainship_test_turf()
+	TEST_ASSERT_NOTNULL(mainship_turf, "Failed to resolve a mainship turf for vendor ship surface replacement test.")
+
+	var/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt/source_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt, mainship_turf)
+	source_vendor.pixel_x = -10
+	source_vendor.pixel_y = 4
+	source_vendor.dir = SOUTH
+	source_vendor.density = FALSE
+	source_vendor.listed_products = list(list("BOGUS", 1, /obj/item/device/flashlight, VENDOR_ITEM_REGULAR))
+
+	var/obj/item/device/flashlight/mapper_item = allocate(/obj/item/device/flashlight, source_vendor)
+	TEST_ASSERT(mapper_item in source_vendor.contents, "Failed to seed mapper-added content into the source vendor before replacement.")
+
+	var/obj/structure/machinery/cm_vending/target_vendor = role_authority.replace_ship_surface_fixture(
+		source_vendor,
+		"odst",
+		role_authority.get_ship_surface_related_squad_markers(/datum/squad/marine/halo/odst/alpha)
+	)
+	track_test_atom(target_vendor)
+
+	TEST_ASSERT_NOTNULL(target_vendor, "Vendor ship surface replacement did not produce a target vendor.")
+	TEST_ASSERT_EQUAL(target_vendor.type, /obj/structure/machinery/cm_vending/sorted/marine_food/unsc/odst/alt, "UNSC alternate food vendor did not swap into the ODST alternate food vendor.")
+	TEST_ASSERT_EQUAL(target_vendor.pixel_x, -10, "Vendor ship surface replacement did not preserve pixel_x.")
+	TEST_ASSERT_EQUAL(target_vendor.pixel_y, 4, "Vendor ship surface replacement did not preserve pixel_y.")
+	TEST_ASSERT_EQUAL(target_vendor.dir, SOUTH, "Vendor ship surface replacement did not preserve direction.")
+	TEST_ASSERT_EQUAL(target_vendor.density, FALSE, "Vendor ship surface replacement did not preserve density.")
+	TEST_ASSERT(mapper_item in target_vendor.contents, "Vendor ship surface replacement lost mapper-added contents.")
+	TEST_ASSERT(length(target_vendor.listed_products) == 0 || target_vendor.listed_products[1][1] != "BOGUS", "Vendor ship surface replacement incorrectly copied source listed_products into the new vendor.")
