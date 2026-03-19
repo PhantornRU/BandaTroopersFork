@@ -15,6 +15,11 @@
 	var/snapshot_ship_platoon = null
 	var/synthetic_mainship_z = null
 	var/synthetic_mainship_prev = null
+	var/list/snapshot_runtime_name_by_static = null
+	var/list/snapshot_leader_lock_by_static = null
+	var/snapshot_first_platoon_commander_ckey = null
+	var/snapshot_main_platoon_name = null
+	var/snapshot_main_platoon_initial_name = null
 
 /datum/unit_test/halo_ship_platoons/Run()
 	return
@@ -40,6 +45,12 @@
 	tracked_test_humans = list()
 	tracked_test_squads = list()
 	snapshot_ship_platoon = SSmapping?.configs?[SHIP_MAP]?.platoon
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	snapshot_runtime_name_by_static = manager?.runtime_name_by_static ? manager.runtime_name_by_static.Copy() : null
+	snapshot_leader_lock_by_static = manager?.leader_lock_by_static ? manager.leader_lock_by_static.Copy() : null
+	snapshot_first_platoon_commander_ckey = manager?.first_platoon_commander_ckey
+	snapshot_main_platoon_name = GLOB.main_platoon_name
+	snapshot_main_platoon_initial_name = GLOB.main_platoon_initial_name
 
 /datum/unit_test/halo_ship_platoons/Destroy()
 	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
@@ -73,6 +84,13 @@
 	GLOB.latejoin = snapshot_latejoin ? snapshot_latejoin.Copy() : list()
 	GLOB.latejoin_by_squad = snapshot_latejoin_by_squad ? snapshot_latejoin_by_squad.Copy() : list()
 	GLOB.latejoin_by_job = snapshot_latejoin_by_job ? snapshot_latejoin_by_job.Copy() : list()
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	if(manager)
+		manager.runtime_name_by_static = snapshot_runtime_name_by_static ? snapshot_runtime_name_by_static.Copy() : list()
+		manager.leader_lock_by_static = snapshot_leader_lock_by_static ? snapshot_leader_lock_by_static.Copy() : list()
+		manager.first_platoon_commander_ckey = snapshot_first_platoon_commander_ckey
+	GLOB.main_platoon_name = snapshot_main_platoon_name
+	GLOB.main_platoon_initial_name = snapshot_main_platoon_initial_name
 	if(SSmapping?.configs?[SHIP_MAP])
 		SSmapping.configs[SHIP_MAP].platoon = snapshot_ship_platoon
 
@@ -472,6 +490,8 @@
 	parent_type = /datum/unit_test/halo_ship_platoons
 
 /datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO UNSC cryo mapping test.")
 
@@ -560,9 +580,7 @@
 	parent_type = /datum/unit_test/halo_ship_platoons
 
 /datum/unit_test/halo_ship_platoons_cryo_followup_preserves_unsc_context/Run()
-	var/datum/map_config/ship_config = SSmapping?.configs?[SHIP_MAP]
-	TEST_ASSERT_NOTNULL(ship_config, "Failed to resolve the active ship config for HALO cryo follow-up testing.")
-	ship_config.platoon = "/datum/squad/marine/halo/unsc/alpha"
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(human, "HALO Cryo Followup", JOB_SQUAD_MEDIC_UNSC)
@@ -579,6 +597,60 @@
 	TEST_ASSERT_NOTNULL(human.assigned_squad, "Cryo follow-up handling did not restore squad assignment for a HALO corpsman.")
 	var/list/unsc_family_types = GLOB.RoleAuthority.get_halo_job_family_types(JOB_SQUAD_MEDIC_UNSC)
 	TEST_ASSERT(unsc_family_types.Find(human.assigned_squad?.type), "Cryo follow-up handling assigned the HALO corpsman outside the UNSC squad family.")
+
+/datum/unit_test/halo_ship_platoons_title_independence
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_title_independence/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO title-independence testing.")
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	TEST_ASSERT_NOTNULL(cryo_call, "HALO title-independence test could not allocate the cryo helper.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, "HALO Title Override Specialist", JOB_SQUAD_SPECIALIST_UNSC)
+	arm_equipment(human, /datum/equipment_preset/unsc/spec, FALSE, TRUE)
+
+	var/obj/item/card/id/id = human.get_idcard()
+	TEST_ASSERT_NOTNULL(id, "HALO title-independence test did not receive an ID card from the specialist preset.")
+
+	human.title = "Custom HALO Display Title"
+	role_authority.randomize_squad(human, TRUE)
+
+	TEST_ASSERT_NOTNULL(human.assigned_squad, "Changing the HALO display title prevented squad assignment.")
+	var/list/unsc_family_types = role_authority.get_halo_job_family_types(JOB_SQUAD_SPECIALIST_UNSC)
+	TEST_ASSERT(unsc_family_types.Find(human.assigned_squad?.type), "Changing the HALO display title altered profile routing outside the UNSC squad family.")
+	TEST_ASSERT_EQUAL(id?.assignment, JOB_SQUAD_SPECIALIST_UNSC, "Changing the HALO display title altered specialist ID assignment metadata.")
+	TEST_ASSERT_EQUAL(id?.rank, JOB_SQUAD_SPECIALIST_UNSC, "Changing the HALO display title altered specialist ID rank metadata.")
+	TEST_ASSERT_NOTEQUAL(id?.assignment, "[human.assigned_squad?.name] [JOB_SQUAD_SPECIALIST_UNSC]", "HALO specialist ID assignment regressed back to a squad-prefixed display label.")
+
+	if(human.assigned_fireteam == "SQ1")
+		TEST_ASSERT(id.access.Find(ACCESS_SQUAD_ONE), "Changing the HALO display title altered SQ1 access routing for the specialist ID.")
+	else if(human.assigned_fireteam == "SQ2")
+		TEST_ASSERT(id.access.Find(ACCESS_SQUAD_TWO), "Changing the HALO display title altered SQ2 access routing for the specialist ID.")
+	else
+		TEST_FAIL("HALO title-independence test assigned the specialist to an unexpected fireteam.")
+
+	var/datum/squad/assigned_squad = human.assigned_squad
+	assigned_squad.remove_marine_from_squad(human, id)
+
+	var/mob/living/carbon/human/cryo_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(cryo_human, "HALO Title Override Corpsman", JOB_SQUAD_MEDIC_UNSC)
+	arm_equipment(cryo_human, /datum/equipment_preset/unsc/medic/equipped, FALSE, TRUE)
+	cryo_human.title = "Custom HALO Cryo Display Title"
+	cryo_human.assigned_squad = null
+
+	var/obj/item/card/id/cryo_id = cryo_human.get_idcard()
+	TEST_ASSERT_NOTNULL(cryo_id, "HALO title-independence cryo subcase did not receive an ID card from the medic preset.")
+
+	cryo_call.finalize_profile_cryo_reinforcement(cryo_human)
+
+	TEST_ASSERT_NOTNULL(cryo_human.assigned_squad, "Changing the HALO display title prevented cryo follow-up squad restoration.")
+	TEST_ASSERT(unsc_family_types.Find(cryo_human.assigned_squad?.type), "Changing the HALO display title altered cryo follow-up routing outside the UNSC squad family.")
+	TEST_ASSERT_EQUAL(cryo_id?.assignment, JOB_SQUAD_MEDIC_UNSC, "Changing the HALO display title altered cryo medic ID assignment metadata.")
+	TEST_ASSERT_EQUAL(cryo_id?.rank, JOB_SQUAD_MEDIC_UNSC, "Changing the HALO display title altered cryo medic ID rank metadata.")
 
 /datum/unit_test/halo_ship_platoons_odst_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons

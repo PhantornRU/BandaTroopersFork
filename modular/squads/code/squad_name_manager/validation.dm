@@ -28,9 +28,13 @@
 /datum/squad_name_manager/proc/normalize_squad_name(raw_name)
 	return squad_name_normalize(raw_name, 32)
 
-/datum/squad_name_manager/proc/validate_name_conflicts(new_name, old_name)
+/datum/squad_name_manager/proc/validate_name_conflicts(new_name, old_name, managed_static_name = null)
+	var/allow_managed_default_name = managed_static_name && cmptext(new_name, get_default_name_by_static(managed_static_name))
+
 	for(var/channel_name in GLOB.radiochannels)
 		if(cmptext(channel_name, new_name) && !cmptext(channel_name, old_name))
+			if(allow_managed_default_name)
+				continue
 			return "This name is already used by another radio channel or squad."
 
 	for(var/static_name in managed_static_names)

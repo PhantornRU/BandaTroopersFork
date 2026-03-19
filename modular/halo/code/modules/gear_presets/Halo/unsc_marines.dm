@@ -282,8 +282,17 @@
 /datum/equipment_preset/unsc/platco/load_name(mob/living/carbon/human/new_human, randomise)
 	load_halo_preset_name(new_human)
 
+/datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
+	squad_name_try_apply_platoon_commander_preference(new_human)
+	if(late_join || !new_human.client?.prefs)
+		return
+
+	change_dropship_camo(new_human.client.prefs.dropship_camo)
+	change_dropship_name(new_human.client.prefs.dropship_name)
+
 /datum/equipment_preset/unsc/platco/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	parent_type = /datum/equipment_preset/uscm_ship/so/lesser_rank
+	name = "UNSC Platoon Commander (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/platco/odst
@@ -293,7 +302,8 @@
 	skills = /datum/skills/SO
 
 /datum/equipment_preset/unsc/platco/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	parent_type = /datum/equipment_preset/uscm_ship/so/lesser_rank
+	name = "ODST Platoon Commander (Lesser Rank)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 // Pilot
