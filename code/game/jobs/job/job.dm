@@ -336,7 +336,12 @@
 				join_turf = get_modular_safe_latejoin_turf(null, null, FALSE) // SS220 EDIT: safe latejoin fallback avoids pick(empty list)
 			// SS220 EDIT - END - roundstart fallback for squad roles excludes latejoin sources
 		// SS220 EDIT - END
-		human.forceMove(join_turf)
+		if(!isturf(join_turf))
+			join_turf = get_turf(human) // SS220 EDIT: missing roundstart spawn turf falls back to current turf instead of forceMove(null)
+		if(isturf(join_turf))
+			human.forceMove(join_turf)
+		else
+			squads_debug_log("[human] failed to resolve roundstart spawn turf for job=[title].") // SS220 EDIT: keep missing spawn turf as logged fallback, not a runtime
 
 		/* SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021)
 		for(var/cardinal in GLOB.cardinals)

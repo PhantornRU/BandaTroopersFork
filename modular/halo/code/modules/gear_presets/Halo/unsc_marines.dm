@@ -866,6 +866,8 @@
 /datum/equipment_preset/unsc/platco/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/platco/equipped
 	name = "ODST Platoon Commander (Equipped)"
+	assignment = JOB_SO_ODST
+	rank = JOB_SO_ODST
 	role_comm_title = "PltCo-ODST"
 	odst_visual_role = TRUE
 

@@ -358,8 +358,8 @@
 				JOB_SQUAD_MEDIC = list(
 					/datum/equipment_preset/uscm/medic = /datum/equipment_preset/unsc/medic,
 					/datum/equipment_preset/uscm/medic/lance_corporal = /datum/equipment_preset/unsc/medic/lesser_rank,
-					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/lesser_rank,
-					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/lesser_rank,
+					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/pfc,
+					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/private,
 				),
 				JOB_SQUAD_TEAM_LEADER = list(
 					/datum/equipment_preset/uscm/tl = /datum/equipment_preset/unsc/tl,
@@ -392,8 +392,8 @@
 				JOB_SQUAD_MEDIC = list(
 					/datum/equipment_preset/uscm/medic = /datum/equipment_preset/unsc/medic/odst,
 					/datum/equipment_preset/uscm/medic/lance_corporal = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
-					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
-					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/odst/lesser_rank,
+					/datum/equipment_preset/uscm/medic/pfc = /datum/equipment_preset/unsc/medic/odst/pfc,
+					/datum/equipment_preset/uscm/medic/private = /datum/equipment_preset/unsc/medic/odst/private,
 				),
 				JOB_SQUAD_TEAM_LEADER = list(
 					/datum/equipment_preset/uscm/tl = /datum/equipment_preset/unsc/tl/odst,

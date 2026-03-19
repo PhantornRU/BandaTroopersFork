@@ -600,7 +600,12 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			// 	late_join_turf = get_turf(pick(GLOB.latejoin))
 			late_join_turf = get_modular_safe_latejoin_turf(new_job.title, assigned_squad) // SS220 EDIT: safe latejoin fallback skips empty buckets before global latejoin
 		// SS220 EDIT - END
-		new_human.forceMove(late_join_turf)
+		if(!isturf(late_join_turf))
+			late_join_turf = get_turf(new_human) // SS220 EDIT: missing latejoin turf falls back to current turf instead of forceMove(null)
+		if(isturf(late_join_turf))
+			new_human.forceMove(late_join_turf)
+		else
+			squads_debug_log("[new_human] failed to resolve latejoin spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing latejoin turf as logged fallback, not a runtime
 	else
 		var/turf/join_turf
 		// SS220 EDIT - START
@@ -635,7 +640,12 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			else if(!is_squad_role)
 				join_turf = get_modular_safe_latejoin_turf(null, null, FALSE) // SS220 EDIT: safe latejoin fallback avoids pick(empty list)
 		// SS220 EDIT - END
-		new_human.forceMove(join_turf)
+		if(!isturf(join_turf))
+			join_turf = get_turf(new_human) // SS220 EDIT: missing roundstart spawn turf falls back to current turf instead of forceMove(null)
+		if(isturf(join_turf))
+			new_human.forceMove(join_turf)
+		else
+			squads_debug_log("[new_human] failed to resolve roundstart spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing spawn turf as logged fallback, not a runtime
 
 	/* SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021)
 	for(var/cardinal in GLOB.cardinals)

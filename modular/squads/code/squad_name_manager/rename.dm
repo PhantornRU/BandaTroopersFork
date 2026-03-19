@@ -66,6 +66,10 @@
 		return null
 
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/canonical_role = role_authority?.get_job_preference_bucket_key(job_value)
+	if(canonical_role)
+		return canonical_role
+
 	var/job_title = role_authority?.resolve_job_title(job_value)
 	if(isnull(job_title) && istype(job_value, /datum/job))
 		var/datum/job/job_datum = job_value
@@ -73,7 +77,7 @@
 	if(!istext(job_title))
 		return null
 
-	return role_authority?.get_default_role_title(job_title) || job_title
+	return role_authority?.get_job_preference_bucket_key(job_title) || job_title
 
 /datum/squad_name_manager/proc/claim_first_platoon_commander(mob/living/carbon/human/H)
 	if(resolve_human_default_role(H) != JOB_SO)

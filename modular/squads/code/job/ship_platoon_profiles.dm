@@ -110,6 +110,8 @@
 	if(!job_title || !current_preset || !platoon_type)
 		return null
 
+	job_title = get_job_preference_bucket_key(job_title) || job_title
+
 	var/list/profile = get_ship_platoon_profile(platoon_type)
 	var/list/spawn_preset_overrides = profile?["spawn_preset_overrides"]
 	if(!islist(spawn_preset_overrides))
@@ -128,6 +130,8 @@
 	if(!canonical_role || !platoon_type)
 		return null
 
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
+
 	var/list/profile = get_ship_platoon_profile(platoon_type)
 	var/list/cryo_reinforcement_titles = profile?["cryo_reinforcement_titles"]
 	if(!islist(cryo_reinforcement_titles))
@@ -141,6 +145,8 @@
 /datum/authority/branch/role/proc/get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
 	if(!canonical_role || !platoon_type)
 		return null
+
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
 
 	var/list/profile = get_ship_platoon_profile(platoon_type)
 	var/list/cryo_reinforcement_presets = profile?["cryo_reinforcement_presets"]
@@ -157,6 +163,7 @@
 	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
 
 /datum/authority/branch/role/proc/apply_active_ship_cryo_reinforcement(mob/living/carbon/human/human, canonical_role, fallback_title = canonical_role, fallback_preset = null, late_join = TRUE, platoon_type = get_active_ship_platoon_type())
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
 	if(!istype(human) || !canonical_role)
 		return FALSE
 
