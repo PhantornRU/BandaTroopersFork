@@ -276,10 +276,24 @@
 	configure_test_human(human, real_name, preview_role_title)
 	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
 
-	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen), "[real_name] preview mannequin did not use the ODST ferrymen headset.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst), "[real_name] preview mannequin did not use the ODST headset.")
 	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_HEAD), /obj/item/clothing/head/helmet/marine/unsc/odst), "[real_name] preview mannequin did not use the ODST helmet.")
 	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_BODY), /obj/item/clothing/under/marine/odst), "[real_name] preview mannequin did not use the ODST uniform.")
 	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_JACKET), /obj/item/clothing/suit/marine/unsc/odst), "[real_name] preview mannequin did not use the ODST armor.")
+
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_odst_platoon_commander_preview_officer_core(real_name, preview_role_title)
+	var/preset_type = GLOB.RoleAuthority?.get_modular_job_pref_to_gear_preset(preview_role_title)
+
+	TEST_ASSERT_NOTNULL(preset_type, "[real_name] did not resolve an ODST Platoon Commander preview preset through the modular preview helper.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, preview_role_title)
+	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
+
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst), "[real_name] preview mannequin did not use the ODST headset.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_HEAD), /obj/item/clothing/head/cmcap), "[real_name] preview mannequin did not use the UNSC officer cap.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_BODY), /obj/item/clothing/under/marine/standard), "[real_name] preview mannequin did not use the UNSC officer uniform.")
+	TEST_ASSERT(istype(human.get_item_by_slot(WEAR_JACKET), /obj/item/clothing/suit/marine/unsc), "[real_name] preview mannequin did not use the UNSC officer jacket.")
 
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_specialist_roundstart_loadout(real_name, preset_path, expected_role_title, expected_squad_family)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
@@ -389,7 +403,7 @@
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC FTL", JOB_SQUAD_TEAM_LEADER_UNSC)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Squad Leader", JOB_SQUAD_LEADER_UNSC)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Specialist", JOB_SQUAD_SPECIALIST_UNSC)
-	assert_halo_odst_preview_visual_core("HALO Preview ODST Platoon Commander", JOB_SO_ODST)
+	assert_halo_odst_platoon_commander_preview_officer_core("HALO Preview ODST Platoon Commander", JOB_SO_ODST)
 	assert_halo_odst_preview_visual_core("HALO Preview ODST Corpsman", JOB_SQUAD_MEDIC_ODST)
 	assert_halo_odst_preview_visual_core("HALO Preview ODST RTO", JOB_SQUAD_RTO_ODST)
 	assert_halo_odst_preview_visual_core("HALO Preview ODST FTL", JOB_SQUAD_TEAM_LEADER_ODST)
@@ -629,6 +643,28 @@
 	arm_equipment(halo_so, /datum/equipment_preset/unsc/platco, FALSE, TRUE, null, TRUE, TRUE)
 
 	TEST_ASSERT_EQUAL(alpha_squad.name, manager.get_default_name_by_static(SQUAD_MARINE_1), "HALO SO latejoin lifecycle no longer restores the first-platoon-commander squad-name fallback.")
+
+/datum/unit_test/halo_ship_platoons_platoon_commander_preference_handles_job_datum
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_platoon_commander_preference_handles_job_datum/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for HALO Platoon Commander preference regression testing.")
+	manager.reset_first_platoon_commander()
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO Platoon Commander preference regression testing.")
+	var/datum/job/so_job = role_authority.roles_by_name[JOB_SO_UNSC]
+	TEST_ASSERT_NOTNULL(so_job, "Failed to resolve the HALO UNSC Platoon Commander job datum for preference regression testing.")
+
+	var/mob/living/carbon/human/halo_so = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(halo_so, "HALO Platoon Commander Pref", JOB_SO_UNSC, null, "halo_so_pref")
+	halo_so.job = so_job
+
+	TEST_ASSERT(manager.claim_first_platoon_commander(halo_so), "Platoon Commander preference claim should accept HALO job datums without bad-indexing the default-role map.")
+	TEST_ASSERT_EQUAL(manager.first_platoon_commander_ckey, "halo_so_pref", "Platoon Commander preference claim did not persist the first HALO Platoon Commander claimant.")
 
 /datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1026,7 +1062,7 @@
 	TEST_ASSERT(findtext(locker.name, human.real_name), "HALO UNSC specialist personal locker name was not personalized on roundstart.")
 	TEST_ASSERT(locker.allowed(human), "Claimed HALO UNSC specialist personal locker did not open for its owner.")
 	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/clothing/under/marine) >= 1, "HALO UNSC specialist personal locker lost its baseline uniform on roundstart claim.")
-	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers) >= 1, "HALO UNSC specialist personal locker lost its baseline headset on roundstart claim.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc) >= 1, "HALO UNSC specialist personal locker lost its baseline headset on roundstart claim.")
 
 /datum/unit_test/halo_ship_platoons_unsc_specialist_personal_locker_latejoin
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1060,7 +1096,7 @@
 	TEST_ASSERT(preset.try_handle_personal_locker_vanity(human, null, FALSE), "Roundstart locker handling returned FALSE for HALO ODST specialist.")
 	TEST_ASSERT_EQUAL(locker.owner, human.real_name, "HALO ODST specialist personal locker was not claimed on roundstart.")
 	TEST_ASSERT(locker.allowed(human), "Claimed HALO ODST specialist personal locker did not open for its owner.")
-	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen) >= 1, "HALO ODST specialist personal locker lost its baseline headset on roundstart claim.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "HALO ODST specialist personal locker lost its baseline headset on roundstart claim.")
 
 /datum/unit_test/halo_ship_platoons_personal_locker_empty_first_claim_refill
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1077,7 +1113,7 @@
 
 	TEST_ASSERT(preset.try_handle_personal_locker_vanity(human, null, FALSE), "Locker handling returned FALSE for empty first-claim refill test.")
 	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/clothing/under/marine) >= 1, "Empty HALO specialist locker was not refilled with baseline uniform on first claim.")
-	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers) >= 1, "Empty HALO specialist locker was not refilled with baseline headset on first claim.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc) >= 1, "Empty HALO specialist locker was not refilled with baseline headset on first claim.")
 
 /datum/unit_test/halo_ship_platoons_personal_locker_nonempty_first_claim_no_duplicate
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1091,12 +1127,12 @@
 	isolate_personal_lockers(locker)
 
 	var/uniforms_before = count_personal_locker_contents_by_type(locker, /obj/item/clothing/under/marine)
-	var/headsets_before = count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers)
+	var/headsets_before = count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc)
 	var/shoes_before = count_personal_locker_contents_by_type(locker, /obj/item/clothing/shoes/marine/knife)
 
 	TEST_ASSERT(preset.try_handle_personal_locker_vanity(human, null, FALSE), "Locker handling returned FALSE for non-empty first-claim duplication test.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(locker, /obj/item/clothing/under/marine), uniforms_before, "Non-empty HALO specialist locker duplicated baseline uniform on first claim.")
-	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers), headsets_before, "Non-empty HALO specialist locker duplicated baseline headset on first claim.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), headsets_before, "Non-empty HALO specialist locker duplicated baseline headset on first claim.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(locker, /obj/item/clothing/shoes/marine/knife), shoes_before, "Non-empty HALO specialist locker duplicated baseline shoes on first claim.")
 
 /datum/unit_test/halo_ship_platoons_personal_locker_custom_item_routing
@@ -1355,7 +1391,7 @@
 	source_locker.y_to_linked_spawn_turf = linked_turf.y - source_locker.y
 	source_locker.linked_spawn_turf = linked_turf
 
-	TEST_ASSERT(count_personal_locker_contents_by_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers) >= 1, "UNSC locker baseline headset was missing before ship surface replacement test.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc) >= 1, "UNSC locker baseline headset was missing before ship surface replacement test.")
 	var/obj/item/device/flashlight/mapper_item = allocate(/obj/item/device/flashlight, source_locker)
 	TEST_ASSERT(mapper_item in source_locker.contents, "Failed to seed mapper-added content into the source locker before replacement.")
 
@@ -1377,8 +1413,8 @@
 	TEST_ASSERT_EQUAL(target_locker.y_to_linked_spawn_turf, linked_turf.y - mainship_turf.y, "Locker ship surface replacement did not preserve linked spawn Y offset.")
 	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Locker ship surface replacement did not preserve linked spawn turf.")
 	TEST_ASSERT(mapper_item in target_locker.contents, "Locker ship surface replacement lost mapper-added contents.")
-	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers), 0, "Locker ship surface replacement incorrectly carried over UNSC baseline gear into the ODST locker.")
-	TEST_ASSERT(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement incorrectly carried over UNSC baseline gear into the ODST locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
 
 /datum/unit_test/halo_ship_platoons_ship_surface_vendor_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons

@@ -6,40 +6,40 @@
 	idtype = /obj/item/card/id/dogtag
 	var/odst_visual_role = FALSE
 
-/proc/load_halo_preset_name(mob/living/carbon/human/new_human)
-	if(!istype(new_human))
+/mob/living/carbon/human/proc/load_halo_preset_name()
+	if(!istype(src))
 		return
 
-	new_human.gender = pick(75;MALE,25;FEMALE)
+	src.gender = pick(75;MALE,25;FEMALE)
 	var/datum/preferences/A = new
-	A.randomize_appearance(new_human)
-	var/random_name = capitalize(pick(new_human.gender == MALE ? GLOB.first_names_male : GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
+	A.randomize_appearance(src)
+	var/random_name = capitalize(pick(src.gender == MALE ? GLOB.first_names_male : GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
 	var/static/list/colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "BROWN" = list(48, 38, 18),"BLUE" = list(29, 51, 65), "GREEN" = list(40, 61, 39), "STEEL" = list(46, 59, 54))
 	var/static/list/hair_colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "AUBURN" = list(77, 48, 36), "BLONDE" = list(95, 76, 44))
 	var/hair_color = pick(hair_colors)
-	new_human.r_hair = hair_colors[hair_color][1]
-	new_human.g_hair = hair_colors[hair_color][2]
-	new_human.b_hair = hair_colors[hair_color][3]
-	new_human.r_facial = hair_colors[hair_color][1]
-	new_human.g_facial = hair_colors[hair_color][2]
-	new_human.b_facial = hair_colors[hair_color][3]
+	src.r_hair = hair_colors[hair_color][1]
+	src.g_hair = hair_colors[hair_color][2]
+	src.b_hair = hair_colors[hair_color][3]
+	src.r_facial = hair_colors[hair_color][1]
+	src.g_facial = hair_colors[hair_color][2]
+	src.b_facial = hair_colors[hair_color][3]
 	var/eye_color = pick(colors)
-	new_human.r_eyes = colors[eye_color][1]
-	new_human.g_eyes = colors[eye_color][2]
-	new_human.b_eyes = colors[eye_color][3]
-	if(new_human.gender == MALE)
-		new_human.h_style = pick("Undercut", "Partly Shaved", "Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "Medium Fade", "High Fade", "Coffee House Cut")
-		new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
+	src.r_eyes = colors[eye_color][1]
+	src.g_eyes = colors[eye_color][2]
+	src.b_eyes = colors[eye_color][3]
+	if(src.gender == MALE)
+		src.h_style = pick("Undercut", "Partly Shaved", "Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "Medium Fade", "High Fade", "Coffee House Cut")
+		src.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 	else
-		new_human.h_style = pick("Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "CIA", "Mulder", "Pvt. Redding", "Pixie Cut Left", "Pixie Cut Right", "Bun")
-	new_human.change_real_name(new_human, random_name)
-	new_human.age = rand(20,35)
+		src.h_style = pick("Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "CIA", "Mulder", "Pvt. Redding", "Pixie Cut Left", "Pixie Cut Right", "Bun")
+	src.change_real_name(src, random_name)
+	src.age = rand(20,35)
 
 /datum/equipment_preset/unsc/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_VERYLOW
 
 /datum/equipment_preset/unsc/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /mob/living/carbon/human
 	var/tmp/halo_runtime_spawn_context = null
@@ -50,14 +50,14 @@
 /mob/living/carbon/human/proc/clear_halo_runtime_spawn_context()
 	halo_runtime_spawn_context = null
 
-/proc/halo_maybe_equip_accessory(mob/living/carbon/human/new_human, accessory_type, chance = 100)
-	if(!istype(new_human) || isnull(accessory_type) || !prob(chance))
+/mob/living/carbon/human/proc/halo_maybe_equip_accessory(accessory_type, chance = 100)
+	if(isnull(accessory_type) || !prob(chance))
 		return
 
-	new_human.equip_to_slot_or_del(new accessory_type(new_human), WEAR_ACCESSORY)
+	src.equip_to_slot_or_del(new accessory_type(src), WEAR_ACCESSORY)
 
-/proc/halo_equip_unsc_service_patch(mob/living/carbon/human/new_human, role_profile = "line", odst = FALSE)
-	if(!istype(new_human))
+/mob/living/carbon/human/proc/halo_equip_unsc_service_patch(role_profile = "line", odst = FALSE)
+	if(!istype(src))
 		return
 
 	var/list/patch_pool = list(
@@ -117,10 +117,10 @@
 		patch_pool += list(/obj/item/clothing/accessory/patch/usasf/helljumper)
 
 	var/patch_type = pick(patch_pool)
-	new_human.equip_to_slot_or_del(new patch_type(new_human), WEAR_ACCESSORY)
+	src.equip_to_slot_or_del(new patch_type(src), WEAR_ACCESSORY)
 
-/proc/halo_equip_unsc_armor_trim(mob/living/carbon/human/new_human, role_profile = "line", odst = FALSE)
-	if(!istype(new_human))
+/mob/living/carbon/human/proc/halo_equip_unsc_armor_trim(role_profile = "line", odst = FALSE)
+	if(!istype(src))
 		return
 
 	var/shoulders_type = odst ? /obj/item/clothing/accessory/pads/unsc/odst : /obj/item/clothing/accessory/pads/unsc
@@ -131,51 +131,51 @@
 
 	switch(role_profile)
 		if("medical")
-			halo_maybe_equip_accessory(new_human, shoulders_type, 60)
-			halo_maybe_equip_accessory(new_human, greaves_type, 60)
-			halo_maybe_equip_accessory(new_human, bracers_type, 20)
+			src.halo_maybe_equip_accessory(shoulders_type, 60)
+			src.halo_maybe_equip_accessory(greaves_type, 60)
+			src.halo_maybe_equip_accessory(bracers_type, 20)
 		if("signal")
-			halo_maybe_equip_accessory(new_human, shoulders_type)
-			halo_maybe_equip_accessory(new_human, greaves_type)
-			halo_maybe_equip_accessory(new_human, bracers_type, 30)
-			halo_maybe_equip_accessory(new_human, neckguard_type, 20)
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 30)
+			src.halo_maybe_equip_accessory(neckguard_type, 20)
 		if("command")
-			halo_maybe_equip_accessory(new_human, shoulders_type)
-			halo_maybe_equip_accessory(new_human, greaves_type)
-			halo_maybe_equip_accessory(new_human, bracers_type, 45)
-			halo_maybe_equip_accessory(new_human, groin_type, 35)
-			halo_maybe_equip_accessory(new_human, neckguard_type, 35)
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 45)
+			src.halo_maybe_equip_accessory(groin_type, 35)
+			src.halo_maybe_equip_accessory(neckguard_type, 35)
 		if("recon")
-			halo_maybe_equip_accessory(new_human, shoulders_type, 45)
-			halo_maybe_equip_accessory(new_human, greaves_type)
-			halo_maybe_equip_accessory(new_human, bracers_type, 35)
-			halo_maybe_equip_accessory(new_human, groin_type, 20)
+			src.halo_maybe_equip_accessory(shoulders_type, 45)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 35)
+			src.halo_maybe_equip_accessory(groin_type, 20)
 		if("heavy")
-			halo_maybe_equip_accessory(new_human, shoulders_type)
-			halo_maybe_equip_accessory(new_human, greaves_type)
-			halo_maybe_equip_accessory(new_human, bracers_type)
-			halo_maybe_equip_accessory(new_human, groin_type)
-			halo_maybe_equip_accessory(new_human, neckguard_type, 65)
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type)
+			src.halo_maybe_equip_accessory(groin_type)
+			src.halo_maybe_equip_accessory(neckguard_type, 65)
 		if("pilot")
-			halo_maybe_equip_accessory(new_human, shoulders_type)
-			halo_maybe_equip_accessory(new_human, greaves_type, 60)
-			halo_maybe_equip_accessory(new_human, bracers_type, 20)
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type, 60)
+			src.halo_maybe_equip_accessory(bracers_type, 20)
 		else
-			halo_maybe_equip_accessory(new_human, shoulders_type)
-			halo_maybe_equip_accessory(new_human, greaves_type)
-			halo_maybe_equip_accessory(new_human, bracers_type, 25)
-			halo_maybe_equip_accessory(new_human, groin_type, 25)
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 25)
+			src.halo_maybe_equip_accessory(groin_type, 25)
 
-/datum/equipment_preset/unsc/platco/odst/equipped/proc/halo_equip_odst_visual_core(mob/living/carbon/human/new_human, role_profile = "line")
-	if(!istype(new_human))
+/mob/living/carbon/human/proc/halo_equip_odst_visual_core(role_profile = "line")
+	if(!istype(src))
 		return
 
-	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen(new_human), WEAR_L_EAR)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/unsc/odst(new_human), WEAR_HEAD)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/odst(new_human), WEAR_BODY)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc/odst(new_human), WEAR_JACKET)
-	halo_equip_unsc_service_patch(new_human, role_profile, TRUE)
-	halo_equip_unsc_armor_trim(new_human, role_profile, TRUE)
+	src.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst(src), WEAR_L_EAR)
+	src.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/unsc/odst(src), WEAR_HEAD)
+	src.equip_to_slot_or_del(new /obj/item/clothing/under/marine/odst(src), WEAR_BODY)
+	src.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc/odst(src), WEAR_JACKET)
+	src.halo_equip_unsc_service_patch(role_profile, TRUE)
+	src.halo_equip_unsc_armor_trim(role_profile, TRUE)
 
 ///Equipped Presets need doing///
 
@@ -197,7 +197,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/pfc/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/pfc/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -233,7 +233,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/medic/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/medic/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -284,7 +284,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/rto/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/rto/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -319,7 +319,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/spec/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/spec/proc/get_roundstart_specialist_loadout_preset()
 	return /datum/equipment_preset/unsc/spec/equipped_spnkr
@@ -388,7 +388,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/tl/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/tl/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -424,7 +424,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/leader/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/leader/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -460,7 +460,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/platco/load_name(mob/living/carbon/human/new_human, randomise)
-	load_halo_preset_name(new_human)
+	new_human.load_halo_preset_name()
 
 /datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
 	squad_name_try_apply_platoon_commander_preference(new_human)
@@ -527,8 +527,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "line", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "line", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("line", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("line", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -570,8 +570,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "recon", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "recon", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("recon", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("recon", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -613,8 +613,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "heavy", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "heavy", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("heavy", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("heavy", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -654,8 +654,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/standard(new_human), WEAR_BODY)
 	//jacket
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
-	halo_equip_unsc_service_patch(new_human, "medical", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "medical", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("medical", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("medical", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//waist
@@ -696,8 +696,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "signal", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "signal", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("signal", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("signal", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -742,8 +742,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "command", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "command", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("command", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("command", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -791,8 +791,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "command", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "command", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("command", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("command", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -839,8 +839,8 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "command", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "command", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("command", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("command", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -879,8 +879,19 @@
 	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
-	halo_equip_odst_visual_core(new_human, "command")
+	//face
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst(new_human), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/glasses/sunglasses/big/unsc(new_human), WEAR_EYES)
+	//head
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/cmcap(new_human), WEAR_HEAD)
+	//uniform
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/standard(new_human), WEAR_BODY)
+	//jacket
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
+	//accessories
+	new_human.halo_equip_unsc_service_patch("command", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("command", src.odst_visual_role)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -920,8 +931,8 @@
 	//jacket
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
 	//accessories
-	halo_equip_unsc_service_patch(new_human, "pilot", src.odst_visual_role)
-	halo_equip_unsc_armor_trim(new_human, "pilot", src.odst_visual_role)
+	new_human.halo_equip_unsc_service_patch("pilot", src.odst_visual_role)
+	new_human.halo_equip_unsc_armor_trim("pilot", src.odst_visual_role)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/gun/m7/full(new_human), WEAR_WAIST)
 	//limbs
@@ -947,7 +958,7 @@
 	new_human.underwear = "Marine Boxers"
 	//back
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
-	halo_equip_odst_visual_core(new_human, "line")
+	new_human.halo_equip_odst_visual_core("line")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
@@ -988,7 +999,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/tool/surgery/synthgraft(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/unsc/corpsman(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/unsc/corpsman(new_human), WEAR_IN_BACK)
-	halo_equip_odst_visual_core(new_human, "medical")
+	new_human.halo_equip_odst_visual_core("medical")
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	//waist
@@ -1019,7 +1030,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
-	halo_equip_odst_visual_core(new_human, "signal")
+	new_human.halo_equip_odst_visual_core("signal")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
@@ -1055,7 +1066,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
-	halo_equip_odst_visual_core(new_human, "command")
+	new_human.halo_equip_odst_visual_core("command")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
@@ -1093,7 +1104,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
-	halo_equip_odst_visual_core(new_human, "command")
+	new_human.halo_equip_odst_visual_core("command")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
 	//waist
@@ -1127,7 +1138,7 @@
 	new_human.underwear = "Marine Boxers"
 	//back
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/sniper/halo(new_human), WEAR_BACK)
-	halo_equip_odst_visual_core(new_human, "recon")
+	new_human.halo_equip_odst_visual_core("recon")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	//waist
@@ -1160,7 +1171,7 @@
 	new_human.underwear = "Marine Boxers"
 	//back
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/halo_launcher/spnkr(new_human), WEAR_BACK)
-	halo_equip_odst_visual_core(new_human, "heavy")
+	new_human.halo_equip_odst_visual_core("heavy")
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
 	//waist

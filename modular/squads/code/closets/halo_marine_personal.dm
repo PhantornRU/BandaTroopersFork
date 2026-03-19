@@ -3,7 +3,7 @@
 /obj/structure/closet/secure_closet/marine_personal/odst/spawn_gear()
 	new /obj/item/clothing/under/marine/odst(src)
 	new /obj/item/clothing/shoes/marine/knife(src)
-	new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen(src)
+	new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst(src)
 
 /obj/structure/closet/secure_closet/marine_personal/odst/rifleman
 	job = JOB_SQUAD_MARINE_ODST
@@ -70,7 +70,7 @@
 /obj/structure/closet/secure_closet/marine_personal/unsc/spawn_gear()
 	new /obj/item/clothing/under/marine(src)
 	new /obj/item/clothing/shoes/marine/knife(src)
-	new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers(src)
+	new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc(src)
 
 /obj/structure/closet/secure_closet/marine_personal/unsc/rifleman
 	job = JOB_SQUAD_MARINE_UNSC

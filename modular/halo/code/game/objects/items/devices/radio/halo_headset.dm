@@ -1,7 +1,7 @@
 /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
 	name = "гарнитура ККОН"
 	desc = "Специальная гарнитура, используемая Космическим Командованием Объединённых Наций во всех родах войск."
-	frequency = CRYO_FREQ
+	frequency = UNSC_FREQ
 	has_hud = TRUE
 	hud_type = list(MOB_HUD_FACTION_UNSC)
 	inbuilt_tracking_options = list(
@@ -12,11 +12,15 @@
 	)
 	locate_setting = TRACKER_FTL
 
+/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
+	name = "РіР°СЂРЅРёС‚СѓСЂР° ODST"
+	frequency = ODST_FREQ
+
 /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/rockhoppers
-	frequency = UNSC_FREQ
+	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen
-	frequency = ODST_FREQ
+	parent_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
 
 /obj/item/device/radio/headset/distress/oni
 	name = "гарнитура охраны ONI"
