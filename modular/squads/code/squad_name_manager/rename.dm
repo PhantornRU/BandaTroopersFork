@@ -14,7 +14,7 @@
 		return "Name must be 1-32 chars and may contain Latin/Cyrillic letters, numbers, spaces, apostrophe, hyphen and dot."
 
 	var/old_name = target_squad.name
-	var/conflict_error = validate_name_conflicts(new_name, old_name)
+	var/conflict_error = validate_name_conflicts(new_name, old_name, static_name)
 	if(conflict_error)
 		return conflict_error
 
@@ -62,6 +62,12 @@
 		return FALSE
 
 	var/claimer_ckey = H.ckey
+	if(!claimer_ckey && H.key)
+		claimer_ckey = ckey(H.key)
+	if(!claimer_ckey && H.real_name)
+		claimer_ckey = ckey(H.real_name)
+	if(!claimer_ckey && H.name)
+		claimer_ckey = ckey(H.name)
 	if(!claimer_ckey)
 		return FALSE
 
