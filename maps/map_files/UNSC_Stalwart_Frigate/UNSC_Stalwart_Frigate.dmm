@@ -8216,11 +8216,25 @@
 /turf/open/floor/almayer/mono,
 /area/golden_arrow/platoon_commander_rooms)
 "apo" = (
-/obj/structure/closet/secure_closet/halo/job_locker/rto,
+/obj/structure/closet/secure_closet/smartgunner{
+	req_access_txt = "14;40";
+	req_one_access = list();
+	name = "squad two smartgunner locker"
+	},
+/obj/structure/sign/safety/two{
+	pixel_x = -16
+	},
 /turf/open/floor/almayer/plating_striped/east,
 /area/dark_was_the_night/armory)
 "app" = (
-/obj/structure/closet/secure_closet/halo/job_locker/rto,
+/obj/structure/closet/secure_closet/smartgunner{
+	req_access_txt = "14;40";
+	req_one_access = list();
+	name = "squad two smartgunner locker"
+	},
+/obj/structure/sign/safety/two{
+	pixel_x = 32
+	},
 /turf/open/floor/almayer/plating_striped/west,
 /area/dark_was_the_night/armory)
 "apq" = (
@@ -8464,11 +8478,25 @@
 /turf/open/floor/almayer/plating_striped/west,
 /area/dark_was_the_night/upper_hallway)
 "apT" = (
-/obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
+/obj/structure/closet/secure_closet/smartgunner{
+	req_access_txt = "14;39";
+	req_one_access = list();
+	name = "squad one smartgunner locker"
+	},
+/obj/structure/sign/safety/one{
+	pixel_x = -16
+	},
 /turf/open/floor/almayer/plating_striped/east,
 /area/dark_was_the_night/armory)
 "apU" = (
-/obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
+/obj/structure/closet/secure_closet/smartgunner{
+	req_access_txt = "14;39";
+	req_one_access = list();
+	name = "squad one smartgunner locker"
+	},
+/obj/structure/sign/safety/one{
+	pixel_x = 32
+	},
 /turf/open/floor/almayer/plating_striped/west,
 /area/dark_was_the_night/armory)
 "apV" = (
@@ -54850,7 +54878,7 @@ gKa
 fDn
 ykE
 faU
-red
+cIn
 apT
 apo
 cIn
@@ -55044,7 +55072,7 @@ lVx
 fDn
 qeM
 faU
-red
+cIn
 onU
 onU
 cIn
@@ -55626,7 +55654,7 @@ red
 aqo
 ykE
 faU
-red
+cIn
 cDy
 cDy
 cIn
@@ -55820,7 +55848,7 @@ red
 abi
 ykE
 faU
-red
+cIn
 apU
 app
 cIn
