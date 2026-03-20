@@ -49,6 +49,133 @@
 /mob/living/carbon/human/proc/clear_halo_runtime_spawn_context()
 	halo_runtime_spawn_context = null
 
+/mob/living/carbon/human/proc/halo_maybe_equip_accessory(accessory_type, chance = 100)
+	if(isnull(accessory_type) || !prob(chance))
+		return
+
+	src.equip_to_slot_or_del(new accessory_type(src), WEAR_ACCESSORY)
+
+/mob/living/carbon/human/proc/halo_equip_unsc_service_patch(role_profile = "line", odst = FALSE)
+	if(!istype(src))
+		return
+
+	var/list/patch_pool = list(
+		/obj/item/clothing/accessory/patch/usasf,
+		/obj/item/clothing/accessory/patch/army/infantry,
+		/obj/item/clothing/accessory/patch/ua,
+		/obj/item/clothing/accessory/patch/usa,
+	)
+
+	switch(role_profile)
+		if("medical")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army,
+				/obj/item/clothing/accessory/patch/ua,
+				/obj/item/clothing/accessory/patch/usa,
+			)
+		if("signal")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army/spook,
+				/obj/item/clothing/accessory/patch/ua,
+				/obj/item/clothing/accessory/patch/usa,
+			)
+		if("command")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army/infantry,
+				/obj/item/clothing/accessory/patch/army/armor,
+				/obj/item/clothing/accessory/patch/ua,
+				/obj/item/clothing/accessory/patch/usa,
+			)
+		if("recon")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army/spook,
+				/obj/item/clothing/accessory/patch/army/infantry,
+				/obj/item/clothing/accessory/patch/ua,
+			)
+		if("heavy")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army/armor,
+				/obj/item/clothing/accessory/patch/army,
+				/obj/item/clothing/accessory/patch/ua,
+				/obj/item/clothing/accessory/patch/usa,
+			)
+		if("pilot")
+			patch_pool = list(
+				/obj/item/clothing/accessory/patch/usasf,
+				/obj/item/clothing/accessory/patch/army/armor,
+				/obj/item/clothing/accessory/patch/ua,
+				/obj/item/clothing/accessory/patch/usa,
+			)
+
+	if(odst)
+		patch_pool += list(/obj/item/clothing/accessory/patch/usasf/helljumper)
+
+	var/patch_type = pick(patch_pool)
+	src.equip_to_slot_or_del(new patch_type(src), WEAR_ACCESSORY)
+
+/mob/living/carbon/human/proc/halo_equip_unsc_armor_trim(role_profile = "line", odst = FALSE)
+	if(!istype(src))
+		return
+
+	var/shoulders_type = odst ? /obj/item/clothing/accessory/pads/unsc/odst : /obj/item/clothing/accessory/pads/unsc
+	var/greaves_type = odst ? /obj/item/clothing/accessory/pads/unsc/greaves/odst : /obj/item/clothing/accessory/pads/unsc/greaves
+	var/bracers_type = odst ? /obj/item/clothing/accessory/pads/unsc/bracers/odst : /obj/item/clothing/accessory/pads/unsc/bracers
+	var/groin_type = odst ? /obj/item/clothing/accessory/pads/unsc/groin/odst : /obj/item/clothing/accessory/pads/unsc/groin
+	var/neckguard_type = odst ? null : /obj/item/clothing/accessory/pads/unsc/neckguard
+
+	switch(role_profile)
+		if("medical")
+			src.halo_maybe_equip_accessory(shoulders_type, 60)
+			src.halo_maybe_equip_accessory(greaves_type, 60)
+			src.halo_maybe_equip_accessory(bracers_type, 20)
+		if("signal")
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 30)
+			src.halo_maybe_equip_accessory(neckguard_type, 20)
+		if("command")
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 45)
+			src.halo_maybe_equip_accessory(groin_type, 35)
+			src.halo_maybe_equip_accessory(neckguard_type, 35)
+		if("recon")
+			src.halo_maybe_equip_accessory(shoulders_type, 45)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 35)
+			src.halo_maybe_equip_accessory(groin_type, 20)
+		if("heavy")
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type)
+			src.halo_maybe_equip_accessory(groin_type)
+			src.halo_maybe_equip_accessory(neckguard_type, 65)
+		if("pilot")
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type, 60)
+			src.halo_maybe_equip_accessory(bracers_type, 20)
+		else
+			src.halo_maybe_equip_accessory(shoulders_type)
+			src.halo_maybe_equip_accessory(greaves_type)
+			src.halo_maybe_equip_accessory(bracers_type, 25)
+			src.halo_maybe_equip_accessory(groin_type, 25)
+
+/mob/living/carbon/human/proc/halo_equip_odst_visual_core(role_profile = "line")
+	if(!istype(src))
+		return
+
+	src.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst(src), WEAR_L_EAR)
+	src.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/unsc/odst(src), WEAR_HEAD)
+	src.equip_to_slot_or_del(new /obj/item/clothing/under/marine/odst(src), WEAR_BODY)
+	src.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc/odst(src), WEAR_JACKET)
+	src.halo_equip_unsc_service_patch(role_profile, TRUE)
+	src.halo_equip_unsc_armor_trim(role_profile, TRUE)
+
 ///Equipped Presets need doing///
 
 /// Marine Rifleman
@@ -735,6 +862,48 @@
 	rank = JOB_SO_ODST
 	role_comm_title = "PltCo-ODST"
 
+/datum/equipment_preset/unsc/platco/odst/equipped/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
+	//face
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst(new_human), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/glasses/sunglasses/big/unsc(new_human), WEAR_EYES)
+	//head
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/cmcap(new_human), WEAR_HEAD)
+	//uniform
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/standard(new_human), WEAR_BODY)
+	//jacket
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/unsc(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
+	//accessories
+	new_human.halo_equip_unsc_service_patch("command", TRUE)
+	new_human.halo_equip_unsc_armor_trim("command", TRUE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/pistol/unsc(new_human), WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6g(new_human), WEAR_IN_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
+
 /datum/equipment_preset/unsc/pilot/equipped
 	name = parent_type::name + " (Equipped)"
 
@@ -823,12 +992,66 @@
 	rank = JOB_SQUAD_MEDIC_ODST
 	role_comm_title = "ODST-HC"
 
+/datum/equipment_preset/unsc/medic/odst/equipped/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/reagent_container/food/drinks/flask/canteen, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/surgery/surgical_line(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/surgery/synthgraft(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/unsc/corpsman(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/unsc/corpsman(new_human), WEAR_IN_BACK)
+	new_human.halo_equip_odst_visual_core("medical")
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/medical/lifesaver/unsc/full(new_human), WEAR_WAIST)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
+
 /datum/equipment_preset/unsc/rto/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/rto/equipped
 	name = "ODST Radio Telephone Operator (Equipped)"
 	assignment = JOB_SQUAD_RTO_ODST
 	rank = JOB_SQUAD_RTO_ODST
 	role_comm_title = "ODST-RTO"
+
+/datum/equipment_preset/unsc/rto/odst/equipped/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/rto/unsc(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
+	new_human.halo_equip_odst_visual_core("signal")
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/unsc/tl/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/tl/equipped
@@ -837,12 +1060,71 @@
 	rank = JOB_SQUAD_TEAM_LEADER_ODST
 	role_comm_title = "ODST-GrpLdr"
 
+/datum/equipment_preset/unsc/tl/odst/equipped/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
+	new_human.halo_equip_odst_visual_core("command")
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
+
 /datum/equipment_preset/unsc/leader/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/leader/equipped
 	name = "ODST Squad Leader (Equipped)"
 	assignment = JOB_SQUAD_LEADER_ODST
 	rank = JOB_SQUAD_LEADER_ODST
 	role_comm_title = "ODST-SqLdr"
+
+/datum/equipment_preset/unsc/leader/odst/equipped/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator/sergeant(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
+	new_human.halo_equip_odst_visual_core("command")
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/br55(new_human), WEAR_J_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/br55(new_human), WEAR_IN_BELT)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/pistol/unsc(new_human), WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/unsc/spec/odst/equipped_sniper
 	parent_type = /datum/equipment_preset/unsc/spec/equipped_sniper
@@ -851,9 +1133,53 @@
 	rank = JOB_SQUAD_SPECIALIST_ODST
 	role_comm_title = "ODST-Spc"
 
+/datum/equipment_preset/unsc/spec/odst/equipped_sniper/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/sniper/halo(new_human), WEAR_BACK)
+	new_human.halo_equip_odst_visual_core("recon")
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/sniper(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/sniper(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/sniper(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/sniper(new_human), WEAR_IN_BELT)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/sniper(new_human), WEAR_IN_BELT)
+	//limbs
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
+
 /datum/equipment_preset/unsc/spec/odst/equipped_spnkr
 	parent_type = /datum/equipment_preset/unsc/spec/equipped_spnkr
 	name = "ODST Squad Weapons Specialist (SPNKr)"
 	assignment = JOB_SQUAD_SPECIALIST_ODST
 	rank = JOB_SQUAD_SPECIALIST_ODST
 	role_comm_title = "ODST-Spc"
+
+/datum/equipment_preset/unsc/spec/odst/equipped_spnkr/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Marine Undershirt"
+	new_human.underwear = "Marine Boxers"
+	//back
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/halo_launcher/spnkr(new_human), WEAR_BACK)
+	new_human.halo_equip_odst_visual_core("heavy")
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/halo/ma5c(new_human), WEAR_J_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m52b/mag/ma5c(new_human), WEAR_ACCESSORY)
+	//waist
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine(new_human), WEAR_HANDS)
+	//pockets
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
+
+	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)

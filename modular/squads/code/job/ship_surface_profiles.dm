@@ -119,6 +119,8 @@
 					return /obj/structure/closet/secure_closet/marine_personal/platoon_leader
 		if(SHIP_SURFACE_FAMILY_UNSC)
 			switch(canonical_role)
+				if(JOB_SO)
+					return /obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander
 				if(JOB_SQUAD_MARINE)
 					return /obj/structure/closet/secure_closet/marine_personal/unsc/rifleman
 				if(JOB_SQUAD_MEDIC)
@@ -133,6 +135,8 @@
 					return /obj/structure/closet/secure_closet/marine_personal/unsc/squad_leader
 		if(SHIP_SURFACE_FAMILY_ODST)
 			switch(canonical_role)
+				if(JOB_SO)
+					return /obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander
 				if(JOB_SQUAD_MARINE)
 					return /obj/structure/closet/secure_closet/marine_personal/odst/rifleman
 				if(JOB_SQUAD_MEDIC)

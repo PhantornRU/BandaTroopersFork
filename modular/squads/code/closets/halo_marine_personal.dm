@@ -55,6 +55,28 @@
 	icon_broken = "securebroken-sl"
 	icon_off = "secureoff-sl"
 
+/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander
+	job = JOB_SO_ODST
+	icon = 'modular/squads/icons/closet.dmi'
+	icon_state = "secure1-so"
+	icon_closed = "secure-so"
+	icon_locked = "secure1-so"
+	icon_opened = "secureopen-so"
+	icon_broken = "securebroken-so"
+	icon_off = "secureoff-so"
+
+/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander/spawn_gear()
+	new /obj/item/clothing/under/marine(src)
+	new /obj/item/clothing/under/marine/officer/boiler(src)
+	new /obj/item/clothing/head/cmcap/bridge(src)
+	new /obj/item/clothing/suit/storage/jacket/marine/service(src)
+	new /obj/item/clothing/under/marine/officer/bridge(src)
+	new /obj/item/clothing/shoes/laceup(src)
+	new /obj/item/clothing/head/marine/peaked/service(src)
+	new /obj/item/clothing/suit/storage/jacket/marine/dress/officer/bomber(src)
+	new /obj/item/clothing/shoes/marine/knife(src)
+	new /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst(src)
+
 /obj/structure/closet/secure_closet/marine_personal/odst/rto
 	job = JOB_SQUAD_RTO_ODST
 	icon = 'modular/squads/icons/closet.dmi'
@@ -121,6 +143,28 @@
 	icon_opened = "secureopen-sl"
 	icon_broken = "securebroken-sl"
 	icon_off = "secureoff-sl"
+
+/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander
+	job = JOB_SO_UNSC
+	icon = 'modular/squads/icons/closet.dmi'
+	icon_state = "secure1-so"
+	icon_closed = "secure-so"
+	icon_locked = "secure1-so"
+	icon_opened = "secureopen-so"
+	icon_broken = "securebroken-so"
+	icon_off = "secureoff-so"
+
+/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/spawn_gear()
+	new /obj/item/clothing/under/marine(src)
+	new /obj/item/clothing/under/marine/officer/boiler(src)
+	new /obj/item/clothing/head/cmcap/bridge(src)
+	new /obj/item/clothing/suit/storage/jacket/marine/service(src)
+	new /obj/item/clothing/under/marine/officer/bridge(src)
+	new /obj/item/clothing/shoes/laceup(src)
+	new /obj/item/clothing/head/marine/peaked/service(src)
+	new /obj/item/clothing/suit/storage/jacket/marine/dress/officer/bomber(src)
+	new /obj/item/clothing/shoes/marine/knife(src)
+	new /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc(src)
 
 /obj/structure/closet/secure_closet/marine_personal/unsc/rto
 	job = JOB_SQUAD_RTO_UNSC
