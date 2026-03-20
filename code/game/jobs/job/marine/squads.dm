@@ -513,6 +513,12 @@
 		profile_cache[squad_type_datum] = new squad_type_datum
 	return profile_cache[squad_type_datum]
 
+/datum/squad/proc/get_default_squad_type_profile()
+	var/static/datum/squad_type/marine_squad/default_profile
+	if(!default_profile)
+		default_profile = new
+	return default_profile
+
 /datum/squad/proc/get_unit_label()
 	var/datum/squad_type/profile = get_squad_type_profile()
 	return profile?.name || squad_type || "Section"
@@ -568,42 +574,25 @@
 
 /datum/squad/proc/get_squad_info_rank_token(canonical_role)
 	var/rank_token = get_role_rank_token(canonical_role) // SS220 EDIT: squad-info icon token resolves from the squad-owned role contract
-	if(rank_token)
+	if(!isnull(rank_token))
 		return rank_token
 
-	var/static/list/default_rank_tokens = list(
-		JOB_SQUAD_MARINE = "Mar",
-		JOB_SQUAD_ENGI = "Eng",
-		JOB_SQUAD_MEDIC = "HM",
-		JOB_SQUAD_SMARTGUN = "SG",
-		JOB_SQUAD_SPECIALIST = "Spc",
-		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
-		JOB_SQUAD_LEADER = "SqLdr",
-		JOB_SQUAD_RTO = "RTO",
-	)
-	return default_rank_tokens[canonical_role] || ""
+	var/datum/squad_type/marine_squad/default_profile = get_default_squad_type_profile()
+	return default_profile.role_rank_tokens[canonical_role] || ""
 
 /datum/squad/proc/get_role_comm_restore_title(canonical_role, leader_killed = FALSE)
+	if(canonical_role == JOB_SQUAD_LEADER && leader_killed)
+		return null
+
 	var/datum/squad_type/profile = get_squad_type_profile()
 	var/comm_title = null
 	if(profile?.role_comm_restore_titles)
 		comm_title = profile.role_comm_restore_titles[canonical_role]
-	if(comm_title)
+	if(!isnull(comm_title))
 		return comm_title
 
-	var/static/list/default_comm_restore_titles = list(
-		JOB_SQUAD_SPECIALIST = "Spc",
-		JOB_SQUAD_ENGI = "ComEng",
-		JOB_SQUAD_MEDIC = "HM",
-		JOB_SQUAD_TEAM_LEADER = "GrpLdr",
-		JOB_SQUAD_SMARTGUN = "SG",
-		JOB_SQUAD_LEADER = "SqLdr",
-		JOB_SQUAD_RTO = "RTO",
-	)
-	if(canonical_role == JOB_SQUAD_LEADER && leader_killed)
-		return null
-
-	return default_comm_restore_titles[canonical_role]
+	var/datum/squad_type/marine_squad/default_profile = get_default_squad_type_profile()
+	return default_profile.role_comm_restore_titles[canonical_role]
 
 /datum/squad/marine/alpha/New()
 	. = ..()

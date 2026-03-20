@@ -205,6 +205,7 @@
 	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SqLdr", "Marine leader squad-info token regressed.")
 	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL comm-title restoration regressed.")
 	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_LEADER), "SqLdr", "Marine leader comm-title restoration regressed.")
+	TEST_ASSERT_NULL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_LEADER, TRUE), "Marine leader comm-title restoration should stay suppressed when the leader died.")
 
 	var/datum/squad/marine/upp/upp_squad = allocate(/datum/squad/marine/upp)
 	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_LEADER), "Platoon Sergeant", "UPP leader label regressed.")
