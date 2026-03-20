@@ -1,5 +1,6 @@
 /datum/equipment_preset/covenant/unggoy
 	name = "Unggoy"
+	expected_species = SPECIES_UNGGOY
 	rank = JOB_COV_CIV
 	assignment = JOB_COV_MINOR
 	flags = EQUIPMENT_PRESET_EXTRA

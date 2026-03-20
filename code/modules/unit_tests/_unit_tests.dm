@@ -86,7 +86,7 @@
 #include "halo_ship_platoons.dm"
 #include "halo_tts.dm"
 #include "halo_unggoy_ai.dm"
-#include "human_ai_squad_spawner.dm"
+#include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
 #include "missing_icons.dm"
 #include "resist.dm"
 #include "spawn_humans.dm"
