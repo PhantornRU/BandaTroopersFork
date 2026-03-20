@@ -270,14 +270,6 @@
 	snapshot_main_platoon_initial_name = GLOB.main_platoon_initial_name
 
 /datum/unit_test/halo_integration_test/Destroy()
-	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
-		if(!QDELETED(human))
-			cleanup_test_human_runtime_state(human)
-
-	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
-		if(!QDELETED(human))
-			qdel(human)
-
 	for(var/datum/squad/squad as anything in tracked_test_squads)
 		if(!QDELETED(squad))
 			qdel(squad)
@@ -319,7 +311,6 @@
 		SSmapping.configs[SHIP_MAP].map_path = snapshot_ship_map_path
 		SSmapping.configs[SHIP_MAP].allowed_platoons = snapshot_ship_allowed_platoons ? snapshot_ship_allowed_platoons.Copy() : null
 
-	tracked_test_humans = null
 	tracked_test_squads = null
 	tracked_test_atoms = null
 	snapshot_squads = null
@@ -474,6 +465,3 @@
 
 /datum/unit_test/halo_ship_platoons
 	parent_type = /datum/unit_test/halo_integration_test
-
-/datum/unit_test/halo_ship_platoons/Run()
-	return

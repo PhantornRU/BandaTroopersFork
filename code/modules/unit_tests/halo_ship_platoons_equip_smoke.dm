@@ -22,10 +22,7 @@
 	parent_type = /datum/unit_test/halo_equip_test
 
 /datum/unit_test/halo_ship_platoons_so_override_smoke/Run()
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO SO smoke testing.")
-
-	var/override_preset = role_authority.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/unsc/alpha)
+	var/override_preset = GLOB.RoleAuthority?.get_active_ship_spawn_preset_override(JOB_SO, /datum/equipment_preset/uscm_ship/so, /datum/squad/marine/halo/unsc/alpha)
 	TEST_ASSERT_EQUAL(override_preset, /datum/equipment_preset/unsc/platco, "HALO UNSC SO smoke did not resolve the expected override preset.")
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
