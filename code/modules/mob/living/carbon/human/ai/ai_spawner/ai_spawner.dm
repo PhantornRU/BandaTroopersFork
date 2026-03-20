@@ -57,15 +57,8 @@ GLOBAL_LIST_EMPTY(human_ai_equipment_presets)
 			if(!gotten_path)
 				return
 
-			var/mob/living/carbon/human/ai_human = new()
-			arm_equipment(ai_human, gotten_path::path, TRUE)
-			ai_human.AddComponent(/datum/component/human_ai)
-
-			ai_human.face_dir(ui.user.dir)
-			ai_human.forceMove(get_turf(ui.user))
-
-			ai_human.get_ai_brain().appraise_inventory(armor = TRUE)
-			return TRUE
+			var/mob/living/carbon/human/ai_human = modular_spawn_human_ai_from_equipment_preset(gotten_path::path, get_turf(ui.user), TRUE, ui.user.dir) // SS220 EDIT: modular HALO spawn flow validates preset species before the AI brain is attached
+			return !isnull(ai_human)
 
 /client/proc/open_human_ai_spawner_panel()
 	set name = "Create Human AI"

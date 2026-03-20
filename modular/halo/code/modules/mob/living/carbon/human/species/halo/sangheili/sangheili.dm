@@ -33,9 +33,9 @@
 	heat_level_2 = 700
 	heat_level_3 = 1000
 
-	knock_down_reduction = 1.5
-	stun_reduction = 1.5
-	knock_out_reduction = 1.5
+	knock_down_reduction = 6
+	stun_reduction = 6
+	knock_out_reduction = 6
 
 	icobase = 'icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'
 	deform = 'icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'

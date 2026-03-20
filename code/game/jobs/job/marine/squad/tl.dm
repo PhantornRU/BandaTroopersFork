@@ -11,7 +11,7 @@
 	flags_startup_parameters = ROLE_ADD_TO_DEFAULT|ROLE_ADD_TO_SQUAD
 	gear_preset = /datum/equipment_preset/uscm/tl
 	gear_preset_secondary = /datum/equipment_preset/uscm/tl/corporal
-	entry_message_body = "You are the <a href='"+WIKI_PLACEHOLDER+"'>Squad Leader.</a> Your task is leading the designated squad and utilize available ordnance. If the section sergeant dies, you are expected to lead in their place.<br><b>You remember that you've stored your personal gear and uniform are located in the dorm or locker rooms.</b>"
+	entry_message_body = "You are the <a href='"+WIKI_PLACEHOLDER+"'>Group Leader.</a> Your task is leading the designated group and utilize available ordnance. If the squad leader dies, you are expected to lead in their place.<br><b>You remember that you've stored your personal gear and uniform are located in the dorm or locker rooms.</b>" // SS220 EDIT: marine TL onboarding uses the updated runtime squad labels
 
 	job_options = list(CPL_VARIANT = "CPL", SGT_VARIANT = "SGT")
 

@@ -7,7 +7,7 @@
 	inbuilt_tracking_options = list(
 		"Platoon Commander" = TRACKER_PLTCO,
 		"Squad Leader" = TRACKER_SL,
-		"Fireteam Leader" = TRACKER_FTL,
+		"Group Leader" = TRACKER_FTL,
 		"Landing Zone" = TRACKER_LZ
 	)
 	locate_setting = TRACKER_FTL

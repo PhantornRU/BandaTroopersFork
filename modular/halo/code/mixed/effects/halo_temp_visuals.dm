@@ -86,6 +86,27 @@
 	position = generator(GEN_CIRCLE, 5, 5, NORMAL_RAND)
 	friction = generator(GEN_NUM, 0.5, 0.4)
 
+/obj/effect/temp_visual
+	var/halo_perf_is_halo_temp_visual = FALSE
+	var/halo_perf_is_shield_temp_visual = FALSE
+
+/obj/effect/temp_visual/proc/halo_perf_track_initialize()
+	if(!halo_perf_is_halo_temp_visual)
+		return
+
+	halo_perf_bump_temp_visuals()
+	halo_perf_adjust_active_halo_temp_visuals(1)
+	if(halo_perf_is_shield_temp_visual)
+		halo_perf_adjust_active_shield_temp_visuals(1)
+
+/obj/effect/temp_visual/Destroy()
+	if(halo_perf_is_halo_temp_visual)
+		halo_perf_adjust_active_halo_temp_visuals(-1)
+		if(halo_perf_is_shield_temp_visual)
+			halo_perf_adjust_active_shield_temp_visuals(-1)
+			halo_perf_bump_shield_temp_visual_qdels()
+	return ..()
+
 /obj/effect/temp_visual/plasma_incoming
 	icon = null
 	duration = 3 SECONDS
@@ -96,9 +117,11 @@
 	light_color = "#71a2e6ff"
 	layer = ABOVE_FLY_LAYER
 	indestructible = TRUE
+	halo_perf_is_halo_temp_visual = TRUE
 
 /obj/effect/temp_visual/plasma_incoming/Initialize(mapload)
 	. = ..()
+	halo_perf_track_initialize()
 	particles = new /particles/plasma
 	add_filter("pixel_outline", 1, outline_filter(1, "#4f308aff", OUTLINE_SHARP))
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 5, 1, "#4f308aff"))
@@ -114,12 +137,13 @@
 	light_color = "#71a2e6ff"
 	layer = ABOVE_MOB_LAYER
 	indestructible = TRUE
+	halo_perf_is_halo_temp_visual = TRUE
 	var/outline_color = "#4f308aff"
 	var/particles_used = /particles/plasma_explosion
 
 /obj/effect/temp_visual/plasma_explosion/Initialize(mapload)
 	. = ..()
-	halo_perf_bump_temp_visuals()
+	halo_perf_track_initialize()
 	particles = new particles_used
 	add_filter("pixel_outline", 1, outline_filter(1, outline_color, OUTLINE_SHARP))
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 5, 1, outline_color))
@@ -141,6 +165,7 @@
 	outline_color = "#77b6ff"
 	light_power = 2
 	light_range = 3
+	halo_perf_is_shield_temp_visual = TRUE
 
 /obj/effect/temp_visual/plasma_explosion/shield_hit
 	light_color = "#77b6ff"
@@ -148,6 +173,7 @@
 	outline_color = "#77b6ff"
 	light_power = 1
 	light_range = 2
+	halo_perf_is_shield_temp_visual = TRUE
 
 /obj/effect/temp_visual/banshee_flyby
 	icon = 'icons/halo/effects/banshee_flyby.dmi'
@@ -158,9 +184,11 @@
 	pixel_x = -22
 	pixel_z = -480
 	indestructible = TRUE
+	halo_perf_is_halo_temp_visual = TRUE
 
 /obj/effect/temp_visual/banshee_flyby/Initialize()
 	. = ..()
+	halo_perf_track_initialize()
 	animate(src, pixel_z = 960, time = 2 SECONDS)
 
 /obj/effect/temp_visual/glassing_beam
@@ -174,11 +202,13 @@
 	light_color = "#e67d71ff"
 	layer = ABOVE_FLY_LAYER
 	indestructible = TRUE
+	halo_perf_is_halo_temp_visual = TRUE
 	var/outline_color = "#c50909ff"
 	var/particles_used = /particles/plasma_explosion/glassing
 
 /obj/effect/temp_visual/glassing_beam/Initialize(mapload)
 	. = ..()
+	halo_perf_track_initialize()
 	particles = new particles_used
 	add_filter("pixel_outline", 1, outline_filter(1, outline_color, OUTLINE_SHARP))
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 3, 1, outline_color))
@@ -194,10 +224,12 @@
 	duration = 4
 	layer = ABOVE_MOB_LAYER
 	indestructible = TRUE
+	halo_perf_is_halo_temp_visual = TRUE
+	halo_perf_is_shield_temp_visual = TRUE
 
 /obj/effect/temp_visual/shield_spark/Initialize(mapload)
 	. = ..()
-	halo_perf_bump_temp_visuals()
+	halo_perf_track_initialize()
 	particles = new /particles/shield_spark
 	addtimer(VARSET_CALLBACK(particles, count, 0), 1)
 	add_filter("glow", 2, drop_shadow_filter(0, 0, 3, 1, "#77b6ff"))

@@ -1,10 +1,41 @@
 #define HALO_TEST_R_HAND_LAYER 5
 #define HALO_TEST_L_HAND_LAYER 6
+#define HALO_SHIELD_TEST_REGEN_DELAY (1 SECONDS)
+#define HALO_SHIELD_TEST_RECOVERY_TIME (2 SECONDS)
+#define HALO_SHIELD_TEST_SOAK_INTERVAL (1 SECONDS)
+#define HALO_SHIELD_TEST_SHORT_SOAK_DURATION (6 SECONDS)
+#define HALO_SHIELD_TEST_LONG_SOAK_DURATION (8 SECONDS)
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili(preset_type)
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/turf/spawn_turf = get_sangheili_test_origin(8)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, spawn_turf)
 	arm_equipment(human, preset_type, FALSE)
+	track_sangheili_test_human(human)
 	return human
+
+/datum/unit_test/halo_sangheili_equipment/proc/create_baseline_human()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, get_sangheili_test_origin(1))
+	track_sangheili_test_human(human)
+	return human
+
+/datum/unit_test/halo_sangheili_equipment
+	var/list/tracked_test_humans
+
+/datum/unit_test/halo_sangheili_equipment/New()
+	. = ..()
+	tracked_test_humans = list()
+
+/datum/unit_test/halo_sangheili_equipment/Destroy()
+	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
+		if(!QDELETED(human))
+			qdel(human)
+
+	tracked_test_humans = null
+	return ..()
+
+/datum/unit_test/halo_sangheili_equipment/proc/track_sangheili_test_human(mob/living/carbon/human/human)
+	if(human)
+		tracked_test_humans += human
 
 /datum/unit_test/halo_sangheili_equipment/proc/create_sangheili_ai_brain(preset_type)
 	var/mob/living/carbon/human/human = create_sangheili(preset_type)
@@ -39,12 +70,119 @@
 	projectile.firer = firer
 	return projectile
 
+/datum/unit_test/halo_sangheili_equipment/proc/find_target_turf_from_origin(turf/origin, distance)
+	if(!origin)
+		return null
+
+	for(var/direction in GLOB.cardinals)
+		var/turf/current_turf = origin
+		var/path_clear = TRUE
+		for(var/i in 1 to distance)
+			current_turf = get_step(current_turf, direction)
+			if(!is_clear_sangheili_path_turf(current_turf))
+				path_clear = FALSE
+				break
+		if(path_clear)
+			return current_turf
+
+	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/is_clear_sangheili_path_turf(turf/current_turf)
+	if(!isfloorturf(current_turf))
+		return FALSE
+
+	if(current_turf.density)
+		return FALSE
+
+	for(var/obj/object in current_turf)
+		if(object.density)
+			return FALSE
+
+	return TRUE
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_sangheili_test_origin(min_clear_distance = 1)
+	var/search_radius = max(min_clear_distance + 4, 6)
+	var/list/search_roots = list(run_loc_floor_top_right, run_loc_floor_bottom_left, SSmapping?.get_mainship_center())
+	var/list/search_levels = list()
+	for(var/turf/root as anything in search_roots)
+		if(!isfloorturf(root))
+			continue
+		if(!(root.z in search_levels))
+			search_levels += root.z
+		for(var/turf/floor_tile as anything in range(search_radius, root))
+			if(!isfloorturf(floor_tile))
+				continue
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	for(var/z_level as anything in search_levels)
+		var/turf/start_corner = locate(1, 1, z_level)
+		var/turf/end_corner = locate(world.maxx, world.maxy, z_level)
+		if(!start_corner || !end_corner)
+			continue
+		for(var/turf/floor_tile as anything in block(start_corner, end_corner))
+			if(!isfloorturf(floor_tile))
+				continue
+			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				return floor_tile
+
+	var/turf/fallback_origin = isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
+	return ensure_clear_sangheili_lane(fallback_origin, EAST, min_clear_distance)
+
+/datum/unit_test/halo_sangheili_equipment/proc/ensure_clear_sangheili_lane(turf/origin, direction, distance)
+	if(!isturf(origin))
+		return null
+
+	var/turf/current_turf = origin
+	for(var/i in 0 to distance)
+		if(!isturf(current_turf))
+			return null
+		if(!isfloorturf(current_turf))
+			current_turf = current_turf.ChangeTurf(/turf/open/floor/plating)
+		for(var/atom/movable/blocker as anything in current_turf)
+			if(ismob(blocker) || !blocker.density)
+				continue
+			qdel(blocker)
+		if(i < distance)
+			current_turf = get_step(current_turf, direction)
+
+	return origin
+
 /datum/unit_test/halo_sangheili_equipment/proc/set_target_turf(datum/human_ai_brain/brain, distance)
 	var/turf/origin = get_turf(brain?.tied_human)
 	if(!origin)
 		return null
 
-	return locate(origin.x + distance, origin.y, origin.z)
+	var/turf/linear_target = find_target_turf_from_origin(origin, distance)
+	if(linear_target)
+		return linear_target
+
+	for(var/direction in GLOB.cardinals)
+		var/turf/prepared_origin = ensure_clear_sangheili_lane(origin, direction, distance)
+		if(!prepared_origin)
+			continue
+		linear_target = get_offset_turf_from_direction(prepared_origin, direction, distance)
+		if(isfloorturf(linear_target))
+			return linear_target
+
+	for(var/turf/floor_tile as anything in range(distance, origin))
+		if(!isfloorturf(floor_tile))
+			continue
+		if(get_dist(origin, floor_tile) < distance)
+			continue
+		if(AStar(origin, floor_tile, /turf/proc/AdjacentTurfs, /turf/proc/Distance, 0, 0))
+			return floor_tile
+
+	return null
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_offset_turf_from_direction(turf/origin, direction, distance)
+	var/turf/current_turf = origin
+	for(var/i in 1 to distance)
+		current_turf = get_step(current_turf, direction)
+		if(!isturf(current_turf))
+			return null
+
+	return current_turf
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_belt_sword(mob/living/carbon/human/human)
 	if(!human?.belt)
@@ -156,6 +294,164 @@
 
 /datum/unit_test/halo_sangheili_equipment/Run()
 	return
+
+/datum/unit_test/halo_sangheili_equipment/proc/capture_halo_shield_debug_config()
+	return list(
+		"halo_perf_debug" = CONFIG_GET(flag/halo_perf_debug),
+		"halo_shield_debug_disable_fx" = CONFIG_GET(flag/halo_shield_debug_disable_fx),
+		"halo_shield_debug_disable_harness" = CONFIG_GET(flag/halo_shield_debug_disable_harness),
+	)
+
+/datum/unit_test/halo_sangheili_equipment/proc/restore_halo_shield_debug_config(list/config_state)
+	if(!islist(config_state))
+		return
+
+	CONFIG_SET(flag/halo_perf_debug, config_state["halo_perf_debug"] ? TRUE : FALSE)
+	CONFIG_SET(flag/halo_shield_debug_disable_fx, config_state["halo_shield_debug_disable_fx"] ? TRUE : FALSE)
+	CONFIG_SET(flag/halo_shield_debug_disable_harness, config_state["halo_shield_debug_disable_harness"] ? TRUE : FALSE)
+
+/datum/unit_test/halo_sangheili_equipment/proc/build_sangheili_shield_batch(count, preset_type = /datum/equipment_preset/covenant/sangheili/minor)
+	var/list/result = list()
+	for(var/i in 1 to count)
+		var/mob/living/carbon/human/human = create_sangheili(preset_type)
+		var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human?.wear_suit
+		if(!ishuman(human) || !istype(harness))
+			continue
+
+		harness.recovery_time = HALO_SHIELD_TEST_RECOVERY_TIME
+		harness.shield_regen_rate = harness.max_shield_strength / max(harness.recovery_time * 0.1, 0.1)
+		harness.update_shield_runtime_state()
+		result += list(list(
+			"human" = human,
+			"harness" = harness,
+		))
+
+	return result
+
+/datum/unit_test/halo_sangheili_equipment/proc/cleanup_sangheili_shield_batch(list/batch)
+	if(!islist(batch))
+		return
+
+	for(var/list/entry as anything in batch)
+		qdel(entry["human"])
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_nested_snapshot_value(list/checkpoint, key, nested_key = null)
+	if(!islist(checkpoint))
+		return 0
+
+	if(isnull(nested_key))
+		return checkpoint[key] || 0
+
+	var/list/nested = checkpoint[key]
+	if(!islist(nested))
+		return 0
+
+	return nested[nested_key] || 0
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_snapshot_delta(list/after, list/before, key)
+	return (after[key] || 0) - (before[key] || 0)
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_max_checkpoint_value(list/checkpoints, key, nested_key = null)
+	var/highest = 0
+	for(var/list/checkpoint as anything in checkpoints)
+		highest = max(highest, get_nested_snapshot_value(checkpoint, key, nested_key))
+	return highest
+
+/datum/unit_test/halo_sangheili_equipment/proc/get_last_nonzero_aux_time(list/checkpoints)
+	var/last_nonzero_time = 0
+	for(var/list/checkpoint as anything in checkpoints)
+		if((checkpoint["active_shield_temp_visuals"] || 0) > 0 || (checkpoint["active_shield_filters"] || 0) > 0)
+			last_nonzero_time = checkpoint["elapsed_ds"] || 0
+			continue
+		if((checkpoint["shield_hit_fx_spawns_per_sec"] || 0) > 0 || (checkpoint["shield_pop_fx_spawns_per_sec"] || 0) > 0)
+			last_nonzero_time = checkpoint["elapsed_ds"] || 0
+			continue
+		if((checkpoint["shield_timer_creates_per_sec"] || 0) > 0 || (checkpoint["shield_effect_callbacks_per_sec"] || 0) > 0)
+			last_nonzero_time = checkpoint["elapsed_ds"] || 0
+			continue
+	return last_nonzero_time
+
+/datum/unit_test/halo_sangheili_equipment/proc/is_shield_checkpoint_near_idle(list/current, list/previous)
+	if(!islist(current))
+		return FALSE
+
+	if((current["active_shield_harnesses"] || 0) > 0)
+		return FALSE
+	if((current["active_halo_temp_visuals"] || 0) > 0)
+		return FALSE
+	if((current["active_shield_temp_visuals"] || 0) > 0)
+		return FALSE
+	if((current["active_shield_filters"] || 0) > 0)
+		return FALSE
+	if(!islist(previous))
+		return TRUE
+
+	if((current["shield_hit_fx_spawns_total"] || 0) != (previous["shield_hit_fx_spawns_total"] || 0))
+		return FALSE
+	if((current["shield_pop_fx_spawns_total"] || 0) != (previous["shield_pop_fx_spawns_total"] || 0))
+		return FALSE
+	if((current["shield_timer_creates_total"] || 0) != (previous["shield_timer_creates_total"] || 0))
+		return FALSE
+	if((current["shield_effect_callbacks_total"] || 0) != (previous["shield_effect_callbacks_total"] || 0))
+		return FALSE
+	return TRUE
+
+/datum/unit_test/halo_sangheili_equipment/proc/run_shield_idle_perf_scenario(count, break_shields = TRUE, disable_harness = FALSE, disable_fx = FALSE, soak_duration = HALO_SHIELD_TEST_SHORT_SOAK_DURATION, checkpoint_interval = HALO_SHIELD_TEST_SOAK_INTERVAL)
+	var/list/config_state = capture_halo_shield_debug_config()
+	CONFIG_SET(flag/halo_perf_debug, TRUE)
+	CONFIG_SET(flag/halo_shield_debug_disable_harness, disable_harness)
+	CONFIG_SET(flag/halo_shield_debug_disable_fx, disable_fx)
+
+	var/list/checkpoints = list()
+	var/list/batch = build_sangheili_shield_batch(count)
+	var/list/baseline = halo_perf_checkpoint("baseline")
+	baseline["elapsed_ds"] = 0
+	checkpoints += list(baseline)
+
+	for(var/list/entry as anything in batch)
+		var/mob/living/carbon/human/human = entry["human"]
+		var/obj/item/clothing/suit/marine/shielded/sangheili/harness = entry["harness"]
+		var/damage = break_shields ? harness.max_shield_strength : round(harness.max_shield_strength * 0.5)
+		harness.take_damage(max(damage, 1), human)
+		COOLDOWN_START(harness, time_to_regen, HALO_SHIELD_TEST_REGEN_DELAY)
+		harness.update_shield_runtime_state()
+
+	var/list/after_hit = halo_perf_checkpoint("after_hit")
+	after_hit["elapsed_ds"] = 0
+	checkpoints += list(after_hit)
+
+	var/list/previous = after_hit
+	var/time_to_settle = null
+	for(var/elapsed in checkpoint_interval to soak_duration step checkpoint_interval)
+		sleep(checkpoint_interval)
+		var/list/checkpoint = halo_perf_checkpoint("elapsed_[elapsed]")
+		checkpoint["elapsed_ds"] = elapsed
+		checkpoints += list(checkpoint)
+		if(isnull(time_to_settle) && is_shield_checkpoint_near_idle(checkpoint, previous))
+			time_to_settle = elapsed
+		previous = checkpoint
+
+	var/list/result = list(
+		"count" = count,
+		"baseline" = baseline,
+		"after_hit" = after_hit,
+		"final" = checkpoints[length(checkpoints)],
+		"checkpoints" = checkpoints,
+		"time_to_settle_ds" = isnull(time_to_settle) ? soak_duration : time_to_settle,
+		"last_nonzero_aux_ds" = get_last_nonzero_aux_time(checkpoints),
+		"peak_active_harnesses" = get_max_checkpoint_value(checkpoints, "active_shield_harnesses"),
+		"peak_active_halo_temp_visuals" = get_max_checkpoint_value(checkpoints, "active_halo_temp_visuals"),
+		"peak_active_shield_temp_visuals" = get_max_checkpoint_value(checkpoints, "active_shield_temp_visuals"),
+		"peak_active_shield_filters" = get_max_checkpoint_value(checkpoints, "active_shield_filters"),
+		"peak_fastobj_cost_ms" = get_max_checkpoint_value(checkpoints, "subsystem_fastobj", "cost_ms"),
+		"peak_timer_cost_ms" = get_max_checkpoint_value(checkpoints, "subsystem_timer", "cost_ms"),
+		"peak_garbage_cost_ms" = get_max_checkpoint_value(checkpoints, "subsystem_garbage", "cost_ms"),
+	)
+
+	cleanup_sangheili_shield_batch(batch)
+	sleep(world.tick_lag)
+	restore_halo_shield_debug_config(config_state)
+	return result
 
 /datum/unit_test/halo_sangheili_equipment_matrix
 	parent_type = /datum/unit_test/halo_sangheili_equipment
@@ -401,6 +697,51 @@
 	ultra_plasma.current_path_target = reference_target
 	TEST_ASSERT(!ultra_plasma.path_target_needs_refresh(slack_target), "HALO Sangheili melee pathing should keep the current target while the enemy only drifts by one tile.")
 	TEST_ASSERT(ultra_plasma.path_target_needs_refresh(far_target), "HALO Sangheili melee pathing should refresh once the enemy drifts beyond the configured slack.")
+
+/datum/unit_test/halo_sangheili_recovery_reduction
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_recovery_reduction/Run()
+	var/mob/living/carbon/human/baseline_human = create_baseline_human()
+	var/mob/living/carbon/human/sangheili = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	TEST_ASSERT_NOTNULL(baseline_human, "Failed to allocate the baseline human for Sangheili recovery testing.")
+	TEST_ASSERT_NOTNULL(sangheili, "Failed to create the Sangheili mob for recovery testing.")
+
+	var/base_stun = baseline_human.GetStunDuration(30)
+	var/base_knockdown = baseline_human.GetKnockDownDuration(30)
+	var/base_knockout = baseline_human.GetKnockOutDuration(30)
+	var/sangheili_stun = sangheili.GetStunDuration(30)
+	var/sangheili_knockdown = sangheili.GetKnockDownDuration(30)
+	var/sangheili_knockout = sangheili.GetKnockOutDuration(30)
+
+	TEST_ASSERT(sangheili_stun < base_stun, "Sangheili stun recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockdown < base_knockdown, "Sangheili knockdown recovery should now be faster than the baseline human duration.")
+	TEST_ASSERT(sangheili_knockout < base_knockout, "Sangheili knockout recovery should now be faster than the baseline human duration.")
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_wakeup_rethink/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Sangheili AI for wake-up rethink testing.")
+
+	brain.action_blacklist = list(/datum/ai_action/throw_back_nade) // SS220 EDIT: keep the wake-up regression focused on the nearby-item rethink instead of the throw-back follow-up action
+	brain.nearby_item_search_interval = 10 SECONDS
+	TEST_ASSERT(brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should consume the nearby-item scan throttle once during setup.")
+	TEST_ASSERT(!brain.should_run_nearby_item_search(), "The HALO Sangheili wake-up test should confirm the nearby-item scan throttle is active before standing up.")
+
+	var/turf/grenade_turf = set_target_turf(brain, 1)
+	TEST_ASSERT(isfloorturf(grenade_turf), "Failed to allocate an adjacent grenade turf for the HALO Sangheili wake-up rethink test.")
+	var/obj/item/explosive/grenade/grenade = allocate(/obj/item/explosive/grenade, grenade_turf)
+	grenade.active = TRUE
+	grenade.fuse_type = TIMED_FUSE
+	brain.active_grenade_found = null
+
+	brain.tied_human.set_body_position(LYING_DOWN)
+	brain.tied_human.set_body_position(STANDING_UP)
+	sleep(world.tick_lag)
+
+	TEST_ASSERT_EQUAL(brain.active_grenade_found, grenade, "Standing back up should invalidate nearby-item throttling and immediately rediscover an adjacent live grenade.")
 
 /datum/unit_test/halo_sangheili_ai_sword_auto_activation
 	parent_type = /datum/unit_test/halo_sangheili_equipment
@@ -691,6 +1032,47 @@
 	harness.update_shield_runtime_state()
 	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully recovered Sangheili shield harness should leave SSfastobj once it becomes idle again.")
 
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the idle death shutdown test.")
+
+	harness.shield_strength = harness.max_shield_strength
+	harness.shield_broken = FALSE
+	COOLDOWN_RESET(harness, time_to_regen)
+	harness.update_shield_runtime_state()
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A fully charged Sangheili shield harness should be idle before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the idle death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its shield harness disabled immediately even while idle.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili should lose its remaining shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili idle harness should not enter or remain in SSfastobj.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili idle harness should not absorb projectile damage.")
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_processing_death_shutdown/Run()
+	var/mob/living/carbon/human/human = create_sangheili(/datum/equipment_preset/covenant/sangheili/minor)
+	var/obj/item/clothing/suit/marine/shielded/sangheili/harness = human.wear_suit
+	TEST_ASSERT_NOTNULL(harness, "Failed to equip a Sangheili shield harness for the processing death shutdown test.")
+
+	harness.take_damage(10, human)
+	TEST_ASSERT(harness in SSfastobj.processing, "A damaged Sangheili shield harness should be processing before the death shutdown regression check.")
+
+	human.death(create_cause_data("unit test"))
+
+	TEST_ASSERT_EQUAL(human.stat, DEAD, "The Sangheili test subject should be dead for the processing death shutdown regression check.")
+	TEST_ASSERT(!harness.shield_enabled, "A dead Sangheili should have its processing shield harness disabled immediately.")
+	TEST_ASSERT_EQUAL(harness.shield_strength, 0, "A dead Sangheili processing harness should drop to zero shield strength immediately.")
+	TEST_ASSERT(!(harness in SSfastobj.processing), "A dead Sangheili processing harness should leave SSfastobj immediately.")
+	TEST_ASSERT_EQUAL(harness.intercept_projectile_damage(human, 20), 20, "A dead Sangheili processing harness should not absorb projectile damage.")
+
 /datum/unit_test/halo_sangheili_shield_full_absorb
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -749,6 +1131,113 @@
 	TEST_ASSERT(!(harness in SSfastobj.processing), "An unequipped Sangheili harness should leave SSfastobj immediately.")
 	TEST_ASSERT_EQUAL(residual_damage, 15, "An unequipped Sangheili harness should not still absorb projectile damage.")
 	TEST_ASSERT_EQUAL(harness.shield_strength, starting_shield, "An unequipped Sangheili harness should not mutate its shield pool on human projectile signals.")
+
+/datum/unit_test/halo_sangheili_shield_idle_baseline_metrics
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_baseline_metrics/Run()
+	var/list/config_state = capture_halo_shield_debug_config()
+	CONFIG_SET(flag/halo_perf_debug, TRUE)
+	CONFIG_SET(flag/halo_shield_debug_disable_fx, FALSE)
+	CONFIG_SET(flag/halo_shield_debug_disable_harness, FALSE)
+
+	var/list/batch = build_sangheili_shield_batch(25)
+	var/list/idle_checkpoint = halo_perf_checkpoint("idle_baseline")
+
+	TEST_ASSERT_EQUAL(idle_checkpoint["active_shield_harnesses"], 0, "Idle Sangheili harnesses should not remain in SSfastobj before any shield activity.")
+	TEST_ASSERT_EQUAL(idle_checkpoint["active_shield_temp_visuals"], 0, "Idle Sangheili harnesses should not spawn shield temp visuals.")
+	TEST_ASSERT_EQUAL(idle_checkpoint["active_shield_filters"], 0, "Idle Sangheili harnesses should not leave shield filters active.")
+
+	for(var/list/entry as anything in batch)
+		var/obj/item/clothing/suit/marine/shielded/sangheili/harness = entry["harness"]
+		TEST_ASSERT(!(harness in SSfastobj.processing), "An untouched Sangheili harness should stay out of SSfastobj.")
+
+	cleanup_sangheili_shield_batch(batch)
+	sleep(world.tick_lag)
+	restore_halo_shield_debug_config(config_state)
+
+/datum/unit_test/halo_sangheili_shield_idle_perf_ab
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_perf_ab/Run()
+	var/list/default_run = run_shield_idle_perf_scenario(40, TRUE, FALSE, FALSE)
+	var/list/harness_off_run = run_shield_idle_perf_scenario(40, TRUE, TRUE, FALSE)
+	var/list/fx_off_run = run_shield_idle_perf_scenario(40, TRUE, FALSE, TRUE)
+
+	var/list/default_baseline = default_run["baseline"]
+	var/list/default_final = default_run["final"]
+	var/list/harness_off_baseline = harness_off_run["baseline"]
+	var/list/harness_off_final = harness_off_run["final"]
+	var/list/fx_off_baseline = fx_off_run["baseline"]
+	var/list/fx_off_final = fx_off_run["final"]
+	var/list/default_first_tail = default_run["checkpoints"][3]
+	var/list/harness_off_after_hit = harness_off_run["after_hit"]
+	var/list/fx_off_after_hit = fx_off_run["after_hit"]
+
+	var/default_hit_fx_delta = get_snapshot_delta(default_final, default_baseline, "shield_hit_fx_spawns_total")
+	var/default_pop_fx_delta = get_snapshot_delta(default_final, default_baseline, "shield_pop_fx_spawns_total")
+	var/default_timer_delta = get_snapshot_delta(default_final, default_baseline, "shield_timer_creates_total")
+	var/default_callback_delta = get_snapshot_delta(default_final, default_baseline, "shield_effect_callbacks_total")
+	var/harness_off_hit_fx_delta = get_snapshot_delta(harness_off_final, harness_off_baseline, "shield_hit_fx_spawns_total")
+	var/harness_off_timer_delta = get_snapshot_delta(harness_off_final, harness_off_baseline, "shield_timer_creates_total")
+	var/fx_off_hit_fx_delta = get_snapshot_delta(fx_off_final, fx_off_baseline, "shield_hit_fx_spawns_total")
+	var/fx_off_pop_fx_delta = get_snapshot_delta(fx_off_final, fx_off_baseline, "shield_pop_fx_spawns_total")
+	var/fx_off_timer_delta = get_snapshot_delta(fx_off_final, fx_off_baseline, "shield_timer_creates_total")
+
+	TEST_ASSERT(default_run["peak_active_harnesses"] >= 35, "Broken idle shields should keep most Sangheili harnesses active in SSfastobj after combat stops.")
+	TEST_ASSERT((default_first_tail["active_shield_harnesses"] || 0) > 0, "Broken idle shields should sustain background harness activity for at least one soak checkpoint.")
+	TEST_ASSERT(default_run["time_to_settle_ds"] > 0, "Broken idle shields should have a measurable settle tail instead of returning to idle immediately.")
+	TEST_ASSERT(default_hit_fx_delta > 0, "Default shield soak should spawn shield-hit visuals.")
+	TEST_ASSERT(default_pop_fx_delta > 0, "Default shield soak should spawn shield-pop visuals.")
+	TEST_ASSERT(default_timer_delta > 0, "Default shield soak should schedule shield timers.")
+	TEST_ASSERT(default_callback_delta > 0, "Default shield soak should execute shield-effect callbacks.")
+
+	TEST_ASSERT_EQUAL(harness_off_after_hit["active_shield_harnesses"], 0, "Harness-off A/B should prevent idle shield harnesses from entering SSfastobj.")
+	TEST_ASSERT_EQUAL(harness_off_hit_fx_delta, 0, "Harness-off A/B should suppress shield-hit visuals entirely.")
+	TEST_ASSERT(harness_off_timer_delta < default_timer_delta, "Harness-off A/B should materially reduce shield timer activity.")
+
+	TEST_ASSERT(fx_off_run["peak_active_harnesses"] >= 35, "FX-off A/B should preserve shield harness processing so shield math can still be compared.")
+	TEST_ASSERT_EQUAL(fx_off_hit_fx_delta, 0, "FX-off A/B should suppress shield-hit temp visuals while leaving shield processing active.")
+	TEST_ASSERT_EQUAL(fx_off_pop_fx_delta, 0, "FX-off A/B should suppress shield-pop temp visuals while leaving shield processing active.")
+	TEST_ASSERT_EQUAL(fx_off_run["peak_active_shield_temp_visuals"], 0, "FX-off A/B should keep active shield temp visuals at zero.")
+	TEST_ASSERT_EQUAL(fx_off_run["peak_active_shield_filters"], 0, "FX-off A/B should keep shield filters disabled.")
+	TEST_ASSERT(fx_off_timer_delta < default_timer_delta, "FX-off A/B should reduce shield-side timer traffic relative to the default run.")
+	TEST_ASSERT_EQUAL((fx_off_after_hit["active_shield_temp_visuals"] || 0), 0, "FX-off A/B should have no shield visuals alive immediately after the deterministic hit.")
+
+/datum/unit_test/halo_sangheili_shield_idle_long_soak
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_shield_idle_long_soak/Run()
+	var/list/default_50 = run_shield_idle_perf_scenario(50, TRUE, FALSE, FALSE, HALO_SHIELD_TEST_LONG_SOAK_DURATION)
+	var/list/default_100 = run_shield_idle_perf_scenario(100, TRUE, FALSE, FALSE, HALO_SHIELD_TEST_LONG_SOAK_DURATION)
+	var/list/default_200 = run_shield_idle_perf_scenario(200, TRUE, FALSE, FALSE, HALO_SHIELD_TEST_LONG_SOAK_DURATION)
+	var/list/harness_off_200 = run_shield_idle_perf_scenario(200, TRUE, TRUE, FALSE, HALO_SHIELD_TEST_LONG_SOAK_DURATION)
+	var/list/fx_off_200 = run_shield_idle_perf_scenario(200, TRUE, FALSE, TRUE, HALO_SHIELD_TEST_LONG_SOAK_DURATION)
+
+	var/default_50_hit_fx = get_snapshot_delta(default_50["final"], default_50["baseline"], "shield_hit_fx_spawns_total")
+	var/default_100_hit_fx = get_snapshot_delta(default_100["final"], default_100["baseline"], "shield_hit_fx_spawns_total")
+	var/default_200_hit_fx = get_snapshot_delta(default_200["final"], default_200["baseline"], "shield_hit_fx_spawns_total")
+	var/default_200_timer_delta = get_snapshot_delta(default_200["final"], default_200["baseline"], "shield_timer_creates_total")
+	var/harness_off_200_hit_fx = get_snapshot_delta(harness_off_200["final"], harness_off_200["baseline"], "shield_hit_fx_spawns_total")
+	var/fx_off_200_hit_fx = get_snapshot_delta(fx_off_200["final"], fx_off_200["baseline"], "shield_hit_fx_spawns_total")
+	var/fx_off_200_timer_delta = get_snapshot_delta(fx_off_200["final"], fx_off_200["baseline"], "shield_timer_creates_total")
+
+	TEST_ASSERT(default_50["peak_active_harnesses"] >= 45, "The long idle soak should keep nearly all 50 broken harnesses processing after the single deterministic hit.")
+	TEST_ASSERT(default_100["peak_active_harnesses"] >= 90, "The long idle soak should keep nearly all 100 broken harnesses processing after the single deterministic hit.")
+	TEST_ASSERT(default_200["peak_active_harnesses"] >= 180, "The long idle soak should keep nearly all 200 broken harnesses processing after the single deterministic hit.")
+	TEST_ASSERT(default_50_hit_fx > 0, "The long idle soak should produce shield-hit visuals in the default configuration.")
+	TEST_ASSERT(default_100_hit_fx >= default_50_hit_fx, "Shield-hit visual totals should scale upward as the long soak spawns more Sangheili.")
+	TEST_ASSERT(default_200_hit_fx >= default_100_hit_fx, "Shield-hit visual totals should continue scaling upward through the 200-Sangheili soak.")
+	TEST_ASSERT(default_200["last_nonzero_aux_ds"] > 0, "The 200-Sangheili long soak should keep auxiliary shield activity alive after combat has stopped.")
+
+	TEST_ASSERT_EQUAL(harness_off_200["peak_active_harnesses"], 0, "Harness-off long soak should keep SSfastobj idle even for 200 Sangheili.")
+	TEST_ASSERT_EQUAL(harness_off_200_hit_fx, 0, "Harness-off long soak should suppress shield-hit visuals entirely.")
+
+	TEST_ASSERT_EQUAL(fx_off_200_hit_fx, 0, "FX-off long soak should suppress shield-hit visuals entirely.")
+	TEST_ASSERT_EQUAL(fx_off_200["peak_active_shield_temp_visuals"], 0, "FX-off long soak should keep shield temp visuals at zero throughout the soak.")
+	TEST_ASSERT_EQUAL(fx_off_200["peak_active_shield_filters"], 0, "FX-off long soak should keep shield filters disabled throughout the soak.")
+	TEST_ASSERT(fx_off_200_timer_delta < default_200_timer_delta, "FX-off long soak should materially reduce shield timer traffic relative to the default 200-Sangheili soak.")
+	TEST_ASSERT(default_200["last_nonzero_aux_ds"] > fx_off_200["last_nonzero_aux_ds"], "FX-off long soak should shorten the shield auxiliary tail compared to the default 200-Sangheili soak.")
 
 /datum/unit_test/halo_sangheili_ai_item_search_throttle
 	parent_type = /datum/unit_test/halo_sangheili_equipment

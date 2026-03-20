@@ -17,7 +17,7 @@
 	path = /datum/equipment_preset/unsc/spec/equipped_spnkr
 
 /datum/human_ai_equipment_preset/unsc/squadleader
-	name = "UNSC Fireteam Leader"
+	name = "UNSC Group Leader"
 	desc = "Functionally a rifleman. Armed with a MA5C rifle, carries a simple IFAK with gauze, ointment, splints and an injector."
 	path = /datum/equipment_preset/unsc/tl/equipped
 
