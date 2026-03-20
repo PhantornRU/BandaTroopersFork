@@ -8,12 +8,18 @@
 
 #define TTS_DEFAULT_ANNOUNCER_KEY "default"
 #define TTS_ARES_ANNOUNCER_KEY "ares"
+// SS220 EDIT - START: HALO faction-specific announcers
+#define TTS_COVENANT_ANNOUNCER_KEY "covenant"
+#define TTS_YAUTJA_ANNOUNCER_KEY "yautja"
+// SS220 EDIT - END: HALO faction-specific announcers
 #define TTS_QUEEN_MOTHER_ANNOUNCER_KEY "queen_mother"
 #define TTS_SILENT_ANNOUNCER_KEY "silent"
 
 GLOBAL_LIST_INIT_TYPED(tts_announcers, /datum/announcer, list(
 	TTS_DEFAULT_ANNOUNCER_KEY = new /datum/announcer,
 	TTS_ARES_ANNOUNCER_KEY = new /datum/announcer/ares,
+	TTS_COVENANT_ANNOUNCER_KEY = new /datum/announcer/covenant,
+	TTS_YAUTJA_ANNOUNCER_KEY = new /datum/announcer/yautja,
 	TTS_QUEEN_MOTHER_ANNOUNCER_KEY = new /datum/announcer/queen_mother,
 	TTS_SILENT_ANNOUNCER_KEY = new /datum/announcer/silent,
 ))

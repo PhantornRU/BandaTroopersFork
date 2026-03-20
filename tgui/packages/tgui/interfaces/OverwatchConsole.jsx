@@ -210,7 +210,7 @@ const MainDashboard = (props) => {
           icon="envelope"
           onClick={() => act('message')}
         >
-          MESSAGE SECTION
+          MESSAGE {String(data.unit_label || 'UNIT').toUpperCase()}
         </Button>
         <Button
           inline
@@ -218,7 +218,7 @@ const MainDashboard = (props) => {
           icon="person"
           onClick={() => act('sl_message')}
         >
-          MESSAGE SECTION LEADER
+          MESSAGE {String(data.lead_label || 'LEADER').toUpperCase()}
         </Button>
       </Box>
     </Section>
@@ -250,10 +250,10 @@ const RoleTable = (props) => {
     <Table pb="4px" m="1px" fontSize="12px" bold>
       <Table.Row>
         <Table.Cell textAlign="center" p="4px">
-          Section Sergeant
+          {data.lead_label}
         </Table.Cell>
         <Table.Cell collapsing p="4px">
-          Squad Leaders
+          {data.sublead_label}
         </Table.Cell>
         <Table.Cell collapsing p="4px">
           Specialist
@@ -325,23 +325,24 @@ const SquadMonitor = (props) => {
   const { act, data } = useBackend();
 
   const sortByRole = (a, b) => {
-    a = a.role;
-    b = b.role;
+    a = a.role_bucket || a.role;
+    b = b.role_bucket || b.role;
     const roleValues = {
-      'Section Sergeant': 10,
-      'Squad Leader': 9,
+      'Squad Leader': 10,
+      'Group Leader': 9,
       'Weapons Specialist': 8,
       Smartgunner: 7,
-      'Platoon Corpsman': 6,
+      'Hospital Corpsman': 6,
       'Combat Technician': 5,
       Rifleman: 4,
+      'Radio Telephone Operator': 4,
     };
     let valueA = roleValues[a];
     let valueB = roleValues[b];
-    if (a.includes('Weapons Specialist')) {
+    if (a?.includes?.('Weapons Specialist')) {
       valueA = roleValues['Weapons Specialist'];
     }
-    if (b.includes('Weapons Specialist')) {
+    if (b?.includes?.('Weapons Specialist')) {
       valueB = roleValues['Weapons Specialist'];
     }
     if (!valueA && !valueB) return 0; // They're both unknown

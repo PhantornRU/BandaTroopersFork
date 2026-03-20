@@ -1,3 +1,4 @@
 #include "_helpers220.dm"
 
+#include "code/crit_logging.dm"
 #include "code/unsorted.dm"
