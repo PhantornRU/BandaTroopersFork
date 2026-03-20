@@ -83,7 +83,12 @@
 #include "gc_regressions.dm"
 #include "halo_ai_localization.dm"
 #include "halo_sangheili_equipment.dm"
+#include "halo_sangheili_equipment_ai.dm"
+#include "halo_sangheili_equipment_shields.dm"
 #include "halo_ship_platoons.dm"
+#include "halo_ship_platoons_cryo.dm"
+#include "halo_ship_platoons_surfaces.dm"
+#include "halo_ship_platoons_ui.dm"
 #include "halo_tts.dm"
 #include "halo_unggoy_ai.dm"
 #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior

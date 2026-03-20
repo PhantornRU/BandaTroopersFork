@@ -430,44 +430,38 @@
 
 	return null
 
+/datum/authority/branch/role/proc/collect_main_ship_surface_fixtures(fixture_root_type, list/fixture_registry = null)
+	. = list()
+
+	var/use_registry = islist(fixture_registry) && length(fixture_registry)
+	if(use_registry)
+		for(var/atom/fixture as anything in fixture_registry)
+			if(QDELETED(fixture) || !istype(fixture, fixture_root_type) || !is_mainship_level(fixture.z))
+				continue
+			if(get_ship_surface_key(fixture))
+				. += fixture
+		return
+
+	for(var/atom/fixture as anything in world)
+		if(QDELETED(fixture) || !istype(fixture, fixture_root_type) || !is_mainship_level(fixture.z))
+			continue
+		if(get_ship_surface_key(fixture))
+			. += fixture
+
 /datum/authority/branch/role/proc/apply_main_ship_surface_profile(platoon_type = get_active_ship_platoon_type())
 	var/target_family = get_ship_surface_family(platoon_type)
 	if(!target_family)
 		return FALSE
 
 	var/list/covered_squad_markers = get_ship_surface_related_squad_markers(platoon_type)
-	var/list/lockers_to_check = list()
-	if(length(GLOB.personal_closets))
-		for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in GLOB.personal_closets)
-			if(QDELETED(locker) || !is_mainship_level(locker.z))
-				continue
-			if(get_ship_surface_key(locker))
-				lockers_to_check += locker
-	else
-		for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in world)
-			if(QDELETED(locker) || !is_mainship_level(locker.z))
-				continue
-			if(get_ship_surface_key(locker))
-				lockers_to_check += locker
+	var/list/lockers_to_check = collect_main_ship_surface_fixtures(/obj/structure/closet/secure_closet/marine_personal, GLOB.personal_closets)
 
 	for(var/obj/structure/closet/secure_closet/marine_personal/locker as anything in lockers_to_check)
 		if(QDELETED(locker))
 			continue
 		replace_ship_surface_fixture(locker, target_family, covered_squad_markers)
 
-	var/list/vendors_to_check = list()
-	if(length(GLOB.cm_vending_machines))
-		for(var/obj/structure/machinery/cm_vending/vendor as anything in GLOB.cm_vending_machines)
-			if(QDELETED(vendor) || !is_mainship_level(vendor.z))
-				continue
-			if(get_ship_surface_key(vendor))
-				vendors_to_check += vendor
-	else
-		for(var/obj/structure/machinery/cm_vending/vendor as anything in world)
-			if(QDELETED(vendor) || !is_mainship_level(vendor.z))
-				continue
-			if(get_ship_surface_key(vendor))
-				vendors_to_check += vendor
+	var/list/vendors_to_check = collect_main_ship_surface_fixtures(/obj/structure/machinery/cm_vending, GLOB.cm_vending_machines)
 
 	for(var/obj/structure/machinery/cm_vending/vendor as anything in vendors_to_check)
 		if(QDELETED(vendor))
