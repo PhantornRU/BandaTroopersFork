@@ -1531,7 +1531,7 @@
 	var/turf/linked_turf = locate(mainship_turf.x + 1, mainship_turf.y, mainship_turf.z)
 	TEST_ASSERT_NOTNULL(linked_turf, "Failed to resolve a linked turf for HALO platoon commander locker replacement testing.")
 
-	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander, mainship_turf)
+	var/obj/structure/closet/secure_closet/marine_personal/platoon_commander/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/platoon_commander, mainship_turf)
 	isolate_personal_lockers(source_locker)
 	track_test_atom(source_locker)
 	source_locker.pixel_x = 7
@@ -1542,25 +1542,24 @@
 	source_locker.y_to_linked_spawn_turf = linked_turf.y - source_locker.y
 	source_locker.linked_spawn_turf = linked_turf
 
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc) >= 1, "UNSC platoon commander locker baseline headset was missing before ship surface replacement test.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Platoon commander locker baseline headset was missing before ship surface replacement test.")
 
 	var/obj/structure/closet/secure_closet/marine_personal/target_locker = role_authority.replace_ship_surface_fixture(
 		source_locker,
 		"odst",
 		role_authority.get_ship_surface_related_squad_markers(/datum/squad/marine/halo/odst/alpha)
 	)
-	track_test_atom(target_locker)
 
-	TEST_ASSERT_NOTNULL(target_locker, "Platoon commander locker ship surface replacement did not produce a target locker.")
-	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander, "UNSC platoon commander locker did not swap into the ODST platoon commander locker.")
-	TEST_ASSERT_EQUAL(target_locker.pixel_x, 7, "Platoon commander locker ship surface replacement did not preserve pixel_x.")
-	TEST_ASSERT_EQUAL(target_locker.pixel_y, -3, "Platoon commander locker ship surface replacement did not preserve pixel_y.")
-	TEST_ASSERT_EQUAL(target_locker.dir, EAST, "Platoon commander locker ship surface replacement did not preserve direction.")
-	TEST_ASSERT_EQUAL(target_locker.owner, "Mapper Platoon Commander Locker", "Platoon commander locker ship surface replacement did not preserve locker owner metadata.")
-	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Platoon commander locker ship surface replacement did not preserve linked spawn turf.")
-	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc), 0, "Platoon commander locker ship surface replacement incorrectly carried over the exact UNSC command headset into the ODST locker.")
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst) >= 1, "Platoon commander locker ship surface replacement did not keep the ODST command headset.")
-	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc), 0, "Platoon commander locker ship surface replacement spilled the exact UNSC command headset onto the turf.")
+	TEST_ASSERT_NULL(target_locker, "Platoon commander locker ship surface replacement unexpectedly produced a family-specific target locker.")
+	TEST_ASSERT(!QDELETED(source_locker), "Platoon commander locker ship surface replacement unexpectedly deleted the base locker.")
+	TEST_ASSERT_EQUAL(source_locker.type, /obj/structure/closet/secure_closet/marine_personal/platoon_commander, "Platoon commander locker ship surface replacement unexpectedly changed the locker type.")
+	TEST_ASSERT_EQUAL(source_locker.pixel_x, 7, "Platoon commander locker ship surface replacement did not preserve pixel_x on the untouched base locker.")
+	TEST_ASSERT_EQUAL(source_locker.pixel_y, -3, "Platoon commander locker ship surface replacement did not preserve pixel_y on the untouched base locker.")
+	TEST_ASSERT_EQUAL(source_locker.dir, EAST, "Platoon commander locker ship surface replacement did not preserve direction on the untouched base locker.")
+	TEST_ASSERT_EQUAL(source_locker.owner, "Mapper Platoon Commander Locker", "Platoon commander locker ship surface replacement did not preserve locker owner metadata on the untouched base locker.")
+	TEST_ASSERT_EQUAL(source_locker.linked_spawn_turf, linked_turf, "Platoon commander locker ship surface replacement did not preserve linked spawn turf on the untouched base locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Platoon commander locker ship surface replacement removed the baseline command headset from the untouched base locker.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco), 0, "Platoon commander locker ship surface replacement spilled the command headset onto the turf.")
 
 /datum/unit_test/halo_ship_platoons_ship_surface_base_platoon_commander_locker_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1590,9 +1589,9 @@
 	)
 	track_test_atom(target_locker)
 
-	TEST_ASSERT_NOTNULL(target_locker, "Base platoon commander locker ship surface replacement did not produce a target locker.")
-	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander, "Base platoon commander locker did not swap into the UNSC platoon commander locker.")
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc) >= 1, "Base platoon commander locker replacement did not yield the UNSC command headset.")
+	TEST_ASSERT_NULL(target_locker, "Base platoon commander locker ship surface replacement unexpectedly produced a family-specific locker.")
+	TEST_ASSERT(!QDELETED(source_locker), "Base platoon commander locker ship surface replacement unexpectedly deleted the source locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(source_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Base platoon commander locker replacement removed the baseline command headset from the untouched source locker.")
 
 /datum/unit_test/halo_ship_platoons_apply_main_ship_surface_profile_without_personal_closet_registry
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1614,11 +1613,12 @@
 
 	TEST_ASSERT(role_authority.apply_main_ship_surface_profile(), "apply_main_ship_surface_profile() failed while the personal locker registry was empty.")
 
-	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/target_locker = locate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander) in mainship_turf
+	var/obj/structure/closet/secure_closet/marine_personal/platoon_commander/target_locker = locate(/obj/structure/closet/secure_closet/marine_personal/platoon_commander) in mainship_turf
 	track_test_atom(target_locker)
 
-	TEST_ASSERT_NOTNULL(target_locker, "apply_main_ship_surface_profile() did not replace the base platoon commander locker when the personal locker registry was empty.")
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc) >= 1, "apply_main_ship_surface_profile() did not apply the UNSC command headset while the personal locker registry was empty.")
+	TEST_ASSERT_NOTNULL(target_locker, "apply_main_ship_surface_profile() unexpectedly removed the base platoon commander locker when the personal locker registry was empty.")
+	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/platoon_commander, "apply_main_ship_surface_profile() unexpectedly changed the platoon commander locker type while the personal locker registry was empty.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "apply_main_ship_surface_profile() did not preserve the base command headset while the personal locker registry was empty.")
 
 /datum/unit_test/halo_ship_platoons_handle_main_ship_mode_changed_reapplies_surface_profile
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1640,11 +1640,12 @@
 
 	TEST_ASSERT(role_authority.handle_main_ship_mode_changed(), "Ship-mode change handler failed while reapplying the active ship surface profile.")
 
-	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/target_locker = locate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander) in mainship_turf
+	var/obj/structure/closet/secure_closet/marine_personal/platoon_commander/target_locker = locate(/obj/structure/closet/secure_closet/marine_personal/platoon_commander) in mainship_turf
 	track_test_atom(target_locker)
 
-	TEST_ASSERT_NOTNULL(target_locker, "Ship-mode change handler did not replace the base platoon commander locker with the UNSC locker.")
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc) >= 1, "Ship-mode change handler did not restore the UNSC command headset when reapplying the surface profile.")
+	TEST_ASSERT_NOTNULL(target_locker, "Ship-mode change handler unexpectedly removed the base platoon commander locker while reapplying the surface profile.")
+	TEST_ASSERT_EQUAL(target_locker.type, /obj/structure/closet/secure_closet/marine_personal/platoon_commander, "Ship-mode change handler unexpectedly changed the platoon commander locker type while reapplying the surface profile.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Ship-mode change handler did not preserve the base command headset while reapplying the surface profile.")
 
 /datum/unit_test/halo_ship_platoons_handle_main_ship_mode_changed_switches_live_platoon_profile
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1664,17 +1665,18 @@
 
 	TEST_ASSERT(role_authority.handle_main_ship_mode_changed(), "Initial ship-mode change handler call failed for live platoon profile switch testing.")
 
-	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/unsc_locker = locate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander) in mainship_turf
-	track_test_atom(unsc_locker)
-	TEST_ASSERT_NOTNULL(unsc_locker, "Initial live ship platoon profile application did not produce the UNSC platoon commander locker.")
+	var/obj/structure/closet/secure_closet/marine_personal/platoon_commander/base_locker = locate(/obj/structure/closet/secure_closet/marine_personal/platoon_commander) in mainship_turf
+	track_test_atom(base_locker)
+	TEST_ASSERT_NOTNULL(base_locker, "Initial live ship platoon profile application unexpectedly removed the base platoon commander locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(base_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Initial live ship platoon profile application did not preserve the base command headset.")
 
 	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
 	TEST_ASSERT(role_authority.handle_main_ship_mode_changed(), "Ship-mode change handler failed while switching the live ship platoon profile to ODST.")
 
-	var/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander/odst_locker = locate(/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander) in mainship_turf
-	track_test_atom(odst_locker)
-	TEST_ASSERT_NOTNULL(odst_locker, "Live ship platoon profile switch did not replace the UNSC platoon commander locker with the ODST locker.")
-	TEST_ASSERT(count_personal_locker_contents_by_exact_type(odst_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst) >= 1, "Live ship platoon profile switch did not apply the ODST command headset.")
+	var/obj/structure/closet/secure_closet/marine_personal/platoon_commander/unchanged_locker = locate(/obj/structure/closet/secure_closet/marine_personal/platoon_commander) in mainship_turf
+	track_test_atom(unchanged_locker)
+	TEST_ASSERT_NOTNULL(unchanged_locker, "Live ship platoon profile switch unexpectedly removed the base platoon commander locker.")
+	TEST_ASSERT(count_personal_locker_contents_by_exact_type(unchanged_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco) >= 1, "Live ship platoon profile switch did not preserve the base command headset.")
 
 /datum/unit_test/halo_ship_platoons_sync_pending_same_ship_platoon_for_round_start
 	parent_type = /datum/unit_test/halo_ship_platoons

@@ -145,7 +145,7 @@
 		list("Боевые ботинки ККОН", floor(scale * 15), /obj/item/clothing/shoes/marine/jungle/knife, VENDOR_ITEM_REGULAR),
 		list("Нательный костюм ODST", floor(scale * 15), /obj/item/clothing/under/marine/odst, VENDOR_ITEM_REGULAR),
 		list("Боевые перчатки морпеха", floor(scale * 15), /obj/item/clothing/gloves/marine, VENDOR_ITEM_MANDATORY),
-		list("Гарнитура ODST", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen, VENDOR_ITEM_REGULAR),
+		list("Гарнитура ODST", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst, VENDOR_ITEM_REGULAR),
 		list("Гарнитура с камерой образца M5", floor(scale * 15), /obj/item/device/overwatch_camera, VENDOR_ITEM_REGULAR),
 		list("Патрульная кепка, джунглевый BDU", floor(scale * 15), /obj/item/clothing/head/cmcap, VENDOR_ITEM_REGULAR),
 		list("Панама, джунглевый BDU", floor(scale * 15), /obj/item/clothing/head/cmcap/boonie, VENDOR_ITEM_REGULAR),
