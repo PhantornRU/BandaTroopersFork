@@ -177,7 +177,7 @@
 
 	var/turf/object_blocked_target = null
 	for(var/turf/candidate as anything in base_candidates)
-		if(candidate == origin || candidate == blocked_target || candidate in blocked_ring_turfs)
+		if(candidate == origin || candidate == blocked_target || (candidate in blocked_ring_turfs)) // SS220 EDIT: disambiguate DreamChecker precedence in candidate filter exclusion
 			continue
 		object_blocked_target = candidate
 		break
@@ -206,7 +206,7 @@
 
 	var/turf/window_blocked_target = null
 	for(var/turf/candidate as anything in base_candidates)
-		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == mob_target || candidate in blocked_ring_turfs)
+		if(candidate == origin || candidate == blocked_target || candidate == object_blocked_target || candidate == mob_target || (candidate in blocked_ring_turfs)) // SS220 EDIT: disambiguate DreamChecker precedence in window-blocker exclusion
 			continue
 		window_blocked_target = candidate
 		break
