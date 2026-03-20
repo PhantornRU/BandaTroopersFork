@@ -19,6 +19,7 @@
 			if(JOB_SQUAD_TEAM_LEADER) marine_rk = "tl"
 			if(JOB_SQUAD_MEDIC) marine_rk = "med"
 			if(JOB_SQUAD_SMARTGUN) marine_rk = "gun"
+			if(JOB_SO) marine_rk = "wo_co"
 			if(JOB_XO) marine_rk = "xo"
 			if(JOB_CO) marine_rk = "co"
 			if(JOB_GENERAL) marine_rk = "general"

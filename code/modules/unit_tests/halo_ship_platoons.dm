@@ -62,7 +62,55 @@
 	snapshot_main_platoon_name = GLOB.main_platoon_name
 	snapshot_main_platoon_initial_name = GLOB.main_platoon_initial_name
 
+/datum/unit_test/halo_ship_platoons/proc/cleanup_test_human_runtime_state(mob/living/carbon/human/human)
+	if(!istype(human))
+		return
+
+	human.clear_modular_spawn_candidate_cache()
+	SSround_recording?.recorder?.stop_tracking(human)
+
+	var/datum/squad/assigned_squad = human.assigned_squad
+	if(assigned_squad)
+		if(human in assigned_squad.marines_list)
+			assigned_squad.forget_marine_in_squad(human)
+		else
+			if(assigned_squad.squad_leader == human)
+				assigned_squad.squad_leader = null
+
+			if(islist(assigned_squad.fireteam_leaders))
+				for(var/fireteam_key in assigned_squad.fireteam_leaders)
+					if(assigned_squad.fireteam_leaders[fireteam_key] == human)
+						assigned_squad.fireteam_leaders[fireteam_key] = null
+
+			assigned_squad.personnel_deleted(human, TRUE)
+			human.assigned_squad = null
+			human.assigned_fireteam = null
+
+	if(islist(GLOB.marine_leaders))
+		for(var/leader_key in GLOB.marine_leaders.Copy())
+			var/leader_entry = GLOB.marine_leaders[leader_key]
+			if(islist(leader_entry))
+				leader_entry -= human
+				if(!length(leader_entry))
+					GLOB.marine_leaders -= leader_key
+			else if(leader_entry == human)
+				GLOB.marine_leaders -= leader_key
+
+	if(SStracking)
+		var/tracking_group = SStracking.mobs_in_processing?[human]
+		if(tracking_group)
+			SStracking.stop_tracking(tracking_group, human)
+
+		SStracking.stop_misc_tracking(human)
+		for(var/leader_group in SStracking.leaders.Copy())
+			if(SStracking.leaders[leader_group] == human)
+				SStracking.delete_leader(leader_group)
+
 /datum/unit_test/halo_ship_platoons/Destroy()
+	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
+		if(!QDELETED(human))
+			cleanup_test_human_runtime_state(human)
+
 	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
 		if(!QDELETED(human))
 			qdel(human)
@@ -193,6 +241,14 @@
 		if(movable.type == content_type)
 			.++
 
+/datum/unit_test/halo_ship_platoons/proc/count_turf_contents_by_exact_type(turf/content_turf, content_type)
+	. = 0
+	if(!content_turf || !content_type)
+		return
+
+	for(var/atom/movable/movable as anything in content_turf)
+		if(movable.type == content_type)
+			.++
 // SS220 EDIT - START - locker replacement fixtures need an optional adjacent floor for linked spawn turf assertions
 /datum/unit_test/halo_ship_platoons/proc/get_adjacent_floor_turf(turf/center_turf)
 	if(!isfloorturf(center_turf))
@@ -223,15 +279,20 @@
 	var/turf/mainship_center = SSmapping?.get_mainship_center()
 	if(require_adjacent_floor && !get_adjacent_floor_turf(mainship_center))
 		mainship_center = null
-	if(mainship_center && is_mainship_level(mainship_center.z))
+	if(isfloorturf(mainship_center) && is_mainship_level(mainship_center.z))
 		return mainship_center
 
 	var/list/mainship_levels = SSmapping?.levels_by_trait(ZTRAIT_MARINE_MAIN_SHIP)
 	if(length(mainship_levels))
-		return locate(1, 1, mainship_levels[1])
+		var/turf/mainship_level_turf = locate(1, 1, mainship_levels[1])
+		if(isfloorturf(mainship_level_turf))
+			if(!require_adjacent_floor || get_adjacent_floor_turf(mainship_level_turf))
+				return mainship_level_turf
 
 	var/turf/fallback = run_loc_floor_top_right
 	if(!isfloorturf(fallback))
+		return null
+	if(require_adjacent_floor && !get_adjacent_floor_turf(fallback))
 		return null
 
 	var/datum/space_level/level = SSmapping?.get_level(fallback.z)
@@ -243,7 +304,6 @@
 
 	return fallback
 // SS220 EDIT - END
-
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_randomize_assigns_squad(real_name, job_title, preset_path, expected_squad_family)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	var/list/profile = role_authority?.get_ship_platoon_profile(expected_squad_family)
@@ -259,21 +319,6 @@
 
 	var/datum/squad/assigned_squad = human.assigned_squad
 	assigned_squad.remove_marine_from_squad(human, human.get_idcard())
-
-/datum/unit_test/halo_ship_platoons/proc/assert_halo_equipment_metadata(real_name, preset_path, expected_role_title)
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-	configure_test_human(human, real_name, expected_role_title)
-	arm_equipment(human, preset_path, FALSE, TRUE)
-
-	var/obj/item/card/id/id = human.get_idcard()
-	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, preset_path, "[real_name] did not keep the expected HALO preset after arm_equipment().")
-	TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "[real_name] no longer keeps FACTION_UNSC after arm_equipment().")
-	TEST_ASSERT_EQUAL(human.job, expected_role_title, "[real_name] did not keep the expected HALO runtime job after arm_equipment().")
-	TEST_ASSERT_EQUAL(human.title, expected_role_title, "[real_name] did not keep the expected HALO runtime title after arm_equipment().")
-	TEST_ASSERT_NOTNULL(id, "[real_name] did not receive an ID card from the HALO preset.")
-	TEST_ASSERT_EQUAL(id?.faction, FACTION_UNSC, "[real_name] did not keep FACTION_UNSC on the equipped ID metadata.")
-	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO rank on the equipped ID metadata.")
-	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO assignment on the equipped ID metadata.")
 
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_runtime_identity(mob/living/carbon/human/human, expected_role_title, expected_faction = FACTION_UNSC)
 	var/obj/item/card/id/id = human.get_idcard()
@@ -366,6 +411,142 @@
 	var/datum/squad/assigned_squad = human.assigned_squad
 	assigned_squad.remove_marine_from_squad(human, id)
 
+/datum/unit_test/halo_ship_platoons/proc/cleanup_test_squad_membership(mob/living/carbon/human/human)
+	if(!istype(human) || !human.assigned_squad)
+		return
+
+	human.assigned_squad.remove_marine_from_squad(human, human.get_idcard())
+
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_id_metadata(mob/living/carbon/human/human, expected_faction, expected_rank, expected_assignment)
+	var/role_label = human?.real_name || expected_assignment || expected_rank || expected_faction
+	var/obj/item/card/id/id = human?.get_idcard()
+	TEST_ASSERT_NOTNULL(id, "[role_label] did not keep an ID card after the HALO flow.")
+	TEST_ASSERT_EQUAL(id?.faction, expected_faction, "[role_label] did not keep the expected HALO ID faction.")
+	TEST_ASSERT_EQUAL(id?.rank, expected_rank, "[role_label] did not keep the expected HALO ID rank.")
+	TEST_ASSERT_EQUAL(id?.assignment, expected_assignment, "[role_label] did not keep the expected HALO ID assignment.")
+
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_final_state(mob/living/carbon/human/human, expected_job, expected_title, expected_faction, expected_preset_type = null, expected_squad_family_types = null)
+	var/role_label = human?.real_name || expected_title || expected_job
+	TEST_ASSERT_EQUAL(human?.job, expected_job, "[role_label] did not keep the expected HALO runtime job.")
+	TEST_ASSERT_EQUAL(human?.title, expected_title, "[role_label] did not keep the expected HALO runtime title.")
+	TEST_ASSERT_EQUAL(human?.faction, expected_faction, "[role_label] did not keep the expected HALO mob faction.")
+
+	if(!isnull(expected_preset_type))
+		TEST_ASSERT_NOTNULL(human?.assigned_equipment_preset, "[role_label] lost assigned_equipment_preset metadata during the HALO flow.")
+		TEST_ASSERT_EQUAL(human?.assigned_equipment_preset?.type, expected_preset_type, "[role_label] did not keep the expected HALO preset identity.")
+
+	assert_halo_id_metadata(human, expected_faction, expected_title, expected_title)
+
+	var/obj/item/card/id/id = human?.get_idcard()
+	var/list/preset_access = human?.assigned_equipment_preset?.access
+	if(islist(preset_access))
+		for(var/access_flag in preset_access)
+			TEST_ASSERT(id?.access?.Find(access_flag), "[role_label] lost preset access [access_flag] on the HALO runtime ID metadata.")
+
+	if(!isnull(expected_squad_family_types))
+		var/list/family_types = islist(expected_squad_family_types) ? expected_squad_family_types : list(expected_squad_family_types)
+		TEST_ASSERT_NOTNULL(human?.assigned_squad, "[role_label] did not receive a HALO squad assignment.")
+		TEST_ASSERT(family_types.Find(human?.assigned_squad?.type), "[role_label] joined [human?.assigned_squad?.type] instead of one of the expected HALO squad types [english_list(family_types)].")
+
+/datum/unit_test/halo_ship_platoons/proc/assert_halo_equipment_metadata(real_name, preset_path, expected_role_title)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, real_name, expected_role_title)
+	arm_equipment(human, preset_path, FALSE, TRUE)
+
+	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, preset_path, "[real_name] did not keep the expected HALO preset after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.faction, FACTION_UNSC, "[real_name] no longer keeps FACTION_UNSC after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.job, expected_role_title, "[real_name] did not keep the expected HALO runtime job after arm_equipment().")
+	TEST_ASSERT_EQUAL(human.title, expected_role_title, "[real_name] did not keep the expected HALO runtime title after arm_equipment().")
+	assert_halo_id_metadata(human, FACTION_UNSC, expected_role_title, expected_role_title)
+
+/datum/unit_test/halo_ship_platoons/proc/assert_preview_preset_visualizes_loadout(job_title, expected_preview_preset_type, required_slots_or_items)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO preview visual testing.")
+	role_authority.refresh_main_ship_gamemode_roles()
+
+	var/preview_bucket = role_authority.get_job_preference_bucket_key(job_title) || job_title
+	var/datum/preferences/preferences = allocate(/datum/preferences)
+	preferences.job_preference_list = list()
+	preferences.job_preference_list[preview_bucket] = HIGH_PRIORITY
+
+	var/preset_type = preferences.job_pref_to_gear_preset()
+	TEST_ASSERT_EQUAL(preset_type, expected_preview_preset_type, "[job_title] preview preset did not resolve through the real preview helper path.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, "[job_title] Preview", job_title)
+	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
+
+	TEST_ASSERT(islist(required_slots_or_items) && length(required_slots_or_items), "[job_title] preview visual assertion requires at least one slot or item check.")
+	for(var/required_entry as anything in required_slots_or_items)
+		if(isnum(required_entry) || istext(required_entry))
+			TEST_ASSERT_NOTNULL(human.get_item_by_slot(required_entry), "[job_title] preview mannequin was missing required slot [required_entry].")
+			continue
+
+		if(ispath(required_entry))
+			var/found_item = FALSE
+			for(var/obj/item/item as anything in human.contents)
+				if(istype(item, required_entry))
+					found_item = TRUE
+					break
+			TEST_ASSERT(found_item, "[job_title] preview mannequin was missing required item type [required_entry].")
+			continue
+
+		TEST_FAIL("[job_title] preview visual assertion encountered unsupported requirement [required_entry].")
+
+/datum/unit_test/halo_ship_platoons/proc/ensure_test_cryo_squad()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	if(!role_authority)
+		return null
+
+	if(!islist(role_authority.squads))
+		role_authority.squads = list()
+	if(!islist(role_authority.squads_by_type))
+		role_authority.squads_by_type = list()
+
+	var/datum/squad/marine/cryo/cryo_squad = role_authority.squads_by_type[/datum/squad/marine/cryo]
+	if(!cryo_squad)
+		cryo_squad = allocate(/datum/squad/marine/cryo)
+		role_authority.squads += cryo_squad
+		role_authority.squads_by_type[cryo_squad.type] = cryo_squad
+		if(!(cryo_squad in tracked_test_squads))
+			tracked_test_squads += cryo_squad
+
+	return cryo_squad
+
+/datum/unit_test/halo_ship_platoons/proc/create_cryo_member_and_wait(datum/emergency_call/cryo_squad/cryo_call, turf/spawn_turf, wait_ticks = 40)
+	TEST_ASSERT_NOTNULL(cryo_call, "HALO cryo runtime helper did not receive a cryo_squad datum.")
+	TEST_ASSERT(isfloorturf(spawn_turf), "HALO cryo runtime helper did not receive a valid spawn turf.")
+	TEST_ASSERT_NOTNULL(ensure_test_cryo_squad(), "HALO cryo runtime helper could not seed the required /datum/squad/marine/cryo fixture.")
+
+	var/list/existing_humans = list()
+	for(var/mob/living/carbon/human/existing_human as anything in spawn_turf.contents)
+		existing_humans += existing_human
+
+	cryo_call.create_member(null, spawn_turf)
+
+	var/mob/living/carbon/human/candidate_human = null
+	for(var/i in 1 to wait_ticks)
+		if(!candidate_human)
+			if(istype(cryo_call.leader, /mob/living/carbon/human) && !(cryo_call.leader in existing_humans))
+				candidate_human = cryo_call.leader
+
+			if(!candidate_human)
+				for(var/mob/living/carbon/human/human as anything in spawn_turf.contents)
+					if(human in existing_humans)
+						continue
+					candidate_human = human
+					break
+
+		if(candidate_human && (candidate_human.job || candidate_human.assigned_equipment_preset))
+			if(!(candidate_human in tracked_test_humans))
+				tracked_test_humans += candidate_human
+			return candidate_human
+
+		sleep(1)
+
+	TEST_FAIL("Timed out waiting for HALO cryo create_member() to finish.")
+	return null
+
 /datum/unit_test/halo_ship_platoons/proc/assert_halo_medic_job_option(real_name, job_type, role_title, option_title, expected_preset, expected_squad_family)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	var/datum/job/job_datum = new job_type()
@@ -390,9 +571,10 @@
 	arm_equipment(human, resolved_preset, FALSE, TRUE)
 	role_authority.randomize_squad(human, TRUE)
 
-	assert_halo_runtime_identity(human, role_title)
-	assert_halo_runtime_squad_family(human, role_title)
+	assert_halo_final_state(human, role_title, role_title, FACTION_UNSC, resolved_preset, role_authority.get_halo_job_family_types(role_title))
 
+// Layer 1: helper / mapping / guardrail contracts. These tests validate resolver and mapping behavior,
+// not full runtime end-to-end correctness through roundstart, latejoin, cryo, or preview mannequin flows.
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -442,7 +624,8 @@
 	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_TEAM_LEADER_ODST), /datum/equipment_preset/unsc/tl/odst/equipped, "ODST HALO fireteam leader preview preset did not resolve through the role-specific helper.")
 	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_LEADER_ODST), /datum/equipment_preset/unsc/leader/odst/equipped, "ODST HALO section leader preview preset did not resolve through the role-specific helper.")
 	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(JOB_SQUAD_SPECIALIST_ODST), /datum/equipment_preset/unsc/spec/odst/equipped_spnkr, "ODST HALO specialist preview preset did not resolve through the role-specific helper.")
-
+	// Preview helper-path mapping stays covered here; actual mannequin visual outcome lives in
+	// /datum/unit_test/halo_ship_platoons_preview_visual_state.
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Platoon Commander", JOB_SO_UNSC)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview ODST Platoon Commander", JOB_SO_ODST)
 	assert_halo_preview_preset_equips_job_gear("HALO Preview UNSC Corpsman", JOB_SQUAD_MEDIC_UNSC)
@@ -711,7 +894,7 @@
 	halo_so.job = so_job
 
 	TEST_ASSERT(manager.claim_first_platoon_commander(halo_so), "Platoon Commander preference claim should accept HALO job datums without bad-indexing the default-role map.")
-	TEST_ASSERT_EQUAL(manager.first_platoon_commander_ckey, "halo_so_pref", "Platoon Commander preference claim did not persist the first HALO Platoon Commander claimant.")
+	TEST_ASSERT_EQUAL(manager.first_platoon_commander_ckey, halo_so.ckey, "Platoon Commander preference claim did not persist the first HALO Platoon Commander claimant.")
 
 /datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -747,16 +930,16 @@
 	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Leader", JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader, /datum/squad/marine/halo/unsc/alpha)
 	assert_halo_randomize_assigns_squad("HALO UNSC Cryo Specialist", JOB_SQUAD_SPECIALIST_UNSC, /datum/equipment_preset/unsc/spec, /datum/squad/marine/halo/unsc/alpha)
 
-/datum/unit_test/halo_ship_platoons_cryo_application_flow
+/datum/unit_test/halo_ship_platoons_cryo_helper_contracts
 	parent_type = /datum/unit_test/halo_ship_platoons
 
-/datum/unit_test/halo_ship_platoons_cryo_application_flow/Run()
+/datum/unit_test/halo_ship_platoons_cryo_helper_contracts/Run()
 	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
 
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo application-flow test.")
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo helper-contract test.")
 	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
-	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo emergency-call helper for HALO cryo application-flow testing.")
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo emergency-call helper for HALO cryo helper-contract testing.")
 	TEST_ASSERT(cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_MEDIC, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly treated the supported medic override as unsupported.")
 	TEST_ASSERT(!cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_ENGI, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly accepted an unsupported engineer override.")
 	TEST_ASSERT(!cryo_call.profile_cryo_role_is_supported(JOB_SQUAD_SMARTGUN, /datum/squad/marine/halo/unsc/alpha), "HALO cryo helper incorrectly accepted an unsupported smartgunner override.")
@@ -825,7 +1008,6 @@
 	TEST_ASSERT_NOTNULL(human.assigned_squad, "Cryo follow-up handling did not restore squad assignment for a HALO corpsman.")
 	var/list/unsc_family_types = GLOB.RoleAuthority.get_halo_job_family_types(JOB_SQUAD_MEDIC_UNSC)
 	TEST_ASSERT(unsc_family_types.Find(human.assigned_squad?.type), "Cryo follow-up handling assigned the HALO corpsman outside the UNSC squad family.")
-
 /datum/unit_test/halo_ship_platoons_title_independence
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -861,8 +1043,7 @@
 	else
 		TEST_FAIL("HALO title-independence test assigned the specialist to an unexpected fireteam.")
 
-	var/datum/squad/assigned_squad = human.assigned_squad
-	assigned_squad.remove_marine_from_squad(human, id)
+	cleanup_test_squad_membership(human)
 
 	var/mob/living/carbon/human/cryo_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
 	configure_test_human(cryo_human, "HALO Title Override Corpsman", JOB_SQUAD_MEDIC_UNSC)
@@ -914,6 +1095,7 @@
 	assert_halo_randomize_assigns_squad("HALO ODST Cryo Leader", JOB_SQUAD_LEADER_ODST, /datum/equipment_preset/unsc/leader/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Cryo Specialist", JOB_SQUAD_SPECIALIST_ODST, /datum/equipment_preset/unsc/spec/odst, /datum/squad/marine/halo/odst/alpha)
 
+// Layer 2: runtime integration tests. These must use the real caller paths instead of helper-only shortcuts.
 /datum/unit_test/halo_ship_platoons_so_latejoin_runtime_semantics
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -950,6 +1132,7 @@
 	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, /datum/equipment_preset/unsc/platco, "HALO SO latejoin runtime path did not keep the HALO Platoon Commander preset.")
 	assert_halo_runtime_squad_family(human, JOB_SO_UNSC)
 	TEST_ASSERT(istype(human.loc, /obj/structure/machinery/cryopod), "HALO SO latejoin runtime path did not complete the modular cryopod spawn flow.")
+	assert_halo_final_state(human, JOB_SO_UNSC, JOB_SO_UNSC, FACTION_UNSC, /datum/equipment_preset/unsc/platco)
 
 	var/leader_entry = GLOB.marine_leaders[JOB_SO]
 	if(islist(leader_entry))
@@ -1009,6 +1192,63 @@
 	assert_halo_runtime_identity(human, JOB_SQUAD_LEADER_UNSC)
 	TEST_ASSERT_EQUAL(human.assigned_equipment_preset?.type, /datum/equipment_preset/unsc/leader, "HALO squad-leader runtime cryo path did not keep the HALO base squad-leader preset.")
 	assert_halo_runtime_squad_family(human, JOB_SQUAD_LEADER_UNSC)
+
+/datum/unit_test/halo_ship_platoons_cryo_corpsman_final_state
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_cryo_corpsman_final_state/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	var/datum/squad/marine/cryo/cryo_squad = ensure_test_cryo_squad()
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo helper for HALO corpsman runtime testing.")
+	TEST_ASSERT_NOTNULL(cryo_squad, "Failed to resolve the cryo squad datum for HALO corpsman runtime testing.")
+	cryo_call.leaders = cryo_squad.max_leaders
+	cryo_call.heavies = cryo_call.max_heavies
+
+	var/mob/living/carbon/human/human = create_cryo_member_and_wait(cryo_call, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(human, "HALO corpsman runtime test did not spawn a cryo human through create_member().")
+
+	assert_halo_final_state(human, JOB_SQUAD_MEDIC_UNSC, JOB_SQUAD_MEDIC_UNSC, FACTION_UNSC, /datum/equipment_preset/unsc/medic, role_authority.get_halo_job_family_types(JOB_SQUAD_MEDIC_UNSC))
+
+/datum/unit_test/halo_ship_platoons_cryo_specialist_final_state
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_cryo_specialist_final_state/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	var/datum/squad/marine/cryo/cryo_squad = ensure_test_cryo_squad()
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo helper for HALO specialist runtime testing.")
+	TEST_ASSERT_NOTNULL(cryo_squad, "Failed to resolve the cryo squad datum for HALO specialist runtime testing.")
+	cryo_call.leaders = cryo_squad.max_leaders
+
+	var/mob/living/carbon/human/human = create_cryo_member_and_wait(cryo_call, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(human, "HALO specialist runtime test did not spawn a cryo human through create_member().")
+
+	assert_halo_final_state(human, JOB_SQUAD_SPECIALIST_UNSC, JOB_SQUAD_SPECIALIST_UNSC, FACTION_UNSC, /datum/equipment_preset/unsc/spec, role_authority.get_halo_job_family_types(JOB_SQUAD_SPECIALIST_UNSC))
+	TEST_ASSERT(!istype(human.get_item_by_slot(WEAR_BACK), /obj/item/weapon/gun/halo_launcher/spnkr), "HALO specialist runtime cryo path still spawned the specialist fully equipped instead of using the unequipped HALO preset flow.")
+	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_BODY), "HALO specialist cryo runtime path should keep the specialist on the cryo baseline without a uniform equipped.")
+	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_L_EAR), "HALO specialist cryo runtime path should keep the specialist on the cryo baseline without a headset equipped.")
+	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_HEAD), "HALO specialist cryo runtime path should keep the specialist on the cryo baseline without a helmet equipped.")
+	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_JACKET), "HALO specialist cryo runtime path should keep the specialist on the cryo baseline without armor equipped.")
+
+/datum/unit_test/halo_ship_platoons_cryo_squad_leader_final_state
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_cryo_squad_leader_final_state/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo helper for HALO squad-leader runtime testing.")
+
+	var/mob/living/carbon/human/human = create_cryo_member_and_wait(cryo_call, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(human, "HALO squad-leader runtime test did not spawn a cryo human through create_member().")
+
+	assert_halo_final_state(human, JOB_SQUAD_LEADER_UNSC, JOB_SQUAD_LEADER_UNSC, FACTION_UNSC, /datum/equipment_preset/unsc/leader, role_authority.get_halo_job_family_types(JOB_SQUAD_LEADER_UNSC))
 	TEST_ASSERT(human.assigned_squad?.squad_leader == human, "HALO squad-leader runtime cryo path did not restore the normal squad leader assignment state.")
 	var/datum/faction/faction_datum = get_faction(human.faction)
 	var/image/holder = human.hud_list[faction_datum?.hud_type]
@@ -1038,7 +1278,64 @@
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart RTO", JOB_SQUAD_RTO_ODST, /datum/equipment_preset/unsc/rto/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_randomize_assigns_squad("HALO ODST Roundstart FTL", JOB_SQUAD_TEAM_LEADER_ODST, /datum/equipment_preset/unsc/tl/odst, /datum/squad/marine/halo/odst/alpha)
 	assert_halo_specialist_roundstart_loadout("HALO ODST Roundstart Specialist", /datum/equipment_preset/unsc/spec/odst, JOB_SQUAD_SPECIALIST_ODST, /datum/squad/marine/halo/odst/alpha)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO roundstart parity testing.")
 
+	var/list/unsc_expectations = list(
+		list("name" = "HALO UNSC Roundstart Corpsman", "title" = JOB_SQUAD_MEDIC_UNSC, "preset" = /datum/equipment_preset/unsc/medic),
+		list("name" = "HALO UNSC Roundstart Section Leader", "title" = JOB_SQUAD_LEADER_UNSC, "preset" = /datum/equipment_preset/unsc/leader),
+		list("name" = "HALO UNSC Roundstart RTO", "title" = JOB_SQUAD_RTO_UNSC, "preset" = /datum/equipment_preset/unsc/rto),
+		list("name" = "HALO UNSC Roundstart FTL", "title" = JOB_SQUAD_TEAM_LEADER_UNSC, "preset" = /datum/equipment_preset/unsc/tl),
+	)
+	for(var/list/expectation as anything in unsc_expectations)
+		var/expected_name = expectation["name"]
+		var/expected_title = expectation["title"]
+		var/expected_preset = expectation["preset"]
+		var/datum/job/unsc_job_datum = role_authority.roles_by_name[expected_title]
+		TEST_ASSERT_NOTNULL(unsc_job_datum, "Failed to resolve [expected_title] for HALO UNSC roundstart parity testing.")
+
+		var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+		configure_test_human(human, expected_name, expected_title)
+		unsc_job_datum.equip_job(human)
+		assert_halo_final_state(human, expected_title, expected_title, FACTION_UNSC, expected_preset, role_authority.get_halo_job_family_types(expected_title))
+
+	var/datum/job/unsc_specialist_job = role_authority.roles_by_name[JOB_SQUAD_SPECIALIST_UNSC]
+	TEST_ASSERT_NOTNULL(unsc_specialist_job, "Failed to resolve JOB_SQUAD_SPECIALIST_UNSC for HALO UNSC roundstart parity testing.")
+	var/mob/living/carbon/human/unsc_specialist = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(unsc_specialist, "HALO UNSC Roundstart Specialist", JOB_SQUAD_SPECIALIST_UNSC)
+	unsc_specialist_job.equip_job(unsc_specialist)
+	assert_halo_final_state(unsc_specialist, JOB_SQUAD_SPECIALIST_UNSC, JOB_SQUAD_SPECIALIST_UNSC, FACTION_UNSC, /datum/equipment_preset/unsc/spec, role_authority.get_halo_job_family_types(JOB_SQUAD_SPECIALIST_UNSC))
+	TEST_ASSERT(istype(unsc_specialist.get_item_by_slot(WEAR_BACK), /obj/item/weapon/gun/halo_launcher/spnkr), "HALO UNSC roundstart specialist did not receive the SPNKr loadout through the real roundstart caller path.")
+
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+	var/list/odst_expectations = list(
+		list("name" = "HALO ODST Roundstart Corpsman", "title" = JOB_SQUAD_MEDIC_ODST, "preset" = /datum/equipment_preset/unsc/medic/odst),
+		list("name" = "HALO ODST Roundstart Section Leader", "title" = JOB_SQUAD_LEADER_ODST, "preset" = /datum/equipment_preset/unsc/leader/odst),
+		list("name" = "HALO ODST Roundstart RTO", "title" = JOB_SQUAD_RTO_ODST, "preset" = /datum/equipment_preset/unsc/rto/odst),
+		list("name" = "HALO ODST Roundstart FTL", "title" = JOB_SQUAD_TEAM_LEADER_ODST, "preset" = /datum/equipment_preset/unsc/tl/odst),
+	)
+	for(var/list/expectation as anything in odst_expectations)
+		var/odst_expected_name = expectation["name"]
+		var/odst_expected_title = expectation["title"]
+		var/odst_expected_preset = expectation["preset"]
+		var/datum/job/odst_job_datum = role_authority.roles_by_name[odst_expected_title]
+		TEST_ASSERT_NOTNULL(odst_job_datum, "Failed to resolve [odst_expected_title] for HALO ODST roundstart parity testing.")
+
+		var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+		configure_test_human(human, odst_expected_name, odst_expected_title)
+		odst_job_datum.equip_job(human)
+		assert_halo_final_state(human, odst_expected_title, odst_expected_title, FACTION_UNSC, odst_expected_preset, role_authority.get_halo_job_family_types(odst_expected_title))
+
+	var/datum/job/odst_specialist_job = role_authority.roles_by_name[JOB_SQUAD_SPECIALIST_ODST]
+	TEST_ASSERT_NOTNULL(odst_specialist_job, "Failed to resolve JOB_SQUAD_SPECIALIST_ODST for HALO ODST roundstart parity testing.")
+	var/mob/living/carbon/human/odst_specialist = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(odst_specialist, "HALO ODST Roundstart Specialist", JOB_SQUAD_SPECIALIST_ODST)
+	odst_specialist_job.equip_job(odst_specialist)
+	assert_halo_final_state(odst_specialist, JOB_SQUAD_SPECIALIST_ODST, JOB_SQUAD_SPECIALIST_ODST, FACTION_UNSC, /datum/equipment_preset/unsc/spec/odst, role_authority.get_halo_job_family_types(JOB_SQUAD_SPECIALIST_ODST))
+	TEST_ASSERT(istype(odst_specialist.get_item_by_slot(WEAR_BACK), /obj/item/weapon/gun/halo_launcher/spnkr), "HALO ODST roundstart specialist did not receive the SPNKr loadout through the real roundstart caller path.")
+
+// Layer 1 guardrail coverage continues below for locker routing, latejoin resolver, spawn-caller contracts,
+// and ship-surface mapping/replacement behavior.
 /datum/unit_test/halo_ship_platoons_unsc_specialist_job_locker_access
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -1268,6 +1565,8 @@
 /datum/unit_test/halo_ship_platoons_so_spawn_roundstart/Run()
 	var/turf/center_turf = run_loc_floor_top_right
 	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for SO spawn roundstart test.")
+	var/turf/holding_turf = run_loc_floor_bottom_left
+	TEST_ASSERT(isfloorturf(holding_turf), "Failed to resolve holding turf for SO spawn roundstart test.")
 
 	var/turf/pod_turf = get_step(center_turf, WEST)
 	if(!isturf(pod_turf))
@@ -1286,7 +1585,7 @@
 	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SO_UNSC]
 	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SO_UNSC datum for SO spawn roundstart test.")
 
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, center_turf)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, holding_turf)
 	tracked_test_humans += human
 	var/list/spawn_candidate = human.get_modular_spawn_candidate(job_datum, FALSE)
 
@@ -1457,6 +1756,9 @@
 	TEST_ASSERT(mapper_item in target_locker.contents, "Locker ship surface replacement lost mapper-added contents.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement incorrectly carried over the exact UNSC baseline headset into the ODST locker.")
 	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement spilled the exact UNSC baseline headset onto the turf.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/clothing/under/marine), 0, "Locker ship surface replacement spilled the exact UNSC baseline uniform onto the turf.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/clothing/shoes/marine/knife), 0, "Locker ship surface replacement spilled the shared baseline knife onto the turf.")
 
 /datum/unit_test/halo_ship_platoons_ship_surface_platoon_commander_locker_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1673,3 +1975,44 @@
 	TEST_ASSERT_EQUAL(target_vendor.density, FALSE, "Vendor ship surface replacement did not preserve density.")
 	TEST_ASSERT(mapper_item in target_vendor.contents, "Vendor ship surface replacement lost mapper-added contents.")
 	TEST_ASSERT(length(target_vendor.listed_products) == 0 || target_vendor.listed_products[1][1] != "BOGUS", "Vendor ship surface replacement incorrectly copied source listed_products into the new vendor.")
+
+// Layer 3: preview / mannequin coverage through the real preview resolver path.
+/datum/unit_test/halo_ship_platoons_preview_visual_state
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_preview_visual_state/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_MARINE_UNSC, /datum/equipment_preset/unsc/pfc/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_MEDIC_UNSC, /datum/equipment_preset/unsc/medic/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_RTO_UNSC, /datum/equipment_preset/unsc/rto/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_TEAM_LEADER_UNSC, /datum/equipment_preset/unsc/tl/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_LEADER_UNSC, /datum/equipment_preset/unsc/leader/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_SPECIALIST_UNSC, /datum/equipment_preset/unsc/spec/equipped_spnkr, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET, /obj/item/weapon/gun/halo_launcher/spnkr))
+	assert_preview_preset_visualizes_loadout(JOB_SO_UNSC, /datum/equipment_preset/unsc/platco/equipped, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET))
+
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_MEDIC_ODST, /datum/equipment_preset/unsc/medic/odst/equipped, list(
+		/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst,
+		/obj/item/clothing/head/helmet/marine/unsc/odst,
+		/obj/item/clothing/under/marine/odst,
+		/obj/item/clothing/suit/marine/unsc/odst,
+	))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_LEADER_ODST, /datum/equipment_preset/unsc/leader/odst/equipped, list(
+		/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst,
+		/obj/item/clothing/head/helmet/marine/unsc/odst,
+		/obj/item/clothing/under/marine/odst,
+		/obj/item/clothing/suit/marine/unsc/odst,
+	))
+	assert_preview_preset_visualizes_loadout(JOB_SQUAD_SPECIALIST_ODST, /datum/equipment_preset/unsc/spec/odst/equipped_spnkr, list(
+		/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst,
+		/obj/item/clothing/head/helmet/marine/unsc/odst,
+		/obj/item/clothing/under/marine/odst,
+		/obj/item/clothing/suit/marine/unsc/odst,
+		/obj/item/weapon/gun/halo_launcher/spnkr,
+	))
+	assert_preview_preset_visualizes_loadout(JOB_SO_ODST, /datum/equipment_preset/unsc/platco/odst/equipped, list(
+		/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst,
+		/obj/item/clothing/head/cmcap,
+		/obj/item/clothing/under/marine/standard,
+		/obj/item/clothing/suit/marine/unsc,
+	))

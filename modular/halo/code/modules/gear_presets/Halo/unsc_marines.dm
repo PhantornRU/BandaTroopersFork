@@ -35,11 +35,17 @@
 	src.change_real_name(src, random_name)
 	src.age = rand(20,35)
 
+/proc/load_halo_preset_name(mob/living/carbon/human/new_human)
+	if(!istype(new_human))
+		return
+
+	new_human.load_halo_preset_name()
+
 /datum/equipment_preset/unsc/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_VERYLOW
 
 /datum/equipment_preset/unsc/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /mob/living/carbon/human
 	var/tmp/halo_runtime_spawn_context = null
@@ -197,7 +203,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/pfc/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/pfc/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -233,7 +239,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/medic/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/medic/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -284,7 +290,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/rto/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/rto/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -319,7 +325,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/spec/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/spec/proc/get_roundstart_specialist_loadout_preset()
 	return /datum/equipment_preset/unsc/spec/equipped_spnkr
@@ -388,7 +394,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/tl/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/tl/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -424,7 +430,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/leader/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/leader/lesser_rank
 	name = parent_type::name + " (Lesser Rank)"
@@ -460,7 +466,7 @@
 	var/odst_visual_role = FALSE
 
 /datum/equipment_preset/unsc/platco/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.load_halo_preset_name()
+	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
 	squad_name_try_apply_platoon_commander_preference(new_human)

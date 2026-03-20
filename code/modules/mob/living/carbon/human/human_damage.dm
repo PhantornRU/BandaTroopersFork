@@ -420,7 +420,16 @@ This function restores all limbs.
 )
 	// SS220 EDIT - START
 	if(damage > 0 && player_survival_is_damage_blocked())
-		player_survival_log_damage_block("apply_damage", damage, damagetype)
+		var/mob/attacker = ismob(firer) ? firer : null
+		var/obj/source_weapon = isobj(used_weapon) ? used_weapon : null
+		var/cause_name = null
+		if(source_weapon)
+			cause_name = initial(source_weapon.name)
+		else if(attacker)
+			cause_name = "attack"
+
+		var/datum/cause_data/current_cause = cause_name ? create_cause_data(cause_name, attacker, source_weapon) : null
+		player_survival_log_damage_block("apply_damage", damage, damagetype, null, current_cause)
 		return FALSE
 	// SS220 EDIT - END
 	if(protection_aura && damage > 0)

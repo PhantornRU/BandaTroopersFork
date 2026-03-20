@@ -380,6 +380,12 @@
 	for(var/atom/movable/movable as anything in preserved_contents)
 		movable.forceMove(target_locker)
 
+	var/list/discarded_generated_contents = source_locker.generated_spawn_gear_contents ? source_locker.generated_spawn_gear_contents.Copy() : list()
+	for(var/atom/movable/generated_item as anything in discarded_generated_contents)
+		if(QDELETED(generated_item) || generated_item.loc != source_locker)
+			continue
+		qdel(generated_item)
+	source_locker.generated_spawn_gear_contents = list()
 	target_locker.update_icon()
 	qdel(source_locker)
 	return target_locker
