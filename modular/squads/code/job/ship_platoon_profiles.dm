@@ -162,6 +162,10 @@
 	var/list/profile = get_ship_platoon_profile(platoon_type)
 	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
 
+/datum/authority/branch/role/proc/should_auto_assign_ship_family_squad(job_or_title)
+	var/list/halo_family_types = get_halo_job_family_types(job_or_title)
+	return islist(halo_family_types) && length(halo_family_types)
+
 /datum/authority/branch/role/proc/apply_active_ship_cryo_reinforcement(mob/living/carbon/human/human, canonical_role, fallback_title = canonical_role, fallback_preset = null, late_join = TRUE, platoon_type = get_active_ship_platoon_type())
 	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
 	if(!istype(human) || !canonical_role)

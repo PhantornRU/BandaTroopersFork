@@ -62,7 +62,55 @@
 	snapshot_main_platoon_name = GLOB.main_platoon_name
 	snapshot_main_platoon_initial_name = GLOB.main_platoon_initial_name
 
+/datum/unit_test/halo_ship_platoons/proc/cleanup_test_human_runtime_state(mob/living/carbon/human/human)
+	if(!istype(human))
+		return
+
+	human.clear_modular_spawn_candidate_cache()
+	SSround_recording?.recorder?.stop_tracking(human)
+
+	var/datum/squad/assigned_squad = human.assigned_squad
+	if(assigned_squad)
+		if(human in assigned_squad.marines_list)
+			assigned_squad.forget_marine_in_squad(human)
+		else
+			if(assigned_squad.squad_leader == human)
+				assigned_squad.squad_leader = null
+
+			if(islist(assigned_squad.fireteam_leaders))
+				for(var/fireteam_key in assigned_squad.fireteam_leaders)
+					if(assigned_squad.fireteam_leaders[fireteam_key] == human)
+						assigned_squad.fireteam_leaders[fireteam_key] = null
+
+			assigned_squad.personnel_deleted(human, TRUE)
+			human.assigned_squad = null
+			human.assigned_fireteam = null
+
+	if(islist(GLOB.marine_leaders))
+		for(var/leader_key in GLOB.marine_leaders.Copy())
+			var/leader_entry = GLOB.marine_leaders[leader_key]
+			if(islist(leader_entry))
+				leader_entry -= human
+				if(!length(leader_entry))
+					GLOB.marine_leaders -= leader_key
+			else if(leader_entry == human)
+				GLOB.marine_leaders -= leader_key
+
+	if(SStracking)
+		var/tracking_group = SStracking.mobs_in_processing?[human]
+		if(tracking_group)
+			SStracking.stop_tracking(tracking_group, human)
+
+		SStracking.stop_misc_tracking(human)
+		for(var/leader_group in SStracking.leaders.Copy())
+			if(SStracking.leaders[leader_group] == human)
+				SStracking.delete_leader(leader_group)
+
 /datum/unit_test/halo_ship_platoons/Destroy()
+	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
+		if(!QDELETED(human))
+			cleanup_test_human_runtime_state(human)
+
 	for(var/mob/living/carbon/human/human as anything in tracked_test_humans)
 		if(!QDELETED(human))
 			qdel(human)
@@ -657,6 +705,27 @@
 
 	TEST_ASSERT_EQUAL(alpha_squad.name, manager.get_default_name_by_static(SQUAD_MARINE_1), "HALO SO latejoin lifecycle no longer restores the first-platoon-commander squad-name fallback.")
 
+/datum/unit_test/halo_ship_platoons_platoon_commander_preference_handles_job_datum
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_platoon_commander_preference_handles_job_datum/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for HALO Platoon Commander preference regression testing.")
+	manager.reset_first_platoon_commander()
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO Platoon Commander preference regression testing.")
+	var/datum/job/so_job = role_authority.roles_by_name[JOB_SO_UNSC]
+	TEST_ASSERT_NOTNULL(so_job, "Failed to resolve the HALO UNSC Platoon Commander job datum for preference regression testing.")
+
+	var/mob/living/carbon/human/halo_so = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(halo_so, "HALO Platoon Commander Pref", JOB_SO_UNSC, null, "halo_so_pref")
+	halo_so.job = so_job
+
+	TEST_ASSERT(manager.claim_first_platoon_commander(halo_so), "Platoon Commander preference claim should accept HALO job datums without bad-indexing the default-role map.")
+	TEST_ASSERT_EQUAL(manager.first_platoon_commander_ckey, halo_so.ckey, "Platoon Commander preference claim did not persist the first HALO Platoon Commander claimant.")
 /datum/unit_test/halo_ship_platoons_unsc_cryo_preset_mapping
 	parent_type = /datum/unit_test/halo_ship_platoons
 
