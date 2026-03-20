@@ -241,6 +241,15 @@
 		if(movable.type == content_type)
 			.++
 
+/datum/unit_test/halo_ship_platoons/proc/count_turf_contents_by_exact_type(turf/content_turf, content_type)
+	. = 0
+	if(!content_turf || !content_type)
+		return
+
+	for(var/atom/movable/movable as anything in content_turf)
+		if(movable.type == content_type)
+			.++
+
 // SS220 EDIT - START - locker replacement fixtures need an optional adjacent floor for linked spawn turf assertions
 /datum/unit_test/halo_ship_platoons/proc/get_adjacent_floor_turf(turf/center_turf)
 	if(!isfloorturf(center_turf))
@@ -271,15 +280,20 @@
 	var/turf/mainship_center = SSmapping?.get_mainship_center()
 	if(require_adjacent_floor && !get_adjacent_floor_turf(mainship_center))
 		mainship_center = null
-	if(mainship_center && is_mainship_level(mainship_center.z))
+	if(isfloorturf(mainship_center) && is_mainship_level(mainship_center.z))
 		return mainship_center
 
 	var/list/mainship_levels = SSmapping?.levels_by_trait(ZTRAIT_MARINE_MAIN_SHIP)
 	if(length(mainship_levels))
-		return locate(1, 1, mainship_levels[1])
+		var/turf/mainship_level_turf = locate(1, 1, mainship_levels[1])
+		if(isfloorturf(mainship_level_turf))
+			if(!require_adjacent_floor || get_adjacent_floor_turf(mainship_level_turf))
+				return mainship_level_turf
 
 	var/turf/fallback = run_loc_floor_top_right
 	if(!isfloorturf(fallback))
+		return null
+	if(require_adjacent_floor && !get_adjacent_floor_turf(fallback))
 		return null
 
 	var/datum/space_level/level = SSmapping?.get_level(fallback.z)
@@ -1280,6 +1294,8 @@
 /datum/unit_test/halo_ship_platoons_so_spawn_roundstart/Run()
 	var/turf/center_turf = run_loc_floor_top_right
 	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for SO spawn roundstart test.")
+	var/turf/holding_turf = run_loc_floor_bottom_left
+	TEST_ASSERT(isfloorturf(holding_turf), "Failed to resolve holding turf for SO spawn roundstart test.")
 
 	var/turf/pod_turf = get_step(center_turf, WEST)
 	if(!isturf(pod_turf))
@@ -1298,7 +1314,7 @@
 	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SO_UNSC]
 	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SO_UNSC datum for SO spawn roundstart test.")
 
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, center_turf)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, holding_turf)
 	tracked_test_humans += human
 	var/list/spawn_candidate = human.get_modular_spawn_candidate(job_datum, FALSE)
 
@@ -1469,6 +1485,9 @@
 	TEST_ASSERT(mapper_item in target_locker.contents, "Locker ship surface replacement lost mapper-added contents.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement incorrectly carried over the exact UNSC baseline headset into the ODST locker.")
 	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement spilled the exact UNSC baseline headset onto the turf.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/clothing/under/marine), 0, "Locker ship surface replacement spilled the exact UNSC baseline uniform onto the turf.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/clothing/shoes/marine/knife), 0, "Locker ship surface replacement spilled the shared baseline knife onto the turf.")
 
 /datum/unit_test/halo_ship_platoons_ship_surface_platoon_commander_locker_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -1513,6 +1532,7 @@
 	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Platoon commander locker ship surface replacement did not preserve linked spawn turf.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc), 0, "Platoon commander locker ship surface replacement incorrectly carried over the exact UNSC command headset into the ODST locker.")
 	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst) >= 1, "Platoon commander locker ship surface replacement did not keep the ODST command headset.")
+	TEST_ASSERT_EQUAL(count_turf_contents_by_exact_type(mainship_turf, /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc), 0, "Platoon commander locker ship surface replacement spilled the exact UNSC command headset onto the turf.")
 
 /datum/unit_test/halo_ship_platoons_ship_surface_base_platoon_commander_locker_replacement
 	parent_type = /datum/unit_test/halo_ship_platoons
