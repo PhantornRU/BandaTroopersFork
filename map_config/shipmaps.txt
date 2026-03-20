@@ -42,16 +42,14 @@ endmap
 map hms_brynhild
 endmap
 
-# SS220 EDIT - START
+map uscm_blue_ridge
+	# default
+endmap
 
 map unsc_dark_was_the_night
 endmap
 
 map unsc_dark_was_the_night_odst
-endmap
-
-map blue_ridge
-	# default
 endmap
 
 map unsc_stalwart_frigate

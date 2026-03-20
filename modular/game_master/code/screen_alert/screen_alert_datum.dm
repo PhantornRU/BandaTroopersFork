@@ -3,8 +3,8 @@
 	var/save_slot_name = "ERROR - СООБЩИТЕ РАЗРАБОТЧИКУ"
 	var/icon_choice
 	var/icon_choice_state
-	var/selectable_factions = list(FACTION_MARINE, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE)
-	var/selectable_icons = list(
+	var/list/selectable_factions = list(FACTION_MARINE, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE, FACTION_COVENANT)
+	var/list/selectable_icons = list(
 		"marine",
 		"marine_2",
 		"requisition",
@@ -38,6 +38,23 @@
 	var/title
 	var/text
 
+/datum/screen_alert_save/proc/get_faction_display_name(faction_name)
+	if(faction_name == FACTION_MARINE)
+		return "Marine"
+	return faction_name
+
+/datum/screen_alert_save/proc/get_selectable_factions_ui()
+	var/list/faction_options = selectable_factions.Copy()
+	var/marine_index = faction_options.Find(FACTION_MARINE)
+	if(marine_index)
+		faction_options[marine_index] = get_faction_display_name(FACTION_MARINE)
+	return faction_options
+
+/datum/screen_alert_save/proc/normalize_selected_faction(faction_name)
+	if(faction_name == get_faction_display_name(FACTION_MARINE))
+		return FACTION_MARINE
+	return faction_name
+
 /datum/screen_alert_save/proc/choose_or_use_save(client/C)
 	var/option_text = "Отправить текст сохранения"
 	var/option_repeat = "Повтор последнего сообщения"
@@ -55,7 +72,7 @@
 	var/choice_save_description = "Настроить слот сохранения перед использованием."
 	if(alert_type)
 		choice_save_description = "Использовать сохранение слота или перезаписать его? \
-			Текущие настройки: [faction_to_send] [name] - [alert_type] ([icon_choice_state])"
+			Текущие настройки: [get_faction_display_name(faction_to_send)] [name] - [alert_type] ([icon_choice_state])"
 	var/choice_save = tgui_input_list(C, choice_save_description, "Настройка - [save_slot_name]", choose_list)
 	switch(choice_save)
 		if("Отправить текст сохранения")
@@ -72,7 +89,7 @@
 			input_type(C)
 
 /datum/screen_alert_save/proc/input_type(client/C)
-	faction_to_send = tgui_input_list(C, "Выберите, какой фракции будет отправлено это сообщение; оставьте поле пустым, чтобы отправить всем.", "Faction Type", selectable_factions)
+	faction_to_send = normalize_selected_faction(tgui_input_list(C, "Выберите, какой фракции будет отправлено это сообщение; оставьте поле пустым, чтобы отправить всем.", "Faction Type", get_selectable_factions_ui()))
 
 	alert_type = tgui_input_list(C, "Выберите тип уведомления на экране, которое вы хотите отправить.", "Alert Type", list("Standard","Portrait"))
 
@@ -113,7 +130,7 @@
 	for(var/mob/living/carbon/human/human as anything in GLOB.alive_human_list)
 		if(!faction_to_send)
 			alert_receivers += human
-		else if(faction_to_send == human.faction)
+		else if(human.matches_faction_announcement_target(faction_to_send, FALSE))
 			alert_receivers += human
 	alert_receivers += GLOB.observer_list
 	for(var/mob/mob_receiver in alert_receivers)

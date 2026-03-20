@@ -8,7 +8,7 @@
 	var/icon_choice_state
 
 	var/datum/screen_alert_save/datum = GLOB.screen_alert_saves[1] // SS220 EDIT
-	var/selectable_factions = datum.selectable_factions // list(FACTION_MARINE, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE)
+	var/selectable_factions = datum.get_selectable_factions_ui()
 	var/selectable_icons = datum.selectable_icons // list( ---- SS220 EDIT перенесено в screen_alert_datums
 		// "marine",
 		// "marine_2",
@@ -38,7 +38,7 @@
 		// )
 	var/portrait_color
 	var/name
-	var/faction_to_send = tgui_input_list(src, "Выберите, какой фракции будет отправлено это сообщение; оставьте поле пустым, чтобы отправить всем.", "Faction Type", selectable_factions)
+	var/faction_to_send = datum.normalize_selected_faction(tgui_input_list(src, "Выберите, какой фракции будет отправлено это сообщение; оставьте поле пустым, чтобы отправить всем.", "Faction Type", selectable_factions))
 	var/alert_type = tgui_input_list(src, "Выберите тип уведомления на экране, которое вы хотите отправить.", "Alert Type", list("Standard","Portrait"))
 	if(!alert_type)
 		return
@@ -68,7 +68,7 @@
 	for(var/mob/living/carbon/human/human as anything in GLOB.alive_human_list)
 		if(!faction_to_send)
 			alert_receivers += human
-		else if(faction_to_send == human.faction)
+		else if(human.matches_faction_announcement_target(faction_to_send, FALSE)) // SS220 EDIT: faction-targeted screen alerts reuse the human-owned announcement matcher
 			alert_receivers += human
 	alert_receivers += GLOB.observer_list
 	for(var/mob/mob_receiver in alert_receivers)

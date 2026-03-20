@@ -316,14 +316,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl
-	name = "USCM Squad Leader"
+	name = "USCM Group Leader" // SS220 EDIT: align marine TL display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL comm title with runtime squad contract
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
 
@@ -390,13 +390,13 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader
-	name = "USCM Section Sergeant"
+	name = "USCM Squad Leader" // SS220 EDIT: align marine leader display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -582,14 +582,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl_equipped
-	name = "USCM Squad Leader (Equipped)"
+	name = "USCM Group Leader (Equipped)" // SS220 EDIT: align marine TL equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL equipped comm title with runtime squad contract
 	skills = /datum/skills/tl
 
 	minimap_icon = "tl"
@@ -693,14 +693,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader_equipped
-	name = "USCM Section Sergeant (Equipped)"
+	name = "USCM Squad Leader (Equipped)" // SS220 EDIT: align marine leader equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader equipped comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 

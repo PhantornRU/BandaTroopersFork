@@ -5,6 +5,7 @@ import {
   Button,
   Collapsible,
   Divider,
+  LabeledList,
   NumberInput,
   Section,
   Stack,
@@ -34,7 +35,7 @@ export const HumanSquadSpawner = (props) => {
   const { data, act } = useBackend<BackendContext>();
   const [chosenSquad, setSquad] = useState<Squad | null>(null);
   const [spawnRadius, setSpawnRadius] = useState(1);
-  const [onlyAccessible, setOnlyAccessible] = useState(true);
+  const [onlyAccessibleTiles, setOnlyAccessibleTiles] = useState(true);
   const { squads } = data;
   return (
     <Window title="Human Squad Spawner" width={800} height={900}>
@@ -76,9 +77,8 @@ export const HumanSquadSpawner = (props) => {
                       ))}
                     </Stack.Item>
                     <Stack.Item>
-                      <Stack align="center">
-                        <Stack.Item grow>Spawn Radius</Stack.Item>
-                        <Stack.Item>
+                      <LabeledList>
+                        <LabeledList.Item label="Spawn Radius">
                           <NumberInput
                             width="5em"
                             step={1}
@@ -89,14 +89,16 @@ export const HumanSquadSpawner = (props) => {
                               setSpawnRadius(normalizeRadius(value))
                             }
                           />
-                        </Stack.Item>
-                      </Stack>
+                        </LabeledList.Item>
+                      </LabeledList>
                     </Stack.Item>
                     <Stack.Item>
                       <Button.Checkbox
-                        checked={onlyAccessible}
+                        checked={onlyAccessibleTiles}
                         fluid
-                        onClick={() => setOnlyAccessible(!onlyAccessible)}
+                        onClick={() =>
+                          setOnlyAccessibleTiles(!onlyAccessibleTiles)
+                        }
                       >
                         Only accessible tiles
                       </Button.Checkbox>
@@ -109,7 +111,7 @@ export const HumanSquadSpawner = (props) => {
                           act('create_squad', {
                             path: chosenSquad.path,
                             radius: spawnRadius,
-                            only_accessible: onlyAccessible ? 1 : 0,
+                            only_accessible: onlyAccessibleTiles ? 1 : 0,
                           })
                         }
                       >

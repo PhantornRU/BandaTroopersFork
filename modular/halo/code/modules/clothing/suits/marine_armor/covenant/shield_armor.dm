@@ -13,6 +13,8 @@
 	var/shield_enabled = TRUE
 	///is shield shimmering effect active
 	var/shield_effect = FALSE
+	/// Tracks whether the debug counters currently consider the shield filter active on the wearer.
+	var/shield_filter_active = FALSE
 	/// Time in seconds until the shield begins to regenerate after taking damage
 	COOLDOWN_DECLARE(time_to_regen)
 	/// Time that it takes for the shield to reach full strength
@@ -35,11 +37,11 @@
 	max_shield_strength = shield.max_shield_strength
 	recovery_time = shield.recovery_time
 	shield_regen_rate = max_shield_strength / max(recovery_time * 0.1, 0.1)
-	addtimer(CALLBACK(src, PROC_REF(update_shield_runtime_state)), 0)
+	queue_shield_timer(CALLBACK(src, PROC_REF(update_shield_runtime_state)), 0)
 
 /obj/item/clothing/suit/marine/shielded/Destroy()
-	STOP_PROCESSING(SSfastobj, src)
-	halo_unregister_active_shield_harness(src)
+	remove_shield_effect()
+	end_process()
 	return ..()
 
 /obj/item/clothing/suit/marine/shielded/equipped(mob/user, slot, silent)
@@ -57,7 +59,7 @@
 
 /obj/item/clothing/suit/marine/shielded/proc/should_process_shield()
 	var/mob/living/carbon/human/current_user = get_shield_user()
-	if(!current_user || !shield_enabled)
+	if(!current_user || !shield_enabled || halo_shield_debug_disable_harness())
 		return FALSE
 
 	if(current_user.stat == DEAD)
@@ -79,10 +81,43 @@
 	end_process()
 
 /obj/item/clothing/suit/marine/shielded/proc/intercept_projectile_damage(mob/living/carbon/human/target, damage_taken)
+	if(halo_shield_debug_disable_harness())
+		return max(damage_taken, 0)
+
 	if(target != get_shield_user())
 		return max(damage_taken, 0)
 
 	return take_damage(damage_taken, target)
+
+/obj/item/clothing/suit/marine/shielded/proc/queue_shield_timer(datum/callback/callback, wait)
+	halo_perf_bump_shield_timer_creates()
+	addtimer(callback, wait)
+
+/obj/item/clothing/suit/marine/shielded/proc/shield_fx_enabled()
+	return !halo_shield_debug_disable_fx()
+
+/obj/item/clothing/suit/marine/shielded/proc/add_shield_filter(mob/living/carbon/human/user)
+	if(!ishuman(user) || !shield_fx_enabled() || shield_filter_active)
+		return
+
+	user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
+	shield_filter_active = TRUE
+	halo_perf_adjust_active_shield_filters(1)
+
+/obj/item/clothing/suit/marine/shielded/proc/spawn_shield_hit_fx(atom/location)
+	if(!shield_fx_enabled())
+		return null
+
+	halo_perf_bump_shield_hit_fx_spawns()
+	return new /obj/effect/temp_visual/plasma_explosion/shield_hit(location)
+
+/obj/item/clothing/suit/marine/shielded/proc/spawn_shield_pop_fx(atom/location)
+	if(!shield_fx_enabled())
+		return
+
+	halo_perf_bump_shield_pop_fx_spawns()
+	new /obj/effect/temp_visual/plasma_explosion/shield_pop(location)
+	new /obj/effect/temp_visual/shield_spark(location)
 
 /obj/item/clothing/suit/marine/shielded/proc/toggle_shield()
 	var/mob/living/carbon/human/current_user = src.loc
@@ -90,13 +125,15 @@
 		if(shield_enabled)
 			shield_enabled = FALSE
 			shield_strength = 0
-			playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
+			if(shield_fx_enabled())
+				playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
 			end_process(TRUE)
 			to_chat(current_user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
 			return
 		if(!shield_enabled)
 			shield_enabled = TRUE
-			playsound(src, 'sound/effects/shields/shield_manual_up.ogg')
+			if(shield_fx_enabled())
+				playsound(src, 'sound/effects/shields/shield_manual_up.ogg')
 			COOLDOWN_START(src, time_to_regen, shield.time_to_regen)
 			update_shield_runtime_state()
 			to_chat(current_user, SPAN_NOTICE("You hear a low hum as your shield powers on."))
@@ -107,7 +144,8 @@
 	if(ishuman(current_user))
 		shield_enabled = FALSE
 		shield_strength = 0
-		playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
+		if(shield_fx_enabled())
+			playsound(src, 'sound/effects/shields/shield_manual_down.ogg')
 		to_chat(current_user, SPAN_NOTICE("You hear a low hum and a hiss as your shield powers off."))
 		end_process(TRUE)
 		return
@@ -117,24 +155,29 @@
 		user = src.loc
 	if(!ishuman(user) || damage_taken <= 0)
 		return max(damage_taken, 0)
+	if(halo_shield_debug_disable_harness())
+		return damage_taken
 	if(!shield_enabled || shield_broken || shield_strength <= 0)
 		return damage_taken
 
 	if(COOLDOWN_FINISHED(src, shield_hit_sound_cd))
-		playsound(src, "shield_hit")
+		if(shield_fx_enabled())
+			playsound(src, "shield_hit")
 		COOLDOWN_START(src, shield_hit_sound_cd, 3 DECISECONDS)
 
 	if(!shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
-		var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
-		shield_flicker.dir = user.dir
-		flick_overlay(user, shield_flicker, 22)
-		user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
-		shield_effect = TRUE
+		if(shield_fx_enabled())
+			var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
+			shield_flicker.dir = user.dir
+			flick_overlay(user, shield_flicker, 22)
+			add_shield_filter(user)
+			shield_effect = TRUE
+			queue_shield_timer(CALLBACK(src, PROC_REF(remove_shield_effect)), 22)
 		COOLDOWN_START(src, shield_hit_visual_cd, 22)
-		addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 22)
-		var/obj/shield_hit_fx = new /obj/effect/temp_visual/plasma_explosion/shield_hit(user.loc)
-		shield_hit_fx.pixel_x = rand(-5, 5)
-		shield_hit_fx.pixel_y = rand(-16, 16)
+		var/obj/shield_hit_fx = spawn_shield_hit_fx(user.loc)
+		if(shield_hit_fx)
+			shield_hit_fx.pixel_x = rand(-5, 5)
+			shield_hit_fx.pixel_y = rand(-16, 16)
 
 	var/absorbed_damage = min(damage_taken, shield_strength)
 	shield_strength = max(shield_strength - absorbed_damage, 0)
@@ -152,38 +195,49 @@
 /obj/item/clothing/suit/marine/shielded/proc/shield_pop(mob/living/carbon/human/user)
 	var/mob/living/carbon/human/current_user = src.loc
 	if(ishuman(current_user))
-		playsound(src, "shield_pop", falloff = 5)
-		new /obj/effect/temp_visual/plasma_explosion/shield_pop(current_user.loc)
-		new /obj/effect/temp_visual/shield_spark(current_user.loc)
+		if(shield_fx_enabled())
+			playsound(src, "shield_pop", falloff = 5)
+		spawn_shield_pop_fx(current_user.loc)
 		remove_shield_effect()
-		current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
+		if(shield_fx_enabled())
+			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield shimmers and pops, overloading!"), SPAN_DANGER("Your energy shield shimmers and pops, overloading!"))
 
 // ------------------ PROCESS PROCS ------------------
 
 /obj/item/clothing/suit/marine/shielded/proc/start_process()
+	if(src in SSfastobj.processing)
+		halo_register_active_shield_harness(src)
+		return
+
 	START_PROCESSING(SSfastobj, src)
 	halo_register_active_shield_harness(src)
+	halo_perf_bump_shield_ssfastobj_enters()
 
 /obj/item/clothing/suit/marine/shielded/proc/end_process(reset_regen_cooldown = FALSE)
-	STOP_PROCESSING(SSfastobj, src)
+	if(src in SSfastobj.processing)
+		STOP_PROCESSING(SSfastobj, src)
+		halo_perf_bump_shield_ssfastobj_leaves()
+
 	halo_unregister_active_shield_harness(src)
 	if(reset_regen_cooldown)
 		COOLDOWN_RESET(src, time_to_regen)
 
 /obj/item/clothing/suit/marine/shielded/process(delta_time)
 	var/mob/living/carbon/human/current_user = get_shield_user()
-	if(!ishuman(current_user) || !shield_enabled)
+	if(!ishuman(current_user) || !shield_enabled || halo_shield_debug_disable_harness())
 		end_process()
 		return
 
 	if(shield_broken || current_user.stat == DEAD)
 		if(COOLDOWN_FINISHED(src, shield_sparks))
-			var/obj/shield_sparkle = new /obj/effect/temp_visual/plasma_explosion/shield_hit(current_user.loc)
-			shield_sparkle.pixel_x = rand(-5, 5)
-			shield_sparkle.pixel_y = rand(-16, 16)
-			current_user.add_filter("shield", 2, list("type" = "outline", "color" = "#bce0ff9a", "size" = 1))
-			addtimer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
-			shield_effect = TRUE
+			var/obj/shield_sparkle = spawn_shield_hit_fx(current_user.loc)
+			if(shield_sparkle)
+				shield_sparkle.pixel_x = rand(-5, 5)
+				shield_sparkle.pixel_y = rand(-16, 16)
+			add_shield_filter(current_user)
+			if(shield_fx_enabled())
+				queue_shield_timer(CALLBACK(src, PROC_REF(remove_shield_effect)), 5)
+				shield_effect = TRUE
 			COOLDOWN_START(src, shield_sparks, rand(4, 6) SECONDS)
 
 	if(current_user.stat == DEAD)
@@ -195,16 +249,21 @@
 		if(shield_strength > 0)
 			shield_broken = FALSE
 		if(COOLDOWN_FINISHED(src, shield_noise_cd))
-			playsound(src, "shield_charge", vary = TRUE)
-			current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
+			if(shield_fx_enabled())
+				playsound(src, "shield_charge", vary = TRUE)
+				current_user.visible_message(SPAN_NOTICE("[current_user]s energy shield emitters hum, regenerating the shield around them!"), SPAN_DANGER("Your energy shields hum and begin to regenerate."))
 			COOLDOWN_START(src, shield_noise_cd, shield.time_to_regen)
 
 	update_shield_runtime_state()
 
 /obj/item/clothing/suit/marine/shielded/proc/remove_shield_effect()
 	var/mob/living/carbon/human/current_user = src.loc
-	if(ishuman(current_user))
+	halo_perf_bump_shield_effect_callbacks()
+	if(ishuman(current_user) && shield_filter_active)
 		current_user.remove_filter("shield")
+	if(shield_filter_active)
+		halo_perf_adjust_active_shield_filters(-1)
+		shield_filter_active = FALSE
 	shield_effect = FALSE
 
 // ------------------ ARMOR ------------------

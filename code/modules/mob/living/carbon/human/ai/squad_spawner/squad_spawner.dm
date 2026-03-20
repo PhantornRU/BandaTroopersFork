@@ -130,6 +130,9 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 
 	return clamp(round(spawn_radius), 1, 10)
 
+/datum/human_ai_squad_preset/proc/get_viable_spawn_turfs(turf/spawn_loc, radius = 1, only_accessible = TRUE)
+	return get_spawn_candidate_turfs(spawn_loc, radius, only_accessible)
+
 /datum/human_ai_squad_preset/proc/is_spawn_turf_center_blocked(turf/checking_turf)
 	if(!checking_turf || checking_turf.density)
 		return TRUE

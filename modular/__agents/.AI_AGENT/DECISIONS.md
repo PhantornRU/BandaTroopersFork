@@ -1,17 +1,17 @@
 # DECISIONS
 
-## D-001: Корневой `AGENTS.md` остается каноническим entrypoint
-- Решение: добавить routing-only `AGENTS.md` в корне репозитория.
-- Почему: это дает Codex стандартную точку входа без дублирования полной agent-базы в корне.
+## D-001: Обновление выполнять через merge, а не rebase
+- Решение: влить `upstream/master` merge-коммитом в текущую ветку.
+- Почему: ветка уже опубликована в `origin`, а задача сформулирована как update branch с разрешением конфликтов без необходимости переписывать историю.
 
-## D-002: Agent hub живет в `modular/__agents/.AI_AGENT/`
-- Решение: разместить все stable docs и task-state именно в `modular/__agents/.AI_AGENT/`.
-- Почему: это соответствует выбранному layout и держит SS220/BandaTroopers-specific агентную инфраструктуру рядом с модульным слоем.
+## D-002: Baseline для обновления — `upstream/master`
+- Решение: обновлять текущую ветку относительно `upstream/master`, а не относительно соседних `split/pr62-*` веток.
+- Почему: `git merge-base` показал общий базовый коммит с sibling-ветками, а не stacked ancestry.
 
-## D-003: Task-state tracked в git
-- Решение: `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` коммитятся в репозиторий, а сырые логи выносятся в ignored `logs/`.
-- Почему: это повторяет модель источника и делает текущее состояние задачи явным для следующих сессий.
+## D-003: Разрешение конфликтов делать с сохранением scope ветки
+- Решение: сохранять локальные изменения по human AI squad spawning/species, одновременно подтягивая совместимые апстрим-обновления из HALO/UI/test sweep.
+- Почему: это минимизирует риск потерять смысл текущей feature-ветки при sync с master.
 
-## D-004: `SS220_DEVELOPMENT_RULES.md` становится overlay
-- Решение: [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md) больше не является главным документом и описывает только BandaTroopers/SS220-specific правила над общей agent-базой.
-- Почему: repo-specific политика по modular/upstream split и `SS220 EDIT` должна жить отдельным overlay, а не дублировать stable guidance.
+## D-004: Конфликты в Human AI spawner решать как superset, а не через выбор одной стороны
+- Решение: оставить расширенную локальную логику candidate filtering, failure handling и species-aware spawning, добавив совместимость с апстрим-именем `get_viable_spawn_turfs` и апстрим-тестом.
+- Почему: апстрим привнес базовый radius/accessibility contract, а ветка уже содержала более сильную и детально покрытую реализацию поверх него.

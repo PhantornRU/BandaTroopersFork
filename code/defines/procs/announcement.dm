@@ -1,4 +1,6 @@
 #define COMMAND_ANNOUNCE "Command Announcement"
+#define COVENANT_COMMAND_ANNOUNCE "Covenant Command Announcement" // SS220 EDIT: HALO-specific faction announcement title
+
 #define UPP_COMMAND_ANNOUNCE "UPP Command Announcement"
 #define CLF_COMMAND_ANNOUNCE "CLF Command Announcement"
 #define PMC_COMMAND_ANNOUNCE "PMC Command Announcement"
@@ -9,12 +11,32 @@
 #define YAUTJA_ANNOUNCE "You receive a message from your ship AI..." //preds announcement
 #define HIGHER_FORCE_ANNOUNCE SPAN_ANNOUNCEMENT_HEADER_BLUE("Unknown Higher Force")
 
-// SS220 ADD START - TTS
-#define TTS_DEFAULT_ANNOUNCER new /datum/announcer
-#define TTS_ARES_ANNOUNCER new /datum/announcer/ares
-#define TTS_YAUTJA_ANNOUNCER new /datum/announcer/yautja
-#define TTS_QUEEN_MOTHER_ANNOUNCER new /datum/announcer/queen_mother
-// SS220 ADD END - TTS
+// SS220 EDIT - START: unify human faction routing for announcements and faction-targeted alerts
+/mob/living/carbon/human/proc/matches_faction_announcement_target(faction_to_display, add_PMCs = TRUE)
+	if(stat != CONSCIOUS || isyautja(src))
+		return FALSE
+
+	if(faction_to_display == FACTION_MARINE)
+		if(is_mainship_level(z))
+			return TRUE
+
+		var/obj/item/card/id/card = get_idcard()
+		if((FACTION_MARINE in card?.faction_group) && (istype(wear_l_ear, /obj/item/device/radio/headset/almayer) || istype(wear_r_ear, /obj/item/device/radio/headset/almayer)))
+			return TRUE
+
+		if((faction in FACTION_LIST_UA) || (FACTION_MARINE in faction_group))
+			return TRUE
+		if((faction in FACTION_LIST_UNSC) || (FACTION_UNSC in faction_group))
+			return TRUE
+		if(add_PMCs && (faction in FACTION_LIST_WY))
+			return TRUE
+		return FALSE
+
+	if(faction_to_display == FACTION_UNSC)
+		return faction == faction_to_display || (faction_to_display in faction_group)
+
+	return faction == faction_to_display
+// SS220 EDIT - END: unify human faction routing for announcements and faction-targeted alerts
 
 
 //xenomorph hive announcement
@@ -26,7 +48,7 @@
 			if(!isobserver(X) && !istype(X)) //filter out any potential non-xenomorphs/observers mobs
 				targets.Remove(X)
 
-		announcement_helper(message, title, targets, sound(get_sfx("queen"),wait = 0,volume = 50), TTS_QUEEN_MOTHER_ANNOUNCER) // SS220 EDIT - TTS
+		announcement_helper(message, title, targets, sound(get_sfx("queen"),wait = 0,volume = 50), GLOB.tts_announcers[TTS_QUEEN_MOTHER_ANNOUNCER_KEY]) // SS220 EDIT: queen announcements resolve through the announcer registry
 	else
 		for(var/mob/M in targets)
 			if(isobserver(M))
@@ -35,29 +57,18 @@
 			if(!istype(X) || !X.ally_of_hivenumber(hivenumber)) //additionally filter out those of wrong hive
 				targets.Remove(X)
 
-		announcement_helper(message, title, targets, sound(get_sfx("queen"),wait = 0,volume = 50), TTS_QUEEN_MOTHER_ANNOUNCER) // SS220 EDIT - TTS
+		announcement_helper(message, title, targets, sound(get_sfx("queen"),wait = 0,volume = 50), GLOB.tts_announcers[TTS_QUEEN_MOTHER_ANNOUNCER_KEY]) // SS220 EDIT: queen announcements resolve through the announcer registry
 
 
 //general marine announcement
 /proc/marine_announcement(message, title = COMMAND_ANNOUNCE, sound_to_play = sound('sound/misc/notice2.ogg'), faction_to_display = FACTION_MARINE, add_PMCs = TRUE, signature, logging = ARES_LOG_MAIN)
 	var/list/targets = GLOB.human_mob_list + GLOB.dead_mob_list
-	if(faction_to_display == FACTION_MARINE)
+	if(faction_to_display == FACTION_MARINE || faction_to_display == FACTION_UNSC)
 		for(var/mob/M in targets)
-			if(isobserver(M)) //observers see everything
+			if(isobserver(M))
 				continue
 			var/mob/living/carbon/human/H = M
-			if(!istype(H) || H.stat != CONSCIOUS || isyautja(H)) //base human checks
-				targets.Remove(H)
-				continue
-			if(is_mainship_level(H.z)) // People on ship see everything
-				continue
-
-			// If they have iff AND a marine headset they will recieve announcements
-			var/obj/item/card/id/card = H.get_idcard()
-			if ((FACTION_MARINE in card?.faction_group) && (istype(H.wear_l_ear, /obj/item/device/radio/headset/almayer) || istype(H.wear_r_ear, /obj/item/device/radio/headset/almayer)))
-				continue
-
-			if((H.faction != faction_to_display && !add_PMCs) || (H.faction != faction_to_display && add_PMCs && !(H.faction in FACTION_LIST_WY)) && !(faction_to_display in H.faction_group)) //faction checks
+			if(!istype(H) || !H.matches_faction_announcement_target(faction_to_display, add_PMCs)) // SS220 EDIT: route USCM/UNSC announcements through the human-owned faction matcher
 				targets.Remove(H)
 
 		switch(logging)
@@ -88,7 +99,10 @@
 	if(!isnull(signature))
 		message += "<br><br><i> Signed by, <br> [signature]</i>"
 
-	announcement_helper(message, title, targets, sound_to_play, TTS_ARES_ANNOUNCER) // SS220 EDIT - TTS
+	var/announcer_key = TTS_ARES_ANNOUNCER_KEY
+	if(faction_to_display == FACTION_COVENANT)
+		announcer_key = TTS_COVENANT_ANNOUNCER_KEY
+	announcement_helper(message, title, targets, sound_to_play, GLOB.tts_announcers[announcer_key]) // SS220 EDIT: faction announcements resolve through the announcer registry
 
 //yautja ship AI announcement
 /proc/yautja_announcement(message, title = YAUTJA_ANNOUNCE, sound_to_play = sound('sound/misc/notice1.ogg'))
@@ -100,7 +114,7 @@
 		if(!isyautja(H) || H.stat != CONSCIOUS)
 			targets.Remove(H)
 
-	announcement_helper(message, title, targets, sound_to_play, TTS_YAUTJA_ANNOUNCER) // SS220 EDIT - TTS
+	announcement_helper(message, title, targets, sound_to_play, GLOB.tts_announcers[TTS_YAUTJA_ANNOUNCER_KEY]) // SS220 EDIT: Yautja announcements resolve through the announcer registry
 
 //AI announcement that uses talking into comms
 /proc/ai_announcement(message, sound_to_play = sound('sound/misc/interference.ogg'), logging = ARES_LOG_MAIN)
@@ -152,7 +166,7 @@
 		if(ARES_LOG_SECURITY)
 			log_ares_security(title, message, signature)
 
-	announcement_helper(message, title, targets, sound_to_play, TTS_ARES_ANNOUNCER) // SS220 EDIT - TTS
+	announcement_helper(message, title, targets, sound_to_play, GLOB.tts_announcers[TTS_ARES_ANNOUNCER_KEY]) // SS220 EDIT: shipwide AI announcements resolve through the announcer registry
 
 //Subtype of AI shipside announcement for "All Hands On Deck" alerts (COs and SEAs joining the game)
 /proc/all_hands_on_deck(message, title = MAIN_AI_SYSTEM, sound_to_play = sound('sound/misc/sound_misc_boatswain.ogg'))
@@ -165,13 +179,14 @@
 
 	log_ares_announcement("Shipwide Update", message, title)
 
-	announcement_helper(message, title, targets, sound_to_play, TTS_ARES_ANNOUNCER) // SS220 EDIT - TTS
+	announcement_helper(message, title, targets, sound_to_play, GLOB.tts_announcers[TTS_ARES_ANNOUNCER_KEY]) // SS220 EDIT: all-hands announcements resolve through the announcer registry
 
 //the announcement proc that handles announcing for each mob in targets list
 /proc/announcement_helper(message, title, list/targets, sound_to_play,
-									datum/announcer/announcer = TTS_DEFAULT_ANNOUNCER)	// SS220 EDIT - TTS
+									datum/announcer/announcer = null)	// SS220 EDIT: announcer registry provides the default source of truth
 	if(!message || !title || !sound_to_play || !targets) //Shouldn't happen
 		return
+	announcer = announcer || GLOB.tts_announcers[TTS_DEFAULT_ANNOUNCER_KEY]
 	for(var/mob/T in targets)
 		if(istype(T, /mob/new_player))
 			continue

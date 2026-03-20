@@ -118,6 +118,16 @@
 
 	return fallback
 
+/datum/unit_test/halo_ship_platoons/proc/holder_has_overlay_state(image/holder, icon_state)
+	if(!holder || !icon_state)
+		return FALSE
+
+	for(var/image/overlay as anything in holder.overlays)
+		if(overlay.icon_state == icon_state)
+			return TRUE
+
+	return FALSE
+
 /datum/unit_test/halo_ship_platoons_allowed_platoons_override
 	parent_type = /datum/unit_test/halo_ship_platoons
 
@@ -182,6 +192,60 @@
 	TEST_ASSERT(role_authority.is_marine_equivalent_role(JOB_SQUAD_MARINE_UNSC, TRUE), "Active-role marine classification failed for UNSC HALO marine.")
 	TEST_ASSERT(role_authority.is_marine_equivalent_role(JOB_SQUAD_MARINE_ODST, TRUE), "Active-role marine classification failed for ODST HALO marine.")
 	TEST_ASSERT(role_authority.is_shipside_role(JOB_SQUAD_MARINE_ODST, TRUE), "HALO ODST marine role was not treated as shipside after canonical mapping.")
+
+/datum/unit_test/halo_ship_platoons_squad_label_contracts
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_squad_label_contracts/Run()
+	var/datum/squad/marine/alpha/marine_squad = allocate(/datum/squad/marine/alpha)
+	TEST_ASSERT_EQUAL(marine_squad.get_role_label(JOB_SQUAD_LEADER), "Squad Leader", "Marine squad leader label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Group Leader", "Marine group leader label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_sub_squad_label(), "Group", "Marine sub-squad label regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL squad-info token regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SqLdr", "Marine leader squad-info token regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_TEAM_LEADER), "GrpLdr", "Marine TL comm-title restoration regressed.")
+	TEST_ASSERT_EQUAL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_LEADER), "SqLdr", "Marine leader comm-title restoration regressed.")
+	TEST_ASSERT_NULL(marine_squad.get_role_comm_restore_title(JOB_SQUAD_LEADER, TRUE), "Marine leader comm-title restoration should stay suppressed when the leader died.")
+
+	var/datum/squad/marine/upp/upp_squad = allocate(/datum/squad/marine/upp)
+	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_LEADER), "Platoon Sergeant", "UPP leader label regressed.")
+	TEST_ASSERT_EQUAL(upp_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Squad Sergeant", "UPP sublead label regressed.")
+	TEST_ASSERT_EQUAL(upp_squad.get_squad_info_rank_token(JOB_SQUAD_LEADER), "SctSgt", "UPP leader squad-info token regressed.")
+
+	var/datum/squad/marine/pmc/pmc_squad = allocate(/datum/squad/marine/pmc)
+	TEST_ASSERT_EQUAL(pmc_squad.get_role_label(JOB_SQUAD_LEADER), "Operations Leader", "PMC leader label regressed.")
+	TEST_ASSERT_EQUAL(pmc_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Team Leader", "PMC sublead label regressed.")
+
+	var/datum/squad/marine/rmc/rmc_squad = allocate(/datum/squad/marine/rmc)
+	TEST_ASSERT_EQUAL(rmc_squad.get_role_label(JOB_SQUAD_LEADER), "Troop Commander", "RMC leader label regressed.")
+	TEST_ASSERT_EQUAL(rmc_squad.get_role_label(JOB_SQUAD_TEAM_LEADER), "Section Leader", "RMC sublead label regressed.")
+
+/datum/unit_test/halo_ship_platoons_tracker_target_resolution
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_tracker_target_resolution/Run()
+	var/datum/squad/marine/alpha/squad = allocate(/datum/squad/marine/alpha)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(human, "Tracker Marine", JOB_SQUAD_MARINE)
+	squad.marines_list += human
+	squad.count = 1
+	human.assigned_squad = squad
+
+	var/obj/item/device/radio/headset/headset = allocate(/obj/item/device/radio/headset)
+	headset.tracking_options = list(
+		"Primary Lead" = TRACKER_SL,
+		"Support Lead" = TRACKER_FTL,
+	)
+	headset.forceMove(human)
+
+	TEST_ASSERT(headset.set_tracker_target(TRACKER_SL), "Headset failed to accept tracker selection by tracker id.")
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_SL, "Headset did not store TRACKER_SL after tracker-id selection.")
+
+	squad.assign_fireteam("SQ1", human, FALSE)
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_FTL, "Assigning a marine to a fireteam no longer targets TRACKER_FTL by tracker id.")
+
+	squad.unassign_fireteam(human, FALSE)
+	TEST_ASSERT_EQUAL(headset.locate_setting, TRACKER_SL, "Removing a marine from a fireteam no longer targets TRACKER_SL by tracker id.")
 
 /datum/unit_test/halo_ship_platoons_spec_kit_access
 	parent_type = /datum/unit_test/halo_ship_platoons
@@ -279,6 +343,103 @@
 		var/role_path_text = "[role_path]"
 		if(!findtext(role_path_text, "/halo/odst"))
 			TEST_FAIL("HALO ODST profile contained a non-namespaced role path: [role_path_text]")
+
+/datum/unit_test/halo_ship_platoons_unsc_medical_vendor_access
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_unsc_medical_vendor_access/Run()
+	var/turf/vendor_turf = run_loc_floor_top_right
+	var/turf/user_turf = get_step(vendor_turf, SOUTH)
+	if(!isfloorturf(user_turf))
+		user_turf = get_step(vendor_turf, NORTH)
+	TEST_ASSERT(isfloorturf(user_turf), "Failed to find a user turf for HALO medical vendor access testing.")
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, user_turf)
+	configure_test_human(human, "UNSC Vendor Corpsman", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT_NOTNULL(prepare_test_human_for_squad(human, /datum/equipment_preset/unsc/medic, JOB_SQUAD_MEDIC_UNSC), "Failed to equip an ID onto the HALO medical vendor access test mob.")
+
+	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chem_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, vendor_turf)
+	TEST_ASSERT(chem_vendor.can_access_to_vend(human, FALSE), "HALO UNSC corpsman lost access to the chemical medic vendor.")
+
+	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/med_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc, vendor_turf)
+	med_vendor.req_access = list(ACCESS_MARINE_MEDPREP)
+	TEST_ASSERT(med_vendor.can_access_to_vend(human, FALSE), "HALO UNSC corpsman lost access to the medical vendor when medprep access was required.")
+
+	var/list/lifesaver_item = null
+	for(var/list/product as anything in med_vendor.get_listed_products(human))
+		if(product[3] == /obj/item/storage/belt/medical/lifesaver/unsc)
+			lifesaver_item = product
+			break
+
+	TEST_ASSERT_NOTNULL(lifesaver_item, "Failed to resolve the Lifesaver Bag listing in the HALO medical vendor.")
+	med_vendor.vendor_successful_vend(lifesaver_item, human)
+
+	var/obj/item/storage/belt/medical/lifesaver/unsc/lifesaver_bag = human.l_hand
+	if(!istype(lifesaver_bag))
+		lifesaver_bag = human.r_hand
+	if(!istype(lifesaver_bag))
+		lifesaver_bag = locate(/obj/item/storage/belt/medical/lifesaver/unsc) in human
+	if(!istype(lifesaver_bag))
+		lifesaver_bag = locate(/obj/item/storage/belt/medical/lifesaver/unsc) in vendor_turf
+	if(!istype(lifesaver_bag))
+		lifesaver_bag = locate(/obj/item/storage/belt/medical/lifesaver/unsc) in user_turf
+	TEST_ASSERT_NOTNULL(lifesaver_bag, "HALO medical vendor failed to hand over the Lifesaver Bag to the corpsman.")
+
+/datum/unit_test/halo_ship_platoons_announcement_routing
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_announcement_routing/Run()
+	var/mob/living/carbon/human/unsc_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(unsc_human, "UNSC Listener", JOB_SQUAD_MARINE_UNSC)
+	unsc_human.faction = FACTION_UNSC
+	unsc_human.faction_group = list(FACTION_UNSC)
+	TEST_ASSERT(unsc_human.matches_faction_announcement_target(FACTION_UNSC, FALSE), "UNSC listener no longer matches direct UNSC faction announcements.")
+	TEST_ASSERT(unsc_human.matches_faction_announcement_target(FACTION_MARINE, FALSE), "UNSC listener no longer matches shared marine/UNSC announcement routing.")
+
+	var/mob/living/carbon/human/covenant_human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	configure_test_human(covenant_human, "Covenant Listener", JOB_SQUAD_MARINE)
+	covenant_human.faction = FACTION_COVENANT
+	TEST_ASSERT(!covenant_human.matches_faction_announcement_target(FACTION_MARINE, FALSE), "Covenant listener incorrectly matched marine-targeted announcements.")
+
+	TEST_ASSERT(istype(GLOB.tts_announcers[TTS_COVENANT_ANNOUNCER_KEY], /datum/announcer/covenant), "Covenant announcements no longer resolve through the shared announcer registry.")
+	TEST_ASSERT(istype(GLOB.tts_announcers[TTS_YAUTJA_ANNOUNCER_KEY], /datum/announcer/yautja), "Yautja announcements no longer resolve through the shared announcer registry.")
+
+/datum/unit_test/halo_ship_platoons_screen_alert_unsc_selection
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_screen_alert_unsc_selection/Run()
+	var/datum/screen_alert_save/alert_save = new
+	var/list/selectable_factions = alert_save.get_selectable_factions_ui()
+
+	TEST_ASSERT(selectable_factions.Find(FACTION_UNSC), "Screen alerts no longer expose FACTION_UNSC in the selectable faction list.")
+	TEST_ASSERT_EQUAL(alert_save.normalize_selected_faction(FACTION_UNSC), FACTION_UNSC, "Screen alerts failed to preserve FACTION_UNSC during faction normalization.")
+	TEST_ASSERT_EQUAL(alert_save.normalize_selected_faction(alert_save.get_faction_display_name(FACTION_MARINE)), FACTION_MARINE, "Screen alerts regressed marine display-name normalization while adding UNSC support.")
+
+/datum/unit_test/halo_ship_platoons_leader_hud_icon
+	parent_type = /datum/unit_test/halo_ship_platoons
+
+/datum/unit_test/halo_ship_platoons_leader_hud_icon/Run()
+	var/datum/faction/unsc/faction = allocate(/datum/faction/unsc)
+	var/image/unsc_holder = image(null)
+	var/image/odst_holder = image(null)
+
+	var/mob/living/carbon/human/unsc_leader = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/datum/squad/marine/halo/unsc/bravo/unsc_section = allocate(/datum/squad/marine/halo/unsc/bravo)
+	var/unsc_lead_icon = unsc_section.lead_icon || "leader"
+	configure_test_human(unsc_leader, "HALO UNSC Section Leader", JOB_SQUAD_LEADER_UNSC)
+	unsc_leader.assigned_squad = unsc_section
+	unsc_section.squad_leader = unsc_leader
+	faction.modify_hud_holder(unsc_holder, unsc_leader)
+	TEST_ASSERT(holder_has_overlay_state(unsc_holder, "hudsquad_[unsc_lead_icon]"), "HALO UNSC Section leader did not receive the leader HUD overlay.")
+
+	var/mob/living/carbon/human/odst_leader = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
+	var/datum/squad/marine/halo/odst/bravo/odst_section = allocate(/datum/squad/marine/halo/odst/bravo)
+	var/odst_lead_icon = odst_section.lead_icon || "leader"
+	configure_test_human(odst_leader, "HALO ODST Section Leader", JOB_SQUAD_LEADER_ODST)
+	odst_leader.assigned_squad = odst_section
+	odst_section.squad_leader = odst_leader
+	faction.modify_hud_holder(odst_holder, odst_leader)
+	TEST_ASSERT(holder_has_overlay_state(odst_holder, "hudsquad_[odst_lead_icon]"), "HALO ODST Section leader did not receive the leader HUD overlay.")
 
 /datum/unit_test/halo_ship_platoons_unsc_specialist_job_locker_access
 	parent_type = /datum/unit_test/halo_ship_platoons
