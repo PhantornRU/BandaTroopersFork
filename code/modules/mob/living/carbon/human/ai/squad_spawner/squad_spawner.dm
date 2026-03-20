@@ -62,8 +62,13 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 			if(!gotten_path)
 				return
 
+			var/spawn_radius = clamp(text2num(params["radius"]) || 1, 1, 10)
+			var/only_accessible = text2num(params["only_accessible"]) != 0
 			var/datum/human_ai_squad_preset/preset_squad = GLOB.human_ai_squad_presets[gotten_path]
-			preset_squad.spawn_ai(get_turf(ui.user))
+			if(!preset_squad)
+				return
+
+			preset_squad.spawn_ai(get_turf(ui.user), spawn_radius, only_accessible)
 			return TRUE
 
 /client/proc/open_human_squad_spawner_panel()
@@ -91,10 +96,19 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	/// First entry is marked as squad leader
 	var/list/ai_to_spawn = list()
 
-/datum/human_ai_squad_preset/proc/spawn_ai(turf/spawn_loc)
-	var/list/viable_turfs = list()
-	for(var/turf/open/floor_tile in range(1, spawn_loc))
-		viable_turfs += floor_tile
+/datum/human_ai_squad_preset/proc/get_viable_spawn_turfs(turf/spawn_loc, radius = 1, only_accessible = TRUE)
+	. = list()
+	if(!spawn_loc)
+		return
+
+	radius = clamp(radius || 1, 1, 10)
+	for(var/turf/open/floor_tile in range(radius, spawn_loc))
+		if(only_accessible && is_blocked_turf(floor_tile))
+			continue
+		. += floor_tile
+
+/datum/human_ai_squad_preset/proc/spawn_ai(turf/spawn_loc, radius = 1, only_accessible = TRUE)
+	var/list/viable_turfs = get_viable_spawn_turfs(spawn_loc, radius, only_accessible)
 
 	if(!length(viable_turfs))
 		return

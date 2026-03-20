@@ -36,6 +36,7 @@
 	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
+	vend_flags = VEND_TO_HAND
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/populate_product_list(scale)
 	listed_products = list(
@@ -56,7 +57,7 @@
 
 		list("ЛЕЧЕНИЕ ОЖОГОВ", -1, null, null),
 		list("Ожоговый комплект", floor(scale * 10), /obj/item/stack/medical/advanced/ointment, VENDOR_ITEM_RECOMMENDED),
-		list("Optican BurnGuard", floor(scale * 9), /obj/item/reagent_container/hypospray/autoinjector/primeable/burnguard, VENDOR_ITEM_RECOMMENDED),
+		list("Автоинъектор Optican BurnGuard", floor(scale * 9), /obj/item/reagent_container/hypospray/autoinjector/primeable/burnguard, VENDOR_ITEM_RECOMMENDED),
 
 		list("ЛЕЧЕНИЕ ГИПОКСИИ", -1, null, null),
 		list("Автоинъектор (дексалин+)", floor(scale * 5), /obj/item/reagent_container/hypospray/autoinjector/dexalinp/halo, VENDOR_ITEM_RECOMMENDED),
@@ -78,12 +79,12 @@
 		list("Медицинский флакон (хоротазин)", floor(scale * 3), /obj/item/reagent_container/glass/beaker/unsc/chorotazine, VENDOR_ITEM_RECOMMENDED),
 
 		list("МЕДИЦИНСКИЕ ИНСТРУМЕНТЫ", -1, null, null),
-		list("Хирургическая леска", floor(scale * 2), /obj/item/tool/surgery/surgical_line, VENDOR_ITEM_REGULAR),
+		list("Хирургическая нить", floor(scale * 2), /obj/item/tool/surgery/surgical_line, VENDOR_ITEM_REGULAR),
 		list("Синт-графт", floor(scale * 2), /obj/item/tool/surgery/synthgraft, VENDOR_ITEM_REGULAR),
 		list("Анализатор здоровья", floor(scale * 5), /obj/item/device/healthanalyzer/halo, VENDOR_ITEM_REGULAR),
 		list("Медразгрузка M8A", floor(scale * 2), /obj/item/storage/belt/medical/unsc, VENDOR_ITEM_REGULAR),
 		list("Сумка спасателя M8A", floor(scale * 2), /obj/item/storage/belt/medical/lifesaver/unsc, VENDOR_ITEM_REGULAR),
-		list("Медицинские HUD-очки", floor(scale * 3), /obj/item/clothing/glasses/hud/health, VENDOR_ITEM_REGULAR)
+		list("Очки с мед-HUD", floor(scale * 3), /obj/item/clothing/glasses/hud/health, VENDOR_ITEM_REGULAR)
 	)
 
 GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(

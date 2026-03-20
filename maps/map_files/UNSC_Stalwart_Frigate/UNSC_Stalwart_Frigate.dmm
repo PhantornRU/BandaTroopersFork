@@ -7883,6 +7883,12 @@
 	pixel_y = 4;
 	pixel_x = 2
 	},
+/obj/structure/phone_base/rotary/no_dnd{
+	name = "Briefing Table Map";
+	phone_id = "briefing_table_map";
+	pixel_x = 16;
+	pixel_y = -9
+	},
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/briefing)
 "arX" = (
