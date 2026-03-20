@@ -1,3 +1,5 @@
+#define FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX 4
+
 /datum/ai_action/fire_at_target
 	name = "Fire At Target"
 	action_flags = ACTION_USING_HANDS
@@ -150,7 +152,7 @@
 			continue
 
 		var/list/turfs_to_check = list(tile)
-		if(i > 4)
+		if(i > FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX)
 			for(var/turf/neighbor in tile.AdjacentTurfs())
 				turfs_to_check += neighbor
 
@@ -318,3 +320,5 @@
 		addtimer(CALLBACK(brain.primary_weapon, TYPE_PROC_REF(/obj/item/weapon/gun, start_fire), null, brain.current_target, null, null, null, TRUE), brain.primary_weapon.get_burst_fire_delay())
 
 	brain.primary_weapon?.set_target(shoot_next)
+
+#undef FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX
