@@ -29,6 +29,10 @@
 	dodge_pool_regen_restoration = 0.2
 	dp_regen_base_reactivation_time = 35
 
+	knock_down_reduction = 2.5
+	stun_reduction = 2.5
+	knock_out_reduction = 2.5
+
 	icobase = 'icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
 	deform = 'icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
 	eye_icon = 'icons/halo/mob/humans/species/unggoy/eyes.dmi'
