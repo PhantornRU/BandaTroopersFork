@@ -1,3 +1,5 @@
+#define HUMAN_AI_GRENADE_MIN_HOLD_DELAY (1 SECONDS)
+
 /datum/ai_action/throw_grenade
 	name = "Throw Grenade"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS // SS220 EDIT: grenade priming/throwing should own both hand and movement slots until it resolves
@@ -115,7 +117,8 @@
 		finish_async_throw()
 		return
 
-	sleep(brain.short_action_delay * brain.action_delay_mult) // SS220 EDIT: preserve the existing pre-throw windup without yielding shared action ownership
+	var/pre_throw_hold_delay = max(HUMAN_AI_GRENADE_MIN_HOLD_DELAY, brain.short_action_delay * brain.action_delay_mult)
+	sleep(pre_throw_hold_delay) // SS220 EDIT: NPCs should visibly commit to the throw and hold the grenade for at least one second before priming/throwing
 
 	if(!brain || !brain.has_valid_tied_human() || (brain.tied_human != tied_human))
 		finish_async_throw()
@@ -184,3 +187,5 @@
 	mid_throw = TRUE
 	INVOKE_ASYNC(src, PROC_REF(async_prime_and_throw), tied_human, throwing, target_turf)
 	return ONGOING_ACTION_UNFINISHED_BLOCK
+
+#undef HUMAN_AI_GRENADE_MIN_HOLD_DELAY

@@ -5,14 +5,20 @@
 	name = "unit test AI grenade"
 	det_time = 10
 	antigrief_protection = FALSE
+	var/armed_at = 0
 	var/last_throw_distance
 	var/last_throw_range
 	var/atom/last_throw_target
 	var/turf/last_throw_final_turf
+	var/last_throw_recorded_at = 0
 
 /obj/item/explosive/grenade/unit_test/ai_throw/Initialize()
 	. = ..()
 	det_time = 10 // SS220 EDIT: keep the async grenade-action wait deterministic for unit tests
+
+/obj/item/explosive/grenade/unit_test/ai_throw/activate(mob/user = null, hand_throw = TRUE)
+	armed_at = world.time
+	return ..()
 
 /obj/item/explosive/grenade/unit_test/ai_throw/prime(force = FALSE)
 	active = FALSE
@@ -24,6 +30,7 @@
 	last_throw_range = launch_metadata?.range
 	last_throw_target = launch_metadata?.target
 	last_throw_final_turf = get_turf(src)
+	last_throw_recorded_at = world.time
 	return ..()
 
 /datum/unit_test/human_ai_grenade_throws
@@ -81,6 +88,34 @@
 	for(var/action_type in GLOB.AI_actions)
 		brain.action_blacklist += action_type // SS220 EDIT: keep the unit test deterministic by disabling autonomous scheduler actions
 	brain.in_combat = TRUE
+	human.forceMove(origin)
+	return brain
+
+/datum/unit_test/human_ai_grenade_throws/proc/create_sangheili_ai_brain(preset_type = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
+	var/turf/origin = find_clear_throw_origin()
+	if(!isfloorturf(origin))
+		TEST_FAIL("Failed to find a deterministic open origin turf for the Sangheili grenade-throw tests.")
+		return null
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, origin)
+	created_humans += human
+	arm_equipment(human, preset_type, FALSE)
+	var/datum/component/human_ai/ai_component = human.AddComponent(/datum/component/human_ai)
+	if(!ai_component)
+		TEST_FAIL("Failed to add a human AI component to the Sangheili grenade-throw test mob.")
+		return null
+	if(!ai_component.ai_brain)
+		TEST_FAIL("Failed to resolve a Sangheili human AI brain for grenade-throw tests.")
+		return null
+
+	var/datum/human_ai_brain/brain = ai_component.ai_brain
+	brain.action_blacklist = list()
+	for(var/action_type in GLOB.AI_actions)
+		brain.action_blacklist += action_type
+	brain.in_combat = TRUE
+	brain.appraise_inventory(armor = TRUE)
+	if(isgun(human.s_store))
+		brain.set_primary_weapon(human.s_store)
 	human.forceMove(origin)
 	return brain
 
@@ -237,6 +272,42 @@
 
 	qdel(action)
 
+/datum/unit_test/human_ai_grenade_throw_minimum_hold_delay
+	parent_type = /datum/unit_test/human_ai_grenade_throws
+
+/datum/unit_test/human_ai_grenade_throw_minimum_hold_delay/Run()
+	var/datum/human_ai_brain/brain = create_test_ai_brain()
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the shared human AI grenade-hold test brain.")
+
+	var/turf/target_turf = create_target_turf(brain)
+	TEST_ASSERT(isfloorturf(target_turf), "Failed to allocate a clear target turf for the grenade hold-delay test.")
+	brain.target_turf = target_turf
+
+	var/obj/item/explosive/grenade/unit_test/ai_throw/grenade = give_test_grenade(brain)
+	TEST_ASSERT_NOTNULL(grenade, "Failed to give the grenade hold-delay AI a test grenade.")
+
+	var/datum/ai_action/throw_grenade/action = new(brain)
+	created_actions += action
+	var/action_started_at = world.time
+	var/result = action.trigger_action()
+	TEST_ASSERT_EQUAL(result, ONGOING_ACTION_UNFINISHED_BLOCK, "The grenade hold-delay action should enter its async prime/throw phase.")
+
+	sleep(9 DECISECONDS)
+	TEST_ASSERT_EQUAL(grenade.loc, brain.tied_human, "The AI should still be holding the grenade just before the one-second minimum hold delay elapses.")
+	TEST_ASSERT(!grenade.active, "The AI should not prime the grenade before completing the one-second minimum hold delay.")
+	TEST_ASSERT_NULL(grenade.last_throw_final_turf, "The AI should not throw the grenade before the one-second minimum hold delay elapses.")
+
+	sleep(3 DECISECONDS)
+	TEST_ASSERT_EQUAL(grenade.loc, brain.tied_human, "The AI should still have the grenade in hand immediately after priming.")
+	TEST_ASSERT((grenade.armed_at - action_started_at) >= 1 SECONDS, "The AI should hold the grenade for at least one second before priming it.")
+	TEST_ASSERT(grenade.active, "The test grenade should be active immediately after the minimum hold delay elapses.")
+	TEST_ASSERT_NULL(grenade.last_throw_final_turf, "The AI should not throw the grenade on the same tick it primes it.")
+
+	sleep(2 SECONDS)
+	TEST_ASSERT_EQUAL(grenade.last_throw_final_turf, target_turf, "The grenade hold-delay action should still throw to the intended target after the one-second hold delay.")
+
+	qdel(action)
+
 /datum/unit_test/human_ai_grenade_throw_interference_recovery
 	parent_type = /datum/unit_test/human_ai_grenade_throws
 
@@ -263,6 +334,37 @@
 	TEST_ASSERT_EQUAL(grenade.last_throw_range, HUMAN_AI_GRENADE_TEST_DISTANCE, "The shared grenade throw action should keep the intended 7-tile range even if the active hand changes mid-prime.")
 	TEST_ASSERT_EQUAL(grenade.last_throw_distance, HUMAN_AI_GRENADE_TEST_DISTANCE, "The shared grenade throw action should recover from mid-prime hand interference instead of throwing short.")
 	TEST_ASSERT_EQUAL(grenade.last_throw_final_turf, target_turf, "The shared grenade throw action should still land on the original target turf after hand interference.")
+
+	qdel(action)
+
+/datum/unit_test/human_ai_sangheili_grenade_throw_interference_recovery
+	parent_type = /datum/unit_test/human_ai_grenade_throws
+
+/datum/unit_test/human_ai_sangheili_grenade_throw_interference_recovery/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain()
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the Sangheili grenade-throw interference test brain.")
+
+	var/turf/target_turf = create_target_turf(brain)
+	TEST_ASSERT(isfloorturf(target_turf), "Failed to allocate a clear target turf for the Sangheili grenade-throw interference test.")
+	brain.target_turf = target_turf
+
+	var/turf/origin_turf = get_turf(brain.tied_human)
+	var/obj/item/explosive/grenade/unit_test/ai_throw/grenade = give_test_grenade(brain)
+	TEST_ASSERT_NOTNULL(grenade, "Failed to give the Sangheili grenade-throw interference AI a test grenade.")
+
+	var/datum/ai_action/throw_grenade/action = new(brain)
+	created_actions += action
+	var/result = action.trigger_action()
+	TEST_ASSERT_EQUAL(result, ONGOING_ACTION_UNFINISHED_BLOCK, "The Sangheili grenade throw action should begin asynchronously before the hand-interference window.")
+
+	sleep(1.2 SECONDS)
+	brain.tied_human.swap_hand()
+
+	sleep(2 SECONDS)
+	TEST_ASSERT_EQUAL(grenade.last_throw_range, HUMAN_AI_GRENADE_TEST_DISTANCE, "The Sangheili grenade throw action should keep the intended 7-tile range even if the active hand changes mid-prime.")
+	TEST_ASSERT_EQUAL(grenade.last_throw_distance, HUMAN_AI_GRENADE_TEST_DISTANCE, "The Sangheili grenade throw action should recover from mid-prime hand interference instead of throwing short.")
+	TEST_ASSERT_EQUAL(grenade.last_throw_final_turf, target_turf, "The Sangheili grenade throw action should still land on the original target turf after hand interference.")
+	TEST_ASSERT_NOTEQUAL(grenade.last_throw_final_turf, origin_turf, "The Sangheili grenade throw action should not drop or throw the grenade under the thrower.")
 
 	qdel(action)
 
