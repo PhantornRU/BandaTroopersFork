@@ -43,7 +43,7 @@ export async function processAutoChangelog({ github, context }) {
 		return;
 	}
 
-	github.rest.repos.createOrUpdateFileContents({
+	await github.rest.repos.createOrUpdateFileContents({
 		owner: context.repo.owner,
 		repo: context.repo.repo,
 		path: autoChangelog.path,
