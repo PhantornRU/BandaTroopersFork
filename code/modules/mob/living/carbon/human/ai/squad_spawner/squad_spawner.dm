@@ -140,6 +140,7 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	for(var/atom/blocker as anything in checking_turf)
 		if(ismob(blocker) || !blocker.density)
 			continue
+		// Border blockers do not occupy the tile center; path accessibility is validated separately.
 		if(blocker.flags_atom & ON_BORDER)
 			continue
 
@@ -277,8 +278,6 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 	var/list/categorized_turfs = categorize_spawn_candidate_turfs(viable_turfs)
 	var/list/free_turfs = categorized_turfs["free"]
 	var/list/occupied_turfs = categorized_turfs["occupied"]
-	var/list/usable_turfs = free_turfs.Copy()
-	usable_turfs += occupied_turfs
 
 	var/squad_leader_selected = FALSE
 	for(var/datum/equipment_preset/ai_equipment as anything in ai_to_spawn)
@@ -287,12 +286,9 @@ GLOBAL_LIST_EMPTY(human_ai_squad_presets)
 			if(length(free_turfs))
 				chosen_turf = pick(free_turfs)
 				free_turfs -= chosen_turf
-				if(!(chosen_turf in occupied_turfs))
-					occupied_turfs += chosen_turf
+				occupied_turfs += chosen_turf
 			else if(length(occupied_turfs))
 				chosen_turf = pick(occupied_turfs)
-			else if(length(usable_turfs))
-				chosen_turf = pick(usable_turfs)
 
 			if(!chosen_turf)
 				continue

@@ -164,6 +164,8 @@
 
 	var/turf/blocked_target = get_enclosable_target(preset, origin)
 	TEST_ASSERT_NOTNULL(blocked_target, "Failed to find an enclosable target turf for accessibility filtering.")
+	if(!blocked_target)
+		return
 	var/list/blockers = list()
 	var/list/blocked_ring_turfs = list()
 	for(var/direction in GLOB.alldirs)
@@ -183,6 +185,8 @@
 		break
 
 	TEST_ASSERT_NOTNULL(object_blocked_target, "Failed to find a secondary candidate turf for center-blocking tests.")
+	if(!object_blocked_target)
+		return
 	var/obj/structure/blocker/object_blocker = allocate(/obj/structure/blocker, object_blocked_target)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(!(object_blocked_target in filtered_candidates), "A turf with a dense object on its center should not remain a valid spawn candidate.")
@@ -198,6 +202,8 @@
 		mob_target = candidate
 		break
 	TEST_ASSERT_NOTNULL(mob_target, "Failed to find a reachable turf for dense-mob accessibility testing.")
+	if(!mob_target)
+		return
 	var/mob/living/carbon/human/dense_mob = allocate(/mob/living/carbon/human, mob_target)
 	TEST_ASSERT_NOTNULL(dense_mob, "Failed to allocate a dense mob for accessibility testing.")
 	track_spawned_human(dense_mob)
@@ -212,6 +218,8 @@
 		break
 
 	TEST_ASSERT_NOTNULL(window_blocked_target, "Failed to find a turf for window-blocker accessibility testing.")
+	if(!window_blocked_target)
+		return
 	var/obj/structure/window/full/window_blocker = allocate(/obj/structure/window/full, window_blocked_target)
 	filtered_candidates = preset.get_spawn_candidate_turfs(origin, 10, TRUE)
 	TEST_ASSERT(!(window_blocked_target in filtered_candidates), "A turf with a full window on it should not remain a valid spawn candidate.")
@@ -258,6 +266,8 @@
 		break
 
 	TEST_ASSERT_NOTNULL(occupied_target, "Failed to find an occupied-target turf for open-priority spawn testing.")
+	if(!occupied_target)
+		return
 	var/mob/living/carbon/human/existing_occupant = allocate(/mob/living/carbon/human, occupied_target)
 	track_spawned_human(existing_occupant)
 
@@ -289,6 +299,8 @@
 			break
 
 	TEST_ASSERT_NOTNULL(fallback_target, "Failed to find a nearby fallback turf for repeat-spawn testing.")
+	if(!fallback_target)
+		return
 	var/mob/living/carbon/human/fallback_occupant = allocate(/mob/living/carbon/human, fallback_target)
 	track_spawned_human(fallback_occupant)
 	for(var/direction in GLOB.cardinals)
@@ -360,6 +372,8 @@
 
 	var/turf/second_origin = get_step(origin, SOUTH)
 	TEST_ASSERT(isfloorturf(second_origin), "Failed to find a secondary open turf for the empty-spawn failure-path test.")
+	if(!isfloorturf(second_origin))
+		return
 	var/mob/living/carbon/human/second_admin_user = allocate(/mob/living/carbon/human, second_origin)
 	track_spawned_human(second_admin_user)
 	var/datum/tgui/second_ui = allocate(/datum/tgui, second_admin_user, menu, "HumanSquadSpawner")
