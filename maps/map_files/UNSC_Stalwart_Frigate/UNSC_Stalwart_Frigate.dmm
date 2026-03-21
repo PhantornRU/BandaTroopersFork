@@ -222,6 +222,12 @@
 	color = "#C02526";
 	dir = 4
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "aap" = (
@@ -1310,7 +1316,7 @@
 /obj/structure/prop/invuln/overhead_pipe{
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
-	pixel_y = 9;
+	pixel_y = 26;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -1344,6 +1350,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/armory)
 "acr" = (
@@ -1568,6 +1577,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/briefing)
 "acR" = (
@@ -1592,6 +1604,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -1660,6 +1675,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -1985,6 +2003,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "ado" = (
@@ -2199,7 +2220,7 @@
 /obj/structure/prop/invuln/overhead_pipe{
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
-	pixel_y = 9;
+	pixel_y = 26;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -2213,7 +2234,7 @@
 /obj/structure/prop/invuln/overhead_pipe{
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
-	pixel_y = 9;
+	pixel_y = 26;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -2227,7 +2248,7 @@
 /obj/structure/prop/invuln/overhead_pipe{
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
-	pixel_y = 9;
+	pixel_y = 26;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -2237,7 +2258,7 @@
 /obj/structure/prop/invuln/overhead_pipe{
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
-	pixel_y = 9;
+	pixel_y = 26;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -2287,6 +2308,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/armory)
 "adL" = (
@@ -2593,6 +2617,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aes" = (
@@ -2606,6 +2633,9 @@
 	color = "#C02526"
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aet" = (
@@ -2613,6 +2643,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aeu" = (
@@ -2653,6 +2686,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/medical)
 "aez" = (
@@ -2672,6 +2708,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/medical)
 "aeB" = (
@@ -2693,6 +2732,15 @@
 "aeD" = (
 /obj/structure/disposalpipe/visible_dark/junction{
 	dir = 4
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
@@ -2718,6 +2766,9 @@
 "aeH" = (
 /obj/structure/platform_decoration,
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aeI" = (
@@ -2728,6 +2779,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aeJ" = (
@@ -2738,6 +2792,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/medical)
 "aeL" = (
@@ -3324,6 +3381,15 @@
 	color = "#C02526";
 	dir = 4
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "agd" = (
@@ -3882,6 +3948,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/bathroom)
 "ahf" = (
@@ -3914,6 +3983,9 @@
 	pixel_x = 0
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -4312,6 +4384,15 @@
 "ahQ" = (
 /turf/open/floor/almayer/redfull,
 /area/dark_was_the_night/armory)
+"ahR" = (
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor1,
+/area/dark_was_the_night/bathroom)
 "ahS" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
@@ -5167,6 +5248,10 @@
 /area/dark_was_the_night/cryo_bay/one)
 "ajy" = (
 /obj/structure/blocker/invisible_wall,
+/obj/structure/platform,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
 "ajz" = (
@@ -5290,6 +5375,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/armory)
 "ajP" = (
@@ -5309,6 +5397,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/armory)
 "ajR" = (
@@ -5790,6 +5881,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/armory)
 "akZ" = (
@@ -5798,6 +5892,9 @@
 	layer = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/armory)
 "ala" = (
@@ -5809,6 +5906,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/armory)
 "alb" = (
@@ -5821,6 +5921,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/armory)
 "alc" = (
@@ -5934,6 +6037,15 @@
 /obj/structure/disposalpipe/visible_dark/junction{
 	dir = 2
 	},
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
 "alo" = (
@@ -5954,6 +6066,12 @@
 /turf/open/floor/almayer/sterile_green_side/northwest,
 /area/dark_was_the_night/armory)
 "als" = (
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod,
 /area/dark_was_the_night/briefing)
 "alt" = (
@@ -6090,6 +6208,12 @@
 /turf/open/shuttle/escapepod/floor0/north,
 /area/dark_was_the_night/upper_hallway)
 "alK" = (
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor0/west,
 /area/dark_was_the_night/briefing)
 "alL" = (
@@ -6102,6 +6226,9 @@
 	pixel_x = 5
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod,
@@ -6302,6 +6429,12 @@
 	color = "#C02526";
 	dir = 8
 	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod,
 /area/dark_was_the_night/briefing)
 "ami" = (
@@ -6434,6 +6567,9 @@
 	pixel_x = 5
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/floor0,
@@ -6714,6 +6850,9 @@
 	layer = 1;
 	dir = 8
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
 "amO" = (
@@ -6736,6 +6875,9 @@
 /obj/structure/blocker/invisible_wall/directional{
 	layer = 1;
 	dir = 4
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
@@ -6799,6 +6941,9 @@
 /obj/structure/blocker/invisible_wall/directional{
 	layer = 1
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
 "amV" = (
@@ -6825,6 +6970,9 @@
 	},
 /obj/structure/blocker/invisible_wall/directional{
 	layer = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
@@ -7080,6 +7228,9 @@
 	layer = 1;
 	dir = 8
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
 "ann" = (
@@ -7103,6 +7254,9 @@
 /obj/structure/blocker/invisible_wall/directional{
 	layer = 1;
 	dir = 4
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
@@ -7154,6 +7308,9 @@
 	layer = 1;
 	dir = 1
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
 "ans" = (
@@ -7177,6 +7334,9 @@
 /obj/structure/blocker/invisible_wall/directional{
 	layer = 1;
 	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/dark_was_the_night/briefing)
@@ -7444,6 +7604,9 @@
 	color = "#C02526"
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "anK" = (
@@ -7451,6 +7614,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "anL" = (
@@ -7598,6 +7764,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/engineering)
 "anW" = (
@@ -7617,6 +7786,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/engineering)
 "anY" = (
@@ -7706,6 +7878,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "aoi" = (
@@ -7713,6 +7888,9 @@
 	dir = 1
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "aoj" = (
@@ -7801,6 +7979,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -8027,6 +8208,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -8400,6 +8584,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor0,
 /area/dark_was_the_night/briefing)
 "apK" = (
@@ -8687,6 +8874,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor0/west,
 /area/dark_was_the_night/briefing)
 "aqu" = (
@@ -8713,6 +8903,9 @@
 	dir = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/floor0/north,
@@ -8813,6 +9006,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -9100,6 +9296,10 @@
 /obj/structure/extinguisher_cabinet/alt{
 	pixel_x = 9;
 	pixel_y = 26
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 1
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night/cryo_hall)
@@ -10028,6 +10228,200 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/dark_was_the_night/upper_hallway)
+"atj" = (
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/bathroom)
+"atk" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 8
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor1,
+/area/dark_was_the_night/bathroom)
+"atl" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 8
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/bathroom)
+"atm" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 1;
+	icon_state = "pipe-c"
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/north,
+/area/dark_was_the_night/armory)
+"atn" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 2;
+	icon_state = "pipe-c"
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"ato" = (
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"atp" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 8
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/bathroom)
+"atq" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 8
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor1,
+/area/dark_was_the_night/bathroom)
+"atr" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"ats" = (
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/north,
+/area/dark_was_the_night/armory)
+"att" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 1
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night/cryo_hall)
+"atu" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/platform,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"atv" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 1
+	},
+/obj/structure/platform,
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"atw" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night/cryo_hall)
+"atx" = (
+/obj/structure/disposalpipe/visible_dark/segment{
+	dir = 8
+	},
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
+"aty" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/shuttle/escapepod/floor4,
+/area/dark_was_the_night/armory)
 "atR" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /obj/structure/machinery/door/airlock/unsc/prop,
@@ -10224,6 +10618,9 @@
 	layer = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/west,
@@ -13646,6 +14043,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/floor0/north,
 /area/dark_was_the_night/bathroom)
 "eZw" = (
@@ -14362,6 +14762,9 @@
 	dir = 5
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
@@ -16038,6 +16441,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/briefing)
 "hTO" = (
@@ -16565,6 +16971,9 @@
 	dir = 5
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/east,
@@ -20534,6 +20943,15 @@
 /obj/structure/disposalpipe/visible_dark/junction{
 	dir = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
 "nMX" = (
@@ -23522,6 +23940,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/bathroom)
 "rGp" = (
@@ -24106,6 +24527,9 @@
 	dir = 8
 	},
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "sqX" = (
@@ -24894,6 +25318,12 @@
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1;
 	icon_state = "pipe-c"
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
@@ -25893,6 +26323,15 @@
 "uqS" = (
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1
+	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
@@ -28339,6 +28778,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/east,
 /area/dark_was_the_night/bathroom)
 "wZJ" = (
@@ -28676,6 +29118,9 @@
 "xuh" = (
 /obj/structure/platform_decoration,
 /obj/structure/blocker/invisible_wall,
+/obj/structure/prop/invuln/darkness{
+	layer = 2
+	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/engineering)
 "xvn" = (
@@ -28690,6 +29135,9 @@
 	layer = 4
 	},
 /obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/darkness{
 	layer = 2
 	},
 /turf/open/shuttle/escapepod/floor0/west,
@@ -37215,11 +37663,11 @@ rrV
 rrV
 rrV
 jWc
-qXE
+atw
 qgA
 qgA
 qgA
-tdO
+att
 ard
 qgA
 qgA
@@ -37797,7 +38245,7 @@ rrV
 rrV
 rrV
 svg
-qXE
+atw
 qgA
 qgA
 qgA
@@ -51568,12 +52016,12 @@ amE
 aRl
 ajd
 acf
-alm
+atx
 akY
 aby
 akf
 ajO
-ahl
+atu
 adD
 aiM
 tOG
@@ -51762,12 +52210,12 @@ alE
 asG
 ajd
 ajd
-alm
+atx
 akZ
 akG
 abw
 adK
-ahl
+atu
 adE
 aiN
 awd
@@ -51784,8 +52232,8 @@ agJ
 agw
 agq
 agf
-afM
-afJ
+atp
+atj
 pLz
 pLz
 pLz
@@ -51961,7 +52409,7 @@ ala
 akG
 abw
 ajQ
-aeg
+atv
 adF
 aiO
 aiu
@@ -51978,13 +52426,13 @@ ieu
 afL
 afL
 afI
-afL
-afI
-afL
-afI
-afL
-afI
-afI
+atq
+ahR
+atk
+ahR
+atk
+ahR
+ahR
 twf
 muU
 mJG
@@ -52130,17 +52578,17 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
-aRl
-aRl
-aRl
-aRl
-aRl
-aRl
-aRl
-aRl
-aRl
+glc
+glc
+glc
+glc
+glc
+glc
+glc
+glc
+glc
+glc
+glc
 glc
 glc
 aRl
@@ -52150,7 +52598,7 @@ adN
 aRl
 amb
 acG
-alo
+aty
 alb
 akH
 akh
@@ -52173,12 +52621,12 @@ afM
 afM
 afJ
 agc
-afJ
-afM
+atj
+atl
 aao
-afM
-afJ
-afJ
+atl
+atj
+atj
 twf
 muU
 mJG
@@ -52324,10 +52772,10 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
-aRl
-aRl
+glc
+glc
+glc
+glc
 glc
 glc
 glc
@@ -52518,8 +52966,8 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
+glc
+glc
 glc
 glc
 glc
@@ -52712,8 +53160,8 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
+glc
+glc
 glc
 mSf
 hYA
@@ -52906,7 +53354,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 mxy
 gQg
 vBz
@@ -53100,8 +53548,8 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
+glc
+glc
 glc
 fPM
 aEu
@@ -53294,8 +53742,8 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
+glc
+glc
 glc
 glc
 glc
@@ -53488,10 +53936,10 @@ fTK
 fTK
 fTK
 fTK
-fTK
-aRl
-aRl
-aRl
+glc
+glc
+glc
+glc
 glc
 glc
 glc
@@ -53682,7 +54130,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 glc
 glc
@@ -53876,7 +54324,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 mxy
@@ -54070,7 +54518,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 aoJ
@@ -54264,7 +54712,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 aoJ
@@ -54458,7 +54906,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 aoJ
@@ -54652,7 +55100,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 aoJ
@@ -54846,7 +55294,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 aoJ
@@ -55040,7 +55488,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 mxy
 mxy
@@ -55234,7 +55682,7 @@ fTK
 fTK
 fTK
 fTK
-fTK
+glc
 glc
 glc
 glc
@@ -62451,12 +62899,12 @@ red
 ahb
 red
 red
-vMP
+ats
 aeD
 uqS
 uqS
 nMQ
-uLe
+atm
 red
 cIn
 fTK
@@ -62645,12 +63093,12 @@ afn
 afk
 afg
 red
-alo
-aap
-aeg
+ato
+atn
+atr
 tkF
-alo
-aap
+ato
+atn
 red
 cIn
 fTK
