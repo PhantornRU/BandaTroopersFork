@@ -228,6 +228,13 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "aap" = (
@@ -2525,6 +2532,9 @@
 /turf/open/shuttle/escapepod/floor0/east,
 /area/dark_was_the_night/armory)
 "aef" = (
+/obj/structure/barricade/handrail{
+	dir = 4
+	},
 /turf/open/shuttle/escapepod/floor0/west,
 /area/dark_was_the_night/armory)
 "aeg" = (
@@ -2726,6 +2736,9 @@
 "aeC" = (
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 8
+	},
+/obj/structure/barricade/handrail{
+	dir = 4
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
@@ -4024,20 +4037,6 @@
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
-"ahn" = (
-/obj/structure/disposalpipe/visible_dark/segment{
-	dir = 8;
-	icon_state = "pipe-c"
-	},
-/obj/structure/prop/invuln/overhead_pipe{
-	icon = 'icons/obj/structures/props/almayer_props.dmi';
-	icon_state = "wallpipe_2";
-	pixel_y = 9;
-	dir = 8;
-	pixel_x = -13
-	},
-/turf/open/shuttle/escapepod/floor4,
-/area/dark_was_the_night/bathroom)
 "aho" = (
 /obj/structure/bed/chair/comfy/bench/south/west,
 /turf/open/floor/almayer/edge/smooth/east,
@@ -4097,6 +4096,20 @@
 	dir = 8;
 	pixel_x = -13
 	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = 2;
+	dir = 8;
+	pixel_x = -13
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "aht" = (
@@ -4115,6 +4128,20 @@
 	dir = 8;
 	pixel_x = -13
 	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = 2;
+	dir = 8;
+	pixel_x = -13
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
 /turf/open/shuttle/escapepod/floor1,
 /area/dark_was_the_night/bathroom)
 "ahv" = (
@@ -4128,6 +4155,20 @@
 	dir = 8;
 	pixel_x = -13
 	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = 2;
+	dir = 8;
+	pixel_x = -13
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
 "ahw" = (
@@ -4135,6 +4176,20 @@
 	icon = 'icons/obj/structures/props/almayer_props.dmi';
 	icon_state = "wallpipe_2";
 	pixel_y = 9;
+	dir = 8;
+	pixel_x = -13
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = 2;
+	dir = 8;
+	pixel_x = -13
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
 	dir = 8;
 	pixel_x = -13
 	},
@@ -6046,6 +6101,9 @@
 /obj/structure/blocker/invisible_wall{
 	layer = 2
 	},
+/obj/structure/barricade/handrail{
+	layer = 4
+	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
 "alo" = (
@@ -6373,6 +6431,9 @@
 "amb" = (
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1
+	},
+/obj/structure/platform_decoration{
+	dir = 4
 	},
 /turf/open/shuttle/escapepod/west,
 /area/dark_was_the_night/armory)
@@ -10422,6 +10483,64 @@
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/armory)
+"atz" = (
+/obj/structure/prop/invuln/darkness{
+	layer = 3
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
+/turf/open/shuttle/escapepod/floor1,
+/area/dark_was_the_night/bathroom)
+"atA" = (
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_2";
+	pixel_y = -6;
+	dir = 8;
+	pixel_x = -13
+	},
+/turf/closed/wall/unsc,
+/area/dark_was_the_night/bathroom)
+"atB" = (
+/obj/structure/barricade/handrail{
+	dir = 4
+	},
+/turf/open/shuttle/escapepod/north,
+/area/dark_was_the_night/armory)
+"atC" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/barricade/handrail{
+	dir = 4
+	},
+/turf/open/shuttle/escapepod/north,
+/area/dark_was_the_night/armory)
+"atD" = (
+/obj/structure/platform_decoration{
+	dir = 8
+	},
+/turf/open/shuttle/escapepod/west,
+/area/dark_was_the_night/armory)
+"atE" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/barricade/handrail{
+	dir = 1;
+	layer = 3.01;
+	pixel_y = 15
+	},
+/turf/open/shuttle/escapepod/west,
+/area/dark_was_the_night/armory)
 "atR" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /obj/structure/machinery/door/airlock/unsc/prop,
@@ -13515,6 +13634,9 @@
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 2;
 	icon_state = "pipe-c"
+	},
+/obj/structure/barricade/handrail{
+	dir = 4
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
@@ -26721,6 +26843,9 @@
 /obj/structure/disposalpipe/visible_dark/segment{
 	dir = 1;
 	icon_state = "pipe-c"
+	},
+/obj/structure/barricade/handrail{
+	dir = 4
 	},
 /turf/open/shuttle/escapepod/north,
 /area/dark_was_the_night/armory)
@@ -52014,7 +52139,7 @@ asR
 aRl
 amE
 aRl
-ajd
+atD
 acf
 atx
 akY
@@ -52208,7 +52333,7 @@ anx
 and
 alE
 asG
-ajd
+atE
 ajd
 atx
 akZ
@@ -52402,7 +52527,7 @@ any
 ane
 abn
 asG
-ajd
+atE
 aiP
 aln
 ala
@@ -52429,7 +52554,7 @@ afI
 atq
 ahR
 atk
-ahR
+atz
 atk
 ahR
 ahR
@@ -52612,7 +52737,7 @@ ahX
 ahK
 ahB
 ahv
-ahn
+agf
 afJ
 agU
 oru
@@ -52817,7 +52942,7 @@ pLz
 pLz
 pLz
 pLz
-pLz
+atA
 pLz
 pLz
 pLz
@@ -62705,12 +62830,12 @@ vMP
 aha
 aeO
 afb
-aeO
+atC
 aeC
 aef
 etQ
 uLe
-vMP
+atB
 red
 cIn
 fTK
