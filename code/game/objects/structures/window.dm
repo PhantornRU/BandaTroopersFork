@@ -167,10 +167,6 @@
 	..()
 	visible_message(SPAN_DANGER("[src] was hit by [AM]."))
 	var/tforce = 0
-	var/datum/launch_metadata/LM = null
-	if(isobj(AM))
-		LM = AM:launch_metadata // SS220 EDIT: treat missing throwers as valid explosion debris, not a hard failure
-	var/mob/user = istype(LM) && ismob(LM.thrower) ? LM.thrower : null // SS220 EDIT: explosion-thrown items can hit windows without an owning mob
 	if(ismob(AM))
 		tforce = 40
 	else if(isobj(AM))
@@ -183,7 +179,7 @@
 			anchored = FALSE
 			update_nearby_icons()
 			step(src, get_dir(AM, src))
-	healthcheck(user = user)
+	healthcheck(user = AM.launch_metadata.thrower)
 
 /obj/structure/window/attack_hand(mob/user as mob)
 	if(user.a_intent == INTENT_HARM && ishuman(user))

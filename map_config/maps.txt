@@ -131,3 +131,11 @@ map halo_new_irvine
 	default # SS220 EDIT
 endmap
 # SS220 EDIT - END
+map lv671
+endmap
+
+map oil_depot
+endmap
+
+map derelict_almayer_infested
+endmap
