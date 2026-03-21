@@ -3,6 +3,13 @@
 /datum/unit_test/halo_contract_test/Run()
 	return
 
+/datum/unit_test/halo_contract_test/proc/get_ship_platoon_family_types(platoon_type)
+	var/list/profile = GLOB.RoleAuthority?.get_ship_platoon_profile(platoon_type)
+	if(islist(profile?["family_types"]) && length(profile["family_types"]))
+		return profile["family_types"]
+
+	return list(platoon_type)
+
 /datum/unit_test/halo_contract_test/proc/holder_has_overlay_state(image/holder, icon_state)
 	if(!holder || !icon_state)
 		return FALSE
@@ -43,6 +50,25 @@
 	var/resolved_preset = job_datum.get_spawn_equip_preset(role_title, role_authority, platoon_type)
 	TEST_ASSERT_EQUAL(resolved_preset, expected_preset, "[role_title] option [option_title] resolved to [resolved_preset] instead of [expected_preset].")
 
+/datum/unit_test/halo_contract_test/proc/assert_halo_spawn_preset_resolution(job_title, expected_preset)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO spawn-preset resolution testing.")
+
+	var/datum/job/job_datum = role_authority.roles_by_name[job_title]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve the HALO job datum for [job_title].")
+	TEST_ASSERT_EQUAL(job_datum.get_spawn_equip_preset(job_title, role_authority), expected_preset, "[job_title] no longer resolves through the HALO preset path.")
+
+/datum/unit_test/halo_contract_test/proc/assert_halo_cryo_profile_resolution(canonical_role, platoon_type, expected_title, expected_preset)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo-profile resolution testing.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type), expected_title, "[canonical_role] did not resolve to the expected HALO cryo title for [platoon_type].")
+	TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type), expected_preset, "[canonical_role] did not resolve to the expected HALO cryo preset for [platoon_type].")
+
+/datum/unit_test/halo_contract_test/proc/assert_assigned_to_platoon_family(mob/living/carbon/human/human, platoon_type, context)
+	var/list/family_types = get_ship_platoon_family_types(platoon_type)
+	TEST_ASSERT_NOTNULL(human?.assigned_squad, "[context] did not receive a squad assignment.")
+	TEST_ASSERT(family_types.Find(human.assigned_squad?.type), "[context] joined [human.assigned_squad?.type] instead of one of the expected HALO squad types [english_list(family_types)].")
+
 /datum/unit_test/halo_equip_test
 	parent_type = /datum/unit_test/halo_contract_test
 	var/list/tracked_test_humans = null
@@ -57,6 +83,11 @@
 /datum/unit_test/halo_equip_test/proc/track_test_human(mob/living/carbon/human/human)
 	if(human && !(human in tracked_test_humans))
 		tracked_test_humans += human
+	return human
+
+/datum/unit_test/halo_equip_test/proc/create_test_human(real_name, job_title, squad_type = null, turf/spawn_turf = run_loc_floor_top_right, key_name = null)
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, spawn_turf)
+	configure_test_human(human, real_name, job_title, squad_type, key_name)
 	return human
 
 /datum/unit_test/halo_equip_test/proc/cleanup_test_human_runtime_state(mob/living/carbon/human/human)
@@ -160,57 +191,37 @@
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should keep the HALO specialist baseline naked, but still had a helmet equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should keep the HALO specialist baseline naked, but still had armor equipped.")
 
-/datum/unit_test/halo_equip_test/proc/assert_halo_randomize_assigns_squad(real_name, job_title, preset_path, expected_squad_family)
+/datum/unit_test/halo_equip_test/proc/assert_preview_preset_visualizes_loadout(job_title, expected_preview_preset_type, required_slots_or_items)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	var/list/profile = role_authority?.get_ship_platoon_profile(expected_squad_family)
-	var/list/expected_family_types = islist(profile?["family_types"]) ? profile["family_types"] : list(expected_squad_family)
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO preview visual testing.")
+	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(job_title), expected_preview_preset_type, "[job_title] preview preset did not resolve through the modular helper.")
 
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-	configure_test_human(human, real_name, job_title)
-	arm_equipment(human, preset_path, FALSE, TRUE)
-	role_authority.randomize_squad(human, TRUE)
+	var/datum/preferences/preferences = allocate(/datum/preferences)
+	preferences.job_preference_list = list()
+	preferences.job_preference_list[job_title] = HIGH_PRIORITY
 
-	TEST_ASSERT_NOTNULL(human.assigned_squad, "[real_name] did not receive a squad assignment.")
-	TEST_ASSERT(expected_family_types.Find(human.assigned_squad.type), "[real_name] joined [human.assigned_squad?.type] instead of one of the expected HALO squad types [english_list(expected_family_types)].")
+	var/preset_type = preferences.job_pref_to_gear_preset()
+	TEST_ASSERT_EQUAL(preset_type, expected_preview_preset_type, "[job_title] preview preset did not resolve through the real preview helper path.")
 
-	var/datum/squad/assigned_squad = human.assigned_squad
-	assigned_squad.remove_marine_from_squad(human, human.get_idcard())
+	var/mob/living/carbon/human/human = create_test_human("[job_title] Preview", job_title)
+	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
 
-/datum/unit_test/halo_equip_test/proc/assert_halo_specialist_assignment_loadout(real_name, preset_path, expected_role_title, expected_squad_family)
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	var/list/profile = role_authority?.get_ship_platoon_profile(expected_squad_family)
-	var/list/expected_family_types = islist(profile?["family_types"]) ? profile["family_types"] : list(expected_squad_family)
+	TEST_ASSERT(islist(required_slots_or_items) && length(required_slots_or_items), "[job_title] preview visual assertion requires at least one slot or item check.")
+	for(var/required_entry as anything in required_slots_or_items)
+		if(isnum(required_entry) || istext(required_entry))
+			TEST_ASSERT_NOTNULL(human.get_item_by_slot(required_entry), "[job_title] preview mannequin was missing required slot [required_entry].")
+			continue
 
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-	configure_test_human(human, real_name, expected_role_title)
-	arm_equipment(human, preset_path, FALSE, TRUE)
-	role_authority.randomize_squad(human, TRUE)
+		if(ispath(required_entry))
+			var/found_item = FALSE
+			for(var/obj/item/item as anything in human.contents)
+				if(istype(item, required_entry))
+					found_item = TRUE
+					break
+			TEST_ASSERT(found_item, "[job_title] preview mannequin was missing required item type [required_entry].")
+			continue
 
-	var/obj/item/card/id/id = human.get_idcard()
-	assert_halo_smoke_state(human, preset_path, expected_role_title)
-	TEST_ASSERT_NOTNULL(id, "[real_name] did not receive an ID card from the HALO specialist preset.")
-	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO specialist rank on the ID metadata.")
-	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO specialist assignment on the ID metadata.")
-	assert_halo_specialist_naked_baseline(human)
-	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_BACK), "[real_name] should keep the HALO specialist baseline naked, but still had a back item equipped.")
-	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_J_STORE), "[real_name] should keep the HALO specialist baseline naked, but still had a stored rifle equipped.")
-	TEST_ASSERT_NOTNULL(human.assigned_squad, "[real_name] did not receive a squad assignment after HALO specialist randomization.")
-	TEST_ASSERT(expected_family_types.Find(human.assigned_squad?.type), "[real_name] joined [human.assigned_squad?.type] instead of one of the expected HALO squad types [english_list(expected_family_types)].")
-
-	var/datum/squad/assigned_squad = human.assigned_squad
-	assigned_squad.remove_marine_from_squad(human, id)
-
-/datum/unit_test/halo_equip_test/proc/assert_halo_equipment_metadata(real_name, preset_path, expected_role_title)
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-	configure_test_human(human, real_name, expected_role_title)
-	arm_equipment(human, preset_path, FALSE, TRUE)
-
-	var/obj/item/card/id/id = human.get_idcard()
-	assert_halo_smoke_state(human, preset_path, expected_role_title)
-	TEST_ASSERT_NOTNULL(id, "[real_name] did not keep an ID card after the HALO equipment flow.")
-	TEST_ASSERT_EQUAL(id?.faction, FACTION_UNSC, "[real_name] did not keep the expected HALO ID faction.")
-	TEST_ASSERT_EQUAL(id?.rank, expected_role_title, "[real_name] did not keep the expected HALO ID rank.")
-	TEST_ASSERT_EQUAL(id?.assignment, expected_role_title, "[real_name] did not keep the expected HALO ID assignment.")
+		TEST_FAIL("[job_title] preview visual assertion encountered unsupported requirement [required_entry].")
 
 /datum/unit_test/halo_integration_test
 	parent_type = /datum/unit_test/halo_equip_test
@@ -270,6 +281,8 @@
 	snapshot_main_platoon_initial_name = GLOB.main_platoon_initial_name
 
 /datum/unit_test/halo_integration_test/Destroy()
+	var/result = ..()
+
 	for(var/datum/squad/squad as anything in tracked_test_squads)
 		if(!QDELETED(squad))
 			qdel(squad)
@@ -316,7 +329,7 @@
 	snapshot_squads = null
 	snapshot_squads_by_type = null
 
-	return ..()
+	return result
 
 /datum/unit_test/halo_integration_test/proc/isolate_personal_lockers(obj/structure/closet/secure_closet/marine_personal/locker)
 	GLOB.personal_closets = locker ? list(locker) : list()
@@ -326,6 +339,27 @@
 		tracked_test_atoms += tracked_atom
 	return tracked_atom
 
+/datum/unit_test/halo_integration_test/proc/map_static_squad_aliases_to_family(platoon_type)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	if(!role_authority)
+		return
+
+	var/list/family_types = get_ship_platoon_family_types(platoon_type)
+	if(length(family_types) < 4)
+		return
+
+	var/list/static_types = list(
+		/datum/squad/marine/alpha,
+		/datum/squad/marine/bravo,
+		/datum/squad/marine/charlie,
+		/datum/squad/marine/delta,
+	)
+
+	for(var/i = 1 to 4)
+		var/family_type = family_types[i]
+		if(role_authority.squads_by_type[family_type])
+			role_authority.squads_by_type[static_types[i]] = role_authority.squads_by_type[family_type]
+
 /datum/unit_test/halo_integration_test/proc/configure_test_ship_platoon(platoon_type)
 	var/datum/map_config/ship_config = SSmapping?.configs?[SHIP_MAP]
 	TEST_ASSERT_NOTNULL(ship_config, "Failed to resolve ship config for platoon test setup.")
@@ -334,14 +368,30 @@
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for platoon test setup.")
 
-	var/list/squad_types = typesof(/datum/squad) - /datum/squad
+	var/list/squad_types = list(
+		/datum/squad/marine/alpha,
+		/datum/squad/marine/bravo,
+		/datum/squad/marine/charlie,
+		/datum/squad/marine/delta,
+		/datum/squad/marine/halo/unsc/alpha,
+		/datum/squad/marine/halo/unsc/bravo,
+		/datum/squad/marine/halo/unsc/charlie,
+		/datum/squad/marine/halo/unsc/delta,
+		/datum/squad/marine/halo/odst/alpha,
+		/datum/squad/marine/halo/odst/bravo,
+		/datum/squad/marine/halo/odst/charlie,
+		/datum/squad/marine/halo/odst/delta,
+		/datum/squad/marine/cryo,
+	)
 	role_authority.squads = list()
 	role_authority.squads_by_type = list()
-	for(var/squad_type in squad_types)
+	for(var/squad_type as anything in squad_types)
 		var/datum/squad/squad = new squad_type()
 		role_authority.squads += squad
 		role_authority.squads_by_type[squad.type] = squad
 		tracked_test_squads += squad
+
+	map_static_squad_aliases_to_family(platoon_type)
 
 /datum/unit_test/halo_integration_test/proc/clear_personal_locker_contents(obj/structure/closet/secure_closet/marine_personal/locker)
 	for(var/atom/movable/movable as anything in locker.contents)
@@ -374,7 +424,6 @@
 		if(movable.type == content_type)
 			.++
 
-// SS220 EDIT - START - locker replacement fixtures need an optional adjacent floor for linked spawn turf assertions
 /datum/unit_test/halo_integration_test/proc/get_adjacent_floor_turf(turf/center_turf)
 	if(!isfloorturf(center_turf))
 		return null
@@ -428,40 +477,6 @@
 			level.traits[ZTRAIT_MARINE_MAIN_SHIP] = TRUE
 
 	return fallback
-// SS220 EDIT - END
-/datum/unit_test/halo_integration_test/proc/assert_preview_preset_visualizes_loadout(job_title, expected_preview_preset_type, required_slots_or_items)
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO preview visual testing.")
-	role_authority.refresh_main_ship_gamemode_roles()
-
-	var/preview_bucket = role_authority.get_job_preference_bucket_key(job_title) || job_title
-	var/datum/preferences/preferences = allocate(/datum/preferences)
-	preferences.job_preference_list = list()
-	preferences.job_preference_list[preview_bucket] = HIGH_PRIORITY
-
-	var/preset_type = preferences.job_pref_to_gear_preset()
-	TEST_ASSERT_EQUAL(preset_type, expected_preview_preset_type, "[job_title] preview preset did not resolve through the real preview helper path.")
-
-	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, run_loc_floor_top_right)
-	configure_test_human(human, "[job_title] Preview", job_title)
-	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
-
-	TEST_ASSERT(islist(required_slots_or_items) && length(required_slots_or_items), "[job_title] preview visual assertion requires at least one slot or item check.")
-	for(var/required_entry as anything in required_slots_or_items)
-		if(isnum(required_entry) || istext(required_entry))
-			TEST_ASSERT_NOTNULL(human.get_item_by_slot(required_entry), "[job_title] preview mannequin was missing required slot [required_entry].")
-			continue
-
-		if(ispath(required_entry))
-			var/found_item = FALSE
-			for(var/obj/item/item as anything in human.contents)
-				if(istype(item, required_entry))
-					found_item = TRUE
-					break
-			TEST_ASSERT(found_item, "[job_title] preview mannequin was missing required item type [required_entry].")
-			continue
-
-		TEST_FAIL("[job_title] preview visual assertion encountered unsupported requirement [required_entry].")
 
 /datum/unit_test/halo_ship_platoons
 	parent_type = /datum/unit_test/halo_integration_test
