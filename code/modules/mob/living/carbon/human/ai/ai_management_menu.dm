@@ -220,10 +220,10 @@
 
 	var/dictionary_string = input(usr, "Choose a Human AI preset dictionary file.","Upload hAi_dictionary.txt") as null|file
 	dictionary_string = file2text(dictionary_string)
-	var/datum/human_ai_spawner_menu/the_beast
-	the_beast.lazy_ui_data = json_decode(dictionary_string)
-	for(var/faction_name in the_beast.lazy_ui_data)
-		var/list/faction_list = the_beast.lazy_ui_data[faction_name]
+	// SS220 EDIT - START: compile cleanup for imported human AI preset dictionaries
+	/datum/human_ai_spawner_menu::lazy_ui_data = json_decode(dictionary_string)
+	for(var/faction_name in /datum/human_ai_spawner_menu::lazy_ui_data)
+		var/list/faction_list = /datum/human_ai_spawner_menu::lazy_ui_data[faction_name]
 		for(var/list/preset_data in faction_list)
 			preset_data["path"] = text2path(preset_data["path"])
-	the_beast = new()
+	// SS220 EDIT - END
