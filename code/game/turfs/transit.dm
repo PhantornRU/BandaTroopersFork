@@ -281,6 +281,12 @@
 	shuttle_tag = DROPSHIP_CYCLONE
 	dir = SOUTH
 
+// SS220 EDIT - START
+/turf/open/space/transit/dropship/pelican
+	shuttle_tag = DROPSHIP_PELICAN
+	dir = SOUTH
+// SS220 EDIT - END
+
 /turf/open/space/transit/dropship/tornado
 	shuttle_tag = DROPSHIP_TORNADO
 	dir = SOUTH

@@ -81,11 +81,12 @@
 	var/datum/roof_master_node/linked_master
 
 /obj/effect/roof_node/Crossed(atom/movable/mover, target_dir)
+	..()
 	if(!linked_master)
 		return
-	if(isliving(mover))
-		var/mob/living/mob = mover
-		linked_master.add_under_roof(mob)
+	if(isliving(mover) || isobserver(mover)) // SS220 EDIT: support pelican roof visibility for ghosts too
+		var/mob/target = mover
+		linked_master.add_under_roof(target)
 
 /obj/effect/roof_node/Destroy(force, ...)
 	if(linked_master)
@@ -118,42 +119,44 @@
 			qdel(roof)
 	return ..()
 
-/datum/roof_master_node/proc/add_under_roof(mob/living/living) //mob crossed connected node
-	if(living in mobs_under)
+/datum/roof_master_node/proc/add_under_roof(mob/target) //mob crossed connected node
+	if(target in mobs_under)
 		return
-	mobs_under += living
-	RegisterSignal(living, COMSIG_PARENT_QDELETING, PROC_REF(remove_under_roof))
-	RegisterSignal(living, COMSIG_MOB_LOGGED_IN, PROC_REF(add_client))
-	RegisterSignal(living, COMSIG_MOVABLE_MOVED, PROC_REF(check_under_roof))
+	mobs_under += target
+	RegisterSignal(target, COMSIG_PARENT_QDELETING, PROC_REF(remove_under_roof))
+	RegisterSignal(target, COMSIG_MOB_LOGGED_IN, PROC_REF(add_client))
+	RegisterSignal(target, COMSIG_MOVABLE_MOVED, PROC_REF(check_under_roof))
 
-	if(living.client)
-		add_client(living)
+	if(target.client && (isliving(target) || isobserver(target)))
+		add_client(target)
 
-/datum/roof_master_node/proc/add_client(mob/living/mob)
+/datum/roof_master_node/proc/add_client(mob/target)
 	SIGNAL_HANDLER
+	if(!target?.client || !(isliving(target) || isobserver(target)))
+		return
 	for(var/obj/structure/roof/roof in connected_roof)
-		mob.client.images -= roof.normal_image
-		mob.client.images += roof.under_image
+		target.client.images -= roof.normal_image
+		target.client.images += roof.under_image
 
-/datum/roof_master_node/proc/remove_under_roof(mob/living/living) //mob is no longer under roof
+/datum/roof_master_node/proc/remove_under_roof(mob/target) //mob is no longer under roof
 	SIGNAL_HANDLER
-	if(living.client)
+	if(target?.client)
 		for(var/obj/structure/roof/roof in connected_roof)
-			living.client.images -= roof.under_image
-			roof.add_default_image(SSdcs, living)
-	mobs_under -= living
-	UnregisterSignal(living, list(
+			target.client.images -= roof.under_image
+			roof.add_default_image(SSdcs, target)
+	mobs_under -= target
+	UnregisterSignal(target, list(
 		COMSIG_PARENT_QDELETING,
 		COMSIG_MOB_LOGGED_IN,
 		COMSIG_MOVABLE_MOVED,
 	))
 
-/datum/roof_master_node/proc/check_under_roof(mob/living/living) //check if the mob is under connected roof
+/datum/roof_master_node/proc/check_under_roof(mob/target) //check if the mob is under connected roof
 	SIGNAL_HANDLER
 	for(var/obj/effect/roof_node/roof in connected_nodes)
-		if(living.loc == roof.loc)
+		if(target?.loc == roof.loc)
 			return
-	remove_under_roof(living)
+	remove_under_roof(target)
 
 /datum/roof_master_node/proc/connect(location)
 	for(var/obj/effect/roof_node/node in location)

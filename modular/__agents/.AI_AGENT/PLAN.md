@@ -1,27 +1,30 @@
 # PLAN
 
 ## Активная задача
-Обновить ветку `split/pr62-02-ai-squad-spawn-species` до актуального `upstream/master`, разрешить конфликты и оставить ветку в консистентном merge-ready состоянии.
+Портировать в SS220/BandaTroopers HALO map changes из upstream PR `#46`, `#96` и `#107`, адаптировать интеграцию под локальные HALO/shipmap правила и подготовить итоговый PR с корректным changelog и ссылками на исходные PR.
 
 ## Scope
-- История и базовый target ветки.
-- Merge `upstream/master` в текущую ветку.
-- Разрешение конфликтов в затронутых HALO/AI/UI/unit-test поверхностях.
-- Минимальные проверки после merge.
+- Импорт новых HALO ground/ship maps, shuttle templates и связанных ассетов.
+- Интеграция новых карт в `colonialmarines.dme`, `maps/templates_base.dm`, `map_config/*.txt`, `code/__DEFINES/*`, `code/datums/shuttles.dm` и связанные runtime surfaces.
+- Адаптация портируемых ship/map конфигов под BandaTroopers-specific HALO platoon routing.
+- Подготовка task-state артефактов и текста итогового PR.
+- Минимальные проверки для map-sensitive задачи.
 
 ## Out of scope
-- Несвязанные рефакторинги.
-- Новые продуктовые изменения вне необходимых conflict resolutions.
-- Переписывание опубликованной истории ветки через rebase.
+- Несвязанные HALO refactor-задачи.
+- Переписывание upstream истории через rebase/cherry-pick поверх всего PR history.
+- Дополнительные контентные изменения в самих картах вне необходимых BandaTroopers-адаптаций.
 
 ## Фазы
-1. Подтвердить target обновления и конфликтные поверхности. Выполнено.
-2. Выполнить merge `upstream/master` в текущую ветку. Выполнено.
-3. Разрешить конфликты с сохранением branch-specific scope. Выполнено.
-4. Проверить `git status`, `git diff --check` и релевантные быстрые проверки. Выполнено.
+1. Подтвердить upstream baseline, scope PR и точки интеграции. Выполнено.
+2. Импортировать payload из PR `#46`, `#96`, `#107` и собрать локальный merge-план. Выполнено.
+3. Внести SS220/BandaTroopers-адаптации в upstream/config/runtime surfaces. Выполнено.
+4. Обновить task-state документы и подготовить PR body/changelog. Выполнено.
+5. Выполнить проверки (`git diff --check`, build/maplint по возможности), зафиксировать evidence и остаточные риски. Выполнено.
 
 ## Acceptance criteria
-- Ветка содержит merge с актуальным `upstream/master`.
-- В рабочем дереве нет unmerged paths.
-- Конфликтные файлы собираются в логически консистентное состояние.
-- Выполнены хотя бы базовые post-merge проверки, а их статус зафиксирован.
+- В репозитории присутствуют все необходимые файлы и integration points для PR `#46`, `#96`, `#107`.
+- HALO shipmap `Mackay Station (Shipmap)` работает через локальную halo platoon routing схему, а не через legacy marine squad paths.
+- Новые карты добавлены в map/template/config surfaces, достаточные для загрузки через локальный pipeline.
+- Подготовлен итоговый PR текст со ссылками на upstream PR и changelog по портам.
+- Статус выполненных и невыполненных проверок зафиксирован явно.

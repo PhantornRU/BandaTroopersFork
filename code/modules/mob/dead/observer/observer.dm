@@ -599,6 +599,8 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 	for(var/obj/effect/step_trigger/S in new_turf) //<-- this is dumb
 		S.Crossed(src)
+	for(var/obj/effect/roof_node/S in new_turf) //<-- this is dumb // SS220 EDIT: keep ghost roof state in sync
+		S.Crossed(src)
 
 	// CRUTCH because ghost don't respect normal movement rules
 	SEND_SIGNAL(new_turf, COMSIG_TURF_ENTERED, src)

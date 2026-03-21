@@ -1426,6 +1426,9 @@
 /turf/open/shuttle/escapepod/floor0/north/south
 	dir = SOUTH
 
+/turf/open/shuttle/escapepod/floor0/north/west
+	dir = WEST
+
 /turf/open/shuttle/escapepod/floor0/east
 	dir = EAST
 

@@ -292,3 +292,11 @@
 /obj/structure/barricade/handrail/hybrisa/handrail
 	name = "handrail"
 	icon_state = "handrail_hybrisa"
+
+// SS220 EDIT - START
+/obj/structure/barricade/handrail/type_nv
+	icon_state = "handrail_nv"
+
+/obj/structure/barricade/handrail/type_nv_chain
+	icon_state = "handrail_chain_nv"
+// SS220 EDIT - END

@@ -1015,6 +1015,30 @@
 	glass = FALSE
 	req_access = null
 
+// SS220 EDIT - START: HALO Traxus airlocks from upstream PR107, adapted to local prop-door vars
+/obj/structure/machinery/door/airlock/voi
+	name = "\improper industrial door"
+	desc = "An industrial door made of thick metal."
+	icon = 'icons/halo/obj/structures/doors/voi_door.dmi'
+
+/obj/structure/machinery/door/airlock/voi/autoname
+	autoname = TRUE
+
+/obj/structure/machinery/door/airlock/voi/colony
+	req_one_access = list(ACCESS_CIVILIAN_PUBLIC, ACCESS_CIVILIAN_ENGINEERING, ACCESS_WY_COLONIAL)
+
+/obj/structure/machinery/door/airlock/voi/colony/autoname
+	autoname = TRUE
+
+/obj/structure/machinery/door/airlock/voi/prop
+	autoclose = FALSE
+	locked = TRUE
+	icon_state = "door_locked"
+
+/obj/structure/machinery/door/airlock/voi/prop/autoname
+	autoname = TRUE
+// SS220 EDIT - END
+
 // Medical
 
 /obj/structure/machinery/door/airlock/hybrisa/medical
