@@ -1345,7 +1345,7 @@ GLOBAL_LIST_INIT(WALLITEMS, list(
 		return pick(turfs)
 
 // SS220 EDIT - START: expose shared projectile LOS helper for modular HALO plasma grenade effects
-/proc/check_for_obstacles_projectile(atom/source, atom/target, obj/projectile/P)
+/proc/check_for_path_obstacles_projectile(atom/source, atom/target, obj/projectile/P)
 	var/list/turf/path = get_line(source, target, include_start_atom = FALSE)
 	if(!length(path) || get_dist(source, target) > P.ammo.max_range)
 		return TRUE
