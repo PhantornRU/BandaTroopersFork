@@ -38,7 +38,9 @@
 		"[key_name(src)] activated player_survival crit grace for [DisplayTimeText(block_duration)] in [current_area] ([x],[y],[z]); health=[health]."
 	)
 
-/mob/living/carbon/human/proc/player_survival_log_damage_block(block_source, blocked_damage = null, damage_type = null, explosion_severity = null)
+/mob/living/carbon/human/proc/player_survival_log_damage_block(block_source, blocked_damage = null, damage_type = null, explosion_severity = null, current_cause = null)
+	if(!client)
+		return
 	if(player_survival_last_damage_block_log_until == player_survival_damage_block_until)
 		return
 
@@ -54,9 +56,10 @@
 		log_details += "severity=[explosion_severity]"
 
 	var/details_text = log_details.Join("; ")
+	var/admin_suffix = format_hardcrit_attribution_suffix(current_cause)
 	player_survival_log_event(
 		"[key_name(src)] had damage blocked by player_survival crit grace via [block_source] in [current_area] ([x],[y],[z]); [details_text].",
-		"[key_name_admin(src)] had damage blocked by player_survival crit grace via [block_source] in [current_area] ([x],[y],[z]); [details_text].",
+		"[key_name_admin(src)] had damage blocked by player_survival crit grace via [block_source] in [current_area] ([x],[y],[z]); [details_text][admin_suffix].",
 		TRUE
 	)
 

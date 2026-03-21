@@ -216,6 +216,7 @@
 				current_click_intercept_action = FALSE
 				return
 
+			current_path = params["path"]
 			selected_equipment = params["selected_equipment"]
 			selected_faction = params["selected_faction"]
 			spawn_click_intercept = TRUE
@@ -266,8 +267,10 @@
 							add_preset(ai_human.assigned_equipment_preset.type, "ALT added preset.", update_ui = TRUE)
 					return
 
-				var/faction_of_preset
 				var/datum/equipment_preset/gotten_path = text2path(current_path)
+				if(!gotten_path)
+					return
+				var/faction_of_preset = gotten_path::faction
 				var/randomise_appearance = TRUE
 				var/mob/living/carbon/human/ai_human
 
@@ -286,6 +289,10 @@
 					for(var/item in ai_human.get_equipped_items(TRUE))
 						qdel(item)
 				arm_equipment(ai_human, gotten_path, randomise_appearance, FALSE, mob_client = ai_human.client)
+				var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
+				var/expected_species = assigned_preset?.expected_species
+				if(expected_species && ai_human.species?.name != expected_species)
+					ai_human.set_species(expected_species)
 				if(selected_equipment == "No Weapons")
 					ai_human.strip_weapons()
 				else if(selected_equipment == "Birthday Suit")
@@ -331,7 +338,7 @@
 						qdel(ai_human.head)
 						qdel(ai_human.glasses)
 						qdel(ai_human.wear_mask)
-				if(species != ai_human.species) //might be redundant
+				if(species != ai_human.species?.name) //might be redundant
 					ai_human.set_species(species)
 					if(issynth(ai_human))
 						ai_human.set_skills(/datum/skills/synthetic)
@@ -354,8 +361,10 @@
 							if(faction_tags)
 								faction_tags.faction_group = list(selected_faction)
 				if(spawn_ai && !ai_human.ckey)
-					ai_human.AddComponent(/datum/component/human_ai) //ai human might not be AI. those who know
-					ai_human.get_ai_brain().appraise_inventory(armor = TRUE)
+					var/datum/component/human_ai/ai_component = ai_human.GetComponent(/datum/component/human_ai) // ai human might not be AI. those who know
+					if(!ai_component)
+						ai_component = ai_human.AddComponent(/datum/component/human_ai)
+					ai_component?.ai_brain?.appraise_inventory(armor = TRUE)
 
 /client/proc/open_human_ai_spawner_panel()
 	set name = "Create Human AI"

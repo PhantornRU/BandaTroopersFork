@@ -259,7 +259,8 @@
 		list("HM", "hudsquad_med"),
 		list("SG", "hudsquad_gun"),
 		list("Spc", "hudsquad_spec"),
-		list("SqLdr", "hudsquad_tl"),
+		list("GrpLdr", "hudsquad_tl"), // SS220 EDIT: group leader token replaces legacy squad-leader token for TL slot
+		list("SqLdr", "hudsquad_leader"), // SS220 EDIT: squad leader token now resolves to the actual leader icon
 		list("SctSgt", "hudsquad_leader"),
 		list("RTO", "hudsquad_rto"),
 	)

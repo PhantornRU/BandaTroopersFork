@@ -27,6 +27,7 @@
 	var/faction = FACTION_NEUTRAL
 	var/list/faction_group
 	var/origin_override
+	var/expected_species = null // SS220 EDIT: modular spawn glue may reassert preset species after shared arm_equipment() completes
 
 	var/minimap_icon = "private"
 	var/minimap_background = MINIMAP_ICON_BACKGROUND_USCM

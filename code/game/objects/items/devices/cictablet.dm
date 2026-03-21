@@ -111,6 +111,9 @@
 				if(id)
 					var/paygrade = get_paygrades(id.paygrade, FALSE, human_user.gender)
 					signed = "[paygrade] [id.registered_name]"
+				if(!human_user.matches_faction_announcement_target(announcement_faction, FALSE)) // SS220 EDIT: command tablets follow the human-owned faction-routing contract
+					to_chat(user, SPAN_DANGER("Access denied."))
+					return FALSE
 
 			marine_announcement(input, announcement_title, faction_to_display = announcement_faction, add_PMCs = add_pmcs, signature = signed)
 			message_admins("[key_name(user)] has made a command announcement.")

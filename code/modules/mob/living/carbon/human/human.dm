@@ -150,7 +150,7 @@
 
 	// SS220 EDIT - START
 	if(player_survival_is_damage_blocked())
-		player_survival_log_damage_block("ex_act", damage, BRUTE, severity)
+		player_survival_log_damage_block("ex_act", damage, BRUTE, severity, cause_data)
 		return
 
 	var/anti_gib_triggered = (severity >= EXPLOSION_THRESHOLD_GIB || damage >= EXPLOSION_THRESHOLD_GIB)

@@ -48,6 +48,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	var/combat_decay_time_min = 15 SECONDS
 	/// The maximum amount of time that can pass before this AI can leave combat
 	var/combat_decay_time_max = 30 SECONDS
+	/// Minimum spacing between AI combat voicelines to avoid runaway chatter loops in prolonged fights.
+	var/combat_voiceline_cooldown_time = 4 SECONDS
 
 	/// If this AI can seek cover while not possessing a gun
 	var/cover_without_gun = FALSE
@@ -75,6 +77,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	var/nearby_item_search_interval = 0
 	COOLDOWN_DECLARE(nearby_item_search_cooldown)
 	var/nearby_item_search_dirty = FALSE
+	var/wake_rethink_queued_at = -1 // SS220 EDIT: wake-up signal should only queue one immediate rethink per tick
+	var/last_process_tick = -1 // SS220 EDIT: prevent signal-driven wake rethinks from re-entering the scheduler in the same tick
+	COOLDOWN_DECLARE(combat_voiceline_cooldown)
 
 /datum/human_ai_brain/New(mob/living/carbon/human/tied_human)
 	. = ..()
@@ -90,6 +95,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	RegisterSignal(tied_human, COMSIG_HUMAN_HANDCUFFED, PROC_REF(on_handcuffed))
 	RegisterSignal(tied_human, COMSIG_HUMAN_GET_AI_BRAIN, PROC_REF(get_ai_brain))
 	RegisterSignal(tied_human, COMSIG_HUMAN_SET_SPECIES, PROC_REF(on_species_change))
+	RegisterSignal(tied_human, COMSIG_LIVING_SET_BODY_POSITION, PROC_REF(on_body_position_change)) // SS220 EDIT: standing back up should wake shared human AI immediately
 	GLOB.human_ai_brains += src
 	setup_detection_radius()
 	appraise_inventory()
@@ -130,6 +136,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/process(delta_time)
+	last_process_tick = world.time // SS220 EDIT: track scheduler entry to guard same-tick wake rethinks
+	wake_rethink_queued_at = -1 // SS220 EDIT: any queued wake rethink has been serviced once processing starts
 	if(!has_valid_tied_human()) // SS220 EDIT: upstream process loop must no-op once modular AI owner is gone
 		clear_detection_radius() // SS220 EDIT: stop listening to turf signals once the owner is gone
 		reset_ai()
@@ -278,6 +286,37 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		ignore_looting = TRUE
 	else
 		ignore_looting = FALSE
+
+/datum/human_ai_brain/proc/on_body_position_change(datum/source, new_position, old_position)
+	SIGNAL_HANDLER
+	if((new_position != STANDING_UP) || (old_position != LYING_DOWN))
+		return
+
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+		return
+
+	invalidate_nearby_item_search() // SS220 EDIT: wake-up should immediately invalidate idle pickup/grenade scan throttles
+	if(current_target)
+		update_target_pos() // SS220 EDIT: refresh transient combat targeting state after knockdown recovery
+
+	if((last_process_tick == world.time) || (wake_rethink_queued_at == world.time))
+		return
+
+	wake_rethink_queued_at = world.time
+	INVOKE_ASYNC(src, PROC_REF(run_wake_rethink), world.time) // SS220 EDIT: queue exactly one no-sleep rethink outside the signal stack
+
+/datum/human_ai_brain/proc/run_wake_rethink(queued_tick)
+	if(QDELETED(src) || (wake_rethink_queued_at != queued_tick))
+		return
+
+	wake_rethink_queued_at = -1
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+		return
+
+	if((last_process_tick == queued_tick) || (last_process_tick == world.time))
+		return
+
+	process(0) // SS220 EDIT: reuse the existing shared AI loop instead of inventing a separate wake-up behavior
 
 /datum/human_ai_brain/proc/setup_detection_radius()
 	if(!has_valid_tied_human())

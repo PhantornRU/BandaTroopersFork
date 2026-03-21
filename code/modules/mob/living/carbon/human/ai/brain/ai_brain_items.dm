@@ -393,6 +393,8 @@
 	SIGNAL_HANDLER
 	invalidate_nearby_item_search()
 	invalidate_halo_runtime_caches()
+	if(iszombie(tied_human))
+		return
 
 	if(iszombie(tied_human))
 		return

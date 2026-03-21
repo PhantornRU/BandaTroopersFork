@@ -92,6 +92,28 @@
 		TEST_ASSERT_NOTNULL(crystals, "[preset_type] did not expose needler crystals through the AI ammunition map.")
 		TEST_ASSERT(length(brain.equipment_map[HUMAN_AI_AMMUNITION]) >= 1, "[preset_type] did not retain readable ammunition in the AI equipment map.")
 
+/datum/unit_test/halo_unggoy_ai_voiceline_throttle
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_unggoy_ai_voiceline_throttle/Run()
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/major_needler)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for voiceline throttle testing.")
+
+	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
+	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Unggoy combat voiceline cooldown should start cleared in the test setup.")
+
+	brain.say_reload_line()
+	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should consume the shared AI voiceline cooldown.")
+
+	var/remaining_after_first_line = COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown)
+	brain.say_reload_line()
+	TEST_ASSERT_EQUAL(COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown), remaining_after_first_line, "Immediate repeated reload chatter should be blocked by the shared AI voiceline cooldown.")
+
+	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
+	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "The shared AI voiceline cooldown should reset cleanly for later combat chatter.")
+	brain.say_reload_line()
+	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should resume once the shared AI voiceline cooldown expires.")
+
 /datum/unit_test/halo_unggoy_ai_bomber_overrides
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
