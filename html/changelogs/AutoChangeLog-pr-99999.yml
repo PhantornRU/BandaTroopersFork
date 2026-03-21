@@ -1,0 +1,6 @@
+author: Alexey
+delete-after: True
+changes:
+  - bugfix: "Fixed several ported items and attachments that pointed at missing icon states, including the M20CW, W-Y commando bag, smartgun drum pouch, UPP handset, and R81/FAL attachment set."
+  - bugfix: "Fixed CANC UPP platoon leader and combat synthetic lookup-name conflicts that were failing runtime-backed unit tests."
+  - maptweak: "Removed generated icon tag var-edits from LV-671 so the map passes lint again."

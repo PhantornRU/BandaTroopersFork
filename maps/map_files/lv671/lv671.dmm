@@ -204,7 +204,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/yellow3/north,
 /area/lv671/processor)
@@ -241,7 +241,7 @@
 "agH" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /turf/open/floor/strata/purp4,
 /area/lv671/hospital/under/research/confinement)
@@ -254,7 +254,7 @@
 "agT" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /turf/open/floor/strata/purp3/west,
 /area/lv671/administration/upper/office)
@@ -883,7 +883,7 @@
 "awP" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/flora/grass/desert{
 	color = "#93F21F";
@@ -1135,7 +1135,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/blue3/east,
 /area/lv671/administration/upper)
@@ -1595,7 +1595,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/prop/invuln/ice_prefab/roof_greeble{
 	icon_state = "vent5";
@@ -1615,7 +1615,7 @@
 "aPE" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/item/storage/backpack/lightpack,
 /obj/item/storage/backpack/lightpack,
@@ -1660,7 +1660,7 @@
 "aQA" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/sewers/res)
@@ -1958,7 +1958,7 @@
 "aWq" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/blue3/north,
 /area/lv671/administration/upper/cc)
@@ -1966,7 +1966,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/spawner/random/powercell,
 /obj/structure/machinery/cell_charger{
@@ -2294,7 +2294,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating/gcircuit,
@@ -2348,7 +2348,7 @@
 "bdB" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 9
@@ -2366,7 +2366,7 @@
 "bei" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding8"
@@ -2399,7 +2399,7 @@
 "bfN" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/p_room)
@@ -2414,7 +2414,7 @@
 	},
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/fake_wood,
 /area/lv671/residential/under/cafe)
@@ -2652,7 +2652,7 @@
 "bkK" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/p_room)
@@ -2773,7 +2773,7 @@
 "bno" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/cargo,
 /area/lv671/hospital/under/storage)
@@ -2885,7 +2885,7 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/prison/floor_marked/southwest,
 /area/lv671/processor/under/storage)
@@ -3065,7 +3065,7 @@
 /obj/structure/morgue,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/floor3,
@@ -3402,7 +3402,7 @@
 "bBo" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/t)
@@ -4075,7 +4075,7 @@
 "bPG" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/meeting)
@@ -4128,7 +4128,7 @@
 "bQN" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 10;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/sewers/res)
@@ -4208,7 +4208,7 @@
 /obj/structure/surface/rack,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/item/storage/pouch/construction/full,
 /turf/open/floor/strata/floor3,
@@ -4487,7 +4487,7 @@
 "ccv" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/t)
@@ -4951,7 +4951,7 @@
 "cmP" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/spiralplate,
@@ -5103,7 +5103,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp1,
@@ -5311,7 +5311,7 @@
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/administration/upper/cc)
@@ -5668,7 +5668,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/blue1,
 /area/lv671/maintenance/under/office)
@@ -5943,7 +5943,7 @@
 "cGG" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -6624,7 +6624,7 @@
 	},
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_18";
-	tag = "icon-plant-10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/cafe)
@@ -6867,7 +6867,7 @@
 "dcB" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp4,
@@ -6995,7 +6995,7 @@
 "dfR" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -7064,7 +7064,7 @@
 /obj/structure/closet/secure_closet/hydroponics,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/cyan1/east,
 /area/lv671/maintenance/hydroponics)
@@ -7217,7 +7217,7 @@
 "dmi" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_10";
-	tag = "icon-plant-10"
+	
 	},
 /obj/effect/decal/cleanable/blood/xeno{
 	icon_state = "xgibarm"
@@ -7230,7 +7230,7 @@
 	},
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/snow/layer1,
 /area/lv671/outdoors/beyond)
@@ -7613,7 +7613,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/meeting)
@@ -7673,7 +7673,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/machinery/recharger{
 	pixel_x = 7
@@ -7725,7 +7725,7 @@
 "dzc" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/flora/bush/ausbushes/var3/brflowers,
 /obj/structure/flora/grass/desert{
@@ -8527,7 +8527,7 @@
 "dQg" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/carpet,
@@ -8690,14 +8690,14 @@
 "dUM" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/blue3/north,
 /area/lv671/administration/upper)
 "dVe" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/sign/safety/maint{
 	pixel_y = 30
@@ -8791,7 +8791,7 @@
 "dWy" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 4;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/sewers/res)
@@ -9123,7 +9123,7 @@
 "edP" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/pipes/standard/manifold/hidden/supply{
 	dir = 1
@@ -9138,7 +9138,7 @@
 "eed" = (
 /obj/structure/pipes/standard/simple/visible{
 	dir = 5;
-	tag = "icon-intact (NORTHWEST)"
+	
 	},
 /obj/structure/machinery/light{
 	dir = 8
@@ -9166,7 +9166,7 @@
 "eej" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /obj/structure/extinguisher_cabinet{
 	pixel_x = -26
@@ -9192,7 +9192,7 @@
 "eeK" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/strata_decals/catwalk/prison,
 /turf/open/floor/plating/gcircuit,
@@ -9636,7 +9636,7 @@
 "epa" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/h)
@@ -10123,7 +10123,7 @@
 "eAD" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 4
@@ -10152,7 +10152,7 @@
 "eBi" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/administration/upper/clothes)
@@ -10255,7 +10255,7 @@
 "eDU" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/e)
@@ -10536,7 +10536,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating,
@@ -10563,7 +10563,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 1;
@@ -10595,7 +10595,7 @@
 "eKa" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /obj/structure/machinery/camera/autoname,
 /turf/open/floor/wood,
@@ -10715,7 +10715,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/purp3/west,
 /area/lv671/administration/upper/office)
@@ -10779,7 +10779,7 @@
 "eOA" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/u)
@@ -10791,7 +10791,7 @@
 /obj/structure/window/reinforced{
 	dir = 1;
 	layer = 3;
-	tag = "icon-rwindow (NORTH)"
+	
 	},
 /turf/open/floor/strata/red3/north,
 /area/lv671/administration/security)
@@ -11000,7 +11000,7 @@
 "eSX" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/wood,
@@ -11118,7 +11118,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -11192,7 +11192,7 @@
 "eWN" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -11241,7 +11241,7 @@
 /obj/structure/bed/chair,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding,
 /turf/open/floor/strata/fake_wood,
@@ -11570,7 +11570,7 @@
 "feG" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/d)
@@ -11599,7 +11599,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/plating,
 /area/lv671/administration/office)
@@ -11664,7 +11664,7 @@
 "fgP" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/yellow1,
 /area/lv671/nothing)
@@ -11748,7 +11748,7 @@
 "fjm" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
-	tag = "icon-E-corner"
+	
 	},
 /turf/open/floor/strata/purp3/east,
 /area/lv671/hospital/under/research/checkpoint)
@@ -11880,7 +11880,7 @@
 "fkQ" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/residential/under/cafe)
@@ -12269,7 +12269,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/blue3/north,
 /area/lv671/administration/upper)
@@ -12491,7 +12491,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = -6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/administration/security/hos)
@@ -13541,7 +13541,7 @@
 "fVv" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_18";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/chapel)
@@ -13678,7 +13678,7 @@
 "fXA" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/cyan3/northwest,
 /area/lv671/processor/filtration)
@@ -13703,7 +13703,7 @@
 "fYj" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/f)
@@ -13759,7 +13759,7 @@
 "fZY" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/p)
@@ -14044,7 +14044,7 @@
 "ggr" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp3,
@@ -14093,7 +14093,7 @@
 /obj/structure/machinery/iv_drip,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/lightplate,
 /area/lv671/hospital/surgery/c)
@@ -14277,7 +14277,7 @@
 "gmh" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/yellow3/east,
 /area/lv671/administration/upper/maint)
@@ -14776,7 +14776,7 @@
 "gzr" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/multi_tiles/west,
 /area/lv671/residential/under/kitchen)
@@ -15069,7 +15069,7 @@
 "gES" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/surface/table/woodentable,
 /obj/structure/machinery/recharger{
@@ -15166,7 +15166,7 @@
 /obj/structure/closet/firecloset/full,
 /obj/structure/machinery/light/small{
 	dir = 4;
-	tag = "icon-bulb1 (EAST)"
+	
 	},
 /turf/open/floor/strata/red1,
 /area/lv671/landing_zone_1)
@@ -15211,7 +15211,7 @@
 "gHr" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/wood,
@@ -15357,7 +15357,7 @@
 "gKx" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/machinery/recharge_station,
 /turf/open/floor/strata/yellow1,
@@ -15500,7 +15500,7 @@
 "gNV" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/chapel)
@@ -15762,7 +15762,7 @@
 "gTf" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/blue/east,
@@ -16103,7 +16103,7 @@
 "haI" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /obj/structure/window/reinforced{
 	dir = 8;
@@ -16125,7 +16125,7 @@
 "haR" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/purp3/north,
 /area/lv671/hospital/under/research)
@@ -16174,7 +16174,7 @@
 "hbr" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 6;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /turf/open/floor/strata/green3/northwest,
 /area/lv671/sewers/res)
@@ -16271,7 +16271,7 @@
 "heQ" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/v)
@@ -16318,7 +16318,7 @@
 "hfK" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/meeting)
@@ -16456,7 +16456,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/overseer)
@@ -16585,7 +16585,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/orange_cover,
 /area/lv671/maintenance/mining)
@@ -16603,7 +16603,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/spiralplate,
 /area/lv671/hospital/office)
@@ -16789,7 +16789,7 @@
 "hmY" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -16845,7 +16845,7 @@
 "hos" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding2"
@@ -17019,7 +17019,7 @@
 "hsS" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/blood,
 /turf/open/floor/corsat/whitetan/east,
@@ -17055,7 +17055,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/item/device/taperecorder,
 /turf/open/floor/strata/blue3/north,
@@ -17173,7 +17173,7 @@
 "hvQ" = (
 /obj/structure/toilet{
 	dir = 8;
-	tag = "icon-toilet00 (WEST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/processor/under/engineering)
@@ -17404,7 +17404,7 @@
 "hAS" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/flora/grass/desert{
 	color = "#93F21F";
@@ -17587,7 +17587,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/maintenance/garage)
@@ -17602,7 +17602,7 @@
 "hFf" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /turf/open/floor/strata/red2,
 /area/lv671/administration/security/checkpoint)
@@ -17641,7 +17641,7 @@
 "hFz" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 5
@@ -17783,7 +17783,7 @@
 /obj/item/clothing/glasses/science,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/white_cyan1,
@@ -18029,7 +18029,7 @@
 "hMT" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/step_trigger/teleporter_vector{
 	name = "Ark_AP_Up";
@@ -18263,7 +18263,7 @@
 "hSI" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/wood,
@@ -18291,7 +18291,7 @@
 "hSS" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/orange_tile,
 /area/lv671/processor)
@@ -18371,7 +18371,7 @@
 "hUh" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/noticeboard{
 	pixel_y = 32
@@ -18381,7 +18381,7 @@
 "hUn" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_21";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding6"
@@ -18634,7 +18634,7 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/cyan2,
 /area/lv671/processor/filtration)
@@ -19114,7 +19114,7 @@
 "iln" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/o)
@@ -19199,7 +19199,7 @@
 "iov" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/m)
@@ -19332,7 +19332,7 @@
 "irN" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/processor)
@@ -19358,7 +19358,7 @@
 "isO" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/l)
@@ -19392,7 +19392,7 @@
 "ith" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/processor/filtration)
@@ -19474,7 +19474,7 @@
 "iuY" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/projector{
 	name = "Ark_AP_Down";
@@ -19676,7 +19676,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/overseer)
@@ -19896,7 +19896,7 @@
 "iCv" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 8
@@ -19987,7 +19987,7 @@
 "iEo" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/window/reinforced{
 	dir = 8;
@@ -20016,7 +20016,7 @@
 "iEz" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding1"
@@ -20126,7 +20126,7 @@
 "iFO" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding2"
@@ -20206,7 +20206,7 @@
 "iHZ" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/p_room/four)
@@ -20225,7 +20225,7 @@
 /obj/effect/decal/strata_decals/catwalk/prison,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/bluegrid/bcircuita,
 /area/lv671/administration/upper)
@@ -20292,7 +20292,7 @@
 /obj/item/tool/pen/blue/clicky,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -20326,7 +20326,7 @@
 "iKP" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/pipes/vents/pump,
 /turf/open/floor/strata,
@@ -20428,7 +20428,7 @@
 "iOd" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/purp3/north,
 /area/lv671/hospital/under)
@@ -20531,7 +20531,7 @@
 "iQV" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/q)
@@ -20981,7 +20981,7 @@
 "iZW" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
-	tag = "icon-E-corner"
+	
 	},
 /turf/open/floor/strata/purp4/west,
 /area/lv671/hospital/under/research/checkpoint)
@@ -21108,7 +21108,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 10
@@ -21189,7 +21189,7 @@
 "jeP" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/b)
@@ -21447,7 +21447,7 @@
 "jkM" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/spiralblueoffice,
@@ -21870,7 +21870,7 @@
 /obj/structure/machinery/vending/hydroseeds,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/cyan1/east,
 /area/lv671/maintenance/hydroponics)
@@ -22189,7 +22189,7 @@
 "jyb" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/multi_tiles/west,
 /area/lv671/maintenance/garage)
@@ -22222,7 +22222,7 @@
 "jyR" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/green3/northeast,
 /area/lv671/residential/fitness)
@@ -22403,7 +22403,7 @@
 "jCC" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/d)
@@ -22508,7 +22508,7 @@
 "jFI" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /turf/open/floor/corsat/spiralblueoffice,
 /area/lv671/hospital/office)
@@ -22828,7 +22828,7 @@
 "jNz" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/a)
@@ -23311,7 +23311,7 @@
 /obj/structure/machinery/cm_vending/sorted/medical/no_access,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/cyan1,
 /area/lv671/hospital/under/research/lab)
@@ -23403,7 +23403,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/lightplate,
@@ -23421,7 +23421,7 @@
 "kag" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/prison/floor_plate,
 /area/lv671/processor/under/storage)
@@ -23525,7 +23525,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 4
@@ -23731,7 +23731,7 @@
 "kgn" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata,
@@ -23893,7 +23893,7 @@
 /obj/structure/closet/secure_closet/personal/patient,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/cargo,
 /area/lv671/hospital/stationary)
@@ -23927,7 +23927,7 @@
 /obj/structure/machinery/recharge_station,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp1,
@@ -23990,7 +23990,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = -6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/light{
 	dir = 8
@@ -24052,7 +24052,7 @@
 "kkz" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W";
-	tag = "icon-W"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp3/west,
@@ -24098,7 +24098,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/extinguisher_cabinet{
 	pixel_x = 26
@@ -24159,7 +24159,7 @@
 /obj/structure/machinery/iv_drip,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/lightplate,
 /area/lv671/hospital/surgery/d)
@@ -24345,7 +24345,7 @@
 "krZ" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_10";
-	tag = "icon-plant-10"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/residential/fitness)
@@ -24572,7 +24572,7 @@
 "kww" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/administration/upper/maint)
@@ -24713,7 +24713,7 @@
 "kzS" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/chapel)
@@ -24728,7 +24728,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/blue/east,
@@ -25016,7 +25016,7 @@
 "kFr" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/p)
@@ -25420,7 +25420,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/processor/under/nuclear)
@@ -25643,7 +25643,7 @@
 "kSL" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/sewers/res)
@@ -25687,7 +25687,7 @@
 "kUs" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/s)
@@ -26137,7 +26137,7 @@
 /obj/structure/machinery/portable_atmospherics/hydroponics,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/cyan1/east,
@@ -26313,7 +26313,7 @@
 "ljK" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small,
 /obj/effect/decal/siding/wood_siding{
@@ -26468,7 +26468,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/hospital/under/morgue)
@@ -26608,7 +26608,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -26761,7 +26761,7 @@
 "lvZ" = (
 /obj/structure/toilet{
 	dir = 8;
-	tag = "icon-toilet00 (WEST)"
+	
 	},
 /obj/effect/landmark/survivor_spawner,
 /turf/open/floor/strata/orange_cover,
@@ -27072,7 +27072,7 @@
 "lDx" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/g)
@@ -27495,7 +27495,7 @@
 	},
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata/blue3/east,
 /area/lv671/administration/upper)
@@ -27515,7 +27515,7 @@
 "lNx" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -27683,7 +27683,7 @@
 "lRI" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 1;
@@ -27788,7 +27788,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/corporate)
@@ -27802,7 +27802,7 @@
 "lUR" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/yellow3/north,
 /area/lv671/processor)
@@ -27842,7 +27842,7 @@
 "lWf" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/b)
@@ -27866,7 +27866,7 @@
 "lWD" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/plating/plating_catwalk/strata,
@@ -27911,7 +27911,7 @@
 	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
-	tag = "icon-E-corner"
+	
 	},
 /turf/open/floor/strata/purp4/north,
 /area/lv671/hospital/under/research/checkpoint)
@@ -28080,7 +28080,7 @@
 "mbS" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/blue3/east,
@@ -28231,7 +28231,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = -6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/blue3,
 /area/lv671/administration/upper)
@@ -28648,7 +28648,7 @@
 "mnS" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/lv671/administration/upper/maint)
@@ -28682,7 +28682,7 @@
 "moo" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -28950,7 +28950,7 @@
 /obj/structure/surface/rack,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/strata/white_cyan2,
@@ -29015,7 +29015,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/purp3/north,
 /area/lv671/administration/upper/office)
@@ -29137,7 +29137,7 @@
 "myZ" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -29262,7 +29262,7 @@
 "mBl" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/processor)
@@ -29376,7 +29376,7 @@
 "mDr" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding6"
@@ -29426,7 +29426,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/yellow1,
 /area/lv671/processor/under/nuclear)
@@ -30442,7 +30442,7 @@
 "nfc" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 10;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /turf/open/floor/plating/plating_catwalk/strata,
 /area/lv671/administration/upper/maint)
@@ -31057,14 +31057,14 @@
 "nsZ" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/administration/corporate)
 "nto" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/yellow3/west,
 /area/lv671/sewers)
@@ -31520,7 +31520,7 @@
 	},
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 10;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /obj/structure/cable/heavyduty{
 	icon_state = "4-8"
@@ -31557,7 +31557,7 @@
 "nBp" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under)
@@ -31674,7 +31674,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/administration/upper/cc/comms)
@@ -31848,7 +31848,7 @@
 "nJW" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding8"
@@ -32043,7 +32043,7 @@
 "nOt" = (
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/snow/layer2,
 /area/lv671/outdoors/beyond)
@@ -32380,7 +32380,7 @@
 "nWb" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding2"
@@ -32391,7 +32391,7 @@
 /obj/structure/machinery/photocopier,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/purp1,
 /area/lv671/administration/upper/office)
@@ -32544,7 +32544,7 @@
 /obj/structure/closet/secure_closet/personal/patient,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/cargo,
 /area/lv671/hospital/stationary/b)
@@ -32562,7 +32562,7 @@
 "oae" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/residential/under/flat/l)
@@ -32591,7 +32591,7 @@
 "oay" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/bunker)
@@ -32620,7 +32620,7 @@
 "obl" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/processor/lounge)
@@ -32664,7 +32664,7 @@
 "obE" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/wood/color_a39898,
@@ -32882,7 +32882,7 @@
 "ofh" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/blood/xeno,
 /turf/open/floor/strata/blue3/east,
@@ -33074,7 +33074,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/multi_tiles/west,
 /area/lv671/administration/upper)
@@ -33085,7 +33085,7 @@
 	},
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 4
@@ -33221,7 +33221,7 @@
 /obj/structure/platform_decoration,
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/floor/prison/cell_stripe/west,
 /area/lv671/processor/under/mech)
@@ -33437,7 +33437,7 @@
 "orC" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata/blue4/north,
 /area/lv671/administration/upper/synth)
@@ -33453,7 +33453,7 @@
 "osf" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_18";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/pool)
@@ -33604,7 +33604,7 @@
 "ovV" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/indoors)
@@ -33912,7 +33912,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/projector{
 	name = "Ark_medbay_Up";
@@ -34036,7 +34036,7 @@
 "oGt" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/purp3/east,
 /area/lv671/hospital/under)
@@ -34088,7 +34088,7 @@
 	},
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/ice/layer1,
 /area/lv671/outdoors/beyond)
@@ -34577,11 +34577,11 @@
 "oSI" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/wood,
@@ -34607,7 +34607,7 @@
 "oTl" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/fake_wood,
 /area/lv671/processor/under/lounge)
@@ -34718,7 +34718,7 @@
 "oVz" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/surface/table/reinforced/prison,
 /turf/open/floor/strata/blue3/west,
@@ -34733,7 +34733,7 @@
 "oVI" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/i)
@@ -34865,7 +34865,7 @@
 /obj/structure/surface/rack,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/spawner/random/toolbox,
 /obj/effect/spawner/random/toolbox,
@@ -35010,7 +35010,7 @@
 "pap" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -35048,7 +35048,7 @@
 "pbw" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/maintenance/garage)
@@ -35211,7 +35211,7 @@
 "pdK" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/hospital/under/research/confinement)
@@ -35346,7 +35346,7 @@
 "pgs" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/strata_decals/catwalk/prison,
 /turf/open/floor/greengrid,
@@ -35374,7 +35374,7 @@
 "phn" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_21";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/chapel)
@@ -35582,7 +35582,7 @@
 "plG" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/v)
@@ -35746,7 +35746,7 @@
 "ppn" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/strata/floor3,
@@ -35762,7 +35762,7 @@
 /obj/structure/machinery/computer/pandemic,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/corsat/lightplate,
 /area/lv671/hospital/under/virology)
@@ -35776,7 +35776,7 @@
 "pqA" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/landmark/survivor_spawner,
@@ -35918,7 +35918,7 @@
 "ptD" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/bed/bedroll{
 	dir = 1;
@@ -35943,7 +35943,7 @@
 "ptO" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/q)
@@ -36064,7 +36064,7 @@
 "pwH" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/j)
@@ -36200,7 +36200,7 @@
 "pzR" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/fake_wood,
 /area/lv671/processor/under/lounge)
@@ -36219,7 +36219,7 @@
 "pAH" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/c)
@@ -36316,7 +36316,7 @@
 "pCX" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -36400,7 +36400,7 @@
 "pEC" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-plant-10"
+	
 	},
 /turf/open/floor/strata/green3/north,
 /area/lv671/residential/fitness)
@@ -36553,7 +36553,7 @@
 "pHE" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 5;
-	tag = "icon-intact-supply (NORTHEAST)"
+	
 	},
 /turf/open/floor/strata/cyan3/west,
 /area/lv671/sewers/res)
@@ -36703,7 +36703,7 @@
 "pKU" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/residential/office)
@@ -36755,7 +36755,7 @@
 "pMb" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/machinery/autodispenser,
 /turf/open/floor/strata/white_cyan1,
@@ -36768,7 +36768,7 @@
 /obj/effect/decal/cleanable/cobweb,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/indoors)
@@ -36818,7 +36818,7 @@
 "pMX" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/yellow3/west,
@@ -36938,7 +36938,7 @@
 "pPG" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/squares,
 /area/lv671/hospital/reception)
@@ -37074,7 +37074,7 @@
 /obj/structure/pipes/vents/pump,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/largecrate/supply/supplies/water{
 	pixel_y = 18
@@ -37097,7 +37097,7 @@
 "pTG" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/plating/warnplate/west,
 /area/lv671/maintenance/under/substation)
@@ -37848,7 +37848,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/multi_tiles/west,
 /area/lv671/administration/upper)
@@ -38338,7 +38338,7 @@
 "qvv" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 9
@@ -38632,7 +38632,7 @@
 "qCw" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/fake_wood,
 /area/lv671/residential/under/chapel)
@@ -38645,7 +38645,7 @@
 "qCP" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W";
-	tag = "icon-W"
+	
 	},
 /turf/open/floor/strata/purp4/east,
 /area/lv671/hospital/under/research/checkpoint)
@@ -38671,7 +38671,7 @@
 	},
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -39128,7 +39128,7 @@
 "qMZ" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/residential/under/bunker)
@@ -39180,7 +39180,7 @@
 "qPb" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/r)
@@ -39553,7 +39553,7 @@
 "qWp" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/g)
@@ -39747,7 +39747,7 @@
 "rab" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/k)
@@ -39892,7 +39892,7 @@
 "rdz" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/h)
@@ -39900,7 +39900,7 @@
 /obj/structure/machinery/light/small,
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 4;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /turf/open/floor/strata/green3,
 /area/lv671/sewers/res)
@@ -40153,7 +40153,7 @@
 "riQ" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/pool)
@@ -40178,7 +40178,7 @@
 "rjs" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -40371,7 +40371,7 @@
 /obj/structure/surface/table/reinforced/prison,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/machinery/prop/almayer/computer/PC{
 	dir = 8;
@@ -40449,7 +40449,7 @@
 "rpj" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/blue3/east,
@@ -40516,7 +40516,7 @@
 	},
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_10";
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/blue4,
 /area/lv671/administration/corporate)
@@ -40714,7 +40714,7 @@
 "rws" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/maintenance/cargo/office)
@@ -40725,7 +40725,7 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/prison/floor_marked/southwest,
 /area/lv671/processor/under/storage)
@@ -41059,7 +41059,7 @@
 "rFy" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/m)
@@ -41144,7 +41144,7 @@
 "rHl" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/r)
@@ -41375,7 +41375,7 @@
 "rLR" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -41719,7 +41719,7 @@
 "rUj" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/sewers/c_caves)
@@ -41760,7 +41760,7 @@
 "rVe" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding2"
@@ -41784,7 +41784,7 @@
 "rVF" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W";
-	tag = "icon-W"
+	
 	},
 /obj/structure/machinery/door_control{
 	id = "scilock34";
@@ -41959,7 +41959,7 @@
 "rZO" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/plating,
 /area/lv671/processor/under/reactor)
@@ -42362,7 +42362,7 @@
 "siO" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/i)
@@ -42593,7 +42593,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/item/storage/donut_box{
 	pixel_y = 19
@@ -42750,7 +42750,7 @@
 "sqV" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/cargo,
 /area/lv671/hospital/stationary)
@@ -43163,7 +43163,7 @@
 "szW" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/surface/table/reinforced/prison,
 /obj/item/vehicle_clamp,
@@ -43204,7 +43204,7 @@
 "sAq" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/u)
@@ -43269,7 +43269,7 @@
 /obj/structure/machinery/portable_atmospherics/hydroponics,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/cyan1/east,
 /area/lv671/maintenance/hydroponics)
@@ -43475,7 +43475,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/cafe)
@@ -43555,7 +43555,7 @@
 "sIl" = (
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/floor/prison/cell_stripe/west,
 /area/lv671/processor/under/mech)
@@ -44038,14 +44038,14 @@
 "sTx" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/p_room/four)
 "sTy" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding8"
@@ -44432,7 +44432,7 @@
 "tfM" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/residential/under/flat/c)
@@ -44521,7 +44521,7 @@
 "thv" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/bookcase{
 	icon_state = "book-5"
@@ -44754,7 +44754,7 @@
 /obj/structure/platform/strata/metal,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -44848,7 +44848,7 @@
 "tnE" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding10"
@@ -44877,7 +44877,7 @@
 "tok" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -44907,7 +44907,7 @@
 "tpb" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/window/reinforced{
 	dir = 8;
@@ -45033,7 +45033,7 @@
 "trW" = (
 /obj/structure/pipes/standard/simple/hidden/supply{
 	dir = 10;
-	tag = "icon-intact-supply (EAST)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 1;
@@ -45270,7 +45270,7 @@
 "tvP" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/purp3/north,
@@ -45528,7 +45528,7 @@
 "tBr" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/corsat/officesquares,
 /area/lv671/hospital/reception)
@@ -45786,7 +45786,7 @@
 /obj/structure/platform/strata/metal,
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/snow/layer1,
 /area/lv671/outdoors/beyond)
@@ -45982,7 +45982,7 @@
 "tKy" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
@@ -45999,7 +45999,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -46016,7 +46016,7 @@
 "tKG" = (
 /obj/structure/pipes/standard/simple/visible{
 	dir = 9;
-	tag = "icon-intact (NORTHWEST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding6"
@@ -46026,7 +46026,7 @@
 "tKK" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/filingcabinet{
 	density = 0;
@@ -46426,7 +46426,7 @@
 "tUR" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/administration/security/hos)
@@ -46445,7 +46445,7 @@
 "tVf" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/largecrate/random/barrel/yellow{
 	pixel_x = 6;
@@ -46737,7 +46737,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/blue3/west,
 /area/lv671/administration/office)
@@ -46819,7 +46819,7 @@
 "ubM" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/bar)
@@ -46841,7 +46841,7 @@
 "uci" = (
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/noticeboard{
 	pixel_y = 32
@@ -46855,7 +46855,7 @@
 "ucl" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/administration/upper/maint)
@@ -46883,7 +46883,7 @@
 "ucI" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/j)
@@ -46894,7 +46894,7 @@
 "ucU" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding1"
@@ -46916,7 +46916,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding4"
@@ -46986,7 +46986,7 @@
 "ufy" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata/multi_tiles/west,
@@ -47112,7 +47112,7 @@
 	},
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_10";
-	tag = "icon-plant-10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/cafe)
@@ -47309,7 +47309,7 @@
 "ulk" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/administration/upper/clothes)
@@ -47432,7 +47432,7 @@
 "unS" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding8"
@@ -47457,7 +47457,7 @@
 "uou" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 8
@@ -47572,7 +47572,7 @@
 "uqQ" = (
 /obj/structure/machinery/shower{
 	dir = 4;
-	tag = "icon-shower (EAST)"
+	
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/lv671/residential/under/flat/o)
@@ -47620,7 +47620,7 @@
 "urr" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/k)
@@ -48115,7 +48115,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/meeting)
@@ -48229,7 +48229,7 @@
 "uFb" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/corsat/yellow/west,
@@ -48308,7 +48308,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/cyan3/east,
 /area/lv671/sewers/c_caves)
@@ -49003,7 +49003,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/officetiles,
 /area/lv671/hospital/under/morgue)
@@ -49064,7 +49064,7 @@
 "uXp" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/processor/under/reactor)
@@ -49584,7 +49584,7 @@
 "vkK" = (
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/floor/corsat/box,
 /area/lv671/hospital/reception)
@@ -49610,7 +49610,7 @@
 "vlz" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/manifold/hidden/supply{
 	dir = 4
@@ -49771,7 +49771,7 @@
 "vpd" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/flora/pottedplant/random,
 /turf/open/floor/strata/blue4,
@@ -49926,7 +49926,7 @@
 "vtO" = (
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/snow/layer1,
 /area/lv671/outdoors/beyond)
@@ -49937,7 +49937,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = -6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/administration/overseer)
@@ -49953,7 +49953,7 @@
 /obj/structure/prop/almayer/computers/sensor_computer2,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/blue1,
 /area/lv671/administration/upper/cc)
@@ -50015,7 +50015,7 @@
 /obj/structure/flora/bush/ausbushes/pointybush,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/auto_turf/strata_grass/layer1,
 /area/lv671/residential/under/cafe)
@@ -50034,7 +50034,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/prison/floor_marked/southwest,
 /area/lv671/processor/under/equipment)
@@ -50051,7 +50051,7 @@
 "vwE" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating/platingdmg3,
@@ -50265,7 +50265,7 @@
 "vzR" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding8"
@@ -50328,7 +50328,7 @@
 "vBm" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/processor/filtration)
@@ -50424,14 +50424,14 @@
 "vDH" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/residential/under)
 "vDL" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/structure/flora/bush/ausbushes/var3/fullgrass,
 /obj/structure/flora/bush/desert,
@@ -50696,7 +50696,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/red3/west,
 /area/lv671/administration/security/checkpoint)
@@ -50724,7 +50724,7 @@
 "vKm" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/processor/filtration)
@@ -51037,7 +51037,7 @@
 "vRn" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/a)
@@ -51172,7 +51172,7 @@
 "vUM" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/residential/under/flat/f)
@@ -51227,7 +51227,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_x = 6;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata/blue4,
 /area/lv671/administration/corporate)
@@ -51493,7 +51493,7 @@
 "wdA" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/step_trigger/clone_cleaner,
 /turf/open/floor/strata/cyan3/east,
@@ -51768,7 +51768,7 @@
 /obj/structure/largecrate,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/item/stack/sheet/cardboard/full_stack,
 /turf/open/floor/plating/platebot,
@@ -52404,7 +52404,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/landing_zone_1)
@@ -52498,7 +52498,7 @@
 	},
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding4"
@@ -52688,7 +52688,7 @@
 "wEV" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/white_cyan1,
 /area/lv671/administration/overseer)
@@ -52829,7 +52829,7 @@
 "wHX" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/yellow3/east,
 /area/lv671/processor)
@@ -52841,7 +52841,7 @@
 "wIb" = (
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/wood,
 /area/lv671/nothing)
@@ -53395,7 +53395,7 @@
 	},
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding2"
@@ -53439,7 +53439,7 @@
 "wUT" = (
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/residential/under)
@@ -53499,7 +53499,7 @@
 "wWR" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/structure/machinery/light/small{
 	dir = 4
@@ -53586,7 +53586,7 @@
 "wYm" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /turf/open/floor/corsat/spiralplate,
 /area/lv671/hospital/cp_office)
@@ -53641,14 +53641,14 @@
 "wZo" = (
 /obj/structure/platform_decoration{
 	dir = 8;
-	tag = "icon-platform_deco (EAST)"
+	
 	},
 /turf/open/auto_turf/ice/layer1,
 /area/lv671/outdoors/beyond)
 "wZp" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/wood,
@@ -53764,7 +53764,7 @@
 "xcb" = (
 /obj/structure/toilet{
 	dir = 8;
-	tag = "icon-toilet00 (WEST)"
+	
 	},
 /obj/item/reagent_container/food/drinks/cans/ale{
 	pixel_y = 20
@@ -53976,7 +53976,7 @@
 "xiP" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/corsat/whitetan/west,
 /area/lv671/hospital)
@@ -54113,7 +54113,7 @@
 "xmk" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/strata,
@@ -54187,7 +54187,7 @@
 /obj/structure/machinery/cm_vending/sorted/tech/comp_storage,
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/yellow1,
 /area/lv671/processor/under/equipment)
@@ -54242,7 +54242,7 @@
 "xoM" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata/yellow3/east,
 /area/lv671/processor/under/mech)
@@ -54443,7 +54443,7 @@
 /obj/structure/machinery/light,
 /obj/structure/bed/chair{
 	dir = 1;
-	tag = "icon-chair (NORTH)"
+	
 	},
 /turf/open/floor/strata/blue3/north,
 /area/lv671/administration/upper)
@@ -54687,7 +54687,7 @@
 "xAd" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/nothing)
@@ -55011,7 +55011,7 @@
 "xHR" = (
 /obj/structure/bed/chair/office/light{
 	dir = 8;
-	tag = "icon-officechair_white (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding4"
@@ -55198,7 +55198,7 @@
 	dir = 8;
 	id = "basketball";
 	side = "right";
-	tag = "icon-hoop (NORTH)"
+	
 	},
 /turf/open/floor/strata/floor3,
 /area/lv671/residential/fitness)
@@ -55247,7 +55247,7 @@
 "xNv" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "wood_siding9"
@@ -55276,7 +55276,7 @@
 "xOb" = (
 /obj/structure/machinery/light{
 	dir = 4;
-	tag = "icon-tube1 (EAST)"
+	
 	},
 /obj/structure/pipes/standard/simple/hidden/supply,
 /turf/open/floor/wood/color_a39898,
@@ -55306,7 +55306,7 @@
 "xPi" = (
 /obj/structure/bed/chair{
 	dir = 4;
-	tag = "icon-chair (EAST)"
+	
 	},
 /obj/structure/sign/poster/ad{
 	pixel_x = -26
@@ -55370,7 +55370,7 @@
 "xQb" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 4;
-	tag = "icon-wooden_chair (EAST)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/residential/under/flat/e)
@@ -55461,7 +55461,7 @@
 "xSf" = (
 /obj/structure/bed/chair/comfy{
 	dir = 1;
-	tag = "icon-comfychair (NORTH)"
+	
 	},
 /turf/open/floor/carpet,
 /area/lv671/nothing)
@@ -55752,7 +55752,7 @@
 /obj/structure/machinery/sleep_console,
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /obj/effect/decal/siding/wood_siding{
 	icon_state = "siding4"
@@ -56033,7 +56033,7 @@
 "ybC" = (
 /obj/structure/bed/chair/wood/normal{
 	dir = 1;
-	tag = "icon-wooden_chair (NORTH)"
+	
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/wood,
@@ -56092,7 +56092,7 @@
 "ycI" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SW-out";
-	tag = "icon-E-corner"
+	
 	},
 /obj/structure/machinery/smartfridge/chemistry,
 /obj/structure/sign/safety/chem_lab{
@@ -56133,11 +56133,11 @@
 "ydM" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NE-out";
-	tag = "icon-E-corner"
+	
 	},
 /obj/structure/machinery/light{
 	dir = 1;
-	tag = "icon-tube1 (NORTH)"
+	
 	},
 /turf/open/floor/strata/yellow3/north,
 /area/lv671/processor)
@@ -56233,7 +56233,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 4
@@ -56338,7 +56338,7 @@
 /obj/structure/flora/pottedplant{
 	icon_state = "pottedplant_22";
 	pixel_y = 16;
-	tag = "icon-pottedplant_10"
+	
 	},
 /turf/open/floor/strata,
 /area/lv671/residential)

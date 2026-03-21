@@ -1256,6 +1256,7 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/scope/variable_zoom/fal
 	name = "ODS R94 telescopic variable scope"
 	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "sniperscope_fal" // SS220 EDIT: use the PR-specific scope sprite in the PR attachment atlas
 	attach_icon = "sniperscope_fal"
 	desc = "A Orion Defence Systems telescopic scope used mainly for the R81M1D. Can switch between 2x and 4x magnification."
 	aim_speed_mod = 0
@@ -1358,6 +1359,7 @@ Defined in conflicts.dm of the #defines folder.
 	name = "ODS R92 2x advanced telescopic mini-scope"
 	desc = "An Orion Defence Systems R81M1D 2x advanced telescopic mini-scope, used mainly for the R81M1A and it's variants."
 	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "miniscope_fal" // SS220 EDIT: use the PR-specific miniscope sprite in the PR attachment atlas
 	attach_icon = "miniscope_fal"
 
 /obj/item/attachable/scope/mini/nsg23/rmc
@@ -2596,6 +2598,7 @@ Defined in conflicts.dm of the #defines folder.
 	name = "\improper R81M1D stock"
 	desc = "You kinda need this to even use the gun properly."
 	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "fal_saw_stock" // SS220 EDIT: use the PR-specific stock sprite in the PR attachment atlas
 	attach_icon = "fal_saw_stock"
 	wield_delay_mod = WIELD_DELAY_MIN
 	flags_attach_features = NO_FLAGS
@@ -4506,6 +4509,7 @@ Defined in conflicts.dm of the #defines folder.
 	name = "R81M1D bipod"
 	desc = "An integral bipod for the R81M1D Pulse Squad Automatic Weapon."
 	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "bipod_fal_saw_a" // SS220 EDIT: use the PR-specific bipod sprite in the PR attachment atlas
 	attach_icon = "bipod_fal_saw_a"
 	slot = "under"
 	size_mod = 0

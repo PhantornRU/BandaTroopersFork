@@ -105,7 +105,7 @@
 
 // Synth used for W-Y Deathsquads
 /datum/species/synthetic/colonial/combat
-	name = SYNTH_COMBAT
+	name = "Combat Synthetic" // SS220 EDIT: keep SYNTH_COMBAT reserved for the W-Y android species lookup
 	name_plural = "Combat Synthetics"
 	uses_skin_color = FALSE
 	special_body_types = FALSE

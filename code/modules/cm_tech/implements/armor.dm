@@ -174,8 +174,10 @@
 /obj/item/clothing/accessory/health/ceramic_plate/marine
 	name = "ASAPP armor plate"
 	desc = "Advanced Small Arms Protective Plate is a modular clip-on armor plate, designed to provide additional protection for USCMC combat personell, gives you extremely good protection against any bullet types, stops full metal jacket, armor piercing and even HEAP rounds."
-	icon_state = "armor_plate_100"
-	base_icon_state = "armor_plate"
+	// SS220 EDIT - START
+	icon_state = "ceramic2_100"
+	base_icon_state = "ceramic2"
+	// SS220 EDIT - END
 	overlay_state = "armor_plate_100"
 	slot = ACCESSORY_SLOT_PLATE
 	armor_health = 300
@@ -476,7 +478,6 @@
 	UnregisterSignal(wearer, COMSIG_HUMAN_REVIVED)
 	to_chat(wearer, SPAN_NOTICE("[icon2html(src, viewers(src))] \The <b>[src]</b> beeps: Chemical preservatives reserves depleted, replace the [src]"))
 	wearer.revive_grace_period = 5 MINUTES
-
 
 
 
