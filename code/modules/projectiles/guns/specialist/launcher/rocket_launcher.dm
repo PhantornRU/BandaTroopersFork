@@ -384,6 +384,7 @@
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/upp.dmi'
 	icon_state = "pf199"
 	item_state = "pf199"
+	base_gun_icon = "m83a2" // SS220 EDIT: PF-199 reuses the existing SADAR lineart state
 
 /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/set_bullet_traits()
 	. = ..()
