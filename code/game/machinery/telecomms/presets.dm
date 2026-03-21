@@ -48,7 +48,7 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 /obj/structure/machinery/telecomms/relay/preset/tower/Initialize()
 	GLOB.all_static_telecomms_towers += src
 	. = ..()
-	if(z)
+	if(z && is_managed_tcomms_z())
 		SSminimaps.add_marker(src, z, MINIMAP_FLAG_ALL, "supply")
 
 /obj/structure/machinery/telecomms/relay/preset/tower/Destroy()

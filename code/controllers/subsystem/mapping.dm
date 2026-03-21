@@ -169,11 +169,18 @@ SUBSYSTEM_DEF(mapping)
 			traits += list(default_traits)
 
 	// preload the relevant space_level datums
-	var/start_z = world.maxz + 1
+	// SS220 EDIT - START
+	// var/start_z = world.maxz + 1
+	var/start_z = length(z_list) + 1
+	// SS220 EDIT - END
 	var/i = 0
 	for (var/level in traits)
 		add_new_zlevel("[name][i ? " [i + 1]" : ""]", level, contain_turfs = FALSE)
 		++i
+	// SS220 EDIT - START: explicit invariant for managed z-levels to prevent opaque OOB failures
+	if(total_z && length(z_list) < start_z + total_z - 1)
+		CRASH("LoadGroup z-level allocation mismatch for [name]: start_z=[start_z], total_z=[total_z], length(z_list)=[length(z_list)], world.maxz=[world.maxz]")
+	// SS220 EDIT - END
 
 	// ================== CM Change ==================
 	// For some reason /tg/ SSmapping attempts to center the map in new Z-Level
@@ -184,18 +191,25 @@ SUBSYSTEM_DEF(mapping)
 	// load the maps
 	for (var/datum/parsed_map/pm as anything in parsed_maps)
 		var/bounds = pm.bounds
+		var/map_start = start_z + parsed_maps[pm]
 		var/x_offset = 1
 		var/y_offset = 1
 		if(bounds && world.maxx > bounds[MAP_MAXX])
 			x_offset = floor(world.maxx / 2 - bounds[MAP_MAXX] / 2) + 1
 		if(bounds && world.maxy > bounds[MAP_MAXY])
 			y_offset = floor(world.maxy / 2 - bounds[MAP_MAXY] / 2) + 1
-		if (!pm.load(x_offset, y_offset, start_z + parsed_maps[pm], no_changeturf = TRUE, new_z = TRUE))
+		if (!pm.load(x_offset, y_offset, map_start, no_changeturf = TRUE, new_z = TRUE))
 			errorList |= pm.original_path
 		// CM Snowflake for Mass Screenshot dimensions auto detection
-		for(var/z in bounds[MAP_MINZ] to bounds[MAP_MAXZ])
-			var/datum/space_level/zlevel = z_list[start_z + z - 1]
-			zlevel.bounds = list(bounds[MAP_MINX], bounds[MAP_MINY], z, bounds[MAP_MAXX], bounds[MAP_MAXY], z)
+		// SS220 EDIT - START: map local z and world z are not always identical; bind bounds by managed world z
+		var/map_z_count = bounds[MAP_MAXZ] - bounds[MAP_MINZ] + 1
+		for(var/local_z_index in 0 to map_z_count - 1)
+			var/world_z = map_start + local_z_index
+			var/datum/space_level/zlevel = z_list[world_z]
+			if(!zlevel)
+				CRASH("Missing managed z-level while loading [pm.original_path]: world_z=[world_z], map_start=[map_start], length(z_list)=[length(z_list)], world.maxz=[world.maxz]")
+			zlevel.bounds = list(bounds[MAP_MINX], bounds[MAP_MINY], world_z, bounds[MAP_MAXX], bounds[MAP_MAXY], world_z)
+		// SS220 EDIT - END
 
 	// =============== END CM Change =================
 
@@ -219,7 +233,10 @@ SUBSYSTEM_DEF(mapping)
 	InitializeDefaultZLevels()
 
 	// load the ground level
-	ground_start = world.maxz + 1
+	// SS220 EDIT - START
+	// ground_start = world.maxz + 1
+	ground_start = length(z_list) + 1
+	// SS220 EDIT - END
 
 	var/datum/map_config/ground_map = configs[GROUND_MAP]
 	INIT_ANNOUNCE("Loading [ground_map.map_name]...")
