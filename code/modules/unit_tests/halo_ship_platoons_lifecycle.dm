@@ -44,12 +44,14 @@
 
 	TEST_ASSERT(manager.claim_first_platoon_commander(halo_so), "Platoon Commander preference claim should accept HALO job datums without bad-indexing the default-role map.")
 
-/datum/unit_test/halo_ship_platoons_spawn_resolution_lifecycle
+/datum/unit_test/halo_ship_platoons_spawn_and_cryo_routing
 	parent_type = /datum/unit_test/halo_integration_test
 
-/datum/unit_test/halo_ship_platoons_spawn_resolution_lifecycle/Run()
+/datum/unit_test/halo_ship_platoons_spawn_and_cryo_routing/Run()
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO spawn resolution testing.")
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO spawn/cryo routing testing.")
+	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
+	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo emergency-call helper for HALO spawn/cryo routing testing.")
 
 	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
 
@@ -97,45 +99,29 @@
 	TEST_ASSERT_EQUAL(result.source_tag, "latejoin", "Latejoin resolver regression test produced an unexpected source tag.")
 	TEST_ASSERT_EQUAL(result.tier_tag, "tier_1", "Latejoin resolver regression test produced an unexpected tier tag.")
 
-	var/turf/center_turf = run_loc_floor_top_right
-	TEST_ASSERT_NOTNULL(center_turf, "Failed to resolve test turf for SO spawn roundstart test.")
+	var/turf/center_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(center_turf), "Failed to resolve test turf for SO spawn roundstart testing.")
 	var/turf/holding_turf = run_loc_floor_bottom_left
-	TEST_ASSERT(isfloorturf(holding_turf), "Failed to resolve holding turf for SO spawn roundstart test.")
-
-	var/turf/pod_turf = get_step(center_turf, WEST)
-	if(!isturf(pod_turf))
-		pod_turf = get_step(center_turf, EAST)
-	if(!isturf(pod_turf))
-		pod_turf = get_step(center_turf, NORTH)
-	if(!isturf(pod_turf))
-		pod_turf = get_step(center_turf, SOUTH)
-	TEST_ASSERT_NOTNULL(pod_turf, "Failed to find adjacent turf for SO spawn roundstart test cryopod.")
+	TEST_ASSERT(isfloorturf(holding_turf), "Failed to resolve holding turf for SO spawn roundstart testing.")
+	var/turf/pod_turf = get_adjacent_floor_turf(center_turf)
+	TEST_ASSERT(isfloorturf(pod_turf), "Failed to find adjacent turf for SO spawn roundstart test cryopod.")
 
 	allocate(/obj/effect/landmark/start/bridge, center_turf)
 	allocate(/obj/structure/machinery/cryopod, pod_turf)
 
 	var/datum/job/so_job = role_authority.roles_by_name[JOB_SO_UNSC]
-	TEST_ASSERT_NOTNULL(so_job, "Failed to resolve JOB_SO_UNSC datum for SO spawn roundstart test.")
+	TEST_ASSERT_NOTNULL(so_job, "Failed to resolve JOB_SO_UNSC datum for SO spawn roundstart testing.")
 
 	var/mob/living/carbon/human/so_human = create_test_human("HALO SO Spawn Candidate", JOB_SO_UNSC, null, holding_turf)
 	var/list/spawn_candidate = so_human.get_modular_spawn_candidate(so_job, FALSE)
 
-	TEST_ASSERT_NOTNULL(spawn_candidate, "Modular spawn candidate was null for SO roundstart test.")
+	TEST_ASSERT_NOTNULL(spawn_candidate, "Modular spawn candidate was null for SO roundstart testing.")
 	TEST_ASSERT_EQUAL(spawn_candidate["source_tag"], "start_job", "SO spawn candidate source tag was not start_job.")
 	TEST_ASSERT_EQUAL(spawn_candidate["tier_tag"], "job", "SO spawn candidate tier tag was not job.")
 	TEST_ASSERT_EQUAL(spawn_candidate["no_pod_expected"], FALSE, "SO spawn candidate unexpectedly marked no_pod_expected.")
 	TEST_ASSERT(isfloorturf(spawn_candidate["spawn_turf"]), "SO spawn candidate did not resolve to a floor turf.")
 	TEST_ASSERT(istype(spawn_candidate["preferred_pod"], /obj/structure/machinery/cryopod), "SO spawn candidate did not resolve to a cryopod.")
 	TEST_ASSERT_EQUAL(get_dist(spawn_candidate["spawn_turf"], get_turf(spawn_candidate["preferred_pod"])), 1, "SO spawn candidate did not keep the preferred cryopod cardinally adjacent to its spawn turf.")
-
-/datum/unit_test/halo_ship_platoons_cryo_lifecycle_contracts
-	parent_type = /datum/unit_test/halo_integration_test
-
-/datum/unit_test/halo_ship_platoons_cryo_lifecycle_contracts/Run()
-	var/datum/emergency_call/cryo_squad/cryo_call = allocate(/datum/emergency_call/cryo_squad)
-	TEST_ASSERT_NOTNULL(cryo_call, "Failed to allocate the cryo emergency-call helper for HALO cryo lifecycle testing.")
-
-	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
 
 	var/mob/living/carbon/human/unsc_medic = create_test_human("HALO Cryo Medic", JOB_SQUAD_MEDIC)
 	TEST_ASSERT(cryo_call.apply_profile_cryo_reinforcement(unsc_medic, JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC, null, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO UNSC cryo helper failed to apply a supported medic override.")
@@ -154,23 +140,27 @@
 	assert_halo_smoke_state(odst_medic, /datum/equipment_preset/unsc/medic/odst, JOB_SQUAD_MEDIC_ODST)
 	assert_assigned_to_platoon_family(odst_medic, /datum/squad/marine/halo/odst/alpha, "HALO ODST cryo medic")
 
-/datum/unit_test/halo_ship_platoons_surface_access_contracts
+/datum/unit_test/halo_ship_platoons_surfaces_and_pending_sync
 	parent_type = /datum/unit_test/halo_integration_test
 
-/datum/unit_test/halo_ship_platoons_surface_access_contracts/Run()
-	var/turf/vendor_turf = run_loc_floor_top_right
-	var/turf/user_turf = get_step(vendor_turf, SOUTH)
-	if(!isfloorturf(user_turf))
-		user_turf = get_step(vendor_turf, NORTH)
-	TEST_ASSERT(isfloorturf(user_turf), "Failed to find a user turf for HALO medical vendor access testing.")
+/datum/unit_test/halo_ship_platoons_surfaces_and_pending_sync/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO ship-surface lifecycle testing.")
 
-	var/mob/living/carbon/human/vendor_human = create_test_human("UNSC Vendor Corpsman", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha, user_turf)
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/turf/mainship_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(mainship_turf), "Failed to resolve a floor turf for HALO ship-surface lifecycle testing.")
+	var/turf/adjacent_turf = get_adjacent_floor_turf(mainship_turf)
+	TEST_ASSERT(isfloorturf(adjacent_turf), "Failed to resolve an adjacent floor turf for HALO ship-surface lifecycle testing.")
+
+	var/mob/living/carbon/human/vendor_human = create_test_human("UNSC Vendor Corpsman", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha, adjacent_turf)
 	TEST_ASSERT_NOTNULL(prepare_test_human_for_squad(vendor_human, /datum/equipment_preset/unsc/medic, JOB_SQUAD_MEDIC_UNSC), "Failed to equip an ID onto the HALO medical vendor access test mob.")
 
-	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chem_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, vendor_turf)
+	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chem_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, mainship_turf)
 	TEST_ASSERT(chem_vendor.can_access_to_vend(vendor_human, FALSE), "HALO UNSC corpsman lost access to the chemical medic vendor.")
 
-	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/med_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc, vendor_turf)
+	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/med_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc, mainship_turf)
 	med_vendor.req_access = list(ACCESS_MARINE_MEDPREP)
 	TEST_ASSERT(med_vendor.can_access_to_vend(vendor_human, FALSE), "HALO UNSC corpsman lost access to the medical vendor when medprep access was required.")
 
@@ -183,12 +173,12 @@
 	TEST_ASSERT_NOTNULL(lifesaver_item, "Failed to resolve the Lifesaver Bag listing in the HALO medical vendor.")
 	TEST_ASSERT_EQUAL(lifesaver_item[3], /obj/item/storage/belt/medical/lifesaver/unsc, "HALO medical vendor listing regressed away from the UNSC Lifesaver Bag.")
 
-	var/turf/test_turf = run_loc_floor_top_right
-	var/datum/squad/marine/halo/unsc/alpha/squad = allocate(/datum/squad/marine/halo/unsc/alpha)
-	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1/locker_ft1 = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, test_turf)
-	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2/locker_ft2 = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2, test_turf)
+	var/datum/squad/squad = role_authority.squads_by_type[/datum/squad/marine/halo/unsc/alpha]
+	TEST_ASSERT_NOTNULL(squad, "Failed to resolve the HALO UNSC Alpha squad for specialist locker access testing.")
 
-	var/mob/living/carbon/human/first_specialist = create_test_human("HALO UNSC Spec One", JOB_SQUAD_SPECIALIST, null, test_turf)
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1/locker_ft1 = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, mainship_turf)
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2/locker_ft2 = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2, mainship_turf)
+	var/mob/living/carbon/human/first_specialist = create_test_human("HALO UNSC Spec One", JOB_SQUAD_SPECIALIST, null, adjacent_turf)
 	var/obj/item/card/id/first_id = prepare_test_human_for_squad(first_specialist, /datum/equipment_preset/unsc/spec, JOB_SQUAD_SPECIALIST)
 	TEST_ASSERT_NOTNULL(first_id, "Failed to equip an ID onto the HALO UNSC specialist test mob.")
 	TEST_ASSERT(squad.put_marine_in_squad(first_specialist), "Failed to insert the HALO UNSC specialist into a squad for locker access testing.")
@@ -197,34 +187,15 @@
 	TEST_ASSERT(locker_ft1.allowed(first_specialist), "The HALO UNSC specialist could not access the SQ1 weapons locker after squad insertion.")
 	TEST_ASSERT(!locker_ft2.allowed(first_specialist), "The HALO UNSC specialist incorrectly gained access to the SQ2 weapons locker.")
 
-/datum/unit_test/halo_ship_platoons_ship_surface_replacement_contracts
-	parent_type = /datum/unit_test/halo_integration_test
-
-/datum/unit_test/halo_ship_platoons_ship_surface_replacement_contracts/Run()
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for ship surface replacement testing.")
-
-	var/turf/mainship_turf = run_loc_floor_top_right
-	TEST_ASSERT(isfloorturf(mainship_turf), "Failed to resolve a floor turf for ship surface replacement testing.")
-
-	var/turf/linked_turf = get_step(mainship_turf, WEST)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, EAST)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, NORTH)
-	if(!isfloorturf(linked_turf))
-		linked_turf = get_step(mainship_turf, SOUTH)
-	TEST_ASSERT(isfloorturf(linked_turf), "Failed to resolve linked spawn turf for ship surface replacement testing.")
-
 	var/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman/source_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/alpha/rifleman, mainship_turf)
 	source_locker.pixel_x = 11
 	source_locker.pixel_y = -6
 	source_locker.dir = WEST
 	source_locker.density = FALSE
 	source_locker.owner = "Mapper Locker"
-	source_locker.x_to_linked_spawn_turf = linked_turf.x - source_locker.x
-	source_locker.y_to_linked_spawn_turf = linked_turf.y - source_locker.y
-	source_locker.linked_spawn_turf = linked_turf
+	source_locker.x_to_linked_spawn_turf = adjacent_turf.x - source_locker.x
+	source_locker.y_to_linked_spawn_turf = adjacent_turf.y - source_locker.y
+	source_locker.linked_spawn_turf = adjacent_turf
 	var/obj/item/device/flashlight/mapper_item = allocate(/obj/item/device/flashlight, source_locker)
 
 	var/obj/structure/closet/secure_closet/marine_personal/target_locker = role_authority.replace_ship_surface_fixture(
@@ -240,7 +211,7 @@
 	TEST_ASSERT_EQUAL(target_locker.pixel_y, -6, "Locker ship surface replacement did not preserve pixel_y.")
 	TEST_ASSERT_EQUAL(target_locker.dir, WEST, "Locker ship surface replacement did not preserve direction.")
 	TEST_ASSERT_EQUAL(target_locker.owner, "Mapper Locker", "Locker ship surface replacement did not preserve locker owner metadata.")
-	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, linked_turf, "Locker ship surface replacement did not preserve linked spawn turf.")
+	TEST_ASSERT_EQUAL(target_locker.linked_spawn_turf, adjacent_turf, "Locker ship surface replacement did not preserve linked spawn turf.")
 	TEST_ASSERT(mapper_item in target_locker.contents, "Locker ship surface replacement lost mapper-added contents.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc), 0, "Locker ship surface replacement incorrectly carried over the exact UNSC baseline headset into the ODST locker.")
 	TEST_ASSERT(count_personal_locker_contents_by_exact_type(target_locker, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst) >= 1, "Locker ship surface replacement did not keep the ODST baseline headset.")
@@ -267,15 +238,6 @@
 	TEST_ASSERT_EQUAL(target_vendor.dir, SOUTH, "Vendor ship surface replacement did not preserve direction.")
 	TEST_ASSERT(vendor_mapper_item in target_vendor.contents, "Vendor ship surface replacement lost mapper-added contents.")
 	TEST_ASSERT(length(target_vendor.listed_products) == 0 || target_vendor.listed_products[1][1] != "BOGUS", "Vendor ship surface replacement incorrectly copied source listed_products into the new vendor.")
-
-/datum/unit_test/halo_ship_platoons_sync_pending_same_ship_platoon_for_round_start
-	parent_type = /datum/unit_test/halo_integration_test
-
-/datum/unit_test/halo_ship_platoons_sync_pending_same_ship_platoon_for_round_start/Run()
-	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
-
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for pending same-ship platoon sync testing.")
 
 	var/datum/map_config/current_ship_config = SSmapping?.configs?[SHIP_MAP]
 	TEST_ASSERT_NOTNULL(current_ship_config, "Failed to resolve the current ship config for pending same-ship platoon sync testing.")

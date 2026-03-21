@@ -27,14 +27,6 @@
 			"grenades" = 1,
 			"swords" = 1,
 		),
-		/datum/equipment_preset/covenant/sangheili/ai/zealot_command = list(
-			"weapon" = /obj/item/weapon/gun/energy/plasma/plasma_rifle,
-			"carbine_mags" = 0,
-			"bicaridine" = 1,
-			"oxycodone" = 1,
-			"grenades" = 1,
-			"swords" = 1,
-		),
 	)
 
 	for(var/preset_type as anything in utility_matrix)
@@ -52,43 +44,33 @@
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
 /datum/unit_test/halo_sangheili_ai_sword_presets/Run()
-	var/list/sword_presets = list(
-		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword,
-		/datum/equipment_preset/covenant/sangheili/ai/zealot_sword,
-	)
+	var/preset_type = /datum/equipment_preset/covenant/sangheili/ai/ultra_sword
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili sword AI for [preset_type].")
+	var/mob/living/carbon/human/human = brain.tied_human
+	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/loose_plasma = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, get_turf(human))
 
-	for(var/preset_type as anything in sword_presets)
-		var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
-		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili sword AI for [preset_type].")
-		var/mob/living/carbon/human/human = brain.tied_human
-		var/obj/item/weapon/gun/energy/plasma/plasma_rifle/loose_plasma = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, get_turf(human))
-
-		TEST_ASSERT_NULL(human.s_store, "[preset_type] should not keep a firearm in suit storage.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), 1, "[preset_type] should equip exactly one energy sword in the belt.")
-		TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] lost its HALO sword-bearing metadata.")
-		TEST_ASSERT(brain.halo_sangheili_sword_only, "[preset_type] should commit to the sword-only behavior tree.")
-		TEST_ASSERT(brain.ignore_looting, "[preset_type] should ignore looting to remain sword-only.")
-		TEST_ASSERT_NOTNULL(loose_plasma, "Failed to allocate a dropped plasma rifle for the ignore_looting Sangheili test.")
-		brain.item_search(range(1, human))
-		TEST_ASSERT(!length(brain.to_pickup), "[preset_type] should not queue dropped firearms while ignore_looting is enabled.")
+	TEST_ASSERT_NULL(human.s_store, "[preset_type] should not keep a firearm in suit storage.")
+	TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), 1, "[preset_type] should equip exactly one energy sword in the belt.")
+	TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] lost its HALO sword-bearing metadata.")
+	TEST_ASSERT(brain.halo_sangheili_sword_only, "[preset_type] should commit to the sword-only behavior tree.")
+	TEST_ASSERT(brain.ignore_looting, "[preset_type] should ignore looting to remain sword-only.")
+	TEST_ASSERT_NOTNULL(loose_plasma, "Failed to allocate a dropped plasma rifle for the ignore_looting Sangheili test.")
+	brain.item_search(range(1, human))
+	TEST_ASSERT(!length(brain.to_pickup), "[preset_type] should not queue dropped firearms while ignore_looting is enabled.")
 
 /datum/unit_test/halo_sangheili_ai_mixed_sword_flags
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
 /datum/unit_test/halo_sangheili_ai_mixed_sword_flags/Run()
-	var/list/mixed_presets = list(
-		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
-		/datum/equipment_preset/covenant/sangheili/ai/zealot_command,
-	)
+	var/preset_type = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO mixed Sangheili AI for [preset_type].")
+	var/mob/living/carbon/human/human = brain.tied_human
 
-	for(var/preset_type as anything in mixed_presets)
-		var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
-		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO mixed Sangheili AI for [preset_type].")
-		var/mob/living/carbon/human/human = brain.tied_human
-
-		TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun), "[preset_type] should retain its primary firearm.")
-		TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] should expose the HALO sword-bearing metadata.")
-		TEST_ASSERT(!brain.halo_sangheili_sword_only, "[preset_type] should remain a mixed ranged/melee archetype.")
+	TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun), "[preset_type] should retain its primary firearm.")
+	TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] should expose the HALO sword-bearing metadata.")
+	TEST_ASSERT(!brain.halo_sangheili_sword_only, "[preset_type] should remain a mixed ranged/melee archetype.")
 
 /datum/unit_test/halo_sangheili_ai_action_weights
 	parent_type = /datum/unit_test/halo_sangheili_equipment

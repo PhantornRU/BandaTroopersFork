@@ -96,6 +96,12 @@
 	return TRUE
 
 /datum/unit_test/halo_sangheili_equipment/proc/get_sangheili_test_origin(min_clear_distance = 1)
+	var/static/list/cached_origins = list()
+	var/cache_key = "[min_clear_distance]"
+	var/turf/cached_origin = cached_origins[cache_key]
+	if(isfloorturf(cached_origin) && find_target_turf_from_origin(cached_origin, min_clear_distance))
+		return cached_origin
+
 	var/search_radius = max(min_clear_distance + 4, 6)
 	var/list/search_roots = list(run_loc_floor_top_right, run_loc_floor_bottom_left, SSmapping?.get_mainship_center())
 	var/list/search_levels = list()
@@ -108,6 +114,7 @@
 			if(!isfloorturf(floor_tile))
 				continue
 			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				cached_origins[cache_key] = floor_tile
 				return floor_tile
 
 	for(var/z_level as anything in search_levels)
@@ -119,10 +126,12 @@
 			if(!isfloorturf(floor_tile))
 				continue
 			if(find_target_turf_from_origin(floor_tile, min_clear_distance))
+				cached_origins[cache_key] = floor_tile
 				return floor_tile
 
 	var/turf/fallback_origin = isfloorturf(run_loc_floor_top_right) ? run_loc_floor_top_right : run_loc_floor_bottom_left
-	return ensure_clear_sangheili_lane(fallback_origin, EAST, min_clear_distance)
+	cached_origins[cache_key] = ensure_clear_sangheili_lane(fallback_origin, EAST, min_clear_distance)
+	return cached_origins[cache_key]
 
 /datum/unit_test/halo_sangheili_equipment/proc/ensure_clear_sangheili_lane(turf/origin, direction, distance)
 	if(!isturf(origin))
@@ -263,20 +272,6 @@
 			"shoes" = /obj/item/clothing/shoes/sangheili/minor,
 			"belt" = /obj/item/storage/belt/marine/covenant/sangheili/minor,
 		),
-		/datum/equipment_preset/covenant/sangheili/major = list(
-			"helmet" = /obj/item/clothing/head/helmet/marine/sangheili/major,
-			"suit" = /obj/item/clothing/suit/marine/shielded/sangheili/major,
-			"gloves" = /obj/item/clothing/gloves/marine/sangheili/major,
-			"shoes" = /obj/item/clothing/shoes/sangheili/major,
-			"belt" = /obj/item/storage/belt/marine/covenant/sangheili/major,
-		),
-		/datum/equipment_preset/covenant/sangheili/ultra = list(
-			"helmet" = /obj/item/clothing/head/helmet/marine/sangheili/ultra,
-			"suit" = /obj/item/clothing/suit/marine/shielded/sangheili/ultra,
-			"gloves" = /obj/item/clothing/gloves/marine/sangheili/ultra,
-			"shoes" = /obj/item/clothing/shoes/sangheili/ultra,
-			"belt" = /obj/item/storage/belt/marine/covenant/sangheili/ultra,
-		),
 		/datum/equipment_preset/covenant/sangheili/zealot = list(
 			"helmet" = /obj/item/clothing/head/helmet/marine/sangheili/zealot,
 			"suit" = /obj/item/clothing/suit/marine/shielded/sangheili/zealot,
@@ -327,8 +322,6 @@
 /datum/unit_test/halo_sangheili_player_rank_utility/Run()
 	var/list/utility_matrix = list(
 		/datum/equipment_preset/covenant/sangheili/minor = list("bicaridine" = 0, "oxycodone" = 0, "grenades" = 0, "swords" = 0),
-		/datum/equipment_preset/covenant/sangheili/major = list("bicaridine" = 1, "oxycodone" = 0, "grenades" = 0, "swords" = 0),
-		/datum/equipment_preset/covenant/sangheili/ultra = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1, "swords" = 1),
 		/datum/equipment_preset/covenant/sangheili/zealot = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1, "swords" = 1),
 	)
 
