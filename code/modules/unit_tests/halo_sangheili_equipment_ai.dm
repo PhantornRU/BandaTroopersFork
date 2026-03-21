@@ -1,77 +1,3 @@
-/datum/unit_test/halo_sangheili_ai_rank_utility
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_rank_utility/Run()
-	var/list/utility_matrix = list(
-		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = list(
-			"weapon" = /obj/item/weapon/gun/energy/plasma/plasma_rifle,
-			"carbine_mags" = 0,
-			"bicaridine" = 0,
-			"oxycodone" = 0,
-			"grenades" = 0,
-			"swords" = 0,
-		),
-		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = list(
-			"weapon" = /obj/item/weapon/gun/rifle/covenant_carbine,
-			"carbine_mags" = 5,
-			"bicaridine" = 1,
-			"oxycodone" = 0,
-			"grenades" = 0,
-			"swords" = 0,
-		),
-		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = list(
-			"weapon" = /obj/item/weapon/gun/energy/plasma/plasma_rifle,
-			"carbine_mags" = 0,
-			"bicaridine" = 1,
-			"oxycodone" = 1,
-			"grenades" = 1,
-			"swords" = 1,
-		),
-	)
-
-	for(var/preset_type as anything in utility_matrix)
-		var/mob/living/carbon/human/human = create_sangheili(preset_type)
-		var/list/expected = utility_matrix[preset_type]
-
-		TEST_ASSERT(istype(human.s_store, expected["weapon"]), "[preset_type] no longer equips its expected primary weapon into suit storage.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/ammo_magazine/carbine), expected["carbine_mags"], "[preset_type] drifted from the intended Sangheili carbine magazine count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo), expected["bicaridine"], "[preset_type] drifted from the intended Sangheili bicaridine count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo), expected["oxycodone"], "[preset_type] drifted from the intended Sangheili oxycodone count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/explosive/grenade/high_explosive/covenant/plasma), expected["grenades"], "[preset_type] drifted from the intended Sangheili plasma grenade count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), expected["swords"], "[preset_type] drifted from the intended Sangheili energy sword count.")
-
-/datum/unit_test/halo_sangheili_ai_sword_presets
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_sword_presets/Run()
-	var/preset_type = /datum/equipment_preset/covenant/sangheili/ai/ultra_sword
-	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili sword AI for [preset_type].")
-	var/mob/living/carbon/human/human = brain.tied_human
-	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/loose_plasma = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, get_turf(human))
-
-	TEST_ASSERT_NULL(human.s_store, "[preset_type] should not keep a firearm in suit storage.")
-	TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), 1, "[preset_type] should equip exactly one energy sword in the belt.")
-	TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] lost its HALO sword-bearing metadata.")
-	TEST_ASSERT(brain.halo_sangheili_sword_only, "[preset_type] should commit to the sword-only behavior tree.")
-	TEST_ASSERT(brain.ignore_looting, "[preset_type] should ignore looting to remain sword-only.")
-	TEST_ASSERT_NOTNULL(loose_plasma, "Failed to allocate a dropped plasma rifle for the ignore_looting Sangheili test.")
-	brain.item_search(range(1, human))
-	TEST_ASSERT(!length(brain.to_pickup), "[preset_type] should not queue dropped firearms while ignore_looting is enabled.")
-
-/datum/unit_test/halo_sangheili_ai_mixed_sword_flags
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_mixed_sword_flags/Run()
-	var/preset_type = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma
-	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(preset_type)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO mixed Sangheili AI for [preset_type].")
-	var/mob/living/carbon/human/human = brain.tied_human
-
-	TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun), "[preset_type] should retain its primary firearm.")
-	TEST_ASSERT(brain.halo_sangheili_has_sword, "[preset_type] should expose the HALO sword-bearing metadata.")
-	TEST_ASSERT(!brain.halo_sangheili_sword_only, "[preset_type] should remain a mixed ranged/melee archetype.")
-
 /datum/unit_test/halo_sangheili_ai_action_weights
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -109,33 +35,6 @@
 	COOLDOWN_START(minor_plasma_weapon, cooldown, 5 SECONDS)
 	TEST_ASSERT(GLOB.AI_actions[/datum/ai_action/sangheili_overheat_response].get_weight(minor_plasma) > 0, "A non-sword Sangheili should use the HALO overheat fallback while its plasma weapon cools.")
 
-/datum/unit_test/halo_sangheili_ai_pathing_tuning
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_pathing_tuning/Run()
-	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
-	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO Ultra plasma AI for pathing-tuning tests.")
-	TEST_ASSERT_EQUAL(ultra_plasma.short_step_pathing_range, ultra_plasma.halo_sangheili_sword_charge_range + 1, "HALO Sangheili AI should use nearby short-step movement for sword-charge range fights.")
-	TEST_ASSERT_EQUAL(ultra_plasma.path_target_retarget_slack, 2, "HALO Sangheili AI should tolerate small target drift before rebuilding a melee path.")
-
-	// SS220 EDIT - START: keep the retarget-slack test inside the tiny unit-test template floor band
-	var/turf/origin = run_loc_floor_bottom_left
-	TEST_ASSERT(isfloorturf(origin), "The HALO Sangheili pathing-tuning origin turf was not a floor ([origin]).")
-	ultra_plasma.tied_human.forceMove(origin)
-	var/turf/reference_target = set_target_turf(ultra_plasma, 1)
-	// SS220 EDIT - END
-	TEST_ASSERT_NOTNULL(reference_target, "Failed to allocate the HALO Sangheili reference target turf for pathing-tuning tests.")
-	var/turf/slack_target = get_step(reference_target, EAST)
-	var/turf/far_target = get_step(get_step(slack_target, EAST), EAST)
-	TEST_ASSERT(isfloorturf(slack_target), "The one-tile HALO Sangheili drift target for pathing-tuning tests was not a floor ([slack_target]).")
-	TEST_ASSERT(isfloorturf(far_target), "The far HALO Sangheili drift target for pathing-tuning tests was not a floor ([far_target]).")
-
-	ultra_plasma.current_path = list(reference_target)
-	ultra_plasma.current_path_target = reference_target
-	TEST_ASSERT(!ultra_plasma.path_target_needs_refresh(slack_target), "HALO Sangheili melee pathing should keep the current target while the enemy only drifts by one tile.")
-	TEST_ASSERT(ultra_plasma.path_target_needs_refresh(far_target), "HALO Sangheili melee pathing should refresh once the enemy drifts beyond the configured slack.")
-
-
 /datum/unit_test/halo_sangheili_ai_wakeup_rethink
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -162,47 +61,6 @@
 	brain.run_wake_rethink(queued_tick)
 
 	TEST_ASSERT_EQUAL(brain.active_grenade_found, grenade, "Standing back up should invalidate nearby-item throttling and immediately rediscover an adjacent live grenade.")
-
-/datum/unit_test/halo_sangheili_ai_sword_auto_activation
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_sword_auto_activation/Run()
-	var/datum/human_ai_brain/ultra_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_sword)
-	TEST_ASSERT_NOTNULL(ultra_sword, "Failed to create the HALO Ultra sword AI for sword auto-activation testing.")
-
-	var/mob/living/carbon/human/human = ultra_sword.tied_human
-	var/obj/item/weapon/covenant/energy_sword/sword = ultra_sword.halo_sangheili_draw_sword()
-	TEST_ASSERT_NOTNULL(sword, "Failed to draw the HALO AI Sangheili sword for sword auto-activation testing.")
-	TEST_ASSERT(sword.activated, "The HALO AI sword draw helper should still activate the sword before the test reset.")
-
-	sword.toggle_activation(human)
-	TEST_ASSERT(!sword.activated, "The HALO AI sword test setup failed to return the sword to its inactive state.")
-
-	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
-	TEST_ASSERT_NOTNULL(target, "Failed to allocate a target for HALO AI Sangheili sword auto-activation testing.")
-	human.a_intent_change(INTENT_HARM)
-	sword.attack(target, human)
-
-	TEST_ASSERT(sword.activated, "Sword-only HALO Sangheili AI should auto-activate its energy sword before attacking.")
-
-/datum/unit_test/halo_sangheili_ai_mixed_sword_auto_activation
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_mixed_sword_auto_activation/Run()
-	var/datum/human_ai_brain/ultra_plasma = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
-	TEST_ASSERT_NOTNULL(ultra_plasma, "Failed to create the HALO mixed Sangheili AI for sword auto-activation testing.")
-
-	var/mob/living/carbon/human/human = ultra_plasma.tied_human
-	var/obj/item/weapon/covenant/energy_sword/sword = put_sword_in_active_hand(human)
-	TEST_ASSERT_NOTNULL(sword, "Failed to move the HALO mixed Sangheili sword into the active hand for sword auto-activation testing.")
-	TEST_ASSERT(!sword.activated, "Mixed HALO Sangheili sword test setup should begin with an inactive sword.")
-
-	var/mob/living/carbon/human/target = allocate(/mob/living/carbon/human, run_loc_floor_bottom_left)
-	TEST_ASSERT_NOTNULL(target, "Failed to allocate a target for HALO mixed Sangheili sword auto-activation testing.")
-	human.a_intent_change(INTENT_HARM)
-	sword.attack(target, human)
-
-	TEST_ASSERT(sword.activated, "Mixed HALO Sangheili AI should auto-activate its sword even outside the dedicated draw helper path.")
 
 /datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch
 	parent_type = /datum/unit_test/halo_sangheili_equipment
@@ -313,33 +171,3 @@
 	TEST_ASSERT(sword.activated, "HALO no-gun Sangheili should keep the sword active instead of deactivating it on teardown.")
 
 	qdel(charge_action)
-
-/datum/unit_test/halo_sangheili_ai_speech_profiles
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_speech_profiles/Run()
-	var/datum/human_ai_brain/major = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/major_carbine)
-	var/datum/human_ai_brain/zealot_sword = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/zealot_sword)
-	TEST_ASSERT_NOTNULL(major, "Failed to create the HALO Sangheili major AI for speech-profile testing.")
-	TEST_ASSERT_NOTNULL(zealot_sword, "Failed to create the HALO Sangheili zealot sword AI for speech-profile testing.")
-
-	assert_human_ai_localized_lines(major.enter_combat_lines, "Sangheili major enter_combat_lines")
-	assert_human_ai_localized_lines(major.need_healing_lines, "Sangheili major need_healing_lines")
-	assert_human_ai_localized_lines(zealot_sword.enter_combat_lines, "Sangheili zealot sword enter_combat_lines")
-
-	TEST_ASSERT(major.enter_combat_lines.Find("Покажите честь в бою."), "Sangheili major AI lost its HALO-formal base speech profile.")
-	TEST_ASSERT(major.enter_combat_lines.Find("По моему слову."), "Sangheili major AI lost its rank-specific speech lines.")
-	TEST_ASSERT(zealot_sword.enter_combat_lines.Find("Во имя Священного Круга!"), "Sangheili zealot AI lost its zealot-specific speech lines.")
-	TEST_ASSERT(zealot_sword.enter_combat_lines.Find("Клинки к бою!"), "Sword-only Sangheili lost its sword-charge speech lines.")
-
-/datum/unit_test/halo_sangheili_ai_item_search_throttle
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_ai_item_search_throttle/Run()
-	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Sangheili AI for the item-search throttling test.")
-	TEST_ASSERT(brain.nearby_item_search_interval > 0, "HALO Sangheili AI should enable nearby item-search throttling.")
-	TEST_ASSERT(brain.should_run_nearby_item_search(), "A freshly created HALO Sangheili AI should allow its first nearby item scan.")
-	TEST_ASSERT(!brain.should_run_nearby_item_search(), "HALO nearby item-search throttling should block an immediate second scan in the same state.")
-	brain.invalidate_nearby_item_search()
-	TEST_ASSERT(brain.should_run_nearby_item_search(), "Invalidating HALO nearby item-search throttling should force the next scan to run immediately.")

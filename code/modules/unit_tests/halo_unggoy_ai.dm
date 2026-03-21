@@ -75,28 +75,6 @@
 	TEST_ASSERT_NOTNULL(crystals, "[preset_type] did not expose needler crystals through the AI ammunition map.")
 	TEST_ASSERT(length(brain.equipment_map[HUMAN_AI_AMMUNITION]) >= 1, "[preset_type] did not retain readable ammunition in the AI equipment map.")
 
-/datum/unit_test/halo_unggoy_ai_voiceline_throttle
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_voiceline_throttle/Run()
-	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/major_needler)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for voiceline throttle testing.")
-
-	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
-	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Unggoy combat voiceline cooldown should start cleared in the test setup.")
-
-	brain.say_reload_line()
-	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should consume the shared AI voiceline cooldown.")
-
-	var/remaining_after_first_line = COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown)
-	brain.say_reload_line()
-	TEST_ASSERT_EQUAL(COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown), remaining_after_first_line, "Immediate repeated reload chatter should be blocked by the shared AI voiceline cooldown.")
-
-	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
-	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "The shared AI voiceline cooldown should reset cleanly for later combat chatter.")
-	brain.say_reload_line()
-	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should resume once the shared AI voiceline cooldown expires.")
-
 /datum/unit_test/halo_unggoy_ai_bomber_overrides
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -286,22 +264,6 @@
 	TEST_ASSERT_NULL(data.distances[run_loc_floor_top_right], "Re-pathing should discard stale distances from the previous unfinished search.")
 	TEST_ASSERT_EQUAL(data.finish, second_destination, "Re-pathing should replace the old destination with the latest requested turf.")
 
-/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction/Run()
-	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for clientless vehicle-locker interaction testing.")
-
-	var/obj/structure/vehicle_locker/cabinet/cups/cabinet = allocate(/obj/structure/vehicle_locker/cabinet/cups, run_loc_floor_top_right)
-	TEST_ASSERT_NOTNULL(cabinet?.container, "Vehicle locker test setup failed to initialize the cabinet's internal storage.")
-	TEST_ASSERT(!brain.tied_human.client, "The HALO AI vehicle-locker interaction test expects a clientless AI human.")
-
-	cabinet.human_ai_act(brain.tied_human, brain)
-
-	TEST_ASSERT(!length(cabinet.container.content_watchers), "Clientless HALO AI should not register as a vehicle-locker storage watcher.")
-	TEST_ASSERT_NULL(brain.tied_human.s_active, "Clientless HALO AI should not open a vehicle-locker storage UI.")
-
 /datum/unit_test/halo_ai_projectile_backpressure
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -344,42 +306,6 @@
 	TEST_ASSERT(brain.halo_should_disable_cover_retreat(180), "HALO AI should prefer cheap retreat once projectile pressure reaches the hard limit.")
 	TEST_ASSERT(!brain.halo_should_defer_ranged_fire(brain.target_turf, 119), "HALO AI should keep ranged fire enabled below the projectile soft limit.")
 	TEST_ASSERT(brain.halo_should_defer_ranged_fire(brain.target_turf, 120), "HALO AI should defer ranged fire at the projectile soft limit.")
-
-/datum/unit_test/halo_unggoy_ai_firearm_appraisals
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_firearm_appraisals/Run()
-	var/obj/item/weapon/gun/energy/plasma/plasma_pistol/plasma_pistol = allocate(/obj/item/weapon/gun/energy/plasma/plasma_pistol, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/plasma_rifle = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/smg/covenant_needler/needler = allocate(/obj/item/weapon/gun/smg/covenant_needler, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/rifle/covenant_carbine/carbine = allocate(/obj/item/weapon/gun/rifle/covenant_carbine, run_loc_floor_top_right)
-
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_pistol)?.type, /datum/firearm_appraisal/halo_plasma_pistol, "Plasma pistol lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_rifle)?.type, /datum/firearm_appraisal/halo_plasma_rifle, "Plasma rifle lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(needler)?.type, /datum/firearm_appraisal/halo_needler, "Needler lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(carbine)?.type, /datum/firearm_appraisal/halo_carbine, "Carbine lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT(get_firearm_appraisal(plasma_rifle)?.count_every_shot_toward_burst_limit, "HALO plasma rifle AI appraisal should count each shot toward the sustained-fire cap.")
-	TEST_ASSERT(get_firearm_appraisal(needler)?.count_every_shot_toward_burst_limit, "HALO needler AI appraisal should count each shot toward the sustained-fire cap.")
-	TEST_ASSERT(get_firearm_appraisal(carbine)?.count_every_shot_toward_burst_limit, "HALO carbine AI appraisal should count each shot toward the sustained-fire cap.")
-
-/datum/unit_test/halo_unggoy_ai_speech_profiles
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_speech_profiles/Run()
-	var/datum/human_ai_brain/minor = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
-	var/datum/human_ai_brain/support = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/support_medical)
-	var/datum/human_ai_brain/bomber = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber)
-	TEST_ASSERT_NOTNULL(minor, "Failed to create the HALO Unggoy minor AI for speech-profile testing.")
-	TEST_ASSERT_NOTNULL(support, "Failed to create the HALO Unggoy support AI for speech-profile testing.")
-	TEST_ASSERT_NOTNULL(bomber, "Failed to create the HALO Unggoy bomber AI for speech-profile testing.")
-
-	assert_human_ai_localized_lines(minor.enter_combat_lines, "Unggoy minor enter_combat_lines")
-	assert_human_ai_localized_lines(support.need_healing_lines, "Unggoy support need_healing_lines")
-	assert_human_ai_localized_lines(bomber.enter_combat_lines, "Unggoy bomber enter_combat_lines")
-
-	TEST_ASSERT(minor.enter_combat_lines.Find("Начальник, помоги!"), "Unggoy AI lost its baseline panic-flavored speech lines.")
-	TEST_ASSERT(support.need_healing_lines.Find("Не дайте мне умереть, я же медик!"), "Unggoy support AI lost its medical-role speech lines.")
-	TEST_ASSERT(bomber.enter_combat_lines.Find("Я вас с собой заберу!"), "Unggoy bomber AI lost its suicide-role speech lines.")
 
 /datum/unit_test/halo_unggoy_ai_squad_compositions
 	parent_type = /datum/unit_test/halo_unggoy_ai

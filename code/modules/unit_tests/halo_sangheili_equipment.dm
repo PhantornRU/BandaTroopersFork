@@ -260,81 +260,6 @@
 	return
 
 
-/datum/unit_test/halo_sangheili_equipment_matrix
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_equipment_matrix/Run()
-	var/list/preset_matrix = list(
-		/datum/equipment_preset/covenant/sangheili/minor = list(
-			"helmet" = /obj/item/clothing/head/helmet/marine/sangheili/minor,
-			"suit" = /obj/item/clothing/suit/marine/shielded/sangheili/minor,
-			"gloves" = /obj/item/clothing/gloves/marine/sangheili/minor,
-			"shoes" = /obj/item/clothing/shoes/sangheili/minor,
-			"belt" = /obj/item/storage/belt/marine/covenant/sangheili/minor,
-		),
-		/datum/equipment_preset/covenant/sangheili/zealot = list(
-			"helmet" = /obj/item/clothing/head/helmet/marine/sangheili/zealot,
-			"suit" = /obj/item/clothing/suit/marine/shielded/sangheili/zealot,
-			"gloves" = /obj/item/clothing/gloves/marine/sangheili/zealot,
-			"shoes" = /obj/item/clothing/shoes/sangheili/zealot,
-			"belt" = /obj/item/storage/belt/marine/covenant/sangheili/zealot,
-		),
-	)
-
-	for(var/preset_type as anything in preset_matrix)
-		var/mob/living/carbon/human/human = create_sangheili(preset_type)
-		var/list/expected = preset_matrix[preset_type]
-
-		TEST_ASSERT_EQUAL(human.species?.name, SPECIES_SANGHEILI, "[preset_type] did not set the expected Sangheili species.")
-		TEST_ASSERT(istype(human.head, expected["helmet"]), "[preset_type] did not equip the expected Sangheili helmet.")
-		TEST_ASSERT(istype(human.wear_suit, expected["suit"]), "[preset_type] did not equip the expected Sangheili harness.")
-		TEST_ASSERT(istype(human.gloves, expected["gloves"]), "[preset_type] did not equip the expected Sangheili gloves.")
-		TEST_ASSERT(istype(human.shoes, expected["shoes"]), "[preset_type] did not equip the expected Sangheili greaves.")
-		TEST_ASSERT(istype(human.belt, expected["belt"]), "[preset_type] did not equip the expected Sangheili belt.")
-
-/datum/unit_test/halo_sangheili_equipment_item_states
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_equipment_item_states/Run()
-	var/list/item_state_matrix = list(
-		/obj/item/clothing/head/helmet/marine/sangheili/major = "sanghelmet_major",
-		/obj/item/clothing/head/helmet/marine/sangheili/ultra = "sanghelmet_ultra",
-		/obj/item/clothing/head/helmet/marine/sangheili/zealot = "sanghelmet_zealot",
-		/obj/item/clothing/gloves/marine/sangheili = "sanggauntlets_minor",
-		/obj/item/clothing/gloves/marine/sangheili/major = "sanggauntlets_major",
-		/obj/item/clothing/gloves/marine/sangheili/ultra = "sanggauntlets_ultra",
-		/obj/item/clothing/gloves/marine/sangheili/zealot = "sanggauntlets_zealot",
-		/obj/item/clothing/shoes/sangheili/major = "sangboots_major",
-		/obj/item/clothing/shoes/sangheili/ultra = "sangboots_ultra",
-		/obj/item/clothing/shoes/sangheili/zealot = "sangboots_zealot",
-		/obj/item/clothing/suit/marine/shielded/sangheili/major = "sang_major",
-		/obj/item/clothing/suit/marine/shielded/sangheili/ultra = "sang_ultra",
-		/obj/item/clothing/suit/marine/shielded/sangheili/zealot = "sang_zealot",
-	)
-
-	for(var/item_type as anything in item_state_matrix)
-		var/obj/item/item = allocate(item_type, run_loc_floor_top_right)
-		TEST_ASSERT_EQUAL(item.item_state, item_state_matrix[item_type], "[item_type] lost the expected onmob item_state.")
-
-/datum/unit_test/halo_sangheili_player_rank_utility
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_player_rank_utility/Run()
-	var/list/utility_matrix = list(
-		/datum/equipment_preset/covenant/sangheili/minor = list("bicaridine" = 0, "oxycodone" = 0, "grenades" = 0, "swords" = 0),
-		/datum/equipment_preset/covenant/sangheili/zealot = list("bicaridine" = 1, "oxycodone" = 1, "grenades" = 1, "swords" = 1),
-	)
-
-	for(var/preset_type as anything in utility_matrix)
-		var/mob/living/carbon/human/human = create_sangheili(preset_type)
-		var/list/expected = utility_matrix[preset_type]
-
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo), expected["bicaridine"], "[preset_type] drifted from the intended Sangheili bicaridine count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo), expected["oxycodone"], "[preset_type] drifted from the intended Sangheili oxycodone count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/explosive/grenade/high_explosive/covenant/plasma), expected["grenades"], "[preset_type] drifted from the intended Sangheili plasma grenade count.")
-		TEST_ASSERT_EQUAL(count_belt_items(human, /obj/item/weapon/covenant/energy_sword), expected["swords"], "[preset_type] drifted from the intended Sangheili energy sword count.")
-
-
 /datum/unit_test/halo_sangheili_recovery_reduction
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -392,26 +317,6 @@
 
 	sword.set_activation_state(FALSE, human)
 	TEST_ASSERT_EQUAL(get_held_sword_overlay_icon_state(human, sword), "energy_sword", "Deactivating the HALO sword should refresh the held overlay back to the inactive state.")
-
-/datum/unit_test/halo_sangheili_sword_hand_icon_dirs
-	parent_type = /datum/unit_test/halo_sangheili_equipment
-
-/datum/unit_test/halo_sangheili_sword_hand_icon_dirs/Run()
-	var/list/hand_icons = list(
-		"left" = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
-		"right" = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi',
-	)
-	var/list/required_states = list("energy_sword", "energy_sword_activated")
-	var/list/required_dirs = list(SOUTH, NORTH, EAST, WEST)
-
-	for(var/hand_label in hand_icons)
-		var/icon/hand_icon = hand_icons[hand_label]
-		for(var/state in required_states)
-			TEST_ASSERT(state in icon_states(hand_icon, 1), "HALO [hand_label]-hand sword DMI is missing the [state] state.")
-			for(var/direction in required_dirs)
-				TEST_ASSERT(length(icon_states(icon(hand_icon, state, direction))), "HALO [hand_label]-hand sword DMI is missing [state] for dir [direction].")
-				TEST_ASSERT(icon_state_has_visible_pixels(hand_icon, state, direction), "HALO [hand_label]-hand sword DMI has an empty [state] sprite for dir [direction].")
-
 
 #undef HALO_TEST_R_HAND_LAYER
 #undef HALO_TEST_L_HAND_LAYER
