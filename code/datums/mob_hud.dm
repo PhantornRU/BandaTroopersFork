@@ -26,6 +26,7 @@ GLOBAL_LIST_INIT_TYPED(huds, /datum/mob_hud, flatten_numeric_alist(alist(
 	MOB_HUD_HUNTER = new /datum/mob_hud/hunter_hud(),
 	MOB_HUD_HUNTER_CLAN = new /datum/mob_hud/hunter_clan(),
 	MOB_HUD_EXECUTE = new /datum/mob_hud/execute_hud(),
+	MOB_HUD_FACTION_UNSC = new /datum/mob_hud/faction/unsc(), // SS220 EDIT: HALO faction HUD
 	)))
 
 /datum/mob_hud
@@ -61,8 +62,9 @@ GLOBAL_LIST_INIT_TYPED(huds, /datum/mob_hud, flatten_numeric_alist(alist(
 	if(!user.client)
 		return
 	for(var/i in hud_icons)
-		user.client.images -= target.hud_list[i]
-		if(target.clone)
+		if(i in target.hud_list)
+			user.client.images -= target.hud_list[i]
+		if(target.clone && (i in target.clone.hud_list))
 			user.client.images -= target.clone.hud_list[i]
 
 // Allow user to view a HUD (putting on medical glasses)
@@ -232,6 +234,9 @@ GLOBAL_LIST_INIT_TYPED(huds, /datum/mob_hud, flatten_numeric_alist(alist(
 
 /datum/mob_hud/faction/fil
 	faction_to_check = FACTION_FIL
+
+/datum/mob_hud/faction/unsc
+	faction_to_check = FACTION_UNSC
 
 /datum/mob_hud/faction/observer
 	hud_icons = list(FACTION_HUD, ORDER_HUD, HUNTER_CLAN, HOLOCARD_HUD)
