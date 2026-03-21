@@ -5,10 +5,10 @@ import { useBackend } from '../backend';
 import {
   Box,
   Button,
-  Collapsible,
   Divider,
-  NumberInput,
+  Dropdown,
   Section,
+  Slider,
   Stack,
 } from '../components';
 import { Window } from '../layouts';
@@ -21,197 +21,313 @@ type AIEquipmentPreset = {
 
 type BackendContext = {
   presets: { [key: string]: AIEquipmentPreset[] };
-  zombieDelimbMulti: number;
-  randomHelmet: BooleanLike;
+  selected_faction: string;
+  selectable_factions: string[];
+  spawn_ai: boolean;
+  paradrop: boolean;
+  outfit: number;
+  desc: number;
+  spawn_click_intercept: boolean;
+  equipment_settings: string[];
+  selected_equipment: string;
+  species_settings: string[];
+  species_selected: string;
+  zombie_outer_wear: boolean;
+  zombie_outer_wear_chance: number;
+  zombie_delimb_multi: number;
+  clipboard: string;
   autoClean: BooleanLike;
-  helmetChance: number;
 };
 
 export const HumanAISpawner = (props) => {
   const { data, act } = useBackend<BackendContext>();
   const [chosenPreset, setPreset] = useState<AIEquipmentPreset | null>(null);
-  const [newZombieDelimbMulti, setZombieDelimbMulti] = useState<number | null>(
-    data.zombieDelimbMulti,
-  );
-  const [randomHelmetChecked, setRandomHelmetChecked] = useState<BooleanLike>(
-    data.randomHelmet,
-  );
-  const [newHelmetChance, setNewHelmetChance] = useState<number>(
-    data.helmetChance,
-  );
+  const [viewingFaction, setViewingFaction] = useState<string | null>(null);
   const { presets } = data;
-  const [aiAmount, setAiAmount] = useState<number>(1);
-  const [disableAutoClean, setDisableAutoClean] = useState<BooleanLike>(
-    data.autoClean,
-  );
 
-  const flipRandomHelmetChecked = () => {
-    if (randomHelmetChecked) {
-      setRandomHelmetChecked(false);
-    } else {
-      setRandomHelmetChecked(true);
-    }
-  };
-  const flipDisableAutoClean = () => {
-    if (disableAutoClean) {
-      setDisableAutoClean(false);
-    } else {
-      setDisableAutoClean(true);
-    }
-  };
-  const processNumber = (value) => {
-    if (value <= 0) {
-      setZombieDelimbMulti(-1);
-    } else {
-      setZombieDelimbMulti(value.toFixed(2));
-    }
-  };
+  const factionOptions = Object.keys(presets);
+
   return (
     <Window title="Human AI Spawner" width={800} height={900}>
       <Window.Content>
         <Stack fill vertical>
           <Stack fill>
+            {/* left panel*/}
             <Stack.Item grow mr={1}>
-              <Section fill scrollable>
-                {Object.keys(presets).map((dictKey) => (
-                  <Collapsible title={dictKey} key={dictKey} color="good">
-                    {presets[dictKey].map((squad) => (
-                      <Box pb={'12px'} key={squad.path}>
+              <Box mb={1}>
+                <Dropdown
+                  placeholder="Filter by Faction..."
+                  options={factionOptions}
+                  selected={viewingFaction}
+                  width="100%"
+                  onSelected={(value) => setViewingFaction(value)}
+                />
+              </Box>
+              <Section
+                fill
+                scrollable
+                title="Presets"
+                buttons={
+                  <Button
+                    textAlign="center"
+                    width="100%"
+                    onClick={() => act('add_preset')}
+                  >
+                    Add Preset
+                  </Button>
+                }
+              >
+                <Divider />
+                {viewingFaction ? (
+                  <Box mt={1}>
+                    {presets[viewingFaction]?.map((squad) => (
+                      <Box pb="12px" key={squad.path}>
                         <Button
                           fontSize="15px"
                           textAlign="center"
-                          selected={squad === chosenPreset}
+                          selected={squad.path === chosenPreset?.path}
+                          // key={squad?.path}
                           width="100%"
-                          key={squad.path}
-                          onClick={() => setPreset(squad)}
+                          onClick={() => {
+                            setPreset(squad);
+                            act('remember_path', {
+                              path: squad.path,
+                            });
+                          }}
                         >
                           {squad.name}
                         </Button>
                       </Box>
                     ))}
-                  </Collapsible>
-                ))}
+                  </Box>
+                ) : (
+                  <Box textAlign="center" italic color="label">
+                    Select a faction to view presets
+                  </Box>
+                )}
               </Section>
             </Stack.Item>
             <Divider vertical />
+            {/* right panel*/}
             <Stack.Item width="30%">
-              <Section title="Selected Preset">
+              <Section
+                title="Selected Preset"
+                buttons={
+                  <span>
+                    {chosenPreset !== null ? (
+                      /*
+                      <span>
+                        <Button.Checkbox
+                          icon="clipboard"
+                          onClick={() => {
+                            act('save');
+                          }}
+                        />
+                        */
+                      <Button.Checkbox
+                        icon="trash"
+                        onClick={() =>
+                          act('delete_preset', {
+                            path: chosenPreset.path,
+                          })
+                        }
+                      />
+                    ) : null}
+                  </span>
+                }
+              >
                 {chosenPreset !== null ? (
                   <Stack vertical>
-                    <Stack.Item>{chosenPreset.description}</Stack.Item>
+                    <Stack.Item>
+                      {data.desc === 1 && chosenPreset.description}
+                    </Stack.Item>
                     <Stack.Item>
                       <Button
                         textAlign="center"
                         width="100%"
+                        selected={data.spawn_click_intercept}
                         onClick={() =>
                           act('create_ai', {
                             path: chosenPreset.path,
-                            zombieDelimbMulti: newZombieDelimbMulti,
-                            randomHelmet: randomHelmetChecked,
-                            helmetChance: newHelmetChance,
-                            aiAmount: aiAmount,
-                            disableAutoClean: disableAutoClean,
+                            selected_faction: data.selected_faction,
+                            selected_equipment: data.selected_equipment,
                           })
                         }
                       >
-                        Spawn
+                        {data.outfit === 1 ? 'Outfit' : 'Click Spawn'}
                       </Button>
+                      {/* path: selected_faction: etc get passed as the params["path"]*/}
                     </Stack.Item>
-                    <Stack.Item width="100%" align="center" textAlign="center">
-                      <Box>Number to spawn:</Box>
-                      <Button tooltip="The number of a selected preset to spawn, from 1 to 10. It will only spawn on open tiles, and attempt not to reuse already spawned on tiles during this instance of spawning.">
-                        ?
-                      </Button>
-                      <NumberInput
-                        value={aiAmount}
-                        step={1}
-                        minValue={1}
-                        maxValue={10}
-                        onChange={(value) => setAiAmount(value)}
-                        width="55%"
+                    <Stack.Item>
+                      <Dropdown
+                        width="100%"
+                        options={data.selectable_factions}
+                        selected={data.selected_faction}
+                        displayText={
+                          <span
+                            style={{
+                              color: data.selected_faction
+                                ?.toLowerCase()
+                                .includes('hive')
+                                ? 'purple'
+                                : data.selected_faction !== chosenPreset.faction
+                                  ? 'pink'
+                                  : 'white',
+                            }}
+                          >
+                            {data.selected_faction}
+                          </span>
+                        }
+                        onSelected={(selected_faction) => {
+                          act('set_selected_faction', {
+                            selected_faction: selected_faction,
+                            path: chosenPreset.path,
+                          });
+                        }}
                       />
-                      <Button icon="undo" onClick={() => setAiAmount(1)} />
                     </Stack.Item>
-                    {chosenPreset.path.match('zombie') !== null ? (
-                      <Stack.Item>
-                        <Stack.Item align="center" textAlign="center">
-                          <Box>Zombie Delimbing Multiplier:</Box>
-                          <Button tooltip="This value will change a delimb modifier that is applied to the spawned zombie. 1 is default. -1 turns delimbing off. 0.5 would half the chance. 2 would double it. Understand that you're affecting the probability as a percentage chance. Values beyond 0.5 and 1.5 aren't recommended.">
-                            ?
-                          </Button>
-                          <NumberInput
-                            value={
-                              newZombieDelimbMulti ? newZombieDelimbMulti : 1
-                            }
-                            step={0.01}
-                            minValue={-1}
-                            maxValue={20}
-                            onChange={(value) => processNumber(value)}
-                            width="55%"
-                          />
-                          <Button
-                            icon="undo"
-                            onClick={() => setZombieDelimbMulti(1)}
-                          />
-                        </Stack.Item>
-                        <Stack.Item align="center" textAlign="center">
+
+                    <Button.Checkbox
+                      checked={data.paradrop}
+                      onClick={() => {
+                        act('paradrop_toggle');
+                      }}
+                    >
+                      Parachute
+                    </Button.Checkbox>
+                    <Button.Checkbox
+                      checked={data.outfit}
+                      onClick={() => {
+                        act('outfit');
+                      }}
+                    >
+                      Click gives outfit
+                    </Button.Checkbox>
+                    <Section title="Additional Options" />
+                    {data.species_selected === 'Zombie' ? (
+                      <Stack align="baseline">
+                        <Stack.Item>
                           <Button.Checkbox
-                            checked={randomHelmetChecked}
-                            onClick={() => flipRandomHelmetChecked()}
+                            checked={data.zombie_outer_wear}
+                            onClick={() => {
+                              act('zombie_outer_wear');
+                            }}
                           >
-                            Random <i>Zombie Helmet</i> Chance?
+                            Helmet
                           </Button.Checkbox>
                         </Stack.Item>
-                        <Stack.Item align="center" textAlign="center">
-                          <Button tooltip="This value will change the chance for a zombie to spawn with head protection in 0-100%. Helmets give one expendable decap protection, and these will have hands and feet protection baked in, rest of the body should be covered by armoured presets.">
-                            ?
-                          </Button>
-                          <NumberInput
-                            value={newHelmetChance}
-                            step={1}
-                            minValue={0}
+                        <Stack.Item grow>
+                          <Slider
                             maxValue={100}
-                            onChange={(value) => setNewHelmetChance(value)}
-                            width="55%"
-                          />
-                          <Button
-                            icon="undo"
-                            onClick={() => setNewHelmetChance(25)}
-                          />
-                        </Stack.Item>
-                        <Stack.Item align="center" textAlign="center">
-                          <Button.Checkbox
-                            checked={disableAutoClean}
-                            onClick={() => flipDisableAutoClean()}
-                          >
-                            Disable Auto-Clean?
-                          </Button.Checkbox>
-                        </Stack.Item>
-                        <Stack.Item align="center" textAlign="center">
-                          <Button tooltip="It is recommended to only use this setting for a LIMITED number of zombies. And it does not turn itself off, so please do so manually when you next need to spawn zombie. This setting, if enabled will set the variable [zombie_disable_auto_clean] to true, stopping and limbs and the body from decaying. Use it sparingly and definitely not for any defense styled operations where zombie bodies will pile up. Variable can be var-edited to affect the body but not any lost limbs, from about 50-130 seconds after the zombie checks itself as 'Perma'.">
-                            ?
-                          </Button>
-                          <Button
-                            textAlign="center"
-                            width="55%"
-                            onClick={() => flipDisableAutoClean()}
-                          >
-                            Toggle Auto-Clean
-                          </Button>
-                          <Button
-                            icon="undo"
-                            onClick={() => setDisableAutoClean(false)}
+                            minValue={0}
+                            value={data.zombie_outer_wear_chance}
+                            onChange={(e, value) =>
+                              act('zombie_outer_wear_chance', {
+                                zombie_outer_wear_chance: value,
+                              })
+                            }
+                            unit={'%'}
+                            step={10}
+                            stepPixelSize={10}
                           />
                         </Stack.Item>
-                      </Stack.Item>
-                    ) : (
-                      <div />
-                    )}
+                      </Stack>
+                    ) : null}
+                    {data.species_selected === 'Zombie' ? (
+                      <Stack align="baseline">
+                        <Button.Checkbox
+                          textAlign="center"
+                          width="55%"
+                          checked={data.autoClean}
+                          onClick={() => act('auto_clean')}
+                        >
+                          Auto-Clean
+                        </Button.Checkbox>
+                        <Slider
+                          maxValue={2000}
+                          minValue={-100}
+                          value={data.zombie_delimb_multi * 100}
+                          onChange={(e, value) =>
+                            act('zombie_delimb_multi', {
+                              zombie_delimb_multi: value / 100,
+                            })
+                          }
+                          unit={'% delimb'}
+                          step={100}
+                          stepPixelSize={10}
+                        />
+                      </Stack>
+                    ) : null}
+                    <Dropdown
+                      width="100%"
+                      options={data.species_settings}
+                      selected={data.species_selected}
+                      displayText={
+                        <span
+                          style={{
+                            color:
+                              data.species_selected
+                                ?.toLowerCase()
+                                .includes('synth') ||
+                              data.selected_faction
+                                ?.toLowerCase()
+                                .includes('working joe')
+                                ? 'blue'
+                                : data.species_selected !== 'Human'
+                                  ? 'olive'
+                                  : 'white',
+                          }}
+                        >
+                          {data.species_selected}
+                        </span>
+                      }
+                      onSelected={(species_selected) => {
+                        act('set_selected_species', {
+                          species_selected: species_selected,
+                        });
+                      }}
+                    />
+                    <Dropdown
+                      width="100%"
+                      options={data.equipment_settings}
+                      selected={data.selected_equipment}
+                      displayText={
+                        <span
+                          style={{
+                            color:
+                              data.selected_equipment === 'Birthday Suit'
+                                ? 'pink'
+                                : data.selected_equipment !== 'Full Equipment'
+                                  ? 'orange'
+                                  : 'white',
+                          }}
+                        >
+                          {data.selected_equipment}
+                        </span>
+                      }
+                      onSelected={(selected_equipment) => {
+                        act('set_selected_equipment', {
+                          selected_equipment: selected_equipment,
+                          path: chosenPreset.path,
+                        });
+                      }}
+                    />
+                    <Button.Checkbox
+                      checked={data.spawn_ai}
+                      onClick={() => {
+                        act('human_spawn_ai_toggle');
+                      }}
+                    >
+                      AI
+                    </Button.Checkbox>
                   </Stack>
                 ) : (
-                  <div />
+                  <Box textAlign="center" italic color="label">
+                    No preset selected
+                  </Box>
                 )}
               </Section>
+              <Section />
             </Stack.Item>
           </Stack>
         </Stack>
