@@ -266,6 +266,11 @@
 	var/base_state = "plating" //Post mapping
 	var/covered = TRUE
 
+// SS220 EDIT - START: GroundSide derelict almayer maplint compat
+/turf/open/floor/plating/plating_catwalk/no_build
+	allow_construction = FALSE
+// SS220 EDIT - END
+
 /turf/open/floor/plating/plating_catwalk/Initialize(mapload, ...)
 	. = ..()
 
@@ -368,6 +373,48 @@
 /turf/open/floor/almayer/blue/southwest
 	dir = SOUTHWEST
 
+/turf/open/floor/almayer/black
+	icon_state = "black"
+
+/turf/open/floor/almayer/black/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/almayer/black/north
+	dir = NORTH
+
+/turf/open/floor/almayer/black/east
+	dir = EAST
+
+/turf/open/floor/almayer/black/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/almayer/black/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/almayer/black/west
+	dir = WEST
+
+/turf/open/floor/almayer/blackcorner
+	icon_state = "blackcorner"
+
+/turf/open/floor/almayer/blackcorner/north
+	dir = NORTH
+
+/turf/open/floor/almayer/blackcorner/east
+	dir = EAST
+
+/turf/open/floor/almayer/blackcorner/west
+	dir = WEST
+
+/turf/open/floor/almayer/blackfull
+	icon_state = "blackfull"
+
+/turf/open/floor/almayer/blackfull/west
+	dir = WEST
+
+/turf/open/floor/almayer/black/northwest
+	dir = NORTHWEST
+
 /turf/open/floor/almayer/cargo
 	icon_state = "cargo"
 
@@ -391,6 +438,155 @@
 
 /turf/open/floor/almayer/orange/southwest
 	dir = SOUTHWEST
+
+// All ORANGE (its called orange but its infact yellow, deal with it) tiles (normal, smooth edge, smooth borderless, smooth ends, corners, full, full smooth)
+
+/turf/open/floor/almayer/orange
+	icon_state = "orange"
+
+/turf/open/floor/almayer/orange/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orange/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orange/east
+	dir = EAST
+
+/turf/open/floor/almayer/orange/west
+	dir = WEST
+
+/turf/open/floor/almayer/orange/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/almayer/orange/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/almayer/orange/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/almayer/orange/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/almayer/orange2
+	icon_state = "orange2"
+
+/turf/open/floor/almayer/orange2/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orange2/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orange2/east
+	dir = EAST
+
+/turf/open/floor/almayer/orange2/west
+	dir = WEST
+
+/turf/open/floor/almayer/orange2/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/almayer/orange2/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/almayer/orange2/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/almayer/orange2/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/almayer/orange2smooth
+	icon_state = "orange2_smooth"
+
+/turf/open/floor/almayer/orange2smooth/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orange2smooth/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orange2smooth/east
+	dir = EAST
+
+/turf/open/floor/almayer/orange2smooth/west
+	dir = WEST
+
+/turf/open/floor/almayer/orange2smooth/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/almayer/orange2smooth/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/almayer/orange2smooth/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/almayer/orange2smooth/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/almayer/orange2smooth2
+	icon_state = "orange2_smooth2"
+
+/turf/open/floor/almayer/orange2smooth2/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orange2smooth2/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orange2smooth2/east
+	dir = EAST
+
+/turf/open/floor/almayer/orange2smooth2/west
+	dir = WEST
+
+/turf/open/floor/almayer/orange2smooth3
+	icon_state = "orange2_smooth3"
+
+/turf/open/floor/almayer/orange2smooth3/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orange2smooth3/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orange2smooth3/east
+	dir = EAST
+
+/turf/open/floor/almayer/orange2smooth3/west
+	dir = WEST
+
+/turf/open/floor/almayer/orangecorner
+	icon_state = "orangecorner"
+
+/turf/open/floor/almayer/orangecorner/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orangecorner/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orangecorner/east
+	dir = EAST
+
+/turf/open/floor/almayer/orangecorner/west
+	dir = WEST
+
+/turf/open/floor/almayer/orangecornersmooth
+	icon_state = "orangecorner_smooth"
+
+/turf/open/floor/almayer/orangecornersmooth/north
+	dir = NORTH
+
+/turf/open/floor/almayer/orangecornersmooth/south
+	dir = SOUTH
+
+/turf/open/floor/almayer/orangecornersmooth/east
+	dir = EAST
+
+/turf/open/floor/almayer/orangecornersmooth/west
+	dir = WEST
+
+/turf/open/floor/almayer/orangefull
+	icon_state = "orangefull"
+
+/turf/open/floor/almayer/orangefull2
+	icon_state = "orangefull2"
 
 /turf/open/floor/almayer/red
 	icon_state = "red"
@@ -1054,6 +1250,32 @@
 	allow_construction = FALSE
 	hull_floor = TRUE
 
+// SS220 EDIT - START: GroundSide derelict almayer maplint compat
+/turf/open/floor/almayer/no_build/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/cargo_arrow
+	icon_state = "cargo_arrow"
+
+/turf/open/floor/almayer/no_build/cargo_arrow/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/cargo_arrow/west
+	dir = WEST
+
+/turf/open/floor/almayer/no_build/silver
+	icon_state = "silver"
+
+/turf/open/floor/almayer/no_build/silver/east
+	dir = EAST
+
+/turf/open/floor/almayer/no_build/silver/west
+	dir = WEST
+
+/turf/open/floor/almayer/no_build/tcomms
+	icon_state = "tcomms"
+// SS220 EDIT - END
+
 /turf/open/floor/almayer/no_build/ai_floors
 	icon_state = "ai_floors"
 
@@ -1164,6 +1386,9 @@
 /turf/open/floor/almayer/research/containment/corner_var2
 	icon_state = "containment_corner_variant_2"
 
+/turf/open/floor/almayer/research/containment/corner_var1/north
+	dir = NORTH
+
 /turf/open/floor/almayer/research/containment/corner_var1/east
 	dir = EAST
 
@@ -1185,7 +1410,8 @@
 /turf/open/floor/almayer/research/containment/floor2/west
 	dir = WEST
 
-
+/turf/open/floor/almayer/fake_outerhull
+	icon_state = "outerhull"
 
 
 //Outerhull
@@ -1309,6 +1535,11 @@
 /turf/open/floor/wood/wood_broken7
 	icon_state = "wood-broken7"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/wood/color_a39898
+	color = "#A39898"
+// SS220 EDIT - END
+
 /turf/open/floor/vault
 	icon_state = "rockvault"
 
@@ -1384,6 +1615,11 @@
 /turf/open/floor/bluegrid/bcircuitoff
 	icon_state = "bcircuitoff"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/bluegrid/bcircuita
+	icon_state = "bcircuita"
+// SS220 EDIT - END
+
 /turf/open/floor/bluegrid/damaged3
 	icon_state = "damaged3"
 
@@ -1396,6 +1632,11 @@
 /turf/open/floor/greengrid
 	icon = 'icons/turf/floors/floors.dmi'
 	icon_state = "gcircuit"
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/plating/gcircuit
+	icon_state = "gcircuit"
+// SS220 EDIT - END
 
 
 /turf/open/floor/grass
@@ -1614,6 +1855,9 @@
 
 /turf/open/floor/prison/darkbrown3/southwest
 	dir = SOUTHWEST
+
+/turf/open/floor/prison/darkbrown3/southeast
+	dir = SOUTHEAST
 
 /turf/open/floor/prison/darkbrowncorners2
 	icon_state = "darkbrowncorners2"
@@ -2146,6 +2390,9 @@
 /turf/open/floor/prison/darkbrown3/northwest
 	dir = NORTHWEST
 
+/turf/open/floor/prison/darkbrown3/northeast
+	dir = NORTHEAST
+
 /turf/open/floor/prison/darkpurple2/northwest
 	dir = NORTHWEST
 
@@ -2265,6 +2512,15 @@
 
 /turf/open/floor/prison/whitepurplefull
 	icon_state = "whitepurplefull"
+
+/turf/open/floor/prison/ramptop
+	icon_state = "ramptop"
+
+/turf/open/floor/prison/ramptop/north
+	dir = NORTH
+
+/turf/open/floor/prison/ramptop/east
+	dir = EAST
 
 // Mechbay
 /turf/open/floor/mech_bay_recharge_floor
@@ -2871,6 +3127,29 @@
 /turf/open/floor/corsat/yellowcorner/east
 	dir = EAST
 
+/turf/open/floor/corsat/box
+	icon_state = "box"
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/corsat/lightspiral
+	icon_state = "lightspiral"
+// SS220 EDIT - END
+
+/turf/open/floor/corsat/officetiles
+	icon_state = "officetiles"
+
+/turf/open/floor/corsat/spiralblueoffice
+	icon_state = "spiralblueoffice"
+	light_color = "#0090ff"
+	light_on = 1
+	light_power = 2
+	light_range = 4
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/corsat/spiraloffice
+	icon_state = "spiraloffice"
+// SS220 EDIT - END
+
 /turf/open/floor/grey_dark2
 	color = "#525151"
 	icon_state = "dark2"
@@ -3443,6 +3722,67 @@
 
 /turf/open/floor/carpet9_4/west
 	dir = WEST
+
+
+/turf/open/floor/carpetside
+	icon_state = "carpetside"
+
+/turf/open/floor/carpetside/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/carpetside/north
+	dir = NORTH
+
+/turf/open/floor/carpetside/east
+	dir = EAST
+
+/turf/open/floor/carpetside/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/carpetside/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/carpetside/west
+	dir = WEST
+
+/turf/open/floor/carpetside/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/bcarpet01
+	icon_state = "bcarpet01"
+
+/turf/open/floor/bcarpet01/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/bcarpet02
+	icon_state = "bcarpet02"
+
+/turf/open/floor/bcarpet02/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/bcarpet03
+	icon_state = "bcarpet03"
+
+/turf/open/floor/bcarpet03/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/bcarpet07
+	icon_state = "bcarpet07"
+
+/turf/open/floor/bcarpet07/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/bcarpet08
+	icon_state = "bcarpet08"
+
+/turf/open/floor/bcarpet08/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/bcarpet09
+	icon_state = "bcarpet09"
+
+/turf/open/floor/bcarpet09/southeast
+	dir = SOUTHEAST
 
 /turf/open/floor/chapel/west
 	dir = WEST

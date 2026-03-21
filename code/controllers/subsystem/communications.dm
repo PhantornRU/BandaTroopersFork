@@ -76,6 +76,7 @@ Radiochat range: 1441 to 1489 (most devices refuse to be tune to other frequency
 #define MERC_FREQ 1212
 #define VAI_FREQ 1215
 #define RMC_FREQ 1216
+#define FIL_FREQ 1219
 #define CMB_FREQ 1220
 #define ASF_FREQ 1224
 #define CIA_FREQ 1225
@@ -99,18 +100,25 @@ Radiochat range: 1441 to 1489 (most devices refuse to be tune to other frequency
 #define UPP_CCT_FREQ 1255
 #define UPP_KDO_FREQ 1259
 #define UPP_GRD_FREQ 1256
+#define UPP_FORECON_FREQ 1257
 
 //CLF Channels (1270-1289)
 #define CLF_FREQ 1271
 #define CLF_CMD_FREQ 1272
 #define CLF_ENGI_FREQ 1273
-#define CLF_MED_FREQ 1274
 #define PFA_FREQ 1278
 #define JSC_FREQ 1279
 
 //Listening Bugs (1290-1291)
 #define BUG_A_FREQ 1290
 #define BUG_B_FREQ 1291
+
+//CANC Channels (1300-1304)
+#define CANC_FREQ 1300
+#define CANC_CMD_FREQ 1301
+#define CANC_ENGI_FREQ 1302
+#define CANC_MED_FREQ 1303
+#define CANC_SOF_FREQ 1304
 
 //General Radio
 #define MIN_FREQ 1460 // ------------------------------------------------------
@@ -158,6 +166,7 @@ GLOBAL_LIST_INIT(radiochannels, list(
 	RADIO_CHANNEL_YAUTJA = YAUT_FREQ,
 	RADIO_CHANNEL_VAI = VAI_FREQ,
 	RADIO_CHANNEL_CMB = CMB_FREQ,
+	RADIO_CHANNEL_FIL = FIL_FREQ,
 	RADIO_CHANNEL_USASF = ASF_FREQ,
 	RADIO_CHANNEL_US_ARMY = ARM_FREQ,
 	RADIO_CHANNEL_UA_GUARD = GRD_FREQ,
@@ -188,6 +197,7 @@ GLOBAL_LIST_INIT(radiochannels, list(
 	SQUAD_CBRN = CBRN_FREQ,
 	SQUAD_FORECON = FORECON_FREQ,
 	SQUAD_SOLAR = SOF_FREQ,
+	SQUAD_SISSI = UPP_FORECON_FREQ,
 	SQUAD_ODST = ODST_FREQ, // SS220 EDIT: HALO ODST squad radio mapping
 
 	RADIO_CHANNEL_ALAMO = DS1_FREQ,
@@ -212,11 +222,17 @@ GLOBAL_LIST_INIT(radiochannels, list(
 	RADIO_CHANNEL_UPP_CCT = UPP_CCT_FREQ,
 	RADIO_CHANNEL_UPP_KDO = UPP_KDO_FREQ,
 	RADIO_CHANNEL_UPP_GRD = UPP_GRD_FREQ,
+	RADIO_CHANNEL_UPP_RCN = UPP_FORECON_FREQ,
 
 	RADIO_CHANNEL_CLF_GEN = CLF_FREQ,
 	RADIO_CHANNEL_CLF_CMD = CLF_CMD_FREQ,
 	RADIO_CHANNEL_CLF_ENGI = CLF_ENGI_FREQ,
-	RADIO_CHANNEL_CLF_MED = CLF_MED_FREQ,
+
+	RADIO_CHANNEL_CANC_GEN = CANC_FREQ,
+	RADIO_CHANNEL_CANC_CMD = CANC_CMD_FREQ,
+	RADIO_CHANNEL_CANC_ENGI = CANC_ENGI_FREQ,
+	RADIO_CHANNEL_CANC_MED = CANC_MED_FREQ,
+	RADIO_CHANNEL_CANC_SOF = CANC_SOF_FREQ,
 
 	RADIO_CHANNEL_BUG_A = BUG_A_FREQ,
 	RADIO_CHANNEL_BUG_B = BUG_B_FREQ,
@@ -226,13 +242,16 @@ GLOBAL_LIST_INIT(radiochannels, list(
 ))
 
 // Response Teams
-#define ERT_FREQS list(VAI_FREQ, DUT_FREQ, YAUT_FREQ, CMB_FREQ, RMC_FREQ, MERC_FREQ)
+#define ERT_FREQS list(VAI_FREQ, DUT_FREQ, YAUT_FREQ, CMB_FREQ, RMC_FREQ, MERC_FREQ, FIL_FREQ)
 
 // UPP Frequencies
-#define UPP_FREQS list(UPP_FREQ, UPP_CMD_FREQ, UPP_ENGI_FREQ, UPP_MED_FREQ, UPP_CCT_FREQ, UPP_KDO_FREQ, UPP_GRD_FREQ)
+#define UPP_FREQS list(UPP_FREQ, UPP_CMD_FREQ, UPP_ENGI_FREQ, UPP_MED_FREQ, UPP_CCT_FREQ, UPP_KDO_FREQ, UPP_GRD_FREQ, UPP_FORECON_FREQ)
 
 // CLF Frequencies
-#define CLF_FREQS list(CLF_FREQ, CLF_CMD_FREQ, CLF_ENGI_FREQ, CLF_MED_FREQ)
+#define CLF_FREQS list(CLF_FREQ, CLF_CMD_FREQ, CLF_ENGI_FREQ)
+
+// CANC Frequencies
+#define CANC_FREQS list(CANC_FREQ, CANC_CMD_FREQ, CANC_ENGI_FREQ, CANC_MED_FREQ, CANC_SOF_FREQ)
 
 // Rebel Frequencies
 #define REBEL_FREQS list(PFA_FREQ, JSC_FREQ)
@@ -296,6 +315,7 @@ SUBSYSTEM_DEF(radio)
 		"[RMC_FREQ]" = "rmcradio",
 		"[CIA_FREQ]" = "ciaradio",
 		"[CMB_FREQ]" = "cmbradio",
+		"[FIL_FREQ]" = "opformerc",
 		"[ASF_FREQ]" = "usasfradio",
 		"[ARM_FREQ]" = "armyradio",
 		"[GRD_FREQ]" = "guardradio",
@@ -316,6 +336,7 @@ SUBSYSTEM_DEF(radio)
 		"[BUG_A_FREQ]" = "airadio",
 		"[BUG_B_FREQ]" = "aiprivradio",
 		"[UPP_FREQ]" = "syndradio",
+		"[UPP_FORECON_FREQ]" = "opforcmd",
 		"[UPP_CMD_FREQ]" = "opforcmd",
 		"[UPP_ENGI_FREQ]" = "opforeng",
 		"[UPP_MED_FREQ]" = "opformed",
@@ -325,7 +346,11 @@ SUBSYSTEM_DEF(radio)
 		"[CLF_FREQ]" = "clfradio",
 		"[CLF_CMD_FREQ]" = "opforcmd",
 		"[CLF_ENGI_FREQ]" = "opforeng",
-		"[CLF_MED_FREQ]" = "opformed",
+		"[CANC_FREQ]" = "cancradio",
+		"[CANC_CMD_FREQ]" = "cancradio",
+		"[CANC_ENGI_FREQ]" = "cancradio",
+		"[CANC_MED_FREQ]" = "cancradio",
+		"[CANC_SOF_FREQ]" = "cancradio",
 		"[PFA_FREQ]" = "pfaradio",
 		"[JSC_FREQ]" = "jscradio",
 	)

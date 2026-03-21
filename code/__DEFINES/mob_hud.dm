@@ -48,10 +48,11 @@
 #define MOB_HUD_FACTION_PMC 17
 #define MOB_HUD_FACTION_MARSHAL 18
 #define MOB_HUD_FACTION_UACG 19
-#define MOB_HUD_HUNTER 20
-#define MOB_HUD_HUNTER_CLAN 21
-#define MOB_HUD_EXECUTE 22
-#define MOB_HUD_FACTION_UNSC 23 // SS220 EDIT: HALO UNSC faction HUD slot
+#define MOB_HUD_FACTION_FIL 20
+#define MOB_HUD_HUNTER 21
+#define MOB_HUD_HUNTER_CLAN 22
+#define MOB_HUD_EXECUTE 23
+#define MOB_HUD_FACTION_UNSC 24 // SS220 EDIT: HALO UNSC faction HUD slot
 
 //for SL/FTL/LZ targeting on locator huds
 #define TRACKER_SL "track_sl"
@@ -63,12 +64,20 @@
 #define TRACKER_CL "track_cl"
 #define TRACKER_PLTCO "track_pltco"
 
-#define TRACKER_ASL "_asl" // Alpha Squad Leader
-#define TRACKER_BSL "_bsl" // Bravo Squad Leader
+#define TRACKER_ASL "_asl" // A-Section Leader
+#define TRACKER_BSL "_bsl" // B-Section Leader
 #define TRACKER_CSL "_csl" // Charlie Squad Leader
 #define TRACKER_DSL "_dsl" // Delta Squad Leader
 #define TRACKER_ESL "_esl" // Echo Squad Leader
 #define TRACKER_FSL "_fsl" // Cryo Squad Leader
+#define TRACKER_RSL "_rsl" // FORECON Snake Eaters Squad Leader
+#define TRACKER_R2SL "_r2sl" // FORECON Ocelot Grapplers Squad Leader
+#define TRACKER_RMCSL "_rmcsl" // RMC Gamma Troop Commander
+#define TRACKER_PSL "_psl" // AZURE 15 Operation Leader
+#define TRACKER_P2SL "_p2sl" // VIRIDIAN 22 Operation Leader
+#define TRACKER_PSSL "_pssl" // AZURE 16 Strike Operation Leader
+#define TRACKER_UPPSL "_uppsl" // UPP Red Dawn Platoon Sergeant
+#define TRACKER_UPP2SL "_upp2sl" // UPP Golden Embers Platoon Sergeant
 
 //for tracking the queen/hivecore on xeno locator huds
 #define TRACKER_QUEEN "Queen"

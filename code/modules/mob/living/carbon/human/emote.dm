@@ -193,6 +193,7 @@
 	key = "pain"
 	message = "cries out in pain!"
 	alt_message = "cries out"
+	species_type_allowed_typecache = list(/datum/species/human, /datum/species/synthetic, /datum/species/yautja, /datum/species/synthetic/colonial/wy_droid)
 	species_type_blacklist_typecache = list(/datum/species/synthetic)
 	emote_type = EMOTE_AUDIBLE|EMOTE_VISIBLE
 
@@ -207,6 +208,9 @@
 		return get_sfx("pred_pain")
 	if(issangheili(user)) // SS220 EDIT: HALO pain route
 		return get_sfx("pain_sangheili")
+
+	if(iswydroid(user))
+		return get_sfx("wy_droid_pain")
 
 /datum/emote/living/carbon/human/pain/run_emote(mob/living/user, params, type_override, intentional)
 	. = ..()

@@ -557,6 +557,22 @@
 	reload_sound = 'sound/weapons/handling/flamer_reload.ogg'
 	current_mag = /obj/item/ammo_magazine/flamer_tank/upp
 
+/obj/item/weapon/gun/flamer/d60
+	name = "\improper LFUIM-D60 heavy incinerator"
+	desc = "Lance-flammes à usage intensif Marianne Model De 60 is a French flamethrower based off of a design going back a decade. It has many modifications from the original design, especially with making the coolant system more sophisticated. High intensity flamethrower good for close quarters and encampments."
+	flags_item = TWOHANDED
+	flags_gun_features = GUN_WIELDED_FIRING_ONLY
+	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
+	icon_state = "d60"
+	item_state = "d60"
+	attachable_allowed = list(
+		/obj/item/attachable/flashlight,
+		/obj/item/attachable/magnetic_harness,
+	)
+	starting_attachment_types = list(/obj/item/attachable/magnetic_harness)
+	current_mag = /obj/item/ammo_magazine/flamer_tank/d60
+
+
 /obj/item/weapon/gun/flamer/upp/unloaded
 	current_mag = null
 
@@ -943,3 +959,49 @@
 			if(CEILING_IS_PROTECTED(picked_area?.ceiling, get_ceiling_protection_level(aerial_flame_level)))
 				continue
 		fire_spread_recur(picked_turf, cause_data, spread_power, direction, fire_lvl, burn_lvl, f_color, burn_sprite, aerial_flame_level)
+
+/obj/item/weapon/gun/flamer/flammenwerfer3
+	name = "\improper Flammenwerfer 3 Heavy Incineration Unit"
+	desc = "A heavy industrial incineration unit produced by Weyland Corporation and later by Weyland-Yutani Corporation. Often found among foliage cleaning missions on frontier colonies, usually aren't seen in combat, but devastating when actually used."
+	desc_lore = "This century-old flamethrower is seeing a comeback on Frontier colonies. Heavy Incinerator Units are often used for clearing out dead foliage and burning disease ridden corpses. Current market price of is 2000$."
+	icon = 'icons/obj/items/weapons/guns/guns_by_faction/WY/flamers.dmi'
+	icon_state = "fl3"
+	item_state = "fl3"
+	hud_offset = -6
+	pixel_x = -6
+	unload_sound = 'sound/weapons/handling/wy_flamer_unload.ogg'
+	reload_sound = 'sound/weapons/handling/wy_flamer_reload.ogg'
+	accepted_ammo = list(
+		/obj/item/ammo_magazine/flamer_tank/flammenwerfer,
+		/obj/item/ammo_magazine/flamer_tank/flammenwerfer/whiteout,
+	)
+	current_mag = /obj/item/ammo_magazine/flamer_tank/flammenwerfer
+
+	attachable_allowed = null
+
+/obj/item/weapon/gun/flamer/flammenwerfer3/get_fire_sound()
+	var/list/fire_sounds = list(
+		'sound/weapons/wy_flamethrower1.ogg',
+		'sound/weapons/wy_flamethrower2.ogg',
+		'sound/weapons/wy_flamethrower3.ogg')
+	return pick(fire_sounds)
+
+/obj/item/weapon/gun/flamer/flammenwerfer3/deathsquad
+	flags_equip_slot = SLOT_BACK | SLOT_WAIST
+	auto_retrieval_slot = WEAR_WAIST
+	current_mag = /obj/item/ammo_magazine/flamer_tank/flammenwerfer/whiteout
+	flags_gun_features = GUN_WY_RESTRICTED|GUN_WIELDED_FIRING_ONLY
+
+/obj/item/weapon/gun/flamer/flammenwerfer3/deathsquad/handle_starting_attachment()
+	..()
+	var/obj/item/attachable/magnetic_harness/Integrated = new(src)
+	Integrated.hidden = TRUE
+	Integrated.flags_attach_features &= ~ATTACH_REMOVABLE
+	Integrated.Attach(src)
+	update_attachable(Integrated.slot)
+
+/obj/item/weapon/gun/flamer/flammenwerfer3/deathsquad/nolock
+	flags_gun_features = GUN_WIELDED_FIRING_ONLY
+
+/obj/item/weapon/gun/flamer/flammenwerfer3/deathsquad/standard
+	current_mag = /obj/item/ammo_magazine/flamer_tank/flammenwerfer

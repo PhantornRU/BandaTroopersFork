@@ -186,8 +186,14 @@ Defined in conflicts.dm of the #defines folder.
 			qdel(X)
 			break
 
+	// SS220 EDIT - START
 	if(drop_attachment)
-		forceMove(get_turf(detaching_gub))
+		var/turf/drop_turf = get_turf(detaching_gub)
+		if(drop_turf)
+			forceMove(drop_turf)
+		else
+			qdel(src) // off-map gun init can replace attachments before the gun has a turf
+	// SS220 EDIT - END
 
 	if(sharp)
 		detaching_gub.sharp = 0
@@ -283,7 +289,12 @@ Defined in conflicts.dm of the #defines folder.
 	name = "\improper M5 bayonet"
 	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
 	icon_state = "bayonet"
-	item_state = "combat_knife"
+	item_state = "combat_bayonet"
+	item_icons = list(
+		WEAR_FACE = 'icons/mob/humans/onmob/mask.dmi',
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi', // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi' // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+	)
 	desc = "An outdated rifle bayonet issued by the USCMC. Neatly fits into boot-mounted holsters, and can- in emergencies- be utilized to dig out shrapnel."
 	sharp = IS_SHARP_ITEM_ACCURATE
 	force = MELEE_FORCE_NORMAL
@@ -319,7 +330,7 @@ Defined in conflicts.dm of the #defines folder.
 	name = "\improper Type 80 bayonet"
 	desc = "The standard-issue bayonet of the UPP, the Type 80 is balanced to also function as an effective throwing knife."
 	icon_state = "upp_bayonet"
-	item_state = "knife"
+	item_state = "upp_bayonet"
 	attach_icon = "upp_bayonet_a"
 	throwforce = MELEE_FORCE_TIER_10 //doubled by throwspeed to 100
 	throw_speed = SPEED_REALLY_FAST
@@ -334,19 +345,32 @@ Defined in conflicts.dm of the #defines folder.
 	name = "\improper M8 cartridge bayonet"
 	desc = "A back issue USCM approved exclusive for Boots subscribers found in issue #255 'Inside the Night Raider - morale breaking alternatives with 2nd LT. Juliane Gerd'. A pressurized tube runs along the inside of the blade, and a button allows one to inject compressed CO2 into the stab wound. It feels cheap to the touch. Faulty even."
 	icon_state = "co2_knife"
+	item_icons = list( // SS220 EDIT: keep CO2 bayonet on legacy inhands; its state stayed in items_*_0.dmi
+		WEAR_FACE = 'icons/mob/humans/onmob/mask.dmi',
+		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+	)
 	attach_icon = "co2_bayonet_a"
 	var/filled = FALSE
 
 /obj/item/attachable/bayonet/rmc
 	name = "\improper L5 bayonet"
 	desc = "The standard-issue bayonet of the RMC, the L5 is balanced to also function as an effective throwing knife."
-	icon_state = "upp_bayonet" // PLACEHOLDER PLEASE REPLACE
-	item_state = "combat_knife"
-	attach_icon = "upp_bayonet_a" // PLACEHOLDER PLEASE REPLACE
+	icon_state = "twe_bayonet"
+	item_state = "twe_bayonet"
+	attach_icon = "twe_bayonet_a"
 	throwforce = MELEE_FORCE_TIER_10 //doubled by throwspeed to 100
 	throw_speed = SPEED_REALLY_FAST
 	throw_range = 7
 	pry_delay = 1 SECONDS
+
+/obj/item/attachable/bayonet/wy
+	name = "\improper SA120 L7 bayonet"
+	desc = "The standard-issue bayonet of the W-Y Commandos and PMCs, has a better ergonomic carbon finish grip and corrosion proof blade."
+	icon_state = "wy_bayonet"
+	item_state = "wy_bayonet"
+	attach_icon = "wy_bayonet_a"
+	unacidable = TRUE
 
 /obj/item/attachable/bayonet/van_bandolier
 	name = "\improper Fairbairn-Sykes fighting knife"
@@ -510,6 +534,31 @@ Defined in conflicts.dm of the #defines folder.
 	melee_mod = 0
 	size_mod = 0
 
+/obj/item/attachable/shotgun_barrel
+	name = "Ithaca barrel"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
+	icon_state = "m37_barrel_a"
+	attach_icon = "m37_barrel_a"
+	slot = "muzzle"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+
+/obj/item/attachable/rpg_baffle
+	name = "M5 exhaust baffle"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
+	icon_state = "m5_stock"
+	attach_icon = "m5_stock"
+	slot = "stock"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+	hud_offset_mod = 6
+
 /obj/item/attachable/sniperbarrel
 	name = "sniper barrel"
 	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
@@ -556,6 +605,11 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/sniperbarrel/vulture
 	name = "\improper M707 barrel"
 	icon_state = "vulture_barrel"
+	hud_offset_mod = -1
+
+/obj/item/attachable/sniperbarrel/fr2
+	name = "\improper FR2 barrel"
+	icon_state = "fr2_barrel"
 	hud_offset_mod = -1
 
 /obj/item/attachable/m60barrel
@@ -695,6 +749,15 @@ Defined in conflicts.dm of the #defines folder.
 	flags_attach_features = NO_FLAGS
 	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
 	size_mod = 0
+
+/obj/item/attachable/masm_barrel
+	name = "MASM55 barrel"
+	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
+	icon_state = "masm_barrel"
+	desc = "Barrel of the MASM55, how did that get here?"
+	slot = "muzzle"
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = -6
 
 // ======== Rail attachments ======== //
 
@@ -1157,6 +1220,7 @@ Defined in conflicts.dm of the #defines folder.
 
 //other variable zoom scopes
 
+
 /obj/item/attachable/scope/variable_zoom/integrated
 	name = "variable zoom scope"
 
@@ -1174,6 +1238,11 @@ Defined in conflicts.dm of the #defines folder.
 	))
 */
 
+/obj/item/attachable/scope/variable_zoom/fr2
+	name = "FR2 variable zoom scope"
+	icon_state = "fr2_scope"
+	attach_icon = "fr2_scope_a"
+
 /obj/item/attachable/scope/variable_zoom/slavic
 	icon_state = "slavicscope"
 	attach_icon = "slavicscope"
@@ -1184,6 +1253,14 @@ Defined in conflicts.dm of the #defines folder.
 	icon_state = "rxfm5_eva_scope"
 	attach_icon = "rxfm5_eva_scope_a"
 	desc = "A civilian-grade scope that can be switched between short and long range magnification, intended for use in extraterrestrial scouting. Looks ridiculous on a pistol."
+	aim_speed_mod = 0
+
+/obj/item/attachable/scope/variable_zoom/fal
+	name = "ODS R94 telescopic variable scope"
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "sniperscope_fal" // SS220 EDIT: use the PR-specific scope sprite in the PR attachment atlas
+	attach_icon = "sniperscope_fal"
+	desc = "A Orion Defence Systems telescopic scope used mainly for the R81M1D. Can switch between 2x and 4x magnification."
 	aim_speed_mod = 0
 
 /obj/item/attachable/scope/variable_zoom/canc
@@ -1279,6 +1356,13 @@ Defined in conflicts.dm of the #defines folder.
 	attach_icon = "miniscope_nsg23_a"
 	zoom_offset = 4
 	dynamic_aim_slowdown = SLOWDOWN_ADS_NONE
+
+/obj/item/attachable/scope/mini/r81
+	name = "ODS R92 2x advanced telescopic mini-scope"
+	desc = "An Orion Defence Systems R81M1D 2x advanced telescopic mini-scope, used mainly for the R81M1A and it's variants."
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "miniscope_fal" // SS220 EDIT: use the PR-specific miniscope sprite in the PR attachment atlas
+	attach_icon = "miniscope_fal"
 
 /obj/item/attachable/scope/mini/nsg23/rmc
 	name = "L4A5 SUMSA mini-scope" //Sight Unit, General Marine Armaments was a serious contender for the name instead of this
@@ -1991,8 +2075,6 @@ Defined in conflicts.dm of the #defines folder.
 	//but at the same time you are slow when 2 handed
 	aim_speed_mod = CONFIG_GET(number/slowdown_med)
 
-	select_gamemode_skin(type)
-
 /obj/item/attachable/stock/double
 	name = "\improper double barrel shotgun stock"
 	desc = "A chunky piece of wood coated in varnish and age."
@@ -2138,6 +2220,23 @@ Defined in conflicts.dm of the #defines folder.
 	aim_speed_mod = CONFIG_GET(number/slowdown_med)
 
 	matter = list("wood" = 2000)
+
+/obj/item/attachable/stock/p79s
+	name = "\improper P79S stock"
+	desc = "A stock made for the P79S semi-automatic shotgun."
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "p79s_stock"
+	hud_offset_mod = 6
+
+/obj/item/attachable/stock/p79s/New()
+	..()
+	accuracy_mod = HIT_ACCURACY_MULT_TIER_1
+	recoil_mod = -RECOIL_AMOUNT_TIER_5
+	scatter_mod = -SCATTER_AMOUNT_TIER_10
+	movement_onehanded_acc_penalty_mod = -MOVEMENT_ACCURACY_PENALTY_MULT_TIER_5
+	accuracy_unwielded_mod = HIT_ACCURACY_MULT_TIER_1
+	recoil_unwielded_mod = -RECOIL_AMOUNT_TIER_5
+	scatter_unwielded_mod = -SCATTER_AMOUNT_TIER_10
 
 /obj/item/attachable/stock/slavic
 	name = "wooden stock"
@@ -2497,6 +2596,32 @@ Defined in conflicts.dm of the #defines folder.
 /obj/item/attachable/stock/ar10/New()//no stats, its cosmetic
 	..()
 
+/obj/item/attachable/stock/r81_saw
+	name = "\improper R81M1D stock"
+	desc = "You kinda need this to even use the gun properly."
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "fal_saw_stock" // SS220 EDIT: use the PR-specific stock sprite in the PR attachment atlas
+	attach_icon = "fal_saw_stock"
+	wield_delay_mod = WIELD_DELAY_MIN
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = 3
+
+/obj/item/attachable/stock/r81_saw/New()//no stats, its cosmetic
+	..()
+
+/obj/item/attachable/stock/r81_sniper
+	name = "\improper R81M1B stock"
+	desc = "You kinda need this to even use the gun properly."
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "fal_sniper_stock"
+	attach_icon = "fal_sniper_stock"
+	wield_delay_mod = WIELD_DELAY_MIN
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = 3
+
+/obj/item/attachable/stock/r81_sniper/New()
+	..()
+
 /obj/item/attachable/stock/m79
 	name = "\improper M79 hardened polykevlon stock"
 	desc = "Helps to mitigate the recoil of launching a 40mm grenade. Fits only to the M79."
@@ -2741,6 +2866,45 @@ Defined in conflicts.dm of the #defines folder.
 	wield_delay_mod = WIELD_DELAY_NONE
 	flags_attach_features = NO_FLAGS
 	melee_mod = 0
+	size_mod = 0
+
+/obj/item/attachable/r81m1a_barrel
+	name = "R81M1A barrel"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "fal_barrel"
+	attach_icon = "fal_barrel"
+	slot = "special"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+
+/obj/item/attachable/r81m1a_barrel/short
+	name = "R81M1C barrel"
+	icon_state = "fal_short_barrel"
+	attach_icon = "fal_short_barrel"
+
+/obj/item/attachable/r81m1a_barrel/saw
+	name = "R81M1D barrel"
+	icon_state = "fal_saw_barrel"
+	attach_icon = "fal_saw_barrel"
+
+/obj/item/attachable/r81m1a_barrel/sniper
+	name = "R81M1D barrel"
+	icon_state = "fal_sniper_barrel"
+	attach_icon = "fal_sniper_barrel"
+
+/obj/item/attachable/p79s_barrel
+	name = "P79S barrel"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "p79s_barrel"
+	attach_icon = "p79s_barrel"
+	slot = "special"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
 	size_mod = 0
 
 /obj/item/attachable/stock/type71
@@ -3054,6 +3218,30 @@ Defined in conflicts.dm of the #defines folder.
 	pixel_shift_x = 21
 	pixel_shift_y = 20
 	hud_offset_mod = 2
+
+/obj/item/attachable/stock/fn107
+	name = "FN107 Carbine Stock"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/stock.dmi'
+	icon_state = "fn107_stock"
+	attach_icon = "fn107_stock"
+	slot = "stock"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 15
+	size_mod = 0
+
+/obj/item/attachable/stock/fpsa
+	name = "FPSA DMR Stock"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/stock.dmi'
+	icon_state = "fpsa_stock"
+	attach_icon = "fpsa_stock"
+	slot = "stock"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 15
+	size_mod = 0
 
 // ======== Underbarrel Attachments ======== //
 
@@ -3381,7 +3569,7 @@ Defined in conflicts.dm of the #defines folder.
 	update_icon()
 
 /obj/item/attachable/attached_gun/grenade/mk1/reload_attachment(obj/item/explosive/grenade/G, mob/user)
-	if(!istype(G) || istype(G, /obj/item/explosive/grenade/spawnergrenade/))
+	if(!istype(G) || (G.caliber != caliber))
 		to_chat(user, SPAN_WARNING("[src] doesn't accept that type of grenade."))
 		return
 	if(!G.active) //can't load live grenades
@@ -3525,10 +3713,6 @@ Defined in conflicts.dm of the #defines folder.
 	pixel_shift_y = 13
 	has_breech = FALSE
 
-/obj/item/attachable/attached_gun/grenade/type71/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
-
 /obj/item/attachable/attached_gun/grenade/type71/preloaded
 
 /obj/item/attachable/attached_gun/grenade/type71/preloaded/New()
@@ -3541,10 +3725,6 @@ Defined in conflicts.dm of the #defines folder.
 	icon_state = "grenade-ag80"
 	attach_icon = "grenade-ag80_a"
 	has_breech = TRUE
-
-/obj/item/attachable/attached_gun/grenade/type71/ag80/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
 
 /obj/item/attachable/attached_gun/grenade/type71/ag80/preloaded
 
@@ -3574,7 +3754,7 @@ Defined in conflicts.dm of the #defines folder.
 
 /obj/item/attachable/attached_gun/flamer/New()
 	..()
-	attachment_firing_delay = FIRE_DELAY_TIER_4 * 5
+	attachment_firing_delay = FIRE_DELAY_TIER_1
 
 /obj/item/attachable/attached_gun/flamer/get_examine_text(mob/user)
 	. = ..()
@@ -3729,7 +3909,7 @@ Defined in conflicts.dm of the #defines folder.
 
 /obj/item/attachable/attached_gun/shotgun/New()
 	..()
-	attachment_firing_delay = FIRE_DELAY_TIER_5*3
+	attachment_firing_delay = FIRE_DELAY_TIER_5*2
 
 /obj/item/attachable/attached_gun/shotgun/get_examine_text(mob/user)
 	. = ..()
@@ -3774,6 +3954,99 @@ Defined in conflicts.dm of the #defines folder.
 
 /obj/item/attachable/attached_gun/shotgun/m20a/set_bullet_traits()
 	return
+
+/obj/item/attachable/attached_gun/shotgun/af13 //NSG underslung shottie
+	name = "\improper AF13 underbarrel shotgun"
+	icon_state = "masterkey_af13"
+	attach_icon = "masterkey_af13_a"
+	desc = "A Weyland-Yutani AF13 underslung shotgun. Attaches to the underbarrel of NSG23 line of weapons. Only capable of loading up to six buckshot shells. Specialized for breaching into buildings."
+	w_class = SIZE_MEDIUM
+	max_rounds = 6
+	current_rounds = 6
+	slot = "under"
+	fire_sound = 'sound/weapons/gun_shotgun_u7.ogg'
+	gun_activate_sound = 'sound/weapons/handling/gun_u7_activate.ogg'
+	flags_attach_features = ATTACH_REMOVABLE|ATTACH_ACTIVATION|ATTACH_PROJECTILE|ATTACH_RELOADABLE|ATTACH_WEAPON
+
+/obj/item/attachable/attached_gun/shotgun/af13/New()
+	..()
+	attachment_firing_delay = FIRE_DELAY_TIER_5*3
+
+/obj/item/attachable/attached_gun/shotgun/af13/get_examine_text(mob/user)
+	. = ..()
+	if(current_rounds > 0) . += "It has [current_rounds] shell\s left."
+	else . += "It's empty."
+
+/obj/item/attachable/attached_gun/shotgun/af13/set_bullet_traits()
+	LAZYADD(traits_to_give_attached, list(
+		BULLET_TRAIT_ENTRY_ID("turfs", /datum/element/bullet_trait_damage_boost, 5, GLOB.damage_boost_turfs),
+		BULLET_TRAIT_ENTRY_ID("breaching", /datum/element/bullet_trait_damage_boost, 10.8, GLOB.damage_boost_breaching),
+		BULLET_TRAIT_ENTRY_ID("pylons", /datum/element/bullet_trait_damage_boost, 5, GLOB.damage_boost_pylons)
+	))
+
+/obj/item/attachable/attached_gun/shotgun/af13/reload_attachment(obj/item/ammo_magazine/handful/mag, mob/user)
+	if(istype(mag) && mag.flags_magazine & AMMUNITION_HANDFUL)
+		if(mag.default_ammo == /datum/ammo/bullet/shotgun/buckshot)
+			if(current_rounds >= max_rounds)
+				to_chat(user, SPAN_WARNING("[src] is full."))
+			else
+				current_rounds++
+				mag.current_rounds--
+				mag.update_icon()
+				to_chat(user, SPAN_NOTICE("You load one shotgun shell in [src]."))
+				playsound(user, 'sound/weapons/gun_shotgun_shell_insert.ogg', 25, 1)
+				if(mag.current_rounds <= 0)
+					user.temp_drop_inv_item(mag)
+					qdel(mag)
+			return
+	to_chat(user, SPAN_WARNING("[src] only accepts shotgun buckshot."))
+
+/obj/item/attachable/attached_gun/shotgun/af13b //NSG underslung shottie for Breacher gun
+	name = "\improper AF13-B underbarrel shotgun"
+	icon_state = "masterkey_af13"
+	attach_icon = "masterkey_af13_a"
+	desc = "A Weyland-Yutani AF13-B underslung shotgun, heavily modified by RMC Armourers. Attaches to the underbarrel of NSG23 line of weapons. Only capable of loading up to six buckshot shells. Specialized for breaching into buildings."
+	w_class = SIZE_MEDIUM
+	max_rounds = 6
+	current_rounds = 6
+	ammo = /datum/ammo/bullet/shotgun/buckshot/masterkey
+	slot = "under"
+	fire_sound = 'sound/weapons/gun_shotgun_u7.ogg'
+	gun_activate_sound = 'sound/weapons/handling/gun_u7_activate.ogg'
+	flags_attach_features = ATTACH_REMOVABLE|ATTACH_ACTIVATION|ATTACH_PROJECTILE|ATTACH_RELOADABLE|ATTACH_WEAPON|ATTACH_WIELD_OVERRIDE
+
+/obj/item/attachable/attached_gun/shotgun/af13b/New()
+	..()
+	attachment_firing_delay = FIRE_DELAY_TIER_5*3
+
+/obj/item/attachable/attached_gun/shotgun/af13b/get_examine_text(mob/user)
+	. = ..()
+	if(current_rounds > 0) . += "It has [current_rounds] shell\s left."
+	else . += "It's empty."
+
+/obj/item/attachable/attached_gun/shotgun/af13b/set_bullet_traits()
+	LAZYADD(traits_to_give_attached, list(
+		BULLET_TRAIT_ENTRY_ID("turfs", /datum/element/bullet_trait_damage_boost, 2*5, GLOB.damage_boost_turfs), // 3 hits to break down regular walls, about 6 to break down r-walls
+		BULLET_TRAIT_ENTRY_ID("breaching", /datum/element/bullet_trait_damage_boost, 3*10.8, GLOB.damage_boost_breaching), // 2-taps the R doors
+		BULLET_TRAIT_ENTRY_ID("pylons", /datum/element/bullet_trait_damage_boost, 2*5, GLOB.damage_boost_pylons)
+	))
+
+/obj/item/attachable/attached_gun/shotgun/af13b/reload_attachment(obj/item/ammo_magazine/handful/mag, mob/user)
+	if(istype(mag) && mag.flags_magazine & AMMUNITION_HANDFUL)
+		if(mag.default_ammo == /datum/ammo/bullet/shotgun/buckshot)
+			if(current_rounds >= max_rounds)
+				to_chat(user, SPAN_WARNING("[src] is full."))
+			else
+				current_rounds++
+				mag.current_rounds--
+				mag.update_icon()
+				to_chat(user, SPAN_NOTICE("You load one shotgun shell in [src]."))
+				playsound(user, 'sound/weapons/gun_shotgun_shell_insert.ogg', 25, 1)
+				if(mag.current_rounds <= 0)
+					user.temp_drop_inv_item(mag)
+					qdel(mag)
+			return
+	to_chat(user, SPAN_WARNING("[src] only accepts shotgun buckshot."))
 
 /obj/item/attachable/attached_gun/extinguisher
 	name = "HME-12 underbarrel extinguisher"
@@ -4234,6 +4507,28 @@ Defined in conflicts.dm of the #defines folder.
 
 	flags_attach_features = ATTACH_ACTIVATION
 
+/obj/item/attachable/bipod/r81
+	name = "R81M1D bipod"
+	desc = "An integral bipod for the R81M1D Pulse Squad Automatic Weapon."
+	icon = 'icons/obj/items/weapons/guns/attachments/attachments_pr.dmi'
+	icon_state = "bipod_fal_saw_a" // SS220 EDIT: use the PR-specific bipod sprite in the PR attachment atlas
+	attach_icon = "bipod_fal_saw_a"
+	slot = "under"
+	size_mod = 0
+	melee_mod = 0
+	flags_attach_features = ATTACH_ACTIVATION
+	attachment_action_type = /datum/action/item_action/toggle
+
+/obj/item/attachable/bipod/r81/New()
+	..()
+
+	delay_mod = 0
+	wield_delay_mod = WIELD_DELAY_FAST
+	accuracy_mod = -HIT_ACCURACY_MULT_TIER_5
+	scatter_mod = SCATTER_AMOUNT_TIER_9
+	recoil_mod = -RECOIL_AMOUNT_TIER_2
+	fa_scatter_peak_mod = 15
+
 /obj/item/attachable/bipod/vulture
 	name = "heavy bipod"
 	desc = "A set of rugged telescopic poles to keep a weapon stabilized during firing."
@@ -4257,6 +4552,26 @@ Defined in conflicts.dm of the #defines folder.
 			attach_icon = new_attach_icon ? new_attach_icon : "c_" + attach_icon
 		if("urban")
 			attach_icon = new_attach_icon ? new_attach_icon : "u_" + attach_icon
+
+/obj/item/attachable/bipod/masm
+	name = "MASM55 bipod"
+	desc = "An integrated bipod for the MASM55 Medium Machinegun."
+	icon_state = "masm_bipod"
+	attach_icon = "masm_bipod"
+	slot = "under"
+	size_mod = 0
+	melee_mod = 0
+	flags_attach_features = ATTACH_ACTIVATION
+	attachment_action_type = /datum/action/item_action/toggle
+
+/obj/item/attachable/bipod/masm/New()
+	..()
+
+	delay_mod = 0
+	wield_delay_mod = WIELD_DELAY_FAST
+	accuracy_mod = -HIT_ACCURACY_MULT_TIER_5
+	scatter_mod = SCATTER_AMOUNT_TIER_9
+	fa_scatter_peak_mod = 15
 
 /obj/item/attachable/burstfire_assembly
 	name = "burst fire assembly"
@@ -4298,3 +4613,14 @@ Defined in conflicts.dm of the #defines folder.
 	flags_attach_features = NO_FLAGS
 	melee_mod = 0
 	size_mod = 0
+
+/obj/item/attachable/bipod/fr2
+	name = "FR2 bipod"
+	desc = "An integrated bipod for the FR2 AMR."
+	icon_state = "fr2_bipod"
+	attach_icon = "fr2_bipod"
+	slot = "under"
+	size_mod = 0
+	melee_mod = 0
+	flags_attach_features = ATTACH_ACTIVATION
+	attachment_action_type = /datum/action/item_action/toggle

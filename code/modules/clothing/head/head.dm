@@ -441,6 +441,22 @@
 	icon_state = "pmc_hat"
 	flags_marine_hat = HAT_GARB_OVERLAY
 
+/obj/item/clothing/head/cmcap/weyyu/black
+	name = "\improper PMC black tactical cap"
+	icon_state = "pmc_hat_dark"
+
+/obj/item/clothing/head/cmcap/weyyu/guard
+	name = "\improper PMC guard tactical cap"
+	icon_state = "guard_cap"
+
+/obj/item/clothing/head/cmcap/weyyu/guard/crewman
+	name = "\improper PMC driver tactical cap"
+	icon_state = "guard_cap"
+
+/obj/item/clothing/head/cmcap/weyyu/guard/lead
+	name = "\improper PMC guard leader tactical cap"
+	icon_state = "guard_lead_cap"
+
 /obj/item/clothing/head/cmo
 	name = "\improper Chief Medical Officer's Peaked Cap"
 	desc = "A peaked cap given to high-ranking civilian medical officers. Looks just a touch silly."
@@ -455,6 +471,18 @@
 	desc = "A dark blue utility cap."
 	icon_state = "corrections"
 	item_state = "corrections"
+
+/obj/item/clothing/head/cmcap/kepi
+	name = "french kepi"
+	desc = "An old traditional cap made by from the French military since the 19th century and still used by current French officers as a high old tradition and significance to the French military."
+	icon_state = "kepi"
+	item_state = "kepi"
+
+/obj/item/clothing/head/cmcap/kepi/auxiliary
+	name = "french expeditionary kepi "
+	desc = "The more comfortable and long range Kepi use either for the desert or jungle. Among favorite for foreign legionaires and other groups in France."
+	icon_state = "kepi_flap"
+	item_state = "kepi_flap"
 
 //============================//BERETS\\=================================\\
 //=======================================================================\\
@@ -600,6 +628,19 @@
 	item_icons = list(
 		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
 	)
+
+/obj/item/clothing/head/cmcap/pmc
+	name = "\improper PMC beret"
+	desc = "The pinnacle of fashion for any aspiring mercenary leader. Designed to protect the head from light impacts."
+	icon = 'icons/obj/items/clothing/cm_hats.dmi'
+	icon_state = "officer_hat"
+	item_icons = list(
+		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
+	)
+
+/obj/item/clothing/head/cmcap/pmc/fieldleader
+	name = "\improper PMC field officer beret"
+	icon_state = "field_officer_hat"
 
 //==========================//PROTECTIVE\\===============================\\
 //=======================================================================\\
@@ -862,3 +903,23 @@
 		/obj/item/prop/helmetgarb/helmet_nvg/cosmetic = "icon_state",
 		/obj/item/prop/helmetgarb/helmet_nvg/marsoc = "icon_state",
 	)
+
+// SS220 EDIT - START
+/obj/item/clothing/head/beret/royal_marine
+	parent_type = /obj/item/clothing/head/cmcap/royal_marine
+// SS220 EDIT - END
+
+/obj/item/clothing/head/beret/royal_marine_pvp
+	name = "royal marine beret"
+	desc = "A green beret belonging to the royal marines commando. This beret symbolizes a royal marines ability to fight in any environment, desert, sea, artic or space a royal marine will always be ready."
+	icon_state = "rmc_beret"
+	item_state = "rmc_beret"
+	icon = 'icons/obj/items/clothing/hats/hats_by_faction/TWE.dmi'
+	flags_atom = NO_NAME_OVERRIDE
+	item_icons = list(
+		WEAR_HEAD = 'icons/mob/humans/onmob/clothing/head/hats_by_faction/TWE.dmi'
+	)
+
+/obj/item/clothing/head/beret/royal_marine_pvp/team_leader
+	icon_state = "rmc_beret_tl"
+	item_state = "rmc_beret_tl"

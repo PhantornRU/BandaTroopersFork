@@ -27,7 +27,13 @@ endmap
 map chapaev
 endmap
 
+map laituri
+endmap
+
 map rover
+endmap
+
+map rover_tethered
 endmap
 
 map golden_arrow_classic

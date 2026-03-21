@@ -49,6 +49,14 @@
   - qol: candles last longer
   - bugfix: fixes surviving in a nuke on the same Z-level by hopping in a vehicle
   - qol: Halves untrained pointing cooldown
+  Alexey:
+  - bugfix: Fixed several ported items and attachments that pointed at missing icon
+      states, including the M20CW, W-Y commando bag, smartgun drum pouch, UPP handset,
+      and R81/FAL attachment set.
+  - bugfix: Fixed CANC UPP platoon leader and combat synthetic lookup-name conflicts
+      that were failing runtime-backed unit tests.
+  - maptweak: Removed generated icon tag var-edits from LV-671 so the map passes lint
+      again.
   Amory:
   - rscadd: New description to XM88 chambering text
   - qol: Andro is made happy
@@ -983,6 +991,46 @@
       as the user themselves are in the open
   PhantornRU:
   - rscadd: 'AI Admin Squad Spawner: reachable tiles, window blocker'
+  - rscadd: "\u0412\u044B\u043D\u0435\u0441\u0435\u043D\u044B \u0432 \u043E\u0442\u0434\
+      \u0435\u043B\u044C\u043D\u044B\u0439 hardcode-PR \u0444\u0440\u0430\u043A\u0446\
+      \u0438\u043E\u043D\u043D\u044B\u0435 \u043F\u0430\u043A\u0435\u0442\u044B FIL,\
+      \ Black Dragoons, CANC Dogwar, PMC/Whiteout/W-Y, shipmaps SSV Rover Tethered\
+      \ \u0438 SSV Laituri, \u0430 \u0442\u0430\u043A\u0436\u0435 \u043D\u043E\u0432\
+      \u044B\u0435 \u043A\u0430\u0440\u0442\u044B LV671, Oil Depot \u0438 derelict_almayer_infested."
+  - code_imp: "\u041F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u044B supporting\
+      \ integration-\u0444\u0438\u043A\u0441\u044B \u0434\u043B\u044F faction/map\
+      \ \u043F\u0430\u043A\u0435\u0442\u043E\u0432, \u0432\u043A\u043B\u044E\u0447\
+      \u0430\u044F DME includes, HALO/RTO compat-layer, GroundSide build/maplint cleanup\
+      \ \u0438 split conflict-resolution \u0434\u043B\u044F \u0431\u044B\u0432\u0448\
+      \u0435\u0433\u043E `various_fixes`."
+  - bugfix: "\u0418\u0441\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u044B compile/maplint/TGM-\u0440\
+      \u0435\u0433\u0440\u0435\u0441\u0441\u0438\u0438 \u043F\u043E\u0441\u043B\u0435\
+      \ split, \u0432\u043A\u043B\u044E\u0447\u0430\u044F `wo.dm` include, GroundSide\
+      \ DMM regressions, atlas overflow \u0438 \u0441\u0430\u043C\u043E\u0441\u0442\
+      \u043E\u044F\u0442\u0435\u043B\u044C\u043D\u0443\u044E \u0441\u0431\u043E\u0440\
+      \u043A\u0443 \u0432\u0435\u0442\u043A\u0438 \u043E\u0442 `master`."
+  - imageadd: "\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u044B GroundSide split-atlas\
+      \ DMI \u0438 \u0441\u0432\u044F\u0437\u0430\u043D\u043D\u044B\u0435 content\
+      \ assets, \u043D\u0443\u0436\u043D\u044B\u0435 \u0434\u043B\u044F \u043D\u043E\
+      \u0432\u044B\u0445 \u043A\u0430\u0440\u0442 \u0438 \u0444\u0440\u0430\u043A\u0446\
+      \u0438\u043E\u043D\u043D\u044B\u0445 \u043F\u0430\u043A\u0435\u0442\u043E\u0432\
+      ."
+  - mapadd: "\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u044B \u043D\u043E\u0432\
+      \u044B\u0435 ground maps \u0438 shipmaps, \u0432\u044B\u043D\u0435\u0441\u0435\
+      \u043D\u043D\u044B\u0435 \u0438\u0437 \u0431\u044B\u0432\u0448\u0435\u0433\u043E\
+      \ \u0441\u043C\u0435\u0448\u0430\u043D\u043D\u043E\u0433\u043E PR \u0432 \u043E\
+      \u0442\u0434\u0435\u043B\u044C\u043D\u0443\u044E reviewable \u0432\u0435\u0442\
+      \u043A\u0443."
+  - maptweak: "\u041F\u043E\u0434\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u044B\
+      \ \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0435 DMM\
+      \ \u0438 \u0438\u043C\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u0430\u043D\
+      \u043D\u044B\u0435 RU GroundSide \u043A\u0430\u0440\u0442\u044B, \u0447\u0442\
+      \u043E\u0431\u044B \u043E\u043D\u0438 \u043F\u0440\u043E\u0445\u043E\u0434\u0438\
+      \u043B\u0438 mapmerge/maplint \u0438 all-maps compile."
+  - soundadd: "\u041F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u044B \u0437\
+      \u0432\u0443\u043A\u043E\u0432\u044B\u0435 \u0430\u0441\u0441\u0435\u0442\u044B\
+      , \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0432 faction/map \u043F\
+      \u0430\u043A\u0435\u0442\u044B."
   Private Tristan, TyeAgg:
   - rscadd: waking up from cryo fullscreen animation
   SpartanBobby:

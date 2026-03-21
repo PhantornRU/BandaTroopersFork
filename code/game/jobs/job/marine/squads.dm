@@ -234,6 +234,28 @@
 	squad_type = "Squad"
 	squad_type_datum = /datum/squad_type/forecon_squad
 
+/datum/squad/marine/upp/forecon
+	name = SQUAD_SISSI
+	equipment_color = "#07770d"
+	chat_color = "#07770d"
+	minimap_color = "#07770d"
+	access = list(ACCESS_UPP_GENERAL)
+	radio_freq = UPP_FORECON_FREQ
+	minimap_color = MINIMAP_SQUAD_UPP
+	use_stripe_overlay = FALSE
+	usable = TRUE
+	faction = FACTION_UPP
+
+/datum/squad/marine/odst
+	name = SQUAD_ODST // SS220 EDIT: HALO ODST squad
+	access = list(ACCESS_MARINE_ALPHA)
+	radio_freq = ODST_FREQ
+	faction = FACTION_UNSC
+	use_stripe_overlay = FALSE
+	equipment_color = "#32CD32"
+	chat_color = "#32CD32"
+	minimap_color = "#32CD32"
+	usable = TRUE
 /datum/squad/marine/bravo
 	name = SQUAD_MARINE_2
 	equipment_color = "#ffc32d"
@@ -440,6 +462,7 @@
 
 /datum/squad/marine/pmc/secondary
 	name = SQUAD_PMCPLT_2
+	equipment_color = "#67d692"
 	chat_color = "#0fc777"
 	minimap_color = MINIMAP_SQUAD_ECHO
 	usable = FALSE
@@ -834,6 +857,10 @@
 			assignment = JOB_MARINE_RAIDER
 			if(name == JOB_MARINE_RAIDER)
 				assignment = "Special Operator"
+		if(JOB_MARINE_RAIDER_MED)
+			assignment = JOB_MARINE_RAIDER_MED
+			if(name == JOB_MARINE_RAIDER_MED)
+				assignment = "Special Amphibious Reconnaissance Corpsman"
 		if(JOB_MARINE_RAIDER_SL)
 			assignment = JOB_MARINE_RAIDER_SL
 			if(name == JOB_MARINE_RAIDER)

@@ -775,6 +775,20 @@
 /turf/open/gm/river/pool
 	name = "pool"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/gm/river/low_water_7d9988
+	base_river_slowdown = 0
+	color = "#7D9988"
+	name = "low water"
+
+/turf/open/gm/river/sewer_water_7d9988
+	color = "#7D9988"
+	name = "sewer water"
+
+/turf/open/gm/river/color_cf9797
+	color = "#CF9797"
+// SS220 EDIT - END
+
 /turf/open/gm/river/shallow_ocean_shallow_ocean
 	name = "shallow ocean"
 	default_name = "shallow ocean"
@@ -840,6 +854,14 @@
 /turf/open/gm/coast/east
 	dir = 8
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/gm/coast/icon_beach_northeast
+	dir = NORTHEAST
+
+/turf/open/gm/coast/icon_beach_northeast/northeast
+	dir = NORTHEAST
+// SS220 EDIT - END
+
 /turf/open/gm/coast/south_east
 	dir = 9
 
@@ -903,6 +925,12 @@
 	icon_state = "black"
 	density = TRUE
 	supports_surgery = FALSE
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/gm/empty/no_density
+	density = FALSE
+	name = "empty space no density"
+// SS220 EDIT - END
 
 /turf/open/gm/empty/is_weedable()
 	return NOT_WEEDABLE
@@ -1290,11 +1318,25 @@
 /turf/open/shuttle/dropship/light_grey_top
 	icon_state = "rasputin10"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/shuttle/dropship/rasputin11
+	icon_state = "rasputin11"
+
+/turf/open/shuttle/dropship/rasputin14
+	icon_state = "rasputin14"
+
+/turf/open/shuttle/dropship/rasputin2
+	icon_state = "rasputin2"
+// SS220 EDIT - END
+
 /turf/open/shuttle/dropship/dark_grey_bottom
 	icon_state = "rasputin12"
 
 /turf/open/shuttle/dropship/light_grey_middle
 	icon_state = "rasputin13"
+
+/turf/open/shuttle/dropship/medium_grey_single_wide_left_to_right
+	icon_state = "rasputin14"
 
 /turf/open/shuttle/dropship/can_surgery
 	icon_state = "rasputin1"
