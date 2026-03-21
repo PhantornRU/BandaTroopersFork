@@ -22,8 +22,8 @@
 
 	var/list/inbuilt_tracking_options = list(
 		"Platoon Commander" = TRACKER_PLTCO,
-		"Squad Leader" = TRACKER_SL, // SS220 EDIT: marine lead tracker label follows runtime squad contract
-		"Group Leader" = TRACKER_FTL, // SS220 EDIT: marine sublead tracker label follows runtime squad contract
+		"Section Sergeant" = TRACKER_SL,
+		"Squad Leader" = TRACKER_FTL,
 		"Landing Zone" = TRACKER_LZ
 	)
 	var/list/tracking_options = list()
@@ -360,18 +360,6 @@
 
 	handle_switching_tracker_target(usr)
 
-/obj/item/device/radio/headset/proc/has_tracker_target(tracker_id)
-	for(var/tracking_label in tracking_options)
-		if(tracking_options[tracking_label] == tracker_id)
-			return TRUE
-	return FALSE
-
-/obj/item/device/radio/headset/proc/set_tracker_target(tracker_id)
-	if(!has_tracker_target(tracker_id))
-		return FALSE
-	locate_setting = tracker_id
-	return TRUE
-
 /obj/item/device/radio/headset/proc/handle_switching_tracker_target(mob/living/carbon/human/user)
 	var/new_track = tgui_input_list(user, "Choose a new tracking target.", "Tracking Selection", tracking_options)
 	if(!new_track)
@@ -406,6 +394,8 @@
 		else if(hud_type == MOB_HUD_FACTION_PMC)
 			marker_flags = MINIMAP_FLAG_PMC
 		else if(hud_type == MOB_HUD_FACTION_CLF)
+			marker_flags = MINIMAP_FLAG_CLF
+		else if(hud_type == MOB_HUD_FACTION_FIL)
 			marker_flags = MINIMAP_FLAG_CLF
 
 	if(wearer.undefibbable)
@@ -460,10 +450,12 @@
 /obj/item/device/radio/headset/almayer/equipped(mob/living/carbon/human/user, slot)
 	. = ..()
 
-	if((user == user.assigned_squad?.fireteam_leaders["SQ1"] || user == user.assigned_squad?.fireteam_leaders["SQ2"]) && set_tracker_target(TRACKER_SL))
+	if((user == user.assigned_squad?.fireteam_leaders["SQ1"] || user == user.assigned_squad?.fireteam_leaders["SQ2"]) && ("Section Sergeant" in tracking_options))
+		locate_setting = tracking_options["Section Sergeant"]
 		return
 
-	if(((user in user.assigned_squad?.fireteams["SQ1"]) || (user in user.assigned_squad?.fireteams["SQ2"])) && set_tracker_target(TRACKER_FTL))
+	if(((user in user.assigned_squad?.fireteams["SQ1"]) || (user in user.assigned_squad?.fireteams["SQ2"])) && ("Squad Leader" in tracking_options))
+		locate_setting = tracking_options["Squad Leader"]
 		return
 
 /obj/item/device/radio/headset/almayer/verb/give_medal_recommendation()
@@ -662,8 +654,8 @@
 
 	inbuilt_tracking_options = list(
 		"Platoon Commander" = TRACKER_PLTCO,
-		"A-Squad Leader" = TRACKER_ASL, // SS220 EDIT: synth tracker labels match runtime squad contract
-		"B-Squad Leader" = TRACKER_BSL, // SS220 EDIT: synth tracker labels match runtime squad contract
+		"A-Section Sergeant" = TRACKER_ASL,
+		"B-Section Sergeant" = TRACKER_BSL,
 		"Landing Zone" = TRACKER_LZ
 	)
 
@@ -713,10 +705,11 @@
 	volume = RADIO_VOLUME_CRITICAL
 	has_tracker = TRUE
 	misc_tracking = TRUE
-	locate_setting = TRACKER_ASL
+	locate_setting = TRACKER_RSL
 
 	inbuilt_tracking_options = list(
-		"Squad Leader" = TRACKER_ASL,
+		"Snake Eaters Squad Leader" = TRACKER_RSL,
+		"Ocelot Grapplers Squad Leader" = TRACKER_R2SL,
 		"Landing Zone" = TRACKER_LZ
 	)
 
@@ -730,10 +723,10 @@
 	has_hud = TRUE
 	hud_type = list(MOB_HUD_FACTION_TWE, MOB_HUD_FACTION_WY)
 	inbuilt_tracking_options = list(
-		"Troop Commander" = TRACKER_PLTCO,
+		"Troop Commander" = TRACKER_RMCSL,
 		"Section/Team Leader" = TRACKER_FTL,
 	)
-	locate_setting = TRACKER_PLTCO
+	locate_setting = TRACKER_RMCSL
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/foxtrot
 	frequency = CRYO_FREQ
@@ -744,8 +737,15 @@
 	icon_state = "upp_headset"
 	item_state = "upp_headset"
 	frequency = UPP_FREQ
+	misc_tracking = TRUE
 	minimap_type = MINIMAP_FLAG_UPP
 	hud_type = list(MOB_HUD_FACTION_UPP)
+	inbuilt_tracking_options = list(
+		"Platoon Commander" = TRACKER_PLTCO,
+		"Platoon Sergeant" = TRACKER_SL,
+		"Squad Sergeant" = TRACKER_FTL,
+		"Landing Zone" = TRACKER_LZ
+	)
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/upp/synth
 	name = "UPP synth headset"
@@ -753,11 +753,12 @@
 	volume = RADIO_VOLUME_IMPORTANT
 	has_tracker = TRUE
 	misc_tracking = TRUE
-	locate_setting = TRACKER_ASL
+	locate_setting = TRACKER_UPPSL
 
 	inbuilt_tracking_options = list(
 		"Platoon Commander" = TRACKER_PLTCO,
-		"Platoon Sergeant" = TRACKER_ASL,
+		"Red Dawn Platoon Sergeant" = TRACKER_UPPSL,
+		"Golden Embers Platoon Sergeant" = TRACKER_UPP2SL,
 		"Landing Zone" = TRACKER_LZ
 	)
 
@@ -783,8 +784,20 @@
 	desc = "A special headset used by CANC military."
 	icon_state = "upp_headset"
 	item_state = "upp_headset"
-	frequency = CLF_FREQ
+	frequency = CANC_FREQ
 	has_hud = FALSE //Until we get CANC stuff, this'll do
+
+/obj/item/device/radio/headset/almayer/marine/solardevils/canc/command
+	frequency = CANC_FREQ
+	initial_keys = list(/obj/item/device/encryptionkey/canc/command)
+
+/obj/item/device/radio/headset/almayer/marine/solardevils/canc/medic
+	frequency = CANC_FREQ
+	initial_keys = list(/obj/item/device/encryptionkey/canc/medic)
+
+/obj/item/device/radio/headset/almayer/marine/solardevils/canc/sof
+	frequency = CANC_FREQ
+	initial_keys = list(/obj/item/device/encryptionkey/canc/sof)
 
 /obj/item/device/radio/headset/almayer/cia
 	name = "radio headset"
@@ -807,8 +820,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/alpha/tl
-	name = "marine alpha group leader radio headset"
-	desc = "This is used by the marine Alpha group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine alpha team leader radio headset"
+	desc = "This is used by the marine Alpha team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -836,8 +849,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/bravo/tl
-	name = "marine bravo group leader radio headset"
-	desc = "This is used by the marine Bravo group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine bravo team leader radio headset"
+	desc = "This is used by the marine Bravo team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -865,8 +878,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/charlie/tl
-	name = "marine charlie group leader radio headset"
-	desc = "This is used by the marine Charlie group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine charlie team leader radio headset"
+	desc = "This is used by the marine Charlie team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -894,8 +907,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/delta/tl
-	name = "marine delta group leader radio headset"
-	desc = "This is used by the marine Delta group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine delta team leader radio headset"
+	desc = "This is used by the marine Delta team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -923,8 +936,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/echo/tl
-	name = "marine echo group leader radio headset"
-	desc = "This is used by the marine Echo group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine echo team leader radio headset"
+	desc = "This is used by the marine Echo team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -953,8 +966,8 @@
 	volume = RADIO_VOLUME_CRITICAL
 
 /obj/item/device/radio/headset/almayer/marine/cryo/tl
-	name = "marine foxtrot group leader radio headset"
-	desc = "This is used by the marine Foxtrot group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+	name = "marine foxtrot team leader radio headset"
+	desc = "This is used by the marine Foxtrot team leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 	initial_keys = list(/obj/item/device/encryptionkey/public, /obj/item/device/encryptionkey/jtac)
 	volume = RADIO_VOLUME_RAISED
 
@@ -1027,7 +1040,7 @@
 					name = "marine combat technician " + name
 					keys += new /obj/item/device/encryptionkey/engi(src)
 				if(JOB_SQUAD_TEAM_LEADER)
-					name = "marine group leader " + name
+					name = "marine fireteam leader " + name
 					keys += new /obj/item/device/encryptionkey/jtac(src)
 				else
 					name = "marine " + name
@@ -1069,6 +1082,7 @@
 	has_hud = TRUE
 	hud_type = list(MOB_HUD_FACTION_PMC, MOB_HUD_FACTION_WY, MOB_HUD_FACTION_TWE)
 
+	has_tracker = TRUE
 	misc_tracking = TRUE
 	locate_setting = TRACKER_CL
 	inbuilt_tracking_options = list(
@@ -1077,8 +1091,16 @@
 
 /obj/item/device/radio/headset/distress/pmc/platoon
 	desc = "A special headset used by corporate PMCs.  Channels are as follows: #p - general, #y - WY."
+	item_state = "uscm_headset"
+	item_icons = list(
+		WEAR_L_EAR = 'icons/mob/humans/onmob/ears.dmi',
+		WEAR_R_EAR = 'icons/mob/humans/onmob/ears.dmi',
+		)
+	minimap_type = MINIMAP_FLAG_PMC
+	hud_type = list(MOB_HUD_FACTION_PMC, MOB_HUD_FACTION_WY, MOB_HUD_FACTION_TWE)
+	frequency = PMC_FREQ
+	misc_tracking = TRUE
 	initial_keys = list(/obj/item/device/encryptionkey/pmc)
-	locate_setting = TRACKER_SL
 	inbuilt_tracking_options = list(
 		"Overwatch" = TRACKER_PLTCO,
 		"Operation Leader" = TRACKER_SL,
@@ -1088,22 +1110,27 @@
 
 /obj/item/device/radio/headset/distress/pmc/platoon/synth
 	name = "PMC synth headset"
+	icon_state = "rmc_headset"
+	item_state = "rmc_headset"
 	desc = "A headset & HUD unit issued to corporate support synthetics. Channels are as follows: #p - general, #y - WY,  #z - command, #f - medical, #e - engineering, #o - JTAC."
 	initial_keys = list(/obj/item/device/encryptionkey/pmc/command)
 	volume = RADIO_VOLUME_IMPORTANT
 	has_tracker = TRUE
 	misc_tracking = TRUE
-	locate_setting = TRACKER_ASL
+	locate_setting = TRACKER_PSL
 
 	inbuilt_tracking_options = list(
 		"Overwatch" = TRACKER_PLTCO,
-		"Operation Leader" = TRACKER_ASL,
+		"AZURE 15 Operation Leader" = TRACKER_PSL,
+		"AZURE 16 Strike Operation Leader" = TRACKER_PSSL,
 		"Landing Zone" = TRACKER_LZ
 	)
 
 /obj/item/device/radio/headset/distress/pmc/platoon/cmd
 	name = "overwatch headset"
-	desc = "A special headset & HUD unit used to PMC Overwatch.  Channels are as follows: #p - general, #y - WY,  #z - command, #f - medical, #e - engineering, #o - JTAC."
+	icon_state = "rmc_headset"
+	item_state = "rmc_headset"
+	desc = "A special headset & HUD unit used to PMC Overwatch. Channels are as follows: #p - general, #y - WY,  #z - command, #f - medical, #e - engineering, #o - JTAC."
 	initial_keys = list(/obj/item/device/encryptionkey/pmc/command)
 
 /obj/item/device/radio/headset/distress/cbrn
@@ -1416,3 +1443,12 @@
 	frequency = MERC_FREQ
 	initial_keys = list(/obj/item/device/encryptionkey/colony)
 	ignore_z = TRUE
+
+/obj/item/device/radio/headset/distress/fil
+	name = "military headset"
+	desc = "A military headset, used by the French Foreign Interstellar Legion."
+	frequency = FIL_FREQ
+	icon_state = "vai_headset"
+	initial_keys = list(/obj/item/device/encryptionkey/fil)
+	has_hud = TRUE
+	hud_type = list(MOB_HUD_FACTION_FIL)

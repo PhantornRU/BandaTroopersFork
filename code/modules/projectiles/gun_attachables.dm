@@ -29,7 +29,6 @@ Defined in conflicts.dm of the #defines folder.
 	var/attach_icon //the sprite to show when the attachment is attached when we want it different from the icon_state.
 	var/pixel_shift_x = 16 //Determines the amount of pixels to move the icon state for the overlay.
 	var/pixel_shift_y = 16 //Uses the bottom left corner of the item.
-	var/layer_addition = 0 // SS220 EDIT: allow per-attachment overlay layer tuning for HALO content
 
 	flags_atom =  FPRINT|CONDUCT
 	matter = list("metal" = 100)
@@ -263,7 +262,6 @@ Defined in conflicts.dm of the #defines folder.
 	attach_icon = "suppressor_a"
 	hud_offset_mod = -3
 	gun_traits = list(TRAIT_GUN_SILENCED)
-	var/new_fire_sound = "gun_silenced" // SS220 EDIT: support suppressor-specific silenced shot keys
 
 /obj/item/attachable/suppressor/New()
 	..()
@@ -510,6 +508,31 @@ Defined in conflicts.dm of the #defines folder.
 	melee_mod = 0
 	size_mod = 0
 
+/obj/item/attachable/shotgun_barrel
+	name = "Ithaca barrel"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
+	icon_state = "m37_barrel_a"
+	attach_icon = "m37_barrel_a"
+	slot = "muzzle"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+
+/obj/item/attachable/rpg_baffle
+	name = "M5 exhaust baffle"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/1218_attachies.dmi'
+	icon_state = "m5_stock"
+	attach_icon = "m5_stock"
+	slot = "stock"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
+	size_mod = 0
+	hud_offset_mod = 6
+
 /obj/item/attachable/sniperbarrel
 	name = "sniper barrel"
 	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
@@ -700,6 +723,15 @@ Defined in conflicts.dm of the #defines folder.
 	flags_attach_features = NO_FLAGS
 	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
 	size_mod = 0
+
+/obj/item/attachable/masm_barrel
+	name = "MASM55 barrel"
+	icon = 'icons/obj/items/weapons/guns/attachments/barrel.dmi'
+	icon_state = "masm_barrel"
+	desc = "Barrel of the MASM55, how did that get here?"
+	slot = "muzzle"
+	flags_attach_features = NO_FLAGS
+	hud_offset_mod = -6
 
 // ======== Rail attachments ======== //
 
@@ -1162,10 +1194,6 @@ Defined in conflicts.dm of the #defines folder.
 
 //other variable zoom scopes
 
-/obj/item/attachable/scope/variable_zoom/integrated
-	name = "FR2 variable zoom scope"
-	icon_state = "fr2_scope"
-	attach_icon = "fr2_scope_a"
 
 /obj/item/attachable/scope/variable_zoom/integrated
 	name = "variable zoom scope"
@@ -1183,6 +1211,11 @@ Defined in conflicts.dm of the #defines folder.
 		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
 	))
 */
+
+/obj/item/attachable/scope/variable_zoom/fr2
+	name = "FR2 variable zoom scope"
+	icon_state = "fr2_scope"
+	attach_icon = "fr2_scope_a"
 
 /obj/item/attachable/scope/variable_zoom/slavic
 	icon_state = "slavicscope"
@@ -2013,8 +2046,6 @@ Defined in conflicts.dm of the #defines folder.
 	scatter_unwielded_mod = SCATTER_AMOUNT_TIER_10
 	//but at the same time you are slow when 2 handed
 	aim_speed_mod = CONFIG_GET(number/slowdown_med)
-
-	select_gamemode_skin(type)
 
 /obj/item/attachable/stock/double
 	name = "\improper double barrel shotgun stock"
@@ -3159,6 +3190,18 @@ Defined in conflicts.dm of the #defines folder.
 	pixel_shift_y = 20
 	hud_offset_mod = 2
 
+/obj/item/attachable/stock/fn107
+	name = "FN107 Carbine Stock"
+	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
+	icon = 'icons/obj/items/weapons/guns/attachments/stock.dmi'
+	icon_state = "fn107_stock"
+	attach_icon = "fn107_stock"
+	slot = "stock"
+	wield_delay_mod = WIELD_DELAY_NONE
+	flags_attach_features = NO_FLAGS
+	melee_mod = 15
+	size_mod = 0
+
 /obj/item/attachable/stock/fpsa
 	name = "FPSA DMR Stock"
 	desc = "This isn't supposed to be separated from the gun, how'd this happen?"
@@ -3497,7 +3540,7 @@ Defined in conflicts.dm of the #defines folder.
 	update_icon()
 
 /obj/item/attachable/attached_gun/grenade/mk1/reload_attachment(obj/item/explosive/grenade/G, mob/user)
-	if(!istype(G) || istype(G, /obj/item/explosive/grenade/spawnergrenade/))
+	if(!istype(G) || (G.caliber != caliber))
 		to_chat(user, SPAN_WARNING("[src] doesn't accept that type of grenade."))
 		return
 	if(!G.active) //can't load live grenades
@@ -3641,10 +3684,6 @@ Defined in conflicts.dm of the #defines folder.
 	pixel_shift_y = 13
 	has_breech = FALSE
 
-/obj/item/attachable/attached_gun/grenade/type71/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
-
 /obj/item/attachable/attached_gun/grenade/type71/preloaded
 
 /obj/item/attachable/attached_gun/grenade/type71/preloaded/New()
@@ -3657,10 +3696,6 @@ Defined in conflicts.dm of the #defines folder.
 	icon_state = "grenade-ag80"
 	attach_icon = "grenade-ag80_a"
 	has_breech = TRUE
-
-/obj/item/attachable/attached_gun/grenade/type71/ag80/Initialize()
-	. = ..()
-	grenade_pass_flags = NO_FLAGS
 
 /obj/item/attachable/attached_gun/grenade/type71/ag80/preloaded
 
@@ -4394,6 +4429,26 @@ Defined in conflicts.dm of the #defines folder.
 			attach_icon = new_attach_icon ? new_attach_icon : "c_" + attach_icon
 		if("urban")
 			attach_icon = new_attach_icon ? new_attach_icon : "u_" + attach_icon
+
+/obj/item/attachable/bipod/masm
+	name = "MASM55 bipod"
+	desc = "An integrated bipod for the MASM55 Medium Machinegun."
+	icon_state = "masm_bipod"
+	attach_icon = "masm_bipod"
+	slot = "under"
+	size_mod = 0
+	melee_mod = 0
+	flags_attach_features = ATTACH_ACTIVATION
+	attachment_action_type = /datum/action/item_action/toggle
+
+/obj/item/attachable/bipod/masm/New()
+	..()
+
+	delay_mod = 0
+	wield_delay_mod = WIELD_DELAY_FAST
+	accuracy_mod = -HIT_ACCURACY_MULT_TIER_5
+	scatter_mod = SCATTER_AMOUNT_TIER_9
+	fa_scatter_peak_mod = 15
 
 /obj/item/attachable/burstfire_assembly
 	name = "burst fire assembly"
