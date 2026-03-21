@@ -71,7 +71,7 @@
 		for(var/mob/living/target_living in range(3, get_turf(src)))
 			var/obj/projectile/projectile = new /obj/projectile(src)
 			projectile.generate_bullet(GLOB.ammo_list[/datum/ammo/bullet/shrapnel/metal], 0, NO_FLAGS)
-			if(!check_for_obstacles_projectile(get_turf(src), get_turf(target_living), projectile))
+			if(!check_for_path_obstacles_projectile(get_turf(src), get_turf(target_living), projectile))
 				var/datum/reagent/napalm/blue/reagent = new()
 				target_living.TryIgniteMob(9, reagent)
 			qdel(projectile)
