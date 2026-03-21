@@ -1,4 +1,4 @@
-# Creates an entry in html/changelogs automatically, to eventually be compiled by compile_changelogs
+# Creates and compiles a changelog entry automatically after a PR merge
 name: Auto Changelog
 on:
   pull_request_target:
@@ -12,9 +12,25 @@ jobs:
   auto_changelog:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
+    concurrency:
+      group: changelog-compile-master
+      cancel-in-progress: false
     steps:
+    - name: Detect auth mode
+      id: auth-mode
+      env:
+        APP_ID: ${{ secrets.APP_ID }}
+        APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      run: |
+        if [ -n "$APP_ID" ] && [ -n "$APP_PRIVATE_KEY" ]; then
+          echo "use_app=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "use_app=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Generate App Token
       id: app-token-generation
+      if: steps.auth-mode.outputs.use_app == 'true'
       uses: actions/create-github-app-token@v1
       with:
         app-id: ${{ secrets.APP_ID }}
@@ -23,12 +39,82 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        token: ${{ steps.app-token-generation.outputs.token }}
+        ref: master
+        fetch-depth: 0
+        token: ${{ steps.app-token-generation.outputs.token || github.token }}
 
-    - name: Run auto changelog
+    - name: Setup python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+
+    - name: Install deps
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pyyaml
+
+    - name: Generate auto changelog file
+      id: generate-changelog
       uses: actions/github-script@v6
       with:
         script: |
-          const { processAutoChangelog } = await import('${{ github.workspace }}/tools/pull_request_hooks/autoChangelog.js')
-          await processAutoChangelog({ github, context })
-        github-token: ${{ steps.app-token-generation.outputs.token }}
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const { buildAutoChangelogFile } = await import(`${process.env.GITHUB_WORKSPACE}/tools/pull_request_hooks/autoChangelog.js`);
+
+          const autoChangelog = buildAutoChangelogFile({
+            body: context.payload.pull_request.body ?? "",
+            login: context.payload.pull_request.user.login,
+            prNumber: context.payload.pull_request.number,
+          });
+
+          if (!autoChangelog) {
+            core.setOutput("has_changelog", "false");
+            console.log("no changelog found");
+            return;
+          }
+
+          const fullPath = path.join(process.env.GITHUB_WORKSPACE, autoChangelog.path);
+          fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+          fs.writeFileSync(fullPath, `${autoChangelog.contents}\n`, "utf8");
+
+          core.setOutput("has_changelog", "true");
+          core.setOutput("path", autoChangelog.path);
+          console.log(`wrote ${autoChangelog.path}`);
+        github-token: ${{ steps.app-token-generation.outputs.token || github.token }}
+
+    - name: Compile changelog archive
+      if: steps.generate-changelog.outputs.has_changelog == 'true'
+      run: |
+        python .github/ss13_genchangelog.py html/changelogs
+
+    - name: Commit changelog updates
+      id: commit-changelog
+      if: steps.generate-changelog.outputs.has_changelog == 'true'
+      env:
+        USE_APP: ${{ steps.auth-mode.outputs.use_app }}
+        APP_PUBLIC_ID: ${{ secrets.APP_PUBLIC_ID }}
+        APP_PUBLIC_NAME: ${{ secrets.APP_PUBLIC_NAME }}
+      run: |
+        if git diff --quiet -- html/changelogs; then
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+          echo "No changelog changes to commit."
+          exit 0
+        fi
+
+        if [ "$USE_APP" = "true" ] && [ -n "$APP_PUBLIC_ID" ] && [ -n "$APP_PUBLIC_NAME" ]; then
+          git config --local user.email "${APP_PUBLIC_ID}+${APP_PUBLIC_NAME}[bot]@users.noreply.github.com"
+          git config --local user.name "${APP_PUBLIC_NAME}[bot]"
+        else
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+        fi
+
+        git add html/changelogs
+        git commit -m "Automatic changelog compile for PR #${{ github.event.pull_request.number }} [ci skip]"
+        echo "committed=true" >> "$GITHUB_OUTPUT"
+
+    - name: Push changelog updates
+      if: steps.commit-changelog.outputs.committed == 'true'
+      run: |
+        git push origin HEAD:master

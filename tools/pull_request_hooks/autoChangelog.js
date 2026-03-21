@@ -20,23 +20,34 @@ export function changelogToYml(changelog, login) {
 	return ymlLines.join("\n");
 }
 
-export async function processAutoChangelog({ github, context }) {
-	const changelog = parseChangelog(context.payload.pull_request.body);
+export function buildAutoChangelogFile({ body, login, prNumber }) {
+	const changelog = parseChangelog(body ?? "");
 	if (!changelog || changelog.changes.length === 0) {
+		return undefined;
+	}
+
+	return {
+		path: `html/changelogs/AutoChangeLog-pr-${prNumber}.yml`,
+		contents: changelogToYml(changelog, login),
+	};
+}
+
+export async function processAutoChangelog({ github, context }) {
+	const autoChangelog = buildAutoChangelogFile({
+		body: context.payload.pull_request.body,
+		login: context.payload.pull_request.user.login,
+		prNumber: context.payload.pull_request.number,
+	});
+	if (!autoChangelog) {
 		console.log("no changelog found");
 		return;
 	}
 
-	const yml = changelogToYml(
-		changelog,
-		context.payload.pull_request.user.login
-	);
-
-	github.rest.repos.createOrUpdateFileContents({
+	await github.rest.repos.createOrUpdateFileContents({
 		owner: context.repo.owner,
 		repo: context.repo.repo,
-		path: `html/changelogs/AutoChangeLog-pr-${context.payload.pull_request.number}.yml`,
+		path: autoChangelog.path,
 		message: `Automatic changelog for PR #${context.payload.pull_request.number} [ci skip]`,
-		content: Buffer.from(yml).toString("base64"),
+		content: Buffer.from(autoChangelog.contents).toString("base64"),
 	});
 }
