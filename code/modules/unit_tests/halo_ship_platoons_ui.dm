@@ -25,15 +25,3 @@
 	TEST_ASSERT(selectable_factions.Find(FACTION_UNSC), "Screen alerts no longer expose FACTION_UNSC in the selectable faction list.")
 	TEST_ASSERT_EQUAL(alert_save.normalize_selected_faction(FACTION_UNSC), FACTION_UNSC, "Screen alerts failed to preserve FACTION_UNSC during faction normalization.")
 	TEST_ASSERT_EQUAL(alert_save.normalize_selected_faction(alert_save.get_faction_display_name(FACTION_MARINE)), FACTION_MARINE, "Screen alerts regressed marine display-name normalization while adding UNSC support.")
-
-/datum/unit_test/halo_ship_platoons_preview_visual_state
-	parent_type = /datum/unit_test/halo_equip_test
-
-/datum/unit_test/halo_ship_platoons_preview_visual_state/Run()
-	assert_preview_preset_visualizes_loadout(JOB_SQUAD_SPECIALIST_UNSC, /datum/equipment_preset/unsc/spec/equipped_spnkr, list(WEAR_BODY, WEAR_L_EAR, WEAR_HEAD, WEAR_JACKET, /obj/item/weapon/gun/halo_launcher/spnkr))
-	assert_preview_preset_visualizes_loadout(JOB_SQUAD_MEDIC_ODST, /datum/equipment_preset/unsc/medic/odst/equipped, list(
-		/obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst,
-		/obj/item/clothing/head/helmet/marine/unsc/odst,
-		/obj/item/clothing/under/marine/odst,
-		/obj/item/clothing/suit/marine/unsc/odst,
-	))

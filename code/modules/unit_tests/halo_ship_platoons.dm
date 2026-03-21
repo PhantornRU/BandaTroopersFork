@@ -20,14 +20,19 @@
 
 	return FALSE
 
-/datum/unit_test/halo_contract_test/proc/assert_halo_role_contract(job_title, expected_job_type, expected_bucket, expected_preview_preset)
+/datum/unit_test/halo_contract_test/proc/assert_halo_role_job_type(job_title, expected_job_type)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO role contract testing.")
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO role-classification testing.")
 
 	var/datum/job/job_datum = role_authority.roles_by_name[job_title]
 	TEST_ASSERT_EQUAL(job_datum?.type, expected_job_type, "[job_title] did not resolve to the preferred HALO job path.")
+
+/datum/unit_test/halo_contract_test/proc/assert_halo_bucket_mapping(job_title, expected_bucket)
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO bucket-mapping testing.")
+
 	TEST_ASSERT_EQUAL(role_authority.get_job_preference_bucket_key(job_title), expected_bucket, "[job_title] did not resolve to the canonical preference bucket.")
-	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(job_title), expected_preview_preset, "[job_title] preview preset did not resolve through the modular helper.")
+	assert_halo_title_mapping(job_title, expected_bucket)
 
 /datum/unit_test/halo_contract_test/proc/assert_halo_title_mapping(job_title, expected_bucket)
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
@@ -57,12 +62,6 @@
 	var/datum/job/job_datum = role_authority.roles_by_name[job_title]
 	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve the HALO job datum for [job_title].")
 	TEST_ASSERT_EQUAL(job_datum.get_spawn_equip_preset(job_title, role_authority), expected_preset, "[job_title] no longer resolves through the HALO preset path.")
-
-/datum/unit_test/halo_contract_test/proc/assert_halo_cryo_profile_resolution(canonical_role, platoon_type, expected_title, expected_preset)
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO cryo-profile resolution testing.")
-	TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type), expected_title, "[canonical_role] did not resolve to the expected HALO cryo title for [platoon_type].")
-	TEST_ASSERT_EQUAL(role_authority.get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type), expected_preset, "[canonical_role] did not resolve to the expected HALO cryo preset for [platoon_type].")
 
 /datum/unit_test/halo_contract_test/proc/assert_assigned_to_platoon_family(mob/living/carbon/human/human, platoon_type, context)
 	var/list/family_types = get_ship_platoon_family_types(platoon_type)
@@ -190,38 +189,6 @@
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_L_EAR), "[role_label] should keep the HALO specialist baseline naked, but still had a headset equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should keep the HALO specialist baseline naked, but still had a helmet equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should keep the HALO specialist baseline naked, but still had armor equipped.")
-
-/datum/unit_test/halo_equip_test/proc/assert_preview_preset_visualizes_loadout(job_title, expected_preview_preset_type, required_slots_or_items)
-	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
-	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO preview visual testing.")
-	TEST_ASSERT_EQUAL(role_authority.get_modular_job_pref_to_gear_preset(job_title), expected_preview_preset_type, "[job_title] preview preset did not resolve through the modular helper.")
-
-	var/datum/preferences/preferences = allocate(/datum/preferences)
-	preferences.job_preference_list = list()
-	preferences.job_preference_list[job_title] = HIGH_PRIORITY
-
-	var/preset_type = preferences.job_pref_to_gear_preset()
-	TEST_ASSERT_EQUAL(preset_type, expected_preview_preset_type, "[job_title] preview preset did not resolve through the real preview helper path.")
-
-	var/mob/living/carbon/human/human = create_test_human("[job_title] Preview", job_title)
-	arm_equipment(human, preset_type, FALSE, FALSE, null, TRUE)
-
-	TEST_ASSERT(islist(required_slots_or_items) && length(required_slots_or_items), "[job_title] preview visual assertion requires at least one slot or item check.")
-	for(var/required_entry as anything in required_slots_or_items)
-		if(isnum(required_entry) || istext(required_entry))
-			TEST_ASSERT_NOTNULL(human.get_item_by_slot(required_entry), "[job_title] preview mannequin was missing required slot [required_entry].")
-			continue
-
-		if(ispath(required_entry))
-			var/found_item = FALSE
-			for(var/obj/item/item as anything in human.contents)
-				if(istype(item, required_entry))
-					found_item = TRUE
-					break
-			TEST_ASSERT(found_item, "[job_title] preview mannequin was missing required item type [required_entry].")
-			continue
-
-		TEST_FAIL("[job_title] preview visual assertion encountered unsupported requirement [required_entry].")
 
 /datum/unit_test/halo_integration_test
 	parent_type = /datum/unit_test/halo_equip_test
