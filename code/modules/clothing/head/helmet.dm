@@ -2274,11 +2274,14 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 /obj/item/clothing/head/helmet/space/pressure/rmc
 	name = "\improper Ross-Smith Mk4 pressure helmet"
 	desc = "A heavy space helmet, designed to be worm alongside the Ross-Smith Mk4 pressure suit utilized by the Three World Empires Royal Marine Commando forces. Makes usage of camera systems and an internal display screen, rather than a toughened glass visor for visibility."
-	helmet_color = "helmet_rmc"
-	contained_sprite = TRUE
-	item_state = "pressure_helmet_rmc"
-	icon_state = "pressure_helmet_rmc"
-	icon = 'icons/mob/humans/onmob/contained/royal_marines_commando.dmi'
+	helmet_color = "dark"
+	contained_sprite = FALSE
+	item_state = "pressure_dark"
+	icon_state = "pressure_dark"
+	icon = 'icons/obj/items/clothing/cm_hats.dmi'
+	item_icons = list(
+		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
+	)
 
 //=USASF & ARMY=\\
 
