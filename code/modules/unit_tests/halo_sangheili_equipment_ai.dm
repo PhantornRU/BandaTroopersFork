@@ -62,6 +62,30 @@
 
 	TEST_ASSERT_EQUAL(brain.active_grenade_found, grenade, "Standing back up should invalidate nearby-item throttling and immediately rediscover an adjacent live grenade.")
 
+/datum/unit_test/halo_sangheili_ai_hardcrit_rest_guard
+	parent_type = /datum/unit_test/halo_sangheili_equipment
+
+/datum/unit_test/halo_sangheili_ai_hardcrit_rest_guard/Run()
+	var/datum/human_ai_brain/brain = create_sangheili_ai_brain(/datum/equipment_preset/covenant/sangheili/ai/minor_plasma)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Sangheili AI for hardcrit-rest testing.")
+
+	var/mob/living/carbon/human/human = brain.tied_human
+	TEST_ASSERT_NOTNULL(human, "The HALO Sangheili hardcrit-rest test requires a tied human.")
+	TEST_ASSERT(!human.resting, "The HALO Sangheili hardcrit-rest test should begin with the AI standing normally.")
+
+	new /datum/effects/crit/human(human)
+	brain.process(0)
+	TEST_ASSERT(human.resting, "HALO Sangheili AI should enter resting while hardcrit remains active.")
+
+	var/datum/effects/crit/crit_effect = locate(/datum/effects/crit) in human.effects_list
+	TEST_ASSERT_NOTNULL(crit_effect, "The HALO Sangheili hardcrit-rest test failed to apply the crit effect.")
+	qdel(crit_effect)
+	human.SetKnockDown(0)
+	human.SetStun(0)
+
+	brain.process(0)
+	TEST_ASSERT(!human.resting, "HALO Sangheili AI should resume normal standing behavior once hardcrit ends.")
+
 /datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
