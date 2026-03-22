@@ -108,7 +108,7 @@ GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
 	icon_state = "chemvendor"
 	show_points = TRUE
 	use_snowflake_points = TRUE
-	vendor_role = list(JOB_SQUAD_MEDIC)
+	vendor_role = list(JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC_UNSC, JOB_SQUAD_MEDIC_ODST)
 	req_access = list(ACCESS_MARINE_MEDPREP)
 
 /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/get_listed_products(mob/user)
