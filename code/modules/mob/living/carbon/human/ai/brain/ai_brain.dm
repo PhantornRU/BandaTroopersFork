@@ -154,7 +154,8 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if(!length(detection_turfs))
 		setup_detection_radius() // SS220 EDIT: restore projectile detection after recovering from incap or reset
 
-	if(tied_human.resting)
+	// SS220 EDIT: don't spam stand-up attempts while the mob is forcibly kept on the floor
+	if(tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
 		tied_human.set_resting(FALSE, TRUE)
 
 	if(tied_human.buckled)
