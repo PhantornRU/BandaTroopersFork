@@ -66,6 +66,10 @@
 			return action_template
 	return null
 
+/// Whether this template should be shown and accepted for a specific controller owner.
+/datum/rto_support_template/proc/is_available_to(datum/rto_support_controller/controller)
+	return TRUE
+
 /// Builds a UI DTO for the preset menu.
 /datum/rto_support_template/proc/build_ui_entry(datum/rto_support_controller/controller = null)
 	var/datum/rto_support_ui_preset_entry/entry = new

@@ -6,6 +6,7 @@
 #include "code/mixed/compat/halo_core_globals.dm"
 #include "code/mixed/compat/halo_core_procs.dm"
 #include "code/mixed/compat/halo_droppod_support.dm"
+#include "code/mixed/compat/halo_fire_support_support.dm"
 #include "code/mixed/compat/halo_tts.dm"
 
 #include "code/__DEFINES/halo_blood.dm"
@@ -66,6 +67,7 @@
 #include "code/mixed/organs/halo_organ_objects.dm"
 #include "code/mixed/structures/halo_crates_and_containers.dm"
 #include "code/mixed/structures/halo_gun_racks.dm"
+#include "code/mixed/structures/halo_supply_crates.dm"
 #include "code/mixed/structures/halo_visible_disposalpipes.dm"
 #include "code/mixed/structures/halo_unsc_reagent_dispensers.dm"
 #include "code/mixed/structures/halo_windows.dm"

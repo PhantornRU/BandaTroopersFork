@@ -67,7 +67,16 @@
 	if(!owner || GET_DEFAULT_ROLE(owner.job) != JOB_SQUAD_RTO)
 		return list()
 	var/list/templates = GLOB.rto_support_registry?.get_template_catalog()
-	return templates ? templates : list()
+	if(!templates)
+		return list()
+
+	var/list/available_templates = list()
+	for(var/datum/rto_support_template/template as anything in templates)
+		if(!template?.is_available_to(src))
+			continue
+		available_templates += template
+
+	return available_templates
 
 /datum/rto_support_controller/proc/can_select_template()
 	if(!owner || QDELETED(owner))
@@ -308,7 +317,10 @@
 	return data
 
 /datum/rto_support_controller/proc/find_template(template_type)
-	return GLOB.rto_support_registry?.find_template(template_type)
+	var/datum/rto_support_template/template = GLOB.rto_support_registry?.find_template(template_type)
+	if(!template?.is_available_to(src))
+		return null
+	return template
 
 /datum/rto_support_controller/proc/is_support_enabled_by_rules()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
