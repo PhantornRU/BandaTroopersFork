@@ -3,7 +3,7 @@
 	var/save_slot_name = "ERROR - СООБЩИТЕ РАЗРАБОТЧИКУ"
 	var/icon_choice
 	var/icon_choice_state
-	var/list/selectable_factions = list(FACTION_MARINE, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE, FACTION_COVENANT)
+	var/list/selectable_factions = list(FACTION_MARINE, FACTION_UNSC, FACTION_UPP, FACTION_WY, FACTION_CLF, FACTION_FREELANCER, FACTION_TWE, FACTION_COVENANT)
 	var/list/selectable_icons = list(
 		"marine",
 		"marine_2",
@@ -41,18 +41,22 @@
 /datum/screen_alert_save/proc/get_faction_display_name(faction_name)
 	if(faction_name == FACTION_MARINE)
 		return "Marine"
+	if(faction_name == FACTION_UNSC)
+		return "UNSC"
 	return faction_name
 
 /datum/screen_alert_save/proc/get_selectable_factions_ui()
 	var/list/faction_options = selectable_factions.Copy()
-	var/marine_index = faction_options.Find(FACTION_MARINE)
-	if(marine_index)
-		faction_options[marine_index] = get_faction_display_name(FACTION_MARINE)
+	for(var/faction_name in selectable_factions)
+		var/faction_index = faction_options.Find(faction_name)
+		if(faction_index)
+			faction_options[faction_index] = get_faction_display_name(faction_name)
 	return faction_options
 
 /datum/screen_alert_save/proc/normalize_selected_faction(faction_name)
-	if(faction_name == get_faction_display_name(FACTION_MARINE))
-		return FACTION_MARINE
+	for(var/selectable_faction in selectable_factions)
+		if(faction_name == get_faction_display_name(selectable_faction))
+			return selectable_faction
 	return faction_name
 
 /datum/screen_alert_save/proc/choose_or_use_save(client/C)

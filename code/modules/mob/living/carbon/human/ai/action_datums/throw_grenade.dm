@@ -7,6 +7,7 @@
 	var/mid_throw = FALSE
 	var/throw_finished = FALSE
 	var/min_safe_throw_distance = 2
+	var/throw_range_override = null
 
 /datum/ai_action/throw_grenade/get_weight(datum/human_ai_brain/brain)
 	if(!brain.grenading_allowed)
@@ -37,12 +38,14 @@
 
 /datum/ai_action/throw_grenade/Added()
 	throwing = locate() in brain.equipment_map[HUMAN_AI_GRENADES]
+	throw_range_override = isnum(throwing?.throw_range) ? throwing.throw_range : null
 	cancel_conflicting_actions()
 
 /datum/ai_action/throw_grenade/Destroy(force, ...)
 	throwing = null
 	mid_throw = FALSE
 	throw_finished = FALSE
+	throw_range_override = null
 	return ..()
 
 /datum/ai_action/throw_grenade/proc/cancel_conflicting_actions()
@@ -91,7 +94,11 @@
 	if(distance <= min_safe_throw_distance)
 		return FALSE
 
-	if(distance > grenade.throw_range)
+	var/effective_throw_range = isnum(grenade.throw_range) ? grenade.throw_range : throw_range_override
+	if(!isnum(effective_throw_range))
+		return FALSE
+
+	if(distance > effective_throw_range)
 		return FALSE
 
 	var/list/turf_line = get_line(tied_human, target_turf)
@@ -180,6 +187,9 @@
 	cancel_conflicting_actions() // SS220 EDIT: cancel any already-running move/fire/reload actions before the grenade is primed
 	if(!try_hold_grenade(tied_human, throwing))
 		return ONGOING_ACTION_COMPLETED
+
+	if(isnum(throwing.throw_range))
+		throw_range_override = throwing.throw_range
 
 	if(!can_throw_to_target(tied_human, throwing, target_turf))
 		return ONGOING_ACTION_COMPLETED

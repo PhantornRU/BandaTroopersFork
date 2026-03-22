@@ -14,7 +14,7 @@
 		return "Name must be 1-32 chars and may contain Latin/Cyrillic letters, numbers, spaces, apostrophe, hyphen and dot."
 
 	var/old_name = target_squad.name
-	var/conflict_error = validate_name_conflicts(new_name, old_name)
+	var/conflict_error = validate_name_conflicts(new_name, old_name, static_name)
 	if(conflict_error)
 		return conflict_error
 
@@ -57,11 +57,39 @@
 	GLOB.main_platoon_initial_name = current_alpha_name
 	return TRUE
 
+/datum/squad_name_manager/proc/resolve_human_default_role(mob/living/carbon/human/H)
+	if(!istype(H))
+		return null
+
+	var/job_value = H.job
+	if(isnull(job_value))
+		return null
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	var/canonical_role = role_authority?.get_job_preference_bucket_key(job_value)
+	if(canonical_role)
+		return canonical_role
+
+	var/job_title = role_authority?.resolve_job_title(job_value)
+	if(isnull(job_title) && istype(job_value, /datum/job))
+		var/datum/job/job_datum = job_value
+		job_title = job_datum.title
+	if(!istext(job_title))
+		return null
+
+	return role_authority?.get_job_preference_bucket_key(job_title) || job_title
+
 /datum/squad_name_manager/proc/claim_first_platoon_commander(mob/living/carbon/human/H)
-	if(!H || GET_DEFAULT_ROLE(H.job) != JOB_SO)
+	if(resolve_human_default_role(H) != JOB_SO)
 		return FALSE
 
 	var/claimer_ckey = H.ckey
+	if(!claimer_ckey && H.key)
+		claimer_ckey = ckey(H.key)
+	if(!claimer_ckey && H.real_name)
+		claimer_ckey = ckey(H.real_name)
+	if(!claimer_ckey && H.name)
+		claimer_ckey = ckey(H.name)
 	if(!claimer_ckey)
 		return FALSE
 
@@ -72,7 +100,7 @@
 	return first_platoon_commander_ckey == claimer_ckey
 
 /datum/squad_name_manager/proc/try_apply_leader_preference(mob/living/carbon/human/H)
-	if(!H || GET_DEFAULT_ROLE(H.job) != JOB_SQUAD_LEADER || !H.assigned_squad)
+	if(resolve_human_default_role(H) != JOB_SQUAD_LEADER || !H.assigned_squad)
 		return FALSE
 
 	var/datum/squad/assigned_squad = H.assigned_squad
@@ -121,7 +149,7 @@
 			continue
 
 		var/mob/living/carbon/human/current_leader = target_squad.squad_leader
-		if(current_leader && GET_DEFAULT_ROLE(current_leader.job) == JOB_SQUAD_LEADER)
+		if(resolve_human_default_role(current_leader) == JOB_SQUAD_LEADER)
 			continue
 
 		var/preferred_name = get_preference_name_for_static(player_prefs, static_name)

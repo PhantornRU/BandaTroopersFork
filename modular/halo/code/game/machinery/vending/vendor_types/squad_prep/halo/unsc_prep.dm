@@ -10,7 +10,7 @@
 		list("Униформа морпеха, адаптивный камуфляж", floor(scale * 15), /obj/item/clothing/under/marine, VENDOR_ITEM_REGULAR),
 		list("Униформа морпеха, джунглевый BDU", floor(scale * 15), /obj/item/clothing/under/marine/standard, VENDOR_ITEM_REGULAR),
 		list("Боевые перчатки морпеха", floor(scale * 15), /obj/item/clothing/gloves/marine, VENDOR_ITEM_REGULAR),
-		list("Радиогарнитура морпеха", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils, VENDOR_ITEM_REGULAR),
+		list("Радиогарнитура ККОН", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc, VENDOR_ITEM_REGULAR),
 		list("Шлем морпеха образца CH252", floor(scale * 15), /obj/item/clothing/head/helmet/marine/unsc, VENDOR_ITEM_REGULAR),
 		list("Гарнитура с камерой образца M5", floor(scale * 15), /obj/item/device/overwatch_camera, VENDOR_ITEM_REGULAR),
 		list("Служебная кепка, джунгли", floor(scale * 15), /obj/item/clothing/head/cmcap, VENDOR_ITEM_REGULAR),
@@ -145,7 +145,7 @@
 		list("Боевые ботинки ККОН", floor(scale * 15), /obj/item/clothing/shoes/marine/jungle/knife, VENDOR_ITEM_REGULAR),
 		list("Нательный костюм ODST", floor(scale * 15), /obj/item/clothing/under/marine/odst, VENDOR_ITEM_REGULAR),
 		list("Боевые перчатки морпеха", floor(scale * 15), /obj/item/clothing/gloves/marine, VENDOR_ITEM_MANDATORY),
-		list("Гарнитура ODST", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/ferrymen, VENDOR_ITEM_REGULAR),
+		list("Гарнитура ODST", floor(scale * 15), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst, VENDOR_ITEM_REGULAR),
 		list("Гарнитура с камерой образца M5", floor(scale * 15), /obj/item/device/overwatch_camera, VENDOR_ITEM_REGULAR),
 		list("Патрульная кепка, джунглевый BDU", floor(scale * 15), /obj/item/clothing/head/cmcap, VENDOR_ITEM_REGULAR),
 		list("Панама, джунглевый BDU", floor(scale * 15), /obj/item/clothing/head/cmcap/boonie, VENDOR_ITEM_REGULAR),
@@ -295,6 +295,8 @@ GLOBAL_LIST_INIT(cm_vending_clothing_medic_unsc, list(
 
 /obj/structure/machinery/cm_vending/clothing/medic/unsc/get_listed_products(mob/user)
 	return GLOB.cm_vending_clothing_medic_unsc
+
+/obj/structure/machinery/cm_vending/clothing/medic/unsc/odst
 
 //===========================//PRESETS\\================================\\
 

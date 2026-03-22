@@ -344,7 +344,8 @@
 /obj/item/explosive/mine/sharp
 	name = "\improper P9 SHARP explosive dart"
 	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
-	icon_state = "sharp_explosive_mine"
+	icon = 'icons/obj/items/weapons/projectiles.dmi'
+	icon_state = "sonicharpoon"
 	angle = 360
 	light_color = "#D75555"
 	light_range = 2
@@ -448,7 +449,7 @@
 	anchored = FALSE
 	active = FALSE
 	triggered = FALSE
-	icon_state = "sharp_mine_disarmed"
+	icon_state = "sonicharpoon"
 	rearm_desc = desc
 	desc = "A disarmed P9 SHARP rifle dart. With the right training, it can potentially be rearmed with a security access tuner."
 	QDEL_NULL(tripwire)
@@ -494,7 +495,7 @@
 /obj/item/explosive/mine/sharp/incendiary
 	name = "\improper P9 SHARP incendiary dart"
 	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
-	icon_state = "sharp_incendiary_mine"
+	icon_state = "sonicharpoon"
 	light_color = "#FFB400"
 
 /obj/item/explosive/mine/sharp/incendiary/prime(mob/user)

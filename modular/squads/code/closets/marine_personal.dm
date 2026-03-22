@@ -1,6 +1,34 @@
 // Шкафчики под отряды и их привязка
 /obj/structure/closet/secure_closet/marine_personal
 	var/squad_type
+	var/list/generated_spawn_gear_contents = list()
+
+/obj/structure/closet/secure_closet/marine_personal/Initialize(mapload, ...)
+	var/list/preexisting_contents = contents ? contents.Copy() : list()
+	. = ..()
+	refresh_generated_spawn_gear_contents(preexisting_contents)
+
+/obj/structure/closet/secure_closet/marine_personal/proc/refresh_generated_spawn_gear_contents(list/preexisting_contents = null)
+	generated_spawn_gear_contents = list()
+	if(!has_cryo_gear)
+		return
+
+	if(!islist(preexisting_contents))
+		preexisting_contents = list()
+
+	for(var/atom/movable/movable as anything in contents)
+		if(preexisting_contents.Find(movable))
+			continue
+		generated_spawn_gear_contents += movable
+
+/obj/structure/closet/secure_closet/marine_personal/proc/get_preserved_contents_for_ship_surface_swap()
+	. = list()
+	var/list/generated_contents = generated_spawn_gear_contents
+
+	for(var/atom/movable/movable as anything in contents)
+		if(islist(generated_contents) && generated_contents.Find(movable))
+			continue
+		. += movable
 
 /obj/structure/closet/secure_closet/marine_personal/proc/get_normalized_job_title_for_personal_locker(job_title)
 	if(!job_title)
@@ -92,6 +120,7 @@
 	locked = TRUE
 	update_icon()
 	spawn_gear()
+	refresh_generated_spawn_gear_contents()
 
 
 // Пехотинец

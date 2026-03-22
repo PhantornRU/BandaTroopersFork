@@ -4,6 +4,14 @@
 	if(!(value in target_list))
 		target_list += value
 
+/datum/authority/branch/role/proc/normalize_ship_platoon_type(platoon_type)
+	if(ispath(platoon_type, /datum/squad))
+		return platoon_type
+	if(istext(platoon_type))
+		return text2path(platoon_type)
+
+	return null
+
 /datum/authority/branch/role/proc/get_known_ship_platoon_types()
 	var/list/known_types = list(
 		/datum/squad/marine/alpha,
@@ -30,6 +38,7 @@
 	return known_types
 
 /datum/authority/branch/role/proc/get_default_ship_platoon_profile(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -40,6 +49,9 @@
 		"distress_roles" = GLOB.ROLES_DISTRESS_SIGNAL,
 		"lowpop_roles" = GLOB.platoon_to_role_list[platoon_type],
 		"role_mappings" = null,
+		"spawn_preset_overrides" = null,
+		"cryo_reinforcement_titles" = null,
+		"cryo_reinforcement_presets" = null,
 	)
 
 	switch(platoon_type)
@@ -59,6 +71,7 @@
 	return profile
 
 /datum/authority/branch/role/proc/get_ship_platoon_profile(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -69,6 +82,7 @@
 	return get_default_ship_platoon_profile(platoon_type)
 
 /datum/authority/branch/role/proc/get_ship_platoon_label(platoon_type)
+	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
@@ -91,6 +105,95 @@
 		return platoon_type
 
 	return text2path(MAIN_SHIP_DEFAULT_PLATOON)
+
+/datum/authority/branch/role/proc/get_ship_spawn_preset_override(job_title, current_preset, platoon_type)
+	if(!job_title || !current_preset || !platoon_type)
+		return null
+
+	job_title = get_job_preference_bucket_key(job_title) || job_title
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/spawn_preset_overrides = profile?["spawn_preset_overrides"]
+	if(!islist(spawn_preset_overrides))
+		return null
+
+	var/list/job_overrides = spawn_preset_overrides[job_title]
+	if(!islist(job_overrides))
+		return null
+
+	return job_overrides[current_preset]
+
+/datum/authority/branch/role/proc/get_active_ship_spawn_preset_override(job_title, current_preset, platoon_type = get_active_ship_platoon_type())
+	return get_ship_spawn_preset_override(job_title, current_preset, platoon_type)
+
+/datum/authority/branch/role/proc/get_ship_cryo_reinforcement_title(canonical_role, platoon_type)
+	if(!canonical_role || !platoon_type)
+		return null
+
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/cryo_reinforcement_titles = profile?["cryo_reinforcement_titles"]
+	if(!islist(cryo_reinforcement_titles))
+		return null
+
+	return cryo_reinforcement_titles[canonical_role]
+
+/datum/authority/branch/role/proc/get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type = get_active_ship_platoon_type())
+	return get_ship_cryo_reinforcement_title(canonical_role, platoon_type)
+
+/datum/authority/branch/role/proc/get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+	if(!canonical_role || !platoon_type)
+		return null
+
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
+
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	var/list/cryo_reinforcement_presets = profile?["cryo_reinforcement_presets"]
+	if(!islist(cryo_reinforcement_presets))
+		return null
+
+	return cryo_reinforcement_presets[canonical_role]
+
+/datum/authority/branch/role/proc/get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type = get_active_ship_platoon_type())
+	return get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+
+/datum/authority/branch/role/proc/has_active_ship_cryo_reinforcement_overrides(platoon_type = get_active_ship_platoon_type())
+	var/list/profile = get_ship_platoon_profile(platoon_type)
+	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
+
+/datum/authority/branch/role/proc/should_auto_assign_ship_family_squad(job_or_title)
+	var/list/halo_family_types = get_halo_job_family_types(job_or_title)
+	return islist(halo_family_types) && length(halo_family_types)
+/datum/authority/branch/role/proc/apply_active_ship_cryo_reinforcement(mob/living/carbon/human/human, canonical_role, fallback_title = canonical_role, fallback_preset = null, late_join = TRUE, platoon_type = get_active_ship_platoon_type())
+	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
+	if(!istype(human) || !canonical_role)
+		return FALSE
+
+	var/use_profile_cryo = has_active_ship_cryo_reinforcement_overrides(platoon_type)
+	var/effective_title = fallback_title || canonical_role
+	var/effective_preset = fallback_preset
+
+	if(use_profile_cryo)
+		effective_title = get_active_ship_cryo_reinforcement_title(canonical_role, platoon_type) || effective_title
+		effective_preset = get_active_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
+		if(!effective_title || !effective_preset)
+			return FALSE
+
+	human.job = effective_title // SS220 EDIT: cryo profile application owns the effective runtime role title
+	human.client?.prefs.copy_all_to(human, effective_title, TRUE, TRUE)
+	if(effective_preset)
+		arm_equipment(human, effective_preset, late_join, TRUE, late_join = late_join)
+
+	if(use_profile_cryo)
+		var/list/halo_family_types = get_halo_job_family_types(human.job)
+		if(islist(halo_family_types) && length(halo_family_types) && human.assigned_squad && !(human.assigned_squad.type in halo_family_types))
+			human.assigned_squad.remove_marine_from_squad(human, human.get_idcard())
+		randomize_squad(human)
+		human.sec_hud_set_ID()
+		human.hud_set_squad()
+
+	return TRUE
 
 /datum/authority/branch/role/proc/is_lowpop_ship_mode(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	if(istype(mode_datum, /datum/game_mode/colonialmarines/ai))
@@ -177,6 +280,22 @@
 	var/datum/squad/marine/platoon_datum = platoon_type
 	return initial(platoon_datum.faction)
 
+/datum/authority/branch/role/proc/sync_pending_same_ship_platoon_for_round_start()
+	var/datum/map_config/current_ship_config = SSmapping?.configs?[SHIP_MAP]
+	var/datum/map_config/pending_ship_config = SSmapping?.next_map_configs?[SHIP_MAP]
+	if(!current_ship_config || !pending_ship_config)
+		return FALSE
+
+	// Start Round does not reload the map, so same-map ship profile changes must be applied to the loaded ship config.
+	if(current_ship_config.map_name != pending_ship_config.map_name || current_ship_config.map_path != pending_ship_config.map_path)
+		return FALSE
+	if(!pending_ship_config.platoon || current_ship_config.platoon == pending_ship_config.platoon)
+		return FALSE
+
+	current_ship_config.platoon = pending_ship_config.platoon
+	current_ship_config.allowed_platoons = pending_ship_config.allowed_platoons ? pending_ship_config.allowed_platoons.Copy() : list()
+	return TRUE
+
 /datum/authority/branch/role/proc/get_role_bucket_title(job_or_title, active_only = FALSE)
 	var/job_title = resolve_job_title(job_or_title)
 	if(!job_title)
@@ -210,10 +329,11 @@
 	if(!job_title)
 		return FALSE
 
-	if(GLOB.ROLES_USCM.Find(job_title))
+	var/bucket_title = get_role_bucket_title(job_title, active_only)
+	if(bucket_title && GLOB.ROLES_USCM.Find(bucket_title))
 		return TRUE
 
-	return is_marine_equivalent_role(job_title, active_only)
+	return is_marine_equivalent_role(bucket_title || job_title, active_only)
 
 /datum/authority/branch/role/proc/get_shipside_role_titles(active_only = FALSE)
 	var/list/role_titles = active_only ? list() : GLOB.ROLES_USCM.Copy()
@@ -260,8 +380,11 @@
 	GLOB.gamemode_roles["Distress Signal: Lowpop"] = get_active_ship_lowpop_roles("Distress Signal: Lowpop", null)
 	return TRUE
 
-/datum/authority/branch/role/proc/handle_main_ship_mode_changed()
-	return refresh_main_ship_gamemode_roles()
+/datum/authority/branch/role/proc/handle_main_ship_mode_changed(apply_surfaces = TRUE)
+	refresh_main_ship_gamemode_roles()
+	if(apply_surfaces)
+		apply_main_ship_surface_profile()
+	return TRUE
 
 /datum/authority/branch/role/proc/get_gamemode_role_titles(mode_name = GLOB.master_mode)
 	var/list/role_titles = GLOB.gamemode_roles[mode_name]

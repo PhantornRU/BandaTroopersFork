@@ -73,6 +73,11 @@ IN_USE used for vending/denying
 /obj/structure/machinery/cm_vending/Initialize()
 	. = ..()
 	cm_build_inventory(get_listed_products(), 1, 3)
+	GLOB.cm_vending_machines += src // SS220 EDIT: keep a typed registry for ship-surface replacements after initialization
+
+/obj/structure/machinery/cm_vending/Destroy()
+	GLOB.cm_vending_machines -= src // SS220 EDIT: unregister destroyed cm_vending machines from ship-surface replacement scans
+	return ..()
 
 /obj/structure/machinery/cm_vending/update_icon()
 	//restoring sprite to initial
