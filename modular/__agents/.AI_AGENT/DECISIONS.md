@@ -1,17 +1,13 @@
 # DECISIONS
 
-## D-001: Обновление выполнять через merge, а не rebase
-- Решение: влить `upstream/master` merge-коммитом в текущую ветку.
-- Почему: ветка уже опубликована в `origin`, а задача сформулирована как update branch с разрешением конфликтов без необходимости переписывать историю.
+## D-001: Weather holders перевести с guaranteed-start на low-probability start
+- Решение: для `Mackay Station` и `ONI Digsite 451` использовать map-specific probability defines со значением `5`.
+- Почему: при `min_time_between_checks = 0` возврат `TRUE` приводит к почти гарантированному старту сразу после cooldown; `5%` дает редкие, но не постоянные события.
 
-## D-002: Baseline для обновления — `upstream/master`
-- Решение: обновлять текущую ветку относительно `upstream/master`, а не относительно соседних `split/pr62-*` веток.
-- Почему: `git merge-base` показал общий базовый коммит с sibling-ветками, а не stacked ancestry.
+## D-002: Placeholder ambience заменить существующим desert ambience asset
+- Решение: для `dust/sand/rock` в `traxus_gamma_zone.dm` использовать `'sound/ambience/desert.ogg'`.
+- Почему: в репозитории уже есть подходящий desert ambience, а snow/blizzard placeholders явно не соответствуют пустынной тематике.
 
-## D-003: Разрешение конфликтов делать с сохранением scope ветки
-- Решение: сохранять локальные изменения по human AI squad spawning/species, одновременно подтягивая совместимые апстрим-обновления из HALO/UI/test sweep.
-- Почему: это минимизирует риск потерять смысл текущей feature-ветки при sync с master.
-
-## D-004: Конфликты в Human AI spawner решать как superset, а не через выбор одной стороны
-- Решение: оставить расширенную локальную логику candidate filtering, failure handling и species-aware spawning, добавив совместимость с апстрим-именем `get_viable_spawn_turfs` и апстрим-тестом.
-- Почему: апстрим привнес базовый radius/accessibility contract, а ветка уже содержала более сильную и детально покрытую реализацию поверх него.
+## D-003: `new_varadero` turf dir values не менять без дополнительного подтверждения
+- Решение: не применять bot-suggested dir fix в этом проходе.
+- Почему: suggested diagonal constants конфликтуют с DMI metadata (`beachcorner*` имеют `dirs = 4`) и с уже существующим базовым `/turf/open/gm/coast` паттерном; слепая правка рискованна.

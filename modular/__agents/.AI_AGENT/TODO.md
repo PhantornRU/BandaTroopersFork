@@ -1,7 +1,8 @@
 # TODO
 
-- [x] Определить update-target и базовую историю текущей ветки.
-- [x] Проверить repo guidance для HALO update/sync задач.
-- [x] Выполнить merge `upstream/master` в `split/pr62-02-ai-squad-spawn-species`.
-- [x] Разрешить все конфликты и проверить итоговый diff.
-- [x] Зафиксировать evidence и результаты проверок.
+- [x] Прочитать stable guidance, SS220 overlay и HALO baseline.
+- [x] Проверить review comment callsites и соседние паттерны.
+- [x] Переписать `PLAN/TODO/DECISIONS/EVIDENCE` под текущий review-fix scope.
+- [x] Исправить weather chance, ambience placeholders, typos, Pelican density и covenant bomb overlay logic.
+- [ ] Прогнать релевантные проверки.
+- [ ] Подготовить commit/push в текущую PR-ветку.

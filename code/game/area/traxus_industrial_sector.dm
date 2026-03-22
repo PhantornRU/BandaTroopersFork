@@ -147,7 +147,7 @@
 	name = "Tertiary Filtration Hub"
 	icon_state = "HH_Second"
 /area/gamma_sector/traxus_base/central_hub
-	name = "Central Fitlration Hub"
+	name = "Central Filtration Hub"
 	icon_state = "head_quarters"
 
 //[Transfers]
@@ -214,7 +214,7 @@
 	ceiling = CEILING_METAL
 	icon_state = "purple"
 /area/gamma_sector/highway/bridge_highway_maintenance
-	name = "Bridge Maintainance Station"
+	name = "Bridge Maintenance Station"
 	ceiling = CEILING_METAL
 	icon_state = "asmaint"
 /area/gamma_sector/highway/southeastern_roadway

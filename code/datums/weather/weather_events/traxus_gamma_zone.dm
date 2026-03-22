@@ -8,7 +8,7 @@
 	damage_per_tick = 0
 	damage_type = BRUTE
 
-	ambience = 'sound/ambience/strata/strata_snow.ogg'
+	ambience = 'sound/ambience/desert.ogg'
 
 	fire_smothering_strength = 1
 
@@ -22,7 +22,7 @@
 	damage_per_tick = 0
 	damage_type = BRUTE
 
-	ambience = 'sound/ambience/strata/strata_snowstorm.ogg'
+	ambience = 'sound/ambience/desert.ogg'
 
 	fire_smothering_strength = 2
 
@@ -36,6 +36,6 @@
 	damage_per_tick = 3
 	damage_type = BRUTE
 
-	ambience = 'sound/ambience/strata/strata_blizzard.ogg'
+	ambience = 'sound/ambience/desert.ogg'
 
 	fire_smothering_strength = 3
