@@ -1,5 +1,6 @@
 /datum/rto_support_template/cas
 	template_id = "cas"
+	allowed_support_profiles = list("uscm")
 	name = "CAS"
 	description = "Точный авиационный пакет для среднего по редкости штурмового сопровождения."
 	role_summary = "Точечная авиационная поддержка для быстрого продавливания."

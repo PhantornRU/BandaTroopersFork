@@ -1,4 +1,5 @@
 /datum/rto_support_template/halo
+	allowed_support_profiles = list("halo")
 	requires_visibility_zone = FALSE
 	visibility_zone_name = ""
 	visibility_zone_type = ""
@@ -8,11 +9,6 @@
 	category = "support"
 	visibility_altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
 	visibility_action_icon_state = "designator_swap_mortar"
-
-/datum/rto_support_template/halo/is_available_to(datum/rto_support_controller/controller)
-	if(!controller?.owner)
-		return FALSE
-	return controller.owner.job in list(JOB_SQUAD_RTO_UNSC, JOB_SQUAD_RTO_ODST)
 
 /datum/rto_support_template/halo_logistics
 	parent_type = /datum/rto_support_template/halo

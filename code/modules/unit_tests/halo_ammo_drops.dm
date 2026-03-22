@@ -32,8 +32,19 @@
 		TEST_ASSERT_EQUAL(action_template.personal_cooldown, expected_personal_cooldown, "[template.template_id] action [action_id] no longer uses the expected personal cooldown.")
 		TEST_ASSERT(!action_template.allow_closed_turf, "[template.template_id] action [action_id] should keep requiring open turf.")
 
+/datum/unit_test/proc/assert_halo_only_templates(datum/rto_support_controller/controller)
+	for(var/template_id in list("halo_logistics", "halo_medical", "halo_engineering", "halo_command"))
+		TEST_ASSERT_NOTNULL(controller.find_template(template_id), "HALO controller could not resolve the [template_id] template.")
+	for(var/template_id in list("mortar", "cas", "heavy", "logistics"))
+		TEST_ASSERT_NULL(controller.find_template(template_id), "HALO controller unexpectedly resolved standard template [template_id].")
+
+/datum/unit_test/proc/assert_uscm_only_templates(datum/rto_support_controller/controller)
+	for(var/template_id in list("mortar", "cas", "heavy", "logistics"))
+		TEST_ASSERT_NOTNULL(controller.find_template(template_id), "USCM controller could not resolve standard template [template_id].")
+	for(var/template_id in list("halo_logistics", "halo_medical", "halo_engineering", "halo_command"))
+		TEST_ASSERT_NULL(controller.find_template(template_id), "USCM controller unexpectedly resolved HALO template [template_id].")
+
 /datum/unit_test/halo_support_template_availability
-	name = "HALO UNSC support: template availability"
 
 /datum/unit_test/halo_support_template_availability/Run()
 	var/list/expected_template_ids = list("halo_logistics", "halo_medical", "halo_engineering", "halo_command")
@@ -51,6 +62,17 @@
 				break
 		TEST_ASSERT(has_template, "HALO RTO did not receive the [template_id] template.")
 		TEST_ASSERT_NOTNULL(halo_controller.find_template(template_id), "HALO controller could not resolve the [template_id] template.")
+	assert_halo_only_templates(halo_controller)
+
+	var/mob/living/carbon/human/odst_human = allocate(/mob/living/carbon/human)
+	odst_human.job = JOB_SQUAD_RTO_ODST
+	var/datum/rto_support_controller/odst_controller = allocate(/datum/rto_support_controller, odst_human)
+	assert_halo_only_templates(odst_controller)
+
+	var/list/odst_templates = odst_controller.get_available_templates()
+	TEST_ASSERT_EQUAL(length(odst_templates), length(halo_templates), "HALO UNSC and ODST RTOs should expose the same number of HALO templates.")
+	for(var/datum/rto_support_template/template as anything in halo_templates)
+		TEST_ASSERT_NOTNULL(odst_controller.find_template(template.template_id), "HALO ODST controller is missing HALO template [template.template_id].")
 
 	var/mob/living/carbon/human/uscm_human = allocate(/mob/living/carbon/human)
 	uscm_human.job = JOB_SQUAD_RTO
@@ -61,9 +83,55 @@
 		for(var/datum/rto_support_template/template as anything in uscm_templates)
 			TEST_ASSERT(template.template_id != template_id, "Standard USCM RTO unexpectedly received the [template_id] template.")
 		TEST_ASSERT_NULL(uscm_controller.find_template(template_id), "Standard USCM RTO could resolve the [template_id] template.")
+	assert_uscm_only_templates(uscm_controller)
+
+/datum/unit_test/halo_support_binocular_variants
+
+/datum/unit_test/halo_support_binocular_variants/Run()
+	var/mob/living/carbon/human/unsc_human = allocate(/mob/living/carbon/human)
+	unsc_human.job = JOB_SQUAD_RTO_UNSC
+	var/datum/equipment_preset/unsc/rto/equipped/unsc_preset = allocate(/datum/equipment_preset/unsc/rto/equipped)
+	unsc_preset.load_gear(unsc_human)
+	var/obj/item/storage/pouch/sling/rto/halo/unsc/unsc_pouch = locate(/obj/item/storage/pouch/sling/rto/halo/unsc) in unsc_human.contents_recursive()
+	var/obj/item/device/binoculars/rto/halo/unsc/unsc_binoculars = locate(/obj/item/device/binoculars/rto/halo/unsc) in unsc_human.contents_recursive()
+	var/obj/item/device/binoculars/range/designator/unsc_designator = locate(/obj/item/device/binoculars/range/designator) in unsc_human.contents_recursive()
+
+	TEST_ASSERT_NOTNULL(unsc_pouch, "UNSC RTO equipped preset did not receive the HALO UNSC sling pouch.")
+	TEST_ASSERT_NOTNULL(unsc_binoculars, "UNSC RTO equipped preset did not receive the HALO UNSC binocular variant.")
+	TEST_ASSERT_NULL(unsc_designator, "UNSC RTO equipped preset still carries a legacy designator.")
+
+	var/mob/living/carbon/human/odst_human = allocate(/mob/living/carbon/human)
+	odst_human.job = JOB_SQUAD_RTO_ODST
+	var/datum/equipment_preset/unsc/rto/odst/equipped/odst_preset = allocate(/datum/equipment_preset/unsc/rto/odst/equipped)
+	odst_preset.load_gear(odst_human)
+	var/obj/item/storage/pouch/sling/rto/halo/odst/odst_pouch = locate(/obj/item/storage/pouch/sling/rto/halo/odst) in odst_human.contents_recursive()
+	var/obj/item/device/binoculars/rto/halo/odst/odst_binoculars = locate(/obj/item/device/binoculars/rto/halo/odst) in odst_human.contents_recursive()
+	var/obj/item/device/binoculars/range/designator/odst_designator = locate(/obj/item/device/binoculars/range/designator) in odst_human.contents_recursive()
+
+	TEST_ASSERT_NOTNULL(odst_pouch, "ODST RTO equipped preset did not receive the HALO ODST sling pouch.")
+	TEST_ASSERT_NOTNULL(odst_binoculars, "ODST RTO equipped preset did not receive the HALO ODST binocular variant.")
+	TEST_ASSERT_NULL(odst_designator, "ODST RTO equipped preset still carries a legacy designator.")
+
+/datum/unit_test/halo_support_locker_kit
+
+/datum/unit_test/halo_support_locker_kit/Run()
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/rto/unsc_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/rto)
+	var/obj/item/storage/pouch/sling/rto/halo/unsc/unsc_locker_pouch = locate(/obj/item/storage/pouch/sling/rto/halo/unsc) in unsc_locker.contents_recursive()
+	var/obj/item/device/binoculars/rto/halo/unsc/unsc_locker_binoculars = locate(/obj/item/device/binoculars/rto/halo/unsc) in unsc_locker.contents_recursive()
+	var/obj/item/device/binoculars/fire_support/uscm/unsc_legacy_binoculars = locate(/obj/item/device/binoculars/fire_support/uscm) in unsc_locker.contents_recursive()
+	TEST_ASSERT_NOTNULL(unsc_locker_pouch, "UNSC RTO locker did not spawn the HALO UNSC sling pouch.")
+	TEST_ASSERT_NOTNULL(unsc_locker_binoculars, "UNSC RTO locker did not spawn the HALO UNSC binocular variant.")
+	TEST_ASSERT_NULL(unsc_legacy_binoculars, "UNSC RTO locker should not spawn the legacy USCM fire-support binocular.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/odst/rto/odst_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/odst/rto)
+	var/obj/item/storage/pouch/sling/rto/halo/odst/odst_locker_pouch = locate(/obj/item/storage/pouch/sling/rto/halo/odst) in odst_locker.contents_recursive()
+	var/obj/item/device/binoculars/rto/halo/odst/odst_locker_binoculars = locate(/obj/item/device/binoculars/rto/halo/odst) in odst_locker.contents_recursive()
+	var/obj/item/device/binoculars/fire_support/uscm/odst_legacy_binoculars = locate(/obj/item/device/binoculars/fire_support/uscm) in odst_locker.contents_recursive()
+	TEST_ASSERT_NOTNULL(odst_locker_pouch, "ODST RTO locker did not spawn the HALO ODST sling pouch.")
+	TEST_ASSERT_NOTNULL(odst_locker_binoculars, "ODST RTO locker did not spawn the HALO ODST binocular variant.")
+	TEST_ASSERT_NULL(odst_legacy_binoculars, "ODST RTO locker should not spawn the legacy USCM fire-support binocular.")
 
 /datum/unit_test/halo_support_template_wiring
-	name = "HALO UNSC support: template wiring"
 
 /datum/unit_test/halo_support_template_wiring/Run()
 	var/datum/rto_support_template/halo_logistics/logistics_template = allocate(/datum/rto_support_template/halo_logistics)
@@ -100,7 +168,6 @@
 	), 120 SECONDS, 600 SECONDS)
 
 /datum/unit_test/halo_support_payload_contents
-	name = "HALO UNSC support: payload contents"
 
 /datum/unit_test/halo_support_payload_contents/Run()
 	var/list/crate_expectations = list(
@@ -195,11 +262,10 @@
 	)
 
 	for(var/crate_path in crate_expectations)
-		var/obj/structure/largecrate/crate = allocate(crate_path)
+		var/obj/structure/largecrate/supply/crate = allocate(crate_path)
 		assert_expected_supplies(crate.supplies, crate_expectations[crate_path], "[crate_path]")
 
 /datum/unit_test/halo_support_admin_bridge
-	name = "HALO UNSC support: admin bridge"
 
 /datum/unit_test/halo_support_admin_bridge/Run()
 	var/list/expected_routing = list(

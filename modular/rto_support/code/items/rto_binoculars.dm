@@ -13,6 +13,24 @@
 	var/live_marker_active = FALSE
 	var/live_marker_refresh_timer_id = null
 
+/obj/item/device/binoculars/rto/proc/get_support_profile()
+	return "uscm"
+
+/obj/item/device/binoculars/rto/halo
+	name = "HALO RTO binoculars"
+	desc = "A HALO-issue RTO binocular set adapted to the modular support workflow."
+
+/obj/item/device/binoculars/rto/halo/get_support_profile()
+	return "halo"
+
+/obj/item/device/binoculars/rto/halo/unsc
+	name = "UNSC RTO binoculars"
+	desc = "A UNSC RTO binocular set adapted to the modular HALO support workflow."
+
+/obj/item/device/binoculars/rto/halo/odst
+	name = "ODST RTO binoculars"
+	desc = "An ODST RTO binocular set adapted to the modular HALO support workflow."
+
 /obj/item/device/binoculars/rto/Destroy()
 	stop_live_marker(null, TRUE)
 	if(paired_pouch?.paired_binocular == src)

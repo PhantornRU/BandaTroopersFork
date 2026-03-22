@@ -1,5 +1,6 @@
 /datum/rto_support_template/logistics
 	template_id = "logistics"
+	allowed_support_profiles = list("uscm")
 	name = "Logistics"
 	description = "Логистический пакет для сброса грузов, мин и турелей без сектора наведения."
 	role_summary = "Утилитарная поддержка для снабжения и быстрого развёртывания позиции."

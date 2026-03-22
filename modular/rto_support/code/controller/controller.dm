@@ -63,6 +63,14 @@
 /datum/rto_support_controller/proc/has_required_role()
 	return owner && !QDELETED(owner) && GET_DEFAULT_ROLE(owner.job) == JOB_SQUAD_RTO
 
+/datum/rto_support_controller/proc/get_support_profile()
+	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
+	if(binoculars)
+		return binoculars.get_support_profile()
+	if(owner?.job in list(JOB_SQUAD_RTO_UNSC, JOB_SQUAD_RTO_ODST))
+		return "halo"
+	return "uscm"
+
 /datum/rto_support_controller/proc/get_available_templates()
 	if(!owner || GET_DEFAULT_ROLE(owner.job) != JOB_SQUAD_RTO)
 		return list()

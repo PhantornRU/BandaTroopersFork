@@ -1,5 +1,6 @@
 /datum/rto_support_template/heavy
 	template_id = "heavy"
+	allowed_support_profiles = list("uscm")
 	name = "Heavy Strike"
 	description = "Редкий тяжёлый пакет с малым разбросом, длинным окном удара и умеренно долгими интервалами между вызовами."
 	role_summary = "Редкие и дорогие тяжёлые удары по приоритетным целям."

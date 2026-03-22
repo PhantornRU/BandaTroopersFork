@@ -65,6 +65,13 @@
 	icon_broken = "securebroken-rto"
 	icon_off = "secureoff-rto"
 
+/obj/structure/closet/secure_closet/marine_personal/odst/rto/spawn_gear()
+	..()
+	need_check_content = TRUE
+	new /obj/item/storage/pouch/sling/rto/halo/odst(src)
+	new /obj/item/storage/box/flare/signal(src)
+	new /obj/item/storage/box/flare/signal(src)
+
 // ==UNSC== //
 
 /obj/structure/closet/secure_closet/marine_personal/unsc/spawn_gear()
@@ -131,3 +138,10 @@
 	icon_opened = "secureopen-rto"
 	icon_broken = "securebroken-rto"
 	icon_off = "secureoff-rto"
+
+/obj/structure/closet/secure_closet/marine_personal/unsc/rto/spawn_gear()
+	..()
+	need_check_content = TRUE
+	new /obj/item/storage/pouch/sling/rto/halo/unsc(src)
+	new /obj/item/storage/box/flare/signal(src)
+	new /obj/item/storage/box/flare/signal(src)

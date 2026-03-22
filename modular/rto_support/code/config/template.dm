@@ -26,6 +26,8 @@
 	var/visibility_zone_cooldown = 0
 	/// Category or family name for UI grouping.
 	var/category = ""
+	/// Support profile families that may use this template.
+	var/list/allowed_support_profiles = null
 	/// Immutable list of action template instances.
 	var/list/action_templates = list()
 	/// Action template typepaths instantiated on New.
@@ -68,6 +70,9 @@
 
 /// Whether this template should be shown and accepted for a specific controller owner.
 /datum/rto_support_template/proc/is_available_to(datum/rto_support_controller/controller)
+	if(length(allowed_support_profiles))
+		if(!(controller?.get_support_profile() in allowed_support_profiles))
+			return FALSE
 	return TRUE
 
 /// Builds a UI DTO for the preset menu.

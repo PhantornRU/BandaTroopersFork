@@ -233,8 +233,10 @@
 
 /datum/authority/branch/role/proc/get_modular_job_pref_to_gear_preset(job_title)
 	switch(job_title)
-		if(JOB_SQUAD_MARINE_ODST, JOB_SQUAD_LEADER_ODST, JOB_SQUAD_MEDIC_ODST, JOB_SQUAD_SPECIALIST_ODST, JOB_SQUAD_TEAM_LEADER_ODST, JOB_SQUAD_RTO_ODST)
+		if(JOB_SQUAD_MARINE_ODST, JOB_SQUAD_LEADER_ODST, JOB_SQUAD_MEDIC_ODST, JOB_SQUAD_SPECIALIST_ODST, JOB_SQUAD_TEAM_LEADER_ODST)
 			return /datum/equipment_preset/unsc/pfc/odst/equipped
+		if(JOB_SQUAD_RTO_ODST)
+			return /datum/equipment_preset/unsc/rto/odst/equipped
 		if(JOB_SQUAD_MARINE_UNSC)
 			return /datum/equipment_preset/unsc/pfc/equipped
 		if(JOB_SQUAD_LEADER_UNSC)

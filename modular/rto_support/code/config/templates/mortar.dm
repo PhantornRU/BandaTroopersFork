@@ -1,5 +1,6 @@
 /datum/rto_support_template/mortar
 	template_id = "mortar"
+	allowed_support_profiles = list("uscm")
 	name = "Mortar"
 	description = "Частый утилитарный пакет с одиночными HE, дымовыми и зажигательными минами."
 	role_summary = "Частое давление, дым и сдерживание проходов одиночными минами."
