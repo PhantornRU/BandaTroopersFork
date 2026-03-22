@@ -22,9 +22,11 @@
 /datum/character_trait/skills/apply_trait(mob/living/carbon/human/target)
 	..()
 
-	target.skills.increment_skill(skill,skill_increment,skill_cap)
+	if(skill)
+		target.skills.increment_skill(skill,skill_increment,skill_cap)
 
-	target.skills.increment_skill(secondary_skill,skill_increment,secondary_skill_cap)
+	if(secondary_skill)
+		target.skills.increment_skill(secondary_skill,skill_increment,secondary_skill_cap)
 
 
 /datum/character_trait/skills/unapply_trait(mob/living/carbon/human/target)

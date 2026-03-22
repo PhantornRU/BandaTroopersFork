@@ -12,6 +12,11 @@
 /obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt
 	icon_state = "unsc_food"
 
+/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/odst
+
+/obj/structure/machinery/cm_vending/sorted/marine_food/unsc/odst/alt
+	parent_type = /obj/structure/machinery/cm_vending/sorted/marine_food/unsc/alt
+
 /obj/structure/machinery/vending/dinnerware/unsc
 	name = "\improper автомат военных столовых приборов"
 	desc = "В паре с пищевым автоматом эта машина выглядит куда проще и требует лишь ручного пополнения."
@@ -36,7 +41,8 @@
 	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
-	vend_flags = VEND_TO_HAND
+
+/obj/structure/machinery/cm_vending/sorted/medical/unsc/odst
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/populate_product_list(scale)
 	listed_products = list(
@@ -48,7 +54,7 @@
 		list("ПОЛЕВОЕ СНАРЯЖЕНИЕ", -1, null, null),
 		list("Мазь", floor(scale * 10), /obj/item/stack/medical/ointment, VENDOR_ITEM_REGULAR),
 		list("Рулон марли", floor(scale * 10), /obj/item/stack/medical/bruise_pack, VENDOR_ITEM_REGULAR),
-		list("Шины", floor(scale * 10), /obj/item/stack/medical/splint, VENDOR_ITEM_REGULAR),\
+		list("Шины", floor(scale * 10), /obj/item/stack/medical/splint, VENDOR_ITEM_REGULAR),
 
 		list("ЛЕЧЕНИЕ ТРАВМ", -1, null, null),
 		list("Травмкомплект", floor(scale * 10), /obj/item/stack/medical/advanced/bruise_pack, VENDOR_ITEM_RECOMMENDED),
@@ -102,8 +108,10 @@ GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
 	icon_state = "chemvendor"
 	show_points = TRUE
 	use_snowflake_points = TRUE
-	vendor_role = list(JOB_SQUAD_MEDIC)
+	vendor_role = list(JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC_UNSC, JOB_SQUAD_MEDIC_ODST)
 	req_access = list(ACCESS_MARINE_MEDPREP)
 
 /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/get_listed_products(mob/user)
 	return GLOB.cm_vending_chemical_medic_halo
+
+/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/odst
