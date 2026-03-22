@@ -5,6 +5,7 @@
 	mouse_pointer = 'icons/halo/effects/mouse_pointer/ma5c.dmi'
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
+	base_gun_icon = "m41a"
 	item_icons = list(
 		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
 		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
@@ -305,6 +306,7 @@
 	name = "винтовка M392 DMR"
 	desc = "M392 Designated Marksman Rifle - компоновки bullpup под патрон 7.62x51 мм, обычно оснащаемая прицелом и магазином на 15 патронов. Наиболее широко использовалась армейскими подразделениями UNSCDF и расформированной Colonial Military Authority до и во время Восстания. На фоне современников винтовка механически проста, что вместе с массовым выбросом на рынок после падения CMA сделало её популярной на чёрном рынке."
 	icon_state = "dmr"
+	base_gun_icon = "rmcdmr"
 	item_state = "dmr"
 	caliber = "7.62x51mm"
 	mouse_pointer = 'icons/halo/effects/mouse_pointer/br55.dmi'
@@ -359,6 +361,7 @@
 	name = "держатель ПП Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
+	base_gun_icon = "p90"
 	item_icons = list(
 		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/smgs_32.dmi',
 		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
@@ -442,6 +445,7 @@
 	name = "держатель дробовика Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
+	base_gun_icon = "m37"
 	item_icons = list(
 		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/shotguns_32.dmi',
 		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
@@ -505,6 +509,7 @@
 	desc = "SRS99-AM - штатная снайперская винтовка всех родов войск ККОН благодаря своим выдающимся возможностям. Использует съёмный коробчатый магазин на 4 патрона 14.5x114 мм APFSDS и модульную систему, позволяющую снять весь стволовой узел и заменить его альтернативным вариантом."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = "srs99"
+	base_gun_icon = "m42a"
 	item_state = "srs99"
 	caliber = "14.5x114mm"
 	mouse_pointer = 'icons/halo/effects/mouse_pointer/srs99.dmi'
@@ -604,6 +609,7 @@
 	name = "держатель пистолета Halo"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
+	base_gun_icon = "smartpistol"
 	item_icons = list(
 		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/pistols_32.dmi',
 		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
