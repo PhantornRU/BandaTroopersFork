@@ -41,7 +41,6 @@
 	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
-	vend_flags = VEND_TO_HAND
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/odst
 
@@ -55,7 +54,7 @@
 		list("ПОЛЕВОЕ СНАРЯЖЕНИЕ", -1, null, null),
 		list("Мазь", floor(scale * 10), /obj/item/stack/medical/ointment, VENDOR_ITEM_REGULAR),
 		list("Рулон марли", floor(scale * 10), /obj/item/stack/medical/bruise_pack, VENDOR_ITEM_REGULAR),
-		list("Шины", floor(scale * 10), /obj/item/stack/medical/splint, VENDOR_ITEM_REGULAR),\
+		list("Шины", floor(scale * 10), /obj/item/stack/medical/splint, VENDOR_ITEM_REGULAR),
 
 		list("ЛЕЧЕНИЕ ТРАВМ", -1, null, null),
 		list("Травмкомплект", floor(scale * 10), /obj/item/stack/medical/advanced/bruise_pack, VENDOR_ITEM_RECOMMENDED),
