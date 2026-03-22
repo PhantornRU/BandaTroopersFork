@@ -339,7 +339,7 @@
 
 	accepted_hardpoints = list(
 		// primaries
-        /obj/item/hardpoint/primary/cannon/plasmacannon,
+		/obj/item/hardpoint/primary/cannon/plasmacannon,
 		/obj/item/hardpoint/primary/cannon/ridgeway,
 
 		// secondaries
@@ -365,3 +365,11 @@
 	burst_amount = 2
 	burst_delay = 1.0 SECONDS
 	extra_delay = 5.0 SECONDS
+
+/obj/item/hardpoint/holder/tank_turret/wolfpack
+	accepted_hardpoints = list(
+		// primaries
+		/obj/item/hardpoint/primary/cannon/wolfpack,
+		// secondaries
+	)
+	icon = 'icons/obj/vehicles/apc_wolfpack.dmi'
