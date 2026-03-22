@@ -1,27 +1,27 @@
 # PLAN
 
 ## Активная задача
-Закрыть review comments по HALO map PR: weather chance, ambience, typo fixes, Pelican CAS console density, Covenant bomb overlay logic и сопутствующий task-state.
+Обновить ветку `split/pr62-02-ai-squad-spawn-species` до актуального `upstream/master`, разрешить конфликты и оставить ветку в консистентном merge-ready состоянии.
 
 ## Scope
-- Точечные правки в `code/datums/weather/**`, `code/game/area/**`, `code/game/machinery/**`.
-- Перезапись `modular/__agents/.AI_AGENT/{PLAN,TODO,DECISIONS,EVIDENCE}.md` под текущий review-fix scope.
-- Минимальная верификация через diff/compile.
+- История и базовый target ветки.
+- Merge `upstream/master` в текущую ветку.
+- Разрешение конфликтов в затронутых HALO/AI/UI/unit-test поверхностях.
+- Минимальные проверки после merge.
 
 ## Out of scope
-- Широкий cleanup `ONI Digsite 451` maplint debt.
-- Новые контентные изменения вне review comments.
-- Рискованные визуальные правки turf rotation без подтверждения по DMI/runtime.
+- Несвязанные рефакторинги.
+- Новые продуктовые изменения вне необходимых conflict resolutions.
+- Переписывание опубликованной истории ветки через rebase.
 
 ## Фазы
-1. Подтвердить затронутые surfaces и существующие паттерны. В процессе.
-2. Переписать task-state под текущую задачу.
-3. Внести подтвержденные review fixes.
-4. Прогнать релевантные проверки и зафиксировать остаточные риски.
+1. Подтвердить target обновления и конфликтные поверхности. Выполнено.
+2. Выполнить merge `upstream/master` в текущую ветку. Выполнено.
+3. Разрешить конфликты с сохранением branch-specific scope. Выполнено.
+4. Проверить `git status`, `git diff --check` и релевантные быстрые проверки. Выполнено.
 
 ## Acceptance criteria
-- Гарантированный weather-start убран с `Mackay Station` и `ONI Digsite 451`.
-- `Traxus Gamma Zone` больше не использует snow/blizzard ambience placeholders.
-- Исправлены подтвержденные typo/logic issues в area/machinery файлах.
-- Task-state отражает текущий review-fix scope.
-- `git diff --check` и релевантная compile-проверка проходят, либо статус явно зафиксирован.
+- Ветка содержит merge с актуальным `upstream/master`.
+- В рабочем дереве нет unmerged paths.
+- Конфликтные файлы собираются в логически консистентное состояние.
+- Выполнены хотя бы базовые post-merge проверки, а их статус зафиксирован.
