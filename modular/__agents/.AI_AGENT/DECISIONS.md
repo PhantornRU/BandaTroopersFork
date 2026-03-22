@@ -1,21 +1,17 @@
 # DECISIONS
 
-## D-001: Порт выполнять по фактическому file diff upstream PR, а не через прямой cherry-pick веток
-- Решение: переносить содержимое PR `#46`, `#96`, `#107` по реальным затронутым файлам и вручную интегрировать в локальные surfaces.
-- Почему: upstream ветки содержат шумную историю, а задаче нужен чистый SS220/BandaTroopers port конкретных map/content changes.
+## D-001: Обновление выполнять через merge, а не rebase
+- Решение: влить `upstream/master` merge-коммитом в текущую ветку.
+- Почему: ветка уже опубликована в `origin`, а задача сформулирована как update branch с разрешением конфликтов без необходимости переписывать историю.
 
-## D-002: `Mackay Station (Shipmap)` привязать к локальным HALO platoons
-- Решение: в `maps/mackay_station_shipmap.json` использовать `"/datum/squad/marine/halo/unsc/alpha"` и тот же путь в `allowed_platoons`.
-- Почему: в BandaTroopers HALO shipmaps работают через platoon routing из `modular/squads`, а legacy marine squad paths ломают локальный runtime contract.
+## D-002: Baseline для обновления — `upstream/master`
+- Решение: обновлять текущую ветку относительно `upstream/master`, а не относительно соседних `split/pr62-*` веток.
+- Почему: `git merge-base` показал общий базовый коммит с sibling-ветками, а не stacked ancestry.
 
-## D-003: Новый secure five-tile poddoor держать в `modular/halo/**`
-- Решение: добавить secure subtype в `modular/halo/code/mixed/machinery/halo_unsc_poddoors.dm`, не меняя `code/game/machinery/doors/poddoor/two_tile.dm`.
-- Почему: текущая база HALO five-tile poddoor уже живет в modular HALO-слое, и это лучше соответствует modular-first правилу репозитория.
+## D-003: Разрешение конфликтов делать с сохранением scope ветки
+- Решение: сохранять локальные изменения по human AI squad spawning/species, одновременно подтягивая совместимые апстрим-обновления из HALO/UI/test sweep.
+- Почему: это минимизирует риск потерять смысл текущей feature-ветки при sync с master.
 
-## D-004: HALO shipmap rotation расширять через существующую SS220 surface
-- Решение: добавить `mackay_station_shipmap` в `map_config/shipmaps.txt` внутри `SS220 EDIT` блока и расширить `SHIP_MAP_NAMES`.
-- Почему: это минимальная интеграция, которая сохраняет локальные обходы `current_map` fallback и не смешивает HALO shipmaps с vanilla routing.
-
-## D-005: Итоговый PR делать единым пакетом по трем upstream PR
-- Решение: подготовить один SS220/BandaTroopers PR, который объединяет порт PR `#46`, `#96`, `#107` и явно перечисляет BandaTroopers-specific adaptations.
-- Почему: пользователь запросил единый port PR, а изменения логически связаны общей HALO map-expansion темой.
+## D-004: Конфликты в Human AI spawner решать как superset, а не через выбор одной стороны
+- Решение: оставить расширенную локальную логику candidate filtering, failure handling и species-aware spawning, добавив совместимость с апстрим-именем `get_viable_spawn_turfs` и апстрим-тестом.
+- Почему: апстрим привнес базовый radius/accessibility contract, а ветка уже содержала более сильную и детально покрытую реализацию поверх него.

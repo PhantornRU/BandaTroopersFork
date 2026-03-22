@@ -4663,7 +4663,7 @@
 	},
 /obj/item/reagent_container/food/drinks/coffeecup{
 	pixel_y = 12;
-	pixel_w = 8
+	
 	},
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/offices)
@@ -5421,7 +5421,7 @@
 	},
 /obj/item/reagent_container/food/drinks/coffeecup{
 	pixel_y = 12;
-	pixel_w = 8
+	
 	},
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/offices)
@@ -12698,7 +12698,7 @@
 /obj/structure/window/reinforced/toughened,
 /obj/item/reagent_container/food/drinks/coffeecup{
 	pixel_y = 12;
-	pixel_w = 8
+	
 	},
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/offices)
