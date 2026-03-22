@@ -257,7 +257,6 @@
 		M.pixel_x = initial(buckled_mob.pixel_x)
 		M.pixel_y = initial(buckled_mob.pixel_y)
 		M.old_y = initial(buckled_mob.pixel_y)
-
 	if(length(seats) == 1 && seats[VEHICLE_DRIVER] == null)
 		seats[VEHICLE_DRIVER] = M
 

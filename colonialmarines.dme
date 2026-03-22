@@ -2756,6 +2756,7 @@
 #include "code\modules\vehicles\van\van.dm"
 #include "code\modules\vehicles\warthog\vulcan.dm"
 #include "code\modules\vehicles\warthog\warthog.dm"
+#include "code\modules\vehicles\warthog\wheels.dm"
 #include "code\modules\vox\vox.dm"
 #include "code\modules\vox\vox_tgui.dm"
 #include "code\modules\vox\vox_sounds\vox.dm"
