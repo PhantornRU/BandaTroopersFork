@@ -95,9 +95,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/small_buildings)
 "adQ" = (
 /obj/structure/closet/toolcloset{
@@ -214,9 +212,7 @@
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_9/dormitory)
 "aly" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/small_buildings)
 "amo" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -237,9 +233,7 @@
 /area/oni_digsite/sub_level_9/tcomms)
 "amN" = (
 /obj/structure/barricade/handrail/strata,
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/research)
 "amU" = (
 /obj/structure/machinery/camera/autoname{
@@ -679,9 +673,7 @@
 /turf/open/auto_turf/ice,
 /area/oni_digsite/sub_level_9/research)
 "aOM" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/research)
 "aPd" = (
 /obj/structure/machinery/cm_vending/sorted/cargo_guns/squad{
@@ -852,9 +844,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/south)
 "bfT" = (
-/turf/open/shuttle/escapepod/floor2{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor2/east,
 /area/oni_digsite/sub_level_9/south)
 "bfZ" = (
 /obj/effect/decal/cleanable/dirt{
@@ -1067,9 +1057,7 @@
 	dir = 4
 	},
 /obj/structure/platform,
-/turf/open/shuttle/escapepod/floor0{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/floor0/west,
 /area/oni_digsite/sub_level_2/north/reception)
 "buv" = (
 /obj/structure/stairs{
@@ -1375,9 +1363,7 @@
 /turf/open/floor/plating,
 /area/oni_digsite/sub_level_9/south)
 "bHF" = (
-/turf/open/shuttle/escapepod/floor2{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/floor2/north,
 /area/oni_digsite/sub_level_9/dormitory)
 "bIq" = (
 /obj/structure/surface/table/reinforced/prison,
@@ -1406,9 +1392,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/dormitory)
 "bIP" = (
 /obj/structure/machinery/landinglight/ds1/delaythree,
@@ -1445,9 +1429,7 @@
 /obj/structure/platform{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "bJX" = (
 /obj/structure/barricade/handrail{
@@ -1705,12 +1687,6 @@
 /obj/effect/decal/cleanable/blood/oil,
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/south)
-"bWU" = (
-/obj/structure/window/reinforced/toughened{
-	pixel_y = -1
-	},
-/turf/closed/wall/r_wall/bunker,
-/area/oni_digsite/sub_level_9/research)
 "bXs" = (
 /obj/effect/decal/cleanable/blood/oil,
 /obj/item/tool/weldingtool,
@@ -2056,9 +2032,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "cpn" = (
 /turf/open/floor/prison/floor_plate,
@@ -2312,9 +2286,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/south)
 "cAO" = (
 /obj/structure/prop/server_equipment,
@@ -2436,9 +2408,7 @@
 /area/oni_digsite/sub_level_9/snow)
 "cIE" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/command)
 "cJV" = (
 /obj/structure/platform/strata/metal{
@@ -2598,9 +2568,7 @@
 	dir = 1
 	},
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/reception)
 "cTD" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -2651,9 +2619,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod/floor2{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/floor2/west,
 /area/oni_digsite/sub_level_9/dormitory)
 "cWL" = (
 /obj/effect/decal/cleanable/blood/oil,
@@ -2805,9 +2771,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/south)
 "def" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/small_buildings)
 "deH" = (
 /obj/structure/platform{
@@ -2816,9 +2780,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/oni_digsite/sub_level_2/north/reception)
 "dfj" = (
 /obj/structure/platform/strata/metal,
@@ -3601,18 +3563,14 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/small_buildings)
 "ebF" = (
 /obj/structure/gun_rack/halo/armory/ma5c/empty,
 /turf/open/floor/almayer/pod_landing_floor,
 /area/oni_digsite/sub_level_2/south/watchpoint_delta)
 "ebQ" = (
-/turf/open/shuttle/escapepod/floor2{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor2/east,
 /area/oni_digsite/sub_level_9/research)
 "ecn" = (
 /turf/open/floor/prison/floor_plate,
@@ -3692,9 +3650,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/dormitory)
 "egK" = (
 /obj/effect/decal/cleanable/dirt{
@@ -3714,14 +3670,10 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "eih" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/dormitory)
 "eiM" = (
 /obj/structure/machinery/door_control{
@@ -3924,9 +3876,7 @@
 /obj/structure/platform{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/reception)
 "ewh" = (
 /obj/structure/machinery/vending/cigarette,
@@ -3987,9 +3937,7 @@
 /turf/open/floor/strata/floor3,
 /area/oni_digsite/sub_level_9/storage)
 "eyg" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "eyK" = (
 /obj/structure/machinery/light/double/blue,
@@ -4191,9 +4139,7 @@
 /area/oni_digsite/sub_level_2/north/offices)
 "eHN" = (
 /obj/structure/machinery/camera/autoname,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/command)
 "eIF" = (
 /obj/structure/platform/strata/metal{
@@ -4674,9 +4620,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
 "fhm" = (
-/turf/open/shuttle/escapepod/floor2{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/floor2/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "fhX" = (
 /obj/structure/gun_rack/halo/medkit{
@@ -4813,9 +4757,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/reception)
 "fqJ" = (
 /obj/effect/decal/warning_stripes{
@@ -5218,9 +5160,7 @@
 	dir = 1;
 	network = list("interrogation")
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "fHx" = (
 /obj/structure/machinery/cm_vending/sorted/marine_food/unsc,
@@ -5253,9 +5193,7 @@
 /turf/open/floor/plating,
 /area/oni_digsite/sub_level_2/north/power)
 "fIU" = (
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/oni_digsite/sub_level_9/dormitory)
 "fJa" = (
 /obj/structure/closet/crate/unsc{
@@ -5640,9 +5578,7 @@
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_9/dormitory)
 "gfZ" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/offices)
 "ggI" = (
 /obj/structure/barricade/metal{
@@ -5761,9 +5697,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/reception)
 "gkS" = (
 /obj/structure/prop/unsc_crate/stack,
@@ -6163,9 +6097,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/command)
 "gLE" = (
 /obj/structure/platform_decoration/strata{
@@ -6187,18 +6119,14 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/south)
 "gMk" = (
-/turf/open/shuttle/escapepod/floor0{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/floor0/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "gMB" = (
 /obj/structure/machinery/landinglight/ds1/delayone{
 	dir = 8
 	},
 /obj/structure/machinery/landinglight/ds1/delaytwo,
-/turf/open/floor/almayer/black{
-	dir = 10
-	},
+/turf/open/floor/almayer/black/southwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "gMG" = (
 /obj/structure/barricade/metal{
@@ -6635,9 +6563,7 @@
 /area/oni_digsite/sub_level_2/south/watchpoint_delta)
 "hrl" = (
 /obj/structure/platform,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/reception)
 "hrT" = (
 /obj/structure/platform/strata/metal{
@@ -6667,9 +6593,7 @@
 /obj/structure/machinery/landinglight/ds1/delayone{
 	dir = 4
 	},
-/turf/open/floor/almayer/black{
-	dir = 6
-	},
+/turf/open/floor/almayer/black/southeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "hug" = (
 /obj/structure/surface/table/almayer{
@@ -6866,9 +6790,7 @@
 /obj/structure/platform{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "hDn" = (
 /obj/effect/decal/cleanable/dirt{
@@ -7225,9 +7147,7 @@
 /obj/structure/machinery/landinglight/ds1/delaytwo{
 	dir = 4
 	},
-/turf/open/floor/almayer/black{
-	dir = 6
-	},
+/turf/open/floor/almayer/black/southeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "hVC" = (
 /obj/structure/surface/table/almayer{
@@ -7454,9 +7374,7 @@
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_2/north/reception)
 "ign" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "ihn" = (
 /obj/structure/gun_rack/halo/medkit{
@@ -7754,9 +7672,7 @@
 /area/oni_digsite/sub_level_9/research)
 "iuM" = (
 /obj/structure/platform,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "ivD" = (
 /obj/structure/surface/table/almayer{
@@ -8403,9 +8319,7 @@
 /turf/open/floor/almayer/mono,
 /area/oni_digsite/sub_level_2/south)
 "jcH" = (
-/turf/open/shuttle/escapepod/floor2{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor2/east,
 /area/oni_digsite/sub_level_9/small_buildings)
 "jdl" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -8490,9 +8404,7 @@
 /turf/open/auto_turf/snow/layer0,
 /area/oni_digsite/sub_level_9/snow)
 "jgB" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/south)
 "jhe" = (
 /obj/structure/surface/table/reinforced/prison,
@@ -8565,9 +8477,7 @@
 /area/oni_digsite/sub_level_9/garage)
 "jmu" = (
 /obj/structure/machinery/camera/autoname,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/dormitory)
 "jmE" = (
 /obj/effect/decal/warning_stripes{
@@ -8702,9 +8612,7 @@
 /obj/structure/machinery/landinglight/ds1/delayone{
 	dir = 1
 	},
-/turf/open/floor/almayer/black{
-	dir = 5
-	},
+/turf/open/floor/almayer/black/northeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "jwZ" = (
 /obj/structure/pipes/vents/pump,
@@ -8813,9 +8721,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/dormitory)
 "jEt" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/command)
 "jEC" = (
 /obj/structure/prop/unsc_crate/big{
@@ -9041,9 +8947,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/offices)
 "jQc" = (
 /obj/structure/bed/chair/comfy/bench/mid,
@@ -9323,9 +9227,7 @@
 /area/oni_digsite/sub_level_2/south/hangar)
 "jZa" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/south)
 "jZe" = (
 /obj/structure/bed/chair/comfy/ares{
@@ -9522,9 +9424,7 @@
 /area/oni_digsite/elevator/digsite_elevator/exit)
 "kje" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/research)
 "kjV" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -9853,9 +9753,7 @@
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/offices)
 "kBp" = (
 /obj/structure/machinery/light/double/blue{
@@ -10211,9 +10109,6 @@
 /area/oni_digsite/sub_level_9/small_buildings)
 "kUL" = (
 /obj/structure/girder/reinforced,
-/obj/structure/girder/reinforced{
-	pixel_y = 14
-	},
 /turf/open/auto_turf/snow/layer0,
 /area/oni_digsite/sub_level_9/snow)
 "kUU" = (
@@ -10222,10 +10117,6 @@
 	},
 /turf/closed/void,
 /area/space)
-"kVl" = (
-/obj/structure/window/reinforced/toughened,
-/turf/closed/wall/almayer/aicore/white,
-/area/oni_digsite/sub_level_2/north/offices)
 "kVN" = (
 /obj/structure/platform{
 	dir = 8
@@ -10312,9 +10203,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/command)
 "lcN" = (
 /obj/structure/platform_decoration/strata/metal,
@@ -10809,9 +10698,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "lyH" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south)
 "lzn" = (
 /obj/effect/decal/cleanable/dirt{
@@ -11081,9 +10968,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/small_buildings)
 "lOq" = (
 /obj/structure/machinery/computer/cameras{
@@ -11132,9 +11017,7 @@
 /turf/open/floor/prison/trim,
 /area/oni_digsite/sub_level_2/north/offices)
 "lRn" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/dormitory)
 "lRp" = (
 /obj/structure/machinery/door_control{
@@ -11572,18 +11455,14 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/research)
 "mtZ" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
 	pixel_y = 1
 	},
-/turf/open/floor/almayer/black{
-	dir = 1
-	},
+/turf/open/floor/almayer/black/north,
 /area/oni_digsite/sub_level_2/south/hangar)
 "mvc" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -11667,9 +11546,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
 "mAx" = (
-/turf/open/shuttle/escapepod/floor0{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/floor0/north,
 /area/oni_digsite/sub_level_9/dormitory)
 "mBb" = (
 /obj/structure/barricade/handrail/strata{
@@ -11874,9 +11751,7 @@
 /turf/open/floor/prison,
 /area/oni_digsite/sub_level_9/small_buildings)
 "mNb" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/small_buildings)
 "mNE" = (
 /obj/structure/machinery/light/double/blue,
@@ -12453,9 +12328,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/dormitory)
 "nuQ" = (
 /obj/vehicle/train/cargo/engine,
@@ -12528,9 +12401,7 @@
 /turf/open/floor/almayer/dark_sterile,
 /area/oni_digsite/sub_level_2/north/research)
 "nAv" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "nAU" = (
 /obj/structure/surface/table/almayer{
@@ -12945,12 +12816,6 @@
 	},
 /turf/open/floor/dark,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
-"nUR" = (
-/obj/structure/window/reinforced/toughened{
-	pixel_y = -1
-	},
-/turf/closed/wall/r_wall/bunker,
-/area/oni_digsite/sub_level_9/command)
 "nVT" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/sink{
@@ -13105,9 +12970,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/south/watchpoint_delta)
 "ogv" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/research)
 "ohD" = (
 /obj/structure/platform/strata/metal{
@@ -13142,9 +13005,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/south/checkpoint_bravo)
 "ojW" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south/checkpoint_bravo)
 "oke" = (
 /turf/open/floor/prison/bright_clean,
@@ -13466,12 +13327,6 @@
 	},
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/small_buildings)
-"oDf" = (
-/obj/structure/window/reinforced/toughened{
-	pixel_y = -1
-	},
-/turf/closed/wall/hangar,
-/area/oni_digsite/sub_level_9/research)
 "oDJ" = (
 /obj/structure/machinery/door/airlock/unsc{
 	dir = 1;
@@ -13503,9 +13358,7 @@
 	icon_state = "weldtank_old";
 	anchored = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
 "oFN" = (
 /obj/effect/decal/warning_stripes{
@@ -14466,9 +14319,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/small_buildings)
 "pJj" = (
 /obj/item/clothing/accessory/limb/skeleton/head{
@@ -14513,9 +14364,7 @@
 /turf/open/auto_turf/snow/layer0,
 /area/oni_digsite/sub_level_9/snow)
 "pKv" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "pKH" = (
 /obj/structure/closet/crate/unsc{
@@ -14590,9 +14439,7 @@
 	dir = 1;
 	network = list("interrogation")
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/reception)
 "pOh" = (
 /obj/structure/machinery/landinglight/ds1/delayone{
@@ -14652,9 +14499,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south/checkpoint_bravo)
 "pQg" = (
 /obj/structure/bed/chair,
@@ -15118,9 +14963,7 @@
 /area/oni_digsite/sub_level_2/south/hangar)
 "qsA" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/small_buildings)
 "qsP" = (
 /obj/structure/machinery/door/window/southleft{
@@ -15296,9 +15139,7 @@
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "qJN" = (
 /obj/structure/machinery/power/apc/almayer/east,
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south)
 "qLe" = (
 /obj/structure/barricade/handrail/strata{
@@ -15404,15 +15245,6 @@
 /obj/structure/barricade/handrail/strata,
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_9/small_buildings)
-"qQY" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/black{
-	dir = 4
-	},
-/area/oni_digsite/sub_level_2/south/hangar)
 "qRF" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
@@ -15669,14 +15501,6 @@
 	},
 /turf/open/floor/prison,
 /area/oni_digsite/sub_level_9/south)
-"red" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "W"
-	},
-/turf/open/floor/almayer/black{
-	dir = 8
-	},
-/area/oni_digsite/sub_level_2/south/hangar)
 "reg" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "cargo"
@@ -15941,9 +15765,7 @@
 "rtc" = (
 /obj/structure/platform,
 /obj/structure/machinery/camera/autoname,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "rtB" = (
 /obj/structure/bed/chair/comfy/ares{
@@ -16056,9 +15878,7 @@
 /turf/open/floor/prison,
 /area/oni_digsite/sub_level_9/command)
 "ryo" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/south)
 "ryB" = (
 /obj/effect/decal/warning_stripes{
@@ -16093,9 +15913,7 @@
 "rAX" = (
 /obj/structure/platform,
 /obj/structure/machinery/camera/autoname,
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/reception)
 "rBO" = (
 /obj/effect/decal/warning_stripes{
@@ -16497,9 +16315,7 @@
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_2/north/offices)
 "rYh" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/command)
 "rYt" = (
 /turf/open/floor/prison,
@@ -16553,9 +16369,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/dormitory)
 "saY" = (
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -16697,9 +16511,7 @@
 /turf/open/floor/prison,
 /area/oni_digsite/sub_level_9/dormitory)
 "sjg" = (
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/command)
 "skB" = (
 /obj/structure/filingcabinet{
@@ -16737,9 +16549,7 @@
 	dir = 8
 	},
 /obj/structure/machinery/landinglight/ds1/delaythree,
-/turf/open/floor/almayer/black{
-	dir = 10
-	},
+/turf/open/floor/almayer/black/southwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "smS" = (
 /obj/structure/barricade/handrail/strata,
@@ -16824,9 +16634,7 @@
 /area/oni_digsite/sub_level_9/garage)
 "sqF" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "sqH" = (
 /obj/structure/filingcabinet{
@@ -16898,9 +16706,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/offices)
 "svU" = (
 /obj/structure/prop/unsc_crate/stack{
@@ -17064,9 +16870,7 @@
 /obj/structure/machinery/landinglight/ds1/delaythree{
 	dir = 1
 	},
-/turf/open/floor/almayer/black{
-	dir = 5
-	},
+/turf/open/floor/almayer/black/northeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "sHo" = (
 /obj/structure/barricade/metal,
@@ -17112,9 +16916,7 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
 "sJz" = (
 /obj/structure/platform/strata/metal{
@@ -17985,9 +17787,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/offices)
 "tOr" = (
 /obj/structure/machinery/camera/autoname{
@@ -18035,9 +17835,7 @@
 	id = "storage4";
 	name = "Bay 4 Controls"
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south)
 "tSs" = (
 /obj/structure/stairs{
@@ -18049,9 +17847,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod/floor0{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/floor0/east,
 /area/oni_digsite/sub_level_9/research)
 "tTH" = (
 /obj/structure/reagent_dispensers/water_cooler/stacks{
@@ -18159,9 +17955,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_2/south/commons)
 "tXI" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/dormitory)
 "tYv" = (
 /obj/item/paper_bin/uscm{
@@ -18203,9 +17997,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/research)
 "uaK" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/research)
 "ubp" = (
 /obj/structure/stairs{
@@ -18280,9 +18072,7 @@
 /obj/structure/machinery/landinglight/ds1/delayone{
 	dir = 8
 	},
-/turf/open/floor/almayer/black{
-	dir = 9
-	},
+/turf/open/floor/almayer/black/northwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "udJ" = (
 /obj/structure/machinery/floodlight/landing,
@@ -18300,9 +18090,7 @@
 /obj/structure/machinery/landinglight/ds1/delaythree{
 	dir = 4
 	},
-/turf/open/floor/almayer/black{
-	dir = 6
-	},
+/turf/open/floor/almayer/black/southeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "ufB" = (
 /obj/structure/prop/server_equipment,
@@ -18428,9 +18216,7 @@
 /obj/structure/machinery/landinglight/ds1/delaytwo{
 	dir = 1
 	},
-/turf/open/floor/almayer/black{
-	dir = 5
-	},
+/turf/open/floor/almayer/black/northeast,
 /area/oni_digsite/sub_level_2/south/hangar)
 "ulz" = (
 /obj/structure/machinery/door/airlock/multi_tile/unsc{
@@ -18580,9 +18366,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 1
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "uxm" = (
 /obj/structure/machinery/light/double/blue{
@@ -18967,9 +18751,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/reception)
 "uPL" = (
 /obj/effect/decal/warning_stripes{
@@ -19413,9 +19195,7 @@
 /area/oni_digsite/sub_level_2/north/reception)
 "vmb" = (
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/dormitory)
 "vme" = (
 /turf/open/auto_turf/snow/layer1,
@@ -19532,9 +19312,7 @@
 /obj/structure/platform{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "vsz" = (
 /obj/structure/window/framed/hangar,
@@ -19781,9 +19559,7 @@
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/south)
 "vHv" = (
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_9/south)
 "vIm" = (
 /obj/effect/decal/cleanable/dirt{
@@ -19876,10 +19652,7 @@
 /turf/open/floor/plating/plating_catwalk,
 /area/oni_digsite/sub_level_2/north/checkpoint_charlie)
 "vNd" = (
-/turf/open/nostromowater{
-	desc = "Icy cold water, it seems to have pooled into a natural divet in the cave floor.";
-	name = "cave water"
-	},
+/turf/open/nostromowater/cave_water,
 /area/oni_digsite/sub_level_2/cavern)
 "vNx" = (
 /obj/structure/surface/table/almayer,
@@ -20036,9 +19809,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "vXE" = (
 /obj/structure/bed/chair,
@@ -20425,9 +20196,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_9/research)
 "wzt" = (
 /obj/structure/surface/table/almayer{
@@ -20464,9 +20233,7 @@
 /obj/structure/machinery/light/double/blue{
 	dir = 4
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_9/south)
 "wBd" = (
 /obj/structure/prop/unsc_crate/standard/red{
@@ -20856,9 +20623,7 @@
 	dir = 1
 	},
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/offices)
 "wWk" = (
 /obj/structure/surface/table/almayer{
@@ -20909,9 +20674,7 @@
 	dir = 8
 	},
 /obj/structure/machinery/landinglight/ds1/delayone,
-/turf/open/floor/almayer/black{
-	dir = 10
-	},
+/turf/open/floor/almayer/black/southwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "wZG" = (
 /obj/structure/cargo_container/unsc/vertical/south_3/endcap_2,
@@ -20934,15 +20697,6 @@
 /obj/item/device/lightreplacer,
 /turf/open/floor/prison/floor_plate,
 /area/oni_digsite/sub_level_9/small_buildings)
-"wZX" = (
-/obj/structure/machinery/power/monitor{
-	name = "Main Power Grid Monitoring"
-	},
-/obj/structure/machinery/power/monitor{
-	name = "Main Power Grid Monitoring"
-	},
-/turf/open/floor/prison/trim,
-/area/oni_digsite/sub_level_2/north/power)
 "xad" = (
 /obj/structure/bed/chair{
 	dir = 4
@@ -20956,9 +20710,7 @@
 /obj/structure/machinery/landinglight/ds1/delaytwo{
 	dir = 8
 	},
-/turf/open/floor/almayer/black{
-	dir = 9
-	},
+/turf/open/floor/almayer/black/northwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "xaF" = (
 /obj/structure/platform/strata/metal,
@@ -21072,9 +20824,7 @@
 /obj/structure/machinery/landinglight/ds1/delaythree{
 	dir = 8
 	},
-/turf/open/floor/almayer/black{
-	dir = 9
-	},
+/turf/open/floor/almayer/black/northwest,
 /area/oni_digsite/sub_level_2/south/hangar)
 "xdY" = (
 /obj/effect/decal/cleanable/blood/oil,
@@ -21176,9 +20926,7 @@
 /turf/open/floor/prison/bright_clean,
 /area/oni_digsite/sub_level_9/research)
 "xhg" = (
-/turf/open/shuttle/escapepod{
-	dir = 8
-	},
+/turf/open/shuttle/escapepod/west,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "xhk" = (
 /turf/open/floor/shiva/radiator_tile2,
@@ -21484,9 +21232,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/south/checkpoint_bravo)
 "xxo" = (
 /obj/structure/surface/table/reinforced/prison,
@@ -21897,9 +21643,7 @@
 	layer = 2.52
 	},
 /obj/structure/machinery/light/double/blue,
-/turf/open/shuttle/escapepod{
-	dir = 4
-	},
+/turf/open/shuttle/escapepod/east,
 /area/oni_digsite/sub_level_2/north/checkpoint_delta)
 "xSU" = (
 /turf/open/floor/prison/cell_stripe/east,
@@ -22022,9 +21766,7 @@
 /obj/structure/machinery/camera/autoname{
 	dir = 8
 	},
-/turf/open/shuttle/escapepod{
-	dir = 1
-	},
+/turf/open/shuttle/escapepod/north,
 /area/oni_digsite/sub_level_2/north/reception)
 "xZE" = (
 /obj/structure/machinery/light/double/blue,
@@ -25653,7 +25395,7 @@ oKp
 wlX
 dOK
 wdU
-wZX
+mxQ
 eUp
 cxX
 srw
@@ -33019,12 +32761,12 @@ pgD
 pgD
 pRQ
 kTa
-qQY
-qQY
-qQY
-qQY
-qQY
-qQY
+jjk
+jjk
+jjk
+jjk
+jjk
+jjk
 uUT
 wFh
 pgD
@@ -34748,12 +34490,12 @@ pgD
 pgD
 pRQ
 bEE
-red
-red
-red
-red
-red
-red
+trY
+trY
+trY
+trY
+trY
+trY
 aPm
 wFh
 pgD
@@ -37761,7 +37503,7 @@ vov
 kNi
 ccg
 kNi
-kVl
+eSH
 vcT
 rjN
 tFD
@@ -38008,7 +37750,7 @@ kNi
 tzG
 oQb
 eSH
-kVl
+eSH
 fgM
 jXI
 ieP
@@ -38996,7 +38738,7 @@ cRp
 kNi
 jVB
 eSH
-kVl
+eSH
 vcT
 rjN
 tFD
@@ -39243,7 +38985,7 @@ qce
 kNi
 ccg
 eSH
-kVl
+eSH
 fgM
 jXI
 ieP
@@ -40231,7 +39973,7 @@ kNi
 ccg
 oQb
 eSH
-kVl
+eSH
 xsM
 rjN
 mrD
@@ -40478,7 +40220,7 @@ bcg
 kNi
 ccg
 efH
-kVl
+eSH
 gJG
 jXI
 nIT
@@ -46256,7 +45998,7 @@ xCs
 mMh
 iHy
 mMh
-bWU
+mMh
 kIw
 wWU
 oON
@@ -47491,7 +47233,7 @@ xCs
 mMh
 iHy
 mMh
-bWU
+mMh
 dCq
 sUU
 pld
@@ -51707,7 +51449,7 @@ nZZ
 nZZ
 nZZ
 nZZ
-oDf
+nZZ
 tYv
 kDa
 nZZ
@@ -65261,7 +65003,7 @@ sSA
 sSA
 sSA
 ngc
-nUR
+ngc
 rff
 gug
 uOb
@@ -67237,7 +66979,7 @@ sSA
 sSA
 sSA
 ngc
-nUR
+ngc
 tOG
 bKU
 uOb
