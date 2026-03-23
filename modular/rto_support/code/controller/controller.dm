@@ -293,6 +293,47 @@
 	var/cooldown_until = zone_cooldowns_by_template[template.template_id]
 	return max(0, cooldown_until - world.time)
 
+/datum/rto_support_controller/proc/get_solo_visibility_zone_cooldown(template_type = null)
+	var/datum/rto_support_template/template = null
+	if(istype(template_type, /datum/rto_support_template))
+		template = template_type
+	else if(istext(template_type))
+		template = get_selected_template(template_type) || find_template(template_type)
+	else
+		template = get_primary_selected_template()
+	if(!template?.requires_visibility_zone || template.visibility_zone_cooldown <= 0)
+		return max(0, template?.visibility_zone_cooldown)
+	return max(1, round(template.visibility_zone_cooldown / 2))
+
+/datum/rto_support_controller/proc/uses_single_template_zone_discount(template_type = null)
+	if(length(selected_templates) != 1)
+		return FALSE
+	var/datum/rto_support_template/template = null
+	if(istype(template_type, /datum/rto_support_template))
+		template = template_type
+	else if(istext(template_type))
+		template = get_selected_template(template_type)
+	else
+		template = get_primary_selected_template()
+	if(!template?.requires_visibility_zone || template.visibility_zone_cooldown <= 0)
+		return FALSE
+	var/datum/rto_support_template/selected_template = get_primary_selected_template()
+	return selected_template?.template_id == template.template_id
+
+/datum/rto_support_controller/proc/get_effective_visibility_zone_cooldown(template_type = null)
+	var/datum/rto_support_template/template = null
+	if(istype(template_type, /datum/rto_support_template))
+		template = template_type
+	else if(istext(template_type))
+		template = get_selected_template(template_type) || find_template(template_type)
+	else
+		template = get_primary_selected_template()
+	if(!template?.requires_visibility_zone || template.visibility_zone_cooldown <= 0)
+		return max(0, template?.visibility_zone_cooldown)
+	if(uses_single_template_zone_discount(template))
+		return get_solo_visibility_zone_cooldown(template)
+	return template.visibility_zone_cooldown
+
 /datum/rto_support_controller/proc/is_manual_marker_active()
 	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
 	return binoculars?.is_live_marker_active()
@@ -556,7 +597,7 @@
 	qdel(zone)
 
 	if(apply_cooldown && source_template?.requires_visibility_zone && source_template.visibility_zone_cooldown > 0)
-		var/cooldown_until = world.time + source_template.visibility_zone_cooldown
+		var/cooldown_until = world.time + get_effective_visibility_zone_cooldown(source_template)
 		zone_shared_cooldown_until = max(zone_shared_cooldown_until, cooldown_until)
 		zone_cooldowns_by_template[source_template.template_id] = max(zone_cooldowns_by_template[source_template.template_id], cooldown_until)
 	return TRUE

@@ -271,6 +271,51 @@
 	TEST_ASSERT_EQUAL(controller.selection_started_at, 0, "Reset should clear the selection start timestamp.")
 	TEST_ASSERT(controller.select_template("technical"), "Packages should be selectable again after a full reset.")
 
+/datum/unit_test/halo_support_single_package_zone_discount
+
+/datum/unit_test/halo_support_single_package_zone_discount/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+
+	TEST_ASSERT(controller.select_template("mortar"), "Single-package zone discount test should select mortar first.")
+	TEST_ASSERT_EQUAL(controller.get_solo_visibility_zone_cooldown("mortar"), 300 SECONDS, "Mortar solo sector cooldown preview should be half of the configured cooldown.")
+	TEST_ASSERT(controller.uses_single_template_zone_discount("mortar"), "Single selected zone package should activate the solo sector cooldown bonus.")
+	TEST_ASSERT_EQUAL(controller.get_effective_visibility_zone_cooldown("mortar"), 300 SECONDS, "Single selected zone package should use the reduced sector cooldown.")
+
+	var/list/ui_entries = controller.build_preset_ui_data()
+	var/list/mortar_entry = null
+	for(var/list/entry as anything in ui_entries)
+		if(entry["template_id"] == "mortar")
+			mortar_entry = entry
+			break
+	TEST_ASSERT_NOTNULL(mortar_entry, "Preset menu should expose mortar template data for the solo cooldown preview.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown"], 600, "Preset menu should keep showing the full configured mortar sector cooldown.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_solo"], 300, "Preset menu should show the reduced solo mortar sector cooldown.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_current"], 300, "Preset menu should show the currently active solo mortar sector cooldown.")
+	TEST_ASSERT(mortar_entry["solo_zone_cooldown_active"], "Preset menu should mark the solo sector cooldown bonus as active.")
+
+	var/datum/rto_support_template/mortar/mortar_template = controller.get_selected_template("mortar")
+	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, mortar_template)
+	controller.clear_active_zone()
+	TEST_ASSERT_EQUAL(controller.zone_shared_cooldown_until, world.time + 300 SECONDS, "Clearing a solo-selected mortar sector should apply the reduced shared zone cooldown.")
+	TEST_ASSERT_EQUAL(controller.zone_cooldowns_by_template["mortar"], world.time + 300 SECONDS, "Clearing a solo-selected mortar sector should apply the reduced personal zone cooldown.")
+
+	var/mob/living/carbon/human/two_slot_human = allocate(/mob/living/carbon/human)
+	two_slot_human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/two_slot_controller = allocate(/datum/rto_support_controller, two_slot_human)
+
+	TEST_ASSERT(two_slot_controller.select_template("mortar"), "Two-slot zone discount test should select mortar first.")
+	TEST_ASSERT(two_slot_controller.select_template("logistics"), "Two-slot zone discount test should fill the second slot.")
+	TEST_ASSERT(!two_slot_controller.uses_single_template_zone_discount("mortar"), "Selecting a second package should disable the solo sector cooldown bonus.")
+	TEST_ASSERT_EQUAL(two_slot_controller.get_effective_visibility_zone_cooldown("mortar"), 600 SECONDS, "Two selected packages should restore the full mortar sector cooldown.")
+
+	var/datum/rto_support_template/mortar/two_slot_mortar_template = two_slot_controller.get_selected_template("mortar")
+	two_slot_controller.active_zone = allocate(/datum/rto_visibility_zone, two_slot_human, run_loc_floor_bottom_left, two_slot_mortar_template)
+	two_slot_controller.clear_active_zone()
+	TEST_ASSERT_EQUAL(two_slot_controller.zone_shared_cooldown_until, world.time + 600 SECONDS, "Clearing a sector with two selected packages should apply the full shared zone cooldown.")
+	TEST_ASSERT_EQUAL(two_slot_controller.zone_cooldowns_by_template["mortar"], world.time + 600 SECONDS, "Clearing a sector with two selected packages should apply the full personal zone cooldown.")
+
 /datum/unit_test/halo_support_package_shared_cooldowns
 
 /datum/unit_test/halo_support_package_shared_cooldowns/Run()

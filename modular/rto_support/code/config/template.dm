@@ -90,6 +90,10 @@
 	entry.visibility_zone_radius = visibility_zone_radius
 	entry.visibility_zone_duration = visibility_zone_duration
 	entry.visibility_zone_cooldown = visibility_zone_cooldown
+	entry.visibility_zone_cooldown_solo = controller ? controller.get_solo_visibility_zone_cooldown(src) : max(0, round(visibility_zone_cooldown / 2))
+	entry.visibility_zone_cooldown_current = controller ? controller.get_effective_visibility_zone_cooldown(src) : visibility_zone_cooldown
+	entry.solo_zone_cooldown_available = requires_visibility_zone && visibility_zone_cooldown > 0 && entry.visibility_zone_cooldown_solo < visibility_zone_cooldown
+	entry.solo_zone_cooldown_active = controller ? controller.uses_single_template_zone_discount(src) : FALSE
 	entry.visibility_altitude_requirement = visibility_altitude_requirement
 	entry.actions = list()
 	for(var/datum/rto_support_action_template/action_template as anything in action_templates)

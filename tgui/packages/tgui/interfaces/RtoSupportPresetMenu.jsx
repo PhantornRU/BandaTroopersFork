@@ -146,6 +146,11 @@ const TemplateCard = ({ template, canAddTemplate }) => {
             <LabeledList.Item label="Кулдаун сектора">
               {template.visibility_zone_cooldown} сек.
             </LabeledList.Item>
+            {template.solo_zone_cooldown_available && (
+              <LabeledList.Item label="РЎРѕР»Рѕ-РљР” СЃРµРєС‚РѕСЂР°">
+                {template.visibility_zone_cooldown_solo} СЃРµРє.
+              </LabeledList.Item>
+            )}
           </>
         ) : (
           <LabeledList.Item label="Сектор">Не используется</LabeledList.Item>
@@ -154,6 +159,13 @@ const TemplateCard = ({ template, canAddTemplate }) => {
           {altitudeLabel(template.visibility_altitude_requirement)}
         </LabeledList.Item>
       </LabeledList>
+      {template.solo_zone_cooldown_available && (
+        <NoticeBox mt={1} info={template.solo_zone_cooldown_active}>
+          {template.solo_zone_cooldown_active
+            ? `РЎРµР№С‡Р°СЃ Р°РєС‚РёРІРµРЅ solo-Р±РѕРЅСѓСЃ: РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РґРѕ ${template.visibility_zone_cooldown_current} СЃРµРє.`
+            : `Р•СЃР»Рё РѕСЃС‚Р°РІРёС‚СЊ С‚РѕР»СЊРєРѕ РѕРґРёРЅ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° СЌС‚РѕРіРѕ С€Р°Р±Р»РѕРЅР° СЃРЅРёР·РёС‚СЃСЏ РґРѕ ${template.visibility_zone_cooldown_solo} СЃРµРє. Р’С‹Р±РѕСЂ РІС‚РѕСЂРѕРіРѕ РїР°РєРµС‚Р° РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±С‹С‡РЅС‹Р№ РљР”: ${template.visibility_zone_cooldown} СЃРµРє.`}
+        </NoticeBox>
+      )}
       <Divider />
       <Box bold mb={1}>
         Способности
@@ -224,6 +236,21 @@ export const RtoSupportPresetMenu = () => {
                 Полный сброс обоих слотов доступен через 60 минут от первого
                 выбора в текущем цикле.
               </NoticeBox>
+              {selectedCount === 0 && (
+                <NoticeBox mt={1} info>
+                  Р•СЃР»Рё РІР·СЏС‚СЊ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚ Рё РЅРµ Р·Р°РЅРёРјР°С‚СЊ РІС‚РѕСЂРѕР№ СЃР»РѕС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° Р±СѓРґРµС‚ РІ 2 СЂР°Р·Р° РјРµРЅСЊС€Рµ.
+                </NoticeBox>
+              )}
+              {selectedCount === 1 && (
+                <NoticeBox mt={1} info>
+                  РЎРµР№С‡Р°СЃ solo-Р±РѕРЅСѓСЃ Р°РєС‚РёРІРµРЅ: РїРѕРєР° Сѓ РІР°СЃ РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°. Р’С‹Р±РѕСЂ РІС‚РѕСЂРѕРіРѕ РїР°РєРµС‚Р° РІРµСЂРЅРµС‚ РѕР±С‹С‡РЅС‹Р№ РљР”.
+                </NoticeBox>
+              )}
+              {selectedCount >= 2 && (
+                <NoticeBox mt={1}>
+                  Р’С‹Р±СЂР°РЅРѕ РґРІР° РїР°РєРµС‚Р°: РґР»СЏ Р±РѕРµРІС‹С… С€Р°Р±Р»РѕРЅРѕРІ РґРµР№СЃС‚РІСѓРµС‚ РѕР±С‹С‡РЅС‹Р№ РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° Р±РµР· solo-Р±РѕРЅСѓСЃР°.
+                </NoticeBox>
+              )}
               {selectedCount > 0 && resetReadyIn > 0 && (
                 <NoticeBox mt={1}>
                   До сброса слотов: {resetReadyIn} сек.

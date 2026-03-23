@@ -123,6 +123,11 @@
 	else
 		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
 
+	if(length(selected_templates) == 1)
+		var/datum/rto_support_template/solo_template = selected_templates[1]
+		if(controller.uses_single_template_zone_discount(solo_template))
+			. += SPAN_NOTICE("РџРѕРєР° РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°.")
+
 	var/reset_ready_in = controller.get_selection_reset_ready_in()
 	if(length(selected_templates))
 		if(reset_ready_in > 0)
