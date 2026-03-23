@@ -84,7 +84,14 @@
 #include "halo_ai_localization.dm"
 // #include "halo_name_localization.dm" // SS220 EDIT: cover the explicit localized display-name helper used for future HALO name migration
 #include "halo_sangheili_equipment.dm"
+// #include "halo_sangheili_equipment_ai.dm"
+// #include "halo_sangheili_equipment_shields.dm"
 #include "halo_ship_platoons.dm"
+// #include "halo_ship_platoons_config.dm"
+// #include "halo_ship_platoons_contracts.dm"
+// #include "halo_ship_platoons_equip_smoke.dm"
+// #include "halo_ship_platoons_lifecycle.dm"
+// #include "halo_ship_platoons_ui.dm"
 #include "halo_tts.dm"
 #include "halo_unggoy_ai.dm"
 // #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior

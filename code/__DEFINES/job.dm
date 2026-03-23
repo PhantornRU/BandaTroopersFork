@@ -1,6 +1,6 @@
 #define get_job_playtime(client, job) (client.player_data? LAZYACCESS(client.player_data.playtimes, job)? client.player_data.playtimes[job].total_minutes MINUTES_TO_DECISECOND : 0 : 0)
 #define GET_MAPPED_ROLE(title) (GLOB.RoleAuthority?.role_mappings[title] ? GLOB.RoleAuthority.role_mappings[title] : GLOB.RoleAuthority.roles_by_name[title])
-#define GET_DEFAULT_ROLE(title) (GLOB.RoleAuthority?.default_roles[title] ? GLOB.RoleAuthority.default_roles[title] : title)
+#define GET_DEFAULT_ROLE(title) (GLOB.RoleAuthority?.get_job_preference_bucket_key(title) || title) // SS220 EDIT: canonical role resolution includes ship-side title mappings
 
 // Squad name defines
 #define SQUAD_MARINE_1 "Alpha"
@@ -8,10 +8,10 @@
 #define SQUAD_MARINE_3 "Charlie"
 #define SQUAD_MARINE_4 "Delta"
 // SS220 EDIT - START
-#define SQUAD_MARINE_1_DEFAULT_NAME "Alpha Assault Sq"
-#define SQUAD_MARINE_2_DEFAULT_NAME "Bravo Aux. Eng-Sq"
-#define SQUAD_MARINE_3_DEFAULT_NAME "Charlie Aux. Med-Sq"
-#define SQUAD_MARINE_4_DEFAULT_NAME "Delta Assault Sq"
+#define SQUAD_MARINE_1_DEFAULT_NAME "Alpha Assault"
+#define SQUAD_MARINE_2_DEFAULT_NAME "Bravo Auxiliary" // Eng
+#define SQUAD_MARINE_3_DEFAULT_NAME "Charlie Auxiliary" // Med
+#define SQUAD_MARINE_4_DEFAULT_NAME "Delta Assault"
 // SS220 EDIT - END
 #define SQUAD_MARINE_5 "Echo"
 #define SQUAD_MARINE_CRYO "Foxtrot"

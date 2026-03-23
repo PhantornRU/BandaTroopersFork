@@ -30,6 +30,7 @@
 	name = "\improper M41 SPNKr"
 	desc = "M41 SPNKr - многоцелевая многоразовая ракетная система, способная захватывать как воздушные, так и наземные цели. Среди бойцов ККОН, которым она досталась, её часто называют Jackhammer."
 	icon_state = "spnkr"
+	base_gun_icon = "m83a2"
 	item_state = "spnkr"
 	layer = ABOVE_OBJ_LAYER
 	flags_equip_slot = SLOT_BLOCK_SUIT_STORE|SLOT_BACK

@@ -3,6 +3,9 @@
 	var/tmp/cached_modular_spawn_job_type
 	var/tmp/cached_modular_spawn_late_join = FALSE
 
+/datum/job/proc/uses_modular_job_landmark_spawn()
+	return GET_DEFAULT_ROLE(title) == JOB_SO
+
 /mob/living/carbon/human/proc/find_free_cardinal_cryopod(turf/center_turf)
 	if(!isturf(center_turf))
 		return null
@@ -67,6 +70,10 @@
 /mob/living/carbon/human/proc/get_modular_spawn_candidate(datum/job/job_datum, late_join = FALSE)
 	if(!istype(job_datum))
 		squads_debug_log("[src] get_modular_spawn_candidate called with invalid job_datum.")
+		return null
+
+	if(!GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(job_datum.title)) && !job_datum.uses_modular_job_landmark_spawn())
+		squads_debug_log("[src] job [job_datum.title] is not allowed to use modular non-squad spawn resolution.")
 		return null
 
 	return resolve_modular_spawn_candidate(job_datum, late_join)

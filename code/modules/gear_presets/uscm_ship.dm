@@ -676,7 +676,7 @@
 
 /datum/equipment_preset/uscm_ship/so/handle_late_join(mob/living/carbon/human/new_human, late_join)
 	squad_name_try_apply_platoon_commander_preference(new_human) // SS220 EDIT: first Platoon Commander applies squad preset fallback before late Squad Leaders can override
-	if(late_join)
+	if(late_join || !new_human.client?.prefs)
 		return
 
 	change_dropship_camo(new_human.client.prefs.dropship_camo)
