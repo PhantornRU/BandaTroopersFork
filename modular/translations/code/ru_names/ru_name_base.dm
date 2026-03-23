@@ -105,6 +105,14 @@ GLOBAL_LIST_EMPTY(ru_names)
 		gender = new_list["gender"]
 	else
 		gender = src::gender
+	if(should_apply_runtime_localized_name(new_list))
+		name = get_declented_value(new_list, NOMINATIVE, name)
+
+/atom/proc/should_apply_runtime_localized_name(list/new_list)
+	return FALSE
+
+/obj/should_apply_runtime_localized_name(list/new_list)
+	return length(new_list)
 
 /**
 * Процедура выбора правильного падежа для любого предмета, если у него указан словарь «ru_names», примерно такой:
@@ -122,7 +130,11 @@ GLOBAL_LIST_EMPTY(ru_names)
 	. = name
 	if(declent == "gender")
 		. = gender
-	if(!length(ru_names) || ru_names["base"] != name)
+	if(!length(ru_names))
+		return .
+	var/base_name = ru_names["base"]
+	var/nominative_name = ru_names[NOMINATIVE]
+	if(base_name != name && nominative_name != name)
 		return .
 	return get_declented_value(ru_names, declent, .)
 

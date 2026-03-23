@@ -3213,3 +3213,573 @@ accusative = "ВЫ НЕ ДОЛЖНЫ ЭТО ВИДЕТЬ"
 instrumental = "ВЫ НЕ ДОЛЖНЫ ЭТО ВИДЕТЬ"
 prepositional = "ВЫ НЕ ДОЛЖНЫ ЭТО ВИДЕТЬ"
 tags = [ "halo",]
+
+["covenant identity disk"]
+nominative = "идентификационный диск Ковенанта"
+genitive = "идентификационного диска Ковенанта"
+dative = "идентификационному диску Ковенанта"
+accusative = "идентификационный диск Ковенанта"
+instrumental = "идентификационным диском Ковенанта"
+prepositional = "идентификационном диске Ковенанта"
+gender = "male"
+tags = [ "halo",]
+
+["droppod lz point"]
+nominative = "точка посадки десантной капсулы"
+genitive = "точки посадки десантной капсулы"
+dative = "точке посадки десантной капсулы"
+accusative = "точку посадки десантной капсулы"
+instrumental = "точкой посадки десантной капсулы"
+prepositional = "точке посадки десантной капсулы"
+gender = "female"
+tags = [ "halo",]
+
+["fireteam one weapons specialist locker"]
+nominative = "шкафчик специалиста по вооружению первой боевой группы"
+genitive = "шкафчика специалиста по вооружению первой боевой группы"
+dative = "шкафчику специалиста по вооружению первой боевой группы"
+accusative = "шкафчик специалиста по вооружению первой боевой группы"
+instrumental = "шкафчиком специалиста по вооружению первой боевой группы"
+prepositional = "шкафчике специалиста по вооружению первой боевой группы"
+gender = "male"
+tags = [ "halo",]
+
+["fireteam two weapons specialist locker"]
+nominative = "шкафчик специалиста по вооружению второй боевой группы"
+genitive = "шкафчика специалиста по вооружению второй боевой группы"
+dative = "шкафчику специалиста по вооружению второй боевой группы"
+accusative = "шкафчик специалиста по вооружению второй боевой группы"
+instrumental = "шкафчиком специалиста по вооружению второй боевой группы"
+prepositional = "шкафчике специалиста по вооружению второй боевой группы"
+gender = "male"
+tags = [ "halo",]
+
+["informative decal"]
+nominative = "информационная декаль"
+genitive = "информационной декали"
+dative = "информационной декали"
+accusative = "информационную декаль"
+instrumental = "информационной декалью"
+prepositional = "информационной декали"
+gender = "female"
+tags = [ "halo",]
+
+["m41 spnkr"]
+nominative = "ракетная установка M41 SPNKR"
+genitive = "ракетной установки M41 SPNKR"
+dative = "ракетной установке M41 SPNKR"
+accusative = "ракетную установку M41 SPNKR"
+instrumental = "ракетной установкой M41 SPNKR"
+prepositional = "ракетной установке M41 SPNKR"
+gender = "female"
+tags = [ "halo",]
+
+["m70dt odst bdu"]
+nominative = "комплект M70DT ODST BDU"
+genitive = "комплекта M70DT ODST BDU"
+dative = "комплекту M70DT ODST BDU"
+accusative = "комплект M70DT ODST BDU"
+instrumental = "комплектом M70DT ODST BDU"
+prepositional = "комплекте M70DT ODST BDU"
+gender = "male"
+tags = [ "halo",]
+
+["map table"]
+nominative = "стол с картой"
+genitive = "стола с картой"
+dative = "столу с картой"
+accusative = "стол с картой"
+instrumental = "столом с картой"
+prepositional = "столе с картой"
+gender = "male"
+tags = [ "halo",]
+
+["oni security forces patrol cap"]
+nominative = "патрульная кепка сил безопасности ONI"
+genitive = "патрульной кепки сил безопасности ONI"
+dative = "патрульной кепке сил безопасности ONI"
+accusative = "патрульную кепку сил безопасности ONI"
+instrumental = "патрульной кепкой сил безопасности ONI"
+prepositional = "патрульной кепке сил безопасности ONI"
+gender = "female"
+tags = [ "halo",]
+
+["oni security forces radio encryption key"]
+nominative = "ключ шифрования радиосвязи сил безопасности ONI"
+genitive = "ключа шифрования радиосвязи сил безопасности ONI"
+dative = "ключу шифрования радиосвязи сил безопасности ONI"
+accusative = "ключ шифрования радиосвязи сил безопасности ONI"
+instrumental = "ключом шифрования радиосвязи сил безопасности ONI"
+prepositional = "ключе шифрования радиосвязи сил безопасности ONI"
+gender = "male"
+tags = [ "halo",]
+
+["personal locker"]
+nominative = "личный шкафчик"
+genitive = "личного шкафчика"
+dative = "личному шкафчику"
+accusative = "личный шкафчик"
+instrumental = "личным шкафчиком"
+prepositional = "личном шкафчике"
+gender = "male"
+tags = [ "halo",]
+
+["spent cartridge"]
+nominative = "стреляная гильза"
+genitive = "стреляной гильзы"
+dative = "стреляной гильзе"
+accusative = "стреляную гильзу"
+instrumental = "стреляной гильзой"
+prepositional = "стреляной гильзе"
+gender = "female"
+tags = [ "halo",]
+
+["ueg police chief peaked cap"]
+nominative = "фуражка шефа полиции UEG"
+genitive = "фуражки шефа полиции UEG"
+dative = "фуражке шефа полиции UEG"
+accusative = "фуражку шефа полиции UEG"
+instrumental = "фуражкой шефа полиции UEG"
+prepositional = "фуражке шефа полиции UEG"
+gender = "female"
+tags = [ "halo",]
+
+["unsc storage crate  (flares x 14)"]
+nominative = "ящик снабжения ККОН (фальшфейеры x 14)"
+genitive = "ящика снабжения ККОН (фальшфейеры x 14)"
+dative = "ящику снабжения ККОН (фальшфейеры x 14)"
+accusative = "ящик снабжения ККОН (фальшфейеры x 14)"
+instrumental = "ящиком снабжения ККОН (фальшфейеры x 14)"
+prepositional = "ящике снабжения ККОН (фальшфейеры x 14)"
+gender = "male"
+tags = [ "halo",]
+
+["weapons specialist locker"]
+nominative = "шкафчик специалиста по вооружению"
+genitive = "шкафчика специалиста по вооружению"
+dative = "шкафчику специалиста по вооружению"
+accusative = "шкафчик специалиста по вооружению"
+instrumental = "шкафчиком специалиста по вооружению"
+prepositional = "шкафчике специалиста по вооружению"
+gender = "male"
+tags = [ "halo",]
+
+["general listening channel"]
+nominative = "общий канал прослушивания"
+genitive = "общего канала прослушивания"
+dative = "общему каналу прослушивания"
+accusative = "общий канал прослушивания"
+instrumental = "общим каналом прослушивания"
+prepositional = "общем канале прослушивания"
+gender = "male"
+tags = [ "halo",]
+
+["alpha overwatch telephone"]
+nominative = "телефон наблюдения Альфа"
+genitive = "телефона наблюдения Альфа"
+dative = "телефону наблюдения Альфа"
+accusative = "телефон наблюдения Альфа"
+instrumental = "телефоном наблюдения Альфа"
+prepositional = "телефоне наблюдения Альфа"
+gender = "male"
+tags = [ "halo",]
+
+["bravo overwatch telephone"]
+nominative = "телефон наблюдения Браво"
+genitive = "телефона наблюдения Браво"
+dative = "телефону наблюдения Браво"
+accusative = "телефон наблюдения Браво"
+instrumental = "телефоном наблюдения Браво"
+prepositional = "телефоне наблюдения Браво"
+gender = "male"
+tags = [ "halo",]
+
+["charlie overwatch telephone"]
+nominative = "телефон наблюдения Чарли"
+genitive = "телефона наблюдения Чарли"
+dative = "телефону наблюдения Чарли"
+accusative = "телефон наблюдения Чарли"
+instrumental = "телефоном наблюдения Чарли"
+prepositional = "телефоне наблюдения Чарли"
+gender = "male"
+tags = [ "halo",]
+
+["delta overwatch telephone"]
+nominative = "телефон наблюдения Дельта"
+genitive = "телефона наблюдения Дельта"
+dative = "телефону наблюдения Дельта"
+accusative = "телефон наблюдения Дельта"
+instrumental = "телефоном наблюдения Дельта"
+prepositional = "телефоне наблюдения Дельта"
+gender = "male"
+tags = [ "halo",]
+
+["cic lockdown"]
+nominative = "блокировка ИБЦ"
+genitive = "блокировки ИБЦ"
+dative = "блокировке ИБЦ"
+accusative = "блокировку ИБЦ"
+instrumental = "блокировкой ИБЦ"
+prepositional = "блокировке ИБЦ"
+gender = "female"
+tags = [ "halo",]
+
+["cic lockdown shutters"]
+nominative = "ставни блокировки ИБЦ"
+genitive = "ставней блокировки ИБЦ"
+dative = "ставням блокировки ИБЦ"
+accusative = "ставни блокировки ИБЦ"
+instrumental = "ставнями блокировки ИБЦ"
+prepositional = "ставнях блокировки ИБЦ"
+gender = "plural"
+tags = [ "halo",]
+
+["briefing table map"]
+nominative = "карта брифинг-стола"
+genitive = "карты брифинг-стола"
+dative = "карте брифинг-стола"
+accusative = "карту брифинг-стола"
+instrumental = "картой брифинг-стола"
+prepositional = "карте брифинг-стола"
+gender = "female"
+tags = [ "halo",]
+
+["briefing receiver"]
+nominative = "приемник брифинга"
+genitive = "приемника брифинга"
+dative = "приемнику брифинга"
+accusative = "приемник брифинга"
+instrumental = "приемником брифинга"
+prepositional = "приемнике брифинга"
+gender = "male"
+tags = [ "halo",]
+
+["tactical map display"]
+nominative = "тактический дисплей карты"
+genitive = "тактического дисплея карты"
+dative = "тактическому дисплею карты"
+accusative = "тактический дисплей карты"
+instrumental = "тактическим дисплеем карты"
+prepositional = "тактическом дисплее карты"
+gender = "male"
+tags = [ "halo",]
+
+["squad one smartgunner locker"]
+nominative = "шкафчик смартганнера первого отделения"
+genitive = "шкафчика смартганнера первого отделения"
+dative = "шкафчику смартганнера первого отделения"
+accusative = "шкафчик смартганнера первого отделения"
+instrumental = "шкафчиком смартганнера первого отделения"
+prepositional = "шкафчике смартганнера первого отделения"
+gender = "male"
+tags = [ "halo",]
+
+["squad two smartgunner locker"]
+nominative = "шкафчик смартганнера второго отделения"
+genitive = "шкафчика смартганнера второго отделения"
+dative = "шкафчику смартганнера второго отделения"
+accusative = "шкафчик смартганнера второго отделения"
+instrumental = "шкафчиком смартганнера второго отделения"
+prepositional = "шкафчике смартганнера второго отделения"
+gender = "male"
+tags = [ "halo",]
+
+["brief lockdown"]
+nominative = "блокировка брифинга"
+genitive = "блокировки брифинга"
+dative = "блокировке брифинга"
+accusative = "блокировку брифинга"
+instrumental = "блокировкой брифинга"
+prepositional = "блокировке брифинга"
+gender = "female"
+tags = [ "halo",]
+
+["synthetic storage door-control"]
+nominative = "управление дверью хранилища синтетика"
+genitive = "управления дверью хранилища синтетика"
+dative = "управлению дверью хранилища синтетика"
+accusative = "управление дверью хранилища синтетика"
+instrumental = "управлением дверью хранилища синтетика"
+prepositional = "управлении дверью хранилища синтетика"
+gender = "neuter"
+tags = [ "halo",]
+
+["vehicle bay blast door control"]
+nominative = "управление взрывозащитной дверью транспортного отсека"
+genitive = "управления взрывозащитной дверью транспортного отсека"
+dative = "управлению взрывозащитной дверью транспортного отсека"
+accusative = "управление взрывозащитной дверью транспортного отсека"
+instrumental = "управлением взрывозащитной дверью транспортного отсека"
+prepositional = "управлении взрывозащитной дверью транспортного отсека"
+gender = "neuter"
+tags = [ "halo",]
+
+["hangar blast door control"]
+nominative = "управление взрывозащитной дверью ангара"
+genitive = "управления взрывозащитной дверью ангара"
+dative = "управлению взрывозащитной дверью ангара"
+accusative = "управление взрывозащитной дверью ангара"
+instrumental = "управлением взрывозащитной дверью ангара"
+prepositional = "управлении взрывозащитной дверью ангара"
+gender = "neuter"
+tags = [ "halo",]
+
+["first platoon ready bay blast door"]
+nominative = "взрывозащитная дверь отсека готовности первого взвода"
+genitive = "взрывозащитной двери отсека готовности первого взвода"
+dative = "взрывозащитной двери отсека готовности первого взвода"
+accusative = "взрывозащитную дверь отсека готовности первого взвода"
+instrumental = "взрывозащитной дверью отсека готовности первого взвода"
+prepositional = "взрывозащитной двери отсека готовности первого взвода"
+gender = "female"
+tags = [ "halo",]
+
+["surgery and blast doors"]
+nominative = "хирургия и взрывозащитные двери"
+genitive = "хирургии и взрывозащитных дверей"
+dative = "хирургии и взрывозащитным дверям"
+accusative = "хирургию и взрывозащитные двери"
+instrumental = "хирургией и взрывозащитными дверями"
+prepositional = "хирургии и взрывозащитных дверях"
+gender = "female"
+tags = [ "halo",]
+
+["alpha gear lockers door-control"]
+nominative = "управление дверью шкафчиков снаряжения Альфа"
+genitive = "управления дверью шкафчиков снаряжения Альфа"
+dative = "управлению дверью шкафчиков снаряжения Альфа"
+accusative = "управление дверью шкафчиков снаряжения Альфа"
+instrumental = "управлением дверью шкафчиков снаряжения Альфа"
+prepositional = "управлении дверью шкафчиков снаряжения Альфа"
+gender = "neuter"
+tags = [ "halo",]
+
+["bravo gear lockers door-control"]
+nominative = "управление дверью шкафчиков снаряжения Браво"
+genitive = "управления дверью шкафчиков снаряжения Браво"
+dative = "управлению дверью шкафчиков снаряжения Браво"
+accusative = "управление дверью шкафчиков снаряжения Браво"
+instrumental = "управлением дверью шкафчиков снаряжения Браво"
+prepositional = "управлении дверью шкафчиков снаряжения Браво"
+gender = "neuter"
+tags = [ "halo",]
+
+["charlie gear lockers door-control"]
+nominative = "управление дверью шкафчиков снаряжения Чарли"
+genitive = "управления дверью шкафчиков снаряжения Чарли"
+dative = "управлению дверью шкафчиков снаряжения Чарли"
+accusative = "управление дверью шкафчиков снаряжения Чарли"
+instrumental = "управлением дверью шкафчиков снаряжения Чарли"
+prepositional = "управлении дверью шкафчиков снаряжения Чарли"
+gender = "neuter"
+tags = [ "halo",]
+
+["delta gear lockers door-control"]
+nominative = "управление дверью шкафчиков снаряжения Дельта"
+genitive = "управления дверью шкафчиков снаряжения Дельта"
+dative = "управлению дверью шкафчиков снаряжения Дельта"
+accusative = "управление дверью шкафчиков снаряжения Дельта"
+instrumental = "управлением дверью шкафчиков снаряжения Дельта"
+prepositional = "управлении дверью шкафчиков снаряжения Дельта"
+gender = "neuter"
+tags = [ "halo",]
+
+["cic reception telephone"]
+nominative = "телефон приемной ИБЦ"
+genitive = "телефона приемной ИБЦ"
+dative = "телефону приемной ИБЦ"
+accusative = "телефон приемной ИБЦ"
+instrumental = "телефоном приемной ИБЦ"
+prepositional = "телефоне приемной ИБЦ"
+gender = "male"
+tags = [ "halo",]
+
+["supply launch bay receiver"]
+nominative = "приемник пусковой палубы снабжения"
+genitive = "приемника пусковой палубы снабжения"
+dative = "приемнику пусковой палубы снабжения"
+accusative = "приемник пусковой палубы снабжения"
+instrumental = "приемником пусковой палубы снабжения"
+prepositional = "приемнике пусковой палубы снабжения"
+gender = "male"
+tags = [ "halo",]
+
+["lower supply bay receiver"]
+nominative = "приемник нижней палубы снабжения"
+genitive = "приемника нижней палубы снабжения"
+dative = "приемнику нижней палубы снабжения"
+accusative = "приемник нижней палубы снабжения"
+instrumental = "приемником нижней палубы снабжения"
+prepositional = "приемнике нижней палубы снабжения"
+gender = "male"
+tags = [ "halo",]
+
+["motor pool receiver"]
+nominative = "приемник моторного пула"
+genitive = "приемника моторного пула"
+dative = "приемнику моторного пула"
+accusative = "приемник моторного пула"
+instrumental = "приемником моторного пула"
+prepositional = "приемнике моторного пула"
+gender = "male"
+tags = [ "halo",]
+
+["engineering receiver"]
+nominative = "приемник инженерного отсека"
+genitive = "приемника инженерного отсека"
+dative = "приемнику инженерного отсека"
+accusative = "приемник инженерного отсека"
+instrumental = "приемником инженерного отсека"
+prepositional = "приемнике инженерного отсека"
+gender = "male"
+tags = [ "halo",]
+
+["supply desktop"]
+nominative = "стол снабжения"
+genitive = "стола снабжения"
+dative = "столу снабжения"
+accusative = "стол снабжения"
+instrumental = "столом снабжения"
+prepositional = "столе снабжения"
+gender = "male"
+tags = [ "halo",]
+
+["brief room"]
+nominative = "брифинг-комната"
+genitive = "брифинг-комнаты"
+dative = "брифинг-комнате"
+accusative = "брифинг-комнату"
+instrumental = "брифинг-комнатой"
+prepositional = "брифинг-комнате"
+gender = "female"
+tags = [ "halo",]
+
+["elevator 1 door-control"]
+nominative = "управление дверью лифта 1"
+genitive = "управления дверью лифта 1"
+dative = "управлению дверью лифта 1"
+accusative = "управление дверью лифта 1"
+instrumental = "управлением дверью лифта 1"
+prepositional = "управлении дверью лифта 1"
+gender = "neuter"
+tags = [ "halo",]
+
+["elevator 2 door-control"]
+nominative = "управление дверью лифта 2"
+genitive = "управления дверью лифта 2"
+dative = "управлению дверью лифта 2"
+accusative = "управление дверью лифта 2"
+instrumental = "управлением дверью лифта 2"
+prepositional = "управлении дверью лифта 2"
+gender = "neuter"
+tags = [ "halo",]
+
+["cargo elevator upper"]
+nominative = "верхний грузовой лифт"
+genitive = "верхнего грузового лифта"
+dative = "верхнему грузовому лифту"
+accusative = "верхний грузовой лифт"
+instrumental = "верхним грузовым лифтом"
+prepositional = "верхнем грузовом лифте"
+gender = "male"
+tags = [ "halo",]
+
+["cargo elevator storage"]
+nominative = "грузовой лифт склада"
+genitive = "грузового лифта склада"
+dative = "грузовому лифту склада"
+accusative = "грузовой лифт склада"
+instrumental = "грузовым лифтом склада"
+prepositional = "грузовом лифте склада"
+gender = "male"
+tags = [ "halo",]
+
+["vehicle elevator one upper"]
+nominative = "верхний лифт техники 1"
+genitive = "верхнего лифта техники 1"
+dative = "верхнему лифту техники 1"
+accusative = "верхний лифт техники 1"
+instrumental = "верхним лифтом техники 1"
+prepositional = "верхнем лифте техники 1"
+gender = "male"
+tags = [ "halo",]
+
+["vehicle elevator one storage"]
+nominative = "складской лифт техники 1"
+genitive = "складского лифта техники 1"
+dative = "складскому лифту техники 1"
+accusative = "складской лифт техники 1"
+instrumental = "складским лифтом техники 1"
+prepositional = "складском лифте техники 1"
+gender = "male"
+tags = [ "halo",]
+
+["vehicle elevator two upper"]
+nominative = "верхний лифт техники 2"
+genitive = "верхнего лифта техники 2"
+dative = "верхнему лифту техники 2"
+accusative = "верхний лифт техники 2"
+instrumental = "верхним лифтом техники 2"
+prepositional = "верхнем лифте техники 2"
+gender = "male"
+tags = [ "halo",]
+
+["vehicle elevator two storage"]
+nominative = "складской лифт техники 2"
+genitive = "складского лифта техники 2"
+dative = "складскому лифту техники 2"
+accusative = "складской лифт техники 2"
+instrumental = "складским лифтом техники 2"
+prepositional = "складском лифте техники 2"
+gender = "male"
+tags = [ "halo",]
+
+["lower bay locks"]
+nominative = "замки нижнего отсека"
+genitive = "замков нижнего отсека"
+dative = "замкам нижнего отсека"
+accusative = "замки нижнего отсека"
+instrumental = "замками нижнего отсека"
+prepositional = "замках нижнего отсека"
+gender = "plural"
+tags = [ "halo",]
+
+["communication line semiotic"]
+nominative = "семиотическая линия связи"
+genitive = "семиотической линии связи"
+dative = "семиотической линии связи"
+accusative = "семиотическую линию связи"
+instrumental = "семиотической линией связи"
+prepositional = "семиотической линии связи"
+gender = "female"
+tags = [ "halo",]
+
+["gm shutters"]
+nominative = "ставни ГМ"
+genitive = "ставней ГМ"
+dative = "ставням ГМ"
+accusative = "ставни ГМ"
+instrumental = "ставнями ГМ"
+prepositional = "ставнях ГМ"
+gender = "plural"
+tags = [ "halo",]
+
+["gm shuttres"]
+nominative = "ставни ГМ"
+genitive = "ставней ГМ"
+dative = "ставням ГМ"
+accusative = "ставни ГМ"
+instrumental = "ставнями ГМ"
+prepositional = "ставнях ГМ"
+gender = "plural"
+tags = [ "halo",]
+
+["you always know a working joe."]
+nominative = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+genitive = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+dative = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+accusative = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+instrumental = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+prepositional = "ТЫ ВСЕГДА УЗНАЕШЬ РАБОЧЕГО ДЖО."
+gender = "male"
+tags = [ "halo",]
