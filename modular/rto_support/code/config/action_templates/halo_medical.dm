@@ -1,6 +1,6 @@
 /datum/rto_support_action_template/halo/medical
 	parent_type = /datum/rto_support_action_template/halo
-	shared_cooldown = 120 SECONDS
+	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
 	category = "medical"
 	icon_state = "medic"

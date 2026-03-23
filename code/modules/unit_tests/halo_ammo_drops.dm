@@ -20,7 +20,7 @@
 	for(var/index in 1 to length(expected_values))
 		TEST_ASSERT_EQUAL(actual_values[index], expected_values[index], "[label] drifted at slot [index].")
 
-/datum/unit_test/proc/assert_template_actions(datum/rto_support_template/template, list/expected_actions, expected_shared_cooldown, expected_personal_cooldown)
+/datum/unit_test/proc/assert_template_actions(datum/rto_support_template/template, list/expected_actions, expected_shared_cooldown = null, expected_personal_cooldown = null)
 	var/list/action_templates = template.get_action_templates()
 	TEST_ASSERT_EQUAL(length(action_templates), length(expected_actions), "[template.template_id] should expose exactly [length(expected_actions)] actions.")
 
@@ -28,26 +28,35 @@
 		var/datum/rto_support_action_template/action_template = template.get_action_template(action_id)
 		TEST_ASSERT_NOTNULL(action_template, "[template.template_id] is missing action [action_id].")
 		TEST_ASSERT_EQUAL(action_template.fire_support_path, expected_actions[action_id], "[template.template_id] action [action_id] no longer points at the intended fire support payload.")
-		TEST_ASSERT_EQUAL(action_template.shared_cooldown, expected_shared_cooldown, "[template.template_id] action [action_id] no longer uses the expected shared cooldown.")
-		TEST_ASSERT_EQUAL(action_template.personal_cooldown, expected_personal_cooldown, "[template.template_id] action [action_id] no longer uses the expected personal cooldown.")
+		if(!isnull(expected_shared_cooldown))
+			TEST_ASSERT_EQUAL(action_template.shared_cooldown, expected_shared_cooldown, "[template.template_id] action [action_id] no longer uses the expected shared cooldown.")
+		if(!isnull(expected_personal_cooldown))
+			TEST_ASSERT_EQUAL(action_template.personal_cooldown, expected_personal_cooldown, "[template.template_id] action [action_id] no longer uses the expected personal cooldown.")
 		TEST_ASSERT(!action_template.allow_closed_turf, "[template.template_id] action [action_id] should keep requiring open turf.")
 
 /datum/unit_test/proc/assert_halo_only_templates(datum/rto_support_controller/controller)
-	for(var/template_id in list("halo_logistics", "halo_medical", "halo_engineering", "halo_command"))
+	for(var/template_id in list("halo_logistics", "halo_medical", "halo_technical"))
 		TEST_ASSERT_NOTNULL(controller.find_template(template_id), "HALO controller could not resolve the [template_id] template.")
-	for(var/template_id in list("mortar", "cas", "heavy", "logistics"))
+	for(var/template_id in list("mortar", "cas", "heavy", "logistics", "medical", "technical"))
 		TEST_ASSERT_NULL(controller.find_template(template_id), "HALO controller unexpectedly resolved standard template [template_id].")
 
 /datum/unit_test/proc/assert_uscm_only_templates(datum/rto_support_controller/controller)
-	for(var/template_id in list("mortar", "cas", "heavy", "logistics"))
+	for(var/template_id in list("mortar", "cas", "heavy", "logistics", "medical", "technical"))
 		TEST_ASSERT_NOTNULL(controller.find_template(template_id), "USCM controller could not resolve standard template [template_id].")
-	for(var/template_id in list("halo_logistics", "halo_medical", "halo_engineering", "halo_command"))
+	for(var/template_id in list("halo_logistics", "halo_medical", "halo_technical"))
 		TEST_ASSERT_NULL(controller.find_template(template_id), "USCM controller unexpectedly resolved HALO template [template_id].")
+
+/datum/unit_test/proc/assert_has_spotter_trait(mob/living/carbon/human/human, label)
+	TEST_ASSERT_NOTNULL(human, "[label] is missing its human test subject.")
+	for(var/datum/character_trait/trait as anything in human.traits)
+		if(istype(trait, /datum/character_trait/skills/spotter))
+			return
+	TEST_FAIL("[label] should keep the spotter trait after loadout application.")
 
 /datum/unit_test/halo_support_template_availability
 
 /datum/unit_test/halo_support_template_availability/Run()
-	var/list/expected_template_ids = list("halo_logistics", "halo_medical", "halo_engineering", "halo_command")
+	var/list/expected_template_ids = list("halo_logistics", "halo_medical", "halo_technical")
 
 	var/mob/living/carbon/human/halo_human = allocate(/mob/living/carbon/human)
 	halo_human.job = JOB_SQUAD_RTO_UNSC
@@ -84,6 +93,17 @@
 			TEST_ASSERT(template.template_id != template_id, "Standard USCM RTO unexpectedly received the [template_id] template.")
 		TEST_ASSERT_NULL(uscm_controller.find_template(template_id), "Standard USCM RTO could resolve the [template_id] template.")
 	assert_uscm_only_templates(uscm_controller)
+
+/datum/unit_test/halo_support_uscm_rto_base_loadout
+
+/datum/unit_test/halo_support_uscm_rto_base_loadout/Run()
+	var/mob/living/carbon/human/uscm_human = allocate(/mob/living/carbon/human)
+	uscm_human.job = JOB_SQUAD_RTO
+	var/datum/equipment_preset/uscm/rto/uscm_preset = allocate(/datum/equipment_preset/uscm/rto)
+	uscm_preset.load_gear(uscm_human)
+
+	assert_has_spotter_trait(uscm_human, "USCM RTO base preset")
+	TEST_ASSERT_NOTNULL(uscm_human.get_rto_support_controller(), "USCM RTO base preset should initialize the support controller.")
 
 /datum/unit_test/halo_support_binocular_variants
 
@@ -143,29 +163,123 @@
 		"halo_sniper_ammo_drop" = /datum/fire_support/supply_drop/halo/sniper,
 		"halo_spnkr_ammo_drop" = /datum/fire_support/supply_drop/halo/spnkr,
 		"halo_grenadier_ammo_drop" = /datum/fire_support/supply_drop/halo/grenadier,
-	), 120 SECONDS, 600 SECONDS)
+	), 240 SECONDS, 600 SECONDS)
 
 	var/datum/rto_support_template/halo_medical/medical_template = allocate(/datum/rto_support_template/halo_medical)
 	assert_template_actions(medical_template, list(
 		"halo_medical_packets_drop" = /datum/fire_support/supply_drop/halo/medical_packets,
 		"halo_corpsman_kit_drop" = /datum/fire_support/supply_drop/halo/corpsman_kit,
 		"halo_biofoam_reserve_drop" = /datum/fire_support/supply_drop/halo/biofoam_reserve,
-	), 120 SECONDS, 600 SECONDS)
+	), 240 SECONDS, 600 SECONDS)
 
-	var/datum/rto_support_template/halo_engineering/engineering_template = allocate(/datum/rto_support_template/halo_engineering)
-	assert_template_actions(engineering_template, list(
+	var/datum/rto_support_template/halo_technical/technical_template = allocate(/datum/rto_support_template/halo_technical)
+	var/list/technical_action_templates = technical_template.get_action_templates()
+	TEST_ASSERT_EQUAL(length(technical_action_templates), 7, "halo_technical should expose exactly seven actions.")
+	assert_template_actions(technical_template, list(
 		"halo_toolbox_drop" = /datum/fire_support/supply_drop/halo/toolbox,
 		"halo_fortification_drop" = /datum/fire_support/supply_drop/halo/fortification,
 		"halo_breaching_drop" = /datum/fire_support/supply_drop/halo/breaching,
 		"halo_vehicle_service_drop" = /datum/fire_support/supply_drop/halo/vehicle_service,
-	), 180 SECONDS, 780 SECONDS)
-
-	var/datum/rto_support_template/halo_command/command_template = allocate(/datum/rto_support_template/halo_command)
-	assert_template_actions(command_template, list(
 		"halo_signal_drop" = /datum/fire_support/supply_drop/halo/signal,
 		"halo_recon_drop" = /datum/fire_support/supply_drop/halo/recon,
 		"halo_rto_command_drop" = /datum/fire_support/supply_drop/halo/rto_command,
-	), 120 SECONDS, 600 SECONDS)
+	))
+	TEST_ASSERT_EQUAL(technical_template.get_action_template("halo_toolbox_drop").shared_cooldown, 360 SECONDS, "HALO engineering-derived technical drops should keep doubled engineering shared cooldowns.")
+	TEST_ASSERT_EQUAL(technical_template.get_action_template("halo_signal_drop").shared_cooldown, 240 SECONDS, "HALO command-derived technical drops should keep doubled command shared cooldowns.")
+
+	var/datum/rto_support_template/logistics/uscm_logistics_template = allocate(/datum/rto_support_template/logistics)
+	assert_template_actions(uscm_logistics_template, list(
+		"logistics_supply" = /datum/fire_support/supply_drop,
+		"logistics_mine_crate" = /datum/fire_support/supply_drop/mine_crate,
+		"logistics_mini_sentry" = /datum/fire_support/sentry_drop/mini,
+		"logistics_full_sentry" = /datum/fire_support/sentry_drop/full,
+		"logistics_grenade_drop" = /datum/fire_support/supply_drop/grenade_crate,
+		"logistics_sentry_ammo_drop" = /datum/fire_support/supply_drop/sentry_ammo,
+	))
+	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_supply").shared_cooldown, 240 SECONDS, "USCM logistics supply drop should use doubled shared cooldown.")
+	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_mine_crate").shared_cooldown, 180 SECONDS, "USCM mine crate drop should use doubled shared cooldown.")
+	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_full_sentry").shared_cooldown, 360 SECONDS, "USCM full sentry drop should use doubled shared cooldown.")
+
+	var/datum/rto_support_template/medical/uscm_medical_template = allocate(/datum/rto_support_template/medical)
+	assert_template_actions(uscm_medical_template, list(
+		"medical_medkits_drop" = /datum/fire_support/supply_drop/medical_medkits,
+		"medical_blood_drop" = /datum/fire_support/supply_drop/medical_blood,
+		"medical_iv_drop" = /datum/fire_support/supply_drop/medical_iv,
+		"medical_optable_drop" = /datum/fire_support/supply_drop/medical_optable,
+	))
+	TEST_ASSERT_EQUAL(uscm_medical_template.get_action_template("medical_medkits_drop").shared_cooldown, 240 SECONDS, "USCM medical drops should use doubled shared cooldowns.")
+	TEST_ASSERT_EQUAL(uscm_medical_template.get_action_template("medical_optable_drop").shared_cooldown, 360 SECONDS, "USCM operation table drop should keep the longer shared cooldown.")
+
+	var/datum/rto_support_template/technical/uscm_technical_template = allocate(/datum/rto_support_template/technical)
+	assert_template_actions(uscm_technical_template, list(
+		"technical_fortification_drop" = /datum/fire_support/supply_drop/technical_fortification,
+		"technical_power_drop" = /datum/fire_support/supply_drop/technical_power,
+		"technical_recon_drop" = /datum/fire_support/supply_drop/technical_recon,
+		"technical_powerloader_drop" = /datum/fire_support/supply_drop/technical_powerloader,
+	), 0, 0)
+	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_recon_drop").shared_cooldown, 240 SECONDS, "USCM technical recon drop should use the medium shared cooldown.")
+	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_powerloader_drop").shared_cooldown, 360 SECONDS, "USCM powerloader drop should use the longer technical shared cooldown.")
+
+/datum/unit_test/halo_support_two_slot_lifecycle
+
+/datum/unit_test/halo_support_two_slot_lifecycle/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+
+	TEST_ASSERT(controller.select_template("logistics"), "First package selection should succeed.")
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 1, "First package selection should occupy one slot.")
+	TEST_ASSERT(controller.selection_started_at > 0, "First package selection should start the reset timer.")
+	TEST_ASSERT(controller.get_selection_reset_ready_in() > 0, "Reset timer should be active after the first selection.")
+	TEST_ASSERT(controller.select_template("medical"), "Second unique package selection should succeed.")
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 2, "Second package selection should occupy the second slot.")
+	TEST_ASSERT(!controller.select_template("technical"), "A third package should not fit into the two-slot selection model.")
+	TEST_ASSERT(!controller.select_template("logistics"), "Selecting a duplicate package should fail.")
+	TEST_ASSERT(!controller.can_reset_templates(), "Package reset should remain locked before the timer expires.")
+
+	controller.selection_reset_available_at = world.time
+	TEST_ASSERT(controller.can_reset_templates(), "Package reset should unlock once the reset timer expires.")
+	TEST_ASSERT(controller.reset_templates(), "Package reset should clear both slots.")
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 0, "Reset should clear all selected packages.")
+	TEST_ASSERT_EQUAL(controller.selection_started_at, 0, "Reset should clear the selection start timestamp.")
+	TEST_ASSERT(controller.select_template("technical"), "Packages should be selectable again after a full reset.")
+
+/datum/unit_test/halo_support_package_shared_cooldowns
+
+/datum/unit_test/halo_support_package_shared_cooldowns/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+
+	TEST_ASSERT(controller.select_template("logistics"), "Logistics package selection should succeed.")
+	TEST_ASSERT(controller.select_template("medical"), "Medical package selection should succeed.")
+
+	controller.shared_cooldowns_by_template["logistics"] = world.time + 50
+	TEST_ASSERT(!controller.can_arm_action("logistics_supply", "logistics"), "Package shared cooldown should block the triggering logistics action.")
+	TEST_ASSERT(!controller.can_arm_action("logistics_grenade_drop", "logistics"), "Package shared cooldown should also block sibling logistics actions.")
+	TEST_ASSERT(controller.can_arm_action("medical_medkits_drop", "medical"), "Package shared cooldown should not block another selected package.")
+
+/datum/unit_test/halo_support_zone_ownership
+
+/datum/unit_test/halo_support_zone_ownership/Run()
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+
+	TEST_ASSERT(controller.select_template("mortar"), "Mortar package selection should succeed.")
+	TEST_ASSERT(controller.select_template("cas"), "CAS package selection should succeed.")
+
+	var/datum/rto_support_template/mortar_template = controller.get_selected_template("mortar")
+	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, mortar_template)
+
+	TEST_ASSERT(controller.can_arm_action("mortar_he", "mortar"), "A package should be able to arm zone-based support inside its own active sector.")
+	TEST_ASSERT(!controller.can_arm_action("cas_gun_run", "cas"), "Another package should not be able to reuse a foreign active sector.")
+	TEST_ASSERT(!controller.can_deploy_zone("cas"), "A second sector should not deploy while another package sector is active.")
+
+	controller.clear_active_zone()
+	TEST_ASSERT(controller.get_remaining_zone_shared_cooldown() > 0, "Clearing a sector should start the shared zone cooldown.")
+	TEST_ASSERT(controller.get_remaining_zone_cooldown("mortar") > 0, "Clearing a sector should start the personal zone cooldown for the source package.")
+	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("cas"), 0, "A different package should not inherit the source package personal zone cooldown.")
 
 /datum/unit_test/halo_support_payload_contents
 
@@ -259,6 +373,23 @@
 			/obj/item/device/encryptionkey/jtac = 1,
 			/obj/item/storage/box/flare/signal = 1,
 		),
+		/obj/structure/largecrate/supply/supplies/rto/technical_fortification = list(
+			/obj/item/stack/sheet/metal/large_stack = 2,
+			/obj/item/stack/sheet/plasteel/medium_stack = 1,
+			/obj/item/stack/sandbags/large_stack = 2,
+		),
+		/obj/structure/largecrate/supply/supplies/rto/technical_power = list(
+			/obj/structure/machinery/power/port_gen/pacman = 1,
+			/obj/structure/machinery/floodlight = 2,
+			/obj/item/stack/cable_coil/yellow = 3,
+			/obj/item/stack/sheet/mineral/phoron/medium_stack = 1,
+		),
+		/obj/structure/largecrate/supply/supplies/rto/technical_recon = list(
+			/obj/item/device/motiondetector = 2,
+			/obj/item/storage/box/flare/signal = 1,
+			/obj/item/map/current_map = 1,
+			/obj/item/device/flashlight/combat = 1,
+		),
 	)
 
 	for(var/crate_path in crate_expectations)
@@ -308,18 +439,13 @@
 				"HALO Biofoam Reserve Drop",
 			),
 		),
-		"halo_engineering" = list(
-			"title" = "HALO Engineering",
+		"halo_technical" = list(
+			"title" = "HALO Technical",
 			"options" = list(
 				"HALO Toolbox Drop",
 				"HALO Fortification Drop",
 				"HALO Breaching Drop",
 				"HALO Vehicle Service Drop",
-			),
-		),
-		"halo_command" = list(
-			"title" = "HALO Command",
-			"options" = list(
 				"HALO Signal Drop",
 				"HALO Recon Drop",
 				"HALO RTO Command Drop",
@@ -331,7 +457,7 @@
 	var/list/static_data = menu.ui_static_data(null)
 	var/list/custom_sections = static_data["custom_ordnance_sections"]
 
-	TEST_ASSERT_EQUAL(length(custom_sections), 4, "GM fire support menu should expose exactly four HALO custom ordnance sections.")
+	TEST_ASSERT_EQUAL(length(custom_sections), 3, "GM fire support menu should expose exactly three HALO custom ordnance sections.")
 
 	for(var/label in expected_routing)
 		TEST_ASSERT(label in static_data["ordnance_options"], "GM fire support menu did not expose [label] in the full ordnance list.")

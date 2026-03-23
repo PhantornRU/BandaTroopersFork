@@ -1,6 +1,6 @@
 /datum/rto_support_action_template/halo/engineering
 	parent_type = /datum/rto_support_action_template/halo
-	shared_cooldown = 180 SECONDS
+	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
 	category = "engineering"
 	icon_state = "build"

@@ -76,16 +76,16 @@
 	TEST_ASSERT_EQUAL(controller.get_effective_shared_cooldown(action_template), 80, "Shared cooldown multiplier did not affect future cooldown calculations.")
 	TEST_ASSERT_EQUAL(controller.get_effective_personal_cooldown(action_template), 240, "Personal cooldown multiplier did not affect future cooldown calculations.")
 
-	controller.shared_cooldown_until = world.time + controller.get_effective_shared_cooldown(action_template)
+	controller.shared_cooldowns_by_template["mortar"] = world.time + controller.get_effective_shared_cooldown(action_template)
 	controller.action_cooldowns[action_template.action_id] = world.time + controller.get_effective_personal_cooldown(action_template)
 
-	var/previous_shared_until = controller.shared_cooldown_until
+	var/previous_shared_until = controller.shared_cooldowns_by_template["mortar"]
 	var/previous_personal_until = controller.action_cooldowns[action_template.action_id]
 
 	rules.rto_shared_cooldown_multiplier = 5
 	rules.rto_personal_cooldown_multiplier = 6
 
-	TEST_ASSERT_EQUAL(controller.shared_cooldown_until, previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
+	TEST_ASSERT_EQUAL(controller.shared_cooldowns_by_template["mortar"], previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
 	TEST_ASSERT_EQUAL(controller.action_cooldowns[action_template.action_id], previous_personal_until, "Existing personal cooldown was recalculated after multiplier change.")
 
 /datum/unit_test/game_rule_panel_rto_disable
@@ -99,13 +99,13 @@
 	var/mob/living/carbon/human/select_human = allocate(/mob/living/carbon/human)
 	select_human.job = JOB_SQUAD_RTO
 	var/datum/rto_support_controller/select_controller = allocate(/datum/rto_support_controller, select_human)
-	TEST_ASSERT(!select_controller.can_select_template(), "Preset selection remained available while RTO support was disabled.")
+	TEST_ASSERT(!select_controller.can_open_template_menu(), "Preset selection remained available while RTO support was disabled.")
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
 	human.job = JOB_SQUAD_RTO
 	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
 	var/datum/rto_support_template/mortar/template = allocate(/datum/rto_support_template/mortar)
-	controller.active_template = template
+	controller.selected_templates += template
 
 	var/datum/rto_support_action_template/action_template = template.get_action_template("mortar_he")
 	TEST_ASSERT_NOTNULL(action_template, "Failed to retrieve RTO action template for disable rules test.")
@@ -113,22 +113,23 @@
 	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, template)
 	// controller.armed_action_id = "__visibility_zone__"
 	controller.armed_action_id = RTO_SUPPORT_ARM_VISIBILITY_ZONE // SS220 EDIT: switched unit test back to shared hardcode define
+	controller.armed_template_id = "mortar"
 	controller.apply_rules_update()
 
 	TEST_ASSERT_NULL(controller.active_zone, "Active RTO visibility zone was not cleared after disabling support.")
 	TEST_ASSERT_NULL(controller.armed_action_id, "Restricted armed action remained armed after disabling support.")
-	TEST_ASSERT_EQUAL(controller.visibility_zone_cooldown_until, 0, "Disabling RTO support applied a new visibility zone cooldown.")
+	TEST_ASSERT_EQUAL(controller.zone_shared_cooldown_until, 0, "Disabling RTO support applied a new visibility zone cooldown.")
 	// TEST_ASSERT(controller.can_arm_action("__coordinates__"), "Coordinates action should remain available when RTO support is disabled.")
 	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_COORDINATES), "Coordinates action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
 	// TEST_ASSERT(controller.can_arm_action("__manual_marker__"), "Manual marker action should remain available when RTO support is disabled.")
 	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_MARKER), "Manual marker action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
 	TEST_ASSERT(!controller.can_arm_action(action_template.action_id), "Strike action remained armable while RTO support was disabled.")
 
-	var/list/visibility_state = controller.build_visibility_action_state()
+	var/list/visibility_state = controller.build_visibility_action_state("mortar")
 	TEST_ASSERT(visibility_state["is_disabled"], "Visibility action state was not disabled by game rules.")
 	TEST_ASSERT_EQUAL(visibility_state["primary_label"], "Disabled by Game Rule Panel", "Visibility action did not show the expected Game Rule Panel block reason.")
 
-	var/list/support_state = controller.build_support_action_state(action_template.action_id)
+	var/list/support_state = controller.build_support_action_state(action_template.action_id, "mortar")
 	TEST_ASSERT(support_state["is_disabled"], "Support action state was not disabled by game rules.")
 	TEST_ASSERT_EQUAL(support_state["primary_label"], "Disabled by Game Rule Panel", "Support action did not show the expected Game Rule Panel block reason.")
 

@@ -31,13 +31,13 @@
 		new /datum/halo_support_catalog_entry("halo_medical_packets_drop", "HALO Medical Packets Drop", /datum/fire_support/supply_drop/halo/medical_packets, "halo_medical", "HALO Medical", "halo_medical"),
 		new /datum/halo_support_catalog_entry("halo_corpsman_kit_drop", "HALO Corpsman Kit Drop", /datum/fire_support/supply_drop/halo/corpsman_kit, "halo_medical", "HALO Medical", "halo_medical"),
 		new /datum/halo_support_catalog_entry("halo_biofoam_reserve_drop", "HALO Biofoam Reserve Drop", /datum/fire_support/supply_drop/halo/biofoam_reserve, "halo_medical", "HALO Medical", "halo_medical"),
-		new /datum/halo_support_catalog_entry("halo_toolbox_drop", "HALO Toolbox Drop", /datum/fire_support/supply_drop/halo/toolbox, "halo_engineering", "HALO Engineering", "halo_engineering"),
-		new /datum/halo_support_catalog_entry("halo_fortification_drop", "HALO Fortification Drop", /datum/fire_support/supply_drop/halo/fortification, "halo_engineering", "HALO Engineering", "halo_engineering"),
-		new /datum/halo_support_catalog_entry("halo_breaching_drop", "HALO Breaching Drop", /datum/fire_support/supply_drop/halo/breaching, "halo_engineering", "HALO Engineering", "halo_engineering"),
-		new /datum/halo_support_catalog_entry("halo_vehicle_service_drop", "HALO Vehicle Service Drop", /datum/fire_support/supply_drop/halo/vehicle_service, "halo_engineering", "HALO Engineering", "halo_engineering"),
-		new /datum/halo_support_catalog_entry("halo_signal_drop", "HALO Signal Drop", /datum/fire_support/supply_drop/halo/signal, "halo_command", "HALO Command", "halo_command"),
-		new /datum/halo_support_catalog_entry("halo_recon_drop", "HALO Recon Drop", /datum/fire_support/supply_drop/halo/recon, "halo_command", "HALO Command", "halo_command"),
-		new /datum/halo_support_catalog_entry("halo_rto_command_drop", "HALO RTO Command Drop", /datum/fire_support/supply_drop/halo/rto_command, "halo_command", "HALO Command", "halo_command"),
+		new /datum/halo_support_catalog_entry("halo_toolbox_drop", "HALO Toolbox Drop", /datum/fire_support/supply_drop/halo/toolbox, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_fortification_drop", "HALO Fortification Drop", /datum/fire_support/supply_drop/halo/fortification, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_breaching_drop", "HALO Breaching Drop", /datum/fire_support/supply_drop/halo/breaching, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_vehicle_service_drop", "HALO Vehicle Service Drop", /datum/fire_support/supply_drop/halo/vehicle_service, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_signal_drop", "HALO Signal Drop", /datum/fire_support/supply_drop/halo/signal, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_recon_drop", "HALO Recon Drop", /datum/fire_support/supply_drop/halo/recon, "halo_technical", "HALO Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_rto_command_drop", "HALO RTO Command Drop", /datum/fire_support/supply_drop/halo/rto_command, "halo_technical", "HALO Technical", "halo_technical"),
 	)
 	return catalog
 

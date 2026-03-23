@@ -7,7 +7,7 @@
 
 /datum/rto_support_action_template/halo/logistics
 	parent_type = /datum/rto_support_action_template/halo
-	shared_cooldown = 120 SECONDS
+	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
 	category = "logistics"
 	icon_state = "ammo"

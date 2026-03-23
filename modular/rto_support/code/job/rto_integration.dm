@@ -1,6 +1,7 @@
 /// RTO base preset override for skills and controller initialization.
 /datum/equipment_preset/uscm/rto/load_gear(mob/living/carbon/human/new_human)
 	. = ..()
+	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 	new_human.ensure_rto_support_controller()
 	new_human.try_relocate_rto_to_squad_spawn()
 

@@ -108,21 +108,36 @@
 	. += SPAN_NOTICE("Кнопка 'Координаты': постоянный режим получения координат без лазера.")
 	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': постоянный режим живой лазерной подсветки через бинокль.")
 
-	if(controller.active_template)
-		. += SPAN_NOTICE("Текущий пакет: [controller.active_template.name].")
+	var/list/selected_templates = controller.get_selected_templates()
+	if(length(selected_templates))
+		var/list/template_names = list()
+		for(var/datum/rto_support_template/template as anything in selected_templates)
+			template_names += template.name
+		. += SPAN_NOTICE("Выбранные пакеты: [jointext(template_names, ", ")].")
 	else
-		. += SPAN_NOTICE("Пакет поддержки ещё не выбран.")
+		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
 
-	switch(controller.get_zone_state())
-		if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
-			. += SPAN_NOTICE("Сектор наведения активен: [round(controller.get_zone_expires_in() / 10)] сек.")
-		if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-			. += SPAN_NOTICE("Сектор наведения перезаряжается: [round(controller.get_zone_ready_in() / 10)] сек.")
-		if(RTO_SUPPORT_ZONE_STATE_READY)
-			. += SPAN_NOTICE("Сектор наведения готов к развёртыванию.")
-		if(RTO_SUPPORT_ZONE_STATE_UNSUPPORTED)
-			if(controller.active_template)
-				. += SPAN_NOTICE("Текущий пакет работает без сектора наведения.")
+	var/reset_ready_in = controller.get_selection_reset_ready_in()
+	if(length(selected_templates))
+		if(reset_ready_in > 0)
+			. += SPAN_NOTICE("Полный сброс слотов будет доступен через [round(reset_ready_in / 10)] сек.")
+		else
+			. += SPAN_NOTICE("Слоты пакетов можно полностью сбросить и выбрать заново.")
+
+	var/datum/rto_support_template/zone_owner_template = controller.get_zone_owner_template()
+	if(zone_owner_template)
+		. += SPAN_NOTICE("Активный сектор: [zone_owner_template.name], ещё [round(controller.get_zone_expires_in(zone_owner_template.template_id) / 10)] сек.")
+	else if(controller.get_remaining_zone_shared_cooldown() > 0)
+		. += SPAN_NOTICE("Общий кулдаун секторов: [round(controller.get_remaining_zone_shared_cooldown() / 10)] сек.")
+	else
+		for(var/datum/rto_support_template/template as anything in selected_templates)
+			if(!controller.template_requires_zone(template.template_id))
+				continue
+			var/template_zone_ready_in = controller.get_zone_ready_in(template.template_id)
+			if(template_zone_ready_in > 0)
+				. += SPAN_NOTICE("[template.name]: личный кулдаун сектора [round(template_zone_ready_in / 10)] сек.")
+			else
+				. += SPAN_NOTICE("[template.name]: сектор готов к развёртыванию.")
 
 	var/armed_mode_name = controller.get_armed_mode_name()
 	if(armed_mode_name)
