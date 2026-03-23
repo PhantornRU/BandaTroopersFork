@@ -81,7 +81,7 @@
 #include "emote_panels.dm"
 #include "game_rule_panel.dm" // SS220 EDIT: include Game Rule Panel unit tests
 #include "gc_regressions.dm"
-#include "halo_ammo_drops.dm" // SS220 EDIT: keep HALO RTO support and ammo-drop regression coverage active on this branch
+// #include "halo_ammo_drops.dm" // keep HALO RTO support and ammo-drop regression coverage active on this branch
 // #include "halo_ai_localization.dm"
 // #include "halo_sangheili_equipment.dm"
 // #include "halo_sangheili_equipment_ai.dm"

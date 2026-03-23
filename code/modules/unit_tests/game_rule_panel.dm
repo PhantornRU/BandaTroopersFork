@@ -1,4 +1,3 @@
-// SS220 EDIT - START: Game Rule Panel unit tests
 /datum/unit_test/game_rule_panel
 	var/snapshot_rto_support_enabled
 	var/snapshot_rto_shared_cooldown_multiplier
@@ -151,7 +150,7 @@
 
 	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, template)
 	// controller.armed_action_id = "__visibility_zone__"
-	controller.armed_action_id = RTO_SUPPORT_ARM_VISIBILITY_ZONE // SS220 EDIT: switched unit test back to shared hardcode define
+	controller.armed_action_id = RTO_SUPPORT_ARM_VISIBILITY_ZONE // switched unit test back to shared hardcode define
 	controller.armed_template_id = "mortar"
 	controller.apply_rules_update()
 
@@ -159,9 +158,9 @@
 	TEST_ASSERT_NULL(controller.armed_action_id, "Restricted armed action remained armed after disabling support.")
 	TEST_ASSERT_EQUAL(controller.zone_shared_cooldown_until, 0, "Disabling RTO support applied a new visibility zone cooldown.")
 	// TEST_ASSERT(controller.can_arm_action("__coordinates__"), "Coordinates action should remain available when RTO support is disabled.")
-	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_COORDINATES), "Coordinates action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
+	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_COORDINATES), "Coordinates action should remain available when RTO support is disabled.") // switched unit test back to shared hardcode define
 	// TEST_ASSERT(controller.can_arm_action("__manual_marker__"), "Manual marker action should remain available when RTO support is disabled.")
-	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_MARKER), "Manual marker action should remain available when RTO support is disabled.") // SS220 EDIT: switched unit test back to shared hardcode define
+	TEST_ASSERT(controller.can_arm_action(RTO_SUPPORT_ARM_MARKER), "Manual marker action should remain available when RTO support is disabled.") //  switched unit test back to shared hardcode define
 	TEST_ASSERT(!controller.can_arm_action(action_template.action_id), "Strike action remained armable while RTO support was disabled.")
 
 	var/list/visibility_state = controller.build_visibility_action_state("mortar")
@@ -326,4 +325,3 @@
 	rules.player_survival_antigib_limb_loss_chance = 100
 	TEST_ASSERT(human_full.player_survival_apply_non_gib_fallback(create_cause_data("unit test full"), EXPLOSION_THRESHOLD_GIB, EXPLOSION_THRESHOLD_GIB, TRUE), "Anti-Gib Fallback failed during 100% limb loss test.")
 	TEST_ASSERT_EQUAL(count_player_survival_extremities(human_full), before_full - 1, "100% limb loss chance should always detach exactly one extremity.")
-// SS220 EDIT - END
