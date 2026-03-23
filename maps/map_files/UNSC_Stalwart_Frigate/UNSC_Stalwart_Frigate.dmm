@@ -10977,19 +10977,6 @@
 	name = "Общий канал прослушивания";
 	pixel_y = 29
 	},
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/device/flashlight/lamp,
-/obj/structure/machinery/computer/overwatch/almayer{
-	dir = 4;
-	layer = 3.2;
-	pixel_x = 5;
-	pixel_y = -26
-	},
-/obj/item/device/radio/intercom{
-	freerange = 1;
-	name = "General Listening Channel";
-	pixel_y = 29
-	},
 /obj/structure/machinery/firealarm{
 	dir = 4;
 	pixel_x = 19
