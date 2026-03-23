@@ -4,6 +4,10 @@
 	var/snapshot_rto_shared_cooldown_multiplier
 	var/snapshot_rto_personal_cooldown_multiplier
 	var/snapshot_fire_support_enabled
+	var/snapshot_player_survival_enabled
+	var/snapshot_player_survival_crit_grace_seconds
+	var/snapshot_player_survival_antigib_enabled
+	var/snapshot_player_survival_antigib_limb_loss_chance
 	var/snapshot_fire_support_defaults_captured
 	var/list/snapshot_fire_support_default_points
 	var/list/snapshot_fire_support_default_availability
@@ -21,6 +25,10 @@
 	snapshot_rto_shared_cooldown_multiplier = rules.rto_shared_cooldown_multiplier
 	snapshot_rto_personal_cooldown_multiplier = rules.rto_personal_cooldown_multiplier
 	snapshot_fire_support_enabled = rules.fire_support_enabled
+	snapshot_player_survival_enabled = rules.player_survival_enabled
+	snapshot_player_survival_crit_grace_seconds = rules.player_survival_crit_grace_seconds
+	snapshot_player_survival_antigib_enabled = rules.player_survival_antigib_enabled
+	snapshot_player_survival_antigib_limb_loss_chance = rules.player_survival_antigib_limb_loss_chance
 	snapshot_fire_support_defaults_captured = rules.fire_support_defaults_captured
 	snapshot_fire_support_default_points = rules.fire_support_default_points ? rules.fire_support_default_points.Copy() : list()
 	snapshot_fire_support_default_availability = rules.fire_support_default_availability ? rules.fire_support_default_availability.Copy() : list()
@@ -39,6 +47,10 @@
 	rules.rto_shared_cooldown_multiplier = snapshot_rto_shared_cooldown_multiplier
 	rules.rto_personal_cooldown_multiplier = snapshot_rto_personal_cooldown_multiplier
 	rules.fire_support_enabled = snapshot_fire_support_enabled
+	rules.player_survival_enabled = snapshot_player_survival_enabled
+	rules.player_survival_crit_grace_seconds = snapshot_player_survival_crit_grace_seconds
+	rules.player_survival_antigib_enabled = snapshot_player_survival_antigib_enabled
+	rules.player_survival_antigib_limb_loss_chance = snapshot_player_survival_antigib_limb_loss_chance
 	rules.fire_support_defaults_captured = snapshot_fire_support_defaults_captured
 	rules.fire_support_default_points = snapshot_fire_support_default_points.Copy()
 	rules.fire_support_default_availability = snapshot_fire_support_default_availability.Copy()
@@ -57,6 +69,33 @@
 		fire_support_option.fire_support_flags = snapshot_fire_support_flags[fire_support_type]
 
 	return ..()
+
+/datum/unit_test/game_rule_panel/proc/count_player_survival_extremities(mob/living/carbon/human/human)
+	. = 0
+	if(!human)
+		return
+
+	var/static/list/extremity_zones = list(
+		"l_hand",
+		"r_hand",
+		"l_foot",
+		"r_foot"
+	)
+
+	for(var/zone in extremity_zones)
+		var/obj/limb/limb = human.get_limb(zone)
+		if(!limb)
+			continue
+		if(limb.status & LIMB_DESTROYED)
+			continue
+		.++
+
+/mob/living/carbon/human/game_rule_panel_player_survival_test
+/mob/living/carbon/human/game_rule_panel_player_survival_test/player_survival_is_protected_player()
+	return TRUE
+
+/mob/living/carbon/human/game_rule_panel_player_survival_test/player_survival_log_event(log_text, admin_text = null, notify_admins = FALSE)
+	return
 
 /datum/unit_test/game_rule_panel_rto_cooldowns
 	parent_type = /datum/unit_test/game_rule_panel
@@ -183,4 +222,108 @@
 	TEST_ASSERT_EQUAL(!!(fire_support_option.fire_support_flags & FIRESUPPORT_AVAILABLE), !original_available, "Fire support availability flag did not flip after panel toggle.")
 
 	TEST_ASSERT(rules.set_fire_support_type_enabled(FIRESUPPORT_TYPE_GUN, original_available), "Failed to restore original fire support availability after toggle test.")
+
+/datum/unit_test/game_rule_panel_player_survival_defaults
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_defaults/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.player_survival_enabled = FALSE
+	rules.player_survival_crit_grace_seconds = 99
+	rules.player_survival_antigib_enabled = FALSE
+	rules.player_survival_antigib_limb_loss_chance = 77
+	rules.reset_player_survival_rules()
+
+	TEST_ASSERT(rules.player_survival_enabled, "Player Survival reset did not restore Save Before Death.")
+	TEST_ASSERT_EQUAL(rules.player_survival_crit_grace_seconds, 15, "Player Survival reset did not restore the default crit grace duration.")
+	TEST_ASSERT(rules.player_survival_antigib_enabled, "Player Survival reset did not restore Anti-Gib Fallback.")
+	TEST_ASSERT_EQUAL(rules.player_survival_antigib_limb_loss_chance, 30, "Player Survival reset did not restore the default limb loss chance.")
+
+/datum/unit_test/game_rule_panel_player_survival_runtime_duration
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_runtime_duration/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+	rules.player_survival_crit_grace_seconds = 42
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	TEST_ASSERT_EQUAL(human.player_survival_get_crit_grace_seconds(), 42, "Player Survival crit grace duration did not read from Game Rule Panel runtime state.")
+
+/datum/unit_test/game_rule_panel_player_survival_damage_block_toggle
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_damage_block_toggle/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	human.player_survival_damage_block_until = world.time + 50
+
+	TEST_ASSERT(human.player_survival_is_damage_blocked(), "Active crit grace should block damage while Save Before Death is enabled.")
+
+	rules.player_survival_enabled = FALSE
+	TEST_ASSERT(!human.player_survival_is_damage_blocked(), "Disabling Save Before Death should immediately disable active crit grace blocking.")
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_gib_toggle
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_gib_toggle/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+	rules.player_survival_antigib_enabled = FALSE
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	human.gib(create_cause_data("unit test"))
+
+	TEST_ASSERT(QDELETED(human), "Disabling Anti-Gib Fallback should restore normal gib behavior for human.gib().")
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_explosion_toggle
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_explosion_toggle/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+	rules.player_survival_antigib_enabled = FALSE
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	human.ex_act(EXPLOSION_THRESHOLD_GIB + 1, null, create_cause_data("unit test"))
+
+	TEST_ASSERT(QDELETED(human), "Disabling Anti-Gib Fallback should restore normal gib behavior for explosion entrypoints.")
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_without_grace
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_antigib_without_grace/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+	rules.player_survival_enabled = FALSE
+	rules.player_survival_antigib_enabled = TRUE
+	rules.player_survival_antigib_limb_loss_chance = 0
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	TEST_ASSERT(human.player_survival_apply_non_gib_fallback(create_cause_data("unit test"), EXPLOSION_THRESHOLD_GIB, EXPLOSION_THRESHOLD_GIB, TRUE), "Anti-Gib Fallback did not trigger while enabled.")
+	TEST_ASSERT(!QDELETED(human), "Anti-Gib Fallback should keep the mob alive when Save Before Death is disabled.")
+	TEST_ASSERT_EQUAL(human.player_survival_damage_block_until, 0, "Anti-Gib Fallback should not start crit grace when Save Before Death is disabled.")
+
+/datum/unit_test/game_rule_panel_player_survival_limb_loss_boundaries
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_player_survival_limb_loss_boundaries/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_player_survival_rules()
+	rules.player_survival_enabled = FALSE
+	rules.player_survival_antigib_enabled = TRUE
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human_zero = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	var/before_zero = count_player_survival_extremities(human_zero)
+	rules.player_survival_antigib_limb_loss_chance = 0
+	TEST_ASSERT(human_zero.player_survival_apply_non_gib_fallback(create_cause_data("unit test zero"), EXPLOSION_THRESHOLD_GIB, EXPLOSION_THRESHOLD_GIB, TRUE), "Anti-Gib Fallback failed during 0% limb loss test.")
+	TEST_ASSERT_EQUAL(count_player_survival_extremities(human_zero), before_zero, "0% limb loss chance should never detach an extremity.")
+
+	var/mob/living/carbon/human/game_rule_panel_player_survival_test/human_full = allocate(/mob/living/carbon/human/game_rule_panel_player_survival_test)
+	var/before_full = count_player_survival_extremities(human_full)
+	rules.player_survival_antigib_limb_loss_chance = 100
+	TEST_ASSERT(human_full.player_survival_apply_non_gib_fallback(create_cause_data("unit test full"), EXPLOSION_THRESHOLD_GIB, EXPLOSION_THRESHOLD_GIB, TRUE), "Anti-Gib Fallback failed during 100% limb loss test.")
+	TEST_ASSERT_EQUAL(count_player_survival_extremities(human_full), before_full - 1, "100% limb loss chance should always detach exactly one extremity.")
 // SS220 EDIT - END
