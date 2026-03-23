@@ -103,7 +103,10 @@ const TemplateCard = ({ template, canAddTemplate }) => {
           <ModeBadge color="rgba(110, 190, 120, 0.25)" text="Без сектора" />
         )}
         {template.visibility_altitude_requirement === 'high' && (
-          <ModeBadge color="rgba(255, 170, 90, 0.25)" text="Открытое небо" />
+          <ModeBadge
+            color="rgba(255, 170, 90, 0.25)"
+            text="Открытое небо"
+          />
         )}
       </Box>
       <NoticeBox mb={1}>
@@ -147,8 +150,8 @@ const TemplateCard = ({ template, canAddTemplate }) => {
               {template.visibility_zone_cooldown} сек.
             </LabeledList.Item>
             {template.solo_zone_cooldown_available && (
-              <LabeledList.Item label="РЎРѕР»Рѕ-РљР” СЃРµРєС‚РѕСЂР°">
-                {template.visibility_zone_cooldown_solo} СЃРµРє.
+              <LabeledList.Item label="Соло-КД сектора">
+                {template.visibility_zone_cooldown_solo} сек.
               </LabeledList.Item>
             )}
           </>
@@ -162,8 +165,8 @@ const TemplateCard = ({ template, canAddTemplate }) => {
       {template.solo_zone_cooldown_available && (
         <NoticeBox mt={1} info={template.solo_zone_cooldown_active}>
           {template.solo_zone_cooldown_active
-            ? `РЎРµР№С‡Р°СЃ Р°РєС‚РёРІРµРЅ solo-Р±РѕРЅСѓСЃ: РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РґРѕ ${template.visibility_zone_cooldown_current} СЃРµРє.`
-            : `Р•СЃР»Рё РѕСЃС‚Р°РІРёС‚СЊ С‚РѕР»СЊРєРѕ РѕРґРёРЅ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° СЌС‚РѕРіРѕ С€Р°Р±Р»РѕРЅР° СЃРЅРёР·РёС‚СЃСЏ РґРѕ ${template.visibility_zone_cooldown_solo} СЃРµРє. Р’С‹Р±РѕСЂ РІС‚РѕСЂРѕРіРѕ РїР°РєРµС‚Р° РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±С‹С‡РЅС‹Р№ РљР”: ${template.visibility_zone_cooldown} СЃРµРє.`}
+            ? `Сейчас активен solo-бонус: кулдаун сектора снижен до ${template.visibility_zone_cooldown_current} сек.`
+            : `Если оставить только один пакет, кулдаун сектора этого шаблона снизится до ${template.visibility_zone_cooldown_solo} сек. Выбор второго пакета возвращает обычный КД: ${template.visibility_zone_cooldown} сек.`}
         </NoticeBox>
       )}
       <Divider />
@@ -238,17 +241,21 @@ export const RtoSupportPresetMenu = () => {
               </NoticeBox>
               {selectedCount === 0 && (
                 <NoticeBox mt={1} info>
-                  Р•СЃР»Рё РІР·СЏС‚СЊ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚ Рё РЅРµ Р·Р°РЅРёРјР°С‚СЊ РІС‚РѕСЂРѕР№ СЃР»РѕС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° Р±СѓРґРµС‚ РІ 2 СЂР°Р·Р° РјРµРЅСЊС€Рµ.
+                  Если взять только один боевой пакет и не занимать второй слот,
+                  кулдаун его сектора будет в 2 раза меньше.
                 </NoticeBox>
               )}
               {selectedCount === 1 && (
                 <NoticeBox mt={1} info>
-                  РЎРµР№С‡Р°СЃ solo-Р±РѕРЅСѓСЃ Р°РєС‚РёРІРµРЅ: РїРѕРєР° Сѓ РІР°СЃ РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°. Р’С‹Р±РѕСЂ РІС‚РѕСЂРѕРіРѕ РїР°РєРµС‚Р° РІРµСЂРЅРµС‚ РѕР±С‹С‡РЅС‹Р№ РљР”.
+                  Сейчас solo-бонус активен: пока у вас выбран только один
+                  пакет, кулдаун его сектора снижен в 2 раза. Выбор второго
+                  пакета вернет обычный КД.
                 </NoticeBox>
               )}
               {selectedCount >= 2 && (
                 <NoticeBox mt={1}>
-                  Р’С‹Р±СЂР°РЅРѕ РґРІР° РїР°РєРµС‚Р°: РґР»СЏ Р±РѕРµРІС‹С… С€Р°Р±Р»РѕРЅРѕРІ РґРµР№СЃС‚РІСѓРµС‚ РѕР±С‹С‡РЅС‹Р№ РєСѓР»РґР°СѓРЅ СЃРµРєС‚РѕСЂР° Р±РµР· solo-Р±РѕРЅСѓСЃР°.
+                  Выбрано два пакета: для боевых шаблонов действует обычный
+                  кулдаун сектора без solo-бонуса.
                 </NoticeBox>
               )}
               {selectedCount > 0 && resetReadyIn > 0 && (
