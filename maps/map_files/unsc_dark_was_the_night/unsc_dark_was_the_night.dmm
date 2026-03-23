@@ -810,7 +810,7 @@
 /obj/structure/filingcabinet/medical{
 	pixel_y = 17;
 	pixel_x = -8;
-	name = "medical records";
+	name = "медицинские записи";
 	density = 0
 	},
 /obj/structure/filingcabinet{
@@ -2592,7 +2592,7 @@
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,
@@ -2722,7 +2722,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer,
@@ -4009,7 +4009,7 @@
 	pixel_x = 7;
 	density = 0;
 	req_access = list(8,39);
-	name = "\improper Squad One Optican Military Supply"
+	name = "\improper военное снабжение Optican, отряд 1"
 	},
 /obj/structure/sign/safety/one{
 	pixel_x = -2;
@@ -4036,7 +4036,7 @@
 	pixel_x = -6;
 	density = 0;
 	req_access = list(8,40);
-	name = "\improper Squad Two Optican Military Supply"
+	name = "\improper военное снабжение Optican, отряд 2"
 	},
 /obj/structure/sign/safety/two{
 	pixel_x = 17;
@@ -4668,11 +4668,11 @@
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,
@@ -4862,7 +4862,7 @@
 	density = 0;
 	icon_state = "map";
 	layer = 4;
-	name = "Tactical Map Display";
+	name = "тактический картографический дисплей";
 	pixel_y = 6;
 	pixel_x = -11
 	},
@@ -5241,7 +5241,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "ship_armory2";
-	name = "\improper General Equipment"
+	name = "\improper общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -5765,10 +5765,10 @@
 /area/dark_was_the_night/cryo_hall)
 "ol" = (
 /obj/structure/sign/poster{
-	desc = "This poster features Audrey Rainwater standing in a jacuzzi. She was the July 2182 centerfold in Playboy Magazine. Don't ask how you know that.";
+	desc = "На этом постере Одри Рэйнуотер стоит в джакузи. В июле 2182 года она была девушкой месяца в журнале Playboy. Не спрашивайте, откуда вы это знаете.";
 	icon_state = "poster16";
 	layer = 3.3;
-	name = "'Miss July' Pinup";
+	name = "пинап «Мисс Июль»";
 	pixel_y = 29;
 	serial_number = 16
 	},
@@ -5879,7 +5879,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "ship_armory2";
-	name = "\improper Fireteam Leader Equipment"
+	name = "\improper снаряжение командира огневой группы"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -6031,7 +6031,7 @@
 /area/dark_was_the_night/hangar)
 "pE" = (
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Hangar Storage Bay"
+	name = "склад ангара"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/hangar)
@@ -6298,7 +6298,7 @@
 /area/dark_was_the_night/motor_pool/heavy)
 "qG" = (
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Heavy Motor Pool"
+	name = "ангар бронетехники"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/motor_pool/heavy)
@@ -6358,7 +6358,7 @@
 "qW" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Motor Pool"
+	name = "ангар техники"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/motor_pool)
@@ -6417,7 +6417,7 @@
 	density = 0;
 	icon_state = "map";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "тактический картографический дисплей";
 	pixel_y = 10;
 	pixel_x = 0
 	},
@@ -6629,12 +6629,12 @@
 	dir = 8
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,
@@ -6695,7 +6695,7 @@
 "sM" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/effect/decal/warning_stripes{
@@ -6929,7 +6929,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer,
@@ -7486,7 +7486,7 @@
 /obj/structure/machinery/door_control/brbutton{
 	pixel_y = 28;
 	id = "ship_armory2";
-	name = "armory shutters control";
+	name = "пульт створок оружейной";
 	req_one_access_txt = "19;12"
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -7784,7 +7784,7 @@
 	dir = 4;
 	icon_state = "shuttle";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "тактический картографический дисплей";
 	pixel_x = -12;
 	pixel_y = 3
 	},
@@ -7799,7 +7799,7 @@
 	},
 /obj/structure/stairs,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairsUpper";
+	name = "верхняя корабельная лестница";
 	vector_y = -63
 	},
 /obj/structure/prop/invuln/darkness{
@@ -7834,7 +7834,7 @@
 /area/dark_was_the_night/engineering)
 "xw" = (
 /obj/structure/machinery/power/reactor{
-	name = "\improper S-52 fusion reactor 17"
+	name = "\improper термоядерный реактор S-52 №17"
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night)
@@ -7859,7 +7859,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "ship_armory2";
-	name = "\improper General Equipment"
+	name = "\improper общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -8224,7 +8224,7 @@
 "zp" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/edge/smooth/corner,
@@ -8475,7 +8475,7 @@
 "AJ" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 29
 	},
 /turf/open/floor/almayer/plating,
@@ -8701,7 +8701,7 @@
 	},
 /obj/structure/stairs,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairsUpper";
+	name = "верхняя корабельная лестница";
 	vector_y = -63
 	},
 /obj/structure/prop/invuln/darkness{
@@ -10288,12 +10288,12 @@
 	dir = 4
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,
@@ -10339,7 +10339,7 @@
 /obj/structure/machinery/power/apc/almayer/east,
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/sterile,
@@ -10967,7 +10967,7 @@
 "MH" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/structure/prop/invuln/overhead_pipe{
@@ -11402,7 +11402,7 @@
 	pixel_y = 27
 	},
 /obj/structure/reagent_dispensers/watertank/unsc{
-	desc = "An olive drab barrel containing water. Better not mix it up with the hydrogen tank. Someone put this one in the canteen, just in case you're tasting metal flavored water as opposed to metal and plastic flavored water.";
+	desc = "Оливково-зелёная бочка с водой. Лучше не перепутать её с водородным баком. Кто-то поставил её в столовой на случай, если вода вдруг начнёт отдавать не только металлом, но ещё и пластиком.";
 	pixel_x = 6;
 	pixel_y = 10
 	},
@@ -11414,11 +11414,11 @@
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,
@@ -11555,7 +11555,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "ship_armory2";
-	name = "\improper Squad Leader Equipment"
+	name = "\improper снаряжение командира отделения"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -11664,7 +11664,7 @@
 	},
 /obj/structure/stairs,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairsUpper";
+	name = "верхняя корабельная лестница";
 	vector_y = -63
 	},
 /obj/structure/prop/invuln/darkness{
@@ -13042,7 +13042,7 @@
 	},
 /obj/structure/stairs,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "ShipStairsUpper";
+	name = "верхняя корабельная лестница";
 	vector_y = -63
 	},
 /obj/structure/prop/invuln/darkness{
@@ -13552,7 +13552,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/plate,
@@ -13639,7 +13639,7 @@
 	},
 /obj/structure/stairs/perspective,
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = 63
 	},
 /turf/open/floor/almayer,

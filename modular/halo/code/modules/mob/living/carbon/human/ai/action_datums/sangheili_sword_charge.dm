@@ -1,5 +1,5 @@
 /datum/ai_action/sangheili_sword_charge
-	name = "Sangheili Sword Charge"
+	name = "Рывок сангхейли с мечом"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
 
 /datum/ai_action/sangheili_sword_charge/Added()

@@ -1,19 +1,19 @@
 // BASE
 
 /datum/paygrade/covenant
-	name = "Covy paygrades"
+	name = "Ранги Ковенанта"
 	default_faction = FACTION_COVENANT
 	paygrade = PAY_SHORT_COV_CIV
-	prefix = "Civ"
+	prefix = "Гражд."
 	ranking = 0
 	pay_multiplier = 1
 
 /datum/paygrade/covenant/deacon
-	name = "Deacon"
+	name = "Дьякон"
 	default_faction = FACTION_COVENANT
 	paygrade = PAY_SHORT_COV_DEACON
-	name = "Deacon"
-	prefix = "Deacon"
+	name = "Дьякон"
+	prefix = "Дьякон"
 	ranking = 0
 	pay_multiplier = 2.4
 
@@ -21,22 +21,22 @@
 
 /datum/paygrade/covenant/minor
 	paygrade = PAY_SHORT_COV_MINOR
-	name = "Minor"
-	prefix = "Minor"
+	name = "Минор"
+	prefix = "Минор"
 	ranking = 1
 	pay_multiplier = 1.2
 
 /datum/paygrade/covenant/major
 	paygrade = PAY_SHORT_COV_MAJOR
-	name = "Major"
-	prefix = "Major"
+	name = "Мажор"
+	prefix = "Мажор"
 	ranking = 2
 	pay_multiplier = 1.6
 
 /datum/paygrade/covenant/ultra
 	paygrade = PAY_SHORT_COV_ULTRA
-	name = "Ultra"
-	prefix = "Ultra"
+	name = "Ультра"
+	prefix = "Ультра"
 	ranking = 3
 	pay_multiplier = 2
 
@@ -44,8 +44,8 @@
 
 /datum/paygrade/covenant/unggoy_heavy
 	paygrade = PAY_SHORT_COV_HEAVY
-	name = "Heavy"
-	prefix = "Heavy"
+	name = "Тяжелый"
+	prefix = "Тяж."
 	ranking = 2
 	pay_multiplier = 1.4
 
@@ -53,15 +53,15 @@
 
 /datum/paygrade/covenant/jackal_champion
 	paygrade = PAY_SHORT_COV_CHAMPION
-	name = "Champion"
-	prefix = "Champion"
+	name = "Чемпион"
+	prefix = "Чемп."
 	ranking = 4
 	pay_multiplier = 2.2
 
 /datum/paygrade/covenant/jackal_shipmistress
 	paygrade = PAY_SHORT_COV_SHIPMISTRESS
-	name = "Shipmistress"
-	prefix = "Shipmistress"
+	name = "Корабельная госпожа"
+	prefix = "Кораб. госп."
 	ranking = 5
 	pay_multiplier = 3
 
@@ -69,29 +69,29 @@
 
 /datum/paygrade/covenant/sangheili_minor
 	paygrade = PAY_SHORT_SANG_MINOR
-	name = "Minor"
-	prefix = "Minor"
+	name = "Минор"
+	prefix = "Минор"
 	ranking = 6
 	pay_multiplier = 2
 
 /datum/paygrade/covenant/sangheili_major
 	paygrade = PAY_SHORT_SANG_MAJOR
-	name = "Major"
-	prefix = "Major"
+	name = "Мажор"
+	prefix = "Мажор"
 	ranking = 7
 	pay_multiplier = 3
 
 /datum/paygrade/covenant/sangheili_ultra
 	paygrade = PAY_SHORT_SANG_ULTRA
-	name = "Ultra"
-	prefix = "Ultra"
+	name = "Ультра"
+	prefix = "Ультра"
 	ranking = 8
 	pay_multiplier = 4
 
 /datum/paygrade/covenant/sangheili_zealot
 	paygrade = PAY_SHORT_SANG_ZEALOT
-	name = "Zealot"
-	prefix = "Zealot"
+	name = "Зилот"
+	prefix = "Зилот"
 	ranking = 9
 	pay_multiplier = 5
 
@@ -99,42 +99,42 @@
 
 /datum/paygrade/covenant/sangheili_commander
 	paygrade = PAY_SHORT_SANG_COMMANDER
-	name = "Commander"
-	prefix = "Commander"
+	name = "Командир"
+	prefix = "Ком."
 	ranking = 10
 	pay_multiplier = 5
 
 /datum/paygrade/covenant/sangheili_fieldmaster
 	paygrade = PAY_SHORT_SANG_FIELDMASTER
-	name = "Fieldmaster"
-	prefix = "Fieldmaster"
+	name = "Филдмастер"
+	prefix = "Филдм."
 	ranking = 11
 	pay_multiplier = 5
 
 /datum/paygrade/covenant/sangheili_shipmaster
 	paygrade = PAY_SHORT_SANG_SHIPMASTER
-	name = "Shipmaster"
-	prefix = "Shipmaster"
+	name = "Шипмастер"
+	prefix = "Шипм."
 	ranking = 11
 	pay_multiplier = 5
 
 /datum/paygrade/covenant/sangheili_fleetmaster
 	paygrade = PAY_SHORT_SANG_FLEETMASTER
-	name = "Fleetmaster"
-	prefix = "Fleetmaster"
+	name = "Флитмастер"
+	prefix = "Флитм."
 	ranking = 12
 	pay_multiplier = 6
 
 /datum/paygrade/covenant/sangheili_fleetmaster
 	paygrade = PAY_SHORT_SANG_LANDMASTER
-	name = "Landmaster"
-	prefix = "Landmaster"
+	name = "Лэндмастер"
+	prefix = "Лэндм."
 	ranking = 12
 	pay_multiplier = 6
 
 /datum/paygrade/covenant/sangheili_supremecommander
 	paygrade = PAY_SHORT_SANG_SUPREME_COM
-	name = "Supreme Commander"
-	prefix = "Supreme Commander"
+	name = "Верховный командир"
+	prefix = "Верх. ком."
 	ranking = 13
 	pay_multiplier = 7

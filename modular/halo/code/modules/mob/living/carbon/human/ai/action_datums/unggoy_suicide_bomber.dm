@@ -3,7 +3,7 @@
 	var/halo_suicide_prime_range = 5
 
 /datum/ai_action/unggoy_suicide_bomber
-	name = "Unggoy Suicide Bomber"
+	name = "Унггой-смертник"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
 
 /datum/ai_action/unggoy_suicide_bomber/get_weight(datum/human_ai_brain/brain)

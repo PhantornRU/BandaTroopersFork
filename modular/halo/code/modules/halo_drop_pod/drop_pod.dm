@@ -2,7 +2,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 
 
 /obj/structure/halo_droppod
-	name = "\improper M8823 HEV drop pod"
+	name = "\improper десантная капсула M8823 HEV"
 	health = 4000 //Hopefully immune to most things. Probably not.
 	icon = 'icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "drop_pod"
@@ -62,7 +62,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	start_open = TRUE
 
 /obj/item/drop_pod_door
-	name = "\improper M8823 HEV pod door"
+	name = "\improper дверь капсулы M8823 HEV"
 	icon = 'icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "pod_door"
 	layer = 5.8
@@ -74,7 +74,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	playsound(src, 'sound/effects/odst_pod/door_clang_1.ogg')
 
 /obj/structure/drop_pod_chute
-	name = "\improper M8823 HEV pod chute"
+	name = "\improper парашют капсулы M8823 HEV"
 	icon = 'icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "chute"
 	layer = 5.7

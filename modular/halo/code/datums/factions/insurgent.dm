@@ -1,3 +1,3 @@
 /datum/faction/insurgent
-	name = "Insurgency"
+	name = "Инсургенты"
 	faction_tag = FACTION_INSURGENT

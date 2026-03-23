@@ -71,7 +71,7 @@
 	dir = 4
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -500,7 +500,7 @@
 /obj/structure/machinery/door_control/brbutton{
 	pixel_y = 28;
 	id = "ship_armory2";
-	name = "armory shutters control";
+	name = "пульт створок оружейной";
 	req_one_access_txt = "19;12"
 	},
 /obj/structure/surface/table/reinforced/almayer_B,
@@ -699,7 +699,7 @@
 	pixel_x = -6;
 	density = 0;
 	req_access = list(8,40);
-	name = "\improper Squad Two Optican Military Supply"
+	name = "\improper военное снабжение Optican, отряд 2"
 	},
 /obj/structure/sign/safety/two{
 	pixel_x = 17;
@@ -990,7 +990,7 @@
 "dr" = (
 /obj/docking_port/stationary/trijent_elevator/shipmap_elevator/cargo{
 	id = "garrow_cargo_elevator_upper";
-	name = "Cargo Elevator Upper";
+	name = "грузовой лифт, верхний уровень";
 	elevator_network = "ArrowCargo";
 	airlock_exit = "north";
 	airlock_area = /area/golden_arrow/cargo_shuttle/upper;
@@ -1086,7 +1086,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -1202,7 +1202,7 @@
 /area/dark_was_the_night/canteen)
 "gb" = (
 /obj/structure/machinery/power/reactor{
-	name = "\improper S-52 fusion reactor 17"
+	name = "\improper термоядерный реактор S-52 №17"
 	},
 /turf/open/floor/almayer,
 /area/dark_was_the_night)
@@ -1450,12 +1450,12 @@
 	dir = 8
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsLower";
+	name = "нижняя лестница";
 	vector_y = -8;
 	vector_x = -46
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -1505,7 +1505,7 @@
 /obj/structure/machinery/door_control/brbutton{
 	pixel_y = 28;
 	id = "explosives";
-	name = "armory shutters control";
+	name = "пульт створок оружейной";
 	req_one_access_txt = "19;12"
 	},
 /obj/effect/decal/warning_stripes{
@@ -1522,7 +1522,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -1531,7 +1531,7 @@
 "jI" = (
 /obj/structure/stairs,
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -1800,8 +1800,8 @@
 "mS" = (
 /obj/structure/surface/table/almayer,
 /obj/item/book{
-	name = " A Soldier's Tale: Rainforest Wars";
-	desc = "We have come to a place far from home / Time long passed since we have seen the sun rise / A place where peace can finally come / A place where we can rest and laugh and sing and love once more.";
+	name = "Солдатская история: Войны в джунглях";
+	desc = "Мы пришли туда, что далеко от дома / Слишком давно мы не видели восхода / Туда, где наконец может прийти мир / Туда, где мы снова сможем отдыхать, смеяться, петь и любить.";
 	pixel_x = 12;
 	pixel_y = 3
 	},
@@ -2067,7 +2067,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -2101,7 +2101,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -2204,7 +2204,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/edge/smooth/corner,
@@ -2274,7 +2274,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 2;
 	id = "ship_armory2";
-	name = "\improper General Equipment"
+	name = "\improper общее снаряжение"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -2807,7 +2807,7 @@
 "xM" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
@@ -2989,7 +2989,7 @@
 	dir = 4
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -3089,7 +3089,7 @@
 	pixel_x = 7;
 	density = 0;
 	req_access = list(8,39);
-	name = "\improper Squad One Optican Military Supply"
+	name = "\improper военное снабжение Optican, отряд 1"
 	},
 /obj/structure/sign/safety/one{
 	pixel_x = -2;
@@ -3117,7 +3117,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 4;
 	id = "ship_armory2";
-	name = "\improper Specialist Equipment"
+	name = "\improper снаряжение специалиста"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -3156,7 +3156,7 @@
 /obj/structure/machinery/door_control/brbutton{
 	pixel_y = 28;
 	id = "ship_armory2";
-	name = "armory shutters control";
+	name = "пульт створок оружейной";
 	req_one_access_txt = "19;12"
 	},
 /turf/open/floor/almayer/mono,
@@ -3280,7 +3280,7 @@
 /area/dark_was_the_night/upper_hallway)
 "Dy" = (
 /obj/structure/reagent_dispensers/watertank/unsc{
-	desc = "An olive drab barrel containing water. Better not mix it up with the hydrogen tank. Someone put this one in the canteen, just in case you're tasting metal flavored water as opposed to metal and plastic flavored water.";
+	desc = "Оливково-зелёная бочка с водой. Лучше не перепутать её с водородным баком. Кто-то поставил её в столовой на случай, если вода вдруг начнёт отдавать не только металлом, но ещё и пластиком.";
 	pixel_x = 6;
 	pixel_y = 19
 	},
@@ -3555,7 +3555,7 @@
 "Hh" = (
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	id = "explosives";
-	name = "Explosives Storage"
+	name = "склад взрывчатки"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/ready_bay)
@@ -3575,7 +3575,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -3755,7 +3755,7 @@
 	layer = 2.7
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -3802,7 +3802,7 @@
 "Kp" = (
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 4;
-	name = "\improper Armory";
+	name = "\improper Оружейная";
 	id = "ship_armory"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
@@ -4053,12 +4053,12 @@
 	layer = 2.7
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsLower";
+	name = "нижняя лестница";
 	vector_y = -8;
 	vector_x = -46
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -4117,7 +4117,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 4;
 	id = "ship_armory2";
-	name = "\improper RTO Equipment"
+	name = "\improper снаряжение радиста"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -4243,7 +4243,7 @@
 	dir = 8
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -4377,7 +4377,7 @@
 "Qz" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer,
@@ -4651,12 +4651,12 @@
 	dir = 4
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsLower";
+	name = "нижняя лестница";
 	vector_y = -8;
 	vector_x = -46
 	},
 /obj/effect/projector{
-	name = "ShipStairs";
+	name = "корабельная лестница";
 	vector_y = -46;
 	vector_x = -10
 	},
@@ -4670,7 +4670,7 @@
 	layer = 4.01
 	},
 /obj/effect/step_trigger/teleporter_vector{
-	name = "StairsUpper";
+	name = "верхняя лестница";
 	vector_y = 9;
 	vector_x = 46
 	},
@@ -4684,7 +4684,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/edge/smooth/east,
@@ -4800,7 +4800,7 @@
 	density = 0;
 	icon_state = "map";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "тактический картографический дисплей";
 	pixel_y = 26;
 	pixel_x = 0
 	},
@@ -4885,7 +4885,7 @@
 "Wk" = (
 /obj/docking_port/stationary/trijent_elevator/shipmap_elevator/cargo{
 	id = "garrow_cargo_elevator_storage";
-	name = "Cargo Elevator Storage";
+	name = "кладовая грузового лифта";
 	elevator_network = "ArrowCargo";
 	airlock_area = /area/golden_arrow/cargo_shuttle/lower;
 	airlock_exit = "north"
@@ -4905,7 +4905,7 @@
 /obj/effect/landmark/late_join/alpha,
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/plate,

@@ -1,5 +1,5 @@
 /datum/ai_action/sangheili_kick
-	name = "Sangheili Kick"
+	name = "Пинок сангхейли"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
 
 /datum/ai_action/sangheili_kick/Added()
