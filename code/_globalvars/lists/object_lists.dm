@@ -22,6 +22,7 @@ GLOBAL_LIST_EMPTY_TYPED(closet_list, /obj/structure/closet)
 GLOBAL_LIST_EMPTY_TYPED(disposal_retrieval_list, /obj/structure/disposaloutlet/retrieval)
 GLOBAL_LIST_EMPTY_TYPED(disposalpipe_up_list, /obj/structure/disposalpipe/up/almayer)
 GLOBAL_LIST_EMPTY_TYPED(disposalpipe_down_list, /obj/structure/disposalpipe/down/almayer)
+GLOBAL_LIST_EMPTY_TYPED(cm_vending_machines, /obj/structure/machinery/cm_vending) // SS220 EDIT: main-ship surface replacement needs a full cm_vending registry after init without scanning world
 
 GLOBAL_LIST_EMPTY_TYPED(all_multi_vehicles, /obj/vehicle/multitile)
 GLOBAL_LIST_EMPTY_TYPED(all_active_defenses, /obj/structure/machinery/defenses)

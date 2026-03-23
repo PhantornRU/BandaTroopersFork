@@ -1,5 +1,5 @@
 /obj/item/storage/box/tear_packet
-	name = "пакет"
+	name = "packet"
 	desc = "Пластиковый пакет."
 	icon = 'icons/halo/obj/items/storage/packets.dmi'
 	icon_state = "ammo_packet"
@@ -10,7 +10,7 @@
 	var/isopened = FALSE
 
 /obj/item/storage/box/tear_packet/m7
-	name = "пакет с магазинами (M7, x2)"
+	name = "magazine packet (M7, x2)"
 	storage_slots = 2
 
 /obj/item/storage/box/tear_packet/m7/fill_preset_inventory()
@@ -30,7 +30,7 @@
 		use_sound = "rustle"
 
 /obj/item/storage/box/tear_packet/medical_packet
-	name = "медицинский пакет ККОН"
+	name = "UNSC medical packet"
 	desc = "Боевой медицинский пакет первой помощи с самым необходимым минимумом, чтобы вы или ваши товарищи не умерли прямо на поле боя."
 	icon_state = "medical_packet"
 	w_class = 3

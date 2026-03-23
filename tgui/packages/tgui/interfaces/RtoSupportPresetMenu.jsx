@@ -70,24 +70,28 @@ const ActionCard = ({ action }) => (
   </Box>
 );
 
-const TemplateCard = ({ template }) => {
-  const { act, data } = useBackend();
+const TemplateCard = ({ template, canAddTemplate }) => {
+  const { act } = useBackend();
+  const selectDisabled = template.is_selected || !canAddTemplate;
+  const buttonLabel = template.is_selected
+    ? `Слот ${template.selected_slot}`
+    : 'Выбрать';
 
   return (
     <Section
       title={template.name}
       buttons={
         <Button
-          color="good"
-          disabled={!data.can_select_template}
-          icon="crosshairs"
+          color={template.is_selected ? 'average' : 'good'}
+          disabled={selectDisabled}
+          icon={template.is_selected ? 'check' : 'crosshairs'}
           onClick={() =>
             act('select_template', {
               template_id: template.template_id,
             })
           }
         >
-          Выбрать
+          {buttonLabel}
         </Button>
       }
     >
@@ -99,7 +103,10 @@ const TemplateCard = ({ template }) => {
           <ModeBadge color="rgba(110, 190, 120, 0.25)" text="Без сектора" />
         )}
         {template.visibility_altitude_requirement === 'high' && (
-          <ModeBadge color="rgba(255, 170, 90, 0.25)" text="Открытое небо" />
+          <ModeBadge
+            color="rgba(255, 170, 90, 0.25)"
+            text="Открытое небо"
+          />
         )}
       </Box>
       <NoticeBox mb={1}>
@@ -125,7 +132,7 @@ const TemplateCard = ({ template }) => {
             ? 'Боевой пакет через сектор'
             : 'Прямой логистический сброс'}
         </LabeledList.Item>
-        {template.requires_visibility_zone && (
+        {template.requires_visibility_zone ? (
           <>
             <LabeledList.Item label="Сектор">
               {template.visibility_zone_name}
@@ -142,15 +149,26 @@ const TemplateCard = ({ template }) => {
             <LabeledList.Item label="Кулдаун сектора">
               {template.visibility_zone_cooldown} сек.
             </LabeledList.Item>
+            {template.solo_zone_cooldown_available && (
+              <LabeledList.Item label="Соло-КД сектора">
+                {template.visibility_zone_cooldown_solo} сек.
+              </LabeledList.Item>
+            )}
           </>
-        )}
-        {!template.requires_visibility_zone && (
+        ) : (
           <LabeledList.Item label="Сектор">Не используется</LabeledList.Item>
         )}
         <LabeledList.Item label="Высотное окно">
           {altitudeLabel(template.visibility_altitude_requirement)}
         </LabeledList.Item>
       </LabeledList>
+      {template.solo_zone_cooldown_available && (
+        <NoticeBox mt={1} info={template.solo_zone_cooldown_active}>
+          {template.solo_zone_cooldown_active
+            ? `Сейчас активен solo-бонус: кулдаун сектора снижен до ${template.visibility_zone_cooldown_current} сек.`
+            : `Если оставить только один пакет, кулдаун сектора этого шаблона снизится до ${template.visibility_zone_cooldown_solo} сек. Выбор второго пакета возвращает обычный КД: ${template.visibility_zone_cooldown} сек.`}
+        </NoticeBox>
+      )}
       <Divider />
       <Box bold mb={1}>
         Способности
@@ -162,39 +180,116 @@ const TemplateCard = ({ template }) => {
   );
 };
 
+const SelectedSlots = ({ selectedTemplates, maxSelectedTemplates }) => {
+  const filled = selectedTemplates || [];
+  const slots = [];
+  for (let index = 0; index < maxSelectedTemplates; index++) {
+    slots.push(filled[index] || null);
+  }
+  return (
+    <Section title="Слоты пакетов">
+      {slots.map((template, index) => (
+        <NoticeBox key={index} mt={index ? 1 : 0} info={!!template}>
+          <Box bold>
+            Slot {index + 1}: {template ? template.name : 'Пусто'}
+          </Box>
+        </NoticeBox>
+      ))}
+    </Section>
+  );
+};
+
 export const RtoSupportPresetMenu = () => {
-  const { data } = useBackend();
+  const { act, data } = useBackend();
   const templates = data.templates || [];
+  const selectedTemplates = data.selected_templates || [];
+  const selectedCount = data.selected_count || 0;
+  const maxSelectedTemplates = data.max_selected_templates || 2;
+  const canAddTemplate = !!data.can_add_template;
+  const canResetTemplates = !!data.can_reset_templates;
+  const resetReadyIn = data.reset_ready_in || 0;
 
   return (
-    <Window width={760} height={800} resizable>
+    <Window width={820} height={850} resizable>
       <Window.Content scrollable>
         <Stack vertical>
           <Stack.Item>
-            <Section title="Пакет поддержки">
+            <Section
+              title="Пакеты поддержки"
+              buttons={
+                <Button
+                  color="average"
+                  disabled={!canResetTemplates}
+                  icon="rotate-left"
+                  onClick={() => act('reset_templates')}
+                >
+                  Сбросить оба слота
+                </Button>
+              }
+            >
               <NoticeBox info>
-                Выбор выполняется один раз на жизнь текущего персонажа.
+                Можно выбрать до двух уникальных пакетов одновременно.
               </NoticeBox>
               <NoticeBox mt={1}>
-                1. Выберите темплейт. 2. Для боевых пакетов разверните сектор.
-                3. Вооружите нужную кнопку. 4. Наведите точку через Ctrl+Click
-                во время зума через RTO-бинокль.
+                1. Выберите до двух пакетов. 2. Для боевых пакетов разверните
+                свой сектор. 3. Вооружите нужную кнопку. 4. Наведите точку через
+                Ctrl+Click во время зума через RTO-бинокль.
               </NoticeBox>
               <NoticeBox mt={1} warning>
-                Logistics работает без сектора и вызывает сбросы напрямую через
-                бинокль.
+                Полный сброс обоих слотов доступен через 60 минут от первого
+                выбора в текущем цикле.
               </NoticeBox>
-              {!!data.active_template_name && (
-                <NoticeBox warning mt={1}>
-                  Уже выбран пакет: {data.active_template_name}
+              {selectedCount === 0 && (
+                <NoticeBox mt={1} info>
+                  Если взять только один боевой пакет и не занимать второй слот,
+                  кулдаун его сектора будет в 2 раза меньше.
+                </NoticeBox>
+              )}
+              {selectedCount === 1 && (
+                <NoticeBox mt={1} info>
+                  Сейчас solo-бонус активен: пока у вас выбран только один
+                  пакет, кулдаун его сектора снижен в 2 раза. Выбор второго
+                  пакета вернет обычный КД.
+                </NoticeBox>
+              )}
+              {selectedCount >= 2 && (
+                <NoticeBox mt={1}>
+                  Выбрано два пакета: для боевых шаблонов действует обычный
+                  кулдаун сектора без solo-бонуса.
+                </NoticeBox>
+              )}
+              {selectedCount > 0 && resetReadyIn > 0 && (
+                <NoticeBox mt={1}>
+                  До сброса слотов: {resetReadyIn} сек.
+                </NoticeBox>
+              )}
+              {selectedCount > 0 && canResetTemplates && (
+                <NoticeBox mt={1} info>
+                  Слоты готовы к полному сбросу.
+                </NoticeBox>
+              )}
+              {!canAddTemplate && selectedCount >= maxSelectedTemplates && (
+                <NoticeBox mt={1} warning>
+                  Оба слота уже заняты.
                 </NoticeBox>
               )}
             </Section>
           </Stack.Item>
+
+          <Stack.Item>
+            <SelectedSlots
+              selectedTemplates={selectedTemplates}
+              maxSelectedTemplates={maxSelectedTemplates}
+            />
+          </Stack.Item>
+
           {!!templates.length &&
             templates.map((template) => (
               <Stack.Item key={template.template_id}>
-                <TemplateCard template={template} />
+                <TemplateCard
+                  template={template}
+                  canAddTemplate={canAddTemplate}
+                />
               </Stack.Item>
             ))}
           {!templates.length && (

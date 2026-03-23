@@ -531,6 +531,6 @@
 
 /obj/structure/machinery/computer/med_data/laptop
 	name = "Medical Laptop"
-	desc = "Cheap Weyland-Yutani Laptop."
+	desc = "Ноутбук, подключённый к базе медицинских записей." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "medlaptop"
 	density = FALSE

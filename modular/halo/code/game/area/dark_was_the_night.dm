@@ -9,111 +9,111 @@
 	ceiling_muffle = FALSE
 
 /area/dark_was_the_night/hangar
-	name = "\improper Hangar"
+	name = "\improper Ангар"
 	icon_state = "hangar"
 	soundscape_playlist = SCAPE_PL_HANGAR
 	soundscape_interval = 50
 
 /area/dark_was_the_night/pod_bay
-	name = "\improper Pod Bay"
+	name = "\improper Отсек капсул"
 	icon_state = "hangar"
 
 /area/dark_was_the_night/ready_bay
-	name = "\improper Ready Bay"
+	name = "\improper Отсек готовности"
 
 /area/dark_was_the_night/medical
-	name = "\improper Emergency Medbay"
+	name = "\improper Аварийный медотсек"
 	icon_state = "medical"
 
 /area/dark_was_the_night/supply
-	name = "\improper Supply Room"
+	name = "\improper Склад снабжения"
 	icon_state = "req"
 
 /area/dark_was_the_night/engineering
-	name = "\improper Engineering Compartment"
+	name = "\improper Инженерный отсек"
 	icon_state = "upperengineering"
 
 /area/dark_was_the_night/briefing
-	name = "\improper Briefing Room"
+	name = "\improper Зал брифинга"
 	icon_state = "briefing"
 
 /area/dark_was_the_night/briefing/one
-	name = "\improper Briefing Room One"
+	name = "\improper Зал брифинга 1"
 
 /area/dark_was_the_night/briefing/two
-	name = "\improper Briefing Room Two"
+	name = "\improper Зал брифинга 2"
 
 /area/dark_was_the_night/dorms
-	name = "\improper Dorms"
+	name = "\improper Кубрики"
 	icon_state = "gruntrnr"
 
 /area/dark_was_the_night/bathroom
-	name = "\improper Bathroom"
+	name = "\improper Санузел"
 	icon_state = "medical"
 
 /area/dark_was_the_night/cryo_hall
-	name = "\improper Cryo Bay Hallway"
+	name = "\improper Коридор криоотсека"
 	icon_state = "starboard"
 
 /area/dark_was_the_night/canteen
-	name = "\improper Canteen"
+	name = "\improper Столовая"
 	icon_state = "food"
 
 /area/dark_was_the_night/kitchen
-	name = "\improper Kitchen"
+	name = "\improper Кухня"
 	icon_state = "bravo"
 
 /area/dark_was_the_night/kitchen/freezer
-	name = "\improper Freezer"
+	name = "\improper Морозильник"
 	icon_state = "alpha"
 
 /area/dark_was_the_night/cryo_bay
-	name = "\improper Cryo Bay"
+	name = "\improper Криоотсек"
 	icon_state = "cryo"
 
 /area/dark_was_the_night/cryo_bay/one
-	name = "Cryo Bay One"
+	name = "Криоотсек 1"
 	icon_state = "cryo"
 
 /area/dark_was_the_night/cryo_bay/two
-	name = "Cryo Bay Two"
+	name = "Криоотсек 2"
 	icon_state = "cryo"
 
 /area/dark_was_the_night/upper_hallway
-	name = "\improper Upper Hallway"
+	name = "\improper Верхний коридор"
 	icon_state = "port"
 
 /area/dark_was_the_night/lower_hallway
-	name = "\improper Lower Hallway"
+	name = "\improper Нижний коридор"
 	icon_state = "port"
 
 /area/dark_was_the_night/armory
-	name = "\improper Armory"
+	name = "\improper Оружейная"
 	icon_state = "alpha"
 
 /area/dark_was_the_night/motor_pool
-	name = "\improper Motor Pool"
+	name = "\improper Ангар техники"
 	icon_state = "workshop"
 
 /area/dark_was_the_night/motor_pool/heavy
-	name = "\improper Armored Motor Pool"
+	name = "\improper Ангар бронетехники"
 	icon_state = "workshop"
 
 /area/dark_was_the_night/lower_cargo
-	name = "\improper Lower Cargo Bays"
+	name = "\improper Нижние грузовые отсеки"
 	icon_state = "req"
 
 /area/dark_was_the_night/cargo_shuttle
-	name = "\improper cargo_shuttle"
+	name = "\improper Грузовой шаттл"
 	icon_state = "lifeboat"
 
 /area/dark_was_the_night/cargo_shuttle/elevator
-	name = "\improper Cargo Elevator"
+	name = "\improper Грузовой лифт"
 	unlimited_power = TRUE
 	requires_power = FALSE
 
 /area/dark_was_the_night/cargo_shuttle/lower
-	name = "\improper Cargo Elevator Lower Level"
+	name = "\improper Грузовой лифт, нижний уровень"
 
 /area/dark_was_the_night/cargo_shuttle/upper
-	name = "\improper Cargo Elevator Upper Level"
+	name = "\improper Грузовой лифт, верхний уровень"

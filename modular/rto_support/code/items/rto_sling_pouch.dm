@@ -4,6 +4,21 @@
 	desc = "Специальный подсумок-слинг для связанного комплекта RTO-бинокля."
 	can_hold = list(/obj/item/device/binoculars/rto)
 	var/obj/item/device/binoculars/rto/paired_binocular
+	var/paired_binocular_type = /obj/item/device/binoculars/rto
+
+/obj/item/storage/pouch/sling/rto/halo
+	name = "HALO RTO sling pouch"
+	desc = "A HALO sling pouch configured for a paired RTO binocular set."
+
+/obj/item/storage/pouch/sling/rto/halo/unsc
+	name = "UNSC RTO sling pouch"
+	desc = "A UNSC RTO sling pouch paired with a UNSC binocular set."
+	paired_binocular_type = /obj/item/device/binoculars/rto/halo/unsc
+
+/obj/item/storage/pouch/sling/rto/halo/odst
+	name = "ODST RTO sling pouch"
+	desc = "An ODST RTO sling pouch paired with an ODST binocular set."
+	paired_binocular_type = /obj/item/device/binoculars/rto/halo/odst
 
 /obj/item/storage/pouch/sling/rto/Initialize()
 	. = ..()
@@ -85,7 +100,7 @@
 
 	var/obj/item/device/binoculars/rto/binoculars = locate(/obj/item/device/binoculars/rto) in contents
 	if(!binoculars)
-		binoculars = new /obj/item/device/binoculars/rto(src)
+		binoculars = new paired_binocular_type(src)
 	if(!pair_with_binocular(binoculars))
 		return FALSE
 	if(slung != binoculars)

@@ -24,7 +24,7 @@
 /obj/item/trash/burger
 	name = "Burger wrapper"
 	icon_state = "burger"
-	desc = "A greasy plastic film that once held a Cheeseburger. Packaged by the Weyland-Yutani Corporation."
+	desc = "Жирная пластиковая упаковка, из которой уже похитили бургер." // SS220 EDIT: HALO flavor migrated from modular late override
 
 /obj/item/trash/buritto
 	name = "Burrito wrapper"
@@ -153,7 +153,7 @@
 	name = "Weyland-Yutani Pepper Chips"
 	gender = PLURAL
 	icon_state = "wy_chips_pepper"
-	desc = "An oily empty bag that once held Weyland-Yutani Pepper Chips."
+	desc = "Грустный пакетик с крошками и перцем. Даже хорошие вещи не вечны." // SS220 EDIT: HALO flavor migrated from modular late override
 
 //////////////////////
 ///Ciagarette Butts///

@@ -1,6 +1,7 @@
 /// RTO base preset override for skills and controller initialization.
 /datum/equipment_preset/uscm/rto/load_gear(mob/living/carbon/human/new_human)
 	. = ..()
+	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 	new_human.ensure_rto_support_controller()
 	new_human.try_relocate_rto_to_squad_spawn()
 
@@ -37,13 +38,20 @@
 	new /obj/item/storage/box/flare/signal(src)
 	new /obj/item/storage/box/flare/signal(src)
 
-/mob/living/carbon/human/proc/equip_rto_support_binocular_kit()
+/mob/living/carbon/human/proc/equip_rto_support_binocular_kit(pouch_type = /obj/item/storage/pouch/sling/rto, binocular_type = null)
 	if(!istype(src))
 		return FALSE
 
-	var/obj/item/storage/pouch/sling/rto/pouch = new(src)
+	var/obj/item/storage/pouch/sling/rto/pouch = new pouch_type(src)
 	if(QDELETED(pouch))
 		return FALSE
+	if(binocular_type && pouch.paired_binocular_type != binocular_type)
+		pouch.paired_binocular_type = binocular_type
+		if(!istype(pouch.paired_binocular, binocular_type))
+			QDEL_NULL(pouch.paired_binocular)
+		if(!pouch.ensure_paired_binocular())
+			qdel(pouch)
+			return FALSE
 	if(equip_to_slot_if_possible(pouch, WEAR_L_STORE, disable_warning = TRUE))
 		return TRUE
 	if(equip_to_slot_if_possible(pouch, WEAR_R_STORE, disable_warning = TRUE))
@@ -61,9 +69,11 @@
 	if(!is_mainship_level(z))
 		return FALSE
 
-	var/obj/structure/closet/secure_closet/marine_personal/rto/matching_locker
-	for(var/obj/structure/closet/secure_closet/marine_personal/rto/locker in GLOB.personal_closets)
+	var/obj/structure/closet/secure_closet/marine_personal/matching_locker
+	for(var/obj/structure/closet/secure_closet/marine_personal/locker in GLOB.personal_closets)
 		if(!locker.linked_spawn_turf)
+			continue
+		if(!locker.is_correct_job(src))
 			continue
 		if(!locker.is_correct_squad(src))
 			continue

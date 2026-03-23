@@ -1,5 +1,5 @@
 /datum/equipment_preset/covenant/unggoy
-	name = "Unggoy"
+	name = "Унггой"
 	expected_species = SPECIES_UNGGOY
 	rank = JOB_COV_CIV
 	assignment = JOB_COV_MINOR
@@ -48,14 +48,14 @@
 
 // MINOR
 /datum/equipment_preset/covenant/unggoy/minor
-	name = parent_type::name + " Minor"
+	name = parent_type::name + " минор"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_MINOR
 	rank = JOB_COV_MINOR
 	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Minor"
+	role_comm_title = "Минор"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -69,14 +69,14 @@
 
 // MAJOR
 /datum/equipment_preset/covenant/unggoy/major
-	name = parent_type::name + " Major"
+	name = parent_type::name + " мажор"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_MAJOR
 	rank = JOB_COV_MAJOR
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Major"
+	role_comm_title = "Мажор"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -99,14 +99,14 @@
 
 // HEAVY
 /datum/equipment_preset/covenant/unggoy/heavy
-	name = parent_type::name + " Heavy"
+	name = parent_type::name + " тяжелый"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_HEAVY
 	rank = JOB_COV_HEAVY
 	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Heavy"
+	role_comm_title = "Тяжелый"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -129,14 +129,14 @@
 
 // Ultra
 /datum/equipment_preset/covenant/unggoy/ultra
-	name = parent_type::name + " Ultra"
+	name = parent_type::name + " ультра"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_ULTRA
 	rank = JOB_COV_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Ultra"
+	role_comm_title = "Ультра"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -170,7 +170,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
 /datum/equipment_preset/covenant/unggoy/specops/lesser
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
@@ -191,14 +191,14 @@
 
 // SpecOps Ultra
 /datum/equipment_preset/covenant/unggoy/specops_ultra
-	name = parent_type::name + " SpecOps Ultra"
+	name = parent_type::name + " SpecOps-ультра"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_SPECOPS_ULTRA
 	rank = JOB_COV_SPECOPS_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SpecOps Ultra"
+	role_comm_title = "SpecOps-ультра"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -212,14 +212,14 @@
 
 // Deacon
 /datum/equipment_preset/covenant/unggoy/deacon
-	name = parent_type::name + " Deacon"
+	name = parent_type::name + " дьякон"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
 	assignment = JOB_COV_DEACON
 	rank = JOB_COV_DEACON
 	paygrades = list(PAY_SHORT_COV_DEACON = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Deacon"
+	role_comm_title = "Дьякон"
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 
@@ -233,7 +233,7 @@
 // AI-ONLY ROLES
 
 /datum/equipment_preset/covenant/unggoy/ai
-	name = "Unggoy AI"
+	name = "Унггой AI"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/covenant
 	access = list(ACCESS_MARINE_PREP)
@@ -288,11 +288,11 @@
 		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/high_explosive/covenant/plasma(new_human), WEAR_IN_BELT)
 
 /datum/equipment_preset/covenant/unggoy/ai/minor_plasma
-	name = "Unggoy Minor (Plasma)"
+	name = "Унггой-минор (плазма)"
 	assignment = JOB_COV_MINOR
 	rank = JOB_COV_MINOR
 	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Minor"
+	role_comm_title = "Минор"
 	halo_unggoy_role = "minor"
 	halo_unggoy_panic_health_pct = 0.55
 	halo_unggoy_panics_without_leader = TRUE
@@ -304,11 +304,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/minor_needler
-	name = "Unggoy Minor (Needler)"
+	name = "Унггой-минор (игольник)"
 	assignment = JOB_COV_MINOR
 	rank = JOB_COV_MINOR
 	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Minor"
+	role_comm_title = "Минор"
 	halo_unggoy_role = "minor"
 	halo_unggoy_panic_health_pct = 0.55
 	halo_unggoy_panics_without_leader = TRUE
@@ -321,11 +321,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/major_plasma
-	name = "Unggoy Major (Plasma)"
+	name = "Унггой-мажор (плазма)"
 	assignment = JOB_COV_MAJOR
 	rank = JOB_COV_MAJOR
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Major"
+	role_comm_title = "Мажор"
 	halo_unggoy_role = "major"
 	halo_unggoy_panic_health_pct = 0.4
 	halo_unggoy_panics_without_leader = TRUE
@@ -337,11 +337,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/major_needler
-	name = "Unggoy Major (Needler)"
+	name = "Унггой-мажор (игольник)"
 	assignment = JOB_COV_MAJOR
 	rank = JOB_COV_MAJOR
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Major"
+	role_comm_title = "Мажор"
 	halo_unggoy_role = "major"
 	halo_unggoy_panic_health_pct = 0.4
 	halo_unggoy_panics_without_leader = TRUE
@@ -354,11 +354,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/heavy_plasma
-	name = "Unggoy Heavy (Plasma Rifle)"
+	name = "Унггой-тяжелый (плазменная винтовка)"
 	assignment = JOB_COV_HEAVY
 	rank = JOB_COV_HEAVY
 	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Heavy"
+	role_comm_title = "Тяжелый"
 	halo_unggoy_role = "heavy"
 	halo_unggoy_ignore_panic = TRUE
 
@@ -368,11 +368,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/heavy_needler
-	name = "Unggoy Heavy (Needler)"
+	name = "Унггой-тяжелый (игольник)"
 	assignment = JOB_COV_HEAVY
 	rank = JOB_COV_HEAVY
 	paygrades = list(PAY_SHORT_COV_HEAVY = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Heavy"
+	role_comm_title = "Тяжелый"
 	halo_unggoy_role = "heavy"
 	halo_unggoy_ignore_panic = TRUE
 
@@ -383,11 +383,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/kelotane/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/ultra
-	name = "Unggoy Ultra (AI)"
+	name = "Унггой-ультра (AI)"
 	assignment = JOB_COV_ULTRA
 	rank = JOB_COV_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Ultra"
+	role_comm_title = "Ультра"
 	halo_unggoy_role = "ultra"
 	halo_unggoy_ignore_panic = TRUE
 
@@ -397,11 +397,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/support_medical
-	name = "Unggoy Support (Medical)"
+	name = "Унггой поддержки (медик)"
 	assignment = JOB_COV_MAJOR
 	rank = JOB_COV_MAJOR
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Support"
+	role_comm_title = "Поддержка"
 	halo_unggoy_role = "support"
 	halo_unggoy_panic_health_pct = 0.5
 	halo_unggoy_panics_without_leader = TRUE
@@ -413,7 +413,7 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/specops_plasma
-	name = "Unggoy SpecOps (Plasma)"
+	name = "Унггой SpecOps (плазма)"
 	assignment = JOB_COV_SPECOPS
 	rank = JOB_COV_SPECOPS
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
@@ -427,7 +427,7 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/specops_needler
-	name = "Unggoy SpecOps (Needler)"
+	name = "Унггой SpecOps (игольник)"
 	assignment = JOB_COV_SPECOPS
 	rank = JOB_COV_SPECOPS
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
@@ -442,11 +442,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/kelotane/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/specops_ultra
-	name = "Unggoy SpecOps Ultra (AI)"
+	name = "Унггой SpecOps-ультра (AI)"
 	assignment = JOB_COV_SPECOPS_ULTRA
 	rank = JOB_COV_SPECOPS_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SpecOps Ultra"
+	role_comm_title = "SpecOps-ультра"
 	halo_unggoy_role = "specops_ultra"
 	halo_unggoy_ignore_panic = TRUE
 
@@ -456,11 +456,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/deacon_command
-	name = "Unggoy Deacon (Command)"
+	name = "Унггой-дьякон (командный)"
 	assignment = JOB_COV_DEACON
 	rank = JOB_COV_DEACON
 	paygrades = list(PAY_SHORT_COV_DEACON = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Deacon"
+	role_comm_title = "Дьякон"
 	halo_unggoy_role = "deacon"
 	halo_unggoy_panic_health_pct = 0.65
 	halo_unggoy_panics_without_leader = TRUE
@@ -472,11 +472,11 @@
 	add_ai_injectors(new_human, list(/obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo, /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo))
 
 /datum/equipment_preset/covenant/unggoy/ai/suicide_bomber
-	name = "Unggoy Suicide Bomber"
+	name = "Унггой-смертник"
 	assignment = JOB_COV_MINOR
 	rank = JOB_COV_MINOR
 	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "Bomber"
+	role_comm_title = "Смертник"
 	halo_unggoy_role = "bomber"
 	halo_unggoy_ignore_panic = TRUE
 	halo_unggoy_overheat_retreat = FALSE

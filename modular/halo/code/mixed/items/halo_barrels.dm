@@ -1,5 +1,5 @@
 /obj/item/reagent_container/glass/barrel
-	name = "канистра"
+	name = "canister"
 	desc = "Канистра. Вмещает до 240 единиц."
 	icon = 'icons/halo/obj/objects.dmi'
 	icon_state = "sbarrel"
@@ -12,7 +12,7 @@
 	flags_atom = FPRINT | OPENCONTAINER
 
 /obj/item/reagent_container/glass/barrel/water
-	name = "канистра с водой"
+	name = "water canister"
 	desc = "Полукрупная канистра, наполненная водой. Боковой носик позволяет наполнять бутылки и фляги. Не перепутайте с похожей канистрой с водородом."
 	icon_state = "sbarrel_water"
 
@@ -21,7 +21,7 @@
 	reagents.add_reagent("water", 240)
 
 /obj/item/reagent_container/glass/barrel/liquidhydrogen
-	name = "канистра с жидким водородом"
+	name = "liquid hydrogen canister"
 	desc = "Полукрупная и неудобная для переноски канистра с жидким водородом для заправки различной техники. На боку крупная предупреждающая надпись: 'НЕ ДЛЯ УПОТРЕБЛЕНИЯ'."
 	icon_state = "sbarrel_hydrogen"
 

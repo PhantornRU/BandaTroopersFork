@@ -1,8 +1,8 @@
 //===========================//CUSTOM ARMOR COSMETIC PLATES\\================================\\
 
 /obj/item/clothing/accessory/pads/unsc
-	name = "\improper наплечники M52B"
-	desc = "Комплект наплечников, крепящихся к бронекомплекту M52B, который носит ККОН."
+	name = "\improper M52B Shoulder Pads"
+	desc = "Пара наплечников из сплава Ti-A, крепящихся к бронекомплекту M52B корпуса морской пехоты ККОН и защищающих плечи с верхней частью рук."
 	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "pads"
 	item_state = "pads"
@@ -11,52 +11,52 @@
 	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
 
 /obj/item/clothing/accessory/pads/unsc/bracers
-	name = "\improper наручи M52B"
-	desc = "Комплект наручей, носимых вместе с бронекомплектом M52B ККОН."
+	name = "\improper M52B Arm Bracers"
+	desc = "Пара композитных наручей, крепящихся к бронекомплекту M52B корпуса морской пехоты ККОН для защиты предплечий."
 	icon_state = "bracers"
 	item_state = "bracers"
 	slot = ACCESSORY_SLOT_DECORBRACER
 	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/accessory/pads/unsc/bracers/police
-	name = "\improper полицейские наручи"
-	desc = "Комплект наручей, носимых вместе с бронежилетом и обычно выдаваемых полицейским силам."
+	name = "\improper Police Shoulder Bracers"
+	desc = "Дополнительная защита для баллистических жилетов, часто встречающаяся у полиции. Уверенно держит маломощные боеприпасы и тупые удары."
 	icon_state = "bracers_police"
 	item_state = "bracers_police"
 
 /obj/item/clothing/accessory/pads/unsc/neckguard
-	name = "\improper защита шеи M52B"
-	desc = "Съёмный модуль защиты шеи для бронекомплекта M52B, который носит ККОН."
+	name = "\improper M52B Neck Guard"
+	desc = "Дополнительная горловая защита для бронекомплекта M52B корпуса морской пехоты ККОН. Рассчитана на осколки и часть маломощных попаданий."
 	icon_state = "neckguard"
 	item_state = "neckguard"
 	slot = ACCESSORY_SLOT_DECORNECK
 	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/accessory/pads/unsc/neckguard/police
-	name = "\improper полицейская защита шеи"
-	desc = "Съёмный модуль защиты шеи для базовых баллистических жилетов, обычно выдаваемый полиции."
+	name = "\improper Police Neck Guard"
+	desc = "Дополнительная защита для баллистических жилетов. В полицейской службе её используют как дешёвое усиление для подавления беспорядков и ситуаций повышенной угрозы."
 	icon_state = "neckguard_police"
 	item_state = "neckguard_police"
 
 /obj/item/clothing/accessory/pads/unsc/greaves
-	name = "\improper поножи M52B"
-	desc = "Комплект поножей, предназначенных для ношения вместе с бронекомплектом M52B."
+	name = "\improper M52B Shin Guards"
+	desc = "Пара композитных поножей для бронекомплекта M52B корпуса морской пехоты ККОН. Предназначены для совместной работы с защитой ботинок VZG7 и прикрывают от осколков, сколов и порезов."
 	icon_state = "shinguards"
 	item_state = "shinguards"
 	slot = ACCESSORY_SLOT_DECORSHIN
 	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/accessory/pads/unsc/groin
-	name = "\improper паховая пластина M52B"
-	desc = "Пластина, крепящаяся к бронекомплекту M52B, чтобы защищать самое ценное у Корпуса. Стандартизированный элемент защиты ККОН, который чаще носят, чем нет."
+	name = "\improper M52B Groin Plate"
+	desc = "Дополнительная защита живота и паха для бронекомплекта M52B корпуса морской пехоты ККОН. Включение Titanium-A даёт неожиданно высокую стойкость к огнестрелу и касательным энергетическим попаданиям."
 	icon_state = "groinplate"
 	item_state = "groinplate"
 	slot = ACCESSORY_SLOT_DECORGROIN
 	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/accessory/pads/unsc/groin/police
-	name = "\improper полицейская паховая пластина"
-	desc = "Пластина, предназначенная для крепления к бронежилету и защиты самого ценного. Чаще всего ставится на полицейские жилеты."
+	name = "\improper Police Groin Plate"
+	desc = "Дополнительная защита для баллистических жилетов, прикрывающая нижнюю часть живота и пах. Помогает спасти жизненно важные органы и артерии от маломощного оружия и рикошетов, потому чаще всего встречается у полиции."
 	icon_state = "groinplate_police"
 	item_state = "groinplate_police"
 
@@ -81,26 +81,26 @@
 	item_state = "groinplate_insurgent"
 
 /obj/item/clothing/accessory/pads/unsc/odst
-	name = "\improper наплечники M70DT"
-	desc = "Комплект наплечников, крепящихся к бронекомплекту M70DT, который носят ODST."
+	name = "\improper M70DT Shoulder Pads"
+	desc = "Пара наплечников из Ti-A для штатного бронекомплекта M70DT десантников ОДСБ. Обеспечивает защиту плеч и часто несёт медицинскую маркировку."
 	icon_state = "odst_pads"
 	item_state = "odst_pads"
 
 /obj/item/clothing/accessory/pads/unsc/bracers/odst
-	name = "\improper наручи M70DT"
-	desc = "Комплект наручей, носимых вместе с бронекомплектом M70DT у бойцов ODST."
+	name = "\improper M70DT Bracers"
+	desc = "Пара наручей из Ti-A для штатного бронекомплекта M70DT десантников ОДСБ."
 	icon_state = "odst_bracers"
 	item_state = "odst_bracers"
 
 /obj/item/clothing/accessory/pads/unsc/greaves/odst
-	name = "\improper поножи M70DT"
-	desc = "Комплект поножей, предназначенных для ношения вместе с бронекомплектом M70DT."
+	name = "\improper M70DT Greaves"
+	desc = "Пара поножей из Ti-A для штатного бронекомплекта M70DT десантников ОДСБ. По требованиям снабжения комплект M70DT не использует схему VZG7 ради большей гибкости снаряжения, поэтому эти поножи полноразмерные."
 	icon_state = "odst_shinguards"
 	item_state = "odst_shinguards"
 
 /obj/item/clothing/accessory/pads/unsc/groin/odst
-	name = "\improper паховая пластина M70DT"
-	desc = "Пластина, крепящаяся к бронекомплекту M70DT, чтобы защищать самое ценное у Корпуса. Стандартный элемент защиты ODST, который носят чаще, чем нет."
+	name = "\improper M70DT Groin Plate"
+	desc = "Защита живота и паха для штатного бронекомплекта M70DT десантников ОДСБ. Пластины из Titanium-A заметно повышают уровень защиты."
 	icon_state = "odst_groinplate"
 	item_state = "odst_groinplate"
 
@@ -131,8 +131,8 @@
 
 
 /obj/item/clothing/accessory/storage/webbing/m52b
-	name = "\improper разгрузка образца M52B"
-	desc = "Крепкая сеть ремней и пряжек из синткоттона, предназначенная для крепления к стандартной броне M52B ККОН. Этот вариант - облегчённая модель для хранения предметов общего назначения."
+	name = "\improper M52B Pattern Webbing"
+	desc = "Универсальная конфигурация для переноски снаряжения. Состоит из жаростойких синтетических тканей и крепится прямо к жёстким точкам брони M52B системой пряжек."
 	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "m52b_webbing"
 	hold = /obj/item/storage/internal/accessory/webbing/m52bgeneric
@@ -147,8 +147,8 @@
 	)
 
 /obj/item/clothing/accessory/storage/webbing/m52b/mag
-	name = "\improper магазинная разгрузка образца M52B"
-	desc = "Вариант разгрузки образца M52B с подсумками под магазины импульсных винтовок."
+	name = "\improper M52B Pattern Magazine Webbing"
+	desc = "Вариант стандартной разгрузки под оружейные магазины. Сшита из жаростойкой синтетики, крепится прямо к броне M52B системой пряжек и выполнена по пятиячеечной схеме."
 	icon_state = "m52b_magwebbing"
 	hold = /obj/item/storage/internal/accessory/webbing/m52bmag
 
@@ -191,8 +191,8 @@
 //===
 
 /obj/item/clothing/accessory/storage/webbing/m52b/shotgun
-	name = "\improper патронная разгрузка образца M52B"
-	desc = "Слегка модифицированный вариант разгрузки образца M52B, рассчитанный под дробовые патроны 12-го калибра."
+	name = "\improper M52B Pattern Shell Webbing"
+	desc = "Конфигурация стандартной разгрузки под дробовые патроны. Сшита из жаростойкой синтетики, крепится прямо к броне M52B системой пряжек и всё чаще встречается у бойцов ближнего боя и сил безопасности в новой войне."
 	icon_state = "m52b_shotgunwebbing"
 	hold = /obj/item/storage/internal/accessory/black_vest/m52bshotgun
 
@@ -202,8 +202,8 @@
 	)
 
 /obj/item/clothing/accessory/storage/webbing/m52b/small
-	name = "\improper малоподсумочная разгрузка образца M52B"
-	desc = "Комплект разгрузки образца M52B, полностью оснащённый подсумками и карманами для переноски широкого набора мелких предметов."
+	name = "\improper M52B Pattern Small Pouch Webbing"
+	desc = "Утилитарная конфигурация с удобными подсумками под разную мелочь. Сшита из жаростойкой синтетики и крепится прямо к жёстким точкам брони M52B системой пряжек."
 	icon_state = "m52b_smallwebbing"
 	hold = /obj/item/storage/internal/accessory/black_vest/m52bgeneric
 	slot = ACCESSORY_SLOT_M3UTILITY
@@ -215,8 +215,8 @@
 	)
 
 /obj/item/clothing/accessory/storage/webbing/m52b/grenade
-	name = "\improper гранатная разгрузка образца M52B"
-	desc = "Вариант разгрузки образца M52B с петлями для хранения гранат M40."
+	name = "\improper M52B Pattern Grenade Webbing"
+	desc = "Разгрузочная конфигурация для гренадёров под штатные 40-мм гранаты. При необходимости удержит и пистолеты M9 для более олдскульных бойцов. Сделана из жаростойкой синтетики, крепкая и проверенная временем."
 	icon_state = "m52b_grenadewebbing"
 	hold = /obj/item/storage/internal/accessory/black_vest/m52bgrenade
 

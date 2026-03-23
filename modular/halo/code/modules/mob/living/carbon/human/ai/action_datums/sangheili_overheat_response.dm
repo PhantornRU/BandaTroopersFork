@@ -1,5 +1,5 @@
 /datum/ai_action/sangheili_overheat_response
-	name = "Sangheili Overheat Response"
+	name = "Реакция сангхейли на перегрев"
 	action_flags = ACTION_USING_HANDS | ACTION_USING_LEGS
 
 /datum/ai_action/sangheili_overheat_response/Added()

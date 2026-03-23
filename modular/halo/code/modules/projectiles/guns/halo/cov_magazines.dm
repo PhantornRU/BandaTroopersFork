@@ -1,5 +1,5 @@
 /obj/item/ammo_magazine/needler_crystal
-	name = "\improper заряд игольника из бламита"
+	name = "\improper blamite needler charge"
 	desc = "Светящийся розовый кристаллический заряд для игольника."
 	caliber = "needle"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'
@@ -13,7 +13,7 @@
 	flags_magazine = NO_FLAGS
 
 /obj/item/ammo_magazine/carbine
-	name = "\improper магазин карабина"
+	name = "\improper carbine magazine"
 	desc = "Вмещает 18 зарядов радиоактивного безумия."
 	caliber = "8x60mm"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'

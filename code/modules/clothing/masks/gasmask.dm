@@ -33,7 +33,7 @@
 
 /obj/item/clothing/mask/gas/military
 	name = "\improper M5 gasmask"
-	desc = "The standard service gas mask of the USCM as part of a modernization program meant to replace the need for MOPP gear."
+	desc = "Прочный противогаз с низким сопротивлением дыханию, используемый полицией и боевыми подразделениями." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "m5"
 	item_state = "m5"
 	flags_obj = OBJ_NO_HELMET_BAND|OBJ_IS_HELMET_GARB

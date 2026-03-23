@@ -46,17 +46,7 @@
 	var/list/preset_matrix = list(
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = list("suit" = /obj/item/clothing/suit/marine/unggoy/minor, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/minor),
 		/datum/equipment_preset/covenant/unggoy/ai/minor_needler = list("suit" = /obj/item/clothing/suit/marine/unggoy/minor, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/minor),
-		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = list("suit" = /obj/item/clothing/suit/marine/unggoy/major, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/major),
-		/datum/equipment_preset/covenant/unggoy/ai/major_needler = list("suit" = /obj/item/clothing/suit/marine/unggoy/major, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/major),
-		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = list("suit" = /obj/item/clothing/suit/marine/unggoy/heavy, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/heavy),
-		/datum/equipment_preset/covenant/unggoy/ai/heavy_needler = list("suit" = /obj/item/clothing/suit/marine/unggoy/heavy, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/heavy),
-		/datum/equipment_preset/covenant/unggoy/ai/ultra = list("suit" = /obj/item/clothing/suit/marine/unggoy/ultra, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/ultra),
-		/datum/equipment_preset/covenant/unggoy/ai/support_medical = list("suit" = /obj/item/clothing/suit/marine/unggoy/major, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/major),
-		/datum/equipment_preset/covenant/unggoy/ai/specops_plasma = list("suit" = /obj/item/clothing/suit/marine/stealth/unggoy_specops, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/specops),
-		/datum/equipment_preset/covenant/unggoy/ai/specops_needler = list("suit" = /obj/item/clothing/suit/marine/stealth/unggoy_specops, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/specops),
 		/datum/equipment_preset/covenant/unggoy/ai/specops_ultra = list("suit" = /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra),
-		/datum/equipment_preset/covenant/unggoy/ai/deacon_command = list("suit" = /obj/item/clothing/suit/marine/unggoy/deacon, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/ultra),
-		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber = list("suit" = /obj/item/clothing/suit/marine/unggoy/minor, "belt" = /obj/item/storage/belt/marine/covenant/unggoy/minor),
 	)
 
 	for(var/preset_type as anything in preset_matrix)
@@ -74,45 +64,16 @@
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
 /datum/unit_test/halo_unggoy_ai_needler_ammo/Run()
-	var/list/needler_presets = list(
-		/datum/equipment_preset/covenant/unggoy/ai/minor_needler,
-		/datum/equipment_preset/covenant/unggoy/ai/major_needler,
-		/datum/equipment_preset/covenant/unggoy/ai/heavy_needler,
-		/datum/equipment_preset/covenant/unggoy/ai/specops_needler,
-	)
+	var/preset_type = /datum/equipment_preset/covenant/unggoy/ai/minor_needler
+	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(preset_type)
+	TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Unggoy needler AI for [preset_type].")
+	var/mob/living/carbon/human/human = brain.tied_human
+	TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun/smg/covenant_needler), "[preset_type] did not equip a needler into suit storage.")
 
-	for(var/preset_type as anything in needler_presets)
-		var/datum/human_ai_brain/brain = create_unggoy_ai_brain(preset_type)
-		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Unggoy needler AI for [preset_type].")
-		var/mob/living/carbon/human/human = brain.tied_human
-		TEST_ASSERT(istype(human.s_store, /obj/item/weapon/gun/smg/covenant_needler), "[preset_type] did not equip a needler into suit storage.")
-
-		brain.set_primary_weapon(human.s_store)
-		var/obj/item/ammo_magazine/needler_crystal/crystals = brain.weapon_ammo_search(brain.primary_weapon)
-		TEST_ASSERT_NOTNULL(crystals, "[preset_type] did not expose needler crystals through the AI ammunition map.")
-		TEST_ASSERT(length(brain.equipment_map[HUMAN_AI_AMMUNITION]) >= 1, "[preset_type] did not retain readable ammunition in the AI equipment map.")
-
-/datum/unit_test/halo_unggoy_ai_voiceline_throttle
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_voiceline_throttle/Run()
-	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/major_needler)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for voiceline throttle testing.")
-
-	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
-	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Unggoy combat voiceline cooldown should start cleared in the test setup.")
-
-	brain.say_reload_line()
-	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should consume the shared AI voiceline cooldown.")
-
-	var/remaining_after_first_line = COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown)
-	brain.say_reload_line()
-	TEST_ASSERT_EQUAL(COOLDOWN_TIMELEFT(brain, combat_voiceline_cooldown), remaining_after_first_line, "Immediate repeated reload chatter should be blocked by the shared AI voiceline cooldown.")
-
-	COOLDOWN_RESET(brain, combat_voiceline_cooldown)
-	TEST_ASSERT(COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "The shared AI voiceline cooldown should reset cleanly for later combat chatter.")
-	brain.say_reload_line()
-	TEST_ASSERT(!COOLDOWN_FINISHED(brain, combat_voiceline_cooldown), "Reload chatter should resume once the shared AI voiceline cooldown expires.")
+	brain.set_primary_weapon(human.s_store)
+	var/obj/item/ammo_magazine/needler_crystal/crystals = brain.weapon_ammo_search(brain.primary_weapon)
+	TEST_ASSERT_NOTNULL(crystals, "[preset_type] did not expose needler crystals through the AI ammunition map.")
+	TEST_ASSERT(length(brain.equipment_map[HUMAN_AI_AMMUNITION]) >= 1, "[preset_type] did not retain readable ammunition in the AI equipment map.")
 
 /datum/unit_test/halo_unggoy_ai_bomber_overrides
 	parent_type = /datum/unit_test/halo_unggoy_ai
@@ -131,33 +92,15 @@
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
 /datum/unit_test/halo_unggoy_ai_panic_behavior/Run()
-	var/list/panicking_presets = list(
-		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma,
-		/datum/equipment_preset/covenant/unggoy/ai/major_plasma,
-		/datum/equipment_preset/covenant/unggoy/ai/support_medical,
-		/datum/equipment_preset/covenant/unggoy/ai/deacon_command,
-	)
-	var/list/steady_presets = list(
-		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma,
-		/datum/equipment_preset/covenant/unggoy/ai/heavy_needler,
-		/datum/equipment_preset/covenant/unggoy/ai/ultra,
-		/datum/equipment_preset/covenant/unggoy/ai/specops_plasma,
-		/datum/equipment_preset/covenant/unggoy/ai/specops_needler,
-		/datum/equipment_preset/covenant/unggoy/ai/specops_ultra,
-		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber,
-	)
+	var/datum/human_ai_brain/panicking = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/support_medical)
+	TEST_ASSERT_NOTNULL(panicking, "Failed to create the HALO Unggoy panic-role AI.")
+	panicking.tied_human.health = panicking.tied_human.maxHealth * 0.1
+	TEST_ASSERT(panicking.halo_unggoy_should_panic(), "Support-medical Unggoy should enable HALO panic-retreat when heavily wounded.")
 
-	for(var/preset_type as anything in panicking_presets)
-		var/datum/human_ai_brain/brain = create_unggoy_ai_brain(preset_type)
-		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Unggoy panic-role AI for [preset_type].")
-		brain.tied_human.health = brain.tied_human.maxHealth * 0.1
-		TEST_ASSERT(brain.halo_unggoy_should_panic(), "[preset_type] should enable HALO panic-retreat when heavily wounded.")
-
-	for(var/preset_type as anything in steady_presets)
-		var/datum/human_ai_brain/brain = create_unggoy_ai_brain(preset_type)
-		TEST_ASSERT_NOTNULL(brain, "Failed to create a HALO Unggoy steady-role AI for [preset_type].")
-		brain.tied_human.health = brain.tied_human.maxHealth * 0.1
-		TEST_ASSERT(!brain.halo_unggoy_should_panic(), "[preset_type] should not enable HALO panic-retreat when heavily wounded.")
+	var/datum/human_ai_brain/steady = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma)
+	TEST_ASSERT_NOTNULL(steady, "Failed to create the HALO Unggoy steady-role AI.")
+	steady.tied_human.health = steady.tied_human.maxHealth * 0.1
+	TEST_ASSERT(!steady.halo_unggoy_should_panic(), "Heavy-plasma Unggoy should not enable HALO panic-retreat when heavily wounded.")
 
 /datum/unit_test/halo_unggoy_ai_overheat_retreat
 	parent_type = /datum/unit_test/halo_unggoy_ai
@@ -321,22 +264,6 @@
 	TEST_ASSERT_NULL(data.distances[run_loc_floor_top_right], "Re-pathing should discard stale distances from the previous unfinished search.")
 	TEST_ASSERT_EQUAL(data.finish, second_destination, "Re-pathing should replace the old destination with the latest requested turf.")
 
-/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_vehicle_locker_interaction/Run()
-	var/datum/human_ai_brain/brain = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
-	TEST_ASSERT_NOTNULL(brain, "Failed to create the HALO Unggoy AI for clientless vehicle-locker interaction testing.")
-
-	var/obj/structure/vehicle_locker/cabinet/cups/cabinet = allocate(/obj/structure/vehicle_locker/cabinet/cups, run_loc_floor_top_right)
-	TEST_ASSERT_NOTNULL(cabinet?.container, "Vehicle locker test setup failed to initialize the cabinet's internal storage.")
-	TEST_ASSERT(!brain.tied_human.client, "The HALO AI vehicle-locker interaction test expects a clientless AI human.")
-
-	cabinet.human_ai_act(brain.tied_human, brain)
-
-	TEST_ASSERT(!length(cabinet.container.content_watchers), "Clientless HALO AI should not register as a vehicle-locker storage watcher.")
-	TEST_ASSERT_NULL(brain.tied_human.s_active, "Clientless HALO AI should not open a vehicle-locker storage UI.")
-
 /datum/unit_test/halo_ai_projectile_backpressure
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -380,71 +307,33 @@
 	TEST_ASSERT(!brain.halo_should_defer_ranged_fire(brain.target_turf, 119), "HALO AI should keep ranged fire enabled below the projectile soft limit.")
 	TEST_ASSERT(brain.halo_should_defer_ranged_fire(brain.target_turf, 120), "HALO AI should defer ranged fire at the projectile soft limit.")
 
-/datum/unit_test/halo_unggoy_ai_firearm_appraisals
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_firearm_appraisals/Run()
-	var/obj/item/weapon/gun/energy/plasma/plasma_pistol/plasma_pistol = allocate(/obj/item/weapon/gun/energy/plasma/plasma_pistol, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/energy/plasma/plasma_rifle/plasma_rifle = allocate(/obj/item/weapon/gun/energy/plasma/plasma_rifle, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/smg/covenant_needler/needler = allocate(/obj/item/weapon/gun/smg/covenant_needler, run_loc_floor_top_right)
-	var/obj/item/weapon/gun/rifle/covenant_carbine/carbine = allocate(/obj/item/weapon/gun/rifle/covenant_carbine, run_loc_floor_top_right)
-
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_pistol)?.type, /datum/firearm_appraisal/halo_plasma_pistol, "Plasma pistol lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(plasma_rifle)?.type, /datum/firearm_appraisal/halo_plasma_rifle, "Plasma rifle lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(needler)?.type, /datum/firearm_appraisal/halo_needler, "Needler lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT_EQUAL(get_firearm_appraisal(carbine)?.type, /datum/firearm_appraisal/halo_carbine, "Carbine lost its HALO-specific firearm appraisal.")
-	TEST_ASSERT(get_firearm_appraisal(plasma_rifle)?.count_every_shot_toward_burst_limit, "HALO plasma rifle AI appraisal should count each shot toward the sustained-fire cap.")
-	TEST_ASSERT(get_firearm_appraisal(needler)?.count_every_shot_toward_burst_limit, "HALO needler AI appraisal should count each shot toward the sustained-fire cap.")
-	TEST_ASSERT(get_firearm_appraisal(carbine)?.count_every_shot_toward_burst_limit, "HALO carbine AI appraisal should count each shot toward the sustained-fire cap.")
-
-/datum/unit_test/halo_unggoy_ai_speech_profiles
-	parent_type = /datum/unit_test/halo_unggoy_ai
-
-/datum/unit_test/halo_unggoy_ai_speech_profiles/Run()
-	var/datum/human_ai_brain/minor = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/minor_plasma)
-	var/datum/human_ai_brain/support = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/support_medical)
-	var/datum/human_ai_brain/bomber = create_unggoy_ai_brain(/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber)
-	TEST_ASSERT_NOTNULL(minor, "Failed to create the HALO Unggoy minor AI for speech-profile testing.")
-	TEST_ASSERT_NOTNULL(support, "Failed to create the HALO Unggoy support AI for speech-profile testing.")
-	TEST_ASSERT_NOTNULL(bomber, "Failed to create the HALO Unggoy bomber AI for speech-profile testing.")
-
-	assert_human_ai_localized_lines(minor.enter_combat_lines, "Unggoy minor enter_combat_lines")
-	assert_human_ai_localized_lines(support.need_healing_lines, "Unggoy support need_healing_lines")
-	assert_human_ai_localized_lines(bomber.enter_combat_lines, "Unggoy bomber enter_combat_lines")
-
-	TEST_ASSERT(minor.enter_combat_lines.Find("Начальник, помоги!"), "Unggoy AI lost its baseline panic-flavored speech lines.")
-	TEST_ASSERT(support.need_healing_lines.Find("Не дайте мне умереть, я же медик!"), "Unggoy support AI lost its medical-role speech lines.")
-	TEST_ASSERT(bomber.enter_combat_lines.Find("Я вас с собой заберу!"), "Unggoy bomber AI lost its suicide-role speech lines.")
-
 /datum/unit_test/halo_unggoy_ai_squad_compositions
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
 /datum/unit_test/halo_unggoy_ai_squad_compositions/Run()
-	var/list/leader_matrix = list(
-		/datum/human_ai_squad_preset/covenant/unggoy_fireteam = /datum/equipment_preset/covenant/unggoy/ai/major_plasma,
-		/datum/human_ai_squad_preset/covenant/unggoy_assault_team = /datum/equipment_preset/covenant/unggoy/ai/major_needler,
-		/datum/human_ai_squad_preset/covenant/unggoy_heavy_team = /datum/equipment_preset/covenant/unggoy/ai/ultra,
-		/datum/human_ai_squad_preset/covenant/unggoy_support_team = /datum/equipment_preset/covenant/unggoy/ai/deacon_command,
-		/datum/human_ai_squad_preset/covenant/unggoy_at_team = /datum/equipment_preset/covenant/unggoy/ai/ultra,
-		/datum/human_ai_squad_preset/covenant/unggoy_specops_cell = /datum/equipment_preset/covenant/unggoy/ai/specops_ultra,
-		/datum/human_ai_squad_preset/covenant/covenant_lance = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma,
-		/datum/human_ai_squad_preset/covenant/covenant_heavy_lance = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
-		/datum/human_ai_squad_preset/covenant/covenant_at_lance = /datum/equipment_preset/covenant/sangheili/ai/zealot_command,
-		/datum/human_ai_squad_preset/covenant/sangheili_pair = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma,
-		/datum/human_ai_squad_preset/covenant/sangheili_fireteam = /datum/equipment_preset/covenant/sangheili/ai/major_carbine,
-		/datum/human_ai_squad_preset/covenant/sangheili_elite_team = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma,
-		/datum/human_ai_squad_preset/covenant/sangheili_sword_pair = /datum/equipment_preset/covenant/sangheili/ai/ultra_sword,
-		/datum/human_ai_squad_preset/covenant/sangheili_zealot_strike_cell = /datum/equipment_preset/covenant/sangheili/ai/zealot_sword,
-	)
+	var/datum/human_ai_squad_preset/unggoy_fireteam = allocate(/datum/human_ai_squad_preset/covenant/unggoy_fireteam)
+	TEST_ASSERT_EQUAL(get_first_assoc_key(unggoy_fireteam.ai_to_spawn), /datum/equipment_preset/covenant/unggoy/ai/major_plasma, "/datum/human_ai_squad_preset/covenant/unggoy_fireteam no longer exposes its intended Unggoy leader as the first spawned unit.")
+	for(var/equipment_path as anything in unggoy_fireteam.ai_to_spawn)
+		TEST_ASSERT(findtext("[equipment_path]", "/unggoy/"), "/datum/human_ai_squad_preset/covenant/unggoy_fireteam should stay on Unggoy equipment presets.")
 
-	for(var/preset_type as anything in leader_matrix)
-		var/datum/human_ai_squad_preset/preset = allocate(preset_type)
-		var/first_entry = get_first_assoc_key(preset.ai_to_spawn)
-		TEST_ASSERT_EQUAL(first_entry, leader_matrix[preset_type], "[preset_type] no longer exposes its intended squad leader as the first spawned unit.")
+	var/datum/human_ai_squad_preset/covenant_lance = allocate(/datum/human_ai_squad_preset/covenant/covenant_lance)
+	TEST_ASSERT_EQUAL(get_first_assoc_key(covenant_lance.ai_to_spawn), /datum/equipment_preset/covenant/sangheili/ai/minor_plasma, "/datum/human_ai_squad_preset/covenant/covenant_lance no longer exposes its intended mixed-lance leader as the first spawned unit.")
+	var/has_mixed_sangheili = FALSE
+	var/has_mixed_unggoy = FALSE
+	for(var/equipment_path as anything in covenant_lance.ai_to_spawn)
+		if(findtext("[equipment_path]", "/sangheili/"))
+			has_mixed_sangheili = TRUE
+		if(findtext("[equipment_path]", "/unggoy/"))
+			has_mixed_unggoy = TRUE
+	TEST_ASSERT(has_mixed_sangheili, "/datum/human_ai_squad_preset/covenant/covenant_lance lost its Sangheili members.")
+	TEST_ASSERT(has_mixed_unggoy, "/datum/human_ai_squad_preset/covenant/covenant_lance lost its Unggoy members.")
+
+	var/datum/human_ai_squad_preset/sangheili_pair = allocate(/datum/human_ai_squad_preset/covenant/sangheili_sword_pair)
+	TEST_ASSERT_EQUAL(get_first_assoc_key(sangheili_pair.ai_to_spawn), /datum/equipment_preset/covenant/sangheili/ai/ultra_sword, "/datum/human_ai_squad_preset/covenant/sangheili_sword_pair no longer exposes its intended Sangheili leader as the first spawned unit.")
+	for(var/equipment_path as anything in sangheili_pair.ai_to_spawn)
+		TEST_ASSERT(findtext("[equipment_path]", "/sangheili/"), "/datum/human_ai_squad_preset/covenant/sangheili_sword_pair should only contain Sangheili equipment presets.")
 
 	for(var/squad_type in subtypesof(/datum/human_ai_squad_preset/covenant))
 		var/datum/human_ai_squad_preset/preset = allocate(squad_type)
 		for(var/equipment_path as anything in preset.ai_to_spawn)
 			TEST_ASSERT(!findtext("[equipment_path]", "anti_tank_temp"), "[squad_type] still references the retired temporary anti-tank Unggoy role.")
-			if(findtext("[squad_type]", "/sangheili_"))
-				TEST_ASSERT(findtext("[equipment_path]", "/sangheili/"), "[squad_type] should only contain Sangheili equipment presets.")

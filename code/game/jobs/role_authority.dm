@@ -554,19 +554,23 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	new_human.mark_personal_locker_spawn_context(late_join)
 	// SS220 EDIT - END
 
+	var/equip_preset = new_job.get_spawn_equip_preset(job_whitelist, src) // SS220 EDIT: effective spawn preset resolves through the shared job-owned helper
+
 	if(new_job.gear_preset_whitelist[job_whitelist])
-		arm_equipment(new_human, new_job.gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = late_join)
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join)
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account, whitelist_status) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human, whitelist_status) //Do any other thing that relates to their spawn.
 	else
-		arm_equipment(new_human, new_job.gear_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human) //Do any other thing that relates to their spawn.
 
 	if(new_job.flags_startup_parameters & ROLE_ADD_TO_SQUAD) //Are we a muhreen? Randomize our squad. This should go AFTER IDs. //TODO Robust this later.
 		randomize_squad(new_human)
+	else if(should_auto_assign_ship_family_squad(new_human.job))
+		randomize_squad(new_human) // SS220 EDIT: HALO ship-family command roles still need squad assignment even without ROLE_ADD_TO_SQUAD
 
 	if(Check_WO() && GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_human.job))) //activates self setting proc for marine headsets for WO
 		var/datum/game_mode/whiskey_outpost/WO = SSticker.mode
@@ -584,8 +588,10 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	else if(late_join)
 		// SS220 EDIT - START - раундстарт для squad-ролей сначала использует модульный резолвер спавна
 		var/turf/late_join_turf
+		var/use_modular_spawn_candidate = new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: latejoin modular job-landmark resolution stays opt-in for intended non-squad jobs
 		// late_join_turf = new_human.get_modular_spawn_turf(new_job, TRUE)
-		spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
 		late_join_turf = spawn_candidate?["spawn_turf"]
 		if(!late_join_turf)
 			// if(GLOB.latejoin_by_squad[assigned_squad])
@@ -596,7 +602,12 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			// 	late_join_turf = get_turf(pick(GLOB.latejoin))
 			late_join_turf = get_modular_safe_latejoin_turf(new_job.title, assigned_squad) // SS220 EDIT: safe latejoin fallback skips empty buckets before global latejoin
 		// SS220 EDIT - END
-		new_human.forceMove(late_join_turf)
+		if(!isturf(late_join_turf))
+			late_join_turf = get_turf(new_human) // SS220 EDIT: missing latejoin turf falls back to current turf instead of forceMove(null)
+		if(isturf(late_join_turf))
+			new_human.forceMove(late_join_turf)
+		else
+			squads_debug_log("[new_human] failed to resolve latejoin spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing latejoin turf as logged fallback, not a runtime
 	else
 		var/turf/join_turf
 		// SS220 EDIT - START
@@ -610,10 +621,11 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
 		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
-		if(is_squad_role)
-			// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
-			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE)
-			join_turf = spawn_candidate?["spawn_turf"]
+		var/use_modular_spawn_candidate = is_squad_role || new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: modular job-landmark resolver stays opt-in for intended non-squad jobs
+		// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
 
 		if(!join_turf)
 			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])
@@ -630,7 +642,12 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			else if(!is_squad_role)
 				join_turf = get_modular_safe_latejoin_turf(null, null, FALSE) // SS220 EDIT: safe latejoin fallback avoids pick(empty list)
 		// SS220 EDIT - END
-		new_human.forceMove(join_turf)
+		if(!isturf(join_turf))
+			join_turf = get_turf(new_human) // SS220 EDIT: missing roundstart spawn turf falls back to current turf instead of forceMove(null)
+		if(isturf(join_turf))
+			new_human.forceMove(join_turf)
+		else
+			squads_debug_log("[new_human] failed to resolve roundstart spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing spawn turf as logged fallback, not a runtime
 
 	/* SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021)
 	for(var/cardinal in GLOB.cardinals)
@@ -712,6 +729,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		return
 
 	var/default_role = GET_DEFAULT_ROLE(H.job) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
+	var/list/halo_family_types = get_halo_job_family_types(H.job)
 
 	//we make a list of squad that is randomized so alpha isn't always lowest squad.
 	var/list/squads_copy = squads.Copy()
@@ -719,6 +737,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	// The following code removes non useable squads from the lists of squads we assign marines too.
 	for(var/i= 1 to length(squads_copy))
 		var/datum/squad/S = pick_n_take(squads_copy)
+		if(islist(halo_family_types) && length(halo_family_types) && !(S.type in halo_family_types))
+			continue
 		if (S.roundstart && S.usable && S.faction == H.faction && S.name != "Root")
 			mixed_squads += S
 

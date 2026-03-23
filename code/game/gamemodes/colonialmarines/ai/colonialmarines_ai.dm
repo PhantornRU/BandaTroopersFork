@@ -35,6 +35,7 @@
 	RegisterSignal(SSdcs, COMSIG_GLOB_XENO_SPAWN, PROC_REF(handle_xeno_spawn))
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	if(role_authority) // SS220 EDIT: lowpop ship-side roster and squad family are selected through modular platoon helpers
+		role_authority.sync_pending_same_ship_platoon_for_round_start() // SS220 EDIT: Start Round on the already loaded ship must still apply same-map platoon overrides from next_ship.json
 		squad_limit = role_authority.get_main_ship_lowpop_keep_types()
 		role_mappings = role_authority.get_main_ship_role_mappings(TRUE)
 		role_authority.handle_main_ship_mode_changed()

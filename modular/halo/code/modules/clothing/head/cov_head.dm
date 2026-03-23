@@ -1,5 +1,5 @@
 /obj/item/clothing/head/helmet/marine/sangheili
-	name = "\improper шлем сангхейли"
+	name = "\improper Sangheili helmet"
 	desc = "Наноламинатный шлем, вдохновлённый древними доспехами сангхейли доковенантной эпохи и почти не менявший дизайн полсотни поколений. Оснащён полноценными системами связи и smart-link, позволяющими владельцу управлять своими подчинёнными и точно работать с оружием."
 	icon = 'icons/halo/obj/items/clothing/covenant/helmets.dmi'
 	icon_state = "sanghelmet_minor"
@@ -23,10 +23,10 @@
 	armor_bomb = CLOTHING_ARMOR_MEDIUM
 
 /obj/item/clothing/head/helmet/marine/sangheili/minor
-	name = "\improper шлем сангхейли-минор"
+	name = "\improper Sangheili Minor helmet"
 
 /obj/item/clothing/head/helmet/marine/sangheili/major
-	name = "\improper шлем сангхейли-майор"
+	name = "\improper Sangheili Major helmet"
 	icon_state = "sanghelmet_major"
 	item_state = "sanghelmet_major"
 
@@ -36,7 +36,7 @@
 	armor_bomb = CLOTHING_ARMOR_MEDIUMHIGH
 
 /obj/item/clothing/head/helmet/marine/sangheili/ultra
-	name = "\improper шлем сангхейли-ультра"
+	name = "\improper Sangheili Ultra helmet"
 	icon_state = "sanghelmet_ultra"
 	item_state = "sanghelmet_ultra"
 
@@ -46,7 +46,7 @@
 	armor_bomb = CLOTHING_ARMOR_HIGH
 
 /obj/item/clothing/head/helmet/marine/sangheili/zealot
-	name = "\improper шлем сангхейли-зилота"
+	name = "\improper Sangheili Zealot helmet"
 	icon_state = "sanghelmet_zealot"
 	item_state = "sanghelmet_zealot"
 

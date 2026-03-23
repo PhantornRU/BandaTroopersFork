@@ -49,6 +49,13 @@
 	if(!resolved_static_name)
 		return null
 
+	var/list/primary_family_types = GLOB.RoleAuthority.get_active_ship_primary_family_types()
+	if(islist(primary_family_types) && length(primary_family_types))
+		for(var/family_type in primary_family_types)
+			var/datum/squad/family_squad = GLOB.RoleAuthority.squads_by_type[family_type]
+			if(family_squad && get_static_name_by_squad(family_squad) == resolved_static_name)
+				return family_squad
+
 	var/managed_type = squad_type_by_static[resolved_static_name]
 	if(!managed_type)
 		return null

@@ -154,8 +154,14 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if(!length(detection_turfs))
 		setup_detection_radius() // SS220 EDIT: restore projectile detection after recovering from incap or reset
 
-	if(tied_human.resting)
+	// SS220 EDIT - START: hardcrit AIs should keep resting until the crit loop and knockdown pressure are truly gone
+	var/should_force_resting = ((locate(/datum/effects/crit) in tied_human.effects_list) && (tied_human.status_flags & CANKNOCKOUT))
+	if(should_force_resting)
+		if(!tied_human.resting)
+			tied_human.set_resting(TRUE, TRUE)
+	else if(tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
 		tied_human.set_resting(FALSE, TRUE)
+	// SS220 EDIT - END
 
 	if(tied_human.buckled)
 		tied_human.set_buckled(FALSE) // AI never buckle themselves into chairs at the moment, change if this becomes the case

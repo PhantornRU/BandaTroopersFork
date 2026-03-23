@@ -1344,6 +1344,26 @@ GLOBAL_LIST_INIT(WALLITEMS, list(
 	if(turfs.len)
 		return pick(turfs)
 
+// SS220 EDIT - START: expose shared projectile LOS helper for modular HALO plasma grenade effects
+/proc/check_for_path_obstacles_projectile(atom/source, atom/target, obj/projectile/P)
+	var/list/turf/path = get_line(source, target, include_start_atom = FALSE)
+	if(!length(path) || get_dist(source, target) > P.ammo.max_range)
+		return TRUE
+
+	var/blocked = FALSE
+	for(var/turf/T in path)
+		if(T.density)
+			blocked = TRUE
+			break
+
+		for(var/obj/O in T)
+			if(O.get_projectile_hit_boolean(P))
+				blocked = TRUE
+				break
+
+	return blocked
+// SS220 EDIT - END
+
 // Returns true if arming a given explosive might be considered grief
 // Explosives are considered "griefy" if they are primed when all the following are true:
 // * The explosive is on the Almayer/dropship transit z levels

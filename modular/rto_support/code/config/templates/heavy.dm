@@ -1,5 +1,6 @@
 /datum/rto_support_template/heavy
 	template_id = "heavy"
+	allowed_support_profiles = list("uscm", "odst")
 	name = "Heavy Strike"
 	description = "Редкий тяжёлый пакет с малым разбросом, длинным окном удара и умеренно долгими интервалами между вызовами."
 	role_summary = "Редкие и дорогие тяжёлые удары по приоритетным целям."
@@ -8,7 +9,7 @@
 	visibility_zone_type = "Strike window"
 	visibility_zone_radius = 4
 	visibility_zone_duration = 80 SECONDS
-	visibility_zone_cooldown = 800 SECONDS
+	visibility_zone_cooldown = 1600 SECONDS
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/heavy_missile,

@@ -53,6 +53,10 @@
 		"fire_support_points" = rules.build_fire_support_points_data(),
 		"fire_support_enabled_entries" = fire_support_pool["enabled"],
 		"fire_support_disabled_entries" = fire_support_pool["disabled"],
+		"player_survival_enabled" = rules.player_survival_enabled,
+		"player_survival_crit_grace_seconds" = rules.player_survival_crit_grace_seconds,
+		"player_survival_antigib_enabled" = rules.player_survival_antigib_enabled,
+		"player_survival_antigib_limb_loss_chance" = rules.player_survival_antigib_limb_loss_chance,
 	)
 
 /datum/game_rule_panel/ui_close(mob/user)
@@ -111,6 +115,43 @@
 			rules.reset_rto_rules()
 			GLOB.rto_support_registry?.propagate_rules_update()
 			log_rule_change(user, "reset RTO Game Rule Panel settings to defaults.")
+			updated = TRUE
+
+		if("set_player_survival_enabled")
+			var/enabled = !!text2num(params["enabled"])
+			if(rules.player_survival_enabled == enabled)
+				return FALSE
+			rules.player_survival_enabled = enabled
+			log_rule_change(user, "set Save Before Death to [enabled ? "enabled" : "disabled"] in Game Rule Panel.")
+			updated = TRUE
+
+		if("set_player_survival_crit_grace_seconds")
+			var/new_value = rules.sanitize_nonnegative_integer(text2num(params["value"]), 15)
+			if(rules.player_survival_crit_grace_seconds == new_value)
+				return FALSE
+			rules.player_survival_crit_grace_seconds = new_value
+			log_rule_change(user, "set Critical Grace Duration to [new_value] seconds in Game Rule Panel.")
+			updated = TRUE
+
+		if("set_player_survival_antigib_enabled")
+			var/enabled = !!text2num(params["enabled"])
+			if(rules.player_survival_antigib_enabled == enabled)
+				return FALSE
+			rules.player_survival_antigib_enabled = enabled
+			log_rule_change(user, "set Anti-Gib Fallback to [enabled ? "enabled" : "disabled"] in Game Rule Panel.")
+			updated = TRUE
+
+		if("set_player_survival_antigib_limb_loss_chance")
+			var/new_value = rules.sanitize_probability(text2num(params["value"]), 30)
+			if(rules.player_survival_antigib_limb_loss_chance == new_value)
+				return FALSE
+			rules.player_survival_antigib_limb_loss_chance = new_value
+			log_rule_change(user, "set Anti-Gib limb loss chance to [new_value]% in Game Rule Panel.")
+			updated = TRUE
+
+		if("reset_player_survival_rules")
+			rules.reset_player_survival_rules()
+			log_rule_change(user, "reset Player Survival Game Rule Panel settings to defaults.")
 			updated = TRUE
 
 		if("set_fire_support_enabled")

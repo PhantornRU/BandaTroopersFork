@@ -1,8 +1,9 @@
 /obj/item/weapon/gun/energy/plasma
-	name = "оружие Ковенанта"
+	name = "Covenant weapon"
 	desc = "Инопланетное оружие, стреляющее плазмой. В норме вы не должны видеть этот базовый экземпляр."
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "plasma_pistol"
+	base_gun_icon = "es4"
 	flags_gun_features = GUN_CAN_POINTBLANK
 	works_in_recharger = FALSE
 	empty_click = null
@@ -199,7 +200,7 @@
 
 
 /obj/item/weapon/gun/energy/plasma/plasma_pistol
-	name = "\improper плазменный пистолет"
+	name = "\improper plasma pistol"
 	desc = null
 	icon_state = "plasma_pistol"
 	item_state = "plasma_pistol"
@@ -306,9 +307,10 @@
 		fire_sound = "gun_lightplasma"
 
 /obj/item/weapon/gun/energy/plasma/plasma_rifle
-	name = "\improper плазменная винтовка"
+	name = "\improper plasma rifle"
 	desc = null
 	icon_state = "plasma_rifle"
+	base_gun_icon = "type71"
 	item_state = "plasma_rifle"
 	heat_per_shot = 3
 	charge_cost = 10
@@ -352,10 +354,11 @@
 	fa_scatter_peak = FULL_AUTO_SCATTER_PEAK_TIER_2
 
 /obj/item/weapon/gun/smg/covenant_needler
-	name = "\improper игольник"
+	name = "\improper needler"
 	desc = null
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "needler"
+	base_gun_icon = "p90"
 	item_state = "needler"
 	fire_sound = "gun_needler"
 	reload_sound = 'sound/weapons/halo/gun_needler_reload.ogg'
@@ -442,10 +445,11 @@
 	update_icon()
 
 /obj/item/weapon/gun/rifle/covenant_carbine
-	name = "\improper карабин"
+	name = "\improper carbine"
 	desc = null
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "carbine"
+	base_gun_icon = "type71"
 	item_state = "carbine"
 	fire_sound = "gun_carbine"
 	reload_sound = 'sound/weapons/halo/gun_carbine_reload.ogg'
