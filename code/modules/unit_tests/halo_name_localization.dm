@@ -17,13 +17,33 @@
 	TEST_ASSERT_EQUAL(localized_name, expected_name, "Localized display-name helper no longer matches translation-data lookup for English canonical names.")
 	TEST_ASSERT_NOTEQUAL(localized_name, operating_table.name, "Localized display-name helper should differ from canonical English name when translation data exists.")
 
-/datum/unit_test/halo_name_localization_halo_passthrough
+/datum/unit_test/halo_name_localization_runtime_name
 	parent_type = /datum/unit_test/halo_name_localization
 
-/datum/unit_test/halo_name_localization_halo_passthrough/Run()
-	var/obj/item/device/healthanalyzer/halo/halo_scanner = allocate(/obj/item/device/healthanalyzer/halo, run_loc_floor_top_right)
+/datum/unit_test/halo_name_localization_runtime_name/Run()
+	var/obj/structure/machinery/door/airlock/unsc/halo_airlock = allocate(/obj/structure/machinery/door/airlock/unsc, run_loc_floor_top_right)
 
-	TEST_ASSERT_EQUAL(halo_scanner.get_display_name_ru(), halo_scanner.name, "HALO items with already-localized source names should keep their current player-facing text until their surfaces migrate to explicit hooks.")
+	TEST_ASSERT_NOTEQUAL(halo_airlock.name, initial(halo_airlock.name), "HALO-tagged objects should apply their localized runtime name instead of keeping the canonical English source name.")
+	TEST_ASSERT_EQUAL(halo_airlock.name, halo_airlock.get_display_name_ru(), "HALO-tagged objects should expose the localized runtime name through the standard display-name helper.")
+
+/datum/unit_test/halo_name_localization_non_halo_passthrough
+	parent_type = /datum/unit_test/halo_name_localization
+
+/datum/unit_test/halo_name_localization_non_halo_passthrough/Run()
+	var/obj/item/circuitboard/airlock/airlock_board = allocate(/obj/item/circuitboard/airlock, run_loc_floor_top_right)
+
+	TEST_ASSERT_EQUAL(airlock_board.name, initial(airlock_board.name), "Non-HALO translation entries should not rewrite canonical runtime names globally.")
+
+/datum/unit_test/halo_name_localization_examine_surface
+	parent_type = /datum/unit_test/halo_name_localization
+
+/datum/unit_test/halo_name_localization_examine_surface/Run()
+	var/obj/structure/machinery/door/airlock/unsc/halo_airlock = allocate(/obj/structure/machinery/door/airlock/unsc, run_loc_floor_top_right)
+	var/list/examine_strings = halo_airlock.get_examine_text(null)
+
+	TEST_ASSERT(length(examine_strings) >= 1, "Localized HALO examine output should contain at least one line.")
+	TEST_ASSERT(findtext(examine_strings[1], halo_airlock.name), "Localized HALO examine output should show the translated display name.")
+	TEST_ASSERT(!findtext(examine_strings[1], "That's"), "Localized HALO examine output should not fall back to the raw English article line.")
 
 /datum/unit_test/halo_name_localization_vendor_hook
 	parent_type = /datum/unit_test/halo_name_localization
