@@ -126,6 +126,11 @@ GLOBAL_LIST_EMPTY(ru_names)
 		return .
 	return get_declented_value(ru_names, declent, .)
 
+/// Explicit player-facing display helper for surfaces that should show the localized name
+/// instead of the canonical `name` value.
+/atom/proc/get_display_name_ru(declent = NOMINATIVE)
+	return declent_ru(declent)
+
 /// Used for getting initial values, such as for recipies where resulted atom is not yet created. It can return null - use var/override_backup to have a returned value guaranteed
 /proc/declent_ru_initial(target_name, declent = NOMINATIVE, override_backup = null)
 	. = override_backup
@@ -135,3 +140,7 @@ GLOBAL_LIST_EMPTY(ru_names)
 	if(!length(declented_list))
 		return .
 	return get_declented_value(declented_list, declent, .)
+
+/// Initial-value companion to [/atom/proc/get_display_name_ru] for UI lists and vendor data.
+/proc/get_display_name_ru_initial(target_name, declent = NOMINATIVE, override_backup = null)
+	return declent_ru_initial(target_name, declent, override_backup)
