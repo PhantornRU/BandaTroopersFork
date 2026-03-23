@@ -83,16 +83,47 @@
 		TRUE
 	)
 
+/mob/living/carbon/human/proc/player_survival_get_game_rules()
+	return GLOB.game_rule_state
+
+/mob/living/carbon/human/proc/player_survival_is_save_before_death_enabled()
+	var/datum/game_rule_state/rules = player_survival_get_game_rules()
+	if(rules)
+		return !!rules.player_survival_enabled
+	return TRUE
+
+/mob/living/carbon/human/proc/player_survival_get_crit_grace_seconds()
+	var/datum/game_rule_state/rules = player_survival_get_game_rules()
+	if(rules)
+		return max(0, rules.player_survival_crit_grace_seconds)
+	return max(0, CONFIG_GET(number/player_survival_crit_immunity_seconds))
+
+/mob/living/carbon/human/proc/player_survival_is_antigib_enabled()
+	var/datum/game_rule_state/rules = player_survival_get_game_rules()
+	if(rules)
+		return !!rules.player_survival_antigib_enabled
+	return TRUE
+
+/mob/living/carbon/human/proc/player_survival_get_antigib_limb_loss_chance()
+	var/datum/game_rule_state/rules = player_survival_get_game_rules()
+	if(rules)
+		return clamp(rules.player_survival_antigib_limb_loss_chance, 0, 100)
+	return 30
+
 /mob/living/carbon/human/proc/player_survival_is_damage_blocked()
 	if(!player_survival_is_protected_player())
+		return FALSE
+	if(!player_survival_is_save_before_death_enabled())
 		return FALSE
 	return world.time <= player_survival_damage_block_until
 
 /mob/living/carbon/human/proc/player_survival_activate_crit_grace()
 	if(!client)
 		return FALSE
+	if(!player_survival_is_save_before_death_enabled())
+		return FALSE
 
-	var/block_duration = max(0, CONFIG_GET(number/player_survival_crit_immunity_seconds)) SECONDS
+	var/block_duration = player_survival_get_crit_grace_seconds() SECONDS
 	if(!block_duration)
 		return FALSE
 
@@ -129,6 +160,8 @@
 /mob/living/carbon/human/proc/player_survival_apply_non_gib_fallback(datum/cause_data/cause, explosion_damage = null, explosion_severity = null, anti_gib_triggered = FALSE)
 	if(!player_survival_is_protected_player())
 		return FALSE
+	if(!player_survival_is_antigib_enabled())
+		return FALSE
 
 	if(!istype(cause))
 		cause = create_cause_data("player survival anti-gib", src)
@@ -149,10 +182,11 @@
 	KnockOut(0.5 SECONDS)
 
 	var/obj/limb/detached_limb = null
-	if(anti_gib_triggered && prob(30))
+	var/limb_loss_chance = player_survival_get_antigib_limb_loss_chance()
+	if(anti_gib_triggered && (limb_loss_chance >= 100 || (limb_loss_chance > 0 && prob(limb_loss_chance))))
 		detached_limb = player_survival_detach_random_extremity(cause)
 
-	if(health <= HEALTH_THRESHOLD_CRIT)
+	if(health <= HEALTH_THRESHOLD_CRIT && player_survival_is_save_before_death_enabled())
 		player_survival_activate_crit_grace()
 
 	player_survival_log_antigib_fallback(cause, explosion_damage, explosion_severity, anti_gib_triggered, detached_limb, previous_health)
