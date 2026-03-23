@@ -1,5 +1,5 @@
 /datum/rto_support_template/halo
-	allowed_support_profiles = list("halo")
+	allowed_support_profiles = list("halo", "unsc", "odst")
 	requires_visibility_zone = FALSE
 	visibility_zone_name = ""
 	visibility_zone_type = ""

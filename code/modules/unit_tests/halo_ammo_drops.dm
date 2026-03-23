@@ -34,11 +34,21 @@
 			TEST_ASSERT_EQUAL(action_template.personal_cooldown, expected_personal_cooldown, "[template.template_id] action [action_id] no longer uses the expected personal cooldown.")
 		TEST_ASSERT(!action_template.allow_closed_turf, "[template.template_id] action [action_id] should keep requiring open turf.")
 
-/datum/unit_test/proc/assert_halo_only_templates(datum/rto_support_controller/controller)
-	for(var/template_id in list("halo_logistics", "halo_medical", "halo_technical"))
-		TEST_ASSERT_NOTNULL(controller.find_template(template_id), "HALO controller could not resolve the [template_id] template.")
-	for(var/template_id in list("mortar", "cas", "heavy", "logistics", "medical", "technical"))
-		TEST_ASSERT_NULL(controller.find_template(template_id), "HALO controller unexpectedly resolved standard template [template_id].")
+/datum/unit_test/proc/assert_expected_templates(datum/rto_support_controller/controller, list/expected_template_ids, label)
+	var/list/actual_template_ids = list()
+	for(var/datum/rto_support_template/template as anything in controller.get_available_templates())
+		actual_template_ids += template.template_id
+
+	TEST_ASSERT_EQUAL(length(actual_template_ids), length(expected_template_ids), "[label] exposed an unexpected number of templates.")
+	for(var/template_id in expected_template_ids)
+		TEST_ASSERT(template_id in actual_template_ids, "[label] is missing expected template [template_id].")
+
+	var/list/all_template_ids = list("mortar", "cas", "heavy", "logistics", "medical", "technical", "halo_logistics", "halo_medical", "halo_technical")
+	for(var/template_id in all_template_ids)
+		if(template_id in expected_template_ids)
+			TEST_ASSERT_NOTNULL(controller.find_template(template_id), "[label] could not resolve expected template [template_id].")
+		else
+			TEST_ASSERT_NULL(controller.find_template(template_id), "[label] unexpectedly resolved template [template_id].")
 
 /datum/unit_test/proc/assert_uscm_only_templates(datum/rto_support_controller/controller)
 	for(var/template_id in list("mortar", "cas", "heavy", "logistics", "medical", "technical"))
@@ -56,39 +66,25 @@
 /datum/unit_test/halo_support_template_availability
 
 /datum/unit_test/halo_support_template_availability/Run()
-	var/list/expected_template_ids = list("halo_logistics", "halo_medical", "halo_technical")
+	var/list/expected_unsc_template_ids = list("mortar", "halo_logistics", "halo_medical", "halo_technical")
+	var/list/expected_odst_template_ids = list("cas", "heavy", "halo_logistics", "halo_medical", "halo_technical")
 
 	var/mob/living/carbon/human/halo_human = allocate(/mob/living/carbon/human)
 	halo_human.job = JOB_SQUAD_RTO_UNSC
 	var/datum/rto_support_controller/halo_controller = allocate(/datum/rto_support_controller, halo_human)
-
-	var/list/halo_templates = halo_controller.get_available_templates()
-	for(var/template_id in expected_template_ids)
-		var/has_template = FALSE
-		for(var/datum/rto_support_template/template as anything in halo_templates)
-			if(template.template_id == template_id)
-				has_template = TRUE
-				break
-		TEST_ASSERT(has_template, "HALO RTO did not receive the [template_id] template.")
-		TEST_ASSERT_NOTNULL(halo_controller.find_template(template_id), "HALO controller could not resolve the [template_id] template.")
-	assert_halo_only_templates(halo_controller)
+	assert_expected_templates(halo_controller, expected_unsc_template_ids, "UNSC HALO RTO")
 
 	var/mob/living/carbon/human/odst_human = allocate(/mob/living/carbon/human)
 	odst_human.job = JOB_SQUAD_RTO_ODST
 	var/datum/rto_support_controller/odst_controller = allocate(/datum/rto_support_controller, odst_human)
-	assert_halo_only_templates(odst_controller)
-
-	var/list/odst_templates = odst_controller.get_available_templates()
-	TEST_ASSERT_EQUAL(length(odst_templates), length(halo_templates), "HALO UNSC and ODST RTOs should expose the same number of HALO templates.")
-	for(var/datum/rto_support_template/template as anything in halo_templates)
-		TEST_ASSERT_NOTNULL(odst_controller.find_template(template.template_id), "HALO ODST controller is missing HALO template [template.template_id].")
+	assert_expected_templates(odst_controller, expected_odst_template_ids, "ODST HALO RTO")
 
 	var/mob/living/carbon/human/uscm_human = allocate(/mob/living/carbon/human)
 	uscm_human.job = JOB_SQUAD_RTO
 	var/datum/rto_support_controller/uscm_controller = allocate(/datum/rto_support_controller, uscm_human)
 
 	var/list/uscm_templates = uscm_controller.get_available_templates()
-	for(var/template_id in expected_template_ids)
+	for(var/template_id in list("halo_logistics", "halo_medical", "halo_technical"))
 		for(var/datum/rto_support_template/template as anything in uscm_templates)
 			TEST_ASSERT(template.template_id != template_id, "Standard USCM RTO unexpectedly received the [template_id] template.")
 		TEST_ASSERT_NULL(uscm_controller.find_template(template_id), "Standard USCM RTO could resolve the [template_id] template.")
@@ -219,6 +215,37 @@
 	), 0, 0)
 	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_recon_drop").shared_cooldown, 240 SECONDS, "USCM technical recon drop should use the medium shared cooldown.")
 	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_powerloader_drop").shared_cooldown, 360 SECONDS, "USCM powerloader drop should use the longer technical shared cooldown.")
+
+	var/datum/rto_support_template/mortar/mortar_template = allocate(/datum/rto_support_template/mortar)
+	assert_template_actions(mortar_template, list(
+		"mortar_he" = /datum/fire_support/mortar/rto_single,
+		"mortar_smoke" = /datum/fire_support/mortar/smoke/rto_single,
+		"mortar_incendiary" = /datum/fire_support/mortar/incendiary/rto_single,
+	), 0, 0)
+	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_he").shared_cooldown, 4 SECONDS, "Mortar HE should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_smoke").shared_cooldown, 3 SECONDS, "Mortar smoke should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_incendiary").shared_cooldown, 6 SECONDS, "Mortar incendiary should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(mortar_template.visibility_zone_cooldown, 600 SECONDS, "Mortar should use doubled visibility zone cooldown.")
+
+	var/datum/rto_support_template/cas/cas_template = allocate(/datum/rto_support_template/cas)
+	assert_template_actions(cas_template, list(
+		"cas_gun_run" = /datum/fire_support/gau,
+		"cas_laser_run" = /datum/fire_support/laser,
+		"cas_rocket_barrage" = /datum/fire_support/rockets,
+	), 0, 0)
+	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_gun_run").shared_cooldown, 12 SECONDS, "CAS gun run should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_laser_run").shared_cooldown, 16 SECONDS, "CAS laser run should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_rocket_barrage").shared_cooldown, 22 SECONDS, "CAS rocket barrage should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(cas_template.visibility_zone_cooldown, 1000 SECONDS, "CAS should use doubled visibility zone cooldown.")
+
+	var/datum/rto_support_template/heavy/heavy_template = allocate(/datum/rto_support_template/heavy)
+	assert_template_actions(heavy_template, list(
+		"heavy_missile" = /datum/fire_support/missile,
+		"heavy_napalm" = /datum/fire_support/missile/napalm,
+	), 0, 0)
+	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_missile").shared_cooldown, 18 SECONDS, "Heavy missile strike should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_napalm").shared_cooldown, 16 SECONDS, "Heavy napalm strike should keep its original shared cooldown.")
+	TEST_ASSERT_EQUAL(heavy_template.visibility_zone_cooldown, 1600 SECONDS, "Heavy strike should use doubled visibility zone cooldown.")
 
 /datum/unit_test/halo_support_two_slot_lifecycle
 

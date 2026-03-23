@@ -83,8 +83,10 @@
 	var/obj/item/device/binoculars/rto/binoculars = get_owned_binocular()
 	if(binoculars)
 		return binoculars.get_support_profile()
-	if(owner?.job in list(JOB_SQUAD_RTO_UNSC, JOB_SQUAD_RTO_ODST))
-		return "halo"
+	if(owner?.job == JOB_SQUAD_RTO_UNSC)
+		return "unsc"
+	if(owner?.job == JOB_SQUAD_RTO_ODST)
+		return "odst"
 	return "uscm"
 
 /datum/rto_support_controller/proc/get_available_templates()

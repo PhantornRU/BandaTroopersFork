@@ -27,9 +27,15 @@
 	name = "UNSC RTO binoculars"
 	desc = "A UNSC RTO binocular set adapted to the modular HALO support workflow."
 
+/obj/item/device/binoculars/rto/halo/unsc/get_support_profile()
+	return "unsc"
+
 /obj/item/device/binoculars/rto/halo/odst
 	name = "ODST RTO binoculars"
 	desc = "An ODST RTO binocular set adapted to the modular HALO support workflow."
+
+/obj/item/device/binoculars/rto/halo/odst/get_support_profile()
+	return "odst"
 
 /obj/item/device/binoculars/rto/Destroy()
 	stop_live_marker(null, TRUE)
