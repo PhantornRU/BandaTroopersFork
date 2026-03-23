@@ -376,6 +376,7 @@
 	icon_state = "sangbelt_minor"
 	has_gamemode_skin = FALSE
 	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
+	var/mob/living/carbon/human/grenade_scatter_owner
 	can_hold = list(
 		/obj/item/attachable/bayonet,
 		/obj/item/device/flashlight/flare,
@@ -399,6 +400,79 @@
 		/obj/item/ammo_magazine/needler_crystal,
 		/obj/item/ammo_magazine/carbine,
 	)
+
+/obj/item/storage/belt/marine/covenant/Destroy()
+	unregister_grenade_scatter_signal()
+	return ..()
+
+/obj/item/storage/belt/marine/covenant/equipped(mob/user, slot, silent)
+	. = ..()
+	register_grenade_scatter_signal(user, slot)
+
+/obj/item/storage/belt/marine/covenant/unequipped(mob/user, slot)
+	. = ..()
+	unregister_grenade_scatter_signal(user)
+
+/obj/item/storage/belt/marine/covenant/proc/register_grenade_scatter_signal(mob/living/carbon/human/user, slot)
+	if(slot != WEAR_WAIST || user == grenade_scatter_owner)
+		return
+
+	unregister_grenade_scatter_signal()
+	if(!ishuman(user) || user.belt != src)
+		return
+
+	RegisterSignal(user, COMSIG_MOB_DEATH, PROC_REF(handle_owner_death))
+	grenade_scatter_owner = user
+
+/obj/item/storage/belt/marine/covenant/proc/unregister_grenade_scatter_signal(mob/living/carbon/human/user = grenade_scatter_owner)
+	if(!ishuman(user))
+		user = grenade_scatter_owner
+	if(!ishuman(user))
+		return
+
+	UnregisterSignal(user, COMSIG_MOB_DEATH)
+	if(user == grenade_scatter_owner)
+		grenade_scatter_owner = null
+
+/obj/item/storage/belt/marine/covenant/proc/handle_owner_death(mob/living/carbon/human/source)
+	SIGNAL_HANDLER
+	if(source != grenade_scatter_owner || source.belt != src)
+		return
+	if(!issangheili(source) && !isunggoy(source))
+		return
+
+	scatter_stored_grenades(source, get_turf(source))
+
+/obj/item/storage/belt/marine/covenant/proc/scatter_stored_grenades(mob/living/carbon/human/source, turf/origin_turf)
+	if(!isturf(origin_turf) || !length(contents))
+		return
+
+	var/list/grenades_to_scatter = list()
+	for(var/obj/item/explosive/grenade/grenade as anything in contents)
+		grenades_to_scatter += grenade
+
+	if(!length(grenades_to_scatter))
+		return
+
+	var/list/available_directions = GLOB.alldirs.Copy()
+
+	for(var/obj/item/explosive/grenade/grenade as anything in grenades_to_scatter)
+		var/direction = length(available_directions) ? pick(available_directions) : pick(GLOB.alldirs)
+		available_directions -= direction
+
+		var/turf/target_turf = origin_turf
+		var/turf/current_turf = origin_turf
+		var/throw_distance = rand(1, 2)
+		for(var/i in 1 to throw_distance)
+			var/turf/next_turf = get_step(current_turf, direction)
+			if(!isturf(next_turf) || next_turf.density)
+				break
+			current_turf = next_turf
+			target_turf = next_turf
+
+		remove_from_storage(grenade, origin_turf)
+		if(target_turf != origin_turf)
+			grenade.throw_atom(target_turf, get_dist(origin_turf, target_turf), SPEED_FAST, source, TRUE)
 
 /obj/item/storage/belt/marine/covenant/sangheili
 	name = "\improper пояс боеприпасов сангхейли"
