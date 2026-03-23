@@ -1,5 +1,6 @@
 /datum/rto_support_template/cas
 	template_id = "cas"
+	allowed_support_profiles = list("uscm", "odst")
 	name = "CAS"
 	description = "Точный авиационный пакет для среднего по редкости штурмового сопровождения."
 	role_summary = "Точечная авиационная поддержка для быстрого продавливания."
@@ -8,7 +9,7 @@
 	visibility_zone_type = "Air corridor"
 	visibility_zone_radius = 5
 	visibility_zone_duration = 60 SECONDS
-	visibility_zone_cooldown = 500 SECONDS
+	visibility_zone_cooldown = 1000 SECONDS
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/cas_gun_run,
