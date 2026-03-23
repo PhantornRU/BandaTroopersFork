@@ -1,5 +1,5 @@
 /obj/structure/covenant_barricade
-	name = "оборонительный барьер Ковенанта"
+	name = "Covenant defensive barrier"
 	desc = "Прочный наноламинатный барьер. Почти неуязвим для обычного стрелкового оружия."
 	breakable = FALSE
 	indestructible = TRUE
@@ -43,6 +43,6 @@
 	overlays += overlay
 
 /obj/structure/covenant_barricade/wide
-	name = "триптих-барьер Ковенанта"
+	name = "Covenant triptych barrier"
 	icon_state = "cov_triplebarrier"
 	is_wide = TRUE

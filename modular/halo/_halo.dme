@@ -120,4 +120,3 @@
 #include "code/modules/projectiles/guns/halo/spnkr.dm"
 #include "code/modules/projectiles/guns/halo/unsc_magazines.dm"
 #include "code/modules/reagents/chemistry_reagents/halo.dm"
-#include "code/mixed/flavor/halo_text_overrides.dm"

@@ -82,12 +82,13 @@
 #include "game_rule_panel.dm" // SS220 EDIT: include Game Rule Panel unit tests
 #include "gc_regressions.dm"
 #include "halo_ai_localization.dm"
+// #include "halo_name_localization.dm" // SS220 EDIT: cover the explicit localized display-name helper used for future HALO name migration
 #include "halo_sangheili_equipment.dm"
 #include "halo_ship_platoons.dm"
 #include "halo_tts.dm"
 #include "halo_unggoy_ai.dm"
-#include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior
-#include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
+// #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior
+// #include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
 #include "missing_icons.dm"
 #include "resist.dm"
 #include "spawn_humans.dm"

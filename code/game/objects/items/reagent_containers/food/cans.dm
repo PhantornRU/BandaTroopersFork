@@ -251,7 +251,7 @@
 
 /obj/item/reagent_container/food/drinks/cans/classcola
 	name = "\improper Coca-Cola"
-	desc = "Victor of the Cola Wars, this beverage is the most popular soft drink in the UA and much of the TWE."
+	desc = "Классическое сочетание красного и белого. Легендарная американская газировка, которую до сих пор разливают на Земле и на нескольких колониях." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "cola"
 	center_of_mass = "x=16;y=10"
 

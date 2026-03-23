@@ -1,5 +1,5 @@
 /obj/structure/closet/crate/unsc
-	name = "ящик снабжения ККОН"
+	name = "UNSC supply crate"
 	desc = "Стандартный ящик снабжения сил ККОН, пригодный для хранения самых разных предметов."
 	icon = 'icons/halo/obj/structures/crates.dmi'
 	icon_state = "closed_unsc"
@@ -7,14 +7,14 @@
 	icon_closed = "closed_unsc"
 
 /obj/structure/prop/unsc_crate
-	name = "ящик ККОН"
+	name = "UNSC crate"
 	desc = "Военный грузовой ящик."
 	icon = 'icons/halo/obj/structures/props/crates.dmi'
 	icon_state = null
 	density = TRUE
 
 /obj/structure/prop/unsc_crate/stack
-	name = "закреплённые ящики снабжения ККОН"
+	name = "secured UNSC supply crates"
 	desc = "Два ящика снабжения, стянутые между собой ремнём."
 	icon = 'icons/halo/obj/structures/crates.dmi'
 	icon_state = "cratestack"
@@ -49,7 +49,7 @@
 	icon_state = "c2_green"
 
 /obj/structure/prop/unsc_crate/big
-	name = "крупный ящик ККОН"
+	name = "large UNSC crate"
 	desc = "Крупный военный грузовой ящик."
 	icon = 'icons/halo/obj/structures/props/64x64crates.dmi'
 	icon_state = "crate"
@@ -57,7 +57,7 @@
 	pixel_x = -5
 
 /obj/structure/prop/unsc_crate/big/stack
-	name = "ящики ККОН"
+	name = "UNSC crates"
 	desc = "Стопка крупных военных грузовых ящиков."
 	icon_state = "pile"
 	pixel_x = -3
@@ -66,7 +66,7 @@
 	icon_state = "pile2"
 
 /obj/structure/cargo_container/unsc
-	name = "грузовой контейнер ККОН"
+	name = "UNSC cargo container"
 	desc = "Крупный грузовой контейнер оливкового цвета."
 	icon = 'icons/halo/obj/structures/props/containers.dmi'
 	icon_state = "main_1"

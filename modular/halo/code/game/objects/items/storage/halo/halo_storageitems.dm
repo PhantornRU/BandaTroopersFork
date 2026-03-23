@@ -3,7 +3,7 @@
 // HOLSTER BELTS
 //======================
 /obj/item/storage/belt/gun/m6
-	name = "\improper разгрузка-кобура под пистолет M6"
+	name = "\improper M6 general pistol holster rig"
 	desc = "M276 - стандартная система разгрузочного снаряжения ККОН. Она состоит из модульного пояса с различными креплениями. В этой версии установлен кобурный модуль, позволяющий носить самые распространённые пистолеты, а также боковые подсумки под большинство пистолетных магазинов."
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m6_holster"
@@ -50,7 +50,7 @@
 		new /obj/item/ammo_magazine/pistol/halo/m6a(src)
 
 /obj/item/storage/belt/gun/m7
-	name = "\improper разгрузка-кобура M7"
+	name = "\improper M7 holster rig"
 	desc = "Специальная разгрузка под M7, редко выдаваемая вспомогательному и специализированному персоналу ККОН в качестве PDW."
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m7_holster"
@@ -86,7 +86,7 @@
 //======================
 
 /obj/item/storage/belt/medical/unsc
-	name = "\improper медицинская разгрузка образца M8A"
+	name = "\improper M8A pattern medical storage rig"
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. Он состоит из модульного пояса с различными креплениями. Эта конфигурация встречается реже и предназначена для переноски более громоздких медицинских принадлежностей. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicalbelt"
@@ -118,7 +118,7 @@
 	new /obj/item/stack/medical/advanced/ointment(src)
 
 /obj/item/storage/belt/medical/lifesaver/unsc
-	name = "\improper разгрузка медика образца M8A"
+	name = "\improper M8A pattern lifesaver rig"
 	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. В этой конфигурации к нему крепится сумка, заполненная различными инжекторами и лёгкими медицинскими средствами, поэтому она особенно популярна у медиков. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicbag"
@@ -172,7 +172,7 @@
 //======================
 
 /obj/item/storage/pouch/medkit/unsc
-	name = "подсумок меднабора ККОН"
+	name = "UNSC medical kit pouch"
 	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "medpouch"
 	can_hold_skill = list(
@@ -209,7 +209,7 @@
 //======================
 
 /obj/item/storage/pouch/pistol/unsc
-	name = "\improper кобура для M6"
+	name = "\improper M6 pistol holster"
 	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "m6"
 	gun_underlay_path = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
@@ -221,13 +221,13 @@
 	)
 
 /obj/item/storage/pouch/magazine/pistol/unsc
-	name = "подсумок под пистолетные магазины"
+	name = "pistol magazine pouch"
 	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "pistolmag"
 	can_hold = list(/obj/item/ammo_magazine/pistol/halo)
 
 /obj/item/storage/pouch/magazine/pistol/unsc/large
-	name = "большой подсумок под пистолетные магазины"
+	name = "large pistol magazine pouch"
 	icon_state = "pistolmag_large"
 	storage_slots = 6
 
@@ -236,7 +236,7 @@
 //======================
 
 /obj/item/storage/backpack/marine/satchel/rto/unsc
-	name = "ранец радиста ККОН"
+	name = "UNSC radio backpack"
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "radiopack"
 	item_state = "radiopack"
@@ -249,7 +249,7 @@
 	phone_category = PHONE_UNSC
 
 /obj/item/storage/backpack/marine/satchel/unsc
-	name = "задний подсумок ККОН"
+	name = "UNSC buttpack"
 	desc = "Штатный задний подсумок пехоты ККОН."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "buttpack"
@@ -260,7 +260,7 @@
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
 /obj/item/storage/backpack/marine/unsc
-	name = "рюкзак ККОН"
+	name = "UNSC rucksack"
 	desc = "Большой песочный рюкзак, крепящийся прямо к точкам подвеса брони M52B. Штатное снаряжение, используемое почти всеми ветвями ККОН с XXV века."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "rucksack"
@@ -271,7 +271,7 @@
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
 /obj/item/storage/backpack/marine/ammo_rack/spnkr
-	name = "рюкзак для ракетных блоков SPNKr"
+	name = "SPNKr tube storage backpack"
 	desc = "Две отдельные тканевые сумки, каждая из которых вмещает один двухтрубный блок M19 для M41 SPNKr."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "spnkrpack_0"
@@ -295,7 +295,7 @@
 //======================
 
 /obj/item/storage/unsc_speckit
-	name = "ящик специалиста ККОН"
+	name = "UNSC specialist kit box"
 	desc = "Неподписанный и никак не маркированный ящик со специализированным снаряжением. Остаётся лишь гадать, что лежит внутри."
 	icon = 'icons/halo/obj/items/storage/spec_kits.dmi'
 	icon_state = "template"
@@ -331,7 +331,7 @@
 		open(user)
 
 /obj/item/storage/unsc_speckit/spnkr
-	name = "кейс снаряжения SPNKr"
+	name = "SPNKr equipment case"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SPNKr."
 	icon_state = "spnkr"
 	open_state = "spnkr_o"
@@ -347,7 +347,7 @@
 	new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded(src)
 
 /obj/item/storage/unsc_speckit/srs99
-	name = "кейс снаряжения SRS99-AM"
+	name = "SRS99-AM equipment case"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SRS99-AM."
 	icon_state = "srs99"
 	open_state = "srs99_o"
@@ -370,7 +370,7 @@
 //======================
 
 /obj/item/storage/belt/marine/covenant
-	name = "\improper пояс боеприпасов Ковенанта"
+	name = "\improper Covenant ammunition belt"
 	desc = "Модульное крепление для боевого снаряжения воина, принимающее несколько жёстких контейнеров для личного хранения и кобурирования оружия. Благодаря развитию умных материалов пояс теоретически действительно подходит всем."
 	icon = 'icons/halo/obj/items/clothing/covenant/belts.dmi'
 	icon_state = "sangbelt_minor"
@@ -401,7 +401,7 @@
 	)
 
 /obj/item/storage/belt/marine/covenant/sangheili
-	name = "\improper пояс боеприпасов сангхейли"
+	name = "\improper Sangheili ammunition belt"
 	icon_state = "sangbelt_minor"
 	item_state = "sangbelt_minor"
 	storage_slots = 9
@@ -410,29 +410,29 @@
 		)
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor
-	name = "\improper пояс боеприпасов сангхейли-минор"
+	name = "\improper Sangheili Minor ammunition belt"
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/major
-	name = "\improper пояс боеприпасов сангхейли-майор"
+	name = "\improper Sangheili Major ammunition belt"
 	icon_state = "sangbelt_major"
 	item_state = "sangbelt_major"
 
 /obj/item/storage/belt/marine/covenant/sangheili/major/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/ultra
-	name = "\improper пояс боеприпасов сангхейли-ультра"
+	name = "\improper Sangheili Ultra ammunition belt"
 	icon_state = "sangbelt_ultra"
 	item_state = "sangbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/sangheili/zealot
-	name = "\improper пояс боеприпасов сангхейли-зилота"
+	name = "\improper Sangheili Zealot ammunition belt"
 	icon_state = "sangbelt_zealot"
 	item_state = "sangbelt_zealot"
 
 /obj/item/storage/belt/marine/covenant/unggoy
-	name = "\improper пояс боеприпасов унггоя"
+	name = "\improper Unggoy ammunition belt"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 	item_icons = list(
@@ -440,31 +440,31 @@
 		)
 
 /obj/item/storage/belt/marine/covenant/unggoy/minor
-	name = "\improper пояс боеприпасов унггоя-минор"
+	name = "\improper Unggoy Minor ammunition belt"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 
 /obj/item/storage/belt/marine/covenant/unggoy/major
-	name = "\improper пояс боеприпасов унггоя-майор"
+	name = "\improper Unggoy Major ammunition belt"
 	icon_state = "gruntbelt_major"
 	item_state = "gruntbelt_major"
 
 /obj/item/storage/belt/marine/covenant/unggoy/heavy
-	name = "\improper тяжёлый пояс боеприпасов унггоя"
+	name = "\improper Heavy Unggoy ammunition belt"
 	icon_state = "gruntbelt_heavy"
 	item_state = "gruntbelt_heavy"
 
 /obj/item/storage/belt/marine/covenant/unggoy/ultra
-	name = "\improper пояс боеприпасов унггоя-ультра"
+	name = "\improper Unggoy Ultra ammunition belt"
 	icon_state = "gruntbelt_ultra"
 	item_state = "gruntbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops
-	name = "\improper пояс боеприпасов унггоя спецопераций"
+	name = "\improper Unggoy SpecOps ammunition belt"
 	icon_state = "gruntbelt_specops"
 	item_state = "gruntbelt_specops"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra
-	name = "\improper пояс боеприпасов унггоя спецопераций"
+	name = "\improper Unggoy SpecOps Ultra ammunition belt"
 	icon_state = "gruntbelt_specops_ultra"
 	item_state = "gruntbelt_specops_ultra"

@@ -1,5 +1,5 @@
 /obj/item/reagent_container/glass/beaker/unsc
-	name = "\improper медицинский флакон"
+	name = "\improper medical vial"
 	desc = "Медицинский флакон приличного объёма, обычно встречающийся в военных аптечках."
 	icon = 'icons/halo/obj/items/chemistry.dmi'
 	icon_state = "bottle"
@@ -60,7 +60,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/tricordrazine
-	name = "\improper медицинский флакон трикордразина"
+	name = "\improper tricordrazine medical vial"
 	desc = "Прозрачный глянцевый флакон трикордразина. Используется для лечения повреждений широкого спектра. Передозировка при 30 ед."
 	label_color = "brown"
 	maptext_label = "Tc"
@@ -71,7 +71,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/bicaridine
-	name = "\improper медицинский флакон бикаридина"
+	name = "\improper bicaridine medical vial"
 	desc = "Прозрачный глянцевый флакон бикаридина. Используется для лечения ожогов. Передозировка при 30 ед."
 	label_color = "red"
 	maptext_label = "Bi"
@@ -82,7 +82,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/kelotane
-	name = "\improper медицинский флакон келотана"
+	name = "\improper kelotane medical vial"
 	desc = "Прозрачный глянцевый флакон келотана. Используется для лечения ожогов. Передозировка при 30 ед."
 	label_color = "orange"
 	maptext_label = "Kl"
@@ -93,7 +93,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/tramadol
-	name = "\improper медицинский флакон трамадола"
+	name = "\improper tramadol medical vial"
 	desc = "Прозрачный глянцевый флакон трамадола. Умеренно эффективное обезболивающее. Передозировка при 30 ед."
 	label_color = "pink"
 	maptext_label = "Tr"
@@ -104,7 +104,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/morphine
-	name = "\improper медицинский флакон морфина"
+	name = "\improper morphine medical vial"
 	desc = "Прозрачный глянцевый флакон морфина. Менее эффективен, чем оксикодон, но метаболизируется медленнее. Передозировка при 20 ед."
 	label_color = "pink-black"
 	maptext_label = "Mr"
@@ -115,7 +115,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/oxycodone
-	name = "\improper медицинский флакон оксикодона"
+	name = "\improper oxycodone medical vial"
 	desc = "Прозрачный глянцевый флакон оксикодона. Одно из лучших доступных обезболивающих. Передозировка при 20 ед."
 	label_color = "teal"
 	maptext_label = "Ox"
@@ -126,7 +126,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/dexalin
-	name = "\improper медицинский флакон дексалина"
+	name = "\improper dexalin medical vial"
 	desc = "Прозрачный глянцевый флакон дексалина. Используется для лечения кислородного голодания. Передозировка при 30 ед."
 	label_color = "blue"
 	maptext_label = "Dx"
@@ -137,7 +137,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/dexplus
-	name = "\improper медицинский флакон дексалин+"
+	name = "\improper dexalin+ medical vial"
 	desc = "Прозрачный глянцевый флакон дексалин+. Быстро лечит кислородное голодание и эффективнее обычного дексалина. Передозировка при 15 ед."
 	label_color = "l_blue"
 	maptext_label = "D+"
@@ -148,7 +148,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/dylovene
-	name = "\improper медицинский флакон диловена"
+	name = "\improper dylovene medical vial"
 	desc = "Прозрачный глянцевый флакон диловена. Используется для лечения токсического урона. Передозировка при 30 ед."
 	label_color = "vomit"
 	maptext_label = "Dy"
@@ -159,7 +159,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/inaprovaline
-	name = "\improper медицинский флакон инапровалина"
+	name = "\improper inaprovaline medical vial"
 	desc = "Прозрачный глянцевый флакон инапровалина. Помогает сдерживать дыхательную недостаточность в критическом состоянии. Передозировка при 60 ед."
 	label_color = "magenta"
 	maptext_label = "In"
@@ -170,7 +170,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/peridaxon
-	name = "\improper медицинский флакон перидаксона"
+	name = "\improper peridaxon medical vial"
 	desc = "Прозрачный глянцевый флакон перидаксона. Сдерживает последствия повреждения органов, но не лечит их напрямую. Передозировка при 15 ед."
 	label_color = "gray"
 	maptext_label = "Pr"
@@ -181,7 +181,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/dermaline
-	name = "\improper медицинский флакон дермалина"
+	name = "\improper dermaline medical vial"
 	desc = "Прозрачный глянцевый флакон дермалина. Лечит ожоги лучше, чем Optican BurnGuard. Передозировка при 15 ед."
 	label_color = "orange-black"
 	maptext_label = "De"
@@ -192,7 +192,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/meralyne
-	name = "\improper медицинский флакон мералина"
+	name = "\improper meralyne medical vial"
 	desc = "Прозрачный глянцевый флакон мералина. Лечит физические травмы лучше, чем бикаридин. Передозировка при 15 ед."
 	label_color = "red-black"
 	maptext_label = "Me"
@@ -203,7 +203,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/iron
-	name = "\improper медицинский флакон железа"
+	name = "\improper iron medical vial"
 	desc = "Прозрачный глянцевый флакон железа. Полезен при кровопотере. Передозировка при 30 ед."
 	label_color = "label"
 	maptext_label = "Fe"
@@ -214,7 +214,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/chorotazine
-	name = "\improper медицинский флакон хоротазина"
+	name = "\improper chorotazine medical vial"
 	label_color = "purple"
 	desc = "Прозрачный глянцевый флакон хоротазина. Полезен при повреждениях мозга и глаз. Передозировка при 15 ед."
 	maptext_label = "Cr"
@@ -225,7 +225,7 @@
 	update_icon()
 
 /obj/item/reagent_container/glass/beaker/unsc/nitrogenwater
-	name = "\improper медицинский флакон азотной воды"
+	name = "\improper nitrogen-water medical vial"
 	label_color = "purple"
 	desc = "Прозрачный глянцевый флакон азотной воды. Полезен при передозировке трамадолом."
 	maptext_label = "NW"

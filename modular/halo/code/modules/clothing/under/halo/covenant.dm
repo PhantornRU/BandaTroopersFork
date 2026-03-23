@@ -1,5 +1,5 @@
 /obj/item/clothing/under/marine/covenant
-	name = "нижний костюм"
+	name = "undersuit"
 	desc = "Нижний костюм Ковенанта. Вы не должны это видеть."
 	icon = 'icons/halo/obj/items/clothing/covenant/under.dmi'
 	icon_state = "sangheili_undersuit"
@@ -11,7 +11,7 @@
 	allowed_species_list = list()
 
 /obj/item/clothing/under/marine/covenant/sangheili
-	name = "\improper нижний костюм сангхейли"
+	name = "\improper Sangheili undersuit"
 	desc = "Высокотехнологичный комбинезон, в основном повторяющий форму тела носителя. Благодаря вплетённым слоям наноламинатной брони он обеспечивает достойную защиту при высокой гибкости, позволяя владельцу действовать агрессивно и при этом не оставаться без прикрытия. Продвинутые магнитные проекторы костюма способны с большой силой фиксировать на нём элементы брони."
 	icon = 'icons/halo/obj/items/clothing/covenant/under.dmi'
 	icon_state = "sangheili_undersuit"
@@ -29,7 +29,7 @@
 	)
 
 /obj/item/clothing/under/marine/covenant/unggoy
-	name = "\improper магнитная разгрузка унггоя"
+	name = "\improper Unggoy magnetic webbing"
 	desc = "Выдаваемая унггоям как часть боевого комплекта, эта система ремней с магнитными замками рассчитана на ношение вместе со штатной бронёй. Она неудобна и почти не спасает от натирания, но кожа у унггоев и без того весьма прочная."
 
 	icon_state = "unggoy_harness"

@@ -12,6 +12,7 @@ Canonical baseline for moving HALO `name` localization toward `translation_data`
 ### `safe_now`
 - Surfaces that already use an explicit localization hook.
 - Current confirmed example: vendor entry rewriting through `translate_vendor_entries_to_ru()` and `get_display_name_ru_initial()`.
+- Current pilot package: HALO UNSC medical vendor entries in `modular/halo/code/game/machinery/vending/vendor_types/halo/misc.dm`, backed by `modular/translations/code/translation_data/ru_names/halo_vendors.toml`.
 - Only names that are shown exclusively through such hooks are eligible for English-canonical `name` plus `translation_data` migration right now.
 
 ### `needs_hook`

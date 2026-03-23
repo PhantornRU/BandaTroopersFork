@@ -1,6 +1,6 @@
 /obj/item/clothing/suit/marine/unsc
-	name = "\improper бронежилет M52B"
-	desc = "Штатная броня корпуса морской пехоты ККОН. Комплект M52B поступил на вооружение к 2531 году для войны людей с Ковенантом и обеспечивал лучшую защиту от плазменного оружия по сравнению со старыми моделями."
+	name = "\improper M52B body armor"
+	desc = "Штатная броня корпуса морской пехоты ККОН. Комплект M52B принят на вооружение к 2531 году для войны с Ковенантом. Обновлённый состав сплава Titanium-A заметно усилил защиту от направленной энергии, хотя и не настолько, как рассчитывали."
 	icon = 'icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
 	icon_state = "m52b"
 	item_state = "m52b"
@@ -35,13 +35,13 @@
 	)
 
 /obj/item/clothing/suit/marine/unsc/oni
-	name = "\improper бронежилет ONI M52B"
+	name = "\improper ONI M52B body armor"
 	desc = "Модифицированный вариант стандартной брони M52B, используемый силами безопасности ONI. Существенно не отличается по защите от штатного образца, но окрашен в чёрный цвет."
 	icon_state = "oni_sec"
 	item_state = "oni_sec"
 
 /obj/item/clothing/suit/marine/unsc/police
-	name = "\improper баллистическая броня полиции RD90"
+	name = "\improper police RD90 ballistic armor"
 	desc = "Более старая модель брони M52B, обозначаемая местной полицией и силами безопасности как RD90. Пусть она и не столь удобна, для большинства пользователей она всё ещё справляется со своей задачей, а вдобавок лучше защищает от ударов в ближнем бою."
 	icon = 'icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
 	valid_accessory_slots = list(ACCESSORY_SLOT_MEDAL, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_PAINT, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PONCHO)
@@ -73,7 +73,7 @@
 	armor_internaldamage = CLOTHING_ARMOR_HIGH
 
 /obj/item/clothing/suit/marine/unsc/odst/insurrection
-	name = "\improper трофейный комплект M70DT ODST BDU"
+	name = "\improper scavenged M70DT ODST BDU"
 	icon_state = "odst_insurgent"
 	item_state = "odst_insurgent"
 	valid_accessory_slots = list(ACCESSORY_SLOT_MEDAL, ACCESSORY_SLOT_PAINT, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PONCHO)
