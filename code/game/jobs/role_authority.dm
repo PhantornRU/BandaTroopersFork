@@ -684,15 +684,23 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	var/datum/squad/lowest = pick(mixed_squads)
 
 	var/pref_squad_name // SS220 EDIT: preferred squad is resolved via runtime squad name mapping
+	var/pref_static_name // SS220 EDIT: static name for comparison with squad type
 	if(H && H.client && H.client.prefs.preferred_squad && H.client.prefs.preferred_squad != "None")
 		pref_squad_name = H.client.prefs.preferred_squad
 		pref_squad_name = squad_name_get_runtime(pref_squad_name) // SS220 EDIT: mapped static preference to runtime squad name
+		pref_static_name = squad_name_get_static(pref_squad_name) // SS220 EDIT: get static name for type comparison
 
 	for(var/datum/squad/L in mixed_squads)
 		if(L.usable)
 			if(pref_squad_name && L.name == pref_squad_name)
 				lowest = L
 				break
+			// Дополнительно проверяем по статическому имени (для поддержки UNSC/ODST/USCM фракций)
+			if(pref_static_name)
+				var/squad_static_name = squad_name_get_static_by_squad(L)
+				if(squad_static_name == pref_static_name)
+					lowest = L
+					break
 
 
 	if(!lowest)

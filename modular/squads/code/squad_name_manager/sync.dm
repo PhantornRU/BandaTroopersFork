@@ -59,7 +59,17 @@
 
 	var/datum/squad/marine/marine_squad = target_squad
 	var/old_name = marine_squad.name
-	marine_squad.rename_platoon(null, new_name, old_name)
+
+	// Определяем суффикс фракции по типу отряда
+	var/faction_suffix = ""
+	if(istype(target_squad, /datum/squad/marine/halo/odst))
+		faction_suffix = " ODST"
+	else if(istype(target_squad, /datum/squad/marine/halo/unsc))
+		faction_suffix = " UNSC"
+
+	// Добавляем суффикс к имени для отображения в ID картах
+	var/name_with_faction = new_name + faction_suffix
+	marine_squad.rename_platoon(null, name_with_faction, old_name)
 
 /datum/squad_name_manager/proc/update_global_mappings(datum/squad/target_squad, old_name, new_name)
 	if(old_name == new_name)

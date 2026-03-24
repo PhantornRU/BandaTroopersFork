@@ -938,7 +938,10 @@
 
 	marines_list += M
 	M.assigned_squad = src //Add them to the squad
-	if(GET_DEFAULT_ROLE(M.job) == JOB_SQUAD_LEADER) // SS220 EDIT
+	// Проверяем, является ли должность сквадлидером (поддержка HALO ODST/UNSC)
+	var/job_title = M.job
+	var/is_squad_leader = (job_title == JOB_SQUAD_LEADER) || (job_title == JOB_SQUAD_LEADER_ODST) || (job_title == JOB_SQUAD_LEADER_UNSC)
+	if(is_squad_leader)
 		squad_name_try_apply_leader_preference(M)
 	C.access += (src.access + extra_access) //Add their squad access to their ID
 	if(prepend_squad_name_to_assignment)

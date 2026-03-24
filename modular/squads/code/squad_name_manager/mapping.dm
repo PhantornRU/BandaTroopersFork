@@ -3,8 +3,32 @@
 		return static_name
 	return runtime_name_by_static[static_name] || static_name
 
-/datum/squad_name_manager/proc/get_default_name_by_static(static_name)
-	return default_name_by_static[static_name]
+/datum/squad_name_manager/proc/get_default_name_by_static(static_name, squad_type = null)
+	var/base_name
+	// Сначала проверяем конкретное имя для типа отряда (поддержка UNSC/ODST/USCM)
+	if(squad_type)
+		var/specific_name = default_name_by_squad_type[squad_type]
+		if(specific_name)
+			base_name = specific_name
+		else
+			// Если нет конкретного имени, проверяем наследование
+			for(var/type_path in default_name_by_squad_type)
+				if(istype(squad_type, type_path))
+					base_name = default_name_by_squad_type[type_path]
+					break
+
+	// Fallback на базовое имя по статическому имени
+	if(!base_name)
+		base_name = default_name_by_static[static_name]
+
+	// Добавляем суффикс фракции если это HALO отряд
+	if(squad_type)
+		if(istype(squad_type, /datum/squad/marine/halo/odst))
+			return base_name + " ODST"
+		else if(istype(squad_type, /datum/squad/marine/halo/unsc))
+			return base_name + " UNSC"
+
+	return base_name
 
 /datum/squad_name_manager/proc/resolve_static_name(raw_value)
 	if(!raw_value)
@@ -23,7 +47,26 @@
 	if(static_name)
 		return static_name
 
+	// Сортировка типов по специфичности (более специфичные/длинные path проверяются первыми)
+	// Это нужно для корректной работы с наследованием (UNSC/ODST/USCM и другие фракции)
+	var/list/sorted_types = list()
 	for(var/managed_type in static_by_squad_type)
+		sorted_types += managed_type
+
+	// Bubble sort by path specificity (longer paths = more specific = first)
+	var/n = length(sorted_types)
+	for(var/i = 1 to n)
+		for(var/j = 1 to n - 1)
+			var/type_a = sorted_types[j]
+			var/type_b = sorted_types[j + 1]
+			var/len_a = length(splittext(type_a, "/"))
+			var/len_b = length(splittext(type_b, "/"))
+			if(len_a < len_b)
+				// Swap
+				sorted_types[j] = type_b
+				sorted_types[j + 1] = type_a
+
+	for(var/managed_type in sorted_types)
 		if(istype(target, managed_type))
 			return static_by_squad_type[managed_type]
 

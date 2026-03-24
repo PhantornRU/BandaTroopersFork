@@ -104,6 +104,13 @@
 	if(platoon_type)
 		return platoon_type
 
+	// Чтение настройки platoon из текущей карты (поддержка UNSC/ODST/USCM и других фракций)
+	var/datum/map_config/map_cfg = SSmapping?.configs?[SHIP_MAP]
+	if(map_cfg?.platoon)
+		var/map_platoon_type = text2path(map_cfg.platoon)
+		if(map_platoon_type)
+			return map_platoon_type
+
 	return text2path(MAIN_SHIP_DEFAULT_PLATOON)
 
 /datum/authority/branch/role/proc/get_ship_spawn_preset_override(job_title, current_preset, platoon_type)
