@@ -447,3 +447,26 @@
 
 /datum/unit_test/halo_ship_platoons
 	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/bravo_runtime_rename_labels
+
+/datum/unit_test/halo_ship_platoons/bravo_runtime_rename_labels/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for Bravo runtime rename label testing.")
+	manager.apply_roundstart_defaults()
+
+	var/datum/squad/bravo_squad = manager.get_squad_by_static(SQUAD_MARINE_2)
+	TEST_ASSERT_NOTNULL(bravo_squad, "Failed to resolve Bravo squad for runtime rename label testing.")
+
+	var/obj/item/device/radio/headset/almayer/marine/bravo/bravo_headset = track_test_atom(allocate(/obj/item/device/radio/headset/almayer/marine/bravo, run_loc_floor_top_right))
+	var/obj/item/device/encryptionkey/bravo/bravo_key = track_test_atom(allocate(/obj/item/device/encryptionkey/bravo, run_loc_floor_top_right))
+	TEST_ASSERT_NOTNULL(bravo_headset, "Failed to allocate Bravo headset for runtime rename label testing.")
+	TEST_ASSERT_NOTNULL(bravo_key, "Failed to allocate Bravo encryption key for runtime rename label testing.")
+
+	TEST_ASSERT_EQUAL(manager.rename_squad(bravo_squad, "Vanguard", null, "unit_test_runtime_label", TRUE), TRUE, "Bravo runtime rename failed during label regression test.")
+	TEST_ASSERT_EQUAL(bravo_squad.name, "Vanguard", "Bravo runtime rename did not update the squad datum name.")
+	TEST_ASSERT_EQUAL(bravo_headset.name, "marine vanguard radio headset", "Bravo headset label did not refresh to the runtime squad name.")
+	TEST_ASSERT_EQUAL(bravo_headset.desc, "This is used by Vanguard squad members. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window.", "Bravo headset description did not refresh to the runtime squad name.")
+	TEST_ASSERT_EQUAL(bravo_key.name, "\improper Vanguard Squad Radio Encryption Key", "Bravo encryption key label did not refresh to the runtime squad name.")

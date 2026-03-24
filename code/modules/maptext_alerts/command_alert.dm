@@ -59,7 +59,8 @@
 		else
 			alert_receivers = human_owner.assigned_squad.marines_list
 			announcement_title = "Platoon [human_owner.assigned_squad.name] Announcement"
-		switch(human_owner.assigned_squad.name)
+		var/static_squad_name = squad_name_get_static(human_owner.assigned_squad.name)
+		switch(static_squad_name)
 			if(SQUAD_MARINE_1)
 				override_color = "blue"
 			if(SQUAD_MARINE_2)

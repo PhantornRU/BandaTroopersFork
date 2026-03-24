@@ -22,6 +22,8 @@
 		if(!isnull(channels[static_squad_name]) && static_squad_name != runtime_squad_name)
 			rename_platoon(null, runtime_squad_name, static_squad_name)
 
+	refresh_managed_squad_key_name()
+
 /obj/item/device/encryptionkey/proc/rename_platoon(datum/source, new_name, old_name)
 	SIGNAL_HANDLER
 
@@ -53,6 +55,32 @@
 	SIGNAL_HANDLER
 
 	rename_platoon(source, new_name, old_name)
+	var/static_squad_name = squad_name_get_static_by_squad(target_squad)
+	if(static_squad_name == get_managed_squad_key_static_name())
+		refresh_managed_squad_key_name(new_name)
+
+/obj/item/device/encryptionkey/proc/get_managed_squad_key_static_name()
+	if(istype(src, /obj/item/device/encryptionkey/alpha))
+		return SQUAD_MARINE_1
+	if(istype(src, /obj/item/device/encryptionkey/bravo))
+		return SQUAD_MARINE_2
+	if(istype(src, /obj/item/device/encryptionkey/charlie))
+		return SQUAD_MARINE_3
+	if(istype(src, /obj/item/device/encryptionkey/delta))
+		return SQUAD_MARINE_4
+	return null
+
+/obj/item/device/encryptionkey/proc/refresh_managed_squad_key_name(runtime_name = null)
+	var/static_squad_name = get_managed_squad_key_static_name()
+	if(!static_squad_name)
+		return
+
+	if(!runtime_name)
+		runtime_name = squad_name_get_runtime(static_squad_name)
+	if(!runtime_name)
+		runtime_name = static_squad_name
+
+	name = "\improper [runtime_name] Squad Radio Encryption Key"
 
 /obj/item/device/encryptionkey/binary
 	icon_state = "binary_key"

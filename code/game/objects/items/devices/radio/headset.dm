@@ -82,6 +82,8 @@
 			channels -= static_squad_name
 			channels[runtime_squad_name] = channel_state
 
+	refresh_managed_squad_headset_label()
+
 /obj/item/device/radio/headset/proc/rename_platoon(datum/source, new_name, old_name)
 	SIGNAL_HANDLER
 
@@ -91,6 +93,68 @@
 	SIGNAL_HANDLER
 
 	rename_platoon(source, new_name, old_name)
+	var/static_squad_name = squad_name_get_static_by_squad(target_squad)
+	if(static_squad_name == get_managed_squad_headset_static_name())
+		refresh_managed_squad_headset_label(new_name)
+
+/obj/item/device/radio/headset/proc/get_managed_squad_headset_static_name()
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/alpha))
+		return SQUAD_MARINE_1
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/bravo))
+		return SQUAD_MARINE_2
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/charlie))
+		return SQUAD_MARINE_3
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/delta))
+		return SQUAD_MARINE_4
+	return null
+
+/obj/item/device/radio/headset/proc/get_managed_squad_headset_icon_state(static_squad_name)
+	switch(static_squad_name)
+		if(SQUAD_MARINE_1)
+			return "alpha_headset"
+		if(SQUAD_MARINE_2)
+			return "bravo_headset"
+		if(SQUAD_MARINE_3)
+			return "charlie_headset"
+		if(SQUAD_MARINE_4)
+			return "delta_headset"
+	return icon_state
+
+/obj/item/device/radio/headset/proc/refresh_managed_squad_headset_label(runtime_name = null)
+	var/static_squad_name = get_managed_squad_headset_static_name()
+	if(!static_squad_name)
+		return
+
+	if(!runtime_name)
+		runtime_name = squad_name_get_runtime(static_squad_name)
+	if(!runtime_name)
+		runtime_name = static_squad_name
+
+	var/runtime_name_lower = lowertext(runtime_name)
+	icon_state = get_managed_squad_headset_icon_state(static_squad_name)
+
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/alpha/lead) || istype(src, /obj/item/device/radio/headset/almayer/marine/bravo/lead) || istype(src, /obj/item/device/radio/headset/almayer/marine/charlie/lead) || istype(src, /obj/item/device/radio/headset/almayer/marine/delta/lead))
+		name = "marine [runtime_name_lower] leader radio headset"
+		desc = "This is used by the marine [runtime_name] squad leader. Channels are as follows: :v - marine command, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+		return
+
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/alpha/tl) || istype(src, /obj/item/device/radio/headset/almayer/marine/bravo/tl) || istype(src, /obj/item/device/radio/headset/almayer/marine/charlie/tl) || istype(src, /obj/item/device/radio/headset/almayer/marine/delta/tl))
+		name = "marine [runtime_name_lower] group leader radio headset"
+		desc = "This is used by the marine [runtime_name] group leader. Channels are as follows: :u - requisitions, :j - JTAC. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+		return
+
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/alpha/engi) || istype(src, /obj/item/device/radio/headset/almayer/marine/bravo/engi) || istype(src, /obj/item/device/radio/headset/almayer/marine/charlie/engi) || istype(src, /obj/item/device/radio/headset/almayer/marine/delta/engi))
+		name = "marine [runtime_name_lower] engineer radio headset"
+		desc = "This is used by the marine [runtime_name] combat engineers. To access the engineering channel, use :n. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+		return
+
+	if(istype(src, /obj/item/device/radio/headset/almayer/marine/alpha/med) || istype(src, /obj/item/device/radio/headset/almayer/marine/bravo/med) || istype(src, /obj/item/device/radio/headset/almayer/marine/charlie/med) || istype(src, /obj/item/device/radio/headset/almayer/marine/delta/med))
+		name = "marine [runtime_name_lower] corpsman radio headset"
+		desc = "This is used by the marine [runtime_name] combat medics. To access the medical channel, use :m. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
+		return
+
+	name = "marine [runtime_name_lower] radio headset"
+	desc = "This is used by [runtime_name] squad members. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window."
 
 /obj/item/device/radio/headset/Destroy()
 	wearer = null
@@ -1014,20 +1078,27 @@
 	var/mob/living/carbon/human/H = loc
 	if(istype(H, /mob/living/carbon/human))
 		if(H.assigned_squad)
-			switch(H.assigned_squad.name)
+			var/runtime_squad_name = H.assigned_squad.name
+			var/static_squad_name = squad_name_get_static(runtime_squad_name)
+			switch(static_squad_name)
+				if(SQUAD_MARINE_1)
+					name = "[runtime_squad_name] radio headset"
+					desc = "This is used by [runtime_squad_name] squad members."
+					icon_state = "alpha_headset"
+					frequency = ALPHA_FREQ
 				if(SQUAD_MARINE_2)
-					name = "[SQUAD_MARINE_2] radio headset"
-					desc = "This is used by [SQUAD_MARINE_2] squad members."
+					name = "[runtime_squad_name] radio headset"
+					desc = "This is used by [runtime_squad_name] squad members."
 					icon_state = "bravo_headset"
 					frequency = BRAVO_FREQ
 				if(SQUAD_MARINE_3)
-					name = "[SQUAD_MARINE_3] radio headset"
-					desc = "This is used by [SQUAD_MARINE_3] squad members."
+					name = "[runtime_squad_name] radio headset"
+					desc = "This is used by [runtime_squad_name] squad members."
 					icon_state = "charlie_headset"
 					frequency = CHARLIE_FREQ
 				if(SQUAD_MARINE_4)
-					name = "[SQUAD_MARINE_4] radio headset"
-					desc = "This is used by [SQUAD_MARINE_4] squad members."
+					name = "[runtime_squad_name] radio headset"
+					desc = "This is used by [runtime_squad_name] squad members."
 					icon_state = "delta_headset"
 					frequency = DELTA_FREQ
 				if(SQUAD_MARINE_5)
@@ -1038,12 +1109,6 @@
 					name = "[SQUAD_MARINE_CRYO] radio headset"
 					desc = "This is used by [SQUAD_MARINE_CRYO] squad members."
 					frequency = CRYO_FREQ
-
-			if(H.assigned_squad.name == GLOB.main_platoon_name)
-				name = "[GLOB.main_platoon_name] radio headset"
-				desc = "This is used by [GLOB.main_platoon_name] squad members."
-				icon_state = "alpha_headset"
-				frequency = ALPHA_FREQ
 
 			switch(GET_DEFAULT_ROLE(H.job))
 				if(JOB_SQUAD_LEADER)
