@@ -183,6 +183,15 @@
 	TEST_ASSERT_EQUAL(human?.title, expected_title, "[role_label] did not keep the expected HALO runtime title.")
 	TEST_ASSERT_EQUAL(human?.faction, expected_faction, "[role_label] did not keep the expected HALO mob faction.")
 
+/datum/unit_test/halo_equip_test/proc/assert_halo_core_wearables(mob/living/carbon/human/human, expect_head = TRUE)
+	var/role_label = human?.real_name || "HALO human"
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_BODY), "[role_label] should have a uniform equipped in the body slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should have armor equipped in the jacket slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_HANDS), "[role_label] should have gloves equipped in the hands slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_FEET), "[role_label] should have boots equipped in the feet slot.")
+	if(expect_head)
+		TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should have headgear equipped in the head slot.")
+
 /datum/unit_test/halo_equip_test/proc/assert_halo_specialist_naked_baseline(mob/living/carbon/human/human)
 	var/role_label = human?.real_name || "HALO specialist"
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_BODY), "[role_label] should keep the HALO specialist baseline naked, but still had a uniform equipped.")
