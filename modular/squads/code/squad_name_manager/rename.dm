@@ -75,9 +75,6 @@
 
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 
-	// Заполняем кэш mapping'ов перед использованием
-	role_authority.get_ship_role_title_mappings()
-
 	// Используем get_job_preference_bucket_key для канонической роли
 	var/canonical_role = role_authority?.get_job_preference_bucket_key(job_value)
 	if(canonical_role && canonical_role != job_value)

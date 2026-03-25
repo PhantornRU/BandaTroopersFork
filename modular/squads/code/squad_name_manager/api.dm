@@ -18,12 +18,6 @@
 	var/static_name = manager.get_static_name_by_squad(target_squad)
 	return static_name || target_squad?.name
 
-/proc/squad_name_resolve_human_default_role(mob/living/carbon/human/H)
-	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
-	if(!manager)
-		return null
-	return manager.resolve_human_default_role(H)
-
 /proc/squad_name_try_apply_leader_preference(mob/living/carbon/human/H)
 	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
 	if(!manager)
@@ -56,9 +50,3 @@
 		return "[target_squad.name] [base_assignment]"
 
 	return base_assignment
-
-/proc/squad_name_apply_roundstart_defaults()
-	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
-	if(!manager)
-		return FALSE
-	return manager.apply_roundstart_defaults()

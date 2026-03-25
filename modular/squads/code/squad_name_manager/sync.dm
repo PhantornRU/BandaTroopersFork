@@ -52,14 +52,10 @@
 		if(cycled_data_record.fields["squad"] == old_name)
 			cycled_data_record.fields["squad"] = new_name
 
-/datum/squad_name_manager/proc/update_members_id_assignments(datum/squad/target_squad, new_name)
-	if(!istype(target_squad, /datum/squad/marine))
-		target_squad.name = new_name
+/datum/squad_name_manager/proc/update_members_id_assignments(datum/squad/marine/marine_squad)
+	if(!istype(marine_squad))
 		return
 
-	var/datum/squad/marine/marine_squad = target_squad
-
-	// new_name уже содержит суффикс фракции если нужно (добавлен в rename_squad)
 	// Обновляем ID карты участников
 	for(var/mob/living/carbon/human/marine in marine_squad.marines_list)
 		if(!istype(marine.wear_id, /obj/item/card/id))
@@ -102,4 +98,4 @@
 	move_spawn_bucket(old_name, new_name)
 	update_datacore_records(old_name, new_name)
 
-	update_members_id_assignments(target_squad, new_name)
+	update_members_id_assignments(target_squad)
