@@ -57,7 +57,8 @@
 		return TRUE
 	if(!H.assigned_squad)
 		return FALSE
-	var/expected_squad_name = squad_name_get_runtime(squad_type)
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	var/expected_squad_name = manager ? manager.get_runtime_name(squad_type) : squad_type
 	if(H.assigned_squad.name == expected_squad_name)
 		return TRUE
 	if(H.assigned_squad.name == squad_type)

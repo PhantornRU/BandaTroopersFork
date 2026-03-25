@@ -488,7 +488,7 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
-	squad_name_try_apply_platoon_commander_preference(new_human)
+	GLOB.squad_name_manager?.try_apply_platoon_commander_preference(new_human)
 	if(late_join || !new_human.client?.prefs)
 		return
 

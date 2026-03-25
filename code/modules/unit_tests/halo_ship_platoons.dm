@@ -190,6 +190,12 @@
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should keep the HALO specialist baseline naked, but still had a helmet equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should keep the HALO specialist baseline naked, but still had armor equipped.")
 
+/datum/unit_test/halo_equip_test/proc/assert_halo_odst_visual_slots(mob/living/carbon/human/human, role_label = human?.real_name || "HALO ODST")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst), "[role_label] lost the expected ODST headset in the left ear slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_HEAD), /obj/item/clothing/head/helmet/marine/unsc/odst), "[role_label] lost the expected ODST helmet in the head slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_BODY), /obj/item/clothing/under/marine/odst), "[role_label] lost the expected ODST bodyglove in the uniform slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_JACKET), /obj/item/clothing/suit/marine/unsc/odst), "[role_label] lost the expected ODST armor in the jacket slot.")
+
 /datum/unit_test/halo_integration_test
 	parent_type = /datum/unit_test/halo_equip_test
 	var/list/snapshot_default_roles = null
@@ -494,3 +500,55 @@
 	TEST_ASSERT_EQUAL(manager.rename_squad(alpha_squad, "Vanguard", null, "unit_test_odst_assignment", TRUE), TRUE, "ODST assignment label rename failed during runtime label testing.")
 	var/expected_runtime_assignment = "[alpha_squad.name] [alpha_squad.get_role_label(JOB_SQUAD_LEADER)]"
 	TEST_ASSERT_EQUAL(leader_id.assignment, expected_runtime_assignment, "ODST leader runtime assignment did not refresh to the renamed squad label.")
+
+/datum/unit_test/halo_ship_platoons/odst_equipped_slots/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/mob/living/carbon/human/human = create_test_human("ODST Equipped Slots", JOB_SQUAD_MARINE_ODST)
+	arm_equipment(human, /datum/equipment_preset/unsc/pfc/odst/equipped, FALSE, TRUE)
+
+	assert_halo_smoke_state(human, /datum/equipment_preset/unsc/pfc/odst/equipped, JOB_SQUAD_MARINE_ODST)
+	assert_halo_odst_visual_slots(human, "ODST equipped smoke")
+
+/datum/unit_test/halo_ship_platoons/odst_preview_dummy_slots/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/datum/preferences/prefs = new
+	prefs.job_preference_list = list(JOB_SQUAD_MARINE = HIGH_PRIORITY)
+	prefs.preview_dummy = create_test_human("ODST Preview Dummy", JOB_SQUAD_MARINE_ODST)
+
+	var/preset_type = prefs.job_pref_to_gear_preset()
+	TEST_ASSERT_EQUAL(preset_type, /datum/equipment_preset/unsc/pfc/odst/equipped, "ODST preference preview no longer resolves to the equipped ODST rifleman preset on the active platoon.")
+
+	prefs.clear_equipment()
+	prefs.preview_dummy.set_species()
+	prefs.copy_appearance_to(prefs.preview_dummy)
+	prefs.preview_dummy.update_body()
+	prefs.preview_dummy.update_hair()
+	arm_equipment(prefs.preview_dummy, preset_type, FALSE, FALSE, prefs.owner, prefs.show_job_gear)
+
+	assert_halo_odst_visual_slots(prefs.preview_dummy, "ODST preview dummy")
+	prefs.preview_dummy = null
+
+/datum/unit_test/halo_ship_platoons/odst_manual_equip_without_hud_slots/Run()
+	var/mob/living/carbon/human/human = create_test_human("ODST Manual Equip", JOB_SQUAD_MARINE_ODST)
+	var/obj/item/clothing/under/marine/odst/odst_uniform = allocate(/obj/item/clothing/under/marine/odst, run_loc_floor_top_right)
+
+	TEST_ASSERT_NULL(human.hud_used, "Manual equip fallback test expected a fresh test human without a populated HUD datum.")
+	TEST_ASSERT(human.has_limb_for_slot(WEAR_BODY), "Manual equip fallback test expected a fresh test human to report the body slot as limb-valid before equipping.")
+	TEST_ASSERT(human.equip_to_slot_if_possible(odst_uniform, WEAR_BODY, 1, 0, 0, 0), "ODST manual uniform equip should succeed even when the human HUD slot cache is unavailable.")
+	TEST_ASSERT_EQUAL(odst_uniform.loc, human, "ODST manual uniform equip should move the item into the human contents before asserting the wearable slot state.")
+	TEST_ASSERT_EQUAL(human.w_uniform, odst_uniform, "ODST manual uniform equip should populate the direct human uniform slot var after the HUD-slot fallback.")
+	TEST_ASSERT_EQUAL(human.get_item_by_slot(WEAR_BODY), odst_uniform, "ODST manual uniform equip did not populate the body slot after the HUD-slot fallback.")
+
+/datum/unit_test/halo_ship_platoons/halo_species_restricted_clothing_contract/Run()
+	var/mob/living/carbon/human/human = create_test_human("HALO Human Restriction", JOB_SQUAD_MARINE_ODST)
+	var/mob/living/carbon/human/sangheili = create_test_human("HALO Sangheili Restriction", JOB_SQUAD_MARINE)
+	var/obj/item/clothing/head/helmet/marine/sangheili/minor/sangheili_helmet = allocate(/obj/item/clothing/head/helmet/marine/sangheili/minor, run_loc_floor_top_right)
+
+	human.create_hud()
+	sangheili.create_hud()
+	sangheili.set_species(SPECIES_SANGHEILI)
+
+	TEST_ASSERT(!sangheili_helmet.mob_can_equip(human, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing unexpectedly allowed a human wearer after the HALO clothing compat change.")
+	TEST_ASSERT(sangheili_helmet.mob_can_equip(sangheili, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing no longer allows the intended Sangheili wearer after the HALO clothing compat change.")

@@ -675,7 +675,7 @@
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/uscm_ship/so/handle_late_join(mob/living/carbon/human/new_human, late_join)
-	squad_name_try_apply_platoon_commander_preference(new_human) // SS220 EDIT: first Platoon Commander applies squad preset fallback before late Squad Leaders can override
+	GLOB.squad_name_manager?.try_apply_platoon_commander_preference(new_human) // SS220 EDIT: first Platoon Commander applies squad preset fallback before late Squad Leaders can override
 	if(late_join || !new_human.client?.prefs)
 		return
 

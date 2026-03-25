@@ -26,10 +26,10 @@ GLOBAL_VAR_INIT(main_platoon_initial_name, GLOB.main_platoon_name)
 		return
 
 	var/list/squad_options = list(
-		"Alpha ([squad_name_get_runtime(SQUAD_MARINE_1)])" = SQUAD_MARINE_1,
-		"Bravo ([squad_name_get_runtime(SQUAD_MARINE_2)])" = SQUAD_MARINE_2,
-		"Charlie ([squad_name_get_runtime(SQUAD_MARINE_3)])" = SQUAD_MARINE_3,
-		"Delta ([squad_name_get_runtime(SQUAD_MARINE_4)])" = SQUAD_MARINE_4,
+		"Alpha ([manager.get_runtime_name(SQUAD_MARINE_1)])" = SQUAD_MARINE_1,
+		"Bravo ([manager.get_runtime_name(SQUAD_MARINE_2)])" = SQUAD_MARINE_2,
+		"Charlie ([manager.get_runtime_name(SQUAD_MARINE_3)])" = SQUAD_MARINE_3,
+		"Delta ([manager.get_runtime_name(SQUAD_MARINE_4)])" = SQUAD_MARINE_4,
 	)
 	// SS220 EDIT - START
 	// var/static_name = tgui_input_list(mob, "Choose squad to rename", "Squad Rename", squad_options)
