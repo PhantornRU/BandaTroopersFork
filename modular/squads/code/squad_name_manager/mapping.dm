@@ -3,8 +3,25 @@
 		return static_name
 	return runtime_name_by_static[static_name] || static_name
 
-/datum/squad_name_manager/proc/get_default_name_by_static(static_name)
-	return default_name_by_static[static_name]
+/datum/squad_name_manager/proc/get_default_name_by_static(static_name, squad_type = null)
+	var/base_name
+	// Сначала проверяем конкретное имя для типа отряда (поддержка UNSC/ODST/USCM)
+	if(squad_type)
+		var/specific_name = default_name_by_squad_type[squad_type]
+		if(specific_name)
+			base_name = specific_name
+		else
+			// Если нет конкретного имени, проверяем наследование
+			for(var/type_path in default_name_by_squad_type)
+				if(istype(squad_type, type_path))
+					base_name = default_name_by_squad_type[type_path]
+					break
+
+	// Fallback на базовое имя по статическому имени
+	if(!base_name)
+		base_name = default_name_by_static[static_name]
+
+	return base_name
 
 /datum/squad_name_manager/proc/resolve_static_name(raw_value)
 	if(!raw_value)

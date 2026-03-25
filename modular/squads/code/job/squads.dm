@@ -93,7 +93,7 @@
 	max_rto = 1
 	// В сумме слотов без спека и РТО:
 	// 9
-	
+
 
 /datum/squad/marine/charlie
 	equipment_color = "#c864c8"

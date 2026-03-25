@@ -938,13 +938,22 @@
 
 	marines_list += M
 	M.assigned_squad = src //Add them to the squad
-	if(GET_DEFAULT_ROLE(M.job) == JOB_SQUAD_LEADER) // SS220 EDIT
-		squad_name_try_apply_leader_preference(M)
+	// Проверяем, является ли должность сквадлидером
+	if(GET_DEFAULT_ROLE(M.job) == JOB_SQUAD_LEADER)
+		// SS220 EDIT - START
+		// squad_name_try_apply_leader_preference(M)
+		INVOKE_NEXT_TICK(GLOBAL_PROC, GLOBAL_PROC_REF(squad_name_try_apply_leader_preference), M)
+		// SS220 EDIT - END
 	C.access += (src.access + extra_access) //Add their squad access to their ID
-	if(prepend_squad_name_to_assignment)
+	// SS220 EDIT - START
+	var/modular_assignment = squad_name_get_member_assignment(src, M)
+	if(modular_assignment)
+		C.assignment = modular_assignment
+	else if(prepend_squad_name_to_assignment)
 		C.assignment = "[name] [id_assignment]"
 	else
 		C.assignment = id_assignment
+	// SS220 EDIT - END
 
 	SEND_SIGNAL(M, COMSIG_SET_SQUAD)
 

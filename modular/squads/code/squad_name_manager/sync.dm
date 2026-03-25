@@ -52,14 +52,30 @@
 		if(cycled_data_record.fields["squad"] == old_name)
 			cycled_data_record.fields["squad"] = new_name
 
-/datum/squad_name_manager/proc/update_members_id_assignments(datum/squad/target_squad, new_name)
-	if(!istype(target_squad, /datum/squad/marine))
-		target_squad.name = new_name
+/datum/squad_name_manager/proc/update_members_id_assignments(datum/squad/marine/marine_squad)
+	if(!istype(marine_squad))
 		return
 
-	var/datum/squad/marine/marine_squad = target_squad
-	var/old_name = marine_squad.name
-	marine_squad.rename_platoon(null, new_name, old_name)
+	// Обновляем ID карты участников
+	for(var/mob/living/carbon/human/marine in marine_squad.marines_list)
+		if(!istype(marine.wear_id, /obj/item/card/id))
+			continue
+
+		var/obj/item/card/id/marine_card = marine.get_idcard()
+		var/datum/weakref/marine_card_registered = marine_card.registered_ref
+
+		if(!istype(marine_card_registered))
+			continue
+
+		if(marine != marine_card_registered.resolve())
+			continue
+
+		var/new_assignment = squad_name_get_member_assignment(marine_squad, marine)
+		if(!new_assignment)
+			continue
+
+		marine_card.set_assignment(new_assignment)
+		GLOB.data_core?.manifest_modify(marine.real_name, WEAKREF(marine), new_assignment)
 
 /datum/squad_name_manager/proc/update_global_mappings(datum/squad/target_squad, old_name, new_name)
 	if(old_name == new_name)
@@ -82,4 +98,4 @@
 	move_spawn_bucket(old_name, new_name)
 	update_datacore_records(old_name, new_name)
 
-	update_members_id_assignments(target_squad, new_name)
+	update_members_id_assignments(target_squad)

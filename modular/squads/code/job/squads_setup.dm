@@ -20,7 +20,9 @@
 		if(sq.ready_players_usable && players_ready < sq.ready_players_usable)
 			continue
 		if(sq.platoon_associated_type)
-			if(sq.platoon_associated_type != active_ship_platoon) //!istype(MAIN_SHIP_PLATOON, sq.platoon_associated_type))
+			// Универсальное сравнение для всех фракций (UNSC/ODST/USCM/UPP/PMC через сравнение путей)
+			// active_ship_platoon и platoon_associated_type — это пути (paths), а не экземпляры
+			if(active_ship_platoon != sq.platoon_associated_type && !istype(sq.platoon_associated_type, active_ship_platoon) && !istype(active_ship_platoon, sq.platoon_associated_type))
 				continue
 			associated_squad_job_positions(sq.platoon_associated_type)
 
