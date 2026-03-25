@@ -283,8 +283,38 @@
 /datum/asset/spritesheet/vending_products
 	name = "vending"
 
+// SS220 EDIT - START: include runtime-replaced ship-surface vendor subtypes in the vending spritesheet build
+/datum/asset/spritesheet/vending_products/proc/collect_product_types(list/items, list/target_products)
+	if(!islist(items) || !islist(target_products))
+		return
+
+	for(var/list/item as anything in items)
+		var/item_name = item[1]
+		var/typepath = item[3]
+		if(!item_name || item_name == "" || !typepath)
+			continue
+
+		if(islist(typepath))
+			for(var/path in typepath)
+				target_products[path] = TRUE
+		else
+			target_products[typepath] = TRUE
+
 /datum/asset/spritesheet/vending_products/register()
-	for (var/current_product in GLOB.vending_products)
+	// Runtime ship-surface replacement swaps in vendor subtypes that may never
+	// exist on the map during early init, so relying on prebuilt instance caches
+	// alone can leave TGUI without sprite classes for valid products.
+	var/list/target_products = GLOB.vending_products.Copy()
+	for(var/vendor_type in typesof(/obj/structure/machinery/cm_vending))
+		if(vendor_type == /obj/structure/machinery/cm_vending)
+			continue
+
+		var/obj/structure/machinery/cm_vending/vendor = new vendor_type()
+		collect_product_types(vendor.get_listed_products(), target_products)
+		qdel(vendor)
+	// SS220 EDIT - END
+
+	for (var/current_product in target_products)
 		var/atom/item = current_product
 		var/icon_file = initial(item.icon)
 		var/icon_state = initial(item.icon_state)

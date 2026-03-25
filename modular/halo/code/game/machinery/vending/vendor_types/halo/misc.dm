@@ -41,7 +41,6 @@
 	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
-	vend_flags = VEND_TO_HAND
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/odst
 
