@@ -129,6 +129,69 @@
 /obj/docking_port/mobile/marine_dropship/midway/get_transit_path_type()
 	return /turf/open/space/transit/dropship/midway
 
+/obj/docking_port/mobile/marine_dropship/midway/proc/apply_runtime_camo(camo)
+	var/area/area_to_change = get_area(src)
+	if(!area_to_change)
+		return FALSE
+
+	var/turf_icon
+	var/cargo_icon
+	var/cockpit_icon
+
+	switch(camo)
+		if(DROPSHIP_CAMO_TAN)
+			turf_icon = 'icons/turf/dropship.dmi'
+			cargo_icon = 'icons/obj/structures/doors/dropship1_cargo.dmi'
+			cockpit_icon = 'icons/obj/structures/doors/dropship1_pilot.dmi'
+		if(DROPSHIP_CAMO_NAVY)
+			turf_icon = 'icons/turf/dropship2.dmi'
+			cargo_icon = 'icons/obj/structures/doors/dropship2_cargo.dmi'
+			cockpit_icon = 'icons/obj/structures/doors/dropship2_pilot.dmi'
+		if(DROPSHIP_CAMO_URBAN)
+			turf_icon = 'icons/turf/dropship3.dmi'
+			cargo_icon = 'icons/obj/structures/doors/dropship3_cargo.dmi'
+			cockpit_icon = 'icons/obj/structures/doors/dropship3_pilot.dmi'
+		if(DROPSHIP_CAMO_JUNGLE)
+			turf_icon = 'icons/turf/dropship4.dmi'
+			cargo_icon = 'icons/obj/structures/doors/dropship4_cargo.dmi'
+			cockpit_icon = 'icons/obj/structures/doors/dropship4_pilot.dmi'
+		else
+			return FALSE
+
+	for(var/turf/closed/shuttle/midway/midway_turfs in area_to_change)
+		midway_turfs.icon = turf_icon
+	for(var/obj/structure/shuttle/part/midway/midway_parts in area_to_change)
+		midway_parts.icon = turf_icon
+	for(var/obj/structure/machinery/door/airlock/multi_tile/almayer/dropshiprear/cargo in area_to_change)
+		cargo.icon = cargo_icon
+	for(var/obj/structure/machinery/door/airlock/hatch/cockpit/cockpit in area_to_change)
+		cockpit.icon = cockpit_icon
+
+	return TRUE
+
+/obj/docking_port/mobile/marine_dropship/midway/proc/apply_runtime_name(new_name)
+	if(!new_name)
+		return FALSE
+
+	name = new_name
+	var/area/area_to_change = get_area(src)
+	if(!area_to_change)
+		return FALSE
+
+	area_to_change.name = "Dropship [new_name]"
+	for(var/turf/closed/shuttle/midway/midway_turfs in area_to_change)
+		midway_turfs.name = new_name
+	for(var/obj/structure/shuttle/part/midway/midway_parts in area_to_change)
+		midway_parts.name = new_name
+	for(var/obj/structure/machinery/door/airlock/multi_tile/almayer/dropshiprear/cargo in area_to_change)
+		cargo.name = "[new_name] cargo door"
+	for(var/obj/structure/machinery/computer/dropship_weapons/midway/console in area_to_change)
+		console.name = "'[new_name]' weapons controls"
+	for(var/obj/structure/machinery/camera/autoname/golden_arrow/midway/camera in area_to_change)
+		camera.c_tag = "Dropship [new_name] #[camera.autonumber]"
+
+	return TRUE
+
 /obj/docking_port/mobile/marine_dropship/upp
 	name = "Akademia Nauk"
 	id = DROPSHIP_UPP

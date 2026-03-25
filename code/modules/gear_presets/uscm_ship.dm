@@ -679,8 +679,9 @@
 	if(late_join || !new_human.client?.prefs)
 		return
 
-	change_dropship_camo(new_human.client.prefs.dropship_camo)
-	change_dropship_name(new_human.client.prefs.dropship_name)
+	var/obj/docking_port/mobile/marine_dropship/midway/midway = SSshuttle.getShuttle(DROPSHIP_MIDWAY, FALSE)
+	midway?.apply_runtime_camo(new_human.client.prefs.dropship_camo)
+	midway?.apply_runtime_name(new_human.client.prefs.dropship_name)
 
 /datum/equipment_preset/uscm_ship/so/upp
 	name = "UPP Platoon Commander (PltCo)"
