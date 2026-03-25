@@ -56,8 +56,7 @@
 	SIGNAL_HANDLER
 
 	rename_platoon(source, new_name, old_name)
-	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
-	var/static_squad_name = squad_name_manager ? squad_name_manager.get_static_name_for_squad(target_squad) : target_squad?.name
+	var/static_squad_name = squad_name_get_static_by_squad(target_squad)
 	if(static_squad_name == get_managed_squad_key_static_name())
 		refresh_managed_squad_key_name(new_name)
 
@@ -78,8 +77,7 @@
 		return
 
 	if(!runtime_name)
-		var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
-		runtime_name = squad_name_manager ? squad_name_manager.get_runtime_name(static_squad_name) : static_squad_name
+		runtime_name = squad_name_get_runtime(static_squad_name)
 	if(!runtime_name)
 		runtime_name = static_squad_name
 

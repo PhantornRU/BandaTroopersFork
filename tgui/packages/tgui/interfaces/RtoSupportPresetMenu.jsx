@@ -103,10 +103,7 @@ const TemplateCard = ({ template, canAddTemplate }) => {
           <ModeBadge color="rgba(110, 190, 120, 0.25)" text="Без сектора" />
         )}
         {template.visibility_altitude_requirement === 'high' && (
-          <ModeBadge
-            color="rgba(255, 170, 90, 0.25)"
-            text="Открытое небо"
-          />
+          <ModeBadge color="rgba(255, 170, 90, 0.25)" text="Открытое небо" />
         )}
       </Box>
       <NoticeBox mb={1}>
