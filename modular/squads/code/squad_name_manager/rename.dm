@@ -18,16 +18,24 @@
 	if(conflict_error)
 		return conflict_error
 
-	update_global_mappings(target_squad, old_name, new_name)
-	runtime_name_by_static[static_name] = new_name
+	// Обновляем имя отряда напрямую (с суффиксом фракции если нужно)
+	if(istype(target_squad, /datum/squad/marine/halo/odst))
+		target_squad.name = new_name + " ODST"
+	else if(istype(target_squad, /datum/squad/marine/halo/unsc))
+		target_squad.name = new_name + " UNSC"
+	else
+		target_squad.name = new_name
+
+	update_global_mappings(target_squad, old_name, target_squad.name)
+	runtime_name_by_static[static_name] = target_squad.name
 
 	if(old_name != new_name)
 		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_SQUAD_NAME_CHANGE, target_squad, new_name, old_name)
 
 	if(static_name == SQUAD_MARINE_1)
-		GLOB.main_platoon_name = new_name
-		if(old_name != new_name)
-			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PLATOON_NAME_CHANGE, new_name, old_name)
+		GLOB.main_platoon_name = target_squad.name
+		if(old_name != target_squad.name)
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PLATOON_NAME_CHANGE, target_squad.name, old_name)
 
 	if(renamer)
 		log_admin("[key_name(renamer)] has renamed squad [old_name] to [new_name]. Source: [rename_source].")
@@ -67,11 +75,10 @@
 
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 
-	// SS220 EDIT: явно заполняем кэш mapping'ов перед использованием (поддержка HALO ODST/UNSC)
+	// Заполняем кэш mapping'ов перед использованием
 	role_authority.get_ship_role_title_mappings()
 
-	// SS220 EDIT: используем get_job_preference_bucket_key для канонической роли (поддержка HALO ODST/UNSC)
-	// GET_DEFAULT_ROLE может возвращать оригинальное название должности, поэтому используем напрямую bucket_key
+	// Используем get_job_preference_bucket_key для канонической роли
 	var/canonical_role = role_authority?.get_job_preference_bucket_key(job_value)
 	if(canonical_role && canonical_role != job_value)
 		return canonical_role

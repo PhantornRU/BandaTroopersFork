@@ -100,16 +100,17 @@
 	return "[platoon_type]"
 
 /datum/authority/branch/role/proc/get_active_ship_platoon_type(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
-	var/platoon_type = MAIN_SHIP_PLATOON
-	if(platoon_type)
-		return platoon_type
-
 	// Чтение настройки platoon из текущей карты (поддержка UNSC/ODST/USCM и других фракций)
+	// Приоритет: map config > MAIN_SHIP_PLATOON > default
 	var/datum/map_config/map_cfg = SSmapping?.configs?[SHIP_MAP]
 	if(map_cfg?.platoon)
 		var/map_platoon_type = text2path(map_cfg.platoon)
 		if(map_platoon_type)
 			return map_platoon_type
+
+	var/platoon_type = MAIN_SHIP_PLATOON
+	if(platoon_type)
+		return platoon_type
 
 	return text2path(MAIN_SHIP_DEFAULT_PLATOON)
 

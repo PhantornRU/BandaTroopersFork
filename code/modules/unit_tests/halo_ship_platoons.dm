@@ -470,3 +470,27 @@
 	TEST_ASSERT_EQUAL(bravo_headset.name, "marine vanguard radio headset", "Bravo headset label did not refresh to the runtime squad name.")
 	TEST_ASSERT_EQUAL(bravo_headset.desc, "This is used by Vanguard squad members. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window.", "Bravo headset description did not refresh to the runtime squad name.")
 	TEST_ASSERT_EQUAL(bravo_key.name, "\improper Vanguard Squad Radio Encryption Key", "Bravo encryption key label did not refresh to the runtime squad name.")
+
+/datum/unit_test/halo_ship_platoons/odst_leader_assignment_labels
+
+/datum/unit_test/halo_ship_platoons/odst_leader_assignment_labels/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for ODST assignment label testing.")
+	manager.apply_roundstart_defaults()
+
+	var/datum/squad/alpha_squad = manager.get_squad_by_static(SQUAD_MARINE_1)
+	TEST_ASSERT_NOTNULL(alpha_squad, "Failed to resolve Alpha squad for ODST assignment label testing.")
+	TEST_ASSERT_EQUAL(alpha_squad.type, /datum/squad/marine/halo/odst/alpha, "ODST assignment label testing did not resolve the HALO ODST Alpha squad.")
+
+	var/mob/living/carbon/human/leader = create_test_human("ODST Leader Assignment", JOB_SQUAD_LEADER_ODST)
+	var/obj/item/card/id/leader_id = prepare_test_human_for_squad(leader, /datum/equipment_preset/unsc/leader/odst, JOB_SQUAD_LEADER_ODST)
+	TEST_ASSERT(alpha_squad.put_marine_in_squad(leader, leader_id), "Failed to place the ODST leader into Alpha squad for assignment label testing.")
+
+	var/expected_default_assignment = "[alpha_squad.name] [alpha_squad.get_role_label(JOB_SQUAD_LEADER)]"
+	TEST_ASSERT_EQUAL(leader_id.assignment, expected_default_assignment, "ODST leader default assignment did not use the runtime squad label.")
+
+	TEST_ASSERT_EQUAL(manager.rename_squad(alpha_squad, "Vanguard", null, "unit_test_odst_assignment", TRUE), TRUE, "ODST assignment label rename failed during runtime label testing.")
+	var/expected_runtime_assignment = "[alpha_squad.name] [alpha_squad.get_role_label(JOB_SQUAD_LEADER)]"
+	TEST_ASSERT_EQUAL(leader_id.assignment, expected_runtime_assignment, "ODST leader runtime assignment did not refresh to the renamed squad label.")

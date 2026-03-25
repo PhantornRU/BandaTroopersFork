@@ -36,6 +36,27 @@
 		return FALSE
 	return manager.try_apply_platoon_commander_preference(H)
 
+/proc/squad_name_get_member_assignment(datum/squad/target_squad, mob/living/carbon/human/H)
+	if(!istype(target_squad) || !istype(H))
+		return null
+
+	var/base_assignment = H.assigned_equipment_preset?.assignment || H.job
+	if(!base_assignment)
+		return null
+
+	var/canonical_role = GET_DEFAULT_ROLE(H.job)
+	if(GLOB.job_squad_roles.Find(canonical_role))
+		var/role_label = canonical_role
+		switch(canonical_role)
+			if(JOB_SQUAD_LEADER, JOB_SQUAD_TEAM_LEADER)
+				role_label = target_squad.get_role_label(canonical_role)
+		return "[target_squad.name] [role_label]"
+
+	if(target_squad.prepend_squad_name_to_assignment)
+		return "[target_squad.name] [base_assignment]"
+
+	return base_assignment
+
 /proc/squad_name_apply_roundstart_defaults()
 	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
 	if(!manager)

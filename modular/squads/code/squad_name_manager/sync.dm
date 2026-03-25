@@ -58,18 +58,28 @@
 		return
 
 	var/datum/squad/marine/marine_squad = target_squad
-	var/old_name = marine_squad.name
 
-	// Определяем суффикс фракции по типу отряда
-	var/faction_suffix = ""
-	if(istype(target_squad, /datum/squad/marine/halo/odst))
-		faction_suffix = " ODST"
-	else if(istype(target_squad, /datum/squad/marine/halo/unsc))
-		faction_suffix = " UNSC"
+	// new_name уже содержит суффикс фракции если нужно (добавлен в rename_squad)
+	// Обновляем ID карты участников
+	for(var/mob/living/carbon/human/marine in marine_squad.marines_list)
+		if(!istype(marine.wear_id, /obj/item/card/id))
+			continue
 
-	// Добавляем суффикс к имени для отображения в ID картах
-	var/name_with_faction = new_name + faction_suffix
-	marine_squad.rename_platoon(null, name_with_faction, old_name)
+		var/obj/item/card/id/marine_card = marine.get_idcard()
+		var/datum/weakref/marine_card_registered = marine_card.registered_ref
+
+		if(!istype(marine_card_registered))
+			continue
+
+		if(marine != marine_card_registered.resolve())
+			continue
+
+		var/new_assignment = squad_name_get_member_assignment(marine_squad, marine)
+		if(!new_assignment)
+			continue
+
+		marine_card.set_assignment(new_assignment)
+		GLOB.data_core?.manifest_modify(marine.real_name, WEAKREF(marine), new_assignment)
 
 /datum/squad_name_manager/proc/update_global_mappings(datum/squad/target_squad, old_name, new_name)
 	if(old_name == new_name)

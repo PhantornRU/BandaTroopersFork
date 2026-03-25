@@ -21,13 +21,6 @@
 	if(!base_name)
 		base_name = default_name_by_static[static_name]
 
-	// Добавляем суффикс фракции если это HALO отряд
-	if(squad_type)
-		if(istype(squad_type, /datum/squad/marine/halo/odst))
-			return base_name + " ODST"
-		else if(istype(squad_type, /datum/squad/marine/halo/unsc))
-			return base_name + " UNSC"
-
 	return base_name
 
 /datum/squad_name_manager/proc/resolve_static_name(raw_value)
