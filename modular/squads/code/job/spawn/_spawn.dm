@@ -1,0 +1,5 @@
+#include "spawn_result.dm"
+#include "spawn_resolver.dm"
+#include "spawn_candidate_cache.dm"
+#include "safe_latejoin_fallback.dm"
+#include "cryopod_entry.dm"

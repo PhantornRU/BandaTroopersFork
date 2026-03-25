@@ -204,3 +204,10 @@
 		return /datum/squad/marine/halo/odst/alpha
 
 	return null
+
+/datum/authority/branch/role/proc/get_halo_main_ship_profile(platoon_type = MAIN_SHIP_PLATOON)
+	var/datum/modular_ship_platoon_profile/halo/profile = get_halo_ship_platoon_profile_datum(platoon_type)
+	if(!profile)
+		return null
+
+	return profile.build_profile()

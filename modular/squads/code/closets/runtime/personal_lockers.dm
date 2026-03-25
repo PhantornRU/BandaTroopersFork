@@ -80,7 +80,6 @@
 			continue
 		new current_gear.path(locker)
 
-	// Выдаем погоны в шкафчик.
 	var/current_rank = paygrades[1]
 	var/obj/item/card/id/I = new_human.get_idcard()
 	if(I)
@@ -112,7 +111,6 @@
 			medal.recipient_name = new_human.real_name
 			medal.recipient_rank = current_rank
 
-	// Очки для близоруких тоже кладем в шкафчик.
 	if(new_human.disabilities & NEARSIGHTED)
 		new /obj/item/clothing/glasses/regular(locker)
 
