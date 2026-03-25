@@ -10,7 +10,7 @@
 		if(need_check_content && ishuman(M))
 			var/mob/living/carbon/human/H = M
 			if(H.assigned_squad)
-				var/found_headset = FALSE // На случай если не найдем и надо будет искать еще раз
+				var/found_headset = FALSE
 				for(var/obj/item/device/radio/headset/headset in contents)
 					headset.set_frequency(H.assigned_squad.radio_freq)
 					found_headset = TRUE

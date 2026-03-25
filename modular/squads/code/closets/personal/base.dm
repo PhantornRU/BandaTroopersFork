@@ -1,4 +1,3 @@
-// Шкафчики под отряды и их привязка
 /obj/structure/closet/secure_closet/marine_personal
 	var/squad_type
 	var/list/generated_spawn_gear_contents = list()
@@ -63,9 +62,7 @@
 	if(H.assigned_squad.name == squad_type)
 		return TRUE
 
-	// Отдельная проверка для первого сквада
 	if(squad_type == SQUAD_MARINE_1)
-		// Так как связаны с ренеймом платунов
 		if(H.assigned_squad.name == GLOB.main_platoon_name)
 			return TRUE
 	return FALSE
@@ -102,14 +99,12 @@
 	return !alive_human_names[owner]
 
 /obj/structure/closet/secure_closet/marine_personal/proc/reinitialize_for_personal_locker_reuse()
-	// Закрываем шкаф вручную, чтобы не затронуть предметы на полу через close().
 	if(opened)
 		opened = FALSE
 		density = TRUE
 
 	welded = FALSE
 
-	// Очищаем только внутреннее содержимое шкафа.
 	for(var/atom/movable/movable as anything in contents)
 		if(ismob(movable))
 			movable.forceMove(get_turf(src))
@@ -122,8 +117,6 @@
 	spawn_gear()
 	refresh_generated_spawn_gear_contents()
 
-
-// Пехотинец
 /obj/structure/closet/secure_closet/marine_personal/rifleman
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-rm"
@@ -133,8 +126,6 @@
 	icon_broken = "securebroken-rm"
 	icon_off = "secureoff-rm"
 
-
-// Смартганнер
 /obj/structure/closet/secure_closet/marine_personal/smartgunner
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-sg"
@@ -144,8 +135,6 @@
 	icon_broken = "securebroken-sg"
 	icon_off = "secureoff-sg"
 
-
-// Инженер
 /obj/structure/closet/secure_closet/marine_personal/engineer
 	job = JOB_SQUAD_ENGI
 	icon = 'modular/squads/icons/closet.dmi'
@@ -156,8 +145,6 @@
 	icon_broken = "securebroken-eng"
 	icon_off = "secureoff-eng"
 
-
-// Медик
 /obj/structure/closet/secure_closet/marine_personal/corpsman
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-med"
@@ -167,8 +154,6 @@
 	icon_broken = "securebroken-med"
 	icon_off = "secureoff-med"
 
-
-// Спек
 /obj/structure/closet/secure_closet/marine_personal/specialist
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-spec"
@@ -178,8 +163,6 @@
 	icon_broken = "securebroken-spec"
 	icon_off = "secureoff-spec"
 
-
-// Радио оператор
 /obj/structure/closet/secure_closet/marine_personal/rto
 	job = JOB_SQUAD_RTO
 	icon = 'modular/squads/icons/closet.dmi'
@@ -196,8 +179,6 @@
 	new /obj/item/storage/box/flare/signal(src)
 	new /obj/item/storage/box/flare/signal(src)
 
-
-// ФТЛ
 /obj/structure/closet/secure_closet/marine_personal/squad_leader
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-ftl"
@@ -207,8 +188,6 @@
 	icon_broken = "securebroken-ftl"
 	icon_off = "secureoff-ftl"
 
-
-// СЛ
 /obj/structure/closet/secure_closet/marine_personal/platoon_leader
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-sl"
@@ -218,8 +197,6 @@
 	icon_broken = "securebroken-sl"
 	icon_off = "secureoff-sl"
 
-
-// SO
 /obj/structure/closet/secure_closet/marine_personal/platoon_commander
 	icon = 'modular/squads/icons/closet.dmi'
 	icon_state = "secure1-so"
