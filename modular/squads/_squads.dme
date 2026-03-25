@@ -16,6 +16,8 @@
 #include "code/closets/halo_marine_personal_squads.dm"
 #include "code/closets/halo_job_lockers.dm"
 #include "code/closets/halo_unsc_crew_personal.dm"
+#include "code/job/ship_platoon_profile_datums.dm"
+#include "code/job/halo_ship_platoon_profile_datums.dm"
 #include "code/job/halo_modular_platoons.dm"
 #include "code/job/ship_platoon_profiles.dm"
 #include "code/job/ship_surface_profiles.dm"

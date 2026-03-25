@@ -11,19 +11,9 @@
 
 	// Открываем сквад
 	for(var/datum/squad/sq in GLOB.RoleAuthority.squads)
-		if(!sq)
-			continue
-		if(sq.usable)
-			continue
-		if(!sq.ready_players_usable && !sq.platoon_associated_type) // Хотя бы один должен быть для продолжения
-			continue
-		if(sq.ready_players_usable && players_ready < sq.ready_players_usable)
+		if(!sq || !sq.can_enable_for_modular_roundstart(players_ready, active_ship_platoon))
 			continue
 		if(sq.platoon_associated_type)
-			// Универсальное сравнение для всех фракций (UNSC/ODST/USCM/UPP/PMC через сравнение путей)
-			// active_ship_platoon и platoon_associated_type — это пути (paths), а не экземпляры
-			if(active_ship_platoon != sq.platoon_associated_type && !istype(sq.platoon_associated_type, active_ship_platoon) && !istype(active_ship_platoon, sq.platoon_associated_type))
-				continue
 			associated_squad_job_positions(sq.platoon_associated_type)
 
 		sq.usable = TRUE
@@ -38,26 +28,9 @@
 		var/datum/job/job = GLOB.RoleAuthority.roles_by_path[role]
 		if(!job)
 			continue
-		var/additional_positions = 0
-		switch(GET_DEFAULT_ROLE(job.title))
-			if(JOB_SQUAD_MARINE)
-				additional_positions = associated_squad.max_riflemen
-			if(JOB_SQUAD_ENGI)
-				additional_positions = associated_squad.max_engineers
-			if(JOB_SQUAD_MEDIC)
-				additional_positions = associated_squad.max_medics
-			if(JOB_SQUAD_SPECIALIST)
-				additional_positions = associated_squad.max_specialists
-			if(JOB_SQUAD_SMARTGUN)
-				additional_positions = associated_squad.max_smartgun
-			if(JOB_SQUAD_LEADER)
-				additional_positions = associated_squad.max_leaders
-			if(JOB_SQUAD_TEAM_LEADER)
-				additional_positions = associated_squad.max_tl
-			if(JOB_SQUAD_RTO)
-				additional_positions = associated_squad.max_rto
-			if(JOB_SO)
-				additional_positions = associated_squad.staff_per_squad
+		var/additional_positions = associated_squad.get_modular_role_limit(GET_DEFAULT_ROLE(job.title))
+		if(isnull(additional_positions) || !additional_positions)
+			continue
 		job.total_positions += additional_positions
 		job.spawn_positions += additional_positions
 
@@ -67,9 +40,7 @@
 		return
 
 	var/default_role = GET_DEFAULT_ROLE(transfer_marine.job)
-	if(default_role == JOB_SQUAD_RTO)
-		if(new_squad.num_rto >= new_squad.max_rto)
-			return TRUE
-	if(default_role == JOB_SQUAD_MARINE)
-		if(new_squad.num_riflemen >= new_squad.max_riflemen)
-			return TRUE
+	var/current_count = new_squad.get_modular_role_current_count(default_role)
+	var/max_count = new_squad.get_modular_role_limit(default_role)
+	if(!isnull(current_count) && !isnull(max_count) && current_count >= max_count)
+		return TRUE

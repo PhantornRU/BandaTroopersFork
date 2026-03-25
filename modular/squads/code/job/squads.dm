@@ -19,14 +19,69 @@
 	/// Связь с платуном по MAIN_SHIP_PLATOON, чтобы не добавляло лишние отряды в другие режимы.
 	var/platoon_associated_type
 
+/datum/squad/proc/get_modular_role_limit(canonical_role)
+	switch(canonical_role)
+		if(JOB_SQUAD_MARINE)
+			return max_riflemen
+		if(JOB_SQUAD_ENGI)
+			return max_engineers
+		if(JOB_SQUAD_MEDIC)
+			return max_medics
+		if(JOB_SQUAD_SPECIALIST)
+			return max_specialists
+		if(JOB_SQUAD_SMARTGUN)
+			return max_smartgun
+		if(JOB_SQUAD_TEAM_LEADER)
+			return max_tl
+		if(JOB_SQUAD_LEADER)
+			return max_leaders
+		if(JOB_SQUAD_RTO)
+			return max_rto
+		if(JOB_SO)
+			return staff_per_squad
+
+	return null
+
+/datum/squad/proc/get_modular_role_current_count(canonical_role)
+	switch(canonical_role)
+		if(JOB_SQUAD_MARINE)
+			return num_riflemen
+		if(JOB_SQUAD_RTO)
+			return num_rto
+
+	return null
+
+/datum/squad/proc/adjust_modular_role_counter(canonical_role, delta)
+	if(!canonical_role || !delta)
+		return
+
+	switch(canonical_role)
+		if(JOB_SQUAD_MARINE)
+			num_riflemen = max(0, num_riflemen + delta)
+		if(JOB_SQUAD_RTO)
+			num_rto = max(0, num_rto + delta)
+
+/datum/squad/proc/is_modular_platoon_match(active_ship_platoon)
+	if(!platoon_associated_type || !active_ship_platoon)
+		return FALSE
+
+	return active_ship_platoon == platoon_associated_type || istype(platoon_associated_type, active_ship_platoon) || istype(active_ship_platoon, platoon_associated_type)
+
+/datum/squad/proc/can_enable_for_modular_roundstart(players_ready, active_ship_platoon)
+	if(usable)
+		return FALSE
+	if(!ready_players_usable && !platoon_associated_type)
+		return FALSE
+	if(ready_players_usable && players_ready < ready_players_usable)
+		return FALSE
+	if(platoon_associated_type && !is_modular_platoon_match(active_ship_platoon))
+		return FALSE
+
+	return TRUE
+
 // В проке идет проверка, но нет пехоты для корректного удаления из отряда.
 /datum/squad/marine/apply_modular_forget_role_counters(mob/living/carbon/human/M)
-	var/default_role = GET_DEFAULT_ROLE(M?.job)
-	switch(default_role)
-		if(JOB_SQUAD_MARINE)
-			num_riflemen = max(0, num_riflemen - 1)
-		if(JOB_SQUAD_RTO)
-			num_rto = max(0, num_rto - 1)
+	adjust_modular_role_counter(GET_DEFAULT_ROLE(M?.job), -1)
 
 
 // Основные отряды. Фактическая численность определяется суммой ролевых лимитов max_*.

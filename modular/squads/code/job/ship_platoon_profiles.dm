@@ -38,56 +38,26 @@
 	return known_types
 
 /datum/authority/branch/role/proc/get_default_ship_platoon_profile(platoon_type)
-	platoon_type = normalize_ship_platoon_type(platoon_type)
-	if(!platoon_type)
+	var/datum/modular_ship_platoon_profile/profile = get_default_ship_platoon_profile_datum(platoon_type)
+	if(!profile)
 		return null
 
-	var/list/profile = list(
-		"platoon_type" = platoon_type,
-		"family_types" = list(platoon_type),
-		"family_secondary_types" = list(),
-		"distress_roles" = GLOB.ROLES_DISTRESS_SIGNAL,
-		"lowpop_roles" = GLOB.platoon_to_role_list[platoon_type],
-		"role_mappings" = null,
-		"spawn_preset_overrides" = null,
-		"cryo_reinforcement_titles" = null,
-		"cryo_reinforcement_presets" = null,
-	)
-
-	switch(platoon_type)
-		if(/datum/squad/marine/alpha)
-			profile["family_types"] = list(
-				/datum/squad/marine/alpha,
-				/datum/squad/marine/bravo,
-				/datum/squad/marine/charlie,
-				/datum/squad/marine/delta,
-			)
-			profile["family_secondary_types"] = list(
-				/datum/squad/marine/bravo,
-				/datum/squad/marine/charlie,
-				/datum/squad/marine/delta,
-			)
-
-	return profile
+	return profile.build_profile()
 
 /datum/authority/branch/role/proc/get_ship_platoon_profile(platoon_type)
-	platoon_type = normalize_ship_platoon_type(platoon_type)
-	if(!platoon_type)
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	if(!profile)
 		return null
 
-	var/list/profile = get_halo_main_ship_profile(platoon_type)
-	if(profile)
-		return profile
-
-	return get_default_ship_platoon_profile(platoon_type)
+	return profile.build_profile()
 
 /datum/authority/branch/role/proc/get_ship_platoon_label(platoon_type)
 	platoon_type = normalize_ship_platoon_type(platoon_type)
 	if(!platoon_type)
 		return null
 
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	var/platoon_label = profile?["platoon_label"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/platoon_label = profile?.platoon_label
 	if(istext(platoon_label) && length(platoon_label))
 		return platoon_label
 
@@ -120,8 +90,8 @@
 
 	job_title = get_job_preference_bucket_key(job_title) || job_title
 
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	var/list/spawn_preset_overrides = profile?["spawn_preset_overrides"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/spawn_preset_overrides = profile ? profile.get_spawn_preset_overrides() : null
 	if(!islist(spawn_preset_overrides))
 		return null
 
@@ -140,8 +110,8 @@
 
 	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
 
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	var/list/cryo_reinforcement_titles = profile?["cryo_reinforcement_titles"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/cryo_reinforcement_titles = profile ? profile.get_cryo_reinforcement_titles() : null
 	if(!islist(cryo_reinforcement_titles))
 		return null
 
@@ -156,8 +126,8 @@
 
 	canonical_role = get_job_preference_bucket_key(canonical_role) || canonical_role
 
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	var/list/cryo_reinforcement_presets = profile?["cryo_reinforcement_presets"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/cryo_reinforcement_presets = profile ? profile.get_cryo_reinforcement_presets() : null
 	if(!islist(cryo_reinforcement_presets))
 		return null
 
@@ -167,8 +137,11 @@
 	return get_ship_cryo_reinforcement_preset(canonical_role, platoon_type)
 
 /datum/authority/branch/role/proc/has_active_ship_cryo_reinforcement_overrides(platoon_type = get_active_ship_platoon_type())
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	return islist(profile?["cryo_reinforcement_titles"]) || islist(profile?["cryo_reinforcement_presets"])
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	if(!profile)
+		return FALSE
+
+	return islist(profile.get_cryo_reinforcement_titles()) || islist(profile.get_cryo_reinforcement_presets())
 
 /datum/authority/branch/role/proc/should_auto_assign_ship_family_squad(job_or_title)
 	var/list/halo_family_types = get_halo_job_family_types(job_or_title)
@@ -213,17 +186,20 @@
 	return get_ship_platoon_profile(get_active_ship_platoon_type(mode_name, mode_datum))
 
 /datum/authority/branch/role/proc/get_active_ship_distress_roles(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
-	var/list/profile = get_active_ship_profile(mode_name, mode_datum)
-	if(profile?["distress_roles"])
-		return profile["distress_roles"]
+	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/distress_roles = profile ? profile.get_distress_roles() : null
+	if(islist(distress_roles))
+		return distress_roles
 
 	return GLOB.ROLES_DISTRESS_SIGNAL
 
 /datum/authority/branch/role/proc/get_active_ship_lowpop_roles(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	if(profile?["lowpop_roles"])
-		return profile["lowpop_roles"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/lowpop_roles = profile ? profile.get_lowpop_roles() : null
+	if(islist(lowpop_roles))
+		return lowpop_roles
 
 	return GLOB.platoon_to_role_list[platoon_type]
 
@@ -232,9 +208,10 @@
 		lowpop = is_lowpop_ship_mode(mode_name, mode_datum)
 
 	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	if(profile?["role_mappings"])
-		return profile["role_mappings"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/role_mappings = profile ? profile.get_role_mappings() : null
+	if(islist(role_mappings))
+		return role_mappings
 
 	if(lowpop)
 		return GLOB.platoon_to_jobs[platoon_type]
@@ -243,9 +220,10 @@
 
 /datum/authority/branch/role/proc/get_active_ship_primary_family_types(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	if(profile?["family_types"])
-		return profile["family_types"]
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/family_types = profile ? profile.get_family_types() : null
+	if(islist(family_types) && length(family_types))
+		return family_types
 
 	return list(platoon_type)
 
@@ -256,8 +234,8 @@
 		/datum/squad/marine/halo/unsc/alpha,
 		/datum/squad/marine/halo/odst/alpha,
 	))
-		var/list/profile = get_ship_platoon_profile(platoon_type)
-		var/list/family_types = profile?["family_types"]
+		var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+		var/list/family_types = profile ? profile.get_family_types() : null
 		if(!islist(family_types) || !length(family_types))
 			family_types = list(platoon_type)
 		for(var/family_type in family_types)
@@ -268,9 +246,10 @@
 /datum/authority/branch/role/proc/get_active_ship_lowpop_keep_types(mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
 	var/platoon_type = get_active_ship_platoon_type(mode_name, mode_datum)
 	var/list/keep_types = list(platoon_type)
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	if(profile?["family_secondary_types"])
-		for(var/family_type in profile["family_secondary_types"])
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/family_secondary_types = profile ? profile.get_family_secondary_types() : null
+	if(islist(family_secondary_types))
+		for(var/family_type in family_secondary_types)
 			add_unique_ship_platoon_value(keep_types, family_type)
 	else if(platoon_type == /datum/squad/marine/alpha)
 		keep_types += list(/datum/squad/marine/bravo, /datum/squad/marine/charlie, /datum/squad/marine/delta)
@@ -409,17 +388,18 @@
 	return null
 
 /datum/authority/branch/role/proc/get_main_ship_display_profile()
-	var/list/profile = get_active_ship_profile()
+	var/platoon_type = get_active_ship_platoon_type()
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
 	if(!profile)
 		return null
 
-	if(!profile["platoon_label"] && !profile["manifest_picture"] && !profile["intro_picture"])
+	if(!profile.platoon_label && !profile.manifest_picture && !profile.intro_picture)
 		return null
 
 	return list(
-		"label" = profile["platoon_label"],
-		"manifest_picture" = profile["manifest_picture"],
-		"intro_picture" = profile["intro_picture"],
+		"label" = profile.platoon_label,
+		"manifest_picture" = profile.manifest_picture,
+		"intro_picture" = profile.intro_picture,
 	)
 
 /datum/authority/branch/role/proc/get_main_ship_distress_roles()

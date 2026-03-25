@@ -42,8 +42,8 @@
 	return null
 
 /datum/authority/branch/role/proc/get_ship_surface_related_squad_markers(platoon_type)
-	var/list/profile = get_ship_platoon_profile(platoon_type)
-	var/list/family_types = islist(profile?["family_types"]) ? profile["family_types"] : list(platoon_type)
+	var/datum/modular_ship_platoon_profile/profile = get_ship_platoon_profile_datum(platoon_type)
+	var/list/family_types = profile ? profile.get_family_types() : list(platoon_type)
 	. = list()
 
 	for(var/family_type in family_types)
