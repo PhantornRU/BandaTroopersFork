@@ -42,6 +42,13 @@
 
 	return TRUE
 
+/datum/squad_name_manager/proc/rename_primary_platoon(raw_name, mob/renamer)
+	var/datum/squad/alpha_squad = get_squad_by_static(SQUAD_MARINE_1)
+	if(!alpha_squad)
+		return FALSE
+
+	return rename_squad(alpha_squad, raw_name, renamer, "legacy_do_rename_platoon", TRUE)
+
 /datum/squad_name_manager/proc/apply_roundstart_defaults()
 	reset_runtime_names()
 	reset_leader_locks()

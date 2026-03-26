@@ -70,7 +70,7 @@
 		if(marine != marine_card_registered.resolve())
 			continue
 
-		var/new_assignment = squad_name_get_member_assignment(marine_squad, marine)
+		var/new_assignment = get_member_assignment(marine_squad, marine)
 		if(!new_assignment)
 			continue
 

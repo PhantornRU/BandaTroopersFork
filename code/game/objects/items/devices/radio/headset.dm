@@ -75,8 +75,9 @@
 	if(SQUAD_MARINE_1 == default_freq && SQUAD_MARINE_1 != GLOB.main_platoon_name)
 		rename_platoon(null, GLOB.main_platoon_name, SQUAD_MARINE_1)
 
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
 	for(var/static_squad_name in list(SQUAD_MARINE_1, SQUAD_MARINE_2, SQUAD_MARINE_3, SQUAD_MARINE_4)) // SS220 EDIT
-		var/runtime_squad_name = squad_name_get_runtime(static_squad_name)
+		var/runtime_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(static_squad_name) : static_squad_name
 		if(!isnull(channels[static_squad_name]) && static_squad_name != runtime_squad_name)
 			var/channel_state = channels[static_squad_name]
 			channels -= static_squad_name
@@ -93,7 +94,8 @@
 	SIGNAL_HANDLER
 
 	rename_platoon(source, new_name, old_name)
-	var/static_squad_name = squad_name_get_static_by_squad(target_squad)
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+	var/static_squad_name = squad_name_manager ? squad_name_manager.get_static_name_for_squad(target_squad) : target_squad?.name
 	if(static_squad_name == get_managed_squad_headset_static_name())
 		refresh_managed_squad_headset_label(new_name)
 
@@ -126,7 +128,8 @@
 		return
 
 	if(!runtime_name)
-		runtime_name = squad_name_get_runtime(static_squad_name)
+		var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+		runtime_name = squad_name_manager ? squad_name_manager.get_runtime_name(static_squad_name) : static_squad_name
 	if(!runtime_name)
 		runtime_name = static_squad_name
 
@@ -1079,7 +1082,8 @@
 	if(istype(H, /mob/living/carbon/human))
 		if(H.assigned_squad)
 			var/runtime_squad_name = H.assigned_squad.name
-			var/static_squad_name = squad_name_get_static(runtime_squad_name)
+			var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+			var/static_squad_name = squad_name_manager ? squad_name_manager.get_static_name(runtime_squad_name) : runtime_squad_name
 			switch(static_squad_name)
 				if(SQUAD_MARINE_1)
 					name = "[runtime_squad_name] radio headset"

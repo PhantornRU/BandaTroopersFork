@@ -488,12 +488,13 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
-	squad_name_try_apply_platoon_commander_preference(new_human)
+	GLOB.squad_name_manager?.try_apply_platoon_commander_preference(new_human)
 	if(late_join || !new_human.client?.prefs)
 		return
 
-	change_dropship_camo(new_human.client.prefs.dropship_camo)
-	change_dropship_name(new_human.client.prefs.dropship_name)
+	var/obj/docking_port/mobile/marine_dropship/midway/midway = SSshuttle.getShuttle(DROPSHIP_MIDWAY, FALSE)
+	midway?.apply_runtime_camo(new_human.client.prefs.dropship_camo)
+	midway?.apply_runtime_name(new_human.client.prefs.dropship_name)
 
 /datum/equipment_preset/unsc/platco/lesser_rank
 	name = parent_type::name + " (пониженный ранг)"

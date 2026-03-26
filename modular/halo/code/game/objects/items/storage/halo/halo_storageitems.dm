@@ -441,7 +441,7 @@
 	if(!issangheili(source) && !isunggoy(source))
 		return
 
-	scatter_stored_grenades(source, get_turf(source))
+	INVOKE_ASYNC(src, PROC_REF(scatter_stored_grenades), source, get_turf(source))
 
 /obj/item/storage/belt/marine/covenant/proc/scatter_stored_grenades(mob/living/carbon/human/source, turf/origin_turf)
 	if(!isturf(origin_turf) || !length(contents))

@@ -562,7 +562,8 @@ GLOBAL_LIST_EMPTY(vending_products)
 				vendor_successful_vend(itemspec, usr)
 				add_fingerprint(usr)
 				return TRUE
-			var/expected_squad_name = squad_name_get_runtime(squad_tag) // SS220 EDIT
+			var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+			var/expected_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(squad_tag) : squad_tag // SS220 EDIT
 			if((!human_user.assigned_squad && squad_tag) || (!human_user.assigned_squad?.omni_squad_vendor && (squad_tag && human_user.assigned_squad.name != expected_squad_name)))
 				to_chat(user, SPAN_WARNING("This machine isn't for your squad."))
 				vend_fail()

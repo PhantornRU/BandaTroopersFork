@@ -243,7 +243,7 @@
 	var/datum/rto_support_template/template = template_type ? get_selected_template(template_type) : get_primary_selected_template()
 	return !!template?.requires_visibility_zone
 
-/datum/rto_support_controller/proc/get_active_zone()
+/datum/rto_support_controller/proc/get_active_zone() as /datum/rto_visibility_zone
 	if(active_zone && !active_zone.is_active())
 		clear_active_zone()
 	return active_zone

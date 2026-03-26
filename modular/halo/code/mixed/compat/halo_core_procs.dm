@@ -2,7 +2,7 @@
 	if(!..())
 		return FALSE
 
-	if(ishuman(M))
+	if(ishuman(M) && !isnull(allowed_species_list))
 		var/mob/living/carbon/human/H = M
 		if(!(H.species.name in allowed_species_list))
 			if(!disable_warning)
