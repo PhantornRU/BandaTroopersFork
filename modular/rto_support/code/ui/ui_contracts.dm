@@ -12,6 +12,10 @@
 	var/visibility_zone_radius = 0
 	var/visibility_zone_duration = 0
 	var/visibility_zone_cooldown = 0
+	var/visibility_zone_cooldown_solo = 0
+	var/visibility_zone_cooldown_current = 0
+	var/solo_zone_cooldown_available = FALSE
+	var/solo_zone_cooldown_active = FALSE
 	var/visibility_altitude_requirement = RTO_SUPPORT_ALTITUDE_ANY
 	var/list/actions = list()
 
@@ -30,6 +34,10 @@
 		"visibility_zone_radius" = round(visibility_zone_radius),
 		"visibility_zone_duration" = round(visibility_zone_duration / 10),
 		"visibility_zone_cooldown" = round(visibility_zone_cooldown / 10),
+		"visibility_zone_cooldown_solo" = round(visibility_zone_cooldown_solo / 10),
+		"visibility_zone_cooldown_current" = round(visibility_zone_cooldown_current / 10),
+		"solo_zone_cooldown_available" = !!solo_zone_cooldown_available,
+		"solo_zone_cooldown_active" = !!solo_zone_cooldown_active,
 		"visibility_altitude_requirement" = visibility_altitude_requirement,
 		"actions" = actions,
 	)

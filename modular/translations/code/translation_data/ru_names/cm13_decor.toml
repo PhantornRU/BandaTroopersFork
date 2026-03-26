@@ -578,12 +578,12 @@ prepositional = "персональном компьютере"
 gender = "male"
 
 ["uscm military fax machine"]
-nominative = "военный факс ККМП"
-genitive = "военного факса ККМП"
-dative = "военному факсу ККМП"
-accusative = "военный факс ККМП"
-instrumental = "военным факсом ККМП"
-prepositional = "военном факсе ККМП"
+nominative = "военный факс"
+genitive = "военного факса"
+dative = "военному факсу"
+accusative = "военный факс"
+instrumental = "военным факсом"
+prepositional = "военном факсе"
 gender = "male"
 
 ["fake wooden floor"]
@@ -836,4 +836,346 @@ dative = "платформе"
 accusative = "платформу"
 instrumental = "платформой"
 prepositional = "платформе"
+gender = "female"
+
+["gym mat"]
+nominative = "спортивный мат"
+genitive = "спортивного мата"
+dative = "спортивному мату"
+accusative = "спортивный мат"
+instrumental = "спортивным матом"
+prepositional = "спортивном мате"
+gender = "male"
+
+[towel]
+nominative = "полотенце"
+genitive = "полотенца"
+dative = "полотенцу"
+accusative = "полотенце"
+instrumental = "полотенцем"
+prepositional = "полотенце"
+gender = "neuter"
+
+["morgue closet"]
+nominative = "морговый шкаф"
+genitive = "моргового шкафа"
+dative = "морговому шкафу"
+accusative = "морговый шкаф"
+instrumental = "морговым шкафом"
+prepositional = "морговом шкафу"
+gender = "male"
+
+["beach babe pinup"]
+nominative = "пин-ап Beach Babe"
+genitive = "пин-апа Beach Babe"
+dative = "пин-апу Beach Babe"
+accusative = "пин-ап Beach Babe"
+instrumental = "пин-апом Beach Babe"
+prepositional = "пин-апе Beach Babe"
+gender = "male"
+
+["koorlander gold poster"]
+nominative = "постер Koorlander Gold"
+genitive = "постера Koorlander Gold"
+dative = "постеру Koorlander Gold"
+accusative = "постер Koorlander Gold"
+instrumental = "постером Koorlander Gold"
+prepositional = "постере Koorlander Gold"
+gender = "male"
+
+["rockin robin 2300 jukebox"]
+nominative = "джукбокс Rockin Robin 2300"
+genitive = "джукбокса Rockin Robin 2300"
+dative = "джукбоксу Rockin Robin 2300"
+accusative = "джукбокс Rockin Robin 2300"
+instrumental = "джукбоксом Rockin Robin 2300"
+prepositional = "джукбоксе Rockin Robin 2300"
+gender = "male"
+
+["refueling pump"]
+nominative = "заправочный насос"
+genitive = "заправочного насоса"
+dative = "заправочному насосу"
+accusative = "заправочный насос"
+instrumental = "заправочным насосом"
+prepositional = "заправочном насосе"
+gender = "male"
+
+["table barricade"]
+nominative = "баррикада из стола"
+genitive = "баррикады из стола"
+dative = "баррикаде из стола"
+accusative = "баррикаду из стола"
+instrumental = "баррикадой из стола"
+prepositional = "баррикаде из стола"
+gender = "female"
+
+["gym equipment"]
+nominative = "спортивный тренажер"
+genitive = "спортивного тренажера"
+dative = "спортивному тренажеру"
+accusative = "спортивный тренажер"
+instrumental = "спортивным тренажером"
+prepositional = "спортивном тренажере"
+gender = "male"
+
+["commanding officer's fax machine"]
+nominative = "факс командира"
+genitive = "факса командира"
+dative = "факсу командира"
+accusative = "факс командира"
+instrumental = "факсом командира"
+prepositional = "факсе командира"
+gender = "male"
+
+["combat information center telephone"]
+nominative = "телефон информационно-боевого центра"
+genitive = "телефона информационно-боевого центра"
+dative = "телефону информационно-боевого центра"
+accusative = "телефон информационно-боевого центра"
+instrumental = "телефоном информационно-боевого центра"
+prepositional = "телефоне информационно-боевого центра"
+gender = "male"
+
+["midway remote control console"]
+nominative = "консоль дистанционного управления Midway"
+genitive = "консоли дистанционного управления Midway"
+dative = "консоли дистанционного управления Midway"
+accusative = "консоль дистанционного управления Midway"
+instrumental = "консолью дистанционного управления Midway"
+prepositional = "консоли дистанционного управления Midway"
+gender = "female"
+
+["medical bay"]
+nominative = "медотсек"
+genitive = "медотсека"
+dative = "медотсеку"
+accusative = "медотсек"
+instrumental = "медотсеком"
+prepositional = "медотсеке"
+gender = "male"
+
+["powerloader dock"]
+nominative = "док погрузчика"
+genitive = "дока погрузчика"
+dative = "доку погрузчика"
+accusative = "док погрузчика"
+instrumental = "доком погрузчика"
+prepositional = "доке погрузчика"
+gender = "male"
+
+["brief shutters"]
+nominative = "ставни брифинга"
+genitive = "ставней брифинга"
+dative = "ставням брифинга"
+accusative = "ставни брифинга"
+instrumental = "ставнями брифинга"
+prepositional = "ставнях брифинга"
+gender = "plural"
+
+["shutter control"]
+nominative = "управление ставнями"
+genitive = "управления ставнями"
+dative = "управлению ставнями"
+accusative = "управление ставнями"
+instrumental = "управлением ставнями"
+prepositional = "управлении ставнями"
+gender = "neuter"
+
+["cargo lockdown"]
+nominative = "блокировка грузового отсека"
+genitive = "блокировки грузового отсека"
+dative = "блокировке грузового отсека"
+accusative = "блокировку грузового отсека"
+instrumental = "блокировкой грузового отсека"
+prepositional = "блокировке грузового отсека"
+gender = "female"
+
+["cic shutters"]
+nominative = "ставни ИБЦ"
+genitive = "ставней ИБЦ"
+dative = "ставням ИБЦ"
+accusative = "ставни ИБЦ"
+instrumental = "ставнями ИБЦ"
+prepositional = "ставнях ИБЦ"
+gender = "plural"
+
+["port locks"]
+nominative = "замки левого борта"
+genitive = "замков левого борта"
+dative = "замкам левого борта"
+accusative = "замки левого борта"
+instrumental = "замками левого борта"
+prepositional = "замках левого борта"
+gender = "plural"
+
+[lobby]
+nominative = "вестибюль"
+genitive = "вестибюля"
+dative = "вестибюлю"
+accusative = "вестибюль"
+instrumental = "вестибюлем"
+prepositional = "вестибюле"
+gender = "male"
+
+["operating theatre 1"]
+nominative = "операционная 1"
+genitive = "операционной 1"
+dative = "операционной 1"
+accusative = "операционную 1"
+instrumental = "операционной 1"
+prepositional = "операционной 1"
+gender = "female"
+
+["supply blast doors"]
+nominative = "взрывозащитные двери снабжения"
+genitive = "взрывозащитных дверей снабжения"
+dative = "взрывозащитным дверям снабжения"
+accusative = "взрывозащитные двери снабжения"
+instrumental = "взрывозащитными дверями снабжения"
+prepositional = "взрывозащитных дверях снабжения"
+gender = "plural"
+
+["ammo blast doors"]
+nominative = "взрывозащитные двери боезапаса"
+genitive = "взрывозащитных дверей боезапаса"
+dative = "взрывозащитным дверям боезапаса"
+accusative = "взрывозащитные двери боезапаса"
+instrumental = "взрывозащитными дверями боезапаса"
+prepositional = "взрывозащитных дверях боезапаса"
+gender = "plural"
+
+["hangar bay aft"]
+nominative = "кормовой ангар"
+genitive = "кормового ангара"
+dative = "кормовому ангару"
+accusative = "кормовой ангар"
+instrumental = "кормовым ангаром"
+prepositional = "кормовом ангаре"
+gender = "male"
+
+["destroyed cheetah 2a upp light tank"]
+nominative = "уничтоженный легкий танк UPP Cheetah 2A"
+genitive = "уничтоженного легкого танка UPP Cheetah 2A"
+dative = "уничтоженному легкому танку UPP Cheetah 2A"
+accusative = "уничтоженный легкий танк UPP Cheetah 2A"
+instrumental = "уничтоженным легким танком UPP Cheetah 2A"
+prepositional = "уничтоженном легком танке UPP Cheetah 2A"
+gender = "male"
+
+["damaged m540 armored recon carrier"]
+nominative = "поврежденный бронеразведывательный транспортер M540"
+genitive = "поврежденного бронеразведывательного транспортера M540"
+dative = "поврежденному бронеразведывательному транспортеру M540"
+accusative = "поврежденный бронеразведывательный транспортер M540"
+instrumental = "поврежденным бронеразведывательным транспортером M540"
+prepositional = "поврежденном бронеразведывательном транспортере M540"
+gender = "male"
+
+["damaged fs/fes-3 fuel enhancer"]
+nominative = "поврежденный усилитель топлива FS/FES-3"
+genitive = "поврежденного усилителя топлива FS/FES-3"
+dative = "поврежденному усилителю топлива FS/FES-3"
+accusative = "поврежденный усилитель топлива FS/FES-3"
+instrumental = "поврежденным усилителем топлива FS/FES-3"
+prepositional = "поврежденном усилителе топлива FS/FES-3"
+gender = "male"
+
+["damaged fs/acs-9 cooling system"]
+nominative = "поврежденная система охлаждения FS/ACS-9"
+genitive = "поврежденной системы охлаждения FS/ACS-9"
+dative = "поврежденной системе охлаждения FS/ACS-9"
+accusative = "поврежденную систему охлаждения FS/ACS-9"
+instrumental = "поврежденной системой охлаждения FS/ACS-9"
+prepositional = "поврежденной системе охлаждения FS/ACS-9"
+gender = "female"
+
+["long-life foodstuff storage"]
+nominative = "хранилище долговечных припасов"
+genitive = "хранилища долговечных припасов"
+dative = "хранилищу долговечных припасов"
+accusative = "хранилище долговечных припасов"
+instrumental = "хранилищем долговечных припасов"
+prepositional = "хранилище долговечных припасов"
+gender = "neuter"
+
+["out of order"]
+nominative = "НЕ РАБОТАЕТ"
+genitive = "НЕ РАБОТАЕТ"
+dative = "НЕ РАБОТАЕТ"
+accusative = "НЕ РАБОТАЕТ"
+instrumental = "НЕ РАБОТАЕТ"
+prepositional = "НЕ РАБОТАЕТ"
+gender = "neuter"
+
+["dip cup"]
+nominative = "дип-стаканчик"
+genitive = "дип-стаканчика"
+dative = "дип-стаканчику"
+accusative = "дип-стаканчик"
+instrumental = "дип-стаканчиком"
+prepositional = "дип-стаканчике"
+gender = "male"
+
+["faded information dog tag"]
+nominative = "потускневший информационный жетон"
+genitive = "потускневшего информационного жетона"
+dative = "потускневшему информационному жетону"
+accusative = "потускневший информационный жетон"
+instrumental = "потускневшим информационным жетоном"
+prepositional = "потускневшем информационном жетоне"
+gender = "male"
+
+["damaged rosary"]
+nominative = "поврежденные четки"
+genitive = "поврежденных четок"
+dative = "поврежденным четкам"
+accusative = "поврежденные четки"
+instrumental = "поврежденными четками"
+prepositional = "поврежденных четках"
+gender = "plural"
+
+[lattice]
+nominative = "решетка"
+genitive = "решетки"
+dative = "решетке"
+accusative = "решетку"
+instrumental = "решеткой"
+prepositional = "решетке"
+gender = "female"
+
+[shutters]
+nominative = "ставни"
+genitive = "ставней"
+dative = "ставням"
+accusative = "ставни"
+instrumental = "ставнями"
+prepositional = "ставнях"
+gender = "plural"
+
+["toilet paper"]
+nominative = "туалетная бумага"
+genitive = "туалетной бумаги"
+dative = "туалетной бумаге"
+accusative = "туалетную бумагу"
+instrumental = "туалетной бумагой"
+prepositional = "туалетной бумаге"
+gender = "female"
+
+[hustler]
+nominative = "журнал Hustler"
+genitive = "журнала Hustler"
+dative = "журналу Hustler"
+accusative = "журнал Hustler"
+instrumental = "журналом Hustler"
+prepositional = "журнале Hustler"
+gender = "male"
+
+["empty reaper red"]
+nominative = "пустая банка Reaper Red"
+genitive = "пустой банки Reaper Red"
+dative = "пустой банке Reaper Red"
+accusative = "пустую банку Reaper Red"
+instrumental = "пустой банкой Reaper Red"
+prepositional = "пустой банке Reaper Red"
 gender = "female"

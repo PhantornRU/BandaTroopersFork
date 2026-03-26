@@ -2,15 +2,16 @@
 
 ## 1. Назначение
 
-`RTO Support` реализует персональную систему вызова поддержки для роли `RTO` без привязки к singleton-runtime существующего `fire_support`.
+`RTO Support` реализует персональную modular-систему вызова поддержки для роли `RTO` без привязки к singleton-runtime существующего `fire_support`.
 
 Модуль держит:
 
 - персональный controller на конкретного RTO;
-- конфигурационные шаблоны поддержки;
+- конфигурационные шаблоны пакетов;
 - серверную валидацию;
-- dispatch в свежие `datum/fire_support`;
-- action-кнопки и таргетинг через отдельный RTO-бинокль.
+- dispatch в `datum/fire_support`;
+- action-кнопки и targeting через отдельный `RTO binoculars`;
+- отдельное TGUI preset menu.
 
 ## 2. Главная архитектура
 
@@ -25,84 +26,160 @@
 4. `interaction`
    `human_action`-кнопки, `RTO binoculars`, preset menu
 
-## 3. Controller и runtime-контракты
+## 3. Support profiles
+
+Доступность пакетов data-driven и зависит от `support_profile`.
+
+Текущий профильный контракт:
+
+- `uscm`
+- `unsc`
+- `odst`
+
+Текущая доступность:
+
+- `USCM`: `mortar`, `cas`, `heavy`, `logistics`, `medical`, `technical`
+- `UNSC`: `mortar`, `halo_logistics`, `halo_medical`, `halo_technical`
+- `ODST`: `cas`, `heavy`, `halo_logistics`, `halo_medical`, `halo_technical`
+
+Профиль должен определяться через dedicated RTO binocular variant, а fallback по job остается только резервным путем.
+
+## 4. Controller и runtime-контракты
 
 Controller хранит:
 
 - владельца;
-- активный template;
-- активный visibility zone;
-- armed mode;
-- общий cooldown пакета;
-- личные cooldown способностей;
-- ссылки на RTO action-кнопки.
-
-Controller не должен содержать special-case branching под конкретные типы mortar, CAS или heavy. Все различия живут в конфигурации и `fire_support_path`.
-
-## 4. RTO single-shot mortar
-
-RTO не использует апстримовые многоснарядные mortar datums напрямую.
-
-Модуль объявляет собственные подтипы:
-
-- `/datum/fire_support/mortar/rto_single`
-- `/datum/fire_support/mortar/smoke/rto_single`
-- `/datum/fire_support/mortar/incendiary/rto_single`
-
-Их ответственность:
-
-- сохранить базовое поведение апстримового mortar-типа;
-- переопределить `impact_quantity = 1`;
-- заменить announce-сообщения с barrage wording на single-round wording.
-
-Почему так:
-
-- апстримовый mortar остаётся неизменным для остальных систем;
-- RTO получает отдельную продуктовую семантику;
-- controller и dispatch не получают новую условную логику.
-
-Action templates `mortar_*` должны ссылаться именно на эти module-local fire-support пути.
-
-## 5. Zone и cooldown model
-
-Runtime-модель кулдаунов остаётся data-driven:
-
-- `visibility_zone_cooldown_until`
-- `shared_cooldown_until`
+- `selected_templates`
+- `active_zone`
+- `armed_action_id`
+- `armed_template_id`
+- `shared_cooldowns_by_template[template_id]`
+- `zone_shared_cooldown_until`
+- `zone_cooldowns_by_template[template_id]`
 - `action_cooldowns[action_id]`
+- reset-state выбора слотов
+- ссылки на RTO action-кнопки
 
-Текущие zone timings:
+Controller больше не живет в модели singular `active_template`.
 
-- `Mortar`: `100s active / 300s recovery`
-- `CAS`: `200s active / 500s recovery`
-- `Heavy Strike`: `300s active / 800s recovery`
-- `Logistics`: zones unsupported
+Основной контракт:
 
-Recovery зоны стартует после завершения или очистки зоны, а не в момент deploy.
+- можно выбрать до `2` уникальных пакетов;
+- второй слот необязателен;
+- первый выбор запускает timer полного reset на `60 минут`;
+- reset всегда полный и очищает оба слота;
+- select-preset action остается доступным и после первого выбора.
 
-## 6. Баланс как данные, а не runtime-логика
+## 5. Cooldown model
 
-Новый баланс остаётся полностью config-driven:
+Runtime-модель cooldown'ов:
 
-- `Mortar` — короткий burst-window пакет;
-- `CAS` — средний пакет без экстремумов;
-- `Heavy Strike` — длинное, но контролируемое дорогое окно;
-- `Logistics` — no-zone пакет с самыми длинными ability cooldowns.
+- `shared_cooldowns_by_template[template_id]`
+- `action_cooldowns[action_id]`
+- `zone_shared_cooldown_until`
+- `zone_cooldowns_by_template[template_id]`
 
-Текущий целевой боевой tempo:
+### Support cooldowns
 
-- `Mortar` — меньше `10 секунд` между повторными ударами;
-- `CAS` — в среднем `10-20 секунд` между ударами;
-- `Heavy Strike` — тоже в среднем `10-20 секунд`, но с самым долгим recovery сектора;
-- `Logistics` не участвует в этом правиле и остаётся отдельной долгой экономикой.
+- `shared_cooldown` относится к конкретному пакету;
+- вызов из пакета A не блокирует пакет B;
+- `personal_cooldown` относится только к одной ability.
 
-Никаких новых веток вида `if(template_id == "mortar")` или `if(template_id == "heavy")` для этого ребаланса не добавляется.
+### Zone cooldowns
 
-## 7. Что не менять без причины
+- активный сектор в рантайме всегда только один;
+- после окончания сектора стартует общий zone cooldown;
+- одновременно стартует личный zone cooldown только пакета-источника;
+- чужой пакет не наследует личный zone cooldown чужого сектора.
 
-- не переносить RTO HUD на `item_action`;
-- не возвращать timed coordinate marker;
-- не возвращать timed manual designation как ground marker;
+### Solo discount
+
+Если выбран ровно один пакет и он zone-based, effective cooldown его сектора уменьшается в `2 раза`.
+
+Для этого controller использует:
+
+- `get_solo_visibility_zone_cooldown()`
+- `uses_single_template_zone_discount()`
+- `get_effective_visibility_zone_cooldown()`
+
+Применять zone cooldown нужно через effective-value, а не напрямую через `template.visibility_zone_cooldown`.
+
+## 6. Zone ownership
+
+Zone-based actions работают только через сектор своего пакета.
+
+Правила:
+
+- у `Mortar`, `CAS`, `Heavy Strike` свой template-owned sector flow;
+- активный сектор пакета A не валидирует actions пакета B;
+- второй сектор нельзя развернуть, пока существует первый;
+- `validation_service` и HUD state builder должны опираться на `source_template`.
+
+## 7. HUD и action lifecycle
+
+HUD остается `human_action`-based.
+
+Порядок action handles должен быть стабильным:
+
+1. `select_preset`
+2. visibility actions по слотам
+3. `coordinates`
+4. `manual_marker`
+5. support actions пакета 1
+6. support actions пакета 2
+
+Не переносить этот HUD на `item_action` без отдельного архитектурного решения.
+
+## 8. Preset menu contract
+
+Preset menu должен получать от controller:
+
+- `selected_templates`
+- `selected_count`
+- `max_selected_templates`
+- `can_add_template`
+- `can_reset_templates`
+- `reset_ready_in`
+
+Для zone-based пакетов preset UI DTO также должен уметь показать:
+
+- полный `visibility_zone_cooldown`
+- reduced `visibility_zone_cooldown_solo`
+- текущий `visibility_zone_cooldown_current`
+- активен ли `solo_zone_cooldown_active`
+
+Игрок не должен узнавать про solo-бонус только через код или случайный gameplay.
+
+## 9. HALO support catalog
+
+HALO admin bridge держится отдельно в modular compat layer.
+
+Текущий HALO контракт:
+
+- `halo_logistics`
+- `halo_medical`
+- `halo_technical`
+
+`halo_engineering` и `halo_command` больше не являются публичными UI/admin template-id. Их payload-группы слиты в `halo_technical`.
+
+## 10. USCM payload model
+
+USCM utility support использует hybrid-подход:
+
+- часть новых действий переиспользует existing upstream crates;
+- часть заведена как compact modular payloads в `modular/rto_support/code/fire_support/uscm_support_payloads.dm`.
+
+Текущие новые USCM utility-секции:
+
+- `logistics`
+- `medical`
+- `technical`
+
+## 11. Что не менять без причины
+
+- не возвращать singular `active_template`-контракт наружу;
 - не смешивать zone cooldown и support cooldown в одном primary label;
-- не возвращать RTO mortar к `impact_quantity > 1`;
-- не выносить runtime-логику из `modular/rto_support` в апстрим без жёсткой необходимости.
+- не убирать постоянную доступность select-preset action;
+- не делать zone cooldown глобально одинаковым для всех пакетов без учета template ownership;
+- не скрывать solo-бонус от игрока;
+- не разносить runtime-логику `rto_support` в upstream-пути без жесткой необходимости.

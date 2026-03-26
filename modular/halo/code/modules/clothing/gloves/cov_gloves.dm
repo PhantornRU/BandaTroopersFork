@@ -1,5 +1,5 @@
 /obj/item/clothing/gloves/marine/sangheili
-	name = "\improper латные перчатки сангхейли"
+	name = "\improper Sangheili gauntlets"
 	desc = "Простые латные перчатки, которые сангхейли носят поверх запястий и предплечий. Выполнены из обычных наноламинатных композитов. Благодаря точной посадке они ничуть не мешают работе воина, а если приходится полагаться на чистую силу, вполне сойдут и за импровизированное оружие."
 	icon = 'icons/halo/obj/items/clothing/covenant/gloves.dmi'
 	icon_state = "sanggauntlets_minor"
@@ -17,10 +17,10 @@
 	armor_bomb = CLOTHING_ARMOR_MEDIUM
 
 /obj/item/clothing/gloves/marine/sangheili/minor
-	name = "\improper латные перчатки сангхейли-минор"
+	name = "\improper Sangheili Minor gauntlets"
 
 /obj/item/clothing/gloves/marine/sangheili/major
-	name = "\improper латные перчатки сангхейли-майор"
+	name = "\improper Sangheili Major gauntlets"
 	icon_state = "sanggauntlets_major"
 	item_state = "sanggauntlets_major"
 
@@ -30,7 +30,7 @@
 	armor_bomb = CLOTHING_ARMOR_MEDIUMHIGH
 
 /obj/item/clothing/gloves/marine/sangheili/ultra
-	name = "\improper латные перчатки сангхейли-ультра"
+	name = "\improper Sangheili Ultra gauntlets"
 	icon_state = "sanggauntlets_ultra"
 	item_state = "sanggauntlets_ultra"
 
@@ -40,7 +40,7 @@
 	armor_bomb = CLOTHING_ARMOR_HIGH
 
 /obj/item/clothing/gloves/marine/sangheili/zealot
-	name = "\improper латные перчатки сангхейли-зилота"
+	name = "\improper Sangheili Zealot gauntlets"
 	icon_state = "sanggauntlets_zealot"
 	item_state = "sanggauntlets_zealot"
 

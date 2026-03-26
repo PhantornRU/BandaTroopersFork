@@ -26,6 +26,12 @@ const PAGES = [
     color: 'orange',
     icon: 'crosshairs',
   },
+  {
+    id: 'player_survival',
+    title: 'Player Survival',
+    color: 'red',
+    icon: 'heartbeat',
+  },
 ];
 
 const sanitizeNumberInputValue = (value, fallback) =>
@@ -309,6 +315,149 @@ const FireSupportPage = ({ data, grantAmounts, setGrantAmounts }) => {
   );
 };
 
+const PlayerSurvivalPage = ({
+  data,
+  critGraceSeconds,
+  antigibLimbLossChance,
+  setCritGraceSeconds,
+  setAntigibLimbLossChance,
+}) => {
+  const { act } = useBackend();
+  const safeCritGraceSeconds = sanitizeNumberInputValue(critGraceSeconds, 15);
+  const safeAntigibLimbLossChance = sanitizeNumberInputValue(
+    antigibLimbLossChance,
+    30,
+  );
+
+  return (
+    <Section fill title="Player Survival">
+      <Section level={2} title="Save Before Death">
+        <Stack vertical>
+          <Stack.Item>
+            <Button.Checkbox
+              checked={!!data.player_survival_enabled}
+              fluid
+              onClick={() =>
+                act('set_player_survival_enabled', {
+                  enabled: data.player_survival_enabled ? 0 : 1,
+                })
+              }
+            >
+              Enable Save Before Death
+            </Button.Checkbox>
+          </Stack.Item>
+
+          <Stack.Item>
+            <Stack align="center">
+              <Stack.Item grow>
+                <Box bold>Critical Grace Duration (seconds)</Box>
+                <Box color="label">
+                  Controls the post-hardcrit grace window before final death.
+                </Box>
+              </Stack.Item>
+              <Stack.Item>
+                <NumberInput
+                  disabled={!data.player_survival_enabled}
+                  minValue={0}
+                  maxValue={300}
+                  step={1}
+                  stepPixelSize={10}
+                  value={safeCritGraceSeconds}
+                  width="6em"
+                  onChange={(value) =>
+                    setCritGraceSeconds(sanitizeNumberInputValue(value, 15))
+                  }
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  color="good"
+                  disabled={!data.player_survival_enabled}
+                  onClick={() =>
+                    act('set_player_survival_crit_grace_seconds', {
+                      value: safeCritGraceSeconds,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+        </Stack>
+      </Section>
+
+      <Section level={2} title="Anti-Gib Fallback">
+        <Stack vertical>
+          <Stack.Item>
+            <Button.Checkbox
+              checked={!!data.player_survival_antigib_enabled}
+              fluid
+              onClick={() =>
+                act('set_player_survival_antigib_enabled', {
+                  enabled: data.player_survival_antigib_enabled ? 0 : 1,
+                })
+              }
+            >
+              Enable Anti-Gib Fallback
+            </Button.Checkbox>
+          </Stack.Item>
+
+          <Stack.Item>
+            <Stack align="center">
+              <Stack.Item grow>
+                <Box bold>Anti-Gib Limb Loss Chance (%)</Box>
+                <Box color="label">
+                  Applied only when Anti-Gib Fallback is enabled.
+                </Box>
+              </Stack.Item>
+              <Stack.Item>
+                <NumberInput
+                  disabled={!data.player_survival_antigib_enabled}
+                  minValue={0}
+                  maxValue={100}
+                  step={1}
+                  stepPixelSize={10}
+                  value={safeAntigibLimbLossChance}
+                  width="6em"
+                  onChange={(value) =>
+                    setAntigibLimbLossChance(
+                      sanitizeNumberInputValue(value, 30),
+                    )
+                  }
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  color="good"
+                  disabled={!data.player_survival_antigib_enabled}
+                  onClick={() =>
+                    act('set_player_survival_antigib_limb_loss_chance', {
+                      value: safeAntigibLimbLossChance,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+        </Stack>
+      </Section>
+
+      <Section level={2} title="Reset">
+        <Button
+          color="average"
+          icon="undo"
+          onClick={() => act('reset_player_survival_rules')}
+        >
+          Reset to defaults
+        </Button>
+      </Section>
+    </Section>
+  );
+};
+
 export const GameRulePanel = () => {
   const { data } = useBackend();
   const [page, setPage] = useState('rto');
@@ -317,6 +466,12 @@ export const GameRulePanel = () => {
   );
   const [personalMultiplier, setPersonalMultiplier] = useState(
     sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
+  );
+  const [critGraceSeconds, setCritGraceSeconds] = useState(
+    sanitizeNumberInputValue(data.player_survival_crit_grace_seconds, 15),
+  );
+  const [antigibLimbLossChance, setAntigibLimbLossChance] = useState(
+    sanitizeNumberInputValue(data.player_survival_antigib_limb_loss_chance, 30),
   );
   const [grantAmounts, setGrantAmounts] = useState({});
 
@@ -331,6 +486,21 @@ export const GameRulePanel = () => {
       sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
     );
   }, [data.rto_personal_cooldown_multiplier]);
+
+  useEffect(() => {
+    setCritGraceSeconds(
+      sanitizeNumberInputValue(data.player_survival_crit_grace_seconds, 15),
+    );
+  }, [data.player_survival_crit_grace_seconds]);
+
+  useEffect(() => {
+    setAntigibLimbLossChance(
+      sanitizeNumberInputValue(
+        data.player_survival_antigib_limb_loss_chance,
+        30,
+      ),
+    );
+  }, [data.player_survival_antigib_limb_loss_chance]);
 
   useEffect(() => {
     setGrantAmounts((prev) => {
@@ -378,6 +548,15 @@ export const GameRulePanel = () => {
                 data={data}
                 grantAmounts={grantAmounts}
                 setGrantAmounts={setGrantAmounts}
+              />
+            )}
+            {page === 'player_survival' && (
+              <PlayerSurvivalPage
+                data={data}
+                critGraceSeconds={critGraceSeconds}
+                antigibLimbLossChance={antigibLimbLossChance}
+                setCritGraceSeconds={setCritGraceSeconds}
+                setAntigibLimbLossChance={setAntigibLimbLossChance}
               />
             )}
           </Stack.Item>

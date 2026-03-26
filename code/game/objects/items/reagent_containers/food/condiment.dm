@@ -211,7 +211,7 @@
 
 /obj/item/reagent_container/food/condiment/hotsauce/tabasco
 	name = "\improper Tabasco bottle"
-	desc = "A bottle of Weyland-Yutani brand Tabasco hot sauce."
+	desc = "Табаско родом из США, несмотря на название в честь мексиканского города. Соус щедро приправлен, с заметным уксусом, лёгкой сладостью и дымком." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "hotsauce_tabasco"
 	item_state = "hotsauce_tabasco"
 

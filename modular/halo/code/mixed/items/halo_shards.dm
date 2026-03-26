@@ -1,5 +1,5 @@
 /obj/item/shard/shrapnel/needler
-	name = "осколок игольника"
+	name = "needler shard"
 	desc = "Длинный светящийся розово-фиолетовый шип. Выглядит особенно нестабильным."
 	icon = 'icons/halo/obj/items/shards.dmi'
 	icon_state = "needle"

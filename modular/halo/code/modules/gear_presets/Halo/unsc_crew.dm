@@ -1,5 +1,5 @@
 /datum/equipment_preset/unsc_crew
-	name = "UNSC crewmen personnel"
+	name = "Экипаж UNSC"
 	faction = FACTION_UNSCN
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -37,7 +37,7 @@
 
 
 /datum/equipment_preset/unsc_crew/generic
-	name = "UNSC Crewman"
+	name = "Член экипажа UNSC"
 	assignment = JOB_UNSC_CREW
 	rank = JOB_UNSC_CREW
 	paygrades = list(PAY_SHORT_NE3 = JOB_PLAYTIME_TIER_0)
@@ -64,7 +64,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/engi
-	name = "UNSC Engineering Technician"
+	name = "Инженерный техник UNSC"
 	assignment = JOB_UNSC_CREW_ENGI
 	rank = JOB_UNSC_CREW_ENGI
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
@@ -95,7 +95,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/engi/officer
-	name = "UNSC Engineering Officer"
+	name = "Инженерный офицер UNSC"
 	assignment = JOB_UNSC_CREW_ENGI_CHIEF
 	rank = JOB_UNSC_CREW_ENGI_CHIEF
 	paygrades = list(PAY_SHORT_NO3 = JOB_PLAYTIME_TIER_0)
@@ -123,7 +123,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/tools/full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/unsc_crew/flight
-	name = "UNSC Flight-Deck Technician"
+	name = "Техник полетной палубы UNSC"
 	assignment = JOB_UNSC_CREW_FLIGHT
 	rank = JOB_UNSC_CREW_FLIGHT
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
@@ -154,7 +154,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/flight/officer
-	name = "UNSC Flight-Deck Officer"
+	name = "Офицер полетной палубы UNSC"
 	assignment = JOB_UNSC_CREW_FLIGHT_CHIEF
 	rank = JOB_UNSC_CREW_FLIGHT_CHIEF
 	paygrades = list(PAY_SHORT_NO2 = JOB_PLAYTIME_TIER_0)
@@ -182,7 +182,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/tools/full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/unsc_crew/operations
-	name = "UNSC Operations Specialist"
+	name = "Операционный специалист UNSC"
 	assignment = JOB_UNSC_CREW_OPS
 	rank = JOB_UNSC_CREW_OPS
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
@@ -209,7 +209,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/operations/officer
-	name = "UNSC Operations Officer"
+	name = "Операционный офицер UNSC"
 	assignment = JOB_UNSC_CREW_OPS_CHIEF
 	rank = JOB_UNSC_CREW_OPS_CHIEF
 	paygrades = list(PAY_SHORT_NW1 = JOB_PLAYTIME_TIER_0)
@@ -234,7 +234,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
 
 /datum/equipment_preset/unsc_crew/medical
-	name = "UNSC Medical Specialist"
+	name = "Медицинский специалист UNSC"
 	assignment = JOB_UNSC_CREW_MED
 	rank = JOB_UNSC_CREW_MED
 	paygrades = list(PAY_SHORT_NE5 = JOB_PLAYTIME_TIER_0)
@@ -267,7 +267,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/medical/officer
-	name = "UNSC Chief Medical Officer"
+	name = "Главный медофицер UNSC"
 	assignment = JOB_UNSC_CREW_MED_CHIEF
 	rank = JOB_UNSC_CREW_MED_CHIEF
 	paygrades = list(PAY_SHORT_NO6 = JOB_PLAYTIME_TIER_0)
@@ -298,7 +298,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full(new_human), WEAR_L_STORE)
 
 /datum/equipment_preset/unsc_crew/command
-	name = "UNSC Bridge Officer"
+	name = "Офицер мостика UNSC"
 	assignment = JOB_UNSC_CREW_COM
 	rank = JOB_UNSC_CREW_COM
 	paygrades = list(PAY_SHORT_NO3 = JOB_PLAYTIME_TIER_0)
@@ -325,19 +325,19 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/unsc_crew/command/weapons
-	name = "UNSC Bridge Officer - Weapons"
-	assignment = "UNSC Bridge Weapons Officer"
+	name = "Офицер мостика UNSC - вооружение"
+	assignment = "Офицер мостика UNSC по вооружению"
 
 /datum/equipment_preset/unsc_crew/command/navigations
-	name = "UNSC Bridge Officer - Navigations"
-	assignment = "UNSC Bridge Navigation Officer"
+	name = "Офицер мостика UNSC - навигация"
+	assignment = "Офицер мостика UNSC по навигации"
 
 /datum/equipment_preset/unsc_crew/command/communications
-	name = "UNSC Bridge Officer - Communications"
-	assignment = "UNSC Bridge Communications Officer"
+	name = "Офицер мостика UNSC - связь"
+	assignment = "Офицер мостика UNSC по связи"
 
 /datum/equipment_preset/unsc_crew/command/xo
-	name = "UNSC Bridge Officer - Executive Officer"
+	name = "Офицер мостика UNSC - старпом"
 	assignment = JOB_UNSC_CREW_COM_XO
 	rank = JOB_UNSC_CREW_COM_XO
 	paygrades = list(PAY_SHORT_NO4 = JOB_PLAYTIME_TIER_0)
@@ -361,13 +361,13 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
 
 /datum/equipment_preset/unsc_crew/command/xo/cpt
-	name = "UNSC Bridge Officer - Captain"
+	name = "Офицер мостика UNSC - капитан"
 	assignment = JOB_UNSC_CREW_COM_CPT
 	rank = JOB_UNSC_CREW_COM_CPT
 	paygrades = list(PAY_SHORT_NO5 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc_crew/rnd
-	name = "UNSC Science Officer"
+	name = "Научный офицер UNSC"
 	assignment = JOB_UNSC_CREW_RND
 	rank = JOB_UNSC_CREW_RND
 	paygrades = list(PAY_SHORT_NO4 = JOB_PLAYTIME_TIER_0)

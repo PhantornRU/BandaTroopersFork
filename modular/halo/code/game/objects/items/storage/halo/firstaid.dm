@@ -1,5 +1,5 @@
 /obj/item/storage/firstaid/unsc
-	name = "аптечка ККОН"
+	name = "UNSC health pack"
 	desc = "Первоклассные армейские медикаменты обычно лежат именно в этих восьмиугольных аптечках."
 	icon = 'icons/halo/obj/items/storage/medical.dmi'
 	icon_state = "healthpack"
@@ -77,7 +77,7 @@
 	return
 
 /obj/item/storage/syringe_case/unsc
-	name = "футляр для шприцов"
+	name = "syringe case"
 	desc = "Медицинский футляр для хранения шприцов."
 	icon = 'icons/halo/obj/items/storage/medical.dmi'
 	icon_state = "syringecase"
@@ -97,7 +97,7 @@
 	)
 
 /obj/item/storage/syringe_case/unsc/morphine
-	name = "футляр с морфином"
+	name = "morphine case"
 	desc = "Стандартное содержимое индивидуальных аптечных пакетов ККОН. Внутри три одноразовые сиретты с морфином."
 	icon_state = "morphinecase"
 	can_hold = list(
@@ -115,7 +115,7 @@
 	new /obj/item/reagent_container/syringe/halo(src)
 
 /obj/item/storage/syringe_case/unsc/burnguard
-	name = "футляр Optican BurnGuard"
+	name = "Optican BurnGuard case"
 	desc = "Футляр на четыре упаковки Optican BurnGuard."
 	icon_state = "burnguard"
 	storage_slots = 4

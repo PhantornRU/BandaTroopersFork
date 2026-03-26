@@ -3237,8 +3237,8 @@
 
 /obj/item/reagent_container/food/snacks/microwavable/donkpocket
 	name = "Donk-pocket"
-	desc = "The food of choice for the seasoned traitor. Packaged by the Weyland-Yutani Corporation."
-	warm_desc = "The food of choice for the seasoned traitor. Warmed unevenly and rock hard."
+	desc = "Простой сэндвич с мясной, сырной и соусной начинкой. Для лучшего результата грейте прямо в упаковке." // SS220 EDIT: HALO flavor migrated from modular late override
+	warm_desc = "Разогретый сэндвич с мясом, сыром и соусом. Съедобно, но не более." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "donkpocket_wr2"
 	filling_color = "#DEDEAB"
 	package = 2

@@ -1,11 +1,11 @@
 /obj/structure/gun_rack/halo
-	name = "стойка для оружия HALO"
+	name = "halo gun rack holder"
 	desc = "Оружейная стойка ККОН."
 	icon = 'icons/halo/obj/structures/gun_racks.dmi'
 	icon_state = "template"
 
 /obj/structure/gun_rack/halo/medkit
-	name = "станция аптечки"
+	name = "medkit station"
 	desc = "Настенная станция для аптечки."
 	icon_state = "medkit"
 	max_stored = 1
@@ -22,7 +22,7 @@
 		overlays += picked_image
 
 /obj/structure/gun_rack/halo/armory/ma5c
-	name = "стойка для оружия MA5C"
+	name = "MA5C weapon rack"
 	icon_state = "ma5c"
 	max_stored = 6
 	initial_stored = 6
@@ -36,7 +36,7 @@
 	initial_stored = 0
 
 /obj/structure/gun_rack/halo/armory/ma5b
-	name = "стойка для оружия MA5B"
+	name = "MA5B weapon rack"
 	icon_state = "ma5b"
 	allowed_type = /obj/item/weapon/gun/rifle/halo/ma5b
 	populate_type = /obj/item/weapon/gun/rifle/halo/ma5b
@@ -48,13 +48,13 @@
 	initial_stored = 0
 
 /obj/structure/gun_rack/halo/big
-	name = "оружейная стойка"
+	name = "weapon rack"
 	icon = 'icons/halo/obj/structures/gun_racks_32x48.dmi'
 	max_stored = 5
 	initial_stored = 5
 
 /obj/structure/gun_rack/halo/big/ma5c
-	name = "стойка для оружия MA5C"
+	name = "MA5C weapon rack"
 	icon_state = "ma5c"
 	allowed_type = /obj/item/weapon/gun/rifle/halo/ma5c
 	populate_type = /obj/item/weapon/gun/rifle/halo/ma5c
@@ -66,7 +66,7 @@
 	initial_stored = 0
 
 /obj/structure/gun_rack/halo/big/ma5b
-	name = "стойка для оружия MA5B"
+	name = "MA5B weapon rack"
 	icon_state = "ma5b"
 	allowed_type = /obj/item/weapon/gun/rifle/halo/ma5b
 	populate_type = /obj/item/weapon/gun/rifle/halo/ma5b
@@ -78,7 +78,7 @@
 	initial_stored = 0
 
 /obj/structure/gun_rack/halo/big/br55
-	name = "стойка для оружия BR55"
+	name = "BR55 weapon rack"
 	icon_state = "br55"
 	allowed_type = /obj/item/weapon/gun/rifle/halo/br55
 	populate_type = /obj/item/weapon/gun/rifle/halo/br55

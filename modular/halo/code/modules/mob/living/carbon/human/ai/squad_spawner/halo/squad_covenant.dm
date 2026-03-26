@@ -2,30 +2,30 @@
 	faction = FACTION_COVENANT
 
 /datum/human_ai_squad_preset/covenant/unggoy_pair
-	name = "Unggoy Pair"
-	desc = "A minimal Covenant scout pair made up of two plasma-armed Unggoy."
+	name = "Пара унггоев"
+	desc = "Минимальная разведывательная пара Ковенанта из двух унггоев с плазменным оружием."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_needle_pair
-	name = "Unggoy Needle Pair"
-	desc = "A light skirmish pair carrying needlers and spare crystals."
+	name = "Пара унггоев с игольниками"
+	desc = "Легкая скирмиш-пара с игольниками и запасными кристаллами."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/minor_needler = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_fireteam
-	name = "Unggoy Fireteam"
-	desc = "A line fireteam led by one major with three plasma-armed minors."
+	name = "Огневая группа унггоев"
+	desc = "Линейная огневая группа под командованием одного мажора и трех миноров с плазменным оружием."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 3,
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_assault_team
-	name = "Unggoy Assault Team"
-	desc = "An assault-focused team with a needler major, plasma rifle support and plasma line troops."
+	name = "Штурмовая группа унггоев"
+	desc = "Штурмовая группа с мажором-игольником, поддержкой с плазменной винтовкой и линейными бойцами с плазмой."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/major_needler = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
@@ -33,8 +33,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_heavy_team
-	name = "Unggoy Heavy Team"
-	desc = "A veteran heavy-support team led by an Ultra with plasma rifle and needler heavies."
+	name = "Тяжелая группа унггоев"
+	desc = "Ветеранская группа тяжелой поддержки под командованием ультры, с тяжеловесами с плазменной винтовкой и игольником."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
@@ -43,8 +43,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_support_team
-	name = "Unggoy Support Team"
-	desc = "A support-oriented Unggoy element with a deacon overseer and a medical support grunt."
+	name = "Группа поддержки унггоев"
+	desc = "Отряд поддержки унггоев с дьяконом-надзирателем и медицинским бойцом поддержки."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/deacon_command = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/support_medical = 1,
@@ -52,8 +52,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_at_team
-	name = "Unggoy Breach Team"
-	desc = "A veteran breach team built around an Ultra leader, heavy support and a medical attendant."
+	name = "Прорывная группа унггоев"
+	desc = "Ветеранская группа прорыва, собранная вокруг лидера-ультры, тяжелой поддержки и медицинского помощника."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
@@ -62,8 +62,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_specops_cell
-	name = "Unggoy SpecOps Cell"
-	desc = "A stealth cell with one SpecOps Ultra overseeing plasma and needler specialists."
+	name = "Ячейка SpecOps унггоев"
+	desc = "Скрытная ячейка с одной ультрой SpecOps, координирующей специалистов по плазме и игольникам."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/specops_ultra = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/specops_plasma = 1,
@@ -71,8 +71,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_swarm
-	name = "Unggoy Swarm"
-	desc = "A dense pack of Unggoy with two majors, multiple plasma minors and a pair of needler carriers."
+	name = "Рой унггоев"
+	desc = "Плотная стая унггоев с двумя мажорами, несколькими минорами с плазмой и парой носителей игольников."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/major_needler = 1,
@@ -81,8 +81,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/covenant_lance
-	name = "Covenant Lance"
-	desc = "A mixed Covenant lance led by a Sangheili minor with veteran Unggoy support."
+	name = "Копье Ковенанта"
+	desc = "Смешанное копье Ковенанта под командованием сангхейли-минора при поддержке ветеранов-унггоев."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = 1,
@@ -91,8 +91,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/covenant_heavy_lance
-	name = "Covenant Heavy Lance"
-	desc = "A heavy mixed lance with Sangheili command, carbine overwatch and multiple Unggoy heavies."
+	name = "Тяжелое копье Ковенанта"
+	desc = "Тяжелое смешанное копье под командованием сангхейли, с карабинным прикрытием и несколькими тяжелыми унггоями."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
@@ -102,8 +102,8 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/covenant_at_lance
-	name = "Covenant Breach Lance"
-	desc = "A mixed breach lance with a zealot commander, veteran Ultra support and heavy plasma screens."
+	name = "Прорывное копье Ковенанта"
+	desc = "Смешанное копье прорыва с командиром-зилотом, ветеранской поддержкой ультры и тяжелыми плазменными заслонами."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/zealot_command = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/ultra = 1,
@@ -113,30 +113,30 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/unggoy_suicide_pack
-	name = "Unggoy Suicide Pack"
-	desc = "A dedicated pack of suicidal Unggoy bombers that prime paired plasma grenades and rush hostile contacts."
+	name = "Стая унггоев-смертников"
+	desc = "Специализированная стая унггоев-смертников, которая активирует парные плазменные гранаты и бросается на враждебные цели."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber = 3,
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_pair
-	name = "Sangheili Pair"
-	desc = "A light two-warrior Sangheili patrol armed with plasma rifles."
+	name = "Пара сангхейли"
+	desc = "Легкий патруль из двух воинов-сангхейли, вооруженных плазменными винтовками."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_fireteam
-	name = "Sangheili Fireteam"
-	desc = "A disciplined Sangheili fireteam led by a major with two plasma-armed minors."
+	name = "Огневая группа сангхейли"
+	desc = "Дисциплинированная огневая группа сангхейли под командованием мажора с двумя минорами с плазменным оружием."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
 		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_elite_team
-	name = "Sangheili Elite Team"
-	desc = "A veteran Sangheili element built around an Ultra, a carbine major and supporting minors."
+	name = "Элитная группа сангхейли"
+	desc = "Ветеранский отряд сангхейли, собранный вокруг ультры, мажора с карабином и поддерживающих миноров."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
@@ -144,15 +144,15 @@
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_sword_pair
-	name = "Sangheili Sword Pair"
-	desc = "A shock pair of Sangheili Ultras carrying only energy swords."
+	name = "Пара сангхейли с мечами"
+	desc = "Ударная пара ультр-сангхейли, вооруженных только энергетическими мечами."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_zealot_strike_cell
-	name = "Sangheili Zealot Strike Cell"
-	desc = "A Zealot-led strike cell with sword-bearing Ultras and plasma support."
+	name = "Ударная ячейка зилота-сангхейли"
+	desc = "Ударная ячейка под командованием зилота с ультрами с мечами и плазменной поддержкой."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/ai/zealot_sword = 1,
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword = 1,

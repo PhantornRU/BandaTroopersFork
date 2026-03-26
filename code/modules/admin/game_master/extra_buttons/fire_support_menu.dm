@@ -60,6 +60,7 @@
 	data["chemical_ordnance_options"] = CHEMICAL_ORDNANCE
 	data["misc_ordnance_options"] = MISC_ORDNANCE
 	data["throwables_ordnance_options"] = THROWABLES_ORDNANCE
+	append_custom_static_data(data) // SS220 EDIT: allow modular fire support payloads to extend the GM menu without hardcoding them here
 
 	return data
 
@@ -434,8 +435,33 @@
 				return TRUE
 
 			else
+				// SS220 EDIT - START: delegate unknown GM fire support ordnance labels to modular handlers
+				if(handle_custom_ordnance(user, target_turf, selected_ordnance))
+					return TRUE
+				// SS220 EDIT - END
 				to_chat(user, SPAN_ANNOUNCEMENT_HEADER_ADMIN("Invalid ordnance selection! If this appears, yell at a coder!"))
 				return TRUE
+
+/// SS220 EDIT: allows modular layers to append extra static ordnance lists to the GM menu payload.
+/datum/fire_support_menu/proc/append_custom_static_data(list/data)
+	return data
+
+/// SS220 EDIT: resolves a modular/custom ordnance label into a fire support datum typepath.
+/datum/fire_support_menu/proc/resolve_custom_fire_support(selected_ordnance)
+	return null
+
+/// SS220 EDIT: handles modular/custom GM fire support payloads through the same datum/fire_support path as gameplay systems.
+/datum/fire_support_menu/proc/handle_custom_ordnance(mob/user, turf/target_turf, selected_ordnance)
+	var/fire_support_path = resolve_custom_fire_support(selected_ordnance)
+	if(!fire_support_path)
+		return FALSE
+
+	var/datum/fire_support/fire_support = new fire_support_path
+	fire_support.enable_firesupport()
+	fire_support.faction = user?.faction
+	QDEL_IN(fire_support, max(1 MINUTES, fire_support.cooldown_duration + fire_support.delay_to_impact))
+	fire_support.initiate_fire_support(target_turf, user)
+	return TRUE
 
 ///Handles the dropship swooping sound effect, and makes sure it doesnt play 20 times a second.
 /datum/fire_support_menu/proc/handle_dropship_sound(target_turf)

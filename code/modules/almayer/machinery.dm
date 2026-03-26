@@ -286,13 +286,13 @@
 
 /obj/structure/prop/almayer/computers/mission_planning_system
 	name = "\improper MPS IV computer"
-	desc = "The Mission Planning System IV (MPS IV), an enhancement in mission planning and charting for dropship pilots across the USCM. Fully capable of customizing their flight paths and loadouts to suit their combat needs."
+	desc = "Система анализа тактических данных, подсказок и визуализации для пилотов боевой авиации." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon = 'icons/obj/structures/props/almayer_props.dmi'
 	icon_state = "mps"
 
 /obj/structure/prop/almayer/computers/mapping_computer
 	name = "\improper CMPS II computer"
-	desc = "The Common Mapping Production System version II allows for sensory input from satellites and ship systems to derive planetary maps in a standardized fashion for all USCM pilots."
+	desc = "Использует известные данные и информацию battlenet, синтезируя рельеф местности вместе с локальными атмосферными условиями." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon = 'icons/obj/structures/props/almayer_props.dmi'
 	icon_state = "mapping_comp"
 
@@ -333,12 +333,12 @@
 
 /obj/structure/prop/almayer/whiteboard/clear
 	name = "\improper glass whiteboard"
-	desc = "Despite what the name implies, this whiteboard is not actually white and instead is a clear pane of glass. Why anyone would want you to see through a whiteboard remains one of the top mysteries as of 2182."
+	desc = "Прозрачная маркерная доска, удобная для подсветки и схем. В остальном работает как обычная доска." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "whiteboard_clear"
 
 /obj/structure/prop/almayer/ship_memorial
 	name = "slab of victory"
-	desc = "A ship memorial dedicated to the triumphs of the USCM and the fallen marines of this ship. On the left there are grand tales of victory etched into the slab. On the right there is a list of famous marines who have fallen in combat serving the USCM."
+	desc = "Когда-то почти церемониальный объект, теперь это скорбный мемориал тем, кто пал при исполнении долга перед ККОН и всем человечеством." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon = 'icons/obj/structures/props/almayer_props64.dmi'
 	icon_state = "ship_memorial"
 	bound_width = 64
