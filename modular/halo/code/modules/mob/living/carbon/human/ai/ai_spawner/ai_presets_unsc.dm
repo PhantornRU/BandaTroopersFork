@@ -2,31 +2,31 @@
 	faction = FACTION_UNSC
 
 /datum/human_ai_equipment_preset/unsc/rifleman
-	name = "UNSC Squad Rifleman"
-	desc = "Armed with an MA5C rifle, carries a simple IFAK with gauze, ointment, splints and an injector."
+	name = "Стрелок отделения UNSC"
+	desc = "Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."
 	path = /datum/equipment_preset/unsc/pfc/equipped
 
 /datum/human_ai_equipment_preset/unsc/corpsman
-	name = "UNSC Hospital Corpsman"
-	desc = "Able to stablize wounded. Armed with a M41A rifle, carries medical equipment."
+	name = "Корпусман UNSC"
+	desc = "Способен стабилизировать раненых. Вооружен винтовкой M41A и несет медицинское оборудование."
 	path = /datum/equipment_preset/unsc/medic/equipped
 
 /datum/human_ai_equipment_preset/unsc/spnkr
-	name = "USCM Squad SPNKR Specialist"
-	desc = "A specialist marine armed with a SPNKR launcher."
+	name = "Специалист SPNKR UNSC"
+	desc = "Специалист морской пехоты, вооруженный установкой SPNKR."
 	path = /datum/equipment_preset/unsc/spec/equipped_spnkr
 
 /datum/human_ai_equipment_preset/unsc/squadleader
-	name = "UNSC Group Leader"
-	desc = "Functionally a rifleman. Armed with a MA5C rifle, carries a simple IFAK with gauze, ointment, splints and an injector."
+	name = "Командир группы UNSC"
+	desc = "Фактически стрелок. Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."
 	path = /datum/equipment_preset/unsc/tl/equipped
 
 /datum/human_ai_equipment_preset/unsc/rto
-	name = "UNSC RTO"
-	desc = "Functionally a rifleman with a radio backpack. Armed with a MA5C rifle, carries a simple IFAK with gauze, ointment, splints and an injector."
+	name = "Радиооператор UNSC"
+	desc = "Фактически стрелок с радиорюкзаком. Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."
 	path = /datum/equipment_preset/unsc/rto/equipped
 
 /datum/human_ai_equipment_preset/unsc/sectionleader
-	name = "UNSC Squad Leader"
-	desc = "Functionally a rifleman. Armed with a MA5C rifle, carries a simple IFAK with gauze, ointment, splints and an injector."
+	name = "Командир отделения UNSC"
+	desc = "Фактически стрелок. Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."
 	path = /datum/equipment_preset/unsc/leader/equipped

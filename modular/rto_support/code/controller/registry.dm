@@ -74,6 +74,11 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 		new /datum/rto_support_template/cas,
 		new /datum/rto_support_template/heavy,
 		new /datum/rto_support_template/logistics,
+		new /datum/rto_support_template/medical,
+		new /datum/rto_support_template/technical,
+		new /datum/rto_support_template/halo_logistics,
+		new /datum/rto_support_template/halo_medical,
+		new /datum/rto_support_template/halo_technical,
 	)
 	template_by_id = list()
 	for(var/datum/rto_support_template/template as anything in template_catalog)

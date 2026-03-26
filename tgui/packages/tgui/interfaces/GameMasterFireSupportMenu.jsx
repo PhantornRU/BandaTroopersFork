@@ -121,6 +121,23 @@ export const GameMasterFireSupportMenu = (props, context) => {
               </Button>
             ))}
           </Collapsible>
+
+          {(data.custom_ordnance_sections || []).map((section) => (
+            <Collapsible content={section.title} key={section.id}>
+              {(section.options || []).map((ordnance, i) => (
+                <Button
+                  selected={data.selected_ordnance === ordnance}
+                  key={`${section.id}-${i}`}
+                  width={'140px'}
+                  onClick={() => {
+                    act('set_selected_ordnance', { ordnance });
+                  }}
+                >
+                  {ordnance}
+                </Button>
+              ))}
+            </Collapsible>
+          ))}
         </Section>
       </Window.Content>
     </Window>

@@ -7,7 +7,7 @@
 	damage = 40
 
 /obj/item/clothing/glasses/sunglasses/big/unsc
-	name = "\improper стрелковые очки ККОН"
+	name = "\improper UNSC shooting shades"
 	desc = "Пара штатных затемнённых очков. Некоторые модели оснащаются встроенной HUD-системой, но этот экземпляр явно без неё."
 	icon = 'icons/halo/obj/items/clothing/glasses/glasses.dmi'
 	icon_state = "hudglasses"

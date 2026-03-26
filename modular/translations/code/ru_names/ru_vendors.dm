@@ -26,11 +26,11 @@
 		if(non_ascii_regex.Find(current_name))
 			continue
 		// Do we have override name for this, such as "Flare Pouch (Full)"
-		var/new_name = declent_ru_initial(current_name)
+		var/new_name = get_display_name_ru_initial(current_name)
 		// Try to get translated item name if not
 		if(isnull(new_name) && product_entry[3] && ispath(product_entry[3], /atom))
 			var/atom/product_entry_item = product_entry[3]
-			new_name = declent_ru_initial(product_entry_item::name)
+			new_name = get_display_name_ru_initial(product_entry_item::name)
 		// Abort if we don't have a name
 		if(isnull(new_name))
 			continue

@@ -2,24 +2,24 @@
 	faction = FACTION_INSURGENT
 
 /datum/human_ai_squad_preset/insurgent/partisan_patrol
-	name = "Partisan Patrol Team (Armored, SMG + Pistol)"
-	desc = "A pair of untrained and underequipped partisans."
+	name = "Партизанский патруль (броня, ПП + пистолет)"
+	desc = "Пара плохо обученных и слабо экипированных партизан."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/partisan/smg = 1,
 		/datum/equipment_preset/insurgent/partisan = 1,
 	)
 
 /datum/human_ai_squad_preset/insurgent/partisan_patrol/plainclothes
-	name = "Partisan Patrol Team (Plainclothes, SMG + Pistol)"
-	desc = "A pair of untrained and underequipped partisans."
+	name = "Партизанский патруль (гражданка, ПП + пистолет)"
+	desc = "Пара плохо обученных и слабо экипированных партизан."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/partisan/plainclothes/smg = 1,
 		/datum/equipment_preset/insurgent/partisan/plainclothes = 1,
 	)
 
 /datum/human_ai_squad_preset/insurgent/partisan_squad
-	name = "Partisan Assault Squad"
-	desc = "A squad of untrained and underequipped partisans, lead by a Partisan Breacher."
+	name = "Партизанская штурмовая группа"
+	desc = "Группа плохо обученных и слабо экипированных партизан под командованием партизана-взломщика."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/partisan/breach = 1,
 		/datum/equipment_preset/insurgent/partisan/smg = 2,
@@ -27,31 +27,31 @@
 	)
 
 /datum/human_ai_squad_preset/insurgent/patrol
-	name = "Insurgent Patrol Team"
-	desc = "A pair of Insurgent soldiers formed into a patrol team."
+	name = "Патруль инсургентов"
+	desc = "Пара солдат инсургентов, собранная в патрульную группу."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/rifleman = 2,
 	)
 
 /datum/human_ai_squad_preset/insurgent/at_team
-	name = "Insurgent AT Team"
-	desc = "A pair of Insurgent soldiers, one with a SPNKr launcher to act as an AT team."
+	name = "ПТ-группа инсургентов"
+	desc = "Пара солдат инсургентов, один из которых вооружен установкой SPNKR для противотанковой роли."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/specialist = 1,
 		/datum/equipment_preset/insurgent/rifleman = 1,
 	)
 
 /datum/human_ai_squad_preset/insurgent/sapper_team
-	name = "Insurgent Sapper Team"
-	desc = "A pair of Insurgent soldiers, one being a technician to act as a sapper team."
+	name = "Саперная группа инсургентов"
+	desc = "Пара солдат инсургентов, один из которых выполняет роль техника-сапера."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/technician = 1,
 		/datum/equipment_preset/insurgent/rifleman = 1,
 	)
 
 /datum/human_ai_squad_preset/insurgent/squad
-	name = "Insurgent Squad"
-	desc = "A squad of Insurgent soldiers, led by a Squad Leader."
+	name = "Отряд инсургентов"
+	desc = "Отряд солдат инсургентов под командованием лидера отделения."
 	ai_to_spawn = list(
 		/datum/equipment_preset/insurgent/rifleman/sl = 1,
 		/datum/equipment_preset/insurgent/rifleman = 2,

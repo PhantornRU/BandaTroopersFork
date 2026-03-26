@@ -40,6 +40,13 @@
 	if(brain.should_reload())
 		return 0
 
+	// SS220 EDIT - START: HALO plasma weapons should not queue fire actions while their vent cycle is still active
+	if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma))
+		var/obj/item/weapon/gun/energy/plasma/plasma_weapon = brain.primary_weapon
+		if(plasma_weapon.dispersing)
+			return 0
+	// SS220 EDIT - END
+
 	return 10
 
 /datum/ai_action/fire_at_target/Destroy(force, ...)
@@ -274,6 +281,27 @@
 		stop_firing(brain)
 		qdel(src)
 		return
+
+	// SS220 EDIT - START: HALO covenant AI vents overheating plasma guns before they hard-lock in sustained fire
+	if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma))
+		var/obj/item/weapon/gun/energy/plasma/plasma_weapon = brain.primary_weapon
+		if(plasma_weapon.heat >= 60)
+			var/vent_decision = 0
+			if(brain.current_target)
+				vent_decision = max(0, -20 + (6 * get_dist(tied_human, brain.current_target)))
+			else if(target_turf)
+				vent_decision = max(0, -20 + (12 * get_dist(tied_human, target_turf)))
+
+			vent_decision += max(0, plasma_weapon.heat - 65)
+			if(prob(max(0, vent_decision)))
+				currently_firing = FALSE
+				brain.unholster_primary()
+				brain.ensure_primary_hand(plasma_weapon)
+				plasma_weapon.unload(tied_human)
+				return
+			else if(plasma_weapon.heat >= 100)
+				currently_firing = FALSE
+	// SS220 EDIT - END
 
 	if(istype(brain.primary_weapon, /obj/item/weapon/gun/shotgun))
 		currently_firing = FALSE

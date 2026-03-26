@@ -13,6 +13,30 @@
 	var/live_marker_active = FALSE
 	var/live_marker_refresh_timer_id = null
 
+/obj/item/device/binoculars/rto/proc/get_support_profile()
+	return "uscm"
+
+/obj/item/device/binoculars/rto/halo
+	name = "HALO RTO binoculars"
+	desc = "A HALO-issue RTO binocular set adapted to the modular support workflow."
+
+/obj/item/device/binoculars/rto/halo/get_support_profile()
+	return "halo"
+
+/obj/item/device/binoculars/rto/halo/unsc
+	name = "UNSC RTO binoculars"
+	desc = "A UNSC RTO binocular set adapted to the modular HALO support workflow."
+
+/obj/item/device/binoculars/rto/halo/unsc/get_support_profile()
+	return "unsc"
+
+/obj/item/device/binoculars/rto/halo/odst
+	name = "ODST RTO binoculars"
+	desc = "An ODST RTO binocular set adapted to the modular HALO support workflow."
+
+/obj/item/device/binoculars/rto/halo/odst/get_support_profile()
+	return "odst"
+
 /obj/item/device/binoculars/rto/Destroy()
 	stop_live_marker(null, TRUE)
 	if(paired_pouch?.paired_binocular == src)
@@ -90,21 +114,41 @@
 	. += SPAN_NOTICE("Кнопка 'Координаты': постоянный режим получения координат без лазера.")
 	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': постоянный режим живой лазерной подсветки через бинокль.")
 
-	if(controller.active_template)
-		. += SPAN_NOTICE("Текущий пакет: [controller.active_template.name].")
+	var/list/selected_templates = controller.get_selected_templates()
+	if(length(selected_templates))
+		var/list/template_names = list()
+		for(var/datum/rto_support_template/template as anything in selected_templates)
+			template_names += template.name
+		. += SPAN_NOTICE("Выбранные пакеты: [jointext(template_names, ", ")].")
 	else
-		. += SPAN_NOTICE("Пакет поддержки ещё не выбран.")
+		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
 
-	switch(controller.get_zone_state())
-		if(RTO_SUPPORT_ZONE_STATE_ACTIVE)
-			. += SPAN_NOTICE("Сектор наведения активен: [round(controller.get_zone_expires_in() / 10)] сек.")
-		if(RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-			. += SPAN_NOTICE("Сектор наведения перезаряжается: [round(controller.get_zone_ready_in() / 10)] сек.")
-		if(RTO_SUPPORT_ZONE_STATE_READY)
-			. += SPAN_NOTICE("Сектор наведения готов к развёртыванию.")
-		if(RTO_SUPPORT_ZONE_STATE_UNSUPPORTED)
-			if(controller.active_template)
-				. += SPAN_NOTICE("Текущий пакет работает без сектора наведения.")
+	if(length(selected_templates) == 1)
+		var/datum/rto_support_template/solo_template = selected_templates[1]
+		if(controller.uses_single_template_zone_discount(solo_template))
+			. += SPAN_NOTICE("РџРѕРєР° РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°.")
+
+	var/reset_ready_in = controller.get_selection_reset_ready_in()
+	if(length(selected_templates))
+		if(reset_ready_in > 0)
+			. += SPAN_NOTICE("Полный сброс слотов будет доступен через [round(reset_ready_in / 10)] сек.")
+		else
+			. += SPAN_NOTICE("Слоты пакетов можно полностью сбросить и выбрать заново.")
+
+	var/datum/rto_support_template/zone_owner_template = controller.get_zone_owner_template()
+	if(zone_owner_template)
+		. += SPAN_NOTICE("Активный сектор: [zone_owner_template.name], ещё [round(controller.get_zone_expires_in(zone_owner_template.template_id) / 10)] сек.")
+	else if(controller.get_remaining_zone_shared_cooldown() > 0)
+		. += SPAN_NOTICE("Общий кулдаун секторов: [round(controller.get_remaining_zone_shared_cooldown() / 10)] сек.")
+	else
+		for(var/datum/rto_support_template/template as anything in selected_templates)
+			if(!controller.template_requires_zone(template.template_id))
+				continue
+			var/template_zone_ready_in = controller.get_zone_ready_in(template.template_id)
+			if(template_zone_ready_in > 0)
+				. += SPAN_NOTICE("[template.name]: личный кулдаун сектора [round(template_zone_ready_in / 10)] сек.")
+			else
+				. += SPAN_NOTICE("[template.name]: сектор готов к развёртыванию.")
 
 	var/armed_mode_name = controller.get_armed_mode_name()
 	if(armed_mode_name)

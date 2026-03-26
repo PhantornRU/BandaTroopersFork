@@ -187,8 +187,8 @@
 
 /// Marine Rifleman
 /datum/equipment_preset/unsc/pfc
+	name = "Стрелок отделения UNSC"
 	parent_type = /datum/equipment_preset/uscm/pfc
-	name = "UNSC Squad Rifleman"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -206,11 +206,11 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/pfc/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME1 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/pfc/odst
-	name = "ODST Squad Rifleman"
+	name = "Стрелок отделения ODST"
 	assignment = JOB_SQUAD_MARINE_ODST
 	rank = JOB_SQUAD_MARINE_ODST
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
@@ -218,13 +218,13 @@
 	skills = /datum/skills/pfc
 
 /datum/equipment_preset/unsc/pfc/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
 /// Marine Corpsman
 /datum/equipment_preset/unsc/medic
+	name = "Корпусман UNSC"
 	parent_type = /datum/equipment_preset/uscm/medic
-	name = "UNSC Hospital Corpsman"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -242,7 +242,7 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/medic/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/medic/pfc
@@ -254,14 +254,14 @@
 	paygrades = list(PAY_SHORT_NE2 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/medic/odst
-	name = "ODST Hospital Corpsman"
+	name = "Корпусман ODST"
 	assignment = JOB_SQUAD_MEDIC_ODST
 	rank = JOB_SQUAD_MEDIC_ODST
 	role_comm_title = "ODST-HC"
 	skills = /datum/skills/combat_medic
 
 /datum/equipment_preset/unsc/medic/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_NE4 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/medic/odst/pfc
@@ -274,8 +274,8 @@
 
 /// Marine RTO
 /datum/equipment_preset/unsc/rto
+	name = "Радиооператор UNSC"
 	parent_type = /datum/equipment_preset/uscm/rto
-	name = "UNSC Radio Telephone Operator"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -305,25 +305,31 @@
 	new_human.try_relocate_rto_to_squad_spawn()
 	return TRUE
 
+/datum/equipment_preset/unsc/rto/load_gear(mob/living/carbon/human/new_human)
+	. = ..()
+	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
+	new_human.ensure_rto_support_controller()
+	new_human.try_relocate_rto_to_squad_spawn()
+
 /datum/equipment_preset/unsc/rto/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/rto/odst
-	name = "ODST Radio Telephone Operator"
+	name = "Радиооператор ODST"
 	assignment = JOB_SQUAD_RTO_ODST
 	rank = JOB_SQUAD_RTO_ODST
 	role_comm_title = "ODST-RTO"
 	skills = /datum/skills/pfc
 
 /datum/equipment_preset/unsc/rto/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
 /// Marine Spec
 /datum/equipment_preset/unsc/spec
+	name = "Специалист вооружения UNSC"
 	parent_type = /datum/equipment_preset/uscm/specialist_equipped
-	name = "UNSC Squad Weapons Specialist"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -375,24 +381,24 @@
 	new_human.nutrition = NUTRITION_VERYLOW
 
 /datum/equipment_preset/unsc/spec/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/spec/odst
-	name = "ODST Squad Weapons Specialist"
+	name = "Специалист вооружения ODST"
 	assignment = JOB_SQUAD_SPECIALIST_ODST
 	rank = JOB_SQUAD_SPECIALIST_ODST
 	role_comm_title = "ODST-Spc"
 	skills = /datum/skills/specialist
 
 /datum/equipment_preset/unsc/spec/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
 /// Group Leader
 /datum/equipment_preset/unsc/tl
+	name = "Командир огневой группы UNSC"
 	parent_type = /datum/equipment_preset/uscm/tl
-	name = "UNSC Group Leader"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -410,24 +416,24 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/tl/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/tl/odst
-	name = "ODST Group Leader"
+	name = "Командир огневой группы ODST"
 	assignment = JOB_SQUAD_TEAM_LEADER_ODST
 	rank = JOB_SQUAD_TEAM_LEADER_ODST
 	role_comm_title = "ODST-GrpLdr"
 	skills = /datum/skills/tl
 
 /datum/equipment_preset/unsc/tl/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
 /// Marine Squad Leader
 /datum/equipment_preset/unsc/leader
+	name = "Сержант отделения UNSC"
 	parent_type = /datum/equipment_preset/uscm/leader
-	name = "UNSC Squad Leader"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -446,11 +452,11 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/leader/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/leader/odst
-	name = "ODST Squad Leader"
+	name = "Сержант отделения ODST"
 	assignment = JOB_SQUAD_LEADER_ODST
 	rank = JOB_SQUAD_LEADER_ODST
 	role_comm_title = "ODST-SqLdr"
@@ -458,13 +464,13 @@
 	skills = /datum/skills/SL
 
 /datum/equipment_preset/unsc/leader/odst/lesser_rank
-	name = parent_type::name + " (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
 // PlatCo
 /datum/equipment_preset/unsc/platco
+	name = "Командир взвода UNSC"
 	parent_type = /datum/equipment_preset/uscm_ship/so
-	name = "UNSC Platoon Commander"
 	faction = FACTION_UNSC
 	faction_group = FACTION_LIST_UNSC
 	languages = list(LANGUAGE_ENGLISH)
@@ -482,20 +488,21 @@
 	load_halo_preset_name(new_human)
 
 /datum/equipment_preset/unsc/platco/handle_late_join(mob/living/carbon/human/new_human, late_join)
-	squad_name_try_apply_platoon_commander_preference(new_human)
+	GLOB.squad_name_manager?.try_apply_platoon_commander_preference(new_human)
 	if(late_join || !new_human.client?.prefs)
 		return
 
-	change_dropship_camo(new_human.client.prefs.dropship_camo)
-	change_dropship_name(new_human.client.prefs.dropship_name)
+	var/obj/docking_port/mobile/marine_dropship/midway/midway = SSshuttle.getShuttle(DROPSHIP_MIDWAY, FALSE)
+	midway?.apply_runtime_camo(new_human.client.prefs.dropship_camo)
+	midway?.apply_runtime_name(new_human.client.prefs.dropship_name)
 
 /datum/equipment_preset/unsc/platco/lesser_rank
-	parent_type = /datum/equipment_preset/unsc/platco
-	name = "UNSC Platoon Commander (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/unsc/platco/odst
-	name = "ODST Platoon Commander"
+	name = "Командир взвода ODST"
+	parent_type = /datum/equipment_preset/unsc/platco
 	assignment = JOB_SO_ODST
 	rank = JOB_SO_ODST
 	paygrades = list(PAY_SHORT_MO2 = JOB_PLAYTIME_TIER_0)
@@ -504,12 +511,12 @@
 
 /datum/equipment_preset/unsc/platco/odst/lesser_rank
 	parent_type = /datum/equipment_preset/unsc/platco/odst
-	name = "ODST Platoon Commander (Lesser Rank)"
+	name = parent_type::name + " (пониженный ранг)"
 	paygrades = list(PAY_SHORT_MO1 = JOB_PLAYTIME_TIER_0)
 
 // Pilot
 /datum/equipment_preset/unsc/pilot
-	name = "UNSC Pilot"
+	name = "Пилот UNSC"
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	idtype = /obj/item/card/id/silver
 	access = list(ACCESS_MARINE_COMMAND, ACCESS_MARINE_DROPSHIP, ACCESS_MARINE_PILOT)
@@ -524,7 +531,7 @@
 
 //rifleman
 /datum/equipment_preset/unsc/pfc/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/pfc/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -571,7 +578,7 @@
 
 //weapon spec (sniper)
 /datum/equipment_preset/unsc/spec/equipped_sniper
-	name = parent_type::name + " (Sniper, Equipped)"
+	name = parent_type::name + " (снайпер, снаряжен)"
 
 /datum/equipment_preset/unsc/spec/equipped_sniper/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -614,7 +621,7 @@
 
 //weapon spec (spnkr)
 /datum/equipment_preset/unsc/spec/equipped_spnkr
-	name = parent_type::name + " (SPNKr, Equipped)"
+	name = parent_type::name + " (SPNKR, снаряжен)"
 
 /datum/equipment_preset/unsc/spec/equipped_spnkr/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -651,7 +658,7 @@
 
 //hospital corpsman
 /datum/equipment_preset/unsc/medic/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/medic/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -694,9 +701,10 @@
 
 //rto
 /datum/equipment_preset/unsc/rto/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/rto/equipped/load_gear(mob/living/carbon/human/new_human)
+	GLOB.character_traits[/datum/character_trait/skills/spotter].apply_trait(new_human)
 	new_human.undershirt = "Marine Undershirt"
 	new_human.underwear = "Marine Boxers"
 	//back
@@ -725,6 +733,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
 	//limbs
+	new_human.equip_rto_support_binocular_kit(/obj/item/storage/pouch/sling/rto/halo/unsc, /obj/item/device/binoculars/rto/halo/unsc)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
 	//pockets
@@ -735,12 +744,15 @@
 	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
+	new_human.ensure_rto_support_controller()
+	new_human.try_relocate_rto_to_squad_spawn()
+
 /datum/equipment_preset/unsc/rto/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
 
 //group leader
 /datum/equipment_preset/unsc/tl/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/tl/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -787,7 +799,7 @@
 //squad leader
 
 /datum/equipment_preset/unsc/leader/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/leader/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -835,7 +847,7 @@
 	new_human.nutrition = NUTRITION_HIGH
 
 /datum/equipment_preset/unsc/platco/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/platco/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -933,7 +945,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/unsc/pilot/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/pilot/equipped/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -971,7 +983,7 @@
 
 //rifleman
 /datum/equipment_preset/unsc/pfc/odst/equipped
-	name = parent_type::name + " (Equipped)"
+	name = parent_type::name + " (снаряжен)"
 	odst_visual_role = TRUE
 
 /datum/equipment_preset/unsc/pfc/odst/equipped/load_gear(mob/living/carbon/human/new_human)

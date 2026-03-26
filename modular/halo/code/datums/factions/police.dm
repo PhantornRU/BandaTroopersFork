@@ -1,3 +1,3 @@
 /datum/faction/police
-	name = "UEG Police Department"
+	name = "Полицейское управление UEG"
 	faction_tag = FACTION_UEG_POLICE

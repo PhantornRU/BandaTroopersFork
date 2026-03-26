@@ -6,6 +6,7 @@
 	arm_equipment(human, /datum/equipment_preset/unsc/medic, FALSE, TRUE)
 
 	assert_halo_smoke_state(human, /datum/equipment_preset/unsc/medic, JOB_SQUAD_MEDIC_UNSC)
+	assert_halo_core_wearables(human)
 
 /datum/unit_test/halo_ship_platoons_odst_equip_smoke
 	parent_type = /datum/unit_test/halo_equip_test
@@ -15,6 +16,7 @@
 	arm_equipment(human, /datum/equipment_preset/unsc/pfc/odst, FALSE, TRUE)
 
 	assert_halo_smoke_state(human, /datum/equipment_preset/unsc/pfc/odst, JOB_SQUAD_MARINE_ODST)
+	assert_halo_core_wearables(human)
 
 /datum/unit_test/halo_ship_platoons_so_override_smoke
 	parent_type = /datum/unit_test/halo_equip_test
@@ -27,6 +29,7 @@
 	arm_equipment(human, override_preset, FALSE, TRUE)
 
 	assert_halo_smoke_state(human, /datum/equipment_preset/unsc/platco, JOB_SO_UNSC)
+	assert_halo_core_wearables(human)
 
 /datum/unit_test/halo_ship_platoons_specialist_smoke
 	parent_type = /datum/unit_test/halo_equip_test

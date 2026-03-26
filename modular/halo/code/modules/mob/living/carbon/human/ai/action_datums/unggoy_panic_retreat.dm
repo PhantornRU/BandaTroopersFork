@@ -1,5 +1,5 @@
 /datum/ai_action/unggoy_panic_retreat
-	name = "Unggoy Panic Retreat"
+	name = "Паническое отступление унггоя"
 	action_flags = ACTION_USING_LEGS
 
 /datum/ai_action/unggoy_panic_retreat/get_weight(datum/human_ai_brain/brain)

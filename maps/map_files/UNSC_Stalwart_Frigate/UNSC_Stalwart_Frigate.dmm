@@ -48,7 +48,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/plate,
@@ -1532,7 +1532,7 @@
 "acM" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/structure/closet/secure_closet/marine_personal/unsc/alpha/squad_leader{
@@ -1558,7 +1558,7 @@
 	desc = "This poster features Audrey Rainwater standing in a jacuzzi. She was the July 2182 centerfold in Playboy Magazine. Don't ask how you know that.";
 	icon_state = "poster16";
 	layer = 3.3;
-	name = "'Miss July' Pinup";
+	name = "Пинап 'Мисс Июль'";
 	pixel_y = 29;
 	serial_number = 16
 	},
@@ -2383,7 +2383,7 @@
 /area/dark_was_the_night/hangar)
 "adR" = (
 /obj/docking_port/stationary/marine_dropship/golden_arrow_hangar{
-	name = "Hangar Bay Aft";
+	name = "Кормовой ангар";
 	id = "golden arrow lz2";
 	roundstart_template = null
 	},
@@ -2879,7 +2879,7 @@
 /obj/structure/filingcabinet/medical{
 	pixel_y = 17;
 	pixel_x = -8;
-	name = "medical records";
+	name = "медицинские записи";
 	density = 0
 	},
 /obj/structure/filingcabinet{
@@ -4037,6 +4037,19 @@
 	},
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/bathroom)
+"ahn" = (
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 8;
+	id = "squadarmory_delta";
+	name = "\improper Снаряжение командира отделения"
+	},
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 8;
+	id = "squadarmory_alpha";
+	name = "\improper Снаряжение командира отделения"
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/dark_was_the_night/armory)
 "aho" = (
 /obj/structure/bed/chair/comfy/bench/south/west,
 /turf/open/floor/almayer/edge/smooth/east,
@@ -4200,13 +4213,13 @@
 /obj/structure/phone_base{
 	phone_category = "Dark was the Night";
 	pixel_y = 32;
-	phone_id = "Armory"
+	phone_id = "Оружейная"
 	},
 /obj/structure/machinery/prop/almayer/CICmap{
 	density = 0;
 	icon_state = "map";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "Тактический дисплей карты";
 	pixel_y = 10;
 	pixel_x = 0
 	},
@@ -4439,10 +4452,23 @@
 "ahQ" = (
 /turf/open/floor/almayer/redfull,
 /area/dark_was_the_night/armory)
+"ahR" = (
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 8;
+	id = "squadarmory_charlie";
+	name = "\improper Снаряжение командира отделения"
+	},
+/obj/structure/machinery/door/poddoor/shutters/almayer{
+	dir = 8;
+	id = "squadarmory_bravo";
+	name = "\improper Снаряжение командира отделения"
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/dark_was_the_night/armory)
 "ahS" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/structure/prop/invuln/overhead_pipe{
@@ -5311,7 +5337,7 @@
 	dir = 4;
 	icon_state = "shuttle";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "Тактический дисплей карты";
 	pixel_x = 1;
 	pixel_y = 14
 	},
@@ -6587,7 +6613,7 @@
 	dir = 4;
 	icon_state = "shuttle";
 	layer = 2.97;
-	name = "Tactical Map Display";
+	name = "Тактический дисплей карты";
 	pixel_x = 1;
 	pixel_y = 14
 	},
@@ -6759,6 +6785,50 @@
 /turf/open/floor/corsat/plate,
 /area/dark_was_the_night/briefing)
 "amE" = (
+/obj/item/tool/wet_sign{
+	pixel_y = 14;
+	pixel_x = -14
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 10;
+	pixel_x = -17
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 6;
+	pixel_x = -13
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 2;
+	pixel_x = -15
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = -2;
+	pixel_x = -13
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 16;
+	pixel_x = 1
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 13;
+	pixel_x = 1
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 10;
+	pixel_x = 1
+	},
+/obj/item/tool/wet_sign{
+	pixel_y = 7;
+	pixel_x = 1
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "Общий канал прослушивания";
+	pixel_y = 26
+	},
 /obj/item/tool/wet_sign{
 	pixel_y = 14;
 	pixel_x = -14
@@ -7752,7 +7822,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/corsat/plate,
@@ -8570,7 +8640,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 1;
 	pixel_x = 26
 	},
@@ -10788,7 +10858,7 @@
 "aPF" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/structure/closet/secure_closet/marine_personal/unsc/delta/squad_leader{
@@ -10904,7 +10974,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 29
 	},
 /obj/structure/machinery/firealarm{
@@ -12167,7 +12237,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_bravo";
-	name = "\improper Squad Leader Equipment"
+	name = "\improper Снаряжение командира отделения"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -12216,7 +12286,7 @@
 	desc = "This poster features Audrey Rainwater standing in a jacuzzi. She was the July 2182 centerfold in Playboy Magazine. Don't ask how you know that.";
 	icon_state = "poster16";
 	layer = 3.3;
-	name = "'Miss July' Pinup";
+	name = "Пинап 'Мисс Июль'";
 	pixel_y = 29;
 	serial_number = 16
 	},
@@ -12593,7 +12663,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 29
 	},
 /obj/structure/machinery/door_control{
@@ -12659,7 +12729,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_delta";
-	name = "\improper General Equipment"
+	name = "\improper Общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -12773,7 +12843,7 @@
 /area/dark_was_the_night/upper_hallway)
 "dpf" = (
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Heavy Motor Pool"
+	name = "Тяжелый автопарк"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/motor_pool/heavy)
@@ -13751,7 +13821,28 @@
 "eyX" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
+	pixel_y = 26
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_3";
+	pixel_y = 22;
+	pixel_x = 6
+	},
+/obj/structure/prop/invuln/overhead_pipe{
+	icon = 'icons/obj/structures/props/almayer_props.dmi';
+	icon_state = "wallpipe_3";
+	pixel_y = 22;
+	pixel_x = 12
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	dir = 8
+	},
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /obj/structure/prop/invuln/overhead_pipe{
@@ -13937,7 +14028,7 @@
 /area/dark_was_the_night/medical)
 "eGH" = (
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Hangar Storage Bay"
+	name = "Склад ангара"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/hangar)
@@ -13960,7 +14051,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_delta";
-	name = "\improper Fireteam Leader Equipment"
+	name = "\improper Снаряжение командира огневой группы"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -15180,7 +15271,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_alpha";
-	name = "\improper Fireteam Leader Equipment"
+	name = "\improper Снаряжение командира огневой группы"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -15835,7 +15926,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_alpha";
-	name = "\improper General Equipment"
+	name = "\improper Общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -15961,7 +16052,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_alpha";
-	name = "\improper General Equipment"
+	name = "\improper Общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -16711,7 +16802,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_bravo";
-	name = "\improper Fireteam Leader Equipment"
+	name = "\improper Снаряжение командира огневой группы"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -17273,7 +17364,7 @@
 	phone_category = "Dark was the Night";
 	pixel_x = 22;
 	pixel_y = 6;
-	phone_id = "Storage Depot";
+	phone_id = "Склад";
 	dir = 8
 	},
 /obj/effect/decal/warning_stripes{
@@ -19583,7 +19674,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer,
@@ -20309,7 +20400,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 29
 	},
 /turf/open/floor/almayer/blue,
@@ -20412,7 +20503,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_delta";
-	name = "\improper General Equipment"
+	name = "\improper Общее снаряжение"
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/dark_was_the_night/armory)
@@ -21444,7 +21535,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_alpha";
-	name = "\improper Squad Leader Equipment"
+	name = "\improper Снаряжение командира отделения"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -25107,7 +25198,7 @@
 "sUt" = (
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 29
 	},
 /turf/open/floor/almayer/plating,
@@ -25835,7 +25926,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 38;
 	pixel_x = 24
 	},
@@ -26609,7 +26700,7 @@
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "squadarmory_charlie";
-	name = "\improper Fireteam Leader Equipment"
+	name = "\improper Снаряжение командира огневой группы"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/dark_was_the_night/armory)
@@ -26685,7 +26776,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 37;
 	pixel_x = -23
 	},
@@ -28313,7 +28404,7 @@
 	},
 /obj/item/device/radio/intercom{
 	freerange = 1;
-	name = "General Listening Channel";
+	name = "Общий канал прослушивания";
 	pixel_y = 26
 	},
 /turf/open/floor/almayer/plate,
@@ -28457,7 +28548,7 @@
 	dir = 8;
 	icon_state = "shuttle";
 	layer = 3.03;
-	name = "Tactical Map Display";
+	name = "Тактический дисплей карты";
 	pixel_x = 14;
 	pixel_y = 14
 	},
@@ -28481,7 +28572,7 @@
 "wFp" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo{
-	name = "Motor Pool"
+	name = "Автопарк"
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/dark_was_the_night/motor_pool)
@@ -55652,8 +55743,8 @@ fDn
 qeM
 faU
 cIn
-onU
-onU
+ahn
+ahn
 cIn
 evR
 evR
@@ -56234,8 +56325,8 @@ aqI
 ykE
 faU
 cIn
-cDy
-cDy
+ahR
+ahR
 cIn
 hDN
 hDN

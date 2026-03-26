@@ -20,6 +20,18 @@
 		SQUAD_MARINE_3 = SQUAD_MARINE_3_DEFAULT_NAME,
 		SQUAD_MARINE_4 = SQUAD_MARINE_4_DEFAULT_NAME,
 	)
+	// Дефолтные имена для конкретных типов отрядов (поддержка UNSC/ODST/USCM и других фракций)
+	// Базовые имена без суффикса фракции — суффикс добавляется автоматически в update_members_id_assignments
+	var/list/default_name_by_squad_type = list(
+		/datum/squad/marine/halo/unsc/alpha = "Alpha Assault",
+		/datum/squad/marine/halo/unsc/bravo = "Bravo Auxiliary",
+		/datum/squad/marine/halo/unsc/charlie = "Charlie Auxiliary",
+		/datum/squad/marine/halo/unsc/delta = "Delta Assault",
+		/datum/squad/marine/halo/odst/alpha = "Alpha Assault",
+		/datum/squad/marine/halo/odst/bravo = "Bravo Auxiliary",
+		/datum/squad/marine/halo/odst/charlie = "Charlie Auxiliary",
+		/datum/squad/marine/halo/odst/delta = "Delta Assault",
+	)
 	var/list/leader_lock_by_static = list()
 	var/first_platoon_commander_ckey
 

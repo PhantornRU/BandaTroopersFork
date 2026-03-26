@@ -9,4 +9,4 @@
 	var/dp_regen_base_reactivation_time = 30
 
 /obj/item/clothing
-	var/list/allowed_species_list = list(SPECIES_HUMAN, SPECIES_YAUTJA)
+	var/list/allowed_species_list = null

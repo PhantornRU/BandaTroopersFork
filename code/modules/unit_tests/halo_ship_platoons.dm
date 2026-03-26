@@ -183,12 +183,27 @@
 	TEST_ASSERT_EQUAL(human?.title, expected_title, "[role_label] did not keep the expected HALO runtime title.")
 	TEST_ASSERT_EQUAL(human?.faction, expected_faction, "[role_label] did not keep the expected HALO mob faction.")
 
+/datum/unit_test/halo_equip_test/proc/assert_halo_core_wearables(mob/living/carbon/human/human, expect_head = TRUE)
+	var/role_label = human?.real_name || "HALO human"
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_BODY), "[role_label] should have a uniform equipped in the body slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should have armor equipped in the jacket slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_HANDS), "[role_label] should have gloves equipped in the hands slot.")
+	TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_FEET), "[role_label] should have boots equipped in the feet slot.")
+	if(expect_head)
+		TEST_ASSERT_NOTNULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should have headgear equipped in the head slot.")
+
 /datum/unit_test/halo_equip_test/proc/assert_halo_specialist_naked_baseline(mob/living/carbon/human/human)
 	var/role_label = human?.real_name || "HALO specialist"
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_BODY), "[role_label] should keep the HALO specialist baseline naked, but still had a uniform equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_L_EAR), "[role_label] should keep the HALO specialist baseline naked, but still had a headset equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_HEAD), "[role_label] should keep the HALO specialist baseline naked, but still had a helmet equipped.")
 	TEST_ASSERT_NULL(human.get_item_by_slot(WEAR_JACKET), "[role_label] should keep the HALO specialist baseline naked, but still had armor equipped.")
+
+/datum/unit_test/halo_equip_test/proc/assert_halo_odst_visual_slots(mob/living/carbon/human/human, role_label = human?.real_name || "HALO ODST")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_L_EAR), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst), "[role_label] lost the expected ODST headset in the left ear slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_HEAD), /obj/item/clothing/head/helmet/marine/unsc/odst), "[role_label] lost the expected ODST helmet in the head slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_BODY), /obj/item/clothing/under/marine/odst), "[role_label] lost the expected ODST bodyglove in the uniform slot.")
+	TEST_ASSERT(istype(human?.get_item_by_slot(WEAR_JACKET), /obj/item/clothing/suit/marine/unsc/odst), "[role_label] lost the expected ODST armor in the jacket slot.")
 
 /datum/unit_test/halo_integration_test
 	parent_type = /datum/unit_test/halo_equip_test
@@ -300,6 +315,14 @@
 
 /datum/unit_test/halo_integration_test/proc/isolate_personal_lockers(obj/structure/closet/secure_closet/marine_personal/locker)
 	GLOB.personal_closets = locker ? list(locker) : list()
+
+/datum/unit_test/halo_integration_test/proc/link_personal_locker_to_spawn(obj/structure/closet/secure_closet/marine_personal/locker, turf/spawn_turf)
+	if(!locker || !isturf(spawn_turf))
+		return
+
+	locker.linked_spawn_turf = spawn_turf
+	locker.x_to_linked_spawn_turf = spawn_turf.x - locker.x
+	locker.y_to_linked_spawn_turf = spawn_turf.y - locker.y
 
 /datum/unit_test/halo_integration_test/proc/track_test_atom(atom/tracked_atom)
 	if(tracked_atom && !(tracked_atom in tracked_test_atoms))
@@ -447,3 +470,183 @@
 
 /datum/unit_test/halo_ship_platoons
 	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/random_personal_locker_selection_respects_role_and_squad
+
+/datum/unit_test/halo_ship_platoons/random_personal_locker_selection_respects_role_and_squad/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+	GLOB.squad_name_manager?.apply_roundstart_defaults()
+
+	var/turf/locker_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(locker_turf), "Failed to resolve a locker turf for personal-locker random-selection testing.")
+	var/turf/spawn_turf = get_adjacent_floor_turf(locker_turf)
+	TEST_ASSERT(isfloorturf(spawn_turf), "Failed to resolve a spawn turf for personal-locker random-selection testing.")
+
+	var/obj/structure/machinery/cryopod/pod = allocate(/obj/structure/machinery/cryopod, locker_turf)
+	var/mob/living/carbon/human/medic = create_test_human("Locker Medic", JOB_SQUAD_MEDIC, /datum/squad/marine/alpha, locker_turf)
+	pod.go_in_cryopod(medic, TRUE)
+	TEST_ASSERT_EQUAL(medic.loc, pod, "Failed to move the medic into the cryopod for linked-locker random-selection testing.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_locker_a = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_locker_b = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/rifleman/rifleman_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/rifleman, run_loc_floor_bottom_left)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/other_squad_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_bottom_left)
+
+	medic_locker_a.squad_type = SQUAD_MARINE_1
+	medic_locker_b.squad_type = SQUAD_MARINE_1
+	rifleman_locker.squad_type = SQUAD_MARINE_1
+	other_squad_locker.squad_type = SQUAD_MARINE_2
+
+	link_personal_locker_to_spawn(medic_locker_a, spawn_turf)
+	link_personal_locker_to_spawn(medic_locker_b, spawn_turf)
+	link_personal_locker_to_spawn(rifleman_locker, spawn_turf)
+	link_personal_locker_to_spawn(other_squad_locker, spawn_turf)
+
+	GLOB.personal_closets = list(rifleman_locker, other_squad_locker, medic_locker_a, medic_locker_b)
+
+	var/datum/equipment_preset/preset = allocate(/datum/equipment_preset)
+	var/obj/structure/closet/secure_closet/marine_personal/selected_locker = preset.find_personal_locker_for_player(medic, FALSE)
+
+	TEST_ASSERT(selected_locker == medic_locker_a || selected_locker == medic_locker_b, "Random locker selection returned a locker outside the allowed same-role same-squad candidate pool.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, rifleman_locker, "Random locker selection incorrectly returned the rifleman locker for a medic.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, other_squad_locker, "Random locker selection incorrectly returned another squad's locker.")
+
+/datum/unit_test/halo_ship_platoons/latejoin_personal_locker_reclaim_respects_role_and_squad
+
+/datum/unit_test/halo_ship_platoons/latejoin_personal_locker_reclaim_respects_role_and_squad/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+	GLOB.squad_name_manager?.apply_roundstart_defaults()
+
+	var/turf/locker_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(locker_turf), "Failed to resolve a locker turf for personal-locker reclaim testing.")
+	var/turf/spawn_turf = get_adjacent_floor_turf(locker_turf)
+	TEST_ASSERT(isfloorturf(spawn_turf), "Failed to resolve a spawn turf for personal-locker reclaim testing.")
+
+	var/obj/structure/machinery/cryopod/pod = allocate(/obj/structure/machinery/cryopod, locker_turf)
+	var/mob/living/carbon/human/medic = create_test_human("Latejoin Medic", JOB_SQUAD_MEDIC, /datum/squad/marine/alpha, locker_turf)
+	pod.go_in_cryopod(medic, TRUE)
+	TEST_ASSERT_EQUAL(medic.loc, pod, "Failed to move the latejoin medic into the cryopod for personal-locker reclaim testing.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/rifleman/rifleman_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/rifleman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/other_squad_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_bottom_left)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+
+	rifleman_reclaim.owner = "Old Rifleman"
+	other_squad_reclaim.owner = "Old Bravo Medic"
+	medic_reclaim.owner = "Old Medic"
+
+	rifleman_reclaim.squad_type = SQUAD_MARINE_1
+	other_squad_reclaim.squad_type = SQUAD_MARINE_2
+	medic_reclaim.squad_type = SQUAD_MARINE_1
+
+	link_personal_locker_to_spawn(rifleman_reclaim, spawn_turf)
+	link_personal_locker_to_spawn(other_squad_reclaim, spawn_turf)
+	link_personal_locker_to_spawn(medic_reclaim, spawn_turf)
+
+	GLOB.personal_closets = list(rifleman_reclaim, other_squad_reclaim, medic_reclaim)
+
+	var/datum/equipment_preset/preset = allocate(/datum/equipment_preset)
+	var/obj/structure/closet/secure_closet/marine_personal/selected_locker = preset.find_personal_locker_for_player(medic, TRUE)
+
+	TEST_ASSERT_EQUAL(selected_locker, medic_reclaim, "Latejoin reclaim should only use an abandoned locker from the same role and squad.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, rifleman_reclaim, "Latejoin reclaim incorrectly accepted a wrong-role locker.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, other_squad_reclaim, "Latejoin reclaim incorrectly accepted another squad's locker.")
+
+/datum/unit_test/halo_ship_platoons/bravo_runtime_rename_labels
+
+/datum/unit_test/halo_ship_platoons/bravo_runtime_rename_labels/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for Bravo runtime rename label testing.")
+	manager.apply_roundstart_defaults()
+
+	var/datum/squad/bravo_squad = manager.get_squad_by_static(SQUAD_MARINE_2)
+	TEST_ASSERT_NOTNULL(bravo_squad, "Failed to resolve Bravo squad for runtime rename label testing.")
+
+	var/obj/item/device/radio/headset/almayer/marine/bravo/bravo_headset = track_test_atom(allocate(/obj/item/device/radio/headset/almayer/marine/bravo, run_loc_floor_top_right))
+	var/obj/item/device/encryptionkey/bravo/bravo_key = track_test_atom(allocate(/obj/item/device/encryptionkey/bravo, run_loc_floor_top_right))
+	TEST_ASSERT_NOTNULL(bravo_headset, "Failed to allocate Bravo headset for runtime rename label testing.")
+	TEST_ASSERT_NOTNULL(bravo_key, "Failed to allocate Bravo encryption key for runtime rename label testing.")
+
+	TEST_ASSERT_EQUAL(manager.rename_squad(bravo_squad, "Vanguard", null, "unit_test_runtime_label", TRUE), TRUE, "Bravo runtime rename failed during label regression test.")
+	TEST_ASSERT_EQUAL(bravo_squad.name, "Vanguard", "Bravo runtime rename did not update the squad datum name.")
+	TEST_ASSERT_EQUAL(bravo_headset.name, "marine vanguard radio headset", "Bravo headset label did not refresh to the runtime squad name.")
+	TEST_ASSERT_EQUAL(bravo_headset.desc, "This is used by Vanguard squad members. When worn, grants access to Squad Leader tracker. Click tracker with empty hand to open Squad Info window.", "Bravo headset description did not refresh to the runtime squad name.")
+	TEST_ASSERT_EQUAL(bravo_key.name, "\improper Vanguard Squad Radio Encryption Key", "Bravo encryption key label did not refresh to the runtime squad name.")
+
+/datum/unit_test/halo_ship_platoons/odst_leader_assignment_labels
+
+/datum/unit_test/halo_ship_platoons/odst_leader_assignment_labels/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/datum/squad_name_manager/manager = GLOB.squad_name_manager
+	TEST_ASSERT_NOTNULL(manager, "Squad name manager was unavailable for ODST assignment label testing.")
+	manager.apply_roundstart_defaults()
+
+	var/datum/squad/alpha_squad = manager.get_squad_by_static(SQUAD_MARINE_1)
+	TEST_ASSERT_NOTNULL(alpha_squad, "Failed to resolve Alpha squad for ODST assignment label testing.")
+	TEST_ASSERT_EQUAL(alpha_squad.type, /datum/squad/marine/halo/odst/alpha, "ODST assignment label testing did not resolve the HALO ODST Alpha squad.")
+
+	var/mob/living/carbon/human/leader = create_test_human("ODST Leader Assignment", JOB_SQUAD_LEADER_ODST)
+	var/obj/item/card/id/leader_id = prepare_test_human_for_squad(leader, /datum/equipment_preset/unsc/leader/odst, JOB_SQUAD_LEADER_ODST)
+	TEST_ASSERT(alpha_squad.put_marine_in_squad(leader, leader_id), "Failed to place the ODST leader into Alpha squad for assignment label testing.")
+
+	var/expected_default_assignment = "[alpha_squad.name] [alpha_squad.get_role_label(JOB_SQUAD_LEADER)]"
+	TEST_ASSERT_EQUAL(leader_id.assignment, expected_default_assignment, "ODST leader default assignment did not use the runtime squad label.")
+
+	TEST_ASSERT_EQUAL(manager.rename_squad(alpha_squad, "Vanguard", null, "unit_test_odst_assignment", TRUE), TRUE, "ODST assignment label rename failed during runtime label testing.")
+	var/expected_runtime_assignment = "[alpha_squad.name] [alpha_squad.get_role_label(JOB_SQUAD_LEADER)]"
+	TEST_ASSERT_EQUAL(leader_id.assignment, expected_runtime_assignment, "ODST leader runtime assignment did not refresh to the renamed squad label.")
+
+/datum/unit_test/halo_ship_platoons/odst_equipped_slots/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/mob/living/carbon/human/human = create_test_human("ODST Equipped Slots", JOB_SQUAD_MARINE_ODST)
+	arm_equipment(human, /datum/equipment_preset/unsc/pfc/odst/equipped, FALSE, TRUE)
+
+	assert_halo_smoke_state(human, /datum/equipment_preset/unsc/pfc/odst/equipped, JOB_SQUAD_MARINE_ODST)
+	assert_halo_odst_visual_slots(human, "ODST equipped smoke")
+
+/datum/unit_test/halo_ship_platoons/odst_preview_dummy_slots/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/datum/preferences/prefs = new
+	prefs.job_preference_list = list(JOB_SQUAD_MARINE = HIGH_PRIORITY)
+	prefs.preview_dummy = create_test_human("ODST Preview Dummy", JOB_SQUAD_MARINE_ODST)
+
+	var/preset_type = prefs.job_pref_to_gear_preset()
+	TEST_ASSERT_EQUAL(preset_type, /datum/equipment_preset/unsc/pfc/odst/equipped, "ODST preference preview no longer resolves to the equipped ODST rifleman preset on the active platoon.")
+
+	prefs.clear_equipment()
+	prefs.preview_dummy.set_species()
+	prefs.copy_appearance_to(prefs.preview_dummy)
+	prefs.preview_dummy.update_body()
+	prefs.preview_dummy.update_hair()
+	arm_equipment(prefs.preview_dummy, preset_type, FALSE, FALSE, prefs.owner, prefs.show_job_gear)
+
+	assert_halo_odst_visual_slots(prefs.preview_dummy, "ODST preview dummy")
+	prefs.preview_dummy = null
+
+/datum/unit_test/halo_ship_platoons/odst_manual_equip_without_hud_slots/Run()
+	var/mob/living/carbon/human/human = create_test_human("ODST Manual Equip", JOB_SQUAD_MARINE_ODST)
+	var/obj/item/clothing/under/marine/odst/odst_uniform = allocate(/obj/item/clothing/under/marine/odst, run_loc_floor_top_right)
+
+	TEST_ASSERT_NULL(human.hud_used, "Manual equip fallback test expected a fresh test human without a populated HUD datum.")
+	TEST_ASSERT(human.has_limb_for_slot(WEAR_BODY), "Manual equip fallback test expected a fresh test human to report the body slot as limb-valid before equipping.")
+	TEST_ASSERT(human.equip_to_slot_if_possible(odst_uniform, WEAR_BODY, 1, 0, 0, 0), "ODST manual uniform equip should succeed even when the human HUD slot cache is unavailable.")
+	TEST_ASSERT_EQUAL(odst_uniform.loc, human, "ODST manual uniform equip should move the item into the human contents before asserting the wearable slot state.")
+	TEST_ASSERT_EQUAL(human.w_uniform, odst_uniform, "ODST manual uniform equip should populate the direct human uniform slot var after the HUD-slot fallback.")
+	TEST_ASSERT_EQUAL(human.get_item_by_slot(WEAR_BODY), odst_uniform, "ODST manual uniform equip did not populate the body slot after the HUD-slot fallback.")
+
+/datum/unit_test/halo_ship_platoons/halo_species_restricted_clothing_contract/Run()
+	var/mob/living/carbon/human/human = create_test_human("HALO Human Restriction", JOB_SQUAD_MARINE_ODST)
+	var/mob/living/carbon/human/sangheili = create_test_human("HALO Sangheili Restriction", JOB_SQUAD_MARINE)
+	var/obj/item/clothing/head/helmet/marine/sangheili/minor/sangheili_helmet = allocate(/obj/item/clothing/head/helmet/marine/sangheili/minor, run_loc_floor_top_right)
+
+	human.create_hud()
+	sangheili.create_hud()
+	sangheili.set_species(SPECIES_SANGHEILI)
+
+	TEST_ASSERT(!sangheili_helmet.mob_can_equip(human, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing unexpectedly allowed a human wearer after the HALO clothing compat change.")
+	TEST_ASSERT(sangheili_helmet.mob_can_equip(sangheili, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing no longer allows the intended Sangheili wearer after the HALO clothing compat change.")

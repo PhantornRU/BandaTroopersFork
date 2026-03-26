@@ -77,7 +77,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 					// SS220 EDIT - START
 					var/manifest_department = department
 					if(department in GLOB.ROLES_SQUAD_ALL)
-						manifest_department = squad_name_get_runtime(department)
+						manifest_department = manager ? manager.get_runtime_name(department) : department
 					// if(!manifest_out[department])
 					if(!manifest_out[manifest_department])
 						// manifest_out[department] = list()
@@ -205,7 +205,7 @@ GLOBAL_DATUM_INIT(data_core, /datum/datacore, new)
 				continue
 			// SS220 EDIT - START
 			// dat += "<tr><th colspan=3>[squad_name]</th></tr>"
-			var/display_squad_name = squad_name_get_runtime(squad_name)
+			var/display_squad_name = GLOB.squad_name_manager ? GLOB.squad_name_manager.get_runtime_name(squad_name) : squad_name
 			dat += "<tr><th colspan=3>[display_squad_name]</th></tr>"
 			// SS220 EDIT - END
 			for(real_rank in marines_by_squad[squad_name])

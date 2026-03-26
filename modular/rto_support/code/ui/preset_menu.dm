@@ -39,30 +39,52 @@
 		return UI_CLOSE
 	if(user != controller?.owner)
 		return UI_CLOSE
-	if(!controller.can_select_template())
+	if(!controller.can_open_template_menu())
 		return UI_CLOSE
 	return UI_INTERACTIVE
+
+/datum/rto_support_preset_menu/proc/build_selected_template_ui_data()
+	var/list/data = list()
+	if(!controller)
+		return data
+	for(var/datum/rto_support_template/template as anything in controller.get_selected_templates())
+		data += list(list(
+			"template_id" = template.template_id,
+			"name" = template.name,
+		))
+	return data
 
 /datum/rto_support_preset_menu/ui_static_data(mob/user)
 	var/list/templates = list()
 	if(controller)
 		templates = controller.build_preset_ui_data()
 	return list(
-		"templates" = templates
+		"templates" = templates,
+		"max_selected_templates" = controller?.max_selected_templates || 2,
 	)
 
 /datum/rto_support_preset_menu/ui_data(mob/user)
-	var/can_select_template = FALSE
-	var/active_template_name = null
 	var/list/templates = list()
+	var/list/selected_templates = list()
+	var/can_add_template = FALSE
+	var/can_reset_templates = FALSE
+	var/reset_ready_in = 0
+	var/selected_count = 0
 	if(controller)
-		can_select_template = controller.can_select_template()
-		active_template_name = controller.get_active_template()?.name
 		templates = controller.build_preset_ui_data()
+		selected_templates = build_selected_template_ui_data()
+		selected_count = length(selected_templates)
+		can_add_template = controller.can_add_template()
+		can_reset_templates = controller.can_reset_templates()
+		reset_ready_in = controller.get_selection_reset_ready_in()
 	return list(
-		"can_select_template" = can_select_template,
-		"active_template_name" = active_template_name,
-		"templates" = templates
+		"templates" = templates,
+		"selected_templates" = selected_templates,
+		"selected_count" = selected_count,
+		"max_selected_templates" = controller?.max_selected_templates || 2,
+		"can_add_template" = can_add_template,
+		"can_reset_templates" = can_reset_templates,
+		"reset_ready_in" = round(reset_ready_in / 10),
 	)
 
 /datum/rto_support_preset_menu/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
@@ -80,7 +102,7 @@
 				return FALSE
 			var/confirm_choice = tgui_alert(
 				user,
-				"Вы уверены, что хотите выбрать пакет поддержки \"[template.name]\"? Выбор нельзя изменить до конца жизни персонажа.",
+				"Вы уверены, что хотите добавить пакет поддержки \"[template.name]\" в свободный слот? Полный сброс обоих слотов станет доступен через 60 минут от первого выбора.",
 				"Подтверждение выбора",
 				list("Подтвердить", "Отмена"),
 				15 SECONDS,
@@ -90,8 +112,27 @@
 			if(!controller?.select_template(template_id))
 				to_chat(user, SPAN_WARNING("Не удалось выбрать пакет поддержки."))
 				return FALSE
-			to_chat(user, SPAN_NOTICE("Пакет поддержки выбран: [controller.active_template.name]."))
-			request_close()
+			to_chat(user, SPAN_NOTICE("Пакет поддержки добавлен: [template.name]."))
+			SStgui.update_uis(src)
+			return TRUE
+		if("reset_templates")
+			if(!controller?.can_reset_templates())
+				to_chat(user, SPAN_WARNING("Полный сброс слотов пока недоступен."))
+				return FALSE
+			var/confirm_reset = tgui_alert(
+				user,
+				"Сбросить оба слота пакетов поддержки и выбрать их заново?",
+				"Сброс пакетов",
+				list("Сбросить", "Отмена"),
+				15 SECONDS,
+			)
+			if(confirm_reset != "Сбросить")
+				return FALSE
+			if(!controller.reset_templates())
+				to_chat(user, SPAN_WARNING("Не удалось сбросить слоты пакетов."))
+				return FALSE
+			to_chat(user, SPAN_NOTICE("Слоты пакетов поддержки сброшены."))
+			SStgui.update_uis(src)
 			return TRUE
 
 	return FALSE

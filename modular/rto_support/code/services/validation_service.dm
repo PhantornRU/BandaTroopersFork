@@ -2,23 +2,23 @@
 /datum/rto_support_validation_service
 
 /// Validates a visibility zone deployment attempt.
-/datum/rto_support_validation_service/proc/validate_zone_deploy(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
-	var/datum/rto_support_validation_result/result = validate_support_context(controller, target_turf, user, binoculars, FALSE, FALSE)
+/datum/rto_support_validation_service/proc/validate_zone_deploy(datum/rto_support_controller/controller, datum/rto_support_template/template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
+	var/datum/rto_support_validation_result/result = validate_support_context(controller, template, target_turf, user, binoculars, FALSE, FALSE)
 	if(!result.success)
 		return result
-	if(!controller.active_template)
+	if(!template)
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Сначала выберите пакет поддержки.")
 		return failure
-	if(!controller.template_requires_zone())
+	if(!controller.template_requires_zone(template.template_id))
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Этот пакет не использует сектор наведения.")
 		return failure
-	if(!controller.can_deploy_zone())
+	if(!controller.can_deploy_zone(template.template_id))
 		var/datum/rto_support_validation_result/failure = new
-		failure.set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE))
+		failure.set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE, template.template_id))
 		return failure
-	if(controller.active_template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
+	if(template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Точка недоступна для авиационного сектора.")
 		return failure
@@ -27,22 +27,22 @@
 	return success
 
 /// Validates a support call attempt.
-/datum/rto_support_validation_service/proc/validate_support_call(datum/rto_support_controller/controller, datum/rto_support_action_template/action_template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
-	if(!action_template)
+/datum/rto_support_validation_service/proc/validate_support_call(datum/rto_support_controller/controller, datum/rto_support_template/template, datum/rto_support_action_template/action_template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
+	if(!template || !action_template)
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Способность поддержки недоступна.")
 		return failure
-	var/require_zone = action_template.requires_visibility_zone && controller?.template_requires_zone()
-	var/datum/rto_support_validation_result/result = validate_support_context(controller, target_turf, user, binoculars, require_zone, action_template.allow_closed_turf)
+	var/require_zone = action_template.requires_visibility_zone && controller?.template_requires_zone(template.template_id)
+	var/datum/rto_support_validation_result/result = validate_support_context(controller, template, target_turf, user, binoculars, require_zone, action_template.allow_closed_turf)
 	if(!result.success)
 		return result
-	if(controller.get_remaining_shared_cooldown() > 0)
+	if(controller.get_remaining_shared_cooldown(template.template_id) > 0)
 		var/datum/rto_support_validation_result/failure = new
-		failure.set_failure(controller.get_action_block_message(action_template.action_id))
+		failure.set_failure(controller.get_action_block_message(action_template.action_id, template.template_id))
 		return failure
 	if(controller.get_remaining_action_cooldown(action_template.action_id) > 0)
 		var/datum/rto_support_validation_result/failure = new
-		failure.set_failure(controller.get_action_block_message(action_template.action_id))
+		failure.set_failure(controller.get_action_block_message(action_template.action_id, template.template_id))
 		return failure
 	if(action_template.altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
 		var/datum/rto_support_validation_result/failure = new
@@ -60,8 +60,8 @@
 /datum/rto_support_validation_service/proc/validate_manual_marker_target(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
 	return validate_utility_context(controller, target_turf, user, binoculars)
 
-/datum/rto_support_validation_service/proc/validate_support_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_zone, allow_closed_turf)
-	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, TRUE, FALSE, allow_closed_turf, require_zone)
+/datum/rto_support_validation_service/proc/validate_support_context(datum/rto_support_controller/controller, datum/rto_support_template/template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_zone, allow_closed_turf)
+	var/datum/rto_support_validation_result/result = validate_common_context(controller, template, target_turf, user, binoculars, TRUE, FALSE, allow_closed_turf, require_zone)
 	if(!result.success)
 		return result
 	var/datum/rto_support_validation_result/success = new
@@ -69,19 +69,19 @@
 	return success
 
 /datum/rto_support_validation_service/proc/validate_utility_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars)
-	var/datum/rto_support_validation_result/result = validate_common_context(controller, target_turf, user, binoculars, FALSE, TRUE, TRUE, FALSE)
+	var/datum/rto_support_validation_result/result = validate_common_context(controller, null, target_turf, user, binoculars, FALSE, TRUE, TRUE, FALSE)
 	if(!result.success)
 		return result
 	var/datum/rto_support_validation_result/success = new
 	success.set_success()
 	return success
 
-/datum/rto_support_validation_service/proc/validate_common_context(datum/rto_support_controller/controller, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_template, allow_shipside, allow_closed_turf, require_zone)
+/datum/rto_support_validation_service/proc/validate_common_context(datum/rto_support_controller/controller, datum/rto_support_template/template, turf/target_turf, mob/living/carbon/human/user, obj/item/device/binoculars/rto/binoculars, require_template, allow_shipside, allow_closed_turf, require_zone)
 	if(!controller || !controller.owner || user != controller.owner)
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Контроллер поддержки недоступен.")
 		return failure
-	if(require_template && !controller.active_template)
+	if(require_template && !template)
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Сначала выберите пакет поддержки.")
 		return failure
@@ -120,13 +120,15 @@
 	if(require_zone)
 		var/datum/rto_visibility_zone/zone = controller.get_active_zone()
 		if(!zone)
-			var/zone_state = controller.get_zone_state()
-			if(zone_state == RTO_SUPPORT_ZONE_STATE_COOLDOWN)
-				var/datum/rto_support_validation_result/failure = new
-				failure.set_failure("Сектор наведения ещё перезаряжается.")
-				return failure
 			var/datum/rto_support_validation_result/failure = new
-			failure.set_failure("Сначала разверните сектор наведения.")
+			if(max(controller.get_remaining_zone_shared_cooldown(), controller.get_remaining_zone_cooldown(template?.template_id)) > 0)
+				failure.set_failure("Сектор наведения ещё перезаряжается.")
+			else
+				failure.set_failure("Сначала разверните сектор наведения.")
+			return failure
+		if(zone.source_template?.template_id != template?.template_id)
+			var/datum/rto_support_validation_result/failure = new
+			failure.set_failure("Активен сектор другого пакета поддержки.")
 			return failure
 		if(!zone.contains_turf(target_turf))
 			var/datum/rto_support_validation_result/failure = new

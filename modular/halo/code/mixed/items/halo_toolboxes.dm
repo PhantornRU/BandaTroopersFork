@@ -1,5 +1,5 @@
 /obj/item/storage/toolbox/traxus
-	name = "ящик с инструментами Traxus"
+	name = "traxus toolbox"
 	desc = "Большой красный ящик с округлой крышкой, способный вместить самые разные инструменты и снаряжение на все случаи работы. Этот экземпляр произведён Traxus Heavy Industries и выглядит весьма... основательно."
 	icon = 'icons/halo/obj/items/storage/toolbox.dmi'
 	icon_state = "traxus"
@@ -22,7 +22,7 @@
 	icon_state = "traxus_2"
 
 /obj/item/storage/toolbox/traxus/big
-	name = "большой ящик с инструментами Traxus"
+	name = "large traxus toolbox"
 	desc = "Большой красный ящик с округлой крышкой, способный вместить самые разные инструменты и снаряжение на все случаи работы. Этот экземпляр произведён Traxus Heavy Industries и выглядит весьма... основательно."
 	icon = 'icons/halo/obj/items/storage/toolbox.dmi'
 	icon_state = "traxus_big"
