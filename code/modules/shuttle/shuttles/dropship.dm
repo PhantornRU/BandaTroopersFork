@@ -154,20 +154,6 @@
 /obj/docking_port/mobile/marine_dropship/cyclone/get_transit_path_type()
 	return /turf/open/space/transit/dropship/cyclone
 
-// SS220 EDIT - START
-/obj/docking_port/mobile/marine_dropship/pelican
-	name = "D77H-TCE \"Pelican\" dropship"
-	id = DROPSHIP_PELICAN
-	width = 21
-	height = 25
-
-	dwidth = 10
-	dheight = 12
-
-/obj/docking_port/mobile/marine_dropship/pelican/get_transit_path_type()
-	return /turf/open/space/transit/dropship/pelican
-// SS220 EDIT - END
-
 /obj/docking_port/mobile/marine_dropship/tornado
 	name = "HLD-Tornado"
 	id = DROPSHIP_TORNADO
@@ -421,20 +407,6 @@
 	auto_open = TRUE
 	roundstart_template = /datum/map_template/shuttle/midway
 
-// SS220 EDIT - START
-/obj/docking_port/stationary/marine_dropship/pelican_lz
-	name = "Pelican LZ"
-	auto_open = TRUE
-	height = 25
-	width = 21
-	dheight = 12
-	dwidth = 10
-
-/obj/docking_port/stationary/marine_dropship/pelican_lz/hangar
-	name = "Dark Was The Night Hangar Bay"
-	roundstart_template = /datum/map_template/shuttle/pelican
-// SS220 EDIT - END
-
 /obj/docking_port/stationary/marine_dropship/crash_site
 	auto_open = TRUE
 
@@ -488,12 +460,6 @@
 /datum/map_template/shuttle/cyclone
 	name = "Cyclone"
 	shuttle_id = DROPSHIP_CYCLONE
-
-// SS220 EDIT - START
-/datum/map_template/shuttle/pelican
-	name = "D77H-TCE \"Pelican\" dropship"
-	shuttle_id = DROPSHIP_PELICAN
-// SS220 EDIT - END
 
 /datum/map_template/shuttle/pmc
 	name = "Cash Flow"

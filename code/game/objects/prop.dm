@@ -416,16 +416,6 @@
 	desc = "An object crafted out of branches, twigs, and twine rope that seem to form a miniature pyramid. It leaves you with an ominous feeling."
 	w_class = SIZE_LARGE
 
-// SS220 EDIT - START
-/obj/item/prop/unsc_status_display
-	icon = 'icons/halo/obj/items/prop_display.dmi'
-	icon_state = "unsc_default"
-	name = "status display"
-	desc = "A monitor intended to depict the station's current status. It appears to have frozen."
-	anchored = TRUE
-	density = FALSE
-// SS220 EDIT - END
-
 // Massive Digger by dimdimich1996
 
 /obj/structure/prop/invuln/dense/excavator

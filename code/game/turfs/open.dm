@@ -947,10 +947,6 @@
 	can_bloody = FALSE
 	supports_surgery = FALSE
 
-/turf/open/nostromowater/cave_water
-	name = "cave water"
-	desc = "Icy cold water, it seems to have pooled into a natural divet in the cave floor."
-
 //Ice Colony grounds
 
 //Ice Floor
@@ -1430,9 +1426,6 @@
 /turf/open/shuttle/escapepod/floor0/north/south
 	dir = SOUTH
 
-/turf/open/shuttle/escapepod/floor0/north/west
-	dir = WEST
-
 /turf/open/shuttle/escapepod/floor0/east
 	dir = EAST
 
@@ -1453,15 +1446,6 @@
 
 /turf/open/shuttle/escapepod/floor2
 	icon_state = "floor2"
-
-/turf/open/shuttle/escapepod/floor2/north
-	dir = NORTH
-
-/turf/open/shuttle/escapepod/floor2/east
-	dir = EAST
-
-/turf/open/shuttle/escapepod/floor2/west
-	dir = WEST
 
 /turf/open/shuttle/escapepod/floor4
 	icon_state = "floor4"

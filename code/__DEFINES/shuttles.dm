@@ -111,30 +111,6 @@
 #define MOBILE_SHUTTLE_LIFEBOAT_STARBOARD "lifeboat-starboard"
 #define MOBILE_SHUTTLE_LIFEBOAT_COMPACT "lifeboat-compact"
 #define MOBILE_SHUTTLE_VEHICLE_ELEVATOR "vehicle_elevator"
-// SS220 EDIT - START
-#define MOBILE_STATION_TRAM_GOLF "stationtramgolf"
-#define MOBILE_STATION_TRAM_ROMEO "stationtramromeo"
-#define MOBILE_STATION_TRAM_BRAVO "stationtrambravo"
-#define MOBILE_STATION_HANGAR "stationhangar"
-#define MOBILE_STATION_FIRE_CONTROL "stationfirecontrol"
-#define STAT_STATION_EMPTY "station_empty"
-#define STAT_STATION_OCCUPIED "station_occupied"
-#define STAT_STATION_SECTOR_GOLF "station_golf"
-#define STAT_STATION_SECTOR_GOLF_EXIT "station_golf_exit"
-#define STAT_STATION_SECTOR_ROMEO "station_romeo"
-#define STAT_STATION_SECTOR_ROMEO_EXIT "station_romeo_exit"
-#define STAT_STATION_SECTOR_BRAVO "station_bravo"
-#define STAT_STATION_SECTOR_BRAVO_EXIT "station_bravo_exit"
-#define STAT_STATION_HANGAR "station_hangar"
-#define STAT_STATION_HANGAR_EXIT "station_hangar_exit"
-#define STAT_STATION_FIRE_CONTROL "station_fire_control"
-#define STAT_STATION_FIRE_CONTROL_EXIT "station_fire_control_exit"
-#define MOBILE_DIGSITE_ELEVATOR "digsite_elevator"
-#define STAT_DIGSITE_EMPTY "digsite_empty"
-#define STAT_DIGSITE_OCCUPIED "digsite_occupied"
-#define STAT_DIGSITE_ELEVATOR "digsite"
-#define STAT_DIGSITE_ELEVATOR_EXIT "digsite_exit"
-// SS220 EDIT - END
 
 #define DROPSHIP_MIDWAY "dropship_midway"
 #define DROPSHIP_ALAMO "dropship_alamo"
@@ -147,7 +123,6 @@
 #define DROPSHIP_TYPHOON "dropship_typhoon"
 #define DROPSHIP_TRIPOLI "dropship_tripoli"
 #define DROPSHIP_GIBRALTAR "dropship_gibraltar"
-#define DROPSHIP_PELICAN "dropship_pelican" // SS220 EDIT: HALO pelican dropship tag
 #define DROPSHIP_TORNADO_220 "dropship_tornado220" // SS220 EDIT
 #define DROPSHIP_TORNADO_220_LONG "dropship_tornado220_long" // SS220 EDIT
 #define DROPSHIP_KOROBKA "dropship_korobka"

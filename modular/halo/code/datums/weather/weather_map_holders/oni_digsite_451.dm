@@ -16,4 +16,4 @@
 	return !CEILING_IS_PROTECTED(A.ceiling, CEILING_GLASS)
 
 /datum/weather_ss_map_holder/oni_digsite_451/should_start_event()
-	return prob(PROB_WEATHER_ONI_DIGSITE_451)
+	return prob(5)
