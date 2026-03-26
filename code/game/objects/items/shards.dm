@@ -134,7 +134,7 @@
 /obj/item/large_shrapnel/at_rocket_dud/launch_impact(atom/hit_atom)
 	. = ..()
 	var/datum/launch_metadata/LM = src.launch_metadata
-	var/user = LM.thrower
+	var/mob/user = istype(LM) && ismob(LM.thrower) ? LM.thrower : null // SS220 EDIT: explosion-thrown UXO can impact without an owning mob
 	if(!detonating && prob(impact_sensitivity))
 		cause = "manually triggered"
 		visible_message(SPAN_DANGER("You hear the click of a mechanism triggering inside \the [src]. Uh oh."))
@@ -306,6 +306,11 @@
 /obj/item/sharp/explosive
 	name = "\improper 9X-E sticky explosive dart"
 
+/obj/item/sharp/incendiary
+	name = "\improper 9X-I Sticky Incendiary Dart"
+	desc = "It looks like a used 9X-T Sticky Incendiary Dart, useless now."
+	icon_state = "sonicharpoon"
+
 /obj/item/sharp/track
 	name = "\improper 9X-T sticky tracker dart"
 	desc = "It looks like a used 9X-T Sticky Tracker Dart, useless now."
@@ -315,6 +320,6 @@
 	name = "\improper 9X-F flechette dart"
 	desc = "It looks like a used 9X-F Flechette Dart, useless now."
 	icon_state = "sonicharpoon_flechette"
+
 /obj/item/shard/shrapnel/tutorial
 	damage_on_move = 0
-

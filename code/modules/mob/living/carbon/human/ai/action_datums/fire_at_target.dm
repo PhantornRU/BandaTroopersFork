@@ -1,10 +1,16 @@
+#define FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX 4
+
 /datum/ai_action/fire_at_target
 	name = "Fire At Target"
 	action_flags = ACTION_USING_HANDS
 	var/rounds_burst_fired = 0
 	var/currently_firing
+	var/list/watched_turfs = list()
 
 /datum/ai_action/fire_at_target/get_weight(datum/human_ai_brain/brain)
+	if(!brain.has_valid_tied_human()) // SS220 EDIT: upstream action glue must not schedule work for detached modular AI owners
+		return 0
+
 	if(!brain.in_combat)
 		return 0
 
@@ -25,11 +31,21 @@
 	if((get_dist(brain.tied_human, brain.target_turf) > brain.view_distance) && !should_fire_offscreen)
 		return 0
 
+	if(brain.halo_should_defer_ranged_fire(brain.current_target || brain.target_turf))
+		return 0
+
 	if(!firing_line_check(brain, brain.target_turf))
 		return 0
 
 	if(brain.should_reload())
 		return 0
+
+	// SS220 EDIT - START: HALO plasma weapons should not queue fire actions while their vent cycle is still active
+	if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma))
+		var/obj/item/weapon/gun/energy/plasma/plasma_weapon = brain.primary_weapon
+		if(plasma_weapon.dispersing)
+			return 0
+	// SS220 EDIT - END
 
 	return 10
 
@@ -40,12 +56,26 @@
 /datum/ai_action/fire_at_target/proc/stop_firing(datum/human_ai_brain/brain)
 	currently_firing = FALSE
 	rounds_burst_fired = 0
+	clear_watched_turfs()
 
-	UnregisterSignal(brain.tied_human, COMSIG_MOB_FIRED_GUN)
+	if(!brain)
+		return
+
+	if(brain.has_valid_tied_human())
+		UnregisterSignal(brain.tied_human, COMSIG_MOB_FIRED_GUN)
 	brain.primary_weapon?.set_target(null)
+
+/datum/ai_action/fire_at_target/proc/clear_watched_turfs()
+	if(!length(watched_turfs))
+		return
+	for(var/turf/T as anything in watched_turfs)
+		UnregisterSignal(T, COMSIG_TURF_ENTERED)
+	watched_turfs.Cut()
 
 /datum/ai_action/fire_at_target/trigger_action()
 	. = ..()
+	if(!brain || !brain.has_valid_tied_human()) // SS220 EDIT: firing action exits cleanly if the modular AI owner disappears mid-combat
+		return ONGOING_ACTION_COMPLETED
 
 	var/obj/item/weapon/gun/primary_weapon = brain.primary_weapon
 	if(!primary_weapon || brain.active_grenade_found || !COOLDOWN_FINISHED(brain, stop_fire_cooldown))
@@ -53,6 +83,9 @@
 
 	var/should_fire_offscreen = (brain.target_turf && !COOLDOWN_FINISHED(brain, fire_offscreen))
 	if(!brain.current_target && !should_fire_offscreen)
+		return ONGOING_ACTION_COMPLETED
+
+	if(brain.halo_should_defer_ranged_fire(brain.current_target || brain.target_turf))
 		return ONGOING_ACTION_COMPLETED
 
 	if(currently_firing || !COOLDOWN_FINISHED(brain, fire_overload_cooldown))
@@ -73,6 +106,9 @@
 	if((get_dist(tied_human, target_turf) > gun_data.maximum_range) && !should_fire_offscreen)
 		return ONGOING_ACTION_COMPLETED
 
+	if(!firing_line_check(brain, target_turf))
+		return ONGOING_ACTION_COMPLETED
+
 	tied_human.face_atom(target_turf)
 	tied_human.a_intent_change(INTENT_HARM)
 
@@ -90,7 +126,9 @@
 	primary_weapon?.start_fire(object = target_turf, bypass_checks = TRUE)
 	return ONGOING_ACTION_UNFINISHED
 
-/datum/ai_action/fire_at_target/proc/firing_line_check(datum/human_ai_brain/brain, atom/target)
+/datum/ai_action/fire_at_target/proc/firing_line_check(datum/human_ai_brain/brain, atom/target, listen = FALSE)
+	if(!brain.has_valid_tied_human()) // SS220 EDIT: avoid post-delete signal work from upstream firing callbacks
+		return FALSE
 	var/mob/living/carbon/tied_human = brain.tied_human
 	var/list/turf_list = get_line(get_turf(tied_human), get_turf(target))
 	for(var/turf/tile in turf_list)
@@ -110,22 +148,64 @@
 			else if((tile_dist > 3) && thing.projectile_coverage >= PROJECTILE_COVERAGE_MEDIUM)
 				return FALSE
 
-		for(var/mob/living/carbon/human/possible_friendly in tile)
-			if(possible_friendly == tied_human)
-				continue
+	if(listen)
+		clear_watched_turfs()
 
-			if(possible_friendly.body_position == LYING_DOWN)
-				continue
+	var/list/checked_turfs = list()
+	for(var/i in 2 to length(turf_list))
+		var/turf/tile = turf_list[i]
+		var/tile_dist = get_dist(tied_human, tile)
+		if(tile_dist > brain.view_distance)
+			continue
 
-			if(brain.faction_check(possible_friendly))
-				return FALSE
+		var/list/turfs_to_check = list(tile)
+		if(i > FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX)
+			for(var/turf/neighbor in tile.AdjacentTurfs())
+				turfs_to_check += neighbor
+
+		for(var/turf/T as anything in turfs_to_check)
+			if(checked_turfs[T])
+				continue
+			checked_turfs[T] = TRUE
+
+			if(listen)
+				RegisterSignal(T, COMSIG_TURF_ENTERED, PROC_REF(cheap_friendly_check))
+				watched_turfs += T
+
+			for(var/mob/living/possible_friendly in T)
+				if(possible_friendly == tied_human)
+					continue
+
+				if(possible_friendly.body_position == LYING_DOWN)
+					continue
+
+				if(brain.faction_check(possible_friendly))
+					return FALSE
 
 	return TRUE
+
+/datum/ai_action/fire_at_target/proc/cheap_friendly_check(datum/source, atom/movable/entering)
+	SIGNAL_HANDLER
+	if(!brain)
+		return
+	if(entering == brain.tied_human)
+		return
+
+	if(!istype(entering, /mob/living))
+		return
+
+	var/mob/living/H = entering
+	if(H.body_position == LYING_DOWN)
+		return
+
+	if(brain.faction_check(H))
+		stop_firing(brain)
+		qdel(src)
 
 /datum/ai_action/fire_at_target/proc/on_gun_fire(datum/source, obj/item/weapon/gun/fired)
 	SIGNAL_HANDLER
 
-	if(!brain)
+	if(!brain || !brain.has_valid_tied_human()) // SS220 EDIT: late gun callbacks can outlive the modular AI owner for a tick
 		qdel(src)
 		return
 
@@ -172,6 +252,15 @@
 			qdel(src)
 			return
 
+	if(brain.halo_should_defer_ranged_fire(shoot_next))
+		stop_firing(brain)
+		qdel(src)
+		return
+
+	var/count_shot_against_burst_limit = ((brain.primary_weapon.gun_firemode == GUN_FIREMODE_AUTOMATIC) || gun_data.count_every_shot_toward_burst_limit)
+	if(count_shot_against_burst_limit)
+		rounds_burst_fired++
+
 	if(rounds_burst_fired >= gun_data.burst_amount_max)
 		var/short_action_delay = brain.short_action_delay
 		COOLDOWN_START(brain, fire_overload_cooldown, max(short_action_delay, short_action_delay * brain.action_delay_mult))
@@ -188,9 +277,31 @@
 		currently_firing = FALSE
 		return
 
-	if(!firing_line_check(brain, shoot_next))
+	if(!firing_line_check(brain, shoot_next, listen = TRUE))
 		stop_firing(brain)
+		qdel(src)
 		return
+
+	// SS220 EDIT - START: HALO covenant AI vents overheating plasma guns before they hard-lock in sustained fire
+	if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma))
+		var/obj/item/weapon/gun/energy/plasma/plasma_weapon = brain.primary_weapon
+		if(plasma_weapon.heat >= 60)
+			var/vent_decision = 0
+			if(brain.current_target)
+				vent_decision = max(0, -20 + (6 * get_dist(tied_human, brain.current_target)))
+			else if(target_turf)
+				vent_decision = max(0, -20 + (12 * get_dist(tied_human, target_turf)))
+
+			vent_decision += max(0, plasma_weapon.heat - 65)
+			if(prob(max(0, vent_decision)))
+				currently_firing = FALSE
+				brain.unholster_primary()
+				brain.ensure_primary_hand(plasma_weapon)
+				plasma_weapon.unload(tied_human)
+				return
+			else if(plasma_weapon.heat >= 100)
+				currently_firing = FALSE
+	// SS220 EDIT - END
 
 	if(istype(brain.primary_weapon, /obj/item/weapon/gun/shotgun))
 		currently_firing = FALSE
@@ -232,11 +343,10 @@
 		currently_firing = FALSE
 		addtimer(CALLBACK(brain.primary_weapon, TYPE_PROC_REF(/obj/item/weapon/gun, start_fire), null, brain.current_target, null, null, null, TRUE), brain.primary_weapon.get_fire_delay())
 
-	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_AUTOMATIC)
-		rounds_burst_fired++
-
 	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_BURSTFIRE)
 		currently_firing = FALSE
 		addtimer(CALLBACK(brain.primary_weapon, TYPE_PROC_REF(/obj/item/weapon/gun, start_fire), null, brain.current_target, null, null, null, TRUE), brain.primary_weapon.get_burst_fire_delay())
 
 	brain.primary_weapon?.set_target(shoot_next)
+
+#undef FRIENDLY_FIRE_ADJACENT_CHECK_START_INDEX

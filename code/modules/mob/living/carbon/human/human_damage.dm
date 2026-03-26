@@ -418,6 +418,20 @@ This function restores all limbs.
 	sharp = 0, edge = 0, obj/used_weapon = null, no_limb_loss = FALSE, \
 	permanent_kill = FALSE, mob/firer = null, force = FALSE
 )
+	// SS220 EDIT - START
+	if(damage > 0 && player_survival_is_damage_blocked())
+		var/mob/attacker = ismob(firer) ? firer : null
+		var/obj/source_weapon = isobj(used_weapon) ? used_weapon : null
+		var/cause_name = null
+		if(source_weapon)
+			cause_name = initial(source_weapon.name)
+		else if(attacker)
+			cause_name = "attack"
+
+		var/datum/cause_data/current_cause = cause_name ? create_cause_data(cause_name, attacker, source_weapon) : null
+		player_survival_log_damage_block("apply_damage", damage, damagetype, null, current_cause)
+		return FALSE
+	// SS220 EDIT - END
 	if(protection_aura && damage > 0)
 		damage = floor(damage * ((ORDER_HOLD_CALC_LEVEL - protection_aura) / ORDER_HOLD_CALC_LEVEL))
 

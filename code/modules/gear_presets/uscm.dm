@@ -61,7 +61,7 @@
 		GLOB.data_core.manifest_inject(new_human)
 
 	var/obj/item/card/id/ID = new_human.get_idcard()
-	var/datum/money_account/acct = create_account(new_human, rand(30, 50), GLOB.paygrades[ID.paygrade])
+	var/datum/money_account/acct = create_account(new_human.real_name, rand(30, 50), GLOB.paygrades[ID.paygrade])
 	ID.associated_account_number = acct.account_number
 
 	var/datum/squad/auto_squad = get_squad_by_name(auto_squad_name)
@@ -146,6 +146,20 @@
 	name = parent_type::name + " (E4 Rank)"
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/pfc/upp/forecon
+	name = "UPP Recon Infantryman"
+	assignment = JOB_SQUAD_MARINE_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/pfc/recon
+
+/datum/equipment_preset/uscm/pfc/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/pfc/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/sg
@@ -217,6 +231,24 @@
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/sg/upp/forecon
+	name = "UPP Recon Machinegunner"
+	assignment = JOB_SQUAD_SMARTGUN_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/smartgunner/recon
+
+/datum/equipment_preset/uscm/sg/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/sg/upp/forecon/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/sg/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/rto
@@ -239,6 +271,32 @@
 /datum/equipment_preset/uscm/rto/pfc
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
+
+// if a generic UPP rto is ever added, these will need subtypes for upp/forecon
+
+/datum/equipment_preset/uscm/rto/upp
+	name = "UPP Recon Radio Transmissions Operator"
+	assignment = JOB_SQUAD_RTO_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+	access = list(ACCESS_UPP_GENERAL)
+	languages = list(LANGUAGE_RUSSIAN, LANGUAGE_CHINESE)
+	faction_group = list(FACTION_UPP)
+	faction = FACTION_UPP
+	role_comm_title = "RTO"
+	skills = /datum/skills/pfc
+
+	minimap_icon = "rto"
+
+/datum/equipment_preset/uscm/rto/upp/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Naval Infantry Telnyashka"
+
+/datum/equipment_preset/uscm/rto/upp/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/rto/upp/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
 
 //*****************************************************************************************************/
 
@@ -313,17 +371,35 @@
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/medic/upp/forecon
+	name = "UPP Recon Sanitar"
+	assignment = JOB_SQUAD_MEDIC_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/combat_medic/recon
+
+/datum/equipment_preset/uscm/medic/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/medic/upp/forecon/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/medic/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl
-	name = "USCM Squad Leader"
+	name = "USCM Group Leader" // SS220 EDIT: align marine TL display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL comm title with runtime squad contract
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
 
@@ -359,6 +435,17 @@
 	name = parent_type::name + " (E5 Rank)"
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/tl/upp/forecon
+	name = "UPP Assistant Recon Squad Sergeant"
+	assignment = JOB_SQUAD_TEAM_LEADER_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE6 = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "ARSS"
+	skills = /datum/skills/tl/recon
+
+/datum/equipment_preset/uscm/tl/upp/forecon/sergeant
+	name = parent_type::name + " (E5 Rank)"
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+
 /*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/engineer
@@ -390,13 +477,13 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader
-	name = "USCM Section Sergeant"
+	name = "USCM Squad Leader" // SS220 EDIT: align marine leader display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -432,6 +519,12 @@
 /datum/equipment_preset/uscm/leader/forecon/gunnery_sergeant
 	name = parent_type::name + " (E7 Rank)"
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/leader/upp/forecon
+	name = "UPP Recon Squad Sergeant"
+	assignment = JOB_SQUAD_LEADER_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE7 = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "RSS"
 
 //*****************************************************************************************************/
 // ERT members that spawn with full gear from DEFCON
@@ -582,14 +675,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl_equipped
-	name = "USCM Squad Leader (Equipped)"
+	name = "USCM Group Leader (Equipped)" // SS220 EDIT: align marine TL equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL equipped comm title with runtime squad contract
 	skills = /datum/skills/tl
 
 	minimap_icon = "tl"
@@ -693,14 +786,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader_equipped
-	name = "USCM Section Sergeant (Equipped)"
+	name = "USCM Squad Leader (Equipped)" // SS220 EDIT: align marine leader equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader equipped comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 

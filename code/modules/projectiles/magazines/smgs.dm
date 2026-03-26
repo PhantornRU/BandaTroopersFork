@@ -127,6 +127,19 @@
 		random_magazine = FALSE
 
 //-------------------------------------------------------
+//MP47A2 - Modern version of the MP27
+
+/obj/item/ammo_magazine/smg/mp47a2
+	name = "\improper MP47A2 magazine (10x20mm)"
+	desc = "A 10x20mm magazine for the MP47A2."
+	caliber = "10x20mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "mp47a2"
+	max_rounds = 25
+	gun_type = /obj/item/weapon/gun/smg/mp47a2
+	default_ammo = /datum/ammo/bullet/smg/mp47a2
+
+//-------------------------------------------------------
 //PPSH //Based on the PPSh-41.
 
 #define PPSH_STICK_MAGAZINE_JAM_CHANCE 0.1
@@ -297,3 +310,30 @@
 	w_class = SIZE_SMALL
 	max_rounds = 48
 	gun_type = /obj/item/weapon/gun/smg/nailgun
+
+//-------------------------------------------------------
+//P90, a classic SMG.
+
+/obj/item/ammo_magazine/smg/p90
+	name = "\improper FN P90 magazine (5.7×28mm)"
+	desc = "A 5.7×28mm magazine for the FN P90."
+	default_ammo = /datum/ammo/bullet/smg/p90
+	caliber = "5.7×28mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "p90"
+	w_class = SIZE_MEDIUM
+	gun_type = /obj/item/weapon/gun/smg/p90
+	max_rounds = 50
+//-------------------------------------------------------
+//P90, a classic SMG.(TWE version)
+
+/obj/item/ammo_magazine/smg/p90/twe
+	name = "\improper FN-TWE P90 AP magazine (5.7×28mm)"
+	desc = "A 5.7×28mm (AP) magazine for the FN-TWE P90."
+	default_ammo = /datum/ammo/bullet/smg/p90/twe_ap
+	caliber = "5.7×28mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/twe_ammo.dmi'
+	icon_state = "p90_twe"
+	w_class = SIZE_MEDIUM
+	gun_type = /obj/item/weapon/gun/smg/p90/twe
+	max_rounds = 50

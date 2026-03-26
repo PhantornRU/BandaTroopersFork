@@ -176,6 +176,11 @@
 	default_ammo = /datum/ammo/bullet/pistol/squash/incendiary
 	ammo_band_color = AMMO_BAND_COLOR_INCENDIARY
 
+/obj/item/ammo_magazine/pistol/vp78/rubber
+	name = "\improper VP78 rubber magazine (9x19mm)"
+	default_ammo = /datum/ammo/bullet/pistol/squash/rubber
+	ammo_band_color = AMMO_BAND_COLOR_RUBBER
+
 //-------------------------------------------------------
 //Beretta 92FS, the gun McClane carries around in Die Hard. Very similar to the service pistol, all around.
 
@@ -387,3 +392,24 @@ It is a modified Beretta 93R, and can fire three-round burst or single fire. Whe
 	icon_state = "skorpion" //PLACEHOLDER
 	gun_type = /obj/item/weapon/gun/pistol/skorpion
 	max_rounds = 20
+
+//-------------------------------------------------------
+//PA76 PISTOL
+
+/obj/item/ammo_magazine/pistol/pa76
+	name = "\improper PA76 magazine (7.65x20mm)"
+	desc = "A pistol magazine used by the PA76 pistol."
+	caliber = "7.65x20mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "pa76"
+	max_rounds = 7
+	default_ammo = /datum/ammo/bullet/pistol/pa76
+	gun_type = /obj/item/weapon/gun/pistol/pa76
+	ammo_band_icon = "+pa76_band"
+	ammo_band_icon_empty = "+pa76_band_e"
+
+/obj/item/ammo_magazine/pistol/pa76/ap
+	name = "\improper PA76 armor piercing magazine (7.65x20mm)"
+	desc = "A pistol magazine. This one contains armor piercing bullets."
+	default_ammo = /datum/ammo/bullet/pistol/pa76/ap
+	ammo_band_color = AMMO_BAND_COLOR_AP

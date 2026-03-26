@@ -48,7 +48,7 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 /obj/structure/machinery/telecomms/relay/preset/tower/Initialize()
 	GLOB.all_static_telecomms_towers += src
 	. = ..()
-	if(z)
+	if(z && is_managed_tcomms_z())
 		SSminimaps.add_marker(src, z, MINIMAP_FLAG_ALL, "supply")
 
 /obj/structure/machinery/telecomms/relay/preset/tower/Destroy()
@@ -184,6 +184,10 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 	freq_listening = CLF_FREQS
 	faction_shorthand = "CLF"
 
+/obj/structure/machinery/telecomms/relay/preset/tower/faction/canc
+	freq_listening = CANC_FREQS
+	faction_shorthand = "CANC"
+
 /obj/structure/machinery/telecomms/relay/preset/tower/faction/pmc
 	freq_listening = PMC_FREQS
 	faction_shorthand = "PMC"
@@ -277,6 +281,11 @@ GLOBAL_LIST_EMPTY(all_static_telecomms_towers)
 						freq_listening |= SOF_FREQ
 				if(FACTION_CLF)
 					freq_listening |= CLF_FREQS
+				// SS220 EDIT - START
+				// if(FACTION_LIST_CANC)
+				if(FACTION_CANC, FACTION_CANC_DOGWAR)
+				// SS220 EDIT - END
+					freq_listening |= CANC_FREQS
 				if(FACTION_UPP)
 					freq_listening |= UPP_FREQS
 				if(FACTION_WY,FACTION_PMC)

@@ -5,59 +5,79 @@ on:
   - cron: "0 0 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   compile:
     name: "Compile changelogs"
     runs-on: ubuntu-latest
+    concurrency:
+      group: changelog-compile-master
+      cancel-in-progress: false
     steps:
-      - name: "Check for ACTION_ENABLER secret and pass true to output if it exists to be checked by later steps"
-        id: value_holder
+      - name: Detect auth mode
+        id: auth-mode
         env:
-          ENABLER_SECRET: ${{ secrets.ACTION_ENABLER }}
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
-          unset SECRET_EXISTS
-          if [ -n "$ENABLER_SECRET" ]; then SECRET_EXISTS=true ; fi
-          echo "ACTIONS_ENABLED=$SECRET_EXISTS" >> $GITHUB_OUTPUT
+          if [ -n "$APP_ID" ] && [ -n "$APP_PRIVATE_KEY" ]; then
+            echo "use_app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "use_app=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Generate App Token
         id: app-token-generation
+        if: steps.auth-mode.outputs.use_app == 'true'
         uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: "Setup python"
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
       - name: "Install deps"
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
         run: |
           python -m pip install --upgrade pip
           python -m pip install pyyaml
-          sudo apt-get install  dos2unix
       - name: "Checkout"
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
         uses: actions/checkout@v3
         with:
-          fetch-depth: 25
-          persist-credentials: false
-          token: ${{ steps.app-token-generation.outputs.token }}
+          ref: master
+          fetch-depth: 0
+          token: ${{ steps.app-token-generation.outputs.token || github.token }}
       - name: "Compile"
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
         run: |
           python .github/ss13_genchangelog.py html/changelogs
       - name: Commit
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
+        id: commit-changelog
+        env:
+          USE_APP: ${{ steps.auth-mode.outputs.use_app }}
+          APP_PUBLIC_ID: ${{ secrets.APP_PUBLIC_ID }}
+          APP_PUBLIC_NAME: ${{ secrets.APP_PUBLIC_NAME }}
         run: |
-          git config --local user.email "${{ secrets.APP_PUBLIC_ID }}+${{ secrets.APP_PUBLIC_NAME }}[bot]@users.noreply.github.com"
-          git config --local user.name "${{ secrets.APP_PUBLIC_NAME }}[bot]"
-          git pull origin master
-          git add html/changelogs/archive
-          git commit -m "Automatic changelog compile [ci skip]" -a || true
+          if git diff --quiet -- html/changelogs; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            echo "No changelog changes to commit."
+            exit 0
+          fi
+
+          if [ "$USE_APP" = "true" ] && [ -n "$APP_PUBLIC_ID" ] && [ -n "$APP_PUBLIC_NAME" ]; then
+            git config --local user.email "${APP_PUBLIC_ID}+${APP_PUBLIC_NAME}[bot]@users.noreply.github.com"
+            git config --local user.name "${APP_PUBLIC_NAME}[bot]"
+          else
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+          fi
+
+          git add html/changelogs
+          git commit -m "Automatic changelog compile [ci skip]"
+          echo "committed=true" >> "$GITHUB_OUTPUT"
       - name: "Push"
-        if: steps.value_holder.outputs.ACTIONS_ENABLED
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ steps.app-token-generation.outputs.token }}
+        if: steps.commit-changelog.outputs.committed == 'true'
+        run: |
+          git push origin HEAD:master

@@ -115,7 +115,7 @@
 			. += "Primary Objective: [html_decode(assigned_squad.primary_objective)]"
 		if(assigned_squad.secondary_objective)
 			. += "Secondary Objective: [html_decode(assigned_squad.secondary_objective)]"
-	if(job in GLOB.ROLES_USCM)
+	if(GLOB.RoleAuthority ? GLOB.RoleAuthority.is_shipside_role(job, TRUE) : (job in GLOB.ROLES_USCM))
 		. += ""
 		. += "<a href='byond://?MapView=1'>View Tactical Map</a>"
 	if(mobility_aura)
@@ -147,6 +147,16 @@
 	damage = armor_damage_reduction(GLOB.marine_explosive, damage, bomb_armor)
 
 	last_damage_data = istype(cause_data) ? cause_data : create_cause_data(cause_data)
+
+	// SS220 EDIT - START
+	if(player_survival_is_damage_blocked())
+		player_survival_log_damage_block("ex_act", damage, BRUTE, severity, cause_data)
+		return
+
+	var/anti_gib_triggered = (severity >= EXPLOSION_THRESHOLD_GIB || damage >= EXPLOSION_THRESHOLD_GIB)
+	if(anti_gib_triggered && player_survival_apply_non_gib_fallback(last_damage_data, damage, severity, TRUE))
+		return
+	// SS220 EDIT - END
 
 	if(damage >= EXPLOSION_THRESHOLD_GIB)
 		var/oldloc = loc
@@ -886,7 +896,7 @@
 		return NEUTER
 	return gender
 
-/mob/living/carbon/human/revive(keep_viruses)
+/mob/living/carbon/human/revive(keep_viruses, is_zombie = FALSE)
 	var/obj/limb/head/h = get_limb("head")
 	if(QDELETED(h))
 		h = get_limb("synthetic head")
@@ -1019,7 +1029,7 @@
 	set name = "View Crew Manifest"
 	set category = "IC"
 
-	if(job in GLOB.ROLES_USCM)
+	if(GLOB.RoleAuthority ? GLOB.RoleAuthority.is_shipside_role(job, TRUE) : (job in GLOB.ROLES_USCM))
 		var/dat = GLOB.data_core.get_manifest()
 		show_browser(src, dat, "Crew Manifest", "manifest", width = 400, height = 750)
 	else
@@ -1180,7 +1190,15 @@
 		TRACKER_CSL = /datum/squad/marine/charlie,
 		TRACKER_DSL = /datum/squad/marine/delta,
 		TRACKER_ESL = /datum/squad/marine/echo,
-		TRACKER_FSL = /datum/squad/marine/cryo
+		TRACKER_FSL = /datum/squad/marine/cryo,
+		TRACKER_RSL = /datum/squad/marine/forecon,
+		TRACKER_R2SL = /datum/squad/marine/sof/forecon,
+		TRACKER_RMCSL = /datum/squad/marine/rmc,
+		TRACKER_PSL = /datum/squad/marine/pmc,
+		TRACKER_P2SL = /datum/squad/marine/pmc/secondary,
+		TRACKER_PSSL = /datum/squad/marine/pmc/small,
+		TRACKER_UPPSL = /datum/squad/marine/upp,
+		TRACKER_UPP2SL = /datum/squad/marine/upp/secondary
 	)
 	switch(tracker_setting)
 		if(TRACKER_SL)
@@ -1686,6 +1704,7 @@
 	overlay_fullscreen_timer(time_to_remove + 2 SECONDS, 20, "roundstart_fade", /atom/movable/screen/fullscreen/spawning_in)
 	var/alert_type = /atom/movable/screen/text/screen_text/picture/starting
 	var/platoon = "3rd Bat. 'Solar Devils"
+	var/list/ship_profile = faction == FACTION_UNSC ? GLOB.RoleAuthority?.get_main_ship_display_profile() : null // SS220 EDIT: HALO ship display data resolves through modular helpers
 	switch(faction)
 		if(FACTION_MARINE)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting
@@ -1695,13 +1714,20 @@
 				platoon = "3rd Bat. 'Solar Devils"
 		if(FACTION_UPP)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting/upp
-			platoon = "Red Dawn"
+			if(assigned_squad && assigned_squad.name == SQUAD_SISSI)
+				platoon = "Fox Stalkers"
+			else
+				platoon = "Red Dawn"
 		if(FACTION_PMC)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting/wy
 			platoon = "Azure-15"
 		if(FACTION_TWE)
 			alert_type = /atom/movable/screen/text/screen_text/picture/starting/twe
 			platoon = "Gamma Troop"
+		if(FACTION_UNSC) // SS220 EDIT: HALO UNSC manifest branch
+			if(ship_profile)
+				alert_type = ship_profile["manifest_picture"]
+				platoon = ship_profile["label"]
 	play_screen_text("<u>[SSmapping.configs[SHIP_MAP].map_name]<br></u>" + "[platoon]<br><br>" + human_manifest, alert_type)
 
 /mob/living/carbon/human/point_to_atom(atom/A, turf/T)
@@ -1725,4 +1751,3 @@
 	update_execute_hud()
 
 	return .
-

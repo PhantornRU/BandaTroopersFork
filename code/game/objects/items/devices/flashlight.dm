@@ -544,6 +544,10 @@
 	desc = "A red UPPAC-issued flare."
 	icon_state = "upp_flare"
 	item_state = "upp_flare"
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 
 /obj/item/device/flashlight/flare/rmc
 	name = "L96 flare"
@@ -655,6 +659,8 @@
 /obj/effect/landmark/rappel
 	name = "Rappel Point"
 	var/datum/cas_signal/signal
+	var/datum/cas_signal/signal_faction = FACTION_MARINE
+
 	invisibility_value = SEE_INVISIBLE_OBSERVER
 	icon_state = "o_green"
 
@@ -664,14 +670,17 @@
 	signal.target_id = ++GLOB.cas_tracking_id_increment
 	name = "Rappel Point #[signal.target_id]"
 	signal.name = name
-	GLOB.cas_groups[FACTION_MARINE].add_signal(signal)
+	GLOB.cas_groups[signal_faction].add_signal(signal)
 
 /obj/effect/landmark/rappel/Destroy()
 	if(signal)
-		GLOB.cas_groups[FACTION_MARINE].remove_signal(signal)
+		GLOB.cas_groups[signal_faction].remove_signal(signal)
 		QDEL_NULL(signal)
 	return ..()
 
+/obj/effect/landmark/rappel/upp
+	signal_faction = FACTION_UPP
+	icon_state = "o_red"
 
 /// Signal flares deployed by a flare gun
 /obj/item/device/flashlight/flare/signal/gun
@@ -714,4 +723,3 @@
 	w_class = SIZE_MEDIUM
 	flags_equip_slot = null
 	raillight_compatible = 0
-

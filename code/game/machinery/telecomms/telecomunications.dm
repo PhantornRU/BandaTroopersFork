@@ -45,7 +45,11 @@ GLOBAL_LIST_EMPTY_TYPED(telecomms_list, /obj/structure/machinery/telecomms)
 /obj/structure/machinery/telecomms/Initialize(mapload, ...)
 	. = ..()
 	GLOB.telecomms_list += src
-	tcomms_startup()
+	if(is_managed_tcomms_z())
+		tcomms_startup()
+	else
+		on = FALSE
+		update_icon()
 
 /obj/structure/machinery/telecomms/Destroy()
 	GLOB.telecomms_list -= src
@@ -61,6 +65,11 @@ GLOBAL_LIST_EMPTY_TYPED(telecomms_list, /obj/structure/machinery/telecomms)
 /obj/structure/machinery/telecomms/power_change(area/master_area = null)
 	. = ..()
 	update_state()
+
+/obj/structure/machinery/telecomms/proc/is_managed_tcomms_z()
+	if(z && SSmapping.z_list && z > length(SSmapping.z_list))
+		return FALSE
+	return TRUE
 
 // When effectively started up
 /obj/structure/machinery/telecomms/proc/tcomms_startup()
@@ -79,6 +88,10 @@ GLOBAL_LIST_EMPTY_TYPED(telecomms_list, /obj/structure/machinery/telecomms)
 
 // In any case that might warrant reevaluating working state
 /obj/structure/machinery/telecomms/proc/update_state()
+	if(!is_managed_tcomms_z())
+		on = FALSE
+		update_icon()
+		return FALSE
 	if(!toggled || inoperable(EMPED) || health <= 0)
 		if(on)
 			tcomms_shutdown()

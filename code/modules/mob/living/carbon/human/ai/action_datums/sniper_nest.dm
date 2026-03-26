@@ -76,13 +76,19 @@
 		/datum/equipment_preset/clf/soldier/svd::name = /datum/equipment_preset/clf/soldier/svd,
 		/datum/equipment_preset/rebel/sniper::name = /datum/equipment_preset/rebel/sniper,
 		/datum/equipment_preset/canc/remnant/marksman::name = /datum/equipment_preset/canc/remnant/marksman,
+		/datum/equipment_preset/canc_dogwar/soldier/marksman::name = /datum/equipment_preset/canc_dogwar/soldier/marksman,
+		/datum/equipment_preset/canc_dogwar/militia/marksman::name = /datum/equipment_preset/canc_dogwar/militia/marksman,
+		/datum/equipment_preset/canc_dogwar/upp/marksman::name = /datum/equipment_preset/canc_dogwar/upp/marksman,
+		/datum/equipment_preset/canc_dogwar/specops/marksman::name = /datum/equipment_preset/canc_dogwar/specops/marksman,
 		/datum/equipment_preset/pmc/sniper::name = /datum/equipment_preset/pmc/sniper,
 		/datum/equipment_preset/upp/sniper::name = /datum/equipment_preset/upp/sniper,
 		/datum/equipment_preset/uscm/specialist_equipped/sniper::name = /datum/equipment_preset/uscm/specialist_equipped/sniper,
 		/datum/equipment_preset/other/freelancer/marksman::name = /datum/equipment_preset/other/freelancer/marksman,
 		/datum/equipment_preset/royal_marine/sniper::name = /datum/equipment_preset/royal_marine/sniper/ai,
 		/datum/equipment_preset/colonist/security/guard/marksman::name = /datum/equipment_preset/colonist/security/guard/marksman,
+		/datum/equipment_preset/mercenary/sentinel/marksman::name = /datum/equipment_preset/mercenary/sentinel/marksman,
 		/datum/equipment_preset/mercenary/infiltrator::name = /datum/equipment_preset/mercenary/infiltrator,
+		/datum/equipment_preset/fil/rifleman/sniper::name = /datum/equipment_preset/fil/rifleman/sniper,
 	)
 
 	if(!check_rights(R_DEBUG))
@@ -123,4 +129,3 @@
 	ai_comp.ai_brain.sniper_dir = get_cardinal_dir(home_turf, target_turf)
 
 	to_chat(usr, SPAN_NOTICE("Sniper has been created."))
-

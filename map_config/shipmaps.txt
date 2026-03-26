@@ -27,7 +27,13 @@ endmap
 map chapaev
 endmap
 
+map laituri
+endmap
+
 map rover
+endmap
+
+map rover_tethered
 endmap
 
 map golden_arrow_classic
@@ -42,10 +48,22 @@ endmap
 map hms_brynhild
 endmap
 
-# SS220 EDIT - START
+map uscm_blue_ridge
+	# default
+endmap
 
-map blue_ridge
+# SS220 EDIT - START: HALO ship map rotation
+map unsc_dark_was_the_night
+endmap
+
+map unsc_dark_was_the_night_odst
+endmap
+
+map unsc_stalwart_frigate
 	default
+endmap
+
+map mackay_station_shipmap
 endmap
 
 # SS220 EDIT - END

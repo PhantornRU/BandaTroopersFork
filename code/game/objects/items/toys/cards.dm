@@ -46,7 +46,7 @@
 
 /obj/item/toy/deck/uno
 	name = "deck of UNO cards"
-	desc = "A simple deck of the Weyland-Yutani classic UNO playing cards."
+	desc = "Колода классических карт UNO из пластика, устойчивого к пятнам." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "deck_uno"
 	base_icon = "deck_uno"
 	max_cards = 108

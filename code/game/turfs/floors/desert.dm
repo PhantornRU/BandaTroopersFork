@@ -249,6 +249,12 @@
 /turf/open/desert/desert_shore/shore_corner1
 	name = "shore"
 	icon_state = "shore_corner1"
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/desert/desert_shore/shore_corner1/east
+	dir = EAST
+// SS220 EDIT - END
+
 /turf/open/desert/desert_shore/shore_corner2
 	name = "shore"
 	icon_state = "shore_corner2"

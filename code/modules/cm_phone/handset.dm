@@ -117,10 +117,10 @@
 
 	if(!to_raise)
 		raised = FALSE
-		item_state = "rpb_phone"
+		item_state = icon_state
 	else
 		raised = TRUE
-		item_state = "rpb_phone_ear"
+		item_state = "[icon_state]_ear"
 
 	user.update_inv_r_hand()
 	user.update_inv_l_hand()
@@ -179,4 +179,11 @@
 	UnregisterSignal(holder, COMSIG_MOVABLE_MOVED)
 	reset_tether()
 
+/obj/item/handset/upp
+	icon_state = "rpb_phone" // SS220 EDIT: use the existing world sprite while keeping GroundSide inhands
+	item_state = "upp_rpb_phone" // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 #undef HANDSET_RANGE

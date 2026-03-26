@@ -125,6 +125,7 @@
 #define DROPSHIP_GIBRALTAR "dropship_gibraltar"
 #define DROPSHIP_TORNADO_220 "dropship_tornado220" // SS220 EDIT
 #define DROPSHIP_TORNADO_220_LONG "dropship_tornado220_long" // SS220 EDIT
+#define DROPSHIP_KOROBKA "dropship_korobka"
 
 #define ALMAYER_DROPSHIP_LZ1 "almayer-hangar-lz1"
 #define ALMAYER_DROPSHIP_LZ2 "almayer-hangar-lz2"

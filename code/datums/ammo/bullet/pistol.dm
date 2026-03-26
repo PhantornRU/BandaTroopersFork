@@ -249,6 +249,13 @@
 		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_incendiary)
 	))
 
+/datum/ammo/bullet/pistol/squash/rubber
+	name = "rubber squash-head pistol bullet"
+	damage_type = BURN
+	shrapnel_chance = 0
+	sound_override = 'sound/weapons/gun_c99.ogg'
+	damage = 2
+	stamina_damage = 40
 
 /datum/ammo/bullet/pistol/mankey
 	name = "live monkey"
@@ -282,3 +289,14 @@
 	penetration = 20
 	shrapnel_chance = SHRAPNEL_CHANCE_TIER_2
 
+/datum/ammo/bullet/pistol/pa76
+	name = "7.65x20mm bullet"
+
+	damage = 45 //High damage
+	penetration = -ARMOR_PENETRATION_TIER_2 //Low AP
+
+/datum/ammo/bullet/pistol/pa76/ap
+	name = "7.65x20mm bullet"
+
+	damage = 35 //Reduced damage
+	penetration = ARMOR_PENETRATION_TIER_4 //High AP

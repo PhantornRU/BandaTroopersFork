@@ -449,7 +449,7 @@ CIGARETTE PACKETS ARE IN FANCY.DM
 ////////////
 /obj/item/clothing/mask/cigarette/cigar
 	name = "\improper premium cigar"
-	desc = "A huge, brown roll of tobacco and some other stuff that you're meant to smoke. Makes you feel like a true USCM sergeant."
+	desc = "Скрученная трубка из высушенного и ферментированного табака в гладкой коричневой обёртке. Придаёт вид настоящего сержанта ККОН." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "cigar_off"
 	icon_on = "cigar_on"
 	icon_off = "cigar_off"

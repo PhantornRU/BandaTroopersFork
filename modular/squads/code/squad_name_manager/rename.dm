@@ -1,0 +1,193 @@
+/datum/squad_name_manager/proc/rename_squad(datum/squad/target_squad, raw_name, mob/renamer, rename_source, bypass_lock = FALSE)
+	if(!is_managed_squad(target_squad))
+		return "Selected squad is not managed by squad rename manager."
+
+	var/static_name = get_static_name_by_squad(target_squad)
+	if(!static_name)
+		return "Failed to resolve static squad identifier."
+
+	if(leader_lock_by_static[static_name] && !bypass_lock)
+		return "This squad has already been renamed by the first Squad Leader this round."
+
+	var/new_name = normalize_squad_name(raw_name)
+	if(!new_name)
+		return "Name must be 1-32 chars and may contain Latin/Cyrillic letters, numbers, spaces, apostrophe, hyphen and dot."
+
+	var/old_name = target_squad.name
+	var/conflict_error = validate_name_conflicts(new_name, old_name, static_name)
+	if(conflict_error)
+		return conflict_error
+
+	// Обновляем имя отряда напрямую (с суффиксом фракции если нужно)
+	if(istype(target_squad, /datum/squad/marine/halo/odst))
+		target_squad.name = new_name + " ODST"
+	else if(istype(target_squad, /datum/squad/marine/halo/unsc))
+		target_squad.name = new_name + " UNSC"
+	else
+		target_squad.name = new_name
+
+	update_global_mappings(target_squad, old_name, target_squad.name)
+	runtime_name_by_static[static_name] = target_squad.name
+
+	if(old_name != new_name)
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_SQUAD_NAME_CHANGE, target_squad, new_name, old_name)
+
+	if(static_name == SQUAD_MARINE_1)
+		GLOB.main_platoon_name = target_squad.name
+		if(old_name != target_squad.name)
+			SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PLATOON_NAME_CHANGE, target_squad.name, old_name)
+
+	if(renamer)
+		log_admin("[key_name(renamer)] has renamed squad [old_name] to [new_name]. Source: [rename_source].")
+
+	return TRUE
+
+/datum/squad_name_manager/proc/rename_primary_platoon(raw_name, mob/renamer)
+	var/datum/squad/alpha_squad = get_squad_by_static(SQUAD_MARINE_1)
+	if(!alpha_squad)
+		return FALSE
+
+	return rename_squad(alpha_squad, raw_name, renamer, "legacy_do_rename_platoon", TRUE)
+
+/datum/squad_name_manager/proc/apply_roundstart_defaults()
+	reset_runtime_names()
+	reset_leader_locks()
+	reset_first_platoon_commander()
+
+	for(var/static_name in managed_static_names)
+		var/datum/squad/target_squad = get_squad_by_static(static_name)
+		if(!target_squad)
+			continue
+
+		var/default_name = get_default_name_by_static(static_name, target_squad.type)
+		if(!default_name)
+			continue
+
+		var/rename_result = rename_squad(target_squad, default_name, null, "roundstart_default", TRUE)
+		if(rename_result != TRUE)
+			log_debug("SS220 squad rename default failed for [static_name]: [rename_result]")
+
+	var/current_alpha_name = get_runtime_name_by_static(SQUAD_MARINE_1)
+	GLOB.main_platoon_name = current_alpha_name
+	GLOB.main_platoon_initial_name = current_alpha_name
+	return TRUE
+
+/datum/squad_name_manager/proc/resolve_human_default_role(mob/living/carbon/human/H)
+	if(!istype(H))
+		return null
+
+	var/job_value = H.job
+	if(isnull(job_value))
+		return null
+
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+
+	// Используем get_job_preference_bucket_key для канонической роли
+	var/canonical_role = role_authority?.get_job_preference_bucket_key(job_value)
+	if(canonical_role && canonical_role != job_value)
+		return canonical_role
+
+	var/job_title = role_authority?.resolve_job_title(job_value)
+	if(isnull(job_title) && istype(job_value, /datum/job))
+		var/datum/job/job_datum = job_value
+		job_title = job_datum.title
+	if(!istext(job_title))
+		return null
+
+	return role_authority?.get_job_preference_bucket_key(job_title) || job_title
+
+/datum/squad_name_manager/proc/claim_first_platoon_commander(mob/living/carbon/human/H)
+	if(resolve_human_default_role(H) != JOB_SO)
+		return FALSE
+
+	var/claimer_ckey = H.ckey
+	if(!claimer_ckey && H.key)
+		claimer_ckey = ckey(H.key)
+	if(!claimer_ckey && H.real_name)
+		claimer_ckey = ckey(H.real_name)
+	if(!claimer_ckey && H.name)
+		claimer_ckey = ckey(H.name)
+	if(!claimer_ckey)
+		return FALSE
+
+	if(!first_platoon_commander_ckey)
+		first_platoon_commander_ckey = claimer_ckey
+		return TRUE
+
+	return first_platoon_commander_ckey == claimer_ckey
+
+/datum/squad_name_manager/proc/try_apply_leader_preference(mob/living/carbon/human/H)
+	var/role_check = resolve_human_default_role(H)
+	if(role_check != JOB_SQUAD_LEADER || !H.assigned_squad)
+		squads_debug_log("leader preference role check failed: role=[role_check], job=[H.job], expected=[JOB_SQUAD_LEADER], player=[H.ckey]")
+		return FALSE
+
+	var/datum/squad/assigned_squad = H.assigned_squad
+	var/static_name = get_static_name_by_squad(assigned_squad)
+	if(!static_name)
+		squads_debug_log("leader preference static resolve failed: squad_name=[assigned_squad.name], squad_type=[assigned_squad.type], player=[H.ckey]")
+		return FALSE
+
+	if(leader_lock_by_static[static_name])
+		squads_debug_log("leader preference lock already set: static_name=[static_name], player=[H.ckey]")
+		return FALSE
+
+	var/datum/preferences/player_prefs = H.client?.prefs
+	var/preferred_name = get_preference_name_for_static(player_prefs, static_name)
+	var/default_name = get_default_name_by_static(static_name, assigned_squad.type)
+	var/desired_name = preferred_name
+	if(!desired_name)
+		desired_name = default_name
+
+	squads_debug_log("leader preference debug: static_name=[static_name], preferred_name=[preferred_name], default_name=[default_name], desired_name=[desired_name], player=[H.ckey]")
+
+	var/rename_result = rename_squad(assigned_squad, desired_name, H, "first_squad_leader", FALSE)
+	if(rename_result == TRUE)
+		leader_lock_by_static[static_name] = TRUE
+		squads_debug_log("leader preference applied: new_name=[desired_name], player=[H.ckey]")
+		return TRUE
+
+	if(desired_name != default_name)
+		rename_result = rename_squad(assigned_squad, default_name, H, "first_squad_leader_fallback", FALSE)
+		if(rename_result == TRUE)
+			leader_lock_by_static[static_name] = TRUE
+			squads_debug_log("leader preference fallback applied: new_name=[default_name], player=[H.ckey]")
+			return TRUE
+
+	to_chat(H, SPAN_WARNING("Failed to apply your squad name preference: [rename_result]"))
+	squads_debug_log("leader preference failed: rename_result=[rename_result], player=[H.ckey]")
+	return FALSE
+
+/datum/squad_name_manager/proc/try_apply_platoon_commander_preference(mob/living/carbon/human/H)
+	if(!claim_first_platoon_commander(H))
+		return FALSE
+
+	var/datum/preferences/player_prefs = H.client?.prefs
+	var/applied_any = FALSE
+
+	for(var/static_name in managed_static_names)
+		if(leader_lock_by_static[static_name])
+			continue
+
+		var/datum/squad/target_squad = get_squad_by_static(static_name)
+		if(!target_squad)
+			continue
+
+		var/mob/living/carbon/human/current_leader = target_squad.squad_leader
+		if(resolve_human_default_role(current_leader) == JOB_SQUAD_LEADER)
+			continue
+
+		var/preferred_name = get_preference_name_for_static(player_prefs, static_name)
+		var/default_name = get_default_name_by_static(static_name, target_squad.type)
+		var/desired_name = preferred_name ? preferred_name : default_name
+		var/rename_result = rename_squad(target_squad, desired_name, H, "first_platoon_commander", FALSE)
+		if(rename_result == TRUE)
+			applied_any = TRUE
+			continue
+
+		if(desired_name != default_name)
+			rename_result = rename_squad(target_squad, default_name, H, "first_platoon_commander_fallback", FALSE)
+			if(rename_result == TRUE)
+				applied_any = TRUE
+
+	return applied_any

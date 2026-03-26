@@ -73,6 +73,11 @@ IN_USE used for vending/denying
 /obj/structure/machinery/cm_vending/Initialize()
 	. = ..()
 	cm_build_inventory(get_listed_products(), 1, 3)
+	GLOB.cm_vending_machines += src // SS220 EDIT: keep a typed registry for ship-surface replacements after initialization
+
+/obj/structure/machinery/cm_vending/Destroy()
+	GLOB.cm_vending_machines -= src // SS220 EDIT: unregister destroyed cm_vending machines from ship-surface replacement scans
+	return ..()
 
 /obj/structure/machinery/cm_vending/update_icon()
 	//restoring sprite to initial
@@ -145,6 +150,18 @@ GLOBAL_LIST_EMPTY(vending_products)
 		if(relative_turf)
 			return relative_turf
 	return turf
+
+/obj/structure/machinery/cm_vending/proc/vendor_role_matches(role_title)
+	// SS220 EDIT - START: vendor role checks use canonical squad-role contracts for modular variants
+	if(!LAZYLEN(vendor_role))
+		return FALSE
+
+	var/default_role = GET_DEFAULT_ROLE(role_title)
+	for(var/allowed_role in vendor_role)
+		if(GET_DEFAULT_ROLE(allowed_role) == default_role)
+			return TRUE
+	return FALSE
+	// SS220 EDIT - END
 
 /obj/structure/machinery/cm_vending/get_examine_text(mob/living/carbon/human/user)
 	. = ..()
@@ -545,7 +562,9 @@ GLOBAL_LIST_EMPTY(vending_products)
 				vendor_successful_vend(itemspec, usr)
 				add_fingerprint(usr)
 				return TRUE
-			if((!human_user.assigned_squad && squad_tag) || (!human_user.assigned_squad?.omni_squad_vendor && (squad_tag && human_user.assigned_squad.name != squad_tag)))
+			var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+			var/expected_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(squad_tag) : squad_tag // SS220 EDIT
+			if((!human_user.assigned_squad && squad_tag) || (!human_user.assigned_squad?.omni_squad_vendor && (squad_tag && human_user.assigned_squad.name != expected_squad_name)))
 				to_chat(user, SPAN_WARNING("This machine isn't for your squad."))
 				vend_fail()
 				return FALSE
@@ -555,9 +574,9 @@ GLOBAL_LIST_EMPTY(vending_products)
 				var/can_buy_flags = itemspec[4]
 				if(can_buy_flags)
 					if(can_buy_flags == MARINE_CAN_BUY_ESSENTIALS)
-						if(vendor_role.Find(JOB_SQUAD_SPECIALIST))
+						if(vendor_role_matches(JOB_SQUAD_SPECIALIST)) // SS220 EDIT: specialist essentials are keyed off canonical squad roles
 							// handle specalist essential gear assignment
-							if(user.job != JOB_SQUAD_SPECIALIST)
+							if(GET_DEFAULT_ROLE(user.job) != JOB_SQUAD_SPECIALIST) // SS220 EDIT: modular specialist variants still consume the specialist essential path
 								to_chat(user, SPAN_WARNING("Only specialists can take specialist sets."))
 								vend_fail()
 								return FALSE
@@ -583,7 +602,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 
 							GLOB.specialist_set_name_dict[p_name].redeem_set(human_user)
 
-						else if(vendor_role.Find(JOB_SYNTH))
+						else if(vendor_role_matches(JOB_SYNTH))
 							if(user.job != JOB_SYNTH)
 								to_chat(user, SPAN_WARNING("Only USCM Synthetics may vend experimental tool tokens."))
 								vend_fail()
@@ -796,7 +815,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 				vend_fail()
 			return FALSE
 
-		if(LAZYLEN(vendor_role) && !vendor_role.Find(user.job))
+		if(LAZYLEN(vendor_role) && !vendor_role_matches(user.job)) // SS220 EDIT: vendor gating uses canonical squad-role matching
 			if(display)
 				to_chat(user, SPAN_WARNING("This machine isn't for you."))
 				vend_fail()
@@ -1431,7 +1450,7 @@ GLOBAL_LIST_INIT(cm_vending_gear_corresponding_types_list, list(
 				user.equip_to_appropriate_slot(new_item)
 
 	if(vend_flags & VEND_TO_HAND)
-		if(user.client?.prefs && (user.client?.prefs?.toggle_prefs & TOGGLE_VEND_ITEM_TO_HAND))
+		if(!user.client?.prefs || (user.client?.prefs?.toggle_prefs & TOGGLE_VEND_ITEM_TO_HAND))
 			if(Adjacent(user))
 				user.put_in_any_hand_if_possible(new_item, disable_warning = TRUE)
 

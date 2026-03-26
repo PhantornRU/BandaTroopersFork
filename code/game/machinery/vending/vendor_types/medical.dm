@@ -398,7 +398,7 @@
 				to_chat(user, SPAN_WARNING("Access denied."))
 				return
 
-			if(LAZYLEN(vendor_role) && !vendor_role.Find(user.job))
+			if(LAZYLEN(vendor_role) && !vendor_role_matches(user.job)) // SS220 EDIT: medical vendor gating uses canonical squad-role matching
 				to_chat(user, SPAN_WARNING("This machine isn't for you."))
 				return
 
@@ -428,7 +428,7 @@
 			cart_restock(grabbed.grabbed_thing, user)
 			return
 
-	if(hacked || (allowed(user) && (!LAZYLEN(vendor_role) || vendor_role.Find(user.job))))
+	if(hacked || (allowed(user) && (!LAZYLEN(vendor_role) || vendor_role_matches(user.job)))) // SS220 EDIT: medical vendor gating uses canonical squad-role matching
 		if(stock(I, user))
 			return
 
@@ -679,6 +679,7 @@
 		list("Ointment", round(scale * 7), /obj/item/stack/medical/ointment, VENDOR_ITEM_REGULAR),
 		list("Roll of Gauze", round(scale * 7), /obj/item/stack/medical/bruise_pack, VENDOR_ITEM_REGULAR),
 		list("Splints", round(scale * 7), /obj/item/stack/medical/splint, VENDOR_ITEM_REGULAR),
+		list("Saline IV bag", floor(scale * 4), /obj/item/reagent_container/blood/saline, VENDOR_ITEM_REGULAR),
 
 		list("AUTOINJECTORS", -1, null, null),
 		list("Autoinjector (Bicaridine)", floor(scale * 5), /obj/item/reagent_container/hypospray/autoinjector/bicaridine, VENDOR_ITEM_REGULAR),
@@ -768,7 +769,7 @@
 
 /obj/structure/machinery/cm_vending/sorted/medical/blood
 	name = "\improper MM Blood Dispenser"
-	desc = "The MarineMed brand blood dispensary is the premier, top-of-the-line blood dispenser of 2105! Get yours today!" //Don't update this year, the joke is it's old.
+	desc = "Охлаждаемая система хранения пакетов крови со встроенным учётом, помогающим следить за сроком годности." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "blood"
 	wrenchable = TRUE
 	hackable = TRUE

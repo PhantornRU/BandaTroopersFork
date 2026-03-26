@@ -169,11 +169,18 @@ SUBSYSTEM_DEF(mapping)
 			traits += list(default_traits)
 
 	// preload the relevant space_level datums
-	var/start_z = world.maxz + 1
+	// SS220 EDIT - START
+	// var/start_z = world.maxz + 1
+	var/start_z = length(z_list) + 1
+	// SS220 EDIT - END
 	var/i = 0
 	for (var/level in traits)
 		add_new_zlevel("[name][i ? " [i + 1]" : ""]", level, contain_turfs = FALSE)
 		++i
+	// SS220 EDIT - START: explicit invariant for managed z-levels to prevent opaque OOB failures
+	if(total_z && length(z_list) < start_z + total_z - 1)
+		CRASH("LoadGroup z-level allocation mismatch for [name]: start_z=[start_z], total_z=[total_z], length(z_list)=[length(z_list)], world.maxz=[world.maxz]")
+	// SS220 EDIT - END
 
 	// ================== CM Change ==================
 	// For some reason /tg/ SSmapping attempts to center the map in new Z-Level
@@ -184,18 +191,25 @@ SUBSYSTEM_DEF(mapping)
 	// load the maps
 	for (var/datum/parsed_map/pm as anything in parsed_maps)
 		var/bounds = pm.bounds
+		var/map_start = start_z + parsed_maps[pm]
 		var/x_offset = 1
 		var/y_offset = 1
 		if(bounds && world.maxx > bounds[MAP_MAXX])
 			x_offset = floor(world.maxx / 2 - bounds[MAP_MAXX] / 2) + 1
 		if(bounds && world.maxy > bounds[MAP_MAXY])
 			y_offset = floor(world.maxy / 2 - bounds[MAP_MAXY] / 2) + 1
-		if (!pm.load(x_offset, y_offset, start_z + parsed_maps[pm], no_changeturf = TRUE, new_z = TRUE))
+		if (!pm.load(x_offset, y_offset, map_start, no_changeturf = TRUE, new_z = TRUE))
 			errorList |= pm.original_path
 		// CM Snowflake for Mass Screenshot dimensions auto detection
-		for(var/z in bounds[MAP_MINZ] to bounds[MAP_MAXZ])
-			var/datum/space_level/zlevel = z_list[start_z + z - 1]
-			zlevel.bounds = list(bounds[MAP_MINX], bounds[MAP_MINY], z, bounds[MAP_MAXX], bounds[MAP_MAXY], z)
+		// SS220 EDIT - START: map local z and world z are not always identical; bind bounds by managed world z
+		var/map_z_count = bounds[MAP_MAXZ] - bounds[MAP_MINZ] + 1
+		for(var/local_z_index in 0 to map_z_count - 1)
+			var/world_z = map_start + local_z_index
+			var/datum/space_level/zlevel = z_list[world_z]
+			if(!zlevel)
+				CRASH("Missing managed z-level while loading [pm.original_path]: world_z=[world_z], map_start=[map_start], length(z_list)=[length(z_list)], world.maxz=[world.maxz]")
+			zlevel.bounds = list(bounds[MAP_MINX], bounds[MAP_MINY], world_z, bounds[MAP_MAXX], bounds[MAP_MAXY], world_z)
+		// SS220 EDIT - END
 
 	// =============== END CM Change =================
 
@@ -205,7 +219,8 @@ SUBSYSTEM_DEF(mapping)
 
 /datum/controller/subsystem/mapping/proc/Loadship(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE, override_map_path = "maps/")
 	LoadGroup(errorList, name, path, files, traits, default_traits, silent, override_map_path = override_map_path)
-	GLOB.gamemode_roles["Distress Signal: Lowpop"] = GLOB.platoon_to_role_list[MAIN_SHIP_PLATOON]
+	// GLOB.gamemode_roles["Distress Signal: Lowpop"] = GLOB.platoon_to_role_list[MAIN_SHIP_PLATOON]
+	GLOB.RoleAuthority?.handle_main_ship_mode_changed(FALSE) // SS220 EDIT: refresh ship-mode role cache after ship map load, but defer heavy surface replacement until post-init round setup
 
 /datum/controller/subsystem/mapping/proc/Loadground(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE, override_map_path = "maps/")
 	LoadGroup(errorList, name, path, files, traits, default_traits, silent, override_map_path = override_map_path)
@@ -218,7 +233,10 @@ SUBSYSTEM_DEF(mapping)
 	InitializeDefaultZLevels()
 
 	// load the ground level
-	ground_start = world.maxz + 1
+	// SS220 EDIT - START
+	// ground_start = world.maxz + 1
+	ground_start = length(z_list) + 1
+	// SS220 EDIT - END
 
 	var/datum/map_config/ground_map = configs[GROUND_MAP]
 	INIT_ANNOUNCE("Loading [ground_map.map_name]...")
@@ -244,25 +262,23 @@ SUBSYSTEM_DEF(mapping)
 		INIT_ANNOUNCE(msg)
 #undef INIT_ANNOUNCE
 
-/datum/controller/subsystem/mapping/proc/changemap(datum/map_config/VM, maptype = GROUND_MAP)
+/datum/controller/subsystem/mapping/proc/changemap(datum/map_config/VM, maptype = GROUND_MAP, list/json_overrides = null)
 	LAZYINITLIST(next_map_configs)
-	if(maptype == GROUND_MAP)
-		if(!VM.MakeNextMap(maptype))
-			next_map_configs[GROUND_MAP] = load_map_configs(list(maptype), default = TRUE)
-			message_admins("Failed to set new map with next_map.json for [VM.map_name]! Using default as backup!")
-			return
+	if(!VM.MakeNextMap(maptype, json_overrides))
+		var/list/default_configs = load_map_configs(list(maptype), default = TRUE)
+		next_map_configs[maptype] = default_configs[maptype]
+		message_admins("Failed to set new map with [MAP_TO_FILENAME[maptype]] for [VM.map_name]! Using default as backup!")
+		return
 
-		next_map_configs[GROUND_MAP] = VM
-		return TRUE
+	var/datum/map_config/next_config = VM
+	if(islist(json_overrides) && length(json_overrides))
+		next_config = load_map_config(MAP_TO_FILENAME[maptype], error_if_missing = FALSE, maptype = maptype)
+		if(next_config.defaulted)
+			qdel(next_config)
+			next_config = VM
 
-	else if(maptype == SHIP_MAP)
-		if(!VM.MakeNextMap(maptype))
-			next_map_configs[SHIP_MAP] = load_map_configs(list(maptype), default = TRUE)
-			message_admins("Failed to set new map with next_map.json for [VM.map_name]! Using default as backup!")
-			return
-
-		next_map_configs[SHIP_MAP] = VM
-		return TRUE
+	next_map_configs[maptype] = next_config
+	return TRUE
 
 /datum/controller/subsystem/mapping/proc/preloadTemplates(path = "maps/templates/") //see master controller setup
 	var/list/filelist = flist(path)

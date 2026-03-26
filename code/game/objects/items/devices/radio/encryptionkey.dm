@@ -15,9 +15,15 @@
 	. = ..()
 
 	RegisterSignal(SSdcs, COMSIG_GLOB_PLATOON_NAME_CHANGE, PROC_REF(rename_platoon))
+	RegisterSignal(SSdcs, COMSIG_GLOB_SQUAD_NAME_CHANGE, PROC_REF(rename_squad_name)) // SS220 EDIT
 
-	if(!isnull(channels[SQUAD_MARINE_1]) && SQUAD_MARINE_1 != GLOB.main_platoon_name)
-		rename_platoon(null, GLOB.main_platoon_name, SQUAD_MARINE_1)
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+	for(var/static_squad_name in list(SQUAD_MARINE_1, SQUAD_MARINE_2, SQUAD_MARINE_3, SQUAD_MARINE_4)) // SS220 EDIT
+		var/runtime_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(static_squad_name) : static_squad_name
+		if(!isnull(channels[static_squad_name]) && static_squad_name != runtime_squad_name)
+			rename_platoon(null, runtime_squad_name, static_squad_name)
+
+	refresh_managed_squad_key_name()
 
 /obj/item/device/encryptionkey/proc/rename_platoon(datum/source, new_name, old_name)
 	SIGNAL_HANDLER
@@ -45,6 +51,39 @@
 	SSradio.remove_object(current_headset, passed_freq)
 
 	current_headset.recalculateChannels()
+
+/obj/item/device/encryptionkey/proc/rename_squad_name(datum/source, datum/squad/target_squad, new_name, old_name) // SS220 EDIT
+	SIGNAL_HANDLER
+
+	rename_platoon(source, new_name, old_name)
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+	var/static_squad_name = squad_name_manager ? squad_name_manager.get_static_name_for_squad(target_squad) : target_squad?.name
+	if(static_squad_name == get_managed_squad_key_static_name())
+		refresh_managed_squad_key_name(new_name)
+
+/obj/item/device/encryptionkey/proc/get_managed_squad_key_static_name()
+	if(istype(src, /obj/item/device/encryptionkey/alpha))
+		return SQUAD_MARINE_1
+	if(istype(src, /obj/item/device/encryptionkey/bravo))
+		return SQUAD_MARINE_2
+	if(istype(src, /obj/item/device/encryptionkey/charlie))
+		return SQUAD_MARINE_3
+	if(istype(src, /obj/item/device/encryptionkey/delta))
+		return SQUAD_MARINE_4
+	return null
+
+/obj/item/device/encryptionkey/proc/refresh_managed_squad_key_name(runtime_name = null)
+	var/static_squad_name = get_managed_squad_key_static_name()
+	if(!static_squad_name)
+		return
+
+	if(!runtime_name)
+		var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+		runtime_name = squad_name_manager ? squad_name_manager.get_runtime_name(static_squad_name) : static_squad_name
+	if(!runtime_name)
+		runtime_name = static_squad_name
+
+	name = "\improper [runtime_name] Squad Radio Encryption Key"
 
 /obj/item/device/encryptionkey/binary
 	icon_state = "binary_key"
@@ -326,6 +365,11 @@
 /obj/item/device/encryptionkey/upp/command
 	name = "\improper UPP Command Radio Encryption Key"
 	channels = list(RADIO_CHANNEL_UPP_CMD = TRUE, RADIO_CHANNEL_UPP_GEN = TRUE, RADIO_CHANNEL_UPP_ENGI = TRUE, RADIO_CHANNEL_UPP_MED = TRUE, RADIO_CHANNEL_UPP_CCT = TRUE)
+
+/obj/item/device/encryptionkey/upp/forecon
+	name = "\improper UPP Recon Radio Encryption Key"
+	icon_state = "upp_key"
+	channels = list(RADIO_CHANNEL_UPP_RCN = TRUE)
 //---------------------------------------------------
 //CLF Keys
 /obj/item/device/encryptionkey/clf
@@ -339,11 +383,33 @@
 
 /obj/item/device/encryptionkey/clf/medic
 	name = "\improper CLF Medical Radio Encryption Key"
-	channels = list(RADIO_CHANNEL_CLF_GEN = TRUE, RADIO_CHANNEL_CLF_MED = TRUE)
+	channels = list(RADIO_CHANNEL_CLF_GEN = TRUE)
 
 /obj/item/device/encryptionkey/clf/command
 	name = "\improper CLF Command Radio Encryption Key"
-	channels = list(RADIO_CHANNEL_CLF_CMD = TRUE, RADIO_CHANNEL_CLF_GEN = TRUE, RADIO_CHANNEL_CLF_ENGI = TRUE, RADIO_CHANNEL_CLF_MED = TRUE)
+	channels = list(RADIO_CHANNEL_CLF_CMD = TRUE, RADIO_CHANNEL_CLF_GEN = TRUE, RADIO_CHANNEL_CLF_ENGI = TRUE)
+//---------------------------------------------------
+//CANC Keys
+/obj/item/device/encryptionkey/canc
+	name = "\improper CANC Radio Encryption Key"
+	icon_state = "upp_key"
+	channels = list(RADIO_CHANNEL_CANC_GEN = TRUE)
+
+/obj/item/device/encryptionkey/canc/engi
+	name = "\improper CANC Engineering Radio Encryption Key"
+	channels = list(RADIO_CHANNEL_CANC_GEN = TRUE, RADIO_CHANNEL_CANC_ENGI = TRUE)
+
+/obj/item/device/encryptionkey/canc/medic
+	name = "\improper CANC Medical Radio Encryption Key"
+	channels = list(RADIO_CHANNEL_CANC_GEN = TRUE, RADIO_CHANNEL_CANC_MED = TRUE)
+
+/obj/item/device/encryptionkey/canc/command
+	name = "\improper CANC Command Radio Encryption Key"
+	channels = list(RADIO_CHANNEL_CANC_GEN = TRUE, RADIO_CHANNEL_CANC_MED = TRUE, RADIO_CHANNEL_CANC_ENGI = TRUE, RADIO_CHANNEL_CANC_CMD = TRUE)
+
+/obj/item/device/encryptionkey/canc/sof
+	name = "\improper CANC Special Operations Forces Radio Encryption Key"
+	channels = list(RADIO_CHANNEL_CANC_SOF = TRUE, RADIO_CHANNEL_CANC_CMD = TRUE, RADIO_CHANNEL_CANC_ENGI = TRUE, RADIO_CHANNEL_CANC_MED = TRUE)
 //---------------------------------------------------
 /obj/item/device/encryptionkey/highcom
 	name = "\improper USCM High Command Radio Encryption Key"
@@ -429,3 +495,8 @@
 	name = "\improper Mercenary Radio Encryption Key"
 	icon_state = "stripped_key"
 	channels = list(RADIO_CHANNEL_MERC = TRUE, RADIO_CHANNEL_COLONY = TRUE)
+
+/obj/item/device/encryptionkey/fil
+	name = "\improper French FIL Radio Encryption Key"
+	icon_state = "stripped_key"
+	channels = list(RADIO_CHANNEL_FIL = TRUE, RADIO_CHANNEL_COLONY = TRUE)
