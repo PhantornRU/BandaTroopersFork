@@ -316,6 +316,14 @@
 /datum/unit_test/halo_integration_test/proc/isolate_personal_lockers(obj/structure/closet/secure_closet/marine_personal/locker)
 	GLOB.personal_closets = locker ? list(locker) : list()
 
+/datum/unit_test/halo_integration_test/proc/link_personal_locker_to_spawn(obj/structure/closet/secure_closet/marine_personal/locker, turf/spawn_turf)
+	if(!locker || !isturf(spawn_turf))
+		return
+
+	locker.linked_spawn_turf = spawn_turf
+	locker.x_to_linked_spawn_turf = spawn_turf.x - locker.x
+	locker.y_to_linked_spawn_turf = spawn_turf.y - locker.y
+
 /datum/unit_test/halo_integration_test/proc/track_test_atom(atom/tracked_atom)
 	if(tracked_atom && !(tracked_atom in tracked_test_atoms))
 		tracked_test_atoms += tracked_atom
@@ -462,6 +470,87 @@
 
 /datum/unit_test/halo_ship_platoons
 	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/random_personal_locker_selection_respects_role_and_squad
+
+/datum/unit_test/halo_ship_platoons/random_personal_locker_selection_respects_role_and_squad/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+	GLOB.squad_name_manager?.apply_roundstart_defaults()
+
+	var/turf/locker_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(locker_turf), "Failed to resolve a locker turf for personal-locker random-selection testing.")
+	var/turf/spawn_turf = get_adjacent_floor_turf(locker_turf)
+	TEST_ASSERT(isfloorturf(spawn_turf), "Failed to resolve a spawn turf for personal-locker random-selection testing.")
+
+	var/obj/structure/machinery/cryopod/pod = allocate(/obj/structure/machinery/cryopod, locker_turf)
+	var/mob/living/carbon/human/medic = create_test_human("Locker Medic", JOB_SQUAD_MEDIC, /datum/squad/marine/alpha, locker_turf)
+	pod.go_in_cryopod(medic, TRUE)
+	TEST_ASSERT_EQUAL(medic.loc, pod, "Failed to move the medic into the cryopod for linked-locker random-selection testing.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_locker_a = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_locker_b = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/rifleman/rifleman_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/rifleman, run_loc_floor_bottom_left)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/other_squad_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_bottom_left)
+
+	medic_locker_a.squad_type = SQUAD_MARINE_1
+	medic_locker_b.squad_type = SQUAD_MARINE_1
+	rifleman_locker.squad_type = SQUAD_MARINE_1
+	other_squad_locker.squad_type = SQUAD_MARINE_2
+
+	link_personal_locker_to_spawn(medic_locker_a, spawn_turf)
+	link_personal_locker_to_spawn(medic_locker_b, spawn_turf)
+	link_personal_locker_to_spawn(rifleman_locker, spawn_turf)
+	link_personal_locker_to_spawn(other_squad_locker, spawn_turf)
+
+	GLOB.personal_closets = list(rifleman_locker, other_squad_locker, medic_locker_a, medic_locker_b)
+
+	var/datum/equipment_preset/preset = allocate(/datum/equipment_preset)
+	var/obj/structure/closet/secure_closet/marine_personal/selected_locker = preset.find_personal_locker_for_player(medic, FALSE)
+
+	TEST_ASSERT(selected_locker == medic_locker_a || selected_locker == medic_locker_b, "Random locker selection returned a locker outside the allowed same-role same-squad candidate pool.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, rifleman_locker, "Random locker selection incorrectly returned the rifleman locker for a medic.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, other_squad_locker, "Random locker selection incorrectly returned another squad's locker.")
+
+/datum/unit_test/halo_ship_platoons/latejoin_personal_locker_reclaim_respects_role_and_squad
+
+/datum/unit_test/halo_ship_platoons/latejoin_personal_locker_reclaim_respects_role_and_squad/Run()
+	configure_test_ship_platoon(/datum/squad/marine/alpha)
+	GLOB.squad_name_manager?.apply_roundstart_defaults()
+
+	var/turf/locker_turf = get_mainship_test_turf(TRUE)
+	TEST_ASSERT(isfloorturf(locker_turf), "Failed to resolve a locker turf for personal-locker reclaim testing.")
+	var/turf/spawn_turf = get_adjacent_floor_turf(locker_turf)
+	TEST_ASSERT(isfloorturf(spawn_turf), "Failed to resolve a spawn turf for personal-locker reclaim testing.")
+
+	var/obj/structure/machinery/cryopod/pod = allocate(/obj/structure/machinery/cryopod, locker_turf)
+	var/mob/living/carbon/human/medic = create_test_human("Latejoin Medic", JOB_SQUAD_MEDIC, /datum/squad/marine/alpha, locker_turf)
+	pod.go_in_cryopod(medic, TRUE)
+	TEST_ASSERT_EQUAL(medic.loc, pod, "Failed to move the latejoin medic into the cryopod for personal-locker reclaim testing.")
+
+	var/obj/structure/closet/secure_closet/marine_personal/rifleman/rifleman_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/rifleman, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/other_squad_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_bottom_left)
+	var/obj/structure/closet/secure_closet/marine_personal/corpsman/medic_reclaim = allocate(/obj/structure/closet/secure_closet/marine_personal/corpsman, run_loc_floor_top_right)
+
+	rifleman_reclaim.owner = "Old Rifleman"
+	other_squad_reclaim.owner = "Old Bravo Medic"
+	medic_reclaim.owner = "Old Medic"
+
+	rifleman_reclaim.squad_type = SQUAD_MARINE_1
+	other_squad_reclaim.squad_type = SQUAD_MARINE_2
+	medic_reclaim.squad_type = SQUAD_MARINE_1
+
+	link_personal_locker_to_spawn(rifleman_reclaim, spawn_turf)
+	link_personal_locker_to_spawn(other_squad_reclaim, spawn_turf)
+	link_personal_locker_to_spawn(medic_reclaim, spawn_turf)
+
+	GLOB.personal_closets = list(rifleman_reclaim, other_squad_reclaim, medic_reclaim)
+
+	var/datum/equipment_preset/preset = allocate(/datum/equipment_preset)
+	var/obj/structure/closet/secure_closet/marine_personal/selected_locker = preset.find_personal_locker_for_player(medic, TRUE)
+
+	TEST_ASSERT_EQUAL(selected_locker, medic_reclaim, "Latejoin reclaim should only use an abandoned locker from the same role and squad.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, rifleman_reclaim, "Latejoin reclaim incorrectly accepted a wrong-role locker.")
+	TEST_ASSERT_NOTEQUAL(selected_locker, other_squad_reclaim, "Latejoin reclaim incorrectly accepted another squad's locker.")
 
 /datum/unit_test/halo_ship_platoons/bravo_runtime_rename_labels
 

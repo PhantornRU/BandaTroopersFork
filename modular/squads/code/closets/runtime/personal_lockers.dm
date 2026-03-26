@@ -37,26 +37,35 @@
 		squads_debug_log("find_personal_locker_for_player called with null human.")
 		return null
 
-	var/obj/structure/closet/secure_closet/marine_personal/reclaimed_locker
 	var/list/active_human_names = late_join ? collect_active_human_names() : null
+	var/list/free_candidates = list()
+	var/list/reclaimed_candidates = late_join ? list() : null
 
 	for(var/obj/structure/closet/secure_closet/marine_personal/locker in GLOB.personal_closets)
 		if(!locker.matches_player_for_personal_locker(new_human))
 			continue
 
 		if(!locker.owner)
-			squads_debug_log("[new_human] locker match found: free locker [locker], late_join=[late_join].")
-			return locker
+			free_candidates += locker
+			continue
 
-		if(late_join && !reclaimed_locker && locker.is_abandoned_for_personal_locker(active_human_names))
+		if(late_join && locker.is_abandoned_for_personal_locker(active_human_names))
 			squads_debug_log("[new_human] locker candidate for reclaim: [locker], owner=[locker.owner].")
-			reclaimed_locker = locker
+			reclaimed_candidates += locker
 
-	if(late_join && reclaimed_locker)
-		squads_debug_log("[new_human] using reclaimed locker [reclaimed_locker].")
-	if(!reclaimed_locker)
+	if(length(free_candidates))
+		var/obj/structure/closet/secure_closet/marine_personal/selected_free_locker = pick(free_candidates)
+		squads_debug_log("[new_human] locker match found: [length(free_candidates)] free candidate(s), selected [selected_free_locker], late_join=[late_join].")
+		return selected_free_locker
+
+	if(late_join && length(reclaimed_candidates))
+		var/obj/structure/closet/secure_closet/marine_personal/selected_reclaimed_locker = pick(reclaimed_candidates)
+		squads_debug_log("[new_human] using reclaimed locker [selected_reclaimed_locker] from [length(reclaimed_candidates)] candidate(s).")
+		return selected_reclaimed_locker
+
+	if(!(late_join && length(reclaimed_candidates)))
 		squads_debug_log("[new_human] no locker matched for late_join=[late_join].")
-	return late_join ? reclaimed_locker : null
+	return null
 
 /datum/equipment_preset/proc/populate_personal_locker_contents(obj/structure/closet/secure_closet/marine_personal/locker, mob/living/carbon/human/new_human, client/mob_client)
 	if(!locker || !new_human)

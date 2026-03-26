@@ -72,6 +72,9 @@
 	if(!human)
 		return FALSE
 
+	if(!is_correct_job(human))
+		return FALSE
+
 	var/turf/human_turf = get_turf(human)
 	if(linked_spawn_turf)
 		if(human_turf == linked_spawn_turf)
@@ -88,8 +91,6 @@
 
 		if(!is_adjacent_to_spawn)
 			return FALSE
-	else if(!is_correct_job(human))
-		return FALSE
 
 	return is_correct_squad(human)
 
