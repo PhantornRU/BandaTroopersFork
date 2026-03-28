@@ -153,17 +153,16 @@
 	return result
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_plan(turf/center_turf, list/params)
+	var/datum/world_edit_plan/plan = new
 	if(!center_turf)
-		return list(
-			"barricade_placements" = list(),
-			"sentry_placements" = list(),
-			"preview_turfs" = list(),
-			"blocked_barricades" = 0,
-			"blocked_sentries" = 0,
-		)
+		return plan
 
 	var/radius = text2num("[params["radius"]]") || 4
 	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
+	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade)
+	var/sentry_path = place_sentries ? resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry) : null
+	var/faction = "[params["faction"]]"
+	var/turned_on = world_edit_parse_bool(params["turned_on"])
 
 	var/list/perimeter_data = collect_perimeter_placements(center_turf, radius)
 	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius) : list(
@@ -173,21 +172,43 @@
 
 	var/list/preview_turf_lookup = list()
 	for(var/list/placement as anything in perimeter_data["placements"])
-		preview_turf_lookup[placement["turf"]] = TRUE
+		var/turf/target_turf = placement["turf"]
+		if(!target_turf)
+			continue
+		preview_turf_lookup[target_turf] = TRUE
+		plan.placements += list(list(
+			"kind" = "barricade",
+			"turf" = target_turf,
+			"dir" = placement["dir"],
+			"defense_path" = barricade_path,
+		))
 	for(var/list/placement as anything in sentry_data["placements"])
-		preview_turf_lookup[placement["turf"]] = TRUE
+		var/turf/target_turf = placement["turf"]
+		if(!target_turf)
+			continue
+		preview_turf_lookup[target_turf] = TRUE
+		plan.placements += list(list(
+			"kind" = "sentry",
+			"turf" = target_turf,
+			"dir" = placement["dir"],
+			"defense_path" = sentry_path,
+			"faction" = faction,
+			"turned_on" = turned_on,
+		))
 
-	var/list/preview_turfs = list()
 	for(var/turf/preview_turf as anything in preview_turf_lookup)
-		preview_turfs += preview_turf
+		plan.affected_turfs += preview_turf
 
-	return list(
-		"barricade_placements" = perimeter_data["placements"],
-		"sentry_placements" = sentry_data["placements"],
-		"preview_turfs" = preview_turfs,
-		"blocked_barricades" = perimeter_data["blocked_count"],
-		"blocked_sentries" = sentry_data["blocked_count"],
-	)
+	plan.metadata["center_turf"] = center_turf
+	plan.metadata["radius"] = radius
+	plan.metadata["barricade_count"] = length(perimeter_data["placements"])
+	plan.metadata["sentry_count"] = length(sentry_data["placements"])
+	plan.metadata["blocked_barricades"] = perimeter_data["blocked_count"]
+	plan.metadata["blocked_sentries"] = sentry_data["blocked_count"]
+	return plan
+
+/datum/world_edit_generator/outpost_radius/build_plan(list/params)
+	return build_outpost_plan(get_turf(manager?.holder?.mob), params)
 
 /datum/world_edit_generator/outpost_radius/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)
@@ -218,84 +239,67 @@
 	if(planned_total > 68)
 		return "The requested outpost exceeds the Phase 1 placement cap."
 
-	var/list/plan = build_outpost_plan(center_turf, params)
-	if(!length(plan["preview_turfs"]))
+	var/datum/world_edit_plan/plan = build_outpost_plan(center_turf, params)
+	if(!length(plan.placements) && !length(plan.deletions))
 		return "No valid outpost placements were found around the current turf."
 
 	return null
 
 /datum/world_edit_generator/outpost_radius/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		result.message = "Unable to resolve the anchor turf."
+	clear_built_plan()
+	var/datum/world_edit_plan/plan = build_plan(params)
+	if(!istype(plan))
+		result.message = "Unable to build the outpost plan."
 		return result
-
-	var/list/plan = build_outpost_plan(center_turf, params)
-	var/list/barricade_placements = plan["barricade_placements"]
-	var/list/sentry_placements = plan["sentry_placements"]
-	var/list/preview_turfs = plan["preview_turfs"]
-	var/blocked_barricades = plan["blocked_barricades"]
-	var/blocked_sentries = plan["blocked_sentries"]
-
-	if(!length(preview_turfs))
+	if(!length(plan.placements) && !length(plan.deletions))
 		result.message = "No valid outpost placements were found around the current turf."
 		return result
 
+	current_plan = plan
 	result.success = TRUE
-	result.preview_images = world_edit_build_turf_preview_images(preview_turfs)
-	result.meta["radius"] = text2num("[params["radius"]]") || 4
-	result.meta["barricade_count"] = length(barricade_placements)
-	result.meta["sentry_count"] = length(sentry_placements)
-	result.meta["blocked_barricades"] = blocked_barricades
-	result.meta["blocked_sentries"] = blocked_sentries
-	result.message = "Preview ready: barricades=[length(barricade_placements)], sentries=[length(sentry_placements)], blocked=[blocked_barricades + blocked_sentries]."
+	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	result.meta = plan.metadata.Copy()
+	result.message = "Preview ready: barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], blocked=[plan.metadata["blocked_barricades"] + plan.metadata["blocked_sentries"]]."
 	return result
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
 	var/datum/world_edit_apply_result/result = new
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		result.message = "Unable to resolve the anchor turf."
+	var/datum/world_edit_plan/plan = current_plan
+	if(!istype(plan))
+		result.message = "Run preview first to build the outpost plan."
 		return result
-
-	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade)
-	if(!barricade_path)
-		result.message = "Invalid barricade type selected."
-		return result
-	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
-	var/sentry_path = resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
-	if(place_sentries && !sentry_path)
-		result.message = "Invalid sentry type selected."
-		return result
-	var/list/plan = build_outpost_plan(center_turf, params)
-	var/list/barricade_placements = plan["barricade_placements"]
-	var/list/sentry_placements = plan["sentry_placements"]
-	if(!length(barricade_placements) && !length(sentry_placements))
+	if(!length(plan.placements) && !length(plan.deletions))
 		result.message = "Outpost apply finished with no valid placements."
 		return result
-	var/faction = "[params["faction"]]"
-	var/turned_on = world_edit_parse_bool(params["turned_on"])
+	var/turf/center_turf = plan.metadata["center_turf"]
 	var/created_barricades = 0
 	var/created_sentries = 0
 	var/skipped_runtime = 0
 
-	for(var/list/placement as anything in barricade_placements)
+	for(var/list/placement as anything in plan.placements)
 		var/turf/target_turf = placement["turf"]
-		if(!can_place_barricade_on_turf(target_turf))
+		var/placement_kind = placement["kind"]
+		var/defense_path = placement["defense_path"]
+		if(!target_turf || !ispath(defense_path, /datum/human_ai_defense))
 			skipped_runtime++
 			continue
-		if(spawn_defense_path(target_turf, placement["dir"], barricade_path))
-			created_barricades++
-		else
+		if(placement_kind == "barricade")
+			if(!can_place_barricade_on_turf(target_turf))
+				skipped_runtime++
+				continue
+			if(spawn_defense_path(target_turf, placement["dir"], defense_path))
+				created_barricades++
+			else
+				skipped_runtime++
+			continue
+		if(placement_kind != "sentry")
 			skipped_runtime++
-
-	for(var/list/placement as anything in sentry_placements)
-		var/turf/target_turf = placement["turf"]
+			continue
 		if(!can_place_sentry_on_turf(target_turf))
 			skipped_runtime++
 			continue
-		if(spawn_defense_path(target_turf, placement["dir"], sentry_path, faction, turned_on))
+		if(spawn_defense_path(target_turf, placement["dir"], defense_path, placement["faction"], placement["turned_on"]))
 			created_sentries++
 		else
 			skipped_runtime++

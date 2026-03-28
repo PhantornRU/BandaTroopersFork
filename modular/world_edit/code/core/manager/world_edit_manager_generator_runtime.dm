@@ -146,6 +146,8 @@
 	var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
 	var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
 	if(answer != "Подтвердить")
+		if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
+			reset_preview_runtime()
 		return null
 
 	var/start_ds = world.time

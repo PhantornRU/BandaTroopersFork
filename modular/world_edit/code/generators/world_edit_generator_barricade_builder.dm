@@ -3,6 +3,9 @@
 	var/static/list/barricade_catalog
 	var/click_mode_active = FALSE
 	var/turf/anchor_turf
+	var/turf/plan_start_turf
+	var/turf/plan_end_turf
+	var/plan_user_dir = NORTH
 
 /datum/world_edit_generator/barricade_builder/proc/build_catalog()
 	var/list/catalog = list()
@@ -155,6 +158,7 @@
 /datum/world_edit_generator/barricade_builder/disable_click_mode()
 	click_mode_active = FALSE
 	anchor_turf = null
+	clear_click_plan_context()
 	manager?.clear_preview_images()
 
 /datum/world_edit_generator/barricade_builder/get_runtime_status()
@@ -344,7 +348,12 @@
 			return existing
 	return null
 
-/datum/world_edit_generator/barricade_builder/proc/collect_shape_entries(mob/user, turf/start_turf, turf/end_turf, list/params)
+/datum/world_edit_generator/barricade_builder/proc/clear_click_plan_context()
+	plan_start_turf = null
+	plan_end_turf = null
+	plan_user_dir = NORTH
+
+/datum/world_edit_generator/barricade_builder/proc/collect_shape_entries_for_dir(turf/start_turf, turf/end_turf, list/params, user_dir)
 	var/list/entries = list()
 	if(!start_turf || !end_turf || start_turf.z != end_turf.z)
 		return entries
@@ -354,13 +363,13 @@
 	var/fixed_dir = text2num("[params["fixed_dir"]]") || NORTH
 
 	if(shape_mode == "point")
-		var/point_dir = dir_mode == "fixed" ? fixed_dir : user.dir
+		var/point_dir = dir_mode == "fixed" ? fixed_dir : user_dir
 		entries += list(list("turf" = end_turf, "dir" = point_dir))
 		return entries
 
 	if(shape_mode == "line")
 		var/list/line_turfs = world_edit_collect_line_turfs(start_turf, end_turf)
-		var/line_dir = dir_mode == "fixed" ? fixed_dir : pick_line_auto_dir(start_turf, end_turf, user.dir)
+		var/line_dir = dir_mode == "fixed" ? fixed_dir : pick_line_auto_dir(start_turf, end_turf, user_dir)
 		for(var/turf/target_turf as anything in line_turfs)
 			entries += list(list("turf" = target_turf, "dir" = line_dir))
 		return entries
@@ -369,6 +378,146 @@
 		return collect_rectangle_perimeter_entries(start_turf, end_turf, dir_mode, fixed_dir)
 
 	return entries
+
+/datum/world_edit_generator/barricade_builder/proc/collect_shape_entries(mob/user, turf/start_turf, turf/end_turf, list/params)
+	return collect_shape_entries_for_dir(start_turf, end_turf, params, user?.dir || NORTH)
+
+/datum/world_edit_generator/barricade_builder/build_plan(list/params)
+	var/datum/world_edit_plan/plan = new
+	if(!plan_start_turf || !plan_end_turf || plan_start_turf.z != plan_end_turf.z)
+		return plan
+
+	var/barricade_path = params["barricade_path"]
+	if(istext(barricade_path))
+		barricade_path = text2path(barricade_path)
+	if(!ispath(barricade_path, /datum/human_ai_defense/barricade))
+		plan.metadata["error"] = "Выбран неверный тип баррикады."
+		return plan
+
+	var/replace_existing = world_edit_parse_bool(params["replace_existing_same_dir"])
+	var/max_tiles = text2num("[params["max_tiles"]]") || 40
+	var/list/entries = collect_shape_entries_for_dir(plan_start_turf, plan_end_turf, params, plan_user_dir || NORTH)
+	if(length(entries) > max_tiles)
+		plan.metadata["error"] = "Операция отменена: превышен лимит тайлов ([max_tiles])."
+		return plan
+
+	var/list/affected_lookup = list()
+	var/skipped_existing = 0
+	for(var/list/entry as anything in entries)
+		var/turf/target_turf = entry["turf"]
+		var/target_dir = entry["dir"]
+		if(!target_turf)
+			continue
+
+		var/obj/structure/barricade/existing = find_barricade_in_dir(target_turf, target_dir)
+		if(existing)
+			if(!replace_existing)
+				skipped_existing++
+				continue
+			plan.deletions += list(list(
+				"kind" = "replace_barricade",
+				"target_ref" = WEAKREF(existing),
+				"turf" = target_turf,
+				"dir" = target_dir,
+			))
+
+		plan.placements += list(list(
+			"kind" = "barricade",
+			"turf" = target_turf,
+			"dir" = target_dir,
+		))
+		affected_lookup[target_turf] = TRUE
+
+	for(var/turf/target_turf as anything in affected_lookup)
+		plan.affected_turfs += target_turf
+
+	plan.metadata["center_turf"] = plan_end_turf
+	plan.metadata["barricade_path"] = barricade_path
+	plan.metadata["replace_existing"] = replace_existing
+	plan.metadata["replace_count"] = length(plan.deletions)
+	plan.metadata["tile_count"] = length(plan.placements)
+	plan.metadata["shape_mode"] = params["shape_mode"]
+	plan.metadata["max_tiles"] = max_tiles
+	plan.metadata["skipped_existing"] = skipped_existing
+	if(!length(plan.placements) && !length(plan.deletions))
+		plan.metadata["error"] = "Не удалось построить форму для выбранных тайлов."
+	return plan
+
+/datum/world_edit_generator/barricade_builder/proc/apply_plan(mob/user, datum/world_edit_plan/plan, list/params, turf/center_turf)
+	if(!istype(plan))
+		return
+	if(!length(plan.placements) && !length(plan.deletions))
+		to_chat(user, SPAN_WARNING(plan.metadata["error"] || "Не удалось построить форму для выбранных тайлов."))
+		return
+
+	world_edit_apply_turf_preview(manager, plan.affected_turfs)
+
+	var/replace_existing = plan.metadata["replace_existing"]
+	var/replace_count = plan.metadata["replace_count"] || 0
+	if(replace_existing && replace_count > 0)
+		var/replace_answer = tgui_alert(user, "Найдено [replace_count] существующих баррикад с тем же DIR. Разрешить замену?", "World Edit: Подтверждение замены", list("Да", "Нет"))
+		if(replace_answer != "Да")
+			manager?.clear_preview_images()
+			return
+
+	var/summary_answer = tgui_alert(user, "Применить построение баррикад? Тайлов: [plan.metadata["tile_count"]], замена: [replace_count], лимит: [plan.metadata["max_tiles"]].", "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
+	if(summary_answer != "Подтвердить")
+		manager?.clear_preview_images()
+		return
+
+	var/start_ds = world.time
+	var/created_count = 0
+	var/deleted_count = 0
+	for(var/list/deletion as anything in plan.deletions)
+		var/datum/weakref/target_ref = deletion["target_ref"]
+		var/obj/structure/barricade/existing = target_ref?.resolve()
+		if(!existing || QDELETED(existing))
+			continue
+		if(get_turf(existing) != deletion["turf"] || existing.dir != deletion["dir"])
+			continue
+		qdel(existing)
+		deleted_count++
+
+	var/barricade_path = plan.metadata["barricade_path"]
+	for(var/list/entry as anything in plan.placements)
+		var/turf/target_turf = entry["turf"]
+		var/target_dir = entry["dir"]
+		if(find_barricade_in_dir(target_turf, target_dir))
+			continue
+		if(world_edit_spawn_defense_by_path(target_turf, target_dir, barricade_path, null, FALSE))
+			created_count++
+
+	manager?.clear_preview_images()
+
+	var/result_code = created_count > 0 ? "click_place" : "click_noop"
+	var/params_short = get_params_short(manager?.current_params || params)
+	var/duration_ds = world.time - start_ds
+	world_edit_log_operation(
+		manager?.holder,
+		definition.id,
+		definition.required_rights,
+		center_turf,
+		created_count,
+		deleted_count,
+		duration_ds,
+		result_code,
+		params_short
+	)
+	manager?.add_history_entry(
+		definition.id,
+		result_code,
+		created_count,
+		deleted_count,
+		center_turf,
+		params_short,
+		"barrier_shape=[plan.metadata["shape_mode"]] tiles=[plan.metadata["tile_count"]]",
+		duration_ds * 100
+	)
+
+	if(created_count > 0)
+		to_chat(user, SPAN_NOTICE("Баррикады установлены: [created_count]. Заменено: [deleted_count]."))
+	else
+		to_chat(user, SPAN_WARNING("Ни одна баррикада не была установлена."))
 
 /datum/world_edit_generator/barricade_builder/proc/apply_entries(mob/user, list/entries, list/params, turf/center_turf)
 	var/barricade_path = params["barricade_path"]
@@ -458,6 +607,7 @@
 	var/list/modifiers = params2list(params)
 	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
 		anchor_turf = null
+		clear_click_plan_context()
 		manager?.clear_preview_images()
 		to_chat(user, SPAN_NOTICE("Якорь формы сброшен."))
 		return TRUE
@@ -471,8 +621,12 @@
 
 	var/shape_mode = manager?.current_params["shape_mode"] || "point"
 	if(shape_mode == "point")
-		var/list/point_entries = collect_shape_entries(user, clicked_turf, clicked_turf, manager.current_params)
-		apply_entries(user, point_entries, manager.current_params, clicked_turf)
+		plan_start_turf = clicked_turf
+		plan_end_turf = clicked_turf
+		plan_user_dir = user?.dir || NORTH
+		var/datum/world_edit_plan/temp_plan = build_plan(manager.current_params)
+		clear_click_plan_context()
+		apply_plan(user, temp_plan, manager.current_params, clicked_turf)
 		return TRUE
 
 	if(!anchor_turf)
@@ -483,13 +637,17 @@
 
 	var/turf/start_turf = anchor_turf
 	anchor_turf = null
-	var/list/entries = collect_shape_entries(user, start_turf, clicked_turf, manager.current_params)
-	if(!length(entries))
+	plan_start_turf = start_turf
+	plan_end_turf = clicked_turf
+	plan_user_dir = user?.dir || NORTH
+	var/datum/world_edit_plan/temp_plan = build_plan(manager.current_params)
+	clear_click_plan_context()
+	if(!length(temp_plan.placements) && !length(temp_plan.deletions))
 		manager?.clear_preview_images()
 		to_chat(user, SPAN_WARNING("Не удалось построить форму для выбранных тайлов."))
 		return TRUE
 
-	apply_entries(user, entries, manager.current_params, clicked_turf)
+	apply_plan(user, temp_plan, manager.current_params, clicked_turf)
 	return TRUE
 
 /datum/world_edit_generator/barricade_builder/get_apply_confirmation_text(list/params)

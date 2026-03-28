@@ -1,5 +1,6 @@
 /datum/world_edit_generator/breach_layout
 	var/click_mode_active = FALSE
+	var/atom/plan_target_object
 
 /datum/world_edit_generator/breach_layout/configure_params(mob/user, list/current_params)
 	var/list/new_params = current_params.Copy()
@@ -159,6 +160,45 @@
 
 	return null
 
+/datum/world_edit_generator/breach_layout/build_plan(list/params)
+	var/datum/world_edit_plan/plan = new
+	var/atom/target_object = plan_target_object
+	var/turf/target_turf = get_turf(target_object)
+	if(!target_object || !target_turf)
+		return plan
+
+	var/charge_path = params["charge_type"]
+	if(istext(charge_path))
+		charge_path = text2path(charge_path)
+	if(!ispath(charge_path, /obj/item/explosive/plastic))
+		plan.metadata["error"] = "Выбран неверный тип заряда."
+		return plan
+
+	var/list/profiles = world_edit_get_breach_allowed_profiles()
+	var/profile_name = params["allowed_profile"] || "Стандартный"
+	var/list/allowed_types = profiles[profile_name] || profiles["Стандартный"]
+	if(!islist(allowed_types))
+		plan.metadata["error"] = "Выбран неизвестный профиль допустимых целей."
+		return plan
+	if(!is_type_in_list(target_object, allowed_types))
+		plan.metadata["error"] = "Нельзя установить заряд на эту цель для текущего профиля."
+		return plan
+
+	plan.placements += list(list(
+		"kind" = "breach_charge",
+		"target_ref" = WEAKREF(target_object),
+		"target_turf" = target_turf,
+		"charge_path" = charge_path,
+		"place_dir" = params["direction"],
+		"allowed_types" = allowed_types.Copy(),
+	))
+	plan.affected_turfs += target_turf
+	plan.metadata["center_turf"] = target_turf
+	plan.metadata["allowed_profile"] = profile_name
+	plan.metadata["charge_path"] = charge_path
+	plan.metadata["place_dir"] = params["direction"]
+	return plan
+
 /datum/world_edit_generator/breach_layout/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new
 	result.success = TRUE
@@ -186,6 +226,8 @@
 
 /datum/world_edit_generator/breach_layout/disable_click_mode()
 	click_mode_active = FALSE
+	plan_target_object = null
+	manager?.clear_preview_images()
 
 /datum/world_edit_generator/breach_layout/get_runtime_status()
 	return list(
@@ -199,19 +241,38 @@
 
 	var/list/modifiers = params2list(params)
 	if(LAZYACCESS(modifiers, LEFT_CLICK))
-		var/list/profiles = world_edit_get_breach_allowed_profiles()
-		var/list/allowed_types = profiles[manager.current_params["allowed_profile"]] || profiles["Стандартный"]
-		var/charge_path = manager.current_params["charge_type"]
-		var/place_dir = manager.current_params["direction"]
+		plan_target_object = object
+		var/datum/world_edit_plan/temp_plan = build_plan(manager.current_params)
+		plan_target_object = null
+		if(!length(temp_plan.placements) && !length(temp_plan.deletions))
+			to_chat(user, SPAN_WARNING(temp_plan.metadata["error"] || "Нельзя установить заряд на эту цель для текущего профиля."))
+			return TRUE
 
-		if(!world_edit_place_breach_charge(user, object, charge_path, place_dir, allowed_types))
+		world_edit_apply_turf_preview(manager, temp_plan.affected_turfs)
+		var/confirm_answer = tgui_alert(user, "Установить [temp_plan.metadata["charge_path"]] на выбранную цель?", "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
+		if(confirm_answer != "Подтвердить")
+			manager?.clear_preview_images()
+			return TRUE
+
+		var/list/placement = temp_plan.placements[1]
+		var/datum/weakref/target_ref = placement["target_ref"]
+		var/atom/target_object = target_ref?.resolve()
+		if(!target_object || QDELETED(target_object) || get_turf(target_object) != placement["target_turf"])
+			manager?.clear_preview_images()
+			to_chat(user, SPAN_WARNING("Цель больше недоступна для установки заряда."))
+			return TRUE
+
+		if(!world_edit_place_breach_charge(user, target_object, placement["charge_path"], placement["place_dir"], placement["allowed_types"]))
+			manager?.clear_preview_images()
 			to_chat(user, SPAN_WARNING("Нельзя установить заряд на эту цель для текущего профиля."))
 			return TRUE
 
-		var/charge_name = "[charge_path]"
+		manager?.clear_preview_images()
+
+		var/charge_name = "[placement["charge_path"]]"
 		to_chat(user, SPAN_BOLDNOTICE("[charge_name] установлен, подрыв через таймер устройства."))
 
-		var/turf/center_turf = get_turf(object)
+		var/turf/center_turf = placement["target_turf"]
 		world_edit_log_operation(
 			manager.holder,
 			definition.id,

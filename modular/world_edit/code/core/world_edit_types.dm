@@ -21,15 +21,23 @@
 	var/turf/center_turf
 	var/list/meta = list()
 
+/datum/world_edit_plan
+	var/list/placements = list()
+	var/list/deletions = list()
+	var/list/affected_turfs = list()
+	var/list/metadata = list()
+
 /// Базовый контракт генератора World Edit.
 /datum/world_edit_generator
 	var/datum/world_edit_manager/manager
 	var/datum/world_edit_generator_definition/definition
 	var/requires_preview_before_apply = FALSE
+	var/datum/world_edit_plan/current_plan
 
 /datum/world_edit_generator/proc/attach(datum/world_edit_manager/new_manager, datum/world_edit_generator_definition/new_definition)
 	manager = new_manager
 	definition = new_definition
+	current_plan = null
 
 /// Возвращает обновленные параметры либо null при отмене шага настройки.
 /datum/world_edit_generator/proc/configure_params(mob/user, list/current_params)
@@ -37,6 +45,9 @@
 
 /// Возвращает null при валидных параметрах либо текст ошибки.
 /datum/world_edit_generator/proc/validate_params(mob/user, list/params)
+	return null
+
+/datum/world_edit_generator/proc/build_plan(list/params)
 	return null
 
 /datum/world_edit_generator/proc/preview(mob/user, list/params)
@@ -55,6 +66,9 @@
 	return
 
 /// Вызывается только в click-режиме.
+/datum/world_edit_generator/proc/clear_built_plan()
+	current_plan = null
+
 /datum/world_edit_generator/proc/InterceptClickOn(mob/user, params, atom/object)
 	return FALSE
 

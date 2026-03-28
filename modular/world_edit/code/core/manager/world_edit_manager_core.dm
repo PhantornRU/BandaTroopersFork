@@ -56,6 +56,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 /// Полный сброс runtime-состояния preview.
 /datum/world_edit_manager/proc/reset_preview_runtime()
 	clear_preview_images()
+	current_generator?.clear_built_plan()
 	invalidate_preview_state()
 	reset_preview_feedback()
 
@@ -68,6 +69,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 
 /// Корректно отсоединяет текущий экземпляр генератора.
 /datum/world_edit_manager/proc/detach_current_generator()
+	current_generator?.clear_built_plan()
 	QDEL_NULL(current_generator)
 	current_definition = null
 	current_params = list()

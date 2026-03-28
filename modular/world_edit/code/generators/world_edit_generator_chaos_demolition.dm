@@ -1,6 +1,7 @@
 /// Генератор контролируемого хаос-разрушения по радиусу.
 /datum/world_edit_generator/chaos_demolition
 	var/click_mode_active = FALSE
+	var/turf/plan_center_turf
 
 /datum/world_edit_generator/chaos_demolition/configure_params(mob/user, list/current_params)
 	var/list/new_params = current_params.Copy()
@@ -134,6 +135,7 @@
 
 /datum/world_edit_generator/chaos_demolition/disable_click_mode()
 	click_mode_active = FALSE
+	plan_center_turf = null
 	manager?.clear_preview_images()
 
 /datum/world_edit_generator/chaos_demolition/get_runtime_status()
@@ -380,8 +382,218 @@
 
 	return created_count
 
+/datum/world_edit_generator/chaos_demolition/proc/build_target_movement_entry(atom/movable/target, list/area_turfs, shuffle_enabled, scatter_enabled, scatter_steps)
+	if(!target || QDELETED(target))
+		return null
+
+	var/turf/source_turf = get_turf(target)
+	if(!source_turf)
+		return null
+
+	var/list/path_turfs = list()
+	var/turf/current_turf = source_turf
+
+	if(shuffle_enabled)
+		var/turf/shuffle_turf = pick(area_turfs)
+		if(shuffle_turf && shuffle_turf != current_turf)
+			path_turfs += shuffle_turf
+			current_turf = shuffle_turf
+
+	if(scatter_enabled)
+		for(var/i in 1 to scatter_steps)
+			var/turf/next_turf = get_step(current_turf, pick(GLOB.alldirs))
+			if(!next_turf || next_turf == current_turf)
+				continue
+			path_turfs += next_turf
+			current_turf = next_turf
+
+	if(!length(path_turfs))
+		return null
+
+	return list(
+		"kind" = "move",
+		"target_ref" = WEAKREF(target),
+		"source_turf" = source_turf,
+		"path_turfs" = path_turfs,
+		"destination_turf" = current_turf,
+	)
+
+/datum/world_edit_generator/chaos_demolition/build_plan(list/params)
+	var/datum/world_edit_plan/plan = new
+	var/turf/center_turf = plan_center_turf
+	if(!center_turf)
+		return plan
+
+	var/radius = text2num("[params["radius"]]") || 3
+	var/max_atoms = text2num("[params["max_atoms"]]") || 120
+	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
+	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
+	var/explode_enabled = world_edit_parse_bool(params["explode_enabled"])
+	var/persistent_fire_enabled = world_edit_parse_bool(params["persistent_fire_enabled"])
+	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
+	var/explosion_power = text2num("[params["explosion_power"]]") || 250
+	var/explosion_falloff = text2num("[params["explosion_falloff"]]") || 600
+	var/persistent_fire_density = text2num("[params["persistent_fire_density"]]") || 0.15
+	var/list/area_turfs = collect_area_turfs(center_turf, radius)
+	if(!length(area_turfs))
+		plan.metadata["error"] = "Не найдено ни одного тайла в выбранном радиусе."
+		return plan
+
+	var/list/targets = collect_targets(area_turfs, affect_anchored)
+	if(length(targets) > max_atoms)
+		plan.metadata["error"] = "Операция заблокирована: найдено [length(targets)] объектов при лимите [max_atoms]."
+		return plan
+
+	var/has_any_mode = shuffle_enabled || scatter_enabled || explode_enabled || persistent_fire_enabled
+	if(!has_any_mode)
+		plan.metadata["error"] = "Операция отменена: не включен ни один режим воздействия."
+		return plan
+
+	plan.affected_turfs = area_turfs.Copy()
+	plan.metadata["center_turf"] = center_turf
+	plan.metadata["radius"] = radius
+	plan.metadata["target_count"] = length(targets)
+	plan.metadata["shuffle"] = shuffle_enabled
+	plan.metadata["scatter"] = scatter_enabled
+	plan.metadata["explode"] = explode_enabled
+	plan.metadata["persistent_fire"] = persistent_fire_enabled
+	plan.metadata["seed"] = rand(1, 1000000)
+	plan.metadata["heavy_operation"] = (length(targets) >= round(max_atoms * 0.7)) || (radius >= 5) || (explode_enabled && explosion_power >= 500)
+
+	for(var/atom/movable/target as anything in targets)
+		var/list/move_entry = build_target_movement_entry(target, area_turfs, shuffle_enabled, scatter_enabled, scatter_steps)
+		if(move_entry)
+			plan.placements += list(move_entry)
+
+	if(explode_enabled)
+		plan.deletions += list(list(
+			"kind" = "explosion",
+			"center_turf" = center_turf,
+			"power" = explosion_power,
+			"falloff" = explosion_falloff,
+		))
+
+	if(persistent_fire_enabled)
+		var/target_count = round(length(area_turfs) * persistent_fire_density)
+		target_count = clamp(target_count, 0, 60)
+		var/list/pool = area_turfs.Copy()
+		while(target_count > 0 && length(pool))
+			var/turf/target_turf = pick_n_take(pool)
+			if(!target_turf)
+				break
+			if(locate(/obj/effect/world_edit_persistent_fire) in target_turf)
+				target_count--
+				continue
+			plan.placements += list(list(
+				"kind" = "fire",
+				"turf" = target_turf,
+			))
+			target_count--
+
+	plan.metadata["moved_count"] = 0
+	plan.metadata["fire_count"] = 0
+	for(var/list/placement as anything in plan.placements)
+		if(placement["kind"] == "move")
+			plan.metadata["moved_count"]++
+		if(placement["kind"] == "fire")
+			plan.metadata["fire_count"]++
+
+	if(!length(plan.placements) && !length(plan.deletions))
+		plan.metadata["error"] = "Операция не сформировала ни одного действия."
+	return plan
+
 /datum/world_edit_generator/chaos_demolition/proc/execute_chaos_on_turf(mob/user, turf/center_turf)
 	var/list/params = manager?.current_params || list()
+	plan_center_turf = center_turf
+	var/datum/world_edit_plan/chaos_plan = build_plan(params)
+	plan_center_turf = null
+	if(!length(chaos_plan.placements) && !length(chaos_plan.deletions))
+		to_chat(user, SPAN_WARNING(chaos_plan.metadata["error"] || "Операция не сформировала ни одного действия."))
+		return
+
+	world_edit_apply_turf_preview(manager, chaos_plan.affected_turfs)
+
+	var/chaos_summary_text = "Применить chaos demolish в радиусе [chaos_plan.metadata["radius"]]? movable=[chaos_plan.metadata["target_count"]], shuffle=[chaos_plan.metadata["shuffle"]], scatter=[chaos_plan.metadata["scatter"]], explode=[chaos_plan.metadata["explode"]], fire=[chaos_plan.metadata["persistent_fire"]]."
+	var/chaos_answer = tgui_alert(user, chaos_summary_text, "World Edit: Chaos Confirm", list("Подтвердить", "Отмена"))
+	if(chaos_answer != "Подтвердить")
+		manager?.clear_preview_images()
+		return
+
+	if(chaos_plan.metadata["heavy_operation"])
+		var/chaos_heavy_answer = tgui_alert(user, "Тяжелая операция. Подтвердите повторно выполнение.", "World Edit: Heavy Confirm", list("Выполнить", "Отмена"))
+		if(chaos_heavy_answer != "Выполнить")
+			manager?.clear_preview_images()
+			return
+
+	var/chaos_start_ds = world.time
+	var/chaos_moved_count = 0
+	var/chaos_fire_count = 0
+	var/chaos_affect_anchored = world_edit_parse_bool(params["affect_anchored"])
+
+	for(var/list/placement as anything in chaos_plan.placements)
+		if(placement["kind"] == "move")
+			var/datum/weakref/target_ref = placement["target_ref"]
+			var/atom/movable/target = target_ref?.resolve()
+			if(!istype(target, /atom/movable) || QDELETED(target))
+				continue
+			if(should_skip_target(target, chaos_affect_anchored))
+				continue
+			if(get_turf(target) != placement["source_turf"])
+				continue
+
+			var/list/path_turfs = placement["path_turfs"]
+			var/chaos_moved_this_target = FALSE
+			for(var/turf/next_turf as anything in path_turfs)
+				if(!next_turf || next_turf == get_turf(target))
+					continue
+				target.forceMove(next_turf)
+				chaos_moved_this_target = TRUE
+			if(chaos_moved_this_target)
+				chaos_moved_count++
+			continue
+
+		if(placement["kind"] == "fire")
+			var/turf/target_turf = placement["turf"]
+			if(!target_turf || (locate(/obj/effect/world_edit_persistent_fire) in target_turf))
+				continue
+			new /obj/effect/world_edit_persistent_fire(target_turf)
+			chaos_fire_count++
+
+	for(var/list/deletion as anything in chaos_plan.deletions)
+		if(deletion["kind"] != "explosion")
+			continue
+		cell_explosion(deletion["center_turf"], deletion["power"], deletion["falloff"], EXPLOSION_FALLOFF_SHAPE_LINEAR, null, create_cause_data("world edit chaos demolition", manager?.holder))
+
+	manager?.clear_preview_images()
+
+	var/chaos_duration_ds = world.time - chaos_start_ds
+	var/chaos_result_code = "click_apply"
+	var/chaos_params_short = get_params_short(params)
+	world_edit_log_operation(
+		manager?.holder,
+		definition.id,
+		definition.required_rights,
+		chaos_plan.metadata["center_turf"],
+		chaos_fire_count,
+		0,
+		chaos_duration_ds,
+		chaos_result_code,
+		chaos_params_short
+	)
+	manager?.add_history_entry(
+		definition.id,
+		chaos_result_code,
+		chaos_fire_count,
+		0,
+		chaos_plan.metadata["center_turf"],
+		chaos_params_short,
+		"moved=[chaos_moved_count], fire=[chaos_fire_count], exploded=[length(chaos_plan.deletions) ? "yes" : "no"]",
+		chaos_duration_ds * 100
+	)
+
+	to_chat(user, SPAN_NOTICE("Chaos-операция завершена: movable=[chaos_moved_count], fire=[chaos_fire_count], explosion=[length(chaos_plan.deletions) ? "on" : "off"]."))
+	return
 	var/radius = text2num("[params["radius"]]") || 3
 	var/max_atoms = text2num("[params["max_atoms"]]") || 120
 	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])

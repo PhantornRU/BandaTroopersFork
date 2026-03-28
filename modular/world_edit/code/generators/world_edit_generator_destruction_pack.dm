@@ -55,41 +55,90 @@
 			targets += target
 	return targets
 
-/datum/world_edit_generator/destruction_pack/proc/shuffle_targets(list/targets, list/area_turfs, list/moved_lookup)
-	if(!length(targets) || !length(area_turfs))
-		return
+/datum/world_edit_generator/destruction_pack/proc/build_target_movement_entry(atom/movable/target, list/area_turfs, list/area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
+	if(!target || QDELETED(target))
+		return null
 
-	for(var/atom/movable/target as anything in targets)
-		if(!target || QDELETED(target))
-			continue
+	var/turf/source_turf = get_turf(target)
+	if(!source_turf)
+		return null
 
-		var/turf/current_turf = get_turf(target)
-		var/turf/new_turf = pick(area_turfs)
-		if(!current_turf || !new_turf || current_turf == new_turf)
-			continue
+	var/list/path_turfs = list()
+	var/turf/current_turf = source_turf
 
-		target.forceMove(new_turf)
-		moved_lookup[target] = TRUE
+	if(shuffle_enabled)
+		var/turf/shuffle_turf = pick(area_turfs)
+		if(shuffle_turf && shuffle_turf != current_turf)
+			path_turfs += shuffle_turf
+			current_turf = shuffle_turf
 
-/datum/world_edit_generator/destruction_pack/proc/scatter_targets(list/targets, scatter_steps, list/area_lookup, list/moved_lookup)
-	if(!length(targets) || scatter_steps <= 0)
-		return
-
-	for(var/atom/movable/target as anything in targets)
-		if(!target || QDELETED(target))
-			continue
-
+	if(scatter_enabled)
 		for(var/i in 1 to scatter_steps)
-			var/turf/current_turf = get_turf(target)
-			if(!current_turf)
-				break
-
 			var/turf/next_turf = get_step(current_turf, pick(GLOB.cardinals))
 			if(!next_turf || !area_lookup[next_turf] || next_turf == current_turf)
 				continue
 
-			target.forceMove(next_turf)
-			moved_lookup[target] = TRUE
+			path_turfs += next_turf
+			current_turf = next_turf
+
+	if(!length(path_turfs))
+		return null
+
+	return list(
+		"kind" = "move",
+		"target_ref" = WEAKREF(target),
+		"source_turf" = source_turf,
+		"path_turfs" = path_turfs,
+		"destination_turf" = current_turf,
+	)
+
+/datum/world_edit_generator/destruction_pack/build_plan(list/params)
+	var/datum/world_edit_plan/plan = new
+	var/turf/center_turf = get_turf(manager?.holder?.mob)
+	if(!center_turf)
+		return plan
+
+	var/radius = text2num("[params["radius"]]") || 3
+	var/max_atoms = text2num("[params["max_atoms"]]") || 60
+	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
+	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
+	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
+	var/list/area_turfs = collect_area_turfs(center_turf, radius)
+	if(!length(area_turfs))
+		plan.metadata["error"] = "No valid area turfs were found around the current turf."
+		return plan
+
+	var/list/targets = collect_targets(area_turfs, affect_anchored)
+	if(length(targets) > max_atoms)
+		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
+		return plan
+
+	plan.affected_turfs = area_turfs.Copy()
+	plan.metadata["center_turf"] = center_turf
+	plan.metadata["radius"] = radius
+	plan.metadata["area_tiles"] = length(area_turfs)
+	plan.metadata["target_count"] = length(targets)
+	plan.metadata["shuffle"] = shuffle_enabled
+	plan.metadata["scatter"] = scatter_enabled
+	plan.metadata["seed"] = rand(1, 1000000)
+	plan.metadata["heavy_operation"] = (length(targets) >= round(max_atoms * 0.75)) || (radius >= 4)
+
+	if(!length(targets))
+		plan.metadata["error"] = "No movable targets matched the selected area."
+		return plan
+
+	var/list/area_lookup = build_area_lookup(area_turfs)
+	for(var/atom/movable/target as anything in targets)
+		var/list/move_entry = build_target_movement_entry(target, area_turfs, area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
+		if(move_entry)
+			plan.placements += list(move_entry)
+
+	if(!length(plan.placements))
+		plan.metadata["error"] = "Destruction pack finished with no movable targets that can change position."
+
+	plan.metadata["moved_count"] = length(plan.placements)
+	return plan
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)
@@ -127,79 +176,79 @@
 
 /datum/world_edit_generator/destruction_pack/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		result.message = "Unable to resolve the anchor turf."
+	clear_built_plan()
+	var/datum/world_edit_plan/plan = build_plan(params)
+	if(!istype(plan))
+		result.message = "Unable to build the destruction plan."
+		return result
+	if(!length(plan.placements) && !length(plan.deletions))
+		result.message = plan.metadata["error"] || "No movable targets matched the selected area."
 		return result
 
-	var/radius = text2num("[params["radius"]]") || 3
-	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
-	var/list/area_turfs = collect_area_turfs(center_turf, radius)
-	if(!length(area_turfs))
-		result.message = "No valid area turfs were found around the current turf."
-		return result
-	var/list/targets = collect_targets(area_turfs, affect_anchored)
-
+	current_plan = plan
 	result.success = TRUE
-	result.preview_images = world_edit_build_turf_preview_images(area_turfs)
-	result.meta["radius"] = radius
-	result.meta["area_tiles"] = length(area_turfs)
-	result.meta["target_count"] = length(targets)
-	result.meta["shuffle"] = world_edit_parse_bool(params["shuffle_enabled"])
-	result.meta["scatter"] = world_edit_parse_bool(params["scatter_enabled"])
-	result.message = "Preview ready: tiles=[length(area_turfs)], movable_targets=[length(targets)]."
+	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	result.meta = plan.metadata.Copy()
+	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]]."
 	return result
 
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
 	var/datum/world_edit_apply_result/result = new
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		result.message = "Unable to resolve the anchor turf."
+	var/datum/world_edit_plan/plan = current_plan
+	if(!istype(plan))
+		result.message = "Run preview first to build the destruction plan."
 		return result
-
-	var/radius = text2num("[params["radius"]]") || 3
-	var/max_atoms = text2num("[params["max_atoms"]]") || 60
-	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
-	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
-	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
-	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
-	var/list/area_turfs = collect_area_turfs(center_turf, radius)
-	if(!length(area_turfs))
-		result.message = "No valid area turfs were found around the current turf."
+	if(!length(plan.placements) && !length(plan.deletions))
+		result.message = plan.metadata["error"] || "No movable targets matched the selected area."
 		return result
-	var/list/area_lookup = build_area_lookup(area_turfs)
-	var/list/targets = collect_targets(area_turfs, affect_anchored)
-
-	result.center_turf = center_turf
-	result.meta["target_count"] = length(targets)
-	result.meta["area_tiles"] = length(area_turfs)
-
-	if(!length(targets))
-		result.message = "No movable targets matched the selected area."
-		return result
-
-	if(length(targets) > max_atoms)
-		result.message = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
-		return result
-
-	var/heavy_operation = (length(targets) >= round(max_atoms * 0.75)) || (radius >= 4)
-	if(heavy_operation)
+	if(plan.metadata["heavy_operation"])
 		var/heavy_answer = tgui_alert(user, "This is a heavy destruction pack apply. Confirm the second-stage execution.", "World Edit: Heavy Confirm", list("Execute", "Cancel"))
 		if(heavy_answer != "Execute")
 			result.message = "Destruction pack was cancelled during the heavy confirmation."
 			return result
 
-	var/list/moved_lookup = list()
-	if(shuffle_enabled)
-		shuffle_targets(targets, area_turfs, moved_lookup)
-	if(scatter_enabled)
-		scatter_targets(targets, scatter_steps, area_lookup, moved_lookup)
+	var/moved_count = 0
+	var/skipped_runtime = 0
+	for(var/list/placement as anything in plan.placements)
+		if(placement["kind"] != "move")
+			continue
 
-	var/moved_count = length(moved_lookup)
+		var/datum/weakref/target_ref = placement["target_ref"]
+		var/atom/movable/target = target_ref?.resolve()
+		if(!istype(target, /atom/movable) || QDELETED(target))
+			skipped_runtime++
+			continue
+		if(should_skip_target(target, FALSE))
+			skipped_runtime++
+			continue
+
+		var/turf/source_turf = placement["source_turf"]
+		if(get_turf(target) != source_turf)
+			skipped_runtime++
+			continue
+
+		var/list/path_turfs = placement["path_turfs"]
+		if(!length(path_turfs))
+			skipped_runtime++
+			continue
+
+		var/moved_this_target = FALSE
+		for(var/turf/next_turf as anything in path_turfs)
+			if(!next_turf || next_turf == get_turf(target))
+				continue
+			target.forceMove(next_turf)
+			moved_this_target = TRUE
+
+		if(moved_this_target)
+			moved_count++
+		else
+			skipped_runtime++
+
+	result.center_turf = plan.metadata["center_turf"]
 	result.created_count = moved_count
+	result.meta = plan.metadata.Copy()
 	result.meta["moved_count"] = moved_count
-	result.meta["shuffle"] = shuffle_enabled
-	result.meta["scatter"] = scatter_enabled
+	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(moved_count <= 0)
 		result.message = "Destruction pack finished without moving any targets."
