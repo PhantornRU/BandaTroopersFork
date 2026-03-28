@@ -79,12 +79,25 @@
 	pony_appearance.tail_primary_color = pony_pick_color(palette_pool[PONY_XENO_LAYER_TAIL], "tail-primary", pony_appearance.mane_primary_color)
 	pony_appearance.tail_secondary_color = pony_pick_distinct_color(palette_pool[PONY_XENO_LAYER_TAIL], "tail-secondary", pony_appearance.tail_primary_color, pony_appearance.mane_secondary_color)
 	pony_appearance.eye_color = pony_pick_color(palette_pool[PONY_XENO_LAYER_EYES], "eye-color", "#222222")
-	pony_appearance.armor_tint = pony_pick_color(palette_pool[PONY_XENO_LAYER_ARMOR], "armor-tint", "#4B2E83")
+	pony_appearance.armor_tint = BlendRGB(pony_appearance.body_color, pony_pick_color(palette_pool[PONY_XENO_LAYER_ARMOR], "armor-tint", "#4B2E83"), 0.62)
 	return pony_appearance
+
+/mob/living/carbon/xenomorph/pony/proc/get_pony_render_direction(direction)
+	if((direction in GLOB.cardinals))
+		return direction
+
+	switch(direction)
+		if(NORTHEAST, SOUTHEAST)
+			return EAST
+		if(NORTHWEST, SOUTHWEST)
+			return WEST
+
+	return SOUTH
 
 /mob/living/carbon/xenomorph/pony/proc/build_pony_appearance_key(state_name, direction)
 	randomize_pony_appearance()
-	return "[type]|[caste_type]|[pony_appearance.body_variant]|[pony_appearance.mane_front_variant]|[pony_appearance.mane_back_variant]|[pony_appearance.tail_variant]|[pony_appearance.eye_variant]|[pony_appearance.horn_variant]|[pony_appearance.wing_variant]|[pony_appearance.cutie_mark_variant]|[pony_appearance.armor_variant]|[pony_appearance.body_color]|[pony_appearance.mane_primary_color]|[pony_appearance.mane_secondary_color]|[pony_appearance.tail_primary_color]|[pony_appearance.tail_secondary_color]|[pony_appearance.eye_color]|[pony_appearance.armor_tint]|[state_name]|[direction]"
+	var/render_direction = get_pony_render_direction(direction)
+	return "[type]|[caste_type]|[pony_appearance.body_variant]|[pony_appearance.mane_front_variant]|[pony_appearance.mane_back_variant]|[pony_appearance.tail_variant]|[pony_appearance.eye_variant]|[pony_appearance.horn_variant]|[pony_appearance.wing_variant]|[pony_appearance.cutie_mark_variant]|[pony_appearance.armor_variant]|[pony_appearance.body_color]|[pony_appearance.mane_primary_color]|[pony_appearance.mane_secondary_color]|[pony_appearance.tail_primary_color]|[pony_appearance.tail_secondary_color]|[pony_appearance.eye_color]|[pony_appearance.armor_tint]|[state_name]|[render_direction]"
 
 /mob/living/carbon/xenomorph/pony/proc/get_pony_caste_label()
 	return caste?.caste_type || caste_type
@@ -169,7 +182,7 @@
 
 	if(pony_appearance.armor_variant != PONY_XENO_NONE)
 		layers += list(
-			list(PONY_XENO_RENDER_ICON = PONY_XENO_ICON_ARMOR, PONY_XENO_RENDER_STATE = armor_data[PONY_XENO_RENDER_STATE], PONY_XENO_RENDER_COLOR = pony_appearance.armor_tint, PONY_XENO_RENDER_SCALE = (armor_data[PONY_XENO_RENDER_SCALE] || 1) * body_scale, PONY_XENO_RENDER_PIXEL_Y = body_pixel_y, PONY_XENO_RENDER_ALPHA = 205)
+			list(PONY_XENO_RENDER_ICON = PONY_XENO_ICON_ARMOR, PONY_XENO_RENDER_STATE = armor_data[PONY_XENO_RENDER_STATE], PONY_XENO_RENDER_COLOR = pony_appearance.armor_tint, PONY_XENO_RENDER_SCALE = (armor_data[PONY_XENO_RENDER_SCALE] || 1) * body_scale, PONY_XENO_RENDER_PIXEL_Y = body_pixel_y, PONY_XENO_RENDER_ALPHA = 170)
 		)
 
 	layers += list(
@@ -209,7 +222,8 @@
 	if(!icon_file || !icon_state)
 		return null
 
-	var/icon/part = new /icon(icon_file, icon_state, direction)
+	var/render_direction = get_pony_render_direction(direction)
+	var/icon/part = new /icon(icon_file, icon_state, render_direction)
 	var/scale = layer_data[PONY_XENO_RENDER_SCALE] || 1
 	if(scale != 1)
 		part.Scale(max(1, round(part.Width() * scale)), max(1, round(part.Height() * scale)))
@@ -259,19 +273,43 @@
 
 	return list(offset_x, offset_y)
 
+/mob/living/carbon/xenomorph/pony/proc/get_pony_layer_directional_offset(list/layer_data, direction)
+	var/offset_x = 0
+	var/offset_y = 0
+	var/render_direction = get_pony_render_direction(direction)
+
+	switch(render_direction)
+		if(NORTH)
+			offset_x = layer_data[PONY_XENO_RENDER_NORTH_PIXEL_X] || 0
+			offset_y = layer_data[PONY_XENO_RENDER_NORTH_PIXEL_Y] || 0
+		if(SOUTH)
+			offset_x = layer_data[PONY_XENO_RENDER_SOUTH_PIXEL_X] || 0
+			offset_y = layer_data[PONY_XENO_RENDER_SOUTH_PIXEL_Y] || 0
+		if(EAST)
+			offset_x = layer_data[PONY_XENO_RENDER_EAST_PIXEL_X] || 0
+			offset_y = layer_data[PONY_XENO_RENDER_EAST_PIXEL_Y] || 0
+		if(WEST)
+			offset_x = layer_data[PONY_XENO_RENDER_WEST_PIXEL_X] || 0
+			offset_y = layer_data[PONY_XENO_RENDER_WEST_PIXEL_Y] || 0
+
+	return list(offset_x, offset_y)
+
 /mob/living/carbon/xenomorph/pony/proc/get_pony_layer_blend_position(icon/canvas, icon/part, list/layer_data, state_name, direction)
 	var/list/directional_offset = get_pony_directional_offset(direction)
 	var/list/state_offset = get_pony_state_offset(state_name)
+	var/list/layer_directional_offset = get_pony_layer_directional_offset(layer_data, direction)
 	var/base_x = round((canvas.Width() - part.Width()) / 2)
 	var/base_y = round((canvas.Height() - part.Height()) / 2)
 	var/directional_x = (islist(directional_offset) && length(directional_offset) >= 1) ? (directional_offset[1] || 0) : 0
 	var/directional_y = (islist(directional_offset) && length(directional_offset) >= 2) ? (directional_offset[2] || 0) : 0
 	var/state_x = (islist(state_offset) && length(state_offset) >= 1) ? (state_offset[1] || 0) : 0
 	var/state_y = (islist(state_offset) && length(state_offset) >= 2) ? (state_offset[2] || 0) : 0
+	var/layer_directional_x = (islist(layer_directional_offset) && length(layer_directional_offset) >= 1) ? (layer_directional_offset[1] || 0) : 0
+	var/layer_directional_y = (islist(layer_directional_offset) && length(layer_directional_offset) >= 2) ? (layer_directional_offset[2] || 0) : 0
 
 	return list(
-		base_x + pony_render_offset_x + directional_x + state_x + (layer_data[PONY_XENO_RENDER_PIXEL_X] || 0),
-		base_y + pony_render_offset_y + directional_y + state_y + (layer_data[PONY_XENO_RENDER_PIXEL_Y] || 0)
+		base_x + pony_render_offset_x + directional_x + state_x + layer_directional_x + (layer_data[PONY_XENO_RENDER_PIXEL_X] || 0),
+		base_y + pony_render_offset_y + directional_y + state_y + layer_directional_y + (layer_data[PONY_XENO_RENDER_PIXEL_Y] || 0)
 	)
 
 /mob/living/carbon/xenomorph/pony/proc/get_pony_runtime_state_name()
@@ -317,20 +355,24 @@
 	GLOB.pony_xeno_generated_icons[cache_key] = canvas
 	return canvas
 
+/mob/living/carbon/xenomorph/pony/proc/get_pony_runtime_directions()
+	return list(SOUTH, NORTH, EAST, WEST, SOUTHEAST, SOUTHWEST, NORTHEAST, NORTHWEST)
+
 /mob/living/carbon/xenomorph/pony/proc/generate_pony_icon_pack()
 	if(!caste && !caste_type)
 		return null
 
 	randomize_pony_appearance()
-	var/pack_key = build_pony_appearance_key("pack", SOUTH)
+	var/pack_key = build_pony_appearance_key("pack", "all_dirs")
 	if(GLOB.pony_xeno_generated_icon_packs[pack_key])
 		return GLOB.pony_xeno_generated_icon_packs[pack_key]
 
 	var/icon/pack = new /icon(PONY_XENO_ICON_STATES_BASE)
 	var/list/runtime_states = list(PONY_XENO_STATE_WALKING, PONY_XENO_STATE_RUNNING, PONY_XENO_STATE_SLEEPING, PONY_XENO_STATE_KNOCKED_DOWN, PONY_XENO_STATE_DEATH, PONY_XENO_STATE_ATTACKING)
+	var/list/runtime_directions = get_pony_runtime_directions()
 	for(var/state_name in runtime_states)
 		var/external_state = get_pony_external_state_name(state_name)
-		for(var/direction in GLOB.cardinals)
+		for(var/direction in runtime_directions)
 			var/icon/generated_icon = get_generated_pony_icon(state_name, direction)
 			if(!generated_icon)
 				continue
@@ -343,22 +385,20 @@
 	if(!caste && !caste_type)
 		return null
 
-	if(!(direction in GLOB.cardinals))
-		direction = (dir in GLOB.cardinals) ? dir : SOUTH
-
 	if(!state_name)
 		state_name = get_pony_runtime_state_name()
 
-	var/icon/generated_icon = get_generated_pony_icon(state_name, direction)
-	if(!generated_icon)
+	var/icon/generated_pack = generate_pony_icon_pack()
+	if(!generated_pack)
 		return null
 
-	icon_xeno = generated_icon
-	icon_xenonid = generated_icon
-	icon = generated_icon
-	icon_state = "blank"
+	var/external_state = get_pony_external_state_name(state_name)
+	icon_xeno = generated_pack
+	icon_xenonid = generated_pack
+	icon = generated_pack
+	icon_state = external_state
 	has_walking_icon_state = TRUE
-	return generated_icon
+	return generated_pack
 
 /mob/living/carbon/xenomorph/pony/get_custom_remains_icon()
 	var/cache_key = build_pony_appearance_key(PONY_XENO_STATE_REMAINS, SOUTH)

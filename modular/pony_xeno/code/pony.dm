@@ -179,10 +179,7 @@
 	update_icons()
 
 /mob/living/carbon/xenomorph/pony/setDir(newdir)
-	var/old_dir = dir
-	. = ..()
-	if(dir != old_dir && (dir in GLOB.cardinals))
-		update_icons()
+	return ..()
 
 /mob/living/carbon/xenomorph/pony/process_ai(delta_time)
 	if(current_target && prob(PONY_XENO_COMBAT_SOUND_TRIGGER_CHANCE))
