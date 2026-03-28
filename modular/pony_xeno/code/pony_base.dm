@@ -70,6 +70,7 @@
 #define PONY_XENO_ICON_BLOOD 'modular/pony_xeno/icons/mobs/pony_parts/blood_overlay.dmi'
 #define PONY_XENO_ICON_DEATH 'modular/pony_xeno/icons/mobs/pony_parts/death_overlay.dmi'
 #define PONY_XENO_ICON_STATES_BASE 'modular/pony_xeno/icons/mobs/pony_parts/states_base.dmi'
+#define PONY_XENO_ICON_STATE_EMPTY ""
 
 #define PONY_XENO_RENDER_ICON "icon"
 #define PONY_XENO_RENDER_STATE "state"
@@ -227,7 +228,7 @@ GLOBAL_LIST_INIT(pony_xeno_armor_variants, list(
 	if(GLOB.pony_xeno_minimap_icons[caste_type])
 		return GLOB.pony_xeno_minimap_icons[caste_type]
 
-	var/icon/canvas = new /icon(PONY_XENO_ICON_STATES_BASE, "blank")
+	var/icon/canvas = new /icon(PONY_XENO_ICON_STATES_BASE, PONY_XENO_ICON_STATE_EMPTY)
 	canvas.Scale(PONY_XENO_MINIMAP_SIZE, PONY_XENO_MINIMAP_SIZE)
 
 	var/icon/body = new /icon(PONY_XENO_ICON_BODY, "earth_pony_core", SOUTH)

@@ -332,7 +332,7 @@
 		return GLOB.pony_xeno_generated_icons[cache_key]
 
 	var/canvas_size = icon_size || PONY_XENO_ICON_CANVAS_SIZE
-	var/icon/canvas = new /icon(PONY_XENO_ICON_STATES_BASE, "blank", SOUTH)
+	var/icon/canvas = new /icon(PONY_XENO_ICON_STATES_BASE, PONY_XENO_ICON_STATE_EMPTY, SOUTH)
 	canvas.Scale(canvas_size, canvas_size)
 
 	var/list/layers = get_pony_sprite_layers_for_state(state_name)
@@ -367,19 +367,14 @@
 	if(GLOB.pony_xeno_generated_icon_packs[pack_key])
 		return GLOB.pony_xeno_generated_icon_packs[pack_key]
 
-	var/icon/pack = new /icon(PONY_XENO_ICON_STATES_BASE)
 	var/list/runtime_states = list(PONY_XENO_STATE_WALKING, PONY_XENO_STATE_RUNNING, PONY_XENO_STATE_SLEEPING, PONY_XENO_STATE_KNOCKED_DOWN, PONY_XENO_STATE_DEATH, PONY_XENO_STATE_ATTACKING)
 	var/list/runtime_directions = get_pony_runtime_directions()
 	for(var/state_name in runtime_states)
-		var/external_state = get_pony_external_state_name(state_name)
 		for(var/direction in runtime_directions)
-			var/icon/generated_icon = get_generated_pony_icon(state_name, direction)
-			if(!generated_icon)
-				continue
-			pack.Insert(generated_icon, icon_state = external_state, dir = direction)
+			get_generated_pony_icon(state_name, direction)
 
-	GLOB.pony_xeno_generated_icon_packs[pack_key] = pack
-	return pack
+	GLOB.pony_xeno_generated_icon_packs[pack_key] = TRUE
+	return TRUE
 
 /mob/living/carbon/xenomorph/pony/proc/apply_generated_pony_appearance(state_name = null, direction = null)
 	if(!caste && !caste_type)
@@ -388,17 +383,19 @@
 	if(!state_name)
 		state_name = get_pony_runtime_state_name()
 
-	var/icon/generated_pack = generate_pony_icon_pack()
-	if(!generated_pack)
+	if(!direction)
+		direction = dir
+
+	var/icon/generated_icon = get_generated_pony_icon(state_name, direction)
+	if(!generated_icon)
 		return null
 
-	var/external_state = get_pony_external_state_name(state_name)
-	icon_xeno = generated_pack
-	icon_xenonid = generated_pack
-	icon = generated_pack
-	icon_state = external_state
-	has_walking_icon_state = TRUE
-	return generated_pack
+	icon_xeno = generated_icon
+	icon_xenonid = generated_icon
+	icon = generated_icon
+	icon_state = PONY_XENO_ICON_STATE_EMPTY
+	has_walking_icon_state = FALSE
+	return generated_icon
 
 /mob/living/carbon/xenomorph/pony/get_custom_remains_icon()
 	var/cache_key = build_pony_appearance_key(PONY_XENO_STATE_REMAINS, SOUTH)
@@ -407,10 +404,10 @@
 
 	var/icon/generated = get_generated_pony_icon(PONY_XENO_STATE_DEATH, SOUTH)
 	if(!generated)
-		generated = new /icon(PONY_XENO_ICON_STATES_BASE, "blank", SOUTH)
+		generated = new /icon(PONY_XENO_ICON_STATES_BASE, PONY_XENO_ICON_STATE_EMPTY, SOUTH)
 
 	GLOB.pony_xeno_generated_remains[cache_key] = generated
 	return generated
 
 /mob/living/carbon/xenomorph/pony/get_custom_remains_icon_state()
-	return "blank"
+	return PONY_XENO_ICON_STATE_EMPTY

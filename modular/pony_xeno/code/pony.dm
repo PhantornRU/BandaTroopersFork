@@ -56,7 +56,7 @@
 	desc = "A militarized pony horror that still rides the full xenomorph lifecycle underneath its barding."
 	voice_name = "pony xeno"
 	icon = PONY_XENO_ICON_STATES_BASE
-	icon_state = "blank"
+	icon_state = PONY_XENO_ICON_STATE_EMPTY
 	icon_xeno = PONY_XENO_ICON_STATES_BASE
 	icon_xenonid = PONY_XENO_ICON_STATES_BASE
 	icon_size = 64
@@ -179,7 +179,10 @@
 	update_icons()
 
 /mob/living/carbon/xenomorph/pony/setDir(newdir)
-	return ..()
+	var/old_render_direction = get_pony_render_direction(dir)
+	. = ..()
+	if(get_pony_render_direction(dir) != old_render_direction)
+		apply_generated_pony_appearance()
 
 /mob/living/carbon/xenomorph/pony/process_ai(delta_time)
 	if(current_target && prob(PONY_XENO_COMBAT_SOUND_TRIGGER_CHANCE))
