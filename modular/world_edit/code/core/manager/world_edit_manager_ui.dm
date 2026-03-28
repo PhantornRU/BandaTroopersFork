@@ -1,6 +1,8 @@
 /datum/world_edit_manager/tgui_interact(mob/user, datum/tgui/ui)
 	if(!holder || QDELETED(holder) || holder != user?.client)
 		return
+	if(!check_rights_for(holder, R_EVENT|R_DEBUG))
+		return
 
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
@@ -16,11 +18,17 @@
 	reset_preview_runtime()
 
 /datum/world_edit_manager/ui_static_data(mob/user)
+	if(!holder || holder != user?.client || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return list()
+
 	var/list/data = list()
 	data["categories"] = build_available_generator_categories()
 	return data
 
 /datum/world_edit_manager/ui_data(mob/user)
+	if(!holder || holder != user?.client || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return list()
+
 	var/list/data = list()
 	var/has_generator = (current_definition && current_generator) ? TRUE : FALSE
 	var/list/ui_fields = get_normalized_ui_fields()
@@ -70,6 +78,8 @@
 		return
 
 	if(!holder || holder != ui.user?.client)
+		return
+	if(!check_rights_for(holder, R_EVENT|R_DEBUG))
 		return
 
 	switch(action)

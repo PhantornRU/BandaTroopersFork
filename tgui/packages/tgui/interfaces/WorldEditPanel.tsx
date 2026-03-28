@@ -112,8 +112,8 @@ const PAGES = [
 ];
 
 const FieldEditor = (props: {
-  field: UiField;
-  act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly field: UiField;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
 }) => {
   const { field, act } = props;
   const isDisabled = !!field.disabled;
@@ -129,7 +129,11 @@ const FieldEditor = (props: {
 
   if (field.kind === 'boolean') {
     control = (
-      <Button.Checkbox checked={!!field.value} disabled={isDisabled} onClick={() => emitValue(!field.value)}>
+      <Button.Checkbox
+        checked={!!field.value}
+        disabled={isDisabled}
+        onClick={() => emitValue(!field.value)}
+      >
         {field.value ? 'Да' : 'Нет'}
       </Button.Checkbox>
     );
@@ -268,17 +272,29 @@ export const WorldEditPanel = () => {
             {currentPage === 'Генераторы' && (
               <Section fill title="Каталог генераторов (status=ready)">
                 {!data.categories?.length && (
-                  <Box color="label">Нет доступных генераторов для текущих прав.</Box>
+                  <Box color="label">
+                    Нет доступных генераторов для текущих прав.
+                  </Box>
                 )}
                 {data.categories?.map((category) => (
-                  <Section key={category.category} level={2} title={category.category}>
+                  <Section
+                    key={category.category}
+                    level={2}
+                    title={category.category}
+                  >
                     <Stack vertical>
                       {category.generators.map((generator) => (
                         <Stack.Item key={generator.id}>
                           <Button
                             fluid
-                            selected={generator.id === data.current_generator_id}
-                            onClick={() => act('select_generator', { generator_id: generator.id })}
+                            selected={
+                              generator.id === data.current_generator_id
+                            }
+                            onClick={() =>
+                              act('select_generator', {
+                                generator_id: generator.id,
+                              })
+                            }
                           >
                             {generator.name_ru} [{generator.execution_mode}]
                           </Button>
@@ -286,8 +302,9 @@ export const WorldEditPanel = () => {
                             {generator.description_ru}
                           </Box>
                           <Box color="label">
-                            Права: {generator.required_rights} | Preview: {generator.supports_preview ? 'да' : 'нет'} | Статус:{' '}
-                            {generator.status}
+                            Права: {generator.required_rights} | Preview:{' '}
+                            {generator.supports_preview ? 'да' : 'нет'} |
+                            Статус: {generator.status}
                           </Box>
                         </Stack.Item>
                       ))}
@@ -300,21 +317,30 @@ export const WorldEditPanel = () => {
             {currentPage === 'Параметры' && (
               <Section fill title="Параметры генератора">
                 {!data.has_generator && (
-                  <Box color="label">Сначала выберите генератор на вкладке "Генераторы".</Box>
+                  <Box color="label">
+                    Сначала выберите генератор на вкладке "Генераторы".
+                  </Box>
                 )}
 
                 {!!data.has_generator && (
                   <>
                     <Section level={2} title="Текущий генератор">
                       <Box>
-                        {data.current_generator_category} / {data.current_generator_name}
-                      </Box>
-                      <Box color="label">{data.current_generator_description}</Box>
-                      <Box color="label">
-                        Права: {data.current_generator_required_rights} | Режим: {data.current_generator_execution_mode}
+                        {data.current_generator_category} /{' '}
+                        {data.current_generator_name}
                       </Box>
                       <Box color="label">
-                        Источник параметров: {data.ui_mode === 'inline' ? 'inline' : 'wizard fallback'}
+                        {data.current_generator_description}
+                      </Box>
+                      <Box color="label">
+                        Права: {data.current_generator_required_rights} | Режим:{' '}
+                        {data.current_generator_execution_mode}
+                      </Box>
+                      <Box color="label">
+                        Источник параметров:{' '}
+                        {data.ui_mode === 'inline'
+                          ? 'inline'
+                          : 'wizard fallback'}
                       </Box>
                     </Section>
 
@@ -325,15 +351,23 @@ export const WorldEditPanel = () => {
                     <Section level={2} title="Управление настройкой">
                       <Stack>
                         <Stack.Item>
-                          <Button disabled={!data.can_refresh_ui} onClick={() => act('refresh_ui')}>
+                          <Button
+                            disabled={!data.can_refresh_ui}
+                            onClick={() => act('refresh_ui')}
+                          >
                             Обновить параметры генератора
                           </Button>
                         </Stack.Item>
                         <Stack.Item>
-                          <Button onClick={() => act('configure_wizard')}>Открыть мастер настройки</Button>
+                          <Button onClick={() => act('configure_wizard')}>
+                            Открыть мастер настройки
+                          </Button>
                         </Stack.Item>
                         <Stack.Item>
-                          <Button color="average" onClick={() => act('reset_generator')}>
+                          <Button
+                            color="average"
+                            onClick={() => act('reset_generator')}
+                          >
                             Сбросить генератор
                           </Button>
                         </Stack.Item>
@@ -343,22 +377,33 @@ export const WorldEditPanel = () => {
                     <Section level={2} title="Inline-настройка">
                       {!data.has_inline_fields && (
                         <Box color="label">
-                          Этот генератор не отдает inline-поля. Используйте мастер настройки.
+                          Этот генератор не отдает inline-поля. Используйте
+                          мастер настройки.
                         </Box>
                       )}
 
                       {!!data.has_inline_fields && !groupNames.length && (
-                        <Box color="label">Inline-поля временно недоступны.</Box>
+                        <Box color="label">
+                          Inline-поля временно недоступны.
+                        </Box>
                       )}
 
                       {!!data.has_inline_fields &&
                         groupNames.map((groupName) => {
                           const fields = groupedFields[groupName] || [];
                           return (
-                            <Section key={groupName} level={3} title={groupName}>
+                            <Section
+                              key={groupName}
+                              level={3}
+                              title={groupName}
+                            >
                               <LabeledList>
                                 {fields.map((field) => (
-                                  <FieldEditor key={field.id} field={field} act={act} />
+                                  <FieldEditor
+                                    key={field.id}
+                                    field={field}
+                                    act={act}
+                                  />
                                 ))}
                               </LabeledList>
                             </Section>
@@ -372,12 +417,17 @@ export const WorldEditPanel = () => {
 
                     <Section level={2} title="Runtime-статус">
                       {!data.runtime_status?.length && (
-                        <Box color="label">Дополнительный статус не предоставлен.</Box>
+                        <Box color="label">
+                          Дополнительный статус не предоставлен.
+                        </Box>
                       )}
                       {!!data.runtime_status?.length && (
                         <LabeledList>
                           {data.runtime_status.map((entry, index) => (
-                            <LabeledList.Item key={`${entry.label}_${index}`} label={entry.label}>
+                            <LabeledList.Item
+                              key={`${entry.label}_${index}`}
+                              label={entry.label}
+                            >
                               {entry.value}
                             </LabeledList.Item>
                           ))}
@@ -393,12 +443,19 @@ export const WorldEditPanel = () => {
               <Section fill title="Preview">
                 <Stack>
                   <Stack.Item>
-                    <Button disabled={!data.can_run_preview} onClick={() => act('run_preview')}>
+                    <Button
+                      disabled={!data.can_run_preview}
+                      onClick={() => act('run_preview')}
+                    >
                       Запустить preview
                     </Button>
                   </Stack.Item>
                   <Stack.Item>
-                    <Button color="average" disabled={!data.has_generator} onClick={() => act('clear_preview')}>
+                    <Button
+                      color="average"
+                      disabled={!data.has_generator}
+                      onClick={() => act('clear_preview')}
+                    >
                       Очистить preview
                     </Button>
                   </Stack.Item>
@@ -406,7 +463,8 @@ export const WorldEditPanel = () => {
 
                 <Section level={2} title="Состояние preview">
                   <Box>
-                    Статус: {data.preview_success ? 'успех' : 'ошибка/нет'} | Валиден для apply: {data.preview_valid ? 'да' : 'нет'}
+                    Статус: {data.preview_success ? 'успех' : 'ошибка/нет'} |
+                    Валиден для apply: {data.preview_valid ? 'да' : 'нет'}
                   </Box>
                   <Box color={data.preview_success ? 'good' : 'average'}>
                     {data.preview_message || 'Нет данных preview.'}
@@ -414,7 +472,8 @@ export const WorldEditPanel = () => {
                 </Section>
 
                 <Section level={2} title="Meta">
-                  {!data.preview_meta || !Object.keys(data.preview_meta).length ? (
+                  {!data.preview_meta ||
+                  !Object.keys(data.preview_meta).length ? (
                     <Box color="label">Meta отсутствует.</Box>
                   ) : (
                     <LabeledList>
@@ -433,7 +492,10 @@ export const WorldEditPanel = () => {
               <Section fill title="Apply">
                 <Stack>
                   <Stack.Item>
-                    <Button disabled={!data.can_run_apply} onClick={() => act('run_apply')}>
+                    <Button
+                      disabled={!data.can_run_apply}
+                      onClick={() => act('run_apply')}
+                    >
                       Применить генератор
                     </Button>
                   </Stack.Item>
@@ -449,13 +511,19 @@ export const WorldEditPanel = () => {
                 </Stack>
 
                 <Section level={2} title="Требования">
-                  <Box>Требуется preview перед apply: {data.requires_preview_before_apply ? 'да' : 'нет'}</Box>
-                  <Box>Click-режим активен: {data.click_mode_active ? 'да' : 'нет'}</Box>
+                  <Box>
+                    Требуется preview перед apply:{' '}
+                    {data.requires_preview_before_apply ? 'да' : 'нет'}
+                  </Box>
+                  <Box>
+                    Click-режим активен: {data.click_mode_active ? 'да' : 'нет'}
+                  </Box>
                 </Section>
 
                 <Section level={2} title="Последний apply">
                   <Box color={data.last_apply_success ? 'good' : 'average'}>
-                    {data.last_apply_message || 'Операции apply еще не выполнялись.'}
+                    {data.last_apply_message ||
+                      'Операции apply еще не выполнялись.'}
                   </Box>
                 </Section>
               </Section>
@@ -465,13 +533,18 @@ export const WorldEditPanel = () => {
               <Section fill title="История операций (session)">
                 <Stack mb={1}>
                   <Stack.Item>
-                    <Button color="average" onClick={() => act('clear_history')}>
+                    <Button
+                      color="average"
+                      onClick={() => act('clear_history')}
+                    >
                       Очистить историю
                     </Button>
                   </Stack.Item>
                 </Stack>
 
-                {!data.history_entries?.length && <Box color="label">История операций пуста.</Box>}
+                {!data.history_entries?.length && (
+                  <Box color="label">История операций пуста.</Box>
+                )}
 
                 {!!data.history_entries?.length && (
                   <Stack vertical fill>
@@ -482,11 +555,14 @@ export const WorldEditPanel = () => {
                         title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}
                       >
                         <Box>
-                          Создано: {entry.created_count} | Удалено: {entry.deleted_count} | Центр: {entry.center_turf} |
+                          Создано: {entry.created_count} | Удалено:{' '}
+                          {entry.deleted_count} | Центр: {entry.center_turf} |
                           Длительность: {entry.duration_ms} ms
                         </Box>
                         <Box color="label">Параметры: {entry.params_short}</Box>
-                        <Box color="label">Сообщение: {entry.message || 'n/a'}</Box>
+                        <Box color="label">
+                          Сообщение: {entry.message || 'n/a'}
+                        </Box>
                       </Section>
                     ))}
                   </Stack>

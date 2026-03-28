@@ -88,7 +88,11 @@
 /datum/world_edit_manager/proc/InterceptClickOn(mob/user, params, atom/object)
 	if(!click_intercept_owned)
 		return FALSE
+	if(!holder || holder != user?.client)
+		return FALSE
 	if(!current_generator || !current_definition)
+		return FALSE
+	if(!check_rights_for(holder, current_definition.required_rights))
 		return FALSE
 	if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
 		return FALSE

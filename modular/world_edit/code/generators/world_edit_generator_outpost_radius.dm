@@ -47,6 +47,8 @@
 	return TRUE
 
 /datum/world_edit_generator/outpost_radius/proc/has_dense_blocker(turf/target_turf)
+	if(!target_turf)
+		return TRUE
 	for(var/atom/movable/blocker as anything in target_turf)
 		if(ismob(blocker))
 			continue
@@ -73,6 +75,8 @@
 	return TRUE
 
 /datum/world_edit_generator/outpost_radius/proc/spawn_defense_path(turf/target_turf, dir_to_spawn, defense_path, faction = null, turned_on = FALSE)
+	if(!target_turf)
+		return FALSE
 	if(!ispath(defense_path, /datum/human_ai_defense))
 		return FALSE
 
@@ -85,6 +89,8 @@
 		"placements" = list(),
 		"blocked_count" = 0,
 	)
+	if(!center_turf)
+		return result
 	var/list/placements = result["placements"]
 
 	for(var/offset_x in -radius to radius)
@@ -126,6 +132,8 @@
 		"placements" = list(),
 		"blocked_count" = 0,
 	)
+	if(!center_turf)
+		return result
 	var/list/placements = result["placements"]
 	var/inner_radius = max(radius - 1, 1)
 	var/list/sentry_offsets = list(
@@ -145,6 +153,15 @@
 	return result
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_plan(turf/center_turf, list/params)
+	if(!center_turf)
+		return list(
+			"barricade_placements" = list(),
+			"sentry_placements" = list(),
+			"preview_turfs" = list(),
+			"blocked_barricades" = 0,
+			"blocked_sentries" = 0,
+		)
+
 	var/radius = text2num("[params["radius"]]") || 4
 	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
 
@@ -201,6 +218,10 @@
 	if(planned_total > 68)
 		return "The requested outpost exceeds the Phase 1 placement cap."
 
+	var/list/plan = build_outpost_plan(center_turf, params)
+	if(!length(plan["preview_turfs"]))
+		return "No valid outpost placements were found around the current turf."
+
 	return null
 
 /datum/world_edit_generator/outpost_radius/preview(mob/user, list/params)
@@ -239,10 +260,20 @@
 		return result
 
 	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade)
+	if(!barricade_path)
+		result.message = "Invalid barricade type selected."
+		return result
+	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
 	var/sentry_path = resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
+	if(place_sentries && !sentry_path)
+		result.message = "Invalid sentry type selected."
+		return result
 	var/list/plan = build_outpost_plan(center_turf, params)
 	var/list/barricade_placements = plan["barricade_placements"]
 	var/list/sentry_placements = plan["sentry_placements"]
+	if(!length(barricade_placements) && !length(sentry_placements))
+		result.message = "Outpost apply finished with no valid placements."
+		return result
 	var/faction = "[params["faction"]]"
 	var/turned_on = world_edit_parse_bool(params["turned_on"])
 	var/created_barricades = 0

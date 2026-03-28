@@ -24,22 +24,30 @@
 		return TRUE
 	if(ismob(target))
 		return TRUE
+	if(target.anchored)
+		return TRUE
 	if(istype(target, /atom/movable/screen))
 		return TRUE
 	if(istype(target, /obj/effect/world_edit_persistent_fire))
+		return TRUE
+	if(istype(target, /obj/structure))
 		return TRUE
 	if(istype(target, /obj/structure/machinery))
 		return TRUE
 	if(istype(target, /obj/docking_port))
 		return TRUE
+	if(length(target.contents))
+		return TRUE
 	if(ismob(target.loc))
 		return TRUE
-	if(!affect_anchored && target.anchored)
+	if(!isturf(target.loc))
 		return TRUE
 	return FALSE
 
 /datum/world_edit_generator/destruction_pack/proc/collect_targets(list/area_turfs, affect_anchored = FALSE)
 	var/list/targets = list()
+	if(!length(area_turfs))
+		return targets
 	for(var/turf/target_turf as anything in area_turfs)
 		for(var/atom/movable/target as anything in target_turf)
 			if(should_skip_target(target, affect_anchored))
@@ -104,6 +112,16 @@
 	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
 	if(!shuffle_enabled && !scatter_enabled)
 		return "Enable at least one mode: shuffle or scatter."
+	if(world_edit_parse_bool(params["affect_anchored"]))
+		return "Anchored targets are disabled in the strict MVP safety pass."
+
+	var/list/area_turfs = collect_area_turfs(center_turf, radius)
+	if(!length(area_turfs))
+		return "No valid area turfs were found around the current turf."
+
+	var/list/targets = collect_targets(area_turfs, FALSE)
+	if(length(targets) > max_atoms)
+		return "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 
 	return null
 
@@ -117,6 +135,9 @@
 	var/radius = text2num("[params["radius"]]") || 3
 	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
+	if(!length(area_turfs))
+		result.message = "No valid area turfs were found around the current turf."
+		return result
 	var/list/targets = collect_targets(area_turfs, affect_anchored)
 
 	result.success = TRUE
@@ -143,6 +164,9 @@
 	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
+	if(!length(area_turfs))
+		result.message = "No valid area turfs were found around the current turf."
+		return result
 	var/list/area_lookup = build_area_lookup(area_turfs)
 	var/list/targets = collect_targets(area_turfs, affect_anchored)
 
