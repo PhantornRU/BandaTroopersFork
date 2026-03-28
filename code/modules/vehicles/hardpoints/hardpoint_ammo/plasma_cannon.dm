@@ -11,4 +11,3 @@
 
 /obj/item/ammo_magazine/hardpoint/plasmacannon/update_icon()
 	icon_state = "plasmacannon_[current_rounds]"
-
