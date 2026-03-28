@@ -52,12 +52,14 @@
 	mob_size = MOB_SIZE_BIG
 	pony_render_offset_x = 1
 	pony_render_offset_y = 3
-	pony_directional_offsets = list(
-		NORTH = list(PONY_XENO_RENDER_PIXEL_X = 0, PONY_XENO_RENDER_PIXEL_Y = -2),
-		SOUTH = list(PONY_XENO_RENDER_PIXEL_X = 0, PONY_XENO_RENDER_PIXEL_Y = 1),
-		EAST = list(PONY_XENO_RENDER_PIXEL_X = 1, PONY_XENO_RENDER_PIXEL_Y = 0),
-		WEST = list(PONY_XENO_RENDER_PIXEL_X = -1, PONY_XENO_RENDER_PIXEL_Y = 0)
-	)
+	pony_directional_north_x = 0
+	pony_directional_north_y = -2
+	pony_directional_south_x = 0
+	pony_directional_south_y = 1
+	pony_directional_east_x = 1
+	pony_directional_east_y = 0
+	pony_directional_west_x = -1
+	pony_directional_west_y = 0
 	pony_voice_name = "matriarch"
 	pony_title = "Matriarch"
 	pony_default_armor_variant = "spacesuit"

@@ -74,12 +74,14 @@
 	var/pony_default_armor_variant = PONY_XENO_NONE
 	var/pony_render_offset_x = 0
 	var/pony_render_offset_y = 0
-	var/list/pony_directional_offsets = list(
-		NORTH = list(PONY_XENO_RENDER_PIXEL_X = 0, PONY_XENO_RENDER_PIXEL_Y = -1),
-		SOUTH = list(PONY_XENO_RENDER_PIXEL_X = 0, PONY_XENO_RENDER_PIXEL_Y = 0),
-		EAST = list(PONY_XENO_RENDER_PIXEL_X = 1, PONY_XENO_RENDER_PIXEL_Y = 0),
-		WEST = list(PONY_XENO_RENDER_PIXEL_X = -1, PONY_XENO_RENDER_PIXEL_Y = 0)
-	)
+	var/pony_directional_north_x = 0
+	var/pony_directional_north_y = -1
+	var/pony_directional_south_x = 0
+	var/pony_directional_south_y = 0
+	var/pony_directional_east_x = 1
+	var/pony_directional_east_y = 0
+	var/pony_directional_west_x = -1
+	var/pony_directional_west_y = 0
 	var/datum/pony_xeno_appearance/pony_appearance
 	var/list/pony_body_variant_pool = list("battle")
 	var/list/pony_mane_front_variant_pool = list("wintershield")

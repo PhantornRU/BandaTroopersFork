@@ -227,16 +227,27 @@
 	return part
 
 /mob/living/carbon/xenomorph/pony/proc/get_pony_directional_offset(direction)
-	var/list/directional_offset = pony_directional_offsets?[direction]
-	if(!islist(directional_offset))
-		return list(PONY_XENO_RENDER_PIXEL_X = 0, PONY_XENO_RENDER_PIXEL_Y = 0)
+	var/offset_x = 0
+	var/offset_y = 0
 
-	return list(
-		PONY_XENO_RENDER_PIXEL_X = directional_offset[PONY_XENO_RENDER_PIXEL_X] || 0,
-		PONY_XENO_RENDER_PIXEL_Y = directional_offset[PONY_XENO_RENDER_PIXEL_Y] || 0
-	)
+	switch(direction)
+		if(NORTH)
+			offset_x = pony_directional_north_x
+			offset_y = pony_directional_north_y
+		if(SOUTH)
+			offset_x = pony_directional_south_x
+			offset_y = pony_directional_south_y
+		if(EAST)
+			offset_x = pony_directional_east_x
+			offset_y = pony_directional_east_y
+		if(WEST)
+			offset_x = pony_directional_west_x
+			offset_y = pony_directional_west_y
+
+	return list(offset_x, offset_y)
 
 /mob/living/carbon/xenomorph/pony/proc/get_pony_state_offset(state_name)
+	var/offset_x = 0
 	var/offset_y = 0
 	switch(state_name)
 		if(PONY_XENO_STATE_ATTACKING)
@@ -246,20 +257,21 @@
 		if(PONY_XENO_STATE_DEATH)
 			offset_y = 3
 
-	return list(
-		PONY_XENO_RENDER_PIXEL_X = 0,
-		PONY_XENO_RENDER_PIXEL_Y = offset_y
-	)
+	return list(offset_x, offset_y)
 
 /mob/living/carbon/xenomorph/pony/proc/get_pony_layer_blend_position(icon/canvas, icon/part, list/layer_data, state_name, direction)
 	var/list/directional_offset = get_pony_directional_offset(direction)
 	var/list/state_offset = get_pony_state_offset(state_name)
 	var/base_x = round((canvas.Width() - part.Width()) / 2)
 	var/base_y = round((canvas.Height() - part.Height()) / 2)
+	var/directional_x = (islist(directional_offset) && length(directional_offset) >= 1) ? (directional_offset[1] || 0) : 0
+	var/directional_y = (islist(directional_offset) && length(directional_offset) >= 2) ? (directional_offset[2] || 0) : 0
+	var/state_x = (islist(state_offset) && length(state_offset) >= 1) ? (state_offset[1] || 0) : 0
+	var/state_y = (islist(state_offset) && length(state_offset) >= 2) ? (state_offset[2] || 0) : 0
 
 	return list(
-		PONY_XENO_RENDER_PIXEL_X = base_x + pony_render_offset_x + (directional_offset[PONY_XENO_RENDER_PIXEL_X] || 0) + (state_offset[PONY_XENO_RENDER_PIXEL_X] || 0) + (layer_data[PONY_XENO_RENDER_PIXEL_X] || 0),
-		PONY_XENO_RENDER_PIXEL_Y = base_y + pony_render_offset_y + (directional_offset[PONY_XENO_RENDER_PIXEL_Y] || 0) + (state_offset[PONY_XENO_RENDER_PIXEL_Y] || 0) + (layer_data[PONY_XENO_RENDER_PIXEL_Y] || 0)
+		base_x + pony_render_offset_x + directional_x + state_x + (layer_data[PONY_XENO_RENDER_PIXEL_X] || 0),
+		base_y + pony_render_offset_y + directional_y + state_y + (layer_data[PONY_XENO_RENDER_PIXEL_Y] || 0)
 	)
 
 /mob/living/carbon/xenomorph/pony/proc/get_generated_pony_icon(state_name, direction)
@@ -278,7 +290,10 @@
 			continue
 
 		var/list/blend_position = get_pony_layer_blend_position(canvas, part, layer_data, state_name, direction)
-		canvas.Blend(part, ICON_OVERLAY, blend_position[PONY_XENO_RENDER_PIXEL_X], blend_position[PONY_XENO_RENDER_PIXEL_Y])
+		if(!islist(blend_position) || length(blend_position) < 2)
+			continue
+
+		canvas.Blend(part, ICON_OVERLAY, blend_position[1], blend_position[2])
 
 	if(state_name == PONY_XENO_STATE_SLEEPING || state_name == PONY_XENO_STATE_KNOCKED_DOWN || state_name == PONY_XENO_STATE_DEATH)
 		canvas.GrayScale()
