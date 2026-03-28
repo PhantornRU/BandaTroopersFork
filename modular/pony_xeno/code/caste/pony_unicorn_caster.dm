@@ -72,14 +72,14 @@
 		/datum/action/xeno_action/activable/xeno_spit/ai,
 		/datum/action/xeno_action/onclick/charge_spit,
 		/datum/action/xeno_action/activable/spray_acid/spitter/ai,
-		/datum/action/xeno_action/onclick/tacmap
+		/datum/action/xeno_action/onclick/tacmap,
 	)
 	inherent_verbs = list(
-		/mob/living/carbon/xenomorph/proc/vent_crawl
+		/mob/living/carbon/xenomorph/proc/vent_crawl,
 	)
 	sound_meta_magic = list(
 		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_magic_1.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_SHORT),
-		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_magic_2.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_SHORT)
+		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_magic_2.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_SHORT),
 	)
 
 /mob/living/carbon/xenomorph/pony/unicorn_caster/init_movement_handler()

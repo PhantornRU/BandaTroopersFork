@@ -42,7 +42,7 @@
 	gibtypes = list(
 		/obj/effect/decal/cleanable/blood/gibs/pony,
 		/obj/effect/decal/cleanable/blood/gibs/pony/limb,
-		/obj/effect/decal/cleanable/blood/gibs/pony/core
+		/obj/effect/decal/cleanable/blood/gibs/pony/core,
 	)
 	gibamounts = list(1, 1, 1)
 
@@ -154,17 +154,35 @@
 		wound_icon_holder = null
 
 	voice_name = pony_voice_name
-	apply_generated_pony_appearance()
+	update_icons()
 
 /mob/living/carbon/xenomorph/pony/update_icon_source()
 	if(!caste)
 		return
-	apply_generated_pony_appearance()
 	update_icons()
+
+/mob/living/carbon/xenomorph/pony/update_icons()
+	if(!caste)
+		return
+
+	update_fire()
+	update_wounds()
+	update_inv_back()
+
+	if(behavior_delegate?.on_update_icons())
+		return
+
+	apply_generated_pony_appearance()
 
 /mob/living/carbon/xenomorph/pony/recalculate_everything()
 	. = ..()
-	apply_generated_pony_appearance()
+	update_icons()
+
+/mob/living/carbon/xenomorph/pony/setDir(newdir)
+	var/old_dir = dir
+	. = ..()
+	if(dir != old_dir && dir in GLOB.cardinals)
+		update_icons()
 
 /mob/living/carbon/xenomorph/pony/process_ai(delta_time)
 	if(current_target && prob(PONY_XENO_COMBAT_SOUND_TRIGGER_CHANCE))

@@ -274,6 +274,20 @@
 		base_y + pony_render_offset_y + directional_y + state_y + (layer_data[PONY_XENO_RENDER_PIXEL_Y] || 0)
 	)
 
+/mob/living/carbon/xenomorph/pony/proc/get_pony_runtime_state_name()
+	if(stat == DEAD)
+		return PONY_XENO_STATE_DEATH
+
+	if(body_position == LYING_DOWN)
+		if(!HAS_TRAIT(src, TRAIT_INCAPACITATED) && !HAS_TRAIT(src, TRAIT_FLOORED))
+			return PONY_XENO_STATE_SLEEPING
+		return PONY_XENO_STATE_KNOCKED_DOWN
+
+	if(m_intent != MOVE_INTENT_RUN)
+		return PONY_XENO_STATE_WALKING
+
+	return PONY_XENO_STATE_RUNNING
+
 /mob/living/carbon/xenomorph/pony/proc/get_generated_pony_icon(state_name, direction)
 	var/cache_key = build_pony_appearance_key(state_name, direction)
 	if(GLOB.pony_xeno_generated_icons[cache_key])
@@ -325,30 +339,38 @@
 	GLOB.pony_xeno_generated_icon_packs[pack_key] = pack
 	return pack
 
-/mob/living/carbon/xenomorph/pony/proc/apply_generated_pony_appearance()
+/mob/living/carbon/xenomorph/pony/proc/apply_generated_pony_appearance(state_name = null, direction = null)
 	if(!caste && !caste_type)
 		return null
 
-	var/icon/pack = generate_pony_icon_pack()
-	if(!pack)
+	if(!(direction in GLOB.cardinals))
+		direction = (dir in GLOB.cardinals) ? dir : SOUTH
+
+	if(!state_name)
+		state_name = get_pony_runtime_state_name()
+
+	var/icon/generated_icon = get_generated_pony_icon(state_name, direction)
+	if(!generated_icon)
 		return null
-	icon_xeno = pack
-	icon_xenonid = pack
-	icon = pack
+
+	icon_xeno = generated_icon
+	icon_xenonid = generated_icon
+	icon = generated_icon
+	icon_state = "blank"
 	has_walking_icon_state = TRUE
-	return pack
+	return generated_icon
 
 /mob/living/carbon/xenomorph/pony/get_custom_remains_icon()
 	var/cache_key = build_pony_appearance_key(PONY_XENO_STATE_REMAINS, SOUTH)
 	if(GLOB.pony_xeno_generated_remains[cache_key])
 		return GLOB.pony_xeno_generated_remains[cache_key]
 
-	var/icon/remains = new /icon(PONY_XENO_ICON_STATES_BASE, "blank", SOUTH)
 	var/icon/generated = get_generated_pony_icon(PONY_XENO_STATE_DEATH, SOUTH)
-	if(generated)
-		remains.Insert(generated, icon_state = "remains", dir = SOUTH)
-	GLOB.pony_xeno_generated_remains[cache_key] = remains
-	return remains
+	if(!generated)
+		generated = new /icon(PONY_XENO_ICON_STATES_BASE, "blank", SOUTH)
+
+	GLOB.pony_xeno_generated_remains[cache_key] = generated
+	return generated
 
 /mob/living/carbon/xenomorph/pony/get_custom_remains_icon_state()
-	return "remains"
+	return "blank"

@@ -91,10 +91,10 @@
 		/datum/action/xeno_action/activable/xeno_spit/queen_macro/ai,
 		/datum/action/xeno_action/onclick/screech/ai,
 		/datum/action/xeno_action/onclick/shift_spits,
-		/datum/action/xeno_action/onclick/tacmap
+		/datum/action/xeno_action/onclick/tacmap,
 	)
 	sound_meta_magic = list(
 		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_magic_1.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_SHORT),
 		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_magic_2.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_SHORT),
-		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_royal_1.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_MEDIUM)
+		list(ARACHNID_SOUND_META_PATH = 'modular/pony_xeno/sounds/pony_royal_1.ogg', ARACHNID_SOUND_META_TIER = PONY_XENO_SOUND_TIER_MEDIUM),
 	)
