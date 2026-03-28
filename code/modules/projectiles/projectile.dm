@@ -875,8 +875,6 @@
 			return FALSE
 		if(mobility_aura)
 			. -= mobility_aura * 5
-		if(dodge_pool)
-			. -= dodge_pool * 8
 		if(HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE))
 			. -= . / 1.3
 		var/mob/living/carbon/human/shooter_human = P.firer
