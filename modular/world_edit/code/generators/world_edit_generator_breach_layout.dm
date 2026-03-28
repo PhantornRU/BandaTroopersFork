@@ -1,4 +1,4 @@
-﻿/datum/world_edit_generator/breach_layout
+/datum/world_edit_generator/breach_layout
 	var/click_mode_active = FALSE
 
 /datum/world_edit_generator/breach_layout/configure_params(mob/user, list/current_params)

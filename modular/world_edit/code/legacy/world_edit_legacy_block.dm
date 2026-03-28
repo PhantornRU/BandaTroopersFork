@@ -119,7 +119,7 @@
 /// Каталог защит строится через рефлексию по /datum/human_ai_defense.
 /proc/world_edit_build_defense_catalog()
 	var/list/catalog = list()
-	for(var/defense_type in subtypesof(/datum/human_ai_defense))
+	for(var/datum/human_ai_defense/defense_type as anything in subtypesof(/datum/human_ai_defense))
 		if(!defense_type::name)
 			continue
 

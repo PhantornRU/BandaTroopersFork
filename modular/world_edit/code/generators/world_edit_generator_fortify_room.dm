@@ -1,4 +1,4 @@
-﻿/datum/world_edit_generator/fortify_room
+/datum/world_edit_generator/fortify_room
 	requires_preview_before_apply = TRUE
 	var/list/last_preview_data
 

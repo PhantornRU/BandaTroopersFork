@@ -1,4 +1,4 @@
-﻿/datum/world_edit_generator/structure_chunk
+/datum/world_edit_generator/structure_chunk
 	var/list/last_preview_turfs = list()
 
 /datum/world_edit_generator/structure_chunk/proc/get_template_names()

@@ -1,4 +1,4 @@
-﻿#define WORLD_EDIT_EXECUTION_BATCH "batch"
+#define WORLD_EDIT_EXECUTION_BATCH "batch"
 #define WORLD_EDIT_EXECUTION_CLICK "click"
 #define WORLD_EDIT_STATUS_DRAFT "draft"
 #define WORLD_EDIT_STATUS_READY "ready"

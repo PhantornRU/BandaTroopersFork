@@ -6,7 +6,7 @@
 
 /datum/world_edit_generator/barricade_builder/proc/build_catalog()
 	var/list/catalog = list()
-	for(var/defense_type in subtypesof(/datum/human_ai_defense/barricade))
+	for(var/datum/human_ai_defense/barricade/defense_type as anything in subtypesof(/datum/human_ai_defense/barricade))
 		if(!defense_type::name)
 			continue
 

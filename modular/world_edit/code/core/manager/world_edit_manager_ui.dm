@@ -1,4 +1,4 @@
-﻿/datum/world_edit_manager/tgui_interact(mob/user, datum/tgui/ui)
+/datum/world_edit_manager/tgui_interact(mob/user, datum/tgui/ui)
 	if(!holder || QDELETED(holder) || holder != user?.client)
 		return
 

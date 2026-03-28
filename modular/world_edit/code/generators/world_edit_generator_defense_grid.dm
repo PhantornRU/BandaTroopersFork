@@ -1,4 +1,4 @@
-﻿/datum/world_edit_generator/defense_grid
+/datum/world_edit_generator/defense_grid
 	var/static/list/valid_factions = list(FACTION_MARINE, FACTION_UA_REBEL, FACTION_UPP, FACTION_CANC, FACTION_WY, FACTION_FREELANCER, FACTION_TWE, FACTION_TWE_REBEL, FACTION_MERCENARY)
 	var/static/list/defense_catalog
 

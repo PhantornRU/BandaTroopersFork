@@ -27,7 +27,7 @@
 		"respect_windows" = TRUE,
 		"respect_doors" = TRUE
 	)
-	status = WORLD_EDIT_STATUS_READY
+	status = WORLD_EDIT_STATUS_DEPRECATED
 
 /datum/world_edit_generator_definition/defense_grid
 	id = "defense_grid"
@@ -46,7 +46,7 @@
 		"batch_count" = 1,
 		"batch_step" = 1
 	)
-	status = WORLD_EDIT_STATUS_READY
+	status = WORLD_EDIT_STATUS_DEPRECATED
 
 /datum/world_edit_generator_definition/breach_layout
 	id = "breach_layout"
@@ -62,7 +62,7 @@
 		"direction" = NORTH,
 		"allowed_profile" = "Стандартный"
 	)
-	status = WORLD_EDIT_STATUS_READY
+	status = WORLD_EDIT_STATUS_DEPRECATED
 
 /datum/world_edit_generator_definition/barricade_builder
 	id = "barricade_builder"
@@ -81,7 +81,7 @@
 		"replace_existing_same_dir" = FALSE,
 		"max_tiles" = 40
 	)
-	status = WORLD_EDIT_STATUS_READY
+	status = WORLD_EDIT_STATUS_DEPRECATED
 
 /datum/world_edit_generator_definition/chaos_demolition
 	id = "chaos_demolition"
@@ -105,7 +105,7 @@
 		"max_atoms" = 120,
 		"affect_anchored" = FALSE
 	)
-	status = WORLD_EDIT_STATUS_READY
+	status = WORLD_EDIT_STATUS_DEPRECATED
 
 /datum/world_edit_generator_definition/structure_chunk
 	id = "structure_chunk"
@@ -120,6 +120,44 @@
 		"template_name" = "",
 		"centered" = TRUE,
 		"delete_atoms" = FALSE
+	)
+	status = WORLD_EDIT_STATUS_DEPRECATED
+
+/datum/world_edit_generator_definition/outpost_radius
+	id = "outpost_radius"
+	name_ru = "Outpost Radius"
+	category_ru = "Construction"
+	description_ru = "Safe radius-based perimeter outpost builder."
+	required_rights = R_EVENT
+	supports_preview = TRUE
+	execution_mode = WORLD_EDIT_EXECUTION_BATCH
+	generator_type = /datum/world_edit_generator/outpost_radius
+	default_params = list(
+		"radius" = 4,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"place_sentries" = FALSE,
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE
+	)
+	status = WORLD_EDIT_STATUS_READY
+
+/datum/world_edit_generator_definition/destruction_pack
+	id = "destruction_pack"
+	name_ru = "Destruction Pack"
+	category_ru = "Destruction"
+	description_ru = "Limited radius-based shuffle/scatter pack for movable atoms."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = WORLD_EDIT_EXECUTION_BATCH
+	generator_type = /datum/world_edit_generator/destruction_pack
+	default_params = list(
+		"radius" = 3,
+		"shuffle_enabled" = TRUE,
+		"scatter_enabled" = FALSE,
+		"scatter_steps" = 2,
+		"max_atoms" = 60,
+		"affect_anchored" = FALSE
 	)
 	status = WORLD_EDIT_STATUS_READY
 

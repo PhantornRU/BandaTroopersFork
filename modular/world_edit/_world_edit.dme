@@ -5,6 +5,8 @@
 #include "code/core/world_edit_registry.dm"
 #include "code/legacy/world_edit_legacy_block.dm"
 #include "code/generators/shared/world_edit_generator_shared_helpers.dm"
+#include "code/generators/world_edit_generator_outpost_radius.dm"
+#include "code/generators/world_edit_generator_destruction_pack.dm"
 #include "code/generators/world_edit_generator_fortify_room.dm"
 #include "code/generators/world_edit_generator_defense_grid.dm"
 #include "code/generators/world_edit_generator_breach_layout.dm"
