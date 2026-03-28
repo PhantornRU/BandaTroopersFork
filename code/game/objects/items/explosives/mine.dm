@@ -929,9 +929,13 @@
 	var/disarmed = FALSE
 	explosive_power = 200
 	explosive_falloff = 100
+	var/mine_mode = SHARP_DANGER_MODE
 
 /obj/item/explosive/mine/sharp/check_for_obstacles(mob/living/user)
 	return FALSE
+
+/obj/item/explosive/mine/sharp/proc/set_mine_mode(mode)
+	mine_mode = mode
 
 /obj/item/explosive/mine/sharp/attackby(obj/item/W, mob/user)
 	return
@@ -949,6 +953,14 @@
 	set waitfor = 0
 	if(!cause_data)
 		cause_data = create_cause_data(initial(name), user)
+	switch(mine_mode)
+		if(SHARP_DIRECTED_MODE)
+			explosive_falloff = (explosive_power * 0.75)
+		if(SHARP_SAFE_MODE)
+			for(var/mob/living/carbon/human in range((explosive_power / explosive_falloff), src))
+				if(human.get_target_lock(iff_signal))
+					disarm()
+					return
 	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
 	playsound(loc, 'sound/weapons/gun_sharp_explode.ogg', 45)
 	qdel(src)
@@ -988,6 +1000,39 @@
 		..()
 	else
 		return
+
+/obj/item/explosive/mine/sharp/incendiary
+	name = "\improper P9 SHARP incendiary dart"
+	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
+	icon_state = "sharp_incendiary_dart"
+
+/obj/item/explosive/mine/sharp/incendiary/prime(mob/user)
+	set waitfor = FALSE
+	var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
+	var/datum/reagent/incendiary_reagent = new /datum/reagent/napalm/green
+	var/smoke_radius = 1
+	var/flame_radius = 2
+	if(!cause_data)
+		cause_data = create_cause_data(initial(name), user, src)
+	else if(user)
+		cause_data.weak_mob = WEAKREF(user)
+	playsound(loc, 'sound/weapons/gun_flamethrower3.ogg', 45)
+	switch(mine_mode)
+		if(SHARP_DIRECTED_MODE)
+			incendiary_reagent = new /datum/reagent/napalm/blue
+			flame_radius = 1
+			new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
+			qdel(src)
+			return
+		if(SHARP_SAFE_MODE)
+			for(var/mob/living/carbon/human in range(smoke_radius, src))
+				if(human.get_target_lock(iff_signal))
+					disarm()
+					return
+	new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
+	smoke.set_up(smoke_radius, 0, get_turf(src))
+	smoke.start()
+	qdel(src)
 
 /obj/item/explosive/mine/sebb
 	name = "\improper G2 Electroshock grenade"
