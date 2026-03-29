@@ -370,12 +370,6 @@
 	explosive_power = 90
 	explosive_falloff = 35
 
-//PMC claymore predeployed
-/obj/item/explosive/mine/pmc/active
-	icon_state = "m20p_active"
-	base_icon_state = "m20p"
-	map_deployed = TRUE
-
 /obj/item/explosive/mine/pmc/strong/active
 	icon_state = "m20p_active"
 	base_icon_state = "m20p"
