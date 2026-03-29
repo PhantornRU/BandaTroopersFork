@@ -1,0 +1,6 @@
+author: Alexsey Bezyuk
+delete-after: True
+changes:
+  - rscadd: "World Edit now supports per-admin presets for Outpost Radius and Destruction Pack."
+  - rscadd: "World Edit gained Blueprint Lite for safe server-validated structure preview and stamping."
+  - tweak: "The World Edit panel now exposes preset and blueprint library actions for the Phase 3A workflow."

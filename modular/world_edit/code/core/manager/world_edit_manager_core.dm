@@ -19,6 +19,10 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/last_apply_message = ""
 
 	var/list/history_entries = list()
+	var/list/preset_entries_cache = list()
+	var/preset_cache_loaded = FALSE
+	var/list/blueprint_entries_cache = list()
+	var/blueprint_cache_loaded = FALSE
 
 	var/datum/click_intercept_previous
 	var/click_intercept_owned = FALSE
@@ -27,6 +31,8 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	. = ..()
 	holder = new_holder
 	history_entries = list()
+	preset_entries_cache = list()
+	blueprint_entries_cache = list()
 	preview_images = list()
 	current_params = list()
 	last_preview_meta = list()
@@ -37,6 +43,8 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	clear_preview_images()
 	detach_current_generator()
 	history_entries = null
+	preset_entries_cache = null
+	blueprint_entries_cache = null
 	if(holder && GLOB.world_edit_managers_by_client[holder] == src)
 		GLOB.world_edit_managers_by_client[holder] = null
 	holder = null

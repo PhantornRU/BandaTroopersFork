@@ -71,6 +71,27 @@ type HistoryEntry = {
   message: string;
 };
 
+type PresetEntry = {
+  id: string;
+  name: string;
+  generator_id: string;
+  params_short: string;
+  created_at: string;
+};
+
+type BlueprintEntry = {
+  id: string;
+  name: string;
+  entry_count: number;
+  radius: number;
+  created_at: string;
+  created_by: string;
+  source: string;
+  valid: boolean;
+  error: string;
+  active?: boolean;
+};
+
 type BackendData = {
   categories: GeneratorCategory[];
   has_generator: boolean;
@@ -88,6 +109,11 @@ type BackendData = {
   has_inline_fields: boolean;
   ui_mode: 'inline' | 'wizard_fallback';
   runtime_status: RuntimeStatusEntry[];
+  can_manage_presets: boolean;
+  preset_entries: PresetEntry[];
+  blueprint_entries: BlueprintEntry[];
+  active_blueprint_id?: string;
+  can_save_blueprint_from_plan: boolean;
   last_ui_error: string;
   preview_valid: boolean;
   preview_success: boolean;
@@ -277,11 +303,7 @@ export const WorldEditPanel = () => {
                   </Box>
                 )}
                 {data.categories?.map((category) => (
-                  <Section
-                    key={category.category}
-                    level={2}
-                    title={category.category}
-                  >
+                  <Section key={category.category} title={category.category}>
                     <Stack vertical>
                       {category.generators.map((generator) => (
                         <Stack.Item key={generator.id}>
@@ -324,7 +346,7 @@ export const WorldEditPanel = () => {
 
                 {!!data.has_generator && (
                   <>
-                    <Section level={2} title="Текущий генератор">
+                    <Section title="Текущий генератор">
                       <Box>
                         {data.current_generator_category} /{' '}
                         {data.current_generator_name}
@@ -348,7 +370,7 @@ export const WorldEditPanel = () => {
                       <NoticeBox danger>{data.last_ui_error}</NoticeBox>
                     )}
 
-                    <Section level={2} title="Управление настройкой">
+                    <Section title="Управление настройкой">
                       <Stack>
                         <Stack.Item>
                           <Button
@@ -374,7 +396,172 @@ export const WorldEditPanel = () => {
                       </Stack>
                     </Section>
 
-                    <Section level={2} title="Inline-настройка">
+                    <Section title="Presets">
+                      {!data.can_manage_presets && (
+                        <Box color="label">
+                          В этой фазе presets доступны только для
+                          `outpost_radius` и `destruction_pack`.
+                        </Box>
+                      )}
+
+                      {!!data.can_manage_presets && (
+                        <>
+                          <Stack mb={1}>
+                            <Stack.Item>
+                              <Button onClick={() => act('save_preset')}>
+                                Сохранить preset
+                              </Button>
+                            </Stack.Item>
+                          </Stack>
+
+                          {!data.preset_entries?.length && (
+                            <Box color="label">
+                              Для текущего генератора ещё нет сохранённых
+                              preset'ов.
+                            </Box>
+                          )}
+
+                          {!!data.preset_entries?.length && (
+                            <Stack vertical>
+                              {data.preset_entries.map((preset) => (
+                                <Section key={preset.id} title={preset.name || preset.id}>
+                                  <Box color="label">
+                                    Сохранён: {preset.created_at || 'n/a'}
+                                  </Box>
+                                  <Box color="label">
+                                    Параметры: {preset.params_short}
+                                  </Box>
+                                  <Stack mt={1}>
+                                    <Stack.Item>
+                                      <Button
+                                        onClick={() =>
+                                          act('load_preset', {
+                                            preset_id: preset.id,
+                                          })
+                                        }
+                                      >
+                                        Загрузить
+                                      </Button>
+                                    </Stack.Item>
+                                    <Stack.Item>
+                                      <Button
+                                        color="average"
+                                        onClick={() =>
+                                          act('delete_preset', {
+                                            preset_id: preset.id,
+                                          })
+                                        }
+                                      >
+                                        Удалить
+                                      </Button>
+                                    </Stack.Item>
+                                  </Stack>
+                                </Section>
+                              ))}
+                            </Stack>
+                          )}
+                        </>
+                      )}
+                    </Section>
+
+                    <Section title="Blueprint Library">
+                      <Stack mb={1}>
+                        <Stack.Item>
+                          <Button onClick={() => act('list_blueprints')}>
+                            Обновить библиотеку
+                          </Button>
+                        </Stack.Item>
+                        <Stack.Item>
+                          <Button
+                            disabled={!data.can_save_blueprint_from_plan}
+                            onClick={() => act('save_blueprint')}
+                          >
+                            Сохранить из outpost preview
+                          </Button>
+                        </Stack.Item>
+                      </Stack>
+
+                      {!data.blueprint_entries?.length && (
+                        <Box color="label">
+                          В библиотеке пока нет blueprint'ов.
+                        </Box>
+                      )}
+
+                      {!!data.blueprint_entries?.length && (
+                        <Stack vertical>
+                          {data.blueprint_entries.map((blueprint) => (
+                            <Section
+                              key={blueprint.id}
+                              title={`${blueprint.name} [r=${blueprint.radius}]`}>
+                              {!!blueprint.active && (
+                                <Box color="good">
+                                  Активный blueprint для текущего менеджера.
+                                </Box>
+                              )}
+                              <Box color="label">
+                                Entries: {blueprint.entry_count} | Source:{' '}
+                                {blueprint.source || 'n/a'} | Author:{' '}
+                                {blueprint.created_by || 'n/a'}
+                              </Box>
+                              <Box color="label">
+                                Создан: {blueprint.created_at || 'n/a'}
+                              </Box>
+
+                              {!blueprint.valid && (
+                                <NoticeBox danger>
+                                  {blueprint.error || 'Blueprint невалиден.'}
+                                </NoticeBox>
+                              )}
+
+                              <Stack mt={1}>
+                                <Stack.Item>
+                                  <Button
+                                    disabled={!blueprint.valid}
+                                    onClick={() =>
+                                      act('load_blueprint', {
+                                        blueprint_id: blueprint.id,
+                                      })
+                                    }
+                                  >
+                                    Загрузить
+                                  </Button>
+                                </Stack.Item>
+                                <Stack.Item>
+                                  <Button
+                                    disabled={!blueprint.valid}
+                                    onClick={() =>
+                                      act('preview_blueprint', {
+                                        blueprint_id: blueprint.id,
+                                      })
+                                    }
+                                  >
+                                    Preview
+                                  </Button>
+                                </Stack.Item>
+                                <Stack.Item>
+                                  <Button
+                                    disabled={
+                                      !blueprint.valid ||
+                                      !blueprint.active ||
+                                      !data.preview_valid
+                                    }
+                                    onClick={() =>
+                                      act('apply_blueprint', {
+                                        blueprint_id: blueprint.id,
+                                      })
+                                    }
+                                  >
+                                    Apply
+                                  </Button>
+                                </Stack.Item>
+                              </Stack>
+                            </Section>
+                          ))}
+                        </Stack>
+                      )}
+                    </Section>
+
+                    <Section title="Inline-настройка">
                       {!data.has_inline_fields && (
                         <Box color="label">
                           Этот генератор не отдает inline-поля. Используйте
@@ -392,11 +579,7 @@ export const WorldEditPanel = () => {
                         groupNames.map((groupName) => {
                           const fields = groupedFields[groupName] || [];
                           return (
-                            <Section
-                              key={groupName}
-                              level={3}
-                              title={groupName}
-                            >
+                            <Section key={groupName} title={groupName}>
                               <LabeledList>
                                 {fields.map((field) => (
                                   <FieldEditor
@@ -411,11 +594,11 @@ export const WorldEditPanel = () => {
                         })}
                     </Section>
 
-                    <Section level={2} title="Текущие параметры">
+                    <Section title="Текущие параметры">
                       <Box>{data.current_params_text}</Box>
                     </Section>
 
-                    <Section level={2} title="Runtime-статус">
+                    <Section title="Runtime-статус">
                       {!data.runtime_status?.length && (
                         <Box color="label">
                           Дополнительный статус не предоставлен.
@@ -461,7 +644,7 @@ export const WorldEditPanel = () => {
                   </Stack.Item>
                 </Stack>
 
-                <Section level={2} title="Состояние preview">
+                <Section title="Состояние preview">
                   <Box>
                     Статус: {data.preview_success ? 'успех' : 'ошибка/нет'} |
                     Валиден для apply: {data.preview_valid ? 'да' : 'нет'}
@@ -471,7 +654,7 @@ export const WorldEditPanel = () => {
                   </Box>
                 </Section>
 
-                <Section level={2} title="Meta">
+                <Section title="Meta">
                   {!data.preview_meta ||
                   !Object.keys(data.preview_meta).length ? (
                     <Box color="label">Meta отсутствует.</Box>
@@ -510,7 +693,7 @@ export const WorldEditPanel = () => {
                   </Stack.Item>
                 </Stack>
 
-                <Section level={2} title="Требования">
+                <Section title="Требования">
                   <Box>
                     Требуется preview перед apply:{' '}
                     {data.requires_preview_before_apply ? 'да' : 'нет'}
@@ -520,7 +703,7 @@ export const WorldEditPanel = () => {
                   </Box>
                 </Section>
 
-                <Section level={2} title="Последний apply">
+                <Section title="Последний apply">
                   <Box color={data.last_apply_success ? 'good' : 'average'}>
                     {data.last_apply_message ||
                       'Операции apply еще не выполнялись.'}
@@ -551,9 +734,7 @@ export const WorldEditPanel = () => {
                     {data.history_entries.map((entry, index) => (
                       <Section
                         key={`${entry.time}_${entry.generator_id}_${index}`}
-                        level={2}
-                        title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}
-                      >
+                        title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}>
                         <Box>
                           Создано: {entry.created_count} | Удалено:{' '}
                           {entry.deleted_count} | Центр: {entry.center_turf} |

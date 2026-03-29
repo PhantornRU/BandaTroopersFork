@@ -161,6 +161,20 @@
 	)
 	status = WORLD_EDIT_STATUS_READY
 
+/datum/world_edit_generator_definition/blueprint_stamp
+	id = "blueprint_stamp"
+	name_ru = "Blueprint Stamp"
+	category_ru = "Blueprints"
+	description_ru = "Safe structure stamping from the World Edit Blueprint Lite library."
+	required_rights = R_EVENT
+	supports_preview = TRUE
+	execution_mode = WORLD_EDIT_EXECUTION_BATCH
+	generator_type = /datum/world_edit_generator/blueprint_stamp
+	default_params = list(
+		"blueprint_id" = "",
+	)
+	status = WORLD_EDIT_STATUS_READY
+
 GLOBAL_LIST_INIT(world_edit_generator_definitions_by_id, world_edit_build_generator_definition_index())
 
 /proc/world_edit_build_generator_definition_index()

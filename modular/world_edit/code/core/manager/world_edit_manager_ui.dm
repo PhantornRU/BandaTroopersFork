@@ -29,6 +29,9 @@
 	if(!holder || holder != user?.client || !check_rights_for(holder, R_EVENT|R_DEBUG))
 		return list()
 
+	ensure_preset_cache_loaded()
+	ensure_blueprint_cache_loaded()
+
 	var/list/data = list()
 	var/has_generator = (current_definition && current_generator) ? TRUE : FALSE
 	var/list/ui_fields = get_normalized_ui_fields()
@@ -54,6 +57,11 @@
 	data["has_inline_fields"] = has_inline_fields
 	data["ui_mode"] = has_inline_fields ? "inline" : "wizard_fallback"
 	data["runtime_status"] = current_generator?.get_runtime_status() || list()
+	data["can_manage_presets"] = can_manage_current_generator_presets()
+	data["preset_entries"] = get_current_generator_presets()
+	data["blueprint_entries"] = get_blueprint_entries_for_ui()
+	data["active_blueprint_id"] = get_active_blueprint_id()
+	data["can_save_blueprint_from_plan"] = can_save_blueprint_from_current_plan()
 	data["last_ui_error"] = last_ui_error || ""
 
 	data["preview_valid"] = is_preview_state_valid()
@@ -95,6 +103,39 @@
 
 		if("refresh_ui")
 			refresh_current_generator_ui(ui.user)
+			return TRUE
+
+		if("save_preset")
+			save_current_preset(ui.user)
+			return TRUE
+
+		if("load_preset")
+			load_preset_by_id(ui.user, params["preset_id"])
+			return TRUE
+
+		if("delete_preset")
+			delete_preset_by_id(ui.user, params["preset_id"])
+			return TRUE
+
+		if("list_blueprints")
+			refresh_blueprint_cache()
+			last_ui_error = ""
+			return TRUE
+
+		if("save_blueprint")
+			save_blueprint_from_current_plan(ui.user)
+			return TRUE
+
+		if("load_blueprint")
+			load_blueprint_into_manager(ui.user, params["blueprint_id"])
+			return TRUE
+
+		if("preview_blueprint")
+			preview_blueprint_by_id(ui.user, params["blueprint_id"])
+			return TRUE
+
+		if("apply_blueprint")
+			apply_blueprint_by_id(ui.user, params["blueprint_id"])
 			return TRUE
 
 		if("configure_wizard")
