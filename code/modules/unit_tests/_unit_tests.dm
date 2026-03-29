@@ -98,6 +98,7 @@
 #include "halo_unggoy_ai.dm"
 // #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior
 // #include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
+#include "medical_regressions.dm" // SS220 EDIT: BT regression coverage for medic ladders and self-splint behavior
 #include "missing_icons.dm"
 #include "resist.dm"
 #include "spawn_humans.dm"

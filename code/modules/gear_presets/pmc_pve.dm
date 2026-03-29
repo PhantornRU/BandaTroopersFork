@@ -52,4 +52,5 @@
 	assignment = JOB_PMCPLAT_MEDIC
 	idtype = /obj/item/card/id/pmc
 	rank = JOB_SQUAD_MEDIC
-	skills = /datum/skills/combat_medic_pve
+	// skills = /datum/skills/combat_medic_pve
+	skills = /datum/skills/pmc/medic // SS220 EDIT: PMC PvE medics bind to the BT-specific PMC medic ladder

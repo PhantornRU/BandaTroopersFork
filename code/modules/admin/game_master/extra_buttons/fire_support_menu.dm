@@ -12,7 +12,7 @@
 #define CHEMICAL_ORDNANCE list("CN-20 Missile", "Nerve Gas OB", "Nerve Gas Shell", "Cryogenic Neon OB")
 #define MISC_ORDNANCE list("Laser", "Minirocket", "Incendiary Minirocket",  "Sentry Drop", "25mm Multipurpose Strike", "25mm Armorpiercing Strike")
 #define THROWABLES_ORDNANCE list("HE", "HE - UPP", "HE - RMC", "Frag", "Incendiary", "Molotov", "Incendiary - RMC", "Smoke - White", "Smoke - Green", "Smoke - Red", "Smoke - UPP", "WP", "WP - UPP", "Ball-Breakers", "Nerve Gas", "LSD", "Tear Gas", "Cryogenic Neon", "Metal Foam", "Flare", "Flare - UPP", "Flare - Signal")
-#define FLYBY_ORDNANCE list("Banshee Flyby", "Seraph Flyby", "Wombat Flyby", "C712 Flyby", "C709 Flyby")
+#define FLYBY_ORDNANCE list("Cheyenne Flyby", "Cheyenne Hover", "Krokodil Flyby", "Krokodil Hover", "Banshee Flyby", "Seraph Flyby", "Wombat Flyby", "C712 Flyby", "C709 Flyby")
 
 /client/proc/toggle_fire_support_menu()
 	set name = "Fire Support Menu"
@@ -29,8 +29,8 @@
 	///Mortar to fire the abstract shells.
 	var/obj/structure/mortar/abstract_mortar = new()
 	var/client/holder
-	var/flyby_effect = /obj/effect/temp_visual/flyby/banshee_flyby
-	var/flyby_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	var/flyby_effect = /obj/effect/temp_visual/dropship_flyby
+	var/flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
 	var/flyby_cooldown = FALSE
 
 /datum/fire_support_menu/New(user)
@@ -656,6 +656,51 @@
 				flyby_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
+			//Flyby Effects (no actual ordnance, just the visual and sound effects of a dropship flying over or hovering)
+			if("Cheyenne Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_flyby
+				flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Cheyenne Hover")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_hover
+				flyby_sound = 'sound/weapons/fire_support/dropship_hover.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Krokodil Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_flyby/krokodil
+				flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Krokodil Hover")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_hover/krokodil
+				flyby_sound = 'sound/weapons/fire_support/dropship_hover.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
 				return TRUE
 
 			else

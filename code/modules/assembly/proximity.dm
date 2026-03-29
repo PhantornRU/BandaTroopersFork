@@ -34,6 +34,19 @@
 	update_icon()
 	return secured
 
+/obj/item/device/assembly/prox_sensor/active
+	name = "armed proximity sensor"
+	range = 3
+	anchored = TRUE
+
+/obj/item/device/assembly/prox_sensor/active/New()
+	// SS220 EDIT - START: normalize indentation in the BT-maintained diff so whitespace lint stays clean
+	..()
+	secured = TRUE
+	scanning = TRUE
+	update_icon()
+	START_PROCESSING(SSobj, src)
+	// SS220 EDIT - END
 
 /obj/item/device/assembly/prox_sensor/HasProximity(atom/movable/AM)
 	if((!holder && !secured) || !scanning || cooldown>0 || delaying)

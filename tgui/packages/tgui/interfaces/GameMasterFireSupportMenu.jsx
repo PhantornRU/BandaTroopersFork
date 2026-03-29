@@ -199,7 +199,7 @@ export const GameMasterFireSupportMenu = (props, context) => {
             </Collapsible>
           ))}
 
-          <Collapsible content="HALO Flyby Effects">
+          <Collapsible content="Flyby Effects">
             {data.flyby_ordnance_options.map((ordnance, i) => (
               <Button
                 selected={data.selected_ordnance === ordnance}

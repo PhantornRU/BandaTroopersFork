@@ -765,8 +765,22 @@
 /obj/item/device/radio/headset/almayer/marine/solardevils/seclead
 	initial_keys = list(/obj/item/device/encryptionkey/squadlead)
 
+	inbuilt_tracking_options = list(
+		"Platoon Commander" = TRACKER_PLTCO,
+		"A-Section Sergeant" = TRACKER_ASL,
+		"B-Section Sergeant" = TRACKER_BSL,
+		"Landing Zone" = TRACKER_LZ
+	)
+
 /obj/item/device/radio/headset/almayer/marine/solardevils/pltco
 	initial_keys = list(/obj/item/device/encryptionkey/mcom/alt/squads, /obj/item/device/encryptionkey/squadlead) // SS220 EDIT - squads
+
+	inbuilt_tracking_options = list(
+		"Platoon Commander" = TRACKER_PLTCO,
+		"A-Section Sergeant" = TRACKER_ASL,
+		"B-Section Sergeant" = TRACKER_BSL,
+		"Landing Zone" = TRACKER_LZ
+	)
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/forecon
 	name = "USCM SOF headset"
@@ -804,6 +818,11 @@
 		"Section/Team Leader" = TRACKER_FTL,
 	)
 	locate_setting = TRACKER_RMCSL
+
+/obj/item/device/radio/headset/almayer/marine/solardevils/rmc/hq
+	name = "Royal Marine Commando command headset"
+	desc = "A special headset used by the commanders of the TWE's elite Royal Marine Commandos."
+	initial_keys = list(/obj/item/device/encryptionkey/command)
 
 /obj/item/device/radio/headset/almayer/marine/solardevils/foxtrot
 	frequency = CRYO_FREQ
@@ -1219,6 +1238,7 @@
 	inbuilt_tracking_options = list(
 		"Overwatch" = TRACKER_PLTCO,
 		"AZURE 15 Operation Leader" = TRACKER_PSL,
+		"VIRIDIAN 22 Operation Leader" = TRACKER_P2SL,
 		"AZURE 16 Strike Operation Leader" = TRACKER_PSSL,
 		"Landing Zone" = TRACKER_LZ
 	)
@@ -1229,6 +1249,14 @@
 	item_state = "rmc_headset"
 	desc = "A special headset & HUD unit used to PMC Overwatch. Channels are as follows: #p - general, #y - WY,  #z - command, #f - medical, #e - engineering, #o - JTAC."
 	initial_keys = list(/obj/item/device/encryptionkey/pmc/command)
+
+	inbuilt_tracking_options = list(
+		"Overwatch" = TRACKER_PLTCO,
+		"AZURE 15 Operation Leader" = TRACKER_PSL,
+		"VIRIDIAN 22 Operation Leader" = TRACKER_P2SL,
+		"AZURE 16 Strike Operation Leader" = TRACKER_PSSL,
+		"Landing Zone" = TRACKER_LZ
+	)
 
 /obj/item/device/radio/headset/distress/cbrn
 	name = "\improper CBRN headset"

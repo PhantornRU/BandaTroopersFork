@@ -30,6 +30,7 @@
 #include "code/datums/paygrades/factions/halo/covenant_ranks.dm"
 #include "code/datums/paygrades/factions/halo/ueg_police.dm"
 #include "code/datums/skills/covenant.dm"
+#include "code/datums/skills/unsc.dm"
 #include "code/datums/weather/weather_events/traxus_gamma_zone.dm"
 #include "code/datums/weather/weather_map_holders/mackay_station.dm"
 #include "code/datums/weather/weather_map_holders/oni_digsite_451.dm"
