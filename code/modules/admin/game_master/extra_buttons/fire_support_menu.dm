@@ -875,7 +875,7 @@
 
 /datum/fire_support/custom/banshee_strafe/do_impact(turf/target_turf)
 	new /obj/effect/temp_visual/plasma_explosion/small(target_turf)
-	for(var/target in target_turf)
+	for(var/target in target_turf.contents) // SS220 EDIT: make the impact loop explicit
 		if(isliving(target))
 			var/mob/living/living_target = target
 			living_target.adjustFireLoss(60)
@@ -979,16 +979,17 @@
 
 /datum/fire_support/custom/wombat_gau/do_impact(turf/target_turf)
 	var/revdir = REVERSE_DIR(NORTH)
+	var/turf/strafe_turf = target_turf // SS220 EDIT: keep the working turf separate while building the strafe path
 	for(var/i=0 to 2)
-		target_turf = get_step(target_turf, revdir)
-	var/list/strafelist = list(target_turf)
-	strafelist += get_step(target_turf, turn(NORTH, 90))
-	strafelist += get_step(target_turf, turn(NORTH, -90)) //Build this list 3 turfs at a time for strafe_turfs
+		strafe_turf = get_step(strafe_turf, revdir)
+	var/list/strafelist = list(strafe_turf)
+	strafelist += get_step(strafe_turf, turn(NORTH, 90))
+	strafelist += get_step(strafe_turf, turn(NORTH, -90)) //Build this list 3 turfs at a time for strafe_turfs
 	for(var/b=0 to 6)
-		target_turf = get_step(target_turf, NORTH)
-		strafelist += target_turf
-		strafelist += get_step(target_turf, turn(NORTH, 90))
-		strafelist += get_step(target_turf, turn(NORTH, -90))
+		strafe_turf = get_step(strafe_turf, NORTH)
+		strafelist += strafe_turf
+		strafelist += get_step(strafe_turf, turn(NORTH, 90))
+		strafelist += get_step(strafe_turf, turn(NORTH, -90))
 
 	if(!length(strafelist))
 		return
@@ -998,11 +999,12 @@
 /datum/fire_support/custom/wombat_gau/proc/strafe_turfs(list/strafelist)
 	var/turf/strafed
 	playsound(strafelist[1], 'sound/effects/gauimpact.ogg', 10, 1, 20, falloff = 3)
-	for(var/i=1 to 3)
+	var/strafe_count = min(3, length(strafelist)) // SS220 EDIT: tolerate shorter batches if callers ever change
+	for(var/i=1 to strafe_count)
 		strafed = strafelist[1]
 		strafelist -= strafed
 		strafed.ex_act(EXPLOSION_THRESHOLD_HIGH)
-		for(var/target in strafed)
+		for(var/target in strafed.contents) // SS220 EDIT: make the impact loop explicit
 			if(isliving(target))
 				var/mob/living/living_target = target
 				living_target.apply_damage(250, BRUTE)
