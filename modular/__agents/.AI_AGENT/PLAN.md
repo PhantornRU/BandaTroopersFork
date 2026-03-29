@@ -1,33 +1,19 @@
 # PLAN
 
-## Активная задача
-Обновить текущую ветку `various_fixes` из актуального `upstream/master`, проверить итоговый git-state и отдельно выровнять удаленную ветку `origin/master` ровно на `upstream/master`, не переключая текущую ветку.
+## Active Task
+Close the low-risk review tails for `port/tech-vehicle-wave` in:
+- `code/datums/ammo/rocket.dm`
+- `code/modules/projectiles/projectile.dm`
+- `code/modules/vehicles/hardpoints/holder/tank_turret.dm`
+- `code/modules/vehicles/hardpoints/primary/plasma_cannon.dm`
 
 ## Scope
-- Обновить refs из remotes.
-- Синхронизировать `various_fixes` с `upstream/master`.
-- Проверить итоговый git-state и отсутствие конфликтных хвостов.
-- Переставить локальный `master` на `upstream/master`.
-- Форс-пушнуть `origin/master` на точный upstream commit.
+- Extract shared rocket explosion and smoke handling into a helper proc without changing behavior.
+- Remove the duplicate `density` assignment on the Ridgeway turret subtype.
+- Remove unused beam-related vars from the Ridgeway plasma cannon.
+- Add a short explanatory comment for the open-vehicle hit-chance math without changing the expression.
 
-## Out of scope
-- Rebase или иное переписывание истории текущей рабочей ветки.
-- Любые кодовые правки вне автоматического merge.
-- Полный build/CI-прогон, если merge завершится без конфликтов и пользователь не просит compile-проверки отдельно.
-
-## Решение
-- Использовать `fetch -> merge -> verify -> push`.
-- Для `master` использовать отдельный ref update и force-push без checkout.
-
-## Итоговый статус
-- `upstream/master` обновлен до `8667f84537`.
-- `various_fixes` синхронизирована merge-коммитом `c94263128e`.
-- `origin/various_fixes` обновлен до `c94263128e`.
-- Локальный `master` и `origin/master` выровнены на `8667f84537`.
-- Рабочее дерево чистое.
-
-## Acceptance criteria
-- `git fetch --all --prune` выполнен успешно.
-- `upstream/master` является предком `HEAD`.
-- `git diff --check` не сообщает ошибок.
-- `origin/master` и `upstream/master` указывают на один и тот же commit.
+## Verification
+- Run `git diff --check`.
+- Run `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`.
+- Commit only if both checks pass.

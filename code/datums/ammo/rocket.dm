@@ -28,27 +28,24 @@
 	smoke = null
 	. = ..()
 
+/datum/ammo/rocket/proc/impact_explosion_and_smoke(turf/impact_turf, obj/projectile/projectile, falloff_shape = EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL)
+	cell_explosion(impact_turf, blast_power, falloff_rate, falloff_shape, null, projectile.weapon_cause_data)
+	smoke.set_up(1, impact_turf)
+	smoke.start()
+
 /datum/ammo/rocket/on_hit_mob(mob/mob, obj/projectile/projectile)
 	if(iscarbon(mob)) // Doesn't matter how built-different you are, it's an explosive rocket-propelled projectile hitting you.
 		mob.ex_act((blast_power*2), null, projectile.weapon_cause_data, 100)
-	cell_explosion(get_turf(mob), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(mob))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(mob), projectile)
 
 /datum/ammo/rocket/on_hit_obj(obj/object, obj/projectile/projectile)
-	cell_explosion(get_turf(object), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(object))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(object), projectile)
 
 /datum/ammo/rocket/on_hit_turf(turf/turf, obj/projectile/projectile)
-	cell_explosion(turf, blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, turf)
-	smoke.start()
+	impact_explosion_and_smoke(turf, projectile)
 
 /datum/ammo/rocket/do_at_max_range(obj/projectile/projectile)
-	cell_explosion(get_turf(projectile), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(projectile))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(projectile), projectile)
 
 /datum/ammo/rocket/smoke
 	name = "hypervelocity smoke rocket"

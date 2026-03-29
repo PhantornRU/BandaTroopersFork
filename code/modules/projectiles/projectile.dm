@@ -876,7 +876,7 @@
 		if(mobility_aura)
 			. -= mobility_aura * 5
 		if(HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE))
-			. -= . / 1.3
+			. -= . / 1.3 // Scale the open-vehicle penalty from the current chance.
 		var/mob/living/carbon/human/shooter_human = P.firer
 		if(istype(shooter_human))
 			if(shooter_human.faction == faction && !(ammo_flags & AMMO_ALWAYS_FF))

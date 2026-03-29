@@ -19,7 +19,6 @@
 	use_muzzle_flash = FALSE
 
 	w_class = SIZE_MASSIVE
-	density = TRUE
 	anchored = TRUE
 
 	allowed_seat = VEHICLE_DRIVER
@@ -326,7 +325,6 @@
 	use_muzzle_flash = FALSE
 
 	w_class = SIZE_MASSIVE
-	density = TRUE
 	anchored = TRUE
 
 	allowed_seat = VEHICLE_DRIVER
