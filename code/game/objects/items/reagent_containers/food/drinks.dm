@@ -369,7 +369,7 @@
 
 /obj/item/reagent_container/food/drinks/flask/canteen
 	name = "canteen"
-	desc = "A ruggedized metal alloy flask. Can hold a good amount of water... Or other liquids."
+	desc = "Metal ruggedized canteen, with a reasonable capacity of water. Or, y'know, other liquids."
 	icon_state = "canteen"
 	volume = 120
 	center_of_mass = "x=17;y=8"

@@ -8,6 +8,7 @@
 #define CHEMICAL_ORDNANCE list("CN-20 Missile", "Nerve Gas OB", "Nerve Gas Shell", "Cryogenic Neon OB")
 #define MISC_ORDNANCE list("Laser", "Minirocket", "Incendiary Minirocket",  "Sentry Drop", "25mm Multipurpose Strike", "25mm Armorpiercing Strike")
 #define THROWABLES_ORDNANCE list("HE", "HE - UPP", "HE - RMC", "Frag", "Incendiary", "Molotov", "Incendiary - RMC", "Smoke - White", "Smoke - Green", "Smoke - Red", "Smoke - UPP", "WP", "WP - UPP", "Ball-Breakers", "Nerve Gas", "LSD", "Tear Gas", "Cryogenic Neon", "Metal Foam", "Flare", "Flare - UPP", "Flare - Signal")
+#define FLYBY_ORDNANCE list("Cheyenne Flyby", "Cheyenne Hover", "Krokodil Flyby", "Krokodil Hover")
 
 /client/proc/toggle_fire_support_menu()
 	set name = "Fire Support Menu"
@@ -24,6 +25,10 @@
 	///Mortar to fire the abstract shells.
 	var/obj/structure/mortar/abstract_mortar = new()
 	var/client/holder
+	//flyby stuff
+	var/flyby_effect = /obj/effect/temp_visual/dropship_flyby
+	var/flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
+	var/flyby_cooldown = FALSE
 
 /datum/fire_support_menu/New(user)
 	if(isclient(user))
@@ -61,6 +66,7 @@
 	data["misc_ordnance_options"] = MISC_ORDNANCE
 	data["throwables_ordnance_options"] = THROWABLES_ORDNANCE
 	append_custom_static_data(data) // SS220 EDIT: allow modular fire support payloads to extend the GM menu without hardcoding them here
+	data["flyby_ordnance_options"] = FLYBY_ORDNANCE
 
 	return data
 
@@ -446,6 +452,51 @@
 
 				return TRUE
 
+			//Flyby Effects (no actual ordnance, just the visual and sound effects of a dropship flying over or hovering)
+			if("Cheyenne Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_flyby
+				flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Cheyenne Hover")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_hover
+				flyby_sound = 'sound/weapons/fire_support/dropship_hover.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Krokodil Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_flyby/krokodil
+				flyby_sound = 'sound/weapons/dropship_sonic_boom.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
+			if("Krokodil Hover")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/dropship_hover/krokodil
+				flyby_sound = 'sound/weapons/fire_support/dropship_hover.ogg'
+
+				handle_flyby_initiate(target_turf)
+
+				QDEL_IN(target_lase, 1 SECONDS)  //to stop "unused var" warnings
+
+				return TRUE
+
 			else
 				// SS220 EDIT - START: delegate unknown GM fire support ordnance labels to modular handlers
 				if(handle_custom_ordnance(user, target_turf, selected_ordnance))
@@ -482,6 +533,17 @@
 		sound_cooldown = TRUE
 		addtimer(VARSET_CALLBACK(src, sound_cooldown, FALSE), 10 SECONDS)
 
+/datum/fire_support_menu/proc/handle_flyby_initiate(turf/target_turf)
+	if(!flyby_cooldown)
+		if(flyby_effect)
+			new flyby_effect(target_turf)
+		if(flyby_sound)
+			playsound(target_turf, flyby_sound, 100, 1, 60)
+		sound_cooldown = TRUE
+		flyby_cooldown = TRUE
+		addtimer(VARSET_CALLBACK(src, flyby_cooldown, FALSE), 10 SECONDS)
+		addtimer(VARSET_CALLBACK(src, sound_cooldown, FALSE), 10 SECONDS)
+
 ///Handles the noises and actual detonation of dropship ammo. Mainly it doesnt play the warning sound for ammo of the ship_ammo/heavygun/ type.
 /datum/fire_support_menu/proc/handle_dropship_ordnance(turf/target_turf, obj/structure/ship_ammo/ammo)
 	addtimer(CALLBACK(src, PROC_REF(handle_dropship_sound), target_turf), 0.5 SECONDS)
@@ -499,4 +561,5 @@
 #undef MISC_ORDNANCE
 #undef CHEMICAL_ORDNANCE
 #undef THROWABLES_ORDNANCE
+#undef FLYBY_ORDNANCE
 #undef FIRE_SUPPORT_CLICK_INTERCEPT_ACTION
