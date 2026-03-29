@@ -27,6 +27,7 @@
 		SKILL_VEHICLE = SKILL_VEHICLE_SMALL,
 	)
 
+// SS220 EDIT - START: add a BT-specific mercenary medic datum so sentinel medics can exceed the baseline corpsman ladder
 /datum/skills/mercenary/medic
 	name = "Mercenary Medic"
 	skills = list(
@@ -41,6 +42,7 @@
 		SKILL_ENDURANCE = SKILL_ENDURANCE_WEAK,
 		SKILL_SURGERY = SKILL_SURGERY_EXPERT,
 	)
+// SS220 EDIT - END
 
 /datum/skills/mercenary/elite/medic
 	name = "Elite Mercenary Medic"
@@ -54,7 +56,8 @@
 		SKILL_MELEE_WEAPONS = SKILL_MELEE_TRAINED,
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_WEAK,
-		SKILL_SURGERY = SKILL_SURGERY_EXPERT,
+		// SKILL_SURGERY = SKILL_SURGERY_TRAINED,
+		SKILL_SURGERY = SKILL_SURGERY_EXPERT, // SS220 EDIT: elite merc medics keep the raised BT surgery tier
 	)
 
 /datum/skills/mercenary/elite/engineer

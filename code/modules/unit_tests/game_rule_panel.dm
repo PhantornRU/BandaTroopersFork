@@ -238,6 +238,7 @@
 	TEST_ASSERT(rules.player_survival_antigib_enabled, "Player Survival reset did not restore Anti-Gib Fallback.")
 	TEST_ASSERT_EQUAL(rules.player_survival_antigib_limb_loss_chance, 30, "Player Survival reset did not restore the default limb loss chance.")
 
+// SS220 EDIT - START: cover the BT-only new-round player survival reset path
 /datum/unit_test/game_rule_panel_player_survival_new_round_defaults
 	parent_type = /datum/unit_test/game_rule_panel
 
@@ -253,6 +254,7 @@
 	TEST_ASSERT_EQUAL(rules.player_survival_crit_grace_seconds, 15, "New-round player survival reset did not restore the default crit grace duration.")
 	TEST_ASSERT(rules.player_survival_antigib_enabled, "New-round player survival reset did not restore Anti-Gib Fallback.")
 	TEST_ASSERT_EQUAL(rules.player_survival_antigib_limb_loss_chance, 30, "New-round player survival reset did not restore the default limb loss chance.")
+// SS220 EDIT - END
 
 /datum/unit_test/game_rule_panel_player_survival_runtime_duration
 	parent_type = /datum/unit_test/game_rule_panel

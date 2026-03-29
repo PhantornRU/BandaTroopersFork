@@ -370,10 +370,16 @@
 	explosive_power = 90
 	explosive_falloff = 35
 
+// SS220 EDIT - START: drop the duplicate /pmc/active subtype so the predeployed PMC claymore stays attached to the strong variant only
+// /obj/item/explosive/mine/pmc/active
+// 	icon_state = "m20p_active"
+// 	base_icon_state = "m20p"
+// 	map_deployed = TRUE
 /obj/item/explosive/mine/pmc/strong/active
 	icon_state = "m20p_active"
 	base_icon_state = "m20p"
 	map_deployed = TRUE
+// SS220 EDIT - END
 
 /obj/item/explosive/mine/custom
 	name = "custom mine"

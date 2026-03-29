@@ -1,3 +1,4 @@
+// SS220 EDIT - START: BT-specific regression coverage for medic ladders and self-splint behavior
 /datum/skills/medical_regressions_self_splint
 	name = "Medical Regression Test Skills"
 	skills = list(
@@ -94,3 +95,4 @@
 	sleep(world.tick_lag)
 
 	TEST_ASSERT(!(limb.status & LIMB_SPLINTED), "Self-splinting the arm currently holding the splint should stay blocked.")
+// SS220 EDIT - END

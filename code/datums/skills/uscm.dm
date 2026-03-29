@@ -17,9 +17,11 @@ United States Colonial Marines
 /datum/skills/combat_medic
 	name = "Combat Medic"
 	skills = list(
-		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
+		// SKILL_MEDICAL = SKILL_MEDICAL_MEDIC,
+		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR, // SS220 EDIT: USCM corpsmen keep the raised BT baseline medical tier
 		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
-		SKILL_SURGERY = SKILL_SURGERY_TRAINED,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: USCM corpsmen keep the raised BT baseline surgery tier
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 	)
 
@@ -27,7 +29,8 @@ United States Colonial Marines
 	name = "Recon Medic"
 	skills = list(
 		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
-		SKILL_SURGERY = SKILL_SURGERY_TRAINED,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: recon corpsmen keep the raised BT baseline surgery tier
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_MASTER,
 	)
@@ -486,7 +489,8 @@ SOLAR DEVILS (PvE Marines)
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
 		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
-		SKILL_SURGERY = SKILL_SURGERY_TRAINED,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: PvE corpsmen keep the raised BT baseline surgery tier
 	)
 
 /datum/skills/smartgunner_pve
