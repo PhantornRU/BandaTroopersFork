@@ -78,6 +78,9 @@
 	name = "Spike Lash"
 	stab_range = 3
 
+/datum/action/xeno_action/activable/tail_stab/pathogen_t3/proc/remove_tail_overlay(mob/living/carbon/overlayed_carbon, image/tail_image)
+	overlayed_carbon.overlays -= tail_image
+
 /datum/action/xeno_action/activable/tail_stab/pathogen_t3/ability_act(mob/living/carbon/xenomorph/stabbing_xeno, mob/living/carbon/target, obj/limb/limb)
 
 	target.last_damage_data = create_cause_data(initial(stabbing_xeno.caste_type), stabbing_xeno)
@@ -85,7 +88,7 @@
 	/// To reset the direction if they haven't moved since then in below callback.
 	var/last_dir = stabbing_xeno.dir
 	/// Direction var to make the tail stab look cool and immersive.
-	var/stab_direction
+	var/stab_direction = last_dir
 
 	var/stab_overlay
 
@@ -105,6 +108,7 @@
 		stabbing_xeno.visible_message(SPAN_XENOWARNING("\The [stabbing_xeno] skewers [target] through the [limb ? limb.display_name : "chest"] with its razor spikes!"), SPAN_XENOWARNING("We skewer [target] through the [limb? limb.display_name : "chest"] with our razor spikes!"))
 		playsound(target, "alien_bite", 50, TRUE)
 		// The xeno flips around for a second to impale the target with their tail. These look awsome.
+		stab_direction = turn(get_dir(stabbing_xeno, target), 180)
 		stab_overlay = "tail"
 		log_attack("[key_name(stabbing_xeno)] spikelashed [key_name(target)] at [get_area_name(stabbing_xeno)]")
 		target.attack_log += text("\[[time_stamp()]\] <font color='orange'>was spikelashed by [key_name(stabbing_xeno)]</font>")
@@ -274,12 +278,9 @@
 		target.throw_atom(throw_target_turf, get_dist(throw_target_turf, target)-1, SPEED_VERY_FAST)
 
 		qdel(tail_beam) // hook beam catches target, throws them back, is deleted (throw_atom has sleeps), then hook beam catches another target, repeat
-		addtimer(CALLBACK(src, /datum/action/xeno_action/activable/prae_abduct/proc/remove_tail_overlay, target, tail_image), 0.5 SECONDS) //needed so it can actually be seen as it gets deleted too quickly otherwise.
+		addtimer(CALLBACK(src, "remove_tail_overlay", target, tail_image), 0.5 SECONDS) //needed so it can actually be seen as it gets deleted too quickly otherwise.
 
 	return ..()
-
-/datum/action/xeno_action/activable/venator_abduct/proc/remove_tail_overlay(mob/living/carbon/human/overlayed_human, image/tail_image)
-	overlayed_human.overlays -= tail_image
 
 
 

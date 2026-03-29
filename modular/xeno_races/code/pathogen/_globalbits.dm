@@ -146,7 +146,7 @@
 		if(human.chem_effect_flags & CHEM_EFFECT_RESIST_NEURO || human.species.flags & NO_NEURO)
 			human.visible_message(SPAN_DANGER("[human] shrugs off the blight!"))
 			next_slash_buffed = FALSE
-			return //species like zombies or synths are immune to blight
+			return original_damage //species like zombies or synths are immune to blight
 	if (next_slash_buffed)
 		to_chat(bound_xeno, SPAN_XENOHIGHDANGER("We add blight into our attack, [carbon_target] is about to fall over paralyzed!"))
 		to_chat(carbon_target, SPAN_XENOHIGHDANGER("You feel like you're about to fall over, as [bound_xeno] slashes you with its blight coated claws!"))

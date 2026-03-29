@@ -46,8 +46,6 @@
 	acid_blood_damage = 0 /// it's a lanky innit
 	acid_blood_spatter = FALSE /// We dont want that for these guys
 
-	mob_size = MOB_SIZE_IMMOBILE
-
 	rebounds = FALSE // no more fucking pinball crooshers
 	base_actions = list(
 		/datum/action/xeno_action/onclick/xeno_resting,

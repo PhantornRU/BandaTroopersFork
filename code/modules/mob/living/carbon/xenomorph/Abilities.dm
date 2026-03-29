@@ -383,6 +383,7 @@
 
 /mob/living/carbon/xenomorph/proc/add_abilities()
 	if(!base_actions)
-		return
+		return give_blight_core()
 	for(var/action_path in base_actions)
 		give_action(src, action_path)
+	give_blight_core()
