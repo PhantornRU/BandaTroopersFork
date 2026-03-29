@@ -182,18 +182,22 @@
 		to_chat(user, SPAN_WARNING("[seats[target_seat]] is already sitting in the [target_seat] seat!"))
 		return
 
+	var/turf/target_turf = get_seat_turf(target_seat)
+	if(!target_turf)
+		return
+
 	if(density)
 		density = FALSE
-		if(!step(M, get_dir(M, locs[locs_positions[target_seat]["[dir]"]])) && !is_valid_seat_locs_turf(M, target_seat))
+		if(!step(M, get_dir(M, target_turf)) && !is_valid_seat_locs_turf(M, target_seat))
 			density = TRUE
 			return
 		density = TRUE
 	else
 		if(!is_valid_seat_locs_turf(M, target_seat))
-			step_towards(M, locs[locs_positions[target_seat]["[dir]"]]) //buckle if you're right next to it
+			step_towards(M, target_turf) //buckle if you're right next to it
 			if(!is_valid_seat_locs_turf(M, target_seat))
 				return
-			. = buckle_mob(M)
+			. = buckle_mob(M, user)
 
 	if (M.mob_size <= MOB_SIZE_XENO)
 		if (HAS_TRAIT(M, TRAIT_OPPOSABLE_THUMBS))
@@ -434,9 +438,7 @@
 		return VEHICLE_SUPPORT_GUNNER_ONE
 
 /obj/vehicle/multitile/warthog/proc/is_valid_seat_locs_turf(mob/M, target_seat)
-	return TRUE
-	// this shits broke.
-	/* var/list/position = locs_positions[target_seat]["[dir]"]
+	var/list/position = locs_positions[target_seat]["[dir]"]
 	var/turf/mob_turf = get_turf(M)
 	if(islist(position))
 		for(var/turf_key in position)
@@ -445,7 +447,7 @@
 	else
 		if(mob_turf == locs[position])
 			return TRUE
-	return FALSE */
+	return FALSE
 
 
 /obj/vehicle/multitile/warthog/BlockedPassDirs(atom/movable/mover, target_dir)

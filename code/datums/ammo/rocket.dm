@@ -11,7 +11,7 @@
 	sound_bounce = "rocket_ricochet"
 	damage_falloff = 0
 	flags_ammo_behavior = AMMO_EXPLOSIVE|AMMO_ROCKET|AMMO_STRIKES_SURFACE
-	var/datum/effect_system/smoke_spread/smoke
+	var/datum/effect_system/smoke_spread/smoke = new /datum/effect_system/smoke_spread
 
 	accuracy = HIT_ACCURACY_TIER_2
 	accurate_range = 7
@@ -22,10 +22,6 @@
 	bullet_light_color = COLOR_VERY_SOFT_YELLOW
 	var/blast_power = 300
 	var/falloff_rate = 40
-
-/datum/ammo/rocket/New()
-	..()
-	smoke = new()
 
 /datum/ammo/rocket/Destroy()
 	qdel(smoke)
@@ -509,4 +505,3 @@
 
 /datum/ammo/rocket/custom/do_at_max_range(obj/projectile/projectile)
 	prime(null, projectile)
-
