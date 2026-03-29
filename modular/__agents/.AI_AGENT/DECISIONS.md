@@ -1,13 +1,17 @@
 # DECISIONS
 
-## D-001: Rocket detonation helper stays in `code/datums/ammo/rocket.dm`
-- Decision: add a datum-local helper for the repeated explosion + smoke sequence and reuse it where the behavior is unchanged.
-- Why: it keeps the diff local to the ammo datum and avoids widening scope into unrelated projectile systems.
+## D-001: Синхронизация `various_fixes` делается через merge
+- Решение: влить `upstream/master` в текущую ветку.
+- Почему: ветка уже живет с merge-историей, а пользователь просит обновить ветку и решить конфликты, а не переписывать историю.
 
-## D-002: Ridgeway turret keeps inherited density only once
-- Decision: remove the duplicate `density = TRUE` line from the Ridgeway subtype and leave the inherited value intact.
-- Why: this is the smallest behavior-neutral cleanup for the review tail.
+## D-002: Перед merge обязательно обновляются все refs
+- Решение: сначала выполнить `git fetch --all --prune`.
+- Почему: нужно выравниваться по реальному состоянию remotes, а не по потенциально устаревшим локальным tracking refs.
 
-## D-003: Plasma cannon beam vars are deleted, not repurposed
-- Decision: remove the unused beam cooldown/type fields instead of inventing new state.
-- Why: the current firing path only uses the local beam datum.
+## D-003: `master` обновляется без переключения текущей ветки
+- Решение: переставить локальный `master` на `upstream/master` отдельной командой и затем форс-пушнуть `origin/master`.
+- Почему: пользователь явно попросил не трогать текущую ветку, но привести `MASTER` на репозитории к полному соответствию апстриму.
+
+## D-004: При чистом автоматическом merge compile-проверки не обязательны
+- Решение: ограничиться git-проверками (`status`, `diff --check`, remote refs`) в рамках этой задачи.
+- Почему: пользователь запросил git-sync/reset, merge завершился без конфликтов и без ручных кодовых правок.
