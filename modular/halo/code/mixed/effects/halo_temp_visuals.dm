@@ -175,22 +175,6 @@
 	light_range = 2
 	halo_perf_is_shield_temp_visual = TRUE
 
-/obj/effect/temp_visual/banshee_flyby
-	icon = 'icons/halo/effects/banshee_flyby.dmi'
-	icon_state = "banshee_shadow"
-	layer = FLY_LAYER
-	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	duration = 2 SECONDS
-	pixel_x = -22
-	pixel_z = -480
-	indestructible = TRUE
-	halo_perf_is_halo_temp_visual = TRUE
-
-/obj/effect/temp_visual/banshee_flyby/Initialize()
-	. = ..()
-	halo_perf_track_initialize()
-	animate(src, pixel_z = 960, time = 2 SECONDS)
-
 /obj/effect/temp_visual/flyby
 	layer = FLY_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT

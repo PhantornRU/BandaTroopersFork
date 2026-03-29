@@ -856,7 +856,7 @@
 	var/fire_type = FIRE_VARIANT_TYPE_B
 
 /datum/fire_support/custom/banshee_fuel_rod/do_impact(turf/target_turf)
-	var/datum/cause_data/cause_data = create_cause_data("wraith plasma")
+	var/datum/cause_data/cause_data = create_cause_data(src.name)
 	new /obj/effect/temp_visual/plasma_explosion/green(target_turf)
 	cell_explosion(target_turf, 180, 80, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, explosion_cause_data = cause_data)
 	flame_radius(cause_data, radius, target_turf, flame_level, burn_level, flameshape, null, fire_type)
@@ -1008,7 +1008,7 @@
 				living_target.apply_damage(250, BRUTE)
 			else if(isVehicleMultitile(target))
 				var/obj/vehicle/multitile/vic = target
-				vic.ex_act(800)
+				vic.ex_act(EXPLOSION_THRESHOLD_HIGH)
 				playsound(vic, 'sound/effects/meteorimpact.ogg', 50)
 				vic.at_munition_interior_explosion_effect(cause_data = create_cause_data("GAU strike"))
 				vic.interior_crash_effect()
