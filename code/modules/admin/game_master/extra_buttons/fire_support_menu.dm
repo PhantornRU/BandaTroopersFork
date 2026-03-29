@@ -12,6 +12,7 @@
 #define CHEMICAL_ORDNANCE list("CN-20 Missile", "Nerve Gas OB", "Nerve Gas Shell", "Cryogenic Neon OB")
 #define MISC_ORDNANCE list("Laser", "Minirocket", "Incendiary Minirocket",  "Sentry Drop", "25mm Multipurpose Strike", "25mm Armorpiercing Strike")
 #define THROWABLES_ORDNANCE list("HE", "HE - UPP", "HE - RMC", "Frag", "Incendiary", "Molotov", "Incendiary - RMC", "Smoke - White", "Smoke - Green", "Smoke - Red", "Smoke - UPP", "WP", "WP - UPP", "Ball-Breakers", "Nerve Gas", "LSD", "Tear Gas", "Cryogenic Neon", "Metal Foam", "Flare", "Flare - UPP", "Flare - Signal")
+#define FLYBY_ORDNANCE list("Banshee Flyby", "Seraph Flyby", "Wombat Flyby", "C712 Flyby", "C709 Flyby")
 
 /client/proc/toggle_fire_support_menu()
 	set name = "Fire Support Menu"
@@ -28,6 +29,9 @@
 	///Mortar to fire the abstract shells.
 	var/obj/structure/mortar/abstract_mortar = new()
 	var/client/holder
+	var/flyby_effect = /obj/effect/temp_visual/flyby/banshee_flyby
+	var/flyby_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	var/flyby_cooldown = FALSE
 
 /datum/fire_support_menu/New(user)
 	if(isclient(user))
@@ -68,6 +72,7 @@
 	data["chemical_ordnance_options"] = CHEMICAL_ORDNANCE
 	data["misc_ordnance_options"] = MISC_ORDNANCE
 	data["throwables_ordnance_options"] = THROWABLES_ORDNANCE
+	data["flyby_ordnance_options"] = FLYBY_ORDNANCE
 	append_custom_static_data(data) // SS220 EDIT: allow modular fire support payloads to extend the GM menu without hardcoding them here
 
 	return data
@@ -613,6 +618,46 @@
 				QDEL_IN(target_lase, 5 SECONDS)  //to stop "unused var" warnings
 				return TRUE
 
+			if("Banshee Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/flyby/banshee_flyby
+				flyby_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+				handle_flyby_initiate(target_turf)
+				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
+			if("Seraph Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/flyby/seraph_flyby
+				flyby_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+				handle_flyby_initiate(target_turf)
+				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
+			if("Wombat Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/flyby/wombat_flyby
+				flyby_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
+				handle_flyby_initiate(target_turf)
+				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
+			if("C712 Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/flyby/c712_longsword_flyby
+				flyby_sound = 'sound/weapons/halo/fire_support/c712_flyover.ogg'
+				handle_flyby_initiate(target_turf)
+				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
+			if("C709 Flyby")
+				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
+				flyby_effect = /obj/effect/temp_visual/flyby/c709_longsword_flyby
+				flyby_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
+				handle_flyby_initiate(target_turf)
+				QDEL_IN(target_lase, 1 SECONDS)
+				return TRUE
+
 			else
 				// SS220 EDIT - START: delegate unknown GM fire support ordnance labels to modular handlers
 				if(handle_custom_ordnance(user, target_turf, selected_ordnance))
@@ -647,6 +692,17 @@
 	if(!sound_cooldown)
 		playsound(target_turf, 'sound/weapons/dropship_sonic_boom.ogg', 100, 1, 60)
 		sound_cooldown = TRUE
+		addtimer(VARSET_CALLBACK(src, sound_cooldown, FALSE), 10 SECONDS)
+
+/datum/fire_support_menu/proc/handle_flyby_initiate(turf/target_turf)
+	if(!flyby_cooldown)
+		if(flyby_effect)
+			new flyby_effect(target_turf)
+		if(flyby_sound)
+			playsound(target_turf, flyby_sound, 100, 1, 60)
+		sound_cooldown = TRUE
+		flyby_cooldown = TRUE
+		addtimer(VARSET_CALLBACK(src, flyby_cooldown, FALSE), 10 SECONDS)
 		addtimer(VARSET_CALLBACK(src, sound_cooldown, FALSE), 10 SECONDS)
 
 ///Handles the noises and actual detonation of dropship ammo. Mainly it doesnt play the warning sound for ammo of the ship_ammo/heavygun/ type.
@@ -1175,4 +1231,5 @@
 #undef MISC_ORDNANCE
 #undef CHEMICAL_ORDNANCE
 #undef THROWABLES_ORDNANCE
+#undef FLYBY_ORDNANCE
 #undef FIRE_SUPPORT_CLICK_INTERCEPT_ACTION
