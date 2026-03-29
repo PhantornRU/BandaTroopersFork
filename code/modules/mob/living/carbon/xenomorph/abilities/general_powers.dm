@@ -62,6 +62,9 @@
 		return
 
 	var/list/to_convert
+	var/weed_type = /obj/effect/alien/weeds
+	if(xeno.hivenumber == XENO_HIVE_PATHOGEN)
+		weed_type = /obj/effect/alien/weeds/pathogen
 	if(node)
 		to_convert = node.children.Copy()
 
@@ -73,7 +76,7 @@
 		for(var/cur_weed in to_convert)
 			var/turf/target_turf = get_turf(cur_weed)
 			if(target_turf && !target_turf.density)
-				new /obj/effect/alien/weeds(target_turf, new_node)
+				new weed_type(target_turf, new_node)
 			qdel(cur_weed)
 
 	playsound(xeno.loc, "alien_resin_build", 25)
@@ -275,7 +278,7 @@
 	if(target_turf.z != X.z)
 		to_chat(X, SPAN_XENOWARNING("This area is too far away to affect!"))
 		return
-	if(!X.hive.living_xeno_queen || X.hive.living_xeno_queen.z != X.z)
+	if(!X.hive.allow_no_queen_actions && (!X.hive.living_xeno_queen || X.hive.living_xeno_queen.z != X.z))
 		to_chat(X, SPAN_XENOWARNING("We have no queen, the psychic link is gone!"))
 		return
 
@@ -545,7 +548,10 @@
 			return
 		if(!T.check_xeno_trap_placement(X))
 			return
-		var/obj/effect/alien/weeds/the_replacer = new /obj/effect/alien/weeds(T)
+		var/replace_weed_type = /obj/effect/alien/weeds
+		if(X.hivenumber == XENO_HIVE_PATHOGEN)
+			replace_weed_type = /obj/effect/alien/weeds/pathogen
+		var/obj/effect/alien/weeds/the_replacer = new replace_weed_type(T)
 		the_replacer.hivenumber = X.hivenumber
 		the_replacer.linked_hive = X.hive
 		set_hive_data(the_replacer, X.hivenumber)
@@ -678,7 +684,7 @@
 		qdel(structure_template)
 		return FALSE
 
-	var/queen_on_zlevel = !X.hive.living_xeno_queen || X.hive.living_xeno_queen.z == T.z
+	var/queen_on_zlevel = X.hive.allow_no_queen_actions || !X.hive.living_xeno_queen || X.hive.living_xeno_queen.z == T.z
 	if(!queen_on_zlevel)
 		to_chat(X, SPAN_WARNING("Our link to the Queen is too weak here. She is on another world."))
 		qdel(structure_template)
@@ -927,7 +933,7 @@
 		return FALSE
 
 	var/distance = get_dist(stabbing_xeno, targetted_atom)
-	if(distance > 2)
+	if(distance > stab_range)
 		return FALSE
 
 	var/list/turf/path = get_line(stabbing_xeno, targetted_atom, include_start_atom = FALSE)

@@ -72,7 +72,7 @@
 
 	var/list/data = list()
 
-	data["spawnable_xenos"] = GAME_MASTER_AMBUSH_AI_XENOS
+	data["spawnable_xenos"] = GAME_MASTER_AMBUSH_AI_XENOS + GLOB.xeno_race_ai_spawnables
 
 	data["spawnable_hives"] = ALL_XENO_HIVES
 
