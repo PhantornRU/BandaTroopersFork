@@ -37,6 +37,7 @@
 #include "code/fire_support/mortar_payloads.dm"
 #include "code/fire_support/logistics_payloads.dm"
 #include "code/fire_support/uscm_support_payloads.dm"
+#include "code/fire_support/uscm_admin_support.dm"
 #include "code/fire_support/visibility_payloads.dm"
 #include "code/items/rto_sling_pouch.dm"
 #include "code/items/rto_binoculars.dm"

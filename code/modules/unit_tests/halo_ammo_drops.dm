@@ -529,7 +529,7 @@
 	var/list/static_data = menu.ui_static_data(null)
 	var/list/custom_sections = static_data["custom_ordnance_sections"]
 
-	TEST_ASSERT_EQUAL(length(custom_sections), 3, "GM fire support menu should expose exactly three HALO custom ordnance sections.")
+	TEST_ASSERT(length(custom_sections) >= 3, "GM fire support menu should expose the HALO custom ordnance sections.")
 
 	for(var/label in expected_routing)
 		TEST_ASSERT(label in static_data["ordnance_options"], "GM fire support menu did not expose [label] in the full ordnance list.")
@@ -541,3 +541,43 @@
 		TEST_ASSERT_NOTNULL(section, "GM fire support menu is missing the [section_id] custom section.")
 		TEST_ASSERT_EQUAL(section["title"], expected_sections[section_id]["title"], "[section_id] custom section has an unexpected title.")
 		assert_expected_values(section["options"], expected_sections[section_id]["options"], "[section_id] custom ordnance section")
+
+/datum/unit_test/uscm_support_admin_bridge
+
+/datum/unit_test/uscm_support_admin_bridge/Run()
+	var/list/expected_routing = list(
+		"USCM Rifle Ammo Drop" = /datum/fire_support/supply_drop/uscm/rifle,
+		"USCM Rifle Box Ammo Drop" = /datum/fire_support/supply_drop/uscm/rifle_box,
+		"USCM Shotgun Ammo Drop" = /datum/fire_support/supply_drop/uscm/shotgun,
+		"USCM SMG Ammo Drop" = /datum/fire_support/supply_drop/uscm/smg,
+		"USCM Sidearm Ammo Drop" = /datum/fire_support/supply_drop/uscm/sidearm,
+		"USCM M56D Ammo Drop" = /datum/fire_support/supply_drop/uscm/m56d,
+		"USCM Sentry Ammo Drop" = /datum/fire_support/supply_drop/uscm/sentry,
+	)
+	var/list/expected_section = list(
+		"title" = "USCM Ammo Drops",
+		"options" = list(
+			"USCM Rifle Ammo Drop",
+			"USCM Rifle Box Ammo Drop",
+			"USCM Shotgun Ammo Drop",
+			"USCM SMG Ammo Drop",
+			"USCM Sidearm Ammo Drop",
+			"USCM M56D Ammo Drop",
+			"USCM Sentry Ammo Drop",
+		),
+	)
+
+	var/datum/fire_support_menu/menu = allocate(/datum/fire_support_menu/unit_test_stub)
+	var/list/static_data = menu.ui_static_data(null)
+	var/list/custom_sections = static_data["custom_ordnance_sections"]
+	var/list/uscm_section = find_custom_ordnance_section(custom_sections, "uscm_ammo_drops")
+
+	TEST_ASSERT(length(custom_sections) >= 4, "GM fire support menu should expose the USCM ammo section alongside HALO custom ordnance sections.")
+	TEST_ASSERT_NOTNULL(uscm_section, "GM fire support menu is missing the USCM ammo custom section.")
+	TEST_ASSERT_EQUAL(uscm_section["title"], expected_section["title"], "USCM ammo custom section has an unexpected title.")
+	assert_expected_values(uscm_section["options"], expected_section["options"], "USCM ammo custom ordnance section")
+
+	for(var/label in expected_routing)
+		TEST_ASSERT(label in static_data["ordnance_options"], "GM fire support menu did not expose [label] in the full ordnance list.")
+		TEST_ASSERT(!(label in static_data["misc_ordnance_options"]), "GM fire support menu should not duplicate [label] in legacy misc ordnance options.")
+		TEST_ASSERT_EQUAL(menu.resolve_custom_fire_support(label), expected_routing[label], "[label] no longer resolves to the intended USCM payload.")
