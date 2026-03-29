@@ -100,8 +100,8 @@
 
 			//
 			selected_equipment = preset_data["selected_equipment"]
-			selected_faction = preset_data["selected_faction"]
-			species = preset_data["species_selected"]
+			selected_faction = preset_data["faction"]
+			species = preset_data["species"]
 
 			break
 	data["viewing_faction"] = viewing_faction
@@ -338,7 +338,7 @@
 						qdel(ai_human.head)
 						qdel(ai_human.glasses)
 						qdel(ai_human.wear_mask)
-				if(species != ai_human.species?.name) //might be redundant
+				if(species && species != ai_human.species?.name) // click-spawn presets must not fall back to Human when the UI has not overridden species
 					ai_human.set_species(species)
 					if(issynth(ai_human))
 						ai_human.set_skills(/datum/skills/synthetic)
