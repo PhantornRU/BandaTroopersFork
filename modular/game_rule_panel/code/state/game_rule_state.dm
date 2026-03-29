@@ -99,6 +99,11 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	player_survival_antigib_limb_loss_chance = GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE
 	return TRUE
 
+/datum/game_rule_state/proc/reset_player_survival_for_new_round()
+	reset_player_survival_rules()
+	update_panel_uis()
+	return TRUE
+
 /datum/game_rule_state/proc/reset_fire_support_rules()
 	ensure_fire_support_defaults_captured()
 	fire_support_enabled = TRUE

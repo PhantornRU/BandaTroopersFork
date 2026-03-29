@@ -557,7 +557,8 @@
 	flags = EQUIPMENT_PRESET_EXTRA
 	assignment = "Black Dragoons Sentinel Medic"
 	rank = JOB_MERCENARY_SENTINEL
-	skills = /datum/skills/combat_medic
+	// skills = /datum/skills/combat_medic
+	skills = /datum/skills/mercenary/medic // SS220 EDIT: sentinel medics bind to the BT-specific mercenary medic ladder
 	faction = FACTION_MERCENARY
 
 /datum/equipment_preset/mercenary/sentinel/medic/load_gear(mob/living/carbon/human/new_human)

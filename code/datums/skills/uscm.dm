@@ -12,12 +12,16 @@ United States Colonial Marines
 	name = "Recon Private"
 	skills = list(SKILL_ENDURANCE = SKILL_ENDURANCE_MASTER)
 
+
+
 /datum/skills/combat_medic
 	name = "Combat Medic"
 	skills = list(
-		SKILL_MEDICAL = SKILL_MEDICAL_MEDIC,
+		// SKILL_MEDICAL = SKILL_MEDICAL_MEDIC,
+		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR, // SS220 EDIT: USCM corpsmen keep the raised BT baseline medical tier
 		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
-		SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: USCM corpsmen keep the raised BT baseline surgery tier
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 	)
 
@@ -25,10 +29,13 @@ United States Colonial Marines
 	name = "Recon Medic"
 	skills = list(
 		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
-		SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: recon corpsmen keep the raised BT baseline surgery tier
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_MASTER,
 	)
+
+
 
 /datum/skills/combat_engineer
 	name = "Combat Engineer"
@@ -39,6 +46,8 @@ United States Colonial Marines
 		SKILL_CONSTRUCTION = SKILL_CONSTRUCTION_MASTER,
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 	)
+
+
 
 /datum/skills/smartgunner
 	name = "Squad Smartgunner"
@@ -67,6 +76,8 @@ United States Colonial Marines
 		SKILL_ENDURANCE = SKILL_ENDURANCE_MASTER,
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 	)
+
+
 
 /datum/skills/tl
 	name = JOB_SQUAD_TEAM_LEADER // SS220 EDIT: TL presentation reuses the canonical job title instead of a duplicated string
@@ -99,6 +110,8 @@ United States Colonial Marines
 		SKILL_PILOT = SKILL_PILOT_EXPERT,
 	)
 
+
+
 /datum/skills/intel
 	name = "Intelligence Officer"
 	skills = list(
@@ -112,6 +125,31 @@ United States Colonial Marines
 		SKILL_INTEL = SKILL_INTEL_EXPERT,
 	)
 
+
+
+/datum/skills/vehicle_crew
+	name = "Vehicle Crewman"
+	skills = list(
+		SKILL_VEHICLE = SKILL_VEHICLE_CREWMAN,
+		SKILL_LEADERSHIP = SKILL_LEAD_TRAINED,
+		SKILL_POWERLOADER = SKILL_POWERLOADER_MASTER,
+		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED,
+		SKILL_FIREMAN = SKILL_FIREMAN_DEFAULT,
+		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
+		SKILL_JTAC = SKILL_JTAC_EXPERT,
+	)
+
+/datum/skills/vehicle_crew/leader
+	name = "Vehicle Commander"
+	skills = list(
+		SKILL_VEHICLE = SKILL_VEHICLE_CREWMAN,
+		SKILL_LEADERSHIP = SKILL_LEAD_EXPERT,
+		SKILL_POWERLOADER = SKILL_POWERLOADER_MASTER,
+		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED,
+		SKILL_FIREMAN = SKILL_FIREMAN_DEFAULT,
+		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
+		SKILL_JTAC = SKILL_JTAC_EXPERT,
+	)
 /*
 ---------------------
 MILITARY NONCOMBATANT
@@ -451,7 +489,8 @@ SOLAR DEVILS (PvE Marines)
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
 		SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
-		SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_TRAINED, // SS220 EDIT: PvE corpsmen keep the raised BT baseline surgery tier
 	)
 
 /datum/skills/smartgunner_pve
