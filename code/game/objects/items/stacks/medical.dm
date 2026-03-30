@@ -37,7 +37,7 @@
 		to_chat(user, SPAN_WARNING("[H] has no [parse_zone(user.zone_selected)]!"))
 		return 1
 
-	if(affecting.display_name == "head")
+	if(affecting.name == "head")
 		if(H.head && istype(H.head,/obj/item/clothing/head/helmet/space))
 			to_chat(user, SPAN_WARNING("You can't apply [src] through [H.head]!"))
 			return 1
