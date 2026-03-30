@@ -3,8 +3,6 @@ import { Button, Collapsible, Divider, Section, Stack } from '../components';
 import { Window } from '../layouts';
 
 export const GameMasterDroppodMenu = (props, context) => {
-  const { data, act } = useBackend();
-
   return (
     <Window width={450} height={350}>
       <Window.Content scrollable>
@@ -22,7 +20,8 @@ export const GameMasterDroppodPanel = (props, context) => {
   return (
     <Section
       title={`Drop Pods (${data.selected_launch_target_count || 0} LZ selected)`}
-      mb={1}>
+      mb={1}
+    >
       <Stack direction="column">
         <Stack.Item>
           <Button
@@ -50,7 +49,7 @@ export const GameMasterDroppodPanel = (props, context) => {
           <Stack.Item>
             <Collapsible title="Droppod LZ Points">
               <Stack vertical>
-                {data.game_master_droppods.map((val, x, y, z) => {
+                {data.game_master_droppods.map((val) => {
                   if (val) {
                     return (
                       <Stack.Item key={val.droppod_name}>
@@ -68,7 +67,9 @@ export const GameMasterDroppodPanel = (props, context) => {
                           </Stack.Item>
                           <Stack.Item>
                             <Button
-                              color={val.selected_for_launch ? 'good' : undefined}
+                              color={
+                                val.selected_for_launch ? 'good' : undefined
+                              }
                               selected={val.selected_for_launch}
                               onClick={() => {
                                 act('set_target', { val });
