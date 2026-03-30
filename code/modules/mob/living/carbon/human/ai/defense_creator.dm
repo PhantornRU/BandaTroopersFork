@@ -115,13 +115,19 @@
 	return replacetext(replacetext("[type]", "/datum/human_ai_defense/", "human_ai_defense_"), "/", "_")
 
 /datum/human_ai_defense/proc/get_ui_icon_file()
-	if(ispath(path_to_spawn) && path_to_spawn::icon)
-		return path_to_spawn::icon
+	if(ispath(path_to_spawn))
+		var/atom/spawn_atom = path_to_spawn
+		var/icon_file = initial(spawn_atom.icon)
+		if(icon_file)
+			return icon_file
 	return icon
 
 /datum/human_ai_defense/proc/get_ui_icon_state()
-	if(ispath(path_to_spawn) && path_to_spawn::icon_state)
-		return path_to_spawn::icon_state
+	if(ispath(path_to_spawn))
+		var/atom/spawn_atom = path_to_spawn
+		var/icon_file_state = initial(spawn_atom.icon_state)
+		if(icon_file_state)
+			return icon_file_state
 	return icon_state
 
 // Sentries
