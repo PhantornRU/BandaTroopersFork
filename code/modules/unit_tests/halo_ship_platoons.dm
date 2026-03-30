@@ -794,8 +794,10 @@
 	var/obj/item/card/id/captain_id = allocate(/obj/item/card/id)
 	captain_id.access = list(ACCESS_MARINE_CO)
 	captain_human.equip_to_slot(captain_id, WEAR_ID, TRUE)
+	var/mob/living/carbon/human/colonel_human = create_test_human("HALO Armory Colonel", JOB_COLONEL)
 
 	TEST_ASSERT(button.allowed(captain_human), "Captain access should be able to open an unavailable squad armory button.")
+	TEST_ASSERT(button.allowed(colonel_human), "A high-command role above the commanding officer should be able to open an unavailable squad armory button.")
 	TEST_ASSERT(!button.allowed(so_human), "A HALO platoon commander should not bypass the captain-only fallback on an unavailable squad armory button.")
 	TEST_ASSERT(!button.allowed(bravo_leader), "A HALO squad leader should not bypass the captain-only fallback on an unavailable squad armory button.")
 

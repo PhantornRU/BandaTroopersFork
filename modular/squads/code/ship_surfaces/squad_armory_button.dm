@@ -111,7 +111,17 @@
 		return FALSE
 
 	var/mob/living/carbon/human/human_user = user
-	return GET_DEFAULT_ROLE(human_user.job) == JOB_CO || user_has_any_access(human_user, list(ACCESS_MARINE_CO))
+	return is_captain_or_higher_role(human_user) || user_has_any_access(human_user, list(ACCESS_MARINE_CO))
+
+/obj/structure/machinery/door_control/squad_armory/proc/is_captain_or_higher_role(mob/living/carbon/human/human_user)
+	if(!ishuman(human_user))
+		return FALSE
+
+	switch(GET_DEFAULT_ROLE(human_user.job))
+		if(JOB_CO, JOB_COLONEL, JOB_GENERAL, JOB_ACMC, JOB_CMC)
+			return TRUE
+
+	return FALSE
 
 /obj/structure/machinery/door_control/squad_armory/proc/user_has_any_access(mob/living/user, list/required_access)
 	if(!required_access || !length(required_access))
@@ -142,6 +152,6 @@
 	if(target_squad?.usable)
 		to_chat(user, SPAN_DANGER("Only a platoon commander or [target_squad.name]'s squad leader can open this armory."))
 	else
-		to_chat(user, SPAN_DANGER("[target_squad?.name || "This squad"] is unavailable this round. Captain access is required to open this armory."))
+		to_chat(user, SPAN_DANGER("[target_squad?.name || "This squad"] is unavailable this round. Captain access or higher is required to open this armory."))
 
 	flick(initial(icon_state) + "-denied", src)
