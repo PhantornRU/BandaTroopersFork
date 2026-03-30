@@ -1,7 +1,7 @@
 /datum/species/sangheili
 	group = SPECIES_SANGHEILI
-	name = "Sangheili"
-	name_plural = "Sangheili"
+	name = "Сангхейли"
+	name_plural = "Сангхейли"
 	mob_flags = KNOWS_TECHNOLOGY
 	uses_skin_color = TRUE
 	flags = HAS_HARDCRIT|HAS_SKIN_COLOR|SPECIAL_BONEBREAK|NO_SHRAPNEL

@@ -1,7 +1,7 @@
 /datum/species/unggoy
 	group = SPECIES_UNGGOY
-	name = "Unggoy"
-	name_plural = "Unggoy"
+	name = "Унггой"
+	name_plural = "Унггои"
 	mob_flags = KNOWS_TECHNOLOGY
 	uses_skin_color = TRUE
 	flags = HAS_HARDCRIT|HAS_SKIN_COLOR|SPECIAL_BONEBREAK|NO_SHRAPNEL

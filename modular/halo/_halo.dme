@@ -120,6 +120,7 @@
 #include "code/modules/mob/living/carbon/human/ai/brain/halo_ai_factions.dm"
 #include "code/modules/mob/living/carbon/human/ai/brain/halo_firearm_appraisals.dm"
 #include "code/modules/mob/living/carbon/human/ai/ai_spawner/halo_spawn_helper.dm"
+#include "code/modules/mob/living/carbon/human/ai/ai_spawner/ai_presets_insurgent.dm"
 #include "code/modules/mob/living/carbon/human/ai/ai_spawner/ai_presets_sangheili.dm"
 #include "code/modules/mob/living/carbon/human/ai/ai_spawner/ai_presets_unggoy.dm"
 #include "code/modules/mob/living/carbon/human/ai/ai_spawner/ai_presets_unsc.dm"
