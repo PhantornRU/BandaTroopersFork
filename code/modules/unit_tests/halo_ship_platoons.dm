@@ -211,6 +211,8 @@
 	var/list/snapshot_roles_for_mode = null
 	var/list/snapshot_personal_closets = null
 	var/list/snapshot_custom_items = null
+	var/list/snapshot_spawns_by_job = null
+	var/list/snapshot_spawns_by_squad_and_job = null
 	var/list/snapshot_latejoin = null
 	var/list/snapshot_latejoin_by_squad = null
 	var/list/snapshot_latejoin_by_job = null
@@ -243,6 +245,8 @@
 
 	snapshot_personal_closets = GLOB.personal_closets ? GLOB.personal_closets.Copy() : list()
 	snapshot_custom_items = GLOB.custom_items ? GLOB.custom_items.Copy() : list()
+	snapshot_spawns_by_job = GLOB.spawns_by_job ? GLOB.spawns_by_job.Copy() : list()
+	snapshot_spawns_by_squad_and_job = GLOB.spawns_by_squad_and_job ? GLOB.spawns_by_squad_and_job.Copy() : list()
 	snapshot_latejoin = GLOB.latejoin ? GLOB.latejoin.Copy() : list()
 	snapshot_latejoin_by_squad = GLOB.latejoin_by_squad ? GLOB.latejoin_by_squad.Copy() : list()
 	snapshot_latejoin_by_job = GLOB.latejoin_by_job ? GLOB.latejoin_by_job.Copy() : list()
@@ -288,6 +292,8 @@
 
 	GLOB.personal_closets = snapshot_personal_closets ? snapshot_personal_closets.Copy() : list()
 	GLOB.custom_items = snapshot_custom_items ? snapshot_custom_items.Copy() : list()
+	GLOB.spawns_by_job = snapshot_spawns_by_job ? snapshot_spawns_by_job.Copy() : list()
+	GLOB.spawns_by_squad_and_job = snapshot_spawns_by_squad_and_job ? snapshot_spawns_by_squad_and_job.Copy() : list()
 	GLOB.latejoin = snapshot_latejoin ? snapshot_latejoin.Copy() : list()
 	GLOB.latejoin_by_squad = snapshot_latejoin_by_squad ? snapshot_latejoin_by_squad.Copy() : list()
 	GLOB.latejoin_by_job = snapshot_latejoin_by_job ? snapshot_latejoin_by_job.Copy() : list()
