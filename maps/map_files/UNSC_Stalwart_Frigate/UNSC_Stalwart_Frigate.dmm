@@ -1095,13 +1095,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth/corner,
 /area/unsc_stalwart_frigate/cryo_bay/one)
-"abU" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "door_warning";
-	dir = 4
-	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/medical)
 "abV" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
@@ -1209,90 +1202,6 @@
 	},
 /turf/open/floor/almayer/dark_sterile,
 /area/unsc_stalwart_frigate/medical)
-"ach" = (
-/obj/structure/surface/rack,
-/obj/item/storage/belt/gun/m7/full{
-	pixel_y = 9
-	},
-/obj/item/weapon/gun/smg/halo/m7/folded_up{
-	pixel_x = 6;
-	pixel_y = -6
-	},
-/turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/armory)
-"aci" = (
-/obj/structure/surface/rack,
-/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
-	pixel_y = 9
-	},
-/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
-	pixel_x = 4;
-	pixel_y = 1
-	},
-/turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/armory)
-"acj" = (
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/ammo_box/magazine/misc/unsc/grenade{
-	pixel_x = -6;
-	pixel_y = 16
-	},
-/obj/item/ammo_box/magazine/misc/unsc/grenade{
-	pixel_x = 4;
-	pixel_y = 22;
-	layer = 3
-	},
-/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable{
-	pixel_x = 11;
-	pixel_y = 12
-	},
-/obj/item/ammo_box/magazine/misc/unsc/grenade{
-	pixel_x = -6;
-	pixel_y = 16
-	},
-/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable{
-	pixel_x = 11;
-	pixel_y = 12
-	},
-/obj/item/ammo_box/magazine/misc/unsc/grenade{
-	pixel_x = 4;
-	pixel_y = 22;
-	layer = 3
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = -4;
-	pixel_y = 7
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = -4;
-	pixel_y = 7
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = -4;
-	pixel_y = 7
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = -4;
-	pixel_y = 7
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = -4;
-	pixel_y = 7
-	},
-/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
-	pixel_x = 6
-	},
-/turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/armory)
-"ack" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "W"
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/armory)
 "acl" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -2019,66 +1928,28 @@
 	},
 /turf/open/shuttle/escapepod/east,
 /area/unsc_stalwart_frigate/upper_hallway)
-"adu" = (
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/armory)
 "adv" = (
-/obj/structure/gun_rack/halo/big/br55/unloaded,
-/turf/open/floor/almayer/plate,
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = null
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/armory)
 "adw" = (
-/obj/structure/gun_rack/halo/big/br55/unloaded,
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff"
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = null
 	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/armory)
-"adx" = (
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
 	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 15
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 13
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/turf/open/floor/almayer/plate,
+/turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/armory)
 "ady" = (
 /obj/structure/platform,
@@ -2118,37 +1989,24 @@
 /turf/open/shuttle/escapepod/west,
 /area/unsc_stalwart_frigate/upper_hallway)
 "adB" = (
-/obj/structure/surface/table/reinforced/almayer_B,
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "General Listening Channel";
+	pixel_x = -23
 	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_y = 4
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
-	},
-/obj/item/ammo_box/magazine/unsc/br55{
-	pixel_x = 0;
-	pixel_y = 17
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 8
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
 "adC" = (
-/obj/structure/gun_rack/halo/big/br55/unloaded,
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = 0;
 	dir = 1
 	},
-/turf/open/floor/almayer/plate,
+/turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/armory)
 "adD" = (
 /obj/structure/machinery/light/small{
@@ -4991,7 +4849,7 @@
 "aja" = (
 /obj/structure/window/framed/unsc,
 /turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/briefing)
+/area/unsc_stalwart_frigate/briefing/two)
 "ajb" = (
 /obj/structure/bed/chair/office/dark{
 	dir = 1
@@ -8850,10 +8708,6 @@
 /obj/item/weapon/gun/rifle/halo/br55/unloaded,
 /turf/open/floor/almayer/plating_striped/east,
 /area/unsc_stalwart_frigate/upper_hallway)
-"aqc" = (
-/obj/structure/window/framed/unsc,
-/turf/open/shuttle/escapepod/floor4,
-/area/unsc_stalwart_frigate/medical)
 "aqd" = (
 /turf/open/floor/almayer/bluecorner/west,
 /area/unsc_stalwart_frigate/upper_hallway)
@@ -10557,19 +10411,61 @@
 /area/unsc_stalwart_frigate/upper_hallway)
 "atG" = (
 /obj/effect/decal/warning_stripes{
+	icon_state = "NE-out";
+	pixel_y = 1;
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/northeast,
+/area/unsc_stalwart_frigate/medical)
+"atH" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/north,
+/area/unsc_stalwart_frigate/medical)
+"atI" = (
+/obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
 	pixel_y = 1
 	},
 /turf/open/floor/almayer/sterile_green_side/northwest,
 /area/unsc_stalwart_frigate/medical)
-"atH" = (
+"atJ" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
 	pixel_y = 1
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
-"atI" = (
+"atK" = (
+/turf/closed/wall/unsc,
+/area/unsc_stalwart_frigate/medical)
+"atL" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_corner/west,
+/area/unsc_stalwart_frigate/medical)
+"atM" = (
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/medical)
+"atN" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "W"
+	},
+/turf/open/floor/almayer/sterile_green_corner/east,
+/area/unsc_stalwart_frigate/medical)
+"atO" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
 	pixel_y = 1
@@ -10586,7 +10482,7 @@
 	},
 /turf/open/floor/almayer/sterile_green_side/northwest,
 /area/unsc_stalwart_frigate/medical)
-"atJ" = (
+"atP" = (
 /obj/structure/machinery/door/poddoor/almayer{
 	dir = 4;
 	id = "autodoc2"
@@ -10594,7 +10490,7 @@
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/medical)
-"atK" = (
+"atQ" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NW-out";
 	pixel_y = 1
@@ -10611,7 +10507,12 @@
 	},
 /turf/open/floor/almayer/sterile_green_side/northwest,
 /area/unsc_stalwart_frigate/medical)
-"atL" = (
+"atR" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/machinery/door/airlock/unsc/prop,
+/turf/open/floor/almayer/pod_landing_floor,
+/area/unsc_stalwart_frigate/dorms)
+"atS" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
@@ -10620,7 +10521,72 @@
 	},
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
-"atM" = (
+"atT" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/structure/platform{
+	dir = 8
+	},
+/obj/structure/machinery/light/double/blue,
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/medical)
+"atU" = (
+/obj/structure/platform{
+	dir = 1
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/medical)
+"atV" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 8
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/east,
+/area/unsc_stalwart_frigate/medical)
+"atW" = (
+/obj/structure/machinery/medical_pod/autodoc{
+	pixel_y = 6
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/medical)
+"atX" = (
+/turf/closed/wall/unsc,
+/area/unsc_stalwart_frigate/lower_hallway)
+"atY" = (
+/obj/structure/machinery/autodoc_console{
+	dir = 4;
+	pixel_y = 6
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/medical)
+"atZ" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "W"
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/west,
+/area/unsc_stalwart_frigate/medical)
+"aua" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer,
 /obj/structure/machinery/door/poddoor/almayer{
 	dir = 4;
@@ -10628,7 +10594,7 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/medical)
-"atN" = (
+"aub" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
@@ -10641,29 +10607,64 @@
 	},
 /turf/open/floor/almayer/sterile_green_side/west,
 /area/unsc_stalwart_frigate/medical)
-"atO" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/airlock/unsc,
-/obj/structure/machinery/door/airlock/unsc,
-/turf/open/floor/almayer/test_floor4,
+"auc" = (
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
-"atP" = (
+"aud" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	dir = 4
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/medical)
+"aue" = (
 /obj/structure/curtain/medical,
 /turf/open/floor/almayer/dark_sterile,
 /area/unsc_stalwart_frigate/medical)
-"atQ" = (
+"auf" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "SE-out";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/southeast,
+/area/unsc_stalwart_frigate/medical)
+"aug" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_corner/north,
+/area/unsc_stalwart_frigate/medical)
+"auh" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
+	},
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
-/obj/structure/bed/roller,
-/turf/open/floor/almayer/sterile_green_side/west,
+/turf/open/floor/almayer/sterile_green_corner,
 /area/unsc_stalwart_frigate/medical)
-"atR" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/airlock/unsc/prop,
-/turf/open/floor/almayer/pod_landing_floor,
-/area/unsc_stalwart_frigate/dorms)
-"atS" = (
+"aui" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "SW-out"
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/sterile_green_side/southwest,
+/area/unsc_stalwart_frigate/medical)
+"auj" = (
 /obj/structure/machinery/light/double/blue{
 	light_color = "#dae2ff";
 	dir = 1
@@ -10680,71 +10681,66 @@
 	},
 /turf/open/floor/almayer/sterile_green_side/southwest,
 /area/unsc_stalwart_frigate/medical)
-"atT" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
+"auk" = (
+/obj/structure/platform,
+/obj/structure/platform{
+	dir = 8
 	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/obj/structure/bed/roller,
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/medical)
-"atU" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "NW-out";
-	pixel_y = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/obj/structure/machinery/door_control/brbutton/alt{
-	pixel_x = 0;
-	pixel_y = -17;
-	req_one_access_txt = "8";
-	id = "autodoc"
-	},
-/turf/open/floor/almayer/sterile_green_side/northwest,
-/area/unsc_stalwart_frigate/medical)
-"atV" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "NW-out";
-	pixel_y = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/obj/structure/machinery/door_control/brbutton/alt{
-	pixel_x = 1;
-	pixel_y = -18;
-	req_one_access_txt = "8";
-	id = "autodoc"
-	},
-/turf/open/floor/almayer/sterile_green_side/northwest,
-/area/unsc_stalwart_frigate/medical)
-"atW" = (
 /obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff"
+	light_color = "#dae2ff";
+	dir = 1
 	},
-/turf/open/floor/almayer/sterile_green_side,
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/floor/almayer/plating,
 /area/unsc_stalwart_frigate/medical)
-"atX" = (
-/turf/closed/wall/unsc,
-/area/unsc_stalwart_frigate/lower_hallway)
-"atY" = (
+"aul" = (
+/obj/structure/platform,
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/blocker/invisible_wall{
+	layer = 2
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/medical)
+"aum" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "W"
+	},
+/turf/open/floor/almayer/sterile_green_side/west,
+/area/unsc_stalwart_frigate/medical)
+"aun" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SE-out";
 	pixel_x = 1
 	},
-/turf/open/floor/almayer/sterile_green_side/east,
+/obj/structure/phone_base{
+	phone_category = "Dark was the Night";
+	pixel_x = -18;
+	pixel_y = 0;
+	phone_id = "Surgical Suite";
+	dir = 4
+	},
+/turf/open/floor/almayer/sterile_green_side/southeast,
 /area/unsc_stalwart_frigate/medical)
-"atZ" = (
-/turf/open/floor/almayer/sterile_green_side/east,
+"auo" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
+	},
+/turf/open/floor/almayer/sterile_green_side,
 /area/unsc_stalwart_frigate/medical)
-"aua" = (
+"aup" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "SW-out"
+	},
+/turf/open/floor/almayer/sterile_green_side/southwest,
+/area/unsc_stalwart_frigate/medical)
+"auq" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SW-out"
 	},
@@ -10752,12 +10748,54 @@
 	icon_state = "door_warning";
 	dir = 1
 	},
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/medical)
+"aur" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
-"aub" = (
+"aus" = (
+/obj/structure/window/framed/unsc,
+/turf/open/shuttle/escapepod/floor4,
+/area/unsc_stalwart_frigate/medical)
+"aut" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer{
+	dir = 2
+	},
+/obj/structure/machinery/door/airlock/unsc{
+	dir = 1
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/unsc_stalwart_frigate/medical)
+"auu" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/floor/almayer/sterile_green_side,
+/area/unsc_stalwart_frigate/medical)
+"auv" = (
+/turf/open/floor/almayer/sterile_green_side/east,
+/area/unsc_stalwart_frigate/medical)
+"auw" = (
+/obj/structure/machinery/medical_pod/sleeper{
+	pixel_y = 6
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/unsc_stalwart_frigate/medical)
+"aux" = (
+/obj/structure/machinery/sleep_console{
+	dir = 4;
+	pixel_y = 6
+	},
+/turf/open/floor/almayer/test_floor4,
+/area/unsc_stalwart_frigate/medical)
+"auy" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
@@ -10767,11 +10805,24 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
-"auc" = (
-/obj/structure/bed/roller,
+"auz" = (
+/obj/structure/phone_base{
+	phone_category = "Dark was the Night";
+	pixel_x = -18;
+	pixel_y = 0;
+	phone_id = "Surgical Suite - Observation";
+	dir = 4
+	},
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
-"aud" = (
+"auA" = (
+/turf/open/floor/almayer/sterile,
+/area/unsc_stalwart_frigate/medical)
+"auB" = (
+/obj/structure/bed/chair,
+/turf/open/floor/almayer/sterile,
+/area/unsc_stalwart_frigate/medical)
+"auC" = (
 /obj/structure/prop/unsc_crate/standard/medical{
 	pixel_x = -8;
 	pixel_y = 15
@@ -10782,7 +10833,7 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/unsc_stalwart_frigate/medical)
-"aue" = (
+"auD" = (
 /obj/structure/prop/unsc_crate/standard/medical{
 	pixel_x = -8;
 	pixel_y = 15
@@ -10834,7 +10885,7 @@
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/unsc_stalwart_frigate/medical)
-"auf" = (
+"auE" = (
 /obj/structure/prop/unsc_crate/standard/medical{
 	pixel_x = -8;
 	pixel_y = 15;
@@ -10853,11 +10904,11 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
-"aug" = (
+"auF" = (
 /obj/structure/bed/roller,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
-"auh" = (
+"auG" = (
 /obj/structure/machinery/cm_vending/sorted/medical/unsc{
 	pixel_x = 11;
 	pixel_y = 21;
@@ -10870,79 +10921,91 @@
 	},
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
-"aui" = (
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
+"auH" = (
+/obj/structure/surface/rack,
+/obj/item/storage/belt/gun/m7/full{
+	pixel_y = 9
 	},
-/obj/structure/bed/roller,
-/turf/open/floor/almayer/sterile,
-/area/unsc_stalwart_frigate/medical)
-"auj" = (
-/turf/closed/wall/unsc,
-/area/unsc_stalwart_frigate/briefing/two)
-"auk" = (
-/obj/structure/window/framed/unsc,
+/obj/item/weapon/gun/smg/halo/m7/folded_up{
+	pixel_x = 6;
+	pixel_y = -6
+	},
 /turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/briefing/two)
-"aul" = (
-/turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/briefing/two)
-"aum" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/airlock/multi_tile/unsc{
-	dir = 2
+/area/unsc_stalwart_frigate/armory)
+"auI" = (
+/obj/structure/surface/rack,
+/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
+	pixel_y = 9
 	},
-/turf/open/floor/almayer/pod_landing_floor,
-/area/unsc_stalwart_frigate/briefing/two)
-"aun" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/cable/heavyduty/west_east,
-/turf/open/floor/almayer/pod_landing_floor,
-/area/unsc_stalwart_frigate/briefing/two)
-"auo" = (
-/obj/structure/cable/heavyduty/north_south,
-/turf/open/floor/plating/plating_catwalk/strata,
-/area/unsc_stalwart_frigate/briefing/two)
-"aup" = (
-/turf/closed/wall/unsc/reinforced/hull,
-/area/unsc_stalwart_frigate/briefing/two)
-"auq" = (
-/turf/open/floor/plating/plating_catwalk/strata,
-/area/unsc_stalwart_frigate/briefing/two)
-"aur" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/airlock/unsc,
-/obj/structure/cable/heavyduty{
-	icon_state = "4-8"
+/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
+	pixel_x = 4;
+	pixel_y = 1
 	},
-/turf/open/floor/almayer/pod_landing_floor,
-/area/unsc_stalwart_frigate/briefing/two)
-"aus" = (
+/turf/open/floor/corsat/plate,
+/area/unsc_stalwart_frigate/armory)
+"auJ" = (
+/obj/structure/surface/table/reinforced/almayer_B,
+/obj/item/ammo_box/magazine/misc/unsc/grenade{
+	pixel_x = -6;
+	pixel_y = 16
+	},
+/obj/item/ammo_box/magazine/misc/unsc/grenade{
+	pixel_x = 4;
+	pixel_y = 22;
+	layer = 3
+	},
+/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable{
+	pixel_x = 11;
+	pixel_y = 12
+	},
+/obj/item/ammo_box/magazine/misc/unsc/grenade{
+	pixel_x = -6;
+	pixel_y = 16
+	},
+/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable{
+	pixel_x = 11;
+	pixel_y = 12
+	},
+/obj/item/ammo_box/magazine/misc/unsc/grenade{
+	pixel_x = 4;
+	pixel_y = 22;
+	layer = 3
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = -4;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = -4;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = -4;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = -4;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = -4;
+	pixel_y = 7
+	},
+/obj/item/ammo_box/magazine/misc/unsc/m7_ammo{
+	pixel_x = 6
+	},
+/turf/open/floor/corsat/plate,
+/area/unsc_stalwart_frigate/armory)
+"auK" = (
 /obj/effect/decal/warning_stripes{
-	icon_state = "door_warning";
-	dir = 8
+	icon_state = "W"
 	},
-/turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/briefing/two)
-"aut" = (
-/turf/closed/wall/unsc,
-/area/unsc_stalwart_frigate/briefing/one)
-"auu" = (
-/obj/structure/cable/heavyduty/west_east,
-/turf/closed/wall/unsc/reinforced/hull,
-/area/unsc_stalwart_frigate/engineering)
-"auv" = (
-/obj/structure/cable/heavyduty/west_east,
-/turf/open/floor/almayer/redfull,
-/area/unsc_stalwart_frigate/engineering)
-"auw" = (
-/obj/structure/machinery/power/reactor{
-	name = "\improper S-52 fusion reactor 17"
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
 	},
-/obj/structure/cable/heavyduty/west_east,
-/turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/engineering)
-"aux" = (
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/armory)
+"auL" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
 	pixel_x = 1
@@ -10952,7 +11015,7 @@
 	},
 /turf/open/floor/almayer/plating,
 /area/unsc_stalwart_frigate/armory)
-"auy" = (
+"auM" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/item/ammo_magazine/shotgun/buckshot/unsc{
 	pixel_x = -7;
@@ -10992,33 +11055,27 @@
 	},
 /turf/open/floor/corsat/plate,
 /area/unsc_stalwart_frigate/armory)
-"auz" = (
+"auN" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "E";
 	pixel_x = 1
 	},
 /turf/open/floor/almayer/plating,
 /area/unsc_stalwart_frigate/armory)
-"auA" = (
+"auO" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SE-out";
 	pixel_x = 1
 	},
 /turf/open/floor/almayer/plating,
 /area/unsc_stalwart_frigate/armory)
-"auB" = (
+"auP" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "S"
 	},
 /turf/open/floor/almayer/plating,
 /area/unsc_stalwart_frigate/armory)
-"auC" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/armory)
-"auD" = (
+"auQ" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "S"
 	},
@@ -11028,20 +11085,23 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"auE" = (
+"auR" = (
+/turf/open/floor/almayer,
+/area/unsc_stalwart_frigate/armory)
+"auS" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SE-out";
 	pixel_x = 1
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"auF" = (
+"auT" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "SW-out"
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"auG" = (
+"auU" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NE-out";
 	pixel_y = 1;
@@ -11049,89 +11109,7 @@
 	},
 /turf/open/floor/almayer/edge/smooth/corner/north,
 /area/unsc_stalwart_frigate/armory)
-"auH" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "SW-out"
-	},
-/turf/open/floor/almayer/edge/smooth/corner,
-/area/unsc_stalwart_frigate/armory)
-"auI" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "SE-out";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/edge/smooth/corner/east,
-/area/unsc_stalwart_frigate/armory)
-"auJ" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/armory)
-"auK" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/armory)
-"auL" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/armory)
-"auM" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "NW-out";
-	pixel_y = 1
-	},
-/turf/open/floor/almayer/plating_striped,
-/area/unsc_stalwart_frigate/armory)
-"auN" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "NE-out";
-	pixel_y = 1;
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/plating_striped,
-/area/unsc_stalwart_frigate/armory)
-"auO" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "W"
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/armory)
-"auP" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/armory)
-"auR" = (
-/obj/structure/surface/rack,
-/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
-	pixel_y = 9
-	},
-/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded,
-/turf/open/floor/corsat/plate,
-/area/unsc_stalwart_frigate/armory)
-"auS" = (
+"auV" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer{
 	dir = 2
 	},
@@ -11141,35 +11119,6 @@
 /obj/structure/machinery/door/airlock/multi_tile/unsc/prop,
 /turf/open/floor/almayer/pod_landing_floor,
 /area/unsc_stalwart_frigate/armory)
-"auT" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer{
-	dir = 2
-	},
-/turf/open/floor/almayer/pod_landing_floor,
-/area/unsc_stalwart_frigate/armory)
-"auU" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "door_warning";
-	pixel_y = null
-	},
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/obj/structure/cable/heavyduty{
-	icon_state = "1-2"
-	},
-/turf/open/floor/plating/plating_catwalk,
-/area/unsc_stalwart_frigate/armory)
-"auV" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "door_warning";
-	pixel_y = null
-	},
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/turf/open/floor/plating/plating_catwalk,
-/area/unsc_stalwart_frigate/armory)
 "auW" = (
 /obj/structure/toilet,
 /obj/structure/machinery/camera/autoname/golden_arrow{
@@ -11178,6 +11127,73 @@
 /turf/open/floor/strata/white_cyan2/west,
 /area/unsc_stalwart_frigate/bathroom)
 "auX" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer{
+	dir = 2
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/unsc_stalwart_frigate/armory)
+"auY" = (
+/obj/structure/surface/table/reinforced/almayer_B,
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"auZ" = (
+/obj/structure/gun_rack/halo/big/br55/unloaded,
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"ava" = (
+/obj/structure/gun_rack/halo/big/br55/unloaded,
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff"
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"avb" = (
+/obj/structure/surface/table/reinforced/almayer_B,
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 15
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 13
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"avc" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	pixel_y = 0;
@@ -11186,39 +11202,27 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"auY" = (
+"avd" = (
 /obj/structure/cable/heavyduty{
 	icon_state = "1-2"
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"auZ" = (
+"ave" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	dir = 4
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"ava" = (
+"avf" = (
 /obj/structure/pipes/vents/pump,
 /obj/structure/cable/heavyduty{
 	icon_state = "1-2"
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"avb" = (
-/obj/item/device/radio/intercom{
-	freerange = 1;
-	name = "General Listening Channel";
-	pixel_x = -23
-	},
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 8
-	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/armory)
-"avc" = (
+"avg" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	pixel_y = 0;
@@ -11229,15 +11233,7 @@
 	},
 /turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/armory)
-"avd" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "door_warning";
-	pixel_y = 0;
-	dir = 1
-	},
-/turf/open/floor/plating/plating_catwalk,
-/area/unsc_stalwart_frigate/armory)
-"ave" = (
+"avh" = (
 /obj/structure/machinery/firealarm{
 	dir = 4;
 	pixel_x = 23;
@@ -11249,7 +11245,43 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"avf" = (
+"avi" = (
+/obj/structure/surface/table/reinforced/almayer_B,
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_y = 4
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/obj/item/ammo_box/magazine/unsc/br55{
+	pixel_x = 0;
+	pixel_y = 17
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"avj" = (
+/obj/structure/gun_rack/halo/big/br55/unloaded,
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 1
+	},
+/turf/open/floor/almayer/plate,
+/area/unsc_stalwart_frigate/armory)
+"avk" = (
+/turf/closed/wall/unsc,
+/area/unsc_stalwart_frigate/briefing/two)
+"avl" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/item/storage/box/guncase/heavy/motiondetectors{
 	pixel_y = 2;
@@ -11261,7 +11293,20 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"avg" = (
+"avm" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "SW-out"
+	},
+/turf/open/floor/almayer/edge/smooth/corner,
+/area/unsc_stalwart_frigate/armory)
+"avn" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "SE-out";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/edge/smooth/corner/east,
+/area/unsc_stalwart_frigate/armory)
+"avo" = (
 /obj/structure/machinery/light/double/blue{
 	light_color = "#dae2ff";
 	dir = 8
@@ -11269,7 +11314,7 @@
 /obj/structure/gun_rack/flamer,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"avh" = (
+"avp" = (
 /obj/structure/machinery/light/double/blue{
 	light_color = "#dae2ff";
 	dir = 4
@@ -11277,7 +11322,19 @@
 /obj/structure/gun_rack/flamer,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
-"avi" = (
+"avq" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/machinery/door/airlock/multi_tile/unsc{
+	dir = 2
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/unsc_stalwart_frigate/briefing/two)
+"avr" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/cable/heavyduty/west_east,
+/turf/open/floor/almayer/pod_landing_floor,
+/area/unsc_stalwart_frigate/briefing/two)
+"avs" = (
 /obj/structure/gun_rack/flamer{
 	pixel_x = -9
 	},
@@ -11286,6 +11343,125 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/armory)
+"avt" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/armory)
+"avu" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/armory)
+"avv" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/turf/open/floor/almayer,
+/area/unsc_stalwart_frigate/armory)
+"avw" = (
+/obj/structure/window/framed/unsc,
+/turf/open/floor/corsat/plate,
+/area/unsc_stalwart_frigate/briefing)
+"avx" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "NW-out";
+	pixel_y = 1
+	},
+/turf/open/floor/almayer/plating_striped,
+/area/unsc_stalwart_frigate/armory)
+"avy" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "NE-out";
+	pixel_y = 1;
+	pixel_x = 1
+	},
+/turf/open/floor/almayer/plating_striped,
+/area/unsc_stalwart_frigate/armory)
+"avz" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "W"
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/armory)
+"avA" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "N";
+	pixel_y = 1
+	},
+/turf/open/floor/almayer/plating,
+/area/unsc_stalwart_frigate/armory)
+"avB" = (
+/obj/structure/surface/rack,
+/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
+	pixel_y = 9
+	},
+/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded,
+/turf/open/floor/corsat/plate,
+/area/unsc_stalwart_frigate/armory)
+"avC" = (
+/obj/structure/cable/heavyduty/north_south,
+/turf/open/floor/plating/plating_catwalk/strata,
+/area/unsc_stalwart_frigate/briefing/two)
+"avD" = (
+/turf/open/floor/plating/plating_catwalk/strata,
+/area/unsc_stalwart_frigate/briefing/two)
+"avE" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/machinery/door/airlock/unsc,
+/obj/structure/cable/heavyduty{
+	icon_state = "4-8"
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/unsc_stalwart_frigate/briefing/two)
+"avF" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	dir = 8
+	},
+/turf/open/floor/corsat/plate,
+/area/unsc_stalwart_frigate/briefing/two)
+"avG" = (
+/turf/closed/wall/unsc,
+/area/unsc_stalwart_frigate/briefing/one)
+"avH" = (
+/obj/structure/cable/heavyduty/west_east,
+/turf/closed/wall/unsc/reinforced/hull,
+/area/unsc_stalwart_frigate/engineering)
+"avI" = (
+/obj/structure/cable/heavyduty/west_east,
+/turf/open/floor/almayer/redfull,
+/area/unsc_stalwart_frigate/engineering)
+"avJ" = (
+/obj/structure/machinery/power/reactor{
+	name = "\improper S-52 fusion reactor 17"
+	},
+/obj/structure/cable/heavyduty/west_east,
+/turf/open/floor/almayer,
+/area/unsc_stalwart_frigate/engineering)
+"avK" = (
+/turf/open/floor/almayer,
+/area/unsc_stalwart_frigate/briefing)
+"avL" = (
+/turf/closed/wall/unsc/reinforced/hull,
+/area/unsc_stalwart_frigate/briefing)
 "avU" = (
 /obj/structure/cargo_container/unsc/main_3/c{
 	layer = 5.1
@@ -11810,7 +11986,7 @@
 /area/unsc_stalwart_frigate/medical)
 "bkJ" = (
 /turf/closed/wall/unsc/reinforced/hull,
-/area/unsc_stalwart_frigate/briefing)
+/area/unsc_stalwart_frigate/briefing/two)
 "blR" = (
 /turf/open/floor/almayer/sterile_green_side/southwest,
 /area/unsc_stalwart_frigate/medical)
@@ -12894,12 +13070,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth/southwest,
 /area/unsc_stalwart_frigate/bathroom)
-"cCV" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/turf/open/floor/almayer/sterile_green_side,
-/area/unsc_stalwart_frigate/medical)
 "cDd" = (
 /obj/structure/platform_decoration,
 /turf/open/floor/almayer,
@@ -13037,20 +13207,6 @@
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/almayer/edge/southwest,
 /area/unsc_stalwart_frigate/briefing/one)
-"cJq" = (
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "SW-out"
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_side/southwest,
-/area/unsc_stalwart_frigate/medical)
 "cJv" = (
 /obj/structure/prop/unsc_crate/standard/green{
 	pixel_x = 1;
@@ -13113,16 +13269,6 @@
 /obj/effect/landmark/start/marine/medic/bravo,
 /turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/cryo_bay/one)
-"cLw" = (
-/obj/structure/platform,
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/obj/structure/blocker/invisible_wall{
-	layer = 2
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/medical)
 "cLx" = (
 /obj/effect/landmark/late_join,
 /obj/effect/landmark/late_join/bravo,
@@ -13574,14 +13720,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/upper_hallway)
-"dqT" = (
-/obj/structure/bed/chair,
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 1
-	},
-/turf/open/floor/almayer/sterile,
-/area/unsc_stalwart_frigate/medical)
 "dqU" = (
 /turf/closed/wall/unsc,
 /area/unsc_stalwart_frigate/cryo_bay/two)
@@ -14243,22 +14381,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/motor_pool/heavy)
-"ejC" = (
-/obj/structure/platform{
-	dir = 1
-	},
-/obj/structure/platform{
-	dir = 8
-	},
-/obj/structure/machinery/light/double/blue,
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/obj/structure/blocker/invisible_wall{
-	layer = 2
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/medical)
 "ejT" = (
 /obj/structure/pipes/vents/pump,
 /obj/structure/machinery/shower{
@@ -14401,7 +14523,7 @@
 /turf/open/floor/almayer/pod_landing_floor,
 /area/unsc_stalwart_frigate/armory)
 "ewy" = (
-/turf/closed/wall/unsc,
+/turf/closed/wall/unsc/reinforced/hull,
 /area/unsc_stalwart_frigate/medical)
 "ewA" = (
 /obj/structure/stairs/perspective{
@@ -14926,17 +15048,6 @@
 	},
 /turf/open/shuttle/escapepod/floor0/north,
 /area/unsc_stalwart_frigate/bathroom)
-"eZw" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_corner/west,
-/area/unsc_stalwart_frigate/medical)
 "eZC" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -14972,6 +15083,9 @@
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/upper_hallway)
 "faU" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "S"
+	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
 "fbn" = (
@@ -15116,12 +15230,21 @@
 /turf/open/floor/almayer/mono,
 /area/unsc_stalwart_frigate/motor_pool)
 "fhx" = (
-/obj/structure/machinery/door/poddoor/almayer{
-	dir = 4;
+/obj/effect/decal/warning_stripes{
+	icon_state = "NW-out";
+	pixel_y = 1
+	},
+/obj/effect/decal/warning_stripes{
+	icon_state = "E";
+	pixel_x = 1
+	},
+/obj/structure/machinery/door_control/brbutton/alt{
+	pixel_x = 1;
+	pixel_y = -18;
+	req_one_access_txt = "8";
 	id = "autodoc"
 	},
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/turf/open/floor/almayer,
+/turf/open/floor/almayer/sterile_green_side/northwest,
 /area/unsc_stalwart_frigate/medical)
 "fhz" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer{
@@ -15932,7 +16055,7 @@
 /turf/open/floor/almayer/pod_landing_floor,
 /area/unsc_stalwart_frigate/upper_hallway)
 "gme" = (
-/obj/structure/machinery/medical_pod/sleeper{
+/obj/structure/machinery/medical_pod/bodyscanner{
 	pixel_y = 6
 	},
 /turf/open/floor/almayer/test_floor4,
@@ -15997,7 +16120,7 @@
 /area/unsc_stalwart_frigate/armory)
 "gtz" = (
 /turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/briefing)
+/area/unsc_stalwart_frigate/briefing/two)
 "guC" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "NE-out";
@@ -16798,16 +16921,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth/west,
 /area/unsc_stalwart_frigate/hangar)
-"hnZ" = (
-/obj/structure/phone_base{
-	phone_category = "Dark was the Night";
-	pixel_x = -18;
-	pixel_y = 0;
-	phone_id = "Surgical Suite - Observation";
-	dir = 4
-	},
-/turf/open/floor/almayer/sterile,
-/area/unsc_stalwart_frigate/medical)
 "hps" = (
 /obj/structure/machinery/disposal,
 /obj/structure/sign/safety/intercom{
@@ -17834,9 +17947,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth/north,
 /area/unsc_stalwart_frigate/supply)
-"iyH" = (
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/medical)
 "izA" = (
 /obj/structure/platform{
 	dir = 1
@@ -18125,6 +18235,7 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "S"
 	},
+/obj/structure/bed/roller,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
 "iXi" = (
@@ -18828,6 +18939,7 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "W"
 	},
+/obj/structure/bed/roller,
 /turf/open/floor/almayer/sterile_green_side/west,
 /area/unsc_stalwart_frigate/medical)
 "jOg" = (
@@ -19838,6 +19950,14 @@
 /obj/effect/landmark/start/marine/tl/charlie,
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/cryo_bay/one)
+"leg" = (
+/obj/structure/machinery/door/poddoor/almayer{
+	dir = 4;
+	id = "autodoc"
+	},
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/turf/open/floor/almayer,
+/area/unsc_stalwart_frigate/medical)
 "ler" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning"
@@ -20141,7 +20261,10 @@
 /turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/dorms)
 "lCg" = (
-/turf/closed/wall/unsc/reinforced/hull,
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/machinery/door/airlock/unsc,
+/obj/structure/machinery/door/airlock/unsc,
+/turf/open/floor/almayer/test_floor4,
 /area/unsc_stalwart_frigate/medical)
 "lCk" = (
 /obj/structure/surface/table/almayer,
@@ -20165,6 +20288,9 @@
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	dir = 1
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/medical)
@@ -20659,16 +20785,6 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/cryo_hall)
-"mho" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_corner/north,
-/area/unsc_stalwart_frigate/medical)
 "mhs" = (
 /obj/structure/machinery/landinglight/ds1/delaytwo{
 	dir = 1
@@ -20861,18 +20977,6 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/upper_hallway)
-"mxc" = (
-/obj/structure/platform{
-	dir = 1
-	},
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/obj/structure/blocker/invisible_wall{
-	layer = 2
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/medical)
 "mxy" = (
 /turf/open/floor/almayer/redfull,
 /area/unsc_stalwart_frigate/engineering)
@@ -21372,6 +21476,10 @@
 /area/unsc_stalwart_frigate/motor_pool/heavy)
 "nge" = (
 /obj/structure/bed/chair,
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 1
+	},
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
 "ngy" = (
@@ -21663,15 +21771,6 @@
 /obj/structure/disposalpipe/segment,
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/cryo_bay/one)
-"nDM" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "S"
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "W"
-	},
-/turf/open/floor/almayer/sterile_green_corner,
-/area/unsc_stalwart_frigate/medical)
 "nDT" = (
 /obj/structure/surface/table/almayer,
 /obj/item/reagent_container/food/condiment/saltshaker{
@@ -22121,12 +22220,6 @@
 /obj/structure/machinery/prop/almayer/CICmap/table/horizontal/segment/two,
 /turf/open/floor/almayer/mono,
 /area/unsc_stalwart_frigate/briefing)
-"ohW" = (
-/obj/structure/machinery/medical_pod/bodyscanner{
-	pixel_y = 6
-	},
-/turf/open/floor/almayer/test_floor4,
-/area/unsc_stalwart_frigate/medical)
 "oiO" = (
 /obj/structure/prop/unsc_crate/standard/blue{
 	pixel_x = -17;
@@ -22774,13 +22867,6 @@
 "paH" = (
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/hangar)
-"paZ" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "N";
-	pixel_y = 1
-	},
-/turf/open/floor/almayer/sterile_green_side/north,
-/area/unsc_stalwart_frigate/medical)
 "pbM" = (
 /obj/structure/extinguisher_cabinet/alt{
 	pixel_x = 9;
@@ -23308,12 +23394,6 @@
 "pLz" = (
 /turf/closed/wall/unsc,
 /area/unsc_stalwart_frigate/bathroom)
-"pMu" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "SW-out"
-	},
-/turf/open/floor/almayer/sterile_green_side/southwest,
-/area/unsc_stalwart_frigate/medical)
 "pNT" = (
 /obj/structure/platform{
 	dir = 4
@@ -23463,14 +23543,6 @@
 /obj/structure/bed/chair/comfy/bench/north,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/upper_hallway)
-"pZD" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/poddoor/almayer{
-	dir = 4;
-	id = "autodoc"
-	},
-/turf/open/floor/almayer,
-/area/unsc_stalwart_frigate/medical)
 "pZG" = (
 /obj/structure/machinery/camera/autoname/golden_arrow,
 /obj/effect/decal/cleanable/dirt{
@@ -23859,13 +23931,20 @@
 /area/unsc_stalwart_frigate/upper_hallway)
 "qCV" = (
 /obj/effect/decal/warning_stripes{
-	icon_state = "N";
+	icon_state = "NW-out";
 	pixel_y = 1
 	},
 /obj/effect/decal/warning_stripes{
-	icon_state = "W"
+	icon_state = "E";
+	pixel_x = 1
 	},
-/turf/open/floor/almayer/sterile_green_corner/east,
+/obj/structure/machinery/door_control/brbutton/alt{
+	pixel_x = 0;
+	pixel_y = -17;
+	req_one_access_txt = "8";
+	id = "autodoc"
+	},
+/turf/open/floor/almayer/sterile_green_side/northwest,
 /area/unsc_stalwart_frigate/medical)
 "qDF" = (
 /obj/structure/closet/coffin/woodencrate{
@@ -25739,6 +25818,7 @@
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/upper_hallway)
 "sOD" = (
+/obj/structure/bed/roller,
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
 "sOH" = (
@@ -25790,13 +25870,6 @@
 	},
 /turf/open/floor/almayer/edge/smooth,
 /area/unsc_stalwart_frigate/cryo_bay/one)
-"sPN" = (
-/obj/structure/machinery/body_scanconsole{
-	pixel_y = 6;
-	dir = 4
-	},
-/turf/open/floor/almayer/test_floor4,
-/area/unsc_stalwart_frigate/medical)
 "sRx" = (
 /obj/structure/platform{
 	dir = 1
@@ -26061,12 +26134,6 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/upper_hallway)
-"tgp" = (
-/obj/structure/machinery/medical_pod/autodoc{
-	pixel_y = 6
-	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/medical)
 "tgw" = (
 /obj/structure/machinery/landinglight/ds1/delaytwo,
 /obj/structure/machinery/landinglight/ds1/delaythree{
@@ -26325,7 +26392,7 @@
 	icon_state = "SE-out";
 	pixel_x = 1
 	},
-/turf/open/floor/almayer/sterile_green_side/southeast,
+/turf/open/floor/almayer/sterile_green_side/east,
 /area/unsc_stalwart_frigate/medical)
 "tui" = (
 /obj/structure/stairs/perspective,
@@ -26527,20 +26594,6 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/bathroom)
-"tGl" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "SE-out";
-	pixel_x = 1
-	},
-/obj/structure/phone_base{
-	phone_category = "Dark was the Night";
-	pixel_x = -18;
-	pixel_y = 0;
-	phone_id = "Surgical Suite";
-	dir = 4
-	},
-/turf/open/floor/almayer/sterile_green_side/southeast,
-/area/unsc_stalwart_frigate/medical)
 "tGX" = (
 /obj/structure/desertdam/decals/road_edge{
 	icon_state = "road_edge_decal4";
@@ -26930,6 +26983,7 @@
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
 	},
+/obj/structure/bed/roller,
 /turf/open/floor/almayer/sterile,
 /area/unsc_stalwart_frigate/medical)
 "udd" = (
@@ -27983,13 +28037,6 @@
 /obj/structure/gun_rack/halo/armory/ma5c/empty,
 /turf/open/floor/almayer/edge/smooth/north,
 /area/unsc_stalwart_frigate/hangar)
-"vgx" = (
-/obj/structure/machinery/autodoc_console{
-	dir = 4;
-	pixel_y = 6
-	},
-/turf/open/floor/almayer/plate,
-/area/unsc_stalwart_frigate/medical)
 "viE" = (
 /obj/structure/bed/bedroll{
 	pixel_x = 1;
@@ -28024,9 +28071,6 @@
 /obj/effect/landmark/start/marine/tl/bravo,
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/cryo_bay/one)
-"vkM" = (
-/turf/open/floor/almayer/sterile_green_side/northeast,
-/area/unsc_stalwart_frigate/medical)
 "vlb" = (
 /turf/open/floor/almayer/emerald,
 /area/unsc_stalwart_frigate/briefing/one)
@@ -28177,6 +28221,9 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/upper_hallway)
+"vqW" = (
+/turf/open/floor/almayer/sterile_green_side/northeast,
+/area/unsc_stalwart_frigate/medical)
 "vrq" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
@@ -28582,15 +28629,6 @@
 	},
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/hangar)
-"vOY" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer{
-	dir = 2
-	},
-/obj/structure/machinery/door/airlock/unsc{
-	dir = 1
-	},
-/turf/open/floor/almayer/test_floor4,
-/area/unsc_stalwart_frigate/medical)
 "vPg" = (
 /turf/open/floor/carpet/edge/northwest,
 /area/unsc_stalwart_frigate/briefing/two)
@@ -29407,14 +29445,12 @@
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/motor_pool/heavy)
 "wOk" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "W"
+/obj/structure/machinery/door/firedoor/border_only/almayer,
+/obj/structure/machinery/door/poddoor/almayer{
+	dir = 4;
+	id = "autodoc"
 	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_side/west,
+/turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/medical)
 "wOu" = (
 /obj/structure/machinery/power/apc/almayer/east,
@@ -29437,14 +29473,6 @@
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/upper_hallway)
-"wQU" = (
-/obj/effect/decal/warning_stripes{
-	icon_state = "NE-out";
-	pixel_y = 1;
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_side/northeast,
-/area/unsc_stalwart_frigate/medical)
 "wSf" = (
 /obj/structure/surface/table/almayer,
 /obj/item/clothing/under/marine/officer/boiler{
@@ -29523,17 +29551,6 @@
 	},
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
-"wVq" = (
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 8
-	},
-/obj/effect/decal/warning_stripes{
-	icon_state = "E";
-	pixel_x = 1
-	},
-/turf/open/floor/almayer/sterile_green_side/east,
-/area/unsc_stalwart_frigate/medical)
 "wWn" = (
 /obj/structure/cable/heavyduty{
 	icon_state = "1-2"
@@ -29590,9 +29607,9 @@
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/motor_pool/heavy)
 "wXi" = (
-/obj/structure/machinery/sleep_console{
-	dir = 4;
-	pixel_y = 6
+/obj/structure/machinery/body_scanconsole{
+	pixel_y = 6;
+	dir = 4
 	},
 /turf/open/floor/almayer/test_floor4,
 /area/unsc_stalwart_frigate/medical)
@@ -29932,23 +29949,6 @@
 "xrJ" = (
 /turf/closed/wall/unsc/reinforced/hull,
 /area/unsc_stalwart_frigate/kitchen)
-"xrX" = (
-/obj/structure/platform,
-/obj/structure/platform{
-	dir = 8
-	},
-/obj/structure/machinery/light/double/blue{
-	light_color = "#dae2ff";
-	dir = 1
-	},
-/obj/effect/decal/cleanable/dirt{
-	layer = 2.52
-	},
-/obj/structure/blocker/invisible_wall{
-	layer = 2
-	},
-/turf/open/floor/almayer/plating,
-/area/unsc_stalwart_frigate/medical)
 "xtn" = (
 /obj/structure/desertdam/decals/road_edge{
 	icon_state = "road_edge_decal4";
@@ -44717,7 +44717,7 @@ vaS
 tOG
 gNB
 pLi
-gtz
+avK
 bzA
 lVj
 dNk
@@ -45000,16 +45000,6 @@ mJG
 mJG
 mJG
 mJG
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
 ewy
 ewy
 ewy
@@ -45017,6 +45007,16 @@ ewy
 ewy
 ewy
 ewy
+ewy
+ewy
+ewy
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 jaH
 xnW
 xnW
@@ -45194,23 +45194,23 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 cnA
 cnA
 dIY
 cnA
 cnA
 cnA
+atK
 ewy
-lCg
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 jaH
 olc
 pVm
@@ -45388,23 +45388,23 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 aeN
-iyH
-iyH
-iyH
-iyH
+atM
+atM
+atM
+atM
 cnA
+atK
 ewy
-lCg
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 jaH
 xnW
 xnW
@@ -45582,7 +45582,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 cHn
@@ -45591,14 +45591,14 @@ cHn
 cHn
 cnA
 hlg
-lCg
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 jaH
 jaH
 jaH
@@ -45776,23 +45776,23 @@ mJG
 mJG
 mJG
 mJG
-lCg
-hlg
-cnA
-hSA
-hSA
-hSA
-hSA
-cnA
-hlg
-lCg
-lCg
-lCg
 ewy
-lCg
-lCg
-lCg
-lCg
+hlg
+cnA
+hSA
+hSA
+hSA
+hSA
+cnA
+hlg
+ewy
+ewy
+ewy
+atK
+ewy
+ewy
+ewy
+ewy
 jaH
 ofu
 jaH
@@ -45970,30 +45970,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 bpg
-iyH
-iyH
-iyH
-iyH
+atM
+atM
+atM
+atM
 bko
+atK
 ewy
-lCg
-nge
-hnZ
-lCg
-lCg
-tua
-wVq
-wQU
-lCg
-lCg
-lCg
-tua
-wVq
-wQU
-lCg
+auB
+auz
+ewy
+ewy
+auf
+atV
+atG
+ewy
+ewy
+ewy
+auf
+atV
+atG
+ewy
 chV
 chV
 gjX
@@ -46164,30 +46164,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 aeN
 cnA
 cnA
 cnA
 cnA
 cnA
+atK
 ewy
-lCg
-nge
-sOD
-aqc
-tGl
-mho
-iyH
-eZw
-wQU
-aqc
-tGl
-mho
-iyH
-eZw
-wQU
+auB
+auA
+aus
+aun
+aug
+atM
+atL
+atG
+aus
+aun
+aug
+atM
+atL
+atG
 chV
 ilk
 wiV
@@ -46358,7 +46358,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 cHn
@@ -46367,21 +46367,21 @@ cHn
 cHn
 cnA
 hlg
-lCg
-dqT
-sOD
-aqc
-cCV
-iyH
-tgp
-iyH
-paZ
-aqc
-cCV
-iyH
-tgp
-iyH
-paZ
+ewy
+nge
+auA
+aus
+auo
+atM
+atW
+atM
+atH
+aus
+auo
+atM
+atW
+atM
+atH
 chV
 jSi
 wiV
@@ -46552,7 +46552,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 hSA
@@ -46561,21 +46561,21 @@ hSA
 hSA
 cnA
 hlg
-lCg
-nge
-sOD
-aqc
-pMu
-nDM
-vgx
-qCV
-atG
-aqc
-pMu
-nDM
-vgx
-qCV
-atG
+ewy
+auB
+auA
+aus
+aup
+auh
+atY
+atN
+atI
+aus
+aup
+auh
+atY
+atN
+atI
 chV
 atX
 nrs
@@ -46746,30 +46746,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 bpg
-iyH
-iyH
-iyH
-iyH
+atM
+atM
+atM
+atM
 bko
+atK
 ewy
-lCg
-nge
-sOD
-lCg
-lCg
-cJq
-wOk
-atU
-lCg
-lCg
-lCg
-cJq
-wOk
-atI
-lCg
+auB
+auA
+ewy
+ewy
+aui
+atZ
+qCV
+ewy
+ewy
+ewy
+aui
+atZ
+atO
+ewy
 chV
 atX
 aej
@@ -46940,30 +46940,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 aeN
 cnA
 cnA
 cnA
 cnA
 cnA
+atK
 ewy
-lCg
+atK
+auA
 ewy
-sOD
-lCg
-lCg
-pZD
-pZD
-fhx
-lCg
-lCg
-lCg
-atM
-atM
-atJ
-lCg
+ewy
+wOk
+wOk
+leg
+ewy
+ewy
+ewy
+aua
+aua
+atP
+ewy
 chV
 jSi
 wiV
@@ -47134,7 +47134,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 cHn
@@ -47143,21 +47143,21 @@ cHn
 cHn
 cnA
 hlg
-lCg
+ewy
 tCA
-udb
-lCg
-lCg
-cJq
-wOk
-atV
-lCg
-lCg
-lCg
-atS
-atN
-atK
-lCg
+auc
+ewy
+ewy
+aui
+atZ
+fhx
+ewy
+ewy
+ewy
+auj
+aub
+atQ
+ewy
 chV
 jSi
 wiV
@@ -47232,10 +47232,10 @@ fTK
 fTK
 fTK
 fTK
-bkJ
-bkJ
-bkJ
-bkJ
+avL
+avL
+avL
+avL
 dvX
 dvX
 dvX
@@ -47328,7 +47328,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 hSA
@@ -47340,18 +47340,18 @@ acu
 qoA
 acx
 act
-vOY
-aua
-atL
-iwM
-iwM
-atH
-vOY
+aut
 lDU
-atL
-atL
-atL
-atH
+atS
+iwM
+iwM
+atJ
+aut
+auq
+atS
+atS
+atS
+atJ
 chV
 atX
 wiV
@@ -47426,9 +47426,9 @@ fTK
 fTK
 fTK
 fTK
-bkJ
+avL
 abA
-bkJ
+avL
 aot
 aot
 aqG
@@ -47522,30 +47522,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
 ewy
+atK
 bpg
-iyH
-iyH
-iyH
-iyH
+atM
+atM
+atM
+atM
 bko
+atK
 ewy
-lCg
-ewy
+atK
 aeM
-ewy
-ewy
-xrX
-udb
-ejC
-ewy
-ewy
-ewy
-xrX
-udb
-ejC
-ewy
+atK
+atK
+auk
+auc
+atT
+atK
+atK
+atK
+auk
+auc
+atT
+atK
 chV
 atX
 afr
@@ -47620,7 +47620,7 @@ fTK
 fTK
 fTK
 fTK
-bkJ
+avL
 abA
 asj
 arU
@@ -47716,7 +47716,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 abo
 cnA
 cnA
@@ -47724,22 +47724,22 @@ cnA
 cnA
 cnA
 cnA
+atK
 ewy
-lCg
-lCg
-lCg
-lCg
 ewy
-cLw
-abU
-mxc
 ewy
-lCg
 ewy
-cLw
-abU
-mxc
+atK
+aul
+aud
+atU
+atK
 ewy
+atK
+aul
+aud
+atU
+atK
 chV
 jSi
 whK
@@ -47814,9 +47814,9 @@ fTK
 fTK
 fTK
 fTK
-bkJ
+avL
 abA
-bkJ
+avL
 acZ
 hTh
 hTh
@@ -47910,7 +47910,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 jyh
 cnA
 hSA
@@ -47918,22 +47918,22 @@ hSA
 hSA
 hSA
 cnA
-lCg
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+atK
 fHj
-ewy
-ewy
-ewy
-ewy
-ewy
-atO
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+lCg
+atK
+atK
 chV
 jSi
 whK
@@ -48008,28 +48008,28 @@ fTK
 fTK
 fTK
 fTK
-bkJ
-bkJ
-bkJ
+avL
+avL
+avL
 dvX
 dvX
 dvX
 dvX
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
 gOp
-aut
-aut
-aut
-aut
-aut
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
+avG
+avG
+avG
+avG
+avG
 dvX
 dvX
 aob
@@ -48104,7 +48104,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 moc
 cnA
 hSA
@@ -48116,18 +48116,18 @@ hps
 ofl
 jgb
 ong
-ewy
+atK
 dEl
 vXb
 abV
+atK
+atK
+atK
+atK
+atK
+aue
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-atP
-ewy
-lCg
 chV
 atX
 whK
@@ -48202,26 +48202,26 @@ fTK
 fTK
 fTK
 fTK
-bkJ
-bkJ
-bkJ
-bkJ
-bkJ
-bkJ
-bkJ
+avL
+avL
+avL
+avL
+avL
+avL
+avL
 jLy
-aut
-aut
-aut
+avG
+avG
+avG
 aqg
-aut
-aut
-aut
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
+avG
+avG
+avG
 wGY
 lma
 dvX
@@ -48298,17 +48298,17 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
-iyH
-iyH
-iyH
-iyH
+atM
+atM
+atM
+atM
 cnA
-iyH
-iyH
-iyH
+atM
+atM
+atM
 acu
 uDB
 acg
@@ -48319,9 +48319,9 @@ nKb
 uEE
 eDg
 tAl
-vkM
+vqW
 cUQ
-lCg
+ewy
 chV
 atX
 aej
@@ -48404,14 +48404,14 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
 gBn
 cpK
-aut
+avG
 mIB
 fLi
 koE
@@ -48492,7 +48492,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 cnA
@@ -48515,7 +48515,7 @@ rIe
 qgc
 rIe
 vvR
-lCg
+ewy
 chV
 ilk
 wiV
@@ -48598,9 +48598,9 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
+avG
+avG
+avG
 bHj
 lQl
 qXV
@@ -48611,7 +48611,7 @@ hYk
 bzh
 aoT
 aoK
-aut
+avG
 dvX
 dvX
 atw
@@ -48686,7 +48686,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 hlg
 cnA
 cHn
@@ -48695,21 +48695,21 @@ cHn
 cHn
 cnA
 xue
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
 aeL
 gLo
 gLo
-ewy
+atK
 eio
 wdo
 lZQ
 epA
 eio
 jZn
-lCg
+ewy
 chV
 jSi
 yeG
@@ -48792,8 +48792,8 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
+avG
+avG
 oZH
 mCi
 xBH
@@ -48880,7 +48880,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 pjW
 cnA
 hSA
@@ -48889,10 +48889,10 @@ hSA
 hSA
 cnA
 fcf
-ewy
-aud
-gme
-gme
+atK
+auC
+auw
+auw
 hwC
 gLo
 gLo
@@ -48903,7 +48903,7 @@ rIe
 vvR
 rIe
 qgc
-lCg
+ewy
 chV
 atX
 hhg
@@ -48986,7 +48986,7 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 vFm
 rQb
 iJX
@@ -49011,7 +49011,7 @@ amw
 amk
 alP
 alw
-aja
+avw
 aiT
 akv
 aiB
@@ -49074,30 +49074,30 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 aeP
 cnA
-iyH
-iyH
-iyH
-iyH
-iyH
-iyH
-ewy
-aue
-wXi
-wXi
+atM
+atM
+atM
+atM
+atM
+atM
+atK
+auD
+aux
+aux
 hwC
 gLo
 fjr
-lCg
+ewy
 imT
 ijg
 imT
 sGj
 vlj
 sgA
-lCg
+ewy
 chV
 atX
 atX
@@ -49180,7 +49180,7 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 brj
 oDa
 iBY
@@ -49205,7 +49205,7 @@ amw
 aml
 alQ
 alw
-aja
+avw
 aiT
 akw
 aiU
@@ -49268,7 +49268,7 @@ mJG
 mJG
 mJG
 mJG
-lCg
+ewy
 ofl
 aZe
 cHn
@@ -49277,20 +49277,20 @@ cHn
 cHn
 aEO
 aEO
-ewy
-auf
-aub
-aub
+atK
+auE
+auy
+auy
 hwC
 gLo
-atW
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
+auu
+ewy
+ewy
+ewy
+ewy
+ewy
+ewy
+ewy
 chV
 atX
 atX
@@ -49374,7 +49374,7 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 hik
 kRe
 uGE
@@ -49399,7 +49399,7 @@ amw
 amm
 alR
 alw
-aja
+avw
 akU
 akx
 aiU
@@ -49462,28 +49462,28 @@ mJG
 mJG
 mJG
 mJG
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
 ewy
 ewy
 ewy
 ewy
-gme
-gme
-gme
+ewy
+ewy
+atK
+atK
+atK
+atK
+auw
+auw
+auw
 hwC
 gLo
 blR
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
+atK
 qQa
 wgP
 wgP
@@ -49568,7 +49568,7 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 dGn
 gHN
 awQ
@@ -49593,7 +49593,7 @@ amw
 amn
 alS
 alw
-aja
+avw
 aiT
 akx
 aiU
@@ -49656,27 +49656,27 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
-ewy
-ewy
-ewy
-ewy
-wXi
-wXi
-wXi
+atK
+atK
+atK
+atK
+aux
+aux
+aux
 hwC
 gLo
 gLo
 wdN
-lCg
-ohW
-atT
-ohW
+ewy
+gme
+iVS
+gme
 wzT
 qQa
 jOM
@@ -49762,7 +49762,7 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 vFm
 rQb
 iJX
@@ -49787,7 +49787,7 @@ amw
 amo
 alT
 alx
-aja
+avw
 aiT
 aku
 aiD
@@ -49850,27 +49850,27 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 drP
 nCB
-ewy
-ewy
-aug
-iyH
-iyH
+atK
+atK
+auF
+atM
+atM
 acl
 gLo
 gLo
 aBE
 utk
-sPN
-iVS
-sPN
+wXi
+aur
+wXi
 wzT
 qQa
 eeu
@@ -49956,8 +49956,8 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
+avG
+avG
 mnm
 edU
 jir
@@ -50044,28 +50044,28 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 ldo
 cJc
 vcw
-ewy
-aqc
-aqc
-ewy
+atK
+aus
+aus
+atK
 acm
 gLo
 gLo
 gLo
+aum
+aum
+aum
+aum
 jOd
-jOd
-jOd
-jOd
-atQ
 qQa
 wgP
 wgP
@@ -50150,9 +50150,9 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
+avG
+avG
+avG
 sUS
 tPI
 dpt
@@ -50238,19 +50238,19 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 nkS
 vXb
 urk
 rOS
 acx
-sOD
-ewy
+auA
+atK
 aEs
 gLo
 gLo
@@ -50259,8 +50259,8 @@ gLo
 uSZ
 gLo
 gLo
-ewy
-ewy
+atK
+atK
 fGR
 rrf
 whK
@@ -50344,14 +50344,14 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
 apw
 qcJ
-aut
+avG
 aZz
 dtb
 gCa
@@ -50432,19 +50432,19 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
-ewy
-ewy
-ewy
-ewy
-auh
+atK
+atK
+atK
+atK
+auG
 vDa
-ewy
+atK
 unc
 gLo
 bPL
@@ -50538,18 +50538,18 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
 apx
-aut
-aut
-aut
-aut
-aut
-aut
+avG
+avG
+avG
+avG
+avG
+avG
 wGY
 lma
 dvX
@@ -50626,14 +50626,14 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 rWU
-vkM
+vqW
 urk
 rOS
 acx
@@ -50735,19 +50735,19 @@ jLy
 jLy
 jLy
 jLy
-aut
+avG
 apM
 apz
 apq
-auj
-auj
-auj
-auj
-auj
-auj
-auj
-auj
-auj
+avk
+avk
+avk
+avk
+avk
+avk
+avk
+avk
+avk
 aog
 anP
 aiZ
@@ -50820,22 +50820,22 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 ldo
 lWE
 vcw
-ewy
-aui
-auc
-ewy
+atK
+udb
+sOD
+atK
 ixq
-atZ
-atY
+auv
+tua
 eaJ
 eaJ
 eFP
@@ -50929,21 +50929,21 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 apN
 apA
 apr
-auj
-auj
-auj
+avk
+avk
+avk
 aoE
 aoy
-auj
+avk
 aoE
 aoy
-auj
-auj
-auj
+avk
+avk
+avk
 anF
 anv
 amY
@@ -50951,14 +50951,14 @@ amx
 amq
 alV
 alz
-auj
-auj
-aun
-aum
-auj
-auk
-auk
-auj
+avk
+avk
+avr
+avq
+avk
+aja
+aja
+avk
 tOG
 mpI
 pLi
@@ -51014,29 +51014,29 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 hir
 cto
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
 dwl
 dwl
-ewy
+atK
 jPM
 sOl
-ewy
+atK
 sOl
 maC
-ewy
-ewy
+atK
+atK
 riX
 wiV
 wiV
@@ -51123,20 +51123,20 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 apO
 apA
 aps
-auj
-auj
+avk
+avk
 aoq
 aoF
 aoA
-auj
+avk
 aoF
 aoA
 aoq
-auj
+avk
 anQ
 alh
 alh
@@ -51146,7 +51146,7 @@ alf
 alf
 alf
 alf
-auj
+avk
 akA
 akc
 tiX
@@ -51208,28 +51208,28 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
 ewy
 ewy
 ewy
 ewy
 ewy
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
-lCg
+ewy
+ewy
 bPg
 qXv
 aeU
-aqc
+aus
 jPM
 sOl
-ewy
+atK
 sOl
 maC
-ewy
+atK
 qQa
 wgP
 wgP
@@ -51317,20 +51317,20 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 apP
 apB
 apt
-auj
-auj
-auj
-auj
-aur
-auj
-auj
-aur
-auj
-auj
+avk
+avk
+avk
+avk
+avE
+avk
+avk
+avE
+avk
+avk
 anR
 alf
 alf
@@ -51340,7 +51340,7 @@ alf
 alh
 alh
 alg
-auk
+aja
 akB
 gDV
 tiX
@@ -51402,28 +51402,28 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 eCk
 alW
 gLo
-aqc
+aus
 jPM
-ewy
-ewy
-ewy
-ewy
-ewy
+atK
+atK
+atK
+atK
+atK
 qQa
 eJh
 dGM
@@ -51511,20 +51511,20 @@ fTK
 fTK
 fTK
 jLy
-aut
+avG
 apQ
 apC
 apu
-auj
+avk
 apk
 ylg
 alZ
-aus
+avF
 alZ
 alZ
-aus
+avF
 alZ
-auk
+aja
 alh
 alh
 alh
@@ -51534,7 +51534,7 @@ alf
 alh
 alh
 alh
-auk
+aja
 akC
 gDV
 tiX
@@ -51596,18 +51596,18 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-lCg
 gLo
 iXi
 gLo
@@ -51616,7 +51616,7 @@ jPM
 jPM
 wyH
 uPS
-ewy
+atK
 wtM
 qQa
 ibb
@@ -51705,20 +51705,20 @@ fTK
 fTK
 fTK
 jLy
-aut
-aut
-aut
-aut
-auj
-auj
-auj
+avG
+avG
+avG
+avG
+avk
+avk
+avk
 atE
 aoA
-auq
-auq
+avD
+avD
 aoA
-auq
-auj
+avD
+avk
 adP
 alf
 alf
@@ -51728,7 +51728,7 @@ alh
 alf
 alf
 adL
-auj
+avk
 abx
 gDV
 tiX
@@ -51790,25 +51790,25 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 ewy
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-lCg
-lCg
 vZx
 scJ
-ewy
+atK
 sUt
-ewy
-ewy
+atK
+atK
 xIE
 sNW
 aoL
@@ -51902,8 +51902,8 @@ jLy
 jLy
 jLy
 jLy
-aup
-aup
+bkJ
+bkJ
 apk
 ylg
 alZ
@@ -51984,29 +51984,29 @@ mJG
 mJG
 mJG
 mJG
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
+atK
 ewy
 ewy
 ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-ewy
-lCg
-lCg
-lCg
-ewy
+atK
 aeu
-ewy
+atK
 pvz
 chp
 mbq
-lCg
-lCg
+ewy
+ewy
 chV
 chV
 chV
@@ -52096,17 +52096,17 @@ fTK
 fTK
 fTK
 fTK
-aup
-auj
-auj
-auj
-auj
-auj
-auj
-auj
-auj
-auj
-auj
+bkJ
+avk
+avk
+avk
+avk
+avk
+avk
+avk
+avk
+avk
+avk
 anT
 anH
 anw
@@ -52116,12 +52116,12 @@ amr
 alY
 alB
 alj
-auj
+avk
 ass
 gDV
 gDV
 ajt
-aul
+gtz
 aiK
 cHd
 aii
@@ -52192,11 +52192,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeE
 aev
 aen
-lCg
+ewy
 bIR
 cnq
 cnq
@@ -52290,17 +52290,17 @@ fTK
 fTK
 fTK
 fTK
-aup
-aup
-aup
-aup
+bkJ
+bkJ
+bkJ
+bkJ
 frT
 tJd
-auj
+avk
 aoH
 hXX
 fma
-auj
+avk
 alZ
 amC
 alZ
@@ -52314,7 +52314,7 @@ akX
 akD
 tiX
 gDV
-aul
+gtz
 abv
 gDV
 rey
@@ -52386,11 +52386,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeF
 aew
 aep
-lCg
+ewy
 bIR
 bIR
 bIR
@@ -52487,7 +52487,7 @@ fTK
 fTK
 fTK
 fTK
-aup
+bkJ
 wao
 eGY
 ylg
@@ -52497,14 +52497,14 @@ aor
 akX
 anU
 anI
-auo
+avC
 anb
 amD
 ams
 ama
 alD
 all
-auj
+avk
 ast
 akd
 tiX
@@ -52580,11 +52580,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeG
 aex
 aeq
-lCg
+ewy
 bIR
 bIR
 bIR
@@ -52681,30 +52681,30 @@ fTK
 fTK
 fTK
 fTK
-aup
-auj
-auj
-auj
+bkJ
+avk
+avk
+avk
 aoI
 hzl
 upt
-aup
-auj
-auj
+bkJ
+avk
+avk
 atn
-auj
-auj
-auj
-auj
-auj
-auj
-auj
+avk
+avk
+avk
+avk
+avk
+avk
+avk
 akE
 ake
-auj
-auj
-auj
-auj
+avk
+avk
+avk
+avk
 tOG
 adA
 ahW
@@ -52774,11 +52774,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
-lCg
-lCg
-lCg
-lCg
+ewy
+ewy
+ewy
+ewy
+ewy
 bIR
 bIR
 bIR
@@ -52875,14 +52875,14 @@ fTK
 fTK
 fTK
 fTK
-aup
-auj
-auj
+bkJ
+avk
+avk
 wKq
 lJP
 aME
 sJZ
-aup
+bkJ
 glc
 aRl
 ato
@@ -52968,11 +52968,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
-lCg
-lCg
-lCg
-lCg
+ewy
+ewy
+ewy
+ewy
+ewy
 bIR
 bIR
 bIR
@@ -53069,14 +53069,14 @@ fTK
 fTK
 fTK
 fTK
-aup
-auj
-auj
+bkJ
+avk
+avk
 gLm
 hXN
 pLk
 byX
-aup
+bkJ
 glc
 aRl
 anx
@@ -53162,11 +53162,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeH
 aey
 aer
-lCg
+ewy
 bIR
 bIR
 bIR
@@ -53263,14 +53263,14 @@ fTK
 fTK
 fTK
 fTK
-aup
-aup
-aup
-aup
-aup
-aup
-aup
-aup
+bkJ
+bkJ
+bkJ
+bkJ
+bkJ
+bkJ
+bkJ
+bkJ
 glc
 aRl
 any
@@ -53356,11 +53356,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeI
 aez
 aes
-lCg
+ewy
 bIR
 bIR
 bIR
@@ -53550,11 +53550,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
+ewy
 aeK
 aeA
 aet
-lCg
+ewy
 bIR
 bIR
 bIR
@@ -53744,11 +53744,11 @@ bIR
 bIR
 bIR
 bIR
-lCg
-lCg
-lCg
-lCg
-lCg
+ewy
+ewy
+ewy
+ewy
+ewy
 bIR
 bIR
 bIR
@@ -54058,7 +54058,7 @@ alE
 dez
 rfH
 rtV
-faU
+auR
 ajg
 ajB
 aje
@@ -54621,7 +54621,7 @@ glc
 glc
 glc
 glc
-auu
+avH
 hwv
 hwv
 glc
@@ -54640,7 +54640,7 @@ glc
 glc
 cIn
 rtV
-faU
+auR
 abD
 abD
 ajh
@@ -54815,7 +54815,7 @@ glc
 glc
 glc
 glc
-auu
+avH
 glc
 glc
 glc
@@ -54837,10 +54837,10 @@ wVa
 rJB
 nvf
 nvf
-faU
+auR
 nvf
 nvf
-faU
+auR
 ahN
 ahN
 abk
@@ -55009,7 +55009,7 @@ glc
 glc
 glc
 glc
-auv
+avI
 glc
 glc
 glc
@@ -55029,20 +55029,20 @@ wvh
 cIn
 pbM
 tbL
-faU
+auR
 nvf
-faU
+auR
 hrY
 nvf
 nvf
-faU
-faU
+auR
+auR
 abl
 abj
 abh
 abh
 abg
-faU
+auR
 cIn
 onU
 onU
@@ -55203,7 +55203,7 @@ glc
 glc
 mxy
 mxy
-auv
+avI
 mxy
 mxy
 mxy
@@ -55223,7 +55223,7 @@ ldb
 uUU
 fDn
 gEN
-faU
+auR
 qjm
 kqz
 odM
@@ -55234,9 +55234,9 @@ nqV
 nqV
 odM
 uGk
-faU
+auR
 qeM
-faU
+auR
 tUd
 lrf
 ldb
@@ -55397,7 +55397,7 @@ glc
 glc
 mxy
 aoJ
-auw
+avJ
 aoJ
 aoJ
 aoJ
@@ -55411,7 +55411,7 @@ cIn
 eON
 edD
 scW
-faU
+auR
 gpl
 cvF
 asz
@@ -55430,7 +55430,7 @@ tUd
 maf
 fDn
 ykE
-faU
+auR
 tUd
 gpl
 cvF
@@ -55624,7 +55624,7 @@ hkm
 red
 aqI
 ykE
-faU
+auR
 cIn
 cDy
 cDy
@@ -55818,7 +55818,7 @@ dFv
 red
 abi
 ykE
-faU
+auR
 cIn
 vSF
 uhB
@@ -56012,7 +56012,7 @@ hfq
 red
 fDn
 ykE
-faU
+auR
 cIn
 cIn
 cIn
@@ -56206,7 +56206,7 @@ tUd
 gKa
 fDn
 ykE
-faU
+auR
 cIn
 aqi
 apR
@@ -56400,7 +56400,7 @@ ieH
 lVx
 fDn
 qeM
-faU
+auR
 cIn
 ahn
 ahn
@@ -56591,10 +56591,10 @@ nqV
 nqV
 odM
 nqV
-auG
+auU
 fDn
 qeM
-faU
+auR
 aqz
 lrf
 ldb
@@ -56769,7 +56769,7 @@ cIn
 anj
 edD
 scW
-faU
+auR
 gpl
 cvF
 aqo
@@ -56788,7 +56788,7 @@ tUd
 maf
 fDn
 ykE
-faU
+auR
 aqz
 gpl
 cvF
@@ -56982,7 +56982,7 @@ mPF
 red
 aqI
 ykE
-faU
+auR
 cIn
 ahR
 ahR
@@ -57176,7 +57176,7 @@ dFv
 red
 abi
 ykE
-faU
+auR
 cIn
 aqj
 apS
@@ -57370,7 +57370,7 @@ deJ
 red
 fDn
 ykE
-faU
+auR
 cIn
 cIn
 cIn
@@ -57564,7 +57564,7 @@ tUd
 gKa
 fDn
 ykE
-auE
+auS
 cIn
 red
 red
@@ -57740,13 +57740,13 @@ red
 red
 adh
 ade
-acj
+auJ
 tkU
 vSm
 dhW
 gEN
 kJi
-auH
+avm
 ieH
 uam
 ieH
@@ -57758,12 +57758,12 @@ ieH
 lVx
 fDn
 qeM
-auC
+faU
 vFD
 adj
 adh
 ade
-acj
+auJ
 red
 red
 cIn
@@ -57931,16 +57931,16 @@ red
 red
 cIn
 red
-ach
-auO
+auH
+avz
 adf
 adf
-auM
-auJ
+avx
+avt
 dhW
 gEN
 kJi
-auI
+avn
 kqz
 nqV
 nqV
@@ -57952,13 +57952,13 @@ odM
 uGk
 fDn
 qeM
-auC
-auC
+faU
+faU
 nWw
 adf
 adf
-ack
-ach
+auK
+auH
 red
 cIn
 fTK
@@ -58125,12 +58125,12 @@ red
 red
 cIn
 red
-auR
-auP
-auz
-auz
+avB
+avA
 auN
-auJ
+auN
+avy
+avt
 dhW
 ykE
 kJi
@@ -58146,13 +58146,13 @@ tUd
 ado
 fDn
 ykE
-auC
-auC
-auA
-auz
-auz
-aux
-aci
+faU
+faU
+auO
+auN
+auN
+auL
+auI
 red
 cIn
 fTK
@@ -58322,9 +58322,9 @@ red
 red
 adi
 adg
-auy
+auM
 asF
-auK
+avu
 kgA
 ykE
 kJi
@@ -58340,12 +58340,12 @@ hkm
 red
 aqI
 ykE
-auC
-auD
+faU
+auQ
 adk
 adi
 adg
-auy
+auM
 red
 red
 cIn
@@ -58534,7 +58534,7 @@ ckt
 red
 abi
 ykE
-auF
+auT
 cIn
 red
 red
@@ -58728,7 +58728,7 @@ hfq
 red
 fDn
 ykE
-faU
+auR
 cIn
 cIn
 cIn
@@ -58922,7 +58922,7 @@ tUd
 adp
 fDn
 ykE
-auE
+auS
 cIn
 red
 red
@@ -59098,7 +59098,7 @@ red
 red
 adh
 ade
-acj
+auJ
 tkU
 vLR
 dhW
@@ -59116,7 +59116,7 @@ bxa
 lVx
 fDn
 qeM
-auC
+faU
 xUu
 adl
 ozX
@@ -59289,12 +59289,12 @@ red
 red
 cIn
 red
-ach
-auO
+auH
+avz
 adf
 adf
-auM
-faU
+avx
+auR
 dhW
 gEN
 kJi
@@ -59310,9 +59310,9 @@ odM
 uGk
 fDn
 qeM
-auC
-auC
-auB
+faU
+faU
+auP
 llX
 cIn
 aaB
@@ -59483,12 +59483,12 @@ red
 red
 cIn
 red
-auR
-auP
-auz
-auz
+avB
+avA
 auN
-faU
+auN
+avy
+auR
 dhW
 ykE
 kJi
@@ -59504,9 +59504,9 @@ tUd
 adq
 fDn
 ykE
-auC
-auC
-auB
+faU
+faU
+auP
 aah
 cIn
 red
@@ -59680,9 +59680,9 @@ red
 red
 adi
 adg
-auy
+auM
 asF
-auL
+avv
 kgA
 ykE
 kJi
@@ -59698,8 +59698,8 @@ hkm
 red
 aqI
 ykE
-auC
-auD
+faU
+auQ
 adm
 itE
 cIn
@@ -59892,7 +59892,7 @@ ads
 red
 abi
 ykE
-auF
+auT
 cIn
 cIn
 cIn
@@ -60086,7 +60086,7 @@ hfq
 red
 fDn
 ykE
-faU
+auR
 aau
 aaX
 qtt
@@ -60280,7 +60280,7 @@ tUd
 adr
 fDn
 ykE
-faU
+auR
 aau
 agx
 agg
@@ -60474,7 +60474,7 @@ ieH
 lVx
 ahj
 qeM
-faU
+auR
 agL
 agy
 agh
@@ -60656,19 +60656,19 @@ ajg
 fDn
 qeM
 kJi
-faU
-faU
-faU
-faU
+auR
+auR
+auR
+auR
 hrY
 nvf
 nvf
-faU
-faU
+auR
+auR
 nvf
 ahj
 qeM
-faU
+auR
 agL
 agz
 agi
@@ -60850,19 +60850,19 @@ ale
 akM
 ykE
 kJi
-faU
+auR
 lFF
 ioN
 qfv
-faU
-faU
+auR
+auR
 lFF
 ioN
 qfv
 nvf
 fDn
 ykE
-faU
+auR
 aau
 agA
 agj
@@ -61044,7 +61044,7 @@ bnA
 akN
 ykE
 kJi
-faU
+auR
 ehu
 red
 aiw
@@ -61056,7 +61056,7 @@ ahx
 nvf
 ahj
 ykE
-faU
+auR
 aeb
 qtt
 tUd
@@ -61238,19 +61238,19 @@ ajg
 fDn
 ykE
 kJi
-faU
+auR
 dpZ
 taL
 aht
-faU
-faU
+auR
+auR
 dpZ
 taL
 aht
-faU
+auR
 ahj
 ykE
-faU
+auR
 aau
 uUU
 agr
@@ -61432,16 +61432,16 @@ ajg
 fDn
 qeM
 kJi
-faU
-faU
+auR
+auR
 nVh
-faU
-faU
-faU
-faU
+auR
+auR
+auR
+auR
 rBr
-faU
-faU
+auR
+auR
 fDn
 agV
 eMw
@@ -61626,16 +61626,16 @@ ajg
 fDn
 uKK
 kJi
-faU
+auR
 oiO
 tUd
 qZv
-faU
+auR
 nvf
-faU
+auR
 tUd
 qqr
-faU
+auR
 fDn
 agW
 nvf
@@ -61820,19 +61820,19 @@ red
 acs
 ykE
 kJi
-faU
+auR
 kZJ
 cJv
 qfv
-faU
-faU
+auR
+auR
 kZJ
 gBc
 qfv
-faU
+auR
 ahj
 qhR
-faU
+auR
 aeb
 tUd
 tUd
@@ -62014,7 +62014,7 @@ red
 fDn
 ykE
 kJi
-faU
+auR
 tdR
 red
 tOz
@@ -62026,7 +62026,7 @@ cPc
 nvf
 ahj
 ykE
-faU
+auR
 aau
 agD
 agn
@@ -62208,19 +62208,19 @@ red
 akO
 ykE
 kJi
-faU
+auR
 jOu
 taL
 fRh
-faU
+auR
 jfP
 dpZ
 taL
 fRh
-faU
+auR
 fDn
 ykE
-faU
+auR
 agL
 agE
 agh
@@ -62414,7 +62414,7 @@ eMw
 eMw
 eMw
 agX
-faU
+auR
 agL
 agG
 agi
@@ -62595,18 +62595,18 @@ cIn
 red
 fDn
 akl
-faU
-faU
+auR
+auR
 vTI
-faU
+auR
 fnR
 rtV
 brI
 gtw
-faU
-faU
+auR
+auR
 nvf
-faU
+auR
 nvf
 nvf
 aau
@@ -62789,13 +62789,13 @@ cIn
 red
 fDn
 akm
-faU
+auR
 ahr
 agZ
 acc
 tCZ
 rtV
-faU
+auR
 ahO
 ahC
 ahy
@@ -63758,14 +63758,14 @@ red
 red
 cIn
 cIn
-avf
-avg
-avf
-avf
+avl
+avo
+avl
+avl
 cIn
-avb
-auX
-auX
+adB
+avc
+avc
 uUU
 cIn
 red
@@ -63951,17 +63951,17 @@ red
 red
 red
 cIn
-avi
+avs
 uUU
 uUU
 uUU
-auU
-auS
-avc
-ava
-auY
-auU
-auS
+adv
+auV
+avg
+avf
+avd
+adv
+auV
 afx
 afs
 afn
@@ -64145,17 +64145,17 @@ fTK
 fTK
 fTK
 cIn
-avi
+avs
 uUU
 uUU
 uUU
-auV
-auT
-avd
-faU
+adw
+auX
+adC
+auR
 nvf
-auV
-auT
+adw
+auX
 afy
 afu
 afo
@@ -64340,14 +64340,14 @@ fTK
 fTK
 cIn
 cIn
-avf
-avh
-avf
-avf
+avl
+avp
+avl
+avl
 cIn
+avh
 ave
-auZ
-auZ
+ave
 uUU
 cIn
 afz
@@ -64733,10 +64733,10 @@ fTK
 fTK
 fTK
 cIn
-adB
+avi
 tUd
 tUd
-adu
+auY
 cIn
 cIn
 cIn
@@ -64927,10 +64927,10 @@ fTK
 fTK
 fTK
 cIn
-adv
+auZ
 uUU
 uUU
-adv
+auZ
 cIn
 fTK
 fTK
@@ -65121,10 +65121,10 @@ fTK
 fTK
 fTK
 cIn
-adC
+avj
 uUU
 uUU
-adw
+ava
 cIn
 fTK
 fTK
@@ -65315,10 +65315,10 @@ fTK
 fTK
 fTK
 cIn
-adv
+auZ
 uUU
 uUU
-adv
+auZ
 cIn
 fTK
 fTK
@@ -65509,10 +65509,10 @@ fTK
 fTK
 fTK
 cIn
-adx
-adx
-adx
-adx
+avb
+avb
+avb
+avb
 cIn
 fTK
 fTK
