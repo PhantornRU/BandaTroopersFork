@@ -651,6 +651,7 @@
 	TEST_ASSERT(!sangheili_helmet.mob_can_equip(human, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing unexpectedly allowed a human wearer after the HALO clothing compat change.")
 	TEST_ASSERT(sangheili_helmet.mob_can_equip(sangheili, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing no longer allows the intended Sangheili wearer after the HALO clothing compat change.")
 
+// SS220 EDIT - START: cover HALO medic routing/vendor access and player-side locker claims
 /datum/unit_test/halo_ship_platoons_halo_medic_fireteam_assignment
 	parent_type = /datum/unit_test/halo_integration_test
 
@@ -727,3 +728,4 @@
 	TEST_ASSERT(fallback_spec.claim_halo_job_locker(), "Failed to claim the HALO job locker on the mob fallback path.")
 	TEST_ASSERT(fallback_spec.has_claimed_halo_job_locker(), "Mob fallback HALO job locker claim was not persisted.")
 	TEST_ASSERT(fallback_spec.get_halo_job_locker_claim_holder() == fallback_spec, "HALO job locker fallback claim was not stored on the mob when no mind was available.")
+// SS220 EDIT - END

@@ -12,6 +12,7 @@
 	var/list/role_rank_tokens // SS220 EDIT: squad-owned rank icon contract replaces marine-specific runtime switch
 	var/list/role_comm_restore_titles // SS220 EDIT: squad-owned comm-title restoration contract avoids hardcoded marine strings
 
+// SS220 EDIT - START: HALO role lockers track claims on the player, not on a single locker instance
 /datum/mind // SS220 EDIT: HALO role lockers must persist a per-player claim across multiple lockers
 	var/tmp/halo_job_locker_claimed = FALSE
 
@@ -31,6 +32,7 @@
 	if(mind)
 		mind.halo_job_locker_claimed = TRUE
 	return TRUE
+// SS220 EDIT - END
 
 /datum/squad_type/marine_squad
 	name = "Section"

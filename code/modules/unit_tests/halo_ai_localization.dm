@@ -92,6 +92,7 @@
 			TEST_ASSERT(islist(actual_lines), "[faction_name] did not expose a list for [key].")
 			assert_human_ai_localized_lines(actual_lines, "[faction_name] [key]")
 
+// SS220 EDIT - START: verify HALO bonus speech packs reach covenant brains through the shared localization apply path
 /datum/unit_test/halo_ai_localization_halo_bonus_profiles
 	parent_type = /datum/unit_test/halo_ai_localization
 
@@ -108,6 +109,7 @@
 	halo_ai_apply_unggoy_speech_profile(unggoy_brain, "support")
 	TEST_ASSERT("Я ещё вас подниму!" in unggoy_brain.enter_combat_lines, "Unggoy role bonus lines were not appended to enter_combat_lines.")
 	TEST_ASSERT("Сейчас залатаю!" in unggoy_brain.need_healing_lines, "Unggoy role bonus lines were not appended to need_healing_lines.")
+// SS220 EDIT - END
 
 /datum/unit_test/halo_ai_localization_brain_fallback
 	parent_type = /datum/unit_test/halo_ai_localization

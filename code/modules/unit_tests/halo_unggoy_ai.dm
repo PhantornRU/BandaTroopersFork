@@ -338,6 +338,7 @@
 		for(var/equipment_path as anything in preset.ai_to_spawn)
 			TEST_ASSERT(!findtext("[equipment_path]", "anti_tank_temp"), "[squad_type] still references the retired temporary anti-tank Unggoy role.")
 
+// SS220 EDIT - START: ensure HALO insurgent Create Human AI wrappers stay wired to the intended gear presets
 /datum/unit_test/halo_ai_insurgent_presets
 	parent_type = /datum/unit_test/halo_unggoy_ai
 
@@ -366,3 +367,4 @@
 		TEST_ASSERT_EQUAL(preset.path, preset_matrix[preset_type], "[preset_type] no longer points at the intended insurgent gear preset.")
 		TEST_ASSERT(length(preset.name), "[preset_type] should expose a GM-visible display name.")
 		TEST_ASSERT(length(preset.desc), "[preset_type] should expose a GM-visible description.")
+// SS220 EDIT - END

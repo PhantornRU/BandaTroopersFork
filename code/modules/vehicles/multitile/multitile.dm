@@ -333,14 +333,15 @@
 	var/mob/living/old_mob = seats[seat]
 
 	// Give/remove verbs
+	// SS220 EDIT - START: clear seat ownership and active hardpoint state immediately when an occupant unbuckles or is deleted.
 	if(!istype(M) || QDELETED(M))
-		// SS220 EDIT: clear seat ownership and active hardpoint state immediately when an occupant unbuckles or is deleted.
 		if(istype(old_mob))
 			remove_seated_verbs(old_mob, seat)
 		if(active_hp && (seat in active_hp))
 			active_hp[seat] = null
 		seats[seat] = null
 		return FALSE
+	// SS220 EDIT - END
 	else if(old_mob != M)
 		if(istype(old_mob))
 			remove_seated_verbs(old_mob, seat)

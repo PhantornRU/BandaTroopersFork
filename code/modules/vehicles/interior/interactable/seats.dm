@@ -39,7 +39,8 @@
 	if(!vehicle)
 		return
 
-	if(buckled_mob != M) // SS220 EDIT: unbuckle callbacks re-enter after buckled_mob has already been cleared
+	// SS220 EDIT - START: unbuckle callbacks re-enter after buckled_mob has already been cleared
+	if(buckled_mob != M)
 		M.unset_interaction()
 		if(M.client)
 			M.client.change_view(GLOB.world_view_size, vehicle)
@@ -48,6 +49,7 @@
 			M.reset_view()
 		vehicle.set_seated_mob(seat, null)
 		return
+	// SS220 EDIT - END
 
 	if(M.stat == DEAD)
 		unbuckle()
@@ -196,7 +198,8 @@
 	if(!vehicle)
 		return
 
-	if(buckled_mob != M) // SS220 EDIT: gunner seats need the same stale-occupant cleanup as driver seats
+	// SS220 EDIT - START: gunner seats need the same stale-occupant cleanup as driver seats
+	if(buckled_mob != M)
 		M.unset_interaction()
 		if(M.client)
 			M.client.change_view(GLOB.world_view_size, vehicle)
@@ -205,6 +208,7 @@
 			M.reset_view()
 		vehicle.set_seated_mob(seat, null)
 		return
+	// SS220 EDIT - END
 
 	if(M.stat != CONSCIOUS)
 		unbuckle()
@@ -277,7 +281,8 @@
 	if(!vehicle)
 		return
 
-	if(buckled_mob != M) // SS220 EDIT: support gunner seats also need to release stale occupant state immediately
+	// SS220 EDIT - START: support gunner seats also need to release stale occupant state immediately
+	if(buckled_mob != M)
 		M.unset_interaction()
 		if(M.client)
 			M.client.change_view(GLOB.world_view_size, vehicle)
@@ -286,6 +291,7 @@
 			M.reset_view()
 		vehicle.set_seated_mob(seat, null)
 		return
+	// SS220 EDIT - END
 
 	if(M.stat == DEAD)
 		unbuckle()

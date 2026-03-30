@@ -86,6 +86,7 @@
 	brain.process(0)
 	TEST_ASSERT(!human.resting, "HALO Sangheili AI should resume normal standing behavior once hardcrit ends.")
 
+// SS220 EDIT - START: dead HALO Sangheili should be forced prone instead of remaining upright after shared AI wake changes
 /datum/unit_test/halo_sangheili_ai_death_rest_guard
 	parent_type = /datum/unit_test/halo_sangheili_equipment
 
@@ -105,6 +106,7 @@
 	brain.process(0)
 	TEST_ASSERT(human.resting, "HALO Sangheili corpses should be forced back into resting instead of remaining upright.")
 	TEST_ASSERT_EQUAL(human.body_position, LYING_DOWN, "HALO Sangheili corpses should stay lying down after death.")
+// SS220 EDIT - END
 
 /datum/unit_test/halo_sangheili_ai_mixed_sword_close_switch
 	parent_type = /datum/unit_test/halo_sangheili_equipment
