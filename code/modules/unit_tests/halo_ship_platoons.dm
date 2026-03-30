@@ -765,4 +765,47 @@
 	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2/locker_two = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2, run_loc_floor_top_right)
 	TEST_ASSERT(locker_two.claim_selected_kit(spec_two, /obj/item/storage/unsc_speckit/srs99), "A second specialist could not claim their own HALO locker after the first specialist claimed a different one.")
 	TEST_ASSERT(spec_two.has_claimed_halo_job_locker(), "The second specialist claim was not persisted on their own HALO locker.")
+
+/datum/unit_test/halo_ship_platoons/halo_squad_armory_button_access
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/halo_squad_armory_button_access/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/obj/structure/machinery/door_control/squad_armory/bravo/button = allocate(/obj/structure/machinery/door_control/squad_armory/bravo, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(button, "Failed to allocate the HALO squad armory button for access testing.")
+
+	var/datum/squad/bravo_squad = button.get_target_squad()
+	TEST_ASSERT_NOTNULL(bravo_squad, "The HALO squad armory button did not resolve its Bravo squad target.")
+	bravo_squad.usable = TRUE
+
+	var/mob/living/carbon/human/so_human = create_test_human("HALO Armory SO", JOB_SO_UNSC)
+	TEST_ASSERT(button.allowed(so_human), "A HALO platoon commander should be allowed to open an available squad armory button.")
+
+	var/mob/living/carbon/human/bravo_leader = create_test_human("HALO Bravo Leader", JOB_SQUAD_LEADER_UNSC, /datum/squad/marine/halo/unsc/bravo)
+	TEST_ASSERT(button.allowed(bravo_leader), "The matching HALO squad leader should be allowed to open their squad armory button.")
+
+	var/mob/living/carbon/human/alpha_leader = create_test_human("HALO Alpha Leader", JOB_SQUAD_LEADER_UNSC, /datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT(!button.allowed(alpha_leader), "A different HALO squad leader should not be allowed to open another squad's armory button.")
+
+	bravo_squad.usable = FALSE
+
+	var/mob/living/carbon/human/captain_human = create_test_human("HALO Armory Captain", JOB_CO)
+	var/obj/item/card/id/captain_id = allocate(/obj/item/card/id)
+	captain_id.access = list(ACCESS_MARINE_CO)
+	captain_human.equip_to_slot(captain_id, WEAR_ID, TRUE)
+
+	TEST_ASSERT(button.allowed(captain_human), "Captain access should be able to open an unavailable squad armory button.")
+	TEST_ASSERT(!button.allowed(so_human), "A HALO platoon commander should not bypass the captain-only fallback on an unavailable squad armory button.")
+	TEST_ASSERT(!button.allowed(bravo_leader), "A HALO squad leader should not bypass the captain-only fallback on an unavailable squad armory button.")
+
+/datum/unit_test/halo_ship_platoons/halo_platoon_commander_lockers_include_command_uniform
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/halo_platoon_commander_lockers_include_command_uniform/Run()
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/unsc_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander/odst_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander, run_loc_floor_bottom_left)
+
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(unsc_locker, /obj/item/clothing/under/marine/crew/command), 1, "The UNSC platoon commander locker should contain the HALO command uniform.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(odst_locker, /obj/item/clothing/under/marine/crew/command), 1, "The ODST platoon commander locker should contain the HALO command uniform.")
 // SS220 EDIT - END

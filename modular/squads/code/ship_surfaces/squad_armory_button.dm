@@ -3,6 +3,7 @@
 	req_one_access = list()
 	req_access_txt = null
 	req_one_access_txt = null
+	var/target_squad_static = null
 	// Map ship surface button ids to the currently active platoon's squads.
 	var/static/list/squad_static_by_button_id = list(
 		"squadarmory_alpha" = SQUAD_MARINE_1,
@@ -10,6 +11,38 @@
 		"squadarmory_charlie" = SQUAD_MARINE_3,
 		"squadarmory_delta" = SQUAD_MARINE_4,
 	)
+
+/obj/structure/machinery/door_control/squad_armory/alpha
+	name = "ALPHA gear lockers door-control"
+	id = "squadarmory_alpha"
+	color = "#db1d1d"
+	pixel_x = 1
+	pixel_y = 13
+	target_squad_static = SQUAD_MARINE_1
+
+/obj/structure/machinery/door_control/squad_armory/bravo
+	name = "BRAVO gear lockers door-control"
+	id = "squadarmory_bravo"
+	color = "#ffc32d"
+	pixel_x = 9
+	pixel_y = 13
+	target_squad_static = SQUAD_MARINE_2
+
+/obj/structure/machinery/door_control/squad_armory/charlie
+	name = "CHARLIE gear lockers door-control"
+	id = "squadarmory_charlie"
+	color = "#c864c8"
+	pixel_x = 1
+	pixel_y = 7
+	target_squad_static = SQUAD_MARINE_3
+
+/obj/structure/machinery/door_control/squad_armory/delta
+	name = "DELTA gear lockers door-control"
+	id = "squadarmory_delta"
+	color = "#828cff"
+	pixel_x = 9
+	pixel_y = 7
+	target_squad_static = SQUAD_MARINE_4
 
 /obj/structure/machinery/door_control/squad_armory/use_button(mob/living/user, force = FALSE)
 	if(force)
@@ -35,7 +68,7 @@
 	return can_user_access_armory(M, target_squad)
 
 /obj/structure/machinery/door_control/squad_armory/proc/get_target_squad()
-	var/static_squad_name = squad_static_by_button_id[id]
+	var/static_squad_name = target_squad_static || squad_static_by_button_id[id]
 	if(!static_squad_name)
 		return null
 
@@ -52,23 +85,26 @@
 		return FALSE
 
 	if(target_squad.usable)
-		return is_target_squad_overwatch_officer(user, target_squad) || is_target_squad_leader(user, target_squad)
+		return is_platoon_commander(user) || is_target_squad_leader(user, target_squad)
 
 	return has_captain_authorization(user)
 
-/obj/structure/machinery/door_control/squad_armory/proc/is_target_squad_overwatch_officer(mob/living/user, datum/squad/target_squad)
+/obj/structure/machinery/door_control/squad_armory/proc/is_platoon_commander(mob/living/user)
 	if(!ishuman(user))
 		return FALSE
 
 	var/mob/living/carbon/human/human_user = user
-	return GET_DEFAULT_ROLE(human_user.job) == JOB_SO && target_squad?.overwatch_officer == human_user
+	return GET_DEFAULT_ROLE(human_user.job) == JOB_SO
 
 /obj/structure/machinery/door_control/squad_armory/proc/is_target_squad_leader(mob/living/user, datum/squad/target_squad)
 	if(!ishuman(user) || !target_squad)
 		return FALSE
 
 	var/mob/living/carbon/human/human_user = user
-	return human_user.assigned_squad == target_squad && target_squad.squad_leader == human_user
+	if(human_user.assigned_squad != target_squad)
+		return FALSE
+
+	return GET_DEFAULT_ROLE(human_user.job) == JOB_SQUAD_LEADER || target_squad.squad_leader == human_user
 
 /obj/structure/machinery/door_control/squad_armory/proc/has_captain_authorization(mob/living/user)
 	if(!ishuman(user))
@@ -104,7 +140,7 @@
 
 /obj/structure/machinery/door_control/squad_armory/proc/deny_squad_armory_access(mob/living/user, datum/squad/target_squad)
 	if(target_squad?.usable)
-		to_chat(user, SPAN_DANGER("Only [target_squad.name]'s assigned overwatch officer or squad leader can open this armory."))
+		to_chat(user, SPAN_DANGER("Only a platoon commander or [target_squad.name]'s squad leader can open this armory."))
 	else
 		to_chat(user, SPAN_DANGER("[target_squad?.name || "This squad"] is unavailable this round. Captain access is required to open this armory."))
 
