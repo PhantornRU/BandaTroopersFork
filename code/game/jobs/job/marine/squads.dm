@@ -22,15 +22,11 @@
 	return mind || src
 
 /mob/living/carbon/human/proc/has_claimed_halo_job_locker()
-	var/claim_holder = get_halo_job_locker_claim_holder()
-	return !!claim_holder?.halo_job_locker_claimed
+	if(mind)
+		return !!mind.halo_job_locker_claimed
+	return !!halo_job_locker_claimed
 
 /mob/living/carbon/human/proc/claim_halo_job_locker()
-	var/claim_holder = get_halo_job_locker_claim_holder()
-	if(!claim_holder)
-		return FALSE
-
-	claim_holder.halo_job_locker_claimed = TRUE
 	halo_job_locker_claimed = TRUE
 	if(mind)
 		mind.halo_job_locker_claimed = TRUE
