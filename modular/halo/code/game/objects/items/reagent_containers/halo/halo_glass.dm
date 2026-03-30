@@ -224,6 +224,17 @@
 	reagents.add_reagent("chorotazine", 240)
 	update_icon()
 
+/obj/item/reagent_container/glass/beaker/unsc/biofoam
+	name = "\improper biofoam medical vial"
+	label_color = "green"
+	desc = "Прозрачный глянцевый флакон биопены. Используется для стабилизации критически раненых пациентов. Передозировка при 20 ед."
+	maptext_label = "Bf"
+
+/obj/item/reagent_container/glass/beaker/unsc/biofoam/Initialize()
+	. = ..()
+	reagents.add_reagent("biofoam", 240)
+	update_icon()
+
 /obj/item/reagent_container/glass/beaker/unsc/nitrogenwater
 	name = "\improper nitrogen-water medical vial"
 	label_color = "purple"

@@ -36,7 +36,7 @@
 		new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 	else
 		new_human.h_style = pick("Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "CIA", "Mulder", "Pvt. Redding", "Pixie Cut Left", "Pixie Cut Right")
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generated PMC synth names before applying them to runtime mobs
 	new_human.age = rand(20,35)
 
 /datum/equipment_preset/pmc/load_id(mob/living/carbon/human/new_human, client/mob_client)

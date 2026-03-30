@@ -118,7 +118,7 @@
 				new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 			else
 				new_human.h_style = pick("Undercut, Top", "CIA", "Mulder", "Pixie Cut Left", "Pixie Cut Right", "Scully", "Pvt. Redding", "Bun", "Short Bangs")
-			new_human.change_real_name(new_human, random_name)
+			new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generator output before it becomes a runtime personal name
 		if(JAPANESE_ETHNICITY)
 			new_human.skin_color = pick(50;"Pale 1",50;"Tan 1")
 			var/static/list/colors = list("BLACK" = list(15, 15, 10), "BLACK" = list(15, 15, 10))
@@ -154,7 +154,7 @@
 			else
 				last_name = "[pick(GLOB.last_names_clf)]"
 			random_name = "[first_name] [last_name]"
-			new_human.change_real_name(new_human, random_name)
+			new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generator output before it becomes a runtime personal name
 		if(AMERICAN_ETHNICITY)
 			random_name = capitalize(pick(new_human.gender == MALE ? GLOB.first_names_male : GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
 			var/datum/preferences/A = new
@@ -177,7 +177,7 @@
 				new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 			else
 				new_human.h_style = pick("Undercut, Top", "CIA", "Mulder", "Pixie Cut Left", "Pixie Cut Right", "Scully", "Pvt. Redding", "Bun", "Short Bangs")
-			new_human.change_real_name(new_human, random_name)
+			new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generator output before it becomes a runtime personal name
 		if(UPP_ETHNICITY)
 			var/datum/preferences/A = new()
 			A.randomize_appearance(new_human)
@@ -200,7 +200,7 @@
 				last_name = "[pick(GLOB.last_names_upp)]"
 			//put them together
 			random_name = "[first_name] [last_name]"
-			new_human.change_real_name(new_human, random_name)
+			new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generator output before it becomes a runtime personal name
 			var/static/list/colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "BROWN" = list(48, 38, 18),"BLUE" = list(29, 51, 65), "GREEN" = list(40, 61, 39), "STEEL" = list(46, 59, 54))
 			var/static/list/hair_colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "AUBURN" = list(77, 48, 36), "BLONDE" = list(95, 76, 44))
 			var/hair_color = pick(hair_colors)
@@ -245,7 +245,7 @@
 			//surname
 			last_name = "[capitalize(randomly_generate_chinese_word(rand(1, 4)))]"
 			random_name = "[first_name] [last_name]"
-			new_human.change_real_name(new_human, random_name)
+			new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generator output before it becomes a runtime personal name
 		if(BRAZILIAN_ETHNICITY)
 			new_human.skin_color = pick(45;"Tan 3",10;"Tan 2",15;"Dark 1",10;"Dark 3",10;"Melanated",5;"Pale 3",5;"Pale 2")
 			random_name = capitalize(pick(new_human.gender == MALE ? GLOB.first_names_male_brazilian : GLOB.first_names_female_brazilian)) + " " + capitalize(pick(GLOB.last_names_brazilian))

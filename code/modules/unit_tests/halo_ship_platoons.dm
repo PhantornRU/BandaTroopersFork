@@ -694,11 +694,11 @@
 
 	var/has_biofoam = FALSE
 	for(var/list/entry as anything in GLOB.cm_vending_chemical_medic_halo)
-		if(entry[1] == "halo biofoam canister" && entry[3] == /obj/item/reagent_container/hypospray/autoinjector/primeable/biofoam)
+		if(entry[1] == "halo medical bottle (biofoam)" && entry[3] == /obj/item/reagent_container/glass/beaker/unsc/biofoam)
 			has_biofoam = TRUE
 			break
 
-	TEST_ASSERT(has_biofoam, "HALO medic chemical vendor list no longer includes biofoam canisters.")
+	TEST_ASSERT(has_biofoam, "HALO medic chemical vendor list no longer includes a biofoam medical bottle.")
 
 /datum/unit_test/halo_ship_platoons_halo_job_locker_claims
 	parent_type = /datum/unit_test/halo_integration_test

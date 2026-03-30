@@ -18,11 +18,11 @@
 	new_human.set_species(SYNTH_GEN_THREE)
 
 /datum/equipment_preset/synth/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "David"
+	var/final_name = "Дэвид" // SS220 EDIT: localize default synthetic fallback personal name
 	if(new_human.client && new_human.client.prefs)
 		final_name = new_human.client.prefs.synthetic_name
 		if(!final_name || final_name == "Undefined")
-			final_name = "David"
+			final_name = "Дэвид" // SS220 EDIT: localize default synthetic fallback personal name
 	new_human.change_real_name(new_human, final_name)
 
 /datum/equipment_preset/synth/load_skills(mob/living/carbon/human/new_human)
@@ -684,9 +684,9 @@
 
 /datum/equipment_preset/synth/working_joe/load_name(mob/living/carbon/human/new_human, randomise)
 	if(faction == FACTION_UPP)
-		new_human.change_real_name(new_human, "Dzho Automaton №[rand(9)][rand(9)][ascii2text(rand(65, 90))][ascii2text(rand(65, 90))]")
+		new_human.change_real_name(new_human, ss220_localize_generated_personal_name("[JOB_UPP_JOE_RU] №[rand(9)][rand(9)][ascii2text(rand(65, 90))][ascii2text(rand(65, 90))]")) // SS220 EDIT: localize generated synth designation before it becomes a runtime personal name
 	else
-		new_human.change_real_name(new_human, "Working Joe #[rand(100)][rand(100)]")
+		new_human.change_real_name(new_human, "[JOB_WORKING_JOE_RU] #[rand(100)][rand(100)]") // SS220 EDIT: localize generated synth designation before it becomes a runtime personal name
 //*****************************************************************************************************/
 
 /datum/equipment_preset/synth/survivor/cultist_synth
@@ -743,13 +743,13 @@
 
 
 /datum/equipment_preset/synth/survivor/midwife/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "Midwife Joe"
+	var/final_name = "Акушерка Джо" // SS220 EDIT: localize default midwife synth fallback personal name
 	if(new_human.client && new_human.client.prefs)
 		final_name = new_human.client.prefs.synthetic_name
 		if(!final_name || final_name == "Undefined") //In case they don't have a name set or no prefs, there's a name.
-			final_name = "Midwife Joe"
+			final_name = "Акушерка Джо" // SS220 EDIT: localize default midwife synth fallback personal name
 		else
-			final_name = "Midwife [new_human.real_name]"
+			final_name = "Акушерка [new_human.real_name]" // SS220 EDIT: keep the localized generated title around custom synth names
 	new_human.change_real_name(new_human, final_name)
 
 //*****************************************************************************************************/
@@ -897,7 +897,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/synth/working_joe/security_android/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Security Android #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, "Андроид охраны #[rand(100)][rand(100)]") // SS220 EDIT: localize generated synth designation before it becomes a runtime personal name
 
 /datum/equipment_preset/synth/working_joe/upp/combat
 	name = "UPP Dzho Automaton - Combat"
@@ -940,7 +940,7 @@
 
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Dzho Automaton #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, "[JOB_UPP_JOE_RU] #[rand(100)][rand(100)]") // SS220 EDIT: localize generated synth designation before it becomes a runtime personal name
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_race(mob/living/carbon/human/new_human)
 	. = ..()

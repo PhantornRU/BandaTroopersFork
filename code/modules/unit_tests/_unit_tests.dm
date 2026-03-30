@@ -100,6 +100,7 @@
 // #include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
 #include "medical_regressions.dm" // SS220 EDIT: BT regression coverage for medic ladders and self-splint behavior
 #include "missing_icons.dm"
+#include "personal_name_localization.dm" // SS220 EDIT: keep generated carbon personal names localized in Cyrillic
 #include "resist.dm"
 #include "spawn_humans.dm"
 #include "spritesheets.dm"

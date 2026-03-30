@@ -52,7 +52,7 @@
 		last_name = "[pick(GLOB.last_names_clf)]"
 	//put them together
 	random_name = "[first_name] [last_name]"
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generated TWE names before applying them to runtime mobs
 	new_human.age = rand(20,45)
 
 

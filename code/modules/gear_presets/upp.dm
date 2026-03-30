@@ -32,7 +32,7 @@
 	//put them together
 	random_name = "[first_name] [last_name]"
 
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, ss220_localize_generated_personal_name(random_name)) // SS220 EDIT: localize generated UPP names before applying them to runtime mobs
 	new_human.age = rand(17,35)
 	var/static/list/colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "BROWN" = list(48, 38, 18),"BLUE" = list(29, 51, 65), "GREEN" = list(40, 61, 39), "STEEL" = list(46, 59, 54))
 	var/static/list/hair_colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "AUBURN" = list(77, 48, 36), "BLONDE" = list(95, 76, 44))
