@@ -1214,9 +1214,9 @@
 /obj/item/storage/belt/gun/m7/full{
 	pixel_y = 9
 	},
-/obj/item/storage/belt/gun/m7/full{
-	pixel_y = -4;
-	pixel_x = 7
+/obj/item/weapon/gun/smg/halo/m7/folded_up{
+	pixel_x = 6;
+	pixel_y = -6
 	},
 /turf/open/floor/corsat/plate,
 /area/dark_was_the_night/armory)
@@ -11123,11 +11123,6 @@
 	},
 /turf/open/floor/almayer/plating,
 /area/dark_was_the_night/armory)
-"auQ" = (
-/obj/structure/surface/rack,
-/obj/item/storage/belt/gun/m7/full,
-/turf/open/floor/corsat/plate,
-/area/dark_was_the_night/armory)
 "auR" = (
 /obj/structure/surface/rack,
 /obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded{
@@ -11136,6 +11131,45 @@
 /obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded,
 /turf/open/floor/corsat/plate,
 /area/dark_was_the_night/armory)
+"auS" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer{
+	dir = 2
+	},
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/obj/structure/machinery/door/airlock/multi_tile/unsc/prop,
+/turf/open/floor/almayer/pod_landing_floor,
+/area/dark_was_the_night/armory)
+"auT" = (
+/obj/structure/machinery/door/firedoor/border_only/almayer{
+	dir = 2
+	},
+/turf/open/floor/almayer/pod_landing_floor,
+/area/dark_was_the_night/armory)
+"auU" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = null
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/armory)
+"auV" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = null
+	},
+/obj/effect/decal/cleanable/dirt{
+	layer = 2.52
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/armory)
 "auW" = (
 /obj/structure/toilet,
 /obj/structure/machinery/camera/autoname/golden_arrow{
@@ -11143,6 +11177,115 @@
 	},
 /turf/open/floor/strata/white_cyan2/west,
 /area/dark_was_the_night/bathroom)
+"auX" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = 0;
+	color = "#DC143C";
+	dir = 8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"auY" = (
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night/armory)
+"auZ" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	dir = 4
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"ava" = (
+/obj/structure/pipes/vents/pump,
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/turf/open/floor/almayer,
+/area/dark_was_the_night/armory)
+"avb" = (
+/obj/item/device/radio/intercom{
+	freerange = 1;
+	name = "General Listening Channel";
+	pixel_x = -23
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 8
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"avc" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = 0;
+	dir = 1
+	},
+/obj/structure/cable/heavyduty{
+	icon_state = "1-2"
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/armory)
+"avd" = (
+/obj/effect/decal/warning_stripes{
+	icon_state = "door_warning";
+	pixel_y = 0;
+	dir = 1
+	},
+/turf/open/floor/plating/plating_catwalk,
+/area/dark_was_the_night/armory)
+"ave" = (
+/obj/structure/machinery/firealarm{
+	dir = 4;
+	pixel_x = 23;
+	pixel_y = 8
+	},
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 4
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"avf" = (
+/obj/structure/surface/table/reinforced/almayer_B,
+/obj/item/storage/box/guncase/heavy/motiondetectors{
+	pixel_y = 2;
+	pixel_x = 0
+	},
+/obj/item/storage/box/guncase/heavy/fuel{
+	pixel_y = 10;
+	pixel_x = 0
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"avg" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 8
+	},
+/obj/structure/gun_rack/flamer,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"avh" = (
+/obj/structure/machinery/light/double/blue{
+	light_color = "#dae2ff";
+	dir = 4
+	},
+/obj/structure/gun_rack/flamer,
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
+"avi" = (
+/obj/structure/gun_rack/flamer{
+	pixel_x = -9
+	},
+/obj/structure/gun_rack/flamer{
+	pixel_x = 9
+	},
+/turf/open/floor/almayer/plate,
+/area/dark_was_the_night/armory)
 "avU" = (
 /obj/structure/cargo_container/unsc/main_3/c{
 	layer = 5.1
@@ -57792,7 +57935,7 @@ red
 red
 cIn
 red
-auQ
+ach
 auO
 adf
 adf
@@ -58384,7 +58527,7 @@ rRM
 ykE
 kJi
 ase
-ckt
+tUd
 ckt
 ckt
 ckt
@@ -59150,7 +59293,7 @@ red
 red
 cIn
 red
-auQ
+ach
 auO
 adf
 adf
@@ -63424,9 +63567,9 @@ red
 red
 red
 red
-red
-red
-red
+cIn
+cIn
+cIn
 cIn
 cIn
 cIn
@@ -63617,17 +63760,17 @@ red
 red
 red
 red
-red
-red
-red
-red
-red
-red
 cIn
-adB
+cIn
+avf
+avg
+avf
+avf
+cIn
+avb
+auX
+auX
 uUU
-uUU
-adu
 cIn
 red
 red
@@ -63811,18 +63954,18 @@ red
 red
 red
 red
-red
-red
-red
-red
-red
-red
 cIn
-adv
+avi
 uUU
 uUU
-adv
-cIn
+uUU
+auU
+auS
+avc
+ava
+auY
+auU
+auS
 afx
 afs
 afn
@@ -64005,18 +64148,18 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
 cIn
-adC
+avi
 uUU
 uUU
-adw
-cIn
+uUU
+auV
+auT
+avd
+faU
+nvf
+auV
+auT
 afy
 afu
 afo
@@ -64199,17 +64342,17 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
 cIn
-adv
+cIn
+avf
+avh
+avf
+avf
+cIn
+ave
+auZ
+auZ
 uUU
-uUU
-adv
 cIn
 afz
 afv
@@ -64393,17 +64536,17 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
 cIn
-adx
-adx
-adx
-adx
+cIn
+cIn
+cIn
+cIn
+cIn
+cIn
+cIn
+vnz
+aic
+cIn
 cIn
 afA
 afw
@@ -64594,10 +64737,10 @@ fTK
 fTK
 fTK
 cIn
-cIn
-cIn
-cIn
-cIn
+adB
+tUd
+tUd
+adu
 cIn
 cIn
 cIn
@@ -64787,12 +64930,12 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
+cIn
+adv
+uUU
+uUU
+adv
+cIn
 fTK
 fTK
 fTK
@@ -64981,12 +65124,12 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
+cIn
+adC
+uUU
+uUU
+adw
+cIn
 fTK
 fTK
 fTK
@@ -65175,12 +65318,12 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
+cIn
+adv
+uUU
+uUU
+adv
+cIn
 fTK
 fTK
 fTK
@@ -65369,12 +65512,12 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
+cIn
+adx
+adx
+adx
+adx
+cIn
 fTK
 fTK
 fTK
@@ -65563,12 +65706,12 @@ fTK
 fTK
 fTK
 fTK
-fTK
-fTK
-fTK
-fTK
-fTK
-fTK
+cIn
+cIn
+cIn
+cIn
+cIn
+cIn
 fTK
 fTK
 fTK
