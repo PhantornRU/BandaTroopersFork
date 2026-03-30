@@ -172,10 +172,10 @@
 			switch(lower_char)
 				if("c")
 					var/next_char = lowertext(copytext_char(name_value, index + 1, index + 2))
-					replacement = next_char in soft_c_triggers ? "с" : "к"
+					replacement = (next_char in soft_c_triggers) ? "с" : "к"
 				if("g")
 					var/next_char = lowertext(copytext_char(name_value, index + 1, index + 2))
-					replacement = next_char in soft_g_triggers ? "дж" : "г"
+					replacement = (next_char in soft_g_triggers) ? "дж" : "г"
 
 		if(isnull(replacement))
 			result += source_char
