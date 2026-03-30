@@ -141,7 +141,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	if(length(new_targets))
 		for(var/atom/target in new_targets)
 			var/turf/target_turf = get_turf(target)
-			if(!target_turf || target_turf in launch_targets)
+			if(!target_turf || (target_turf in launch_targets))
 				continue
 			launch_targets += target_turf
 	if(!length(launch_targets))

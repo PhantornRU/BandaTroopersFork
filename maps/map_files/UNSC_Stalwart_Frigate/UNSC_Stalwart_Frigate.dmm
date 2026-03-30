@@ -21993,12 +21993,6 @@
 /obj/structure/disposalpipe/segment,
 /turf/open/floor/plating/plating_catwalk,
 /area/unsc_stalwart_frigate/dorms)
-"lCg" = (
-/obj/structure/machinery/door/firedoor/border_only/almayer,
-/obj/structure/machinery/door/airlock/unsc,
-/obj/structure/machinery/door/airlock/unsc,
-/turf/open/floor/almayer/test_floor4,
-/area/unsc_stalwart_frigate/medical)
 "lCk" = (
 /obj/structure/surface/table/almayer,
 /obj/structure/machinery/faxmachine/uscm/command/capt{
@@ -49598,7 +49592,7 @@ aug
 aug
 aug
 aug
-lCg
+fHj
 aug
 aug
 chV

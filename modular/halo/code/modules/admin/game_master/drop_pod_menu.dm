@@ -24,7 +24,7 @@ GLOBAL_DATUM_INIT(droppod_panel, /datum/drop_pod_menu, new)
 	var/list/game_master_droppods = list()
 	for(var/list/droppod_entry in GLOB.game_master_droppods)
 		var/list/entry_copy = droppod_entry.Copy()
-		entry_copy["selected_for_launch"] = entry_copy["droppod_ref"] in selected_launch_targets
+		entry_copy["selected_for_launch"] = (entry_copy["droppod_ref"] in selected_launch_targets)
 		game_master_droppods += list(entry_copy)
 	data["game_master_droppods"] = length(game_master_droppods) ? game_master_droppods : ""
 	data["selected_launch_target_count"] = length(selected_launch_targets)
