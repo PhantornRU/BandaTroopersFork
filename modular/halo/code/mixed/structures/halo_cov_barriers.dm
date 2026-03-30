@@ -7,7 +7,7 @@
 	icon_state = "cov_barrier"
 	density = TRUE
 	var/is_wide = FALSE
-	var/pixel_adjustment = 0
+	var/wide_overlay_pixel_y = 0
 	var/list/obj/structure/blocker/invisible_wall/covenant_barrier/blocker_parts = list()
 
 /obj/structure/covenant_barricade/Destroy()
@@ -26,18 +26,39 @@
 	. = ..()
 	rebuild_barrier_shape(dir)
 
+/obj/structure/covenant_barricade/vv_edit_var(var_name, var_value)
+	if(var_name == NAMEOF(src, dir))
+		setDir(var_value)
+		datum_flags |= DF_VAR_EDITED
+		return TRUE
+
+	return ..()
+
 /obj/structure/covenant_barricade/proc/rebuild_barrier_shape(newdir = dir)
 	overlays.Cut()
-	pixel_adjustment = 0
 	bound_width = initial(bound_width)
 	bound_height = initial(bound_height)
+	apply_wide_visual_offsets(newdir)
 	rebuild_wide_blockers(newdir)
 
-	if(is_wide && (newdir == WEST || newdir == EAST))
-		pixel_adjustment = 64
-
-	var/image/overlay = image(icon, icon_state = "[initial(icon_state)]_o", layer = 4.4, pixel_y = pixel_adjustment)
+	var/image/overlay = image(icon, icon_state = "[initial(icon_state)]_o", dir = newdir, layer = 4.4, pixel_y = wide_overlay_pixel_y)
 	overlays += overlay
+
+/obj/structure/covenant_barricade/proc/apply_wide_visual_offsets(newdir = dir)
+	pixel_x = initial(pixel_x)
+	pixel_y = initial(pixel_y)
+	wide_overlay_pixel_y = 0
+
+	if(!is_wide)
+		return
+
+	pixel_y = -16
+
+	switch(newdir)
+		if(NORTH, SOUTH)
+			pixel_x = -16
+		if(EAST, WEST)
+			wide_overlay_pixel_y = 64
 
 /obj/structure/covenant_barricade/proc/rebuild_wide_blockers(newdir = dir)
 	QDEL_LIST(blocker_parts)
