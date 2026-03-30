@@ -6,4 +6,4 @@
 - [x] Добавить прямые subtype-спавны `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
 - [x] Добавить regression tests на species spawn, covenant blood и HALO preset equip.
 - [x] Прогнать `git diff --check` и compile-проверку.
-- [ ] Закоммитить follow-up fix и обновить PR #87.
+- [x] Закоммитить follow-up fix и обновить PR #87.

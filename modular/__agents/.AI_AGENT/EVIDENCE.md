@@ -29,5 +29,7 @@
 ## E-007: Проверки
 - `git diff --check`: passed.
 - `BUILD.cmd`: ранее выполнил полноценный compile с `0 errors, 0 warnings`; повторный вызов после этого уже скипал `dm` как up-to-date.
-- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: test DME compile passed (`colonialmarines.test.dmb - 0 errors, 0 warnings`), после чего wrapper не вернул финальный отчёт в разумное время из этой сессии.
+- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: test DME compile passed (`colonialmarines.test.dmb - 0 errors, 0 warnings`).
+- По `data/unit_tests.json` наши новые проверки `/datum/unit_test/halo_tts_species_defaults`, `/datum/unit_test/halo_tts_preset_defaults`, `/datum/unit_test/halo_tts_species_subtypes` и существующие HALO `halo_unggoy_ai*` прошли со статусом `0`.
+- Финальный wrapper-exit у `dm-test` остался красным из-за уже существующих нерелевантных падений: `/datum/unit_test/medical_regressions`, `/datum/unit_test/missing_icons`, `/datum/unit_test/check_runtimes`.
 - Попытка принудительного `tools/build/build clean dm ...` уткнулась в Windows file lock (`EBUSY` на `colonialmarines.dyn.rsc`), поэтому отдельный clean-rebuild именно последней однострочной правки не завершён через juke-clean path.
