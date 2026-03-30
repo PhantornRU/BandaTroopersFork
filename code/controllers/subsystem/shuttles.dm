@@ -429,6 +429,8 @@ SUBSYSTEM_DEF(shuttle)
 	var/timer = 0
 	var/mode = SHUTTLE_IDLE
 	var/obj/docking_port/stationary/dest_dock
+	var/obj/docking_port/stationary/restored_destination
+	var/obj/docking_port/stationary/restored_previous
 
 	if(istype(destination_port))
 		dest_dock = destination_port
@@ -436,6 +438,8 @@ SUBSYSTEM_DEF(shuttle)
 		timer = to_replace.timer
 		mode = to_replace.mode
 		dest_dock = to_replace.get_docked()
+		restored_destination = to_replace.destination
+		restored_previous = to_replace.previous
 
 	if(!dest_dock)
 		dest_dock = generate_transit_dock(preview_shuttle)
@@ -464,9 +468,10 @@ SUBSYSTEM_DEF(shuttle)
 				cur_turf.underlays.Cut()
 				cur_turf.underlays += mutable_appearance(target_lz.icon, target_lz.icon_state, TURF_LAYER, FLOOR_PLANE)
 
-	preview_shuttle.register(to_replace != null)
+	// SS220 EDIT - START: finish the preview move before exposing the new shuttle to subsystem checks
 	var/list/force_memory = preview_shuttle.movement_force
 	preview_shuttle.movement_force = list("KNOCKDOWN" = 0, "THROW" = 0)
+	preview_shuttle.destination = dest_dock
 	preview_shuttle.mode = SHUTTLE_PREARRIVAL//No idle shuttle moving. Transit dock get removed if shuttle moves too long.
 	preview_shuttle.initiate_docking(dest_dock)
 	preview_shuttle.movement_force = force_memory
@@ -477,6 +482,11 @@ SUBSYSTEM_DEF(shuttle)
 	// plugging the existing shuttles old values in works fine.
 	preview_shuttle.timer = timer
 	preview_shuttle.mode = mode
+	preview_shuttle.destination = restored_destination
+	preview_shuttle.previous = restored_previous
+
+	preview_shuttle.register(to_replace != null)
+	// SS220 EDIT - END
 
 	preview_shuttle.postregister(to_replace != null)
 
