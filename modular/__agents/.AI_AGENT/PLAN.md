@@ -1,33 +1,27 @@
 # PLAN
 
 ## Активная задача
-Обновить текущую ветку `various_fixes` из актуального `upstream/master`, проверить итоговый git-state и отдельно выровнять удаленную ветку `origin/master` ровно на `upstream/master`, не переключая текущую ветку.
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- Обновить refs из remotes.
-- Синхронизировать `various_fixes` с `upstream/master`.
-- Проверить итоговый git-state и отсутствие конфликтных хвостов.
-- Переставить локальный `master` на `upstream/master`.
-- Форс-пушнуть `origin/master` на точный upstream commit.
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
 ## Out of scope
-- Rebase или иное переписывание истории текущей рабочей ветки.
-- Любые кодовые правки вне автоматического merge.
-- Полный build/CI-прогон, если merge завершится без конфликтов и пользователь не просит compile-проверки отдельно.
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
 
 ## Решение
-- Использовать `fetch -> merge -> verify -> push`.
-- Для `master` использовать отдельный ref update и force-push без checkout.
-
-## Итоговый статус
-- `upstream/master` обновлен до `8667f84537`.
-- `various_fixes` синхронизирована merge-коммитом `c94263128e`.
-- `origin/various_fixes` обновлен до `c94263128e`.
-- Локальный `master` и `origin/master` выровнены на `8667f84537`.
-- Рабочее дерево чистое.
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- `git fetch --all --prune` выполнен успешно.
-- `upstream/master` является предком `HEAD`.
-- `git diff --check` не сообщает ошибок.
-- `origin/master` и `upstream/master` указывают на один и тот же commit.
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.

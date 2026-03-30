@@ -4,9 +4,9 @@
 
 	if(ishuman(M) && !isnull(allowed_species_list))
 		var/mob/living/carbon/human/H = M
-		if(!(H.species.name in allowed_species_list))
+		if(!(H.species?.group in allowed_species_list) && !(H.species?.name in allowed_species_list))
 			if(!disable_warning)
-				to_chat(M, SPAN_WARNING("You cannot equip \the [src] as a [H.species]."))
+				to_chat(M, SPAN_WARNING("You cannot equip \the [src] as a [H.species?.get_display_name() || H.species?.name || "unknown species"]."))
 			return FALSE
 	return TRUE
 
