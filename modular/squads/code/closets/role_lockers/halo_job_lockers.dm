@@ -13,7 +13,6 @@
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec
 	name = "Weapons Specialist locker"
 	req_access = list(ACCESS_MARINE_SPECPREP)
-	var/claimed = FALSE
 	var/role_lock = TRUE
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/get_allowed_specialist_jobs()
@@ -25,23 +24,36 @@
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/togglelock(mob/living/user)
 	var/list/allowed_specialist_jobs = get_allowed_specialist_jobs()
+	var/mob/living/carbon/human/human = null
+	if(ishuman(user))
+		human = user
 	if(!allowed(user))
 		to_chat(user, SPAN_WARNING("You do not have access to the contents of the locker."))
 		return
-	if(claimed)
-		return ..()
-	if(role_lock && ishuman(user))
-		var/mob/living/carbon/human/human = user
+	if(human)
+		if(human.has_claimed_halo_job_locker())
+			to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
+			return
+
+	if(role_lock && human)
 		var/obj/item/card/id/card = human.get_idcard()
 		if(card)
 			if(!(human.job in allowed_specialist_jobs))
 				to_chat(user, SPAN_WARNING("You aren't the right occupation for this locker."))
 				return
 			equipment_giver(user)
-		else if(!role_lock && ishuman(user))
-			equipment_giver(user)
+	else if(human)
+		equipment_giver(user)
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/equipment_giver(mob/living/user)
+	var/mob/living/carbon/human/human = null
+	if(ishuman(user))
+		human = user
+	if(human)
+		if(human.has_claimed_halo_job_locker())
+			to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
+			return
+
 	var/static/list/spec_equipment_list = list(
 		"SPNKr kit" = /obj/item/storage/unsc_speckit/spnkr,
 		"SRS-99AM kit" = /obj/item/storage/unsc_speckit/srs99,
@@ -53,12 +65,12 @@
 		to_chat(user, SPAN_WARNING("You decide to think on it."))
 		return
 
-	if(claimed)
-		to_chat(user, SPAN_WARNING("You already got a kit!"))
-		return
+	if(human)
+		if(!human.claim_halo_job_locker())
+			to_chat(user, SPAN_WARNING("The locker fails to register your claim."))
+			return
 
 	chosen_kit = spec_equipment_list[chosen_kit]
-	claimed = TRUE
 	new chosen_kit(src)
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1
