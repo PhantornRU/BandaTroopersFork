@@ -1049,7 +1049,7 @@
 
 /datum/equipment_preset/unsc/rto/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/rto/equipped
-	name = "ODST Radio Telephone Operator (Equipped)"
+	name = "Радиооператор ODST (Снаряжен)"
 	assignment = JOB_SQUAD_RTO_ODST
 	rank = JOB_SQUAD_RTO_ODST
 	role_comm_title = "ODST-RTO"

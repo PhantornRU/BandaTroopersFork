@@ -26,6 +26,11 @@
 	desc = "Фактически стрелок с радиорюкзаком. Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."
 	path = /datum/equipment_preset/unsc/rto/equipped
 
+/datum/human_ai_equipment_preset/unsc/rto/odst
+	name = "Радиооператор ODST"
+	desc = "Радиооператор ODST с радиорюкзаком и оборудованием поддержки. Вооружен винтовкой MA5C и несет базовый IFAK."
+	path = /datum/equipment_preset/unsc/rto/odst/equipped
+
 /datum/human_ai_equipment_preset/unsc/sectionleader
 	name = "Командир отделения UNSC"
 	desc = "Фактически стрелок. Вооружен винтовкой MA5C и несет простой IFAK с марлей, мазью, шинами и инъектором."

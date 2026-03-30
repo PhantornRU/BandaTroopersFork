@@ -12,21 +12,19 @@
 
 /obj/structure/covenant_barricade/Destroy()
 	QDEL_LIST(blocker_parts)
-	UnregisterSignal(src, COMSIG_ATOM_DIR_CHANGE)
 	return ..()
 
 /obj/structure/covenant_barricade/Initialize()
 	. = ..()
-	rebuild_barrier_shape(dir)
-	RegisterSignal(src, COMSIG_ATOM_DIR_CHANGE, PROC_REF(update_dirs))
+	setDir(initial(dir))
 
 /obj/structure/covenant_barricade/update_icon()
 	. = ..()
 	rebuild_barrier_shape(dir)
 
-/obj/structure/covenant_barricade/proc/update_dirs(atom/movable/source, olddir, newdir)
-	SIGNAL_HANDLER
-	rebuild_barrier_shape(newdir)
+/obj/structure/covenant_barricade/setDir(newdir)
+	. = ..()
+	rebuild_barrier_shape(dir)
 
 /obj/structure/covenant_barricade/proc/rebuild_barrier_shape(newdir = dir)
 	overlays.Cut()
