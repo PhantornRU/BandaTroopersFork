@@ -5,6 +5,7 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 /datum/game_rule_state
 	var/rto_support_enabled = TRUE
+	var/support_underground_enabled = TRUE
 	var/rto_shared_cooldown_multiplier = 1
 	var/rto_personal_cooldown_multiplier = 1
 	var/fire_support_enabled = TRUE
@@ -88,6 +89,7 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 /datum/game_rule_state/proc/reset_rto_rules()
 	rto_support_enabled = TRUE
+	support_underground_enabled = TRUE
 	rto_shared_cooldown_multiplier = 1
 	rto_personal_cooldown_multiplier = 1
 	return TRUE
