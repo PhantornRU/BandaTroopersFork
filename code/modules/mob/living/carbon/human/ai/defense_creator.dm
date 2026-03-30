@@ -1,6 +1,14 @@
+#define DEFENSE_CREATOR_SPAWN_CLICK_INTERCEPT_ACTION "defense_creator_spawn_click_intercept_action"
+
 /datum/human_defense_creator_menu
 	var/static/list/lazy_defense_dict = list()
 	var/static/list/lazy_ui_data = list()
+	var/current_click_intercept_action
+	var/spawn_click_intercept = FALSE
+	var/current_path
+	var/selected_faction = FACTION_MARINE
+	var/selected_place_dir = "Default"
+	var/selected_turned_on = TRUE
 
 /datum/human_defense_creator_menu/New()
 	if(!length(lazy_ui_data))
@@ -30,6 +38,18 @@
 	if(!ui)
 		ui = new(user, src, "HumanDefenseManager")
 		ui.open()
+	if(spawn_click_intercept)
+		user.client?.click_intercept = src
+
+/datum/human_defense_creator_menu/ui_close(mob/user)
+	. = ..()
+
+	var/client/user_client = user.client
+	if(user_client?.click_intercept == src)
+		user_client.click_intercept = null
+
+	spawn_click_intercept = FALSE
+	current_click_intercept_action = null
 
 /datum/human_defense_creator_menu/ui_state(mob/user)
 	return GLOB.admin_state
@@ -41,6 +61,12 @@
 
 /datum/human_defense_creator_menu/ui_data(mob/user)
 	var/list/data = list()
+
+	data["selected_faction"] = selected_faction
+	data["selected_place_dir"] = selected_place_dir
+	data["selected_turned_on"] = selected_turned_on
+	data["spawn_click_intercept"] = spawn_click_intercept
+	data["current_path"] = current_path
 
 	return data
 
@@ -58,31 +84,106 @@
 		return
 
 	switch(action)
-		if("create_defense")
-			if(!params["path"])
-				return
-
-			var/gotten_path = params["path"]
-			if(!gotten_path)
-				return
-
-			if(!lazy_defense_dict[gotten_path])
-				lazy_defense_dict[gotten_path] = new gotten_path()
-
-			var/direction = ui.user.dir
-			switch(params["place_dir"])
-				if("North")
-					direction = NORTH
-				if("East")
-					direction = EAST
-				if("South")
-					direction = SOUTH
-				if("West")
-					direction = WEST
-
-			var/datum/human_ai_defense/defense_object = lazy_defense_dict[gotten_path]
-			defense_object.spawn_object(get_turf(ui.user), direction, params["faction"], params["turned_on"])
+		if("remember_path")
+			current_path = params["path"]
 			return TRUE
+
+		if("set_selected_faction")
+			if(!params["selected_faction"])
+				return
+
+			selected_faction = params["selected_faction"]
+			return TRUE
+
+		if("set_selected_place_dir")
+			selected_place_dir = params["place_dir"] || "Default"
+			return TRUE
+
+		if("toggle_selected_turned_on")
+			selected_turned_on = !selected_turned_on
+			return TRUE
+
+		if("spawn_defense_here")
+			if(!update_selected_settings(params))
+				return
+
+			spawn_selected_defense(ui.user, get_turf(ui.user))
+			return TRUE
+
+		if("toggle_click_spawn")
+			if(!update_selected_settings(params))
+				return
+
+			if(spawn_click_intercept)
+				spawn_click_intercept = FALSE
+				current_click_intercept_action = null
+				if(ui.user.client?.click_intercept == src)
+					ui.user.client.click_intercept = null
+				return TRUE
+
+			spawn_click_intercept = TRUE
+			current_click_intercept_action = DEFENSE_CREATOR_SPAWN_CLICK_INTERCEPT_ACTION
+			ui.user.client?.click_intercept = src
+			return TRUE
+
+/datum/human_defense_creator_menu/proc/update_selected_settings(list/params)
+	if(!params["path"])
+		return FALSE
+
+	current_path = params["path"]
+
+	if(!isnull(params["faction"]))
+		selected_faction = params["faction"]
+
+	if(!isnull(params["place_dir"]))
+		selected_place_dir = params["place_dir"] || "Default"
+
+	if(!isnull(params["turned_on"]))
+		selected_turned_on = params["turned_on"] ? TRUE : FALSE
+
+	return TRUE
+
+/datum/human_defense_creator_menu/proc/get_selected_direction(mob/user)
+	. = user?.dir || SOUTH
+	switch(selected_place_dir)
+		if("North")
+			return NORTH
+		if("East")
+			return EAST
+		if("South")
+			return SOUTH
+		if("West")
+			return WEST
+
+/datum/human_defense_creator_menu/proc/spawn_selected_defense(mob/user, turf/spawn_turf)
+	if(!current_path || !isturf(spawn_turf))
+		return FALSE
+
+	var/gotten_path = ispath(current_path) ? current_path : text2path(current_path)
+	if(!gotten_path)
+		return FALSE
+
+	if(!lazy_defense_dict[gotten_path])
+		lazy_defense_dict[gotten_path] = new gotten_path()
+
+	var/datum/human_ai_defense/defense_object = lazy_defense_dict[gotten_path]
+	defense_object.spawn_object(spawn_turf, get_selected_direction(user), selected_faction, selected_turned_on)
+	return TRUE
+
+/datum/human_defense_creator_menu/proc/InterceptClickOn(mob/user, params, atom/object)
+	if(!spawn_click_intercept || current_click_intercept_action != DEFENSE_CREATOR_SPAWN_CLICK_INTERCEPT_ACTION)
+		return
+
+	var/list/modifiers = params2list(params)
+	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
+		return TRUE
+
+	var/turf/spawn_turf = get_turf(object)
+	if(!isturf(spawn_turf))
+		return TRUE
+
+	spawn_selected_defense(user, spawn_turf)
+	return TRUE
 
 /client/proc/open_human_defense_creator_panel()
 	set name = "Human Defense Creator Panel"
@@ -567,3 +668,5 @@
 	desc = /obj/structure/barricade/razorwire::desc
 	icon_state = "barbed_wire"
 	path_to_spawn = /obj/structure/barricade/razorwire
+
+#undef DEFENSE_CREATOR_SPAWN_CLICK_INTERCEPT_ACTION
