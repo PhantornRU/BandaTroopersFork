@@ -713,14 +713,14 @@
 	var/mob/living/carbon/human/spec = create_test_human("HALO Locker Spec", JOB_SQUAD_SPECIALIST_UNSC)
 	spec.mind = new /datum/mind("halo_locker_spec", "halo_locker_spec")
 	var/obj/item/card/id/spec_id = allocate(/obj/item/card/id)
-	spec_id.access = list(ACCESS_MARINE_SPECPREP)
+	spec_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE)
 	spec.equip_to_slot(spec_id, WEAR_ID, TRUE)
 
 	TEST_ASSERT(spec.claim_halo_job_locker(), "Failed to claim the HALO job locker on the player side.")
 	TEST_ASSERT(spec.has_claimed_halo_job_locker(), "Player-side HALO job locker claim was not persisted.")
 	TEST_ASSERT(spec.get_halo_job_locker_claim_holder() == spec.mind, "HALO job locker claim was not stored on the mind when a mind was available.")
 
-	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/locker = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/locker = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, run_loc_floor_top_right)
 	var/contents_before = length(locker.contents)
 	locker.togglelock(spec)
 	TEST_ASSERT_EQUAL(length(locker.contents), contents_before, "A claimed HALO player was still able to trigger a second HALO job locker.")
@@ -734,4 +734,35 @@
 	TEST_ASSERT(fallback_spec.claim_halo_job_locker(), "Failed to claim the HALO job locker on the mob fallback path.")
 	TEST_ASSERT(fallback_spec.has_claimed_halo_job_locker(), "Mob fallback HALO job locker claim was not persisted.")
 	TEST_ASSERT(fallback_spec.get_halo_job_locker_claim_holder() == fallback_spec, "HALO job locker fallback claim was not stored on the mob when no mind was available.")
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_owner_binding
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_owner_binding/Run()
+	var/mob/living/carbon/human/spec_one = create_test_human("HALO Locker Spec One", JOB_SQUAD_SPECIALIST_UNSC)
+	spec_one.mind = new /datum/mind("halo_locker_spec_one", "halo_locker_spec_one")
+	var/obj/item/card/id/spec_one_id = allocate(/obj/item/card/id)
+	spec_one_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE)
+	spec_one.equip_to_slot(spec_one_id, WEAR_ID, TRUE)
+
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1/locker_one = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, run_loc_floor_top_right)
+	TEST_ASSERT(locker_one.claim_selected_kit(spec_one, /obj/item/storage/unsc_speckit/spnkr), "Failed to bind a HALO specialist locker to the first specialist.")
+	TEST_ASSERT(spec_one.has_claimed_halo_job_locker(), "Claiming a HALO specialist locker did not persist the first specialist claim.")
+	TEST_ASSERT(locker_one.get_claim_holder() == spec_one.mind, "The first specialist locker was not bound to the claimant's mind.")
+	TEST_ASSERT(locate(/obj/item/storage/unsc_speckit/spnkr) in get_turf(locker_one), "The selected HALO specialist kit was not dumped onto the locker turf after the locker auto-opened.")
+	TEST_ASSERT(!locker_one.locked, "Claiming a HALO specialist locker should auto-unlock it.")
+	TEST_ASSERT(locker_one.opened, "Claiming a HALO specialist locker should auto-open it.")
+
+	var/mob/living/carbon/human/spec_two = create_test_human("HALO Locker Spec Two", JOB_SQUAD_SPECIALIST_UNSC)
+	spec_two.mind = new /datum/mind("halo_locker_spec_two", "halo_locker_spec_two")
+	var/obj/item/card/id/spec_two_id = allocate(/obj/item/card/id)
+	spec_two_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE, ACCESS_SQUAD_TWO)
+	spec_two.equip_to_slot(spec_two_id, WEAR_ID, TRUE)
+
+	locker_one.attack_hand(spec_two)
+	TEST_ASSERT(locker_one.opened, "A second specialist was able to close another player's claimed HALO locker.")
+
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2/locker_two = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2, run_loc_floor_top_right)
+	TEST_ASSERT(locker_two.claim_selected_kit(spec_two, /obj/item/storage/unsc_speckit/srs99), "A second specialist could not claim their own HALO locker after the first specialist claimed a different one.")
+	TEST_ASSERT(spec_two.has_claimed_halo_job_locker(), "The second specialist claim was not persisted on their own HALO locker.")
 // SS220 EDIT - END

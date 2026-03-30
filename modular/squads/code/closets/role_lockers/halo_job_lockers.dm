@@ -14,6 +14,7 @@
 	name = "Weapons Specialist locker"
 	req_access = list(ACCESS_MARINE_SPECPREP)
 	var/role_lock = TRUE
+	var/datum/weakref/claim_holder_ref = null
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/get_allowed_specialist_jobs()
 	return list(
@@ -21,6 +22,58 @@
 		JOB_SQUAD_SPECIALIST_UNSC,
 		JOB_SQUAD_SPECIALIST_ODST,
 	)
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/get_claim_holder()
+	return claim_holder_ref?.resolve()
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/is_claimed_by(mob/living/carbon/human/human)
+	var/datum/claim_holder = get_claim_holder()
+	if(!claim_holder || !human)
+		return FALSE
+
+	return claim_holder == human.get_halo_job_locker_claim_holder()
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/can_access_claimed_locker(mob/living/user)
+	if(!ishuman(user))
+		return TRUE
+
+	var/mob/living/carbon/human/human = user
+	var/datum/claim_holder = get_claim_holder()
+	if(!claim_holder)
+		return TRUE
+	if(is_claimed_by(human))
+		return TRUE
+
+	to_chat(user, SPAN_WARNING("This HALO job locker has already been claimed."))
+	return FALSE
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/proc/claim_selected_kit(mob/living/carbon/human/human, chosen_kit)
+	if(!human || !chosen_kit)
+		return FALSE
+	if(get_claim_holder() || human.has_claimed_halo_job_locker())
+		return FALSE
+
+	var/datum/claim_holder = human.get_halo_job_locker_claim_holder()
+	if(!claim_holder)
+		return FALSE
+
+	var/obj/item/storage/unsc_speckit/kit = new chosen_kit(src)
+	if(!kit)
+		return FALSE
+	if(!human.claim_halo_job_locker())
+		qdel(kit)
+		return FALSE
+
+	claim_holder_ref = WEAKREF(claim_holder)
+	locked = FALSE
+	open()
+	return TRUE
+
+/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/attack_hand(mob/living/user)
+	if(!can_access_claimed_locker(user))
+		return
+
+	return ..()
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/togglelock(mob/living/user)
 	var/list/allowed_specialist_jobs = get_allowed_specialist_jobs()
@@ -30,10 +83,13 @@
 	if(!allowed(user))
 		to_chat(user, SPAN_WARNING("You do not have access to the contents of the locker."))
 		return
-	if(human)
-		if(human.has_claimed_halo_job_locker())
-			to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
-			return
+	if(!can_access_claimed_locker(user))
+		return
+	if(get_claim_holder())
+		return ..()
+	if(human?.has_claimed_halo_job_locker())
+		to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
+		return
 
 	if(role_lock && human)
 		var/obj/item/card/id/card = human.get_idcard()
@@ -50,7 +106,7 @@
 	if(ishuman(user))
 		human = user
 	if(human)
-		if(human.has_claimed_halo_job_locker())
+		if(get_claim_holder() || human.has_claimed_halo_job_locker())
 			to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
 			return
 
@@ -66,12 +122,21 @@
 		return
 
 	if(human)
-		if(!human.claim_halo_job_locker())
-			to_chat(user, SPAN_WARNING("The locker fails to register your claim."))
+		if(get_claim_holder())
+			to_chat(user, SPAN_WARNING("This HALO job locker has already been claimed."))
+			return
+		if(human.has_claimed_halo_job_locker())
+			to_chat(user, SPAN_WARNING("You have already claimed a HALO job locker kit."))
 			return
 
 	chosen_kit = spec_equipment_list[chosen_kit]
-	new chosen_kit(src)
+
+	if(human)
+		if(!claim_selected_kit(human, chosen_kit))
+			to_chat(user, SPAN_WARNING("The locker fails to register your claim."))
+			return
+	else
+		new chosen_kit(src)
 
 /obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1
 	name = "fireteam one Weapons Specialist locker"
