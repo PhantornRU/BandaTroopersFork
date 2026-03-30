@@ -447,9 +447,7 @@
 	if(!isturf(origin_turf) || !length(contents))
 		return
 
-	var/list/grenades_to_scatter = list()
-	for(var/obj/item/explosive/grenade/grenade as anything in contents)
-		grenades_to_scatter += grenade
+	var/list/grenades_to_scatter = get_stored_grenades_for_scatter()
 
 	if(!length(grenades_to_scatter))
 		return
@@ -473,6 +471,13 @@
 		remove_from_storage(grenade, origin_turf)
 		if(target_turf != origin_turf)
 			grenade.throw_atom(target_turf, get_dist(origin_turf, target_turf), SPEED_FAST, source, TRUE)
+
+/obj/item/storage/belt/marine/covenant/proc/get_stored_grenades_for_scatter()
+	var/list/grenades_to_scatter = list()
+	for(var/obj/item/stored_item as anything in contents)
+		if(istype(stored_item, /obj/item/explosive/grenade))
+			grenades_to_scatter += stored_item
+	return grenades_to_scatter
 
 /obj/item/storage/belt/marine/covenant/sangheili
 	name = "\improper патронташ сангхейли"

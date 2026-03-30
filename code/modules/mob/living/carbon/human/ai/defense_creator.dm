@@ -8,16 +8,21 @@
 			if(!defense_type::name)
 				continue
 
+			var/datum/human_ai_defense/preview_defense = lazy_defense_dict[defense_type]
+			if(!istype(preview_defense))
+				preview_defense = new defense_type()
+				lazy_defense_dict[defense_type] = preview_defense
+
 			if(!lazy_ui_data[defense_type::category])
 				lazy_ui_data[defense_type::category] = list()
 
 			lazy_ui_data[defense_type::category] += list(list(
-				"name" = defense_type::name,
+				"name" = preview_defense.name,
 				"path" = defense_type,
-				"description" = defense_type::desc,
-				"image" = defense_type::icon_state,
-				"uses_faction" = defense_type::uses_faction,
-				"uses_turned_on" = defense_type::uses_turned_on,
+				"description" = preview_defense.desc,
+				"image" = preview_defense.get_ui_icon_key(),
+				"uses_faction" = preview_defense.uses_faction,
+				"uses_turned_on" = preview_defense.uses_turned_on,
 			))
 
 /datum/human_defense_creator_menu/tgui_interact(mob/user, datum/tgui/ui)
@@ -43,7 +48,7 @@
 	var/list/data = list()
 
 	data["defenses"] = lazy_ui_data
-	data["valid_factions"] = list(FACTION_MARINE, FACTION_UA_REBEL, FACTION_UPP, FACTION_CANC, FACTION_WY, FACTION_FREELANCER, FACTION_TWE, FACTION_TWE_REBEL, FACTION_MERCENARY)
+	data["valid_factions"] = list(FACTION_MARINE, FACTION_UA_REBEL, FACTION_UPP, FACTION_CANC, FACTION_WY, FACTION_FREELANCER, FACTION_TWE, FACTION_TWE_REBEL, FACTION_MERCENARY, FACTION_COVENANT)
 
 	return data
 
@@ -105,6 +110,19 @@
 
 /datum/human_ai_defense/proc/spawn_object(turf/loc_to_spawn, dir_to_spawn, faction, turned_on)
 	return
+
+/datum/human_ai_defense/proc/get_ui_icon_key()
+	return replacetext(replacetext("[type]", "/datum/human_ai_defense/", "human_ai_defense_"), "/", "_")
+
+/datum/human_ai_defense/proc/get_ui_icon_file()
+	if(ispath(path_to_spawn) && path_to_spawn::icon)
+		return path_to_spawn::icon
+	return icon
+
+/datum/human_ai_defense/proc/get_ui_icon_state()
+	if(ispath(path_to_spawn) && path_to_spawn::icon_state)
+		return path_to_spawn::icon_state
+	return icon_state
 
 // Sentries
 

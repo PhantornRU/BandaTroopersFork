@@ -48,6 +48,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	var/door_delay = 2 SECONDS
 	COOLDOWN_DECLARE(door_cooldown)
 	var/datum/turf_reservation/reservation
+	var/launch_sequence_active = FALSE
 
 	var/image/pod_overlay
 	var/image/rocket_image
@@ -96,14 +97,31 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	overlays.Cut()
 	pod_overlay = image(src.icon, loc, overlay_icon_state, 5.4)
 	overlays += pod_overlay
-	if(occupant && user)
-		occupant_image = image(user.appearance, loc, layer = 5.2)
+	var/mob/living/displayed_occupant = sync_occupant_state(FALSE)
+	if(displayed_occupant)
+		occupant_image = image(displayed_occupant.appearance, loc, layer = 5.2)
 		occupant_image.pixel_x = occupant_x
 		occupant_image.pixel_y = occupant_y
 		occupant_image.dir = occupant_dir
-		if(user.body_position == LYING_DOWN)
-			occupant_image.transform = occupant.transform.Turn(occupant_angle)
+		if(displayed_occupant.body_position == LYING_DOWN)
+			occupant_image.transform = displayed_occupant.transform.Turn(occupant_angle)
 		overlays += occupant_image
+
+/obj/structure/halo_droppod/proc/sync_occupant_state(update_visuals = TRUE)
+	if(occupant && occupant.loc != src)
+		occupant = null
+		if(update_visuals)
+			handle_overlays()
+	return occupant
+
+/obj/structure/halo_droppod/proc/reset_launch_state(reset_can_launch = FALSE)
+	launch_sequence_active = FALSE
+	locked = FALSE
+	if(reset_can_launch)
+		can_launch = TRUE
+	if(pod_state == POD_INFLIGHT)
+		pod_state = POD_READY
+	QDEL_NULL(reservation)
 
 /obj/structure/halo_droppod/proc/toggle_door(mob/living/user)
 	if(pod_state == POD_LANDED)
@@ -146,6 +164,10 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(!door_obj)
 		to_chat(user, SPAN_NOTICE("Why would you want to enter it now?"))
 		return
+	sync_occupant_state(FALSE)
+	if(!can_launch || launch_sequence_active || pod_state != POD_READY)
+		to_chat(user, SPAN_NOTICE("The pod is not ready for another drop."))
+		return
 	if(closed)
 		to_chat(user, SPAN_NOTICE("You try to enter the pod, but it's closed."))
 		return
@@ -163,6 +185,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	handle_overlays(user)
 
 /obj/structure/halo_droppod/proc/exit_pod(mob/living/user)
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
 	if(locked)
 		to_chat(user, SPAN_NOTICE("The pod is locked, you can't exit."))
 		return
@@ -171,12 +194,13 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 		return
 	if(closed)
 		open_door(user)
-	if(!occupant)
+	if(!current_occupant)
 		return
 	var/turf/exit_turf = get_step(src, SOUTH)
-	occupant.forceMove(get_turf(exit_turf))
-	occupant.dir = SOUTH
+	current_occupant.forceMove(get_turf(exit_turf))
+	current_occupant.dir = SOUTH
 	occupant = null
+	locked = FALSE
 	to_chat(user, SPAN_NOTICE("You exit the pod."))
 	playsound(src, "droppod_enter")
 	handle_overlays(user)
@@ -184,6 +208,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 /obj/structure/halo_droppod/attack_hand(mob/living/user)
 	if(!COOLDOWN_FINISHED(src, door_cooldown))
 		return
+	sync_occupant_state(FALSE)
 	if(locked)
 		to_chat(user, SPAN_NOTICE("You try to open the pod, but it's locked."))
 		return
@@ -199,6 +224,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 		visible_message(SPAN_NOTICE("[user] begins to enter the [src]."), SPAN_NOTICE("You begin to enter the [src]."))
 		if(!do_after(user, 3 SECONDS, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_GENERIC, target, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_GENERIC))
 			to_chat(user, SPAN_NOTICE("You are interrupted!"))
+			return
 		enter_pod(target)
 	else
 		to_chat(user, SPAN_NOTICE("[target] cannot enter the pod."))
@@ -258,9 +284,12 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	return locate(target_x, target_y, target_z) //no other alt spots found, we return our orig
 
 /obj/structure/halo_droppod/proc/start_launch_pod(mob/user)
-	if(!occupant)
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
 		return
-	user = occupant
+	if(!can_launch || launch_sequence_active)
+		return
+	user = current_occupant
 	handle_overlays(user)
 
 	// if(!locate(/obj/structure/drop_pod_launcher) in get_turf(src))
@@ -278,8 +307,19 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(!checklanding(user))
 		return
 
-	for(var/mob/podder in occupant)
-		podder.forceMove(src)
+	launch_sequence_active = TRUE
+	can_launch = FALSE
+	locked = TRUE
+
+	if(!closed)
+		close_door(user)
+
+	current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
+		reset_launch_state(TRUE)
+		return
+	if(current_occupant.loc != src)
+		current_occupant.forceMove(src)
 
 	if(user)
 		log_game("[key_name(user)] launched pod [src] at [AREACOORD(target)]")
@@ -289,29 +329,40 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	addtimer(CALLBACK(src, PROC_REF(delay_pod), user), random_delay SECONDS)
 
 /obj/structure/halo_droppod/proc/delay_pod(mob/user)
-	playsound_client(occupant.client, 'sound/effects/odst_pod/drop_timer.ogg', src, 25)
+	if(!launch_sequence_active || pod_state != POD_INFLIGHT)
+		return
+	if(occupant?.client)
+		playsound_client(occupant.client, 'sound/effects/odst_pod/drop_timer.ogg', src, 25)
 	addtimer(CALLBACK(src, PROC_REF(launch_pod), user), 3.5 SECONDS)
 
 
 /obj/structure/halo_droppod/proc/launch_pod(mob/user)
-	if(!can_launch)
+	if(!launch_sequence_active || pod_state != POD_INFLIGHT || reservation)
+		return
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
+		reset_launch_state(TRUE)
 		return
 
 	playsound(src, 'sound/effects/escape_pod_launch.ogg', 70)
 	sleep(1 SECONDS)
 	reservation = SSmapping.request_turf_block_reservation(5, 5, 1, reservation_type = /datum/turf_reservation/transit/drop_pod)
 	if(!reservation)
-		CRASH("No droppod turf reservation available")
+		to_chat(user, SPAN_WARNING("Error. No droppod transit corridor available."))
+		reset_launch_state(TRUE)
+		return
 	var/turf/bottom_left_turf = reservation.bottom_left_turfs[1]
 	var/turf/top_right_turf = reservation.top_right_turfs[1]
 	var/middle_x = bottom_left_turf.x + floor((top_right_turf.x - bottom_left_turf.x) / 2)
 	var/middle_y = bottom_left_turf.y + floor((top_right_turf.y - bottom_left_turf.y) / 2)
 	var/turf/selectedturf = locate(middle_x, middle_y, bottom_left_turf.z)
 	if(!selectedturf)
-		CRASH("No droppod free turf found")
+		to_chat(user, SPAN_WARNING("Error. No droppod transit turf available."))
+		reset_launch_state(TRUE)
+		return
 	forceMove(selectedturf)
 	time_to_chute = time_to_land - 12 SECONDS
-	if(occupant)
+	if(current_occupant)
 		shake_camera(user, time_to_land, 0.1)
 	addtimer(CALLBACK(src, PROC_REF(chute_deploy), user), time_to_chute)
 	addtimer(CALLBACK(src, PROC_REF(finish_drop), user, selectedturf), time_to_land)
@@ -364,6 +415,8 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	addtimer(CALLBACK(src, PROC_REF(complete_drop), user), 2 SECONDS)
 
 /obj/structure/halo_droppod/proc/complete_drop(mob/user)
+	launch_sequence_active = FALSE
+	locked = FALSE
 	playsound(src, 'sound/effects/odst_pod/door_kaboom.ogg')
 	addtimer(CALLBACK(src, PROC_REF(door_explode), user), 3 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(exit_pod), user), 4 SECONDS)

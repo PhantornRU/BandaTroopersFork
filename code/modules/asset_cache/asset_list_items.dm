@@ -447,10 +447,19 @@
 	name = "defensemenu"
 
 /datum/asset/spritesheet/defense_menu/register()
-	for(var/icon_state in icon_states('icons/misc/human_defense_menu.dmi'))
-		var/icon/icon_sprite = icon('icons/misc/human_defense_menu.dmi', icon_state)
+	for(var/datum/human_ai_defense/defense_type as anything in subtypesof(/datum/human_ai_defense))
+		if(!defense_type::name)
+			continue
+
+		var/datum/human_ai_defense/preview_defense = new defense_type()
+		var/icon_file = preview_defense.get_ui_icon_file()
+		var/icon_state = preview_defense.get_ui_icon_state()
+		if(!icon_file || !icon_state)
+			continue
+
+		var/icon/icon_sprite = icon(icon_file, icon_state)
 		icon_sprite.Scale(128, 128)
-		Insert(icon_state, icon_sprite)
+		Insert(preview_defense.get_ui_icon_key(), icon_sprite)
 
 	return ..()
 

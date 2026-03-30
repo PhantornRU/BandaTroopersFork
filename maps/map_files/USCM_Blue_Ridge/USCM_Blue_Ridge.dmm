@@ -11262,28 +11262,28 @@
 	id = "CIC";
 	name = "CIC Lockdown"
 	},
-/obj/structure/machinery/door_control{
+/obj/structure/machinery/door_control/squad_armory{
 	pixel_y = 13;
 	pixel_x = 9;
 	id = "squadarmory_bravo";
 	name = "BRAVO gear lockers door-control";
 	color = "#ffc32d"
 	},
-/obj/structure/machinery/door_control{
+/obj/structure/machinery/door_control/squad_armory{
 	pixel_y = 13;
 	pixel_x = 1;
 	id = "squadarmory_alpha";
 	name = "ALPHA gear lockers door-control";
 	color = "#db1d1d"
 	},
-/obj/structure/machinery/door_control{
+/obj/structure/machinery/door_control/squad_armory{
 	pixel_y = 7;
 	pixel_x = 1;
 	id = "squadarmory_charlie";
 	name = "CHARLIE gear lockers door-control";
 	color = "#c864c8"
 	},
-/obj/structure/machinery/door_control{
+/obj/structure/machinery/door_control/squad_armory{
 	pixel_y = 7;
 	pixel_x = 9;
 	id = "squadarmory_delta";
