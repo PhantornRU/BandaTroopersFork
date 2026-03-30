@@ -46,6 +46,18 @@
 /area/unsc_stalwart_frigate/briefing/two
 	name = "\improper Зал брифинга 2"
 
+/area/unsc_stalwart_frigate/bridge
+	name = "\improper Мостик"
+	icon_state = "cic"
+
+/area/unsc_stalwart_frigate/bridge/one
+	name = "\improper Мостик - вспомогательный отсек 1"
+	icon_state = "cic"
+
+/area/unsc_stalwart_frigate/bridge/two
+	name = "\improper Мостик - вспомогательный отсек 2"
+	icon_state = "cic"
+
 /area/unsc_stalwart_frigate/dorms
 	name = "\improper Кубрики"
 	icon_state = "gruntrnr"
@@ -74,20 +86,60 @@
 	name = "\improper Криоотсек"
 	icon_state = "cryo"
 
-/area/unsc_stalwart_frigate/cryo_bay/one
-	name = "Криоотсек 1"
-	icon_state = "cryo"
+/area/unsc_stalwart_frigate/cryo_bay/alpha
+	name = "Криоотсек Альфа"
+	icon_state = "alpha"
 
-/area/unsc_stalwart_frigate/cryo_bay/two
-	name = "Криоотсек 2"
-	icon_state = "cryo"
+/area/unsc_stalwart_frigate/cryo_bay/bravo
+	name = "Криоотсек Браво"
+	icon_state = "bravo"
+
+/area/unsc_stalwart_frigate/cryo_bay/delta
+	name = "Криоотсек Дельта"
+	icon_state = "delta"
+
+/area/unsc_stalwart_frigate/cryo_bay/charlie
+	name = "Криоотсек Чарли"
+	icon_state = "charlie"
 
 /area/unsc_stalwart_frigate/upper_hallway
 	name = "\improper Верхний коридор"
 	icon_state = "port"
 
+/area/unsc_stalwart_frigate/upper_hallway/north
+	name = "Верхний коридор - север"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/upper_hallway/south
+	name = "Верхний коридор - юг"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/upper_hallway/east
+	name = "Верхний коридор - восток"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/upper_hallway/west
+	name = "Верхний коридор - запад"
+	icon_state = "port"
+
 /area/unsc_stalwart_frigate/lower_hallway
 	name = "\improper Нижний коридор"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/lower_hallway/north
+	name = "Нижний коридор - север"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/lower_hallway/south
+	name = "Нижний коридор - юг"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/lower_hallway/east
+	name = "Нижний коридор - восток"
+	icon_state = "port"
+
+/area/unsc_stalwart_frigate/lower_hallway/west
+	name = "Нижний коридор - запад"
 	icon_state = "port"
 
 /area/unsc_stalwart_frigate/armory
