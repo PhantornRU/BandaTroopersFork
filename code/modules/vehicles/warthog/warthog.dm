@@ -178,26 +178,14 @@
 	if(!do_after(user, 0.5 SECONDS, INTERRUPT_NO_NEEDHAND, BUSY_ICON_GENERIC))
 		return
 
+	target_seat = get_target_seat(M)
+	if(!target_seat)
+		to_chat(user, SPAN_WARNING("Get [M] closer to a seat!"))
+		return
+
 	if(seats[target_seat]) // Additional check just in case two people try getting in at around the same time.
 		to_chat(user, SPAN_WARNING("[seats[target_seat]] is already sitting in the [target_seat] seat!"))
 		return
-
-	var/turf/target_turf = get_seat_turf(target_seat)
-	if(!target_turf)
-		return
-
-	if(density)
-		density = FALSE
-		if(!step(M, get_dir(M, target_turf)) && !is_valid_seat_locs_turf(M, target_seat))
-			density = TRUE
-			return
-		density = TRUE
-	else
-		if(!is_valid_seat_locs_turf(M, target_seat))
-			step_towards(M, target_turf) //buckle if you're right next to it
-			if(!is_valid_seat_locs_turf(M, target_seat))
-				return
-			. = buckle_mob(M, user)
 
 	if (M.mob_size <= MOB_SIZE_XENO)
 		if (HAS_TRAIT(M, TRAIT_OPPOSABLE_THUMBS))
@@ -295,25 +283,91 @@
 	INVOKE_ASYNC(src, PROC_REF(exit_animation), the_mob, unbuckle_seat)
 
 /obj/vehicle/multitile/warthog/proc/exit_animation(mob/living/the_mob, unbuckle_seat)
-	var/exit_dir = NONE
-	var/turf/exit_turf = get_seat_turf(unbuckle_seat)
+	var/exit_dir = get_exit_dir(unbuckle_seat)
+	var/turf/exit_turf = get_exit_turf(the_mob, unbuckle_seat)
 
-	switch(unbuckle_seat)
-		if(VEHICLE_DRIVER)
-			exit_dir = turn(dir, 90)
-		if(VEHICLE_SUPPORT_GUNNER_ONE)
-			exit_dir = turn(dir, 270)
-		if(VEHICLE_GUNNER)
-			exit_dir = turn(dir, 180)
+	if(!exit_turf)
+		return
+
 	the_mob.forceMove(exit_turf)
-	sleep(0.1 SECONDS)
-	step(the_mob, exit_dir)
+	if(exit_dir)
+		the_mob.setDir(exit_dir)
+
+/obj/vehicle/multitile/warthog/proc/get_exit_dir(target_seat)
+	switch(target_seat)
+		if(VEHICLE_DRIVER)
+			return turn(dir, -90)
+		if(VEHICLE_SUPPORT_GUNNER_ONE)
+			return turn(dir, 90)
+		if(VEHICLE_GUNNER)
+			return turn(dir, 180)
+	return NONE
+
+/obj/vehicle/multitile/warthog/proc/get_exit_turf(mob/living/exiting_mob, target_seat)
+	var/exit_dir = get_exit_dir(target_seat)
+	var/list/exit_dirs = list(
+		exit_dir,
+		turn(exit_dir, 90),
+		turn(exit_dir, -90),
+		turn(exit_dir, 180),
+	)
+
+	for(var/check_dir in exit_dirs)
+		for(var/turf/seat_turf as anything in get_seat_turfs(target_seat))
+			var/turf/candidate = find_exit_turf_in_dir(seat_turf, check_dir)
+			if(can_exit_to_turf(exiting_mob, candidate))
+				return candidate
+
+	for(var/turf/base_turf as anything in locs)
+		for(var/check_dir in list(NORTH, SOUTH, EAST, WEST))
+			var/turf/candidate = get_step(base_turf, check_dir)
+			if(can_exit_to_turf(exiting_mob, candidate))
+				return candidate
+
+	return null
+
+/obj/vehicle/multitile/warthog/proc/find_exit_turf_in_dir(turf/start_turf, exit_dir)
+	if(!isturf(start_turf) || !exit_dir)
+		return null
+
+	var/max_steps = max(round(bound_width / world.icon_size), round(bound_height / world.icon_size)) + 1
+	var/turf/current_turf = start_turf
+	for(var/i in 1 to max_steps)
+		current_turf = get_step(current_turf, exit_dir)
+		if(!isturf(current_turf))
+			break
+		if(!(current_turf in locs))
+			return current_turf
+
+	return null
+
+/obj/vehicle/multitile/warthog/proc/can_exit_to_turf(mob/living/exiting_mob, turf/target_turf)
+	return isturf(target_turf) && !(target_turf in locs) && target_turf.Enter(exiting_mob)
 
 /obj/vehicle/multitile/warthog/proc/get_seat_turf(target_seat)
+	var/list/seat_turfs = get_seat_turfs(target_seat)
+	if(length(seat_turfs))
+		return seat_turfs[1]
+	return null
+
+/obj/vehicle/multitile/warthog/proc/get_seat_turfs(target_seat)
+	var/list/seat_turfs = list()
+	var/list/positions = get_seat_positions(target_seat)
+
+	for(var/position in positions)
+		var/turf/seat_turf = locs[position]
+		if(isturf(seat_turf))
+			seat_turfs += seat_turf
+
+	return seat_turfs
+
+/obj/vehicle/multitile/warthog/proc/get_seat_positions(target_seat)
 	var/position = locs_positions[target_seat]["[dir]"]
+	if(isnull(position))
+		return list()
 	if(islist(position))
-		position = pick(position)
-	return locs[position]
+		return position
+	return list(position)
 
 /obj/vehicle/multitile/warthog/send_buckling_message(mob/living/target, mob/user, target_seat)
 	target.visible_message(SPAN_NOTICE("[target] climbs into the [target_seat] seat."), SPAN_NOTICE("You climb into the [target_seat] seat."))
@@ -438,14 +492,10 @@
 		return VEHICLE_SUPPORT_GUNNER_ONE
 
 /obj/vehicle/multitile/warthog/proc/is_valid_seat_locs_turf(mob/M, target_seat)
-	var/list/position = locs_positions[target_seat]["[dir]"]
+	var/list/position = get_seat_positions(target_seat)
 	var/turf/mob_turf = get_turf(M)
-	if(islist(position))
-		for(var/turf_key in position)
-			if(mob_turf == locs[turf_key])
-				return TRUE
-	else
-		if(mob_turf == locs[position])
+	for(var/turf_key in position)
+		if(mob_turf == locs[turf_key])
 			return TRUE
 	return FALSE
 
