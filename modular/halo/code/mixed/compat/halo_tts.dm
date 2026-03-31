@@ -65,7 +65,7 @@ GLOBAL_LIST_INIT(halo_tts_seed_plans, list(
 	if(preferred_seed_name && tts_seed_registry[preferred_seed_name])
 		return FALSE
 
-	var/seed_name = halo_get_default_tts_seed(species.name)
+	var/seed_name = halo_get_default_tts_seed(species.group || species.name)
 	if(!istext(seed_name) || !length(seed_name))
 		return FALSE
 

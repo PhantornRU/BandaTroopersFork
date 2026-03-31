@@ -1,4 +1,5 @@
 GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transit, /turf/open/space))) // Don't drop at these tiles.
+GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 
 /obj/structure/halo_droppod
@@ -20,7 +21,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	var/start_open
 
 // Vars of importance when launching
-	var/landing_scatter = 18 // Scatter from the landing point
+	var/landing_scatter = 10 // Scatter from the landing point
 	var/time_to_land = 30 SECONDS // time it takes from launching to reach the ground
 	var/landing_time = 1 SECONDS
 	var/time_to_chute
@@ -29,6 +30,8 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	var/target_x = 1
 	var/target_y = 1
 	var/target_z = 2
+	var/turf/planned_landing_turf
+	var/list/turf/launch_targets = list()
 
 // failure vars
 	var/failure_chance = 10
@@ -48,6 +51,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	var/door_delay = 2 SECONDS
 	COOLDOWN_DECLARE(door_cooldown)
 	var/datum/turf_reservation/reservation
+	var/launch_sequence_active = FALSE
 
 	var/image/pod_overlay
 	var/image/rocket_image
@@ -92,18 +96,108 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(start_open)
 		open_door()
 
+/obj/structure/halo_droppod/Destroy()
+	release_landing_target()
+	return ..()
+
 /obj/structure/halo_droppod/proc/handle_overlays(mob/living/user)
 	overlays.Cut()
 	pod_overlay = image(src.icon, loc, overlay_icon_state, 5.4)
 	overlays += pod_overlay
-	if(occupant && user)
-		occupant_image = image(user.appearance, loc, layer = 5.2)
+	var/mob/living/displayed_occupant = sync_occupant_state(FALSE)
+	if(displayed_occupant)
+		occupant_image = image(displayed_occupant.appearance, loc, layer = 5.2)
 		occupant_image.pixel_x = occupant_x
 		occupant_image.pixel_y = occupant_y
 		occupant_image.dir = occupant_dir
-		if(user.body_position == LYING_DOWN)
-			occupant_image.transform = occupant.transform.Turn(occupant_angle)
+		if(displayed_occupant.body_position == LYING_DOWN)
+			occupant_image.transform = displayed_occupant.transform.Turn(occupant_angle)
 		overlays += occupant_image
+
+/obj/structure/halo_droppod/proc/sync_occupant_state(update_visuals = TRUE)
+	if(occupant && occupant.loc != src)
+		occupant = null
+		if(update_visuals)
+			handle_overlays()
+	return occupant
+
+/obj/structure/halo_droppod/proc/get_primary_launch_target()
+	return locate(target_x, target_y, target_z)
+
+/obj/structure/halo_droppod/proc/get_launch_target_list()
+	. = list()
+	for(var/turf/target in launch_targets)
+		if(!target)
+			continue
+		. += target
+	if(length(.))
+		return
+	var/turf/default_target = get_primary_launch_target()
+	if(default_target)
+		. += default_target
+
+/obj/structure/halo_droppod/proc/set_launch_targets(list/new_targets)
+	launch_targets = list()
+	if(length(new_targets))
+		for(var/atom/target in new_targets)
+			var/turf/target_turf = get_turf(target)
+			if(!target_turf || (target_turf in launch_targets))
+				continue
+			launch_targets += target_turf
+	if(!length(launch_targets))
+		var/turf/default_target = get_primary_launch_target()
+		if(default_target)
+			launch_targets += default_target
+	var/turf/primary_target = length(launch_targets) ? launch_targets[1] : null
+	if(primary_target)
+		target_x = primary_target.x
+		target_y = primary_target.y
+		target_z = primary_target.z
+	return length(launch_targets)
+
+/obj/structure/halo_droppod/proc/release_landing_target()
+	if(!planned_landing_turf)
+		return
+	GLOB.active_droppod_landing_turfs -= planned_landing_turf
+	planned_landing_turf = null
+
+/obj/structure/halo_droppod/proc/set_planned_landing_target(turf/new_target)
+	if(planned_landing_turf == new_target)
+		return planned_landing_turf
+	release_landing_target()
+	planned_landing_turf = new_target
+	if(planned_landing_turf)
+		GLOB.active_droppod_landing_turfs += planned_landing_turf
+	return planned_landing_turf
+
+/obj/structure/halo_droppod/proc/can_start_launch()
+	sync_occupant_state(FALSE)
+	return occupant && can_launch && !launch_sequence_active && pod_state == POD_READY
+
+/obj/structure/halo_droppod/proc/has_reserved_landing_conflict(turf/target, turf/ignore_reserved_turf = null)
+	for(var/turf/reserved_turf in GLOB.active_droppod_landing_turfs)
+		if(!reserved_turf || reserved_turf == ignore_reserved_turf || reserved_turf.z != target.z)
+			continue
+		if(get_dist(target, reserved_turf) <= 1)
+			return TRUE
+	return FALSE
+
+/obj/structure/halo_droppod/proc/has_nearby_pod_conflict(turf/target)
+	for(var/obj/structure/halo_droppod/other_pod in range(1, target))
+		if(other_pod == src)
+			continue
+		return TRUE
+	return FALSE
+
+/obj/structure/halo_droppod/proc/reset_launch_state(reset_can_launch = FALSE)
+	launch_sequence_active = FALSE
+	locked = FALSE
+	release_landing_target()
+	if(reset_can_launch)
+		can_launch = TRUE
+	if(pod_state == POD_INFLIGHT)
+		pod_state = POD_READY
+	QDEL_NULL(reservation)
 
 /obj/structure/halo_droppod/proc/toggle_door(mob/living/user)
 	if(pod_state == POD_LANDED)
@@ -146,6 +240,10 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(!door_obj)
 		to_chat(user, SPAN_NOTICE("Why would you want to enter it now?"))
 		return
+	sync_occupant_state(FALSE)
+	if(!can_launch || launch_sequence_active || pod_state != POD_READY)
+		to_chat(user, SPAN_NOTICE("The pod is not ready for another drop."))
+		return
 	if(closed)
 		to_chat(user, SPAN_NOTICE("You try to enter the pod, but it's closed."))
 		return
@@ -163,6 +261,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	handle_overlays(user)
 
 /obj/structure/halo_droppod/proc/exit_pod(mob/living/user)
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
 	if(locked)
 		to_chat(user, SPAN_NOTICE("The pod is locked, you can't exit."))
 		return
@@ -171,12 +270,13 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 		return
 	if(closed)
 		open_door(user)
-	if(!occupant)
+	if(!current_occupant)
 		return
 	var/turf/exit_turf = get_step(src, SOUTH)
-	occupant.forceMove(get_turf(exit_turf))
-	occupant.dir = SOUTH
+	current_occupant.forceMove(get_turf(exit_turf))
+	current_occupant.dir = SOUTH
 	occupant = null
+	locked = FALSE
 	to_chat(user, SPAN_NOTICE("You exit the pod."))
 	playsound(src, "droppod_enter")
 	handle_overlays(user)
@@ -184,6 +284,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 /obj/structure/halo_droppod/attack_hand(mob/living/user)
 	if(!COOLDOWN_FINISHED(src, door_cooldown))
 		return
+	sync_occupant_state(FALSE)
 	if(locked)
 		to_chat(user, SPAN_NOTICE("You try to open the pod, but it's locked."))
 		return
@@ -199,6 +300,7 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 		visible_message(SPAN_NOTICE("[user] begins to enter the [src]."), SPAN_NOTICE("You begin to enter the [src]."))
 		if(!do_after(user, 3 SECONDS, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_GENERIC, target, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_GENERIC))
 			to_chat(user, SPAN_NOTICE("You are interrupted!"))
+			return
 		enter_pod(target)
 	else
 		to_chat(user, SPAN_NOTICE("[target] cannot enter the pod."))
@@ -209,16 +311,24 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(loc)
 		return 290
 
-/obj/structure/halo_droppod/proc/set_target(mob/living/user, new_x, new_y)
-	target_x = new_x
-	target_y = new_y
+/obj/structure/halo_droppod/proc/set_target(mob/living/user, new_x, new_y, new_z = target_z)
+	var/turf/new_target = locate(new_x, new_y, new_z)
+	if(!new_target)
+		if(user)
+			to_chat(user, SPAN_NOTICE("Invalid coordinates!"))
+		return FALSE
+	set_launch_targets(list(new_target))
 	var/mob/notified_user = occupant
-	. = checklanding(notified_user)
+	. = checklanding(notified_user, new_target)
 	if(notified_user && .)
 		to_chat(user, SPAN_NOTICE("Coordinates set!"))
 
-/obj/structure/halo_droppod/proc/checklanding(mob/living/user, optional_turf)
-	var/turf/target = optional_turf ? optional_turf : locate(target_x, target_y, target_z)
+/obj/structure/halo_droppod/proc/checklanding(mob/living/user, optional_turf, turf/ignore_reserved_turf = null)
+	var/turf/target = optional_turf ? get_turf(optional_turf) : get_primary_launch_target()
+	if(!target)
+		if(user)
+			to_chat(user, SPAN_NOTICE("Invalid coordinates!"))
+		return FALSE
 	if(target.density)
 		if(user)
 			to_chat(user, SPAN_NOTICE("Dense area!"))
@@ -228,6 +338,10 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 			to_chat(user, SPAN_NOTICE("Hazardous area!"))
 		return FALSE
 	var/area/targetarea = get_area(target)
+	if(!targetarea)
+		if(user)
+			to_chat(user, SPAN_NOTICE("Invalid area!"))
+		return FALSE
 	if(targetarea.no_droppod) // Thou shall not pass!
 		if(user)
 			to_chat(user, SPAN_NOTICE("Invalid area!"))
@@ -241,26 +355,48 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 			if(user)
 				to_chat(user, SPAN_NOTICE("Dense object detected!"))
 			return FALSE
+	if(has_reserved_landing_conflict(target, ignore_reserved_turf))
+		if(user)
+			to_chat(user, SPAN_NOTICE("Another pod is already assigned nearby!"))
+		return FALSE
+	if(has_nearby_pod_conflict(target))
+		if(user)
+			to_chat(user, SPAN_NOTICE("Another pod is already too close to the landing point!"))
+		return FALSE
 	return TRUE
 
-/obj/structure/halo_droppod/proc/find_new_target(mob/user)
-	var/turf/turf_1 = locate(target_x + landing_scatter, target_y + landing_scatter, target_z)
-	var/turf/turf_2 = locate(target_x - landing_scatter, target_y - landing_scatter, target_z)
-	var/list/block = block(turf_1, turf_2)
-	shuffle_inplace(block)
-	for(var/turf/attemptdrop in block)
-		if(!checklanding(optional_turf = attemptdrop))
+/obj/structure/halo_droppod/proc/find_new_target(mob/user, list/candidate_targets = null, turf/ignore_reserved_turf = null)
+	var/list/turf/targets_to_check = candidate_targets ? candidate_targets : get_launch_target_list()
+	if(!length(targets_to_check))
+		return null
+	for(var/turf/base_target in targets_to_check)
+		if(!base_target)
 			continue
-		return attemptdrop
-
+		if(checklanding(optional_turf = base_target, ignore_reserved_turf = ignore_reserved_turf))
+			return base_target
+		var/turf/turf_1 = locate(base_target.x + landing_scatter, base_target.y + landing_scatter, base_target.z)
+		var/turf/turf_2 = locate(base_target.x - landing_scatter, base_target.y - landing_scatter, base_target.z)
+		if(!turf_1 || !turf_2)
+			continue
+		var/list/block = block(turf_1, turf_2)
+		shuffle_inplace(block)
+		for(var/turf/attemptdrop in block)
+			if(get_dist(base_target, attemptdrop) > landing_scatter)
+				continue
+			if(!checklanding(optional_turf = attemptdrop, ignore_reserved_turf = ignore_reserved_turf))
+				continue
+			return attemptdrop
 	if(user)
 		to_chat(user, SPAN_WARNING("RECALCULATION FAILED!"))
-	return locate(target_x, target_y, target_z) //no other alt spots found, we return our orig
+	return null
 
 /obj/structure/halo_droppod/proc/start_launch_pod(mob/user)
-	if(!occupant)
-		return
-	user = occupant
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
+		return FALSE
+	if(!can_launch || launch_sequence_active)
+		return FALSE
+	user = current_occupant
 	handle_overlays(user)
 
 	// if(!locate(/obj/structure/drop_pod_launcher) in get_turf(src))
@@ -271,15 +407,26 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	if(pod_state != POD_READY)
 		if(user)
 			to_chat(user, SPAN_NOTICE("Error. Unable to drop."))
-		return
+		return FALSE
 
-	var/turf/target = locate(target_x, target_y, target_z)
+	var/turf/target = find_new_target(user)
+	if(!target)
+		return FALSE
+	set_planned_landing_target(target)
 
-	if(!checklanding(user))
-		return
+	launch_sequence_active = TRUE
+	can_launch = FALSE
+	locked = TRUE
 
-	for(var/mob/podder in occupant)
-		podder.forceMove(src)
+	if(!closed)
+		close_door(user)
+
+	current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
+		reset_launch_state(TRUE)
+		return FALSE
+	if(current_occupant.loc != src)
+		current_occupant.forceMove(src)
 
 	if(user)
 		log_game("[key_name(user)] launched pod [src] at [AREACOORD(target)]")
@@ -287,31 +434,43 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	pod_state = POD_INFLIGHT
 	var/random_delay = rand(0, 20)*0.1
 	addtimer(CALLBACK(src, PROC_REF(delay_pod), user), random_delay SECONDS)
+	return TRUE
 
 /obj/structure/halo_droppod/proc/delay_pod(mob/user)
-	playsound_client(occupant.client, 'sound/effects/odst_pod/drop_timer.ogg', src, 25)
+	if(!launch_sequence_active || pod_state != POD_INFLIGHT)
+		return
+	if(occupant?.client)
+		playsound_client(occupant.client, 'sound/effects/odst_pod/drop_timer.ogg', src, 25)
 	addtimer(CALLBACK(src, PROC_REF(launch_pod), user), 3.5 SECONDS)
 
 
 /obj/structure/halo_droppod/proc/launch_pod(mob/user)
-	if(!can_launch)
+	if(!launch_sequence_active || pod_state != POD_INFLIGHT || reservation)
+		return
+	var/mob/living/current_occupant = sync_occupant_state(FALSE)
+	if(!current_occupant)
+		reset_launch_state(TRUE)
 		return
 
 	playsound(src, 'sound/effects/escape_pod_launch.ogg', 70)
 	sleep(1 SECONDS)
 	reservation = SSmapping.request_turf_block_reservation(5, 5, 1, reservation_type = /datum/turf_reservation/transit/drop_pod)
 	if(!reservation)
-		CRASH("No droppod turf reservation available")
+		to_chat(user, SPAN_WARNING("Error. No droppod transit corridor available."))
+		reset_launch_state(TRUE)
+		return
 	var/turf/bottom_left_turf = reservation.bottom_left_turfs[1]
 	var/turf/top_right_turf = reservation.top_right_turfs[1]
 	var/middle_x = bottom_left_turf.x + floor((top_right_turf.x - bottom_left_turf.x) / 2)
 	var/middle_y = bottom_left_turf.y + floor((top_right_turf.y - bottom_left_turf.y) / 2)
 	var/turf/selectedturf = locate(middle_x, middle_y, bottom_left_turf.z)
 	if(!selectedturf)
-		CRASH("No droppod free turf found")
+		to_chat(user, SPAN_WARNING("Error. No droppod transit turf available."))
+		reset_launch_state(TRUE)
+		return
 	forceMove(selectedturf)
 	time_to_chute = time_to_land - 12 SECONDS
-	if(occupant)
+	if(current_occupant)
 		shake_camera(user, time_to_land, 0.1)
 	addtimer(CALLBACK(src, PROC_REF(chute_deploy), user), time_to_chute)
 	addtimer(CALLBACK(src, PROC_REF(finish_drop), user, selectedturf), time_to_land)
@@ -341,15 +500,20 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 
 
 /obj/structure/halo_droppod/proc/finish_drop(mob/user, turf/reservedturf)
-	var/turf/targetturf = locate(target_x, target_y, target_z)
-	for(var/atom/target in targetturf.contents)
-		if(!target.density)
-			continue
+	var/turf/targetturf = planned_landing_turf
+	if(!targetturf || !checklanding(optional_turf = targetturf, ignore_reserved_turf = planned_landing_turf))
 		if(user)
 			to_chat(user, SPAN_WARNING("WARNING! TARGET ZONE OCCUPIED! EVADING!"))
-		targetturf = find_new_target(user)
-		break
+		targetturf = find_new_target(user, ignore_reserved_turf = planned_landing_turf)
+		if(targetturf)
+			set_planned_landing_target(targetturf)
+	if(!targetturf)
+		if(user)
+			to_chat(user, SPAN_WARNING("WARNING! NO SAFE LZ AVAILABLE! HOLDING IN TRANSIT!"))
+		addtimer(CALLBACK(src, PROC_REF(finish_drop), user, reservedturf), 1 SECONDS)
+		return
 	forceMove(targetturf)
+	release_landing_target()
 	QDEL_NULL(reservation)
 	animate(src, pixel_z = initial(pixel_z), time = landing_time, easing = LINEAR_EASING)
 	if(occupant)
@@ -364,6 +528,8 @@ GLOBAL_LIST_INIT(blocked_droppod_tiles, typecacheof(list(/turf/open/space/transi
 	addtimer(CALLBACK(src, PROC_REF(complete_drop), user), 2 SECONDS)
 
 /obj/structure/halo_droppod/proc/complete_drop(mob/user)
+	launch_sequence_active = FALSE
+	locked = FALSE
 	playsound(src, 'sound/effects/odst_pod/door_kaboom.ogg')
 	addtimer(CALLBACK(src, PROC_REF(door_explode), user), 3 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(exit_pod), user), 4 SECONDS)

@@ -51,7 +51,7 @@
 //    PARTISANS
 
 /datum/equipment_preset/insurgent/partisan
-	name = "Partisan (Pistol)"
+	name = "Партизан (пистолет)"
 	assignment = JOB_INSURGENT_PARTISAN
 	rank = JOB_INSURGENT_PARTISAN
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -98,7 +98,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/incendiary/molotov, WEAR_IN_BACK)
 
 /datum/equipment_preset/insurgent/partisan/smg
-	name = "Partisan (SMG/Rifles)"
+	name = "Партизан (ПП/винтовки)"
 
 /datum/equipment_preset/insurgent/partisan/smg/load_gear(mob/living/carbon/human/new_human)
 	var/random_partisan_clothes = rand(1,2)
@@ -141,7 +141,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/explosive/grenade/incendiary/molotov, WEAR_IN_BACK)
 
 /datum/equipment_preset/insurgent/partisan/plainclothes
-	name = "Partisan (Plainclothes, Pistol)"
+	name = "Партизан в гражданской одежде (пистолет)"
 
 /datum/equipment_preset/insurgent/partisan/plainclothes/load_gear(mob/living/carbon/human/new_human)
 	var/random_partisan_clothes_plain = rand(1,2)
@@ -165,7 +165,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6a, WEAR_IN_BACK)
 
 /datum/equipment_preset/insurgent/partisan/plainclothes/smg
-	name = "Partisan (Plainclothes, SMG/Rifle)"
+	name = "Партизан в гражданской одежде (ПП/винтовка)"
 
 /datum/equipment_preset/insurgent/partisan/plainclothes/smg/load_gear(mob/living/carbon/human/new_human)
 	var/random_partisan_clothes_plain = rand(1,2)
@@ -196,7 +196,7 @@
 			new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/vk78(new_human), WEAR_IN_BACK)
 
 /datum/equipment_preset/insurgent/partisan/breach
-	name = "Partisan Breacher"
+	name = "Партизан-штурмовик"
 	assignment = JOB_INSURGENT_PARTISAN_BREACH
 	rank = JOB_INSURGENT_PARTISAN_BREACH
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -230,7 +230,7 @@
 //    INSURGENTS
 
 /datum/equipment_preset/insurgent/rifleman
-	name = "Insurgent Soldier (Rifleman)"
+	name = "Инсургент-стрелок"
 	assignment = JOB_INSURGENT
 	rank = JOB_INSURGENT
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -274,7 +274,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/insurgent/rifleman/breacher
-	name = "Insurgent Soldier (Breacher)"
+	name = "Инсургент-стрелок (прорыв)"
 	assignment = JOB_INSURGENT
 	rank = JOB_INSURGENT
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -313,7 +313,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/insurgent/technician
-	name = "Insurgent Soldier (Technician)"
+	name = "Инсургент-техник"
 	assignment = JOB_INSURGENT_TECHNICIAN
 	rank = JOB_INSURGENT_TECHNICIAN
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -366,7 +366,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/construction/low_grade_full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/insurgent/specialist
-	name = "Insurgent Soldier (Specialist, SPNKr)"
+	name = "Инсургент-специалист"
 	assignment = JOB_INSURGENT_SPECIALIST
 	rank = JOB_INSURGENT_SPECIALIST
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -411,7 +411,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma3a(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/insurgent/specialist/sniper
-	name = "Insurgent Soldier (Specialist, Sniper)"
+	name = "Инсургент-снайпер"
 	assignment = JOB_INSURGENT_SPECIALIST
 	rank = JOB_INSURGENT_SPECIALIST
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -457,7 +457,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c/m4a(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/insurgent/specialist/sniper/srs
-	name = "Insurgent Soldier (Specialist, Sniper, SRS)"
+	name = "Инсургент-снайпер SRS"
 	assignment = JOB_INSURGENT_SPECIALIST
 	rank = JOB_INSURGENT_SPECIALIST
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -498,7 +498,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/halo/m6c/m4a(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/insurgent/rifleman/sl
-	name = "Insurgent Soldier (Squad Leader)"
+	name = "Инсургент-лидер ячейки"
 	assignment = JOB_INSURGENT_SL
 	rank = JOB_INSURGENT_SL
 	paygrades = list(PAY_SHORT_REB = JOB_PLAYTIME_TIER_0)
@@ -543,7 +543,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
 
 /datum/equipment_preset/insurgent/officer
-	name = "Insurgent Officer"
+	name = "Инсургент-офицер"
 	assignment = JOB_INSURGENT_LEAD
 	rank = JOB_INSURGENT_LEAD
 	paygrades = list(PAY_SHORT_REBC = JOB_PLAYTIME_TIER_0)
@@ -583,7 +583,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma3a(new_human), WEAR_IN_R_STORE)
 
 /datum/equipment_preset/insurgent/cell_leader
-	name = "Insurgent Cell Leader"
+	name = "Лидер ячейки инсургентов"
 	assignment = JOB_INSURGENT_CELL_LEAD
 	rank = JOB_INSURGENT_CELL_LEAD
 	paygrades = list(PAY_SHORT_REBC = JOB_PLAYTIME_TIER_0)

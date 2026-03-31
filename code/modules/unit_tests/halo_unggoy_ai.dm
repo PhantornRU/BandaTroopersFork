@@ -337,3 +337,34 @@
 		var/datum/human_ai_squad_preset/preset = allocate(squad_type)
 		for(var/equipment_path as anything in preset.ai_to_spawn)
 			TEST_ASSERT(!findtext("[equipment_path]", "anti_tank_temp"), "[squad_type] still references the retired temporary anti-tank Unggoy role.")
+
+// SS220 EDIT - START: ensure HALO insurgent Create Human AI wrappers stay wired to the intended gear presets
+/datum/unit_test/halo_ai_insurgent_presets
+	parent_type = /datum/unit_test/halo_unggoy_ai
+
+/datum/unit_test/halo_ai_insurgent_presets/Run()
+	var/list/preset_matrix = list(
+		/datum/human_ai_equipment_preset/insurgent/rifleman = /datum/equipment_preset/insurgent/rifleman,
+		/datum/human_ai_equipment_preset/insurgent/rifleman/breacher = /datum/equipment_preset/insurgent/rifleman/breacher,
+		/datum/human_ai_equipment_preset/insurgent/technician = /datum/equipment_preset/insurgent/technician,
+		/datum/human_ai_equipment_preset/insurgent/specialist = /datum/equipment_preset/insurgent/specialist,
+		/datum/human_ai_equipment_preset/insurgent/specialist/sniper = /datum/equipment_preset/insurgent/specialist/sniper,
+		/datum/human_ai_equipment_preset/insurgent/specialist/sniper/srs = /datum/equipment_preset/insurgent/specialist/sniper/srs,
+		/datum/human_ai_equipment_preset/insurgent/rifleman/sl = /datum/equipment_preset/insurgent/rifleman/sl,
+		/datum/human_ai_equipment_preset/insurgent/officer = /datum/equipment_preset/insurgent/officer,
+		/datum/human_ai_equipment_preset/insurgent/cell_leader = /datum/equipment_preset/insurgent/cell_leader,
+		/datum/human_ai_equipment_preset/insurgent/partisan = /datum/equipment_preset/insurgent/partisan,
+		/datum/human_ai_equipment_preset/insurgent/partisan/smg = /datum/equipment_preset/insurgent/partisan/smg,
+		/datum/human_ai_equipment_preset/insurgent/partisan/plainclothes = /datum/equipment_preset/insurgent/partisan/plainclothes,
+		/datum/human_ai_equipment_preset/insurgent/partisan/plainclothes/smg = /datum/equipment_preset/insurgent/partisan/plainclothes/smg,
+		/datum/human_ai_equipment_preset/insurgent/partisan/breach = /datum/equipment_preset/insurgent/partisan/breach,
+	)
+
+	for(var/preset_type as anything in preset_matrix)
+		var/datum/human_ai_equipment_preset/preset = allocate(preset_type)
+		TEST_ASSERT_NOTNULL(preset, "[preset_type] no longer allocates as a HALO human AI equipment preset.")
+		TEST_ASSERT_EQUAL(preset.faction, FACTION_INSURGENT, "[preset_type] lost the insurgent faction tag.")
+		TEST_ASSERT_EQUAL(preset.path, preset_matrix[preset_type], "[preset_type] no longer points at the intended insurgent gear preset.")
+		TEST_ASSERT(length(preset.name), "[preset_type] should expose a GM-visible display name.")
+		TEST_ASSERT(length(preset.desc), "[preset_type] should expose a GM-visible description.")
+// SS220 EDIT - END

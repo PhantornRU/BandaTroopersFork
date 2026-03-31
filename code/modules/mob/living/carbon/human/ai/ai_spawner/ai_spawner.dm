@@ -293,7 +293,7 @@
 				arm_equipment(ai_human, gotten_path, randomise_appearance, FALSE, mob_client = ai_human.client)
 				var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
 				var/expected_species = assigned_preset?.expected_species
-				if(expected_species && ai_human.species?.name != expected_species)
+				if(expected_species && ai_human.species?.group != expected_species && ai_human.species?.name != expected_species) // SS220 EDIT: accept canonical HALO species ids through group as well as species.name
 					ai_human.set_species(expected_species)
 				if(selected_equipment == "No Weapons")
 					ai_human.strip_weapons()

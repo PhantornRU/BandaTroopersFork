@@ -292,11 +292,15 @@
 /datum/equipment_preset/unsc/rto/load_name(mob/living/carbon/human/new_human, randomise)
 	load_halo_preset_name(new_human)
 
-/datum/equipment_preset/unsc/rto/proc/finalize_rto_support_loadout(mob/living/carbon/human/new_human)
+/datum/equipment_preset/unsc/rto/proc/finalize_rto_support_loadout(
+	mob/living/carbon/human/new_human,
+	pouch_type = /obj/item/storage/pouch/sling/rto,
+	binocular_type = null,
+)
 	if(!istype(new_human))
 		return FALSE
 
-	new_human.equip_rto_support_binocular_kit()
+	new_human.equip_rto_support_binocular_kit(pouch_type, binocular_type)
 
 	var/datum/rto_support_controller/controller = new_human.ensure_rto_support_controller()
 	if(controller?.can_select_template())
@@ -733,19 +737,15 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/halo/ma5c(new_human), WEAR_IN_BELT)
 	//limbs
-	new_human.equip_rto_support_binocular_kit(/obj/item/storage/pouch/sling/rto/halo/unsc, /obj/item/device/binoculars/rto/halo/unsc)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
 	//pockets
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
-	finalize_rto_support_loadout(new_human)
+	finalize_rto_support_loadout(new_human, /obj/item/storage/pouch/sling/rto/halo/unsc, /obj/item/device/binoculars/rto/halo/unsc)
 
 	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
-
-	new_human.ensure_rto_support_controller()
-	new_human.try_relocate_rto_to_squad_spawn()
 
 /datum/equipment_preset/unsc/rto/equipped/load_status(mob/living/carbon/human/new_human)
 	new_human.nutrition = NUTRITION_HIGH
@@ -1049,7 +1049,7 @@
 
 /datum/equipment_preset/unsc/rto/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/rto/equipped
-	name = "ODST Radio Telephone Operator (Equipped)"
+	name = "Радиооператор ODST (Снаряжен)"
 	assignment = JOB_SQUAD_RTO_ODST
 	rank = JOB_SQUAD_RTO_ODST
 	role_comm_title = "ODST-RTO"
@@ -1078,7 +1078,7 @@
 	//pockets
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/flare/full(new_human), WEAR_R_STORE)
-	finalize_rto_support_loadout(new_human)
+	finalize_rto_support_loadout(new_human, /obj/item/storage/pouch/sling/rto/halo/odst, /obj/item/device/binoculars/rto/halo/odst)
 
 	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)

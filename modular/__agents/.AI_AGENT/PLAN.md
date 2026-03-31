@@ -1,23 +1,27 @@
 # PLAN
 
 ## Активная задача
-Добавить русскую локализацию для новых player-facing строк в ветке `port/tech-vehicle-wave` / PR #84, не ломая технические идентификаторы, поведение кода и кодировку файлов.
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- Найти новые англоязычные строки, попавшие в diff ветки относительно `upstream/master`.
-- Перевести названия, описания, lore, area labels, warning/notice сообщения и другие player-facing тексты в новых транспортных сущностях и связанных боеприпасах.
-- Сохранить без перевода path/id/caliber/icon_state/другие технические строки, если они не предназначены для пользователя.
-- Проверить diff и отсутствие mojibake/проблем с UTF-8.
-- Закоммитить результат в текущую ветку `port/tech-vehicle-wave`.
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
 ## Out of scope
-- Несвязанные рефакторинги транспорта, оружия, интерьеров и projectile logic.
-- Массовая ретролокализация старых англоязычных строк вне diff этой ветки.
-- Изменение баланса, механик, include graph или build-контрактов.
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
+
+## Решение
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- Все новые player-facing строки из scope этой ветки переведены на русский.
-- Технические константы и идентификаторы не задеты без необходимости.
-- `git diff --check` проходит.
-- Проверка по файлам не показывает mojibake (`Р`, `�`) в изменённой зоне.
-- Изменения закоммичены в `port/tech-vehicle-wave`.
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.

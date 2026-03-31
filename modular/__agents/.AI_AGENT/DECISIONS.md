@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: Переводим только новые player-facing строки из diff ветки
-- Решение: ограничить локализацию строками, которые появились в `upstream/master...HEAD` и видимы игроку.
-- Почему: это закрывает запрос по PR #84 и не раздувает scope ретролокализацией старых зон репозитория.
+## D-001: `species.name` у HALO-рас возвращается к canonical `SPECIES_*`
+- Решение: использовать `SPECIES_SANGHEILI` и `SPECIES_UNGGOY` как `name` в species datum.
+- Почему: `setup_species()`, `set_species()`, AI/preset flow и часть совместимости завязаны на `species.name` как на ключ lookup/contract, а не как на display label.
 
-## D-002: Технические идентификаторы остаются без перевода
-- Решение: не трогать `icon_state`, path-ы, калибры, trait/id-константы, `interior_id` и другие строки, используемые как ключи.
-- Почему: такие строки участвуют в логике и не являются пользовательским интерфейсом.
+## D-002: Локализация species-имен отделяется от canonical ID
+- Решение: локализованные названия держать в explicit display-layer (`display_name`, `display_name_plural`) и использовать его только в player-facing сообщениях.
+- Почему: предыдущая попытка локализовать raw `name` сломала species registration и HALO equip restrictions.
 
-## D-003: Кодировку валидируем через diff/check и явный поиск mojibake
-- Решение: после правок проверить `git diff --check` и отдельно прогнать поиск по изменённой зоне на `Р`, `�` и другие признаки сломанного UTF-8.
-- Почему: пользователь отдельно попросил убедиться, что кодировка не сломалась.
+## D-003: Прямые subtype-спавны добавляются в upstream `human.dm`
+- Решение: завести `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` по примеру `/mob/living/carbon/human/synthetic`.
+- Почему: пользователь явно просит create-human/create-object surface для прямого спавна рас без обязательного gear preset.

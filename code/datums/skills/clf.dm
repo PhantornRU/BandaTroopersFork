@@ -5,7 +5,8 @@ COLONIAL LIBERATION FRONT
 */
 
 /datum/skills/clf
-	name = "Insurgent"
+	// name = "Insurgent"
+	name = "Инсургент" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_FIREARMS = SKILL_FIREARMS_CIVILIAN,
 		SKILL_MELEE_WEAPONS = SKILL_MELEE_DEFAULT,
@@ -19,7 +20,8 @@ COLONIAL LIBERATION FRONT
 	)
 
 /datum/skills/clf/combat_engineer
-	name = "Insurgent Technician"
+	// name = "Insurgent Technician"
+	name = "Инсургент-техник" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_CONSTRUCTION = SKILL_CONSTRUCTION_ENGI,
 		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED,
@@ -27,14 +29,16 @@ COLONIAL LIBERATION FRONT
 	)
 
 /datum/skills/clf/combat_medic
-	name = "Insurgent Medic"
+	// name = "Insurgent Medic"
+	name = "Инсургент-медик" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_MEDICAL = SKILL_MEDICAL_MEDIC,
 		SKILL_SURGERY = SKILL_SURGERY_TRAINED,
 	)
 
 /datum/skills/clf/specialist
-	name = "Insurgent Specialist"
+	// name = "Insurgent Specialist"
+	name = "Инсургент-специалист" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_CQC = SKILL_CQC_TRAINED,
 		SKILL_ENGINEER = SKILL_ENGINEER_NOVICE, //to use c4
@@ -43,7 +47,8 @@ COLONIAL LIBERATION FRONT
 	)
 
 /datum/skills/clf/sniper
-	name = "Insurgent Sniper"
+	// name = "Insurgent Sniper"
+	name = "Инсургент-снайпер" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_CQC = SKILL_CQC_TRAINED,
 		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
@@ -51,7 +56,8 @@ COLONIAL LIBERATION FRONT
 	)
 
 /datum/skills/clf/leader
-	name = "Insurgent Team Leader"
+	// name = "Insurgent Team Leader"
+	name = "Инсургент-лидер группы" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_FIREARMS = SKILL_FIREARMS_TRAINED,
 		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED, // to use C4
@@ -66,7 +72,8 @@ COLONIAL LIBERATION FRONT
 	)
 
 /datum/skills/clf/commander
-	name = "Insurgent Cell Commander"
+	// name = "Insurgent Cell Commander"
+	name = "Командир ячейки инсургентов" // SS220 EDIT: localize insurgent skill profile name for HALO-facing role surfaces
 	skills = list(
 		SKILL_FIREARMS = SKILL_FIREARMS_EXPERT,
 		SKILL_CQC = SKILL_CQC_SKILLED,

@@ -68,7 +68,7 @@
 		new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 	else
 		new_human.h_style = pick("Undercut, Top", "CIA", "Mulder", "Pixie Cut Left", "Pixie Cut Right", "Scully", "Pvt. Redding", "Bun", "Short Bangs")
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, random_name) // SS220 EDIT: direct localized banks already provide the runtime name
 	new_human.age = rand(20,40)
 
 //*****************************************************************************************************/
@@ -426,25 +426,16 @@
 	var/last_name
 	//gender checks
 	if(new_human.gender == MALE)
-		if(prob(40))
-			first_name = "[capitalize(randomly_generate_chinese_word(1))]"
-		else
-			first_name = "[pick(GLOB.first_names_male_upp)]"
+		first_name = "[pick(GLOB.first_names_male_upp)]" // SS220 EDIT: use direct localized UPP personal-name banks
 		new_human.f_style = pick("3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache")
 	else
-		if(prob(40))
-			first_name = "[capitalize(randomly_generate_chinese_word(1))]"
-		else
-			first_name = "[pick(GLOB.first_names_female_upp)]"
+		first_name = "[pick(GLOB.first_names_female_upp)]" // SS220 EDIT: use direct localized UPP personal-name banks
 	//surname
-	if(prob(35))
-		last_name = "[capitalize(randomly_generate_chinese_word(pick(20;1, 80;2)))]"
-	else
-		last_name = "[pick(GLOB.last_names_upp)]"
+	last_name = "[pick(GLOB.last_names_upp)]" // SS220 EDIT: use direct localized UPP personal-name banks
 	//put them together
 	random_name = "[first_name] [last_name]"
 
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, random_name) // SS220 EDIT: direct localized banks already provide the runtime name
 	new_human.age = rand(17,35)
 	var/static/list/colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "BROWN" = list(48, 38, 18),"BLUE" = list(29, 51, 65), "GREEN" = list(40, 61, 39), "STEEL" = list(46, 59, 54))
 	var/static/list/hair_colors = list("BLACK" = list(15, 15, 10), "BROWN" = list(48, 38, 18), "AUBURN" = list(77, 48, 36), "BLONDE" = list(95, 76, 44))

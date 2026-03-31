@@ -2,6 +2,7 @@
 #include "surface_locker_mapping.dm"
 #include "surface_vendor_mapping.dm"
 #include "surface_runtime_api.dm"
+#include "squad_armory_button.dm"
 
 #undef SHIP_SURFACE_FAMILY_USCM
 #undef SHIP_SURFACE_FAMILY_UNSC

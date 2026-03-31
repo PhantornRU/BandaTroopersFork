@@ -1,8 +1,9 @@
 # TODO
 
-- [x] Зафиксировать список новых player-facing строк из diff `upstream/master...port/tech-vehicle-wave`.
-- [x] Перевести тексты в `vehicles/*`, `hardpoints/*` и связанных ammo/rocket сущностях.
-- [x] Перепроверить места, где строка одновременно используется как UI label и как тех. идентификатор.
-- [x] Проверить `git diff --check`.
-- [x] Проверить изменённые файлы на UTF-8/mojibake.
-- [x] Закоммитить локализацию в ветку `port/tech-vehicle-wave`.
+- [x] Подтвердить корень HALO species regression через `setup_species()`, `set_species()` и HALO presets.
+- [x] Найти все релевантные callsites Create Human/Create Object flow для прямых human subtype spawn path'ов.
+- [x] Исправить HALO species datums так, чтобы canonical species ID снова совпадал с `SPECIES_*`.
+- [x] Добавить прямые subtype-спавны `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- [x] Добавить regression tests на species spawn, covenant blood и HALO preset equip.
+- [x] Прогнать `git diff --check` и compile-проверку.
+- [x] Закоммитить follow-up fix и обновить PR #87.

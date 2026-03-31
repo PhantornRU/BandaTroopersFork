@@ -1,5 +1,6 @@
 /datum/unit_test/game_rule_panel
 	var/snapshot_rto_support_enabled
+	var/snapshot_support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	var/snapshot_rto_shared_cooldown_multiplier
 	var/snapshot_rto_personal_cooldown_multiplier
 	var/snapshot_fire_support_enabled
@@ -21,6 +22,7 @@
 
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	snapshot_rto_support_enabled = rules.rto_support_enabled
+	snapshot_support_underground_enabled = rules.support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	snapshot_rto_shared_cooldown_multiplier = rules.rto_shared_cooldown_multiplier
 	snapshot_rto_personal_cooldown_multiplier = rules.rto_personal_cooldown_multiplier
 	snapshot_fire_support_enabled = rules.fire_support_enabled
@@ -43,6 +45,7 @@
 /datum/unit_test/game_rule_panel/Destroy()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.rto_support_enabled = snapshot_rto_support_enabled
+	rules.support_underground_enabled = snapshot_support_underground_enabled // SS220 EDIT: restore the BT underground-support rule after each test
 	rules.rto_shared_cooldown_multiplier = snapshot_rto_shared_cooldown_multiplier
 	rules.rto_personal_cooldown_multiplier = snapshot_rto_personal_cooldown_multiplier
 	rules.fire_support_enabled = snapshot_fire_support_enabled
@@ -102,6 +105,7 @@
 /datum/unit_test/game_rule_panel_rto_cooldowns/Run()
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_rto_rules()
+	TEST_ASSERT(rules.support_underground_enabled, "Reset RTO rules did not restore underground support to enabled.") // SS220 EDIT: BT RTO reset must also restore underground support
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
 	human.job = JOB_SQUAD_RTO
@@ -125,6 +129,20 @@
 
 	TEST_ASSERT_EQUAL(controller.shared_cooldowns_by_template["mortar"], previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
 	TEST_ASSERT_EQUAL(controller.action_cooldowns[action_template.action_id], previous_personal_until, "Existing personal cooldown was recalculated after multiplier change.")
+
+// SS220 EDIT - START: cover BT underground-support defaults and reset behavior
+/datum/unit_test/game_rule_panel_underground_support_defaults
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_underground_support_defaults/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	TEST_ASSERT(rules.support_underground_enabled, "Underground support should default to enabled.")
+
+	rules.support_underground_enabled = FALSE
+	rules.reset_rto_rules()
+
+	TEST_ASSERT(rules.support_underground_enabled, "RTO rules reset did not restore underground support.")
+// SS220 EDIT - END
 
 /datum/unit_test/game_rule_panel_rto_disable
 	parent_type = /datum/unit_test/game_rule_panel
