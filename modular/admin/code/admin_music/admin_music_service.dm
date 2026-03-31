@@ -148,8 +148,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	slug = sanitize_filename(slug)
 	while(findtext(slug, "__"))
 		slug = replacetext(slug, "__", "_")
-	slug = trim_reduced(slug)
-	slug = replacetext(slug, " ", "_")
+	slug = trim(slug)
 	if(!length(slug))
 		return fallback
 	return slug
@@ -565,9 +564,9 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 				targets += receiver
 		if("single_mob")
 			var/list/mob/all_client_mobs = list()
-			for(var/mob/possible_target in sortmobs())
-				if(possible_target.client)
-					all_client_mobs += possible_target
+			for(var/client/possible_client as anything in GLOB.clients)
+				if(possible_client?.mob)
+					all_client_mobs += possible_client.mob
 			var/mob/choice = tgui_input_list(requester, "Select the mob to play to:", "Select Mob", all_client_mobs)
 			if(!choice || QDELETED(choice))
 				return null
