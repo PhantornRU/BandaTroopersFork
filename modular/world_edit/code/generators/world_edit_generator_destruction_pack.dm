@@ -316,14 +316,6 @@
 			"max" = 100,
 			"step" = 1,
 		),
-		list(
-			"id" = "affect_anchored",
-			"label" = "Affect Anchored",
-			"kind" = "boolean",
-			"group" = "Limits",
-			"description" = "Includes anchored movable objects except blocked machinery classes.",
-			"value" = world_edit_parse_bool(current_params["affect_anchored"]),
-		),
 	)
 
 /datum/world_edit_generator/destruction_pack/set_ui_param(mob/user, list/current_params, param_id, value)

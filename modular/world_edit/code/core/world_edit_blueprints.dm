@@ -430,7 +430,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		return list("error" = "Current plan exceeds the Blueprint Lite radius cap.")
 
 	return list("blueprint" = list(
-		"id" = "bp_[world_edit_build_blueprint_id()]",
+		"id" = world_edit_build_blueprint_id(),
 		"name" = copytext(trim(sanitize_text("[blueprint_name]", "Outpost Blueprint")), 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1),
 		"created_at" = time_stamp(),
 		"created_by" = ckey("[actor_ckey]"),
