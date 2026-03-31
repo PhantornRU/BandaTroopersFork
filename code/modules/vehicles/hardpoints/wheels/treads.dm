@@ -48,8 +48,8 @@
 	owner.move_turn_momentum_loss_factor = initial(owner.move_turn_momentum_loss_factor)
 
 /obj/item/hardpoint/locomotion/treads/ridgeway
-	name = "\improper M40 Ridgeway Treads"
-	desc = "Treads for the M40 Ridgeway heavy tank. The least groundbreaking of the Ridgeway's advancements, though significant in their ability to tackle many of the problems faced by US forces in the colonies previous tanks couldn't. The tracks terrain adaptability and ease of maintenance design, makes it a favoured component for marine tankers"
+	name = "\improper гусеницы M40 Ridgeway"
+	desc = "Гусеницы тяжёлого танка M40 Ridgeway. Пожалуй, наименее революционная из новинок Ridgeway, но именно они помогают решать многие проблемы, с которыми прежние танки армии США в колониях справиться не могли. Адаптивность к местности и продуманная простота обслуживания сделали эти гусеницы любимым узлом морских танкистов."
 
 	icon_state = "treads_ridgeway"
 	disp_icon = "tank"

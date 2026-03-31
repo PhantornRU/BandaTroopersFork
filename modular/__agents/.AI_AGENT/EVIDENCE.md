@@ -1,32 +1,25 @@
 # EVIDENCE
 
-## E-001: Исходное состояние
-- Активная ветка перед началом работы: `various_fixes`.
-- `git status --branch` показал чистое рабочее дерево.
-- `origin/master` указывал на `b274156ae2`, а локальный `master` на `522edc6cf5`.
+## E-001: Стартовое состояние ветки
+- Рабочая ветка для задачи находится в отдельном worktree: `D:/GitHub/_bt_port_tech`.
+- `git status --short --branch` перед правками показал чистое дерево.
+- Локальная ветка `port/tech-vehicle-wave` была fast-forward'нута до `origin/port/tech-vehicle-wave`.
 
-## E-002: Актуализация remotes
-- `git fetch --all --prune` выполнен успешно 2026-03-23.
-- После fetch `upstream/master` обновился с `522edc6cf5` до `8667f84537`.
-- `git rev-list --left-right --count upstream/master...HEAD` после fetch вернул `6 555`.
+## E-002: Область перевода
+- `gh pr view 84 --repo ss220club/BandaTroopers` подтвердил, что работа идёт по PR #84 `PhantornRU:port/tech-vehicle-wave`.
+- `git diff --name-only upstream/master...HEAD -- '*.dm' '*.yml' '*.json' '*.jsx'` сузил scope до набора файлов с новыми transport/vehicle изменениями.
+- Дополнительный поиск по diff показал новые англоязычные player-facing строки в `code/modules/vehicles/**`, `code/modules/projectiles/magazines/specialist.dm` и `code/datums/ammo/rocket.dm`.
 
-## E-003: Sync текущей ветки
-- Выполнен `git merge --no-ff upstream/master`.
-- Merge завершился автоматически, без ручных конфликтов.
-- Новый `HEAD`: `c94263128e` (`Merge remote-tracking branch 'upstream/master' into various_fixes`).
-- `git rev-list --left-right --count upstream/master...HEAD` после merge вернул `0 556`.
+## E-003: Границы правок
+- Текущий `PLAN/TODO/DECISIONS/EVIDENCE` до старта относился к другой HALO-задаче и был перезаписан под локализацию PR #84.
+- Для перевода исключены строки, явно используемые как тех. ключи (`icon_state`, `interior_id`, trait ids, path-ы и similar identifiers).
 
-## E-004: Проверки после merge
+## E-004: Выполненные правки
+- На русский переведены новые player-facing строки в `code/modules/vehicles/**`, связанных `hardpoints/**` и `code/datums/ammo/rocket.dm`.
+- Переведены названия, описания, lore-тексты, area/camera labels, warning/notice сообщения и спавнеры для новых сущностей `Wolfpack`, `Ridgeway` и `Warthog/Vulcan`.
+- Технические строки (`icon_state`, `interior_id`, caliber ids, path-ы, list keys и similar identifiers) оставлены без перевода.
+
+## E-005: Проверки
 - `git diff --check`: passed.
-- `git status --short --branch`: `## various_fixes...origin/various_fixes [ahead 7]` перед push.
-
-## E-005: Обновление удаленных веток
-- `git push origin HEAD:various_fixes`: passed, `origin/various_fixes` -> `c94263128e`.
-- `git branch -f master upstream/master`: локальный `master` переставлен на `8667f84537`.
-- `git push origin +upstream/master:master`: passed, `origin/master` принудительно обновлен с `b274156ae2` до `8667f84537`.
-
-## E-006: Финальное состояние
-- `git status --short --branch`: `## various_fixes...origin/various_fixes`.
-- `git ls-remote --heads origin master various_fixes` подтвердил:
-  - `origin/master` = `8667f84537c7c4ffc1e0b5eb89a73dd325a65852`
-  - `origin/various_fixes` = `c94263128ecfd7baee14efb5ed526508f40ecedd`
+- Поиск по изменённым кодовым файлам на характерные mojibake-символы (`�`, `Ѓ`, `љ`, etc.) ничего не нашёл.
+- `BUILD.cmd`: passed (`colonialmarines.dmb - 0 errors, 0 warnings`).

@@ -1,7 +1,7 @@
 
 /obj/vehicle/multitile/apc/wolfpack
-	name = "M577A3E2 Mobile Gun System"
-	desc = "An M577A3E2 Mobile Gun System complete with a tactical operations center. Entrance on the right."
+	name = "мобильная огневая система M577A3E2"
+	desc = "Мобильная огневая система M577A3E2, оснащенная тактическим центром управления. Вход справа."
 
 	icon = 'icons/obj/vehicles/apc_wolfpack.dmi'
 	icon_state = "apc_base_wolfpack"
@@ -122,7 +122,7 @@
 		return
 
 	if(health > 0)
-		to_chat(user, SPAN_XENO("We can't jump over [src] until it is destroyed!"))
+		to_chat(user, SPAN_XENO("Мы не сможем перепрыгнуть через [src], пока он не будет уничтожен!"))
 		return
 
 	var/turf/current_turf = get_turf(user)
@@ -133,20 +133,20 @@
 			break
 
 		if(current_turf.density)
-			to_chat(user, SPAN_XENO("The path over [src] is obstructed!"))
+			to_chat(user, SPAN_XENO("Путь через [src] перекрыт!"))
 			return
 
 /obj/vehicle/multitile/apc/wolfpack/initialize_cameras(change_tag = FALSE)
 	if(!camera)
 		camera = new /obj/structure/machinery/camera/vehicle(src)
 	if(change_tag)
-		camera.c_tag = "#[rand(1,100)] M577A3 \"[nickname]\" APC"
+		camera.c_tag = "#[rand(1,100)] M577A3 \"[nickname]\" БТР"
 		if(camera_int)
-			camera_int.c_tag = camera.c_tag + " interior"
+			camera_int.c_tag = camera.c_tag + " интерьер"
 	else
-		camera.c_tag = "#[rand(1,100)] M577A3 APC"
+		camera.c_tag = "#[rand(1,100)] M577A3 БТР"
 		if(camera_int)
-			camera_int.c_tag = camera.c_tag + " interior"
+			camera_int.c_tag = camera.c_tag + " интерьер"
 
 /obj/vehicle/multitile/apc/wolfpack/set_muzzle_offsets(obj/item/hardpoint/HP)
 	//sets muzzle flash offsets for APC weapons as appropriate for the movie APC
@@ -175,7 +175,7 @@
 	return ..()
 
 /obj/effect/vehicle_spawner/apc_wolfpack
-	name = "Wolfpack APC Spawner"
+	name = "спавнер БТР Wolfpack"
 	icon = 'icons/obj/vehicles/apc_wolfpack.dmi'
 	icon_state = "apc_base_wolfpack"
 	pixel_x = -64

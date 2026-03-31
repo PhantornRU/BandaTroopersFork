@@ -1,8 +1,8 @@
 // Ridgeway Tank
 /obj/vehicle/multitile/tank/ridgeway
-	name = "M40 Ridgeway Heavy Tank"
-	desc = "A giant piece of armor with a big gun, you know what to do. Entrance in the back."
-	desc_lore = "The M40 Ridgeway heavy tank is the premier armoured vehicle in use by the United States armed forces. An advanced piece of equipment introduced in the late 2170s, the Ridgeway is the epitome of a modern fighting vehicle; featuring extensive automation and advanced defensive systems including a independent-targeting plasma hard-kill phalanx and cutting edge stealth capabilities making it effectively invisible to most basic ground sensors. Despite being slated to replace the outdated M22 Jackson, it has seen limited deployment among Colonial Marine units."
+	name = "тяжёлый танк M40 Ridgeway"
+	desc = "Огромная бронированная махина с большой пушкой. Вы знаете, что делать. Вход сзади."
+	desc_lore = "Тяжёлый танк M40 Ridgeway - основная бронированная машина, состоящая на вооружении вооружённых сил Соединённых Штатов. Передовой образец техники, представленный в конце 2170-х, Ridgeway воплощает современную боевую машину: обширная автоматизация, продвинутые защитные системы, независимая плазменная система жёсткого перехвата и передовые средства маскировки делают его практически невидимым для большинства базовых наземных сенсоров. Хотя он и должен был заменить устаревший M22 Jackson, среди подразделений Колониальной морской пехоты машина пока получила ограниченное распространение."
 
 	icon = 'icons/obj/vehicles/ridgeway.dmi'
 	icon_state = "tank_base"
@@ -78,13 +78,13 @@
 	if(!camera)
 		camera = new /obj/structure/machinery/camera/vehicle(src)
 	if(change_tag)
-		camera.c_tag = "#[rand(1,100)] M40 \"[nickname]\" Heavy Tank" //this fluff allows it to be at the start of cams list M40 Ridgeway Heavy Tank
+		camera.c_tag = "#[rand(1,100)] M40 \"[nickname]\" тяжёлый танк" //this fluff allows it to be at the start of cams list M40 Ridgeway Heavy Tank
 		if(camera_int)
-			camera_int.c_tag = camera.c_tag + " interior" //this fluff allows it to be at the start of cams list
+			camera_int.c_tag = camera.c_tag + " интерьер" //this fluff allows it to be at the start of cams list
 	else
-		camera.c_tag = "#[rand(1,100)] M40 Heavy Tank"
+		camera.c_tag = "#[rand(1,100)] M40 тяжёлый танк"
 		if(camera_int)
-			camera_int.c_tag = camera.c_tag + " interior" //this fluff allows it to be at the start of cams list
+			camera_int.c_tag = camera.c_tag + " интерьер" //this fluff allows it to be at the start of cams list
 
 /obj/vehicle/multitile/tank/ridgeway/load_hardpoints()
 	add_hardpoint(new /obj/item/hardpoint/holder/tank_turret/ridgeway)
@@ -93,7 +93,7 @@
 
 /obj/effect/vehicle_spawner/ridgeway
 
-	name = "Tank Spawner"
+	name = "спавнер танка"
 	icon = 'icons/obj/vehicles/ridgeway.dmi'
 	icon_state = "tank_base"
 	pixel_x = -48

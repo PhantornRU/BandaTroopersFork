@@ -305,8 +305,8 @@
 
 // Rideway turret
 /obj/item/hardpoint/holder/tank_turret/ridgeway
-	name = "\improper M40 Ridgeway Turret"
-	desc = "  The turret of the M40 Ridgeway heavy tank. A significant improvement over older vehicles, the Ridgeway is capable of deploying vastly superior weapons, defensive systems, optics and sensors without sacrificing on its armour or taking on excessive weight."
+	name = "\improper башня M40 Ridgeway"
+	desc = "Башня тяжёлого танка M40 Ridgeway. Значительный шаг вперёд по сравнению со старыми машинами: Ridgeway способен нести заметно более совершенное вооружение, защитные системы, оптику и датчики, не жертвуя бронёй и не набирая чрезмерный вес."
 
 	icon = 'icons/obj/vehicles/ridgeway.dmi'
 	icon_state = "tank_turret_0"

@@ -1,6 +1,6 @@
 /obj/item/hardpoint/primary/cannon/ridgeway
-	name = "\improper M613 115mm Cannon"
-	desc = "  The main gun of the M40 Ridgeway heavy tank. A high-velocity smoothbore 115mm cannon capable of of a withering fire-rate of 60 rounds per minute. Paired with exceptional accuracy, it's able to combat any potential threat; from hostile armour, to reinforced bunkers. This cannon's autoloader seems to be damaged or modified, it probably won't achieve the same rate of fire, tough luck."
+	name = "\improper 115-мм пушка M613"
+	desc = "Основное орудие тяжёлого танка M40 Ridgeway. Высокоскоростная гладкоствольная 115-мм пушка со скорострельностью до 60 выстрелов в минуту. В сочетании с исключительной точностью она способна поражать практически любую цель: от вражеской брони до укреплённых бункеров. Похоже, автомат заряжания этой пушки повреждён или переделан, так что такого темпа огня она вряд ли достигнет. Не повезло."
 
 	icon_state = "ridgeway_cannon"
 	disp_icon = "ridgeway"

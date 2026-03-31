@@ -1,7 +1,7 @@
 /obj/item/hardpoint/special/vulcan
-	name = "M41 'Vulcan' LAAG"
-	desc = "The M41 Light Anti-Aircraft Gun is a triple-barrelled belt-fed rotary machinegun, firing 12.7x99mm high-velocity explosive rounds at a blistering pace, making it perfectly suited for close-in anti-aircraft fire. Recoil during sustained fire makes any long range engagements difficult, best to fire in short controlled bursts."
-	desc_lore = "The M41 is electrically powered and uses linkless belts fed directly via a reinforced mechanical belt attached to a drum fitted to the weapons mounting point. While intended as a light anti-aircraft option for long patrols and hard points, the .50 calibre gun finds itself most often used against soft targets, like hostile infantry and light armour, where it also excels."
+	name = "зенитная установка M41 \"Vulcan\""
+	desc = "M41 Light Anti-Aircraft Gun - это трёхствольный роторный пулемёт с ленточным питанием, ведущий огонь 12,7x99-мм высокоскоростными фугасными патронами в бешеном темпе, что делает его отлично подходящим для ближней противовоздушной обороны. Отдача при длительной стрельбе заметно затрудняет бой на большой дистанции, так что лучше вести огонь короткими контролируемыми очередями."
+	desc_lore = "M41 имеет электропривод и использует беззвеньевые ленты, подаваемые напрямую через усиленный механический тракт из барабана, закреплённого на оружейной установке. Хотя система задумывалась как лёгкое зенитное средство для дальних патрулей и опорных точек, пулемёт .50 калибра чаще всего применяют по мягким целям вроде вражеской пехоты и лёгкой брони, где он тоже показывает себя отлично."
 
 	icon = 'icons/halo/obj/vehicles/hardpoints/warthog.dmi'
 	icon_state = "vulcan"
@@ -88,21 +88,21 @@
 	playsound(owner, 'sound/items/m56dauto_setup.ogg', 50, TRUE)
 
 	if(user && owner.get_mob_seat(user))
-		to_chat(user, SPAN_WARNING("\The [name]'s automated reload is finished. Ammo: <b>[SPAN_HELPFUL(ammo ? ammo.current_rounds : 0)]/[SPAN_HELPFUL(ammo ? ammo.max_rounds : 0)]</b>"))
+		to_chat(user, SPAN_WARNING("Автоперезарядка [name] завершена. Боезапас: <b>[SPAN_HELPFUL(ammo ? ammo.current_rounds : 0)]/[SPAN_HELPFUL(ammo ? ammo.max_rounds : 0)]</b>"))
 
 /obj/item/hardpoint/special/vulcan/proc/start_auto_reload(mob/user)
 	if(reloading)
-		to_chat(user, SPAN_WARNING("\The [name] is already being reloaded. Wait [SPAN_HELPFUL("[((reload_time_started + reload_time - world.time) / 10)]")] seconds."))
+		to_chat(user, SPAN_WARNING("[name] уже перезаряжается. Подождите [SPAN_HELPFUL("[((reload_time_started + reload_time - world.time) / 10)]")] сек."))
 		return
 	if(user)
-		to_chat(user, SPAN_WARNING("\The [name] is out of ammunition! Wait [reload_time / 10] seconds for automatic reload to finish."))
+		to_chat(user, SPAN_WARNING("Боезапас [name] исчерпан! Подождите [reload_time / 10] сек., пока завершится автоперезарядка."))
 	reloading = TRUE
 	reload_time_started = world.time
 	addtimer(CALLBACK(src, PROC_REF(reload), user), reload_time)
 
 //try adding magazine to hardpoint's backup clips. Called via weapons loader
 /obj/item/hardpoint/special/vulcan/try_add_clip(obj/item/ammo_magazine/A, mob/user)
-	to_chat(user, SPAN_NOTICE("\The [name] reloads automatically."))
+	to_chat(user, SPAN_NOTICE("[name] перезаряжается автоматически."))
 	return FALSE
 
 /obj/item/hardpoint/special/vulcan/try_fire(atom/target, mob/living/user, params)
@@ -113,18 +113,18 @@
 		return NONE
 
 	if(user.get_active_hand() || user.get_inactive_hand())
-		to_chat(user, SPAN_WARNING("You need both hands to use \the [name]."))
+		to_chat(user, SPAN_WARNING("Чтобы использовать [name], нужны обе руки."))
 		return NONE
 
 	if(reloading)
-		to_chat(user, SPAN_NOTICE("\The [name] is reloading. Wait [SPAN_HELPFUL("[((reload_time_started + reload_time - world.time) / 10)]")] seconds."))
+		to_chat(user, SPAN_NOTICE("[name] перезаряжается. Подождите [SPAN_HELPFUL("[((reload_time_started + reload_time - world.time) / 10)]")] сек."))
 		setDir(get_cardinal_dir(get_origin_turf(), target))
 		click_empty()
 		return NONE
 
 	if(ammo && ammo.current_rounds <= 0)
 		if(reloading)
-			to_chat(user, SPAN_WARNING("<b>\The [name] is out of ammo! You have to wait [(reload_time_started + reload_time - world.time) / 10] seconds before it reloads!"))
+			to_chat(user, SPAN_WARNING("<b>У [name] закончились патроны! Нужно подождать [(reload_time_started + reload_time - world.time) / 10] сек., пока он перезарядится!</b>"))
 		else
 			start_auto_reload(user)
 		setDir(get_cardinal_dir(get_origin_turf(), target))
@@ -166,8 +166,8 @@
 	return list(chaingun_low, chaingun_high)
 
 /obj/item/ammo_magazine/hardpoint/vulcan
-	name = "M41 'Vulcan' Magazine"
-	desc = "A magazine for an M41 'Vulcan'. Supports IFF."
+	name = "магазин M41 \"Vulcan\""
+	desc = "Магазин для M41 \"Vulcan\". Поддерживает IFF."
 	caliber = "12.7x99mm"
 	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/uscm.dmi'
 	icon_state = "cupola_1"
@@ -180,4 +180,4 @@
 	icon_state = "cupola_[current_rounds <= 0 ? "0" : "1"]"
 
 /datum/ammo/bullet/rifle/heavy/vulcan
-	name = "12.7x99 bullet"
+	name = "пуля 12,7x99 мм"

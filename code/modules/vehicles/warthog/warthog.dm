@@ -12,9 +12,9 @@
 
 
 /obj/vehicle/multitile/warthog
-	name = "M12 LRV \"Warthog\""
-	desc = "The M12 Light Reconnaissance Vehicle, or Warthog, is a lightly armoured all terrain reconnaissance and transport vehicle in use by the UNSC, first seeing service with the CMA in 2321. considerably versatile over any terrain and with numerous variants to meet any needs, the Warthog is said to be 'as much a part of the UNSC as boots, guns and tasteless coffee'."
-	desc_lore = "Powered by a low profile liquid cooled hydrogen injected ICE, I/C powerplant and featuring a Graf/Hauptman solar/saline actuator, the M12 Warthog can turn even brackish and salty still water into usable fuel hydrogen, giving the warthog the ability to range over 790 kilometres without refuelling. Paired with an infinitely variable transmission and robust four wheel drive, the Warthog is the premier of off-road fighting vehicle."
+	name = "разведмашина M12 \"Warthog\""
+	desc = "M12 Light Reconnaissance Vehicle, или Warthog, - это лёгкая бронированная вездеходная разведывательно-транспортная машина, состоящая на вооружении ККОН и впервые поступившая на службу в CMA в 2321 году. Исключительно универсальная на любой местности и выпускаемая во множестве вариантов под самые разные задачи, Warthog, как говорят, \"так же неотделим от ККОН, как сапоги, винтовки и безвкусный кофе\"."
+	desc_lore = "Оснащённый низкопрофильным жидкостно-охлаждаемым ДВС на впрыскиваемом водороде и солнечно-солевым приводом Graf/Hauptman, M12 Warthog может превращать даже солоноватую и солёную стоячую воду в пригодный водород, обеспечивая запас хода свыше 790 километров без дозаправки. В сочетании с бесступенчатой трансмиссией и надёжным полным приводом Warthog остаётся одной из лучших внедорожных боевых машин."
 	layer = ABOVE_XENO_LAYER // its probably fine
 
 	icon = 'icons/halo/obj/vehicles/warthog.dmi'
@@ -155,11 +155,11 @@
 		return
 
 	if (user.is_mob_incapacitated() || HAS_TRAIT(user, TRAIT_IMMOBILIZED) || HAS_TRAIT(user, TRAIT_FLOORED))
-		to_chat(user, SPAN_WARNING("You can't do this right now."))
+		to_chat(user, SPAN_WARNING("Сейчас это сделать нельзя."))
 		return
 
 	if (isxeno(user) && !HAS_TRAIT(user, TRAIT_OPPOSABLE_THUMBS))
-		to_chat(user, SPAN_WARNING("You don't have the dexterity to do that, try a nest."))
+		to_chat(user, SPAN_WARNING("У вас не хватает ловкости для этого, попробуйте использовать гнездо."))
 		return
 	if (iszombie(user))
 		return
@@ -167,24 +167,24 @@
 	var/target_seat = get_target_seat(M)
 
 	if(!target_seat)
-		to_chat(user, SPAN_WARNING("Get [M] closer to a seat!"))
+		to_chat(user, SPAN_WARNING("Подведите [M] ближе к одному из мест!"))
 		return
 
 	if(seats[target_seat])
-		to_chat(user, SPAN_WARNING("[seats[target_seat]] is already sitting in the [target_seat] seat!"))
+		to_chat(user, SPAN_WARNING("[seats[target_seat]] уже сидит на месте [target_seat]!"))
 		return
 
-	M.visible_message(SPAN_NOTICE("[M] starts climbing into the [target_seat] seat."), SPAN_NOTICE("You start climbing into the [target_seat] seat."))
+	M.visible_message(SPAN_NOTICE("[M] начинает забираться на место [target_seat]."), SPAN_NOTICE("Вы начинаете забираться на место [target_seat]."))
 	if(!do_after(user, 0.5 SECONDS, INTERRUPT_NO_NEEDHAND, BUSY_ICON_GENERIC))
 		return
 
 	target_seat = get_target_seat(M)
 	if(!target_seat)
-		to_chat(user, SPAN_WARNING("Get [M] closer to a seat!"))
+		to_chat(user, SPAN_WARNING("Подведите [M] ближе к одному из мест!"))
 		return
 
 	if(seats[target_seat]) // Additional check just in case two people try getting in at around the same time.
-		to_chat(user, SPAN_WARNING("[seats[target_seat]] is already sitting in the [target_seat] seat!"))
+		to_chat(user, SPAN_WARNING("[seats[target_seat]] уже сидит на месте [target_seat]!"))
 		return
 
 	if (M.mob_size <= MOB_SIZE_XENO)
@@ -192,7 +192,7 @@
 			do_buckle(M, user, target_seat)
 			return
 	if (M.mob_size > MOB_SIZE_HUMAN)
-		to_chat(user, SPAN_WARNING("[M] is too big to buckle in."))
+		to_chat(user, SPAN_WARNING("[M] слишком крупный, чтобы пристегнуть его."))
 		return
 	do_buckle(M, user, target_seat)
 
@@ -250,7 +250,7 @@
 			return TRUE
 	var/target_seat = get_target_seat(user, FALSE)
 	if(isnull(target_seat))
-		to_chat(user, SPAN_WARNING("You have to be closer to unbuckle a seat."))
+		to_chat(user, SPAN_WARNING("Нужно подойти ближе, чтобы отстегнуть пассажира."))
 		return FALSE
 	if(seats[target_seat])
 		unbuckle(target_seat)
@@ -370,7 +370,7 @@
 	return list(position)
 
 /obj/vehicle/multitile/warthog/send_buckling_message(mob/living/target, mob/user, target_seat)
-	target.visible_message(SPAN_NOTICE("[target] climbs into the [target_seat] seat."), SPAN_NOTICE("You climb into the [target_seat] seat."))
+	target.visible_message(SPAN_NOTICE("[target] забирается на место [target_seat]."), SPAN_NOTICE("Вы забираетесь на место [target_seat]."))
 
 /obj/vehicle/multitile/warthog/forceMove(dest)
 	var/old_loc = loc
@@ -456,8 +456,8 @@
 			if(prob(5) && user.get_active_hand())
 				direction = pick(turn(direction, 90), turn(direction, -90))
 				user.visible_message(
-					SPAN_WARNING("[user]'s hand slips causing the warthog to swerve!"),
-					SPAN_WARNING("Your off-hand grip on [wheel] slips, causing the warthog to swerve!")
+					SPAN_WARNING("У [user] соскальзывает рука, и Warthog уводит в сторону!"),
+					SPAN_WARNING("У вас соскальзывает вторая рука с [wheel], и Warthog уводит в сторону!")
 				)
 		for(var/obj/item/hardpoint/locomotion/warthog_wheels/wheels in hardpoints)
 			if(wheels && wheels.health == 0)
@@ -517,7 +517,7 @@
 
 	if(iswelder(O) && health >= initial(health))
 		if(!HAS_TRAIT(O, TRAIT_TOOL_BLOWTORCH))
-			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
+			to_chat(user, SPAN_WARNING("Нужна более мощная горелка!"))
 			return
 		var/obj/item/hardpoint/H
 		for(var/obj/item/hardpoint/potential_hardpoint in hardpoints)
@@ -575,7 +575,7 @@
 */
 
 /obj/effect/vehicle_spawner/warthog
-	name = "Warthog Spawner"
+	name = "спавнер Warthog"
 	icon = 'icons/halo/obj/vehicles/warthog.dmi'
 	icon_state = "warthog_base"
 	pixel_x = -16
@@ -628,8 +628,8 @@
 	V.add_hardpoint(new /obj/item/hardpoint/special/vulcan)
 
 /obj/item/steering_wheel
-	name = "steering wheel"
-	desc = "Use it to drive. Supposedly using both hands makes you go faster."
+	name = "руль"
+	desc = "Используется для вождения. Говорят, если держать его обеими руками, можно ехать быстрее."
 	icon = 'icons/halo/obj/vehicles/hardpoints/warthog.dmi'
 	icon_state = "steering_wheel"
 	w_class = SIZE_LARGE

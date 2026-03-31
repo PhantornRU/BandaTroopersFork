@@ -329,7 +329,7 @@
 
 //RIDGEWAY TANK CANNON
 /datum/ammo/rocket/ltb/ridgeway
-	name = "115mm round"
+	name = "115-мм снаряд"
 	icon_state = "ridgeway"
 	flags_ammo_behavior = AMMO_EXPLOSIVE|AMMO_ROCKET
 
@@ -354,7 +354,7 @@
 		var/obj/vehicle/multitile/mob = object
 		mob.next_move = world.time + vehicle_slowdown_time
 		playsound(mob, 'sound/effects/meteorimpact.ogg', 35)
-		mob.at_munition_interior_explosion_effect(cause_data = create_cause_data("Anti-Tank Rocket"))
+		mob.at_munition_interior_explosion_effect(cause_data = create_cause_data("Противотанковая ракета"))
 		mob.interior_crash_effect()
 		var/turf/turf = get_turf(mob.loc)
 		mob.ex_act(150, projectile.dir, projectile.weapon_cause_data, 100)

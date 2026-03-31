@@ -1,5 +1,5 @@
 /obj/structure/prop/vehicle/ridgeway
-	name = "Ridgeway Tank chassis"
+	name = "корпус танка M40 Ridgeway"
 
 	icon = 'icons/obj/vehicles/interiors/ridgeway_chassis.dmi'
 	icon_state = "ridgeway_chassis"

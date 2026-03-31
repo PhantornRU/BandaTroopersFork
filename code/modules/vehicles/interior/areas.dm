@@ -94,5 +94,5 @@
 	icon_state = "upp_van_prisoner"
 
 /area/interior/vehicle/uppvan/ridgeway
-	name = "\improper Ridgeway interior"
+	name = "\improper интерьер Ridgeway"
 	icon_state = "ridgeway"

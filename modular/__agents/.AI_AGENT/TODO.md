@@ -1,9 +1,8 @@
 # TODO
 
-- [x] Проверить текущую ветку, remotes и чистоту рабочего дерева.
-- [x] Обновить refs из remotes через `git fetch --all --prune`.
-- [x] Вмержить `upstream/master` в `various_fixes`.
-- [x] Проверить `git status` и `git diff --check`.
-- [x] Отправить `various_fixes` на `origin`.
-- [x] Переставить локальный `master` на `upstream/master` без checkout.
-- [x] Форс-пушнуть `origin/master` на commit `upstream/master`.
+- [x] Зафиксировать список новых player-facing строк из diff `upstream/master...port/tech-vehicle-wave`.
+- [x] Перевести тексты в `vehicles/*`, `hardpoints/*` и связанных ammo/rocket сущностях.
+- [x] Перепроверить места, где строка одновременно используется как UI label и как тех. идентификатор.
+- [x] Проверить `git diff --check`.
+- [x] Проверить изменённые файлы на UTF-8/mojibake.
+- [x] Закоммитить локализацию в ветку `port/tech-vehicle-wave`.

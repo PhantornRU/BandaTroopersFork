@@ -1,7 +1,7 @@
 // Plasma cannon for ridgeway tank
 /obj/item/hardpoint/primary/cannon/plasmacannon
-	name = "\improper Boyars PARS 177 PDW"
-	desc = "The Boyars PARS 177 Point-Defence-Weapon is a 20kW phased plasma directed energy weapon used to defend the M40 Ridgeway from aerospace craft, missiles, and unofficially, visible hostile infantry. A welcome improvement over older laser based systems employed by the M22 Jackson and M34 Longstreet, providing hard-kill ability capable of downing aircraft and flash-vaporizing infantry."
+	name = "\improper Boyars PARS 177 орудие точечной обороны"
+	desc = "Boyars PARS 177 Point-Defence-Weapon - это фазированное плазменное энергетическое оружие мощностью 20 кВт, предназначенное для защиты M40 Ridgeway от авиации, ракет и, неофициально, видимой вражеской пехоты. Желанное улучшение по сравнению со старыми лазерными системами M22 Jackson и M34 Longstreet: комплекс способен жёстко перехватывать воздушные цели и мгновенно испарять пехоту."
 
 	icon = 'icons/obj/vehicles/hardpoints/tank.dmi'
 	icon_state = "plasma_cannon"
