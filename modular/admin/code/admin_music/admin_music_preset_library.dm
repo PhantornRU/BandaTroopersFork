@@ -140,6 +140,8 @@
 			preset.sound_type = "[playback["sound_type"]]"
 		if(!isnull(playback["show_title_to_players"]))
 			preset.show_title_to_players = !!playback["show_title_to_players"]
+		if(!isnull(playback["repeat"]))
+			preset.repeat = !!playback["repeat"]
 
 	preset.tiers = list()
 	var/list/tiers_data = json_data["tiers"]

@@ -44,6 +44,7 @@ type DraftPreset = {
     audience_mode: string;
     sound_type: string;
     show_title_to_players: boolean;
+    repeat: boolean;
   };
   tiers: DraftTier[];
 };
@@ -484,6 +485,11 @@ export const AdminMusicPanel = () => {
                             !draft.playback.show_title_to_players,
                         })
                       }
+                      onToggleRepeat={() =>
+                        act('set_repeat', {
+                          repeat: !draft.playback.repeat,
+                        })
+                      }
                       onPreviewSelected={() => act('preview_selected')}
                       onStopPreview={stopPreviewNow}
                       onPlaySelected={() => act('play_selected')}
@@ -604,7 +610,7 @@ function SessionSection({
                 Mode {current_session.sound_type_label}
               </Box>
               <Box style={PLAYER_BADGE_STYLE}>
-                DJ Loop {current_session.loop ? 'On' : 'Off'}
+                Repeat {current_session.loop ? 'On' : 'Off'}
               </Box>
             </Flex.Item>
           </Flex>
@@ -944,6 +950,7 @@ type ControllerSectionProps = Readonly<{
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
   onPlaySelected: () => void;
@@ -963,6 +970,7 @@ function ControllerSection({
   onSetAudienceMode,
   onSetSoundType,
   onToggleShowTitle,
+  onToggleRepeat,
   onPreviewSelected,
   onStopPreview,
   onPlaySelected,
@@ -1005,6 +1013,9 @@ function ControllerSection({
                 {selectedVariant
                   ? formatSourceLabel(selectedVariant.source_url)
                   : 'None'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Repeat {draft.playback.repeat ? 'On' : 'Off'}
               </Box>
             </Box>
           </Box>
@@ -1065,6 +1076,14 @@ function ControllerSection({
                   onClick={onToggleShowTitle}
                 >
                   Visible to players
+                </Button.Checkbox>
+              </LabeledList.Item>
+              <LabeledList.Item label="Repeat">
+                <Button.Checkbox
+                  checked={draft.playback.repeat}
+                  onClick={onToggleRepeat}
+                >
+                  Repeat track until stopped
                 </Button.Checkbox>
               </LabeledList.Item>
             </LabeledList>

@@ -77,6 +77,7 @@
 	var/audience_mode = "global"
 	var/sound_type = "atmospheric"
 	var/show_title_to_players = TRUE
+	var/repeat = TRUE
 	var/list/tiers = list()
 
 /datum/admin_music_preset/proc/copy()
@@ -87,6 +88,7 @@
 	copied_preset.audience_mode = audience_mode
 	copied_preset.sound_type = sound_type
 	copied_preset.show_title_to_players = show_title_to_players
+	copied_preset.repeat = repeat
 	copied_preset.tiers = list()
 	for(var/datum/admin_music_tier/tier as anything in tiers)
 		copied_preset.tiers += tier.copy()
@@ -109,6 +111,7 @@
 			"audience_mode" = audience_mode,
 			"sound_type" = sound_type,
 			"show_title_to_players" = show_title_to_players,
+			"repeat" = repeat,
 		),
 		"tiers" = tiers_data,
 	)
@@ -125,6 +128,7 @@
 			"audience_mode" = audience_mode,
 			"sound_type" = sound_type,
 			"show_title_to_players" = show_title_to_players,
+			"repeat" = repeat,
 		),
 		"tiers" = tiers_data,
 	)

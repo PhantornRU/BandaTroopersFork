@@ -481,7 +481,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	session.resolved_title = length(variant.title) ? variant.title : (response.title ? response.title : "Admin sound")
 	session.start_time = response.start_time
 	session.end_time = response.end_time
-	session.loop = TRUE
+	session.loop = preset.repeat
 	session.preset_id = preset.preset_id
 	session.preset_name = preset.name
 	session.tier_id = REF(tier)

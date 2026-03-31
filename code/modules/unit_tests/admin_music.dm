@@ -22,6 +22,7 @@
 	preset.audience_mode = "global"
 	preset.sound_type = "atmospheric"
 	preset.show_title_to_players = TRUE
+	preset.repeat = TRUE
 
 	var/datum/admin_music_tier/tier = preset.tiers[1]
 	tier.name = "Tier Alpha"
@@ -66,6 +67,7 @@
 	TEST_ASSERT_EQUAL(length(parsed.tiers), 2, "Round-trip parse lost preset tiers.")
 	TEST_ASSERT_EQUAL(parsed.count_variants(), 2, "Round-trip parse lost preset variants.")
 	TEST_ASSERT(parsed.show_title_to_players, "Round-trip parse changed show-title state.")
+	TEST_ASSERT(parsed.repeat, "Round-trip parse changed repeat state.")
 
 /datum/unit_test/admin_music_json_defaults
 	parent_type = /datum/unit_test/admin_music
@@ -85,6 +87,7 @@
 	var/datum/admin_music_preset/parsed = parse_result["preset"]
 	TEST_ASSERT_NOTNULL(parsed, "Preset parsing returned no preset for defaulted show-title state.")
 	TEST_ASSERT(parsed.show_title_to_players, "Omitted show-title flag should preserve the TRUE default.")
+	TEST_ASSERT(parsed.repeat, "Omitted repeat flag should preserve the TRUE default.")
 
 	json_data["version"] = 2
 	parse_result = service.parse_preset_json_text(json_encode(json_data), "bad_version")

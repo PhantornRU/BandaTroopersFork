@@ -235,6 +235,10 @@
 			draft.show_title_to_players = params["show_title_to_players"] ? TRUE : FALSE
 			return mark_dirty()
 
+		if("set_repeat")
+			draft.repeat = params["repeat"] ? TRUE : FALSE
+			return mark_dirty()
+
 		if("select_tier")
 			if(selected_tier_id != params["tier_id"])
 				selected_variant_id = null
