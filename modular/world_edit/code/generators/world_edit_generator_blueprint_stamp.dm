@@ -4,7 +4,7 @@
 /datum/world_edit_generator/blueprint_stamp/validate_params(mob/user, list/params)
 	var/blueprint_id = sanitize_filename("[params["blueprint_id"]]")
 	if(!length(blueprint_id))
-		return "РЎРЅР°С‡Р°Р»Р° Р·Р°РіСЂСѓР·РёС‚Рµ blueprint РёР· server-side Р±РёР±Р»РёРѕС‚РµРєРё."
+		return "Сначала загрузите blueprint из server-side библиотеки."
 	if(!get_turf(user))
 		return "Unable to resolve the anchor turf."
 
@@ -195,7 +195,7 @@
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/get_apply_confirmation_text(list/params)
-	return "РџРѕРґС‚РІРµСЂРґРёС‚СЊ stamp РІС‹Р±СЂР°РЅРЅРѕРіРѕ blueprint РЅР° С‚РµРєСѓС‰РµРј С‚Р°Р№Р»Рµ?"
+	return "Подтвердить stamp выбранного blueprint на текущем тайле?"
 
 /datum/world_edit_generator/blueprint_stamp/get_params_short(list/params)
 	return "blueprint_id=[params["blueprint_id"]] dir=[world_edit_dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"

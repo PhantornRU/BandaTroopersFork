@@ -44,6 +44,28 @@
 		return TRUE
 	return FALSE
 
+/datum/world_edit_generator/destruction_pack/proc/can_relocate_target_to_turf(atom/movable/target, turf/target_turf)
+	if(!target || QDELETED(target) || !istype(target_turf))
+		return FALSE
+	if(target_turf.density)
+		return FALSE
+
+	for(var/atom/blocker as anything in target_turf)
+		if(blocker == target || QDELETED(blocker))
+			continue
+		if(ismob(blocker))
+			return FALSE
+		if(istype(blocker, /obj/structure))
+			return FALSE
+		if(istype(blocker, /obj/structure/machinery))
+			return FALSE
+		if(istype(blocker, /obj/docking_port))
+			return FALSE
+		if(blocker.density)
+			return FALSE
+
+	return TRUE
+
 /datum/world_edit_generator/destruction_pack/proc/collect_targets(list/area_turfs, affect_anchored = FALSE)
 	var/list/targets = list()
 	if(!length(area_turfs))
@@ -67,15 +89,32 @@
 	var/turf/current_turf = source_turf
 
 	if(shuffle_enabled)
-		var/turf/shuffle_turf = pick(area_turfs)
+		var/list/shuffle_candidates = list()
+		for(var/turf/candidate_turf as anything in area_turfs)
+			if(candidate_turf == current_turf)
+				continue
+			if(!can_relocate_target_to_turf(target, candidate_turf))
+				continue
+			shuffle_candidates += candidate_turf
+
+		var/turf/shuffle_turf = length(shuffle_candidates) ? pick(shuffle_candidates) : null
 		if(shuffle_turf && shuffle_turf != current_turf)
 			path_turfs += shuffle_turf
 			current_turf = shuffle_turf
 
 	if(scatter_enabled)
 		for(var/i in 1 to scatter_steps)
-			var/turf/next_turf = get_step(current_turf, pick(GLOB.cardinals))
-			if(!next_turf || !area_lookup[next_turf] || next_turf == current_turf)
+			var/list/step_candidates = list()
+			for(var/cardinal_dir in GLOB.cardinals)
+				var/turf/next_turf = get_step(current_turf, cardinal_dir)
+				if(!next_turf || !area_lookup[next_turf] || next_turf == current_turf)
+					continue
+				if(!can_relocate_target_to_turf(target, next_turf))
+					continue
+				step_candidates += next_turf
+
+			var/turf/next_turf = length(step_candidates) ? pick(step_candidates) : null
+			if(!next_turf)
 				continue
 
 			path_turfs += next_turf
@@ -240,6 +279,8 @@
 		var/moved_this_target = FALSE
 		for(var/turf/next_turf as anything in path_turfs)
 			if(!next_turf || next_turf == get_turf(target))
+				continue
+			if(!can_relocate_target_to_turf(target, next_turf))
 				continue
 			target.forceMove(next_turf)
 			moved_this_target = TRUE
