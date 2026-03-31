@@ -14,7 +14,6 @@
 
 /datum/world_edit_manager/ui_close(mob/user)
 	. = ..()
-	stop_click_mode()
 	reset_preview_runtime()
 
 /datum/world_edit_manager/ui_static_data(mob/user)
@@ -37,9 +36,10 @@
 	var/list/ui_fields = get_normalized_ui_fields()
 	var/has_inline_fields = length(ui_fields) > 0
 	var/requires_preview = current_generator?.requires_preview_before_apply ? TRUE : FALSE
-	var/can_run_preview = has_generator && current_definition?.supports_preview
-	var/click_generator_active = click_intercept_owned && current_definition?.execution_mode == WORLD_EDIT_EXECUTION_CLICK
-	var/can_run_apply = has_generator && (!requires_preview || is_preview_state_valid()) && !click_generator_active
+	var/list/placement_modes = build_placement_mode_options()
+	var/placement_supported = length(placement_modes) > 0
+	var/can_run_preview = has_generator && current_definition?.supports_preview && !click_intercept_owned
+	var/can_run_apply = has_generator && (!requires_preview || is_preview_state_valid()) && !click_intercept_owned
 
 	data["has_generator"] = has_generator
 	data["current_generator_id"] = current_definition?.id
@@ -57,6 +57,15 @@
 	data["has_inline_fields"] = has_inline_fields
 	data["ui_mode"] = has_inline_fields ? "inline" : "wizard_fallback"
 	data["runtime_status"] = current_generator?.get_runtime_status() || list()
+	data["placement_supported"] = placement_supported ? TRUE : FALSE
+	data["placement_active"] = placement_click_active ? TRUE : FALSE
+	data["placement_mode"] = get_effective_placement_mode() || "single"
+	data["placement_mode_options"] = placement_modes
+	data["placement_supports_direction"] = supports_current_placement_direction() ? TRUE : FALSE
+	data["placement_dir"] = world_edit_dir_to_label(get_effective_placement_dir())
+	data["placement_dir_options"] = build_placement_dir_options()
+	data["placement_anchor"] = get_placement_anchor_desc()
+	data["can_start_placement_mode"] = (placement_supported && !click_intercept_owned) ? TRUE : FALSE
 	data["can_manage_presets"] = can_manage_current_generator_presets()
 	data["preset_entries"] = get_current_generator_presets()
 	data["blueprint_entries"] = get_blueprint_entries_for_ui()
@@ -151,6 +160,29 @@
 		if("set_param")
 			return handle_set_param_action(ui.user, params)
 
+		if("set_placement_mode")
+			var/new_mode = "[params["mode"]]"
+			if(!(new_mode in get_supported_placement_modes()))
+				last_ui_error = "Выбранный placement mode недоступен для текущего генератора."
+				to_chat(ui.user, SPAN_WARNING(last_ui_error))
+				return TRUE
+			placement_mode = new_mode
+			last_ui_error = ""
+			reset_preview_runtime()
+			return TRUE
+
+		if("set_placement_dir")
+			if(!supports_current_placement_direction())
+				return TRUE
+			placement_dir = world_edit_dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
+			last_ui_error = ""
+			reset_preview_runtime()
+			return TRUE
+
+		if("start_placement_mode")
+			start_safe_placement_mode(ui.user)
+			return TRUE
+
 		if("run_preview")
 			run_preview(ui.user)
 			return TRUE
@@ -173,7 +205,7 @@
 			return TRUE
 
 		if("stop_click_mode")
-			stop_click_mode()
+			reset_preview_runtime()
 			to_chat(ui.user, SPAN_NOTICE("Click-режим остановлен."))
 			return TRUE
 

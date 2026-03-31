@@ -30,6 +30,10 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 
 	var/datum/click_intercept_previous
 	var/click_intercept_owned = FALSE
+	var/placement_click_active = FALSE
+	var/placement_mode = "single"
+	var/placement_dir = NORTH
+	var/turf/placement_anchor_turf
 
 /datum/world_edit_manager/New(client/new_holder)
 	. = ..()
@@ -76,15 +80,18 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	last_undo_action = ""
 
 /// Полный сброс runtime-состояния preview.
-/datum/world_edit_manager/proc/reset_preview_runtime()
+/datum/world_edit_manager/proc/clear_preview_plan_state()
 	clear_preview_images()
 	current_generator?.clear_built_plan()
 	invalidate_preview_state()
 	reset_preview_feedback()
 
+/datum/world_edit_manager/proc/reset_preview_runtime()
+	stop_click_mode()
+	clear_preview_plan_state()
+
 /// Сбрасывает runtime генератора (preview/apply/click), но не очищает историю.
 /datum/world_edit_manager/proc/reset_generator_runtime()
-	stop_click_mode()
 	reset_preview_runtime()
 	reset_apply_feedback()
 	last_ui_error = ""
@@ -95,3 +102,4 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	QDEL_NULL(current_generator)
 	current_definition = null
 	current_params = list()
+	reset_placement_runtime(TRUE)

@@ -68,6 +68,25 @@
 	return turfs
 
 /// Двигается от тайла на указанное количество шагов в заданном направлении.
+/proc/world_edit_collect_rectangle_turfs(turf/start_turf, turf/end_turf)
+	var/list/turfs = list()
+	if(!start_turf || !end_turf || start_turf.z != end_turf.z)
+		return turfs
+
+	var/min_x = min(start_turf.x, end_turf.x)
+	var/max_x = max(start_turf.x, end_turf.x)
+	var/min_y = min(start_turf.y, end_turf.y)
+	var/max_y = max(start_turf.y, end_turf.y)
+	var/z_level = start_turf.z
+
+	for(var/y in min_y to max_y)
+		for(var/x in min_x to max_x)
+			var/turf/target_turf = locate(x, y, z_level)
+			if(target_turf)
+				turfs += target_turf
+
+	return turfs
+
 /proc/world_edit_step_turf(turf/start_turf, direction, steps = 1)
 	var/turf/current_turf = start_turf
 	for(var/i in 1 to steps)

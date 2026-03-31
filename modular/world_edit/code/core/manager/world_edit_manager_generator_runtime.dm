@@ -64,6 +64,8 @@
 	current_generator = new definition.generator_type()
 	current_generator.attach(src, definition)
 	current_params = definition.default_params?.Copy() || list()
+	reset_placement_runtime(TRUE)
+	placement_dir = current_generator?.get_default_placement_direction() || NORTH
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_current_generator()
@@ -92,70 +94,38 @@
 	reset_preview_runtime()
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
 
-/datum/world_edit_manager/proc/run_preview(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
-		return fail_preview(user, "Недостаточно прав для предпросмотра World Edit.")
-	if(!current_generator || !current_definition)
-		return fail_preview(user, "Сначала выберите генератор.")
-	if(!current_definition.supports_preview)
-		return fail_preview(user, "Для этого генератора предпросмотр не поддерживается.")
-	if(!check_rights_for(holder, current_definition.required_rights))
-		return fail_preview(user, "Недостаточно прав для предпросмотра этого генератора.")
+/datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(mode, turf/start_turf, turf/end_turf)
+	if("[mode]" == "line")
+		return world_edit_collect_line_turfs(start_turf, end_turf)
+	if("[mode]" == "rectangle")
+		return world_edit_collect_rectangle_turfs(start_turf, end_turf)
+	if(!end_turf)
+		return list()
+	return list(end_turf)
 
-	var/error_text = current_generator.validate_params(user, current_params)
-	if(error_text)
-		return fail_preview(user, error_text)
+/datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
+	var/list/metadata = plan?.metadata || list()
+	var/list/placements = plan?.placements || list()
+	var/anchor_count = metadata["anchor_count"] || 1
+	var/entry_count = metadata["entry_count"] || length(placements)
+	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
+	var/message = "Placement preview ready: mode=[mode], anchors=[anchor_count], entries=[entry_count]."
+	if(metadata["placement_dir_label"])
+		message = "Placement preview ready: mode=[mode], anchors=[anchor_count], entries=[entry_count], dir=[metadata["placement_dir_label"]]."
+	return message
 
-	clear_preview_images()
-	var/datum/world_edit_preview_result/result = current_generator.preview(user, current_params)
-	if(!istype(result))
-		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
+/datum/world_edit_manager/proc/build_safe_placement_confirm_text(datum/world_edit_plan/plan)
+	var/list/metadata = plan?.metadata || list()
+	var/list/placements = plan?.placements || list()
+	var/anchor_count = metadata["anchor_count"] || 1
+	var/entry_count = metadata["entry_count"] || length(placements)
+	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
+	var/dir_suffix = ""
+	if(metadata["placement_dir_label"])
+		dir_suffix = ", dir=[metadata["placement_dir_label"]]"
+	return "Apply [current_definition?.name_ru || current_definition?.id] placement? mode=[mode], anchors=[anchor_count], entries=[entry_count][dir_suffix]."
 
-	if(length(result.preview_images))
-		holder.images += result.preview_images
-		preview_images = result.preview_images.Copy()
-
-	last_preview_success = result.success ? TRUE : FALSE
-	last_preview_message = result.message
-	last_preview_meta = islist(result.meta) ? result.meta.Copy() : list()
-
-	if(result.success)
-		mark_preview_state()
-		to_chat(user, SPAN_NOTICE(result.message))
-	else
-		invalidate_preview_state()
-		to_chat(user, SPAN_WARNING(result.message))
-
-	return result
-
-/datum/world_edit_manager/proc/run_apply(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
-		return fail_apply(user, "Недостаточно прав для применения World Edit.")
-	if(!current_generator || !current_definition)
-		return fail_apply(user, "Сначала выберите генератор.")
-	if(!check_rights_for(holder, current_definition.required_rights))
-		return fail_apply(user, "Недостаточно прав для применения этого генератора.")
-
-	var/error_text = current_generator.validate_params(user, current_params)
-	if(error_text)
-		return fail_apply(user, error_text)
-
-	if(current_generator.requires_preview_before_apply && !is_preview_state_valid())
-		return fail_apply(user, "Для этого генератора обязательно выполнить предпросмотр с текущими параметрами.")
-
-	var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
-	var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
-	if(answer != "Подтвердить")
-		if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
-			reset_preview_runtime()
-		return null
-
-	var/start_ds = world.time
-	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
-	if(!istype(result))
-		return fail_apply(user, "Генератор вернул некорректный результат применения.")
-
-	var/duration_ds = world.time - start_ds
+/datum/world_edit_manager/proc/record_apply_result(mob/user, datum/world_edit_apply_result/result, duration_ds)
 	var/turf/center_turf = result.center_turf || get_turf(user)
 	var/params_short = current_generator.get_params_short(current_params)
 	var/result_code = result.success ? "ok" : "error"
@@ -201,13 +171,221 @@
 	else
 		to_chat(user, SPAN_WARNING(result.message))
 
+	return result
+
+/datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
+	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return fail_apply(user, "Недостаточно прав для placement mode World Edit.")
+	if(!current_generator || !current_definition)
+		return fail_apply(user, "Сначала выберите генератор.")
+	if(!supports_current_placement_ux())
+		return fail_apply(user, "Для текущего генератора safe placement UX в этой фазе недоступен.")
+
+	var/placement_error_text = current_generator.validate_params(user, current_params)
+	if(placement_error_text)
+		return fail_apply(user, placement_error_text)
+	if(!acquire_click_intercept("Safe Placement"))
+		return fail_apply(user, "Перехват клика не активирован.")
+
+	placement_click_active = TRUE
+	placement_anchor_turf = null
+	clear_preview_plan_state()
+
+	var/mode = get_effective_placement_mode() || "single"
+	var/dir_suffix = supports_current_placement_direction() ? " DIR=[world_edit_dir_to_label(get_effective_placement_dir())]." : "."
+	if(placement_mode_uses_anchor_pair(mode))
+		to_chat(user, SPAN_NOTICE("Placement mode active: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
+	else
+		to_chat(user, SPAN_NOTICE("Placement mode active: LMB previews and applies at the clicked turf. MMB resets the pending anchor[dir_suffix]"))
+	return TRUE
+
+/datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
+	if(!placement_click_active || !supports_current_placement_ux())
+		return FALSE
+
+	var/list/modifiers = params2list(params)
+	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
+		placement_anchor_turf = null
+		clear_preview_plan_state()
+		to_chat(user, SPAN_NOTICE("Pending placement anchor cleared."))
+		return TRUE
+
+	if(!LAZYACCESS(modifiers, LEFT_CLICK))
+		return TRUE
+
+	var/turf/clicked_turf = get_turf(object)
+	if(!clicked_turf)
+		return TRUE
+
+	var/mode = get_effective_placement_mode()
+	if(!length(mode))
+		return TRUE
+
+	if(placement_mode_uses_anchor_pair(mode) && !placement_anchor_turf)
+		placement_anchor_turf = clicked_turf
+		clear_preview_plan_state()
+		world_edit_apply_turf_preview(src, list(clicked_turf))
+		to_chat(user, SPAN_NOTICE("Placement anchor set: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]. Select the second point."))
+		return TRUE
+
+	var/turf/start_turf = placement_mode_uses_anchor_pair(mode) ? placement_anchor_turf : clicked_turf
+	var/turf/end_turf = clicked_turf
+	placement_anchor_turf = null
+
+	var/list/anchor_turfs = build_safe_placement_anchor_turfs(mode, start_turf, end_turf)
+	if(!length(anchor_turfs))
+		last_preview_success = FALSE
+		last_preview_message = "Unable to build a valid placement footprint."
+		last_preview_meta = list()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+	if(length(anchor_turfs) > WORLD_EDIT_PLACEMENT_MAX_ANCHORS)
+		last_preview_success = FALSE
+		last_preview_message = "Requested footprint exceeds the safe anchor cap ([WORLD_EDIT_PLACEMENT_MAX_ANCHORS])."
+		last_preview_meta = list()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+
+	clear_preview_plan_state()
+	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
+		"mode" = mode,
+		"anchor_turfs" = anchor_turfs,
+		"start_turf" = start_turf,
+		"end_turf" = end_turf,
+		"direction" = get_effective_placement_dir(),
+	))
+	if(!istype(plan))
+		last_preview_success = FALSE
+		last_preview_message = "Unable to build the placement plan."
+		last_preview_meta = list()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+	if(plan.metadata["error"])
+		last_preview_success = FALSE
+		last_preview_message = "[plan.metadata["error"]]"
+		last_preview_meta = plan.metadata.Copy()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+	if(!length(plan.placements) && !length(plan.deletions))
+		last_preview_success = FALSE
+		last_preview_message = "Placement footprint contains no valid actions."
+		last_preview_meta = plan.metadata.Copy()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+
+	current_generator.current_plan = plan
+	last_preview_success = TRUE
+	last_preview_message = build_safe_placement_preview_message(plan)
+	last_preview_meta = plan.metadata.Copy()
+	preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	if(length(preview_images))
+		holder.images += preview_images
+	mark_preview_state()
+	to_chat(user, SPAN_NOTICE(last_preview_message))
+
+	var/confirm_text = build_safe_placement_confirm_text(plan)
+	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+	if(answer != "Подтвердить")
+		clear_preview_plan_state()
+		return TRUE
+
+	var/start_ds = world.time
+	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
+	if(!istype(result))
+		clear_preview_plan_state()
+		return fail_apply(user, "Генератор вернул некорректный результат применения.")
+
+	record_apply_result(user, result, world.time - start_ds)
+	clear_preview_plan_state()
+	if(mode == "single")
+		stop_click_mode()
+	else if(result.success)
+		to_chat(user, SPAN_NOTICE("Placement mode remains active."))
+	return TRUE
+
+/datum/world_edit_manager/proc/run_preview(mob/user)
+	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return fail_preview(user, "Недостаточно прав для предпросмотра World Edit.")
+	if(!current_generator || !current_definition)
+		return fail_preview(user, "Сначала выберите генератор.")
+	if(!current_definition.supports_preview)
+		return fail_preview(user, "Для этого генератора предпросмотр не поддерживается.")
+	if(!check_rights_for(holder, current_definition.required_rights))
+		return fail_preview(user, "Недостаточно прав для предпросмотра этого генератора.")
+
+	if(click_intercept_owned)
+		return fail_preview(user, "Остановите активный click/placement mode перед обычным preview.")
+
+	var/error_text = current_generator.validate_params(user, current_params)
+	if(error_text)
+		return fail_preview(user, error_text)
+
+	clear_preview_plan_state()
+	var/datum/world_edit_preview_result/result = current_generator.preview(user, current_params)
+	if(!istype(result))
+		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
+
+	if(length(result.preview_images))
+		holder.images += result.preview_images
+		preview_images = result.preview_images.Copy()
+
+	last_preview_success = result.success ? TRUE : FALSE
+	last_preview_message = result.message
+	last_preview_meta = islist(result.meta) ? result.meta.Copy() : list()
+
+	if(result.success)
+		mark_preview_state()
+		to_chat(user, SPAN_NOTICE(result.message))
+	else
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(result.message))
+
+	return result
+
+/datum/world_edit_manager/proc/run_apply(mob/user)
+	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return fail_apply(user, "Недостаточно прав для применения World Edit.")
+	if(!current_generator || !current_definition)
+		return fail_apply(user, "Сначала выберите генератор.")
+	if(!check_rights_for(holder, current_definition.required_rights))
+		return fail_apply(user, "Недостаточно прав для применения этого генератора.")
+
+	var/error_text = current_generator.validate_params(user, current_params)
+	if(error_text)
+		return fail_apply(user, error_text)
+
+	if(current_generator.requires_preview_before_apply && !is_preview_state_valid())
+		return fail_apply(user, "Для этого генератора обязательно выполнить предпросмотр с текущими параметрами.")
+
+	if(click_intercept_owned)
+		return fail_apply(user, "Остановите активный click/placement mode перед обычным apply.")
+
+	var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
+	var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
+	if(answer != "Подтвердить")
+		if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
+			reset_preview_runtime()
+		return null
+
+	var/start_ds = world.time
+	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
+	if(!istype(result))
+		return fail_apply(user, "Генератор вернул некорректный результат применения.")
+
+	record_apply_result(user, result, world.time - start_ds)
+
 	if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
 		reset_preview_runtime()
 
 	return result
 
 /datum/world_edit_manager/proc/fail_preview(mob/user, message)
-	clear_preview_images()
+	clear_preview_plan_state()
 	last_preview_success = FALSE
 	last_preview_message = message
 	last_preview_meta = list()

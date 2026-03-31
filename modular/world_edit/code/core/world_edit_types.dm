@@ -4,6 +4,8 @@
 #define WORLD_EDIT_STATUS_READY "ready"
 #define WORLD_EDIT_STATUS_DEPRECATED "deprecated"
 #define WORLD_EDIT_HISTORY_LIMIT 50
+#define WORLD_EDIT_PLACEMENT_MAX_ANCHORS 48
+#define WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS 240
 
 /// Результат этапа предпросмотра генератора.
 /datum/world_edit_preview_result
@@ -108,3 +110,15 @@
 /// Возвращает runtime-статус генератора для панели World Edit.
 /datum/world_edit_generator/proc/get_runtime_status()
 	return list()
+
+/datum/world_edit_generator/proc/get_supported_placement_modes()
+	return list()
+
+/datum/world_edit_generator/proc/supports_placement_direction()
+	return FALSE
+
+/datum/world_edit_generator/proc/get_default_placement_direction()
+	return NORTH
+
+/datum/world_edit_generator/proc/build_placement_plan(mob/user, list/params, list/placement_context)
+	return null

@@ -1,17 +1,13 @@
 # DECISIONS
 
-## D-001: Обновление выполнять через merge, а не rebase
-- Решение: влить `upstream/master` merge-коммитом в текущую ветку.
-- Почему: ветка уже опубликована в `origin`, а задача сформулирована как update branch с разрешением конфликтов без необходимости переписывать историю.
+## D-001: Placement UX stays manager-side and reuses the existing preview/apply/plan pipeline
+- Decision: add a minimal manager placement runtime instead of introducing a second parallel placement system.
+- Why: this keeps preview/apply semantics consistent and avoids a manager architecture rewrite.
 
-## D-002: Baseline для обновления — `upstream/master`
-- Решение: обновлять текущую ветку относительно `upstream/master`, а не относительно соседних `split/pr62-*` веток.
-- Почему: `git merge-base` показал общий базовый коммит с sibling-ветками, а не stacked ancestry.
+## D-002: `blueprint_stamp` gets the richer Phase 4 placement modes, `outpost_radius` stays narrower
+- Decision: implement `single` / `repeat` / `line` / `rectangle` for `blueprint_stamp`, but only `single` / `repeat` for `outpost_radius`.
+- Why: blueprint stamping is the main ergonomic target of the phase, while repeated outpost placement is the safe bounded improvement for outposts.
 
-## D-003: Разрешение конфликтов делать с сохранением scope ветки
-- Решение: сохранять локальные изменения по human AI squad spawning/species, одновременно подтягивая совместимые апстрим-обновления из HALO/UI/test sweep.
-- Почему: это минимизирует риск потерять смысл текущей feature-ветки при sync с master.
-
-## D-004: Конфликты в Human AI spawner решать как superset, а не через выбор одной стороны
-- Решение: оставить расширенную локальную логику candidate filtering, failure handling и species-aware spawning, добавив совместимость с апстрим-именем `get_viable_spawn_turfs` и апстрим-тестом.
-- Почему: апстрим привнес базовый radius/accessibility contract, а ветка уже содержала более сильную и детально покрытую реализацию поверх него.
+## D-003: Rotation remains cardinal-only and is applied at plan-build time
+- Decision: support only `NORTH/EAST/SOUTH/WEST` placement rotation and reflect it in preview/apply.
+- Why: this preserves blueprint safety and avoids introducing any arbitrary-angle or schema redesign.

@@ -476,7 +476,55 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 
 	return "Blueprint contains an unsupported placement type."
 
-/proc/world_edit_build_plan_from_blueprint(list/blueprint, turf/anchor_turf)
+/proc/world_edit_rotate_blueprint_offset(dx, dy, placement_dir)
+	switch(placement_dir)
+		if(EAST)
+			return list("dx" = dy, "dy" = -dx)
+		if(SOUTH)
+			return list("dx" = -dx, "dy" = -dy)
+		if(WEST)
+			return list("dx" = -dy, "dy" = dx)
+		else
+			return list("dx" = dx, "dy" = dy)
+
+/proc/world_edit_rotate_blueprint_dir(dir_value, placement_dir)
+	if(!(dir_value in GLOB.cardinals))
+		return dir_value
+
+	switch(placement_dir)
+		if(EAST)
+			switch(dir_value)
+				if(NORTH)
+					return EAST
+				if(EAST)
+					return SOUTH
+				if(SOUTH)
+					return WEST
+				if(WEST)
+					return NORTH
+		if(SOUTH)
+			switch(dir_value)
+				if(NORTH)
+					return SOUTH
+				if(EAST)
+					return WEST
+				if(SOUTH)
+					return NORTH
+				if(WEST)
+					return EAST
+		if(WEST)
+			switch(dir_value)
+				if(NORTH)
+					return WEST
+				if(EAST)
+					return NORTH
+				if(SOUTH)
+					return EAST
+				if(WEST)
+					return SOUTH
+	return dir_value
+
+/proc/world_edit_build_plan_from_blueprint(list/blueprint, turf/anchor_turf, placement_dir = NORTH)
 	var/datum/world_edit_plan/plan = new
 	if(!anchor_turf)
 		plan.metadata["error"] = "Unable to resolve the blueprint anchor turf."
@@ -494,7 +542,8 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	var/list/affected_lookup = list()
 	for(var/list/entry as anything in entries)
 		var/obj_path = text2path("[entry["type"]]")
-		var/turf/target_turf = locate(anchor_turf.x + text2num("[entry["dx"]]"), anchor_turf.y + text2num("[entry["dy"]]"), anchor_turf.z)
+		var/list/rotated_offset = world_edit_rotate_blueprint_offset(text2num("[entry["dx"]]"), text2num("[entry["dy"]]"), placement_dir)
+		var/turf/target_turf = locate(anchor_turf.x + rotated_offset["dx"], anchor_turf.y + rotated_offset["dy"], anchor_turf.z)
 		if(!istype(target_turf))
 			plan.metadata["error"] = "Blueprint points outside the current z-level bounds."
 			return plan
@@ -513,7 +562,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 			"kind" = "blueprint_spawn",
 			"obj_path" = obj_path,
 			"turf" = target_turf,
-			"dir" = text2num("[entry["dir"]]"),
+			"dir" = world_edit_rotate_blueprint_dir(text2num("[entry["dir"]]"), placement_dir),
 			"vars" = entry["vars"] || list(),
 		))
 
@@ -525,6 +574,8 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	plan.metadata["blueprint_name"] = blueprint["name"]
 	plan.metadata["entry_count"] = length(plan.placements)
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
+	plan.metadata["placement_dir"] = placement_dir
+	plan.metadata["placement_dir_label"] = world_edit_dir_to_label(placement_dir)
 	return plan
 
 /proc/world_edit_spawn_blueprint_entry(list/placement)

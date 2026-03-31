@@ -18,6 +18,9 @@
 		/datum/human_ai_defense/defense/sentry/wy,
 	)
 
+/datum/world_edit_generator/outpost_radius/get_supported_placement_modes()
+	return list("single", "repeat")
+
 /datum/world_edit_generator/outpost_radius/proc/build_type_options(list/type_list)
 	var/list/options = list()
 	for(var/datum/human_ai_defense/type_path as anything in type_list)
@@ -224,8 +227,25 @@
 	plan.metadata["blocked_sentries"] = sentry_data["blocked_count"]
 	return plan
 
+/datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/datum/world_edit_plan/plan = new
+	var/list/anchor_turfs = placement_context["anchor_turfs"]
+	var/turf/anchor_turf = islist(anchor_turfs) ? anchor_turfs[1] : null
+	if(!anchor_turf)
+		plan.metadata["error"] = "Unable to resolve the anchor turf."
+		return plan
+
+	plan = build_outpost_plan(anchor_turf, params)
+	plan.metadata["anchor_count"] = anchor_turf ? 1 : 0
+	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
+	return plan
+
 /datum/world_edit_generator/outpost_radius/build_plan(list/params)
-	return build_outpost_plan(get_turf(manager?.holder?.mob), params)
+	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
+	return build_placement_plan(manager?.holder?.mob, params, list(
+		"mode" = "single",
+		"anchor_turfs" = list(anchor_turf),
+	))
 
 /datum/world_edit_generator/outpost_radius/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)
@@ -277,7 +297,7 @@
 	result.success = TRUE
 	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
-	result.message = "Preview ready: barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], blocked=[plan.metadata["blocked_barricades"] + plan.metadata["blocked_sentries"]]."
+	result.message = "Preview ready: anchors=[plan.metadata["anchor_count"] || 1], barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], blocked=[plan.metadata["blocked_barricades"] + plan.metadata["blocked_sentries"]]."
 	return result
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
@@ -295,6 +315,8 @@
 	var/skipped_runtime = 0
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "outpost_radius", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = center_turf,
+		"anchor_count" = plan.metadata["anchor_count"] || 1,
+		"placement_mode" = plan.metadata["placement_mode"] || "single",
 	))
 
 	for(var/list/placement as anything in plan.placements)
@@ -340,7 +362,7 @@
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Outpost created: barricades=[created_barricades], sentries=[created_sentries], skipped=[skipped_runtime]."
+	result.message = "Outpost created: anchors=[plan.metadata["anchor_count"] || 1], barricades=[created_barricades], sentries=[created_sentries], skipped=[skipped_runtime]."
 	return result
 
 /datum/world_edit_generator/outpost_radius/get_ui_fields(list/current_params)

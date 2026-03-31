@@ -1,27 +1,34 @@
 # PLAN
 
-## Активная задача
-Обновить ветку `split/pr62-02-ai-squad-spawn-species` до актуального `upstream/master`, разрешить конфликты и оставить ветку в консистентном merge-ready состоянии.
+## Active Task
+Implement World Edit Phase 4: safe placement UX for `blueprint_stamp` and limited `outpost_radius` on top of the existing Phase 3B state.
 
 ## Scope
-- История и базовый target ветки.
-- Merge `upstream/master` в текущую ветку.
-- Разрешение конфликтов в затронутых HALO/AI/UI/unit-test поверхностях.
-- Минимальные проверки после merge.
+- Minimal manager-side placement runtime for safe generators.
+- `single` / `repeat` placement for `outpost_radius`.
+- `single` / `repeat` / `line` / `rectangle` placement for `blueprint_stamp`.
+- Cardinal rotate/dir UX where meaningful for blueprint stamping.
+- Minimal TGUI controls for placement mode, direction, and start/stop of placement mode.
+- Verification via `git diff --check`, DM build, and `lint tgui-test`.
 
-## Out of scope
-- Несвязанные рефакторинги.
-- Новые продуктовые изменения вне необходимых conflict resolutions.
-- Переписывание опубликованной истории ветки через rebase.
+## Out Of Scope
+- Destruction redesign or new destructive modes.
+- Turf painting or turf rollback.
+- Full snapshot/template/DMM restore.
+- Undo expansion beyond existing Phase 3B scope.
+- Legacy/deprecated generator rewrites.
+- Broad manager or TGUI architecture refactors.
 
-## Фазы
-1. Подтвердить target обновления и конфликтные поверхности. Выполнено.
-2. Выполнить merge `upstream/master` в текущую ветку. Выполнено.
-3. Разрешить конфликты с сохранением branch-specific scope. Выполнено.
-4. Проверить `git status`, `git diff --check` и релевантные быстрые проверки. Выполнено.
+## Planned Steps
+1. Refresh stale task-state files and re-check the manager/runtime seams for placement UX.
+2. Add minimal placement runtime state and safe click interception for batch safe generators.
+3. Extend `blueprint_stamp` and `outpost_radius` with bounded placement plan building.
+4. Add minimal panel controls for placement mode and direction.
+5. Run required verification commands and commit the phase as a small logical series.
 
-## Acceptance criteria
-- Ветка содержит merge с актуальным `upstream/master`.
-- В рабочем дереве нет unmerged paths.
-- Конфликтные файлы собираются в логически консистентное состояние.
-- Выполнены хотя бы базовые post-merge проверки, а их статус зафиксирован.
+## Acceptance Criteria
+- `blueprint_stamp` supports safe repeat placement with visible dir control and bounded line/rectangle placement.
+- `outpost_radius` supports safe quick re-anchor/repeat placement without becoming unrestricted paint.
+- Placement preview clears on cancel/reset/generator switch/panel close.
+- Existing Phase 3B undo/changeset recording remains intact for safe placed objects.
+- The phase stays narrow and reviewable.

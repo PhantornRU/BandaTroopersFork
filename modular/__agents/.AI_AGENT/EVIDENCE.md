@@ -1,26 +1,17 @@
 # EVIDENCE
 
-## E-001: Состояние ветки до update
-- `git status --short --branch`: рабочее дерево чистое, активная ветка `split/pr62-02-ai-squad-spawn-species`.
-- `git rev-list --left-right --count HEAD...upstream/master`: `3 3` до начала merge.
+## E-001: Existing World Edit runtime already supports preview/apply/history/undo on the manager
+- `modular/world_edit/code/core/manager/world_edit_manager_core.dm`
+- `modular/world_edit/code/core/manager/world_edit_manager_generator_runtime.dm`
+- `modular/world_edit/code/core/manager/world_edit_manager_state.dm`
 
-## E-002: История ветки
-- `git merge-base HEAD upstream/master`: `91e37a1add1c69b6996a08d4e54dd89ab0669728`.
-- `git merge-base HEAD origin/split/pr62-01-halo-platoons-spawn-routing`: тот же base, значит ветка не stacked на `pr62-01`.
+## E-002: Safe placement helpers already exist for cardinal dirs and line turf collection
+- `modular/world_edit/code/generators/shared/world_edit_generator_shared_helpers.dm`
 
-## E-003: Актуальный HALO baseline
-- `modular/halo/__docs/HALO_PORT_STATE.md` указывает pinned upstream commit `95a84ab9f59f9118e5543f664b2793e7a1841c55` от `2026-03-11`.
-- Для update/sync задач этот документ является каноническим baseline.
+## E-003: `blueprint_stamp` and `outpost_radius` are ready batch generators and are the intended safe Phase 4 targets
+- `modular/world_edit/code/core/world_edit_registry.dm`
+- `modular/world_edit/code/generators/world_edit_generator_blueprint_stamp.dm`
+- `modular/world_edit/code/generators/world_edit_generator_outpost_radius.dm`
 
-## E-004: Merge и конфликтные файлы
-- `git merge upstream/master` дал конфликты в:
-  - `code/modules/mob/living/carbon/human/ai/squad_spawner/squad_spawner.dm`
-  - `code/modules/unit_tests/_unit_tests.dm`
-  - `code/modules/unit_tests/human_ai_squad_spawner.dm`
-  - `tgui/packages/tgui/interfaces/HumanSquadSpawner.tsx`
-- После ручного разрешения `git ls-files -u` вернул пустой результат.
-- `git diff --check --cached` прошел без замечаний.
-
-## E-005: Результаты проверок
-- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`: passed, `0 errors, 0 warnings`, `2026-03-20`.
-- `tools/build/build --ci tgui-test`: passed, `15` suites / `74` tests green, `2026-03-20`.
+## E-004: Current TGUI panel already exposes apply/undo/cleanup controls and can be extended minimally
+- `tgui/packages/tgui/interfaces/WorldEditPanel.tsx`

@@ -132,6 +132,81 @@
 	preview_images = list()
 	current_generator?.cleanup_preview(holder?.mob)
 
+/datum/world_edit_manager/proc/get_supported_placement_modes()
+	var/list/modes = current_generator?.get_supported_placement_modes()
+	if(!islist(modes))
+		return list()
+	return modes.Copy()
+
+/datum/world_edit_manager/proc/supports_current_placement_ux()
+	return length(get_supported_placement_modes()) ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/supports_current_placement_direction()
+	return current_generator?.supports_placement_direction() ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/get_effective_placement_mode()
+	var/list/modes = get_supported_placement_modes()
+	if(!length(modes))
+		placement_mode = "single"
+		return null
+
+	if(!(placement_mode in modes))
+		placement_mode = "[modes[1]]"
+	return placement_mode
+
+/datum/world_edit_manager/proc/get_effective_placement_dir()
+	var/default_dir = current_generator?.get_default_placement_direction() || NORTH
+	if(!(placement_dir in GLOB.cardinals))
+		placement_dir = default_dir
+	return placement_dir
+
+/datum/world_edit_manager/proc/build_placement_mode_options()
+	var/list/options = list()
+	for(var/mode in get_supported_placement_modes())
+		var/list/entry = list("value" = "[mode]")
+		switch("[mode]")
+			if("single")
+				entry["label"] = "Single"
+				entry["description"] = "One placement and exit."
+			if("repeat")
+				entry["label"] = "Repeat"
+				entry["description"] = "Keep placement mode active after each apply."
+			if("line")
+				entry["label"] = "Line"
+				entry["description"] = "Two clicks build a bounded line of anchors."
+			if("rectangle")
+				entry["label"] = "Rectangle"
+				entry["description"] = "Two clicks build a bounded rectangle of anchors."
+			else
+				entry["label"] = "[mode]"
+		options += list(entry)
+	return options
+
+/datum/world_edit_manager/proc/build_placement_dir_options()
+	return list(
+		list("label" = "North", "value" = "North"),
+		list("label" = "East", "value" = "East"),
+		list("label" = "South", "value" = "South"),
+		list("label" = "West", "value" = "West"),
+	)
+
+/datum/world_edit_manager/proc/placement_mode_uses_anchor_pair(mode = null)
+	mode = mode || get_effective_placement_mode()
+	return ("[mode]" in list("line", "rectangle")) ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/get_placement_anchor_desc()
+	if(!placement_anchor_turf)
+		return ""
+	return "[placement_anchor_turf.x],[placement_anchor_turf.y],[placement_anchor_turf.z]"
+
+/datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE)
+	placement_click_active = FALSE
+	placement_anchor_turf = null
+
+	if(reset_config)
+		placement_mode = "single"
+		placement_dir = current_generator?.get_default_placement_direction() || NORTH
+
 /datum/world_edit_manager/proc/acquire_click_intercept(mode_name)
 	if(!holder)
 		return FALSE
@@ -154,6 +229,7 @@
 
 /datum/world_edit_manager/proc/stop_click_mode()
 	current_generator?.disable_click_mode()
+	reset_placement_runtime()
 
 	if(!click_intercept_owned || !holder)
 		click_intercept_previous = null
@@ -178,6 +254,8 @@
 		return FALSE
 	if(!check_rights_for(holder, current_definition.required_rights))
 		return FALSE
+	if(placement_click_active)
+		return handle_safe_placement_click(user, params, object)
 	if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
 		return FALSE
 	return current_generator.InterceptClickOn(user, params, object)
