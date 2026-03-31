@@ -71,11 +71,17 @@
 
 	data["last_apply_success"] = last_apply_success
 	data["last_apply_message"] = last_apply_message
+	data["last_undo_success"] = last_undo_success
+	data["last_undo_message"] = last_undo_message
+	data["last_undo_action"] = last_undo_action
+	data["last_changeset"] = build_last_changeset_summary()
 
 	data["click_mode_active"] = click_intercept_owned
 	data["can_run_preview"] = can_run_preview ? TRUE : FALSE
 	data["can_run_apply"] = can_run_apply ? TRUE : FALSE
 	data["can_stop_click_mode"] = click_intercept_owned ? TRUE : FALSE
+	data["can_undo_last_operation"] = can_undo_last_operation()
+	data["can_cleanup_last_owned_effects"] = can_cleanup_last_owned_effects()
 	data["can_refresh_ui"] = has_generator ? TRUE : FALSE
 	data["history_entries"] = get_history_entries_desc()
 	return data
@@ -151,6 +157,14 @@
 
 		if("run_apply")
 			run_apply(ui.user)
+			return TRUE
+
+		if("undo_last_operation")
+			undo_last_operation(ui.user)
+			return TRUE
+
+		if("cleanup_last_owned_effects")
+			cleanup_last_owned_effects(ui.user)
 			return TRUE
 
 		if("clear_preview")

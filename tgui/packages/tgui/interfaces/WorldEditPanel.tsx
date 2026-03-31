@@ -69,6 +69,26 @@ type HistoryEntry = {
   duration_ms: number;
   params_short: string;
   message: string;
+  undo_policy?: string;
+  undo_status?: string;
+  reverted_count?: number;
+  skipped_count?: number;
+  operation_id?: string;
+  source_operation_id?: string;
+  source_generator_id?: string;
+};
+
+type ChangesetSummary = {
+  operation_id: string;
+  generator_id: string;
+  undo_policy: string;
+  created_entries: number;
+  moved_entries: number;
+  owned_effect_entries: number;
+  created_at: string;
+  can_undo: boolean;
+  can_cleanup: boolean;
+  undo_status: string;
 };
 
 type PresetEntry = {
@@ -121,10 +141,16 @@ type BackendData = {
   preview_meta: Record<string, unknown>;
   last_apply_success: boolean;
   last_apply_message: string;
+  last_undo_success: boolean;
+  last_undo_message: string;
+  last_undo_action?: string;
+  last_changeset?: ChangesetSummary;
   click_mode_active: boolean;
   can_run_preview: boolean;
   can_run_apply: boolean;
   can_stop_click_mode: boolean;
+  can_undo_last_operation: boolean;
+  can_cleanup_last_owned_effects: boolean;
   can_refresh_ui: boolean;
   history_entries: HistoryEntry[];
 };
@@ -340,7 +366,8 @@ export const WorldEditPanel = () => {
               <Section fill title="Параметры генератора">
                 {!data.has_generator && (
                   <Box color="label">
-                    Сначала выберите генератор на вкладке "Генераторы".
+                    Сначала выберите генератор на вкладке
+                    &quot;Генераторы&quot;.
                   </Box>
                 )}
 
@@ -417,14 +444,17 @@ export const WorldEditPanel = () => {
                           {!data.preset_entries?.length && (
                             <Box color="label">
                               Для текущего генератора ещё нет сохранённых
-                              preset'ов.
+                              preset-ов.
                             </Box>
                           )}
 
                           {!!data.preset_entries?.length && (
                             <Stack vertical>
                               {data.preset_entries.map((preset) => (
-                                <Section key={preset.id} title={preset.name || preset.id}>
+                                <Section
+                                  key={preset.id}
+                                  title={preset.name || preset.id}
+                                >
                                   <Box color="label">
                                     Сохранён: {preset.created_at || 'n/a'}
                                   </Box>
@@ -483,7 +513,7 @@ export const WorldEditPanel = () => {
 
                       {!data.blueprint_entries?.length && (
                         <Box color="label">
-                          В библиотеке пока нет blueprint'ов.
+                          В библиотеке пока нет blueprint-ов.
                         </Box>
                       )}
 
@@ -492,7 +522,8 @@ export const WorldEditPanel = () => {
                           {data.blueprint_entries.map((blueprint) => (
                             <Section
                               key={blueprint.id}
-                              title={`${blueprint.name} [r=${blueprint.radius}]`}>
+                              title={`${blueprint.name} [r=${blueprint.radius}]`}
+                            >
                               {!!blueprint.active && (
                                 <Box color="good">
                                   Активный blueprint для текущего менеджера.
@@ -691,6 +722,24 @@ export const WorldEditPanel = () => {
                       Остановить click-режим
                     </Button>
                   </Stack.Item>
+                  <Stack.Item>
+                    <Button
+                      color="average"
+                      disabled={!data.can_undo_last_operation}
+                      onClick={() => act('undo_last_operation')}
+                    >
+                      Undo last operation
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Button
+                      color="average"
+                      disabled={!data.can_cleanup_last_owned_effects}
+                      onClick={() => act('cleanup_last_owned_effects')}
+                    >
+                      Cleanup owned effects
+                    </Button>
+                  </Stack.Item>
                 </Stack>
 
                 <Section title="Требования">
@@ -708,6 +757,44 @@ export const WorldEditPanel = () => {
                     {data.last_apply_message ||
                       'Операции apply еще не выполнялись.'}
                   </Box>
+                </Section>
+
+                <Section title="Последняя записанная операция">
+                  {!data.last_changeset && (
+                    <Box color="label">
+                      Undo/cleanup-record для текущей session пока отсутствует.
+                    </Box>
+                  )}
+
+                  {!!data.last_changeset && (
+                    <>
+                      <Box>
+                        Generator: {data.last_changeset.generator_id} | Policy:{' '}
+                        {data.last_changeset.undo_policy} | Status:{' '}
+                        {data.last_changeset.undo_status}
+                      </Box>
+                      <Box color="label">
+                        Operation ID: {data.last_changeset.operation_id}
+                      </Box>
+                      <Box color="label">
+                        Created refs: {data.last_changeset.created_entries} |
+                        Moved refs: {data.last_changeset.moved_entries} | Owned
+                        effects: {data.last_changeset.owned_effect_entries}
+                      </Box>
+                    </>
+                  )}
+                </Section>
+
+                <Section title="Последний undo / cleanup">
+                  <Box color={data.last_undo_success ? 'good' : 'average'}>
+                    {data.last_undo_message ||
+                      'Undo/cleanup действия еще не выполнялись.'}
+                  </Box>
+                  {!!data.last_undo_action && (
+                    <Box color="label">
+                      Тип действия: {data.last_undo_action}
+                    </Box>
+                  )}
                 </Section>
               </Section>
             )}
@@ -734,12 +821,26 @@ export const WorldEditPanel = () => {
                     {data.history_entries.map((entry, index) => (
                       <Section
                         key={`${entry.time}_${entry.generator_id}_${index}`}
-                        title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}>
+                        title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}
+                      >
                         <Box>
                           Создано: {entry.created_count} | Удалено:{' '}
                           {entry.deleted_count} | Центр: {entry.center_turf} |
                           Длительность: {entry.duration_ms} ms
                         </Box>
+                        {!!entry.undo_policy && (
+                          <Box color="label">
+                            Undo policy: {entry.undo_policy} | Undo status:{' '}
+                            {entry.undo_status || 'n/a'}
+                          </Box>
+                        )}
+                        {(typeof entry.reverted_count === 'number' ||
+                          typeof entry.skipped_count === 'number') && (
+                          <Box color="label">
+                            Reverted: {entry.reverted_count ?? 0} | Skipped:{' '}
+                            {entry.skipped_count ?? 0}
+                          </Box>
+                        )}
                         <Box color="label">Параметры: {entry.params_short}</Box>
                         <Box color="label">
                           Сообщение: {entry.message || 'n/a'}
