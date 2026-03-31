@@ -15,3 +15,16 @@
 
 ## E-004: Current TGUI panel already exposes apply/undo/cleanup controls and can be extended minimally
 - `tgui/packages/tgui/interfaces/WorldEditPanel.tsx`
+
+## E-005: Required command verification for Phase 4 passed on 2026-03-31
+- `git diff --check`: passed.
+- `tools/build/build.bat --ci dm -DCIBUILDING -DANSICOLORS -Werror`: passed with `0 errors, 0 warnings`.
+- `tools/build/build.bat --ci lint tgui-test`: passed (`prettier`, `eslint`, `tsc`, and `15` Jest suites / `74` tests green).
+
+## E-006: Phase 4 was committed as a small logical series
+- `cfed7f3094` `world_edit: add safe placement runtime for phase 4`
+- `3949d20490` `tgui: expose world edit placement controls`
+
+## E-007: Manual runtime evidence is still pending
+- No live in-game BYOND admin walkthrough was executed from this shell session.
+- Final reporting must explicitly call out that runtime notes are code-path based, not live-session confirmed.

@@ -20,11 +20,16 @@ Implement World Edit Phase 4: safe placement UX for `blueprint_stamp` and limite
 - Broad manager or TGUI architecture refactors.
 
 ## Planned Steps
-1. Refresh stale task-state files and re-check the manager/runtime seams for placement UX.
-2. Add minimal placement runtime state and safe click interception for batch safe generators.
-3. Extend `blueprint_stamp` and `outpost_radius` with bounded placement plan building.
-4. Add minimal panel controls for placement mode and direction.
-5. Run required verification commands and commit the phase as a small logical series.
+1. Refresh stale task-state files and re-check the manager/runtime seams for placement UX. Done.
+2. Add minimal placement runtime state and safe click interception for batch safe generators. Done.
+3. Extend `blueprint_stamp` and `outpost_radius` with bounded placement plan building. Done.
+4. Add minimal panel controls for placement mode and direction. Done.
+5. Run required verification commands and commit the phase as a small logical series. Done.
+
+## Current Status
+- Implementation completed and committed.
+- Required command verification passed.
+- Live in-game manual runtime walkthrough is still not executed from this shell session and must be noted as pending evidence.
 
 ## Acceptance Criteria
 - `blueprint_stamp` supports safe repeat placement with visible dir control and bounded line/rectangle placement.

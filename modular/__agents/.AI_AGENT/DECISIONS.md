@@ -11,3 +11,7 @@
 ## D-003: Rotation remains cardinal-only and is applied at plan-build time
 - Decision: support only `NORTH/EAST/SOUTH/WEST` placement rotation and reflect it in preview/apply.
 - Why: this preserves blueprint safety and avoids introducing any arbitrary-angle or schema redesign.
+
+## D-004: Rectangle placement uses a bounded filled anchor footprint, not a separate fill mode
+- Decision: use `rectangle` to collect all anchor turfs inside the clicked bounding box, while enforcing safe anchor and total-placement caps.
+- Why: this keeps the phase narrow, gives the requested area-placement ergonomics, and avoids adding a separate fill tool/mode surface.
