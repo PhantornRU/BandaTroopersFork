@@ -84,6 +84,7 @@ type AdminMusicPanelData = {
 };
 
 const DEFAULT_PREVIEW_VOLUME = 0.2;
+const DESCRIPTION_FIELD_HEIGHT = 4.5;
 
 const formatDuration = (duration_seconds: number) => {
   if (!Number.isFinite(duration_seconds) || duration_seconds <= 0) {
@@ -757,9 +758,10 @@ function DraftGeneralSection({
                 onInput={(e, value) => onSetName(value)}
               />
             </LabeledList.Item>
-            <LabeledList.Item label="Description">
+            <LabeledList.Item label="Description" verticalAlign="top">
               <TextArea
                 fluid
+                height={DESCRIPTION_FIELD_HEIGHT}
                 value={draft.description}
                 onInput={(e, value) => onSetDescription(value)}
                 placeholder="Short description for admins"
@@ -958,9 +960,10 @@ function TierEditorSection({
                     }
                   />
                 </LabeledList.Item>
-                <LabeledList.Item label="Description">
+                <LabeledList.Item label="Description" verticalAlign="top">
                   <TextArea
                     fluid
+                    height={DESCRIPTION_FIELD_HEIGHT}
                     value={selectedTier.description}
                     onInput={(e, value) =>
                       onSetTierDescription(selectedTier.tier_id, value)
@@ -1041,9 +1044,13 @@ function TierEditorSection({
                               }
                             />
                           </LabeledList.Item>
-                          <LabeledList.Item label="Description">
+                          <LabeledList.Item
+                            label="Description"
+                            verticalAlign="top"
+                          >
                             <TextArea
                               fluid
+                              height={DESCRIPTION_FIELD_HEIGHT}
                               value={selectedVariant.description}
                               onInput={(e, value) =>
                                 onSetVariantDescription(
