@@ -337,7 +337,11 @@ export const WorldEditPanel = () => {
 
           <Stack.Item grow basis={0} ml={1}>
             {currentPage === 'Генераторы' && (
-              <Section fill title="Каталог генераторов (status=ready)">
+              <Section
+                fill
+                scrollable
+                title="Каталог генераторов (status=ready)"
+              >
                 {!data.categories?.length && (
                   <Box color="label">
                     Нет доступных генераторов для текущих прав.
@@ -378,7 +382,7 @@ export const WorldEditPanel = () => {
             )}
 
             {currentPage === 'Параметры' && (
-              <Section fill title="Параметры генератора">
+              <Section fill scrollable title="Параметры генератора">
                 {!data.has_generator && (
                   <Box color="label">
                     Сначала выберите генератор на вкладке
@@ -669,7 +673,7 @@ export const WorldEditPanel = () => {
             )}
 
             {currentPage === 'Preview' && (
-              <Section fill title="Preview">
+              <Section fill scrollable title="Preview">
                 <Stack>
                   <Stack.Item>
                     <Button
@@ -718,7 +722,7 @@ export const WorldEditPanel = () => {
             )}
 
             {currentPage === 'Apply' && (
-              <Section fill title="Apply">
+              <Section fill scrollable title="Apply">
                 <Stack>
                   <Stack.Item>
                     <Button
@@ -887,7 +891,7 @@ export const WorldEditPanel = () => {
             )}
 
             {currentPage === 'История' && (
-              <Section fill title="История операций (session)">
+              <Section fill scrollable title="История операций (session)">
                 <Stack mb={1}>
                   <Stack.Item>
                     <Button

@@ -207,6 +207,15 @@
 		placement_mode = "single"
 		placement_dir = current_generator?.get_default_placement_direction() || NORTH
 
+/datum/world_edit_manager/proc/sync_click_intercept_state()
+	if(holder?.click_intercept == src)
+		click_intercept_owned = TRUE
+		return TRUE
+
+	click_intercept_owned = FALSE
+	placement_click_active = FALSE
+	return FALSE
+
 /datum/world_edit_manager/proc/acquire_click_intercept(mode_name)
 	if(!holder)
 		return FALSE
@@ -246,7 +255,7 @@
 	click_intercept_owned = FALSE
 
 /datum/world_edit_manager/proc/InterceptClickOn(mob/user, params, atom/object)
-	if(!click_intercept_owned)
+	if(!sync_click_intercept_state())
 		return FALSE
 	if(!holder || holder != user?.client)
 		return FALSE

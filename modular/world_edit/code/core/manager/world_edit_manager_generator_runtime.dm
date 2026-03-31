@@ -190,6 +190,7 @@
 	placement_click_active = TRUE
 	placement_anchor_turf = null
 	clear_preview_plan_state()
+	sync_click_intercept_state()
 
 	var/mode = get_effective_placement_mode() || "single"
 	var/dir_suffix = supports_current_placement_direction() ? " DIR=[world_edit_dir_to_label(get_effective_placement_dir())]." : "."
@@ -305,6 +306,8 @@
 	if(mode == "single")
 		stop_click_mode()
 	else if(result.success)
+		sync_click_intercept_state()
+		placement_click_active = click_intercept_owned ? TRUE : FALSE
 		to_chat(user, SPAN_NOTICE("Placement mode remains active."))
 	return TRUE
 

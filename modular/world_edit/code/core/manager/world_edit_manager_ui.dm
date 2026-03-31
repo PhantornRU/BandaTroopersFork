@@ -38,8 +38,9 @@
 	var/requires_preview = current_generator?.requires_preview_before_apply ? TRUE : FALSE
 	var/list/placement_modes = build_placement_mode_options()
 	var/placement_supported = length(placement_modes) > 0
-	var/can_run_preview = has_generator && current_definition?.supports_preview && !click_intercept_owned
-	var/can_run_apply = has_generator && (!requires_preview || is_preview_state_valid()) && !click_intercept_owned
+	var/click_mode_active = sync_click_intercept_state()
+	var/can_run_preview = has_generator && current_definition?.supports_preview && !click_mode_active
+	var/can_run_apply = has_generator && (!requires_preview || is_preview_state_valid()) && !click_mode_active
 
 	data["has_generator"] = has_generator
 	data["current_generator_id"] = current_definition?.id
@@ -58,14 +59,14 @@
 	data["ui_mode"] = has_inline_fields ? "inline" : "wizard_fallback"
 	data["runtime_status"] = current_generator?.get_runtime_status() || list()
 	data["placement_supported"] = placement_supported ? TRUE : FALSE
-	data["placement_active"] = placement_click_active ? TRUE : FALSE
+	data["placement_active"] = (placement_click_active && click_mode_active) ? TRUE : FALSE
 	data["placement_mode"] = get_effective_placement_mode() || "single"
 	data["placement_mode_options"] = placement_modes
 	data["placement_supports_direction"] = supports_current_placement_direction() ? TRUE : FALSE
 	data["placement_dir"] = world_edit_dir_to_label(get_effective_placement_dir())
 	data["placement_dir_options"] = build_placement_dir_options()
 	data["placement_anchor"] = get_placement_anchor_desc()
-	data["can_start_placement_mode"] = (placement_supported && !click_intercept_owned) ? TRUE : FALSE
+	data["can_start_placement_mode"] = (placement_supported && !click_mode_active) ? TRUE : FALSE
 	data["can_manage_presets"] = can_manage_current_generator_presets()
 	data["preset_entries"] = get_current_generator_presets()
 	data["blueprint_entries"] = get_blueprint_entries_for_ui()
@@ -85,10 +86,10 @@
 	data["last_undo_action"] = last_undo_action
 	data["last_changeset"] = build_last_changeset_summary()
 
-	data["click_mode_active"] = click_intercept_owned
+	data["click_mode_active"] = click_mode_active ? TRUE : FALSE
 	data["can_run_preview"] = can_run_preview ? TRUE : FALSE
 	data["can_run_apply"] = can_run_apply ? TRUE : FALSE
-	data["can_stop_click_mode"] = click_intercept_owned ? TRUE : FALSE
+	data["can_stop_click_mode"] = click_mode_active ? TRUE : FALSE
 	data["can_undo_last_operation"] = can_undo_last_operation()
 	data["can_cleanup_last_owned_effects"] = can_cleanup_last_owned_effects()
 	data["can_refresh_ui"] = has_generator ? TRUE : FALSE
