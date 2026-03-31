@@ -30,7 +30,7 @@
 	)
 
 /datum/admin_music_tier
-	var/name = "Tier 1"
+	var/name = "Scene 1"
 	var/description = ""
 	var/list/variants = list()
 

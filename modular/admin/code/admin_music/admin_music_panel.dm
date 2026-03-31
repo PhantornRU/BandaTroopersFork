@@ -59,6 +59,24 @@
 		return null
 	return tier.find_variant_by_ref(selected_variant_id)
 
+/datum/admin_music_panel/proc/build_next_scene_name()
+	var/index = 1
+	var/list/used_names = list()
+	for(var/datum/admin_music_tier/tier as anything in draft?.tiers)
+		used_names[lowertext(trim("[tier.name]"))] = TRUE
+	while(used_names[lowertext("Scene [index]")])
+		index++
+	return "Scene [index]"
+
+/datum/admin_music_panel/proc/build_next_track_title(datum/admin_music_tier/tier)
+	var/index = 1
+	var/list/used_titles = list()
+	for(var/datum/admin_music_variant/variant as anything in tier?.variants)
+		used_titles[lowertext(trim("[variant.title]"))] = TRUE
+	while(used_titles[lowertext("Track [index]")])
+		index++
+	return "Track [index]"
+
 /datum/admin_music_panel/proc/mark_dirty()
 	dirty = TRUE
 	GLOB.admin_music_service.update_open_panels()
@@ -218,19 +236,25 @@
 			return mark_dirty()
 
 		if("select_tier")
+			if(selected_tier_id != params["tier_id"])
+				selected_variant_id = null
 			selected_tier_id = params["tier_id"]
 			sync_selection()
 			GLOB.admin_music_service.update_open_panels()
 			return TRUE
 
 		if("add_tier")
-			draft.tiers += GLOB.admin_music_service.build_default_tier()
+			var/datum/admin_music_tier/new_tier = GLOB.admin_music_service.build_default_tier()
+			new_tier.name = build_next_scene_name()
+			draft.tiers += new_tier
+			selected_tier_id = REF(new_tier)
+			selected_variant_id = null
 			sync_selection()
 			return mark_dirty()
 
 		if("remove_tier")
 			if(length(draft.tiers) <= 1)
-				to_chat(holder, SPAN_WARNING("A preset must keep at least one tier."))
+				to_chat(holder, SPAN_WARNING("A preset must keep at least one scene."))
 				return FALSE
 			var/datum/admin_music_tier/tier_to_remove = draft.find_tier_by_ref(params["tier_id"])
 			if(!tier_to_remove)
@@ -257,6 +281,7 @@
 			return mark_dirty()
 
 		if("select_variant")
+			selected_tier_id = params["tier_id"]
 			selected_variant_id = params["variant_id"]
 			sync_selection()
 			GLOB.admin_music_service.update_open_panels()
@@ -266,7 +291,10 @@
 			var/datum/admin_music_tier/add_variant_tier = get_selected_tier()
 			if(!add_variant_tier)
 				return FALSE
-			add_variant_tier.variants += GLOB.admin_music_service.build_default_variant()
+			var/datum/admin_music_variant/new_variant = GLOB.admin_music_service.build_default_variant()
+			new_variant.title = build_next_track_title(add_variant_tier)
+			add_variant_tier.variants += new_variant
+			selected_variant_id = REF(new_variant)
 			sync_selection()
 			return mark_dirty()
 
@@ -275,7 +303,7 @@
 			if(!remove_variant_tier)
 				return FALSE
 			if(length(remove_variant_tier.variants) <= 1)
-				to_chat(holder, SPAN_WARNING("A tier must keep at least one variant."))
+				to_chat(holder, SPAN_WARNING("A scene must keep at least one track."))
 				return FALSE
 			var/datum/admin_music_variant/variant_to_remove = remove_variant_tier.find_variant_by_ref(params["variant_id"])
 			if(!variant_to_remove)

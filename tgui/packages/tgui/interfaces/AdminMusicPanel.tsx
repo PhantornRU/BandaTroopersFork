@@ -373,9 +373,9 @@ export const AdminMusicPanel = () => {
           </Stack.Item>
           <Stack.Item>
             <Stack fill>
-              <Stack.Item basis="31%" grow={1}>
+              <Stack.Item basis="34%" grow={1}>
                 <Stack fill vertical>
-                  <Stack.Item grow={1}>
+                  <Stack.Item grow={2}>
                     <LibrarySection
                       library={library}
                       librarySearch={librarySearch}
@@ -387,30 +387,10 @@ export const AdminMusicPanel = () => {
                     />
                   </Stack.Item>
                   <Stack.Item grow={1}>
-                    <SceneListSection
-                      draft={draft}
-                      selectedTierId={selected_tier_id}
-                      onAddTier={() => act('add_tier')}
-                      onSelectTier={(tier_id) =>
-                        act('select_tier', { tier_id })
-                      }
-                      onRemoveTier={(tier_id) =>
-                        act('remove_tier', { tier_id })
-                      }
-                    />
-                  </Stack.Item>
-                </Stack>
-              </Stack.Item>
-              <Stack.Item basis="69%" grow={2}>
-                <Stack fill vertical>
-                  <Stack.Item>
-                    <DraftGeneralSection
+                    <PresetEditorSection
                       draft={draft}
                       dirty={dirty}
-                      audienceOptions={audienceOptions}
-                      soundTypeOptions={soundTypeOptions}
-                      audienceLabel={audienceLabel}
-                      soundTypeLabel={soundTypeLabel}
+                      canDelete={can_delete_saved_preset}
                       onNew={handleNewDraft}
                       onSave={() => act('save')}
                       onSaveAsCopy={() => act('save_as_copy')}
@@ -422,6 +402,44 @@ export const AdminMusicPanel = () => {
                       onSetDescription={(value) =>
                         act('set_description', { description: value })
                       }
+                    />
+                  </Stack.Item>
+                  <Stack.Item grow={2}>
+                    <SceneEditorSection
+                      draft={draft}
+                      selectedTier={selectedTier}
+                      selectedTierId={selected_tier_id}
+                      onAddTier={() => act('add_tier')}
+                      onSelectTier={(tier_id) =>
+                        act('select_tier', { tier_id })
+                      }
+                      onRemoveTier={(tier_id) =>
+                        act('remove_tier', { tier_id })
+                      }
+                      onSetTierName={(tier_id, value) =>
+                        act('set_tier_name', { tier_id, name: value })
+                      }
+                      onSetTierDescription={(tier_id, value) =>
+                        act('set_tier_description', {
+                          tier_id,
+                          description: value,
+                        })
+                      }
+                    />
+                  </Stack.Item>
+                </Stack>
+              </Stack.Item>
+              <Stack.Item basis="66%" grow={2}>
+                <Stack fill vertical>
+                  <Stack.Item>
+                    <ControllerSection
+                      draft={draft}
+                      audienceOptions={audienceOptions}
+                      soundTypeOptions={soundTypeOptions}
+                      audienceLabel={audienceLabel}
+                      soundTypeLabel={soundTypeLabel}
+                      selectedTier={selectedTier}
+                      selectedVariant={selectedVariant}
                       onSetAudienceMode={(value) =>
                         act('set_audience_mode', { audience_mode: value })
                       }
@@ -437,14 +455,13 @@ export const AdminMusicPanel = () => {
                       onPreviewSelected={() => act('preview_selected')}
                       onStopPreview={stopPreviewNow}
                       onPlaySelected={() => act('play_selected')}
-                      canDelete={can_delete_saved_preset}
                       previewState={previewState}
                       previewVolume={previewVolume}
                       hasSelection={Boolean(selectedTier && selectedVariant)}
                     />
                   </Stack.Item>
                   <Stack.Item grow={1}>
-                    <SceneTrackEditorSection
+                    <TrackEditorSection
                       selectedTier={selectedTier}
                       selectedVariant={selectedVariant}
                       selectedVariantId={selected_variant_id}
@@ -454,15 +471,6 @@ export const AdminMusicPanel = () => {
                       }
                       onRemoveVariant={(tier_id, variant_id) =>
                         act('remove_variant', { tier_id, variant_id })
-                      }
-                      onSetTierName={(tier_id, value) =>
-                        act('set_tier_name', { tier_id, name: value })
-                      }
-                      onSetTierDescription={(tier_id, value) =>
-                        act('set_tier_description', {
-                          tier_id,
-                          description: value,
-                        })
                       }
                       onSetVariantTitle={(tier_id, variant_id, value) =>
                         act('set_variant_title', {
@@ -667,76 +675,10 @@ function LibrarySection({
   );
 }
 
-type SceneListSectionProps = Readonly<{
-  draft: DraftPreset;
-  selectedTierId: string | null;
-  onAddTier: () => void;
-  onSelectTier: (tier_id: string) => void;
-  onRemoveTier: (tier_id: string) => void;
-}>;
-
-function SceneListSection({
-  draft,
-  selectedTierId,
-  onAddTier,
-  onSelectTier,
-  onRemoveTier,
-}: SceneListSectionProps) {
-  return (
-    <Section
-      fill
-      title="Scenes"
-      buttons={
-        <Button icon="plus" onClick={onAddTier}>
-          Add Scene
-        </Button>
-      }
-    >
-      {draft.tiers.length === 0 ? (
-        <Box color="label">No scenes yet.</Box>
-      ) : (
-        draft.tiers.map((tier) => (
-          <Button
-            key={tier.tier_id}
-            fluid
-            selected={selectedTierId === tier.tier_id}
-            onClick={() => onSelectTier(tier.tier_id)}
-            style={{ marginBottom: '0.25rem' }}
-          >
-            <Flex justify="space-between" width="100%">
-              <Flex.Item grow>
-                <Box bold>{tier.name || 'Unnamed scene'}</Box>
-                <Box fontSize="0.8rem" color="label">
-                  {tier.description || 'No description'}
-                </Box>
-              </Flex.Item>
-              <Flex.Item ml={1} textAlign="right">
-                <Box fontSize="0.8rem">Tracks {tier.variants.length}</Box>
-                <Button
-                  icon="trash"
-                  color="bad"
-                  ml={1}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRemoveTier(tier.tier_id);
-                  }}
-                />
-              </Flex.Item>
-            </Flex>
-          </Button>
-        ))
-      )}
-    </Section>
-  );
-}
-
-type DraftGeneralSectionProps = Readonly<{
+type PresetEditorSectionProps = Readonly<{
   draft: DraftPreset;
   dirty: boolean;
-  audienceOptions: { displayText: string; value: string }[];
-  soundTypeOptions: { displayText: string; value: string }[];
-  audienceLabel: string | undefined;
-  soundTypeLabel: string | undefined;
+  canDelete: boolean;
   onNew: () => void;
   onSave: () => void;
   onSaveAsCopy: () => void;
@@ -744,25 +686,12 @@ type DraftGeneralSectionProps = Readonly<{
   onExport: () => void;
   onSetName: (value: string) => void;
   onSetDescription: (value: string) => void;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
-  onToggleShowTitle: () => void;
-  onPreviewSelected: () => void;
-  onStopPreview: () => void;
-  onPlaySelected: () => void;
-  canDelete: boolean;
-  previewState: string;
-  previewVolume: number;
-  hasSelection: boolean;
 }>;
 
-function DraftGeneralSection({
+function PresetEditorSection({
   draft,
   dirty,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
+  canDelete,
   onNew,
   onSave,
   onSaveAsCopy,
@@ -770,17 +699,7 @@ function DraftGeneralSection({
   onExport,
   onSetName,
   onSetDescription,
-  onSetAudienceMode,
-  onSetSoundType,
-  onToggleShowTitle,
-  onPreviewSelected,
-  onStopPreview,
-  onPlaySelected,
-  canDelete,
-  previewState,
-  previewVolume,
-  hasSelection,
-}: DraftGeneralSectionProps) {
+}: PresetEditorSectionProps) {
   return (
     <Section
       title="Preset"
@@ -839,6 +758,172 @@ function DraftGeneralSection({
                 scrollbar
               />
             </LabeledList.Item>
+          </LabeledList>
+        </Stack.Item>
+      </Stack>
+    </Section>
+  );
+}
+
+type SceneEditorSectionProps = Readonly<{
+  draft: DraftPreset;
+  selectedTier: DraftTier | null;
+  selectedTierId: string | null;
+  onAddTier: () => void;
+  onSelectTier: (tier_id: string) => void;
+  onRemoveTier: (tier_id: string) => void;
+  onSetTierName: (tier_id: string, value: string) => void;
+  onSetTierDescription: (tier_id: string, value: string) => void;
+}>;
+
+function SceneEditorSection({
+  draft,
+  selectedTier,
+  selectedTierId,
+  onAddTier,
+  onSelectTier,
+  onRemoveTier,
+  onSetTierName,
+  onSetTierDescription,
+}: SceneEditorSectionProps) {
+  return (
+    <Section
+      fill
+      title="Scenes"
+      buttons={
+        <Button icon="plus" onClick={onAddTier}>
+          Add Scene
+        </Button>
+      }
+    >
+      <Stack fill vertical>
+        <Stack.Item>
+          {draft.tiers.length === 0 ? (
+            <Box color="label">No scenes yet.</Box>
+          ) : (
+            draft.tiers.map((tier) => (
+              <Button
+                key={tier.tier_id}
+                fluid
+                selected={selectedTierId === tier.tier_id}
+                onClick={() => onSelectTier(tier.tier_id)}
+                style={{ marginBottom: '0.25rem' }}
+              >
+                <Flex justify="space-between" width="100%">
+                  <Flex.Item grow>
+                    <Box bold>{tier.name || 'Unnamed scene'}</Box>
+                    <Box fontSize="0.8rem" color="label">
+                      {tier.description || 'No description'}
+                    </Box>
+                  </Flex.Item>
+                  <Flex.Item ml={1} textAlign="right">
+                    <Box fontSize="0.8rem">Tracks {tier.variants.length}</Box>
+                    <Button
+                      icon="trash"
+                      color="bad"
+                      ml={1}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRemoveTier(tier.tier_id);
+                      }}
+                    />
+                  </Flex.Item>
+                </Flex>
+              </Button>
+            ))
+          )}
+        </Stack.Item>
+        <Stack.Item grow={1}>
+          <Section title="Scene Details">
+            {!selectedTier ? (
+              <Box color="label">Select a scene from the list above.</Box>
+            ) : (
+              <LabeledList>
+                <LabeledList.Item label="Name">
+                  <Input
+                    fluid
+                    value={selectedTier.name}
+                    onInput={(e, value) =>
+                      onSetTierName(selectedTier.tier_id, value)
+                    }
+                  />
+                </LabeledList.Item>
+                <LabeledList.Item label="Description" verticalAlign="top">
+                  <TextArea
+                    fluid
+                    height={DESCRIPTION_FIELD_HEIGHT}
+                    value={selectedTier.description}
+                    onInput={(e, value) =>
+                      onSetTierDescription(selectedTier.tier_id, value)
+                    }
+                    placeholder="Scene description"
+                    scrollbar
+                  />
+                </LabeledList.Item>
+              </LabeledList>
+            )}
+          </Section>
+        </Stack.Item>
+      </Stack>
+    </Section>
+  );
+}
+
+type ControllerSectionProps = Readonly<{
+  draft: DraftPreset;
+  audienceOptions: { displayText: string; value: string }[];
+  soundTypeOptions: { displayText: string; value: string }[];
+  audienceLabel: string | undefined;
+  soundTypeLabel: string | undefined;
+  selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
+  onToggleShowTitle: () => void;
+  onPreviewSelected: () => void;
+  onStopPreview: () => void;
+  onPlaySelected: () => void;
+  previewState: string;
+  previewVolume: number;
+  hasSelection: boolean;
+}>;
+
+function ControllerSection({
+  draft,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
+  selectedTier,
+  selectedVariant,
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onPreviewSelected,
+  onStopPreview,
+  onPlaySelected,
+  previewState,
+  previewVolume,
+  hasSelection,
+}: ControllerSectionProps) {
+  return (
+    <Section title="Controller">
+      <Stack vertical>
+        <Stack.Item>
+          <LabeledList>
+            <LabeledList.Item label="Preset">
+              {draft.name || 'New preset'}
+            </LabeledList.Item>
+            <LabeledList.Item label="Scene">
+              {selectedTier?.name || 'No scene selected'}
+            </LabeledList.Item>
+            <LabeledList.Item label="Track">
+              {selectedVariant?.title || 'No track selected'}
+            </LabeledList.Item>
+          </LabeledList>
+        </Stack.Item>
+        <Stack.Item>
+          <LabeledList>
             <LabeledList.Item label="Audience">
               <Dropdown
                 options={audienceOptions}
@@ -909,15 +994,13 @@ function DraftGeneralSection({
   );
 }
 
-type SceneTrackEditorSectionProps = Readonly<{
+type TrackEditorSectionProps = Readonly<{
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
   selectedVariantId: string | null;
   onAddVariant: () => void;
   onSelectVariant: (tier_id: string, variant_id: string) => void;
   onRemoveVariant: (tier_id: string, variant_id: string) => void;
-  onSetTierName: (tier_id: string, value: string) => void;
-  onSetTierDescription: (tier_id: string, value: string) => void;
   onSetVariantTitle: (
     tier_id: string,
     variant_id: string,
@@ -940,186 +1023,148 @@ type SceneTrackEditorSectionProps = Readonly<{
   ) => void;
 }>;
 
-function SceneTrackEditorSection({
+function TrackEditorSection({
   selectedTier,
   selectedVariant,
   selectedVariantId,
   onAddVariant,
   onSelectVariant,
   onRemoveVariant,
-  onSetTierName,
-  onSetTierDescription,
   onSetVariantTitle,
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
-}: SceneTrackEditorSectionProps) {
+}: TrackEditorSectionProps) {
   return (
-    <Stack fill vertical>
-      <Stack.Item>
-        <Section title="Scene">
-          {!selectedTier ? (
-            <Box color="label">Select a scene on the left.</Box>
-          ) : (
-            <LabeledList>
-              <LabeledList.Item label="Name">
-                <Input
+    <Section
+      fill
+      title="Tracks"
+      buttons={
+        <Button icon="plus" disabled={!selectedTier} onClick={onAddVariant}>
+          Add Track
+        </Button>
+      }
+    >
+      {!selectedTier ? (
+        <Box color="label">
+          Select a scene on the left to manage its tracks.
+        </Box>
+      ) : (
+        <Stack fill vertical>
+          <Stack.Item>
+            {selectedTier.variants.length === 0 ? (
+              <Box color="label">No tracks yet.</Box>
+            ) : (
+              selectedTier.variants.map((variant) => (
+                <Button
+                  key={variant.variant_id}
                   fluid
-                  value={selectedTier.name}
-                  onInput={(e, value) =>
-                    onSetTierName(selectedTier.tier_id, value)
+                  selected={selectedVariantId === variant.variant_id}
+                  onClick={() =>
+                    onSelectVariant(selectedTier.tier_id, variant.variant_id)
                   }
-                />
-              </LabeledList.Item>
-              <LabeledList.Item label="Description" verticalAlign="top">
-                <TextArea
-                  fluid
-                  height={DESCRIPTION_FIELD_HEIGHT}
-                  value={selectedTier.description}
-                  onInput={(e, value) =>
-                    onSetTierDescription(selectedTier.tier_id, value)
-                  }
-                  placeholder="Scene description"
-                  scrollbar
-                />
-              </LabeledList.Item>
-            </LabeledList>
-          )}
-        </Section>
-      </Stack.Item>
+                  style={{ marginBottom: '0.25rem' }}
+                >
+                  <Flex justify="space-between" width="100%">
+                    <Flex.Item grow>
+                      <Box bold>{variant.title || 'Unnamed track'}</Box>
+                      <Box fontSize="0.8rem" color="label">
+                        {variant.description || 'No description'}
+                      </Box>
+                    </Flex.Item>
+                    <Flex.Item ml={1} textAlign="right">
+                      <Box fontSize="0.8rem">
+                        {formatDuration(variant.duration_seconds)}
+                      </Box>
+                      <Button
+                        icon="trash"
+                        color="bad"
+                        ml={1}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRemoveVariant(
+                            selectedTier.tier_id,
+                            variant.variant_id,
+                          );
+                        }}
+                      />
+                    </Flex.Item>
+                  </Flex>
+                </Button>
+              ))
+            )}
+          </Stack.Item>
 
-      <Stack.Item>
-        <Section
-          title="Tracks"
-          buttons={
-            <Button icon="plus" disabled={!selectedTier} onClick={onAddVariant}>
-              Add Track
-            </Button>
-          }
-        >
-          {!selectedTier ? (
-            <Box color="label">Select a scene to manage its tracks.</Box>
-          ) : (
-            <Stack vertical>
-              <Stack.Item>
-                {selectedTier.variants.length === 0 ? (
-                  <Box color="label">No tracks yet.</Box>
-                ) : (
-                  selectedTier.variants.map((variant) => (
-                    <Button
-                      key={variant.variant_id}
+          <Stack.Item grow={1}>
+            <Section title="Track Details">
+              {!selectedVariant ? (
+                <Box color="label">Select a track from the list above.</Box>
+              ) : (
+                <LabeledList>
+                  <LabeledList.Item label="Title">
+                    <Input
                       fluid
-                      selected={selectedVariantId === variant.variant_id}
-                      onClick={() =>
-                        onSelectVariant(
+                      value={selectedVariant.title}
+                      onInput={(e, value) =>
+                        onSetVariantTitle(
                           selectedTier.tier_id,
-                          variant.variant_id,
+                          selectedVariant.variant_id,
+                          value,
                         )
                       }
-                      style={{ marginBottom: '0.25rem' }}
-                    >
-                      <Flex justify="space-between" width="100%">
-                        <Flex.Item grow>
-                          <Box bold>{variant.title || 'Unnamed track'}</Box>
-                          <Box fontSize="0.8rem" color="label">
-                            {variant.description || 'No description'}
-                          </Box>
-                        </Flex.Item>
-                        <Flex.Item ml={1} textAlign="right">
-                          <Box fontSize="0.8rem">
-                            {formatDuration(variant.duration_seconds)}
-                          </Box>
-                          <Button
-                            icon="trash"
-                            color="bad"
-                            ml={1}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              onRemoveVariant(
-                                selectedTier.tier_id,
-                                variant.variant_id,
-                              );
-                            }}
-                          />
-                        </Flex.Item>
-                      </Flex>
-                    </Button>
-                  ))
-                )}
-              </Stack.Item>
-
-              {selectedVariant && (
-                <Stack.Item>
-                  <Section
-                    title={`Track: ${selectedVariant.title || 'Unnamed track'}`}
-                  >
-                    <LabeledList>
-                      <LabeledList.Item label="Title">
-                        <Input
-                          fluid
-                          value={selectedVariant.title}
-                          onInput={(e, value) =>
-                            onSetVariantTitle(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                        />
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Description" verticalAlign="top">
-                        <TextArea
-                          fluid
-                          height={DESCRIPTION_FIELD_HEIGHT}
-                          value={selectedVariant.description}
-                          onInput={(e, value) =>
-                            onSetVariantDescription(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                          placeholder="Track description"
-                          scrollbar
-                        />
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Duration">
-                        <NumberInput
-                          minValue={0}
-                          maxValue={86400}
-                          step={1}
-                          value={selectedVariant.duration_seconds}
-                          onChange={(value) =>
-                            onSetVariantDuration(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                        />
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Source URL">
-                        <Input
-                          fluid
-                          value={selectedVariant.source_url}
-                          onInput={(e, value) =>
-                            onSetVariantSourceUrl(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                          placeholder="https://..."
-                        />
-                      </LabeledList.Item>
-                    </LabeledList>
-                  </Section>
-                </Stack.Item>
+                    />
+                  </LabeledList.Item>
+                  <LabeledList.Item label="Description" verticalAlign="top">
+                    <TextArea
+                      fluid
+                      height={DESCRIPTION_FIELD_HEIGHT}
+                      value={selectedVariant.description}
+                      onInput={(e, value) =>
+                        onSetVariantDescription(
+                          selectedTier.tier_id,
+                          selectedVariant.variant_id,
+                          value,
+                        )
+                      }
+                      placeholder="Track description"
+                      scrollbar
+                    />
+                  </LabeledList.Item>
+                  <LabeledList.Item label="Duration">
+                    <NumberInput
+                      minValue={0}
+                      maxValue={86400}
+                      step={1}
+                      value={selectedVariant.duration_seconds}
+                      onChange={(value) =>
+                        onSetVariantDuration(
+                          selectedTier.tier_id,
+                          selectedVariant.variant_id,
+                          value,
+                        )
+                      }
+                    />
+                  </LabeledList.Item>
+                  <LabeledList.Item label="Source URL">
+                    <Input
+                      fluid
+                      value={selectedVariant.source_url}
+                      onInput={(e, value) =>
+                        onSetVariantSourceUrl(
+                          selectedTier.tier_id,
+                          selectedVariant.variant_id,
+                          value,
+                        )
+                      }
+                      placeholder="https://..."
+                    />
+                  </LabeledList.Item>
+                </LabeledList>
               )}
-            </Stack>
-          )}
-        </Section>
-      </Stack.Item>
-    </Stack>
+            </Section>
+          </Stack.Item>
+        </Stack>
+      )}
+    </Section>
   );
 }
