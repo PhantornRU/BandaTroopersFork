@@ -85,6 +85,28 @@ type AdminMusicPanelData = {
 
 const DEFAULT_PREVIEW_VOLUME = 0.2;
 const DESCRIPTION_FIELD_HEIGHT = 4.5;
+const PLAYER_CARD_STYLE = {
+  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  borderRadius: '0.35rem',
+  padding: '0.75rem',
+};
+const PLAYER_STRIP_STYLE = {
+  background:
+    'linear-gradient(90deg, rgba(70, 140, 60, 0.22) 0%, rgba(25, 40, 25, 0.24) 100%)',
+  border: '1px solid rgba(120, 190, 100, 0.3)',
+  borderRadius: '0.35rem',
+  padding: '0.85rem',
+};
+const PLAYER_BADGE_STYLE = {
+  display: 'inline-block',
+  padding: '0.15rem 0.45rem',
+  marginRight: '0.35rem',
+  marginBottom: '0.35rem',
+  borderRadius: '999px',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  backgroundColor: 'rgba(0, 0, 0, 0.18)',
+};
 
 const formatDuration = (duration_seconds: number) => {
   if (!Number.isFinite(duration_seconds) || duration_seconds <= 0) {
@@ -96,6 +118,16 @@ const formatDuration = (duration_seconds: number) => {
   return minutes
     ? `${minutes}m ${String(remainder).padStart(2, '0')}s`
     : `${remainder}s`;
+};
+const formatSourceLabel = (source_url: string) => {
+  if (!source_url) {
+    return 'No source URL';
+  }
+  try {
+    return new URL(source_url).hostname.replace(/^www\./, '');
+  } catch {
+    return source_url;
+  }
 };
 
 const findTier = (draft: DraftPreset, tierId: string | null) =>
@@ -521,9 +553,19 @@ function SessionSection({
   current_session,
   onStopBroadcast,
 }: SessionSectionProps) {
+  const broadcastTitle =
+    current_session?.variant_title ||
+    current_session?.resolved_title ||
+    'Untitled broadcast';
+  const broadcastPath =
+    current_session?.preset_name &&
+    [current_session.preset_name, current_session.tier_name]
+      .filter(Boolean)
+      .join(' / ');
+
   return (
     <Section
-      title="Broadcast"
+      title="Live Broadcast"
       buttons={
         <Button
           icon="stop"
@@ -536,49 +578,49 @@ function SessionSection({
       }
     >
       {!current_session ? (
-        <Box color="label">No active broadcast.</Box>
+        <Box color="label">
+          Broadcast deck is idle. Load a preset, cue a scene, and send a track
+          live when you are ready.
+        </Box>
       ) : (
-        <LabeledList>
-          <LabeledList.Item label="Source">
-            {current_session.source_kind}
-          </LabeledList.Item>
-          <LabeledList.Item label="Owner">
-            {current_session.owner}
-          </LabeledList.Item>
-          <LabeledList.Item label="Audience">
-            {current_session.audience_label}
-          </LabeledList.Item>
-          <LabeledList.Item label="Sound Type">
-            {current_session.sound_type_label}
-          </LabeledList.Item>
-          <LabeledList.Item label="Show Title">
-            {current_session.show_title_to_players ? 'Yes' : 'No'}
-          </LabeledList.Item>
-          <LabeledList.Item label="Title">
-            {current_session.resolved_title}
-          </LabeledList.Item>
-          <LabeledList.Item label="URL">
-            {current_session.source_url}
-          </LabeledList.Item>
-          {current_session.preset_name && (
-            <LabeledList.Item label="Preset">
-              {current_session.preset_name}
-            </LabeledList.Item>
-          )}
-          {current_session.tier_name && (
-            <LabeledList.Item label="Scene">
-              {current_session.tier_name}
-            </LabeledList.Item>
-          )}
-          {current_session.variant_title && (
-            <LabeledList.Item label="Track">
-              {current_session.variant_title}
-            </LabeledList.Item>
-          )}
-          <LabeledList.Item label="Loop">
-            {current_session.loop ? 'Yes' : 'No'}
-          </LabeledList.Item>
-        </LabeledList>
+        <Box style={PLAYER_STRIP_STYLE}>
+          <Flex align="center" justify="space-between" width="100%">
+            <Flex.Item grow>
+              <Box color="label" fontSize="0.8rem">
+                On air
+              </Box>
+              <Box bold fontSize="1.25rem">
+                {broadcastTitle}
+              </Box>
+              <Box color="label">
+                {broadcastPath || 'Legacy broadcast session'}
+              </Box>
+            </Flex.Item>
+            <Flex.Item ml={1} textAlign="right">
+              <Box style={PLAYER_BADGE_STYLE}>
+                Audience {current_session.audience_label}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Mode {current_session.sound_type_label}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                DJ Loop {current_session.loop ? 'On' : 'Off'}
+              </Box>
+            </Flex.Item>
+          </Flex>
+          <Box style={{ marginTop: '0.45rem' }}>
+            <Box style={PLAYER_BADGE_STYLE}>Owner {current_session.owner}</Box>
+            <Box style={PLAYER_BADGE_STYLE}>
+              Source {current_session.source_kind}
+            </Box>
+            <Box style={PLAYER_BADGE_STYLE}>
+              Show Title {current_session.show_title_to_players ? 'Yes' : 'No'}
+            </Box>
+            <Box style={PLAYER_BADGE_STYLE}>
+              Link {formatSourceLabel(current_session.source_url)}
+            </Box>
+          </Box>
+        </Box>
       )}
     </Section>
   );
@@ -730,14 +772,23 @@ function PresetEditorSection({
     >
       <Stack vertical>
         <Stack.Item>
-          <LabeledList>
-            <LabeledList.Item label="Preset ID">
-              {draft.preset_id || 'New preset'}
-            </LabeledList.Item>
-            <LabeledList.Item label="Unsaved">
-              {dirty ? 'Yes' : 'No'}
-            </LabeledList.Item>
-          </LabeledList>
+          <Box style={PLAYER_CARD_STYLE}>
+            <Box color="label" fontSize="0.8rem">
+              Preset Sheet
+            </Box>
+            <Box bold fontSize="1.05rem">
+              {draft.name || 'New preset'}
+            </Box>
+            <Box style={{ marginTop: '0.45rem' }}>
+              <Box style={PLAYER_BADGE_STYLE}>
+                ID {draft.preset_id || 'new'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Unsaved {dirty ? 'Yes' : 'No'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>Scenes {draft.tiers.length}</Box>
+            </Box>
+          </Box>
         </Stack.Item>
         <Stack.Item>
           <LabeledList>
@@ -798,6 +849,19 @@ function SceneEditorSection({
     >
       <Stack fill vertical>
         <Stack.Item>
+          {selectedTier && (
+            <Box style={{ ...PLAYER_CARD_STYLE, marginBottom: '0.5rem' }}>
+              <Box color="label" fontSize="0.8rem">
+                Current Scene
+              </Box>
+              <Box bold fontSize="1.05rem">
+                {selectedTier.name || 'Unnamed scene'}
+              </Box>
+              <Box color="label">
+                {selectedTier.description || 'No scene description'}
+              </Box>
+            </Box>
+          )}
           {draft.tiers.length === 0 ? (
             <Box color="label">No scenes yet.</Box>
           ) : (
@@ -906,87 +970,117 @@ function ControllerSection({
   previewVolume,
   hasSelection,
 }: ControllerSectionProps) {
+  const selectionTitle = selectedVariant?.title || 'No track selected';
+  const selectionDescription =
+    selectedVariant?.description ||
+    'Pick a scene on the left, then choose a track to cue or broadcast.';
+
   return (
-    <Section title="Controller">
+    <Section title="Deck">
       <Stack vertical>
         <Stack.Item>
-          <LabeledList>
-            <LabeledList.Item label="Preset">
-              {draft.name || 'New preset'}
-            </LabeledList.Item>
-            <LabeledList.Item label="Scene">
-              {selectedTier?.name || 'No scene selected'}
-            </LabeledList.Item>
-            <LabeledList.Item label="Track">
-              {selectedVariant?.title || 'No track selected'}
-            </LabeledList.Item>
-          </LabeledList>
+          <Box style={PLAYER_CARD_STYLE}>
+            <Box color="label" fontSize="0.8rem">
+              Cue Selection
+            </Box>
+            <Box bold fontSize="1.35rem">
+              {selectionTitle}
+            </Box>
+            <Box color="label">{selectionDescription}</Box>
+            <Box style={{ marginTop: '0.45rem' }}>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Preset {draft.name || 'New preset'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Scene {selectedTier?.name || 'None'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Length{' '}
+                {selectedVariant
+                  ? formatDuration(selectedVariant.duration_seconds)
+                  : 'Unknown'}
+              </Box>
+              <Box style={PLAYER_BADGE_STYLE}>
+                Source{' '}
+                {selectedVariant
+                  ? formatSourceLabel(selectedVariant.source_url)
+                  : 'None'}
+              </Box>
+            </Box>
+          </Box>
         </Stack.Item>
         <Stack.Item>
-          <LabeledList>
-            <LabeledList.Item label="Audience">
-              <Dropdown
-                options={audienceOptions}
-                selected={draft.playback.audience_mode}
-                displayText={audienceLabel}
-                onSelected={(value) => onSetAudienceMode(value)}
-              />
-            </LabeledList.Item>
-            <LabeledList.Item label="Sound Type">
-              <Dropdown
-                options={soundTypeOptions}
-                selected={draft.playback.sound_type}
-                displayText={soundTypeLabel}
-                onSelected={(value) => onSetSoundType(value)}
-              />
-            </LabeledList.Item>
-            <LabeledList.Item label="Show Title">
-              <Button.Checkbox
-                checked={draft.playback.show_title_to_players}
-                onClick={onToggleShowTitle}
-              >
-                Visible to players
-              </Button.Checkbox>
-            </LabeledList.Item>
-          </LabeledList>
-        </Stack.Item>
-        <Stack.Item>
-          <Stack>
-            <Stack.Item>
+          <Stack fill>
+            <Stack.Item grow>
               <Button
+                fluid
                 color="good"
                 icon="eye"
                 disabled={!hasSelection}
                 onClick={onPreviewSelected}
               >
-                Preview Track
+                Preview
               </Button>
             </Stack.Item>
-            <Stack.Item>
-              <Button color="bad" icon="stop" onClick={onStopPreview}>
-                Stop Preview
+            <Stack.Item grow>
+              <Button fluid color="bad" icon="stop" onClick={onStopPreview}>
+                Stop Cue
               </Button>
             </Stack.Item>
-            <Stack.Item>
+            <Stack.Item grow>
               <Button
+                fluid
                 color="good"
                 icon="play"
                 disabled={!hasSelection}
                 onClick={onPlaySelected}
               >
-                Broadcast Track
+                Broadcast
               </Button>
             </Stack.Item>
           </Stack>
         </Stack.Item>
         <Stack.Item>
+          <Section title="Broadcast Settings">
+            <LabeledList>
+              <LabeledList.Item label="Audience">
+                <Dropdown
+                  options={audienceOptions}
+                  selected={draft.playback.audience_mode}
+                  displayText={audienceLabel}
+                  onSelected={(value) => onSetAudienceMode(value)}
+                />
+              </LabeledList.Item>
+              <LabeledList.Item label="Sound Type">
+                <Dropdown
+                  options={soundTypeOptions}
+                  selected={draft.playback.sound_type}
+                  displayText={soundTypeLabel}
+                  onSelected={(value) => onSetSoundType(value)}
+                />
+              </LabeledList.Item>
+              <LabeledList.Item label="Show Title">
+                <Button.Checkbox
+                  checked={draft.playback.show_title_to_players}
+                  onClick={onToggleShowTitle}
+                >
+                  Visible to players
+                </Button.Checkbox>
+              </LabeledList.Item>
+            </LabeledList>
+          </Section>
+        </Stack.Item>
+        <Stack.Item>
           <Section
-            title="Deck"
+            title="Cue Output"
             buttons={
               <Box color="label">Volume {Math.round(previewVolume * 100)}%</Box>
             }
           >
-            <Box>{previewState}</Box>
+            <Box bold>{previewState}</Box>
+            <Box color="label">
+              Local preview only. Broadcast uses the shared admin music channel.
+            </Box>
           </Section>
         </Stack.Item>
       </Stack>
@@ -1052,6 +1146,26 @@ function TrackEditorSection({
       ) : (
         <Stack fill vertical>
           <Stack.Item>
+            <Box style={{ ...PLAYER_CARD_STYLE, marginBottom: '0.5rem' }}>
+              <Flex align="center" justify="space-between" width="100%">
+                <Flex.Item grow>
+                  <Box color="label" fontSize="0.8rem">
+                    Scene Rack
+                  </Box>
+                  <Box bold fontSize="1.05rem">
+                    {selectedTier.name || 'Unnamed scene'}
+                  </Box>
+                  <Box color="label">
+                    {selectedTier.description || 'No scene description'}
+                  </Box>
+                </Flex.Item>
+                <Flex.Item ml={1} textAlign="right">
+                  <Box style={PLAYER_BADGE_STYLE}>
+                    Tracks {selectedTier.variants.length}
+                  </Box>
+                </Flex.Item>
+              </Flex>
+            </Box>
             {selectedTier.variants.length === 0 ? (
               <Box color="label">No tracks yet.</Box>
             ) : (
@@ -1070,6 +1184,9 @@ function TrackEditorSection({
                       <Box bold>{variant.title || 'Unnamed track'}</Box>
                       <Box fontSize="0.8rem" color="label">
                         {variant.description || 'No description'}
+                      </Box>
+                      <Box fontSize="0.75rem" color="label">
+                        {formatSourceLabel(variant.source_url)}
                       </Box>
                     </Flex.Item>
                     <Flex.Item ml={1} textAlign="right">
@@ -1100,66 +1217,92 @@ function TrackEditorSection({
               {!selectedVariant ? (
                 <Box color="label">Select a track from the list above.</Box>
               ) : (
-                <LabeledList>
-                  <LabeledList.Item label="Title">
-                    <Input
-                      fluid
-                      value={selectedVariant.title}
-                      onInput={(e, value) =>
-                        onSetVariantTitle(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                          value,
-                        )
-                      }
-                    />
-                  </LabeledList.Item>
-                  <LabeledList.Item label="Description" verticalAlign="top">
-                    <TextArea
-                      fluid
-                      height={DESCRIPTION_FIELD_HEIGHT}
-                      value={selectedVariant.description}
-                      onInput={(e, value) =>
-                        onSetVariantDescription(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                          value,
-                        )
-                      }
-                      placeholder="Track description"
-                      scrollbar
-                    />
-                  </LabeledList.Item>
-                  <LabeledList.Item label="Duration">
-                    <NumberInput
-                      minValue={0}
-                      maxValue={86400}
-                      step={1}
-                      value={selectedVariant.duration_seconds}
-                      onChange={(value) =>
-                        onSetVariantDuration(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                          value,
-                        )
-                      }
-                    />
-                  </LabeledList.Item>
-                  <LabeledList.Item label="Source URL">
-                    <Input
-                      fluid
-                      value={selectedVariant.source_url}
-                      onInput={(e, value) =>
-                        onSetVariantSourceUrl(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                          value,
-                        )
-                      }
-                      placeholder="https://..."
-                    />
-                  </LabeledList.Item>
-                </LabeledList>
+                <Stack vertical>
+                  <Stack.Item>
+                    <Box style={PLAYER_CARD_STYLE}>
+                      <Box color="label" fontSize="0.8rem">
+                        Loaded Track
+                      </Box>
+                      <Box bold fontSize="1.1rem">
+                        {selectedVariant.title || 'Unnamed track'}
+                      </Box>
+                      <Box color="label">
+                        {selectedVariant.description || 'No track description'}
+                      </Box>
+                      <Box style={{ marginTop: '0.45rem' }}>
+                        <Box style={PLAYER_BADGE_STYLE}>
+                          Length{' '}
+                          {formatDuration(selectedVariant.duration_seconds)}
+                        </Box>
+                        <Box style={PLAYER_BADGE_STYLE}>
+                          Source {formatSourceLabel(selectedVariant.source_url)}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <LabeledList>
+                      <LabeledList.Item label="Title">
+                        <Input
+                          fluid
+                          value={selectedVariant.title}
+                          onInput={(e, value) =>
+                            onSetVariantTitle(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                              value,
+                            )
+                          }
+                        />
+                      </LabeledList.Item>
+                      <LabeledList.Item label="Description" verticalAlign="top">
+                        <TextArea
+                          fluid
+                          height={DESCRIPTION_FIELD_HEIGHT}
+                          value={selectedVariant.description}
+                          onInput={(e, value) =>
+                            onSetVariantDescription(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                              value,
+                            )
+                          }
+                          placeholder="Track description"
+                          scrollbar
+                        />
+                      </LabeledList.Item>
+                      <LabeledList.Item label="Duration">
+                        <NumberInput
+                          minValue={0}
+                          maxValue={86400}
+                          step={1}
+                          value={selectedVariant.duration_seconds}
+                          onChange={(value) =>
+                            onSetVariantDuration(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                              value,
+                            )
+                          }
+                        />
+                      </LabeledList.Item>
+                      <LabeledList.Item label="Source URL">
+                        <Input
+                          fluid
+                          value={selectedVariant.source_url}
+                          onInput={(e, value) =>
+                            onSetVariantSourceUrl(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                              value,
+                            )
+                          }
+                          placeholder="https://..."
+                        />
+                      </LabeledList.Item>
+                    </LabeledList>
+                  </Stack.Item>
+                </Stack>
               )}
             </Section>
           </Stack.Item>
