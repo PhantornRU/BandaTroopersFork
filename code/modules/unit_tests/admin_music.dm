@@ -5,8 +5,7 @@
 /datum/unit_test/admin_music/New()
 	. = ..()
 	service = new /datum/admin_music_service
-	service.library_loaded = TRUE
-	service.presets = list()
+	service.preset_library.reset_cache(TRUE)
 	temp_paths = list()
 
 /datum/unit_test/admin_music/Destroy()
