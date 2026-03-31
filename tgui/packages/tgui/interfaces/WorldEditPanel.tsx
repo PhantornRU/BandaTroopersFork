@@ -91,6 +91,12 @@ type ChangesetSummary = {
   undo_status: string;
 };
 
+type PlacementOption = {
+  label: string;
+  value: string;
+  description?: string;
+};
+
 type PresetEntry = {
   id: string;
   name: string;
@@ -129,6 +135,15 @@ type BackendData = {
   has_inline_fields: boolean;
   ui_mode: 'inline' | 'wizard_fallback';
   runtime_status: RuntimeStatusEntry[];
+  placement_supported: boolean;
+  placement_active: boolean;
+  placement_mode: string;
+  placement_mode_options: PlacementOption[];
+  placement_supports_direction: boolean;
+  placement_dir: string;
+  placement_dir_options: PlacementOption[];
+  placement_anchor?: string;
+  can_start_placement_mode: boolean;
   can_manage_presets: boolean;
   preset_entries: PresetEntry[];
   blueprint_entries: BlueprintEntry[];
@@ -715,6 +730,14 @@ export const WorldEditPanel = () => {
                   </Stack.Item>
                   <Stack.Item>
                     <Button
+                      disabled={!data.can_start_placement_mode}
+                      onClick={() => act('start_placement_mode')}
+                    >
+                      Start placement mode
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Button
                       color="average"
                       disabled={!data.can_stop_click_mode}
                       onClick={() => act('stop_click_mode')}
@@ -751,6 +774,70 @@ export const WorldEditPanel = () => {
                     Click-режим активен: {data.click_mode_active ? 'да' : 'нет'}
                   </Box>
                 </Section>
+
+                {data.placement_supported && (
+                  <Section title="Placement UX">
+                    <LabeledList>
+                      <LabeledList.Item label="Placement mode">
+                        <Dropdown
+                          width="100%"
+                          options={(data.placement_mode_options || []).map(
+                            (option) => ({
+                              value: option.value,
+                              displayText: option.description ? (
+                                <Box>
+                                  <Box>{option.label}</Box>
+                                  <Box color="label" fontSize={0.85}>
+                                    {option.description}
+                                  </Box>
+                                </Box>
+                              ) : (
+                                option.label
+                              ),
+                            }),
+                          )}
+                          selected={data.placement_mode}
+                          onSelected={(value) =>
+                            act('set_placement_mode', { mode: value })
+                          }
+                        />
+                      </LabeledList.Item>
+
+                      {data.placement_supports_direction && (
+                        <LabeledList.Item label="Direction">
+                          <Dropdown
+                            width="100%"
+                            options={(data.placement_dir_options || []).map(
+                              (option) => ({
+                                value: option.value,
+                                displayText: option.label,
+                              }),
+                            )}
+                            selected={data.placement_dir}
+                            onSelected={(value) =>
+                              act('set_placement_dir', { direction: value })
+                            }
+                          />
+                        </LabeledList.Item>
+                      )}
+
+                      <LabeledList.Item label="Status">
+                        {data.placement_active ? 'active' : 'inactive'}
+                      </LabeledList.Item>
+
+                      <LabeledList.Item label="Pending anchor">
+                        {data.placement_anchor || 'none'}
+                      </LabeledList.Item>
+                    </LabeledList>
+
+                    <Box color="label" mt={1}>
+                      {data.placement_mode === 'line' ||
+                      data.placement_mode === 'rectangle'
+                        ? 'LMB sets the first point, second LMB previews and applies, MMB resets the pending anchor.'
+                        : 'LMB previews and applies at the clicked turf. Use Stop click-mode to exit.'}
+                    </Box>
+                  </Section>
+                )}
 
                 <Section title="Последний apply">
                   <Box color={data.last_apply_success ? 'good' : 'average'}>
