@@ -1,6 +1,7 @@
 #include "_world_edit.dm"
 
 #include "code/core/world_edit_types.dm"
+#include "code/core/world_edit_changesets.dm"
 #include "code/core/world_edit_logging.dm"
 #include "code/core/world_edit_presets.dm"
 #include "code/core/world_edit_blueprints.dm"

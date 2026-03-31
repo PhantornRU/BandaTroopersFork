@@ -21,6 +21,10 @@
 	var/fire_stacks_per_second = 2
 	/// Интенсивность воздействия на турф через flamer_fire_act.
 	var/turf_fire_act_per_second = 8
+	/// Operation id владельца эффекта для cleanup-path World Edit.
+	var/world_edit_owner_operation_id = ""
+	/// Generator id источника эффекта.
+	var/world_edit_source_generator_id = ""
 
 /obj/effect/world_edit_persistent_fire/Initialize(mapload, ...)
 	. = ..()
@@ -46,3 +50,7 @@
 
 /obj/effect/world_edit_persistent_fire/extinguish()
 	qdel(src)
+
+/obj/effect/world_edit_persistent_fire/proc/set_world_edit_owner(operation_id, generator_id)
+	world_edit_owner_operation_id = length("[operation_id]") ? "[operation_id]" : ""
+	world_edit_source_generator_id = length("[generator_id]") ? "[generator_id]" : ""

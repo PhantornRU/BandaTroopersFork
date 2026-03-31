@@ -159,6 +159,17 @@
 	var/turf/center_turf = result.center_turf || get_turf(user)
 	var/params_short = current_generator.get_params_short(current_params)
 	var/result_code = result.success ? "ok" : "error"
+	var/datum/world_edit_changeset/changeset
+	if(result.success && istype(result.changeset))
+		changeset = result.changeset
+		if(!length(changeset.generator_id))
+			changeset.generator_id = current_definition.id
+		if(!islist(changeset.metadata))
+			changeset.metadata = list()
+		if(center_turf && !changeset.metadata["center_turf"])
+			changeset.metadata["center_turf"] = center_turf
+		changeset = push_changeset(changeset)
+
 	world_edit_log_operation(
 		holder,
 		current_definition.id,
@@ -178,7 +189,8 @@
 		center_turf,
 		params_short,
 		result.message,
-		duration_ds * 100
+		duration_ds * 100,
+		build_changeset_history_meta(changeset)
 	)
 
 	last_apply_success = result.success ? TRUE : FALSE
@@ -208,3 +220,119 @@
 	last_apply_message = message
 	to_chat(user, SPAN_WARNING(message))
 	return null
+
+/datum/world_edit_manager/proc/fail_undo_action(mob/user, action_kind, message)
+	last_undo_action = action_kind
+	last_undo_success = FALSE
+	last_undo_message = message
+	to_chat(user, SPAN_WARNING(message))
+	return FALSE
+
+/datum/world_edit_manager/proc/undo_last_operation(mob/user)
+	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return fail_undo_action(user, "undo", "Недостаточно прав для undo World Edit.")
+
+	var/datum/world_edit_changeset/changeset = get_last_changeset()
+	if(!istype(changeset))
+		return fail_undo_action(user, "undo", "В session нет записанной операции для undo.")
+	if(!changeset.can_undo())
+		return fail_undo_action(user, "undo", "Последняя записанная операция не поддерживает undo в этой фазе.")
+
+	var/list/undo_result = world_edit_revert_changeset(changeset)
+	var/reverted_count = text2num("[undo_result["reverted_count"]]") || 0
+	var/skipped_count = text2num("[undo_result["skipped_count"]]") || 0
+	var/outcome = "[undo_result["outcome"] || "none"]"
+	var/message = "Undo [changeset.generator_id] ([changeset.undo_policy]): reverted=[reverted_count], skipped=[skipped_count], outcome=[outcome]."
+	var/turf/center_turf = changeset.metadata["center_turf"] || get_turf(user)
+	var/params_short = "source=[changeset.generator_id]; operation_id=[changeset.operation_id]; policy=[changeset.undo_policy]"
+	var/result_code = (outcome == "full") ? "undo_ok" : ((outcome == "partial") ? "undo_partial" : "undo_skipped")
+
+	changeset.created_entries = list()
+	changeset.moved_entries = list()
+	prune_changeset_stack()
+	reset_preview_runtime()
+
+	last_undo_action = "undo"
+	last_undo_success = reverted_count > 0 ? TRUE : FALSE
+	last_undo_message = message
+
+	world_edit_log_operation(holder, "undo_last_operation", 0, center_turf, 0, reverted_count, 0, result_code, params_short)
+	add_history_entry(
+		"undo_last_operation",
+		result_code,
+		0,
+		reverted_count,
+		center_turf,
+		params_short,
+		message,
+		0,
+		list(
+			"undo_policy" = changeset.undo_policy,
+			"undo_status" = outcome,
+			"reverted_count" = reverted_count,
+			"skipped_count" = skipped_count,
+			"source_operation_id" = changeset.operation_id,
+			"source_generator_id" = changeset.generator_id,
+		)
+	)
+
+	if(reverted_count > 0)
+		to_chat(user, SPAN_NOTICE(message))
+	else
+		to_chat(user, SPAN_WARNING(message))
+
+	return undo_result
+
+/datum/world_edit_manager/proc/cleanup_last_owned_effects(mob/user)
+	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+		return fail_undo_action(user, "cleanup", "Недостаточно прав для cleanup owned effects.")
+
+	var/datum/world_edit_changeset/changeset = get_last_changeset()
+	if(!istype(changeset))
+		return fail_undo_action(user, "cleanup", "В session нет записанной операции для cleanup owned effects.")
+	if(!changeset.can_cleanup_owned_effects())
+		return fail_undo_action(user, "cleanup", "Последняя записанная операция не содержит owned effects для cleanup.")
+
+	var/list/cleanup_result = world_edit_cleanup_changeset_owned_effects(changeset)
+	var/removed_count = text2num("[cleanup_result["reverted_count"]]") || 0
+	var/skipped_count = text2num("[cleanup_result["skipped_count"]]") || 0
+	var/outcome = "[cleanup_result["outcome"] || "none"]"
+	var/message = "Cleanup owned effects for [changeset.generator_id]: removed=[removed_count], skipped=[skipped_count], outcome=[outcome]."
+	var/turf/center_turf = changeset.metadata["center_turf"] || get_turf(user)
+	var/params_short = "source=[changeset.generator_id]; operation_id=[changeset.operation_id]"
+	var/result_code = (outcome == "full") ? "cleanup_ok" : ((outcome == "partial") ? "cleanup_partial" : "cleanup_skipped")
+
+	changeset.owned_effect_entries = list()
+	prune_changeset_stack()
+	reset_preview_runtime()
+
+	last_undo_action = "cleanup"
+	last_undo_success = removed_count > 0 ? TRUE : FALSE
+	last_undo_message = message
+
+	world_edit_log_operation(holder, "cleanup_last_owned_effects", 0, center_turf, 0, removed_count, 0, result_code, params_short)
+	add_history_entry(
+		"cleanup_last_owned_effects",
+		result_code,
+		0,
+		removed_count,
+		center_turf,
+		params_short,
+		message,
+		0,
+		list(
+			"undo_policy" = changeset.undo_policy,
+			"undo_status" = outcome,
+			"reverted_count" = removed_count,
+			"skipped_count" = skipped_count,
+			"source_operation_id" = changeset.operation_id,
+			"source_generator_id" = changeset.generator_id,
+		)
+	)
+
+	if(removed_count > 0)
+		to_chat(user, SPAN_NOTICE(message))
+	else
+		to_chat(user, SPAN_WARNING(message))
+
+	return cleanup_result

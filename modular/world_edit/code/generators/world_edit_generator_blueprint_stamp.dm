@@ -73,9 +73,19 @@
 			return result
 
 	var/created_count = 0
+	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "blueprint_stamp", WORLD_EDIT_UNDO_FULL, list(
+		"center_turf" = plan.metadata["center_turf"],
+		"blueprint_id" = plan.metadata["blueprint_id"],
+		"blueprint_name" = plan.metadata["blueprint_name"],
+	))
 	for(var/list/placement as anything in plan.placements)
-		if(world_edit_spawn_blueprint_entry(placement))
+		var/obj/created_object = world_edit_spawn_blueprint_entry(placement)
+		if(created_object)
 			created_count++
+			changeset.add_created(created_object, placement["turf"], list(
+				"kind" = placement["kind"],
+				"obj_path" = placement["obj_path"],
+			))
 
 	result.center_turf = plan.metadata["center_turf"]
 	result.created_count = created_count
@@ -86,6 +96,7 @@
 		return result
 
 	result.success = TRUE
+	result.changeset = changeset
 	result.message = "Blueprint '[plan.metadata["blueprint_name"]]' stamped successfully: created=[created_count]."
 	return result
 

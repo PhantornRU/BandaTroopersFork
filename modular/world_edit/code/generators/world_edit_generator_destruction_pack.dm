@@ -209,6 +209,11 @@
 
 	var/moved_count = 0
 	var/skipped_runtime = 0
+	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "destruction_pack", WORLD_EDIT_UNDO_PARTIAL, list(
+		"center_turf" = plan.metadata["center_turf"],
+		"shuffle" = plan.metadata["shuffle"],
+		"scatter" = plan.metadata["scatter"],
+	))
 	for(var/list/placement as anything in plan.placements)
 		if(placement["kind"] != "move")
 			continue
@@ -241,6 +246,10 @@
 
 		if(moved_this_target)
 			moved_count++
+			changeset.add_moved(target, source_turf, get_turf(target), list(
+				"shuffle" = plan.metadata["shuffle"],
+				"scatter" = plan.metadata["scatter"],
+			))
 		else
 			skipped_runtime++
 
@@ -255,6 +264,7 @@
 		return result
 
 	result.success = TRUE
+	result.changeset = changeset
 	result.message = "Destruction pack moved [moved_count] movable targets."
 	return result
 

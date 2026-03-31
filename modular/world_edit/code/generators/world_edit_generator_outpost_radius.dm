@@ -76,13 +76,30 @@
 
 /datum/world_edit_generator/outpost_radius/proc/spawn_defense_path(turf/target_turf, dir_to_spawn, defense_path, faction = null, turned_on = FALSE)
 	if(!target_turf)
-		return FALSE
+		return null
 	if(!ispath(defense_path, /datum/human_ai_defense))
-		return FALSE
+		return null
 
 	var/datum/human_ai_defense/defense_definition = new defense_path()
+	var/obj_path = defense_definition.path_to_spawn || world_edit_resolve_defense_spawn_path(defense_path)
+	var/list/existing_lookup = list()
+	if(ispath(obj_path, /obj))
+		for(var/obj/existing as anything in target_turf)
+			if(istype(existing, obj_path))
+				existing_lookup[existing] = TRUE
+
 	defense_definition.spawn_object(target_turf, dir_to_spawn, faction, turned_on)
-	return TRUE
+
+	var/obj/created_object
+	if(ispath(obj_path, /obj))
+		for(var/obj/candidate as anything in target_turf)
+			if(!istype(candidate, obj_path) || existing_lookup[candidate])
+				continue
+			created_object = candidate
+			break
+
+	qdel(defense_definition)
+	return created_object
 
 /datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius)
 	var/list/result = list(
@@ -276,6 +293,9 @@
 	var/created_barricades = 0
 	var/created_sentries = 0
 	var/skipped_runtime = 0
+	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "outpost_radius", WORLD_EDIT_UNDO_FULL, list(
+		"center_turf" = center_turf,
+	))
 
 	for(var/list/placement as anything in plan.placements)
 		var/turf/target_turf = placement["turf"]
@@ -288,8 +308,10 @@
 			if(!can_place_barricade_on_turf(target_turf))
 				skipped_runtime++
 				continue
-			if(spawn_defense_path(target_turf, placement["dir"], defense_path))
+			var/obj/created_object = spawn_defense_path(target_turf, placement["dir"], defense_path)
+			if(created_object)
 				created_barricades++
+				changeset.add_created(created_object, target_turf, list("kind" = placement_kind))
 			else
 				skipped_runtime++
 			continue
@@ -299,8 +321,10 @@
 		if(!can_place_sentry_on_turf(target_turf))
 			skipped_runtime++
 			continue
-		if(spawn_defense_path(target_turf, placement["dir"], defense_path, placement["faction"], placement["turned_on"]))
+		var/obj/created_sentry = spawn_defense_path(target_turf, placement["dir"], defense_path, placement["faction"], placement["turned_on"])
+		if(created_sentry)
 			created_sentries++
+			changeset.add_created(created_sentry, target_turf, list("kind" = placement_kind))
 		else
 			skipped_runtime++
 
@@ -315,6 +339,7 @@
 		return result
 
 	result.success = TRUE
+	result.changeset = changeset
 	result.message = "Outpost created: barricades=[created_barricades], sentries=[created_sentries], skipped=[skipped_runtime]."
 	return result
 

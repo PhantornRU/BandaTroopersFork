@@ -530,6 +530,9 @@
 	var/chaos_moved_count = 0
 	var/chaos_fire_count = 0
 	var/chaos_affect_anchored = world_edit_parse_bool(params["affect_anchored"])
+	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "chaos_demolition", WORLD_EDIT_UNDO_NONE, list(
+		"center_turf" = chaos_plan.metadata["center_turf"],
+	))
 
 	for(var/list/placement as anything in chaos_plan.placements)
 		if(placement["kind"] == "move")
@@ -557,7 +560,11 @@
 			var/turf/target_turf = placement["turf"]
 			if(!target_turf || (locate(/obj/effect/world_edit_persistent_fire) in target_turf))
 				continue
-			new /obj/effect/world_edit_persistent_fire(target_turf)
+			var/obj/effect/world_edit_persistent_fire/fire = new /obj/effect/world_edit_persistent_fire(target_turf)
+			if(!istype(fire))
+				continue
+			fire.set_world_edit_owner(changeset.operation_id, definition?.id)
+			changeset.add_owned_effect(fire, changeset.operation_id, target_turf)
 			chaos_fire_count++
 
 	for(var/list/deletion as anything in chaos_plan.deletions)
@@ -566,10 +573,15 @@
 		cell_explosion(deletion["center_turf"], deletion["power"], deletion["falloff"], EXPLOSION_FALLOFF_SHAPE_LINEAR, null, create_cause_data("world edit chaos demolition", manager?.holder))
 
 	manager?.clear_preview_images()
+	changeset = manager?.push_changeset(changeset)
 
 	var/chaos_duration_ds = world.time - chaos_start_ds
 	var/chaos_result_code = "click_apply"
 	var/chaos_params_short = get_params_short(params)
+	var/list/history_meta = manager?.build_changeset_history_meta(changeset) || list(
+		"undo_policy" = WORLD_EDIT_UNDO_NONE,
+		"undo_status" = "not_available",
+	)
 	world_edit_log_operation(
 		manager?.holder,
 		definition.id,
@@ -589,7 +601,8 @@
 		chaos_plan.metadata["center_turf"],
 		chaos_params_short,
 		"moved=[chaos_moved_count], fire=[chaos_fire_count], exploded=[length(chaos_plan.deletions) ? "yes" : "no"]",
-		chaos_duration_ds * 100
+		chaos_duration_ds * 100,
+		history_meta
 	)
 
 	to_chat(user, SPAN_NOTICE("Chaos-операция завершена: movable=[chaos_moved_count], fire=[chaos_fire_count], explosion=[length(chaos_plan.deletions) ? "on" : "off"]."))

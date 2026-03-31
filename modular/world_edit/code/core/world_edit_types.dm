@@ -20,6 +20,7 @@
 	var/deleted_count = 0
 	var/turf/center_turf
 	var/list/meta = list()
+	var/datum/world_edit_changeset/changeset
 
 /datum/world_edit_plan
 	var/list/placements = list()
