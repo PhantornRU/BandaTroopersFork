@@ -620,7 +620,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/preset_name = session.preset_name ? session.preset_name : ""
 	var/tier_name = session.tier_name ? session.tier_name : ""
 	var/variant_title = session.variant_title ? session.variant_title : ""
-	var/takeover_suffix = session.takeover ? " [takeover]" : ""
+	var/takeover_suffix = session.takeover ? " (takeover)" : ""
 	var/message = "[key_name(requester)] admin music [action]: source=[session.source_kind], audience=[get_audience_label(session.audience_mode)], sound_type=[get_sound_type_label(session.sound_type)], show_title=[session.show_title_to_players], source_url=[session.source_url], resolved_title=[session.resolved_title], preset=[preset_id]/\"[preset_name]\", tier=\"[tier_name]\", variant=\"[variant_title]\", loop=[session.loop], takeover=[session.takeover]"
 	log_admin(message)
 	message_admins("[key_name_admin(requester)] admin music [action]: [session.resolved_title] ([get_audience_label(session.audience_mode)])[takeover_suffix]")
@@ -662,9 +662,19 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	update_open_panels()
 	return TRUE
 
+/datum/admin_music_service/proc/force_stop_all_clients()
+	for(var/client/target_client as anything in GLOB.clients)
+		target_client?.tgui_panel?.stop_music()
+	return TRUE
+
 /datum/admin_music_service/proc/stop_broadcast(client/requester, reason = "stop")
 	if(!active_session)
-		return FALSE
+		force_stop_all_clients()
+		if(requester)
+			log_admin("[key_name(requester)] admin music [reason]: forced global browser-audio stop with no tracked session.")
+			message_admins("[key_name_admin(requester)] admin music [reason]: forced global browser-audio stop with no tracked session.")
+		update_open_panels()
+		return TRUE
 	stop_session_clients(active_session)
 	log_session_action(requester, reason, active_session)
 	active_session = null

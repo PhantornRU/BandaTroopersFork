@@ -2,17 +2,49 @@ import { storage } from 'common/storage';
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackend } from '../backend';
-import { Box, Button, Dropdown, Flex, Input, LabeledList, NumberInput, Section, Stack, TextArea } from '../components';
+import {
+  Box,
+  Button,
+  Dropdown,
+  Flex,
+  Input,
+  LabeledList,
+  NumberInput,
+  Section,
+  Stack,
+  TextArea,
+} from '../components';
 import { Window } from '../layouts';
 
-type LibraryPreset = { preset_id: string; name: string; description: string; tier_count: number; variant_count: number };
-type DraftVariant = { variant_id: string; title: string; description: string; duration_seconds: number; source_url: string };
-type DraftTier = { tier_id: string; name: string; description: string; variants: DraftVariant[] };
+type LibraryPreset = {
+  preset_id: string;
+  name: string;
+  description: string;
+  tier_count: number;
+  variant_count: number;
+};
+type DraftVariant = {
+  variant_id: string;
+  title: string;
+  description: string;
+  duration_seconds: number;
+  source_url: string;
+};
+type DraftTier = {
+  tier_id: string;
+  name: string;
+  description: string;
+  variants: DraftVariant[];
+};
 type DraftPreset = {
   preset_id: string;
   name: string;
   description: string;
-  playback: { audience_mode: string; sound_type: string; show_title_to_players: boolean };
+  playback: {
+    audience_mode: string;
+    sound_type: string;
+    show_title_to_players: boolean;
+  };
   tiers: DraftTier[];
 };
 type CurrentSession = null | {
@@ -30,7 +62,14 @@ type CurrentSession = null | {
   loop?: boolean;
 };
 type OptionEntry = { id: string; label: string };
-type PreviewCommand = null | { nonce: number | string; command: 'play' | 'stop'; title?: string; url?: string; start?: number; end?: number };
+type PreviewCommand = null | {
+  nonce: number | string;
+  command: 'play' | 'stop';
+  title?: string;
+  url?: string;
+  start?: number;
+  end?: number;
+};
 type AdminMusicPanelData = {
   library: LibraryPreset[];
   draft: DraftPreset;
@@ -53,13 +92,17 @@ const formatDuration = (duration_seconds: number) => {
   const seconds = Math.floor(duration_seconds);
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
-  return minutes ? `${minutes}m ${String(remainder).padStart(2, '0')}s` : `${remainder}s`;
+  return minutes
+    ? `${minutes}m ${String(remainder).padStart(2, '0')}s`
+    : `${remainder}s`;
 };
 
 const findTier = (draft: DraftPreset, tierId: string | null) =>
   draft.tiers.find((tier) => tier.tier_id === tierId) || draft.tiers[0] || null;
 const findVariant = (tier: DraftTier | null, variantId: string | null) =>
-  tier?.variants.find((variant) => variant.variant_id === variantId) || tier?.variants[0] || null;
+  tier?.variants.find((variant) => variant.variant_id === variantId) ||
+  tier?.variants[0] ||
+  null;
 
 export const AdminMusicPanel = () => {
   const { act, data } = useBackend<AdminMusicPanelData>();
@@ -77,9 +120,9 @@ export const AdminMusicPanel = () => {
   } = data;
 
   const [librarySearch, setLibrarySearch] = useState('');
-  const [selectedLibraryPresetId, setSelectedLibraryPresetId] = useState<string | null>(
-    draft?.preset_id || library[0]?.preset_id || null,
-  );
+  const [selectedLibraryPresetId, setSelectedLibraryPresetId] = useState<
+    string | null
+  >(draft?.preset_id || library[0]?.preset_id || null);
   const [previewVolume, setPreviewVolume] = useState(DEFAULT_PREVIEW_VOLUME);
   const [previewState, setPreviewState] = useState('Idle');
 
@@ -177,14 +220,22 @@ export const AdminMusicPanel = () => {
     audio.volume = previewVolumeRef.current;
 
     const start = Math.max(0, preview_command.start || 0);
-    const end = typeof preview_command.end === 'number' && preview_command.end > start ? preview_command.end : null;
+    const end =
+      typeof preview_command.end === 'number' && preview_command.end > start
+        ? preview_command.end
+        : null;
     const seekToStart = () => {
       if (previewAudioRef.current !== audio || start <= 0) {
         return;
       }
       try {
-        const duration = Number.isFinite(audio.duration) ? audio.duration : null;
-        audio.currentTime = duration !== null ? Math.min(start, Math.max(duration - 0.1, 0)) : start;
+        const duration = Number.isFinite(audio.duration)
+          ? audio.duration
+          : null;
+        audio.currentTime =
+          duration !== null
+            ? Math.min(start, Math.max(duration - 0.1, 0))
+            : start;
       } catch {
         // Best-effort preview seek.
       }
@@ -209,14 +260,42 @@ export const AdminMusicPanel = () => {
         finishPreview('Preview ended');
       });
     }
-    audio
-      .play()
-      .then(() => {
-        if (previewAudioRef.current === audio) {
-          setPreviewState(preview_command.title || 'Preview playing');
+
+    const startPreview = () => {
+      if (previewAudioRef.current !== audio) {
+        return;
+      }
+
+      audio
+        .play()
+        .then(() => {
+          if (previewAudioRef.current === audio) {
+            setPreviewState(preview_command.title || 'Preview playing');
+          }
+        })
+        .catch(() => finishPreview('Preview failed'));
+    };
+
+    if (start > 0 && audio.readyState < HTMLMediaElement.HAVE_METADATA) {
+      const startAfterMetadata = () => {
+        audio.removeEventListener('loadedmetadata', startAfterMetadata);
+        if (previewAudioRef.current !== audio) {
+          return;
         }
-      })
-      .catch(() => finishPreview('Preview failed'));
+        seekToStart();
+        startPreview();
+      };
+
+      audio.addEventListener('loadedmetadata', startAfterMetadata);
+      audio.load();
+      return;
+    }
+
+    if (start > 0) {
+      seekToStart();
+    }
+
+    startPreview();
   }, [preview_command]);
 
   const selectedTier = findTier(draft, selected_tier_id);
@@ -317,7 +396,9 @@ export const AdminMusicPanel = () => {
                       onNew={handleNewDraft}
                       onSave={() => act('save')}
                       onSaveAsCopy={() => act('save_as_copy')}
-                      onDelete={() => act('delete_preset', { preset_id: draft.preset_id })}
+                      onDelete={() =>
+                        act('delete_preset', { preset_id: draft.preset_id })
+                      }
                       onExport={() => act('export_preset')}
                       onSetName={(value) => act('set_name', { name: value })}
                       onSetDescription={(value) =>
@@ -326,10 +407,13 @@ export const AdminMusicPanel = () => {
                       onSetAudienceMode={(value) =>
                         act('set_audience_mode', { audience_mode: value })
                       }
-                      onSetSoundType={(value) => act('set_sound_type', { sound_type: value })}
+                      onSetSoundType={(value) =>
+                        act('set_sound_type', { sound_type: value })
+                      }
                       onToggleShowTitle={() =>
                         act('set_show_title', {
-                          show_title_to_players: !draft.playback.show_title_to_players,
+                          show_title_to_players:
+                            !draft.playback.show_title_to_players,
                         })
                       }
                       onPreviewSelected={() => act('preview_selected')}
@@ -349,8 +433,12 @@ export const AdminMusicPanel = () => {
                       selectedTierId={selected_tier_id}
                       selectedVariantId={selected_variant_id}
                       onAddTier={() => act('add_tier')}
-                      onSelectTier={(tier_id) => act('select_tier', { tier_id })}
-                      onRemoveTier={(tier_id) => act('remove_tier', { tier_id })}
+                      onSelectTier={(tier_id) =>
+                        act('select_tier', { tier_id })
+                      }
+                      onRemoveTier={(tier_id) =>
+                        act('remove_tier', { tier_id })
+                      }
                       onAddVariant={() => act('add_variant')}
                       onSelectVariant={(tier_id, variant_id) =>
                         act('select_variant', { tier_id, variant_id })
@@ -362,10 +450,17 @@ export const AdminMusicPanel = () => {
                         act('set_tier_name', { tier_id, name: value })
                       }
                       onSetTierDescription={(tier_id, value) =>
-                        act('set_tier_description', { tier_id, description: value })
+                        act('set_tier_description', {
+                          tier_id,
+                          description: value,
+                        })
                       }
                       onSetVariantTitle={(tier_id, variant_id, value) =>
-                        act('set_variant_title', { tier_id, variant_id, title: value })
+                        act('set_variant_title', {
+                          tier_id,
+                          variant_id,
+                          title: value,
+                        })
                       }
                       onSetVariantDescription={(tier_id, variant_id, value) =>
                         act('set_variant_description', {
@@ -400,17 +495,25 @@ export const AdminMusicPanel = () => {
   );
 };
 
-type SessionSectionProps = {
+type SessionSectionProps = Readonly<{
   current_session: CurrentSession;
   onStopBroadcast: () => void;
-};
+}>;
 
-function SessionSection({ current_session, onStopBroadcast }: SessionSectionProps) {
+function SessionSection({
+  current_session,
+  onStopBroadcast,
+}: SessionSectionProps) {
   return (
     <Section
       title="Current Session"
       buttons={
-        <Button icon="stop" color="bad" disabled={!current_session} onClick={onStopBroadcast}>
+        <Button
+          icon="stop"
+          color="bad"
+          disabled={!current_session}
+          onClick={onStopBroadcast}
+        >
           Stop Broadcast
         </Button>
       }
@@ -419,32 +522,52 @@ function SessionSection({ current_session, onStopBroadcast }: SessionSectionProp
         <Box color="label">No active broadcast.</Box>
       ) : (
         <LabeledList>
-          <LabeledList.Item label="Source">{current_session.source_kind}</LabeledList.Item>
-          <LabeledList.Item label="Owner">{current_session.owner}</LabeledList.Item>
-          <LabeledList.Item label="Audience">{current_session.audience_label}</LabeledList.Item>
-          <LabeledList.Item label="Sound Type">{current_session.sound_type_label}</LabeledList.Item>
+          <LabeledList.Item label="Source">
+            {current_session.source_kind}
+          </LabeledList.Item>
+          <LabeledList.Item label="Owner">
+            {current_session.owner}
+          </LabeledList.Item>
+          <LabeledList.Item label="Audience">
+            {current_session.audience_label}
+          </LabeledList.Item>
+          <LabeledList.Item label="Sound Type">
+            {current_session.sound_type_label}
+          </LabeledList.Item>
           <LabeledList.Item label="Show Title">
             {current_session.show_title_to_players ? 'Yes' : 'No'}
           </LabeledList.Item>
-          <LabeledList.Item label="Title">{current_session.resolved_title}</LabeledList.Item>
-          <LabeledList.Item label="URL">{current_session.source_url}</LabeledList.Item>
+          <LabeledList.Item label="Title">
+            {current_session.resolved_title}
+          </LabeledList.Item>
+          <LabeledList.Item label="URL">
+            {current_session.source_url}
+          </LabeledList.Item>
           {current_session.preset_name && (
-            <LabeledList.Item label="Preset">{current_session.preset_name}</LabeledList.Item>
+            <LabeledList.Item label="Preset">
+              {current_session.preset_name}
+            </LabeledList.Item>
           )}
           {current_session.tier_name && (
-            <LabeledList.Item label="Tier">{current_session.tier_name}</LabeledList.Item>
+            <LabeledList.Item label="Tier">
+              {current_session.tier_name}
+            </LabeledList.Item>
           )}
           {current_session.variant_title && (
-            <LabeledList.Item label="Variant">{current_session.variant_title}</LabeledList.Item>
+            <LabeledList.Item label="Variant">
+              {current_session.variant_title}
+            </LabeledList.Item>
           )}
-          <LabeledList.Item label="Loop">{current_session.loop ? 'Yes' : 'No'}</LabeledList.Item>
+          <LabeledList.Item label="Loop">
+            {current_session.loop ? 'Yes' : 'No'}
+          </LabeledList.Item>
         </LabeledList>
       )}
     </Section>
   );
 }
 
-type LibrarySectionProps = {
+type LibrarySectionProps = Readonly<{
   library: LibraryPreset[];
   librarySearch: string;
   selectedLibraryPresetId: string | null;
@@ -452,7 +575,7 @@ type LibrarySectionProps = {
   onSelectPreset: (preset_id: string) => void;
   onLoadPreset: () => void;
   onImport: (jsonText: string | string[]) => void;
-};
+}>;
 
 function LibrarySection({
   library,
@@ -464,7 +587,8 @@ function LibrarySection({
   onImport,
 }: LibrarySectionProps) {
   const filteredLibrary = library.filter((preset) => {
-    const haystack = `${preset.name} ${preset.description} ${preset.preset_id}`.toLowerCase();
+    const haystack =
+      `${preset.name} ${preset.description} ${preset.preset_id}`.toLowerCase();
     return haystack.includes(librarySearch.toLowerCase());
   });
 
@@ -473,10 +597,18 @@ function LibrarySection({
       title="Library"
       buttons={
         <>
-          <Button icon="file" disabled={!selectedLibraryPresetId} onClick={onLoadPreset}>
+          <Button
+            icon="file"
+            disabled={!selectedLibraryPresetId}
+            onClick={onLoadPreset}
+          >
             Load
           </Button>
-          <Button.File icon="upload" accept=".json,application/json" onSelectFiles={onImport}>
+          <Button.File
+            icon="upload"
+            accept=".json,application/json"
+            onSelectFiles={onImport}
+          >
             Import JSON
           </Button.File>
         </>
@@ -526,7 +658,7 @@ function LibrarySection({
   );
 }
 
-type DraftGeneralSectionProps = {
+type DraftGeneralSectionProps = Readonly<{
   draft: DraftPreset;
   dirty: boolean;
   audienceOptions: { displayText: string; value: string }[];
@@ -550,7 +682,7 @@ type DraftGeneralSectionProps = {
   previewState: string;
   previewVolume: number;
   hasSelection: boolean;
-};
+}>;
 
 function DraftGeneralSection({
   draft,
@@ -591,7 +723,12 @@ function DraftGeneralSection({
           <Button icon="copy" onClick={onSaveAsCopy}>
             Save As Copy
           </Button>
-          <Button icon="trash" color="bad" disabled={!canDelete} onClick={onDelete}>
+          <Button
+            icon="trash"
+            color="bad"
+            disabled={!canDelete}
+            onClick={onDelete}
+          >
             Delete
           </Button>
           <Button icon="download" onClick={onExport}>
@@ -603,14 +740,22 @@ function DraftGeneralSection({
       <Stack vertical>
         <Stack.Item>
           <LabeledList>
-            <LabeledList.Item label="Preset ID">{draft.preset_id || 'New preset'}</LabeledList.Item>
-            <LabeledList.Item label="Dirty">{dirty ? 'Yes' : 'No'}</LabeledList.Item>
+            <LabeledList.Item label="Preset ID">
+              {draft.preset_id || 'New preset'}
+            </LabeledList.Item>
+            <LabeledList.Item label="Dirty">
+              {dirty ? 'Yes' : 'No'}
+            </LabeledList.Item>
           </LabeledList>
         </Stack.Item>
         <Stack.Item>
           <LabeledList>
             <LabeledList.Item label="Name">
-              <Input fluid value={draft.name} onInput={(e, value) => onSetName(value)} />
+              <Input
+                fluid
+                value={draft.name}
+                onInput={(e, value) => onSetName(value)}
+              />
             </LabeledList.Item>
             <LabeledList.Item label="Description">
               <TextArea
@@ -638,7 +783,10 @@ function DraftGeneralSection({
               />
             </LabeledList.Item>
             <LabeledList.Item label="Show Title">
-              <Button.Checkbox checked={draft.playback.show_title_to_players} onClick={onToggleShowTitle}>
+              <Button.Checkbox
+                checked={draft.playback.show_title_to_players}
+                onClick={onToggleShowTitle}
+              >
                 Visible to players
               </Button.Checkbox>
             </LabeledList.Item>
@@ -647,7 +795,12 @@ function DraftGeneralSection({
         <Stack.Item>
           <Stack>
             <Stack.Item>
-              <Button color="good" icon="eye" disabled={!hasSelection} onClick={onPreviewSelected}>
+              <Button
+                color="good"
+                icon="eye"
+                disabled={!hasSelection}
+                onClick={onPreviewSelected}
+              >
                 Preview Selected
               </Button>
             </Stack.Item>
@@ -657,7 +810,12 @@ function DraftGeneralSection({
               </Button>
             </Stack.Item>
             <Stack.Item>
-              <Button color="good" icon="play" disabled={!hasSelection} onClick={onPlaySelected}>
+              <Button
+                color="good"
+                icon="play"
+                disabled={!hasSelection}
+                onClick={onPlaySelected}
+              >
                 Play Selected
               </Button>
             </Stack.Item>
@@ -666,7 +824,9 @@ function DraftGeneralSection({
         <Stack.Item>
           <Section
             title="Preview"
-            buttons={<Box color="label">Volume {Math.round(previewVolume * 100)}%</Box>}
+            buttons={
+              <Box color="label">Volume {Math.round(previewVolume * 100)}%</Box>
+            }
           >
             <Box>{previewState}</Box>
           </Section>
@@ -676,7 +836,7 @@ function DraftGeneralSection({
   );
 }
 
-type TierEditorSectionProps = {
+type TierEditorSectionProps = Readonly<{
   draft: DraftPreset;
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
@@ -690,15 +850,27 @@ type TierEditorSectionProps = {
   onRemoveVariant: (tier_id: string, variant_id: string) => void;
   onSetTierName: (tier_id: string, value: string) => void;
   onSetTierDescription: (tier_id: string, value: string) => void;
-  onSetVariantTitle: (tier_id: string, variant_id: string, value: string) => void;
+  onSetVariantTitle: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
   onSetVariantDescription: (
     tier_id: string,
     variant_id: string,
     value: string,
   ) => void;
-  onSetVariantDuration: (tier_id: string, variant_id: string, value: number) => void;
-  onSetVariantSourceUrl: (tier_id: string, variant_id: string, value: string) => void;
-};
+  onSetVariantDuration: (
+    tier_id: string,
+    variant_id: string,
+    value: number,
+  ) => void;
+  onSetVariantSourceUrl: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+}>;
 
 function TierEditorSection({
   draft,
@@ -722,7 +894,11 @@ function TierEditorSection({
   return (
     <Section
       title="Tiers"
-      buttons={<Button icon="plus" onClick={onAddTier}>Add Tier</Button>}
+      buttons={
+        <Button icon="plus" onClick={onAddTier}>
+          Add Tier
+        </Button>
+      }
     >
       <Stack vertical>
         <Stack.Item>
@@ -764,20 +940,31 @@ function TierEditorSection({
 
         {selectedTier && (
           <Stack.Item>
-            <Section title={`Tier: ${selectedTier.name || 'Unnamed tier'}`} buttons={<Button icon="plus" onClick={onAddVariant}>Add Variant</Button>}>
+            <Section
+              title={`Tier: ${selectedTier.name || 'Unnamed tier'}`}
+              buttons={
+                <Button icon="plus" onClick={onAddVariant}>
+                  Add Variant
+                </Button>
+              }
+            >
               <LabeledList>
                 <LabeledList.Item label="Name">
                   <Input
                     fluid
                     value={selectedTier.name}
-                    onInput={(e, value) => onSetTierName(selectedTier.tier_id, value)}
+                    onInput={(e, value) =>
+                      onSetTierName(selectedTier.tier_id, value)
+                    }
                   />
                 </LabeledList.Item>
                 <LabeledList.Item label="Description">
                   <TextArea
                     fluid
                     value={selectedTier.description}
-                    onInput={(e, value) => onSetTierDescription(selectedTier.tier_id, value)}
+                    onInput={(e, value) =>
+                      onSetTierDescription(selectedTier.tier_id, value)
+                    }
                     placeholder="Tier description"
                     scrollbar
                   />
@@ -795,25 +982,37 @@ function TierEditorSection({
                           key={variant.variant_id}
                           fluid
                           selected={selectedVariantId === variant.variant_id}
-                          onClick={() => onSelectVariant(selectedTier.tier_id, variant.variant_id)}
+                          onClick={() =>
+                            onSelectVariant(
+                              selectedTier.tier_id,
+                              variant.variant_id,
+                            )
+                          }
                           style={{ marginBottom: '0.25rem' }}
                         >
                           <Flex justify="space-between" width="100%">
                             <Flex.Item grow>
-                              <Box bold>{variant.title || 'Unnamed variant'}</Box>
+                              <Box bold>
+                                {variant.title || 'Unnamed variant'}
+                              </Box>
                               <Box fontSize="0.8rem" color="label">
                                 {variant.description || 'No description'}
                               </Box>
                             </Flex.Item>
                             <Flex.Item ml={1} textAlign="right">
-                              <Box fontSize="0.8rem">{formatDuration(variant.duration_seconds)}</Box>
+                              <Box fontSize="0.8rem">
+                                {formatDuration(variant.duration_seconds)}
+                              </Box>
                               <Button
                                 icon="trash"
                                 color="bad"
                                 ml={1}
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  onRemoveVariant(selectedTier.tier_id, variant.variant_id);
+                                  onRemoveVariant(
+                                    selectedTier.tier_id,
+                                    variant.variant_id,
+                                  );
                                 }}
                               />
                             </Flex.Item>
@@ -825,14 +1024,20 @@ function TierEditorSection({
 
                   {selectedVariant && (
                     <Stack.Item>
-                      <Section title={`Variant: ${selectedVariant.title || 'Unnamed variant'}`}>
+                      <Section
+                        title={`Variant: ${selectedVariant.title || 'Unnamed variant'}`}
+                      >
                         <LabeledList>
                           <LabeledList.Item label="Title">
                             <Input
                               fluid
                               value={selectedVariant.title}
                               onInput={(e, value) =>
-                                onSetVariantTitle(selectedTier.tier_id, selectedVariant.variant_id, value)
+                                onSetVariantTitle(
+                                  selectedTier.tier_id,
+                                  selectedVariant.variant_id,
+                                  value,
+                                )
                               }
                             />
                           </LabeledList.Item>
@@ -858,7 +1063,11 @@ function TierEditorSection({
                               step={1}
                               value={selectedVariant.duration_seconds}
                               onChange={(value) =>
-                                onSetVariantDuration(selectedTier.tier_id, selectedVariant.variant_id, value)
+                                onSetVariantDuration(
+                                  selectedTier.tier_id,
+                                  selectedVariant.variant_id,
+                                  value,
+                                )
                               }
                             />
                           </LabeledList.Item>
@@ -867,7 +1076,11 @@ function TierEditorSection({
                               fluid
                               value={selectedVariant.source_url}
                               onInput={(e, value) =>
-                                onSetVariantSourceUrl(selectedTier.tier_id, selectedVariant.variant_id, value)
+                                onSetVariantSourceUrl(
+                                  selectedTier.tier_id,
+                                  selectedVariant.variant_id,
+                                  value,
+                                )
                               }
                               placeholder="https://..."
                             />
