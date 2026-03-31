@@ -179,7 +179,12 @@
 
 		if("clear_history")
 			history_entries = list()
-			to_chat(ui.user, SPAN_NOTICE("История операций очищена."))
+			if(islist(changeset_entries))
+				for(var/datum/world_edit_changeset/changeset as anything in changeset_entries)
+					qdel(changeset)
+			changeset_entries = list()
+			reset_undo_feedback()
+			to_chat(ui.user, SPAN_NOTICE("История операций и undo-стек очищены."))
 			return TRUE
 
 /datum/world_edit_manager/proc/refresh_current_generator_ui(mob/user)
