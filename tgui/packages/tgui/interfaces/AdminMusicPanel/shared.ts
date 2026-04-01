@@ -91,6 +91,24 @@ export type AdminMusicPanelData = {
 
 export type SelectOption = { displayText: string; value: string };
 
+export type DraftStatusKind =
+  | 'unsaved_draft'
+  | 'loaded_preset'
+  | 'modified_copy';
+
+export type DraftStatus = {
+  kind: DraftStatusKind;
+  label: string;
+  hint: string;
+};
+
+export type TrackLaunchReadiness = {
+  canPreview: boolean;
+  canBroadcast: boolean;
+  reason: string | null;
+  warnings: string[];
+};
+
 export const DEFAULT_PREVIEW_VOLUME = 0.2;
 export const DESCRIPTION_FIELD_HEIGHT = 4.5;
 export const PLAYER_CARD_STYLE = {
@@ -250,6 +268,33 @@ export const buildLaunchSettings = (draft: DraftPreset): LaunchSettings => ({
   playback_mode: 'single',
 });
 
+export const getDraftStatus = (
+  draft: DraftPreset,
+  dirty: boolean,
+): DraftStatus => {
+  if (!draft.preset_id) {
+    return {
+      kind: 'unsaved_draft',
+      label: 'Unsaved draft',
+      hint: 'Not saved to library yet',
+    };
+  }
+
+  if (dirty) {
+    return {
+      kind: 'modified_copy',
+      label: 'Modified copy',
+      hint: `Editing copy of ${draft.preset_id}`,
+    };
+  }
+
+  return {
+    kind: 'loaded_preset',
+    label: 'Loaded preset',
+    hint: `Loaded from ${draft.preset_id}`,
+  };
+};
+
 export const getOptionLabel = (options: OptionEntry[], value: string) =>
   options.find((option) => option.id === value)?.label || value;
 
@@ -288,6 +333,46 @@ export const formatAfterTrackEnds = (
     : playbackMode === 'single'
       ? 'Stop after this track'
       : `Continue ${getPlaybackModeLabel(playbackMode).toLowerCase()}`;
+
+export const getTrackLaunchReadiness = (
+  selectedVariant: DraftVariant | null,
+  launchSettings: LaunchSettings,
+): TrackLaunchReadiness => {
+  if (!selectedVariant) {
+    return {
+      canPreview: false,
+      canBroadcast: false,
+      reason: 'Select a track to preview or broadcast.',
+      warnings: [],
+    };
+  }
+
+  const sourceUrl = selectedVariant.source_url.trim();
+  if (!sourceUrl) {
+    return {
+      canPreview: false,
+      canBroadcast: false,
+      reason: 'Source URL is missing.',
+      warnings: [],
+    };
+  }
+
+  const warnings: string[] = [];
+  if (!normalizeDurationValue(selectedVariant.duration_seconds)) {
+    warnings.push(
+      launchSettings.playback_mode === 'single' && !launchSettings.repeat
+        ? 'Duration is unknown, so Single may not stop automatically.'
+        : 'Duration is unknown.',
+    );
+  }
+
+  return {
+    canPreview: true,
+    canBroadcast: true,
+    reason: null,
+    warnings,
+  };
+};
 
 export const isCurrentSessionForSelection = (
   currentSession: CurrentSession,

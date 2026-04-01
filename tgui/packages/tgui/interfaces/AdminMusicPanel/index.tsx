@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackend } from '../../backend';
-import { Button, Stack, Tabs } from '../../components';
+import { Box, Button, Stack, Tabs } from '../../components';
 import { Window } from '../../layouts';
-import { EditTab, PlayTab, SessionSection } from './sections';
+import {
+  BroadcastStatusStrip,
+  EditTab,
+  PlayTab,
+  SessionSection,
+} from './sections';
 import {
   AdminMusicPanelData,
   buildLaunchSettings,
   findTier,
   findVariant,
+  getDraftStatus,
   getOptionLabel,
+  getTrackLaunchReadiness,
   isCurrentSessionForSelection,
   LaunchSettings,
   toSelectOptions,
@@ -34,9 +41,6 @@ export function AdminMusicPanel() {
 
   const [activeTab, setActiveTab] = useState<'play' | 'edit'>('play');
   const [librarySearch, setLibrarySearch] = useState('');
-  const [selectedLibraryPresetId, setSelectedLibraryPresetId] = useState<
-    string | null
-  >(draft?.preset_id || library[0]?.preset_id || null);
   const [launchSettings, setLaunchSettings] = useState<LaunchSettings>(() =>
     buildLaunchSettings(draft),
   );
@@ -48,19 +52,6 @@ export function AdminMusicPanel() {
   useEffect(() => {
     setLaunchSettings(buildLaunchSettings(draft));
   }, [draft_token]);
-
-  useEffect(() => {
-    if (draft?.preset_id) {
-      setSelectedLibraryPresetId(draft.preset_id);
-      return;
-    }
-    if (
-      selectedLibraryPresetId &&
-      !library.some((preset) => preset.preset_id === selectedLibraryPresetId)
-    ) {
-      setSelectedLibraryPresetId(library[0]?.preset_id || null);
-    }
-  }, [draft?.preset_id, library, selectedLibraryPresetId]);
 
   useEffect(() => {
     if (initialLibrarySyncRef.current) {
@@ -78,29 +69,31 @@ export function AdminMusicPanel() {
       return;
     }
 
-    const initialPresetId = selectedLibraryPresetId || library[0]?.preset_id;
+    const initialPresetId = library[0]?.preset_id;
     if (!initialPresetId) {
       initialLibrarySyncRef.current = true;
       return;
     }
 
     initialLibrarySyncRef.current = true;
-    if (selectedLibraryPresetId !== initialPresetId) {
-      setSelectedLibraryPresetId(initialPresetId);
-    }
     act('load_preset', { preset_id: initialPresetId });
-  }, [act, dirty, draft?.preset_id, library, selectedLibraryPresetId]);
+  }, [act, dirty, draft?.preset_id, library]);
 
   const selectedTier = findTier(draft, selected_tier_id);
   const selectedVariant = findVariant(selectedTier, selected_variant_id);
   const audienceOptions = toSelectOptions(audience_options);
   const soundTypeOptions = toSelectOptions(sound_type_options);
-  const hasSelection = Boolean(selectedTier && selectedVariant);
   const selectedTrackIsLive = isCurrentSessionForSelection(
     current_session,
     draft,
     selectedTier,
     selectedVariant,
+  );
+  const loadedLibraryPresetId = draft?.preset_id || null;
+  const draftStatus = getDraftStatus(draft, dirty);
+  const trackReadiness = getTrackLaunchReadiness(
+    selectedVariant,
+    launchSettings,
   );
 
   const handleImport = (jsonText: string | string[]) => {
@@ -111,13 +104,12 @@ export function AdminMusicPanel() {
   };
 
   const handleNewDraft = () => {
-    setSelectedLibraryPresetId(null);
     act('new_draft');
   };
 
-  const handleLoadPreset = () => {
-    if (selectedLibraryPresetId) {
-      act('load_preset', { preset_id: selectedLibraryPresetId });
+  const handleLoadPreset = (presetId: string) => {
+    if (presetId) {
+      act('load_preset', { preset_id: presetId });
     }
   };
 
@@ -142,37 +134,72 @@ export function AdminMusicPanel() {
       <Window.Content scrollable>
         <Stack fill vertical>
           <Stack.Item>
-            <SessionSection
-              current_session={current_session}
-              draft={draft}
-              selectedTier={selectedTier}
-              selectedVariant={selectedVariant}
-              launchSettings={launchSettings}
-              audienceLabel={getOptionLabel(
-                audience_options,
-                launchSettings.audience_mode,
-              )}
-              soundTypeLabel={getOptionLabel(
-                sound_type_options,
-                launchSettings.sound_type,
-              )}
-              hasSelection={hasSelection}
-              selectedTrackIsLive={selectedTrackIsLive}
-              onToggleRepeat={() =>
-                setLaunchSettings((current) => ({
-                  ...current,
-                  repeat: !current.repeat,
-                }))
-              }
-              onSetPlaybackMode={(value) =>
-                setLaunchSettings((current) => ({
-                  ...current,
-                  playback_mode: value,
-                }))
-              }
-              onPlaySelected={() => act('play_selected', launchSettings)}
-              onStopBroadcast={() => act('stop_broadcast')}
-            />
+            {activeTab === 'play' ? (
+              <SessionSection
+                current_session={current_session}
+                draft={draft}
+                selectedTier={selectedTier}
+                selectedVariant={selectedVariant}
+                launchSettings={launchSettings}
+                audienceOptions={audienceOptions}
+                soundTypeOptions={soundTypeOptions}
+                audienceLabel={getOptionLabel(
+                  audience_options,
+                  launchSettings.audience_mode,
+                )}
+                soundTypeLabel={getOptionLabel(
+                  sound_type_options,
+                  launchSettings.sound_type,
+                )}
+                trackReadiness={trackReadiness}
+                selectedTrackIsLive={selectedTrackIsLive}
+                onSetAudienceMode={(value) =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    audience_mode: value,
+                  }))
+                }
+                onSetSoundType={(value) =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    sound_type: value,
+                  }))
+                }
+                onToggleShowTitle={() =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    show_title_to_players: !current.show_title_to_players,
+                  }))
+                }
+                onToggleRepeat={() =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    repeat: !current.repeat,
+                  }))
+                }
+                onSetPlaybackMode={(value) =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    playback_mode: value,
+                  }))
+                }
+                onResetLaunchSettings={() =>
+                  setLaunchSettings(buildLaunchSettings(draft))
+                }
+                onPreviewSelected={() => act('preview_selected')}
+                onStopPreview={stopPreview}
+                isPreviewActive={isPreviewActive}
+                previewState={previewState}
+                previewVolume={previewVolume}
+                onPlaySelected={() => act('play_selected', launchSettings)}
+                onStopBroadcast={() => act('stop_broadcast')}
+              />
+            ) : (
+              <BroadcastStatusStrip
+                current_session={current_session}
+                onStopBroadcast={() => act('stop_broadcast')}
+              />
+            )}
           </Stack.Item>
           <Stack.Item>
             <Tabs fluid>
@@ -192,70 +219,73 @@ export function AdminMusicPanel() {
               </Tabs.Tab>
             </Tabs>
           </Stack.Item>
+          <Stack.Item>
+            <Box
+              px={1}
+              py={0.6}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '0.35rem',
+              }}
+            >
+              <Stack align="center">
+                <Stack.Item grow>
+                  <Box color="label" fontSize="0.75rem">
+                    Current Draft
+                  </Box>
+                  <Box bold>{draft.name || 'New playlist'}</Box>
+                  <Box color="label" fontSize="0.75rem">
+                    {draftStatus.hint}
+                  </Box>
+                </Stack.Item>
+                <Stack.Item>
+                  <Box
+                    px={0.6}
+                    py={0.2}
+                    style={{
+                      borderRadius: '999px',
+                      border:
+                        draftStatus.kind !== 'loaded_preset'
+                          ? '1px solid rgba(255, 208, 102, 0.45)'
+                          : '1px solid rgba(255, 255, 255, 0.1)',
+                      backgroundColor:
+                        draftStatus.kind !== 'loaded_preset'
+                          ? 'rgba(255, 208, 102, 0.12)'
+                          : 'rgba(255, 255, 255, 0.03)',
+                    }}
+                  >
+                    {draftStatus.label}
+                  </Box>
+                </Stack.Item>
+              </Stack>
+            </Box>
+          </Stack.Item>
           <Stack.Item grow={1}>
             {activeTab === 'play' ? (
               <PlayTab
                 library={library}
                 librarySearch={librarySearch}
-                selectedLibraryPresetId={selectedLibraryPresetId}
+                loadedLibraryPresetId={loadedLibraryPresetId}
                 onSearchChange={setLibrarySearch}
-                onSelectPreset={setSelectedLibraryPresetId}
                 onLoadPreset={handleLoadPreset}
                 onOpenEdit={() => setActiveTab('edit')}
                 draft={draft}
+                draftStatus={draftStatus}
                 dirty={dirty}
                 selectedTier={selectedTier}
                 selectedTierId={selected_tier_id}
-                selectedVariant={selectedVariant}
                 selectedVariantId={selected_variant_id}
                 onSelectTier={(tier_id) => act('select_tier', { tier_id })}
                 onSelectVariant={(tier_id, variant_id) =>
                   act('select_variant', { tier_id, variant_id })
                 }
-                launchSettings={launchSettings}
-                audienceOptions={audienceOptions}
-                soundTypeOptions={soundTypeOptions}
-                audienceLabel={getOptionLabel(
-                  audience_options,
-                  launchSettings.audience_mode,
-                )}
-                soundTypeLabel={getOptionLabel(
-                  sound_type_options,
-                  launchSettings.sound_type,
-                )}
-                onSetAudienceMode={(value) =>
-                  setLaunchSettings((current) => ({
-                    ...current,
-                    audience_mode: value,
-                  }))
-                }
-                onSetSoundType={(value) =>
-                  setLaunchSettings((current) => ({
-                    ...current,
-                    sound_type: value,
-                  }))
-                }
-                onToggleShowTitle={() =>
-                  setLaunchSettings((current) => ({
-                    ...current,
-                    show_title_to_players: !current.show_title_to_players,
-                  }))
-                }
-                onResetLaunchSettings={() =>
-                  setLaunchSettings(buildLaunchSettings(draft))
-                }
-                onPreviewSelected={() => act('preview_selected')}
-                onStopPreview={stopPreview}
-                isPreviewActive={isPreviewActive}
-                previewState={previewState}
-                previewVolume={previewVolume}
-                hasSelection={hasSelection}
               />
             ) : (
               <EditTab
                 draft={draft}
+                draftStatus={draftStatus}
                 draftToken={draft_token}
-                dirty={dirty}
                 canDelete={can_delete_saved_preset}
                 audienceOptions={audienceOptions}
                 soundTypeOptions={soundTypeOptions}
