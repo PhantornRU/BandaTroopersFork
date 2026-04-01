@@ -274,6 +274,9 @@ const formatPlaybackFlags = (
     `Repeat ${playback.repeat ? 'On' : 'Off'}`,
   ].join(' | ');
 
+const formatPlaybackSummary = (audienceLabel: string, soundTypeLabel: string) =>
+  [`Audience ${audienceLabel}`, `Mode ${soundTypeLabel}`].join(' | ');
+
 const isCurrentSessionForSelection = (
   currentSession: CurrentSession,
   draft: DraftPreset,
@@ -618,6 +621,12 @@ export const AdminMusicPanel = () => {
               )}
               hasSelection={hasSelection}
               selectedTrackIsLive={selectedTrackIsLive}
+              onToggleRepeat={() =>
+                setLaunchSettings((current) => ({
+                  ...current,
+                  repeat: !current.repeat,
+                }))
+              }
               onPlaySelected={() => act('play_selected', launchSettings)}
               onStopBroadcast={() => act('stop_broadcast')}
             />
@@ -819,6 +828,7 @@ type SessionSectionProps = Readonly<{
   soundTypeLabel: string;
   hasSelection: boolean;
   selectedTrackIsLive: boolean;
+  onToggleRepeat: () => void;
   onPlaySelected: () => void;
   onStopBroadcast: () => void;
 }>;
@@ -833,6 +843,7 @@ function SessionSection({
   soundTypeLabel,
   hasSelection,
   selectedTrackIsLive,
+  onToggleRepeat,
   onPlaySelected,
   onStopBroadcast,
 }: SessionSectionProps) {
@@ -858,8 +869,7 @@ function SessionSection({
       selectedVariant ? formatSourceLabel(selectedVariant.source_url) : 'None'
     }`,
   ].join(' | ');
-  const selectedPlaybackMeta = formatPlaybackFlags(
-    launchSettings,
+  const selectedPlaybackMeta = formatPlaybackSummary(
     audienceLabel,
     soundTypeLabel,
   );
@@ -970,26 +980,44 @@ function SessionSection({
                 {selectedPlaybackMeta}
               </Box>
               <Box mt="0.45rem">
-                {selectedTrackIsLive ? (
-                  <Button
-                    fluid
-                    color="bad"
-                    icon="stop"
-                    onClick={onStopBroadcast}
-                  >
-                    Stop Broadcast
-                  </Button>
-                ) : (
-                  <Button
-                    fluid
-                    color="good"
-                    icon="play"
-                    disabled={!hasSelection}
-                    onClick={onPlaySelected}
-                  >
-                    Broadcast
-                  </Button>
-                )}
+                <Stack fill>
+                  <Stack.Item grow>
+                    <Button
+                      compact
+                      fluid
+                      color="transparent"
+                      icon={
+                        launchSettings.repeat ? 'check-square-o' : 'square-o'
+                      }
+                      style={getToggleButtonStyle(launchSettings.repeat)}
+                      onClick={onToggleRepeat}
+                    >
+                      Repeat until stopped
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item grow>
+                    {selectedTrackIsLive ? (
+                      <Button
+                        fluid
+                        color="bad"
+                        icon="stop"
+                        onClick={onStopBroadcast}
+                      >
+                        Stop Broadcast
+                      </Button>
+                    ) : (
+                      <Button
+                        fluid
+                        color="good"
+                        icon="play"
+                        disabled={!hasSelection}
+                        onClick={onPlaySelected}
+                      >
+                        Broadcast
+                      </Button>
+                    )}
+                  </Stack.Item>
+                </Stack>
               </Box>
             </Box>
           </Stack.Item>
@@ -1068,33 +1096,19 @@ function PlayTab({
 }: PlayTabProps) {
   return (
     <Stack fill>
-      <Stack.Item basis="29%" grow={1}>
-        <LibrarySection
-          library={library}
-          librarySearch={librarySearch}
-          selectedLibraryPresetId={selectedLibraryPresetId}
-          onSearchChange={onSearchChange}
-          onSelectPreset={onSelectPreset}
-          onLoadPreset={onLoadPreset}
-          onOpenEdit={onOpenEdit}
-          draft={draft}
-          dirty={dirty}
-        />
-      </Stack.Item>
-      <Stack.Item basis="18%" grow={1}>
-        <PlayScenesSection
-          draft={draft}
-          selectedTierId={selectedTierId}
-          onSelectTier={onSelectTier}
-        />
-      </Stack.Item>
-      <Stack.Item basis="53%" grow={2}>
+      <Stack.Item basis="31%" grow={1}>
         <Stack fill vertical>
           <Stack.Item grow={1}>
-            <PlayTracksSection
-              selectedTier={selectedTier}
-              selectedVariantId={selectedVariantId}
-              onSelectVariant={onSelectVariant}
+            <LibrarySection
+              library={library}
+              librarySearch={librarySearch}
+              selectedLibraryPresetId={selectedLibraryPresetId}
+              onSearchChange={onSearchChange}
+              onSelectPreset={onSelectPreset}
+              onLoadPreset={onLoadPreset}
+              onOpenEdit={onOpenEdit}
+              draft={draft}
+              dirty={dirty}
             />
           </Stack.Item>
           <Stack.Item>
@@ -1120,6 +1134,20 @@ function PlayTab({
             />
           </Stack.Item>
         </Stack>
+      </Stack.Item>
+      <Stack.Item basis="16%" grow={1}>
+        <PlayScenesSection
+          draft={draft}
+          selectedTierId={selectedTierId}
+          onSelectTier={onSelectTier}
+        />
+      </Stack.Item>
+      <Stack.Item basis="53%" grow={2}>
+        <PlayTracksSection
+          selectedTier={selectedTier}
+          selectedVariantId={selectedVariantId}
+          onSelectVariant={onSelectVariant}
+        />
       </Stack.Item>
     </Stack>
   );
@@ -1459,6 +1487,7 @@ type PlaybackSettingsControlsProps = Readonly<{
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
+  showRepeatToggle?: boolean;
 }>;
 
 function PlaybackSettingsControls({
@@ -1471,6 +1500,7 @@ function PlaybackSettingsControls({
   onSetSoundType,
   onToggleShowTitle,
   onToggleRepeat,
+  showRepeatToggle = true,
 }: PlaybackSettingsControlsProps) {
   return (
     <Stack vertical>
@@ -1514,18 +1544,20 @@ function PlaybackSettingsControls({
               Visible to players
             </Button>
           </Stack.Item>
-          <Stack.Item grow>
-            <Button
-              compact
-              fluid
-              color="transparent"
-              icon={playback.repeat ? 'check-square-o' : 'square-o'}
-              style={getToggleButtonStyle(playback.repeat)}
-              onClick={onToggleRepeat}
-            >
-              Repeat until stopped
-            </Button>
-          </Stack.Item>
+          {showRepeatToggle ? (
+            <Stack.Item grow>
+              <Button
+                compact
+                fluid
+                color="transparent"
+                icon={playback.repeat ? 'check-square-o' : 'square-o'}
+                style={getToggleButtonStyle(playback.repeat)}
+                onClick={onToggleRepeat}
+              >
+                Repeat until stopped
+              </Button>
+            </Stack.Item>
+          ) : null}
         </Stack>
       </Stack.Item>
     </Stack>
@@ -1780,6 +1812,7 @@ function PlaybackSection({
                 onSetSoundType={onSetSoundType}
                 onToggleShowTitle={onToggleShowTitle}
                 onToggleRepeat={onToggleRepeat}
+                showRepeatToggle={false}
               />
             </Box>
           </Stack.Item>
