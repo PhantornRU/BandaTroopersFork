@@ -409,7 +409,7 @@ function LaunchPlaybackPanel({
   onSetPlaybackMode,
 }: LaunchPlaybackPanelProps) {
   return (
-    <Box mt="0.45rem" style={SUBTLE_PANEL_STYLE}>
+    <Box style={SUBTLE_PANEL_STYLE}>
       <Box color="label" fontSize="0.72rem" mb={0.35}>
         Session-only settings used when you press Broadcast.
       </Box>
@@ -423,6 +423,7 @@ function LaunchPlaybackPanel({
         onSetSoundType={onSetSoundType}
         onToggleShowTitle={onToggleShowTitle}
         showRepeatToggle={false}
+        visibilityInline
       />
       <Box mt="0.45rem">
         <Stack fill mt={0.25}>
@@ -544,12 +545,6 @@ export function SessionSection({
   const broadcastButtonLabel = selectedTrackIsLive
     ? 'Restart Broadcast'
     : 'Broadcast';
-  const launchSummary = [
-    `Audience ${audienceLabel}`,
-    `Sound ${soundTypeLabel}`,
-    launchSettings.show_title_to_players ? 'Title visible' : 'Title hidden',
-    launchBehavior,
-  ].join(' | ');
   const previewActionLabel = !selectedVariant
     ? 'Open Edit'
     : isPreviewActive
@@ -636,65 +631,63 @@ export function SessionSection({
   );
   const launchPanel = (
     <Box style={COMPACT_CARD_STYLE}>
-      <Flex align="center" justify="space-between" width="100%">
-        <Flex.Item grow>
-          <Box bold>Launch & Broadcast</Box>
-          <Box color="label" fontSize="0.74rem" mt="0.1rem">
-            {launchSummary}
-          </Box>
-        </Flex.Item>
-        <Flex.Item ml={1}>
-          <LaunchActionButtons
-            broadcastButtonLabel={broadcastButtonLabel}
-            canBroadcast={trackReadiness.canBroadcast}
-            hasCurrentSession={Boolean(current_session)}
-            onPlaySelected={onPlaySelected}
-            onStopBroadcast={onStopBroadcast}
-            onResetLaunchSettings={onResetLaunchSettings}
-          />
-        </Flex.Item>
-      </Flex>
+      <Box bold>Launch Settings</Box>
+      <Box color="label" fontSize="0.74rem" mt="0.1rem">
+        Configure who hears the track and what happens after it ends.
+      </Box>
       {!trackReadiness.canBroadcast && selectedVariant ? (
         <Box color="label" fontSize="0.74rem" mt="0.3rem">
           Broadcast stays disabled until the selected track is ready.
         </Box>
       ) : null}
-      <LaunchPlaybackPanel
-        launchSettings={launchSettings}
-        audienceOptions={audienceOptions}
-        soundTypeOptions={soundTypeOptions}
-        audienceLabel={audienceLabel}
-        soundTypeLabel={soundTypeLabel}
-        launchBehavior={launchBehavior}
-        onSetAudienceMode={onSetAudienceMode}
-        onSetSoundType={onSetSoundType}
-        onToggleShowTitle={onToggleShowTitle}
-        onToggleRepeat={onToggleRepeat}
-        onSetPlaybackMode={onSetPlaybackMode}
-      />
+      <Box mt="0.45rem">
+        <LaunchPlaybackPanel
+          launchSettings={launchSettings}
+          audienceOptions={audienceOptions}
+          soundTypeOptions={soundTypeOptions}
+          audienceLabel={audienceLabel}
+          soundTypeLabel={soundTypeLabel}
+          launchBehavior={launchBehavior}
+          onSetAudienceMode={onSetAudienceMode}
+          onSetSoundType={onSetSoundType}
+          onToggleShowTitle={onToggleShowTitle}
+          onToggleRepeat={onToggleRepeat}
+          onSetPlaybackMode={onSetPlaybackMode}
+        />
+      </Box>
     </Box>
   );
 
   return (
-    <Section title="Live Broadcast">
+    <Section
+      title="Live Broadcast"
+      buttons={
+        <LaunchActionButtons
+          broadcastButtonLabel={broadcastButtonLabel}
+          canBroadcast={trackReadiness.canBroadcast}
+          hasCurrentSession={Boolean(current_session)}
+          onPlaySelected={onPlaySelected}
+          onStopBroadcast={onStopBroadcast}
+          onResetLaunchSettings={onResetLaunchSettings}
+        />
+      }
+    >
       <Box style={PLAYER_STRIP_STYLE}>
-        <Stack vertical>
-          <Stack.Item>
-            <BroadcastStatusStrip
-              current_session={current_session}
-              onStopBroadcast={onStopBroadcast}
-              showStopButton={false}
-            />
-          </Stack.Item>
-          <Stack.Item>
-            <Stack fill>
-              <Stack.Item basis="38%" grow={1}>
-                {selectedTrackPanel}
+        <Stack fill>
+          <Stack.Item basis="36%" grow={1}>
+            <Stack vertical>
+              <Stack.Item>
+                <BroadcastStatusStrip
+                  current_session={current_session}
+                  onStopBroadcast={onStopBroadcast}
+                  showStopButton={false}
+                />
               </Stack.Item>
-              <Stack.Item basis="62%" grow={2}>
-                {launchPanel}
-              </Stack.Item>
+              <Stack.Item>{selectedTrackPanel}</Stack.Item>
             </Stack>
+          </Stack.Item>
+          <Stack.Item basis="64%" grow={2}>
+            {launchPanel}
           </Stack.Item>
         </Stack>
       </Box>
@@ -1121,6 +1114,7 @@ type PlaybackSettingsControlsProps = Readonly<{
   onToggleShowTitle: () => void;
   onToggleRepeat?: () => void;
   showRepeatToggle?: boolean;
+  visibilityInline?: boolean;
 }>;
 
 function PlaybackSettingsControls({
@@ -1134,12 +1128,13 @@ function PlaybackSettingsControls({
   onToggleShowTitle,
   onToggleRepeat,
   showRepeatToggle = true,
+  visibilityInline = false,
 }: PlaybackSettingsControlsProps) {
   return (
     <Stack vertical>
       <Stack.Item>
         <Stack fill>
-          <Stack.Item basis="50%" grow={1}>
+          <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
             <Box style={LABEL_STYLE}>Audience</Box>
             <Dropdown
               width="100%"
@@ -1149,7 +1144,7 @@ function PlaybackSettingsControls({
               onSelected={(value) => onSetAudienceMode(value)}
             />
           </Stack.Item>
-          <Stack.Item basis="50%" grow={1}>
+          <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
             <Box style={LABEL_STYLE}>Sound Type</Box>
             <Dropdown
               width="100%"
@@ -1159,40 +1154,63 @@ function PlaybackSettingsControls({
               onSelected={(value) => onSetSoundType(value)}
             />
           </Stack.Item>
-        </Stack>
-      </Stack.Item>
-      <Stack.Item>
-        <Stack fill>
-          <Stack.Item grow>
-            <Button
-              compact
-              fluid
-              color="transparent"
-              icon={
-                playback.show_title_to_players ? 'check-square-o' : 'square-o'
-              }
-              style={getToggleButtonStyle(playback.show_title_to_players)}
-              onClick={onToggleShowTitle}
-            >
-              Visible to players
-            </Button>
-          </Stack.Item>
-          {showRepeatToggle ? (
-            <Stack.Item grow>
+          {visibilityInline ? (
+            <Stack.Item basis="24%" grow={1}>
+              <Box style={LABEL_STYLE}>Players</Box>
               <Button
                 compact
                 fluid
                 color="transparent"
-                icon={playback.repeat ? 'check-square-o' : 'square-o'}
-                style={getToggleButtonStyle(playback.repeat)}
-                onClick={onToggleRepeat}
+                icon={
+                  playback.show_title_to_players ? 'check-square-o' : 'square-o'
+                }
+                style={getToggleButtonStyle(playback.show_title_to_players)}
+                onClick={onToggleShowTitle}
               >
-                Repeat until stopped
+                Visible to players
               </Button>
             </Stack.Item>
           ) : null}
         </Stack>
       </Stack.Item>
+      {!visibilityInline || showRepeatToggle ? (
+        <Stack.Item>
+          <Stack fill>
+            {!visibilityInline ? (
+              <Stack.Item grow>
+                <Button
+                  compact
+                  fluid
+                  color="transparent"
+                  icon={
+                    playback.show_title_to_players
+                      ? 'check-square-o'
+                      : 'square-o'
+                  }
+                  style={getToggleButtonStyle(playback.show_title_to_players)}
+                  onClick={onToggleShowTitle}
+                >
+                  Visible to players
+                </Button>
+              </Stack.Item>
+            ) : null}
+            {showRepeatToggle ? (
+              <Stack.Item grow>
+                <Button
+                  compact
+                  fluid
+                  color="transparent"
+                  icon={playback.repeat ? 'check-square-o' : 'square-o'}
+                  style={getToggleButtonStyle(playback.repeat)}
+                  onClick={onToggleRepeat}
+                >
+                  Repeat until stopped
+                </Button>
+              </Stack.Item>
+            ) : null}
+          </Stack>
+        </Stack.Item>
+      ) : null}
     </Stack>
   );
 }
