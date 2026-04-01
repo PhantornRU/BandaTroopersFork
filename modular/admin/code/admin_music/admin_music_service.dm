@@ -15,7 +15,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/end_time
 	var/duration_seconds = 0
 	var/loop = FALSE
-	var/playback_mode = "ordered"
+	var/playback_mode = "single"
 	var/preset_id
 	var/preset_name
 	var/tier_id
@@ -107,7 +107,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	)
 
 /datum/admin_music_service/proc/is_valid_playback_mode(playback_mode)
-	return playback_mode in list("ordered", "random")
+	return playback_mode in list("single", "ordered", "random")
 
 /datum/admin_music_service/proc/get_audience_label(audience_mode)
 	switch(audience_mode)
@@ -143,6 +143,8 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 
 /datum/admin_music_service/proc/get_playback_mode_label(playback_mode)
 	switch(playback_mode)
+		if("single")
+			return "Single"
 		if("random")
 			return "Random"
 		if("ordered")
@@ -173,13 +175,13 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		return FALSE
 	return fallback
 
-/datum/admin_music_service/proc/resolve_effective_playback_mode(playback_mode_override, fallback = "ordered")
+/datum/admin_music_service/proc/resolve_effective_playback_mode(playback_mode_override, fallback = "single")
 	var/playback_mode = lowertext(trim("[playback_mode_override]"))
 	if(length(playback_mode) && is_valid_playback_mode(playback_mode))
 		return playback_mode
 	if(is_valid_playback_mode(fallback))
 		return fallback
-	return "ordered"
+	return "single"
 
 /datum/admin_music_service/proc/build_session_ui_data()
 	if(!active_session)
@@ -490,15 +492,27 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		return 0
 	return max(1, round(duration_seconds * 10) + 5)
 
-/datum/admin_music_service/proc/schedule_panel_session_followup(datum/admin_music_session/session)
-	cancel_session_followup(session)
+/datum/admin_music_service/proc/panel_session_requires_followup(datum/admin_music_session/session)
 	if(!session || active_session != session || session.source_kind != "panel")
 		return FALSE
 	if(session.loop)
 		return FALSE
 	if(!is_valid_playback_mode(session.playback_mode))
 		return FALSE
-	if(length(session.sequence_variants) <= 1)
+	if(session.playback_mode == "single")
+		return TRUE
+	return length(session.sequence_variants) > 1
+
+/datum/admin_music_service/proc/get_panel_followup_warning(datum/admin_music_session/session)
+	if(!session)
+		return null
+	if(session.playback_mode == "single")
+		return "This track has no reliable duration, so single playback cannot auto-stop after it ends."
+	return "This track has no reliable duration, so sequential playback cannot auto-advance after it ends."
+
+/datum/admin_music_service/proc/schedule_panel_session_followup(datum/admin_music_session/session)
+	cancel_session_followup(session)
+	if(!panel_session_requires_followup(session))
 		return FALSE
 	var/followup_delay = get_session_followup_delay(session)
 	if(followup_delay <= 0)
@@ -605,6 +619,8 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	session.advance_timer_id = null
 	if(session.loop)
 		return FALSE
+	if(session.playback_mode == "single")
+		return stop_panel_session_automatic(session, "auto_stop_end")
 	var/list/eligible_clients = filter_eligible_clients(session.tracked_clients, session.sound_type)
 	if(!length(eligible_clients))
 		return stop_panel_session_automatic(session, "auto_stop_no_listeners")
@@ -690,8 +706,11 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/switch_mode = active_session && active_session.source_kind == "panel" && active_session.owner_ckey == requester.ckey && active_session.preset_id == preset.preset_id
 	if(!apply_session(requester, session, eligible_clients, switch_mode))
 		return FALSE
-	if(!schedule_panel_session_followup(session) && !effective_repeat && length(session.sequence_variants) > 1 && requester)
-		to_chat(requester, SPAN_WARNING("This track has no reliable duration, so sequential playback cannot auto-advance after it ends."))
+	if(panel_session_requires_followup(session))
+		if(get_session_followup_delay(session) <= 0 && requester)
+			to_chat(requester, SPAN_WARNING(get_panel_followup_warning(session)))
+		else
+			schedule_panel_session_followup(session)
 	log_session_action(requester, switch_mode ? "switch_tier" : "play", session)
 	return TRUE
 

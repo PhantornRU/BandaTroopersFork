@@ -77,7 +77,7 @@
 	var/audience_mode = "global"
 	var/sound_type = "atmospheric"
 	var/show_title_to_players = TRUE
-	var/repeat = TRUE
+	var/repeat = FALSE
 	var/list/tiers = list()
 
 /datum/admin_music_preset/proc/copy()

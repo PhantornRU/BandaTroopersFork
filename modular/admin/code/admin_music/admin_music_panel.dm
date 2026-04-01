@@ -81,6 +81,9 @@
 
 /datum/admin_music_panel/proc/mark_dirty()
 	dirty = TRUE
+	return update_ui()
+
+/datum/admin_music_panel/proc/update_ui()
 	GLOB.admin_music_service.update_open_panels()
 	return TRUE
 
@@ -170,14 +173,100 @@
 		return FALSE
 	return fallback
 
-/datum/admin_music_panel/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
-	. = ..()
-	if(.)
-		return
+/datum/admin_music_panel/proc/select_tier(tier_id)
+	if(selected_tier_id != tier_id)
+		selected_variant_id = null
+	selected_tier_id = tier_id
+	sync_selection()
+	return update_ui()
 
-	if(!holder || !check_rights_for(holder, R_SOUNDS))
+/datum/admin_music_panel/proc/select_variant(tier_id, variant_id)
+	selected_tier_id = tier_id
+	selected_variant_id = variant_id
+	sync_selection()
+	return update_ui()
+
+/datum/admin_music_panel/proc/get_tier_index(tier_id)
+	if(!draft)
+		return 0
+	for(var/index in 1 to length(draft.tiers))
+		var/datum/admin_music_tier/tier = draft.tiers[index]
+		if(REF(tier) == tier_id)
+			return index
+	return 0
+
+/datum/admin_music_panel/proc/get_variant_index(datum/admin_music_tier/tier, variant_id)
+	if(!tier)
+		return 0
+	for(var/index in 1 to length(tier.variants))
+		var/datum/admin_music_variant/variant = tier.variants[index]
+		if(REF(variant) == variant_id)
+			return index
+	return 0
+
+/datum/admin_music_panel/proc/move_tier(tier_id, offset)
+	var/current_index = get_tier_index(tier_id)
+	if(!current_index)
 		return FALSE
+	var/target_index = current_index + offset
+	if(target_index < 1 || target_index > length(draft.tiers))
+		return FALSE
+	draft.tiers.Swap(current_index, target_index)
+	sync_selection()
+	return mark_dirty()
 
+/datum/admin_music_panel/proc/move_variant(tier_id, variant_id, offset)
+	var/datum/admin_music_tier/tier = draft?.find_tier_by_ref(tier_id)
+	if(!tier)
+		return FALSE
+	var/current_index = get_variant_index(tier, variant_id)
+	if(!current_index)
+		return FALSE
+	var/target_index = current_index + offset
+	if(target_index < 1 || target_index > length(tier.variants))
+		return FALSE
+	tier.variants.Swap(current_index, target_index)
+	sync_selection()
+	return mark_dirty()
+
+/datum/admin_music_panel/proc/preview_selected_variant()
+	var/datum/admin_music_tier/preview_tier = get_selected_tier()
+	var/datum/admin_music_variant/preview_variant = get_selected_variant()
+	var/list/errors = GLOB.admin_music_service.validate_selected_variant(draft, preview_tier, preview_variant)
+	if(length(errors))
+		GLOB.admin_music_service.notify_validation_errors(holder, errors)
+		return FALSE
+	var/datum/media_response/preview_response = GLOB.admin_music_service.resolve_media(holder, preview_variant.source_url)
+	if(!preview_response)
+		return FALSE
+	set_preview_command("play", list(
+		"title" = length(preview_variant.title) ? preview_variant.title : (preview_response.title ? preview_response.title : "Admin sound"),
+		"url" = preview_response.url,
+		"start" = preview_response.start_time,
+		"end" = preview_response.end_time,
+	))
+	return update_ui()
+
+/datum/admin_music_panel/proc/stop_preview()
+	set_preview_command("stop")
+	return update_ui()
+
+/datum/admin_music_panel/proc/play_selected_variant(list/params)
+	var/datum/admin_music_tier/play_tier = get_selected_tier()
+	var/datum/admin_music_variant/play_variant = get_selected_variant()
+	return GLOB.admin_music_service.play_panel_variant(
+		holder,
+		draft,
+		play_tier,
+		play_variant,
+		params["audience_mode"],
+		params["sound_type"],
+		params["show_title_to_players"],
+		params["repeat"],
+		params["playback_mode"],
+	)
+
+/datum/admin_music_panel/proc/handle_preset_action(action, list/params)
 	switch(action)
 		if("request_close")
 			return request_close()
@@ -255,13 +344,12 @@
 			draft.repeat = coerce_ui_boolean(params["repeat"], draft.repeat)
 			return mark_dirty()
 
+	return FALSE
+
+/datum/admin_music_panel/proc/handle_tier_action(action, list/params)
+	switch(action)
 		if("select_tier")
-			if(selected_tier_id != params["tier_id"])
-				selected_variant_id = null
-			selected_tier_id = params["tier_id"]
-			sync_selection()
-			GLOB.admin_music_service.update_open_panels()
-			return TRUE
+			return select_tier(params["tier_id"])
 
 		if("add_tier")
 			var/datum/admin_music_tier/new_tier = GLOB.admin_music_service.build_default_tier()
@@ -300,12 +388,18 @@
 			described_tier.description = params["description"]
 			return mark_dirty()
 
+		if("move_tier_up")
+			return move_tier(params["tier_id"], -1)
+
+		if("move_tier_down")
+			return move_tier(params["tier_id"], 1)
+
+	return FALSE
+
+/datum/admin_music_panel/proc/handle_variant_action(action, list/params)
+	switch(action)
 		if("select_variant")
-			selected_tier_id = params["tier_id"]
-			selected_variant_id = params["variant_id"]
-			sync_selection()
-			GLOB.admin_music_service.update_open_panels()
-			return TRUE
+			return select_variant(params["tier_id"], params["variant_id"])
 
 		if("add_variant")
 			var/datum/admin_music_tier/add_variant_tier = get_selected_tier()
@@ -362,46 +456,56 @@
 			source_variant.source_url = params["source_url"]
 			return mark_dirty()
 
+		if("move_variant_up")
+			return move_variant(params["tier_id"], params["variant_id"], -1)
+
+		if("move_variant_down")
+			return move_variant(params["tier_id"], params["variant_id"], 1)
+
+	return FALSE
+
+/datum/admin_music_panel/proc/handle_preview_action(action)
+	switch(action)
 		if("preview_selected")
-			var/datum/admin_music_tier/preview_tier = get_selected_tier()
-			var/datum/admin_music_variant/preview_variant = get_selected_variant()
-			var/list/errors = GLOB.admin_music_service.validate_selected_variant(draft, preview_tier, preview_variant)
-			if(length(errors))
-				GLOB.admin_music_service.notify_validation_errors(holder, errors)
-				return FALSE
-			var/datum/media_response/preview_response = GLOB.admin_music_service.resolve_media(holder, preview_variant.source_url)
-			if(!preview_response)
-				return FALSE
-			set_preview_command("play", list(
-				"title" = length(preview_variant.title) ? preview_variant.title : (preview_response.title ? preview_response.title : "Admin sound"),
-				"url" = preview_response.url,
-				"start" = preview_response.start_time,
-				"end" = preview_response.end_time,
-			))
-			GLOB.admin_music_service.update_open_panels()
-			return TRUE
+			return preview_selected_variant()
 
 		if("stop_preview")
-			set_preview_command("stop")
-			GLOB.admin_music_service.update_open_panels()
-			return TRUE
+			return stop_preview()
 
+	return FALSE
+
+/datum/admin_music_panel/proc/handle_playback_action(action, list/params)
+	switch(action)
 		if("play_selected")
-			var/datum/admin_music_tier/play_tier = get_selected_tier()
-			var/datum/admin_music_variant/play_variant = get_selected_variant()
-			return GLOB.admin_music_service.play_panel_variant(
-				holder,
-				draft,
-				play_tier,
-				play_variant,
-				params["audience_mode"],
-				params["sound_type"],
-				params["show_title_to_players"],
-				params["repeat"],
-				params["playback_mode"],
-			)
+			return play_selected_variant(params)
 
 		if("stop_broadcast")
 			return GLOB.admin_music_service.stop_broadcast(holder, "panel_stop")
+
+	return FALSE
+
+/datum/admin_music_panel/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
+	. = ..()
+	if(.)
+		return
+
+	if(!holder || !check_rights_for(holder, R_SOUNDS))
+		return FALSE
+
+	switch(action)
+		if("request_close", "new_draft", "load_preset", "save", "save_as_copy", "delete_preset", "export_preset", "import_json", "set_name", "set_description", "set_audience_mode", "set_sound_type", "set_show_title", "set_repeat")
+			return handle_preset_action(action, params)
+
+		if("select_tier", "add_tier", "remove_tier", "set_tier_name", "set_tier_description", "move_tier_up", "move_tier_down")
+			return handle_tier_action(action, params)
+
+		if("select_variant", "add_variant", "remove_variant", "set_variant_title", "set_variant_description", "set_variant_duration", "set_variant_source_url", "move_variant_up", "move_variant_down")
+			return handle_variant_action(action, params)
+
+		if("preview_selected", "stop_preview")
+			return handle_preview_action(action)
+
+		if("play_selected", "stop_broadcast")
+			return handle_playback_action(action, params)
 
 	return FALSE
