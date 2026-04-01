@@ -322,140 +322,144 @@ export function BroadcastStatusStrip({
   );
 }
 
-type CurrentBroadcastPanelProps = Readonly<{
-  current_session: CurrentSession;
-}>;
-
-function CurrentBroadcastPanel({
-  current_session,
-}: CurrentBroadcastPanelProps) {
-  if (!current_session) {
-    return (
-      <Box
-        style={{
-          ...COMPACT_CARD_STYLE,
-          padding: '0.45rem 0.55rem',
-        }}
-      >
-        <Box color="label" fontSize="0.74rem">
-          Current Broadcast
-        </Box>
-        <Box bold fontSize="1.02rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
-          Broadcast idle
-        </Box>
-        <Box color="label" fontSize="0.77rem" mt="0.18rem">
-          Nothing is live right now. Pick a track when you want to preview or
-          broadcast it.
-        </Box>
-      </Box>
-    );
-  }
-
-  const broadcastTitle =
-    current_session.variant_title ||
-    current_session.resolved_title ||
-    'Untitled broadcast';
-  const liveBehavior = formatAfterTrackEnds(
-    Boolean(current_session.loop),
-    current_session.playback_mode,
-  );
-  const liveFacts: CompactFactItem[] = [
-    {
-      label: 'Audience',
-      value: current_session.audience_label,
-    },
-    {
-      label: 'Sound',
-      value: current_session.sound_type_label,
-    },
-    {
-      label: 'After',
-      value: liveBehavior,
-    },
-    {
-      label: 'Source',
-      value: formatSourceLabel(current_session.source_url),
-    },
-  ];
-
-  return (
-    <Box
-      style={{
-        ...COMPACT_CARD_STYLE,
-        padding: '0.45rem 0.55rem',
-        border: '1px solid rgba(120, 190, 100, 0.24)',
-        backgroundColor: 'rgba(70, 140, 60, 0.08)',
-      }}
-    >
-      <Box color="label" fontSize="0.74rem">
-        Current Broadcast
-      </Box>
-      <Box bold fontSize="1.02rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
-        {broadcastTitle}
-      </Box>
-      <Box color="label" fontSize="0.77rem" mt="0.18rem">
-        Live right now.
-      </Box>
-      <Box mt="0.35rem">
-        <TrackFactBadges items={liveFacts} />
-      </Box>
-    </Box>
-  );
-}
-
-type LaunchActionButtonsProps = Readonly<{
-  broadcastButtonLabel: string;
-  canBroadcast: boolean;
+type OperatorActionPanelProps = Readonly<{
+  selectedVariant: DraftVariant | null;
+  trackReadiness: TrackLaunchReadiness;
+  isPreviewActive: boolean;
+  previewState: string;
+  previewVolume: number;
+  selectedTrackIsLive: boolean;
   hasCurrentSession: boolean;
+  onOpenEdit: () => void;
+  onPreviewSelected: () => void;
+  onStopPreview: () => void;
   onPlaySelected: () => void;
   onStopBroadcast: () => void;
   onResetLaunchSettings: () => void;
 }>;
 
-function LaunchActionButtons({
-  broadcastButtonLabel,
-  canBroadcast,
+function OperatorActionPanel({
+  selectedVariant,
+  trackReadiness,
+  isPreviewActive,
+  previewState,
+  previewVolume,
+  selectedTrackIsLive,
   hasCurrentSession,
+  onOpenEdit,
+  onPreviewSelected,
+  onStopPreview,
   onPlaySelected,
   onStopBroadcast,
   onResetLaunchSettings,
-}: LaunchActionButtonsProps) {
+}: OperatorActionPanelProps) {
+  const previewDisabled = !isPreviewActive && !trackReadiness.canPreview;
+  const broadcastDisabled = !trackReadiness.canBroadcast;
+  const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
+  const previewIcon = isPreviewActive ? 'stop' : 'eye';
+  const broadcastLabel = selectedTrackIsLive
+    ? 'Restart Broadcast'
+    : 'Broadcast';
+  const actionHint = !selectedVariant
+    ? 'Select a track below to enable preview and broadcast.'
+    : trackReadiness.reason
+      ? `Blocked: ${trackReadiness.reason}`
+      : isPreviewActive
+        ? `Previewing locally at ${Math.round(previewVolume * 100)}% volume.`
+        : selectedTrackIsLive
+          ? 'The selected track is already on air.'
+          : 'Ready to launch with the current settings.';
+  const canJumpToEdit = !selectedVariant || Boolean(trackReadiness.reason);
+  const hasVisiblePreviewState =
+    Boolean(previewState) &&
+    previewState.trim().toLowerCase() !== 'idle' &&
+    !isPreviewActive;
+
   return (
-    <Stack>
-      <Stack.Item>
-        <Button
-          icon="play"
-          color="good"
-          disabled={!canBroadcast}
-          style={!canBroadcast ? DISABLED_ACTION_STYLE : undefined}
-          onClick={onPlaySelected}
-        >
-          {broadcastButtonLabel}
-        </Button>
-      </Stack.Item>
-      <Stack.Item>
-        <Button
-          icon="stop"
-          color="bad"
-          disabled={!hasCurrentSession}
-          style={!hasCurrentSession ? DISABLED_ACTION_STYLE : undefined}
-          onClick={onStopBroadcast}
-        >
-          Stop Broadcast
-        </Button>
-      </Stack.Item>
-      <Stack.Item>
-        <Button
-          compact
-          color="transparent"
-          icon="undo"
-          style={{ opacity: '0.72' }}
-          onClick={onResetLaunchSettings}
-        >
-          Reset
-        </Button>
-      </Stack.Item>
-    </Stack>
+    <Box
+      style={{
+        ...COMPACT_CARD_STYLE,
+        padding: '0.55rem 0.65rem',
+        height: '100%',
+      }}
+    >
+      <Box color="label" fontSize="0.74rem">
+        Actions
+      </Box>
+      <Box bold fontSize="1.02rem" mt="0.1rem">
+        Operator Controls
+      </Box>
+      <Box mt="0.45rem">
+        <Stack fill>
+          <Stack.Item grow>
+            <Button
+              fluid
+              color={isPreviewActive ? 'default' : 'transparent'}
+              icon={previewIcon}
+              disabled={previewDisabled}
+              style={previewDisabled ? DISABLED_ACTION_STYLE : undefined}
+              onClick={isPreviewActive ? onStopPreview : onPreviewSelected}
+            >
+              {previewLabel}
+            </Button>
+          </Stack.Item>
+          <Stack.Item grow>
+            <Button
+              fluid
+              icon="play"
+              color="good"
+              disabled={broadcastDisabled}
+              style={broadcastDisabled ? DISABLED_ACTION_STYLE : undefined}
+              onClick={onPlaySelected}
+            >
+              {broadcastLabel}
+            </Button>
+          </Stack.Item>
+          <Stack.Item grow>
+            <Button
+              fluid
+              icon="stop"
+              color="bad"
+              disabled={!hasCurrentSession}
+              style={!hasCurrentSession ? DISABLED_ACTION_STYLE : undefined}
+              onClick={onStopBroadcast}
+            >
+              Stop
+            </Button>
+          </Stack.Item>
+          <Stack.Item grow>
+            <Button
+              fluid
+              color="transparent"
+              icon="undo"
+              onClick={onResetLaunchSettings}
+            >
+              Reset
+            </Button>
+          </Stack.Item>
+        </Stack>
+      </Box>
+      <Box
+        color="label"
+        fontSize="0.74rem"
+        mt="0.35rem"
+        style={WRAPPED_TEXT_STYLE}
+      >
+        {actionHint}
+      </Box>
+      {hasVisiblePreviewState ? (
+        <Box color="label" fontSize="0.74rem" mt="0.25rem">
+          Preview state: {previewState}.
+        </Box>
+      ) : null}
+      {canJumpToEdit ? (
+        <Box mt="0.35rem">
+          <Button compact color="transparent" icon="edit" onClick={onOpenEdit}>
+            {selectedVariant ? 'Fix in Edit' : 'Open Edit'}
+          </Button>
+        </Box>
+      ) : null}
+    </Box>
   );
 }
 
@@ -583,23 +587,55 @@ export function SessionSection({
   onPlaySelected,
   onStopBroadcast,
 }: SessionSectionProps) {
+  const liveTitle = current_session
+    ? current_session.variant_title ||
+      current_session.resolved_title ||
+      'Untitled broadcast'
+    : 'Nothing live right now';
+  const liveStatusLabel = current_session ? 'Live' : 'Idle';
+  const liveBehavior = current_session
+    ? formatAfterTrackEnds(
+        Boolean(current_session.loop),
+        current_session.playback_mode,
+      )
+    : 'Waiting for the next broadcast';
+  const liveOriginParts = current_session
+    ? [
+        current_session.preset_name
+          ? `Preset ${current_session.preset_name}`
+          : null,
+        current_session.tier_name ? `Scene ${current_session.tier_name}` : null,
+        current_session.variant_title
+          ? `Track ${current_session.variant_title}`
+          : null,
+      ].filter(Boolean)
+    : [];
+  const liveOriginSummary =
+    liveOriginParts.join(' | ') ||
+    (current_session
+      ? `Source ${formatSourceLabel(current_session.source_url)}`
+      : 'Pick a track below when you are ready to go live.');
   const selectedTitle = selectedVariant?.title || 'No track selected';
   const selectedStatus = !selectedVariant
-    ? 'Pick a track below to preview it locally or prepare the next broadcast.'
+    ? 'Choose a track from the list below to prepare the next launch.'
     : trackReadiness.canBroadcast
-      ? 'Ready to preview locally or broadcast with the current launch settings.'
-      : 'Needs a small fix before it can be previewed or broadcast.';
+      ? 'Ready to preview locally or send live with the current launch settings.'
+      : 'Needs a small fix before it can be previewed or sent live.';
   const selectedFacts: CompactFactItem[] = [
     {
-      label: 'Playlist',
-      value: draft.name || 'New playlist',
+      label: 'Preset',
+      value: draft.name || 'New preset',
     },
     {
       label: 'Scene',
       value: selectedTier?.name || 'None',
     },
     {
-      label: 'Length',
+      label: 'Track',
+      value: selectedVariant?.title || 'None',
+    },
+    {
+      label: 'Duration',
       value: selectedVariant
         ? formatDuration(selectedVariant.duration_seconds)
         : 'Unknown',
@@ -617,164 +653,158 @@ export function SessionSection({
     launchSettings.repeat,
     launchSettings.playback_mode,
   );
-  const broadcastButtonLabel = selectedTrackIsLive
-    ? 'Restart Broadcast'
-    : 'Broadcast';
-  const previewActionLabel = !selectedVariant
-    ? 'Open Edit'
-    : isPreviewActive
-      ? 'Stop Preview'
-      : trackReadiness.canPreview
-        ? 'Preview'
-        : 'Fix in Edit';
-  const previewActionIcon = !selectedVariant
-    ? 'edit'
-    : isPreviewActive
-      ? 'stop'
-      : trackReadiness.canPreview
-        ? 'eye'
-        : 'edit';
-  const previewActionColor = isPreviewActive ? 'default' : 'transparent';
-  const previewHint = !selectedVariant
-    ? 'Choose a track below or switch to Edit to build the draft.'
-    : trackReadiness.canPreview
-      ? 'Preview plays only for you.'
-      : 'Preview unlocks once the track is ready.';
-  const hasVisiblePreviewState =
-    Boolean(previewState) && previewState.trim().toLowerCase() !== 'idle';
-  const selectedTrackPanel = (
-    <Box
-      style={{
-        ...COMPACT_CARD_STYLE,
-        padding: '0.45rem 0.55rem',
-      }}
-    >
-      <Flex align="flex-start" justify="space-between" width="100%">
-        <Flex.Item grow>
-          <Box color="label" fontSize="0.74rem">
-            Selected Track
-          </Box>
-          <Box bold fontSize="1.08rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
-            {selectedTitle}
-          </Box>
-          <Box color="label" fontSize="0.78rem" mt="0.18rem">
-            {selectedStatus}
-          </Box>
-        </Flex.Item>
-        {selectedTrackIsLive ? (
-          <Flex.Item ml={1}>
-            <Box style={LIVE_BADGE_STYLE}>On air</Box>
-          </Flex.Item>
-        ) : null}
-      </Flex>
-      {selectedVariant ? (
-        <Box mt="0.35rem">
-          <TrackFactBadges items={selectedFacts} />
-        </Box>
-      ) : null}
-      {selectedVariant ? (
-        <TrackReadinessNotices
-          readiness={trackReadiness}
-          onOpenEdit={!trackReadiness.canPreview ? onOpenEdit : undefined}
-        />
-      ) : null}
-      {!selectedVariant || trackReadiness.canPreview ? (
-        <Flex align="center" justify="space-between" width="100%" mt="0.45rem">
-          <Flex.Item grow>
-            <Box color="label" fontSize="0.74rem" style={WRAPPED_TEXT_STYLE}>
-              {previewHint}
-            </Box>
-          </Flex.Item>
-          <Flex.Item ml={1}>
-            <Button
-              compact
-              color={previewActionColor}
-              icon={previewActionIcon}
-              onClick={
-                !selectedVariant
-                  ? onOpenEdit
-                  : isPreviewActive
-                    ? onStopPreview
-                    : onPreviewSelected
-              }
-            >
-              {previewActionLabel}
-            </Button>
-          </Flex.Item>
-        </Flex>
-      ) : null}
-      {isPreviewActive ? (
-        <Box color="label" fontSize="0.74rem" mt="0.25rem">
-          Previewing locally at {Math.round(previewVolume * 100)}% volume.
-        </Box>
-      ) : hasVisiblePreviewState ? (
-        <Box color="label" fontSize="0.74rem" mt="0.25rem">
-          Preview state: {previewState}.
-        </Box>
-      ) : null}
-    </Box>
-  );
-  const launchPanel = (
-    <Box
-      style={{
-        ...COMPACT_CARD_STYLE,
-        padding: '0.45rem 0.55rem',
-      }}
-    >
-      <Box bold>Launch Settings</Box>
-      <Box mt="0.2rem">
-        <LaunchPlaybackPanel
-          launchSettings={launchSettings}
-          audienceOptions={audienceOptions}
-          soundTypeOptions={soundTypeOptions}
-          audienceLabel={audienceLabel}
-          soundTypeLabel={soundTypeLabel}
-          launchBehavior={launchBehavior}
-          onSetAudienceMode={onSetAudienceMode}
-          onSetSoundType={onSetSoundType}
-          onToggleShowTitle={onToggleShowTitle}
-          onToggleRepeat={onToggleRepeat}
-          onSetPlaybackMode={onSetPlaybackMode}
-        />
-      </Box>
-    </Box>
-  );
 
   return (
-    <Section
-      title="Live Broadcast"
-      buttons={
-        <LaunchActionButtons
-          broadcastButtonLabel={broadcastButtonLabel}
-          canBroadcast={trackReadiness.canBroadcast}
-          hasCurrentSession={Boolean(current_session)}
-          onPlaySelected={onPlaySelected}
-          onStopBroadcast={onStopBroadcast}
-          onResetLaunchSettings={onResetLaunchSettings}
-        />
-      }
+    <Box
+      style={{
+        ...PLAYER_STRIP_STYLE,
+        padding: '0.78rem 0.82rem',
+      }}
     >
-      <Box
-        style={{
-          ...PLAYER_STRIP_STYLE,
-          padding: '0.72rem 0.78rem',
-        }}
-      >
-        <Stack align="stretch">
-          <Stack.Item basis="42%" grow={1}>
-            <Stack vertical>
-              <Stack.Item>
-                <CurrentBroadcastPanel current_session={current_session} />
-              </Stack.Item>
-              <Stack.Item>{selectedTrackPanel}</Stack.Item>
-            </Stack>
-          </Stack.Item>
-          <Stack.Item basis="58%" grow={2}>
-            {launchPanel}
-          </Stack.Item>
-        </Stack>
-      </Box>
-    </Section>
+      <Stack vertical>
+        <Stack.Item>
+          <Stack align="stretch">
+            <Stack.Item basis="28%" grow={1}>
+              <Box
+                style={{
+                  ...COMPACT_CARD_STYLE,
+                  padding: '0.55rem 0.65rem',
+                  border: current_session
+                    ? '1px solid rgba(120, 190, 100, 0.24)'
+                    : COMPACT_CARD_STYLE.border,
+                  backgroundColor: current_session
+                    ? 'rgba(70, 140, 60, 0.08)'
+                    : COMPACT_CARD_STYLE.backgroundColor,
+                }}
+              >
+                <Box color="label" fontSize="0.74rem">
+                  System Status
+                </Box>
+                <Box mt="0.18rem">
+                  <Box
+                    style={
+                      current_session ? LIVE_BADGE_STYLE : MUTED_BADGE_STYLE
+                    }
+                  >
+                    {liveStatusLabel}
+                  </Box>
+                </Box>
+                <Box
+                  bold
+                  fontSize="1.05rem"
+                  mt="0.18rem"
+                  style={ELLIPSIS_STYLE}
+                >
+                  {liveTitle}
+                </Box>
+                <Box color="label" fontSize="0.76rem" mt="0.18rem">
+                  {current_session
+                    ? `${current_session.audience_label} | ${current_session.sound_type_label} | ${liveBehavior}`
+                    : 'Idle until the next broadcast starts.'}
+                </Box>
+                <Box
+                  color="label"
+                  fontSize="0.74rem"
+                  mt="0.3rem"
+                  style={WRAPPED_TEXT_STYLE}
+                >
+                  {liveOriginSummary}
+                </Box>
+              </Box>
+            </Stack.Item>
+            <Stack.Item basis="42%" grow={2}>
+              <Box
+                style={{
+                  ...COMPACT_CARD_STYLE,
+                  padding: '0.55rem 0.65rem',
+                }}
+              >
+                <Flex align="flex-start" justify="space-between" width="100%">
+                  <Flex.Item grow>
+                    <Box color="label" fontSize="0.74rem">
+                      Selected Track
+                    </Box>
+                    <Box
+                      bold
+                      fontSize="1.08rem"
+                      mt="0.1rem"
+                      style={ELLIPSIS_STYLE}
+                    >
+                      {selectedTitle}
+                    </Box>
+                    <Box color="label" fontSize="0.78rem" mt="0.18rem">
+                      {selectedStatus}
+                    </Box>
+                  </Flex.Item>
+                  {selectedTrackIsLive ? (
+                    <Flex.Item ml={1}>
+                      <Box style={LIVE_BADGE_STYLE}>On air</Box>
+                    </Flex.Item>
+                  ) : null}
+                </Flex>
+                <Box mt="0.35rem">
+                  <TrackFactBadges items={selectedFacts} />
+                </Box>
+                {selectedVariant ? (
+                  <TrackReadinessNotices
+                    readiness={trackReadiness}
+                    onOpenEdit={
+                      !trackReadiness.canPreview ? onOpenEdit : undefined
+                    }
+                  />
+                ) : null}
+              </Box>
+            </Stack.Item>
+            <Stack.Item basis="30%" grow={1}>
+              <OperatorActionPanel
+                selectedVariant={selectedVariant}
+                trackReadiness={trackReadiness}
+                isPreviewActive={isPreviewActive}
+                previewState={previewState}
+                previewVolume={previewVolume}
+                selectedTrackIsLive={selectedTrackIsLive}
+                hasCurrentSession={Boolean(current_session)}
+                onOpenEdit={onOpenEdit}
+                onPreviewSelected={onPreviewSelected}
+                onStopPreview={onStopPreview}
+                onPlaySelected={onPlaySelected}
+                onStopBroadcast={onStopBroadcast}
+                onResetLaunchSettings={onResetLaunchSettings}
+              />
+            </Stack.Item>
+          </Stack>
+        </Stack.Item>
+        <Stack.Item>
+          <Box
+            mt="0.7rem"
+            style={{
+              ...COMPACT_CARD_STYLE,
+              padding: '0.55rem 0.65rem',
+            }}
+          >
+            <Box bold>Launch Settings</Box>
+            <Box color="label" fontSize="0.76rem" mt="0.18rem">
+              Audience, sound type, player visibility, repeat, and launch mode.
+            </Box>
+            <Box mt="0.35rem">
+              <LaunchPlaybackPanel
+                launchSettings={launchSettings}
+                audienceOptions={audienceOptions}
+                soundTypeOptions={soundTypeOptions}
+                audienceLabel={audienceLabel}
+                soundTypeLabel={soundTypeLabel}
+                launchBehavior={launchBehavior}
+                onSetAudienceMode={onSetAudienceMode}
+                onSetSoundType={onSetSoundType}
+                onToggleShowTitle={onToggleShowTitle}
+                onToggleRepeat={onToggleRepeat}
+                onSetPlaybackMode={onSetPlaybackMode}
+              />
+            </Box>
+          </Box>
+        </Stack.Item>
+      </Stack>
+    </Box>
   );
 }
 
@@ -819,62 +849,141 @@ function PlaybackModeSelector({
 }
 
 type PlayTabProps = Readonly<{
+  current_session: CurrentSession;
+  draft: DraftPreset;
+  launchSettings: LaunchSettings;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
+  trackReadiness: TrackLaunchReadiness;
+  selectedTrackIsLive: boolean;
+  isPreviewActive: boolean;
+  previewState: string;
+  previewVolume: number;
   library: LibraryPreset[];
   librarySearch: string;
   loadedLibraryPresetId: string | null;
   onSearchChange: (value: string) => void;
   onLoadPreset: (preset_id: string) => void;
   onOpenEdit: () => void;
-  draft: DraftPreset;
   dirty: boolean;
   selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
   selectedTierId: string | null;
   selectedVariantId: string | null;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
+  onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
+  onSetPlaybackMode: (value: PlaybackMode) => void;
+  onResetLaunchSettings: () => void;
+  onPreviewSelected: () => void;
+  onStopPreview: () => void;
+  onPlaySelected: () => void;
+  onStopBroadcast: () => void;
   onSelectTier: (tier_id: string) => void;
   onSelectVariant: (tier_id: string, variant_id: string) => void;
 }>;
 
 export function PlayTab({
+  current_session,
+  draft,
+  launchSettings,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
+  trackReadiness,
+  selectedTrackIsLive,
+  isPreviewActive,
+  previewState,
+  previewVolume,
   library,
   librarySearch,
   loadedLibraryPresetId,
   onSearchChange,
   onLoadPreset,
   onOpenEdit,
-  draft,
   dirty,
   selectedTier,
+  selectedVariant,
   selectedTierId,
   selectedVariantId,
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onToggleRepeat,
+  onSetPlaybackMode,
+  onResetLaunchSettings,
+  onPreviewSelected,
+  onStopPreview,
+  onPlaySelected,
+  onStopBroadcast,
   onSelectTier,
   onSelectVariant,
 }: PlayTabProps) {
   return (
-    <Stack fill>
-      <Stack.Item basis="31%" grow={1}>
-        <LibrarySection
-          library={library}
-          librarySearch={librarySearch}
-          loadedLibraryPresetId={loadedLibraryPresetId}
-          onSearchChange={onSearchChange}
-          onLoadPreset={onLoadPreset}
-          onOpenEdit={onOpenEdit}
-          dirty={dirty}
-        />
-      </Stack.Item>
-      <Stack.Item basis="16%" grow={1}>
-        <PlayScenesSection
+    <Stack fill vertical>
+      <Stack.Item>
+        <SessionSection
+          current_session={current_session}
           draft={draft}
-          selectedTierId={selectedTierId}
-          onSelectTier={onSelectTier}
+          selectedTier={selectedTier}
+          selectedVariant={selectedVariant}
+          launchSettings={launchSettings}
+          audienceOptions={audienceOptions}
+          soundTypeOptions={soundTypeOptions}
+          audienceLabel={audienceLabel}
+          soundTypeLabel={soundTypeLabel}
+          trackReadiness={trackReadiness}
+          selectedTrackIsLive={selectedTrackIsLive}
+          onOpenEdit={onOpenEdit}
+          onSetAudienceMode={onSetAudienceMode}
+          onSetSoundType={onSetSoundType}
+          onToggleShowTitle={onToggleShowTitle}
+          onToggleRepeat={onToggleRepeat}
+          onSetPlaybackMode={onSetPlaybackMode}
+          onResetLaunchSettings={onResetLaunchSettings}
+          onPreviewSelected={onPreviewSelected}
+          onStopPreview={onStopPreview}
+          isPreviewActive={isPreviewActive}
+          previewState={previewState}
+          previewVolume={previewVolume}
+          onPlaySelected={onPlaySelected}
+          onStopBroadcast={onStopBroadcast}
         />
       </Stack.Item>
-      <Stack.Item basis="53%" grow={2}>
-        <PlayTracksSection
-          selectedTier={selectedTier}
-          selectedVariantId={selectedVariantId}
-          onSelectVariant={onSelectVariant}
-        />
+      <Stack.Item grow={1}>
+        <Box mt="0.8rem">
+          <Stack fill>
+            <Stack.Item basis="30%" grow={1}>
+              <LibrarySection
+                library={library}
+                librarySearch={librarySearch}
+                loadedLibraryPresetId={loadedLibraryPresetId}
+                onSearchChange={onSearchChange}
+                onLoadPreset={onLoadPreset}
+                onOpenEdit={onOpenEdit}
+                dirty={dirty}
+              />
+            </Stack.Item>
+            <Stack.Item basis="18%" grow={1}>
+              <PlayScenesSection
+                draft={draft}
+                selectedTierId={selectedTierId}
+                onSelectTier={onSelectTier}
+              />
+            </Stack.Item>
+            <Stack.Item basis="52%" grow={2}>
+              <PlayTracksSection
+                selectedTier={selectedTier}
+                selectedVariantId={selectedVariantId}
+                onSelectVariant={onSelectVariant}
+              />
+            </Stack.Item>
+          </Stack>
+        </Box>
       </Stack.Item>
     </Stack>
   );
@@ -885,6 +994,7 @@ type EditTabProps = Readonly<{
   draftStatus: DraftStatus;
   draftToken: number;
   canDelete: boolean;
+  canRevert: boolean;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
@@ -896,6 +1006,7 @@ type EditTabProps = Readonly<{
   onSave: () => void;
   onNew: () => void;
   onSaveAsCopy: () => void;
+  onRevert: () => void;
   onDelete: () => void;
   onExport: () => void;
   onImport: (jsonText: string | string[]) => void;
@@ -944,6 +1055,7 @@ export function EditTab({
   draftStatus,
   draftToken,
   canDelete,
+  canRevert,
   audienceOptions,
   soundTypeOptions,
   audienceLabel,
@@ -955,6 +1067,7 @@ export function EditTab({
   onSave,
   onNew,
   onSaveAsCopy,
+  onRevert,
   onDelete,
   onExport,
   onImport,
@@ -982,73 +1095,81 @@ export function EditTab({
   onSetVariantSourceUrl,
 }: EditTabProps) {
   return (
-    <Stack fill>
-      <Stack.Item basis="30%" grow={1}>
-        <Stack fill vertical>
-          <Stack.Item>
-            <PlaylistEditorSection
-              draft={draft}
-              draftStatus={draftStatus}
-              draftToken={draftToken}
-              onSave={onSave}
-              onSetName={onSetName}
-              onSetDescription={onSetDescription}
-            />
-          </Stack.Item>
-          <Stack.Item>
-            <PresetDefaultsSection
-              playback={draft.playback}
-              audienceOptions={audienceOptions}
-              soundTypeOptions={soundTypeOptions}
-              audienceLabel={audienceLabel}
-              soundTypeLabel={soundTypeLabel}
-              onSetAudienceMode={onSetAudienceMode}
-              onSetSoundType={onSetSoundType}
-              onToggleShowTitle={onToggleShowTitle}
-              onToggleRepeat={onToggleRepeat}
-            />
-          </Stack.Item>
-          <Stack.Item>
-            <AdvancedSection
-              canDelete={canDelete}
-              onNew={onNew}
-              onSaveAsCopy={onSaveAsCopy}
-              onDelete={onDelete}
-              onExport={onExport}
-              onImport={onImport}
-            />
-          </Stack.Item>
-        </Stack>
-      </Stack.Item>
-      <Stack.Item basis="28%" grow={1}>
-        <SceneEditorSection
+    <Stack fill vertical>
+      <Stack.Item>
+        <EditHeaderSection
           draft={draft}
-          selectedTier={selectedTier}
-          selectedTierId={selectedTierId}
-          onAddTier={onAddTier}
-          onSelectTier={onSelectTier}
-          onRemoveTier={onRemoveTier}
-          onMoveTierUp={onMoveTierUp}
-          onMoveTierDown={onMoveTierDown}
-          onSetTierName={onSetTierName}
-          onSetTierDescription={onSetTierDescription}
+          draftStatus={draftStatus}
+          canRevert={canRevert}
+          onSave={onSave}
+          onSaveAsCopy={onSaveAsCopy}
+          onRevert={onRevert}
         />
       </Stack.Item>
-      <Stack.Item basis="42%" grow={1}>
-        <TrackEditorSection
-          selectedTier={selectedTier}
-          selectedVariant={selectedVariant}
-          selectedVariantId={selectedVariantId}
-          onAddVariant={onAddVariant}
-          onSelectVariant={onSelectVariant}
-          onRemoveVariant={onRemoveVariant}
-          onMoveVariantUp={onMoveVariantUp}
-          onMoveVariantDown={onMoveVariantDown}
-          onSetVariantTitle={onSetVariantTitle}
-          onSetVariantDescription={onSetVariantDescription}
-          onSetVariantDuration={onSetVariantDuration}
-          onSetVariantSourceUrl={onSetVariantSourceUrl}
-        />
+      <Stack.Item grow={1}>
+        <Box mt="0.8rem">
+          <Stack fill>
+            <Stack.Item basis="31%" grow={1}>
+              <Stack fill vertical>
+                <Stack.Item grow={1}>
+                  <PresetMetaSection
+                    draft={draft}
+                    draftToken={draftToken}
+                    audienceOptions={audienceOptions}
+                    soundTypeOptions={soundTypeOptions}
+                    audienceLabel={audienceLabel}
+                    soundTypeLabel={soundTypeLabel}
+                    onSetName={onSetName}
+                    onSetDescription={onSetDescription}
+                    onSetAudienceMode={onSetAudienceMode}
+                    onSetSoundType={onSetSoundType}
+                    onToggleShowTitle={onToggleShowTitle}
+                    onToggleRepeat={onToggleRepeat}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <AdvancedSection
+                    canDelete={canDelete}
+                    onNew={onNew}
+                    onDelete={onDelete}
+                    onExport={onExport}
+                    onImport={onImport}
+                  />
+                </Stack.Item>
+              </Stack>
+            </Stack.Item>
+            <Stack.Item basis="27%" grow={1}>
+              <SceneEditorSection
+                draft={draft}
+                selectedTier={selectedTier}
+                selectedTierId={selectedTierId}
+                onAddTier={onAddTier}
+                onSelectTier={onSelectTier}
+                onRemoveTier={onRemoveTier}
+                onMoveTierUp={onMoveTierUp}
+                onMoveTierDown={onMoveTierDown}
+                onSetTierName={onSetTierName}
+                onSetTierDescription={onSetTierDescription}
+              />
+            </Stack.Item>
+            <Stack.Item basis="42%" grow={1}>
+              <TrackEditorSection
+                selectedTier={selectedTier}
+                selectedVariant={selectedVariant}
+                selectedVariantId={selectedVariantId}
+                onAddVariant={onAddVariant}
+                onSelectVariant={onSelectVariant}
+                onRemoveVariant={onRemoveVariant}
+                onMoveVariantUp={onMoveVariantUp}
+                onMoveVariantDown={onMoveVariantDown}
+                onSetVariantTitle={onSetVariantTitle}
+                onSetVariantDescription={onSetVariantDescription}
+                onSetVariantDuration={onSetVariantDuration}
+                onSetVariantSourceUrl={onSetVariantSourceUrl}
+              />
+            </Stack.Item>
+          </Stack>
+        </Box>
       </Stack.Item>
     </Stack>
   );
@@ -1078,7 +1199,7 @@ function LibrarySection({
       `${preset.name} ${preset.description} ${preset.preset_id}`.toLowerCase();
     return haystack.includes(librarySearch.toLowerCase());
   });
-  const hasSavedPlaylists = library.length > 0;
+  const hasSavedPresets = library.length > 0;
 
   return (
     <Section fill title="Library">
@@ -1086,27 +1207,26 @@ function LibrarySection({
         <Stack.Item>
           <Input
             fluid
-            placeholder="Search playlists..."
+            placeholder="Search presets..."
             value={librarySearch}
             onInput={(e, value) => onSearchChange(value)}
           />
         </Stack.Item>
         <Stack.Item>
           <Box color="label" fontSize="0.75rem">
-            Click a saved playlist to load it into the current draft.
+            Load a saved preset into the current draft.
           </Box>
         </Stack.Item>
         <Stack.Item grow={1}>
-          <Section fill scrollable title="Saved Playlists">
+          <Box style={LIST_SCROLL_STYLE}>
             {filteredLibrary.length === 0 ? (
-              hasSavedPlaylists ? (
-                <Box color="label">No playlists match search.</Box>
+              hasSavedPresets ? (
+                <Box color="label">No presets match search.</Box>
               ) : (
                 <Stack vertical>
                   <Stack.Item>
                     <Box color="label">
-                      No saved playlists yet. You are working in an unsaved
-                      draft.
+                      No saved presets yet. You are working in a new draft.
                     </Box>
                   </Stack.Item>
                   <Stack.Item>
@@ -1135,7 +1255,7 @@ function LibrarySection({
                     <Flex align="center" justify="space-between" width="100%">
                       <Flex.Item grow>
                         <Box bold style={ELLIPSIS_STYLE}>
-                          {preset.name || 'Unnamed playlist'}
+                          {preset.name || 'Unnamed preset'}
                         </Box>
                       </Flex.Item>
                       <Flex.Item ml={1}>
@@ -1150,7 +1270,7 @@ function LibrarySection({
                               dirty ? UNSAVED_BADGE_STYLE : MUTED_BADGE_STYLE
                             }
                           >
-                            {dirty ? 'Editing copy' : 'Loaded'}
+                            {dirty ? 'Unsaved changes' : 'Loaded'}
                           </Box>
                         ) : null}
                       </Flex.Item>
@@ -1166,7 +1286,7 @@ function LibrarySection({
                 </Button>
               ))
             )}
-          </Section>
+          </Box>
         </Stack.Item>
       </Stack>
     </Section>
@@ -1226,7 +1346,7 @@ function PlaybackSettingsControls({
           </Stack.Item>
           {visibilityInline ? (
             <Stack.Item basis="24%" grow={1}>
-              <Box style={LABEL_STYLE}>Players</Box>
+              <Box style={LABEL_STYLE}>Players Visible</Box>
               <Button
                 compact
                 fluid
@@ -1406,42 +1526,134 @@ function PlayTracksSection({
   );
 }
 
-type PlaylistEditorSectionProps = Readonly<{
+type EditHeaderSectionProps = Readonly<{
   draft: DraftPreset;
   draftStatus: DraftStatus;
-  draftToken: number;
+  canRevert: boolean;
   onSave: () => void;
-  onSetName: (value: string) => void;
-  onSetDescription: (value: string) => void;
+  onSaveAsCopy: () => void;
+  onRevert: () => void;
 }>;
 
-function PlaylistEditorSection({
+function EditHeaderSection({
   draft,
   draftStatus,
-  draftToken,
+  canRevert,
   onSave,
+  onSaveAsCopy,
+  onRevert,
+}: EditHeaderSectionProps) {
+  const statusBadges: Array<{ label: string; style: Record<string, string> }> =
+    [
+      {
+        label: `ID ${draft.preset_id || 'new'}`,
+        style: PLAYER_BADGE_STYLE,
+      },
+      ...(draft.preset_id
+        ? [
+            {
+              label: 'Loaded preset',
+              style: MUTED_BADGE_STYLE,
+            },
+          ]
+        : []),
+      {
+        label: draftStatus.label,
+        style: getDraftStatusBadgeStyle(draftStatus.kind),
+      },
+    ];
+
+  return (
+    <Box
+      px={0.9}
+      py={0.6}
+      style={{
+        ...STATUS_STRIP_STYLE,
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+      }}
+    >
+      <Stack align="center">
+        <Stack.Item grow>
+          <Box bold fontSize="1.08rem" style={ELLIPSIS_STYLE}>
+            {draft.name || 'New preset'}
+          </Box>
+          <Box color="label" fontSize="0.78rem" mt="0.15rem">
+            {draftStatus.hint}
+          </Box>
+          <Box mt="0.28rem">
+            {statusBadges.map((badge) => (
+              <Box key={badge.label} mr={0.35} mb={0.2} style={badge.style}>
+                {badge.label}
+              </Box>
+            ))}
+          </Box>
+        </Stack.Item>
+        <Stack.Item>
+          <Stack>
+            <Stack.Item>
+              <Button icon="save" color="good" onClick={onSave}>
+                Save
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button icon="copy" onClick={onSaveAsCopy}>
+                Save As
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="undo"
+                color="transparent"
+                disabled={!canRevert}
+                style={!canRevert ? DISABLED_ACTION_STYLE : undefined}
+                onClick={onRevert}
+              >
+                Revert
+              </Button>
+            </Stack.Item>
+          </Stack>
+        </Stack.Item>
+      </Stack>
+    </Box>
+  );
+}
+
+type PresetMetaSectionProps = Readonly<{
+  draft: DraftPreset;
+  draftToken: number;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
+  onSetName: (value: string) => void;
+  onSetDescription: (value: string) => void;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
+  onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
+}>;
+
+function PresetMetaSection({
+  draft,
+  draftToken,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
   onSetName,
   onSetDescription,
-}: PlaylistEditorSectionProps) {
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onToggleRepeat,
+}: PresetMetaSectionProps) {
   return (
-    <Section
-      title="Playlist"
-      buttons={
-        <Flex align="center">
-          <Box mr={1} style={getDraftStatusBadgeStyle(draftStatus.kind)}>
-            {draftStatus.label}
-          </Box>
-          <Button icon="save" color="good" onClick={onSave}>
-            Save
-          </Button>
-        </Flex>
-      }
-    >
+    <Section fill title="Preset">
       <Stack vertical>
         <Stack.Item>
           <Box style={COMPACT_CARD_STYLE}>
             <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
-              {draft.name || 'New playlist'}
+              {draft.name || 'New preset'}
             </Box>
             <Box mt="0.3rem">
               <Box style={PLAYER_BADGE_STYLE}>
@@ -1471,50 +1683,26 @@ function PlaylistEditorSection({
             </LabeledList.Item>
           </LabeledList>
         </Stack.Item>
+        <Stack.Item>
+          <Box style={COMPACT_CARD_STYLE}>
+            <Box bold>Preset Defaults</Box>
+            <Box color="label" fontSize="0.78rem" mt="0.18rem" mb={0.4}>
+              Saved with the preset and used as the starting point for Play.
+            </Box>
+            <PlaybackSettingsControls
+              playback={draft.playback}
+              audienceOptions={audienceOptions}
+              soundTypeOptions={soundTypeOptions}
+              audienceLabel={audienceLabel}
+              soundTypeLabel={soundTypeLabel}
+              onSetAudienceMode={onSetAudienceMode}
+              onSetSoundType={onSetSoundType}
+              onToggleShowTitle={onToggleShowTitle}
+              onToggleRepeat={onToggleRepeat}
+            />
+          </Box>
+        </Stack.Item>
       </Stack>
-    </Section>
-  );
-}
-
-type PresetDefaultsSectionProps = Readonly<{
-  playback: PlaybackSettings;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
-  onToggleShowTitle: () => void;
-  onToggleRepeat: () => void;
-}>;
-
-function PresetDefaultsSection({
-  playback,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
-  onSetAudienceMode,
-  onSetSoundType,
-  onToggleShowTitle,
-  onToggleRepeat,
-}: PresetDefaultsSectionProps) {
-  return (
-    <Section title="Preset Defaults">
-      <Box color="label" fontSize="0.8rem" mb={0.5}>
-        Saved with the playlist and used as the starting point for Play.
-      </Box>
-      <PlaybackSettingsControls
-        playback={playback}
-        audienceOptions={audienceOptions}
-        soundTypeOptions={soundTypeOptions}
-        audienceLabel={audienceLabel}
-        soundTypeLabel={soundTypeLabel}
-        onSetAudienceMode={onSetAudienceMode}
-        onSetSoundType={onSetSoundType}
-        onToggleShowTitle={onToggleShowTitle}
-        onToggleRepeat={onToggleRepeat}
-      />
     </Section>
   );
 }
@@ -1522,7 +1710,6 @@ function PresetDefaultsSection({
 type AdvancedSectionProps = Readonly<{
   canDelete: boolean;
   onNew: () => void;
-  onSaveAsCopy: () => void;
   onDelete: () => void;
   onExport: () => void;
   onImport: (jsonText: string | string[]) => void;
@@ -1531,57 +1718,50 @@ type AdvancedSectionProps = Readonly<{
 function AdvancedSection({
   canDelete,
   onNew,
-  onSaveAsCopy,
   onDelete,
   onExport,
   onImport,
 }: AdvancedSectionProps) {
   return (
-    <Section title="Manage">
+    <Collapsible title="Advanced" icon="cog">
       <Box color="label" fontSize="0.8rem" mb={0.5}>
         Import, export, and destructive actions stay here.
       </Box>
-      <Collapsible title="Advanced" icon="cog">
-        <Stack vertical>
-          <Stack.Item>
-            <Button fluid icon="plus" onClick={onNew}>
-              New Playlist
-            </Button>
-          </Stack.Item>
-          <Stack.Item>
-            <Button fluid icon="copy" onClick={onSaveAsCopy}>
-              Save As Copy
-            </Button>
-          </Stack.Item>
-          <Stack.Item>
-            <Button.File
-              fluid
-              icon="upload"
-              accept=".json,application/json"
-              onSelectFiles={onImport}
-            >
-              Import JSON
-            </Button.File>
-          </Stack.Item>
-          <Stack.Item>
-            <Button fluid icon="download" onClick={onExport}>
-              Export
-            </Button>
-          </Stack.Item>
-          <Stack.Item>
-            <Button
-              fluid
-              icon="trash"
-              color="bad"
-              disabled={!canDelete}
-              onClick={onDelete}
-            >
-              Delete Playlist
-            </Button>
-          </Stack.Item>
-        </Stack>
-      </Collapsible>
-    </Section>
+      <Stack vertical>
+        <Stack.Item>
+          <Button fluid icon="plus" onClick={onNew}>
+            New Draft
+          </Button>
+        </Stack.Item>
+        <Stack.Item>
+          <Button.File
+            fluid
+            icon="upload"
+            accept=".json,application/json"
+            onSelectFiles={onImport}
+          >
+            Import JSON
+          </Button.File>
+        </Stack.Item>
+        <Stack.Item>
+          <Button fluid icon="download" onClick={onExport}>
+            Export Preset
+          </Button>
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            fluid
+            icon="trash"
+            color="bad"
+            disabled={!canDelete}
+            style={!canDelete ? DISABLED_ACTION_STYLE : undefined}
+            onClick={onDelete}
+          >
+            Delete Preset
+          </Button>
+        </Stack.Item>
+      </Stack>
+    </Collapsible>
   );
 }
 

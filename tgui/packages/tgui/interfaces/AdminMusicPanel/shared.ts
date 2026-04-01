@@ -275,23 +275,23 @@ export const getDraftStatus = (
   if (!draft.preset_id) {
     return {
       kind: 'unsaved_draft',
-      label: 'Unsaved draft',
-      hint: 'Not saved to library yet',
+      label: 'Draft',
+      hint: 'Not saved to the preset library yet',
     };
   }
 
   if (dirty) {
     return {
       kind: 'modified_copy',
-      label: 'Modified copy',
-      hint: `Editing copy of ${draft.preset_id}`,
+      label: 'Unsaved changes',
+      hint: `Loaded preset ${draft.preset_id} has local edits`,
     };
   }
 
   return {
     kind: 'loaded_preset',
-    label: 'Loaded preset',
-    hint: `Loaded from ${draft.preset_id}`,
+    label: 'Saved',
+    hint: `Loaded preset ${draft.preset_id} is ready to edit`,
   };
 };
 

@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackend } from '../../backend';
-import { Box, Button, Stack, Tabs } from '../../components';
+import { Button, Stack, Tabs } from '../../components';
 import { Window } from '../../layouts';
-import {
-  BroadcastStatusStrip,
-  EditTab,
-  PlayTab,
-  SessionSection,
-} from './sections';
+import { EditTab, PlayTab } from './sections';
 import {
   AdminMusicPanelData,
   buildLaunchSettings,
@@ -113,6 +108,19 @@ export function AdminMusicPanel() {
     }
   };
 
+  const handleRevertDraft = () => {
+    if (!dirty) {
+      return;
+    }
+
+    if (draft?.preset_id) {
+      act('load_preset', { preset_id: draft.preset_id });
+      return;
+    }
+
+    act('new_draft');
+  };
+
   return (
     <Window
       title="Admin Music Panel"
@@ -135,12 +143,26 @@ export function AdminMusicPanel() {
       <Window.Content scrollable>
         <Stack fill vertical>
           <Stack.Item>
+            <Tabs fluid>
+              <Tabs.Tab
+                selected={activeTab === 'play'}
+                onClick={() => setActiveTab('play')}
+              >
+                Play
+              </Tabs.Tab>
+              <Tabs.Tab
+                selected={activeTab === 'edit'}
+                onClick={() => setActiveTab('edit')}
+              >
+                Edit
+              </Tabs.Tab>
+            </Tabs>
+          </Stack.Item>
+          <Stack.Item grow={1}>
             {activeTab === 'play' ? (
-              <SessionSection
+              <PlayTab
                 current_session={current_session}
                 draft={draft}
-                selectedTier={selectedTier}
-                selectedVariant={selectedVariant}
                 launchSettings={launchSettings}
                 audienceOptions={audienceOptions}
                 soundTypeOptions={soundTypeOptions}
@@ -154,7 +176,20 @@ export function AdminMusicPanel() {
                 )}
                 trackReadiness={trackReadiness}
                 selectedTrackIsLive={selectedTrackIsLive}
+                isPreviewActive={isPreviewActive}
+                previewState={previewState}
+                previewVolume={previewVolume}
+                library={library}
+                librarySearch={librarySearch}
+                loadedLibraryPresetId={loadedLibraryPresetId}
+                onSearchChange={setLibrarySearch}
+                onLoadPreset={handleLoadPreset}
                 onOpenEdit={() => setActiveTab('edit')}
+                dirty={dirty}
+                selectedTier={selectedTier}
+                selectedVariant={selectedVariant}
+                selectedTierId={selected_tier_id}
+                selectedVariantId={selected_variant_id}
                 onSetAudienceMode={(value) =>
                   setLaunchSettings((current) => ({
                     ...current,
@@ -190,88 +225,8 @@ export function AdminMusicPanel() {
                 }
                 onPreviewSelected={() => act('preview_selected')}
                 onStopPreview={stopPreview}
-                isPreviewActive={isPreviewActive}
-                previewState={previewState}
-                previewVolume={previewVolume}
                 onPlaySelected={() => act('play_selected', launchSettings)}
                 onStopBroadcast={() => act('stop_broadcast')}
-              />
-            ) : (
-              <BroadcastStatusStrip
-                current_session={current_session}
-                onStopBroadcast={() => act('stop_broadcast')}
-              />
-            )}
-          </Stack.Item>
-          <Stack.Item>
-            <Tabs fluid>
-              <Tabs.Tab
-                selected={activeTab === 'play'}
-                onClick={() => setActiveTab('play')}
-              >
-                Play
-              </Tabs.Tab>
-              <Tabs.Tab
-                selected={activeTab === 'edit'}
-                onClick={() => setActiveTab('edit')}
-              >
-                Edit
-              </Tabs.Tab>
-            </Tabs>
-          </Stack.Item>
-          <Stack.Item>
-            <Box
-              px={0.9}
-              py={0.45}
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                borderRadius: '0.35rem',
-              }}
-            >
-              <Stack align="center">
-                <Stack.Item grow>
-                  <Box bold>{draft.name || 'New playlist'}</Box>
-                  <Box color="label" fontSize="0.74rem">
-                    Current Draft - {draftStatus.hint}
-                  </Box>
-                </Stack.Item>
-                <Stack.Item>
-                  <Box
-                    px={0.6}
-                    py={0.2}
-                    style={{
-                      borderRadius: '999px',
-                      border:
-                        draftStatus.kind !== 'loaded_preset'
-                          ? '1px solid rgba(255, 208, 102, 0.45)'
-                          : '1px solid rgba(255, 255, 255, 0.1)',
-                      backgroundColor:
-                        draftStatus.kind !== 'loaded_preset'
-                          ? 'rgba(255, 208, 102, 0.12)'
-                          : 'rgba(255, 255, 255, 0.03)',
-                    }}
-                  >
-                    {draftStatus.label}
-                  </Box>
-                </Stack.Item>
-              </Stack>
-            </Box>
-          </Stack.Item>
-          <Stack.Item grow={1}>
-            {activeTab === 'play' ? (
-              <PlayTab
-                library={library}
-                librarySearch={librarySearch}
-                loadedLibraryPresetId={loadedLibraryPresetId}
-                onSearchChange={setLibrarySearch}
-                onLoadPreset={handleLoadPreset}
-                onOpenEdit={() => setActiveTab('edit')}
-                draft={draft}
-                dirty={dirty}
-                selectedTier={selectedTier}
-                selectedTierId={selected_tier_id}
-                selectedVariantId={selected_variant_id}
                 onSelectTier={(tier_id) => act('select_tier', { tier_id })}
                 onSelectVariant={(tier_id, variant_id) =>
                   act('select_variant', { tier_id, variant_id })
@@ -283,6 +238,7 @@ export function AdminMusicPanel() {
                 draftStatus={draftStatus}
                 draftToken={draft_token}
                 canDelete={can_delete_saved_preset}
+                canRevert={dirty}
                 audienceOptions={audienceOptions}
                 soundTypeOptions={soundTypeOptions}
                 audienceLabel={getOptionLabel(
@@ -300,6 +256,7 @@ export function AdminMusicPanel() {
                 onSave={() => act('save')}
                 onNew={handleNewDraft}
                 onSaveAsCopy={() => act('save_as_copy')}
+                onRevert={handleRevertDraft}
                 onDelete={() =>
                   act('delete_preset', { preset_id: draft.preset_id })
                 }
