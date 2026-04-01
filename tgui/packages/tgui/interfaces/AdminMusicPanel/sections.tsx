@@ -40,7 +40,6 @@ import {
   PlaybackMode,
   PlaybackSettings,
   PLAYER_BADGE_STYLE,
-  PLAYER_CARD_STYLE,
   PLAYER_STRIP_STYLE,
   SelectOption,
   STATUS_STRIP_STYLE,
@@ -112,65 +111,116 @@ type CompactFactItem = Readonly<{
   value: string;
 }>;
 
-type CompactFactListProps = Readonly<{
+type TrackFactBadgesProps = Readonly<{
   items: CompactFactItem[];
 }>;
 
-function CompactFactList({ items }: CompactFactListProps) {
+const LIST_BADGE_STYLE = {
+  ...PLAYER_BADGE_STYLE,
+  padding: '0.05rem 0.35rem',
+  marginBottom: '0.15rem',
+  fontSize: '0.72rem',
+};
+
+const WARNING_BADGE_STYLE = {
+  ...LIST_BADGE_STYLE,
+  border: '1px solid rgba(255, 208, 102, 0.35)',
+  backgroundColor: 'rgba(255, 208, 102, 0.12)',
+};
+
+function TrackFactBadges({ items }: TrackFactBadgesProps) {
   return (
-    <Box style={SUBTLE_PANEL_STYLE}>
-      {items.map((item, index) => (
-        <Flex
-          key={item.label}
-          align="center"
-          justify="space-between"
-          width="100%"
-          style={index ? { marginTop: '0.2rem' } : undefined}
-        >
-          <Flex.Item>
-            <Box color="label" fontSize="0.75rem">
-              {item.label}
-            </Box>
-          </Flex.Item>
-          <Flex.Item grow ml={1}>
-            <Box
-              textAlign="right"
-              fontSize="0.78rem"
-              style={{ ...ELLIPSIS_STYLE, display: 'block' }}
-            >
-              {item.value}
-            </Box>
-          </Flex.Item>
-        </Flex>
+    <Box>
+      {items.map((item) => (
+        <Box key={item.label} style={LIST_BADGE_STYLE}>
+          {item.label}: {item.value}
+        </Box>
       ))}
     </Box>
   );
 }
 
+const getVariantListBadges = (variant: DraftVariant) => {
+  const badges: Array<{
+    label: string;
+    style: Record<string, string>;
+  }> = [];
+
+  if (!variant.source_url.trim()) {
+    badges.push({
+      label: 'No source',
+      style: WARNING_BADGE_STYLE,
+    });
+  }
+
+  if (!normalizeDurationValue(variant.duration_seconds)) {
+    badges.push({
+      label: 'Unknown duration',
+      style: LIST_BADGE_STYLE,
+    });
+  }
+
+  return badges;
+};
+
 type TrackReadinessNoticesProps = Readonly<{
   readiness: TrackLaunchReadiness;
+  onOpenEdit?: () => void;
 }>;
 
-function TrackReadinessNotices({ readiness }: TrackReadinessNoticesProps) {
+function TrackReadinessNotices({
+  readiness,
+  onOpenEdit,
+}: TrackReadinessNoticesProps) {
   return (
     <>
       {readiness.reason ? (
-        <Box mt="0.45rem" style={WARNING_PANEL_STYLE}>
-          <Box bold fontSize="0.78rem">
-            Action blocked
-          </Box>
-          <Box color="label" fontSize="0.75rem" mt="0.15rem">
-            Cannot preview or broadcast yet: {readiness.reason}
-          </Box>
+        <Box
+          mt="0.35rem"
+          px={0.55}
+          py={0.4}
+          style={{
+            ...WARNING_PANEL_STYLE,
+            padding: '0.4rem 0.55rem',
+          }}
+        >
+          <Flex align="center" justify="space-between" width="100%">
+            <Flex.Item grow>
+              <Box bold fontSize="0.76rem">
+                Blocked
+              </Box>
+              <Box color="label" fontSize="0.74rem" mt="0.1rem">
+                Cannot preview or broadcast yet: {readiness.reason}
+              </Box>
+            </Flex.Item>
+            {onOpenEdit ? (
+              <Flex.Item ml={1}>
+                <Button
+                  compact
+                  icon="edit"
+                  color="transparent"
+                  onClick={onOpenEdit}
+                >
+                  Fix in Edit
+                </Button>
+              </Flex.Item>
+            ) : null}
+          </Flex>
         </Box>
       ) : null}
       {readiness.warnings.map((warning) => (
-        <Box key={warning} mt="0.45rem" style={WARNING_PANEL_STYLE}>
-          <Box bold fontSize="0.78rem">
-            Heads up
-          </Box>
-          <Box color="label" fontSize="0.75rem" mt="0.15rem">
-            {warning}
+        <Box
+          key={warning}
+          mt="0.3rem"
+          px={0.55}
+          py={0.35}
+          style={{
+            ...WARNING_PANEL_STYLE,
+            padding: '0.35rem 0.55rem',
+          }}
+        >
+          <Box color="label" fontSize="0.74rem">
+            Heads up: {warning}
           </Box>
         </Box>
       ))}
@@ -181,11 +231,13 @@ function TrackReadinessNotices({ readiness }: TrackReadinessNoticesProps) {
 type BroadcastStatusStripProps = Readonly<{
   current_session: CurrentSession;
   onStopBroadcast: () => void;
+  showStopButton?: boolean;
 }>;
 
 export function BroadcastStatusStrip({
   current_session,
   onStopBroadcast,
+  showStopButton = true,
 }: BroadcastStatusStripProps) {
   if (!current_session) {
     return (
@@ -213,6 +265,27 @@ export function BroadcastStatusStrip({
     Boolean(current_session.loop),
     current_session.playback_mode,
   );
+  const broadcastPath = [current_session.preset_name, current_session.tier_name]
+    .filter(Boolean)
+    .join(' / ');
+  const liveFacts: CompactFactItem[] = [
+    {
+      label: 'Path',
+      value: broadcastPath || 'Legacy broadcast session',
+    },
+    {
+      label: 'Length',
+      value: formatDuration(current_session.duration_seconds || 0),
+    },
+    {
+      label: 'Title',
+      value: current_session.show_title_to_players ? 'Visible' : 'Hidden',
+    },
+    {
+      label: 'Source',
+      value: formatSourceLabel(current_session.source_url),
+    },
+  ];
 
   return (
     <Box
@@ -236,12 +309,17 @@ export function BroadcastStatusStrip({
             Audience {current_session.audience_label} | Sound Type{' '}
             {current_session.sound_type_label} | {liveBehavior}
           </Box>
+          <Box mt="0.3rem">
+            <TrackFactBadges items={liveFacts} />
+          </Box>
         </Stack.Item>
-        <Stack.Item>
-          <Button compact icon="stop" color="bad" onClick={onStopBroadcast}>
-            Stop Broadcast
-          </Button>
-        </Stack.Item>
+        {showStopButton ? (
+          <Stack.Item>
+            <Button compact icon="stop" color="bad" onClick={onStopBroadcast}>
+              Stop Broadcast
+            </Button>
+          </Stack.Item>
+        ) : null}
       </Stack>
     </Box>
   );
@@ -259,6 +337,7 @@ type SessionSectionProps = Readonly<{
   soundTypeLabel: string;
   trackReadiness: TrackLaunchReadiness;
   selectedTrackIsLive: boolean;
+  onOpenEdit: () => void;
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
@@ -286,6 +365,7 @@ export function SessionSection({
   soundTypeLabel,
   trackReadiness,
   selectedTrackIsLive,
+  onOpenEdit,
   onSetAudienceMode,
   onSetSoundType,
   onToggleShowTitle,
@@ -300,27 +380,12 @@ export function SessionSection({
   onPlaySelected,
   onStopBroadcast,
 }: SessionSectionProps) {
-  const broadcastTitle =
-    current_session?.variant_title ||
-    current_session?.resolved_title ||
-    'Untitled broadcast';
-  const broadcastPath = [
-    current_session?.preset_name,
-    current_session?.tier_name,
-  ]
-    .filter(Boolean)
-    .join(' / ');
-  const broadcastDescription =
-    current_session?.variant_description ||
-    'Live broadcast uses the shared admin music channel.';
   const selectedTitle = selectedVariant?.title || 'No track selected';
-  const selectedDescription = selectedVariant?.description
-    ? selectedVariant.description
-    : !selectedVariant
-      ? 'Choose a track in Play to preview it or prepare the next broadcast.'
-      : trackReadiness.canBroadcast
-        ? 'Preview it locally or adjust the launch settings below before broadcasting.'
-        : 'This track needs attention before it can be previewed or broadcast.';
+  const selectedStatus = !selectedVariant
+    ? 'Pick a track below to preview it locally or prepare the next broadcast.'
+    : trackReadiness.canBroadcast
+      ? 'Ready to preview locally or broadcast with the current launch settings.'
+      : 'Needs a small fix before it can be previewed or broadcast.';
   const selectedFacts: CompactFactItem[] = [
     {
       label: 'Playlist',
@@ -345,34 +410,51 @@ export function SessionSection({
         : 'Not set',
     },
   ];
-  const liveDuration = current_session?.duration_seconds
-    ? formatDuration(current_session.duration_seconds)
-    : 'Unknown';
-  const liveBehavior = formatAfterTrackEnds(
-    Boolean(current_session?.loop),
-    current_session?.playback_mode,
-  );
   const launchBehavior = formatAfterTrackEnds(
     launchSettings.repeat,
     launchSettings.playback_mode,
   );
-  const previewLabel = isPreviewActive
-    ? `${previewState} | Local preview only`
-    : trackReadiness.canPreview
-      ? 'Local preview only'
-      : 'Unavailable until the track is ready';
   const broadcastButtonLabel = selectedTrackIsLive
     ? 'Restart Broadcast'
     : 'Broadcast';
+  const launchSummary = [
+    `Audience ${audienceLabel}`,
+    `Sound ${soundTypeLabel}`,
+    launchSettings.show_title_to_players ? 'Title visible' : 'Title hidden',
+    launchBehavior,
+  ].join(' | ');
+  const previewActionLabel = !selectedVariant
+    ? 'Open Edit'
+    : isPreviewActive
+      ? 'Stop Preview'
+      : trackReadiness.canPreview
+        ? 'Preview'
+        : 'Fix in Edit';
+  const previewActionIcon = !selectedVariant
+    ? 'edit'
+    : isPreviewActive
+      ? 'stop'
+      : trackReadiness.canPreview
+        ? 'eye'
+        : 'edit';
+  const previewActionColor = isPreviewActive ? 'default' : 'transparent';
+  const previewHint = !selectedVariant
+    ? 'Choose a track below or switch to Edit to build the draft.'
+    : trackReadiness.canPreview
+      ? 'Preview plays only for you.'
+      : 'Preview unlocks once the track is ready.';
   const selectedTrackPanel = (
-    <Box style={PLAYER_CARD_STYLE}>
-      <Flex align="center" justify="space-between" width="100%">
+    <Box style={COMPACT_CARD_STYLE}>
+      <Flex align="flex-start" justify="space-between" width="100%">
         <Flex.Item grow>
-          <Box color="label" fontSize="0.75rem">
+          <Box color="label" fontSize="0.74rem">
             Selected Track
           </Box>
-          <Box bold fontSize="1.2rem" mt="0.15rem" style={ELLIPSIS_STYLE}>
+          <Box bold fontSize="1.08rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
             {selectedTitle}
+          </Box>
+          <Box color="label" fontSize="0.78rem" mt="0.18rem">
+            {selectedStatus}
           </Box>
         </Flex.Item>
         {selectedTrackIsLive ? (
@@ -381,75 +463,108 @@ export function SessionSection({
           </Flex.Item>
         ) : null}
       </Flex>
-      <Box color="label" mt="0.25rem" style={WRAPPED_TEXT_STYLE}>
-        {selectedDescription}
-      </Box>
-      <Box mt="0.45rem">
-        <CompactFactList items={selectedFacts} />
-      </Box>
+      {selectedVariant ? (
+        <Box mt="0.35rem">
+          <TrackFactBadges items={selectedFacts} />
+        </Box>
+      ) : null}
       {selectedVariant ? (
         <TrackReadinessNotices readiness={trackReadiness} />
       ) : null}
-      <Box mt="0.6rem">
-        <Flex align="center" justify="space-between" width="100%">
-          <Flex.Item grow>
-            <Box bold fontSize="0.85rem">
-              Preview
-            </Box>
-            <Box color="label" fontSize="0.75rem">
-              {previewLabel}
-            </Box>
-          </Flex.Item>
-          <Flex.Item ml={1}>
-            {isPreviewActive ? (
+      <Flex align="center" justify="space-between" width="100%" mt="0.45rem">
+        <Flex.Item grow>
+          <Box color="label" fontSize="0.74rem" style={WRAPPED_TEXT_STYLE}>
+            {previewHint}
+          </Box>
+        </Flex.Item>
+        <Flex.Item ml={1}>
+          <Button
+            compact
+            color={previewActionColor}
+            icon={previewActionIcon}
+            onClick={
+              !selectedVariant
+                ? onOpenEdit
+                : isPreviewActive
+                  ? onStopPreview
+                  : trackReadiness.canPreview
+                    ? onPreviewSelected
+                    : onOpenEdit
+            }
+          >
+            {previewActionLabel}
+          </Button>
+        </Flex.Item>
+      </Flex>
+      {isPreviewActive ? (
+        <Box color="label" fontSize="0.74rem" mt="0.25rem">
+          Previewing locally at {Math.round(previewVolume * 100)}% volume.
+        </Box>
+      ) : previewState && previewState !== 'idle' ? (
+        <Box color="label" fontSize="0.74rem" mt="0.25rem">
+          Preview state: {previewState}.
+        </Box>
+      ) : null}
+    </Box>
+  );
+  const launchPanel = (
+    <Box style={COMPACT_CARD_STYLE}>
+      <Flex align="center" justify="space-between" width="100%">
+        <Flex.Item grow>
+          <Box bold>Launch & Broadcast</Box>
+          <Box color="label" fontSize="0.74rem" mt="0.1rem">
+            {launchSummary}
+          </Box>
+        </Flex.Item>
+        <Flex.Item ml={1}>
+          <Stack>
+            <Stack.Item>
               <Button
-                compact
-                color="default"
-                icon="stop"
-                onClick={onStopPreview}
+                icon="play"
+                color="good"
+                disabled={!trackReadiness.canBroadcast}
+                style={
+                  !trackReadiness.canBroadcast
+                    ? DISABLED_ACTION_STYLE
+                    : undefined
+                }
+                onClick={onPlaySelected}
               >
-                Stop Preview
+                {broadcastButtonLabel}
               </Button>
-            ) : (
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="stop"
+                color="bad"
+                disabled={!current_session}
+                style={!current_session ? DISABLED_ACTION_STYLE : undefined}
+                onClick={onStopBroadcast}
+              >
+                Stop Broadcast
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
               <Button
                 compact
                 color="transparent"
-                icon="eye"
-                disabled={!trackReadiness.canPreview}
-                style={
-                  !trackReadiness.canPreview ? DISABLED_ACTION_STYLE : undefined
-                }
-                onClick={onPreviewSelected}
+                icon="undo"
+                style={{ opacity: '0.72' }}
+                onClick={onResetLaunchSettings}
               >
-                Preview
+                Reset
               </Button>
-            )}
-          </Flex.Item>
-        </Flex>
-        {isPreviewActive ? (
-          <Box color="label" fontSize="0.75rem" mt="0.2rem">
-            Volume {Math.round(previewVolume * 100)}%
-          </Box>
-        ) : null}
-      </Box>
-      <Box mt="0.6rem" style={SUBTLE_PANEL_STYLE}>
-        <Flex align="center" justify="space-between" width="100%">
-          <Flex.Item grow>
-            <Box bold>Launch Settings</Box>
-          </Flex.Item>
-          <Flex.Item ml={1}>
-            <Button
-              compact
-              color="transparent"
-              icon="undo"
-              style={{ opacity: '0.72' }}
-              onClick={onResetLaunchSettings}
-            >
-              Reset
-            </Button>
-          </Flex.Item>
-        </Flex>
-        <Box color="label" fontSize="0.72rem" mt={0.15} mb={0.35}>
+            </Stack.Item>
+          </Stack>
+        </Flex.Item>
+      </Flex>
+      {!trackReadiness.canBroadcast && selectedVariant ? (
+        <Box color="label" fontSize="0.74rem" mt="0.3rem">
+          Broadcast stays disabled until the selected track is ready.
+        </Box>
+      ) : null}
+      <Box mt="0.45rem" style={SUBTLE_PANEL_STYLE}>
+        <Box color="label" fontSize="0.72rem" mb={0.35}>
           Session-only settings used when you press Broadcast.
         </Box>
         <PlaybackSettingsControls
@@ -492,94 +607,27 @@ export function SessionSection({
   );
 
   return (
-    <Section
-      title="Live Broadcast"
-      buttons={
-        <Stack>
+    <Section title="Live Broadcast">
+      <Box style={PLAYER_STRIP_STYLE}>
+        <Stack vertical>
           <Stack.Item>
-            <Button
-              icon="play"
-              color="good"
-              disabled={!trackReadiness.canBroadcast}
-              style={
-                !trackReadiness.canBroadcast ? DISABLED_ACTION_STYLE : undefined
-              }
-              onClick={onPlaySelected}
-            >
-              {broadcastButtonLabel}
-            </Button>
+            <BroadcastStatusStrip
+              current_session={current_session}
+              onStopBroadcast={onStopBroadcast}
+              showStopButton={false}
+            />
           </Stack.Item>
           <Stack.Item>
-            <Button
-              icon="stop"
-              color="bad"
-              disabled={!current_session}
-              style={!current_session ? DISABLED_ACTION_STYLE : undefined}
-              onClick={onStopBroadcast}
-            >
-              Stop Broadcast
-            </Button>
+            <Stack fill>
+              <Stack.Item basis="38%" grow={1}>
+                {selectedTrackPanel}
+              </Stack.Item>
+              <Stack.Item basis="62%" grow={2}>
+                {launchPanel}
+              </Stack.Item>
+            </Stack>
           </Stack.Item>
         </Stack>
-      }
-    >
-      <Box style={PLAYER_STRIP_STYLE}>
-        {current_session ? (
-          <Stack fill>
-            <Stack.Item basis="38%" grow={1}>
-              <Box style={PLAYER_CARD_STYLE}>
-                <Box color="label" fontSize="0.8rem">
-                  On air
-                </Box>
-                <Box
-                  bold
-                  fontSize="1.25rem"
-                  mt="0.15rem"
-                  style={ELLIPSIS_STYLE}
-                >
-                  {broadcastTitle}
-                </Box>
-                <Box color="label" mt="0.2rem" style={WRAPPED_TEXT_STYLE}>
-                  {broadcastDescription}
-                </Box>
-                <Box mt="0.45rem">
-                  <Box style={PLAYER_BADGE_STYLE}>
-                    {broadcastPath || 'Legacy broadcast session'}
-                  </Box>
-                  <Box style={PLAYER_BADGE_STYLE}>
-                    Audience {current_session.audience_label}
-                  </Box>
-                  <Box style={PLAYER_BADGE_STYLE}>
-                    Mode {current_session.sound_type_label}
-                  </Box>
-                  <Box style={PLAYER_BADGE_STYLE}>Length {liveDuration}</Box>
-                  <Box style={PLAYER_BADGE_STYLE}>{liveBehavior}</Box>
-                  <Box style={PLAYER_BADGE_STYLE}>
-                    {current_session.show_title_to_players
-                      ? 'Title visible to players'
-                      : 'Title hidden from players'}
-                  </Box>
-                  <Box style={PLAYER_BADGE_STYLE}>
-                    Source {formatSourceLabel(current_session.source_url)}
-                  </Box>
-                </Box>
-              </Box>
-            </Stack.Item>
-            <Stack.Item basis="62%" grow={2}>
-              {selectedTrackPanel}
-            </Stack.Item>
-          </Stack>
-        ) : (
-          <Stack vertical>
-            <Stack.Item>
-              <BroadcastStatusStrip
-                current_session={current_session}
-                onStopBroadcast={onStopBroadcast}
-              />
-            </Stack.Item>
-            <Stack.Item>{selectedTrackPanel}</Stack.Item>
-          </Stack>
-        )}
       </Box>
     </Section>
   );
@@ -899,16 +947,8 @@ function LibrarySection({
     <Section fill title="Library">
       <Stack fill vertical>
         <Stack.Item>
-          <Box style={SUBTLE_PANEL_STYLE}>
-            <Box color="label" fontSize="0.75rem">
-              Current Draft
-            </Box>
-            <Box bold style={ELLIPSIS_STYLE}>
-              {draft.name || 'New playlist'}
-            </Box>
-            <Box color="label" fontSize="0.75rem">
-              {draftStatus.hint}
-            </Box>
+          <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
+            Working draft: {draft.name || 'New playlist'}. {draftStatus.hint}
           </Box>
         </Stack.Item>
         <Stack.Item>
@@ -1182,6 +1222,15 @@ function PlayTracksSection({
                         <Box bold style={ELLIPSIS_STYLE}>
                           {variant.title || 'Unnamed track'}
                         </Box>
+                        {getVariantListBadges(variant).length ? (
+                          <Box mt="0.1rem">
+                            {getVariantListBadges(variant).map((badge) => (
+                              <Box key={badge.label} style={badge.style}>
+                                {badge.label}
+                              </Box>
+                            ))}
+                          </Box>
+                        ) : null}
                       </Flex.Item>
                       <Flex.Item ml={1}>
                         <Box fontSize="0.75rem" color="label">
@@ -1467,47 +1516,47 @@ function SceneEditorSection({
           <Section
             title="Scene Details"
             buttons={
-              <Stack>
-                <Stack.Item>
-                  <Button
-                    icon="arrow-up"
-                    color="transparent"
-                    disabled={!selectedTier || !canMoveSceneUp}
-                    onClick={() =>
-                      selectedTier && onMoveTierUp(selectedTier.tier_id)
-                    }
-                  >
-                    Move Up
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    icon="arrow-down"
-                    color="transparent"
-                    disabled={!selectedTier || !canMoveSceneDown}
-                    onClick={() =>
-                      selectedTier && onMoveTierDown(selectedTier.tier_id)
-                    }
-                  >
-                    Move Down
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button.Confirm
-                    icon="trash"
-                    color="transparent"
-                    confirmColor="bad"
-                    confirmIcon="trash"
-                    disabled={!canDeleteScene}
-                    confirmContent="Delete?"
-                    onClick={() =>
-                      selectedTier && onRemoveTier(selectedTier.tier_id)
-                    }
-                  >
-                    Delete Scene
-                  </Button.Confirm>
-                </Stack.Item>
-              </Stack>
+              selectedTier &&
+              (canMoveSceneUp || canMoveSceneDown || canDeleteScene) ? (
+                <Stack>
+                  {canMoveSceneUp ? (
+                    <Stack.Item>
+                      <Button
+                        icon="arrow-up"
+                        color="transparent"
+                        onClick={() => onMoveTierUp(selectedTier.tier_id)}
+                      >
+                        Move Up
+                      </Button>
+                    </Stack.Item>
+                  ) : null}
+                  {canMoveSceneDown ? (
+                    <Stack.Item>
+                      <Button
+                        icon="arrow-down"
+                        color="transparent"
+                        onClick={() => onMoveTierDown(selectedTier.tier_id)}
+                      >
+                        Move Down
+                      </Button>
+                    </Stack.Item>
+                  ) : null}
+                  {canDeleteScene ? (
+                    <Stack.Item>
+                      <Button.Confirm
+                        icon="trash"
+                        color="transparent"
+                        confirmColor="bad"
+                        confirmIcon="trash"
+                        confirmContent="Delete?"
+                        onClick={() => onRemoveTier(selectedTier.tier_id)}
+                      >
+                        Delete Scene
+                      </Button.Confirm>
+                    </Stack.Item>
+                  ) : null}
+                </Stack>
+              ) : null
             }
           >
             {!selectedTier ? (
@@ -1662,6 +1711,15 @@ function TrackEditorSection({
                             <Box bold style={ELLIPSIS_STYLE}>
                               {variant.title || 'Unnamed track'}
                             </Box>
+                            {getVariantListBadges(variant).length ? (
+                              <Box mt="0.1rem">
+                                {getVariantListBadges(variant).map((badge) => (
+                                  <Box key={badge.label} style={badge.style}>
+                                    {badge.label}
+                                  </Box>
+                                ))}
+                              </Box>
+                            ) : null}
                           </Flex.Item>
                         </Flex>
                       </Flex.Item>
@@ -1680,62 +1738,63 @@ function TrackEditorSection({
             <Section
               title="Track Details"
               buttons={
-                <Stack>
-                  <Stack.Item>
-                    <Button
-                      icon="arrow-up"
-                      color="transparent"
-                      disabled={!selectedVariant || !canMoveTrackUp}
-                      onClick={() =>
-                        selectedTier &&
-                        selectedVariant &&
-                        onMoveVariantUp(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                        )
-                      }
-                    >
-                      Move Up
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      icon="arrow-down"
-                      color="transparent"
-                      disabled={!selectedVariant || !canMoveTrackDown}
-                      onClick={() =>
-                        selectedTier &&
-                        selectedVariant &&
-                        onMoveVariantDown(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                        )
-                      }
-                    >
-                      Move Down
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button.Confirm
-                      icon="trash"
-                      color="transparent"
-                      confirmColor="bad"
-                      confirmIcon="trash"
-                      disabled={!canDeleteTrack}
-                      confirmContent="Delete?"
-                      onClick={() =>
-                        selectedTier &&
-                        selectedVariant &&
-                        onRemoveVariant(
-                          selectedTier.tier_id,
-                          selectedVariant.variant_id,
-                        )
-                      }
-                    >
-                      Delete Track
-                    </Button.Confirm>
-                  </Stack.Item>
-                </Stack>
+                selectedTier &&
+                selectedVariant &&
+                (canMoveTrackUp || canMoveTrackDown || canDeleteTrack) ? (
+                  <Stack>
+                    {canMoveTrackUp ? (
+                      <Stack.Item>
+                        <Button
+                          icon="arrow-up"
+                          color="transparent"
+                          onClick={() =>
+                            onMoveVariantUp(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                            )
+                          }
+                        >
+                          Move Up
+                        </Button>
+                      </Stack.Item>
+                    ) : null}
+                    {canMoveTrackDown ? (
+                      <Stack.Item>
+                        <Button
+                          icon="arrow-down"
+                          color="transparent"
+                          onClick={() =>
+                            onMoveVariantDown(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                            )
+                          }
+                        >
+                          Move Down
+                        </Button>
+                      </Stack.Item>
+                    ) : null}
+                    {canDeleteTrack ? (
+                      <Stack.Item>
+                        <Button.Confirm
+                          icon="trash"
+                          color="transparent"
+                          confirmColor="bad"
+                          confirmIcon="trash"
+                          confirmContent="Delete?"
+                          onClick={() =>
+                            onRemoveVariant(
+                              selectedTier.tier_id,
+                              selectedVariant.variant_id,
+                            )
+                          }
+                        >
+                          Delete Track
+                        </Button.Confirm>
+                      </Stack.Item>
+                    ) : null}
+                  </Stack>
+                ) : null
               }
             >
               {!selectedVariant ? (
@@ -1766,6 +1825,13 @@ function TrackEditorSection({
                         {selectedVariant.source_url.trim()
                           ? formatSourceLabel(selectedVariant.source_url)
                           : 'Not set'}
+                      </Box>
+                      <Box mt="0.2rem">
+                        {getVariantListBadges(selectedVariant).map((badge) => (
+                          <Box key={badge.label} style={badge.style}>
+                            {badge.label}
+                          </Box>
+                        ))}
                       </Box>
                     </Box>
                   </Stack.Item>
@@ -1803,33 +1869,48 @@ function TrackEditorSection({
                         />
                       </LabeledList.Item>
                       <LabeledList.Item label="Duration">
-                        <NumberInput
-                          minValue={0}
-                          maxValue={86400}
-                          step={1}
-                          value={normalizedDuration}
-                          onChange={(value) =>
-                            onSetVariantDuration(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                        />
+                        <Box>
+                          <NumberInput
+                            minValue={0}
+                            maxValue={86400}
+                            step={1}
+                            value={normalizedDuration}
+                            onChange={(value) =>
+                              onSetVariantDuration(
+                                selectedTier.tier_id,
+                                selectedVariant.variant_id,
+                                value,
+                              )
+                            }
+                          />
+                          {!normalizedDuration ? (
+                            <Box color="label" fontSize="0.75rem" mt="0.2rem">
+                              Unknown duration is allowed, but auto-stop may be
+                              unreliable in Single mode.
+                            </Box>
+                          ) : null}
+                        </Box>
                       </LabeledList.Item>
                       <LabeledList.Item label="Source URL">
-                        <Input
-                          fluid
-                          value={selectedVariant.source_url}
-                          onInput={(e, value) =>
-                            onSetVariantSourceUrl(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                          placeholder="https://..."
-                        />
+                        <Box>
+                          <Input
+                            fluid
+                            value={selectedVariant.source_url}
+                            onInput={(e, value) =>
+                              onSetVariantSourceUrl(
+                                selectedTier.tier_id,
+                                selectedVariant.variant_id,
+                                value,
+                              )
+                            }
+                            placeholder="https://..."
+                          />
+                          {!selectedVariant.source_url.trim() ? (
+                            <Box color="label" fontSize="0.75rem" mt="0.2rem">
+                              Required for preview and broadcast.
+                            </Box>
+                          ) : null}
+                        </Box>
                       </LabeledList.Item>
                     </LabeledList>
                   </Stack.Item>

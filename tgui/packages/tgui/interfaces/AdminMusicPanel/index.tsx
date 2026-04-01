@@ -153,6 +153,7 @@ export function AdminMusicPanel() {
                 )}
                 trackReadiness={trackReadiness}
                 selectedTrackIsLive={selectedTrackIsLive}
+                onOpenEdit={() => setActiveTab('edit')}
                 onSetAudienceMode={(value) =>
                   setLaunchSettings((current) => ({
                     ...current,
@@ -204,14 +205,12 @@ export function AdminMusicPanel() {
           <Stack.Item>
             <Tabs fluid>
               <Tabs.Tab
-                icon="play"
                 selected={activeTab === 'play'}
                 onClick={() => setActiveTab('play')}
               >
                 Play
               </Tabs.Tab>
               <Tabs.Tab
-                icon="edit"
                 selected={activeTab === 'edit'}
                 onClick={() => setActiveTab('edit')}
               >
