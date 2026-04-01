@@ -398,6 +398,7 @@
 				params["sound_type"],
 				params["show_title_to_players"],
 				params["repeat"],
+				params["playback_mode"],
 			)
 
 		if("stop_broadcast")

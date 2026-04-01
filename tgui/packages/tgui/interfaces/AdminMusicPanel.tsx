@@ -41,11 +41,17 @@ type DraftTier = {
   variants: DraftVariant[];
 };
 
+type PlaybackMode = 'ordered' | 'random';
+
 type PlaybackSettings = {
   audience_mode: string;
   sound_type: string;
   show_title_to_players: boolean;
   repeat: boolean;
+};
+
+type LaunchSettings = PlaybackSettings & {
+  playback_mode: PlaybackMode;
 };
 
 type DraftPreset = {
@@ -68,7 +74,11 @@ type CurrentSession = null | {
   preset_name?: string;
   tier_name?: string;
   variant_title?: string;
+  variant_description?: string;
+  duration_seconds?: number;
   loop?: boolean;
+  playback_mode?: PlaybackMode;
+  playback_mode_label?: string;
 };
 
 type OptionEntry = { id: string; label: string };
@@ -170,6 +180,11 @@ const ELLIPSIS_STYLE = {
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 };
+const WRAPPED_TEXT_STYLE = {
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+  lineHeight: '1.3',
+};
 const LIST_SCROLL_STYLE = {
   height: '100%',
   overflowY: 'auto',
@@ -244,11 +259,12 @@ const findVariant = (tier: DraftTier | null, variantId: string | null) =>
   tier?.variants[0] ||
   null;
 
-const buildLaunchSettings = (draft: DraftPreset): PlaybackSettings => ({
+const buildLaunchSettings = (draft: DraftPreset): LaunchSettings => ({
   audience_mode: draft.playback.audience_mode,
   sound_type: draft.playback.sound_type,
   show_title_to_players: draft.playback.show_title_to_players,
   repeat: draft.playback.repeat,
+  playback_mode: 'ordered',
 });
 
 const getOptionLabel = (options: OptionEntry[], value: string) =>
@@ -263,19 +279,20 @@ const toSelectOptions = (options: OptionEntry[]): SelectOption[] =>
 const formatTrackCount = (count: number) =>
   `${count} track${count === 1 ? '' : 's'}`;
 
-const formatPlaybackFlags = (
-  playback: PlaybackSettings,
-  audienceLabel: string,
-  soundTypeLabel: string,
-) =>
-  [
-    `Audience ${audienceLabel}`,
-    `Mode ${soundTypeLabel}`,
-    `Repeat ${playback.repeat ? 'On' : 'Off'}`,
-  ].join(' | ');
+const formatVisibilitySummary = (showTitleToPlayers: boolean) =>
+  showTitleToPlayers ? 'Title visible to players' : 'Title hidden from players';
 
-const formatPlaybackSummary = (audienceLabel: string, soundTypeLabel: string) =>
-  [`Audience ${audienceLabel}`, `Mode ${soundTypeLabel}`].join(' | ');
+const getPlaybackModeLabel = (
+  playbackMode: PlaybackMode | string | undefined,
+) => (playbackMode === 'random' ? 'Random' : 'In order');
+
+const formatAfterTrackEnds = (
+  repeat: boolean,
+  playbackMode: PlaybackMode | string | undefined,
+) =>
+  repeat
+    ? 'Repeat the current track'
+    : `Continue ${getPlaybackModeLabel(playbackMode).toLowerCase()}`;
 
 const isCurrentSessionForSelection = (
   currentSession: CurrentSession,
@@ -326,7 +343,7 @@ export const AdminMusicPanel = () => {
   const [previewVolume, setPreviewVolume] = useState(DEFAULT_PREVIEW_VOLUME);
   const [previewState, setPreviewState] = useState('Idle');
   const [isPreviewActive, setIsPreviewActive] = useState(false);
-  const [launchSettings, setLaunchSettings] = useState<PlaybackSettings>(() =>
+  const [launchSettings, setLaunchSettings] = useState<LaunchSettings>(() =>
     buildLaunchSettings(draft),
   );
 
@@ -627,6 +644,12 @@ export const AdminMusicPanel = () => {
                   repeat: !current.repeat,
                 }))
               }
+              onSetPlaybackMode={(value) =>
+                setLaunchSettings((current) => ({
+                  ...current,
+                  playback_mode: value,
+                }))
+              }
               onPlaySelected={() => act('play_selected', launchSettings)}
               onStopBroadcast={() => act('stop_broadcast')}
             />
@@ -696,12 +719,6 @@ export const AdminMusicPanel = () => {
                   setLaunchSettings((current) => ({
                     ...current,
                     show_title_to_players: !current.show_title_to_players,
-                  }))
-                }
-                onToggleRepeat={() =>
-                  setLaunchSettings((current) => ({
-                    ...current,
-                    repeat: !current.repeat,
                   }))
                 }
                 onResetLaunchSettings={() =>
@@ -823,12 +840,13 @@ type SessionSectionProps = Readonly<{
   draft: DraftPreset;
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
-  launchSettings: PlaybackSettings;
+  launchSettings: LaunchSettings;
   audienceLabel: string;
   soundTypeLabel: string;
   hasSelection: boolean;
   selectedTrackIsLive: boolean;
   onToggleRepeat: () => void;
+  onSetPlaybackMode: (value: PlaybackMode) => void;
   onPlaySelected: () => void;
   onStopBroadcast: () => void;
 }>;
@@ -844,6 +862,7 @@ function SessionSection({
   hasSelection,
   selectedTrackIsLive,
   onToggleRepeat,
+  onSetPlaybackMode,
   onPlaySelected,
   onStopBroadcast,
 }: SessionSectionProps) {
@@ -851,114 +870,153 @@ function SessionSection({
     current_session?.variant_title ||
     current_session?.resolved_title ||
     'Untitled broadcast';
-  const broadcastPath =
-    current_session?.preset_name &&
-    [current_session.preset_name, current_session.tier_name]
-      .filter(Boolean)
-      .join(' / ');
+  const broadcastPath = [
+    current_session?.preset_name,
+    current_session?.tier_name,
+  ]
+    .filter(Boolean)
+    .join(' / ');
+  const broadcastDescription =
+    current_session?.variant_description ||
+    'Live broadcast uses the shared admin music channel.';
   const selectedTitle = selectedVariant?.title || 'No track selected';
+  const selectedDescription = selectedVariant?.description
+    ? selectedVariant.description
+    : hasSelection
+      ? 'Ready to broadcast with the controls above.'
+      : 'Choose a track in Play to prepare the next broadcast.';
   const selectedMeta = [
-    `Playlist: ${draft.name || 'New playlist'}`,
-    `Scene: ${selectedTier?.name || 'None'}`,
-    `Length: ${
+    `Playlist ${draft.name || 'New playlist'}`,
+    `Scene ${selectedTier?.name || 'None'}`,
+    `Length ${
       selectedVariant
         ? formatDuration(selectedVariant.duration_seconds)
         : 'Unknown'
     }`,
-    `Source: ${
+    `Source ${
       selectedVariant ? formatSourceLabel(selectedVariant.source_url) : 'None'
     }`,
-  ].join(' | ');
-  const selectedPlaybackMeta = formatPlaybackSummary(
-    audienceLabel,
-    soundTypeLabel,
+  ];
+  const selectedPlaybackMeta = [
+    `Audience ${audienceLabel}`,
+    `Mode ${soundTypeLabel}`,
+  ];
+  const selectedVisibilityMeta = formatVisibilitySummary(
+    launchSettings.show_title_to_players,
   );
+  const liveDuration = current_session?.duration_seconds
+    ? formatDuration(current_session.duration_seconds)
+    : 'Unknown';
+  const liveBehavior = formatAfterTrackEnds(
+    Boolean(current_session?.loop),
+    current_session?.playback_mode,
+  );
+  const launchBehavior = formatAfterTrackEnds(
+    launchSettings.repeat,
+    launchSettings.playback_mode,
+  );
+  const broadcastButtonLabel = selectedTrackIsLive
+    ? 'Restart Broadcast'
+    : 'Broadcast';
 
   return (
     <Section
       title="Live Broadcast"
       buttons={
-        <Button
-          icon="stop"
-          color="bad"
-          disabled={!current_session}
-          style={!current_session ? DISABLED_ACTION_STYLE : undefined}
-          onClick={onStopBroadcast}
-        >
-          Stop Broadcast
-        </Button>
+        <Stack>
+          <Stack.Item>
+            <Button
+              icon="play"
+              color="good"
+              disabled={!hasSelection}
+              onClick={onPlaySelected}
+            >
+              {broadcastButtonLabel}
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              icon="stop"
+              color="bad"
+              disabled={!current_session}
+              style={!current_session ? DISABLED_ACTION_STYLE : undefined}
+              onClick={onStopBroadcast}
+            >
+              Stop Broadcast
+            </Button>
+          </Stack.Item>
+        </Stack>
       }
     >
       <Box style={PLAYER_STRIP_STYLE}>
         <Stack fill>
-          <Stack.Item basis="62%" grow={2}>
+          <Stack.Item basis="42%" grow={1}>
             {!current_session ? (
-              <Box>
+              <Box style={PLAYER_CARD_STYLE}>
                 <Box color="label" fontSize="0.8rem">
                   Broadcast idle
                 </Box>
-                <Box color="label">
-                  Use Play to choose a track and send it live.
+                <Box bold fontSize="1.2rem" mt="0.15rem">
+                  Nothing is live right now
+                </Box>
+                <Box color="label" mt="0.25rem" style={WRAPPED_TEXT_STYLE}>
+                  Choose a track below, fine-tune the launch settings, and use
+                  Broadcast to send it live.
                 </Box>
               </Box>
             ) : (
-              <Box>
-                <Flex align="center" justify="space-between" width="100%">
-                  <Flex.Item grow>
-                    <Box color="label" fontSize="0.8rem">
-                      On air
-                    </Box>
-                    <Box bold fontSize="1.25rem" style={ELLIPSIS_STYLE}>
-                      {broadcastTitle}
-                    </Box>
-                    <Box color="label" style={ELLIPSIS_STYLE}>
-                      {broadcastPath || 'Legacy broadcast session'}
-                    </Box>
-                  </Flex.Item>
-                  <Flex.Item ml={1} textAlign="right">
-                    <Box style={PLAYER_BADGE_STYLE}>
-                      Audience {current_session.audience_label}
-                    </Box>
-                    <Box style={PLAYER_BADGE_STYLE}>
-                      Mode {current_session.sound_type_label}
-                    </Box>
-                    <Box style={PLAYER_BADGE_STYLE}>
-                      Repeat {current_session.loop ? 'On' : 'Off'}
-                    </Box>
-                  </Flex.Item>
-                </Flex>
+              <Box style={PLAYER_CARD_STYLE}>
+                <Box color="label" fontSize="0.8rem">
+                  On air
+                </Box>
+                <Box
+                  bold
+                  fontSize="1.25rem"
+                  mt="0.15rem"
+                  style={ELLIPSIS_STYLE}
+                >
+                  {broadcastTitle}
+                </Box>
+                <Box color="label" mt="0.2rem" style={WRAPPED_TEXT_STYLE}>
+                  {broadcastDescription}
+                </Box>
                 <Box mt="0.45rem">
                   <Box style={PLAYER_BADGE_STYLE}>
-                    Owner {current_session.owner}
+                    {broadcastPath || 'Legacy broadcast session'}
                   </Box>
                   <Box style={PLAYER_BADGE_STYLE}>
-                    Source {current_session.source_kind}
+                    Audience {current_session.audience_label}
                   </Box>
                   <Box style={PLAYER_BADGE_STYLE}>
-                    Show Title{' '}
-                    {current_session.show_title_to_players ? 'Yes' : 'No'}
+                    Mode {current_session.sound_type_label}
+                  </Box>
+                  <Box style={PLAYER_BADGE_STYLE}>Length {liveDuration}</Box>
+                  <Box style={PLAYER_BADGE_STYLE}>{liveBehavior}</Box>
+                  <Box style={PLAYER_BADGE_STYLE}>
+                    {current_session.show_title_to_players
+                      ? 'Title visible to players'
+                      : 'Title hidden from players'}
                   </Box>
                   <Box style={PLAYER_BADGE_STYLE}>
-                    Link {formatSourceLabel(current_session.source_url)}
+                    Source {formatSourceLabel(current_session.source_url)}
                   </Box>
                 </Box>
               </Box>
             )}
           </Stack.Item>
-          <Stack.Item basis="38%" grow={1}>
-            <Box
-              style={{
-                ...COMPACT_CARD_STYLE,
-                backgroundColor: 'rgba(0, 0, 0, 0.12)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <Box color="label" fontSize="0.75rem">
-                Selected for Broadcast
-              </Box>
+          <Stack.Item basis="58%" grow={2}>
+            <Box style={PLAYER_CARD_STYLE}>
               <Flex align="center" justify="space-between" width="100%">
                 <Flex.Item grow>
-                  <Box bold fontSize="1.05rem" style={ELLIPSIS_STYLE}>
+                  <Box color="label" fontSize="0.75rem">
+                    Selected Track
+                  </Box>
+                  <Box
+                    bold
+                    fontSize="1.2rem"
+                    mt="0.15rem"
+                    style={ELLIPSIS_STYLE}
+                  >
                     {selectedTitle}
                   </Box>
                 </Flex.Item>
@@ -968,56 +1026,75 @@ function SessionSection({
                   </Flex.Item>
                 ) : null}
               </Flex>
-              <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
-                {selectedMeta}
-              </Box>
-              <Box
-                color="label"
-                fontSize="0.75rem"
-                mt="0.25rem"
-                style={ELLIPSIS_STYLE}
-              >
-                {selectedPlaybackMeta}
+              <Box color="label" mt="0.25rem" style={WRAPPED_TEXT_STYLE}>
+                {selectedDescription}
               </Box>
               <Box mt="0.45rem">
-                <Stack fill>
-                  <Stack.Item grow>
-                    <Button
-                      compact
+                {selectedMeta.map((item) => (
+                  <Box key={item} style={PLAYER_BADGE_STYLE}>
+                    {item}
+                  </Box>
+                ))}
+              </Box>
+              <Box mt="0.15rem">
+                {selectedPlaybackMeta.map((item) => (
+                  <Box key={item} style={PLAYER_BADGE_STYLE}>
+                    {item}
+                  </Box>
+                ))}
+                <Box style={PLAYER_BADGE_STYLE}>{selectedVisibilityMeta}</Box>
+              </Box>
+              <Box mt="0.6rem">
+                <Box color="label" fontSize="0.75rem">
+                  Applied when you press Broadcast
+                </Box>
+                <Stack fill mt={0.25}>
+                  <Stack.Item basis="42%" grow={1}>
+                    <Button.Checkbox
                       fluid
-                      color="transparent"
-                      icon={
-                        launchSettings.repeat ? 'check-square-o' : 'square-o'
-                      }
+                      checked={launchSettings.repeat}
                       style={getToggleButtonStyle(launchSettings.repeat)}
                       onClick={onToggleRepeat}
                     >
-                      Repeat until stopped
-                    </Button>
+                      Repeat current track
+                    </Button.Checkbox>
                   </Stack.Item>
-                  <Stack.Item grow>
-                    {selectedTrackIsLive ? (
-                      <Button
-                        fluid
-                        color="bad"
-                        icon="stop"
-                        onClick={onStopBroadcast}
-                      >
-                        Stop Broadcast
-                      </Button>
-                    ) : (
-                      <Button
-                        fluid
-                        color="good"
-                        icon="play"
-                        disabled={!hasSelection}
-                        onClick={onPlaySelected}
-                      >
-                        Broadcast
-                      </Button>
-                    )}
+                  <Stack.Item basis="58%" grow={1}>
+                    <Stack fill>
+                      <Stack.Item grow>
+                        <Button
+                          fluid
+                          color="transparent"
+                          selected={launchSettings.playback_mode === 'ordered'}
+                          disabled={launchSettings.repeat}
+                          style={getToggleButtonStyle(
+                            launchSettings.playback_mode === 'ordered',
+                          )}
+                          onClick={() => onSetPlaybackMode('ordered')}
+                        >
+                          In order
+                        </Button>
+                      </Stack.Item>
+                      <Stack.Item grow>
+                        <Button
+                          fluid
+                          color="transparent"
+                          selected={launchSettings.playback_mode === 'random'}
+                          disabled={launchSettings.repeat}
+                          style={getToggleButtonStyle(
+                            launchSettings.playback_mode === 'random',
+                          )}
+                          onClick={() => onSetPlaybackMode('random')}
+                        >
+                          Random
+                        </Button>
+                      </Stack.Item>
+                    </Stack>
                   </Stack.Item>
                 </Stack>
+                <Box color="label" fontSize="0.75rem" mt="0.25rem">
+                  {launchBehavior}
+                </Box>
               </Box>
             </Box>
           </Stack.Item>
@@ -1043,7 +1120,7 @@ type PlayTabProps = Readonly<{
   selectedVariantId: string | null;
   onSelectTier: (tier_id: string) => void;
   onSelectVariant: (tier_id: string, variant_id: string) => void;
-  launchSettings: PlaybackSettings;
+  launchSettings: LaunchSettings;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
@@ -1051,7 +1128,6 @@ type PlayTabProps = Readonly<{
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
-  onToggleRepeat: () => void;
   onResetLaunchSettings: () => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
@@ -1085,7 +1161,6 @@ function PlayTab({
   onSetAudienceMode,
   onSetSoundType,
   onToggleShowTitle,
-  onToggleRepeat,
   onResetLaunchSettings,
   onPreviewSelected,
   onStopPreview,
@@ -1123,7 +1198,6 @@ function PlayTab({
               onSetAudienceMode={onSetAudienceMode}
               onSetSoundType={onSetSoundType}
               onToggleShowTitle={onToggleShowTitle}
-              onToggleRepeat={onToggleRepeat}
               onResetLaunchSettings={onResetLaunchSettings}
               onPreviewSelected={onPreviewSelected}
               onStopPreview={onStopPreview}
@@ -1486,7 +1560,7 @@ type PlaybackSettingsControlsProps = Readonly<{
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
-  onToggleRepeat: () => void;
+  onToggleRepeat?: () => void;
   showRepeatToggle?: boolean;
 }>;
 
@@ -1679,7 +1753,7 @@ function PlayTracksSection({
 type PlaybackSectionProps = Readonly<{
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
-  launchSettings: PlaybackSettings;
+  launchSettings: LaunchSettings;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
@@ -1687,7 +1761,6 @@ type PlaybackSectionProps = Readonly<{
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
-  onToggleRepeat: () => void;
   onResetLaunchSettings: () => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
@@ -1708,7 +1781,6 @@ function PlaybackSection({
   onSetAudienceMode,
   onSetSoundType,
   onToggleShowTitle,
-  onToggleRepeat,
   onResetLaunchSettings,
   onPreviewSelected,
   onStopPreview,
@@ -1718,23 +1790,28 @@ function PlaybackSection({
   hasSelection,
 }: PlaybackSectionProps) {
   const selectionTitle = selectedVariant?.title || 'No track selected';
+  const selectionDescription = selectedVariant?.description
+    ? selectedVariant.description
+    : hasSelection
+      ? 'Use Preview to check this track locally before it goes live.'
+      : 'Choose a track to preview it and adjust the launch settings below.';
   const selectionMeta = [
-    `Scene: ${selectedTier?.name || 'None'}`,
-    `Length: ${
+    `Scene ${selectedTier?.name || 'None'}`,
+    `Length ${
       selectedVariant
         ? formatDuration(selectedVariant.duration_seconds)
         : 'Unknown'
     }`,
-    `Source: ${
+    `Source ${
       selectedVariant ? formatSourceLabel(selectedVariant.source_url) : 'None'
     }`,
-  ].join(' | ');
+  ];
   const previewLabel = isPreviewActive
     ? `${previewState} | Local preview only`
     : 'Local preview only';
 
   return (
-    <Section title="Preview">
+    <Section title="Track Setup">
       <Box
         style={{
           ...PLAYER_CARD_STYLE,
@@ -1751,8 +1828,20 @@ function PlaybackSection({
                 <Box bold style={ELLIPSIS_STYLE}>
                   {selectionTitle}
                 </Box>
-                <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
-                  {selectionMeta}
+                <Box
+                  color="label"
+                  fontSize="0.75rem"
+                  mt="0.15rem"
+                  style={WRAPPED_TEXT_STYLE}
+                >
+                  {selectionDescription}
+                </Box>
+                <Box mt="0.25rem">
+                  {selectionMeta.map((item) => (
+                    <Box key={item} style={PLAYER_BADGE_STYLE}>
+                      {item}
+                    </Box>
+                  ))}
                 </Box>
               </Box>
             </Stack.Item>
@@ -1811,7 +1900,6 @@ function PlaybackSection({
                 onSetAudienceMode={onSetAudienceMode}
                 onSetSoundType={onSetSoundType}
                 onToggleShowTitle={onToggleShowTitle}
-                onToggleRepeat={onToggleRepeat}
                 showRepeatToggle={false}
               />
             </Box>

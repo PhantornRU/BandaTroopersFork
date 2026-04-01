@@ -7,21 +7,27 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/sound_type
 	var/show_title_to_players = TRUE
 	var/list/tracked_clients = list()
+	var/list/sequence_variants = list()
 	var/source_url
 	var/resolved_url
 	var/resolved_title
 	var/start_time
 	var/end_time
+	var/duration_seconds = 0
 	var/loop = FALSE
+	var/playback_mode = "ordered"
 	var/preset_id
 	var/preset_name
 	var/tier_id
 	var/tier_name
 	var/variant_id
 	var/variant_title
+	var/variant_description
 	var/must_send_assets = FALSE
 	var/asset_name
 	var/takeover = FALSE
+	var/current_variant_index = 1
+	var/advance_timer_id
 
 /datum/admin_music_session/proc/to_ui_data()
 	return list(
@@ -35,7 +41,10 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		"preset_name" = preset_name,
 		"tier_name" = tier_name,
 		"variant_title" = variant_title,
+		"variant_description" = variant_description,
+		"duration_seconds" = duration_seconds,
 		"loop" = loop,
+		"playback_mode" = playback_mode,
 		"takeover" = takeover,
 	)
 
@@ -97,6 +106,9 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		list("id" = "meme", "label" = "Meme"),
 	)
 
+/datum/admin_music_service/proc/is_valid_playback_mode(playback_mode)
+	return playback_mode in list("ordered", "random")
+
 /datum/admin_music_service/proc/get_audience_label(audience_mode)
 	switch(audience_mode)
 		if("global")
@@ -129,6 +141,14 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 			return SOUND_ADMIN_ATMOSPHERIC
 	return SOUND_ADMIN_ATMOSPHERIC
 
+/datum/admin_music_service/proc/get_playback_mode_label(playback_mode)
+	switch(playback_mode)
+		if("random")
+			return "Random"
+		if("ordered")
+			return "In order"
+	return "Unknown"
+
 /datum/admin_music_service/proc/resolve_effective_audience_mode(datum/admin_music_preset/preset, audience_mode_override)
 	var/audience_mode = trim("[audience_mode_override]")
 	if(length(audience_mode) && preset_library.is_valid_audience_mode(audience_mode))
@@ -153,12 +173,21 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		return FALSE
 	return fallback
 
+/datum/admin_music_service/proc/resolve_effective_playback_mode(playback_mode_override, fallback = "ordered")
+	var/playback_mode = lowertext(trim("[playback_mode_override]"))
+	if(length(playback_mode) && is_valid_playback_mode(playback_mode))
+		return playback_mode
+	if(is_valid_playback_mode(fallback))
+		return fallback
+	return "ordered"
+
 /datum/admin_music_service/proc/build_session_ui_data()
 	if(!active_session)
 		return null
 	var/list/data = active_session.to_ui_data()
 	data["audience_label"] = get_audience_label(active_session.audience_mode)
 	data["sound_type_label"] = get_sound_type_label(active_session.sound_type)
+	data["playback_mode_label"] = get_playback_mode_label(active_session.playback_mode)
 	return data
 
 /datum/admin_music_service/proc/build_preset_slug(raw_name, fallback = "preset")
@@ -314,10 +343,11 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		media_players += new /datum/internet_media/cobalt
 	return media_players
 
-/datum/admin_music_service/proc/resolve_media(client/requester, source_url)
+/datum/admin_music_service/proc/resolve_media(client/requester, source_url, quiet = FALSE)
 	var/list/datum/internet_media/media_players = get_media_players()
 	if(!length(media_players))
-		to_chat(requester, SPAN_BOLDWARNING("Your server host has not set up any web media players."))
+		if(!quiet && requester)
+			to_chat(requester, SPAN_BOLDWARNING("Your server host has not set up any web media players."))
 		return null
 
 	var/datum/media_response/response
@@ -327,14 +357,16 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 			break
 
 	if(!istype(response))
-		to_chat(requester, SPAN_BOLDWARNING("All configured web media players failed to provide a valid response:"))
-		for(var/datum/internet_media/player as anything in media_players)
-			to_chat(requester, SPAN_WARNING("[player.type] error: [player.error]"))
+		if(!quiet && requester)
+			to_chat(requester, SPAN_BOLDWARNING("All configured web media players failed to provide a valid response:"))
+			for(var/datum/internet_media/player as anything in media_players)
+				to_chat(requester, SPAN_WARNING("[player.type] error: [player.error]"))
 		return null
 
 	if(!findtext(response.url, GLOB.is_http_protocol))
-		to_chat(requester, SPAN_BOLDWARNING("BLOCKED: Content URL not using http(s) protocol"), confidential = TRUE)
-		to_chat(requester, SPAN_WARNING("The media provider returned a content URL that isn't using the HTTP or HTTPS protocol"), confidential = TRUE)
+		if(!quiet && requester)
+			to_chat(requester, SPAN_BOLDWARNING("BLOCKED: Content URL not using http(s) protocol"), confidential = TRUE)
+			to_chat(requester, SPAN_WARNING("The media provider returned a content URL that isn't using the HTTP or HTTPS protocol"), confidential = TRUE)
 		return null
 
 	return response
@@ -398,6 +430,98 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		"loop" = session.loop,
 	)
 
+/datum/admin_music_service/proc/cancel_session_followup(datum/admin_music_session/session)
+	if(!session?.advance_timer_id)
+		return FALSE
+	deltimer(session.advance_timer_id)
+	session.advance_timer_id = null
+	return TRUE
+
+/datum/admin_music_service/proc/resolve_session_duration_seconds(datum/admin_music_variant/variant, datum/media_response/response)
+	if(response && isnum(response.end_time) && isnum(response.start_time) && response.end_time > response.start_time)
+		return response.end_time - response.start_time
+	if(variant)
+		return max(0, variant.duration_seconds)
+	return 0
+
+/datum/admin_music_service/proc/find_sequence_variant_index(list/sequence_variants, datum/admin_music_variant/variant)
+	if(!islist(sequence_variants) || !length(sequence_variants) || !variant)
+		return 1
+	for(var/index in 1 to length(sequence_variants))
+		var/datum/admin_music_variant/candidate = sequence_variants[index]
+		if(!candidate)
+			continue
+		if(trim("[candidate.source_url]") == trim("[variant.source_url]") && trim("[candidate.title]") == trim("[variant.title]"))
+			return index
+	return 1
+
+/datum/admin_music_service/proc/pick_next_sequence_index(datum/admin_music_session/session)
+	var/variant_count = length(session?.sequence_variants)
+	if(variant_count <= 1)
+		return session?.current_variant_index || 1
+	if(session.playback_mode == "random")
+		var/list/candidate_indexes = list()
+		for(var/index in 1 to variant_count)
+			if(index != session.current_variant_index)
+				candidate_indexes += index
+		if(length(candidate_indexes))
+			return pick(candidate_indexes)
+		return session.current_variant_index
+	return session.current_variant_index >= variant_count ? 1 : session.current_variant_index + 1
+
+/datum/admin_music_service/proc/apply_panel_session_track(datum/admin_music_session/session, datum/admin_music_variant/variant, datum/media_response/response, variant_index)
+	if(!session || !variant || !response)
+		return FALSE
+	session.source_url = variant.source_url
+	session.resolved_url = response.url
+	session.resolved_title = length(variant.title) ? variant.title : (response.title ? response.title : "Admin sound")
+	session.start_time = response.start_time
+	session.end_time = response.end_time
+	session.duration_seconds = resolve_session_duration_seconds(variant, response)
+	session.variant_id = REF(variant)
+	session.variant_title = variant.title
+	session.variant_description = variant.description
+	session.current_variant_index = max(1, variant_index)
+	return TRUE
+
+/datum/admin_music_service/proc/get_session_followup_delay(datum/admin_music_session/session)
+	var/duration_seconds = max(0, session?.duration_seconds || 0)
+	if(duration_seconds <= 0)
+		return 0
+	return max(1, round(duration_seconds * 10) + 5)
+
+/datum/admin_music_service/proc/schedule_panel_session_followup(datum/admin_music_session/session)
+	cancel_session_followup(session)
+	if(!session || active_session != session || session.source_kind != "panel")
+		return FALSE
+	if(session.loop)
+		return FALSE
+	if(!is_valid_playback_mode(session.playback_mode))
+		return FALSE
+	if(length(session.sequence_variants) <= 1)
+		return FALSE
+	var/followup_delay = get_session_followup_delay(session)
+	if(followup_delay <= 0)
+		return FALSE
+	session.advance_timer_id = addtimer(CALLBACK(src, PROC_REF(handle_panel_session_followup), session), followup_delay, TIMER_STOPPABLE | TIMER_DELETE_ME)
+	return TRUE
+
+/datum/admin_music_service/proc/log_session_action(client/requester, action, datum/admin_music_session/session, notify_admins = TRUE)
+	if(!session)
+		return FALSE
+	var/requester_name = requester ? key_name(requester) : "[session.owner_ckey]"
+	var/requester_name_admin = requester ? key_name_admin(requester) : "[session.owner_ckey]"
+	var/preset_id = session.preset_id ? session.preset_id : "none"
+	var/preset_name = session.preset_name ? session.preset_name : ""
+	var/tier_name = session.tier_name ? session.tier_name : ""
+	var/variant_title = session.variant_title ? session.variant_title : ""
+	var/takeover_suffix = session.takeover ? " (takeover)" : ""
+	var/message = "[requester_name] admin music [action]: source=[session.source_kind], audience=[get_audience_label(session.audience_mode)], sound_type=[get_sound_type_label(session.sound_type)], show_title=[session.show_title_to_players], source_url=[session.source_url], resolved_title=[session.resolved_title], preset=[preset_id]/\"[preset_name]\", tier=\"[tier_name]\", variant=\"[variant_title]\", loop=[session.loop], playback_mode=[session.playback_mode], takeover=[session.takeover]"
+	log_admin(message)
+	if(notify_admins)
+		message_admins("[requester_name_admin] admin music [action]: [session.resolved_title] ([get_audience_label(session.audience_mode)])[takeover_suffix]")
+	return TRUE
+
 /datum/admin_music_service/proc/stop_session_clients(datum/admin_music_session/session, list/limit_to_clients = null)
 	if(!session)
 		return FALSE
@@ -405,19 +529,6 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		if(islist(limit_to_clients) && !(target_client in limit_to_clients))
 			continue
 		target_client?.tgui_panel?.stop_music()
-	return TRUE
-
-/datum/admin_music_service/proc/log_session_action(client/requester, action, datum/admin_music_session/session)
-	if(!requester || !session)
-		return FALSE
-	var/preset_id = session.preset_id ? session.preset_id : "none"
-	var/preset_name = session.preset_name ? session.preset_name : ""
-	var/tier_name = session.tier_name ? session.tier_name : ""
-	var/variant_title = session.variant_title ? session.variant_title : ""
-	var/takeover_suffix = session.takeover ? " (takeover)" : ""
-	var/message = "[key_name(requester)] admin music [action]: source=[session.source_kind], audience=[get_audience_label(session.audience_mode)], sound_type=[get_sound_type_label(session.sound_type)], show_title=[session.show_title_to_players], source_url=[session.source_url], resolved_title=[session.resolved_title], preset=[preset_id]/\"[preset_name]\", tier=\"[tier_name]\", variant=\"[variant_title]\", loop=[session.loop], takeover=[session.takeover]"
-	log_admin(message)
-	message_admins("[key_name_admin(requester)] admin music [action]: [session.resolved_title] ([get_audience_label(session.audience_mode)])[takeover_suffix]")
 	return TRUE
 
 /datum/admin_music_service/proc/log_preset_action(client/requester, action, datum/admin_music_preset/preset)
@@ -429,12 +540,13 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	message_admins("[key_name_admin(requester)] admin music preset [action]: [preset.name]")
 	return TRUE
 
-/datum/admin_music_service/proc/apply_session(client/requester, datum/admin_music_session/session, list/eligible_clients, switch_mode = FALSE)
-	if(!requester || !session || !islist(eligible_clients) || !length(eligible_clients))
+/datum/admin_music_service/proc/apply_session(client/requester, datum/admin_music_session/session, list/eligible_clients, switch_mode = FALSE, announce_play = TRUE)
+	if(!session || !islist(eligible_clients) || !length(eligible_clients))
 		return FALSE
 	session.takeover = !!active_session && !switch_mode
 
 	if(active_session)
+		cancel_session_followup(active_session)
 		if(switch_mode)
 			var/list/leaving_clients = list()
 			for(var/client/old_client as anything in active_session.tracked_clients)
@@ -449,7 +561,8 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		if(session.must_send_assets)
 			SSassets.transport.send_assets(target_client, session.asset_name)
 		target_client?.tgui_panel?.play_music(session.resolved_url, music_payload)
-		to_chat(target_client, SPAN_BOLDANNOUNCE("An admin played: [music_payload["title"]]"), confidential = TRUE)
+		if(announce_play)
+			to_chat(target_client, SPAN_BOLDANNOUNCE("An admin played: [music_payload["title"]]"), confidential = TRUE)
 
 	session.tracked_clients = eligible_clients.Copy()
 	active_session = session
@@ -469,17 +582,59 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 			message_admins("[key_name_admin(requester)] admin music [reason]: forced global browser-audio stop with no tracked session.")
 		update_open_panels()
 		return TRUE
+	cancel_session_followup(active_session)
 	stop_session_clients(active_session)
 	log_session_action(requester, reason, active_session)
 	active_session = null
 	update_open_panels()
 	return TRUE
 
-/datum/admin_music_service/proc/play_panel_variant(client/requester, datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant, audience_mode_override = null, sound_type_override = null, show_title_override = null, repeat_override = null)
+/datum/admin_music_service/proc/stop_panel_session_automatic(datum/admin_music_session/session, reason = "auto_stop")
+	if(!session || active_session != session)
+		return FALSE
+	cancel_session_followup(session)
+	stop_session_clients(session)
+	log_session_action(null, reason, session, FALSE)
+	active_session = null
+	update_open_panels()
+	return TRUE
+
+/datum/admin_music_service/proc/handle_panel_session_followup(datum/admin_music_session/session)
+	if(!session || active_session != session)
+		return FALSE
+	session.advance_timer_id = null
+	if(session.loop)
+		return FALSE
+	var/list/eligible_clients = filter_eligible_clients(session.tracked_clients, session.sound_type)
+	if(!length(eligible_clients))
+		return stop_panel_session_automatic(session, "auto_stop_no_listeners")
+	var/variant_count = length(session.sequence_variants)
+	if(variant_count <= 1)
+		return stop_panel_session_automatic(session, "auto_stop_end")
+	var/next_index = session.current_variant_index
+	for(var/attempt in 1 to variant_count)
+		next_index = pick_next_sequence_index(session)
+		var/datum/admin_music_variant/next_variant = session.sequence_variants[next_index]
+		if(!next_variant)
+			continue
+		var/datum/media_response/response = resolve_media(null, next_variant.source_url, TRUE)
+		if(!response)
+			session.current_variant_index = next_index
+			continue
+		apply_panel_session_track(session, next_variant, response, next_index)
+		if(!apply_session(null, session, eligible_clients, TRUE, FALSE))
+			return stop_panel_session_automatic(session, "auto_stop_apply_failed")
+		schedule_panel_session_followup(session)
+		log_session_action(null, session.playback_mode == "random" ? "auto_random" : "auto_ordered", session, FALSE)
+		return TRUE
+	return stop_panel_session_automatic(session, "auto_stop_unresolved")
+
+/datum/admin_music_service/proc/play_panel_variant(client/requester, datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant, audience_mode_override = null, sound_type_override = null, show_title_override = null, repeat_override = null, playback_mode_override = null)
 	var/effective_audience_mode = resolve_effective_audience_mode(preset, audience_mode_override)
 	var/effective_sound_type = resolve_effective_sound_type(preset, sound_type_override)
 	var/effective_show_title = resolve_effective_boolean(show_title_override, preset?.show_title_to_players)
 	var/effective_repeat = resolve_effective_boolean(repeat_override, preset?.repeat)
+	var/effective_playback_mode = resolve_effective_playback_mode(playback_mode_override)
 
 	var/datum/admin_music_preset/validation_preset = preset?.copy()
 	if(validation_preset)
@@ -517,17 +672,26 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	session.resolved_title = length(variant.title) ? variant.title : (response.title ? response.title : "Admin sound")
 	session.start_time = response.start_time
 	session.end_time = response.end_time
+	session.duration_seconds = resolve_session_duration_seconds(variant, response)
 	session.loop = effective_repeat
+	session.playback_mode = effective_playback_mode
 	session.preset_id = preset.preset_id
 	session.preset_name = preset.name
 	session.tier_id = REF(tier)
 	session.tier_name = tier.name
 	session.variant_id = REF(variant)
 	session.variant_title = variant.title
+	session.variant_description = variant.description
+	var/datum/admin_music_tier/sequence_tier = tier?.copy()
+	if(sequence_tier)
+		session.sequence_variants = sequence_tier.variants
+	session.current_variant_index = find_sequence_variant_index(session.sequence_variants, variant)
 
 	var/switch_mode = active_session && active_session.source_kind == "panel" && active_session.owner_ckey == requester.ckey && active_session.preset_id == preset.preset_id
 	if(!apply_session(requester, session, eligible_clients, switch_mode))
 		return FALSE
+	if(!schedule_panel_session_followup(session) && !effective_repeat && length(session.sequence_variants) > 1 && requester)
+		to_chat(requester, SPAN_WARNING("This track has no reliable duration, so sequential playback cannot auto-advance after it ends."))
 	log_session_action(requester, switch_mode ? "switch_tier" : "play", session)
 	return TRUE
 
