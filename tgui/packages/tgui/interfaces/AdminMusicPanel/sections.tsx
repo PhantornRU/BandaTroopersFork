@@ -325,6 +325,133 @@ export function BroadcastStatusStrip({
   );
 }
 
+type LaunchActionButtonsProps = Readonly<{
+  broadcastButtonLabel: string;
+  canBroadcast: boolean;
+  hasCurrentSession: boolean;
+  onPlaySelected: () => void;
+  onStopBroadcast: () => void;
+  onResetLaunchSettings: () => void;
+}>;
+
+function LaunchActionButtons({
+  broadcastButtonLabel,
+  canBroadcast,
+  hasCurrentSession,
+  onPlaySelected,
+  onStopBroadcast,
+  onResetLaunchSettings,
+}: LaunchActionButtonsProps) {
+  return (
+    <Stack>
+      <Stack.Item>
+        <Button
+          icon="play"
+          color="good"
+          disabled={!canBroadcast}
+          style={!canBroadcast ? DISABLED_ACTION_STYLE : undefined}
+          onClick={onPlaySelected}
+        >
+          {broadcastButtonLabel}
+        </Button>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          icon="stop"
+          color="bad"
+          disabled={!hasCurrentSession}
+          style={!hasCurrentSession ? DISABLED_ACTION_STYLE : undefined}
+          onClick={onStopBroadcast}
+        >
+          Stop Broadcast
+        </Button>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          color="transparent"
+          icon="undo"
+          style={{ opacity: '0.72' }}
+          onClick={onResetLaunchSettings}
+        >
+          Reset
+        </Button>
+      </Stack.Item>
+    </Stack>
+  );
+}
+
+type LaunchPlaybackPanelProps = Readonly<{
+  launchSettings: LaunchSettings;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
+  launchBehavior: string;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
+  onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
+  onSetPlaybackMode: (value: PlaybackMode) => void;
+}>;
+
+function LaunchPlaybackPanel({
+  launchSettings,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
+  launchBehavior,
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onToggleRepeat,
+  onSetPlaybackMode,
+}: LaunchPlaybackPanelProps) {
+  return (
+    <Box mt="0.45rem" style={SUBTLE_PANEL_STYLE}>
+      <Box color="label" fontSize="0.72rem" mb={0.35}>
+        Session-only settings used when you press Broadcast.
+      </Box>
+      <PlaybackSettingsControls
+        playback={launchSettings}
+        audienceOptions={audienceOptions}
+        soundTypeOptions={soundTypeOptions}
+        audienceLabel={audienceLabel}
+        soundTypeLabel={soundTypeLabel}
+        onSetAudienceMode={onSetAudienceMode}
+        onSetSoundType={onSetSoundType}
+        onToggleShowTitle={onToggleShowTitle}
+        showRepeatToggle={false}
+      />
+      <Box mt="0.45rem">
+        <Stack fill mt={0.25}>
+          <Stack.Item basis="42%" grow={1}>
+            <Button.Checkbox
+              fluid
+              checked={launchSettings.repeat}
+              style={getToggleButtonStyle(launchSettings.repeat)}
+              onClick={onToggleRepeat}
+            >
+              Repeat current track
+            </Button.Checkbox>
+          </Stack.Item>
+          <Stack.Item basis="58%" grow={1}>
+            <PlaybackModeSelector
+              playbackMode={launchSettings.playback_mode}
+              repeat={launchSettings.repeat}
+              onSetPlaybackMode={onSetPlaybackMode}
+            />
+          </Stack.Item>
+        </Stack>
+        <Box color="label" fontSize="0.75rem" mt="0.25rem">
+          {launchBehavior}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
 type SessionSectionProps = Readonly<{
   current_session: CurrentSession;
   draft: DraftPreset;
@@ -517,45 +644,14 @@ export function SessionSection({
           </Box>
         </Flex.Item>
         <Flex.Item ml={1}>
-          <Stack>
-            <Stack.Item>
-              <Button
-                icon="play"
-                color="good"
-                disabled={!trackReadiness.canBroadcast}
-                style={
-                  !trackReadiness.canBroadcast
-                    ? DISABLED_ACTION_STYLE
-                    : undefined
-                }
-                onClick={onPlaySelected}
-              >
-                {broadcastButtonLabel}
-              </Button>
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="stop"
-                color="bad"
-                disabled={!current_session}
-                style={!current_session ? DISABLED_ACTION_STYLE : undefined}
-                onClick={onStopBroadcast}
-              >
-                Stop Broadcast
-              </Button>
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                compact
-                color="transparent"
-                icon="undo"
-                style={{ opacity: '0.72' }}
-                onClick={onResetLaunchSettings}
-              >
-                Reset
-              </Button>
-            </Stack.Item>
-          </Stack>
+          <LaunchActionButtons
+            broadcastButtonLabel={broadcastButtonLabel}
+            canBroadcast={trackReadiness.canBroadcast}
+            hasCurrentSession={Boolean(current_session)}
+            onPlaySelected={onPlaySelected}
+            onStopBroadcast={onStopBroadcast}
+            onResetLaunchSettings={onResetLaunchSettings}
+          />
         </Flex.Item>
       </Flex>
       {!trackReadiness.canBroadcast && selectedVariant ? (
@@ -563,46 +659,19 @@ export function SessionSection({
           Broadcast stays disabled until the selected track is ready.
         </Box>
       ) : null}
-      <Box mt="0.45rem" style={SUBTLE_PANEL_STYLE}>
-        <Box color="label" fontSize="0.72rem" mb={0.35}>
-          Session-only settings used when you press Broadcast.
-        </Box>
-        <PlaybackSettingsControls
-          playback={launchSettings}
-          audienceOptions={audienceOptions}
-          soundTypeOptions={soundTypeOptions}
-          audienceLabel={audienceLabel}
-          soundTypeLabel={soundTypeLabel}
-          onSetAudienceMode={onSetAudienceMode}
-          onSetSoundType={onSetSoundType}
-          onToggleShowTitle={onToggleShowTitle}
-          showRepeatToggle={false}
-        />
-        <Box mt="0.45rem">
-          <Stack fill mt={0.25}>
-            <Stack.Item basis="42%" grow={1}>
-              <Button.Checkbox
-                fluid
-                checked={launchSettings.repeat}
-                style={getToggleButtonStyle(launchSettings.repeat)}
-                onClick={onToggleRepeat}
-              >
-                Repeat current track
-              </Button.Checkbox>
-            </Stack.Item>
-            <Stack.Item basis="58%" grow={1}>
-              <PlaybackModeSelector
-                playbackMode={launchSettings.playback_mode}
-                repeat={launchSettings.repeat}
-                onSetPlaybackMode={onSetPlaybackMode}
-              />
-            </Stack.Item>
-          </Stack>
-          <Box color="label" fontSize="0.75rem" mt="0.25rem">
-            {launchBehavior}
-          </Box>
-        </Box>
-      </Box>
+      <LaunchPlaybackPanel
+        launchSettings={launchSettings}
+        audienceOptions={audienceOptions}
+        soundTypeOptions={soundTypeOptions}
+        audienceLabel={audienceLabel}
+        soundTypeLabel={soundTypeLabel}
+        launchBehavior={launchBehavior}
+        onSetAudienceMode={onSetAudienceMode}
+        onSetSoundType={onSetSoundType}
+        onToggleShowTitle={onToggleShowTitle}
+        onToggleRepeat={onToggleRepeat}
+        onSetPlaybackMode={onSetPlaybackMode}
+      />
     </Box>
   );
 
