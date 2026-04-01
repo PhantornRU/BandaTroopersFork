@@ -129,6 +129,30 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 			return SOUND_ADMIN_ATMOSPHERIC
 	return SOUND_ADMIN_ATMOSPHERIC
 
+/datum/admin_music_service/proc/resolve_effective_audience_mode(datum/admin_music_preset/preset, audience_mode_override)
+	var/audience_mode = trim("[audience_mode_override]")
+	if(length(audience_mode) && preset_library.is_valid_audience_mode(audience_mode))
+		return audience_mode
+	return preset?.audience_mode
+
+/datum/admin_music_service/proc/resolve_effective_sound_type(datum/admin_music_preset/preset, sound_type_override)
+	var/sound_type = trim("[sound_type_override]")
+	if(length(sound_type) && preset_library.is_valid_sound_type(sound_type))
+		return sound_type
+	return preset?.sound_type
+
+/datum/admin_music_service/proc/resolve_effective_boolean(raw_value, fallback = FALSE)
+	if(isnull(raw_value))
+		return fallback
+	if(isnum(raw_value))
+		return raw_value ? TRUE : FALSE
+	var/text_value = lowertext(trim("[raw_value]"))
+	if(text_value in list("1", "true", "yes", "on"))
+		return TRUE
+	if(text_value in list("0", "false", "no", "off"))
+		return FALSE
+	return fallback
+
 /datum/admin_music_service/proc/build_session_ui_data()
 	if(!active_session)
 		return null
@@ -451,8 +475,20 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	update_open_panels()
 	return TRUE
 
-/datum/admin_music_service/proc/play_panel_variant(client/requester, datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant)
-	var/list/errors = validate_selected_variant(preset, tier, variant)
+/datum/admin_music_service/proc/play_panel_variant(client/requester, datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant, audience_mode_override = null, sound_type_override = null, show_title_override = null, repeat_override = null)
+	var/effective_audience_mode = resolve_effective_audience_mode(preset, audience_mode_override)
+	var/effective_sound_type = resolve_effective_sound_type(preset, sound_type_override)
+	var/effective_show_title = resolve_effective_boolean(show_title_override, preset?.show_title_to_players)
+	var/effective_repeat = resolve_effective_boolean(repeat_override, preset?.repeat)
+
+	var/datum/admin_music_preset/validation_preset = preset?.copy()
+	if(validation_preset)
+		validation_preset.audience_mode = effective_audience_mode
+		validation_preset.sound_type = effective_sound_type
+		validation_preset.show_title_to_players = effective_show_title
+		validation_preset.repeat = effective_repeat
+
+	var/list/errors = validate_selected_variant(validation_preset ? validation_preset : preset, tier, variant)
 	if(length(errors))
 		notify_validation_errors(requester, errors)
 		return FALSE
@@ -461,11 +497,11 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	if(!response)
 		return FALSE
 
-	var/list/target_clients = resolve_target_clients(requester, preset.audience_mode)
+	var/list/target_clients = resolve_target_clients(requester, effective_audience_mode)
 	if(!islist(target_clients))
 		return FALSE
 
-	var/list/eligible_clients = filter_eligible_clients(target_clients, preset.sound_type)
+	var/list/eligible_clients = filter_eligible_clients(target_clients, effective_sound_type)
 	if(!length(eligible_clients))
 		to_chat(requester, SPAN_WARNING("No eligible listeners were found for this preset."))
 		return FALSE
@@ -473,15 +509,15 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/datum/admin_music_session/session = new
 	session.owner_ckey = requester.ckey
 	session.source_kind = "panel"
-	session.audience_mode = preset.audience_mode
-	session.sound_type = preset.sound_type
-	session.show_title_to_players = preset.show_title_to_players
+	session.audience_mode = effective_audience_mode
+	session.sound_type = effective_sound_type
+	session.show_title_to_players = effective_show_title
 	session.source_url = variant.source_url
 	session.resolved_url = response.url
 	session.resolved_title = length(variant.title) ? variant.title : (response.title ? response.title : "Admin sound")
 	session.start_time = response.start_time
 	session.end_time = response.end_time
-	session.loop = preset.repeat
+	session.loop = effective_repeat
 	session.preset_id = preset.preset_id
 	session.preset_name = preset.name
 	session.tier_id = REF(tier)

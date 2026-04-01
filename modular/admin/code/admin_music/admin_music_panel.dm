@@ -10,6 +10,7 @@
 /datum/admin_music_panel
 	var/client/holder
 	var/datum/admin_music_preset/draft
+	var/draft_token = 0
 	var/dirty = FALSE
 	var/selected_tier_id
 	var/selected_variant_id
@@ -20,6 +21,7 @@
 /datum/admin_music_panel/New(client/new_holder)
 	holder = new_holder
 	draft = GLOB.admin_music_service.build_default_preset()
+	draft_token = 1
 	. = ..()
 	sync_selection()
 	GLOB.admin_music_service.register_panel(src)
@@ -86,6 +88,7 @@
 	draft = new_draft
 	if(!draft)
 		draft = GLOB.admin_music_service.build_default_preset()
+	draft_token++
 	dirty = new_dirty
 	preview_command = null
 	sync_selection()
@@ -131,6 +134,7 @@
 	return list(
 		"library" = GLOB.admin_music_service.build_library_ui_data(),
 		"draft" = draft?.to_ui_data(),
+		"draft_token" = draft_token,
 		"dirty" = dirty,
 		"selected_tier_id" = selected_tier_id,
 		"selected_variant_id" = selected_variant_id,
@@ -153,6 +157,18 @@
 		for(var/key in payload)
 			preview_command[key] = payload[key]
 	return TRUE
+
+/datum/admin_music_panel/proc/coerce_ui_boolean(raw_value, fallback = FALSE)
+	if(isnull(raw_value))
+		return fallback
+	if(isnum(raw_value))
+		return raw_value ? TRUE : FALSE
+	var/text_value = lowertext(trim("[raw_value]"))
+	if(text_value in list("1", "true", "yes", "on"))
+		return TRUE
+	if(text_value in list("0", "false", "no", "off"))
+		return FALSE
+	return fallback
 
 /datum/admin_music_panel/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
@@ -232,11 +248,11 @@
 			return mark_dirty()
 
 		if("set_show_title")
-			draft.show_title_to_players = params["show_title_to_players"] ? TRUE : FALSE
+			draft.show_title_to_players = coerce_ui_boolean(params["show_title_to_players"], draft.show_title_to_players)
 			return mark_dirty()
 
 		if("set_repeat")
-			draft.repeat = params["repeat"] ? TRUE : FALSE
+			draft.repeat = coerce_ui_boolean(params["repeat"], draft.repeat)
 			return mark_dirty()
 
 		if("select_tier")
@@ -373,7 +389,16 @@
 		if("play_selected")
 			var/datum/admin_music_tier/play_tier = get_selected_tier()
 			var/datum/admin_music_variant/play_variant = get_selected_variant()
-			return GLOB.admin_music_service.play_panel_variant(holder, draft, play_tier, play_variant)
+			return GLOB.admin_music_service.play_panel_variant(
+				holder,
+				draft,
+				play_tier,
+				play_variant,
+				params["audience_mode"],
+				params["sound_type"],
+				params["show_title_to_players"],
+				params["repeat"],
+			)
 
 		if("stop_broadcast")
 			return GLOB.admin_music_service.stop_broadcast(holder, "panel_stop")
