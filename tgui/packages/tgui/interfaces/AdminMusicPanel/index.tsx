@@ -120,6 +120,7 @@ export function AdminMusicPanel() {
       height={840}
       theme="admin"
       canClose={false}
+      buttonsRight
       buttons={
         <Button
           icon="times"
@@ -220,8 +221,8 @@ export function AdminMusicPanel() {
           </Stack.Item>
           <Stack.Item>
             <Box
-              px={1}
-              py={0.6}
+              px={0.9}
+              py={0.45}
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.03)',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
@@ -230,12 +231,9 @@ export function AdminMusicPanel() {
             >
               <Stack align="center">
                 <Stack.Item grow>
-                  <Box color="label" fontSize="0.75rem">
-                    Current Draft
-                  </Box>
                   <Box bold>{draft.name || 'New playlist'}</Box>
-                  <Box color="label" fontSize="0.75rem">
-                    {draftStatus.hint}
+                  <Box color="label" fontSize="0.74rem">
+                    Current Draft - {draftStatus.hint}
                   </Box>
                 </Stack.Item>
                 <Stack.Item>
@@ -270,7 +268,6 @@ export function AdminMusicPanel() {
                 onLoadPreset={handleLoadPreset}
                 onOpenEdit={() => setActiveTab('edit')}
                 draft={draft}
-                draftStatus={draftStatus}
                 dirty={dirty}
                 selectedTier={selectedTier}
                 selectedTierId={selected_tier_id}

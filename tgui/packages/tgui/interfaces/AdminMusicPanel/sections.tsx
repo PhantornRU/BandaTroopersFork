@@ -178,19 +178,16 @@ function TrackReadinessNotices({
         <Box
           mt="0.35rem"
           px={0.55}
-          py={0.4}
+          py={0.32}
           style={{
             ...WARNING_PANEL_STYLE,
-            padding: '0.4rem 0.55rem',
+            padding: '0.32rem 0.55rem',
           }}
         >
           <Flex align="center" justify="space-between" width="100%">
             <Flex.Item grow>
-              <Box bold fontSize="0.76rem">
-                Blocked
-              </Box>
-              <Box color="label" fontSize="0.74rem" mt="0.1rem">
-                Cannot preview or broadcast yet: {readiness.reason}
+              <Box color="label" fontSize="0.74rem">
+                Blocked: {readiness.reason}
               </Box>
             </Flex.Item>
             {onOpenEdit ? (
@@ -325,6 +322,87 @@ export function BroadcastStatusStrip({
   );
 }
 
+type CurrentBroadcastPanelProps = Readonly<{
+  current_session: CurrentSession;
+}>;
+
+function CurrentBroadcastPanel({
+  current_session,
+}: CurrentBroadcastPanelProps) {
+  if (!current_session) {
+    return (
+      <Box
+        style={{
+          ...COMPACT_CARD_STYLE,
+          padding: '0.45rem 0.55rem',
+        }}
+      >
+        <Box color="label" fontSize="0.74rem">
+          Current Broadcast
+        </Box>
+        <Box bold fontSize="1.02rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+          Broadcast idle
+        </Box>
+        <Box color="label" fontSize="0.77rem" mt="0.18rem">
+          Nothing is live right now. Pick a track when you want to preview or
+          broadcast it.
+        </Box>
+      </Box>
+    );
+  }
+
+  const broadcastTitle =
+    current_session.variant_title ||
+    current_session.resolved_title ||
+    'Untitled broadcast';
+  const liveBehavior = formatAfterTrackEnds(
+    Boolean(current_session.loop),
+    current_session.playback_mode,
+  );
+  const liveFacts: CompactFactItem[] = [
+    {
+      label: 'Audience',
+      value: current_session.audience_label,
+    },
+    {
+      label: 'Sound',
+      value: current_session.sound_type_label,
+    },
+    {
+      label: 'After',
+      value: liveBehavior,
+    },
+    {
+      label: 'Source',
+      value: formatSourceLabel(current_session.source_url),
+    },
+  ];
+
+  return (
+    <Box
+      style={{
+        ...COMPACT_CARD_STYLE,
+        padding: '0.45rem 0.55rem',
+        border: '1px solid rgba(120, 190, 100, 0.24)',
+        backgroundColor: 'rgba(70, 140, 60, 0.08)',
+      }}
+    >
+      <Box color="label" fontSize="0.74rem">
+        Current Broadcast
+      </Box>
+      <Box bold fontSize="1.02rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+        {broadcastTitle}
+      </Box>
+      <Box color="label" fontSize="0.77rem" mt="0.18rem">
+        Live right now.
+      </Box>
+      <Box mt="0.35rem">
+        <TrackFactBadges items={liveFacts} />
+      </Box>
+    </Box>
+  );
+}
+
 type LaunchActionButtonsProps = Readonly<{
   broadcastButtonLabel: string;
   canBroadcast: boolean;
@@ -410,9 +488,6 @@ function LaunchPlaybackPanel({
 }: LaunchPlaybackPanelProps) {
   return (
     <Box style={SUBTLE_PANEL_STYLE}>
-      <Box color="label" fontSize="0.72rem" mb={0.35}>
-        Session-only settings used when you press Broadcast.
-      </Box>
       <PlaybackSettingsControls
         playback={launchSettings}
         audienceOptions={audienceOptions}
@@ -565,8 +640,15 @@ export function SessionSection({
     : trackReadiness.canPreview
       ? 'Preview plays only for you.'
       : 'Preview unlocks once the track is ready.';
+  const hasVisiblePreviewState =
+    Boolean(previewState) && previewState.trim().toLowerCase() !== 'idle';
   const selectedTrackPanel = (
-    <Box style={COMPACT_CARD_STYLE}>
+    <Box
+      style={{
+        ...COMPACT_CARD_STYLE,
+        padding: '0.45rem 0.55rem',
+      }}
+    >
       <Flex align="flex-start" justify="space-between" width="100%">
         <Flex.Item grow>
           <Box color="label" fontSize="0.74rem">
@@ -591,38 +673,41 @@ export function SessionSection({
         </Box>
       ) : null}
       {selectedVariant ? (
-        <TrackReadinessNotices readiness={trackReadiness} />
+        <TrackReadinessNotices
+          readiness={trackReadiness}
+          onOpenEdit={!trackReadiness.canPreview ? onOpenEdit : undefined}
+        />
       ) : null}
-      <Flex align="center" justify="space-between" width="100%" mt="0.45rem">
-        <Flex.Item grow>
-          <Box color="label" fontSize="0.74rem" style={WRAPPED_TEXT_STYLE}>
-            {previewHint}
-          </Box>
-        </Flex.Item>
-        <Flex.Item ml={1}>
-          <Button
-            compact
-            color={previewActionColor}
-            icon={previewActionIcon}
-            onClick={
-              !selectedVariant
-                ? onOpenEdit
-                : isPreviewActive
-                  ? onStopPreview
-                  : trackReadiness.canPreview
-                    ? onPreviewSelected
-                    : onOpenEdit
-            }
-          >
-            {previewActionLabel}
-          </Button>
-        </Flex.Item>
-      </Flex>
+      {!selectedVariant || trackReadiness.canPreview ? (
+        <Flex align="center" justify="space-between" width="100%" mt="0.45rem">
+          <Flex.Item grow>
+            <Box color="label" fontSize="0.74rem" style={WRAPPED_TEXT_STYLE}>
+              {previewHint}
+            </Box>
+          </Flex.Item>
+          <Flex.Item ml={1}>
+            <Button
+              compact
+              color={previewActionColor}
+              icon={previewActionIcon}
+              onClick={
+                !selectedVariant
+                  ? onOpenEdit
+                  : isPreviewActive
+                    ? onStopPreview
+                    : onPreviewSelected
+              }
+            >
+              {previewActionLabel}
+            </Button>
+          </Flex.Item>
+        </Flex>
+      ) : null}
       {isPreviewActive ? (
         <Box color="label" fontSize="0.74rem" mt="0.25rem">
           Previewing locally at {Math.round(previewVolume * 100)}% volume.
         </Box>
-      ) : previewState && previewState !== 'idle' ? (
+      ) : hasVisiblePreviewState ? (
         <Box color="label" fontSize="0.74rem" mt="0.25rem">
           Preview state: {previewState}.
         </Box>
@@ -630,17 +715,14 @@ export function SessionSection({
     </Box>
   );
   const launchPanel = (
-    <Box style={COMPACT_CARD_STYLE}>
+    <Box
+      style={{
+        ...COMPACT_CARD_STYLE,
+        padding: '0.45rem 0.55rem',
+      }}
+    >
       <Box bold>Launch Settings</Box>
-      <Box color="label" fontSize="0.74rem" mt="0.1rem">
-        Configure who hears the track and what happens after it ends.
-      </Box>
-      {!trackReadiness.canBroadcast && selectedVariant ? (
-        <Box color="label" fontSize="0.74rem" mt="0.3rem">
-          Broadcast stays disabled until the selected track is ready.
-        </Box>
-      ) : null}
-      <Box mt="0.45rem">
+      <Box mt="0.2rem">
         <LaunchPlaybackPanel
           launchSettings={launchSettings}
           audienceOptions={audienceOptions}
@@ -672,21 +754,22 @@ export function SessionSection({
         />
       }
     >
-      <Box style={PLAYER_STRIP_STYLE}>
-        <Stack fill>
-          <Stack.Item basis="36%" grow={1}>
+      <Box
+        style={{
+          ...PLAYER_STRIP_STYLE,
+          padding: '0.72rem 0.78rem',
+        }}
+      >
+        <Stack align="stretch">
+          <Stack.Item basis="42%" grow={1}>
             <Stack vertical>
               <Stack.Item>
-                <BroadcastStatusStrip
-                  current_session={current_session}
-                  onStopBroadcast={onStopBroadcast}
-                  showStopButton={false}
-                />
+                <CurrentBroadcastPanel current_session={current_session} />
               </Stack.Item>
               <Stack.Item>{selectedTrackPanel}</Stack.Item>
             </Stack>
           </Stack.Item>
-          <Stack.Item basis="64%" grow={2}>
+          <Stack.Item basis="58%" grow={2}>
             {launchPanel}
           </Stack.Item>
         </Stack>
@@ -743,7 +826,6 @@ type PlayTabProps = Readonly<{
   onLoadPreset: (preset_id: string) => void;
   onOpenEdit: () => void;
   draft: DraftPreset;
-  draftStatus: DraftStatus;
   dirty: boolean;
   selectedTier: DraftTier | null;
   selectedTierId: string | null;
@@ -760,7 +842,6 @@ export function PlayTab({
   onLoadPreset,
   onOpenEdit,
   draft,
-  draftStatus,
   dirty,
   selectedTier,
   selectedTierId,
@@ -778,8 +859,6 @@ export function PlayTab({
           onSearchChange={onSearchChange}
           onLoadPreset={onLoadPreset}
           onOpenEdit={onOpenEdit}
-          draft={draft}
-          draftStatus={draftStatus}
           dirty={dirty}
         />
       </Stack.Item>
@@ -982,8 +1061,6 @@ type LibrarySectionProps = Readonly<{
   onSearchChange: (value: string) => void;
   onLoadPreset: (preset_id: string) => void;
   onOpenEdit: () => void;
-  draft: DraftPreset;
-  draftStatus: DraftStatus;
   dirty: boolean;
 }>;
 
@@ -994,8 +1071,6 @@ function LibrarySection({
   onSearchChange,
   onLoadPreset,
   onOpenEdit,
-  draft,
-  draftStatus,
   dirty,
 }: LibrarySectionProps) {
   const filteredLibrary = library.filter((preset) => {
@@ -1008,11 +1083,6 @@ function LibrarySection({
   return (
     <Section fill title="Library">
       <Stack fill vertical>
-        <Stack.Item>
-          <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
-            Working draft: {draft.name || 'New playlist'}. {draftStatus.hint}
-          </Box>
-        </Stack.Item>
         <Stack.Item>
           <Input
             fluid
@@ -1167,7 +1237,7 @@ function PlaybackSettingsControls({
                 style={getToggleButtonStyle(playback.show_title_to_players)}
                 onClick={onToggleShowTitle}
               >
-                Visible to players
+                {playback.show_title_to_players ? 'Visible' : 'Hidden'}
               </Button>
             </Stack.Item>
           ) : null}
