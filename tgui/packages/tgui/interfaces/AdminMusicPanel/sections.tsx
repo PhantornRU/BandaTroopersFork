@@ -17,19 +17,23 @@ import {
   COMPACT_CARD_STYLE,
   countTracks,
   CurrentSession,
-  DESCRIPTION_FIELD_HEIGHT,
   DISABLED_ACTION_STYLE,
   DraftPreset,
   DraftStatus,
   DraftTier,
   DraftVariant,
   ELLIPSIS_STYLE,
+  findCurrentSessionVariantInTier,
   formatAfterTrackEnds,
   formatDuration,
+  formatDurationCompact,
   formatSourceLabel,
   formatTrackCount,
   getListRowStyle,
   getToggleButtonStyle,
+  isCurrentSessionForVariant,
+  isVariantDurationUnknown,
+  isVariantMissingSource,
   LABEL_STYLE,
   LaunchSettings,
   LibraryPreset,
@@ -40,13 +44,12 @@ import {
   PlaybackMode,
   PlaybackSettings,
   PLAYER_BADGE_STYLE,
-  PLAYER_STRIP_STYLE,
+  PLAYER_CARD_STYLE,
   SelectOption,
   STATUS_STRIP_STYLE,
   SUBTLE_PANEL_STYLE,
   TrackLaunchReadiness,
   UNSAVED_BADGE_STYLE,
-  WRAPPED_TEXT_STYLE,
 } from './shared';
 
 type BufferedTextAreaProps = Readonly<{
@@ -54,6 +57,8 @@ type BufferedTextAreaProps = Readonly<{
   value: string;
   placeholder: string;
   onCommit: (value: string) => void;
+  minRows?: number;
+  maxRows?: number;
 }>;
 
 function BufferedTextArea({
@@ -61,19 +66,49 @@ function BufferedTextArea({
   value,
   placeholder,
   onCommit,
+  minRows = 3,
+  maxRows = 7,
 }: BufferedTextAreaProps) {
   const [draftValue, setDraftValue] = useState(value);
+  const [heightPx, setHeightPx] = useState(minRows * 17);
+  const [scrollbar, setScrollbar] = useState(false);
   const skipNextCommitRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     skipNextCommitRef.current = false;
     setDraftValue(value);
   }, [syncKey, value]);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    const computedStyles = window.getComputedStyle(textarea);
+    const lineHeight =
+      Number.parseFloat(computedStyles.lineHeight) ||
+      Number.parseFloat(computedStyles.fontSize) * 1.35 ||
+      17;
+    const minHeight = Math.ceil(lineHeight * minRows);
+    const maxHeight = Math.ceil(lineHeight * maxRows);
+    const previousInlineHeight = textarea.style.height;
+
+    textarea.style.height = '0px';
+    const contentHeight = Math.ceil(textarea.scrollHeight);
+    textarea.style.height = previousInlineHeight;
+    const nextHeight = Math.max(minHeight, Math.min(contentHeight, maxHeight));
+
+    setHeightPx(nextHeight);
+    setScrollbar(contentHeight > maxHeight);
+  }, [draftValue, minRows, maxRows, syncKey]);
+
   return (
     <TextArea
+      ref={textareaRef}
       fluid
-      height={DESCRIPTION_FIELD_HEIGHT}
+      height={`${heightPx}px`}
       value={draftValue}
       onInput={(e, nextValue) => setDraftValue(nextValue)}
       onChange={(e, nextValue) => {
@@ -92,19 +127,22 @@ function BufferedTextArea({
         setDraftValue(value);
       }}
       placeholder={placeholder}
-      scrollbar
+      scrollbar={scrollbar}
     />
   );
 }
 
-const WARNING_PANEL_STYLE = {
-  ...SUBTLE_PANEL_STYLE,
-  border: '1px solid rgba(255, 208, 102, 0.24)',
-  backgroundColor: 'rgba(255, 208, 102, 0.06)',
+const getDraftStatusBadgeStyle = (kind: DraftStatus['kind']) => {
+  switch (kind) {
+    case 'loaded_preset':
+      return LIVE_BADGE_STYLE;
+    case 'modified_copy':
+      return UNSAVED_BADGE_STYLE;
+    case 'unsaved_draft':
+    default:
+      return PLAYER_BADGE_STYLE;
+  }
 };
-
-const getDraftStatusBadgeStyle = (kind: DraftStatus['kind']) =>
-  kind === 'loaded_preset' ? MUTED_BADGE_STYLE : UNSAVED_BADGE_STYLE;
 
 type CompactFactItem = Readonly<{
   label: string;
@@ -128,6 +166,151 @@ const WARNING_BADGE_STYLE = {
   backgroundColor: 'rgba(255, 208, 102, 0.12)',
 };
 
+const SEGMENTED_GROUP_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.14rem',
+  padding: '0.14rem',
+  borderRadius: '999px',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  backgroundColor: 'rgba(16, 20, 25, 0.26)',
+};
+
+const HEADER_ACTION_BUTTON_STYLE = {
+  minWidth: '6.25rem',
+};
+
+const ADVANCED_TOGGLE_STYLE = {
+  border: '1px solid rgba(255, 255, 255, 0.07)',
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+};
+
+const EDIT_PANEL_CARD_STYLE = {
+  ...SUBTLE_PANEL_STYLE,
+  padding: '0.65rem 0.72rem',
+};
+
+const EDIT_PANEL_CARD_HEADING_STYLE = {
+  marginBottom: '0.45rem',
+};
+
+const PLAY_PANEL_STYLE = {
+  ...PLAYER_CARD_STYLE,
+  padding: '0.5rem 0.62rem',
+};
+
+const PLAY_CONTEXT_META_STYLE = {
+  display: 'inline-block',
+  padding: '0.06rem 0.34rem',
+  marginRight: '0.24rem',
+  marginBottom: '0.16rem',
+  borderRadius: '999px',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  fontSize: '0.71rem',
+  color: 'rgba(226, 233, 240, 0.9)',
+};
+
+const PLAY_TOOLBAR_TOGGLE_STYLE = (checked: boolean) => ({
+  ...getCompactToggleStyle(checked),
+  minWidth: '5.1rem',
+  minHeight: '1.8rem',
+});
+
+const CONTROL_BUTTON_STYLE = {
+  minHeight: '1.9rem',
+};
+
+const getPreviewActionStyle = (
+  isActive: boolean,
+  disabled: boolean,
+): Record<string, string> => ({
+  border: isActive
+    ? '1px solid rgba(137, 171, 214, 0.6)'
+    : '1px solid rgba(137, 171, 214, 0.34)',
+  backgroundColor: isActive
+    ? 'rgba(102, 131, 171, 0.22)'
+    : 'rgba(102, 131, 171, 0.1)',
+  color: 'rgba(244, 248, 252, 0.96)',
+  ...(disabled ? DISABLED_ACTION_STYLE : {}),
+});
+
+const getStopActionStyle = (disabled: boolean): Record<string, string> => ({
+  border: '1px solid rgba(214, 133, 133, 0.24)',
+  backgroundColor: 'rgba(102, 41, 41, 0.08)',
+  color: 'rgba(240, 222, 222, 0.92)',
+  ...(disabled ? DISABLED_ACTION_STYLE : {}),
+});
+
+const getTertiaryActionStyle = (disabled = false): Record<string, string> => ({
+  border: '1px solid rgba(255, 255, 255, 0.07)',
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  color: 'rgba(214, 223, 233, 0.92)',
+  ...(disabled ? DISABLED_ACTION_STYLE : {}),
+});
+
+const getCompactToggleStyle = (checked: boolean): Record<string, string> => ({
+  ...getToggleButtonStyle(checked),
+  minHeight: '2rem',
+});
+
+const getSegmentedButtonStyle = (
+  selected: boolean,
+  disabled: boolean,
+): Record<string, string> => ({
+  border: selected
+    ? '1px solid rgba(137, 171, 214, 0.55)'
+    : '1px solid transparent',
+  backgroundColor: selected
+    ? 'rgba(102, 131, 171, 0.22)'
+    : 'rgba(255, 255, 255, 0.02)',
+  color: selected ? 'rgba(244, 248, 252, 0.96)' : 'rgba(214, 223, 233, 0.9)',
+  boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
+  ...(disabled ? DISABLED_ACTION_STYLE : {}),
+});
+
+const TRACKS_FILTER_BAR_STYLE = {
+  ...STATUS_STRIP_STYLE,
+  padding: '0.35rem 0.45rem',
+};
+
+const getTrackRowStyle = (
+  selected: boolean,
+  dense: boolean,
+  isLive: boolean,
+): Record<string, string> => ({
+  ...getListRowStyle(selected),
+  ...(dense
+    ? {
+        marginBottom: '0.12rem',
+        padding: '0.2rem 0.38rem',
+      }
+    : {}),
+  ...(!selected && isLive
+    ? {
+        border: '1px solid rgba(120, 190, 100, 0.34)',
+      }
+    : {}),
+});
+
+const matchesTrackSearch = (variant: DraftVariant, searchText: string) => {
+  const normalizedSearch = searchText.trim().toLowerCase();
+  if (!normalizedSearch) {
+    return true;
+  }
+
+  const haystack = [
+    variant.title,
+    variant.description,
+    variant.source_url,
+    formatSourceLabel(variant.source_url),
+  ]
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes(normalizedSearch);
+};
+
 function TrackFactBadges({ items }: TrackFactBadgesProps) {
   return (
     <Box>
@@ -140,20 +323,27 @@ function TrackFactBadges({ items }: TrackFactBadgesProps) {
   );
 }
 
-const getVariantListBadges = (variant: DraftVariant) => {
+const getVariantListBadges = (variant: DraftVariant, isLive = false) => {
   const badges: Array<{
     label: string;
     style: Record<string, string>;
   }> = [];
 
-  if (!variant.source_url.trim()) {
+  if (isLive) {
+    badges.push({
+      label: 'Live',
+      style: LIVE_BADGE_STYLE,
+    });
+  }
+
+  if (isVariantMissingSource(variant)) {
     badges.push({
       label: 'No source',
       style: WARNING_BADGE_STYLE,
     });
   }
 
-  if (!normalizeDurationValue(variant.duration_seconds)) {
+  if (isVariantDurationUnknown(variant)) {
     badges.push({
       label: 'Unknown duration',
       style: LIST_BADGE_STYLE,
@@ -163,35 +353,41 @@ const getVariantListBadges = (variant: DraftVariant) => {
   return badges;
 };
 
-type TrackReadinessNoticesProps = Readonly<{
+type PlayStatusStripProps = Readonly<{
   readiness: TrackLaunchReadiness;
-  onOpenEdit?: () => void;
+  previewState: string;
+  isPreviewActive: boolean;
+  isTracksFocus: boolean;
+  canFocusTracks: boolean;
+  onOpenEdit: () => void;
+  onToggleTracksFocus: () => void;
 }>;
 
-function TrackReadinessNotices({
+function PlayStatusStrip({
   readiness,
+  previewState,
+  isPreviewActive,
+  isTracksFocus,
+  canFocusTracks,
   onOpenEdit,
-}: TrackReadinessNoticesProps) {
+  onToggleTracksFocus,
+}: PlayStatusStripProps) {
+  const warningText = readiness.warnings[0] || 'None';
+  const previewText = isPreviewActive ? 'Preview playing' : previewState;
+
   return (
-    <>
-      {readiness.reason ? (
-        <Box
-          mt="0.35rem"
-          px={0.55}
-          py={0.32}
-          style={{
-            ...WARNING_PANEL_STYLE,
-            padding: '0.32rem 0.55rem',
-          }}
-        >
-          <Flex align="center" justify="space-between" width="100%">
-            <Flex.Item grow>
-              <Box color="label" fontSize="0.74rem">
-                Blocked: {readiness.reason}
-              </Box>
-            </Flex.Item>
-            {onOpenEdit ? (
-              <Flex.Item ml={1}>
+    <Box px={0.75} py={0.42} style={STATUS_STRIP_STYLE}>
+      <Flex align="center" justify="space-between" width="100%">
+        <Flex.Item grow>
+          <Box color="label" fontSize="0.76rem" style={ELLIPSIS_STYLE}>
+            Blocked: {readiness.reason || 'None'} | Warning: {warningText} |
+            Preview: {previewText}
+          </Box>
+        </Flex.Item>
+        <Flex.Item ml={1}>
+          <Stack>
+            {readiness.reason ? (
+              <Stack.Item>
                 <Button
                   compact
                   icon="edit"
@@ -200,28 +396,24 @@ function TrackReadinessNotices({
                 >
                   Fix in Edit
                 </Button>
-              </Flex.Item>
+              </Stack.Item>
             ) : null}
-          </Flex>
-        </Box>
-      ) : null}
-      {readiness.warnings.map((warning) => (
-        <Box
-          key={warning}
-          mt="0.3rem"
-          px={0.55}
-          py={0.35}
-          style={{
-            ...WARNING_PANEL_STYLE,
-            padding: '0.35rem 0.55rem',
-          }}
-        >
-          <Box color="label" fontSize="0.74rem">
-            Heads up: {warning}
-          </Box>
-        </Box>
-      ))}
-    </>
+            <Stack.Item>
+              <Button
+                compact
+                icon={isTracksFocus ? 'compress' : 'expand'}
+                color="transparent"
+                disabled={!canFocusTracks}
+                style={!canFocusTracks ? DISABLED_ACTION_STYLE : undefined}
+                onClick={onToggleTracksFocus}
+              >
+                {isTracksFocus ? 'Exit Focus' : 'Focus Tracks'}
+              </Button>
+            </Stack.Item>
+          </Stack>
+        </Flex.Item>
+      </Flex>
+    </Box>
   );
 }
 
@@ -290,8 +482,8 @@ export function BroadcastStatusStrip({
       py={0.55}
       style={{
         ...STATUS_STRIP_STYLE,
-        border: '1px solid rgba(120, 190, 100, 0.24)',
-        backgroundColor: 'rgba(70, 140, 60, 0.08)',
+        border: '1px solid rgba(120, 190, 100, 0.22)',
+        backgroundColor: 'rgba(49, 57, 67, 0.82)',
       }}
     >
       <Stack align="center">
@@ -323,14 +515,11 @@ export function BroadcastStatusStrip({
 }
 
 type OperatorActionPanelProps = Readonly<{
-  selectedVariant: DraftVariant | null;
   trackReadiness: TrackLaunchReadiness;
   isPreviewActive: boolean;
   previewState: string;
-  previewVolume: number;
   selectedTrackIsLive: boolean;
   hasCurrentSession: boolean;
-  onOpenEdit: () => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
   onPlaySelected: () => void;
@@ -339,14 +528,11 @@ type OperatorActionPanelProps = Readonly<{
 }>;
 
 function OperatorActionPanel({
-  selectedVariant,
   trackReadiness,
   isPreviewActive,
   previewState,
-  previewVolume,
   selectedTrackIsLive,
   hasCurrentSession,
-  onOpenEdit,
   onPreviewSelected,
   onStopPreview,
   onPlaySelected,
@@ -360,56 +546,32 @@ function OperatorActionPanel({
   const broadcastLabel = selectedTrackIsLive
     ? 'Restart Broadcast'
     : 'Broadcast';
-  const actionHint = !selectedVariant
-    ? 'Select a track below to enable preview and broadcast.'
-    : trackReadiness.reason
-      ? `Blocked: ${trackReadiness.reason}`
-      : isPreviewActive
-        ? `Previewing locally at ${Math.round(previewVolume * 100)}% volume.`
-        : selectedTrackIsLive
-          ? 'The selected track is already on air.'
-          : 'Ready to launch with the current settings.';
-  const canJumpToEdit = !selectedVariant || Boolean(trackReadiness.reason);
-  const hasVisiblePreviewState =
-    Boolean(previewState) &&
-    previewState.trim().toLowerCase() !== 'idle' &&
-    !isPreviewActive;
 
   return (
     <Box
       style={{
-        ...COMPACT_CARD_STYLE,
-        padding: '0.55rem 0.65rem',
+        ...PLAY_PANEL_STYLE,
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(69, 78, 90, 0.9)',
         height: '100%',
+        padding: '0.34rem 0.48rem',
       }}
     >
-      <Box color="label" fontSize="0.74rem">
-        Actions
-      </Box>
-      <Box bold fontSize="1.02rem" mt="0.1rem">
+      <Box bold fontSize="0.88rem">
         Operator Controls
       </Box>
-      <Box mt="0.45rem">
+      <Box mt="0.2rem">
         <Stack fill>
           <Stack.Item grow>
             <Button
+              compact
               fluid
-              color={isPreviewActive ? 'default' : 'transparent'}
-              icon={previewIcon}
-              disabled={previewDisabled}
-              style={previewDisabled ? DISABLED_ACTION_STYLE : undefined}
-              onClick={isPreviewActive ? onStopPreview : onPreviewSelected}
-            >
-              {previewLabel}
-            </Button>
-          </Stack.Item>
-          <Stack.Item grow>
-            <Button
-              fluid
+              style={{
+                ...CONTROL_BUTTON_STYLE,
+              }}
               icon="play"
               color="good"
               disabled={broadcastDisabled}
-              style={broadcastDisabled ? DISABLED_ACTION_STYLE : undefined}
               onClick={onPlaySelected}
             >
               {broadcastLabel}
@@ -417,21 +579,50 @@ function OperatorActionPanel({
           </Stack.Item>
           <Stack.Item grow>
             <Button
+              compact
               fluid
               icon="stop"
-              color="bad"
+              color="transparent"
               disabled={!hasCurrentSession}
-              style={!hasCurrentSession ? DISABLED_ACTION_STYLE : undefined}
+              style={{
+                ...getStopActionStyle(!hasCurrentSession),
+                ...CONTROL_BUTTON_STYLE,
+              }}
               onClick={onStopBroadcast}
             >
               Stop
             </Button>
           </Stack.Item>
+        </Stack>
+      </Box>
+      <Box mt="0.16rem">
+        <Stack fill>
           <Stack.Item grow>
             <Button
+              compact
+              fluid
+              color="transparent"
+              icon={previewIcon}
+              disabled={previewDisabled}
+              style={{
+                ...getPreviewActionStyle(isPreviewActive, previewDisabled),
+                ...CONTROL_BUTTON_STYLE,
+              }}
+              onClick={isPreviewActive ? onStopPreview : onPreviewSelected}
+            >
+              {previewLabel}
+            </Button>
+          </Stack.Item>
+          <Stack.Item grow>
+            <Button
+              compact
               fluid
               color="transparent"
               icon="undo"
+              style={{
+                ...getTertiaryActionStyle(),
+                ...CONTROL_BUTTON_STYLE,
+              }}
               onClick={onResetLaunchSettings}
             >
               Reset
@@ -439,114 +630,72 @@ function OperatorActionPanel({
           </Stack.Item>
         </Stack>
       </Box>
-      <Box
-        color="label"
-        fontSize="0.74rem"
-        mt="0.35rem"
-        style={WRAPPED_TEXT_STYLE}
-      >
-        {actionHint}
+      <Box color="label" fontSize="0.74rem" mt="0.28rem">
+        Preview: {isPreviewActive ? 'Preview playing' : previewState}
       </Box>
-      {hasVisiblePreviewState ? (
-        <Box color="label" fontSize="0.74rem" mt="0.25rem">
-          Preview state: {previewState}.
-        </Box>
-      ) : null}
-      {canJumpToEdit ? (
-        <Box mt="0.35rem">
-          <Button compact color="transparent" icon="edit" onClick={onOpenEdit}>
-            {selectedVariant ? 'Fix in Edit' : 'Open Edit'}
-          </Button>
-        </Box>
-      ) : null}
+      <Box color="label" fontSize="0.74rem" mt="0.12rem">
+        Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'}
+      </Box>
     </Box>
   );
 }
 
-type LaunchPlaybackPanelProps = Readonly<{
+type LaunchPreflightControlsProps = Readonly<{
   launchSettings: LaunchSettings;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
-  launchBehavior: string;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
 }>;
 
-function LaunchPlaybackPanel({
+function LaunchPreflightControls({
   launchSettings,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
-  launchBehavior,
-  onSetAudienceMode,
-  onSetSoundType,
   onToggleShowTitle,
   onToggleRepeat,
   onSetPlaybackMode,
-}: LaunchPlaybackPanelProps) {
+}: LaunchPreflightControlsProps) {
   return (
-    <Box style={SUBTLE_PANEL_STYLE}>
-      <PlaybackSettingsControls
-        playback={launchSettings}
-        audienceOptions={audienceOptions}
-        soundTypeOptions={soundTypeOptions}
-        audienceLabel={audienceLabel}
-        soundTypeLabel={soundTypeLabel}
-        onSetAudienceMode={onSetAudienceMode}
-        onSetSoundType={onSetSoundType}
-        onToggleShowTitle={onToggleShowTitle}
-        showRepeatToggle={false}
-        visibilityInline
-      />
-      <Box mt="0.45rem">
-        <Stack fill mt={0.25}>
-          <Stack.Item basis="42%" grow={1}>
-            <Button.Checkbox
-              fluid
-              checked={launchSettings.repeat}
-              style={getToggleButtonStyle(launchSettings.repeat)}
-              onClick={onToggleRepeat}
-            >
-              Repeat current track
-            </Button.Checkbox>
-          </Stack.Item>
-          <Stack.Item basis="58%" grow={1}>
-            <PlaybackModeSelector
-              playbackMode={launchSettings.playback_mode}
-              repeat={launchSettings.repeat}
-              onSetPlaybackMode={onSetPlaybackMode}
-            />
-          </Stack.Item>
-        </Stack>
-        <Box color="label" fontSize="0.75rem" mt="0.25rem">
-          {launchBehavior}
-        </Box>
-      </Box>
-    </Box>
+    <Stack align="center">
+      <Stack.Item>
+        <Button.Checkbox
+          compact
+          checked={launchSettings.show_title_to_players}
+          style={PLAY_TOOLBAR_TOGGLE_STYLE(
+            launchSettings.show_title_to_players,
+          )}
+          onClick={onToggleShowTitle}
+        >
+          Visible
+        </Button.Checkbox>
+      </Stack.Item>
+      <Stack.Item>
+        <Button.Checkbox
+          compact
+          checked={launchSettings.repeat}
+          style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
+          onClick={onToggleRepeat}
+        >
+          Repeat
+        </Button.Checkbox>
+      </Stack.Item>
+      <Stack.Item>
+        <PlaybackModeSelector
+          playbackMode={launchSettings.playback_mode}
+          repeat={launchSettings.repeat}
+          onSetPlaybackMode={onSetPlaybackMode}
+        />
+      </Stack.Item>
+    </Stack>
   );
 }
 
 type SessionSectionProps = Readonly<{
   current_session: CurrentSession;
+  launchSettings: LaunchSettings;
   draft: DraftPreset;
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
-  launchSettings: LaunchSettings;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
   trackReadiness: TrackLaunchReadiness;
   selectedTrackIsLive: boolean;
-  onOpenEdit: () => void;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
@@ -555,26 +704,18 @@ type SessionSectionProps = Readonly<{
   onStopPreview: () => void;
   isPreviewActive: boolean;
   previewState: string;
-  previewVolume: number;
   onPlaySelected: () => void;
   onStopBroadcast: () => void;
 }>;
 
 export function SessionSection({
   current_session,
+  launchSettings,
   draft,
   selectedTier,
   selectedVariant,
-  launchSettings,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
   trackReadiness,
   selectedTrackIsLive,
-  onOpenEdit,
-  onSetAudienceMode,
-  onSetSoundType,
   onToggleShowTitle,
   onToggleRepeat,
   onSetPlaybackMode,
@@ -583,45 +724,11 @@ export function SessionSection({
   onStopPreview,
   isPreviewActive,
   previewState,
-  previewVolume,
   onPlaySelected,
   onStopBroadcast,
 }: SessionSectionProps) {
-  const liveTitle = current_session
-    ? current_session.variant_title ||
-      current_session.resolved_title ||
-      'Untitled broadcast'
-    : 'Nothing live right now';
-  const liveStatusLabel = current_session ? 'Live' : 'Idle';
-  const liveBehavior = current_session
-    ? formatAfterTrackEnds(
-        Boolean(current_session.loop),
-        current_session.playback_mode,
-      )
-    : 'Waiting for the next broadcast';
-  const liveOriginParts = current_session
-    ? [
-        current_session.preset_name
-          ? `Preset ${current_session.preset_name}`
-          : null,
-        current_session.tier_name ? `Scene ${current_session.tier_name}` : null,
-        current_session.variant_title
-          ? `Track ${current_session.variant_title}`
-          : null,
-      ].filter(Boolean)
-    : [];
-  const liveOriginSummary =
-    liveOriginParts.join(' | ') ||
-    (current_session
-      ? `Source ${formatSourceLabel(current_session.source_url)}`
-      : 'Pick a track below when you are ready to go live.');
-  const selectedTitle = selectedVariant?.title || 'No track selected';
-  const selectedStatus = !selectedVariant
-    ? 'Choose a track from the list below to prepare the next launch.'
-    : trackReadiness.canBroadcast
-      ? 'Ready to preview locally or send live with the current launch settings.'
-      : 'Needs a small fix before it can be previewed or sent live.';
-  const selectedFacts: CompactFactItem[] = [
+  const contextTitle = selectedVariant?.title || 'No track selected';
+  const contextFacts: CompactFactItem[] = [
     {
       label: 'Preset',
       value: draft.name || 'New preset',
@@ -631,10 +738,6 @@ export function SessionSection({
       value: selectedTier?.name || 'None',
     },
     {
-      label: 'Track',
-      value: selectedVariant?.title || 'None',
-    },
-    {
       label: 'Duration',
       value: selectedVariant
         ? formatDuration(selectedVariant.duration_seconds)
@@ -642,169 +745,69 @@ export function SessionSection({
     },
     {
       label: 'Source',
-      value: selectedVariant
-        ? selectedVariant.source_url.trim()
-          ? formatSourceLabel(selectedVariant.source_url)
-          : 'Not set'
+      value: selectedVariant?.source_url?.trim()
+        ? formatSourceLabel(selectedVariant.source_url)
         : 'Not set',
     },
   ];
-  const launchBehavior = formatAfterTrackEnds(
-    launchSettings.repeat,
-    launchSettings.playback_mode,
-  );
 
   return (
-    <Box
-      style={{
-        ...PLAYER_STRIP_STYLE,
-        padding: '0.78rem 0.82rem',
-      }}
-    >
-      <Stack vertical>
-        <Stack.Item>
-          <Stack align="stretch">
-            <Stack.Item basis="28%" grow={1}>
-              <Box
-                style={{
-                  ...COMPACT_CARD_STYLE,
-                  padding: '0.55rem 0.65rem',
-                  border: current_session
-                    ? '1px solid rgba(120, 190, 100, 0.24)'
-                    : COMPACT_CARD_STYLE.border,
-                  backgroundColor: current_session
-                    ? 'rgba(70, 140, 60, 0.08)'
-                    : COMPACT_CARD_STYLE.backgroundColor,
-                }}
-              >
-                <Box color="label" fontSize="0.74rem">
-                  System Status
-                </Box>
-                <Box mt="0.18rem">
-                  <Box
-                    style={
-                      current_session ? LIVE_BADGE_STYLE : MUTED_BADGE_STYLE
-                    }
-                  >
-                    {liveStatusLabel}
-                  </Box>
-                </Box>
-                <Box
-                  bold
-                  fontSize="1.05rem"
-                  mt="0.18rem"
-                  style={ELLIPSIS_STYLE}
-                >
-                  {liveTitle}
-                </Box>
-                <Box color="label" fontSize="0.76rem" mt="0.18rem">
-                  {current_session
-                    ? `${current_session.audience_label} | ${current_session.sound_type_label} | ${liveBehavior}`
-                    : 'Idle until the next broadcast starts.'}
-                </Box>
-                <Box
-                  color="label"
-                  fontSize="0.74rem"
-                  mt="0.3rem"
-                  style={WRAPPED_TEXT_STYLE}
-                >
-                  {liveOriginSummary}
-                </Box>
-              </Box>
-            </Stack.Item>
-            <Stack.Item basis="42%" grow={2}>
-              <Box
-                style={{
-                  ...COMPACT_CARD_STYLE,
-                  padding: '0.55rem 0.65rem',
-                }}
-              >
-                <Flex align="flex-start" justify="space-between" width="100%">
-                  <Flex.Item grow>
-                    <Box color="label" fontSize="0.74rem">
-                      Selected Track
-                    </Box>
-                    <Box
-                      bold
-                      fontSize="1.08rem"
-                      mt="0.1rem"
-                      style={ELLIPSIS_STYLE}
-                    >
-                      {selectedTitle}
-                    </Box>
-                    <Box color="label" fontSize="0.78rem" mt="0.18rem">
-                      {selectedStatus}
-                    </Box>
-                  </Flex.Item>
-                  {selectedTrackIsLive ? (
-                    <Flex.Item ml={1}>
-                      <Box style={LIVE_BADGE_STYLE}>On air</Box>
-                    </Flex.Item>
-                  ) : null}
-                </Flex>
-                <Box mt="0.35rem">
-                  <TrackFactBadges items={selectedFacts} />
-                </Box>
-                {selectedVariant ? (
-                  <TrackReadinessNotices
-                    readiness={trackReadiness}
-                    onOpenEdit={
-                      !trackReadiness.canPreview ? onOpenEdit : undefined
-                    }
-                  />
-                ) : null}
-              </Box>
-            </Stack.Item>
-            <Stack.Item basis="30%" grow={1}>
-              <OperatorActionPanel
-                selectedVariant={selectedVariant}
-                trackReadiness={trackReadiness}
-                isPreviewActive={isPreviewActive}
-                previewState={previewState}
-                previewVolume={previewVolume}
-                selectedTrackIsLive={selectedTrackIsLive}
-                hasCurrentSession={Boolean(current_session)}
-                onOpenEdit={onOpenEdit}
-                onPreviewSelected={onPreviewSelected}
-                onStopPreview={onStopPreview}
-                onPlaySelected={onPlaySelected}
-                onStopBroadcast={onStopBroadcast}
-                onResetLaunchSettings={onResetLaunchSettings}
-              />
-            </Stack.Item>
-          </Stack>
-        </Stack.Item>
-        <Stack.Item>
-          <Box
-            mt="0.7rem"
-            style={{
-              ...COMPACT_CARD_STYLE,
-              padding: '0.55rem 0.65rem',
-            }}
-          >
-            <Box bold>Launch Settings</Box>
-            <Box color="label" fontSize="0.76rem" mt="0.18rem">
-              Audience, sound type, player visibility, repeat, and launch mode.
-            </Box>
-            <Box mt="0.35rem">
-              <LaunchPlaybackPanel
-                launchSettings={launchSettings}
-                audienceOptions={audienceOptions}
-                soundTypeOptions={soundTypeOptions}
-                audienceLabel={audienceLabel}
-                soundTypeLabel={soundTypeLabel}
-                launchBehavior={launchBehavior}
-                onSetAudienceMode={onSetAudienceMode}
-                onSetSoundType={onSetSoundType}
-                onToggleShowTitle={onToggleShowTitle}
-                onToggleRepeat={onToggleRepeat}
-                onSetPlaybackMode={onSetPlaybackMode}
-              />
-            </Box>
+    <Stack fill align="stretch">
+      <Stack.Item basis="68%" grow={1}>
+        <Box
+          style={{
+            ...PLAY_PANEL_STYLE,
+            height: '100%',
+            padding: '0.34rem 0.48rem',
+          }}
+        >
+          <Box color="label" fontSize="0.71rem">
+            Launch Context
           </Box>
-        </Stack.Item>
-      </Stack>
-    </Box>
+          <Flex align="center" justify="space-between" width="100%" mt={0.08}>
+            <Flex.Item grow>
+              <Box as="span" bold fontSize="1rem" style={ELLIPSIS_STYLE}>
+                {contextTitle}
+              </Box>
+            </Flex.Item>
+            {selectedTrackIsLive ? (
+              <Flex.Item ml={1}>
+                <Box style={LIVE_BADGE_STYLE}>On air</Box>
+              </Flex.Item>
+            ) : null}
+          </Flex>
+          <Box mt="0.14rem">
+            {contextFacts.map((item) => (
+              <Box key={item.label} style={PLAY_CONTEXT_META_STYLE}>
+                {item.label}: {item.value}
+              </Box>
+            ))}
+          </Box>
+          <Box mt="0.08rem">
+            <LaunchPreflightControls
+              launchSettings={launchSettings}
+              onToggleShowTitle={onToggleShowTitle}
+              onToggleRepeat={onToggleRepeat}
+              onSetPlaybackMode={onSetPlaybackMode}
+            />
+          </Box>
+        </Box>
+      </Stack.Item>
+      <Stack.Item basis="32%" grow={1}>
+        <OperatorActionPanel
+          trackReadiness={trackReadiness}
+          isPreviewActive={isPreviewActive}
+          previewState={previewState}
+          selectedTrackIsLive={selectedTrackIsLive}
+          hasCurrentSession={Boolean(current_session)}
+          onPreviewSelected={onPreviewSelected}
+          onStopPreview={onStopPreview}
+          onPlaySelected={onPlaySelected}
+          onStopBroadcast={onStopBroadcast}
+          onResetLaunchSettings={onResetLaunchSettings}
+        />
+      </Stack.Item>
+    </Stack>
   );
 }
 
@@ -829,22 +832,130 @@ function PlaybackModeSelector({
   ];
 
   return (
-    <Stack fill>
+    <Box style={SEGMENTED_GROUP_STYLE}>
       {options.map((option) => (
-        <Stack.Item key={option.value} grow>
+        <Box key={option.value} mr={0}>
           <Button
-            fluid
+            compact
             color="transparent"
             selected={playbackMode === option.value}
             disabled={repeat}
-            style={getToggleButtonStyle(playbackMode === option.value)}
+            style={getSegmentedButtonStyle(
+              playbackMode === option.value,
+              repeat,
+            )}
             onClick={() => onSetPlaybackMode(option.value)}
           >
             {option.label}
           </Button>
-        </Stack.Item>
+        </Box>
       ))}
-    </Stack>
+    </Box>
+  );
+}
+
+type TracksFocusLaunchStripProps = Readonly<{
+  current_session: CurrentSession;
+  launchSettings: LaunchSettings;
+  trackReadiness: TrackLaunchReadiness;
+  isPreviewActive: boolean;
+  previewState: string;
+  selectedTrackIsLive: boolean;
+  onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
+  onSetPlaybackMode: (value: PlaybackMode) => void;
+  onPreviewSelected: () => void;
+  onStopPreview: () => void;
+  onPlaySelected: () => void;
+  onStopBroadcast: () => void;
+}>;
+
+function TracksFocusLaunchStrip({
+  current_session,
+  launchSettings,
+  trackReadiness,
+  isPreviewActive,
+  previewState,
+  selectedTrackIsLive,
+  onToggleShowTitle,
+  onToggleRepeat,
+  onSetPlaybackMode,
+  onPreviewSelected,
+  onStopPreview,
+  onPlaySelected,
+  onStopBroadcast,
+}: TracksFocusLaunchStripProps) {
+  const previewDisabled = !isPreviewActive && !trackReadiness.canPreview;
+  const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
+  const previewIcon = isPreviewActive ? 'stop' : 'eye';
+
+  return (
+    <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
+      <Stack fill vertical>
+        <Stack.Item>
+          <Flex align="center" justify="space-between" width="100%">
+            <Flex.Item grow>
+              <LaunchPreflightControls
+                launchSettings={launchSettings}
+                onToggleShowTitle={onToggleShowTitle}
+                onToggleRepeat={onToggleRepeat}
+                onSetPlaybackMode={onSetPlaybackMode}
+              />
+            </Flex.Item>
+            <Flex.Item ml={1}>
+              <Stack>
+                <Stack.Item>
+                  <Button
+                    compact
+                    color="good"
+                    icon="play"
+                    disabled={!trackReadiness.canBroadcast}
+                    onClick={onPlaySelected}
+                  >
+                    {selectedTrackIsLive ? 'Restart Broadcast' : 'Broadcast'}
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    compact
+                    color="transparent"
+                    icon={previewIcon}
+                    disabled={previewDisabled}
+                    style={getPreviewActionStyle(
+                      isPreviewActive,
+                      previewDisabled,
+                    )}
+                    onClick={
+                      isPreviewActive ? onStopPreview : onPreviewSelected
+                    }
+                  >
+                    {previewLabel}
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    compact
+                    color="transparent"
+                    icon="stop"
+                    disabled={!current_session}
+                    style={getStopActionStyle(!current_session)}
+                    onClick={onStopBroadcast}
+                  >
+                    Stop Broadcast
+                  </Button>
+                </Stack.Item>
+              </Stack>
+            </Flex.Item>
+          </Flex>
+        </Stack.Item>
+        <Stack.Item>
+          <Box color="label" fontSize="0.75rem">
+            Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'} |
+            Preview: {isPreviewActive ? 'Preview playing' : previewState}
+          </Box>
+        </Stack.Item>
+      </Stack>
+    </Box>
   );
 }
 
@@ -852,15 +963,10 @@ type PlayTabProps = Readonly<{
   current_session: CurrentSession;
   draft: DraftPreset;
   launchSettings: LaunchSettings;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
   trackReadiness: TrackLaunchReadiness;
   selectedTrackIsLive: boolean;
   isPreviewActive: boolean;
   previewState: string;
-  previewVolume: number;
   library: LibraryPreset[];
   librarySearch: string;
   loadedLibraryPresetId: string | null;
@@ -872,8 +978,6 @@ type PlayTabProps = Readonly<{
   selectedVariant: DraftVariant | null;
   selectedTierId: string | null;
   selectedVariantId: string | null;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
@@ -890,15 +994,10 @@ export function PlayTab({
   current_session,
   draft,
   launchSettings,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
   trackReadiness,
   selectedTrackIsLive,
   isPreviewActive,
   previewState,
-  previewVolume,
   library,
   librarySearch,
   loadedLibraryPresetId,
@@ -910,8 +1009,6 @@ export function PlayTab({
   selectedVariant,
   selectedTierId,
   selectedVariantId,
-  onSetAudienceMode,
-  onSetSoundType,
   onToggleShowTitle,
   onToggleRepeat,
   onSetPlaybackMode,
@@ -923,41 +1020,153 @@ export function PlayTab({
   onSelectTier,
   onSelectVariant,
 }: PlayTabProps) {
+  const [trackSearch, setTrackSearch] = useState('');
+  const [denseTracks, setDenseTracks] = useState(false);
+  const [showOnlyInvalid, setShowOnlyInvalid] = useState(false);
+  const [showOnlyUnknown, setShowOnlyUnknown] = useState(false);
+  const [tracksFocus, setTracksFocus] = useState(false);
+  const canFocusTracks = Boolean(selectedTier?.variants.length);
+
+  useEffect(() => {
+    setTrackSearch('');
+    setDenseTracks(false);
+    setShowOnlyInvalid(false);
+    setShowOnlyUnknown(false);
+    setTracksFocus(false);
+  }, [draft.preset_id, draft.name]);
+
+  const handleSelectTier = (tier_id: string) => {
+    setTrackSearch('');
+    setShowOnlyInvalid(false);
+    setShowOnlyUnknown(false);
+    onSelectTier(tier_id);
+  };
+
+  const handleToggleTracksFocus = () => {
+    if (!canFocusTracks) {
+      return;
+    }
+    setTracksFocus((current) => !current);
+  };
+
+  if (tracksFocus) {
+    return (
+      <Stack fill vertical>
+        <Stack.Item>
+          <BroadcastStatusStrip
+            current_session={current_session}
+            onStopBroadcast={onStopBroadcast}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Box mt="0.38rem">
+            <PlayStatusStrip
+              readiness={trackReadiness}
+              previewState={previewState}
+              isPreviewActive={isPreviewActive}
+              isTracksFocus
+              canFocusTracks={canFocusTracks}
+              onOpenEdit={onOpenEdit}
+              onToggleTracksFocus={handleToggleTracksFocus}
+            />
+          </Box>
+        </Stack.Item>
+        <Stack.Item grow={1}>
+          <Box mt="0.38rem" style={{ height: '100%' }}>
+            <PlayTracksSection
+              draft={draft}
+              current_session={current_session}
+              selectedTier={selectedTier}
+              selectedVariantId={selectedVariantId}
+              trackSearch={trackSearch}
+              denseTracks={denseTracks}
+              showOnlyInvalid={showOnlyInvalid}
+              showOnlyUnknown={showOnlyUnknown}
+              focusMode
+              onTrackSearchChange={setTrackSearch}
+              onToggleDenseTracks={() => setDenseTracks((current) => !current)}
+              onToggleOnlyInvalid={() =>
+                setShowOnlyInvalid((current) => !current)
+              }
+              onToggleOnlyUnknown={() =>
+                setShowOnlyUnknown((current) => !current)
+              }
+              onToggleTracksFocus={handleToggleTracksFocus}
+              onSelectVariant={onSelectVariant}
+            />
+          </Box>
+        </Stack.Item>
+        <Stack.Item>
+          <Box mt="0.38rem">
+            <TracksFocusLaunchStrip
+              current_session={current_session}
+              launchSettings={launchSettings}
+              trackReadiness={trackReadiness}
+              isPreviewActive={isPreviewActive}
+              previewState={previewState}
+              selectedTrackIsLive={selectedTrackIsLive}
+              onToggleShowTitle={onToggleShowTitle}
+              onToggleRepeat={onToggleRepeat}
+              onSetPlaybackMode={onSetPlaybackMode}
+              onPreviewSelected={onPreviewSelected}
+              onStopPreview={onStopPreview}
+              onPlaySelected={onPlaySelected}
+              onStopBroadcast={onStopBroadcast}
+            />
+          </Box>
+        </Stack.Item>
+      </Stack>
+    );
+  }
+
   return (
     <Stack fill vertical>
       <Stack.Item>
-        <SessionSection
+        <BroadcastStatusStrip
           current_session={current_session}
-          draft={draft}
-          selectedTier={selectedTier}
-          selectedVariant={selectedVariant}
-          launchSettings={launchSettings}
-          audienceOptions={audienceOptions}
-          soundTypeOptions={soundTypeOptions}
-          audienceLabel={audienceLabel}
-          soundTypeLabel={soundTypeLabel}
-          trackReadiness={trackReadiness}
-          selectedTrackIsLive={selectedTrackIsLive}
-          onOpenEdit={onOpenEdit}
-          onSetAudienceMode={onSetAudienceMode}
-          onSetSoundType={onSetSoundType}
-          onToggleShowTitle={onToggleShowTitle}
-          onToggleRepeat={onToggleRepeat}
-          onSetPlaybackMode={onSetPlaybackMode}
-          onResetLaunchSettings={onResetLaunchSettings}
-          onPreviewSelected={onPreviewSelected}
-          onStopPreview={onStopPreview}
-          isPreviewActive={isPreviewActive}
-          previewState={previewState}
-          previewVolume={previewVolume}
-          onPlaySelected={onPlaySelected}
           onStopBroadcast={onStopBroadcast}
         />
       </Stack.Item>
+      <Stack.Item>
+        <Box mt="0.38rem">
+          <SessionSection
+            current_session={current_session}
+            draft={draft}
+            launchSettings={launchSettings}
+            selectedTier={selectedTier}
+            selectedVariant={selectedVariant}
+            trackReadiness={trackReadiness}
+            selectedTrackIsLive={selectedTrackIsLive}
+            onToggleShowTitle={onToggleShowTitle}
+            onToggleRepeat={onToggleRepeat}
+            onSetPlaybackMode={onSetPlaybackMode}
+            onResetLaunchSettings={onResetLaunchSettings}
+            onPreviewSelected={onPreviewSelected}
+            onStopPreview={onStopPreview}
+            isPreviewActive={isPreviewActive}
+            previewState={previewState}
+            onPlaySelected={onPlaySelected}
+            onStopBroadcast={onStopBroadcast}
+          />
+        </Box>
+      </Stack.Item>
+      <Stack.Item>
+        <Box mt="0.38rem">
+          <PlayStatusStrip
+            readiness={trackReadiness}
+            previewState={previewState}
+            isPreviewActive={isPreviewActive}
+            isTracksFocus={false}
+            canFocusTracks={canFocusTracks}
+            onOpenEdit={onOpenEdit}
+            onToggleTracksFocus={handleToggleTracksFocus}
+          />
+        </Box>
+      </Stack.Item>
       <Stack.Item grow={1}>
-        <Box mt="0.8rem">
+        <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis="30%" grow={1}>
+            <Stack.Item basis="27%" grow={1}>
               <LibrarySection
                 library={library}
                 librarySearch={librarySearch}
@@ -968,17 +1177,34 @@ export function PlayTab({
                 dirty={dirty}
               />
             </Stack.Item>
-            <Stack.Item basis="18%" grow={1}>
+            <Stack.Item basis="21%" grow={1}>
               <PlayScenesSection
                 draft={draft}
                 selectedTierId={selectedTierId}
-                onSelectTier={onSelectTier}
+                onSelectTier={handleSelectTier}
               />
             </Stack.Item>
             <Stack.Item basis="52%" grow={2}>
               <PlayTracksSection
+                draft={draft}
+                current_session={current_session}
                 selectedTier={selectedTier}
                 selectedVariantId={selectedVariantId}
+                trackSearch={trackSearch}
+                denseTracks={denseTracks}
+                showOnlyInvalid={showOnlyInvalid}
+                showOnlyUnknown={showOnlyUnknown}
+                onTrackSearchChange={setTrackSearch}
+                onToggleDenseTracks={() =>
+                  setDenseTracks((current) => !current)
+                }
+                onToggleOnlyInvalid={() =>
+                  setShowOnlyInvalid((current) => !current)
+                }
+                onToggleOnlyUnknown={() =>
+                  setShowOnlyUnknown((current) => !current)
+                }
+                onToggleTracksFocus={handleToggleTracksFocus}
                 onSelectVariant={onSelectVariant}
               />
             </Stack.Item>
@@ -1050,6 +1276,8 @@ type EditTabProps = Readonly<{
   ) => void;
 }>;
 
+type InspectorTarget = 'scene' | 'track';
+
 export function EditTab({
   draft,
   draftStatus,
@@ -1094,9 +1322,49 @@ export function EditTab({
   onSetVariantDuration,
   onSetVariantSourceUrl,
 }: EditTabProps) {
+  const [inspectorTarget, setInspectorTarget] = useState<InspectorTarget>(
+    selectedVariant ? 'track' : 'scene',
+  );
+  const [trackSearch, setTrackSearch] = useState('');
+  const [denseTracks, setDenseTracks] = useState(false);
+  const [tracksExpanded, setTracksExpanded] = useState(false);
+
+  useEffect(() => {
+    setInspectorTarget(selectedVariant ? 'track' : 'scene');
+    setTrackSearch('');
+    setDenseTracks(false);
+    setTracksExpanded(false);
+  }, [draftToken]);
+
+  useEffect(() => {
+    if (inspectorTarget === 'track' && !selectedVariant) {
+      setInspectorTarget('scene');
+    }
+  }, [inspectorTarget, selectedVariant]);
+
+  const handleSelectTier = (tierId: string) => {
+    setInspectorTarget('scene');
+    onSelectTier(tierId);
+  };
+
+  const handleAddTier = () => {
+    setInspectorTarget('scene');
+    onAddTier();
+  };
+
+  const handleSelectVariant = (tierId: string, variantId: string) => {
+    setInspectorTarget('track');
+    onSelectVariant(tierId, variantId);
+  };
+
+  const handleAddVariant = () => {
+    setInspectorTarget('track');
+    onAddVariant();
+  };
+
   return (
     <Stack fill vertical>
-      <Stack.Item>
+      <Stack.Item basis="13%">
         <EditHeaderSection
           draft={draft}
           draftStatus={draftStatus}
@@ -1106,59 +1374,63 @@ export function EditTab({
           onRevert={onRevert}
         />
       </Stack.Item>
-      <Stack.Item grow={1}>
-        <Box mt="0.8rem">
+      <Stack.Item basis="87%" grow={1}>
+        <Box mt="0.6rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis="31%" grow={1}>
-              <Stack fill vertical>
-                <Stack.Item grow={1}>
-                  <PresetMetaSection
-                    draft={draft}
-                    draftToken={draftToken}
-                    audienceOptions={audienceOptions}
-                    soundTypeOptions={soundTypeOptions}
-                    audienceLabel={audienceLabel}
-                    soundTypeLabel={soundTypeLabel}
-                    onSetName={onSetName}
-                    onSetDescription={onSetDescription}
-                    onSetAudienceMode={onSetAudienceMode}
-                    onSetSoundType={onSetSoundType}
-                    onToggleShowTitle={onToggleShowTitle}
-                    onToggleRepeat={onToggleRepeat}
-                  />
-                </Stack.Item>
-                <Stack.Item>
-                  <AdvancedSection
-                    canDelete={canDelete}
-                    onNew={onNew}
-                    onDelete={onDelete}
-                    onExport={onExport}
-                    onImport={onImport}
-                  />
-                </Stack.Item>
-              </Stack>
-            </Stack.Item>
-            <Stack.Item basis="27%" grow={1}>
-              <SceneEditorSection
+            <Stack.Item basis={tracksExpanded ? '76%' : '70%'} grow={7}>
+              <StructureSection
                 draft={draft}
                 selectedTier={selectedTier}
                 selectedTierId={selectedTierId}
-                onAddTier={onAddTier}
-                onSelectTier={onSelectTier}
+                selectedVariant={selectedVariant}
+                selectedVariantId={selectedVariantId}
+                trackSearch={trackSearch}
+                denseTracks={denseTracks}
+                tracksExpanded={tracksExpanded}
+                onAddTier={handleAddTier}
+                onSelectTier={handleSelectTier}
+                onMoveTierUp={onMoveTierUp}
+                onMoveTierDown={onMoveTierDown}
+                onAddVariant={handleAddVariant}
+                onTrackSearchChange={setTrackSearch}
+                onToggleDenseTracks={() =>
+                  setDenseTracks((current) => !current)
+                }
+                onToggleTracksExpanded={() =>
+                  setTracksExpanded((current) => !current)
+                }
+                onSelectVariant={handleSelectVariant}
+                onMoveVariantUp={onMoveVariantUp}
+                onMoveVariantDown={onMoveVariantDown}
+              />
+            </Stack.Item>
+            <Stack.Item basis={tracksExpanded ? '24%' : '30%'} grow={3}>
+              <EditPanelSection
+                draft={draft}
+                draftToken={draftToken}
+                audienceOptions={audienceOptions}
+                soundTypeOptions={soundTypeOptions}
+                audienceLabel={audienceLabel}
+                soundTypeLabel={soundTypeLabel}
+                inspectorTarget={inspectorTarget}
+                selectedTier={selectedTier}
+                selectedVariant={selectedVariant}
+                canDelete={canDelete}
+                onNew={onNew}
+                onDelete={onDelete}
+                onExport={onExport}
+                onImport={onImport}
+                onSetName={onSetName}
+                onSetDescription={onSetDescription}
+                onSetAudienceMode={onSetAudienceMode}
+                onSetSoundType={onSetSoundType}
+                onToggleShowTitle={onToggleShowTitle}
+                onToggleRepeat={onToggleRepeat}
                 onRemoveTier={onRemoveTier}
                 onMoveTierUp={onMoveTierUp}
                 onMoveTierDown={onMoveTierDown}
                 onSetTierName={onSetTierName}
                 onSetTierDescription={onSetTierDescription}
-              />
-            </Stack.Item>
-            <Stack.Item basis="42%" grow={1}>
-              <TrackEditorSection
-                selectedTier={selectedTier}
-                selectedVariant={selectedVariant}
-                selectedVariantId={selectedVariantId}
-                onAddVariant={onAddVariant}
-                onSelectVariant={onSelectVariant}
                 onRemoveVariant={onRemoveVariant}
                 onMoveVariantUp={onMoveVariantUp}
                 onMoveVariantDown={onMoveVariantDown}
@@ -1202,7 +1474,7 @@ function LibrarySection({
   const hasSavedPresets = library.length > 0;
 
   return (
-    <Section fill title="Library">
+    <Section fill title="Preset Library">
       <Stack fill vertical>
         <Stack.Item>
           <Input
@@ -1264,13 +1536,15 @@ function LibrarySection({
                           tracks
                         </Box>
                         {loadedLibraryPresetId === preset.preset_id ? (
-                          <Box
-                            mt="0.15rem"
-                            style={
-                              dirty ? UNSAVED_BADGE_STYLE : MUTED_BADGE_STYLE
-                            }
-                          >
-                            {dirty ? 'Unsaved changes' : 'Loaded'}
+                          <Box mt="0.15rem">
+                            <Box mr={0.25} style={MUTED_BADGE_STYLE}>
+                              Loaded
+                            </Box>
+                            {dirty ? (
+                              <Box style={UNSAVED_BADGE_STYLE}>
+                                Unsaved changes
+                              </Box>
+                            ) : null}
                           </Box>
                         ) : null}
                       </Flex.Item>
@@ -1347,18 +1621,15 @@ function PlaybackSettingsControls({
           {visibilityInline ? (
             <Stack.Item basis="24%" grow={1}>
               <Box style={LABEL_STYLE}>Players Visible</Box>
-              <Button
+              <Button.Checkbox
                 compact
                 fluid
-                color="transparent"
-                icon={
-                  playback.show_title_to_players ? 'check-square-o' : 'square-o'
-                }
-                style={getToggleButtonStyle(playback.show_title_to_players)}
+                checked={playback.show_title_to_players}
+                style={getCompactToggleStyle(playback.show_title_to_players)}
                 onClick={onToggleShowTitle}
               >
                 {playback.show_title_to_players ? 'Visible' : 'Hidden'}
-              </Button>
+              </Button.Checkbox>
             </Stack.Item>
           ) : null}
         </Stack>
@@ -1368,34 +1639,28 @@ function PlaybackSettingsControls({
           <Stack fill>
             {!visibilityInline ? (
               <Stack.Item grow>
-                <Button
+                <Button.Checkbox
                   compact
                   fluid
-                  color="transparent"
-                  icon={
-                    playback.show_title_to_players
-                      ? 'check-square-o'
-                      : 'square-o'
-                  }
-                  style={getToggleButtonStyle(playback.show_title_to_players)}
+                  checked={playback.show_title_to_players}
+                  style={getCompactToggleStyle(playback.show_title_to_players)}
                   onClick={onToggleShowTitle}
                 >
                   Visible to players
-                </Button>
+                </Button.Checkbox>
               </Stack.Item>
             ) : null}
             {showRepeatToggle ? (
               <Stack.Item grow>
-                <Button
+                <Button.Checkbox
                   compact
                   fluid
-                  color="transparent"
-                  icon={playback.repeat ? 'check-square-o' : 'square-o'}
-                  style={getToggleButtonStyle(playback.repeat)}
+                  checked={playback.repeat}
+                  style={getCompactToggleStyle(playback.repeat)}
                   onClick={onToggleRepeat}
                 >
                   Repeat until stopped
-                </Button>
+                </Button.Checkbox>
               </Stack.Item>
             ) : null}
           </Stack>
@@ -1450,73 +1715,291 @@ function PlayScenesSection({
 }
 
 type PlayTracksSectionProps = Readonly<{
+  draft: DraftPreset;
+  current_session: CurrentSession;
   selectedTier: DraftTier | null;
   selectedVariantId: string | null;
+  trackSearch: string;
+  denseTracks: boolean;
+  showOnlyInvalid?: boolean;
+  showOnlyUnknown?: boolean;
+  focusMode?: boolean;
+  onTrackSearchChange: (value: string) => void;
+  onToggleDenseTracks: () => void;
+  onToggleOnlyInvalid?: () => void;
+  onToggleOnlyUnknown?: () => void;
+  onToggleTracksFocus?: () => void;
   onSelectVariant: (tier_id: string, variant_id: string) => void;
 }>;
 
 function PlayTracksSection({
+  draft,
+  current_session,
   selectedTier,
   selectedVariantId,
+  trackSearch,
+  denseTracks,
+  showOnlyInvalid = false,
+  showOnlyUnknown = false,
+  focusMode = false,
+  onTrackSearchChange,
+  onToggleDenseTracks,
+  onToggleOnlyInvalid,
+  onToggleOnlyUnknown,
+  onToggleTracksFocus,
   onSelectVariant,
 }: PlayTracksSectionProps) {
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const liveVariant = findCurrentSessionVariantInTier(
+    current_session,
+    draft,
+    selectedTier,
+  );
+  const filteredVariants =
+    selectedTier?.variants
+      .map((variant, index) => ({ variant, index }))
+      .filter(({ variant }) => {
+        if (!matchesTrackSearch(variant, trackSearch)) {
+          return false;
+        }
+        if (showOnlyInvalid && !isVariantMissingSource(variant)) {
+          return false;
+        }
+        if (showOnlyUnknown && !isVariantDurationUnknown(variant)) {
+          return false;
+        }
+        return true;
+      }) || [];
+  const canJumpToSelected =
+    Boolean(selectedVariantId) &&
+    filteredVariants.some(
+      ({ variant }) => variant.variant_id === selectedVariantId,
+    );
+  const canJumpToLive =
+    Boolean(liveVariant) &&
+    filteredVariants.some(
+      ({ variant }) => variant.variant_id === liveVariant?.variant_id,
+    );
+
+  const scrollToVariant = (variantId: string | null) => {
+    if (!variantId) {
+      return;
+    }
+    rowRefs.current[variantId]?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    });
+  };
+
   return (
-    <Section fill title="Tracks">
+    <Section
+      fill
+      title={focusMode ? 'Tracks Focus' : 'Tracks'}
+      buttons={
+        onToggleTracksFocus ? (
+          <Button
+            compact
+            icon={focusMode ? 'compress' : 'expand'}
+            color="transparent"
+            disabled={!selectedTier?.variants.length}
+            style={
+              !selectedTier?.variants.length ? DISABLED_ACTION_STYLE : undefined
+            }
+            onClick={onToggleTracksFocus}
+          >
+            {focusMode ? 'Exit Focus' : 'Focus'}
+          </Button>
+        ) : undefined
+      }
+    >
       {!selectedTier ? (
         <Box color="label">Select a scene to browse its tracks.</Box>
       ) : (
         <Stack fill vertical>
           <Stack.Item>
-            <Box style={STATUS_STRIP_STYLE}>
-              <Box bold style={ELLIPSIS_STYLE}>
-                {selectedTier.name || 'Unnamed scene'}
-              </Box>
-              <Box color="label" fontSize="0.75rem">
-                {formatTrackCount(selectedTier.variants.length)}
-              </Box>
+            <Box style={TRACKS_FILTER_BAR_STYLE}>
+              <Stack fill vertical>
+                <Stack.Item>
+                  <Flex align="center" justify="space-between" width="100%">
+                    <Flex.Item grow>
+                      <Box bold style={ELLIPSIS_STYLE}>
+                        {selectedTier.name || 'Unnamed scene'}
+                      </Box>
+                    </Flex.Item>
+                    <Flex.Item ml={1}>
+                      <Box color="label" fontSize="0.75rem">
+                        {formatTrackCount(selectedTier.variants.length)}
+                      </Box>
+                    </Flex.Item>
+                  </Flex>
+                </Stack.Item>
+                <Stack.Item>
+                  <Box mt="0.2rem">
+                    <Stack fill>
+                      <Stack.Item grow>
+                        <Input
+                          fluid
+                          placeholder="Search tracks..."
+                          value={trackSearch}
+                          onInput={(e, value) => onTrackSearchChange(value)}
+                        />
+                      </Stack.Item>
+                      <Stack.Item>
+                        <Button
+                          compact
+                          color="transparent"
+                          disabled={!canJumpToSelected}
+                          style={
+                            !canJumpToSelected
+                              ? DISABLED_ACTION_STYLE
+                              : undefined
+                          }
+                          onClick={() => scrollToVariant(selectedVariantId)}
+                        >
+                          Jump to selected
+                        </Button>
+                      </Stack.Item>
+                      <Stack.Item>
+                        <Button
+                          compact
+                          color="transparent"
+                          disabled={!canJumpToLive}
+                          style={
+                            !canJumpToLive ? DISABLED_ACTION_STYLE : undefined
+                          }
+                          onClick={() =>
+                            scrollToVariant(liveVariant?.variant_id || null)
+                          }
+                        >
+                          Jump to live
+                        </Button>
+                      </Stack.Item>
+                      <Stack.Item>
+                        <Button.Checkbox
+                          compact
+                          checked={denseTracks}
+                          style={getCompactToggleStyle(denseTracks)}
+                          onClick={onToggleDenseTracks}
+                        >
+                          Dense
+                        </Button.Checkbox>
+                      </Stack.Item>
+                      {focusMode && onToggleOnlyInvalid ? (
+                        <Stack.Item>
+                          <Button.Checkbox
+                            compact
+                            checked={showOnlyInvalid}
+                            style={getCompactToggleStyle(showOnlyInvalid)}
+                            onClick={onToggleOnlyInvalid}
+                          >
+                            Only invalid
+                          </Button.Checkbox>
+                        </Stack.Item>
+                      ) : null}
+                      {focusMode && onToggleOnlyUnknown ? (
+                        <Stack.Item>
+                          <Button.Checkbox
+                            compact
+                            checked={showOnlyUnknown}
+                            style={getCompactToggleStyle(showOnlyUnknown)}
+                            onClick={onToggleOnlyUnknown}
+                          >
+                            Only unknown
+                          </Button.Checkbox>
+                        </Stack.Item>
+                      ) : null}
+                    </Stack>
+                  </Box>
+                </Stack.Item>
+              </Stack>
             </Box>
           </Stack.Item>
           <Stack.Item grow>
             <Box style={LIST_SCROLL_STYLE}>
               {selectedTier.variants.length === 0 ? (
                 <Box color="label">No tracks in this scene.</Box>
+              ) : filteredVariants.length === 0 ? (
+                <Box color="label">No tracks match the current filters.</Box>
               ) : (
-                selectedTier.variants.map((variant) => (
-                  <Button
-                    key={variant.variant_id}
-                    compact
-                    fluid
-                    color="transparent"
-                    onClick={() =>
-                      onSelectVariant(selectedTier.tier_id, variant.variant_id)
-                    }
-                    style={getListRowStyle(
-                      selectedVariantId === variant.variant_id,
-                    )}
-                  >
-                    <Flex align="center" justify="space-between" width="100%">
-                      <Flex.Item grow>
-                        <Box bold style={ELLIPSIS_STYLE}>
-                          {variant.title || 'Unnamed track'}
-                        </Box>
-                        {getVariantListBadges(variant).length ? (
-                          <Box mt="0.1rem">
-                            {getVariantListBadges(variant).map((badge) => (
-                              <Box key={badge.label} style={badge.style}>
-                                {badge.label}
-                              </Box>
-                            ))}
-                          </Box>
-                        ) : null}
-                      </Flex.Item>
-                      <Flex.Item ml={1}>
-                        <Box fontSize="0.75rem" color="label">
-                          {formatDuration(variant.duration_seconds)}
-                        </Box>
-                      </Flex.Item>
-                    </Flex>
-                  </Button>
-                ))
+                filteredVariants.map(({ variant, index }) => {
+                  const isLive = isCurrentSessionForVariant(
+                    current_session,
+                    draft,
+                    selectedTier,
+                    variant,
+                  );
+
+                  return (
+                    <div
+                      key={variant.variant_id}
+                      ref={(node) => {
+                        rowRefs.current[variant.variant_id] = node;
+                      }}
+                    >
+                      <Button
+                        compact
+                        fluid
+                        color="transparent"
+                        onClick={() =>
+                          onSelectVariant(
+                            selectedTier.tier_id,
+                            variant.variant_id,
+                          )
+                        }
+                        style={getTrackRowStyle(
+                          selectedVariantId === variant.variant_id,
+                          denseTracks,
+                          isLive,
+                        )}
+                      >
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          width="100%"
+                        >
+                          <Flex.Item grow>
+                            <Flex align="center">
+                              <Flex.Item mr={denseTracks ? 0.6 : 0.9}>
+                                <Box color="label" fontSize="0.75rem">
+                                  {index + 1}.
+                                </Box>
+                              </Flex.Item>
+                              <Flex.Item grow>
+                                <Box
+                                  bold
+                                  fontSize={denseTracks ? '0.85rem' : '0.92rem'}
+                                  style={ELLIPSIS_STYLE}
+                                >
+                                  {variant.title || 'Unnamed track'}
+                                </Box>
+                                {getVariantListBadges(variant, isLive)
+                                  .length ? (
+                                  <Box mt="0.08rem">
+                                    {getVariantListBadges(variant, isLive).map(
+                                      (badge) => (
+                                        <Box
+                                          key={badge.label}
+                                          style={badge.style}
+                                        >
+                                          {badge.label}
+                                        </Box>
+                                      ),
+                                    )}
+                                  </Box>
+                                ) : null}
+                              </Flex.Item>
+                            </Flex>
+                          </Flex.Item>
+                          <Flex.Item ml={1}>
+                            <Box fontSize="0.75rem" color="label">
+                              {formatDurationCompact(variant.duration_seconds)}
+                            </Box>
+                          </Flex.Item>
+                        </Flex>
+                      </Button>
+                    </div>
+                  );
+                })
               )}
             </Box>
           </Stack.Item>
@@ -1566,14 +2049,14 @@ function EditHeaderSection({
   return (
     <Box
       px={0.9}
-      py={0.6}
+      py={0.5}
       style={{
         ...STATUS_STRIP_STYLE,
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.075)',
       }}
     >
       <Stack align="center">
-        <Stack.Item grow>
+        <Stack.Item basis="70%" grow>
           <Box bold fontSize="1.08rem" style={ELLIPSIS_STYLE}>
             {draft.name || 'New preset'}
           </Box>
@@ -1588,15 +2071,24 @@ function EditHeaderSection({
             ))}
           </Box>
         </Stack.Item>
-        <Stack.Item>
+        <Stack.Item basis="30%">
           <Stack>
             <Stack.Item>
-              <Button icon="save" color="good" onClick={onSave}>
+              <Button
+                icon="save"
+                color="good"
+                style={HEADER_ACTION_BUTTON_STYLE}
+                onClick={onSave}
+              >
                 Save
               </Button>
             </Stack.Item>
             <Stack.Item>
-              <Button icon="copy" onClick={onSaveAsCopy}>
+              <Button
+                icon="copy"
+                style={HEADER_ACTION_BUTTON_STYLE}
+                onClick={onSaveAsCopy}
+              >
                 Save As
               </Button>
             </Stack.Item>
@@ -1605,7 +2097,10 @@ function EditHeaderSection({
                 icon="undo"
                 color="transparent"
                 disabled={!canRevert}
-                style={!canRevert ? DISABLED_ACTION_STYLE : undefined}
+                style={{
+                  ...HEADER_ACTION_BUTTON_STYLE,
+                  ...(!canRevert ? DISABLED_ACTION_STYLE : {}),
+                }}
                 onClick={onRevert}
               >
                 Revert
@@ -1618,325 +2113,32 @@ function EditHeaderSection({
   );
 }
 
-type PresetMetaSectionProps = Readonly<{
+type EditPanelSectionProps = Readonly<{
   draft: DraftPreset;
   draftToken: number;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
   soundTypeLabel: string;
+  inspectorTarget: InspectorTarget;
+  selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
+  canDelete: boolean;
+  onNew: () => void;
+  onDelete: () => void;
+  onExport: () => void;
+  onImport: (jsonText: string | string[]) => void;
   onSetName: (value: string) => void;
   onSetDescription: (value: string) => void;
   onSetAudienceMode: (value: string) => void;
   onSetSoundType: (value: string) => void;
   onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
-}>;
-
-function PresetMetaSection({
-  draft,
-  draftToken,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
-  onSetName,
-  onSetDescription,
-  onSetAudienceMode,
-  onSetSoundType,
-  onToggleShowTitle,
-  onToggleRepeat,
-}: PresetMetaSectionProps) {
-  return (
-    <Section fill title="Preset">
-      <Stack vertical>
-        <Stack.Item>
-          <Box style={COMPACT_CARD_STYLE}>
-            <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
-              {draft.name || 'New preset'}
-            </Box>
-            <Box mt="0.3rem">
-              <Box style={PLAYER_BADGE_STYLE}>
-                ID {draft.preset_id || 'new'}
-              </Box>
-              <Box style={PLAYER_BADGE_STYLE}>Scenes {draft.tiers.length}</Box>
-              <Box style={PLAYER_BADGE_STYLE}>Tracks {countTracks(draft)}</Box>
-            </Box>
-          </Box>
-        </Stack.Item>
-        <Stack.Item>
-          <LabeledList key={draftToken}>
-            <LabeledList.Item label="Name">
-              <Input
-                fluid
-                value={draft.name}
-                onInput={(e, value) => onSetName(value)}
-              />
-            </LabeledList.Item>
-            <LabeledList.Item label="Description" verticalAlign="top">
-              <BufferedTextArea
-                syncKey={draftToken}
-                value={draft.description}
-                onCommit={onSetDescription}
-                placeholder="Short description for admins"
-              />
-            </LabeledList.Item>
-          </LabeledList>
-        </Stack.Item>
-        <Stack.Item>
-          <Box style={COMPACT_CARD_STYLE}>
-            <Box bold>Preset Defaults</Box>
-            <Box color="label" fontSize="0.78rem" mt="0.18rem" mb={0.4}>
-              Saved with the preset and used as the starting point for Play.
-            </Box>
-            <PlaybackSettingsControls
-              playback={draft.playback}
-              audienceOptions={audienceOptions}
-              soundTypeOptions={soundTypeOptions}
-              audienceLabel={audienceLabel}
-              soundTypeLabel={soundTypeLabel}
-              onSetAudienceMode={onSetAudienceMode}
-              onSetSoundType={onSetSoundType}
-              onToggleShowTitle={onToggleShowTitle}
-              onToggleRepeat={onToggleRepeat}
-            />
-          </Box>
-        </Stack.Item>
-      </Stack>
-    </Section>
-  );
-}
-
-type AdvancedSectionProps = Readonly<{
-  canDelete: boolean;
-  onNew: () => void;
-  onDelete: () => void;
-  onExport: () => void;
-  onImport: (jsonText: string | string[]) => void;
-}>;
-
-function AdvancedSection({
-  canDelete,
-  onNew,
-  onDelete,
-  onExport,
-  onImport,
-}: AdvancedSectionProps) {
-  return (
-    <Collapsible title="Advanced" icon="cog">
-      <Box color="label" fontSize="0.8rem" mb={0.5}>
-        Import, export, and destructive actions stay here.
-      </Box>
-      <Stack vertical>
-        <Stack.Item>
-          <Button fluid icon="plus" onClick={onNew}>
-            New Draft
-          </Button>
-        </Stack.Item>
-        <Stack.Item>
-          <Button.File
-            fluid
-            icon="upload"
-            accept=".json,application/json"
-            onSelectFiles={onImport}
-          >
-            Import JSON
-          </Button.File>
-        </Stack.Item>
-        <Stack.Item>
-          <Button fluid icon="download" onClick={onExport}>
-            Export Preset
-          </Button>
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            fluid
-            icon="trash"
-            color="bad"
-            disabled={!canDelete}
-            style={!canDelete ? DISABLED_ACTION_STYLE : undefined}
-            onClick={onDelete}
-          >
-            Delete Preset
-          </Button>
-        </Stack.Item>
-      </Stack>
-    </Collapsible>
-  );
-}
-
-type SceneEditorSectionProps = Readonly<{
-  draft: DraftPreset;
-  selectedTier: DraftTier | null;
-  selectedTierId: string | null;
-  onAddTier: () => void;
-  onSelectTier: (tier_id: string) => void;
   onRemoveTier: (tier_id: string) => void;
   onMoveTierUp: (tier_id: string) => void;
   onMoveTierDown: (tier_id: string) => void;
   onSetTierName: (tier_id: string, value: string) => void;
   onSetTierDescription: (tier_id: string, value: string) => void;
-}>;
-
-function SceneEditorSection({
-  draft,
-  selectedTier,
-  selectedTierId,
-  onAddTier,
-  onSelectTier,
-  onRemoveTier,
-  onMoveTierUp,
-  onMoveTierDown,
-  onSetTierName,
-  onSetTierDescription,
-}: SceneEditorSectionProps) {
-  const canDeleteScene = Boolean(selectedTier && draft.tiers.length > 1);
-  const selectedTierIndex = selectedTier
-    ? draft.tiers.findIndex((tier) => tier.tier_id === selectedTier.tier_id)
-    : -1;
-  const canMoveSceneUp = selectedTierIndex > 0;
-  const canMoveSceneDown =
-    selectedTierIndex >= 0 && selectedTierIndex < draft.tiers.length - 1;
-
-  return (
-    <Section
-      fill
-      title="Scenes"
-      buttons={
-        <Button icon="plus" onClick={onAddTier}>
-          Add Scene
-        </Button>
-      }
-    >
-      <Stack fill vertical>
-        <Stack.Item basis="26%">
-          <Box style={LIST_SCROLL_STYLE}>
-            {draft.tiers.length === 0 ? (
-              <Box color="label">No scenes yet.</Box>
-            ) : (
-              draft.tiers.map((tier, index) => (
-                <Button
-                  key={tier.tier_id}
-                  compact
-                  fluid
-                  color="transparent"
-                  onClick={() => onSelectTier(tier.tier_id)}
-                  style={getListRowStyle(selectedTierId === tier.tier_id)}
-                >
-                  <Flex align="center" justify="space-between" width="100%">
-                    <Flex.Item grow>
-                      <Flex align="center">
-                        <Flex.Item mr={1}>
-                          <Box color="label" fontSize="0.75rem">
-                            {index + 1}.
-                          </Box>
-                        </Flex.Item>
-                        <Flex.Item grow>
-                          <Box bold style={ELLIPSIS_STYLE}>
-                            {tier.name || 'Unnamed scene'}
-                          </Box>
-                        </Flex.Item>
-                      </Flex>
-                    </Flex.Item>
-                    <Flex.Item ml={1}>
-                      <Box fontSize="0.75rem" color="label">
-                        {formatTrackCount(tier.variants.length)}
-                      </Box>
-                    </Flex.Item>
-                  </Flex>
-                </Button>
-              ))
-            )}
-          </Box>
-        </Stack.Item>
-        <Stack.Item grow={1}>
-          <Section
-            title="Scene Details"
-            buttons={
-              selectedTier &&
-              (canMoveSceneUp || canMoveSceneDown || canDeleteScene) ? (
-                <Stack>
-                  {canMoveSceneUp ? (
-                    <Stack.Item>
-                      <Button
-                        icon="arrow-up"
-                        color="transparent"
-                        onClick={() => onMoveTierUp(selectedTier.tier_id)}
-                      >
-                        Move Up
-                      </Button>
-                    </Stack.Item>
-                  ) : null}
-                  {canMoveSceneDown ? (
-                    <Stack.Item>
-                      <Button
-                        icon="arrow-down"
-                        color="transparent"
-                        onClick={() => onMoveTierDown(selectedTier.tier_id)}
-                      >
-                        Move Down
-                      </Button>
-                    </Stack.Item>
-                  ) : null}
-                  {canDeleteScene ? (
-                    <Stack.Item>
-                      <Button.Confirm
-                        icon="trash"
-                        color="transparent"
-                        confirmColor="bad"
-                        confirmIcon="trash"
-                        confirmContent="Delete?"
-                        onClick={() => onRemoveTier(selectedTier.tier_id)}
-                      >
-                        Delete Scene
-                      </Button.Confirm>
-                    </Stack.Item>
-                  ) : null}
-                </Stack>
-              ) : null
-            }
-          >
-            {!selectedTier ? (
-              <Box color="label">Select a scene from the list above.</Box>
-            ) : (
-              <LabeledList key={selectedTier.tier_id}>
-                <LabeledList.Item label="Order">
-                  {selectedTierIndex + 1} of {draft.tiers.length}
-                </LabeledList.Item>
-                <LabeledList.Item label="Name">
-                  <Input
-                    fluid
-                    value={selectedTier.name}
-                    onInput={(e, value) =>
-                      onSetTierName(selectedTier.tier_id, value)
-                    }
-                  />
-                </LabeledList.Item>
-                <LabeledList.Item label="Description" verticalAlign="top">
-                  <BufferedTextArea
-                    syncKey={selectedTier.tier_id}
-                    value={selectedTier.description}
-                    onCommit={(value) =>
-                      onSetTierDescription(selectedTier.tier_id, value)
-                    }
-                    placeholder="Scene description"
-                  />
-                </LabeledList.Item>
-              </LabeledList>
-            )}
-          </Section>
-        </Stack.Item>
-      </Stack>
-    </Section>
-  );
-}
-
-type TrackEditorSectionProps = Readonly<{
-  selectedTier: DraftTier | null;
-  selectedVariant: DraftVariant | null;
-  selectedVariantId: string | null;
-  onAddVariant: () => void;
-  onSelectVariant: (tier_id: string, variant_id: string) => void;
   onRemoveVariant: (tier_id: string, variant_id: string) => void;
   onMoveVariantUp: (tier_id: string, variant_id: string) => void;
   onMoveVariantDown: (tier_id: string, variant_id: string) => void;
@@ -1962,12 +2164,32 @@ type TrackEditorSectionProps = Readonly<{
   ) => void;
 }>;
 
-function TrackEditorSection({
+function EditPanelSection({
+  draft,
+  draftToken,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
+  inspectorTarget,
   selectedTier,
   selectedVariant,
-  selectedVariantId,
-  onAddVariant,
-  onSelectVariant,
+  canDelete,
+  onNew,
+  onDelete,
+  onExport,
+  onImport,
+  onSetName,
+  onSetDescription,
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onToggleRepeat,
+  onRemoveTier,
+  onMoveTierUp,
+  onMoveTierDown,
+  onSetTierName,
+  onSetTierDescription,
   onRemoveVariant,
   onMoveVariantUp,
   onMoveVariantDown,
@@ -1975,10 +2197,420 @@ function TrackEditorSection({
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
-}: TrackEditorSectionProps) {
-  const canDeleteTrack = Boolean(
-    selectedTier && selectedVariant && selectedTier.variants.length > 1,
+}: EditPanelSectionProps) {
+  return (
+    <Section fill title="Edit Panel">
+      <Stack fill vertical>
+        <Stack.Item grow={1}>
+          <SelectedItemSection
+            inspectorTarget={inspectorTarget}
+            draft={draft}
+            selectedTier={selectedTier}
+            selectedVariant={selectedVariant}
+            onRemoveTier={onRemoveTier}
+            onMoveTierUp={onMoveTierUp}
+            onMoveTierDown={onMoveTierDown}
+            onSetTierName={onSetTierName}
+            onSetTierDescription={onSetTierDescription}
+            onRemoveVariant={onRemoveVariant}
+            onMoveVariantUp={onMoveVariantUp}
+            onMoveVariantDown={onMoveVariantDown}
+            onSetVariantTitle={onSetVariantTitle}
+            onSetVariantDescription={onSetVariantDescription}
+            onSetVariantDuration={onSetVariantDuration}
+            onSetVariantSourceUrl={onSetVariantSourceUrl}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Box style={EDIT_PANEL_CARD_STYLE}>
+            <Collapsible
+              title="Preset"
+              color="transparent"
+              style={ADVANCED_TOGGLE_STYLE}
+            >
+              <Box color="label" fontSize="0.76rem" mb={0.45}>
+                Name, description, and defaults for the current preset.
+              </Box>
+              <PresetMetaSection
+                draft={draft}
+                draftToken={draftToken}
+                audienceOptions={audienceOptions}
+                soundTypeOptions={soundTypeOptions}
+                audienceLabel={audienceLabel}
+                soundTypeLabel={soundTypeLabel}
+                onSetName={onSetName}
+                onSetDescription={onSetDescription}
+                onSetAudienceMode={onSetAudienceMode}
+                onSetSoundType={onSetSoundType}
+                onToggleShowTitle={onToggleShowTitle}
+                onToggleRepeat={onToggleRepeat}
+                embedded
+              />
+            </Collapsible>
+          </Box>
+        </Stack.Item>
+        <Stack.Item>
+          <AdvancedSection
+            canDelete={canDelete}
+            onNew={onNew}
+            onDelete={onDelete}
+            onExport={onExport}
+            onImport={onImport}
+          />
+        </Stack.Item>
+      </Stack>
+    </Section>
   );
+}
+
+type PresetMetaSectionProps = Readonly<{
+  draft: DraftPreset;
+  draftToken: number;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
+  onSetName: (value: string) => void;
+  onSetDescription: (value: string) => void;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
+  onToggleShowTitle: () => void;
+  onToggleRepeat: () => void;
+  embedded?: boolean;
+}>;
+
+function PresetMetaSection({
+  draft,
+  draftToken,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
+  onSetName,
+  onSetDescription,
+  onSetAudienceMode,
+  onSetSoundType,
+  onToggleShowTitle,
+  onToggleRepeat,
+  embedded = false,
+}: PresetMetaSectionProps) {
+  const content = (
+    <Stack fill vertical>
+      <Stack.Item>
+        <Box style={PLAYER_CARD_STYLE}>
+          <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
+            {draft.name || 'New preset'}
+          </Box>
+          <Box mt="0.3rem">
+            <Box style={PLAYER_BADGE_STYLE}>ID {draft.preset_id || 'new'}</Box>
+            <Box style={PLAYER_BADGE_STYLE}>Scenes {draft.tiers.length}</Box>
+            <Box style={PLAYER_BADGE_STYLE}>Tracks {countTracks(draft)}</Box>
+          </Box>
+        </Box>
+      </Stack.Item>
+      <Stack.Item>
+        <LabeledList key={draftToken}>
+          <LabeledList.Item label="Name">
+            <Input
+              fluid
+              value={draft.name}
+              onInput={(e, value) => onSetName(value)}
+            />
+          </LabeledList.Item>
+          <LabeledList.Item label="Description" verticalAlign="top">
+            <BufferedTextArea
+              syncKey={draftToken}
+              value={draft.description}
+              onCommit={onSetDescription}
+              placeholder="Short description for admins"
+              minRows={3}
+              maxRows={7}
+            />
+          </LabeledList.Item>
+        </LabeledList>
+      </Stack.Item>
+      <Stack.Item grow={1}>
+        <Box style={PLAYER_CARD_STYLE}>
+          <Box bold>Preset Defaults</Box>
+          <Box color="label" fontSize="0.78rem" mt="0.18rem" mb={0.4}>
+            Saved with the preset and used as the starting point for Play.
+          </Box>
+          <PlaybackSettingsControls
+            playback={draft.playback}
+            audienceOptions={audienceOptions}
+            soundTypeOptions={soundTypeOptions}
+            audienceLabel={audienceLabel}
+            soundTypeLabel={soundTypeLabel}
+            onSetAudienceMode={onSetAudienceMode}
+            onSetSoundType={onSetSoundType}
+            onToggleShowTitle={onToggleShowTitle}
+            onToggleRepeat={onToggleRepeat}
+          />
+        </Box>
+      </Stack.Item>
+    </Stack>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Box style={EDIT_PANEL_CARD_STYLE}>
+      <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
+        Preset
+      </Box>
+      <Box color="label" fontSize="0.76rem" mt="0.12rem" mb="0.45rem">
+        Name, description, and defaults for the current preset.
+      </Box>
+      {content}
+    </Box>
+  );
+}
+
+type AdvancedSectionProps = Readonly<{
+  canDelete: boolean;
+  onNew: () => void;
+  onDelete: () => void;
+  onExport: () => void;
+  onImport: (jsonText: string | string[]) => void;
+}>;
+
+function AdvancedSection({
+  canDelete,
+  onNew,
+  onDelete,
+  onExport,
+  onImport,
+}: AdvancedSectionProps) {
+  return (
+    <Box style={EDIT_PANEL_CARD_STYLE}>
+      <Collapsible
+        title="Advanced"
+        icon="cog"
+        color="transparent"
+        style={ADVANCED_TOGGLE_STYLE}
+      >
+        <Box color="label" fontSize="0.76rem" mb={0.4}>
+          Import, export, and destructive actions stay here.
+        </Box>
+        <Stack vertical>
+          <Stack.Item>
+            <Button compact fluid icon="plus" onClick={onNew}>
+              New Draft
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button.File
+              compact
+              fluid
+              icon="upload"
+              accept=".json,application/json"
+              onSelectFiles={onImport}
+            >
+              Import JSON
+            </Button.File>
+          </Stack.Item>
+          <Stack.Item>
+            <Button compact fluid icon="download" onClick={onExport}>
+              Export Preset
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              compact
+              fluid
+              icon="trash"
+              color="bad"
+              disabled={!canDelete}
+              style={!canDelete ? DISABLED_ACTION_STYLE : undefined}
+              onClick={onDelete}
+            >
+              Delete Preset
+            </Button>
+          </Stack.Item>
+        </Stack>
+      </Collapsible>
+    </Box>
+  );
+}
+
+type StructureSectionProps = Readonly<{
+  draft: DraftPreset;
+  selectedTier: DraftTier | null;
+  selectedTierId: string | null;
+  selectedVariant: DraftVariant | null;
+  selectedVariantId: string | null;
+  trackSearch: string;
+  denseTracks: boolean;
+  tracksExpanded: boolean;
+  onAddTier: () => void;
+  onSelectTier: (tier_id: string) => void;
+  onMoveTierUp: (tier_id: string) => void;
+  onMoveTierDown: (tier_id: string) => void;
+  onAddVariant: () => void;
+  onTrackSearchChange: (value: string) => void;
+  onToggleDenseTracks: () => void;
+  onToggleTracksExpanded: () => void;
+  onSelectVariant: (tier_id: string, variant_id: string) => void;
+  onMoveVariantUp: (tier_id: string, variant_id: string) => void;
+  onMoveVariantDown: (tier_id: string, variant_id: string) => void;
+}>;
+
+type EditTrackActionButtonsProps = Readonly<{
+  selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
+  canMoveTrackUp: boolean;
+  canMoveTrackDown: boolean;
+  tracksExpanded: boolean;
+  onMoveVariantUp: (tier_id: string, variant_id: string) => void;
+  onMoveVariantDown: (tier_id: string, variant_id: string) => void;
+  onToggleTracksExpanded: () => void;
+  onAddVariant: () => void;
+}>;
+
+function EditTrackActionButtons({
+  selectedTier,
+  selectedVariant,
+  canMoveTrackUp,
+  canMoveTrackDown,
+  tracksExpanded,
+  onMoveVariantUp,
+  onMoveVariantDown,
+  onToggleTracksExpanded,
+  onAddVariant,
+}: EditTrackActionButtonsProps) {
+  return (
+    <Stack>
+      {selectedTier && selectedVariant ? (
+        <>
+          <Stack.Item>
+            <Button
+              compact
+              icon="arrow-up"
+              color="transparent"
+              disabled={!canMoveTrackUp}
+              style={!canMoveTrackUp ? DISABLED_ACTION_STYLE : undefined}
+              onClick={() =>
+                onMoveVariantUp(
+                  selectedTier.tier_id,
+                  selectedVariant.variant_id,
+                )
+              }
+            >
+              Up
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              compact
+              icon="arrow-down"
+              color="transparent"
+              disabled={!canMoveTrackDown}
+              style={!canMoveTrackDown ? DISABLED_ACTION_STYLE : undefined}
+              onClick={() =>
+                onMoveVariantDown(
+                  selectedTier.tier_id,
+                  selectedVariant.variant_id,
+                )
+              }
+            >
+              Down
+            </Button>
+          </Stack.Item>
+        </>
+      ) : null}
+      <Stack.Item>
+        <Button
+          compact
+          icon={tracksExpanded ? 'compress' : 'expand'}
+          color="transparent"
+          onClick={onToggleTracksExpanded}
+        >
+          {tracksExpanded ? 'Collapse' : 'Expand'}
+        </Button>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="plus"
+          disabled={!selectedTier}
+          style={!selectedTier ? DISABLED_ACTION_STYLE : undefined}
+          onClick={onAddVariant}
+        >
+          Add Track
+        </Button>
+      </Stack.Item>
+    </Stack>
+  );
+}
+
+type EditTrackSearchToolbarProps = Readonly<{
+  trackSearch: string;
+  denseTracks: boolean;
+  onTrackSearchChange: (value: string) => void;
+  onToggleDenseTracks: () => void;
+}>;
+
+function EditTrackSearchToolbar({
+  trackSearch,
+  denseTracks,
+  onTrackSearchChange,
+  onToggleDenseTracks,
+}: EditTrackSearchToolbarProps) {
+  return (
+    <Box mt="0.2rem">
+      <Stack fill>
+        <Stack.Item grow>
+          <Input
+            fluid
+            placeholder="Search tracks..."
+            value={trackSearch}
+            onInput={(e, value) => onTrackSearchChange(value)}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Button.Checkbox
+            compact
+            checked={denseTracks}
+            style={getCompactToggleStyle(denseTracks)}
+            onClick={onToggleDenseTracks}
+          >
+            Dense
+          </Button.Checkbox>
+        </Stack.Item>
+      </Stack>
+    </Box>
+  );
+}
+
+function StructureSection({
+  draft,
+  selectedTier,
+  selectedTierId,
+  selectedVariant,
+  selectedVariantId,
+  trackSearch,
+  denseTracks,
+  tracksExpanded,
+  onAddTier,
+  onSelectTier,
+  onMoveTierUp,
+  onMoveTierDown,
+  onAddVariant,
+  onTrackSearchChange,
+  onToggleDenseTracks,
+  onToggleTracksExpanded,
+  onSelectVariant,
+  onMoveVariantUp,
+  onMoveVariantDown,
+}: StructureSectionProps) {
+  const selectedTierIndex = selectedTier
+    ? draft.tiers.findIndex((tier) => tier.tier_id === selectedTier.tier_id)
+    : -1;
+  const canMoveSceneUp = selectedTierIndex > 0;
+  const canMoveSceneDown =
+    selectedTierIndex >= 0 && selectedTierIndex < draft.tiers.length - 1;
   const selectedVariantIndex =
     selectedTier && selectedVariant
       ? selectedTier.variants.findIndex(
@@ -1990,273 +2622,709 @@ function TrackEditorSection({
     selectedVariantIndex >= 0 &&
     selectedTier !== null &&
     selectedVariantIndex < selectedTier.variants.length - 1;
-  const normalizedDuration = normalizeDurationValue(
-    selectedVariant?.duration_seconds || 0,
-  );
+  const filteredVariants =
+    selectedTier?.variants
+      .map((variant, index) => ({ variant, index }))
+      .filter(({ variant }) => matchesTrackSearch(variant, trackSearch)) || [];
 
   return (
-    <Section
-      fill
-      title="Tracks"
-      buttons={
-        <Button icon="plus" disabled={!selectedTier} onClick={onAddVariant}>
-          Add Track
-        </Button>
-      }
-    >
-      {!selectedTier ? (
-        <Box color="label">Select a scene to manage its tracks.</Box>
-      ) : (
-        <Stack fill vertical>
-          <Stack.Item>
-            <Box style={STATUS_STRIP_STYLE}>
-              <Box bold style={ELLIPSIS_STYLE}>
-                {selectedTier.name || 'Unnamed scene'}
-              </Box>
-              <Box color="label" fontSize="0.75rem">
-                {formatTrackCount(selectedTier.variants.length)}
-              </Box>
-            </Box>
-          </Stack.Item>
-          <Stack.Item basis="22%">
-            <Box style={LIST_SCROLL_STYLE}>
-              {selectedTier.variants.length === 0 ? (
-                <Box color="label">No tracks yet.</Box>
-              ) : (
-                selectedTier.variants.map((variant, index) => (
-                  <Button
-                    key={variant.variant_id}
-                    compact
-                    fluid
-                    color="transparent"
-                    onClick={() =>
-                      onSelectVariant(selectedTier.tier_id, variant.variant_id)
-                    }
-                    style={getListRowStyle(
-                      selectedVariantId === variant.variant_id,
-                    )}
-                  >
-                    <Flex align="center" justify="space-between" width="100%">
-                      <Flex.Item grow>
-                        <Flex align="center">
-                          <Flex.Item mr={1}>
-                            <Box color="label" fontSize="0.75rem">
-                              {index + 1}.
-                            </Box>
-                          </Flex.Item>
+    <Section fill title="Structure">
+      <Stack fill>
+        <Stack.Item basis={tracksExpanded ? '24%' : '30%'} grow={3}>
+          <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
+            <Stack fill vertical>
+              <Stack.Item>
+                <Flex align="center" justify="space-between" width="100%">
+                  <Flex.Item grow>
+                    <Box bold>Scenes</Box>
+                    <Box color="label" fontSize="0.75rem">
+                      Scene order and grouping inside this preset.
+                    </Box>
+                  </Flex.Item>
+                  <Flex.Item ml={1}>
+                    <Stack>
+                      {selectedTier ? (
+                        <>
+                          <Stack.Item>
+                            <Button
+                              compact
+                              icon="arrow-up"
+                              color="transparent"
+                              disabled={!canMoveSceneUp}
+                              style={
+                                !canMoveSceneUp
+                                  ? DISABLED_ACTION_STYLE
+                                  : undefined
+                              }
+                              onClick={() => onMoveTierUp(selectedTier.tier_id)}
+                            >
+                              Up
+                            </Button>
+                          </Stack.Item>
+                          <Stack.Item>
+                            <Button
+                              compact
+                              icon="arrow-down"
+                              color="transparent"
+                              disabled={!canMoveSceneDown}
+                              style={
+                                !canMoveSceneDown
+                                  ? DISABLED_ACTION_STYLE
+                                  : undefined
+                              }
+                              onClick={() =>
+                                onMoveTierDown(selectedTier.tier_id)
+                              }
+                            >
+                              Down
+                            </Button>
+                          </Stack.Item>
+                        </>
+                      ) : null}
+                      <Stack.Item>
+                        <Button compact icon="plus" onClick={onAddTier}>
+                          Add Scene
+                        </Button>
+                      </Stack.Item>
+                    </Stack>
+                  </Flex.Item>
+                </Flex>
+              </Stack.Item>
+              <Stack.Item grow={1}>
+                <Box mt="0.35rem" style={LIST_SCROLL_STYLE}>
+                  {draft.tiers.length === 0 ? (
+                    <Box color="label">No scenes yet.</Box>
+                  ) : (
+                    draft.tiers.map((tier, index) => (
+                      <Button
+                        key={tier.tier_id}
+                        compact
+                        fluid
+                        color="transparent"
+                        onClick={() => onSelectTier(tier.tier_id)}
+                        style={getListRowStyle(selectedTierId === tier.tier_id)}
+                      >
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          width="100%"
+                        >
                           <Flex.Item grow>
-                            <Box bold style={ELLIPSIS_STYLE}>
-                              {variant.title || 'Unnamed track'}
+                            <Flex align="center">
+                              <Flex.Item mr={1}>
+                                <Box color="label" fontSize="0.75rem">
+                                  {index + 1}.
+                                </Box>
+                              </Flex.Item>
+                              <Flex.Item grow>
+                                <Box bold style={ELLIPSIS_STYLE}>
+                                  {tier.name || 'Unnamed scene'}
+                                </Box>
+                              </Flex.Item>
+                            </Flex>
+                          </Flex.Item>
+                          <Flex.Item ml={1}>
+                            <Box fontSize="0.75rem" color="label">
+                              {formatTrackCount(tier.variants.length)}
                             </Box>
-                            {getVariantListBadges(variant).length ? (
-                              <Box mt="0.1rem">
-                                {getVariantListBadges(variant).map((badge) => (
-                                  <Box key={badge.label} style={badge.style}>
-                                    {badge.label}
-                                  </Box>
-                                ))}
-                              </Box>
-                            ) : null}
                           </Flex.Item>
                         </Flex>
+                      </Button>
+                    ))
+                  )}
+                </Box>
+              </Stack.Item>
+            </Stack>
+          </Box>
+        </Stack.Item>
+        <Stack.Item basis={tracksExpanded ? '76%' : '70%'} grow={7}>
+          <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
+            <Stack fill vertical>
+              <Stack.Item>
+                <Stack fill vertical>
+                  <Stack.Item>
+                    <Flex align="center" justify="space-between" width="100%">
+                      <Flex.Item grow>
+                        <Box bold>Tracks</Box>
+                        <Box color="label" fontSize="0.75rem">
+                          {selectedTier
+                            ? `Tracks in ${selectedTier.name || 'selected scene'}.`
+                            : 'Select a scene to manage its tracks.'}
+                        </Box>
                       </Flex.Item>
                       <Flex.Item ml={1}>
-                        <Box fontSize="0.75rem" color="label">
-                          {formatDuration(variant.duration_seconds)}
-                        </Box>
+                        <EditTrackActionButtons
+                          selectedTier={selectedTier}
+                          selectedVariant={selectedVariant}
+                          canMoveTrackUp={canMoveTrackUp}
+                          canMoveTrackDown={canMoveTrackDown}
+                          tracksExpanded={tracksExpanded}
+                          onMoveVariantUp={onMoveVariantUp}
+                          onMoveVariantDown={onMoveVariantDown}
+                          onToggleTracksExpanded={onToggleTracksExpanded}
+                          onAddVariant={onAddVariant}
+                        />
                       </Flex.Item>
                     </Flex>
-                  </Button>
-                ))
-              )}
-            </Box>
-          </Stack.Item>
-          <Stack.Item grow={1}>
-            <Section
-              title="Track Details"
-              buttons={
-                selectedTier &&
-                selectedVariant &&
-                (canMoveTrackUp || canMoveTrackDown || canDeleteTrack) ? (
-                  <Stack>
-                    {canMoveTrackUp ? (
-                      <Stack.Item>
-                        <Button
-                          icon="arrow-up"
-                          color="transparent"
-                          onClick={() =>
-                            onMoveVariantUp(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                            )
-                          }
-                        >
-                          Move Up
-                        </Button>
-                      </Stack.Item>
-                    ) : null}
-                    {canMoveTrackDown ? (
-                      <Stack.Item>
-                        <Button
-                          icon="arrow-down"
-                          color="transparent"
-                          onClick={() =>
-                            onMoveVariantDown(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                            )
-                          }
-                        >
-                          Move Down
-                        </Button>
-                      </Stack.Item>
-                    ) : null}
-                    {canDeleteTrack ? (
-                      <Stack.Item>
-                        <Button.Confirm
-                          icon="trash"
-                          color="transparent"
-                          confirmColor="bad"
-                          confirmIcon="trash"
-                          confirmContent="Delete?"
-                          onClick={() =>
-                            onRemoveVariant(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                            )
-                          }
-                        >
-                          Delete Track
-                        </Button.Confirm>
-                      </Stack.Item>
-                    ) : null}
-                  </Stack>
-                ) : null
-              }
-            >
-              {!selectedVariant ? (
-                <Box color="label">Select a track from the list above.</Box>
-              ) : (
-                <Stack vertical key={selectedVariant.variant_id}>
-                  <Stack.Item>
-                    <Box style={COMPACT_CARD_STYLE}>
-                      <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
-                        {selectedVariant.title || 'Unnamed track'}
-                      </Box>
-                      <Box
-                        color="label"
-                        fontSize="0.8rem"
-                        style={ELLIPSIS_STYLE}
-                      >
-                        {selectedVariant.description || 'No description yet'}
-                      </Box>
-                      <Box
-                        color="label"
-                        fontSize="0.75rem"
-                        mt="0.25rem"
-                        style={ELLIPSIS_STYLE}
-                      >
-                        Length{' '}
-                        {formatDuration(selectedVariant.duration_seconds)} |
-                        Source{' '}
-                        {selectedVariant.source_url.trim()
-                          ? formatSourceLabel(selectedVariant.source_url)
-                          : 'Not set'}
-                      </Box>
-                      <Box mt="0.2rem">
-                        {getVariantListBadges(selectedVariant).map((badge) => (
-                          <Box key={badge.label} style={badge.style}>
-                            {badge.label}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
                   </Stack.Item>
                   <Stack.Item>
-                    <LabeledList>
-                      <LabeledList.Item label="Order">
-                        {selectedVariantIndex + 1} of{' '}
-                        {selectedTier.variants.length}
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Title">
-                        <Input
-                          fluid
-                          value={selectedVariant.title}
-                          onInput={(e, value) =>
-                            onSetVariantTitle(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                        />
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Description" verticalAlign="top">
-                        <BufferedTextArea
-                          syncKey={selectedVariant.variant_id}
-                          value={selectedVariant.description}
-                          onCommit={(value) =>
-                            onSetVariantDescription(
-                              selectedTier.tier_id,
-                              selectedVariant.variant_id,
-                              value,
-                            )
-                          }
-                          placeholder="Track description"
-                        />
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Duration">
-                        <Box>
-                          <NumberInput
-                            minValue={0}
-                            maxValue={86400}
-                            step={1}
-                            value={normalizedDuration}
-                            onChange={(value) =>
-                              onSetVariantDuration(
-                                selectedTier.tier_id,
-                                selectedVariant.variant_id,
-                                value,
-                              )
-                            }
-                          />
-                          {!normalizedDuration ? (
-                            <Box color="label" fontSize="0.75rem" mt="0.2rem">
-                              Unknown duration is allowed, but auto-stop may be
-                              unreliable in Single mode.
-                            </Box>
-                          ) : null}
-                        </Box>
-                      </LabeledList.Item>
-                      <LabeledList.Item label="Source URL">
-                        <Box>
-                          <Input
-                            fluid
-                            value={selectedVariant.source_url}
-                            onInput={(e, value) =>
-                              onSetVariantSourceUrl(
-                                selectedTier.tier_id,
-                                selectedVariant.variant_id,
-                                value,
-                              )
-                            }
-                            placeholder="https://..."
-                          />
-                          {!selectedVariant.source_url.trim() ? (
-                            <Box color="label" fontSize="0.75rem" mt="0.2rem">
-                              Required for preview and broadcast.
-                            </Box>
-                          ) : null}
-                        </Box>
-                      </LabeledList.Item>
-                    </LabeledList>
+                    <EditTrackSearchToolbar
+                      trackSearch={trackSearch}
+                      denseTracks={denseTracks}
+                      onTrackSearchChange={onTrackSearchChange}
+                      onToggleDenseTracks={onToggleDenseTracks}
+                    />
                   </Stack.Item>
                 </Stack>
-              )}
-            </Section>
-          </Stack.Item>
-        </Stack>
-      )}
+              </Stack.Item>
+              <Stack.Item grow={1}>
+                <Box mt="0.35rem" style={LIST_SCROLL_STYLE}>
+                  {!selectedTier ? (
+                    <Box color="label">No scene selected yet.</Box>
+                  ) : selectedTier.variants.length === 0 ? (
+                    <Box color="label">No tracks in this scene yet.</Box>
+                  ) : filteredVariants.length === 0 ? (
+                    <Box color="label">No tracks match search.</Box>
+                  ) : (
+                    filteredVariants.map(({ variant, index }) => (
+                      <Button
+                        key={variant.variant_id}
+                        compact
+                        fluid
+                        color="transparent"
+                        onClick={() =>
+                          onSelectVariant(
+                            selectedTier.tier_id,
+                            variant.variant_id,
+                          )
+                        }
+                        style={getTrackRowStyle(
+                          selectedVariantId === variant.variant_id,
+                          denseTracks,
+                          false,
+                        )}
+                      >
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          width="100%"
+                        >
+                          <Flex.Item grow>
+                            <Flex align="center">
+                              <Flex.Item mr={1}>
+                                <Box color="label" fontSize="0.75rem">
+                                  {index + 1}.
+                                </Box>
+                              </Flex.Item>
+                              <Flex.Item grow>
+                                <Box
+                                  bold
+                                  fontSize={denseTracks ? '0.85rem' : '0.92rem'}
+                                  style={ELLIPSIS_STYLE}
+                                >
+                                  {variant.title || 'Unnamed track'}
+                                </Box>
+                                {getVariantListBadges(variant).length ? (
+                                  <Box mt="0.1rem">
+                                    {getVariantListBadges(variant).map(
+                                      (badge) => (
+                                        <Box
+                                          key={badge.label}
+                                          style={badge.style}
+                                        >
+                                          {badge.label}
+                                        </Box>
+                                      ),
+                                    )}
+                                  </Box>
+                                ) : null}
+                              </Flex.Item>
+                            </Flex>
+                          </Flex.Item>
+                          <Flex.Item ml={1}>
+                            <Box fontSize="0.75rem" color="label">
+                              {formatDurationCompact(variant.duration_seconds)}
+                            </Box>
+                          </Flex.Item>
+                        </Flex>
+                      </Button>
+                    ))
+                  )}
+                </Box>
+              </Stack.Item>
+            </Stack>
+          </Box>
+        </Stack.Item>
+      </Stack>
     </Section>
+  );
+}
+
+type SelectedItemSectionProps = Readonly<{
+  inspectorTarget: InspectorTarget;
+  draft: DraftPreset;
+  selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
+  onRemoveTier: (tier_id: string) => void;
+  onMoveTierUp: (tier_id: string) => void;
+  onMoveTierDown: (tier_id: string) => void;
+  onSetTierName: (tier_id: string, value: string) => void;
+  onSetTierDescription: (tier_id: string, value: string) => void;
+  onRemoveVariant: (tier_id: string, variant_id: string) => void;
+  onMoveVariantUp: (tier_id: string, variant_id: string) => void;
+  onMoveVariantDown: (tier_id: string, variant_id: string) => void;
+  onSetVariantTitle: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+  onSetVariantDescription: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+  onSetVariantDuration: (
+    tier_id: string,
+    variant_id: string,
+    value: number,
+  ) => void;
+  onSetVariantSourceUrl: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+}>;
+
+function SelectedItemSection({
+  inspectorTarget,
+  draft,
+  selectedTier,
+  selectedVariant,
+  onRemoveTier,
+  onMoveTierUp,
+  onMoveTierDown,
+  onSetTierName,
+  onSetTierDescription,
+  onRemoveVariant,
+  onMoveVariantUp,
+  onMoveVariantDown,
+  onSetVariantTitle,
+  onSetVariantDescription,
+  onSetVariantDuration,
+  onSetVariantSourceUrl,
+}: SelectedItemSectionProps) {
+  const showTrackInspector =
+    inspectorTarget === 'track' && Boolean(selectedTier && selectedVariant);
+
+  return (
+    <Box style={{ ...EDIT_PANEL_CARD_STYLE, height: '100%' }}>
+      <Flex align="center" justify="space-between" width="100%">
+        <Flex.Item grow>
+          <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
+            Selected Item
+          </Box>
+          <Box color="label" fontSize="0.76rem" mb="0.45rem">
+            Scene and track properties follow the current selection in
+            Structure.
+          </Box>
+        </Flex.Item>
+        {selectedTier ? (
+          <Flex.Item ml={1}>
+            <Box style={getToggleButtonStyle(showTrackInspector)}>
+              {showTrackInspector ? 'Track' : 'Scene'}
+            </Box>
+          </Flex.Item>
+        ) : null}
+      </Flex>
+      {!selectedTier ? (
+        <Box color="label">
+          Select a scene or track in Structure to inspect it.
+        </Box>
+      ) : showTrackInspector ? (
+        <TrackInspectorSection
+          selectedTier={selectedTier}
+          selectedVariant={selectedVariant}
+          onRemoveVariant={onRemoveVariant}
+          onMoveVariantUp={onMoveVariantUp}
+          onMoveVariantDown={onMoveVariantDown}
+          onSetVariantTitle={onSetVariantTitle}
+          onSetVariantDescription={onSetVariantDescription}
+          onSetVariantDuration={onSetVariantDuration}
+          onSetVariantSourceUrl={onSetVariantSourceUrl}
+        />
+      ) : (
+        <SceneInspectorSection
+          draft={draft}
+          selectedTier={selectedTier}
+          onRemoveTier={onRemoveTier}
+          onMoveTierUp={onMoveTierUp}
+          onMoveTierDown={onMoveTierDown}
+          onSetTierName={onSetTierName}
+          onSetTierDescription={onSetTierDescription}
+        />
+      )}
+    </Box>
+  );
+}
+
+type SceneInspectorSectionProps = Readonly<{
+  draft: DraftPreset;
+  selectedTier: DraftTier;
+  onRemoveTier: (tier_id: string) => void;
+  onMoveTierUp: (tier_id: string) => void;
+  onMoveTierDown: (tier_id: string) => void;
+  onSetTierName: (tier_id: string, value: string) => void;
+  onSetTierDescription: (tier_id: string, value: string) => void;
+}>;
+
+function SceneInspectorSection({
+  draft,
+  selectedTier,
+  onRemoveTier,
+  onMoveTierUp,
+  onMoveTierDown,
+  onSetTierName,
+  onSetTierDescription,
+}: SceneInspectorSectionProps) {
+  const selectedTierIndex = draft.tiers.findIndex(
+    (tier) => tier.tier_id === selectedTier.tier_id,
+  );
+  const canDeleteScene = draft.tiers.length > 1;
+  const canMoveSceneUp = selectedTierIndex > 0;
+  const canMoveSceneDown = selectedTierIndex < draft.tiers.length - 1;
+
+  return (
+    <Stack fill vertical key={selectedTier.tier_id}>
+      <Stack.Item>
+        <Box style={COMPACT_CARD_STYLE}>
+          <Box color="label" fontSize="0.74rem">
+            Scene
+          </Box>
+          <Box bold fontSize="1rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+            {selectedTier.name || 'Unnamed scene'}
+          </Box>
+          <Box color="label" fontSize="0.8rem" style={ELLIPSIS_STYLE}>
+            {selectedTier.description || 'No description yet'}
+          </Box>
+          <Box mt="0.25rem">
+            <Box style={PLAYER_BADGE_STYLE}>
+              Order {selectedTierIndex + 1} of {draft.tiers.length}
+            </Box>
+            <Box style={PLAYER_BADGE_STYLE}>
+              {formatTrackCount(selectedTier.variants.length)}
+            </Box>
+          </Box>
+        </Box>
+      </Stack.Item>
+      <Stack.Item>
+        <Flex align="center" justify="space-between" width="100%">
+          <Flex.Item grow>
+            <Box bold>Scene Properties</Box>
+          </Flex.Item>
+          <Flex.Item ml={1}>
+            <Stack>
+              {canMoveSceneUp ? (
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="arrow-up"
+                    color="transparent"
+                    onClick={() => onMoveTierUp(selectedTier.tier_id)}
+                  >
+                    Move Up
+                  </Button>
+                </Stack.Item>
+              ) : null}
+              {canMoveSceneDown ? (
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="arrow-down"
+                    color="transparent"
+                    onClick={() => onMoveTierDown(selectedTier.tier_id)}
+                  >
+                    Move Down
+                  </Button>
+                </Stack.Item>
+              ) : null}
+              {canDeleteScene ? (
+                <Stack.Item>
+                  <Button.Confirm
+                    compact
+                    icon="trash"
+                    color="transparent"
+                    confirmColor="bad"
+                    confirmIcon="trash"
+                    confirmContent="Delete?"
+                    onClick={() => onRemoveTier(selectedTier.tier_id)}
+                  >
+                    Delete
+                  </Button.Confirm>
+                </Stack.Item>
+              ) : null}
+            </Stack>
+          </Flex.Item>
+        </Flex>
+      </Stack.Item>
+      <Stack.Item grow={1}>
+        <LabeledList>
+          <LabeledList.Item label="Name">
+            <Input
+              fluid
+              value={selectedTier.name}
+              onInput={(e, value) => onSetTierName(selectedTier.tier_id, value)}
+            />
+          </LabeledList.Item>
+          <LabeledList.Item label="Description" verticalAlign="top">
+            <BufferedTextArea
+              syncKey={selectedTier.tier_id}
+              value={selectedTier.description}
+              onCommit={(value) =>
+                onSetTierDescription(selectedTier.tier_id, value)
+              }
+              placeholder="Scene description"
+              minRows={4}
+              maxRows={10}
+            />
+          </LabeledList.Item>
+        </LabeledList>
+      </Stack.Item>
+    </Stack>
+  );
+}
+
+type TrackInspectorSectionProps = Readonly<{
+  selectedTier: DraftTier;
+  selectedVariant: DraftVariant | null;
+  onRemoveVariant: (tier_id: string, variant_id: string) => void;
+  onMoveVariantUp: (tier_id: string, variant_id: string) => void;
+  onMoveVariantDown: (tier_id: string, variant_id: string) => void;
+  onSetVariantTitle: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+  onSetVariantDescription: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+  onSetVariantDuration: (
+    tier_id: string,
+    variant_id: string,
+    value: number,
+  ) => void;
+  onSetVariantSourceUrl: (
+    tier_id: string,
+    variant_id: string,
+    value: string,
+  ) => void;
+}>;
+
+function TrackInspectorSection({
+  selectedTier,
+  selectedVariant,
+  onRemoveVariant,
+  onMoveVariantUp,
+  onMoveVariantDown,
+  onSetVariantTitle,
+  onSetVariantDescription,
+  onSetVariantDuration,
+  onSetVariantSourceUrl,
+}: TrackInspectorSectionProps) {
+  if (!selectedVariant) {
+    return <Box color="label">Select a track in Structure to inspect it.</Box>;
+  }
+
+  const selectedVariantIndex = selectedTier.variants.findIndex(
+    (variant) => variant.variant_id === selectedVariant.variant_id,
+  );
+  const canDeleteTrack = selectedTier.variants.length > 1;
+  const canMoveTrackUp = selectedVariantIndex > 0;
+  const canMoveTrackDown =
+    selectedVariantIndex < selectedTier.variants.length - 1;
+  const normalizedDuration = normalizeDurationValue(
+    selectedVariant.duration_seconds,
+  );
+  const sourceLabel = selectedVariant.source_url.trim()
+    ? formatSourceLabel(selectedVariant.source_url)
+    : 'Not set';
+
+  return (
+    <Stack fill vertical key={selectedVariant.variant_id}>
+      <Stack.Item>
+        <Box style={COMPACT_CARD_STYLE}>
+          <Box color="label" fontSize="0.74rem">
+            Track
+          </Box>
+          <Box bold fontSize="1rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+            {selectedVariant.title || 'Unnamed track'}
+          </Box>
+          <Box color="label" fontSize="0.8rem" style={ELLIPSIS_STYLE}>
+            {selectedVariant.description || 'No description yet'}
+          </Box>
+          <Box mt="0.25rem">
+            <Box style={PLAYER_BADGE_STYLE}>
+              Order {selectedVariantIndex + 1} of {selectedTier.variants.length}
+            </Box>
+            <Box style={PLAYER_BADGE_STYLE}>
+              {formatDuration(selectedVariant.duration_seconds)}
+            </Box>
+            <Box style={PLAYER_BADGE_STYLE}>{sourceLabel}</Box>
+          </Box>
+          {getVariantListBadges(selectedVariant).length ? (
+            <Box mt="0.12rem">
+              {getVariantListBadges(selectedVariant).map((badge) => (
+                <Box key={badge.label} style={badge.style}>
+                  {badge.label}
+                </Box>
+              ))}
+            </Box>
+          ) : null}
+        </Box>
+      </Stack.Item>
+      <Stack.Item>
+        <Flex align="center" justify="space-between" width="100%">
+          <Flex.Item grow>
+            <Box bold>Track Properties</Box>
+          </Flex.Item>
+          <Flex.Item ml={1}>
+            <Stack>
+              {canMoveTrackUp ? (
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="arrow-up"
+                    color="transparent"
+                    onClick={() =>
+                      onMoveVariantUp(
+                        selectedTier.tier_id,
+                        selectedVariant.variant_id,
+                      )
+                    }
+                  >
+                    Move Up
+                  </Button>
+                </Stack.Item>
+              ) : null}
+              {canMoveTrackDown ? (
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="arrow-down"
+                    color="transparent"
+                    onClick={() =>
+                      onMoveVariantDown(
+                        selectedTier.tier_id,
+                        selectedVariant.variant_id,
+                      )
+                    }
+                  >
+                    Move Down
+                  </Button>
+                </Stack.Item>
+              ) : null}
+              {canDeleteTrack ? (
+                <Stack.Item>
+                  <Button.Confirm
+                    compact
+                    icon="trash"
+                    color="transparent"
+                    confirmColor="bad"
+                    confirmIcon="trash"
+                    confirmContent="Delete?"
+                    onClick={() =>
+                      onRemoveVariant(
+                        selectedTier.tier_id,
+                        selectedVariant.variant_id,
+                      )
+                    }
+                  >
+                    Delete
+                  </Button.Confirm>
+                </Stack.Item>
+              ) : null}
+            </Stack>
+          </Flex.Item>
+        </Flex>
+      </Stack.Item>
+      <Stack.Item grow={1}>
+        <LabeledList>
+          <LabeledList.Item label="Title">
+            <Input
+              fluid
+              value={selectedVariant.title}
+              onInput={(e, value) =>
+                onSetVariantTitle(
+                  selectedTier.tier_id,
+                  selectedVariant.variant_id,
+                  value,
+                )
+              }
+            />
+          </LabeledList.Item>
+          <LabeledList.Item label="Description" verticalAlign="top">
+            <BufferedTextArea
+              syncKey={selectedVariant.variant_id}
+              value={selectedVariant.description}
+              onCommit={(value) =>
+                onSetVariantDescription(
+                  selectedTier.tier_id,
+                  selectedVariant.variant_id,
+                  value,
+                )
+              }
+              placeholder="Track description"
+              minRows={4}
+              maxRows={10}
+            />
+          </LabeledList.Item>
+          <LabeledList.Item label="Duration">
+            <Box>
+              <NumberInput
+                minValue={0}
+                maxValue={86400}
+                step={1}
+                value={normalizedDuration}
+                onChange={(value) =>
+                  onSetVariantDuration(
+                    selectedTier.tier_id,
+                    selectedVariant.variant_id,
+                    value,
+                  )
+                }
+              />
+              {!normalizedDuration ? (
+                <Box color="label" fontSize="0.75rem" mt="0.2rem">
+                  Unknown duration is allowed, but Single mode may not stop
+                  automatically.
+                </Box>
+              ) : null}
+            </Box>
+          </LabeledList.Item>
+          <LabeledList.Item label="Source URL">
+            <Box>
+              <Input
+                fluid
+                value={selectedVariant.source_url}
+                onInput={(e, value) =>
+                  onSetVariantSourceUrl(
+                    selectedTier.tier_id,
+                    selectedVariant.variant_id,
+                    value,
+                  )
+                }
+                placeholder="https://..."
+              />
+              {!selectedVariant.source_url.trim() ? (
+                <Box color="label" fontSize="0.75rem" mt="0.2rem">
+                  Required for preview and broadcast.
+                </Box>
+              ) : null}
+            </Box>
+          </LabeledList.Item>
+        </LabeledList>
+      </Stack.Item>
+    </Stack>
   );
 }

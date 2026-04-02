@@ -112,21 +112,20 @@ export type TrackLaunchReadiness = {
 export const DEFAULT_PREVIEW_VOLUME = 0.2;
 export const DESCRIPTION_FIELD_HEIGHT = 4.5;
 export const PLAYER_CARD_STYLE = {
-  backgroundColor: 'rgba(255, 255, 255, 0.04)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  backgroundColor: 'rgba(56, 64, 74, 0.82)',
+  border: '1px solid rgba(255, 255, 255, 0.09)',
   borderRadius: '0.35rem',
   padding: '0.75rem',
 };
 export const COMPACT_CARD_STYLE = {
-  backgroundColor: 'rgba(255, 255, 255, 0.035)',
-  border: '1px solid rgba(255, 255, 255, 0.07)',
+  backgroundColor: 'rgba(49, 57, 67, 0.78)',
+  border: '1px solid rgba(255, 255, 255, 0.085)',
   borderRadius: '0.35rem',
   padding: '0.5rem 0.6rem',
 };
 export const PLAYER_STRIP_STYLE = {
-  background:
-    'linear-gradient(90deg, rgba(70, 140, 60, 0.22) 0%, rgba(25, 40, 25, 0.24) 100%)',
-  border: '1px solid rgba(120, 190, 100, 0.3)',
+  backgroundColor: 'rgba(38, 46, 54, 0.86)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
   borderRadius: '0.35rem',
   padding: '0.85rem',
 };
@@ -137,17 +136,17 @@ export const PLAYER_BADGE_STYLE = {
   marginBottom: '0.35rem',
   borderRadius: '999px',
   border: '1px solid rgba(255, 255, 255, 0.12)',
-  backgroundColor: 'rgba(0, 0, 0, 0.18)',
+  backgroundColor: 'rgba(255, 255, 255, 0.06)',
 };
 export const STATUS_STRIP_STYLE = {
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid rgba(255, 255, 255, 0.07)',
+  backgroundColor: 'rgba(44, 52, 61, 0.78)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
   borderRadius: '0.35rem',
   padding: '0.45rem 0.55rem',
 };
 export const SUBTLE_PANEL_STYLE = {
-  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  border: '1px solid rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'rgba(40, 48, 56, 0.72)',
+  border: '1px solid rgba(255, 255, 255, 0.07)',
   borderRadius: '0.35rem',
   padding: '0.45rem 0.55rem',
 };
@@ -208,14 +207,15 @@ export const getToggleButtonStyle = (checked: boolean) => ({
 
 export const getListRowStyle = (selected: boolean) => ({
   marginBottom: '0.2rem',
-  padding: '0.28rem 0.45rem',
+  padding: '0.32rem 0.48rem',
   borderRadius: '0.32rem',
   border: selected
-    ? '1px solid rgba(137, 171, 214, 0.55)'
+    ? '1px solid rgba(137, 171, 214, 0.72)'
     : '1px solid rgba(255, 255, 255, 0.06)',
   backgroundColor: selected
-    ? 'rgba(102, 131, 171, 0.22)'
-    : 'rgba(255, 255, 255, 0.025)',
+    ? 'rgba(102, 131, 171, 0.34)'
+    : 'rgba(255, 255, 255, 0.05)',
+  boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)' : 'none',
 });
 
 export const normalizeDurationValue = (duration_seconds: number) => {
@@ -236,6 +236,20 @@ export const formatDuration = (duration_seconds: number) => {
   return minutes
     ? `${minutes}m ${String(remainder).padStart(2, '0')}s`
     : `${remainder}s`;
+};
+
+export const formatDurationCompact = (duration_seconds: number) => {
+  const normalizedDuration = normalizeDurationValue(duration_seconds);
+  if (!normalizedDuration) {
+    return 'Unknown';
+  }
+  const totalSeconds = Math.floor(normalizedDuration);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${minutes}:${String(seconds).padStart(2, '0')}`;
 };
 
 export const formatSourceLabel = (source_url: string) => {
@@ -374,7 +388,13 @@ export const getTrackLaunchReadiness = (
   };
 };
 
-export const isCurrentSessionForSelection = (
+export const isVariantMissingSource = (variant: DraftVariant) =>
+  !variant.source_url.trim();
+
+export const isVariantDurationUnknown = (variant: DraftVariant) =>
+  !normalizeDurationValue(variant.duration_seconds);
+
+export const isCurrentSessionForVariant = (
   currentSession: CurrentSession,
   draft: DraftPreset,
   selectedTier: DraftTier | null,
@@ -398,6 +418,28 @@ export const isCurrentSessionForSelection = (
 
   return matchesByPreset || matchesBySource;
 };
+
+export const findCurrentSessionVariantInTier = (
+  currentSession: CurrentSession,
+  draft: DraftPreset,
+  selectedTier: DraftTier | null,
+) =>
+  selectedTier?.variants.find((variant) =>
+    isCurrentSessionForVariant(currentSession, draft, selectedTier, variant),
+  ) || null;
+
+export const isCurrentSessionForSelection = (
+  currentSession: CurrentSession,
+  draft: DraftPreset,
+  selectedTier: DraftTier | null,
+  selectedVariant: DraftVariant | null,
+) =>
+  isCurrentSessionForVariant(
+    currentSession,
+    draft,
+    selectedTier,
+    selectedVariant,
+  );
 
 export const useAdminMusicPreview = (
   previewCommand: PreviewCommand,
