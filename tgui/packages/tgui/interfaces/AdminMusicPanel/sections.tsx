@@ -276,6 +276,16 @@ const LAUNCH_STATUS_PANEL_STYLE = {
   padding: '0.34rem 0.58rem',
 };
 
+const TRACK_TITLE_TEXT_STYLE = {
+  ...ELLIPSIS_STYLE,
+  color: 'rgba(244, 248, 252, 0.98)',
+};
+
+const TRACK_DESCRIPTION_TEXT_STYLE = {
+  ...ELLIPSIS_STYLE,
+  color: 'rgba(214, 223, 233, 0.58)',
+};
+
 const INSPECTOR_ACTION_BUTTON_STYLE = {
   minWidth: '6.9rem',
   justifyContent: 'center',
@@ -605,11 +615,6 @@ function LaunchPreflightControls({
 }: LaunchPreflightControlsProps) {
   return (
     <Stack fill vertical>
-      <Stack.Item>
-        <Box color="label" fontSize="0.72rem">
-          Launch Settings
-        </Box>
-      </Stack.Item>
       <Stack.Item>
         <Stack fill>
           <Stack.Item basis="24%" grow={1}>
@@ -1950,16 +1955,15 @@ function PlayTracksSection({
                                 <Box
                                   bold
                                   fontSize={denseTracks ? '0.85rem' : '0.92rem'}
-                                  style={ELLIPSIS_STYLE}
+                                  style={TRACK_TITLE_TEXT_STYLE}
                                 >
                                   {variant.title || 'Unnamed track'}
                                 </Box>
                                 {!denseTracks && trackDescription ? (
                                   <Box
-                                    color="label"
                                     fontSize="0.76rem"
                                     mt="0.04rem"
-                                    style={ELLIPSIS_STYLE}
+                                    style={TRACK_DESCRIPTION_TEXT_STYLE}
                                   >
                                     {trackDescription}
                                   </Box>
@@ -2835,16 +2839,15 @@ function StructureSection({
                                     fontSize={
                                       denseTracks ? '0.85rem' : '0.92rem'
                                     }
-                                    style={ELLIPSIS_STYLE}
+                                    style={TRACK_TITLE_TEXT_STYLE}
                                   >
                                     {variant.title || 'Unnamed track'}
                                   </Box>
                                   {showTrackDescription ? (
                                     <Box
-                                      color="label"
                                       fontSize="0.76rem"
                                       mt="0.04rem"
-                                      style={ELLIPSIS_STYLE}
+                                      style={TRACK_DESCRIPTION_TEXT_STYLE}
                                     >
                                       {trackDescription}
                                     </Box>
