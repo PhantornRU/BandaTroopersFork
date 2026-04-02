@@ -6,6 +6,10 @@ import { Window } from '../../layouts';
 import { EditTab, PlayTab } from './sections';
 import {
   AdminMusicPanelData,
+  BG_APP,
+  BG_PANEL_ALT,
+  BG_SELECTED,
+  BORDER,
   buildLaunchSettings,
   findTier,
   findVariant,
@@ -14,23 +18,21 @@ import {
   getTrackLaunchReadiness,
   isCurrentSessionForSelection,
   LaunchSettings,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
   toSelectOptions,
   useAdminMusicPreview,
 } from './shared';
 
 const getTabStyle = (selected: boolean) => ({
-  border: selected
-    ? '1px solid rgba(137, 171, 214, 0.62)'
-    : '1px solid rgba(255, 255, 255, 0.08)',
-  backgroundColor: selected
-    ? 'rgba(102, 131, 171, 0.2)'
-    : 'rgba(255, 255, 255, 0.03)',
-  color: selected ? 'rgba(244, 248, 252, 0.97)' : 'rgba(214, 223, 233, 0.9)',
+  border: selected ? `1px solid ${BORDER}` : `1px solid ${BORDER}`,
+  backgroundColor: selected ? BG_SELECTED : BG_PANEL_ALT,
+  color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
   boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
 });
 
 const WINDOW_CONTENT_STYLE = {
-  backgroundColor: 'rgba(23, 29, 35, 0.96)',
+  backgroundColor: BG_APP,
   backgroundImage: 'none',
 };
 

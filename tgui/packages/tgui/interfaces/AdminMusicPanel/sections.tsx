@@ -14,6 +14,13 @@ import {
   TextArea,
 } from '../../components';
 import {
+  ACCENT_DANGER,
+  ACCENT_NEUTRAL,
+  ACCENT_SUCCESS,
+  BG_CARD,
+  BG_PANEL,
+  BG_PANEL_ALT,
+  BORDER,
   COMPACT_CARD_STYLE,
   countTracks,
   CurrentSession,
@@ -48,6 +55,9 @@ import {
   SelectOption,
   STATUS_STRIP_STYLE,
   SUBTLE_PANEL_STYLE,
+  TEXT_MUTED,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
   TrackLaunchReadiness,
   UNSAVED_BADGE_STYLE,
 } from './shared';
@@ -162,28 +172,28 @@ const LIST_BADGE_STYLE = {
 
 const WARNING_BADGE_STYLE = {
   ...LIST_BADGE_STYLE,
-  border: '1px solid rgba(255, 208, 102, 0.35)',
-  backgroundColor: 'rgba(255, 208, 102, 0.12)',
+  border: '1px solid rgba(255, 208, 102, 0.4)',
+  backgroundColor: 'rgba(255, 208, 102, 0.14)',
 };
 
 const SEGMENTED_GROUP_STYLE = {
   display: 'flex',
   alignItems: 'center',
-  gap: '0.14rem',
+  gap: '0.08rem',
   width: '100%',
-  padding: '0.14rem',
-  borderRadius: '999px',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  backgroundColor: 'rgba(16, 20, 25, 0.26)',
+  padding: '0.1rem',
+  borderRadius: '0.42rem',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL,
 };
 
 const HEADER_ACTION_BUTTON_STYLE = {
-  minWidth: '6.25rem',
+  minWidth: '6rem',
 };
 
 const ADVANCED_TOGGLE_STYLE = {
-  border: '1px solid rgba(255, 255, 255, 0.07)',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL_ALT,
 };
 
 const EDIT_PANEL_CARD_STYLE = {
@@ -201,16 +211,16 @@ const PLAY_CONTEXT_META_STYLE = {
   marginRight: '0.24rem',
   marginBottom: '0.16rem',
   borderRadius: '999px',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL_ALT,
   fontSize: '0.71rem',
-  color: 'rgba(226, 233, 240, 0.9)',
+  color: TEXT_SECONDARY,
 };
 
 const PLAY_TOOLBAR_TOGGLE_STYLE = (checked: boolean) => ({
   ...getCompactToggleStyle(checked),
   width: '100%',
-  minHeight: '1.8rem',
+  minHeight: '1.72rem',
   justifyContent: 'center',
 });
 
@@ -222,27 +232,23 @@ const getPreviewActionStyle = (
   isActive: boolean,
   disabled: boolean,
 ): Record<string, string> => ({
-  border: isActive
-    ? '1px solid rgba(137, 171, 214, 0.6)'
-    : '1px solid rgba(137, 171, 214, 0.34)',
-  backgroundColor: isActive
-    ? 'rgba(102, 131, 171, 0.22)'
-    : 'rgba(102, 131, 171, 0.1)',
-  color: 'rgba(244, 248, 252, 0.96)',
+  border: isActive ? `1px solid ${ACCENT_NEUTRAL}` : `1px solid ${BORDER}`,
+  backgroundColor: isActive ? 'rgba(78, 102, 130, 0.26)' : BG_CARD,
+  color: TEXT_PRIMARY,
   ...(disabled ? DISABLED_ACTION_STYLE : {}),
 });
 
 const getStopActionStyle = (disabled: boolean): Record<string, string> => ({
-  border: '1px solid rgba(214, 133, 133, 0.24)',
-  backgroundColor: 'rgba(102, 41, 41, 0.08)',
-  color: 'rgba(240, 222, 222, 0.92)',
+  border: `1px solid ${ACCENT_DANGER}`,
+  backgroundColor: 'rgba(201, 58, 58, 0.12)',
+  color: TEXT_PRIMARY,
   ...(disabled ? DISABLED_ACTION_STYLE : {}),
 });
 
 const getTertiaryActionStyle = (disabled = false): Record<string, string> => ({
-  border: '1px solid rgba(255, 255, 255, 0.07)',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  color: 'rgba(214, 223, 233, 0.92)',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_CARD,
+  color: TEXT_SECONDARY,
   ...(disabled ? DISABLED_ACTION_STYLE : {}),
 });
 
@@ -255,20 +261,16 @@ const getSegmentedButtonStyle = (
   selected: boolean,
   disabled: boolean,
 ): Record<string, string> => ({
-  border: selected
-    ? '1px solid rgba(137, 171, 214, 0.55)'
-    : '1px solid transparent',
-  backgroundColor: selected
-    ? 'rgba(102, 131, 171, 0.22)'
-    : 'rgba(255, 255, 255, 0.02)',
-  color: selected ? 'rgba(244, 248, 252, 0.96)' : 'rgba(214, 223, 233, 0.9)',
+  border: selected ? `1px solid ${ACCENT_NEUTRAL}` : '1px solid transparent',
+  backgroundColor: selected ? 'rgba(78, 102, 130, 0.26)' : BG_PANEL,
+  color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
   boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
   ...(disabled ? DISABLED_ACTION_STYLE : {}),
 });
 
 const TRACKS_FILTER_BAR_STYLE = {
   ...STATUS_STRIP_STYLE,
-  padding: '0.35rem 0.45rem',
+  padding: '0.3rem 0.42rem',
 };
 
 const LAUNCH_STATUS_PANEL_STYLE = {
@@ -278,12 +280,17 @@ const LAUNCH_STATUS_PANEL_STYLE = {
 
 const TRACK_TITLE_TEXT_STYLE = {
   ...ELLIPSIS_STYLE,
-  color: 'rgba(244, 248, 252, 0.98)',
+  color: TEXT_PRIMARY,
 };
 
 const TRACK_DESCRIPTION_TEXT_STYLE = {
   ...ELLIPSIS_STYLE,
-  color: 'rgba(214, 223, 233, 0.58)',
+  color: TEXT_MUTED,
+};
+
+const SECTION_SURFACE_STYLE = {
+  backgroundColor: BG_PANEL,
+  border: `1px solid ${BORDER}`,
 };
 
 const INSPECTOR_ACTION_BUTTON_STYLE = {
@@ -405,8 +412,7 @@ export function BroadcastStatusStrip({
           </Stack.Item>
           <Stack.Item grow>
             <Box color="label" fontSize="0.78rem">
-              Nothing is live right now. Open Play when you want to preview or
-              broadcast a track.
+              No live broadcast. Open Play to preview or broadcast a track.
             </Box>
           </Stack.Item>
         </Stack>
@@ -450,8 +456,8 @@ export function BroadcastStatusStrip({
       py={0.55}
       style={{
         ...STATUS_STRIP_STYLE,
-        border: '1px solid rgba(120, 190, 100, 0.22)',
-        backgroundColor: 'rgba(49, 57, 67, 0.82)',
+        border: `1px solid ${ACCENT_SUCCESS}`,
+        backgroundColor: BG_PANEL_ALT,
       }}
     >
       <Stack align="center">
@@ -516,11 +522,8 @@ function OperatorActionPanel({
     : 'Broadcast';
 
   return (
-    <Section fill title="Operator Controls">
-      <Box color="label" fontSize="0.75rem">
-        Preview, broadcast, and reset the selected launch context.
-      </Box>
-      <Box mt="0.35rem">
+    <Section fill title="Operator Controls" style={SECTION_SURFACE_STYLE}>
+      <Box mt="0.12rem">
         <Stack fill>
           <Stack.Item grow>
             <Button
@@ -590,11 +593,22 @@ function OperatorActionPanel({
           </Stack.Item>
         </Stack>
       </Box>
-      <Box color="label" fontSize="0.74rem" mt="0.28rem">
-        Preview: {isPreviewActive ? 'Preview playing' : previewState}
-      </Box>
-      <Box color="label" fontSize="0.74rem" mt="0.12rem">
-        Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'}
+      <Box
+        mt="0.28rem"
+        px="0.36rem"
+        py="0.26rem"
+        style={{
+          borderTop: `1px solid ${BORDER}`,
+          backgroundColor: BG_PANEL_ALT,
+          borderRadius: '0.32rem',
+        }}
+      >
+        <Box color="label" fontSize="0.73rem">
+          Preview: {isPreviewActive ? 'Preview playing' : previewState}
+        </Box>
+        <Box color="label" fontSize="0.73rem" mt="0.08rem">
+          Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'}
+        </Box>
       </Box>
     </Section>
   );
@@ -754,6 +768,7 @@ export function SessionSection({
         <Section
           fill
           title="Launch Context"
+          style={SECTION_SURFACE_STYLE}
           buttons={
             trackReadiness.reason ? (
               <Button
@@ -767,10 +782,7 @@ export function SessionSection({
             ) : undefined
           }
         >
-          <Box color="label" fontSize="0.75rem">
-            Selected track, launch overrides, and current readiness.
-          </Box>
-          <Flex align="center" justify="space-between" width="100%" mt={0.25}>
+          <Flex align="center" justify="space-between" width="100%" mt={0.12}>
             <Flex.Item grow>
               <Box as="span" bold fontSize="1rem" style={ELLIPSIS_STYLE}>
                 {contextTitle}
@@ -782,14 +794,14 @@ export function SessionSection({
               </Flex.Item>
             ) : null}
           </Flex>
-          <Box mt="0.14rem">
+          <Box mt="0.1rem">
             {contextFacts.map((item) => (
               <Box key={item.label} style={PLAY_CONTEXT_META_STYLE}>
                 {item.label}: {item.value}
               </Box>
             ))}
           </Box>
-          <Box mt="0.08rem">
+          <Box mt="0.16rem">
             <LaunchPreflightControls
               launchSettings={launchSettings}
               onToggleShowTitle={onToggleShowTitle}
@@ -797,7 +809,7 @@ export function SessionSection({
               onSetPlaybackMode={onSetPlaybackMode}
             />
           </Box>
-          <Box mt="0.35rem" style={LAUNCH_STATUS_PANEL_STYLE}>
+          <Box mt="0.24rem" style={LAUNCH_STATUS_PANEL_STYLE}>
             <Box color="label" fontSize="0.74rem" style={ELLIPSIS_STYLE}>
               Launch:{' '}
               {trackReadiness.reason
@@ -1368,7 +1380,7 @@ export function EditTab({
       <Stack.Item grow={1}>
         <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis={tracksExpanded ? '76%' : '70%'} grow={7}>
+            <Stack.Item basis={tracksExpanded ? '72%' : '68%'} grow={7}>
               <StructureSection
                 draft={draft}
                 selectedTier={selectedTier}
@@ -1395,7 +1407,7 @@ export function EditTab({
                 onMoveVariantDown={onMoveVariantDown}
               />
             </Stack.Item>
-            <Stack.Item basis={tracksExpanded ? '24%' : '30%'} grow={3}>
+            <Stack.Item basis={tracksExpanded ? '28%' : '32%'} grow={3}>
               <EditPanelSection
                 draft={draft}
                 draftToken={draftToken}
@@ -1465,7 +1477,7 @@ function LibrarySection({
   const hasSavedPresets = library.length > 0;
 
   return (
-    <Section fill title="Preset Library">
+    <Section fill title="Preset Library" style={SECTION_SURFACE_STYLE}>
       <Stack fill vertical>
         <Stack.Item>
           <Input
@@ -1474,11 +1486,6 @@ function LibrarySection({
             value={librarySearch}
             onInput={(e, value) => onSearchChange(value)}
           />
-        </Stack.Item>
-        <Stack.Item>
-          <Box color="label" fontSize="0.75rem">
-            Load a saved preset into the current draft.
-          </Box>
         </Stack.Item>
         <Stack.Item grow={1}>
           <Box style={LIST_SCROLL_STYLE}>
@@ -1668,7 +1675,7 @@ function PlayScenesSection({
   onSelectTier,
 }: PlayScenesSectionProps) {
   return (
-    <Section fill scrollable title="Scenes">
+    <Section fill scrollable title="Scenes" style={SECTION_SURFACE_STYLE}>
       {draft.tiers.length === 0 ? (
         <Box color="label">No scenes loaded.</Box>
       ) : (
@@ -1781,6 +1788,7 @@ function PlayTracksSection({
     <Section
       fill
       title={focusMode ? 'Tracks Focus' : 'Tracks'}
+      style={SECTION_SURFACE_STYLE}
       buttons={
         onToggleTracksFocus ? (
           <Button
@@ -2045,21 +2053,21 @@ function EditHeaderSection({
   return (
     <Box
       px={0.9}
-      py={0.5}
+      py={0.42}
       style={{
         ...STATUS_STRIP_STYLE,
-        border: '1px solid rgba(255, 255, 255, 0.075)',
+        border: `1px solid ${BORDER}`,
       }}
     >
       <Stack align="center">
         <Stack.Item basis="70%" grow>
-          <Box bold fontSize="1.08rem" style={ELLIPSIS_STYLE}>
+          <Box bold fontSize="1.02rem" style={ELLIPSIS_STYLE}>
             {draft.name || 'New preset'}
           </Box>
-          <Box color="label" fontSize="0.78rem" mt="0.15rem">
+          <Box color="label" fontSize="0.75rem" mt="0.12rem">
             {draftStatus.hint}
           </Box>
-          <Box mt="0.28rem">
+          <Box mt="0.22rem">
             {statusBadges.map((badge) => (
               <Box key={badge.label} mr={0.35} mb={0.2} style={badge.style}>
                 {badge.label}
@@ -2195,7 +2203,7 @@ function EditPanelSection({
   onSetVariantSourceUrl,
 }: EditPanelSectionProps) {
   return (
-    <Section fill title="Edit Panel">
+    <Section fill title="Edit Panel" style={SECTION_SURFACE_STYLE}>
       <Stack fill vertical>
         <Stack.Item grow={1}>
           <SelectedItemSection
@@ -2224,9 +2232,6 @@ function EditPanelSection({
               color="transparent"
               style={ADVANCED_TOGGLE_STYLE}
             >
-              <Box color="label" fontSize="0.76rem" mb={0.45}>
-                Name, description, and defaults for the current preset.
-              </Box>
               <PresetMetaSection
                 draft={draft}
                 draftToken={draftToken}
@@ -2320,7 +2325,7 @@ function PresetMetaSection({
               onCommit={onSetDescription}
               placeholder="Short description for admins"
               minRows={3}
-              maxRows={7}
+              maxRows={6}
             />
           </LabeledList.Item>
         </LabeledList>
@@ -2328,9 +2333,6 @@ function PresetMetaSection({
       <Stack.Item grow={1}>
         <Box style={PLAYER_CARD_STYLE}>
           <Box bold>Preset Defaults</Box>
-          <Box color="label" fontSize="0.78rem" mt="0.18rem" mb={0.4}>
-            Saved with the preset and used as the starting point for Play.
-          </Box>
           <PlaybackSettingsControls
             playback={draft.playback}
             audienceOptions={audienceOptions}
@@ -2355,9 +2357,6 @@ function PresetMetaSection({
     <Box style={EDIT_PANEL_CARD_STYLE}>
       <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
         Preset
-      </Box>
-      <Box color="label" fontSize="0.76rem" mt="0.12rem" mb="0.45rem">
-        Name, description, and defaults for the current preset.
       </Box>
       {content}
     </Box>
@@ -2387,9 +2386,6 @@ function AdvancedSection({
         color="transparent"
         style={ADVANCED_TOGGLE_STYLE}
       >
-        <Box color="label" fontSize="0.76rem" mb={0.4}>
-          Import, export, and destructive actions stay here.
-        </Box>
         <Stack vertical>
           <Stack.Item>
             <Button compact fluid icon="plus" onClick={onNew}>
@@ -2527,7 +2523,10 @@ function EditTrackActionButtons({
           compact
           icon={tracksExpanded ? 'compress' : 'expand'}
           color="transparent"
-          style={STRUCTURE_ACTION_BUTTON_STYLE}
+          style={{
+            ...STRUCTURE_ACTION_BUTTON_STYLE,
+            ...getToggleButtonStyle(tracksExpanded),
+          }}
           onClick={onToggleTracksExpanded}
         >
           {tracksExpanded ? 'Restore Width' : 'Widen Tracks'}
@@ -2634,18 +2633,15 @@ function StructureSection({
       .filter(({ variant }) => matchesTrackSearch(variant, trackSearch)) || [];
 
   return (
-    <Section fill title="Structure">
+    <Section fill title="Structure" style={SECTION_SURFACE_STYLE}>
       <Stack fill>
-        <Stack.Item basis={tracksExpanded ? '24%' : '30%'} grow={3}>
+        <Stack.Item basis="30%" grow={3}>
           <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
             <Stack fill vertical>
               <Stack.Item>
                 <Flex align="center" justify="space-between" width="100%">
                   <Flex.Item grow>
                     <Box bold>Scenes</Box>
-                    <Box color="label" fontSize="0.75rem">
-                      Scene order and grouping inside this preset.
-                    </Box>
                   </Flex.Item>
                   <Flex.Item ml={1}>
                     <Stack>
@@ -2743,24 +2739,32 @@ function StructureSection({
             </Stack>
           </Box>
         </Stack.Item>
-        <Stack.Item basis={tracksExpanded ? '76%' : '70%'} grow={7}>
+        <Stack.Item basis="70%" grow={7}>
           <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
             <Stack fill vertical>
               <Stack.Item>
                 <Stack fill vertical>
                   <Stack.Item>
                     <Flex align="center" justify="space-between" width="100%">
-                      <Flex.Item grow>
+                      <Flex.Item grow style={{ minWidth: '0' }}>
                         <Box bold>Tracks</Box>
-                        <Box color="label" fontSize="0.75rem">
+                        <Box
+                          color="label"
+                          fontSize="0.74rem"
+                          style={ELLIPSIS_STYLE}
+                        >
                           {selectedTier
                             ? `Tracks in ${selectedTier.name || 'selected scene'}.`
                             : 'Select a scene to manage its tracks.'}
                         </Box>
-                        <Box color="label" fontSize="0.72rem" mt="0.08rem">
-                          {tracksExpanded
-                            ? 'Widen Tracks is active. The track list has extra room while the edit panel stays visible.'
-                            : 'Use Widen Tracks when long scenes need more horizontal room.'}
+                        <Box
+                          color={TEXT_MUTED}
+                          fontSize="0.7rem"
+                          mt="0.06rem"
+                          style={ELLIPSIS_STYLE}
+                        >
+                          Dense packs more rows. Widen Tracks gives long titles
+                          and descriptions more room.
                         </Box>
                       </Flex.Item>
                       <Flex.Item ml={1}>
@@ -2954,9 +2958,8 @@ function SelectedItemSection({
           <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
             Selected Item
           </Box>
-          <Box color="label" fontSize="0.76rem" mb="0.45rem">
-            Scene and track properties follow the current selection in
-            Structure.
+          <Box color={TEXT_MUTED} fontSize="0.74rem" mb="0.34rem">
+            Follows the current selection in Structure.
           </Box>
         </Flex.Item>
         {selectedTier ? (
@@ -3124,7 +3127,7 @@ function SceneInspectorSection({
               }
               placeholder="Scene description"
               minRows={4}
-              maxRows={10}
+              maxRows={8}
             />
           </LabeledList.Item>
         </LabeledList>
@@ -3325,7 +3328,7 @@ function TrackInspectorSection({
               }
               placeholder="Track description"
               minRows={4}
-              maxRows={10}
+              maxRows={8}
             />
           </LabeledList.Item>
           <LabeledList.Item label="Duration">

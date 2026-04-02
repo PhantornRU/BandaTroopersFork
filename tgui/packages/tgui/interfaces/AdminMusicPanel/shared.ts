@@ -111,23 +111,36 @@ export type TrackLaunchReadiness = {
 
 export const DEFAULT_PREVIEW_VOLUME = 0.2;
 export const DESCRIPTION_FIELD_HEIGHT = 4.5;
+export const BG_APP = '#11161D';
+export const BG_PANEL = '#1B2430';
+export const BG_PANEL_ALT = '#202B38';
+export const BG_CARD = '#273443';
+export const BG_SELECTED = '#314155';
+export const BORDER = '#3B4C61';
+export const TEXT_PRIMARY = '#E7EDF5';
+export const TEXT_SECONDARY = '#AEB8C6';
+export const TEXT_MUTED = '#8693A5';
+export const ACCENT_SUCCESS = '#67B31B';
+export const ACCENT_SUCCESS_HI = '#7CCF23';
+export const ACCENT_DANGER = '#C93A3A';
+export const ACCENT_NEUTRAL = '#4E6682';
 export const PLAYER_CARD_STYLE = {
-  backgroundColor: 'rgba(56, 64, 74, 0.82)',
-  border: '1px solid rgba(255, 255, 255, 0.09)',
+  backgroundColor: BG_CARD,
+  border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
-  padding: '0.75rem',
+  padding: '0.68rem',
 };
 export const COMPACT_CARD_STYLE = {
-  backgroundColor: 'rgba(49, 57, 67, 0.78)',
-  border: '1px solid rgba(255, 255, 255, 0.085)',
+  backgroundColor: BG_CARD,
+  border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
-  padding: '0.5rem 0.6rem',
+  padding: '0.46rem 0.58rem',
 };
 export const PLAYER_STRIP_STYLE = {
-  backgroundColor: 'rgba(38, 46, 54, 0.86)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  backgroundColor: BG_PANEL_ALT,
+  border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
-  padding: '0.85rem',
+  padding: '0.72rem',
 };
 export const PLAYER_BADGE_STYLE = {
   display: 'inline-block',
@@ -135,20 +148,21 @@ export const PLAYER_BADGE_STYLE = {
   marginRight: '0.35rem',
   marginBottom: '0.35rem',
   borderRadius: '999px',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL_ALT,
+  color: TEXT_SECONDARY,
 };
 export const STATUS_STRIP_STYLE = {
-  backgroundColor: 'rgba(44, 52, 61, 0.78)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  backgroundColor: BG_PANEL_ALT,
+  border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
-  padding: '0.45rem 0.55rem',
+  padding: '0.42rem 0.52rem',
 };
 export const SUBTLE_PANEL_STYLE = {
-  backgroundColor: 'rgba(40, 48, 56, 0.72)',
-  border: '1px solid rgba(255, 255, 255, 0.07)',
+  backgroundColor: BG_PANEL_ALT,
+  border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
-  padding: '0.45rem 0.55rem',
+  padding: '0.42rem 0.52rem',
 };
 export const UNSAVED_BADGE_STYLE = {
   display: 'inline-block',
@@ -156,24 +170,27 @@ export const UNSAVED_BADGE_STYLE = {
   borderRadius: '999px',
   border: '1px solid rgba(255, 208, 102, 0.45)',
   backgroundColor: 'rgba(255, 208, 102, 0.12)',
+  color: TEXT_PRIMARY,
 };
 export const MUTED_BADGE_STYLE = {
   display: 'inline-block',
   padding: '0.15rem 0.45rem',
   borderRadius: '999px',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  border: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL_ALT,
+  color: TEXT_SECONDARY,
 };
 export const LIVE_BADGE_STYLE = {
   display: 'inline-block',
   padding: '0.15rem 0.45rem',
   borderRadius: '999px',
-  border: '1px solid rgba(120, 190, 100, 0.35)',
-  backgroundColor: 'rgba(70, 140, 60, 0.12)',
+  border: `1px solid ${ACCENT_SUCCESS_HI}`,
+  backgroundColor: 'rgba(103, 179, 27, 0.18)',
+  color: TEXT_PRIMARY,
 };
 export const LABEL_STYLE = {
   fontSize: '0.8rem',
-  color: 'rgba(214, 223, 233, 0.75)',
+  color: TEXT_SECONDARY,
 };
 export const ELLIPSIS_STYLE = {
   overflow: 'hidden',
@@ -196,26 +213,18 @@ export const DISABLED_ACTION_STYLE = {
 };
 
 export const getToggleButtonStyle = (checked: boolean) => ({
-  border: checked
-    ? '1px solid rgba(137, 171, 214, 0.45)'
-    : '1px solid rgba(255, 255, 255, 0.07)',
-  backgroundColor: checked
-    ? 'rgba(102, 131, 171, 0.16)'
-    : 'rgba(255, 255, 255, 0.025)',
-  color: checked ? 'rgba(244, 248, 252, 0.96)' : 'rgba(214, 223, 233, 0.92)',
+  border: checked ? `1px solid ${ACCENT_NEUTRAL}` : `1px solid ${BORDER}`,
+  backgroundColor: checked ? 'rgba(78, 102, 130, 0.24)' : BG_CARD,
+  color: checked ? TEXT_PRIMARY : TEXT_SECONDARY,
 });
 
 export const getListRowStyle = (selected: boolean) => ({
   marginBottom: '0.2rem',
   padding: '0.32rem 0.48rem',
   borderRadius: '0.32rem',
-  border: selected
-    ? '1px solid rgba(137, 171, 214, 0.72)'
-    : '1px solid rgba(255, 255, 255, 0.06)',
-  backgroundColor: selected
-    ? 'rgba(102, 131, 171, 0.34)'
-    : 'rgba(255, 255, 255, 0.05)',
-  boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)' : 'none',
+  border: selected ? `1px solid ${ACCENT_NEUTRAL}` : `1px solid ${BORDER}`,
+  backgroundColor: selected ? BG_SELECTED : BG_PANEL_ALT,
+  boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
 });
 
 export const normalizeDurationValue = (duration_seconds: number) => {
