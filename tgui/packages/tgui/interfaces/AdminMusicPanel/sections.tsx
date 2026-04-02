@@ -1380,7 +1380,7 @@ export function EditTab({
       <Stack.Item grow={1}>
         <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis={tracksExpanded ? '72%' : '68%'} grow={7}>
+            <Stack.Item basis="68%" grow={7}>
               <StructureSection
                 draft={draft}
                 selectedTier={selectedTier}
@@ -1407,7 +1407,7 @@ export function EditTab({
                 onMoveVariantDown={onMoveVariantDown}
               />
             </Stack.Item>
-            <Stack.Item basis={tracksExpanded ? '28%' : '32%'} grow={3}>
+            <Stack.Item basis="32%" grow={3}>
               <EditPanelSection
                 draft={draft}
                 draftToken={draftToken}
@@ -2519,18 +2519,18 @@ function EditTrackActionButtons({
         </>
       ) : null}
       <Stack.Item>
-        <Button
+        <Button.Checkbox
           compact
-          icon={tracksExpanded ? 'compress' : 'expand'}
-          color="transparent"
+          checked={tracksExpanded}
+          icon="list"
           style={{
             ...STRUCTURE_ACTION_BUTTON_STYLE,
             ...getToggleButtonStyle(tracksExpanded),
           }}
           onClick={onToggleTracksExpanded}
         >
-          {tracksExpanded ? 'Restore Width' : 'Widen Tracks'}
-        </Button>
+          Track Details
+        </Button.Checkbox>
       </Stack.Item>
       <Stack.Item>
         <Button
@@ -2763,8 +2763,9 @@ function StructureSection({
                           mt="0.06rem"
                           style={ELLIPSIS_STYLE}
                         >
-                          Dense packs more rows. Widen Tracks gives long titles
-                          and descriptions more room.
+                          {tracksExpanded
+                            ? 'Track Details is active. Descriptions stay visible.'
+                            : 'Dense packs more rows. Track Details keeps descriptions visible.'}
                         </Box>
                       </Flex.Item>
                       <Flex.Item ml={1}>
