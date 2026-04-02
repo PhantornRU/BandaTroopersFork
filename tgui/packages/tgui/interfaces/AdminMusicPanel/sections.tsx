@@ -1355,7 +1355,7 @@ export function EditTab({
 
   return (
     <Stack fill vertical>
-      <Stack.Item basis="13%">
+      <Stack.Item>
         <EditHeaderSection
           draft={draft}
           draftStatus={draftStatus}
@@ -1365,8 +1365,8 @@ export function EditTab({
           onRevert={onRevert}
         />
       </Stack.Item>
-      <Stack.Item basis="87%" grow={1}>
-        <Box mt="0.6rem" style={{ height: '100%' }}>
+      <Stack.Item grow={1}>
+        <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
             <Stack.Item basis={tracksExpanded ? '76%' : '70%'} grow={7}>
               <StructureSection
