@@ -28,8 +28,8 @@
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: base.em(28px);
-  padding: 0.14rem 0.5rem;
+  min-height: base.em(26px);
+  padding: 0.02rem 0.42rem;
   border: base.em(1px) solid #3b4c61;
   border-radius: base.em(4px);
   background-color: #273443;
@@ -47,13 +47,13 @@
     min-width: 0;
     height: auto;
     color: #e7edf5;
-    line-height: 1.35;
+    line-height: 1.05;
   }
 
   .Dropdown__arrow-button {
     width: auto;
-    padding-left: 0.45em;
-    margin-left: 0.35em;
+    padding-left: 0.38em;
+    margin-left: 0.28em;
     border-left: base.em(1px) solid #3b4c61;
     color: #aeb8c6;
   }

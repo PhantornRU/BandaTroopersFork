@@ -218,11 +218,44 @@ const PLAY_CONTEXT_META_STYLE = {
   color: TEXT_SECONDARY,
 };
 
+const PLAY_FACTS_AND_STATUS_ROW_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '0.24rem 0.5rem',
+  width: '100%',
+  minWidth: '0',
+};
+
+const PLAY_FACTS_GROUP_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '0.16rem 0.24rem',
+  minWidth: '0',
+  flex: '1 1 auto',
+};
+
+const PLAY_STATUS_BAR_ITEM_STYLE = {
+  minWidth: '0',
+  width: '100%',
+  flex: '1 1 100%',
+};
+
+const PLAY_CONTROLS_ROW_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'stretch',
+  gap: '0.45rem',
+  width: '100%',
+  minWidth: '0',
+};
+
 const PLAY_TOOLBAR_TOGGLE_STYLE = (checked: boolean) => ({
   ...getCompactToggleStyle(checked),
   width: '100%',
-  minHeight: '1.72rem',
-  justifyContent: 'center',
+  minHeight: '2rem',
+  textAlign: 'center',
 });
 
 const PLAY_SETTINGS_LABEL_STYLE = {
@@ -262,6 +295,7 @@ const getTertiaryActionStyle = (disabled = false): Record<string, string> => ({
 const getCompactToggleStyle = (checked: boolean): Record<string, string> => ({
   ...getToggleButtonStyle(checked),
   minHeight: '2rem',
+  textAlign: 'center',
 });
 
 const getSegmentedButtonStyle = (
@@ -272,6 +306,7 @@ const getSegmentedButtonStyle = (
   backgroundColor: selected ? 'rgba(78, 102, 130, 0.26)' : BG_PANEL,
   color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
   boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
+  textAlign: 'center',
   ...(disabled ? DISABLED_ACTION_STYLE : {}),
 });
 
@@ -283,6 +318,8 @@ const TRACKS_FILTER_BAR_STYLE = {
 const LAUNCH_STATUS_PANEL_STYLE = {
   ...SUBTLE_PANEL_STYLE,
   padding: '0.34rem 0.58rem',
+  minWidth: '0',
+  width: '100%',
 };
 
 const OPERATOR_STATUS_PANEL_STYLE = {
@@ -325,6 +362,37 @@ const LAUNCH_STATUS_SEGMENT_STYLE = {
   fontSize: '0.74rem',
   whiteSpace: 'nowrap',
   lineHeight: '1.22',
+};
+
+const FOCUS_FACTS_COLUMN_STYLE = {
+  ...SUBTLE_PANEL_STYLE,
+  padding: '0.42rem 0.58rem',
+  minHeight: '100%',
+};
+
+const FOCUS_FACTS_GRID_STYLE = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+  columnGap: '0.75rem',
+  width: '100%',
+  minWidth: '0',
+};
+
+const FOCUS_FACTS_SUBCOLUMN_STYLE = {
+  minWidth: '0',
+  width: '100%',
+};
+
+const FOCUS_FACT_LINE_STYLE = {
+  fontSize: '0.76rem',
+  color: TEXT_SECONDARY,
+  lineHeight: '1.25',
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+};
+
+const FOCUS_FACT_VALUE_STYLE = {
+  color: TEXT_PRIMARY,
 };
 
 const WRAPPING_TOGGLE_BUTTON_STYLE = (checked: boolean) => ({
@@ -499,39 +567,13 @@ type LaunchContextBadge = Readonly<{
   style?: Record<string, string>;
 }>;
 
-function getLaunchContextBadges(
+function getLaunchContextFactBadges(
   contextFacts: CompactFactItem[],
-  launchStateText: string,
-  previewStateText: string,
-  trackReadiness: TrackLaunchReadiness,
 ): LaunchContextBadge[] {
-  const badges: LaunchContextBadge[] = contextFacts.map((item) => ({
+  return contextFacts.map((item) => ({
     key: item.label,
     text: `${item.label}: ${item.value}`,
   }));
-
-  badges.push(
-    { key: 'status', text: `Status: ${launchStateText}` },
-    { key: 'preview', text: `Preview: ${previewStateText}` },
-  );
-
-  if (trackReadiness.reason) {
-    badges.push({
-      key: 'blocked',
-      text: `Blocked: ${trackReadiness.reason}`,
-      style: WARNING_BADGE_STYLE,
-    });
-  }
-
-  if (trackReadiness.warnings.length) {
-    badges.push({
-      key: 'warning',
-      text: `Warning: ${trackReadiness.warnings[0]}`,
-      style: WARNING_BADGE_STYLE,
-    });
-  }
-
-  return badges;
 }
 
 type LaunchStatusSummaryProps = Readonly<{
@@ -566,6 +608,140 @@ function LaunchStatusSummary({
             <Box style={LAUNCH_STATUS_SEGMENT_STYLE}>{segment}</Box>
           </Flex.Item>
         ))}
+      </Flex>
+    </Box>
+  );
+}
+
+type LaunchFactsAndStatusRowProps = Readonly<{
+  facts: LaunchContextBadge[];
+  launchStateText: string;
+  previewStateText: string;
+  trackReadiness: TrackLaunchReadiness;
+  mt?: string | number;
+}>;
+
+function LaunchFactsAndStatusRow({
+  facts,
+  launchStateText,
+  previewStateText,
+  trackReadiness,
+  mt = '0.1rem',
+}: LaunchFactsAndStatusRowProps) {
+  return (
+    <Box mt={mt}>
+      <Flex width="100%" style={PLAY_FACTS_AND_STATUS_ROW_STYLE}>
+        <Flex.Item style={PLAY_FACTS_GROUP_STYLE}>
+          {facts.map((item) => (
+            <Box
+              key={item.key}
+              style={item.style ? item.style : PLAY_CONTEXT_META_STYLE}
+            >
+              {item.text}
+            </Box>
+          ))}
+        </Flex.Item>
+        <Flex.Item style={PLAY_STATUS_BAR_ITEM_STYLE}>
+          <LaunchStatusSummary
+            launchStateText={launchStateText}
+            previewStateText={previewStateText}
+            trackReadiness={trackReadiness}
+          />
+        </Flex.Item>
+      </Flex>
+    </Box>
+  );
+}
+
+type LaunchFactsRowProps = Readonly<{
+  facts: LaunchContextBadge[];
+  mt?: string | number;
+}>;
+
+function LaunchFactsRow({ facts, mt = '0.1rem' }: LaunchFactsRowProps) {
+  return (
+    <Box mt={mt}>
+      <Flex width="100%" style={PLAY_FACTS_AND_STATUS_ROW_STYLE}>
+        <Flex.Item style={PLAY_FACTS_GROUP_STYLE}>
+          {facts.map((item) => (
+            <Box
+              key={item.key}
+              style={item.style ? item.style : PLAY_CONTEXT_META_STYLE}
+            >
+              {item.text}
+            </Box>
+          ))}
+        </Flex.Item>
+      </Flex>
+    </Box>
+  );
+}
+
+type FocusLaunchFactsColumnProps = Readonly<{
+  facts: CompactFactItem[];
+  launchStateText: string;
+  previewStateText: string;
+  trackReadiness: TrackLaunchReadiness;
+}>;
+
+function FocusLaunchFactsColumn({
+  facts,
+  launchStateText,
+  previewStateText,
+  trackReadiness,
+}: FocusLaunchFactsColumnProps) {
+  const sourceFact = facts.find((item) => item.label === 'Source');
+  const leftColumnLines = [
+    ...facts
+      .filter((item) => item.label !== 'Source')
+      .map((item) => ({ label: item.label, value: item.value })),
+    { label: 'Status', value: launchStateText },
+  ];
+  const rightColumnLines = [
+    ...(sourceFact
+      ? [{ label: sourceFact.label, value: sourceFact.value }]
+      : []),
+    { label: 'Preview', value: previewStateText },
+  ];
+
+  if (trackReadiness.reason) {
+    leftColumnLines.push({ label: 'Blocked', value: trackReadiness.reason });
+  }
+
+  if (trackReadiness.warnings.length) {
+    rightColumnLines.push({
+      label: 'Warning',
+      value: trackReadiness.warnings[0],
+    });
+  }
+
+  return (
+    <Box style={FOCUS_FACTS_COLUMN_STYLE}>
+      <Flex width="100%" style={FOCUS_FACTS_GRID_STYLE}>
+        <Flex.Item style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
+          {leftColumnLines.map((line) => (
+            <Box
+              key={`${line.label}:${line.value}`}
+              mb="0.12rem"
+              style={FOCUS_FACT_LINE_STYLE}
+            >
+              {line.label}:{' '}
+              <span style={FOCUS_FACT_VALUE_STYLE}>{line.value}</span>
+            </Box>
+          ))}
+        </Flex.Item>
+        <Flex.Item style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
+          {rightColumnLines.map((line) => (
+            <Box
+              key={`${line.label}:${line.value}`}
+              mb="0.12rem"
+              style={FOCUS_FACT_LINE_STYLE}
+            >
+              {line.label}:{' '}
+              <span style={FOCUS_FACT_VALUE_STYLE}>{line.value}</span>
+            </Box>
+          ))}
+        </Flex.Item>
       </Flex>
     </Box>
   );
@@ -801,6 +977,7 @@ function OperatorActionPanel({
             <Button
               compact
               fluid
+              className="AdminMusicPanel__centeredButton"
               style={{
                 ...CONTROL_BUTTON_STYLE,
               }}
@@ -816,6 +993,7 @@ function OperatorActionPanel({
             <Button
               compact
               fluid
+              className="AdminMusicPanel__centeredButton"
               icon="stop"
               color="transparent"
               disabled={!hasCurrentSession}
@@ -836,6 +1014,7 @@ function OperatorActionPanel({
             <Button
               compact
               fluid
+              className="AdminMusicPanel__centeredButton"
               color="transparent"
               icon={previewIcon}
               disabled={previewDisabled}
@@ -852,6 +1031,7 @@ function OperatorActionPanel({
             <Button
               compact
               fluid
+              className="AdminMusicPanel__centeredButton"
               color="transparent"
               icon="undo"
               style={{
@@ -893,6 +1073,7 @@ function LaunchPreflightControls({
         <Button.Checkbox
           compact
           fluid
+          className="AdminMusicPanel__centeredButton"
           checked={launchSettings.repeat}
           style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
           onClick={onToggleRepeat}
@@ -991,12 +1172,7 @@ export function SessionSection({
         : 'Not set',
     },
   ];
-  const contextBadges = getLaunchContextBadges(
-    contextFacts,
-    launchStateText,
-    previewStateText,
-    trackReadiness,
-  );
+  const contextBadges = getLaunchContextFactBadges(contextFacts);
 
   return (
     <Stack fill align="stretch">
@@ -1030,31 +1206,36 @@ export function SessionSection({
               </Flex.Item>
             ) : null}
           </Flex>
-          <Box mt="0.1rem">
-            <Box>
-              {contextBadges.map((item) => (
-                <Box
-                  key={item.key}
-                  style={item.style ? item.style : PLAY_CONTEXT_META_STYLE}
-                >
-                  {item.text}
-                </Box>
-              ))}
-            </Box>
+          <LaunchFactsRow facts={contextBadges} />
+          <Box mt="0.14rem">
+            <LaunchStatusSummary
+              launchStateText={launchStateText}
+              previewStateText={previewStateText}
+              trackReadiness={trackReadiness}
+            />
           </Box>
           <Box mt="0.18rem">
-            <PlaybackSettingsControls
-              playback={launchSettings}
-              audienceOptions={audienceOptions}
-              soundTypeOptions={soundTypeOptions}
-              audienceLabel={audienceLabel}
-              soundTypeLabel={soundTypeLabel}
-              onSetAudienceMode={onSetAudienceMode}
-              onSetSoundType={onSetSoundType}
-              onToggleShowTitle={() => null}
-              showVisibilityToggle={false}
-              showRepeatToggle={false}
-            />
+            <Flex width="100%" style={PLAY_CONTROLS_ROW_STYLE}>
+              <Flex.Item
+                grow
+                basis="22rem"
+                style={{ minWidth: '14rem', flex: '1 1 22rem' }}
+              >
+                <PlaybackSettingsControls
+                  playback={launchSettings}
+                  audienceOptions={audienceOptions}
+                  soundTypeOptions={soundTypeOptions}
+                  audienceLabel={audienceLabel}
+                  soundTypeLabel={soundTypeLabel}
+                  onSetAudienceMode={onSetAudienceMode}
+                  onSetSoundType={onSetSoundType}
+                  onToggleShowTitle={() => null}
+                  showVisibilityToggle={false}
+                  showRepeatToggle={false}
+                  inlineDropdownLabels
+                />
+              </Flex.Item>
+            </Flex>
           </Box>
         </Section>
       </Stack.Item>
@@ -1105,6 +1286,7 @@ function PlaybackModeSelector({
           <Button
             compact
             fluid
+            className="AdminMusicPanel__centeredButton"
             color="transparent"
             selected={playbackMode === option.value}
             disabled={repeat}
@@ -1124,11 +1306,14 @@ function PlaybackModeSelector({
 
 type TracksFocusLaunchStripProps = Readonly<{
   current_session: CurrentSession;
+  draft: DraftPreset;
   launchSettings: LaunchSettings;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
   soundTypeLabel: string;
+  selectedTier: DraftTier | null;
+  selectedVariant: DraftVariant | null;
   trackReadiness: TrackLaunchReadiness;
   isPreviewActive: boolean;
   previewState: string;
@@ -1146,11 +1331,14 @@ type TracksFocusLaunchStripProps = Readonly<{
 
 function TracksFocusLaunchStrip({
   current_session,
+  draft,
   launchSettings,
   audienceOptions,
   soundTypeOptions,
   audienceLabel,
   soundTypeLabel,
+  selectedTier,
+  selectedVariant,
   trackReadiness,
   isPreviewActive,
   previewState,
@@ -1174,32 +1362,52 @@ function TracksFocusLaunchStrip({
       ? 'Blocked'
       : 'Ready to broadcast';
   const previewStateText = isPreviewActive ? 'Preview playing' : previewState;
+  const focusFactItems: CompactFactItem[] = [
+    {
+      label: 'Preset',
+      value: draft.name || 'New preset',
+    },
+    {
+      label: 'Scene',
+      value: selectedTier?.name || 'None',
+    },
+    {
+      label: 'Duration',
+      value: selectedVariant
+        ? formatDuration(selectedVariant.duration_seconds)
+        : 'Unknown',
+    },
+    {
+      label: 'Source',
+      value: selectedVariant?.source_url?.trim()
+        ? formatSourceLabel(selectedVariant.source_url)
+        : 'Not set',
+    },
+  ];
 
   return (
     <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
-      <Stack fill vertical>
-        <Stack.Item>
-          <LaunchStatusSummary
+      <Flex align="stretch" wrap width="100%" style={{ gap: '0.55rem' }}>
+        <Flex.Item
+          basis="18rem"
+          style={{ minWidth: '16rem', flex: '0 1 18rem' }}
+        >
+          <FocusLaunchFactsColumn
+            facts={focusFactItems}
             launchStateText={launchStateText}
             previewStateText={previewStateText}
             trackReadiness={trackReadiness}
           />
-        </Stack.Item>
-        <Stack.Item>
-          <Flex
-            align="stretch"
-            justify="space-between"
-            wrap
-            width="100%"
-            style={{ gap: '0.5rem' }}
-          >
-            <Flex.Item
-              grow
-              basis="22rem"
-              style={{ minWidth: '14rem', flex: '1 1 22rem' }}
-            >
-              <Stack fill vertical>
-                <Stack.Item>
+        </Flex.Item>
+        <Flex.Item grow style={{ minWidth: '18rem', flex: '1 1 28rem' }}>
+          <Stack fill vertical>
+            <Stack.Item>
+              <Flex width="100%" style={PLAY_CONTROLS_ROW_STYLE}>
+                <Flex.Item
+                  grow
+                  basis="22rem"
+                  style={{ minWidth: '14rem', flex: '1 1 22rem' }}
+                >
                   <PlaybackSettingsControls
                     playback={launchSettings}
                     audienceOptions={audienceOptions}
@@ -1211,106 +1419,114 @@ function TracksFocusLaunchStrip({
                     onToggleShowTitle={() => null}
                     showVisibilityToggle={false}
                     showRepeatToggle={false}
+                    inlineDropdownLabels
                   />
-                </Stack.Item>
-                <Stack.Item>
-                  <Box mt="0.28rem">
-                    <LaunchPreflightControls
-                      launchSettings={launchSettings}
-                      onToggleRepeat={onToggleRepeat}
-                      onSetPlaybackMode={onSetPlaybackMode}
-                    />
-                  </Box>
-                </Stack.Item>
-              </Stack>
-            </Flex.Item>
-            <Flex.Item
-              basis="24rem"
-              style={{ minWidth: '18rem', flex: '1 1 24rem' }}
-            >
-              <Box style={OPERATOR_STATUS_PANEL_STYLE}>
-                <Stack fill vertical>
-                  <Stack.Item>
-                    <Stack fill>
-                      <Stack.Item grow>
-                        <Button
-                          compact
-                          fluid
-                          color="good"
-                          icon="play"
-                          disabled={!trackReadiness.canBroadcast}
-                          style={CONTROL_BUTTON_STYLE}
-                          onClick={onPlaySelected}
-                        >
-                          {selectedTrackIsLive
-                            ? 'Restart Broadcast'
-                            : 'Broadcast'}
-                        </Button>
-                      </Stack.Item>
-                      <Stack.Item grow>
-                        <Button
-                          compact
-                          fluid
-                          color="transparent"
-                          icon="stop"
-                          disabled={!current_session}
-                          style={{
-                            ...getStopActionStyle(!current_session),
-                            ...CONTROL_BUTTON_STYLE,
-                          }}
-                          onClick={onStopBroadcast}
-                        >
-                          Stop
-                        </Button>
-                      </Stack.Item>
-                    </Stack>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Stack fill>
-                      <Stack.Item grow>
-                        <Button
-                          compact
-                          fluid
-                          color="transparent"
-                          icon={previewIcon}
-                          disabled={previewDisabled}
-                          style={{
-                            ...getPreviewActionStyle(
-                              isPreviewActive,
-                              previewDisabled,
-                            ),
-                            ...CONTROL_BUTTON_STYLE,
-                          }}
-                          onClick={
-                            isPreviewActive ? onStopPreview : onPreviewSelected
-                          }
-                        >
-                          {previewLabel}
-                        </Button>
-                      </Stack.Item>
-                      <Stack.Item grow>
-                        <Button
-                          compact
-                          fluid
-                          color="transparent"
-                          icon="undo"
-                          style={{
-                            ...getTertiaryActionStyle(),
-                            ...CONTROL_BUTTON_STYLE,
-                          }}
-                          onClick={onResetLaunchSettings}
-                        >
-                          Reset
-                        </Button>
-                      </Stack.Item>
-                    </Stack>
-                  </Stack.Item>
-                </Stack>
-              </Box>
-            </Flex.Item>
-          </Flex>
-        </Stack.Item>
-      </Stack>
+                </Flex.Item>
+                <Flex.Item
+                  basis="18rem"
+                  style={{ minWidth: '18rem', flex: '1 1 18rem' }}
+                >
+                  <Stack fill>
+                    <Stack.Item grow>
+                      <Button
+                        compact
+                        fluid
+                        className="AdminMusicPanel__centeredButton"
+                        color="good"
+                        icon="play"
+                        disabled={!trackReadiness.canBroadcast}
+                        style={CONTROL_BUTTON_STYLE}
+                        onClick={onPlaySelected}
+                      >
+                        {selectedTrackIsLive
+                          ? 'Restart Broadcast'
+                          : 'Broadcast'}
+                      </Button>
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <Button
+                        compact
+                        fluid
+                        className="AdminMusicPanel__centeredButton"
+                        color="transparent"
+                        icon="stop"
+                        disabled={!current_session}
+                        style={{
+                          ...getStopActionStyle(!current_session),
+                          ...CONTROL_BUTTON_STYLE,
+                        }}
+                        onClick={onStopBroadcast}
+                      >
+                        Stop
+                      </Button>
+                    </Stack.Item>
+                  </Stack>
+                </Flex.Item>
+              </Flex>
+            </Stack.Item>
+            <Stack.Item>
+              <Flex width="100%" style={PLAY_CONTROLS_ROW_STYLE}>
+                <Flex.Item
+                  grow
+                  basis="22rem"
+                  style={{ minWidth: '14rem', flex: '1 1 22rem' }}
+                >
+                  <LaunchPreflightControls
+                    launchSettings={launchSettings}
+                    onToggleRepeat={onToggleRepeat}
+                    onSetPlaybackMode={onSetPlaybackMode}
+                  />
+                </Flex.Item>
+                <Flex.Item
+                  basis="18rem"
+                  style={{ minWidth: '18rem', flex: '1 1 18rem' }}
+                >
+                  <Stack fill>
+                    <Stack.Item grow>
+                      <Button
+                        compact
+                        fluid
+                        className="AdminMusicPanel__centeredButton"
+                        color="transparent"
+                        icon={previewIcon}
+                        disabled={previewDisabled}
+                        style={{
+                          ...getPreviewActionStyle(
+                            isPreviewActive,
+                            previewDisabled,
+                          ),
+                          ...CONTROL_BUTTON_STYLE,
+                        }}
+                        onClick={
+                          isPreviewActive ? onStopPreview : onPreviewSelected
+                        }
+                      >
+                        {previewLabel}
+                      </Button>
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <Button
+                        compact
+                        fluid
+                        className="AdminMusicPanel__centeredButton"
+                        color="transparent"
+                        icon="undo"
+                        style={{
+                          ...getTertiaryActionStyle(),
+                          ...CONTROL_BUTTON_STYLE,
+                        }}
+                        onClick={onResetLaunchSettings}
+                      >
+                        Reset
+                      </Button>
+                    </Stack.Item>
+                  </Stack>
+                </Flex.Item>
+              </Flex>
+            </Stack.Item>
+          </Stack>
+        </Flex.Item>
+      </Flex>
     </Box>
   );
 }
@@ -1453,11 +1669,14 @@ export function PlayTab({
           <Box mt="0.38rem">
             <TracksFocusLaunchStrip
               current_session={current_session}
+              draft={draft}
               launchSettings={launchSettings}
               audienceOptions={audienceOptions}
               soundTypeOptions={soundTypeOptions}
               audienceLabel={audienceLabel}
               soundTypeLabel={soundTypeLabel}
+              selectedTier={selectedTier}
+              selectedVariant={selectedVariant}
               trackReadiness={trackReadiness}
               isPreviewActive={isPreviewActive}
               previewState={previewState}
@@ -1923,6 +2142,7 @@ type PlaybackSettingsControlsProps = Readonly<{
   showVisibilityToggle?: boolean;
   visibilityInline?: boolean;
   wrapToggleRow?: boolean;
+  inlineDropdownLabels?: boolean;
 }>;
 
 function PlaybackSettingsControls({
@@ -1939,32 +2159,45 @@ function PlaybackSettingsControls({
   showVisibilityToggle = true,
   visibilityInline = false,
   wrapToggleRow = false,
+  inlineDropdownLabels = false,
 }: PlaybackSettingsControlsProps) {
   return (
     <Stack vertical>
       <Stack.Item>
         <Stack fill>
           <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
-            <Box style={PLAY_SETTINGS_LABEL_STYLE}>Audience</Box>
+            {!inlineDropdownLabels ? (
+              <Box style={PLAY_SETTINGS_LABEL_STYLE}>Audience</Box>
+            ) : null}
             <Dropdown
               width="100%"
               color="transparent"
               className="AdminMusicPanel__dropdownControl"
               options={audienceOptions}
               selected={playback.audience_mode}
-              displayText={audienceLabel}
+              displayText={
+                inlineDropdownLabels
+                  ? `Audience: ${audienceLabel}`
+                  : audienceLabel
+              }
               onSelected={(value) => onSetAudienceMode(value)}
             />
           </Stack.Item>
           <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
-            <Box style={PLAY_SETTINGS_LABEL_STYLE}>Sound Type</Box>
+            {!inlineDropdownLabels ? (
+              <Box style={PLAY_SETTINGS_LABEL_STYLE}>Sound Type</Box>
+            ) : null}
             <Dropdown
               width="100%"
               color="transparent"
               className="AdminMusicPanel__dropdownControl"
               options={soundTypeOptions}
               selected={playback.sound_type}
-              displayText={soundTypeLabel}
+              displayText={
+                inlineDropdownLabels
+                  ? `Sound Type: ${soundTypeLabel}`
+                  : soundTypeLabel
+              }
               onSelected={(value) => onSetSoundType(value)}
             />
           </Stack.Item>
