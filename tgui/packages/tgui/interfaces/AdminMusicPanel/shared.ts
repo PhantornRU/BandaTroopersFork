@@ -193,9 +193,13 @@ export const LABEL_STYLE = {
   color: TEXT_SECONDARY,
 };
 export const ELLIPSIS_STYLE = {
+  display: 'block',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
 };
 export const WRAPPED_TEXT_STYLE = {
   whiteSpace: 'normal',
@@ -204,6 +208,8 @@ export const WRAPPED_TEXT_STYLE = {
 };
 export const LIST_SCROLL_STYLE = {
   height: '100%',
+  minWidth: '0',
+  overflowX: 'hidden',
   overflowY: 'auto',
   paddingRight: '0.1rem',
 };

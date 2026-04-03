@@ -106,11 +106,33 @@
 		target = holder.mob
 	return tgui_alert(target, message, title, list("Discard Changes", "Cancel")) == "Discard Changes"
 
+/datum/admin_music_panel/proc/prompt_close_action()
+	if(!dirty)
+		return "Discard Changes"
+	var/target = holder
+	if(holder && holder.mob)
+		target = holder.mob
+	return tgui_alert(
+		target,
+		"Save Admin Music Panel changes before closing?",
+		"Unsaved Changes",
+		list("Save Changes", "Discard Changes", "Cancel"),
+	)
+
 /datum/admin_music_panel/proc/request_close()
 	if(closing)
 		return FALSE
-	if(dirty && !confirm_discard_changes("Discard unsaved Admin Music Panel changes and close the panel?"))
-		return FALSE
+	if(dirty)
+		var/close_choice = prompt_close_action()
+		switch(close_choice)
+			if("Save Changes")
+				var/datum/admin_music_preset/saved_preset = GLOB.admin_music_service.save_draft(holder, draft, FALSE)
+				if(!saved_preset)
+					return FALSE
+			if("Discard Changes")
+				// Continue closing without saving.
+			else
+				return FALSE
 	closing = TRUE
 	qdel(src)
 	return TRUE

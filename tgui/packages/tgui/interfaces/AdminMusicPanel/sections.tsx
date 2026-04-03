@@ -119,6 +119,7 @@ function BufferedTextArea({
       ref={textareaRef}
       fluid
       height={`${heightPx}px`}
+      style={EDIT_INPUT_STYLE}
       value={draftValue}
       onInput={(e, nextValue) => setDraftValue(nextValue)}
       onChange={(e, nextValue) => {
@@ -278,13 +279,53 @@ const LAUNCH_STATUS_PANEL_STYLE = {
   padding: '0.34rem 0.58rem',
 };
 
+const OPERATOR_STATUS_PANEL_STYLE = {
+  borderTop: `1px solid ${BORDER}`,
+  backgroundColor: BG_PANEL_ALT,
+  borderRadius: '0.32rem',
+  padding: '0.26rem 0.36rem',
+};
+
 const TRACK_TITLE_TEXT_STYLE = {
   ...ELLIPSIS_STYLE,
   color: TEXT_PRIMARY,
 };
 
-const TRACK_DESCRIPTION_TEXT_STYLE = {
-  ...ELLIPSIS_STYLE,
+const TRACK_DESCRIPTION_BLOCK_STYLE = {
+  color: TEXT_MUTED,
+  lineHeight: '1.28',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+  minWidth: '0',
+  width: '100%',
+  maxWidth: '100%',
+};
+
+const TRACK_DENSE_LINE_STYLE = {
+  display: 'flex',
+  alignItems: 'baseline',
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+};
+
+const TRACK_DENSE_TEXT_STYLE = {
+  flex: '1 1 auto',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+};
+
+const TRACK_DENSE_TITLE_SPAN_STYLE = {
+  color: TEXT_PRIMARY,
+  fontWeight: '700',
+};
+
+const TRACK_DENSE_DESCRIPTION_SPAN_STYLE = {
   color: TEXT_MUTED,
 };
 
@@ -303,12 +344,50 @@ const STRUCTURE_ACTION_BUTTON_STYLE = {
   justifyContent: 'center',
 };
 
+const EDIT_FIELD_WRAPPER_STYLE = {
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+  overflow: 'hidden',
+};
+
+const EDIT_INPUT_STYLE = {
+  boxSizing: 'border-box',
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+};
+
+const FULL_WIDTH_CLAMP_STYLE = {
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+  overflow: 'hidden',
+};
+
+const TRACK_ROW_LEFT_STYLE = {
+  minWidth: '0',
+  overflow: 'hidden',
+};
+
+const INSPECTOR_CARD_STYLE = {
+  ...COMPACT_CARD_STYLE,
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+  overflow: 'hidden',
+};
+
 const getTrackRowStyle = (
   selected: boolean,
   dense: boolean,
   isLive: boolean,
 ): Record<string, string> => ({
   ...getListRowStyle(selected),
+  width: '100%',
+  maxWidth: '100%',
+  minWidth: '0',
+  overflow: 'hidden',
   ...(dense
     ? {
         marginBottom: '0.12rem',
@@ -349,6 +428,35 @@ const getLibraryRowStyle = (loaded: boolean) => ({
       }
     : {}),
 });
+
+const getBroadcastStatusText = (
+  trackReadiness: TrackLaunchReadiness,
+  selectedTrackIsLive: boolean,
+) => {
+  if (selectedTrackIsLive) {
+    return 'Live';
+  }
+
+  if (trackReadiness.reason) {
+    return 'Blocked';
+  }
+
+  return 'Ready';
+};
+
+const getLaunchDiagnosticsText = (trackReadiness: TrackLaunchReadiness) => {
+  const diagnostics: string[] = [];
+
+  if (trackReadiness.reason) {
+    diagnostics.push(`Blocked: ${trackReadiness.reason}`);
+  }
+
+  if (trackReadiness.warnings.length) {
+    diagnostics.push(`Warning: ${trackReadiness.warnings[0]}`);
+  }
+
+  return diagnostics.join(' | ');
+};
 
 function TrackFactBadges({ items }: TrackFactBadgesProps) {
   return (
@@ -391,6 +499,65 @@ const getVariantListBadges = (variant: DraftVariant, isLive = false) => {
 
   return badges;
 };
+
+const getTrackDetailBadges = (variant: DraftVariant, isLive = false) => {
+  const badges = [...getVariantListBadges(variant, isLive)];
+
+  if (!isVariantMissingSource(variant)) {
+    badges.unshift({
+      label: `Source: ${formatSourceLabel(variant.source_url)}`,
+      style: MUTED_BADGE_STYLE,
+    });
+  }
+
+  return badges;
+};
+
+type TrackTextBlockProps = Readonly<{
+  title: string;
+  description: string;
+  dense: boolean;
+}>;
+
+function TrackTextBlock({ title, description, dense }: TrackTextBlockProps) {
+  if (dense) {
+    return (
+      <div
+        style={{
+          ...TRACK_DENSE_LINE_STYLE,
+          fontSize: '0.85rem',
+        }}
+      >
+        <div style={TRACK_DENSE_TEXT_STYLE}>
+          <span style={TRACK_DENSE_TITLE_SPAN_STYLE}>{title}</span>
+          {description ? (
+            <span style={TRACK_DENSE_DESCRIPTION_SPAN_STYLE}>
+              {' '}
+              - {description}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Box bold fontSize="0.92rem" style={TRACK_TITLE_TEXT_STYLE}>
+        {title}
+      </Box>
+      {description ? (
+        <Box
+          fontSize="0.76rem"
+          mt="0.04rem"
+          style={TRACK_DESCRIPTION_BLOCK_STYLE}
+        >
+          {description}
+        </Box>
+      ) : null}
+    </>
+  );
+}
 
 type BroadcastStatusStripProps = Readonly<{
   current_session: CurrentSession;
@@ -517,6 +684,10 @@ function OperatorActionPanel({
   const broadcastDisabled = !trackReadiness.canBroadcast;
   const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
   const previewIcon = isPreviewActive ? 'stop' : 'eye';
+  const broadcastStateText = getBroadcastStatusText(
+    trackReadiness,
+    selectedTrackIsLive,
+  );
   const broadcastLabel = selectedTrackIsLive
     ? 'Restart Broadcast'
     : 'Broadcast';
@@ -593,21 +764,12 @@ function OperatorActionPanel({
           </Stack.Item>
         </Stack>
       </Box>
-      <Box
-        mt="0.28rem"
-        px="0.36rem"
-        py="0.26rem"
-        style={{
-          borderTop: `1px solid ${BORDER}`,
-          backgroundColor: BG_PANEL_ALT,
-          borderRadius: '0.32rem',
-        }}
-      >
+      <Box mt="0.28rem" style={OPERATOR_STATUS_PANEL_STYLE}>
         <Box color="label" fontSize="0.73rem">
-          Preview: {isPreviewActive ? 'Preview playing' : previewState}
+          Broadcast: {broadcastStateText}
         </Box>
         <Box color="label" fontSize="0.73rem" mt="0.08rem">
-          Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'}
+          Preview: {isPreviewActive ? 'Preview playing' : previewState}
         </Box>
       </Box>
     </Section>
@@ -631,63 +793,55 @@ function LaunchPreflightControls({
     <Stack fill vertical>
       <Stack.Item>
         <Stack fill>
-          <Stack.Item basis="24%" grow={1}>
-            <Stack fill vertical>
-              <Stack.Item>
-                <Box color="label" fontSize="0.72rem">
-                  Players Visible
-                </Box>
-              </Stack.Item>
-              <Stack.Item>
-                <Button.Checkbox
-                  compact
-                  fluid
-                  checked={launchSettings.show_title_to_players}
-                  style={PLAY_TOOLBAR_TOGGLE_STYLE(
-                    launchSettings.show_title_to_players,
-                  )}
-                  onClick={onToggleShowTitle}
-                >
-                  Visible
-                </Button.Checkbox>
-              </Stack.Item>
-            </Stack>
+          <Stack.Item basis="22%" grow={1}>
+            <Box color="label" fontSize="0.72rem">
+              Players Visible
+            </Box>
           </Stack.Item>
-          <Stack.Item basis="18%" grow={1}>
-            <Stack fill vertical>
-              <Stack.Item>
-                <Box color="label" fontSize="0.72rem">
-                  Repeat
-                </Box>
-              </Stack.Item>
-              <Stack.Item>
-                <Button.Checkbox
-                  compact
-                  fluid
-                  checked={launchSettings.repeat}
-                  style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
-                  onClick={onToggleRepeat}
-                >
-                  Repeat current track
-                </Button.Checkbox>
-              </Stack.Item>
-            </Stack>
+          <Stack.Item basis="28%" grow={1}>
+            <Box color="label" fontSize="0.72rem">
+              Repeat
+            </Box>
           </Stack.Item>
-          <Stack.Item basis="58%" grow={2}>
-            <Stack fill vertical>
-              <Stack.Item>
-                <Box color="label" fontSize="0.72rem">
-                  Launch Mode
-                </Box>
-              </Stack.Item>
-              <Stack.Item>
-                <PlaybackModeSelector
-                  playbackMode={launchSettings.playback_mode}
-                  repeat={launchSettings.repeat}
-                  onSetPlaybackMode={onSetPlaybackMode}
-                />
-              </Stack.Item>
-            </Stack>
+          <Stack.Item basis="50%" grow={2}>
+            <Box color="label" fontSize="0.72rem">
+              Launch Mode
+            </Box>
+          </Stack.Item>
+        </Stack>
+      </Stack.Item>
+      <Stack.Item>
+        <Stack fill>
+          <Stack.Item basis="22%" grow={1}>
+            <Button.Checkbox
+              compact
+              fluid
+              checked={launchSettings.show_title_to_players}
+              style={PLAY_TOOLBAR_TOGGLE_STYLE(
+                launchSettings.show_title_to_players,
+              )}
+              onClick={onToggleShowTitle}
+            >
+              Visible
+            </Button.Checkbox>
+          </Stack.Item>
+          <Stack.Item basis="28%" grow={1}>
+            <Button.Checkbox
+              compact
+              fluid
+              checked={launchSettings.repeat}
+              style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
+              onClick={onToggleRepeat}
+            >
+              Repeat current track
+            </Button.Checkbox>
+          </Stack.Item>
+          <Stack.Item basis="50%" grow={2}>
+            <PlaybackModeSelector
+              playbackMode={launchSettings.playback_mode}
+              repeat={launchSettings.repeat}
+              onSetPlaybackMode={onSetPlaybackMode}
+            />
           </Stack.Item>
         </Stack>
       </Stack.Item>
@@ -737,8 +891,7 @@ export function SessionSection({
   onStopBroadcast,
 }: SessionSectionProps) {
   const contextTitle = selectedVariant?.title || 'No track selected';
-  const warningText = trackReadiness.warnings[0] || null;
-  const previewText = isPreviewActive ? 'Preview playing' : previewState;
+  const diagnosticsText = getLaunchDiagnosticsText(trackReadiness);
   const contextFacts: CompactFactItem[] = [
     {
       label: 'Preset',
@@ -809,15 +962,13 @@ export function SessionSection({
               onSetPlaybackMode={onSetPlaybackMode}
             />
           </Box>
-          <Box mt="0.24rem" style={LAUNCH_STATUS_PANEL_STYLE}>
-            <Box color="label" fontSize="0.74rem" style={ELLIPSIS_STYLE}>
-              Launch:{' '}
-              {trackReadiness.reason
-                ? `Blocked - ${trackReadiness.reason}`
-                : 'Ready to broadcast'}{' '}
-              | Preview: {previewText} | Warning: {warningText || 'None'}
+          {diagnosticsText ? (
+            <Box mt="0.24rem" style={LAUNCH_STATUS_PANEL_STYLE}>
+              <Box color="label" fontSize="0.74rem" style={ELLIPSIS_STYLE}>
+                {diagnosticsText}
+              </Box>
             </Box>
-          </Box>
+          ) : null}
         </Section>
       </Stack.Item>
       <Stack.Item basis="32%" grow={1}>
@@ -916,6 +1067,11 @@ function TracksFocusLaunchStrip({
   const previewDisabled = !isPreviewActive && !trackReadiness.canPreview;
   const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
   const previewIcon = isPreviewActive ? 'stop' : 'eye';
+  const diagnosticsText = getLaunchDiagnosticsText(trackReadiness);
+  const broadcastStateText = getBroadcastStatusText(
+    trackReadiness,
+    selectedTrackIsLive,
+  );
 
   return (
     <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
@@ -930,58 +1086,72 @@ function TracksFocusLaunchStrip({
                 onSetPlaybackMode={onSetPlaybackMode}
               />
             </Flex.Item>
-            <Flex.Item ml={1}>
-              <Stack>
-                <Stack.Item>
-                  <Button
-                    compact
-                    color="good"
-                    icon="play"
-                    disabled={!trackReadiness.canBroadcast}
-                    onClick={onPlaySelected}
-                  >
-                    {selectedTrackIsLive ? 'Restart Broadcast' : 'Broadcast'}
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    compact
-                    color="transparent"
-                    icon={previewIcon}
-                    disabled={previewDisabled}
-                    style={getPreviewActionStyle(
-                      isPreviewActive,
-                      previewDisabled,
-                    )}
-                    onClick={
-                      isPreviewActive ? onStopPreview : onPreviewSelected
-                    }
-                  >
-                    {previewLabel}
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    compact
-                    color="transparent"
-                    icon="stop"
-                    disabled={!current_session}
-                    style={getStopActionStyle(!current_session)}
-                    onClick={onStopBroadcast}
-                  >
-                    Stop Broadcast
-                  </Button>
-                </Stack.Item>
-              </Stack>
+            <Flex.Item ml={1} style={{ alignSelf: 'center' }}>
+              <Box style={{ display: 'flex', alignItems: 'center' }}>
+                <Stack>
+                  <Stack.Item>
+                    <Button
+                      compact
+                      color="good"
+                      icon="play"
+                      disabled={!trackReadiness.canBroadcast}
+                      onClick={onPlaySelected}
+                    >
+                      {selectedTrackIsLive ? 'Restart Broadcast' : 'Broadcast'}
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Button
+                      compact
+                      color="transparent"
+                      icon={previewIcon}
+                      disabled={previewDisabled}
+                      style={getPreviewActionStyle(
+                        isPreviewActive,
+                        previewDisabled,
+                      )}
+                      onClick={
+                        isPreviewActive ? onStopPreview : onPreviewSelected
+                      }
+                    >
+                      {previewLabel}
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Button
+                      compact
+                      color="transparent"
+                      icon="stop"
+                      disabled={!current_session}
+                      style={getStopActionStyle(!current_session)}
+                      onClick={onStopBroadcast}
+                    >
+                      Stop Broadcast
+                    </Button>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Box style={OPERATOR_STATUS_PANEL_STYLE}>
+                      <Box color="label" fontSize="0.73rem">
+                        Broadcast: {broadcastStateText}
+                      </Box>
+                      <Box color="label" fontSize="0.73rem" mt="0.08rem">
+                        Preview:{' '}
+                        {isPreviewActive ? 'Preview playing' : previewState}
+                      </Box>
+                    </Box>
+                  </Stack.Item>
+                </Stack>
+              </Box>
             </Flex.Item>
           </Flex>
         </Stack.Item>
-        <Stack.Item>
-          <Box color="label" fontSize="0.75rem">
-            Launch: {trackReadiness.reason ? 'Blocked' : 'Ready to broadcast'} |
-            Preview: {isPreviewActive ? 'Preview playing' : previewState}
-          </Box>
-        </Stack.Item>
+        {diagnosticsText ? (
+          <Stack.Item>
+            <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
+              {diagnosticsText}
+            </Box>
+          </Stack.Item>
+        ) : null}
       </Stack>
     </Box>
   );
@@ -1169,7 +1339,7 @@ export function PlayTab({
       <Stack.Item grow={1}>
         <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis="27%" grow={1}>
+            <Stack.Item basis="27%" grow={1} style={{ minWidth: '0' }}>
               <LibrarySection
                 library={library}
                 librarySearch={librarySearch}
@@ -1180,14 +1350,14 @@ export function PlayTab({
                 dirty={dirty}
               />
             </Stack.Item>
-            <Stack.Item basis="21%" grow={1}>
+            <Stack.Item basis="21%" grow={1} style={{ minWidth: '0' }}>
               <PlayScenesSection
                 draft={draft}
                 selectedTierId={selectedTierId}
                 onSelectTier={handleSelectTier}
               />
             </Stack.Item>
-            <Stack.Item basis="52%" grow={2}>
+            <Stack.Item basis="52%" grow={2} style={{ minWidth: '0' }}>
               <PlayTracksSection
                 draft={draft}
                 current_session={current_session}
@@ -1380,7 +1550,7 @@ export function EditTab({
       <Stack.Item grow={1}>
         <Box mt="0.38rem" style={{ height: '100%' }}>
           <Stack fill>
-            <Stack.Item basis="68%" grow={7}>
+            <Stack.Item basis="68%" grow={7} style={{ minWidth: '0' }}>
               <StructureSection
                 draft={draft}
                 selectedTier={selectedTier}
@@ -1407,7 +1577,7 @@ export function EditTab({
                 onMoveVariantDown={onMoveVariantDown}
               />
             </Stack.Item>
-            <Stack.Item basis="32%" grow={3}>
+            <Stack.Item basis="32%" grow={3} style={{ minWidth: '0' }}>
               <EditPanelSection
                 draft={draft}
                 draftToken={draftToken}
@@ -1947,59 +2117,72 @@ function PlayTracksSection({
                           isLive,
                         )}
                       >
-                        <Flex
-                          align="center"
-                          justify="space-between"
-                          width="100%"
-                        >
-                          <Flex.Item grow>
-                            <Flex align="center">
-                              <Flex.Item mr={denseTracks ? 0.6 : 0.9}>
-                                <Box color="label" fontSize="0.75rem">
-                                  {index + 1}.
-                                </Box>
-                              </Flex.Item>
-                              <Flex.Item grow>
-                                <Box
-                                  bold
-                                  fontSize={denseTracks ? '0.85rem' : '0.92rem'}
-                                  style={TRACK_TITLE_TEXT_STYLE}
-                                >
-                                  {variant.title || 'Unnamed track'}
-                                </Box>
-                                {!denseTracks && trackDescription ? (
-                                  <Box
-                                    fontSize="0.76rem"
-                                    mt="0.04rem"
-                                    style={TRACK_DESCRIPTION_TEXT_STYLE}
-                                  >
-                                    {trackDescription}
+                        <Box style={FULL_WIDTH_CLAMP_STYLE}>
+                          <Flex
+                            align="center"
+                            justify="space-between"
+                            width="100%"
+                            style={{ minWidth: '0' }}
+                          >
+                            <Flex.Item
+                              grow
+                              basis={0}
+                              shrink={1}
+                              style={TRACK_ROW_LEFT_STYLE}
+                            >
+                              <Flex
+                                align="center"
+                                width="100%"
+                                style={{ minWidth: '0' }}
+                              >
+                                <Flex.Item mr={denseTracks ? 0.6 : 0.9}>
+                                  <Box color="label" fontSize="0.75rem">
+                                    {index + 1}.
                                   </Box>
-                                ) : null}
-                                {getVariantListBadges(variant, isLive)
-                                  .length ? (
-                                  <Box mt="0.08rem">
-                                    {getVariantListBadges(variant, isLive).map(
-                                      (badge) => (
+                                </Flex.Item>
+                                <Flex.Item
+                                  grow
+                                  basis={0}
+                                  shrink={1}
+                                  style={TRACK_ROW_LEFT_STYLE}
+                                >
+                                  <TrackTextBlock
+                                    title={variant.title || 'Unnamed track'}
+                                    description={trackDescription}
+                                    dense={denseTracks}
+                                  />
+                                  {getVariantListBadges(variant, isLive)
+                                    .length ? (
+                                    <Box mt="0.08rem">
+                                      {getVariantListBadges(
+                                        variant,
+                                        isLive,
+                                      ).map((badge) => (
                                         <Box
                                           key={badge.label}
                                           style={badge.style}
                                         >
                                           {badge.label}
                                         </Box>
-                                      ),
-                                    )}
-                                  </Box>
-                                ) : null}
-                              </Flex.Item>
-                            </Flex>
-                          </Flex.Item>
-                          <Flex.Item ml={1}>
-                            <Box fontSize="0.75rem" color="label">
-                              {formatDurationCompact(variant.duration_seconds)}
-                            </Box>
-                          </Flex.Item>
-                        </Flex>
+                                      ))}
+                                    </Box>
+                                  ) : null}
+                                </Flex.Item>
+                              </Flex>
+                            </Flex.Item>
+                            <Flex.Item ml={1} shrink={0} width="3.6rem">
+                              <Box
+                                fontSize="0.75rem"
+                                color="label"
+                                textAlign="right"
+                              >
+                                {formatDurationCompact(
+                                  variant.duration_seconds,
+                                )}
+                              </Box>
+                            </Flex.Item>
+                          </Flex>
+                        </Box>
                       </Button>
                     </div>
                   );
@@ -2312,21 +2495,26 @@ function PresetMetaSection({
       <Stack.Item>
         <LabeledList key={draftToken}>
           <LabeledList.Item label="Name">
-            <Input
-              fluid
-              value={draft.name}
-              onInput={(e, value) => onSetName(value)}
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <Input
+                fluid
+                style={EDIT_INPUT_STYLE}
+                value={draft.name}
+                onInput={(e, value) => onSetName(value)}
+              />
+            </Box>
           </LabeledList.Item>
           <LabeledList.Item label="Description" verticalAlign="top">
-            <BufferedTextArea
-              syncKey={draftToken}
-              value={draft.description}
-              onCommit={onSetDescription}
-              placeholder="Short description for admins"
-              minRows={3}
-              maxRows={6}
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <BufferedTextArea
+                syncKey={draftToken}
+                value={draft.description}
+                onCommit={onSetDescription}
+                placeholder="Short description for admins"
+                minRows={3}
+                maxRows={6}
+              />
+            </Box>
           </LabeledList.Item>
         </LabeledList>
       </Stack.Item>
@@ -2635,7 +2823,7 @@ function StructureSection({
   return (
     <Section fill title="Structure" style={SECTION_SURFACE_STYLE}>
       <Stack fill>
-        <Stack.Item basis="30%" grow={3}>
+        <Stack.Item basis="30%" grow={3} style={{ minWidth: '0' }}>
           <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
             <Stack fill vertical>
               <Stack.Item>
@@ -2739,7 +2927,7 @@ function StructureSection({
             </Stack>
           </Box>
         </Stack.Item>
-        <Stack.Item basis="70%" grow={7}>
+        <Stack.Item basis="70%" grow={7} style={{ minWidth: '0' }}>
           <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
             <Stack fill vertical>
               <Stack.Item>
@@ -2757,15 +2945,10 @@ function StructureSection({
                             ? `Tracks in ${selectedTier.name || 'selected scene'}.`
                             : 'Select a scene to manage its tracks.'}
                         </Box>
-                        <Box
-                          color={TEXT_MUTED}
-                          fontSize="0.7rem"
-                          mt="0.06rem"
-                          style={ELLIPSIS_STYLE}
-                        >
+                        <Box color={TEXT_MUTED} fontSize="0.7rem" mt="0.06rem">
                           {tracksExpanded
-                            ? 'Track Details is active. Descriptions stay visible.'
-                            : 'Dense packs more rows. Track Details keeps descriptions visible.'}
+                            ? 'Track Details shows source and status chips.'
+                            : 'Dense keeps descriptions on one compact line. Track Details shows source and status chips.'}
                         </Box>
                       </Flex.Item>
                       <Flex.Item ml={1}>
@@ -2804,9 +2987,9 @@ function StructureSection({
                   ) : (
                     filteredVariants.map(({ variant, index }) => {
                       const trackDescription = variant.description.trim();
-                      const showTrackDescription =
-                        Boolean(trackDescription) &&
-                        (tracksExpanded || !denseTracks);
+                      const detailBadges = tracksExpanded
+                        ? getTrackDetailBadges(variant)
+                        : [];
 
                       return (
                         <Button
@@ -2826,62 +3009,68 @@ function StructureSection({
                             false,
                           )}
                         >
-                          <Flex
-                            align="center"
-                            justify="space-between"
-                            width="100%"
-                          >
-                            <Flex.Item grow>
-                              <Flex align="center">
-                                <Flex.Item mr={1}>
-                                  <Box color="label" fontSize="0.75rem">
-                                    {index + 1}.
-                                  </Box>
-                                </Flex.Item>
-                                <Flex.Item grow>
-                                  <Box
-                                    bold
-                                    fontSize={
-                                      denseTracks ? '0.85rem' : '0.92rem'
-                                    }
-                                    style={TRACK_TITLE_TEXT_STYLE}
-                                  >
-                                    {variant.title || 'Unnamed track'}
-                                  </Box>
-                                  {showTrackDescription ? (
-                                    <Box
-                                      fontSize="0.76rem"
-                                      mt="0.04rem"
-                                      style={TRACK_DESCRIPTION_TEXT_STYLE}
-                                    >
-                                      {trackDescription}
+                          <Box style={FULL_WIDTH_CLAMP_STYLE}>
+                            <Flex
+                              align="center"
+                              justify="space-between"
+                              width="100%"
+                              style={{ minWidth: '0' }}
+                            >
+                              <Flex.Item
+                                grow
+                                basis={0}
+                                shrink={1}
+                                style={TRACK_ROW_LEFT_STYLE}
+                              >
+                                <Flex
+                                  align="center"
+                                  width="100%"
+                                  style={{ minWidth: '0' }}
+                                >
+                                  <Flex.Item mr={1}>
+                                    <Box color="label" fontSize="0.75rem">
+                                      {index + 1}.
                                     </Box>
-                                  ) : null}
-                                  {getVariantListBadges(variant).length ? (
-                                    <Box mt="0.1rem">
-                                      {getVariantListBadges(variant).map(
-                                        (badge) => (
+                                  </Flex.Item>
+                                  <Flex.Item
+                                    grow
+                                    basis={0}
+                                    shrink={1}
+                                    style={TRACK_ROW_LEFT_STYLE}
+                                  >
+                                    <TrackTextBlock
+                                      title={variant.title || 'Unnamed track'}
+                                      description={trackDescription}
+                                      dense={denseTracks}
+                                    />
+                                    {detailBadges.length ? (
+                                      <Box mt="0.1rem">
+                                        {detailBadges.map((badge) => (
                                           <Box
                                             key={badge.label}
                                             style={badge.style}
                                           >
                                             {badge.label}
                                           </Box>
-                                        ),
-                                      )}
-                                    </Box>
-                                  ) : null}
-                                </Flex.Item>
-                              </Flex>
-                            </Flex.Item>
-                            <Flex.Item ml={1}>
-                              <Box fontSize="0.75rem" color="label">
-                                {formatDurationCompact(
-                                  variant.duration_seconds,
-                                )}
-                              </Box>
-                            </Flex.Item>
-                          </Flex>
+                                        ))}
+                                      </Box>
+                                    ) : null}
+                                  </Flex.Item>
+                                </Flex>
+                              </Flex.Item>
+                              <Flex.Item ml={1} shrink={0} width="3.6rem">
+                                <Box
+                                  fontSize="0.75rem"
+                                  color="label"
+                                  textAlign="right"
+                                >
+                                  {formatDurationCompact(
+                                    variant.duration_seconds,
+                                  )}
+                                </Box>
+                              </Flex.Item>
+                            </Flex>
+                          </Box>
                         </Button>
                       );
                     })
@@ -2953,7 +3142,14 @@ function SelectedItemSection({
     inspectorTarget === 'track' && Boolean(selectedTier && selectedVariant);
 
   return (
-    <Box style={{ ...EDIT_PANEL_CARD_STYLE, height: '100%' }}>
+    <Box
+      style={{
+        ...EDIT_PANEL_CARD_STYLE,
+        height: '100%',
+        minWidth: '0',
+        overflow: 'hidden',
+      }}
+    >
       <Flex align="center" justify="space-between" width="100%">
         <Flex.Item grow>
           <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
@@ -3031,7 +3227,7 @@ function SceneInspectorSection({
   return (
     <Stack fill vertical key={selectedTier.tier_id}>
       <Stack.Item>
-        <Box style={COMPACT_CARD_STYLE}>
+        <Box style={INSPECTOR_CARD_STYLE}>
           <Box color="label" fontSize="0.74rem">
             Scene
           </Box>
@@ -3113,23 +3309,30 @@ function SceneInspectorSection({
       <Stack.Item grow={1}>
         <LabeledList>
           <LabeledList.Item label="Name">
-            <Input
-              fluid
-              value={selectedTier.name}
-              onInput={(e, value) => onSetTierName(selectedTier.tier_id, value)}
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <Input
+                fluid
+                style={EDIT_INPUT_STYLE}
+                value={selectedTier.name}
+                onInput={(e, value) =>
+                  onSetTierName(selectedTier.tier_id, value)
+                }
+              />
+            </Box>
           </LabeledList.Item>
           <LabeledList.Item label="Description" verticalAlign="top">
-            <BufferedTextArea
-              syncKey={selectedTier.tier_id}
-              value={selectedTier.description}
-              onCommit={(value) =>
-                onSetTierDescription(selectedTier.tier_id, value)
-              }
-              placeholder="Scene description"
-              minRows={4}
-              maxRows={8}
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <BufferedTextArea
+                syncKey={selectedTier.tier_id}
+                value={selectedTier.description}
+                onCommit={(value) =>
+                  onSetTierDescription(selectedTier.tier_id, value)
+                }
+                placeholder="Scene description"
+                minRows={4}
+                maxRows={8}
+              />
+            </Box>
           </LabeledList.Item>
         </LabeledList>
       </Stack.Item>
@@ -3197,7 +3400,7 @@ function TrackInspectorSection({
   return (
     <Stack fill vertical key={selectedVariant.variant_id}>
       <Stack.Item>
-        <Box style={COMPACT_CARD_STYLE}>
+        <Box style={INSPECTOR_CARD_STYLE}>
           <Box color="label" fontSize="0.74rem">
             Track
           </Box>
@@ -3304,40 +3507,47 @@ function TrackInspectorSection({
       <Stack.Item grow={1}>
         <LabeledList>
           <LabeledList.Item label="Title">
-            <Input
-              fluid
-              value={selectedVariant.title}
-              onInput={(e, value) =>
-                onSetVariantTitle(
-                  selectedTier.tier_id,
-                  selectedVariant.variant_id,
-                  value,
-                )
-              }
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <Input
+                fluid
+                style={EDIT_INPUT_STYLE}
+                value={selectedVariant.title}
+                onInput={(e, value) =>
+                  onSetVariantTitle(
+                    selectedTier.tier_id,
+                    selectedVariant.variant_id,
+                    value,
+                  )
+                }
+              />
+            </Box>
           </LabeledList.Item>
           <LabeledList.Item label="Description" verticalAlign="top">
-            <BufferedTextArea
-              syncKey={selectedVariant.variant_id}
-              value={selectedVariant.description}
-              onCommit={(value) =>
-                onSetVariantDescription(
-                  selectedTier.tier_id,
-                  selectedVariant.variant_id,
-                  value,
-                )
-              }
-              placeholder="Track description"
-              minRows={4}
-              maxRows={8}
-            />
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
+              <BufferedTextArea
+                syncKey={selectedVariant.variant_id}
+                value={selectedVariant.description}
+                onCommit={(value) =>
+                  onSetVariantDescription(
+                    selectedTier.tier_id,
+                    selectedVariant.variant_id,
+                    value,
+                  )
+                }
+                placeholder="Track description"
+                minRows={4}
+                maxRows={8}
+              />
+            </Box>
           </LabeledList.Item>
           <LabeledList.Item label="Duration">
-            <Box>
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
               <NumberInput
+                fluid
                 minValue={0}
                 maxValue={86400}
                 step={1}
+                width="100%"
                 value={normalizedDuration}
                 onChange={(value) =>
                   onSetVariantDuration(
@@ -3356,9 +3566,10 @@ function TrackInspectorSection({
             </Box>
           </LabeledList.Item>
           <LabeledList.Item label="Source URL">
-            <Box>
+            <Box style={EDIT_FIELD_WRAPPER_STYLE}>
               <Input
                 fluid
+                style={EDIT_INPUT_STYLE}
                 value={selectedVariant.source_url}
                 onInput={(e, value) =>
                   onSetVariantSourceUrl(
