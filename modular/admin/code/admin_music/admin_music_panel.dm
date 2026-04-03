@@ -378,7 +378,14 @@
 			return load_draft(saved_preset, FALSE)
 
 		if("save_as_copy")
-			var/datum/admin_music_preset/copied_preset = GLOB.admin_music_service.save_draft(holder, draft, TRUE)
+			var/prompt_target = holder
+			if(holder && holder.mob)
+				prompt_target = holder.mob
+			var/default_copy_name = GLOB.admin_music_service.find_available_copy_name(draft?.name)
+			var/new_name = tgui_input_text(prompt_target, "Enter a new preset name for the copy.", "Save As", default_copy_name)
+			if(isnull(new_name))
+				return FALSE
+			var/datum/admin_music_preset/copied_preset = GLOB.admin_music_service.save_draft(holder, draft, TRUE, new_name)
 			if(!copied_preset)
 				return FALSE
 			return load_draft(copied_preset, FALSE)

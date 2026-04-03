@@ -237,19 +237,25 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 /datum/admin_music_service/proc/write_preset_to_disk(datum/admin_music_preset/preset)
 	return preset_library.write_preset_to_disk(preset)
 
-/datum/admin_music_service/proc/save_draft(client/requester, datum/admin_music_preset/draft, as_copy = FALSE)
-	var/list/errors = validate_preset(draft)
+/datum/admin_music_service/proc/save_draft(client/requester, datum/admin_music_preset/draft, as_copy = FALSE, name_override = null)
+	var/old_id = draft?.preset_id
+	var/desired_name = isnull(name_override) ? draft?.name : trim("[name_override]")
+	var/datum/admin_music_preset/saved_preset = draft?.copy()
+	if(saved_preset)
+		saved_preset.name = desired_name
+
+	var/list/errors = validate_preset(saved_preset)
 	if(length(errors))
 		notify_validation_errors(requester, errors)
 		return null
 
 	ensure_library_loaded()
-	var/old_id = draft.preset_id
-	var/desired_name = draft.name
 	if(as_copy)
-		desired_name = find_available_copy_name(draft.name)
+		if(isnull(name_override))
+			desired_name = find_available_copy_name(saved_preset.name)
+			saved_preset.name = desired_name
 
-	var/desired_id = build_preset_slug(desired_name)
+	var/desired_id = build_preset_slug(saved_preset.name)
 	if(!as_copy)
 		if(length(old_id))
 			if(old_id != desired_id && preset_library.find_preset(desired_id))
@@ -258,13 +264,18 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		else if(preset_library.find_preset(desired_id))
 			to_chat(requester, SPAN_WARNING("A preset with that name already exists. Rename it or use Save As Copy."))
 			return null
+	else
+		if(length(old_id) && old_id == desired_id)
+			to_chat(requester, SPAN_WARNING("Save As must use a different preset name."))
+			return null
+		if(preset_library.find_preset(desired_id))
+			to_chat(requester, SPAN_WARNING("A preset with that name already exists. Choose a different name for Save As."))
+			return null
 
-	var/datum/admin_music_preset/saved_preset = draft.copy()
-	saved_preset.name = desired_name
 	saved_preset.preset_id = desired_id
 	write_preset_to_disk(saved_preset)
 
-	if(length(old_id) && old_id != desired_id)
+	if(!as_copy && length(old_id) && old_id != desired_id)
 		preset_library.delete_preset(old_id)
 
 	preset_library.cache_preset(saved_preset)
