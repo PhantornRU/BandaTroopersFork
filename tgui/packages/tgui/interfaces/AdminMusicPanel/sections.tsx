@@ -298,12 +298,28 @@ const getCompactToggleStyle = (checked: boolean): Record<string, string> => ({
   textAlign: 'center',
 });
 
+const getSubtleCompactToggleStyle = (
+  checked: boolean,
+): Record<string, string> => ({
+  ...getCompactToggleStyle(checked),
+  backgroundColor: checked ? 'rgba(78, 102, 130, 0.18)' : BG_PANEL_ALT,
+  border: `1px solid ${checked ? ACCENT_NEUTRAL : BORDER}`,
+  boxShadow: 'none',
+});
+
 const getSegmentedButtonStyle = (
   selected: boolean,
   disabled: boolean,
+  subtle = false,
 ): Record<string, string> => ({
   border: selected ? `1px solid ${ACCENT_NEUTRAL}` : '1px solid transparent',
-  backgroundColor: selected ? 'rgba(78, 102, 130, 0.26)' : BG_PANEL,
+  backgroundColor: selected
+    ? subtle
+      ? 'rgba(78, 102, 130, 0.18)'
+      : 'rgba(78, 102, 130, 0.26)'
+    : subtle
+      ? BG_PANEL_ALT
+      : BG_PANEL,
   color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
   boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
   textAlign: 'center',
@@ -374,6 +390,7 @@ const FOCUS_FACTS_GRID_STYLE = {
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
   columnGap: '0.75rem',
+  rowGap: '0.18rem',
   width: '100%',
   minWidth: '0',
 };
@@ -393,6 +410,12 @@ const FOCUS_FACT_LINE_STYLE = {
 
 const FOCUS_FACT_VALUE_STYLE = {
   color: TEXT_PRIMARY,
+};
+
+const FOCUS_FACTS_STATUS_ROW_STYLE = {
+  marginTop: '0.18rem',
+  paddingTop: '0.18rem',
+  borderTop: `1px solid ${BORDER}`,
 };
 
 const WRAPPING_TOGGLE_BUTTON_STYLE = (checked: boolean) => ({
@@ -693,9 +716,13 @@ function FocusLaunchFactsColumn({
   const sourceFact = facts.find((item) => item.label === 'Source');
   const leftColumnLines = [
     ...facts
-      .filter((item) => item.label !== 'Source')
+      .filter(
+        (item) =>
+          item.label !== 'Source' &&
+          item.label !== 'Status' &&
+          item.label !== 'Preview',
+      )
       .map((item) => ({ label: item.label, value: item.value })),
-    { label: 'Status', value: launchStateText },
   ];
   const rightColumnLines = [
     ...(sourceFact
@@ -704,21 +731,10 @@ function FocusLaunchFactsColumn({
     { label: 'Preview', value: previewStateText },
   ];
 
-  if (trackReadiness.reason) {
-    leftColumnLines.push({ label: 'Blocked', value: trackReadiness.reason });
-  }
-
-  if (trackReadiness.warnings.length) {
-    rightColumnLines.push({
-      label: 'Warning',
-      value: trackReadiness.warnings[0],
-    });
-  }
-
   return (
     <Box style={FOCUS_FACTS_COLUMN_STYLE}>
-      <Flex width="100%" style={FOCUS_FACTS_GRID_STYLE}>
-        <Flex.Item style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
+      <Box style={FOCUS_FACTS_GRID_STYLE}>
+        <Box style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
           {leftColumnLines.map((line) => (
             <Box
               key={`${line.label}:${line.value}`}
@@ -729,8 +745,8 @@ function FocusLaunchFactsColumn({
               <span style={FOCUS_FACT_VALUE_STYLE}>{line.value}</span>
             </Box>
           ))}
-        </Flex.Item>
-        <Flex.Item style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
+        </Box>
+        <Box style={FOCUS_FACTS_SUBCOLUMN_STYLE}>
           {rightColumnLines.map((line) => (
             <Box
               key={`${line.label}:${line.value}`}
@@ -741,8 +757,27 @@ function FocusLaunchFactsColumn({
               <span style={FOCUS_FACT_VALUE_STYLE}>{line.value}</span>
             </Box>
           ))}
-        </Flex.Item>
-      </Flex>
+        </Box>
+      </Box>
+      <Box style={FOCUS_FACTS_STATUS_ROW_STYLE}>
+        <Box style={FOCUS_FACT_LINE_STYLE}>
+          Status: <span style={FOCUS_FACT_VALUE_STYLE}>{launchStateText}</span>
+        </Box>
+        {trackReadiness.reason ? (
+          <Box mt="0.1rem" style={FOCUS_FACT_LINE_STYLE}>
+            Blocked:{' '}
+            <span style={FOCUS_FACT_VALUE_STYLE}>{trackReadiness.reason}</span>
+          </Box>
+        ) : null}
+        {trackReadiness.warnings.length ? (
+          <Box mt="0.1rem" style={FOCUS_FACT_LINE_STYLE}>
+            Warning:{' '}
+            <span style={FOCUS_FACT_VALUE_STYLE}>
+              {trackReadiness.warnings[0]}
+            </span>
+          </Box>
+        ) : null}
+      </Box>
     </Box>
   );
 }
@@ -1060,12 +1095,14 @@ type LaunchPreflightControlsProps = Readonly<{
   launchSettings: LaunchSettings;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
+  subtle?: boolean;
 }>;
 
 function LaunchPreflightControls({
   launchSettings,
   onToggleRepeat,
   onSetPlaybackMode,
+  subtle = false,
 }: LaunchPreflightControlsProps) {
   return (
     <Stack fill>
@@ -1075,7 +1112,16 @@ function LaunchPreflightControls({
           fluid
           className="AdminMusicPanel__centeredButton"
           checked={launchSettings.repeat}
-          style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
+          style={
+            subtle
+              ? {
+                  ...getSubtleCompactToggleStyle(launchSettings.repeat),
+                  width: '100%',
+                  minHeight: '2rem',
+                  textAlign: 'center',
+                }
+              : PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)
+          }
           onClick={onToggleRepeat}
         >
           Repeat current track
@@ -1085,6 +1131,7 @@ function LaunchPreflightControls({
         <PlaybackModeSelector
           playbackMode={launchSettings.playback_mode}
           repeat={launchSettings.repeat}
+          subtle={subtle}
           onSetPlaybackMode={onSetPlaybackMode}
         />
       </Stack.Item>
@@ -1263,12 +1310,14 @@ type PlaybackModeSelectorProps = Readonly<{
   playbackMode: PlaybackMode;
   repeat: boolean;
   onSetPlaybackMode: (value: PlaybackMode) => void;
+  subtle?: boolean;
 }>;
 
 function PlaybackModeSelector({
   playbackMode,
   repeat,
   onSetPlaybackMode,
+  subtle = false,
 }: PlaybackModeSelectorProps) {
   const options: Array<{
     label: string;
@@ -1293,6 +1342,7 @@ function PlaybackModeSelector({
             style={getSegmentedButtonStyle(
               playbackMode === option.value,
               repeat,
+              subtle,
             )}
             onClick={() => onSetPlaybackMode(option.value)}
           >
@@ -1389,8 +1439,8 @@ function TracksFocusLaunchStrip({
     <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
       <Flex align="stretch" wrap width="100%" style={{ gap: '0.55rem' }}>
         <Flex.Item
-          basis="18rem"
-          style={{ minWidth: '16rem', flex: '0 1 18rem' }}
+          basis="20rem"
+          style={{ minWidth: '17rem', flex: '0 1 20rem' }}
         >
           <FocusLaunchFactsColumn
             facts={focusFactItems}
@@ -1464,7 +1514,7 @@ function TracksFocusLaunchStrip({
                 </Flex.Item>
               </Flex>
             </Stack.Item>
-            <Stack.Item>
+            <Stack.Item mt={0.22}>
               <Flex width="100%" style={PLAY_CONTROLS_ROW_STYLE}>
                 <Flex.Item
                   grow
@@ -1475,6 +1525,7 @@ function TracksFocusLaunchStrip({
                     launchSettings={launchSettings}
                     onToggleRepeat={onToggleRepeat}
                     onSetPlaybackMode={onSetPlaybackMode}
+                    subtle
                   />
                 </Flex.Item>
                 <Flex.Item
