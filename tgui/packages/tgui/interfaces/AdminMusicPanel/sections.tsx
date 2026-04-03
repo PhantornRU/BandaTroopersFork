@@ -4195,7 +4195,11 @@ function TrackInspectorSection({
           <LabeledList.Item label="Duration">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
               <Flex align="center" width="100%" style={{ gap: '0.35rem' }}>
-                <Flex.Item grow basis={0} style={{ minWidth: '0' }}>
+                <Flex.Item
+                  shrink={0}
+                  basis="6.5rem"
+                  style={{ minWidth: '6.5rem', maxWidth: '6.5rem' }}
+                >
                   <NumberInput
                     fluid
                     minValue={0}
@@ -4212,11 +4216,7 @@ function TrackInspectorSection({
                     }
                   />
                 </Flex.Item>
-                <Flex.Item
-                  shrink={0}
-                  basis="9.2rem"
-                  style={{ minWidth: '9.2rem' }}
-                >
+                <Flex.Item grow basis={0} style={{ minWidth: '0' }}>
                   <Button
                     compact
                     fluid
