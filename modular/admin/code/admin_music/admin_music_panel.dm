@@ -288,6 +288,42 @@
 		params["playback_mode"],
 	)
 
+/datum/admin_music_panel/proc/can_autofill_variant_title(datum/admin_music_variant/variant)
+	if(!variant)
+		return FALSE
+	var/title_text = trim("[variant.title]")
+	if(!length(title_text))
+		return TRUE
+	if(findtext(title_text, "Track ") != 1)
+		return FALSE
+	var/title_suffix = trim(copytext(title_text, 7))
+	if(!length(title_suffix))
+		return FALSE
+	var/parsed_title_index = text2num(title_suffix)
+	if(isnull(parsed_title_index))
+		return FALSE
+	return "[round(parsed_title_index)]" == title_suffix
+
+/datum/admin_music_panel/proc/apply_variant_metadata(datum/admin_music_variant/variant, datum/media_response/response)
+	var/list/applied_metadata = list(
+		"duration" = FALSE,
+		"title" = FALSE,
+	)
+	if(!variant || !response)
+		return applied_metadata
+
+	var/resolved_duration_seconds = round(GLOB.admin_music_service.resolve_media_duration_seconds(response))
+	if(resolved_duration_seconds > 0 && variant.duration_seconds != resolved_duration_seconds)
+		variant.duration_seconds = max(resolved_duration_seconds, 0)
+		applied_metadata["duration"] = TRUE
+
+	var/resolved_title = trim("[response.title]")
+	if(length(resolved_title) && can_autofill_variant_title(variant) && variant.title != resolved_title)
+		variant.title = resolved_title
+		applied_metadata["title"] = TRUE
+
+	return applied_metadata
+
 /datum/admin_music_panel/proc/resolve_selected_variant_metadata()
 	var/datum/admin_music_variant/selected_variant = get_selected_variant()
 	if(!selected_variant)
@@ -301,17 +337,20 @@
 	if(!response)
 		return FALSE
 
-	var/resolved_duration_seconds = round(GLOB.admin_music_service.resolve_media_duration_seconds(response))
-	if(resolved_duration_seconds <= 0)
-		to_chat(holder, SPAN_WARNING("The media provider did not return a usable end time, so duration could not be resolved automatically."))
-		return FALSE
-
-	if(selected_variant.duration_seconds == resolved_duration_seconds)
-		to_chat(holder, SPAN_NOTICE("Track duration already matches the resolved media metadata."))
+	var/list/applied_metadata = apply_variant_metadata(selected_variant, response)
+	if(!applied_metadata["duration"] && !applied_metadata["title"])
+		if(round(GLOB.admin_music_service.resolve_media_duration_seconds(response)) <= 0)
+			to_chat(holder, SPAN_WARNING("The media provider did not return a usable end time, so duration could not be resolved automatically."))
+			return FALSE
+		to_chat(holder, SPAN_NOTICE("Track metadata already matches the resolved media metadata."))
 		return update_ui()
 
-	selected_variant.duration_seconds = max(resolved_duration_seconds, 0)
-	to_chat(holder, SPAN_NOTICE("Resolved track duration from media metadata: [selected_variant.duration_seconds]s."))
+	var/list/updated_fields = list()
+	if(applied_metadata["duration"])
+		updated_fields += "duration"
+	if(applied_metadata["title"])
+		updated_fields += "title"
+	to_chat(holder, SPAN_NOTICE("Resolved media metadata updated [jointext(updated_fields, " and ")]."))
 	return mark_dirty()
 
 /datum/admin_music_panel/proc/handle_preset_action(action, list/params)
@@ -501,7 +540,21 @@
 			var/datum/admin_music_variant/source_variant = get_selected_variant()
 			if(!source_variant)
 				return FALSE
+			var/previous_source_url = source_variant.source_url
+			var/previous_title = source_variant.title
+			var/previous_duration_seconds = source_variant.duration_seconds
 			source_variant.source_url = params["source_url"]
+			var/source_url = trim("[source_variant.source_url]")
+			if(length(source_url))
+				var/datum/media_response/response = GLOB.admin_music_service.resolve_media(holder, source_url, TRUE)
+				if(response)
+					apply_variant_metadata(source_variant, response)
+			if(
+				previous_source_url == source_variant.source_url && \
+				previous_title == source_variant.title && \
+				previous_duration_seconds == source_variant.duration_seconds
+			)
+				return update_ui()
 			return mark_dirty()
 
 		if("resolve_variant_metadata")

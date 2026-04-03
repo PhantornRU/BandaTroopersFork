@@ -73,6 +73,57 @@ type BufferedTextAreaProps = Readonly<{
   maxRows?: number;
 }>;
 
+type BufferedInputProps = Readonly<{
+  syncKey: string | number | null;
+  value: string;
+  placeholder: string;
+  onCommit: (value: string) => void;
+  monospace?: boolean;
+}>;
+
+function BufferedInput({
+  syncKey,
+  value,
+  placeholder,
+  onCommit,
+  monospace = false,
+}: BufferedInputProps) {
+  const [draftValue, setDraftValue] = useState(value);
+  const skipNextCommitRef = useRef(false);
+
+  useEffect(() => {
+    skipNextCommitRef.current = false;
+    setDraftValue(value);
+  }, [syncKey, value]);
+
+  return (
+    <Input
+      key={`${syncKey ?? 'buffered-input'}:${value}`}
+      fluid
+      monospace={monospace}
+      style={EDIT_INPUT_STYLE}
+      value={draftValue}
+      onInput={(e, nextValue) => setDraftValue(nextValue)}
+      onChange={(e, nextValue) => {
+        if (skipNextCommitRef.current) {
+          skipNextCommitRef.current = false;
+          setDraftValue(value);
+          return;
+        }
+        setDraftValue(nextValue);
+        if (nextValue !== value) {
+          onCommit(nextValue);
+        }
+      }}
+      onEscape={() => {
+        skipNextCommitRef.current = true;
+        setDraftValue(value);
+      }}
+      placeholder={placeholder}
+    />
+  );
+}
+
 function BufferedTextArea({
   syncKey,
   value,
@@ -4109,17 +4160,17 @@ function TrackInspectorSection({
         <LabeledList>
           <LabeledList.Item label="Title">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
-              <Input
-                fluid
-                style={EDIT_INPUT_STYLE}
+              <BufferedInput
+                syncKey={selectedVariant.variant_id}
                 value={selectedVariant.title}
-                onInput={(e, value) =>
+                onCommit={(value) =>
                   onSetVariantTitle(
                     selectedTier.tier_id,
                     selectedVariant.variant_id,
                     value,
                   )
                 }
+                placeholder="Track title"
               />
             </Box>
           </LabeledList.Item>
@@ -4195,11 +4246,10 @@ function TrackInspectorSection({
           </LabeledList.Item>
           <LabeledList.Item label="Source URL">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
-              <Input
-                fluid
-                style={EDIT_INPUT_STYLE}
+              <BufferedInput
+                syncKey={`${selectedVariant.variant_id}:source`}
                 value={selectedVariant.source_url}
-                onInput={(e, value) =>
+                onCommit={(value) =>
                   onSetVariantSourceUrl(
                     selectedTier.tier_id,
                     selectedVariant.variant_id,
@@ -4207,6 +4257,7 @@ function TrackInspectorSection({
                   )
                 }
                 placeholder="https://..."
+                monospace
               />
               {!selectedVariant.source_url.trim() ? (
                 <Box color="label" fontSize="0.75rem" mt="0.2rem">
