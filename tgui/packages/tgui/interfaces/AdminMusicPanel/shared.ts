@@ -59,6 +59,8 @@ export type CurrentSession = null | {
   variant_title?: string;
   variant_description?: string;
   duration_seconds?: number;
+  has_known_end_time?: boolean;
+  broadcast_elapsed_seconds?: number;
   loop?: boolean;
   playback_mode?: PlaybackMode;
   playback_mode_label?: string;
@@ -265,6 +267,16 @@ export const formatDurationCompact = (duration_seconds: number) => {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${minutes}:${String(seconds).padStart(2, '0')}`;
+};
+
+export const formatElapsedCompact = (elapsed_seconds: number) => {
+  const safeElapsedSeconds = Math.max(0, Math.floor(elapsed_seconds || 0));
+  const hours = Math.floor(safeElapsedSeconds / 3600);
+  const minutes = Math.floor((safeElapsedSeconds % 3600) / 60);
+  const seconds = safeElapsedSeconds % 60;
   return hours
     ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
     : `${minutes}:${String(seconds).padStart(2, '0')}`;
@@ -650,4 +662,50 @@ export const useAdminMusicPreview = (
     previewVolume,
     stopPreview,
   };
+};
+
+export const useBroadcastElapsed = (currentSession: CurrentSession) => {
+  const [, setTick] = useState(0);
+  const [syncTimestampMs, setSyncTimestampMs] = useState(() => Date.now());
+  const [baseElapsedSeconds, setBaseElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    setBaseElapsedSeconds(
+      Math.max(0, Math.floor(currentSession?.broadcast_elapsed_seconds || 0)),
+    );
+    setSyncTimestampMs(Date.now());
+  }, [
+    currentSession?.source_url,
+    currentSession?.preset_id,
+    currentSession?.tier_name,
+    currentSession?.variant_title,
+    currentSession?.broadcast_elapsed_seconds,
+  ]);
+
+  useEffect(() => {
+    if (!currentSession) {
+      setTick(0);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setTick((currentTick) => currentTick + 1);
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [
+    currentSession?.source_url,
+    currentSession?.preset_id,
+    currentSession?.tier_name,
+    currentSession?.variant_title,
+  ]);
+
+  if (!currentSession) {
+    return 0;
+  }
+
+  const elapsedSinceSyncSeconds = Math.floor(
+    (Date.now() - syncTimestampMs) / 1000,
+  );
+  return Math.max(0, baseElapsedSeconds + elapsedSinceSyncSeconds);
 };

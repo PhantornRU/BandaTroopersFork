@@ -34,6 +34,7 @@ import {
   formatAfterTrackEnds,
   formatDuration,
   formatDurationCompact,
+  formatElapsedCompact,
   formatSourceLabel,
   formatTrackCount,
   getListRowStyle,
@@ -60,6 +61,7 @@ import {
   TEXT_SECONDARY,
   TrackLaunchReadiness,
   UNSAVED_BADGE_STYLE,
+  useBroadcastElapsed,
 } from './shared';
 
 type BufferedTextAreaProps = Readonly<{
@@ -193,13 +195,15 @@ const HEADER_ACTION_BUTTON_STYLE = {
 };
 
 const ADVANCED_TOGGLE_STYLE = {
-  border: `1px solid ${BORDER}`,
-  backgroundColor: BG_PANEL_ALT,
+  border: `1px solid rgba(51, 69, 87, 0.78)`,
+  backgroundColor: BG_PANEL,
 };
 
 const EDIT_PANEL_CARD_STYLE = {
   ...SUBTLE_PANEL_STYLE,
-  padding: '0.65rem 0.72rem',
+  backgroundColor: BG_PANEL,
+  border: '1px solid rgba(51, 69, 87, 0.78)',
+  padding: '0.62rem 0.7rem',
 };
 
 const EDIT_PANEL_CARD_HEADING_STYLE = {
@@ -302,7 +306,7 @@ const getSubtleCompactToggleStyle = (
   checked: boolean,
 ): Record<string, string> => ({
   ...getCompactToggleStyle(checked),
-  backgroundColor: checked ? 'rgba(78, 102, 130, 0.18)' : BG_PANEL_ALT,
+  backgroundColor: checked ? 'rgba(78, 102, 130, 0.14)' : BG_PANEL,
   border: `1px solid ${checked ? ACCENT_NEUTRAL : BORDER}`,
   boxShadow: 'none',
 });
@@ -315,10 +319,10 @@ const getSegmentedButtonStyle = (
   border: selected ? `1px solid ${ACCENT_NEUTRAL}` : '1px solid transparent',
   backgroundColor: selected
     ? subtle
-      ? 'rgba(78, 102, 130, 0.18)'
+      ? 'rgba(78, 102, 130, 0.14)'
       : 'rgba(78, 102, 130, 0.26)'
     : subtle
-      ? BG_PANEL_ALT
+      ? BG_PANEL
       : BG_PANEL,
   color: selected ? TEXT_PRIMARY : TEXT_SECONDARY,
   boxShadow: selected ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.04)' : 'none',
@@ -382,7 +386,7 @@ const LAUNCH_STATUS_SEGMENT_STYLE = {
 
 const FOCUS_FACTS_COLUMN_STYLE = {
   ...SUBTLE_PANEL_STYLE,
-  padding: '0.42rem 0.58rem',
+  padding: '0.46rem 0.62rem',
   minHeight: '100%',
 };
 
@@ -520,6 +524,8 @@ const TRACK_ROW_LEFT_STYLE = {
 
 const INSPECTOR_CARD_STYLE = {
   ...COMPACT_CARD_STYLE,
+  backgroundColor: 'rgba(43, 58, 76, 0.84)',
+  border: '1px solid rgba(51, 69, 87, 0.84)',
   width: '100%',
   maxWidth: '100%',
   minWidth: '0',
@@ -887,15 +893,31 @@ export function BroadcastStatusStrip({
   onStopBroadcast,
   showStopButton = true,
 }: BroadcastStatusStripProps) {
+  const broadcastElapsedSeconds = useBroadcastElapsed(current_session);
+
   if (!current_session) {
     return (
-      <Box px={0.85} py={0.5} style={STATUS_STRIP_STYLE}>
+      <Box
+        px={0.8}
+        py={0.38}
+        style={{
+          ...STATUS_STRIP_STYLE,
+          border: '1px solid rgba(51, 69, 87, 0.72)',
+          backgroundColor: BG_PANEL,
+        }}
+      >
         <Stack align="center">
           <Stack.Item>
-            <Box bold>Broadcast idle</Box>
+            <Box
+              color={TEXT_SECONDARY}
+              fontSize="0.84rem"
+              style={{ fontWeight: '600' }}
+            >
+              Broadcast idle
+            </Box>
           </Stack.Item>
           <Stack.Item grow>
-            <Box color="label" fontSize="0.78rem">
+            <Box color={TEXT_MUTED} fontSize="0.76rem">
               No live broadcast. Open Play to preview or broadcast a track.
             </Box>
           </Stack.Item>
@@ -915,7 +937,17 @@ export function BroadcastStatusStrip({
   const broadcastPath = [current_session.preset_name, current_session.tier_name]
     .filter(Boolean)
     .join(' / ');
+  const totalDurationSeconds = normalizeDurationValue(
+    current_session.duration_seconds || 0,
+  );
+  const playbackProgressText = totalDurationSeconds
+    ? `${formatElapsedCompact(broadcastElapsedSeconds)} / ${formatElapsedCompact(totalDurationSeconds)}`
+    : `${formatElapsedCompact(broadcastElapsedSeconds)} / End unknown`;
   const liveFacts: CompactFactItem[] = [
+    {
+      label: 'Playing',
+      value: playbackProgressText,
+    },
     {
       label: 'Path',
       value: broadcastPath || 'Legacy broadcast session',
@@ -933,6 +965,12 @@ export function BroadcastStatusStrip({
       value: formatSourceLabel(current_session.source_url),
     },
   ];
+  if (totalDurationSeconds > 0 && !current_session.has_known_end_time) {
+    liveFacts.push({
+      label: 'End',
+      value: 'Unknown',
+    });
+  }
 
   return (
     <Box
@@ -1441,11 +1479,15 @@ function TracksFocusLaunchStrip({
   ];
 
   return (
-    <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
-      <Flex align="stretch" wrap width="100%" style={{ gap: '0.55rem' }}>
+    <Box
+      px={0.82}
+      py={0.56}
+      style={{ ...STATUS_STRIP_STYLE, backgroundColor: BG_PANEL }}
+    >
+      <Flex align="stretch" wrap width="100%" style={{ gap: '0.72rem' }}>
         <Flex.Item
-          basis="20rem"
-          style={{ minWidth: '17rem', flex: '0 1 20rem' }}
+          basis="21rem"
+          style={{ minWidth: '17.5rem', flex: '0 1 21rem' }}
         >
           <FocusLaunchFactsColumn
             facts={focusFactItems}
@@ -1519,7 +1561,7 @@ function TracksFocusLaunchStrip({
                 </Flex.Item>
               </Flex>
             </Stack.Item>
-            <Stack.Item mt={0.22}>
+            <Stack.Item mt={0.34}>
               <Flex width="100%" style={PLAY_CONTROLS_ROW_STYLE}>
                 <Flex.Item
                   grow
@@ -1901,6 +1943,7 @@ type EditTabProps = Readonly<{
     variant_id: string,
     value: string,
   ) => void;
+  onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
 }>;
 
 type InspectorTarget = 'scene' | 'track';
@@ -1948,6 +1991,7 @@ export function EditTab({
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
+  onResolveVariantMetadata,
 }: EditTabProps) {
   const [inspectorTarget, setInspectorTarget] = useState<InspectorTarget>(
     selectedVariant ? 'track' : 'scene',
@@ -2065,6 +2109,7 @@ export function EditTab({
                 onSetVariantDescription={onSetVariantDescription}
                 onSetVariantDuration={onSetVariantDuration}
                 onSetVariantSourceUrl={onSetVariantSourceUrl}
+                onResolveVariantMetadata={onResolveVariantMetadata}
               />
             </Stack.Item>
           </Stack>
@@ -2868,6 +2913,7 @@ type EditPanelSectionProps = Readonly<{
     variant_id: string,
     value: string,
   ) => void;
+  onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
 }>;
 
 function EditPanelSection({
@@ -2903,6 +2949,7 @@ function EditPanelSection({
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
+  onResolveVariantMetadata,
 }: EditPanelSectionProps) {
   return (
     <Section fill title="Edit Panel" style={SECTION_SURFACE_STYLE}>
@@ -2925,6 +2972,7 @@ function EditPanelSection({
             onSetVariantDescription={onSetVariantDescription}
             onSetVariantDuration={onSetVariantDuration}
             onSetVariantSourceUrl={onSetVariantSourceUrl}
+            onResolveVariantMetadata={onResolveVariantMetadata}
           />
         </Stack.Item>
         <Stack.Item>
@@ -3654,6 +3702,7 @@ type SelectedItemSectionProps = Readonly<{
     variant_id: string,
     value: string,
   ) => void;
+  onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
 }>;
 
 function SelectedItemSection({
@@ -3673,6 +3722,7 @@ function SelectedItemSection({
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
+  onResolveVariantMetadata,
 }: SelectedItemSectionProps) {
   const showTrackInspector =
     inspectorTarget === 'track' && Boolean(selectedTier && selectedVariant);
@@ -3724,6 +3774,7 @@ function SelectedItemSection({
           onSetVariantDescription={onSetVariantDescription}
           onSetVariantDuration={onSetVariantDuration}
           onSetVariantSourceUrl={onSetVariantSourceUrl}
+          onResolveVariantMetadata={onResolveVariantMetadata}
         />
       ) : (
         <SceneInspectorSection
@@ -3911,6 +3962,7 @@ type TrackInspectorSectionProps = Readonly<{
     variant_id: string,
     value: string,
   ) => void;
+  onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
 }>;
 
 function TrackInspectorSection({
@@ -3923,6 +3975,7 @@ function TrackInspectorSection({
   onSetVariantDescription,
   onSetVariantDuration,
   onSetVariantSourceUrl,
+  onResolveVariantMetadata,
 }: TrackInspectorSectionProps) {
   if (!selectedVariant) {
     return <Box color="label">Select a track in Structure to inspect it.</Box>;
@@ -4090,21 +4143,48 @@ function TrackInspectorSection({
           </LabeledList.Item>
           <LabeledList.Item label="Duration">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
-              <NumberInput
-                fluid
-                minValue={0}
-                maxValue={86400}
-                step={1}
-                width="100%"
-                value={normalizedDuration}
-                onChange={(value) =>
-                  onSetVariantDuration(
-                    selectedTier.tier_id,
-                    selectedVariant.variant_id,
-                    value,
-                  )
-                }
-              />
+              <Flex align="center" width="100%" style={{ gap: '0.35rem' }}>
+                <Flex.Item grow basis={0} style={{ minWidth: '0' }}>
+                  <NumberInput
+                    fluid
+                    minValue={0}
+                    maxValue={86400}
+                    step={1}
+                    width="100%"
+                    value={normalizedDuration}
+                    onChange={(value) =>
+                      onSetVariantDuration(
+                        selectedTier.tier_id,
+                        selectedVariant.variant_id,
+                        value,
+                      )
+                    }
+                  />
+                </Flex.Item>
+                <Flex.Item
+                  shrink={0}
+                  basis="9.2rem"
+                  style={{ minWidth: '9.2rem' }}
+                >
+                  <Button
+                    compact
+                    fluid
+                    className="AdminMusicPanel__centeredButton"
+                    icon="sync"
+                    color="transparent"
+                    disabled={!selectedVariant.source_url.trim()}
+                    style={CONTROL_BUTTON_STYLE}
+                    onClick={() =>
+                      onResolveVariantMetadata(
+                        selectedTier.tier_id,
+                        selectedVariant.variant_id,
+                      )
+                    }
+                  >
+                    Resolve metadata
+                  </Button>
+                </Flex.Item>
+              </Flex>
               {!normalizedDuration ? (
                 <Box color="label" fontSize="0.75rem" mt="0.2rem">
                   Unknown duration is allowed, but Single mode may not stop

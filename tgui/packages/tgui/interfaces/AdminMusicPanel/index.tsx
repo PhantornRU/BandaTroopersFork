@@ -353,6 +353,12 @@ export function AdminMusicPanel() {
                     source_url: value,
                   })
                 }
+                onResolveVariantMetadata={(tier_id, variant_id) =>
+                  act('resolve_variant_metadata', {
+                    tier_id,
+                    variant_id,
+                  })
+                }
               />
             )}
           </Stack.Item>

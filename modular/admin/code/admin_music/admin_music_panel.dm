@@ -288,6 +288,32 @@
 		params["playback_mode"],
 	)
 
+/datum/admin_music_panel/proc/resolve_selected_variant_metadata()
+	var/datum/admin_music_variant/selected_variant = get_selected_variant()
+	if(!selected_variant)
+		return FALSE
+	var/source_url = trim("[selected_variant.source_url]")
+	if(!length(source_url))
+		to_chat(holder, SPAN_WARNING("Set a Source URL before resolving metadata."))
+		return FALSE
+
+	var/datum/media_response/response = GLOB.admin_music_service.resolve_media(holder, source_url)
+	if(!response)
+		return FALSE
+
+	var/resolved_duration_seconds = round(GLOB.admin_music_service.resolve_media_duration_seconds(response))
+	if(resolved_duration_seconds <= 0)
+		to_chat(holder, SPAN_WARNING("The media provider did not return a usable end time, so duration could not be resolved automatically."))
+		return FALSE
+
+	if(selected_variant.duration_seconds == resolved_duration_seconds)
+		to_chat(holder, SPAN_NOTICE("Track duration already matches the resolved media metadata."))
+		return update_ui()
+
+	selected_variant.duration_seconds = max(resolved_duration_seconds, 0)
+	to_chat(holder, SPAN_NOTICE("Resolved track duration from media metadata: [selected_variant.duration_seconds]s."))
+	return mark_dirty()
+
 /datum/admin_music_panel/proc/handle_preset_action(action, list/params)
 	switch(action)
 		if("request_close")
@@ -478,6 +504,9 @@
 			source_variant.source_url = params["source_url"]
 			return mark_dirty()
 
+		if("resolve_variant_metadata")
+			return resolve_selected_variant_metadata()
+
 		if("move_variant_up")
 			return move_variant(params["tier_id"], params["variant_id"], -1)
 
@@ -521,7 +550,7 @@
 		if("select_tier", "add_tier", "remove_tier", "set_tier_name", "set_tier_description", "move_tier_up", "move_tier_down")
 			return handle_tier_action(action, params)
 
-		if("select_variant", "add_variant", "remove_variant", "set_variant_title", "set_variant_description", "set_variant_duration", "set_variant_source_url", "move_variant_up", "move_variant_down")
+		if("select_variant", "add_variant", "remove_variant", "set_variant_title", "set_variant_description", "set_variant_duration", "set_variant_source_url", "resolve_variant_metadata", "move_variant_up", "move_variant_down")
 			return handle_variant_action(action, params)
 
 		if("preview_selected", "stop_preview")

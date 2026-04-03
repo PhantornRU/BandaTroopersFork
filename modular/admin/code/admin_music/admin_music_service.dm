@@ -28,6 +28,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	var/takeover = FALSE
 	var/current_variant_index = 1
 	var/advance_timer_id
+	var/started_at_world_time = 0
 
 /datum/admin_music_session/proc/to_ui_data()
 	return list(
@@ -43,6 +44,8 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		"variant_title" = variant_title,
 		"variant_description" = variant_description,
 		"duration_seconds" = duration_seconds,
+		"has_known_end_time" = isnum(end_time) && isnum(start_time) && end_time > start_time,
+		"broadcast_elapsed_seconds" = started_at_world_time ? max(0, round((world.time - started_at_world_time) / 10)) : 0,
 		"loop" = loop,
 		"playback_mode" = playback_mode,
 		"takeover" = takeover,
@@ -440,10 +443,16 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	return TRUE
 
 /datum/admin_music_service/proc/resolve_session_duration_seconds(datum/admin_music_variant/variant, datum/media_response/response)
-	if(response && isnum(response.end_time) && isnum(response.start_time) && response.end_time > response.start_time)
-		return response.end_time - response.start_time
+	var/resolved_duration_seconds = resolve_media_duration_seconds(response)
+	if(resolved_duration_seconds > 0)
+		return resolved_duration_seconds
 	if(variant)
 		return max(0, variant.duration_seconds)
+	return 0
+
+/datum/admin_music_service/proc/resolve_media_duration_seconds(datum/media_response/response)
+	if(response && isnum(response.end_time) && isnum(response.start_time) && response.end_time > response.start_time)
+		return max(0, response.end_time - response.start_time)
 	return 0
 
 /datum/admin_music_service/proc/find_sequence_variant_index(list/sequence_variants, datum/admin_music_variant/variant)
@@ -579,6 +588,7 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 			to_chat(target_client, SPAN_BOLDANNOUNCE("An admin played: [music_payload["title"]]"), confidential = TRUE)
 
 	session.tracked_clients = eligible_clients.Copy()
+	session.started_at_world_time = world.time
 	active_session = session
 	update_open_panels()
 	return TRUE
