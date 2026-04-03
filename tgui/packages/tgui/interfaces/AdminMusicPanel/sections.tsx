@@ -499,6 +499,11 @@ const EDIT_INPUT_STYLE = {
   width: '100%',
   maxWidth: '100%',
   minWidth: '0',
+  backgroundColor: BG_PANEL,
+  color: TEXT_PRIMARY,
+  border: `1px solid ${BORDER}`,
+  borderRadius: '0.32rem',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.015)',
 };
 
 const FULL_WIDTH_CLAMP_STYLE = {

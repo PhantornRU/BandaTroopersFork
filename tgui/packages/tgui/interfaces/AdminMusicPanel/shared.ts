@@ -113,13 +113,13 @@ export const DEFAULT_PREVIEW_VOLUME = 0.2;
 export const DESCRIPTION_FIELD_HEIGHT = 4.5;
 export const BG_APP = '#11161D';
 export const BG_PANEL = '#1B2430';
-export const BG_PANEL_ALT = '#202B38';
-export const BG_CARD = '#273443';
-export const BG_SELECTED = '#314155';
-export const BORDER = '#3B4C61';
+export const BG_PANEL_ALT = '#1D2733';
+export const BG_CARD = '#2B3A4C';
+export const BG_SELECTED = '#385169';
+export const BORDER = '#334557';
 export const TEXT_PRIMARY = '#E7EDF5';
-export const TEXT_SECONDARY = '#AEB8C6';
-export const TEXT_MUTED = '#8693A5';
+export const TEXT_SECONDARY = '#A6B3C2';
+export const TEXT_MUTED = '#78889A';
 export const ACCENT_SUCCESS = '#67B31B';
 export const ACCENT_SUCCESS_HI = '#7CCF23';
 export const ACCENT_DANGER = '#C93A3A';
@@ -129,12 +129,14 @@ export const PLAYER_CARD_STYLE = {
   border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
   padding: '0.68rem',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
 };
 export const COMPACT_CARD_STYLE = {
   backgroundColor: BG_CARD,
   border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
   padding: '0.46rem 0.58rem',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.02)',
 };
 export const PLAYER_STRIP_STYLE = {
   backgroundColor: BG_PANEL_ALT,
@@ -153,7 +155,7 @@ export const PLAYER_BADGE_STYLE = {
   color: TEXT_SECONDARY,
 };
 export const STATUS_STRIP_STYLE = {
-  backgroundColor: BG_PANEL_ALT,
+  backgroundColor: BG_PANEL,
   border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
   padding: '0.42rem 0.52rem',
@@ -163,6 +165,7 @@ export const SUBTLE_PANEL_STYLE = {
   border: `1px solid ${BORDER}`,
   borderRadius: '0.35rem',
   padding: '0.42rem 0.52rem',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.015)',
 };
 export const UNSAVED_BADGE_STYLE = {
   display: 'inline-block',
