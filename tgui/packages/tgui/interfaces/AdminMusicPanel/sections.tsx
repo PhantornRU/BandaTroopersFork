@@ -225,6 +225,12 @@ const PLAY_TOOLBAR_TOGGLE_STYLE = (checked: boolean) => ({
   justifyContent: 'center',
 });
 
+const PLAY_SETTINGS_LABEL_STYLE = {
+  ...LABEL_STYLE,
+  fontSize: '0.72rem',
+  marginBottom: '0.08rem',
+};
+
 const CONTROL_BUTTON_STYLE = {
   minHeight: '1.9rem',
 };
@@ -285,6 +291,52 @@ const OPERATOR_STATUS_PANEL_STYLE = {
   borderRadius: '0.32rem',
   padding: '0.26rem 0.36rem',
 };
+
+const RESPONSIVE_HEADER_ROW_STYLE = {
+  gap: '0.35rem 0.5rem',
+};
+
+const RESPONSIVE_ACTION_GROUP_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  gap: '0.28rem',
+  minWidth: '0',
+};
+
+const INSPECTOR_TARGET_TEXT_STYLE = {
+  color: TEXT_SECONDARY,
+  fontSize: '0.82rem',
+  fontWeight: '600',
+  lineHeight: '1.2',
+};
+
+const LAUNCH_STATUS_SEGMENTS_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '0.14rem 0.5rem',
+  minWidth: '0',
+};
+
+const LAUNCH_STATUS_SEGMENT_STYLE = {
+  color: TEXT_SECONDARY,
+  fontSize: '0.74rem',
+  whiteSpace: 'nowrap',
+  lineHeight: '1.22',
+};
+
+const WRAPPING_TOGGLE_BUTTON_STYLE = (checked: boolean) => ({
+  ...getCompactToggleStyle(checked),
+  width: '100%',
+  minWidth: '0',
+  minHeight: '2.2rem',
+  whiteSpace: 'normal',
+  lineHeight: '1.2',
+  textAlign: 'left',
+  justifyContent: 'flex-start',
+});
 
 const TRACK_TITLE_TEXT_STYLE = {
   ...ELLIPSIS_STYLE,
@@ -429,35 +481,6 @@ const getLibraryRowStyle = (loaded: boolean) => ({
     : {}),
 });
 
-const getBroadcastStatusText = (
-  trackReadiness: TrackLaunchReadiness,
-  selectedTrackIsLive: boolean,
-) => {
-  if (selectedTrackIsLive) {
-    return 'Live';
-  }
-
-  if (trackReadiness.reason) {
-    return 'Blocked';
-  }
-
-  return 'Ready';
-};
-
-const getLaunchDiagnosticsText = (trackReadiness: TrackLaunchReadiness) => {
-  const diagnostics: string[] = [];
-
-  if (trackReadiness.reason) {
-    diagnostics.push(`Blocked: ${trackReadiness.reason}`);
-  }
-
-  if (trackReadiness.warnings.length) {
-    diagnostics.push(`Warning: ${trackReadiness.warnings[0]}`);
-  }
-
-  return diagnostics.join(' | ');
-};
-
 function TrackFactBadges({ items }: TrackFactBadgesProps) {
   return (
     <Box>
@@ -466,6 +489,84 @@ function TrackFactBadges({ items }: TrackFactBadgesProps) {
           {item.label}: {item.value}
         </Box>
       ))}
+    </Box>
+  );
+}
+
+type LaunchContextBadge = Readonly<{
+  key: string;
+  text: string;
+  style?: Record<string, string>;
+}>;
+
+function getLaunchContextBadges(
+  contextFacts: CompactFactItem[],
+  launchStateText: string,
+  previewStateText: string,
+  trackReadiness: TrackLaunchReadiness,
+): LaunchContextBadge[] {
+  const badges: LaunchContextBadge[] = contextFacts.map((item) => ({
+    key: item.label,
+    text: `${item.label}: ${item.value}`,
+  }));
+
+  badges.push(
+    { key: 'status', text: `Status: ${launchStateText}` },
+    { key: 'preview', text: `Preview: ${previewStateText}` },
+  );
+
+  if (trackReadiness.reason) {
+    badges.push({
+      key: 'blocked',
+      text: `Blocked: ${trackReadiness.reason}`,
+      style: WARNING_BADGE_STYLE,
+    });
+  }
+
+  if (trackReadiness.warnings.length) {
+    badges.push({
+      key: 'warning',
+      text: `Warning: ${trackReadiness.warnings[0]}`,
+      style: WARNING_BADGE_STYLE,
+    });
+  }
+
+  return badges;
+}
+
+type LaunchStatusSummaryProps = Readonly<{
+  launchStateText: string;
+  previewStateText: string;
+  trackReadiness: TrackLaunchReadiness;
+}>;
+
+function LaunchStatusSummary({
+  launchStateText,
+  previewStateText,
+  trackReadiness,
+}: LaunchStatusSummaryProps) {
+  const segments = [
+    `Status: ${launchStateText}`,
+    `Preview: ${previewStateText}`,
+  ];
+
+  if (trackReadiness.reason) {
+    segments.push(`Blocked: ${trackReadiness.reason}`);
+  }
+
+  if (trackReadiness.warnings.length) {
+    segments.push(`Warning: ${trackReadiness.warnings[0]}`);
+  }
+
+  return (
+    <Box style={LAUNCH_STATUS_PANEL_STYLE}>
+      <Flex wrap width="100%" style={LAUNCH_STATUS_SEGMENTS_STYLE}>
+        {segments.map((segment) => (
+          <Flex.Item key={segment} style={{ minWidth: '0', flex: '0 1 auto' }}>
+            <Box style={LAUNCH_STATUS_SEGMENT_STYLE}>{segment}</Box>
+          </Flex.Item>
+        ))}
+      </Flex>
     </Box>
   );
 }
@@ -656,11 +757,13 @@ export function BroadcastStatusStrip({
 }
 
 type OperatorActionPanelProps = Readonly<{
+  launchSettings: LaunchSettings;
   trackReadiness: TrackLaunchReadiness;
   isPreviewActive: boolean;
-  previewState: string;
   selectedTrackIsLive: boolean;
   hasCurrentSession: boolean;
+  onToggleRepeat: () => void;
+  onSetPlaybackMode: (value: PlaybackMode) => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
   onPlaySelected: () => void;
@@ -669,11 +772,13 @@ type OperatorActionPanelProps = Readonly<{
 }>;
 
 function OperatorActionPanel({
+  launchSettings,
   trackReadiness,
   isPreviewActive,
-  previewState,
   selectedTrackIsLive,
   hasCurrentSession,
+  onToggleRepeat,
+  onSetPlaybackMode,
   onPreviewSelected,
   onStopPreview,
   onPlaySelected,
@@ -684,10 +789,6 @@ function OperatorActionPanel({
   const broadcastDisabled = !trackReadiness.canBroadcast;
   const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
   const previewIcon = isPreviewActive ? 'stop' : 'eye';
-  const broadcastStateText = getBroadcastStatusText(
-    trackReadiness,
-    selectedTrackIsLive,
-  );
   const broadcastLabel = selectedTrackIsLive
     ? 'Restart Broadcast'
     : 'Broadcast';
@@ -765,12 +866,11 @@ function OperatorActionPanel({
         </Stack>
       </Box>
       <Box mt="0.28rem" style={OPERATOR_STATUS_PANEL_STYLE}>
-        <Box color="label" fontSize="0.73rem">
-          Broadcast: {broadcastStateText}
-        </Box>
-        <Box color="label" fontSize="0.73rem" mt="0.08rem">
-          Preview: {isPreviewActive ? 'Preview playing' : previewState}
-        </Box>
+        <LaunchPreflightControls
+          launchSettings={launchSettings}
+          onToggleRepeat={onToggleRepeat}
+          onSetPlaybackMode={onSetPlaybackMode}
+        />
       </Box>
     </Section>
   );
@@ -778,72 +878,34 @@ function OperatorActionPanel({
 
 type LaunchPreflightControlsProps = Readonly<{
   launchSettings: LaunchSettings;
-  onToggleShowTitle: () => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
 }>;
 
 function LaunchPreflightControls({
   launchSettings,
-  onToggleShowTitle,
   onToggleRepeat,
   onSetPlaybackMode,
 }: LaunchPreflightControlsProps) {
   return (
-    <Stack fill vertical>
-      <Stack.Item>
-        <Stack fill>
-          <Stack.Item basis="22%" grow={1}>
-            <Box color="label" fontSize="0.72rem">
-              Players Visible
-            </Box>
-          </Stack.Item>
-          <Stack.Item basis="28%" grow={1}>
-            <Box color="label" fontSize="0.72rem">
-              Repeat
-            </Box>
-          </Stack.Item>
-          <Stack.Item basis="50%" grow={2}>
-            <Box color="label" fontSize="0.72rem">
-              Launch Mode
-            </Box>
-          </Stack.Item>
-        </Stack>
+    <Stack fill>
+      <Stack.Item basis="12.25rem" grow={0}>
+        <Button.Checkbox
+          compact
+          fluid
+          checked={launchSettings.repeat}
+          style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
+          onClick={onToggleRepeat}
+        >
+          Repeat current track
+        </Button.Checkbox>
       </Stack.Item>
-      <Stack.Item>
-        <Stack fill>
-          <Stack.Item basis="22%" grow={1}>
-            <Button.Checkbox
-              compact
-              fluid
-              checked={launchSettings.show_title_to_players}
-              style={PLAY_TOOLBAR_TOGGLE_STYLE(
-                launchSettings.show_title_to_players,
-              )}
-              onClick={onToggleShowTitle}
-            >
-              Visible
-            </Button.Checkbox>
-          </Stack.Item>
-          <Stack.Item basis="28%" grow={1}>
-            <Button.Checkbox
-              compact
-              fluid
-              checked={launchSettings.repeat}
-              style={PLAY_TOOLBAR_TOGGLE_STYLE(launchSettings.repeat)}
-              onClick={onToggleRepeat}
-            >
-              Repeat current track
-            </Button.Checkbox>
-          </Stack.Item>
-          <Stack.Item basis="50%" grow={2}>
-            <PlaybackModeSelector
-              playbackMode={launchSettings.playback_mode}
-              repeat={launchSettings.repeat}
-              onSetPlaybackMode={onSetPlaybackMode}
-            />
-          </Stack.Item>
-        </Stack>
+      <Stack.Item basis={0} grow={1}>
+        <PlaybackModeSelector
+          playbackMode={launchSettings.playback_mode}
+          repeat={launchSettings.repeat}
+          onSetPlaybackMode={onSetPlaybackMode}
+        />
       </Stack.Item>
     </Stack>
   );
@@ -853,11 +915,16 @@ type SessionSectionProps = Readonly<{
   current_session: CurrentSession;
   launchSettings: LaunchSettings;
   draft: DraftPreset;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
   selectedTier: DraftTier | null;
   selectedVariant: DraftVariant | null;
   trackReadiness: TrackLaunchReadiness;
   selectedTrackIsLive: boolean;
-  onToggleShowTitle: () => void;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
   onResetLaunchSettings: () => void;
@@ -874,11 +941,16 @@ export function SessionSection({
   current_session,
   launchSettings,
   draft,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
   selectedTier,
   selectedVariant,
   trackReadiness,
   selectedTrackIsLive,
-  onToggleShowTitle,
+  onSetAudienceMode,
+  onSetSoundType,
   onToggleRepeat,
   onSetPlaybackMode,
   onResetLaunchSettings,
@@ -891,7 +963,12 @@ export function SessionSection({
   onStopBroadcast,
 }: SessionSectionProps) {
   const contextTitle = selectedVariant?.title || 'No track selected';
-  const diagnosticsText = getLaunchDiagnosticsText(trackReadiness);
+  const launchStateText = selectedTrackIsLive
+    ? 'Live'
+    : trackReadiness.reason
+      ? 'Blocked'
+      : 'Ready to broadcast';
+  const previewStateText = isPreviewActive ? 'Preview playing' : previewState;
   const contextFacts: CompactFactItem[] = [
     {
       label: 'Preset',
@@ -914,6 +991,12 @@ export function SessionSection({
         : 'Not set',
     },
   ];
+  const contextBadges = getLaunchContextBadges(
+    contextFacts,
+    launchStateText,
+    previewStateText,
+    trackReadiness,
+  );
 
   return (
     <Stack fill align="stretch">
@@ -948,36 +1031,42 @@ export function SessionSection({
             ) : null}
           </Flex>
           <Box mt="0.1rem">
-            {contextFacts.map((item) => (
-              <Box key={item.label} style={PLAY_CONTEXT_META_STYLE}>
-                {item.label}: {item.value}
-              </Box>
-            ))}
+            <Box>
+              {contextBadges.map((item) => (
+                <Box
+                  key={item.key}
+                  style={item.style ? item.style : PLAY_CONTEXT_META_STYLE}
+                >
+                  {item.text}
+                </Box>
+              ))}
+            </Box>
           </Box>
-          <Box mt="0.16rem">
-            <LaunchPreflightControls
-              launchSettings={launchSettings}
-              onToggleShowTitle={onToggleShowTitle}
-              onToggleRepeat={onToggleRepeat}
-              onSetPlaybackMode={onSetPlaybackMode}
+          <Box mt="0.18rem">
+            <PlaybackSettingsControls
+              playback={launchSettings}
+              audienceOptions={audienceOptions}
+              soundTypeOptions={soundTypeOptions}
+              audienceLabel={audienceLabel}
+              soundTypeLabel={soundTypeLabel}
+              onSetAudienceMode={onSetAudienceMode}
+              onSetSoundType={onSetSoundType}
+              onToggleShowTitle={() => null}
+              showVisibilityToggle={false}
+              showRepeatToggle={false}
             />
           </Box>
-          {diagnosticsText ? (
-            <Box mt="0.24rem" style={LAUNCH_STATUS_PANEL_STYLE}>
-              <Box color="label" fontSize="0.74rem" style={ELLIPSIS_STYLE}>
-                {diagnosticsText}
-              </Box>
-            </Box>
-          ) : null}
         </Section>
       </Stack.Item>
       <Stack.Item basis="32%" grow={1}>
         <OperatorActionPanel
+          launchSettings={launchSettings}
           trackReadiness={trackReadiness}
           isPreviewActive={isPreviewActive}
-          previewState={previewState}
           selectedTrackIsLive={selectedTrackIsLive}
           hasCurrentSession={Boolean(current_session)}
+          onToggleRepeat={onToggleRepeat}
+          onSetPlaybackMode={onSetPlaybackMode}
           onPreviewSelected={onPreviewSelected}
           onStopPreview={onStopPreview}
           onPlaySelected={onPlaySelected}
@@ -1036,13 +1125,19 @@ function PlaybackModeSelector({
 type TracksFocusLaunchStripProps = Readonly<{
   current_session: CurrentSession;
   launchSettings: LaunchSettings;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
   trackReadiness: TrackLaunchReadiness;
   isPreviewActive: boolean;
   previewState: string;
   selectedTrackIsLive: boolean;
-  onToggleShowTitle: () => void;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
+  onResetLaunchSettings: () => void;
   onPreviewSelected: () => void;
   onStopPreview: () => void;
   onPlaySelected: () => void;
@@ -1052,13 +1147,19 @@ type TracksFocusLaunchStripProps = Readonly<{
 function TracksFocusLaunchStrip({
   current_session,
   launchSettings,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
   trackReadiness,
   isPreviewActive,
   previewState,
   selectedTrackIsLive,
-  onToggleShowTitle,
+  onSetAudienceMode,
+  onSetSoundType,
   onToggleRepeat,
   onSetPlaybackMode,
+  onResetLaunchSettings,
   onPreviewSelected,
   onStopPreview,
   onPlaySelected,
@@ -1067,91 +1168,148 @@ function TracksFocusLaunchStrip({
   const previewDisabled = !isPreviewActive && !trackReadiness.canPreview;
   const previewLabel = isPreviewActive ? 'Stop Preview' : 'Preview';
   const previewIcon = isPreviewActive ? 'stop' : 'eye';
-  const diagnosticsText = getLaunchDiagnosticsText(trackReadiness);
-  const broadcastStateText = getBroadcastStatusText(
-    trackReadiness,
-    selectedTrackIsLive,
-  );
+  const launchStateText = selectedTrackIsLive
+    ? 'Live'
+    : trackReadiness.reason
+      ? 'Blocked'
+      : 'Ready to broadcast';
+  const previewStateText = isPreviewActive ? 'Preview playing' : previewState;
 
   return (
     <Box px={0.75} py={0.5} style={STATUS_STRIP_STYLE}>
       <Stack fill vertical>
         <Stack.Item>
-          <Flex align="center" justify="space-between" width="100%">
-            <Flex.Item grow>
-              <LaunchPreflightControls
-                launchSettings={launchSettings}
-                onToggleShowTitle={onToggleShowTitle}
-                onToggleRepeat={onToggleRepeat}
-                onSetPlaybackMode={onSetPlaybackMode}
-              />
+          <LaunchStatusSummary
+            launchStateText={launchStateText}
+            previewStateText={previewStateText}
+            trackReadiness={trackReadiness}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Flex
+            align="stretch"
+            justify="space-between"
+            wrap
+            width="100%"
+            style={{ gap: '0.5rem' }}
+          >
+            <Flex.Item
+              grow
+              basis="22rem"
+              style={{ minWidth: '14rem', flex: '1 1 22rem' }}
+            >
+              <Stack fill vertical>
+                <Stack.Item>
+                  <PlaybackSettingsControls
+                    playback={launchSettings}
+                    audienceOptions={audienceOptions}
+                    soundTypeOptions={soundTypeOptions}
+                    audienceLabel={audienceLabel}
+                    soundTypeLabel={soundTypeLabel}
+                    onSetAudienceMode={onSetAudienceMode}
+                    onSetSoundType={onSetSoundType}
+                    onToggleShowTitle={() => null}
+                    showVisibilityToggle={false}
+                    showRepeatToggle={false}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Box mt="0.28rem">
+                    <LaunchPreflightControls
+                      launchSettings={launchSettings}
+                      onToggleRepeat={onToggleRepeat}
+                      onSetPlaybackMode={onSetPlaybackMode}
+                    />
+                  </Box>
+                </Stack.Item>
+              </Stack>
             </Flex.Item>
-            <Flex.Item ml={1} style={{ alignSelf: 'center' }}>
-              <Box style={{ display: 'flex', alignItems: 'center' }}>
-                <Stack>
+            <Flex.Item
+              basis="24rem"
+              style={{ minWidth: '18rem', flex: '1 1 24rem' }}
+            >
+              <Box style={OPERATOR_STATUS_PANEL_STYLE}>
+                <Stack fill vertical>
                   <Stack.Item>
-                    <Button
-                      compact
-                      color="good"
-                      icon="play"
-                      disabled={!trackReadiness.canBroadcast}
-                      onClick={onPlaySelected}
-                    >
-                      {selectedTrackIsLive ? 'Restart Broadcast' : 'Broadcast'}
-                    </Button>
+                    <Stack fill>
+                      <Stack.Item grow>
+                        <Button
+                          compact
+                          fluid
+                          color="good"
+                          icon="play"
+                          disabled={!trackReadiness.canBroadcast}
+                          style={CONTROL_BUTTON_STYLE}
+                          onClick={onPlaySelected}
+                        >
+                          {selectedTrackIsLive
+                            ? 'Restart Broadcast'
+                            : 'Broadcast'}
+                        </Button>
+                      </Stack.Item>
+                      <Stack.Item grow>
+                        <Button
+                          compact
+                          fluid
+                          color="transparent"
+                          icon="stop"
+                          disabled={!current_session}
+                          style={{
+                            ...getStopActionStyle(!current_session),
+                            ...CONTROL_BUTTON_STYLE,
+                          }}
+                          onClick={onStopBroadcast}
+                        >
+                          Stop
+                        </Button>
+                      </Stack.Item>
+                    </Stack>
                   </Stack.Item>
                   <Stack.Item>
-                    <Button
-                      compact
-                      color="transparent"
-                      icon={previewIcon}
-                      disabled={previewDisabled}
-                      style={getPreviewActionStyle(
-                        isPreviewActive,
-                        previewDisabled,
-                      )}
-                      onClick={
-                        isPreviewActive ? onStopPreview : onPreviewSelected
-                      }
-                    >
-                      {previewLabel}
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      compact
-                      color="transparent"
-                      icon="stop"
-                      disabled={!current_session}
-                      style={getStopActionStyle(!current_session)}
-                      onClick={onStopBroadcast}
-                    >
-                      Stop Broadcast
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Box style={OPERATOR_STATUS_PANEL_STYLE}>
-                      <Box color="label" fontSize="0.73rem">
-                        Broadcast: {broadcastStateText}
-                      </Box>
-                      <Box color="label" fontSize="0.73rem" mt="0.08rem">
-                        Preview:{' '}
-                        {isPreviewActive ? 'Preview playing' : previewState}
-                      </Box>
-                    </Box>
+                    <Stack fill>
+                      <Stack.Item grow>
+                        <Button
+                          compact
+                          fluid
+                          color="transparent"
+                          icon={previewIcon}
+                          disabled={previewDisabled}
+                          style={{
+                            ...getPreviewActionStyle(
+                              isPreviewActive,
+                              previewDisabled,
+                            ),
+                            ...CONTROL_BUTTON_STYLE,
+                          }}
+                          onClick={
+                            isPreviewActive ? onStopPreview : onPreviewSelected
+                          }
+                        >
+                          {previewLabel}
+                        </Button>
+                      </Stack.Item>
+                      <Stack.Item grow>
+                        <Button
+                          compact
+                          fluid
+                          color="transparent"
+                          icon="undo"
+                          style={{
+                            ...getTertiaryActionStyle(),
+                            ...CONTROL_BUTTON_STYLE,
+                          }}
+                          onClick={onResetLaunchSettings}
+                        >
+                          Reset
+                        </Button>
+                      </Stack.Item>
+                    </Stack>
                   </Stack.Item>
                 </Stack>
               </Box>
             </Flex.Item>
           </Flex>
         </Stack.Item>
-        {diagnosticsText ? (
-          <Stack.Item>
-            <Box color="label" fontSize="0.75rem" style={ELLIPSIS_STYLE}>
-              {diagnosticsText}
-            </Box>
-          </Stack.Item>
-        ) : null}
       </Stack>
     </Box>
   );
@@ -1161,6 +1319,10 @@ type PlayTabProps = Readonly<{
   current_session: CurrentSession;
   draft: DraftPreset;
   launchSettings: LaunchSettings;
+  audienceOptions: SelectOption[];
+  soundTypeOptions: SelectOption[];
+  audienceLabel: string;
+  soundTypeLabel: string;
   trackReadiness: TrackLaunchReadiness;
   selectedTrackIsLive: boolean;
   isPreviewActive: boolean;
@@ -1176,7 +1338,8 @@ type PlayTabProps = Readonly<{
   selectedVariant: DraftVariant | null;
   selectedTierId: string | null;
   selectedVariantId: string | null;
-  onToggleShowTitle: () => void;
+  onSetAudienceMode: (value: string) => void;
+  onSetSoundType: (value: string) => void;
   onToggleRepeat: () => void;
   onSetPlaybackMode: (value: PlaybackMode) => void;
   onResetLaunchSettings: () => void;
@@ -1192,6 +1355,10 @@ export function PlayTab({
   current_session,
   draft,
   launchSettings,
+  audienceOptions,
+  soundTypeOptions,
+  audienceLabel,
+  soundTypeLabel,
   trackReadiness,
   selectedTrackIsLive,
   isPreviewActive,
@@ -1207,7 +1374,8 @@ export function PlayTab({
   selectedVariant,
   selectedTierId,
   selectedVariantId,
-  onToggleShowTitle,
+  onSetAudienceMode,
+  onSetSoundType,
   onToggleRepeat,
   onSetPlaybackMode,
   onResetLaunchSettings,
@@ -1286,13 +1454,19 @@ export function PlayTab({
             <TracksFocusLaunchStrip
               current_session={current_session}
               launchSettings={launchSettings}
+              audienceOptions={audienceOptions}
+              soundTypeOptions={soundTypeOptions}
+              audienceLabel={audienceLabel}
+              soundTypeLabel={soundTypeLabel}
               trackReadiness={trackReadiness}
               isPreviewActive={isPreviewActive}
               previewState={previewState}
               selectedTrackIsLive={selectedTrackIsLive}
-              onToggleShowTitle={onToggleShowTitle}
+              onSetAudienceMode={onSetAudienceMode}
+              onSetSoundType={onSetSoundType}
               onToggleRepeat={onToggleRepeat}
               onSetPlaybackMode={onSetPlaybackMode}
+              onResetLaunchSettings={onResetLaunchSettings}
               onPreviewSelected={onPreviewSelected}
               onStopPreview={onStopPreview}
               onPlaySelected={onPlaySelected}
@@ -1318,11 +1492,16 @@ export function PlayTab({
             current_session={current_session}
             draft={draft}
             launchSettings={launchSettings}
+            audienceOptions={audienceOptions}
+            soundTypeOptions={soundTypeOptions}
+            audienceLabel={audienceLabel}
+            soundTypeLabel={soundTypeLabel}
             selectedTier={selectedTier}
             selectedVariant={selectedVariant}
             trackReadiness={trackReadiness}
             selectedTrackIsLive={selectedTrackIsLive}
-            onToggleShowTitle={onToggleShowTitle}
+            onSetAudienceMode={onSetAudienceMode}
+            onSetSoundType={onSetSoundType}
             onToggleRepeat={onToggleRepeat}
             onSetPlaybackMode={onSetPlaybackMode}
             onResetLaunchSettings={onResetLaunchSettings}
@@ -1741,7 +1920,9 @@ type PlaybackSettingsControlsProps = Readonly<{
   onToggleShowTitle: () => void;
   onToggleRepeat?: () => void;
   showRepeatToggle?: boolean;
+  showVisibilityToggle?: boolean;
   visibilityInline?: boolean;
+  wrapToggleRow?: boolean;
 }>;
 
 function PlaybackSettingsControls({
@@ -1755,16 +1936,20 @@ function PlaybackSettingsControls({
   onToggleShowTitle,
   onToggleRepeat,
   showRepeatToggle = true,
+  showVisibilityToggle = true,
   visibilityInline = false,
+  wrapToggleRow = false,
 }: PlaybackSettingsControlsProps) {
   return (
     <Stack vertical>
       <Stack.Item>
         <Stack fill>
           <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
-            <Box style={LABEL_STYLE}>Audience</Box>
+            <Box style={PLAY_SETTINGS_LABEL_STYLE}>Audience</Box>
             <Dropdown
               width="100%"
+              color="transparent"
+              className="AdminMusicPanel__dropdownControl"
               options={audienceOptions}
               selected={playback.audience_mode}
               displayText={audienceLabel}
@@ -1772,18 +1957,20 @@ function PlaybackSettingsControls({
             />
           </Stack.Item>
           <Stack.Item basis={visibilityInline ? '38%' : '50%'} grow={1}>
-            <Box style={LABEL_STYLE}>Sound Type</Box>
+            <Box style={PLAY_SETTINGS_LABEL_STYLE}>Sound Type</Box>
             <Dropdown
               width="100%"
+              color="transparent"
+              className="AdminMusicPanel__dropdownControl"
               options={soundTypeOptions}
               selected={playback.sound_type}
               displayText={soundTypeLabel}
               onSelected={(value) => onSetSoundType(value)}
             />
           </Stack.Item>
-          {visibilityInline ? (
+          {visibilityInline && showVisibilityToggle ? (
             <Stack.Item basis="24%" grow={1}>
-              <Box style={LABEL_STYLE}>Players Visible</Box>
+              <Box style={PLAY_SETTINGS_LABEL_STYLE}>Players Visible</Box>
               <Button.Checkbox
                 compact
                 fluid
@@ -1797,36 +1984,79 @@ function PlaybackSettingsControls({
           ) : null}
         </Stack>
       </Stack.Item>
-      {!visibilityInline || showRepeatToggle ? (
+      {(!visibilityInline && showVisibilityToggle) || showRepeatToggle ? (
         <Stack.Item>
-          <Stack fill>
-            {!visibilityInline ? (
-              <Stack.Item grow>
-                <Button.Checkbox
-                  compact
-                  fluid
-                  checked={playback.show_title_to_players}
-                  style={getCompactToggleStyle(playback.show_title_to_players)}
-                  onClick={onToggleShowTitle}
+          {wrapToggleRow ? (
+            <Flex wrap width="100%" style={{ gap: '0.3rem' }}>
+              {!visibilityInline && showVisibilityToggle ? (
+                <Flex.Item
+                  grow
+                  basis="13rem"
+                  style={{ minWidth: '0', flex: '1 1 13rem' }}
                 >
-                  Visible to players
-                </Button.Checkbox>
-              </Stack.Item>
-            ) : null}
-            {showRepeatToggle ? (
-              <Stack.Item grow>
-                <Button.Checkbox
-                  compact
-                  fluid
-                  checked={playback.repeat}
-                  style={getCompactToggleStyle(playback.repeat)}
-                  onClick={onToggleRepeat}
+                  <Button.Checkbox
+                    compact
+                    fluid
+                    checked={playback.show_title_to_players}
+                    style={WRAPPING_TOGGLE_BUTTON_STYLE(
+                      playback.show_title_to_players,
+                    )}
+                    onClick={onToggleShowTitle}
+                  >
+                    Visible to players
+                  </Button.Checkbox>
+                </Flex.Item>
+              ) : null}
+              {showRepeatToggle ? (
+                <Flex.Item
+                  grow
+                  basis="13rem"
+                  style={{ minWidth: '0', flex: '1 1 13rem' }}
                 >
-                  Repeat until stopped
-                </Button.Checkbox>
-              </Stack.Item>
-            ) : null}
-          </Stack>
+                  <Button.Checkbox
+                    compact
+                    fluid
+                    checked={playback.repeat}
+                    style={WRAPPING_TOGGLE_BUTTON_STYLE(playback.repeat)}
+                    onClick={onToggleRepeat}
+                  >
+                    Repeat until stopped
+                  </Button.Checkbox>
+                </Flex.Item>
+              ) : null}
+            </Flex>
+          ) : (
+            <Stack fill>
+              {!visibilityInline && showVisibilityToggle ? (
+                <Stack.Item grow>
+                  <Button.Checkbox
+                    compact
+                    fluid
+                    checked={playback.show_title_to_players}
+                    style={getCompactToggleStyle(
+                      playback.show_title_to_players,
+                    )}
+                    onClick={onToggleShowTitle}
+                  >
+                    Visible to players
+                  </Button.Checkbox>
+                </Stack.Item>
+              ) : null}
+              {showRepeatToggle ? (
+                <Stack.Item grow>
+                  <Button.Checkbox
+                    compact
+                    fluid
+                    checked={playback.repeat}
+                    style={getCompactToggleStyle(playback.repeat)}
+                    onClick={onToggleRepeat}
+                  >
+                    Repeat until stopped
+                  </Button.Checkbox>
+                </Stack.Item>
+              ) : null}
+            </Stack>
+          )}
         </Stack.Item>
       ) : null}
     </Stack>
@@ -2531,6 +2761,7 @@ function PresetMetaSection({
             onSetSoundType={onSetSoundType}
             onToggleShowTitle={onToggleShowTitle}
             onToggleRepeat={onToggleRepeat}
+            wrapToggleRow
           />
         </Box>
       </Stack.Item>
@@ -2661,10 +2892,10 @@ function EditTrackActionButtons({
   onAddVariant,
 }: EditTrackActionButtonsProps) {
   return (
-    <Stack>
+    <Flex wrap justify="flex-end" style={RESPONSIVE_ACTION_GROUP_STYLE}>
       {selectedTier && selectedVariant ? (
         <>
-          <Stack.Item>
+          <Flex.Item>
             <Button
               compact
               icon="arrow-up"
@@ -2683,8 +2914,8 @@ function EditTrackActionButtons({
             >
               Up
             </Button>
-          </Stack.Item>
-          <Stack.Item>
+          </Flex.Item>
+          <Flex.Item>
             <Button
               compact
               icon="arrow-down"
@@ -2703,10 +2934,10 @@ function EditTrackActionButtons({
             >
               Down
             </Button>
-          </Stack.Item>
+          </Flex.Item>
         </>
       ) : null}
-      <Stack.Item>
+      <Flex.Item>
         <Button.Checkbox
           compact
           checked={tracksExpanded}
@@ -2719,8 +2950,8 @@ function EditTrackActionButtons({
         >
           Track Details
         </Button.Checkbox>
-      </Stack.Item>
-      <Stack.Item>
+      </Flex.Item>
+      <Flex.Item>
         <Button
           compact
           icon="plus"
@@ -2733,8 +2964,8 @@ function EditTrackActionButtons({
         >
           Add Track
         </Button>
-      </Stack.Item>
-    </Stack>
+      </Flex.Item>
+    </Flex>
   );
 }
 
@@ -2827,15 +3058,25 @@ function StructureSection({
           <Box style={{ ...SUBTLE_PANEL_STYLE, height: '100%' }}>
             <Stack fill vertical>
               <Stack.Item>
-                <Flex align="center" justify="space-between" width="100%">
-                  <Flex.Item grow>
+                <Flex
+                  align="flex-start"
+                  justify="space-between"
+                  wrap
+                  width="100%"
+                  style={RESPONSIVE_HEADER_ROW_STYLE}
+                >
+                  <Flex.Item grow basis="10rem" style={{ minWidth: '0' }}>
                     <Box bold>Scenes</Box>
                   </Flex.Item>
-                  <Flex.Item ml={1}>
-                    <Stack>
+                  <Flex.Item style={{ minWidth: '0', flex: '0 0 auto' }}>
+                    <Flex
+                      wrap
+                      justify="flex-end"
+                      style={RESPONSIVE_ACTION_GROUP_STYLE}
+                    >
                       {selectedTier ? (
                         <>
-                          <Stack.Item>
+                          <Flex.Item>
                             <Button
                               compact
                               icon="arrow-up"
@@ -2850,8 +3091,8 @@ function StructureSection({
                             >
                               Up
                             </Button>
-                          </Stack.Item>
-                          <Stack.Item>
+                          </Flex.Item>
+                          <Flex.Item>
                             <Button
                               compact
                               icon="arrow-down"
@@ -2868,15 +3109,15 @@ function StructureSection({
                             >
                               Down
                             </Button>
-                          </Stack.Item>
+                          </Flex.Item>
                         </>
                       ) : null}
-                      <Stack.Item>
+                      <Flex.Item>
                         <Button compact icon="plus" onClick={onAddTier}>
                           Add Scene
                         </Button>
-                      </Stack.Item>
-                    </Stack>
+                      </Flex.Item>
+                    </Flex>
                   </Flex.Item>
                 </Flex>
               </Stack.Item>
@@ -2933,8 +3174,14 @@ function StructureSection({
               <Stack.Item>
                 <Stack fill vertical>
                   <Stack.Item>
-                    <Flex align="center" justify="space-between" width="100%">
-                      <Flex.Item grow style={{ minWidth: '0' }}>
+                    <Flex
+                      align="flex-start"
+                      justify="space-between"
+                      wrap
+                      width="100%"
+                      style={RESPONSIVE_HEADER_ROW_STYLE}
+                    >
+                      <Flex.Item grow basis="14rem" style={{ minWidth: '0' }}>
                         <Box bold>Tracks</Box>
                         <Box
                           color="label"
@@ -2951,7 +3198,7 @@ function StructureSection({
                             : 'Dense keeps descriptions on one compact line. Track Details shows source and status chips.'}
                         </Box>
                       </Flex.Item>
-                      <Flex.Item ml={1}>
+                      <Flex.Item style={{ minWidth: '0', flex: '0 0 auto' }}>
                         <EditTrackActionButtons
                           selectedTier={selectedTier}
                           selectedVariant={selectedVariant}
@@ -3150,8 +3397,14 @@ function SelectedItemSection({
         overflow: 'hidden',
       }}
     >
-      <Flex align="center" justify="space-between" width="100%">
-        <Flex.Item grow>
+      <Flex
+        align="flex-start"
+        justify="space-between"
+        wrap
+        width="100%"
+        style={RESPONSIVE_HEADER_ROW_STYLE}
+      >
+        <Flex.Item grow basis="12rem" style={{ minWidth: '0' }}>
           <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
             Selected Item
           </Box>
@@ -3160,8 +3413,8 @@ function SelectedItemSection({
           </Box>
         </Flex.Item>
         {selectedTier ? (
-          <Flex.Item ml={1}>
-            <Box style={getToggleButtonStyle(showTrackInspector)}>
+          <Flex.Item style={{ minWidth: '0', flex: '0 0 auto' }}>
+            <Box style={INSPECTOR_TARGET_TEXT_STYLE}>
               {showTrackInspector ? 'Track' : 'Scene'}
             </Box>
           </Flex.Item>
@@ -3228,10 +3481,7 @@ function SceneInspectorSection({
     <Stack fill vertical key={selectedTier.tier_id}>
       <Stack.Item>
         <Box style={INSPECTOR_CARD_STYLE}>
-          <Box color="label" fontSize="0.74rem">
-            Scene
-          </Box>
-          <Box bold fontSize="1rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+          <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
             {selectedTier.name || 'Unnamed scene'}
           </Box>
           <Box color="label" fontSize="0.8rem" style={ELLIPSIS_STYLE}>
@@ -3248,13 +3498,19 @@ function SceneInspectorSection({
         </Box>
       </Stack.Item>
       <Stack.Item>
-        <Flex align="center" justify="space-between" width="100%">
-          <Flex.Item grow>
+        <Flex
+          align="flex-start"
+          justify="space-between"
+          wrap
+          width="100%"
+          style={RESPONSIVE_HEADER_ROW_STYLE}
+        >
+          <Flex.Item grow basis="12rem" style={{ minWidth: '0' }}>
             <Box bold>Scene Properties</Box>
           </Flex.Item>
-          <Flex.Item ml={1}>
-            <Stack>
-              <Stack.Item>
+          <Flex.Item style={{ minWidth: '0', flex: '0 0 auto' }}>
+            <Flex wrap justify="flex-end" style={RESPONSIVE_ACTION_GROUP_STYLE}>
+              <Flex.Item>
                 <Button
                   compact
                   icon="arrow-up"
@@ -3268,8 +3524,8 @@ function SceneInspectorSection({
                 >
                   Move Up
                 </Button>
-              </Stack.Item>
-              <Stack.Item>
+              </Flex.Item>
+              <Flex.Item>
                 <Button
                   compact
                   icon="arrow-down"
@@ -3283,8 +3539,8 @@ function SceneInspectorSection({
                 >
                   Move Down
                 </Button>
-              </Stack.Item>
-              <Stack.Item>
+              </Flex.Item>
+              <Flex.Item>
                 <Button.Confirm
                   compact
                   icon="trash"
@@ -3301,8 +3557,8 @@ function SceneInspectorSection({
                 >
                   Delete
                 </Button.Confirm>
-              </Stack.Item>
-            </Stack>
+              </Flex.Item>
+            </Flex>
           </Flex.Item>
         </Flex>
       </Stack.Item>
@@ -3401,10 +3657,7 @@ function TrackInspectorSection({
     <Stack fill vertical key={selectedVariant.variant_id}>
       <Stack.Item>
         <Box style={INSPECTOR_CARD_STYLE}>
-          <Box color="label" fontSize="0.74rem">
-            Track
-          </Box>
-          <Box bold fontSize="1rem" mt="0.1rem" style={ELLIPSIS_STYLE}>
+          <Box bold fontSize="1rem" style={ELLIPSIS_STYLE}>
             {selectedVariant.title || 'Unnamed track'}
           </Box>
           <Box color="label" fontSize="0.8rem" style={ELLIPSIS_STYLE}>
@@ -3431,13 +3684,19 @@ function TrackInspectorSection({
         </Box>
       </Stack.Item>
       <Stack.Item>
-        <Flex align="center" justify="space-between" width="100%">
-          <Flex.Item grow>
+        <Flex
+          align="flex-start"
+          justify="space-between"
+          wrap
+          width="100%"
+          style={RESPONSIVE_HEADER_ROW_STYLE}
+        >
+          <Flex.Item grow basis="12rem" style={{ minWidth: '0' }}>
             <Box bold>Track Properties</Box>
           </Flex.Item>
-          <Flex.Item ml={1}>
-            <Stack>
-              <Stack.Item>
+          <Flex.Item style={{ minWidth: '0', flex: '0 0 auto' }}>
+            <Flex wrap justify="flex-end" style={RESPONSIVE_ACTION_GROUP_STYLE}>
+              <Flex.Item>
                 <Button
                   compact
                   icon="arrow-up"
@@ -3456,8 +3715,8 @@ function TrackInspectorSection({
                 >
                   Move Up
                 </Button>
-              </Stack.Item>
-              <Stack.Item>
+              </Flex.Item>
+              <Flex.Item>
                 <Button
                   compact
                   icon="arrow-down"
@@ -3476,8 +3735,8 @@ function TrackInspectorSection({
                 >
                   Move Down
                 </Button>
-              </Stack.Item>
-              <Stack.Item>
+              </Flex.Item>
+              <Flex.Item>
                 <Button.Confirm
                   compact
                   icon="trash"
@@ -3499,8 +3758,8 @@ function TrackInspectorSection({
                 >
                   Delete
                 </Button.Confirm>
-              </Stack.Item>
-            </Stack>
+              </Flex.Item>
+            </Flex>
           </Flex.Item>
         </Flex>
       </Stack.Item>

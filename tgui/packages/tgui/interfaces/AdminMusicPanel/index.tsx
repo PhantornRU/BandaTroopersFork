@@ -186,6 +186,16 @@ export function AdminMusicPanel() {
                 current_session={current_session}
                 draft={draft}
                 launchSettings={launchSettings}
+                audienceOptions={audienceOptions}
+                soundTypeOptions={soundTypeOptions}
+                audienceLabel={getOptionLabel(
+                  audience_options,
+                  launchSettings.audience_mode,
+                )}
+                soundTypeLabel={getOptionLabel(
+                  sound_type_options,
+                  launchSettings.sound_type,
+                )}
                 trackReadiness={trackReadiness}
                 selectedTrackIsLive={selectedTrackIsLive}
                 isPreviewActive={isPreviewActive}
@@ -201,10 +211,16 @@ export function AdminMusicPanel() {
                 selectedVariant={selectedVariant}
                 selectedTierId={selected_tier_id}
                 selectedVariantId={selected_variant_id}
-                onToggleShowTitle={() =>
+                onSetAudienceMode={(value) =>
                   setLaunchSettings((current) => ({
                     ...current,
-                    show_title_to_players: !current.show_title_to_players,
+                    audience_mode: value,
+                  }))
+                }
+                onSetSoundType={(value) =>
+                  setLaunchSettings((current) => ({
+                    ...current,
+                    sound_type: value,
                   }))
                 }
                 onToggleRepeat={() =>
