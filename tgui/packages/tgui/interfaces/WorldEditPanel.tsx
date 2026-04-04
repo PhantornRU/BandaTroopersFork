@@ -1256,7 +1256,7 @@ const GeneratorCatalogPage = (props: {
       </Stack.Item>
 
       {!!data.has_generator && (
-        <Stack.Item width="18%" ml={1}>
+        <Stack.Item width="15%" ml={1}>
           <Section fill scrollable title="Инспектор">
             <Box bold>
               {data.current_generator_category} / {data.current_generator_name}
@@ -1976,10 +1976,10 @@ export const WorldEditPanel = () => {
   const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
 
   return (
-    <Window title="World Edit Panel" width={980} height={650}>
+    <Window title="World Edit Panel" width={950} height={620}>
       <Window.Content>
         <Stack fill>
-          <Stack.Item width={7}>
+          <Stack.Item width={8}>
             <Sidebar
               data={data}
               pageIndex={pageIndex}
