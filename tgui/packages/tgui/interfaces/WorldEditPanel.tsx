@@ -464,15 +464,6 @@ const getSidebarTiles = (data: BackendData): SummaryTile[] => [
         : 'label',
   },
   {
-    label: 'Click',
-    value: data.has_generator
-      ? data.click_mode_active
-        ? 'active'
-        : 'off'
-      : 'n/a',
-    color: data.click_mode_active ? 'good' : 'label',
-  },
-  {
     label: 'Ops',
     value: `${data.history_entries?.length || 0}`,
     color: data.history_entries?.length ? 'good' : 'label',
@@ -487,13 +478,13 @@ const SummaryTileGrid = (props: {
   const { items, compact, tileBasis } = props;
 
   return (
-    <Flex wrap mx={-0.5}>
+    <Flex wrap mx={-0.25}>
       {items.map((item) => (
         <Flex.Item
           key={item.label}
           basis={tileBasis || (compact ? '31%' : '48%')}
           grow
-          m={0.5}
+          m={0.25}
         >
           <Section fitted title={item.label}>
             <Box color={item.color || 'white'}>{item.value}</Box>
@@ -504,14 +495,38 @@ const SummaryTileGrid = (props: {
   );
 };
 
+const CompactStatusRow = (props: {
+  readonly items: SummaryTile[];
+  readonly basis?: string;
+}) => {
+  const { items, basis } = props;
+
+  return (
+    <Flex wrap mx={-0.25}>
+      {items.map((item) => (
+        <Flex.Item key={item.label} basis={basis || '24%'} grow m={0.15}>
+          <Box>
+            <Box as="span" color="label">
+              {item.label}:{' '}
+            </Box>
+            <Box as="span" color={item.color || 'white'}>
+              {item.value}
+            </Box>
+          </Box>
+        </Flex.Item>
+      ))}
+    </Flex>
+  );
+};
+
 const ActionRow = (props: { readonly children: ReactNode }) => (
-  <Flex wrap mx={-0.5}>
+  <Flex wrap mx={-0.25}>
     {props.children}
   </Flex>
 );
 
 const ActionItem = (props: { readonly children: ReactNode }) => (
-  <Flex.Item m={0.5}>{props.children}</Flex.Item>
+  <Flex.Item m={0.25}>{props.children}</Flex.Item>
 );
 
 const CompactGeneratorRow = (props: {
@@ -531,7 +546,7 @@ const CompactGeneratorRow = (props: {
           selected={selected}
           onClick={selected ? onOpenWork : onSelect}
         >
-          {selected ? 'К работе' : 'Выбрать'}
+          {selected ? 'Открыть' : 'Выбрать'}
         </Button>
       }
     >
@@ -690,7 +705,9 @@ const PresetLibrarySection = (props: {
     <Section
       title="Пресеты"
       buttons={
-        <Button onClick={() => act('save_preset')}>Сохранить preset</Button>
+        <Button compact onClick={() => act('save_preset')}>
+          Сохранить
+        </Button>
       }
     >
       {!data.preset_entries?.length && (
@@ -705,6 +722,7 @@ const PresetLibrarySection = (props: {
             {data.preset_entries.map((preset) => (
               <Flex.Item key={preset.id} basis="48%" grow m={0.5}>
                 <Button
+                  compact
                   fluid
                   selected={preset.id === selectedPreset?.id}
                   onClick={() => setSelectedPresetId(preset.id)}
@@ -727,6 +745,7 @@ const PresetLibrarySection = (props: {
               <ActionRow>
                 <ActionItem>
                   <Button
+                    compact
                     onClick={() =>
                       act('load_preset', {
                         preset_id: selectedPreset.id,
@@ -738,6 +757,7 @@ const PresetLibrarySection = (props: {
                 </ActionItem>
                 <ActionItem>
                   <Button
+                    compact
                     color="average"
                     onClick={() =>
                       act('delete_preset', {
@@ -799,8 +819,8 @@ const BlueprintLibrarySection = (props: {
     <Section
       title="Библиотека blueprint"
       buttons={
-        <Button onClick={() => act('list_blueprints')}>
-          Обновить библиотеку
+        <Button compact onClick={() => act('list_blueprints')}>
+          Обновить
         </Button>
       }
     >
@@ -820,6 +840,7 @@ const BlueprintLibrarySection = (props: {
             {data.blueprint_entries.map((blueprint) => (
               <Flex.Item key={blueprint.id} basis="48%" grow m={0.5}>
                 <Button
+                  compact
                   fluid
                   selected={blueprint.id === selectedBlueprint?.id}
                   onClick={() => setSelectedBlueprintId(blueprint.id)}
@@ -847,8 +868,8 @@ const BlueprintLibrarySection = (props: {
                 </NoticeBox>
               )}
 
-              <SummaryTileGrid
-                compact
+              <CompactStatusRow
+                basis="32%"
                 items={[
                   {
                     label: 'Элементы',
@@ -874,6 +895,7 @@ const BlueprintLibrarySection = (props: {
               <ActionRow>
                 <ActionItem>
                   <Button
+                    compact
                     disabled={!selectedBlueprint.valid || data.placement_active}
                     onClick={() =>
                       act('load_blueprint', {
@@ -886,6 +908,7 @@ const BlueprintLibrarySection = (props: {
                 </ActionItem>
                 <ActionItem>
                   <Button
+                    compact
                     disabled={!selectedBlueprint.valid || data.placement_active}
                     onClick={() =>
                       act('preview_blueprint', {
@@ -898,6 +921,7 @@ const BlueprintLibrarySection = (props: {
                 </ActionItem>
                 <ActionItem>
                   <Button
+                    compact
                     disabled={
                       !selectedBlueprint.valid ||
                       data.placement_active ||
@@ -929,15 +953,16 @@ const BlueprintExportSection = (props: {
   const { data, act } = props;
 
   return (
-    <Section title="Экспорт blueprint">
+    <Section title="Экспорт">
       <Box color="label" mb={1}>
         Для `outpost_radius` можно сохранить текущий preview как Blueprint Lite.
       </Box>
       <Button
+        compact
         disabled={!data.can_save_blueprint_from_plan}
         onClick={() => act('save_blueprint')}
       >
-        Сохранить из outpost preview
+        Сохранить preview
       </Button>
     </Section>
   );
@@ -990,33 +1015,36 @@ const PlacementSetupSection = (props: {
   const finishCollectionReason = getFinishCollectionReason(data);
 
   return (
-    <Section title="Параметры размещения">
-      <SummaryTileGrid items={placementTiles} />
+    <Section title="Размещение">
+      <CompactStatusRow items={placementTiles} />
 
       <ActionRow>
         <ActionItem>
           <Button
+            compact
             disabled={!data.can_start_placement_mode}
             onClick={() => act('start_placement_mode')}
           >
-            Запустить placement
+            Старт
           </Button>
         </ActionItem>
         <ActionItem>
           <Button
+            compact
             color="average"
             disabled={!data.can_stop_click_mode}
             onClick={() => act('stop_click_mode')}
           >
-            Остановить click-mode
+            Stop
           </Button>
         </ActionItem>
         <ActionItem>
           <Button
+            compact
             disabled={!data.can_finish_placement_collection}
             onClick={() => act('finish_placement_collection')}
           >
-            Применить форму
+            Готово
           </Button>
         </ActionItem>
       </ActionRow>
@@ -1035,7 +1063,7 @@ const PlacementSetupSection = (props: {
           </Box>
         )}
 
-      <Section title="Настройки размещения" mt={1}>
+      <Section title="Настройки" mt={0.5}>
         <LabeledList>
           {data.placement_shape_supported && (
             <LabeledList.Item label="Форма">
@@ -1112,13 +1140,13 @@ const PlacementSetupSection = (props: {
         </LabeledList>
       </Section>
 
-      <NoticeBox info mt={1} mb={1}>
+      <Box color="label" mt={0.5} mb={0.5}>
         {interactionHelpText(data)}
-      </NoticeBox>
+      </Box>
 
       {!!data.placement_interaction_kind &&
         data.placement_interaction_kind === 'collector' && (
-          <Section title="Состояние коллектора" mt={1}>
+          <Section title="Коллектор" mt={0.5}>
             <ProgressBar
               value={data.placement_collector_point_count || 0}
               maxValue={collectorTarget}
@@ -1136,8 +1164,8 @@ const PlacementSetupSection = (props: {
               {`${data.placement_collector_point_count || 0}/${collectorTarget}`}
             </ProgressBar>
 
-            <SummaryTileGrid
-              compact
+            <CompactStatusRow
+              basis="32%"
               items={[
                 {
                   label: 'Готово',
@@ -1171,7 +1199,7 @@ const PlacementSetupSection = (props: {
         )}
 
       {!!data.placement_shape_fields?.length && (
-        <Collapsible title="Параметры формы" open>
+        <Collapsible title="Форма" open>
           <LabeledList>
             {data.placement_shape_fields.map((field) => (
               <FieldEditor key={field.id} field={field} act={act} />
@@ -1227,96 +1255,60 @@ const GeneratorCatalogPage = (props: {
         </Section>
       </Stack.Item>
 
-      <Stack.Item width="25%" ml={1}>
-        <Section fill scrollable title="Инспектор">
-          {!data.has_generator && (
-            <Box color="label">
-              Выберите ready-генератор слева. Здесь появятся его краткое
-              описание и переход к работе.
+      {!!data.has_generator && (
+        <Stack.Item width="18%" ml={1}>
+          <Section fill scrollable title="Инспектор">
+            <Box bold>
+              {data.current_generator_category} / {data.current_generator_name}
             </Box>
-          )}
+            <Box color="label" mt={0.25}>
+              {data.current_generator_description}
+            </Box>
+            <Box color="label" mt={0.5}>
+              <Box
+                as="span"
+                color={toneForGeneratorStatus(data.current_generator_status)}
+              >
+                {data.current_generator_status || 'n/a'}
+              </Box>{' '}
+              | {data.current_generator_execution_mode || 'n/a'} | preview{' '}
+              {boolText(data.current_generator_supports_preview)} | place{' '}
+              {boolText(
+                !!(
+                  data.placement_supported ||
+                  data.placement_shape_supported ||
+                  data.placement_supports_direction
+                ),
+              )}
+            </Box>
+            <Box color="label" mt={0.25}>
+              {data.current_generator_required_rights} |{' '}
+              {data.ui_mode === 'inline' ? 'inline' : 'wizard'}
+            </Box>
 
-          {!!data.has_generator && (
-            <>
-              <Box bold>
-                {data.current_generator_category} /{' '}
-                {data.current_generator_name}
-              </Box>
-              <Box color="label" mt={0.25}>
-                {data.current_generator_description}
-              </Box>
-              <Box color="label" mt={0.5}>
-                Права: {data.current_generator_required_rights}
-              </Box>
-              <Box color="label">
-                Поля: {data.ui_mode === 'inline' ? 'inline' : 'wizard'}
-              </Box>
-
-              <SummaryTileGrid
-                compact
-                tileBasis="48%"
-                items={[
-                  {
-                    label: 'Статус',
-                    value: data.current_generator_status || 'n/a',
-                    color: toneForGeneratorStatus(
-                      data.current_generator_status,
-                    ),
-                  },
-                  {
-                    label: 'Preview',
-                    value: boolText(data.current_generator_supports_preview),
-                    color: data.current_generator_supports_preview
-                      ? 'good'
-                      : 'label',
-                  },
-                  {
-                    label: 'Исполнение',
-                    value: data.current_generator_execution_mode || 'n/a',
-                  },
-                  {
-                    label: 'Размещение',
-                    value: boolText(
-                      !!(
-                        data.placement_supported ||
-                        data.placement_shape_supported ||
-                        data.placement_supports_direction
-                      ),
-                    ),
-                    color:
-                      data.placement_supported ||
-                      data.placement_shape_supported ||
-                      data.placement_supports_direction
-                        ? 'good'
-                        : 'label',
-                  },
-                ]}
-              />
-
-              <ActionRow>
-                <ActionItem>
-                  <Button compact icon="sliders-h" onClick={onOpenWork}>
-                    К работе
-                  </Button>
-                </ActionItem>
-                <ActionItem>
-                  <Button
-                    compact
-                    color="average"
-                    icon="undo"
-                    onClick={() => act('reset_generator')}
-                  >
-                    Сбросить
-                  </Button>
-                </ActionItem>
-              </ActionRow>
-              <Box color={workflow.color || 'label'} mt={0.25}>
-                {workflow.label}
-              </Box>
-            </>
-          )}
-        </Section>
-      </Stack.Item>
+            <ActionRow>
+              <ActionItem>
+                <Button compact icon="sliders-h" onClick={onOpenWork}>
+                  Работа
+                </Button>
+              </ActionItem>
+              <ActionItem>
+                <Button
+                  compact
+                  color="average"
+                  icon="undo"
+                  onClick={() => act('reset_generator')}
+                >
+                  Сброс
+                </Button>
+              </ActionItem>
+            </ActionRow>
+            <Box color={workflow.color || 'label'} mt={0.25}>
+              {workflow.label}
+            </Box>
+          </Section>
+        </Stack.Item>
+      )}
     </Stack>
   );
 };
@@ -1331,12 +1323,14 @@ const WorkspaceCommandBar = (props: {
   const previewState = getPreviewState(data);
   const previewBlockReason = getPreviewBlockReason(data);
   const applyBlockReason = getApplyBlockReason(data);
+  const actionHint =
+    (!data.can_run_preview && previewBlockReason) ||
+    (!data.can_run_apply && applyBlockReason) ||
+    '';
 
   return (
-    <Section fitted title="Быстрые действия">
-      <SummaryTileGrid
-        compact
-        tileBasis="24%"
+    <Section fitted>
+      <CompactStatusRow
         items={[
           {
             label: 'Preview',
@@ -1349,7 +1343,7 @@ const WorkspaceCommandBar = (props: {
             color: data.can_run_apply ? 'good' : 'average',
           },
           {
-            label: 'Размещение',
+            label: 'Place',
             value:
               data.placement_supported ||
               data.placement_shape_supported ||
@@ -1367,41 +1361,6 @@ const WorkspaceCommandBar = (props: {
           },
         ]}
       />
-
-      <Box bold color={workflow.color || 'white'}>
-        {workflow.label}
-      </Box>
-
-      <ActionRow>
-        <ActionItem>
-          <Button
-            compact
-            disabled={!data.can_refresh_ui}
-            onClick={() => act('refresh_ui')}
-          >
-            Обновить поля
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button compact onClick={() => act('configure_wizard')}>
-            Открыть мастер
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            color="average"
-            onClick={() => act('reset_generator')}
-          >
-            Сбросить
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button compact icon="history" onClick={onOpenHistory}>
-            История
-          </Button>
-        </ActionItem>
-      </ActionRow>
 
       <ActionRow>
         <ActionItem>
@@ -1430,19 +1389,51 @@ const WorkspaceCommandBar = (props: {
             disabled={!data.has_generator}
             onClick={() => act('clear_preview')}
           >
-            Очистить preview
+            Очистить
           </Button>
         </ActionItem>
       </ActionRow>
 
-      {!data.can_run_preview && !!previewBlockReason && (
+      <Box color={workflow.color || 'label'} mt={0.25}>
+        {workflow.label}
+      </Box>
+
+      <Collapsible title="Еще" mt={0.5}>
+        <ActionRow>
+          <ActionItem>
+            <Button
+              compact
+              disabled={!data.can_refresh_ui}
+              onClick={() => act('refresh_ui')}
+            >
+              Поля
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button compact onClick={() => act('configure_wizard')}>
+              Мастер
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button
+              compact
+              color="average"
+              onClick={() => act('reset_generator')}
+            >
+              Сброс
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button compact icon="history" onClick={onOpenHistory}>
+              История
+            </Button>
+          </ActionItem>
+        </ActionRow>
+      </Collapsible>
+
+      {!!actionHint && (
         <Box color="label" mt={0.5}>
-          Preview: {previewBlockReason}
-        </Box>
-      )}
-      {!data.can_run_apply && !!applyBlockReason && (
-        <Box color="label" mt={0.5}>
-          Apply: {applyBlockReason}
+          {actionHint}
         </Box>
       )}
     </Section>
@@ -1459,130 +1450,130 @@ const WorkspaceSessionSection = (props: {
 
   return (
     <>
-      <Section title="Preview и сессия">
-        <SummaryTileGrid
-          compact
-          items={[
-            {
-              label: 'Статус',
-              value: previewState.label,
-              color: previewState.color,
-            },
-            {
-              label: 'Годен для apply',
-              value: boolText(data.preview_valid),
-              color: data.preview_valid ? 'good' : 'average',
-            },
-            {
-              label: 'Blueprint',
-              value: data.active_blueprint_id || 'none',
-            },
-          ]}
-        />
+      <CompactStatusRow
+        items={[
+          {
+            label: 'Preview',
+            value: previewState.label,
+            color: previewState.color,
+          },
+          {
+            label: 'Apply',
+            value: boolText(data.preview_valid),
+            color: data.preview_valid ? 'good' : 'average',
+          },
+          {
+            label: 'Blueprint',
+            value: data.active_blueprint_id || 'none',
+          },
+        ]}
+      />
 
-        <Box color={previewState.color || 'label'}>{previewState.message}</Box>
+      <Box color={previewState.color || 'label'}>{previewState.message}</Box>
 
-        {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
-          <Collapsible title="Метаданные preview" mt={1}>
-            <SummaryTileGrid
-              compact
-              items={Object.entries(data.preview_meta).map(([key, value]) => ({
-                label: key,
-                value: renderMetaValue(value),
-              }))}
-            />
-          </Collapsible>
+      <ActionRow>
+        <ActionItem>
+          <Button
+            compact
+            color="average"
+            disabled={!data.can_undo_last_operation}
+            onClick={() => act('undo_last_operation')}
+          >
+            Undo
+          </Button>
+        </ActionItem>
+        <ActionItem>
+          <Button
+            compact
+            color="average"
+            disabled={!data.can_cleanup_last_owned_effects}
+            onClick={() => act('cleanup_last_owned_effects')}
+          >
+            Cleanup
+          </Button>
+        </ActionItem>
+      </ActionRow>
+
+      {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
+        <Collapsible title="Метаданные preview" mt={0.5}>
+          <CompactStatusRow
+            basis="32%"
+            items={Object.entries(data.preview_meta).map(([key, value]) => ({
+              label: key,
+              value: renderMetaValue(value),
+            }))}
+          />
+        </Collapsible>
+      )}
+
+      <Collapsible title="Последний apply" open mt={0.5}>
+        <Box color={data.last_apply_success ? 'good' : 'average'}>
+          {data.last_apply_message || 'Операции apply еще не выполнялись.'}
+        </Box>
+      </Collapsible>
+
+      <Collapsible title="Undo / cleanup" mt={0.5}>
+        {!data.last_changeset && (
+          <Box color="label">
+            Undo/cleanup-record для текущей session пока отсутствует.
+          </Box>
         )}
 
-        <ActionRow>
-          <ActionItem>
-            <Button
-              color="average"
-              disabled={!data.can_undo_last_operation}
-              onClick={() => act('undo_last_operation')}
-            >
-              Undo
-            </Button>
-          </ActionItem>
-          <ActionItem>
-            <Button
-              color="average"
-              disabled={!data.can_cleanup_last_owned_effects}
-              onClick={() => act('cleanup_last_owned_effects')}
-            >
-              Cleanup эффектов
-            </Button>
-          </ActionItem>
-        </ActionRow>
-
-        <Collapsible title="Последний apply" open>
-          <Box color={data.last_apply_success ? 'good' : 'average'}>
-            {data.last_apply_message || 'Операции apply еще не выполнялись.'}
-          </Box>
-        </Collapsible>
-
-        <Collapsible title="Запись undo / cleanup">
-          {!data.last_changeset && (
-            <Box color="label">
-              Undo/cleanup-record для текущей session пока отсутствует.
+        {!!data.last_changeset && (
+          <>
+            <CompactStatusRow
+              basis="32%"
+              items={[
+                {
+                  label: 'Генератор',
+                  value: data.last_changeset.generator_id,
+                },
+                {
+                  label: 'Политика',
+                  value: data.last_changeset.undo_policy,
+                },
+                {
+                  label: 'Статус',
+                  value: data.last_changeset.undo_status,
+                },
+              ]}
+            />
+            <Box color="label" mt={0.5}>
+              ID операции: {data.last_changeset.operation_id}
             </Box>
-          )}
+            <Box color="label" mt={0.5}>
+              Создано ссылок: {data.last_changeset.created_entries} | Перемещено
+              ссылок: {data.last_changeset.moved_entries} | Собственных
+              эффектов: {data.last_changeset.owned_effect_entries}
+            </Box>
+          </>
+        )}
+      </Collapsible>
 
-          {!!data.last_changeset && (
-            <>
-              <SummaryTileGrid
-                compact
-                items={[
-                  {
-                    label: 'Генератор',
-                    value: data.last_changeset.generator_id,
-                  },
-                  {
-                    label: 'Политика',
-                    value: data.last_changeset.undo_policy,
-                  },
-                  {
-                    label: 'Статус',
-                    value: data.last_changeset.undo_status,
-                  },
-                ]}
-              />
-              <Box color="label" mt={0.5}>
-                ID операции: {data.last_changeset.operation_id}
+      <Collapsible
+        title={`Последние операции (${recentHistoryEntries.length})`}
+        mt={0.5}
+      >
+        {!recentHistoryEntries.length && (
+          <Box color="label">История текущей сессии пока пуста.</Box>
+        )}
+
+        {!!recentHistoryEntries.length &&
+          recentHistoryEntries.map((entry) => (
+            <Section
+              key={`${entry.time}_${entry.operation_id || entry.message}`}
+              fitted
+              title={`${entry.time} | ${entry.generator_id}`}
+            >
+              <Box color={toneForHistoryResult(entry.result)}>
+                {entry.result || 'n/a'}
               </Box>
-              <Box color="label" mt={0.5}>
-                Создано ссылок: {data.last_changeset.created_entries} |
-                Перемещено ссылок: {data.last_changeset.moved_entries} |
-                Собственных эффектов: {data.last_changeset.owned_effect_entries}
-              </Box>
-            </>
-          )}
-        </Collapsible>
+              <Box color="label">{entry.message || 'n/a'}</Box>
+            </Section>
+          ))}
+      </Collapsible>
 
-        <Collapsible
-          title={`Последние операции (${recentHistoryEntries.length})`}
-        >
-          {!recentHistoryEntries.length && (
-            <Box color="label">История текущей сессии пока пуста.</Box>
-          )}
-
-          {!!recentHistoryEntries.length &&
-            recentHistoryEntries.map((entry) => (
-              <Section
-                key={`${entry.time}_${entry.operation_id || entry.message}`}
-                fitted
-                title={`${entry.time} | ${entry.generator_id}`}
-              >
-                <Box color={toneForHistoryResult(entry.result)}>
-                  {entry.result || 'n/a'}
-                </Box>
-                <Box color="label">{entry.message || 'n/a'}</Box>
-              </Section>
-            ))}
-        </Collapsible>
-      </Section>
-
-      <Collapsible title="Диагностика" mt={1}>
+      <Collapsible title="Диагностика" mt={0.5}>
         <Collapsible title="Текущие параметры" open>
           <Box>{data.current_params_text || 'n/a'}</Box>
         </Collapsible>
@@ -1680,9 +1671,10 @@ const WorkspacePage = (props: {
             onOpenHistory={onOpenHistory}
           />
 
-          <Tabs mt={0.5}>
+          <Tabs mt={0.25}>
             <Tabs.Tab
               selected={workTab === 'params'}
+              fontSize={0.9}
               onClick={() => setWorkTab('params')}
             >
               Параметры
@@ -1690,6 +1682,7 @@ const WorkspacePage = (props: {
             {hasAssets && (
               <Tabs.Tab
                 selected={workTab === 'assets'}
+                fontSize={0.9}
                 onClick={() => setWorkTab('assets')}
               >
                 Ресурсы
@@ -1698,6 +1691,7 @@ const WorkspacePage = (props: {
             {showPlacementSetup && (
               <Tabs.Tab
                 selected={workTab === 'placement'}
+                fontSize={0.9}
                 onClick={() => setWorkTab('placement')}
               >
                 Размещение
@@ -1705,6 +1699,7 @@ const WorkspacePage = (props: {
             )}
             <Tabs.Tab
               selected={workTab === 'session'}
+              fontSize={0.9}
               onClick={() => setWorkTab('session')}
             >
               Сессия
@@ -1712,7 +1707,7 @@ const WorkspacePage = (props: {
           </Tabs>
 
           {workTab === 'params' && (
-            <Section title="Параметры генератора" mt={1}>
+            <Section mt={1}>
               {!data.has_inline_fields && (
                 <Box color="label">
                   Этот генератор не отдает inline-поля. Используйте мастер
@@ -1755,7 +1750,7 @@ const WorkspacePage = (props: {
           {workTab === 'assets' && (
             <>
               {!hasAssets && (
-                <Section title="Ресурсы" mt={1}>
+                <Section mt={1}>
                   <Box color="label">
                     Для текущего генератора дополнительные библиотеки и пресеты
                     не используются.
@@ -1778,7 +1773,7 @@ const WorkspacePage = (props: {
           {workTab === 'placement' && (
             <>
               {!showPlacementSetup && (
-                <Section title="Размещение" mt={1}>
+                <Section mt={1}>
                   <Box color="label">
                     Для текущего генератора live placement не используется.
                   </Box>
@@ -1816,8 +1811,8 @@ const HistoryPage = (props: {
       scrollable
       title="История операций (session)"
       buttons={
-        <Button color="average" onClick={() => act('clear_history')}>
-          Очистить историю
+        <Button compact color="average" onClick={() => act('clear_history')}>
+          Очистить
         </Button>
       }
     >
@@ -1825,7 +1820,7 @@ const HistoryPage = (props: {
         <>
           <Box color="label">История операций пуста.</Box>
           {!!data.has_generator && (
-            <Button icon="sliders-h" mt={1} onClick={onOpenWork}>
+            <Button compact icon="sliders-h" mt={1} onClick={onOpenWork}>
               Вернуться к работе
             </Button>
           )}
@@ -1834,30 +1829,27 @@ const HistoryPage = (props: {
 
       {!!data.history_entries?.length && (
         <>
-          <Section title="Сводка сессии">
-            <SummaryTileGrid
-              compact
-              items={[
-                {
-                  label: 'Записей',
-                  value: `${data.history_entries?.length || 0}`,
-                },
-                {
-                  label: 'Последний генератор',
-                  value: latestEntry?.generator_id || 'none',
-                },
-                {
-                  label: 'Последний результат',
-                  value: latestEntry?.result || 'n/a',
-                  color: toneForHistoryResult(latestEntry?.result),
-                },
-                {
-                  label: 'Последний центр',
-                  value: latestEntry?.center_turf || 'n/a',
-                },
-              ]}
-            />
-          </Section>
+          <CompactStatusRow
+            items={[
+              {
+                label: 'Записи',
+                value: `${data.history_entries?.length || 0}`,
+              },
+              {
+                label: 'Генератор',
+                value: latestEntry?.generator_id || 'none',
+              },
+              {
+                label: 'Результат',
+                value: latestEntry?.result || 'n/a',
+                color: toneForHistoryResult(latestEntry?.result),
+              },
+              {
+                label: 'Центр',
+                value: latestEntry?.center_turf || 'n/a',
+              },
+            ]}
+          />
 
           {data.history_entries.map((entry, index) => (
             <Collapsible
@@ -1866,8 +1858,8 @@ const HistoryPage = (props: {
               open={index === 0}
               color={toneForHistoryResult(entry.result)}
             >
-              <SummaryTileGrid
-                compact
+              <CompactStatusRow
+                basis="32%"
                 items={[
                   {
                     label: 'Создано',
@@ -1933,28 +1925,26 @@ const Sidebar = (props: {
   return (
     <Section fill scrollable fitted title="World Edit">
       <Box bold>{data.current_generator_name || 'Без генератора'}</Box>
-      <Box color={workflow.color || 'label'} mt={0.25}>
-        {workflow.label}
-      </Box>
       <Box color="label" mt={0.25}>
-        {statusText}
+        <Box as="span" color={workflow.color || 'label'}>
+          {workflow.label}
+        </Box>{' '}
+        | {statusText}
       </Box>
 
-      <Section fitted title="Навигация" mt={1}>
-        <Tabs vertical fluid>
-          {PAGES.map((page, index) => (
-            <Tabs.Tab
-              key={page.title}
-              selected={index === pageIndex}
-              icon={page.icon}
-              fontSize={0.95}
-              onClick={() => setPageIndex(index)}
-            >
-              {page.title}
-            </Tabs.Tab>
-          ))}
-        </Tabs>
-      </Section>
+      <Tabs vertical fluid mt={1}>
+        {PAGES.map((page, index) => (
+          <Tabs.Tab
+            key={page.title}
+            selected={index === pageIndex}
+            icon={page.icon}
+            fontSize={0.9}
+            onClick={() => setPageIndex(index)}
+          >
+            {page.title}
+          </Tabs.Tab>
+        ))}
+      </Tabs>
     </Section>
   );
 };
@@ -1986,10 +1976,10 @@ export const WorldEditPanel = () => {
   const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
 
   return (
-    <Window title="World Edit Panel" width={1100} height={720}>
+    <Window title="World Edit Panel" width={980} height={650}>
       <Window.Content>
         <Stack fill>
-          <Stack.Item width={9}>
+          <Stack.Item width={7}>
             <Sidebar
               data={data}
               pageIndex={pageIndex}
