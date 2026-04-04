@@ -1,11 +1,12 @@
 # TODO
 
-- [x] Прочитать stable guidance и SS220 overlay для текущей задачи.
-- [x] Найти active World Edit code/data surface для barricade placement.
-- [x] Подтвердить upstream семантику directed barricades (`ON_BORDER`, `dir`, movement/projectile handling, one side = one blocker).
-- [x] Проверить текущий blueprint/template формат на поддержку multi-slot одного тайла.
-- [x] Переписать task-state под текущий scope.
-- [x] Исправить square/perimeter path в `outpost_radius`, чтобы углы и side-slots планировались по `turf+dir`.
-- [x] Проверить, нужны ли миграции curated blueprint JSON после generator fix.
-- [x] Добавить/подключить unit test на multi-DIR corner placement.
-- [x] Прогнать релевантные проверки и зафиксировать results.
+- [x] Read mandatory agent context and inspect the current World Edit surface.
+- [x] Replace stale task-state files with notes for the current UI task.
+- [x] Rebuild `WorldEditPanel` navigation around workflow stages instead of
+      internal subsystems.
+- [x] Merge setup/run/session context into a single working surface without
+      removing existing capabilities.
+- [x] Keep wizard fallback and generator-specific surfaces reachable.
+- [x] Reuse existing backend state instead of adding speculative UI fields.
+- [x] Run relevant tgui checks.
+- [ ] Review final diff, create commit(s), and push to the PR branch.

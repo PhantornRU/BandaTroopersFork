@@ -194,11 +194,22 @@ type SummaryTile = {
   color?: string;
 };
 
-const PAGES = [
-  { title: 'Каталог', icon: 'list' },
-  { title: 'Конструктор', icon: 'sliders-h' },
-  { title: 'Контроль', icon: 'play' },
-  { title: 'История', icon: 'history' },
+type PageDefinition = {
+  id: 'browse' | 'work' | 'history';
+  title: string;
+  icon: string;
+};
+
+type WorkflowState = {
+  label: string;
+  description: string;
+  color?: string;
+};
+
+const PAGES: PageDefinition[] = [
+  { id: 'browse', title: 'Выбор', icon: 'list' },
+  { id: 'work', title: 'Работа', icon: 'sliders-h' },
+  { id: 'history', title: 'История', icon: 'history' },
 ];
 
 const boolText = (value: boolean, yes = 'Да', no = 'Нет') => (value ? yes : no);
@@ -256,6 +267,172 @@ const interactionHelpText = (data: BackendData) => {
     return 'Клик использует выбранный turf как anchor, а сама форма берется из текущих shape-параметров.';
   }
   return 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте stop click-mode.';
+};
+
+const getPreviewBlockReason = (data: BackendData) => {
+  if (!data.has_generator) {
+    return 'Сначала выберите генератор.';
+  }
+  if (!data.current_generator_supports_preview) {
+    return 'Текущий генератор не поддерживает preview.';
+  }
+  if (data.click_mode_active) {
+    return 'Preview через панель недоступен, пока активен placement mode.';
+  }
+  return '';
+};
+
+const getApplyBlockReason = (data: BackendData) => {
+  if (!data.has_generator) {
+    return 'Сначала выберите генератор.';
+  }
+  if (data.click_mode_active) {
+    return 'Apply через панель недоступен, пока активен placement mode.';
+  }
+  if (data.requires_preview_before_apply && !data.preview_valid) {
+    return 'Для текущего генератора нужен валидный preview.';
+  }
+  return '';
+};
+
+const getPlacementBlockReason = (data: BackendData) => {
+  if (!data.has_generator) {
+    return 'Сначала выберите генератор.';
+  }
+  if (data.placement_active) {
+    return 'Режим размещения уже активен.';
+  }
+  if (!data.can_start_placement_mode) {
+    return 'Текущий генератор не поддерживает live placement.';
+  }
+  return '';
+};
+
+const getFinishCollectionReason = (data: BackendData) => {
+  if (!data.click_mode_active) {
+    return 'Сначала запустите placement mode.';
+  }
+  if (data.placement_interaction_kind !== 'collector') {
+    return 'Для текущей формы завершение коллектора не используется.';
+  }
+  if (data.can_finish_placement_collection) {
+    return '';
+  }
+  return `Нужно минимум ${data.placement_collector_min_points || 0} точек для завершения.`;
+};
+
+const getWorkflowState = (data: BackendData): WorkflowState => {
+  if (!data.has_generator) {
+    return {
+      label: 'Выбор генератора',
+      description: 'Выберите ready-генератор, чтобы открыть рабочую станцию.',
+      color: 'label',
+    };
+  }
+
+  if (data.last_ui_error) {
+    return {
+      label: 'Параметры требуют внимания',
+      description: data.last_ui_error,
+      color: 'bad',
+    };
+  }
+
+  if (data.placement_active) {
+    if (data.placement_interaction_kind === 'collector') {
+      return data.can_finish_placement_collection
+        ? {
+            label: 'Форма собрана',
+            description:
+              'Можно завершить сбор и перейти к preview/apply для собранного footprint.',
+            color: 'good',
+          }
+        : {
+            label: 'Идет сбор формы',
+            description: interactionHelpText(data),
+            color: 'average',
+          };
+    }
+
+    return {
+      label: 'Активно живое размещение',
+      description: interactionHelpText(data),
+      color: 'average',
+    };
+  }
+
+  if (data.requires_preview_before_apply && !data.preview_valid) {
+    return {
+      label: 'Нужен preview',
+      description: 'Сначала выполните preview для текущей конфигурации.',
+      color: 'average',
+    };
+  }
+
+  if (data.preview_valid) {
+    return {
+      label: 'Готово к применению',
+      description:
+        data.preview_message ||
+        'Текущая конфигурация прошла preview и готова к apply.',
+      color: 'good',
+    };
+  }
+
+  if (!data.has_inline_fields) {
+    return {
+      label: 'Настройка через мастер',
+      description:
+        'Inline-поля недоступны, используйте мастер настройки как основной путь.',
+      color: 'label',
+    };
+  }
+
+  return {
+    label: 'Настройка рабочей конфигурации',
+    description:
+      'Проверьте параметры и placement-настройки, затем переходите к preview/apply.',
+    color: 'label',
+  };
+};
+
+const buildContextTiles = (data: BackendData): SummaryTile[] => {
+  const tiles: SummaryTile[] = [
+    {
+      label: 'Генератор',
+      value: data.current_generator_name || 'не выбран',
+    },
+    {
+      label: 'Preview',
+      value: data.preview_valid ? 'готов' : 'idle',
+      color: data.preview_valid ? 'good' : 'label',
+    },
+    {
+      label: 'Размещение',
+      value: data.click_mode_active ? 'active' : 'off',
+      color: data.click_mode_active ? 'good' : 'label',
+    },
+    {
+      label: 'Форма',
+      value: data.has_generator
+        ? `${data.placement_shape || 'n/a'} / ${data.placement_mode || 'n/a'}`
+        : 'n/a',
+    },
+    {
+      label: 'История',
+      value: `${data.history_entries?.length || 0} ops`,
+      color: data.history_entries?.length ? 'good' : 'label',
+    },
+  ];
+
+  if (data.active_blueprint_id) {
+    tiles.splice(4, 0, {
+      label: 'Blueprint',
+      value: data.active_blueprint_id,
+    });
+  }
+
+  return tiles;
 };
 
 const SummaryTileGrid = (props: {
@@ -437,7 +614,7 @@ const PresetLibrarySection = (props: {
 
   return (
     <Section
-      title="Preset Library"
+      title="Пресеты"
       buttons={
         <Button onClick={() => act('save_preset')}>Сохранить preset</Button>
       }
@@ -546,7 +723,7 @@ const BlueprintLibrarySection = (props: {
 
   return (
     <Section
-      title="Blueprint Library"
+      title="Библиотека blueprint"
       buttons={
         <Button onClick={() => act('list_blueprints')}>
           Обновить библиотеку
@@ -600,7 +777,7 @@ const BlueprintLibrarySection = (props: {
                 compact
                 items={[
                   {
-                    label: 'Entries',
+                    label: 'Элементы',
                     value: selectedBlueprint.entry_count,
                   },
                   {
@@ -678,7 +855,7 @@ const BlueprintExportSection = (props: {
   const { data, act } = props;
 
   return (
-    <Section title="Blueprint Export">
+    <Section title="Экспорт blueprint">
       <Box color="label" mb={1}>
         Для `outpost_radius` можно сохранить текущий preview как Blueprint Lite.
       </Box>
@@ -695,9 +872,8 @@ const BlueprintExportSection = (props: {
 const PlacementSetupSection = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenControl: () => void;
 }) => {
-  const { data, act, onOpenControl } = props;
+  const { data, act } = props;
   const collectorTarget = Math.max(
     data.placement_collector_max_points || 0,
     data.placement_collector_min_points || 0,
@@ -706,51 +882,44 @@ const PlacementSetupSection = (props: {
 
   const placementTiles: SummaryTile[] = [
     {
-      label: 'Shape',
+      label: 'Форма',
       value: data.placement_shape || 'n/a',
     },
     {
-      label: 'Mode',
+      label: 'Режим',
       value: data.placement_mode || 'n/a',
     },
     {
-      label: 'Interaction',
+      label: 'Взаимодействие',
       value: data.placement_interaction_label || 'Single Click',
     },
     {
-      label: 'Rollout',
+      label: 'Этап rollout',
       value: data.placement_shape_rollout_stage || 'v1',
     },
   ];
 
   if (data.placement_supports_direction) {
     placementTiles.push({
-      label: 'Direction',
+      label: 'Направление',
       value: data.placement_dir || 'n/a',
     });
   }
 
   placementTiles.push({
-    label: 'Status',
+    label: 'Статус',
     value: data.placement_active ? 'active' : 'inactive',
     color: data.placement_active ? 'good' : 'label',
   });
 
   return (
-    <Section
-      title="Placement Console"
-      buttons={
-        <Button icon="play" onClick={onOpenControl}>
-          К контролю
-        </Button>
-      }
-    >
+    <Section title="Параметры размещения">
       <SummaryTileGrid items={placementTiles} />
 
-      <Section title="Placement Controls" mt={1}>
+      <Section title="Настройки размещения" mt={1}>
         <LabeledList>
           {data.placement_shape_supported && (
-            <LabeledList.Item label="Shape">
+            <LabeledList.Item label="Форма">
               <Dropdown
                 width="100%"
                 options={(data.placement_shape_options || []).map((option) => ({
@@ -775,7 +944,7 @@ const PlacementSetupSection = (props: {
           )}
 
           {data.placement_supported && (
-            <LabeledList.Item label="Placement mode">
+            <LabeledList.Item label="Режим размещения">
               <Dropdown
                 width="100%"
                 options={(data.placement_mode_options || []).map((option) => ({
@@ -800,7 +969,7 @@ const PlacementSetupSection = (props: {
           )}
 
           {data.placement_supports_direction && (
-            <LabeledList.Item label="Direction">
+            <LabeledList.Item label="Направление">
               <Dropdown
                 width="100%"
                 options={(data.placement_dir_options || []).map((option) => ({
@@ -815,10 +984,10 @@ const PlacementSetupSection = (props: {
             </LabeledList.Item>
           )}
 
-          <LabeledList.Item label="Pending anchor">
+          <LabeledList.Item label="Текущий anchor">
             {data.placement_anchor || 'none'}
           </LabeledList.Item>
-          <LabeledList.Item label="Collector origin">
+          <LabeledList.Item label="Источник коллектора">
             {data.placement_collector_origin || 'none'}
           </LabeledList.Item>
         </LabeledList>
@@ -830,7 +999,7 @@ const PlacementSetupSection = (props: {
 
       {!!data.placement_interaction_kind &&
         data.placement_interaction_kind === 'collector' && (
-          <Section title="Collector State" mt={1}>
+          <Section title="Состояние коллектора" mt={1}>
             <ProgressBar
               value={data.placement_collector_point_count || 0}
               maxValue={collectorTarget}
@@ -852,18 +1021,18 @@ const PlacementSetupSection = (props: {
               compact
               items={[
                 {
-                  label: 'Ready',
+                  label: 'Готово',
                   value: boolText(data.can_finish_placement_collection),
                   color: data.can_finish_placement_collection
                     ? 'good'
                     : 'label',
                 },
                 {
-                  label: 'Min',
+                  label: 'Минимум',
                   value: `${data.placement_collector_min_points || 0}`,
                 },
                 {
-                  label: 'Origin',
+                  label: 'Источник',
                   value: data.placement_collector_origin || 'none',
                   color: 'label',
                 },
@@ -883,7 +1052,7 @@ const PlacementSetupSection = (props: {
         )}
 
       {!!data.placement_shape_fields?.length && (
-        <Collapsible title="Shape Parameters" open>
+        <Collapsible title="Параметры формы" open>
           <LabeledList>
             {data.placement_shape_fields.map((field) => (
               <FieldEditor key={field.id} field={field} act={act} />
@@ -898,19 +1067,19 @@ const PlacementSetupSection = (props: {
 const GeneratorCatalogPage = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenSetup: () => void;
-  readonly onOpenControl: () => void;
+  readonly onOpenWork: () => void;
 }) => {
-  const { data, act, onOpenSetup, onOpenControl } = props;
+  const { data, act, onOpenWork } = props;
   const totalGenerators = (data.categories || []).reduce(
     (sum, category) => sum + (category.generators?.length || 0),
     0,
   );
+  const workflow = getWorkflowState(data);
 
   return (
     <Stack fill>
       <Stack.Item grow basis={0}>
-        <Section fill scrollable title="Generator Palette">
+        <Section fill scrollable title="Выбор генератора">
           <SummaryTileGrid
             items={[
               {
@@ -922,12 +1091,12 @@ const GeneratorCatalogPage = (props: {
                 value: totalGenerators,
               },
               {
-                label: 'Активный выбор',
+                label: 'Выбран',
                 value: data.current_generator_name || 'none',
                 color: toneForGeneratorStatus(data.current_generator_status),
               },
               {
-                label: 'История',
+                label: 'Сессия',
                 value: `${data.history_entries?.length || 0} ops`,
               },
             ]}
@@ -951,15 +1120,16 @@ const GeneratorCatalogPage = (props: {
                       buttons={
                         <Button
                           selected={generator.id === data.current_generator_id}
-                          onClick={() =>
+                          onClick={() => {
                             act('select_generator', {
                               generator_id: generator.id,
-                            })
-                          }
+                            });
+                            onOpenWork();
+                          }}
                         >
                           {generator.id === data.current_generator_id
-                            ? 'Выбран'
-                            : 'Открыть'}
+                            ? 'К работе'
+                            : 'Выбрать'}
                         </Button>
                       }
                     >
@@ -978,11 +1148,11 @@ const GeneratorCatalogPage = (props: {
                               : 'label',
                           },
                           {
-                            label: 'Mode',
+                            label: 'Режим',
                             value: generator.execution_mode,
                           },
                           {
-                            label: 'Status',
+                            label: 'Статус',
                             value: generator.status,
                             color: toneForGeneratorStatus(generator.status),
                           },
@@ -998,10 +1168,10 @@ const GeneratorCatalogPage = (props: {
       </Stack.Item>
 
       <Stack.Item width="36%" ml={1}>
-        <Section fill scrollable title="Generator Inspector">
+        <Section fill scrollable title="Карточка генератора">
           {!data.has_generator && (
             <Box color="label">
-              Выберите генератор слева, чтобы открыть его workspace.
+              Выберите генератор слева, чтобы открыть рабочую станцию.
             </Box>
           )}
 
@@ -1016,7 +1186,9 @@ const GeneratorCatalogPage = (props: {
                 </Box>
                 <Box color="label">
                   Источник параметров:{' '}
-                  {data.ui_mode === 'inline' ? 'inline' : 'wizard fallback'}
+                  {data.ui_mode === 'inline'
+                    ? 'inline-поля'
+                    : 'мастер настройки'}
                 </Box>
               </Section>
 
@@ -1024,7 +1196,7 @@ const GeneratorCatalogPage = (props: {
                 <SummaryTileGrid
                   items={[
                     {
-                      label: 'Status',
+                      label: 'Статус',
                       value: data.current_generator_status || 'n/a',
                       color: toneForGeneratorStatus(
                         data.current_generator_status,
@@ -1038,11 +1210,11 @@ const GeneratorCatalogPage = (props: {
                         : 'label',
                     },
                     {
-                      label: 'Execution',
+                      label: 'Исполнение',
                       value: data.current_generator_execution_mode || 'n/a',
                     },
                     {
-                      label: 'Placement',
+                      label: 'Размещение',
                       value: boolText(
                         !!(
                           data.placement_supported ||
@@ -1061,16 +1233,17 @@ const GeneratorCatalogPage = (props: {
                 />
               </Section>
 
-              <Section title="Переходы" mt={1}>
+              <Section title="Что дальше" mt={1}>
+                <Box bold color={workflow.color || 'white'}>
+                  {workflow.label}
+                </Box>
+                <Box color="label" mt={0.5}>
+                  {workflow.description}
+                </Box>
                 <ActionRow>
                   <ActionItem>
-                    <Button icon="sliders-h" onClick={onOpenSetup}>
-                      В конструктор
-                    </Button>
-                  </ActionItem>
-                  <ActionItem>
-                    <Button icon="play" onClick={onOpenControl}>
-                      В контроль
+                    <Button icon="sliders-h" onClick={onOpenWork}>
+                      Открыть рабочую станцию
                     </Button>
                   </ActionItem>
                   <ActionItem>
@@ -1084,8 +1257,8 @@ const GeneratorCatalogPage = (props: {
                   </ActionItem>
                 </ActionRow>
                 <Box color="label">
-                  `Конструктор` отвечает за подготовку и контент, а `Контроль`
-                  за preview/apply и живую placement-session.
+                  После выбора генератора рабочая станция объединяет настройку,
+                  preview/apply, placement и session feedback в одном месте.
                 </Box>
               </Section>
             </>
@@ -1096,7 +1269,351 @@ const GeneratorCatalogPage = (props: {
   );
 };
 
-const SetupPage = (props: {
+const WorkspaceActionRail = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly showPlacementSetup: boolean;
+  readonly onOpenHistory: () => void;
+}) => {
+  const { data, act, showPlacementSetup, onOpenHistory } = props;
+  const workflow = getWorkflowState(data);
+  const previewBlockReason = getPreviewBlockReason(data);
+  const applyBlockReason = getApplyBlockReason(data);
+  const placementBlockReason = getPlacementBlockReason(data);
+  const finishCollectionReason = getFinishCollectionReason(data);
+  const recentHistoryEntries = (data.history_entries || []).slice(0, 3);
+
+  return (
+    <Stack.Item width="38%" ml={1}>
+      <Section fill scrollable title="Панель действий">
+        {!data.has_generator && (
+          <Box color="label">
+            После выбора генератора здесь появятся действия, session feedback и
+            служебный статус.
+          </Box>
+        )}
+
+        {!!data.has_generator && (
+          <>
+            <Section title="Инструменты генератора">
+              <ActionRow>
+                <ActionItem>
+                  <Button
+                    disabled={!data.can_refresh_ui}
+                    onClick={() => act('refresh_ui')}
+                  >
+                    Обновить поля
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button onClick={() => act('configure_wizard')}>
+                    Открыть мастер
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button
+                    color="average"
+                    onClick={() => act('reset_generator')}
+                  >
+                    Сбросить генератор
+                  </Button>
+                </ActionItem>
+              </ActionRow>
+            </Section>
+
+            <Section title="Следующий шаг" mt={1}>
+              <Box bold color={workflow.color || 'white'}>
+                {workflow.label}
+              </Box>
+              <Box color="label" mt={0.5}>
+                {workflow.description}
+              </Box>
+
+              <ActionRow>
+                <ActionItem>
+                  <Button
+                    disabled={!data.can_run_preview}
+                    onClick={() => act('run_preview')}
+                  >
+                    Запустить preview
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button
+                    color="good"
+                    disabled={!data.can_run_apply}
+                    onClick={() => act('run_apply')}
+                  >
+                    Применить
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button
+                    color="average"
+                    disabled={!data.has_generator}
+                    onClick={() => act('clear_preview')}
+                  >
+                    Очистить preview
+                  </Button>
+                </ActionItem>
+              </ActionRow>
+
+              {!data.can_run_preview && !!previewBlockReason && (
+                <Box color="label" mt={1}>
+                  Preview: {previewBlockReason}
+                </Box>
+              )}
+
+              {!data.can_run_apply && !!applyBlockReason && (
+                <Box color="label" mt={0.5}>
+                  Apply: {applyBlockReason}
+                </Box>
+              )}
+            </Section>
+
+            {showPlacementSetup && (
+              <Section title="Живое размещение" mt={1}>
+                <Box color="label">{interactionHelpText(data)}</Box>
+
+                <ActionRow>
+                  <ActionItem>
+                    <Button
+                      disabled={!data.can_start_placement_mode}
+                      onClick={() => act('start_placement_mode')}
+                    >
+                      Запустить placement
+                    </Button>
+                  </ActionItem>
+                  <ActionItem>
+                    <Button
+                      color="average"
+                      disabled={!data.can_stop_click_mode}
+                      onClick={() => act('stop_click_mode')}
+                    >
+                      Остановить click-mode
+                    </Button>
+                  </ActionItem>
+                  <ActionItem>
+                    <Button
+                      disabled={!data.can_finish_placement_collection}
+                      onClick={() => act('finish_placement_collection')}
+                    >
+                      Применить собранную форму
+                    </Button>
+                  </ActionItem>
+                </ActionRow>
+
+                {!data.can_start_placement_mode && !!placementBlockReason && (
+                  <Box color="label" mt={1}>
+                    Размещение: {placementBlockReason}
+                  </Box>
+                )}
+
+                {!data.can_finish_placement_collection &&
+                  data.placement_interaction_kind === 'collector' &&
+                  !!finishCollectionReason && (
+                    <Box color="label" mt={0.5}>
+                      Collector: {finishCollectionReason}
+                    </Box>
+                  )}
+              </Section>
+            )}
+
+            <Section title="Состояние preview" mt={1}>
+              <SummaryTileGrid
+                compact
+                items={[
+                  {
+                    label: 'Статус',
+                    value: data.preview_success ? 'успех' : 'нет/ошибка',
+                    color: data.preview_success ? 'good' : 'average',
+                  },
+                  {
+                    label: 'Годен для apply',
+                    value: boolText(data.preview_valid),
+                    color: data.preview_valid ? 'good' : 'average',
+                  },
+                  {
+                    label: 'Blueprint',
+                    value: data.active_blueprint_id || 'none',
+                  },
+                ]}
+              />
+
+              <Box
+                color={
+                  data.preview_success
+                    ? 'good'
+                    : data.preview_valid
+                      ? 'average'
+                      : 'label'
+                }
+              >
+                {data.preview_message || 'Нет данных preview.'}
+              </Box>
+
+              {!!data.preview_meta &&
+                !!Object.keys(data.preview_meta).length && (
+                  <Collapsible title="Метаданные preview" mt={1}>
+                    <SummaryTileGrid
+                      compact
+                      items={Object.entries(data.preview_meta).map(
+                        ([key, value]) => ({
+                          label: key,
+                          value: renderMetaValue(value),
+                        }),
+                      )}
+                    />
+                  </Collapsible>
+                )}
+            </Section>
+
+            <Section
+              title="Сессия"
+              mt={1}
+              buttons={
+                <Button icon="history" onClick={onOpenHistory}>
+                  К истории
+                </Button>
+              }
+            >
+              <ActionRow>
+                <ActionItem>
+                  <Button
+                    color="average"
+                    disabled={!data.can_undo_last_operation}
+                    onClick={() => act('undo_last_operation')}
+                  >
+                    Undo
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button
+                    color="average"
+                    disabled={!data.can_cleanup_last_owned_effects}
+                    onClick={() => act('cleanup_last_owned_effects')}
+                  >
+                    Cleanup эффектов
+                  </Button>
+                </ActionItem>
+              </ActionRow>
+
+              <Collapsible title="Последний apply" open>
+                <Box color={data.last_apply_success ? 'good' : 'average'}>
+                  {data.last_apply_message ||
+                    'Операции apply еще не выполнялись.'}
+                </Box>
+              </Collapsible>
+
+              <Collapsible title="Запись undo / cleanup">
+                {!data.last_changeset && (
+                  <Box color="label">
+                    Undo/cleanup-record для текущей session пока отсутствует.
+                  </Box>
+                )}
+
+                {!!data.last_changeset && (
+                  <>
+                    <SummaryTileGrid
+                      compact
+                      items={[
+                        {
+                          label: 'Генератор',
+                          value: data.last_changeset.generator_id,
+                        },
+                        {
+                          label: 'Политика',
+                          value: data.last_changeset.undo_policy,
+                        },
+                        {
+                          label: 'Статус',
+                          value: data.last_changeset.undo_status,
+                        },
+                      ]}
+                    />
+                    <Box color="label" mt={0.5}>
+                      ID операции: {data.last_changeset.operation_id}
+                    </Box>
+                    <Box color="label" mt={0.5}>
+                      Создано ссылок: {data.last_changeset.created_entries} |
+                      Перемещено ссылок: {data.last_changeset.moved_entries} |{' '}
+                      Собственных эффектов:{' '}
+                      {data.last_changeset.owned_effect_entries}
+                    </Box>
+                  </>
+                )}
+              </Collapsible>
+
+              <Collapsible title="Последний undo / cleanup">
+                <Box color={data.last_undo_success ? 'good' : 'average'}>
+                  {data.last_undo_message ||
+                    'Undo/cleanup действия еще не выполнялись.'}
+                </Box>
+                {!!data.last_undo_action && (
+                  <Box color="label" mt={0.5}>
+                    Тип действия: {data.last_undo_action}
+                  </Box>
+                )}
+              </Collapsible>
+
+              <Collapsible
+                title={`Последние операции (${recentHistoryEntries.length})`}
+              >
+                {!recentHistoryEntries.length && (
+                  <Box color="label">История текущей сессии пока пуста.</Box>
+                )}
+
+                {!!recentHistoryEntries.length &&
+                  recentHistoryEntries.map((entry) => (
+                    <Section
+                      key={`${entry.time}_${entry.operation_id || entry.message}`}
+                      fitted
+                      title={`${entry.time} | ${entry.generator_id}`}
+                    >
+                      <Box color={toneForHistoryResult(entry.result)}>
+                        {entry.result || 'n/a'}
+                      </Box>
+                      <Box color="label">{entry.message || 'n/a'}</Box>
+                    </Section>
+                  ))}
+              </Collapsible>
+            </Section>
+
+            <Section title="Диагностика" mt={1}>
+              <Collapsible title="Текущие параметры">
+                <Box>{data.current_params_text || 'n/a'}</Box>
+              </Collapsible>
+
+              <Collapsible
+                title={`Служебный статус (${data.runtime_status?.length || 0})`}
+              >
+                {!data.runtime_status?.length && (
+                  <Box color="label">
+                    Дополнительный статус не предоставлен.
+                  </Box>
+                )}
+                {!!data.runtime_status?.length && (
+                  <LabeledList>
+                    {data.runtime_status.map((entry, index) => (
+                      <LabeledList.Item
+                        key={`${entry.label}_${index}`}
+                        label={entry.label}
+                      >
+                        {entry.value}
+                      </LabeledList.Item>
+                    ))}
+                  </LabeledList>
+                )}
+              </Collapsible>
+            </Section>
+          </>
+        )}
+      </Section>
+    </Stack.Item>
+  );
+};
+
+const WorkspacePage = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
   readonly groupedFields: Record<string, UiField[]>;
@@ -1104,7 +1621,8 @@ const SetupPage = (props: {
   readonly showBlueprintExport: boolean;
   readonly showBlueprintLibrary: boolean;
   readonly showPlacementSetup: boolean;
-  readonly onOpenControl: () => void;
+  readonly onOpenBrowse: () => void;
+  readonly onOpenHistory: () => void;
 }) => {
   const {
     data,
@@ -1114,17 +1632,24 @@ const SetupPage = (props: {
     showBlueprintExport,
     showBlueprintLibrary,
     showPlacementSetup,
-    onOpenControl,
+    onOpenBrowse,
+    onOpenHistory,
   } = props;
+  const workflow = getWorkflowState(data);
 
   return (
     <Stack fill>
       <Stack.Item grow basis={0}>
-        <Section fill scrollable title="Configuration Workspace">
+        <Section fill scrollable title="Рабочая станция">
           {!data.has_generator && (
-            <Box color="label">
-              Сначала выберите генератор на вкладке `Каталог`.
-            </Box>
+            <>
+              <Box color="label" mb={1}>
+                Сначала выберите генератор на странице `Выбор`.
+              </Box>
+              <Button icon="list" onClick={onOpenBrowse}>
+                Перейти к выбору генератора
+              </Button>
+            </>
           )}
 
           {!!data.has_generator && (
@@ -1150,8 +1675,8 @@ const SetupPage = (props: {
                       label: 'Источник полей',
                       value:
                         data.ui_mode === 'inline'
-                          ? 'inline'
-                          : 'wizard fallback',
+                          ? 'inline-поля'
+                          : 'мастер настройки',
                     },
                     {
                       label: 'Preview нужен',
@@ -1164,15 +1689,26 @@ const SetupPage = (props: {
                 />
               </Section>
 
+              <Section title="Текущий этап" mt={1}>
+                <Box bold color={workflow.color || 'white'}>
+                  {workflow.label}
+                </Box>
+                <Box color="label" mt={0.5}>
+                  {workflow.description}
+                </Box>
+              </Section>
+
               {!!data.last_ui_error && (
-                <NoticeBox danger>{data.last_ui_error}</NoticeBox>
+                <NoticeBox danger mt={1}>
+                  {data.last_ui_error}
+                </NoticeBox>
               )}
 
-              <Section title="Поля генератора">
+              <Section title="Параметры генератора" mt={1}>
                 {!data.has_inline_fields && (
                   <Box color="label">
                     Этот генератор не отдает inline-поля. Используйте мастер
-                    настройки в боковой панели.
+                    настройки из action rail справа.
                   </Box>
                 )}
 
@@ -1206,51 +1742,6 @@ const SetupPage = (props: {
                   </Flex>
                 )}
               </Section>
-            </>
-          )}
-        </Section>
-      </Stack.Item>
-
-      <Stack.Item width="38%" ml={1}>
-        <Section fill scrollable title="Control Deck">
-          {!data.has_generator && (
-            <Box color="label">
-              После выбора генератора здесь появятся инструменты и библиотеки.
-            </Box>
-          )}
-
-          {!!data.has_generator && (
-            <>
-              <Section title="Generator Tools">
-                <ActionRow>
-                  <ActionItem>
-                    <Button
-                      disabled={!data.can_refresh_ui}
-                      onClick={() => act('refresh_ui')}
-                    >
-                      Обновить поля
-                    </Button>
-                  </ActionItem>
-                  <ActionItem>
-                    <Button onClick={() => act('configure_wizard')}>
-                      Открыть мастер
-                    </Button>
-                  </ActionItem>
-                  <ActionItem>
-                    <Button
-                      color="average"
-                      onClick={() => act('reset_generator')}
-                    >
-                      Сбросить генератор
-                    </Button>
-                  </ActionItem>
-                  <ActionItem>
-                    <Button icon="play" onClick={onOpenControl}>
-                      Открыть контроль
-                    </Button>
-                  </ActionItem>
-                </ActionRow>
-              </Section>
 
               {!!data.can_manage_presets && (
                 <PresetLibrarySection data={data} act={act} />
@@ -1265,338 +1756,19 @@ const SetupPage = (props: {
               )}
 
               {showPlacementSetup && (
-                <PlacementSetupSection
-                  data={data}
-                  act={act}
-                  onOpenControl={onOpenControl}
-                />
+                <PlacementSetupSection data={data} act={act} />
               )}
-
-              <Section title="Diagnostics">
-                <Collapsible title="Текущие параметры" open>
-                  <Box>{data.current_params_text || 'n/a'}</Box>
-                </Collapsible>
-
-                <Collapsible
-                  title={`Runtime-статус (${data.runtime_status?.length || 0})`}
-                >
-                  {!data.runtime_status?.length && (
-                    <Box color="label">
-                      Дополнительный статус не предоставлен.
-                    </Box>
-                  )}
-                  {!!data.runtime_status?.length && (
-                    <LabeledList>
-                      {data.runtime_status.map((entry, index) => (
-                        <LabeledList.Item
-                          key={`${entry.label}_${index}`}
-                          label={entry.label}
-                        >
-                          {entry.value}
-                        </LabeledList.Item>
-                      ))}
-                    </LabeledList>
-                  )}
-                </Collapsible>
-              </Section>
             </>
           )}
         </Section>
       </Stack.Item>
-    </Stack>
-  );
-};
 
-const RunPage = (props: {
-  readonly data: BackendData;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenSetup: () => void;
-}) => {
-  const { data, act, onOpenSetup } = props;
-
-  const runTiles: SummaryTile[] = [
-    {
-      label: 'Generator',
-      value: data.current_generator_name || 'none',
-    },
-    {
-      label: 'Preview valid',
-      value: boolText(data.preview_valid, 'yes', 'no'),
-      color: data.preview_valid ? 'good' : 'average',
-    },
-    {
-      label: 'Click mode',
-      value: data.click_mode_active ? 'active' : 'inactive',
-      color: data.click_mode_active ? 'good' : 'label',
-    },
-    {
-      label: 'Interaction',
-      value: data.placement_interaction_label || 'Single Click',
-    },
-    {
-      label: 'Shape',
-      value: data.placement_shape || 'n/a',
-    },
-    {
-      label: 'Mode',
-      value: data.placement_mode || 'n/a',
-    },
-  ];
-
-  if (data.placement_supports_direction) {
-    runTiles.push({
-      label: 'Direction',
-      value: data.placement_dir || 'n/a',
-    });
-  }
-
-  if (data.placement_interaction_kind === 'collector') {
-    runTiles.push({
-      label: 'Collector',
-      value: `${data.placement_collector_point_count || 0}/${
-        data.placement_collector_max_points || 0
-      }`,
-      color: data.can_finish_placement_collection ? 'good' : 'average',
-    });
-  }
-
-  return (
-    <Stack fill>
-      <Stack.Item grow basis={0}>
-        <Section fill scrollable title="Run Console">
-          {!data.has_generator && (
-            <Box color="label">
-              Сначала выберите генератор на вкладке `Каталог`.
-            </Box>
-          )}
-
-          {!!data.has_generator && (
-            <>
-              <Section title="Action Deck">
-                <Flex wrap mx={-0.5}>
-                  <Flex.Item basis="48%" grow m={0.5}>
-                    <Section title="Primary Actions">
-                      <Box color="label">
-                        Обычный preview/apply без входа в click-mode.
-                      </Box>
-                      <ActionRow>
-                        <ActionItem>
-                          <Button
-                            disabled={!data.can_run_preview}
-                            onClick={() => act('run_preview')}
-                          >
-                            Запустить preview
-                          </Button>
-                        </ActionItem>
-                        <ActionItem>
-                          <Button
-                            color="good"
-                            disabled={!data.can_run_apply}
-                            onClick={() => act('run_apply')}
-                          >
-                            Применить генератор
-                          </Button>
-                        </ActionItem>
-                        <ActionItem>
-                          <Button
-                            color="average"
-                            disabled={!data.has_generator}
-                            onClick={() => act('clear_preview')}
-                          >
-                            Очистить preview
-                          </Button>
-                        </ActionItem>
-                      </ActionRow>
-                    </Section>
-                  </Flex.Item>
-
-                  <Flex.Item basis="48%" grow m={0.5}>
-                    <Section
-                      title="Placement Session"
-                      buttons={
-                        <Button icon="sliders-h" onClick={onOpenSetup}>
-                          В конструктор
-                        </Button>
-                      }
-                    >
-                      <Box color="label">{interactionHelpText(data)}</Box>
-
-                      <ActionRow>
-                        <ActionItem>
-                          <Button
-                            disabled={!data.can_start_placement_mode}
-                            onClick={() => act('start_placement_mode')}
-                          >
-                            Start placement mode
-                          </Button>
-                        </ActionItem>
-                        <ActionItem>
-                          <Button
-                            color="average"
-                            disabled={!data.can_stop_click_mode}
-                            onClick={() => act('stop_click_mode')}
-                          >
-                            Stop click-mode
-                          </Button>
-                        </ActionItem>
-                        <ActionItem>
-                          <Button
-                            disabled={!data.can_finish_placement_collection}
-                            onClick={() => act('finish_placement_collection')}
-                          >
-                            Apply collected shape
-                          </Button>
-                        </ActionItem>
-                      </ActionRow>
-                    </Section>
-                  </Flex.Item>
-                </Flex>
-              </Section>
-
-              <Section title="Live State">
-                <SummaryTileGrid items={runTiles} compact />
-                <Box color="label" mt={1}>
-                  Pending anchor: {data.placement_anchor || 'none'} | Active
-                  blueprint: {data.active_blueprint_id || 'none'}
-                </Box>
-              </Section>
-
-              <Stack>
-                <Stack.Item grow basis={0}>
-                  <Section title="Preview Console">
-                    <SummaryTileGrid
-                      compact
-                      items={[
-                        {
-                          label: 'Статус',
-                          value: data.preview_success ? 'успех' : 'ошибка/нет',
-                          color: data.preview_success ? 'good' : 'average',
-                        },
-                        {
-                          label: 'Валиден для apply',
-                          value: boolText(data.preview_valid),
-                          color: data.preview_valid ? 'good' : 'average',
-                        },
-                      ]}
-                    />
-
-                    <Box
-                      color={
-                        data.preview_success
-                          ? 'good'
-                          : data.preview_valid
-                            ? 'average'
-                            : 'label'
-                      }
-                    >
-                      {data.preview_message || 'Нет данных preview.'}
-                    </Box>
-
-                    {!!data.preview_meta &&
-                      !!Object.keys(data.preview_meta).length && (
-                        <Collapsible title="Preview Meta" open mt={1}>
-                          <SummaryTileGrid
-                            compact
-                            items={Object.entries(data.preview_meta).map(
-                              ([key, value]) => ({
-                                label: key,
-                                value: renderMetaValue(value),
-                              }),
-                            )}
-                          />
-                        </Collapsible>
-                      )}
-                  </Section>
-                </Stack.Item>
-
-                <Stack.Item width="38%" ml={1}>
-                  <Section title="Session Operations">
-                    <ActionRow>
-                      <ActionItem>
-                        <Button
-                          color="average"
-                          disabled={!data.can_undo_last_operation}
-                          onClick={() => act('undo_last_operation')}
-                        >
-                          Undo last operation
-                        </Button>
-                      </ActionItem>
-                      <ActionItem>
-                        <Button
-                          color="average"
-                          disabled={!data.can_cleanup_last_owned_effects}
-                          onClick={() => act('cleanup_last_owned_effects')}
-                        >
-                          Cleanup owned effects
-                        </Button>
-                      </ActionItem>
-                    </ActionRow>
-
-                    <Collapsible title="Последний apply" open>
-                      <Box color={data.last_apply_success ? 'good' : 'average'}>
-                        {data.last_apply_message ||
-                          'Операции apply еще не выполнялись.'}
-                      </Box>
-                    </Collapsible>
-
-                    <Collapsible title="Последняя записанная операция">
-                      {!data.last_changeset && (
-                        <Box color="label">
-                          Undo/cleanup-record для текущей session пока
-                          отсутствует.
-                        </Box>
-                      )}
-
-                      {!!data.last_changeset && (
-                        <>
-                          <SummaryTileGrid
-                            compact
-                            items={[
-                              {
-                                label: 'Generator',
-                                value: data.last_changeset.generator_id,
-                              },
-                              {
-                                label: 'Policy',
-                                value: data.last_changeset.undo_policy,
-                              },
-                              {
-                                label: 'Status',
-                                value: data.last_changeset.undo_status,
-                              },
-                            ]}
-                          />
-                          <Box color="label" mt={0.5}>
-                            Operation ID: {data.last_changeset.operation_id}
-                          </Box>
-                          <Box color="label" mt={0.5}>
-                            Created refs: {data.last_changeset.created_entries}{' '}
-                            | Moved refs: {data.last_changeset.moved_entries} |
-                            Owned effects:{' '}
-                            {data.last_changeset.owned_effect_entries}
-                          </Box>
-                        </>
-                      )}
-                    </Collapsible>
-
-                    <Collapsible title="Последний undo / cleanup">
-                      <Box color={data.last_undo_success ? 'good' : 'average'}>
-                        {data.last_undo_message ||
-                          'Undo/cleanup действия еще не выполнялись.'}
-                      </Box>
-                      {!!data.last_undo_action && (
-                        <Box color="label" mt={0.5}>
-                          Тип действия: {data.last_undo_action}
-                        </Box>
-                      )}
-                    </Collapsible>
-                  </Section>
-                </Stack.Item>
-              </Stack>
-            </>
-          )}
-        </Section>
-      </Stack.Item>
+      <WorkspaceActionRail
+        data={data}
+        act={act}
+        showPlacementSetup={showPlacementSetup}
+        onOpenHistory={onOpenHistory}
+      />
     </Stack>
   );
 };
@@ -1619,25 +1791,25 @@ const HistoryPage = (props: {
         </Button>
       }
     >
-      <Section title="Session Digest">
+      <Section title="Сводка сессии">
         <SummaryTileGrid
           compact
           items={[
             {
-              label: 'Entries',
+              label: 'Записей',
               value: `${data.history_entries?.length || 0}`,
             },
             {
-              label: 'Latest generator',
+              label: 'Последний генератор',
               value: latestEntry?.generator_id || 'none',
             },
             {
-              label: 'Latest result',
+              label: 'Последний результат',
               value: latestEntry?.result || 'n/a',
               color: toneForHistoryResult(latestEntry?.result),
             },
             {
-              label: 'Last center',
+              label: 'Последний центр',
               value: latestEntry?.center_turf || 'n/a',
             },
           ]}
@@ -1698,11 +1870,29 @@ const HistoryPage = (props: {
             </Box>
             {!!entry.operation_id && (
               <Box color="label" mt={0.5}>
-                Operation ID: {entry.operation_id}
+                ID операции: {entry.operation_id}
               </Box>
             )}
           </Collapsible>
         ))}
+    </Section>
+  );
+};
+
+const WorkspaceHeader = (props: { readonly data: BackendData }) => {
+  const { data } = props;
+  const workflow = getWorkflowState(data);
+
+  return (
+    <Section title="Рабочий контекст">
+      <Box bold>{data.current_generator_name || 'Генератор не выбран'}</Box>
+      <Box color={workflow.color || 'label'} mt={0.5}>
+        {workflow.label}
+      </Box>
+      <Box color="label" mt={0.5}>
+        {data.current_generator_description || workflow.description}
+      </Box>
+      <SummaryTileGrid compact items={buildContextTiles(data)} />
     </Section>
   );
 };
@@ -1713,18 +1903,24 @@ const Sidebar = (props: {
   readonly setPageIndex: (pageIndex: number) => void;
 }) => {
   const { data, pageIndex, setPageIndex } = props;
+  const workflow = getWorkflowState(data);
 
   return (
-    <Section fill scrollable title="World Edit Workspace">
-      <Section title="Active Context">
-        <Box bold>{data.current_generator_name || 'Generator не выбран'}</Box>
+    <Section fill scrollable title="Навигация World Edit">
+      <Section title="Текущий шаг">
+        <Box bold color={workflow.color || 'white'}>
+          {workflow.label}
+        </Box>
         <Box color="label" mt={0.5}>
-          {data.current_generator_description ||
-            'Выберите ready-генератор из каталога.'}
+          {workflow.description}
         </Box>
         <SummaryTileGrid
           compact
           items={[
+            {
+              label: 'Генератор',
+              value: data.current_generator_name || 'none',
+            },
             {
               label: 'Preview',
               value: data.preview_valid ? 'ready' : 'idle',
@@ -1736,12 +1932,8 @@ const Sidebar = (props: {
               color: data.click_mode_active ? 'good' : 'label',
             },
             {
-              label: 'Shape',
-              value: data.placement_shape || 'n/a',
-            },
-            {
-              label: 'Blueprint',
-              value: data.active_blueprint_id || 'none',
+              label: 'История',
+              value: `${data.history_entries?.length || 0} ops`,
             },
           ]}
         />
@@ -1769,7 +1961,7 @@ export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
   const [pageIndex, setPageIndex] = useState(0);
 
-  const currentPage = PAGES[pageIndex]?.title || PAGES[0].title;
+  const currentPage = PAGES[pageIndex]?.id || PAGES[0].id;
   const showBlueprintExport = data.current_generator_id === 'outpost_radius';
   const showBlueprintLibrary = data.current_generator_id === 'blueprint_stamp';
   const showPlacementSetup =
@@ -1804,37 +1996,39 @@ export const WorldEditPanel = () => {
           </Stack.Item>
 
           <Stack.Item grow basis={0} ml={1}>
-            {currentPage === 'Каталог' && (
-              <GeneratorCatalogPage
-                data={data}
-                act={act}
-                onOpenSetup={() => setPageIndex(1)}
-                onOpenControl={() => setPageIndex(2)}
-              />
-            )}
+            <Stack fill vertical>
+              <Stack.Item>
+                <WorkspaceHeader data={data} />
+              </Stack.Item>
 
-            {currentPage === 'Конструктор' && (
-              <SetupPage
-                data={data}
-                act={act}
-                groupedFields={groupedFields}
-                groupNames={groupNames}
-                showBlueprintExport={showBlueprintExport}
-                showBlueprintLibrary={showBlueprintLibrary}
-                showPlacementSetup={showPlacementSetup}
-                onOpenControl={() => setPageIndex(2)}
-              />
-            )}
+              <Stack.Item grow basis={0} mt={1}>
+                {currentPage === 'browse' && (
+                  <GeneratorCatalogPage
+                    data={data}
+                    act={act}
+                    onOpenWork={() => setPageIndex(1)}
+                  />
+                )}
 
-            {currentPage === 'Контроль' && (
-              <RunPage
-                data={data}
-                act={act}
-                onOpenSetup={() => setPageIndex(1)}
-              />
-            )}
+                {currentPage === 'work' && (
+                  <WorkspacePage
+                    data={data}
+                    act={act}
+                    groupedFields={groupedFields}
+                    groupNames={groupNames}
+                    showBlueprintExport={showBlueprintExport}
+                    showBlueprintLibrary={showBlueprintLibrary}
+                    showPlacementSetup={showPlacementSetup}
+                    onOpenBrowse={() => setPageIndex(0)}
+                    onOpenHistory={() => setPageIndex(2)}
+                  />
+                )}
 
-            {currentPage === 'История' && <HistoryPage data={data} act={act} />}
+                {currentPage === 'history' && (
+                  <HistoryPage data={data} act={act} />
+                )}
+              </Stack.Item>
+            </Stack>
           </Stack.Item>
         </Stack>
       </Window.Content>

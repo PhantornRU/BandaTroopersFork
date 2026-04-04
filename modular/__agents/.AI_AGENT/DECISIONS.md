@@ -1,17 +1,29 @@
 # DECISIONS
 
-## D-001: Source of truth для barricade semantics остается в апстрим-объекте, не в World Edit
-- Решение: считать канонической directed-blocking моделью апстрим-семантику `/obj/structure/barricade` + `/atom/BlockedPassDirs`/`BlockedExitDirs`/projectile cover.
-- Почему: баррикада уже является `ON_BORDER` blocker-ом с cardinal `dir`, а World Edit должен только корректно планировать и спавнить эти слоты.
+## D-001: Use a workflow-first redesign instead of cosmetic cleanup
+- Decision: Restructure the panel around the linear GM flow.
+- Why: The main UX problem is information architecture, not missing styling.
 
-## D-002: Slot identity для World Edit — `turf + dir`, а не `turf` и не `turf + type`
-- Решение: для баррикад уникальность и дедупликацию вести по ключу стороны тайла; разные типы не могут сосуществовать в одном и том же `turf+dir`.
-- Почему: пользовательский контракт явно требует “до 4 на тайл, но только 1 на сторону”, а blueprint service уже частично работает именно так.
+## D-002: Reuse the current backend contract first
+- Decision: Build the redesign on top of existing `ui_data()` fields and only
+  add backend data if the frontend cannot represent state safely.
+- Why: The manager already exposes generator meta, fields, placement state,
+  preview/apply state, history, and latest operation data.
 
-## D-003: Исправлять нужно generator path, а не формат blueprint
-- Решение: основную правку делать в `modular/world_edit/code/generators/world_edit_generator_outpost_radius.dm`, где square/perimeter path still строится как tile-ring без corner side-slots.
-- Почему: `blueprint_stamp` и `world_edit_blueprints` уже поддерживают несколько баррикад на одном тайле через slot-keys.
+## D-003: Keep wizard fallback visible as an escape hatch
+- Decision: Preserve `configure_wizard` as a first-class action even when
+  inline fields are available.
+- Why: It is required by the UI field schema and protects generator-specific
+  or degraded configuration flows.
 
-## D-004: Curated blueprint JSON менять только по факту несоответствия slot-модели
-- Решение: не переписывать seed blueprints массово, если после аудита они уже содержат корректные multi-slot corner placements.
-- Почему: часть curated data (`02_sandbag`, `05_corner`) уже описана через несколько entry на одном `dx/dy` с разными `dir`; лишний churn не нужен.
+## D-004: Collapse setup and run into one workspace
+- Decision: Replace the old `Catalog / Setup / Run / History` split with
+  `Browse / Work / History`, plus a shared context header and a persistent
+  action rail.
+- Why: The old split forced the user to reconstruct state mentally between
+  multiple screens.
+
+## D-005: Do not add backend changes in this pass
+- Decision: Keep this implementation frontend-only.
+- Why: Existing runtime data was sufficient to drive workflow messaging,
+  action availability, and session summaries.

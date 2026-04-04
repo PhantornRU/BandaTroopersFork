@@ -1,28 +1,31 @@
 # PLAN
 
-## Активная задача
-Доработать World Edit DIR-размещение баррикад так, чтобы генераторы и связанные шаблоны корректно работали с моделью `turf + side-slot`: на одном тайле может стоять до 4 направленных баррикад, но не более 1 на каждую сторону.
+## Active task
+Rework the `World Edit Panel` UI so it follows the GM workflow
+`Select -> Configure -> Preview -> Apply -> History`, reduces context
+duplication, and stays compatible with the current runtime/backend contract.
 
 ## Scope
-- Аудит active World Edit surface: `outpost_radius`, `blueprint_stamp`, `world_edit_blueprints`, curated blueprint JSON.
-- Исправление live generator logic, которая still мыслит периметр как набор тайлов вместо directional slots.
-- Проверка и при необходимости миграция curated blueprint/template данных под slot-модель.
-- Добавление regression coverage для corner-case с несколькими DIR-баррикадами на одном тайле.
+- `tgui/packages/tgui/interfaces/WorldEditPanel.tsx`
+- Task-state notes for this work item
+- Validation through relevant tgui checks
 
 ## Out of scope
-- Deprecated/historical generators вне active runtime surface.
-- Несвязанные UI/preview redesign, если для фикса не требуется менять runtime semantics.
-- Изменение базовой семантики самих апстрим-баррикад вне минимально нужных integration points.
+- Generator business logic changes
+- Expanding generator capabilities beyond current backend data
+- Reworking undo/rollback semantics
+- Unrelated refactors in other tgui interfaces
 
-## Фазы
-1. Подтвердить source-of-truth по directed barricade semantics и найти slot-aware / turf-only участки. Выполнено.
-2. Перезаписать task-state под новый scope. Выполнено.
-3. Перевести проблемный generator path на `turf+dir` slot planning с сохранением правила “одна баррикада на сторону”. В процессе.
-4. Проверить curated templates и добавить regression test. Не начато.
-5. Прогнать релевантные проверки и зафиксировать evidence/results. Не начато.
+## Phases
+1. Capture current UI contract and pain points. Done.
+2. Rebuild IA and action hierarchy in `WorldEditPanel.tsx`. Done.
+3. Add backend state only if frontend cannot express state safely. Not needed.
+4. Run relevant checks and prepare commit/push to the PR branch. In progress.
 
 ## Acceptance criteria
-- Square/perimeter generation в World Edit умеет планировать несколько баррикад на одном тайле по разным cardinal DIR.
-- На одну сторону тайла планируется и спавнится не более одной баррикады.
-- Preview/apply/blueprint flows не ломают существующую slot-модель и не схлопывают multi-DIR corner placements в turf-only occupancy.
-- Regression coverage ловит corner-case с углами и radius-based perimeter placement.
+- UI no longer forces the user to bounce across multiple separate workspaces
+  for one generator flow.
+- Generator, preview, placement, and session context are visible without
+  duplicated panels carrying the same meaning.
+- Wizard fallback remains available.
+- Changes stay limited to the World Edit surface and pass relevant tgui checks.
