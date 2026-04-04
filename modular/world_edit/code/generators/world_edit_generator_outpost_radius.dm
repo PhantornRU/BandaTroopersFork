@@ -21,6 +21,15 @@
 /datum/world_edit_generator/outpost_radius/get_supported_placement_modes()
 	return list("single", "repeat")
 
+/datum/world_edit_generator/outpost_radius/get_supported_placement_shapes()
+	return list(
+		WORLD_EDIT_SHAPE_POINT,
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_RECTANGLE,
+		WORLD_EDIT_SHAPE_CIRCLE,
+		WORLD_EDIT_SHAPE_RING,
+	)
+
 /datum/world_edit_generator/outpost_radius/proc/build_type_options(list/type_list)
 	var/list/options = list()
 	for(var/datum/human_ai_defense/type_path as anything in type_list)
@@ -84,7 +93,7 @@
 		return null
 
 	var/datum/human_ai_defense/defense_definition = new defense_path()
-	var/obj_path = defense_definition.path_to_spawn || world_edit_resolve_defense_spawn_path(defense_path)
+	var/obj_path = defense_definition.path_to_spawn || GLOB.world_edit_blueprints.world_edit_resolve_defense_spawn_path(defense_path)
 	var/list/existing_lookup = list()
 	if(ispath(obj_path, /obj))
 		for(var/obj/existing as anything in target_turf)
@@ -178,11 +187,11 @@
 		return plan
 
 	var/radius = text2num("[params["radius"]]") || 4
-	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
+	var/place_sentries = GLOB.world_edit_helpers.parse_bool(params["place_sentries"])
 	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade)
 	var/sentry_path = place_sentries ? resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry) : null
 	var/faction = "[params["faction"]]"
-	var/turned_on = world_edit_parse_bool(params["turned_on"])
+	var/turned_on = GLOB.world_edit_helpers.parse_bool(params["turned_on"])
 
 	var/list/perimeter_data = collect_perimeter_placements(center_turf, radius)
 	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius) : list(
@@ -230,21 +239,76 @@
 /datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
 	var/list/anchor_turfs = placement_context["anchor_turfs"]
-	var/turf/anchor_turf = islist(anchor_turfs) ? anchor_turfs[1] : null
-	if(!anchor_turf)
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		plan.metadata["error"] = "Unable to resolve the anchor turf."
 		return plan
 
-	plan = build_outpost_plan(anchor_turf, params)
-	plan.metadata["anchor_count"] = anchor_turf ? 1 : 0
+	var/list/occupied_lookup = list()
+	var/list/preview_lookup = list()
+	var/total_barricades = 0
+	var/total_sentries = 0
+	var/total_blocked_barricades = 0
+	var/total_blocked_sentries = 0
+	for(var/turf/anchor_turf as anything in anchor_turfs)
+		if(!istype(anchor_turf))
+			continue
+		var/datum/world_edit_plan/anchor_plan = build_outpost_plan(anchor_turf, params)
+		for(var/list/placement as anything in anchor_plan.placements)
+			var/turf/target_turf = placement["turf"]
+			if(!istype(target_turf))
+				continue
+			if(occupied_lookup[target_turf])
+				plan.metadata["error"] = "Requested outpost footprint overlaps itself."
+				plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
+				return plan
+			occupied_lookup[target_turf] = TRUE
+			preview_lookup[target_turf] = TRUE
+			plan.placements += list(placement.Copy())
+		if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
+			plan.metadata["error"] = "Requested outpost placement exceeds the safe placement cap ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
+			return plan
+
+		total_barricades += anchor_plan.metadata["barricade_count"] || 0
+		total_sentries += anchor_plan.metadata["sentry_count"] || 0
+		total_blocked_barricades += anchor_plan.metadata["blocked_barricades"] || 0
+		total_blocked_sentries += anchor_plan.metadata["blocked_sentries"] || 0
+
+	for(var/turf/preview_turf as anything in preview_lookup)
+		plan.affected_turfs += preview_turf
+
+	var/turf/center_turf = placement_context["end_turf"]
+	if(!istype(center_turf))
+		center_turf = anchor_turfs[clamp(round((length(anchor_turfs) + 1) / 2), 1, length(anchor_turfs))]
+
+	plan.metadata["center_turf"] = center_turf
+	plan.metadata["radius"] = text2num("[params["radius"]]") || 4
+	plan.metadata["barricade_count"] = total_barricades
+	plan.metadata["sentry_count"] = total_sentries
+	plan.metadata["blocked_barricades"] = total_blocked_barricades
+	plan.metadata["blocked_sentries"] = total_blocked_sentries
+	plan.metadata["anchor_count"] = length(anchor_turfs)
 	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
+	plan.metadata["placement_shape"] = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(plan.metadata["placement_shape"])
+	if(islist(placement_context["shape_metadata"]))
+		for(var/key in placement_context["shape_metadata"])
+			if(!(key in plan.metadata))
+				plan.metadata[key] = placement_context["shape_metadata"][key]
 	return plan
 
 /datum/world_edit_generator/outpost_radius/build_plan(list/params)
 	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, NORTH)
+	if(shape_result["error"])
+		var/datum/world_edit_plan/error_plan = new
+		error_plan.metadata["error"] = "[shape_result["error"]]"
+		return error_plan
 	return build_placement_plan(manager?.holder?.mob, params, list(
-		"mode" = "single",
-		"anchor_turfs" = list(anchor_turf),
+		"mode" = manager?.get_effective_placement_mode() || "single",
+		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = shape_result["metadata"] || list(),
+		"anchor_turfs" = shape_result["turfs"] || list(anchor_turf),
+		"end_turf" = anchor_turf,
 	))
 
 /datum/world_edit_generator/outpost_radius/validate_params(mob/user, list/params)
@@ -260,7 +324,7 @@
 	if(!barricade_path)
 		return "Invalid barricade type selected."
 
-	var/place_sentries = world_edit_parse_bool(params["place_sentries"])
+	var/place_sentries = GLOB.world_edit_helpers.parse_bool(params["place_sentries"])
 	if(place_sentries)
 		if(radius < 2)
 			return "radius must be at least 2 when sentries are enabled."
@@ -276,7 +340,19 @@
 	if(planned_total > 68)
 		return "The requested outpost exceeds the Phase 1 placement cap."
 
-	var/datum/world_edit_plan/plan = build_outpost_plan(center_turf, params)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, center_turf, null, params, NORTH)
+	if(shape_result["error"])
+		return "[shape_result["error"]]"
+
+	var/datum/world_edit_plan/plan = build_placement_plan(user, params, list(
+		"mode" = manager?.get_effective_placement_mode() || "single",
+		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = shape_result["metadata"] || list(),
+		"anchor_turfs" = shape_result["turfs"] || list(center_turf),
+		"end_turf" = center_turf,
+	))
+	if(plan.metadata["error"])
+		return "[plan.metadata["error"]]"
 	if(!length(plan.placements) && !length(plan.deletions))
 		return "No valid outpost placements were found around the current turf."
 
@@ -295,7 +371,7 @@
 
 	current_plan = plan
 	result.success = TRUE
-	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
 	result.message = "Preview ready: anchors=[plan.metadata["anchor_count"] || 1], barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], blocked=[plan.metadata["blocked_barricades"] + plan.metadata["blocked_sentries"]]."
 	return result
@@ -366,7 +442,7 @@
 	return result
 
 /datum/world_edit_generator/outpost_radius/get_ui_fields(list/current_params)
-	var/place_sentries = world_edit_parse_bool(current_params["place_sentries"])
+	var/place_sentries = GLOB.world_edit_helpers.parse_bool(current_params["place_sentries"])
 	var/list/faction_options = list()
 	for(var/faction in valid_factions)
 		faction_options += list(list(
@@ -452,7 +528,7 @@
 			new_params[param_id] = path_value
 
 		if("place_sentries")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("sentry_path")
 			var/path_value = resolve_whitelisted_type(value, allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
@@ -466,7 +542,7 @@
 			new_params[param_id] = "[value]"
 
 		if("turned_on")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		else
 			return ..()
@@ -477,4 +553,4 @@
 	return "Apply Outpost Radius at the current turf with radius [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
-	return "radius=[params["radius"]] barricade=[params["barricade_path"]] sentries=[params["place_sentries"]] sentry_type=[params["sentry_path"]]"
+	return "radius=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] barricade=[params["barricade_path"]] sentries=[params["place_sentries"]] sentry_type=[params["sentry_path"]]"

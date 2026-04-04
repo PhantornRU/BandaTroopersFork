@@ -1,5 +1,8 @@
-/// Короткое строковое представление параметров для логов и истории.
-/proc/world_edit_params_to_text(list/params, max_length = 220)
+GLOBAL_DATUM_INIT(world_edit_logging, /datum/world_edit_logging_service, new)
+
+/datum/world_edit_logging_service
+
+/datum/world_edit_logging_service/proc/params_to_text(list/params, max_length = 220)
 	if(!islist(params) || !length(params))
 		return "<empty>"
 
@@ -8,8 +11,7 @@
 		serialized = "[copytext(serialized, 1, max_length)]..."
 	return serialized
 
-/// Единый формат логирования операций World Edit.
-/proc/world_edit_log_operation(client/user, generator_id, rights_used, turf/center_turf, created_count, deleted_count, duration_ds, result, params_short)
+/datum/world_edit_logging_service/proc/log_operation(client/user, generator_id, rights_used, turf/center_turf, created_count, deleted_count, duration_ds, result, params_short)
 	if(!user)
 		return
 

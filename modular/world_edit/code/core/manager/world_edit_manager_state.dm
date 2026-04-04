@@ -110,7 +110,7 @@
 /datum/world_edit_manager/proc/mark_preview_state()
 	preview_valid = TRUE
 	preview_generator_id = current_definition?.id
-	preview_params_signature = world_edit_params_to_text(current_params, 400)
+	preview_params_signature = "[GLOB.world_edit_logging.params_to_text(current_params, 400)]::mode=[get_effective_placement_mode()]::shape=[get_effective_placement_shape()]::dir=[get_effective_placement_dir()]"
 
 /datum/world_edit_manager/proc/invalidate_preview_state()
 	preview_valid = FALSE
@@ -122,7 +122,7 @@
 		return FALSE
 	if(preview_generator_id != current_definition?.id)
 		return FALSE
-	if(preview_params_signature != world_edit_params_to_text(current_params, 400))
+	if(preview_params_signature != "[GLOB.world_edit_logging.params_to_text(current_params, 400)]::mode=[get_effective_placement_mode()]::shape=[get_effective_placement_shape()]::dir=[get_effective_placement_dir()]")
 		return FALSE
 	return TRUE
 
@@ -138,8 +138,17 @@
 		return list()
 	return modes.Copy()
 
+/datum/world_edit_manager/proc/get_supported_placement_shapes()
+	var/list/shapes = current_generator?.get_supported_placement_shapes()
+	if(!islist(shapes))
+		return list()
+	return shapes.Copy()
+
 /datum/world_edit_manager/proc/supports_current_placement_ux()
-	return length(get_supported_placement_modes()) ? TRUE : FALSE
+	return (length(get_supported_placement_modes()) || length(get_supported_placement_shapes())) ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/supports_current_placement_shapes()
+	return length(get_supported_placement_shapes()) ? TRUE : FALSE
 
 /datum/world_edit_manager/proc/supports_current_placement_direction()
 	return current_generator?.supports_placement_direction() ? TRUE : FALSE
@@ -153,6 +162,16 @@
 	if(!(placement_mode in modes))
 		placement_mode = "[modes[1]]"
 	return placement_mode
+
+/datum/world_edit_manager/proc/get_effective_placement_shape()
+	var/list/shapes = get_supported_placement_shapes()
+	if(!length(shapes))
+		placement_shape = WORLD_EDIT_SHAPE_POINT
+		return null
+
+	if(!(placement_shape in shapes))
+		placement_shape = "[shapes[1]]"
+	return placement_shape
 
 /datum/world_edit_manager/proc/get_effective_placement_dir()
 	var/default_dir = current_generator?.get_default_placement_direction() || NORTH
@@ -171,16 +190,22 @@
 			if("repeat")
 				entry["label"] = "Repeat"
 				entry["description"] = "Keep placement mode active after each apply."
-			if("line")
-				entry["label"] = "Line"
-				entry["description"] = "Two clicks build a bounded line of anchors."
-			if("rectangle")
-				entry["label"] = "Rectangle"
-				entry["description"] = "Two clicks build a bounded rectangle of anchors."
 			else
 				entry["label"] = "[mode]"
 		options += list(entry)
 	return options
+
+/datum/world_edit_manager/proc/build_placement_shape_options()
+	var/list/options = list()
+	for(var/shape_id in get_supported_placement_shapes())
+		options += list(GLOB.world_edit_placement_shapes.world_edit_build_placement_shape_option(shape_id))
+	return options
+
+/datum/world_edit_manager/proc/build_current_placement_shape_fields()
+	var/shape_id = get_effective_placement_shape()
+	if(!length(shape_id))
+		return list()
+	return GLOB.world_edit_placement_shapes.world_edit_build_shape_ui_fields(shape_id, current_params)
 
 /datum/world_edit_manager/proc/build_placement_dir_options()
 	return list(
@@ -191,8 +216,8 @@
 	)
 
 /datum/world_edit_manager/proc/placement_mode_uses_anchor_pair(mode = null)
-	mode = mode || get_effective_placement_mode()
-	return ("[mode]" in list("line", "rectangle")) ? TRUE : FALSE
+	var/shape_id = mode || get_effective_placement_shape()
+	return GLOB.world_edit_placement_shapes.world_edit_shape_uses_anchor_pair(shape_id) ? TRUE : FALSE
 
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
 	if(!placement_anchor_turf)
@@ -205,6 +230,7 @@
 
 	if(reset_config)
 		placement_mode = "single"
+		placement_shape = current_generator?.get_default_placement_shape() || WORLD_EDIT_SHAPE_POINT
 		placement_dir = current_generator?.get_default_placement_direction() || NORTH
 
 /datum/world_edit_manager/proc/sync_click_intercept_state()

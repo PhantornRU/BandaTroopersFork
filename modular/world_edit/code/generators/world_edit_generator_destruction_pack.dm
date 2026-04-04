@@ -140,9 +140,9 @@
 	var/radius = text2num("[params["radius"]]") || 3
 	var/max_atoms = text2num("[params["max_atoms"]]") || 60
 	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
-	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
-	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
-	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
+	var/affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
+	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
 		plan.metadata["error"] = "No valid area turfs were found around the current turf."
@@ -196,11 +196,11 @@
 	if(!isnum(scatter_steps) || scatter_steps < 1 || scatter_steps > 4)
 		return "scatter_steps must stay in the range 1..4."
 
-	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
-	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
+	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	if(!shuffle_enabled && !scatter_enabled)
 		return "Enable at least one mode: shuffle or scatter."
-	if(world_edit_parse_bool(params["affect_anchored"]))
+	if(GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
 
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
@@ -226,7 +226,7 @@
 
 	current_plan = plan
 	result.success = TRUE
-	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
 	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]]."
 	return result
@@ -310,7 +310,7 @@
 	return result
 
 /datum/world_edit_generator/destruction_pack/get_ui_fields(list/current_params)
-	var/scatter_enabled = world_edit_parse_bool(current_params["scatter_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])
 
 	return list(
 		list(
@@ -331,7 +331,7 @@
 			"kind" = "boolean",
 			"group" = "Modes",
 			"description" = "Randomly reassigns movable targets to tiles within the preview area.",
-			"value" = world_edit_parse_bool(current_params["shuffle_enabled"]),
+			"value" = GLOB.world_edit_helpers.parse_bool(current_params["shuffle_enabled"]),
 		),
 		list(
 			"id" = "scatter_enabled",
@@ -339,7 +339,7 @@
 			"kind" = "boolean",
 			"group" = "Modes",
 			"description" = "Moves targets step-by-step inside the selected area.",
-			"value" = world_edit_parse_bool(current_params["scatter_enabled"]),
+			"value" = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"]),
 		),
 		list(
 			"id" = "scatter_steps",
@@ -377,10 +377,10 @@
 			new_params[param_id] = clamp(text2num("[value]"), 1, 5)
 
 		if("shuffle_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("scatter_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("scatter_steps")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 4)
@@ -389,7 +389,7 @@
 			new_params[param_id] = clamp(text2num("[value]"), 1, 100)
 
 		if("affect_anchored")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		else
 			return ..()

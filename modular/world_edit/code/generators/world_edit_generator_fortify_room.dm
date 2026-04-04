@@ -4,7 +4,7 @@
 
 /datum/world_edit_generator/fortify_room/configure_params(mob/user, list/current_params)
 	var/list/new_params = current_params.Copy()
-	var/list/presets = world_edit_get_fortify_level_presets()
+	var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 	var/list/preset_names = list()
 	for(var/preset_name in presets)
 		preset_names += preset_name
@@ -44,7 +44,7 @@
 	if(!get_turf(user))
 		return "Не удалось определить стартовый тайл."
 
-	var/list/presets = world_edit_get_fortify_level_presets()
+	var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 	var/level_name = params["fortification_level"]
 	if(!presets[level_name])
 		return "Неизвестный уровень укрепления: [level_name]."
@@ -66,20 +66,20 @@
 		result.message = "Не удалось определить стартовый тайл."
 		return result
 
-	var/list/presets = world_edit_get_fortify_level_presets()
+	var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 	var/list/preset = presets[params["fortification_level"]]
 	var/scan_limit = text2num("[params["tile_scan_limit"]]") || 195
 	var/scan_radius = text2num("[params["scan_radius"]]") || 12
 	var/respect_windows = params["respect_windows"] ? TRUE : FALSE
 	var/respect_doors = params["respect_doors"] ? TRUE : FALSE
 
-	var/list/preview_data = world_edit_collect_room_fortify_preview(start_turf, preset["folding"], scan_limit, scan_radius, respect_windows, respect_doors)
+	var/list/preview_data = GLOB.world_edit_legacy.world_edit_collect_room_fortify_preview(start_turf, preset["folding"], scan_limit, scan_radius, respect_windows, respect_doors)
 	last_preview_data = preview_data
 
 	var/list/tiles = preview_data["tiles"]
 	var/list/placements = preview_data["placements"]
 	var/success = preview_data["success"]
-	result.preview_images = world_edit_build_turf_preview_images(tiles)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(tiles)
 
 	result.success = TRUE
 	result.meta["tiles_scanned"] = length(tiles)
@@ -99,14 +99,14 @@
 		result.message = "Не удалось определить стартовый тайл."
 		return result
 
-	var/list/presets = world_edit_get_fortify_level_presets()
+	var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 	var/list/preset = presets[params["fortification_level"]]
 	var/scan_limit = text2num("[params["tile_scan_limit"]]") || 195
 	var/scan_radius = text2num("[params["scan_radius"]]") || 12
 	var/respect_windows = params["respect_windows"] ? TRUE : FALSE
 	var/respect_doors = params["respect_doors"] ? TRUE : FALSE
 
-	var/list/apply_data = world_edit_apply_room_fortify(start_turf, preset["cade"], preset["folding"], scan_limit, scan_radius, respect_windows, respect_doors)
+	var/list/apply_data = GLOB.world_edit_legacy.world_edit_apply_room_fortify(start_turf, preset["cade"], preset["folding"], scan_limit, scan_radius, respect_windows, respect_doors)
 
 	result.success = apply_data["success"]
 	result.center_turf = start_turf
@@ -124,7 +124,7 @@
 
 /datum/world_edit_generator/fortify_room/get_ui_fields(list/current_params)
 	var/list/preset_options = list()
-	var/list/presets = world_edit_get_fortify_level_presets()
+	var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 	var/list/preset_names = list()
 	for(var/preset_name in presets)
 		preset_names += preset_name
@@ -193,7 +193,7 @@
 
 	switch(param_id)
 		if("fortification_level")
-			var/list/presets = world_edit_get_fortify_level_presets()
+			var/list/presets = GLOB.world_edit_legacy.world_edit_get_fortify_level_presets()
 			var/level_name = "[value]"
 			if(!presets[level_name])
 				return "Неизвестный уровень укрепления."
@@ -206,10 +206,10 @@
 			new_params[param_id] = clamp(text2num("[value]"), 1, 30)
 
 		if("respect_windows")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("respect_doors")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		else
 			return ..()

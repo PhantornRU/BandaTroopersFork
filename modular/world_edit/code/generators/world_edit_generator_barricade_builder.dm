@@ -85,10 +85,10 @@
 
 	if(chosen_dir_mode == "fixed")
 		var/list/dir_options = list("North", "East", "South", "West")
-		var/chosen_dir_label = tgui_input_list(user, "Выберите фиксированное направление.", "World Edit: DIR", dir_options, world_edit_dir_to_label(new_params["fixed_dir"] || NORTH))
+		var/chosen_dir_label = tgui_input_list(user, "Выберите фиксированное направление.", "World Edit: DIR", dir_options, GLOB.world_edit_helpers.dir_to_label(new_params["fixed_dir"] || NORTH))
 		if(!chosen_dir_label)
 			return null
-		new_params["fixed_dir"] = world_edit_dir_from_label(chosen_dir_label, NORTH)
+		new_params["fixed_dir"] = GLOB.world_edit_helpers.dir_from_label(chosen_dir_label, NORTH)
 
 	var/replace_choice = tgui_alert(user, "Заменять существующие баррикады с тем же DIR на целевых тайлах?", "World Edit: Замена", list("Да", "Нет"))
 	if(!replace_choice)
@@ -228,7 +228,7 @@
 		"kind" = "select",
 		"group" = "Направление",
 		"description" = "Используется только при dir_mode = fixed.",
-		"value" = world_edit_dir_to_label(text2num("[current_params["fixed_dir"]]") || NORTH),
+		"value" = GLOB.world_edit_helpers.dir_to_label(text2num("[current_params["fixed_dir"]]") || NORTH),
 		"disabled" = current_dir_mode != "fixed",
 		"options" = list(
 			list("label" = "North", "value" = "North"),
@@ -244,7 +244,7 @@
 		"group" = "Безопасность",
 		"description" = "При включении существующие баррикады с тем же DIR могут удаляться.",
 		"validate_hint" = "Перед заменой запрашивается отдельное подтверждение",
-		"value" = world_edit_parse_bool(current_params["replace_existing_same_dir"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["replace_existing_same_dir"]),
 	))
 	fields += list(list(
 		"id" = "max_tiles",
@@ -282,10 +282,10 @@
 			new_params[param_id] = text_value
 
 		if("fixed_dir")
-			new_params[param_id] = world_edit_dir_from_label("[value]", NORTH)
+			new_params[param_id] = GLOB.world_edit_helpers.dir_from_label("[value]", NORTH)
 
 		if("replace_existing_same_dir")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("max_tiles")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 120)
@@ -368,7 +368,7 @@
 		return entries
 
 	if(shape_mode == "line")
-		var/list/line_turfs = world_edit_collect_line_turfs(start_turf, end_turf)
+		var/list/line_turfs = GLOB.world_edit_helpers.collect_line_turfs(start_turf, end_turf)
 		var/line_dir = dir_mode == "fixed" ? fixed_dir : pick_line_auto_dir(start_turf, end_turf, user_dir)
 		for(var/turf/target_turf as anything in line_turfs)
 			entries += list(list("turf" = target_turf, "dir" = line_dir))
@@ -394,7 +394,7 @@
 		plan.metadata["error"] = "Выбран неверный тип баррикады."
 		return plan
 
-	var/replace_existing = world_edit_parse_bool(params["replace_existing_same_dir"])
+	var/replace_existing = GLOB.world_edit_helpers.parse_bool(params["replace_existing_same_dir"])
 	var/max_tiles = text2num("[params["max_tiles"]]") || 40
 	var/list/entries = collect_shape_entries_for_dir(plan_start_turf, plan_end_turf, params, plan_user_dir || NORTH)
 	if(length(entries) > max_tiles)
@@ -450,7 +450,7 @@
 		to_chat(user, SPAN_WARNING(plan.metadata["error"] || "Не удалось построить форму для выбранных тайлов."))
 		return
 
-	world_edit_apply_turf_preview(manager, plan.affected_turfs)
+	GLOB.world_edit_helpers.apply_turf_preview(manager, plan.affected_turfs)
 
 	var/replace_existing = plan.metadata["replace_existing"]
 	var/replace_count = plan.metadata["replace_count"] || 0
@@ -484,7 +484,7 @@
 		var/target_dir = entry["dir"]
 		if(find_barricade_in_dir(target_turf, target_dir))
 			continue
-		if(world_edit_spawn_defense_by_path(target_turf, target_dir, barricade_path, null, FALSE))
+		if(GLOB.world_edit_legacy.world_edit_spawn_defense_by_path(target_turf, target_dir, barricade_path, null, FALSE))
 			created_count++
 
 	manager?.clear_preview_images()
@@ -492,7 +492,7 @@
 	var/result_code = created_count > 0 ? "click_place" : "click_noop"
 	var/params_short = get_params_short(manager?.current_params || params)
 	var/duration_ds = world.time - start_ds
-	world_edit_log_operation(
+	GLOB.world_edit_logging.log_operation(
 		manager?.holder,
 		definition.id,
 		definition.required_rights,
@@ -524,7 +524,7 @@
 	if(istext(barricade_path))
 		barricade_path = text2path(barricade_path)
 
-	var/replace_existing = world_edit_parse_bool(params["replace_existing_same_dir"])
+	var/replace_existing = GLOB.world_edit_helpers.parse_bool(params["replace_existing_same_dir"])
 	var/max_tiles = text2num("[params["max_tiles"]]") || 40
 	if(length(entries) > max_tiles)
 		to_chat(user, SPAN_WARNING("Операция отменена: превышен лимит тайлов ([max_tiles])."))
@@ -539,7 +539,7 @@
 		if(find_barricade_in_dir(target_turf, target_dir))
 			replace_count++
 
-	world_edit_apply_turf_preview(manager, preview_turfs)
+	GLOB.world_edit_helpers.apply_turf_preview(manager, preview_turfs)
 
 	if(replace_existing && replace_count > 0)
 		var/replace_answer = tgui_alert(user, "Найдено [replace_count] существующих баррикад с тем же DIR. Разрешить замену?", "World Edit: Подтверждение замены", list("Да", "Нет"))
@@ -565,7 +565,7 @@
 			qdel(existing)
 			deleted_count++
 
-		if(world_edit_spawn_defense_by_path(target_turf, target_dir, barricade_path, null, FALSE))
+		if(GLOB.world_edit_legacy.world_edit_spawn_defense_by_path(target_turf, target_dir, barricade_path, null, FALSE))
 			created_count++
 
 	manager?.clear_preview_images()
@@ -573,7 +573,7 @@
 	var/result_code = created_count > 0 ? "click_place" : "click_noop"
 	var/params_short = get_params_short(manager?.current_params || params)
 	var/duration_ds = world.time - start_ds
-	world_edit_log_operation(
+	GLOB.world_edit_logging.log_operation(
 		manager?.holder,
 		definition.id,
 		definition.required_rights,
@@ -631,7 +631,7 @@
 
 	if(!anchor_turf)
 		anchor_turf = clicked_turf
-		world_edit_apply_turf_preview(manager, list(anchor_turf))
+		GLOB.world_edit_helpers.apply_turf_preview(manager, list(anchor_turf))
 		to_chat(user, SPAN_NOTICE("Якорь установлен: [anchor_turf.x],[anchor_turf.y],[anchor_turf.z]. Выберите вторую точку формы."))
 		return TRUE
 

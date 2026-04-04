@@ -8,12 +8,16 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 	"destruction_pack" = TRUE,
 ))
 
-/proc/world_edit_is_preset_generator_supported(generator_id)
+GLOBAL_DATUM_INIT(world_edit_presets, /datum/world_edit_preset_service, new)
+
+/datum/world_edit_preset_service
+
+/datum/world_edit_preset_service/proc/world_edit_is_preset_generator_supported(generator_id)
 	if(!length("[generator_id]"))
 		return FALSE
 	return GLOB.world_edit_preset_supported_generators["[generator_id]"] ? TRUE : FALSE
 
-/proc/world_edit_is_preset_definition_supported(datum/world_edit_generator_definition/definition)
+/datum/world_edit_preset_service/proc/world_edit_is_preset_definition_supported(datum/world_edit_generator_definition/definition)
 	if(!istype(definition))
 		return FALSE
 	if(definition.status != WORLD_EDIT_STATUS_READY)
@@ -22,19 +26,19 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 		return FALSE
 	return world_edit_is_preset_generator_supported(definition.id)
 
-/proc/world_edit_get_player_save_root()
+/datum/world_edit_preset_service/proc/world_edit_get_player_save_root()
 	return CONFIG_GET(string/playersave_path) || "data/player_saves"
 
-/proc/world_edit_get_player_savefile_path(raw_ckey, filename = WORLD_EDIT_PRESET_FILENAME)
+/datum/world_edit_preset_service/proc/world_edit_get_player_savefile_path(raw_ckey, filename = WORLD_EDIT_PRESET_FILENAME)
 	var/safe_key = ckey("[raw_ckey]")
 	if(!length(safe_key) || IsGuestKey(safe_key))
 		return null
 	return "[world_edit_get_player_save_root()]/[copytext(safe_key, 1, 2)]/[safe_key]/[filename]"
 
-/proc/world_edit_build_storage_id(prefix)
+/datum/world_edit_preset_service/proc/world_edit_build_storage_id(prefix)
 	return copytext(md5("[prefix]-[world.realtime]-[world.time]-[rand(1, 1000000)]"), 1, 13)
 
-/proc/world_edit_sanitize_preset_payload(list/raw_params)
+/datum/world_edit_preset_service/proc/world_edit_sanitize_preset_payload(list/raw_params)
 	var/list/payload = list()
 	if(!islist(raw_params))
 		return payload
@@ -54,7 +58,7 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 
 	return payload
 
-/proc/world_edit_sanitize_preset_entry(list/raw_entry)
+/datum/world_edit_preset_service/proc/world_edit_sanitize_preset_entry(list/raw_entry)
 	if(!islist(raw_entry))
 		return null
 
@@ -78,7 +82,7 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 		"created_at" = "[raw_entry["created_at"] || ""]",
 	)
 
-/proc/world_edit_load_presets_for_ckey(raw_ckey)
+/datum/world_edit_preset_service/proc/world_edit_load_presets_for_ckey(raw_ckey)
 	. = list()
 
 	var/savefile_path = world_edit_get_player_savefile_path(raw_ckey)
@@ -107,7 +111,7 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 			continue
 		. += list(entry)
 
-/proc/world_edit_save_presets_for_ckey(raw_ckey, list/entries)
+/datum/world_edit_preset_service/proc/world_edit_save_presets_for_ckey(raw_ckey, list/entries)
 	var/savefile_path = world_edit_get_player_savefile_path(raw_ckey)
 	if(!savefile_path)
 		return FALSE
@@ -130,7 +134,6 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 	S["version"] << WORLD_EDIT_PRESET_VERSION
 	S["entries"] << sanitized_entries
 	return TRUE
-
 /datum/world_edit_manager/proc/get_storage_ckey()
 	return holder?.ckey ? ckey(holder.ckey) : null
 
@@ -140,7 +143,7 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 	refresh_preset_cache()
 
 /datum/world_edit_manager/proc/refresh_preset_cache()
-	preset_entries_cache = world_edit_load_presets_for_ckey(get_storage_ckey())
+	preset_entries_cache = GLOB.world_edit_presets.world_edit_load_presets_for_ckey(get_storage_ckey())
 	preset_cache_loaded = TRUE
 
 /datum/world_edit_manager/proc/get_current_generator_presets()
@@ -159,14 +162,14 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 			"id" = entry["id"],
 			"name" = entry["name"],
 			"generator_id" = entry["generator_id"],
-			"params_short" = world_edit_params_to_text(entry["params"], 220),
+			"params_short" = GLOB.world_edit_logging.params_to_text(entry["params"], 220),
 			"created_at" = entry["created_at"],
 		))
 
 	return presets
 
 /datum/world_edit_manager/proc/can_manage_current_generator_presets()
-	return world_edit_is_preset_definition_supported(current_definition)
+	return GLOB.world_edit_presets.world_edit_is_preset_definition_supported(current_definition)
 
 /datum/world_edit_manager/proc/fail_preset_action(mob/user, message)
 	last_ui_error = message
@@ -176,14 +179,14 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 /datum/world_edit_manager/proc/build_validated_preset_params(mob/user, datum/world_edit_generator_definition/definition, list/raw_payload)
 	if(!istype(definition))
 		return list("error" = "Preset references an unknown generator.")
-	if(!world_edit_is_preset_definition_supported(definition))
+	if(!GLOB.world_edit_presets.world_edit_is_preset_definition_supported(definition))
 		return list("error" = "Presets are not supported for this generator.")
 
 	var/datum/world_edit_generator/temp_generator = new definition.generator_type()
 	temp_generator.attach(src, definition)
 
 	var/list/params_to_apply = definition.default_params?.Copy() || list()
-	var/list/sanitized_payload = world_edit_sanitize_preset_payload(raw_payload)
+	var/list/sanitized_payload = GLOB.world_edit_presets.world_edit_sanitize_preset_payload(raw_payload)
 
 	for(var/param_id in sanitized_payload)
 		var/key_text = "[param_id]"
@@ -234,15 +237,15 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 		preset_name = default_name
 
 	var/list/entry = list(
-		"id" = "preset_[world_edit_build_storage_id(current_definition.id)]",
+		"id" = "preset_[GLOB.world_edit_presets.world_edit_build_storage_id(current_definition.id)]",
 		"generator_id" = current_definition.id,
 		"name" = copytext(preset_name, 1, WORLD_EDIT_PRESET_NAME_MAX_LEN + 1),
-		"params" = world_edit_sanitize_preset_payload(current_params),
+		"params" = GLOB.world_edit_presets.world_edit_sanitize_preset_payload(current_params),
 		"created_at" = time_stamp(),
 	)
 
 	preset_entries_cache += list(entry)
-	if(!world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
+	if(!GLOB.world_edit_presets.world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
 		preset_entries_cache.Cut(length(preset_entries_cache), length(preset_entries_cache) + 1)
 		return fail_preset_action(user, "Не удалось сохранить preset на сервере.")
 
@@ -263,8 +266,8 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 		return fail_preset_action(user, "Preset не найден.")
 
 	var/generator_id = "[preset_entry["generator_id"]]"
-	var/datum/world_edit_generator_definition/definition = world_edit_get_generator_definition(generator_id)
-	if(!world_edit_is_preset_definition_supported(definition))
+	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
+	if(!GLOB.world_edit_presets.world_edit_is_preset_definition_supported(definition))
 		return fail_preset_action(user, "Preset ссылается на генератор вне поддерживаемого READY scope.")
 	if(!check_rights_for(holder, definition.required_rights))
 		return fail_preset_action(user, "Недостаточно прав для загрузки этого preset.")
@@ -299,7 +302,7 @@ GLOBAL_LIST_INIT(world_edit_preset_supported_generators, list(
 		return fail_preset_action(user, "Preset не найден.")
 
 	preset_entries_cache.Cut(entry_index, entry_index + 1)
-	if(!world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
+	if(!GLOB.world_edit_presets.world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
 		refresh_preset_cache()
 		return fail_preset_action(user, "Не удалось удалить preset на сервере.")
 

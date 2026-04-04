@@ -37,7 +37,10 @@
 	var/has_inline_fields = length(ui_fields) > 0
 	var/requires_preview = current_generator?.requires_preview_before_apply ? TRUE : FALSE
 	var/list/placement_modes = build_placement_mode_options()
+	var/list/placement_shapes = build_placement_shape_options()
+	var/list/placement_shape_fields = build_current_placement_shape_fields()
 	var/placement_supported = length(placement_modes) > 0
+	var/placement_shape_supported = length(placement_shapes) > 0
 	var/click_mode_active = sync_click_intercept_state()
 	var/can_run_preview = has_generator && current_definition?.supports_preview && !click_mode_active
 	var/can_run_apply = has_generator && (!requires_preview || is_preview_state_valid()) && !click_mode_active
@@ -53,7 +56,7 @@
 	data["current_generator_supports_preview"] = current_definition?.supports_preview ? TRUE : FALSE
 	data["requires_preview_before_apply"] = requires_preview
 
-	data["current_params_text"] = world_edit_params_to_text(current_params, 600)
+	data["current_params_text"] = GLOB.world_edit_logging.params_to_text(current_params, 600)
 	data["ui_fields"] = ui_fields
 	data["has_inline_fields"] = has_inline_fields
 	data["ui_mode"] = has_inline_fields ? "inline" : "wizard_fallback"
@@ -62,11 +65,16 @@
 	data["placement_active"] = (placement_click_active && click_mode_active) ? TRUE : FALSE
 	data["placement_mode"] = get_effective_placement_mode() || "single"
 	data["placement_mode_options"] = placement_modes
+	data["placement_shape_supported"] = placement_shape_supported ? TRUE : FALSE
+	data["placement_shape"] = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+	data["placement_shape_options"] = placement_shapes
+	data["placement_shape_fields"] = placement_shape_fields
+	data["placement_shape_uses_anchor_pair"] = placement_mode_uses_anchor_pair(get_effective_placement_shape()) ? TRUE : FALSE
 	data["placement_supports_direction"] = supports_current_placement_direction() ? TRUE : FALSE
-	data["placement_dir"] = world_edit_dir_to_label(get_effective_placement_dir())
+	data["placement_dir"] = GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())
 	data["placement_dir_options"] = build_placement_dir_options()
 	data["placement_anchor"] = get_placement_anchor_desc()
-	data["can_start_placement_mode"] = (placement_supported && !click_mode_active) ? TRUE : FALSE
+	data["can_start_placement_mode"] = (supports_current_placement_ux() && !click_mode_active) ? TRUE : FALSE
 	data["can_manage_presets"] = can_manage_current_generator_presets()
 	data["preset_entries"] = get_current_generator_presets()
 	data["blueprint_entries"] = get_blueprint_entries_for_ui()
@@ -172,10 +180,21 @@
 			reset_preview_runtime()
 			return TRUE
 
+		if("set_placement_shape")
+			var/new_shape = "[params["shape"]]"
+			if(!(new_shape in get_supported_placement_shapes()))
+				last_ui_error = "The selected placement shape is not available for the current generator."
+				to_chat(ui.user, SPAN_WARNING(last_ui_error))
+				return TRUE
+			placement_shape = new_shape
+			last_ui_error = ""
+			reset_preview_runtime()
+			return TRUE
+
 		if("set_placement_dir")
 			if(!supports_current_placement_direction())
 				return TRUE
-			placement_dir = world_edit_dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
+			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
 			last_ui_error = ""
 			reset_preview_runtime()
 			return TRUE
@@ -253,7 +272,7 @@
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
-	if(world_edit_parse_bool(target_field["disabled"]))
+	if(GLOB.world_edit_helpers.parse_bool(target_field["disabled"]))
 		var/target_field_label = "[target_field["label"]]"
 		last_ui_error = "Параметр '[target_field_label]' сейчас недоступен для редактирования."
 		to_chat(user, SPAN_WARNING(last_ui_error))
@@ -302,7 +321,7 @@
 
 		var/visible = TRUE
 		if("visible" in raw_field)
-			visible = world_edit_parse_bool(raw_field["visible"])
+			visible = GLOB.world_edit_helpers.parse_bool(raw_field["visible"])
 		if(!visible)
 			continue
 
@@ -315,8 +334,8 @@
 		field["label"] = raw_field["label"] ? "[raw_field["label"]]" : field_id
 		field["kind"] = field_kind
 		field["group"] = raw_field["group"] ? "[raw_field["group"]]" : "Основные"
-		field["disabled"] = ("disabled" in raw_field) ? world_edit_parse_bool(raw_field["disabled"]) : FALSE
-		field["required"] = ("required" in raw_field) ? world_edit_parse_bool(raw_field["required"]) : FALSE
+		field["disabled"] = ("disabled" in raw_field) ? GLOB.world_edit_helpers.parse_bool(raw_field["disabled"]) : FALSE
+		field["required"] = ("required" in raw_field) ? GLOB.world_edit_helpers.parse_bool(raw_field["required"]) : FALSE
 
 		var/value = raw_field["value"]
 		if(isnull(value) && islist(current_params) && (field_id in current_params))

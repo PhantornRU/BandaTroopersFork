@@ -175,9 +175,16 @@
 	)
 	status = WORLD_EDIT_STATUS_READY
 
-GLOBAL_LIST_INIT(world_edit_generator_definitions_by_id, world_edit_build_generator_definition_index())
+GLOBAL_DATUM_INIT(world_edit_registry, /datum/world_edit_registry_service, new)
 
-/proc/world_edit_build_generator_definition_index()
+/datum/world_edit_registry_service
+	var/list/definitions_by_id = list()
+
+/datum/world_edit_registry_service/New()
+	. = ..()
+	definitions_by_id = build_generator_definition_index()
+
+/datum/world_edit_registry_service/proc/build_generator_definition_index()
 	. = list()
 	for(var/definition_type in subtypesof(/datum/world_edit_generator_definition))
 		var/datum/world_edit_generator_definition/definition = new definition_type()
@@ -193,7 +200,7 @@ GLOBAL_LIST_INIT(world_edit_generator_definitions_by_id, world_edit_build_genera
 
 		.[definition.id] = definition
 
-/proc/world_edit_get_generator_definition(id)
+/datum/world_edit_registry_service/proc/get_generator_definition(id)
 	if(!id)
 		return null
-	return GLOB.world_edit_generator_definitions_by_id[id]
+	return definitions_by_id[id]

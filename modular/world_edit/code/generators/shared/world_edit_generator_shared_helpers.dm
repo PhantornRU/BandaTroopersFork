@@ -1,5 +1,8 @@
-/// Нормализует любые значения в булев флаг.
-/proc/world_edit_parse_bool(value)
+GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
+
+/datum/world_edit_helpers
+
+/datum/world_edit_helpers/proc/parse_bool(value)
 	if(isnull(value))
 		return FALSE
 	if(isnum(value))
@@ -8,8 +11,7 @@
 	var/value_text = lowertext("[value]")
 	return value_text in list("1", "true", "yes", "on", "да")
 
-/// Преобразует cardinal DIR в строку для UI.
-/proc/world_edit_dir_to_label(direction)
+/datum/world_edit_helpers/proc/dir_to_label(direction)
 	switch(direction)
 		if(NORTH)
 			return "North"
@@ -21,8 +23,7 @@
 			return "West"
 	return "North"
 
-/// Преобразует строку из UI в cardinal DIR.
-/proc/world_edit_dir_from_label(label, fallback_dir = NORTH)
+/datum/world_edit_helpers/proc/dir_from_label(label, fallback_dir = NORTH)
 	switch("[label]")
 		if("North")
 			return NORTH
@@ -34,8 +35,7 @@
 			return WEST
 	return fallback_dir
 
-/// Возвращает список турфов линии (Bresenham) между двумя точками.
-/proc/world_edit_collect_line_turfs(turf/start_turf, turf/end_turf)
+/datum/world_edit_helpers/proc/collect_line_turfs(turf/start_turf, turf/end_turf)
 	var/list/turfs = list()
 	if(!start_turf || !end_turf || start_turf.z != end_turf.z)
 		return turfs
@@ -67,8 +67,7 @@
 
 	return turfs
 
-/// Двигается от тайла на указанное количество шагов в заданном направлении.
-/proc/world_edit_collect_rectangle_turfs(turf/start_turf, turf/end_turf)
+/datum/world_edit_helpers/proc/collect_rectangle_turfs(turf/start_turf, turf/end_turf)
 	var/list/turfs = list()
 	if(!start_turf || !end_turf || start_turf.z != end_turf.z)
 		return turfs
@@ -87,7 +86,7 @@
 
 	return turfs
 
-/proc/world_edit_step_turf(turf/start_turf, direction, steps = 1)
+/datum/world_edit_helpers/proc/step_turf(turf/start_turf, direction, steps = 1)
 	var/turf/current_turf = start_turf
 	for(var/i in 1 to steps)
 		current_turf = get_step(current_turf, direction)
@@ -95,8 +94,7 @@
 			return null
 	return current_turf
 
-/// Возвращает список image-overlay для предпросмотра на наборе тайлов.
-/proc/world_edit_build_turf_preview_images(list/turfs, icon_state = "greenOverlay")
+/datum/world_edit_helpers/proc/build_turf_preview_images(list/turfs, icon_state = "greenOverlay")
 	var/list/images = list()
 	if(!length(turfs))
 		return images
@@ -108,13 +106,12 @@
 
 	return images
 
-/// Рисует стандартный preview на турфах через image-overlay.
-/proc/world_edit_apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay")
+/datum/world_edit_helpers/proc/apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay")
 	if(!manager || !manager.holder)
 		return
 
 	manager.clear_preview_images()
-	var/list/images = world_edit_build_turf_preview_images(turfs, icon_state)
+	var/list/images = build_turf_preview_images(turfs, icon_state)
 
 	if(length(images))
 		manager.holder.images += images

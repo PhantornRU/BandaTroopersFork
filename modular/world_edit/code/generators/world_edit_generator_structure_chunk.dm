@@ -93,10 +93,10 @@
 			new_params[param_id] = template_name
 
 		if("centered")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("delete_atoms")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		else
 			return ..()
@@ -130,7 +130,7 @@
 	last_preview_turfs = list()
 	for(var/turf/affected_turf as anything in template.get_affected_turfs(start_turf, centered))
 		last_preview_turfs += affected_turf
-	result.preview_images = world_edit_build_turf_preview_images(last_preview_turfs)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(last_preview_turfs)
 
 	result.success = TRUE
 	result.meta["affected_turfs"] = length(last_preview_turfs)

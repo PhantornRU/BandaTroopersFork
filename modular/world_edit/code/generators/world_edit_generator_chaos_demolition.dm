@@ -97,7 +97,7 @@
 	if(!isnum(persistent_fire_density) || persistent_fire_density < 0.05 || persistent_fire_density > 0.50)
 		return "persistent_fire_density должен быть в диапазоне 0.05..0.50."
 
-	var/has_any_mode = world_edit_parse_bool(params["shuffle_enabled"]) || world_edit_parse_bool(params["scatter_enabled"]) || world_edit_parse_bool(params["explode_enabled"]) || world_edit_parse_bool(params["persistent_fire_enabled"])
+	var/has_any_mode = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"]) || GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"]) || GLOB.world_edit_helpers.parse_bool(params["explode_enabled"]) || GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	if(!has_any_mode)
 		return "Нужно включить хотя бы один режим (shuffle/scatter/explode/fire)."
 
@@ -109,10 +109,10 @@
 	result.message = "Click-режим хаоса: ЛКМ выбирает центр операции, затем запрашивается подтверждение."
 	result.meta["radius"] = params["radius"]
 	result.meta["max_atoms"] = params["max_atoms"]
-	result.meta["shuffle"] = world_edit_parse_bool(params["shuffle_enabled"])
-	result.meta["scatter"] = world_edit_parse_bool(params["scatter_enabled"])
-	result.meta["explode"] = world_edit_parse_bool(params["explode_enabled"])
-	result.meta["persistent_fire"] = world_edit_parse_bool(params["persistent_fire_enabled"])
+	result.meta["shuffle"] = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
+	result.meta["scatter"] = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
+	result.meta["explode"] = GLOB.world_edit_helpers.parse_bool(params["explode_enabled"])
+	result.meta["persistent_fire"] = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	return result
 
 /datum/world_edit_generator/chaos_demolition/apply(mob/user, list/params)
@@ -144,9 +144,9 @@
 	)
 
 /datum/world_edit_generator/chaos_demolition/get_ui_fields(list/current_params)
-	var/scatter_enabled = world_edit_parse_bool(current_params["scatter_enabled"])
-	var/explode_enabled = world_edit_parse_bool(current_params["explode_enabled"])
-	var/persistent_fire_enabled = world_edit_parse_bool(current_params["persistent_fire_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])
+	var/explode_enabled = GLOB.world_edit_helpers.parse_bool(current_params["explode_enabled"])
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(current_params["persistent_fire_enabled"])
 
 	var/list/fields = list()
 	fields += list(list(
@@ -167,7 +167,7 @@
 		"kind" = "boolean",
 		"group" = "Режимы",
 		"description" = "Случайно перераспределяет movable-объекты по тайлам в выбранном радиусе.",
-		"value" = world_edit_parse_bool(current_params["shuffle_enabled"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["shuffle_enabled"]),
 	))
 	fields += list(list(
 		"id" = "scatter_enabled",
@@ -175,7 +175,7 @@
 		"kind" = "boolean",
 		"group" = "Режимы",
 		"description" = "Применяет случайный разлет movable-объектов на несколько шагов.",
-		"value" = world_edit_parse_bool(current_params["scatter_enabled"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"]),
 	))
 	fields += list(list(
 		"id" = "scatter_steps",
@@ -196,7 +196,7 @@
 		"kind" = "boolean",
 		"group" = "Взрыв",
 		"description" = "Запускает cell_explosion по центру выбранной операции.",
-		"value" = world_edit_parse_bool(current_params["explode_enabled"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["explode_enabled"]),
 	))
 	fields += list(list(
 		"id" = "explosion_power",
@@ -230,7 +230,7 @@
 		"kind" = "boolean",
 		"group" = "Огонь",
 		"description" = "Создает постоянные огни world_edit_persistent_fire в пределах области.",
-		"value" = world_edit_parse_bool(current_params["persistent_fire_enabled"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["persistent_fire_enabled"]),
 	))
 	fields += list(list(
 		"id" = "persistent_fire_density",
@@ -263,7 +263,7 @@
 		"kind" = "boolean",
 		"group" = "Лимиты",
 		"description" = "Если выключено, anchored-объекты исключаются из хаос-операции.",
-		"value" = world_edit_parse_bool(current_params["affect_anchored"]),
+		"value" = GLOB.world_edit_helpers.parse_bool(current_params["affect_anchored"]),
 	))
 	return fields
 
@@ -273,25 +273,25 @@
 		if("radius")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 6)
 		if("shuffle_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 		if("scatter_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 		if("scatter_steps")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 6)
 		if("explode_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 		if("explosion_power")
 			new_params[param_id] = clamp(text2num("[value]"), 100, 600)
 		if("explosion_falloff")
 			new_params[param_id] = clamp(text2num("[value]"), 100, 1200)
 		if("persistent_fire_enabled")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 		if("persistent_fire_density")
 			new_params[param_id] = clamp(text2num("[value]"), 0.05, 0.50)
 		if("max_atoms")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 250)
 		if("affect_anchored")
-			new_params[param_id] = world_edit_parse_bool(value)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 		else
 			return ..()
 	return new_params
@@ -426,11 +426,11 @@
 
 	var/radius = text2num("[params["radius"]]") || 3
 	var/max_atoms = text2num("[params["max_atoms"]]") || 120
-	var/affect_anchored = world_edit_parse_bool(params["affect_anchored"])
-	var/shuffle_enabled = world_edit_parse_bool(params["shuffle_enabled"])
-	var/scatter_enabled = world_edit_parse_bool(params["scatter_enabled"])
-	var/explode_enabled = world_edit_parse_bool(params["explode_enabled"])
-	var/persistent_fire_enabled = world_edit_parse_bool(params["persistent_fire_enabled"])
+	var/affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
+	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
+	var/explode_enabled = GLOB.world_edit_helpers.parse_bool(params["explode_enabled"])
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
 	var/explosion_power = text2num("[params["explosion_power"]]") || 250
 	var/explosion_falloff = text2num("[params["explosion_falloff"]]") || 600
@@ -512,7 +512,7 @@
 		to_chat(user, SPAN_WARNING(chaos_plan.metadata["error"] || "Операция не сформировала ни одного действия."))
 		return
 
-	world_edit_apply_turf_preview(manager, chaos_plan.affected_turfs)
+	GLOB.world_edit_helpers.apply_turf_preview(manager, chaos_plan.affected_turfs)
 
 	var/chaos_summary_text = "Применить chaos demolish в радиусе [chaos_plan.metadata["radius"]]? movable=[chaos_plan.metadata["target_count"]], shuffle=[chaos_plan.metadata["shuffle"]], scatter=[chaos_plan.metadata["scatter"]], explode=[chaos_plan.metadata["explode"]], fire=[chaos_plan.metadata["persistent_fire"]]."
 	var/chaos_answer = tgui_alert(user, chaos_summary_text, "World Edit: Chaos Confirm", list("Подтвердить", "Отмена"))
@@ -529,7 +529,7 @@
 	var/chaos_start_ds = world.time
 	var/chaos_moved_count = 0
 	var/chaos_fire_count = 0
-	var/chaos_affect_anchored = world_edit_parse_bool(params["affect_anchored"])
+	var/chaos_affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "chaos_demolition", WORLD_EDIT_UNDO_NONE, list(
 		"center_turf" = chaos_plan.metadata["center_turf"],
 	))
@@ -582,7 +582,7 @@
 		"undo_policy" = WORLD_EDIT_UNDO_NONE,
 		"undo_status" = "not_available",
 	)
-	world_edit_log_operation(
+	GLOB.world_edit_logging.log_operation(
 		manager?.holder,
 		definition.id,
 		definition.required_rights,

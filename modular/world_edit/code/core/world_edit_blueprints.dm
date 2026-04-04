@@ -18,9 +18,16 @@ GLOBAL_LIST_INIT(world_edit_blueprint_valid_factions, list(
 	FACTION_MERCENARY,
 ))
 
-GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_type_rules())
+GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, new)
 
-/proc/world_edit_build_blueprint_type_rules()
+/datum/world_edit_blueprint_service
+	var/list/world_edit_blueprint_type_rules = list()
+
+/datum/world_edit_blueprint_service/New()
+	. = ..()
+	world_edit_blueprint_type_rules = world_edit_build_blueprint_type_rules()
+
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_type_rules()
 	. = list()
 
 	world_edit_register_blueprint_type(., /obj/structure/barricade/metal, "barricade", "Metal Barricade")
@@ -37,19 +44,19 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/upp, "sentry", "UPP Sentry")
 	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/wy, "sentry", "W-Y Sentry")
 
-/proc/world_edit_register_blueprint_type(list/rules, obj_path, category, label)
+/datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_type(list/rules, obj_path, category, label)
 	rules["[obj_path]"] = list(
 		"obj_path" = obj_path,
 		"category" = category,
 		"label" = label,
 	)
 
-/proc/world_edit_get_blueprint_type_rule(obj_path)
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_type_rule(obj_path)
 	if(!ispath(obj_path, /obj))
 		return null
-	return GLOB.world_edit_blueprint_type_rules["[obj_path]"]
+	return world_edit_blueprint_type_rules["[obj_path]"]
 
-/proc/world_edit_get_blueprint_file_path(blueprint_id)
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_file_path(blueprint_id)
 	var/safe_id = sanitize_filename("[blueprint_id]")
 	if(!length(safe_id))
 		return null
@@ -57,7 +64,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		return null
 	return "[WORLD_EDIT_BLUEPRINT_DIR][safe_id].json"
 
-/proc/world_edit_ensure_blueprint_storage_dir()
+/datum/world_edit_blueprint_service/proc/world_edit_ensure_blueprint_storage_dir()
 	if(fexists(WORLD_EDIT_BLUEPRINT_DIR))
 		return TRUE
 
@@ -73,10 +80,10 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 
 	return fexists(WORLD_EDIT_BLUEPRINT_DIR)
 
-/proc/world_edit_build_blueprint_id()
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_id()
 	return copytext(md5("[world.realtime]-[world.time]-[rand(1, 1000000)]"), 1, WORLD_EDIT_BLUEPRINT_ID_LEN + 1)
 
-/proc/world_edit_compute_blueprint_bounds(list/entries)
+/datum/world_edit_blueprint_service/proc/world_edit_compute_blueprint_bounds(list/entries)
 	var/min_x = 0
 	var/max_x = 0
 	var/min_y = 0
@@ -115,7 +122,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		"radius" = radius,
 	)
 
-/proc/world_edit_blueprint_bounds_match(list/raw_bounds, list/computed_bounds)
+/datum/world_edit_blueprint_service/proc/world_edit_blueprint_bounds_match(list/raw_bounds, list/computed_bounds)
 	if(!islist(raw_bounds) || !islist(computed_bounds))
 		return FALSE
 
@@ -125,7 +132,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 
 	return TRUE
 
-/proc/world_edit_validate_blueprint_entry_vars(obj_path, raw_vars)
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry_vars(obj_path, raw_vars)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!rule)
 		return list("error" = "Blueprint contains a non-whitelisted type.")
@@ -151,13 +158,13 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 					return list("error" = "Blueprint contains an invalid sentry faction.")
 				safe_vars[key_text] = faction
 			if("turned_on")
-				safe_vars[key_text] = world_edit_parse_bool(raw_vars[var_id]) ? TRUE : FALSE
+				safe_vars[key_text] = GLOB.world_edit_helpers.parse_bool(raw_vars[var_id]) ? TRUE : FALSE
 			else
 				return list("error" = "Blueprint contains a non-whitelisted var '[key_text]'.")
 
 	return list("vars" = safe_vars)
 
-/proc/world_edit_validate_blueprint_entry(list/raw_entry)
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry(list/raw_entry)
 	if(!islist(raw_entry))
 		return list("error" = "Blueprint entry must be a list.")
 
@@ -196,7 +203,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		"vars" = vars_result["vars"],
 	))
 
-/proc/world_edit_validate_blueprint_definition(list/raw_definition)
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_definition(list/raw_definition)
 	if(!islist(raw_definition))
 		return list("error" = "Blueprint payload is not a JSON object.")
 	if("[raw_definition["schema"]]" != WORLD_EDIT_BLUEPRINT_SCHEMA)
@@ -253,7 +260,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		"entries" = sanitized_entries,
 	))
 
-/proc/world_edit_build_blueprint_summary(list/blueprint, file_path = null, valid = TRUE, error_text = "")
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_summary(list/blueprint, file_path = null, valid = TRUE, error_text = "")
 	var/list/bounds = blueprint["bounds"] || list()
 	var/list/summary = list(
 		"id" = blueprint["id"],
@@ -270,7 +277,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		summary["file_path"] = file_path
 	return summary
 
-/proc/world_edit_load_blueprint_from_file(file_path)
+/datum/world_edit_blueprint_service/proc/world_edit_load_blueprint_from_file(file_path)
 	if(!file_path || !fexists(file_path))
 		return list("error" = "Blueprint file was not found.")
 
@@ -287,7 +294,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	blueprint["file_path"] = file_path
 	return list("blueprint" = blueprint)
 
-/proc/world_edit_load_blueprint_library_summaries()
+/datum/world_edit_blueprint_service/proc/world_edit_load_blueprint_library_summaries()
 	. = list()
 
 	if(!world_edit_ensure_blueprint_storage_dir())
@@ -321,7 +328,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 
 		. += list(world_edit_build_blueprint_summary(load_result["blueprint"], file_path, TRUE))
 
-/proc/world_edit_save_blueprint_definition(list/blueprint)
+/datum/world_edit_blueprint_service/proc/world_edit_save_blueprint_definition(list/blueprint)
 	if(!islist(blueprint))
 		return FALSE
 	if(!world_edit_ensure_blueprint_storage_dir())
@@ -355,7 +362,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	rustg_file_write(json_encode(file_payload), file_path)
 	return file_path
 
-/proc/world_edit_resolve_defense_spawn_path(defense_path)
+/datum/world_edit_blueprint_service/proc/world_edit_resolve_defense_spawn_path(defense_path)
 	if(!ispath(defense_path, /datum/human_ai_defense))
 		return null
 
@@ -364,7 +371,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	qdel(definition)
 	return obj_path
 
-/proc/world_edit_export_blueprint_from_outpost_plan(datum/world_edit_plan/plan, turf/anchor_turf, blueprint_name, actor_ckey)
+/datum/world_edit_blueprint_service/proc/world_edit_export_blueprint_from_outpost_plan(datum/world_edit_plan/plan, turf/anchor_turf, blueprint_name, actor_ckey)
 	if(!istype(plan))
 		return list("error" = "No built outpost plan is available.")
 	if(!anchor_turf)
@@ -404,7 +411,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 			if(!(faction in GLOB.world_edit_blueprint_valid_factions))
 				return list("error" = "Current plan contains an invalid sentry faction.")
 			entry_vars["faction"] = faction
-			entry_vars["turned_on"] = world_edit_parse_bool(placement["turned_on"]) ? TRUE : FALSE
+			entry_vars["turned_on"] = GLOB.world_edit_helpers.parse_bool(placement["turned_on"]) ? TRUE : FALSE
 
 		var/dx = target_turf.x - anchor_turf.x
 		var/dy = target_turf.y - anchor_turf.y
@@ -439,14 +446,14 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		"entries" = entries,
 	))
 
-/proc/world_edit_is_open_construction_turf_for_blueprint(turf/target_turf)
+/datum/world_edit_blueprint_service/proc/world_edit_is_open_construction_turf_for_blueprint(turf/target_turf)
 	if(!istype(target_turf, /turf/open))
 		return FALSE
 
 	var/turf/open/open_turf = target_turf
 	return open_turf.allow_construction ? TRUE : FALSE
 
-/proc/world_edit_has_dense_blocker_for_blueprint(turf/target_turf)
+/datum/world_edit_blueprint_service/proc/world_edit_has_dense_blocker_for_blueprint(turf/target_turf)
 	if(!target_turf)
 		return TRUE
 	for(var/atom/movable/blocker as anything in target_turf)
@@ -456,7 +463,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 			return TRUE
 	return FALSE
 
-/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path)
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path)
 	if(!world_edit_is_open_construction_turf_for_blueprint(target_turf))
 		return "Blueprint target must be an open construction turf."
 
@@ -476,7 +483,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 
 	return "Blueprint contains an unsupported placement type."
 
-/proc/world_edit_rotate_blueprint_offset(dx, dy, placement_dir)
+/datum/world_edit_blueprint_service/proc/world_edit_rotate_blueprint_offset(dx, dy, placement_dir)
 	switch(placement_dir)
 		if(EAST)
 			return list("dx" = dy, "dy" = -dx)
@@ -487,7 +494,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		else
 			return list("dx" = dx, "dy" = dy)
 
-/proc/world_edit_rotate_blueprint_dir(dir_value, placement_dir)
+/datum/world_edit_blueprint_service/proc/world_edit_rotate_blueprint_dir(dir_value, placement_dir)
 	if(!(dir_value in GLOB.cardinals))
 		return dir_value
 
@@ -524,7 +531,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 					return SOUTH
 	return dir_value
 
-/proc/world_edit_build_plan_from_blueprint(list/blueprint, turf/anchor_turf, placement_dir = NORTH)
+/datum/world_edit_blueprint_service/proc/world_edit_build_plan_from_blueprint(list/blueprint, turf/anchor_turf, placement_dir = NORTH)
 	var/datum/world_edit_plan/plan = new
 	if(!anchor_turf)
 		plan.metadata["error"] = "Unable to resolve the blueprint anchor turf."
@@ -575,10 +582,10 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	plan.metadata["entry_count"] = length(plan.placements)
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
 	plan.metadata["placement_dir"] = placement_dir
-	plan.metadata["placement_dir_label"] = world_edit_dir_to_label(placement_dir)
+	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
 	return plan
 
-/proc/world_edit_spawn_blueprint_entry(list/placement)
+/datum/world_edit_blueprint_service/proc/world_edit_spawn_blueprint_entry(list/placement)
 	var/obj_path = placement["obj_path"]
 	var/turf/target_turf = placement["turf"]
 	var/dir_value = placement["dir"]
@@ -597,7 +604,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		defense.placed = TRUE
 		if(entry_vars["faction"])
 			defense.handle_iff(entry_vars["faction"])
-		if(world_edit_parse_bool(entry_vars["turned_on"]))
+		if(GLOB.world_edit_helpers.parse_bool(entry_vars["turned_on"]))
 			defense.power_on()
 		else
 			defense.power_off()
@@ -611,7 +618,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	refresh_blueprint_cache()
 
 /datum/world_edit_manager/proc/refresh_blueprint_cache()
-	blueprint_entries_cache = world_edit_load_blueprint_library_summaries()
+	blueprint_entries_cache = GLOB.world_edit_blueprints.world_edit_load_blueprint_library_summaries()
 	blueprint_cache_loaded = TRUE
 
 /datum/world_edit_manager/proc/get_blueprint_entries_for_ui()
@@ -649,7 +656,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 		return list("error" = "Blueprint не найден.")
 	if(!entry["valid"])
 		return list("error" = entry["error"] || "Blueprint невалиден.")
-	return world_edit_load_blueprint_from_file(entry["file_path"])
+	return GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(entry["file_path"])
 
 /datum/world_edit_manager/proc/activate_blueprint_generator(mob/user, blueprint_id, preserve_valid_preview = FALSE)
 	var/list/load_result = load_blueprint_definition_by_id(blueprint_id)
@@ -713,11 +720,11 @@ GLOBAL_LIST_INIT(world_edit_blueprint_type_rules, world_edit_build_blueprint_typ
 	if(!length(blueprint_name))
 		blueprint_name = default_name
 
-	var/list/export_result = world_edit_export_blueprint_from_outpost_plan(current_plan, anchor_turf, blueprint_name, holder?.ckey)
+	var/list/export_result = GLOB.world_edit_blueprints.world_edit_export_blueprint_from_outpost_plan(current_plan, anchor_turf, blueprint_name, holder?.ckey)
 	if(export_result["error"])
 		return fail_blueprint_action(user, export_result["error"])
 
-	var/file_path = world_edit_save_blueprint_definition(export_result["blueprint"])
+	var/file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(export_result["blueprint"])
 	if(!file_path)
 		return fail_blueprint_action(user, "Не удалось сохранить blueprint на сервере.")
 

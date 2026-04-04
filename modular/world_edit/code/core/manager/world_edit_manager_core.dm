@@ -32,6 +32,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/click_intercept_owned = FALSE
 	var/placement_click_active = FALSE
 	var/placement_mode = "single"
+	var/placement_shape = WORLD_EDIT_SHAPE_POINT
 	var/placement_dir = NORTH
 	var/turf/placement_anchor_turf
 

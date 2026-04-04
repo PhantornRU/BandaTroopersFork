@@ -139,6 +139,11 @@ type BackendData = {
   placement_active: boolean;
   placement_mode: string;
   placement_mode_options: PlacementOption[];
+  placement_shape_supported: boolean;
+  placement_shape: string;
+  placement_shape_options: PlacementOption[];
+  placement_shape_fields: UiField[];
+  placement_shape_uses_anchor_pair: boolean;
   placement_supports_direction: boolean;
   placement_dir: string;
   placement_dir_options: PlacementOption[];
@@ -294,11 +299,431 @@ const FieldEditor = (props: {
   );
 };
 
+const BlueprintLibrarySection = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+}) => {
+  const { data, act } = props;
+
+  return (
+    <Section title="Blueprint Library">
+      <Stack mb={1}>
+        <Stack.Item>
+          <Button onClick={() => act('list_blueprints')}>
+            Обновить библиотеку
+          </Button>
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            disabled={!data.can_save_blueprint_from_plan}
+            onClick={() => act('save_blueprint')}
+          >
+            Сохранить из outpost preview
+          </Button>
+        </Stack.Item>
+      </Stack>
+
+      {!data.blueprint_entries?.length && (
+        <Box color="label">В библиотеке пока нет blueprint-ов.</Box>
+      )}
+
+      {!!data.blueprint_entries?.length && (
+        <Stack vertical>
+          {data.blueprint_entries.map((blueprint) => (
+            <Section
+              key={blueprint.id}
+              title={`${blueprint.name} [r=${blueprint.radius}]`}
+            >
+              {!!blueprint.active && (
+                <Box color="good">
+                  Активный blueprint для текущего менеджера.
+                </Box>
+              )}
+              <Box color="label">
+                Entries: {blueprint.entry_count} | Source:{' '}
+                {blueprint.source || 'n/a'} | Author:{' '}
+                {blueprint.created_by || 'n/a'}
+              </Box>
+              <Box color="label">Создан: {blueprint.created_at || 'n/a'}</Box>
+
+              {!blueprint.valid && (
+                <NoticeBox danger>
+                  {blueprint.error || 'Blueprint невалиден.'}
+                </NoticeBox>
+              )}
+
+              <Stack mt={1}>
+                <Stack.Item>
+                  <Button
+                    disabled={!blueprint.valid}
+                    onClick={() =>
+                      act('load_blueprint', {
+                        blueprint_id: blueprint.id,
+                      })
+                    }
+                  >
+                    Загрузить
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    disabled={!blueprint.valid}
+                    onClick={() =>
+                      act('preview_blueprint', {
+                        blueprint_id: blueprint.id,
+                      })
+                    }
+                  >
+                    Preview
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    disabled={
+                      !blueprint.valid ||
+                      !blueprint.active ||
+                      !data.preview_valid
+                    }
+                    onClick={() =>
+                      act('apply_blueprint', {
+                        blueprint_id: blueprint.id,
+                      })
+                    }
+                  >
+                    Apply
+                  </Button>
+                </Stack.Item>
+              </Stack>
+            </Section>
+          ))}
+        </Stack>
+      )}
+    </Section>
+  );
+};
+
+const PlacementShapeSection = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+}) => {
+  const { data, act } = props;
+
+  return (
+    <Section title="Placement Shape">
+      <LabeledList>
+        {data.placement_shape_supported && (
+          <LabeledList.Item label="Shape">
+            <Dropdown
+              width="100%"
+              options={(data.placement_shape_options || []).map((option) => ({
+                value: option.value,
+                displayText: option.description ? (
+                  <Box>
+                    <Box>{option.label}</Box>
+                    <Box color="label" fontSize={0.85}>
+                      {option.description}
+                    </Box>
+                  </Box>
+                ) : (
+                  option.label
+                ),
+              }))}
+              selected={data.placement_shape}
+              onSelected={(value) =>
+                act('set_placement_shape', { shape: value })
+              }
+            />
+          </LabeledList.Item>
+        )}
+
+        {data.placement_supported && (
+          <LabeledList.Item label="Placement mode">
+            <Dropdown
+              width="100%"
+              options={(data.placement_mode_options || []).map((option) => ({
+                value: option.value,
+                displayText: option.description ? (
+                  <Box>
+                    <Box>{option.label}</Box>
+                    <Box color="label" fontSize={0.85}>
+                      {option.description}
+                    </Box>
+                  </Box>
+                ) : (
+                  option.label
+                ),
+              }))}
+              selected={data.placement_mode}
+              onSelected={(value) => act('set_placement_mode', { mode: value })}
+            />
+          </LabeledList.Item>
+        )}
+
+        {data.placement_supports_direction && (
+          <LabeledList.Item label="Direction">
+            <Dropdown
+              width="100%"
+              options={(data.placement_dir_options || []).map((option) => ({
+                value: option.value,
+                displayText: option.label,
+              }))}
+              selected={data.placement_dir}
+              onSelected={(value) =>
+                act('set_placement_dir', { direction: value })
+              }
+            />
+          </LabeledList.Item>
+        )}
+
+        <LabeledList.Item label="Status">
+          {data.placement_active ? 'active' : 'inactive'}
+        </LabeledList.Item>
+
+        <LabeledList.Item label="Pending anchor">
+          {data.placement_anchor || 'none'}
+        </LabeledList.Item>
+      </LabeledList>
+
+      {!!data.placement_shape_fields?.length && (
+        <Section title="Shape Parameters" mt={1}>
+          <LabeledList>
+            {data.placement_shape_fields.map((field) => (
+              <FieldEditor key={field.id} field={field} act={act} />
+            ))}
+          </LabeledList>
+        </Section>
+      )}
+
+      <Stack mt={1}>
+        <Stack.Item>
+          <Button
+            disabled={!data.can_start_placement_mode}
+            onClick={() => act('start_placement_mode')}
+          >
+            Start placement mode
+          </Button>
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            color="average"
+            disabled={!data.can_stop_click_mode}
+            onClick={() => act('stop_click_mode')}
+          >
+            Остановить click-режим
+          </Button>
+        </Stack.Item>
+      </Stack>
+    </Section>
+  );
+};
+
+const ParametersPage = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly groupedFields: Record<string, UiField[]>;
+  readonly groupNames: string[];
+  readonly showBlueprintLibrary: boolean;
+  readonly showPlacementShapes: boolean;
+}) => {
+  const {
+    data,
+    act,
+    groupedFields,
+    groupNames,
+    showBlueprintLibrary,
+    showPlacementShapes,
+  } = props;
+
+  return (
+    <Section fill scrollable title="Параметры генератора">
+      {!data.has_generator && (
+        <Box color="label">
+          Сначала выберите генератор на вкладке &quot;Генераторы&quot;.
+        </Box>
+      )}
+
+      {!!data.has_generator && (
+        <>
+          <Section title="Текущий генератор">
+            <Box>
+              {data.current_generator_category} / {data.current_generator_name}
+            </Box>
+            <Box color="label">{data.current_generator_description}</Box>
+            <Box color="label">
+              Права: {data.current_generator_required_rights} | Режим:{' '}
+              {data.current_generator_execution_mode}
+            </Box>
+            <Box color="label">
+              Источник параметров:{' '}
+              {data.ui_mode === 'inline' ? 'inline' : 'wizard fallback'}
+            </Box>
+          </Section>
+
+          {!!data.last_ui_error && (
+            <NoticeBox danger>{data.last_ui_error}</NoticeBox>
+          )}
+
+          <Section title="Управление настройкой">
+            <Stack>
+              <Stack.Item>
+                <Button
+                  disabled={!data.can_refresh_ui}
+                  onClick={() => act('refresh_ui')}
+                >
+                  Обновить параметры генератора
+                </Button>
+              </Stack.Item>
+              <Stack.Item>
+                <Button onClick={() => act('configure_wizard')}>
+                  Открыть мастер настройки
+                </Button>
+              </Stack.Item>
+              <Stack.Item>
+                <Button color="average" onClick={() => act('reset_generator')}>
+                  Сбросить генератор
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Section>
+
+          <Section title="Presets">
+            {!data.can_manage_presets && (
+              <Box color="label">
+                В этой фазе presets доступны только для `outpost_radius` и
+                `destruction_pack`.
+              </Box>
+            )}
+
+            {!!data.can_manage_presets && (
+              <>
+                <Stack mb={1}>
+                  <Stack.Item>
+                    <Button onClick={() => act('save_preset')}>
+                      Сохранить preset
+                    </Button>
+                  </Stack.Item>
+                </Stack>
+
+                {!data.preset_entries?.length && (
+                  <Box color="label">
+                    Для текущего генератора ещё нет сохранённых preset-ов.
+                  </Box>
+                )}
+
+                {!!data.preset_entries?.length && (
+                  <Stack vertical>
+                    {data.preset_entries.map((preset) => (
+                      <Section key={preset.id} title={preset.name || preset.id}>
+                        <Box color="label">
+                          Сохранён: {preset.created_at || 'n/a'}
+                        </Box>
+                        <Box color="label">
+                          Параметры: {preset.params_short}
+                        </Box>
+                        <Stack mt={1}>
+                          <Stack.Item>
+                            <Button
+                              onClick={() =>
+                                act('load_preset', {
+                                  preset_id: preset.id,
+                                })
+                              }
+                            >
+                              Загрузить
+                            </Button>
+                          </Stack.Item>
+                          <Stack.Item>
+                            <Button
+                              color="average"
+                              onClick={() =>
+                                act('delete_preset', {
+                                  preset_id: preset.id,
+                                })
+                              }
+                            >
+                              Удалить
+                            </Button>
+                          </Stack.Item>
+                        </Stack>
+                      </Section>
+                    ))}
+                  </Stack>
+                )}
+              </>
+            )}
+          </Section>
+
+          {showBlueprintLibrary && (
+            <BlueprintLibrarySection data={data} act={act} />
+          )}
+
+          {showPlacementShapes && (
+            <PlacementShapeSection data={data} act={act} />
+          )}
+
+          <Section title="Inline-настройка">
+            {!data.has_inline_fields && (
+              <Box color="label">
+                Этот генератор не отдает inline-поля. Используйте мастер
+                настройки.
+              </Box>
+            )}
+
+            {!!data.has_inline_fields && !groupNames.length && (
+              <Box color="label">Inline-поля временно недоступны.</Box>
+            )}
+
+            {!!data.has_inline_fields &&
+              groupNames.map((groupName) => {
+                const fields = groupedFields[groupName] || [];
+                return (
+                  <Section key={groupName} title={groupName}>
+                    <LabeledList>
+                      {fields.map((field) => (
+                        <FieldEditor key={field.id} field={field} act={act} />
+                      ))}
+                    </LabeledList>
+                  </Section>
+                );
+              })}
+          </Section>
+
+          <Section title="Текущие параметры">
+            <Box>{data.current_params_text}</Box>
+          </Section>
+
+          <Section title="Runtime-статус">
+            {!data.runtime_status?.length && (
+              <Box color="label">Дополнительный статус не предоставлен.</Box>
+            )}
+            {!!data.runtime_status?.length && (
+              <LabeledList>
+                {data.runtime_status.map((entry, index) => (
+                  <LabeledList.Item
+                    key={`${entry.label}_${index}`}
+                    label={entry.label}
+                  >
+                    {entry.value}
+                  </LabeledList.Item>
+                ))}
+              </LabeledList>
+            )}
+          </Section>
+        </>
+      )}
+    </Section>
+  );
+};
+
 export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
   const [pageIndex, setPageIndex] = useState(0);
 
   const currentPage = PAGES[pageIndex]?.title || PAGES[0].title;
+  const isBlueprintStamp = data.current_generator_id === 'blueprint_stamp';
+  const showBlueprintLibrary =
+    isBlueprintStamp || !!data.can_save_blueprint_from_plan;
+  const showPlacementShapes = data.placement_shape_supported;
 
   const groupedFields = useMemo(() => {
     const groups: Record<string, UiField[]> = {};
@@ -382,294 +807,14 @@ export const WorldEditPanel = () => {
             )}
 
             {currentPage === 'Параметры' && (
-              <Section fill scrollable title="Параметры генератора">
-                {!data.has_generator && (
-                  <Box color="label">
-                    Сначала выберите генератор на вкладке
-                    &quot;Генераторы&quot;.
-                  </Box>
-                )}
-
-                {!!data.has_generator && (
-                  <>
-                    <Section title="Текущий генератор">
-                      <Box>
-                        {data.current_generator_category} /{' '}
-                        {data.current_generator_name}
-                      </Box>
-                      <Box color="label">
-                        {data.current_generator_description}
-                      </Box>
-                      <Box color="label">
-                        Права: {data.current_generator_required_rights} | Режим:{' '}
-                        {data.current_generator_execution_mode}
-                      </Box>
-                      <Box color="label">
-                        Источник параметров:{' '}
-                        {data.ui_mode === 'inline'
-                          ? 'inline'
-                          : 'wizard fallback'}
-                      </Box>
-                    </Section>
-
-                    {!!data.last_ui_error && (
-                      <NoticeBox danger>{data.last_ui_error}</NoticeBox>
-                    )}
-
-                    <Section title="Управление настройкой">
-                      <Stack>
-                        <Stack.Item>
-                          <Button
-                            disabled={!data.can_refresh_ui}
-                            onClick={() => act('refresh_ui')}
-                          >
-                            Обновить параметры генератора
-                          </Button>
-                        </Stack.Item>
-                        <Stack.Item>
-                          <Button onClick={() => act('configure_wizard')}>
-                            Открыть мастер настройки
-                          </Button>
-                        </Stack.Item>
-                        <Stack.Item>
-                          <Button
-                            color="average"
-                            onClick={() => act('reset_generator')}
-                          >
-                            Сбросить генератор
-                          </Button>
-                        </Stack.Item>
-                      </Stack>
-                    </Section>
-
-                    <Section title="Presets">
-                      {!data.can_manage_presets && (
-                        <Box color="label">
-                          В этой фазе presets доступны только для
-                          `outpost_radius` и `destruction_pack`.
-                        </Box>
-                      )}
-
-                      {!!data.can_manage_presets && (
-                        <>
-                          <Stack mb={1}>
-                            <Stack.Item>
-                              <Button onClick={() => act('save_preset')}>
-                                Сохранить preset
-                              </Button>
-                            </Stack.Item>
-                          </Stack>
-
-                          {!data.preset_entries?.length && (
-                            <Box color="label">
-                              Для текущего генератора ещё нет сохранённых
-                              preset-ов.
-                            </Box>
-                          )}
-
-                          {!!data.preset_entries?.length && (
-                            <Stack vertical>
-                              {data.preset_entries.map((preset) => (
-                                <Section
-                                  key={preset.id}
-                                  title={preset.name || preset.id}
-                                >
-                                  <Box color="label">
-                                    Сохранён: {preset.created_at || 'n/a'}
-                                  </Box>
-                                  <Box color="label">
-                                    Параметры: {preset.params_short}
-                                  </Box>
-                                  <Stack mt={1}>
-                                    <Stack.Item>
-                                      <Button
-                                        onClick={() =>
-                                          act('load_preset', {
-                                            preset_id: preset.id,
-                                          })
-                                        }
-                                      >
-                                        Загрузить
-                                      </Button>
-                                    </Stack.Item>
-                                    <Stack.Item>
-                                      <Button
-                                        color="average"
-                                        onClick={() =>
-                                          act('delete_preset', {
-                                            preset_id: preset.id,
-                                          })
-                                        }
-                                      >
-                                        Удалить
-                                      </Button>
-                                    </Stack.Item>
-                                  </Stack>
-                                </Section>
-                              ))}
-                            </Stack>
-                          )}
-                        </>
-                      )}
-                    </Section>
-
-                    <Section title="Blueprint Library">
-                      <Stack mb={1}>
-                        <Stack.Item>
-                          <Button onClick={() => act('list_blueprints')}>
-                            Обновить библиотеку
-                          </Button>
-                        </Stack.Item>
-                        <Stack.Item>
-                          <Button
-                            disabled={!data.can_save_blueprint_from_plan}
-                            onClick={() => act('save_blueprint')}
-                          >
-                            Сохранить из outpost preview
-                          </Button>
-                        </Stack.Item>
-                      </Stack>
-
-                      {!data.blueprint_entries?.length && (
-                        <Box color="label">
-                          В библиотеке пока нет blueprint-ов.
-                        </Box>
-                      )}
-
-                      {!!data.blueprint_entries?.length && (
-                        <Stack vertical>
-                          {data.blueprint_entries.map((blueprint) => (
-                            <Section
-                              key={blueprint.id}
-                              title={`${blueprint.name} [r=${blueprint.radius}]`}
-                            >
-                              {!!blueprint.active && (
-                                <Box color="good">
-                                  Активный blueprint для текущего менеджера.
-                                </Box>
-                              )}
-                              <Box color="label">
-                                Entries: {blueprint.entry_count} | Source:{' '}
-                                {blueprint.source || 'n/a'} | Author:{' '}
-                                {blueprint.created_by || 'n/a'}
-                              </Box>
-                              <Box color="label">
-                                Создан: {blueprint.created_at || 'n/a'}
-                              </Box>
-
-                              {!blueprint.valid && (
-                                <NoticeBox danger>
-                                  {blueprint.error || 'Blueprint невалиден.'}
-                                </NoticeBox>
-                              )}
-
-                              <Stack mt={1}>
-                                <Stack.Item>
-                                  <Button
-                                    disabled={!blueprint.valid}
-                                    onClick={() =>
-                                      act('load_blueprint', {
-                                        blueprint_id: blueprint.id,
-                                      })
-                                    }
-                                  >
-                                    Загрузить
-                                  </Button>
-                                </Stack.Item>
-                                <Stack.Item>
-                                  <Button
-                                    disabled={!blueprint.valid}
-                                    onClick={() =>
-                                      act('preview_blueprint', {
-                                        blueprint_id: blueprint.id,
-                                      })
-                                    }
-                                  >
-                                    Preview
-                                  </Button>
-                                </Stack.Item>
-                                <Stack.Item>
-                                  <Button
-                                    disabled={
-                                      !blueprint.valid ||
-                                      !blueprint.active ||
-                                      !data.preview_valid
-                                    }
-                                    onClick={() =>
-                                      act('apply_blueprint', {
-                                        blueprint_id: blueprint.id,
-                                      })
-                                    }
-                                  >
-                                    Apply
-                                  </Button>
-                                </Stack.Item>
-                              </Stack>
-                            </Section>
-                          ))}
-                        </Stack>
-                      )}
-                    </Section>
-
-                    <Section title="Inline-настройка">
-                      {!data.has_inline_fields && (
-                        <Box color="label">
-                          Этот генератор не отдает inline-поля. Используйте
-                          мастер настройки.
-                        </Box>
-                      )}
-
-                      {!!data.has_inline_fields && !groupNames.length && (
-                        <Box color="label">
-                          Inline-поля временно недоступны.
-                        </Box>
-                      )}
-
-                      {!!data.has_inline_fields &&
-                        groupNames.map((groupName) => {
-                          const fields = groupedFields[groupName] || [];
-                          return (
-                            <Section key={groupName} title={groupName}>
-                              <LabeledList>
-                                {fields.map((field) => (
-                                  <FieldEditor
-                                    key={field.id}
-                                    field={field}
-                                    act={act}
-                                  />
-                                ))}
-                              </LabeledList>
-                            </Section>
-                          );
-                        })}
-                    </Section>
-
-                    <Section title="Текущие параметры">
-                      <Box>{data.current_params_text}</Box>
-                    </Section>
-
-                    <Section title="Runtime-статус">
-                      {!data.runtime_status?.length && (
-                        <Box color="label">
-                          Дополнительный статус не предоставлен.
-                        </Box>
-                      )}
-                      {!!data.runtime_status?.length && (
-                        <LabeledList>
-                          {data.runtime_status.map((entry, index) => (
-                            <LabeledList.Item
-                              key={`${entry.label}_${index}`}
-                              label={entry.label}
-                            >
-                              {entry.value}
-                            </LabeledList.Item>
-                          ))}
-                        </LabeledList>
-                      )}
-                    </Section>
-                  </>
-                )}
-              </Section>
+              <ParametersPage
+                data={data}
+                act={act}
+                groupedFields={groupedFields}
+                groupNames={groupNames}
+                showBlueprintLibrary={showBlueprintLibrary}
+                showPlacementShapes={showPlacementShapes}
+              />
             )}
 
             {currentPage === 'Preview' && (
@@ -779,33 +924,41 @@ export const WorldEditPanel = () => {
                   </Box>
                 </Section>
 
-                {data.placement_supported && (
+                {(data.placement_supported ||
+                  data.placement_shape_supported) && (
                   <Section title="Placement UX">
                     <LabeledList>
-                      <LabeledList.Item label="Placement mode">
-                        <Dropdown
-                          width="100%"
-                          options={(data.placement_mode_options || []).map(
-                            (option) => ({
-                              value: option.value,
-                              displayText: option.description ? (
-                                <Box>
-                                  <Box>{option.label}</Box>
-                                  <Box color="label" fontSize={0.85}>
-                                    {option.description}
+                      {data.placement_shape_supported && (
+                        <LabeledList.Item label="Shape">
+                          {data.placement_shape}
+                        </LabeledList.Item>
+                      )}
+                      {data.placement_supported && (
+                        <LabeledList.Item label="Placement mode">
+                          <Dropdown
+                            width="100%"
+                            options={(data.placement_mode_options || []).map(
+                              (option) => ({
+                                value: option.value,
+                                displayText: option.description ? (
+                                  <Box>
+                                    <Box>{option.label}</Box>
+                                    <Box color="label" fontSize={0.85}>
+                                      {option.description}
+                                    </Box>
                                   </Box>
-                                </Box>
-                              ) : (
-                                option.label
-                              ),
-                            }),
-                          )}
-                          selected={data.placement_mode}
-                          onSelected={(value) =>
-                            act('set_placement_mode', { mode: value })
-                          }
-                        />
-                      </LabeledList.Item>
+                                ) : (
+                                  option.label
+                                ),
+                              }),
+                            )}
+                            selected={data.placement_mode}
+                            onSelected={(value) =>
+                              act('set_placement_mode', { mode: value })
+                            }
+                          />
+                        </LabeledList.Item>
+                      )}
 
                       {data.placement_supports_direction && (
                         <LabeledList.Item label="Direction">
@@ -835,8 +988,7 @@ export const WorldEditPanel = () => {
                     </LabeledList>
 
                     <Box color="label" mt={1}>
-                      {data.placement_mode === 'line' ||
-                      data.placement_mode === 'rectangle'
+                      {data.placement_shape_uses_anchor_pair
                         ? 'LMB sets the first point, second LMB previews and applies, MMB resets the pending anchor.'
                         : 'LMB previews and applies at the clicked turf. Use Stop click-mode to exit.'}
                     </Box>

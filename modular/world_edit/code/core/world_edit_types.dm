@@ -82,7 +82,7 @@
 	return "Подтвердить применение генератора '[definition?.name_ru]'?"
 
 /datum/world_edit_generator/proc/get_params_short(list/params)
-	return world_edit_params_to_text(params)
+	return GLOB.world_edit_logging.params_to_text(params)
 
 /datum/world_edit_generator/proc/is_destructive(list/params)
 	return FALSE
@@ -113,6 +113,15 @@
 
 /datum/world_edit_generator/proc/get_supported_placement_modes()
 	return list()
+
+/datum/world_edit_generator/proc/get_supported_placement_shapes()
+	return list()
+
+/datum/world_edit_generator/proc/get_default_placement_shape()
+	var/list/shapes = get_supported_placement_shapes()
+	if(!length(shapes))
+		return null
+	return "[shapes[1]]"
 
 /datum/world_edit_generator/proc/supports_placement_direction()
 	return FALSE

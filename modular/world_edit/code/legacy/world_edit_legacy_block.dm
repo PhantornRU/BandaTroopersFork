@@ -1,8 +1,12 @@
+GLOBAL_DATUM_INIT(world_edit_legacy, /datum/world_edit_legacy_service, new)
+
+/datum/world_edit_legacy_service
+
 /// Блок legacy-паритета:
 /// в этом файле дублируются ключевые алгоритмы из существующих инструментов,
 /// чтобы новый модуль World Edit мог работать автономно и не менять legacy-код.
 
-/proc/world_edit_get_fortify_level_presets()
+/datum/world_edit_legacy_service/proc/world_edit_get_fortify_level_presets()
 	return list(
 		"Wood" = list("cade" = /obj/structure/barricade/wooden, "folding" = null),
 		"Sandbag" = list("cade" = /obj/structure/barricade/sandbags/full, "folding" = null),
@@ -13,19 +17,19 @@
 		"Plasteel (Wired)" = list("cade" = /obj/structure/barricade/metal/plasteel/wired, "folding" = /obj/structure/barricade/plasteel/wired),
 	)
 
-/proc/world_edit_has_barricade_in_dir(turf/scan_turf, dir_to_check)
+/datum/world_edit_legacy_service/proc/world_edit_has_barricade_in_dir(turf/scan_turf, dir_to_check)
 	for(var/obj/structure/barricade/existing_cade in scan_turf)
 		if(existing_cade.dir == dir_to_check)
 			return TRUE
 	return FALSE
 
-/proc/world_edit_has_preview_placement(list/placements, turf/target_turf, dir_to_check)
+/datum/world_edit_legacy_service/proc/world_edit_has_preview_placement(list/placements, turf/target_turf, dir_to_check)
 	for(var/list/entry as anything in placements)
 		if(entry["turf"] == target_turf && entry["dir"] == dir_to_check)
 			return TRUE
 	return FALSE
 
-/proc/world_edit_recursive_room_preview(turf/start_turf, turf/scan_turf, list/turf_list, list/placements, folding_cade_type, tile_scan_limit, scan_radius, respect_windows, respect_doors)
+/datum/world_edit_legacy_service/proc/world_edit_recursive_room_preview(turf/start_turf, turf/scan_turf, list/turf_list, list/placements, folding_cade_type, tile_scan_limit, scan_radius, respect_windows, respect_doors)
 	if(length(turf_list) > tile_scan_limit)
 		return FALSE
 	if(scan_radius > 0 && get_dist(start_turf, scan_turf) > scan_radius)
@@ -68,7 +72,7 @@
 			return FALSE
 	return TRUE
 
-/proc/world_edit_collect_room_fortify_preview(turf/start_turf, folding_cade_type, tile_scan_limit = 195, scan_radius = 12, respect_windows = TRUE, respect_doors = TRUE)
+/datum/world_edit_legacy_service/proc/world_edit_collect_room_fortify_preview(turf/start_turf, folding_cade_type, tile_scan_limit = 195, scan_radius = 12, respect_windows = TRUE, respect_doors = TRUE)
 	var/list/turf_list = list()
 	var/list/placements = list()
 	var/success = world_edit_recursive_room_preview(start_turf, start_turf, turf_list, placements, folding_cade_type, tile_scan_limit, scan_radius, respect_windows, respect_doors)
@@ -78,7 +82,7 @@
 		"placements" = placements
 	)
 
-/proc/world_edit_apply_room_fortify(turf/start_turf, cade_type, folding_cade_type, tile_scan_limit = 195, scan_radius = 12, respect_windows = TRUE, respect_doors = TRUE)
+/datum/world_edit_legacy_service/proc/world_edit_apply_room_fortify(turf/start_turf, cade_type, folding_cade_type, tile_scan_limit = 195, scan_radius = 12, respect_windows = TRUE, respect_doors = TRUE)
 	var/list/preview_data = world_edit_collect_room_fortify_preview(start_turf, folding_cade_type, tile_scan_limit, scan_radius, respect_windows, respect_doors)
 	var/list/turf_list = preview_data["tiles"]
 	var/list/placements = preview_data["placements"]
@@ -117,7 +121,7 @@
 	)
 
 /// Каталог защит строится через рефлексию по /datum/human_ai_defense.
-/proc/world_edit_build_defense_catalog()
+/datum/world_edit_legacy_service/proc/world_edit_build_defense_catalog()
 	var/list/catalog = list()
 	for(var/datum/human_ai_defense/defense_type as anything in subtypesof(/datum/human_ai_defense))
 		if(!defense_type::name)
@@ -136,7 +140,7 @@
 		))
 	return catalog
 
-/proc/world_edit_spawn_defense_by_path(turf/loc_to_spawn, dir_to_spawn, defense_path, faction, turned_on)
+/datum/world_edit_legacy_service/proc/world_edit_spawn_defense_by_path(turf/loc_to_spawn, dir_to_spawn, defense_path, faction, turned_on)
 	if(!ispath(defense_path, /datum/human_ai_defense))
 		return FALSE
 
@@ -144,7 +148,7 @@
 	defense_object.spawn_object(loc_to_spawn, dir_to_spawn, faction, turned_on)
 	return TRUE
 
-/proc/world_edit_get_breach_charge_dict()
+/datum/world_edit_legacy_service/proc/world_edit_get_breach_charge_dict()
 	return list(
 		/obj/item/explosive/plastic::name = /obj/item/explosive/plastic,
 		/obj/item/explosive/plastic/breaching_charge::name = /obj/item/explosive/plastic/breaching_charge,
@@ -152,7 +156,7 @@
 		/obj/item/explosive/plastic/breaching_charge/plasma::name = /obj/item/explosive/plastic/breaching_charge/plasma,
 	)
 
-/proc/world_edit_get_breach_direction_dict()
+/datum/world_edit_legacy_service/proc/world_edit_get_breach_direction_dict()
 	return list(
 		"North" = NORTH,
 		"East" = EAST,
@@ -160,7 +164,7 @@
 		"West" = WEST,
 	)
 
-/proc/world_edit_get_breach_allowed_profiles()
+/datum/world_edit_legacy_service/proc/world_edit_get_breach_allowed_profiles()
 	return list(
 		"Стандартный" = list(
 			/turf/closed/wall,
@@ -178,7 +182,7 @@
 		)
 	)
 
-/proc/world_edit_place_breach_charge(mob/user, atom/object, charge_path, place_dir, list/allowed_types)
+/datum/world_edit_legacy_service/proc/world_edit_place_breach_charge(mob/user, atom/object, charge_path, place_dir, list/allowed_types)
 	if(!is_type_in_list(object, allowed_types))
 		return FALSE
 

@@ -2,13 +2,17 @@
 #define WORLD_EDIT_UNDO_PARTIAL "undo_partial"
 #define WORLD_EDIT_UNDO_NONE "non_undoable"
 
-/proc/world_edit_build_operation_id(prefix = "weop")
+GLOBAL_DATUM_INIT(world_edit_changesets, /datum/world_edit_changeset_service, new)
+
+/datum/world_edit_changeset_service
+
+/datum/world_edit_changeset_service/proc/build_operation_id(prefix = "weop")
 	var/safe_prefix = sanitize_filename("[prefix]")
 	if(!length(safe_prefix))
 		safe_prefix = "weop"
 	return "[safe_prefix]_[copytext(md5("[safe_prefix]-[world.realtime]-[world.time]-[rand(1, 1000000)]"), 1, 13)]"
 
-/proc/world_edit_copy_changeset_metadata(list/raw_metadata)
+/datum/world_edit_changeset_service/proc/copy_changeset_metadata(list/raw_metadata)
 	if(!islist(raw_metadata))
 		return list()
 	return raw_metadata.Copy()
@@ -26,13 +30,13 @@
 
 /datum/world_edit_changeset/New(new_generator_id = "", new_undo_policy = WORLD_EDIT_UNDO_NONE, list/new_metadata = null, new_operation_id = null)
 	. = ..()
-	operation_id = length("[new_operation_id]") ? "[new_operation_id]" : world_edit_build_operation_id("world_edit")
+	operation_id = length("[new_operation_id]") ? "[new_operation_id]" : GLOB.world_edit_changesets.build_operation_id("world_edit")
 	generator_id = "[new_generator_id]"
 	undo_policy = length("[new_undo_policy]") ? "[new_undo_policy]" : WORLD_EDIT_UNDO_NONE
 	created_entries = list()
 	moved_entries = list()
 	owned_effect_entries = list()
-	metadata = world_edit_copy_changeset_metadata(new_metadata)
+	metadata = GLOB.world_edit_changesets.copy_changeset_metadata(new_metadata)
 	created_at = time_stamp()
 
 /datum/world_edit_changeset/proc/add_created(atom/created_atom, turf/target_turf = null, list/entry_metadata = null)
@@ -46,7 +50,7 @@
 		"target_ref" = WEAKREF(created_atom),
 		"type" = created_atom.type,
 		"target_turf" = target_turf,
-		"metadata" = world_edit_copy_changeset_metadata(entry_metadata),
+		"metadata" = GLOB.world_edit_changesets.copy_changeset_metadata(entry_metadata),
 	))
 	return TRUE
 
@@ -58,7 +62,7 @@
 		"target_ref" = WEAKREF(target),
 		"source_turf" = source_turf,
 		"destination_turf" = destination_turf,
-		"mode_metadata" = world_edit_copy_changeset_metadata(mode_metadata),
+		"mode_metadata" = GLOB.world_edit_changesets.copy_changeset_metadata(mode_metadata),
 	))
 	return TRUE
 
@@ -74,7 +78,7 @@
 		"effect_type" = effect_atom.type,
 		"turf" = effect_turf,
 		"owner_operation_id" = length("[owner_operation_id]") ? "[owner_operation_id]" : operation_id,
-		"metadata" = world_edit_copy_changeset_metadata(effect_metadata),
+		"metadata" = GLOB.world_edit_changesets.copy_changeset_metadata(effect_metadata),
 	))
 	return TRUE
 
@@ -89,7 +93,7 @@
 /datum/world_edit_changeset/proc/is_empty()
 	return !can_undo() && !can_cleanup_owned_effects()
 
-/proc/world_edit_revert_changeset(datum/world_edit_changeset/changeset)
+/datum/world_edit_changeset_service/proc/revert_changeset(datum/world_edit_changeset/changeset)
 	var/reverted_count = 0
 	var/skipped_count = 0
 
@@ -161,7 +165,7 @@
 		"outcome" = outcome,
 	)
 
-/proc/world_edit_cleanup_changeset_owned_effects(datum/world_edit_changeset/changeset)
+/datum/world_edit_changeset_service/proc/cleanup_changeset_owned_effects(datum/world_edit_changeset/changeset)
 	var/removed_count = 0
 	var/skipped_count = 0
 

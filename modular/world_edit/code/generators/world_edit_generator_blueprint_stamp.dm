@@ -12,10 +12,33 @@
 	if(load_result["error"])
 		return "[load_result["error"]]"
 
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, get_turf(user), null, params, manager?.get_effective_placement_dir() || NORTH)
+	if(shape_result["error"])
+		return "[shape_result["error"]]"
+
 	return null
 
 /datum/world_edit_generator/blueprint_stamp/get_supported_placement_modes()
-	return list("single", "repeat", "line", "rectangle")
+	return list("single", "repeat")
+
+/datum/world_edit_generator/blueprint_stamp/get_supported_placement_shapes()
+	return list(
+		WORLD_EDIT_SHAPE_POINT,
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_RECTANGLE,
+		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
+		WORLD_EDIT_SHAPE_CIRCLE,
+		WORLD_EDIT_SHAPE_RING,
+		WORLD_EDIT_SHAPE_ELLIPSE,
+		WORLD_EDIT_SHAPE_DIAMOND,
+		WORLD_EDIT_SHAPE_TRIANGLE,
+		WORLD_EDIT_SHAPE_SECTOR,
+		WORLD_EDIT_SHAPE_POLYGON,
+		WORLD_EDIT_SHAPE_POLYLINE,
+		WORLD_EDIT_SHAPE_CUSTOM_MASK,
+		WORLD_EDIT_SHAPE_BRUSH_PATH,
+		WORLD_EDIT_SHAPE_SCATTER_CLUSTER,
+	)
 
 /datum/world_edit_generator/blueprint_stamp/supports_placement_direction()
 	return TRUE
@@ -68,7 +91,7 @@
 	var/list/occupied_lookup = list()
 	var/list/blueprint = load_result["blueprint"]
 	for(var/turf/anchor_turf as anything in anchor_turfs)
-		var/datum/world_edit_plan/anchor_plan = world_edit_build_plan_from_blueprint(blueprint, anchor_turf, placement_dir)
+		var/datum/world_edit_plan/anchor_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(blueprint, anchor_turf, placement_dir)
 		if(!istype(anchor_plan))
 			plan.metadata["error"] = "Unable to build the blueprint plan."
 			return plan
@@ -107,15 +130,28 @@
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
 	plan.metadata["anchor_count"] = length(anchor_turfs)
 	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
+	plan.metadata["placement_shape"] = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(plan.metadata["placement_shape"])
 	plan.metadata["placement_dir"] = placement_dir
-	plan.metadata["placement_dir_label"] = world_edit_dir_to_label(placement_dir)
+	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
+	if(islist(placement_context["shape_metadata"]))
+		for(var/key in placement_context["shape_metadata"])
+			if(!(key in plan.metadata))
+				plan.metadata[key] = placement_context["shape_metadata"][key]
 	return plan
 
 /datum/world_edit_generator/blueprint_stamp/build_plan(list/params)
 	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
+	if(shape_result["error"])
+		var/datum/world_edit_plan/error_plan = new
+		error_plan.metadata["error"] = "[shape_result["error"]]"
+		return error_plan
 	return build_placement_plan(manager?.holder?.mob, params, list(
-		"mode" = "single",
-		"anchor_turfs" = list(anchor_turf),
+		"mode" = manager?.get_effective_placement_mode() || "single",
+		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = shape_result["metadata"] || list(),
+		"anchor_turfs" = shape_result["turfs"] || list(anchor_turf),
 		"direction" = manager?.get_effective_placement_dir(),
 		"end_turf" = anchor_turf,
 	))
@@ -137,7 +173,7 @@
 
 	current_plan = plan
 	result.success = TRUE
-	result.preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
 	result.message = "Blueprint preview ready: anchors=[plan.metadata["anchor_count"]], entries=[plan.metadata["entry_count"]], dir=[plan.metadata["placement_dir_label"]]."
 	return result
@@ -158,7 +194,7 @@
 	for(var/list/placement as anything in plan.placements)
 		var/turf/target_turf = placement["turf"]
 		var/obj_path = placement["obj_path"]
-		var/error_text = world_edit_validate_blueprint_target_turf(target_turf, obj_path)
+		var/error_text = GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(target_turf, obj_path)
 		if(error_text)
 			result.message = "Blueprint apply aborted: [error_text]"
 			return result
@@ -173,7 +209,7 @@
 		"anchor_count" = plan.metadata["anchor_count"],
 	))
 	for(var/list/placement as anything in plan.placements)
-		var/obj/created_object = world_edit_spawn_blueprint_entry(placement)
+		var/obj/created_object = GLOB.world_edit_blueprints.world_edit_spawn_blueprint_entry(placement)
 		if(created_object)
 			created_count++
 			changeset.add_created(created_object, placement["turf"], list(
@@ -198,4 +234,4 @@
 	return "Подтвердить stamp выбранного blueprint на текущем тайле?"
 
 /datum/world_edit_generator/blueprint_stamp/get_params_short(list/params)
-	return "blueprint_id=[params["blueprint_id"]] dir=[world_edit_dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "blueprint_id=[params["blueprint_id"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"

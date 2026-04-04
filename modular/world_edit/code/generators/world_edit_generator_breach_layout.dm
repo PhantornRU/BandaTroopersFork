@@ -4,7 +4,7 @@
 
 /datum/world_edit_generator/breach_layout/configure_params(mob/user, list/current_params)
 	var/list/new_params = current_params.Copy()
-	var/list/charge_dict = world_edit_get_breach_charge_dict()
+	var/list/charge_dict = GLOB.world_edit_legacy.world_edit_get_breach_charge_dict()
 	var/list/charge_names = list()
 	for(var/charge_name in charge_dict)
 		charge_names += charge_name
@@ -22,7 +22,7 @@
 		return null
 	new_params["charge_type"] = charge_dict[chosen_charge_name]
 
-	var/list/direction_dict = world_edit_get_breach_direction_dict()
+	var/list/direction_dict = GLOB.world_edit_legacy.world_edit_get_breach_direction_dict()
 	var/list/direction_names = list()
 	for(var/direction_name in direction_dict)
 		direction_names += direction_name
@@ -39,7 +39,7 @@
 		return null
 	new_params["direction"] = direction_dict[chosen_direction_name]
 
-	var/list/profile_dict = world_edit_get_breach_allowed_profiles()
+	var/list/profile_dict = GLOB.world_edit_legacy.world_edit_get_breach_allowed_profiles()
 	var/list/profile_names = list()
 	for(var/profile_name in profile_dict)
 		profile_names += profile_name
@@ -57,7 +57,7 @@
 	return new_params
 
 /datum/world_edit_generator/breach_layout/get_ui_fields(list/current_params)
-	var/list/charge_dict = world_edit_get_breach_charge_dict()
+	var/list/charge_dict = GLOB.world_edit_legacy.world_edit_get_breach_charge_dict()
 	var/list/charge_options = list()
 	var/list/charge_names = list()
 	for(var/charge_name in charge_dict)
@@ -70,7 +70,7 @@
 		))
 
 	var/list/direction_options = list()
-	var/list/direction_dict = world_edit_get_breach_direction_dict()
+	var/list/direction_dict = GLOB.world_edit_legacy.world_edit_get_breach_direction_dict()
 	for(var/dir_name in list("North", "East", "South", "West"))
 		direction_options += list(list(
 			"label" = dir_name,
@@ -78,7 +78,7 @@
 		))
 
 	var/list/profile_options = list()
-	var/list/profile_dict = world_edit_get_breach_allowed_profiles()
+	var/list/profile_dict = GLOB.world_edit_legacy.world_edit_get_breach_allowed_profiles()
 	for(var/profile_name in sortList(profile_dict.Copy()))
 		profile_options += list(list(
 			"label" = profile_name,
@@ -132,14 +132,14 @@
 			new_params[param_id] = path_value
 
 		if("direction")
-			var/list/direction_dict = world_edit_get_breach_direction_dict()
+			var/list/direction_dict = GLOB.world_edit_legacy.world_edit_get_breach_direction_dict()
 			var/label = "[value]"
 			if(!direction_dict[label])
 				return "Выбрано неверное направление установки."
 			new_params[param_id] = direction_dict[label]
 
 		if("allowed_profile")
-			var/list/profiles = world_edit_get_breach_allowed_profiles()
+			var/list/profiles = GLOB.world_edit_legacy.world_edit_get_breach_allowed_profiles()
 			var/profile_name = "[value]"
 			if(!profiles[profile_name])
 				return "Выбран неизвестный профиль допустимых целей."
@@ -154,7 +154,7 @@
 	if(!ispath(params["charge_type"], /obj/item/explosive/plastic))
 		return "Выбран неверный тип заряда."
 
-	var/list/profiles = world_edit_get_breach_allowed_profiles()
+	var/list/profiles = GLOB.world_edit_legacy.world_edit_get_breach_allowed_profiles()
 	if(!profiles[params["allowed_profile"]])
 		return "Выбран неизвестный профиль допустимых целей."
 
@@ -174,7 +174,7 @@
 		plan.metadata["error"] = "Выбран неверный тип заряда."
 		return plan
 
-	var/list/profiles = world_edit_get_breach_allowed_profiles()
+	var/list/profiles = GLOB.world_edit_legacy.world_edit_get_breach_allowed_profiles()
 	var/profile_name = params["allowed_profile"] || "Стандартный"
 	var/list/allowed_types = profiles[profile_name] || profiles["Стандартный"]
 	if(!islist(allowed_types))
@@ -248,7 +248,7 @@
 			to_chat(user, SPAN_WARNING(temp_plan.metadata["error"] || "Нельзя установить заряд на эту цель для текущего профиля."))
 			return TRUE
 
-		world_edit_apply_turf_preview(manager, temp_plan.affected_turfs)
+		GLOB.world_edit_helpers.apply_turf_preview(manager, temp_plan.affected_turfs)
 		var/confirm_answer = tgui_alert(user, "Установить [temp_plan.metadata["charge_path"]] на выбранную цель?", "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
 		if(confirm_answer != "Подтвердить")
 			manager?.clear_preview_images()
@@ -262,7 +262,7 @@
 			to_chat(user, SPAN_WARNING("Цель больше недоступна для установки заряда."))
 			return TRUE
 
-		if(!world_edit_place_breach_charge(user, target_object, placement["charge_path"], placement["place_dir"], placement["allowed_types"]))
+		if(!GLOB.world_edit_legacy.world_edit_place_breach_charge(user, target_object, placement["charge_path"], placement["place_dir"], placement["allowed_types"]))
 			manager?.clear_preview_images()
 			to_chat(user, SPAN_WARNING("Нельзя установить заряд на эту цель для текущего профиля."))
 			return TRUE
@@ -273,7 +273,7 @@
 		to_chat(user, SPAN_BOLDNOTICE("[charge_name] установлен, подрыв через таймер устройства."))
 
 		var/turf/center_turf = placement["target_turf"]
-		world_edit_log_operation(
+		GLOB.world_edit_logging.log_operation(
 			manager.holder,
 			definition.id,
 			definition.required_rights,
@@ -295,7 +295,7 @@
 		return TRUE
 
 	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
-		var/list/charge_dict = world_edit_get_breach_charge_dict()
+		var/list/charge_dict = GLOB.world_edit_legacy.world_edit_get_breach_charge_dict()
 		var/list/charge_names = list()
 		for(var/charge_name in charge_dict)
 			charge_names += charge_name
@@ -310,7 +310,7 @@
 			return TRUE
 
 		manager.current_params["charge_type"] = charge_dict[chosen_charge_name]
-		manager.current_params["direction"] = world_edit_get_breach_direction_dict()[chosen_direction_name]
+		manager.current_params["direction"] = GLOB.world_edit_legacy.world_edit_get_breach_direction_dict()[chosen_direction_name]
 		manager.invalidate_preview_state()
 		to_chat(user, SPAN_BOLDNOTICE("Параметры обновлены: [chosen_charge_name], направление [chosen_direction_name]."))
 		return TRUE

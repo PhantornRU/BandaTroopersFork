@@ -4,7 +4,7 @@
 
 /datum/world_edit_generator/defense_grid/proc/get_defense_catalog(force_refresh = FALSE)
 	if(force_refresh || !defense_catalog)
-		defense_catalog = world_edit_build_defense_catalog()
+		defense_catalog = GLOB.world_edit_legacy.world_edit_build_defense_catalog()
 	return defense_catalog
 
 /datum/world_edit_generator/defense_grid/refresh_ui_state(mob/user, list/current_params)
@@ -288,7 +288,7 @@
 			new_params["faction"] = "[value]"
 
 		if("turned_on")
-			new_params["turned_on"] = world_edit_parse_bool(value)
+			new_params["turned_on"] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("placement_direction")
 			var/direction_text = "[value]"
@@ -333,12 +333,12 @@
 
 	var/batch_count = text2num("[params["batch_count"]]") || 1
 	var/batch_step = text2num("[params["batch_step"]]") || 1
-	var/placement_dir = world_edit_dir_from_label(params["placement_direction"], user.dir)
+	var/placement_dir = GLOB.world_edit_helpers.dir_from_label(params["placement_direction"], user.dir)
 
 	var/turf/current_turf = start_turf
 	targets += current_turf
 	for(var/i = 2, i <= batch_count, i++)
-		current_turf = world_edit_step_turf(current_turf, placement_dir, batch_step)
+		current_turf = GLOB.world_edit_helpers.step_turf(current_turf, placement_dir, batch_step)
 		if(!current_turf)
 			break
 		targets += current_turf
@@ -352,7 +352,7 @@
 		result.message = "Не найдено ни одного тайла для установки."
 		return result
 
-	result.preview_images = world_edit_build_turf_preview_images(target_turfs)
+	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(target_turfs)
 	result.success = TRUE
 	result.meta["target_count"] = length(target_turfs)
 	result.message = "Предпросмотр готов: планируется установка [length(target_turfs)] объектов."
@@ -365,14 +365,14 @@
 		result.message = "Не найдено ни одного тайла для установки."
 		return result
 
-	var/placement_dir = world_edit_dir_from_label(params["placement_direction"], user.dir)
+	var/placement_dir = GLOB.world_edit_helpers.dir_from_label(params["placement_direction"], user.dir)
 	var/defense_path = params["defense_path"]
 	var/faction = params["faction"]
 	var/turned_on = params["turned_on"] ? TRUE : FALSE
 	var/created_count = 0
 
 	for(var/turf/target_turf as anything in target_turfs)
-		if(world_edit_spawn_defense_by_path(target_turf, placement_dir, defense_path, faction, turned_on))
+		if(GLOB.world_edit_legacy.world_edit_spawn_defense_by_path(target_turf, placement_dir, defense_path, faction, turned_on))
 			created_count++
 
 	result.success = created_count > 0

@@ -1,7 +1,7 @@
 /datum/world_edit_manager/proc/build_available_generator_categories(include_non_ready = FALSE)
 	var/list/by_category = list()
-	for(var/id in GLOB.world_edit_generator_definitions_by_id)
-		var/datum/world_edit_generator_definition/definition = GLOB.world_edit_generator_definitions_by_id[id]
+	for(var/id in GLOB.world_edit_registry.definitions_by_id)
+		var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.definitions_by_id[id]
 		if(!include_non_ready && definition.status != WORLD_EDIT_STATUS_READY)
 			continue
 		if(!check_rights_for(holder, definition.required_rights))
@@ -52,7 +52,7 @@
 	reset_generator_runtime()
 	detach_current_generator()
 
-	var/datum/world_edit_generator_definition/definition = world_edit_get_generator_definition(generator_id)
+	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!definition)
 		return FALSE
 	if(definition.status != WORLD_EDIT_STATUS_READY)
@@ -94,14 +94,8 @@
 	reset_preview_runtime()
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
 
-/datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(mode, turf/start_turf, turf/end_turf)
-	if("[mode]" == "line")
-		return world_edit_collect_line_turfs(start_turf, end_turf)
-	if("[mode]" == "rectangle")
-		return world_edit_collect_rectangle_turfs(start_turf, end_turf)
-	if(!end_turf)
-		return list()
-	return list(end_turf)
+/datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(shape_id, turf/start_turf, turf/end_turf)
+	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, start_turf, end_turf, current_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
 
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
 	var/list/metadata = plan?.metadata || list()
@@ -109,9 +103,10 @@
 	var/anchor_count = metadata["anchor_count"] || 1
 	var/entry_count = metadata["entry_count"] || length(placements)
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
-	var/message = "Placement preview ready: mode=[mode], anchors=[anchor_count], entries=[entry_count]."
+	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
+	var/message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count]."
 	if(metadata["placement_dir_label"])
-		message = "Placement preview ready: mode=[mode], anchors=[anchor_count], entries=[entry_count], dir=[metadata["placement_dir_label"]]."
+		message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count], dir=[metadata["placement_dir_label"]]."
 	return message
 
 /datum/world_edit_manager/proc/build_safe_placement_confirm_text(datum/world_edit_plan/plan)
@@ -120,10 +115,11 @@
 	var/anchor_count = metadata["anchor_count"] || 1
 	var/entry_count = metadata["entry_count"] || length(placements)
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
+	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
 	var/dir_suffix = ""
 	if(metadata["placement_dir_label"])
 		dir_suffix = ", dir=[metadata["placement_dir_label"]]"
-	return "Apply [current_definition?.name_ru || current_definition?.id] placement? mode=[mode], anchors=[anchor_count], entries=[entry_count][dir_suffix]."
+	return "Apply [current_definition?.name_ru || current_definition?.id] placement? shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count][dir_suffix]."
 
 /datum/world_edit_manager/proc/record_apply_result(mob/user, datum/world_edit_apply_result/result, duration_ds)
 	var/turf/center_turf = result.center_turf || get_turf(user)
@@ -140,7 +136,7 @@
 			changeset.metadata["center_turf"] = center_turf
 		changeset = push_changeset(changeset)
 
-	world_edit_log_operation(
+	GLOB.world_edit_logging.log_operation(
 		holder,
 		current_definition.id,
 		current_definition.required_rights,
@@ -192,12 +188,13 @@
 	clear_preview_plan_state()
 	sync_click_intercept_state()
 
-	var/mode = get_effective_placement_mode() || "single"
-	var/dir_suffix = supports_current_placement_direction() ? " DIR=[world_edit_dir_to_label(get_effective_placement_dir())]." : "."
-	if(placement_mode_uses_anchor_pair(mode))
-		to_chat(user, SPAN_NOTICE("Placement mode active: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
+	var/shape_id = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+	var/dir_suffix = supports_current_placement_direction() ? " DIR=[GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
+	if(placement_mode_uses_anchor_pair(shape_id))
+		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
 	else
-		to_chat(user, SPAN_NOTICE("Placement mode active: LMB previews and applies at the clicked turf. MMB resets the pending anchor[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB previews and applies at the clicked turf. MMB resets the pending anchor[dir_suffix]"))
 	return TRUE
 
 /datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
@@ -219,32 +216,34 @@
 		return TRUE
 
 	var/mode = get_effective_placement_mode()
-	if(!length(mode))
+	var/shape_id = get_effective_placement_shape()
+	if(!length(mode) || !length(shape_id))
 		return TRUE
 
-	if(placement_mode_uses_anchor_pair(mode) && !placement_anchor_turf)
+	if(placement_mode_uses_anchor_pair(shape_id) && !placement_anchor_turf)
 		placement_anchor_turf = clicked_turf
 		clear_preview_plan_state()
-		world_edit_apply_turf_preview(src, list(clicked_turf))
+		GLOB.world_edit_helpers.apply_turf_preview(src, list(clicked_turf))
 		to_chat(user, SPAN_NOTICE("Placement anchor set: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]. Select the second point."))
 		return TRUE
 
-	var/turf/start_turf = placement_mode_uses_anchor_pair(mode) ? placement_anchor_turf : clicked_turf
+	var/turf/start_turf = placement_mode_uses_anchor_pair(shape_id) ? placement_anchor_turf : clicked_turf
 	var/turf/end_turf = clicked_turf
 	placement_anchor_turf = null
 
-	var/list/anchor_turfs = build_safe_placement_anchor_turfs(mode, start_turf, end_turf)
-	if(!length(anchor_turfs))
+	var/list/shape_result = build_safe_placement_anchor_turfs(shape_id, start_turf, end_turf)
+	var/list/anchor_turfs = shape_result["turfs"]
+	if(shape_result["error"])
 		last_preview_success = FALSE
-		last_preview_message = "Unable to build a valid placement footprint."
-		last_preview_meta = list()
+		last_preview_message = "[shape_result["error"]]"
+		last_preview_meta = shape_result["metadata"] || list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
 		return TRUE
-	if(length(anchor_turfs) > WORLD_EDIT_PLACEMENT_MAX_ANCHORS)
+	if(!length(anchor_turfs))
 		last_preview_success = FALSE
-		last_preview_message = "Requested footprint exceeds the safe anchor cap ([WORLD_EDIT_PLACEMENT_MAX_ANCHORS])."
-		last_preview_meta = list()
+		last_preview_message = "Unable to build a valid placement footprint."
+		last_preview_meta = shape_result["metadata"] || list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
 		return TRUE
@@ -252,6 +251,8 @@
 	clear_preview_plan_state()
 	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
 		"mode" = mode,
+		"shape" = shape_id,
+		"shape_metadata" = shape_result["metadata"] || list(),
 		"anchor_turfs" = anchor_turfs,
 		"start_turf" = start_turf,
 		"end_turf" = end_turf,
@@ -283,7 +284,7 @@
 	last_preview_success = TRUE
 	last_preview_message = build_safe_placement_preview_message(plan)
 	last_preview_meta = plan.metadata.Copy()
-	preview_images = world_edit_build_turf_preview_images(plan.affected_turfs)
+	preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	if(length(preview_images))
 		holder.images += preview_images
 	mark_preview_state()
@@ -419,7 +420,7 @@
 	if(!changeset.can_undo())
 		return fail_undo_action(user, "undo", "Последняя записанная операция не поддерживает undo в этой фазе.")
 
-	var/list/undo_result = world_edit_revert_changeset(changeset)
+	var/list/undo_result = GLOB.world_edit_changesets.revert_changeset(changeset)
 	var/reverted_count = text2num("[undo_result["reverted_count"]]") || 0
 	var/skipped_count = text2num("[undo_result["skipped_count"]]") || 0
 	var/outcome = "[undo_result["outcome"] || "none"]"
@@ -437,7 +438,7 @@
 	last_undo_success = reverted_count > 0 ? TRUE : FALSE
 	last_undo_message = message
 
-	world_edit_log_operation(holder, "undo_last_operation", 0, center_turf, 0, reverted_count, 0, result_code, params_short)
+	GLOB.world_edit_logging.log_operation(holder, "undo_last_operation", 0, center_turf, 0, reverted_count, 0, result_code, params_short)
 	add_history_entry(
 		"undo_last_operation",
 		result_code,
@@ -474,7 +475,7 @@
 	if(!changeset.can_cleanup_owned_effects())
 		return fail_undo_action(user, "cleanup", "Последняя записанная операция не содержит owned effects для cleanup.")
 
-	var/list/cleanup_result = world_edit_cleanup_changeset_owned_effects(changeset)
+	var/list/cleanup_result = GLOB.world_edit_changesets.cleanup_changeset_owned_effects(changeset)
 	var/removed_count = text2num("[cleanup_result["reverted_count"]]") || 0
 	var/skipped_count = text2num("[cleanup_result["skipped_count"]]") || 0
 	var/outcome = "[cleanup_result["outcome"] || "none"]"
@@ -491,7 +492,7 @@
 	last_undo_success = removed_count > 0 ? TRUE : FALSE
 	last_undo_message = message
 
-	world_edit_log_operation(holder, "cleanup_last_owned_effects", 0, center_turf, 0, removed_count, 0, result_code, params_short)
+	GLOB.world_edit_logging.log_operation(holder, "cleanup_last_owned_effects", 0, center_turf, 0, removed_count, 0, result_code, params_short)
 	add_history_entry(
 		"cleanup_last_owned_effects",
 		result_code,
