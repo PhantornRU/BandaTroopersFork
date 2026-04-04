@@ -8,9 +8,14 @@
 2. Docs-only metadata:
 - `owner`, `priority`, `phase`
 - `ui_schema_version`, `ui_mode`
+3. Актуальный runtime-ready набор для текущей Phase 3A ветки:
+- `outpost_radius`
+- `destruction_pack`
+- `blueprint_stamp`
+4. Ниже сохранены исторические паспорта deprecated-генераторов v1.3; они не входят в current ready surface.
 
 ## fortify_room
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P1`
 - `phase`: `v1.3`
@@ -28,7 +33,7 @@
   - `respect_doors = TRUE`
 
 ## defense_grid
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P1`
 - `phase`: `v1.3`
@@ -47,7 +52,7 @@
   - `batch_step = 1`
 
 ## breach_layout
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P1`
 - `phase`: `v1.3`
@@ -63,7 +68,7 @@
   - `allowed_profile = "Стандартный"`
 
 ## structure_chunk
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P2`
 - `phase`: `v1.3`
@@ -79,7 +84,7 @@
   - `delete_atoms = FALSE`
 
 ## barricade_builder
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P1`
 - `phase`: `v1.3`
@@ -98,7 +103,7 @@
   - `max_tiles = 40`
 
 ## chaos_demolition
-- `status`: `ready`
+- `status`: `deprecated`
 - `owner`: `BandaTroopers`
 - `priority`: `P1`
 - `phase`: `v1.3`

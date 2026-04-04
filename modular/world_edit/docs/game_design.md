@@ -3,6 +3,8 @@
 ## Цель
 Дать администраторам единый интерфейс редактирования мира с предсказуемым жизненным циклом генераторов, безопасными ограничениями и обязательным аудитом. Legacy-инструменты HumanAI не изменяются и продолжают работать отдельно.
 
+Примечание: этот документ сохраняет исторический снимок v1.3/Phase 3A. Текущий runtime-ready surface ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`; нижеописанные генераторы `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` сохранены как deprecated/historical ветки и больше не экспонируются active registry/runtime surface.
+
 ## Границы
 1. Не изменяем legacy-файлы:
 - `code/modules/mob/living/carbon/human/ai/fortify_room.dm`
@@ -38,15 +40,15 @@
 3. Optional metadata: `description`, `validate_hint`, `group`, `visible`, `disabled`, `required`, `placeholder`, `min/max/step`, `options`.
 4. Если генератор не вернул валидные inline-поля, используется wizard fallback.
 
-## Матрица генераторов (v1.3)
+## Матрица генераторов (v1.3 snapshot)
 | Генератор | Runtime статус | UI-режим | Wizard fallback |
 |---|---|---|---|
-| `fortify_room` | `ready` | `inline` | `да` |
-| `defense_grid` | `ready` | `inline` | `да` |
-| `breach_layout` | `ready` | `inline` | `да` |
-| `structure_chunk` | `ready` | `inline` | `да` |
-| `barricade_builder` | `ready` | `inline` | `да` |
-| `chaos_demolition` | `ready` | `inline` | `да` |
+| `fortify_room` | `deprecated` | `inline` | `да` |
+| `defense_grid` | `deprecated` | `inline` | `да` |
+| `breach_layout` | `deprecated` | `inline` | `да` |
+| `structure_chunk` | `deprecated` | `inline` | `да` |
+| `barricade_builder` | `deprecated` | `inline` | `да` |
+| `chaos_demolition` | `deprecated` | `inline` | `да` |
 
 ## Политика прав
 1. Открытие панели `open_world_edit_panel`: `R_DEBUG`.

@@ -4,7 +4,8 @@
 1. `id`: `chaos_demolition`
 2. `name_ru`: `Хаос-разрушение`
 3. `category_ru`: `Разрушение`
-4. `status`: `ready`
+> Исторический паспорт. Этот генератор сохранен как deprecated/historical ветка и не входит в active registry/runtime surface.
+4. `status`: `deprecated`
 5. `execution_mode`: `click`
 6. `required_rights`: `R_DEBUG`
 

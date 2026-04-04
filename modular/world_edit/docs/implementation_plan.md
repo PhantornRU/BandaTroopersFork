@@ -3,6 +3,8 @@
 ## Цель
 Синхронизировать все `status=ready` генераторы с единым inline UI-контрактом v2, стабилизировать `WorldEditPanel`, сохранить wizard fallback и зафиксировать полную документацию.
 
+Примечание: это исторический план Phase 3A. В текущем active registry/runtime ready surface уже ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`, а `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` сохранены только как deprecated/historical ветки.
+
 ## Область изменений
 1. Core manager и UI-контракт в `modular/world_edit/code/core/manager/*`.
 2. Генераторы в `modular/world_edit/code/generators/*`.
@@ -28,7 +30,7 @@
 - `has_inline_fields`, `ui_mode`, `can_run_preview`, `can_run_apply`, `can_stop_click_mode`, `can_refresh_ui`.
 4. Добавлено действие `refresh_ui` для принудительного обновления runtime UI-состояния генератора.
 
-### Этап 2. Синхронизация ready-генераторов с inline
+### Этап 2. Синхронизация snapshot-ready генераторов с inline
 1. `fortify_room`: inline-поля лимитов/радиуса/флагов границ.
 2. `defense_grid`: inline-каталог с динамикой `faction/turned_on`, unique label для дублей.
 3. `breach_layout`: inline-управление зарядом/направлением/профилем.
@@ -67,6 +69,9 @@
 3. Каждое `apply` логируется по контракту с `params_hash`.
 4. История операций ограничена 50 записями.
 5. В diff отсутствуют изменения в legacy HumanAI-файлах.
+
+## Историческая оговорка
+Дальнейшие генераторы и этапы ниже отражают состояние плана на момент Phase 3A и не описывают current ready surface без поправки на active registry/runtime status.
 
 ## Smoke-checklist (обязательный)
 1. Права:

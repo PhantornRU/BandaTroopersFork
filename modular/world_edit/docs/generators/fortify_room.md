@@ -4,7 +4,8 @@
 1. `id`: `fortify_room`
 2. `name_ru`: `Укрепление комнаты`
 3. `category_ru`: `Комнаты`
-4. `status`: `ready`
+> Исторический паспорт. Этот генератор сохранен как deprecated/historical ветка и не входит в active registry/runtime surface.
+4. `status`: `deprecated`
 5. `execution_mode`: `batch`
 6. `required_rights`: `R_DEBUG`
 

@@ -4,7 +4,8 @@
 1. `id`: `barricade_builder`
 2. `name_ru`: `Построитель баррикад`
 3. `category_ru`: `Баррикады`
-4. `status`: `ready`
+> Исторический паспорт. Этот генератор сохранен как deprecated/historical ветка и не входит в active registry/runtime surface.
+4. `status`: `deprecated`
 5. `execution_mode`: `click`
 6. `required_rights`: `R_DEBUG`
 
