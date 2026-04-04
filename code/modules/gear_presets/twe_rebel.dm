@@ -33,26 +33,17 @@
 	new_human.b_eyes = colors[eye_color][3]
 	//gender checks
 	if(new_human.gender == MALE)
-		if(prob(90))
-			first_name = "[capitalize(randomly_generate_japanese_word(rand(1, 3)))]"
-		else
-			first_name = "[pick(GLOB.first_names_male_clf)]"
+		first_name = ss220_pick_japanese_first_name(MALE) // SS220 EDIT: use direct localized Japanese personal-name banks
 		new_human.h_style = pick("CIA", "Mulder", "Pixie Cut Left", "Pixie Cut Right")
 		new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "5 O'clock Shadow", "7 O'clock Shadow",)
 	else
-		if(prob(90))
-			first_name = "[capitalize(randomly_generate_japanese_word(rand(1, 3)))]"
-		else
-			first_name = "[pick(GLOB.first_names_female_clf)]"
+		first_name = ss220_pick_japanese_first_name(FEMALE) // SS220 EDIT: use direct localized Japanese personal-name banks
 		new_human.h_style = pick("CIA", "Mulder", "Pixie Cut Left", "Pixie Cut Right","Bun", "Short Bangs")
 	//surname
-	if(prob(90))
-		last_name = "[capitalize(randomly_generate_japanese_word(rand(1, 4)))]"
-	else
-		last_name = "[pick(GLOB.last_names_clf)]"
+	last_name = ss220_pick_japanese_last_name() // SS220 EDIT: retire runtime Japanese word synthesis for personal names
 	//put them together
 	random_name = "[first_name] [last_name]"
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, random_name) // SS220 EDIT: direct localized banks already provide the runtime name
 	new_human.age = rand(20,45)
 
 

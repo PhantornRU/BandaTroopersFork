@@ -4,9 +4,11 @@ chinook
 corsat
 desert_dam
 fiorina_sciannex
+golden_arrow
 ice_colony_v2
 kutjevo
 lv522_chances_claim
+lv624
 new_varadero
 prison_station_fop
 shivas_snowball

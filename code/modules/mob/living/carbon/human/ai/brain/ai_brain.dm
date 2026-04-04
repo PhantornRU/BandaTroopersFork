@@ -89,7 +89,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	RegisterSignal(tied_human, COMSIG_HUMAN_UNEQUIPPED_ITEM, PROC_REF(on_item_unequip))
 	RegisterSignal(tied_human, COMSIG_MOB_PICKUP_ITEM, PROC_REF(on_item_pickup))
 	RegisterSignal(tied_human, COMSIG_MOB_DROP_ITEM, PROC_REF(on_item_drop))
-	RegisterSignal(tied_human, COMSIG_MOB_DEATH, PROC_REF(reset_ai))
+	RegisterSignal(tied_human, COMSIG_MOB_DEATH, PROC_REF(on_human_death)) // SS220 EDIT: HALO death guard should tear down AI and force corpses prone immediately
 	RegisterSignal(tied_human, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
 	RegisterSignal(tied_human, COMSIG_HUMAN_BULLET_ACT, PROC_REF(on_shot))
 	RegisterSignal(tied_human, COMSIG_HUMAN_HANDCUFFED, PROC_REF(on_handcuffed))
@@ -143,6 +143,16 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		reset_ai()
 		return
 
+	if(tied_human.stat == DEAD) // SS220 EDIT: dead HALO AI must never remain in the wake-up recovery path
+		clear_detection_radius()
+		for(var/action in ongoing_actions)
+			qdel(action)
+		ongoing_actions.Cut()
+		lose_target()
+		if(!tied_human.resting)
+			tied_human.set_resting(TRUE, TRUE)
+		return
+
 	if(tied_human.is_mob_incapacitated())
 		clear_detection_radius() // SS220 EDIT: stunned or dead AI should not keep turf-enter listeners alive
 		for(var/action in ongoing_actions)
@@ -159,7 +169,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if(should_force_resting)
 		if(!tied_human.resting)
 			tied_human.set_resting(TRUE, TRUE)
-	else if(tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
+	else if((tied_human.stat == CONSCIOUS) && tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
 		tied_human.set_resting(FALSE, TRUE)
 	// SS220 EDIT - END
 
@@ -286,6 +296,13 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	reset_ai()
 	tied_human = null
 
+/datum/human_ai_brain/proc/on_human_death(datum/source)
+	SIGNAL_HANDLER
+	reset_ai()
+	if(!has_valid_tied_human() || (tied_human.stat != DEAD) || tied_human.resting)
+		return
+	tied_human.set_resting(TRUE, TRUE)
+
 /datum/human_ai_brain/proc/on_species_change(datum/source, new_species)
 	SIGNAL_HANDLER
 	if((new_species == SPECIES_YAUTJA) || (new_species == SPECIES_ZOMBIE))
@@ -298,7 +315,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if((new_position != STANDING_UP) || (old_position != LYING_DOWN))
 		return
 
-	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || (tied_human.stat != CONSCIOUS) || tied_human.is_mob_incapacitated())
 		return
 
 	invalidate_nearby_item_search() // SS220 EDIT: wake-up should immediately invalidate idle pickup/grenade scan throttles
@@ -316,7 +333,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		return
 
 	wake_rethink_queued_at = -1
-	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || (tied_human.stat != CONSCIOUS) || tied_human.is_mob_incapacitated())
 		return
 
 	if((last_process_tick == queued_tick) || (last_process_tick == world.time))

@@ -77,6 +77,11 @@
 
 	give_action(src, /datum/action/ghost)
 
+	if(!gibbed && HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE) && istype(buckled, /obj/vehicle/multitile/warthog) && prob(75))
+		var/obj/vehicle/multitile/warthog/open_vehicle = buckled
+		open_vehicle.manual_unbuckle(src)
+
+
 	if(!gibbed && species.death_sound)
 		playsound(loc, species.death_sound, 50, 1)
 

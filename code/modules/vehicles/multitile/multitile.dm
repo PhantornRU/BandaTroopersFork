@@ -170,6 +170,7 @@
 	icon_state = "cargo_engine"
 
 	var/move_on_turn = FALSE
+	var/silent_hardpoint_warning = FALSE
 
 /obj/vehicle/multitile/Initialize()
 	. = ..()
@@ -243,19 +244,22 @@
 
 	var/amt_hardpoints = LAZYLEN(hardpoints)
 	if(amt_hardpoints)
-		for(var/obj/item/hardpoint/hardpoint in hardpoints)
-			var/image/hardpoint_image = hardpoint.get_hardpoint_image()
-			if(istype(hardpoint_image))
-				hardpoint_image.layer = layer + hardpoint.hdpt_layer * 0.1
-			else if(islist(hardpoint_image))
-				var/list/image/hardpoint_image_list = hardpoint_image // Linter will complain about iterating on "an image" otherwise
-				for(var/image/subimage in hardpoint_image_list)
-					subimage.layer = layer + hardpoint.hdpt_layer * 0.1
-			overlays += hardpoint_image
+		handle_hardpoint_images()
 
 	if(clamped)
 		var/image/J = image(icon, icon_state = "vehicle_clamp", layer = layer+0.1)
 		overlays += J
+
+/obj/vehicle/multitile/proc/handle_hardpoint_images()
+	for(var/obj/item/hardpoint/hardpoint in hardpoints)
+		var/image/hardpoint_image = hardpoint.get_hardpoint_image()
+		if(istype(hardpoint_image))
+			hardpoint_image.layer = layer + hardpoint.hdpt_layer * 0.1
+		else if(islist(hardpoint_image))
+			var/list/image/hardpoint_image_list = hardpoint_image // Linter will complain about iterating on "an image" otherwise
+			for(var/image/subimage in hardpoint_image_list)
+				subimage.layer = layer + hardpoint.hdpt_layer * 0.1
+		overlays += hardpoint_image
 
 //Normal examine() but tells the player what is installed and if it's broken
 /obj/vehicle/multitile/get_examine_text(mob/user)
@@ -330,11 +334,21 @@
 	return
 
 /obj/vehicle/multitile/set_seated_mob(seat, mob/living/M)
+	var/mob/living/old_mob = seats[seat]
+
 	// Give/remove verbs
-	if(QDELETED(M))
-		var/mob/living/L = seats[seat]
-		remove_seated_verbs(L, seat)
-	else
+	// SS220 EDIT - START: clear seat ownership and active hardpoint state immediately when an occupant unbuckles or is deleted.
+	if(!istype(M) || QDELETED(M))
+		if(istype(old_mob))
+			remove_seated_verbs(old_mob, seat)
+		if(active_hp && (seat in active_hp))
+			active_hp[seat] = null
+		seats[seat] = null
+		return FALSE
+	// SS220 EDIT - END
+	else if(old_mob != M)
+		if(istype(old_mob))
+			remove_seated_verbs(old_mob, seat)
 		add_seated_verbs(M, seat)
 
 	seats[seat] = M

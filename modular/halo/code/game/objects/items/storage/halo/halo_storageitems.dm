@@ -447,9 +447,7 @@
 	if(!isturf(origin_turf) || !length(contents))
 		return
 
-	var/list/grenades_to_scatter = list()
-	for(var/obj/item/explosive/grenade/grenade as anything in contents)
-		grenades_to_scatter += grenade
+	var/list/grenades_to_scatter = get_stored_grenades_for_scatter()
 
 	if(!length(grenades_to_scatter))
 		return
@@ -474,8 +472,15 @@
 		if(target_turf != origin_turf)
 			grenade.throw_atom(target_turf, get_dist(origin_turf, target_turf), SPEED_FAST, source, TRUE)
 
+/obj/item/storage/belt/marine/covenant/proc/get_stored_grenades_for_scatter()
+	var/list/grenades_to_scatter = list()
+	for(var/obj/item/stored_item as anything in contents)
+		if(istype(stored_item, /obj/item/explosive/grenade))
+			grenades_to_scatter += stored_item
+	return grenades_to_scatter
+
 /obj/item/storage/belt/marine/covenant/sangheili
-	name = "\improper Sangheili ammunition belt"
+	name = "\improper патронташ сангхейли"
 	icon_state = "sangbelt_minor"
 	item_state = "sangbelt_minor"
 	storage_slots = 9
@@ -484,29 +489,29 @@
 		)
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor
-	name = "\improper Sangheili Minor ammunition belt"
+	name = "\improper патронташ сангхейли-минора"
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/major
-	name = "\improper Sangheili Major ammunition belt"
+	name = "\improper патронташ сангхейли-майора"
 	icon_state = "sangbelt_major"
 	item_state = "sangbelt_major"
 
 /obj/item/storage/belt/marine/covenant/sangheili/major/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/ultra
-	name = "\improper Sangheili Ultra ammunition belt"
+	name = "\improper патронташ сангхейли-ультры"
 	icon_state = "sangbelt_ultra"
 	item_state = "sangbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/sangheili/zealot
-	name = "\improper Sangheili Zealot ammunition belt"
+	name = "\improper патронташ сангхейли-зилота"
 	icon_state = "sangbelt_zealot"
 	item_state = "sangbelt_zealot"
 
 /obj/item/storage/belt/marine/covenant/unggoy
-	name = "\improper Unggoy ammunition belt"
+	name = "\improper патронташ унггоя"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 	item_icons = list(
@@ -514,31 +519,31 @@
 		)
 
 /obj/item/storage/belt/marine/covenant/unggoy/minor
-	name = "\improper Unggoy Minor ammunition belt"
+	name = "\improper патронташ унггоя-минора"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 
 /obj/item/storage/belt/marine/covenant/unggoy/major
-	name = "\improper Unggoy Major ammunition belt"
+	name = "\improper патронташ унггоя-майора"
 	icon_state = "gruntbelt_major"
 	item_state = "gruntbelt_major"
 
 /obj/item/storage/belt/marine/covenant/unggoy/heavy
-	name = "\improper Heavy Unggoy ammunition belt"
+	name = "\improper тяжёлый патронташ унггоя"
 	icon_state = "gruntbelt_heavy"
 	item_state = "gruntbelt_heavy"
 
 /obj/item/storage/belt/marine/covenant/unggoy/ultra
-	name = "\improper Unggoy Ultra ammunition belt"
+	name = "\improper патронташ унггоя-ультры"
 	icon_state = "gruntbelt_ultra"
 	item_state = "gruntbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops
-	name = "\improper Unggoy SpecOps ammunition belt"
+	name = "\improper спецоперативный патронташ унггоя"
 	icon_state = "gruntbelt_specops"
 	item_state = "gruntbelt_specops"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra
-	name = "\improper Unggoy SpecOps Ultra ammunition belt"
+	name = "\improper спецоперативный патронташ унггоя-ультры"
 	icon_state = "gruntbelt_specops_ultra"
 	item_state = "gruntbelt_specops_ultra"

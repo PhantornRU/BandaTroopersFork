@@ -165,7 +165,7 @@
 	var/mob/M = targets[target]
 
 	if(istype(M, /mob/dead/observer) || M.stat == DEAD)
-		to_chat(src, "Not even a [species.name] can speak to the dead.")
+		to_chat(src, "Not even a [species.get_display_name()] can speak to the dead.") // SS220 EDIT: keep localized species labels user-facing while canonical ids stay stable
 		return
 
 	log_say("[key_name(src)] communed to [key_name(M)]: [text] (AREA: [get_area_name(loc)])")

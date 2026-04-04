@@ -86,6 +86,23 @@
 	/// defines which sprite the limb should use if dimorphic, set in [/obj/limb/proc/update_limb()]
 	var/limb_gender = MALE
 
+// SS220 EDIT - START: keep runtime limb localization on display_name so canonical limb ids stay stable
+/obj/limb/should_apply_runtime_localized_name(list/new_list)
+	// Limb logic keys must stay canonical (`head`, `l_arm`, etc.). Player-facing
+	// text should go through display_name instead.
+	return FALSE
+
+/obj/limb/ru_names_rename(list/new_list)
+	..()
+
+	var/default_display_name = initial(display_name) || display_name || initial(name) || name
+	if(!length(new_list))
+		display_name = default_display_name
+		return
+
+	display_name = get_declented_value(new_list, NOMINATIVE, default_display_name)
+// SS220 EDIT - END
+
 
 /obj/limb/Initialize(mapload, obj/limb/P, mob/mob_owner)
 	. = ..()

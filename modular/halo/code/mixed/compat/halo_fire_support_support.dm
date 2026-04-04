@@ -178,7 +178,9 @@
 		if(!(entry.gm_label in data["ordnance_options"]))
 			data["ordnance_options"] += entry.gm_label
 
-	data["custom_ordnance_sections"] = build_halo_custom_ordnance_sections()
+	var/list/custom_sections = data["custom_ordnance_sections"]
+	for(var/list/section as anything in build_halo_custom_ordnance_sections())
+		custom_sections += list(section)
 	return .
 
 /datum/fire_support_menu/resolve_custom_fire_support(selected_ordnance)

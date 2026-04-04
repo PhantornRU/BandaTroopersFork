@@ -12,6 +12,7 @@
 #include "code/telephone/phone.dm"
 #include "code/translate_dirs.dm"
 #include "code/translate_emotes.dm"
+#include "code/personal_names.dm"
 #include "code/translate_preferences.dm"
 #include "code/translate_verbs.dm"
 

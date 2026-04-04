@@ -1439,6 +1439,14 @@
 /mob/living/carbon/human/yiren/Initialize(mapload)
 	. = ..(mapload, new_species = "Yiren")
 
+// SS220 EDIT - START: expose HALO covenant species as direct human subtype spawns for admin create-object/Create Human flows
+/mob/living/carbon/human/sangheili/Initialize(mapload)
+	. = ..(mapload, new_species = SPECIES_SANGHEILI)
+
+/mob/living/carbon/human/unggoy/Initialize(mapload)
+	. = ..(mapload, new_species = SPECIES_UNGGOY)
+// SS220 EDIT - END
+
 /mob/living/carbon/human/synthetic/Initialize(mapload)
 	. = ..(mapload, SYNTH_GEN_THREE)
 

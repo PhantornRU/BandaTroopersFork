@@ -8,7 +8,12 @@
 
 /datum/modpack/game_rule_panel/initialize()
 	. = ..()
+	RegisterSignal(SSdcs, COMSIG_GLOB_MODE_PREGAME_LOBBY, PROC_REF(handle_pregame_lobby))
+
+/datum/modpack/game_rule_panel/proc/handle_pregame_lobby(subsystem)
+	SIGNAL_HANDLER
+
+	GLOB.game_rule_state?.reset_player_survival_for_new_round()
 
 /datum/modpack/game_rule_panel/post_initialize()
 	. = ..()
-

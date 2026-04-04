@@ -541,6 +541,7 @@
 	default_ammo = /datum/ammo/energy/plasma
 	gun_type = /obj/item/weapon/gun/XM99
 
+
 // The "round-remover" power/fuel cell for the XM99
 /obj/item/ammo_magazine/plasma/gibber
 	name = "\improper XM99A1 lithium battery drum"
@@ -554,6 +555,7 @@
 
 /obj/item/ammo_magazine/rifle/sharp
 	name = "sharp rifle magazine"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/1218_uscm.dmi'
 	icon_state = "sharp_explosive_mag"
 	item_state = "sharprifle"
 

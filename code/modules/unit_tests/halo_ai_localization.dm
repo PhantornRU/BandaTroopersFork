@@ -92,6 +92,25 @@
 			TEST_ASSERT(islist(actual_lines), "[faction_name] did not expose a list for [key].")
 			assert_human_ai_localized_lines(actual_lines, "[faction_name] [key]")
 
+// SS220 EDIT - START: verify HALO bonus speech packs reach covenant brains through the shared localization apply path
+/datum/unit_test/halo_ai_localization_halo_bonus_profiles
+	parent_type = /datum/unit_test/halo_ai_localization
+
+/datum/unit_test/halo_ai_localization_halo_bonus_profiles/Run()
+	var/datum/human_ai_brain/sangheili_brain = create_human_ai_brain_for_faction(FACTION_COVENANT)
+	TEST_ASSERT_NOTNULL(sangheili_brain, "Failed to create a HALO covenant brain for Sangheili speech-profile testing.")
+	halo_ai_apply_sangheili_speech_profile(sangheili_brain, JOB_COV_MAJOR, TRUE)
+	TEST_ASSERT("Клинок поёт." in sangheili_brain.enter_combat_lines, "Sangheili sword bonus lines were not appended to enter_combat_lines.")
+	TEST_ASSERT("По моему слову, держать строй." in sangheili_brain.enter_combat_lines, "Sangheili rank bonus lines were not appended to enter_combat_lines.")
+	TEST_ASSERT("Клинок готов." in sangheili_brain.reload_lines, "Sangheili sword bonus reload lines were not appended.")
+
+	var/datum/human_ai_brain/unggoy_brain = create_human_ai_brain_for_faction(FACTION_COVENANT)
+	TEST_ASSERT_NOTNULL(unggoy_brain, "Failed to create a HALO covenant brain for Unggoy speech-profile testing.")
+	halo_ai_apply_unggoy_speech_profile(unggoy_brain, "support")
+	TEST_ASSERT("Я ещё вас подниму!" in unggoy_brain.enter_combat_lines, "Unggoy role bonus lines were not appended to enter_combat_lines.")
+	TEST_ASSERT("Сейчас залатаю!" in unggoy_brain.need_healing_lines, "Unggoy role bonus lines were not appended to need_healing_lines.")
+// SS220 EDIT - END
+
 /datum/unit_test/halo_ai_localization_brain_fallback
 	parent_type = /datum/unit_test/halo_ai_localization
 

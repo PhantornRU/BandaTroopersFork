@@ -100,8 +100,10 @@
 
 			//
 			selected_equipment = preset_data["selected_equipment"]
-			selected_faction = preset_data["selected_faction"]
-			species = preset_data["species_selected"]
+			// selected_faction = preset_data["selected_faction"]
+			selected_faction = preset_data["faction"] // SS220 EDIT: restore the remembered faction key from the live preset payload
+			// species = preset_data["species_selected"]
+			species = preset_data["species"] // SS220 EDIT: preserve preset species names for GM click-spawn state rehydration
 
 			break
 	data["viewing_faction"] = viewing_faction
@@ -291,7 +293,7 @@
 				arm_equipment(ai_human, gotten_path, randomise_appearance, FALSE, mob_client = ai_human.client)
 				var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
 				var/expected_species = assigned_preset?.expected_species
-				if(expected_species && ai_human.species?.name != expected_species)
+				if(expected_species && ai_human.species?.group != expected_species && ai_human.species?.name != expected_species) // SS220 EDIT: accept canonical HALO species ids through group as well as species.name
 					ai_human.set_species(expected_species)
 				if(selected_equipment == "No Weapons")
 					ai_human.strip_weapons()
@@ -338,7 +340,8 @@
 						qdel(ai_human.head)
 						qdel(ai_human.glasses)
 						qdel(ai_human.wear_mask)
-				if(species != ai_human.species?.name) //might be redundant
+				// if(species != ai_human.species?.name) //might be redundant
+				if(species && species != ai_human.species?.name) // SS220 EDIT: skip empty overrides so preset species do not fall back to Human
 					ai_human.set_species(species)
 					if(issynth(ai_human))
 						ai_human.set_skills(/datum/skills/synthetic)

@@ -1,0 +1,8 @@
+/datum/skills/combat_medic/odst
+	name = "ODST Corpsman"
+	skills = list(
+		SKILL_MEDICAL = SKILL_MEDICAL_MASTER,
+		SKILL_ENDURANCE = SKILL_ENDURANCE_TRAINED,
+		SKILL_SURGERY = SKILL_SURGERY_EXPERT,
+		SKILL_JTAC = SKILL_JTAC_BEGINNER,
+	)

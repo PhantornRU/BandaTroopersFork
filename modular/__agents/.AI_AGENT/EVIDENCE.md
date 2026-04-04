@@ -1,84 +1,35 @@
 # EVIDENCE
 
-## 2026-03-28
+## E-001: Исходное состояние
+- Активная ветка на старте фикса: `another_halo_fixes_wave`.
+- `git status --short --branch` показал чистое рабочее дерево.
 
-### Local architecture inspected
-- `modular/modular.dme`
-- `modular/arachnid/_arachnid.dme`
-- `modular/arachnid/code/arachnid.dm`
-- `modular/arachnid/code/arachnid_base.dm`
-- `modular/arachnid/code/sound/arachnid_sound_hooks.dm`
-- `modular/arachnid/code/caste/arachnid_warrior.dm`
-- `modular/arachnid/code/caste/arachnid_bombardier.dm`
-- `modular/arachnid/code/caste/arachnid_movement.dm`
-- `code/modules/mob/living/carbon/xenomorph/Xenomorph.dm`
-- `code/modules/mob/living/carbon/xenomorph/update_icons.dm`
-- `code/modules/mob/living/carbon/xenomorph/death.dm`
-- `code/modules/mob/living/carbon/xenomorph/say.dm`
-- `code/modules/mob/living/carbon/xenomorph/ai/xeno_ai.dm`
-- `code/modules/mob/living/carbon/xenomorph/castes/caste_datum.dm`
-- `code/controllers/subsystem/minimap.dm`
-- Representative caste files:
-  - `Runner.dm`
-  - `Warrior.dm`
-  - `Spitter.dm`
-  - `Queen.dm`
+## E-002: Подтвержденная первопричина
+- `setup_species()` в `code/_globalvars/global_lists.dm` индексирует species datums по `all_species[S.name]`.
+- `set_species()` в `code/modules/mob/living/carbon/human/human.dm` делает lookup через `GLOB.all_species[new_species]` и fallback'ом уходит в `Human`, если ключ не найден.
+- HALO species datums были изменены на `name = "Сангхейли"` и `name = "Унггой"`, из-за чего lookup по `SPECIES_SANGHEILI`/`SPECIES_UNGGOY` перестал находить нужные datums.
 
-### Key local findings
-- `modular/arachnid` is the closest structural reference for a modular xeno subtype with custom sound integration.
-- Base xeno lifecycle already calls `recalculate_everything()`, `update_icon_source()`, minimap marker creation, and modular sound hooks during initialization.
-- Current xeno icon updates are heavily string/state driven and may need a small adapter for fully dynamic pony composites.
-- Minimap markers can accept custom images through caste datum `get_minimap_icon()`, so pony minimap visuals can stay modular.
-- Existing upstream hooks already cover modular say/spawn/death sounds through xeno methods added by arachnid integration.
+## E-003: Fallout по спавну и экипировке
+- HALO gear presets (`modular/halo/code/modules/gear_presets/Halo/{sangheili,unggoy}.dm`) по-прежнему вызывают `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)`.
+- После failed species lookup такие мобы падали в `Human`, а covenant clothing restrictions переставали пропускать HALO экипировку, что проявлялось как спавн голого человека.
 
-## 2026-03-28
+## E-004: Create Human / direct subtype surface
+- В `code/modules/mob/living/carbon/human/human.dm` уже существуют прямые subtype initializers вроде `/mob/living/carbon/human/synthetic/Initialize(mapload)`.
+- Для Sangheili/Unggoy таких subtype path'ов не было, поэтому прямой human subtype spawn для админских create-object/create-human flow отсутствовал.
 
-### Additional local architecture inspected for admin spawn integration
-- `code/game/jobs/role_authority.dm`
-- `code/modules/admin/tabs/event_tab.dm`
-- `code/modules/admin/topic/topic_events.dm`
-- `code/modules/admin/game_master/game_master.dm`
-- `code/modules/admin/game_master/game_master_submenu/ambush.dm`
-- `code/__DEFINES/bandamarines/arachnid.dm`
-- `colonialmarines.dme`
+## E-005: Blood contract
+- `sangheili.dm` и `unggoy.dm` уже задают `blood_color = BLOOD_COLOR_SANGHEILI|BLOOD_COLOR_UNGGOY` и в `handle_post_spawn()` переводят `blood_type` на `S*`.
+- Симптом с красной человеческой кровью согласуется с fallback-спавном в `Human`, а не с отсутствием species-side blood definitions.
 
-### Key admin integration findings
-- `Create Xenos`, Game Master click-spawn, and GM ambush spawning all resolve caste names through `GLOB.RoleAuthority.get_caste_by_text()`.
-- The arachnid integration pattern is three-part:
-  - caste-name defines included from `colonialmarines.dme`
-  - `RoleAuthority.get_caste_by_text()` mappings
-  - inclusion in admin-facing spawnable-xeno lists
-- Matching that pattern is enough to surface new modular xeno subtypes in the existing admin spawn flows without inventing pony-specific panel code.
+## E-006: Реализация фикса
+- HALO species datums переведены обратно на canonical `name = SPECIES_SANGHEILI|SPECIES_UNGGOY`, а локализованные названия вынесены в explicit display-layer.
+- В `human.dm` добавлены subtype initializers `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- HALO compat/TTS/helper paths переведены на более безопасное использование `species.group` там, где это уместно для HALO species contract.
 
-## 2026-03-28
-
-### Verification performed
-- `git diff --check`
-- `./tools/build/build.bat --ci dm -DCIBUILDING -DANSICOLORS -Werror`
-
-### Key verification findings
-- The pony-xeno branch compiles cleanly after the admin spawn integration and icon-pack refactor.
-- `git diff --check` is clean after the sprite generation rewrite.
-- The previous runtime risk area around `pack.Insert()` is now isolated behind single-direction generated icons and named-argument insertion.
-
-## 2026-03-28
-
-### External reference material collected
-- tgstation pony asset/species PR: `https://github.com/tgstation/tgstation/pull/90387`
-- supplemental pony flavor PR: `https://github.com/tgstation/tgstation/pull/90517`
-- downloaded / inspected reference files:
-  - `icons/mob/human/species/pony/bodyparts.dmi`
-  - `icons/mob/clothing/pony_template.dmi`
-  - `code/datums/greyscale/json_configs/pony/1_color.json`
-  - `code/datums/greyscale/json_configs/pony/2_color.json`
-  - `code/datums/greyscale/json_configs/pony/3_color.json`
-  - `code/datums/greyscale/json_configs/pony/no_color.json`
-  - `code/modules/mob/living/carbon/human/species_types/pony.dm`
-  - `code/modules/surgery/bodyparts/species_parts/pony_bodyparts.dm`
-  - `code/modules/language/ponish.dm`
-  - `strings/names/pony.txt`
-
-### Key external findings
-- The tgstation pony reference cleanly separates pony presentation into body-part driven overlays such as tail, horn, wings, and cutie mark.
-- Pony naming/flavor is already backed by themed multi-word names that can be repurposed for hostile pony xeno designations.
-- The clothing/template JSON files confirm that a palette-and-layer-driven pipeline is appropriate for the requested appearance system.
+## E-007: Проверки
+- `git diff --check`: passed.
+- `BUILD.cmd`: ранее выполнил полноценный compile с `0 errors, 0 warnings`; повторный вызов после этого уже скипал `dm` как up-to-date.
+- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: test DME compile passed (`colonialmarines.test.dmb - 0 errors, 0 warnings`).
+- По `data/unit_tests.json` наши новые проверки `/datum/unit_test/halo_tts_species_defaults`, `/datum/unit_test/halo_tts_preset_defaults`, `/datum/unit_test/halo_tts_species_subtypes` и существующие HALO `halo_unggoy_ai*` прошли со статусом `0`.
+- Финальный wrapper-exit у `dm-test` остался красным из-за уже существующих нерелевантных падений: `/datum/unit_test/medical_regressions`, `/datum/unit_test/missing_icons`, `/datum/unit_test/check_runtimes`.
+- Попытка принудительного `tools/build/build clean dm ...` уткнулась в Windows file lock (`EBUSY` на `colonialmarines.dyn.rsc`), поэтому отдельный clean-rebuild именно последней однострочной правки не завершён через juke-clean path.

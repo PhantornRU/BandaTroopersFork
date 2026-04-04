@@ -1,5 +1,19 @@
+/proc/is_pelican_observer_view_turf(turf/target_turf)
+	return istype(target_turf, /turf/open/shuttle/pelican)
+
 /datum/roof_master_node/pelican
 	var/list/observers_under = list()
+
+/datum/roof_master_node/pelican/proc/is_view_turf_within_cover(turf/target_turf)
+	if(!is_pelican_observer_view_turf(target_turf))
+		return FALSE
+
+	var/area/target_area = get_area(target_turf)
+	for(var/obj/effect/roof_node/pelican/roof_node as anything in connected_nodes)
+		if(get_area(roof_node) == target_area)
+			return TRUE
+
+	return FALSE
 
 /datum/roof_master_node/pelican/Destroy(force, ...)
 	for(var/mob/dead/observer/ghost as anything in observers_under.Copy())
@@ -40,6 +54,8 @@
 
 /datum/roof_master_node/pelican/proc/check_observer_under_roof(mob/dead/observer/ghost, turf/target_turf)
 	SIGNAL_HANDLER
+	if(is_view_turf_within_cover(target_turf))
+		return
 	for(var/obj/effect/roof_node/roof in connected_nodes)
 		if(target_turf == roof.loc)
 			return

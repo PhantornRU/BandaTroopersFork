@@ -211,6 +211,8 @@
 	var/list/snapshot_roles_for_mode = null
 	var/list/snapshot_personal_closets = null
 	var/list/snapshot_custom_items = null
+	var/list/snapshot_spawns_by_job = null
+	var/list/snapshot_spawns_by_squad_and_job = null
 	var/list/snapshot_latejoin = null
 	var/list/snapshot_latejoin_by_squad = null
 	var/list/snapshot_latejoin_by_job = null
@@ -243,6 +245,8 @@
 
 	snapshot_personal_closets = GLOB.personal_closets ? GLOB.personal_closets.Copy() : list()
 	snapshot_custom_items = GLOB.custom_items ? GLOB.custom_items.Copy() : list()
+	snapshot_spawns_by_job = GLOB.spawns_by_job ? GLOB.spawns_by_job.Copy() : list()
+	snapshot_spawns_by_squad_and_job = GLOB.spawns_by_squad_and_job ? GLOB.spawns_by_squad_and_job.Copy() : list()
 	snapshot_latejoin = GLOB.latejoin ? GLOB.latejoin.Copy() : list()
 	snapshot_latejoin_by_squad = GLOB.latejoin_by_squad ? GLOB.latejoin_by_squad.Copy() : list()
 	snapshot_latejoin_by_job = GLOB.latejoin_by_job ? GLOB.latejoin_by_job.Copy() : list()
@@ -288,6 +292,8 @@
 
 	GLOB.personal_closets = snapshot_personal_closets ? snapshot_personal_closets.Copy() : list()
 	GLOB.custom_items = snapshot_custom_items ? snapshot_custom_items.Copy() : list()
+	GLOB.spawns_by_job = snapshot_spawns_by_job ? snapshot_spawns_by_job.Copy() : list()
+	GLOB.spawns_by_squad_and_job = snapshot_spawns_by_squad_and_job ? snapshot_spawns_by_squad_and_job.Copy() : list()
 	GLOB.latejoin = snapshot_latejoin ? snapshot_latejoin.Copy() : list()
 	GLOB.latejoin_by_squad = snapshot_latejoin_by_squad ? snapshot_latejoin_by_squad.Copy() : list()
 	GLOB.latejoin_by_job = snapshot_latejoin_by_job ? snapshot_latejoin_by_job.Copy() : list()
@@ -650,3 +656,158 @@
 
 	TEST_ASSERT(!sangheili_helmet.mob_can_equip(human, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing unexpectedly allowed a human wearer after the HALO clothing compat change.")
 	TEST_ASSERT(sangheili_helmet.mob_can_equip(sangheili, WEAR_HEAD, TRUE), "Species-restricted Sangheili clothing no longer allows the intended Sangheili wearer after the HALO clothing compat change.")
+
+// SS220 EDIT - START: cover HALO medic routing/vendor access and player-side locker claims
+/datum/unit_test/halo_ship_platoons_halo_medic_fireteam_assignment
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_halo_medic_fireteam_assignment/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/datum/squad/alpha_squad = GLOB.RoleAuthority?.squads_by_type[/datum/squad/marine/halo/unsc/alpha]
+	TEST_ASSERT_NOTNULL(alpha_squad, "Failed to resolve the HALO UNSC Alpha squad for medic routing testing.")
+
+	var/mob/living/carbon/human/medic_one = create_test_human("HALO Medic One", JOB_SQUAD_MEDIC_UNSC)
+	arm_equipment(medic_one, /datum/equipment_preset/unsc/medic, FALSE, TRUE)
+	var/obj/item/card/id/medic_one_id = medic_one.get_idcard()
+	TEST_ASSERT_NOTNULL(medic_one_id, "Failed to prepare an ID card for the first HALO medic routing test.")
+	TEST_ASSERT(alpha_squad.put_marine_in_squad(medic_one, medic_one_id), "Failed to place the first HALO medic into the squad for routing testing.")
+	TEST_ASSERT_EQUAL(medic_one.assigned_fireteam, "SQ1", "The first HALO medic was not assigned to SQ1.")
+	TEST_ASSERT(medic_one_id.access.Find(alpha_squad.squad_one_access), "The first HALO medic did not receive SQ1 access.")
+
+	var/mob/living/carbon/human/medic_two = create_test_human("HALO Medic Two", JOB_SQUAD_MEDIC_UNSC)
+	arm_equipment(medic_two, /datum/equipment_preset/unsc/medic, FALSE, TRUE)
+	var/obj/item/card/id/medic_two_id = medic_two.get_idcard()
+	TEST_ASSERT_NOTNULL(medic_two_id, "Failed to prepare an ID card for the second HALO medic routing test.")
+	TEST_ASSERT(alpha_squad.put_marine_in_squad(medic_two, medic_two_id), "Failed to place the second HALO medic into the squad for routing testing.")
+	TEST_ASSERT_EQUAL(medic_two.assigned_fireteam, "SQ2", "The second HALO medic was not assigned to SQ2.")
+	TEST_ASSERT(medic_two_id.access.Find(alpha_squad.squad_two_access), "The second HALO medic did not receive SQ2 access.")
+
+/datum/unit_test/halo_ship_platoons_halo_medic_vendor_roles
+	parent_type = /datum/unit_test/halo_contract_test
+
+/datum/unit_test/halo_ship_platoons_halo_medic_vendor_roles/Run()
+	var/obj/structure/machinery/cm_vending/clothing/medic/unsc/clothing_vendor = allocate(/obj/structure/machinery/cm_vending/clothing/medic/unsc, run_loc_floor_top_right)
+	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chemical_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, run_loc_floor_top_right)
+
+	TEST_ASSERT(clothing_vendor.vendor_role.Find(JOB_SQUAD_MEDIC), "HALO medic clothing vendor lost base medic access.")
+	TEST_ASSERT(clothing_vendor.vendor_role.Find(JOB_SQUAD_MEDIC_UNSC), "HALO medic clothing vendor does not accept UNSC corpsmen.")
+	TEST_ASSERT(clothing_vendor.vendor_role.Find(JOB_SQUAD_MEDIC_ODST), "HALO medic clothing vendor does not accept ODST corpsmen.")
+
+	TEST_ASSERT(chemical_vendor.vendor_role.Find(JOB_SQUAD_MEDIC), "HALO medic chemical vendor lost base medic access.")
+	TEST_ASSERT(chemical_vendor.vendor_role.Find(JOB_SQUAD_MEDIC_UNSC), "HALO medic chemical vendor does not accept UNSC corpsmen.")
+	TEST_ASSERT(chemical_vendor.vendor_role.Find(JOB_SQUAD_MEDIC_ODST), "HALO medic chemical vendor does not accept ODST corpsmen.")
+
+	var/has_biofoam = FALSE
+	for(var/list/entry as anything in GLOB.cm_vending_chemical_medic_halo)
+		if(entry[1] == "halo medical bottle (biofoam)" && entry[3] == /obj/item/reagent_container/glass/beaker/unsc/biofoam)
+			has_biofoam = TRUE
+			break
+
+	TEST_ASSERT(has_biofoam, "HALO medic chemical vendor list no longer includes a biofoam medical bottle.")
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_claims
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_claims/Run()
+	var/mob/living/carbon/human/spec = create_test_human("HALO Locker Spec", JOB_SQUAD_SPECIALIST_UNSC)
+	spec.mind = new /datum/mind("halo_locker_spec", "halo_locker_spec")
+	var/obj/item/card/id/spec_id = allocate(/obj/item/card/id)
+	spec_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE)
+	spec.equip_to_slot(spec_id, WEAR_ID, TRUE)
+
+	TEST_ASSERT(spec.claim_halo_job_locker(), "Failed to claim the HALO job locker on the player side.")
+	TEST_ASSERT(spec.has_claimed_halo_job_locker(), "Player-side HALO job locker claim was not persisted.")
+	TEST_ASSERT(spec.get_halo_job_locker_claim_holder() == spec.mind, "HALO job locker claim was not stored on the mind when a mind was available.")
+
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/locker = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, run_loc_floor_top_right)
+	var/contents_before = length(locker.contents)
+	locker.togglelock(spec)
+	TEST_ASSERT_EQUAL(length(locker.contents), contents_before, "A claimed HALO player was still able to trigger a second HALO job locker.")
+
+	var/mob/living/carbon/human/fallback_spec = create_test_human("HALO Locker Fallback Spec", JOB_SQUAD_SPECIALIST_UNSC)
+	fallback_spec.mind = null
+	var/obj/item/card/id/fallback_id = allocate(/obj/item/card/id)
+	fallback_id.access = list(ACCESS_MARINE_SPECPREP)
+	fallback_spec.equip_to_slot(fallback_id, WEAR_ID, TRUE)
+
+	TEST_ASSERT(fallback_spec.claim_halo_job_locker(), "Failed to claim the HALO job locker on the mob fallback path.")
+	TEST_ASSERT(fallback_spec.has_claimed_halo_job_locker(), "Mob fallback HALO job locker claim was not persisted.")
+	TEST_ASSERT(fallback_spec.get_halo_job_locker_claim_holder() == fallback_spec, "HALO job locker fallback claim was not stored on the mob when no mind was available.")
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_owner_binding
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_halo_job_locker_owner_binding/Run()
+	var/mob/living/carbon/human/spec_one = create_test_human("HALO Locker Spec One", JOB_SQUAD_SPECIALIST_UNSC)
+	spec_one.mind = new /datum/mind("halo_locker_spec_one", "halo_locker_spec_one")
+	var/obj/item/card/id/spec_one_id = allocate(/obj/item/card/id)
+	spec_one_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE)
+	spec_one.equip_to_slot(spec_one_id, WEAR_ID, TRUE)
+
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1/locker_one = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft1, run_loc_floor_top_right)
+	TEST_ASSERT(locker_one.claim_selected_kit(spec_one, /obj/item/storage/unsc_speckit/spnkr), "Failed to bind a HALO specialist locker to the first specialist.")
+	TEST_ASSERT(spec_one.has_claimed_halo_job_locker(), "Claiming a HALO specialist locker did not persist the first specialist claim.")
+	TEST_ASSERT(locker_one.get_claim_holder() == spec_one.mind, "The first specialist locker was not bound to the claimant's mind.")
+	TEST_ASSERT(locate(/obj/item/storage/unsc_speckit/spnkr) in get_turf(locker_one), "The selected HALO specialist kit was not dumped onto the locker turf after the locker auto-opened.")
+	TEST_ASSERT(!locker_one.locked, "Claiming a HALO specialist locker should auto-unlock it.")
+	TEST_ASSERT(locker_one.opened, "Claiming a HALO specialist locker should auto-open it.")
+
+	var/mob/living/carbon/human/spec_two = create_test_human("HALO Locker Spec Two", JOB_SQUAD_SPECIALIST_UNSC)
+	spec_two.mind = new /datum/mind("halo_locker_spec_two", "halo_locker_spec_two")
+	var/obj/item/card/id/spec_two_id = allocate(/obj/item/card/id)
+	spec_two_id.access = list(ACCESS_MARINE_SPECPREP, ACCESS_SQUAD_ONE, ACCESS_SQUAD_TWO)
+	spec_two.equip_to_slot(spec_two_id, WEAR_ID, TRUE)
+
+	locker_one.attack_hand(spec_two)
+	TEST_ASSERT(locker_one.opened, "A second specialist was able to close another player's claimed HALO locker.")
+
+	var/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2/locker_two = allocate(/obj/structure/closet/secure_closet/halo/job_locker/weapons_spec/ft2, run_loc_floor_top_right)
+	TEST_ASSERT(locker_two.claim_selected_kit(spec_two, /obj/item/storage/unsc_speckit/srs99), "A second specialist could not claim their own HALO locker after the first specialist claimed a different one.")
+	TEST_ASSERT(spec_two.has_claimed_halo_job_locker(), "The second specialist claim was not persisted on their own HALO locker.")
+
+/datum/unit_test/halo_ship_platoons/halo_squad_armory_button_access
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/halo_squad_armory_button_access/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/obj/structure/machinery/door_control/squad_armory/bravo/button = allocate(/obj/structure/machinery/door_control/squad_armory/bravo, run_loc_floor_top_right)
+	TEST_ASSERT_NOTNULL(button, "Failed to allocate the HALO squad armory button for access testing.")
+
+	var/datum/squad/bravo_squad = button.get_target_squad()
+	TEST_ASSERT_NOTNULL(bravo_squad, "The HALO squad armory button did not resolve its Bravo squad target.")
+	bravo_squad.usable = TRUE
+
+	var/mob/living/carbon/human/so_human = create_test_human("HALO Armory SO", JOB_SO_UNSC)
+	TEST_ASSERT(button.allowed(so_human), "A HALO platoon commander should be allowed to open an available squad armory button.")
+
+	var/mob/living/carbon/human/bravo_leader = create_test_human("HALO Bravo Leader", JOB_SQUAD_LEADER_UNSC, /datum/squad/marine/halo/unsc/bravo)
+	TEST_ASSERT(button.allowed(bravo_leader), "The matching HALO squad leader should be allowed to open their squad armory button.")
+
+	var/mob/living/carbon/human/alpha_leader = create_test_human("HALO Alpha Leader", JOB_SQUAD_LEADER_UNSC, /datum/squad/marine/halo/unsc/alpha)
+	TEST_ASSERT(!button.allowed(alpha_leader), "A different HALO squad leader should not be allowed to open another squad's armory button.")
+
+	bravo_squad.usable = FALSE
+
+	var/mob/living/carbon/human/captain_human = create_test_human("HALO Armory Captain", JOB_CO)
+	var/obj/item/card/id/captain_id = allocate(/obj/item/card/id)
+	captain_id.access = list(ACCESS_MARINE_CO)
+	captain_human.equip_to_slot(captain_id, WEAR_ID, TRUE)
+	var/mob/living/carbon/human/colonel_human = create_test_human("HALO Armory Colonel", JOB_COLONEL)
+
+	TEST_ASSERT(button.allowed(captain_human), "Captain access should be able to open an unavailable squad armory button.")
+	TEST_ASSERT(button.allowed(colonel_human), "A high-command role above the commanding officer should be able to open an unavailable squad armory button.")
+	TEST_ASSERT(!button.allowed(so_human), "A HALO platoon commander should not bypass the captain-only fallback on an unavailable squad armory button.")
+	TEST_ASSERT(!button.allowed(bravo_leader), "A HALO squad leader should not bypass the captain-only fallback on an unavailable squad armory button.")
+
+/datum/unit_test/halo_ship_platoons/halo_platoon_commander_lockers_include_command_uniform
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/halo_platoon_commander_lockers_include_command_uniform/Run()
+	var/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander/unsc_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/unsc/platoon_commander, run_loc_floor_top_right)
+	var/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander/odst_locker = allocate(/obj/structure/closet/secure_closet/marine_personal/odst/platoon_commander, run_loc_floor_bottom_left)
+
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(unsc_locker, /obj/item/clothing/under/marine/crew/command), 1, "The UNSC platoon commander locker should contain the HALO command uniform.")
+	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(odst_locker, /obj/item/clothing/under/marine/crew/command), 1, "The ODST platoon commander locker should contain the HALO command uniform.")
+// SS220 EDIT - END

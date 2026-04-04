@@ -12,6 +12,28 @@
 	var/list/role_rank_tokens // SS220 EDIT: squad-owned rank icon contract replaces marine-specific runtime switch
 	var/list/role_comm_restore_titles // SS220 EDIT: squad-owned comm-title restoration contract avoids hardcoded marine strings
 
+// SS220 EDIT - START: HALO role lockers track claims on the player, not on a single locker instance
+/datum/mind // SS220 EDIT: HALO role lockers must persist a per-player claim across multiple lockers
+	var/tmp/halo_job_locker_claimed = FALSE
+
+/mob/living/carbon/human // SS220 EDIT: fallback locker claim holder when a HALO player temporarily has no mind datum
+	var/tmp/halo_job_locker_claimed = FALSE
+
+/mob/living/carbon/human/proc/get_halo_job_locker_claim_holder()
+	return mind || src
+
+/mob/living/carbon/human/proc/has_claimed_halo_job_locker()
+	if(mind)
+		return !!mind.halo_job_locker_claimed
+	return !!halo_job_locker_claimed
+
+/mob/living/carbon/human/proc/claim_halo_job_locker()
+	halo_job_locker_claimed = TRUE
+	if(mind)
+		mind.halo_job_locker_claimed = TRUE
+	return TRUE
+// SS220 EDIT - END
+
 /datum/squad_type/marine_squad
 	name = "Section"
 	lead_name = "Squad Leader" // SS220 EDIT
@@ -818,6 +840,9 @@
 			assignment = JOB_SQUAD_MEDIC
 			num_medics++
 			C.claimedgear = FALSE
+			// SS220 EDIT: HALO medics need a fireteam assignment so squad-scoped vendors and access checks resolve correctly.
+			var/squad_number = (num_medics > 2) ? pick(1, 2) : num_medics
+			assign_fireteam("SQ[squad_number]", M)
 		if(JOB_SQUAD_SPECIALIST)
 			assignment = JOB_SQUAD_SPECIALIST
 			num_specialists++

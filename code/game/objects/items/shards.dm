@@ -265,8 +265,8 @@
 /obj/item/sharp
 	name = "sharp dart shrapnel"
 	desc = "It looks like a used 9X-E Sticky Explosive Dart, useless now."
-	icon = 'icons/obj/items/weapons/projectiles.dmi'
-	icon_state = "sonicharpoon"
+	icon = 'icons/obj/items/weapons/1218_projectiles.dmi'
+	icon_state = "sharp_explosive_dart"
 	sharp = IS_SHARP_ITEM_BIG
 	w_class = SIZE_SMALL
 	edge = TRUE
