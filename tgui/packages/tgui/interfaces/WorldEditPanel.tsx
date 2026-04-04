@@ -200,9 +200,26 @@ type PageDefinition = {
   icon: string;
 };
 
+type PageId = PageDefinition['id'];
+
 type WorkflowState = {
   label: string;
   description: string;
+  color?: string;
+};
+
+type PageBanner = {
+  sectionTitle: string;
+  title: string;
+  accent: string;
+  description: string;
+  color?: string;
+  tiles: SummaryTile[];
+};
+
+type PreviewState = {
+  label: string;
+  message: string;
   color?: string;
 };
 
@@ -396,43 +413,166 @@ const getWorkflowState = (data: BackendData): WorkflowState => {
   };
 };
 
-const buildContextTiles = (data: BackendData): SummaryTile[] => {
-  const tiles: SummaryTile[] = [
-    {
-      label: 'Генератор',
-      value: data.current_generator_name || 'не выбран',
-    },
-    {
-      label: 'Preview',
-      value: data.preview_valid ? 'готов' : 'idle',
-      color: data.preview_valid ? 'good' : 'label',
-    },
-    {
-      label: 'Размещение',
-      value: data.click_mode_active ? 'active' : 'off',
-      color: data.click_mode_active ? 'good' : 'label',
-    },
-    {
-      label: 'Форма',
-      value: data.has_generator
-        ? `${data.placement_shape || 'n/a'} / ${data.placement_mode || 'n/a'}`
-        : 'n/a',
-    },
-    {
-      label: 'История',
-      value: `${data.history_entries?.length || 0} ops`,
-      color: data.history_entries?.length ? 'good' : 'label',
-    },
-  ];
-
-  if (data.active_blueprint_id) {
-    tiles.splice(4, 0, {
-      label: 'Blueprint',
-      value: data.active_blueprint_id,
-    });
+const getPreviewState = (data: BackendData): PreviewState => {
+  if (!data.has_generator) {
+    return {
+      label: 'n/a',
+      message: 'Сначала выберите генератор.',
+      color: 'label',
+    };
   }
 
-  return tiles;
+  if (data.preview_valid) {
+    return {
+      label: 'готов',
+      message:
+        data.preview_message ||
+        'Текущая конфигурация прошла preview и готова к apply.',
+      color: 'good',
+    };
+  }
+
+  if (data.preview_success) {
+    return {
+      label: 'проверен',
+      message:
+        data.preview_message ||
+        'Preview выполнен, но результат пока не готов к apply.',
+      color: 'average',
+    };
+  }
+
+  if (data.preview_message) {
+    return {
+      label: 'нет/ошибка',
+      message: data.preview_message,
+      color: 'average',
+    };
+  }
+
+  return {
+    label: 'не запускался',
+    message: 'Preview еще не запускался для текущей конфигурации.',
+    color: 'label',
+  };
+};
+
+const getPageBanner = (data: BackendData, page: PageId): PageBanner => {
+  const workflow = getWorkflowState(data);
+  const latestEntry = data.history_entries?.[0];
+
+  if (page === 'history') {
+    return {
+      sectionTitle: 'История сессии',
+      title: latestEntry?.generator_id || 'История операций',
+      accent: latestEntry ? 'Последний результат' : 'История пуста',
+      description:
+        latestEntry?.message ||
+        'Просмотр apply, undo и cleanup по текущей session.',
+      color: toneForHistoryResult(latestEntry?.result),
+      tiles: [
+        {
+          label: 'Записей',
+          value: `${data.history_entries?.length || 0}`,
+        },
+        {
+          label: 'Последний генератор',
+          value: latestEntry?.generator_id || 'none',
+        },
+        {
+          label: 'Последний результат',
+          value: latestEntry?.result || 'n/a',
+          color: toneForHistoryResult(latestEntry?.result),
+        },
+        {
+          label: 'Undo',
+          value: latestEntry?.undo_status || 'n/a',
+          color: latestEntry?.undo_status ? 'label' : 'label',
+        },
+      ],
+    };
+  }
+
+  if (page === 'browse') {
+    return {
+      sectionTitle: 'Выбор генератора',
+      title: data.current_generator_name || 'Генератор не выбран',
+      accent: data.has_generator ? 'Текущий выбор' : 'Выбор генератора',
+      description: data.has_generator
+        ? data.current_generator_description ||
+          'Выбранный генератор можно сразу открыть в рабочей станции.'
+        : 'Выберите ready-генератор, чтобы открыть рабочую станцию.',
+      color: data.has_generator
+        ? toneForGeneratorStatus(data.current_generator_status)
+        : 'label',
+      tiles: data.has_generator
+        ? [
+            {
+              label: 'Статус',
+              value: data.current_generator_status || 'n/a',
+              color: toneForGeneratorStatus(data.current_generator_status),
+            },
+            {
+              label: 'Preview',
+              value: boolText(data.current_generator_supports_preview),
+              color: data.current_generator_supports_preview ? 'good' : 'label',
+            },
+            {
+              label: 'Размещение',
+              value: boolText(
+                !!(
+                  data.placement_supported ||
+                  data.placement_shape_supported ||
+                  data.placement_supports_direction
+                ),
+              ),
+              color:
+                data.placement_supported ||
+                data.placement_shape_supported ||
+                data.placement_supports_direction
+                  ? 'good'
+                  : 'label',
+            },
+            {
+              label: 'История',
+              value: `${data.history_entries?.length || 0} ops`,
+              color: data.history_entries?.length ? 'good' : 'label',
+            },
+          ]
+        : [],
+    };
+  }
+
+  return {
+    sectionTitle: 'Рабочая станция',
+    title: data.current_generator_name || 'Генератор не выбран',
+    accent: workflow.label,
+    description: data.current_generator_description || workflow.description,
+    color: workflow.color,
+    tiles: [
+      {
+        label: 'Preview',
+        value: data.preview_valid ? 'готов' : 'idle',
+        color: data.preview_valid ? 'good' : 'label',
+      },
+      {
+        label: 'Размещение',
+        value: data.click_mode_active ? 'active' : 'off',
+        color: data.click_mode_active ? 'good' : 'label',
+      },
+      {
+        label: 'Форма',
+        value: data.has_generator
+          ? `${data.placement_shape || 'n/a'} / ${data.placement_mode || 'n/a'}`
+          : 'n/a',
+      },
+      {
+        label: 'История',
+        value: `${data.history_entries?.length || 0} ops`,
+        color: data.history_entries?.length ? 'good' : 'label',
+      },
+    ],
+  };
 };
 
 const SummaryTileGrid = (props: {
@@ -1170,9 +1310,18 @@ const GeneratorCatalogPage = (props: {
       <Stack.Item width="36%" ml={1}>
         <Section fill scrollable title="Карточка генератора">
           {!data.has_generator && (
-            <Box color="label">
-              Выберите генератор слева, чтобы открыть рабочую станцию.
-            </Box>
+            <>
+              <Box color="label" mb={1}>
+                Выберите генератор слева, чтобы открыть рабочую станцию.
+              </Box>
+              <Section title="Быстрый старт">
+                <Box>1. Выберите ready-генератор в каталоге слева.</Box>
+                <Box mt={0.5}>2. Откройте рабочую станцию.</Box>
+                <Box mt={0.5}>
+                  3. Настройте параметры, выполните preview и затем apply.
+                </Box>
+              </Section>
+            </>
           )}
 
           {!!data.has_generator && (
@@ -1277,6 +1426,7 @@ const WorkspaceActionRail = (props: {
 }) => {
   const { data, act, showPlacementSetup, onOpenHistory } = props;
   const workflow = getWorkflowState(data);
+  const previewState = getPreviewState(data);
   const previewBlockReason = getPreviewBlockReason(data);
   const applyBlockReason = getApplyBlockReason(data);
   const placementBlockReason = getPlacementBlockReason(data);
@@ -1321,7 +1471,7 @@ const WorkspaceActionRail = (props: {
               </ActionRow>
             </Section>
 
-            <Section title="Следующий шаг" mt={1}>
+            <Section title="Запуск и preview" mt={1}>
               <Box bold color={workflow.color || 'white'}>
                 {workflow.label}
               </Box>
@@ -1369,6 +1519,44 @@ const WorkspaceActionRail = (props: {
                   Apply: {applyBlockReason}
                 </Box>
               )}
+              <SummaryTileGrid
+                compact
+                items={[
+                  {
+                    label: 'Статус',
+                    value: previewState.label,
+                    color: previewState.color,
+                  },
+                  {
+                    label: 'Годен для apply',
+                    value: boolText(data.preview_valid),
+                    color: data.preview_valid ? 'good' : 'average',
+                  },
+                  {
+                    label: 'Blueprint',
+                    value: data.active_blueprint_id || 'none',
+                  },
+                ]}
+              />
+
+              <Box color={previewState.color || 'label'}>
+                {previewState.message}
+              </Box>
+
+              {!!data.preview_meta &&
+                !!Object.keys(data.preview_meta).length && (
+                  <Collapsible title="Метаданные preview" mt={1}>
+                    <SummaryTileGrid
+                      compact
+                      items={Object.entries(data.preview_meta).map(
+                        ([key, value]) => ({
+                          label: key,
+                          value: renderMetaValue(value),
+                        }),
+                      )}
+                    />
+                  </Collapsible>
+                )}
             </Section>
 
             {showPlacementSetup && (
@@ -1418,55 +1606,6 @@ const WorkspaceActionRail = (props: {
                   )}
               </Section>
             )}
-
-            <Section title="Состояние preview" mt={1}>
-              <SummaryTileGrid
-                compact
-                items={[
-                  {
-                    label: 'Статус',
-                    value: data.preview_success ? 'успех' : 'нет/ошибка',
-                    color: data.preview_success ? 'good' : 'average',
-                  },
-                  {
-                    label: 'Годен для apply',
-                    value: boolText(data.preview_valid),
-                    color: data.preview_valid ? 'good' : 'average',
-                  },
-                  {
-                    label: 'Blueprint',
-                    value: data.active_blueprint_id || 'none',
-                  },
-                ]}
-              />
-
-              <Box
-                color={
-                  data.preview_success
-                    ? 'good'
-                    : data.preview_valid
-                      ? 'average'
-                      : 'label'
-                }
-              >
-                {data.preview_message || 'Нет данных preview.'}
-              </Box>
-
-              {!!data.preview_meta &&
-                !!Object.keys(data.preview_meta).length && (
-                  <Collapsible title="Метаданные preview" mt={1}>
-                    <SummaryTileGrid
-                      compact
-                      items={Object.entries(data.preview_meta).map(
-                        ([key, value]) => ({
-                          label: key,
-                          value: renderMetaValue(value),
-                        }),
-                      )}
-                    />
-                  </Collapsible>
-                )}
-            </Section>
 
             <Section
               title="Сессия"
@@ -1579,8 +1718,8 @@ const WorkspaceActionRail = (props: {
               </Collapsible>
             </Section>
 
-            <Section title="Диагностика" mt={1}>
-              <Collapsible title="Текущие параметры">
+            <Collapsible title="Диагностика" mt={1}>
+              <Collapsible title="Текущие параметры" open>
                 <Box>{data.current_params_text || 'n/a'}</Box>
               </Collapsible>
 
@@ -1605,7 +1744,7 @@ const WorkspaceActionRail = (props: {
                   </LabeledList>
                 )}
               </Collapsible>
-            </Section>
+            </Collapsible>
           </>
         )}
       </Section>
@@ -1635,7 +1774,6 @@ const WorkspacePage = (props: {
     onOpenBrowse,
     onOpenHistory,
   } = props;
-  const workflow = getWorkflowState(data);
 
   return (
     <Stack fill>
@@ -1654,57 +1792,11 @@ const WorkspacePage = (props: {
 
           {!!data.has_generator && (
             <>
-              <Section title="Рабочий контекст">
-                <Box fontSize={1.2}>
-                  {data.current_generator_category} /{' '}
-                  {data.current_generator_name}
-                </Box>
-                <Box color="label">{data.current_generator_description}</Box>
-                <SummaryTileGrid
-                  items={[
-                    {
-                      label: 'Режим',
-                      value: data.current_generator_execution_mode || 'n/a',
-                    },
-                    {
-                      label: 'Права',
-                      value: data.current_generator_required_rights || 'n/a',
-                      color: 'label',
-                    },
-                    {
-                      label: 'Источник полей',
-                      value:
-                        data.ui_mode === 'inline'
-                          ? 'inline-поля'
-                          : 'мастер настройки',
-                    },
-                    {
-                      label: 'Preview нужен',
-                      value: boolText(data.requires_preview_before_apply),
-                      color: data.requires_preview_before_apply
-                        ? 'average'
-                        : 'good',
-                    },
-                  ]}
-                />
-              </Section>
-
-              <Section title="Текущий этап" mt={1}>
-                <Box bold color={workflow.color || 'white'}>
-                  {workflow.label}
-                </Box>
-                <Box color="label" mt={0.5}>
-                  {workflow.description}
-                </Box>
-              </Section>
-
               {!!data.last_ui_error && (
-                <NoticeBox danger mt={1}>
-                  {data.last_ui_error}
-                </NoticeBox>
+                <NoticeBox danger>{data.last_ui_error}</NoticeBox>
               )}
 
-              <Section title="Параметры генератора" mt={1}>
+              <Section title="Параметры генератора">
                 {!data.has_inline_fields && (
                   <Box color="label">
                     Этот генератор не отдает inline-поля. Используйте мастер
@@ -1879,64 +1971,65 @@ const HistoryPage = (props: {
   );
 };
 
-const WorkspaceHeader = (props: { readonly data: BackendData }) => {
-  const { data } = props;
-  const workflow = getWorkflowState(data);
+const WorkspaceHeader = (props: {
+  readonly data: BackendData;
+  readonly currentPage: PageId;
+}) => {
+  const { data, currentPage } = props;
+  const banner = getPageBanner(data, currentPage);
 
   return (
-    <Section title="Рабочий контекст">
-      <Box bold>{data.current_generator_name || 'Генератор не выбран'}</Box>
-      <Box color={workflow.color || 'label'} mt={0.5}>
-        {workflow.label}
+    <Section title={banner.sectionTitle}>
+      <Box bold>{banner.title}</Box>
+      <Box color={banner.color || 'label'} mt={0.5}>
+        {banner.accent}
       </Box>
       <Box color="label" mt={0.5}>
-        {data.current_generator_description || workflow.description}
+        {banner.description}
       </Box>
-      <SummaryTileGrid compact items={buildContextTiles(data)} />
+      {!!banner.tiles.length && (
+        <SummaryTileGrid compact items={banner.tiles} />
+      )}
     </Section>
   );
 };
 
 const Sidebar = (props: {
   readonly data: BackendData;
+  readonly currentPage: PageId;
   readonly pageIndex: number;
   readonly setPageIndex: (pageIndex: number) => void;
 }) => {
-  const { data, pageIndex, setPageIndex } = props;
-  const workflow = getWorkflowState(data);
+  const { data, currentPage, pageIndex, setPageIndex } = props;
+  const banner = getPageBanner(data, currentPage);
+  const currentPageTitle =
+    PAGES.find((page) => page.id === currentPage)?.title || PAGES[0].title;
 
   return (
     <Section fill scrollable title="Навигация World Edit">
-      <Section title="Текущий шаг">
-        <Box bold color={workflow.color || 'white'}>
-          {workflow.label}
+      <Section title="Сейчас">
+        <Box bold color={banner.color || 'white'}>
+          {banner.accent}
         </Box>
         <Box color="label" mt={0.5}>
-          {workflow.description}
+          {banner.title}
         </Box>
-        <SummaryTileGrid
-          compact
-          items={[
-            {
-              label: 'Генератор',
-              value: data.current_generator_name || 'none',
-            },
-            {
-              label: 'Preview',
-              value: data.preview_valid ? 'ready' : 'idle',
-              color: data.preview_valid ? 'good' : 'label',
-            },
-            {
-              label: 'Click',
-              value: data.click_mode_active ? 'active' : 'off',
-              color: data.click_mode_active ? 'good' : 'label',
-            },
-            {
-              label: 'История',
-              value: `${data.history_entries?.length || 0} ops`,
-            },
-          ]}
-        />
+        <LabeledList>
+          <LabeledList.Item label="Страница">
+            {currentPageTitle}
+          </LabeledList.Item>
+          <LabeledList.Item label="Генератор">
+            {data.current_generator_name || 'none'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Preview">
+            <Box color={data.preview_valid ? 'good' : 'label'}>
+              {data.preview_valid ? 'ready' : 'idle'}
+            </Box>
+          </LabeledList.Item>
+          <LabeledList.Item label="История">
+            {`${data.history_entries?.length || 0} ops`}
+          </LabeledList.Item>
+        </LabeledList>
       </Section>
 
       <Section title="Навигация" mt={1}>
@@ -1987,9 +2080,10 @@ export const WorldEditPanel = () => {
     <Window title="World Edit Panel" width={1360} height={860}>
       <Window.Content>
         <Stack fill>
-          <Stack.Item width={17}>
+          <Stack.Item width={15}>
             <Sidebar
               data={data}
+              currentPage={currentPage}
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
             />
@@ -1998,7 +2092,7 @@ export const WorldEditPanel = () => {
           <Stack.Item grow basis={0} ml={1}>
             <Stack fill vertical>
               <Stack.Item>
-                <WorkspaceHeader data={data} />
+                <WorkspaceHeader data={data} currentPage={currentPage} />
               </Stack.Item>
 
               <Stack.Item grow basis={0} mt={1}>
