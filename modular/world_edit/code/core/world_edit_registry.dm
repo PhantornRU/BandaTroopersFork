@@ -2,7 +2,7 @@
 /datum/world_edit_generator_definition
 	var/id = ""
 	var/name_ru = ""
-	var/category_ru = "Общее"
+	var/category_ru = "General"
 	var/description_ru = ""
 	var/required_rights = R_DEBUG
 	var/supports_preview = TRUE

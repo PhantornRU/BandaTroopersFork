@@ -127,9 +127,10 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			WORLD_EDIT_SHAPE_POLYGON,
 			WORLD_EDIT_SHAPE_POLYLINE,
 			WORLD_EDIT_SHAPE_CUSTOM_MASK,
-			WORLD_EDIT_SHAPE_BRUSH_PATH,
-			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+			WORLD_EDIT_SHAPE_BRUSH_PATH
 		)
+			return "collector"
+		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
 			return "param_only"
 	return "single"
 
@@ -137,12 +138,49 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 	switch(world_edit_get_shape_interaction_kind(shape_id))
 		if("anchor_pair")
 			return "Anchor Pair"
+		if("collector")
+			return "Multi-Point Collector"
 		if("param_only")
 			return "Param-Driven"
 	return "Single Click"
 
 /datum/world_edit_placement_shape_service/proc/world_edit_get_shape_rollout_stage(shape_id)
-	return (world_edit_get_shape_interaction_kind(shape_id) == "param_only") ? "v2_hook" : "v1"
+	switch(world_edit_get_shape_interaction_kind(shape_id))
+		if("collector")
+			return "v2_collector"
+		if("param_only")
+			return "v2_param"
+	return "v1"
+
+/datum/world_edit_placement_shape_service/proc/world_edit_format_shape_points(list/points)
+	if(!islist(points) || !length(points))
+		return ""
+
+	var/list/chunks = list()
+	for(var/list/point as anything in points)
+		chunks += "[text2num("[point["x"]]")],[text2num("[point["y"]]")]"
+	return jointext(chunks, "; ")
+
+/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_collector_min_points(shape_id)
+	switch("[shape_id]")
+		if(WORLD_EDIT_SHAPE_POLYGON)
+			return 3
+		if(WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_BRUSH_PATH)
+			return 2
+		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
+			return 1
+	return 1
+
+/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_collector_max_points(shape_id)
+	switch("[shape_id]")
+		if(
+			WORLD_EDIT_SHAPE_POLYGON,
+			WORLD_EDIT_SHAPE_POLYLINE,
+			WORLD_EDIT_SHAPE_CUSTOM_MASK,
+			WORLD_EDIT_SHAPE_BRUSH_PATH
+		)
+			return WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS
+	return WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS
 
 /datum/world_edit_placement_shape_service/proc/world_edit_build_placement_shape_option(shape_id)
 	return list(
