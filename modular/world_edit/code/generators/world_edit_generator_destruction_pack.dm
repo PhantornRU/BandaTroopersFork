@@ -77,6 +77,49 @@
 			targets += target
 	return targets
 
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_cap()
+	return 12
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_min()
+	return 0.05
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_max()
+	return 0.20
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_default()
+	return 0.10
+
+/datum/world_edit_generator/destruction_pack/proc/can_place_persistent_fire_on_turf(turf/target_turf)
+	if(!istype(target_turf) || target_turf.density)
+		return FALSE
+	if(locate(/obj/effect/world_edit_persistent_fire) in target_turf)
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/area_turfs, density)
+	var/list/fire_entries = list()
+	if(!length(area_turfs) || density <= 0)
+		return fire_entries
+
+	var/target_count = round(length(area_turfs) * density)
+	target_count = clamp(target_count, 0, get_persistent_fire_cap())
+	if(target_count <= 0)
+		return fire_entries
+
+	var/list/pool = area_turfs.Copy()
+	while(target_count > 0 && length(pool))
+		var/turf/target_turf = pick_n_take(pool)
+		if(!can_place_persistent_fire_on_turf(target_turf))
+			continue
+
+		fire_entries += list(list(
+			"kind" = "fire",
+			"turf" = target_turf,
+		))
+		target_count--
+
+	return fire_entries
+
 /datum/world_edit_generator/destruction_pack/proc/build_target_movement_entry(atom/movable/target, list/area_turfs, list/area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
 	if(!target || QDELETED(target))
 		return null
@@ -143,14 +186,26 @@
 	var/affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/persistent_fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
 		plan.metadata["error"] = "No valid area turfs were found around the current turf."
 		return plan
 
 	var/list/targets = collect_targets(area_turfs, affect_anchored)
-	if(length(targets) > max_atoms)
+	if(has_move_mode && length(targets) > max_atoms)
 		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
+		return plan
+
+	if(!has_move_mode && !persistent_fire_enabled)
+		plan.metadata["error"] = "Enable at least one mode: shuffle, scatter or persistent fire."
+		return plan
+
+	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(area_turfs, persistent_fire_density) : list()
+	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode)
+		plan.metadata["error"] = "No valid fire tiles matched the selected area."
 		return plan
 
 	plan.affected_turfs = area_turfs.Copy()
@@ -160,23 +215,40 @@
 	plan.metadata["target_count"] = length(targets)
 	plan.metadata["shuffle"] = shuffle_enabled
 	plan.metadata["scatter"] = scatter_enabled
+	plan.metadata["persistent_fire"] = persistent_fire_enabled
+	plan.metadata["persistent_fire_density"] = persistent_fire_density
+	plan.metadata["persistent_fire_cap"] = get_persistent_fire_cap()
 	plan.metadata["seed"] = rand(1, 1000000)
-	plan.metadata["heavy_operation"] = (length(targets) >= round(max_atoms * 0.75)) || (radius >= 4)
+	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75))
 
-	if(!length(targets))
-		plan.metadata["error"] = "No movable targets matched the selected area."
-		return plan
+	if(has_move_mode)
+		if(!length(targets))
+			plan.metadata["error"] = "No movable targets matched the selected area."
+			return plan
 
-	var/list/area_lookup = build_area_lookup(area_turfs)
-	for(var/atom/movable/target as anything in targets)
-		var/list/move_entry = build_target_movement_entry(target, area_turfs, area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
-		if(move_entry)
-			plan.placements += list(move_entry)
+		var/list/area_lookup = build_area_lookup(area_turfs)
+		for(var/atom/movable/target as anything in targets)
+			var/list/move_entry = build_target_movement_entry(target, area_turfs, area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
+			if(move_entry)
+				plan.placements += list(move_entry)
+
+	if(length(fire_entries))
+		plan.placements += fire_entries
+
+	var/moved_count = 0
+	var/fire_count = 0
+	for(var/list/placement as anything in plan.placements)
+		if(placement["kind"] == "move")
+			moved_count++
+		if(placement["kind"] == "fire")
+			fire_count++
+
+	plan.metadata["moved_count"] = moved_count
+	plan.metadata["fire_count"] = fire_count
+	plan.metadata["action_count"] = moved_count + fire_count
 
 	if(!length(plan.placements))
-		plan.metadata["error"] = "Destruction pack finished with no movable targets that can change position."
-
-	plan.metadata["moved_count"] = length(plan.placements)
+		plan.metadata["error"] = persistent_fire_enabled ? "No movable targets or valid fire tiles matched the selected area." : "Destruction pack finished with no movable targets that can change position."
 	return plan
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
@@ -198,17 +270,23 @@
 
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
-	if(!shuffle_enabled && !scatter_enabled)
-		return "Enable at least one mode: shuffle or scatter."
-	if(GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/has_move_mode = shuffle_enabled || scatter_enabled
+	if(!has_move_mode && !persistent_fire_enabled)
+		return "Enable at least one mode: shuffle, scatter or persistent fire."
+	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
+	if(persistent_fire_enabled)
+		var/persistent_fire_density = text2num("[params["persistent_fire_density"]]")
+		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
+			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
 
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
 		return "No valid area turfs were found around the current turf."
 
 	var/list/targets = collect_targets(area_turfs, FALSE)
-	if(length(targets) > max_atoms)
+	if(has_move_mode && length(targets) > max_atoms)
 		return "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 
 	return null
@@ -221,14 +299,14 @@
 		result.message = "Unable to build the destruction plan."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets matched the selected area."
+		result.message = plan.metadata["error"] || "No movable targets or valid fire tiles matched the selected area."
 		return result
 
 	current_plan = plan
 	result.success = TRUE
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
-	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]]."
+	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]], fire_tiles=[plan.metadata["fire_count"]]."
 	return result
 
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
@@ -238,7 +316,7 @@
 		result.message = "Run preview first to build the destruction plan."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets matched the selected area."
+		result.message = plan.metadata["error"] || "No movable targets or valid fire tiles matched the selected area."
 		return result
 	if(plan.metadata["heavy_operation"])
 		var/heavy_answer = tgui_alert(user, "This is a heavy destruction pack apply. Confirm the second-stage execution.", "World Edit: Heavy Confirm", list("Execute", "Cancel"))
@@ -247,13 +325,32 @@
 			return result
 
 	var/moved_count = 0
+	var/fire_count = 0
 	var/skipped_runtime = 0
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "destruction_pack", WORLD_EDIT_UNDO_PARTIAL, list(
 		"center_turf" = plan.metadata["center_turf"],
 		"shuffle" = plan.metadata["shuffle"],
 		"scatter" = plan.metadata["scatter"],
+		"persistent_fire" = plan.metadata["persistent_fire"],
 	))
 	for(var/list/placement as anything in plan.placements)
+		if(placement["kind"] == "fire")
+			var/turf/target_turf = placement["turf"]
+			if(!can_place_persistent_fire_on_turf(target_turf))
+				skipped_runtime++
+				continue
+
+			var/obj/effect/world_edit_persistent_fire/fire = new /obj/effect/world_edit_persistent_fire(target_turf)
+			if(!istype(fire))
+				skipped_runtime++
+				continue
+			fire.set_world_edit_owner(changeset.operation_id, definition?.id)
+			changeset.add_owned_effect(fire, changeset.operation_id, target_turf, list(
+				"kind" = "persistent_fire",
+			))
+			fire_count++
+			continue
+
 		if(placement["kind"] != "move")
 			continue
 
@@ -294,23 +391,45 @@
 		else
 			skipped_runtime++
 
+	var/total_actions = moved_count + fire_count
+
 	result.center_turf = plan.metadata["center_turf"]
-	result.created_count = moved_count
+	result.created_count = total_actions
 	result.meta = plan.metadata.Copy()
 	result.meta["moved_count"] = moved_count
+	result.meta["fire_count"] = fire_count
+	result.meta["action_count"] = total_actions
 	result.meta["skipped_runtime"] = skipped_runtime
 
-	if(moved_count <= 0)
-		result.message = "Destruction pack finished without moving any targets."
+	if(total_actions <= 0)
+		result.message = plan.metadata["error"] || "Destruction pack finished without applying any moves or fire tiles."
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Destruction pack moved [moved_count] movable targets."
+	if(moved_count > 0 && fire_count > 0)
+		result.message = "Destruction pack moved [moved_count] movable targets and created [fire_count] owned persistent fire tiles."
+	else if(fire_count > 0)
+		result.message = "Destruction pack created [fire_count] owned persistent fire tiles."
+	else
+		result.message = "Destruction pack moved [moved_count] movable targets."
 	return result
+
+/datum/world_edit_generator/destruction_pack/get_runtime_status()
+	var/list/params = manager?.current_params || list()
+	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
+	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+
+	return list(
+		list("label" = "Move mode", "value" = (shuffle_enabled || scatter_enabled) ? "active" : "off"),
+		list("label" = "Persistent fire", "value" = persistent_fire_enabled ? "active" : "off"),
+		list("label" = "Fire cap", "value" = "[get_persistent_fire_cap()] tiles"),
+	)
 
 /datum/world_edit_generator/destruction_pack/get_ui_fields(list/current_params)
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])
+	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(current_params["persistent_fire_enabled"])
 
 	return list(
 		list(
@@ -342,6 +461,27 @@
 			"value" = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"]),
 		),
 		list(
+			"id" = "persistent_fire_enabled",
+			"label" = "Persistent Fire",
+			"kind" = "boolean",
+			"group" = "Fire",
+			"description" = "Creates owned persistent fire tiles inside the selected area. Cleanup is available from the owned-effects stack. Hard cap: [get_persistent_fire_cap()] tiles.",
+			"value" = persistent_fire_enabled,
+		),
+		list(
+			"id" = "persistent_fire_density",
+			"label" = "Fire Density",
+			"kind" = "number",
+			"group" = "Fire",
+			"description" = "Fraction of open candidate tiles used for persistent fire before the hard cap is applied.",
+			"validate_hint" = "Allowed range: [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]",
+			"value" = text2num("[current_params["persistent_fire_density"]]") || get_persistent_fire_density_default(),
+			"min" = get_persistent_fire_density_min(),
+			"max" = get_persistent_fire_density_max(),
+			"step" = 0.01,
+			"disabled" = !persistent_fire_enabled,
+		),
+		list(
 			"id" = "scatter_steps",
 			"label" = "Scatter Steps",
 			"kind" = "number",
@@ -360,7 +500,7 @@
 			"label" = "Max Targets",
 			"kind" = "number",
 			"group" = "Limits",
-			"description" = "Hard cap for movable targets processed by one apply.",
+			"description" = "Hard cap for movable targets processed by one apply when shuffle or scatter is enabled.",
 			"validate_hint" = "Allowed range: 1..100",
 			"value" = text2num("[current_params["max_atoms"]]") || 60,
 			"min" = 1,
@@ -385,6 +525,14 @@
 		if("scatter_steps")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 4)
 
+		if("persistent_fire_enabled")
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(new_params[param_id] && isnull(new_params["persistent_fire_density"]))
+				new_params["persistent_fire_density"] = get_persistent_fire_density_default()
+
+		if("persistent_fire_density")
+			new_params[param_id] = clamp(text2num("[value]"), get_persistent_fire_density_min(), get_persistent_fire_density_max())
+
 		if("max_atoms")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 100)
 
@@ -397,7 +545,11 @@
 	return new_params
 
 /datum/world_edit_generator/destruction_pack/get_apply_confirmation_text(list/params)
-	return "Apply Destruction Pack at the current turf with radius [params["radius"]]?"
+	var/fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	var/fire_summary = fire_enabled ? ", fire=on density=[fire_density] cap=[get_persistent_fire_cap()]" : ", fire=off"
+	return "Apply Destruction Pack at the current turf with radius [params["radius"]]? shuffle=[params["shuffle_enabled"]], scatter=[params["scatter_enabled"]][fire_summary]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
-	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
