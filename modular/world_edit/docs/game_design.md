@@ -3,7 +3,7 @@
 ## Цель
 Дать администраторам единый интерфейс редактирования мира с предсказуемым жизненным циклом генераторов, безопасными ограничениями и обязательным аудитом. Legacy-инструменты HumanAI не изменяются и продолжают работать отдельно.
 
-Примечание: этот документ сохраняет исторический снимок v1.3/Phase 3A. Текущий runtime-ready surface ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`; нижеописанные генераторы `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` сохранены как deprecated/historical ветки и больше не экспонируются active registry/runtime surface.
+Примечание: этот документ сохраняет исторический снимок v1.3/Phase 3A. Текущий runtime-ready surface ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`; нижеописанные генераторы `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` удалены из active registry/runtime surface и сохранены только в исторической документации.
 
 ## Границы
 1. Не изменяем legacy-файлы:

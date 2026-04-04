@@ -3,7 +3,7 @@
 ## Цель
 Синхронизировать все `status=ready` генераторы с единым inline UI-контрактом v2, стабилизировать `WorldEditPanel`, сохранить wizard fallback и зафиксировать полную документацию.
 
-Примечание: это исторический план Phase 3A. В текущем active registry/runtime ready surface уже ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`, а `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` сохранены только как deprecated/historical ветки.
+Примечание: это исторический план Phase 3A. В текущем active registry/runtime ready surface уже ограничен `outpost_radius`, `destruction_pack` и `blueprint_stamp`, а `fortify_room`, `defense_grid`, `breach_layout`, `structure_chunk`, `barricade_builder`, `chaos_demolition` удалены из live code и сохранены только как deprecated/historical документация.
 
 ## Область изменений
 1. Core manager и UI-контракт в `modular/world_edit/code/core/manager/*`.

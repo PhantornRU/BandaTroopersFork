@@ -14,7 +14,7 @@
 #include "code/generators/world_edit_generator_blueprint_stamp.dm"
 #include "code/effects/world_edit_persistent_fire.dm"
 #include "code/core/manager/world_edit_manager_core.dm"
+#include "code/core/manager/world_edit_manager_state.dm"
 #include "code/core/manager/world_edit_manager_ui.dm"
 #include "code/core/manager/world_edit_manager_generator_runtime.dm"
-#include "code/core/manager/world_edit_manager_state.dm"
 #include "code/core/world_edit_admin_hooks.dm"

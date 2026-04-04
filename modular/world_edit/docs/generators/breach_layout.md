@@ -4,7 +4,7 @@
 1. `id`: `breach_layout`
 2. `name_ru`: `Схема бреш-зарядов`
 3. `category_ru`: `Проломы`
-> Исторический паспорт. Этот генератор сохранен как deprecated/historical ветка и не входит в active registry/runtime surface.
+> Исторический паспорт. Реализация генератора удалена из live code; документ сохранен как deprecated/historical reference и не входит в active registry/runtime surface.
 4. `status`: `deprecated`
 5. `execution_mode`: `click`
 6. `required_rights`: `R_DEBUG`
