@@ -11262,34 +11262,10 @@
 	id = "CIC";
 	name = "CIC Lockdown"
 	},
-/obj/structure/machinery/door_control{
-	pixel_y = 13;
-	pixel_x = 9;
-	id = "squadarmory_bravo";
-	name = "BRAVO gear lockers door-control";
-	color = "#ffc32d"
-	},
-/obj/structure/machinery/door_control{
-	pixel_y = 13;
-	pixel_x = 1;
-	id = "squadarmory_alpha";
-	name = "ALPHA gear lockers door-control";
-	color = "#db1d1d"
-	},
-/obj/structure/machinery/door_control{
-	pixel_y = 7;
-	pixel_x = 1;
-	id = "squadarmory_charlie";
-	name = "CHARLIE gear lockers door-control";
-	color = "#c864c8"
-	},
-/obj/structure/machinery/door_control{
-	pixel_y = 7;
-	pixel_x = 9;
-	id = "squadarmory_delta";
-	name = "DELTA gear lockers door-control";
-	color = "#828cff"
-	},
+/obj/structure/machinery/door_control/squad_armory/bravo,
+/obj/structure/machinery/door_control/squad_armory/alpha,
+/obj/structure/machinery/door_control/squad_armory/charlie,
+/obj/structure/machinery/door_control/squad_armory/delta,
 /turf/open/floor/almayer/mono,
 /area/golden_arrow/platoon_commander_rooms)
 "aCy" = (

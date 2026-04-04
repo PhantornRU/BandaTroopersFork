@@ -5,6 +5,7 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 /datum/game_rule_state
 	var/rto_support_enabled = TRUE
+	var/support_underground_enabled = TRUE
 	var/rto_shared_cooldown_multiplier = 1
 	var/rto_personal_cooldown_multiplier = 1
 	var/fire_support_enabled = TRUE
@@ -88,6 +89,7 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 /datum/game_rule_state/proc/reset_rto_rules()
 	rto_support_enabled = TRUE
+	support_underground_enabled = TRUE
 	rto_shared_cooldown_multiplier = 1
 	rto_personal_cooldown_multiplier = 1
 	return TRUE
@@ -97,6 +99,11 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	player_survival_crit_grace_seconds = GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS
 	player_survival_antigib_enabled = TRUE
 	player_survival_antigib_limb_loss_chance = GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE
+	return TRUE
+
+/datum/game_rule_state/proc/reset_player_survival_for_new_round()
+	reset_player_survival_rules()
+	update_panel_uis()
 	return TRUE
 
 /datum/game_rule_state/proc/reset_fire_support_rules()

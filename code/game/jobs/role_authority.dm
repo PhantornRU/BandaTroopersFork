@@ -588,7 +588,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	else if(late_join)
 		// SS220 EDIT - START - раундстарт для squad-ролей сначала использует модульный резолвер спавна
 		var/turf/late_join_turf
-		var/use_modular_spawn_candidate = new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: latejoin modular job-landmark resolution stays opt-in for intended non-squad jobs
+		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for latejoin resolver parity
+		var/use_modular_spawn_candidate = is_squad_role || new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: squad and intended non-squad roles resolve preferred latejoin pods through the modular resolver
 		// late_join_turf = new_human.get_modular_spawn_turf(new_job, TRUE)
 		if(use_modular_spawn_candidate)
 			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
@@ -957,6 +958,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			M = /mob/living/carbon/xenomorph/king
 		if(RUNNER_ACIDER)
 			M = /mob/living/carbon/xenomorph/runner/acider
+		if(XENO_CASTE_WARRIOR_DRONE)
+			M = /mob/living/carbon/xenomorph/warrior_drone
 		// SS220 ADDITION Start - Arachnid
 		if(ARACHNID_CASTE_WARRIOR)
 			M = /mob/living/carbon/xenomorph/arachnid

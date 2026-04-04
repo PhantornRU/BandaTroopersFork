@@ -47,6 +47,7 @@
 
 	return list(
 		"rto_support_enabled" = rules.rto_support_enabled,
+		"support_underground_enabled" = rules.support_underground_enabled,
 		"rto_shared_cooldown_multiplier" = rules.rto_shared_cooldown_multiplier,
 		"rto_personal_cooldown_multiplier" = rules.rto_personal_cooldown_multiplier,
 		"fire_support_enabled" = rules.fire_support_enabled,
@@ -93,6 +94,15 @@
 			log_rule_change(user, "set RTO Support to [enabled ? "enabled" : "disabled"] in Game Rule Panel.")
 			updated = TRUE
 
+		if("set_support_underground_enabled")
+			var/enabled = !!text2num(params["enabled"])
+			if(rules.support_underground_enabled == enabled)
+				return FALSE
+			rules.support_underground_enabled = enabled
+			GLOB.rto_support_registry?.propagate_rules_update()
+			log_rule_change(user, "set underground support to [enabled ? "enabled" : "disabled"] in Game Rule Panel.")
+			updated = TRUE
+
 		if("set_rto_shared_multiplier")
 			var/new_value = rules.sanitize_multiplier(text2num(params["value"]))
 			if(rules.rto_shared_cooldown_multiplier == new_value)
@@ -114,7 +124,7 @@
 		if("reset_rto_rules")
 			rules.reset_rto_rules()
 			GLOB.rto_support_registry?.propagate_rules_update()
-			log_rule_change(user, "reset RTO Game Rule Panel settings to defaults.")
+			log_rule_change(user, "reset RTO and underground support Game Rule Panel settings to defaults.")
 			updated = TRUE
 
 		if("set_player_survival_enabled")

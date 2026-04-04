@@ -1,5 +1,5 @@
 /datum/skills/covenant/sangheili
-	name = "Covenant, Sangheili"
+	name = "Ковенант, сангхейли"
 	skills = list(
 		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED,
 		SKILL_FIREMAN = SKILL_FIREMAN_DEFAULT,
@@ -16,4 +16,4 @@
 	)
 
 /datum/skills/covenant/unggoy
-	name = "Covenant, Menial"
+	name = "Ковенант, унггой"

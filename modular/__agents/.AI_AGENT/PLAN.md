@@ -1,31 +1,27 @@
 # PLAN
 
-## Active task
-Rework the `World Edit Panel` UI so it follows the GM workflow
-`Select -> Configure -> Preview -> Apply -> History`, reduces context
-duplication, and stays compatible with the current runtime/backend contract.
+## Активная задача
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- `tgui/packages/tgui/interfaces/WorldEditPanel.tsx`
-- Task-state notes for this work item
-- Validation through relevant tgui checks
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
 ## Out of scope
-- Generator business logic changes
-- Expanding generator capabilities beyond current backend data
-- Reworking undo/rollback semantics
-- Unrelated refactors in other tgui interfaces
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
 
-## Phases
-1. Capture current UI contract and pain points. Done.
-2. Rebuild IA and action hierarchy in `WorldEditPanel.tsx`. Done.
-3. Add backend state only if frontend cannot express state safely. Not needed.
-4. Run relevant checks and prepare commit/push to the PR branch. In progress.
+## Решение
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- UI no longer forces the user to bounce across multiple separate workspaces
-  for one generator flow.
-- Generator, preview, placement, and session context are visible without
-  duplicated panels carrying the same meaning.
-- Wizard fallback remains available.
-- Changes stay limited to the World Edit surface and pass relevant tgui checks.
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.

@@ -3,8 +3,6 @@ import { Button, Collapsible, Divider, Section, Stack } from '../components';
 import { Window } from '../layouts';
 
 export const GameMasterDroppodMenu = (props, context) => {
-  const { data, act } = useBackend();
-
   return (
     <Window width={450} height={350}>
       <Window.Content scrollable>
@@ -20,7 +18,10 @@ export const GameMasterDroppodPanel = (props, context) => {
   const { data, act } = useBackend();
 
   return (
-    <Section title="Drop Pods" mb={1}>
+    <Section
+      title={`Drop Pods (${data.selected_launch_target_count || 0} LZ selected)`}
+      mb={1}
+    >
       <Stack direction="column">
         <Stack.Item>
           <Button
@@ -36,6 +37,7 @@ export const GameMasterDroppodPanel = (props, context) => {
         <Stack.Item>
           <Button
             color="good"
+            disabled={!data.selected_launch_target_count}
             onClick={() => {
               act('launch_pods');
             }}
@@ -47,7 +49,7 @@ export const GameMasterDroppodPanel = (props, context) => {
           <Stack.Item>
             <Collapsible title="Droppod LZ Points">
               <Stack vertical>
-                {data.game_master_droppods.map((val, x, y, z) => {
+                {data.game_master_droppods.map((val) => {
                   if (val) {
                     return (
                       <Stack.Item key={val.droppod_name}>
@@ -65,12 +67,17 @@ export const GameMasterDroppodPanel = (props, context) => {
                           </Stack.Item>
                           <Stack.Item>
                             <Button
-                              color="good"
+                              color={
+                                val.selected_for_launch ? 'good' : undefined
+                              }
+                              selected={val.selected_for_launch}
                               onClick={() => {
                                 act('set_target', { val });
                               }}
                             >
-                              Set Launch Target
+                              {val.selected_for_launch
+                                ? 'Launch Target Selected'
+                                : 'Set Launch Target'}
                             </Button>
                           </Stack.Item>
                           <Stack.Item>

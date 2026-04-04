@@ -116,6 +116,104 @@
 	var/mob/living/carbon/human/unsupported_engineer = create_test_human("Unsupported HALO Engineer", JOB_SQUAD_ENGI)
 	TEST_ASSERT(!cryo_call.apply_profile_cryo_reinforcement(unsupported_engineer, JOB_SQUAD_ENGI, JOB_SQUAD_ENGI, /datum/equipment_preset/uscm/engineer_equipped, FALSE, /datum/squad/marine/halo/unsc/alpha), "HALO cryo application helper incorrectly accepted an unsupported engineer profile override.")
 
+/datum/unit_test/halo_ship_platoons_latejoin_role_pod_routing
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_latejoin_role_pod_routing/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO latejoin pod routing testing.")
+
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	GLOB.spawns_by_job = list()
+	GLOB.spawns_by_squad_and_job = list()
+	GLOB.latejoin = list()
+	GLOB.latejoin_by_squad = list()
+	GLOB.latejoin_by_job = list()
+
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SQUAD_MEDIC_UNSC]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SQUAD_MEDIC_UNSC datum for HALO latejoin pod routing testing.")
+
+	var/turf/correct_spawn_turf = run_loc_floor_top_right
+	var/turf/wrong_latejoin_turf = run_loc_floor_bottom_left
+	TEST_ASSERT(isfloorturf(correct_spawn_turf), "Failed to resolve the exact-role spawn turf for HALO latejoin pod routing testing.")
+	TEST_ASSERT(isfloorturf(wrong_latejoin_turf), "Failed to resolve the fallback latejoin turf for HALO latejoin pod routing testing.")
+
+	var/turf/correct_pod_turf = get_adjacent_floor_turf(correct_spawn_turf)
+	var/turf/wrong_pod_turf = get_adjacent_floor_turf(wrong_latejoin_turf)
+	TEST_ASSERT(isfloorturf(correct_pod_turf), "Failed to resolve the exact-role cryopod turf for HALO latejoin pod routing testing.")
+	TEST_ASSERT(isfloorturf(wrong_pod_turf), "Failed to resolve the fallback cryopod turf for HALO latejoin pod routing testing.")
+
+	var/obj/effect/landmark/start/marine/medic/alpha/correct_start = track_test_atom(allocate(/obj/effect/landmark/start/marine/medic/alpha, correct_spawn_turf))
+	var/obj/structure/machinery/cryopod/correct_pod = track_test_atom(allocate(/obj/structure/machinery/cryopod, correct_pod_turf))
+	var/obj/effect/landmark/late_join/alpha/wrong_latejoin = track_test_atom(allocate(/obj/effect/landmark/late_join/alpha, wrong_latejoin_turf))
+	var/obj/structure/machinery/cryopod/wrong_pod = track_test_atom(allocate(/obj/structure/machinery/cryopod, wrong_pod_turf))
+	TEST_ASSERT_NOTNULL(correct_start, "Failed to allocate the exact-role start landmark for HALO latejoin pod routing testing.")
+	TEST_ASSERT_NOTNULL(correct_pod, "Failed to allocate the exact-role cryopod for HALO latejoin pod routing testing.")
+	TEST_ASSERT_NOTNULL(wrong_latejoin, "Failed to allocate the fallback latejoin landmark for HALO latejoin pod routing testing.")
+	TEST_ASSERT_NOTNULL(wrong_pod, "Failed to allocate the fallback cryopod for HALO latejoin pod routing testing.")
+
+	var/mob/living/carbon/human/latejoin_human = create_test_human("HALO Latejoin Pod Routing", JOB_SQUAD_MEDIC_UNSC, /datum/squad/marine/halo/unsc/alpha, wrong_latejoin_turf)
+	TEST_ASSERT_NOTNULL(latejoin_human.assigned_squad, "Failed to seed a HALO squad assignment before latejoin pod routing testing.")
+
+	role_authority.equip_role(latejoin_human, job_datum, TRUE)
+
+	TEST_ASSERT_EQUAL(latejoin_human.loc, correct_pod, "HALO latejoin medic no longer woke up inside the exact-role start cryopod when the squad latejoin fallback pointed elsewhere.")
+	TEST_ASSERT(latejoin_human.loc != wrong_pod, "HALO latejoin medic incorrectly fell back to the squad-only latejoin cryopod instead of the exact-role start cryopod.")
+
+/datum/unit_test/halo_ship_platoons_rto_exact_landmark_matching
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons_rto_exact_landmark_matching/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO RTO landmark matching testing.")
+
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	GLOB.spawns_by_job = list()
+	GLOB.spawns_by_squad_and_job = list()
+	GLOB.latejoin = list()
+	GLOB.latejoin_by_squad = list()
+	GLOB.latejoin_by_job = list()
+
+	var/datum/job/job_datum = role_authority.roles_by_name[JOB_SQUAD_RTO_UNSC]
+	TEST_ASSERT_NOTNULL(job_datum, "Failed to resolve JOB_SQUAD_RTO_UNSC datum for HALO RTO landmark matching testing.")
+
+	var/turf/correct_spawn_turf = run_loc_floor_top_right
+	var/turf/wrong_spawn_turf = run_loc_floor_bottom_left
+	TEST_ASSERT(isfloorturf(correct_spawn_turf), "Failed to resolve the RTO start turf for HALO landmark matching testing.")
+	TEST_ASSERT(isfloorturf(wrong_spawn_turf), "Failed to resolve the rifleman start turf for HALO landmark matching testing.")
+
+	var/turf/correct_pod_turf = get_adjacent_floor_turf(correct_spawn_turf)
+	var/turf/wrong_pod_turf = get_adjacent_floor_turf(wrong_spawn_turf)
+	TEST_ASSERT(isfloorturf(correct_pod_turf), "Failed to resolve the RTO cryopod turf for HALO landmark matching testing.")
+	TEST_ASSERT(isfloorturf(wrong_pod_turf), "Failed to resolve the rifleman cryopod turf for HALO landmark matching testing.")
+
+	var/obj/effect/landmark/start/marine/rto/alpha/correct_start = track_test_atom(allocate(/obj/effect/landmark/start/marine/rto/alpha, correct_spawn_turf))
+	var/obj/structure/machinery/cryopod/correct_pod = track_test_atom(allocate(/obj/structure/machinery/cryopod, correct_pod_turf))
+	var/obj/effect/landmark/start/marine/alpha/wrong_start = track_test_atom(allocate(/obj/effect/landmark/start/marine/alpha, wrong_spawn_turf))
+	var/obj/structure/machinery/cryopod/wrong_pod = track_test_atom(allocate(/obj/structure/machinery/cryopod, wrong_pod_turf))
+	var/obj/effect/landmark/late_join/alpha/wrong_latejoin = track_test_atom(allocate(/obj/effect/landmark/late_join/alpha, wrong_spawn_turf))
+	TEST_ASSERT_NOTNULL(correct_start, "Failed to allocate the RTO start landmark for HALO landmark matching testing.")
+	TEST_ASSERT_NOTNULL(correct_pod, "Failed to allocate the RTO cryopod for HALO landmark matching testing.")
+	TEST_ASSERT_NOTNULL(wrong_start, "Failed to allocate the rifleman start landmark for HALO landmark matching testing.")
+	TEST_ASSERT_NOTNULL(wrong_pod, "Failed to allocate the rifleman cryopod for HALO landmark matching testing.")
+	TEST_ASSERT_NOTNULL(wrong_latejoin, "Failed to allocate the fallback latejoin landmark for HALO landmark matching testing.")
+
+	var/mob/living/carbon/human/latejoin_human = create_test_human("HALO RTO Exact Match", JOB_SQUAD_RTO_UNSC, /datum/squad/marine/halo/unsc/alpha, wrong_spawn_turf)
+	TEST_ASSERT_NOTNULL(latejoin_human.assigned_squad, "Failed to seed a HALO squad assignment before RTO landmark matching testing.")
+
+	var/datum/modular_squad_spawn_resolver/resolver = new(latejoin_human, job_datum, TRUE)
+	var/list/own_squad_keys = resolver.get_own_squad_keys()
+	var/list/exact_start_landmarks = resolver.collect_start_landmarks(own_squad_keys, exact_job = TRUE)
+	TEST_ASSERT(exact_start_landmarks.Find(correct_start), "HALO RTO exact landmark matching no longer includes the RTO Alpha start landmark.")
+	TEST_ASSERT(!exact_start_landmarks.Find(wrong_start), "HALO RTO exact landmark matching incorrectly treated the Alpha rifleman start landmark as a valid RTO landmark.")
+
+	role_authority.equip_role(latejoin_human, job_datum, TRUE)
+
+	TEST_ASSERT_EQUAL(latejoin_human.loc, correct_pod, "HALO RTO latejoin no longer woke up in the RTO cryopod when a rifleman pod existed in the same squad.")
+	TEST_ASSERT(latejoin_human.loc != wrong_pod, "HALO RTO latejoin incorrectly woke up in the rifleman cryopod.")
+
 /datum/unit_test/halo_ship_platoons_surfaces_and_pending_sync
 	parent_type = /datum/unit_test/halo_integration_test
 

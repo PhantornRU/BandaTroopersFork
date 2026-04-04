@@ -66,6 +66,24 @@ SPEC-OPS
 		SKILL_JTAC = SKILL_JTAC_BEGINNER,
 	)
 
+/datum/skills/commando/deathsquad/medic
+	name = "Deathsquad Medic"
+	skills = list(
+		SKILL_CQC = SKILL_CQC_MASTER,
+		SKILL_FIREMAN = SKILL_FIREMAN_MASTER,
+		SKILL_ENGINEER = SKILL_ENGINEER_TRAINED,
+		SKILL_CONSTRUCTION = SKILL_CONSTRUCTION_ENGI,
+		SKILL_FIREARMS = SKILL_FIREARMS_EXPERT,
+		// SKILL_MEDICAL = SKILL_MEDICAL_DOCTOR,
+		SKILL_MEDICAL = SKILL_MEDICAL_MASTER, // SS220 EDIT: raider corpsman follows the BT elite medic ladder
+		// SKILL_SURGERY = SKILL_SURGERY_NOVICE,
+		SKILL_SURGERY = SKILL_SURGERY_EXPERT, // SS220 EDIT: raider corpsman follows the BT elite medic ladder
+		SKILL_MELEE_WEAPONS = SKILL_MELEE_TRAINED,
+		SKILL_ENDURANCE = SKILL_ENDURANCE_MAX,
+		SKILL_SPEC_WEAPONS = SKILL_SPEC_ALL,
+		SKILL_JTAC = SKILL_JTAC_BEGINNER,
+	)
+
 /datum/skills/commando/deathsquad/leader
 	name = "Deathsquad Leader"
 	skills = list(

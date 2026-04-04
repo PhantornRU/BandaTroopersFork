@@ -60,6 +60,14 @@
 
 	TEST_ASSERT(sangheili.set_species(SPECIES_SANGHEILI), "Failed to apply the Sangheili species in the HALO TTS default test.")
 	TEST_ASSERT(unggoy.set_species(SPECIES_UNGGOY), "Failed to apply the Unggoy species in the HALO TTS default test.")
+	TEST_ASSERT_EQUAL(sangheili.species?.name, SPECIES_SANGHEILI, "Sangheili species.name must remain the canonical lookup id.")
+	TEST_ASSERT_EQUAL(unggoy.species?.name, SPECIES_UNGGOY, "Unggoy species.name must remain the canonical lookup id.")
+	TEST_ASSERT_EQUAL(sangheili.species?.get_display_name(), "Сангхейли", "Sangheili lost its localized display label.")
+	TEST_ASSERT_EQUAL(unggoy.species?.get_display_name(), "Унггой", "Unggoy lost its localized display label.")
+	TEST_ASSERT_EQUAL(sangheili.get_blood_color(), /datum/species/sangheili::blood_color, "Sangheili species application should restore covenant blood color instead of human red.")
+	TEST_ASSERT_EQUAL(unggoy.get_blood_color(), /datum/species/unggoy::blood_color, "Unggoy species application should restore covenant blood color instead of human red.")
+	TEST_ASSERT_EQUAL(sangheili.blood_type, "S*", "Sangheili species application should override the default human blood type.")
+	TEST_ASSERT_EQUAL(unggoy.blood_type, "S*", "Unggoy species application should override the default human blood type.")
 	TEST_ASSERT_EQUAL(sangheili.tts_seed?.name, "Alarak", "Sangheili species application no longer assigns the approved default TTS seed.")
 	TEST_ASSERT_EQUAL(unggoy.tts_seed?.name, "Dobby", "Unggoy species application no longer assigns the approved default TTS seed.")
 
@@ -73,5 +81,25 @@
 	arm_equipment(sangheili, /datum/equipment_preset/covenant/sangheili/minor, FALSE)
 	arm_equipment(unggoy, /datum/equipment_preset/covenant/unggoy/minor, FALSE)
 
+	TEST_ASSERT_EQUAL(sangheili.species?.name, SPECIES_SANGHEILI, "Sangheili HALO presets should no longer fall back to a human species.")
+	TEST_ASSERT_EQUAL(unggoy.species?.name, SPECIES_UNGGOY, "Unggoy HALO presets should no longer fall back to a human species.")
+	TEST_ASSERT(istype(sangheili.wear_suit, /obj/item/clothing/suit/marine/shielded/sangheili/minor), "Sangheili HALO presets regressed to a naked human and lost covenant armor equip.")
+	TEST_ASSERT(istype(unggoy.wear_mask, /obj/item/clothing/mask/gas/unggoy), "Unggoy HALO presets regressed to a naked human and lost the covenant rebreather equip.")
+	TEST_ASSERT_EQUAL(sangheili.get_blood_color(), /datum/species/sangheili::blood_color, "Sangheili HALO presets should preserve covenant blood color.")
+	TEST_ASSERT_EQUAL(unggoy.get_blood_color(), /datum/species/unggoy::blood_color, "Unggoy HALO presets should preserve covenant blood color.")
 	TEST_ASSERT_EQUAL(sangheili.tts_seed?.name, "Alarak", "Sangheili equipment presets no longer restore the approved default TTS seed after load.")
 	TEST_ASSERT_EQUAL(unggoy.tts_seed?.name, "Dobby", "Unggoy equipment presets no longer restore the approved default TTS seed after load.")
+
+/datum/unit_test/halo_tts_species_subtypes
+	parent_type = /datum/unit_test/halo_tts
+
+/datum/unit_test/halo_tts_species_subtypes/Run()
+	var/mob/living/carbon/human/sangheili = allocate(/mob/living/carbon/human/sangheili, run_loc_floor_top_right)
+	var/mob/living/carbon/human/unggoy = allocate(/mob/living/carbon/human/unggoy, run_loc_floor_bottom_left)
+
+	TEST_ASSERT_EQUAL(sangheili.species?.name, SPECIES_SANGHEILI, "The direct /mob/living/carbon/human/sangheili subtype should spawn with the Sangheili species.")
+	TEST_ASSERT_EQUAL(unggoy.species?.name, SPECIES_UNGGOY, "The direct /mob/living/carbon/human/unggoy subtype should spawn with the Unggoy species.")
+	TEST_ASSERT_EQUAL(sangheili.get_blood_color(), /datum/species/sangheili::blood_color, "The direct Sangheili subtype should not keep the default human blood color.")
+	TEST_ASSERT_EQUAL(unggoy.get_blood_color(), /datum/species/unggoy::blood_color, "The direct Unggoy subtype should not keep the default human blood color.")
+	TEST_ASSERT_EQUAL(sangheili.blood_type, "S*", "The direct Sangheili subtype should inherit the covenant blood type.")
+	TEST_ASSERT_EQUAL(unggoy.blood_type, "S*", "The direct Unggoy subtype should inherit the covenant blood type.")

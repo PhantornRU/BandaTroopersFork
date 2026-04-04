@@ -99,6 +99,7 @@ GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
 		list("halo medical bottle (meralyne)", 40, /obj/item/reagent_container/glass/beaker/unsc/meralyne, null, VENDOR_ITEM_REGULAR),
 		list("halo medical bottle (dermaline)", 40, /obj/item/reagent_container/glass/beaker/unsc/dermaline, null, VENDOR_ITEM_REGULAR),
 		list("halo medical bottle (dexalin plus)", 40, /obj/item/reagent_container/glass/beaker/unsc/dexplus, null, VENDOR_ITEM_REGULAR),
+		list("halo medical bottle (biofoam)", 40, /obj/item/reagent_container/glass/beaker/unsc/biofoam, null, VENDOR_ITEM_RECOMMENDED),
 	))
 
 /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc

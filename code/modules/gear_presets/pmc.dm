@@ -36,7 +36,7 @@
 		new_human.f_style = pick("Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "Shaved", "3 O'clock Shadow", "3 O'clock Moustache", "5 O'clock Shadow", "5 O'clock Moustache", "7 O'clock Shadow", "7 O'clock Moustache",)
 	else
 		new_human.h_style = pick("Side Undercut", "Side Hang Undercut (Reverse)", "Undercut, Top", "CIA", "Mulder", "Pvt. Redding", "Pixie Cut Left", "Pixie Cut Right")
-	new_human.change_real_name(new_human, random_name)
+	new_human.change_real_name(new_human, random_name) // SS220 EDIT: direct localized banks already provide the runtime name
 	new_human.age = rand(20,35)
 
 /datum/equipment_preset/pmc/load_id(mob/living/carbon/human/new_human, client/mob_client)
@@ -609,9 +609,7 @@
 	var/datum/preferences/A = new()
 	A.randomize_appearance(new_human)
 	var/random_name
-	if(prob(10))
-		random_name = "[capitalize(randomly_generate_japanese_word(rand(2, 3)))]"
-	else if(new_human.gender == MALE)
+	if(new_human.gender == MALE)
 		random_name = "[pick(GLOB.first_names_male_pmc)]"
 	else
 		random_name = "[pick(GLOB.first_names_female_pmc)]"

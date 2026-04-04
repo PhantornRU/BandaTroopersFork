@@ -18,11 +18,11 @@
 	new_human.set_species(SYNTH_GEN_THREE)
 
 /datum/equipment_preset/synth/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "David"
+	var/final_name = ss220_pick_synth_default_name() // SS220 EDIT: synth fallback names now come from explicit localized data
 	if(new_human.client && new_human.client.prefs)
 		final_name = new_human.client.prefs.synthetic_name
 		if(!final_name || final_name == "Undefined")
-			final_name = "David"
+			final_name = ss220_pick_synth_default_name() // SS220 EDIT: synth fallback names now come from explicit localized data
 	new_human.change_real_name(new_human, final_name)
 
 /datum/equipment_preset/synth/load_skills(mob/living/carbon/human/new_human)
@@ -683,10 +683,7 @@
 	new_human.bubble_icon = "syndibot"
 
 /datum/equipment_preset/synth/working_joe/load_name(mob/living/carbon/human/new_human, randomise)
-	if(faction == FACTION_UPP)
-		new_human.change_real_name(new_human, "Dzho Automaton №[rand(9)][rand(9)][ascii2text(rand(65, 90))][ascii2text(rand(65, 90))]")
-	else
-		new_human.change_real_name(new_human, "Working Joe #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, ss220_build_working_joe_name(faction)) // SS220 EDIT: synth serial prefixes now come from explicit localized data
 //*****************************************************************************************************/
 
 /datum/equipment_preset/synth/survivor/cultist_synth
@@ -743,13 +740,9 @@
 
 
 /datum/equipment_preset/synth/survivor/midwife/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "Midwife Joe"
+	var/final_name = ss220_pick_synth_midwife_prefix() // SS220 EDIT: synth title prefixes now come from explicit localized data
 	if(new_human.client && new_human.client.prefs)
-		final_name = new_human.client.prefs.synthetic_name
-		if(!final_name || final_name == "Undefined") //In case they don't have a name set or no prefs, there's a name.
-			final_name = "Midwife Joe"
-		else
-			final_name = "Midwife [new_human.real_name]"
+		final_name = ss220_build_midwife_synth_name(new_human.client.prefs.synthetic_name) // SS220 EDIT: build the displayed midwife title from explicit localized data
 	new_human.change_real_name(new_human, final_name)
 
 //*****************************************************************************************************/
@@ -897,7 +890,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/synth/working_joe/security_android/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Security Android #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, ss220_build_security_android_name()) // SS220 EDIT: synth serial prefixes now come from explicit localized data
 
 /datum/equipment_preset/synth/working_joe/upp/combat
 	name = "UPP Dzho Automaton - Combat"
@@ -940,7 +933,7 @@
 
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Dzho Automaton #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, "[ss220_pick_synth_upp_joe_prefix()] #[rand(100)][rand(100)]") // SS220 EDIT: synth serial prefixes now come from explicit localized data
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_race(mob/living/carbon/human/new_human)
 	. = ..()

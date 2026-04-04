@@ -176,7 +176,9 @@
 		body_type_icon = body_type
 
 	for(var/obj/limb/L as anything in limbs)
-		L.icon_name = get_limb_icon_name(species, body_size_icon, body_type_icon, gender, L.display_name, skin_color_icon)
+		// L.icon_name = get_limb_icon_name(species, body_size_icon, body_type_icon, gender, L.display_name, skin_color_icon)
+		var/limb_icon_key = L.icon_name || L.name // SS220 EDIT: localized damage overlays must resolve from canonical limb ids
+		L.icon_name = get_limb_icon_name(species, body_size_icon, body_type_icon, gender, limb_icon_key, skin_color_icon) // SS220 EDIT: keep damage icon lookup on canonical limb ids after localization
 
 /mob/living/carbon/human/can_inject(mob/user, error_msg, target_zone)
 	if(species?.flags & IS_SYNTHETIC)
@@ -469,3 +471,53 @@ f
 		headset = wear_r_ear
 	if(headset)
 		headset.update_minimap_icon()
+
+/mob/living/carbon/human/proc/paradrop()
+	var/turf/spawn_turf = get_turf(src)
+	spawn_turf.ceiling_debris_check(2)
+	handle_paradrop(spawn_turf)
+	var/obj/item/to_move = back
+	temp_drop_inv_item(to_move, 0)
+	equip_to_slot_or_del(to_move, WEAR_R_HAND)
+	equip_to_slot_or_del(new /obj/item/parachute(src), WEAR_BACK)
+	if(get_ai_brain()) //have to do this again because slot swapping fucks with hAI
+		get_ai_brain().appraise_inventory(armor = TRUE)
+
+/mob/living/carbon/human/proc/strip_all()
+	for(var/obj/item/current_item in src)
+		//no more deletion of ID cards
+		if(istype(current_item, /obj/item/card/id/))
+			continue
+		qdel(current_item)
+	if(get_ai_brain())
+		get_ai_brain().appraise_inventory(armor = TRUE)
+
+/mob/living/carbon/human/proc/strip_weapons()
+	var/obj/item_storage
+	for(var/obj/item/current_item in src.GetAllContents(3))
+		if(istype(current_item, /obj/item/ammo_magazine))
+
+			item_storage = current_item.loc
+			qdel(current_item)
+
+			if(istype(item_storage, /obj/item/storage))
+				item_storage.update_icon()
+
+				continue
+
+		if(istype(current_item, /obj/item/weapon))
+			qdel(current_item)
+			continue
+
+		if(istype(current_item, /obj/item/explosive))
+			qdel(current_item)
+
+	for(var/obj/item/hand_item in hands)
+		if(istype(hand_item, /obj/item/weapon))
+			qdel(hand_item)
+			continue
+
+		if(istype(hand_item, /obj/item/explosive))
+			qdel(hand_item)
+	if(get_ai_brain())
+		get_ai_brain().appraise_inventory(armor = TRUE)

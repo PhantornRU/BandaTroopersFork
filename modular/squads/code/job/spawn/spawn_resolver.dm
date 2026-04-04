@@ -63,10 +63,24 @@
 
 	return TRUE
 
-/datum/modular_squad_spawn_resolver/proc/start_job_key_matches_target(job_key)
-	if(!ispath(job_key, /datum/job) || !ispath(job_datum?.type, /datum/job))
+/datum/modular_squad_spawn_resolver/proc/job_key_matches_target(job_key)
+	if(!job_key || !job_datum?.title)
 		return FALSE
-	return job_key == job_datum.type || ispath(job_datum.type, job_key) || ispath(job_key, job_datum.type)
+
+	var/target_role_bucket = GET_DEFAULT_ROLE(job_datum.title)
+	if(!target_role_bucket)
+		return FALSE
+
+	if(ispath(job_key, /datum/job))
+		var/datum/job/job_by_path = GLOB.RoleAuthority?.roles_by_path[job_key]
+		if(job_by_path?.title)
+			return GET_DEFAULT_ROLE(job_by_path.title) == target_role_bucket
+		return job_key == job_datum.type
+
+	return job_key == job_datum.title || GET_DEFAULT_ROLE(job_key) == target_role_bucket
+
+/datum/modular_squad_spawn_resolver/proc/start_job_key_matches_target(job_key)
+	return job_key_matches_target(job_key)
 
 /datum/modular_squad_spawn_resolver/proc/is_squad_role_job_key(job_key)
 	if(!ispath(job_key, /datum/job))
@@ -82,28 +96,13 @@
 	if(!istype(landmark) || !landmark.job || !job_datum?.title)
 		return FALSE
 
-	if(ispath(landmark.job, /datum/job))
-		return landmark.job == job_datum.type || ispath(job_datum.type, landmark.job) || ispath(landmark.job, job_datum.type)
-
-	return landmark.job == job_datum.title || GET_DEFAULT_ROLE(landmark.job) == GET_DEFAULT_ROLE(job_datum.title)
+	return job_key_matches_target(landmark.job)
 
 /datum/modular_squad_spawn_resolver/proc/latejoin_job_key_matches_target(job_key)
-	if(!job_key || !job_datum?.title)
-		return FALSE
-
-	if(ispath(job_key, /datum/job))
-		return job_key == job_datum.type || ispath(job_datum.type, job_key) || ispath(job_key, job_datum.type)
-
-	return job_key == job_datum.title || GET_DEFAULT_ROLE(job_key) == GET_DEFAULT_ROLE(job_datum.title)
+	return job_key_matches_target(job_key)
 
 /datum/modular_squad_spawn_resolver/proc/start_job_bucket_matches_target(job_key)
-	if(!job_key || !job_datum?.title)
-		return FALSE
-
-	if(ispath(job_key, /datum/job))
-		return job_key == job_datum.type || ispath(job_datum.type, job_key) || ispath(job_key, job_datum.type)
-
-	return job_key == job_datum.title || GET_DEFAULT_ROLE(job_key) == GET_DEFAULT_ROLE(job_datum.title)
+	return job_key_matches_target(job_key)
 
 /datum/modular_squad_spawn_resolver/proc/collect_start_landmarks(list/squad_keys, exact_job = FALSE, squad_roles_only = FALSE)
 	var/list/landmarks = list()

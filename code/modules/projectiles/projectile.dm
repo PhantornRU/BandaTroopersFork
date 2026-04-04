@@ -361,6 +361,11 @@
 	if(istype(hardpoint))
 		LAZYOR(ignore_list, hardpoint.owner) //if fired from a vehicle, exclude the vehicle's body from the adjacency check
 
+	if(ismob(firer))
+		var/mob/mob_firer = firer
+		if(istype(mob_firer.buckled, /obj/vehicle/multitile))
+			LAZYOR(ignore_list, mob_firer.buckled)
+
 	// Check we can reach the turf at all based on pathed grid
 	if(check_canhit(current_turf, next_turf, ignore_list))
 		return TRUE
@@ -505,7 +510,8 @@
 
 	if((MODE_HAS_TOGGLEABLE_FLAG(MODE_NO_ATTACK_DEAD) && L.stat == DEAD) || (L in permutated))
 		return FALSE
-	permutated |= L
+	if(!isnull(permutated))
+		permutated |= L
 	if((ammo.flags_ammo_behavior & AMMO_XENO) && (isfacehugger(L) || L.stat == DEAD)) //xeno ammo is NEVER meant to hit or damage dead people. If you want to add a xeno ammo that DOES then make a new flag that makes it ignore this check.
 		return FALSE
 
@@ -869,6 +875,8 @@
 			return FALSE
 		if(mobility_aura)
 			. -= mobility_aura * 5
+		if(HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE))
+			. -= . / 1.3 // Scale the open-vehicle penalty from the current chance.
 		var/mob/living/carbon/human/shooter_human = P.firer
 		if(istype(shooter_human))
 			if(shooter_human.faction == faction && !(ammo_flags & AMMO_ALWAYS_FF))

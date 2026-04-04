@@ -105,6 +105,18 @@ const RtoSupportPage = ({
         >
           Enable RTO Support
         </Button.Checkbox>
+        <Button.Checkbox
+          checked={!!data.support_underground_enabled}
+          fluid
+          mt={0.5}
+          onClick={() =>
+            act('set_support_underground_enabled', {
+              enabled: data.support_underground_enabled ? 0 : 1,
+            })
+          }
+        >
+          Allow underground support
+        </Button.Checkbox>
       </Section>
 
       <Section level={2} title="Cooldown Modifiers">

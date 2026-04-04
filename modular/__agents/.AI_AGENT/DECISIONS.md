@@ -1,29 +1,13 @@
 # DECISIONS
 
-## D-001: Use a workflow-first redesign instead of cosmetic cleanup
-- Decision: Restructure the panel around the linear GM flow.
-- Why: The main UX problem is information architecture, not missing styling.
+## D-001: `species.name` у HALO-рас возвращается к canonical `SPECIES_*`
+- Решение: использовать `SPECIES_SANGHEILI` и `SPECIES_UNGGOY` как `name` в species datum.
+- Почему: `setup_species()`, `set_species()`, AI/preset flow и часть совместимости завязаны на `species.name` как на ключ lookup/contract, а не как на display label.
 
-## D-002: Reuse the current backend contract first
-- Decision: Build the redesign on top of existing `ui_data()` fields and only
-  add backend data if the frontend cannot represent state safely.
-- Why: The manager already exposes generator meta, fields, placement state,
-  preview/apply state, history, and latest operation data.
+## D-002: Локализация species-имен отделяется от canonical ID
+- Решение: локализованные названия держать в explicit display-layer (`display_name`, `display_name_plural`) и использовать его только в player-facing сообщениях.
+- Почему: предыдущая попытка локализовать raw `name` сломала species registration и HALO equip restrictions.
 
-## D-003: Keep wizard fallback visible as an escape hatch
-- Decision: Preserve `configure_wizard` as a first-class action even when
-  inline fields are available.
-- Why: It is required by the UI field schema and protects generator-specific
-  or degraded configuration flows.
-
-## D-004: Collapse setup and run into one workspace
-- Decision: Replace the old `Catalog / Setup / Run / History` split with
-  `Browse / Work / History`, plus a shared context header and a persistent
-  action rail.
-- Why: The old split forced the user to reconstruct state mentally between
-  multiple screens.
-
-## D-005: Do not add backend changes in this pass
-- Decision: Keep this implementation frontend-only.
-- Why: Existing runtime data was sufficient to drive workflow messaging,
-  action availability, and session summaries.
+## D-003: Прямые subtype-спавны добавляются в upstream `human.dm`
+- Решение: завести `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` по примеру `/mob/living/carbon/human/synthetic`.
+- Почему: пользователь явно просит create-human/create-object surface для прямого спавна рас без обязательного gear preset.

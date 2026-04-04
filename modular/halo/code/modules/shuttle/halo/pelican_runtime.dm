@@ -13,6 +13,12 @@
 /obj/docking_port/mobile/marine_dropship/pelican/get_transit_path_type()
 	return /turf/open/space/transit/dropship/pelican
 
+/obj/docking_port/mobile/marine_dropship/pelican/postregister(replace = FALSE)
+	. = ..()
+	for(var/area/shuttle_area as anything in shuttle_areas)
+		for(var/obj/structure/roof/pelican_roof/roof in shuttle_area)
+			roof.refresh_pelican_roof_images()
+
 /obj/docking_port/stationary/marine_dropship/pelican_lz
 	name = "Pelican LZ"
 	auto_open = TRUE

@@ -371,7 +371,7 @@ and organ transplant code which may come in handy in future but haven't been edi
 			to_chat(user, SPAN_WARNING("\The [O.organ_tag] [o_do] normally go in \the [affected.display_name]."))
 			return SPECIAL_SURGERY_INVALID
 	else
-		to_chat(user, SPAN_WARNING("You're pretty sure [target.species.name_plural] don't normally have [o_a][O.organ_tag]."))
+		to_chat(user, SPAN_WARNING("You're pretty sure [target.species.get_display_name_plural()] don't normally have [o_a][O.organ_tag].")) // SS220 EDIT: use explicit display plural so localized HALO species no longer depend on canonical species.name
 		return SPECIAL_SURGERY_INVALID
 
 	return ..() && organ_missing && organ_compatible

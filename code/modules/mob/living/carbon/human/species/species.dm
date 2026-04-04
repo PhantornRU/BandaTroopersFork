@@ -8,6 +8,8 @@
 
 	var/name  // Species name.
 	var/name_plural
+	var/display_name // SS220 EDIT: separate player-facing species labels from canonical species.name keys
+	var/display_name_plural // SS220 EDIT: keep localized plural labels without breaking species lookup ids
 
 	var/icobase = 'icons/mob/humans/species/r_human.dmi' // Normal icon set.
 	var/deform = 'icons/mob/humans/species/r_def_human.dmi' // Mutated icon set.
@@ -459,6 +461,14 @@
 
 /datum/species/proc/get_bodytype(mob/living/carbon/human/H)
 	return name
+
+// SS220 EDIT - START: explicit display-name hooks keep localized species labels out of canonical name/group contracts
+/datum/species/proc/get_display_name()
+	return display_name || name
+
+/datum/species/proc/get_display_name_plural()
+	return display_name_plural || name_plural || "[get_display_name()]s"
+// SS220 EDIT - END
 
 /datum/species/proc/get_tail(mob/living/carbon/human/H)
 	return tail

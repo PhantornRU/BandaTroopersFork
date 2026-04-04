@@ -1,123 +1,127 @@
-# various_fixes_maps_factions: карта портов и конфликтов
+# various_fixes: карта портов и конфликтов после split
 
 Назначение документа:
-- зафиксировать, что именно осталось в ветке `various_fixes_maps_factions` после разделения бывшего `various_fixes`;
-- дать короткую карту для повторного ребейза, force-push и сопровождения отдельного PR по картам и фракциям;
-- не смешивать этот scope с zombie/hAI/xeno-AI веткой.
+- зафиксировать, что именно осталось в rebuilt-ветке `various_fixes` после отделения map/faction пакетов в отдельный PR;
+- не допустить повторного смешивания zombie/hAI/xeno-AI scope с картами и фракциями;
+- дать короткую карту для повторного force-push и сопровождения обновленного `ss220club/BandaTroopers#49`.
 
 ## База пересборки
 
 - source-of-truth для split: `ss220club/BandaTroopers#49`
-- исходный head до разделения: `2fc7e58bbf637ca0d94ce9d3445ab276c59809c9`
-- base для обеих rebuilt-веток: `ss220club/master` на `80c26c912eddd9f3466840ee1b8ba6d18b5600ce`
+- исходный общий head до разделения: `2fc7e58bbf637ca0d94ce9d3445ab276c59809c9`
+- base rebuilt-ветки: `ss220club/master` на `80c26c912eddd9f3466840ee1b8ba6d18b5600ce`
 - принцип пересборки:
-  - authored non-merge commits сохраняются где это возможно;
-  - merge commits и doc/task-state шум не переносятся;
-  - смешанные интеграционные коммиты режутся вручную по смысловым пакетам.
+  - сохранять authored non-merge commits для нужных пакетов;
+  - не переносить merge commits;
+  - смешанные интеграционные коммиты делить вручную по смыслу.
 
 ## Что входит в эту ветку
 
-Ветка `various_fixes_maps_factions` содержит только map/faction/content bundle и supporting integration:
+Ветка `various_fixes` после split содержит только remaining AI/zombie/general integration scope:
 
-1. `cmss13-pve#1235`
-   - Black Dragoons / mercenary weapon-content пакет
-2. `cmss13-pve#1128`
-   - FIL / бывший FAAMI faction package
-3. `ss220club/BandaTroopers#20`
-   - CANC Dogwar package
-   - плюс отдельный интеграционный fix `6cd6d898e1`
-4. `cmss13-pve#1253`
-   - `SSV Rover Tethered`
-5. `cmss13-pve#1251`
-   - `SSV Laituri`, UPP recon, `Korobka`
-6. `cmss13-pve#1228`
-   - PMC / Whiteout / WO / Working Joe / W-Y droids bundle
-7. GroundSide stabilization
-   - missing RU GroundSide maps
-   - map regressions fix
-   - maplint / DMI overflow / compat cleanup
+1. `cmss13-pve#1218`
+   - большой weapons/equipment/support bundle
+2. `cmss13-pve#1227`
+   - follow-up fix поверх `#1218`
+3. `cmss13-pve#1148`
+   - zombie overhaul
+4. `cmss13-pve#977`
+   - Warrior Drone / xeno content-support
+5. `cmss13-pve#1250`
+   - ARES laptop prop
+6. `cmss13-pve#1239`
+   - Human AI preset-management follow-up поверх уже перенесенного zombie/hAI фундамента
+7. `RU-CMSS13#75`
+   - xeno AI actions follow-up
+8. supporting TM/integration commits
+   - только те, что реально нужны для remaining-scope ветки
 
-## Что сознательно НЕ входит
+## Что было вынесено в sibling-ветку
 
-Эта ветка не должна содержать:
-- `#1218`
-- `#1227`
-- `#1148`
-- `#977`
-- `#1250`
-- `#1239`
-- `RU-CMSS13#75`
-- чисто TM-oriented или `.AI_AGENT`-only commits без продуктового смысла
+Из этой ветки сознательно убраны:
+- `#1235`
+- `#1128`
+- `ss220club/BandaTroopers#20`
+- `#1253`
+- `#1251`
+- `#1228`
+- GroundSide stabilization
 
-Эти изменения живут в sibling-ветке `various_fixes`.
+Все эти пакеты теперь живут в отдельной ветке:
+- `various_fixes_maps_factions`
+- PR title: `[TM ONLY] HARDCODE Maps and faction ports from CM-PVE`
 
 ## Ручные split-коммиты
 
 ### 1. Разделение `fbe6292953`
 
-Map/faction half перенесен отдельным commit:
-- `b86a5bbb3c` `Split integration: keep map and faction conflict resolution on maps branch`
+Remaining half перенесен отдельным commit:
+- `f4f1e093e5` `Split integration: keep HumanAISpawner follow-up on remaining branch`
 
-Смысл:
-- сохранить map/faction integration fixes из общего post-port cleanup;
-- не забирать `HumanAISpawner` и прочий hAI-only follow-up.
+Что осталось здесь:
+- `code/modules/mob/living/carbon/human/ai/ai_spawner/ai_spawner.dm`
+- `tgui/packages/tgui/interfaces/HumanAISpawner.tsx`
+
+Что вынесено в sibling-ветку:
+- map/faction conflict resolution и related content integration
 
 ### 2. Разделение `e45cddff66`
 
-Map/faction half перенесен отдельным commit:
-- `900fd58f77` `Split integration: keep PR1228 map/faction fixes on maps branch`
+Remaining half перенесен отдельным commit:
+- `9065dbfc97` `Split integration: keep RU75 xeno AI cleanup on remaining branch`
 
-Смысл:
-- добавить `#include "code\\datums\\factions\\wo.dm"` в `colonialmarines.dme`;
-- убрать оставшийся conflict-marker из `code/modules/clothing/under/marine_uniform.dm`;
-- не переносить RU75/xeno-AI cleanup из `game_master.dm`.
+Что осталось здесь:
+- cleanup `GAME_MASTER_AI_XENOS`
+- removal of invalid `PATHOGEN_CREATURE_*` entries для текущей hardcode-базы
 
-## GroundSide пакет в этой ветке
+Что вынесено в sibling-ветку:
+- `wo.dm` DME include
+- `marine_uniform.dm` leftover conflict-marker cleanup
 
-Практически важные replay/fix commits после `#1228`:
-- `b462110c10` `fix(build): resolve GroundSide compile blockers and compat paths`
-- `85aae84f30` `fix(maps): repair GroundSide merge regressions in existing DMMs`
-- `f65a5f945b` `feat(maps): replay missing RU GroundSide map packs`
-- `9b39772c86` `fix(assets): split GroundSide onmob atlases and repoint icon routes`
-- `6e34314a36` `Z maps fix`
-- `a99fb07145` `gun fixes`
-- `39c1b83ee8` `Fix ported unit test and lint regressions`
-- `b06da191e7` `linter fix`
-- `e5bd4d1df6` `подтягиваем недостаток`
-- `6f48649864` `Fix парсера`
+### 3. Follow-up после merge commit `#65`
 
-Что было сознательно пропущено:
-- `0e26ab835e` doc-only summary старой общей ветки
-- `d4c21ddecc`, `5d28bb5474`, `2a0b083092` `.AI_AGENT`-state noise
-- `c9ce0fd54c` старый общий doc/task-state finalize
-- пустые no-op commits без tree diff (`87e5aba5a4`, `8744e94a9c`, `d156e2ac22`)
-- weekly workflow noise (`47c07afc94`, `705b38a3e2`)
+Отдельный commit:
+- `de66520240` `Keep Human AI spawner expected-species follow-up on remaining branch`
 
-## Основные conflict hotspots
+Зачем нужен:
+- merge `#65` менял `ai_spawner.dm` уже после `fbe629...`;
+- без этого follow-up rebuilt-ветка теряла финальное expected-species состояние spawner'а.
 
-Если ветку придется пересобирать заново, сначала проверять:
+## Важные supporting commits, которые оставлены здесь
 
-1. `code/modules/cm_marines/equipment/maps.dm`
-   - итоговое состояние должно совмещать JSON `map_item_type` flow и GroundSide lookup fallback/logging
-2. `map_config/maps.txt`
-   - должны одновременно жить HALO ground rotation и GroundSide rotation entries
-3. `code/modules/clothing/under/marine_uniform.dm`
-   - здесь пересекались FIL, PMC/WO и GroundSide atlas split
-4. `colonialmarines.dme`
-   - порядок include'ов критичен для `wo.dm`, `LV671.dm` и новых define/include блоков
-5. `code/controllers/subsystem/communications.dm`
-   - CANC integration нельзя сводить blind-theirs, иначе легко оставить невалидный alias-state
+- `d545cb8899` `Resolve TM merge conflicts with pending team merges`
+- `36c3079dca` `Align TM conflict hunks with team-merge branches`
+- `8a5358369b` `Normalize UPP RPG trait list formatting for TM auto-merge`
+- `059e313fbd` `Fix HumanAISpawner preset typing for tgui-tsc`
+- `9494291953` `Sync cyrillic radio keys with current channel map`
+
+Это не отдельные external PR, но они нужны для консистентного remaining diff и CI/TM-совместимости.
+
+## Основные hotspots этой ветки
+
+Если remaining-ветку придется пересобрать заново, сначала проверять:
+
+1. `code/modules/mob/living/carbon/human/ai/ai_spawner/ai_spawner.dm`
+2. `tgui/packages/tgui/interfaces/HumanAISpawner.tsx`
+3. `code/modules/admin/game_master/game_master.dm`
+4. `code/modules/mob/living/carbon/human/ai/brain/*`
+5. `code/modules/mob/living/carbon/human/species/zombie.dm`
+6. `code/modules/mob/living/carbon/xenomorph/castes/*`
+
+Причина:
+- именно здесь пересекались zombie overhaul, hAI follow-ups, xeno-AI actions и post-port integration fixes.
 
 ## Практический итог split
 
-Эта ветка предназначена для отдельного PR:
-- title: `[TM ONLY] HARDCODE Maps and faction ports from CM-PVE`
+Эта ветка предназначена для обновленного PR `#49`:
+- title: `[TM ONLY] HARDCODE AI, zombie and integration fixes from CM-PVE`
 - scope:
-  - faction bundles
-  - shipmaps / ground maps
-  - GroundSide stabilization
-  - supporting integration fixes только для этого пакета
+  - zombie systems
+  - human AI follow-ups
+  - xeno-AI / Warrior Drone support
+  - ARES laptop
+  - generic CI/TGUI/integration fixes, которые нужны именно этой части
 
 Sibling PR:
-- `[TM ONLY] HARDCODE AI, zombie and integration fixes from CM-PVE`
-- ветка: `various_fixes`
+- `[TM ONLY] HARDCODE Maps and faction ports from CM-PVE`
+- ветка: `various_fixes_maps_factions`
