@@ -35,6 +35,38 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 			return WEST
 	return fallback_dir
 
+/datum/world_edit_helpers/proc/is_cardinal_dir(direction)
+	return direction in GLOB.cardinals
+
+/datum/world_edit_helpers/proc/build_turf_dir_slot_key(turf/target_turf, direction)
+	if(!istype(target_turf) || !is_cardinal_dir(direction))
+		return null
+	return "[target_turf.x],[target_turf.y],[target_turf.z]:[direction]"
+
+/datum/world_edit_helpers/proc/has_barricade_in_dir(turf/target_turf, direction)
+	if(!istype(target_turf) || !is_cardinal_dir(direction))
+		return FALSE
+
+	for(var/obj/structure/barricade/existing_barricade in target_turf)
+		if(existing_barricade.dir == direction)
+			return TRUE
+
+	return FALSE
+
+/datum/world_edit_helpers/proc/has_dense_nonmob_blocker(turf/target_turf, ignore_barricades = FALSE)
+	if(!target_turf)
+		return TRUE
+
+	for(var/atom/movable/blocker as anything in target_turf)
+		if(ismob(blocker))
+			continue
+		if(ignore_barricades && istype(blocker, /obj/structure/barricade))
+			continue
+		if(blocker.density)
+			return TRUE
+
+	return FALSE
+
 /datum/world_edit_helpers/proc/collect_line_turfs(turf/start_turf, turf/end_turf)
 	var/list/turfs = list()
 	if(!start_turf || !end_turf || start_turf.z != end_turf.z)

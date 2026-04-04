@@ -237,9 +237,12 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 		if(entry_result["error"])
 			return entry_result
 		var/list/sanitized_entry = entry_result["entry"]
-		var/coord_key = "[sanitized_entry["dx"]],[sanitized_entry["dy"]],[sanitized_entry["dz"]]"
+		var/obj_path = text2path("[sanitized_entry["type"]]")
+		var/coord_key = world_edit_build_blueprint_relative_slot_key(obj_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
+		if(!length(coord_key))
+			return list("error" = "Blueprint contains an invalid directional placement slot.")
 		if(relative_coord_lookup[coord_key])
-			return list("error" = "Blueprint contains multiple placements for the same relative turf.")
+			return list("error" = "Blueprint contains multiple placements for the same relative slot.")
 		relative_coord_lookup[coord_key] = TRUE
 		sanitized_entries += list(sanitized_entry)
 
@@ -415,9 +418,11 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 
 		var/dx = target_turf.x - anchor_turf.x
 		var/dy = target_turf.y - anchor_turf.y
-		var/coord_key = "[dx],[dy],0"
+		var/coord_key = world_edit_build_blueprint_relative_slot_key(obj_path, dx, dy, 0, dir_value)
+		if(!length(coord_key))
+			return list("error" = "Current plan contains an invalid directional placement slot.")
 		if(relative_coord_lookup[coord_key])
-			return list("error" = "Current plan contains multiple placements for the same relative turf.")
+			return list("error" = "Current plan contains multiple placements for the same relative slot.")
 		relative_coord_lookup[coord_key] = TRUE
 
 		entries += list(list(
@@ -454,24 +459,31 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	return open_turf.allow_construction ? TRUE : FALSE
 
 /datum/world_edit_blueprint_service/proc/world_edit_has_dense_blocker_for_blueprint(turf/target_turf)
-	if(!target_turf)
-		return TRUE
-	for(var/atom/movable/blocker as anything in target_turf)
-		if(ismob(blocker))
-			continue
-		if(blocker.density)
-			return TRUE
-	return FALSE
+	return GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf)
 
-/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path)
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_relative_slot_key(obj_path, dx, dy, dz, dir_value)
+	if(ispath(obj_path, /obj/structure/barricade))
+		if(!(dir_value in GLOB.cardinals))
+			return null
+		return "[dx],[dy],[dz]:[dir_value]"
+	return "[dx],[dy],[dz]"
+
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_target_slot_key(turf/target_turf, obj_path, dir_value)
+	if(!istype(target_turf))
+		return null
+	if(ispath(obj_path, /obj/structure/barricade))
+		return GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, dir_value)
+	return "[target_turf.x],[target_turf.y],[target_turf.z]"
+
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path, dir_value = SOUTH)
 	if(!world_edit_is_open_construction_turf_for_blueprint(target_turf))
 		return "Blueprint target must be an open construction turf."
 
 	if(ispath(obj_path, /obj/structure/barricade))
-		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
+		if(GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, TRUE))
 			return "Blueprint target turf is blocked for a barricade."
-		for(var/obj/structure/barricade/existing_barricade in target_turf)
-			return "Blueprint target turf already contains a barricade."
+		if(GLOB.world_edit_helpers.has_barricade_in_dir(target_turf, dir_value))
+			return "Blueprint target turf already contains a barricade on that side."
 		return null
 
 	if(ispath(obj_path, /obj/structure/machinery/defenses))
@@ -547,6 +559,9 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 		return plan
 
 	var/list/affected_lookup = list()
+	var/list/placement_lookup = list()
+	var/blocked_entry_count = 0
+	var/duplicate_entry_count = 0
 	for(var/list/entry as anything in entries)
 		var/obj_path = text2path("[entry["type"]]")
 		var/list/rotated_offset = world_edit_rotate_blueprint_offset(text2num("[entry["dx"]]"), text2num("[entry["dy"]]"), placement_dir)
@@ -554,22 +569,33 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 		if(!istype(target_turf))
 			plan.metadata["error"] = "Blueprint points outside the current z-level bounds."
 			return plan
-		if(affected_lookup[target_turf])
-			plan.metadata["error"] = "Blueprint contains multiple placements for the same turf."
-			return plan
 
-		var/error_text = world_edit_validate_blueprint_target_turf(target_turf, obj_path)
+		var/dir_value = world_edit_rotate_blueprint_dir(text2num("[entry["dir"]]"), placement_dir)
+		var/placement_key = world_edit_build_blueprint_target_slot_key(target_turf, obj_path, dir_value)
+		if(!length(placement_key))
+			plan.metadata["error"] = "Blueprint contains an invalid directional placement slot."
+			return plan
+		if(placement_lookup[placement_key])
+			duplicate_entry_count++
+			continue
+
+		var/error_text = world_edit_validate_blueprint_target_turf(target_turf, obj_path, dir_value)
 		if(error_text)
-			plan.metadata["error"] = error_text
-			plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
-			return plan
+			if(error_text == "Blueprint contains an unsupported placement type.")
+				plan.metadata["error"] = error_text
+				return plan
+			if(isnull(plan.metadata["first_blocked_turf"]))
+				plan.metadata["first_blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
+			blocked_entry_count++
+			continue
 
+		placement_lookup[placement_key] = TRUE
 		affected_lookup[target_turf] = TRUE
 		plan.placements += list(list(
 			"kind" = "blueprint_spawn",
 			"obj_path" = obj_path,
 			"turf" = target_turf,
-			"dir" = world_edit_rotate_blueprint_dir(text2num("[entry["dir"]]"), placement_dir),
+			"dir" = dir_value,
 			"vars" = entry["vars"] || list(),
 		))
 
@@ -580,6 +606,9 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	plan.metadata["blueprint_id"] = blueprint["id"]
 	plan.metadata["blueprint_name"] = blueprint["name"]
 	plan.metadata["entry_count"] = length(plan.placements)
+	plan.metadata["blocked_entry_count"] = blocked_entry_count
+	plan.metadata["duplicate_entry_count"] = duplicate_entry_count
+	plan.metadata["skipped_entry_count"] = blocked_entry_count + duplicate_entry_count
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
 	plan.metadata["placement_dir"] = placement_dir
 	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)

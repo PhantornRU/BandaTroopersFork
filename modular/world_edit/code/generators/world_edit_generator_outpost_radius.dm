@@ -298,12 +298,13 @@
 				var/turf/target_turf = GLOB.world_edit_helpers.step_turf(source_turf, dir_to_use, radius)
 				if(!istype(target_turf) || footprint_lookup[target_turf])
 					continue
-				if(candidate_lookup[target_turf])
+				var/candidate_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, dir_to_use)
+				if(!length(candidate_key) || candidate_lookup[candidate_key])
 					continue
-				if(!can_place_barricade_on_turf(target_turf))
+				if(!can_place_barricade_on_turf(target_turf, dir_to_use))
 					continue
 
-				candidate_lookup[target_turf] = TRUE
+				candidate_lookup[candidate_key] = TRUE
 				candidates += list(list(
 					"source_turf" = source_turf,
 					"turf" = target_turf,
@@ -385,10 +386,11 @@
 	var/list/opening_lookup = list()
 	var/list/opening_seen_lookup = list()
 	for(var/list/opening_slot as anything in opening_slots)
-		if(opening_seen_lookup[opening_slot["turf"]])
+		var/opening_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(opening_slot["turf"], opening_slot["dir"])
+		if(!length(opening_slot_key) || opening_seen_lookup[opening_slot_key])
 			continue
-		opening_seen_lookup[opening_slot["turf"]] = TRUE
-		opening_lookup[opening_slot["turf"]] = TRUE
+		opening_seen_lookup[opening_slot_key] = TRUE
+		opening_lookup[opening_slot_key] = TRUE
 
 	var/list/preview_turf_lookup = list()
 	var/list/barricade_lookup = list()
@@ -404,34 +406,39 @@
 
 	for(var/list/candidate_slot as anything in candidate_slots)
 		var/turf/target_turf = candidate_slot["turf"]
+		var/candidate_dir = candidate_slot["dir"]
+		var/barricade_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, candidate_dir)
 		if(!istype(target_turf))
 			continue
-		if(opening_lookup[target_turf])
+		if(!length(barricade_slot_key))
 			continue
-		if(!can_place_barricade_on_turf(target_turf))
+		if(opening_lookup[barricade_slot_key])
+			continue
+		if(!can_place_barricade_on_turf(target_turf, candidate_dir))
 			total_blocked_barricades++
 			continue
-		if(barricade_lookup[target_turf])
+		if(barricade_lookup[barricade_slot_key])
 			continue
 
-		barricade_lookup[target_turf] = TRUE
+		barricade_lookup[barricade_slot_key] = TRUE
 		preview_turf_lookup[target_turf] = TRUE
 		plan.placements += list(list(
 			"kind" = "barricade",
 			"turf" = target_turf,
-			"dir" = candidate_slot["dir"],
+			"dir" = candidate_dir,
 			"defense_path" = select_barricade_path_for_slot(config["barricade_cycle"], candidate_slot["slot_index"] || 1, radius) || config["barricade_path"],
 		))
 
 	for(var/list/opening_slot as anything in opening_slots)
 		var/turf/open_turf = opening_slot["turf"]
-		if(opening_seen_lookup[open_turf] != TRUE)
+		var/opening_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(open_turf, opening_slot["dir"])
+		if(!length(opening_slot_key) || opening_seen_lookup[opening_slot_key] != TRUE)
 			continue
-		opening_seen_lookup[open_turf] = FALSE
+		opening_seen_lookup[opening_slot_key] = FALSE
 		if(!istype(open_turf))
 			total_blocked_openings++
 			continue
-		if(!can_place_barricade_on_turf(open_turf))
+		if(!can_place_barricade_on_turf(open_turf, opening_slot["dir"]))
 			total_blocked_openings++
 			continue
 
@@ -447,7 +454,7 @@
 		var/placed_sentry = FALSE
 		for(var/list/sentry_candidate as anything in sentry_candidates)
 			var/turf/sentry_turf = sentry_candidate["turf"]
-			if(!istype(sentry_turf) || preview_turf_lookup[sentry_turf] || barricade_lookup[sentry_turf] || sentry_lookup[sentry_turf])
+			if(!istype(sentry_turf) || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
 				continue
 			if(!can_place_sentry_on_turf(sentry_turf))
 				continue
@@ -555,22 +562,17 @@
 
 	return TRUE
 
-/datum/world_edit_generator/outpost_radius/proc/has_dense_blocker(turf/target_turf)
-	if(!target_turf)
-		return TRUE
-	for(var/atom/movable/blocker as anything in target_turf)
-		if(ismob(blocker))
-			continue
-		if(blocker.density)
-			return TRUE
-	return FALSE
+/datum/world_edit_generator/outpost_radius/proc/has_dense_blocker(turf/target_turf, ignore_barricades = FALSE)
+	return GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, ignore_barricades)
 
-/datum/world_edit_generator/outpost_radius/proc/can_place_barricade_on_turf(turf/target_turf)
+/datum/world_edit_generator/outpost_radius/proc/can_place_barricade_on_turf(turf/target_turf, dir_to_use)
 	if(!is_open_construction_turf(target_turf))
 		return FALSE
-	if(has_dense_blocker(target_turf))
+	if(!GLOB.world_edit_helpers.is_cardinal_dir(dir_to_use))
 		return FALSE
-	for(var/obj/structure/barricade/existing_barricade in target_turf)
+	if(has_dense_blocker(target_turf, TRUE))
+		return FALSE
+	if(GLOB.world_edit_helpers.has_barricade_in_dir(target_turf, dir_to_use))
 		return FALSE
 	return TRUE
 
@@ -628,13 +630,13 @@
 		slot_index++
 		var/turf/top_turf = locate(center_turf.x + offset_x, center_turf.y + radius, center_turf.z)
 		if(is_perimeter_opening_slot(NORTH, offset_x, radius, family_profile))
-			if(can_place_barricade_on_turf(top_turf))
+			if(can_place_barricade_on_turf(top_turf, NORTH))
 				result["opening_count"]++
 				result["openings"] += list(list("turf" = top_turf, "dir" = NORTH, "slot_index" = slot_index))
 			else
 				result["blocked_count"]++
 				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(top_turf))
+		else if(can_place_barricade_on_turf(top_turf, NORTH))
 			placements += list(list(
 				"turf" = top_turf,
 				"dir" = NORTH,
@@ -651,13 +653,13 @@
 		slot_index++
 		var/turf/bottom_turf = locate(center_turf.x + offset_x, center_turf.y - radius, center_turf.z)
 		if(is_perimeter_opening_slot(SOUTH, offset_x, -radius, family_profile))
-			if(can_place_barricade_on_turf(bottom_turf))
+			if(can_place_barricade_on_turf(bottom_turf, SOUTH))
 				result["opening_count"]++
 				result["openings"] += list(list("turf" = bottom_turf, "dir" = SOUTH, "slot_index" = slot_index))
 			else
 				result["blocked_count"]++
 				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(bottom_turf))
+		else if(can_place_barricade_on_turf(bottom_turf, SOUTH))
 			placements += list(list(
 				"turf" = bottom_turf,
 				"dir" = SOUTH,
@@ -675,13 +677,13 @@
 		slot_index++
 		var/turf/right_turf = locate(center_turf.x + radius, center_turf.y + offset_y, center_turf.z)
 		if(is_perimeter_opening_slot(EAST, radius, offset_y, family_profile))
-			if(can_place_barricade_on_turf(right_turf))
+			if(can_place_barricade_on_turf(right_turf, EAST))
 				result["opening_count"]++
 				result["openings"] += list(list("turf" = right_turf, "dir" = EAST, "slot_index" = slot_index))
 			else
 				result["blocked_count"]++
 				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(right_turf))
+		else if(can_place_barricade_on_turf(right_turf, EAST))
 			placements += list(list(
 				"turf" = right_turf,
 				"dir" = EAST,
@@ -695,13 +697,13 @@
 		slot_index++
 		var/turf/left_turf = locate(center_turf.x - radius, center_turf.y + offset_y, center_turf.z)
 		if(is_perimeter_opening_slot(WEST, -radius, offset_y, family_profile))
-			if(can_place_barricade_on_turf(left_turf))
+			if(can_place_barricade_on_turf(left_turf, WEST))
 				result["opening_count"]++
 				result["openings"] += list(list("turf" = left_turf, "dir" = WEST, "slot_index" = slot_index))
 			else
 				result["blocked_count"]++
 				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(left_turf))
+		else if(can_place_barricade_on_turf(left_turf, WEST))
 			placements += list(list(
 				"turf" = left_turf,
 				"dir" = WEST,
@@ -878,11 +880,18 @@
 			var/turf/target_turf = placement["turf"]
 			if(!istype(target_turf))
 				continue
-			if(occupied_lookup[target_turf])
+			var/placement_key
+			if(placement["kind"] == "barricade")
+				placement_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, placement["dir"])
+			else
+				placement_key = "[target_turf.x],[target_turf.y],[target_turf.z]:[placement["kind"]]"
+			if(!length(placement_key))
+				continue
+			if(occupied_lookup[placement_key])
 				plan.metadata["error"] = "Requested outpost footprint overlaps itself."
 				plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
 				return plan
-			occupied_lookup[target_turf] = TRUE
+			occupied_lookup[placement_key] = TRUE
 			preview_lookup[target_turf] = TRUE
 			plan.placements += list(placement.Copy())
 		if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
@@ -1032,7 +1041,7 @@
 			skipped_runtime++
 			continue
 		if(placement_kind == "barricade")
-			if(!can_place_barricade_on_turf(target_turf))
+			if(!can_place_barricade_on_turf(target_turf, placement["dir"]))
 				skipped_runtime++
 				continue
 			var/obj/created_object = spawn_defense_path(target_turf, placement["dir"], defense_path)

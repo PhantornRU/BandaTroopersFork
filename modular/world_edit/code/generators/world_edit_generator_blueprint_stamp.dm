@@ -77,6 +77,17 @@
 
 	return anchor_turfs
 
+/datum/world_edit_generator/blueprint_stamp/proc/build_blueprint_placement_key(list/placement)
+	var/turf/target_turf = placement["turf"]
+	if(!istype(target_turf))
+		return null
+
+	var/obj_path = placement["obj_path"]
+	if(ispath(obj_path, /obj/structure/barricade))
+		return GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, placement["dir"])
+
+	return "[target_turf.x],[target_turf.y],[target_turf.z]"
+
 /datum/world_edit_generator/blueprint_stamp/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
 	var/list/load_result = load_active_blueprint(params)
@@ -98,6 +109,9 @@
 
 	var/list/affected_lookup = list()
 	var/list/occupied_lookup = list()
+	var/blocked_entry_count = 0
+	var/duplicate_entry_count = 0
+	var/overlap_entry_count = 0
 	var/list/blueprint = load_result["blueprint"]
 	for(var/turf/anchor_turf as anything in anchor_turfs)
 		var/datum/world_edit_plan/anchor_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(blueprint, anchor_turf, placement_dir)
@@ -108,15 +122,20 @@
 			plan.metadata = anchor_plan.metadata.Copy()
 			plan.metadata["anchor_turf"] = "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
 			return plan
+		blocked_entry_count += anchor_plan.metadata["blocked_entry_count"] || 0
+		duplicate_entry_count += anchor_plan.metadata["duplicate_entry_count"] || 0
 
 		for(var/list/placement as anything in anchor_plan.placements)
 			var/turf/target_turf = placement["turf"]
-			if(occupied_lookup[target_turf])
-				plan.metadata["error"] = "Requested placement footprint overlaps itself."
-				plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
-				return plan
+			var/placement_key = build_blueprint_placement_key(placement)
+			if(!length(placement_key))
+				overlap_entry_count++
+				continue
+			if(occupied_lookup[placement_key])
+				overlap_entry_count++
+				continue
 
-			occupied_lookup[target_turf] = TRUE
+			occupied_lookup[placement_key] = TRUE
 			affected_lookup[target_turf] = TRUE
 			plan.placements += list(placement.Copy())
 
@@ -136,6 +155,10 @@
 	plan.metadata["blueprint_name"] = blueprint["name"]
 	plan.metadata["entry_count"] = length(plan.placements)
 	plan.metadata["blueprint_entry_count"] = length(blueprint["entries"])
+	plan.metadata["blocked_entry_count"] = blocked_entry_count
+	plan.metadata["duplicate_entry_count"] = duplicate_entry_count
+	plan.metadata["overlap_entry_count"] = overlap_entry_count
+	plan.metadata["skipped_entry_count"] = blocked_entry_count + duplicate_entry_count + overlap_entry_count
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
 	plan.metadata["anchor_count"] = length(anchor_turfs)
 	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
@@ -184,7 +207,7 @@
 	result.success = TRUE
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
-	result.message = "Blueprint preview ready: anchors=[plan.metadata["anchor_count"]], entries=[plan.metadata["entry_count"]], dir=[plan.metadata["placement_dir_label"]]."
+	result.message = "Blueprint preview ready: anchors=[plan.metadata["anchor_count"]], entries=[plan.metadata["entry_count"]], skipped=[plan.metadata["skipped_entry_count"] || 0], dir=[plan.metadata["placement_dir_label"]]."
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/apply(mob/user, list/params)
@@ -200,15 +223,8 @@
 		result.message = "Blueprint apply finished with no valid placements."
 		return result
 
-	for(var/list/placement as anything in plan.placements)
-		var/turf/target_turf = placement["turf"]
-		var/obj_path = placement["obj_path"]
-		var/error_text = GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(target_turf, obj_path)
-		if(error_text)
-			result.message = "Blueprint apply aborted: [error_text]"
-			return result
-
 	var/created_count = 0
+	var/skipped_runtime = 0
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "blueprint_stamp", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = plan.metadata["center_turf"],
 		"blueprint_id" = plan.metadata["blueprint_id"],
@@ -218,6 +234,13 @@
 		"anchor_count" = plan.metadata["anchor_count"],
 	))
 	for(var/list/placement as anything in plan.placements)
+		var/turf/target_turf = placement["turf"]
+		var/obj_path = placement["obj_path"]
+		var/error_text = GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(target_turf, obj_path, placement["dir"])
+		if(error_text)
+			skipped_runtime++
+			continue
+
 		var/obj/created_object = GLOB.world_edit_blueprints.world_edit_spawn_blueprint_entry(placement)
 		if(created_object)
 			created_count++
@@ -225,10 +248,13 @@
 				"kind" = placement["kind"],
 				"obj_path" = placement["obj_path"],
 			))
+		else
+			skipped_runtime++
 
 	result.center_turf = plan.metadata["center_turf"]
 	result.created_count = created_count
 	result.meta = plan.metadata.Copy()
+	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(created_count <= 0)
 		result.message = "Blueprint apply finished without creating any structures."
@@ -236,7 +262,7 @@
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Blueprint '[plan.metadata["blueprint_name"]]' stamped successfully: anchors=[plan.metadata["anchor_count"]], created=[created_count], dir=[plan.metadata["placement_dir_label"]]."
+	result.message = "Blueprint '[plan.metadata["blueprint_name"]]' stamped successfully: anchors=[plan.metadata["anchor_count"]], created=[created_count], skipped=[skipped_runtime], dir=[plan.metadata["placement_dir_label"]]."
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/get_apply_confirmation_text(list/params)
