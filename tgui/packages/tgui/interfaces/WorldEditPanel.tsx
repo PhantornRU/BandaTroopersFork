@@ -811,7 +811,7 @@ const RunPage = (props: {
               disabled={!data.can_finish_placement_collection}
               onClick={() => act('finish_placement_collection')}
             >
-              Finish collection
+              Apply collected shape
             </Button>
           </Stack.Item>
         </Stack>
@@ -823,7 +823,7 @@ const RunPage = (props: {
             {data.placement_interaction_kind === 'anchor_pair'
               ? 'LMB ставит первую точку, второй LMB выполняет preview/apply, MMB сбрасывает pending anchor.'
               : data.placement_interaction_kind === 'collector'
-                ? 'LMB добавляет point, MMB удаляет последний point, Finish collection завершает сборку и возвращает управление в panel preview/apply.'
+                ? 'LMB добавляет точки, MMB удаляет последнюю, а RMB или кнопка Apply collected shape подтверждают и применяют готовый footprint.'
                 : data.placement_interaction_kind === 'param_only'
                   ? 'LMB использует выбранный turf как anchor, а footprint берется из текущих параметров shape. Interactive point collection пока не входит в этот проход.'
                   : 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте Stop click-mode.'}

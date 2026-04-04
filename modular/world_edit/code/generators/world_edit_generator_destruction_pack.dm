@@ -281,6 +281,9 @@
 	var/blast_power = text2num("[params["blast_power"]]") || get_blast_power_default()
 	var/blast_falloff = text2num("[params["blast_falloff"]]") || get_blast_falloff_default()
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
+	if(isnull(damage_profile))
+		plan.metadata["error"] = "Invalid damage profile selected."
+		return plan
 	var/damage_severity = get_damage_profile_severity(damage_profile)
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
@@ -402,6 +405,8 @@
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
+	if(isnull(damage_profile))
+		return "Invalid damage profile selected."
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	if(!has_move_mode && !persistent_fire_enabled && !blast_enabled && damage_profile == "none")
 		return "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."

@@ -1,18 +1,27 @@
 /datum/world_edit_generator/blueprint_stamp
 	requires_preview_before_apply = TRUE
 
+/datum/world_edit_generator/blueprint_stamp/proc/resolve_shape_anchor_turf(mob/user)
+	var/shape_id = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+	if(manager?.get_placement_interaction_kind(shape_id) == "collector")
+		var/turf/collector_origin = manager?.get_placement_collector_origin_turf()
+		if(istype(collector_origin))
+			return collector_origin
+	return get_turf(user)
+
 /datum/world_edit_generator/blueprint_stamp/validate_params(mob/user, list/params)
 	var/blueprint_id = sanitize_filename("[params["blueprint_id"]]")
 	if(!length(blueprint_id))
 		return "Сначала загрузите blueprint из server-side библиотеки."
-	if(!get_turf(user))
+	var/turf/anchor_turf = resolve_shape_anchor_turf(user)
+	if(!anchor_turf)
 		return "Unable to resolve the anchor turf."
 
 	var/list/load_result = manager?.load_blueprint_definition_by_id(blueprint_id)
 	if(load_result["error"])
 		return "[load_result["error"]]"
 
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, get_turf(user), null, params, manager?.get_effective_placement_dir() || NORTH)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
 	if(shape_result["error"])
 		return "[shape_result["error"]]"
 
@@ -141,7 +150,7 @@
 	return plan
 
 /datum/world_edit_generator/blueprint_stamp/build_plan(list/params)
-	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
+	var/turf/anchor_turf = resolve_shape_anchor_turf(manager?.holder?.mob)
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
 	if(shape_result["error"])
 		var/datum/world_edit_plan/error_plan = new

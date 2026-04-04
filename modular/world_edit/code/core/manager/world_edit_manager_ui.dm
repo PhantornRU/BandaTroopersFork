@@ -213,6 +213,10 @@
 			start_safe_placement_mode(ui.user)
 			return TRUE
 
+		if("finish_placement_collection")
+			finish_placement_collection(ui.user)
+			return TRUE
+
 		if("run_preview")
 			run_preview(ui.user)
 			return TRUE

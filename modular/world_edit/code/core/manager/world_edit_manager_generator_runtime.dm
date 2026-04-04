@@ -200,6 +200,51 @@
 	to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE
 
+/datum/world_edit_manager/proc/finish_placement_collection(mob/user, turf/preview_turf = null)
+	var/shape_id = get_effective_placement_shape()
+	if(get_placement_interaction_kind(shape_id) != "collector")
+		return FALSE
+	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
+		to_chat(user, SPAN_WARNING("Collector needs at least [get_placement_collector_min_points(shape_id)] points before it can be finished."))
+		return TRUE
+
+	preview_turf = preview_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
+	if(!istype(preview_turf))
+		to_chat(user, SPAN_WARNING("Collector origin is missing; add at least one point first."))
+		return TRUE
+
+	if(!update_placement_collector_runtime_state(user, preview_turf, "Collector finalize. "))
+		return TRUE
+
+	var/datum/world_edit_plan/collector_plan = current_generator?.current_plan
+	if(!istype(collector_plan) || !is_preview_state_valid())
+		to_chat(user, SPAN_WARNING("Collector footprint is not ready for apply yet."))
+		return TRUE
+
+	var/confirm_text = build_safe_placement_confirm_text(collector_plan)
+	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("РџРѕРґС‚РІРµСЂРґРёС‚СЊ", "РћС‚РјРµРЅР°"))
+	if(answer != "РџРѕРґС‚РІРµСЂРґРёС‚СЊ")
+		return TRUE
+
+	var/mode = get_effective_placement_mode()
+	var/start_ds = world.time
+	var/datum/world_edit_apply_result/collector_result = current_generator.apply(user, current_params)
+	if(!istype(collector_result))
+		clear_preview_plan_state()
+		return fail_apply(user, "Р“РµРЅРµСЂР°С‚РѕСЂ РІРµСЂРЅСѓР» РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ РїСЂРёРјРµРЅРµРЅРёСЏ.")
+
+	record_apply_result(user, collector_result, world.time - start_ds)
+	clear_preview_plan_state()
+	reset_placement_collector_state(TRUE)
+	placement_anchor_turf = null
+	if(mode == "single")
+		stop_click_mode()
+	else if(collector_result.success)
+		sync_click_intercept_state()
+		placement_click_active = click_intercept_owned ? TRUE : FALSE
+		to_chat(user, SPAN_NOTICE("Collector remains active and is ready for the next footprint."))
+	return TRUE
+
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
 	var/list/metadata = plan?.metadata || list()
 	var/list/placements = plan?.placements || list()
@@ -304,7 +349,7 @@
 	if(interaction_kind == "anchor_pair")
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
 	else if(interaction_kind == "collector")
-		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB collects points, MMB removes the last point, and RMB confirms/apply once the footprint is valid[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB collects points, MMB removes the last point, and RMB or Finish collection confirms/apply once the footprint is valid[dir_suffix]"))
 	else if(interaction_kind == "param_only")
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB uses the clicked turf as anchor and resolves the footprint from current shape parameters. Interactive point collection is not part of this pass[dir_suffix]"))
 	else
@@ -358,40 +403,7 @@
 
 	if(LAZYACCESS(modifiers, RIGHT_CLICK))
 		if(interaction_kind == "collector")
-			if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-				to_chat(user, SPAN_WARNING("Collector needs at least [get_placement_collector_min_points(shape_id)] points before it can be finished."))
-				return TRUE
-
-			if(!update_placement_collector_runtime_state(user, clicked_turf, "Collector finalize. "))
-				return TRUE
-
-			var/datum/world_edit_plan/collector_plan = current_generator?.current_plan
-			if(!istype(collector_plan) || !is_preview_state_valid())
-				to_chat(user, SPAN_WARNING("Collector footprint is not ready for apply yet."))
-				return TRUE
-
-			var/confirm_text = build_safe_placement_confirm_text(collector_plan)
-			var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("РџРѕРґС‚РІРµСЂРґРёС‚СЊ", "РћС‚РјРµРЅР°"))
-			if(answer != "РџРѕРґС‚РІРµСЂРґРёС‚СЊ")
-				return TRUE
-
-			var/start_ds = world.time
-			var/datum/world_edit_apply_result/collector_result = current_generator.apply(user, current_params)
-			if(!istype(collector_result))
-				clear_preview_plan_state()
-				return fail_apply(user, "Р“РµРЅРµСЂР°С‚РѕСЂ РІРµСЂРЅСѓР» РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ РїСЂРёРјРµРЅРµРЅРёСЏ.")
-
-			record_apply_result(user, collector_result, world.time - start_ds)
-			clear_preview_plan_state()
-			reset_placement_collector_state(TRUE)
-			placement_anchor_turf = null
-			if(mode == "single")
-				stop_click_mode()
-			else if(collector_result.success)
-				sync_click_intercept_state()
-				placement_click_active = click_intercept_owned ? TRUE : FALSE
-				to_chat(user, SPAN_NOTICE("Collector remains active and is ready for the next footprint."))
-			return TRUE
+			return finish_placement_collection(user, clicked_turf)
 		return TRUE
 
 	if(!LAZYACCESS(modifiers, LEFT_CLICK))
