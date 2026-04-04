@@ -147,6 +147,13 @@ type BackendData = {
   placement_interaction_kind: string;
   placement_interaction_label: string;
   placement_shape_rollout_stage: string;
+  placement_collector_point_count: number;
+  placement_collector_min_points: number;
+  placement_collector_max_points: number;
+  placement_collector_origin: string;
+  placement_collector_points_text: string;
+  placement_collector_summary: string;
+  can_finish_placement_collection: boolean;
   placement_supports_direction: boolean;
   placement_dir: string;
   placement_dir_options: PlacementOption[];
@@ -506,6 +513,25 @@ const PlacementSetupSection = (props: {
         <LabeledList.Item label="Rollout">
           {data.placement_shape_rollout_stage || 'v1'}
         </LabeledList.Item>
+        {!!data.placement_interaction_kind &&
+          data.placement_interaction_kind === 'collector' && (
+            <>
+              <LabeledList.Item label="Collector summary">
+                {data.placement_collector_summary || 'n/a'}
+              </LabeledList.Item>
+              <LabeledList.Item label="Collector points">
+                {`${data.placement_collector_point_count || 0}/${
+                  data.placement_collector_max_points || 0
+                }`}
+              </LabeledList.Item>
+              <LabeledList.Item label="Collector origin">
+                {data.placement_collector_origin || 'none'}
+              </LabeledList.Item>
+              <LabeledList.Item label="Collected text">
+                {data.placement_collector_points_text || 'n/a'}
+              </LabeledList.Item>
+            </>
+          )}
 
         <LabeledList.Item label="Pending anchor">
           {data.placement_anchor || 'none'}
@@ -780,6 +806,14 @@ const RunPage = (props: {
               Остановить click-режим
             </Button>
           </Stack.Item>
+          <Stack.Item>
+            <Button
+              disabled={!data.can_finish_placement_collection}
+              onClick={() => act('finish_placement_collection')}
+            >
+              Finish collection
+            </Button>
+          </Stack.Item>
         </Stack>
 
         {(data.placement_supported ||
@@ -788,9 +822,11 @@ const RunPage = (props: {
           <Box color="label" mt={1}>
             {data.placement_interaction_kind === 'anchor_pair'
               ? 'LMB ставит первую точку, второй LMB выполняет preview/apply, MMB сбрасывает pending anchor.'
-              : data.placement_interaction_kind === 'param_only'
-                ? 'LMB использует выбранный turf как anchor, а footprint берется из текущих параметров shape. Interactive point collection пока не входит в этот проход.'
-                : 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте Stop click-mode.'}
+              : data.placement_interaction_kind === 'collector'
+                ? 'LMB добавляет point, MMB удаляет последний point, Finish collection завершает сборку и возвращает управление в panel preview/apply.'
+                : data.placement_interaction_kind === 'param_only'
+                  ? 'LMB использует выбранный turf как anchor, а footprint берется из текущих параметров shape. Interactive point collection пока не входит в этот проход.'
+                  : 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте Stop click-mode.'}
           </Box>
         )}
       </Section>
@@ -812,6 +848,18 @@ const RunPage = (props: {
           <LabeledList.Item label="Interaction">
             {data.placement_interaction_label || 'Single Click'}
           </LabeledList.Item>
+          {data.placement_interaction_kind === 'collector' && (
+            <>
+              <LabeledList.Item label="Collector points">
+                {`${data.placement_collector_point_count || 0}/${
+                  data.placement_collector_min_points || 0
+                }`}
+              </LabeledList.Item>
+              <LabeledList.Item label="Collector ready">
+                {data.can_finish_placement_collection ? 'yes' : 'no'}
+              </LabeledList.Item>
+            </>
+          )}
           {(data.placement_supported || data.placement_shape_supported) && (
             <LabeledList.Item label="Placement mode">
               {data.placement_mode || 'n/a'}

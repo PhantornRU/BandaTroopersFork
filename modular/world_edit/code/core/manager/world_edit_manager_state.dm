@@ -237,6 +237,93 @@
 		return "v1"
 	return GLOB.world_edit_placement_shapes.world_edit_get_shape_rollout_stage(shape_id)
 
+/datum/world_edit_manager/proc/get_placement_collector_origin_text()
+	if(!islist(current_params))
+		return ""
+	var/origin_text = current_params["shape_points_origin"]
+	if(isnull(origin_text))
+		return ""
+	return "[origin_text]"
+
+/datum/world_edit_manager/proc/get_placement_collector_origin_turf()
+	var/list/parts = splittext(get_placement_collector_origin_text(), ",")
+	if(length(parts) < 3)
+		return null
+
+	var/x_value = text2num(trim("[parts[1]]"))
+	var/y_value = text2num(trim("[parts[2]]"))
+	var/z_value = text2num(trim("[parts[3]]"))
+	if(!isnum(x_value) || !isnum(y_value) || !isnum(z_value))
+		return null
+	return locate(x_value, y_value, z_value)
+
+/datum/world_edit_manager/proc/set_placement_collector_origin_turf(turf/origin_turf)
+	if(!islist(current_params))
+		current_params = list()
+	if(!istype(origin_turf))
+		current_params -= "shape_points_origin"
+		return ""
+
+	current_params["shape_points_origin"] = "[origin_turf.x],[origin_turf.y],[origin_turf.z]"
+	return current_params["shape_points_origin"]
+
+/datum/world_edit_manager/proc/clear_placement_collector_origin()
+	if(!islist(current_params))
+		return
+	current_params -= "shape_points_origin"
+
+/datum/world_edit_manager/proc/get_placement_collector_points()
+	return GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(current_params["shape_points_text"])
+
+/datum/world_edit_manager/proc/get_placement_collector_point_count()
+	var/list/points = get_placement_collector_points()
+	return length(points)
+
+/datum/world_edit_manager/proc/get_placement_collector_min_points(shape_id = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length(shape_id))
+		return 1
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_collector_min_points(shape_id)
+
+/datum/world_edit_manager/proc/get_placement_collector_max_points(shape_id = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length(shape_id))
+		return WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_collector_max_points(shape_id)
+
+/datum/world_edit_manager/proc/is_current_placement_collector(shape_id = null)
+	return (get_placement_interaction_kind(shape_id) == "collector") ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/set_placement_collector_points(list/points)
+	if(!islist(current_params))
+		current_params = list()
+	current_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(points)
+	return current_params["shape_points_text"]
+
+/datum/world_edit_manager/proc/get_placement_collector_points_text()
+	if(!islist(current_params))
+		return ""
+	var/points_text = current_params["shape_points_text"]
+	if(isnull(points_text))
+		return ""
+	return "[points_text]"
+
+/datum/world_edit_manager/proc/reset_placement_collector_state()
+	if(!islist(current_params))
+		return
+	current_params -= "shape_points_origin"
+
+/datum/world_edit_manager/proc/get_placement_collector_summary()
+	var/shape_id = get_effective_placement_shape()
+	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+	var/min_points = get_placement_collector_min_points(shape_id)
+	var/max_points = get_placement_collector_max_points(shape_id)
+	var/point_count = get_placement_collector_point_count()
+	var/origin_desc = get_placement_collector_origin_text()
+	if(!length(origin_desc))
+		origin_desc = "none"
+	return "Collector [shape_label]: points=[point_count]/[max_points], min=[min_points], origin=[origin_desc]"
+
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
 	if(!placement_anchor_turf)
 		return ""
@@ -245,6 +332,7 @@
 /datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE)
 	placement_click_active = FALSE
 	placement_anchor_turf = null
+	reset_placement_collector_state()
 
 	if(reset_config)
 		placement_mode = "single"

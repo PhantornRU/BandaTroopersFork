@@ -97,6 +97,103 @@
 /datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(shape_id, turf/start_turf, turf/end_turf)
 	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, start_turf, end_turf, current_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
 
+/datum/world_edit_manager/proc/get_placement_collector_absolute_turfs(turf/origin_turf)
+	var/list/turfs = list()
+	if(!istype(origin_turf))
+		return turfs
+
+	for(var/list/point as anything in get_placement_collector_points())
+		var/target_x = origin_turf.x + text2num("[point["x"]]")
+		var/target_y = origin_turf.y + text2num("[point["y"]]")
+		var/turf/target_turf = locate(target_x, target_y, origin_turf.z)
+		if(istype(target_turf))
+			turfs += target_turf
+	return turfs
+
+/datum/world_edit_manager/proc/update_placement_collector_runtime_state(mob/user, turf/preview_turf, message_prefix = "")
+	var/shape_id = get_effective_placement_shape()
+	var/min_points = get_placement_collector_min_points(shape_id)
+	var/point_count = get_placement_collector_point_count()
+	var/turf/origin_turf = get_placement_collector_origin_turf() || placement_anchor_turf || preview_turf
+	var/list/collector_turfs = get_placement_collector_absolute_turfs(origin_turf)
+
+	clear_preview_plan_state()
+	last_preview_meta = list(
+		"collector_point_count" = point_count,
+		"collector_min_points" = min_points,
+		"collector_points_text" = current_params["shape_points_text"] || "",
+		"collector_origin" = get_placement_collector_origin_text() || "",
+	)
+
+	if(point_count < min_points)
+		last_preview_success = FALSE
+		last_preview_message = "[message_prefix]Collector progress: [point_count]/[min_points] points collected."
+		invalidate_preview_state()
+		if(length(collector_turfs))
+			GLOB.world_edit_helpers.apply_turf_preview(src, collector_turfs)
+		return FALSE
+
+	var/list/shape_result = build_safe_placement_anchor_turfs(shape_id, origin_turf, preview_turf)
+	if(shape_result["error"])
+		last_preview_success = FALSE
+		last_preview_message = "[shape_result["error"]]"
+		last_preview_meta = shape_result["metadata"] || list()
+		invalidate_preview_state()
+		if(length(collector_turfs))
+			GLOB.world_edit_helpers.apply_turf_preview(src, collector_turfs)
+		return FALSE
+
+	var/list/anchor_turfs = shape_result["turfs"]
+	if(!length(anchor_turfs))
+		last_preview_success = FALSE
+		last_preview_message = "Unable to build a valid placement footprint."
+		last_preview_meta = shape_result["metadata"] || list()
+		invalidate_preview_state()
+		return FALSE
+
+	clear_preview_plan_state()
+	var/list/collector_shape_metadata = islist(shape_result["metadata"]) ? shape_result["metadata"].Copy() : list()
+	collector_shape_metadata["collector_point_count"] = point_count
+	collector_shape_metadata["collector_origin"] = get_placement_collector_origin_text() || ""
+	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
+		"mode" = get_effective_placement_mode() || "single",
+		"shape" = shape_id,
+		"shape_metadata" = collector_shape_metadata,
+		"anchor_turfs" = anchor_turfs,
+		"start_turf" = origin_turf,
+		"end_turf" = preview_turf,
+		"direction" = get_effective_placement_dir(),
+	))
+	if(!istype(plan))
+		last_preview_success = FALSE
+		last_preview_message = "Unable to build the placement plan."
+		last_preview_meta = list()
+		invalidate_preview_state()
+		return FALSE
+	if(plan.metadata["error"])
+		last_preview_success = FALSE
+		last_preview_message = "[plan.metadata["error"]]"
+		last_preview_meta = plan.metadata.Copy()
+		invalidate_preview_state()
+		return FALSE
+	if(!length(plan.placements) && !length(plan.deletions))
+		last_preview_success = FALSE
+		last_preview_message = "Placement footprint contains no valid actions."
+		last_preview_meta = plan.metadata.Copy()
+		invalidate_preview_state()
+		return FALSE
+
+	current_generator.current_plan = plan
+	last_preview_success = TRUE
+	last_preview_message = build_safe_placement_preview_message(plan)
+	last_preview_meta = plan.metadata.Copy()
+	preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
+	if(length(preview_images))
+		holder.images += preview_images
+	mark_preview_state()
+	to_chat(user, SPAN_NOTICE(last_preview_message))
+	return TRUE
+
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
 	var/list/metadata = plan?.metadata || list()
 	var/list/placements = plan?.placements || list()
@@ -105,8 +202,12 @@
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
 	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
 	var/message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count]."
+	if(metadata["collector_point_count"])
+		message += " Collector points=[metadata["collector_point_count"]]."
 	if(metadata["placement_dir_label"])
 		message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count], dir=[metadata["placement_dir_label"]]."
+		if(metadata["collector_point_count"])
+			message += " Collector points=[metadata["collector_point_count"]]."
 	return message
 
 /datum/world_edit_manager/proc/build_safe_placement_confirm_text(datum/world_edit_plan/plan)
@@ -177,7 +278,11 @@
 	if(!supports_current_placement_ux())
 		return fail_apply(user, "Для текущего генератора safe placement UX в этой фазе недоступен.")
 
-	var/placement_error_text = current_generator.validate_params(user, current_params)
+	var/shape_id = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
+	var/placement_error_text = null
+	if(interaction_kind != "collector")
+		placement_error_text = current_generator.validate_params(user, current_params)
 	if(placement_error_text)
 		return fail_apply(user, placement_error_text)
 	if(!acquire_click_intercept("Safe Placement"))
@@ -188,12 +293,12 @@
 	clear_preview_plan_state()
 	sync_click_intercept_state()
 
-	var/shape_id = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
-	var/interaction_kind = get_placement_interaction_kind(shape_id)
 	var/dir_suffix = supports_current_placement_direction() ? " DIR=[GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
 	if(interaction_kind == "anchor_pair")
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
+	else if(interaction_kind == "collector")
+		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB collects points, MMB removes the last point, and Finish collection exits click-mode after the footprint is complete[dir_suffix]"))
 	else if(interaction_kind == "param_only")
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB uses the clicked turf as anchor and resolves the footprint from current shape parameters. Interactive point collection is not part of this pass[dir_suffix]"))
 	else
@@ -205,23 +310,92 @@
 		return FALSE
 
 	var/list/modifiers = params2list(params)
+	var/turf/clicked_turf = get_turf(object)
+	if(!clicked_turf)
+		return TRUE
+	var/mode = get_effective_placement_mode()
+	var/shape_id = get_effective_placement_shape()
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
+
 	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
+		var/list/collector_points = get_placement_collector_points()
+		if(interaction_kind == "collector")
+			if(!length(collector_points))
+				placement_anchor_turf = null
+				clear_placement_collector_origin()
+				clear_preview_plan_state()
+				to_chat(user, SPAN_NOTICE("Collector cleared."))
+				return TRUE
+
+			collector_points.Cut(length(collector_points), length(collector_points) + 1)
+			set_placement_collector_points(collector_points)
+			if(length(collector_points))
+				placement_anchor_turf = get_placement_collector_origin_turf()
+				update_placement_collector_runtime_state(user, clicked_turf, "Collector point removed. ")
+			else
+				placement_anchor_turf = null
+				clear_placement_collector_origin()
+				clear_preview_plan_state()
+				last_preview_success = FALSE
+				last_preview_message = "Collector cleared."
+				last_preview_meta = list()
+				invalidate_preview_state()
+				to_chat(user, SPAN_NOTICE(last_preview_message))
+			return TRUE
+
 		placement_anchor_turf = null
 		clear_preview_plan_state()
 		to_chat(user, SPAN_NOTICE("Pending placement anchor cleared."))
 		return TRUE
 
+	if(LAZYACCESS(modifiers, RIGHT_CLICK))
+		if(interaction_kind == "collector")
+			if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
+				to_chat(user, SPAN_WARNING("Collector needs at least [get_placement_collector_min_points(shape_id)] points before it can be finished."))
+				return TRUE
+			stop_click_mode()
+			to_chat(user, SPAN_NOTICE("Collector finished. Use Run preview/apply from the panel to execute the collected footprint."))
+			return TRUE
+		return TRUE
+
 	if(!LAZYACCESS(modifiers, LEFT_CLICK))
 		return TRUE
-
-	var/turf/clicked_turf = get_turf(object)
-	if(!clicked_turf)
+	if(!length(mode) || !length(shape_id))
 		return TRUE
 
-	var/mode = get_effective_placement_mode()
-	var/shape_id = get_effective_placement_shape()
-	var/interaction_kind = get_placement_interaction_kind(shape_id)
-	if(!length(mode) || !length(shape_id))
+	if(interaction_kind == "collector")
+		var/list/collector_points = get_placement_collector_points()
+		var/turf/origin_turf = get_placement_collector_origin_turf()
+		if(!length(collector_points))
+			placement_anchor_turf = clicked_turf
+			set_placement_collector_origin_turf(clicked_turf)
+			set_placement_collector_points(list(list("x" = 0, "y" = 0)))
+			update_placement_collector_runtime_state(user, clicked_turf, "Collector started. ")
+			return TRUE
+
+		if(!istype(origin_turf))
+			origin_turf = placement_anchor_turf || clicked_turf
+			set_placement_collector_origin_turf(origin_turf)
+			placement_anchor_turf = origin_turf
+
+		var/new_x = clicked_turf.x - origin_turf.x
+		var/new_y = clicked_turf.y - origin_turf.y
+		var/new_key = "[new_x],[new_y]"
+		var/max_points = get_placement_collector_max_points(shape_id)
+		for(var/list/existing_point as anything in collector_points)
+			var/existing_x = text2num("[existing_point["x"]]")
+			var/existing_y = text2num("[existing_point["y"]]")
+			if("[existing_x],[existing_y]" == new_key)
+				to_chat(user, SPAN_NOTICE("Collector point already captured."))
+				return TRUE
+		if(length(collector_points) >= max_points)
+			to_chat(user, SPAN_WARNING("Collector reached the safe cap of [max_points] points. Finish collection or remove the last point."))
+			return TRUE
+
+		collector_points += list(list("x" = new_x, "y" = new_y))
+		placement_anchor_turf = origin_turf
+		set_placement_collector_points(collector_points)
+		update_placement_collector_runtime_state(user, clicked_turf, "Collector updated. ")
 		return TRUE
 
 	if(interaction_kind == "anchor_pair" && !placement_anchor_turf)

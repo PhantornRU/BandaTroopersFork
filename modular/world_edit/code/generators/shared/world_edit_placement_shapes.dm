@@ -97,13 +97,13 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		if(WORLD_EDIT_SHAPE_SECTOR)
 			return "Directional arc / sector footprint."
 		if(WORLD_EDIT_SHAPE_POLYGON)
-			return "Polygon from a relative point list."
+			return "Polygon from an interactive relative point list collector."
 		if(WORLD_EDIT_SHAPE_POLYLINE)
-			return "Polyline / path from a relative point list."
+			return "Polyline / path from an interactive relative point list collector."
 		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
-			return "Exact relative point mask."
+			return "Exact relative point mask collected interactively or entered manually."
 		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
-			return "Brush-stamped path from a relative point list."
+			return "Brush-stamped path from an interactive relative point list collector."
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
 			return "Deterministic scatter cluster around the anchor."
 	return ""
