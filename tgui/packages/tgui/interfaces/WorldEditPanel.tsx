@@ -526,14 +526,18 @@ const CompactGeneratorRow = (props: {
     <LabeledList.Item
       label={<Box color={selected ? 'good' : 'white'}>{generator.name_ru}</Box>}
       buttons={
-        <Button selected={selected} onClick={selected ? onOpenWork : onSelect}>
+        <Button
+          compact
+          selected={selected}
+          onClick={selected ? onOpenWork : onSelect}
+        >
           {selected ? 'К работе' : 'Выбрать'}
         </Button>
       }
     >
       <Box color="label">
-        {generator.execution_mode} | preview {boolText(generator.supports_preview)} |
-        статус {generator.status}
+        {generator.execution_mode} | preview{' '}
+        {boolText(generator.supports_preview)} | статус {generator.status}
       </Box>
     </LabeledList.Item>
   );
@@ -1195,12 +1199,6 @@ const GeneratorCatalogPage = (props: {
     <Stack fill>
       <Stack.Item grow basis={0}>
         <Section fill scrollable title="Выбор генератора">
-          <Box color="label" mb={1}>
-            {`${data.categories?.length || 0} категорий, ${totalGenerators} генераторов, выбран: ${
-              data.current_generator_name || 'none'
-            }`}
-          </Box>
-
           {!data.categories?.length && (
             <Box color="label">Нет доступных генераторов для текущих прав.</Box>
           )}
@@ -1229,7 +1227,7 @@ const GeneratorCatalogPage = (props: {
         </Section>
       </Stack.Item>
 
-      <Stack.Item width="28%" ml={1}>
+      <Stack.Item width="25%" ml={1}>
         <Section fill scrollable title="Инспектор">
           {!data.has_generator && (
             <Box color="label">
@@ -1254,70 +1252,67 @@ const GeneratorCatalogPage = (props: {
                 Поля: {data.ui_mode === 'inline' ? 'inline' : 'wizard'}
               </Box>
 
-              <Section title="Состояние" mt={1}>
-                <SummaryTileGrid
-                  compact
-                  tileBasis="48%"
-                  items={[
-                    {
-                      label: 'Статус',
-                      value: data.current_generator_status || 'n/a',
-                      color: toneForGeneratorStatus(
-                        data.current_generator_status,
-                      ),
-                    },
-                    {
-                      label: 'Preview',
-                      value: boolText(data.current_generator_supports_preview),
-                      color: data.current_generator_supports_preview
-                        ? 'good'
-                        : 'label',
-                    },
-                    {
-                      label: 'Исполнение',
-                      value: data.current_generator_execution_mode || 'n/a',
-                    },
-                    {
-                      label: 'Размещение',
-                      value: boolText(
-                        !!(
-                          data.placement_supported ||
-                          data.placement_shape_supported ||
-                          data.placement_supports_direction
-                        ),
-                      ),
-                      color:
+              <SummaryTileGrid
+                compact
+                tileBasis="48%"
+                items={[
+                  {
+                    label: 'Статус',
+                    value: data.current_generator_status || 'n/a',
+                    color: toneForGeneratorStatus(
+                      data.current_generator_status,
+                    ),
+                  },
+                  {
+                    label: 'Preview',
+                    value: boolText(data.current_generator_supports_preview),
+                    color: data.current_generator_supports_preview
+                      ? 'good'
+                      : 'label',
+                  },
+                  {
+                    label: 'Исполнение',
+                    value: data.current_generator_execution_mode || 'n/a',
+                  },
+                  {
+                    label: 'Размещение',
+                    value: boolText(
+                      !!(
                         data.placement_supported ||
                         data.placement_shape_supported ||
                         data.placement_supports_direction
-                          ? 'good'
-                          : 'label',
-                    },
-                  ]}
-                />
-              </Section>
+                      ),
+                    ),
+                    color:
+                      data.placement_supported ||
+                      data.placement_shape_supported ||
+                      data.placement_supports_direction
+                        ? 'good'
+                        : 'label',
+                  },
+                ]}
+              />
 
-              <Section title="Действия" mt={1}>
-                <ActionRow>
-                  <ActionItem>
-                    <Button icon="sliders-h" onClick={onOpenWork}>
-                      К работе
-                    </Button>
-                  </ActionItem>
-                  <ActionItem>
-                    <Button
-                      color="average"
-                      icon="undo"
-                      onClick={() => act('reset_generator')}
-                    >
-                      Сбросить
-                    </Button>
-                  </ActionItem>
-                </ActionRow>
-                <Box color={workflow.color || 'label'} mt={0.5}>
-                  {workflow.label}
-                </Box>
-              </Section>
+              <ActionRow>
+                <ActionItem>
+                  <Button compact icon="sliders-h" onClick={onOpenWork}>
+                    К работе
+                  </Button>
+                </ActionItem>
+                <ActionItem>
+                  <Button
+                    compact
+                    color="average"
+                    icon="undo"
+                    onClick={() => act('reset_generator')}
+                  >
+                    Сбросить
+                  </Button>
+                </ActionItem>
+              </ActionRow>
+              <Box color={workflow.color || 'label'} mt={0.25}>
+                {workflow.label}
+              </Box>
             </>
           )}
         </Section>
@@ -1338,7 +1333,7 @@ const WorkspaceCommandBar = (props: {
   const applyBlockReason = getApplyBlockReason(data);
 
   return (
-    <Section title="Быстрые действия">
+    <Section fitted title="Быстрые действия">
       <SummaryTileGrid
         compact
         tileBasis="24%"
@@ -1376,13 +1371,11 @@ const WorkspaceCommandBar = (props: {
       <Box bold color={workflow.color || 'white'}>
         {workflow.label}
       </Box>
-      <Box color="label" mb={1}>
-        {workflow.description}
-      </Box>
 
       <ActionRow>
         <ActionItem>
           <Button
+            compact
             disabled={!data.can_refresh_ui}
             onClick={() => act('refresh_ui')}
           >
@@ -1390,17 +1383,21 @@ const WorkspaceCommandBar = (props: {
           </Button>
         </ActionItem>
         <ActionItem>
-          <Button onClick={() => act('configure_wizard')}>
+          <Button compact onClick={() => act('configure_wizard')}>
             Открыть мастер
           </Button>
         </ActionItem>
         <ActionItem>
-          <Button color="average" onClick={() => act('reset_generator')}>
+          <Button
+            compact
+            color="average"
+            onClick={() => act('reset_generator')}
+          >
             Сбросить
           </Button>
         </ActionItem>
         <ActionItem>
-          <Button icon="history" onClick={onOpenHistory}>
+          <Button compact icon="history" onClick={onOpenHistory}>
             История
           </Button>
         </ActionItem>
@@ -1409,6 +1406,7 @@ const WorkspaceCommandBar = (props: {
       <ActionRow>
         <ActionItem>
           <Button
+            compact
             disabled={!data.can_run_preview}
             onClick={() => act('run_preview')}
           >
@@ -1417,6 +1415,7 @@ const WorkspaceCommandBar = (props: {
         </ActionItem>
         <ActionItem>
           <Button
+            compact
             color="good"
             disabled={!data.can_run_apply}
             onClick={() => act('run_apply')}
@@ -1426,6 +1425,7 @@ const WorkspaceCommandBar = (props: {
         </ActionItem>
         <ActionItem>
           <Button
+            compact
             color="average"
             disabled={!data.has_generator}
             onClick={() => act('clear_preview')}
@@ -1662,7 +1662,7 @@ const WorkspacePage = (props: {
           <Box color="label" mb={1}>
             Сначала выберите генератор на странице `Выбор`.
           </Box>
-          <Button icon="list" onClick={onOpenBrowse}>
+          <Button compact icon="list" onClick={onOpenBrowse}>
             Перейти к выбору генератора
           </Button>
         </>
@@ -1680,7 +1680,7 @@ const WorkspacePage = (props: {
             onOpenHistory={onOpenHistory}
           />
 
-          <Tabs fluid mt={1}>
+          <Tabs mt={0.5}>
             <Tabs.Tab
               selected={workTab === 'params'}
               onClick={() => setWorkTab('params')}
@@ -1926,22 +1926,28 @@ const Sidebar = (props: {
 }) => {
   const { data, pageIndex, setPageIndex } = props;
   const workflow = getWorkflowState(data);
+  const statusText = getSidebarTiles(data)
+    .map((item) => `${item.label} ${item.value}`)
+    .join(' | ');
 
   return (
-    <Section fill scrollable title="World Edit">
+    <Section fill scrollable fitted title="World Edit">
       <Box bold>{data.current_generator_name || 'Без генератора'}</Box>
       <Box color={workflow.color || 'label'} mt={0.25}>
         {workflow.label}
       </Box>
-      <SummaryTileGrid compact tileBasis="48%" items={getSidebarTiles(data)} />
+      <Box color="label" mt={0.25}>
+        {statusText}
+      </Box>
 
-      <Section title="Навигация" mt={1}>
+      <Section fitted title="Навигация" mt={1}>
         <Tabs vertical fluid>
           {PAGES.map((page, index) => (
             <Tabs.Tab
               key={page.title}
               selected={index === pageIndex}
               icon={page.icon}
+              fontSize={0.95}
               onClick={() => setPageIndex(index)}
             >
               {page.title}
@@ -1980,10 +1986,10 @@ export const WorldEditPanel = () => {
   const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
 
   return (
-    <Window title="World Edit Panel" width={1160} height={760}>
+    <Window title="World Edit Panel" width={1100} height={720}>
       <Window.Content>
         <Stack fill>
-          <Stack.Item width={11}>
+          <Stack.Item width={9}>
             <Sidebar
               data={data}
               pageIndex={pageIndex}
