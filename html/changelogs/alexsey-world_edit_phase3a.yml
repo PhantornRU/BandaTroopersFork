@@ -1,6 +1,8 @@
 author: Alexsey Bezyuk
 delete-after: True
 changes:
-  - rscadd: "World Edit now supports per-admin presets for Outpost Radius and Destruction Pack."
-  - rscadd: "World Edit gained Blueprint Lite for safe server-validated structure preview and stamping."
-  - tweak: "The World Edit panel now exposes preset and blueprint library actions for the Phase 3A workflow."
+  - rscadd: "Added the World Edit admin panel with preview/apply, history, per-admin presets, and Blueprint Lite structure workflows."
+  - rscadd: "Added World Edit generators for outpost building, blueprint stamping, and controlled destruction passes."
+  - rscadd: "Added sample Blueprint Lite entries for faster GM structure stamping."
+  - tweak: "World Edit now supports repeat placement, collector-driven multi-point shapes, and a clearer Setup/Run panel flow."
+  - bugfix: "World Edit now cleans up placement state more reliably and blocks blueprint library actions while placement mode is active."

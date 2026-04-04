@@ -3,13 +3,21 @@
 Реализует World Edit как полноценный in-game admin tool для GM/admin workflow с безопасным preview/apply циклом, модульной архитектурой и cleanup/undo guardrails.
 
 В рамках этого PR:
+- добавлена интеграция World Edit в модпак и стандартный admin verb grant/reset path
 - добавлен модульный World Edit runtime с manager/UI/registry/presets/history
 - добавлены active READY generators:
   - `outpost_radius`
   - `destruction_pack`
   - `blueprint_stamp`
+- добавлены changeset-lite history/undo и cleanup owned effects для безопасных операций
 - добавлены per-admin presets для рабочих генераторов
 - добавлена Blueprint Lite library с server-side validation, preview и stamping
+- добавлен curated Blueprint Lite content pack:
+  - `example_fort`
+  - `01_outpost`
+  - `02_sandbag`
+  - `04_ruin`
+  - `05_corner`
 - добавлен placement runtime с `single/repeat`, shape support, direction support и cleanup на `stop_click_mode`/panel close
 - добавлены shape runtime foundation и interactive collector flow для multi-point placement shapes
 - добавлен outpost quality pass:
@@ -23,8 +31,9 @@
   - controlled blast / ruin / collapse modes
   - explicit non-undoable policy for high-risk destructive actions
 - выполнен panel polish / UX pass для Setup/Run flow
-- удалены deprecated World Edit generator runtimes из active runtime surface
-- синхронизированы registry/docs с текущим active generator surface
+- активный World Edit runtime surface зафиксирован только вокруг current ready generator set
+- deprecated generator designs оставлены только как historical docs / legacy notes и больше не участвуют в active runtime surface
+- синхронизированы runtime/integration/registry/docs/data paths с текущим active generator surface
 
 Сознательно не делалось:
 - map/editor outside World Edit scope
@@ -71,11 +80,11 @@ No live screenshots were captured in this environment.
 # Changelog
 
 :cl:
-add: Added the modular World Edit admin tool with safe preview/apply, presets, and Blueprint Lite structure stamping.
-admin: Added active World Edit generators for outpost building, blueprint stamping, and destruction workflows.
-ui: Reworked the World Edit panel into a clearer Setup/Run flow with better placement state visibility.
-qol: Added repeat placement, multi-point shape collection, and safer blueprint/placement interaction flow.
+add: Added the modular World Edit admin tool with preview/apply, history, presets, and Blueprint Lite structure workflows.
+admin: Added the World Edit admin verb and active generators for outpost building, blueprint stamping, and controlled destruction workflows.
+ui: Reworked the World Edit panel into a clearer Setup/Run flow with better placement and collector state visibility.
+qol: Added repeat placement, multi-point collector shapes, and curated sample blueprints for faster GM workflows.
 fix: Fixed placement cleanup, repeat placement, and blueprint library behavior while placement mode is active.
-del: Removed deprecated World Edit generator runtimes from the active runtime surface.
-refactor: Synced World Edit runtime, registry, and docs around the current active generator set.
+del: Deprecated World Edit generator entries no longer appear in the active runtime surface.
+refactor: Synced World Edit runtime, integration, registry, docs, and data paths around the current ready generator set.
 /:cl:
