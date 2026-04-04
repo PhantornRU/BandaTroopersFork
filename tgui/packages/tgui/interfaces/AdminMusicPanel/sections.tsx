@@ -1783,12 +1783,14 @@ export function PlayTab({
   if (tracksFocus) {
     return (
       <Stack fill vertical>
-        <Stack.Item>
-          <BroadcastStatusStrip
-            current_session={current_session}
-            onStopBroadcast={onStopBroadcast}
-          />
-        </Stack.Item>
+        {current_session ? (
+          <Stack.Item>
+            <BroadcastStatusStrip
+              current_session={current_session}
+              onStopBroadcast={onStopBroadcast}
+            />
+          </Stack.Item>
+        ) : null}
         <Stack.Item grow={1}>
           <Box mt="0.38rem" style={{ height: '100%' }}>
             <PlayTracksSection
@@ -1848,12 +1850,14 @@ export function PlayTab({
 
   return (
     <Stack fill vertical>
-      <Stack.Item>
-        <BroadcastStatusStrip
-          current_session={current_session}
-          onStopBroadcast={onStopBroadcast}
-        />
-      </Stack.Item>
+      {current_session ? (
+        <Stack.Item>
+          <BroadcastStatusStrip
+            current_session={current_session}
+            onStopBroadcast={onStopBroadcast}
+          />
+        </Stack.Item>
+      ) : null}
       <Stack.Item>
         <Box mt="0.38rem">
           <SessionSection
@@ -2050,6 +2054,7 @@ export function EditTab({
   const [trackSearch, setTrackSearch] = useState('');
   const [denseTracks, setDenseTracks] = useState(false);
   const [tracksExpanded, setTracksExpanded] = useState(false);
+  const [presetEditorRequest, setPresetEditorRequest] = useState(0);
 
   useEffect(() => {
     setInspectorTarget(selectedVariant ? 'track' : 'scene');
@@ -2091,6 +2096,9 @@ export function EditTab({
           draft={draft}
           draftStatus={draftStatus}
           canRevert={canRevert}
+          onEditPreset={() =>
+            setPresetEditorRequest((current) => current + 1)
+          }
           onSave={onSave}
           onSaveAsCopy={onSaveAsCopy}
           onRevert={onRevert}
@@ -2130,6 +2138,7 @@ export function EditTab({
               <EditPanelSection
                 draft={draft}
                 draftToken={draftToken}
+                presetEditorRequest={presetEditorRequest}
                 audienceOptions={audienceOptions}
                 soundTypeOptions={soundTypeOptions}
                 audienceLabel={audienceLabel}
@@ -2815,6 +2824,7 @@ type EditHeaderSectionProps = Readonly<{
   draft: DraftPreset;
   draftStatus: DraftStatus;
   canRevert: boolean;
+  onEditPreset: () => void;
   onSave: () => void;
   onSaveAsCopy: () => void;
   onRevert: () => void;
@@ -2824,6 +2834,7 @@ function EditHeaderSection({
   draft,
   draftStatus,
   canRevert,
+  onEditPreset,
   onSave,
   onSaveAsCopy,
   onRevert,
@@ -2877,6 +2888,16 @@ function EditHeaderSection({
           <Stack>
             <Stack.Item>
               <Button
+                icon="edit"
+                color="transparent"
+                style={HEADER_ACTION_BUTTON_STYLE}
+                onClick={onEditPreset}
+              >
+                Edit Preset
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
                 icon="save"
                 color="good"
                 style={HEADER_ACTION_BUTTON_STYLE}
@@ -2918,6 +2939,7 @@ function EditHeaderSection({
 type EditPanelSectionProps = Readonly<{
   draft: DraftPreset;
   draftToken: number;
+  presetEditorRequest: number;
   audienceOptions: SelectOption[];
   soundTypeOptions: SelectOption[];
   audienceLabel: string;
@@ -2970,6 +2992,7 @@ type EditPanelSectionProps = Readonly<{
 function EditPanelSection({
   draft,
   draftToken,
+  presetEditorRequest,
   audienceOptions,
   soundTypeOptions,
   audienceLabel,
@@ -3002,6 +3025,26 @@ function EditPanelSection({
   onSetVariantSourceUrl,
   onResolveVariantMetadata,
 }: EditPanelSectionProps) {
+  const [showPresetEditor, setShowPresetEditor] = useState(false);
+  const presetEditorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setShowPresetEditor(false);
+  }, [draftToken]);
+
+  useEffect(() => {
+    if (!presetEditorRequest) {
+      return;
+    }
+    setShowPresetEditor(true);
+    window.requestAnimationFrame(() => {
+      presetEditorRef.current?.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
+    });
+  }, [presetEditorRequest]);
+
   return (
     <Section fill title="Edit Panel" style={SECTION_SURFACE_STYLE}>
       <Stack fill vertical>
@@ -3027,29 +3070,38 @@ function EditPanelSection({
           />
         </Stack.Item>
         <Stack.Item>
-          <Box style={EDIT_PANEL_CARD_STYLE}>
-            <Collapsible
-              title="Preset"
-              color="transparent"
-              style={ADVANCED_TOGGLE_STYLE}
-            >
-              <PresetMetaSection
-                draft={draft}
-                draftToken={draftToken}
-                audienceOptions={audienceOptions}
-                soundTypeOptions={soundTypeOptions}
-                audienceLabel={audienceLabel}
-                soundTypeLabel={soundTypeLabel}
-                onSetName={onSetName}
-                onSetDescription={onSetDescription}
-                onSetAudienceMode={onSetAudienceMode}
-                onSetSoundType={onSetSoundType}
-                onToggleShowTitle={onToggleShowTitle}
-                onToggleRepeat={onToggleRepeat}
-                embedded
-              />
-            </Collapsible>
-          </Box>
+          <div ref={presetEditorRef}>
+            <Box style={EDIT_PANEL_CARD_STYLE}>
+              <Button
+                fluid
+                color="transparent"
+                icon={showPresetEditor ? 'chevron-down' : 'chevron-right'}
+                style={ADVANCED_TOGGLE_STYLE}
+                onClick={() => setShowPresetEditor((current) => !current)}
+              >
+                Preset Settings
+              </Button>
+              {showPresetEditor ? (
+                <Box mt={1}>
+                  <PresetMetaSection
+                    draft={draft}
+                    draftToken={draftToken}
+                    audienceOptions={audienceOptions}
+                    soundTypeOptions={soundTypeOptions}
+                    audienceLabel={audienceLabel}
+                    soundTypeLabel={soundTypeLabel}
+                    onSetName={onSetName}
+                    onSetDescription={onSetDescription}
+                    onSetAudienceMode={onSetAudienceMode}
+                    onSetSoundType={onSetSoundType}
+                    onToggleShowTitle={onToggleShowTitle}
+                    onToggleRepeat={onToggleRepeat}
+                    embedded
+                  />
+                </Box>
+              ) : null}
+            </Box>
+          </div>
         </Stack.Item>
         <Stack.Item>
           <AdvancedSection
@@ -3163,7 +3215,7 @@ function PresetMetaSection({
   return (
     <Box style={EDIT_PANEL_CARD_STYLE}>
       <Box bold style={EDIT_PANEL_CARD_HEADING_STYLE}>
-        Preset
+        Preset Settings
       </Box>
       {content}
     </Box>
