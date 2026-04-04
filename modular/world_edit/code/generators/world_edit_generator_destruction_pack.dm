@@ -89,12 +89,101 @@
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_default()
 	return 0.10
 
+/datum/world_edit_generator/destruction_pack/proc/get_blast_power_min()
+	return 100
+
+/datum/world_edit_generator/destruction_pack/proc/get_blast_power_max()
+	return 600
+
+/datum/world_edit_generator/destruction_pack/proc/get_blast_power_default()
+	return 250
+
+/datum/world_edit_generator/destruction_pack/proc/get_blast_falloff_min()
+	return 100
+
+/datum/world_edit_generator/destruction_pack/proc/get_blast_falloff_max()
+	return 1200
+
+/datum/world_edit_generator/destruction_pack/proc/get_blast_falloff_default()
+	return 600
+
+/datum/world_edit_generator/destruction_pack/proc/build_damage_profile_options()
+	return list(
+		list(
+			"label" = "None",
+			"value" = "none",
+			"description" = "Only shuffle, scatter, persistent fire, and/or blast are applied.",
+		),
+		list(
+			"label" = "Ruin",
+			"value" = "ruin",
+			"description" = "Low-severity structural and tile damage. Good for controlled ruin passes.",
+		),
+		list(
+			"label" = "Collapse",
+			"value" = "collapse",
+			"description" = "Medium-severity structural and tile damage. Good for stronger ruin/collapse passes.",
+		),
+	)
+
+/datum/world_edit_generator/destruction_pack/proc/get_default_damage_profile()
+	return "none"
+
+/datum/world_edit_generator/destruction_pack/proc/resolve_damage_profile(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_damage_profile()
+
+	var/profile_id = "[value]"
+	switch(profile_id)
+		if("none", "ruin", "collapse")
+			return profile_id
+	return null
+
+/datum/world_edit_generator/destruction_pack/proc/get_damage_profile_label(profile_id)
+	switch(resolve_damage_profile(profile_id))
+		if("ruin")
+			return "Ruin"
+		if("collapse")
+			return "Collapse"
+	return "None"
+
+/datum/world_edit_generator/destruction_pack/proc/get_damage_profile_severity(profile_id)
+	switch(resolve_damage_profile(profile_id))
+		if("ruin")
+			return EXPLOSION_THRESHOLD_VLOW
+		if("collapse")
+			return EXPLOSION_THRESHOLD_LOW
+	return 0
+
 /datum/world_edit_generator/destruction_pack/proc/can_place_persistent_fire_on_turf(turf/target_turf)
 	if(!istype(target_turf) || target_turf.density)
 		return FALSE
 	if(locate(/obj/effect/world_edit_persistent_fire) in target_turf)
 		return FALSE
 	return TRUE
+
+/datum/world_edit_generator/destruction_pack/proc/apply_structural_damage_profile(list/area_turfs, severity, datum/cause_data/cause_data)
+	var/damaged_turf_count = 0
+	if(!islist(area_turfs) || !length(area_turfs) || severity <= 0)
+		return damaged_turf_count
+
+	for(var/turf/target_turf as anything in area_turfs)
+		if(!istype(target_turf))
+			continue
+
+		target_turf.ex_act(severity, null, cause_data)
+		damaged_turf_count++
+
+		for(var/atom/target_atom as anything in target_turf)
+			if(QDELETED(target_atom))
+				continue
+			if(ismob(target_atom))
+				continue
+			if(istype(target_atom, /obj/effect/world_edit_persistent_fire))
+				continue
+			target_atom.ex_act(severity, null, cause_data)
+
+	return damaged_turf_count
 
 /datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/area_turfs, density)
 	var/list/fire_entries = list()
@@ -188,7 +277,13 @@
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	var/persistent_fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
+	var/blast_power = text2num("[params["blast_power"]]") || get_blast_power_default()
+	var/blast_falloff = text2num("[params["blast_falloff"]]") || get_blast_falloff_default()
+	var/damage_profile = resolve_damage_profile(params["damage_profile"])
+	var/damage_severity = get_damage_profile_severity(damage_profile)
 	var/has_move_mode = shuffle_enabled || scatter_enabled
+	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
 		plan.metadata["error"] = "No valid area turfs were found around the current turf."
@@ -199,12 +294,25 @@
 		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 		return plan
 
-	if(!has_move_mode && !persistent_fire_enabled)
-		plan.metadata["error"] = "Enable at least one mode: shuffle, scatter or persistent fire."
+	if(!has_move_mode && !persistent_fire_enabled && !has_high_risk_mode)
+		plan.metadata["error"] = "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
 		return plan
 
 	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(area_turfs, persistent_fire_density) : list()
-	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode)
+	var/list/blast_entries = blast_enabled ? list(list(
+		"kind" = "blast",
+		"center_turf" = center_turf,
+		"power" = blast_power,
+		"falloff" = blast_falloff,
+	)) : list()
+	var/list/damage_entries = damage_profile != "none" ? list(list(
+		"kind" = "damage",
+		"area_turfs" = area_turfs.Copy(),
+		"damage_profile" = damage_profile,
+		"severity" = damage_severity,
+	)) : list()
+
+	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode && !has_high_risk_mode)
 		plan.metadata["error"] = "No valid fire tiles matched the selected area."
 		return plan
 
@@ -218,8 +326,15 @@
 	plan.metadata["persistent_fire"] = persistent_fire_enabled
 	plan.metadata["persistent_fire_density"] = persistent_fire_density
 	plan.metadata["persistent_fire_cap"] = get_persistent_fire_cap()
+	plan.metadata["blast"] = blast_enabled
+	plan.metadata["blast_power"] = blast_power
+	plan.metadata["blast_falloff"] = blast_falloff
+	plan.metadata["damage_profile"] = damage_profile
+	plan.metadata["damage_profile_label"] = get_damage_profile_label(damage_profile)
+	plan.metadata["damage_severity"] = damage_severity
 	plan.metadata["seed"] = rand(1, 1000000)
-	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75))
+	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75)) || has_high_risk_mode
+	plan.metadata["undo_policy"] = has_high_risk_mode ? WORLD_EDIT_UNDO_NONE : ((has_move_mode || persistent_fire_enabled) ? WORLD_EDIT_UNDO_PARTIAL : WORLD_EDIT_UNDO_NONE)
 
 	if(has_move_mode)
 		if(!length(targets))
@@ -234,21 +349,35 @@
 
 	if(length(fire_entries))
 		plan.placements += fire_entries
+	if(length(blast_entries))
+		plan.deletions += blast_entries
+	if(length(damage_entries))
+		plan.deletions += damage_entries
 
 	var/moved_count = 0
 	var/fire_count = 0
+	var/blast_count = 0
+	var/damage_count = 0
 	for(var/list/placement as anything in plan.placements)
 		if(placement["kind"] == "move")
 			moved_count++
 		if(placement["kind"] == "fire")
 			fire_count++
+	for(var/list/deletion as anything in plan.deletions)
+		if(deletion["kind"] == "blast")
+			blast_count++
+		if(deletion["kind"] == "damage")
+			damage_count++
 
 	plan.metadata["moved_count"] = moved_count
 	plan.metadata["fire_count"] = fire_count
-	plan.metadata["action_count"] = moved_count + fire_count
+	plan.metadata["blast_count"] = blast_count
+	plan.metadata["damage_count"] = damage_count
+	plan.metadata["action_count"] = moved_count + fire_count + blast_count + damage_count
+	plan.metadata["destructive_action_count"] = blast_count + damage_count
 
-	if(!length(plan.placements))
-		plan.metadata["error"] = persistent_fire_enabled ? "No movable targets or valid fire tiles matched the selected area." : "Destruction pack finished with no movable targets that can change position."
+	if(!length(plan.placements) && !length(plan.deletions))
+		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
 	return plan
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
@@ -271,15 +400,24 @@
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
+	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 	var/has_move_mode = shuffle_enabled || scatter_enabled
-	if(!has_move_mode && !persistent_fire_enabled)
-		return "Enable at least one mode: shuffle, scatter or persistent fire."
+	if(!has_move_mode && !persistent_fire_enabled && !blast_enabled && damage_profile == "none")
+		return "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
 	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
 	if(persistent_fire_enabled)
 		var/persistent_fire_density = text2num("[params["persistent_fire_density"]]")
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
 			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
+	if(blast_enabled)
+		var/blast_power = text2num("[params["blast_power"]]")
+		if(!isnum(blast_power) || blast_power < get_blast_power_min() || blast_power > get_blast_power_max())
+			return "blast_power must stay in the range [get_blast_power_min()]..[get_blast_power_max()]."
+		var/blast_falloff = text2num("[params["blast_falloff"]]")
+		if(!isnum(blast_falloff) || blast_falloff < get_blast_falloff_min() || blast_falloff > get_blast_falloff_max())
+			return "blast_falloff must stay in the range [get_blast_falloff_min()]..[get_blast_falloff_max()]."
 
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
@@ -299,14 +437,14 @@
 		result.message = "Unable to build the destruction plan."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets or valid fire tiles matched the selected area."
+		result.message = plan.metadata["error"] || "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
 		return result
 
 	current_plan = plan
 	result.success = TRUE
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.meta = plan.metadata.Copy()
-	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]], fire_tiles=[plan.metadata["fire_count"]]."
+	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]], fire_tiles=[plan.metadata["fire_count"]], blasts=[plan.metadata["blast_count"]], damage=[plan.metadata["damage_profile_label"] || "None"], undo=[plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE]."
 	return result
 
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
@@ -316,7 +454,7 @@
 		result.message = "Run preview first to build the destruction plan."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets or valid fire tiles matched the selected area."
+		result.message = plan.metadata["error"] || "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
 		return result
 	if(plan.metadata["heavy_operation"])
 		var/heavy_answer = tgui_alert(user, "This is a heavy destruction pack apply. Confirm the second-stage execution.", "World Edit: Heavy Confirm", list("Execute", "Cancel"))
@@ -326,13 +464,19 @@
 
 	var/moved_count = 0
 	var/fire_count = 0
+	var/blast_count = 0
+	var/damage_count = 0
 	var/skipped_runtime = 0
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "destruction_pack", WORLD_EDIT_UNDO_PARTIAL, list(
 		"center_turf" = plan.metadata["center_turf"],
 		"shuffle" = plan.metadata["shuffle"],
 		"scatter" = plan.metadata["scatter"],
 		"persistent_fire" = plan.metadata["persistent_fire"],
+		"blast" = plan.metadata["blast"],
+		"damage_profile" = plan.metadata["damage_profile"],
 	))
+	changeset.undo_policy = plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE
+	var/datum/cause_data/cause_data = create_cause_data("world edit destruction pack", manager?.holder)
 	for(var/list/placement as anything in plan.placements)
 		if(placement["kind"] == "fire")
 			var/turf/target_turf = placement["turf"]
@@ -391,28 +535,59 @@
 		else
 			skipped_runtime++
 
-	var/total_actions = moved_count + fire_count
+	for(var/list/deletion as anything in plan.deletions)
+		if(deletion["kind"] == "blast")
+			var/turf/blast_turf = deletion["center_turf"]
+			if(!istype(blast_turf))
+				skipped_runtime++
+				continue
+			cell_explosion(blast_turf, deletion["power"], deletion["falloff"], EXPLOSION_FALLOFF_SHAPE_LINEAR, null, cause_data)
+			blast_count++
+			continue
+
+		if(deletion["kind"] == "damage")
+			var/list/damage_area_turfs = deletion["area_turfs"]
+			var/severity = text2num("[deletion["severity"]]") || 0
+			if(!islist(damage_area_turfs) || !length(damage_area_turfs) || severity <= 0)
+				skipped_runtime++
+				continue
+			damage_count += apply_structural_damage_profile(damage_area_turfs, severity, cause_data)
+			continue
+
+		skipped_runtime++
+
+	var/total_actions = moved_count + fire_count + blast_count + damage_count
 
 	result.center_turf = plan.metadata["center_turf"]
 	result.created_count = total_actions
+	result.deleted_count = blast_count + damage_count
 	result.meta = plan.metadata.Copy()
 	result.meta["moved_count"] = moved_count
 	result.meta["fire_count"] = fire_count
+	result.meta["blast_count"] = blast_count
+	result.meta["damage_count"] = damage_count
 	result.meta["action_count"] = total_actions
 	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(total_actions <= 0)
-		result.message = plan.metadata["error"] || "Destruction pack finished without applying any moves or fire tiles."
+		result.message = plan.metadata["error"] || "Destruction pack finished without applying any moves, fire tiles, blasts, or damage profiles."
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
-	if(moved_count > 0 && fire_count > 0)
-		result.message = "Destruction pack moved [moved_count] movable targets and created [fire_count] owned persistent fire tiles."
-	else if(fire_count > 0)
-		result.message = "Destruction pack created [fire_count] owned persistent fire tiles."
-	else
-		result.message = "Destruction pack moved [moved_count] movable targets."
+	var/list/summaries = list()
+	if(moved_count > 0)
+		summaries += "[moved_count] moved targets"
+	if(fire_count > 0)
+		summaries += "[fire_count] owned fire tiles"
+	if(blast_count > 0)
+		summaries += "[blast_count] blasts"
+	if(damage_count > 0)
+		summaries += "[damage_count] damaged turfs"
+	var/summary_text = jointext(summaries, ", ")
+	if(!length(summary_text))
+		summary_text = "no-op"
+	result.message = "Destruction pack applied: [summary_text]. Undo=[changeset.undo_policy]."
 	return result
 
 /datum/world_edit_generator/destruction_pack/get_runtime_status()
@@ -420,16 +595,22 @@
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
+	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 
 	return list(
 		list("label" = "Move mode", "value" = (shuffle_enabled || scatter_enabled) ? "active" : "off"),
 		list("label" = "Persistent fire", "value" = persistent_fire_enabled ? "active" : "off"),
+		list("label" = "Blast", "value" = blast_enabled ? "active" : "off"),
+		list("label" = "Damage profile", "value" = get_damage_profile_label(damage_profile)),
 		list("label" = "Fire cap", "value" = "[get_persistent_fire_cap()] tiles"),
 	)
 
 /datum/world_edit_generator/destruction_pack/get_ui_fields(list/current_params)
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(current_params["persistent_fire_enabled"])
+	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(current_params["blast_enabled"])
+	var/damage_profile = resolve_damage_profile(current_params["damage_profile"])
 
 	return list(
 		list(
@@ -480,6 +661,49 @@
 			"max" = get_persistent_fire_density_max(),
 			"step" = 0.01,
 			"disabled" = !persistent_fire_enabled,
+		),
+		list(
+			"id" = "blast_enabled",
+			"label" = "Blast",
+			"kind" = "boolean",
+			"group" = "Blast",
+			"description" = "Triggers a controlled cell explosion at the selected center after movement and fire placement. This disables undo for the operation.",
+			"value" = blast_enabled,
+		),
+		list(
+			"id" = "blast_power",
+			"label" = "Blast Power",
+			"kind" = "number",
+			"group" = "Blast",
+			"description" = "Explosion strength for the controlled blast.",
+			"validate_hint" = "Allowed range: [get_blast_power_min()]..[get_blast_power_max()]",
+			"value" = text2num("[current_params["blast_power"]]") || get_blast_power_default(),
+			"min" = get_blast_power_min(),
+			"max" = get_blast_power_max(),
+			"step" = 10,
+			"disabled" = !blast_enabled,
+		),
+		list(
+			"id" = "blast_falloff",
+			"label" = "Blast Falloff",
+			"kind" = "number",
+			"group" = "Blast",
+			"description" = "Explosion falloff for the controlled blast.",
+			"validate_hint" = "Allowed range: [get_blast_falloff_min()]..[get_blast_falloff_max()]",
+			"value" = text2num("[current_params["blast_falloff"]]") || get_blast_falloff_default(),
+			"min" = get_blast_falloff_min(),
+			"max" = get_blast_falloff_max(),
+			"step" = 10,
+			"disabled" = !blast_enabled,
+		),
+		list(
+			"id" = "damage_profile",
+			"label" = "Damage Profile",
+			"kind" = "select",
+			"group" = "Damage",
+			"description" = "Applies structural and tile damage directly to the selected area without a blast curve. This disables undo for the operation.",
+			"value" = damage_profile,
+			"options" = build_damage_profile_options(),
 		),
 		list(
 			"id" = "scatter_steps",
@@ -533,6 +757,25 @@
 		if("persistent_fire_density")
 			new_params[param_id] = clamp(text2num("[value]"), get_persistent_fire_density_min(), get_persistent_fire_density_max())
 
+		if("blast_enabled")
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(new_params[param_id] && isnull(new_params["blast_power"]))
+				new_params["blast_power"] = get_blast_power_default()
+			if(new_params[param_id] && isnull(new_params["blast_falloff"]))
+				new_params["blast_falloff"] = get_blast_falloff_default()
+
+		if("blast_power")
+			new_params[param_id] = clamp(text2num("[value]"), get_blast_power_min(), get_blast_power_max())
+
+		if("blast_falloff")
+			new_params[param_id] = clamp(text2num("[value]"), get_blast_falloff_min(), get_blast_falloff_max())
+
+		if("damage_profile")
+			var/profile_id = resolve_damage_profile(value)
+			if(!profile_id)
+				return "Invalid damage profile selected."
+			new_params[param_id] = profile_id
+
 		if("max_atoms")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 100)
 
@@ -548,8 +791,12 @@
 	var/fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
 	var/fire_summary = fire_enabled ? ", fire=on density=[fire_density] cap=[get_persistent_fire_cap()]" : ", fire=off"
-	return "Apply Destruction Pack at the current turf with radius [params["radius"]]? shuffle=[params["shuffle_enabled"]], scatter=[params["scatter_enabled"]][fire_summary]."
+	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
+	var/blast_summary = blast_enabled ? ", blast=on power=[params["blast_power"]] falloff=[params["blast_falloff"]]" : ", blast=off"
+	var/damage_profile = get_damage_profile_label(params["damage_profile"])
+	var/undo_policy = (blast_enabled || resolve_damage_profile(params["damage_profile"]) != "none") ? WORLD_EDIT_UNDO_NONE : WORLD_EDIT_UNDO_PARTIAL
+	return "Apply Destruction Pack at the current turf with radius [params["radius"]]? shuffle=[params["shuffle_enabled"]], scatter=[params["scatter_enabled"]][fire_summary][blast_summary], damage=[damage_profile], undo=[undo_policy]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
 	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
-	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"

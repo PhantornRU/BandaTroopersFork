@@ -35,7 +35,7 @@
 	id = "destruction_pack"
 	name_ru = "Destruction Pack"
 	category_ru = "Destruction"
-	description_ru = "Limited radius-based shuffle/scatter/fire pack for movable atoms."
+	description_ru = "Limited radius-based shuffle/scatter/fire/blast/ruin/collapse pack for movable atoms."
 	required_rights = R_DEBUG
 	supports_preview = TRUE
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH
@@ -47,6 +47,10 @@
 		"scatter_steps" = 2,
 		"persistent_fire_enabled" = FALSE,
 		"persistent_fire_density" = 0.10,
+		"blast_enabled" = FALSE,
+		"blast_power" = 250,
+		"blast_falloff" = 600,
+		"damage_profile" = "none",
 		"max_atoms" = 60,
 		"affect_anchored" = FALSE
 	)
