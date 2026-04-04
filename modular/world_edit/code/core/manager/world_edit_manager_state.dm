@@ -300,6 +300,11 @@
 	current_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(points)
 	return current_params["shape_points_text"]
 
+/datum/world_edit_manager/proc/clear_placement_collector_points()
+	if(!islist(current_params))
+		return
+	current_params -= "shape_points_text"
+
 /datum/world_edit_manager/proc/get_placement_collector_points_text()
 	if(!islist(current_params))
 		return ""
@@ -308,10 +313,12 @@
 		return ""
 	return "[points_text]"
 
-/datum/world_edit_manager/proc/reset_placement_collector_state()
+/datum/world_edit_manager/proc/reset_placement_collector_state(clear_points = FALSE)
 	if(!islist(current_params))
 		return
 	current_params -= "shape_points_origin"
+	if(clear_points)
+		clear_placement_collector_points()
 
 /datum/world_edit_manager/proc/get_placement_collector_summary()
 	var/shape_id = get_effective_placement_shape()
