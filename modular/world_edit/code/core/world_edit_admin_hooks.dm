@@ -1,9 +1,9 @@
 
 /client/proc/open_world_edit_panel()
 	set name = "World Edit Panel"
-	set category = "Game Master.HumanAI"
+	set category = "Game Master"
 
-	if(!check_rights(R_EVENT|R_DEBUG))
+	if(!check_rights(R_DEBUG))
 		return
 
 	var/datum/world_edit_manager/manager = GLOB.world_edit_managers_by_client[src]

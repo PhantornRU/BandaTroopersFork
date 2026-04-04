@@ -392,6 +392,7 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		add_verb(src, GLOB.admin_verbs_server)
 	if(CLIENT_HAS_RIGHTS(src, R_DEBUG))
 		add_verb(src, GLOB.admin_verbs_debug)
+		add_verb(src, /client/proc/open_world_edit_panel) // SS220 EDIT: expose World Edit through the standard admin verb grant path
 		if(!CONFIG_GET(flag/debugparanoid) || CLIENT_HAS_RIGHTS(src, R_ADMIN))
 			add_verb(src, GLOB.admin_verbs_debug_advanced)  // Right now it's just callproc but we can easily add others later on.
 	if(CLIENT_HAS_RIGHTS(src, R_POSSESS))
@@ -441,6 +442,7 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		/client/proc/toggle_intro,
 		/client/proc/gm_lighting,
 		/client/proc/toggle_droppod_menu, // SS220 EDIT: keep modular HALO droppod verb removable with the shared admin hide list
+		/client/proc/open_world_edit_panel, // SS220 EDIT: keep World Edit removable with the shared admin verb reset path
 		GLOB.admin_verbs_admin,
 		GLOB.admin_verbs_ban,
 		GLOB.admin_verbs_minor_event,

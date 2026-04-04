@@ -1,7 +1,7 @@
 /datum/world_edit_manager/tgui_interact(mob/user, datum/tgui/ui)
 	if(!holder || QDELETED(holder) || holder != user?.client)
 		return
-	if(!check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!check_rights_for(holder, R_DEBUG))
 		return
 
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -17,7 +17,7 @@
 	reset_preview_runtime()
 
 /datum/world_edit_manager/ui_static_data(mob/user)
-	if(!holder || holder != user?.client || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || holder != user?.client || !check_rights_for(holder, R_DEBUG))
 		return list()
 
 	var/list/data = list()
@@ -25,7 +25,7 @@
 	return data
 
 /datum/world_edit_manager/ui_data(mob/user)
-	if(!holder || holder != user?.client || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || holder != user?.client || !check_rights_for(holder, R_DEBUG))
 		return list()
 
 	ensure_preset_cache_loaded()
@@ -103,7 +103,7 @@
 
 	if(!holder || holder != ui.user?.client)
 		return
-	if(!check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!check_rights_for(holder, R_DEBUG))
 		return
 
 	switch(action)

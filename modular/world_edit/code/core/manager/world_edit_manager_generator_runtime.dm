@@ -73,7 +73,7 @@
 	detach_current_generator()
 
 /datum/world_edit_manager/proc/configure_current_generator(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return
 	if(!current_generator || !current_definition)
 		to_chat(user, SPAN_WARNING("Сначала выберите генератор."))
@@ -174,7 +174,7 @@
 	return result
 
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_apply(user, "Недостаточно прав для placement mode World Edit.")
 	if(!current_generator || !current_definition)
 		return fail_apply(user, "Сначала выберите генератор.")
@@ -312,7 +312,7 @@
 	return TRUE
 
 /datum/world_edit_manager/proc/run_preview(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_preview(user, "Недостаточно прав для предпросмотра World Edit.")
 	if(!current_generator || !current_definition)
 		return fail_preview(user, "Сначала выберите генератор.")
@@ -351,7 +351,7 @@
 	return result
 
 /datum/world_edit_manager/proc/run_apply(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_apply(user, "Недостаточно прав для применения World Edit.")
 	if(!current_generator || !current_definition)
 		return fail_apply(user, "Сначала выберите генератор.")
@@ -410,7 +410,7 @@
 	return FALSE
 
 /datum/world_edit_manager/proc/undo_last_operation(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_undo_action(user, "undo", "Недостаточно прав для undo World Edit.")
 
 	var/datum/world_edit_changeset/changeset = get_last_changeset()
@@ -465,7 +465,7 @@
 	return undo_result
 
 /datum/world_edit_manager/proc/cleanup_last_owned_effects(mob/user)
-	if(!holder || !check_rights_for(holder, R_EVENT|R_DEBUG))
+	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_undo_action(user, "cleanup", "Недостаточно прав для cleanup owned effects.")
 
 	var/datum/world_edit_changeset/changeset = get_last_changeset()
