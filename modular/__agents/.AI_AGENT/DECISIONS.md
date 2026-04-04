@@ -1,17 +1,17 @@
 # DECISIONS
 
-## D-001: Обновление выполнять через merge, а не rebase
-- Решение: влить `upstream/master` merge-коммитом в текущую ветку.
-- Почему: ветка уже опубликована в `origin`, а задача сформулирована как update branch с разрешением конфликтов без необходимости переписывать историю.
+## D-001: Source of truth для barricade semantics остается в апстрим-объекте, не в World Edit
+- Решение: считать канонической directed-blocking моделью апстрим-семантику `/obj/structure/barricade` + `/atom/BlockedPassDirs`/`BlockedExitDirs`/projectile cover.
+- Почему: баррикада уже является `ON_BORDER` blocker-ом с cardinal `dir`, а World Edit должен только корректно планировать и спавнить эти слоты.
 
-## D-002: Baseline для обновления — `upstream/master`
-- Решение: обновлять текущую ветку относительно `upstream/master`, а не относительно соседних `split/pr62-*` веток.
-- Почему: `git merge-base` показал общий базовый коммит с sibling-ветками, а не stacked ancestry.
+## D-002: Slot identity для World Edit — `turf + dir`, а не `turf` и не `turf + type`
+- Решение: для баррикад уникальность и дедупликацию вести по ключу стороны тайла; разные типы не могут сосуществовать в одном и том же `turf+dir`.
+- Почему: пользовательский контракт явно требует “до 4 на тайл, но только 1 на сторону”, а blueprint service уже частично работает именно так.
 
-## D-003: Разрешение конфликтов делать с сохранением scope ветки
-- Решение: сохранять локальные изменения по human AI squad spawning/species, одновременно подтягивая совместимые апстрим-обновления из HALO/UI/test sweep.
-- Почему: это минимизирует риск потерять смысл текущей feature-ветки при sync с master.
+## D-003: Исправлять нужно generator path, а не формат blueprint
+- Решение: основную правку делать в `modular/world_edit/code/generators/world_edit_generator_outpost_radius.dm`, где square/perimeter path still строится как tile-ring без corner side-slots.
+- Почему: `blueprint_stamp` и `world_edit_blueprints` уже поддерживают несколько баррикад на одном тайле через slot-keys.
 
-## D-004: Конфликты в Human AI spawner решать как superset, а не через выбор одной стороны
-- Решение: оставить расширенную локальную логику candidate filtering, failure handling и species-aware spawning, добавив совместимость с апстрим-именем `get_viable_spawn_turfs` и апстрим-тестом.
-- Почему: апстрим привнес базовый radius/accessibility contract, а ветка уже содержала более сильную и детально покрытую реализацию поверх него.
+## D-004: Curated blueprint JSON менять только по факту несоответствия slot-модели
+- Решение: не переписывать seed blueprints массово, если после аудита они уже содержат корректные multi-slot corner placements.
+- Почему: часть curated data (`02_sandbag`, `05_corner`) уже описана через несколько entry на одном `dx/dy` с разными `dir`; лишний churn не нужен.

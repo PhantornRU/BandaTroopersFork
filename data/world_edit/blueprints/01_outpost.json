@@ -18,7 +18,23 @@
   "entries": [
     {
       "type": "/obj/structure/barricade/metal/plasteel/wired",
-      "dx": 0,
+      "dx": -2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 1,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -1,
+      "dy": 2,
+      "dz": 0,
+      "dir": 1,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": 1,
       "dy": 2,
       "dz": 0,
       "dir": 1,
@@ -27,14 +43,94 @@
     {
       "type": "/obj/structure/barricade/metal/plasteel/wired",
       "dx": 2,
-      "dy": 0,
+      "dy": 2,
+      "dz": 0,
+      "dir": 1,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": 2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": 2,
+      "dy": 1,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": 2,
+      "dy": -1,
       "dz": 0,
       "dir": 4,
       "vars": {}
     },
     {
       "type": "/obj/structure/barricade/metal/plasteel/wired",
-      "dx": 0,
+      "dx": 2,
+      "dy": -2,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": -2,
+      "dy": 1,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": -2,
+      "dy": -1,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -2,
+      "dy": -2,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -2,
+      "dy": -2,
+      "dz": 0,
+      "dir": 2,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": -1,
+      "dy": -2,
+      "dz": 0,
+      "dir": 2,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": 1,
       "dy": -2,
       "dz": 0,
       "dir": 2,
@@ -42,10 +138,10 @@
     },
     {
       "type": "/obj/structure/barricade/metal/plasteel/wired",
-      "dx": -2,
-      "dy": 0,
+      "dx": 2,
+      "dy": -2,
       "dz": 0,
-      "dir": 8,
+      "dir": 2,
       "vars": {}
     },
     {

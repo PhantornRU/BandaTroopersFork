@@ -258,8 +258,72 @@
 			return EAST
 	return dir_to_flip
 
+/datum/world_edit_generator/outpost_radius/proc/get_shape_chebyshev_distance_to_footprint(turf/target_turf, list/footprint_turfs)
+	if(!istype(target_turf) || !islist(footprint_turfs) || !length(footprint_turfs))
+		return null
+
+	var/best_distance = null
+	for(var/turf/source_turf as anything in footprint_turfs)
+		if(!istype(source_turf))
+			continue
+
+		var/current_distance = max(abs(target_turf.x - source_turf.x), abs(target_turf.y - source_turf.y))
+		if(isnull(best_distance) || current_distance < best_distance)
+			best_distance = current_distance
+			if(best_distance <= 0)
+				break
+
+	return best_distance
+
+/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds)
+	var/list/result = list(
+		"turfs" = list(),
+		"lookup" = list(),
+	)
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return result
+
+	radius = max(round(radius), 1)
+	var/list/shell_turfs = result["turfs"]
+	var/list/shell_lookup = result["lookup"]
+	var/z_level = shape_bounds["z"]
+	if(isnull(z_level))
+		return result
+
+	for(var/y in (shape_bounds["min_y"] - radius) to (shape_bounds["max_y"] + radius))
+		for(var/x in (shape_bounds["min_x"] - radius) to (shape_bounds["max_x"] + radius))
+			var/turf/target_turf = locate(x, y, z_level)
+			if(!istype(target_turf) || footprint_lookup[target_turf])
+				continue
+
+			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs) != radius)
+				continue
+
+			shell_lookup[target_turf] = TRUE
+			shell_turfs += target_turf
+
+	return result
+
+/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_slot_dirs(turf/target_turf, radius, list/footprint_turfs, list/shell_lookup)
+	var/list/slot_dirs = list()
+	if(!istype(target_turf) || !islist(shell_lookup))
+		return slot_dirs
+
+	for(var/dir_to_use as anything in GLOB.cardinals)
+		var/turf/neighbor_turf = get_step(target_turf, dir_to_use)
+		if(shell_lookup[neighbor_turf])
+			continue
+
+		var/neighbor_distance = get_shape_chebyshev_distance_to_footprint(neighbor_turf, footprint_turfs)
+		if(isnull(neighbor_distance) || neighbor_distance > radius)
+			slot_dirs += dir_to_use
+
+	return slot_dirs
+
 /datum/world_edit_generator/outpost_radius/proc/score_shape_opening_slot(list/candidate_slot, list/shape_bounds)
-	var/turf/source_turf = candidate_slot["source_turf"]
+	var/turf/source_turf = candidate_slot["turf"]
+	if(!istype(source_turf))
+		source_turf = candidate_slot["source_turf"]
 	var/dir_to_use = candidate_slot["dir"]
 	if(!istype(source_turf))
 		return 0
@@ -283,34 +347,26 @@
 		return candidates
 
 	radius = max(round(radius), 1)
-	var/list/scan_dirs = list(NORTH, EAST, SOUTH, WEST)
-	for(var/y in shape_bounds["min_y"] to shape_bounds["max_y"])
-		for(var/x in shape_bounds["min_x"] to shape_bounds["max_x"])
-			var/turf/source_turf = locate(x, y, shape_bounds["z"])
-			if(!footprint_lookup[source_turf])
+	var/list/shell_data = build_shape_shell_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds)
+	var/list/shell_turfs = shell_data["turfs"]
+	var/list/shell_lookup = shell_data["lookup"]
+	for(var/turf/target_turf as anything in shell_turfs)
+		if(!istype(target_turf))
+			continue
+
+		var/list/slot_dirs = build_shape_shell_slot_dirs(target_turf, radius, footprint_turfs, shell_lookup)
+		for(var/dir_to_use as anything in slot_dirs)
+			var/candidate_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, dir_to_use)
+			if(!length(candidate_key) || candidate_lookup[candidate_key])
 				continue
 
-			for(var/dir_to_use as anything in scan_dirs)
-				var/turf/immediate_turf = get_step(source_turf, dir_to_use)
-				if(footprint_lookup[immediate_turf])
-					continue
-
-				var/turf/target_turf = GLOB.world_edit_helpers.step_turf(source_turf, dir_to_use, radius)
-				if(!istype(target_turf) || footprint_lookup[target_turf])
-					continue
-				var/candidate_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, dir_to_use)
-				if(!length(candidate_key) || candidate_lookup[candidate_key])
-					continue
-				if(!can_place_barricade_on_turf(target_turf, dir_to_use))
-					continue
-
-				candidate_lookup[candidate_key] = TRUE
-				candidates += list(list(
-					"source_turf" = source_turf,
-					"turf" = target_turf,
-					"dir" = dir_to_use,
-					"slot_index" = length(candidates) + 1,
-				))
+			candidate_lookup[candidate_key] = TRUE
+			candidates += list(list(
+				"source_turf" = GLOB.world_edit_helpers.step_turf(target_turf, get_cardinal_opposite_dir(dir_to_use), 1),
+				"turf" = target_turf,
+				"dir" = dir_to_use,
+				"slot_index" = length(candidates) + 1,
+			))
 
 	return candidates
 
@@ -344,6 +400,8 @@
 		return candidates
 
 	var/turf/source_turf = opening_slot["source_turf"]
+	if(!istype(source_turf))
+		source_turf = opening_slot["turf"]
 	var/dir_to_guard = opening_slot["dir"]
 	if(!istype(source_turf))
 		return candidates
@@ -612,6 +670,37 @@
 	qdel(defense_definition)
 	return created_object
 
+/datum/world_edit_generator/outpost_radius/proc/register_perimeter_slot(list/result, turf/target_turf, dir_to_use, slot_index, offset_x, offset_y, radius, list/family_profile, list/barricade_cycle)
+	if(!islist(result))
+		return
+
+	var/list/placements = result["placements"]
+	var/list/openings = result["openings"]
+	if(is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, family_profile))
+		if(can_place_barricade_on_turf(target_turf, dir_to_use))
+			result["opening_count"]++
+			openings += list(list(
+				"turf" = target_turf,
+				"dir" = dir_to_use,
+				"slot_index" = slot_index,
+			))
+		else
+			result["blocked_count"]++
+			result["blocked_openings"]++
+		return
+
+	if(can_place_barricade_on_turf(target_turf, dir_to_use))
+		placements += list(list(
+			"turf" = target_turf,
+			"dir" = dir_to_use,
+			"barricade_path" = select_barricade_path_for_slot(barricade_cycle, slot_index, radius),
+			"slot_index" = slot_index,
+		))
+		return
+
+	result["blocked_count"]++
+	result["blocked_barricades"]++
+
 /datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius, list/family_profile, list/barricade_cycle)
 	var/list/result = list(
 		"placements" = list(),
@@ -629,90 +718,20 @@
 	for(var/offset_x in -radius to radius)
 		slot_index++
 		var/turf/top_turf = locate(center_turf.x + offset_x, center_turf.y + radius, center_turf.z)
-		if(is_perimeter_opening_slot(NORTH, offset_x, radius, family_profile))
-			if(can_place_barricade_on_turf(top_turf, NORTH))
-				result["opening_count"]++
-				result["openings"] += list(list("turf" = top_turf, "dir" = NORTH, "slot_index" = slot_index))
-			else
-				result["blocked_count"]++
-				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(top_turf, NORTH))
-			placements += list(list(
-				"turf" = top_turf,
-				"dir" = NORTH,
-				"barricade_path" = select_barricade_path_for_slot(barricade_cycle, slot_index, radius),
-				"slot_index" = slot_index,
-			))
-		else
-			result["blocked_count"]++
-			result["blocked_barricades"]++
-
-		if(radius <= 0)
-			continue
+		register_perimeter_slot(result, top_turf, NORTH, slot_index, offset_x, radius, radius, family_profile, barricade_cycle)
 
 		slot_index++
 		var/turf/bottom_turf = locate(center_turf.x + offset_x, center_turf.y - radius, center_turf.z)
-		if(is_perimeter_opening_slot(SOUTH, offset_x, -radius, family_profile))
-			if(can_place_barricade_on_turf(bottom_turf, SOUTH))
-				result["opening_count"]++
-				result["openings"] += list(list("turf" = bottom_turf, "dir" = SOUTH, "slot_index" = slot_index))
-			else
-				result["blocked_count"]++
-				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(bottom_turf, SOUTH))
-			placements += list(list(
-				"turf" = bottom_turf,
-				"dir" = SOUTH,
-				"barricade_path" = select_barricade_path_for_slot(barricade_cycle, slot_index, radius),
-				"slot_index" = slot_index,
-			))
-		else
-			result["blocked_count"]++
-			result["blocked_barricades"]++
+		register_perimeter_slot(result, bottom_turf, SOUTH, slot_index, offset_x, -radius, radius, family_profile, barricade_cycle)
 
-	if(radius <= 1)
-		return result
-
-	for(var/offset_y in (-radius + 1) to (radius - 1))
+	for(var/offset_y in -radius to radius)
 		slot_index++
 		var/turf/right_turf = locate(center_turf.x + radius, center_turf.y + offset_y, center_turf.z)
-		if(is_perimeter_opening_slot(EAST, radius, offset_y, family_profile))
-			if(can_place_barricade_on_turf(right_turf, EAST))
-				result["opening_count"]++
-				result["openings"] += list(list("turf" = right_turf, "dir" = EAST, "slot_index" = slot_index))
-			else
-				result["blocked_count"]++
-				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(right_turf, EAST))
-			placements += list(list(
-				"turf" = right_turf,
-				"dir" = EAST,
-				"barricade_path" = select_barricade_path_for_slot(barricade_cycle, slot_index, radius),
-				"slot_index" = slot_index,
-			))
-		else
-			result["blocked_count"]++
-			result["blocked_barricades"]++
+		register_perimeter_slot(result, right_turf, EAST, slot_index, radius, offset_y, radius, family_profile, barricade_cycle)
 
 		slot_index++
 		var/turf/left_turf = locate(center_turf.x - radius, center_turf.y + offset_y, center_turf.z)
-		if(is_perimeter_opening_slot(WEST, -radius, offset_y, family_profile))
-			if(can_place_barricade_on_turf(left_turf, WEST))
-				result["opening_count"]++
-				result["openings"] += list(list("turf" = left_turf, "dir" = WEST, "slot_index" = slot_index))
-			else
-				result["blocked_count"]++
-				result["blocked_openings"]++
-		else if(can_place_barricade_on_turf(left_turf, WEST))
-			placements += list(list(
-				"turf" = left_turf,
-				"dir" = WEST,
-				"barricade_path" = select_barricade_path_for_slot(barricade_cycle, slot_index, radius),
-				"slot_index" = slot_index,
-			))
-		else
-			result["blocked_count"]++
-			result["blocked_barricades"]++
+		register_perimeter_slot(result, left_turf, WEST, slot_index, -radius, offset_y, radius, family_profile, barricade_cycle)
 
 	return result
 
