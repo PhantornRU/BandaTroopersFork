@@ -144,6 +144,9 @@ type BackendData = {
   placement_shape_options: PlacementOption[];
   placement_shape_fields: UiField[];
   placement_shape_uses_anchor_pair: boolean;
+  placement_interaction_kind: string;
+  placement_interaction_label: string;
+  placement_shape_rollout_stage: string;
   placement_supports_direction: boolean;
   placement_dir: string;
   placement_dir_options: PlacementOption[];
@@ -177,9 +180,8 @@ type BackendData = {
 
 const PAGES = [
   { title: 'Генераторы', icon: 'list' },
-  { title: 'Параметры', icon: 'sliders-h' },
-  { title: 'Preview', icon: 'eye' },
-  { title: 'Apply', icon: 'play' },
+  { title: 'Setup', icon: 'sliders-h' },
+  { title: 'Run', icon: 'play' },
   { title: 'История', icon: 'history' },
 ];
 
@@ -313,15 +315,13 @@ const BlueprintLibrarySection = (props: {
             Обновить библиотеку
           </Button>
         </Stack.Item>
-        <Stack.Item>
-          <Button
-            disabled={!data.can_save_blueprint_from_plan}
-            onClick={() => act('save_blueprint')}
-          >
-            Сохранить из outpost preview
-          </Button>
-        </Stack.Item>
       </Stack>
+
+      {!!data.placement_active && (
+        <Box color="average" mb={1}>
+          Library actions временно заблокированы, пока активен placement mode.
+        </Box>
+      )}
 
       {!data.blueprint_entries?.length && (
         <Box color="label">В библиотеке пока нет blueprint-ов.</Box>
@@ -355,7 +355,7 @@ const BlueprintLibrarySection = (props: {
               <Stack mt={1}>
                 <Stack.Item>
                   <Button
-                    disabled={!blueprint.valid}
+                    disabled={!blueprint.valid || data.placement_active}
                     onClick={() =>
                       act('load_blueprint', {
                         blueprint_id: blueprint.id,
@@ -367,7 +367,7 @@ const BlueprintLibrarySection = (props: {
                 </Stack.Item>
                 <Stack.Item>
                   <Button
-                    disabled={!blueprint.valid}
+                    disabled={!blueprint.valid || data.placement_active}
                     onClick={() =>
                       act('preview_blueprint', {
                         blueprint_id: blueprint.id,
@@ -381,6 +381,7 @@ const BlueprintLibrarySection = (props: {
                   <Button
                     disabled={
                       !blueprint.valid ||
+                      data.placement_active ||
                       !blueprint.active ||
                       !data.preview_valid
                     }
@@ -402,14 +403,35 @@ const BlueprintLibrarySection = (props: {
   );
 };
 
-const PlacementShapeSection = (props: {
+const BlueprintExportSection = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
 }) => {
   const { data, act } = props;
 
   return (
-    <Section title="Placement Shape">
+    <Section title="Blueprint Export">
+      <Box color="label" mb={1}>
+        Для `outpost_radius` можно сохранить текущий preview как Blueprint Lite.
+      </Box>
+      <Button
+        disabled={!data.can_save_blueprint_from_plan}
+        onClick={() => act('save_blueprint')}
+      >
+        Сохранить из outpost preview
+      </Button>
+    </Section>
+  );
+};
+
+const PlacementSetupSection = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+}) => {
+  const { data, act } = props;
+
+  return (
+    <Section title="Placement Setup">
       <LabeledList>
         {data.placement_shape_supported && (
           <LabeledList.Item label="Shape">
@@ -478,6 +500,12 @@ const PlacementShapeSection = (props: {
         <LabeledList.Item label="Status">
           {data.placement_active ? 'active' : 'inactive'}
         </LabeledList.Item>
+        <LabeledList.Item label="Interaction">
+          {data.placement_interaction_label || 'Single Click'}
+        </LabeledList.Item>
+        <LabeledList.Item label="Rollout">
+          {data.placement_shape_rollout_stage || 'v1'}
+        </LabeledList.Item>
 
         <LabeledList.Item label="Pending anchor">
           {data.placement_anchor || 'none'}
@@ -494,48 +522,34 @@ const PlacementShapeSection = (props: {
         </Section>
       )}
 
-      <Stack mt={1}>
-        <Stack.Item>
-          <Button
-            disabled={!data.can_start_placement_mode}
-            onClick={() => act('start_placement_mode')}
-          >
-            Start placement mode
-          </Button>
-        </Stack.Item>
-        <Stack.Item>
-          <Button
-            color="average"
-            disabled={!data.can_stop_click_mode}
-            onClick={() => act('stop_click_mode')}
-          >
-            Остановить click-режим
-          </Button>
-        </Stack.Item>
-      </Stack>
+      <Box color="label" mt={1}>
+        Запуск и остановка placement mode находятся на вкладке `Run`.
+      </Box>
     </Section>
   );
 };
 
-const ParametersPage = (props: {
+const SetupPage = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
   readonly groupedFields: Record<string, UiField[]>;
   readonly groupNames: string[];
+  readonly showBlueprintExport: boolean;
   readonly showBlueprintLibrary: boolean;
-  readonly showPlacementShapes: boolean;
+  readonly showPlacementSetup: boolean;
 }) => {
   const {
     data,
     act,
     groupedFields,
     groupNames,
+    showBlueprintExport,
     showBlueprintLibrary,
-    showPlacementShapes,
+    showPlacementSetup,
   } = props;
 
   return (
-    <Section fill scrollable title="Параметры генератора">
+    <Section fill scrollable title="Настройка генератора">
       {!data.has_generator && (
         <Box color="label">
           Сначала выберите генератор на вкладке &quot;Генераторы&quot;.
@@ -544,7 +558,7 @@ const ParametersPage = (props: {
 
       {!!data.has_generator && (
         <>
-          <Section title="Текущий генератор">
+          <Section title="Generator Summary">
             <Box>
               {data.current_generator_category} / {data.current_generator_name}
             </Box>
@@ -563,7 +577,7 @@ const ParametersPage = (props: {
             <NoticeBox danger>{data.last_ui_error}</NoticeBox>
           )}
 
-          <Section title="Управление настройкой">
+          <Section title="Generator Tools">
             <Stack>
               <Stack.Item>
                 <Button
@@ -586,82 +600,74 @@ const ParametersPage = (props: {
             </Stack>
           </Section>
 
-          <Section title="Presets">
-            {!data.can_manage_presets && (
-              <Box color="label">
-                В этой фазе presets доступны только для `outpost_radius` и
-                `destruction_pack`.
-              </Box>
-            )}
+          {!!data.can_manage_presets && (
+            <Section title="Presets">
+              <Stack mb={1}>
+                <Stack.Item>
+                  <Button onClick={() => act('save_preset')}>
+                    Сохранить preset
+                  </Button>
+                </Stack.Item>
+              </Stack>
 
-            {!!data.can_manage_presets && (
-              <>
-                <Stack mb={1}>
-                  <Stack.Item>
-                    <Button onClick={() => act('save_preset')}>
-                      Сохранить preset
-                    </Button>
-                  </Stack.Item>
+              {!data.preset_entries?.length && (
+                <Box color="label">
+                  Для текущего генератора ещё нет сохранённых preset-ов.
+                </Box>
+              )}
+
+              {!!data.preset_entries?.length && (
+                <Stack vertical>
+                  {data.preset_entries.map((preset) => (
+                    <Section key={preset.id} title={preset.name || preset.id}>
+                      <Box color="label">
+                        Сохранён: {preset.created_at || 'n/a'}
+                      </Box>
+                      <Box color="label">Параметры: {preset.params_short}</Box>
+                      <Stack mt={1}>
+                        <Stack.Item>
+                          <Button
+                            onClick={() =>
+                              act('load_preset', {
+                                preset_id: preset.id,
+                              })
+                            }
+                          >
+                            Загрузить
+                          </Button>
+                        </Stack.Item>
+                        <Stack.Item>
+                          <Button
+                            color="average"
+                            onClick={() =>
+                              act('delete_preset', {
+                                preset_id: preset.id,
+                              })
+                            }
+                          >
+                            Удалить
+                          </Button>
+                        </Stack.Item>
+                      </Stack>
+                    </Section>
+                  ))}
                 </Stack>
+              )}
+            </Section>
+          )}
 
-                {!data.preset_entries?.length && (
-                  <Box color="label">
-                    Для текущего генератора ещё нет сохранённых preset-ов.
-                  </Box>
-                )}
-
-                {!!data.preset_entries?.length && (
-                  <Stack vertical>
-                    {data.preset_entries.map((preset) => (
-                      <Section key={preset.id} title={preset.name || preset.id}>
-                        <Box color="label">
-                          Сохранён: {preset.created_at || 'n/a'}
-                        </Box>
-                        <Box color="label">
-                          Параметры: {preset.params_short}
-                        </Box>
-                        <Stack mt={1}>
-                          <Stack.Item>
-                            <Button
-                              onClick={() =>
-                                act('load_preset', {
-                                  preset_id: preset.id,
-                                })
-                              }
-                            >
-                              Загрузить
-                            </Button>
-                          </Stack.Item>
-                          <Stack.Item>
-                            <Button
-                              color="average"
-                              onClick={() =>
-                                act('delete_preset', {
-                                  preset_id: preset.id,
-                                })
-                              }
-                            >
-                              Удалить
-                            </Button>
-                          </Stack.Item>
-                        </Stack>
-                      </Section>
-                    ))}
-                  </Stack>
-                )}
-              </>
-            )}
-          </Section>
-
+          {showBlueprintExport && (
+            <BlueprintExportSection data={data} act={act} />
+          )}
           {showBlueprintLibrary && (
             <BlueprintLibrarySection data={data} act={act} />
           )}
 
-          {showPlacementShapes && (
-            <PlacementShapeSection data={data} act={act} />
+          {showPlacementSetup && (
+            <PlacementSetupSection data={data} act={act} />
           )}
 
-          <Section title="Inline-настройка">
+          <Section title="Parameters">
             {!data.has_inline_fields && (
               <Box color="label">
                 Этот генератор не отдает inline-поля. Используйте мастер
@@ -688,29 +694,236 @@ const ParametersPage = (props: {
               })}
           </Section>
 
-          <Section title="Текущие параметры">
-            <Box>{data.current_params_text}</Box>
-          </Section>
+          <Section title="Diagnostics">
+            <Section title="Текущие параметры">
+              <Box>{data.current_params_text}</Box>
+            </Section>
 
-          <Section title="Runtime-статус">
-            {!data.runtime_status?.length && (
-              <Box color="label">Дополнительный статус не предоставлен.</Box>
-            )}
-            {!!data.runtime_status?.length && (
-              <LabeledList>
-                {data.runtime_status.map((entry, index) => (
-                  <LabeledList.Item
-                    key={`${entry.label}_${index}`}
-                    label={entry.label}
-                  >
-                    {entry.value}
-                  </LabeledList.Item>
-                ))}
-              </LabeledList>
-            )}
+            <Section title="Runtime-статус">
+              {!data.runtime_status?.length && (
+                <Box color="label">Дополнительный статус не предоставлен.</Box>
+              )}
+              {!!data.runtime_status?.length && (
+                <LabeledList>
+                  {data.runtime_status.map((entry, index) => (
+                    <LabeledList.Item
+                      key={`${entry.label}_${index}`}
+                      label={entry.label}
+                    >
+                      {entry.value}
+                    </LabeledList.Item>
+                  ))}
+                </LabeledList>
+              )}
+            </Section>
           </Section>
         </>
       )}
+    </Section>
+  );
+};
+
+const RunPage = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+}) => {
+  const { data, act } = props;
+
+  return (
+    <Section fill scrollable title="Run">
+      <Section title="Primary Actions">
+        <Stack>
+          <Stack.Item>
+            <Button
+              disabled={!data.can_run_preview}
+              onClick={() => act('run_preview')}
+            >
+              Запустить preview
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              disabled={!data.can_run_apply}
+              onClick={() => act('run_apply')}
+            >
+              Применить генератор
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              color="average"
+              disabled={!data.has_generator}
+              onClick={() => act('clear_preview')}
+            >
+              Очистить preview
+            </Button>
+          </Stack.Item>
+        </Stack>
+      </Section>
+
+      <Section title="Placement Session">
+        <Stack>
+          <Stack.Item>
+            <Button
+              disabled={!data.can_start_placement_mode}
+              onClick={() => act('start_placement_mode')}
+            >
+              Start placement mode
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              color="average"
+              disabled={!data.can_stop_click_mode}
+              onClick={() => act('stop_click_mode')}
+            >
+              Остановить click-режим
+            </Button>
+          </Stack.Item>
+        </Stack>
+
+        {(data.placement_supported ||
+          data.placement_shape_supported ||
+          data.placement_supports_direction) && (
+          <Box color="label" mt={1}>
+            {data.placement_interaction_kind === 'anchor_pair'
+              ? 'LMB ставит первую точку, второй LMB выполняет preview/apply, MMB сбрасывает pending anchor.'
+              : data.placement_interaction_kind === 'param_only'
+                ? 'LMB использует выбранный turf как anchor, а footprint берется из текущих параметров shape. Interactive point collection пока не входит в этот проход.'
+                : 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте Stop click-mode.'}
+          </Box>
+        )}
+      </Section>
+
+      <Section title="Ready State">
+        <LabeledList>
+          <LabeledList.Item label="Generator">
+            {data.current_generator_name || 'none'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Preview required">
+            {data.requires_preview_before_apply ? 'yes' : 'no'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Preview valid">
+            {data.preview_valid ? 'yes' : 'no'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Click mode">
+            {data.click_mode_active ? 'active' : 'inactive'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Interaction">
+            {data.placement_interaction_label || 'Single Click'}
+          </LabeledList.Item>
+          {(data.placement_supported || data.placement_shape_supported) && (
+            <LabeledList.Item label="Placement mode">
+              {data.placement_mode || 'n/a'}
+            </LabeledList.Item>
+          )}
+          {data.placement_shape_supported && (
+            <LabeledList.Item label="Shape">
+              {data.placement_shape || 'n/a'}
+            </LabeledList.Item>
+          )}
+          {data.placement_supports_direction && (
+            <LabeledList.Item label="Direction">
+              {data.placement_dir || 'n/a'}
+            </LabeledList.Item>
+          )}
+          <LabeledList.Item label="Pending anchor">
+            {data.placement_anchor || 'none'}
+          </LabeledList.Item>
+          <LabeledList.Item label="Active blueprint">
+            {data.active_blueprint_id || 'none'}
+          </LabeledList.Item>
+        </LabeledList>
+      </Section>
+
+      <Section title="Preview State">
+        <Box>
+          Статус: {data.preview_success ? 'успех' : 'ошибка/нет'} | Валиден для
+          apply: {data.preview_valid ? 'да' : 'нет'}
+        </Box>
+        <Box color={data.preview_success ? 'good' : 'average'}>
+          {data.preview_message || 'Нет данных preview.'}
+        </Box>
+      </Section>
+
+      <Section title="Preview Meta">
+        {!data.preview_meta || !Object.keys(data.preview_meta).length ? (
+          <Box color="label">Meta отсутствует.</Box>
+        ) : (
+          <LabeledList>
+            {Object.entries(data.preview_meta).map(([key, value]) => (
+              <LabeledList.Item key={key} label={key}>
+                {`${value}`}
+              </LabeledList.Item>
+            ))}
+          </LabeledList>
+        )}
+      </Section>
+
+      <Section title="Session Operations">
+        <Stack mb={1}>
+          <Stack.Item>
+            <Button
+              color="average"
+              disabled={!data.can_undo_last_operation}
+              onClick={() => act('undo_last_operation')}
+            >
+              Undo last operation
+            </Button>
+          </Stack.Item>
+          <Stack.Item>
+            <Button
+              color="average"
+              disabled={!data.can_cleanup_last_owned_effects}
+              onClick={() => act('cleanup_last_owned_effects')}
+            >
+              Cleanup owned effects
+            </Button>
+          </Stack.Item>
+        </Stack>
+
+        <Section title="Последний apply">
+          <Box color={data.last_apply_success ? 'good' : 'average'}>
+            {data.last_apply_message || 'Операции apply еще не выполнялись.'}
+          </Box>
+        </Section>
+
+        <Section title="Последняя записанная операция">
+          {!data.last_changeset && (
+            <Box color="label">
+              Undo/cleanup-record для текущей session пока отсутствует.
+            </Box>
+          )}
+
+          {!!data.last_changeset && (
+            <>
+              <Box>
+                Generator: {data.last_changeset.generator_id} | Policy:{' '}
+                {data.last_changeset.undo_policy} | Status:{' '}
+                {data.last_changeset.undo_status}
+              </Box>
+              <Box color="label">
+                Operation ID: {data.last_changeset.operation_id}
+              </Box>
+              <Box color="label">
+                Created refs: {data.last_changeset.created_entries} | Moved
+                refs: {data.last_changeset.moved_entries} | Owned effects:{' '}
+                {data.last_changeset.owned_effect_entries}
+              </Box>
+            </>
+          )}
+        </Section>
+
+        <Section title="Последний undo / cleanup">
+          <Box color={data.last_undo_success ? 'good' : 'average'}>
+            {data.last_undo_message ||
+              'Undo/cleanup действия еще не выполнялись.'}
+          </Box>
+          {!!data.last_undo_action && (
+            <Box color="label">Тип действия: {data.last_undo_action}</Box>
+          )}
+        </Section>
+      </Section>
     </Section>
   );
 };
@@ -721,9 +934,12 @@ export const WorldEditPanel = () => {
 
   const currentPage = PAGES[pageIndex]?.title || PAGES[0].title;
   const isBlueprintStamp = data.current_generator_id === 'blueprint_stamp';
-  const showBlueprintLibrary =
-    isBlueprintStamp || !!data.can_save_blueprint_from_plan;
-  const showPlacementShapes = data.placement_shape_supported;
+  const showBlueprintExport = data.current_generator_id === 'outpost_radius';
+  const showBlueprintLibrary = isBlueprintStamp;
+  const showPlacementSetup =
+    data.placement_supported ||
+    data.placement_shape_supported ||
+    data.placement_supports_direction;
 
   const groupedFields = useMemo(() => {
     const groups: Record<string, UiField[]> = {};
@@ -806,241 +1022,19 @@ export const WorldEditPanel = () => {
               </Section>
             )}
 
-            {currentPage === 'Параметры' && (
-              <ParametersPage
+            {currentPage === 'Setup' && (
+              <SetupPage
                 data={data}
                 act={act}
                 groupedFields={groupedFields}
                 groupNames={groupNames}
+                showBlueprintExport={showBlueprintExport}
                 showBlueprintLibrary={showBlueprintLibrary}
-                showPlacementShapes={showPlacementShapes}
+                showPlacementSetup={showPlacementSetup}
               />
             )}
 
-            {currentPage === 'Preview' && (
-              <Section fill scrollable title="Preview">
-                <Stack>
-                  <Stack.Item>
-                    <Button
-                      disabled={!data.can_run_preview}
-                      onClick={() => act('run_preview')}
-                    >
-                      Запустить preview
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      color="average"
-                      disabled={!data.has_generator}
-                      onClick={() => act('clear_preview')}
-                    >
-                      Очистить preview
-                    </Button>
-                  </Stack.Item>
-                </Stack>
-
-                <Section title="Состояние preview">
-                  <Box>
-                    Статус: {data.preview_success ? 'успех' : 'ошибка/нет'} |
-                    Валиден для apply: {data.preview_valid ? 'да' : 'нет'}
-                  </Box>
-                  <Box color={data.preview_success ? 'good' : 'average'}>
-                    {data.preview_message || 'Нет данных preview.'}
-                  </Box>
-                </Section>
-
-                <Section title="Meta">
-                  {!data.preview_meta ||
-                  !Object.keys(data.preview_meta).length ? (
-                    <Box color="label">Meta отсутствует.</Box>
-                  ) : (
-                    <LabeledList>
-                      {Object.entries(data.preview_meta).map(([key, value]) => (
-                        <LabeledList.Item key={key} label={key}>
-                          {`${value}`}
-                        </LabeledList.Item>
-                      ))}
-                    </LabeledList>
-                  )}
-                </Section>
-              </Section>
-            )}
-
-            {currentPage === 'Apply' && (
-              <Section fill scrollable title="Apply">
-                <Stack>
-                  <Stack.Item>
-                    <Button
-                      disabled={!data.can_run_apply}
-                      onClick={() => act('run_apply')}
-                    >
-                      Применить генератор
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      disabled={!data.can_start_placement_mode}
-                      onClick={() => act('start_placement_mode')}
-                    >
-                      Start placement mode
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      color="average"
-                      disabled={!data.can_stop_click_mode}
-                      onClick={() => act('stop_click_mode')}
-                    >
-                      Остановить click-режим
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      color="average"
-                      disabled={!data.can_undo_last_operation}
-                      onClick={() => act('undo_last_operation')}
-                    >
-                      Undo last operation
-                    </Button>
-                  </Stack.Item>
-                  <Stack.Item>
-                    <Button
-                      color="average"
-                      disabled={!data.can_cleanup_last_owned_effects}
-                      onClick={() => act('cleanup_last_owned_effects')}
-                    >
-                      Cleanup owned effects
-                    </Button>
-                  </Stack.Item>
-                </Stack>
-
-                <Section title="Требования">
-                  <Box>
-                    Требуется preview перед apply:{' '}
-                    {data.requires_preview_before_apply ? 'да' : 'нет'}
-                  </Box>
-                  <Box>
-                    Click-режим активен: {data.click_mode_active ? 'да' : 'нет'}
-                  </Box>
-                </Section>
-
-                {(data.placement_supported ||
-                  data.placement_shape_supported) && (
-                  <Section title="Placement UX">
-                    <LabeledList>
-                      {data.placement_shape_supported && (
-                        <LabeledList.Item label="Shape">
-                          {data.placement_shape}
-                        </LabeledList.Item>
-                      )}
-                      {data.placement_supported && (
-                        <LabeledList.Item label="Placement mode">
-                          <Dropdown
-                            width="100%"
-                            options={(data.placement_mode_options || []).map(
-                              (option) => ({
-                                value: option.value,
-                                displayText: option.description ? (
-                                  <Box>
-                                    <Box>{option.label}</Box>
-                                    <Box color="label" fontSize={0.85}>
-                                      {option.description}
-                                    </Box>
-                                  </Box>
-                                ) : (
-                                  option.label
-                                ),
-                              }),
-                            )}
-                            selected={data.placement_mode}
-                            onSelected={(value) =>
-                              act('set_placement_mode', { mode: value })
-                            }
-                          />
-                        </LabeledList.Item>
-                      )}
-
-                      {data.placement_supports_direction && (
-                        <LabeledList.Item label="Direction">
-                          <Dropdown
-                            width="100%"
-                            options={(data.placement_dir_options || []).map(
-                              (option) => ({
-                                value: option.value,
-                                displayText: option.label,
-                              }),
-                            )}
-                            selected={data.placement_dir}
-                            onSelected={(value) =>
-                              act('set_placement_dir', { direction: value })
-                            }
-                          />
-                        </LabeledList.Item>
-                      )}
-
-                      <LabeledList.Item label="Status">
-                        {data.placement_active ? 'active' : 'inactive'}
-                      </LabeledList.Item>
-
-                      <LabeledList.Item label="Pending anchor">
-                        {data.placement_anchor || 'none'}
-                      </LabeledList.Item>
-                    </LabeledList>
-
-                    <Box color="label" mt={1}>
-                      {data.placement_shape_uses_anchor_pair
-                        ? 'LMB sets the first point, second LMB previews and applies, MMB resets the pending anchor.'
-                        : 'LMB previews and applies at the clicked turf. Use Stop click-mode to exit.'}
-                    </Box>
-                  </Section>
-                )}
-
-                <Section title="Последний apply">
-                  <Box color={data.last_apply_success ? 'good' : 'average'}>
-                    {data.last_apply_message ||
-                      'Операции apply еще не выполнялись.'}
-                  </Box>
-                </Section>
-
-                <Section title="Последняя записанная операция">
-                  {!data.last_changeset && (
-                    <Box color="label">
-                      Undo/cleanup-record для текущей session пока отсутствует.
-                    </Box>
-                  )}
-
-                  {!!data.last_changeset && (
-                    <>
-                      <Box>
-                        Generator: {data.last_changeset.generator_id} | Policy:{' '}
-                        {data.last_changeset.undo_policy} | Status:{' '}
-                        {data.last_changeset.undo_status}
-                      </Box>
-                      <Box color="label">
-                        Operation ID: {data.last_changeset.operation_id}
-                      </Box>
-                      <Box color="label">
-                        Created refs: {data.last_changeset.created_entries} |
-                        Moved refs: {data.last_changeset.moved_entries} | Owned
-                        effects: {data.last_changeset.owned_effect_entries}
-                      </Box>
-                    </>
-                  )}
-                </Section>
-
-                <Section title="Последний undo / cleanup">
-                  <Box color={data.last_undo_success ? 'good' : 'average'}>
-                    {data.last_undo_message ||
-                      'Undo/cleanup действия еще не выполнялись.'}
-                  </Box>
-                  {!!data.last_undo_action && (
-                    <Box color="label">
-                      Тип действия: {data.last_undo_action}
-                    </Box>
-                  )}
-                </Section>
-              </Section>
-            )}
+            {currentPage === 'Run' && <RunPage data={data} act={act} />}
 
             {currentPage === 'История' && (
               <Section fill scrollable title="История операций (session)">

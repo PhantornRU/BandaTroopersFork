@@ -190,9 +190,12 @@
 
 	var/shape_id = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
 	var/dir_suffix = supports_current_placement_direction() ? " DIR=[GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
-	if(placement_mode_uses_anchor_pair(shape_id))
+	if(interaction_kind == "anchor_pair")
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
+	else if(interaction_kind == "param_only")
+		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB uses the clicked turf as anchor and resolves the footprint from current shape parameters. Interactive point collection is not part of this pass[dir_suffix]"))
 	else
 		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB previews and applies at the clicked turf. MMB resets the pending anchor[dir_suffix]"))
 	return TRUE
@@ -217,17 +220,18 @@
 
 	var/mode = get_effective_placement_mode()
 	var/shape_id = get_effective_placement_shape()
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
 	if(!length(mode) || !length(shape_id))
 		return TRUE
 
-	if(placement_mode_uses_anchor_pair(shape_id) && !placement_anchor_turf)
+	if(interaction_kind == "anchor_pair" && !placement_anchor_turf)
 		placement_anchor_turf = clicked_turf
 		clear_preview_plan_state()
 		GLOB.world_edit_helpers.apply_turf_preview(src, list(clicked_turf))
 		to_chat(user, SPAN_NOTICE("Placement anchor set: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]. Select the second point."))
 		return TRUE
 
-	var/turf/start_turf = placement_mode_uses_anchor_pair(shape_id) ? placement_anchor_turf : clicked_turf
+	var/turf/start_turf = (interaction_kind == "anchor_pair") ? placement_anchor_turf : clicked_turf
 	var/turf/end_turf = clicked_turf
 	placement_anchor_turf = null
 

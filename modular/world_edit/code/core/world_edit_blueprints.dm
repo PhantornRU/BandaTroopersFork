@@ -650,6 +650,11 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	to_chat(user, SPAN_WARNING(message))
 	return FALSE
 
+/datum/world_edit_manager/proc/check_blueprint_library_runtime_action_allowed(mob/user)
+	if(click_intercept_owned)
+		return fail_blueprint_action(user, "Остановите активный click/placement mode перед действиями с библиотекой blueprint.")
+	return TRUE
+
 /datum/world_edit_manager/proc/load_blueprint_definition_by_id(blueprint_id)
 	var/list/entry = find_cached_blueprint_entry(blueprint_id)
 	if(!entry)
@@ -677,6 +682,9 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	return TRUE
 
 /datum/world_edit_manager/proc/load_blueprint_into_manager(mob/user, blueprint_id)
+	if(!check_blueprint_library_runtime_action_allowed(user))
+		return FALSE
+
 	if(!activate_blueprint_generator(user, blueprint_id, FALSE))
 		return FALSE
 
@@ -684,12 +692,18 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	return TRUE
 
 /datum/world_edit_manager/proc/preview_blueprint_by_id(mob/user, blueprint_id)
+	if(!check_blueprint_library_runtime_action_allowed(user))
+		return FALSE
+
 	if(!activate_blueprint_generator(user, blueprint_id, FALSE))
 		return FALSE
 	run_preview(user)
 	return TRUE
 
 /datum/world_edit_manager/proc/apply_blueprint_by_id(mob/user, blueprint_id)
+	if(!check_blueprint_library_runtime_action_allowed(user))
+		return FALSE
+
 	if(!activate_blueprint_generator(user, blueprint_id, TRUE))
 		return FALSE
 	if(!is_preview_state_valid())

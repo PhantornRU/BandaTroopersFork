@@ -217,7 +217,25 @@
 
 /datum/world_edit_manager/proc/placement_mode_uses_anchor_pair(mode = null)
 	var/shape_id = mode || get_effective_placement_shape()
-	return GLOB.world_edit_placement_shapes.world_edit_shape_uses_anchor_pair(shape_id) ? TRUE : FALSE
+	return (get_placement_interaction_kind(shape_id) == "anchor_pair") ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/get_placement_interaction_kind(shape_id = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length(shape_id))
+		return "single"
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_interaction_kind(shape_id)
+
+/datum/world_edit_manager/proc/get_placement_interaction_label(shape_id = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length(shape_id))
+		return "Single Click"
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_interaction_label(shape_id)
+
+/datum/world_edit_manager/proc/get_placement_shape_rollout_stage(shape_id = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length(shape_id))
+		return "v1"
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_rollout_stage(shape_id)
 
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
 	if(!placement_anchor_turf)

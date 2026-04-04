@@ -70,6 +70,9 @@
 	data["placement_shape_options"] = placement_shapes
 	data["placement_shape_fields"] = placement_shape_fields
 	data["placement_shape_uses_anchor_pair"] = placement_mode_uses_anchor_pair(get_effective_placement_shape()) ? TRUE : FALSE
+	data["placement_interaction_kind"] = get_placement_interaction_kind()
+	data["placement_interaction_label"] = get_placement_interaction_label()
+	data["placement_shape_rollout_stage"] = get_placement_shape_rollout_stage()
 	data["placement_supports_direction"] = supports_current_placement_direction() ? TRUE : FALSE
 	data["placement_dir"] = GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())
 	data["placement_dir_options"] = build_placement_dir_options()

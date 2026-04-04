@@ -115,11 +115,43 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
 	)) ? TRUE : FALSE
 
+/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_interaction_kind(shape_id)
+	switch("[shape_id]")
+		if(
+			WORLD_EDIT_SHAPE_LINE,
+			WORLD_EDIT_SHAPE_RECTANGLE,
+			WORLD_EDIT_SHAPE_FILLED_RECTANGLE
+		)
+			return "anchor_pair"
+		if(
+			WORLD_EDIT_SHAPE_POLYGON,
+			WORLD_EDIT_SHAPE_POLYLINE,
+			WORLD_EDIT_SHAPE_CUSTOM_MASK,
+			WORLD_EDIT_SHAPE_BRUSH_PATH,
+			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+		)
+			return "param_only"
+	return "single"
+
+/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_interaction_label(shape_id)
+	switch(world_edit_get_shape_interaction_kind(shape_id))
+		if("anchor_pair")
+			return "Anchor Pair"
+		if("param_only")
+			return "Param-Driven"
+	return "Single Click"
+
+/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_rollout_stage(shape_id)
+	return (world_edit_get_shape_interaction_kind(shape_id) == "param_only") ? "v2_hook" : "v1"
+
 /datum/world_edit_placement_shape_service/proc/world_edit_build_placement_shape_option(shape_id)
 	return list(
 		"value" = "[shape_id]",
 		"label" = world_edit_get_placement_shape_label(shape_id),
 		"description" = world_edit_get_placement_shape_description(shape_id),
+		"interaction_kind" = world_edit_get_shape_interaction_kind(shape_id),
+		"interaction_label" = world_edit_get_shape_interaction_label(shape_id),
+		"rollout_stage" = world_edit_get_shape_rollout_stage(shape_id),
 	)
 
 /datum/world_edit_placement_shape_service/proc/world_edit_shape_num_param(list/current_params, param_id, default_value, min_value = null, max_value = null)
@@ -751,6 +783,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		"metadata" = list(
 			"shape" = "[shape_id]",
 			"shape_label" = world_edit_get_placement_shape_label(shape_id),
+			"interaction_kind" = world_edit_get_shape_interaction_kind(shape_id),
+			"interaction_label" = world_edit_get_shape_interaction_label(shape_id),
+			"rollout_stage" = world_edit_get_shape_rollout_stage(shape_id),
 			"uses_anchor_pair" = world_edit_shape_uses_anchor_pair(shape_id) ? TRUE : FALSE,
 		),
 	)
