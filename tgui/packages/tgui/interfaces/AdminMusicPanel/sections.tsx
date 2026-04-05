@@ -1,4 +1,3 @@
-export { PlaybackSettingsControls } from './components';
 export {
   EditHeaderSection,
   EditPanelSection,
@@ -12,3 +11,4 @@ export {
   SessionSection,
   TracksFocusLaunchStrip,
 } from './play_sections';
+export { PlaybackSettingsControls } from './playback_presenters';
