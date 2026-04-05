@@ -182,7 +182,7 @@ function BufferedDurationInput({
         skipNextCommitRef.current = true;
         resetValue();
       }}
-      placeholder="117 or 1:57"
+      placeholder="Seconds or timecode"
     />
   );
 }
@@ -4351,8 +4351,8 @@ function TrackInspectorSection({
               </Flex>
               {!normalizedDuration ? (
                 <Box color="label" fontSize="0.75rem" mt="0.2rem">
-                  Accepts seconds or timecode like 1:57. Unknown duration is
-                  allowed, but Single mode may not stop automatically.
+                  Use seconds or timecode (mm:ss or hh:mm:ss). Unknown duration
+                  is allowed, but Single mode may not stop automatically.
                 </Box>
               ) : null}
             </Box>
