@@ -1,6 +1,6 @@
 /client/proc/open_admin_music_panel()
 	set name = "Admin Music Panel"
-	set category = "Admin.Fun"
+	set category = "Admin"
 
 	if(!check_rights(R_SOUNDS))
 		return
