@@ -141,15 +141,12 @@
 		return FALSE
 	if(dirty)
 		var/close_choice = prompt_close_action()
-		switch(close_choice)
-			if("Save Changes")
-				var/datum/admin_music_preset/saved_preset = GLOB.admin_music_service.save_draft(holder, draft, FALSE)
-				if(!saved_preset)
-					return FALSE
-			if("Discard Changes")
-				// Continue closing without saving.
-			else
+		if(close_choice == "Save Changes")
+			var/datum/admin_music_preset/saved_preset = GLOB.admin_music_service.save_draft(holder, draft, FALSE)
+			if(!saved_preset)
 				return FALSE
+		else if(close_choice != "Discard Changes")
+			return FALSE
 	closing = TRUE
 	qdel(src)
 	return TRUE
