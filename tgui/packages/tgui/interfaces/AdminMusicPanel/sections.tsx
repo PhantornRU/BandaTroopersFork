@@ -8,7 +8,6 @@ import {
   Flex,
   Input,
   LabeledList,
-  NumberInput,
   Section,
   Stack,
   TextArea,
@@ -34,6 +33,7 @@ import {
   formatAfterTrackEnds,
   formatDuration,
   formatDurationCompact,
+  formatDurationInputValue,
   formatElapsedCompact,
   formatSourceLabel,
   formatTrackCount,
@@ -49,6 +49,7 @@ import {
   LIVE_BADGE_STYLE,
   MUTED_BADGE_STYLE,
   normalizeDurationValue,
+  parseDurationInput,
   PlaybackMode,
   PlaybackSettings,
   PLAYER_BADGE_STYLE,
@@ -79,6 +80,12 @@ type BufferedInputProps = Readonly<{
   placeholder: string;
   onCommit: (value: string) => void;
   monospace?: boolean;
+}>;
+
+type BufferedDurationInputProps = Readonly<{
+  syncKey: string | number | null;
+  value: number;
+  onCommit: (value: number) => void;
 }>;
 
 function BufferedInput({
@@ -120,6 +127,62 @@ function BufferedInput({
         setDraftValue(value);
       }}
       placeholder={placeholder}
+    />
+  );
+}
+
+function BufferedDurationInput({
+  syncKey,
+  value,
+  onCommit,
+}: BufferedDurationInputProps) {
+  const formattedValue = formatDurationInputValue(value);
+  const [draftValue, setDraftValue] = useState(formattedValue);
+  const skipNextCommitRef = useRef(false);
+
+  useEffect(() => {
+    skipNextCommitRef.current = false;
+    setDraftValue(formattedValue);
+  }, [formattedValue, syncKey]);
+
+  const resetValue = () => {
+    setDraftValue(formattedValue);
+  };
+
+  const handleCommit = (nextValue: string) => {
+    if (skipNextCommitRef.current) {
+      skipNextCommitRef.current = false;
+      resetValue();
+      return;
+    }
+
+    const parsedDuration = parseDurationInput(nextValue);
+    if (parsedDuration === null) {
+      resetValue();
+      return;
+    }
+
+    const normalizedDuration = normalizeDurationValue(parsedDuration);
+    setDraftValue(formatDurationInputValue(normalizedDuration));
+    if (normalizedDuration !== normalizeDurationValue(value)) {
+      onCommit(normalizedDuration);
+    }
+  };
+
+  return (
+    <Input
+      key={`${syncKey ?? 'buffered-duration'}:${formattedValue}`}
+      fluid
+      monospace
+      style={EDIT_INPUT_STYLE}
+      value={draftValue}
+      onInput={(e, nextValue) => setDraftValue(nextValue)}
+      onChange={(e, nextValue) => handleCommit(nextValue)}
+      onEscape={() => {
+        skipNextCommitRef.current = true;
+        resetValue();
+      }}
+      placeholder="117 or 1:57"
     />
   );
 }
@@ -2096,9 +2159,7 @@ export function EditTab({
           draft={draft}
           draftStatus={draftStatus}
           canRevert={canRevert}
-          onEditPreset={() =>
-            setPresetEditorRequest((current) => current + 1)
-          }
+          onEditPreset={() => setPresetEditorRequest((current) => current + 1)}
           onSave={onSave}
           onSaveAsCopy={onSaveAsCopy}
           onRevert={onRevert}
@@ -3166,11 +3227,11 @@ function PresetMetaSection({
         <LabeledList key={draftToken}>
           <LabeledList.Item label="Name">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
-              <Input
-                fluid
-                style={EDIT_INPUT_STYLE}
+              <BufferedInput
+                syncKey={`preset-name:${draftToken}`}
                 value={draft.name}
-                onInput={(e, value) => onSetName(value)}
+                onCommit={onSetName}
+                placeholder="Preset name"
               />
             </Box>
           </LabeledList.Item>
@@ -4252,14 +4313,10 @@ function TrackInspectorSection({
                   basis="6.5rem"
                   style={{ minWidth: '6.5rem', maxWidth: '6.5rem' }}
                 >
-                  <NumberInput
-                    fluid
-                    minValue={0}
-                    maxValue={86400}
-                    step={1}
-                    width="100%"
+                  <BufferedDurationInput
+                    syncKey={`${selectedVariant.variant_id}:duration`}
                     value={normalizedDuration}
-                    onChange={(value) =>
+                    onCommit={(value) =>
                       onSetVariantDuration(
                         selectedTier.tier_id,
                         selectedVariant.variant_id,
@@ -4290,8 +4347,8 @@ function TrackInspectorSection({
               </Flex>
               {!normalizedDuration ? (
                 <Box color="label" fontSize="0.75rem" mt="0.2rem">
-                  Unknown duration is allowed, but Single mode may not stop
-                  automatically.
+                  Accepts seconds or timecode like 1:57. Unknown duration is
+                  allowed, but Single mode may not stop automatically.
                 </Box>
               ) : null}
             </Box>

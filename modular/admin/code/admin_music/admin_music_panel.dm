@@ -195,6 +195,55 @@
 		return FALSE
 	return fallback
 
+/datum/admin_music_panel/proc/is_digit_string(text_value)
+	if(!length(text_value))
+		return FALSE
+	for(var/index in 1 to length(text_value))
+		var/character = text2ascii(text_value, index)
+		if(character < 48 || character > 57)
+			return FALSE
+	return TRUE
+
+/datum/admin_music_panel/proc/parse_duration_seconds(raw_value)
+	if(isnull(raw_value))
+		return 0
+	if(isnum(raw_value))
+		return max(round(raw_value), 0)
+
+	var/text_value = trim("[raw_value]")
+	if(!length(text_value))
+		return 0
+	if(!findtext(text_value, ":"))
+		if(!is_digit_string(text_value))
+			return 0
+		return max(round(text2num(text_value)), 0)
+
+	var/list/parts = splittext(text_value, ":")
+	var/part_count = length(parts)
+	if(part_count < 2 || part_count > 3)
+		return 0
+
+	var/list/numeric_parts = list()
+	for(var/part in parts)
+		var/trimmed_part = trim("[part]")
+		if(!is_digit_string(trimmed_part))
+			return 0
+		numeric_parts += text2num(trimmed_part)
+
+	if(part_count == 2)
+		var/minutes = numeric_parts[1]
+		var/seconds = numeric_parts[2]
+		if(seconds >= 60)
+			return 0
+		return max(round(minutes * 60 + seconds), 0)
+
+	var/hours = numeric_parts[1]
+	var/remaining_minutes = numeric_parts[2]
+	var/remaining_seconds = numeric_parts[3]
+	if(remaining_minutes >= 60 || remaining_seconds >= 60)
+		return 0
+	return max(round(hours * 3600 + remaining_minutes * 60 + remaining_seconds), 0)
+
 /datum/admin_music_panel/proc/select_tier(tier_id)
 	if(selected_tier_id != tier_id)
 		selected_variant_id = null
@@ -540,7 +589,7 @@
 			var/datum/admin_music_variant/duration_variant = get_selected_variant()
 			if(!duration_variant)
 				return FALSE
-			duration_variant.duration_seconds = max(round(text2num("[params["duration_seconds"]]")), 0)
+			duration_variant.duration_seconds = parse_duration_seconds(params["duration_seconds"])
 			return mark_dirty()
 
 		if("set_variant_source_url")

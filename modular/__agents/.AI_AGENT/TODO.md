@@ -1,9 +1,9 @@
 # TODO
 
-- [x] Подтвердить корень HALO species regression через `setup_species()`, `set_species()` и HALO presets.
-- [x] Найти все релевантные callsites Create Human/Create Object flow для прямых human subtype spawn path'ов.
-- [x] Исправить HALO species datums так, чтобы canonical species ID снова совпадал с `SPECIES_*`.
-- [x] Добавить прямые subtype-спавны `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
-- [x] Добавить regression tests на species spawn, covenant blood и HALO preset equip.
-- [x] Прогнать `git diff --check` и compile-проверку.
-- [x] Закоммитить follow-up fix и обновить PR #87.
+- [x] audit current Admin Music Panel frontend/backend flow for duration, metadata title sync, and launch settings persistence
+- [x] identify concrete reset sources for playback mode/repeat/focus state
+- [x] implement duration parsing for seconds and timecode input
+- [x] ensure editable title/name stays in sync with resolved metadata where intended
+- [x] persist/restore launch settings and preserve focus/selection across tab/window lifecycle
+- [x] run diff/build/lint verification
+- [ ] commit final changes

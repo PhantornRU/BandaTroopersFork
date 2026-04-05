@@ -37,6 +37,8 @@ export type LaunchSettings = PlaybackSettings & {
   playback_mode: PlaybackMode;
 };
 
+export type AdminMusicPanelTab = 'play' | 'edit';
+
 export type DraftPreset = {
   preset_id: string;
   name: string;
@@ -245,6 +247,55 @@ export const normalizeDurationValue = (duration_seconds: number) => {
   return Object.is(duration_seconds, -0) ? 0 : duration_seconds;
 };
 
+export const parseDurationInput = (rawValue: string | number) => {
+  if (typeof rawValue === 'number') {
+    return normalizeDurationValue(rawValue);
+  }
+
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) {
+    return 0;
+  }
+
+  if (/^\d+$/.test(trimmedValue)) {
+    return normalizeDurationValue(Number.parseInt(trimmedValue, 10));
+  }
+
+  if (!/^\d+(?::\d{1,2}){1,2}$/.test(trimmedValue)) {
+    return null;
+  }
+
+  const parts = trimmedValue
+    .split(':')
+    .map((part) => Number.parseInt(part, 10));
+  if (parts.some((part) => Number.isNaN(part) || part < 0)) {
+    return null;
+  }
+
+  if (parts.length === 2) {
+    const [minutes, seconds] = parts;
+    if (seconds >= 60) {
+      return null;
+    }
+    return normalizeDurationValue(minutes * 60 + seconds);
+  }
+
+  if (parts.length === 3) {
+    const [hours, minutes, seconds] = parts;
+    if (minutes >= 60 || seconds >= 60) {
+      return null;
+    }
+    return normalizeDurationValue(hours * 3600 + minutes * 60 + seconds);
+  }
+
+  return null;
+};
+
+export const formatDurationInputValue = (duration_seconds: number) => {
+  const normalizedDuration = normalizeDurationValue(duration_seconds);
+  return normalizedDuration ? formatDurationCompact(normalizedDuration) : '';
+};
+
 export const formatDuration = (duration_seconds: number) => {
   const normalizedDuration = normalizeDurationValue(duration_seconds);
   if (!normalizedDuration) {
@@ -311,6 +362,77 @@ export const buildLaunchSettings = (draft: DraftPreset): LaunchSettings => ({
   repeat: draft.playback.repeat,
   playback_mode: 'single',
 });
+
+const isPlaybackMode = (value: unknown): value is PlaybackMode =>
+  value === 'single' || value === 'ordered' || value === 'random';
+
+export const coerceLaunchSettings = (
+  draft: DraftPreset,
+  rawValue: Partial<LaunchSettings> | null | undefined,
+): LaunchSettings => {
+  const defaults = buildLaunchSettings(draft);
+  if (!rawValue) {
+    return defaults;
+  }
+
+  return {
+    audience_mode:
+      typeof rawValue.audience_mode === 'string' && rawValue.audience_mode
+        ? rawValue.audience_mode
+        : defaults.audience_mode,
+    sound_type:
+      typeof rawValue.sound_type === 'string' && rawValue.sound_type
+        ? rawValue.sound_type
+        : defaults.sound_type,
+    show_title_to_players:
+      typeof rawValue.show_title_to_players === 'boolean'
+        ? rawValue.show_title_to_players
+        : defaults.show_title_to_players,
+    repeat:
+      typeof rawValue.repeat === 'boolean' ? rawValue.repeat : defaults.repeat,
+    playback_mode: isPlaybackMode(rawValue.playback_mode)
+      ? rawValue.playback_mode
+      : defaults.playback_mode,
+  };
+};
+
+const PANEL_SETTINGS_STORAGE_KEY = 'panel-settings';
+
+export const loadAdminMusicPanelUiState = async (): Promise<{
+  activeTab: AdminMusicPanelTab;
+  launchSettings: Partial<LaunchSettings> | null;
+}> => {
+  const settings = (await storage.get(PANEL_SETTINGS_STORAGE_KEY)) || {};
+  const activeTab = settings?.adminMusicActiveTab === 'edit' ? 'edit' : 'play';
+  const launchSettings =
+    settings?.adminMusicLaunchSettings &&
+    typeof settings.adminMusicLaunchSettings === 'object'
+      ? settings.adminMusicLaunchSettings
+      : null;
+
+  return {
+    activeTab,
+    launchSettings,
+  };
+};
+
+export const saveAdminMusicPanelUiState = async (nextState: {
+  activeTab?: AdminMusicPanelTab;
+  launchSettings?: LaunchSettings;
+}) => {
+  const settings = (await storage.get(PANEL_SETTINGS_STORAGE_KEY)) || {};
+  const nextSettings = { ...settings };
+
+  if (nextState.activeTab) {
+    nextSettings.adminMusicActiveTab = nextState.activeTab;
+  }
+
+  if (nextState.launchSettings) {
+    nextSettings.adminMusicLaunchSettings = nextState.launchSettings;
+  }
+
+  await storage.set(PANEL_SETTINGS_STORAGE_KEY, nextSettings);
+};
 
 export const getDraftStatus = (
   draft: DraftPreset,

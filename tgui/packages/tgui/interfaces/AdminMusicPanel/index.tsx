@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackend } from '../../backend';
-import { Button, Stack, Tabs } from '../../components';
+import { Box, Button, Stack, Tabs } from '../../components';
 import { Window } from '../../layouts';
 import { EditTab, PlayTab } from './sections';
 import {
   AdminMusicPanelData,
+  AdminMusicPanelTab,
   BG_APP,
   BG_PANEL_ALT,
   BG_SELECTED,
   BORDER,
   buildLaunchSettings,
+  coerceLaunchSettings,
   findTier,
   findVariant,
   getDraftStatus,
@@ -18,6 +20,8 @@ import {
   getTrackLaunchReadiness,
   isCurrentSessionForSelection,
   LaunchSettings,
+  loadAdminMusicPanelUiState,
+  saveAdminMusicPanelUiState,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   toSelectOptions,
@@ -36,6 +40,16 @@ const WINDOW_CONTENT_STYLE = {
   backgroundImage: 'none',
 };
 
+const HIDDEN_TAB_STYLE = {
+  display: 'none',
+  height: '100%',
+};
+
+const VISIBLE_TAB_STYLE = {
+  display: 'block',
+  height: '100%',
+};
+
 export function AdminMusicPanel() {
   const { act, data } = useBackend<AdminMusicPanelData>();
   const {
@@ -52,11 +66,12 @@ export function AdminMusicPanel() {
     preview_command,
   } = data;
 
-  const [activeTab, setActiveTab] = useState<'play' | 'edit'>('play');
+  const [activeTab, setActiveTab] = useState<AdminMusicPanelTab>('play');
   const [librarySearch, setLibrarySearch] = useState('');
   const [launchSettings, setLaunchSettings] = useState<LaunchSettings>(() =>
     buildLaunchSettings(draft),
   );
+  const [prefsHydrated, setPrefsHydrated] = useState(false);
 
   const initialLibrarySyncRef = useRef(false);
   const { isPreviewActive, previewState, stopPreview } = useAdminMusicPreview(
@@ -65,8 +80,46 @@ export function AdminMusicPanel() {
   );
 
   useEffect(() => {
-    setLaunchSettings(buildLaunchSettings(draft));
-  }, [draft_token]);
+    let cancelled = false;
+
+    const hydrateUiState = async () => {
+      const persistedState = await loadAdminMusicPanelUiState();
+      if (cancelled) {
+        return;
+      }
+
+      setActiveTab(persistedState.activeTab);
+      setLaunchSettings(
+        coerceLaunchSettings(draft, persistedState.launchSettings),
+      );
+      setPrefsHydrated(true);
+    };
+
+    void hydrateUiState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!prefsHydrated) {
+      return;
+    }
+
+    setLaunchSettings((current) => coerceLaunchSettings(draft, current));
+  }, [draft_token, prefsHydrated]);
+
+  useEffect(() => {
+    if (!prefsHydrated) {
+      return;
+    }
+
+    void saveAdminMusicPanelUiState({
+      activeTab,
+      launchSettings,
+    });
+  }, [activeTab, launchSettings, prefsHydrated]);
 
   useEffect(() => {
     if (initialLibrarySyncRef.current) {
@@ -181,7 +234,11 @@ export function AdminMusicPanel() {
             </Tabs>
           </Stack.Item>
           <Stack.Item grow={1}>
-            {activeTab === 'play' ? (
+            <Box
+              style={
+                activeTab === 'play' ? VISIBLE_TAB_STYLE : HIDDEN_TAB_STYLE
+              }
+            >
               <PlayTab
                 current_session={current_session}
                 draft={draft}
@@ -247,7 +304,12 @@ export function AdminMusicPanel() {
                   act('select_variant', { tier_id, variant_id })
                 }
               />
-            ) : (
+            </Box>
+            <Box
+              style={
+                activeTab === 'edit' ? VISIBLE_TAB_STYLE : HIDDEN_TAB_STYLE
+              }
+            >
               <EditTab
                 draft={draft}
                 draftStatus={draftStatus}
@@ -360,7 +422,7 @@ export function AdminMusicPanel() {
                   })
                 }
               />
-            )}
+            </Box>
           </Stack.Item>
         </Stack>
       </Window.Content>

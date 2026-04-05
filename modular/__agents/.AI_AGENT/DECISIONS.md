@@ -1,13 +1,8 @@
 # DECISIONS
 
-## D-001: `species.name` у HALO-рас возвращается к canonical `SPECIES_*`
-- Решение: использовать `SPECIES_SANGHEILI` и `SPECIES_UNGGOY` как `name` в species datum.
-- Почему: `setup_species()`, `set_species()`, AI/preset flow и часть совместимости завязаны на `species.name` как на ключ lookup/contract, а не как на display label.
-
-## D-002: Локализация species-имен отделяется от canonical ID
-- Решение: локализованные названия держать в explicit display-layer (`display_name`, `display_name_plural`) и использовать его только в player-facing сообщениях.
-- Почему: предыдущая попытка локализовать raw `name` сломала species registration и HALO equip restrictions.
-
-## D-003: Прямые subtype-спавны добавляются в upstream `human.dm`
-- Решение: завести `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` по примеру `/mob/living/carbon/human/synthetic`.
-- Почему: пользователь явно просит create-human/create-object surface для прямого спавна рас без обязательного gear preset.
+## Confirmed implementation choices
+- Duration input is fixed as a text-based buffered field in TGUI instead of extending `NumberInput`. This allows `117`, `1:57`, and `1:02:03` while still storing seconds in the model.
+- `set_variant_duration` in `admin_music_panel.dm` now defensively parses both integer seconds and `mm:ss` / `hh:mm:ss` strings so the backend remains authoritative if the UI sends timecode.
+- Preset name editing now uses the same buffered commit model as other Admin Music Panel text fields instead of a per-keystroke direct `Input`, fixing stale editable-name behavior relative to header/title display.
+- Launch settings persistence is implemented through TGUI `panel-settings` storage plus `coerceLaunchSettings(...)`, rather than changing preset schema or service/session backend models.
+- `PlayTab` and `EditTab` remain mounted and are hidden by style instead of being swapped by a ternary render, preserving local tab state across `Play/Edit` switches without broad refactors.
