@@ -61,6 +61,23 @@
 		return null
 	return tier.find_variant_by_ref(selected_variant_id)
 
+/datum/admin_music_panel/proc/get_action_tier(tier_id = null)
+	if(isnull(tier_id))
+		return get_selected_tier()
+	return draft?.find_tier_by_ref(tier_id)
+
+/datum/admin_music_panel/proc/get_action_variant(tier_id = null, variant_id = null)
+	var/datum/admin_music_tier/tier = get_action_tier(tier_id)
+	if(!tier)
+		return null
+	if(isnull(variant_id))
+		if(isnull(tier_id))
+			return get_selected_variant()
+		if(REF(tier) == selected_tier_id)
+			return tier.find_variant_by_ref(selected_variant_id)
+		return null
+	return tier.find_variant_by_ref(variant_id)
+
 /datum/admin_music_panel/proc/build_next_scene_name()
 	var/index = 1
 	var/list/used_names = list()
@@ -373,11 +390,11 @@
 
 	return applied_metadata
 
-/datum/admin_music_panel/proc/resolve_selected_variant_metadata()
-	var/datum/admin_music_variant/selected_variant = get_selected_variant()
-	if(!selected_variant)
+/datum/admin_music_panel/proc/resolve_variant_metadata(tier_id = null, variant_id = null)
+	var/datum/admin_music_variant/target_variant = get_action_variant(tier_id, variant_id)
+	if(!target_variant)
 		return FALSE
-	var/source_url = trim("[selected_variant.source_url]")
+	var/source_url = trim("[target_variant.source_url]")
 	if(!length(source_url))
 		to_chat(holder, SPAN_WARNING("Set a Source URL before resolving metadata."))
 		return FALSE
@@ -386,7 +403,7 @@
 	if(!response)
 		return FALSE
 
-	var/list/applied_metadata = apply_variant_metadata(selected_variant, response)
+	var/list/applied_metadata = apply_variant_metadata(target_variant, response)
 	if(!applied_metadata["duration"] && !applied_metadata["title"])
 		if(round(GLOB.admin_music_service.resolve_media_duration_seconds(response)) <= 0)
 			to_chat(holder, SPAN_WARNING("The media provider did not return a usable end time, so duration could not be resolved automatically."))
@@ -556,7 +573,7 @@
 			return mark_dirty()
 
 		if("remove_variant")
-			var/datum/admin_music_tier/remove_variant_tier = get_selected_tier()
+			var/datum/admin_music_tier/remove_variant_tier = get_action_tier(params["tier_id"])
 			if(!remove_variant_tier)
 				return FALSE
 			if(length(remove_variant_tier.variants) <= 1)
@@ -572,28 +589,28 @@
 			return mark_dirty()
 
 		if("set_variant_title")
-			var/datum/admin_music_variant/titled_variant = get_selected_variant()
+			var/datum/admin_music_variant/titled_variant = get_action_variant(params["tier_id"], params["variant_id"])
 			if(!titled_variant)
 				return FALSE
 			titled_variant.title = params["title"]
 			return mark_dirty()
 
 		if("set_variant_description")
-			var/datum/admin_music_variant/described_variant = get_selected_variant()
+			var/datum/admin_music_variant/described_variant = get_action_variant(params["tier_id"], params["variant_id"])
 			if(!described_variant)
 				return FALSE
 			described_variant.description = params["description"]
 			return mark_dirty()
 
 		if("set_variant_duration")
-			var/datum/admin_music_variant/duration_variant = get_selected_variant()
+			var/datum/admin_music_variant/duration_variant = get_action_variant(params["tier_id"], params["variant_id"])
 			if(!duration_variant)
 				return FALSE
 			duration_variant.duration_seconds = parse_duration_seconds(params["duration_seconds"])
 			return mark_dirty()
 
 		if("set_variant_source_url")
-			var/datum/admin_music_variant/source_variant = get_selected_variant()
+			var/datum/admin_music_variant/source_variant = get_action_variant(params["tier_id"], params["variant_id"])
 			if(!source_variant)
 				return FALSE
 			var/previous_source_url = source_variant.source_url
@@ -614,7 +631,7 @@
 			return mark_dirty()
 
 		if("resolve_variant_metadata")
-			return resolve_selected_variant_metadata()
+			return resolve_variant_metadata(params["tier_id"], params["variant_id"])
 
 		if("move_variant_up")
 			return move_variant(params["tier_id"], params["variant_id"], -1)

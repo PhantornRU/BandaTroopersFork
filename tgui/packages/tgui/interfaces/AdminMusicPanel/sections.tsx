@@ -449,6 +449,12 @@ const TRACKS_FILTER_BAR_STYLE = {
   padding: '0.3rem 0.42rem',
 };
 
+const TRACK_LIST_SCROLL_STYLE = {
+  ...LIST_SCROLL_STYLE,
+  height: 'min(100%, 28rem)',
+  maxHeight: '28rem',
+};
+
 const LAUNCH_STATUS_PANEL_STYLE = {
   ...SUBTLE_PANEL_STYLE,
   padding: '0.34rem 0.58rem',
@@ -2764,7 +2770,7 @@ function PlayTracksSection({
             </Box>
           </Stack.Item>
           <Stack.Item grow>
-            <Box style={LIST_SCROLL_STYLE}>
+            <Box style={TRACK_LIST_SCROLL_STYLE}>
               {selectedTier.variants.length === 0 ? (
                 <Box color="label">No tracks in this scene.</Box>
               ) : filteredVariants.length === 0 ? (
@@ -3725,7 +3731,7 @@ function StructureSection({
                 </Stack>
               </Stack.Item>
               <Stack.Item grow={1}>
-                <Box mt="0.35rem" style={LIST_SCROLL_STYLE}>
+                <Box mt="0.35rem" style={TRACK_LIST_SCROLL_STYLE}>
                   {!selectedTier ? (
                     <Box color="label">No scene selected yet.</Box>
                   ) : selectedTier.variants.length === 0 ? (
@@ -4070,13 +4076,11 @@ function SceneInspectorSection({
         <LabeledList>
           <LabeledList.Item label="Name">
             <Box style={EDIT_FIELD_WRAPPER_STYLE}>
-              <Input
-                fluid
-                style={EDIT_INPUT_STYLE}
+              <BufferedInput
+                syncKey={`${selectedTier.tier_id}:name`}
                 value={selectedTier.name}
-                onInput={(e, value) =>
-                  onSetTierName(selectedTier.tier_id, value)
-                }
+                onCommit={(value) => onSetTierName(selectedTier.tier_id, value)}
+                placeholder="Scene name"
               />
             </Box>
           </LabeledList.Item>

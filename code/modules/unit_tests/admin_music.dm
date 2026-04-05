@@ -165,3 +165,44 @@
 	temp_paths += service.get_preset_path(copied.preset_id)
 	TEST_ASSERT_EQUAL(copied.name, "Merge Test (2)", "Save As Copy did not assign the expected copy name.")
 	TEST_ASSERT_EQUAL(copied.preset_id, service.build_preset_slug("Merge Test (2)"), "Save As Copy did not assign the expected preset id.")
+
+/datum/unit_test/admin_music_panel_variant_action_targets
+	parent_type = /datum/unit_test/admin_music
+
+/datum/unit_test/admin_music_panel_variant_action_targets/Run()
+	var/datum/admin_music_panel/panel = allocate(/datum/admin_music_panel, null)
+	var/datum/admin_music_preset/preset = build_valid_preset("Panel Targeting")
+	var/datum/admin_music_tier/tier = preset.tiers[1]
+	var/datum/admin_music_variant/first_variant = tier.variants[1]
+	var/second_variant_original_title = "Track Beta"
+	var/second_variant_original_duration = 42
+
+	var/datum/admin_music_variant/second_variant = service.build_default_variant()
+	second_variant.title = second_variant_original_title
+	second_variant.description = "Second track"
+	second_variant.duration_seconds = second_variant_original_duration
+	second_variant.source_url = "https://example.com/beta"
+	tier.variants += second_variant
+
+	panel.draft = preset
+	panel.selected_tier_id = REF(tier)
+	panel.selected_variant_id = REF(second_variant)
+	panel.sync_selection()
+
+	var/title_action_result = panel.handle_variant_action("set_variant_title", list(
+		"tier_id" = REF(tier),
+		"variant_id" = REF(first_variant),
+		"title" = "Track Alpha Updated"
+	))
+	TEST_ASSERT(title_action_result, "Panel variant title action failed for an explicit non-selected target.")
+	TEST_ASSERT_EQUAL(first_variant.title, "Track Alpha Updated", "Variant title edit did not apply to the explicit action target.")
+	TEST_ASSERT_EQUAL(second_variant.title, second_variant_original_title, "Variant title edit leaked onto the currently selected track.")
+
+	var/duration_action_result = panel.handle_variant_action("set_variant_duration", list(
+		"tier_id" = REF(tier),
+		"variant_id" = REF(first_variant),
+		"duration_seconds" = "1:57"
+	))
+	TEST_ASSERT(duration_action_result, "Panel duration action failed for an explicit non-selected target.")
+	TEST_ASSERT_EQUAL(first_variant.duration_seconds, 117, "Variant duration edit did not apply to the explicit action target.")
+	TEST_ASSERT_EQUAL(second_variant.duration_seconds, second_variant_original_duration, "Variant duration edit leaked onto the currently selected track.")
