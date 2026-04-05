@@ -1542,7 +1542,7 @@ type TracksFocusLaunchStripProps = Readonly<{
   onStopBroadcast: () => void;
 }>;
 
-function TracksFocusLaunchStrip({
+export function TracksFocusLaunchStrip({
   current_session,
   draft,
   launchSettings,
@@ -1749,502 +1749,7 @@ function TracksFocusLaunchStrip({
   );
 }
 
-type PlayTabProps = Readonly<{
-  current_session: CurrentSession;
-  draft: DraftPreset;
-  launchSettings: LaunchSettings;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
-  trackReadiness: TrackLaunchReadiness;
-  selectedTrackIsLive: boolean;
-  isPreviewActive: boolean;
-  previewState: string;
-  library: LibraryPreset[];
-  librarySearch: string;
-  loadedLibraryPresetId: string | null;
-  onSearchChange: (value: string) => void;
-  onLoadPreset: (preset_id: string) => void;
-  onOpenEdit: () => void;
-  dirty: boolean;
-  selectedTier: DraftTier | null;
-  selectedVariant: DraftVariant | null;
-  selectedTierId: string | null;
-  selectedVariantId: string | null;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
-  onToggleRepeat: () => void;
-  onSetPlaybackMode: (value: PlaybackMode) => void;
-  onResetLaunchSettings: () => void;
-  onPreviewSelected: () => void;
-  onStopPreview: () => void;
-  onPlaySelected: () => void;
-  onStopBroadcast: () => void;
-  onSelectTier: (tier_id: string) => void;
-  onSelectVariant: (tier_id: string, variant_id: string) => void;
-}>;
-
-export function PlayTab({
-  current_session,
-  draft,
-  launchSettings,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
-  trackReadiness,
-  selectedTrackIsLive,
-  isPreviewActive,
-  previewState,
-  library,
-  librarySearch,
-  loadedLibraryPresetId,
-  onSearchChange,
-  onLoadPreset,
-  onOpenEdit,
-  dirty,
-  selectedTier,
-  selectedVariant,
-  selectedTierId,
-  selectedVariantId,
-  onSetAudienceMode,
-  onSetSoundType,
-  onToggleRepeat,
-  onSetPlaybackMode,
-  onResetLaunchSettings,
-  onPreviewSelected,
-  onStopPreview,
-  onPlaySelected,
-  onStopBroadcast,
-  onSelectTier,
-  onSelectVariant,
-}: PlayTabProps) {
-  const [trackSearch, setTrackSearch] = useState('');
-  const [denseTracks, setDenseTracks] = useState(false);
-  const [showOnlyInvalid, setShowOnlyInvalid] = useState(false);
-  const [showOnlyUnknown, setShowOnlyUnknown] = useState(false);
-  const [tracksFocus, setTracksFocus] = useState(false);
-  const canFocusTracks = Boolean(selectedTier?.variants.length);
-
-  useEffect(() => {
-    setTrackSearch('');
-    setDenseTracks(false);
-    setShowOnlyInvalid(false);
-    setShowOnlyUnknown(false);
-    setTracksFocus(false);
-  }, [draft.preset_id, draft.name]);
-
-  const handleSelectTier = (tier_id: string) => {
-    setTrackSearch('');
-    setShowOnlyInvalid(false);
-    setShowOnlyUnknown(false);
-    onSelectTier(tier_id);
-  };
-
-  const handleToggleTracksFocus = () => {
-    if (!canFocusTracks) {
-      return;
-    }
-    setTracksFocus((current) => !current);
-  };
-
-  if (tracksFocus) {
-    return (
-      <Stack fill vertical>
-        {current_session ? (
-          <Stack.Item>
-            <BroadcastStatusStrip
-              current_session={current_session}
-              onStopBroadcast={onStopBroadcast}
-            />
-          </Stack.Item>
-        ) : null}
-        <Stack.Item grow={1}>
-          <Box mt="0.38rem" style={{ height: '100%' }}>
-            <PlayTracksSection
-              draft={draft}
-              current_session={current_session}
-              selectedTier={selectedTier}
-              selectedVariantId={selectedVariantId}
-              trackSearch={trackSearch}
-              denseTracks={denseTracks}
-              showOnlyInvalid={showOnlyInvalid}
-              showOnlyUnknown={showOnlyUnknown}
-              focusMode
-              onTrackSearchChange={setTrackSearch}
-              onToggleDenseTracks={() => setDenseTracks((current) => !current)}
-              onToggleOnlyInvalid={() =>
-                setShowOnlyInvalid((current) => !current)
-              }
-              onToggleOnlyUnknown={() =>
-                setShowOnlyUnknown((current) => !current)
-              }
-              onToggleTracksFocus={handleToggleTracksFocus}
-              onSelectVariant={onSelectVariant}
-            />
-          </Box>
-        </Stack.Item>
-        <Stack.Item>
-          <Box mt="0.38rem">
-            <TracksFocusLaunchStrip
-              current_session={current_session}
-              draft={draft}
-              launchSettings={launchSettings}
-              audienceOptions={audienceOptions}
-              soundTypeOptions={soundTypeOptions}
-              audienceLabel={audienceLabel}
-              soundTypeLabel={soundTypeLabel}
-              selectedTier={selectedTier}
-              selectedVariant={selectedVariant}
-              trackReadiness={trackReadiness}
-              isPreviewActive={isPreviewActive}
-              previewState={previewState}
-              selectedTrackIsLive={selectedTrackIsLive}
-              onSetAudienceMode={onSetAudienceMode}
-              onSetSoundType={onSetSoundType}
-              onToggleRepeat={onToggleRepeat}
-              onSetPlaybackMode={onSetPlaybackMode}
-              onResetLaunchSettings={onResetLaunchSettings}
-              onPreviewSelected={onPreviewSelected}
-              onStopPreview={onStopPreview}
-              onPlaySelected={onPlaySelected}
-              onStopBroadcast={onStopBroadcast}
-            />
-          </Box>
-        </Stack.Item>
-      </Stack>
-    );
-  }
-
-  return (
-    <Stack fill vertical>
-      {current_session ? (
-        <Stack.Item>
-          <BroadcastStatusStrip
-            current_session={current_session}
-            onStopBroadcast={onStopBroadcast}
-          />
-        </Stack.Item>
-      ) : null}
-      <Stack.Item>
-        <Box mt="0.38rem">
-          <SessionSection
-            current_session={current_session}
-            draft={draft}
-            launchSettings={launchSettings}
-            audienceOptions={audienceOptions}
-            soundTypeOptions={soundTypeOptions}
-            audienceLabel={audienceLabel}
-            soundTypeLabel={soundTypeLabel}
-            selectedTier={selectedTier}
-            selectedVariant={selectedVariant}
-            trackReadiness={trackReadiness}
-            selectedTrackIsLive={selectedTrackIsLive}
-            onSetAudienceMode={onSetAudienceMode}
-            onSetSoundType={onSetSoundType}
-            onToggleRepeat={onToggleRepeat}
-            onSetPlaybackMode={onSetPlaybackMode}
-            onResetLaunchSettings={onResetLaunchSettings}
-            onPreviewSelected={onPreviewSelected}
-            onStopPreview={onStopPreview}
-            isPreviewActive={isPreviewActive}
-            previewState={previewState}
-            onOpenEdit={onOpenEdit}
-            onPlaySelected={onPlaySelected}
-            onStopBroadcast={onStopBroadcast}
-          />
-        </Box>
-      </Stack.Item>
-      <Stack.Item grow={1}>
-        <Box mt="0.38rem" style={{ height: '100%' }}>
-          <Stack fill>
-            <Stack.Item basis="27%" grow={1} style={{ minWidth: '0' }}>
-              <LibrarySection
-                library={library}
-                librarySearch={librarySearch}
-                loadedLibraryPresetId={loadedLibraryPresetId}
-                onSearchChange={onSearchChange}
-                onLoadPreset={onLoadPreset}
-                onOpenEdit={onOpenEdit}
-                dirty={dirty}
-              />
-            </Stack.Item>
-            <Stack.Item basis="21%" grow={1} style={{ minWidth: '0' }}>
-              <PlayScenesSection
-                draft={draft}
-                selectedTierId={selectedTierId}
-                onSelectTier={handleSelectTier}
-              />
-            </Stack.Item>
-            <Stack.Item basis="52%" grow={2} style={{ minWidth: '0' }}>
-              <PlayTracksSection
-                draft={draft}
-                current_session={current_session}
-                selectedTier={selectedTier}
-                selectedVariantId={selectedVariantId}
-                trackSearch={trackSearch}
-                denseTracks={denseTracks}
-                showOnlyInvalid={showOnlyInvalid}
-                showOnlyUnknown={showOnlyUnknown}
-                onTrackSearchChange={setTrackSearch}
-                onToggleDenseTracks={() =>
-                  setDenseTracks((current) => !current)
-                }
-                onToggleOnlyInvalid={() =>
-                  setShowOnlyInvalid((current) => !current)
-                }
-                onToggleOnlyUnknown={() =>
-                  setShowOnlyUnknown((current) => !current)
-                }
-                onToggleTracksFocus={handleToggleTracksFocus}
-                onSelectVariant={onSelectVariant}
-              />
-            </Stack.Item>
-          </Stack>
-        </Box>
-      </Stack.Item>
-    </Stack>
-  );
-}
-
-type EditTabProps = Readonly<{
-  draft: DraftPreset;
-  draftStatus: DraftStatus;
-  draftToken: number;
-  canDelete: boolean;
-  canRevert: boolean;
-  audienceOptions: SelectOption[];
-  soundTypeOptions: SelectOption[];
-  audienceLabel: string;
-  soundTypeLabel: string;
-  selectedTier: DraftTier | null;
-  selectedTierId: string | null;
-  selectedVariant: DraftVariant | null;
-  selectedVariantId: string | null;
-  onSave: () => void;
-  onNew: () => void;
-  onSaveAsCopy: () => void;
-  onRevert: () => void;
-  onDelete: () => void;
-  onExport: () => void;
-  onImport: (jsonText: string | string[]) => void;
-  onSetName: (value: string) => void;
-  onSetDescription: (value: string) => void;
-  onSetAudienceMode: (value: string) => void;
-  onSetSoundType: (value: string) => void;
-  onToggleShowTitle: () => void;
-  onToggleRepeat: () => void;
-  onAddTier: () => void;
-  onSelectTier: (tier_id: string) => void;
-  onRemoveTier: (tier_id: string) => void;
-  onMoveTierUp: (tier_id: string) => void;
-  onMoveTierDown: (tier_id: string) => void;
-  onSetTierName: (tier_id: string, value: string) => void;
-  onSetTierDescription: (tier_id: string, value: string) => void;
-  onAddVariant: () => void;
-  onSelectVariant: (tier_id: string, variant_id: string) => void;
-  onRemoveVariant: (tier_id: string, variant_id: string) => void;
-  onMoveVariantUp: (tier_id: string, variant_id: string) => void;
-  onMoveVariantDown: (tier_id: string, variant_id: string) => void;
-  onSetVariantTitle: (
-    tier_id: string,
-    variant_id: string,
-    value: string,
-  ) => void;
-  onSetVariantDescription: (
-    tier_id: string,
-    variant_id: string,
-    value: string,
-  ) => void;
-  onSetVariantDuration: (
-    tier_id: string,
-    variant_id: string,
-    value: number,
-  ) => void;
-  onSetVariantSourceUrl: (
-    tier_id: string,
-    variant_id: string,
-    value: string,
-  ) => void;
-  onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
-}>;
-
 type InspectorTarget = 'scene' | 'track';
-
-export function EditTab({
-  draft,
-  draftStatus,
-  draftToken,
-  canDelete,
-  canRevert,
-  audienceOptions,
-  soundTypeOptions,
-  audienceLabel,
-  soundTypeLabel,
-  selectedTier,
-  selectedTierId,
-  selectedVariant,
-  selectedVariantId,
-  onSave,
-  onNew,
-  onSaveAsCopy,
-  onRevert,
-  onDelete,
-  onExport,
-  onImport,
-  onSetName,
-  onSetDescription,
-  onSetAudienceMode,
-  onSetSoundType,
-  onToggleShowTitle,
-  onToggleRepeat,
-  onAddTier,
-  onSelectTier,
-  onRemoveTier,
-  onMoveTierUp,
-  onMoveTierDown,
-  onSetTierName,
-  onSetTierDescription,
-  onAddVariant,
-  onSelectVariant,
-  onRemoveVariant,
-  onMoveVariantUp,
-  onMoveVariantDown,
-  onSetVariantTitle,
-  onSetVariantDescription,
-  onSetVariantDuration,
-  onSetVariantSourceUrl,
-  onResolveVariantMetadata,
-}: EditTabProps) {
-  const [inspectorTarget, setInspectorTarget] = useState<InspectorTarget>(
-    selectedVariant ? 'track' : 'scene',
-  );
-  const [trackSearch, setTrackSearch] = useState('');
-  const [denseTracks, setDenseTracks] = useState(false);
-  const [tracksExpanded, setTracksExpanded] = useState(false);
-  const [presetEditorRequest, setPresetEditorRequest] = useState(0);
-
-  useEffect(() => {
-    setInspectorTarget(selectedVariant ? 'track' : 'scene');
-    setTrackSearch('');
-    setDenseTracks(false);
-    setTracksExpanded(false);
-  }, [draftToken]);
-
-  useEffect(() => {
-    if (inspectorTarget === 'track' && !selectedVariant) {
-      setInspectorTarget('scene');
-    }
-  }, [inspectorTarget, selectedVariant]);
-
-  const handleSelectTier = (tierId: string) => {
-    setInspectorTarget('scene');
-    onSelectTier(tierId);
-  };
-
-  const handleAddTier = () => {
-    setInspectorTarget('scene');
-    onAddTier();
-  };
-
-  const handleSelectVariant = (tierId: string, variantId: string) => {
-    setInspectorTarget('track');
-    onSelectVariant(tierId, variantId);
-  };
-
-  const handleAddVariant = () => {
-    setInspectorTarget('track');
-    onAddVariant();
-  };
-
-  return (
-    <Stack fill vertical>
-      <Stack.Item>
-        <EditHeaderSection
-          draft={draft}
-          draftStatus={draftStatus}
-          canRevert={canRevert}
-          onEditPreset={() => setPresetEditorRequest((current) => current + 1)}
-          onSave={onSave}
-          onSaveAsCopy={onSaveAsCopy}
-          onRevert={onRevert}
-        />
-      </Stack.Item>
-      <Stack.Item grow={1}>
-        <Box mt="0.38rem" style={{ height: '100%' }}>
-          <Stack fill>
-            <Stack.Item basis="68%" grow={7} style={{ minWidth: '0' }}>
-              <StructureSection
-                draft={draft}
-                selectedTier={selectedTier}
-                selectedTierId={selectedTierId}
-                selectedVariant={selectedVariant}
-                selectedVariantId={selectedVariantId}
-                trackSearch={trackSearch}
-                denseTracks={denseTracks}
-                tracksExpanded={tracksExpanded}
-                onAddTier={handleAddTier}
-                onSelectTier={handleSelectTier}
-                onMoveTierUp={onMoveTierUp}
-                onMoveTierDown={onMoveTierDown}
-                onAddVariant={handleAddVariant}
-                onTrackSearchChange={setTrackSearch}
-                onToggleDenseTracks={() =>
-                  setDenseTracks((current) => !current)
-                }
-                onToggleTracksExpanded={() =>
-                  setTracksExpanded((current) => !current)
-                }
-                onSelectVariant={handleSelectVariant}
-                onMoveVariantUp={onMoveVariantUp}
-                onMoveVariantDown={onMoveVariantDown}
-              />
-            </Stack.Item>
-            <Stack.Item basis="32%" grow={3} style={{ minWidth: '0' }}>
-              <EditPanelSection
-                draft={draft}
-                draftToken={draftToken}
-                presetEditorRequest={presetEditorRequest}
-                audienceOptions={audienceOptions}
-                soundTypeOptions={soundTypeOptions}
-                audienceLabel={audienceLabel}
-                soundTypeLabel={soundTypeLabel}
-                inspectorTarget={inspectorTarget}
-                selectedTier={selectedTier}
-                selectedVariant={selectedVariant}
-                canDelete={canDelete}
-                onNew={onNew}
-                onDelete={onDelete}
-                onExport={onExport}
-                onImport={onImport}
-                onSetName={onSetName}
-                onSetDescription={onSetDescription}
-                onSetAudienceMode={onSetAudienceMode}
-                onSetSoundType={onSetSoundType}
-                onToggleShowTitle={onToggleShowTitle}
-                onToggleRepeat={onToggleRepeat}
-                onRemoveTier={onRemoveTier}
-                onMoveTierUp={onMoveTierUp}
-                onMoveTierDown={onMoveTierDown}
-                onSetTierName={onSetTierName}
-                onSetTierDescription={onSetTierDescription}
-                onRemoveVariant={onRemoveVariant}
-                onMoveVariantUp={onMoveVariantUp}
-                onMoveVariantDown={onMoveVariantDown}
-                onSetVariantTitle={onSetVariantTitle}
-                onSetVariantDescription={onSetVariantDescription}
-                onSetVariantDuration={onSetVariantDuration}
-                onSetVariantSourceUrl={onSetVariantSourceUrl}
-                onResolveVariantMetadata={onResolveVariantMetadata}
-              />
-            </Stack.Item>
-          </Stack>
-        </Box>
-      </Stack.Item>
-    </Stack>
-  );
-}
 
 type LibrarySectionProps = Readonly<{
   library: LibraryPreset[];
@@ -2256,7 +1761,7 @@ type LibrarySectionProps = Readonly<{
   dirty: boolean;
 }>;
 
-function LibrarySection({
+export function LibrarySection({
   library,
   librarySearch,
   loadedLibraryPresetId,
@@ -2530,7 +2035,7 @@ type PlayScenesSectionProps = Readonly<{
   onSelectTier: (tier_id: string) => void;
 }>;
 
-function PlayScenesSection({
+export function PlayScenesSection({
   draft,
   selectedTierId,
   onSelectTier,
@@ -2586,7 +2091,7 @@ type PlayTracksSectionProps = Readonly<{
   onSelectVariant: (tier_id: string, variant_id: string) => void;
 }>;
 
-function PlayTracksSection({
+export function PlayTracksSection({
   draft,
   current_session,
   selectedTier,
@@ -2897,7 +2402,7 @@ type EditHeaderSectionProps = Readonly<{
   onRevert: () => void;
 }>;
 
-function EditHeaderSection({
+export function EditHeaderSection({
   draft,
   draftStatus,
   canRevert,
@@ -3056,7 +2561,7 @@ type EditPanelSectionProps = Readonly<{
   onResolveVariantMetadata: (tier_id: string, variant_id: string) => void;
 }>;
 
-function EditPanelSection({
+export function EditPanelSection({
   draft,
   draftToken,
   presetEditorRequest,
@@ -3515,7 +3020,7 @@ function EditTrackSearchToolbar({
   );
 }
 
-function StructureSection({
+export function StructureSection({
   draft,
   selectedTier,
   selectedTierId,

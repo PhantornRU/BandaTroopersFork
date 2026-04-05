@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useBackend } from '../../backend';
 import { Box, Button, Stack, Tabs } from '../../components';
 import { Window } from '../../layouts';
-import { EditTab, PlayTab } from './sections';
+import { EditTab } from './edit';
+import { PlayTab } from './play';
 import {
   AdminMusicPanelData,
   AdminMusicPanelTab,
