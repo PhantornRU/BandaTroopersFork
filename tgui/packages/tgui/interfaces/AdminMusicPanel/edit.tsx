@@ -5,7 +5,7 @@ import {
   EditHeaderSection,
   EditPanelSection,
   StructureSection,
-} from './sections';
+} from './edit_sections';
 import {
   DraftPreset,
   DraftStatus,

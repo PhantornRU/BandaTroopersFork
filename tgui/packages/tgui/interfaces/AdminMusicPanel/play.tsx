@@ -8,7 +8,7 @@ import {
   PlayTracksSection,
   SessionSection,
   TracksFocusLaunchStrip,
-} from './sections';
+} from './play_sections';
 import {
   CurrentSession,
   DraftPreset,
