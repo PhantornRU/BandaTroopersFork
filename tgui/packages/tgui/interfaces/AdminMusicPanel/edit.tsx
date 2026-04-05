@@ -12,7 +12,7 @@ import {
   DraftTier,
   DraftVariant,
   SelectOption,
-} from './shared';
+} from './types';
 
 type EditTabProps = Readonly<{
   draft: DraftPreset;

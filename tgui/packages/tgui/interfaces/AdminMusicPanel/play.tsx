@@ -19,7 +19,7 @@ import {
   PlaybackMode,
   SelectOption,
   TrackLaunchReadiness,
-} from './shared';
+} from './types';
 
 type PlayTabProps = Readonly<{
   current_session: CurrentSession;
