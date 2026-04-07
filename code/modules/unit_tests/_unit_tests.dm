@@ -79,6 +79,27 @@
 #include "check_runtimes.dm"
 #include "create_and_destroy.dm"
 #include "emote_panels.dm"
+#include "game_rule_panel.dm" // SS220 EDIT: include Game Rule Panel unit tests
+#include "gc_regressions.dm"
+// #include "halo_current_map_resolution.dm"
+// #include "halo_ammo_drops.dm" // keep HALO RTO support and ammo-drop regression coverage active on this branch
+// #include "halo_ai_localization.dm"
+// #include "halo_name_localization.dm" // cover the explicit localized display-name helper used for future HALO name migration
+// #include "halo_sangheili_equipment.dm"
+// #include "halo_sangheili_equipment_ai.dm"
+// #include "halo_sangheili_equipment_shields.dm"
+#include "halo_ship_platoons.dm" // SS220 EDIT: keep active HALO regression coverage for prep vendors, orbit grouping, crew comms/access, and zombie claws
+// #include "halo_ship_platoons_config.dm"
+// #include "halo_ship_platoons_contracts.dm"
+// #include "halo_ship_platoons_equip_smoke.dm"
+// #include "halo_ship_platoons_lifecycle.dm"
+// #include "halo_ship_platoons_ui.dm"
+// #include "halo_tts.dm"
+// #include "halo_unggoy_ai.dm"
+// #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior
+// #include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
+// #include "human_ai_inventory.dm" // SS220 EDIT: keep shared human AI store-item logic safe when held refs or storage slots disappear mid-action
+#include "medical_regressions.dm" // SS220 EDIT: BT regression coverage for medic ladders and self-splint behavior
 #include "missing_icons.dm"
 #include "resist.dm"
 #include "spawn_humans.dm"
