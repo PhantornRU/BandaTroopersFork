@@ -20,7 +20,7 @@
 	desc = "A monitor depicting the ship's current status. It flickers every so often."
 	anchored = TRUE
 	density = FALSE
-	use_power = FALSE
+	use_power = USE_POWER_NONE
 	idle_power_usage = 10
 	var/mode = 0 // 0 = Blank
 					// 1 = Shuttle timer
@@ -91,7 +91,7 @@
 			if(!index1)
 				line1 = message1
 			else
-				line1 = copytext(message1+"|"+message1, index1, index1+CHARS_PER_LINE)
+				line1 = copytext_char(message1+"|"+message1, index1, index1+CHARS_PER_LINE)  // SS220 Edit - RU fix
 				var/message1_len = length(message1)
 				index1 += SCROLL_SPEED
 				if(index1 > message1_len)
@@ -100,7 +100,7 @@
 			if(!index2)
 				line2 = message2
 			else
-				line2 = copytext(message2+"|"+message2, index2, index2+CHARS_PER_LINE)
+				line2 = copytext_char(message2+"|"+message2, index2, index2+CHARS_PER_LINE) // SS220 Edit - RU fix
 				var/message2_len = length(message2)
 				index2 += SCROLL_SPEED
 				if(index2 > message2_len)

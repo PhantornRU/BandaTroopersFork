@@ -185,6 +185,14 @@ AUTOOOCMUTE
 
 #RECORD_ROUNDS
 
+## Uncomment to enable HALO AI-vs-AI perf telemetry in MC stat output.
+## Intended for local profiling and short-lived debug sessions, not normal production use.
+#HALO_PERF_DEBUG
+## Debug-only: keep shield logic but suppress shield temp visuals, filters, visible_message, and playsound.
+#HALO_SHIELD_DEBUG_DISABLE_FX
+## Debug-only: bypass Sangheili shield interception and shield SSfastobj processing entirely.
+#HALO_SHIELD_DEBUG_DISABLE_HARNESS
+
 # LOBBY_MUSIC 1 path/to/sound.ogg
 # LOBBY_MUSIC 2 path/to/sound.ogg
 # LOBBY_MUSIC 3 path/to/sound.ogg
@@ -263,3 +271,14 @@ CLIENT_ERROR_VERSION 514
 #GITHUB_APP_API
 #REPO_NAME cmss13
 #ORG cmss13-devs
+
+## =====================================
+## SS220
+## TTS
+tts_enabled
+tts_token_silero
+tts_cache_enabled
+ffmpeg_cpuaffinity
+tts_api_url_silero
+
+## =====================================

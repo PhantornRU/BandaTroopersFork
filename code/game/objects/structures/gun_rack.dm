@@ -70,6 +70,10 @@
 /obj/structure/gun_rack/type71/empty
 	initial_stored = 0
 
+/obj/structure/gun_rack/type71/carbine
+	allowed_type = /obj/item/weapon/gun/rifle/type71/carbine
+	populate_type = /obj/item/weapon/gun/rifle/type71/carbine
+
 /obj/structure/gun_rack/apc
 	name = "APC ammo compartment"
 	icon_state = "frontal"
@@ -151,7 +155,7 @@
 	max_stored = 2
 	initial_stored = 2
 	allowed_type = /obj/item/weapon/gun/shotgun/combat
-	populate_type = /obj/item/weapon/gun/shotgun/combat
+	populate_type = /obj/item/weapon/gun/shotgun/combat/unloaded //Todo after Ody's op; make this into a /unloaded subtype of rack instead
 
 /obj/structure/gun_rack/mk221/empty
 	initial_stored = 0

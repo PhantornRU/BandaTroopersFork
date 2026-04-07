@@ -132,6 +132,12 @@
 	html_link = "images/b/bb/C_claim.png"
 	color = "cyan"
 
+/obj/item/map/lv759_map
+	name = "\improper LV-759 Map"
+	desc = "An overview of LV-759 schematics."
+	html_link = "images/6/60/LV759_Hybrisa_Prospera.png" //needs proper image still.
+	color = "#005eab"
+
 /obj/item/map/new_varadero
 	name = "\improper New Varadero map"
 	desc = "A labeled blueprint of the UA outpost New Varadero"
@@ -150,6 +156,19 @@
 	html_link = ""
 	color = "white"
 
+// SS220 EDIT - START
+/obj/item/map/mackay_station
+	name = "\improper Station Map"
+	desc = "A labeled blueprint of OWP Mackay Station."
+	html_link = ""
+	color = "white"
+
+/obj/item/map/oni_digsite_451
+	name = "\improper Digsite Map"
+	desc = "A labeled blueprint of what seems to resemble a digsite of some kind, most of the details are censored by black ink."
+	html_link = ""
+	color = "white"
+
 /obj/item/map/taipei
 	name = "\improper Taipei Way-Station map"
 	desc = "A labelled print out of the anterior scan of Taipei Station, An unassuming waystation."
@@ -162,6 +181,25 @@
 	desc = "A distorted orbital scan of the Oread Garrison"
 	html_link = ""
 	color = "cyan"
+
+/obj/item/map/lv_671
+	name = "\improper LV-671 Map"
+	desc = "An orbital scan printout of the LV-671 colony."
+	html_link = ""
+	color = "cyan"
+
+/obj/item/map/oil_depot
+	name = "\improper Oil Depot Map"
+	desc = "A satellite printout of the oil depots on planet."
+	html_link = ""
+	color = "#e88a10"
+
+/obj/item/map/almayer/infested
+	name = "\improper USS Almayer map"
+	desc = "A labeled blueprint of the USS Almayer"
+	html_link = "images/5/54/USS_Almayer.png"
+	color = "cyan"
+// SS220 EDIT - END
 
 GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 
@@ -183,6 +221,8 @@ GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 		MAP_KUTJEVO = new /obj/item/map/kutjevo_map(),
 		MAP_LV522_CHANCES_CLAIM = new /obj/item/map/lv522_map(),
 		MAP_LV522_CHANCES_CLAIM_FORECON = new /obj/item/map/lv522_map(),
+		MAP_LV759_HYBRISA_PROSPERA = new /obj/item/map/lv759_map(),
+		MAP_LV759_HYBRISA_PROSPERA_REPAIRED = new /obj/item/map/lv759_map(),
 		MAP_NEW_VARADERO = new /obj/item/map/new_varadero(),
 		MAP_NEW_VARADERO_REPAIRED = new /obj/item/map/new_varadero(),
 		MAP_DERELICT_ALMAYER = new /obj/item/map/almayer(),
@@ -198,23 +238,92 @@ GLOBAL_LIST_INIT_TYPED(map_type_list, /obj/item/map, setup_all_maps())
 		MAP_TAIPEI = new /obj/item/map/taipei(),
 		MAP_REDEMPTION_VALLEY = new /obj/item/map/lazarus_landing_map(),
 		MAP_BINHAI_SUPPLY_STATION = new /obj/item/map/FOP_map(),
+		MAP_LV818_FEATURELESS_JUNGLE = new /obj/item/map/lv522_map(),
+		// SS220 EDIT - START
+		MAP_LV_671 = new /obj/item/map/lv_671(),
+		MAP_OIL_DEPOT = new /obj/item/map/oil_depot(),
+		MAP_DERELICT_ALMAYER_INFESTED = new /obj/item/map/almayer/infested(),
+		// SS220 EDIT - END
 	)
+
+/proc/find_map_type_by_item_type(map_item_type)
+	if(!map_item_type)
+		return
+
+	for(var/map_key in GLOB.map_type_list)
+		var/obj/item/map/map = GLOB.map_type_list[map_key]
+		if(istype(map, map_item_type))
+			return map
+
+/proc/resolve_current_map_type(datum/map_config/ground_map_config)
+	if(!ground_map_config)
+		return
+
+	var/obj/item/map/map = GLOB.map_type_list[ground_map_config.map_name]
+	if(map)
+		return map
+
+	return find_map_type_by_item_type(ground_map_config.map_item_type)
 
 //used by marine equipment machines to spawn the correct map.
 /obj/item/map/current_map
 
+/obj/item/map/current_map/proc/apply_map_data(obj/item/map/source_map)
+	name = source_map.name
+	desc = source_map.desc
+	desc_lore = source_map.desc_lore
+	html_link = source_map.html_link
+	color = source_map.color
+
+/obj/item/map/current_map/proc/should_suppress_missing_map_runtime(datum/map_config/ground_map_config)
+	if(!ground_map_config)
+		return TRUE
+
+	if(ground_map_config.map_name == MAP_RUNTIME || ground_map_config.map_name == MAP_CHINOOK)
+		return TRUE
+
+	var/datum/map_config/ship_map_config = SSmapping?.configs?[SHIP_MAP]
+	if(!ship_map_config)
+		return FALSE
+
+	if(ground_map_config == ship_map_config)
+		return TRUE
+
+	return ground_map_config.config_filename == ship_map_config.config_filename \
+		&& ground_map_config.map_name == ship_map_config.map_name \
+		&& ground_map_config.map_path == ship_map_config.map_path \
+		&& "[ground_map_config.map_file]" == "[ship_map_config.map_file]"
+
 /obj/item/map/current_map/Initialize(mapload, ...)
 	. = ..()
 
-	var/map_name = SSmapping.configs[GROUND_MAP].map_name
-	var/obj/item/map/map = GLOB.map_type_list[map_name]
-	if (!map && (map_name == MAP_RUNTIME || map_name == MAP_CHINOOK || (map_name in SHIP_MAP_NAMES)))
+	var/datum/map_config/ground_map_config = SSmapping.configs[GROUND_MAP]
+	if(!ground_map_config) // SS220 EDIT: guard against missing map config during tests/bootstrapping
+		return
+
+	var/map_name = ground_map_config?.map_name
+	var/map_type = ground_map_config?.map_item_type
+
+	// SS220 EDIT - START: prefer JSON-configured map item type over legacy name registry
+	if(map_type)
+		var/obj/item/map/config_map = find_map_type_by_item_type(map_type)
+		var/created_config_map = FALSE
+		if(!config_map)
+			config_map = new map_type()
+			created_config_map = TRUE
+		apply_map_data(config_map)
+		if(created_config_map)
+			qdel(config_map)
+		return
+	// SS220 EDIT - END
+
+	var/obj/item/map/map = resolve_current_map_type(ground_map_config)
+	if(!map && should_suppress_missing_map_runtime(ground_map_config))
 		return // "Maps" we don't have maps for so we don't need to throw a runtime for (namely in unit_testing)
-	name = map.name
-	desc = map.desc
-	desc_lore = map.desc_lore
-	html_link = map.html_link
-	color = map.color
+	if(!map)
+		log_runtime("Unable to resolve current map item for [map_name || "null map_name"] (type: [ground_map_config?.map_item_type || "null"], config: [ground_map_config?.config_filename || "unknown"])")
+		return
+	apply_map_data(map)
 
 // Landmark - Used for mapping. Will spawn the appropriate map for each gamemode (LV map items will spawn when LV is the gamemode, etc)
 /obj/effect/landmark/map_item

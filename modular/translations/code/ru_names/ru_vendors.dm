@@ -1,0 +1,42 @@
+/obj/structure/machinery/cm_vending/sorted/populate_product_list_and_boxes(scale)
+	. = ..()
+	translate_vendor_entries_to_ru(listed_products)
+
+// [1] = Name
+// [2] = Amount
+// [3] = Item path
+// [4] = Flags
+// [5] = something, I dunno, sometimes it exists
+// ["english_name"] = Original Name (NEW)
+
+/proc/translate_vendor_entries_to_ru(list/entries)
+	if(!length(entries))
+		return
+	var/static/regex/non_ascii_regex = new(@"[^\x00-\x7F]")
+	for(var/list/product_entry in entries)
+		if(!length(product_entry))
+			return
+		var/current_name = product_entry[1]
+		if(!istext(current_name))
+			continue
+		// Add original name for searching purposes
+		if(!product_entry["english_name"] && !non_ascii_regex.Find(current_name))
+			product_entry["english_name"] = current_name
+		// Halo and other already-localized vendor surfaces should keep their source names intact.
+		if(non_ascii_regex.Find(current_name))
+			continue
+		// Do we have override name for this, such as "Flare Pouch (Full)"
+		var/new_name = get_display_name_ru_initial(current_name)
+		// Try to get translated item name if not
+		if(isnull(new_name) && product_entry[3] && ispath(product_entry[3], /atom))
+			var/atom/product_entry_item = product_entry[3]
+			new_name = get_display_name_ru_initial(product_entry_item::name)
+		// Abort if we don't have a name
+		if(isnull(new_name))
+			continue
+		// Is it a category?
+		if(isnull(product_entry[3]))
+			new_name = uppertext(new_name)
+		else
+			new_name = capitalize(new_name)
+		product_entry[1] = new_name

@@ -35,6 +35,7 @@
 
 	var/turns_per_move = 1
 	var/turns_since_move = 0
+	universal_speak = FALSE //No, just no.
 	var/meat_amount = 0
 	var/meat_type
 	///Use this to temporarely stop random movement or to if you write special movement code for animals.
@@ -440,8 +441,8 @@
 	if(stat)
 		return
 
-	if(copytext(message,1,2) == "*")
-		INVOKE_ASYNC(src, PROC_REF(emote), copytext(message,2))
+	if(copytext_char(message,1,2) == "*") // SS220 EDIT - RU fix
+		INVOKE_ASYNC(src, PROC_REF(emote), copytext_char(message,2)) // SS220 EDIT - RU fix
 		return
 
 	if(stat)

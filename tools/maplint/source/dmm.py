@@ -109,6 +109,13 @@ class DMMParser:
 
     def parse_var_edit(self):
         line = self.next_line()
+        # SS220 EDIT - FIX
+        while line is not None and line.strip() == "":
+            line = self.next_line()
+
+        self.expect(line is not None, "Var edits ended too early, expected a newline in between.")
+        # SS220 EDIT - FIX
+
         if line == "\t},":
             return None
         if line == "\t})":

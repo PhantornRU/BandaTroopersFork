@@ -19,18 +19,24 @@
 	var/source_terminal = ""
 
 /proc/create_account(new_owner_name = "Default user", starting_funds = 0, datum/paygrade/id_paygrade)
+	if(ismob(new_owner_name))
+		var/mob/account_owner = new_owner_name
+		new_owner_name = account_owner.real_name || account_owner.name
+	else
+		new_owner_name = "[new_owner_name]"
 
 	//create a new account
 	var/datum/money_account/M = new()
 	M.owner_name = new_owner_name
 	M.remote_access_pin = rand(1111, 111111)
-	M.money = starting_funds * id_paygrade.pay_multiplier
+	var/random_pay_multi = rand(0.4, 1.1)
+	M.money = starting_funds * (id_paygrade ? id_paygrade.pay_multiplier : random_pay_multi)
 
 	//create an entry in the account transaction log for when it was created
 	var/datum/transaction/T = new()
 	T.target_name = new_owner_name
 	T.purpose = "Account creation"
-	T.amount = starting_funds * id_paygrade.pay_multiplier
+	T.amount = starting_funds * (id_paygrade ? id_paygrade.pay_multiplier : random_pay_multi)
 	//set a random date, time and location some time over the past few decades
 	T.date = "[num2text(rand(1,31))] [pick("January","February","March","April","May","June","July","August","September","October","November","December")], [GLOB.game_year - rand(0, 10)]"
 	T.time = "[rand(0,24)]:[rand(11,59)]"

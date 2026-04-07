@@ -24,7 +24,7 @@
 /obj/item/trash/burger
 	name = "Burger wrapper"
 	icon_state = "burger"
-	desc = "A greasy plastic film that once held a Cheeseburger. Packaged by the Weyland-Yutani Corporation."
+	desc = "Жирная пластиковая упаковка, из которой уже похитили бургер." // SS220 EDIT: HALO flavor migrated from modular late override
 
 /obj/item/trash/buritto
 	name = "Burrito wrapper"
@@ -153,7 +153,7 @@
 	name = "Weyland-Yutani Pepper Chips"
 	gender = PLURAL
 	icon_state = "wy_chips_pepper"
-	desc = "An oily empty bag that once held Weyland-Yutani Pepper Chips."
+	desc = "Грустный пакетик с крошками и перцем. Даже хорошие вещи не вечны." // SS220 EDIT: HALO flavor migrated from modular late override
 
 //////////////////////
 ///Ciagarette Butts///
@@ -297,3 +297,64 @@
 	pixel_x = rand(-10,10)
 	pixel_y = rand(-10,10)
 	apply_transform(turn(transform,rand(0,360)))
+
+
+// Hybrisa
+/obj/item/trash/hybrisa
+	icon = 'icons/obj/structures/props/hybrisa/misc_props.dmi'
+	icon_state = ""
+
+// Cuppa Joe's Trash
+/obj/item/trash/hybrisa/cuppa_joes
+	icon = 'icons/obj/items/drinks.dmi'
+
+/obj/item/trash/hybrisa/cuppa_joes/lid
+	name = "Cuppa Joe's coffee cup lid"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon_state = "coffeecuppajoelid"
+	w_class = SIZE_TINY
+	throwforce = 1
+/obj/item/trash/hybrisa/cuppa_joes/empty_cup
+	name = "Empty Cuppa Joe's coffee cup"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon_state = "coffeecuppajoenolid"
+	w_class = SIZE_TINY
+	throwforce = 1
+
+/obj/item/trash/hybrisa/cuppa_joes/Initialize()
+	. = ..()
+	pixel_x = rand(-10,10)
+	pixel_y = rand(-10,10)
+	apply_transform(turn(transform,rand(0,360)))
+
+// Cuppa Joes no random axis
+/obj/item/trash/hybrisa/cuppa_joes_static/lid
+	name = "Cuppa Joe's coffee cup lid"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon = 'icons/obj/items/drinks.dmi'
+	icon_state = "coffeecuppajoelid"
+	w_class = SIZE_TINY
+	throwforce = 1
+/obj/item/trash/hybrisa/cuppa_joes_static/empty_cup
+	name = "Empty Cuppa Joe's coffee cup"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon = 'icons/obj/items/drinks.dmi'
+	icon_state = "coffeecuppajoenolid"
+	w_class = SIZE_TINY
+	throwforce = 1
+
+/obj/item/trash/hybrisa/cuppa_joes_static/empty_cup_stack
+	name = "Empty Cuppa Joe's coffee cup stack"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon = 'icons/obj/items/drinks.dmi'
+	icon_state = "coffeecuppajoestacknolid"
+	w_class = SIZE_TINY
+	throwforce = 1
+
+/obj/item/trash/hybrisa/cuppa_joes_static/lid_stack
+	name = "Cuppa Joe's coffee cup lid stack"
+	desc = "Have you got the CuppaJoe Smile? Stay perky! Freeze-dried CuppaJoe's Coffee."
+	icon = 'icons/obj/items/drinks.dmi'
+	icon_state = "coffeecuppajoelidstack"
+	w_class = SIZE_TINY
+	throwforce = 1

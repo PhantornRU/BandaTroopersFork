@@ -109,6 +109,10 @@
 	. = ..()
 	container.emp_act(severity)
 
+/obj/structure/vehicle_locker/human_ai_act(mob/living/carbon/human/ai_human, datum/human_ai_brain/brain)
+	// Human AI can brush against wall lockers during nearby movement. They should not try to open storage UIs.
+	return FALSE
+
 /obj/structure/vehicle_locker/hear_talk(mob/M, msg)
 	container.hear_talk(M, msg)
 	..()
@@ -129,6 +133,10 @@
 	desc = "Small storage unit allowing vehicle crewmen to store their personal possessions or weaponry ammunition. Only vehicle crewmen can access these."
 	icon = 'icons/obj/vehicles/interiors/tank.dmi'
 	icon_state = "locker"
+
+/obj/structure/vehicle_locker/tank/ridgeway
+	icon = 'icons/obj/vehicles/interiors/general.dmi'
+	icon_state = "rlocker"
 
 /obj/structure/vehicle_locker/tank/upp
 	icon = 'icons/obj/vehicles/interiors/upptank.dmi'

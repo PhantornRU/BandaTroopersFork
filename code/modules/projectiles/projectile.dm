@@ -361,6 +361,11 @@
 	if(istype(hardpoint))
 		LAZYOR(ignore_list, hardpoint.owner) //if fired from a vehicle, exclude the vehicle's body from the adjacency check
 
+	if(ismob(firer))
+		var/mob/mob_firer = firer
+		if(istype(mob_firer.buckled, /obj/vehicle/multitile))
+			LAZYOR(ignore_list, mob_firer.buckled)
+
 	// Check we can reach the turf at all based on pathed grid
 	if(check_canhit(current_turf, next_turf, ignore_list))
 		return TRUE
@@ -505,7 +510,8 @@
 
 	if((MODE_HAS_TOGGLEABLE_FLAG(MODE_NO_ATTACK_DEAD) && L.stat == DEAD) || (L in permutated))
 		return FALSE
-	permutated |= L
+	if(!isnull(permutated))
+		permutated |= L
 	if((ammo.flags_ammo_behavior & AMMO_XENO) && (isfacehugger(L) || L.stat == DEAD)) //xeno ammo is NEVER meant to hit or damage dead people. If you want to add a xeno ammo that DOES then make a new flag that makes it ignore this check.
 		return FALSE
 
@@ -869,6 +875,8 @@
 			return FALSE
 		if(mobility_aura)
 			. -= mobility_aura * 5
+		if(HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE))
+			. -= . / 1.3 // Scale the open-vehicle penalty from the current chance.
 		var/mob/living/carbon/human/shooter_human = P.firer
 		if(istype(shooter_human))
 			if(shooter_human.faction == faction && !(ammo_flags & AMMO_ALWAYS_FF))
@@ -1016,6 +1024,15 @@
 			bullet_ping(P)
 			visible_message(SPAN_AVOIDHARM("[src]'s armor deflects [P]!"))
 			if(P.ammo.sound_armor) playsound(src, P.ammo.sound_armor, 50, 1)
+
+	// SS220 EDIT - START: let worn modular shield harnesses intercept projectile damage without a generic signal allocation
+	if(damage_result > 0 && istype(wear_suit, /obj/item/clothing/suit/marine/shielded))
+		var/obj/item/clothing/suit/marine/shielded/shield_harness = wear_suit
+		damage_result = max(shield_harness.intercept_projectile_damage(src, damage_result), 0)
+		if(damage_result <= 0)
+			bullet_message(P)
+			return TRUE
+	// SS220 EDIT - END
 
 	if(P.ammo.debilitate && stat != DEAD && ( damage || ( ammo_flags & AMMO_IGNORE_RESIST) ) )  //They can't be dead and damage must be inflicted (or it's a xeno toxin).
 		//Predators and synths are immune to these effects to cut down on the stun spam. This should later be moved to their apply_effects proc, but right now they're just humans.

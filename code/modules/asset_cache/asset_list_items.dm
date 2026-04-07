@@ -259,7 +259,8 @@
 		list("HM", "hudsquad_med"),
 		list("SG", "hudsquad_gun"),
 		list("Spc", "hudsquad_spec"),
-		list("SqLdr", "hudsquad_tl"),
+		list("GrpLdr", "hudsquad_tl"), // SS220 EDIT: group leader token replaces legacy squad-leader token for TL slot
+		list("SqLdr", "hudsquad_leader"), // SS220 EDIT: squad leader token now resolves to the actual leader icon
 		list("SctSgt", "hudsquad_leader"),
 		list("RTO", "hudsquad_rto"),
 	)
@@ -282,8 +283,38 @@
 /datum/asset/spritesheet/vending_products
 	name = "vending"
 
+// SS220 EDIT - START: include runtime-replaced ship-surface vendor subtypes in the vending spritesheet build
+/datum/asset/spritesheet/vending_products/proc/collect_product_types(list/items, list/target_products)
+	if(!islist(items) || !islist(target_products))
+		return
+
+	for(var/list/item as anything in items)
+		var/item_name = item[1]
+		var/typepath = item[3]
+		if(!item_name || item_name == "" || !typepath)
+			continue
+
+		if(islist(typepath))
+			for(var/path in typepath)
+				target_products[path] = TRUE
+		else
+			target_products[typepath] = TRUE
+
 /datum/asset/spritesheet/vending_products/register()
-	for (var/current_product in GLOB.vending_products)
+	// Runtime ship-surface replacement swaps in vendor subtypes that may never
+	// exist on the map during early init, so relying on prebuilt instance caches
+	// alone can leave TGUI without sprite classes for valid products.
+	var/list/target_products = GLOB.vending_products.Copy()
+	for(var/vendor_type in typesof(/obj/structure/machinery/cm_vending))
+		if(vendor_type == /obj/structure/machinery/cm_vending)
+			continue
+
+		var/obj/structure/machinery/cm_vending/vendor = new vendor_type()
+		collect_product_types(vendor.get_listed_products(), target_products)
+		qdel(vendor)
+	// SS220 EDIT - END
+
+	for (var/current_product in target_products)
 		var/atom/item = current_product
 		var/icon_file = initial(item.icon)
 		var/icon_state = initial(item.icon_state)
@@ -394,9 +425,11 @@
 			continue
 		if(initial(current_gun.flags_gun_features) & GUN_UNUSUAL_DESIGN)
 			continue // These don't have a way to inspect weapon stats
-		var/obj/item/weapon/gun/temp_gun = new current_gun
-		var/icon_state = temp_gun.base_gun_icon // base_gun_icon is set in Initialize generally
-		qdel(temp_gun)
+		var/icon_state = initial(current_gun.base_gun_icon) // SS220 EDIT: allow lineart-only aliases without changing the live gun sprite
+		if(isnull(icon_state))
+			var/obj/item/weapon/gun/temp_gun = new current_gun
+			icon_state = temp_gun.base_gun_icon // base_gun_icon is set in Initialize generally
+			qdel(temp_gun)
 		if(icon_state && isnull(sprites[icon_state]))
 			// downgrade this to a log_debug if we don't want missing lineart to be a lint
 			stack_trace("[current_gun] does not have a valid lineart icon state, icon=[icon_file], icon_state=[json_encode(icon_state)]")
@@ -414,10 +447,19 @@
 	name = "defensemenu"
 
 /datum/asset/spritesheet/defense_menu/register()
-	for(var/icon_state in icon_states('icons/misc/human_defense_menu.dmi'))
-		var/icon/icon_sprite = icon('icons/misc/human_defense_menu.dmi', icon_state)
+	for(var/datum/human_ai_defense/defense_type as anything in subtypesof(/datum/human_ai_defense))
+		if(!defense_type::name)
+			continue
+
+		var/datum/human_ai_defense/preview_defense = new defense_type()
+		var/icon_file = preview_defense.get_ui_icon_file()
+		var/icon_state = preview_defense.get_ui_icon_state()
+		if(!icon_file || !icon_state)
+			continue
+
+		var/icon/icon_sprite = icon(icon_file, icon_state)
 		icon_sprite.Scale(128, 128)
-		Insert(icon_state, icon_sprite)
+		Insert(preview_defense.get_ui_icon_key(), icon_sprite)
 
 	return ..()
 

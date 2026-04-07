@@ -2951,6 +2951,45 @@
 		boxes += extra
 	update_icon()
 
+// Pizza Galaxy Pizza
+
+/obj/item/pizzabox/pizza_galaxy
+	icon = 'icons/obj/items/pizza_galaxy_pizza.dmi'
+
+/obj/item/pizzabox/pizza_galaxy/margherita/Initialize()
+	. = ..()
+	pizza = new /obj/item/reagent_container/food/snacks/sliceable/pizza/margherita(src)
+	boxtag = "Margherita Deluxe"
+
+/obj/item/pizzabox/pizza_galaxy/vegetable/Initialize()
+	. = ..()
+	pizza = new /obj/item/reagent_container/food/snacks/sliceable/pizza/vegetablepizza(src)
+	boxtag = "Gourmet Vegatable"
+
+/obj/item/pizzabox/pizza_galaxy/mushroom/Initialize()
+	. = ..()
+	pizza = new /obj/item/reagent_container/food/snacks/sliceable/pizza/mushroompizza(src)
+	boxtag = "Mushroom Special"
+
+/obj/item/pizzabox/pizza_galaxy/meat/Initialize()
+	. = ..()
+	pizza = new /obj/item/reagent_container/food/snacks/sliceable/pizza/meatpizza(src)
+	boxtag = "Meatlover's Supreme"
+
+/// Mystery Pizza, made with random ingredients!
+/obj/item/pizzabox/pizza_galaxy/mystery/Initialize(mapload, ...)
+	. = ..()
+	pizza = new /obj/item/reagent_container/food/snacks/sliceable/pizza/mystery(src)
+	boxtag = "Mystery Pizza"
+
+// Pre-stacked boxes for reqs
+/obj/item/pizzabox/pizza_galaxy/mystery/stack/Initialize(mapload, ...)
+	. = ..()
+	for(var/i in 1 to 2)
+		var/obj/item/pizzabox/pizza_galaxy/mystery/extra = new(src)
+		boxes += extra
+	update_icon()
+
 ///////////////////////////////////////////
 // new old food stuff from bs12
 ///////////////////////////////////////////
@@ -3198,8 +3237,8 @@
 
 /obj/item/reagent_container/food/snacks/microwavable/donkpocket
 	name = "Donk-pocket"
-	desc = "The food of choice for the seasoned traitor. Packaged by the Weyland-Yutani Corporation."
-	warm_desc = "The food of choice for the seasoned traitor. Warmed unevenly and rock hard."
+	desc = "Простой сэндвич с мясной, сырной и соусной начинкой. Для лучшего результата грейте прямо в упаковке." // SS220 EDIT: HALO flavor migrated from modular late override
+	warm_desc = "Разогретый сэндвич с мясом, сыром и соусом. Съедобно, но не более." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "donkpocket_wr2"
 	filling_color = "#DEDEAB"
 	package = 2

@@ -94,6 +94,22 @@
 /turf/open/floor/strata/blue3/east
 	dir = EAST
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/strata/blue3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/blue3/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/blue3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/blue3/southwest
+	dir = SOUTHWEST
+// SS220 EDIT - END
+
+////strata - cyan////
+
 /turf/open/floor/strata/cyan1
 	icon_state = "cyan1"
 
@@ -109,14 +125,49 @@
 /turf/open/floor/strata/cyan3
 	icon_state = "cyan3"
 
+/turf/open/floor/strata/cyan3/west
+	dir = WEST
+
 /turf/open/floor/strata/cyan3/east
 	dir = EAST
+
+/turf/open/floor/strata/cyan3/north
+	dir = NORTH
+
+/turf/open/floor/strata/cyan3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/cyan3/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/cyan3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/cyan3/southwest
+	dir = SOUTHWEST
 
 /turf/open/floor/strata/cyan4
 	icon_state = "cyan4"
 
+/turf/open/floor/strata/cyan4/north
+	dir = NORTH
+
+/turf/open/floor/strata/cyan4/west
+	dir = WEST
+
 /turf/open/floor/strata/cyan4/east
 	dir = EAST
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/strata/cyan4/south
+	dir = SOUTH
+// SS220 EDIT - END
+
+/turf/open/floor/strata/cyan4/north
+	dir = NORTH
+
+/turf/open/floor/strata/cyan4/west
+	dir = WEST
 
 /turf/open/floor/strata/floor3
 	icon_state = "floor3"
@@ -124,11 +175,31 @@
 /turf/open/floor/strata/floor3/east
 	dir = EAST
 
+////strata - orange////
+
 /turf/open/floor/strata/orange_edge
 	icon_state = "orange_edge"
 
+/turf/open/floor/strata/orange_edge/north
+	dir = NORTH
+
 /turf/open/floor/strata/orange_edge/east
 	dir = EAST
+
+/turf/open/floor/strata/orange_edge/west
+	dir = WEST
+
+/turf/open/floor/strata/orange_edge/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/orange_edge/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/orange_edge/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/strata/orange_edge/southeast
+	dir = SOUTHEAST
 
 /turf/open/floor/strata/red3/east
 	dir = EAST
@@ -160,8 +231,32 @@
 /turf/open/floor/strata/cyan3/west
 	dir = WEST
 
+/turf/open/floor/strata/cyan3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/cyan3/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/strata/cyan3/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/blue3/west
+	dir = WEST
+
+/turf/open/floor/strata/cyan3/west
+	dir = WEST
+
 /turf/open/floor/strata/multi_tiles/west
 	dir = WEST
+
+/turf/open/floor/strata/orange_edge/west
+	dir = WEST
+
+/turf/open/floor/strata/orange_edge/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/strata/orange_edge/southeast
+	dir = SOUTHEAST
 
 /turf/open/floor/strata/orange_edge/west
 	dir = WEST
@@ -193,6 +288,14 @@
 /turf/open/floor/strata/damaged3
 	icon_state = "damaged3"
 
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/strata/blue2
+	icon_state = "blue2"
+
+/turf/open/floor/strata/damaged4
+	icon_state = "damaged4"
+// SS220 EDIT - END
+
 /turf/open/floor/strata/fake_wood
 	icon_state = "fake_wood"
 
@@ -205,8 +308,13 @@
 /turf/open/floor/strata/floorscorched2
 	icon_state = "floorscorched2"
 
+////strata - green////
+
 /turf/open/floor/strata/green1
 	icon_state = "green1"
+
+/turf/open/floor/strata/green2
+	icon_state = "green2"
 
 /turf/open/floor/strata/green3
 	icon_state = "green3"
@@ -217,14 +325,20 @@
 /turf/open/floor/strata/green3/east
 	dir = EAST
 
-/turf/open/floor/strata/green3/northeast
-	dir = NORTHEAST
-
 /turf/open/floor/strata/green3/west
 	dir = WEST
 
 /turf/open/floor/strata/green3/northwest
 	dir = NORTHWEST
+
+/turf/open/floor/strata/green3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/green3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/green3/southwest
+	dir = SOUTHWEST
 
 /turf/open/floor/strata/green4
 	icon_state = "green4"
@@ -238,6 +352,9 @@
 /turf/open/floor/strata/green4/west
 	dir = WEST
 
+/turf/open/floor/strata/orange_tile
+	icon_state = "orange_tile"
+
 /turf/open/floor/strata/orange_cover
 	icon_state = "orange_cover"
 
@@ -250,8 +367,10 @@
 /turf/open/floor/strata/orange_icorner/west
 	dir = WEST
 
-/turf/open/floor/strata/orange_tile
-	icon_state = "orange_tile"
+/turf/open/floor/strata/orange_icorner/east
+	dir = EAST
+
+////strata - purple////
 
 /turf/open/floor/strata/purp1
 	icon_state = "purp1"
@@ -265,11 +384,70 @@
 /turf/open/floor/strata/purp3/east
 	dir = EAST
 
+/turf/open/floor/strata/purp3/north
+	dir = NORTH
+
+/turf/open/floor/strata/purp3/west
+	dir = WEST
+
+/turf/open/floor/strata/purp3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/purp3/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/purp3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/purp3/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/strata/purp4
+	icon_state = "purp4"
+
+/turf/open/floor/strata/purp4/north
+	dir = NORTH
+
+/turf/open/floor/strata/purp4/east
+	dir = EAST
+
+/turf/open/floor/strata/purp4/west
+	dir = WEST
+
+////strata - red////
+
 /turf/open/floor/strata/red1
 	icon_state = "red1"
 
 /turf/open/floor/strata/red2
 	icon_state = "red2"
+
+/turf/open/floor/strata/red3
+	icon_state = "red3"
+
+/turf/open/floor/strata/red3/west
+	dir = WEST
+
+/turf/open/floor/strata/red3/east
+	dir = EAST
+
+/turf/open/floor/strata/red3/north
+	dir = NORTH
+
+/turf/open/floor/strata/red3/south
+	dir = SOUTH
+
+/turf/open/floor/strata/red3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/red3/northwest
+	dir = NORTHWEST
+
+/turf/open/floor/strata/red3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/red3/southwest
+	dir = SOUTHWEST
 
 /turf/open/floor/strata/red4
 	icon_state = "red4"
@@ -282,3 +460,47 @@
 
 /turf/open/floor/strata/red4/west
 	dir = WEST
+
+/turf/open/floor/strata/yellow3
+	icon_state = "yellow3"
+
+/turf/open/floor/strata/yellow3/southwest
+	dir = SOUTHWEST
+
+/turf/open/floor/strata/yellow3/north
+	dir = NORTH
+
+/turf/open/floor/strata/yellow3/east
+	dir = EAST
+
+/turf/open/floor/strata/yellow3/northeast
+	dir = NORTHEAST
+
+/turf/open/floor/strata/yellow3/southeast
+	dir = SOUTHEAST
+
+/turf/open/floor/strata/yellow3/west
+	dir = WEST
+
+/turf/open/floor/strata/yellow3/northwest
+	dir = NORTHWEST
+
+// SS220 EDIT - START: GroundSide lv671/oil_depot maplint compat
+/turf/open/floor/strata/yellow1
+	icon_state = "yellow1"
+
+/turf/open/floor/strata/yellow2
+	icon_state = "yellow2"
+
+/turf/open/floor/strata/yellow4
+	icon_state = "yellow4"
+
+/turf/open/floor/strata/yellow4/north
+	dir = NORTH
+
+/turf/open/floor/strata/yellow4/east
+	dir = EAST
+
+/turf/open/floor/strata/yellow4/west
+	dir = WEST
+// SS220 EDIT - END

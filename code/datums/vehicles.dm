@@ -30,6 +30,10 @@
 	name = "Movie APC"
 	interior_id = "apc_movie"
 
+/datum/map_template/interior/apc_wolfpack
+	name = "Wolfpack APC"
+	interior_id = "apc_wolfpack"
+
 /datum/map_template/interior/apc_aa
 	name = "Anti-Air APC"
 	interior_id = "apc_aa"
@@ -58,6 +62,10 @@
 	name = "UPP Command Tank"
 	interior_id = "upptank_command"
 
+/datum/map_template/interior/ridgeway
+	name = "Ridgeway Tank"
+	interior_id = "ridgeway"
+
 /datum/map_template/interior/aev
 	name = "AEV"
 	interior_id = "aev"
@@ -85,6 +93,14 @@
 /datum/map_template/interior/uppvant
 	name = "UPP Van Turret"
 	interior_id = "uppvant"
+
+/datum/map_template/interior/box_van
+	name = "Box Van"
+	interior_id = "box_van"
+
+/datum/map_template/interior/pizza_van
+	name = "Pizza-Galaxy Van"
+	interior_id = "pizza_van"
 
 /datum/map_template/interior/box_van
 	name = "Box Van"

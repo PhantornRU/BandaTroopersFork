@@ -32,6 +32,7 @@ GLOBAL_LIST_INIT(cm_vending_gear_engi, list(
 		list("M20 Mine Box (x5 mines)", 18, /obj/item/storage/box/explosive_mines, null, VENDOR_ITEM_REGULAR),
 		list("M40 MFHS Metal Foam Grenade", 5, /obj/item/explosive/grenade/metal_foam, null, VENDOR_ITEM_REGULAR),
 		list("G2 Electroshock Grenade Packet (x3 grenades)",  16, /obj/item/storage/box/packet/sebb, null, VENDOR_ITEM_REGULAR),
+		list("RPG M83A2-C", 18, /obj/item/prop/folded_anti_tank_sadar/common, null, VENDOR_ITEM_REGULAR), // SS220 EDIT - RPG WEAPON
 
 		list("PRIMARY AMMUNITION", 0, null, null, null),
 		list("M49A AP Magazine (10x24mm)", 6, /obj/item/ammo_magazine/rifle/m49a/ap, null, VENDOR_ITEM_REGULAR),
@@ -228,8 +229,10 @@ GLOBAL_LIST_INIT(cm_vending_clothing_rmc_engi, list(
 		list("ENGINEERING SET (MANDATORY)", 0, null, null, null),
 		list("Essential Engineering Set", 0, /obj/effect/essentials_set/rmcengi, MARINE_CAN_BUY_ESSENTIALS, VENDOR_ITEM_MANDATORY),
 
+/* //Commented out until I get around to making the hammer function differently
 		list("HEAVY-DUTY BREACHING EQUIPMENT (CHOOSE 1)", 0, null, null, null),
 		list("Breaching Hammer", 0, /obj/item/weapon/twohanded/breacher, MARINE_CAN_BUY_ATTACHMENT, VENDOR_ITEM_REGULAR),
+*/
 
 		list("BACKPACK (CHOOSE 1)", 0, null, null, null),
 		list("Heavy-duty Backpack", 0, /obj/item/storage/backpack/rmc/heavy, MARINE_CAN_BUY_BACKPACK, VENDOR_ITEM_REGULAR),
@@ -267,6 +270,8 @@ GLOBAL_LIST_INIT(cm_vending_clothing_rmc_engi, list(
 		/obj/item/storage/belt/gun/mortarbelt/rmc,
 		/obj/item/device/binoculars/range,
 		/obj/item/tool/wrench,
+		/obj/item/tool/screwdriver,
+		/obj/item/device/multitool,
 	)
 
 /obj/effect/essentials_set/rmcgl

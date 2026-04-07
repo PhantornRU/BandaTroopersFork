@@ -1,0 +1,13 @@
+#include "_squads.dm"
+
+#include "code/__DEFINES/_defines.dm"
+#include "code/configuration.dm"
+#include "code/debug.dm"
+#include "code/squad_name_manager/_squad_name_manager.dm"
+#include "code/closets/_closets.dm"
+#include "code/equipment_presets/_equipment_presets.dm"
+#include "code/job/jobs/_jobs.dm"
+#include "code/job/squads/_squads.dm"
+#include "code/job/ship_profiles/_ship_profiles.dm"
+#include "code/ship_surfaces/_ship_surfaces.dm"
+#include "code/job/spawn/_spawn.dm"

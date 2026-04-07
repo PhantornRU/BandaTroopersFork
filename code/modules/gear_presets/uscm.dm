@@ -61,14 +61,14 @@
 		GLOB.data_core.manifest_inject(new_human)
 
 	var/obj/item/card/id/ID = new_human.get_idcard()
-	var/datum/money_account/acct = create_account(new_human, rand(30, 50), GLOB.paygrades[ID.paygrade])
+	var/datum/money_account/acct = create_account(new_human.real_name, rand(30, 50), GLOB.paygrades[ID.paygrade])
 	ID.associated_account_number = acct.account_number
 
 	var/datum/squad/auto_squad = get_squad_by_name(auto_squad_name)
 	if(auto_squad)
 		transfer_marine_to_squad(new_human, auto_squad, new_human.assigned_squad, ID)
-	if(!ert_squad && !auto_squad.active)
-		auto_squad.engage_squad(FALSE)
+	if(!ert_squad && !auto_squad?.active) // SS220 EDIT FIX
+		auto_squad?.engage_squad(FALSE) // SS220 EDIT FIX
 
 	if(!auto_squad)
 		transfer_marine_to_squad(new_human, pick(GLOB.RoleAuthority.squads), new_human.assigned_squad, new_human.wear_id)
@@ -146,6 +146,20 @@
 	name = parent_type::name + " (E4 Rank)"
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/pfc/upp/forecon
+	name = "UPP Recon Infantryman"
+	assignment = JOB_SQUAD_MARINE_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/pfc/recon
+
+/datum/equipment_preset/uscm/pfc/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/pfc/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/sg
@@ -217,6 +231,24 @@
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/sg/upp/forecon
+	name = "UPP Recon Machinegunner"
+	assignment = JOB_SQUAD_SMARTGUN_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/smartgunner/recon
+
+/datum/equipment_preset/uscm/sg/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/sg/upp/forecon/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/sg/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/rto
@@ -239,6 +271,32 @@
 /datum/equipment_preset/uscm/rto/pfc
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME2 = JOB_PLAYTIME_TIER_0)
+
+// if a generic UPP rto is ever added, these will need subtypes for upp/forecon
+
+/datum/equipment_preset/uscm/rto/upp
+	name = "UPP Recon Radio Transmissions Operator"
+	assignment = JOB_SQUAD_RTO_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+	access = list(ACCESS_UPP_GENERAL)
+	languages = list(LANGUAGE_RUSSIAN, LANGUAGE_CHINESE)
+	faction_group = list(FACTION_UPP)
+	faction = FACTION_UPP
+	role_comm_title = "RTO"
+	skills = /datum/skills/pfc
+
+	minimap_icon = "rto"
+
+/datum/equipment_preset/uscm/rto/upp/load_gear(mob/living/carbon/human/new_human)
+	new_human.undershirt = "Naval Infantry Telnyashka"
+
+/datum/equipment_preset/uscm/rto/upp/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE3 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/rto/upp/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE2 = JOB_PLAYTIME_TIER_0)
 
 //*****************************************************************************************************/
 
@@ -313,17 +371,35 @@
 	name = parent_type::name + " (E2 Rank)"
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/medic/upp/forecon
+	name = "UPP Recon Sanitar"
+	assignment = JOB_SQUAD_MEDIC_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/combat_medic/recon
+
+/datum/equipment_preset/uscm/medic/upp/forecon/junior_sergeant
+	name = parent_type::name + " (E4 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/medic/upp/forecon/corporal
+	name = parent_type::name + " (E3 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/medic/upp/forecon/senior_private
+	name = parent_type::name + " (E2 Rank)"
+	paygrades = list(PAY_SHORT_UE4 = JOB_PLAYTIME_TIER_0)
+
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl
-	name = "USCM Squad Leader"
+	name = "USCM Group Leader" // SS220 EDIT: align marine TL display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL comm title with runtime squad contract
 	skills = /datum/skills/tl
 	minimap_icon = "tl"
 
@@ -359,6 +435,17 @@
 	name = parent_type::name + " (E5 Rank)"
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
 
+/datum/equipment_preset/uscm/tl/upp/forecon
+	name = "UPP Assistant Recon Squad Sergeant"
+	assignment = JOB_SQUAD_TEAM_LEADER_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE6 = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "ARSS"
+	skills = /datum/skills/tl/recon
+
+/datum/equipment_preset/uscm/tl/upp/forecon/sergeant
+	name = parent_type::name + " (E5 Rank)"
+	paygrades = list(PAY_SHORT_UE5 = JOB_PLAYTIME_TIER_0)
+
 /*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/engineer
@@ -390,13 +477,13 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader
-	name = "USCM Section Sergeant"
+	name = "USCM Squad Leader" // SS220 EDIT: align marine leader display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -432,6 +519,12 @@
 /datum/equipment_preset/uscm/leader/forecon/gunnery_sergeant
 	name = parent_type::name + " (E7 Rank)"
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
+
+/datum/equipment_preset/uscm/leader/upp/forecon
+	name = "UPP Recon Squad Sergeant"
+	assignment = JOB_SQUAD_LEADER_FORECON_UPP
+	paygrades = list(PAY_SHORT_UE7 = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "RSS"
 
 //*****************************************************************************************************/
 // ERT members that spawn with full gear from DEFCON
@@ -582,14 +675,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/tl_equipped
-	name = "USCM Squad Leader (Equipped)"
+	name = "USCM Group Leader (Equipped)" // SS220 EDIT: align marine TL equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_TL_PREP)
 	assignment = JOB_SQUAD_TEAM_LEADER
 	rank = JOB_SQUAD_TEAM_LEADER
 	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SqLdr"
+	role_comm_title = "GrpLdr" // SS220 EDIT: align marine TL equipped comm title with runtime squad contract
 	skills = /datum/skills/tl
 
 	minimap_icon = "tl"
@@ -693,14 +786,14 @@
 //*****************************************************************************************************/
 
 /datum/equipment_preset/uscm/leader_equipped
-	name = "USCM Section Sergeant (Equipped)"
+	name = "USCM Squad Leader (Equipped)" // SS220 EDIT: align marine leader equipped display label with runtime squad contract
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 	access = list(ACCESS_MARINE_PREP, ACCESS_MARINE_LEADER, ACCESS_MARINE_DROPSHIP)
 	assignment = JOB_SQUAD_LEADER
 	rank = JOB_SQUAD_LEADER
 	paygrades = list(PAY_SHORT_ME7 = JOB_PLAYTIME_TIER_0)
-	role_comm_title = "SctSgt"
+	role_comm_title = "SqLdr" // SS220 EDIT: align marine leader equipped comm title with runtime squad contract
 	minimum_age = 27
 	skills = /datum/skills/SL
 
@@ -794,7 +887,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m3/mag/mk1(new_human), WEAR_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/m41aMK1/preloaded(new_human), WEAR_J_STORE)
 	//waist
-	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/utility/full(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/utility/tactical(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/shovel/etool/folded(new_human), WEAR_IN_BELT)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/jungle/knife(new_human), WEAR_FEET)
@@ -990,7 +1083,7 @@
 	//uniform
 	add_uscm_uniform(new_human)
 	//jacket
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/specialist(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/specialist(new_human), WEAR_JACKET)
 	//waist
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/m41aMK1/preloaded(new_human), WEAR_J_STORE)
@@ -1013,8 +1106,8 @@
 	name = "USCM Scout Sniper, Shooter (Equipped)"
 	assignment = "Scout Sniper"
 	role_comm_title = "SctSnpr"
-	skills = /datum/skills/tl/recon
-	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/military/survivor/forecon_sharpshooter
+	paygrades = list(PAY_SHORT_ME3 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/uscm/specialist_equipped/sniper/load_gear(mob/living/carbon/human/new_human)
 	new_human.underwear = "Marine Boxers"
@@ -1063,7 +1156,7 @@
 	assignment = "Scout Sniper"
 	role_comm_title = "SctSnpr"
 	rank = JOB_SQUAD_SPOTTER
-	skills = /datum/skills/tl/recon
+	skills = /datum/skills/military/survivor/forecon_sharpshooter
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 
 /datum/equipment_preset/uscm/specialist_equipped/spotter/load_gear(mob/living/carbon/human/new_human)
@@ -1122,15 +1215,17 @@
 	rank = JOB_TANK_CREW
 	paygrades = list(PAY_SHORT_ME4 = JOB_PLAYTIME_TIER_0)
 	role_comm_title = "CRMN"
-	skills = /datum/skills/tank_crew
+	skills = /datum/skills/vehicle_crew
 	minimap_icon = "vc"
+
+/datum/equipment_preset/uscm/tank/load_status(mob/living/carbon/human/new_human)
+	new_human.nutrition = NUTRITION_NORMAL
 
 /datum/equipment_preset/uscm/tank/load_gear(mob/living/carbon/human/new_human)
 	new_human.underwear = "Marine Boxers"
 	new_human.undershirt = "Marine Undershirt"
 	//back
-	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel(new_human), WEAR_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/tool/shovel/etool/folded(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/engineerpack/satchel(new_human), WEAR_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils(new_human), WEAR_L_EAR)
@@ -1143,18 +1238,23 @@
 	//jacket
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/armor/vest/pilot(new_human), WEAR_JACKET)
 	//waist
-	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/utility/full(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/gun/m39/forecon(new_human), WEAR_WAIST)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/knife(new_human), WEAR_FEET)
 	add_combat_gloves(new_human)
 	//pockets
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate(new_human), WEAR_L_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/pistol/alt(new_human), WEAR_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/pistol/vp70(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/tools/tank(new_human), WEAR_R_STORE)
 
 	if(SSmapping.configs[GROUND_MAP].environment_traits[MAP_COLD])
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
+/datum/equipment_preset/uscm/tank/leader
+	name = "USCM Vehicle Commander (Equipped)"
+	assignment = "Vehicle Commander"
+	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
+	role_comm_title = "VCMDR"
+	skills = /datum/skills/vehicle_crew/leader
 
 /datum/equipment_preset/uscm/marsoc
 	name = "USCM Marine Raider"
@@ -1179,13 +1279,14 @@
 
 /datum/equipment_preset/uscm/marsoc/load_gear(mob/living/carbon/human/new_human)
 	//back
-	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/intel, WEAR_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/device/motiondetector, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/intel(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/weldingtool(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/wirecutters(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
 	//face
-	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof, WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof(new_human), WEAR_L_EAR)
 	//head
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/leader, WEAR_HEAD)
-	new_human.equip_to_slot_or_del(new /obj/item/prop/helmetgarb/raincover, WEAR_IN_HELMET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/leader(new_human), WEAR_HEAD)
 	//uniform
 	var/obj/item/clothing/under/marine/veteran/marsoc/M = new()
 	var/obj/item/clothing/accessory/storage/smallpouch/W = new()
@@ -1194,68 +1295,71 @@
 	for(var/i in 1 to W.hold.storage_slots)
 		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/handful/shotgun/buckshot, WEAR_IN_ACCESSORY)
 	//jacket
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/leader, WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/leader(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m3/small/marsoc(new_human), WEAR_ACCESSORY)
 	add_marsoc_weapon(new_human)
 	//waist
-	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/shotgun/combat/marsoc, WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/shotgun/combat/marsoc(new_human), WEAR_WAIST)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/jungle/knife(new_human), WEAR_FEET)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine(new_human), WEAR_HANDS)
 	//pockets
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate, WEAR_L_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine, WEAR_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medical/socmed/not_op, WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine/large, WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
 
-/datum/equipment_preset/uscm/marsoclead
+/datum/equipment_preset/uscm/marsoc/lead
 	name = "USCM Marine Raider Team Lead"
-	flags = EQUIPMENT_PRESET_EXTRA
 	assignment = "Raider Team Lead"
 	rank = JOB_MARINE_RAIDER_SL
 	role_comm_title = "RTL"
-	languages = list(LANGUAGE_ENGLISH, LANGUAGE_TSL)
-	skills = /datum/skills/commando/deathsquad
-	auto_squad_name = SQUAD_SOF
-	ert_squad = TRUE
 	paygrades = list(PAY_SHORT_ME6 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/commando/deathsquad/leader
 
-	minimap_icon = "sof_sg"
+/datum/equipment_preset/uscm/marsoc/medic
+	name = "USCM Marine Raider Corpsman"
+	assignment = "Raider SARC"
+	rank = JOB_MARINE_RAIDER_MED
+	role_comm_title = "SARC"
+	paygrades = list(PAY_SHORT_ME5 = JOB_PLAYTIME_TIER_0)
+	skills = /datum/skills/commando/deathsquad/medic
 
-/datum/equipment_preset/uscm/marsoclead/load_status(mob/living/carbon/human/new_human)
-	new_human.nutrition = NUTRITION_NORMAL
-
-/datum/equipment_preset/uscm/marsoclead/New()
-	. = ..()
-	access = get_access(ACCESS_LIST_GLOBAL)
-
-/datum/equipment_preset/uscm/marsoclead/load_gear(mob/living/carbon/human/new_human)
+/datum/equipment_preset/uscm/marsoc/medic/load_gear(mob/living/carbon/human/new_human)
 	//back
-	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/intel, WEAR_BACK)
-	new_human.equip_to_slot_or_del(new /obj/item/device/motiondetector, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/intel(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/flare(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre/fsr(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/crowbar/tactical(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/shovel/etool/folded(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/softpack/adv(new_human), WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/firstaid/softpack/adv(new_human), WEAR_IN_BACK)
 	//face
-	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof, WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/glasses/hud/health(new_human), WEAR_EYES)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/sof(new_human), WEAR_L_EAR)
 	//head
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/leader, WEAR_HEAD)
-	new_human.equip_to_slot_or_del(new /obj/item/prop/helmetgarb/raincover, WEAR_IN_HELMET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/leader(new_human), WEAR_HEAD)
 	//uniform
-	var/obj/item/clothing/under/marine/veteran/marsoc/M = new()
-	var/obj/item/clothing/accessory/storage/smallpouch/W = new()
-	M.attach_accessory(new_human, W)
-	new_human.equip_to_slot_or_del(M, WEAR_BODY)
-	for(var/i in 1 to W.hold.storage_slots)
-		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/handful/shotgun/buckshot, WEAR_IN_ACCESSORY)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/veteran/marsoc(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/droppouch(new_human), WEAR_ACCESSORY)
+	new_human.equip_to_slot_or_del(new /obj/item/device/healthanalyzer/soul(new_human), WEAR_IN_ACCESSORY)
+	new_human.equip_to_slot_or_del(new /obj/item/reagent_container/food/drinks/flask/canteen(new_human), WEAR_IN_ACCESSORY)
+	new_human.equip_to_slot_or_del(new /obj/item/device/binoculars/range/designator(new_human), WEAR_IN_ACCESSORY)
 	//jacket
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/leader, WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/leader(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/accessory/storage/webbing/m3/recon/medic/marsoc(new_human), WEAR_ACCESSORY)
 	add_marsoc_weapon(new_human)
 	//waist
-	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/shotgun/combat/marsoc, WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/medical/lifesaver/full/forecon(new_human), WEAR_WAIST)
 	//limbs
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/jungle/knife(new_human), WEAR_FEET)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine(new_human), WEAR_HANDS)
 	//pockets
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/firstaid/full/alternate, WEAR_L_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine, WEAR_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1, WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/full/socmed, WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/magazine/large, WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/m41aMK1(new_human), WEAR_IN_R_STORE)

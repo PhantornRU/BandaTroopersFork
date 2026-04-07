@@ -25,15 +25,25 @@ type Defense = {
 type BackendContext = {
   valid_factions: string[];
   defenses: { [key: string]: Defense[] };
+  selected_faction: string;
+  selected_place_dir: string;
+  selected_turned_on: BooleanLike;
+  spawn_click_intercept: BooleanLike;
+  current_path: string | null;
 };
 
 export const HumanDefenseManager = (props) => {
   const { data, act } = useBackend<BackendContext>();
   const { defenses, valid_factions } = data;
   const [chosenDefense, setDefense] = useState<Defense | null>(null);
-  const [chosenFaction, setFaction] = useState<string>('USCM');
-  const [turnedOn, setTurnedOn] = useState<BooleanLike>(true);
-  const [placeDir, setPlaceDir] = useState<string>('');
+  const activeDefense =
+    (chosenDefense && chosenDefense.path === data.current_path
+      ? chosenDefense
+      : Object.values(defenses)
+          .flat()
+          .find((defense) => defense.path === data.current_path)) ||
+    chosenDefense;
+
   return (
     <Window title="Human Defense Creator" width={800} height={900}>
       <Window.Content>
@@ -48,10 +58,15 @@ export const HumanDefenseManager = (props) => {
                         <Button
                           fontSize="15px"
                           textAlign="center"
-                          selected={defense === chosenDefense}
+                          selected={defense.path === activeDefense?.path}
                           width="100%"
                           key={defense.path}
-                          onClick={() => setDefense(defense)}
+                          onClick={() => {
+                            setDefense(defense);
+                            act('remember_path', {
+                              path: defense.path,
+                            });
+                          }}
                         >
                           {defense.name}
                         </Button>
@@ -64,7 +79,7 @@ export const HumanDefenseManager = (props) => {
             <Divider vertical />
             <Stack.Item width="30%">
               <Section title="Selected Defense">
-                {chosenDefense !== null && (
+                {activeDefense !== null && (
                   <Stack vertical>
                     <Stack.Item>
                       <div
@@ -74,17 +89,17 @@ export const HumanDefenseManager = (props) => {
                           alignItems: 'center',
                         }}
                       >
-                        <Box key={chosenDefense.path}>
+                        <Box key={activeDefense.path}>
                           <span
                             className={classes([
                               'defensemenu128x128',
-                              `${chosenDefense.image}`,
+                              `${activeDefense.image}`,
                             ])}
                           />
                         </Box>
                       </div>
                     </Stack.Item>
-                    <Stack.Item>{chosenDefense.description}</Stack.Item>
+                    <Stack.Item>{activeDefense.description}</Stack.Item>
                     <Stack.Item>
                       <div style={{ textAlign: 'center' }}>
                         <div
@@ -94,9 +109,9 @@ export const HumanDefenseManager = (props) => {
                           }}
                         >
                           <Button.Checkbox
-                            onClick={() => setTurnedOn(!turnedOn)}
-                            checked={turnedOn}
-                            disabled={!chosenDefense.uses_turned_on}
+                            onClick={() => act('toggle_selected_turned_on')}
+                            checked={!!data.selected_turned_on}
+                            disabled={!activeDefense.uses_turned_on}
                           >
                             Turned On
                           </Button.Checkbox>
@@ -109,10 +124,14 @@ export const HumanDefenseManager = (props) => {
                         >
                           <Dropdown
                             options={valid_factions}
-                            selected={chosenFaction}
-                            onSelected={(value) => setFaction(value)}
+                            selected={data.selected_faction}
+                            onSelected={(value) =>
+                              act('set_selected_faction', {
+                                selected_faction: value,
+                              })
+                            }
                             width={10}
-                            disabled={!chosenDefense.uses_faction}
+                            disabled={!activeDefense.uses_faction}
                           />
                         </div>
                         <div
@@ -129,8 +148,12 @@ export const HumanDefenseManager = (props) => {
                               'South',
                               'West',
                             ]}
-                            selected={placeDir}
-                            onSelected={(value) => setPlaceDir(value)}
+                            selected={data.selected_place_dir}
+                            onSelected={(value) =>
+                              act('set_selected_place_dir', {
+                                place_dir: value,
+                              })
+                            }
                             width={10}
                             placeholder="Direction..."
                           />
@@ -138,20 +161,41 @@ export const HumanDefenseManager = (props) => {
                       </div>
                     </Stack.Item>
                     <Stack.Item>
-                      <Button
-                        textAlign="center"
-                        width="100%"
-                        onClick={() =>
-                          act('create_defense', {
-                            path: chosenDefense.path,
-                            turned_on: turnedOn,
-                            faction: chosenFaction,
-                            place_dir: placeDir,
-                          })
-                        }
-                      >
-                        Spawn
-                      </Button>
+                      <Stack>
+                        <Stack.Item grow>
+                          <Button
+                            textAlign="center"
+                            width="100%"
+                            onClick={() =>
+                              act('spawn_defense_here', {
+                                path: activeDefense.path,
+                                turned_on: data.selected_turned_on,
+                                faction: data.selected_faction,
+                                place_dir: data.selected_place_dir,
+                              })
+                            }
+                          >
+                            Spawn Here
+                          </Button>
+                        </Stack.Item>
+                        <Stack.Item grow>
+                          <Button
+                            textAlign="center"
+                            width="100%"
+                            selected={!!data.spawn_click_intercept}
+                            onClick={() =>
+                              act('toggle_click_spawn', {
+                                path: activeDefense.path,
+                                turned_on: data.selected_turned_on,
+                                faction: data.selected_faction,
+                                place_dir: data.selected_place_dir,
+                              })
+                            }
+                          >
+                            Click Spawn
+                          </Button>
+                        </Stack.Item>
+                      </Stack>
                     </Stack.Item>
                   </Stack>
                 )}

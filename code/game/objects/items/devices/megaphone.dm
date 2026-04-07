@@ -3,6 +3,10 @@
 	desc = "A device used to project your voice. Loudly."
 	icon_state = "megaphone"
 	item_state = "megaphone"
+	item_icons = list( // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi',
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi'
+	)
 	w_class = SIZE_SMALL
 	flags_atom = FPRINT|CONDUCT
 
@@ -44,6 +48,7 @@
 			if(!ishumansynth_strict(listener) && !isobserver(listener))
 				listener.show_message("[user] says something on the microphone, but you can't understand it.")
 				continue
+			user.cast_tts(listener, message, user, TTS_LOCALYZE_LOCAL, SOUND_EFFECT_MEGAPHONE)	// SS220 ADD - TTS
 			listener.show_message("<B>[user]</B> broadcasts, [FONT_SIZE_LARGE("\"[message]\"")]", SHOW_MESSAGE_AUDIBLE) // 2 stands for hearable message
 			langchat_long_listeners += listener
 		//playsound(loc, 'sound/items/megaphone.ogg', 100, FALSE, TRUE)

@@ -1,4 +1,5 @@
 #define SSGT_VARIANT "Staff Sergeant"
+#define SRSGT_VARIANT "Senior Sergeant"
 #define SGT_VARIANT "Sergeant"
 #define CPL_VARIANT "Corporal"
 #define JSGT_VARIANT "Junior Sergeant"
@@ -11,7 +12,7 @@
 	flags_startup_parameters = ROLE_ADD_TO_DEFAULT|ROLE_ADD_TO_SQUAD
 	gear_preset = /datum/equipment_preset/uscm/tl
 	gear_preset_secondary = /datum/equipment_preset/uscm/tl/corporal
-	entry_message_body = "You are the <a href='"+WIKI_PLACEHOLDER+"'>Squad Leader.</a> Your task is leading the designated squad and utilize available ordnance. If the section sergeant dies, you are expected to lead in their place.<br><b>You remember that you've stored your personal gear and uniform are located in the dorm or locker rooms.</b>"
+	entry_message_body = "You are the <a href='"+WIKI_PLACEHOLDER+"'>Group Leader.</a> Your task is leading the designated group and utilize available ordnance. If the squad leader dies, you are expected to lead in their place.<br><b>You remember that you've stored your personal gear and uniform are located in the dorm or locker rooms.</b>" // SS220 EDIT: marine TL onboarding uses the updated runtime squad labels
 
 	job_options = list(CPL_VARIANT = "CPL", SGT_VARIANT = "SGT")
 
@@ -47,8 +48,8 @@
 	squad = SQUAD_MARINE_4
 
 /datum/job/marine/tl/ai
-	total_positions = 2
-	spawn_positions = 2
+	total_positions = 8 // SS220 EDIT
+	spawn_positions = 8 // SS220 EDIT
 
 /datum/job/marine/tl/ai/upp
 	title = JOB_SQUAD_TEAM_LEADER_UPP
@@ -79,6 +80,18 @@
 	squad = SQUAD_UPP
 	job = /datum/job/marine/tl/ai/upp
 
+/datum/job/marine/tl/ai/upp/forecon
+	title = JOB_SQUAD_TEAM_LEADER_FORECON_UPP
+	total_positions = 1
+	spawn_positions = 1
+	gear_preset = /datum/equipment_preset/uscm/tl/upp/forecon
+	gear_preset_secondary = /datum/equipment_preset/uscm/tl/upp/forecon/sergeant
+	job_options = list(SGT_VARIANT = "SGT", SRSGT_VARIANT = "SrSGT")
+
+/obj/effect/landmark/start/marine/tl/upp/forecon
+	name = JOB_SQUAD_TEAM_LEADER_FORECON_UPP
+	squad = SQUAD_SISSI
+	job = /datum/job/marine/tl/ai/upp/forecon
 
 /datum/job/marine/tl/ai/pmc
 	title = JOB_PMCPLAT_FTL

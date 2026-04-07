@@ -126,8 +126,8 @@
 	icon_state = "camera"
 	item_state = "camera"
 	item_icons = list(
-		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_0.dmi',
-		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_0.dmi'
+		WEAR_L_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_lefthand.dmi', // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
+		WEAR_R_HAND = 'icons/mob/humans/onmob/inhands/items/groundside_support_righthand.dmi' // SS220 EDIT: split GroundSide support inhands out of items_*_0.dmi
 		)
 	flags_item = TWOHANDED
 	w_class = SIZE_SMALL

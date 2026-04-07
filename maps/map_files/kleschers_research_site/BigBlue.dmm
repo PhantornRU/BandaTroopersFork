@@ -35694,7 +35694,7 @@
 /area/kleschers/int_reg/dorms)
 "sJd" = (
 /obj/structure/surface/table/reinforced,
-/obj/item/clothing/gloves/marine/veteran/pmc/commando{
+/obj/item/clothing/gloves/marine/veteran/pmc/apesuit{
 	name = "M4X gauntlets prototype";
 	desc = "A somewhat old model of the M4X exoskeleton armor series originally used by private military contractors in the Tientsin Campaign.";
 	anchored = 1

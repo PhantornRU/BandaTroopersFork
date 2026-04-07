@@ -536,7 +536,9 @@
 	if(!admin_holder || !(admin_holder.rights & R_MOD))
 		to_chat(src, "Only administrators may use this command.")
 		return
-	var/faction = tgui_input_list(usr, "Please choose faction your announcement will be shown to.", "Faction Selection", (FACTION_LIST_HUMANOID - list(FACTION_YAUTJA) + list("Everyone (-Yautja)")))
+	// SS220 EDIT - START: allow HALO covenant announcements without widening global humanoid faction lists
+	var/faction = tgui_input_list(usr, "Please choose faction your announcement will be shown to.", "Faction Selection", (FACTION_LIST_HUMANOID - list(FACTION_YAUTJA) + list(FACTION_COVENANT, "Everyone (-Yautja)")))
+	// SS220 EDIT - END: allow HALO covenant announcements without widening global humanoid faction lists
 	if(!faction)
 		return
 	var/input = input(usr, "Please enter announcement text. Be advised, this announcement will be heard both on Almayer and planetside by conscious humans of selected faction.", "What?", "") as message|null
@@ -873,6 +875,7 @@
 	if(!create_xenos_html)
 		var/hive_types = jointext(ALL_XENO_HIVES, ";")
 		var/xeno_types = jointext(ALL_XENO_CASTES, ";")
+		xeno_types += ";" + jointext(ALL_ARACHNID_CASTES, ";") // SS220 EDIT - Arachnid
 		create_xenos_html = file2text('html/create_xenos.html')
 		create_xenos_html = replacetext(create_xenos_html, "null /* hive paths */", "\"[hive_types]\"")
 		create_xenos_html = replacetext(create_xenos_html, "null /* xeno paths */", "\"[xeno_types]\"")

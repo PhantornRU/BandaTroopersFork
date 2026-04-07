@@ -181,11 +181,12 @@
 				SSD_count++
 				continue
 			if(current_squad)
-				if(H == current_squad.squad_leader && role != JOB_SQUAD_LEADER)
+				if(H == current_squad.squad_leader && GET_DEFAULT_ROLE(role) != JOB_SQUAD_LEADER) // SS220 EDIT: treat modular squad-leader variants as canonical SL
 					act_sl = " (ASL)"
 		var/marine_infos = "<tr><td><A href='byond://?src=\ref[src];operation=use_cam;cam_target=\ref[H]'>[mob_name]</a></td><td>[role][act_sl]</td><td>[mob_state]</td><td>[area_name]</td></tr>"
-		if(role in job_order)
-			job_order[role] += marine_infos
+		var/default_role = GET_DEFAULT_ROLE(role) // SS220 EDIT: group modular squad-role variants under shared console buckets
+		if(default_role in job_order)
+			job_order[default_role] += marine_infos
 		else
 			misc_text += marine_infos
 	dat += "<b>Total: [total_count] Deployed</b><BR>"
@@ -231,7 +232,7 @@
 			if(!is_announcement_active)
 				to_chat(usr, SPAN_WARNING("Please allow at least [COOLDOWN_COMM_MESSAGE*0.1] second\s to pass between announcements."))
 				return FALSE
-			if(announcement_faction != FACTION_MARINE && usr.faction != announcement_faction)
+			if(!human_user.matches_faction_announcement_target(announcement_faction, FALSE)) // SS220 EDIT: command consoles follow the human-owned faction-routing contract
 				to_chat(usr, SPAN_WARNING("Access denied."))
 				return
 			var/input = stripped_multiline_input(usr, "Please write a message to announce to the station crew.", "Priority Announcement", "")

@@ -1,0 +1,171 @@
+["halo essential medical supplies"]
+nominative = "предметы первой необходимости"
+tags = [ "nominative_only", "halo",]
+
+["halo syringe"]
+nominative = "шприц"
+tags = [ "nominative_only", "halo",]
+
+["halo empty UNSC first-aid kit"]
+nominative = "пустая аптечка ККОН"
+tags = [ "nominative_only", "halo",]
+
+["halo syringe case"]
+nominative = "футляр для шприцов"
+tags = [ "nominative_only", "halo",]
+
+["halo field supplies"]
+nominative = "полевое снаряжение"
+tags = [ "nominative_only", "halo",]
+
+["halo ointment"]
+nominative = "мазь"
+tags = [ "nominative_only", "halo",]
+
+["halo roll of gauze"]
+nominative = "рулон марли"
+tags = [ "nominative_only", "halo",]
+
+["halo medical splints"]
+nominative = "шины"
+tags = [ "nominative_only", "halo",]
+
+["halo trauma treatment"]
+nominative = "лечение травм"
+tags = [ "nominative_only", "halo",]
+
+["halo trauma kit"]
+nominative = "травмкомплект"
+tags = [ "nominative_only", "halo",]
+
+["halo bicaridine autoinjector"]
+nominative = "автоинъектор (бикаридин)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (bicaridine)"]
+nominative = "медицинский флакон (бикаридин)"
+tags = [ "nominative_only", "halo",]
+
+["halo burn treatment"]
+nominative = "лечение ожогов"
+tags = [ "nominative_only", "halo",]
+
+["halo burn kit"]
+nominative = "ожоговый комплект"
+tags = [ "nominative_only", "halo",]
+
+["halo optican burnguard autoinjector"]
+nominative = "автоинъектор Optican BurnGuard"
+tags = [ "nominative_only", "halo",]
+
+["halo hypoxia treatment"]
+nominative = "лечение гипоксии"
+tags = [ "nominative_only", "halo",]
+
+["halo dexalin plus autoinjector"]
+nominative = "автоинъектор (дексалин+)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (dexalin)"]
+nominative = "медицинский флакон (дексалин)"
+tags = [ "nominative_only", "halo",]
+
+["halo pain management"]
+nominative = "обезболивание"
+tags = [ "nominative_only", "halo",]
+
+["halo oxycodone autoinjector"]
+nominative = "автоинъектор (оксикодон)"
+tags = [ "nominative_only", "halo",]
+
+["halo tramadol autoinjector"]
+nominative = "автоинъектор (трамадол)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (tramadol)"]
+nominative = "медицинский флакон (трамадол)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (oxycodone)"]
+nominative = "медицинский флакон (оксикодон)"
+tags = [ "nominative_only", "halo",]
+
+["halo other treatment"]
+nominative = "прочее лечение"
+tags = [ "nominative_only", "halo",]
+
+["halo inaprovaline autoinjector"]
+nominative = "автоинъектор (инапровалин)"
+tags = [ "nominative_only", "halo",]
+
+["halo peridaxon autoinjector"]
+nominative = "автоинъектор (перидаксон)"
+tags = [ "nominative_only", "halo",]
+
+["halo dylovene autoinjector"]
+nominative = "автоинъектор (диловен)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (inaprovaline)"]
+nominative = "медицинский флакон (инапровалин)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (peridaxon)"]
+nominative = "медицинский флакон (перидаксон)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (dylovene)"]
+nominative = "медицинский флакон (диловен)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (chorotazine)"]
+nominative = "медицинский флакон (хоротазин)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical instruments"]
+nominative = "медицинские инструменты"
+tags = [ "nominative_only", "halo",]
+
+["halo surgical line"]
+nominative = "хирургическая нить"
+tags = [ "nominative_only", "halo",]
+
+["halo synth-graft"]
+nominative = "синт-графт"
+tags = [ "nominative_only", "halo",]
+
+["halo health analyzer"]
+nominative = "анализатор здоровья"
+tags = [ "nominative_only", "halo",]
+
+["halo medical webbing M8A"]
+nominative = "медразгрузка M8A"
+tags = [ "nominative_only", "halo",]
+
+["halo lifesaver bag M8A"]
+nominative = "сумка спасателя M8A"
+tags = [ "nominative_only", "halo",]
+
+["halo medical HUD glasses"]
+nominative = "очки с мед-HUD"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottles"]
+nominative = "медицинские флаконы"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (iron)"]
+nominative = "медицинский флакон (железо)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (meralyne)"]
+nominative = "медицинский флакон (мералин)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (dermaline)"]
+nominative = "медицинский флакон (дермалин)"
+tags = [ "nominative_only", "halo",]
+
+["halo medical bottle (dexalin plus)"]
+nominative = "медицинский флакон (дексалин+)"
+tags = [ "nominative_only", "halo",]

@@ -6,7 +6,7 @@
 	letters_per_update = 1
 	fade_out_delay = 5 SECONDS
 	screen_loc = "WEST:6,1:5"
-	style_open = "<span class='langchat' style=font-size:20pt;text-align:left valign='top'>"
+	style_open = "<span class='langchat_notification' style=text-align:left valign='top'>" //SS220 EDIT fonts
 	style_close = "</span>"
 	layer = INTRO_LAYER
 	plane = INTRO_PLANE
@@ -30,6 +30,9 @@
 /atom/movable/screen/text/screen_text/picture/red_dawn
 	image_to_play = "red_dawn"
 
+/atom/movable/screen/text/screen_text/picture/fox_stalkers
+	image_to_play = "fox_stalkers"
+
 /atom/movable/screen/text/screen_text/picture/azure
 	image_to_play = "azure_15"
 
@@ -38,6 +41,10 @@
 
 /atom/movable/screen/text/screen_text/picture/gamma_troop
 	image_to_play = "gamma_troop"
+
+/atom/movable/screen/text/screen_text/picture/dark_was_the_night
+	icon = 'icons/halo/ui_icons/screen_alert_images.dmi' // SS220 EDIT: HALO intro artwork
+	image_to_play = "dwtn"
 
 /atom/movable/screen/text/screen_text/picture/starting
 	layer = ABOVE_INTRO_LAYER
@@ -64,6 +71,14 @@
 /atom/movable/screen/text/screen_text/picture/starting/twe
 	image_to_play = "twe"
 
+/atom/movable/screen/text/screen_text/picture/starting/unsc
+	icon = 'icons/halo/ui_icons/screen_alert_images.dmi' // SS220 EDIT: HALO UNSC intro artwork
+	image_to_play = "unsc"
+
+/atom/movable/screen/text/screen_text/picture/starting/odst
+	icon = 'icons/halo/ui_icons/screen_alert_images.dmi' // SS220 EDIT: HALO ODST intro artwork
+	image_to_play = "odst"
+
 /atom/movable/screen/text/screen_text/hypersleep_status
 	maptext_height = 480
 	maptext_width = 480
@@ -72,7 +87,7 @@
 	screen_loc = "LEFT,TOP-3"
 	letters_per_update = 1
 	fade_out_delay = 1 SECONDS
-	style_open = "<span style='font-size:15pt; text-align:center; color: #c0f7ff; font-family: \"VCR OSD Mono\"' valign='top'>"
+	style_open = "<span class='langchat_notification' style='text-align:center; color: #c0f7ff;' valign='top'>" //SS220 Fonts
 	style_close = "</span>"
 
 /atom/movable/screen/text/screen_text/hypersleep_status/Initialize(mapload)
@@ -83,7 +98,7 @@
 	layer = INTRO_LAYER
 	plane = INTRO_PLANE
 	screen_loc = "WEST:6,1:5"
-	style_open = "<span class='langchat' style=font-size:20pt;text-align:left valign='top'>"
+	style_open = "<span class='langchat_notification' style=text-align:left valign='top'>" //SS220 Fonts
 	style_close = "</span>"
 	maptext_x = 32
 
@@ -97,7 +112,7 @@
 	fade_out_delay = 10 SECONDS
 	layer = INTRO_LAYER
 	plane = INTRO_PLANE
-	style_open = "<span class='langchat' style=font-size:20pt;text-align:left valign='top'>"
+	style_open = "<span class='langchat_notification' style=text-align:left valign='top'>" //SS220 Fonts
 	style_close = "</span>"
 
 /atom/movable/screen/text/screen_text/potrait/Initialize(mapload, datum/hud/hud_owner, name, icon_to_use, image_to_play)

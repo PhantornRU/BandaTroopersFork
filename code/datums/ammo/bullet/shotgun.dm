@@ -39,6 +39,33 @@
 			to_chat(living_mob, SPAN_HIGHDANGER("The impact knocks you off-balance!"))
 		living_mob.apply_stamina_damage(fired_projectile.ammo.damage, fired_projectile.def_zone, ARMOR_BULLET)
 
+/datum/ammo/bullet/shotgun/slug/es7
+	name = "electrostatic solid slug"
+	icon_state = "bullet_blue"
+	handful_state = "es7_slug"
+	sound_miss = "energy_miss"
+	sound_bounce = "energy_bounce"
+	hit_effect_color = "#00aeff"
+	sound_override = 'sound/weapons/gun_es7lethal.ogg'
+	damage = 90
+	penetration = ARMOR_PENETRATION_TIER_8
+	accuracy = HIT_ACCURACY_TIER_5
+
+/datum/ammo/bullet/shotgun/slug/special
+	name = "shotgun slug, USCM magnum load"
+	handful_state = "special_slug"
+	headshot_state = HEADSHOT_OVERLAY_HEAVY
+	accurate_range = 10
+	max_range = 18
+	damage = 110
+	damage_armor_punch = 5
+	penetration = ARMOR_PENETRATION_TIER_8
+	firing_freq_offset = SOUND_FREQ_LOW
+
+/datum/ammo/bullet/shotgun/slug/special/on_hit_mob(mob/M,obj/projectile/P)
+	knockback(M, P, 7)
+	pushback(M, P, 7)
+
 /datum/ammo/bullet/shotgun/beanbag
 	name = "beanbag slug"
 	headshot_state = HEADSHOT_OVERLAY_LIGHT //It's not meant to kill people... but if you put it in your mouth, it will.
@@ -60,6 +87,34 @@
 		var/mob/living/carbon/human/H = M
 		shake_camera(H, 2, 1)
 
+/datum/ammo/bullet/shotgun/beanbag/es7
+	name = "electrostatic shock slug"
+	headshot_state = HEADSHOT_OVERLAY_LIGHT //Electric version of the bean bag.
+	handful_state = "shock_slug"
+	icon_state = "cm_laser"
+	sound_override = 'sound/weapons/gun_es7.ogg'
+	flags_ammo_behavior = AMMO_ENERGY|AMMO_IGNORE_RESIST
+	sound_hit = "energy_hit"
+	sound_miss = "energy_miss"
+	sound_bounce = "energy_bounce"
+	max_range = 12
+	shrapnel_chance = 0
+	damage = 0
+	stamina_damage = 50
+	hit_effect_color = "#00aeff"
+	accuracy = HIT_ACCURACY_TIER_3
+	shell_speed = AMMO_SPEED_TIER_4
+	handful_state = "shock_slug"
+
+/datum/ammo/bullet/shotgun/beanbag/es7/on_hit_mob(mob/mobs, obj/projectile/P)
+	if(!isyautja(mobs) && !isxeno(mobs))
+		mobs.emote("pain")
+		mobs.sway_jitter(2,1)
+
+	if(ishuman(mobs))
+		var/mob/living/carbon/human/humanus = mobs
+		humanus.disable_special_items() // Disables scout cloak
+		humanus.make_jittery(40)
 
 /datum/ammo/bullet/shotgun/incendiary
 	name = "incendiary slug"
@@ -106,7 +161,6 @@
 	damage_var_high = PROJECTILE_VARIANCE_TIER_8
 	penetration = ARMOR_PENETRATION_TIER_7
 	bonus_projectiles_amount = EXTRA_PROJECTILES_TIER_3
-	handful_state = "flechette_shell"
 	multiple_handful_name = TRUE
 
 /datum/ammo/bullet/shotgun/flechette/on_hit_mob(mob/M,obj/projectile/P)
@@ -126,7 +180,59 @@
 	scatter = SCATTER_AMOUNT_TIER_5
 
 /datum/ammo/bullet/shotgun/flechette_spread/awesome
-	damage = 80
+	damage = 60
+	max_range = 5
+	damage_var_low = PROJECTILE_VARIANCE_TIER_10
+	damage_var_high = PROJECTILE_VARIANCE_TIER_5
+
+/datum/ammo/bullet/shotgun/flechette/special
+	name = "flechette shell, USCM DU type"
+	handful_state = "special_dart"
+	bonus_projectiles_type = /datum/ammo/bullet/shotgun/flechette_spread/special
+	max_range = 14
+	damage = 50
+	damage_var_low = PROJECTILE_VARIANCE_TIER_10
+	damage_var_high = PROJECTILE_VARIANCE_TIER_5
+	penetration = ARMOR_PENETRATION_TIER_9
+	bonus_projectiles_amount = EXTRA_PROJECTILES_TIER_5
+
+/datum/ammo/bullet/shotgun/flechette/special/set_bullet_traits()
+	. = ..()
+	LAZYADD(traits_to_give, list(
+		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_penetrating)
+	))
+
+/datum/ammo/bullet/shotgun/flechette/special/on_hit_mob(mob/M,obj/projectile/P)
+	M.AddComponent(/datum/component/status_effect/toxic_buildup, toxic_buildup = 15, toxic_buildup_dissipation = 0.3, max_buildup = 75)
+	knockback(M, P, 5)
+	if(M.mob_size >= MOB_SIZE_BIG)
+		var/mob/living/L = M
+		L.apply_armoured_damage(damage*1.3, ARMOR_BULLET, BRUTE, null, penetration) // As bugs don't take toxin damage, this should give it a little more oomf versus them
+
+/datum/ammo/bullet/shotgun/flechette_spread/special
+	name = "additional DU flechette"
+	icon_state = "flechette"
+
+	accuracy_var_low = PROJECTILE_VARIANCE_TIER_5
+	accuracy_var_high = PROJECTILE_VARIANCE_TIER_6
+	max_range = 14
+	damage = 45
+	damage_var_low = PROJECTILE_VARIANCE_TIER_10
+	damage_var_high = PROJECTILE_VARIANCE_TIER_5
+	penetration = ARMOR_PENETRATION_TIER_9
+	scatter = SCATTER_AMOUNT_TIER_5
+
+/datum/ammo/bullet/shotgun/flechette_spread/special/set_bullet_traits()
+	. = ..()
+	LAZYADD(traits_to_give, list(
+		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_penetrating)
+	))
+
+/datum/ammo/bullet/shotgun/flechette_spread/special/on_hit_mob(mob/M,obj/projectile/P)
+	M.AddComponent(/datum/component/status_effect/toxic_buildup, toxic_buildup = 10, toxic_buildup_dissipation = 0.3, max_buildup = 75)
+	if(M.mob_size >= MOB_SIZE_BIG)
+		var/mob/living/L = M
+		L.apply_armoured_damage(damage*1.2, ARMOR_BULLET, BRUTE, null, penetration) // As bugs don't take toxin damage, this should give it a little more oomf versus them
 
 /datum/ammo/bullet/shotgun/buckshot
 	name = "buckshot shell"
@@ -153,6 +259,7 @@
 
 /datum/ammo/bullet/shotgun/buckshot/on_hit_mob(mob/M,obj/projectile/P)
 	knockback(M, P, 3)
+
 /datum/ammo/bullet/shotgun/buckshot/knockback_effects(mob/living/living_mob, obj/projectile/fired_projectile)
 	if(iscarbonsizexeno(living_mob))
 		var/mob/living/carbon/xenomorph/target = living_mob
@@ -519,5 +626,78 @@
 		if(!isyautja(living_mob)) //Not predators.
 			living_mob.apply_effect(1, SUPERSLOW)
 			living_mob.apply_effect(2, SLOW)
+			to_chat(living_mob, SPAN_HIGHDANGER("The impact knocks you off-balance!"))
+		living_mob.apply_stamina_damage(fired_projectile.ammo.damage, fired_projectile.def_zone, ARMOR_BULLET)
+
+
+/*
+					10 GAUGE SHOTGUN AMMO
+*/
+
+/datum/ammo/bullet/shotgun/buckshot/medium
+	name = "medium buckshot"
+	handful_state = "medium_buck"
+	multiple_handful_name = TRUE
+	bonus_projectiles_type = /datum/ammo/bullet/shotgun/buckshot/medium/spread
+	bonus_projectiles_amount = EXTRA_PROJECTILES_TIER_6
+	accurate_range = 9
+	max_range = 12
+	damage = 60
+	penetration = ARMOR_PENETRATION_TIER_2
+	shell_speed = AMMO_SPEED_TIER_2
+
+/datum/ammo/bullet/shotgun/buckshot/medium/spread
+	name = "medium buckshot spread"
+	bonus_projectiles_amount = 0
+	accuracy_var_low = PROJECTILE_VARIANCE_TIER_10
+	accuracy_var_high = PROJECTILE_VARIANCE_TIER_1
+	scatter = SCATTER_AMOUNT_TIER_3
+	damage = 30
+
+/datum/ammo/bullet/shotgun/flechette/medium
+	name = "medium flechette shell"
+
+	handful_state = "medium_flech"
+	bonus_projectiles_type = /datum/ammo/bullet/shotgun/flechette_spread/medium
+
+	max_range = 15
+	damage = 40
+	penetration = ARMOR_PENETRATION_TIER_8
+	bonus_projectiles_amount = EXTRA_PROJECTILES_TIER_2
+	handful_state = "medium_flech"
+	multiple_handful_name = TRUE
+
+/datum/ammo/bullet/shotgun/flechette_spread/medium
+	name = "additional medium flechette"
+
+	max_range = 12
+	damage = 30
+	penetration = ARMOR_PENETRATION_TIER_8
+	scatter = SCATTER_AMOUNT_TIER_5
+
+/datum/ammo/bullet/shotgun/slug/medium
+	name = "medium shotgun slug"
+	handful_state = "medium_slug"
+
+	accurate_range = 9
+	max_range = 17
+	damage = 105
+	penetration = ARMOR_PENETRATION_TIER_7
+
+/datum/ammo/bullet/shotgun/slug/medium/on_hit_mob(mob/M,obj/projectile/P)
+	knockback(M, P, 5)
+
+/datum/ammo/bullet/shotgun/slug/medium/knockback_effects(mob/living/living_mob, obj/projectile/fired_projectile)
+	if(iscarbonsizexeno(living_mob))
+		var/mob/living/carbon/xenomorph/target = living_mob
+		to_chat(target, SPAN_XENODANGER("You are shaken and slowed by the sudden impact!"))
+		target.KnockDown(5)
+		target.Stun(5)
+		target.Slow(7)
+	else
+		if(!isyautja(living_mob)) //Not predators.
+			living_mob.KnockDown(4)
+			living_mob.Stun(4)
+			living_mob.Superslow(6)
 			to_chat(living_mob, SPAN_HIGHDANGER("The impact knocks you off-balance!"))
 		living_mob.apply_stamina_damage(fired_projectile.ammo.damage, fired_projectile.def_zone, ARMOR_BULLET)

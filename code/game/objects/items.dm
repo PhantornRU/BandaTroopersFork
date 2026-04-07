@@ -272,6 +272,9 @@ cases. Override_icon_state should be a list.*/
 		if("classic")
 			icon_state = new_icon_state ? new_icon_state : "c_" + icon_state
 			item_state = new_item_state ? new_item_state : "c_" + item_state
+		if("urban")
+			icon_state = new_icon_state ? new_icon_state : "u_" + icon_state
+			item_state = new_item_state ? new_item_state : "u_" + item_state
 	if(new_protection)
 		min_cold_protection_temperature = new_protection
 
@@ -509,8 +512,11 @@ cases. Override_icon_state should be a list.*/
 		if(human.hud_used && human.hud_used.equip_slots)
 			mob_equip = human.hud_used.equip_slots
 
-		if(human.species && !(slot in mob_equip))
+		// SS220 EDIT - START: preview dummies and not-yet-screened humans must not hard-fail all wearable slots
+		// if(human.species && !(slot in mob_equip))
+		if(human.species && length(mob_equip) && !(slot in mob_equip))
 			return FALSE
+		// SS220 EDIT - END
 
 		if(uniform_restricted)
 			var/list/required_clothing = list()

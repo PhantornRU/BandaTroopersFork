@@ -133,6 +133,8 @@
 	if(ishuman(body))
 		pixel_x = 0
 		pixel_y = 0
+		pixel_w = 0
+		pixel_z = 0
 
 	minimap = new
 	minimap.give_to(src)
@@ -413,6 +415,9 @@
 					H.add_hud_to(src, src)
 				if("Faction CLF HUD")
 					H = GLOB.huds[MOB_HUD_FACTION_CLF]
+					H.add_hud_to(src, src)
+				if("Faction FIL HUD")
+					H = GLOB.huds[MOB_HUD_FACTION_FIL]
 					H.add_hud_to(src, src)
 
 	see_invisible = INVISIBILITY_OBSERVER

@@ -49,7 +49,11 @@
 		skin_color_icon = H.skin_color
 		body_type_icon = H.body_type
 
-	icon_state = "[get_limb_icon_name(H.species, body_size_icon, body_type_icon, H.gender, name, skin_color_icon)]"
+	if(isspeciessangheili(H) || isspeciesunggoy(H)) // SS220 EDIT: HALO limb item visuals
+		skin_color_icon = H.skin_color
+		body_type_icon = H.body_type
+
+	icon_state = "[get_limb_icon_name(H.species, body_size_icon, body_type_icon, H.gender, initial(name), skin_color_icon)]" // SS220 EDIT: dropped limb icons must stay keyed by canonical limb ids on localized servers
 	setDir(SOUTH)
 	apply_transform(turn(transform, rand(70,130)))
 
@@ -209,6 +213,17 @@
 	else
 		..()
 
+/obj/item/limb/proc/zombie_clean_up(mob/living/carbon/human/zombie, zombie_disable_auto_clean = FALSE)
+	if(src.loc)
+		if(prob(5))
+			src.visible_message("The [initial(src.name)] falls apart! Practically melting away, rotted to nothing, leaving only a mess of vicious blood.")
+		if(prob(15))
+			playsound(src, 'sound/effects/blood_squirt.ogg', 30, TRUE)
+		zombie.add_splatter_floor(src.loc, b_color=BLOOD_COLOR_ZOMBIE)
+		zombie.add_splatter_floor(src.loc, b_color=BLOOD_COLOR_ZOMBIE)
+		if(prob(35))
+			new /obj/effect/decal/cleanable/blood/gibs/zombie(src.loc)
+	qdel(src)
 
 //synthetic head, allowing brain mob inside to talk
 /obj/item/limb/head/synth

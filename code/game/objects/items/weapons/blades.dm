@@ -60,6 +60,11 @@
 	desc = "An older issue USCM machete, never left testing. Designed in the Central African Republic. The notching made it hard to clean, and as such the USCM refused to adopt it - despite the superior bludgeoning power offered. This one has been poorly maintained and as such can't really outperform adopted M2132 machete."
 	force = MELEE_FORCE_STRONG
 
+/obj/item/weapon/sword/machete/fil
+	name = "\improper CSAM machete"
+	desc = "A French design made for to slice and cut. Especially heavily designed for cutting down vegetation and combat melee weapon with more power. This particular model is big enough to cut a tree down."
+	icon_state = "csam"
+
 /obj/item/weapon/sword/hefa
 	name = "HEFA sword"
 	icon_state = "hefasword"
@@ -683,7 +688,7 @@
 	icon = 'icons/obj/items/weapons/weapons.dmi'
 	icon_state = "knife_gerber"
 	item_state = "knife_gerber"
-	desc = "A standard issue USCMC fighting knife developed by the Kershaw-Gerber company, a subsidiary of Armat Battlefield Systems. Neatly fits into boot-mounted holsters, and can - in emergencies - be utilized to dig out shrapnel."
+	desc = "Штатное холодное оружие ККОН. Клинок длиной 20 см выполнен из высокоуглеродистой стали с антибликовым карбидным покрытием. Нож сбалансирован под бросок и ближний бой, хотя чаще всего работает универсальным инструментом. Особенно в наши дни." // SS220 EDIT: HALO flavor migrated from modular late override
 	flags_atom = FPRINT|QUICK_DRAWABLE|CONDUCT
 	flags_equip_slot = SLOT_WAIST|SLOT_FACE
 	flags_armor_protection = SLOT_FACE
@@ -733,3 +738,8 @@
 	icon_state = "knife_fairbairn"
 	item_state = "knife_gerber"
 	desc = "This isn't for dressing game or performing camp chores. It's for killing men and has done so successfully for a number of centuries. When all else has failed you, this knife will be in your hand, ready to execute its grim task."
+
+/obj/item/weapon/knife/marine/fil
+	name = "\improper FMB51 combat knife"
+	icon_state = "knife_fmb51"
+	desc = "A relitively modern combat knife, which is utilised by French Armed Forces and those correlated to them."

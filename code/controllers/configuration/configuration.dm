@@ -97,7 +97,7 @@
 
 		switch(command)
 			if("map")
-				currentmap = load_map_config("maps/[data].json")
+				currentmap = load_map_config("maps/[data].json", maptype = maptype)
 				if(currentmap.defaulted)
 					log_config("Failed to load map config for [data]!")
 					currentmap = null
@@ -315,6 +315,8 @@
 
 
 /datum/controller/configuration/proc/LoadChatFilter()
+	return load_ss220_filters()	// SS220 ADD - Cyrillic speech filter
+	/*	SS220 REMOVE - Cyrillic speech filter
 	var/list/word_filter = list()
 
 	if(!fexists("[directory]/word_filter.txt"))
@@ -330,8 +332,8 @@
 		word_filter += REGEX_QUOTE(line)
 
 	word_filter_regex = length(word_filter) ? regex("\\b([jointext(word_filter, "|")])\\b", "i") : null
+	SS220 REMOVE - Cyrillic speech filter */
 
 //Message admins when you can.
 /datum/controller/configuration/proc/DelayedMessageAdmins(text)
 	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(message_admins), text), 0)
-

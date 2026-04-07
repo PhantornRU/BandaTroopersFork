@@ -6,7 +6,7 @@
 	name = "\improper rocket launcher"
 	desc = "Modelled after the iconic Carl Gustaf recoilless rifle, this heavy piece of kit can still kill things just as well as its forefather could hundreds of years ago."
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi'
-	icon_state = "m5"
+	icon_state = "m5_old"
 	item_state = "m5"
 	unacidable = TRUE
 	indestructible = 1
@@ -21,7 +21,7 @@
 	aim_slowdown = SLOWDOWN_ADS_SPECIALIST
 	attachable_allowed = list(/obj/item/attachable/scope/mini/army) //4 tile zoom if used
 
-	flags_gun_features = GUN_WIELDED_FIRING_ONLY|GUN_INTERNAL_MAG
+	flags_gun_features = GUN_WIELDED_FIRING_ONLY|GUN_INTERNAL_MAG|GUN_UNUSUAL_DESIGN
 	var/datum/effect_system/smoke_spread/smoke
 
 	flags_item = TWOHANDED|NO_CRYO_STORE
@@ -38,12 +38,13 @@
 	return ..()
 
 /obj/item/weapon/gun/launcher/rocket/set_gun_attachment_offsets()
-	attachable_offset = list("muzzle_x" = 33, "muzzle_y" = 18,"rail_x" = 6, "rail_y" = 19, "under_x" = 19, "under_y" = 14, "stock_x" = 19, "stock_y" = 14)
+	attachable_offset = list("muzzle_x" = 33, "muzzle_y" = 18,"rail_x" = 6, "rail_y" = 19, "under_x" = 19, "under_y" = 14, "stock_x" = -6, "stock_y" = 16)
 
 /obj/item/weapon/gun/launcher/rocket/set_bullet_traits()
 	. = ..()
 	LAZYADD(traits_to_give, list(
 		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 150, GLOB.damage_boost_vehicles),
+		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
 	))
 
 /obj/item/weapon/gun/launcher/rocket/set_gun_config_values()
@@ -212,10 +213,17 @@
 //Marine M5 RPG, comes with baked in scope unlike the colony-made launcher
 /obj/item/weapon/gun/launcher/rocket/marine
 	name = "\improper M5 RPG"
-	desc = "The M5 RPG is the primary anti-armor weapon of the USCM. Used to take out light-tanks and enemy structures, the M5 RPG is a dangerous weapon with a variety of combat uses."
+	desc = "The M5 RPG is the primary anti-armor weapon of the USCM. Used to take out light-tanks and enemy structures, the M5 RPG is a dangerous weapon with a variety of combat uses depending on the type of munitions loaded."
+	icon_state = "m5"
+	flags_gun_features = GUN_WIELDED_FIRING_ONLY|GUN_INTERNAL_MAG
 
 /obj/item/weapon/gun/launcher/rocket/marine/handle_starting_attachment()
 	..()
+	var/obj/item/attachable/rpg_baffle/S = new(src)
+	S.flags_attach_features &= ~ATTACH_REMOVABLE
+	S.Attach(src)
+	update_attachables()
+
 	var/obj/item/attachable/scope/mini/army/scope = new(src)
 	scope.hidden = TRUE
 	scope.flags_attach_features &= ~ATTACH_REMOVABLE
@@ -272,10 +280,16 @@
 
 	flags_item = TWOHANDED
 
+	// SSS20 EDIT - Start
+	var/fold_time = 1 SECONDS // Время для свертывания
+	var/skill_req = SKILL_ENGINEER	// Уровень для возможности закидывать на спину
+	var/skill_skip_fold_time = SKILL_ENGINEER_TRAINED // уровень для пропуска развертки
+	// SSS20 EDIT - End
+
 /obj/item/weapon/gun/launcher/rocket/anti_tank/set_bullet_traits()
 	. = ..()
 	LAZYADD(traits_to_give, list(
-		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 200, GLOB.damage_boost_vehicles),
+		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 250, GLOB.damage_boost_vehicles)
 	))
 
 /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable //single shot and disposable
@@ -294,17 +308,20 @@
 
 /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/unique_action(mob/M)
 	if(fired)
-		to_chat(M, SPAN_WARNING("\The [src] has already been fired - you can't fold it back up again!"))
+		to_chat(M, SPAN_WARNING("[src] уже использован и более его нельзя сложить!")) // SS220 EDIT
 		return
 
-	M.visible_message(SPAN_NOTICE("[M] begins to fold up \the [src]."), SPAN_NOTICE("You start to fold and collapse closed \the [src]."))
+	M.visible_message(SPAN_NOTICE("[M] складываете [src]."), SPAN_NOTICE("Вы складываете [src].")) // SS220 EDIT
 
-	if(!do_after(M, 2 SECONDS, INTERRUPT_ALL, BUSY_ICON_GENERIC))
-		to_chat(M, SPAN_NOTICE("You stop folding up \the [src]"))
-		return
+	// SS220 EDIT - Start
+	if(!skillcheck(usr, skill_req, skill_skip_fold_time))
+		if(!do_after(M, fold_time * M.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_GENERIC))
+			to_chat(M, SPAN_WARNING("Вы прекратили складывать [src.name]."))
+			return FALSE
+	// SS220 EDIT - End
 
 	fold(M)
-	M.visible_message(SPAN_NOTICE("[M] finishes folding \the [src]."), SPAN_NOTICE("You finish folding \the [src]."))
+	M.visible_message(SPAN_NOTICE("[M] сложил [src]."), SPAN_NOTICE("Вы сложили [src].")) // SS220 EDIT
 
 /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/proc/fold(mob/user)
 	var/obj/item/prop/folded_anti_tank_sadar/F = new /obj/item/prop/folded_anti_tank_sadar(src.loc)
@@ -337,7 +354,101 @@
 	w_class = SIZE_MEDIUM
 	garbage = FALSE
 
+	// SS220 EDIT - Start
+	var/unfold_time = 5 SECONDS // Время для развертывания
+	var/skill_req = SKILL_ENGINEER
+	var/skill_skip_fold_time = SKILL_ENGINEER_ENGI
+	// SS220 EDIT - End
+
 /obj/item/prop/folded_anti_tank_sadar/attack_self(mob/user)
+	user.visible_message(SPAN_NOTICE("[user] развертывает [src.name]."), SPAN_NOTICE("Вы развертываете [src.name].")) // SS220 EDIT - Translate
+	playsound(src, 'sound/items/component_pickup.ogg', 20, TRUE, 5)
+
+	// SS220 EDIT - Start
+	if(!skillcheck(user, skill_req, skill_skip_fold_time))
+		if(!do_after(user, unfold_time * user.get_skill_duration_multiplier(skill_req), INTERRUPT_ALL, BUSY_ICON_GENERIC))
+			to_chat(user, SPAN_WARNING("Вы прекратили развертывать [src.name]."))
+			return FALSE
+	// SS220 EDIT - End
+
+	unfold(user)
+
+	user.visible_message(SPAN_NOTICE("[user] развернул [src.name]."), SPAN_NOTICE("Вы развернули [src.name].")) // SS220 EDIT - Translate
+	playsound(src, 'sound/items/component_pickup.ogg', 20, TRUE, 5)
+	. = ..()
+
+/obj/item/prop/folded_anti_tank_sadar/proc/unfold(mob/user)
+	var/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/F = new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable(src.loc)
+	transfer_label_component(F)
+	qdel(src)
+	user.put_in_active_hand(F)
+
+//-------------------------------------------------------
+//CANC COPY OF SADAR
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc //single shot and disposable
+	name = "\improper PF-199 Anti-Tank RPG"
+	desc = "The PF-199 is a lightweight one-shot anti-armor weapon capable of engaging enemy vehicles at ranges up to 500m. Fully disposable, the rocket's launcher is discarded after firing. When stowed (unique-action), the PF-199 system consists of a watertight carbon-fiber composite blast tube, inside of which is an aluminum launch tube containing the missile. The weapon is fired by pushing a charge button on the trigger grip.  It is sighted and fired from the shoulder."
+	icon = 'icons/obj/items/weapons/guns/guns_by_faction/upp.dmi'
+	icon_state = "pf199"
+	item_state = "pf199"
+	base_gun_icon = "m83a2" // SS220 EDIT: PF-199 reuses the existing SADAR lineart state
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/set_bullet_traits()
+	. = ..()
+	LAZYADD(traits_to_give, list(
+		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 70, GLOB.damage_boost_vehicles),
+	))
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/get_examine_text(mob/user)
+	. = ..()
+	. += SPAN_NOTICE("You can fold it up with unique-action.")
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/Fire(atom/target, mob/living/user, params, reflex, dual_wield)
+	. = ..()
+	if(.)
+		fired = TRUE
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/unique_action(mob/M)
+	if(fired)
+		to_chat(M, SPAN_WARNING("\The [src] has already been fired - you can't fold it back up again!"))
+		return
+
+	M.visible_message(SPAN_NOTICE("[M] begins to fold up \the [src]."), SPAN_NOTICE("You start to fold and collapse closed \the [src]."))
+
+	if(!do_after(M, 2 SECONDS, INTERRUPT_ALL, BUSY_ICON_GENERIC))
+		to_chat(M, SPAN_NOTICE("You stop folding up \the [src]"))
+		return
+
+	fold(M)
+	M.visible_message(SPAN_NOTICE("[M] finishes folding \the [src]."), SPAN_NOTICE("You finish folding \the [src]."))
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/fold(mob/user)
+	var/obj/item/prop/folded_anti_tank_sadar/canc/F = new /obj/item/prop/folded_anti_tank_sadar/canc(src.loc)
+	transfer_label_component(F)
+	qdel(src)
+	user.put_in_active_hand(F)
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/reload()
+	to_chat(usr, SPAN_WARNING("You cannot reload \the [src]!"))
+	return
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/unload()
+	to_chat(usr, SPAN_WARNING("You cannot unload \the [src]!"))
+	return
+
+/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/handle_starting_attachment()
+
+//folded version of the canc sadar
+/obj/item/prop/folded_anti_tank_sadar/canc
+	name = "\improper PF-199 Anti-Tank RPG (folded)"
+	desc = "An PF-199 Anti-Tank RPG, compacted for easier storage. Can be unfolded with the Z key."
+	icon = 'icons/obj/items/weapons/guns/guns_by_faction/upp.dmi'
+	icon_state = "pf199_folded"
+	w_class = SIZE_MEDIUM
+	garbage = FALSE
+
+/obj/item/prop/folded_anti_tank_sadar/canc/attack_self(mob/user)
 	user.visible_message(SPAN_NOTICE("[user] begins to unfold \the [src]."), SPAN_NOTICE("You start to unfold and expand \the [src]."))
 	playsound(src, 'sound/items/component_pickup.ogg', 20, TRUE, 5)
 
@@ -351,8 +462,8 @@
 	playsound(src, 'sound/items/component_pickup.ogg', 20, TRUE, 5)
 	. = ..()
 
-/obj/item/prop/folded_anti_tank_sadar/proc/unfold(mob/user)
-	var/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/F = new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable(src.loc)
+/obj/item/prop/folded_anti_tank_sadar/canc/unfold(mob/user)
+	var/obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc/F = new /obj/item/weapon/gun/launcher/rocket/anti_tank/disposable/canc(src.loc)
 	transfer_label_component(F)
 	qdel(src)
 	user.put_in_active_hand(F)
@@ -410,7 +521,8 @@
 /obj/item/weapon/gun/launcher/rocket/upp/set_bullet_traits()
 	. = ..()
 	LAZYADD(traits_to_give, list(
-		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 10, GLOB.damage_boost_vehicles),
+		BULLET_TRAIT_ENTRY_ID("vehicles", /datum/element/bullet_trait_damage_boost, 100, GLOB.damage_boost_vehicles),
+		BULLET_TRAIT_ENTRY(/datum/element/bullet_trait_iff)
 	))
 
 /obj/item/weapon/gun/launcher/rocket/anti_air
@@ -577,4 +689,3 @@
 	playsound(loc,'sound/machines/click.ogg', 25, 1)
 	var/datum/action/item_action/toggle_aerial_targeting/TAT = locate(/datum/action/item_action/toggle_aerial_targeting) in actions
 	TAT.update_icon()
-

@@ -73,6 +73,20 @@
 
 	var/object_loc = equipment_map[object_type][object_ref]
 	var/obj/item/storage/storage_object = get_object_from_loc(object_loc)
+	if(object_ref.loc == tied_human)
+		equipped_items_original_loc[object_ref] = object_loc
+		RegisterSignal(object_ref, COMSIG_ITEM_DROPPED, PROC_REF(on_equipment_dropped), override = TRUE)
+		return tied_human.put_in_active_hand(object_ref)
+
+	if(!storage_object)
+		equipment_map[object_type] -= object_ref
+		equipped_items_original_loc -= object_ref
+		return
+
+	if(object_ref.loc != storage_object)
+		equipment_map[object_type] -= object_ref
+		equipped_items_original_loc -= object_ref
+		return
 
 	storage_object.remove_from_storage(object_ref, tied_human)
 	equipped_items_original_loc[object_ref] = object_loc
@@ -85,22 +99,45 @@
 	return (locate(object_path) in equipment_map[object_type])
 
 /datum/human_ai_brain/proc/store_item(obj/item/object_ref, object_loc, slot_type)
+	// SS220 EDIT - START: late AI store callbacks can outlive the held item, owner, or original storage slot
+	if(!has_valid_tied_human() || QDELETED(object_ref))
+		to_pickup -= object_ref
+		equipped_items_original_loc -= object_ref
+		if(slot_type)
+			equipment_map[slot_type] -= object_ref
+		return FALSE
+
 	if(object_ref.loc != tied_human)
-		return
+		to_pickup -= object_ref
+		equipped_items_original_loc -= object_ref
+		if(slot_type)
+			equipment_map[slot_type] -= object_ref
+		return FALSE
+
+	var/storage_loc = object_loc
+	var/obj/item/storage/storage_object
 
 	if(object_ref in equipped_items_original_loc)
-		var/obj/item/storage/storage_object = get_object_from_loc(equipped_items_original_loc[object_ref])
+		storage_loc = equipped_items_original_loc[object_ref]
+		storage_object = get_object_from_loc(storage_loc)
 		equipped_items_original_loc -= object_ref
-		storage_object.attempt_item_insertion(object_ref, FALSE, tied_human)
+	else if(storage_loc) // we assume that we've already checked if something will fit or not
+		storage_object = container_refs[storage_loc]
+
+	if(!storage_object || !storage_object.attempt_item_insertion(object_ref, FALSE, tied_human))
 		if(slot_type)
-			equipment_map[slot_type][object_ref] = object_loc
-	else if(object_loc) // we assume that we've already checked if something will fit or not
-		var/obj/item/storage/storage_item = container_refs[object_loc]
-		storage_item.attempt_item_insertion(object_ref, FALSE, tied_human)
-		if(slot_type)
-			equipment_map[slot_type][object_ref] = object_loc
+			equipment_map[slot_type] -= object_ref
+		if(tied_human.is_holding(object_ref))
+			tied_human.drop_held_item(object_ref)
+		to_pickup -= object_ref
+		return FALSE
+
+	if(slot_type)
+		equipment_map[slot_type][object_ref] = storage_loc
 
 	to_pickup -= object_ref
+	return TRUE
+	// SS220 EDIT - END
 
 /// Whenever an item is deleted, purge it from anywhere it may be stored in here
 /datum/human_ai_brain/proc/on_item_delete(obj/item/source, force)
@@ -108,6 +145,11 @@
 
 	UnregisterSignal(source, COMSIG_PARENT_QDELETING)
 	to_pickup -= source
+	if(source == active_grenade_found) // SS220 EDIT: purge deleted grenade threat refs immediately
+		active_grenade_found = null
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
+	equipped_items_original_loc -= source // SS220 EDIT: deleted held items must not keep stale original-slot tracking
 
 	for(var/name in container_refs)
 		if(source == container_refs[name])
@@ -123,6 +165,8 @@
 /datum/human_ai_brain/proc/on_item_equip(datum/source, obj/item/equipment, slot)
 	SIGNAL_HANDLER
 	to_pickup -= equipment
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	if((slot in important_storage_slots) && istype(equipment, /obj/item/storage))
 		recalculate_containers()
@@ -136,6 +180,8 @@
 
 /datum/human_ai_brain/proc/on_item_unequip(datum/source, obj/item/equipment, slot)
 	SIGNAL_HANDLER
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 	if((important_storage_slots_bitflag & slot) && istype(equipment, /obj/item/storage))
 		recalculate_containers()
@@ -357,16 +403,29 @@
 /datum/human_ai_brain/proc/on_item_pickup(datum/source, obj/item/picked_up)
 	SIGNAL_HANDLER
 
+	invalidate_halo_runtime_caches()
+
 	if(!primary_weapon && isgun(picked_up))
 		set_primary_weapon(picked_up)
 
 	to_pickup -= picked_up
+	if(picked_up == active_grenade_found) // SS220 EDIT: once someone holds the grenade, stop floor-threat gating
+		active_grenade_found = null
+	invalidate_nearby_item_search()
 
 /datum/human_ai_brain/proc/on_item_drop(datum/source, obj/item/dropped)
 	SIGNAL_HANDLER
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
+	if(iszombie(tied_human))
+		return
+
+	if(iszombie(tied_human))
+		return
 
 	if(dropped == primary_weapon)
-		if(!(gun_data.disposable && !primary_weapon.ai_can_use(tied_human, src)))
+		var/datum/firearm_appraisal/current_gun_data = gun_data
+		if(!(current_gun_data?.disposable && !primary_weapon.ai_can_use(tied_human, src)))
 			to_pickup |= dropped
 		set_primary_weapon(null)
 
@@ -386,6 +445,8 @@
 		UnregisterSignal(primary_weapon, COMSIG_PARENT_QDELETING)
 	primary_weapon = new_gun
 	appraise_primary()
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 	if(primary_weapon)
 		RegisterSignal(primary_weapon, COMSIG_PARENT_QDELETING, PROC_REF(on_primary_delete), TRUE)
 
@@ -394,6 +455,8 @@
 
 	set_primary_weapon(null)
 	to_pickup -= source
+	invalidate_nearby_item_search()
+	invalidate_halo_runtime_caches()
 
 /*datum/human_ai_brain/proc/set_primary_melee(obj/item/weapon/new_melee)
 	if(primary_melee)
@@ -409,6 +472,7 @@
 	set_primary_melee(null)*/
 
 /datum/human_ai_brain/proc/appraise_primary()
+	gun_data = null
 	if(!primary_weapon)
 		return
 	var/static/datum/firearm_appraisal/default = new()
@@ -421,6 +485,10 @@
 		gun_data = default
 
 /datum/human_ai_brain/proc/item_search(list/things_around)
+	// SS220 EDIT - START: grenade threat must come only from the current local scan, not from stale refs.
+	active_grenade_found = null
+	var/can_handle_live_grenade = !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
+	// SS220 EDIT - END
 	search_loop:
 		for(var/obj/item/thing in things_around)
 			if(!isturf(thing.loc))
@@ -433,9 +501,14 @@
 				var/obj/item/explosive/grenade/nade = thing
 				if(nade.active && (nade.fuse_type == IMPACT_FUSE))
 					return
-				else if(nade.active && (nade.fuse_type == TIMED_FUSE))
+				else if(nade.active && (nade.fuse_type == TIMED_FUSE) && can_handle_live_grenade) // SS220 EDIT: only enter throw-back mode if we can actually manipulate the grenade
 					active_grenade_found = thing
 					continue
+
+			// SS220 EDIT - START: ignore_looting must also suppress pickup candidates, not only the Item Pickup action.
+			if(ignore_looting)
+				continue
+			// SS220 EDIT - END
 
 			if(!primary_weapon && isgun(thing))
 				var/obj/item/weapon/gun/thing_gun = thing

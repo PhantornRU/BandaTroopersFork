@@ -469,6 +469,43 @@
 	default_ammo = /datum/ammo/bullet/rifle/holo_target/hunting
 	ammo_band_color = AMMO_BAND_COLOR_HOLOTARGETING
 
+//-------------------------------------------------------
+//R81M1 mags
+
+/obj/item/ammo_magazine/rifle/r81m1
+	name = "\improper R81M1 magazine (9x32mm)"
+	desc = "A 9x32mm high-velocity battle rifle magazine."
+	caliber = "9x32mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "fal"
+	bonus_overlay = "fal_overlay"
+	default_ammo = /datum/ammo/bullet/rifle/r81m1
+	max_rounds = 20
+	gun_type = /obj/item/weapon/gun/rifle/r81m1a
+	w_class = SIZE_MEDIUM
+	ammo_band_icon = "+fal_band"
+	ammo_band_icon_empty = "+fal_band_e"
+
+/obj/item/ammo_magazine/rifle/r81m1/ap
+	name = "\improper R81M1 AP magazine (9x32mm)"
+	desc = "A 9x32mm high-velocity battle rifle armor piercing magazine."
+	default_ammo = /datum/ammo/bullet/rifle/r81m1/ap
+	ammo_band_color = AMMO_BAND_COLOR_AP
+
+/obj/item/ammo_magazine/rifle/r81m1/hp
+	name = "\improper R81M1 HP magazine (9x32mm)"
+	desc = "A 9x32mm high-velocity battle rifle hollow point magazine."
+	default_ammo = /datum/ammo/bullet/rifle/r81m1/hp
+	ammo_band_color = AMMO_BAND_COLOR_HOLLOWPOINT
+
+/obj/item/ammo_magazine/rifle/r81m1/drum
+	name = "\improper R81M1D drum magazine (9x32mm)"
+	desc = "A 9x32mm high-velocity drum magazine."
+	icon_state = "fal_drum"
+	bonus_overlay = "fal_drum_overlay"
+	max_rounds = 80
+	gun_type = /obj/item/weapon/gun/rifle/r81m1a/m1d
+
 //M20A
 
 /obj/item/ammo_magazine/rifle/m20a
@@ -498,6 +535,12 @@
 	gun_type = /obj/item/weapon/gun/rifle/nsg23
 	ammo_band_icon = "+nsg23_band"
 	ammo_band_icon_empty = "+nsg23_band_e"
+
+// SS220 EDIT - START
+/obj/item/ammo_magazine/rifle/nsg23/extended
+	name = "\improper NSG 23 extended magazine (8.5x33mm)"
+	desc = "A high-capacity drum magazine designed to fit the NSG 23 & L23A1 assault rifles."
+// SS220 EDIT - END
 
 /obj/item/ammo_magazine/rifle/nsg23/ap
 	name = "\improper NSG 23 armor-piercing magazine (8.5x33mm)"
@@ -543,6 +586,43 @@
 	desc = "A magazine for the M707 \"Vulture\" anti-matieriel rifle. Contains up to 4 massively oversized <b>IFF-CAPABLE</b> holo-targeting rounds, which excel at marking heavy targets to be attacked by allied ground forces. The logistical requirements for such capabilities heavily hinder the performance and stopping power of this round."
 	default_ammo =  /datum/ammo/bullet/sniper/anti_materiel/vulture/holo_target
 	ammo_band_color = AMMO_BAND_COLOR_HOLOTARGETING
+
+/obj/item/ammo_magazine/rifle/boltaction/vulture/terror
+	name = "\improper M707 cursed magazine (20x102mm)"
+	desc = "A magazine for the M707 anti-matieriel rifle. Contains two... Something, inside."
+	default_ammo = /datum/ammo/xeno_container/king
+	max_rounds = 2
+
+/obj/item/ammo_magazine/rifle/boltaction/fr2
+	name = "\improper FR F20 magazine (10x50mm)"
+	desc = "A magazine for the FR F20 marksman rifle."
+	caliber = "10x55mm"
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "fr2"
+	default_ammo = /datum/ammo/bullet/sniper/fr2
+	max_rounds = 10
+	gun_type = /obj/item/weapon/gun/boltaction/fr2
+	w_class = SIZE_MEDIUM
+	ammo_band_icon = "+fr2_band"
+	ammo_band_icon_empty = "+fr2_band_e"
+
+/obj/item/ammo_magazine/rifle/boltaction/fr2/penetrating
+	name = "\improper FR F20 wall-penetration magazine (10x50mm)"
+	desc = "A wall-penetration magazine for the FR F20 marksman rifle."
+	default_ammo =  /datum/ammo/bullet/sniper/fr2/penetrating
+	ammo_band_color = AMMO_BAND_COLOR_PENETRATING
+
+/obj/item/ammo_magazine/rifle/boltaction/fr2/ap
+	name = "\improper FR F20 armor-piercing magazine (10x50mm)"
+	desc = "An AP magazine for the FR F20 marksman rifle."
+	default_ammo =  /datum/ammo/bullet/sniper/fr2/ap
+	ammo_band_color = AMMO_BAND_COLOR_AP
+
+/obj/item/ammo_magazine/rifle/boltaction/fr2/hp
+	name = "\improper FR F20 hollowpoint magazine (10x50mm)"
+	desc = "A hollowpoint magazine for the FR F20 marksman rifle."
+	default_ammo =  /datum/ammo/bullet/sniper/fr2/hp
+	ammo_band_color = AMMO_BAND_COLOR_HOLLOWPOINT
 
 //=ROYAL MARINES=\\
 
@@ -610,3 +690,62 @@
 	default_ammo = /datum/ammo/bullet/rifle/isr
 	max_rounds = 80
 	gun_type = /obj/item/weapon/gun/rifle/isr
+
+
+//------------------------------------------------------
+//FN107 Carbine
+
+/obj/item/ammo_magazine/rifle/fn107
+	name = "\improper CAMAS61/78 magazine (7.5x28mm)"
+	desc = "An 7.5mm magazine for the CAMAS61/78 Carbine, commonly used by FIL."
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "fn107"
+	item_state = "fn107"
+	w_class = SIZE_MEDIUM
+	default_ammo = /datum/ammo/bullet/rifle/fn107
+	max_rounds = 100
+	gun_type = /obj/item/weapon/gun/rifle/fn107
+
+/obj/item/ammo_magazine/rifle/fn107/commando
+	name = "\improper CAMAS61/78 AP Tracer magazine (7.5x28mm)"
+	desc = "An 7.5mm AP Tracer magazine for the CAMAS61/78 Carbine, commonly used by FIL."
+	default_ammo = /datum/ammo/bullet/rifle/fn107/commando
+	ammo_band_icon = "+fn107_band"
+	ammo_band_icon_empty = "+fn107_band_e"
+	ammo_band_color = AMMO_BAND_COLOR_AP
+
+//------------------------------------------------------
+//MASM55 Medium Machinegun
+
+/obj/item/ammo_magazine/rifle/masm
+	name = "\improper MASM55 box magazine (12x30mm)"
+	desc = "A large 12mm box magazine for the MASM55, commonly used by the FIL."
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "masm"
+	item_state = "masm"
+	w_class = SIZE_LARGE
+	default_ammo = /datum/ammo/bullet/rifle/masm
+	max_rounds = 120
+	gun_type = /obj/item/weapon/gun/rifle/masm55
+
+//------------------------------------------------------
+//FPSA DMR
+
+/obj/item/ammo_magazine/rifle/fpsa
+	name = "\improper FPSA/76 DMR magazine (7.5x50mm)"
+	desc = "A standard caseless magazine for the FPSA/76 Pulse DMR, often used by mercenary and french armed forces."
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/colony.dmi'
+	icon_state = "fpsa"
+	item_state = "fpsa"
+	w_class = SIZE_MEDIUM
+	default_ammo = /datum/ammo/bullet/rifle/fpsa
+	max_rounds = 40
+	gun_type = /obj/item/weapon/gun/rifle/fpsa
+
+/obj/item/ammo_magazine/rifle/fpsa/commando
+	name = "\improper FPSA/76 DMR AP Tracer magazine (7.5x50mm)"
+	desc = "A standard caseless AP tracer magazine for the FPSA/76 Pulse DMR, often used by FIL special forces."
+	default_ammo = /datum/ammo/bullet/rifle/fpsa/commando
+	ammo_band_icon = "+fpsa_band"
+	ammo_band_icon_empty = "+fpsa_band_e"
+	ammo_band_color = AMMO_BAND_COLOR_AP

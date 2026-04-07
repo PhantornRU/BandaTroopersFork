@@ -55,6 +55,8 @@
 	var/keybind = TRUE
 	/// Does this emote have a custom keybind category?
 	var/keybind_category = CATEGORY_EMOTE
+	/// Should this emote replace pronouns?
+	var/replace_pronouns = TRUE
 
 /datum/emote/New()
 	switch(mob_type_allowed_typecache)
@@ -87,7 +89,8 @@
 	if(params && message_param)
 		msg = select_param(user, params)
 
-	msg = replace_pronoun(user, msg)
+	if(replace_pronouns)
+		msg = replace_pronoun(user, msg)
 
 	if(say_message)
 		user.say(say_message)
@@ -120,10 +123,10 @@
 			if(ghost.client.prefs.toggles_chat & CHAT_GHOSTSIGHT && !(ghost in viewers(user_turf, null)))
 				ghost.show_message(formatted_message)
 	if(emote_type & EMOTE_AUDIBLE) //emote is audible
-		var/formatted_deaf_message = "<b>[paygrade][user]</b> [alt_message ? alt_message : key_third_person] silently."
+		var/formatted_deaf_message = "<b>[paygrade][user]</b> [alt_message ? alt_message : key_third_person], но вы ничего не слышите."
 		user.audible_message(formatted_message, deaf_message = formatted_deaf_message)
 	else if(emote_type & EMOTE_VISIBLE)	//emote is visible
-		user.visible_message(formatted_message, blind_message = SPAN_EMOTE("You see how <b>[user]</b> [msg]"))
+		user.visible_message(formatted_message, blind_message = SPAN_EMOTE("Вы видите, как <b>[user]</b> [msg]"))
 	if(emote_type & EMOTE_IMPORTANT)
 		for(var/mob/living/viewer in viewers())
 			if(is_blind(viewer) && isdeaf(viewer))
@@ -171,7 +174,10 @@
  * * group - The list of people that will see this emote being
  */
 /datum/emote/proc/run_langchat(mob/user, list/group)
-	user.langchat_speech(message, group, GLOB.all_languages, skip_language_check = TRUE, additional_styles = list("emote", "langchat_small"))
+	var/adjusted_message = message
+	if(replace_pronouns)
+		adjusted_message = replace_pronoun(user, message)
+	user.langchat_speech(adjusted_message, group, GLOB.all_languages, skip_language_check = TRUE, additional_styles = list("emote", "langchat_small"))
 
 /**
  * For handling emote cooldown, return true to allow the emote to happen.

@@ -10,12 +10,16 @@
 #define iszombie(A) (ishuman(A) && istype(A?:species, /datum/species/zombie))
 #define ismonkey(A) (ishuman(A) && istype(A?:species, /datum/species/monkey))
 #define isyautja(A) (ishuman(A) && istype(A?:species, /datum/species/yautja))
+#define issangheili(A) (ishuman(A) && istype(A?:species, /datum/species/sangheili)) // SS220 EDIT: HALO species helper
+#define isunggoy(A) (ishuman(A) && istype(A?:species, /datum/species/unggoy)) // SS220 EDIT: HALO species helper
 #define isresearcher(A) (ishuman(A) && A.job == "Researcher")
 #define isSEA(A) (ishuman(A) && A.job == "Senior Enlisted Advisor")
 #define issynth(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic))
 #define iscolonysynthetic(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/colonial))
 #define isworkingjoe(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/colonial/working_joe))
 #define ishazardjoe(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/colonial/working_joe/hazard))
+#define isuppjoe(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/colonial/working_joe/upp))
+#define iswydroid(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/colonial/wy_droid))
 #define isinfiltratorsynthetic(A) (ishuman(A) && istype(A?:species, /datum/species/synthetic/infiltrator))
 
 //Specic group checks, use instead of typechecks (but use traits instead)
@@ -24,6 +28,8 @@
 #define isspeciesmonkey(A) (A.species?.group == SPECIES_MONKEY)
 #define isspeciesyautja(A) (A.species?.group == SPECIES_YAUTJA)
 #define isspeciessynth(A) (A.species?.group == SPECIES_SYNTHETIC)
+#define isspeciessangheili(A) (A.species?.group == SPECIES_SANGHEILI) // SS220 EDIT: HALO species helper
+#define isspeciesunggoy(A) (A.species?.group == SPECIES_UNGGOY) // SS220 EDIT: HALO species helper
 
 //Size checks for carbon to use instead of typechecks. (Hellhounds are deprecated)
 #define iscarbonsizexeno(A) (A.mob_size >= MOB_SIZE_XENO_VERY_SMALL)

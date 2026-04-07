@@ -27,6 +27,11 @@ maps/**/backup
 __pycache__
 test_environment.txt
 .cache
+modular/__agents/.AI_AGENT/logs/
+
+#ALL_MAPS juke import files
+maps/templates_extra.dm
+maps/templates_base.dm
 
 #ALL_MAPS juke import files
 maps/templates_extra.dm
@@ -38,3 +43,8 @@ libprof.so
 
 # OpenDream compatibility stuff
 colonialmarines.json
+/.claude
+modular/__agents/.AI_AGENT/DECISIONS.md
+modular/__agents/.AI_AGENT/EVIDENCE.md
+modular/__agents/.AI_AGENT/PLAN.md
+modular/__agents/.AI_AGENT/TODO.md

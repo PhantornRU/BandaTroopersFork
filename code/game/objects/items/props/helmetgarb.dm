@@ -13,12 +13,12 @@
 
 /obj/item/prop/helmetgarb/gunoil
 	name = "gun oil"
-	desc = "It is a bottle of oil, for your gun. Don't fall for the rumors, the M41A is NOT a self-cleaning firearm."
+	desc = "Флакон специализированного масла. С темпом стрельбы серии MA5 и количеством пуль, нужных для уверенного поражения цели, морпехи расходуют это почти как магазины." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "gunoil"
 
 /obj/item/prop/helmetgarb/netting
 	name = "combat netting"
-	desc = "Probably combat netting for a helmet. Probably just an extra hairnet that got ordered for the phantom Almayer cooking staff. Probably useless."
+	desc = "Сетка, которую можно закрепить на шлеме для маскировки или переноски мелочей." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "netting"
 
 /obj/item/prop/helmetgarb/spent_buckshot
@@ -49,12 +49,12 @@
 
 /obj/item/prop/helmetgarb/raincover
 	name = "raincover"
-	desc = "The standard M10 combat helmet is already water-resistant at depths of up to 10 meters. This makes the top potentially water-proof. At least it's something."
+	desc = "Водонепроницаемая накидка, отводящая дождь от головы и позволяющая владельцу промокнуть чуть меньше." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "raincover"
 
 /obj/item/prop/helmetgarb/camocover
 	name = "jungle helmet cover"
-	desc = "A cover that goes over the top of an M10 pattern helmet to camoflauge it without needing the use of paints."
+	desc = "Эластичный чехол на шлем, помогающий подогнать его под палитру местности." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "camocover"
 
 /obj/item/prop/helmetgarb/camocover/snow
@@ -93,7 +93,7 @@
 
 /obj/item/prop/helmetgarb/lucky_feather/yellow
 	name = "\improper Yellow Lucky Feather"
-	desc = "It is an unyielding yellow color. They say the New Kansas colony produces more carpenters per capita than any other colony in all of UA controlled space."
+	desc = "Ярко-жёлтое перо. Возможно, канарейки. Если бы оно не было поддельным." // SS220 EDIT: HALO flavor migrated from modular late override
 	color = "yellow"
 
 #define NVG_SHAPE_COSMETIC 1
@@ -103,7 +103,7 @@
 
 /obj/item/prop/helmetgarb/helmet_nvg
 	name = "\improper M2 night vision goggles"
-	desc = "USCM standard M2 Night vision goggles for military operations. Requires a battery in order to work"
+	desc = "Улучшенная визуальная система для ночных операций." // SS220 EDIT: HALO flavor migrated from modular late override
 	icon_state = "nvg"
 	gender = PLURAL
 	garbage = FALSE
@@ -313,7 +313,7 @@
 
 	user.add_client_color_matrix("nvg", 99, color_matrix_multiply(color_matrix_saturation(0), color_matrix_from_string("#7aff7a")))
 	user.overlay_fullscreen("nvg", /atom/movable/screen/fullscreen/flash/noise/nvg)
-	user.overlay_fullscreen("nvg_blur", /atom/movable/screen/fullscreen/brute/nvg, 3)
+	//user.overlay_fullscreen("nvg_blur", /atom/movable/screen/fullscreen/brute/nvg, 3)
 	playsound(user, 'sound/handling/toggle_nv1.ogg', 25)
 	nightvision = TRUE
 	user.update_sight()
@@ -343,7 +343,7 @@
 	if(nightvision)
 		attached_mob.remove_client_color_matrix("nvg", 1 SECONDS)
 		attached_mob.clear_fullscreen("nvg", 0.5 SECONDS)
-		attached_mob.clear_fullscreen("nvg_blur", 0.5 SECONDS)
+		//attached_mob.clear_fullscreen("nvg_blur", 0.5 SECONDS)
 		playsound(attached_mob, 'sound/handling/toggle_nv2.ogg', 25)
 		nightvision = FALSE
 
@@ -406,9 +406,11 @@
 		to_chat(user, SPAN_WARNING("You cannot use \the [src] when they are hidden."))
 		return
 
+/*
 	if(user.client.view > 7 && shape != NVG_SHAPE_COSMETIC)
 		to_chat(user, SPAN_WARNING("You cannot use \the [src] while using optics."))
 		return
+*/
 
 	activated = !activated
 
@@ -438,7 +440,7 @@
 /obj/item/prop/helmetgarb/helmet_nvg/proc/change_view(mob/M, new_size)
 	SIGNAL_HANDLER
 
-	if(new_size > 7) // cannot use binos with NVG
+	if(new_size > 20)
 		toggle_nods(M)
 
 /obj/item/prop/helmetgarb/helmet_nvg/proc/break_nvg(mob/living/carbon/human/user, list/slashdata, mob/living/carbon/xenomorph/Xeno) //xenos can break NVG if aim head
@@ -460,7 +462,7 @@
 
 /obj/item/prop/helmetgarb/helmet_nvg/cosmetic //for "custom loadout", purely cosmetic
 	name = "old M2 night vision goggles"
-	desc = "This pair has been gutted of all electronics and therefore not working. But hey, they make you feel tacticool, and that's all that matters, right?"
+	desc = "Старая оболочка без начинки. Странный талисман, но и не самый странный." // SS220 EDIT: HALO flavor migrated from modular late override
 	shape = NVG_SHAPE_COSMETIC
 	garbage = TRUE
 
@@ -627,3 +629,15 @@
 	user.visible_message(SPAN_NOTICE("[user] squeezes a few drops into their eye."), SPAN_NOTICE("You squeeze a few drops into your eye."))
 	user.apply_effect(5, EYE_BLUR)
 	COOLDOWN_START(src, last_eye_drops, 2.5 SECONDS)
+
+/obj/item/prop/helmetgarb/rmc_platemask
+	name = "RMC 12 pattern platemask"
+	desc = "The complimentary, but not necessary platemask, attachable to Mk10 open combat helmets. Useful against shrapnel or just in the cold enviroment, but with enough force it will easily be ripped off."
+	icon_state = "rmc_platemask"
+	flags_obj = OBJ_NO_HELMET_BAND
+
+/obj/item/prop/helmetgarb/rmc_goggles
+	name = "RMC 14 pattern goggles"
+	desc = "The complimentary, but not necessary googles, attachable to Mk10 open combat helmets. An additional protection to the eyes, be it a cold wind, or a spit from a rioting civilian. It's a true talent to be able to see through them easily, without HUD visor."
+	icon_state = "rmc_goggles"
+	flags_obj = OBJ_NO_HELMET_BAND

@@ -140,10 +140,21 @@
 						break
 				serialized["icon"] = icon ? icon : "private"
 
+				// SS220 EDIT - START
+				// if(human.assigned_squad)
+				// 	serialized["background_color"] = human.assigned_squad.equipment_color ? human.assigned_squad.equipment_color : human.assigned_squad.minimap_color
+				// else
+				// 	serialized["background_color"] = human.assigned_equipment_preset?.minimap_background
+				var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
 				if(human.assigned_squad)
-					serialized["background_color"] = human.assigned_squad.equipment_color ? human.assigned_squad.equipment_color : human.assigned_squad.minimap_color
+					var/squad_color = human.assigned_squad.equipment_color ? human.assigned_squad.equipment_color : (human.assigned_squad.chat_color ? human.assigned_squad.chat_color : human.assigned_squad.minimap_color)
+					serialized["background_color"] = squad_color
+					serialized["squad_runtime"] = human.assigned_squad.name
+					serialized["squad_color"] = squad_color
+					serialized["squad_static"] = squad_name_manager ? squad_name_manager.get_static_name_by_squad(human.assigned_squad) : null
 				else
 					serialized["background_color"] = human.assigned_equipment_preset?.minimap_background
+				// SS220 EDIT - END
 
 				if(human.status_flags & XENO_HOST)
 					infected += list(serialized)
@@ -174,7 +185,7 @@
 					marshal += list(serialized)
 				else if(human.faction in FACTION_LIST_DUTCH)
 					dutch += list(serialized)
-				else if((human.faction in FACTION_LIST_UA) || (human.faction in FACTION_LIST_UNSC))
+				else if((human.faction in FACTION_LIST_UA) || should_group_non_ua_human_in_marines(human)) // SS220 EDIT: modular follow grouping may add extra military factions to Marines
 					marines += list(serialized)
 				else if(issurvivorjob(human.job))
 					survivors += list(serialized)
@@ -213,6 +224,9 @@
 	data["main_platoon_name"] = GLOB.main_platoon_name
 
 	return data
+
+/datum/orbit_menu/proc/should_group_non_ua_human_in_marines(mob/living/carbon/human/human)
+	return ss220_should_group_non_ua_human_in_marines(human) // SS220 EDIT: modular extension point for grouped non-UA military factions in Follow/Orbit
 
 /datum/orbit_menu/ui_assets(mob/user)
 	. = ..() || list()

@@ -18,11 +18,11 @@
 	new_human.set_species(SYNTH_GEN_THREE)
 
 /datum/equipment_preset/synth/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "David"
+	var/final_name = ss220_pick_synth_default_name() // SS220 EDIT: synth fallback names now come from explicit localized data
 	if(new_human.client && new_human.client.prefs)
 		final_name = new_human.client.prefs.synthetic_name
 		if(!final_name || final_name == "Undefined")
-			final_name = "David"
+			final_name = ss220_pick_synth_default_name() // SS220 EDIT: synth fallback names now come from explicit localized data
 	new_human.change_real_name(new_human, final_name)
 
 /datum/equipment_preset/synth/load_skills(mob/living/carbon/human/new_human)
@@ -405,12 +405,12 @@
 /datum/equipment_preset/synth/survivor/detective_synth
 	name = "Survivor - Synthetic - Detective Synth"
 	equipment_to_spawn = list(
-		WEAR_HEAD = /obj/item/clothing/head/det_hat,
+		WEAR_HEAD = /obj/item/clothing/head/fedora,
 		WEAR_EYES = /obj/item/clothing/glasses/sunglasses/sechud,
 		WEAR_BODY = /obj/item/clothing/under/det,
 		WEAR_BACK = /obj/item/storage/backpack/satchel/sec,
 		WEAR_IN_BACK = /obj/item/device/taperecorder,
-		WEAR_JACKET = /obj/item/clothing/suit/storage/det_suit/black,
+		WEAR_JACKET = /obj/item/clothing/suit/storage/CMB/trenchcoat,
 		WEAR_IN_JACKET = /obj/item/weapon/telebaton,
 		WEAR_WAIST = /obj/item/storage/belt/security/MP/full/synth,
 		WEAR_HANDS = /obj/item/clothing/gloves/black,
@@ -643,55 +643,47 @@
 	new_human.g_facial = 255
 	new_human.b_facial = 255
 
-/datum/equipment_preset/synth/working_joe/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Working Joe #[rand(100)][rand(100)]")
-
 /datum/equipment_preset/synth/working_joe/upp
-	name = "UPP Dzho Automaton"
-	flags = EQUIPMENT_PRESET_EXTRA
-	faction = FACTION_UPP
+	name = "Synthetic - Dzho Automaton"
+	assignment = JOB_UPP_JOE
+	rank = JOB_UPP_JOE
+	joe_type = SYNTH_UPP_JOE
+	idtype = /obj/item/card/id/dogtag
+	minimap_background = "background_upp"
+	skills = /datum/skills/dzho_automaton
 	faction_group = list(FACTION_UPP)
-	assignment = "Dzho Automaton"
+	faction = FACTION_UPP
+	languages = list(LANGUAGE_RUSSIAN, LANGUAGE_GERMAN, LANGUAGE_SPANISH, LANGUAGE_CHINESE, LANGUAGE_ENGLISH)
 
 /datum/equipment_preset/synth/working_joe/upp/load_gear(mob/living/carbon/human/new_human)
-	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/distress(new_human), WEAR_L_EAR)
-	var/random_overalls= rand(1,3)
-	switch(random_overalls)
-		if(1 to 2)
-			new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/apron/overalls/tan(new_human), WEAR_JACKET)
-		if(3)
-			new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/apron/overalls/red(new_human), WEAR_JACKET)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/colonist/boilersuit/white(new_human), WEAR_BODY)
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/joe(new_human), WEAR_FEET)
-	new_human.equip_to_slot_or_del(new /obj/item/tool/weldingtool/hugetank, WEAR_IN_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/rank/synthetic/upp_joe(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/jackboots(new_human), WEAR_FEET)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/lightpack/upp(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/gun/type47/np92(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/veteran, WEAR_HANDS)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/distress/UPP/cct(new_human), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/tools/tactical/upp/dzho(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/construction(new_human), WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/reagent_container/spray/cleaner, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/reagent_container/glass/bucket/janibucket, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/tool/mop, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/baton, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/restraint/handcuffs/zip, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/restraint/handcuffs/zip, WEAR_IN_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/device/lightreplacer(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/stack/sheet/metal/medium_stack(new_human), WEAR_IN_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/stack/sheet/glass/reinforced/medium_stack(new_human), WEAR_IN_R_STORE)
 
-	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/utility/full(new_human), WEAR_WAIST)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/etool(new_human), WEAR_L_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/tool/shovel/etool/upp/folded(new_human), WEAR_IN_L_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/general/medium(new_human), WEAR_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/device/lightreplacer(new_human.back), WEAR_IN_R_STORE)
-
-/datum/equipment_preset/synth/working_joe/upp/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Dzho Automaton #[rand(100)][rand(100)]")
+/datum/equipment_preset/synth/working_joe/upp/load_skills(mob/living/carbon/human/new_human)
+	. = ..()
+	new_human.allow_gun_usage = TRUE
 
 /datum/equipment_preset/synth/working_joe/upp/load_race(mob/living/carbon/human/new_human)
 	. = ..()
-	new_human.set_species(joe_type)
-	new_human.h_style = "Bald"
-	new_human.f_style = "Shaved"
-	if(prob(25))
-		new_human.grad_style = "None" //No gradients for Working Joes
-		new_human.h_style = "Shoulder-length Hair" //Added the chance of hair as per Monkeyfist lore accuracy
-	new_human.r_eyes = 0
-	new_human.g_eyes = 0
-	new_human.b_eyes = 0
-	new_human.r_hair = 100
-	new_human.g_hair = 88
-	new_human.b_hair = 74
-	new_human.r_facial = 255
-	new_human.g_facial = 255
-	new_human.b_facial = 255
+	new_human.bubble_icon = "syndibot"
 
+/datum/equipment_preset/synth/working_joe/load_name(mob/living/carbon/human/new_human, randomise)
+	new_human.change_real_name(new_human, ss220_build_working_joe_name(faction)) // SS220 EDIT: synth serial prefixes now come from explicit localized data
 //*****************************************************************************************************/
 
 /datum/equipment_preset/synth/survivor/cultist_synth
@@ -748,13 +740,9 @@
 
 
 /datum/equipment_preset/synth/survivor/midwife/load_name(mob/living/carbon/human/new_human, randomise)
-	var/final_name = "Midwife Joe"
+	var/final_name = ss220_pick_synth_midwife_prefix() // SS220 EDIT: synth title prefixes now come from explicit localized data
 	if(new_human.client && new_human.client.prefs)
-		final_name = new_human.client.prefs.synthetic_name
-		if(!final_name || final_name == "Undefined") //In case they don't have a name set or no prefs, there's a name.
-			final_name = "Midwife Joe"
-		else
-			final_name = "Midwife [new_human.real_name]"
+		final_name = ss220_build_midwife_synth_name(new_human.client.prefs.synthetic_name) // SS220 EDIT: build the displayed midwife title from explicit localized data
 	new_human.change_real_name(new_human, final_name)
 
 //*****************************************************************************************************/
@@ -902,7 +890,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/synth/working_joe/security_android/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Security Android #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, ss220_build_security_android_name()) // SS220 EDIT: synth serial prefixes now come from explicit localized data
 
 /datum/equipment_preset/synth/working_joe/upp/combat
 	name = "UPP Dzho Automaton - Combat"
@@ -945,7 +933,7 @@
 
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_name(mob/living/carbon/human/new_human, randomise)
-	new_human.change_real_name(new_human, "Dzho Automaton #[rand(100)][rand(100)]")
+	new_human.change_real_name(new_human, "[ss220_pick_synth_upp_joe_prefix()] #[rand(100)][rand(100)]") // SS220 EDIT: synth serial prefixes now come from explicit localized data
 
 /datum/equipment_preset/synth/working_joe/upp/combat/load_race(mob/living/carbon/human/new_human)
 	. = ..()
@@ -1140,9 +1128,9 @@
 	new_human.equip_to_slot_or_del(new /obj/item/tool/extinguisher/mini, WEAR_IN_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/device/healthanalyzer, WEAR_IN_ACCESSORY)
 	if(prob(45))
-		new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/pmc, WEAR_JACKET)
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/veteran/pmc, WEAR_JACKET)
 	else
-		new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/marine/veteran/pmc/light, WEAR_JACKET)
+		new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/veteran/pmc/light, WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/general_belt/rmc, WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine, WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/marine/rmc/knife, WEAR_FEET)

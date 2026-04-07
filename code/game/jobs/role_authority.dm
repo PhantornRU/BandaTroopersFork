@@ -42,6 +42,7 @@ GLOBAL_VAR_INIT(players_preassigned, 0)
 	/// List of mapped roles that should be used in place of usual ones
 	var/list/role_mappings
 	var/list/default_roles
+	var/list/ship_role_title_mappings_cache
 
 	var/list/unassigned_players
 	var/list/squads
@@ -279,25 +280,115 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 	return roles_to_assign
 
+/datum/authority/branch/role/proc/resolve_job_title(job_or_title)
+	if(isnull(job_or_title))
+		return null
+
+	if(istype(job_or_title, /datum/job))
+		var/datum/job/job_datum = job_or_title
+		return job_datum.title
+
+	if(ispath(job_or_title, /datum/job))
+		if(!islist(roles_by_path))
+			return null
+		var/datum/job/job_by_path = roles_by_path[job_or_title]
+		return job_by_path?.title
+
+	return job_or_title
+
+/datum/authority/branch/role/proc/get_default_role_title(job_title)
+	if(!job_title)
+		return null
+
+	// Preference buckets can be queried before mode-specific role mappings are populated.
+	if(!islist(default_roles))
+		return job_title
+
+	var/default_role = default_roles[job_title]
+	if(default_role)
+		return default_role
+
+	return job_title
+
+/datum/authority/branch/role/proc/get_ship_role_title_mappings()
+	if(!islist(roles_by_path))
+		return null
+
+	if(length(ship_role_title_mappings_cache))
+		return ship_role_title_mappings_cache
+
+	ship_role_title_mappings_cache = list()
+	for(var/platoon_type in get_known_ship_platoon_types())
+		var/list/profile = get_ship_platoon_profile(platoon_type)
+		var/list/role_mappings = profile?["role_mappings"]
+		if(!islist(role_mappings) || !length(role_mappings))
+			role_mappings = GLOB.platoon_to_jobs[platoon_type]
+		if(!islist(role_mappings))
+			continue
+
+		for(var/role_path in role_mappings)
+			var/datum/job/job_datum = roles_by_path[role_path]
+			if(!job_datum?.title)
+				continue
+			if(!(job_datum.title in ship_role_title_mappings_cache))
+				ship_role_title_mappings_cache[job_datum.title] = role_mappings[role_path]
+
+	return ship_role_title_mappings_cache
+
+/datum/authority/branch/role/proc/get_job_preference_bucket_key(job_or_title)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return null
+
+	var/default_role = get_default_role_title(job_title)
+	if(default_role != job_title)
+		return default_role
+
+	var/list/title_mappings = get_ship_role_title_mappings()
+	var/mapped_title = islist(title_mappings) ? title_mappings[job_title] : null
+	if(mapped_title)
+		return mapped_title
+
+	return job_title
+
+/datum/authority/branch/role/proc/get_active_role_title_for_preference_bucket(bucket_key, mode_name = GLOB.master_mode, datum/game_mode/mode_datum = SSticker.mode)
+	if(!bucket_key)
+		return null
+
+	var/list/active_role_titles = get_gamemode_role_titles(mode_name)
+	if(islist(active_role_titles))
+		for(var/role_title as anything in active_role_titles)
+			if(get_job_preference_bucket_key(role_title) == bucket_key)
+				return role_title
+
+	return bucket_key
+
 /datum/authority/branch/role/proc/assign_role_to_player_by_priority(mob/new_player/cycled_unassigned, list/roles_to_assign, list/unassigned_players, priority)
-	var/wanted_jobs_by_name = shuffle(cycled_unassigned.client.prefs.get_jobs_by_priority(priority))
+	var/wanted_role_buckets = shuffle(cycled_unassigned.client.prefs.get_jobs_by_priority(priority))
 	var/player_assigned_job = FALSE
 
-	for(var/job_name in wanted_jobs_by_name)
-		if(job_name in roles_to_assign)
+	for(var/role_bucket in wanted_role_buckets)
+		for(var/job_name in roles_to_assign)
+			if(get_job_preference_bucket_key(job_name) != role_bucket)
+				continue
+
 			var/datum/job/actual_job = roles_to_assign[job_name]
+			if(!assign_role(cycled_unassigned, actual_job))
+				continue
 
-			if(assign_role(cycled_unassigned, actual_job))
-				log_debug("ASSIGNMENT: We have assigned [job_name] to [cycled_unassigned] at priority [priority].")
-				cycled_unassigned.client.player_data?.adjust_stat(PLAYER_STAT_UNASSIGNED_ROUND_STREAK, STAT_CATEGORY_MISC, 0, TRUE)
-				unassigned_players -= cycled_unassigned
+			log_debug("ASSIGNMENT: We have assigned [job_name] to [cycled_unassigned] at priority [priority] via bucket [role_bucket].")
+			cycled_unassigned.client.player_data?.adjust_stat(PLAYER_STAT_UNASSIGNED_ROUND_STREAK, STAT_CATEGORY_MISC, 0, TRUE)
+			unassigned_players -= cycled_unassigned
 
-				if(actual_job.spawn_positions != -1 && actual_job.current_positions >= actual_job.spawn_positions)
-					roles_to_assign -= job_name
-					log_debug("ASSIGNMENT: We have ran out of slots for [job_name] and it has been removed from roles to assign.")
+			if(actual_job.spawn_positions != -1 && actual_job.current_positions >= actual_job.spawn_positions)
+				roles_to_assign -= job_name
+				log_debug("ASSIGNMENT: We have ran out of slots for [job_name] and it has been removed from roles to assign.")
 
-				player_assigned_job = TRUE
-				break
+			player_assigned_job = TRUE
+			break
+
+		if(player_assigned_job)
+			break
 
 	if(player_assigned_job)
 		return player_assigned_job
@@ -313,7 +404,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 /datum/authority/branch/role/proc/calculate_role_weight(datum/job/J)
 	if(!J)
 		return 0
-	if(GLOB.ROLES_MARINES.Find(J.title))
+	if(is_marine_equivalent_role(J.title, TRUE))
 		return 1
 	if(GLOB.ROLES_XENO.Find(J.title))
 		return 1
@@ -358,7 +449,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 //here is the main reason this proc exists - to remove freed squad jobs from squad,
 //so latejoining person ends in the squad which's job was freed and not random one
 	var/datum/squad/sq = null
-	if(GLOB.job_squad_roles.Find(J.title))
+	var/default_role = GET_DEFAULT_ROLE(J.title) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
+	if(GLOB.job_squad_roles.Find(default_role))
 		var/list/squad_list = list()
 		for(sq in GLOB.RoleAuthority.squads)
 			if(sq.usable)
@@ -367,7 +459,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		sq = input(user, "Select squad you want to free [J.title] slot from.", "Squad Selection")  as null|anything in squad_list
 		if(!sq)
 			return
-		switch(J.title)
+		switch(default_role)
 			if(JOB_SQUAD_ENGI)
 				if(sq.num_engineers > 0)
 					sq.num_engineers--
@@ -404,6 +496,20 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 				else
 					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
 					return
+			// SS220 EDIT - START
+			if(JOB_SQUAD_MARINE)
+				if(sq.num_riflemen > 0)
+					sq.num_riflemen--
+				else
+					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
+					return
+			if(JOB_SQUAD_RTO)
+				if(sq.num_rto > 0)
+					sq.num_rto--
+				else
+					to_chat(user, "There are no [J.title] slots occupied in [sq.name] Squad.")
+					return
+			// SS220 EDIT - END
 	J.current_positions--
 	message_admins("[key_name(user)] freed the [J.title] job slot[sq ? " in [sq.name] Squad" : ""].")
 	return 1
@@ -444,20 +550,27 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		job_whitelist = "[new_job.title][whitelist_status]"
 
 	new_human.job = new_job.title //TODO Why is this a mob variable at all?
+	// SS220 EDIT - START - mark real spawn for one-shot personal locker miss diagnostics
+	new_human.mark_personal_locker_spawn_context(late_join)
+	// SS220 EDIT - END
+
+	var/equip_preset = new_job.get_spawn_equip_preset(job_whitelist, src) // SS220 EDIT: effective spawn preset resolves through the shared job-owned helper
 
 	if(new_job.gear_preset_whitelist[job_whitelist])
-		arm_equipment(new_human, new_job.gear_preset_whitelist[job_whitelist], FALSE, TRUE, late_join = late_join)
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join)
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account, whitelist_status) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human, whitelist_status) //Do any other thing that relates to their spawn.
 	else
-		arm_equipment(new_human, new_job.gear_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
+		arm_equipment(new_human, equip_preset, FALSE, TRUE, late_join = late_join) //After we move them, we want to equip anything else they should have.
 		var/generated_account = new_job.generate_money_account(new_human)
 		new_job.announce_entry_message(new_human, generated_account) //Tell them their spawn info.
 		new_job.generate_entry_conditions(new_human) //Do any other thing that relates to their spawn.
 
 	if(new_job.flags_startup_parameters & ROLE_ADD_TO_SQUAD) //Are we a muhreen? Randomize our squad. This should go AFTER IDs. //TODO Robust this later.
 		randomize_squad(new_human)
+	else if(should_auto_assign_ship_family_squad(new_human.job))
+		randomize_squad(new_human) // SS220 EDIT: HALO ship-family command roles still need squad assignment even without ROLE_ADD_TO_SQUAD
 
 	if(Check_WO() && GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_human.job))) //activates self setting proc for marine headsets for WO
 		var/datum/game_mode/whiskey_outpost/WO = SSticker.mode
@@ -468,35 +581,84 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 		var/mob/living/carbon/human/human = new_human
 		if(human.assigned_squad)
 			assigned_squad = human.assigned_squad.name
+	var/list/spawn_candidate // SS220 EDIT: added modular spawn candidate (spawn_turf + preferred_pod)
 
 	if(isturf(late_join))
 		new_human.forceMove(late_join)
 	else if(late_join)
+		// SS220 EDIT - START - раундстарт для squad-ролей сначала использует модульный резолвер спавна
 		var/turf/late_join_turf
-		if(GLOB.latejoin_by_squad[assigned_squad])
-			late_join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
-		else if(GLOB.latejoin_by_job[new_job.title])
-			late_join_turf = get_turf(pick(GLOB.latejoin_by_job[new_job.title]))
+		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for latejoin resolver parity
+		var/use_modular_spawn_candidate = is_squad_role || new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: squad and intended non-squad roles resolve preferred latejoin pods through the modular resolver
+		// late_join_turf = new_human.get_modular_spawn_turf(new_job, TRUE)
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, TRUE)
+		late_join_turf = spawn_candidate?["spawn_turf"]
+		if(!late_join_turf)
+			// if(GLOB.latejoin_by_squad[assigned_squad])
+			// 	late_join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
+			// else if(GLOB.latejoin_by_job[new_job.title])
+			// 	late_join_turf = get_turf(pick(GLOB.latejoin_by_job[new_job.title]))
+			// else
+			// 	late_join_turf = get_turf(pick(GLOB.latejoin))
+			late_join_turf = get_modular_safe_latejoin_turf(new_job.title, assigned_squad) // SS220 EDIT: safe latejoin fallback skips empty buckets before global latejoin
+		// SS220 EDIT - END
+		if(!isturf(late_join_turf))
+			late_join_turf = get_turf(new_human) // SS220 EDIT: missing latejoin turf falls back to current turf instead of forceMove(null)
+		if(isturf(late_join_turf))
+			new_human.forceMove(late_join_turf)
 		else
-			late_join_turf = get_turf(pick(GLOB.latejoin))
-		new_human.forceMove(late_join_turf)
+			squads_debug_log("[new_human] failed to resolve latejoin spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing latejoin turf as logged fallback, not a runtime
 	else
 		var/turf/join_turf
-		if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])
-			join_turf = get_turf(pick(GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type]))
-		else if(GLOB.spawns_by_job[new_job.type])
-			join_turf = get_turf(pick(GLOB.spawns_by_job[new_job.type]))
-		else if(assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
-			join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
-		else
-			join_turf = get_turf(pick(GLOB.latejoin))
-		new_human.forceMove(join_turf)
+		// SS220 EDIT - START
+		// if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])
+		// 	join_turf = get_turf(pick(GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type]))
+		// else if(GLOB.spawns_by_job[new_job.type])
+		// 	join_turf = get_turf(pick(GLOB.spawns_by_job[new_job.type]))
+		// else if(assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
+		// 	join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
+		// else
+		// 	join_turf = get_turf(pick(GLOB.latejoin))
 
+		var/is_squad_role = GLOB.job_squad_roles.Find(GET_DEFAULT_ROLE(new_job.title)) // SS220 EDIT: extracted squad-role flag for roundstart fallback policy
+		var/use_modular_spawn_candidate = is_squad_role || new_job.uses_modular_job_landmark_spawn() // SS220 EDIT: modular job-landmark resolver stays opt-in for intended non-squad jobs
+		// join_turf = new_human.get_modular_spawn_turf(new_job, FALSE)
+		if(use_modular_spawn_candidate)
+			spawn_candidate = new_human.get_modular_spawn_candidate(new_job, FALSE) // SS220 EDIT: resolve modular spawn candidate before fallback
+		join_turf = spawn_candidate?["spawn_turf"]
+
+		if(!join_turf)
+			if(assigned_squad && GLOB.spawns_by_squad_and_job[assigned_squad] && GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type])
+				join_turf = get_turf(pick(GLOB.spawns_by_squad_and_job[assigned_squad][new_job.type]))
+			else if(GLOB.spawns_by_job[new_job.type])
+				join_turf = get_turf(pick(GLOB.spawns_by_job[new_job.type]))
+			// SS220 EDIT - START - roundstart fallback for squad roles excludes latejoin sources
+			// else if(assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
+			// 	join_turf = get_turf(pick(GLOB.latejoin_by_squad[assigned_squad]))
+			else if(!is_squad_role && assigned_squad && GLOB.latejoin_by_squad[assigned_squad])
+				join_turf = get_modular_safe_latejoin_turf(null, assigned_squad, FALSE) // SS220 EDIT: safe latejoin fallback skips empty squad buckets
+			// else
+			// 	join_turf = get_turf(pick(GLOB.latejoin))
+			else if(!is_squad_role)
+				join_turf = get_modular_safe_latejoin_turf(null, null, FALSE) // SS220 EDIT: safe latejoin fallback avoids pick(empty list)
+		// SS220 EDIT - END
+		if(!isturf(join_turf))
+			join_turf = get_turf(new_human) // SS220 EDIT: missing roundstart spawn turf falls back to current turf instead of forceMove(null)
+		if(isturf(join_turf))
+			new_human.forceMove(join_turf)
+		else
+			squads_debug_log("[new_human] failed to resolve roundstart spawn turf for job=[new_job.title].") // SS220 EDIT: keep missing spawn turf as logged fallback, not a runtime
+
+	/* SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021)
 	for(var/cardinal in GLOB.cardinals)
 		var/obj/structure/machinery/cryopod/pod = locate() in get_step(new_human, cardinal)
 		if(pod)
 			pod.go_in_cryopod(new_human, silent = TRUE)
 			break
+	*/
+	// new_human.try_enter_nearby_free_cryopod(new_job)
+	new_human.try_enter_nearby_free_cryopod(new_job, spawn_candidate?["preferred_pod"]) // SS220 EDIT: added preferred_pod from modular spawn candidate
 
 	new_human.sec_hud_set_ID()
 	new_human.hud_set_squad()
@@ -522,15 +684,25 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 	var/datum/squad/lowest = pick(mixed_squads)
 
-	var/datum/pref_squad_name
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+	var/pref_squad_name // SS220 EDIT: preferred squad is resolved via runtime squad name mapping
+	var/pref_static_name // SS220 EDIT: static name for comparison with squad type
 	if(H && H.client && H.client.prefs.preferred_squad && H.client.prefs.preferred_squad != "None")
 		pref_squad_name = H.client.prefs.preferred_squad
+		pref_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(pref_squad_name) : pref_squad_name // SS220 EDIT: mapped static preference to runtime squad name
+		pref_static_name = squad_name_manager ? squad_name_manager.get_static_name(pref_squad_name) : pref_squad_name // SS220 EDIT: get static name for type comparison
 
 	for(var/datum/squad/L in mixed_squads)
 		if(L.usable)
 			if(pref_squad_name && L.name == pref_squad_name)
 				lowest = L
 				break
+			// Дополнительно проверяем по статическому имени (для поддержки UNSC/ODST/USCM фракций)
+			if(pref_static_name)
+				var/squad_static_name = squad_name_manager ? squad_name_manager.get_static_name_for_squad(L) : L?.name
+				if(squad_static_name == pref_static_name)
+					lowest = L
+					break
 
 
 	if(!lowest)
@@ -566,12 +738,18 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	if(H.assigned_squad) //Wait, we already have a squad. Get outta here!
 		return
 
+	var/default_role = GET_DEFAULT_ROLE(H.job) // SS220 EDIT: map modular squad-role titles back to shared squad contracts
+	var/list/halo_family_types = get_halo_job_family_types(H.job)
+	var/datum/squad_name_manager/squad_name_manager = GLOB.squad_name_manager
+
 	//we make a list of squad that is randomized so alpha isn't always lowest squad.
 	var/list/squads_copy = squads.Copy()
 	var/list/mixed_squads = list()
 	// The following code removes non useable squads from the lists of squads we assign marines too.
 	for(var/i= 1 to length(squads_copy))
 		var/datum/squad/S = pick_n_take(squads_copy)
+		if(islist(halo_family_types) && length(halo_family_types) && !(S.type in halo_family_types))
+			continue
 		if (S.roundstart && S.usable && S.faction == H.faction && S.name != "Root")
 			mixed_squads += S
 
@@ -596,14 +774,15 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	//Non-standards are distributed regardless of squad population.
 	//If the number of available positions for the job are more than max_whatever, it will break.
 	//Ie. 8 squad medic jobs should be available, and total medics in squads should be 8.
-	if(H.job != JOB_SQUAD_MARINE && H.job != "Reinforcements")
+	if(/*H.job != JOB_SQUAD_MARINE &&*/ H.job != "Reinforcements") // SS220 EDIT: marines are also processed via role-limited branch
 		var/pref_squad_name
 		if(H && H.client && H.client.prefs.preferred_squad && H.client.prefs.preferred_squad != "None")
 			pref_squad_name = H.client.prefs.preferred_squad
+			pref_squad_name = squad_name_manager ? squad_name_manager.get_runtime_name(pref_squad_name) : pref_squad_name // SS220 EDIT: mapped static preference to runtime squad name
 
 		var/datum/squad/lowest
 
-		switch(H.job)
+		switch(default_role) // SS220 EDIT: squad assignment logic runs on canonical squad roles
 			if(JOB_SQUAD_ENGI)
 				for(var/datum/squad/S in mixed_squads)
 					if(S.usable && S.roundstart)
@@ -685,15 +864,38 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			if(JOB_SQUAD_RTO)
 				for(var/datum/squad/S in mixed_squads)
 					if(S.usable && S.roundstart)
+						if(!skip_limit && S.num_rto >= S.max_rto) continue // SS220 EDIT: added RTO limit check
 						if(pref_squad_name && S.name == pref_squad_name)
 							S.put_marine_in_squad(H) //fav squad has a spot for us.
 							return
 
 						if(!lowest)
 							lowest = S
+						else if(S.num_rto < lowest.num_rto) // SS220 EDIT: added RTO lowest-population balancing
+							lowest = S
+
+			// SS220 EDIT - START - SQUADS - Марины тоже ограничены
+			if(JOB_SQUAD_MARINE)
+				for(var/datum/squad/S in mixed_squads)
+					if(S.usable && S.roundstart)
+						if(!skip_limit && S.num_riflemen >= S.max_riflemen) continue
+						if(pref_squad_name && S.name == pref_squad_name)
+							S.put_marine_in_squad(H) //fav squad has a spot for us.
+							return
+
+						if(!lowest)
+							lowest = S
+						else if(S.num_riflemen < lowest.num_riflemen)
+							lowest = S
+			// SS220 EDIT - END - SQUADS - Марины тоже ограничены
+
 		if(!lowest)
-			var/ranpick = rand(1,4)
-			lowest = mixed_squads[ranpick]
+			// SS220 EDIT - START
+			// var/ranpick = rand(1,4)
+			// lowest = mixed_squads[ranpick]
+			if(length(mixed_squads))
+				lowest = pick(mixed_squads)
+			// SS220 EDIT - END
 		if(lowest) lowest.put_marine_in_squad(H)
 		else to_chat(H, "Something went badly with randomize_squad()! Tell a coder!")
 
@@ -756,6 +958,14 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 			M = /mob/living/carbon/xenomorph/king
 		if(RUNNER_ACIDER)
 			M = /mob/living/carbon/xenomorph/runner/acider
+		if(XENO_CASTE_WARRIOR_DRONE)
+			M = /mob/living/carbon/xenomorph/warrior_drone
+		// SS220 ADDITION Start - Arachnid
+		if(ARACHNID_CASTE_WARRIOR)
+			M = /mob/living/carbon/xenomorph/arachnid
+		if(ARACHNID_CASTE_BOMBARDIER)
+			M = /mob/living/carbon/xenomorph/arachnid/bombardier
+		// SS220 ADDITION End - Arachnid
 	return M
 
 
@@ -800,7 +1010,7 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 
 // returns TRUE if transfer_marine's role is at max capacity in the new squad
 /datum/authority/branch/role/proc/check_squad_capacity(mob/living/carbon/human/transfer_marine, datum/squad/new_squad)
-	switch(transfer_marine.job)
+	switch(GET_DEFAULT_ROLE(transfer_marine.job)) // SS220 EDIT: squad caps use canonical squad roles for modular variants
 		if(JOB_SQUAD_LEADER)
 			if(new_squad.num_leaders >= new_squad.max_leaders)
 				return TRUE

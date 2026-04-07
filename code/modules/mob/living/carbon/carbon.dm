@@ -231,7 +231,7 @@
 	if(wielded_item && wielded_item.zoom) //Adding this here while we're at it
 		wielded_item.zoom(src)
 	..()
-	if(hud_used.l_hand_hud_object && hud_used.r_hand_hud_object)
+	if(hud_used?.l_hand_hud_object && hud_used.r_hand_hud_object)
 		if(hand) //This being 1 means the left hand is in use
 			hud_used.l_hand_hud_object.icon_state = "hand_active"
 			hud_used.r_hand_hud_object.icon_state = "hand_inactive"
@@ -543,3 +543,33 @@
 		set_lying_angle(pick(90, 270))
 	else
 		set_lying_angle(new_lying_angle)
+
+///Used for shifting a target mob to the user. Use positive values. Proc will handle the direction. If no pixel_amount_y is given it will use pixel_amount_x
+/mob/living/carbon/proc/pixel_shift_target_mob(mob/target, pixel_amount_x, pixel_amount_y = null)
+	if(pixel_amount_y == null)
+		pixel_amount_y = pixel_amount_x
+	switch(get_dir(src, target))
+		if(NORTH)
+			target.pixel_y -= pixel_amount_y
+		if(EAST)
+			target.pixel_x -= pixel_amount_x
+		if(SOUTH)
+			target.pixel_y += pixel_amount_y
+		if(WEST)
+			target.pixel_x += pixel_amount_x
+		if(NORTHEAST)
+			target.pixel_x -= pixel_amount_x
+			target.pixel_y -= pixel_amount_y
+		if(NORTHWEST)
+			target.pixel_y -= pixel_amount_y
+			target.pixel_x += pixel_amount_x
+		if(SOUTHEAST)
+			target.pixel_y += pixel_amount_y
+			target.pixel_x -= pixel_amount_x
+		if(SOUTHWEST)
+			target.pixel_y += pixel_amount_y
+			target.pixel_x += pixel_amount_x
+
+/mob/living/carbon/proc/reset_pixel_shift()
+	src.pixel_y = 0
+	src.pixel_x = 0
