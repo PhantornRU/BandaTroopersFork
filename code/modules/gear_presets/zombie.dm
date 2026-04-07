@@ -1,6 +1,7 @@
 /datum/equipment_preset/zombie
 	name = "Zombie - Template do not use"
 	flags = EQUIPMENT_PRESET_EXTRA
+	expected_species = SPECIES_ZOMBIE
 	rank = FACTION_ZOMBIE
 	languages = list("Zombie")
 	skills = null //no restrictions

@@ -366,7 +366,9 @@
 	if(show_job_gear)
 		load_gear(new_human, mob_client)
 	load_status(new_human, mob_client)
-	INVOKE_NEXT_TICK(src, PROC_REF(do_vanity), new_human, mob_client)
+	reapply_expected_species_post_spawn(new_human)
+	// SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021): INVOKE_NEXT_TICK(src, PROC_REF(do_vanity), new_human, mob_client)
+	INVOKE_NEXT_TICK(src, PROC_REF(do_vanity), new_human, mob_client, late_join) // SS220 EDIT
 
 	load_traits(new_human, mob_client)
 	if(GLOB.round_statistics && count_participant)
@@ -389,7 +391,20 @@
 	if(ai_brain)
 		ai_brain.appraise_inventory()
 
-/datum/equipment_preset/proc/do_vanity(mob/living/carbon/human/new_human, client/mob_client)
+/datum/equipment_preset/proc/reapply_expected_species_post_spawn(mob/living/carbon/human/new_human)
+	if(!new_human || !expected_species)
+		return
+
+	var/datum/species/current_species = new_human.species
+	if(current_species?.group == expected_species || current_species?.name == expected_species)
+		if(expected_species == SPECIES_ZOMBIE)
+			current_species.handle_post_spawn(new_human)
+		return
+
+	new_human.set_species(expected_species)
+
+// SS220 REMOVE (e64bb63898, 2f8015c1f1, dac4758021): /datum/equipment_preset/proc/do_vanity(mob/living/carbon/human/new_human, client/mob_client)
+/datum/equipment_preset/proc/do_vanity(mob/living/carbon/human/new_human, client/mob_client, late_join = FALSE) // SS220 EDIT
 	var/turf/T = get_turf(new_human)
 	if(!T)
 		return
