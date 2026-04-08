@@ -1,9 +1,3 @@
-/proc/halo_normalize_vendor_scale(scale, vendor_tag)
-	if(isnull(scale) || scale < 1)
-		log_debug("HALO vendor scale clamp triggered for [vendor_tag] with scale=[isnull(scale) ? "null" : "[scale]"]")
-		return 1
-	return scale
-
 /obj/structure/machinery/cm_vending/sorted/marine_food/unsc
 	name = "military food dispenser"
 	desc = "Автоматизированная станция приготовления и выдачи пищи. Заранее подготавливает еду и напитки для персонала ККОН и автоматически очищает себя и возвращённые в неё подносы. Функцию самоочистки часто отключают, чтобы поддерживать дисциплину среди морпехов."
@@ -51,7 +45,6 @@
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/odst
 
 /obj/structure/machinery/cm_vending/sorted/medical/unsc/populate_product_list(scale)
-	scale = halo_normalize_vendor_scale(scale, "medical/unsc")
 	listed_products = list(
 		list("halo essential medical supplies", -1, null, null),
 		list("halo syringe", floor(scale * 7), /obj/item/reagent_container/syringe/halo, VENDOR_ITEM_MANDATORY),

@@ -4,7 +4,6 @@
 	name = "\improper Uniform Vendor"
 
 /obj/structure/machinery/cm_vending/sorted/uniform_supply/squad_prep/unsc/populate_product_list(scale)
-	scale = halo_normalize_vendor_scale(scale, "squad_prep/unsc_uniform")
 	listed_products = list(
 		list("СТАНДАРТНОЕ СНАРЯЖЕНИЕ", -1, null, null, null),
 		list("Боевые ботинки морпеха", floor(scale * 15), /obj/item/clothing/shoes/marine/knife, VENDOR_ITEM_REGULAR),
@@ -88,7 +87,6 @@
 	name = "\improper Squad Utilities Vendor"
 
 /obj/structure/machinery/cm_vending/sorted/cargo_guns/squad/unsc/populate_product_list(scale)
-	scale = halo_normalize_vendor_scale(scale, "squad_prep/unsc_utilities")
 	listed_products = list(
 		list("ЕДА", -1, null, null),
 		list("MRE", floor(scale * 5), /obj/item/storage/box/mre, VENDOR_ITEM_REGULAR),
@@ -142,7 +140,6 @@
 	name = "\improper ODST Uniform Vendor"
 
 /obj/structure/machinery/cm_vending/sorted/uniform_supply/squad_prep/unsc/odst/populate_product_list(scale)
-	scale = halo_normalize_vendor_scale(scale, "squad_prep/odst_uniform")
 	listed_products = list(
 		list("СТАНДАРТНОЕ СНАРЯЖЕНИЕ", -1, null, null, null),
 		list("Боевые ботинки ККОН", floor(scale * 15), /obj/item/clothing/shoes/marine/jungle/knife, VENDOR_ITEM_REGULAR),
@@ -210,7 +207,6 @@
 	name = "\improper ODST Squad Utilities Vendor"
 
 /obj/structure/machinery/cm_vending/sorted/cargo_guns/squad/unsc/odst/populate_product_list(scale)
-	scale = halo_normalize_vendor_scale(scale, "squad_prep/odst_utilities")
 	listed_products = list(
 		list("ЕДА", -1, null, null),
 		list("MRE", floor(scale * 5), /obj/item/storage/box/mre, VENDOR_ITEM_REGULAR),

@@ -34,9 +34,9 @@
 	new_human.age = rand(20,35)
 
 /datum/equipment_preset/unsc_crew/proc/get_shipboard_headset_type(command_role = FALSE)
-	var/active_ship_platoon = GLOB.RoleAuthority?.get_active_ship_platoon_type()
-	if(active_ship_platoon == /datum/squad/marine/halo/odst/alpha)
-		return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew/odst
+	var/headset_type = GLOB.RoleAuthority?.get_active_halo_shipboard_headset_type(assignment || rank)
+	if(headset_type)
+		return headset_type
 	return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew
 
 /datum/equipment_preset/unsc_crew/proc/equip_shipboard_headset(mob/living/carbon/human/new_human, command_role = FALSE)
