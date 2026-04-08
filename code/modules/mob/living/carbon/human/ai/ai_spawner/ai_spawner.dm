@@ -336,9 +336,7 @@
 						qdel(ai_human.head)
 						qdel(ai_human.glasses)
 						qdel(ai_human.wear_mask)
-					ai_human.ensure_zombie_claws()
-					if(!istype(ai_human.l_hand, /obj/item/weapon/zombie_claws) || !istype(ai_human.r_hand, /obj/item/weapon/zombie_claws))
-						log_debug("Zombie AI spawn claw validation failed for [ai_human] using preset [current_path] at [AREACOORD(ai_human)]")
+					ai_human.set_species(SPECIES_ZOMBIE)
 				// if(species != ai_human.species?.name) //might be redundant
 				if(species && species != ai_human.species?.name) // SS220 EDIT: skip empty overrides so preset species do not fall back to Human
 					ai_human.set_species(species)

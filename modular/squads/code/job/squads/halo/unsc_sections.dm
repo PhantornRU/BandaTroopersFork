@@ -1,11 +1,6 @@
-#ifndef UNSC_FREQ
-#define UNSC_FREQ 1501
-#endif
-
 /datum/squad/marine/halo/unsc/alpha
 	parent_type = /datum/squad/marine/alpha
 	faction = FACTION_UNSC
-	radio_freq = UNSC_FREQ
 	prepend_squad_name_to_assignment = FALSE
 	max_riflemen = 4
 	max_engineers = 0
@@ -19,7 +14,6 @@
 /datum/squad/marine/halo/unsc/bravo
 	parent_type = /datum/squad/marine/bravo
 	faction = FACTION_UNSC
-	radio_freq = UNSC_FREQ
 	prepend_squad_name_to_assignment = FALSE
 	active = TRUE
 	roundstart = TRUE
@@ -39,7 +33,6 @@
 /datum/squad/marine/halo/unsc/delta
 	parent_type = /datum/squad/marine/delta
 	faction = FACTION_UNSC
-	radio_freq = UNSC_FREQ
 	prepend_squad_name_to_assignment = FALSE
 	active = TRUE
 	roundstart = TRUE
@@ -59,7 +52,6 @@
 /datum/squad/marine/halo/unsc/charlie
 	parent_type = /datum/squad/marine/charlie
 	faction = FACTION_UNSC
-	radio_freq = UNSC_FREQ
 	prepend_squad_name_to_assignment = FALSE
 	active = TRUE
 	roundstart = TRUE

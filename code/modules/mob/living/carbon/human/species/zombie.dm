@@ -56,7 +56,10 @@
 	if(zombie.glasses) zombie.drop_inv_item_on_ground(zombie.glasses, FALSE, TRUE)
 	if(zombie.wear_mask) zombie.drop_inv_item_on_ground(zombie.wear_mask, FALSE, TRUE)
 
-	zombie.ensure_zombie_claws()
+	var/obj/item/weapon/zombie_claws/ZC = new(zombie)
+	ZC.icon_state = "claw_r"
+	zombie.equip_to_slot_or_del(ZC, WEAR_R_HAND, TRUE)
+	zombie.equip_to_slot_or_del(new /obj/item/weapon/zombie_claws(zombie), WEAR_L_HAND, TRUE)
 	zombie.equip_to_slot_or_del(new /obj/item/clothing/glasses/zombie_eyes(zombie), WEAR_EYES, TRUE)
 
 	var/datum/disease/black_goo/zombie_infection = locate() in zombie.viruses
@@ -66,23 +69,6 @@
 
 	var/datum/mob_hud/Hu = GLOB.huds[MOB_HUD_MEDICAL_OBSERVER]
 	Hu.add_hud_to(zombie, zombie)
-
-/mob/living/carbon/human/proc/ensure_zombie_claws()
-	if(!iszombie(src))
-		return
-
-	if(l_hand && !istype(l_hand, /obj/item/weapon/zombie_claws))
-		qdel(l_hand)
-	if(r_hand && !istype(r_hand, /obj/item/weapon/zombie_claws))
-		qdel(r_hand)
-
-	if(!istype(r_hand, /obj/item/weapon/zombie_claws))
-		var/obj/item/weapon/zombie_claws/right_claw = new(src)
-		right_claw.icon_state = "claw_r"
-		equip_to_slot_or_del(right_claw, WEAR_R_HAND, TRUE)
-
-	if(!istype(l_hand, /obj/item/weapon/zombie_claws))
-		equip_to_slot_or_del(new /obj/item/weapon/zombie_claws(src), WEAR_L_HAND, TRUE)
 
 
 

@@ -689,6 +689,7 @@
 /datum/unit_test/halo_ship_platoons_halo_medic_vendor_roles/Run()
 	var/obj/structure/machinery/cm_vending/clothing/medic/unsc/clothing_vendor = allocate(/obj/structure/machinery/cm_vending/clothing/medic/unsc, run_loc_floor_top_right)
 	var/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc/chemical_vendor = allocate(/obj/structure/machinery/cm_vending/gear/medic_chemical/unsc, run_loc_floor_top_right)
+	var/obj/structure/machinery/cm_vending/sorted/medical/unsc/medical_vendor = allocate(/obj/structure/machinery/cm_vending/sorted/medical/unsc, run_loc_floor_top_right)
 
 	TEST_ASSERT(clothing_vendor.vendor_role.Find(JOB_SQUAD_MEDIC), "HALO medic clothing vendor lost base medic access.")
 	TEST_ASSERT(clothing_vendor.vendor_role.Find(JOB_SQUAD_MEDIC_UNSC), "HALO medic clothing vendor does not accept UNSC corpsmen.")
@@ -705,6 +706,17 @@
 			break
 
 	TEST_ASSERT(has_biofoam, "HALO medic chemical vendor list no longer includes a biofoam medical bottle.")
+
+	medical_vendor.populate_product_list(0)
+	TEST_ASSERT(length(medical_vendor.listed_products) > 0, "HALO UNSC medical vendor produced an empty product list when scaled from zero.")
+
+	var/has_syringe = FALSE
+	for(var/list/entry as anything in medical_vendor.listed_products)
+		if(length(entry) >= 3 && entry[3] == /obj/item/reagent_container/syringe/halo)
+			has_syringe = TRUE
+			break
+
+	TEST_ASSERT(has_syringe, "HALO UNSC medical vendor lost its syringe stock after zero-scale normalization.")
 
 /datum/unit_test/halo_ship_platoons_halo_job_locker_claims
 	parent_type = /datum/unit_test/halo_integration_test
@@ -810,4 +822,58 @@
 
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(unsc_locker, /obj/item/clothing/under/marine/crew/command), 1, "The UNSC platoon commander locker should contain the HALO command uniform.")
 	TEST_ASSERT_EQUAL(count_personal_locker_contents_by_exact_type(odst_locker, /obj/item/clothing/under/marine/crew/command), 1, "The ODST platoon commander locker should contain the HALO command uniform.")
+
+/datum/unit_test/halo_ship_platoons/halo_unsc_crew_headsets_and_access
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/halo_unsc_crew_headsets_and_access/Run()
+	configure_test_ship_platoon(/datum/squad/marine/halo/unsc/alpha)
+
+	var/mob/living/carbon/human/crewman = create_test_human("HALO UNSC Crewman", JOB_UNSC_CREW)
+	arm_equipment(crewman, /datum/equipment_preset/unsc_crew/generic, FALSE, TRUE)
+	var/obj/item/device/radio/headset/crew_headset = crewman.get_type_in_ears(/obj/item/device/radio/headset)
+	TEST_ASSERT(istype(crew_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew), "HALO UNSC crewman did not receive the crew headset variant with squad channels.")
+	TEST_ASSERT(crew_headset.channels[SQUAD_MARINE_1], "HALO UNSC crewman headset does not expose squad channels.")
+	TEST_ASSERT(crew_headset.frequency == UNSC_FREQ, "HALO UNSC crewman headset lost the UNSC shipboard frequency.")
+
+	var/mob/living/carbon/human/captain = create_test_human("HALO UNSC Captain", JOB_UNSC_CREW_COM_CPT)
+	arm_equipment(captain, /datum/equipment_preset/unsc_crew/command/xo/cpt, FALSE, TRUE)
+	var/obj/item/device/radio/headset/captain_headset = captain.get_type_in_ears(/obj/item/device/radio/headset)
+	var/obj/item/card/id/captain_id = captain.get_idcard()
+	TEST_ASSERT(istype(captain_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command), "HALO UNSC captain did not receive the command-capable crew headset variant.")
+	TEST_ASSERT(captain_headset.channels[SQUAD_MARINE_1], "HALO UNSC captain headset does not expose squad channels.")
+	TEST_ASSERT(captain_headset.channels[RADIO_CHANNEL_COMMAND], "HALO UNSC captain headset lost command channel access.")
+	TEST_ASSERT(captain_id?.access.Find(ACCESS_MARINE_CO), "HALO UNSC captain lost ACCESS_MARINE_CO.")
+	TEST_ASSERT(captain_id?.access.Find(ACCESS_MARINE_DROPSHIP), "HALO UNSC captain lost dropship/weapons access.")
+
+	var/mob/living/carbon/human/flight_officer = create_test_human("HALO UNSC Flight Officer", JOB_UNSC_CREW_FLIGHT_CHIEF)
+	arm_equipment(flight_officer, /datum/equipment_preset/unsc_crew/flight/officer, FALSE, TRUE)
+	var/obj/item/device/radio/headset/flight_headset = flight_officer.get_type_in_ears(/obj/item/device/radio/headset)
+	var/obj/item/card/id/flight_id = flight_officer.get_idcard()
+	TEST_ASSERT(istype(flight_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command), "HALO UNSC flight officer did not receive the command-capable crew headset variant.")
+	TEST_ASSERT(flight_headset.channels[SQUAD_MARINE_1], "HALO UNSC flight officer headset does not expose squad channels.")
+	TEST_ASSERT(flight_id?.access.Find(ACCESS_MARINE_DROPSHIP), "HALO UNSC flight officer lost dropship access.")
+
+	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
+
+	var/mob/living/carbon/human/odst_captain = create_test_human("HALO ODST Captain", JOB_UNSC_CREW_COM_CPT)
+	arm_equipment(odst_captain, /datum/equipment_preset/unsc_crew/command/xo/cpt, FALSE, TRUE)
+	var/obj/item/device/radio/headset/odst_headset = odst_captain.get_type_in_ears(/obj/item/device/radio/headset)
+	TEST_ASSERT(istype(odst_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst), "HALO ODST ship profile did not swap shipboard command headset to the ODST variant.")
+	TEST_ASSERT(odst_headset.frequency == ODST_FREQ, "HALO ODST ship profile did not swap the shipboard command frequency to ODST.")
+
+/datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws
+	parent_type = /datum/unit_test/halo_integration_test
+
+/datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws/Run()
+	var/mob/living/carbon/human/zombie = create_test_human("HALO Zombie Spawn", JOB_SQUAD_MARINE)
+	arm_equipment(zombie, /datum/equipment_preset/zombie/generic, FALSE, TRUE)
+	zombie.strip_weapons()
+	var/obj/item/weapon/zombie_claws/right_claw = new(zombie)
+	right_claw.icon_state = "claw_r"
+	zombie.equip_to_slot_or_del(right_claw, WEAR_R_HAND, TRUE)
+	zombie.equip_to_slot_or_del(new /obj/item/weapon/zombie_claws(zombie), WEAR_L_HAND, TRUE)
+
+	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "Zombie left claw was lost after weapon stripping.")
+	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "Zombie right claw was lost after weapon stripping.")
 // SS220 EDIT - END

@@ -33,19 +33,17 @@
 	new_human.change_real_name(new_human, random_name)
 	new_human.age = rand(20,35)
 
-/proc/get_halo_shipboard_headset_type(command_role = FALSE)
+/datum/equipment_preset/unsc_crew/proc/get_shipboard_headset_type(command_role = FALSE)
 	var/active_ship_platoon = GLOB.RoleAuthority?.get_active_ship_platoon_type()
 	if(active_ship_platoon == /datum/squad/marine/halo/odst/alpha)
-		return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/odst : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/odst
-	if(active_ship_platoon && active_ship_platoon != /datum/squad/marine/halo/unsc/alpha)
-		log_debug("HALO shipboard headset fallback used for active platoon [active_ship_platoon]")
-	return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/pltco/unsc : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc
+		return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew/odst
+	return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew
 
-/mob/living/carbon/human/proc/halo_equip_shipboard_headset(command_role = FALSE)
-	var/headset_type = get_halo_shipboard_headset_type(command_role)
+/datum/equipment_preset/unsc_crew/proc/equip_shipboard_headset(mob/living/carbon/human/new_human, command_role = FALSE)
+	var/headset_type = get_shipboard_headset_type(command_role)
 	if(!headset_type)
 		return
-	equip_to_slot_or_del(new headset_type(src), WEAR_L_EAR)
+	new_human.equip_to_slot_or_del(new headset_type(new_human), WEAR_L_EAR)
 //*****************************************************************************************************/
 //    UNSC CREW PRESETS
 
@@ -67,7 +65,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew(new_human), WEAR_BODY)
 	//limbs
@@ -95,7 +93,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/engi(new_human), WEAR_BODY)
 	//waist
@@ -124,7 +122,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/extinguisher/mini(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/engi/officer(new_human), WEAR_BODY)
 	//waist
@@ -155,7 +153,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/flight(new_human), WEAR_BODY)
 	//waist
@@ -185,7 +183,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/extinguisher/mini(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/flight/officer(new_human), WEAR_BODY)
 	//waist
@@ -214,7 +212,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/operations(new_human), WEAR_BODY)
 	//limbs
@@ -240,7 +238,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/backpack/marine/satchel/unsc(new_human), WEAR_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/box/mre(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/operations/officer(new_human), WEAR_BODY)
 	//waist
@@ -271,7 +269,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/med(new_human), WEAR_BODY)
 	//waist
@@ -302,7 +300,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/tool/surgery/surgical_line(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/tool/surgery/synthgraft(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/med/officer(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/labcoat(new_human), WEAR_JACKET)
@@ -332,7 +330,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/command(new_human), WEAR_BODY)
 	//limbs
@@ -369,7 +367,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6g(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(TRUE)
+	src.equip_shipboard_headset(new_human, TRUE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/command(new_human), WEAR_BODY)
 	//waist
@@ -403,7 +401,7 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6c(new_human), WEAR_IN_BACK)
 	//face
-	new_human.halo_equip_shipboard_headset(FALSE)
+	src.equip_shipboard_headset(new_human, FALSE)
 	//uniform
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/crew/rnd(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/labcoat(new_human), WEAR_JACKET)
