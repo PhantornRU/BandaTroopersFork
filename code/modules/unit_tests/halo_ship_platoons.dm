@@ -901,7 +901,6 @@
 
 /datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws/Run()
 	var/mob/living/carbon/human/zombie = create_test_human("HALO Zombie Spawn", JOB_SQUAD_MARINE)
-	zombie.set_species(SPECIES_ZOMBIE)
 
 	var/obj/item/clothing/head/helmet/marine/helmet = allocate(/obj/item/clothing/head/helmet/marine, run_loc_floor_top_right)
 	var/obj/item/clothing/gloves/marine/gloves = allocate(/obj/item/clothing/gloves/marine, run_loc_floor_top_right)
@@ -913,7 +912,12 @@
 	zombie.equip_to_slot_or_del(sunglasses, WEAR_EYES, TRUE)
 	zombie.equip_to_slot_or_del(mask, WEAR_FACE, TRUE)
 
-	zombie.apply_zombie_ai_spawner_cleanup(TRUE)
+	zombie.strip_weapons()
+	qdel(zombie.gloves)
+	if(zombie.glasses && !istype(zombie.glasses, /obj/item/clothing/glasses/zombie_eyes))
+		qdel(zombie.glasses)
+	qdel(zombie.wear_mask)
+	zombie.set_species(SPECIES_ZOMBIE)
 
 	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "Zombie cleanup no longer restores the intrinsic left claw.")
 	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "Zombie cleanup no longer restores the intrinsic right claw.")
@@ -922,3 +926,6 @@
 	TEST_ASSERT_EQUAL(zombie.head, helmet, "Zombie cleanup should preserve existing outerwear when requested.")
 	TEST_ASSERT_NULL(zombie.gloves, "Zombie cleanup should strip gloves from Create AI zombies.")
 	TEST_ASSERT_NULL(zombie.wear_mask, "Zombie cleanup should strip masks from Create AI zombies.")
+	zombie.strip_weapons()
+	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "strip_weapons() should not remove zombie claws once the mob is already a zombie.")
+	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "strip_weapons() should not remove the right zombie claw once the mob is already a zombie.")

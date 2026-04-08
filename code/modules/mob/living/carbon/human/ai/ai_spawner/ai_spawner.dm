@@ -88,41 +88,6 @@
 	if(update_ui)
 		update_preset_list_now = TRUE
 
-/mob/living/carbon/human/proc/apply_zombie_ai_spawner_cleanup(keep_outer_wear = FALSE)
-	strip_weapons()
-
-	if(gloves)
-		qdel(gloves)
-	if(glasses)
-		qdel(glasses)
-	if(wear_mask)
-		qdel(wear_mask)
-
-	if(!keep_outer_wear)
-		if(head)
-			qdel(head)
-	else if(!head)
-		var/helmetpath = pick(
-			/obj/item/clothing/head/helmet/marine,
-			/obj/item/clothing/head/helmet/marine/reporter,
-			/obj/item/clothing/head/helmet/riot,
-			/obj/item/clothing/head/helmet/riot,
-			/obj/item/clothing/head/helmet/construction,
-			/obj/item/clothing/head/helmet/construction,
-			/obj/item/clothing/head/militia/bucket,
-			/obj/item/clothing/head/welding,
-			/obj/item/clothing/head/welding,
-			/obj/item/clothing/head/hardhat,
-			/obj/item/clothing/head/hardhat/dblue,
-			/obj/item/clothing/head/hardhat/red,
-			/obj/item/clothing/head/hardhat/white,
-		)
-		equip_to_slot_or_del(new helmetpath(src), WEAR_HEAD, TRUE)
-
-	var/datum/species/zombie/zombie_species = species
-	if(istype(zombie_species))
-		zombie_species.refresh_intrinsic_equipment(src)
-
 /datum/human_ai_spawner_menu/ui_data(mob/user)
 	var/list/data = list()
 	var/datum/equipment_preset/gotten_path = text2path(current_path)
@@ -341,9 +306,35 @@
 				if(paradrop)
 					ai_human.paradrop()
 				if(species == "Zombie") //setting species to zombie throws off all of these
-					if(ai_human.species?.name != SPECIES_ZOMBIE)
-						ai_human.set_species(SPECIES_ZOMBIE)
-					ai_human.apply_zombie_ai_spawner_cleanup(prob(zombie_outer_wear_chance) && zombie_outer_wear)
+					var/keep_outer_wear = prob(zombie_outer_wear_chance) && zombie_outer_wear
+					ai_human.strip_weapons()
+					if(!keep_outer_wear)
+						if(ai_human.head)
+							qdel(ai_human.head)
+					else if(!ai_human.head)
+						var/helmetpath = pick(
+							/obj/item/clothing/head/helmet/marine,
+							/obj/item/clothing/head/helmet/marine/reporter,
+							/obj/item/clothing/head/helmet/riot,
+							/obj/item/clothing/head/helmet/riot,
+							/obj/item/clothing/head/helmet/construction,
+							/obj/item/clothing/head/helmet/construction,
+							/obj/item/clothing/head/militia/bucket,
+							/obj/item/clothing/head/welding,
+							/obj/item/clothing/head/welding,
+							/obj/item/clothing/head/hardhat,
+							/obj/item/clothing/head/hardhat/dblue,
+							/obj/item/clothing/head/hardhat/red,
+							/obj/item/clothing/head/hardhat/white,
+						)
+						ai_human.equip_to_slot_or_del(new helmetpath(ai_human), WEAR_HEAD, TRUE)
+					if(ai_human.gloves)
+						qdel(ai_human.gloves)
+					if(ai_human.glasses && !istype(ai_human.glasses, /obj/item/clothing/glasses/zombie_eyes))
+						qdel(ai_human.glasses)
+					if(ai_human.wear_mask)
+						qdel(ai_human.wear_mask)
+					ai_human.set_species(SPECIES_ZOMBIE)
 				// if(species != ai_human.species?.name) //might be redundant
 				if(species && species != ai_human.species?.name) // SS220 EDIT: skip empty overrides so preset species do not fall back to Human
 					ai_human.set_species(species)
