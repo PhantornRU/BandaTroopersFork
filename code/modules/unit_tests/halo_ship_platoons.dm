@@ -157,6 +157,9 @@
 			human.assigned_squad = allocate(squad_type)
 	if(key_name)
 		human.key = key_name
+		var/player_ckey = ckey(key_name)
+		human.ckey = player_ckey
+		human.persistent_ckey = player_ckey
 
 /datum/unit_test/halo_equip_test/proc/prepare_test_human_for_squad(mob/living/carbon/human/human, preset_type = /datum/equipment_preset, preset_assignment = null)
 	var/datum/equipment_preset/preset = allocate(preset_type)
@@ -844,42 +847,54 @@
 
 	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
 	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO shipboard headset testing.")
-	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(JOB_UNSC_CREW), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew, "HALO UNSC crew roles no longer resolve to the shared crew headset type.")
-	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(JOB_UNSC_CREW_COM_CPT), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command, "HALO UNSC command roles no longer resolve to the shared command headset type.")
+	var/datum/equipment_preset/unsc_crew/generic/crew_preset = new
+	var/datum/equipment_preset/unsc_crew/command/xo/cpt/captain_preset = new
+	var/datum/equipment_preset/unsc_crew/flight/officer/flight_preset = new
+	var/crew_title = crew_preset.assignment || crew_preset.rank
+	var/captain_title = captain_preset.assignment || captain_preset.rank
+	var/flight_title = flight_preset.assignment || flight_preset.rank
+	var/crew_headset_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew
+	var/unsc_command_headset_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command
+	var/odst_command_headset_type = /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst
+	var/main_platoon_channel = GLOB.main_platoon_name
+	TEST_ASSERT_NOTNULL(main_platoon_channel, "HALO shipboard headset test could not resolve the active platoon channel label.")
 
-	var/mob/living/carbon/human/crewman = create_test_human("HALO UNSC Crewman", JOB_UNSC_CREW)
+	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(crew_title), crew_headset_type, "HALO UNSC crew roles no longer resolve to the shared crew headset type.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(captain_title), unsc_command_headset_type, "HALO UNSC command roles no longer resolve to the shared command headset type.")
+
+	var/mob/living/carbon/human/crewman = create_test_human("HALO UNSC Crewman", crew_title)
 	arm_equipment(crewman, /datum/equipment_preset/unsc_crew/generic, FALSE, TRUE)
 	var/obj/item/device/radio/headset/crew_headset = crewman.get_type_in_ears(/obj/item/device/radio/headset)
-	TEST_ASSERT(istype(crew_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew), "HALO UNSC crewman did not receive the crew headset variant with squad channels.")
-	TEST_ASSERT(crew_headset.channels[SQUAD_MARINE_1], "HALO UNSC crewman headset does not expose squad channels.")
-	TEST_ASSERT(crew_headset.frequency == UNSC_FREQ, "HALO UNSC crewman headset lost the UNSC shipboard frequency.")
+	TEST_ASSERT(istype(crew_headset, crew_headset_type), "HALO UNSC crewman did not receive the crew headset variant with squad channels.")
+	TEST_ASSERT(crew_headset.channels[main_platoon_channel], "HALO UNSC crewman headset does not expose the active platoon channel.")
+	TEST_ASSERT_EQUAL(crew_headset.frequency, 1501, "HALO UNSC crewman headset lost the expected UNSC shipboard frequency.")
 
-	var/mob/living/carbon/human/captain = create_test_human("HALO UNSC Captain", JOB_UNSC_CREW_COM_CPT)
+	var/mob/living/carbon/human/captain = create_test_human("HALO UNSC Captain", captain_title)
 	arm_equipment(captain, /datum/equipment_preset/unsc_crew/command/xo/cpt, FALSE, TRUE)
 	var/obj/item/device/radio/headset/captain_headset = captain.get_type_in_ears(/obj/item/device/radio/headset)
 	var/obj/item/card/id/captain_id = captain.get_idcard()
-	TEST_ASSERT(istype(captain_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command), "HALO UNSC captain did not receive the command-capable crew headset variant.")
-	TEST_ASSERT(captain_headset.channels[SQUAD_MARINE_1], "HALO UNSC captain headset does not expose squad channels.")
+	TEST_ASSERT(istype(captain_headset, unsc_command_headset_type), "HALO UNSC captain did not receive the command-capable crew headset variant.")
+	TEST_ASSERT(captain_headset.channels[main_platoon_channel], "HALO UNSC captain headset does not expose the active platoon channel.")
 	TEST_ASSERT(captain_headset.channels[RADIO_CHANNEL_COMMAND], "HALO UNSC captain headset lost command channel access.")
 	TEST_ASSERT(captain_id?.access.Find(ACCESS_MARINE_CO), "HALO UNSC captain lost ACCESS_MARINE_CO.")
 	TEST_ASSERT(captain_id?.access.Find(ACCESS_MARINE_DROPSHIP), "HALO UNSC captain lost dropship/weapons access.")
 
-	var/mob/living/carbon/human/flight_officer = create_test_human("HALO UNSC Flight Officer", JOB_UNSC_CREW_FLIGHT_CHIEF)
+	var/mob/living/carbon/human/flight_officer = create_test_human("HALO UNSC Flight Officer", flight_title)
 	arm_equipment(flight_officer, /datum/equipment_preset/unsc_crew/flight/officer, FALSE, TRUE)
 	var/obj/item/device/radio/headset/flight_headset = flight_officer.get_type_in_ears(/obj/item/device/radio/headset)
 	var/obj/item/card/id/flight_id = flight_officer.get_idcard()
-	TEST_ASSERT(istype(flight_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command), "HALO UNSC flight officer did not receive the command-capable crew headset variant.")
-	TEST_ASSERT(flight_headset.channels[SQUAD_MARINE_1], "HALO UNSC flight officer headset does not expose squad channels.")
+	TEST_ASSERT(istype(flight_headset, unsc_command_headset_type), "HALO UNSC flight officer did not receive the command-capable crew headset variant.")
+	TEST_ASSERT(flight_headset.channels[main_platoon_channel], "HALO UNSC flight officer headset does not expose the active platoon channel.")
 	TEST_ASSERT(flight_id?.access.Find(ACCESS_MARINE_DROPSHIP), "HALO UNSC flight officer lost dropship access.")
 
 	configure_test_ship_platoon(/datum/squad/marine/halo/odst/alpha)
-	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(JOB_UNSC_CREW_COM_CPT), /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst, "HALO ODST command roles no longer resolve to the shared ODST command headset type.")
+	TEST_ASSERT_EQUAL(role_authority.get_active_halo_shipboard_headset_type(captain_title), odst_command_headset_type, "HALO ODST command roles no longer resolve to the shared ODST command headset type.")
 
-	var/mob/living/carbon/human/odst_captain = create_test_human("HALO ODST Captain", JOB_UNSC_CREW_COM_CPT)
+	var/mob/living/carbon/human/odst_captain = create_test_human("HALO ODST Captain", captain_title)
 	arm_equipment(odst_captain, /datum/equipment_preset/unsc_crew/command/xo/cpt, FALSE, TRUE)
 	var/obj/item/device/radio/headset/odst_headset = odst_captain.get_type_in_ears(/obj/item/device/radio/headset)
-	TEST_ASSERT(istype(odst_headset, /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst), "HALO ODST ship profile did not swap shipboard command headset to the ODST variant.")
-	TEST_ASSERT(odst_headset.frequency == ODST_FREQ, "HALO ODST ship profile did not swap the shipboard command frequency to ODST.")
+	TEST_ASSERT(istype(odst_headset, odst_command_headset_type), "HALO ODST ship profile did not swap shipboard command headset to the ODST variant.")
+	TEST_ASSERT_EQUAL(odst_headset.frequency, 1503, "HALO ODST ship profile did not keep the expected ODST shipboard frequency.")
 
 /datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws
 	parent_type = /datum/unit_test/halo_integration_test
@@ -907,4 +922,3 @@
 	TEST_ASSERT_EQUAL(zombie.head, helmet, "Zombie cleanup should preserve existing outerwear when requested.")
 	TEST_ASSERT_NULL(zombie.gloves, "Zombie cleanup should strip gloves from Create AI zombies.")
 	TEST_ASSERT_NULL(zombie.wear_mask, "Zombie cleanup should strip masks from Create AI zombies.")
-// SS220 EDIT - END
