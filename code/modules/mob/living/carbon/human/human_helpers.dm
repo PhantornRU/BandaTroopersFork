@@ -495,8 +495,6 @@ f
 /mob/living/carbon/human/proc/strip_weapons()
 	var/obj/item_storage
 	for(var/obj/item/current_item in src.GetAllContents(3))
-		if(istype(current_item, /obj/item/weapon/zombie_claws))
-			continue
 		if(istype(current_item, /obj/item/ammo_magazine))
 
 			item_storage = current_item.loc
@@ -515,8 +513,6 @@ f
 			qdel(current_item)
 
 	for(var/obj/item/hand_item in hands)
-		if(istype(hand_item, /obj/item/weapon/zombie_claws))
-			continue
 		if(istype(hand_item, /obj/item/weapon))
 			qdel(hand_item)
 			continue

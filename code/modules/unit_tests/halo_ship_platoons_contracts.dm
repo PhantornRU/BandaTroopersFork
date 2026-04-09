@@ -14,6 +14,30 @@
 	assert_halo_bucket_mapping(JOB_SQUAD_MARINE_ODST, JOB_SQUAD_MARINE)
 	assert_halo_bucket_mapping(JOB_SO_UNSC, JOB_SO)
 
+/datum/unit_test/halo_ship_platoons_distress_roster_contract
+	parent_type = /datum/unit_test/halo_contract_test
+
+/datum/unit_test/halo_ship_platoons_distress_roster_contract/Run()
+	var/datum/authority/branch/role/role_authority = GLOB.RoleAuthority
+	TEST_ASSERT_NOTNULL(role_authority, "RoleAuthority was unavailable for HALO distress roster contract testing.")
+
+	var/datum/modular_ship_platoon_profile/halo/unsc/unsc_profile = role_authority.get_halo_ship_platoon_profile_datum(/datum/squad/marine/halo/unsc/alpha)
+	var/datum/modular_ship_platoon_profile/halo/odst/odst_profile = role_authority.get_halo_ship_platoon_profile_datum(/datum/squad/marine/halo/odst/alpha)
+	TEST_ASSERT_NOTNULL(unsc_profile, "Failed to resolve the HALO UNSC ship profile datum for distress roster testing.")
+	TEST_ASSERT_NOTNULL(odst_profile, "Failed to resolve the HALO ODST ship profile datum for distress roster testing.")
+
+	var/list/unsc_roles = unsc_profile.get_distress_roles()
+	var/list/odst_roles = odst_profile.get_distress_roles()
+	TEST_ASSERT(unsc_roles.Find(JOB_SO_UNSC), "HALO UNSC distress roster no longer exposes the HALO platoon commander role.")
+	TEST_ASSERT(unsc_roles.Find(JOB_SQUAD_MARINE_UNSC), "HALO UNSC distress roster no longer exposes the HALO rifleman role.")
+	TEST_ASSERT(!unsc_roles.Find(JOB_CO), "HALO UNSC distress roster regressed to the vanilla commanding-officer role.")
+	TEST_ASSERT(!unsc_roles.Find(JOB_CMO), "HALO UNSC distress roster regressed to vanilla medical command roles.")
+
+	TEST_ASSERT(odst_roles.Find(JOB_SO_ODST), "HALO ODST distress roster no longer exposes the HALO platoon commander role.")
+	TEST_ASSERT(odst_roles.Find(JOB_SQUAD_MARINE_ODST), "HALO ODST distress roster no longer exposes the HALO rifleman role.")
+	TEST_ASSERT(!odst_roles.Find(JOB_XO), "HALO ODST distress roster regressed to the vanilla executive-officer role.")
+	TEST_ASSERT(!odst_roles.Find(JOB_CHIEF_POLICE), "HALO ODST distress roster regressed to vanilla police command roles.")
+
 /datum/unit_test/halo_ship_platoons_spawn_preset_resolution
 	parent_type = /datum/unit_test/halo_contract_test
 

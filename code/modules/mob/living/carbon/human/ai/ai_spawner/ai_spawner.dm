@@ -293,21 +293,26 @@
 				arm_equipment(ai_human, gotten_path, randomise_appearance, FALSE, mob_client = ai_human.client)
 				var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
 				var/expected_species = assigned_preset?.expected_species
+				var/preset_spawns_zombie = istype(assigned_preset, /datum/equipment_preset/zombie)
+				var/create_ai_uses_native_zombie_preset = preset_spawns_zombie && (species == SPECIES_ZOMBIE)
 				if(expected_species && ai_human.species?.group != expected_species && ai_human.species?.name != expected_species) // SS220 EDIT: accept canonical HALO species ids through group as well as species.name
 					ai_human.set_species(expected_species)
 				if(selected_equipment == "No Weapons")
-					ai_human.strip_weapons()
+					if(!create_ai_uses_native_zombie_preset)
+						ai_human.strip_weapons()
 				else if(selected_equipment == "Birthday Suit")
-					ai_human.strip_all()
+					if(!create_ai_uses_native_zombie_preset)
+						ai_human.strip_all()
 
 				ai_human.face_dir(user.dir)
 				ai_human.forceMove(get_turf(object))
 
 				if(paradrop)
 					ai_human.paradrop()
-				if(species == "Zombie") //setting species to zombie throws off all of these
+				if(species == SPECIES_ZOMBIE) //setting species to zombie throws off all of these
 					var/keep_outer_wear = prob(zombie_outer_wear_chance) && zombie_outer_wear
-					ai_human.strip_weapons()
+					if(!create_ai_uses_native_zombie_preset)
+						ai_human.strip_weapons()
 					if(!keep_outer_wear)
 						if(ai_human.head)
 							qdel(ai_human.head)
@@ -334,7 +339,8 @@
 						qdel(ai_human.glasses)
 					if(ai_human.wear_mask)
 						qdel(ai_human.wear_mask)
-					ai_human.set_species(SPECIES_ZOMBIE)
+					if(!create_ai_uses_native_zombie_preset)
+						ai_human.set_species(SPECIES_ZOMBIE)
 				// if(species != ai_human.species?.name) //might be redundant
 				if(species && species != ai_human.species?.name) // SS220 EDIT: skip empty overrides so preset species do not fall back to Human
 					ai_human.set_species(species)

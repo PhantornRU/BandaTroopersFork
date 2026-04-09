@@ -926,6 +926,3 @@
 	TEST_ASSERT_EQUAL(zombie.head, helmet, "Zombie cleanup should preserve existing outerwear when requested.")
 	TEST_ASSERT_NULL(zombie.gloves, "Zombie cleanup should strip gloves from Create AI zombies.")
 	TEST_ASSERT_NULL(zombie.wear_mask, "Zombie cleanup should strip masks from Create AI zombies.")
-	zombie.strip_weapons()
-	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "strip_weapons() should not remove zombie claws once the mob is already a zombie.")
-	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "strip_weapons() should not remove the right zombie claw once the mob is already a zombie.")

@@ -24,7 +24,7 @@
 		/datum/job/marine/leader/ai/halo/unsc = JOB_SQUAD_LEADER,
 		/datum/job/marine/specialist/ai/halo/unsc = JOB_SQUAD_SPECIALIST,
 	)
-	distress_roles = (GLOB.ROLES_CIC - JOB_SO) + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + list(JOB_SO_UNSC) + JOB_HALO_UNSC_MARINES_LIST + GLOB.ROLES_GROUND
+	distress_roles = JOB_HALO_UNSC_SHIPSIDE_LIST + GLOB.ROLES_GROUND
 	lowpop_roles = list(JOB_SO_UNSC) + JOB_HALO_UNSC_MARINES_LIST
 	preview_presets = list(
 		JOB_SO = /datum/equipment_preset/unsc/platco/equipped,
@@ -114,7 +114,7 @@
 		/datum/job/marine/leader/ai/halo/odst = JOB_SQUAD_LEADER,
 		/datum/job/marine/specialist/ai/halo/odst = JOB_SQUAD_SPECIALIST,
 	)
-	distress_roles = (GLOB.ROLES_CIC - JOB_SO) + GLOB.ROLES_POLICE + GLOB.ROLES_AUXIL_SUPPORT + GLOB.ROLES_MISC + GLOB.ROLES_ENGINEERING + GLOB.ROLES_REQUISITION + GLOB.ROLES_MEDICAL + list(JOB_SO_ODST) + JOB_HALO_ODST_MARINES_LIST + GLOB.ROLES_GROUND
+	distress_roles = JOB_HALO_ODST_SHIPSIDE_LIST + GLOB.ROLES_GROUND
 	lowpop_roles = list(JOB_SO_ODST) + JOB_HALO_ODST_MARINES_LIST
 	preview_presets = list(
 		JOB_SO = /datum/equipment_preset/unsc/platco/odst/equipped,
