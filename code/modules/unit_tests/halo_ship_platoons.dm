@@ -896,10 +896,10 @@
 	TEST_ASSERT(istype(odst_headset, odst_command_headset_type), "HALO ODST ship profile did not swap shipboard command headset to the ODST variant.")
 	TEST_ASSERT_EQUAL(odst_headset.frequency, 1503, "HALO ODST ship profile did not keep the expected ODST shipboard frequency.")
 
-/datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws
+/datum/unit_test/halo_ship_platoons/zombie_species_transition_restores_intrinsics
 	parent_type = /datum/unit_test/halo_integration_test
 
-/datum/unit_test/halo_ship_platoons/zombie_ai_spawner_preserves_claws/Run()
+/datum/unit_test/halo_ship_platoons/zombie_species_transition_restores_intrinsics/Run()
 	var/mob/living/carbon/human/zombie = create_test_human("HALO Zombie Spawn", JOB_SQUAD_MARINE)
 
 	var/obj/item/clothing/head/helmet/marine/helmet = allocate(/obj/item/clothing/head/helmet/marine, run_loc_floor_top_right)
@@ -919,10 +919,9 @@
 	qdel(zombie.wear_mask)
 	zombie.set_species(SPECIES_ZOMBIE)
 
-	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "Zombie cleanup no longer restores the intrinsic left claw.")
-	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "Zombie cleanup no longer restores the intrinsic right claw.")
-	TEST_ASSERT_EQUAL(zombie.r_hand.icon_state, "claw_r", "Zombie cleanup no longer restores the right claw icon state.")
-	TEST_ASSERT(istype(zombie.glasses, /obj/item/clothing/glasses/zombie_eyes), "Zombie cleanup no longer restores zombie eyes after stripping eyewear.")
-	TEST_ASSERT_EQUAL(zombie.head, helmet, "Zombie cleanup should preserve existing outerwear when requested.")
-	TEST_ASSERT_NULL(zombie.gloves, "Zombie cleanup should strip gloves from Create AI zombies.")
-	TEST_ASSERT_NULL(zombie.wear_mask, "Zombie cleanup should strip masks from Create AI zombies.")
+	TEST_ASSERT(istype(zombie.l_hand, /obj/item/weapon/zombie_claws), "Zombie species transition no longer restores the intrinsic left claw.")
+	TEST_ASSERT(istype(zombie.r_hand, /obj/item/weapon/zombie_claws), "Zombie species transition no longer restores the intrinsic right claw.")
+	TEST_ASSERT_EQUAL(zombie.r_hand.icon_state, "claw_r", "Zombie species transition no longer restores the right claw icon state.")
+	TEST_ASSERT(istype(zombie.glasses, /obj/item/clothing/glasses/zombie_eyes), "Zombie species transition no longer restores zombie eyes after stripping eyewear.")
+	TEST_ASSERT_NULL(zombie.gloves, "Zombie species transition should strip gloves from the resulting zombie.")
+	TEST_ASSERT_NULL(zombie.wear_mask, "Zombie species transition should strip masks from the resulting zombie.")

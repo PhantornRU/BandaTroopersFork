@@ -28,6 +28,10 @@
 	unsc_human.faction = FACTION_UNSC
 	unsc_human.faction_group = list(FACTION_UNSC)
 	unsc_human.mind = new /datum/mind("halo_orbit_marine", "halo_orbit_marine")
+	var/mob/living/carbon/human/unsc_crew_human = create_test_human("UNSC Orbit Crew", JOB_UNSC_CREW, /datum/squad/marine/halo/unsc/alpha, run_loc_floor_bottom_right, "halo_orbit_crew")
+	unsc_crew_human.faction = FACTION_UNSC
+	unsc_crew_human.faction_group = list(FACTION_UNSC)
+	unsc_crew_human.mind = new /datum/mind("halo_orbit_crew", "halo_orbit_crew")
 
 	var/datum/orbit_menu/menu = new(observer)
 	TEST_ASSERT_NOTNULL(menu, "Failed to allocate the orbit menu for HALO grouping testing.")
@@ -37,19 +41,24 @@
 	var/list/humans = static_data["humans"]
 	var/list/npcs = static_data["npcs"]
 	var/target_ref = REF(unsc_human)
+	var/crew_ref = REF(unsc_crew_human)
 	var/list/marine_entry = null
 	var/list/human_entry = null
 	var/list/npc_entry = null
+	var/list/crew_marine_entry = null
+	var/list/crew_human_entry = null
 
 	for(var/list/entry as anything in marines)
 		if(entry["ref"] == target_ref)
 			marine_entry = entry
-			break
+		if(entry["ref"] == crew_ref)
+			crew_marine_entry = entry
 
 	for(var/list/entry as anything in humans)
 		if(entry["ref"] == target_ref)
 			human_entry = entry
-			break
+		if(entry["ref"] == crew_ref)
+			crew_human_entry = entry
 
 	for(var/list/entry as anything in npcs)
 		if(entry["ref"] == target_ref)
@@ -62,5 +71,7 @@
 	TEST_ASSERT_NULL(npc_entry, "HALO UNSC marine-equivalent roles incorrectly fall back to the NPC orbit section.")
 	TEST_ASSERT_EQUAL(marine_entry["squad_static"], "Alpha", "HALO orbit grouping no longer exports the static squad marker for marine-equivalent roles.")
 	TEST_ASSERT_EQUAL(marine_entry["squad_runtime"], unsc_human.assigned_squad?.name, "HALO orbit grouping no longer exports the runtime squad name for marine-equivalent roles.")
+	TEST_ASSERT_NULL(crew_marine_entry, "HALO shipboard crew with a squad assignment should not be promoted into the marine orbit section.")
+	TEST_ASSERT_NOTNULL(crew_human_entry, "HALO shipboard crew with a squad assignment should remain in the generic human orbit section.")
 
 	qdel(menu)
