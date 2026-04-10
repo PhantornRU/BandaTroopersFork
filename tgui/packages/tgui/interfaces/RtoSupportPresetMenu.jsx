@@ -255,7 +255,7 @@ export const RtoSupportPresetMenu = () => {
                   вернёт обычный КД.
                 </NoticeBox>
               )}
-              {selectedCount >= Math.min(2, maxSelectedTemplates) && (
+              {selectedCount > 1 && (
                 <NoticeBox mt={1}>
                   Выбрано несколько пакетов: для боевых шаблонов действует
                   обычный кулдаун сектора без solo-бонуса.
