@@ -3,6 +3,11 @@
 	var/snapshot_support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	var/snapshot_rto_shared_cooldown_multiplier
 	var/snapshot_rto_personal_cooldown_multiplier
+	var/snapshot_rto_support_resource_mode
+	var/snapshot_rto_charge_recharge_enabled
+	var/snapshot_rto_charge_recharge_multiplier
+	var/snapshot_rto_charge_capacity_multiplier
+	var/snapshot_rto_charge_manual_only
 	var/snapshot_rto_template_slot_count
 	var/snapshot_rto_template_reset_minutes
 	var/snapshot_fire_support_enabled
@@ -27,6 +32,11 @@
 	snapshot_support_underground_enabled = rules.support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	snapshot_rto_shared_cooldown_multiplier = rules.rto_shared_cooldown_multiplier
 	snapshot_rto_personal_cooldown_multiplier = rules.rto_personal_cooldown_multiplier
+	snapshot_rto_support_resource_mode = rules.rto_support_resource_mode
+	snapshot_rto_charge_recharge_enabled = rules.rto_charge_recharge_enabled
+	snapshot_rto_charge_recharge_multiplier = rules.rto_charge_recharge_multiplier
+	snapshot_rto_charge_capacity_multiplier = rules.rto_charge_capacity_multiplier
+	snapshot_rto_charge_manual_only = rules.rto_charge_manual_only
 	snapshot_rto_template_slot_count = rules.rto_template_slot_count
 	snapshot_rto_template_reset_minutes = rules.rto_template_reset_minutes
 	snapshot_fire_support_enabled = rules.fire_support_enabled
@@ -52,6 +62,11 @@
 	rules.support_underground_enabled = snapshot_support_underground_enabled // SS220 EDIT: restore the BT underground-support rule after each test
 	rules.rto_shared_cooldown_multiplier = snapshot_rto_shared_cooldown_multiplier
 	rules.rto_personal_cooldown_multiplier = snapshot_rto_personal_cooldown_multiplier
+	rules.rto_support_resource_mode = snapshot_rto_support_resource_mode
+	rules.rto_charge_recharge_enabled = snapshot_rto_charge_recharge_enabled
+	rules.rto_charge_recharge_multiplier = snapshot_rto_charge_recharge_multiplier
+	rules.rto_charge_capacity_multiplier = snapshot_rto_charge_capacity_multiplier
+	rules.rto_charge_manual_only = snapshot_rto_charge_manual_only
 	rules.rto_template_slot_count = snapshot_rto_template_slot_count
 	rules.rto_template_reset_minutes = snapshot_rto_template_reset_minutes
 	rules.fire_support_enabled = snapshot_fire_support_enabled
@@ -138,6 +153,32 @@
 	TEST_ASSERT_EQUAL(controller.shared_cooldowns_by_template["mortar"], previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
 	TEST_ASSERT_EQUAL(controller.action_cooldowns[action_template.action_id], previous_personal_until, "Existing personal cooldown was recalculated after multiplier change.")
 
+/datum/unit_test/game_rule_panel_rto_charge_rules
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_charge_rules/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_rto_rules()
+	TEST_ASSERT_EQUAL(rules.get_rto_support_resource_mode(), "charges", "Reset RTO rules did not restore the default support resource mode.")
+	TEST_ASSERT(rules.rto_charge_recharge_enabled, "Reset RTO rules did not restore charge auto-recharge.")
+	TEST_ASSERT_EQUAL(rules.get_rto_charge_recharge_multiplier(), 1, "Reset RTO rules did not restore the default recharge multiplier.")
+	TEST_ASSERT_EQUAL(rules.get_rto_charge_capacity_multiplier(), 1, "Reset RTO rules did not restore the default capacity multiplier.")
+	TEST_ASSERT(!rules.rto_charge_manual_only, "Reset RTO rules did not restore manual-only mode to disabled.")
+
+	rules.rto_support_resource_mode = "legacy_cooldown"
+	rules.rto_charge_recharge_enabled = FALSE
+	rules.rto_charge_recharge_multiplier = 2
+	rules.rto_charge_capacity_multiplier = 3
+	rules.rto_charge_manual_only = TRUE
+
+	rules.reset_rto_rules()
+
+	TEST_ASSERT_EQUAL(rules.get_rto_support_resource_mode(), "charges", "RTO charge mode did not reset to charges.")
+	TEST_ASSERT(rules.rto_charge_recharge_enabled, "Charge auto-recharge did not reset to enabled.")
+	TEST_ASSERT_EQUAL(rules.get_rto_charge_recharge_multiplier(), 1, "Charge recharge multiplier did not reset to one.")
+	TEST_ASSERT_EQUAL(rules.get_rto_charge_capacity_multiplier(), 1, "Charge capacity multiplier did not reset to one.")
+	TEST_ASSERT(!rules.rto_charge_manual_only, "Manual-only charge mode did not reset to disabled.")
+
 /datum/unit_test/game_rule_panel_rto_selection_rules
 	parent_type = /datum/unit_test/game_rule_panel
 
@@ -167,6 +208,60 @@
 	TEST_ASSERT_EQUAL(controller.get_selection_reset_delay_minutes(), 5, "Controller did not refresh the reset delay after a rules update.")
 	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 2, "Controller did not trim excess packages after the slot cap was lowered.")
 	TEST_ASSERT_EQUAL(controller.selection_reset_available_at - controller.selection_started_at, 5 MINUTES, "Controller did not recalculate the active reset timer after the delay changed.")
+
+/datum/unit_test/game_rule_panel_rto_live_charge_admin
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_live_charge_admin/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/datum/rto_support_registry/registry = GLOB.rto_support_registry
+	rules.reset_rto_rules()
+	registry.clear_controllers()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	human.ckey = "charge_admin_target"
+	human.real_name = "Charge Admin Target"
+
+	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
+	var/datum/rto_support_template/unit_test_charges/template = allocate(/datum/rto_support_template/unit_test_charges)
+	controller.selected_templates = list(template)
+	controller.apply_support_pool_rules_update()
+
+	var/list/admin_rows = rules.build_active_rto_charge_admin_data()
+	TEST_ASSERT_EQUAL(length(admin_rows), 1, "Game Rule Panel should expose one active RTO controller in the live charge admin table.")
+	var/list/admin_row = admin_rows[1]
+	TEST_ASSERT_EQUAL(admin_row["ckey"], "charge_admin_target", "Game Rule Panel live RTO data should expose the owner's ckey.")
+	TEST_ASSERT_EQUAL(admin_row["name"], "Charge Admin Target", "Game Rule Panel live RTO data should expose the owner's display name.")
+	TEST_ASSERT_EQUAL(length(admin_row["pools"]), 1, "Game Rule Panel live RTO data should expose the synthetic charge pool.")
+	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by ckey for Game Rule Panel actions.")
+
+	TEST_ASSERT(controller.set_template_pool_current_charges(template.template_id, 1, "gm_alpha"), "GM current-charge override should succeed for an active RTO pool.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 1, "GM current-charge override did not update the live charge pool.")
+	TEST_ASSERT(controller.adjust_template_pool_current_charges(template.template_id, 2, "gm_alpha"), "GM charge grant should succeed for an active RTO pool.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 3, "GM charge grant did not update the live charge pool.")
+	TEST_ASSERT(controller.set_template_pool_capacity(template.template_id, 5, "gm_alpha"), "GM capacity override should succeed for an active RTO pool.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_capacity(template), 5, "GM capacity override did not update the live charge pool capacity.")
+	TEST_ASSERT(controller.set_template_pool_auto_recharge(template.template_id, FALSE, "gm_alpha"), "GM auto-recharge override should succeed for an active RTO pool.")
+	TEST_ASSERT(!controller.is_support_pool_auto_recharge_enabled(template), "GM auto-recharge override did not disable auto-refill for the active pool.")
+	TEST_ASSERT(controller.set_template_pool_manual_only(template.template_id, TRUE, "gm_alpha"), "GM manual-only override should succeed for an active RTO pool.")
+	TEST_ASSERT(controller.is_support_pool_manual_only(template), "GM manual-only override did not mark the active pool as manual-only.")
+	TEST_ASSERT(controller.refill_all_template_pools("gm_alpha"), "GM refill-all action should succeed for the active RTO controller.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 5, "GM refill-all action did not top the pool up to its overridden capacity.")
+	TEST_ASSERT(controller.empty_all_template_pools("gm_alpha"), "GM empty-all action should succeed for the active RTO controller.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 0, "GM empty-all action did not drain the pool.")
+	TEST_ASSERT(controller.reset_template_pool_to_defaults(template.template_id, "gm_alpha"), "GM pool reset should succeed for the active RTO pool.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 3, "GM pool reset did not restore the default starting charges.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_capacity(template), 3, "GM pool reset did not clear the overridden capacity.")
+	TEST_ASSERT(controller.is_support_pool_auto_recharge_enabled(template), "GM pool reset did not restore the default auto-recharge mode.")
+	TEST_ASSERT(!controller.is_support_pool_manual_only(template), "GM pool reset did not clear manual-only mode.")
+
+	var/list/refreshed_rows = rules.build_active_rto_charge_admin_data()
+	var/list/refreshed_row = refreshed_rows[1]
+	var/list/refreshed_pool = refreshed_row["pools"][1]
+	TEST_ASSERT_EQUAL(refreshed_pool["current_charges"], 3, "Refreshed live RTO data did not report the restored charge count.")
+	TEST_ASSERT_EQUAL(refreshed_pool["capacity"], 3, "Refreshed live RTO data did not report the restored pool capacity.")
+	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], "gm_alpha", "Refreshed live RTO data did not keep the last GM editor attribution.")
 
 // SS220 EDIT - START: cover BT underground-support defaults and reset behavior
 /datum/unit_test/game_rule_panel_underground_support_defaults

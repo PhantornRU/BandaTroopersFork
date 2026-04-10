@@ -14,6 +14,12 @@
 	parent_type = /datum/rto_support_template/halo
 	template_id = "halo_logistics"
 	name = "HALO Logistics"
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 2
+	support_pool_starting_charges = 2
+	support_pool_recharge_interval = 180 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
 	description = "UNSC-only HALO logistics package built around frontline ammunition resupply."
 	role_summary = "Calls down tailored HALO ammo crates for riflemen, marksmen, breachers, heavy weapons specialists and grenadiers."
 	targeting_summary = "No visibility zone required: arm a HALO support drop and designate an open landing point with RTO binoculars."

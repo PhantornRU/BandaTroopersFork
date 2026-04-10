@@ -31,6 +31,17 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	controllers -= human
 	return null
 
+/datum/rto_support_registry/proc/get_active_controllers()
+	var/list/active_controllers = list()
+	if(!length(controllers))
+		return active_controllers
+	for(var/mob/living/carbon/human/human as anything in controllers.Copy())
+		var/datum/rto_support_controller/controller = get_controller(human)
+		if(!controller)
+			continue
+		active_controllers += controller
+	return active_controllers
+
 /// Ensures a controller exists for a human.
 /datum/rto_support_registry/proc/ensure_controller(mob/living/carbon/human/human)
 	if(!human || QDELETED(human))
@@ -104,6 +115,23 @@ GLOBAL_DATUM_INIT(rto_support_registry, /datum/rto_support_registry, new)
 	if(!length(template_by_id))
 		initialize_template_catalog()
 	return template_by_id[template_id]
+
+/datum/rto_support_registry/proc/find_controller_by_ckey(target_ckey)
+	var/safe_ckey = ckey(target_ckey)
+	if(!length(safe_ckey))
+		return null
+	for(var/datum/rto_support_controller/controller as anything in get_active_controllers())
+		if(controller?.get_owner_ckey() == safe_ckey)
+			return controller
+	return null
+
+/datum/rto_support_registry/proc/build_active_rto_charge_admin_data()
+	var/list/data = list()
+	for(var/datum/rto_support_controller/controller as anything in get_active_controllers())
+		var/list/entry = controller.build_admin_charge_data()
+		if(entry)
+			data += list(entry)
+	return data
 
 /datum/rto_support_registry/proc/propagate_rules_update()
 	if(!length(controllers))

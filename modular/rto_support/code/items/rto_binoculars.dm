@@ -126,6 +126,27 @@
 		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
 	. += SPAN_NOTICE("Лимит слотов пакетов: [max_selected_templates]. Полный сброс становится доступен через [reset_delay_minutes] мин. от первого выбора.")
 
+	for(var/datum/rto_support_template/template as anything in selected_templates)
+		if(!controller.template_uses_support_pool(template))
+			continue
+
+		var/current_charges = controller.get_support_pool_current_charges(template)
+		var/capacity = controller.get_support_pool_capacity(template)
+		var/next_recharge_in = controller.get_support_pool_next_recharge_in(template)
+
+		if(controller.is_support_pool_manual_only(template))
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], пополнение только вручную.")
+			continue
+
+		if(!controller.is_support_pool_auto_recharge_enabled(template))
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], автопополнение отключено.")
+			continue
+
+		if(next_recharge_in > 0 && current_charges < capacity)
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], следующее пополнение через [round(next_recharge_in / 10)] сек.")
+		else
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity].")
+
 	if(length(selected_templates) == 1)
 		var/datum/rto_support_template/solo_template = selected_templates[1]
 		if(controller.uses_single_template_zone_discount(solo_template))

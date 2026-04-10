@@ -34,6 +34,27 @@
 			TEST_ASSERT_EQUAL(action_template.personal_cooldown, expected_personal_cooldown, "[template.template_id] action [action_id] no longer uses the expected personal cooldown.")
 		TEST_ASSERT(!action_template.allow_closed_turf, "[template.template_id] action [action_id] should keep requiring open turf.")
 
+/datum/unit_test/proc/assert_template_charge_pool(datum/rto_support_template/template, expected_capacity, expected_starting_charges = null, expected_recharge_interval = null, expected_recharge_amount = 1)
+	if(isnull(expected_starting_charges))
+		expected_starting_charges = expected_capacity
+	TEST_ASSERT_EQUAL(template.support_resource_mode, RTO_SUPPORT_RESOURCE_MODE_CHARGES, "[template.template_id] should use the charge resource model.")
+	TEST_ASSERT_EQUAL(template.support_pool_capacity, expected_capacity, "[template.template_id] drifted from its expected charge capacity.")
+	TEST_ASSERT_EQUAL(template.support_pool_starting_charges, expected_starting_charges, "[template.template_id] drifted from its expected starting charges.")
+	if(!isnull(expected_recharge_interval))
+		TEST_ASSERT_EQUAL(template.support_pool_recharge_interval, expected_recharge_interval, "[template.template_id] drifted from its expected recharge interval.")
+	TEST_ASSERT_EQUAL(template.support_pool_recharge_amount, expected_recharge_amount, "[template.template_id] drifted from its expected recharge amount.")
+	TEST_ASSERT(template.support_pool_auto_recharge, "[template.template_id] should keep auto-recharge enabled by default.")
+
+/datum/unit_test/proc/assert_action_charge_values(datum/rto_support_action_template/action_template, expected_cost, expected_lockout, label)
+	TEST_ASSERT_NOTNULL(action_template, "[label] is missing its action template.")
+	TEST_ASSERT_EQUAL(action_template.support_pool_cost, expected_cost, "[label] drifted from its expected charge cost.")
+	TEST_ASSERT_EQUAL(action_template.personal_lockout, expected_lockout, "[label] drifted from its expected local lockout.")
+
+/datum/unit_test/proc/assert_template_charge_actions(datum/rto_support_template/template, list/expected_values)
+	for(var/action_id in expected_values)
+		var/list/expected = expected_values[action_id]
+		assert_action_charge_values(template.get_action_template(action_id), expected[1], expected[2], "[template.template_id] action [action_id]")
+
 /datum/unit_test/proc/assert_expected_templates(datum/rto_support_controller/controller, list/expected_template_ids, label)
 	var/list/actual_template_ids = list()
 	for(var/datum/rto_support_template/template as anything in controller.get_available_templates())
@@ -62,6 +83,49 @@
 		if(istype(trait, /datum/character_trait/skills/spotter))
 			return
 	TEST_FAIL("[label] should keep the spotter trait after loadout application.")
+
+/datum/rto_support_action_template/unit_test_charge_light
+	action_id = "unit_test_charge_light"
+	name = "Charge light"
+	description = "Unit test light call."
+	fire_support_path = /datum/fire_support/supply_drop
+	requires_visibility_zone = FALSE
+	allow_closed_turf = FALSE
+	support_pool_cost = 1
+	personal_lockout = 2 SECONDS
+
+/datum/rto_support_action_template/unit_test_charge_heavy
+	action_id = "unit_test_charge_heavy"
+	name = "Charge heavy"
+	description = "Unit test heavy call."
+	fire_support_path = /datum/fire_support/supply_drop
+	requires_visibility_zone = FALSE
+	allow_closed_turf = FALSE
+	support_pool_cost = 3
+	personal_lockout = 4 SECONDS
+
+/datum/rto_support_template/unit_test_charges
+	template_id = "unit_test_charges"
+	name = "Unit Test Charges"
+	description = "Synthetic charge-based template for runtime tests."
+	role_summary = "Unit test package."
+	targeting_summary = "No sector required."
+	requires_visibility_zone = FALSE
+	visibility_zone_name = ""
+	visibility_zone_type = ""
+	visibility_zone_radius = 0
+	visibility_zone_duration = 0
+	visibility_zone_cooldown = 0
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 3
+	support_pool_starting_charges = 3
+	support_pool_recharge_interval = 30 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
+	action_template_types = list(
+		/datum/rto_support_action_template/unit_test_charge_light,
+		/datum/rto_support_action_template/unit_test_charge_heavy,
+	)
 
 /datum/unit_test/halo_support_template_availability
 
@@ -160,6 +224,16 @@
 		"halo_spnkr_ammo_drop" = /datum/fire_support/supply_drop/halo/spnkr,
 		"halo_grenadier_ammo_drop" = /datum/fire_support/supply_drop/halo/grenadier,
 	), 240 SECONDS, 600 SECONDS)
+	assert_template_charge_pool(logistics_template, 2, 2, 180 SECONDS, 1)
+	assert_template_charge_actions(logistics_template, list(
+		"halo_rifle_ammo_drop" = list(1, 600 SECONDS),
+		"halo_marksman_ammo_drop" = list(1, 600 SECONDS),
+		"halo_pdw_ammo_drop" = list(1, 600 SECONDS),
+		"halo_shotgun_ammo_drop" = list(1, 600 SECONDS),
+		"halo_sniper_ammo_drop" = list(1, 600 SECONDS),
+		"halo_spnkr_ammo_drop" = list(1, 600 SECONDS),
+		"halo_grenadier_ammo_drop" = list(1, 600 SECONDS),
+	))
 
 	var/datum/rto_support_template/halo_medical/medical_template = allocate(/datum/rto_support_template/halo_medical)
 	assert_template_actions(medical_template, list(
@@ -167,6 +241,12 @@
 		"halo_corpsman_kit_drop" = /datum/fire_support/supply_drop/halo/corpsman_kit,
 		"halo_biofoam_reserve_drop" = /datum/fire_support/supply_drop/halo/biofoam_reserve,
 	), 240 SECONDS, 600 SECONDS)
+	assert_template_charge_pool(medical_template, 2, 2, 180 SECONDS, 1)
+	assert_template_charge_actions(medical_template, list(
+		"halo_medical_packets_drop" = list(1, 600 SECONDS),
+		"halo_corpsman_kit_drop" = list(1, 600 SECONDS),
+		"halo_biofoam_reserve_drop" = list(1, 600 SECONDS),
+	))
 
 	var/datum/rto_support_template/halo_technical/technical_template = allocate(/datum/rto_support_template/halo_technical)
 	var/list/technical_action_templates = technical_template.get_action_templates()
@@ -180,8 +260,18 @@
 		"halo_recon_drop" = /datum/fire_support/supply_drop/halo/recon,
 		"halo_rto_command_drop" = /datum/fire_support/supply_drop/halo/rto_command,
 	))
+	assert_template_charge_pool(technical_template, 2, 2, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(technical_template.get_action_template("halo_toolbox_drop").shared_cooldown, 360 SECONDS, "HALO engineering-derived technical drops should keep doubled engineering shared cooldowns.")
 	TEST_ASSERT_EQUAL(technical_template.get_action_template("halo_signal_drop").shared_cooldown, 240 SECONDS, "HALO command-derived technical drops should keep doubled command shared cooldowns.")
+	assert_template_charge_actions(technical_template, list(
+		"halo_toolbox_drop" = list(2, 780 SECONDS),
+		"halo_fortification_drop" = list(2, 780 SECONDS),
+		"halo_breaching_drop" = list(2, 780 SECONDS),
+		"halo_vehicle_service_drop" = list(2, 780 SECONDS),
+		"halo_signal_drop" = list(1, 600 SECONDS),
+		"halo_recon_drop" = list(1, 600 SECONDS),
+		"halo_rto_command_drop" = list(1, 600 SECONDS),
+	))
 
 	var/datum/rto_support_template/logistics/uscm_logistics_template = allocate(/datum/rto_support_template/logistics)
 	assert_template_actions(uscm_logistics_template, list(
@@ -192,9 +282,18 @@
 		"logistics_grenade_drop" = /datum/fire_support/supply_drop/grenade_crate,
 		"logistics_sentry_ammo_drop" = /datum/fire_support/supply_drop/sentry_ammo,
 	))
+	assert_template_charge_pool(uscm_logistics_template, 2, 2, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_supply").shared_cooldown, 240 SECONDS, "USCM logistics supply drop should use doubled shared cooldown.")
 	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_mine_crate").shared_cooldown, 180 SECONDS, "USCM mine crate drop should use doubled shared cooldown.")
 	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_full_sentry").shared_cooldown, 360 SECONDS, "USCM full sentry drop should use doubled shared cooldown.")
+	assert_template_charge_actions(uscm_logistics_template, list(
+		"logistics_supply" = list(1, 600 SECONDS),
+		"logistics_mine_crate" = list(1, 420 SECONDS),
+		"logistics_mini_sentry" = list(1, 540 SECONDS),
+		"logistics_full_sentry" = list(2, 780 SECONDS),
+		"logistics_grenade_drop" = list(1, 420 SECONDS),
+		"logistics_sentry_ammo_drop" = list(1, 540 SECONDS),
+	))
 
 	var/datum/rto_support_template/medical/uscm_medical_template = allocate(/datum/rto_support_template/medical)
 	assert_template_actions(uscm_medical_template, list(
@@ -203,8 +302,15 @@
 		"medical_iv_drop" = /datum/fire_support/supply_drop/medical_iv,
 		"medical_optable_drop" = /datum/fire_support/supply_drop/medical_optable,
 	))
+	assert_template_charge_pool(uscm_medical_template, 2, 2, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(uscm_medical_template.get_action_template("medical_medkits_drop").shared_cooldown, 240 SECONDS, "USCM medical drops should use doubled shared cooldowns.")
 	TEST_ASSERT_EQUAL(uscm_medical_template.get_action_template("medical_optable_drop").shared_cooldown, 360 SECONDS, "USCM operation table drop should keep the longer shared cooldown.")
+	assert_template_charge_actions(uscm_medical_template, list(
+		"medical_medkits_drop" = list(1, 600 SECONDS),
+		"medical_blood_drop" = list(1, 600 SECONDS),
+		"medical_iv_drop" = list(1, 600 SECONDS),
+		"medical_optable_drop" = list(2, 780 SECONDS),
+	))
 
 	var/datum/rto_support_template/technical/uscm_technical_template = allocate(/datum/rto_support_template/technical)
 	assert_template_actions(uscm_technical_template, list(
@@ -213,8 +319,15 @@
 		"technical_recon_drop" = /datum/fire_support/supply_drop/technical_recon,
 		"technical_powerloader_drop" = /datum/fire_support/supply_drop/technical_powerloader,
 	), 0, 0)
+	assert_template_charge_pool(uscm_technical_template, 2, 2, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_recon_drop").shared_cooldown, 240 SECONDS, "USCM technical recon drop should use the medium shared cooldown.")
 	TEST_ASSERT_EQUAL(uscm_technical_template.get_action_template("technical_powerloader_drop").shared_cooldown, 360 SECONDS, "USCM powerloader drop should use the longer technical shared cooldown.")
+	assert_template_charge_actions(uscm_technical_template, list(
+		"technical_fortification_drop" = list(2, 780 SECONDS),
+		"technical_power_drop" = list(2, 780 SECONDS),
+		"technical_recon_drop" = list(1, 600 SECONDS),
+		"technical_powerloader_drop" = list(2, 780 SECONDS),
+	))
 
 	var/datum/rto_support_template/mortar/mortar_template = allocate(/datum/rto_support_template/mortar)
 	assert_template_actions(mortar_template, list(
@@ -222,10 +335,16 @@
 		"mortar_smoke" = /datum/fire_support/mortar/smoke/rto_single,
 		"mortar_incendiary" = /datum/fire_support/mortar/incendiary/rto_single,
 	), 0, 0)
+	assert_template_charge_pool(mortar_template, 5, 5, 60 SECONDS, 1)
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_he").shared_cooldown, 4 SECONDS, "Mortar HE should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_smoke").shared_cooldown, 3 SECONDS, "Mortar smoke should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_incendiary").shared_cooldown, 6 SECONDS, "Mortar incendiary should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(mortar_template.visibility_zone_cooldown, 600 SECONDS, "Mortar should use doubled visibility zone cooldown.")
+	assert_template_charge_actions(mortar_template, list(
+		"mortar_he" = list(1, 8 SECONDS),
+		"mortar_smoke" = list(1, 5 SECONDS),
+		"mortar_incendiary" = list(2, 10 SECONDS),
+	))
 
 	var/datum/rto_support_template/cas/cas_template = allocate(/datum/rto_support_template/cas)
 	assert_template_actions(cas_template, list(
@@ -233,19 +352,30 @@
 		"cas_laser_run" = /datum/fire_support/laser,
 		"cas_rocket_barrage" = /datum/fire_support/rockets,
 	), 0, 0)
+	assert_template_charge_pool(cas_template, 3, 3, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_gun_run").shared_cooldown, 12 SECONDS, "CAS gun run should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_laser_run").shared_cooldown, 16 SECONDS, "CAS laser run should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_rocket_barrage").shared_cooldown, 22 SECONDS, "CAS rocket barrage should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(cas_template.visibility_zone_cooldown, 1000 SECONDS, "CAS should use doubled visibility zone cooldown.")
+	assert_template_charge_actions(cas_template, list(
+		"cas_gun_run" = list(1, 16 SECONDS),
+		"cas_laser_run" = list(1, 22 SECONDS),
+		"cas_rocket_barrage" = list(2, 36 SECONDS),
+	))
 
 	var/datum/rto_support_template/heavy/heavy_template = allocate(/datum/rto_support_template/heavy)
 	assert_template_actions(heavy_template, list(
 		"heavy_missile" = /datum/fire_support/missile,
 		"heavy_napalm" = /datum/fire_support/missile/napalm,
 	), 0, 0)
+	assert_template_charge_pool(heavy_template, 3, 3, 240 SECONDS, 1)
 	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_missile").shared_cooldown, 18 SECONDS, "Heavy missile strike should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_napalm").shared_cooldown, 16 SECONDS, "Heavy napalm strike should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(heavy_template.visibility_zone_cooldown, 1600 SECONDS, "Heavy strike should use doubled visibility zone cooldown.")
+	assert_template_charge_actions(heavy_template, list(
+		"heavy_missile" = list(1, 24 SECONDS),
+		"heavy_napalm" = list(2, 20 SECONDS),
+	))
 
 /datum/unit_test/halo_support_two_slot_lifecycle
 
@@ -319,9 +449,12 @@
 	TEST_ASSERT_EQUAL(two_slot_controller.zone_shared_cooldown_until, world.time + 600 SECONDS, "Clearing a sector with two selected packages should apply the full shared zone cooldown.")
 	TEST_ASSERT_EQUAL(two_slot_controller.zone_cooldowns_by_template["mortar"], world.time + 600 SECONDS, "Clearing a sector with two selected packages should apply the full personal zone cooldown.")
 
-/datum/unit_test/halo_support_package_shared_cooldowns
+/datum/unit_test/halo_support_package_shared_charges
 
-/datum/unit_test/halo_support_package_shared_cooldowns/Run()
+/datum/unit_test/halo_support_package_shared_charges/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_rto_rules()
+
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
 	human.job = JOB_SQUAD_RTO
 	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
@@ -329,10 +462,86 @@
 	TEST_ASSERT(controller.select_template("logistics"), "Logistics package selection should succeed.")
 	TEST_ASSERT(controller.select_template("medical"), "Medical package selection should succeed.")
 
-	controller.shared_cooldowns_by_template["logistics"] = world.time + 50
-	TEST_ASSERT(!controller.can_arm_action("logistics_supply", "logistics"), "Package shared cooldown should block the triggering logistics action.")
-	TEST_ASSERT(!controller.can_arm_action("logistics_grenade_drop", "logistics"), "Package shared cooldown should also block sibling logistics actions.")
-	TEST_ASSERT(controller.can_arm_action("medical_medkits_drop", "medical"), "Package shared cooldown should not block another selected package.")
+	var/datum/rto_support_template/logistics/logistics_template = controller.get_selected_template("logistics")
+	var/datum/rto_support_template/medical/medical_template = controller.get_selected_template("medical")
+	var/datum/rto_support_action_template/logistics_supply/supply_action = logistics_template.get_action_template("logistics_supply")
+	var/datum/rto_support_action_template/logistics_full_sentry/full_sentry_action = logistics_template.get_action_template("logistics_full_sentry")
+	var/datum/rto_support_resource_pool_state/logistics_pool = controller.get_support_pool(logistics_template, TRUE)
+
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(logistics_template), 2, "Logistics package should start with the configured shared charges.")
+	TEST_ASSERT(controller.can_arm_action(supply_action.action_id, logistics_template.template_id), "Light logistics support should be available with a full pool.")
+	TEST_ASSERT(controller.can_arm_action(full_sentry_action.action_id, logistics_template.template_id), "Heavy logistics support should be available with a full pool.")
+	TEST_ASSERT(controller.apply_action_resource_consumption(logistics_template, supply_action), "Spending one logistics charge should succeed.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(logistics_template), 1, "Light logistics support should consume exactly one shared charge.")
+	TEST_ASSERT(!controller.can_arm_action(full_sentry_action.action_id, logistics_template.template_id), "Heavy logistics support should be blocked once the pool drops below its weighted cost.")
+	TEST_ASSERT(controller.can_arm_action("logistics_grenade_drop", "logistics"), "Another light logistics action should still be available after spending one shared charge.")
+	TEST_ASSERT(controller.can_arm_action("medical_medkits_drop", "medical"), "Logistics charges should not block another selected package.")
+
+	logistics_pool.next_recharge_at = world.time
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(logistics_template), 2, "Logistics charge pool should recharge back to capacity on its next tick.")
+
+	var/mob/living/carbon/human/mortar_human = allocate(/mob/living/carbon/human)
+	mortar_human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/mortar_controller = allocate(/datum/rto_support_controller, mortar_human)
+
+	TEST_ASSERT(mortar_controller.select_template("mortar"), "Mortar package selection should succeed.")
+	var/datum/rto_support_template/mortar/mortar_template = mortar_controller.get_selected_template("mortar")
+	var/datum/rto_support_action_template/mortar_incendiary/incendiary_action = mortar_template.get_action_template("mortar_incendiary")
+	var/datum/rto_support_action_template/mortar_he/he_action = mortar_template.get_action_template("mortar_he")
+	var/datum/rto_support_action_template/mortar_smoke/smoke_action = mortar_template.get_action_template("mortar_smoke")
+
+	TEST_ASSERT_EQUAL(mortar_controller.get_support_pool_current_charges(mortar_template), 5, "Mortar package should start with the configured shared charges.")
+	TEST_ASSERT(mortar_controller.apply_action_resource_consumption(mortar_template, incendiary_action), "Weighted mortar incendiary shot should spend charges successfully.")
+	TEST_ASSERT_EQUAL(mortar_controller.get_support_pool_current_charges(mortar_template), 3, "Incendiary mortar should spend two shared charges.")
+	TEST_ASSERT(mortar_controller.can_arm_action(he_action.action_id, mortar_template.template_id), "Mortar HE should stay available after a heavier sibling consumes charges.")
+	TEST_ASSERT(mortar_controller.can_arm_action(incendiary_action.action_id, mortar_template.template_id), "Mortar incendiary should stay available while its weighted cost can still be paid.")
+	TEST_ASSERT(mortar_controller.apply_action_resource_consumption(mortar_template, he_action), "Mortar HE should spend one charge successfully.")
+	TEST_ASSERT_EQUAL(mortar_controller.get_support_pool_current_charges(mortar_template), 2, "Mortar HE should spend one shared charge.")
+	TEST_ASSERT(mortar_controller.apply_action_resource_consumption(mortar_template, smoke_action), "Mortar smoke should spend one charge successfully.")
+	TEST_ASSERT_EQUAL(mortar_controller.get_support_pool_current_charges(mortar_template), 1, "Mortar smoke should spend one shared charge.")
+	TEST_ASSERT(!mortar_controller.can_arm_action(incendiary_action.action_id, mortar_template.template_id), "Mortar incendiary should be blocked once the remaining pool can no longer pay its weighted cost.")
+
+/datum/unit_test/halo_support_charge_pool_runtime
+
+/datum/unit_test/halo_support_charge_pool_runtime/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_rto_rules()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+	var/datum/rto_support_template/unit_test_charges/template = allocate(/datum/rto_support_template/unit_test_charges)
+	controller.selected_templates += template
+	controller.ensure_runtime()
+
+	var/datum/rto_support_resource_pool_state/pool = controller.get_support_pool(template.template_id, TRUE)
+	var/datum/rto_support_action_template/light_action = template.get_action_template("unit_test_charge_light")
+	var/datum/rto_support_action_template/heavy_action = template.get_action_template("unit_test_charge_heavy")
+
+	TEST_ASSERT_NOTNULL(pool, "Charge-based template should create a runtime pool.")
+	TEST_ASSERT_EQUAL(controller.get_template_support_resource_mode(template), RTO_SUPPORT_RESOURCE_MODE_CHARGES, "Charge-based template should resolve to charge runtime mode.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 3, "Newly created charge pool should start at configured charges.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_capacity(template), 3, "Charge pool should expose the configured capacity.")
+	TEST_ASSERT(controller.can_arm_action(heavy_action.action_id, template.template_id), "Heavy action should be armable with a full pool.")
+	TEST_ASSERT(controller.apply_action_resource_consumption(template, light_action), "Light action should consume charge pool resource.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 2, "Light action should spend one shared charge.")
+	TEST_ASSERT_EQUAL(controller.get_remaining_action_cooldown(light_action.action_id), 2 SECONDS, "Charge-based action should apply the configured local lockout.")
+
+	var/list/heavy_state = controller.build_support_action_state(heavy_action.action_id, template.template_id)
+	TEST_ASSERT(heavy_state["is_disabled"], "Heavy action should become unavailable after spending a lighter shared charge.")
+	TEST_ASSERT_EQUAL(heavy_state["pool_current_charges"], 2, "Support action state should expose remaining charges.")
+	TEST_ASSERT_EQUAL(heavy_state["pool_cost"], 3, "Support action state should expose the required charge cost.")
+	TEST_ASSERT(!heavy_state["pool_has_enough_charges"], "Support action state should mark heavy action as underfunded.")
+
+	pool.next_recharge_at = world.time
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 3, "Charge pool should recharge when its next tick is reached.")
+
+	controller.apply_action_resource_consumption(template, heavy_action)
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 0, "Heavy action should consume the full shared pool in the synthetic test.")
+	rules.rto_charge_manual_only = TRUE
+	controller.apply_rules_update()
+	pool.next_recharge_at = world.time
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 0, "Manual-only mode should stop automatic charge recharge.")
 
 /datum/unit_test/halo_support_zone_ownership
 

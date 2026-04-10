@@ -2,6 +2,12 @@
 	template_id = "mortar"
 	allowed_support_profiles = list("uscm", "unsc")
 	name = "Mortar"
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 5
+	support_pool_starting_charges = 5
+	support_pool_recharge_interval = 60 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
 	description = "Частый утилитарный пакет с одиночными HE, дымовыми и зажигательными минами."
 	role_summary = "Частое давление, дым и сдерживание проходов одиночными минами."
 	targeting_summary = "Сначала разверните сектор, затем спамьте одиночные миномётные выстрелы короткими интервалами, пока зона активна."

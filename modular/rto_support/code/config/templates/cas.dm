@@ -2,6 +2,12 @@
 	template_id = "cas"
 	allowed_support_profiles = list("uscm", "odst")
 	name = "CAS"
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 3
+	support_pool_starting_charges = 3
+	support_pool_recharge_interval = 180 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
 	description = "Точный авиационный пакет для среднего по редкости штурмового сопровождения."
 	role_summary = "Точечная авиационная поддержка для быстрого продавливания."
 	targeting_summary = "Сначала разверните сектор, затем наводите авиаудары в его пределах."

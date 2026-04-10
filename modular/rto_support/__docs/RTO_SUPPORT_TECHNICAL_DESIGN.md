@@ -165,7 +165,7 @@ HALO admin bridge держится отдельно в modular compat layer.
 
 ## 10. USCM payload model
 
-USCM utility support использует hybrid-подход:
+USCM utility support использует shared weighted charges:
 
 - часть новых действий переиспользует existing upstream crates;
 - часть заведена как compact modular payloads в `modular/rto_support/code/fire_support/uscm_support_payloads.dm`.

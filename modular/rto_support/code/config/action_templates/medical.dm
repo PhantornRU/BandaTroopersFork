@@ -1,6 +1,8 @@
 /datum/rto_support_action_template/medical
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 600 SECONDS
 	category = "medical"
 	icon_state = "medic"
 	requires_visibility_zone = FALSE
@@ -35,4 +37,6 @@
 	description = "Drops a surgical setup for improvised field operating stations."
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
+	support_pool_cost = 2
+	personal_lockout = 780 SECONDS
 	fire_support_path = /datum/fire_support/supply_drop/medical_optable

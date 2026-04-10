@@ -12,6 +12,20 @@
 	var/targeting_summary = ""
 	/// Short restriction summary shown in the preset menu.
 	var/restriction_summary = ""
+	/// Runtime model for support actions inside this package.
+	var/support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_LEGACY
+	/// Shared pool identifier; defaults to template_id when omitted.
+	var/support_pool_id = null
+	/// Max shared charges for package-wide support resource.
+	var/support_pool_capacity = 0
+	/// Initial charges when a runtime pool is created or reset.
+	var/support_pool_starting_charges = 0
+	/// Time between recharge ticks.
+	var/support_pool_recharge_interval = 0
+	/// Charges restored per recharge tick.
+	var/support_pool_recharge_amount = 0
+	/// Whether the pool should recharge automatically by default.
+	var/support_pool_auto_recharge = TRUE
 	/// Whether the template needs a visibility zone.
 	var/requires_visibility_zone = TRUE
 	/// Display name for the visibility sector action.
@@ -78,12 +92,22 @@
 /// Builds a UI DTO for the preset menu.
 /datum/rto_support_template/proc/build_ui_entry(datum/rto_support_controller/controller = null)
 	var/datum/rto_support_ui_preset_entry/entry = new
+	var/has_runtime_pool = controller?.has_selected_template(template_id)
 	entry.template_id = template_id
 	entry.name = name
 	entry.description = description
 	entry.role_summary = role_summary
 	entry.targeting_summary = targeting_summary
 	entry.restriction_summary = restriction_summary
+	entry.resource_mode = controller ? controller.get_template_support_resource_mode(src) : support_resource_mode
+	entry.pool_capacity = controller ? controller.get_support_pool_capacity(src) : support_pool_capacity
+	entry.pool_starting_charges = support_pool_starting_charges
+	entry.pool_current_charges = has_runtime_pool ? controller.get_support_pool_current_charges(src) : support_pool_starting_charges
+	entry.pool_recharge_interval = controller ? controller.get_support_pool_recharge_interval(src) : support_pool_recharge_interval
+	entry.pool_recharge_amount = controller ? controller.get_support_pool_recharge_amount(src) : support_pool_recharge_amount
+	entry.pool_auto_recharge = controller ? controller.is_support_pool_auto_recharge_enabled(src) : support_pool_auto_recharge
+	entry.pool_manual_only = has_runtime_pool ? controller.is_support_pool_manual_only(src) : FALSE
+	entry.pool_next_recharge_in = has_runtime_pool ? controller.get_support_pool_next_recharge_in(src) : 0
 	entry.requires_visibility_zone = requires_visibility_zone
 	entry.visibility_zone_name = visibility_zone_name
 	entry.visibility_zone_type = visibility_zone_type

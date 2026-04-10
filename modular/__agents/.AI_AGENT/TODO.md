@@ -1,9 +1,12 @@
 # TODO
 
-- [x] Подтвердить корень HALO species regression через `setup_species()`, `set_species()` и HALO presets.
-- [x] Найти все релевантные callsites Create Human/Create Object flow для прямых human subtype spawn path'ов.
-- [x] Исправить HALO species datums так, чтобы canonical species ID снова совпадал с `SPECIES_*`.
-- [x] Добавить прямые subtype-спавны `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
-- [x] Добавить regression tests на species spawn, covenant blood и HALO preset equip.
-- [x] Прогнать `git diff --check` и compile-проверку.
-- [x] Закоммитить follow-up fix и обновить PR #87.
+- [x] Finish the runtime charge-pool infrastructure and GM live-management hooks.
+- [x] Migrate all live USCM support templates to `charges`.
+- [x] Migrate all live HALO/UNSC/ODST support templates to `charges`.
+- [x] Rebalance package capacities, recharge intervals, weighted costs, and local lockouts.
+- [x] Update preset-menu and binocular UX to show charge-based state.
+- [x] Update Game Rule Panel defaults and stale copy to match the migrated model.
+- [x] Expand unit tests to validate package charge configs and shared-pool behavior.
+- [x] Refresh the key RTO/Game Rule Panel docs that still described the old model.
+- [x] Run compile and TGUI CI-equivalent verification.
+- [ ] Commit the completed rollout and update the PR with a detailed changelog.

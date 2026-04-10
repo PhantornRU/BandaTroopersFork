@@ -10,6 +10,8 @@ import {
 } from '../components';
 import { Window } from '../layouts';
 
+const usesChargePool = (resourceMode) => resourceMode !== 'legacy_cooldown';
+
 const altitudeLabel = (altitudeRequirement) =>
   altitudeRequirement === 'high'
     ? 'Требуется открытое небо'
@@ -20,6 +22,39 @@ const targetLabel = (allowClosedTurf) =>
 
 const formatResetDelayLabel = (minutes) =>
   minutes <= 0 ? 'сразу после первого выбора' : `${minutes} мин.`;
+
+const resourceModeLabel = (resourceMode) => {
+  switch (resourceMode) {
+    case 'charges':
+      return 'Общие заряды';
+    case 'hybrid':
+      return 'Гибрид';
+    default:
+      return 'Кулдауны';
+  }
+};
+
+const formatRechargeSummary = (template) => {
+  if (!usesChargePool(template.resource_mode)) {
+    return 'Не используется';
+  }
+  if (template.pool_manual_only) {
+    return 'Только вручную через ГМ';
+  }
+  if (!template.pool_auto_recharge || template.pool_recharge_interval <= 0) {
+    return 'Отключено';
+  }
+
+  const summary = `+${template.pool_recharge_amount} каждые ${template.pool_recharge_interval} сек.`;
+  if (
+    template.is_selected &&
+    template.pool_current_charges < template.pool_capacity &&
+    template.pool_next_recharge_in > 0
+  ) {
+    return `${summary} (след. тик через ${template.pool_next_recharge_in} сек.)`;
+  }
+  return summary;
+};
 
 const ModeBadge = ({ color, text }) => (
   <Box
@@ -36,7 +71,7 @@ const ModeBadge = ({ color, text }) => (
   </Box>
 );
 
-const ActionCard = ({ action }) => (
+const ActionCard = ({ action, resourceMode }) => (
   <Box
     backgroundColor="rgba(255, 255, 255, 0.04)"
     mb={1}
@@ -54,12 +89,25 @@ const ActionCard = ({ action }) => (
     </Box>
     <LabeledList>
       <LabeledList.Item label="Разброс">{action.scatter}</LabeledList.Item>
-      <LabeledList.Item label="Общий КД">
-        {action.shared_cooldown} сек.
-      </LabeledList.Item>
-      <LabeledList.Item label="Личный КД">
-        {action.personal_cooldown} сек.
-      </LabeledList.Item>
+      {usesChargePool(resourceMode) ? (
+        <>
+          <LabeledList.Item label="Цена">
+            {action.support_pool_cost} заряд.
+          </LabeledList.Item>
+          <LabeledList.Item label="Локальный лок">
+            {action.personal_lockout} сек.
+          </LabeledList.Item>
+        </>
+      ) : (
+        <>
+          <LabeledList.Item label="Общий КД">
+            {action.shared_cooldown} сек.
+          </LabeledList.Item>
+          <LabeledList.Item label="Личный КД">
+            {action.personal_cooldown} сек.
+          </LabeledList.Item>
+        </>
+      )}
       <LabeledList.Item label="Сектор">
         {action.requires_visibility_zone ? 'Требуется' : 'Не требуется'}
       </LabeledList.Item>
@@ -105,6 +153,10 @@ const TemplateCard = ({ template, canAddTemplate }) => {
         ) : (
           <ModeBadge color="rgba(110, 190, 120, 0.25)" text="Без сектора" />
         )}
+        <ModeBadge
+          color="rgba(255, 215, 120, 0.20)"
+          text={resourceModeLabel(template.resource_mode)}
+        />
         {template.visibility_altitude_requirement === 'high' && (
           <ModeBadge color="rgba(255, 170, 90, 0.25)" text="Открытое небо" />
         )}
@@ -132,6 +184,22 @@ const TemplateCard = ({ template, canAddTemplate }) => {
             ? 'Боевой пакет через сектор'
             : 'Прямой логистический сброс'}
         </LabeledList.Item>
+        <LabeledList.Item label="Ресурс">
+          {resourceModeLabel(template.resource_mode)}
+        </LabeledList.Item>
+        {usesChargePool(template.resource_mode) && (
+          <>
+            <LabeledList.Item label="Заряды">
+              {template.pool_current_charges}/{template.pool_capacity}
+            </LabeledList.Item>
+            <LabeledList.Item label="Стартовый запас">
+              {template.pool_starting_charges}
+            </LabeledList.Item>
+            <LabeledList.Item label="Пополнение">
+              {formatRechargeSummary(template)}
+            </LabeledList.Item>
+          </>
+        )}
         {template.requires_visibility_zone ? (
           <>
             <LabeledList.Item label="Сектор">
@@ -162,6 +230,13 @@ const TemplateCard = ({ template, canAddTemplate }) => {
           {altitudeLabel(template.visibility_altitude_requirement)}
         </LabeledList.Item>
       </LabeledList>
+      {usesChargePool(template.resource_mode) && (
+        <NoticeBox mt={1} info={template.pool_current_charges > 0}>
+          {template.is_selected
+            ? `Пакет уже выбран. Текущий общий запас: ${template.pool_current_charges}/${template.pool_capacity}.`
+            : `Если выбрать пакет сейчас, он стартует с ${template.pool_starting_charges}/${template.pool_capacity} зарядов.`}
+        </NoticeBox>
+      )}
       {template.solo_zone_cooldown_available && (
         <NoticeBox mt={1} info={template.solo_zone_cooldown_active}>
           {template.solo_zone_cooldown_active
@@ -174,7 +249,11 @@ const TemplateCard = ({ template, canAddTemplate }) => {
         Способности
       </Box>
       {template.actions.map((action) => (
-        <ActionCard key={action.action_id} action={action} />
+        <ActionCard
+          key={action.action_id}
+          action={action}
+          resourceMode={template.resource_mode}
+        />
       ))}
     </Section>
   );

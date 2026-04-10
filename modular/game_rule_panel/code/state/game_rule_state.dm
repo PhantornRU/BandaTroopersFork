@@ -2,6 +2,10 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 #define GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT 2
 #define GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES 60
+#define GAME_RULE_RTO_RESOURCE_MODE_LEGACY "legacy_cooldown"
+#define GAME_RULE_RTO_RESOURCE_MODE_HYBRID "hybrid"
+#define GAME_RULE_RTO_RESOURCE_MODE_CHARGES "charges"
+#define GAME_RULE_RTO_DEFAULT_RESOURCE_MODE GAME_RULE_RTO_RESOURCE_MODE_CHARGES
 #define GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS 15
 #define GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE 30
 
@@ -10,6 +14,11 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	var/support_underground_enabled = TRUE
 	var/rto_shared_cooldown_multiplier = 1
 	var/rto_personal_cooldown_multiplier = 1
+	var/rto_support_resource_mode = GAME_RULE_RTO_DEFAULT_RESOURCE_MODE
+	var/rto_charge_recharge_enabled = TRUE
+	var/rto_charge_recharge_multiplier = 1
+	var/rto_charge_capacity_multiplier = 1
+	var/rto_charge_manual_only = FALSE
 	var/rto_template_slot_count = GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
 	var/rto_template_reset_minutes = GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
 	var/fire_support_enabled = TRUE
@@ -76,6 +85,12 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 /datum/game_rule_state/proc/sanitize_rto_template_reset_minutes(value)
 	return sanitize_nonnegative_integer(value, GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES)
 
+/datum/game_rule_state/proc/sanitize_rto_support_resource_mode(value)
+	switch(value)
+		if(GAME_RULE_RTO_RESOURCE_MODE_LEGACY, GAME_RULE_RTO_RESOURCE_MODE_HYBRID, GAME_RULE_RTO_RESOURCE_MODE_CHARGES)
+			return value
+	return GAME_RULE_RTO_DEFAULT_RESOURCE_MODE
+
 /datum/game_rule_state/proc/get_rto_template_slot_count()
 	return sanitize_rto_template_slot_count(rto_template_slot_count)
 
@@ -84,6 +99,15 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 /datum/game_rule_state/proc/get_rto_template_reset_delay()
 	return get_rto_template_reset_minutes() * 1 MINUTES
+
+/datum/game_rule_state/proc/get_rto_support_resource_mode()
+	return sanitize_rto_support_resource_mode(rto_support_resource_mode)
+
+/datum/game_rule_state/proc/get_rto_charge_recharge_multiplier()
+	return sanitize_multiplier(rto_charge_recharge_multiplier)
+
+/datum/game_rule_state/proc/get_rto_charge_capacity_multiplier()
+	return sanitize_multiplier(rto_charge_capacity_multiplier)
 
 /datum/game_rule_state/proc/sanitize_nonnegative_integer(value, default_value = 0)
 	if(!isnum(value))
@@ -118,6 +142,11 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	support_underground_enabled = TRUE
 	rto_shared_cooldown_multiplier = 1
 	rto_personal_cooldown_multiplier = 1
+	rto_support_resource_mode = GAME_RULE_RTO_DEFAULT_RESOURCE_MODE
+	rto_charge_recharge_enabled = TRUE
+	rto_charge_recharge_multiplier = 1
+	rto_charge_capacity_multiplier = 1
+	rto_charge_manual_only = FALSE
 	rto_template_slot_count = GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
 	rto_template_reset_minutes = GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
 	return TRUE
@@ -210,6 +239,9 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 		))
 	return data
 
+/datum/game_rule_state/proc/build_active_rto_charge_admin_data()
+	return GLOB.rto_support_registry?.build_active_rto_charge_admin_data() || list()
+
 /proc/cmp_game_rule_fire_support_entries(list/a, list/b)
 	var/faction_a = a["faction"] || ""
 	var/faction_b = b["faction"] || ""
@@ -251,5 +283,9 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
 #undef GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
 #undef GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
+#undef GAME_RULE_RTO_RESOURCE_MODE_LEGACY
+#undef GAME_RULE_RTO_RESOURCE_MODE_HYBRID
+#undef GAME_RULE_RTO_RESOURCE_MODE_CHARGES
+#undef GAME_RULE_RTO_DEFAULT_RESOURCE_MODE
 #undef GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS
 #undef GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE

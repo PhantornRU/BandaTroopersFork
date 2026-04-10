@@ -2,6 +2,12 @@
 	parent_type = /datum/rto_support_template/halo
 	template_id = "halo_technical"
 	name = "HALO Technical"
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 2
+	support_pool_starting_charges = 2
+	support_pool_recharge_interval = 180 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
 	description = "UNSC-only HALO technical support package for engineering, recon, signals and RTO sustain."
 	role_summary = "Combines HALO engineering and command utility drops into one technical package."
 	targeting_summary = "No visibility zone required: designate an open HALO landing point with RTO binoculars."
