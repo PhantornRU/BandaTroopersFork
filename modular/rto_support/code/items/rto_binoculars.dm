@@ -115,6 +115,8 @@
 	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': постоянный режим живой лазерной подсветки через бинокль.")
 
 	var/list/selected_templates = controller.get_selected_templates()
+	var/max_selected_templates = controller.get_max_selected_templates()
+	var/reset_delay_minutes = controller.get_selection_reset_delay_minutes()
 	if(length(selected_templates))
 		var/list/template_names = list()
 		for(var/datum/rto_support_template/template as anything in selected_templates)
@@ -122,11 +124,12 @@
 		. += SPAN_NOTICE("Выбранные пакеты: [jointext(template_names, ", ")].")
 	else
 		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
+	. += SPAN_NOTICE("Лимит слотов пакетов: [max_selected_templates]. Полный сброс становится доступен через [reset_delay_minutes] мин. от первого выбора.")
 
 	if(length(selected_templates) == 1)
 		var/datum/rto_support_template/solo_template = selected_templates[1]
 		if(controller.uses_single_template_zone_discount(solo_template))
-			. += SPAN_NOTICE("РџРѕРєР° РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°.")
+			. += SPAN_NOTICE("Пока выбран только один боевой пакет, кулдаун его сектора снижен в 2 раза.")
 
 	var/reset_ready_in = controller.get_selection_reset_ready_in()
 	if(length(selected_templates))

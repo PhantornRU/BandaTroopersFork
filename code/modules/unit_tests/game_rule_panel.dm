@@ -3,6 +3,8 @@
 	var/snapshot_support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	var/snapshot_rto_shared_cooldown_multiplier
 	var/snapshot_rto_personal_cooldown_multiplier
+	var/snapshot_rto_template_slot_count
+	var/snapshot_rto_template_reset_minutes
 	var/snapshot_fire_support_enabled
 	var/snapshot_player_survival_enabled
 	var/snapshot_player_survival_crit_grace_seconds
@@ -25,6 +27,8 @@
 	snapshot_support_underground_enabled = rules.support_underground_enabled // SS220 EDIT: preserve the BT underground-support rule across test mutations
 	snapshot_rto_shared_cooldown_multiplier = rules.rto_shared_cooldown_multiplier
 	snapshot_rto_personal_cooldown_multiplier = rules.rto_personal_cooldown_multiplier
+	snapshot_rto_template_slot_count = rules.rto_template_slot_count
+	snapshot_rto_template_reset_minutes = rules.rto_template_reset_minutes
 	snapshot_fire_support_enabled = rules.fire_support_enabled
 	snapshot_player_survival_enabled = rules.player_survival_enabled
 	snapshot_player_survival_crit_grace_seconds = rules.player_survival_crit_grace_seconds
@@ -48,6 +52,8 @@
 	rules.support_underground_enabled = snapshot_support_underground_enabled // SS220 EDIT: restore the BT underground-support rule after each test
 	rules.rto_shared_cooldown_multiplier = snapshot_rto_shared_cooldown_multiplier
 	rules.rto_personal_cooldown_multiplier = snapshot_rto_personal_cooldown_multiplier
+	rules.rto_template_slot_count = snapshot_rto_template_slot_count
+	rules.rto_template_reset_minutes = snapshot_rto_template_reset_minutes
 	rules.fire_support_enabled = snapshot_fire_support_enabled
 	rules.player_survival_enabled = snapshot_player_survival_enabled
 	rules.player_survival_crit_grace_seconds = snapshot_player_survival_crit_grace_seconds
@@ -106,6 +112,8 @@
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	rules.reset_rto_rules()
 	TEST_ASSERT(rules.support_underground_enabled, "Reset RTO rules did not restore underground support to enabled.") // SS220 EDIT: BT RTO reset must also restore underground support
+	TEST_ASSERT_EQUAL(rules.get_rto_template_slot_count(), 2, "Reset RTO rules did not restore the default package slot count.")
+	TEST_ASSERT_EQUAL(rules.get_rto_template_reset_minutes(), 60, "Reset RTO rules did not restore the default package reset delay.")
 
 	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
 	human.job = JOB_SQUAD_RTO
@@ -129,6 +137,36 @@
 
 	TEST_ASSERT_EQUAL(controller.shared_cooldowns_by_template["mortar"], previous_shared_until, "Existing shared cooldown was recalculated after multiplier change.")
 	TEST_ASSERT_EQUAL(controller.action_cooldowns[action_template.action_id], previous_personal_until, "Existing personal cooldown was recalculated after multiplier change.")
+
+/datum/unit_test/game_rule_panel_rto_selection_rules
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_selection_rules/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_rto_rules()
+	rules.rto_template_slot_count = 3
+	rules.rto_template_reset_minutes = 15
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
+
+	TEST_ASSERT_EQUAL(controller.get_max_selected_templates(), 3, "Controller did not read the configured package slot count.")
+	TEST_ASSERT_EQUAL(controller.get_selection_reset_delay_minutes(), 15, "Controller did not read the configured package reset delay.")
+	TEST_ASSERT(controller.select_template("logistics"), "First package selection should succeed under the custom slot rules.")
+	TEST_ASSERT(controller.select_template("medical"), "Second package selection should succeed under the custom slot rules.")
+	TEST_ASSERT(controller.select_template("technical"), "Third package selection should succeed under the custom slot rules.")
+	TEST_ASSERT(!controller.select_template("mortar"), "A fourth package should not fit into the configured three-slot model.")
+	TEST_ASSERT_EQUAL(controller.selection_reset_available_at - controller.selection_started_at, 15 MINUTES, "Selection reset timing did not use the configured delay.")
+
+	rules.rto_template_slot_count = 2
+	rules.rto_template_reset_minutes = 5
+	GLOB.rto_support_registry?.propagate_rules_update()
+
+	TEST_ASSERT_EQUAL(controller.get_max_selected_templates(), 2, "Controller did not refresh the slot count after a rules update.")
+	TEST_ASSERT_EQUAL(controller.get_selection_reset_delay_minutes(), 5, "Controller did not refresh the reset delay after a rules update.")
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 2, "Controller did not trim excess packages after the slot cap was lowered.")
+	TEST_ASSERT_EQUAL(controller.selection_reset_available_at - controller.selection_started_at, 5 MINUTES, "Controller did not recalculate the active reset timer after the delay changed.")
 
 // SS220 EDIT - START: cover BT underground-support defaults and reset behavior
 /datum/unit_test/game_rule_panel_underground_support_defaults

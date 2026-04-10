@@ -18,6 +18,9 @@ const altitudeLabel = (altitudeRequirement) =>
 const targetLabel = (allowClosedTurf) =>
   allowClosedTurf ? 'Можно по закрытым тайлам' : 'Только открытый тайл';
 
+const formatResetDelayLabel = (minutes) =>
+  minutes <= 0 ? 'сразу после первого выбора' : `${minutes} мин.`;
+
 const ModeBadge = ({ color, text }) => (
   <Box
     backgroundColor={color}
@@ -163,7 +166,7 @@ const TemplateCard = ({ template, canAddTemplate }) => {
         <NoticeBox mt={1} info={template.solo_zone_cooldown_active}>
           {template.solo_zone_cooldown_active
             ? `Сейчас активен solo-бонус: кулдаун сектора снижен до ${template.visibility_zone_cooldown_current} сек.`
-            : `Если оставить только один пакет, кулдаун сектора этого шаблона снизится до ${template.visibility_zone_cooldown_solo} сек. Выбор второго пакета возвращает обычный КД: ${template.visibility_zone_cooldown} сек.`}
+            : `Если оставить только один пакет, кулдаун сектора этого шаблона снизится до ${template.visibility_zone_cooldown_solo} сек. Выбор следующего пакета вернёт обычный КД: ${template.visibility_zone_cooldown} сек.`}
         </NoticeBox>
       )}
       <Divider />
@@ -205,6 +208,7 @@ export const RtoSupportPresetMenu = () => {
   const canAddTemplate = !!data.can_add_template;
   const canResetTemplates = !!data.can_reset_templates;
   const resetReadyIn = data.reset_ready_in || 0;
+  const resetDelayMinutes = data.reset_delay_minutes || 60;
 
   return (
     <Window width={820} height={850} resizable>
@@ -220,39 +224,41 @@ export const RtoSupportPresetMenu = () => {
                   icon="rotate-left"
                   onClick={() => act('reset_templates')}
                 >
-                  Сбросить оба слота
+                  Сбросить все слоты
                 </Button>
               }
             >
               <NoticeBox info>
-                Можно выбрать до двух уникальных пакетов одновременно.
+                Можно выбрать до {maxSelectedTemplates} уникальных пакетов
+                одновременно.
               </NoticeBox>
               <NoticeBox mt={1}>
-                1. Выберите до двух пакетов. 2. Для боевых пакетов разверните
-                свой сектор. 3. Вооружите нужную кнопку. 4. Наведите точку через
-                Ctrl+Click во время зума через RTO-бинокль.
+                1. Выберите до {maxSelectedTemplates} пакетов. 2. Для боевых
+                пакетов разверните свой сектор. 3. Вооружите нужную кнопку. 4.
+                Наведите точку через Ctrl+Click во время зума через RTO-бинокль.
               </NoticeBox>
               <NoticeBox mt={1} warning>
-                Полный сброс обоих слотов доступен через 60 минут от первого
-                выбора в текущем цикле.
+                Полный сброс всех слотов доступен{' '}
+                {formatResetDelayLabel(resetDelayMinutes)} от первого выбора в
+                текущем цикле.
               </NoticeBox>
               {selectedCount === 0 && (
                 <NoticeBox mt={1} info>
-                  Если взять только один боевой пакет и не занимать второй слот,
-                  кулдаун его сектора будет в 2 раза меньше.
+                  Если взять только один боевой пакет и не занимать остальные
+                  слоты, кулдаун его сектора будет в 2 раза меньше.
                 </NoticeBox>
               )}
               {selectedCount === 1 && (
                 <NoticeBox mt={1} info>
-                  Сейчас solo-бонус активен: пока у вас выбран только один
-                  пакет, кулдаун его сектора снижен в 2 раза. Выбор второго
-                  пакета вернет обычный КД.
+                  Сейчас solo-бонус активен: пока выбран только один пакет,
+                  кулдаун его сектора снижен в 2 раза. Выбор следующего пакета
+                  вернёт обычный КД.
                 </NoticeBox>
               )}
-              {selectedCount >= 2 && (
+              {selectedCount >= Math.min(2, maxSelectedTemplates) && (
                 <NoticeBox mt={1}>
-                  Выбрано два пакета: для боевых шаблонов действует обычный
-                  кулдаун сектора без solo-бонуса.
+                  Выбрано несколько пакетов: для боевых шаблонов действует
+                  обычный кулдаун сектора без solo-бонуса.
                 </NoticeBox>
               )}
               {selectedCount > 0 && resetReadyIn > 0 && (
@@ -267,7 +273,7 @@ export const RtoSupportPresetMenu = () => {
               )}
               {!canAddTemplate && selectedCount >= maxSelectedTemplates && (
                 <NoticeBox mt={1} warning>
-                  Оба слота уже заняты.
+                  Все слоты уже заняты.
                 </NoticeBox>
               )}
             </Section>

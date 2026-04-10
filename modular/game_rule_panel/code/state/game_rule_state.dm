@@ -1,5 +1,7 @@
 GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 
+#define GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT 2
+#define GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES 60
 #define GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS 15
 #define GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE 30
 
@@ -8,6 +10,8 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	var/support_underground_enabled = TRUE
 	var/rto_shared_cooldown_multiplier = 1
 	var/rto_personal_cooldown_multiplier = 1
+	var/rto_template_slot_count = GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
+	var/rto_template_reset_minutes = GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
 	var/fire_support_enabled = TRUE
 	var/player_survival_enabled = TRUE
 	var/player_survival_crit_grace_seconds = GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS
@@ -59,6 +63,28 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 		return 1
 	return clamp(round(value, 0.1), 0.1, 10)
 
+/datum/game_rule_state/proc/get_rto_template_slot_count_cap()
+	var/list/template_catalog = GLOB.rto_support_registry?.get_template_catalog()
+	return max(1, length(template_catalog))
+
+/datum/game_rule_state/proc/sanitize_rto_template_slot_count(value)
+	var/slot_cap = get_rto_template_slot_count_cap()
+	if(!isnum(value))
+		return clamp(round(GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT), 1, slot_cap)
+	return clamp(round(value), 1, slot_cap)
+
+/datum/game_rule_state/proc/sanitize_rto_template_reset_minutes(value)
+	return sanitize_nonnegative_integer(value, GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES)
+
+/datum/game_rule_state/proc/get_rto_template_slot_count()
+	return sanitize_rto_template_slot_count(rto_template_slot_count)
+
+/datum/game_rule_state/proc/get_rto_template_reset_minutes()
+	return sanitize_rto_template_reset_minutes(rto_template_reset_minutes)
+
+/datum/game_rule_state/proc/get_rto_template_reset_delay()
+	return get_rto_template_reset_minutes() * 1 MINUTES
+
 /datum/game_rule_state/proc/sanitize_nonnegative_integer(value, default_value = 0)
 	if(!isnum(value))
 		return max(0, round(default_value))
@@ -92,6 +118,8 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 	support_underground_enabled = TRUE
 	rto_shared_cooldown_multiplier = 1
 	rto_personal_cooldown_multiplier = 1
+	rto_template_slot_count = GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
+	rto_template_reset_minutes = GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
 	return TRUE
 
 /datum/game_rule_state/proc/reset_player_survival_rules()
@@ -221,5 +249,7 @@ GLOBAL_DATUM_INIT(game_rule_state, /datum/game_rule_state, new)
 		"disabled" = disabled,
 	)
 
+#undef GAME_RULE_RTO_DEFAULT_TEMPLATE_SLOT_COUNT
+#undef GAME_RULE_RTO_DEFAULT_TEMPLATE_RESET_MINUTES
 #undef GAME_RULE_PLAYER_SURVIVAL_DEFAULT_CRIT_GRACE_SECONDS
 #undef GAME_RULE_PLAYER_SURVIVAL_DEFAULT_ANTIGIB_LIMB_LOSS_CHANCE

@@ -11,6 +11,7 @@
 	var/list/action_cooldowns = list()
 	var/list/action_handles = list()
 	var/max_selected_templates = 2
+	var/selection_reset_delay = 60 MINUTES
 	var/datum/action/human_action/rto/select_preset/select_action
 	var/list/visibility_actions = list()
 	var/datum/action/human_action/rto/coordinates/coordinates_action
@@ -155,7 +156,7 @@
 /datum/rto_support_controller/proc/can_add_template()
 	if(!can_open_template_menu())
 		return FALSE
-	return length(selected_templates) < max_selected_templates
+	return length(selected_templates) < get_max_selected_templates()
 
 /datum/rto_support_controller/proc/can_select_template()
 	return can_add_template()
@@ -173,12 +174,27 @@
 		return FALSE
 	if(!length(selected_templates))
 		return FALSE
-	if(!selection_reset_available_at)
-		return FALSE
 	return world.time >= selection_reset_available_at
 
 /datum/rto_support_controller/proc/get_selection_reset_ready_in()
+	if(!length(selected_templates))
+		return 0
 	return max(0, selection_reset_available_at - world.time)
+
+/datum/rto_support_controller/proc/get_max_selected_templates()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(!rules)
+		return max_selected_templates
+	return rules.get_rto_template_slot_count()
+
+/datum/rto_support_controller/proc/get_selection_reset_delay()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	if(!rules)
+		return selection_reset_delay
+	return rules.get_rto_template_reset_delay()
+
+/datum/rto_support_controller/proc/get_selection_reset_delay_minutes()
+	return round(get_selection_reset_delay() / (1 MINUTES))
 
 /datum/rto_support_controller/proc/select_template(template_type)
 	ensure_runtime()
@@ -192,7 +208,7 @@
 	selected_templates += template
 	if(!selection_started_at)
 		selection_started_at = world.time
-		selection_reset_available_at = world.time + 60 MINUTES
+	selection_reset_available_at = selection_started_at + get_selection_reset_delay()
 
 	sync_actions()
 	refresh_action_handles()
@@ -216,6 +232,41 @@
 
 	sync_actions()
 	refresh_action_handles()
+	return TRUE
+
+/datum/rto_support_controller/proc/prune_selected_templates_to_limit()
+	var/max_templates = get_max_selected_templates()
+	if(length(selected_templates) <= max_templates)
+		return FALSE
+
+	var/list/removed_templates = list()
+	while(length(selected_templates) > max_templates)
+		var/datum/rto_support_template/removed_template = selected_templates[length(selected_templates)]
+		removed_templates += removed_template
+		selected_templates.Cut(length(selected_templates), length(selected_templates) + 1)
+
+	if(!length(removed_templates))
+		return FALSE
+
+	for(var/datum/rto_support_template/removed_template as anything in removed_templates)
+		var/template_id = removed_template?.template_id
+		if(!template_id)
+			continue
+
+		if(armed_template_id == template_id)
+			reset_armed_action()
+		if(active_zone?.source_template?.template_id == template_id)
+			clear_active_zone(FALSE)
+
+		shared_cooldowns_by_template -= template_id
+		zone_cooldowns_by_template -= template_id
+
+		for(var/datum/rto_support_action_template/action_template as anything in removed_template.get_action_templates())
+			action_cooldowns -= action_template.action_id
+
+	if(owner)
+		to_chat(owner, SPAN_WARNING("Лишние пакеты поддержки сняты: лимит слотов был уменьшен правилами раунда."))
+
 	return TRUE
 
 /datum/rto_support_controller/proc/get_active_template() as /datum/rto_support_template
@@ -573,6 +624,10 @@
 	return action_id != RTO_SUPPORT_ARM_COORDINATES && action_id != RTO_SUPPORT_ARM_MARKER
 
 /datum/rto_support_controller/proc/apply_rules_update()
+	if(length(selected_templates))
+		selection_reset_available_at = selection_started_at + get_selection_reset_delay()
+	if(prune_selected_templates_to_limit())
+		sync_actions()
 	if(is_action_restricted_by_rules(armed_action_id))
 		reset_armed_action()
 	if(!is_support_enabled_by_rules() && active_zone)

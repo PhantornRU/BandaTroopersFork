@@ -50,6 +50,9 @@
 		"support_underground_enabled" = rules.support_underground_enabled,
 		"rto_shared_cooldown_multiplier" = rules.rto_shared_cooldown_multiplier,
 		"rto_personal_cooldown_multiplier" = rules.rto_personal_cooldown_multiplier,
+		"rto_template_slot_count" = rules.get_rto_template_slot_count(),
+		"rto_template_slot_count_cap" = rules.get_rto_template_slot_count_cap(),
+		"rto_template_reset_minutes" = rules.get_rto_template_reset_minutes(),
 		"fire_support_enabled" = rules.fire_support_enabled,
 		"fire_support_points" = rules.build_fire_support_points_data(),
 		"fire_support_enabled_entries" = fire_support_pool["enabled"],
@@ -119,6 +122,24 @@
 			rules.rto_personal_cooldown_multiplier = new_value
 			GLOB.rto_support_registry?.propagate_rules_update()
 			log_rule_change(user, "set RTO personal cooldown multiplier to [new_value].")
+			updated = TRUE
+
+		if("set_rto_template_slot_count")
+			var/new_value = rules.sanitize_rto_template_slot_count(text2num(params["value"]))
+			if(rules.rto_template_slot_count == new_value)
+				return FALSE
+			rules.rto_template_slot_count = new_value
+			GLOB.rto_support_registry?.propagate_rules_update()
+			log_rule_change(user, "set RTO package slot count to [new_value].")
+			updated = TRUE
+
+		if("set_rto_template_reset_minutes")
+			var/new_value = rules.sanitize_rto_template_reset_minutes(text2num(params["value"]))
+			if(rules.rto_template_reset_minutes == new_value)
+				return FALSE
+			rules.rto_template_reset_minutes = new_value
+			GLOB.rto_support_registry?.propagate_rules_update()
+			log_rule_change(user, "set RTO package reset delay to [new_value] minutes.")
 			updated = TRUE
 
 		if("reset_rto_rules")

@@ -254,10 +254,13 @@
 	human.job = JOB_SQUAD_RTO
 	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
 
+	TEST_ASSERT_EQUAL(controller.get_max_selected_templates(), 2, "Default RTO package slot count should stay at two.")
+	TEST_ASSERT_EQUAL(controller.get_selection_reset_delay_minutes(), 60, "Default RTO package reset delay should stay at sixty minutes.")
 	TEST_ASSERT(controller.select_template("logistics"), "First package selection should succeed.")
 	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 1, "First package selection should occupy one slot.")
 	TEST_ASSERT(controller.selection_started_at > 0, "First package selection should start the reset timer.")
 	TEST_ASSERT(controller.get_selection_reset_ready_in() > 0, "Reset timer should be active after the first selection.")
+	TEST_ASSERT_EQUAL(controller.selection_reset_available_at - controller.selection_started_at, 60 MINUTES, "Default package reset timer should use the expected delay.")
 	TEST_ASSERT(controller.select_template("medical"), "Second unique package selection should succeed.")
 	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 2, "Second package selection should occupy the second slot.")
 	TEST_ASSERT(!controller.select_template("technical"), "A third package should not fit into the two-slot selection model.")

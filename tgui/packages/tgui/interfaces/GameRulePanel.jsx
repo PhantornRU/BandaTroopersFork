@@ -81,8 +81,12 @@ const RtoSupportPage = ({
   data,
   sharedMultiplier,
   personalMultiplier,
+  templateSlotCount,
+  templateResetMinutes,
   setSharedMultiplier,
   setPersonalMultiplier,
+  setTemplateSlotCount,
+  setTemplateResetMinutes,
 }) => {
   const { act } = useBackend();
   const safeSharedMultiplier = sanitizeNumberInputValue(sharedMultiplier, 1);
@@ -90,6 +94,12 @@ const RtoSupportPage = ({
     personalMultiplier,
     1,
   );
+  const safeTemplateSlotCount = sanitizeNumberInputValue(templateSlotCount, 2);
+  const safeTemplateResetMinutes = sanitizeNumberInputValue(
+    templateResetMinutes,
+    60,
+  );
+  const templateSlotCountCap = data.rto_template_slot_count_cap || 2;
 
   return (
     <Section fill title="RTO Support">
@@ -189,6 +199,88 @@ const RtoSupportPage = ({
         </Stack>
 
         <NoticeBox mt={1}>Current cooldowns are not recalculated.</NoticeBox>
+      </Section>
+
+      <Section level={2} title="Package Selection">
+        <Stack vertical>
+          <Stack.Item>
+            <Stack align="center">
+              <Stack.Item grow>
+                <Box bold>Package slots</Box>
+                <Box color="label">
+                  Controls how many unique RTO packages may be selected at once.
+                </Box>
+              </Stack.Item>
+              <Stack.Item>
+                <NumberInput
+                  minValue={1}
+                  maxValue={templateSlotCountCap}
+                  step={1}
+                  stepPixelSize={10}
+                  value={safeTemplateSlotCount}
+                  width="6em"
+                  onChange={(value) =>
+                    setTemplateSlotCount(sanitizeNumberInputValue(value, 2))
+                  }
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  color="good"
+                  onClick={() =>
+                    act('set_rto_template_slot_count', {
+                      value: safeTemplateSlotCount,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+
+          <Stack.Item>
+            <Stack align="center">
+              <Stack.Item grow>
+                <Box bold>Package reset delay (minutes)</Box>
+                <Box color="label">
+                  Time from the first package pick until a full slot reset
+                  unlocks.
+                </Box>
+              </Stack.Item>
+              <Stack.Item>
+                <NumberInput
+                  minValue={0}
+                  maxValue={1440}
+                  step={1}
+                  stepPixelSize={10}
+                  value={safeTemplateResetMinutes}
+                  width="6em"
+                  onChange={(value) =>
+                    setTemplateResetMinutes(sanitizeNumberInputValue(value, 60))
+                  }
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  color="good"
+                  onClick={() =>
+                    act('set_rto_template_reset_minutes', {
+                      value: safeTemplateResetMinutes,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+        </Stack>
+
+        <NoticeBox mt={1}>
+          A lower slot cap trims excess selected packages immediately. A reset
+          delay of `0` unlocks full package reset right away.
+        </NoticeBox>
       </Section>
 
       <Section level={2} title="Reset">
@@ -479,6 +571,12 @@ export const GameRulePanel = () => {
   const [personalMultiplier, setPersonalMultiplier] = useState(
     sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
   );
+  const [templateSlotCount, setTemplateSlotCount] = useState(
+    sanitizeNumberInputValue(data.rto_template_slot_count, 2),
+  );
+  const [templateResetMinutes, setTemplateResetMinutes] = useState(
+    sanitizeNumberInputValue(data.rto_template_reset_minutes, 60),
+  );
   const [critGraceSeconds, setCritGraceSeconds] = useState(
     sanitizeNumberInputValue(data.player_survival_crit_grace_seconds, 15),
   );
@@ -498,6 +596,18 @@ export const GameRulePanel = () => {
       sanitizeNumberInputValue(data.rto_personal_cooldown_multiplier, 1),
     );
   }, [data.rto_personal_cooldown_multiplier]);
+
+  useEffect(() => {
+    setTemplateSlotCount(
+      sanitizeNumberInputValue(data.rto_template_slot_count, 2),
+    );
+  }, [data.rto_template_slot_count]);
+
+  useEffect(() => {
+    setTemplateResetMinutes(
+      sanitizeNumberInputValue(data.rto_template_reset_minutes, 60),
+    );
+  }, [data.rto_template_reset_minutes]);
 
   useEffect(() => {
     setCritGraceSeconds(
@@ -551,8 +661,12 @@ export const GameRulePanel = () => {
                 data={data}
                 sharedMultiplier={sharedMultiplier}
                 personalMultiplier={personalMultiplier}
+                templateSlotCount={templateSlotCount}
+                templateResetMinutes={templateResetMinutes}
                 setSharedMultiplier={setSharedMultiplier}
                 setPersonalMultiplier={setPersonalMultiplier}
+                setTemplateSlotCount={setTemplateSlotCount}
+                setTemplateResetMinutes={setTemplateResetMinutes}
               />
             )}
             {page === 'fire_support' && (
