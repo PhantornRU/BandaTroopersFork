@@ -12,29 +12,29 @@
 /datum/rto_support_action_template/medical_medkits_drop
 	parent_type = /datum/rto_support_action_template/medical
 	action_id = "medical_medkits_drop"
-	name = "Medkits drop"
-	description = "Drops a field first-aid crate with general trauma supplies."
+	name = "Ящик меднаборов"
+	description = "Сбрасывает полевой медицинский ящик с базовыми средствами для стабилизации раненых."
 	fire_support_path = /datum/fire_support/supply_drop/medical_medkits
 
 /datum/rto_support_action_template/medical_blood_drop
 	parent_type = /datum/rto_support_action_template/medical
 	action_id = "medical_blood_drop"
-	name = "Blood reserve drop"
-	description = "Drops emergency blood bags for prolonged casualty stabilization."
+	name = "Резерв крови"
+	description = "Сбрасывает запас крови для долгой стабилизации тяжёлых раненых."
 	fire_support_path = /datum/fire_support/supply_drop/medical_blood
 
 /datum/rto_support_action_template/medical_iv_drop
 	parent_type = /datum/rto_support_action_template/medical
 	action_id = "medical_iv_drop"
-	name = "IV stand drop"
-	description = "Drops IV stands for triage and rear-line treatment points."
+	name = "Стойка с капельницами"
+	description = "Сбрасывает стойки с капельницами для триажа и тыловых точек лечения."
 	fire_support_path = /datum/fire_support/supply_drop/medical_iv
 
 /datum/rto_support_action_template/medical_optable_drop
 	parent_type = /datum/rto_support_action_template/medical
 	action_id = "medical_optable_drop"
-	name = "Operation table drop"
-	description = "Drops a surgical setup for improvised field operating stations."
+	name = "Полевой операционный стол"
+	description = "Сбрасывает хирургический комплект для развёртывания импровизированной операционной."
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
 	support_pool_cost = 2

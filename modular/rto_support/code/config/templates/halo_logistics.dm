@@ -12,7 +12,7 @@
 /datum/rto_support_template/halo_logistics
 	parent_type = /datum/rto_support_template/halo
 	template_id = "halo_logistics"
-	name = "UNSC Logistics"
+	name = "Десантное снабжение"
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3
@@ -20,10 +20,10 @@
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	support_package_lockout = 6 SECONDS
-	description = "UNSC logistics package with a shared 3-charge reserve for rifle ammo, specialist top-offs, and grenade support."
-	role_summary = "Rifle resupply carries the bulk. Specialist crates stay lighter so the package can sustain a whole fireteam instead of one niche loadout."
-	targeting_summary = "No visibility sector required: mark an open landing point with RTO binoculars and call the drop directly."
-	restriction_summary = "Available to UNSC and ODST RTO roles. Every drop needs open sky and the package recovers slower than USCM logistics."
+	description = "Десантный пакет снабжения с общими 3 зарядами для винтовочных патронов, специализированных боеприпасов и гранат."
+	role_summary = "Основной объём уходит в винтовочный боезапас. Специализированные ящики легче, чтобы пакета хватало на всю огневую группу, а не на одного бойца."
+	targeting_summary = "Сектор не требуется: отметьте открытую точку посадки через RTO-бинокль и вызывайте груз напрямую."
+	restriction_summary = "Доступен RTO ролям UNSC и ODST. Каждый сброс требует открытого неба и восстанавливается медленнее, чем снабжение USCM."
 	action_template_types = list(
 		/datum/rto_support_action_template/halo_rifle_ammo_drop,
 		/datum/rto_support_action_template/halo_marksman_ammo_drop,

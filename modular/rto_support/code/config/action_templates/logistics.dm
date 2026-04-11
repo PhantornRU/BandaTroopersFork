@@ -1,7 +1,7 @@
 /datum/rto_support_action_template/logistics_rifle_mag_drop
 	action_id = "logistics_rifle_mag_drop"
-	name = "Rifle magazine drop"
-	description = "Drops the main squad resupply case with twenty M41A magazines for the frontline rifle line."
+	name = "Ящик винтовочных магазинов"
+	description = "Сбрасывает основной ящик снабжения с двадцатью магазинами M41A для стрелковой линии."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
@@ -16,8 +16,8 @@
 
 /datum/rto_support_action_template/logistics_rifle_box_drop
 	action_id = "logistics_rifle_box_drop"
-	name = "Bulk rifle ammo drop"
-	description = "Drops four 600-round M41A ammo boxes for sustained squad fire or fast magazine refills."
+	name = "Ящик винтовочных коробов"
+	description = "Сбрасывает четыре короба по 600 патронов M41A для длительного огня или быстрой набивки магазинов."
 	scatter = 1
 	shared_cooldown = 300 SECONDS
 	personal_cooldown = 660 SECONDS
@@ -32,8 +32,8 @@
 
 /datum/rto_support_action_template/logistics_shotgun_ammo_drop
 	action_id = "logistics_shotgun_ammo_drop"
-	name = "Shotgun ammo drop"
-	description = "Drops a small slug-only breacher resupply meant for one shotgun specialist instead of the full squad."
+	name = "Ящик дробовых патронов"
+	description = "Сбрасывает компактный запас пулевых патронов под одного бричера, а не под всё отделение."
 	scatter = 1
 	shared_cooldown = 180 SECONDS
 	personal_cooldown = 420 SECONDS
@@ -48,8 +48,8 @@
 
 /datum/rto_support_action_template/logistics_smg_ammo_drop
 	action_id = "logistics_smg_ammo_drop"
-	name = "SMG ammo drop"
-	description = "Drops a compact M39 top-off for close-range specialists without overcommitting logistics mass."
+	name = "Ящик боеприпасов M39"
+	description = "Сбрасывает компактный запас для M39, не съедая слишком много логистического объёма."
 	scatter = 1
 	shared_cooldown = 180 SECONDS
 	personal_cooldown = 420 SECONDS
@@ -64,8 +64,8 @@
 
 /datum/rto_support_action_template/logistics_sidearm_ammo_drop
 	action_id = "logistics_sidearm_ammo_drop"
-	name = "Secondary weapon ammo drop"
-	description = "Drops a balanced reserve for sidearms and backup weapons without competing with rifle resupply volume."
+	name = "Боеприпасы вторичного оружия"
+	description = "Сбрасывает умеренный запас для пистолетов и резервного оружия, не конкурируя с винтовочным снабжением."
 	scatter = 1
 	shared_cooldown = 180 SECONDS
 	personal_cooldown = 420 SECONDS
@@ -80,8 +80,8 @@
 
 /datum/rto_support_action_template/logistics_mine_crate
 	action_id = "logistics_mine_crate"
-	name = "Mine crate drop"
-	description = "Drops anti-personnel mine reserves for rapid position prep."
+	name = "Ящик мин"
+	description = "Сбрасывает запас противопехотных мин для быстрого укрепления позиции."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 480 SECONDS
@@ -96,8 +96,8 @@
 
 /datum/rto_support_action_template/logistics_mini_sentry
 	action_id = "logistics_mini_sentry"
-	name = "Mini-sentry drop"
-	description = "Drops a rapid-deploy mini sentry with a limited ammunition load."
+	name = "Мини-турель"
+	description = "Сбрасывает быстроразворачиваемую мини-турель с ограниченным боезапасом."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS
@@ -112,8 +112,8 @@
 
 /datum/rto_support_action_template/logistics_full_sentry
 	action_id = "logistics_full_sentry"
-	name = "Full sentry drop"
-	description = "Drops a full sentry pod. This is the heaviest defensive logistics call and spends 2 shared charges."
+	name = "Полноразмерная турель"
+	description = "Сбрасывает полноразмерную турель. Это самый тяжёлый оборонительный вызов пакета и он тратит 2 заряда."
 	scatter = 1
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
@@ -128,8 +128,8 @@
 
 /datum/rto_support_action_template/logistics_grenade_drop
 	action_id = "logistics_grenade_drop"
-	name = "Grenade crate drop"
-	description = "Drops a balanced grenade reserve for breaching, room clearing, and emergency defense."
+	name = "Ящик гранат"
+	description = "Сбрасывает сбалансированный запас гранат для пролома, зачистки помещений и экстренной обороны."
 	scatter = 1
 	shared_cooldown = 210 SECONDS
 	personal_cooldown = 450 SECONDS
@@ -144,8 +144,8 @@
 
 /datum/rto_support_action_template/logistics_sentry_ammo_drop
 	action_id = "logistics_sentry_ammo_drop"
-	name = "Sentry ammo drop"
-	description = "Drops a sentry ammunition crate to keep deployed guns firing without spending a heavier defensive call."
+	name = "Боеприпасы для турели"
+	description = "Сбрасывает ящик патронов для турели, чтобы поддерживать уже развёрнутые орудия без вызова новой установки."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS

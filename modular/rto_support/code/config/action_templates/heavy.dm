@@ -1,7 +1,7 @@
 /datum/rto_support_action_template/heavy_missile
 	action_id = "heavy_missile"
-	name = "Missile strike"
-	description = "Rare precision missile strike on a compact point."
+	name = "Ракетный удар"
+	description = "Редкий точечный ракетный удар по компактной зоне."
 	scatter = 3
 	shared_cooldown = 18 SECONDS
 	personal_cooldown = 24 SECONDS
@@ -14,8 +14,8 @@
 
 /datum/rto_support_action_template/heavy_napalm
 	action_id = "heavy_napalm"
-	name = "Napalm strike"
-	description = "Area-denial strike that spends the whole package on one decisive burn."
+	name = "Напалмовый удар"
+	description = "Удар по площади, который тратит весь пакет на одно решающее выжигание."
 	scatter = 2
 	shared_cooldown = 16 SECONDS
 	personal_cooldown = 20 SECONDS

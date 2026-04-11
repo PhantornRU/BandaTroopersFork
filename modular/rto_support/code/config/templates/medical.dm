@@ -1,11 +1,11 @@
 /datum/rto_support_template/medical
 	template_id = "medical"
 	allowed_support_profiles = list("uscm")
-	name = "Medical"
-	description = "Shared 3-charge sustain package for triage, transfusion support, and emergency surgery setup."
-	role_summary = "Keeps corpsmen working under pressure: common treatment drops cost 1 charge, the operating table costs 2."
-	targeting_summary = "No visibility sector required: mark an open landing point with RTO binoculars and call the drop directly."
-	restriction_summary = "Requires open sky and open ground. This package recovers slower than logistics and uses a longer package anti-spam lock."
+	name = "Медицина"
+	description = "Пакет медицинской поддержки с общими 3 зарядами для триажа, переливания и развёртывания экстренной хирургии."
+	role_summary = "Держит медиков в строю под давлением: стандартные медицинские сбросы стоят 1 заряд, операционный стол стоит 2."
+	targeting_summary = "Сектор не требуется: отметьте открытую точку посадки через RTO-бинокль и вызывайте груз напрямую."
+	restriction_summary = "Нужны открытое небо и открытая площадка. Пакет восстанавливается медленнее снабжения и имеет более длинную паузу между вызовами."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

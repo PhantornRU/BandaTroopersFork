@@ -1,7 +1,7 @@
 /datum/rto_support_template/halo_medical
 	parent_type = /datum/rto_support_template/halo
 	template_id = "halo_medical"
-	name = "UNSC Medical"
+	name = "Десантная медицина"
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3
@@ -9,10 +9,10 @@
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	support_package_lockout = 6 SECONDS
-	description = "UNSC medical support package with a shared 3-charge reserve for casualty sustain and corpsman resupply."
-	role_summary = "Keeps field treatment moving with medical packets, corpsman gear, and biofoam reserves at 1 charge each."
-	targeting_summary = "No visibility sector required: mark an open landing point with RTO binoculars and call the drop directly."
-	restriction_summary = "Available to UNSC and ODST RTO roles. Requires open sky and recharges at a measured pace to prevent endless sustain loops."
+	description = "Десантный медицинский пакет с общими 3 зарядами для стабилизации раненых и снабжения корпусманов."
+	role_summary = "Поддерживает лечение в поле: медицинские пакеты, набор корпусмана и запас биопены стоят по 1 заряду."
+	targeting_summary = "Сектор не требуется: отметьте открытую точку посадки через RTO-бинокль и вызывайте груз напрямую."
+	restriction_summary = "Доступен RTO ролям UNSC и ODST. Требует открытого неба и пополняется в умеренном темпе, чтобы не превращаться в бесконечную медподдержку."
 	action_template_types = list(
 		/datum/rto_support_action_template/halo_medical_packets_drop,
 		/datum/rto_support_action_template/halo_corpsman_kit_drop,

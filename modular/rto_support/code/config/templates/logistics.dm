@@ -1,11 +1,11 @@
 /datum/rto_support_template/logistics
 	template_id = "logistics"
 	allowed_support_profiles = list("uscm")
-	name = "Logistics"
-	description = "Frontline resupply package with a shared 3-charge reserve for rifle ammo, specialist top-offs, explosives, and field defenses."
-	role_summary = "Rifle ammo carries the main mass. Specialist and utility drops stay compact so one package can keep a whole squad running."
-	targeting_summary = "No visibility sector required: mark an open landing point with RTO binoculars and call the drop directly."
-	restriction_summary = "Requires open sky and open ground. Charges recover slowly, so use the heavy rifle boxes and turret drops deliberately."
+	name = "Снабжение"
+	description = "Пакет снабжения с общими 3 зарядами для винтовочных патронов, нишевых боеприпасов, гранат и полевой обороны."
+	role_summary = "Основная масса уходит в винтовочные патроны. Нишевые и утилитарные сбросы сделаны компактнее, чтобы одного пакета хватало на отделение."
+	targeting_summary = "Сектор не требуется: отметьте открытую точку посадки через RTO-бинокль и вызывайте груз напрямую."
+	restriction_summary = "Нужны открытое небо и открытая площадка. Заряды возвращаются медленно, поэтому ящики коробов и турели лучше тратить осознанно."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

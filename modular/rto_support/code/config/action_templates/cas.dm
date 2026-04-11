@@ -1,7 +1,7 @@
 /datum/rto_support_action_template/cas_gun_run
 	action_id = "cas_gun_run"
-	name = "Gun run"
-	description = "Fast cannon pass along a narrow lane."
+	name = "Пушечный заход"
+	description = "Быстрый пушечный проход вдоль узкого коридора."
 	scatter = 3
 	shared_cooldown = 12 SECONDS
 	personal_cooldown = 16 SECONDS
@@ -14,8 +14,8 @@
 
 /datum/rto_support_action_template/cas_laser_run
 	action_id = "cas_laser_run"
-	name = "Laser run"
-	description = "Tighter, more deliberate strike pass with lower scatter."
+	name = "Лазерный заход"
+	description = "Более точный и выверенный ударный заход с меньшим разбросом."
 	scatter = 2
 	shared_cooldown = 16 SECONDS
 	personal_cooldown = 22 SECONDS
@@ -28,8 +28,8 @@
 
 /datum/rto_support_action_template/cas_rocket_barrage
 	action_id = "cas_rocket_barrage"
-	name = "Rocket barrage"
-	description = "Heavy rocket pass with the widest footprint in the package."
+	name = "Ракетный заход"
+	description = "Тяжёлый ракетный проход с самым широким покрытием в пакете."
 	scatter = 4
 	shared_cooldown = 22 SECONDS
 	personal_cooldown = 36 SECONDS

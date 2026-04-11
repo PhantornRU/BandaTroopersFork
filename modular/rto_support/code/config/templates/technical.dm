@@ -1,11 +1,11 @@
 /datum/rto_support_template/technical
 	template_id = "technical"
 	allowed_support_profiles = list("uscm")
-	name = "Technical"
-	description = "Shared 3-charge utility package for fortification, power staging, recon tools, and cargo support."
-	role_summary = "Heavy engineering drops cost 2 charges. Lighter recon and coordination drops let the package stay flexible between pushes."
-	targeting_summary = "No visibility sector required: mark an open landing point with RTO binoculars and call the drop directly."
-	restriction_summary = "Requires open sky and open ground. Technical support recharges slowly and uses a longer package anti-spam lock than logistics."
+	name = "Техподдержка"
+	description = "Пакет технической поддержки с общими 3 зарядами для укреплений, энергоснабжения, разведывательных средств и грузовых работ."
+	role_summary = "Тяжёлые инженерные сбросы стоят 2 заряда. Более лёгкие разведывательные и координационные вызовы держат пакет гибким."
+	targeting_summary = "Сектор не требуется: отметьте открытую точку посадки через RTO-бинокль и вызывайте груз напрямую."
+	restriction_summary = "Нужны открытое небо и открытая площадка. Техподдержка пополняется медленно и дольше готовится к следующему вызову, чем снабжение."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

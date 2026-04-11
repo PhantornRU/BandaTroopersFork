@@ -1,7 +1,7 @@
 /datum/rto_support_template/mortar
 	template_id = "mortar"
 	allowed_support_profiles = list("uscm", "unsc")
-	name = "Mortar"
+	name = "Минометы"
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 5
 	support_pool_starting_charges = 5
@@ -9,11 +9,11 @@
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	support_package_lockout = 6 SECONDS
-	description = "Frequent fire-support package with a shared 5-charge reserve for HE, smoke, and incendiary rounds."
-	role_summary = "HE and smoke cost 1 charge. Incendiary costs 2 and should be used for area denial rather than routine pressure."
-	targeting_summary = "Deploy the sector first, then work mortar calls inside it. Sector redeploy stays quick and only acts as anti-spam."
-	restriction_summary = "Best used as steady pressure from a prepared sector. Charges return slowly, so repeated utility fire now trades tempo for endurance."
-	visibility_zone_type = "Illumination"
+	description = "Частый огневой пакет с общими 5 зарядами для фугасных, дымовых и зажигательных мин."
+	role_summary = "Фугас и дым стоят 1 заряд. Зажигательная мина стоит 2 и лучше подходит для перекрытия зон, а не для постоянного давления."
+	targeting_summary = "Сначала разверните сектор, затем работайте минами внутри него. Повторная постановка сектора остаётся короткой."
+	restriction_summary = "Лучше всего работает как постоянное давление из заранее подготовленного сектора. Заряды возвращаются медленно, поэтому темп приходится обменивать на выносливость."
+	visibility_zone_type = "Подсветка"
 	visibility_zone_radius = 7
 	visibility_zone_duration = 30 SECONDS
 	visibility_zone_cooldown = 3 SECONDS
