@@ -21,23 +21,23 @@
 		return catalog
 
 	catalog = list(
-		new /datum/halo_support_catalog_entry("halo_rifle_ammo_drop", "UNSC Rifle Ammo Drop", /datum/fire_support/supply_drop/halo/rifle, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_marksman_ammo_drop", "UNSC Marksman Ammo Drop", /datum/fire_support/supply_drop/halo/marksman, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_pdw_ammo_drop", "UNSC Secondary Weapon Ammo Drop", /datum/fire_support/supply_drop/halo/pdw, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_shotgun_ammo_drop", "UNSC Shotgun Ammo Drop", /datum/fire_support/supply_drop/halo/shotgun, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_sniper_ammo_drop", "UNSC Sniper Ammo Drop", /datum/fire_support/supply_drop/halo/sniper, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_spnkr_ammo_drop", "UNSC SPNKr Ammo Drop", /datum/fire_support/supply_drop/halo/spnkr, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_grenadier_ammo_drop", "UNSC Grenadier Ammo Drop", /datum/fire_support/supply_drop/halo/grenadier, "halo_logistics", "UNSC Logistics", "halo_logistics"),
-		new /datum/halo_support_catalog_entry("halo_medical_packets_drop", "UNSC Medical Packets Drop", /datum/fire_support/supply_drop/halo/medical_packets, "halo_medical", "UNSC Medical", "halo_medical"),
-		new /datum/halo_support_catalog_entry("halo_corpsman_kit_drop", "UNSC Corpsman Kit Drop", /datum/fire_support/supply_drop/halo/corpsman_kit, "halo_medical", "UNSC Medical", "halo_medical"),
-		new /datum/halo_support_catalog_entry("halo_biofoam_reserve_drop", "UNSC Biofoam Reserve Drop", /datum/fire_support/supply_drop/halo/biofoam_reserve, "halo_medical", "UNSC Medical", "halo_medical"),
-		new /datum/halo_support_catalog_entry("halo_toolbox_drop", "UNSC Toolbox Drop", /datum/fire_support/supply_drop/halo/toolbox, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_fortification_drop", "UNSC Fortification Drop", /datum/fire_support/supply_drop/halo/fortification, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_breaching_drop", "UNSC Breaching Drop", /datum/fire_support/supply_drop/halo/breaching, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_vehicle_service_drop", "UNSC Vehicle Service Drop", /datum/fire_support/supply_drop/halo/vehicle_service, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_signal_drop", "UNSC Signal Drop", /datum/fire_support/supply_drop/halo/signal, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_recon_drop", "UNSC Recon Drop", /datum/fire_support/supply_drop/halo/recon, "halo_technical", "UNSC Technical", "halo_technical"),
-		new /datum/halo_support_catalog_entry("halo_rto_command_drop", "UNSC RTO Command Drop", /datum/fire_support/supply_drop/halo/rto_command, "halo_technical", "UNSC Technical", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_rifle_ammo_drop", "Винтовочные боеприпасы", /datum/fire_support/supply_drop/halo/rifle, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_marksman_ammo_drop", "Боеприпасы марксмана", /datum/fire_support/supply_drop/halo/marksman, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_pdw_ammo_drop", "Боеприпасы вторичного оружия", /datum/fire_support/supply_drop/halo/pdw, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_shotgun_ammo_drop", "Дробовые патроны", /datum/fire_support/supply_drop/halo/shotgun, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_sniper_ammo_drop", "Снайперские боеприпасы", /datum/fire_support/supply_drop/halo/sniper, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_spnkr_ammo_drop", "Боеприпасы SPNKr", /datum/fire_support/supply_drop/halo/spnkr, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_grenadier_ammo_drop", "Боеприпасы гренадера", /datum/fire_support/supply_drop/halo/grenadier, "halo_logistics", "Десантное снабжение", "halo_logistics"),
+		new /datum/halo_support_catalog_entry("halo_medical_packets_drop", "Медицинские пакеты", /datum/fire_support/supply_drop/halo/medical_packets, "halo_medical", "Десантная медицина", "halo_medical"),
+		new /datum/halo_support_catalog_entry("halo_corpsman_kit_drop", "Набор корпусмана", /datum/fire_support/supply_drop/halo/corpsman_kit, "halo_medical", "Десантная медицина", "halo_medical"),
+		new /datum/halo_support_catalog_entry("halo_biofoam_reserve_drop", "Резерв биопены", /datum/fire_support/supply_drop/halo/biofoam_reserve, "halo_medical", "Десантная медицина", "halo_medical"),
+		new /datum/halo_support_catalog_entry("halo_toolbox_drop", "Инженерный комплект", /datum/fire_support/supply_drop/halo/toolbox, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_fortification_drop", "Комплект укреплений", /datum/fire_support/supply_drop/halo/fortification, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_breaching_drop", "Набор для пролома", /datum/fire_support/supply_drop/halo/breaching, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_vehicle_service_drop", "Комплект обслуживания техники", /datum/fire_support/supply_drop/halo/vehicle_service, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_signal_drop", "Сигнальный комплект", /datum/fire_support/supply_drop/halo/signal, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_recon_drop", "Разведывательный комплект", /datum/fire_support/supply_drop/halo/recon, "halo_technical", "Десантная техподдержка", "halo_technical"),
+		new /datum/halo_support_catalog_entry("halo_rto_command_drop", "Командный комплект RTO", /datum/fire_support/supply_drop/halo/rto_command, "halo_technical", "Десантная техподдержка", "halo_technical"),
 	)
 	return catalog
 
@@ -75,92 +75,92 @@
 	return sections
 
 /datum/fire_support/supply_drop/halo
-	name = "UNSC support drop"
+	name = "десантный сброс"
 	icon_state = "supply"
 	fire_support_type = "halo_support_drop"
 
 /datum/fire_support/supply_drop/halo/rifle
-	name = "UNSC Rifle Ammo Drop"
+	name = "винтовочные боеприпасы"
 	fire_support_type = "halo_rifle_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/rifle
 
 /datum/fire_support/supply_drop/halo/marksman
-	name = "UNSC Marksman Ammo Drop"
+	name = "боеприпасы марксмана"
 	fire_support_type = "halo_marksman_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/marksman
 
 /datum/fire_support/supply_drop/halo/pdw
-	name = "UNSC Secondary Weapon Ammo Drop"
+	name = "боеприпасы вторичного оружия"
 	fire_support_type = "halo_pdw_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/pdw
 
 /datum/fire_support/supply_drop/halo/shotgun
-	name = "UNSC Shotgun Ammo Drop"
+	name = "дробовые патроны"
 	fire_support_type = "halo_shotgun_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/shotgun
 
 /datum/fire_support/supply_drop/halo/sniper
-	name = "UNSC Sniper Ammo Drop"
+	name = "снайперские боеприпасы"
 	fire_support_type = "halo_sniper_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/sniper
 
 /datum/fire_support/supply_drop/halo/spnkr
-	name = "UNSC SPNKr Ammo Drop"
+	name = "боеприпасы SPNKr"
 	fire_support_type = "halo_spnkr_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/spnkr
 
 /datum/fire_support/supply_drop/halo/grenadier
-	name = "UNSC Grenadier Ammo Drop"
+	name = "боеприпасы гренадера"
 	fire_support_type = "halo_grenadier_ammo_drop"
 	delivered = /obj/structure/largecrate/supply/ammo/halo/grenadier
 
 /datum/fire_support/supply_drop/halo/medical_packets
-	name = "UNSC Medical Packets Drop"
+	name = "медицинские пакеты"
 	fire_support_type = "halo_medical_packets_drop"
 	delivered = /obj/structure/largecrate/supply/medicine/halo/medical_packets
 
 /datum/fire_support/supply_drop/halo/corpsman_kit
-	name = "UNSC Corpsman Kit Drop"
+	name = "набор корпусмана"
 	fire_support_type = "halo_corpsman_kit_drop"
 	delivered = /obj/structure/largecrate/supply/medicine/halo/corpsman_kit
 
 /datum/fire_support/supply_drop/halo/biofoam_reserve
-	name = "UNSC Biofoam Reserve Drop"
+	name = "резерв биопены"
 	fire_support_type = "halo_biofoam_reserve_drop"
 	delivered = /obj/structure/largecrate/supply/medicine/halo/biofoam_reserve
 
 /datum/fire_support/supply_drop/halo/toolbox
-	name = "UNSC Toolbox Drop"
+	name = "инженерный комплект"
 	fire_support_type = "halo_toolbox_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/toolbox
 
 /datum/fire_support/supply_drop/halo/fortification
-	name = "UNSC Fortification Drop"
+	name = "комплект укреплений"
 	fire_support_type = "halo_fortification_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/fortification
 
 /datum/fire_support/supply_drop/halo/breaching
-	name = "UNSC Breaching Drop"
+	name = "набор для пролома"
 	fire_support_type = "halo_breaching_drop"
 	delivered = /obj/structure/largecrate/supply/explosives/halo/breaching
 
 /datum/fire_support/supply_drop/halo/vehicle_service
-	name = "UNSC Vehicle Service Drop"
+	name = "комплект обслуживания техники"
 	fire_support_type = "halo_vehicle_service_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/vehicle_service
 
 /datum/fire_support/supply_drop/halo/signal
-	name = "UNSC Signal Drop"
+	name = "сигнальный комплект"
 	fire_support_type = "halo_signal_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/signal
 
 /datum/fire_support/supply_drop/halo/recon
-	name = "UNSC Recon Drop"
+	name = "разведывательный комплект"
 	fire_support_type = "halo_recon_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/recon
 
 /datum/fire_support/supply_drop/halo/rto_command
-	name = "UNSC RTO Command Drop"
+	name = "командный комплект RTO"
 	fire_support_type = "halo_rto_command_drop"
 	delivered = /obj/structure/largecrate/supply/supplies/halo/rto_command
 
