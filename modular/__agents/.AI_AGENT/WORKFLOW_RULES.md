@@ -23,6 +23,7 @@
 - Перед правками апстрима проверить, нельзя ли закрыть задачу через `modular/**`.
 - При изменении upstream и согласованных config surfaces учитывать требования `SS220 EDIT` из [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md).
 - Existing `SS220 EDIT` в `modular/**` считать legacy markers и не использовать их как precedent для новых правок.
+- `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` считать локальным task-state. Они могут обновляться во время работы, но перед коммитом и PR должны быть возвращены к baseline и не входить в публикуемый diff, если пользователь отдельно не запросил иное.
 
 ## Минимальные проверки по типам задач
 1. Docs-only:

@@ -1,24 +1,27 @@
 # PLAN
 
-## Active task
-Finish the RTO charge-model rollout: migrate all live support packages to shared weighted charges, wire player-facing UI and GM tooling around live charge pools, and leave the branch in a releasable state with updated docs and verification.
+## Активная задача
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- `modular/rto_support/code/**`
-- `modular/game_rule_panel/**`
-- `tgui/packages/tgui/interfaces/**`
-- `code/modules/unit_tests/**`
-- selected RTO/Game Rule Panel docs in `modular/**/__docs/**`
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
-## Current status
-- Runtime support pool datum, controller integration, and Game Rule Panel live charge admin are implemented.
-- All live USCM, UNSC, and ODST support templates are now configured for `charges`.
-- Preset menu and binocular examine text expose charge-based language and live pool state.
-- Docs and tests are being kept in sync with the migrated model.
+## Out of scope
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
+
+## Решение
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- All live support templates resolve to charge pools by default.
-- Package balance is encoded through `capacity`, `recharge`, `support_pool_cost`, and `personal_lockout`.
-- Game Rule Panel can inspect and edit active RTO charge pools live.
-- Player-facing UI no longer presents charge-based packages as legacy shared cooldowns.
-- Compile and TGUI CI-equivalent checks pass.
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.
