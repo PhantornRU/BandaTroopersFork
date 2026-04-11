@@ -5,7 +5,7 @@
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3
-	support_pool_recharge_interval = 180 SECONDS
+	support_pool_recharge_interval = 150 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	description = "Точный авиационный пакет для среднего по редкости штурмового сопровождения."
@@ -15,7 +15,7 @@
 	visibility_zone_type = "Air corridor"
 	visibility_zone_radius = 5
 	visibility_zone_duration = 60 SECONDS
-	visibility_zone_cooldown = 1000 SECONDS
+	visibility_zone_cooldown = 0
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/cas_gun_run,

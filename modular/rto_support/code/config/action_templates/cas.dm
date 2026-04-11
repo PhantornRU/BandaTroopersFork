@@ -6,7 +6,7 @@
 	shared_cooldown = 12 SECONDS
 	personal_cooldown = 16 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 16 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "cas"
 	icon_state = "gau"
 	fire_support_path = /datum/fire_support/gau
@@ -20,7 +20,7 @@
 	shared_cooldown = 16 SECONDS
 	personal_cooldown = 22 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 22 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "cas"
 	icon_state = "laser"
 	fire_support_path = /datum/fire_support/laser
@@ -33,8 +33,8 @@
 	scatter = 4
 	shared_cooldown = 22 SECONDS
 	personal_cooldown = 36 SECONDS
-	support_pool_cost = 2
-	personal_lockout = 36 SECONDS
+	support_pool_cost = 3
+	personal_lockout = 3 SECONDS
 	category = "cas"
 	icon_state = "rockets"
 	fire_support_path = /datum/fire_support/rockets

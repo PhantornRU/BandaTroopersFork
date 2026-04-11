@@ -5,7 +5,7 @@
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 5
 	support_pool_starting_charges = 5
-	support_pool_recharge_interval = 60 SECONDS
+	support_pool_recharge_interval = 75 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	description = "Частый утилитарный пакет с одиночными HE, дымовыми и зажигательными минами."
@@ -15,7 +15,7 @@
 	visibility_zone_type = "Illumination"
 	visibility_zone_radius = 7
 	visibility_zone_duration = 30 SECONDS
-	visibility_zone_cooldown = 600 SECONDS
+	visibility_zone_cooldown = 0
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/mortar_he,

@@ -7,9 +7,9 @@
 	targeting_summary = "No visibility zone required: designate an open landing point with RTO binoculars."
 	restriction_summary = "All drops require open sky and open ground."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
-	support_pool_capacity = 2
-	support_pool_starting_charges = 2
-	support_pool_recharge_interval = 180 SECONDS
+	support_pool_capacity = 3
+	support_pool_starting_charges = 3
+	support_pool_recharge_interval = 120 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	requires_visibility_zone = FALSE

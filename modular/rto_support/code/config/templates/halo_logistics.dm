@@ -15,9 +15,9 @@
 	template_id = "halo_logistics"
 	name = "HALO Logistics"
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
-	support_pool_capacity = 2
-	support_pool_starting_charges = 2
-	support_pool_recharge_interval = 180 SECONDS
+	support_pool_capacity = 3
+	support_pool_starting_charges = 3
+	support_pool_recharge_interval = 120 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
 	description = "UNSC-only HALO logistics package built around frontline ammunition resupply."

@@ -6,7 +6,7 @@
 	shared_cooldown = 18 SECONDS
 	personal_cooldown = 24 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 24 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "heavy"
 	icon_state = "missile"
 	fire_support_path = /datum/fire_support/missile
@@ -19,8 +19,8 @@
 	scatter = 2
 	shared_cooldown = 16 SECONDS
 	personal_cooldown = 20 SECONDS
-	support_pool_cost = 2
-	personal_lockout = 20 SECONDS
+	support_pool_cost = 3
+	personal_lockout = 3 SECONDS
 	category = "heavy"
 	icon_state = "napalm_missile"
 	fire_support_path = /datum/fire_support/missile/napalm

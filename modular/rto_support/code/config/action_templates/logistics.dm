@@ -6,7 +6,7 @@
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 600 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop
@@ -22,7 +22,7 @@
 	shared_cooldown = 180 SECONDS
 	personal_cooldown = 420 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 420 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/mine_crate
@@ -38,7 +38,7 @@
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 540 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/mini
@@ -54,7 +54,7 @@
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
 	support_pool_cost = 2
-	personal_lockout = 780 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/full
@@ -70,7 +70,7 @@
 	shared_cooldown = 180 SECONDS
 	personal_cooldown = 420 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 420 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/grenade_crate
@@ -86,7 +86,7 @@
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 540 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/sentry_ammo

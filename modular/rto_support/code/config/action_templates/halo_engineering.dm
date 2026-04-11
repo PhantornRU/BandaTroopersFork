@@ -3,7 +3,7 @@
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
 	support_pool_cost = 2
-	personal_lockout = 780 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "engineering"
 	icon_state = "build"
 

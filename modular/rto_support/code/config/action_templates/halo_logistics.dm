@@ -10,7 +10,7 @@
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 600 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 

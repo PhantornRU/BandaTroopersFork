@@ -6,7 +6,7 @@
 	shared_cooldown = 4 SECONDS
 	personal_cooldown = 8 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 8 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "mortar"
 	icon_state = "he_mortar"
 	fire_support_path = /datum/fire_support/mortar/rto_single
@@ -19,7 +19,7 @@
 	shared_cooldown = 3 SECONDS
 	personal_cooldown = 5 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 5 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "mortar"
 	icon_state = "smoke_mortar"
 	fire_support_path = /datum/fire_support/mortar/smoke/rto_single
@@ -32,7 +32,7 @@
 	shared_cooldown = 6 SECONDS
 	personal_cooldown = 10 SECONDS
 	support_pool_cost = 2
-	personal_lockout = 10 SECONDS
+	personal_lockout = 3 SECONDS
 	category = "mortar"
 	icon_state = "incendiary_mortar"
 	fire_support_path = /datum/fire_support/mortar/incendiary/rto_single
