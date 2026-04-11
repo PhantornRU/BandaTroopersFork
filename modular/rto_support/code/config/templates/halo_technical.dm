@@ -8,10 +8,10 @@
 	support_pool_recharge_interval = 120 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
-	description = "UNSC-only HALO technical support package for engineering, recon, signals and RTO sustain."
-	role_summary = "Combines HALO engineering and command utility drops into one technical package."
-	targeting_summary = "No visibility zone required: designate an open HALO landing point with RTO binoculars."
-	restriction_summary = "Available only to HALO RTO roles. All HALO technical drops require open sky."
+	description = "UNSC-only HALO technical support package with a shared 3-charge reserve for engineering, recon, signals and RTO sustain."
+	role_summary = "Combines HALO engineering and command utility drops: heavy engineering crates cost 2 charges, recon and command drops cost 1."
+	targeting_summary = "No visibility zone required: designate an open HALO landing point with RTO binoculars and recover one charge every 120 seconds."
+	restriction_summary = "Available only to HALO RTO roles. All HALO technical drops require open sky and use only a 3-second local anti-spam lockout."
 	action_template_types = list(
 		/datum/rto_support_action_template/halo_toolbox_drop,
 		/datum/rto_support_action_template/halo_fortification_drop,

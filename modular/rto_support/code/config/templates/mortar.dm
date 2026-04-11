@@ -8,14 +8,14 @@
 	support_pool_recharge_interval = 75 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
-	description = "Частый утилитарный пакет с одиночными HE, дымовыми и зажигательными минами."
-	role_summary = "Частое давление, дым и сдерживание проходов одиночными минами."
-	targeting_summary = "Сначала разверните сектор, затем спамьте одиночные миномётные выстрелы короткими интервалами, пока зона активна."
-	restriction_summary = "Лучше всего работает как частая утилита по заранее выбранной зоне, где важно быстро отстреляться до длинной перезарядки."
+	description = "Частый боевой пакет с общими 5 зарядами для одиночных HE, дымовых и зажигательных мин."
+	role_summary = "Давление, дым и отсечение проходов: HE и дым стоят 1 заряд, зажигательная мина стоит 2."
+	targeting_summary = "Сначала разверните сектор, затем вызывайте мины внутри него. Между постановкой секторов действует только короткий антиспам в 3 секунды."
+	restriction_summary = "Лучше всего работает как частая утилита по заранее выбранной зоне: пакет восстанавливает 1 заряд каждые 75 секунд и использует 3-секундный локальный lockout между вызовами."
 	visibility_zone_type = "Illumination"
 	visibility_zone_radius = 7
 	visibility_zone_duration = 30 SECONDS
-	visibility_zone_cooldown = 0
+	visibility_zone_cooldown = 3 SECONDS
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/mortar_he,

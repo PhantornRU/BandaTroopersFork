@@ -2,10 +2,10 @@
 	template_id = "technical"
 	allowed_support_profiles = list("uscm")
 	name = "Technical"
-	description = "Utility package for fortification, power staging, recon tools and cargo-handling support."
-	role_summary = "Combines engineer and command-adjacent support into one technical package."
-	targeting_summary = "No visibility zone required: designate an open landing point with RTO binoculars."
-	restriction_summary = "All drops require open sky and open ground."
+	description = "Shared 3-charge utility package for fortification, power staging, recon tools and cargo-handling support."
+	role_summary = "Combines engineer and command-adjacent support: recon costs 1 charge, heavy engineering drops cost 2."
+	targeting_summary = "No visibility zone required: designate an open landing point with RTO binoculars and recover one charge every 120 seconds."
+	restriction_summary = "All drops require open sky and open ground. Calls are limited by shared charges plus a 3-second local anti-spam lockout."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

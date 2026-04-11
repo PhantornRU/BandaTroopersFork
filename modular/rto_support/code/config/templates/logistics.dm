@@ -2,10 +2,10 @@
 	template_id = "logistics"
 	allowed_support_profiles = list("uscm")
 	name = "Logistics"
-	description = "Utility package for direct resupply, explosives and deployable defenses without a visibility sector."
-	role_summary = "Sustains the line with crates, sentries and emergency ammunition."
-	targeting_summary = "No visibility zone required: arm the drop and designate an open landing point with RTO binoculars."
-	restriction_summary = "All drops require open sky and an open target tile."
+	description = "Shared 3-charge utility package for direct resupply, explosives and deployable defenses without a visibility sector."
+	role_summary = "Sustains the line with crates, sentries and emergency ammunition: most drops cost 1 charge, the full sentry costs 2."
+	targeting_summary = "No visibility zone required: arm the drop, designate an open landing point with RTO binoculars, and recover one charge every 120 seconds."
+	restriction_summary = "All drops require open sky and an open target tile. Calls use only a 3-second local anti-spam lockout."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

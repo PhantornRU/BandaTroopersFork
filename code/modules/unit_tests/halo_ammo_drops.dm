@@ -339,7 +339,7 @@
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_he").shared_cooldown, 4 SECONDS, "Mortar HE should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_smoke").shared_cooldown, 3 SECONDS, "Mortar smoke should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(mortar_template.get_action_template("mortar_incendiary").shared_cooldown, 6 SECONDS, "Mortar incendiary should keep its original shared cooldown.")
-	TEST_ASSERT_EQUAL(mortar_template.visibility_zone_cooldown, 0, "Mortar should no longer use a sector cooldown.")
+	TEST_ASSERT_EQUAL(mortar_template.visibility_zone_cooldown, 3 SECONDS, "Mortar should use a short anti-spam sector cooldown.")
 	assert_template_charge_actions(mortar_template, list(
 		"mortar_he" = list(1, 3 SECONDS),
 		"mortar_smoke" = list(1, 3 SECONDS),
@@ -356,7 +356,7 @@
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_gun_run").shared_cooldown, 12 SECONDS, "CAS gun run should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_laser_run").shared_cooldown, 16 SECONDS, "CAS laser run should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(cas_template.get_action_template("cas_rocket_barrage").shared_cooldown, 22 SECONDS, "CAS rocket barrage should keep its original shared cooldown.")
-	TEST_ASSERT_EQUAL(cas_template.visibility_zone_cooldown, 0, "CAS should no longer use a sector cooldown.")
+	TEST_ASSERT_EQUAL(cas_template.visibility_zone_cooldown, 3 SECONDS, "CAS should use a short anti-spam sector cooldown.")
 	assert_template_charge_actions(cas_template, list(
 		"cas_gun_run" = list(1, 3 SECONDS),
 		"cas_laser_run" = list(1, 3 SECONDS),
@@ -371,7 +371,7 @@
 	assert_template_charge_pool(heavy_template, 3, 3, 180 SECONDS, 1)
 	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_missile").shared_cooldown, 18 SECONDS, "Heavy missile strike should keep its original shared cooldown.")
 	TEST_ASSERT_EQUAL(heavy_template.get_action_template("heavy_napalm").shared_cooldown, 16 SECONDS, "Heavy napalm strike should keep its original shared cooldown.")
-	TEST_ASSERT_EQUAL(heavy_template.visibility_zone_cooldown, 0, "Heavy strike should no longer use a sector cooldown.")
+	TEST_ASSERT_EQUAL(heavy_template.visibility_zone_cooldown, 3 SECONDS, "Heavy strike should use a short anti-spam sector cooldown.")
 	assert_template_charge_actions(heavy_template, list(
 		"heavy_missile" = list(1, 3 SECONDS),
 		"heavy_napalm" = list(3, 3 SECONDS),
@@ -412,9 +412,9 @@
 	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
 
 	TEST_ASSERT(controller.select_template("mortar"), "Single-package zone discount test should select mortar first.")
-	TEST_ASSERT_EQUAL(controller.get_solo_visibility_zone_cooldown("mortar"), 0, "Mortar should no longer expose a solo sector cooldown preview.")
+	TEST_ASSERT_EQUAL(controller.get_solo_visibility_zone_cooldown("mortar"), 3 SECONDS, "Mortar should expose the short anti-spam sector cooldown.")
 	TEST_ASSERT(!controller.uses_single_template_zone_discount("mortar"), "Zero-cooldown sectors should not expose a solo cooldown bonus.")
-	TEST_ASSERT_EQUAL(controller.get_effective_visibility_zone_cooldown("mortar"), 0, "Single selected zone package should no longer use a sector cooldown.")
+	TEST_ASSERT_EQUAL(controller.get_effective_visibility_zone_cooldown("mortar"), 3 SECONDS, "Single selected zone package should use the short anti-spam sector cooldown.")
 
 	var/list/ui_entries = controller.build_preset_ui_data()
 	var/list/mortar_entry = null
@@ -423,16 +423,16 @@
 			mortar_entry = entry
 			break
 	TEST_ASSERT_NOTNULL(mortar_entry, "Preset menu should expose mortar template data for the solo cooldown preview.")
-	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown"], 0, "Preset menu should show zero mortar sector cooldown.")
-	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_solo"], 0, "Preset menu should show zero solo mortar sector cooldown.")
-	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_current"], 0, "Preset menu should show zero active mortar sector cooldown.")
-	TEST_ASSERT(!mortar_entry["solo_zone_cooldown_active"], "Preset menu should not mark a zero-cooldown sector bonus as active.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown"], 3, "Preset menu should show the short mortar sector anti-spam cooldown.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_solo"], 3, "Preset menu should show the same short mortar sector cooldown without a solo bonus.")
+	TEST_ASSERT_EQUAL(mortar_entry["visibility_zone_cooldown_current"], 3, "Preset menu should show the active short mortar sector cooldown.")
+	TEST_ASSERT(!mortar_entry["solo_zone_cooldown_active"], "Preset menu should not mark a solo sector bonus as active.")
 
 	var/datum/rto_support_template/mortar/mortar_template = controller.get_selected_template("mortar")
 	controller.active_zone = allocate(/datum/rto_visibility_zone, human, run_loc_floor_bottom_left, mortar_template)
 	controller.clear_active_zone()
 	TEST_ASSERT_EQUAL(controller.zone_shared_cooldown_until, 0, "Clearing a solo-selected mortar sector should not apply a shared zone cooldown.")
-	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("mortar"), 0, "Clearing a solo-selected mortar sector should not apply a personal zone cooldown.")
+	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("mortar"), 3 SECONDS, "Clearing a solo-selected mortar sector should apply only the short personal anti-spam cooldown.")
 
 	var/mob/living/carbon/human/two_slot_human = allocate(/mob/living/carbon/human)
 	two_slot_human.job = JOB_SQUAD_RTO
@@ -441,13 +441,13 @@
 	TEST_ASSERT(two_slot_controller.select_template("mortar"), "Two-slot zone discount test should select mortar first.")
 	TEST_ASSERT(two_slot_controller.select_template("logistics"), "Two-slot zone discount test should fill the second slot.")
 	TEST_ASSERT(!two_slot_controller.uses_single_template_zone_discount("mortar"), "Selecting a second package should not create a solo cooldown bonus.")
-	TEST_ASSERT_EQUAL(two_slot_controller.get_effective_visibility_zone_cooldown("mortar"), 0, "Two selected packages should still keep zero sector cooldown.")
+	TEST_ASSERT_EQUAL(two_slot_controller.get_effective_visibility_zone_cooldown("mortar"), 3 SECONDS, "Two selected packages should still keep the short sector anti-spam cooldown.")
 
 	var/datum/rto_support_template/mortar/two_slot_mortar_template = two_slot_controller.get_selected_template("mortar")
 	two_slot_controller.active_zone = allocate(/datum/rto_visibility_zone, two_slot_human, run_loc_floor_bottom_left, two_slot_mortar_template)
 	two_slot_controller.clear_active_zone()
 	TEST_ASSERT_EQUAL(two_slot_controller.zone_shared_cooldown_until, 0, "Clearing a sector with two selected packages should not apply a shared zone cooldown.")
-	TEST_ASSERT_EQUAL(two_slot_controller.get_remaining_zone_cooldown("mortar"), 0, "Clearing a sector with two selected packages should not apply a personal zone cooldown.")
+	TEST_ASSERT_EQUAL(two_slot_controller.get_remaining_zone_cooldown("mortar"), 3 SECONDS, "Clearing a sector with two selected packages should apply only the short personal anti-spam cooldown.")
 
 /datum/unit_test/halo_support_package_shared_charges
 
@@ -579,9 +579,10 @@
 	TEST_ASSERT(!controller.can_deploy_zone("cas"), "A second sector should not deploy while another package sector is active.")
 
 	controller.clear_active_zone()
-	TEST_ASSERT_EQUAL(controller.get_remaining_zone_shared_cooldown(), 0, "Clearing a sector should no longer start a shared zone cooldown.")
-	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("mortar"), 0, "Clearing a sector should no longer start a personal zone cooldown for the source package.")
+	TEST_ASSERT_EQUAL(controller.get_remaining_zone_shared_cooldown(), 0, "Clearing a sector should still not start a shared zone cooldown.")
+	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("mortar"), 3 SECONDS, "Clearing a sector should start only the short personal anti-spam cooldown for the source package.")
 	TEST_ASSERT_EQUAL(controller.get_remaining_zone_cooldown("cas"), 0, "A different package should not inherit the source package personal zone cooldown.")
+	TEST_ASSERT(!controller.can_deploy_zone("mortar"), "The source package should respect its short personal anti-spam cooldown before redeploying.")
 	TEST_ASSERT(controller.can_deploy_zone("cas"), "A different sector package should be immediately redeployable after the active zone is cleared.")
 
 /datum/unit_test/halo_support_payload_contents

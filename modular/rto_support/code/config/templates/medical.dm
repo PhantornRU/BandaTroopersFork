@@ -2,10 +2,10 @@
 	template_id = "medical"
 	allowed_support_profiles = list("uscm")
 	name = "Medical"
-	description = "Utility package for casualty sustain, transfusion support and emergency surgery setup."
-	role_summary = "Calls down frontline medical support crates for triage and stabilization."
-	targeting_summary = "No visibility zone required: designate an open landing point with RTO binoculars."
-	restriction_summary = "All drops require open sky and open ground."
+	description = "Shared 3-charge utility package for casualty sustain, transfusion support and emergency surgery setup."
+	role_summary = "Calls down frontline medical support crates for triage and stabilization: most drops cost 1 charge, the operating table costs 2."
+	targeting_summary = "No visibility zone required: designate an open landing point with RTO binoculars and recover one charge every 120 seconds."
+	restriction_summary = "All drops require open sky and open ground. Every call uses only a 3-second local anti-spam lockout."
 	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
 	support_pool_capacity = 3
 	support_pool_starting_charges = 3

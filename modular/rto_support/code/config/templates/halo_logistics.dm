@@ -20,10 +20,10 @@
 	support_pool_recharge_interval = 120 SECONDS
 	support_pool_recharge_amount = 1
 	support_pool_auto_recharge = TRUE
-	description = "UNSC-only HALO logistics package built around frontline ammunition resupply."
-	role_summary = "Calls down tailored HALO ammo crates for riflemen, marksmen, breachers, heavy weapons specialists and grenadiers."
-	targeting_summary = "No visibility zone required: arm a HALO support drop and designate an open landing point with RTO binoculars."
-	restriction_summary = "Available only to HALO RTO roles. All HALO logistics drops require open sky and share one family cooldown."
+	description = "UNSC-only HALO logistics package with a shared 3-charge ammo reserve for frontline resupply."
+	role_summary = "Calls down tailored HALO ammo crates for riflemen, marksmen, breachers, heavy weapons specialists and grenadiers at 1 charge each."
+	targeting_summary = "No visibility zone required: arm a HALO support drop, designate an open landing point with RTO binoculars, and recover one charge every 120 seconds."
+	restriction_summary = "Available only to HALO RTO roles. All HALO logistics drops require open sky and use only a 3-second local anti-spam lockout."
 	action_template_types = list(
 		/datum/rto_support_action_template/halo_rifle_ammo_drop,
 		/datum/rto_support_action_template/halo_marksman_ammo_drop,
