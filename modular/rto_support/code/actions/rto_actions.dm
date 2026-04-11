@@ -87,7 +87,7 @@
 /datum/action/human_action/rto/visibility_zone
 	name = "Развернуть сектор наведения"
 	icon_file = 'icons/mob/hud/actions.dmi'
-	action_icon_state = "designator_mortar"
+	action_icon_state = "designator_one_weapon"
 	var/template_id
 
 /datum/action/human_action/rto/visibility_zone/New(datum/rto_support_controller/new_controller, new_template_id)
