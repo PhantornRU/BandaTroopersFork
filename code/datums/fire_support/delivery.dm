@@ -5,7 +5,7 @@
 	cost = 2
 	scatter_range = 1
 	icon_state = "ammo"
-	initiate_chat_message = "Цель подтверждена. Сброс припасов выполняется."
+	initiate_chat_message = "ЦЕЛЬ ПОДТВЕРЖДЕНА. СБРОС ПРИПАСОВ."
 	initiate_screen_message = list(
 		"Сброс припасов выполняется. Держитесь подальше от зоны падения.",
 		"Груз уже на подходе. Следите за небом.",
@@ -62,7 +62,7 @@
 	cost = 2
 	scatter_range = 1
 	icon_state = "sentry"
-	initiate_chat_message = "Цель подтверждена. Десантирую турельный модуль."
+	initiate_chat_message = "ЦЕЛЬ ПОДТВЕРЖДЕНА. ТУРЕЛЬНЫЙ МОДУЛЬ В ПУТИ."
 	initiate_screen_message = list(
 		"Турельный модуль уже в пути. Освободите площадку.",
 		"Сброс турели подтверждён. Не стойте под капсулой.",

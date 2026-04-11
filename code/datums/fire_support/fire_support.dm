@@ -26,9 +26,9 @@
 	///How much delay between visual effect of impacts
 	var/visual_impact_delay = 0.15 SECONDS
 	///Chat message when initiating fire support
-	var/initiate_chat_message = "TARGET ACQUIRED. FIRE SUPPORT INBOUND."
+	var/initiate_chat_message = "ЦЕЛЬ ПОДТВЕРЖДЕНА. ОГНЕВАЯ ПОДДЕРЖКА В ПУТИ."
 	///screentext message when initiating fire support
-	var/list/initiate_screen_message = list("fire support inbound")
+	var/list/initiate_screen_message = list("огневая поддержка в пути")
 	///Screentext message title
 	var/initiate_title = "Falcon-1"
 	///Portrait used for screentext message
@@ -78,7 +78,7 @@
 ///Initiates fire support proc chain
 /datum/fire_support/proc/initiate_fire_support(turf/target_turf, mob/user)
 	if(!(fire_support_flags & FIRESUPPORT_AVAILABLE))
-		to_chat(user, SPAN_NOTICE("FIRE SUPPORT UNAVAILABLE"))
+		to_chat(user, SPAN_NOTICE("ОГНЕВАЯ ПОДДЕРЖКА НЕДОСТУПНА"))
 		return
 	addtimer(CALLBACK(src, PROC_REF(start_fire_support), target_turf), delay_to_impact)
 
