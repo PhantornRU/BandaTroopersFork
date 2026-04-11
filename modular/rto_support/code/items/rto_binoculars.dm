@@ -17,22 +17,22 @@
 	return "uscm"
 
 /obj/item/device/binoculars/rto/halo
-	name = "HALO RTO binoculars"
-	desc = "A HALO-issue RTO binocular set adapted to the modular support workflow."
+	name = "UNSC RTO binoculars"
+	desc = "A UNSC-issue RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/get_support_profile()
 	return "halo"
 
 /obj/item/device/binoculars/rto/halo/unsc
 	name = "UNSC RTO binoculars"
-	desc = "A UNSC RTO binocular set adapted to the modular HALO support workflow."
+	desc = "A UNSC RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/unsc/get_support_profile()
 	return "unsc"
 
 /obj/item/device/binoculars/rto/halo/odst
 	name = "ODST RTO binoculars"
-	desc = "An ODST RTO binocular set adapted to the modular HALO support workflow."
+	desc = "An ODST RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/odst/get_support_profile()
 	return "odst"
