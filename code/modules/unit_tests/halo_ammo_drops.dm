@@ -275,7 +275,11 @@
 
 	var/datum/rto_support_template/logistics/uscm_logistics_template = allocate(/datum/rto_support_template/logistics)
 	assert_template_actions(uscm_logistics_template, list(
-		"logistics_supply" = /datum/fire_support/supply_drop,
+		"logistics_rifle_mag_drop" = /datum/fire_support/supply_drop/uscm/rifle,
+		"logistics_rifle_box_drop" = /datum/fire_support/supply_drop/uscm/rifle_box,
+		"logistics_shotgun_ammo_drop" = /datum/fire_support/supply_drop/uscm/shotgun/compact,
+		"logistics_smg_ammo_drop" = /datum/fire_support/supply_drop/uscm/smg/compact,
+		"logistics_sidearm_ammo_drop" = /datum/fire_support/supply_drop/uscm/sidearm/compact,
 		"logistics_mine_crate" = /datum/fire_support/supply_drop/mine_crate,
 		"logistics_mini_sentry" = /datum/fire_support/sentry_drop/mini,
 		"logistics_full_sentry" = /datum/fire_support/sentry_drop/full,
@@ -283,11 +287,16 @@
 		"logistics_sentry_ammo_drop" = /datum/fire_support/supply_drop/sentry_ammo,
 	))
 	assert_template_charge_pool(uscm_logistics_template, 3, 3, 120 SECONDS, 1)
-	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_supply").shared_cooldown, 240 SECONDS, "USCM logistics supply drop should use doubled shared cooldown.")
+	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_rifle_mag_drop").shared_cooldown, 240 SECONDS, "USCM rifle magazine drop should keep the standard logistics cooldown.")
+	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_rifle_box_drop").support_pool_cost, 2, "USCM bulk rifle ammo should remain the heavy ammo option in logistics.")
 	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_mine_crate").shared_cooldown, 180 SECONDS, "USCM mine crate drop should use doubled shared cooldown.")
 	TEST_ASSERT_EQUAL(uscm_logistics_template.get_action_template("logistics_full_sentry").shared_cooldown, 360 SECONDS, "USCM full sentry drop should use doubled shared cooldown.")
 	assert_template_charge_actions(uscm_logistics_template, list(
-		"logistics_supply" = list(1, 3 SECONDS),
+		"logistics_rifle_mag_drop" = list(1, 3 SECONDS),
+		"logistics_rifle_box_drop" = list(2, 3 SECONDS),
+		"logistics_shotgun_ammo_drop" = list(1, 3 SECONDS),
+		"logistics_smg_ammo_drop" = list(1, 3 SECONDS),
+		"logistics_sidearm_ammo_drop" = list(1, 3 SECONDS),
 		"logistics_mine_crate" = list(1, 3 SECONDS),
 		"logistics_mini_sentry" = list(1, 3 SECONDS),
 		"logistics_full_sentry" = list(2, 3 SECONDS),
@@ -464,7 +473,7 @@
 
 	var/datum/rto_support_template/logistics/logistics_template = controller.get_selected_template("logistics")
 	var/datum/rto_support_template/medical/medical_template = controller.get_selected_template("medical")
-	var/datum/rto_support_action_template/logistics_supply/supply_action = logistics_template.get_action_template("logistics_supply")
+	var/datum/rto_support_action_template/logistics_rifle_mag_drop/supply_action = logistics_template.get_action_template("logistics_rifle_mag_drop")
 	var/datum/rto_support_action_template/logistics_full_sentry/full_sentry_action = logistics_template.get_action_template("logistics_full_sentry")
 	var/datum/rto_support_resource_pool_state/logistics_pool = controller.get_support_pool(logistics_template, TRUE)
 
@@ -474,7 +483,7 @@
 	TEST_ASSERT(controller.apply_action_resource_consumption(logistics_template, supply_action), "Spending one logistics charge should succeed.")
 	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(logistics_template), 2, "Light logistics support should consume exactly one shared charge.")
 	TEST_ASSERT(controller.can_arm_action(full_sentry_action.action_id, logistics_template.template_id), "Heavy logistics support should still be available while the pool can pay its weighted cost.")
-	TEST_ASSERT(controller.can_arm_action("logistics_grenade_drop", "logistics"), "Another light logistics action should still be available after spending one shared charge.")
+	TEST_ASSERT(controller.can_arm_action("logistics_shotgun_ammo_drop", "logistics"), "Another light logistics action should still be available after spending one shared charge.")
 	TEST_ASSERT(controller.apply_action_resource_consumption(logistics_template, supply_action), "A second logistics light action should still spend one charge successfully.")
 	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(logistics_template), 1, "Two light logistics actions should leave one shared charge.")
 	TEST_ASSERT(!controller.can_arm_action(full_sentry_action.action_id, logistics_template.template_id), "Heavy logistics support should be blocked once the pool drops below its weighted cost.")
@@ -590,31 +599,30 @@
 /datum/unit_test/halo_support_payload_contents/Run()
 	var/list/crate_expectations = list(
 		/obj/structure/largecrate/supply/ammo/halo/rifle = list(
-			/obj/item/ammo_box/magazine/unsc/ma5c = 1,
-			/obj/item/ammo_box/magazine/unsc/ma5b = 1,
-			/obj/item/ammo_box/magazine/unsc/br55 = 1,
-			/obj/item/ammo_box/magazine/unsc/small/m6c = 1,
+			/obj/item/ammo_box/magazine/unsc/ma5c = 2,
+			/obj/item/ammo_box/magazine/unsc/ma5b = 2,
+			/obj/item/ammo_box/magazine/unsc/br55 = 2,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/marksman = list(
-			/obj/item/ammo_magazine/rifle/halo/dmr = 4,
-			/obj/item/ammo_magazine/pistol/halo/m6d = 2,
+			/obj/item/ammo_magazine/rifle/halo/dmr = 5,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/pdw = list(
-			/obj/item/ammo_magazine/smg/halo/m7 = 6,
+			/obj/item/ammo_magazine/smg/halo/m7 = 4,
 			/obj/item/ammo_box/magazine/unsc/small/m6c = 2,
+			/obj/item/ammo_magazine/pistol/halo/m6d = 2,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/shotgun = list(
-			/obj/item/ammo_magazine/shotgun/buckshot/unsc = 6,
+			/obj/item/ammo_magazine/shotgun/buckshot/unsc = 3,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/sniper = list(
-			/obj/item/ammo_magazine/rifle/halo/sniper = 8,
+			/obj/item/ammo_magazine/rifle/halo/sniper = 5,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/spnkr = list(
-			/obj/item/ammo_magazine/spnkr = 4,
+			/obj/item/ammo_magazine/spnkr = 2,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/grenadier = list(
 			/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable = 2,
-			/obj/item/ammo_box/magazine/misc/unsc/grenade = 1,
+			/obj/item/ammo_box/magazine/misc/unsc/grenade = 2,
 		),
 		/obj/structure/largecrate/supply/medicine/halo/medical_packets = list(
 			/obj/item/ammo_box/magazine/misc/unsc/medical_packets = 4,
@@ -677,6 +685,22 @@
 			/obj/item/device/encryptionkey/jtac = 1,
 			/obj/item/storage/box/flare/signal = 1,
 		),
+		/obj/structure/largecrate/supply/ammo/m41a = list(
+			/obj/item/ammo_magazine/rifle = 20,
+		),
+		/obj/structure/largecrate/supply/ammo/m41a_box = list(
+			/obj/item/ammo_box/rounds = 4,
+		),
+		/obj/structure/largecrate/supply/ammo/shotgun/half = list(
+			/obj/item/ammo_magazine/shotgun/slugs = 3,
+		),
+		/obj/structure/largecrate/supply/ammo/m39/half = list(
+			/obj/item/ammo_magazine/smg/m39 = 6,
+		),
+		/obj/structure/largecrate/supply/ammo/pistol/half = list(
+			/obj/item/ammo_magazine/revolver = 4,
+			/obj/item/ammo_magazine/pistol = 8,
+		),
 		/obj/structure/largecrate/supply/supplies/rto/technical_fortification = list(
 			/obj/item/stack/sheet/metal/large_stack = 2,
 			/obj/item/stack/sheet/plasteel/medium_stack = 1,
@@ -704,55 +728,55 @@
 
 /datum/unit_test/halo_support_admin_bridge/Run()
 	var/list/expected_routing = list(
-		"HALO Rifle Ammo Drop" = /datum/fire_support/supply_drop/halo/rifle,
-		"HALO Marksman Ammo Drop" = /datum/fire_support/supply_drop/halo/marksman,
-		"HALO PDW Ammo Drop" = /datum/fire_support/supply_drop/halo/pdw,
-		"HALO Shotgun Ammo Drop" = /datum/fire_support/supply_drop/halo/shotgun,
-		"HALO Sniper Ammo Drop" = /datum/fire_support/supply_drop/halo/sniper,
-		"HALO SPNKr Ammo Drop" = /datum/fire_support/supply_drop/halo/spnkr,
-		"HALO Grenadier Ammo Drop" = /datum/fire_support/supply_drop/halo/grenadier,
-		"HALO Medical Packets Drop" = /datum/fire_support/supply_drop/halo/medical_packets,
-		"HALO Corpsman Kit Drop" = /datum/fire_support/supply_drop/halo/corpsman_kit,
-		"HALO Biofoam Reserve Drop" = /datum/fire_support/supply_drop/halo/biofoam_reserve,
-		"HALO Toolbox Drop" = /datum/fire_support/supply_drop/halo/toolbox,
-		"HALO Fortification Drop" = /datum/fire_support/supply_drop/halo/fortification,
-		"HALO Breaching Drop" = /datum/fire_support/supply_drop/halo/breaching,
-		"HALO Vehicle Service Drop" = /datum/fire_support/supply_drop/halo/vehicle_service,
-		"HALO Signal Drop" = /datum/fire_support/supply_drop/halo/signal,
-		"HALO Recon Drop" = /datum/fire_support/supply_drop/halo/recon,
-		"HALO RTO Command Drop" = /datum/fire_support/supply_drop/halo/rto_command,
+		"UNSC Rifle Ammo Drop" = /datum/fire_support/supply_drop/halo/rifle,
+		"UNSC Marksman Ammo Drop" = /datum/fire_support/supply_drop/halo/marksman,
+		"UNSC Secondary Weapon Ammo Drop" = /datum/fire_support/supply_drop/halo/pdw,
+		"UNSC Shotgun Ammo Drop" = /datum/fire_support/supply_drop/halo/shotgun,
+		"UNSC Sniper Ammo Drop" = /datum/fire_support/supply_drop/halo/sniper,
+		"UNSC SPNKr Ammo Drop" = /datum/fire_support/supply_drop/halo/spnkr,
+		"UNSC Grenadier Ammo Drop" = /datum/fire_support/supply_drop/halo/grenadier,
+		"UNSC Medical Packets Drop" = /datum/fire_support/supply_drop/halo/medical_packets,
+		"UNSC Corpsman Kit Drop" = /datum/fire_support/supply_drop/halo/corpsman_kit,
+		"UNSC Biofoam Reserve Drop" = /datum/fire_support/supply_drop/halo/biofoam_reserve,
+		"UNSC Toolbox Drop" = /datum/fire_support/supply_drop/halo/toolbox,
+		"UNSC Fortification Drop" = /datum/fire_support/supply_drop/halo/fortification,
+		"UNSC Breaching Drop" = /datum/fire_support/supply_drop/halo/breaching,
+		"UNSC Vehicle Service Drop" = /datum/fire_support/supply_drop/halo/vehicle_service,
+		"UNSC Signal Drop" = /datum/fire_support/supply_drop/halo/signal,
+		"UNSC Recon Drop" = /datum/fire_support/supply_drop/halo/recon,
+		"UNSC RTO Command Drop" = /datum/fire_support/supply_drop/halo/rto_command,
 	)
 	var/list/expected_sections = list(
 		"halo_logistics" = list(
-			"title" = "HALO Logistics",
+			"title" = "UNSC Logistics",
 			"options" = list(
-				"HALO Rifle Ammo Drop",
-				"HALO Marksman Ammo Drop",
-				"HALO PDW Ammo Drop",
-				"HALO Shotgun Ammo Drop",
-				"HALO Sniper Ammo Drop",
-				"HALO SPNKr Ammo Drop",
-				"HALO Grenadier Ammo Drop",
+				"UNSC Rifle Ammo Drop",
+				"UNSC Marksman Ammo Drop",
+				"UNSC Secondary Weapon Ammo Drop",
+				"UNSC Shotgun Ammo Drop",
+				"UNSC Sniper Ammo Drop",
+				"UNSC SPNKr Ammo Drop",
+				"UNSC Grenadier Ammo Drop",
 			),
 		),
 		"halo_medical" = list(
-			"title" = "HALO Medical",
+			"title" = "UNSC Medical",
 			"options" = list(
-				"HALO Medical Packets Drop",
-				"HALO Corpsman Kit Drop",
-				"HALO Biofoam Reserve Drop",
+				"UNSC Medical Packets Drop",
+				"UNSC Corpsman Kit Drop",
+				"UNSC Biofoam Reserve Drop",
 			),
 		),
 		"halo_technical" = list(
-			"title" = "HALO Technical",
+			"title" = "UNSC Technical",
 			"options" = list(
-				"HALO Toolbox Drop",
-				"HALO Fortification Drop",
-				"HALO Breaching Drop",
-				"HALO Vehicle Service Drop",
-				"HALO Signal Drop",
-				"HALO Recon Drop",
-				"HALO RTO Command Drop",
+				"UNSC Toolbox Drop",
+				"UNSC Fortification Drop",
+				"UNSC Breaching Drop",
+				"UNSC Vehicle Service Drop",
+				"UNSC Signal Drop",
+				"UNSC Recon Drop",
+				"UNSC RTO Command Drop",
 			),
 		),
 	)

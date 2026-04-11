@@ -33,6 +33,10 @@
 	var/initiate_title = "Falcon-1"
 	///Portrait used for screentext message
 	var/portrait_type = "pilot_3_green"
+	/// Optional key used to throttle repeated screen-text announcements.
+	var/announcement_throttle_key = null
+	/// Minimum delay between repeated screen-text announcements with the same key.
+	var/announcement_throttle_duration = 0
 	///Initiating sound effect
 	var/initiate_sound = 'sound/weapons/dropship_sonic_boom.ogg'
 	///Delay between initiation and impact
@@ -50,6 +54,18 @@
 
 /datum/fire_support/New()
 	name = "[name] ([cost])"
+
+/datum/fire_support/proc/can_emit_screen_announcement()
+	if(!announcement_throttle_duration || !announcement_throttle_key)
+		return TRUE
+
+	var/static/list/announcement_cooldown_until_by_key = list()
+	var/cooldown_until = announcement_cooldown_until_by_key[announcement_throttle_key]
+	if(cooldown_until && cooldown_until > world.time)
+		return FALSE
+
+	announcement_cooldown_until_by_key[announcement_throttle_key] = world.time + announcement_throttle_duration
+	return TRUE
 
 ///Enables the firesupport option
 /datum/fire_support/proc/enable_firesupport()
@@ -72,7 +88,7 @@
 		playsound(target_turf, initiate_sound, 100)
 	if(initiate_chat_message)
 		to_chat(user, SPAN_NOTICE(initiate_chat_message))
-	if(!(MODE_HAS_TOGGLEABLE_FLAG(MODE_DISABLE_FS_PORTRAIT)))
+	if(!(MODE_HAS_TOGGLEABLE_FLAG(MODE_DISABLE_FS_PORTRAIT)) && can_emit_screen_announcement())
 		if(portrait_type && initiate_title && initiate_screen_message)
 			var/list/alert_receivers = list()
 			var/picked_screen_message = pick(initiate_screen_message)

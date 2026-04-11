@@ -9,6 +9,7 @@
 	var/zone_shared_cooldown_until = 0
 	var/list/zone_cooldowns_by_template = list()
 	var/list/action_cooldowns = list()
+	var/list/package_lockouts_by_template = list()
 	var/list/support_pools_by_id = list()
 	var/list/support_pool_overrides_by_id = list()
 	var/list/action_handles = list()
@@ -46,6 +47,7 @@
 	shared_cooldowns_by_template = null
 	zone_cooldowns_by_template = null
 	action_cooldowns = null
+	package_lockouts_by_template = null
 	clear_support_pools()
 	support_pools_by_id = null
 	clear_support_pool_overrides()
@@ -71,6 +73,8 @@
 		zone_cooldowns_by_template = list()
 	if(!action_cooldowns)
 		action_cooldowns = list()
+	if(!package_lockouts_by_template)
+		package_lockouts_by_template = list()
 	if(!support_pools_by_id)
 		support_pools_by_id = list()
 	if(!support_pool_overrides_by_id)
@@ -410,6 +414,12 @@
 	var/multiplier = rules ? rules.rto_personal_cooldown_multiplier : 1
 	return max(1, round(action_template.personal_cooldown * multiplier))
 
+/datum/rto_support_controller/proc/get_effective_support_package_lockout(template_type = null, datum/rto_support_action_template/action_template = null)
+	var/datum/rto_support_template/template = resolve_template_resource_target(template_type)
+	if(template?.support_package_lockout > 0)
+		return max(1, round(template.support_package_lockout))
+	return get_effective_action_lockout(action_template)
+
 /datum/rto_support_controller/proc/can_pay_support_pool_cost(datum/rto_support_action_template/action_template, template_type = null)
 	var/datum/rto_support_resource_pool_state/pool = get_support_pool(template_type)
 	if(!pool)
@@ -426,11 +436,11 @@
 			return FALSE
 		if(!pool.pay(get_effective_support_pool_cost(action_template), world.time))
 			return FALSE
-		var/lockout = get_effective_action_lockout(action_template)
+		var/lockout = get_effective_support_package_lockout(template, action_template)
 		if(lockout > 0)
-			action_cooldowns[action_template.action_id] = world.time + lockout
+			package_lockouts_by_template[template.template_id] = world.time + lockout
 		else
-			action_cooldowns -= action_template.action_id
+			package_lockouts_by_template -= template.template_id
 		return TRUE
 
 	shared_cooldowns_by_template[template.template_id] = world.time + get_effective_shared_cooldown(action_template)
@@ -695,6 +705,7 @@
 	shared_cooldowns_by_template = list()
 	zone_cooldowns_by_template = list()
 	action_cooldowns = list()
+	package_lockouts_by_template = list()
 	clear_support_pools(TRUE)
 	support_pools_by_id = list()
 	clear_support_pool_overrides()
@@ -733,6 +744,7 @@
 
 		shared_cooldowns_by_template -= template_id
 		zone_cooldowns_by_template -= template_id
+		package_lockouts_by_template -= template_id
 		remove_support_pool(removed_template, TRUE)
 
 		for(var/datum/rto_support_action_template/action_template as anything in removed_template.get_action_templates())
@@ -907,7 +919,10 @@
 			return FALSE
 	else if(get_remaining_shared_cooldown(template) > 0)
 		return FALSE
-	if(get_remaining_action_cooldown(action_id) > 0)
+	if(template_uses_support_pool(template))
+		if(get_remaining_support_package_lockout(template) > 0)
+			return FALSE
+	else if(get_remaining_action_cooldown(action_id) > 0)
 		return FALSE
 	if(action_template.requires_visibility_zone && template_requires_zone(template))
 		var/datum/rto_visibility_zone/zone = get_active_zone()
@@ -1425,6 +1440,13 @@
 	var/cooldown_until = action_cooldowns[action_id]
 	return max(0, cooldown_until - world.time)
 
+/datum/rto_support_controller/proc/get_remaining_support_package_lockout(template_type = null)
+	var/datum/rto_support_template/template = resolve_template_resource_target(template_type)
+	if(!template)
+		return 0
+	var/cooldown_until = package_lockouts_by_template[template.template_id]
+	return max(0, cooldown_until - world.time)
+
 /datum/rto_support_controller/proc/format_block_messages(list/reasons)
 	return length(reasons) ? jointext(reasons, "\n") : null
 
@@ -1531,8 +1553,9 @@
 	var/pool_cost = uses_support_pool ? get_effective_support_pool_cost(action_template) : 0
 	var/pool_next_recharge_in = uses_support_pool ? get_support_pool_next_recharge_in(template) : 0
 	var/pool_has_enough_charges = !uses_support_pool || pool_current_charges >= pool_cost
+	var/package_lockout_in = uses_support_pool ? get_remaining_support_package_lockout(template) : 0
 	var/shared_cooldown_in = get_remaining_shared_cooldown(template?.template_id)
-	var/personal_cooldown_in = get_remaining_action_cooldown(action_id)
+	var/personal_cooldown_in = uses_support_pool ? package_lockout_in : get_remaining_action_cooldown(action_id)
 	var/list/display_cooldown = get_displayed_ability_cooldown(action_id, template?.template_id)
 	var/requires_zone = !!(action_template?.requires_visibility_zone && template_requires_zone(template))
 	var/list/state = list(
@@ -1554,6 +1577,7 @@
 		"zone_owner_template_name" = zone_owner_template?.name,
 		"shared_cooldown_in" = shared_cooldown_in,
 		"personal_cooldown_in" = personal_cooldown_in,
+		"support_package_lockout_in" = package_lockout_in,
 		"display_cooldown_kind" = display_cooldown["kind"],
 		"display_cooldown_in" = display_cooldown["value"],
 		"is_disabled" = FALSE,
@@ -1594,11 +1618,13 @@
 			return state
 
 	if(uses_support_pool)
-		if(personal_cooldown_in > 0)
-			var/display_lockout = round(personal_cooldown_in / 10)
+		if(package_lockout_in > 0)
+			var/display_lockout = round(package_lockout_in / 10)
 			state["is_disabled"] = TRUE
+			state["primary_label"] = "Пакет: [display_lockout]s"
 			state["primary_label"] = "Лок: [display_lockout]s"
 			state["countdown_text"] = "[display_lockout]s"
+			state["primary_label"] = "Пакет: [display_lockout]s"
 			state["countdown_color"] = "#c6c6c6"
 			return state
 		if(!pool_has_enough_charges)
@@ -1688,10 +1714,12 @@
 		else if(zone_owner_template.template_id != template.template_id)
 			messages += "Активен сектор другого пакета: [zone_owner_template.name]."
 
-	var/personal_cooldown = get_remaining_action_cooldown(action_id)
+	var/personal_cooldown = template_uses_support_pool(template) ? get_remaining_support_package_lockout(template) : get_remaining_action_cooldown(action_id)
 	if(template_uses_support_pool(template))
 		if(personal_cooldown > 0)
 			messages += "Лок способности [action_template.name]: [round(personal_cooldown / 10)] с."
+		if(personal_cooldown > 0)
+			messages[length(messages)] = "Личный лок пакета [template.name]: [round(personal_cooldown / 10)] с."
 		var/current_charges = get_support_pool_current_charges(template)
 		var/required_charges = get_effective_support_pool_cost(action_template)
 		if(current_charges < required_charges)
@@ -1803,6 +1831,9 @@
 			return TRUE
 	for(var/action_id in action_cooldowns)
 		if(get_remaining_action_cooldown(action_id) > 0)
+			return TRUE
+	for(var/template_id in package_lockouts_by_template)
+		if(get_remaining_support_package_lockout(template_id) > 0)
 			return TRUE
 	for(var/pool_id in support_pools_by_id)
 		var/datum/rto_support_resource_pool_state/pool = support_pools_by_id[pool_id]

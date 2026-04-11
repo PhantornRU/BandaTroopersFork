@@ -1,12 +1,12 @@
 /datum/rto_support_action_template/heavy_missile
 	action_id = "heavy_missile"
 	name = "Missile strike"
-	description = "Редкий мощный ракетный удар по точке."
+	description = "Rare precision missile strike on a compact point."
 	scatter = 3
 	shared_cooldown = 18 SECONDS
 	personal_cooldown = 24 SECONDS
 	support_pool_cost = 1
-	personal_lockout = 3 SECONDS
+	personal_lockout = 14 SECONDS
 	category = "heavy"
 	icon_state = "missile"
 	fire_support_path = /datum/fire_support/missile
@@ -15,12 +15,12 @@
 /datum/rto_support_action_template/heavy_napalm
 	action_id = "heavy_napalm"
 	name = "Napalm strike"
-	description = "Напалмовый удар по компактной зоне."
+	description = "Area-denial strike that spends the whole package on one decisive burn."
 	scatter = 2
 	shared_cooldown = 16 SECONDS
 	personal_cooldown = 20 SECONDS
 	support_pool_cost = 3
-	personal_lockout = 3 SECONDS
+	personal_lockout = 14 SECONDS
 	category = "heavy"
 	icon_state = "napalm_missile"
 	fire_support_path = /datum/fire_support/missile/napalm

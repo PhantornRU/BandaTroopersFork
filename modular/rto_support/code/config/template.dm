@@ -26,6 +26,8 @@
 	var/support_pool_recharge_amount = 0
 	/// Whether the pool should recharge automatically by default.
 	var/support_pool_auto_recharge = TRUE
+	/// Package-wide anti-spam lockout used by charge-based templates.
+	var/support_package_lockout = 0
 	/// Whether the template needs a visibility zone.
 	var/requires_visibility_zone = TRUE
 	/// Display name for the visibility sector action.
@@ -54,6 +56,10 @@
 	var/visibility_action_icon_file = 'icons/mob/hud/actions.dmi'
 	/// Icon state used by the visibility zone action.
 	var/visibility_action_icon_state = "designator_mortar"
+	/// Icon file used by all support actions from the package.
+	var/support_action_icon_file = 'icons/mob/radial.dmi'
+	/// Shared icon state used by all support actions from the package.
+	var/support_action_icon_state = null
 	/// Marker style used while placing the visibility zone.
 	var/visibility_target_marker_style = RTO_SUPPORT_MARKER_SLOW_BLINK
 
@@ -108,6 +114,7 @@
 	entry.pool_auto_recharge = controller ? controller.is_support_pool_auto_recharge_enabled(src) : support_pool_auto_recharge
 	entry.pool_manual_only = has_runtime_pool ? controller.is_support_pool_manual_only(src) : FALSE
 	entry.pool_next_recharge_in = has_runtime_pool ? controller.get_support_pool_next_recharge_in(src) : 0
+	entry.support_package_lockout = controller ? controller.get_effective_support_package_lockout(src) : support_package_lockout
 	entry.requires_visibility_zone = requires_visibility_zone
 	entry.visibility_zone_name = visibility_zone_name
 	entry.visibility_zone_type = visibility_zone_type

@@ -11,6 +11,21 @@
 	icon_state = "ammo"
 	delivered = /obj/structure/largecrate/supply/ammo/sentry
 
+/datum/fire_support/supply_drop/uscm/shotgun/compact
+	name = "USCM Shotgun Ammo Drop"
+	fire_support_type = "rto_uscm_shotgun_ammo_compact_drop"
+	delivered = /obj/structure/largecrate/supply/ammo/shotgun/half
+
+/datum/fire_support/supply_drop/uscm/smg/compact
+	name = "USCM SMG Ammo Drop"
+	fire_support_type = "rto_uscm_smg_ammo_compact_drop"
+	delivered = /obj/structure/largecrate/supply/ammo/m39/half
+
+/datum/fire_support/supply_drop/uscm/sidearm/compact
+	name = "USCM Secondary Weapon Ammo Drop"
+	fire_support_type = "rto_uscm_sidearm_ammo_compact_drop"
+	delivered = /obj/structure/largecrate/supply/ammo/pistol/half
+
 /datum/fire_support/supply_drop/medical_medkits
 	name = "Medkits drop"
 	fire_support_type = "rto_medkits_drop"

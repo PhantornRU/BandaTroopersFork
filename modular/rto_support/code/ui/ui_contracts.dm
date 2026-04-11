@@ -15,6 +15,7 @@
 	var/pool_auto_recharge = TRUE
 	var/pool_manual_only = FALSE
 	var/pool_next_recharge_in = 0
+	var/support_package_lockout = 0
 	var/requires_visibility_zone = TRUE
 	var/visibility_zone_name = ""
 	var/visibility_zone_type = ""
@@ -46,6 +47,7 @@
 		"pool_auto_recharge" = !!pool_auto_recharge,
 		"pool_manual_only" = !!pool_manual_only,
 		"pool_next_recharge_in" = round(pool_next_recharge_in / 10),
+		"support_package_lockout" = round(support_package_lockout / 10),
 		"requires_visibility_zone" = requires_visibility_zone,
 		"visibility_zone_name" = visibility_zone_name,
 		"visibility_zone_type" = visibility_zone_type,
