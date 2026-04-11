@@ -120,6 +120,49 @@
 /mob/living/carbon/human/game_rule_panel_player_survival_test/player_survival_log_event(log_text, admin_text = null, notify_admins = FALSE)
 	return
 
+/datum/rto_support_action_template/game_rule_panel_charge_light
+	action_id = "game_rule_panel_charge_light"
+	name = "Charge light"
+	description = "Synthetic Game Rule Panel light call."
+	fire_support_path = /datum/fire_support/supply_drop
+	requires_visibility_zone = FALSE
+	allow_closed_turf = FALSE
+	support_pool_cost = 1
+	personal_lockout = 2 SECONDS
+
+/datum/rto_support_action_template/game_rule_panel_charge_heavy
+	action_id = "game_rule_panel_charge_heavy"
+	name = "Charge heavy"
+	description = "Synthetic Game Rule Panel heavy call."
+	fire_support_path = /datum/fire_support/supply_drop
+	requires_visibility_zone = FALSE
+	allow_closed_turf = FALSE
+	support_pool_cost = 3
+	personal_lockout = 4 SECONDS
+
+/datum/rto_support_template/game_rule_panel_unit_test_charges
+	template_id = "game_rule_panel_unit_test_charges"
+	name = "Game Rule Panel Unit Test Charges"
+	description = "Synthetic charge-based template for Game Rule Panel runtime tests."
+	role_summary = "Unit test package."
+	targeting_summary = "No sector required."
+	requires_visibility_zone = FALSE
+	visibility_zone_name = ""
+	visibility_zone_type = ""
+	visibility_zone_radius = 0
+	visibility_zone_duration = 0
+	visibility_zone_cooldown = 0
+	support_resource_mode = RTO_SUPPORT_RESOURCE_MODE_CHARGES
+	support_pool_capacity = 3
+	support_pool_starting_charges = 3
+	support_pool_recharge_interval = 30 SECONDS
+	support_pool_recharge_amount = 1
+	support_pool_auto_recharge = TRUE
+	action_template_types = list(
+		/datum/rto_support_action_template/game_rule_panel_charge_light,
+		/datum/rto_support_action_template/game_rule_panel_charge_heavy,
+	)
+
 /datum/unit_test/game_rule_panel_rto_cooldowns
 	parent_type = /datum/unit_test/game_rule_panel
 
@@ -224,7 +267,7 @@
 	human.real_name = "Charge Admin Target"
 
 	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
-	var/datum/rto_support_template/unit_test_charges/template = allocate(/datum/rto_support_template/unit_test_charges)
+	var/datum/rto_support_template/game_rule_panel_unit_test_charges/template = allocate(/datum/rto_support_template/game_rule_panel_unit_test_charges)
 	controller.selected_templates = list(template)
 	controller.apply_support_pool_rules_update()
 
