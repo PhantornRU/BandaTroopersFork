@@ -29,7 +29,7 @@
 /datum/rto_support_preset_menu/tgui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, "RtoSupportPresetMenu", "RTO Support")
+		ui = new(user, src, "RtoSupportPresetMenu", "Поддержка RTO")
 		ui.open()
 
 /datum/rto_support_preset_menu/ui_status(mob/user, datum/ui_state/state)

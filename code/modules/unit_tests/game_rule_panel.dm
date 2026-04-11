@@ -356,6 +356,7 @@
 	var/list/admin_row = admin_rows[1]
 	TEST_ASSERT_EQUAL(admin_row["ckey"], "charge_admin_target", "Game Rule Panel live RTO data should expose the owner's ckey.")
 	TEST_ASSERT_EQUAL(admin_row["name"], "Charge Admin Target", "Game Rule Panel live RTO data should expose the owner's display name.")
+	TEST_ASSERT_EQUAL(length(admin_row["selected_template_entries"]), 1, "Game Rule Panel live RTO data should expose selected template rows for per-player package management.")
 	TEST_ASSERT_EQUAL(length(admin_row["pools"]), 1, "Game Rule Panel live RTO data should expose the synthetic charge pool.")
 	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by ckey for Game Rule Panel actions.")
 
@@ -385,6 +386,39 @@
 	TEST_ASSERT_EQUAL(refreshed_pool["current_charges"], 3, "Refreshed live RTO data did not report the restored charge count.")
 	TEST_ASSERT_EQUAL(refreshed_pool["capacity"], 3, "Refreshed live RTO data did not report the restored pool capacity.")
 	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], "gm_alpha", "Refreshed live RTO data did not keep the last GM editor attribution.")
+
+/datum/unit_test/game_rule_panel_rto_remove_selected_template
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_remove_selected_template/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/datum/rto_support_registry/registry = GLOB.rto_support_registry
+	rules.reset_rto_rules()
+	registry.clear_controllers()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	human.ckey = "template_remove_target"
+	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
+	var/datum/rto_support_template/game_rule_panel_unit_test_charges/charge_template = allocate(/datum/rto_support_template/game_rule_panel_unit_test_charges)
+	var/datum/rto_support_template/logistics/logistics_template = allocate(/datum/rto_support_template/logistics)
+	controller.selected_templates = list(charge_template, logistics_template)
+	controller.apply_support_pool_rules_update()
+
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 2, "Removal test setup should start with two selected packages.")
+	TEST_ASSERT_NOTNULL(controller.get_support_pool(charge_template, TRUE), "Charge-based removal test template should create a live support pool before deletion.")
+	TEST_ASSERT(controller.remove_selected_template(charge_template.template_id, "gm_remove"), "Game Rule Panel package removal should succeed for a selected template.")
+	TEST_ASSERT_EQUAL(length(controller.get_selected_templates()), 1, "Removing one selected RTO package should leave the remaining package intact.")
+	TEST_ASSERT_NULL(controller.get_selected_template(charge_template.template_id), "Removed RTO package should no longer appear in the selected template list.")
+	TEST_ASSERT_NOTNULL(controller.get_selected_template(logistics_template.template_id), "Removing one selected RTO package should not remove unrelated packages.")
+	TEST_ASSERT_NULL(controller.get_support_pool(charge_template), "Removing a selected charge package should also remove its live support pool.")
+
+	var/list/admin_rows = rules.build_active_rto_charge_admin_data()
+	TEST_ASSERT_EQUAL(length(admin_rows), 1, "Live RTO admin data should still expose the controller after removing one package.")
+	var/list/admin_row = admin_rows[1]
+	TEST_ASSERT_EQUAL(length(admin_row["selected_template_entries"]), 1, "Live RTO admin data should shrink the selected-template table after package removal.")
+	var/list/remaining_template = admin_row["selected_template_entries"][1]
+	TEST_ASSERT_EQUAL(remaining_template["template_id"], logistics_template.template_id, "Live RTO admin data should keep the surviving selected package after removal.")
 
 // SS220 EDIT - START: cover BT underground-support defaults and reset behavior
 /datum/unit_test/game_rule_panel_underground_support_defaults

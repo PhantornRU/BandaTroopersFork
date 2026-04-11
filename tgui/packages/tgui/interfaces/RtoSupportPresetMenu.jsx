@@ -30,7 +30,7 @@ const formatRecharge = (template) => {
     return null;
   }
   if (template.pool_manual_only) {
-    return 'только GM';
+    return 'вручную';
   }
   if (!template.pool_auto_recharge || template.pool_recharge_interval <= 0) {
     return 'отключено';
@@ -151,12 +151,6 @@ const CompactFacts = ({ template }) => {
       )}
       {chargeMode && !!formatRecharge(template) && (
         <Badge text={`Пополнение ${formatRecharge(template)}`} />
-      )}
-      {chargeMode && template.support_package_lockout > 0 && (
-        <Badge
-          color="rgba(255,170,90,0.20)"
-          text={`Антиспам ${template.support_package_lockout}с`}
-        />
       )}
       <Badge
         color={
@@ -326,7 +320,7 @@ export const RtoSupportPresetMenu = () => {
   const resetDelayMinutes = data.reset_delay_minutes || 60;
 
   return (
-    <Window width={900} height={720} resizable>
+    <Window width={900} height={720} resizable title="Поддержка RTO">
       <Window.Content scrollable>
         <Section
           title="Пакеты поддержки"

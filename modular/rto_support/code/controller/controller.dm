@@ -509,12 +509,18 @@
 
 /datum/rto_support_controller/proc/build_admin_charge_data()
 	var/list/selected_template_names = list()
+	var/list/selected_template_entries = list()
 	var/list/pools = list()
 
 	for(var/datum/rto_support_template/template as anything in selected_templates)
 		if(!template)
 			continue
 		selected_template_names += template.name
+		selected_template_entries += list(list(
+			"template_id" = template.template_id,
+			"name" = template.name,
+			"uses_charge_pool" = template_uses_support_pool(template),
+		))
 		if(!template_uses_support_pool(template))
 			continue
 
@@ -543,6 +549,7 @@
 		"job" = owner?.job || "",
 		"support_profile" = get_support_profile(),
 		"selected_templates" = selected_template_names,
+		"selected_template_entries" = selected_template_entries,
 		"selected_count" = length(selected_templates),
 		"charge_pool_count" = length(pools),
 		"pools" = pools,
@@ -688,6 +695,43 @@
 	if(!selection_started_at)
 		selection_started_at = world.time
 	selection_reset_available_at = selection_started_at + get_selection_reset_delay()
+
+	sync_actions()
+	refresh_action_handles()
+	return TRUE
+
+/datum/rto_support_controller/proc/remove_selected_template(template_type, admin_ckey = null)
+	ensure_runtime()
+	var/datum/rto_support_template/template = get_selected_template(template_type)
+	if(!template)
+		return FALSE
+
+	var/template_id = template.template_id
+	var/template_slot = get_selected_template_slot(template_id)
+	if(!template_slot)
+		return FALSE
+
+	if(armed_template_id == template_id)
+		reset_armed_action()
+	if(active_zone?.source_template?.template_id == template_id)
+		clear_active_zone(FALSE)
+
+	selected_templates.Cut(template_slot, template_slot + 1)
+	shared_cooldowns_by_template -= template_id
+	zone_cooldowns_by_template -= template_id
+	package_lockouts_by_template -= template_id
+	remove_support_pool(template, TRUE)
+
+	for(var/datum/rto_support_action_template/action_template as anything in template.get_action_templates())
+		action_cooldowns -= action_template.action_id
+
+	if(!length(selected_templates))
+		selection_started_at = 0
+		selection_reset_available_at = 0
+
+	var/datum/rto_support_resource_pool_state/pool = get_admin_charge_pool(template_id)
+	if(pool)
+		pool.last_modified_by_admin_ckey = ckey(admin_ckey)
 
 	sync_actions()
 	refresh_action_handles()
@@ -1621,10 +1665,8 @@
 		if(package_lockout_in > 0)
 			var/display_lockout = round(package_lockout_in / 10)
 			state["is_disabled"] = TRUE
-			state["primary_label"] = "Пакет: [display_lockout]s"
-			state["primary_label"] = "Лок: [display_lockout]s"
+			state["primary_label"] = "Пауза пакета: [display_lockout]с"
 			state["countdown_text"] = "[display_lockout]s"
-			state["primary_label"] = "Пакет: [display_lockout]s"
 			state["countdown_color"] = "#c6c6c6"
 			return state
 		if(!pool_has_enough_charges)
@@ -1717,9 +1759,7 @@
 	var/personal_cooldown = template_uses_support_pool(template) ? get_remaining_support_package_lockout(template) : get_remaining_action_cooldown(action_id)
 	if(template_uses_support_pool(template))
 		if(personal_cooldown > 0)
-			messages += "Лок способности [action_template.name]: [round(personal_cooldown / 10)] с."
-		if(personal_cooldown > 0)
-			messages[length(messages)] = "Личный лок пакета [template.name]: [round(personal_cooldown / 10)] с."
+			messages += "Пакет [template.name] еще не готов: [round(personal_cooldown / 10)] с."
 		var/current_charges = get_support_pool_current_charges(template)
 		var/required_charges = get_effective_support_pool_cost(action_template)
 		if(current_charges < required_charges)

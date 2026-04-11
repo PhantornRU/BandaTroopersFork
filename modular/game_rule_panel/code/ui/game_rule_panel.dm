@@ -214,6 +214,14 @@
 			log_rule_change(user, "set RTO charges for [controller.get_owner_display_name()] ([controller.get_owner_ckey()]) package [template_id] to [round(new_value)].")
 			updated = TRUE
 
+		if("remove_rto_player_template")
+			var/datum/rto_support_controller/controller = get_target_rto_controller(params)
+			var/template_id = params["template_id"]
+			if(!controller?.remove_selected_template(template_id, user?.ckey))
+				return FALSE
+			log_rule_change(user, "removed RTO package [template_id] from [controller.get_owner_display_name()] ([controller.get_owner_ckey()]).")
+			updated = TRUE
+
 		if("adjust_rto_player_pool_current_charges")
 			var/datum/rto_support_controller/controller = get_target_rto_controller(params)
 			var/template_id = params["template_id"]

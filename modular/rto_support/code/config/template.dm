@@ -55,7 +55,7 @@
 	/// Icon file used by the visibility zone action.
 	var/visibility_action_icon_file = 'icons/mob/hud/actions.dmi'
 	/// Icon state used by the visibility zone action.
-	var/visibility_action_icon_state = "designator_mortar"
+	var/visibility_action_icon_state = "designator_one_weapon"
 	/// Icon file used by all support actions from the package.
 	var/support_action_icon_file = 'icons/mob/radial.dmi'
 	/// Shared icon state used by all support actions from the package.

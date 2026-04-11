@@ -356,6 +356,7 @@ const RtoChargePoolCard = ({
 const RtoActivePlayerCard = ({ player, poolFormValues, setPoolFormValues }) => {
   const { act } = useBackend();
   const selectedTemplates = player.selected_templates || [];
+  const selectedTemplateEntries = player.selected_template_entries || [];
   const pools = player.pools || [];
 
   return (
@@ -369,6 +370,27 @@ const RtoActivePlayerCard = ({ player, poolFormValues, setPoolFormValues }) => {
         Selected packages:{' '}
         {selectedTemplates.length ? selectedTemplates.join(', ') : 'none'}
       </Box>
+
+      {!!selectedTemplateEntries.length && (
+        <Stack mb={1} wrap>
+          {selectedTemplateEntries.map((template) => (
+            <Stack.Item key={`${player.ckey}:${template.template_id}`}>
+              <Button
+                color="average"
+                icon="trash"
+                onClick={() =>
+                  act('remove_rto_player_template', {
+                    target_ckey: player.ckey,
+                    template_id: template.template_id,
+                  })
+                }
+              >
+                Убрать {template.name}
+              </Button>
+            </Stack.Item>
+          ))}
+        </Stack>
+      )}
 
       {!!pools.length && (
         <Stack mb={1}>

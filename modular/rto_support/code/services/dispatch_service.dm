@@ -29,7 +29,7 @@
 
 	if(request.request_kind == RTO_SUPPORT_REQUEST_SUPPORT && request.announce_to_ghosts)
 		notify_ghosts(
-			header = "RTO Support",
+			header = "Поддержка RTO",
 			message = "[format_request_owner_name(request)] вызывает [format_request_display_name(request)] по пакету [format_request_template_name(request)] в точке [request.target_turf.x],[request.target_turf.y],[request.target_turf.z].",
 			source = request.target_turf,
 			action = NOTIFY_JUMP
@@ -42,7 +42,7 @@
 	if(!request || !fire_support)
 		return FALSE
 
-	fire_support.announcement_throttle_key = "rto_[request.owner?.faction || FACTION_MARINE]"
+	fire_support.announcement_throttle_key = "rto_screen_announcement"
 	fire_support.announcement_throttle_duration = 15 SECONDS
 	return TRUE
 
