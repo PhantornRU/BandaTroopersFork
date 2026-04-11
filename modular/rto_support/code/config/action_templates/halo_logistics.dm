@@ -39,7 +39,7 @@
 	parent_type = /datum/rto_support_action_template/halo/logistics
 	action_id = "halo_shotgun_ammo_drop"
 	name = "UNSC Shotgun Ammo Drop"
-	description = "Drops a compact shotgun resupply for one breacher instead of an oversized team crate."
+	description = "Drops a compact slug-only shotgun resupply for one breacher instead of an oversized team crate."
 	fire_support_path = /datum/fire_support/supply_drop/halo/shotgun
 
 /datum/rto_support_action_template/halo_sniper_ammo_drop

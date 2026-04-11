@@ -612,7 +612,7 @@
 			/obj/item/ammo_magazine/pistol/halo/m6d = 2,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/shotgun = list(
-			/obj/item/ammo_magazine/shotgun/buckshot/unsc = 3,
+			/obj/item/ammo_magazine/shotgun/slug/unsc = 3,
 		),
 		/obj/structure/largecrate/supply/ammo/halo/sniper = list(
 			/obj/item/ammo_magazine/rifle/halo/sniper = 5,
