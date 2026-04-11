@@ -34,9 +34,9 @@
 	var/visibility_zone_type = ""
 	/// Radius of the visibility sector.
 	var/visibility_zone_radius = 0
-	/// Lifetime of the visibility sector.
+	/// Lifetime of the active visibility sector; only used when requires_visibility_zone = TRUE.
 	var/visibility_zone_duration = 0
-	/// Cooldown of the visibility sector action.
+	/// Personal anti-spam delay before the same template can deploy its next visibility sector.
 	var/visibility_zone_cooldown = 0
 	/// Category or family name for UI grouping.
 	var/category = ""

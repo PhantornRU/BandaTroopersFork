@@ -5,7 +5,6 @@
 	visibility_zone_type = ""
 	visibility_zone_radius = 0
 	visibility_zone_duration = 0
-	visibility_zone_cooldown = 0
 	category = "support"
 	visibility_altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
 	visibility_action_icon_state = "designator_swap_mortar"

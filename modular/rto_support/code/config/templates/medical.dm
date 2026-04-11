@@ -17,7 +17,6 @@
 	visibility_zone_type = ""
 	visibility_zone_radius = 0
 	visibility_zone_duration = 0
-	visibility_zone_cooldown = 0
 	category = "support"
 	action_template_types = list(
 		/datum/rto_support_action_template/medical_medkits_drop,
