@@ -265,9 +265,10 @@
 	rules.rto_support_resource_mode = "legacy_cooldown"
 	registry.propagate_rules_update()
 
+	var/datum/rto_support_resource_pool_state/dormant_pool = controller.support_pools_by_id[pool_id]
 	TEST_ASSERT_NULL(controller.get_support_pool(template), "Legacy mode should hide the active support pool runtime surface.")
-	TEST_ASSERT_NOTNULL(controller.support_pools_by_id[pool_id], "Mode flip to legacy should preserve the dormant charge pool state.")
-	TEST_ASSERT_EQUAL(controller.support_pools_by_id[pool_id].get_current_charges(world.time), 2, "Mode flip to legacy should not refill spent charges.")
+	TEST_ASSERT_NOTNULL(dormant_pool, "Mode flip to legacy should preserve the dormant charge pool state.")
+	TEST_ASSERT_EQUAL(dormant_pool.get_current_charges(world.time), 2, "Mode flip to legacy should not refill spent charges.")
 
 	rules.rto_support_resource_mode = "charges"
 	registry.propagate_rules_update()
