@@ -56,7 +56,7 @@
 
 /datum/action/human_action/rto/select_preset
 	name = "Выбрать пакеты поддержки"
-	action_icon_state = "designator_swap_mortar"
+	action_icon_state = "designator_mortar"
 
 /datum/action/human_action/rto/select_preset/action_activate()
 	. = ..()
@@ -172,10 +172,11 @@
 /datum/action/human_action/rto/support/New(datum/rto_support_controller/new_controller, new_template_id, datum/rto_support_action_template/new_action_template)
 	template_id = new_template_id
 	action_template = new_action_template
+	var/datum/rto_support_template/template = new_controller?.get_selected_template(template_id)
 	if(action_template)
 		name = action_template.name
-		icon_file = action_template.icon_file
-		action_icon_state = action_template.icon_state
+		icon_file = template?.support_action_icon_file || action_template.icon_file
+		action_icon_state = template?.support_action_icon_state || action_template.icon_state
 	..(new_controller)
 
 /datum/action/human_action/rto/support/Destroy()

@@ -6,53 +6,28 @@ import { Window } from '../layouts';
 
 const usesChargePool = (resourceMode) => resourceMode !== 'legacy_cooldown';
 
-const altitudeLabel = (altitudeRequirement) =>
-  altitudeRequirement === 'high'
-    ? 'Требуется открытое небо'
-    : 'Любая видимая точка';
-
-const compactAltitudeLabel = (altitudeRequirement) =>
-  altitudeRequirement === 'high' ? 'Открытое небо' : 'Любая точка';
-
-const compactTargetLabel = (allowClosedTurf) =>
-  allowClosedTurf ? 'Закрытые тайлы' : 'Открытый тайл';
-
 const formatResetDelayLabel = (minutes) =>
-  minutes <= 0 ? 'сразу после первого выбора' : `${minutes} мин.`;
+  minutes <= 0 ? 'сразу' : `${minutes} мин`;
 
-const resourceModeLabel = (resourceMode) => {
-  switch (resourceMode) {
-    case 'charges':
-      return 'Общие заряды';
-    case 'hybrid':
-      return 'Гибрид';
-    default:
-      return 'Кулдауны';
-  }
-};
-
-const summarizeNumericRange = (values, suffix = '') => {
+const formatRange = (values, suffix = '') => {
   const safeValues = (values || [])
     .map((value) => Number(value))
     .filter((value) => Number.isFinite(value));
 
   if (!safeValues.length) {
-    return '—';
+    return null;
   }
 
-  const nonZeroValues = safeValues.filter((value) => value > 0);
-  const targetValues = nonZeroValues.length ? nonZeroValues : safeValues;
-  const minValue = Math.min(...targetValues);
-  const maxValue = Math.max(...targetValues);
-
+  const minValue = Math.min(...safeValues);
+  const maxValue = Math.max(...safeValues);
   return minValue === maxValue
     ? `${minValue}${suffix}`
     : `${minValue}-${maxValue}${suffix}`;
 };
 
-const formatRechargeCompact = (template) => {
+const formatRecharge = (template) => {
   if (!usesChargePool(template.resource_mode)) {
-    return 'не используется';
+    return null;
   }
   if (template.pool_manual_only) {
     return 'только GM';
@@ -60,43 +35,10 @@ const formatRechargeCompact = (template) => {
   if (!template.pool_auto_recharge || template.pool_recharge_interval <= 0) {
     return 'отключено';
   }
-
-  const baseSummary = `+${template.pool_recharge_amount}/${template.pool_recharge_interval}с`;
-  if (
-    template.is_selected &&
-    template.pool_current_charges < template.pool_capacity &&
-    template.pool_next_recharge_in > 0
-  ) {
-    return `${baseSummary}, ${template.pool_next_recharge_in}с до тика`;
-  }
-  return baseSummary;
+  return `+${template.pool_recharge_amount}/${template.pool_recharge_interval}с`;
 };
 
-const buildActionSummary = (template) => {
-  const actions = template.actions || [];
-  if (!actions.length) {
-    return 'Способности отсутствуют';
-  }
-
-  if (usesChargePool(template.resource_mode)) {
-    return `${actions.length} способн. • цена ${summarizeNumericRange(
-      actions.map((action) => action.support_pool_cost),
-    )} зар. • лок ${summarizeNumericRange(
-      actions.map((action) => action.personal_lockout),
-      'с',
-    )} • ${template.requires_visibility_zone ? 'через сектор' : 'прямой вызов'}`;
-  }
-
-  return `${actions.length} способн. • общий ${summarizeNumericRange(
-    actions.map((action) => action.shared_cooldown),
-    'с',
-  )} • личный ${summarizeNumericRange(
-    actions.map((action) => action.personal_cooldown),
-    'с',
-  )}`;
-};
-
-const Badge = ({ color = 'rgba(255, 255, 255, 0.08)', text, bold = false }) => (
+const Badge = ({ text, color = 'rgba(255,255,255,0.08)', bold = false }) => (
   <Box
     backgroundColor={color}
     bold={bold}
@@ -106,110 +48,199 @@ const Badge = ({ color = 'rgba(255, 255, 255, 0.08)', text, bold = false }) => (
     style={{
       borderRadius: '999px',
       display: 'inline-block',
-      lineHeight: 1.35,
+      lineHeight: 1.3,
+      whiteSpace: 'nowrap',
     }}
   >
     {text}
   </Box>
 );
 
-const StatTile = ({ label, value, color = 'rgba(255, 255, 255, 0.04)' }) => (
-  <Box
-    backgroundColor={color}
-    p="4px 6px"
-    style={{
-      border: '1px solid rgba(255, 255, 255, 0.06)',
-      borderRadius: '4px',
-      minHeight: '3.35em',
-    }}
-  >
-    <Box color="label" fontSize="11px">
-      {label}
-    </Box>
-    <Box bold style={{ lineHeight: 1.2 }}>
-      {value}
-    </Box>
-  </Box>
-);
-
 const SlotChip = ({ index, template }) => (
   <Badge
-    color={template ? 'rgba(90, 165, 255, 0.20)' : 'rgba(255, 255, 255, 0.06)'}
+    color={template ? 'rgba(90,165,255,0.20)' : 'rgba(255,255,255,0.05)'}
     text={`Слот ${index + 1}: ${template ? template.name : 'Пусто'}`}
   />
 );
 
-const DetailLine = ({ label, children, tone = 'default' }) => (
-  <Box
-    mt={0.25}
-    color={
-      tone === 'warning' ? 'average' : tone === 'good' ? 'good' : undefined
-    }
-    style={{ lineHeight: 1.25 }}
-  >
-    <b>{label}:</b> {children}
-  </Box>
-);
+const HeaderStrip = ({
+  canAddTemplate,
+  canResetTemplates,
+  maxSelectedTemplates,
+  resetDelayMinutes,
+  resetReadyIn,
+  selectedCount,
+  selectedTemplates,
+}) => {
+  const slots = [];
+  for (let index = 0; index < maxSelectedTemplates; index++) {
+    slots.push(selectedTemplates[index] || null);
+  }
+
+  const resetText =
+    selectedCount <= 0
+      ? `Сброс: ${formatResetDelayLabel(resetDelayMinutes)}`
+      : canResetTemplates
+        ? 'Сброс готов'
+        : `Сброс через ${resetReadyIn}с`;
+
+  return (
+    <>
+      <Flex align="center" wrap="wrap">
+        <Badge
+          bold
+          color="rgba(90,165,255,0.20)"
+          text={`Слоты ${selectedCount}/${maxSelectedTemplates}`}
+        />
+        {slots.map((template, index) => (
+          <SlotChip index={index} key={index} template={template} />
+        ))}
+        <Badge
+          color={
+            canResetTemplates && selectedCount > 0
+              ? 'rgba(110,190,120,0.20)'
+              : 'rgba(255,170,90,0.20)'
+          }
+          text={resetText}
+        />
+        {!canAddTemplate && selectedCount >= maxSelectedTemplates && (
+          <Badge color="rgba(255,120,120,0.20)" text="Лимит заполнен" />
+        )}
+      </Flex>
+      <Box color="label" fontSize="12px" mt={0.25}>
+        Выберите до {maxSelectedTemplates} пакетов. Для боевых пакетов сначала
+        разверните сектор, затем вызывайте поддержку через Ctrl+Click в зуме
+        RTO-бинокля.
+      </Box>
+    </>
+  );
+};
+
+const CompactFacts = ({ template }) => {
+  const chargeMode = usesChargePool(template.resource_mode);
+  const actions = template.actions || [];
+
+  return (
+    <Flex align="center" wrap="wrap" mt={0.25}>
+      {chargeMode ? (
+        <Badge
+          color="rgba(90,165,255,0.20)"
+          text={`Заряды ${template.is_selected ? template.pool_current_charges : template.pool_starting_charges}/${template.pool_capacity}`}
+        />
+      ) : (
+        <>
+          {!!actions.length && (
+            <Badge
+              color="rgba(90,165,255,0.20)"
+              text={`Общий ${formatRange(
+                actions.map((action) => action.shared_cooldown),
+                'с',
+              )}`}
+            />
+          )}
+          {!!actions.length && (
+            <Badge
+              color="rgba(255,170,90,0.20)"
+              text={`Личный ${formatRange(
+                actions.map((action) => action.personal_cooldown),
+                'с',
+              )}`}
+            />
+          )}
+        </>
+      )}
+      {chargeMode && !!formatRecharge(template) && (
+        <Badge text={`Пополнение ${formatRecharge(template)}`} />
+      )}
+      {chargeMode && template.support_package_lockout > 0 && (
+        <Badge
+          color="rgba(255,170,90,0.20)"
+          text={`Антиспам ${template.support_package_lockout}с`}
+        />
+      )}
+      <Badge
+        color={
+          template.requires_visibility_zone
+            ? 'rgba(90,165,255,0.20)'
+            : 'rgba(110,190,120,0.20)'
+        }
+        text={
+          template.requires_visibility_zone
+            ? `Сектор ${template.visibility_zone_radius}т / ${template.visibility_zone_duration}с`
+            : 'Прямой вызов'
+        }
+      />
+      {template.visibility_altitude_requirement === 'high' && (
+        <Badge color="rgba(255,170,90,0.20)" text="Открытое небо" />
+      )}
+      {template.is_selected && (
+        <Badge
+          color="rgba(110,190,120,0.20)"
+          text={`Активен: слот ${template.selected_slot}`}
+        />
+      )}
+    </Flex>
+  );
+};
+
+const buildActionSummary = (template) => {
+  const actions = template.actions || [];
+  if (!actions.length) {
+    return 'Нет способностей';
+  }
+
+  if (usesChargePool(template.resource_mode)) {
+    return `${actions.length} выз. • цена ${formatRange(
+      actions.map((action) => action.support_pool_cost),
+      ' зар.',
+    )}`;
+  }
+
+  return `${actions.length} выз. • общий ${formatRange(
+    actions.map((action) => action.shared_cooldown),
+    'с',
+  )}`;
+};
 
 const ActionRow = ({ action, resourceMode }) => {
   const chargeMode = usesChargePool(resourceMode);
 
   return (
     <Box
-      backgroundColor="rgba(255, 255, 255, 0.035)"
+      backgroundColor="rgba(255,255,255,0.035)"
       mb={0.5}
-      p="6px 8px"
+      p="5px 7px"
       style={{
-        border: '1px solid rgba(255, 255, 255, 0.06)',
+        border: '1px solid rgba(255,255,255,0.05)',
         borderRadius: '4px',
       }}
     >
       <Flex align="center" wrap="wrap">
-        <Flex.Item basis="24em" grow={1} mr={1} mb={0.25}>
+        <Flex.Item basis="26em" grow={1} mr={1}>
           <Box bold>{action.name}</Box>
-          <Box color="label" fontSize="12px" style={{ lineHeight: 1.25 }}>
+          <Box color="label" fontSize="12px" style={{ lineHeight: 1.2 }}>
             {action.description}
           </Box>
         </Flex.Item>
-        <Flex.Item basis="18em" grow={1}>
+        <Flex.Item>
           <Flex justify="flex-end" wrap="wrap">
-            <Badge text={`Разброс ${action.scatter}`} />
             {chargeMode ? (
-              <>
-                <Badge
-                  color="rgba(110, 190, 120, 0.20)"
-                  text={`Цена ${action.support_pool_cost}`}
-                />
-                <Badge
-                  color="rgba(255, 170, 90, 0.22)"
-                  text={`Лок ${action.personal_lockout}с`}
-                />
-              </>
+              <Badge
+                color="rgba(110,190,120,0.20)"
+                text={`Цена ${action.support_pool_cost}`}
+              />
             ) : (
-              <>
-                <Badge
-                  color="rgba(90, 165, 255, 0.20)"
-                  text={`Общий ${action.shared_cooldown}с`}
-                />
-                <Badge
-                  color="rgba(255, 170, 90, 0.22)"
-                  text={`Личный ${action.personal_cooldown}с`}
-                />
-              </>
+              <Badge
+                color="rgba(90,165,255,0.20)"
+                text={`КД ${action.shared_cooldown}/${action.personal_cooldown}с`}
+              />
             )}
-            <Badge
-              color={
-                action.requires_visibility_zone
-                  ? 'rgba(90, 165, 255, 0.20)'
-                  : 'rgba(110, 190, 120, 0.20)'
-              }
-              text={
-                action.requires_visibility_zone ? 'Нужен сектор' : 'Без сектора'
-              }
-            />
-            <Badge text={compactTargetLabel(action.allow_closed_turf)} />
+            {action.requires_visibility_zone && (
+              <Badge color="rgba(90,165,255,0.20)" text="Через сектор" />
+            )}
+            {!action.allow_closed_turf && <Badge text="Открытый тайл" />}
             {action.altitude_requirement === 'high' && (
-              <Badge color="rgba(255, 170, 90, 0.22)" text="Открытое небо" />
+              <Badge color="rgba(255,170,90,0.20)" text="Открытое небо" />
             )}
           </Flex>
         </Flex.Item>
@@ -218,85 +249,8 @@ const ActionRow = ({ action, resourceMode }) => {
   );
 };
 
-const TemplateMetrics = ({ template }) => {
-  const chargeMode = usesChargePool(template.resource_mode);
-  const actions = template.actions || [];
-  const tiles = [];
-
-  if (chargeMode) {
-    tiles.push({
-      label: template.is_selected ? 'Текущий запас' : 'Стартовый запас',
-      value: `${template.is_selected ? template.pool_current_charges : template.pool_starting_charges}/${template.pool_capacity}`,
-    });
-    tiles.push({
-      label: 'Пополнение',
-      value: formatRechargeCompact(template),
-    });
-  } else {
-    tiles.push({
-      label: 'Общий КД',
-      value: summarizeNumericRange(
-        actions.map((action) => action.shared_cooldown),
-        'с',
-      ),
-    });
-    tiles.push({
-      label: 'Личный КД',
-      value: summarizeNumericRange(
-        actions.map((action) => action.personal_cooldown),
-        'с',
-      ),
-    });
-  }
-
-  if (template.requires_visibility_zone) {
-    tiles.push({
-      label: 'Сектор',
-      value: `${template.visibility_zone_radius} т. • ${template.visibility_zone_duration}с`,
-    });
-    tiles.push({
-      label: 'Антиспам',
-      value: `${template.visibility_zone_cooldown}с`,
-    });
-  } else {
-    tiles.push({
-      label: 'Сектор',
-      value: 'не требуется',
-    });
-  }
-
-  tiles.push({
-    label: 'Высота',
-    value: compactAltitudeLabel(template.visibility_altitude_requirement),
-  });
-
-  if (template.solo_zone_cooldown_available) {
-    tiles.push({
-      label: 'Solo-бонус',
-      value: template.solo_zone_cooldown_active
-        ? `${template.visibility_zone_cooldown_current}с сейчас`
-        : `${template.visibility_zone_cooldown_solo}с при 1 пакете`,
-    });
-  }
-
-  return (
-    <Flex wrap="wrap">
-      {tiles.map((tile) => (
-        <Flex.Item basis="10.5em" grow={1} mr={0.5} mb={0.5} key={tile.label}>
-          <StatTile label={tile.label} value={tile.value} />
-        </Flex.Item>
-      ))}
-    </Flex>
-  );
-};
-
 const TemplateCard = ({ template, canAddTemplate }) => {
   const { act } = useBackend();
-  const chargeMode = usesChargePool(template.resource_mode);
-  const selectDisabled = template.is_selected || !canAddTemplate;
-  const buttonLabel = template.is_selected
-    ? `Слот ${template.selected_slot}`
-    : 'Выбрать';
   const [showActions, setShowActions] = useState(template.is_selected);
 
   useEffect(() => {
@@ -304,6 +258,11 @@ const TemplateCard = ({ template, canAddTemplate }) => {
       setShowActions(true);
     }
   }, [template.is_selected]);
+
+  const selectDisabled = template.is_selected || !canAddTemplate;
+  const buttonLabel = template.is_selected
+    ? `Слот ${template.selected_slot}`
+    : 'Выбрать';
 
   return (
     <Section
@@ -323,75 +282,11 @@ const TemplateCard = ({ template, canAddTemplate }) => {
         </Button>
       }
     >
-      <Flex align="flex-start" wrap="wrap">
-        <Flex.Item basis="33em" grow={1} mr={1} mb={0.5}>
-          <Flex wrap="wrap">
-            <Badge
-              color={
-                template.requires_visibility_zone
-                  ? 'rgba(90, 165, 255, 0.20)'
-                  : 'rgba(110, 190, 120, 0.20)'
-              }
-              text={
-                template.requires_visibility_zone
-                  ? 'Через сектор'
-                  : 'Прямой вызов'
-              }
-              bold
-            />
-            <Badge
-              color="rgba(255, 215, 120, 0.20)"
-              text={resourceModeLabel(template.resource_mode)}
-            />
-            {template.is_selected && (
-              <Badge
-                color="rgba(110, 190, 120, 0.20)"
-                text={`Активно: слот ${template.selected_slot}`}
-              />
-            )}
-            {chargeMode && (
-              <Badge
-                color="rgba(90, 165, 255, 0.20)"
-                text={`${template.is_selected ? 'Заряды' : 'Старт'} ${template.is_selected ? template.pool_current_charges : template.pool_starting_charges}/${template.pool_capacity}`}
-              />
-            )}
-            {template.visibility_altitude_requirement === 'high' && (
-              <Badge color="rgba(255, 170, 90, 0.22)" text="Открытое небо" />
-            )}
-          </Flex>
+      <Box color="label" fontSize="13px" style={{ lineHeight: 1.25 }}>
+        {template.description}
+      </Box>
 
-          <Box color="label" fontSize="13px" style={{ lineHeight: 1.25 }}>
-            {template.description}
-          </Box>
-
-          <Box
-            backgroundColor="rgba(255, 255, 255, 0.035)"
-            mt={0.75}
-            p="6px 8px"
-            style={{
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '4px',
-            }}
-          >
-            <DetailLine label="Роль">{template.role_summary}</DetailLine>
-            <DetailLine label="Наведение">
-              {template.targeting_summary}
-            </DetailLine>
-            <DetailLine label="Высотное окно">
-              {altitudeLabel(template.visibility_altitude_requirement)}
-            </DetailLine>
-            {!!template.restriction_summary && (
-              <DetailLine label="Важно" tone="warning">
-                {template.restriction_summary}
-              </DetailLine>
-            )}
-          </Box>
-        </Flex.Item>
-
-        <Flex.Item basis="23em" grow={1} mb={0.5}>
-          <TemplateMetrics template={template} />
-        </Flex.Item>
-      </Flex>
+      <CompactFacts template={template} />
 
       <Box mt={0.5}>
         <Button
@@ -419,60 +314,6 @@ const TemplateCard = ({ template, canAddTemplate }) => {
   );
 };
 
-const HeaderStrip = ({
-  canAddTemplate,
-  canResetTemplates,
-  maxSelectedTemplates,
-  resetDelayMinutes,
-  resetReadyIn,
-  selectedCount,
-  selectedTemplates,
-}) => {
-  const slots = [];
-  for (let index = 0; index < maxSelectedTemplates; index++) {
-    slots.push(selectedTemplates[index] || null);
-  }
-
-  const resetBadgeText =
-    selectedCount <= 0
-      ? `Полный сброс: ${formatResetDelayLabel(resetDelayMinutes)}`
-      : canResetTemplates
-        ? 'Сброс готов'
-        : `Сброс через ${resetReadyIn}с`;
-
-  return (
-    <>
-      <Flex align="center" wrap="wrap">
-        <Badge
-          color="rgba(90, 165, 255, 0.20)"
-          text={`Слоты ${selectedCount}/${maxSelectedTemplates}`}
-          bold
-        />
-        {slots.map((template, index) => (
-          <SlotChip index={index} key={index} template={template} />
-        ))}
-        <Badge
-          color={
-            canResetTemplates && selectedCount > 0
-              ? 'rgba(110, 190, 120, 0.20)'
-              : 'rgba(255, 170, 90, 0.22)'
-          }
-          text={resetBadgeText}
-        />
-        {!canAddTemplate && selectedCount >= maxSelectedTemplates && (
-          <Badge color="rgba(255, 120, 120, 0.20)" text="Лимит заполнен" />
-        )}
-      </Flex>
-
-      <Box color="label" fontSize="12px" style={{ lineHeight: 1.25 }}>
-        Выберите до {maxSelectedTemplates} пакетов. Для боевых пакетов сначала
-        разверните сектор, затем вызывайте поддержку. Наведение выполняется
-        через Ctrl+Click во время зума RTO-бинокля.
-      </Box>
-    </>
-  );
-};
-
 export const RtoSupportPresetMenu = () => {
   const { act, data } = useBackend();
   const templates = data.templates || [];
@@ -485,7 +326,7 @@ export const RtoSupportPresetMenu = () => {
   const resetDelayMinutes = data.reset_delay_minutes || 60;
 
   return (
-    <Window width={960} height={760} resizable>
+    <Window width={900} height={720} resizable>
       <Window.Content scrollable>
         <Section
           title="Пакеты поддержки"
@@ -521,7 +362,7 @@ export const RtoSupportPresetMenu = () => {
           ))}
 
         {!templates.length && (
-          <NoticeBox danger>Нет доступных пресетов поддержки.</NoticeBox>
+          <NoticeBox danger>Нет доступных пакетов поддержки.</NoticeBox>
         )}
       </Window.Content>
     </Window>
