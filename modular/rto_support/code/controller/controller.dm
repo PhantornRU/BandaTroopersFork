@@ -234,6 +234,15 @@
 
 	return mode
 
+/datum/rto_support_controller/proc/template_has_support_pool_configuration(template_type = null)
+	var/datum/rto_support_template/template = resolve_template_resource_target(template_type)
+	if(!template)
+		return FALSE
+	var/mode = template.support_resource_mode || RTO_SUPPORT_RESOURCE_MODE_LEGACY
+	if(mode == RTO_SUPPORT_RESOURCE_MODE_LEGACY)
+		return FALSE
+	return template.support_pool_capacity > 0
+
 /datum/rto_support_controller/proc/template_uses_support_pool(template_type = null)
 	return get_template_support_resource_mode(template_type) != RTO_SUPPORT_RESOURCE_MODE_LEGACY
 
@@ -359,7 +368,8 @@
 			get_effective_support_pool_recharge_interval(template),
 			get_support_pool_recharge_amount(template),
 			is_support_pool_auto_recharge_enabled(template),
-			is_support_pool_manual_only(template)
+			is_support_pool_manual_only(template),
+			world.time
 		)
 
 	return pool
@@ -392,12 +402,13 @@
 /datum/rto_support_controller/proc/get_effective_action_lockout(datum/rto_support_action_template/action_template)
 	if(!action_template)
 		return 0
-	var/base_value = action_template.personal_lockout > 0 ? action_template.personal_lockout : action_template.personal_cooldown
-	if(base_value <= 0)
+	if(action_template.personal_lockout > 0)
+		return max(1, round(action_template.personal_lockout))
+	if(action_template.personal_cooldown <= 0)
 		return 0
 	var/datum/game_rule_state/rules = GLOB.game_rule_state
 	var/multiplier = rules ? rules.rto_personal_cooldown_multiplier : 1
-	return max(1, round(base_value * multiplier))
+	return max(1, round(action_template.personal_cooldown * multiplier))
 
 /datum/rto_support_controller/proc/can_pay_support_pool_cost(datum/rto_support_action_template/action_template, template_type = null)
 	var/datum/rto_support_resource_pool_state/pool = get_support_pool(template_type)
@@ -455,14 +466,15 @@
 
 	var/list/valid_pool_ids = list()
 	for(var/datum/rto_support_template/template as anything in selected_templates)
-		if(!template_uses_support_pool(template))
-			remove_support_pool(template, FALSE)
-			continue
 		var/pool_id = get_support_pool_id(template)
 		if(!pool_id)
 			continue
+		if(!template_has_support_pool_configuration(template))
+			remove_support_pool(pool_id, FALSE)
+			continue
 		valid_pool_ids += pool_id
-		get_support_pool(template, TRUE)
+		if(template_uses_support_pool(template))
+			get_support_pool(template, TRUE)
 
 	for(var/pool_id in support_pools_by_id.Copy())
 		if(pool_id in valid_pool_ids)

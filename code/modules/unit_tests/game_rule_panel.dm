@@ -222,6 +222,85 @@
 	TEST_ASSERT_EQUAL(rules.get_rto_charge_capacity_multiplier(), 1, "Charge capacity multiplier did not reset to one.")
 	TEST_ASSERT(!rules.rto_charge_manual_only, "Manual-only charge mode did not reset to disabled.")
 
+/datum/unit_test/game_rule_panel_rto_charge_lockout_rules
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_charge_lockout_rules/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	rules.reset_rto_rules()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = allocate(/datum/rto_support_controller, human)
+	var/datum/rto_support_action_template/game_rule_panel_charge_light/charge_action = allocate(/datum/rto_support_action_template/game_rule_panel_charge_light)
+	var/datum/rto_support_action_template/mortar_he/legacy_action = allocate(/datum/rto_support_action_template/mortar_he)
+
+	rules.rto_personal_cooldown_multiplier = 5
+
+	TEST_ASSERT_EQUAL(controller.get_effective_action_lockout(charge_action), 2 SECONDS, "Charge-model anti-spam lockout should not be scaled by the legacy personal cooldown multiplier.")
+	TEST_ASSERT_EQUAL(controller.get_effective_personal_cooldown(legacy_action), 400, "Legacy personal cooldown multiplier should still scale legacy cooldowns.")
+
+/datum/unit_test/game_rule_panel_rto_charge_mode_flip_persists_pool
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_charge_mode_flip_persists_pool/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/datum/rto_support_registry/registry = GLOB.rto_support_registry
+	rules.reset_rto_rules()
+	registry.clear_controllers()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
+	var/datum/rto_support_template/game_rule_panel_unit_test_charges/template = allocate(/datum/rto_support_template/game_rule_panel_unit_test_charges)
+	controller.selected_templates = list(template)
+	controller.apply_support_pool_rules_update()
+
+	var/pool_id = controller.get_support_pool_id(template)
+	var/datum/rto_support_resource_pool_state/pool = controller.get_support_pool(template, TRUE)
+	TEST_ASSERT_NOTNULL(pool, "Charge test template should create a live support pool.")
+	TEST_ASSERT(pool.pay(1, world.time), "Synthetic support pool should accept a valid charge spend.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 2, "Initial charge spend did not update the live pool state.")
+
+	rules.rto_support_resource_mode = "legacy_cooldown"
+	registry.propagate_rules_update()
+
+	TEST_ASSERT_NULL(controller.get_support_pool(template), "Legacy mode should hide the active support pool runtime surface.")
+	TEST_ASSERT_NOTNULL(controller.support_pools_by_id[pool_id], "Mode flip to legacy should preserve the dormant charge pool state.")
+	TEST_ASSERT_EQUAL(controller.support_pools_by_id[pool_id].get_current_charges(world.time), 2, "Mode flip to legacy should not refill spent charges.")
+
+	rules.rto_support_resource_mode = "charges"
+	registry.propagate_rules_update()
+
+	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 2, "Mode flip back to charges should keep the previously spent charge state.")
+
+/datum/unit_test/game_rule_panel_rto_charge_recharge_resync
+	parent_type = /datum/unit_test/game_rule_panel
+
+/datum/unit_test/game_rule_panel_rto_charge_recharge_resync/Run()
+	var/datum/game_rule_state/rules = GLOB.game_rule_state
+	var/datum/rto_support_registry/registry = GLOB.rto_support_registry
+	rules.reset_rto_rules()
+	registry.clear_controllers()
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human)
+	human.job = JOB_SQUAD_RTO
+	var/datum/rto_support_controller/controller = human.ensure_rto_support_controller()
+	var/datum/rto_support_template/game_rule_panel_unit_test_charges/template = allocate(/datum/rto_support_template/game_rule_panel_unit_test_charges)
+	controller.selected_templates = list(template)
+	controller.apply_support_pool_rules_update()
+
+	var/datum/rto_support_resource_pool_state/pool = controller.get_support_pool(template, TRUE)
+	TEST_ASSERT_NOTNULL(pool, "Charge test template should create a live support pool for recharge timing checks.")
+	TEST_ASSERT(pool.pay(1, world.time), "Synthetic support pool should accept a valid charge spend before recharge timing checks.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_next_recharge_in(template), 30 SECONDS, "Synthetic support pool should start with the template recharge interval.")
+
+	rules.rto_charge_recharge_multiplier = 2
+	registry.propagate_rules_update()
+
+	TEST_ASSERT_EQUAL(controller.get_support_pool_recharge_interval(template), 15 SECONDS, "Recharge interval should update immediately after a rules change.")
+	TEST_ASSERT_EQUAL(controller.get_support_pool_next_recharge_in(template), 15 SECONDS, "Active recharge timers should resync immediately after a rules change.")
+
 /datum/unit_test/game_rule_panel_rto_selection_rules
 	parent_type = /datum/unit_test/game_rule_panel
 

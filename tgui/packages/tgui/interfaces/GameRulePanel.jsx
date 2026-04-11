@@ -601,7 +601,7 @@ const RtoSupportPage = ({
           <Stack.Item>
             <Stack align="center">
               <Stack.Item grow>
-                <Box bold>Personal cooldown multiplier</Box>
+                <Box bold>Personal cooldown multiplier (legacy)</Box>
               </Stack.Item>
               <Stack.Item>
                 <NumberInput
@@ -632,7 +632,10 @@ const RtoSupportPage = ({
           </Stack.Item>
         </Stack>
 
-        <NoticeBox mt={1}>Current cooldowns are not recalculated.</NoticeBox>
+        <NoticeBox mt={1}>
+          Current cooldowns are not recalculated. Charge-model anti-spam
+          lockouts keep their configured duration.
+        </NoticeBox>
       </Section>
 
       <Section level={2} title="Charge Rules">

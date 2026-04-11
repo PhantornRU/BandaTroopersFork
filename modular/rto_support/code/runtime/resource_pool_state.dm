@@ -14,7 +14,16 @@
 	var/last_modified_by_admin_ckey = null
 	var/config_initialized = FALSE
 
-/datum/rto_support_resource_pool_state/proc/sync_configuration(new_pool_id, new_template_id, mob/living/carbon/human/new_owner, new_capacity, new_starting_charges, new_recharge_interval, new_recharge_amount, new_auto_recharge_enabled, new_manual_only)
+/datum/rto_support_resource_pool_state/proc/sync_configuration(new_pool_id, new_template_id, mob/living/carbon/human/new_owner, new_capacity, new_starting_charges, new_recharge_interval, new_recharge_amount, new_auto_recharge_enabled, new_manual_only, current_time = world.time)
+	var/previous_recharge_interval = recharge_interval
+	var/previous_next_recharge_at = next_recharge_at
+	var/previous_can_recharge = config_initialized ? can_recharge() : FALSE
+	if(config_initialized)
+		process_recharge(current_time)
+		previous_recharge_interval = recharge_interval
+		previous_next_recharge_at = next_recharge_at
+		previous_can_recharge = can_recharge()
+
 	pool_id = new_pool_id
 	template_id = new_template_id
 	owner = new_owner
@@ -33,8 +42,18 @@
 
 	if(!can_recharge())
 		next_recharge_at = 0
-	else if(current_charges < capacity && !next_recharge_at)
-		next_recharge_at = world.time + recharge_interval
+	else if(current_charges >= capacity)
+		next_recharge_at = 0
+	else if(!previous_can_recharge || !previous_next_recharge_at)
+		next_recharge_at = current_time + recharge_interval
+	else if(previous_recharge_interval != recharge_interval)
+		var/previous_remaining = max(0, previous_next_recharge_at - current_time)
+		var/progress_ratio = previous_recharge_interval > 0 ? 1 - (previous_remaining / previous_recharge_interval) : 0
+		progress_ratio = clamp(progress_ratio, 0, 1)
+		var/new_remaining = max(1, round(recharge_interval * (1 - progress_ratio)))
+		next_recharge_at = current_time + new_remaining
+	else
+		next_recharge_at = previous_next_recharge_at
 
 	return TRUE
 
