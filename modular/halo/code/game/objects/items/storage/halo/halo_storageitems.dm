@@ -167,6 +167,13 @@
 	new /obj/item/stack/medical/splint(src)
 	new /obj/item/stack/medical/splint(src)
 
+/obj/item/storage/belt/shotgun/unsc
+	name = "\improper M276 pattern shotgun shell loading rig"
+
+/obj/item/storage/belt/shotgun/unsc/fill_preset_inventory()
+	for(var/i = 1 to storage_slots)
+		new /obj/item/ammo_magazine/handful/shotgun/buckshot_unsc(src)
+
 //======================
 // POUCHES
 //======================
@@ -203,6 +210,15 @@
 	new /obj/item/stack/medical/advanced/bruise_pack(src)
 	new /obj/item/stack/medical/advanced/ointment(src)
 	new /obj/item/stack/medical/splint(src)
+
+/obj/item/storage/pouch/medkit/unsc/full_bio/fill_preset_inventory()
+	new /obj/item/storage/syringe_case/unsc/burnguard(src)
+	new /obj/item/stack/medical/advanced/bruise_pack(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/primeable/biofoam(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/primeable/biofoam(src)
+	new /obj/item/stack/medical/splint(src)
+	new /obj/item/reagent_container/glass/beaker/unsc/tramadol(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo(src)
 
 //======================
 // HOLSTER POUCHES
@@ -287,6 +303,66 @@
 
 /obj/item/storage/backpack/marine/ammo_rack/spnkr/filled/fill_preset_inventory()
 	for(var/i = 1 to storage_slots)
+		new /obj/item/ammo_magazine/spnkr(src)
+	update_icon()
+
+/obj/item/storage/large_holster/spnkr
+	name = "SPNKr tube storage backpack"
+	desc = "A carrying rack complete with two individual metallic tubes, each capable of storing one M19 twin-tube unit for the M41 SPNKr, and a special harness for the launcher itself."
+	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
+	icon_state = "spnkrpack_0"
+	item_state = "spnkrpack"
+	storage_slots = 3
+	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
+	has_gamemode_skin = FALSE
+	item_icons = list(
+		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
+		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+	)
+	drawSound = "rustle"
+	var/image/spnkr_overlay
+
+/obj/item/storage/large_holster/spnkr/Initialize()
+	. = ..()
+	spnkr_overlay = overlay_image('icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr")
+
+/obj/item/storage/large_holster/spnkr/Destroy()
+	QDEL_NULL(spnkr_overlay)
+	return ..()
+
+/obj/item/storage/large_holster/spnkr/handle_item_insertion(obj/item/new_item, prevent_warning = FALSE, mob/user)
+	if(istype(new_item, /obj/item/weapon/gun/halo_launcher/spnkr) && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		return FALSE
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo as anything in contents)
+		ammo_count++
+	if(istype(new_item, /obj/item/ammo_magazine/spnkr) && ammo_count > 1)
+		return FALSE
+	return ..()
+
+/obj/item/storage/large_holster/spnkr/update_icon()
+	icon_state = initial(icon_state)
+	overlays -= spnkr_overlay
+	if(locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		overlays += spnkr_overlay
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo as anything in contents)
+		ammo_count++
+		icon_state = "spnkrpack_[ammo_count]"
+	var/mob/living/carbon/human/user = loc
+	if(istype(user))
+		user.update_inv_back()
+
+/obj/item/storage/large_holster/spnkr/get_mob_overlay(mob/user_mob, slot)
+	var/image/ret = ..()
+	if(slot == WEAR_BACK && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		var/image/weapon_holstered = overlay_image('icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr", color, RESET_COLOR)
+		ret.overlays += weapon_holstered
+	return ret
+
+/obj/item/storage/large_holster/spnkr/filled/fill_preset_inventory()
+	for(var/i = 1 to 2)
 		new /obj/item/ammo_magazine/spnkr(src)
 	update_icon()
 
@@ -438,7 +514,7 @@
 	SIGNAL_HANDLER
 	if(source != grenade_scatter_owner || source.belt != src)
 		return
-	if(!issangheili(source) && !isunggoy(source))
+	if(!issangheili(source) && !isunggoy(source) && !isruuhtian(source))
 		return
 
 	INVOKE_ASYNC(src, PROC_REF(scatter_stored_grenades), source, get_turf(source))
@@ -547,3 +623,30 @@
 	name = "\improper спецоперативный патронташ унггоя-ультры"
 	icon_state = "gruntbelt_specops_ultra"
 	item_state = "gruntbelt_specops_ultra"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian
+	name = "\improper Ruuhtian combat belt"
+	desc = "A modular belt for Kig-Yar field gear and ammunition."
+	icon_state = "ruuhtian_minor"
+	item_state = "belt_minor"
+	item_icons = list(
+		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/belts.dmi'
+		)
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/minor
+	name = "\improper Ruuhtian Minor combat belt"
+	desc = "A light combat belt for Kig-Yar skirmishers."
+	icon_state = "ruuhtian_minor"
+	item_state = "ruuhtian_minor"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/major
+	name = "\improper Ruuhtian Major combat belt"
+	desc = "A veteran combat belt for Kig-Yar skirmishers."
+	icon_state = "ruuhtian_major"
+	item_state = "ruuhtian_major"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/ultra
+	name = "\improper Ruuhtian Ultra combat belt"
+	desc = "An elite combat belt for Kig-Yar line veterans."
+	icon_state = "ruuhtian_ultra"
+	item_state = "ruuhtian_ultra"

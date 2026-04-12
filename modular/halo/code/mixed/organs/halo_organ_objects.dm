@@ -54,3 +54,28 @@
 	icon = 'icons/halo/obj/items/organs.dmi'
 	icon_state = "unggoy_liver"
 	organ_type = /datum/internal_organ/liver/unggoy
+
+/obj/item/organ/heart/kigyar
+	name = "kig-yar heart"
+	icon = 'icons/halo/obj/items/organs.dmi'
+	icon_state = "ruuhtian_heart"
+	dead_icon = "ruuhtian_heart"
+	organ_type = /datum/internal_organ/heart/kigyar
+
+/obj/item/organ/lungs/kigyar
+	name = "kig-yar lungs"
+	icon = 'icons/halo/obj/items/organs.dmi'
+	icon_state = "ruuhtian_lungs"
+	organ_type = /datum/internal_organ/lungs/kigyar
+
+/obj/item/organ/kidneys/kigyar
+	name = "kig-yar kidneys"
+	icon = 'icons/halo/obj/items/organs.dmi'
+	icon_state = "ruuhtian_kidney"
+	organ_type = /datum/internal_organ/kidneys/kigyar
+
+/obj/item/organ/liver/kigyar
+	name = "kig-yar liver"
+	icon = 'icons/halo/obj/items/organs.dmi'
+	icon_state = "ruuhtian_liver"
+	organ_type = /datum/internal_organ/liver/kigyar
