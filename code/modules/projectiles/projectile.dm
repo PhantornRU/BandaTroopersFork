@@ -1034,6 +1034,9 @@
 			return TRUE
 	// SS220 EDIT - END
 
+	if(istype(wear_suit, /obj/item/clothing/suit/marine/unsc/mjolnir))
+		armor_degrade(P.damage)
+
 	if(P.ammo.debilitate && stat != DEAD && ( damage || ( ammo_flags & AMMO_IGNORE_RESIST) ) )  //They can't be dead and damage must be inflicted (or it's a xeno toxin).
 		//Predators and synths are immune to these effects to cut down on the stun spam. This should later be moved to their apply_effects proc, but right now they're just humans.
 		if(!isspeciesyautja(src) && !isspeciessynth(src))
