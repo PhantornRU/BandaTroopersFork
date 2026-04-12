@@ -1,35 +1,38 @@
 # EVIDENCE
 
-## E-001: Исходное состояние
-- Активная ветка на старте фикса: `another_halo_fixes_wave`.
-- `git status --short --branch` показал чистое рабочее дерево.
+## E-001: Branch layout at task start
+- Current working branch: `halo_jackal_spartan_wave_apr2026`.
+- Branch base: `071b21945bbf864221a1057673e19fef14d87b27` (`master`, `upstream/master`, `origin/master`).
+- Separate April sync branch already exists: `halo_sync_wave_apr2026` at `690d8f04d47a9a528feea6e9852a579dbd047bc1`.
+- Merge-base between the two branches is `071b21945bbf864221a1057673e19fef14d87b27`, so this branch is currently independent from PR `#93`.
 
-## E-002: Подтвержденная первопричина
-- `setup_species()` в `code/_globalvars/global_lists.dm` индексирует species datums по `all_species[S.name]`.
-- `set_species()` в `code/modules/mob/living/carbon/human/human.dm` делает lookup через `GLOB.all_species[new_species]` и fallback'ом уходит в `Human`, если ключ не найден.
-- HALO species datums были изменены на `name = "Сангхейли"` и `name = "Унггой"`, из-за чего lookup по `SPECIES_SANGHEILI`/`SPECIES_UNGGOY` перестал находить нужные datums.
+## E-002: Upstream source refs are available locally
+- Remote `cm-pve-halo` is configured and exposes `cm-pve-halo/pr-97`, `cm-pve-halo/pr-100`, `cm-pve-halo/pr-114`, `cm-pve-halo/pr-116`, `cm-pve-halo/pr-121`, `cm-pve-halo/pr-123`, `cm-pve-halo/pr-126`, `cm-pve-halo/pr-132`, and `cm-pve-halo/master`.
+- `cm-pve-halo/pr-97` is the upstream `Jackal framework` branch.
+- `cm-pve-halo/pr-100` is the upstream `Spartan stuff` branch.
 
-## E-003: Fallout по спавну и экипировке
-- HALO gear presets (`modular/halo/code/modules/gear_presets/Halo/{sangheili,unggoy}.dm`) по-прежнему вызывают `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)`.
-- После failed species lookup такие мобы падали в `Human`, а covenant clothing restrictions переставали пропускать HALO экипировку, что проявлялось как спавн голого человека.
+## E-003: Existing local HALO surfaces already cover Sangheili and Unggoy
+- `modular/halo/_halo.dme` already includes modular HALO pain, language, organs, Covenant presets, HALO AI presets, squad presets, and Sangheili/Unggoy species files.
+- Local HALO AI already exposes Covenant squad presets in `modular/halo/code/modules/mob/living/carbon/human/ai/squad_spawner/halo/squad_covenant.dm`.
+- Current compat globals only define Sangheili and Unggoy name banks in `modular/halo/code/mixed/compat/halo_core_globals.dm`.
 
-## E-004: Create Human / direct subtype surface
-- В `code/modules/mob/living/carbon/human/human.dm` уже существуют прямые subtype initializers вроде `/mob/living/carbon/human/synthetic/Initialize(mapload)`.
-- Для Sangheili/Unggoy таких subtype path'ов не было, поэтому прямой human subtype spawn для админских create-object/create-human flow отсутствовал.
+## E-004: Port backlog doc was missing on this branch
+- `modular/halo/__docs/HALO_PORT_STATE.md` exists and still points at the older stable baseline.
+- `modular/halo/__docs/HALO_PORT_BACKLOG.md` was absent on this branch and must be created to track this separate wave plus the already-prepared April sync branch.
 
-## E-005: Blood contract
-- `sangheili.dm` и `unggoy.dm` уже задают `blood_color = BLOOD_COLOR_SANGHEILI|BLOOD_COLOR_UNGGOY` и в `handle_post_spawn()` переводят `blood_type` на `S*`.
-- Симптом с красной человеческой кровью согласуется с fallback-спавном в `Human`, а не с отсутствием species-side blood definitions.
+## E-005: Required local gaps are already visible before edits
+- Typecheck helpers only cover `issangheili` and `isunggoy`; there is no local `isruuhtian` or `isspartan`.
+- `human.dm` already has direct subtype init hooks for Sangheili and Unggoy but not for Jackals or Spartans.
+- Human emote routing already has Sangheili/Unggoy support but no Jackal/Spartan coverage.
+- Jackal and Spartan names, species, clothing, presets, storage, and assets are not present in `modular/halo/**` yet.
 
-## E-006: Реализация фикса
-- HALO species datums переведены обратно на canonical `name = SPECIES_SANGHEILI|SPECIES_UNGGOY`, а локализованные названия вынесены в explicit display-layer.
-- В `human.dm` добавлены subtype initializers `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
-- HALO compat/TTS/helper paths переведены на более безопасное использование `species.group` там, где это уместно для HALO species contract.
+## E-006: Jackal and Spartan branch validation now passes
+- `git diff --check` returned clean after the port work.
+- `tools/build/build.bat --ci dm -DCIBUILDING -DANSICOLORS -Werror` passed on `halo_jackal_spartan_wave_apr2026` with `0 errors, 0 warnings`.
 
-## E-007: Проверки
-- `git diff --check`: passed.
-- `BUILD.cmd`: ранее выполнил полноценный compile с `0 errors, 0 warnings`; повторный вызов после этого уже скипал `dm` как up-to-date.
-- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: test DME compile passed (`colonialmarines.test.dmb - 0 errors, 0 warnings`).
-- По `data/unit_tests.json` наши новые проверки `/datum/unit_test/halo_tts_species_defaults`, `/datum/unit_test/halo_tts_preset_defaults`, `/datum/unit_test/halo_tts_species_subtypes` и существующие HALO `halo_unggoy_ai*` прошли со статусом `0`.
-- Финальный wrapper-exit у `dm-test` остался красным из-за уже существующих нерелевантных падений: `/datum/unit_test/medical_regressions`, `/datum/unit_test/missing_icons`, `/datum/unit_test/check_runtimes`.
-- Попытка принудительного `tools/build/build clean dm ...` уткнулась в Windows file lock (`EBUSY` на `colonialmarines.dyn.rsc`), поэтому отдельный clean-rebuild именно последней однострочной правки не завершён через juke-clean path.
+## E-007: Port docs now record both the April sync wave and the separate Jackal/Spartan wave
+- `modular/halo/__docs/HALO_PORT_BACKLOG.md` now tracks:
+- published April sync PR `#93`
+- exact `#97` Jackal coverage on this branch
+- exact `#100` Spartan coverage on this branch
+- intentional local deviations and omitted generic upstream cleanup for `#100`

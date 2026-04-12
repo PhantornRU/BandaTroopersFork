@@ -7,6 +7,7 @@ Canonical source of truth for the current HALO upstream baseline. For HALO port,
 - Previous pinned upstream commit: `7e498b805686ab870ddcfaa3cdf348103c0e3f51` (2026-03-05)
 - Current pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (2026-03-11)
 - Current port wave: `CORE + SQUADS-owned ship runtime + weapons/assets + ODST drop pod sync`
+- Supplemental in-flight waves after this baseline are tracked in `HALO_PORT_BACKLOG.md`, including the separate Jackal + Spartan branch built from `master`
 
 ## Scope Summary
 - HALO content ownership stays split by module boundary:
