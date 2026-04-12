@@ -32,3 +32,7 @@
 - `tools/build/build.bat --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE` initially exposed undefined `/obj/structure/machinery/recharger/covenant` references from `halo_new_irvine_covenant.dmm`, then passed cleanly after the modular recharger port.
 - `tools/build/build.bat --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA` finished with `0 errors, 0 warnings`.
 - `tools/bootstrap/python -m mapmerge2.dmm_test` successfully parsed `279 .dmm files (0 modified)`.
+
+## E-008: Main sync PR opened
+- The main sync wave was pushed as branch `PhantornRU:halo_sync_wave_apr2026`.
+- Draft PR opened against `ss220club/BandaTroopers:master`: `ss220club/BandaTroopers#93`.

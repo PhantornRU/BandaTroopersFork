@@ -44,6 +44,8 @@ Secondary tracking document for HALO upstream sync waves. `HALO_PORT_STATE.md` o
 
 ## Current Branch Resolution (`halo_sync_wave_apr2026`)
 - Main HALO sync branch status: implemented and locally verified; PR creation still pending.
+- BandaTroopers PR: `ss220club/BandaTroopers#93`
+- BandaTroopers branch: `PhantornRU:halo_sync_wave_apr2026`
 - `#114` + `#118`: no missing code delta remained beyond the already-localized `ab47067ef2`; documented as previously covered.
 - `#116` + `#131`: SPNKr handle/attachment setup, wearable storage flow, icon assets, and launcher case/storage updates were ported.
 - `#121`: existing featureless-biome coverage was preserved; `map_config/maps.txt` was reconciled with the HALO rotation block without dropping BandaTroopers entries.
