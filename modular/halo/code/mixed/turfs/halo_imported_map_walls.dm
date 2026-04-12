@@ -36,6 +36,9 @@
 	icon_state = "shipwall_sl_yellow"
 	walltype = WALL_SHIPWALL_SOUTH_LEFT_YELLOW
 
+/turf/closed/wall/r_wall/bunker/hull
+	hull = TRUE
+
 /turf/closed/wall/rock_column
 	name = "rock wall"
 	desc = "A set of near-hexagonal rocks."
