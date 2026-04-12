@@ -271,8 +271,8 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	/// Dropship name used when spawning as LT
 	var/dropship_name = "Midway"
 
-	/// Personal weapon that spawns randomly roundstart
-	var/personal_weapon = "Ithaca 37 shotgun"
+	/// Rifleman support weapon that spawns on HALO ship maps
+	var/personal_weapon = "M90 CAWS shotgun"
 
 /datum/preferences/New(client/C)
 	key_bindings = deep_copy_list(GLOB.hotkey_keybinding_list_by_key) // give them default keybinds and update their movement keys
@@ -417,7 +417,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 			dat += "<br><br>"
 
 			dat += "<h2><b><u>Marine Gear:</u></b></h2>"
-			dat += "<b>Personal Weapon:</b> <a href ='byond://?_src_=prefs;preference=personalweapon;task=input'><b>[personal_weapon]</b></a><br>"
+			dat += "<b>Rifleman Support Weapon:</b> <a href ='byond://?_src_=prefs;preference=personalweapon;task=input'><b>[personal_weapon]</b></a><br>"
 			dat += "<b>Underwear:</b> <a href ='byond://?_src_=prefs;preference=underwear;task=input'><b>[underwear]</b></a><br>"
 			dat += "<b>Undershirt:</b> <a href='byond://?_src_=prefs;preference=undershirt;task=input'><b>[undershirt]</b></a><br>"
 
@@ -1773,7 +1773,7 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 						f_style = new_f_style
 
 				if("personalweapon")
-					var/new_weapon = tgui_input_list(user, "Choose your character's personal weapon:", "Character Preference (USCM Only)", GLOB.personal_weapons_list+"None")
+					var/new_weapon = tgui_input_list(user, "Choose your character's support weapon:", "Character Preference (UNSC Only)", GLOB.personal_weapons_list+"None")
 					if(new_weapon)
 						personal_weapon = new_weapon
 					ShowChoices(user)

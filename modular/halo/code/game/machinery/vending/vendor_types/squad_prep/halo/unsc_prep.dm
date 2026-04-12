@@ -255,6 +255,19 @@
 
 //===========================//CORPSMAN\\================================\\
 
+/obj/effect/essentials_set/m90caws
+	spawned_gear_list = list(
+		/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded,
+		/obj/item/ammo_magazine/shotgun/buckshot/unsc,
+		/obj/item/ammo_magazine/shotgun/buckshot/unsc,
+	)
+
+/obj/effect/essentials_set/ma5_launcher
+	spawned_gear_list = list(
+		/obj/item/attachable/attached_gun/grenade/ma5,
+		/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable,
+	)
+
 GLOBAL_LIST_INIT(cm_vending_clothing_medic_unsc, list(
 
 		list("ОСНОВНОЕ", 0, null, null, null),

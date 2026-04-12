@@ -270,29 +270,92 @@
 		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
-/obj/item/storage/backpack/marine/ammo_rack/spnkr
+/obj/item/storage/large_holster/spnkr
 	name = "SPNKr tube storage backpack"
-	desc = "Две отдельные тканевые сумки, каждая из которых вмещает один двухтрубный блок M19 для M41 SPNKr."
+	desc = "Транспортная рама с двумя жёсткими тубусами под блоки M19 и отдельной подвесной системой под сам M41 SPNKr."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "spnkrpack_0"
-	base_icon_state = "spnkrpack"
 	item_state = "spnkrpack"
-	storage_slots = 2
-	can_hold = list(/obj/item/ammo_magazine/spnkr)
+	flags_equip_slot = SLOT_BACK
+	storage_slots = 3
+	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
 	has_gamemode_skin = FALSE
 	item_icons = list(
 		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
 		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+	drawSound = "rustle"
+	var/image/spnkr_overlay
 
-/obj/item/storage/backpack/marine/ammo_rack/spnkr/filled/fill_preset_inventory()
-	for(var/i = 1 to storage_slots)
+/obj/item/storage/large_holster/spnkr/Initialize()
+	. = ..()
+	spnkr_overlay = overlay_image('icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr")
+
+/obj/item/storage/large_holster/spnkr/Destroy()
+	QDEL_NULL(spnkr_overlay)
+	. = ..()
+
+/obj/item/storage/large_holster/spnkr/handle_item_insertion(obj/item/new_item, prevent_warning = FALSE, mob/user)
+	if(istype(new_item, /obj/item/weapon/gun/halo_launcher/spnkr) && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		return FALSE
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo in contents)
+		ammo_count++
+	if(istype(new_item, /obj/item/ammo_magazine/spnkr) && (ammo_count > 1))
+		return FALSE
+	return ..()
+
+/obj/item/storage/large_holster/spnkr/update_icon()
+	icon_state = "spnkrpack_0"
+	overlays -= spnkr_overlay
+	if(locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		overlays += spnkr_overlay
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo in contents)
+		ammo_count++
+		icon_state = "spnkrpack_[ammo_count]"
+	item_state = "spnkrpack"
+	var/mob/living/carbon/human/user = loc
+	if(istype(user))
+		user.update_inv_back()
+
+/obj/item/storage/large_holster/spnkr/get_mob_overlay(mob/user_mob, slot)
+	var/image/ret = ..()
+	if(slot == WEAR_BACK && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		var/image/weapon_holstered = overlay_image('icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr", color, RESET_COLOR)
+		ret.overlays += weapon_holstered
+	return ret
+
+/obj/item/storage/large_holster/spnkr/filled/fill_preset_inventory()
+	for(var/i = 1 to 2)
 		new /obj/item/ammo_magazine/spnkr(src)
 	update_icon()
+
+/obj/item/storage/large_holster/spnkr/filled/launcher/fill_preset_inventory()
+	for(var/i = 1 to 2)
+		new /obj/item/ammo_magazine/spnkr(src)
+	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr())
+	update_icon()
+
+/obj/item/storage/backpack/marine/ammo_rack/spnkr
+	parent_type = /obj/item/storage/large_holster/spnkr
+
+/obj/item/storage/backpack/marine/ammo_rack/spnkr/filled
+	parent_type = /obj/item/storage/large_holster/spnkr/filled
 
 //======================
 // BOXES
 //======================
+
+/obj/item/storage/box/personalcase/unsc
+	name = "UNSC requisitioned weapon case"
+	desc = "A secure case with a lock containing someone's requisitioned weapon."
+	icon = 'icons/halo/obj/items/storage/kits.dmi'
+
+/obj/item/storage/box/personalcase/unsc/assign_owner(new_owner)
+	owner = new_owner
+	name = "\improper [owner]'s UNSC requisitioned weapon case"
+	desc = "A secure case with a lock containing [owner]'s requisitioned weapon."
 
 /obj/item/storage/unsc_speckit
 	name = "UNSC specialist kit box"
@@ -336,14 +399,14 @@
 	icon_state = "spnkr"
 	open_state = "spnkr_o"
 	icon_full = "spnkr"
-	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/storage/backpack/marine/ammo_rack/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
+	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/storage/large_holster/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
 	storage_slots = 5
 
 /obj/item/storage/unsc_speckit/spnkr/fill_preset_inventory()
 	new /obj/item/ammo_magazine/spnkr(src)
 	new /obj/item/ammo_magazine/spnkr(src)
 	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/storage/backpack/marine/ammo_rack/spnkr(src)
+	new /obj/item/storage/large_holster/spnkr(src)
 	new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded(src)
 
 /obj/item/storage/unsc_speckit/srs99
