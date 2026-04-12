@@ -241,6 +241,9 @@
 	icon_state = "OUTSKIRT INDOORS"
 	ceiling = CEILING_METAL
 
+/area/event/metal/dynamic/dark
+	base_lighting_alpha = 0
+
 /area/new_irvine/outskirt/exports/indoors/bigred
 	name = "New Irvine Outskirts - Big Red"
 	icon_state = "BIGRED"

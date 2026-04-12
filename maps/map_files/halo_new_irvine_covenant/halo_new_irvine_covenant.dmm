@@ -22276,9 +22276,7 @@
 /area/new_irvine/sector_two)
 "bfR" = (
 /turf/closed/wall/mineral/diamond,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "bfS" = (
 /obj/effect/decal/cleanable/dirt,
 /turf/open/asphalt,
@@ -26405,9 +26403,7 @@
 /area/new_irvine/sewers/lab/lvlthree)
 "cix" = (
 /turf/open/floor/covenant/smooth_plating/sides/south,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "ciB" = (
 /obj/structure/platform{
 	dir = 8
@@ -27033,9 +27029,7 @@
 /area/new_irvine/sewers)
 "cuc" = (
 /turf/open/floor/covenant/smooth_plating/sides/west,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "cuj" = (
 /obj/structure/machinery/light/double{
 	light_color = "#BB3F3F"
@@ -27684,9 +27678,7 @@
 /area/new_irvine/sector_one)
 "cHf" = (
 /turf/open/floor/covenant,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "cHk" = (
 /obj/structure/platform{
 	dir = 1
@@ -28030,9 +28022,7 @@
 /area/new_irvine/beach)
 "cNP" = (
 /turf/closed/wall/covenant/lights/hull/brighter,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "cOh" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/largecrate/random,
@@ -29004,9 +28994,7 @@
 /area/new_irvine/sector_four)
 "dly" = (
 /turf/closed/wall/covenant/lights/hull,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "dlB" = (
 /obj/structure/cable/heavyduty/north_east,
 /obj/structure/barricade/handrail{
@@ -31258,9 +31246,7 @@
 /area/new_irvine/sector_one)
 "eij" = (
 /turf/open/floor/covenant/smooth_plating/sides/southeast,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "eil" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/largecrate/random,
@@ -32953,14 +32939,10 @@
 /area/new_irvine/sector_two)
 "eUL" = (
 /turf/open/floor/covenant/endcap/west,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "eUN" = (
 /turf/open/floor/covenant/smooth_plating/sides/northwest,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "eUO" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/surface/table/reinforced/black,
@@ -35960,9 +35942,7 @@
 /area/new_irvine/sector_two)
 "gmx" = (
 /turf/open/floor/covenant/endcap/east,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "gmJ" = (
 /obj/structure/curtain/medical,
 /obj/structure/pipes/standard/simple/hidden/green,
@@ -40149,9 +40129,7 @@
 /area/new_irvine/sewers)
 "hYI" = (
 /turf/open/floor/covenant/endcap/south,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "hYX" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/prop/unsc_crate/stack,
@@ -45800,9 +45778,7 @@
 /area/new_irvine/sewers)
 "kqi" = (
 /turf/open/floor/covenant/smooth_plating/sides/north,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "kqE" = (
 /obj/structure/platform{
 	dir = 8
@@ -47846,9 +47822,7 @@
 /area/new_irvine/sector_two/indoor/apartment)
 "lbl" = (
 /turf/closed/wall/covenant/hull,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "lbs" = (
 /obj/structure/prop/unsc_crate/big{
 	pixel_x = 6
@@ -48277,9 +48251,7 @@
 /area/new_irvine/sector_two/indoor/swapartment)
 "ljN" = (
 /turf/open/floor/covenant/endcap/north,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "ljR" = (
 /obj/structure/stairs/perspective{
 	icon_state = "p_stair_full";
@@ -51242,9 +51214,7 @@
 /area/new_irvine/sewers/lab/lvlthree)
 "msR" = (
 /turf/open/floor/covenant/paneling,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "msX" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/platform_decoration{
@@ -54249,9 +54219,7 @@
 /area/new_irvine/sector_four)
 "nDY" = (
 /turf/closed/wall/covenant/lights/brighter,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "nEh" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W";
@@ -54615,9 +54583,7 @@
 "nMl" = (
 /obj/structure/machinery/recharger/covenant,
 /turf/open/floor/covenant/paneling,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "nMu" = (
 /obj/structure/platform_decoration{
 	dir = 4
@@ -60849,9 +60815,7 @@
 /area/new_irvine/sewers/lab/lvlthree)
 "qmG" = (
 /turf/open/floor/covenant/paneling/rotated,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "qmW" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/pipes/standard/simple/hidden/purple{
@@ -61761,9 +61725,7 @@
 /area/new_irvine/sector_two/indoor/nwapartment)
 "qFJ" = (
 /turf/closed/wall/covenant,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "qFT" = (
 /obj/structure/pipes/standard/simple/hidden/green{
 	dir = 4
@@ -62846,9 +62808,7 @@
 "rbM" = (
 /obj/structure/machinery/recharger/covenant,
 /turf/open/floor/covenant/plating,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "rch" = (
 /obj/structure/barricade/handrail/wire{
 	dir = 1
@@ -65560,9 +65520,7 @@
 /area/new_irvine/sector_four)
 "skH" = (
 /turf/open/floor/covenant/smooth_plating/sides/northeast,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "skK" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/pipes/standard/simple/hidden/green{
@@ -68165,9 +68123,7 @@
 /area/new_irvine/sewers/lab)
 "tsA" = (
 /turf/open/floor/covenant/lane/horizontal,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "tsO" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -72179,9 +72135,7 @@
 /area/new_irvine/sewers/lab/railway)
 "vcU" = (
 /turf/open/floor/covenant/lane/vertical,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "vdo" = (
 /obj/structure/machinery/space_heater/radiator/red{
 	dir = 1;
@@ -77821,9 +77775,7 @@
 /area/new_irvine/sector_one/indoor/apartments)
 "xDb" = (
 /turf/open/floor/covenant/smooth_plating/sides/east,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "xDc" = (
 /obj/structure/platform{
 	dir = 8
@@ -78187,9 +78139,7 @@
 /area/new_irvine/sewers)
 "xMW" = (
 /turf/closed/wall/covenant/lights,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "xNi" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/warning_stripes{
@@ -78623,9 +78573,7 @@
 /area/new_irvine/sector_four)
 "xVo" = (
 /turf/open/floor/covenant/smooth_plating/sides/southwest,
-/area/event/metal/dynamic{
-	base_lighting_alpha = 0
-	})
+/area/event/metal/dynamic/dark)
 "xVx" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/pipes/standard/simple/hidden/purple{
