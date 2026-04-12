@@ -1,28 +1,27 @@
 # PLAN
 
-## Active task
-Port the HALO Jackal and Spartan waves into a separate BandaTroopers PR on top of `master`, while keeping the larger April sync wave tracked separately.
+## Активная задача
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- Port upstream `cm-pve-halo/pr-97` (`Jackal framework`) into local modular surfaces with the minimum required core glue.
-- Port upstream `cm-pve-halo/pr-100` (`Spartan stuff`) with the largest safe compatible surface first, then continue into the remaining combat, input, and runtime parity pieces required for a defensible port.
-- Add Jackal AI presets, squad presets, spawn coverage, and lore-aligned mixed Covenant squads for BandaTroopers.
-- Record exact coverage, intentional deviations, and stop points for `#97`, `#100`, and the already tracked April sync PRs in the HALO port documentation.
-- Publish the result as a separate PR against `SS220Club/BandaTroopers`.
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
 ## Out of scope
-- Folding this work into the already-open April sync PR `#93`.
-- Reverting unrelated local changes outside the HALO port surface.
-- Claiming upstream parity without documenting skipped or intentionally deferred chunks.
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
+
+## Решение
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- The branch stays based on `master` and produces a separate reviewable PR.
-- Jackal content is present end-to-end: species, gear, clothing, language, organs, sounds, storage, AI presets, squad presets, and spawn access.
-- Jackal squads are added in lore-consistent Covenant compositions rather than as isolated one-off spawns only.
-- Spartan content is ported with working species, gear, clothing, storage, presets, and any required combat/input support that the implementation depends on.
-- `HALO_PORT_BACKLOG.md` records exact PR coverage and stop points for this branch and the related April sync branch.
-- `git diff --check` and the relevant build verification pass before publishing.
-
-## Current status
-- Porting and compile validation are complete.
-- Remaining work is publication: commit stack, push, and PR creation against `SS220Club/BandaTroopers`.
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.
