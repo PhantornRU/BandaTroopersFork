@@ -155,7 +155,10 @@
 		return FALSE
 
 	clear_preview_plan_state()
-	var/list/collector_shape_metadata = islist(shape_result["metadata"]) ? shape_result["metadata"].Copy() : list()
+	var/list/shape_metadata = shape_result["metadata"]
+	if(!islist(shape_metadata))
+		shape_metadata = list()
+	var/list/collector_shape_metadata = shape_metadata.Copy()
 	collector_shape_metadata["collector_point_count"] = point_count
 	collector_shape_metadata["collector_origin"] = get_placement_collector_origin_text() || ""
 	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
