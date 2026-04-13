@@ -55,6 +55,10 @@
 
 /datum/game_mode/colonialmarines/ai/post_setup()
 	set_lz_resin_allowed(TRUE)
+	// SS220 EDIT - START
+	// spawn_personal_weapon()
+	spawn_personal_weapon() // SS220 EDIT: keep the upstream lowpop integration point explicit while modular locker runtime owns actual weapon delivery
+	// SS220 EDIT - END
 	return ..()
 
 /datum/game_mode/colonialmarines/ai/announce_bioscans()
@@ -136,9 +140,20 @@ GLOBAL_LIST_INIT(platoon_to_role_list, list(/datum/squad/marine/alpha = ROLES_AI
 												/datum/squad/marine/rmc = ROLES_RMCTROOP))
 
 
+// SS220 EDIT - START
+// GLOBAL_LIST_INIT(personal_weapons_list, list("Ithaca 37 shotgun-stakeout" = /obj/item/storage/large_holster/m37/full/noammo,\
+// 											"Ithaca 37 shotgun-traditional" = /obj/item/weapon/gun/shotgun/pump/stock,\
+// 											"Sawn-off double barrel shotgun" = /obj/item/weapon/gun/shotgun/double/sawn,\
+// 											"M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified,\
+// 											"Cut down M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified/sawnoff,\
+// 											"4 M15 grenades" = /obj/effect/essentials_set/m15_4_pack))
 GLOBAL_LIST_INIT(personal_weapons_list, list("Shotgun",\
 											"Compact shotgun",\
 											"Double-barrel shotgun",\
 											"Grenade launcher",\
 											"Compact grenade launcher",\
 											"Grenade pack"))
+// SS220 EDIT - END
+
+/datum/game_mode/colonialmarines/ai/proc/spawn_personal_weapon()
+	return // SS220 EDIT: legacy lowpop armory-landmark delivery now resolves through modular personal locker population
