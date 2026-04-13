@@ -1,4 +1,5 @@
 import {
+  CurrentSession,
   DraftPreset,
   DraftStatus,
   DraftTier,
@@ -165,6 +166,20 @@ export const coerceLaunchSettings = (
       : defaults.playback_mode,
   };
 };
+
+export const getDisplayedLaunchSettings = (
+  launchSettings: LaunchSettings,
+  currentSession: CurrentSession,
+  selectedTrackIsLive: boolean,
+): LaunchSettings =>
+  selectedTrackIsLive &&
+  currentSession &&
+  isPlaybackMode(currentSession.playback_mode)
+    ? {
+        ...launchSettings,
+        playback_mode: currentSession.playback_mode,
+      }
+    : launchSettings;
 
 export const getDraftStatus = (
   draft: DraftPreset,

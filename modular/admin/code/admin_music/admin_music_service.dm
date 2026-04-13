@@ -512,6 +512,15 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 		return 0
 	return max(1, round(duration_seconds * 10) + 5)
 
+/datum/admin_music_service/proc/get_session_followup_remaining_delay(datum/admin_music_session/session)
+	var/followup_delay = get_session_followup_delay(session)
+	if(followup_delay <= 0)
+		return 0
+	if(!session?.started_at_world_time)
+		return followup_delay
+	var/elapsed_ticks = max(0, world.time - session.started_at_world_time)
+	return max(1, followup_delay - elapsed_ticks)
+
 /datum/admin_music_service/proc/panel_session_requires_followup(datum/admin_music_session/session)
 	if(!session || active_session != session || session.source_kind != "panel")
 		return FALSE
@@ -534,10 +543,57 @@ GLOBAL_DATUM_INIT(admin_music_service, /datum/admin_music_service, new)
 	cancel_session_followup(session)
 	if(!panel_session_requires_followup(session))
 		return FALSE
-	var/followup_delay = get_session_followup_delay(session)
+	var/followup_delay = get_session_followup_remaining_delay(session)
 	if(followup_delay <= 0)
 		return FALSE
 	session.advance_timer_id = addtimer(CALLBACK(src, PROC_REF(handle_panel_session_followup), session), followup_delay, TIMER_STOPPABLE | TIMER_DELETE_ME)
+	return TRUE
+
+/datum/admin_music_service/proc/is_active_panel_session_for_variant(datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant)
+	if(!active_session || active_session.source_kind != "panel" || !tier || !variant)
+		return FALSE
+
+	var/matches_by_preset = !!(
+		length(active_session.preset_id) && \
+		length(preset?.preset_id) && \
+		active_session.preset_id == preset.preset_id && \
+		active_session.tier_name == tier.name && \
+		active_session.variant_title == variant.title
+	)
+	var/matches_by_source = !!(
+		length(active_session.source_url) && \
+		length(variant.source_url) && \
+		active_session.source_url == variant.source_url
+	)
+
+	return matches_by_preset || matches_by_source
+
+/datum/admin_music_service/proc/set_live_panel_playback_mode(client/requester, datum/admin_music_preset/preset, datum/admin_music_tier/tier, datum/admin_music_variant/variant, playback_mode_override)
+	var/datum/admin_music_session/session = active_session
+	if(!session || session.source_kind != "panel")
+		if(requester)
+			to_chat(requester, SPAN_WARNING("No live panel broadcast is active."))
+		return FALSE
+	if(!is_active_panel_session_for_variant(preset, tier, variant))
+		if(requester)
+			to_chat(requester, SPAN_WARNING("Select the track currently on air to change its live playback mode."))
+		return FALSE
+
+	var/effective_playback_mode = resolve_effective_playback_mode(playback_mode_override, session.playback_mode)
+	if(session.playback_mode == effective_playback_mode)
+		update_open_panels()
+		return TRUE
+
+	session.playback_mode = effective_playback_mode
+	if(panel_session_requires_followup(session))
+		if(!schedule_panel_session_followup(session))
+			if(requester)
+				to_chat(requester, SPAN_WARNING(get_panel_followup_warning(session)))
+	else
+		cancel_session_followup(session)
+
+	log_session_action(requester, "live_playback_mode", session, FALSE)
+	update_open_panels()
 	return TRUE
 
 /datum/admin_music_service/proc/log_session_action(client/requester, action, datum/admin_music_session/session, notify_admins = TRUE)

@@ -6,6 +6,7 @@ import {
   coerceLaunchSettings,
   findTier,
   findVariant,
+  getDisplayedLaunchSettings,
   getDraftStatus,
   getOptionLabel,
   getTrackLaunchReadiness,
@@ -126,11 +127,16 @@ export function useAdminMusicPanelController() {
     selectedTier,
     selectedVariant,
   );
+  const displayedLaunchSettings = getDisplayedLaunchSettings(
+    launchSettings,
+    current_session,
+    selectedTrackIsLive,
+  );
   const loadedLibraryPresetId = draft?.preset_id || null;
   const draftStatus = getDraftStatus(draft, dirty);
   const trackReadiness = getTrackLaunchReadiness(
     selectedVariant,
-    launchSettings,
+    displayedLaunchSettings,
   );
 
   const handleImport = (jsonText: string | string[]) => {
@@ -163,10 +169,21 @@ export function useAdminMusicPanelController() {
     act('new_draft');
   };
 
+  const handleSetPlaybackMode = (value: LaunchSettings['playback_mode']) => {
+    setLaunchSettings((current) => ({
+      ...current,
+      playback_mode: value,
+    }));
+
+    if (selectedTrackIsLive) {
+      act('set_live_playback_mode', { playback_mode: value });
+    }
+  };
+
   const playTabProps = {
     current_session,
     draft,
-    launchSettings,
+    launchSettings: displayedLaunchSettings,
     audienceOptions,
     soundTypeOptions,
     audienceLabel: getOptionLabel(
@@ -207,11 +224,7 @@ export function useAdminMusicPanelController() {
         ...current,
         repeat: !current.repeat,
       })),
-    onSetPlaybackMode: (value: LaunchSettings['playback_mode']) =>
-      setLaunchSettings((current) => ({
-        ...current,
-        playback_mode: value,
-      })),
+    onSetPlaybackMode: handleSetPlaybackMode,
     onResetLaunchSettings: () => setLaunchSettings(buildLaunchSettings(draft)),
     onPreviewSelected: () => act('preview_selected'),
     onStopPreview: stopPreview,

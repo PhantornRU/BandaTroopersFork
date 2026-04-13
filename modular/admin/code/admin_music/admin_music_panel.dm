@@ -653,6 +653,13 @@
 		if("play_selected")
 			return play_selected_variant(params)
 
+		if("set_live_playback_mode")
+			var/datum/admin_music_tier/live_tier = get_selected_tier()
+			var/datum/admin_music_variant/live_variant = get_selected_variant()
+			if(!live_tier || !live_variant)
+				return FALSE
+			return GLOB.admin_music_service.set_live_panel_playback_mode(holder, draft, live_tier, live_variant, params["playback_mode"])
+
 		if("stop_broadcast")
 			return GLOB.admin_music_service.stop_broadcast(holder, "panel_stop")
 
@@ -679,7 +686,7 @@
 		if("preview_selected", "stop_preview")
 			return handle_preview_action(action)
 
-		if("play_selected", "stop_broadcast")
+		if("play_selected", "set_live_playback_mode", "stop_broadcast")
 			return handle_playback_action(action, params)
 
 	return FALSE
