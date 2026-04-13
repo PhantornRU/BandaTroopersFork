@@ -13,6 +13,15 @@
 			slot_lookup[slot_key] = TRUE
 	return slot_lookup
 
+/datum/unit_test/world_edit_corner_slots/proc/count_placements_by_kind(list/placements)
+	var/list/counts = list()
+	for(var/list/placement as anything in placements)
+		var/kind = "[placement["kind"]]"
+		if(!length(kind))
+			continue
+		counts[kind] = (counts[kind] || 0) + 1
+	return counts
+
 /datum/unit_test/world_edit_corner_slots/outpost_perimeter/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
@@ -68,3 +77,87 @@
 	TEST_ASSERT(slot_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(north_west_corner, WEST)], "Shape shell lost the west-facing corner slot.")
 	TEST_ASSERT(slot_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(north_side, NORTH)], "Shape shell lost the straight north side slot.")
 	TEST_ASSERT(!slot_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(north_side, WEST)], "Straight north shell tile incorrectly received a west-facing slot.")
+
+/datum/unit_test/world_edit_corner_slots/shape_plan_without_sentries/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit shape-plan center turf was not resolved.")
+
+	var/list/footprint_turfs = list(
+		center_turf,
+		locate(center_turf.x + 1, center_turf.y, center_turf.z),
+		locate(center_turf.x, center_turf.y + 1, center_turf.z),
+		locate(center_turf.x + 1, center_turf.y + 1, center_turf.z),
+	)
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-plan footprint resolved outside the unit-test floor area.")
+
+	var/list/config = list(
+		"family" = "standard",
+		"family_profile" = list(
+			"label" = "Standard",
+			"description" = "Unit test family profile",
+			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+		),
+		"radius" = 1,
+		"place_sentries" = FALSE,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
+		"sentry_path" = null,
+		"faction" = FACTION_MARINE,
+		"turned_on" = FALSE,
+	)
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/placement_counts = count_placements_by_kind(plan.placements)
+
+	TEST_ASSERT_NOTNULL(plan, "Shape-aware outpost plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Shape-aware outpost plan unexpectedly failed with sentries disabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["opening_count"], 4, "Shape-aware outpost plan should preserve four cardinal openings with sentries disabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["barricade_count"], 12, "Shape-aware outpost plan should preserve twelve barricade placements with sentries disabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["sentry_count"], 0, "Shape-aware outpost plan should not report sentries when the toggle is disabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["blocked_sentries"], 0, "Shape-aware outpost plan should not accumulate blocked sentries when the toggle is disabled.")
+	TEST_ASSERT_EQUAL(placement_counts["opening"] || 0, 4, "Shape-aware outpost plan should still emit four opening placements with sentries disabled.")
+	TEST_ASSERT_EQUAL(placement_counts["barricade"] || 0, 12, "Shape-aware outpost plan should still emit twelve barricade placements with sentries disabled.")
+	TEST_ASSERT_EQUAL(placement_counts["sentry"] || 0, 0, "Shape-aware outpost plan should not emit sentry placements when the toggle is disabled.")
+
+/datum/unit_test/world_edit_corner_slots/shape_plan_with_sentries/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit shape-plan center turf was not resolved.")
+
+	var/list/footprint_turfs = list(
+		center_turf,
+		locate(center_turf.x + 1, center_turf.y, center_turf.z),
+		locate(center_turf.x, center_turf.y + 1, center_turf.z),
+		locate(center_turf.x + 1, center_turf.y + 1, center_turf.z),
+	)
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-plan footprint resolved outside the unit-test floor area.")
+
+	var/list/config = list(
+		"family" = "standard",
+		"family_profile" = list(
+			"label" = "Standard",
+			"description" = "Unit test family profile",
+			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+		),
+		"radius" = 1,
+		"place_sentries" = TRUE,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = FALSE,
+	)
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/placement_counts = count_placements_by_kind(plan.placements)
+
+	TEST_ASSERT_NOTNULL(plan, "Shape-aware outpost plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Shape-aware outpost plan unexpectedly failed with sentries enabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["opening_count"], 4, "Shape-aware outpost plan should preserve four cardinal openings with sentries enabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["barricade_count"], 12, "Shape-aware outpost plan should preserve twelve barricade placements with sentries enabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["sentry_count"], 4, "Shape-aware outpost plan should place one sentry candidate per opening when sentries are enabled.")
+	TEST_ASSERT_EQUAL(plan.metadata["blocked_sentries"], 0, "Shape-aware outpost plan should not block sentries on the unit-test floor when the toggle is enabled.")
+	TEST_ASSERT_EQUAL(placement_counts["opening"] || 0, 4, "Shape-aware outpost plan should emit four opening placements with sentries enabled.")
+	TEST_ASSERT_EQUAL(placement_counts["barricade"] || 0, 12, "Shape-aware outpost plan should emit twelve barricade placements with sentries enabled.")
+	TEST_ASSERT_EQUAL(placement_counts["sentry"] || 0, 4, "Shape-aware outpost plan should emit four sentry placements when the toggle is enabled.")

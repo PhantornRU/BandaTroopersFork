@@ -458,6 +458,7 @@
 	var/total_blocked_openings = 0
 	var/total_sentries = 0
 	var/total_blocked_sentries = 0
+	var/place_sentries = config["place_sentries"]
 	var/list/opening_dirs = islist(config["family_profile"]) ? config["family_profile"]["opening_dirs"] : null
 	if(!islist(opening_dirs) || !length(opening_dirs))
 		opening_dirs = list(NORTH, EAST, SOUTH, WEST)
@@ -508,32 +509,33 @@
 			"dir" = opening_slot["dir"],
 		))
 
-		var/list/sentry_candidates = build_shape_sentry_candidates(opening_slot)
-		var/placed_sentry = FALSE
-		for(var/list/sentry_candidate as anything in sentry_candidates)
-			var/turf/sentry_turf = sentry_candidate["turf"]
-			if(!istype(sentry_turf) || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
-				continue
-			if(!can_place_sentry_on_turf(sentry_turf))
-				continue
+		if(place_sentries)
+			var/list/sentry_candidates = build_shape_sentry_candidates(opening_slot)
+			var/placed_sentry = FALSE
+			for(var/list/sentry_candidate as anything in sentry_candidates)
+				var/turf/sentry_turf = sentry_candidate["turf"]
+				if(!istype(sentry_turf) || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
+					continue
+				if(!can_place_sentry_on_turf(sentry_turf))
+					continue
 
-			sentry_lookup[sentry_turf] = TRUE
-			preview_turf_lookup[sentry_turf] = TRUE
-			plan.placements += list(list(
-				"kind" = "sentry",
-				"turf" = sentry_turf,
-				"dir" = sentry_candidate["dir"],
-				"opening_dir" = sentry_candidate["opening_dir"],
-				"defense_path" = config["sentry_path"],
-				"faction" = config["faction"],
-				"turned_on" = config["turned_on"],
-			))
-			placed_sentry = TRUE
-			total_sentries++
-			break
+				sentry_lookup[sentry_turf] = TRUE
+				preview_turf_lookup[sentry_turf] = TRUE
+				plan.placements += list(list(
+					"kind" = "sentry",
+					"turf" = sentry_turf,
+					"dir" = sentry_candidate["dir"],
+					"opening_dir" = sentry_candidate["opening_dir"],
+					"defense_path" = config["sentry_path"],
+					"faction" = config["faction"],
+					"turned_on" = config["turned_on"],
+				))
+				placed_sentry = TRUE
+				total_sentries++
+				break
 
-		if(!placed_sentry)
-			total_blocked_sentries++
+			if(!placed_sentry)
+				total_blocked_sentries++
 
 	if(length(opening_dirs) > total_openings)
 		total_blocked_openings += length(opening_dirs) - total_openings
@@ -712,7 +714,6 @@
 	)
 	if(!center_turf)
 		return result
-	var/list/placements = result["placements"]
 	var/slot_index = 0
 
 	for(var/offset_x in -radius to radius)
