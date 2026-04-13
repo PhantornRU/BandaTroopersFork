@@ -266,59 +266,59 @@ const renderMetaValue = (value: unknown) => {
 
 const interactionHelpText = (data: BackendData) => {
   if (data.placement_interaction_kind === 'anchor_pair') {
-    return 'LMB задает первую точку, второй LMB завершает линию или рамку. MMB сбрасывает pending anchor.';
+    return 'ЛКМ задает первую точку, второй ЛКМ завершает линию или рамку. СКМ сбрасывает текущую точку.';
   }
   if (data.placement_interaction_kind === 'collector') {
-    return 'LMB добавляет точки, MMB снимает последнюю, RMB или finish закрывают собранный footprint.';
+    return 'ЛКМ добавляет точки, СКМ снимает последнюю, ПКМ завершает сбор.';
   }
   if (data.placement_interaction_kind === 'param_only') {
-    return 'Клик использует выбранный turf как anchor, а сама форма берется из текущих shape-параметров.';
+    return 'Клик использует выбранный тайл как опору, а форма берется из текущих параметров.';
   }
-  return 'LMB выполняет preview/apply по выбранному turf. Для выхода используйте stop click-mode.';
+  return 'ЛКМ работает по выбранному тайлу. Для выхода остановите режим размещения.';
 };
 
 const getPreviewBlockReason = (data: BackendData) => {
   if (!data.has_generator) {
-    return 'Сначала выберите генератор.';
+    return 'Сначала выберите инструмент.';
   }
   if (!data.current_generator_supports_preview) {
-    return 'Текущий генератор не поддерживает preview.';
+    return 'Для этого инструмента предпросмотр не используется.';
   }
   if (data.click_mode_active) {
-    return 'Preview через панель недоступен, пока активен placement mode.';
+    return 'Предпросмотр из панели недоступен, пока активен режим размещения.';
   }
   return '';
 };
 
 const getApplyBlockReason = (data: BackendData) => {
   if (!data.has_generator) {
-    return 'Сначала выберите генератор.';
+    return 'Сначала выберите инструмент.';
   }
   if (data.click_mode_active) {
-    return 'Apply через панель недоступен, пока активен placement mode.';
+    return 'Применение из панели недоступно, пока активен режим размещения.';
   }
   if (data.requires_preview_before_apply && !data.preview_valid) {
-    return 'Для текущего генератора нужен валидный preview.';
+    return 'Сначала создайте корректный предпросмотр.';
   }
   return '';
 };
 
 const getPlacementBlockReason = (data: BackendData) => {
   if (!data.has_generator) {
-    return 'Сначала выберите генератор.';
+    return 'Сначала выберите инструмент.';
   }
   if (data.placement_active) {
     return 'Режим размещения уже активен.';
   }
   if (!data.can_start_placement_mode) {
-    return 'Текущий генератор не поддерживает live placement.';
+    return 'Для этого инструмента режим размещения недоступен.';
   }
   return '';
 };
 
 const getFinishCollectionReason = (data: BackendData) => {
   if (!data.click_mode_active) {
-    return 'Сначала запустите placement mode.';
+    return 'Сначала включите режим размещения.';
   }
   if (data.placement_interaction_kind !== 'collector') {
     return 'Для текущей формы завершение коллектора не используется.';
@@ -332,8 +332,8 @@ const getFinishCollectionReason = (data: BackendData) => {
 const getWorkflowState = (data: BackendData): WorkflowState => {
   if (!data.has_generator) {
     return {
-      label: 'Выбор генератора',
-      description: 'Выберите ready-генератор, чтобы открыть рабочую станцию.',
+      label: 'Выберите инструмент',
+      description: 'Откройте нужный инструмент из списка слева.',
       color: 'label',
     };
   }
@@ -350,9 +350,9 @@ const getWorkflowState = (data: BackendData): WorkflowState => {
     if (data.placement_interaction_kind === 'collector') {
       return data.can_finish_placement_collection
         ? {
-            label: 'Форма собрана',
+            label: 'Форма готова',
             description:
-              'Можно завершить сбор и перейти к preview/apply для собранного footprint.',
+              'Сбор завершен. Теперь можно перейти к предпросмотру и применению.',
             color: 'good',
           }
         : {
@@ -372,7 +372,7 @@ const getWorkflowState = (data: BackendData): WorkflowState => {
   if (data.requires_preview_before_apply && !data.preview_valid) {
     return {
       label: 'Нужен preview',
-      description: 'Сначала выполните preview для текущей конфигурации.',
+      description: 'Сначала создайте предпросмотр для текущей конфигурации.',
       color: 'average',
     };
   }
@@ -390,16 +390,15 @@ const getWorkflowState = (data: BackendData): WorkflowState => {
   if (!data.has_inline_fields) {
     return {
       label: 'Настройка через мастер',
-      description:
-        'Inline-поля недоступны, используйте мастер настройки как основной путь.',
+      description: 'У этого инструмента настройка идет через мастер.',
       color: 'label',
     };
   }
 
   return {
-    label: 'Настройка рабочей конфигурации',
+    label: 'Проверьте параметры',
     description:
-      'Проверьте параметры и placement-настройки, затем переходите к preview/apply.',
+      'Подготовьте параметры и при необходимости настройте размещение.',
     color: 'label',
   };
 };
@@ -408,7 +407,7 @@ const getPreviewState = (data: BackendData): PreviewState => {
   if (!data.has_generator) {
     return {
       label: 'n/a',
-      message: 'Сначала выберите генератор.',
+      message: 'Сначала выберите инструмент.',
       color: 'label',
     };
   }
@@ -418,81 +417,34 @@ const getPreviewState = (data: BackendData): PreviewState => {
       label: 'готов',
       message:
         data.preview_message ||
-        'Текущая конфигурация прошла preview и готова к apply.',
+        'Предпросмотр готов, конфигурацию можно применять.',
       color: 'good',
     };
   }
 
   if (data.preview_success) {
     return {
-      label: 'проверен',
+      label: 'готовится',
       message:
         data.preview_message ||
-        'Preview выполнен, но результат пока не готов к apply.',
+        'Предпросмотр выполнен, но применить его пока нельзя.',
       color: 'average',
     };
   }
 
   if (data.preview_message) {
     return {
-      label: 'нет/ошибка',
+      label: 'ошибка',
       message: data.preview_message,
       color: 'average',
     };
   }
 
   return {
-    label: 'не запускался',
-    message: 'Preview еще не запускался для текущей конфигурации.',
+    label: 'нет',
+    message: 'Предпросмотр еще не запускался.',
     color: 'label',
   };
-};
-
-const getSidebarTiles = (data: BackendData): SummaryTile[] => [
-  {
-    label: 'Preview',
-    value: data.has_generator ? (data.preview_valid ? 'ready' : 'idle') : 'n/a',
-    color: data.preview_valid ? 'good' : 'label',
-  },
-  {
-    label: 'Apply',
-    value: data.has_generator ? (data.can_run_apply ? 'ready' : 'hold') : 'n/a',
-    color: data.can_run_apply
-      ? 'good'
-      : data.has_generator
-        ? 'average'
-        : 'label',
-  },
-  {
-    label: 'Ops',
-    value: `${data.history_entries?.length || 0}`,
-    color: data.history_entries?.length ? 'good' : 'label',
-  },
-];
-
-const SummaryTileGrid = (props: {
-  readonly items: SummaryTile[];
-  readonly compact?: boolean;
-  readonly tileBasis?: string;
-}) => {
-  const { items, compact, tileBasis } = props;
-
-  return (
-    <Flex wrap mx={-0.25}>
-      {items.map((item) => (
-        <Flex.Item
-          key={item.label}
-          basis={tileBasis || (compact ? '31%' : '48%')}
-          grow
-          m={0.25}
-        >
-          <Section fitted title={item.label}>
-            <Box color={item.color || 'white'}>{item.value}</Box>
-          </Section>
-        </Flex.Item>
-      ))}
-    </Flex>
-  );
 };
 
 const CompactStatusRow = (props: {
@@ -532,29 +484,696 @@ const ActionItem = (props: { readonly children: ReactNode }) => (
 const CompactGeneratorRow = (props: {
   readonly generator: GeneratorEntry;
   readonly selected: boolean;
-  readonly onSelect: () => void;
-  readonly onOpenWork: () => void;
+  readonly onActivate: () => void;
+}) => <GeneratorListRow {...props} />;
+
+const buildDetailItems = (
+  items: Array<{
+    label: string;
+    value: ReactNode;
+    color?: string;
+  }>,
+) => (
+  <CompactStatusRow
+    basis="32%"
+    items={items.map((item) => ({
+      label: item.label,
+      value: item.value,
+      color: item.color,
+    }))}
+  />
+);
+
+const getApplyReadinessLabel = (data: BackendData) => {
+  if (!data.has_generator) {
+    return 'n/a';
+  }
+  if (data.can_run_apply) {
+    return 'готово';
+  }
+  if (data.requires_preview_before_apply && !data.preview_valid) {
+    return 'нужен preview';
+  }
+  return 'недоступно';
+};
+
+const getPlacementStateLabel = (data: BackendData) => {
+  if (
+    !(
+      data.placement_supported ||
+      data.placement_shape_supported ||
+      data.placement_supports_direction
+    )
+  ) {
+    return 'n/a';
+  }
+  return data.click_mode_active ? 'вкл' : 'выкл';
+};
+
+const getHistoryStateLabel = (data: BackendData) => {
+  const count = data.history_entries?.length || 0;
+  return count ? `${count}` : 'пусто';
+};
+
+const getGeneratorDetailLabel = (generator: GeneratorEntry) => {
+  if (generator.status?.toLowerCase() === 'ready') {
+    return 'Готов к работе';
+  }
+  return `Статус: ${generator.status || 'n/a'}`;
+};
+
+const getGeneratorSelectionHint = (
+  data: BackendData,
+  totalGenerators: number,
+) => {
+  if (!totalGenerators) {
+    return 'Нет доступных инструментов для текущих прав.';
+  }
+  if (data.current_generator_name) {
+    return `Клик по элементу сразу открывает его в работе. Текущий инструмент: ${data.current_generator_name}.`;
+  }
+  return 'Клик по элементу сразу открывает его в работе.';
+};
+
+const getBlueprintSelectionHint = (data: BackendData) => {
+  if (data.placement_active) {
+    return 'Пока активен режим размещения, список можно смотреть, но действия временно недоступны.';
+  }
+  return 'Выбор в списке сразу делает blueprint текущим.';
+};
+
+const getPresetSelectionHint = () =>
+  'Клик по пресету сразу подставляет его параметры в текущий инструмент.';
+
+const getOperationSummary = (entry?: HistoryEntry) => {
+  if (!entry?.message) {
+    return 'Подробности по операции пока недоступны.';
+  }
+  return entry.message;
+};
+
+const getOperationHeader = (entry: HistoryEntry) => {
+  const result = entry.result || 'n/a';
+  return `${entry.time} | ${entry.generator_id} | ${result}`;
+};
+
+const getOperationResultLabel = (entry?: HistoryEntry) => {
+  if (!entry?.result) {
+    return 'n/a';
+  }
+  return entry.result;
+};
+
+const getSidebarDescription = (data: BackendData, workflow: WorkflowState) => {
+  if (!data.has_generator) {
+    return workflow.description;
+  }
+  return workflow.label;
+};
+
+const getHistorySummaryLabel = (data: BackendData) => {
+  const count = data.history_entries?.length || 0;
+  if (!count) {
+    return 'История пока пуста.';
+  }
+  return `Записей: ${count}`;
+};
+
+const getWorkHeaderDescription = (data: BackendData) => {
+  if (!data.has_generator) {
+    return 'Сначала выберите инструмент.';
+  }
+  return (
+    data.current_generator_description ||
+    'Настройте параметры и выполните предпросмотр.'
+  );
+};
+
+const getActionHintText = (data: BackendData) => {
+  const previewBlockReason = getPreviewBlockReason(data);
+  const applyBlockReason = getApplyBlockReason(data);
+
+  if (!data.can_run_preview && previewBlockReason) {
+    return previewBlockReason;
+  }
+  if (!data.can_run_apply && applyBlockReason) {
+    return applyBlockReason;
+  }
+  return '';
+};
+
+const getBrowseTitle = (data: BackendData) =>
+  data.current_generator_name
+    ? `Инструменты / ${data.current_generator_name}`
+    : 'Инструменты';
+
+const getHistoryTitle = () => 'История операций';
+
+const getWorkspaceTitle = (data: BackendData) =>
+  data.has_generator ? `Работа / ${data.current_generator_name}` : 'Работа';
+
+const getActionLabel = (action: 'preview' | 'apply' | 'clear') => {
+  switch (action) {
+    case 'preview':
+      return 'Предпросмотр';
+    case 'apply':
+      return 'Применить';
+    case 'clear':
+      return 'Очистить';
+    default:
+      return '';
+  }
+};
+
+const getCommonStatusItems = (data: BackendData): SummaryTile[] => [
+  {
+    label: 'Предпросмотр',
+    value: getPreviewState(data).label,
+    color: getPreviewState(data).color,
+  },
+  {
+    label: 'Применение',
+    value: getApplyReadinessLabel(data),
+    color: getToolbarStatusColor(data, 'apply'),
+  },
+  {
+    label: 'Размещение',
+    value: getPlacementStateLabel(data),
+    color: getToolbarStatusColor(data, 'placement'),
+  },
+  {
+    label: 'История',
+    value: getHistoryStateLabel(data),
+    color: getToolbarStatusColor(data, 'history'),
+  },
+];
+
+const getHistoryResultTone = (entry?: HistoryEntry) =>
+  toneForHistoryResult(entry?.result);
+
+const getHistoryResultText = (entry?: HistoryEntry) => entry?.result || 'n/a';
+
+const getSelectionEmptyText = () =>
+  'Нет доступных инструментов для текущих прав.';
+
+const getAssetEmptyText = () =>
+  'Для текущего инструмента дополнительные библиотеки и пресеты не используются.';
+
+const getParamEmptyText = () =>
+  'Для этого инструмента настройка доступна только через мастер.';
+
+const getPlacementEmptyText = () =>
+  'Для текущего инструмента режим размещения не используется.';
+
+const getWorkEmptyText = () =>
+  'Сначала выберите инструмент на странице «Выбор».';
+
+const getHistoryEmptyText = () => 'История операций пока пуста.';
+
+const getPreviewMetaTitle = () => 'Сводка preview';
+
+const getDiagnosticsTitle = () => 'Технические детали';
+
+const getCurrentParamsTitle = () => 'Текущие параметры';
+
+const getRuntimeStatusTitle = (count: number) => `Служебный статус (${count})`;
+
+const getHistoryDetailsTitle = () => 'Технические детали';
+
+const getSessionSummaryTitle = (count: number) =>
+  `Последние операции (${count})`;
+
+const getUndoSummaryTitle = () => 'Откат и очистка';
+
+const getLastApplyTitle = () => 'Последнее применение';
+
+const getPlacementTabTitle = () => 'Размещение';
+
+const getAssetsTabTitle = () => 'Ресурсы';
+
+const getParamsTabTitle = () => 'Параметры';
+
+const getSessionTabTitle = () => 'Сессия';
+
+const getLibraryTitle = () => 'Библиотека blueprint';
+
+const getPresetTitle = () => 'Пресеты';
+
+const getExportTitle = () => 'Экспорт';
+
+const getGeneratorOpenLabel = () => 'Открыть';
+
+const getSelectedLabel = () => 'Текущий';
+
+const getActiveBlueprintText = () => 'Текущий blueprint для этой сессии.';
+
+const getInvalidBlueprintText = () => 'Blueprint невалиден.';
+
+const getCreatedLabel = () => 'Создан';
+
+const getItemsLabel = () => 'Элементов';
+
+const getSourceLabel = () => 'Источник';
+
+const getAuthorLabel = () => 'Автор';
+
+const getRefreshLabel = () => 'Обновить';
+
+const getResetLabel = () => 'Сброс';
+
+const getWizardLabel = () => 'Мастер';
+
+const getFormRefreshLabel = () => 'Обновить форму';
+
+const getHistoryButtonLabel = () => 'История';
+
+const getUndoLabel = () => 'Откатить';
+
+const getCleanupLabel = () => 'Очистить эффекты';
+
+const getBackToWorkLabel = () => 'Вернуться к работе';
+
+const getChooseGeneratorLabel = () => 'Перейти к выбору инструмента';
+
+const getNoBlueprintsLabel = () => 'В библиотеке пока нет blueprint-ов.';
+
+const getNoPresetsLabel = () =>
+  'Для текущего инструмента еще нет сохраненных пресетов.';
+
+const getSaveLabel = () => 'Сохранить';
+
+const getSavePreviewLabel = () => 'Сохранить preview';
+
+const getDeleteLabel = () => 'Удалить';
+
+const getGeneratorRowActionLabel = (selected: boolean) =>
+  selected ? getSelectedLabel() : getGeneratorOpenLabel();
+
+const getGeneratorRowStyle = (selected: boolean) => ({
+  border: selected ? '1px solid #4c9f39' : '1px solid #466b96',
+  background: selected ? 'rgba(76, 159, 57, 0.16)' : 'rgba(70, 107, 150, 0.14)',
+  borderRadius: '4px',
+  cursor: 'pointer',
+});
+
+const getSelectedAssetId = (id?: string) => id || '';
+
+const getBlueprintDetailsTitle = (entry: BlueprintEntry) =>
+  `${entry.name} [r=${entry.radius}]`;
+
+const getPresetDetailsTitle = (entry: PresetEntry) => entry.name || entry.id;
+
+const getWorkStatusText = (workflow: WorkflowState) => workflow.label;
+
+const getWorkStatusDescription = (workflow: WorkflowState) =>
+  workflow.description;
+
+const getTechnicalParamText = (params?: string) => params || 'n/a';
+
+const getOperationIdText = (operationId?: string) => operationId || 'n/a';
+
+const getOperationCenterText = (center?: string) => center || 'n/a';
+
+const getOperationDurationText = (durationMs?: number) =>
+  `${durationMs ?? 0} ms`;
+
+const getUndoStatusText = (entry: HistoryEntry) =>
+  entry.undo_policy
+    ? `${entry.undo_policy} / ${entry.undo_status || 'n/a'}`
+    : 'n/a';
+
+const getRevertedText = (entry: HistoryEntry) =>
+  `${entry.reverted_count ?? 0} / ${entry.skipped_count ?? 0}`;
+
+const getHistoryCenterLabel = () => 'Центр';
+
+const getHistoryResultLabel = () => 'Результат';
+
+const getHistoryCountLabel = () => 'Записей';
+
+const getCreatedCountLabel = () => 'Создано';
+
+const getDeletedCountLabel = () => 'Удалено';
+
+const getDurationLabel = () => 'Длительность';
+
+const getUndoPolicyLabel = () => 'Откат';
+
+const getRevertedLabel = () => 'Откат / пропуск';
+
+const getOperationMessageLabel = () => 'Сообщение';
+
+const getOperationParamsLabel = () => 'Параметры';
+
+const getOperationIdLabel = () => 'ID операции';
+
+const getHistoryGeneratorLabel = () => 'Инструмент';
+
+const getHistorySummaryText = (entry?: HistoryEntry) =>
+  entry?.message || 'Сообщение по операции отсутствует.';
+
+const getCurrentGeneratorLabel = (name?: string) => name || 'Без инструмента';
+
+const getBrowseHint = (data: BackendData, totalGenerators: number) =>
+  getGeneratorSelectionHint(data, totalGenerators);
+
+const getPreviewMessageText = (data: BackendData) =>
+  getPreviewState(data).message;
+
+const getPreviewLabelText = (data: BackendData) => getPreviewState(data).label;
+
+const getPreviewTone = (data: BackendData) =>
+  getPreviewState(data).color || 'label';
+
+const getWorkspaceSummaryItems = (data: BackendData): SummaryTile[] =>
+  getCommonStatusItems(data);
+
+const getSidebarSummaryText = (data: BackendData) =>
+  getSidebarDescription(data, getWorkflowState(data));
+
+const getHistorySummaryItems = (
+  data: BackendData,
+  latestEntry?: HistoryEntry,
+): SummaryTile[] => [
+  {
+    label: getHistoryCountLabel(),
+    value: `${data.history_entries?.length || 0}`,
+  },
+  {
+    label: getHistoryGeneratorLabel(),
+    value: latestEntry?.generator_id || 'n/a',
+  },
+  {
+    label: getHistoryResultLabel(),
+    value: getOperationResultLabel(latestEntry),
+    color: getHistoryResultTone(latestEntry),
+  },
+  {
+    label: getHistoryCenterLabel(),
+    value: getOperationCenterText(latestEntry?.center_turf),
+  },
+];
+
+const getSelectionPageTitle = (data: BackendData) => getBrowseTitle(data);
+
+const getWorkspacePageTitle = (data: BackendData) => getWorkspaceTitle(data);
+
+const getHistoryPageTitle = () => getHistoryTitle();
+
+const getCurrentGeneratorDescription = (data: BackendData) =>
+  getWorkHeaderDescription(data);
+
+const getStatusExplanation = (workflow: WorkflowState) =>
+  getWorkStatusDescription(workflow);
+
+const getShortStatus = (workflow: WorkflowState) => getWorkStatusText(workflow);
+
+const getActionHint = (data: BackendData) => getActionHintText(data);
+
+const getBlueprintTitle = () => getLibraryTitle();
+
+const getPresetSectionTitle = () => getPresetTitle();
+
+const getExportSectionTitle = () => getExportTitle();
+
+const getSelectionIntroText = (data: BackendData, totalGenerators: number) =>
+  getBrowseHint(data, totalGenerators);
+
+const getSelectedBlueprintTitle = (selectedBlueprint: BlueprintEntry) =>
+  getBlueprintDetailsTitle(selectedBlueprint);
+
+const getSelectedPresetTitle = (selectedPreset: PresetEntry) =>
+  getPresetDetailsTitle(selectedPreset);
+
+const getBlueprintInvalidText = (selectedBlueprint: BlueprintEntry) =>
+  selectedBlueprint.error || getInvalidBlueprintText();
+
+const getHistoryEntryTitle = (entry: HistoryEntry) => getOperationHeader(entry);
+
+const getHistoryEntryMessage = (entry: HistoryEntry) =>
+  getHistorySummaryText(entry);
+
+const getHistoryEntryTone = (entry: HistoryEntry) =>
+  getHistoryResultTone(entry);
+
+const getSelectionEmptyLabel = () => getSelectionEmptyText();
+
+const getAssetEmptyLabel = () => getAssetEmptyText();
+
+const getParamEmptyLabel = () => getParamEmptyText();
+
+const getPlacementEmptyLabel = () => getPlacementEmptyText();
+
+const getWorkEmptyLabel = () => getWorkEmptyText();
+
+const getHistoryEmptyLabel = () => getHistoryEmptyText();
+
+const getPreviewMetaSectionTitle = () => getPreviewMetaTitle();
+
+const getDiagnosticsSectionTitle = () => getDiagnosticsTitle();
+
+const getCurrentParamsSectionTitle = () => getCurrentParamsTitle();
+
+const getRuntimeStatusSectionTitle = (count: number) =>
+  getRuntimeStatusTitle(count);
+
+const getHistoryDetailsSectionTitle = () => getHistoryDetailsTitle();
+
+const getSessionSummarySectionTitle = (count: number) =>
+  getSessionSummaryTitle(count);
+
+const getUndoSummarySectionTitle = () => getUndoSummaryTitle();
+
+const getLastApplySectionTitle = () => getLastApplyTitle();
+
+const getPlacementTabLabel = () => getPlacementTabTitle();
+
+const getAssetsTabLabel = () => getAssetsTabTitle();
+
+const getParamsTabLabel = () => getParamsTabTitle();
+
+const getSessionTabLabel = () => getSessionTabTitle();
+
+const getGeneratorActionText = (selected: boolean) =>
+  getGeneratorRowActionLabel(selected);
+
+const getGeneratorCardStyle = (selected: boolean) =>
+  getGeneratorRowStyle(selected);
+
+const getBlueprintSelectionState = (data: BackendData) =>
+  getSelectedAssetId(data.active_blueprint_id);
+
+const getPresetSelectionState = (selectedPresetId: string) =>
+  getSelectedAssetId(selectedPresetId);
+
+const getGeneratorDescriptionText = (description?: string) =>
+  description || 'Описание пока не заполнено.';
+
+const getPreviewSupportText = (supportsPreview: boolean) =>
+  supportsPreview ? 'Есть предпросмотр' : 'Работает без предпросмотра';
+
+const getCurrentGeneratorStatusText = (
+  selected: boolean,
+  generator: GeneratorEntry,
+) => (selected ? 'Текущий инструмент' : getGeneratorDetailLabel(generator));
+
+const getSecondaryButtonLabel = (
+  kind:
+    | 'refresh'
+    | 'wizard'
+    | 'reset'
+    | 'history'
+    | 'undo'
+    | 'cleanup'
+    | 'back'
+    | 'browse',
+) => {
+  switch (kind) {
+    case 'refresh':
+      return getFormRefreshLabel();
+    case 'wizard':
+      return getWizardLabel();
+    case 'reset':
+      return getResetLabel();
+    case 'history':
+      return getHistoryButtonLabel();
+    case 'undo':
+      return getUndoLabel();
+    case 'cleanup':
+      return getCleanupLabel();
+    case 'back':
+      return getBackToWorkLabel();
+    case 'browse':
+      return getChooseGeneratorLabel();
+    default:
+      return '';
+  }
+};
+
+const getAssetSelectionHint = (
+  kind: 'preset' | 'blueprint',
+  data?: BackendData,
+) => {
+  if (kind === 'preset') {
+    return getPresetSelectionHint();
+  }
+  return getBlueprintSelectionHint(data as BackendData);
+};
+
+const getLibraryEmptyLabel = (kind: 'preset' | 'blueprint') =>
+  kind === 'preset' ? getNoPresetsLabel() : getNoBlueprintsLabel();
+
+const getActionButtonLabel = (
+  kind: 'save' | 'savePreview' | 'delete' | 'refresh',
+) => {
+  switch (kind) {
+    case 'save':
+      return getSaveLabel();
+    case 'savePreview':
+      return getSavePreviewLabel();
+    case 'delete':
+      return getDeleteLabel();
+    case 'refresh':
+      return getRefreshLabel();
+    default:
+      return '';
+  }
+};
+
+const getDetailLabel = (kind: 'created' | 'items' | 'source' | 'author') => {
+  switch (kind) {
+    case 'created':
+      return getCreatedLabel();
+    case 'items':
+      return getItemsLabel();
+    case 'source':
+      return getSourceLabel();
+    case 'author':
+      return getAuthorLabel();
+    default:
+      return '';
+  }
+};
+
+const getCommandBarItems = (data: BackendData) =>
+  getWorkspaceSummaryItems(data);
+
+const getHistoryDetailItems = (entry: HistoryEntry): SummaryTile[] => [
+  {
+    label: getCreatedCountLabel(),
+    value: `${entry.created_count}`,
+  },
+  {
+    label: getDeletedCountLabel(),
+    value: `${entry.deleted_count}`,
+  },
+  {
+    label: getHistoryCenterLabel(),
+    value: getOperationCenterText(entry.center_turf),
+  },
+  {
+    label: getDurationLabel(),
+    value: getOperationDurationText(entry.duration_ms),
+  },
+  {
+    label: getUndoPolicyLabel(),
+    value: getUndoStatusText(entry),
+  },
+  {
+    label: getRevertedLabel(),
+    value: getRevertedText(entry),
+  },
+];
+
+const getHistoryTechnicalDetails = (entry: HistoryEntry) => ({
+  params: getTechnicalParamText(entry.params_short),
+  operationId: getOperationIdText(entry.operation_id),
+});
+
+const getHistoryMessageColor = () => 'label';
+
+const getBlueprintActiveText = () => getActiveBlueprintText();
+
+const getCommonButtonColor = (
+  kind: 'primary' | 'danger' | 'good' | 'average',
+) => {
+  switch (kind) {
+    case 'good':
+      return 'good';
+    case 'average':
+      return 'average';
+    case 'danger':
+      return 'bad';
+    default:
+      return undefined;
+  }
+};
+
+const getToolbarStatusColor = (
+  data: BackendData,
+  kind: 'apply' | 'placement' | 'history',
+) => {
+  switch (kind) {
+    case 'apply':
+      return data.can_run_apply ? 'good' : 'average';
+    case 'placement':
+      return data.click_mode_active ? 'good' : 'label';
+    case 'history':
+      return data.history_entries?.length ? 'good' : 'label';
+    default:
+      return 'label';
+  }
+};
+
+const getSelectedBlueprintMessage = (selectedBlueprint: BlueprintEntry) =>
+  selectedBlueprint.active ? getBlueprintActiveText() : 'Выбранный blueprint.';
+
+const getGeneratorRowSummary = (
+  generator: GeneratorEntry,
+  selected: boolean,
+) => (
+  <>
+    <Box color="label" mt={0.25}>
+      {getGeneratorDescriptionText(generator.description_ru)}
+    </Box>
+    <Box color={selected ? 'good' : 'label'} mt={0.25}>
+      {getCurrentGeneratorStatusText(selected, generator)}
+      {' • '}
+      {getPreviewSupportText(generator.supports_preview)}
+    </Box>
+  </>
+);
+
+const GeneratorListRow = (props: {
+  readonly generator: GeneratorEntry;
+  readonly selected: boolean;
+  readonly onActivate: () => void;
 }) => {
-  const { generator, selected, onSelect, onOpenWork } = props;
+  const { generator, selected, onActivate } = props;
 
   return (
-    <LabeledList.Item
-      label={<Box color={selected ? 'good' : 'white'}>{generator.name_ru}</Box>}
-      buttons={
-        <Button
-          compact
-          selected={selected}
-          onClick={selected ? onOpenWork : onSelect}
-        >
-          {selected ? 'Открыть' : 'Выбрать'}
-        </Button>
-      }
+    <Box
+      mb={0.5}
+      p={0.75}
+      onClick={onActivate}
+      style={getGeneratorCardStyle(selected)}
     >
-      <Box color="label">
-        {generator.execution_mode} | preview{' '}
-        {boolText(generator.supports_preview)} | статус {generator.status}
+      <Box>
+        <Box>
+          <Box bold color={selected ? 'good' : 'white'}>
+            {generator.name_ru}
+          </Box>
+          {getGeneratorRowSummary(generator, selected)}
+        </Box>
+        <Box mt={0.25}>
+          <Box
+            color={selected ? 'good' : toneForGeneratorStatus(generator.status)}
+          >
+            {getGeneratorActionText(selected)}
+          </Box>
+        </Box>
       </Box>
-    </LabeledList.Item>
+    </Box>
   );
 };
 
@@ -703,17 +1322,18 @@ const PresetLibrarySection = (props: {
 
   return (
     <Section
-      title="Пресеты"
+      title={getPresetSectionTitle()}
       buttons={
         <Button compact onClick={() => act('save_preset')}>
-          Сохранить
+          {getActionButtonLabel('save')}
         </Button>
       }
     >
+      <Box color="label" mb={1}>
+        {getAssetSelectionHint('preset')}
+      </Box>
       {!data.preset_entries?.length && (
-        <Box color="label">
-          Для текущего генератора ещё нет сохранённых preset-ов.
-        </Box>
+        <Box color="label">{getLibraryEmptyLabel('preset')}</Box>
       )}
 
       {!!data.preset_entries?.length && (
@@ -721,40 +1341,45 @@ const PresetLibrarySection = (props: {
           <Flex wrap mx={-0.5}>
             {data.preset_entries.map((preset) => (
               <Flex.Item key={preset.id} basis="48%" grow m={0.5}>
-                <Button
-                  compact
-                  fluid
-                  selected={preset.id === selectedPreset?.id}
-                  onClick={() => setSelectedPresetId(preset.id)}
+                <Box
+                  p={0.6}
+                  onClick={() => {
+                    setSelectedPresetId(preset.id);
+                    act('load_preset', {
+                      preset_id: preset.id,
+                    });
+                  }}
+                  style={getGeneratorCardStyle(
+                    preset.id ===
+                      getPresetSelectionState(selectedPreset?.id || ''),
+                  )}
                 >
-                  {preset.name || preset.id}
-                </Button>
+                  <Box
+                    bold
+                    color={preset.id === selectedPreset?.id ? 'good' : 'white'}
+                  >
+                    {preset.name || preset.id}
+                  </Box>
+                  <Box color="label" mt={0.25}>
+                    {preset.params_short || 'Без краткого описания параметров.'}
+                  </Box>
+                </Box>
               </Flex.Item>
             ))}
           </Flex>
 
           {!!selectedPreset && (
-            <Section title={selectedPreset.name || selectedPreset.id} mt={1}>
+            <Section title={getSelectedPresetTitle(selectedPreset)} mt={1}>
               <Box color="label">
-                Сохранён: {selectedPreset.created_at || 'n/a'}
+                {getDetailLabel('created')}:{' '}
+                {selectedPreset.created_at || 'n/a'}
               </Box>
               <Box color="label" mt={0.5}>
-                Параметры: {selectedPreset.params_short || 'n/a'}
+                {getOperationParamsLabel()}:{' '}
+                {selectedPreset.params_short || 'n/a'}
               </Box>
 
               <ActionRow>
-                <ActionItem>
-                  <Button
-                    compact
-                    onClick={() =>
-                      act('load_preset', {
-                        preset_id: selectedPreset.id,
-                      })
-                    }
-                  >
-                    Загрузить
-                  </Button>
-                </ActionItem>
                 <ActionItem>
                   <Button
                     compact
@@ -765,7 +1390,7 @@ const PresetLibrarySection = (props: {
                       })
                     }
                   >
-                    Удалить
+                    {getActionButtonLabel('delete')}
                   </Button>
                 </ActionItem>
               </ActionRow>
@@ -817,21 +1442,19 @@ const BlueprintLibrarySection = (props: {
 
   return (
     <Section
-      title="Библиотека blueprint"
+      title={getBlueprintTitle()}
       buttons={
         <Button compact onClick={() => act('list_blueprints')}>
-          Обновить
+          {getActionButtonLabel('refresh')}
         </Button>
       }
     >
-      {!!data.placement_active && (
-        <Box color="average" mb={1}>
-          Library actions временно заблокированы, пока активен placement mode.
-        </Box>
-      )}
+      <Box color="label" mb={1}>
+        {getAssetSelectionHint('blueprint', data)}
+      </Box>
 
       {!data.blueprint_entries?.length && (
-        <Box color="label">В библиотеке пока нет blueprint-ов.</Box>
+        <Box color="label">{getLibraryEmptyLabel('blueprint')}</Box>
       )}
 
       {!!data.blueprint_entries?.length && (
@@ -839,73 +1462,80 @@ const BlueprintLibrarySection = (props: {
           <Flex wrap mx={-0.5}>
             {data.blueprint_entries.map((blueprint) => (
               <Flex.Item key={blueprint.id} basis="48%" grow m={0.5}>
-                <Button
-                  compact
-                  fluid
-                  selected={blueprint.id === selectedBlueprint?.id}
-                  onClick={() => setSelectedBlueprintId(blueprint.id)}
+                <Box
+                  p={0.6}
+                  onClick={() => {
+                    setSelectedBlueprintId(blueprint.id);
+                    if (
+                      !data.placement_active &&
+                      blueprint.id !== data.active_blueprint_id
+                    ) {
+                      act('load_blueprint', {
+                        blueprint_id: blueprint.id,
+                      });
+                    }
+                  }}
+                  style={getGeneratorCardStyle(
+                    blueprint.id === getBlueprintSelectionState(data),
+                  )}
                 >
-                  {blueprint.name}
-                </Button>
+                  <Box
+                    bold
+                    color={
+                      blueprint.id === selectedBlueprint?.id ? 'good' : 'white'
+                    }
+                  >
+                    {blueprint.name}
+                  </Box>
+                  <Box color="label" mt={0.25}>
+                    {getDetailLabel('items')}: {blueprint.entry_count} | r=
+                    {blueprint.radius}
+                  </Box>
+                </Box>
               </Flex.Item>
             ))}
           </Flex>
 
           {!!selectedBlueprint && (
             <Section
-              title={`${selectedBlueprint.name} [r=${selectedBlueprint.radius}]`}
+              title={getSelectedBlueprintTitle(selectedBlueprint)}
               mt={1}
             >
               {!!selectedBlueprint.active && (
                 <Box color="good" mb={1}>
-                  Активный blueprint для текущего менеджера.
+                  {getSelectedBlueprintMessage(selectedBlueprint)}
                 </Box>
               )}
 
               {!selectedBlueprint.valid && (
                 <NoticeBox danger>
-                  {selectedBlueprint.error || 'Blueprint невалиден.'}
+                  {getBlueprintInvalidText(selectedBlueprint)}
                 </NoticeBox>
               )}
 
-              <CompactStatusRow
-                basis="32%"
-                items={[
-                  {
-                    label: 'Элементы',
-                    value: selectedBlueprint.entry_count,
-                  },
-                  {
-                    label: 'Source',
-                    value: selectedBlueprint.source || 'n/a',
-                    color: 'label',
-                  },
-                  {
-                    label: 'Author',
-                    value: selectedBlueprint.created_by || 'n/a',
-                    color: 'label',
-                  },
-                ]}
-              />
+              {buildDetailItems([
+                {
+                  label: getDetailLabel('items'),
+                  value: selectedBlueprint.entry_count,
+                },
+                {
+                  label: getDetailLabel('source'),
+                  value: selectedBlueprint.source || 'n/a',
+                  color: 'label',
+                },
+                {
+                  label: getDetailLabel('author'),
+                  value: selectedBlueprint.created_by || 'n/a',
+                  color: 'label',
+                },
+              ])}
 
               <Box color="label" mt={1}>
-                Создан: {selectedBlueprint.created_at || 'n/a'}
+                {getDetailLabel('created')}:{' '}
+                {selectedBlueprint.created_at || 'n/a'}
               </Box>
 
               <ActionRow>
-                <ActionItem>
-                  <Button
-                    compact
-                    disabled={!selectedBlueprint.valid || data.placement_active}
-                    onClick={() =>
-                      act('load_blueprint', {
-                        blueprint_id: selectedBlueprint.id,
-                      })
-                    }
-                  >
-                    Загрузить
-                  </Button>
-                </ActionItem>
                 <ActionItem>
                   <Button
                     compact
@@ -916,12 +1546,13 @@ const BlueprintLibrarySection = (props: {
                       })
                     }
                   >
-                    Preview
+                    {getActionLabel('preview')}
                   </Button>
                 </ActionItem>
                 <ActionItem>
                   <Button
                     compact
+                    color="good"
                     disabled={
                       !selectedBlueprint.valid ||
                       data.placement_active ||
@@ -934,7 +1565,7 @@ const BlueprintLibrarySection = (props: {
                       })
                     }
                   >
-                    Apply
+                    {getActionLabel('apply')}
                   </Button>
                 </ActionItem>
               </ActionRow>
@@ -953,7 +1584,7 @@ const BlueprintExportSection = (props: {
   const { data, act } = props;
 
   return (
-    <Section title="Экспорт">
+    <Section title={getExportSectionTitle()}>
       <Box color="label" mb={1}>
         Для `outpost_radius` можно сохранить текущий preview как Blueprint Lite.
       </Box>
@@ -962,7 +1593,7 @@ const BlueprintExportSection = (props: {
         disabled={!data.can_save_blueprint_from_plan}
         onClick={() => act('save_blueprint')}
       >
-        Сохранить preview
+        {getActionButtonLabel('savePreview')}
       </Button>
     </Section>
   );
@@ -990,7 +1621,7 @@ const PlacementSetupSection = (props: {
     },
     {
       label: 'Взаимодействие',
-      value: data.placement_interaction_label || 'Single Click',
+      value: data.placement_interaction_label || 'Один клик',
     },
     {
       label: 'Этап rollout',
@@ -1007,7 +1638,7 @@ const PlacementSetupSection = (props: {
 
   placementTiles.push({
     label: 'Статус',
-    value: data.placement_active ? 'active' : 'inactive',
+    value: data.placement_active ? 'вкл' : 'выкл',
     color: data.placement_active ? 'good' : 'label',
   });
 
@@ -1035,7 +1666,7 @@ const PlacementSetupSection = (props: {
             disabled={!data.can_stop_click_mode}
             onClick={() => act('stop_click_mode')}
           >
-            Stop
+            Остановить
           </Button>
         </ActionItem>
         <ActionItem>
@@ -1059,7 +1690,7 @@ const PlacementSetupSection = (props: {
         data.placement_interaction_kind === 'collector' &&
         !!finishCollectionReason && (
           <Box color="label" mt={0.25}>
-            Collector: {finishCollectionReason}
+            Сбор формы: {finishCollectionReason}
           </Box>
         )}
 
@@ -1221,95 +1852,41 @@ const GeneratorCatalogPage = (props: {
     (sum, category) => sum + (category.generators?.length || 0),
     0,
   );
-  const workflow = getWorkflowState(data);
 
   return (
-    <Stack fill>
-      <Stack.Item grow basis={0}>
-        <Section fill scrollable title="Выбор генератора">
-          {!data.categories?.length && (
-            <Box color="label">Нет доступных генераторов для текущих прав.</Box>
-          )}
+    <Section fill scrollable title={getSelectionPageTitle(data)}>
+      <Box color="label" mb={1}>
+        {getSelectionIntroText(data, totalGenerators)}
+      </Box>
 
-          {data.categories?.map((category) => (
-            <Collapsible
-              key={category.category}
-              title={`${category.category} (${category.generators.length})`}
-              open
-            >
-              {category.generators.map((generator) => (
-                <CompactGeneratorRow
-                  key={generator.id}
-                  generator={generator}
-                  selected={generator.id === data.current_generator_id}
-                  onSelect={() =>
-                    act('select_generator', {
-                      generator_id: generator.id,
-                    })
-                  }
-                  onOpenWork={onOpenWork}
-                />
-              ))}
-            </Collapsible>
-          ))}
-        </Section>
-      </Stack.Item>
-
-      {!!data.has_generator && (
-        <Stack.Item width="15%" ml={1}>
-          <Section fill scrollable title="Инспектор">
-            <Box bold>
-              {data.current_generator_category} / {data.current_generator_name}
-            </Box>
-            <Box color="label" mt={0.25}>
-              {data.current_generator_description}
-            </Box>
-            <Box color="label" mt={0.5}>
-              <Box
-                as="span"
-                color={toneForGeneratorStatus(data.current_generator_status)}
-              >
-                {data.current_generator_status || 'n/a'}
-              </Box>{' '}
-              | {data.current_generator_execution_mode || 'n/a'} | preview{' '}
-              {boolText(data.current_generator_supports_preview)} | place{' '}
-              {boolText(
-                !!(
-                  data.placement_supported ||
-                  data.placement_shape_supported ||
-                  data.placement_supports_direction
-                ),
-              )}
-            </Box>
-            <Box color="label" mt={0.25}>
-              {data.current_generator_required_rights} |{' '}
-              {data.ui_mode === 'inline' ? 'inline' : 'wizard'}
-            </Box>
-
-            <ActionRow>
-              <ActionItem>
-                <Button compact icon="sliders-h" onClick={onOpenWork}>
-                  Работа
-                </Button>
-              </ActionItem>
-              <ActionItem>
-                <Button
-                  compact
-                  color="average"
-                  icon="undo"
-                  onClick={() => act('reset_generator')}
-                >
-                  Сброс
-                </Button>
-              </ActionItem>
-            </ActionRow>
-            <Box color={workflow.color || 'label'} mt={0.25}>
-              {workflow.label}
-            </Box>
-          </Section>
-        </Stack.Item>
+      {!data.categories?.length && (
+        <Box color="label">{getSelectionEmptyLabel()}</Box>
       )}
-    </Stack>
+
+      {data.categories?.map((category) => (
+        <Collapsible
+          key={category.category}
+          title={`${category.category} (${category.generators.length})`}
+          open
+        >
+          {category.generators.map((generator) => (
+            <CompactGeneratorRow
+              key={generator.id}
+              generator={generator}
+              selected={generator.id === data.current_generator_id}
+              onActivate={() => {
+                if (generator.id !== data.current_generator_id) {
+                  act('select_generator', {
+                    generator_id: generator.id,
+                  });
+                }
+                onOpenWork();
+              }}
+            />
+          ))}
+        </Collapsible>
+      ))}
+    </Section>
   );
 };
 
@@ -1320,47 +1897,11 @@ const WorkspaceCommandBar = (props: {
 }) => {
   const { data, act, onOpenHistory } = props;
   const workflow = getWorkflowState(data);
-  const previewState = getPreviewState(data);
-  const previewBlockReason = getPreviewBlockReason(data);
-  const applyBlockReason = getApplyBlockReason(data);
-  const actionHint =
-    (!data.can_run_preview && previewBlockReason) ||
-    (!data.can_run_apply && applyBlockReason) ||
-    '';
+  const actionHint = getActionHint(data);
 
   return (
     <Section fitted>
-      <CompactStatusRow
-        items={[
-          {
-            label: 'Preview',
-            value: previewState.label,
-            color: previewState.color,
-          },
-          {
-            label: 'Apply',
-            value: data.can_run_apply ? 'ready' : 'hold',
-            color: data.can_run_apply ? 'good' : 'average',
-          },
-          {
-            label: 'Place',
-            value:
-              data.placement_supported ||
-              data.placement_shape_supported ||
-              data.placement_supports_direction
-                ? data.click_mode_active
-                  ? 'active'
-                  : 'off'
-                : 'n/a',
-            color: data.click_mode_active ? 'good' : 'label',
-          },
-          {
-            label: 'Ops',
-            value: `${data.history_entries?.length || 0}`,
-            color: data.history_entries?.length ? 'good' : 'label',
-          },
-        ]}
-      />
+      <CompactStatusRow items={getCommandBarItems(data)} />
 
       <ActionRow>
         <ActionItem>
@@ -1369,67 +1910,68 @@ const WorkspaceCommandBar = (props: {
             disabled={!data.can_run_preview}
             onClick={() => act('run_preview')}
           >
-            Preview
+            {getActionLabel('preview')}
           </Button>
         </ActionItem>
         <ActionItem>
           <Button
             compact
-            color="good"
+            color={getCommonButtonColor('good')}
             disabled={!data.can_run_apply}
             onClick={() => act('run_apply')}
           >
-            Apply
+            {getActionLabel('apply')}
           </Button>
         </ActionItem>
         <ActionItem>
           <Button
             compact
-            color="average"
+            color={getCommonButtonColor('average')}
             disabled={!data.has_generator}
             onClick={() => act('clear_preview')}
           >
-            Очистить
+            {getActionLabel('clear')}
+          </Button>
+        </ActionItem>
+        <ActionItem>
+          <Button compact icon="history" onClick={onOpenHistory}>
+            {getSecondaryButtonLabel('history')}
+          </Button>
+        </ActionItem>
+      </ActionRow>
+
+      <ActionRow>
+        <ActionItem>
+          <Button
+            compact
+            disabled={!data.can_refresh_ui}
+            onClick={() => act('refresh_ui')}
+          >
+            {getSecondaryButtonLabel('refresh')}
+          </Button>
+        </ActionItem>
+        <ActionItem>
+          <Button compact onClick={() => act('configure_wizard')}>
+            {getSecondaryButtonLabel('wizard')}
+          </Button>
+        </ActionItem>
+        <ActionItem>
+          <Button
+            compact
+            color={getCommonButtonColor('average')}
+            onClick={() => act('reset_generator')}
+          >
+            {getSecondaryButtonLabel('reset')}
           </Button>
         </ActionItem>
       </ActionRow>
 
       <Box color={workflow.color || 'label'} mt={0.25}>
-        {workflow.label}
+        {getShortStatus(workflow)}
       </Box>
-
-      <Collapsible title="Еще" mt={0.5}>
-        <ActionRow>
-          <ActionItem>
-            <Button
-              compact
-              disabled={!data.can_refresh_ui}
-              onClick={() => act('refresh_ui')}
-            >
-              Поля
-            </Button>
-          </ActionItem>
-          <ActionItem>
-            <Button compact onClick={() => act('configure_wizard')}>
-              Мастер
-            </Button>
-          </ActionItem>
-          <ActionItem>
-            <Button
-              compact
-              color="average"
-              onClick={() => act('reset_generator')}
-            >
-              Сброс
-            </Button>
-          </ActionItem>
-          <ActionItem>
-            <Button compact icon="history" onClick={onOpenHistory}>
-              История
-            </Button>
-          </ActionItem>
-        </ActionRow>
-      </Collapsible>
+      <Box color="label" mt={0.1}>
+        {getStatusExplanation(workflow)}
+      </Box>
 
       {!!actionHint && (
         <Box color="label" mt={0.5}>
@@ -1445,7 +1987,6 @@ const WorkspaceSessionSection = (props: {
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
 }) => {
   const { data, act } = props;
-  const previewState = getPreviewState(data);
   const recentHistoryEntries = (data.history_entries || []).slice(0, 3);
 
   return (
@@ -1453,49 +1994,49 @@ const WorkspaceSessionSection = (props: {
       <CompactStatusRow
         items={[
           {
-            label: 'Preview',
-            value: previewState.label,
-            color: previewState.color,
+            label: 'Предпросмотр',
+            value: getPreviewLabelText(data),
+            color: getPreviewTone(data),
           },
           {
-            label: 'Apply',
-            value: boolText(data.preview_valid),
-            color: data.preview_valid ? 'good' : 'average',
+            label: 'Применение',
+            value: getApplyReadinessLabel(data),
+            color: data.can_run_apply ? 'good' : 'average',
           },
           {
             label: 'Blueprint',
-            value: data.active_blueprint_id || 'none',
+            value: data.active_blueprint_id || 'не выбран',
           },
         ]}
       />
 
-      <Box color={previewState.color || 'label'}>{previewState.message}</Box>
+      <Box color={getPreviewTone(data)}>{getPreviewMessageText(data)}</Box>
 
       <ActionRow>
         <ActionItem>
           <Button
             compact
-            color="average"
+            color={getCommonButtonColor('average')}
             disabled={!data.can_undo_last_operation}
             onClick={() => act('undo_last_operation')}
           >
-            Undo
+            {getSecondaryButtonLabel('undo')}
           </Button>
         </ActionItem>
         <ActionItem>
           <Button
             compact
-            color="average"
+            color={getCommonButtonColor('average')}
             disabled={!data.can_cleanup_last_owned_effects}
             onClick={() => act('cleanup_last_owned_effects')}
           >
-            Cleanup
+            {getSecondaryButtonLabel('cleanup')}
           </Button>
         </ActionItem>
       </ActionRow>
 
       {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
-        <Collapsible title="Метаданные preview" mt={0.5}>
+        <Collapsible title={getPreviewMetaSectionTitle()} mt={0.5}>
           <CompactStatusRow
             basis="32%"
             items={Object.entries(data.preview_meta).map(([key, value]) => ({
@@ -1506,17 +2047,16 @@ const WorkspaceSessionSection = (props: {
         </Collapsible>
       )}
 
-      <Collapsible title="Последний apply" open mt={0.5}>
+      <Collapsible title={getLastApplySectionTitle()} open mt={0.5}>
         <Box color={data.last_apply_success ? 'good' : 'average'}>
-          {data.last_apply_message || 'Операции apply еще не выполнялись.'}
+          {data.last_apply_message ||
+            'Применение для этой сессии еще не запускалось.'}
         </Box>
       </Collapsible>
 
-      <Collapsible title="Undo / cleanup" mt={0.5}>
+      <Collapsible title={getUndoSummarySectionTitle()} mt={0.5}>
         {!data.last_changeset && (
-          <Box color="label">
-            Undo/cleanup-record для текущей session пока отсутствует.
-          </Box>
+          <Box color="label">Запись для отката и очистки пока не создана.</Box>
         )}
 
         {!!data.last_changeset && (
@@ -1539,7 +2079,7 @@ const WorkspaceSessionSection = (props: {
               ]}
             />
             <Box color="label" mt={0.5}>
-              ID операции: {data.last_changeset.operation_id}
+              {getOperationIdLabel()}: {data.last_changeset.operation_id}
             </Box>
             <Box color="label" mt={0.5}>
               Создано ссылок: {data.last_changeset.created_entries} | Перемещено
@@ -1551,7 +2091,7 @@ const WorkspaceSessionSection = (props: {
       </Collapsible>
 
       <Collapsible
-        title={`Последние операции (${recentHistoryEntries.length})`}
+        title={getSessionSummarySectionTitle(recentHistoryEntries.length)}
         mt={0.5}
       >
         {!recentHistoryEntries.length && (
@@ -1563,23 +2103,23 @@ const WorkspaceSessionSection = (props: {
             <Section
               key={`${entry.time}_${entry.operation_id || entry.message}`}
               fitted
-              title={`${entry.time} | ${entry.generator_id}`}
+              title={getHistoryEntryTitle(entry)}
             >
-              <Box color={toneForHistoryResult(entry.result)}>
-                {entry.result || 'n/a'}
+              <Box color={getHistoryEntryTone(entry)}>
+                {getHistoryResultText(entry)}
               </Box>
-              <Box color="label">{entry.message || 'n/a'}</Box>
+              <Box color="label">{getHistoryEntryMessage(entry)}</Box>
             </Section>
           ))}
       </Collapsible>
 
-      <Collapsible title="Диагностика" mt={0.5}>
-        <Collapsible title="Текущие параметры" open>
+      <Collapsible title={getDiagnosticsSectionTitle()} mt={0.5}>
+        <Collapsible title={getCurrentParamsSectionTitle()} open>
           <Box>{data.current_params_text || 'n/a'}</Box>
         </Collapsible>
 
         <Collapsible
-          title={`Служебный статус (${data.runtime_status?.length || 0})`}
+          title={getRuntimeStatusSectionTitle(data.runtime_status?.length || 0)}
         >
           {!data.runtime_status?.length && (
             <Box color="label">Дополнительный статус не предоставлен.</Box>
@@ -1639,22 +2179,14 @@ const WorkspacePage = (props: {
   }, [hasAssets, showPlacementSetup, workTab]);
 
   return (
-    <Section
-      fill
-      scrollable
-      title={
-        data.has_generator
-          ? `Работа / ${data.current_generator_name}`
-          : 'Работа'
-      }
-    >
+    <Section fill scrollable title={getWorkspacePageTitle(data)}>
       {!data.has_generator && (
         <>
           <Box color="label" mb={1}>
-            Сначала выберите генератор на странице `Выбор`.
+            {getWorkEmptyLabel()}
           </Box>
           <Button compact icon="list" onClick={onOpenBrowse}>
-            Перейти к выбору генератора
+            {getSecondaryButtonLabel('browse')}
           </Button>
         </>
       )}
@@ -1671,13 +2203,17 @@ const WorkspacePage = (props: {
             onOpenHistory={onOpenHistory}
           />
 
+          <Box color="label" mb={0.5}>
+            {getCurrentGeneratorDescription(data)}
+          </Box>
+
           <Tabs mt={0.25}>
             <Tabs.Tab
               selected={workTab === 'params'}
               fontSize={0.9}
               onClick={() => setWorkTab('params')}
             >
-              Параметры
+              {getParamsTabLabel()}
             </Tabs.Tab>
             {hasAssets && (
               <Tabs.Tab
@@ -1685,7 +2221,7 @@ const WorkspacePage = (props: {
                 fontSize={0.9}
                 onClick={() => setWorkTab('assets')}
               >
-                Ресурсы
+                {getAssetsTabLabel()}
               </Tabs.Tab>
             )}
             {showPlacementSetup && (
@@ -1694,7 +2230,7 @@ const WorkspacePage = (props: {
                 fontSize={0.9}
                 onClick={() => setWorkTab('placement')}
               >
-                Размещение
+                {getPlacementTabLabel()}
               </Tabs.Tab>
             )}
             <Tabs.Tab
@@ -1702,21 +2238,18 @@ const WorkspacePage = (props: {
               fontSize={0.9}
               onClick={() => setWorkTab('session')}
             >
-              Сессия
+              {getSessionTabLabel()}
             </Tabs.Tab>
           </Tabs>
 
           {workTab === 'params' && (
             <Section mt={1}>
               {!data.has_inline_fields && (
-                <Box color="label">
-                  Этот генератор не отдает inline-поля. Используйте мастер
-                  настройки сверху.
-                </Box>
+                <Box color="label">{getParamEmptyLabel()}</Box>
               )}
 
               {!!data.has_inline_fields && !groupNames.length && (
-                <Box color="label">Inline-поля временно недоступны.</Box>
+                <Box color="label">Поля временно недоступны.</Box>
               )}
 
               {!!data.has_inline_fields && !!groupNames.length && (
@@ -1751,10 +2284,7 @@ const WorkspacePage = (props: {
             <>
               {!hasAssets && (
                 <Section mt={1}>
-                  <Box color="label">
-                    Для текущего генератора дополнительные библиотеки и пресеты
-                    не используются.
-                  </Box>
+                  <Box color="label">{getAssetEmptyLabel()}</Box>
                 </Section>
               )}
 
@@ -1774,9 +2304,7 @@ const WorkspacePage = (props: {
             <>
               {!showPlacementSetup && (
                 <Section mt={1}>
-                  <Box color="label">
-                    Для текущего генератора live placement не используется.
-                  </Box>
+                  <Box color="label">{getPlacementEmptyLabel()}</Box>
                 </Section>
               )}
 
@@ -1809,19 +2337,23 @@ const HistoryPage = (props: {
     <Section
       fill
       scrollable
-      title="История операций (session)"
+      title={getHistoryPageTitle()}
       buttons={
-        <Button compact color="average" onClick={() => act('clear_history')}>
-          Очистить
+        <Button
+          compact
+          color={getCommonButtonColor('average')}
+          onClick={() => act('clear_history')}
+        >
+          {getActionLabel('clear')}
         </Button>
       }
     >
       {!data.history_entries?.length && (
         <>
-          <Box color="label">История операций пуста.</Box>
+          <Box color="label">{getHistoryEmptyLabel()}</Box>
           {!!data.has_generator && (
             <Button compact icon="sliders-h" mt={1} onClick={onOpenWork}>
-              Вернуться к работе
+              {getSecondaryButtonLabel('back')}
             </Button>
           )}
         </>
@@ -1829,80 +2361,35 @@ const HistoryPage = (props: {
 
       {!!data.history_entries?.length && (
         <>
-          <CompactStatusRow
-            items={[
-              {
-                label: 'Записи',
-                value: `${data.history_entries?.length || 0}`,
-              },
-              {
-                label: 'Генератор',
-                value: latestEntry?.generator_id || 'none',
-              },
-              {
-                label: 'Результат',
-                value: latestEntry?.result || 'n/a',
-                color: toneForHistoryResult(latestEntry?.result),
-              },
-              {
-                label: 'Центр',
-                value: latestEntry?.center_turf || 'n/a',
-              },
-            ]}
-          />
+          <CompactStatusRow items={getHistorySummaryItems(data, latestEntry)} />
 
           {data.history_entries.map((entry, index) => (
             <Collapsible
               key={`${entry.time}_${entry.generator_id}_${index}`}
-              title={`${entry.time} | ${entry.generator_id} | ${entry.result}`}
+              title={getHistoryEntryTitle(entry)}
               open={index === 0}
-              color={toneForHistoryResult(entry.result)}
+              color={getHistoryEntryTone(entry)}
             >
               <CompactStatusRow
                 basis="32%"
-                items={[
-                  {
-                    label: 'Создано',
-                    value: `${entry.created_count}`,
-                  },
-                  {
-                    label: 'Удалено',
-                    value: `${entry.deleted_count}`,
-                  },
-                  {
-                    label: 'Центр',
-                    value: entry.center_turf || 'n/a',
-                  },
-                  {
-                    label: 'Длительность',
-                    value: `${entry.duration_ms} ms`,
-                  },
-                  {
-                    label: 'Undo',
-                    value: entry.undo_policy
-                      ? `${entry.undo_policy} / ${entry.undo_status || 'n/a'}`
-                      : 'n/a',
-                  },
-                  {
-                    label: 'Reverted / skipped',
-                    value: `${entry.reverted_count ?? 0} / ${
-                      entry.skipped_count ?? 0
-                    }`,
-                  },
-                ]}
+                items={getHistoryDetailItems(entry)}
               />
 
               <Box color="label" mt={0.5}>
-                Параметры: {entry.params_short || 'n/a'}
+                {getOperationMessageLabel()}: {getHistoryEntryMessage(entry)}
               </Box>
-              <Box color="label" mt={0.5}>
-                Сообщение: {entry.message || 'n/a'}
-              </Box>
-              {!!entry.operation_id && (
-                <Box color="label" mt={0.5}>
-                  ID операции: {entry.operation_id}
+              <Collapsible title={getHistoryDetailsSectionTitle()} mt={0.5}>
+                <Box color={getHistoryMessageColor()}>
+                  {getOperationParamsLabel()}:{' '}
+                  {getHistoryTechnicalDetails(entry).params}
                 </Box>
-              )}
+                {!!entry.operation_id && (
+                  <Box color={getHistoryMessageColor()} mt={0.5}>
+                    {getOperationIdLabel()}:{' '}
+                    {getHistoryTechnicalDetails(entry).operationId}
+                  </Box>
+                )}
+              </Collapsible>
             </Collapsible>
           ))}
         </>
@@ -1918,18 +2405,15 @@ const Sidebar = (props: {
 }) => {
   const { data, pageIndex, setPageIndex } = props;
   const workflow = getWorkflowState(data);
-  const statusText = getSidebarTiles(data)
-    .map((item) => `${item.label} ${item.value}`)
-    .join(' | ');
 
   return (
     <Section fill scrollable fitted title="World Edit">
-      <Box bold>{data.current_generator_name || 'Без генератора'}</Box>
+      <Box bold>{getCurrentGeneratorLabel(data.current_generator_name)}</Box>
+      <Box color={workflow.color || 'label'} mt={0.25}>
+        {getSidebarSummaryText(data)}
+      </Box>
       <Box color="label" mt={0.25}>
-        <Box as="span" color={workflow.color || 'label'}>
-          {workflow.label}
-        </Box>{' '}
-        | {statusText}
+        {getHistorySummaryLabel(data)}
       </Box>
 
       <Tabs vertical fluid mt={1}>
