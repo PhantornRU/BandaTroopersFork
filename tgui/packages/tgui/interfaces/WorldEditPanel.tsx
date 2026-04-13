@@ -194,12 +194,6 @@ type SummaryTile = {
   color?: string;
 };
 
-type PageDefinition = {
-  id: 'browse' | 'work' | 'history';
-  title: string;
-  icon: string;
-};
-
 type WorkflowState = {
   label: string;
   description: string;
@@ -212,28 +206,61 @@ type PreviewState = {
   color?: string;
 };
 
-type WorkTabId = 'params' | 'assets' | 'placement' | 'session';
-
-const PAGES: PageDefinition[] = [
-  { id: 'browse', title: 'Выбор', icon: 'list' },
-  { id: 'work', title: 'Работа', icon: 'sliders-h' },
-  { id: 'history', title: 'История', icon: 'history' },
-];
+type ActFn = (action: string, payload?: Record<string, unknown>) => void;
 
 const boolText = (value: boolean, yes = 'Да', no = 'Нет') => (value ? yes : no);
 
-const toneForGeneratorStatus = (status?: string) => {
-  switch ((status || '').toLowerCase()) {
-    case 'ready':
-      return 'good';
-    case 'deprecated':
-      return 'average';
-    case 'blocked':
-      return 'bad';
-    default:
-      return 'label';
-  }
+const EMPTY_LABEL = 'Не задано';
+const NONE_LABEL = 'Не выбрано';
+const OFF_LABEL = 'Выключено';
+
+const isBlankDisplayValue = (value?: unknown) => {
+  const text = `${value ?? ''}`.trim().toLowerCase();
+  return !text || text === '0' || text === 'none' || text === 'n/a';
 };
+
+const getDisplayText = (value?: unknown, fallback = EMPTY_LABEL) =>
+  isBlankDisplayValue(value) ? fallback : `${value}`;
+
+const getPositiveCountText = (value?: number, fallback = EMPTY_LABEL) =>
+  value && value > 0 ? `${value}` : fallback;
+
+const getField = (fields: UiField[], id: string) =>
+  (fields || []).find((field) => field.id === id);
+
+const getFieldsById = (fields: UiField[], ids: string[]) =>
+  ids
+    .map((id) => getField(fields, id))
+    .filter((field): field is UiField => !!field);
+
+const getFieldsByGroup = (fields: UiField[], groupName: string) =>
+  (fields || []).filter((field) => field.group === groupName);
+
+const getFieldOptionLabel = (field?: UiField, fallback = NONE_LABEL) => {
+  if (!field) {
+    return fallback;
+  }
+  const option = (field.options || []).find(
+    (entry) => `${entry.value}` === `${field.value}`,
+  );
+  return getDisplayText(option?.label, fallback);
+};
+
+const getPlacementOptionLabel = (
+  options: PlacementOption[] | undefined,
+  value?: string,
+  fallback = NONE_LABEL,
+) => {
+  const option = (options || []).find(
+    (entry) => `${entry.value}` === `${value}`,
+  );
+  return getDisplayText(option?.label, fallback);
+};
+
+const getSafeFieldList = (fields: UiField[], ids: string[]) =>
+  getFieldsById(fields, ids).filter(
+    (field) => field.visible !== false && !field.disabled,
+  );
 
 const toneForHistoryResult = (result?: string) => {
   switch ((result || '').toLowerCase()) {
@@ -253,7 +280,7 @@ const toneForHistoryResult = (result?: string) => {
 
 const renderMetaValue = (value: unknown) => {
   if (value === undefined || value === null || value === '') {
-    return 'n/a';
+    return EMPTY_LABEL;
   }
   if (Array.isArray(value)) {
     return value.map((entry) => `${entry}`).join(', ');
@@ -406,7 +433,7 @@ const getWorkflowState = (data: BackendData): WorkflowState => {
 const getPreviewState = (data: BackendData): PreviewState => {
   if (!data.has_generator) {
     return {
-      label: 'n/a',
+      label: 'нет инструмента',
       message: 'Сначала выберите инструмент.',
       color: 'label',
     };
@@ -481,12 +508,6 @@ const ActionItem = (props: { readonly children: ReactNode }) => (
   <Flex.Item m={0.25}>{props.children}</Flex.Item>
 );
 
-const CompactGeneratorRow = (props: {
-  readonly generator: GeneratorEntry;
-  readonly selected: boolean;
-  readonly onActivate: () => void;
-}) => <GeneratorListRow {...props} />;
-
 const buildDetailItems = (
   items: Array<{
     label: string;
@@ -506,7 +527,7 @@ const buildDetailItems = (
 
 const getApplyReadinessLabel = (data: BackendData) => {
   if (!data.has_generator) {
-    return 'n/a';
+    return 'нет инструмента';
   }
   if (data.can_run_apply) {
     return 'готово';
@@ -517,47 +538,9 @@ const getApplyReadinessLabel = (data: BackendData) => {
   return 'недоступно';
 };
 
-const getPlacementStateLabel = (data: BackendData) => {
-  if (
-    !(
-      data.placement_supported ||
-      data.placement_shape_supported ||
-      data.placement_supports_direction
-    )
-  ) {
-    return 'n/a';
-  }
-  return data.click_mode_active ? 'вкл' : 'выкл';
-};
-
-const getHistoryStateLabel = (data: BackendData) => {
-  const count = data.history_entries?.length || 0;
-  return count ? `${count}` : 'пусто';
-};
-
-const getGeneratorDetailLabel = (generator: GeneratorEntry) => {
-  if (generator.status?.toLowerCase() === 'ready') {
-    return 'Готов к работе';
-  }
-  return `Статус: ${generator.status || 'n/a'}`;
-};
-
-const getGeneratorSelectionHint = (
-  data: BackendData,
-  totalGenerators: number,
-) => {
-  if (!totalGenerators) {
-    return 'Нет доступных инструментов для текущих прав.';
-  }
-  if (data.current_generator_name) {
-    return `Клик по элементу сразу открывает его в работе. Текущий инструмент: ${data.current_generator_name}.`;
-  }
-  return 'Клик по элементу сразу открывает его в работе.';
-};
-
 const getBlueprintSelectionHint = (data: BackendData) => {
   if (data.placement_active) {
-    return 'Пока активен режим размещения, список можно смотреть, но действия временно недоступны.';
+    return 'Клик выбирает blueprint; активное размещение можно остановить в верхней панели.';
   }
   return 'Выбор в списке сразу делает blueprint текущим.';
 };
@@ -572,31 +555,31 @@ const getOperationSummary = (entry?: HistoryEntry) => {
   return entry.message;
 };
 
-const getOperationHeader = (entry: HistoryEntry) => {
-  const result = entry.result || 'n/a';
-  return `${entry.time} | ${entry.generator_id} | ${result}`;
+const getGeneratorDisplayName = (data: BackendData, generatorId?: string) => {
+  for (const category of data.categories || []) {
+    const generator = category.generators?.find(
+      (entry) => entry.id === generatorId,
+    );
+    if (generator?.name_ru) {
+      return generator.name_ru;
+    }
+  }
+  return getDisplayText(generatorId, EMPTY_LABEL);
+};
+
+const getOperationHeader = (data: BackendData, entry: HistoryEntry) => {
+  const result = getDisplayText(entry.result, 'без результата');
+  return `${entry.time} | ${getGeneratorDisplayName(
+    data,
+    entry.generator_id,
+  )} | ${result}`;
 };
 
 const getOperationResultLabel = (entry?: HistoryEntry) => {
   if (!entry?.result) {
-    return 'n/a';
+    return 'без результата';
   }
   return entry.result;
-};
-
-const getSidebarDescription = (data: BackendData, workflow: WorkflowState) => {
-  if (!data.has_generator) {
-    return workflow.description;
-  }
-  return workflow.label;
-};
-
-const getHistorySummaryLabel = (data: BackendData) => {
-  const count = data.history_entries?.length || 0;
-  if (!count) {
-    return 'История пока пуста.';
-  }
-  return `Записей: ${count}`;
 };
 
 const getWorkHeaderDescription = (data: BackendData) => {
@@ -622,15 +605,12 @@ const getActionHintText = (data: BackendData) => {
   return '';
 };
 
-const getBrowseTitle = (data: BackendData) =>
-  data.current_generator_name
-    ? `Инструменты / ${data.current_generator_name}`
-    : 'Инструменты';
-
 const getHistoryTitle = () => 'История операций';
 
 const getWorkspaceTitle = (data: BackendData) =>
-  data.has_generator ? `Работа / ${data.current_generator_name}` : 'Работа';
+  data.has_generator
+    ? `Инструмент / ${data.current_generator_name}`
+    : 'Инструменты';
 
 const getActionLabel = (action: 'preview' | 'apply' | 'clear') => {
   switch (action) {
@@ -645,48 +625,13 @@ const getActionLabel = (action: 'preview' | 'apply' | 'clear') => {
   }
 };
 
-const getCommonStatusItems = (data: BackendData): SummaryTile[] => [
-  {
-    label: 'Предпросмотр',
-    value: getPreviewState(data).label,
-    color: getPreviewState(data).color,
-  },
-  {
-    label: 'Применение',
-    value: getApplyReadinessLabel(data),
-    color: getToolbarStatusColor(data, 'apply'),
-  },
-  {
-    label: 'Размещение',
-    value: getPlacementStateLabel(data),
-    color: getToolbarStatusColor(data, 'placement'),
-  },
-  {
-    label: 'История',
-    value: getHistoryStateLabel(data),
-    color: getToolbarStatusColor(data, 'history'),
-  },
-];
-
 const getHistoryResultTone = (entry?: HistoryEntry) =>
   toneForHistoryResult(entry?.result);
-
-const getHistoryResultText = (entry?: HistoryEntry) => entry?.result || 'n/a';
-
-const getSelectionEmptyText = () =>
-  'Нет доступных инструментов для текущих прав.';
-
-const getAssetEmptyText = () =>
-  'Для текущего инструмента дополнительные библиотеки и пресеты не используются.';
 
 const getParamEmptyText = () =>
   'Для этого инструмента настройка доступна только через мастер.';
 
-const getPlacementEmptyText = () =>
-  'Для текущего инструмента режим размещения не используется.';
-
-const getWorkEmptyText = () =>
-  'Сначала выберите инструмент на странице «Выбор».';
+const getWorkEmptyText = () => 'Выберите инструмент слева.';
 
 const getHistoryEmptyText = () => 'История операций пока пуста.';
 
@@ -700,30 +645,15 @@ const getRuntimeStatusTitle = (count: number) => `Служебный стату�
 
 const getHistoryDetailsTitle = () => 'Технические детали';
 
-const getSessionSummaryTitle = (count: number) =>
-  `Последние операции (${count})`;
-
 const getUndoSummaryTitle = () => 'Откат и очистка';
 
 const getLastApplyTitle = () => 'Последнее применение';
-
-const getPlacementTabTitle = () => 'Размещение';
-
-const getAssetsTabTitle = () => 'Ресурсы';
-
-const getParamsTabTitle = () => 'Параметры';
-
-const getSessionTabTitle = () => 'Сессия';
 
 const getLibraryTitle = () => 'Библиотека blueprint';
 
 const getPresetTitle = () => 'Пресеты';
 
 const getExportTitle = () => 'Экспорт';
-
-const getGeneratorOpenLabel = () => 'Открыть';
-
-const getSelectedLabel = () => 'Текущий';
 
 const getActiveBlueprintText = () => 'Текущий blueprint для этой сессии.';
 
@@ -751,10 +681,6 @@ const getUndoLabel = () => 'Откатить';
 
 const getCleanupLabel = () => 'Очистить эффекты';
 
-const getBackToWorkLabel = () => 'Вернуться к работе';
-
-const getChooseGeneratorLabel = () => 'Перейти к выбору инструмента';
-
 const getNoBlueprintsLabel = () => 'В библиотеке пока нет blueprint-ов.';
 
 const getNoPresetsLabel = () =>
@@ -766,10 +692,7 @@ const getSavePreviewLabel = () => 'Сохранить preview';
 
 const getDeleteLabel = () => 'Удалить';
 
-const getGeneratorRowActionLabel = (selected: boolean) =>
-  selected ? getSelectedLabel() : getGeneratorOpenLabel();
-
-const getGeneratorRowStyle = (selected: boolean) => ({
+const getSelectableCardStyle = (selected: boolean) => ({
   border: selected ? '1px solid #4c9f39' : '1px solid #466b96',
   background: selected ? 'rgba(76, 159, 57, 0.16)' : 'rgba(70, 107, 150, 0.14)',
   borderRadius: '4px',
@@ -779,28 +702,34 @@ const getGeneratorRowStyle = (selected: boolean) => ({
 const getSelectedAssetId = (id?: string) => id || '';
 
 const getBlueprintDetailsTitle = (entry: BlueprintEntry) =>
-  `${entry.name} [r=${entry.radius}]`;
+  `${getDisplayText(entry.name, 'Blueprint без имени')} · ${
+    entry.radius > 0 ? `радиус ${entry.radius}` : 'радиус не задан'
+  }`;
 
-const getPresetDetailsTitle = (entry: PresetEntry) => entry.name || entry.id;
+const getPresetDetailsTitle = (entry: PresetEntry) =>
+  getDisplayText(entry.name, 'Пресет без имени');
 
 const getWorkStatusText = (workflow: WorkflowState) => workflow.label;
 
 const getWorkStatusDescription = (workflow: WorkflowState) =>
   workflow.description;
 
-const getTechnicalParamText = (params?: string) => params || 'n/a';
+const getTechnicalParamText = (params?: string) =>
+  getDisplayText(params, EMPTY_LABEL);
 
-const getOperationIdText = (operationId?: string) => operationId || 'n/a';
+const getOperationIdText = (operationId?: string) =>
+  getDisplayText(operationId, EMPTY_LABEL);
 
-const getOperationCenterText = (center?: string) => center || 'n/a';
+const getOperationCenterText = (center?: string) =>
+  getDisplayText(center, EMPTY_LABEL);
 
 const getOperationDurationText = (durationMs?: number) =>
   `${durationMs ?? 0} ms`;
 
 const getUndoStatusText = (entry: HistoryEntry) =>
   entry.undo_policy
-    ? `${entry.undo_policy} / ${entry.undo_status || 'n/a'}`
-    : 'n/a';
+    ? `${entry.undo_policy} / ${getDisplayText(entry.undo_status, EMPTY_LABEL)}`
+    : EMPTY_LABEL;
 
 const getRevertedText = (entry: HistoryEntry) =>
   `${entry.reverted_count ?? 0} / ${entry.skipped_count ?? 0}`;
@@ -832,11 +761,6 @@ const getHistoryGeneratorLabel = () => 'Инструмент';
 const getHistorySummaryText = (entry?: HistoryEntry) =>
   entry?.message || 'Сообщение по операции отсутствует.';
 
-const getCurrentGeneratorLabel = (name?: string) => name || 'Без инструмента';
-
-const getBrowseHint = (data: BackendData, totalGenerators: number) =>
-  getGeneratorSelectionHint(data, totalGenerators);
-
 const getPreviewMessageText = (data: BackendData) =>
   getPreviewState(data).message;
 
@@ -844,12 +768,6 @@ const getPreviewLabelText = (data: BackendData) => getPreviewState(data).label;
 
 const getPreviewTone = (data: BackendData) =>
   getPreviewState(data).color || 'label';
-
-const getWorkspaceSummaryItems = (data: BackendData): SummaryTile[] =>
-  getCommonStatusItems(data);
-
-const getSidebarSummaryText = (data: BackendData) =>
-  getSidebarDescription(data, getWorkflowState(data));
 
 const getHistorySummaryItems = (
   data: BackendData,
@@ -861,7 +779,7 @@ const getHistorySummaryItems = (
   },
   {
     label: getHistoryGeneratorLabel(),
-    value: latestEntry?.generator_id || 'n/a',
+    value: getGeneratorDisplayName(data, latestEntry?.generator_id),
   },
   {
     label: getHistoryResultLabel(),
@@ -873,8 +791,6 @@ const getHistorySummaryItems = (
     value: getOperationCenterText(latestEntry?.center_turf),
   },
 ];
-
-const getSelectionPageTitle = (data: BackendData) => getBrowseTitle(data);
 
 const getWorkspacePageTitle = (data: BackendData) => getWorkspaceTitle(data);
 
@@ -896,9 +812,6 @@ const getPresetSectionTitle = () => getPresetTitle();
 
 const getExportSectionTitle = () => getExportTitle();
 
-const getSelectionIntroText = (data: BackendData, totalGenerators: number) =>
-  getBrowseHint(data, totalGenerators);
-
 const getSelectedBlueprintTitle = (selectedBlueprint: BlueprintEntry) =>
   getBlueprintDetailsTitle(selectedBlueprint);
 
@@ -908,7 +821,8 @@ const getSelectedPresetTitle = (selectedPreset: PresetEntry) =>
 const getBlueprintInvalidText = (selectedBlueprint: BlueprintEntry) =>
   selectedBlueprint.error || getInvalidBlueprintText();
 
-const getHistoryEntryTitle = (entry: HistoryEntry) => getOperationHeader(entry);
+const getHistoryEntryTitle = (data: BackendData, entry: HistoryEntry) =>
+  getOperationHeader(data, entry);
 
 const getHistoryEntryMessage = (entry: HistoryEntry) =>
   getHistorySummaryText(entry);
@@ -916,13 +830,7 @@ const getHistoryEntryMessage = (entry: HistoryEntry) =>
 const getHistoryEntryTone = (entry: HistoryEntry) =>
   getHistoryResultTone(entry);
 
-const getSelectionEmptyLabel = () => getSelectionEmptyText();
-
-const getAssetEmptyLabel = () => getAssetEmptyText();
-
 const getParamEmptyLabel = () => getParamEmptyText();
-
-const getPlacementEmptyLabel = () => getPlacementEmptyText();
 
 const getWorkEmptyLabel = () => getWorkEmptyText();
 
@@ -939,26 +847,9 @@ const getRuntimeStatusSectionTitle = (count: number) =>
 
 const getHistoryDetailsSectionTitle = () => getHistoryDetailsTitle();
 
-const getSessionSummarySectionTitle = (count: number) =>
-  getSessionSummaryTitle(count);
-
 const getUndoSummarySectionTitle = () => getUndoSummaryTitle();
 
 const getLastApplySectionTitle = () => getLastApplyTitle();
-
-const getPlacementTabLabel = () => getPlacementTabTitle();
-
-const getAssetsTabLabel = () => getAssetsTabTitle();
-
-const getParamsTabLabel = () => getParamsTabTitle();
-
-const getSessionTabLabel = () => getSessionTabTitle();
-
-const getGeneratorActionText = (selected: boolean) =>
-  getGeneratorRowActionLabel(selected);
-
-const getGeneratorCardStyle = (selected: boolean) =>
-  getGeneratorRowStyle(selected);
 
 const getBlueprintSelectionState = (data: BackendData) =>
   getSelectedAssetId(data.active_blueprint_id);
@@ -966,27 +857,8 @@ const getBlueprintSelectionState = (data: BackendData) =>
 const getPresetSelectionState = (selectedPresetId: string) =>
   getSelectedAssetId(selectedPresetId);
 
-const getGeneratorDescriptionText = (description?: string) =>
-  description || 'Описание пока не заполнено.';
-
-const getPreviewSupportText = (supportsPreview: boolean) =>
-  supportsPreview ? 'Есть предпросмотр' : 'Работает без предпросмотра';
-
-const getCurrentGeneratorStatusText = (
-  selected: boolean,
-  generator: GeneratorEntry,
-) => (selected ? 'Текущий инструмент' : getGeneratorDetailLabel(generator));
-
 const getSecondaryButtonLabel = (
-  kind:
-    | 'refresh'
-    | 'wizard'
-    | 'reset'
-    | 'history'
-    | 'undo'
-    | 'cleanup'
-    | 'back'
-    | 'browse',
+  kind: 'refresh' | 'wizard' | 'reset' | 'undo' | 'cleanup',
 ) => {
   switch (kind) {
     case 'refresh':
@@ -995,16 +867,10 @@ const getSecondaryButtonLabel = (
       return getWizardLabel();
     case 'reset':
       return getResetLabel();
-    case 'history':
-      return getHistoryButtonLabel();
     case 'undo':
       return getUndoLabel();
     case 'cleanup':
       return getCleanupLabel();
-    case 'back':
-      return getBackToWorkLabel();
-    case 'browse':
-      return getChooseGeneratorLabel();
     default:
       return '';
   }
@@ -1054,9 +920,6 @@ const getDetailLabel = (kind: 'created' | 'items' | 'source' | 'author') => {
       return '';
   }
 };
-
-const getCommandBarItems = (data: BackendData) =>
-  getWorkspaceSummaryItems(data);
 
 const getHistoryDetailItems = (entry: HistoryEntry): SummaryTile[] => [
   {
@@ -1109,79 +972,15 @@ const getCommonButtonColor = (
   }
 };
 
-const getToolbarStatusColor = (
-  data: BackendData,
-  kind: 'apply' | 'placement' | 'history',
-) => {
-  switch (kind) {
-    case 'apply':
-      return data.can_run_apply ? 'good' : 'average';
-    case 'placement':
-      return data.click_mode_active ? 'good' : 'label';
-    case 'history':
-      return data.history_entries?.length ? 'good' : 'label';
-    default:
-      return 'label';
-  }
-};
-
 const getSelectedBlueprintMessage = (selectedBlueprint: BlueprintEntry) =>
   selectedBlueprint.active ? getBlueprintActiveText() : 'Выбранный blueprint.';
 
-const getGeneratorRowSummary = (
-  generator: GeneratorEntry,
-  selected: boolean,
-) => (
-  <>
-    <Box color="label" mt={0.25}>
-      {getGeneratorDescriptionText(generator.description_ru)}
-    </Box>
-    <Box color={selected ? 'good' : 'label'} mt={0.25}>
-      {getCurrentGeneratorStatusText(selected, generator)}
-      {' • '}
-      {getPreviewSupportText(generator.supports_preview)}
-    </Box>
-  </>
-);
-
-const GeneratorListRow = (props: {
-  readonly generator: GeneratorEntry;
-  readonly selected: boolean;
-  readonly onActivate: () => void;
-}) => {
-  const { generator, selected, onActivate } = props;
-
-  return (
-    <Box
-      mb={0.5}
-      p={0.75}
-      onClick={onActivate}
-      style={getGeneratorCardStyle(selected)}
-    >
-      <Box>
-        <Box>
-          <Box bold color={selected ? 'good' : 'white'}>
-            {generator.name_ru}
-          </Box>
-          {getGeneratorRowSummary(generator, selected)}
-        </Box>
-        <Box mt={0.25}>
-          <Box
-            color={selected ? 'good' : toneForGeneratorStatus(generator.status)}
-          >
-            {getGeneratorActionText(selected)}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
-};
-
 const FieldEditor = (props: {
   readonly field: UiField;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly act: ActFn;
+  readonly showHelp?: boolean;
 }) => {
-  const { field, act } = props;
+  const { field, act, showHelp } = props;
   const isDisabled = !!field.disabled;
 
   const emitValue = (value: unknown) => {
@@ -1266,6 +1065,7 @@ const FieldEditor = (props: {
         width="100%"
         options={dropdownOptions}
         selected={selectedKey}
+        displayText={getFieldOptionLabel(field)}
         disabled={isDisabled || !options.length}
         placeholder="Выберите значение"
         onSelected={(selectedOptionKey) => {
@@ -1279,12 +1079,12 @@ const FieldEditor = (props: {
   return (
     <LabeledList.Item label={field.required ? `${field.label} *` : field.label}>
       {control}
-      {!!field.description && (
+      {!!showHelp && !!field.description && (
         <Box color="label" mt={0.5}>
           {field.description}
         </Box>
       )}
-      {!!field.validate_hint && (
+      {!!showHelp && !!field.validate_hint && (
         <Box color="average" mt={0.5}>
           {field.validate_hint}
         </Box>
@@ -1293,9 +1093,68 @@ const FieldEditor = (props: {
   );
 };
 
+const FieldGroupSection = (props: {
+  readonly title: string;
+  readonly fields: UiField[];
+  readonly act: ActFn;
+  readonly showHelp?: boolean;
+}) => {
+  const { title, fields, act, showHelp } = props;
+  const visibleFields = (fields || []).filter(
+    (field) => field.visible !== false,
+  );
+
+  if (!visibleFields.length) {
+    return null;
+  }
+
+  return (
+    <Section fitted title={title}>
+      <LabeledList>
+        {visibleFields.map((field) => (
+          <FieldEditor
+            key={field.id}
+            field={field}
+            act={act}
+            showHelp={showHelp}
+          />
+        ))}
+      </LabeledList>
+    </Section>
+  );
+};
+
+const CompactStateCard = (props: {
+  readonly title: string;
+  readonly children: ReactNode;
+  readonly color?: string;
+}) => {
+  const { title, children, color } = props;
+
+  return (
+    <Box
+      p={0.75}
+      mb={0.75}
+      style={{
+        border: `1px solid ${color === 'bad' ? '#8f3c34' : '#466b96'}`,
+        background:
+          color === 'bad'
+            ? 'rgba(143, 60, 52, 0.16)'
+            : 'rgba(70, 107, 150, 0.12)',
+        borderRadius: '4px',
+      }}
+    >
+      <Box bold color={color || 'white'} mb={0.5}>
+        {title}
+      </Box>
+      {children}
+    </Box>
+  );
+};
+
 const PresetLibrarySection = (props: {
   readonly data: BackendData;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly act: ActFn;
 }) => {
   const { data, act } = props;
   const [selectedPresetId, setSelectedPresetId] = useState('');
@@ -1349,7 +1208,7 @@ const PresetLibrarySection = (props: {
                       preset_id: preset.id,
                     });
                   }}
-                  style={getGeneratorCardStyle(
+                  style={getSelectableCardStyle(
                     preset.id ===
                       getPresetSelectionState(selectedPreset?.id || ''),
                   )}
@@ -1358,7 +1217,7 @@ const PresetLibrarySection = (props: {
                     bold
                     color={preset.id === selectedPreset?.id ? 'good' : 'white'}
                   >
-                    {preset.name || preset.id}
+                    {getDisplayText(preset.name, 'Пресет без имени')}
                   </Box>
                   <Box color="label" mt={0.25}>
                     {preset.params_short || 'Без краткого описания параметров.'}
@@ -1372,11 +1231,11 @@ const PresetLibrarySection = (props: {
             <Section title={getSelectedPresetTitle(selectedPreset)} mt={1}>
               <Box color="label">
                 {getDetailLabel('created')}:{' '}
-                {selectedPreset.created_at || 'n/a'}
+                {getDisplayText(selectedPreset.created_at, EMPTY_LABEL)}
               </Box>
               <Box color="label" mt={0.5}>
                 {getOperationParamsLabel()}:{' '}
-                {selectedPreset.params_short || 'n/a'}
+                {getDisplayText(selectedPreset.params_short, EMPTY_LABEL)}
               </Box>
 
               <ActionRow>
@@ -1404,7 +1263,7 @@ const PresetLibrarySection = (props: {
 
 const BlueprintLibrarySection = (props: {
   readonly data: BackendData;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly act: ActFn;
 }) => {
   const { data, act } = props;
   const [selectedBlueprintId, setSelectedBlueprintId] = useState('');
@@ -1449,129 +1308,123 @@ const BlueprintLibrarySection = (props: {
         </Button>
       }
     >
-      <Box color="label" mb={1}>
-        {getAssetSelectionHint('blueprint', data)}
-      </Box>
-
       {!data.blueprint_entries?.length && (
         <Box color="label">{getLibraryEmptyLabel('blueprint')}</Box>
       )}
 
       {!!data.blueprint_entries?.length && (
-        <>
-          <Flex wrap mx={-0.5}>
-            {data.blueprint_entries.map((blueprint) => (
-              <Flex.Item key={blueprint.id} basis="48%" grow m={0.5}>
+        <Flex wrap mx={-0.5}>
+          <Flex.Item basis="46%" grow m={0.5} style={{ minWidth: '18rem' }}>
+            <Box color="label" mb={0.5}>
+              {getAssetSelectionHint('blueprint', data)}
+            </Box>
+            {data.blueprint_entries.map((blueprint) => {
+              const isActive = blueprint.id === data.active_blueprint_id;
+              const isSelected = blueprint.id === selectedBlueprint?.id;
+              return (
                 <Box
+                  key={blueprint.id}
                   p={0.6}
+                  mb={0.5}
                   onClick={() => {
                     setSelectedBlueprintId(blueprint.id);
-                    if (
-                      !data.placement_active &&
-                      blueprint.id !== data.active_blueprint_id
-                    ) {
+                    if (!isActive) {
                       act('load_blueprint', {
                         blueprint_id: blueprint.id,
                       });
                     }
                   }}
-                  style={getGeneratorCardStyle(
-                    blueprint.id === getBlueprintSelectionState(data),
-                  )}
+                  style={getSelectableCardStyle(isActive)}
                 >
-                  <Box
-                    bold
-                    color={
-                      blueprint.id === selectedBlueprint?.id ? 'good' : 'white'
-                    }
-                  >
-                    {blueprint.name}
+                  <Box bold color={isSelected || isActive ? 'good' : 'white'}>
+                    {getDisplayText(blueprint.name, 'Blueprint без имени')}
+                  </Box>
+                  <Box color={isActive ? 'good' : 'label'} mt={0.25}>
+                    {isActive ? 'Текущий blueprint' : 'Клик выбирает blueprint'}
                   </Box>
                   <Box color="label" mt={0.25}>
-                    {getDetailLabel('items')}: {blueprint.entry_count} | r=
-                    {blueprint.radius}
+                    {getPositiveCountText(
+                      blueprint.entry_count,
+                      'нет элементов',
+                    )}
+                    {' элементов'}
+                    {blueprint.radius > 0
+                      ? ` · радиус ${blueprint.radius}`
+                      : ''}
                   </Box>
                 </Box>
-              </Flex.Item>
-            ))}
-          </Flex>
+              );
+            })}
+          </Flex.Item>
 
-          {!!selectedBlueprint && (
-            <Section
-              title={getSelectedBlueprintTitle(selectedBlueprint)}
-              mt={1}
-            >
-              {!!selectedBlueprint.active && (
-                <Box color="good" mb={1}>
-                  {getSelectedBlueprintMessage(selectedBlueprint)}
+          <Flex.Item basis="48%" grow m={0.5} style={{ minWidth: '20rem' }}>
+            {!!selectedBlueprint && (
+              <CompactStateCard
+                title={getSelectedBlueprintTitle(selectedBlueprint)}
+                color={
+                  !selectedBlueprint.valid
+                    ? 'bad'
+                    : selectedBlueprint.active
+                      ? 'good'
+                      : undefined
+                }
+              >
+                {!!selectedBlueprint.active && (
+                  <Box color="good" mb={0.5}>
+                    {getSelectedBlueprintMessage(selectedBlueprint)}
+                  </Box>
+                )}
+
+                {!selectedBlueprint.valid && (
+                  <NoticeBox danger>
+                    {getBlueprintInvalidText(selectedBlueprint)}
+                  </NoticeBox>
+                )}
+
+                <CompactStatusRow
+                  basis="48%"
+                  items={[
+                    {
+                      label: getDetailLabel('items'),
+                      value: getPositiveCountText(
+                        selectedBlueprint.entry_count,
+                        'нет',
+                      ),
+                    },
+                    {
+                      label: 'Радиус',
+                      value:
+                        selectedBlueprint.radius > 0
+                          ? selectedBlueprint.radius
+                          : EMPTY_LABEL,
+                    },
+                    {
+                      label: getDetailLabel('source'),
+                      value: getDisplayText(
+                        selectedBlueprint.source,
+                        EMPTY_LABEL,
+                      ),
+                      color: 'label',
+                    },
+                    {
+                      label: getDetailLabel('author'),
+                      value: getDisplayText(
+                        selectedBlueprint.created_by,
+                        EMPTY_LABEL,
+                      ),
+                      color: 'label',
+                    },
+                  ]}
+                />
+
+                <Box color="label" mt={0.75}>
+                  Предпросмотр, применение и размещение выполняются через
+                  верхнюю панель.
                 </Box>
-              )}
-
-              {!selectedBlueprint.valid && (
-                <NoticeBox danger>
-                  {getBlueprintInvalidText(selectedBlueprint)}
-                </NoticeBox>
-              )}
-
-              {buildDetailItems([
-                {
-                  label: getDetailLabel('items'),
-                  value: selectedBlueprint.entry_count,
-                },
-                {
-                  label: getDetailLabel('source'),
-                  value: selectedBlueprint.source || 'n/a',
-                  color: 'label',
-                },
-                {
-                  label: getDetailLabel('author'),
-                  value: selectedBlueprint.created_by || 'n/a',
-                  color: 'label',
-                },
-              ])}
-
-              <Box color="label" mt={1}>
-                {getDetailLabel('created')}:{' '}
-                {selectedBlueprint.created_at || 'n/a'}
-              </Box>
-
-              <ActionRow>
-                <ActionItem>
-                  <Button
-                    compact
-                    disabled={!selectedBlueprint.valid || data.placement_active}
-                    onClick={() =>
-                      act('preview_blueprint', {
-                        blueprint_id: selectedBlueprint.id,
-                      })
-                    }
-                  >
-                    {getActionLabel('preview')}
-                  </Button>
-                </ActionItem>
-                <ActionItem>
-                  <Button
-                    compact
-                    color="good"
-                    disabled={
-                      !selectedBlueprint.valid ||
-                      data.placement_active ||
-                      !selectedBlueprint.active ||
-                      !data.preview_valid
-                    }
-                    onClick={() =>
-                      act('apply_blueprint', {
-                        blueprint_id: selectedBlueprint.id,
-                      })
-                    }
-                  >
-                    {getActionLabel('apply')}
-                  </Button>
-                </ActionItem>
-              </ActionRow>
-            </Section>
-          )}
-        </>
+              </CompactStateCard>
+            )}
+          </Flex.Item>
+        </Flex>
       )}
     </Section>
   );
@@ -1586,7 +1439,7 @@ const BlueprintExportSection = (props: {
   return (
     <Section title={getExportSectionTitle()}>
       <Box color="label" mb={1}>
-        Для `outpost_radius` можно сохранить текущий preview как Blueprint Lite.
+        Текущий предпросмотр можно сохранить как компактный blueprint.
       </Box>
       <Button
         compact
@@ -1604,95 +1457,60 @@ const PlacementSetupSection = (props: {
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
 }) => {
   const { data, act } = props;
+  const isCollector = data.placement_interaction_kind === 'collector';
   const collectorTarget = Math.max(
     data.placement_collector_max_points || 0,
     data.placement_collector_min_points || 0,
     1,
   );
-
   const placementTiles: SummaryTile[] = [
     {
-      label: 'Форма',
-      value: data.placement_shape || 'n/a',
-    },
-    {
-      label: 'Режим',
-      value: data.placement_mode || 'n/a',
-    },
-    {
-      label: 'Взаимодействие',
-      value: data.placement_interaction_label || 'Один клик',
-    },
-    {
-      label: 'Этап rollout',
-      value: data.placement_shape_rollout_stage || 'v1',
+      label: 'Состояние',
+      value: data.click_mode_active ? 'Активно' : OFF_LABEL,
+      color: data.click_mode_active ? 'good' : 'label',
     },
   ];
+
+  if (data.placement_supported) {
+    placementTiles.push({
+      label: 'Режим',
+      value: getPlacementOptionLabel(
+        data.placement_mode_options,
+        data.placement_mode,
+      ),
+    });
+  }
+
+  if (data.placement_shape_supported) {
+    placementTiles.push({
+      label: 'Форма',
+      value: getPlacementOptionLabel(
+        data.placement_shape_options,
+        data.placement_shape,
+      ),
+    });
+  }
+
+  if (data.placement_interaction_label) {
+    placementTiles.push({
+      label: 'Ввод',
+      value: getDisplayText(data.placement_interaction_label, 'Один клик'),
+    });
+  }
 
   if (data.placement_supports_direction) {
     placementTiles.push({
       label: 'Направление',
-      value: data.placement_dir || 'n/a',
+      value: getPlacementOptionLabel(
+        data.placement_dir_options,
+        data.placement_dir,
+      ),
     });
   }
-
-  placementTiles.push({
-    label: 'Статус',
-    value: data.placement_active ? 'вкл' : 'выкл',
-    color: data.placement_active ? 'good' : 'label',
-  });
-
-  const placementBlockReason = getPlacementBlockReason(data);
-  const finishCollectionReason = getFinishCollectionReason(data);
 
   return (
     <Section title="Размещение">
       <CompactStatusRow items={placementTiles} />
-
-      <ActionRow>
-        <ActionItem>
-          <Button
-            compact
-            disabled={!data.can_start_placement_mode}
-            onClick={() => act('start_placement_mode')}
-          >
-            Старт
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            color="average"
-            disabled={!data.can_stop_click_mode}
-            onClick={() => act('stop_click_mode')}
-          >
-            Остановить
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            disabled={!data.can_finish_placement_collection}
-            onClick={() => act('finish_placement_collection')}
-          >
-            Готово
-          </Button>
-        </ActionItem>
-      </ActionRow>
-
-      {!data.can_start_placement_mode && !!placementBlockReason && (
-        <Box color="label" mt={0.5}>
-          Размещение: {placementBlockReason}
-        </Box>
-      )}
-
-      {!data.can_finish_placement_collection &&
-        data.placement_interaction_kind === 'collector' &&
-        !!finishCollectionReason && (
-          <Box color="label" mt={0.25}>
-            Сбор формы: {finishCollectionReason}
-          </Box>
-        )}
 
       <Section title="Настройки" mt={0.5}>
         <LabeledList>
@@ -1714,6 +1532,10 @@ const PlacementSetupSection = (props: {
                   ),
                 }))}
                 selected={data.placement_shape}
+                displayText={getPlacementOptionLabel(
+                  data.placement_shape_options,
+                  data.placement_shape,
+                )}
                 onSelected={(value) =>
                   act('set_placement_shape', { shape: value })
                 }
@@ -1739,6 +1561,10 @@ const PlacementSetupSection = (props: {
                   ),
                 }))}
                 selected={data.placement_mode}
+                displayText={getPlacementOptionLabel(
+                  data.placement_mode_options,
+                  data.placement_mode,
+                )}
                 onSelected={(value) =>
                   act('set_placement_mode', { mode: value })
                 }
@@ -1755,19 +1581,16 @@ const PlacementSetupSection = (props: {
                   displayText: option.label,
                 }))}
                 selected={data.placement_dir}
+                displayText={getPlacementOptionLabel(
+                  data.placement_dir_options,
+                  data.placement_dir,
+                )}
                 onSelected={(value) =>
                   act('set_placement_dir', { direction: value })
                 }
               />
             </LabeledList.Item>
           )}
-
-          <LabeledList.Item label="Текущий anchor">
-            {data.placement_anchor || 'none'}
-          </LabeledList.Item>
-          <LabeledList.Item label="Источник коллектора">
-            {data.placement_collector_origin || 'none'}
-          </LabeledList.Item>
         </LabeledList>
       </Section>
 
@@ -1775,8 +1598,8 @@ const PlacementSetupSection = (props: {
         {interactionHelpText(data)}
       </Box>
 
-      {!!data.placement_interaction_kind &&
-        data.placement_interaction_kind === 'collector' && (
+      {isCollector && (
+        <>
           <Section title="Коллектор" mt={0.5}>
             <ProgressBar
               value={data.placement_collector_point_count || 0}
@@ -1809,83 +1632,53 @@ const PlacementSetupSection = (props: {
                   label: 'Минимум',
                   value: `${data.placement_collector_min_points || 0}`,
                 },
-                {
-                  label: 'Источник',
-                  value: data.placement_collector_origin || 'none',
-                  color: 'label',
-                },
               ]}
             />
 
             <Box color="label" mt={1}>
-              {data.placement_collector_summary || 'Collector summary not set.'}
+              {getDisplayText(
+                data.placement_collector_summary,
+                'Точки пока не выбраны.',
+              )}
             </Box>
-
-            {!!data.placement_collector_points_text && (
-              <Box color="label" mt={0.5}>
-                {data.placement_collector_points_text}
-              </Box>
-            )}
           </Section>
-        )}
+
+          <Collapsible title="Технические точки коллектора" mt={0.5}>
+            <LabeledList>
+              <LabeledList.Item label="Источник">
+                {getDisplayText(data.placement_collector_origin, EMPTY_LABEL)}
+              </LabeledList.Item>
+              <LabeledList.Item label="Точки">
+                {getDisplayText(
+                  data.placement_collector_points_text,
+                  EMPTY_LABEL,
+                )}
+              </LabeledList.Item>
+            </LabeledList>
+          </Collapsible>
+        </>
+      )}
 
       {!!data.placement_shape_fields?.length && (
-        <Collapsible title="Форма" open>
+        <Section title="Параметры формы" mt={0.5}>
           <LabeledList>
             {data.placement_shape_fields.map((field) => (
-              <FieldEditor key={field.id} field={field} act={act} />
+              <FieldEditor key={field.id} field={field} act={act} showHelp />
             ))}
           </LabeledList>
-        </Collapsible>
-      )}
-    </Section>
-  );
-};
-
-const GeneratorCatalogPage = (props: {
-  readonly data: BackendData;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenWork: () => void;
-}) => {
-  const { data, act, onOpenWork } = props;
-  const totalGenerators = (data.categories || []).reduce(
-    (sum, category) => sum + (category.generators?.length || 0),
-    0,
-  );
-
-  return (
-    <Section fill scrollable title={getSelectionPageTitle(data)}>
-      <Box color="label" mb={1}>
-        {getSelectionIntroText(data, totalGenerators)}
-      </Box>
-
-      {!data.categories?.length && (
-        <Box color="label">{getSelectionEmptyLabel()}</Box>
+        </Section>
       )}
 
-      {data.categories?.map((category) => (
-        <Collapsible
-          key={category.category}
-          title={`${category.category} (${category.generators.length})`}
-          open
-        >
-          {category.generators.map((generator) => (
-            <CompactGeneratorRow
-              key={generator.id}
-              generator={generator}
-              selected={generator.id === data.current_generator_id}
-              onActivate={() => {
-                if (generator.id !== data.current_generator_id) {
-                  act('select_generator', {
-                    generator_id: generator.id,
-                  });
-                }
-                onOpenWork();
-              }}
-            />
-          ))}
-        </Collapsible>
-      ))}
+      <Collapsible title="Технический статус размещения" mt={0.5}>
+        <LabeledList>
+          <LabeledList.Item label="Anchor">
+            {getDisplayText(data.placement_anchor, EMPTY_LABEL)}
+          </LabeledList.Item>
+          <LabeledList.Item label="Stage">
+            {getDisplayText(data.placement_shape_rollout_stage, EMPTY_LABEL)}
+          </LabeledList.Item>
+        </LabeledList>
+      </Collapsible>
     </Section>
   );
 };
@@ -1893,92 +1686,196 @@ const GeneratorCatalogPage = (props: {
 const WorkspaceCommandBar = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenHistory: () => void;
 }) => {
-  const { data, act, onOpenHistory } = props;
+  const { data, act } = props;
   const workflow = getWorkflowState(data);
   const actionHint = getActionHint(data);
+  const showPlacementActions =
+    data.placement_supported ||
+    data.placement_shape_supported ||
+    data.placement_supports_direction;
+  const placementBlockReason = getPlacementBlockReason(data);
+  const finishCollectionReason = getFinishCollectionReason(data);
+  const canPreviewFromPanel = data.can_run_preview && !data.click_mode_active;
+  const canApplyFromPanel = data.can_run_apply && !data.click_mode_active;
+  const showStartPlacement =
+    showPlacementActions &&
+    !data.click_mode_active &&
+    data.can_start_placement_mode;
+  const showStopPlacement = showPlacementActions && data.click_mode_active;
+  const showFinishCollection =
+    data.click_mode_active && data.placement_interaction_kind === 'collector';
 
   return (
-    <Section fitted>
-      <CompactStatusRow items={getCommandBarItems(data)} />
+    <Box
+      mb={1}
+      style={{
+        position: 'sticky',
+        top: '0',
+        zIndex: '5',
+        background: 'rgba(18, 20, 22, 0.96)',
+        borderBottom: '1px solid #466b96',
+      }}
+    >
+      <Section fitted>
+        <Flex align="center" wrap mx={-0.5}>
+          <Flex.Item grow m={0.5} basis="18rem">
+            <Box bold>{getShortStatus(workflow)}</Box>
+            <Box color="label" mt={0.1}>
+              {getStatusExplanation(workflow)}
+            </Box>
+          </Flex.Item>
 
-      <ActionRow>
-        <ActionItem>
-          <Button
-            compact
-            disabled={!data.can_run_preview}
-            onClick={() => act('run_preview')}
-          >
-            {getActionLabel('preview')}
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            color={getCommonButtonColor('good')}
-            disabled={!data.can_run_apply}
-            onClick={() => act('run_apply')}
-          >
-            {getActionLabel('apply')}
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            color={getCommonButtonColor('average')}
-            disabled={!data.has_generator}
-            onClick={() => act('clear_preview')}
-          >
-            {getActionLabel('clear')}
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button compact icon="history" onClick={onOpenHistory}>
-            {getSecondaryButtonLabel('history')}
-          </Button>
-        </ActionItem>
-      </ActionRow>
+          <Flex.Item m={0.5}>
+            <CompactStatusRow
+              basis="auto"
+              items={[
+                {
+                  label: 'Предпросмотр',
+                  value: getPreviewLabelText(data),
+                  color: getPreviewTone(data),
+                },
+                {
+                  label: 'Размещение',
+                  value: data.click_mode_active ? 'Активно' : OFF_LABEL,
+                  color: data.click_mode_active ? 'good' : 'label',
+                },
+              ]}
+            />
+          </Flex.Item>
+        </Flex>
 
-      <ActionRow>
-        <ActionItem>
-          <Button
-            compact
-            disabled={!data.can_refresh_ui}
-            onClick={() => act('refresh_ui')}
-          >
-            {getSecondaryButtonLabel('refresh')}
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button compact onClick={() => act('configure_wizard')}>
-            {getSecondaryButtonLabel('wizard')}
-          </Button>
-        </ActionItem>
-        <ActionItem>
-          <Button
-            compact
-            color={getCommonButtonColor('average')}
-            onClick={() => act('reset_generator')}
-          >
-            {getSecondaryButtonLabel('reset')}
-          </Button>
-        </ActionItem>
-      </ActionRow>
+        <ActionRow>
+          <ActionItem>
+            <Button
+              compact
+              disabled={!canPreviewFromPanel}
+              onClick={() => act('run_preview')}
+            >
+              {getActionLabel('preview')}
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button
+              compact
+              color={getCommonButtonColor('good')}
+              disabled={!canApplyFromPanel}
+              onClick={() => act('run_apply')}
+            >
+              {getActionLabel('apply')}
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button
+              compact
+              color={getCommonButtonColor('average')}
+              disabled={!data.can_undo_last_operation}
+              onClick={() => act('undo_last_operation')}
+            >
+              {getSecondaryButtonLabel('undo')}
+            </Button>
+          </ActionItem>
+          <ActionItem>
+            <Button
+              compact
+              color={getCommonButtonColor('average')}
+              disabled={!data.has_generator}
+              onClick={() => act('clear_preview')}
+            >
+              {getActionLabel('clear')}
+            </Button>
+          </ActionItem>
+        </ActionRow>
 
-      <Box color={workflow.color || 'label'} mt={0.25}>
-        {getShortStatus(workflow)}
-      </Box>
-      <Box color="label" mt={0.1}>
-        {getStatusExplanation(workflow)}
-      </Box>
+        {showPlacementActions && (
+          <ActionRow>
+            {showStartPlacement && (
+              <ActionItem>
+                <Button compact onClick={() => act('start_placement_mode')}>
+                  Старт размещения
+                </Button>
+              </ActionItem>
+            )}
 
-      {!!actionHint && (
-        <Box color="label" mt={0.5}>
-          {actionHint}
-        </Box>
-      )}
-    </Section>
+            {showStopPlacement && (
+              <ActionItem>
+                <Button
+                  compact
+                  color="average"
+                  disabled={!data.can_stop_click_mode}
+                  onClick={() => act('stop_click_mode')}
+                >
+                  Остановить размещение
+                </Button>
+              </ActionItem>
+            )}
+
+            {showFinishCollection && (
+              <ActionItem>
+                <Button
+                  compact
+                  disabled={!data.can_finish_placement_collection}
+                  onClick={() => act('finish_placement_collection')}
+                >
+                  Завершить сбор
+                </Button>
+              </ActionItem>
+            )}
+          </ActionRow>
+        )}
+
+        {showPlacementActions &&
+          !showStartPlacement &&
+          !data.click_mode_active &&
+          !!placementBlockReason && (
+            <Box color="label" mt={0.25}>
+              Размещение: {placementBlockReason}
+            </Box>
+          )}
+
+        {showFinishCollection &&
+          !data.can_finish_placement_collection &&
+          !!finishCollectionReason && (
+            <Box color="label" mt={0.25}>
+              Сбор формы: {finishCollectionReason}
+            </Box>
+          )}
+
+        <Collapsible title="Дополнительно" mt={0.5}>
+          <ActionRow>
+            <ActionItem>
+              <Button
+                compact
+                disabled={!data.can_refresh_ui}
+                onClick={() => act('refresh_ui')}
+              >
+                {getSecondaryButtonLabel('refresh')}
+              </Button>
+            </ActionItem>
+            <ActionItem>
+              <Button compact onClick={() => act('configure_wizard')}>
+                {getSecondaryButtonLabel('wizard')}
+              </Button>
+            </ActionItem>
+            <ActionItem>
+              <Button
+                compact
+                color={getCommonButtonColor('average')}
+                onClick={() => act('reset_generator')}
+              >
+                {getSecondaryButtonLabel('reset')}
+              </Button>
+            </ActionItem>
+          </ActionRow>
+        </Collapsible>
+
+        {!!actionHint && (
+          <Box color="label" mt={0.5}>
+            {actionHint}
+          </Box>
+        )}
+      </Section>
+    </Box>
   );
 };
 
@@ -1987,7 +1884,6 @@ const WorkspaceSessionSection = (props: {
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
 }) => {
   const { data, act } = props;
-  const recentHistoryEntries = (data.history_entries || []).slice(0, 3);
 
   return (
     <>
@@ -2004,7 +1900,7 @@ const WorkspaceSessionSection = (props: {
             color: data.can_run_apply ? 'good' : 'average',
           },
           {
-            label: 'Blueprint',
+            label: 'Блюпринт',
             value: data.active_blueprint_id || 'не выбран',
           },
         ]}
@@ -2047,7 +1943,7 @@ const WorkspaceSessionSection = (props: {
         </Collapsible>
       )}
 
-      <Collapsible title={getLastApplySectionTitle()} open mt={0.5}>
+      <Collapsible title={getLastApplySectionTitle()} mt={0.5}>
         <Box color={data.last_apply_success ? 'good' : 'average'}>
           {data.last_apply_message ||
             'Применение для этой сессии еще не запускалось.'}
@@ -2090,32 +1986,9 @@ const WorkspaceSessionSection = (props: {
         )}
       </Collapsible>
 
-      <Collapsible
-        title={getSessionSummarySectionTitle(recentHistoryEntries.length)}
-        mt={0.5}
-      >
-        {!recentHistoryEntries.length && (
-          <Box color="label">История текущей сессии пока пуста.</Box>
-        )}
-
-        {!!recentHistoryEntries.length &&
-          recentHistoryEntries.map((entry) => (
-            <Section
-              key={`${entry.time}_${entry.operation_id || entry.message}`}
-              fitted
-              title={getHistoryEntryTitle(entry)}
-            >
-              <Box color={getHistoryEntryTone(entry)}>
-                {getHistoryResultText(entry)}
-              </Box>
-              <Box color="label">{getHistoryEntryMessage(entry)}</Box>
-            </Section>
-          ))}
-      </Collapsible>
-
       <Collapsible title={getDiagnosticsSectionTitle()} mt={0.5}>
-        <Collapsible title={getCurrentParamsSectionTitle()} open>
-          <Box>{data.current_params_text || 'n/a'}</Box>
+        <Collapsible title={getCurrentParamsSectionTitle()}>
+          <Box>{getDisplayText(data.current_params_text, EMPTY_LABEL)}</Box>
         </Collapsible>
 
         <Collapsible
@@ -2142,16 +2015,217 @@ const WorkspaceSessionSection = (props: {
   );
 };
 
-const WorkspacePage = (props: {
+const GenericFieldGroups = (props: {
+  readonly groupedFields: Record<string, UiField[]>;
+  readonly groupNames: string[];
+  readonly act: ActFn;
+}) => {
+  const { groupedFields, groupNames, act } = props;
+
+  if (!groupNames.length) {
+    return <Box color="label">Поля временно недоступны.</Box>;
+  }
+
+  return (
+    <Flex wrap mx={-0.5}>
+      {groupNames.map((groupName) => (
+        <Flex.Item
+          key={groupName}
+          basis="48%"
+          grow
+          m={0.5}
+          style={{ minWidth: '20rem' }}
+        >
+          <FieldGroupSection
+            title={groupName}
+            fields={groupedFields[groupName] || []}
+            act={act}
+          />
+        </Flex.Item>
+      ))}
+    </Flex>
+  );
+};
+
+const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
-  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly act: ActFn;
+  readonly showPlacementSetup: boolean;
+}) => {
+  const { data, act, showPlacementSetup } = props;
+
+  return (
+    <Flex wrap mx={-0.5}>
+      <Flex.Item basis="56%" grow m={0.5} style={{ minWidth: '24rem' }}>
+        <BlueprintLibrarySection data={data} act={act} />
+      </Flex.Item>
+
+      <Flex.Item basis="38%" grow m={0.5} style={{ minWidth: '20rem' }}>
+        {showPlacementSetup && <PlacementSetupSection data={data} act={act} />}
+      </Flex.Item>
+    </Flex>
+  );
+};
+
+const OutpostRadiusWorkspace = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+  readonly showPlacementSetup: boolean;
+}) => {
+  const { data, act, showPlacementSetup } = props;
+  const familyField = getField(data.ui_fields, 'family');
+  const radiusField = getField(data.ui_fields, 'radius');
+  const barricadeField = getField(data.ui_fields, 'barricade_path');
+  const sentryToggleField = getField(data.ui_fields, 'place_sentries');
+
+  return (
+    <Flex wrap mx={-0.5}>
+      <Flex.Item basis="52%" grow m={0.5} style={{ minWidth: '24rem' }}>
+        <CompactStateCard title="Текущий форпост">
+          <CompactStatusRow
+            basis="48%"
+            items={[
+              {
+                label: 'Шаблон',
+                value: getFieldOptionLabel(familyField),
+              },
+              {
+                label: 'Радиус',
+                value: getDisplayText(radiusField?.value, EMPTY_LABEL),
+              },
+              {
+                label: 'Баррикады',
+                value: getFieldOptionLabel(barricadeField),
+              },
+              {
+                label: 'Турели',
+                value: sentryToggleField?.value ? 'Включены' : OFF_LABEL,
+                color: sentryToggleField?.value ? 'good' : 'label',
+              },
+            ]}
+          />
+        </CompactStateCard>
+
+        <FieldGroupSection
+          title="Планировка"
+          fields={getFieldsByGroup(data.ui_fields, 'Layout')}
+          act={act}
+          showHelp
+        />
+        <FieldGroupSection
+          title="Оборона"
+          fields={[
+            ...getFieldsByGroup(data.ui_fields, 'Barricades'),
+            ...getFieldsByGroup(data.ui_fields, 'Sentries'),
+          ]}
+          act={act}
+          showHelp
+        />
+      </Flex.Item>
+
+      <Flex.Item basis="42%" grow m={0.5} style={{ minWidth: '22rem' }}>
+        {!!data.can_manage_presets && (
+          <PresetLibrarySection data={data} act={act} />
+        )}
+        <BlueprintExportSection data={data} act={act} />
+        {showPlacementSetup && <PlacementSetupSection data={data} act={act} />}
+      </Flex.Item>
+    </Flex>
+  );
+};
+
+const DestructionPackWorkspace = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+}) => {
+  const { data, act } = props;
+  const fireFields = [
+    ...getFieldsById(data.ui_fields, ['persistent_fire_enabled']),
+    ...getSafeFieldList(data.ui_fields, ['persistent_fire_density']),
+  ];
+  const blastFields = [
+    ...getFieldsById(data.ui_fields, ['blast_enabled']),
+    ...getSafeFieldList(data.ui_fields, ['blast_power', 'blast_falloff']),
+  ];
+  const damageFields = getFieldsById(data.ui_fields, ['damage_profile']);
+  const modeFields = [
+    ...getFieldsById(data.ui_fields, ['shuffle_enabled', 'scatter_enabled']),
+    ...getSafeFieldList(data.ui_fields, ['scatter_steps']),
+  ];
+
+  return (
+    <Flex wrap mx={-0.5}>
+      <Flex.Item basis="48%" grow m={0.5} style={{ minWidth: '22rem' }}>
+        <FieldGroupSection
+          title="Область"
+          fields={getFieldsByGroup(data.ui_fields, 'Area')}
+          act={act}
+          showHelp
+        />
+        <FieldGroupSection
+          title="Перемещение"
+          fields={modeFields}
+          act={act}
+          showHelp
+        />
+      </Flex.Item>
+
+      <Flex.Item basis="48%" grow m={0.5} style={{ minWidth: '22rem' }}>
+        <FieldGroupSection
+          title="Огонь"
+          fields={fireFields}
+          act={act}
+          showHelp
+        />
+
+        {!!blastFields.length && (
+          <Collapsible title="Взрыв" mt={0.5}>
+            <CompactStateCard title="Опасный режим" color="bad">
+              <Box color="average" mb={0.75}>
+                Взрыв разрушает область и отключает полный откат.
+              </Box>
+              <FieldGroupSection fields={blastFields} title="Взрыв" act={act} />
+            </CompactStateCard>
+          </Collapsible>
+        )}
+
+        {!!damageFields.length && (
+          <Collapsible title="Урон" mt={0.5}>
+            <CompactStateCard title="Структурный урон" color="bad">
+              <Box color="average" mb={0.75}>
+                Урон ограничивает откат и должен использоваться отдельно от
+                безопасного перемещения.
+              </Box>
+              <FieldGroupSection
+                fields={damageFields}
+                title="Профиль урона"
+                act={act}
+              />
+            </CompactStateCard>
+          </Collapsible>
+        )}
+
+        <Collapsible title="Лимиты" mt={0.5}>
+          <FieldGroupSection
+            title="Лимиты"
+            fields={getFieldsByGroup(data.ui_fields, 'Limits')}
+            act={act}
+            showHelp
+          />
+        </Collapsible>
+      </Flex.Item>
+    </Flex>
+  );
+};
+
+const GenericToolWorkspace = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
   readonly groupedFields: Record<string, UiField[]>;
   readonly groupNames: string[];
   readonly showBlueprintExport: boolean;
   readonly showBlueprintLibrary: boolean;
   readonly showPlacementSetup: boolean;
-  readonly onOpenBrowse: () => void;
-  readonly onOpenHistory: () => void;
 }) => {
   const {
     data,
@@ -2161,34 +2235,130 @@ const WorkspacePage = (props: {
     showBlueprintExport,
     showBlueprintLibrary,
     showPlacementSetup,
-    onOpenBrowse,
-    onOpenHistory,
   } = props;
-  const [workTab, setWorkTab] = useState<WorkTabId>('params');
   const hasAssets =
     data.can_manage_presets || showBlueprintExport || showBlueprintLibrary;
+  const hasPrimaryContent =
+    data.has_inline_fields || hasAssets || showPlacementSetup;
 
-  useEffect(() => {
-    if (workTab === 'assets' && !hasAssets) {
-      setWorkTab('params');
-      return;
-    }
-    if (workTab === 'placement' && !showPlacementSetup) {
-      setWorkTab('params');
-    }
-  }, [hasAssets, showPlacementSetup, workTab]);
+  return (
+    <>
+      {!hasPrimaryContent && (
+        <Section mt={1}>
+          <Box color="label">{getParamEmptyLabel()}</Box>
+        </Section>
+      )}
+
+      {!!data.has_inline_fields && (
+        <Section mt={1} title="Настройки">
+          <GenericFieldGroups
+            groupedFields={groupedFields}
+            groupNames={groupNames}
+            act={act}
+          />
+        </Section>
+      )}
+
+      {hasAssets && (
+        <>
+          {!!data.can_manage_presets && (
+            <PresetLibrarySection data={data} act={act} />
+          )}
+          {showBlueprintExport && (
+            <BlueprintExportSection data={data} act={act} />
+          )}
+          {showBlueprintLibrary && (
+            <BlueprintLibrarySection data={data} act={act} />
+          )}
+        </>
+      )}
+
+      {showPlacementSetup && <PlacementSetupSection data={data} act={act} />}
+    </>
+  );
+};
+
+const ToolWorkspace = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+  readonly groupedFields: Record<string, UiField[]>;
+  readonly groupNames: string[];
+  readonly showBlueprintExport: boolean;
+  readonly showBlueprintLibrary: boolean;
+  readonly showPlacementSetup: boolean;
+}) => {
+  const {
+    data,
+    act,
+    groupedFields,
+    groupNames,
+    showBlueprintExport,
+    showBlueprintLibrary,
+    showPlacementSetup,
+  } = props;
+
+  if (data.current_generator_id === 'blueprint_stamp') {
+    return (
+      <BlueprintStampWorkspace
+        data={data}
+        act={act}
+        showPlacementSetup={showPlacementSetup}
+      />
+    );
+  }
+
+  if (data.current_generator_id === 'outpost_radius') {
+    return (
+      <OutpostRadiusWorkspace
+        data={data}
+        act={act}
+        showPlacementSetup={showPlacementSetup}
+      />
+    );
+  }
+
+  if (data.current_generator_id === 'destruction_pack') {
+    return <DestructionPackWorkspace data={data} act={act} />;
+  }
+
+  return (
+    <GenericToolWorkspace
+      data={data}
+      act={act}
+      groupedFields={groupedFields}
+      groupNames={groupNames}
+      showBlueprintExport={showBlueprintExport}
+      showBlueprintLibrary={showBlueprintLibrary}
+      showPlacementSetup={showPlacementSetup}
+    />
+  );
+};
+
+const WorkspacePage = (props: {
+  readonly data: BackendData;
+  readonly act: (action: string, payload?: Record<string, unknown>) => void;
+  readonly groupedFields: Record<string, UiField[]>;
+  readonly groupNames: string[];
+  readonly showBlueprintExport: boolean;
+  readonly showBlueprintLibrary: boolean;
+  readonly showPlacementSetup: boolean;
+}) => {
+  const {
+    data,
+    act,
+    groupedFields,
+    groupNames,
+    showBlueprintExport,
+    showBlueprintLibrary,
+    showPlacementSetup,
+  } = props;
 
   return (
     <Section fill scrollable title={getWorkspacePageTitle(data)}>
       {!data.has_generator && (
-        <>
-          <Box color="label" mb={1}>
-            {getWorkEmptyLabel()}
-          </Box>
-          <Button compact icon="list" onClick={onOpenBrowse}>
-            {getSecondaryButtonLabel('browse')}
-          </Button>
-        </>
+        <Box color="label" mb={1}>
+          {getWorkEmptyLabel()}
+        </Box>
       )}
 
       {!!data.has_generator && (
@@ -2197,128 +2367,21 @@ const WorkspacePage = (props: {
             <NoticeBox danger>{data.last_ui_error}</NoticeBox>
           )}
 
-          <WorkspaceCommandBar
-            data={data}
-            act={act}
-            onOpenHistory={onOpenHistory}
-          />
+          <WorkspaceCommandBar data={data} act={act} />
 
           <Box color="label" mb={0.5}>
             {getCurrentGeneratorDescription(data)}
           </Box>
 
-          <Tabs mt={0.25}>
-            <Tabs.Tab
-              selected={workTab === 'params'}
-              fontSize={0.9}
-              onClick={() => setWorkTab('params')}
-            >
-              {getParamsTabLabel()}
-            </Tabs.Tab>
-            {hasAssets && (
-              <Tabs.Tab
-                selected={workTab === 'assets'}
-                fontSize={0.9}
-                onClick={() => setWorkTab('assets')}
-              >
-                {getAssetsTabLabel()}
-              </Tabs.Tab>
-            )}
-            {showPlacementSetup && (
-              <Tabs.Tab
-                selected={workTab === 'placement'}
-                fontSize={0.9}
-                onClick={() => setWorkTab('placement')}
-              >
-                {getPlacementTabLabel()}
-              </Tabs.Tab>
-            )}
-            <Tabs.Tab
-              selected={workTab === 'session'}
-              fontSize={0.9}
-              onClick={() => setWorkTab('session')}
-            >
-              {getSessionTabLabel()}
-            </Tabs.Tab>
-          </Tabs>
-
-          {workTab === 'params' && (
-            <Section mt={1}>
-              {!data.has_inline_fields && (
-                <Box color="label">{getParamEmptyLabel()}</Box>
-              )}
-
-              {!!data.has_inline_fields && !groupNames.length && (
-                <Box color="label">Поля временно недоступны.</Box>
-              )}
-
-              {!!data.has_inline_fields && !!groupNames.length && (
-                <Flex wrap mx={-0.5}>
-                  {groupNames.map((groupName) => (
-                    <Flex.Item
-                      key={groupName}
-                      basis="48%"
-                      grow
-                      m={0.5}
-                      style={{ minWidth: '20rem' }}
-                    >
-                      <Section title={groupName}>
-                        <LabeledList>
-                          {(groupedFields[groupName] || []).map((field) => (
-                            <FieldEditor
-                              key={field.id}
-                              field={field}
-                              act={act}
-                            />
-                          ))}
-                        </LabeledList>
-                      </Section>
-                    </Flex.Item>
-                  ))}
-                </Flex>
-              )}
-            </Section>
-          )}
-
-          {workTab === 'assets' && (
-            <>
-              {!hasAssets && (
-                <Section mt={1}>
-                  <Box color="label">{getAssetEmptyLabel()}</Box>
-                </Section>
-              )}
-
-              {!!data.can_manage_presets && (
-                <PresetLibrarySection data={data} act={act} />
-              )}
-              {showBlueprintExport && (
-                <BlueprintExportSection data={data} act={act} />
-              )}
-              {showBlueprintLibrary && (
-                <BlueprintLibrarySection data={data} act={act} />
-              )}
-            </>
-          )}
-
-          {workTab === 'placement' && (
-            <>
-              {!showPlacementSetup && (
-                <Section mt={1}>
-                  <Box color="label">{getPlacementEmptyLabel()}</Box>
-                </Section>
-              )}
-
-              {showPlacementSetup && (
-                <PlacementSetupSection data={data} act={act} />
-              )}
-            </>
-          )}
-
-          {workTab === 'session' && (
-            <Box mt={1}>
-              <WorkspaceSessionSection data={data} act={act} />
-            </Box>
-          )}
+          <ToolWorkspace
+            data={data}
+            act={act}
+            groupedFields={groupedFields}
+            groupNames={groupNames}
+            showBlueprintExport={showBlueprintExport}
+            showBlueprintLibrary={showBlueprintLibrary}
+            showPlacementSetup={showPlacementSetup}
+          />
         </>
       )}
     </Section>
@@ -2328,9 +2391,8 @@ const WorkspacePage = (props: {
 const HistoryPage = (props: {
   readonly data: BackendData;
   readonly act: (action: string, payload?: Record<string, unknown>) => void;
-  readonly onOpenWork: () => void;
 }) => {
-  const { data, act, onOpenWork } = props;
+  const { data, act } = props;
   const latestEntry = data.history_entries?.[0];
 
   return (
@@ -2348,25 +2410,28 @@ const HistoryPage = (props: {
         </Button>
       }
     >
+      <Collapsible title="Сессия и откат">
+        <WorkspaceSessionSection data={data} act={act} />
+      </Collapsible>
+
       {!data.history_entries?.length && (
-        <>
-          <Box color="label">{getHistoryEmptyLabel()}</Box>
-          {!!data.has_generator && (
-            <Button compact icon="sliders-h" mt={1} onClick={onOpenWork}>
-              {getSecondaryButtonLabel('back')}
-            </Button>
-          )}
-        </>
+        <Box color="label" mt={1}>
+          {getHistoryEmptyLabel()}
+        </Box>
       )}
 
       {!!data.history_entries?.length && (
         <>
-          <CompactStatusRow items={getHistorySummaryItems(data, latestEntry)} />
+          <Box mt={1}>
+            <CompactStatusRow
+              items={getHistorySummaryItems(data, latestEntry)}
+            />
+          </Box>
 
           {data.history_entries.map((entry, index) => (
             <Collapsible
               key={`${entry.time}_${entry.generator_id}_${index}`}
-              title={getHistoryEntryTitle(entry)}
+              title={getHistoryEntryTitle(data, entry)}
               open={index === 0}
               color={getHistoryEntryTone(entry)}
             >
@@ -2400,34 +2465,41 @@ const HistoryPage = (props: {
 
 const Sidebar = (props: {
   readonly data: BackendData;
-  readonly pageIndex: number;
-  readonly setPageIndex: (pageIndex: number) => void;
+  readonly activeCategory?: string;
+  readonly historyActive: boolean;
+  readonly onSelectCategory: (category: GeneratorCategory) => void;
+  readonly onOpenHistory: () => void;
 }) => {
-  const { data, pageIndex, setPageIndex } = props;
-  const workflow = getWorkflowState(data);
+  const {
+    data,
+    activeCategory,
+    historyActive,
+    onSelectCategory,
+    onOpenHistory,
+  } = props;
 
   return (
     <Section fill scrollable fitted title="World Edit">
-      <Box bold>{getCurrentGeneratorLabel(data.current_generator_name)}</Box>
-      <Box color={workflow.color || 'label'} mt={0.25}>
-        {getSidebarSummaryText(data)}
-      </Box>
-      <Box color="label" mt={0.25}>
-        {getHistorySummaryLabel(data)}
-      </Box>
-
-      <Tabs vertical fluid mt={1}>
-        {PAGES.map((page, index) => (
+      <Tabs vertical fluid>
+        {(data.categories || []).map((category) => (
           <Tabs.Tab
-            key={page.title}
-            selected={index === pageIndex}
-            icon={page.icon}
+            key={category.category}
+            selected={!historyActive && category.category === activeCategory}
             fontSize={0.9}
-            onClick={() => setPageIndex(index)}
+            onClick={() => onSelectCategory(category)}
           >
-            {page.title}
+            {category.category}
           </Tabs.Tab>
         ))}
+        <Tabs.Tab
+          key="history"
+          selected={historyActive}
+          icon="history"
+          fontSize={0.9}
+          onClick={onOpenHistory}
+        >
+          {getHistoryButtonLabel()}
+        </Tabs.Tab>
       </Tabs>
     </Section>
   );
@@ -2435,9 +2507,8 @@ const Sidebar = (props: {
 
 export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
-  const [pageIndex, setPageIndex] = useState(0);
-
-  const currentPage = PAGES[pageIndex]?.id || PAGES[0].id;
+  const [showHistory, setShowHistory] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('');
   const showBlueprintExport = data.current_generator_id === 'outpost_radius';
   const showBlueprintLibrary = data.current_generator_id === 'blueprint_stamp';
   const showPlacementSetup =
@@ -2459,6 +2530,41 @@ export const WorldEditPanel = () => {
 
   const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
 
+  useEffect(() => {
+    if (data.current_generator_category) {
+      setActiveCategory(data.current_generator_category);
+      return;
+    }
+
+    if (
+      !data.has_generator ||
+      !data.categories?.some((category) => category.category === activeCategory)
+    ) {
+      setActiveCategory('');
+    }
+  }, [
+    activeCategory,
+    data.categories,
+    data.current_generator_category,
+    data.has_generator,
+  ]);
+
+  const handleSelectCategory = (category: GeneratorCategory) => {
+    setShowHistory(false);
+    setActiveCategory(category.category);
+
+    const nextGenerator =
+      category.generators?.find(
+        (generator) => generator.id === data.current_generator_id,
+      ) || category.generators?.[0];
+
+    if (nextGenerator && nextGenerator.id !== data.current_generator_id) {
+      act('select_generator', {
+        generator_id: nextGenerator.id,
+      });
+    }
+  };
+
   return (
     <Window title="World Edit Panel" width={950} height={620}>
       <Window.Content>
@@ -2466,21 +2572,15 @@ export const WorldEditPanel = () => {
           <Stack.Item width={8}>
             <Sidebar
               data={data}
-              pageIndex={pageIndex}
-              setPageIndex={setPageIndex}
+              activeCategory={activeCategory}
+              historyActive={showHistory}
+              onSelectCategory={handleSelectCategory}
+              onOpenHistory={() => setShowHistory(true)}
             />
           </Stack.Item>
 
           <Stack.Item grow basis={0} ml={1}>
-            {currentPage === 'browse' && (
-              <GeneratorCatalogPage
-                data={data}
-                act={act}
-                onOpenWork={() => setPageIndex(1)}
-              />
-            )}
-
-            {currentPage === 'work' && (
+            {!showHistory && (
               <WorkspacePage
                 data={data}
                 act={act}
@@ -2489,18 +2589,10 @@ export const WorldEditPanel = () => {
                 showBlueprintExport={showBlueprintExport}
                 showBlueprintLibrary={showBlueprintLibrary}
                 showPlacementSetup={showPlacementSetup}
-                onOpenBrowse={() => setPageIndex(0)}
-                onOpenHistory={() => setPageIndex(2)}
               />
             )}
 
-            {currentPage === 'history' && (
-              <HistoryPage
-                data={data}
-                act={act}
-                onOpenWork={() => setPageIndex(1)}
-              />
-            )}
+            {showHistory && <HistoryPage data={data} act={act} />}
           </Stack.Item>
         </Stack>
       </Window.Content>
