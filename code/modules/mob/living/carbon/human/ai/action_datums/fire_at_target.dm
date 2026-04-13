@@ -339,21 +339,20 @@
 		qdel(src)
 		return
 
-	else if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma/plasma_pistol))
-		var/obj/item/weapon/gun/energy/plasma/plasma_pistol/plasma_reducer = brain.primary_weapon
-		addtimer(CALLBACK(plasma_reducer, TYPE_PROC_REF(/obj/item/weapon/gun/energy/plasma/plasma_pistol, start_fire), tied_human), plasma_reducer.get_fire_delay() * 0.25)
-		COOLDOWN_START(brain, stop_fire_cooldown, max(plasma_reducer.get_fire_delay()) + 0.25)
+	// SS220 EDIT - START
+	// else if(istype(brain.primary_weapon, /obj/item/weapon/gun/energy/plasma/plasma_pistol))
+	// else if(istype(brain.primary_weapon, /obj/item/weapon/gun/rifle/covenant_carbine))
+	var/datum/callback/followup_fire_callback = brain.primary_weapon.get_ai_followup_fire_callback(tied_human, brain.current_target)
+	if(followup_fire_callback)
+		currently_firing = FALSE
+		var/followup_fire_delay = brain.primary_weapon.get_ai_followup_fire_delay(tied_human, brain.current_target)
+		var/followup_fire_cooldown = brain.primary_weapon.get_ai_followup_fire_cooldown(tied_human, brain.current_target)
+		addtimer(followup_fire_callback, followup_fire_delay)
+		COOLDOWN_START(brain, stop_fire_cooldown, max(followup_fire_cooldown, followup_fire_delay))
 		stop_firing(brain)
 		qdel(src)
 		return
-
-	else if(istype(brain.primary_weapon, /obj/item/weapon/gun/rifle/covenant_carbine))
-		var/obj/item/weapon/gun/rifle/covenant_carbine/carbine_reducer = brain.primary_weapon
-		addtimer(CALLBACK(carbine_reducer, TYPE_PROC_REF(/obj/item/weapon/gun/rifle/covenant_carbine, start_fire), tied_human), carbine_reducer.get_fire_delay())
-		COOLDOWN_START(brain, stop_fire_cooldown, max(carbine_reducer.get_fire_delay()) + 1)
-		stop_firing(brain)
-		qdel(src)
-		return
+	// SS220 EDIT - END
 
 	else if(brain.primary_weapon.gun_firemode == GUN_FIREMODE_SEMIAUTO)
 		currently_firing = FALSE

@@ -106,13 +106,13 @@
 
 /area/new_irvine/sector_four
 	name = "New Irvine - Sector Four - Outdoors"
-	icon_state = "S3 OUTDOOR"
+	icon_state = "S4 OUTDOOR"
 	ceiling = CEILING_NONE
 	powernet_name = "New Irvine S4"
 
 /area/new_irvine/sector_four/indoor
 	name = "New Irvine - Sector Four - Indoors"
-	icon_state = "S3 INDOOR"
+	icon_state = "S4 INDOOR"
 	ceiling = CEILING_METAL
 
 /area/new_irvine/sector_four/indoor/port
@@ -279,31 +279,31 @@
 
 /area/new_irvine/sewers
 	name = "New Irvine - Sewer System"
-	icon_state = "3S DORM"
+	icon_state = "TUNNEL OUTSKIRT"
 	ceiling = CEILING_METAL
 	powernet_name = "New Irvine - Sewer"
 
 /area/new_irvine/sewers/lab
 	name = "New Irvine - Classified"
-	icon_state = "3S DORM"
+	icon_state = "OUTSKIRT INDOORS"
 	powernet_name = "New Irvine - Lab #1"
 
 /area/new_irvine/sewers/lab/railway
 	name = "New Irvine - Data Withheld"
-	icon_state = "3S DORM"
+	icon_state = "TUNNEL OUTSKIRT"
 	powernet_name = "New Irvine - Lab #1 Railway"
 
 /area/new_irvine/sewers/lab/lvltwo
 	name = "New Irvine - Restricted"
-	icon_state = "3S DORM"
+	icon_state = "OUTSKIRT INDOORS"
 	powernet_name = "New Irvine - Lab #2"
 
 /area/new_irvine/sewers/lab/lvlthree
 	name = "New Irvine - Redacted"
-	icon_state = "3S DORM"
+	icon_state = "OUTSKIRT INDOORS"
 	powernet_name = "New Irvine - Lab #3"
 
 /area/new_irvine/sewers/lab/lvlfour
 	name = "New Irvine - Access Denied"
-	icon_state = "3S DORM"
+	icon_state = "OUTSKIRT INDOORS"
 	powernet_name = "New Irvine - Lab #4"

@@ -1,6 +1,6 @@
 /obj/structure/machinery/recharger/covenant
-	name = "\improper plasma-charging crate"
-	desc = "A crate made of a purple alien material. It can only fit covenant plasma weapons to recharge them."
+	name = "\improper плазменный зарядный ящик"
+	desc = "Ящик из фиолетового инопланетного материала. Подходит только для подзарядки плазменного оружия Ковенанта."
 	icon = 'icons/halo/obj/structures/machinery/cov_recharger.dmi'
 	icon_state = "cov_recharger"
 	density = TRUE

@@ -137,12 +137,20 @@ GLOBAL_LIST_INIT(platoon_to_role_list, list(/datum/squad/marine/alpha = ROLES_AI
 												/datum/squad/marine/rmc = ROLES_RMCTROOP))
 
 
-GLOBAL_LIST_INIT(personal_weapons_list, list("M90 CAWS shotgun" = /obj/effect/essentials_set/m90caws,\
-											"MA5 M301 40mm grenade launcher" = /obj/effect/essentials_set/ma5_launcher))
+GLOBAL_LIST_INIT(personal_weapons_list, list("Ithaca 37 shotgun-stakeout" = /obj/item/storage/large_holster/m37/full/noammo,\
+											"Ithaca 37 shotgun-traditional" = /obj/item/weapon/gun/shotgun/pump/stock,\
+											"Sawn-off double barrel shotgun" = /obj/item/weapon/gun/shotgun/double/sawn,\
+											"M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified,\
+											"Cut down M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified/sawnoff,\
+											"4 M15 grenades" = /obj/effect/essentials_set/m15_4_pack))
 
 /datum/game_mode/colonialmarines/ai/proc/spawn_personal_weapon()
+	var/list/personal_weapon_profile = GLOB.RoleAuthority?.get_main_ship_lowpop_personal_weapon_profile() // SS220 EDIT: active ship profile owns HALO-specific support weapon routing and messaging
+	var/list/personal_weapon_options = personal_weapon_profile?["options"] || GLOB.personal_weapons_list
+	var/required_faction = personal_weapon_profile?["required_faction"] || FACTION_MARINE
+	var/list/required_roles = personal_weapon_profile?["roles"]
 	var/datum/squad/squad = locate() in GLOB.RoleAuthority.squads
-	if(!squad || squad.faction != FACTION_UNSC || !squad.marines_list.len > 0)
+	if(!squad || squad.faction != required_faction || !squad.marines_list.len > 0) // SS220 EDIT: ship profile controls lowpop personal weapon faction gate
 		return
 	if(!GLOB.personal_weapon.len)
 		return
@@ -156,9 +164,16 @@ GLOBAL_LIST_INIT(personal_weapons_list, list("M90 CAWS shotgun" = /obj/effect/es
 		if(!squad.marines_list.Find(marine))
 			chosen_weapon = "bugged"
 			break
-		if(marine.job != JOB_SQUAD_MARINE)
+		// SS220 EDIT - START
+		// if(marine.job == JOB_SO) //get outta here butter bars
+		if(islist(required_roles))
+			if(!required_roles.Find(GET_DEFAULT_ROLE(marine.job)))
+				temporary_list.Remove(marine)
+				continue
+		else if(marine.job == JOB_SO)
 			temporary_list.Remove(marine)
 			continue
+		// SS220 EDIT - END
 		if(!marine.client)
 			temporary_list.Remove(marine)
 			continue
@@ -170,10 +185,16 @@ GLOBAL_LIST_INIT(personal_weapons_list, list("M90 CAWS shotgun" = /obj/effect/es
 		if(chosen_weapon == "bugged")
 			log_debug("Chosen Weapon selected a bugged marine.")
 		else
-			var/obj/item/storage/box/personalcase/unsc/pcase = new(get_turf(pick(GLOB.personal_weapon)))
+			var/case_type = personal_weapon_profile?["case_type"] || /obj/item/storage/box/personalcase
+			var/obj/item/storage/box/personalcase/pcase = new case_type(get_turf(pick(GLOB.personal_weapon)))
 			pcase.assign_owner(marine.real_name)
-			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(to_chat), marine, SPAN_NOTICE("You remember that your requisition for a <b>[marine.client.prefs.personal_weapon]</b> was approved. It's in the armory")), 5 SECONDS)
-			var/the_gun = GLOB.personal_weapons_list[chosen_weapon]
+			var/notice_text = personal_weapon_profile?["notice_text"]
+			if(notice_text)
+				notice_text = replacetext(notice_text, "%weapon%", "[marine.client.prefs.personal_weapon]")
+			else
+				notice_text = "You remember that you've successfully snuck in your <b>heirloom weapon</b> aboard: <b>[marine.client.prefs.personal_weapon]</b>. It's in the armory"
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(to_chat), marine, SPAN_NOTICE(notice_text)), 5 SECONDS)
+			var/the_gun = personal_weapon_options[chosen_weapon]
 			new the_gun(pcase)
 			for(var/obj/effect/landmark/personal_weapon/PW in GLOB.personal_weapon)
 				qdel(PW)

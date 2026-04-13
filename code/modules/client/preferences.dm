@@ -271,8 +271,8 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 	/// Dropship name used when spawning as LT
 	var/dropship_name = "Midway"
 
-	/// Rifleman support weapon that spawns on HALO ship maps
-	var/personal_weapon = "M90 CAWS shotgun"
+	/// Personal weapon that spawns randomly roundstart
+	var/personal_weapon = "Ithaca 37 shotgun" // SS220 EDIT: vanilla default restored; active ship profile can override via RoleAuthority
 
 /datum/preferences/New(client/C)
 	key_bindings = deep_copy_list(GLOB.hotkey_keybinding_list_by_key) // give them default keybinds and update their movement keys
@@ -417,7 +417,9 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 			dat += "<br><br>"
 
 			dat += "<h2><b><u>Marine Gear:</u></b></h2>"
-			dat += "<b>Rifleman Support Weapon:</b> <a href ='byond://?_src_=prefs;preference=personalweapon;task=input'><b>[personal_weapon]</b></a><br>"
+			var/list/personal_weapon_profile = GLOB.RoleAuthority?.get_main_ship_lowpop_personal_weapon_profile() // SS220 EDIT: ship profile owns HALO-specific personal weapon UI text
+			var/personal_weapon_label = personal_weapon_profile?["label"] || "Personal Weapon" // SS220 EDIT: HALO-specific label stays in modular ship profile metadata
+			dat += "<b>[personal_weapon_label]:</b> <a href ='byond://?_src_=prefs;preference=personalweapon;task=input'><b>[personal_weapon]</b></a><br>"
 			dat += "<b>Underwear:</b> <a href ='byond://?_src_=prefs;preference=underwear;task=input'><b>[underwear]</b></a><br>"
 			dat += "<b>Undershirt:</b> <a href='byond://?_src_=prefs;preference=undershirt;task=input'><b>[undershirt]</b></a><br>"
 
@@ -1773,7 +1775,11 @@ GLOBAL_LIST_INIT(bgstate_options, list(
 						f_style = new_f_style
 
 				if("personalweapon")
-					var/new_weapon = tgui_input_list(user, "Choose your character's support weapon:", "Character Preference (UNSC Only)", GLOB.personal_weapons_list+"None")
+					var/list/personal_weapon_profile = GLOB.RoleAuthority?.get_main_ship_lowpop_personal_weapon_profile() // SS220 EDIT: active ship profile supplies HALO-specific personal weapon options
+					var/list/personal_weapon_options = personal_weapon_profile?["options"] || GLOB.personal_weapons_list
+					var/personal_weapon_prompt = personal_weapon_profile?["prompt"] || "Choose your character's personal weapon:"
+					var/personal_weapon_title = personal_weapon_profile?["title"] || "Character Preference (USCM Only)"
+					var/new_weapon = tgui_input_list(user, personal_weapon_prompt, personal_weapon_title, personal_weapon_options + "None")
 					if(new_weapon)
 						personal_weapon = new_weapon
 					ShowChoices(user)

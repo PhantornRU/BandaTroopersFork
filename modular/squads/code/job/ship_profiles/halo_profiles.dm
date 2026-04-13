@@ -26,6 +26,18 @@
 	)
 	distress_roles = JOB_HALO_UNSC_SHIPSIDE_LIST + GLOB.ROLES_GROUND
 	lowpop_roles = list(JOB_SO_UNSC) + JOB_HALO_UNSC_MARINES_LIST
+	lowpop_personal_weapon_options = list(
+		"M90 CAWS shotgun" = /obj/effect/essentials_set/m90caws,
+		"MA5 M301 40mm grenade launcher" = /obj/effect/essentials_set/ma5_launcher,
+	)
+	lowpop_personal_weapon_default = "M90 CAWS shotgun"
+	lowpop_personal_weapon_label = "Rifleman Support Weapon"
+	lowpop_personal_weapon_prompt = "Choose your character's support weapon:"
+	lowpop_personal_weapon_title = "Character Preference (HALO Only)"
+	lowpop_personal_weapon_notice_text = "You remember that your requisition for a <b>%weapon%</b> was approved. It's in the armory"
+	lowpop_personal_weapon_roles = list(JOB_SQUAD_MARINE)
+	lowpop_personal_weapon_required_faction = FACTION_UNSC
+	lowpop_personal_weapon_case_type = /obj/item/storage/box/personalcase/unsc
 	preview_presets = list(
 		JOB_SO = /datum/equipment_preset/unsc/platco/equipped,
 		JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/equipped,
@@ -116,6 +128,18 @@
 	)
 	distress_roles = JOB_HALO_ODST_SHIPSIDE_LIST + GLOB.ROLES_GROUND
 	lowpop_roles = list(JOB_SO_ODST) + JOB_HALO_ODST_MARINES_LIST
+	lowpop_personal_weapon_options = list(
+		"M90 CAWS shotgun" = /obj/effect/essentials_set/m90caws,
+		"MA5 M301 40mm grenade launcher" = /obj/effect/essentials_set/ma5_launcher,
+	)
+	lowpop_personal_weapon_default = "M90 CAWS shotgun"
+	lowpop_personal_weapon_label = "Rifleman Support Weapon"
+	lowpop_personal_weapon_prompt = "Choose your character's support weapon:"
+	lowpop_personal_weapon_title = "Character Preference (HALO Only)"
+	lowpop_personal_weapon_notice_text = "You remember that your requisition for a <b>%weapon%</b> was approved. It's in the armory"
+	lowpop_personal_weapon_roles = list(JOB_SQUAD_MARINE)
+	lowpop_personal_weapon_required_faction = FACTION_UNSC
+	lowpop_personal_weapon_case_type = /obj/item/storage/box/personalcase/unsc
 	preview_presets = list(
 		JOB_SO = /datum/equipment_preset/unsc/platco/odst/equipped,
 		JOB_SQUAD_MARINE = /datum/equipment_preset/unsc/pfc/odst/equipped,

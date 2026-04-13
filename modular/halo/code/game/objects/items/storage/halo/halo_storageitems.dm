@@ -271,7 +271,7 @@
 		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
 /obj/item/storage/large_holster/spnkr
-	name = "SPNKr tube storage backpack"
+	name = "транспортный ранец для SPNKr"
 	desc = "Транспортная рама с двумя жёсткими тубусами под блоки M19 и отдельной подвесной системой под сам M41 SPNKr."
 	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "spnkrpack_0"
@@ -348,17 +348,17 @@
 //======================
 
 /obj/item/storage/box/personalcase/unsc
-	name = "UNSC requisitioned weapon case"
-	desc = "A secure case with a lock containing someone's requisitioned weapon."
+	name = "оружейный кейс UNSC"
+	desc = "Защищенный кейс с замком, содержащий чье-то заказное оружие."
 	icon = 'icons/halo/obj/items/storage/kits.dmi'
 
 /obj/item/storage/box/personalcase/unsc/assign_owner(new_owner)
 	owner = new_owner
-	name = "\improper [owner]'s UNSC requisitioned weapon case"
-	desc = "A secure case with a lock containing [owner]'s requisitioned weapon."
+	name = "\improper оружейный кейс UNSC ([owner])"
+	desc = "Защищенный кейс с замком, содержащий заказное оружие, закрепленное за [owner]."
 
 /obj/item/storage/unsc_speckit
-	name = "UNSC specialist kit box"
+	name = "ящик комплекта специалиста UNSC"
 	desc = "Неподписанный и никак не маркированный ящик со специализированным снаряжением. Остаётся лишь гадать, что лежит внутри."
 	icon = 'icons/halo/obj/items/storage/spec_kits.dmi'
 	icon_state = "template"
@@ -394,7 +394,7 @@
 		open(user)
 
 /obj/item/storage/unsc_speckit/spnkr
-	name = "SPNKr equipment case"
+	name = "кейс комплекта SPNKr"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SPNKr."
 	icon_state = "spnkr"
 	open_state = "spnkr_o"
@@ -410,7 +410,7 @@
 	new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded(src)
 
 /obj/item/storage/unsc_speckit/srs99
-	name = "SRS99-AM equipment case"
+	name = "кейс комплекта SRS99-AM"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SRS99-AM."
 	icon_state = "srs99"
 	open_state = "srs99_o"

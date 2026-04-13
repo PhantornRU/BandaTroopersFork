@@ -757,7 +757,10 @@
 	if(!dropship_name)
 		dropship_name = "Midway" // SS220 EDIT: unify dropship preset validation with squad preset rules
 
-	personal_weapon = sanitize_inlist(personal_weapon, GLOB.personal_weapons_list+"None", initial(personal_weapon))
+	var/list/personal_weapon_profile = GLOB.RoleAuthority?.get_main_ship_lowpop_personal_weapon_profile() // SS220 EDIT: active ship profile owns HALO-specific personal weapon validation
+	var/list/personal_weapon_options = personal_weapon_profile?["options"] || GLOB.personal_weapons_list
+	var/default_personal_weapon = personal_weapon_profile?["default"] || initial(personal_weapon)
+	personal_weapon = sanitize_inlist(personal_weapon, personal_weapon_options + "None", default_personal_weapon)
 
 	alternate_option = sanitize_integer(alternate_option, 0, 2, initial(alternate_option))
 	if(!job_preference_list)
