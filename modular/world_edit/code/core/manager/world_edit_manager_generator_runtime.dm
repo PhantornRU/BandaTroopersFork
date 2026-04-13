@@ -222,8 +222,8 @@
 		return TRUE
 
 	var/confirm_text = build_safe_placement_confirm_text(collector_plan)
-	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("РџРѕРґС‚РІРµСЂРґРёС‚СЊ", "РћС‚РјРµРЅР°"))
-	if(answer != "РџРѕРґС‚РІРµСЂРґРёС‚СЊ")
+	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+	if(answer != "Подтвердить")
 		return TRUE
 
 	var/mode = get_effective_placement_mode()
@@ -231,7 +231,7 @@
 	var/datum/world_edit_apply_result/collector_result = current_generator.apply(user, current_params)
 	if(!istype(collector_result))
 		clear_preview_plan_state()
-		return fail_apply(user, "Р“РµРЅРµСЂР°С‚РѕСЂ РІРµСЂРЅСѓР» РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ РїСЂРёРјРµРЅРµРЅРёСЏ.")
+		return fail_apply(user, "Генератор вернул некорректный результат применения.")
 
 	record_apply_result(user, collector_result, world.time - start_ds)
 	clear_preview_plan_state()

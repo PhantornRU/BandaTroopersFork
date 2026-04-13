@@ -243,17 +243,6 @@
 			to_chat(ui.user, SPAN_NOTICE("Click-режим остановлен."))
 			return TRUE
 
-		if("finish_placement_collection")
-			var/click_mode_active = sync_click_intercept_state()
-			if(!click_mode_active || !is_current_placement_collector())
-				return TRUE
-			if(get_placement_collector_point_count() < get_placement_collector_min_points())
-				to_chat(ui.user, SPAN_WARNING("Collector needs at least [get_placement_collector_min_points()] points before it can be finished."))
-				return TRUE
-			stop_click_mode()
-			to_chat(ui.user, SPAN_NOTICE("Collector finished. Use Run preview/apply from the panel to execute the collected footprint."))
-			return TRUE
-
 		if("clear_history")
 			history_entries = list()
 			if(islist(changeset_entries))
