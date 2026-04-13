@@ -141,12 +141,16 @@ GLOBAL_LIST_INIT(platoon_to_role_list, list(/datum/squad/marine/alpha = ROLES_AI
 
 
 // SS220 EDIT - START
-// GLOBAL_LIST_INIT(personal_weapons_list, list("Ithaca 37 shotgun-stakeout" = /obj/item/storage/large_holster/m37/full/noammo,\
-// 											"Ithaca 37 shotgun-traditional" = /obj/item/weapon/gun/shotgun/pump/stock,\
-// 											"Sawn-off double barrel shotgun" = /obj/item/weapon/gun/shotgun/double/sawn,\
-// 											"M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified,\
-// 											"Cut down M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified/sawnoff,\
-// 											"4 M15 grenades" = /obj/effect/essentials_set/m15_4_pack))
+/*
+GLOBAL_LIST_INIT(personal_weapons_list, list(
+	"Ithaca 37 shotgun-stakeout" = /obj/item/storage/large_holster/m37/full/noammo,
+	"Ithaca 37 shotgun-traditional" = /obj/item/weapon/gun/shotgun/pump/stock,
+	"Sawn-off double barrel shotgun" = /obj/item/weapon/gun/shotgun/double/sawn,
+	"M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified,
+	"Cut down M79 grenade launcher" = /obj/item/weapon/gun/launcher/grenade/m81/m79/modified/sawnoff,
+	"4 M15 grenades" = /obj/effect/essentials_set/m15_4_pack,
+))
+*/
 GLOBAL_LIST_INIT(personal_weapons_list, list("Shotgun",\
 											"Compact shotgun",\
 											"Double-barrel shotgun",\
