@@ -5,6 +5,8 @@
 	var/list/distress_roles
 	var/list/lowpop_roles
 	var/list/lowpop_personal_weapon_options
+	var/list/lowpop_personal_weapon_spawn_types
+	var/list/lowpop_personal_weapon_legacy_aliases
 	var/lowpop_personal_weapon_default
 	var/lowpop_personal_weapon_label
 	var/lowpop_personal_weapon_prompt
@@ -69,12 +71,37 @@
 
 	return null
 
+/datum/modular_ship_platoon_profile/proc/get_default_personal_weapon_options()
+	return list(
+		"Shotgun",
+		"Compact shotgun",
+		"Double-barrel shotgun",
+		"Grenade launcher",
+		"Compact grenade launcher",
+		"Grenade pack",
+	)
+
+/datum/modular_ship_platoon_profile/proc/get_default_personal_weapon_legacy_aliases()
+	return list(
+		"Ithaca 37 shotgun" = "Shotgun",
+		"Ithaca 37 shotgun-stakeout" = "Compact shotgun",
+		"Ithaca 37 shotgun-traditional" = "Shotgun",
+		"Sawn-off double barrel shotgun" = "Double-barrel shotgun",
+		"M79 grenade launcher" = "Grenade launcher",
+		"Cut down M79 grenade launcher" = "Compact grenade launcher",
+		"4 M15 grenades" = "Grenade pack",
+		"M90 CAWS shotgun" = "Shotgun",
+		"MA5 M301 40mm grenade launcher" = "Grenade launcher",
+	)
+
 /datum/modular_ship_platoon_profile/proc/get_lowpop_personal_weapon_profile()
-	if(!islist(lowpop_personal_weapon_options) && !istext(lowpop_personal_weapon_default) && !istext(lowpop_personal_weapon_label) && !ispath(lowpop_personal_weapon_case_type))
+	if(!islist(lowpop_personal_weapon_options) && !islist(lowpop_personal_weapon_spawn_types) && !istext(lowpop_personal_weapon_default) && !istext(lowpop_personal_weapon_label) && !ispath(lowpop_personal_weapon_case_type))
 		return null
 
 	return list(
 		"options" = copy_profile_list(lowpop_personal_weapon_options),
+		"spawn_types" = copy_profile_list(lowpop_personal_weapon_spawn_types),
+		"aliases" = copy_profile_list(lowpop_personal_weapon_legacy_aliases),
 		"default" = lowpop_personal_weapon_default,
 		"label" = lowpop_personal_weapon_label,
 		"prompt" = lowpop_personal_weapon_prompt,
