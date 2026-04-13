@@ -49,7 +49,7 @@
 		RegisterSignal(parent, COMSIG_KB_LIVING_JUMP_DOWN, PROC_REF(start_jump))
 
 /datum/component/jump/proc/charge_jump(atom/movable/jumper)
-	jump_start_time = world.timeofday
+	jump_start_time = world.time
 
 /datum/component/jump/proc/can_jump(atom/movable/jumper)
 	SIGNAL_HANDLER
@@ -77,7 +77,7 @@
 	var/effective_jump_height = jump_height
 	var/effective_jumper_allow_pass_flags = jumper_allow_pass_flags
 	if(jump_start_time)
-		var/charge_time = min(abs((world.timeofday - jump_start_time) / MAX_JUMP_CHARGE_TIME), 1)
+		var/charge_time = min(max((world.time - jump_start_time) / MAX_JUMP_CHARGE_TIME, 0), 1)
 		effective_jump_duration = LERP(jump_duration, jump_duration * JUMP_CHARGE_DURATION_MULT, charge_time)
 		effective_jump_height = LERP(jump_height, jump_height * JUMP_CHARGE_HEIGHT_MULT, charge_time)
 		if(charge_time == 1)

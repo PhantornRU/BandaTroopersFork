@@ -29,7 +29,7 @@
 /datum/rto_support_preset_menu/tgui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, "RtoSupportPresetMenu", "RTO Support")
+		ui = new(user, src, "RtoSupportPresetMenu", "Поддержка RTO")
 		ui.open()
 
 /datum/rto_support_preset_menu/ui_status(mob/user, datum/ui_state/state)
@@ -60,7 +60,7 @@
 		templates = controller.build_preset_ui_data()
 	return list(
 		"templates" = templates,
-		"max_selected_templates" = controller?.max_selected_templates || 2,
+		"max_selected_templates" = controller?.get_max_selected_templates() || 2,
 	)
 
 /datum/rto_support_preset_menu/ui_data(mob/user)
@@ -69,6 +69,7 @@
 	var/can_add_template = FALSE
 	var/can_reset_templates = FALSE
 	var/reset_ready_in = 0
+	var/reset_delay_minutes = 60
 	var/selected_count = 0
 	if(controller)
 		templates = controller.build_preset_ui_data()
@@ -77,14 +78,16 @@
 		can_add_template = controller.can_add_template()
 		can_reset_templates = controller.can_reset_templates()
 		reset_ready_in = controller.get_selection_reset_ready_in()
+		reset_delay_minutes = controller.get_selection_reset_delay_minutes()
 	return list(
 		"templates" = templates,
 		"selected_templates" = selected_templates,
 		"selected_count" = selected_count,
-		"max_selected_templates" = controller?.max_selected_templates || 2,
+		"max_selected_templates" = controller?.get_max_selected_templates() || 2,
 		"can_add_template" = can_add_template,
 		"can_reset_templates" = can_reset_templates,
 		"reset_ready_in" = round(reset_ready_in / 10),
+		"reset_delay_minutes" = reset_delay_minutes,
 	)
 
 /datum/rto_support_preset_menu/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
@@ -100,9 +103,10 @@
 			var/datum/rto_support_template/template = controller?.find_template(template_id)
 			if(!template)
 				return FALSE
+			var/reset_delay_minutes = controller?.get_selection_reset_delay_minutes() || 0
 			var/confirm_choice = tgui_alert(
 				user,
-				"Вы уверены, что хотите добавить пакет поддержки \"[template.name]\" в свободный слот? Полный сброс обоих слотов станет доступен через 60 минут от первого выбора.",
+				"Вы уверены, что хотите добавить пакет поддержки \"[template.name]\" в свободный слот? Полный сброс всех слотов станет доступен через [reset_delay_minutes] минут от первого выбора.",
 				"Подтверждение выбора",
 				list("Подтвердить", "Отмена"),
 				15 SECONDS,
@@ -121,7 +125,7 @@
 				return FALSE
 			var/confirm_reset = tgui_alert(
 				user,
-				"Сбросить оба слота пакетов поддержки и выбрать их заново?",
+				"Сбросить все слоты пакетов поддержки и выбрать их заново?",
 				"Сброс пакетов",
 				list("Сбросить", "Отмена"),
 				15 SECONDS,

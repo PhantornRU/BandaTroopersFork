@@ -108,7 +108,8 @@ Contains most of the procs that are called when a mob is attacked by something
 	if(istype(wear_suit, /obj/item/clothing/suit/marine/unsc/mjolnir))
 		var/obj/item/clothing/suit/marine/unsc/mjolnir/mjolnir_armor = wear_suit
 		if(mjolnir_armor.armor_status > 0)
-			mjolnir_armor.armor_status = max(mjolnir_armor.armor_status - (prob(50) ? 0.1 : 0.25), 0)
+			var/armor_loss = max(damage * 0.005, 0.05) // SS220 EDIT: scale Mjolnir degradation by incoming damage while keeping a small minimum wear
+			mjolnir_armor.armor_status = max(mjolnir_armor.armor_status - armor_loss, 0)
 			mjolnir_armor.armor_check()
 			return TRUE
 	return FALSE

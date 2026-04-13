@@ -19,6 +19,7 @@
 
 ## Storage policy
 - `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` are tracked task-state for the current task, not a private memory dump.
+- `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` are local working state and must not be included in commits or pull requests unless the task explicitly requires a coordinated baseline update for them.
 - `CONFIRMED_UNRESOLVED_ERRORS.md` — долгоживущий реестр из слоя устойчивых правил, а не task-state и не место для сырых логов.
 - Эти Markdown-файлы должны оставаться короткими: текущий статус, принятые решения, сводка доказательств и ссылки на сырые логи.
 - Raw command output, long logs, dumps, temporary JSON, and other noisy local artifacts belong only in `logs/` or other ignored local folders.

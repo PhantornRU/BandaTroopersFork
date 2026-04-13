@@ -7,7 +7,7 @@
 
 /datum/action/human_action/activable/lunge/use_ability(atom/affected_atom, mob/living/carbon/owner)
 	owner = usr
-	if(owner.body_position == LYING_DOWN || target == owner || !affected_atom || !isturf(owner.loc))
+	if(owner.body_position == LYING_DOWN || target == owner || !iscarbon(affected_atom) || !isturf(owner.loc))
 		return
 	if(!action_cooldown_check())
 		to_chat(owner, SPAN_WARNING("You can't do that yet..."))

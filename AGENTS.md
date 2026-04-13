@@ -36,6 +36,7 @@
 - Маркеры `SS220 EDIT` применяются в upstream и согласованных config surfaces по правилам из [`modular/__docs/SS220_DEVELOPMENT_RULES.md`](./modular/__docs/SS220_DEVELOPMENT_RULES.md).
 - Сборку и compile-проверки запускать через `BUILD.cmd` или `tools/build/build`, а не через DreamMaker-only workflow.
 - Не использовать деструктивные git-команды без прямого запроса пользователя.
+- `modular/__agents/.AI_AGENT/PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` не должны попадать в коммиты и PR. Перед коммитом или открытием PR их нужно вернуть к baseline-состоянию, если задача явно не требует отдельного согласованного обновления этих файлов.
 
 ## Маршрутизация
 - Агентная база знаний: [`modular/__agents/.AI_AGENT/`](./modular/__agents/.AI_AGENT/README.md)

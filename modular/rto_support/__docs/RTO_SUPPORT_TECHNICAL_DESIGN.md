@@ -64,10 +64,11 @@ Controller больше не живет в модели singular `active_templat
 
 Основной контракт:
 
-- можно выбрать до `2` уникальных пакетов;
+- по умолчанию можно выбрать до `2` уникальных пакетов;
 - второй слот необязателен;
-- первый выбор запускает timer полного reset на `60 минут`;
-- reset всегда полный и очищает оба слота;
+- первый выбор по умолчанию запускает timer полного reset на `60 минут`;
+- лимит слотов и время полного reset читаются из `Game Rule Panel`;
+- reset всегда полный и очищает все выбранные слоты;
 - select-preset action остается доступным и после первого выбора.
 
 ## 5. Cooldown model
@@ -164,7 +165,7 @@ HALO admin bridge держится отдельно в modular compat layer.
 
 ## 10. USCM payload model
 
-USCM utility support использует hybrid-подход:
+USCM utility support использует shared weighted charges:
 
 - часть новых действий переиспользует existing upstream crates;
 - часть заведена как compact modular payloads в `modular/rto_support/code/fire_support/uscm_support_payloads.dm`.

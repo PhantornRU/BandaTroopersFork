@@ -98,10 +98,15 @@
 			raw_damage = check_energy_shield(raw_damage, "the hit")
 			if(!raw_damage)
 				return
-			if(armor_degrade(raw_damage))
-				return
 
+			// SS220 EDIT - START: keep punch feedback even when Mjolnir absorbs the blow
+			// if(armor_degrade(raw_damage))
+			// 	return
 			playsound(loc, attack.attack_sound, 25, 1)
+			if(armor_degrade(raw_damage))
+				visible_message(SPAN_DANGER("[attacking_mob] [pick(attack.attack_verb)]ed [src], but the Mjolnir armor absorbs the blow!"), null, null, 5)
+				return
+			// SS220 EDIT - END
 			visible_message(SPAN_DANGER("[attacking_mob] [pick(attack.attack_verb)]ed [src]!"), null, null, 5)
 			var/final_damage = armor_damage_reduction(GLOB.marine_melee, raw_damage, armor, FALSE) // no penetration from punches
 			apply_damage(final_damage, BRUTE, affecting, sharp=attack.sharp, edge = attack.edge)

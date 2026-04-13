@@ -146,6 +146,9 @@ map halo_new_irvine
 	default # SS220 EDIT
 endmap
 
+map halo_new_irvine_covenant
+endmap
+
 map mackay_station
 endmap
 

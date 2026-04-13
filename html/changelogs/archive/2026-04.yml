@@ -1,0 +1,23 @@
+2026-04-13:
+  PhantornRU:
+  - rscadd: Added the April HALO sync wave with New Irvine covenant support, UNSC
+      support-weapon flow, and related HALO runtime updates
+  - mapadd: added the New Irvine covenant variant and refreshed New Irvine HALO support
+      content
+  - maptweak: tweaked DWTN and DWTN ODST support-weapon spawns, reconciled HALO map
+      rotation support, and replaced New Irvine covenant var-edited areas with a proper
+      subtype path
+  - imageadd: added HALO phone, Red Gate, forerunner, SPNKr, and UNSC storage assets
+      required by the sync wave
+  - bugfix: fixed the missing modular covenant recharger dependency and aligned the
+      DWTN ODST armory control id
+  - code_imp: changed HALO modular support layers and documented the April HALO sync
+      coverage
+  - rscadd: Added the April HALO sync wave content, including New Irvine covenant
+      support, UNSC support weapon flow, and related HALO runtime updates.
+  - tweak: Updated DWTN and DWTN ODST support-weapon spawns and reconciled HALO map
+      rotation support with the BandaTroopers overlay.
+  - imageadd: Added HALO phone, Red Gate, forerunner, SPNKr, and UNSC storage assets
+      required by the sync wave.
+  - bugfix: Fixed HALO sync integration by porting the modular covenant recharger
+      dependency and aligning the DWTN ODST armory control id.

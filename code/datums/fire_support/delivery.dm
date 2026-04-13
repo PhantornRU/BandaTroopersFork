@@ -5,12 +5,13 @@
 	cost = 2
 	scatter_range = 1
 	icon_state = "ammo"
-	initiate_chat_message = "TARGET ACQUIRED AMMO CRATE LAUNCHING."
+	initiate_chat_message = "ЦЕЛЬ ПОДТВЕРЖДЕНА. СБРОС ПРИПАСОВ."
 	initiate_screen_message = list(
-		"Make sure to tip!",
-		"Your ammo's here, enjoy.",
-		"Watch your head, crate dropping.",
-		"Dropping it.. now.",
+		"Сброс припасов выполняется. Держитесь подальше от зоны падения.",
+		"Груз уже на подходе. Следите за небом.",
+		"Контейнер идёт на точку. Освободите место для приземления.",
+		"Припасы сбрасываются. Не стойте под контейнером.",
+		"Подтверждаю доставку груза. Сброс начинается.",
 	)
 	delay_to_impact = 2 SECONDS
 	start_visual = null
@@ -61,12 +62,13 @@
 	cost = 2
 	scatter_range = 1
 	icon_state = "sentry"
-	initiate_chat_message = "TARGET ACQUIRED SENTRY POD LAUNCHING."
+	initiate_chat_message = "ЦЕЛЬ ПОДТВЕРЖДЕНА. ТУРЕЛЬНЫЙ МОДУЛЬ В ПУТИ."
 	initiate_screen_message = list(
-		"Sending you a little friend.",
-		"Watch your head, sentry dropping.",
-		"Take good care of him, would you?.",
-		"Sentry, on the way."
+		"Турельный модуль уже в пути. Освободите площадку.",
+		"Сброс турели подтверждён. Не стойте под капсулой.",
+		"Доставляем автоматическую турель на указанную точку.",
+		"Турель скоро коснётся земли. Приготовьтесь к развёртыванию.",
+		"Капсула с турелью идёт на точку. Следите за небом.",
 	)
 	delay_to_impact = 2 SECONDS
 	start_visual = null

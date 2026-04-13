@@ -51,7 +51,7 @@
 
 /datum/keybinding/human/strength
 	category = CATEGORY_HUMAN_COMBAT
-	hotkey_keys = list("B")
+	hotkey_keys = list("Unbound")
 	classic_keys = list("Unbound")
 	name = "strength"
 	full_name = "Strength"
