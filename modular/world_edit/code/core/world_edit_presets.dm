@@ -276,11 +276,17 @@ GLOBAL_DATUM_INIT(world_edit_presets, /datum/world_edit_preset_service, new)
 	if(validated_result["error"])
 		return fail_preset_action(user, validated_result["error"])
 
-	if(!set_generator_by_id(generator_id))
-		return fail_preset_action(user, "Не удалось активировать генератор для preset.")
+	var/keep_active_placement = is_safe_placement_mode_active()
+	var/same_generator = current_definition?.id == generator_id
+	if(!same_generator)
+		if(!set_generator_by_id(generator_id, keep_active_placement))
+			return fail_preset_action(user, "Не удалось активировать генератор для preset.")
+
+	if(keep_active_placement && same_generator)
+		validated_result["params"] = preserve_active_placement_runtime_params(validated_result["params"])
 
 	current_params = validated_result["params"]
-	reset_preview_runtime()
+	refresh_runtime_after_config_change()
 	last_ui_error = ""
 	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' загружен."))
 	return TRUE

@@ -14,6 +14,7 @@ import {
   ProgressBar,
   Section,
   Stack,
+  Tabs,
 } from '../components';
 import { Window } from '../layouts';
 
@@ -201,6 +202,8 @@ type ChoiceOption = {
   displayText: string;
 };
 
+type WorkspaceTabKey = 'editor' | 'history';
+
 type ToolbarAction = {
   label: string;
   action: string;
@@ -361,6 +364,36 @@ const isBlankDisplayValue = (value?: unknown) => {
 
 const getDisplayText = (value?: unknown, fallback = EMPTY_LABEL) =>
   isBlankDisplayValue(value) ? fallback : `${value}`;
+
+const renderMetaValue = (value?: unknown): ReactNode => {
+  if (value === null || typeof value === 'undefined') {
+    return EMPTY_LABEL;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'Да' : 'Нет';
+  }
+
+  if (Array.isArray(value)) {
+    const items = value
+      .map((entry) => renderMetaValue(entry))
+      .filter((entry) => `${entry}` !== EMPTY_LABEL);
+    return items.length ? items.join(', ') : EMPTY_LABEL;
+  }
+
+  if (typeof value === 'object') {
+    const pairs = Object.entries(value as Record<string, unknown>)
+      .map(([key, entryValue]) => `${key}: ${renderMetaValue(entryValue)}`)
+      .filter((entry) => !entry.endsWith(`: ${EMPTY_LABEL}`));
+    return pairs.length ? pairs.join(', ') : EMPTY_LABEL;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? `${value}` : EMPTY_LABEL;
+  }
+
+  return getDisplayText(value, EMPTY_LABEL);
+};
 
 const getPositiveCountText = (value?: number, fallback = EMPTY_LABEL) =>
   value && value > 0 ? `${value}` : fallback;
@@ -1950,7 +1983,147 @@ const ToolWorkspace = (props: {
   );
 };
 
-const HistoryDetailsSection = (props: {
+const HistoryWorkspace = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+}) => {
+  const { data, act } = props;
+
+  return (
+    <SurfaceCard
+      title="Журнал"
+      actions={
+        <Flex wrap mx={-0.2}>
+          <Flex.Item m={0.2}>
+            <Button
+              compact
+              color="average"
+              disabled={!data.can_cleanup_last_owned_effects}
+              onClick={() => act('cleanup_last_owned_effects')}
+            >
+              Очистить эффекты
+            </Button>
+          </Flex.Item>
+          <Flex.Item m={0.2}>
+            <Button
+              compact
+              color="average"
+              onClick={() => act('clear_history')}
+            >
+              Очистить журнал
+            </Button>
+          </Flex.Item>
+        </Flex>
+      }
+    >
+      {!data.last_changeset && !data.history_entries?.length && (
+        <Box color="label">Журнал пуст.</Box>
+      )}
+
+      {!!data.last_changeset && (
+        <Box
+          p={0.45}
+          style={{
+            border: '1px solid rgba(70, 107, 150, 0.45)',
+            background: 'rgba(70, 107, 150, 0.08)',
+            borderRadius: '4px',
+          }}
+        >
+          <Box bold mb={0.3}>
+            Последняя операция
+          </Box>
+          <CompactStatusRow
+            basis="32%"
+            items={[
+              {
+                label: 'Инструмент',
+                value: getGeneratorDisplayName(
+                  data,
+                  data.last_changeset.generator_id,
+                ),
+              },
+              {
+                label: 'Откат',
+                value: getTranslatedUndoPolicy(data.last_changeset.undo_policy),
+              },
+              {
+                label: 'Статус',
+                value: getTranslatedUndoStatus(data.last_changeset.undo_status),
+              },
+              {
+                label: 'Время',
+                value: getDisplayText(
+                  data.last_changeset.created_at,
+                  EMPTY_LABEL,
+                ),
+              },
+            ]}
+          />
+          <Box color="label" mt={0.25}>
+            Создано: {data.last_changeset.created_entries} · Перемещено:{' '}
+            {data.last_changeset.moved_entries} · Эффекты:{' '}
+            {data.last_changeset.owned_effect_entries}
+          </Box>
+        </Box>
+      )}
+
+      {!!data.history_entries?.length && (
+        <Box mt={0.55}>
+          {data.history_entries.map((entry, index) => (
+            <Collapsible
+              key={`${entry.time}_${entry.generator_id}_${index}`}
+              title={`${entry.time} · ${getGeneratorDisplayName(
+                data,
+                entry.generator_id,
+              )} · ${getHistoryResultText(entry.result)}`}
+              color={toneForHistoryResult(entry.result)}
+              open={false}
+            >
+              <CompactStatusRow
+                basis="32%"
+                items={[
+                  {
+                    label: 'Создано',
+                    value: `${entry.created_count}`,
+                  },
+                  {
+                    label: 'Удалено',
+                    value: `${entry.deleted_count}`,
+                  },
+                  {
+                    label: 'Центр',
+                    value: getDisplayText(entry.center_turf, EMPTY_LABEL),
+                  },
+                  {
+                    label: 'Откат',
+                    value: entry.undo_policy
+                      ? `${getTranslatedUndoPolicy(entry.undo_policy)} / ${getTranslatedUndoStatus(
+                          entry.undo_status,
+                        )}`
+                      : EMPTY_LABEL,
+                  },
+                  {
+                    label: 'Откат / пропуск',
+                    value:
+                      entry.reverted_count !== undefined ||
+                      entry.skipped_count !== undefined
+                        ? `${entry.reverted_count ?? 0} / ${entry.skipped_count ?? 0}`
+                        : EMPTY_LABEL,
+                  },
+                ]}
+              />
+              <Box color="label" mt={0.45}>
+                {entry.message || 'Подробности не сохранены.'}
+              </Box>
+            </Collapsible>
+          ))}
+        </Box>
+      )}
+    </SurfaceCard>
+  );
+};
+
+const ServiceDetailsSection = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
 }) => {
@@ -1983,143 +2156,8 @@ const HistoryDetailsSection = (props: {
   ].filter(Boolean) as SummaryTile[];
 
   return (
-    <Collapsible title="Журнал и дополнительно" mt={0.75} open={false}>
-      <SurfaceCard
-        title="Журнал"
-        actions={
-          <Flex wrap mx={-0.2}>
-            <Flex.Item m={0.2}>
-              <Button
-                compact
-                color="average"
-                disabled={!data.can_cleanup_last_owned_effects}
-                onClick={() => act('cleanup_last_owned_effects')}
-              >
-                Очистить эффекты
-              </Button>
-            </Flex.Item>
-            <Flex.Item m={0.2}>
-              <Button
-                compact
-                color="average"
-                onClick={() => act('clear_history')}
-              >
-                Очистить журнал
-              </Button>
-            </Flex.Item>
-          </Flex>
-        }
-      >
-        {!data.last_changeset && !data.history_entries?.length && (
-          <Box color="label">Журнал пуст.</Box>
-        )}
-
-        {!!data.last_changeset && (
-          <Box
-            p={0.45}
-            style={{
-              border: '1px solid rgba(70, 107, 150, 0.45)',
-              background: 'rgba(70, 107, 150, 0.08)',
-              borderRadius: '4px',
-            }}
-          >
-            <Box bold mb={0.3}>
-              Последняя операция
-            </Box>
-            <CompactStatusRow
-              basis="32%"
-              items={[
-                {
-                  label: 'Инструмент',
-                  value: getGeneratorDisplayName(
-                    data,
-                    data.last_changeset.generator_id,
-                  ),
-                },
-                {
-                  label: 'Откат',
-                  value: getTranslatedUndoPolicy(
-                    data.last_changeset.undo_policy,
-                  ),
-                },
-                {
-                  label: 'Статус',
-                  value: getTranslatedUndoStatus(
-                    data.last_changeset.undo_status,
-                  ),
-                },
-                {
-                  label: 'Время',
-                  value: getDisplayText(
-                    data.last_changeset.created_at,
-                    EMPTY_LABEL,
-                  ),
-                },
-              ]}
-            />
-            <Box color="label" mt={0.25}>
-              Создано: {data.last_changeset.created_entries} · Перемещено:{' '}
-              {data.last_changeset.moved_entries} · Эффекты:{' '}
-              {data.last_changeset.owned_effect_entries}
-            </Box>
-          </Box>
-        )}
-
-        {!!data.history_entries?.length && (
-          <Box mt={0.55}>
-            {data.history_entries.map((entry, index) => (
-              <Collapsible
-                key={`${entry.time}_${entry.generator_id}_${index}`}
-                title={`${entry.time} · ${getGeneratorDisplayName(
-                  data,
-                  entry.generator_id,
-                )} · ${getHistoryResultText(entry.result)}`}
-                color={toneForHistoryResult(entry.result)}
-                open={false}
-              >
-                <CompactStatusRow
-                  basis="32%"
-                  items={[
-                    {
-                      label: 'Создано',
-                      value: `${entry.created_count}`,
-                    },
-                    {
-                      label: 'Удалено',
-                      value: `${entry.deleted_count}`,
-                    },
-                    {
-                      label: 'Центр',
-                      value: getDisplayText(entry.center_turf, EMPTY_LABEL),
-                    },
-                    {
-                      label: 'Откат',
-                      value: entry.undo_policy
-                        ? `${getTranslatedUndoPolicy(entry.undo_policy)} / ${getTranslatedUndoStatus(
-                            entry.undo_status,
-                          )}`
-                        : EMPTY_LABEL,
-                    },
-                    {
-                      label: 'Откат / пропуск',
-                      value:
-                        entry.reverted_count !== undefined ||
-                        entry.skipped_count !== undefined
-                          ? `${entry.reverted_count ?? 0} / ${entry.skipped_count ?? 0}`
-                          : EMPTY_LABEL,
-                    },
-                  ]}
-                />
-                <Box color="label" mt={0.45}>
-                  {entry.message || 'Подробности не сохранены.'}
-                </Box>
-              </Collapsible>
-            ))}
-          </Box>
-        )}
-      </SurfaceCard>
-
-      <SurfaceCard title="Сеанс" mt={0.55}>
+    <Collapsible title="Служебно" mt={0.75} open={false}>
+      <SurfaceCard title="Сеанс">
         <CompactStatusRow
           basis="32%"
           items={[
@@ -2167,8 +2205,37 @@ const HistoryDetailsSection = (props: {
             <CompactStatusRow basis="48%" items={placementDiagnostics} />
           </Box>
         )}
+      </SurfaceCard>
 
-        <Flex wrap mx={-0.25} mt={0.55}>
+      {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
+        <Collapsible title="Данные предпросмотра" mt={0.55} open={false}>
+          <CompactStatusRow
+            basis="32%"
+            items={Object.entries(data.preview_meta).map(([key, value]) => ({
+              label: key,
+              value: renderMetaValue(value),
+            }))}
+          />
+        </Collapsible>
+      )}
+
+      {!!data.runtime_status?.length && (
+        <Collapsible title="Состояние выполнения" mt={0.55} open={false}>
+          <LabeledList>
+            {data.runtime_status.map((entry, index) => (
+              <LabeledList.Item
+                key={`${entry.label}_${index}`}
+                label={entry.label}
+              >
+                {entry.value}
+              </LabeledList.Item>
+            ))}
+          </LabeledList>
+        </Collapsible>
+      )}
+
+      <SurfaceCard title="Действия" mt={0.55}>
+        <Flex wrap mx={-0.25}>
           <Flex.Item m={0.25}>
             <Button
               compact
@@ -2358,8 +2425,18 @@ const WorkspacePage = (props: {
   readonly groupedFields: Record<string, UiField[]>;
   readonly groupNames: string[];
   readonly showPlacementSetup: boolean;
+  readonly workspaceTab: WorkspaceTabKey;
+  readonly onSelectWorkspaceTab: (tab: WorkspaceTabKey) => void;
 }) => {
-  const { data, act, groupedFields, groupNames, showPlacementSetup } = props;
+  const {
+    data,
+    act,
+    groupedFields,
+    groupNames,
+    showPlacementSetup,
+    workspaceTab,
+    onSelectWorkspaceTab,
+  } = props;
 
   return (
     <Section fill scrollable>
@@ -2373,14 +2450,35 @@ const WorkspacePage = (props: {
 
       {!!data.has_generator && (
         <>
-          <ToolWorkspace
-            data={data}
-            act={act}
-            groupedFields={groupedFields}
-            groupNames={groupNames}
-            showPlacementSetup={showPlacementSetup}
-          />
-          <HistoryDetailsSection data={data} act={act} />
+          <Tabs mb={0.55}>
+            <Tabs.Tab
+              selected={workspaceTab === 'editor'}
+              onClick={() => onSelectWorkspaceTab('editor')}
+            >
+              Редактор
+            </Tabs.Tab>
+            <Tabs.Tab
+              selected={workspaceTab === 'history'}
+              onClick={() => onSelectWorkspaceTab('history')}
+            >
+              Журнал
+            </Tabs.Tab>
+          </Tabs>
+
+          {workspaceTab === 'editor' ? (
+            <>
+              <ToolWorkspace
+                data={data}
+                act={act}
+                groupedFields={groupedFields}
+                groupNames={groupNames}
+                showPlacementSetup={showPlacementSetup}
+              />
+              <ServiceDetailsSection data={data} act={act} />
+            </>
+          ) : (
+            <HistoryWorkspace data={data} act={act} />
+          )}
         </>
       )}
     </Section>
@@ -2390,6 +2488,7 @@ const WorkspacePage = (props: {
 export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
   const [activeCategory, setActiveCategory] = useState('');
+  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTabKey>('editor');
   const showPlacementSetup =
     data.placement_supported ||
     data.placement_shape_supported ||
@@ -2428,6 +2527,12 @@ export const WorldEditPanel = () => {
     data.has_generator,
   ]);
 
+  useEffect(() => {
+    if (!data.has_generator && workspaceTab !== 'editor') {
+      setWorkspaceTab('editor');
+    }
+  }, [data.has_generator, workspaceTab]);
+
   const handleSelectCategory = (category: GeneratorCategory) => {
     setActiveCategory(category.category);
 
@@ -2462,6 +2567,8 @@ export const WorldEditPanel = () => {
               groupedFields={groupedFields}
               groupNames={groupNames}
               showPlacementSetup={showPlacementSetup}
+              workspaceTab={workspaceTab}
+              onSelectWorkspaceTab={setWorkspaceTab}
             />
           </Stack.Item>
         </Stack>

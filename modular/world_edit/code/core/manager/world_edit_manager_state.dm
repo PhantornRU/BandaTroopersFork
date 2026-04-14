@@ -132,6 +132,18 @@
 	sanitized -= "shape_points_text"
 	return sanitized
 
+/datum/world_edit_manager/proc/preserve_active_placement_runtime_params(list/target_params)
+	if(!islist(target_params))
+		target_params = list()
+	if(!islist(current_params))
+		return target_params
+
+	if(!isnull(current_params["shape_points_origin"]))
+		target_params["shape_points_origin"] = current_params["shape_points_origin"]
+	if(!isnull(current_params["shape_points_text"]))
+		target_params["shape_points_text"] = current_params["shape_points_text"]
+	return target_params
+
 /datum/world_edit_manager/proc/build_current_generator_context_snapshot()
 	if(!current_definition?.id)
 		return null
@@ -191,6 +203,9 @@
 		holder.images -= preview_images
 	preview_images = list()
 	current_generator?.cleanup_preview(holder?.mob)
+
+/datum/world_edit_manager/proc/is_safe_placement_mode_active()
+	return (sync_click_intercept_state() && placement_click_active) ? TRUE : FALSE
 
 /datum/world_edit_manager/proc/get_supported_placement_modes()
 	var/list/modes = current_generator?.get_supported_placement_modes()
@@ -452,6 +467,15 @@
 
 	click_intercept_previous = null
 	click_intercept_owned = FALSE
+
+/datum/world_edit_manager/proc/refresh_runtime_after_config_change(clear_placement_progress = FALSE, clear_collector_points = FALSE)
+	clear_preview_plan_state()
+	if(clear_placement_progress)
+		placement_anchor_turf = null
+		reset_placement_collector_state(clear_collector_points)
+
+	if(sync_click_intercept_state() && placement_click_active && !supports_current_placement_ux())
+		stop_click_mode()
 
 /datum/world_edit_manager/proc/InterceptClickOn(mob/user, params, atom/object)
 	if(!sync_click_intercept_state())

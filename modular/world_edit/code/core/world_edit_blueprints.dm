@@ -680,8 +680,6 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	return FALSE
 
 /datum/world_edit_manager/proc/check_blueprint_library_runtime_action_allowed(mob/user)
-	if(click_intercept_owned)
-		return fail_blueprint_action(user, "Остановите активный click/placement mode перед действиями с библиотекой blueprint.")
 	return TRUE
 
 /datum/world_edit_manager/proc/load_blueprint_definition_by_id(blueprint_id)
@@ -702,11 +700,18 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 		last_ui_error = ""
 		return TRUE
 
-	if(!set_generator_by_id("blueprint_stamp"))
-		return fail_blueprint_action(user, "Не удалось активировать blueprint stamp generator.")
+	var/keep_active_placement = is_safe_placement_mode_active()
+	if(current_definition?.id != "blueprint_stamp")
+		if(!set_generator_by_id("blueprint_stamp", keep_active_placement))
+			return fail_blueprint_action(user, "Не удалось активировать blueprint stamp generator.")
 
+	var/blueprint_changed = current_blueprint_id != "[blueprint_id]"
+	if(!islist(current_params))
+		current_params = list()
 	current_params["blueprint_id"] = "[blueprint_id]"
-	reset_preview_runtime()
+	if(blueprint_changed)
+		refresh_runtime_after_config_change()
+
 	last_ui_error = ""
 	return TRUE
 

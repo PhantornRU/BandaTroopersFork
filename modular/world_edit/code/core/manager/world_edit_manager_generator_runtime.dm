@@ -48,7 +48,7 @@
 
 	return result
 
-/datum/world_edit_manager/proc/set_generator_by_id(generator_id)
+/datum/world_edit_manager/proc/set_generator_by_id(generator_id, preserve_click_mode = FALSE)
 	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!definition)
 		return FALSE
@@ -57,10 +57,18 @@
 	if(!check_rights_for(holder, definition.required_rights))
 		return FALSE
 
+	var/keep_active_placement = preserve_click_mode && is_safe_placement_mode_active()
+
 	if(current_definition?.id)
 		save_current_generator_context()
 
-	reset_generator_runtime()
+	if(keep_active_placement)
+		clear_preview_plan_state()
+		reset_apply_feedback()
+		last_ui_error = ""
+		current_generator?.disable_click_mode()
+	else
+		reset_generator_runtime()
 	detach_current_generator()
 
 	current_definition = definition
@@ -70,6 +78,11 @@
 	reset_placement_runtime(TRUE)
 	placement_dir = current_generator?.get_default_placement_direction() || NORTH
 	restore_generator_context(definition.id)
+	if(keep_active_placement)
+		if(sync_click_intercept_state() && supports_current_placement_ux())
+			placement_click_active = click_intercept_owned ? TRUE : FALSE
+		else
+			stop_click_mode()
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_current_generator()
@@ -96,9 +109,12 @@
 		to_chat(user, SPAN_WARNING("Генератор вернул некорректный набор параметров."))
 		return
 
+	if(is_safe_placement_mode_active())
+		new_params = preserve_active_placement_runtime_params(new_params)
+
 	current_params = new_params
 	last_ui_error = ""
-	reset_preview_runtime()
+	refresh_runtime_after_config_change()
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
 
 /datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(shape_id, turf/start_turf, turf/end_turf)

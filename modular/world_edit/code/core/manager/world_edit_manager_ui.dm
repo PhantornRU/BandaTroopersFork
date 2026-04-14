@@ -127,7 +127,7 @@
 
 	switch(action)
 		if("select_generator")
-			if(set_generator_by_id(params["generator_id"]))
+			if(set_generator_by_id(params["generator_id"], is_safe_placement_mode_active()))
 				last_ui_error = ""
 			return TRUE
 
@@ -188,7 +188,7 @@
 				return TRUE
 			placement_mode = new_mode
 			last_ui_error = ""
-			reset_preview_runtime()
+			refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_placement_shape")
@@ -199,7 +199,7 @@
 				return TRUE
 			placement_shape = new_shape
 			last_ui_error = ""
-			reset_preview_runtime()
+			refresh_runtime_after_config_change(TRUE, TRUE)
 			return TRUE
 
 		if("set_placement_dir")
@@ -207,7 +207,7 @@
 				return TRUE
 			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
 			last_ui_error = ""
-			reset_preview_runtime()
+			refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_confirm_before_apply")
@@ -240,7 +240,7 @@
 			return TRUE
 
 		if("clear_preview")
-			reset_preview_runtime()
+			refresh_runtime_after_config_change()
 			to_chat(ui.user, SPAN_NOTICE("Предпросмотр очищен."))
 			return TRUE
 
@@ -267,7 +267,7 @@
 
 	current_generator.refresh_ui_state(user, current_params)
 	last_ui_error = ""
-	reset_preview_runtime()
+	refresh_runtime_after_config_change()
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
 
 /datum/world_edit_manager/proc/handle_set_param_action(mob/user, list/params)
@@ -313,9 +313,12 @@
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
+	if(is_safe_placement_mode_active())
+		new_params = preserve_active_placement_runtime_params(new_params)
+
 	current_params = new_params
 	last_ui_error = ""
-	reset_preview_runtime()
+	refresh_runtime_after_config_change()
 	return TRUE
 
 /datum/world_edit_manager/proc/get_normalized_ui_fields()
