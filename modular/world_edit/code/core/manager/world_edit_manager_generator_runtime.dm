@@ -49,9 +49,6 @@
 	return result
 
 /datum/world_edit_manager/proc/set_generator_by_id(generator_id)
-	reset_generator_runtime()
-	detach_current_generator()
-
 	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!definition)
 		return FALSE
@@ -60,15 +57,25 @@
 	if(!check_rights_for(holder, definition.required_rights))
 		return FALSE
 
+	if(current_definition?.id)
+		save_current_generator_context()
+
+	reset_generator_runtime()
+	detach_current_generator()
+
 	current_definition = definition
 	current_generator = new definition.generator_type()
 	current_generator.attach(src, definition)
 	current_params = definition.default_params?.Copy() || list()
 	reset_placement_runtime(TRUE)
 	placement_dir = current_generator?.get_default_placement_direction() || NORTH
+	restore_generator_context(definition.id)
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_current_generator()
+	var/current_generator_id = current_definition?.id
+	if(current_generator_id)
+		clear_generator_context(current_generator_id)
 	reset_generator_runtime()
 	detach_current_generator()
 
@@ -224,10 +231,11 @@
 		to_chat(user, SPAN_WARNING("Collector footprint is not ready for apply yet."))
 		return TRUE
 
-	var/confirm_text = build_safe_placement_confirm_text(collector_plan)
-	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
-	if(answer != "Подтвердить")
-		return TRUE
+	if(confirm_before_apply)
+		var/confirm_text = build_safe_placement_confirm_text(collector_plan)
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+		if(answer != "Подтвердить")
+			return TRUE
 
 	var/mode = get_effective_placement_mode()
 	var/start_ds = world.time
@@ -519,11 +527,12 @@
 	mark_preview_state()
 	to_chat(user, SPAN_NOTICE(last_preview_message))
 
-	var/confirm_text = build_safe_placement_confirm_text(plan)
-	var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
-	if(answer != "Подтвердить")
-		clear_preview_plan_state()
-		return TRUE
+	if(confirm_before_apply)
+		var/confirm_text = build_safe_placement_confirm_text(plan)
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+		if(answer != "Подтвердить")
+			clear_preview_plan_state()
+			return TRUE
 
 	var/start_ds = world.time
 	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
@@ -593,17 +602,16 @@
 		return fail_apply(user, error_text)
 
 	if(current_generator.requires_preview_before_apply && !is_preview_state_valid())
-		return fail_apply(user, "Для этого генератора обязательно выполнить предпросмотр с текущими параметрами.")
+		return fail_apply(user, "Предпросмотр не готов.")
 
 	if(click_intercept_owned)
 		return fail_apply(user, "Остановите активный click/placement mode перед обычным apply.")
 
-	var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
-	var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
-	if(answer != "Подтвердить")
-		if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
-			reset_preview_runtime()
-		return null
+	if(confirm_before_apply)
+		var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
+		if(answer != "Подтвердить")
+			return null
 
 	var/start_ds = world.time
 	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)

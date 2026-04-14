@@ -23,10 +23,12 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 
 	var/list/history_entries = list()
 	var/list/changeset_entries = list()
+	var/list/generator_context_cache = list()
 	var/list/preset_entries_cache = list()
 	var/preset_cache_loaded = FALSE
 	var/list/blueprint_entries_cache = list()
 	var/blueprint_cache_loaded = FALSE
+	var/confirm_before_apply = TRUE
 
 	var/datum/click_intercept_previous
 	var/click_intercept_owned = FALSE
@@ -41,12 +43,14 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	holder = new_holder
 	history_entries = list()
 	changeset_entries = list()
+	generator_context_cache = list()
 	preset_entries_cache = list()
 	blueprint_entries_cache = list()
 	preview_images = list()
 	current_params = list()
 	last_preview_meta = list()
 	last_ui_error = ""
+	confirm_before_apply = TRUE
 
 /datum/world_edit_manager/Destroy(force, ...)
 	stop_click_mode()
@@ -57,6 +61,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 		for(var/datum/world_edit_changeset/changeset as anything in changeset_entries)
 			qdel(changeset)
 	changeset_entries = null
+	generator_context_cache = null
 	preset_entries_cache = null
 	blueprint_entries_cache = null
 	if(holder && GLOB.world_edit_managers_by_client[holder] == src)

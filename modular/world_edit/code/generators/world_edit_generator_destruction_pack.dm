@@ -794,13 +794,10 @@
 
 /datum/world_edit_generator/destruction_pack/get_apply_confirmation_text(list/params)
 	var/fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
-	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
-	var/fire_summary = fire_enabled ? ", fire=on density=[fire_density] cap=[get_persistent_fire_cap()]" : ", fire=off"
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
-	var/blast_summary = blast_enabled ? ", blast=on power=[params["blast_power"]] falloff=[params["blast_falloff"]]" : ", blast=off"
 	var/damage_profile = get_damage_profile_label(params["damage_profile"])
 	var/undo_policy = (blast_enabled || resolve_damage_profile(params["damage_profile"]) != "none") ? WORLD_EDIT_UNDO_NONE : WORLD_EDIT_UNDO_PARTIAL
-	return "Apply Destruction Pack at the current turf with radius [params["radius"]]? shuffle=[params["shuffle_enabled"]], scatter=[params["scatter_enabled"]][fire_summary][blast_summary], damage=[damage_profile], undo=[undo_policy]."
+	return "Применить разрушение зоны? Радиус [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_enabled ? "да" : "нет"], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
 	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()

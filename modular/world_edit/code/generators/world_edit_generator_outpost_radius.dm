@@ -1144,6 +1144,7 @@
 			"description" = "Whitelisted barricade type from human_ai_defense. The family preset uses this as the leading barricade mix entry.",
 			"value" = "[current_params["barricade_path"] || default_barricade_path]",
 			"options" = build_type_options(allowed_barricade_types),
+			"visible" = FALSE,
 		),
 		list(
 			"id" = "place_sentries",
@@ -1198,7 +1199,9 @@
 			new_params[param_id] = family_id
 			var/list/family_profile = get_outpost_family_profile(family_id)
 			new_params["barricade_path"] = family_profile["default_barricade_path"] || /datum/human_ai_defense/barricade/metal
-			new_params["sentry_path"] = family_profile["default_sentry_path"] || /datum/human_ai_defense/defense/sentry/uscm
+			var/current_sentry_path = resolve_whitelisted_type(new_params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
+			if(!current_sentry_path)
+				new_params["sentry_path"] = family_profile["default_sentry_path"] || /datum/human_ai_defense/defense/sentry/uscm
 
 		if("radius")
 			new_params[param_id] = clamp(text2num("[value]"), 1, 8)
@@ -1236,7 +1239,7 @@
 	if(!family_id)
 		family_id = get_default_outpost_family_id()
 	var/list/family_profile = get_outpost_family_profile(family_id)
-	return "Apply [family_profile["label"] || "Outpost"] radius plan at the current turf with radius [params["radius"]]?"
+	return "Применить профиль '[family_profile["label"] || "Outpost"]' с радиусом [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
 	return "family=[params["family"] || get_default_outpost_family_id()] radius=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] barricade=[params["barricade_path"]] sentries=[params["place_sentries"]] sentry_type=[params["sentry_path"]]"

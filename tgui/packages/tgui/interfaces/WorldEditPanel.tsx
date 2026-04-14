@@ -166,6 +166,7 @@ type BackendData = {
   blueprint_entries: BlueprintEntry[];
   active_blueprint_id?: string;
   can_save_blueprint_from_plan: boolean;
+  confirm_before_apply: boolean;
   last_ui_error: string;
   preview_valid: boolean;
   preview_success: boolean;
@@ -241,13 +242,13 @@ const TOOL_PICKER_LABELS: Record<string, string> = {
 };
 
 const FIELD_LABELS: Record<string, string> = {
-  family: 'Семейство',
+  family: 'Профиль форпоста',
   radius: 'Радиус',
-  barricade_path: 'Тип баррикад',
-  place_sentries: 'Турели по проходам',
-  sentry_path: 'Тип турели',
-  faction: 'IFF-фракция',
-  turned_on: 'Включать сразу',
+  barricade_path: 'Материал баррикад',
+  place_sentries: 'Турели у проходов',
+  sentry_path: 'Турель',
+  faction: 'IFF',
+  turned_on: 'Включить сразу',
   shuffle_enabled: 'Перемешать объекты',
   scatter_enabled: 'Разбросать по области',
   scatter_steps: 'Шаги разброса',
@@ -256,8 +257,26 @@ const FIELD_LABELS: Record<string, string> = {
   blast_enabled: 'Взрыв',
   blast_power: 'Мощность взрыва',
   blast_falloff: 'Спад взрыва',
-  damage_profile: 'Профиль урона',
+  damage_profile: 'Структурный урон',
   max_atoms: 'Лимит объектов',
+  stamp_spacing: 'Шаг между шаблонами',
+  shape_line_length: 'Длина линии',
+  shape_line_spacing: 'Шаг линии',
+  shape_rect_width: 'Ширина',
+  shape_rect_height: 'Высота',
+  shape_radius: 'Радиус',
+  shape_thickness: 'Толщина',
+  shape_sector_angle: 'Угол',
+  shape_radius_x: 'Радиус X',
+  shape_radius_y: 'Радиус Y',
+  shape_triangle_size: 'Размер',
+  shape_points_text: 'Точки',
+  shape_polygon_filled: 'Заполнить',
+  shape_close_loop: 'Замкнуть контур',
+  shape_brush_radius: 'Радиус кисти',
+  shape_scatter_radius: 'Радиус разброса',
+  shape_scatter_count: 'Количество',
+  shape_scatter_seed: 'Сид',
 };
 
 const PLACEMENT_MODE_LABELS: Record<string, string> = {
@@ -361,19 +380,6 @@ const getSafeFieldList = (fields: UiField[], ids: string[]) =>
   getFieldsById(fields, ids).filter(
     (field) => field.visible !== false && !field.disabled,
   );
-
-const renderMetaValue = (value: unknown) => {
-  if (value === undefined || value === null || value === '') {
-    return EMPTY_LABEL;
-  }
-  if (Array.isArray(value)) {
-    return value.map((entry) => `${entry}`).join(', ');
-  }
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
-  }
-  return `${value}`;
-};
 
 const toneForHistoryResult = (result?: string) => {
   switch ((result || '').toLowerCase()) {
@@ -659,7 +665,7 @@ const getToolbarContextLine = (data: BackendData) => {
     );
   } else if (data.current_generator_id === 'outpost_radius') {
     items.push(
-      `Семейство: ${getFieldOptionLabel(getField(data.ui_fields, 'family'))}`,
+      `Профиль: ${getFieldOptionLabel(getField(data.ui_fields, 'family'))}`,
     );
     items.push(
       `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
@@ -768,7 +774,6 @@ const ChoiceStrip = (props: {
               compact
               fluid
               selected={isSelected}
-              color={isSelected ? 'good' : undefined}
               disabled={disabled}
               onClick={() => onSelected(option.value)}
             >
@@ -1044,15 +1049,14 @@ const FieldBlock = (props: {
     return null;
   }
 
-  const { borderColor, background } = getSurfaceColors(tone);
+  const { borderColor } = getSurfaceColors(tone);
 
   return (
     <Box
       p={0.5}
       style={{
         borderTop: `2px solid ${borderColor}`,
-        background:
-          tone && tone !== 'default' ? background : 'rgba(70, 107, 150, 0.06)',
+        background: 'rgba(70, 107, 150, 0.06)',
         borderRadius: '4px',
       }}
     >
@@ -1105,9 +1109,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview
       ? {
-          label: data.preview_valid
-            ? 'Обновить предпросмотр'
-            : 'Собрать предпросмотр',
+          label: 'Предпросмотр',
           action: 'run_preview',
           color: 'average',
           disabled: !canPreview,
@@ -1199,17 +1201,15 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (data.requires_preview_before_apply && !data.preview_valid) {
     return {
       ...baseState,
-      state: data.preview_message || 'Соберите предпросмотр перед применением.',
-      stateColor: data.preview_message ? 'bad' : 'average',
+      state: data.preview_message || 'Нет предпросмотра.',
+      stateColor: data.preview_message ? 'bad' : 'label',
     };
   }
 
   if (data.preview_valid) {
     return {
       ...baseState,
-      state: hasPlacementControls
-        ? 'Готов к применению и размещению.'
-        : 'Готов к применению.',
+      state: 'Предпросмотр готов.',
       stateColor: 'good',
     };
   }
@@ -1217,7 +1217,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (data.current_generator_supports_preview) {
     return {
       ...baseState,
-      state: 'Нужен предпросмотр.',
+      state: 'Нет предпросмотра.',
       stateColor: 'label',
     };
   }
@@ -1237,14 +1237,18 @@ const hasPlacementControlsForTool = (data: BackendData) =>
 const PlacementControlsBody = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
+  readonly extraFields?: UiField[];
 }) => {
-  const { data, act } = props;
+  const { data, act, extraFields } = props;
   const hasPlacementControls =
     data.placement_supported ||
     data.placement_shape_supported ||
     data.placement_supports_direction;
+  const visibleExtraFields = (extraFields || []).filter(
+    (field) => field.visible !== false,
+  );
 
-  if (!hasPlacementControls) {
+  if (!hasPlacementControls && !visibleExtraFields.length) {
     return null;
   }
 
@@ -1340,6 +1344,10 @@ const PlacementControlsBody = (props: {
               />
             </LabeledList.Item>
           )}
+
+          {visibleExtraFields.map((field) => (
+            <FieldEditor key={field.id} field={field} act={act} />
+          ))}
         </LabeledList>
       </Box>
 
@@ -1393,10 +1401,14 @@ const PlacementControlsCard = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
   readonly title?: string;
+  readonly extraFields?: UiField[];
 }) => {
-  const { data, act, title } = props;
+  const { data, act, title, extraFields } = props;
 
-  if (!hasPlacementControlsForTool(data)) {
+  if (
+    !hasPlacementControlsForTool(data) &&
+    !(extraFields || []).some((field) => field.visible !== false)
+  ) {
     return null;
   }
 
@@ -1415,134 +1427,8 @@ const PlacementControlsCard = (props: {
       }
       mt={0.6}
     >
-      <PlacementControlsBody data={data} act={act} />
+      <PlacementControlsBody data={data} act={act} extraFields={extraFields} />
     </SurfaceCard>
-  );
-};
-
-const PresetLibrarySection = (props: {
-  readonly data: BackendData;
-  readonly act: ActFn;
-}) => {
-  const { data, act } = props;
-  const [selectedPresetId, setSelectedPresetId] = useState('');
-
-  useEffect(() => {
-    if (!data.preset_entries?.length) {
-      setSelectedPresetId('');
-      return;
-    }
-
-    if (
-      !selectedPresetId ||
-      !data.preset_entries.some((preset) => preset.id === selectedPresetId)
-    ) {
-      setSelectedPresetId(data.preset_entries[0].id);
-    }
-  }, [data.preset_entries, selectedPresetId]);
-
-  const selectedPreset =
-    data.preset_entries?.find((entry) => entry.id === selectedPresetId) ||
-    data.preset_entries?.[0];
-
-  return (
-    <Box mt={0.55}>
-      <Flex align="center" mb={0.35}>
-        <Flex.Item grow>
-          <Box bold>Пресеты</Box>
-        </Flex.Item>
-        <Flex.Item>
-          <Button compact onClick={() => act('save_preset')}>
-            Сохранить пресет
-          </Button>
-        </Flex.Item>
-      </Flex>
-
-      {!data.preset_entries?.length && (
-        <Box color="label">Пресетов пока нет.</Box>
-      )}
-
-      {!!data.preset_entries?.length && (
-        <Flex wrap mx={-0.25}>
-          {data.preset_entries.map((preset) => {
-            const isSelected = preset.id === selectedPreset?.id;
-            return (
-              <Flex.Item key={preset.id} basis="48%" grow m={0.25}>
-                <Box
-                  p={0.5}
-                  onClick={() => {
-                    setSelectedPresetId(preset.id);
-                    act('load_preset', {
-                      preset_id: preset.id,
-                    });
-                  }}
-                  style={{
-                    border: isSelected
-                      ? '1px solid #4c9f39'
-                      : '1px solid #466b96',
-                    background: isSelected
-                      ? 'rgba(76, 159, 57, 0.12)'
-                      : 'rgba(70, 107, 150, 0.08)',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Flex align="center">
-                    <Flex.Item grow>
-                      <Box bold color={isSelected ? 'good' : 'white'}>
-                        {getDisplayText(preset.name, 'Пресет без имени')}
-                      </Box>
-                    </Flex.Item>
-                    {isSelected && (
-                      <Flex.Item>
-                        <Button
-                          compact
-                          color="average"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            act('delete_preset', {
-                              preset_id: preset.id,
-                            });
-                          }}
-                        >
-                          Удалить
-                        </Button>
-                      </Flex.Item>
-                    )}
-                  </Flex>
-                  <Box color="label" mt={0.2}>
-                    {preset.params_short || 'Описание не сохранено.'}
-                  </Box>
-                </Box>
-              </Flex.Item>
-            );
-          })}
-        </Flex>
-      )}
-    </Box>
-  );
-};
-
-const BlueprintExportSection = (props: {
-  readonly data: BackendData;
-  readonly act: ActFn;
-}) => {
-  const { data, act } = props;
-
-  return (
-    <Box mt={0.6}>
-      <Box bold mb={0.35}>
-        Экспорт шаблона
-      </Box>
-      {!data.can_save_blueprint_from_plan && (
-        <Box color="label">Доступен после предпросмотра.</Box>
-      )}
-      {!!data.can_save_blueprint_from_plan && (
-        <Button compact onClick={() => act('save_blueprint')}>
-          Сохранить предпросмотр как шаблон
-        </Button>
-      )}
-    </Box>
   );
 };
 
@@ -1590,6 +1476,9 @@ const BlueprintStampWorkspace = (props: {
     data.blueprint_entries?.find(
       (entry) => entry.id === data.active_blueprint_id,
     );
+  const blueprintPlacementFields = getFieldsById(data.ui_fields, [
+    'stamp_spacing',
+  ]);
   const isSelectedBlueprintActive =
     !!selectedBlueprint && selectedBlueprint.id === data.active_blueprint_id;
   const totalBlueprints = data.blueprint_entries?.length || 0;
@@ -1710,8 +1599,8 @@ const BlueprintStampWorkspace = (props: {
               ? !selectedBlueprint.valid
                 ? 'Недоступен'
                 : isSelectedBlueprintActive
-                  ? 'Готов к предпросмотру и размещению'
-                  : 'Выбирается'
+                  ? 'Выбран'
+                  : 'Подготовлен'
               : undefined
           }
           tone={
@@ -1781,7 +1670,11 @@ const BlueprintStampWorkspace = (props: {
                     <Box bold mb={0.35}>
                       Размещение
                     </Box>
-                    <PlacementControlsBody data={data} act={act} />
+                    <PlacementControlsBody
+                      data={data}
+                      act={act}
+                      extraFields={blueprintPlacementFields}
+                    />
                   </Box>
                 )}
             </>
@@ -1799,27 +1692,20 @@ const OutpostRadiusWorkspace = (props: {
   const { data, act } = props;
   const familyField = getField(data.ui_fields, 'family');
   const radiusField = getField(data.ui_fields, 'radius');
-  const barricadeField = getField(data.ui_fields, 'barricade_path');
   const sentryToggleField = getField(data.ui_fields, 'place_sentries');
   const sentryFields = getFieldsByGroup(data.ui_fields, 'Sentries');
   const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout');
-  const barricadeFields = getFieldsByGroup(data.ui_fields, 'Barricades');
 
   const previewMeta = data.preview_meta || {};
-  const familySummary =
-    (previewMeta.family_label as string) || getFieldOptionLabel(familyField);
+  const familySummary = getFieldOptionLabel(familyField);
   const summaryTiles: SummaryTile[] = [
     {
-      label: 'Семейство',
+      label: 'Профиль',
       value: familySummary,
     },
     {
       label: 'Радиус',
       value: getDisplayText(radiusField?.value, EMPTY_LABEL),
-    },
-    {
-      label: 'Баррикады',
-      value: getFieldOptionLabel(barricadeField),
     },
     {
       label: 'Турели',
@@ -1845,20 +1731,28 @@ const OutpostRadiusWorkspace = (props: {
     <WorkspaceGrid>
       <WorkspacePane basis="50%" minWidth="22rem">
         <FieldListCard
-          title="Конфигурация форпоста"
+          title="Профиль и радиус"
           fields={layoutFields}
           act={act}
           mt={0}
         />
-        <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
         <FieldListCard title="Оборона" fields={sentryFields} act={act} />
       </WorkspacePane>
 
       <WorkspacePane basis="48%" minWidth="22rem">
         <SurfaceCard
-          title="Сводка форпоста"
-          subtitle={data.preview_valid ? 'Готов' : 'Нужен предпросмотр'}
-          tone={data.preview_valid ? 'good' : 'average'}
+          title="План форпоста"
+          subtitle={
+            data.preview_valid ? 'Предпросмотр готов' : 'Без предпросмотра'
+          }
+          tone={data.preview_valid ? 'good' : 'default'}
+          actions={
+            data.can_save_blueprint_from_plan ? (
+              <Button compact onClick={() => act('save_blueprint')}>
+                Сохранить как шаблон
+              </Button>
+            ) : undefined
+          }
         >
           <CompactStatusRow basis="48%" items={summaryTiles} />
           {hasPlacementControlsForTool(data) && (
@@ -1870,13 +1764,6 @@ const OutpostRadiusWorkspace = (props: {
             </Box>
           )}
         </SurfaceCard>
-
-        <Collapsible title="Пресеты и экспорт" mt={0.55} open={false}>
-          {!!data.can_manage_presets && (
-            <PresetLibrarySection data={data} act={act} />
-          )}
-          <BlueprintExportSection data={data} act={act} />
-        </Collapsible>
       </WorkspacePane>
     </WorkspaceGrid>
   );
@@ -2226,137 +2113,78 @@ const HistoryDetailsSection = (props: {
                 <Box color="label" mt={0.45}>
                   {entry.message || 'Подробности не сохранены.'}
                 </Box>
-                {!!entry.params_short && (
-                  <Box color="label" mt={0.35}>
-                    Параметры: {getDisplayText(entry.params_short, EMPTY_LABEL)}
-                  </Box>
-                )}
-                {!!entry.operation_id && (
-                  <Box color="label" mt={0.25}>
-                    ID операции: {entry.operation_id}
-                  </Box>
-                )}
-                {!!entry.source_operation_id && (
-                  <Box color="label" mt={0.25}>
-                    Исходная операция: {entry.source_operation_id}
-                  </Box>
-                )}
               </Collapsible>
             ))}
           </Box>
         )}
       </SurfaceCard>
 
-      <Collapsible title="Технические данные" mt={0.55} open={false}>
-        <SurfaceCard title="Сеанс">
-          <CompactStatusRow
-            basis="32%"
-            items={[
-              {
-                label: 'Предпросмотр',
-                value: data.preview_valid
-                  ? 'Готов'
-                  : data.preview_success
-                    ? 'Есть результат'
-                    : 'Нет',
-                color: data.preview_valid
-                  ? 'good'
-                  : data.preview_message
-                    ? 'average'
-                    : 'label',
-              },
-              {
-                label: 'Применение',
-                value: data.can_run_apply ? 'Готово' : 'Не готово',
-                color: data.can_run_apply ? 'good' : 'label',
-              },
-              {
-                label: 'Шаблон',
-                value:
-                  activeBlueprint?.name ||
-                  (data.active_blueprint_id ? 'Выбран' : 'Не выбран'),
-              },
-            ]}
-          />
-
-          <Box
-            color={
-              data.preview_valid
+      <SurfaceCard title="Сеанс" mt={0.55}>
+        <CompactStatusRow
+          basis="32%"
+          items={[
+            {
+              label: 'Предпросмотр',
+              value: data.preview_valid
+                ? 'Готов'
+                : data.preview_success
+                  ? 'Есть результат'
+                  : 'Нет',
+              color: data.preview_valid
                 ? 'good'
                 : data.preview_message
                   ? 'average'
-                  : 'label'
-            }
-            mt={0.45}
-          >
-            {data.preview_message || 'Предпросмотр не запускался.'}
+                  : 'label',
+            },
+            {
+              label: 'Применение',
+              value: data.can_run_apply ? 'Готово' : 'Не готово',
+              color: data.can_run_apply ? 'good' : 'label',
+            },
+            {
+              label: 'Шаблон',
+              value:
+                activeBlueprint?.name ||
+                (data.active_blueprint_id ? 'Выбран' : 'Не выбран'),
+            },
+          ]}
+        />
+
+        {!!data.preview_message && !data.preview_valid && (
+          <Box color="average" mt={0.45}>
+            {data.preview_message}
           </Box>
+        )}
 
-          {!!(data.last_apply_message || data.last_apply_success) && (
-            <Box color={data.last_apply_success ? 'good' : 'average'} mt={0.45}>
-              {data.last_apply_message || 'Применение не запускалось.'}
-            </Box>
-          )}
+        {!!data.last_apply_message && !data.last_apply_success && (
+          <Box color="average" mt={0.45}>
+            {data.last_apply_message}
+          </Box>
+        )}
 
-          {!!placementDiagnostics.length && (
-            <Box mt={0.45}>
-              <CompactStatusRow basis="48%" items={placementDiagnostics} />
-            </Box>
-          )}
+        {!!placementDiagnostics.length && (
+          <Box mt={0.45}>
+            <CompactStatusRow basis="48%" items={placementDiagnostics} />
+          </Box>
+        )}
 
-          {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
-            <Box mt={0.55}>
-              <Box bold mb={0.25}>
-                Данные предпросмотра
-              </Box>
-              <CompactStatusRow
-                basis="32%"
-                items={Object.entries(data.preview_meta).map(
-                  ([key, value]) => ({
-                    label: key,
-                    value: renderMetaValue(value),
-                  }),
-                )}
-              />
-            </Box>
-          )}
-
-          {!!data.runtime_status?.length && (
-            <Box mt={0.55}>
-              <Box bold mb={0.25}>
-                Выполнение
-              </Box>
-              <LabeledList>
-                {data.runtime_status.map((entry, index) => (
-                  <LabeledList.Item
-                    key={`${entry.label}_${index}`}
-                    label={entry.label}
-                  >
-                    {entry.value}
-                  </LabeledList.Item>
-                ))}
-              </LabeledList>
-            </Box>
-          )}
-
-          <Flex wrap mx={-0.25} mt={0.55}>
-            <Flex.Item m={0.25}>
-              <Button
-                compact
-                disabled={!data.can_refresh_ui}
-                onClick={() => act('refresh_ui')}
-              >
-                Обновить данные
-              </Button>
-            </Flex.Item>
-            <Flex.Item m={0.25}>
-              <Button compact onClick={() => act('reset_generator')}>
-                Сбросить настройки
-              </Button>
-            </Flex.Item>
-          </Flex>
-        </SurfaceCard>
-      </Collapsible>
+        <Flex wrap mx={-0.25} mt={0.55}>
+          <Flex.Item m={0.25}>
+            <Button
+              compact
+              disabled={!data.can_refresh_ui}
+              onClick={() => act('refresh_ui')}
+            >
+              Обновить данные
+            </Button>
+          </Flex.Item>
+          <Flex.Item m={0.25}>
+            <Button compact onClick={() => act('reset_generator')}>
+              Сбросить настройки
+            </Button>
+          </Flex.Item>
+        </Flex>
+      </SurfaceCard>
     </Collapsible>
   );
 };
@@ -2449,6 +2277,20 @@ const EditorToolbar = (props: {
             {!!toolbar.undoAction && (
               <Flex.Item m={0.15} ml={0.35}>
                 {renderAction(toolbar.undoAction, true)}
+              </Flex.Item>
+            )}
+            {data.has_generator && (
+              <Flex.Item m={0.15} ml={0.35}>
+                <Button.Checkbox
+                  checked={data.confirm_before_apply}
+                  onClick={() =>
+                    act('set_confirm_before_apply', {
+                      enabled: !data.confirm_before_apply,
+                    })
+                  }
+                >
+                  Спрашивать перед применением
+                </Button.Checkbox>
               </Flex.Item>
             )}
           </Flex>

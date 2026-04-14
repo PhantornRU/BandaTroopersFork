@@ -90,6 +90,7 @@
 	data["blueprint_entries"] = get_blueprint_entries_for_ui()
 	data["active_blueprint_id"] = get_active_blueprint_id()
 	data["can_save_blueprint_from_plan"] = can_save_blueprint_from_current_plan()
+	data["confirm_before_apply"] = confirm_before_apply ? TRUE : FALSE
 	data["last_ui_error"] = last_ui_error || ""
 
 	data["preview_valid"] = is_preview_state_valid()
@@ -207,6 +208,11 @@
 			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
 			last_ui_error = ""
 			reset_preview_runtime()
+			return TRUE
+
+		if("set_confirm_before_apply")
+			confirm_before_apply = GLOB.world_edit_helpers.parse_bool(params["enabled"])
+			last_ui_error = ""
 			return TRUE
 
 		if("start_placement_mode")

@@ -61,6 +61,66 @@
 		return list("error" = "Сначала загрузите blueprint из server-side библиотеки.")
 	return manager?.load_blueprint_definition_by_id(blueprint_id) || list("error" = "Blueprint payload is unavailable.")
 
+/datum/world_edit_generator/blueprint_stamp/proc/get_blueprint_footprint_dimensions(list/blueprint)
+	var/list/bounds = islist(blueprint) ? blueprint["bounds"] : null
+	if(!islist(bounds))
+		return list("width" = 1, "height" = 1)
+
+	var/min_x = text2num("[bounds["min_x"]]")
+	var/max_x = text2num("[bounds["max_x"]]")
+	var/min_y = text2num("[bounds["min_y"]]")
+	var/max_y = text2num("[bounds["max_y"]]")
+	var/width = max(max_x - min_x + 1, 1)
+	var/height = max(max_y - min_y + 1, 1)
+	return list(
+		"width" = width,
+		"height" = height,
+	)
+
+/datum/world_edit_generator/blueprint_stamp/proc/get_default_stamp_spacing(list/blueprint)
+	var/list/dimensions = get_blueprint_footprint_dimensions(blueprint)
+	return max(text2num("[dimensions["width"]]"), text2num("[dimensions["height"]]"), 1)
+
+/datum/world_edit_generator/blueprint_stamp/proc/get_effective_stamp_spacing(list/params, list/blueprint)
+	var/default_spacing = get_default_stamp_spacing(blueprint)
+	var/requested_spacing = text2num("[params["stamp_spacing"]]")
+	if(!isnum(requested_spacing) || requested_spacing <= 0)
+		return default_spacing
+	return clamp(round(requested_spacing), 1, WORLD_EDIT_PLACEMENT_MAX_ANCHORS)
+
+/datum/world_edit_generator/blueprint_stamp/proc/apply_stamp_spacing(list/anchor_turfs, list/params, list/blueprint)
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		return list()
+
+	var/spacing = get_effective_stamp_spacing(params, blueprint)
+	return GLOB.world_edit_placement_shapes.world_edit_apply_spacing_to_turfs(anchor_turfs, spacing)
+
+/datum/world_edit_generator/blueprint_stamp/get_ui_fields(list/current_params)
+	var/list/load_result = load_active_blueprint(current_params)
+	var/list/blueprint = islist(load_result) ? load_result["blueprint"] : null
+	var/default_spacing = get_default_stamp_spacing(blueprint)
+	var/shape_id = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+
+	return list(list(
+		"id" = "stamp_spacing",
+		"label" = "Stamp Spacing",
+		"kind" = "number",
+		"group" = "Placement",
+		"description" = "Spacing between repeated blueprint stamps. Default = max(width, height).",
+		"value" = text2num("[current_params["stamp_spacing"]]") || default_spacing,
+		"min" = 1,
+		"max" = WORLD_EDIT_PLACEMENT_MAX_ANCHORS,
+		"step" = 1,
+		"visible" = shape_id != WORLD_EDIT_SHAPE_POINT,
+	))
+
+/datum/world_edit_generator/blueprint_stamp/set_ui_param(mob/user, list/current_params, param_id, value)
+	if(param_id == "stamp_spacing")
+		var/list/new_params = islist(current_params) ? current_params.Copy() : list()
+		new_params[param_id] = clamp(round(text2num("[value]") || 1), 1, WORLD_EDIT_PLACEMENT_MAX_ANCHORS)
+		return new_params
+	return ..()
+
 /datum/world_edit_generator/blueprint_stamp/proc/normalize_anchor_turfs(list/raw_anchor_turfs)
 	var/list/anchor_turfs = list()
 	var/list/anchor_lookup = list()
@@ -95,7 +155,9 @@
 		plan.metadata["error"] = "[load_result["error"]]"
 		return plan
 
+	var/list/blueprint = load_result["blueprint"]
 	var/list/anchor_turfs = normalize_anchor_turfs(placement_context["anchor_turfs"])
+	anchor_turfs = apply_stamp_spacing(anchor_turfs, params, blueprint)
 	if(!length(anchor_turfs))
 		plan.metadata["error"] = "Unable to resolve the blueprint anchor turf."
 		return plan
@@ -112,7 +174,8 @@
 	var/blocked_entry_count = 0
 	var/duplicate_entry_count = 0
 	var/overlap_entry_count = 0
-	var/list/blueprint = load_result["blueprint"]
+	var/effective_spacing = get_effective_stamp_spacing(params, blueprint)
+	var/list/dimensions = get_blueprint_footprint_dimensions(blueprint)
 	for(var/turf/anchor_turf as anything in anchor_turfs)
 		var/datum/world_edit_plan/anchor_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(blueprint, anchor_turf, placement_dir)
 		if(!istype(anchor_plan))
@@ -160,6 +223,9 @@
 	plan.metadata["overlap_entry_count"] = overlap_entry_count
 	plan.metadata["skipped_entry_count"] = blocked_entry_count + duplicate_entry_count + overlap_entry_count
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
+	plan.metadata["footprint_width"] = dimensions["width"]
+	plan.metadata["footprint_height"] = dimensions["height"]
+	plan.metadata["stamp_spacing"] = effective_spacing
 	plan.metadata["anchor_count"] = length(anchor_turfs)
 	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
 	plan.metadata["placement_shape"] = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
@@ -266,7 +332,7 @@
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/get_apply_confirmation_text(list/params)
-	return "Подтвердить stamp выбранного blueprint на текущем тайле?"
+	return "Применить выбранный шаблон?"
 
 /datum/world_edit_generator/blueprint_stamp/get_params_short(list/params)
-	return "blueprint_id=[params["blueprint_id"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "blueprint_id=[params["blueprint_id"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] spacing=[params["stamp_spacing"]]"
