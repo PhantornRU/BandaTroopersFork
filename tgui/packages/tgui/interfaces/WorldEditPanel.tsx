@@ -14,7 +14,6 @@ import {
   ProgressBar,
   Section,
   Stack,
-  Tabs,
 } from '../components';
 import { Window } from '../layouts';
 
@@ -194,6 +193,13 @@ type SummaryTile = {
   color?: string;
 };
 
+type SurfaceTone = 'default' | 'good' | 'average' | 'bad';
+
+type ChoiceOption = {
+  value: string;
+  displayText: string;
+};
+
 type ToolbarAction = {
   label: string;
   action: string;
@@ -206,9 +212,12 @@ type ToolbarState = {
   title: string;
   state: string;
   stateColor?: string;
-  primary?: ToolbarAction;
-  secondary?: ToolbarAction;
-  modeAction?: ToolbarAction;
+  context?: string;
+  previewAction?: ToolbarAction;
+  applyAction?: ToolbarAction;
+  placementAction?: ToolbarAction;
+  collectorAction?: ToolbarAction;
+  undoAction?: ToolbarAction;
 };
 
 type ActFn = (action: string, payload?: Record<string, unknown>) => void;
@@ -216,6 +225,8 @@ type ActFn = (action: string, payload?: Record<string, unknown>) => void;
 const EMPTY_LABEL = 'Не задано';
 const NONE_LABEL = 'Не выбрано';
 const OFF_LABEL = 'Выключено';
+const WORKSPACE_GUTTER = 0.35;
+const SMALL_CHOICE_DROPDOWN_THRESHOLD = 5;
 
 const TOOL_TITLE_LABELS: Record<string, string> = {
   blueprint_stamp: 'Штамп по шаблону',
@@ -548,11 +559,11 @@ const getBlueprintToolbarState = (data: BackendData) => {
 
   const activeBlueprint = getSelectedBlueprint(data);
   if (!data.active_blueprint_id) {
-    return { state: 'Выберите шаблон.', color: 'label' };
+    return { state: 'Выберите шаблон слева.', color: 'label' };
   }
   if (activeBlueprint && !activeBlueprint.valid) {
     return {
-      state: 'Шаблон недоступен.',
+      state: 'Выбранный шаблон недоступен.',
       color: 'bad',
     };
   }
@@ -589,33 +600,93 @@ const getPlacementNextClickText = (data: BackendData) => {
   if (!data.click_mode_active) {
     switch (data.placement_interaction_kind) {
       case 'collector':
-        return 'Первый клик начнет форму.';
+        return 'Клик: начать форму.';
       case 'anchor_pair':
-        return 'Первый клик поставит первую точку.';
+        return 'Клик: первая точка.';
       case 'param_only':
-        return 'Клик выберет опорную клетку.';
+        return 'Клик: опорная клетка.';
       default:
-        return 'Клик подготовит размещение в точке.';
+        return 'Клик: точка размещения.';
     }
   }
 
   if (data.placement_interaction_kind === 'collector') {
     return data.can_finish_placement_collection
-      ? 'Можно завершить сбор или добавить точку.'
-      : 'Следующий клик добавит точку в форму.';
+      ? 'Сбор готов. Можно добавить точку.'
+      : 'Клик: добавить точку.';
   }
 
   if (data.placement_interaction_kind === 'anchor_pair') {
     return data.placement_anchor
-      ? 'Следующий клик завершит форму.'
-      : 'Следующий клик поставит первую точку.';
+      ? 'Клик: вторая точка.'
+      : 'Клик: первая точка.';
   }
 
   if (data.placement_interaction_kind === 'param_only') {
-    return 'Следующий клик выберет опорную клетку.';
+    return 'Клик: опорная клетка.';
   }
 
-  return 'Следующий клик подготовит размещение.';
+  return 'Клик: разместить.';
+};
+
+const getPlacementContextItems = (data: BackendData) => {
+  const items: string[] = [];
+  if (data.placement_shape_supported) {
+    items.push(`Форма: ${getTranslatedShapeLabel(data.placement_shape)}`);
+  }
+  if (data.placement_supported) {
+    items.push(`Клик: ${getTranslatedPlacementMode(data.placement_mode)}`);
+  }
+  if (data.placement_supports_direction) {
+    items.push(`Напр.: ${getTranslatedDirection(data.placement_dir)}`);
+  }
+  return items;
+};
+
+const getToolbarContextLine = (data: BackendData) => {
+  if (!data.has_generator) {
+    return '';
+  }
+
+  const items: string[] = [];
+  if (data.current_generator_id === 'blueprint_stamp') {
+    const activeBlueprint = getSelectedBlueprint(data);
+    items.push(
+      `Шаблон: ${
+        activeBlueprint?.name ||
+        getDisplayText(data.active_blueprint_id, 'не выбран')
+      }`,
+    );
+  } else if (data.current_generator_id === 'outpost_radius') {
+    items.push(
+      `Семейство: ${getFieldOptionLabel(getField(data.ui_fields, 'family'))}`,
+    );
+    items.push(
+      `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
+    );
+  } else if (data.current_generator_id === 'destruction_pack') {
+    const activeModes = [
+      getField(data.ui_fields, 'shuffle_enabled')?.value ? 'перемешивание' : '',
+      getField(data.ui_fields, 'scatter_enabled')?.value ? 'разброс' : '',
+      getField(data.ui_fields, 'persistent_fire_enabled')?.value ? 'огонь' : '',
+      getField(data.ui_fields, 'blast_enabled')?.value ? 'взрыв' : '',
+      `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}` !==
+      'none'
+        ? 'урон'
+        : '',
+    ].filter(Boolean);
+    items.push(
+      `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
+    );
+    items.push(
+      activeModes.length
+        ? `Режим: ${activeModes.join(', ')}`
+        : 'Режим не задан',
+    );
+  }
+
+  items.push(...getPlacementContextItems(data));
+  return items.slice(0, 3).join(' · ');
 };
 
 const CompactStatusRow = (props: {
@@ -641,43 +712,159 @@ const CompactStatusRow = (props: {
   );
 };
 
-const SurfaceCard = (props: {
-  readonly title: string;
-  readonly subtitle?: ReactNode;
-  readonly tone?: 'default' | 'good' | 'average' | 'bad';
-  readonly actions?: ReactNode;
+const WorkspaceGrid = (props: {
   readonly children: ReactNode;
-  readonly mt?: number;
+  readonly gutter?: number;
 }) => {
-  const { title, subtitle, tone, actions, children, mt } = props;
-  const borderColor =
+  const { children, gutter = WORKSPACE_GUTTER } = props;
+  return (
+    <Flex wrap mx={-gutter}>
+      {children}
+    </Flex>
+  );
+};
+
+const WorkspacePane = (props: {
+  readonly children: ReactNode;
+  readonly basis: string;
+  readonly minWidth: string;
+  readonly gutter?: number;
+  readonly grow?: boolean;
+}) => {
+  const {
+    children,
+    basis,
+    minWidth,
+    gutter = WORKSPACE_GUTTER,
+    grow = true,
+  } = props;
+  return (
+    <Flex.Item basis={basis} grow={grow} m={gutter} style={{ minWidth }}>
+      {children}
+    </Flex.Item>
+  );
+};
+
+const ChoiceStrip = (props: {
+  readonly options: ChoiceOption[];
+  readonly selected: string;
+  readonly disabled?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const { options, selected, disabled, onSelected } = props;
+  const basis = options.length <= 2 ? '45%' : '22%';
+
+  if (!options.length) {
+    return <Box color="label">Нет вариантов.</Box>;
+  }
+
+  return (
+    <Flex wrap mx={-0.15}>
+      {options.map((option) => {
+        const isSelected = `${option.value}` === `${selected}`;
+        return (
+          <Flex.Item key={option.value} grow basis={basis} m={0.15}>
+            <Button
+              compact
+              fluid
+              selected={isSelected}
+              color={isSelected ? 'good' : undefined}
+              disabled={disabled}
+              onClick={() => onSelected(option.value)}
+            >
+              {option.displayText}
+            </Button>
+          </Flex.Item>
+        );
+      })}
+    </Flex>
+  );
+};
+
+const SmartSelect = (props: {
+  readonly options: ChoiceOption[];
+  readonly selected: string;
+  readonly displayText: string;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly forceDropdown?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const {
+    options,
+    selected,
+    displayText,
+    disabled,
+    placeholder,
+    forceDropdown,
+    onSelected,
+  } = props;
+
+  if (forceDropdown || options.length >= SMALL_CHOICE_DROPDOWN_THRESHOLD) {
+    return (
+      <Dropdown
+        width="100%"
+        options={options}
+        selected={selected}
+        displayText={displayText}
+        disabled={disabled || !options.length}
+        placeholder={placeholder}
+        onSelected={(value) => onSelected(`${value}`)}
+      />
+    );
+  }
+
+  return (
+    <ChoiceStrip
+      options={options}
+      selected={selected}
+      disabled={disabled || !options.length}
+      onSelected={onSelected}
+    />
+  );
+};
+
+const getSurfaceColors = (tone?: SurfaceTone) => ({
+  borderColor:
     tone === 'good'
       ? '#4c9f39'
       : tone === 'average'
         ? '#b98c35'
         : tone === 'bad'
           ? '#8f3c34'
-          : '#466b96';
-  const background =
+          : '#466b96',
+  background:
     tone === 'good'
       ? 'rgba(76, 159, 57, 0.12)'
       : tone === 'average'
         ? 'rgba(185, 140, 53, 0.12)'
         : tone === 'bad'
           ? 'rgba(143, 60, 52, 0.16)'
-          : 'rgba(70, 107, 150, 0.12)';
+          : 'rgba(70, 107, 150, 0.12)',
+});
+
+const SurfaceCard = (props: {
+  readonly title: string;
+  readonly subtitle?: ReactNode;
+  readonly tone?: SurfaceTone;
+  readonly actions?: ReactNode;
+  readonly children: ReactNode;
+  readonly mt?: number;
+}) => {
+  const { title, subtitle, tone, actions, children, mt } = props;
+  const { borderColor, background } = getSurfaceColors(tone);
 
   return (
     <Box
       mt={mt}
-      p={0.8}
+      p={0.65}
       style={{
         border: `1px solid ${borderColor}`,
         background,
         borderRadius: '4px',
       }}
     >
-      <Flex align="center" wrap mb={0.5}>
+      <Flex align="center" wrap mb={0.4}>
         <Flex.Item grow basis="14rem">
           <Box bold>{title}</Box>
           {!!subtitle && (
@@ -769,8 +956,7 @@ const FieldEditor = (props: {
     }
 
     control = (
-      <Dropdown
-        width="100%"
+      <SmartSelect
         options={dropdownOptions}
         selected={selectedKey}
         displayText={getFieldOptionLabel(field)}
@@ -806,12 +992,13 @@ const FieldListCard = (props: {
   readonly title: string;
   readonly fields: UiField[];
   readonly act: ActFn;
-  readonly tone?: 'default' | 'good' | 'average' | 'bad';
+  readonly tone?: SurfaceTone;
   readonly subtitle?: ReactNode;
   readonly showHints?: boolean;
   readonly actions?: ReactNode;
+  readonly mt?: number;
 }) => {
-  const { title, fields, act, tone, subtitle, showHints, actions } = props;
+  const { title, fields, act, tone, subtitle, showHints, actions, mt } = props;
   const visibleFields = (fields || []).filter(
     (field) => field.visible !== false,
   );
@@ -825,7 +1012,7 @@ const FieldListCard = (props: {
       subtitle={subtitle}
       tone={tone}
       actions={actions}
-      mt={0.6}
+      mt={mt ?? 0.6}
     >
       <LabeledList>
         {visibleFields.map((field) => (
@@ -841,40 +1028,91 @@ const FieldListCard = (props: {
   );
 };
 
+const FieldBlock = (props: {
+  readonly title: string;
+  readonly fields: UiField[];
+  readonly act: ActFn;
+  readonly tone?: SurfaceTone;
+  readonly subtitle?: ReactNode;
+  readonly showHints?: boolean;
+}) => {
+  const { title, fields, act, tone, subtitle, showHints } = props;
+  const visibleFields = (fields || []).filter(
+    (field) => field.visible !== false,
+  );
+  if (!visibleFields.length) {
+    return null;
+  }
+
+  const { borderColor, background } = getSurfaceColors(tone);
+
+  return (
+    <Box
+      p={0.5}
+      style={{
+        borderTop: `2px solid ${borderColor}`,
+        background:
+          tone && tone !== 'default' ? background : 'rgba(70, 107, 150, 0.06)',
+        borderRadius: '4px',
+      }}
+    >
+      <Box bold>{title}</Box>
+      {!!subtitle && (
+        <Box color="label" mt={0.1}>
+          {subtitle}
+        </Box>
+      )}
+      <Box mt={0.35}>
+        <LabeledList>
+          {visibleFields.map((field) => (
+            <FieldEditor
+              key={field.id}
+              field={field}
+              act={act}
+              showHints={showHints}
+            />
+          ))}
+        </LabeledList>
+      </Box>
+    </Box>
+  );
+};
+
 const getToolbarState = (data: BackendData): ToolbarState => {
   const title = getCurrentToolTitle(data);
 
   if (!data.has_generator) {
     return {
       title: 'World Edit',
-      state: 'Выберите инструмент.',
+      state: 'Инструмент не выбран.',
       stateColor: 'label',
     };
   }
 
   const blueprintState = getBlueprintToolbarState(data);
+  const isToolBlocked = isBlueprintToolBlocked(data);
+  const hasPlacementControls =
+    data.placement_supported ||
+    data.placement_shape_supported ||
+    data.placement_supports_direction;
   const canPreview =
-    data.can_run_preview &&
-    !data.click_mode_active &&
-    !isBlueprintToolBlocked(data);
+    data.can_run_preview && !data.click_mode_active && !isToolBlocked;
   const canApply =
-    data.can_run_apply &&
-    !data.click_mode_active &&
-    !isBlueprintToolBlocked(data);
+    data.can_run_apply && !data.click_mode_active && !isToolBlocked;
   const canStartPlacement =
-    data.can_start_placement_mode &&
-    !data.click_mode_active &&
-    !isBlueprintToolBlocked(data);
-  const canShowPlacementAction =
-    canStartPlacement &&
-    (!data.current_generator_supports_preview || data.preview_valid);
+    data.can_start_placement_mode && !data.click_mode_active && !isToolBlocked;
 
-  const previewAction: ToolbarAction = {
-    label: data.preview_valid ? 'Обновить предпросмотр' : 'Предпросмотр',
-    action: 'run_preview',
-    color: 'average',
-    disabled: !canPreview,
-  };
+  const previewAction: ToolbarAction | undefined =
+    data.current_generator_supports_preview
+      ? {
+          label: data.preview_valid
+            ? 'Обновить предпросмотр'
+            : 'Собрать предпросмотр',
+          action: 'run_preview',
+          color: 'average',
+          disabled: !canPreview,
+        }
+      : undefined;
 
   const applyAction: ToolbarAction = {
     label: 'Применить',
@@ -883,12 +1121,14 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     disabled: !canApply,
   };
 
-  const startPlacementAction: ToolbarAction = {
-    label: 'Разместить на карте',
-    action: 'start_placement_mode',
-    color: undefined,
-    disabled: !canStartPlacement,
-  };
+  const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
+    ? {
+        label: 'Начать размещение',
+        action: 'start_placement_mode',
+        color: 'average',
+        disabled: !canStartPlacement,
+      }
+    : undefined;
 
   const stopPlacementAction: ToolbarAction = {
     label: 'Остановить размещение',
@@ -897,104 +1137,108 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     disabled: !data.can_stop_click_mode,
   };
 
-  const finishCollectorAction: ToolbarAction = {
-    label: 'Завершить сбор',
-    action: 'finish_placement_collection',
-    color: 'good',
-    disabled: !data.can_finish_placement_collection,
+  const collectorAction: ToolbarAction | undefined =
+    data.click_mode_active && data.placement_interaction_kind === 'collector'
+      ? {
+          label: 'Завершить сбор',
+          action: 'finish_placement_collection',
+          color: 'good',
+          disabled: !data.can_finish_placement_collection,
+        }
+      : undefined;
+
+  const undoAction: ToolbarAction = {
+    label: 'Откатить последнее',
+    action: 'undo_last_operation',
+    color: 'average',
+    disabled: !data.can_undo_last_operation,
+  };
+
+  const baseState: ToolbarState = {
+    title,
+    state: 'Готово.',
+    stateColor: 'label',
+    context: getToolbarContextLine(data),
+    previewAction,
+    applyAction,
+    placementAction: data.click_mode_active
+      ? stopPlacementAction
+      : startPlacementAction,
+    collectorAction,
+    undoAction,
   };
 
   if (data.last_ui_error) {
     return {
-      title,
+      ...baseState,
       state: data.last_ui_error,
       stateColor: 'bad',
-      primary:
-        data.requires_preview_before_apply ||
-        data.current_generator_supports_preview
-          ? previewAction
-          : applyAction,
-      modeAction: canShowPlacementAction ? startPlacementAction : undefined,
     };
   }
 
   if (blueprintState) {
     return {
-      title,
+      ...baseState,
       state: blueprintState.state,
       stateColor: blueprintState.color,
-      primary: previewAction,
     };
   }
 
   if (data.click_mode_active) {
-    if (
-      data.placement_interaction_kind === 'collector' &&
-      data.can_finish_placement_collection
-    ) {
-      return {
-        title,
-        state: getPlacementStateLine(data),
-        stateColor: 'good',
-        primary: finishCollectorAction,
-        modeAction: stopPlacementAction,
-      };
-    }
-
     return {
-      title,
+      ...baseState,
       state: getPlacementStateLine(data),
-      stateColor: 'average',
-      primary: stopPlacementAction,
+      stateColor:
+        data.placement_interaction_kind === 'collector' &&
+        data.can_finish_placement_collection
+          ? 'good'
+          : 'average',
     };
   }
 
   if (data.requires_preview_before_apply && !data.preview_valid) {
     return {
-      title,
-      state: data.preview_message || 'Нужен предпросмотр.',
+      ...baseState,
+      state: data.preview_message || 'Соберите предпросмотр перед применением.',
       stateColor: data.preview_message ? 'bad' : 'average',
-      primary: previewAction,
     };
   }
 
   if (data.preview_valid) {
     return {
-      title,
-      state: data.preview_message || 'Предпросмотр готов.',
+      ...baseState,
+      state: hasPlacementControls
+        ? 'Готов к применению и размещению.'
+        : 'Готов к применению.',
       stateColor: 'good',
-      primary: applyAction,
-      secondary: data.current_generator_supports_preview
-        ? previewAction
-        : undefined,
-      modeAction: canShowPlacementAction ? startPlacementAction : undefined,
     };
   }
 
   if (data.current_generator_supports_preview) {
     return {
-      title,
-      state: 'Соберите предпросмотр.',
+      ...baseState,
+      state: 'Нужен предпросмотр.',
       stateColor: 'label',
-      primary: previewAction,
     };
   }
 
   return {
-    title,
-    state: 'Можно применять.',
+    ...baseState,
+    state: 'Можно применить.',
     stateColor: 'good',
-    primary: applyAction,
-    modeAction: canShowPlacementAction ? startPlacementAction : undefined,
   };
 };
 
-const PlacementControlsCard = (props: {
+const hasPlacementControlsForTool = (data: BackendData) =>
+  data.placement_supported ||
+  data.placement_shape_supported ||
+  data.placement_supports_direction;
+
+const PlacementControlsBody = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
-  readonly title?: string;
 }) => {
-  const { data, act, title } = props;
+  const { data, act } = props;
   const hasPlacementControls =
     data.placement_supported ||
     data.placement_shape_supported ||
@@ -1014,20 +1258,7 @@ const PlacementControlsCard = (props: {
   );
 
   return (
-    <SurfaceCard
-      title={title || 'Размещение на карте'}
-      subtitle={
-        data.click_mode_active ? getPlacementStateLine(data) : undefined
-      }
-      tone={
-        data.click_mode_active && data.can_finish_placement_collection
-          ? 'good'
-          : data.click_mode_active
-            ? 'average'
-            : 'default'
-      }
-      mt={0.6}
-    >
+    <>
       <Box color={data.click_mode_active ? 'white' : 'label'}>
         {getPlacementNextClickText(data)}
       </Box>
@@ -1036,8 +1267,7 @@ const PlacementControlsCard = (props: {
         <LabeledList>
           {!!data.placement_shape_supported && (
             <LabeledList.Item label="Форма">
-              <Dropdown
-                width="100%"
+              <SmartSelect
                 options={(data.placement_shape_options || []).map((option) => ({
                   value: option.value,
                   displayText: getTranslatedShapeLabel(
@@ -1050,6 +1280,10 @@ const PlacementControlsCard = (props: {
                   data.placement_shape,
                   'shape',
                 )}
+                forceDropdown={
+                  (data.placement_shape_options || []).length >=
+                  SMALL_CHOICE_DROPDOWN_THRESHOLD
+                }
                 onSelected={(value) =>
                   act('set_placement_shape', {
                     shape: value,
@@ -1061,8 +1295,7 @@ const PlacementControlsCard = (props: {
 
           {!!data.placement_supported && (
             <LabeledList.Item label="После клика">
-              <Dropdown
-                width="100%"
+              <SmartSelect
                 options={(data.placement_mode_options || []).map((option) => ({
                   value: option.value,
                   displayText: getTranslatedPlacementMode(
@@ -1086,8 +1319,7 @@ const PlacementControlsCard = (props: {
 
           {!!data.placement_supports_direction && (
             <LabeledList.Item label="Направление">
-              <Dropdown
-                width="100%"
+              <SmartSelect
                 options={(data.placement_dir_options || []).map((option) => ({
                   value: option.value,
                   displayText: getTranslatedDirection(
@@ -1124,11 +1356,14 @@ const PlacementControlsCard = (props: {
       {data.placement_interaction_kind === 'collector' &&
         (data.click_mode_active ||
           data.placement_collector_point_count > 0) && (
-          <SurfaceCard
-            title="Сбор формы"
-            tone={data.can_finish_placement_collection ? 'good' : 'average'}
-            mt={0.6}
-          >
+          <Box mt={0.6}>
+            <Box
+              bold
+              color={data.can_finish_placement_collection ? 'good' : 'average'}
+              mb={0.25}
+            >
+              Сбор формы
+            </Box>
             <ProgressBar
               value={data.placement_collector_point_count || 0}
               maxValue={collectorTarget}
@@ -1148,8 +1383,39 @@ const PlacementControlsCard = (props: {
             <Box color="label" mt={0.35}>
               Минимум: {Math.max(data.placement_collector_min_points || 1, 1)}
             </Box>
-          </SurfaceCard>
+          </Box>
         )}
+    </>
+  );
+};
+
+const PlacementControlsCard = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+  readonly title?: string;
+}) => {
+  const { data, act, title } = props;
+
+  if (!hasPlacementControlsForTool(data)) {
+    return null;
+  }
+
+  return (
+    <SurfaceCard
+      title={title || 'Размещение на карте'}
+      subtitle={
+        data.click_mode_active ? getPlacementStateLine(data) : undefined
+      }
+      tone={
+        data.click_mode_active && data.can_finish_placement_collection
+          ? 'good'
+          : data.click_mode_active
+            ? 'average'
+            : 'default'
+      }
+      mt={0.6}
+    >
+      <PlacementControlsBody data={data} act={act} />
     </SurfaceCard>
   );
 };
@@ -1180,84 +1446,80 @@ const PresetLibrarySection = (props: {
     data.preset_entries?.[0];
 
   return (
-    <SurfaceCard
-      title="Пресеты"
-      actions={
-        <Button compact onClick={() => act('save_preset')}>
-          Сохранить
-        </Button>
-      }
-      mt={0.6}
-    >
+    <Box mt={0.55}>
+      <Flex align="center" mb={0.35}>
+        <Flex.Item grow>
+          <Box bold>Пресеты</Box>
+        </Flex.Item>
+        <Flex.Item>
+          <Button compact onClick={() => act('save_preset')}>
+            Сохранить пресет
+          </Button>
+        </Flex.Item>
+      </Flex>
+
       {!data.preset_entries?.length && (
-        <Box color="label">Сохраненных пресетов пока нет.</Box>
+        <Box color="label">Пресетов пока нет.</Box>
       )}
 
       {!!data.preset_entries?.length && (
-        <>
-          <Flex wrap mx={-0.25}>
-            {data.preset_entries.map((preset) => {
-              const isSelected = preset.id === selectedPreset?.id;
-              return (
-                <Flex.Item key={preset.id} basis="48%" grow m={0.25}>
-                  <Box
-                    p={0.55}
-                    onClick={() => {
-                      setSelectedPresetId(preset.id);
-                      act('load_preset', {
-                        preset_id: preset.id,
-                      });
-                    }}
-                    style={{
-                      border: isSelected
-                        ? '1px solid #4c9f39'
-                        : '1px solid #466b96',
-                      background: isSelected
-                        ? 'rgba(76, 159, 57, 0.16)'
-                        : 'rgba(70, 107, 150, 0.10)',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Box bold color={isSelected ? 'good' : 'white'}>
-                      {getDisplayText(preset.name, 'Пресет без имени')}
-                    </Box>
-                    <Box color="label" mt={0.2}>
-                      {preset.params_short ||
-                        'Описание появится после сохранения.'}
-                    </Box>
-                  </Box>
-                </Flex.Item>
-              );
-            })}
-          </Flex>
-
-          {!!selectedPreset && (
-            <SurfaceCard
-              title={getDisplayText(selectedPreset.name, 'Пресет')}
-              mt={0.6}
-              actions={
-                <Button
-                  compact
-                  color="average"
-                  onClick={() =>
-                    act('delete_preset', {
-                      preset_id: selectedPreset.id,
-                    })
-                  }
+        <Flex wrap mx={-0.25}>
+          {data.preset_entries.map((preset) => {
+            const isSelected = preset.id === selectedPreset?.id;
+            return (
+              <Flex.Item key={preset.id} basis="48%" grow m={0.25}>
+                <Box
+                  p={0.5}
+                  onClick={() => {
+                    setSelectedPresetId(preset.id);
+                    act('load_preset', {
+                      preset_id: preset.id,
+                    });
+                  }}
+                  style={{
+                    border: isSelected
+                      ? '1px solid #4c9f39'
+                      : '1px solid #466b96',
+                    background: isSelected
+                      ? 'rgba(76, 159, 57, 0.12)'
+                      : 'rgba(70, 107, 150, 0.08)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
                 >
-                  Удалить
-                </Button>
-              }
-            >
-              <Box color="label">
-                {selectedPreset.params_short || 'Описание не сохранено.'}
-              </Box>
-            </SurfaceCard>
-          )}
-        </>
+                  <Flex align="center">
+                    <Flex.Item grow>
+                      <Box bold color={isSelected ? 'good' : 'white'}>
+                        {getDisplayText(preset.name, 'Пресет без имени')}
+                      </Box>
+                    </Flex.Item>
+                    {isSelected && (
+                      <Flex.Item>
+                        <Button
+                          compact
+                          color="average"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            act('delete_preset', {
+                              preset_id: preset.id,
+                            });
+                          }}
+                        >
+                          Удалить
+                        </Button>
+                      </Flex.Item>
+                    )}
+                  </Flex>
+                  <Box color="label" mt={0.2}>
+                    {preset.params_short || 'Описание не сохранено.'}
+                  </Box>
+                </Box>
+              </Flex.Item>
+            );
+          })}
+        </Flex>
       )}
-    </SurfaceCard>
+    </Box>
   );
 };
 
@@ -1268,16 +1530,19 @@ const BlueprintExportSection = (props: {
   const { data, act } = props;
 
   return (
-    <SurfaceCard title="Сохранить как шаблон" mt={0.6}>
+    <Box mt={0.6}>
+      <Box bold mb={0.35}>
+        Экспорт шаблона
+      </Box>
       {!data.can_save_blueprint_from_plan && (
-        <Box color="label">Без предпросмотра недоступно.</Box>
+        <Box color="label">Доступен после предпросмотра.</Box>
       )}
       {!!data.can_save_blueprint_from_plan && (
         <Button compact onClick={() => act('save_blueprint')}>
-          Сохранить предпросмотр
+          Сохранить предпросмотр как шаблон
         </Button>
       )}
-    </SurfaceCard>
+    </Box>
   );
 };
 
@@ -1330,10 +1595,10 @@ const BlueprintStampWorkspace = (props: {
   const totalBlueprints = data.blueprint_entries?.length || 0;
 
   return (
-    <Flex wrap mx={-0.4}>
-      <Flex.Item basis="42%" grow m={0.4} style={{ minWidth: '19rem' }}>
+    <WorkspaceGrid>
+      <WorkspacePane basis="42%" minWidth="19rem">
         <SurfaceCard
-          title="Библиотека шаблонов"
+          title="Библиотека"
           subtitle={`${filteredBlueprints.length} из ${totalBlueprints}`}
           actions={
             <Button compact onClick={() => act('list_blueprints')}>
@@ -1343,19 +1608,19 @@ const BlueprintStampWorkspace = (props: {
         >
           <Input
             value={searchQuery}
-            placeholder="Найти"
+            placeholder="Поиск"
             onChange={(_, value) => setSearchQuery(value)}
           />
 
           {!data.blueprint_entries?.length && (
             <Box color="label" mt={0.7}>
-              Шаблонов пока нет.
+              Нет шаблонов.
             </Box>
           )}
 
           {!!data.blueprint_entries?.length && !filteredBlueprints.length && (
             <Box color="label" mt={0.7}>
-              По этому запросу ничего не найдено.
+              Ничего не найдено.
             </Box>
           )}
 
@@ -1367,17 +1632,30 @@ const BlueprintStampWorkspace = (props: {
                 return (
                   <Box
                     key={blueprint.id}
-                    p={0.55}
-                    mb={0.45}
+                    p={0.45}
+                    mb={0.3}
                     onClick={() => {
                       setSelectedBlueprintId(blueprint.id);
+                      if (
+                        blueprint.valid &&
+                        blueprint.id !== data.active_blueprint_id
+                      ) {
+                        act('load_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }
                     }}
                     style={{
                       border: isActive
                         ? '1px solid #4c9f39'
                         : isSelected
                           ? '1px solid #7696c5'
-                          : '1px solid #466b96',
+                          : '1px solid rgba(70, 107, 150, 0.55)',
+                      borderLeft: isActive
+                        ? '3px solid #4c9f39'
+                        : isSelected
+                          ? '3px solid #7696c5'
+                          : '3px solid transparent',
                       background: isActive
                         ? 'rgba(76, 159, 57, 0.16)'
                         : isSelected
@@ -1396,7 +1674,7 @@ const BlueprintStampWorkspace = (props: {
                     <Box color={blueprint.valid ? 'label' : 'bad'} mt={0.2}>
                       {blueprint.valid
                         ? `${getPositiveCountText(blueprint.entry_count, '0')} объектов · радиус ${getPositiveCountText(blueprint.radius, '0')}`
-                        : 'Содержит ошибки и не может быть использован'}
+                        : 'Шаблон недоступен'}
                     </Box>
                     {(!blueprint.valid || isActive) && (
                       <Box
@@ -1409,7 +1687,11 @@ const BlueprintStampWorkspace = (props: {
                         }
                         mt={0.2}
                       >
-                        {!blueprint.valid ? 'Недоступен' : 'Активен'}
+                        {!blueprint.valid
+                          ? 'Недоступен'
+                          : isActive
+                            ? 'Выбран'
+                            : ''}
                       </Box>
                     )}
                   </Box>
@@ -1418,22 +1700,18 @@ const BlueprintStampWorkspace = (props: {
             </Box>
           )}
         </SurfaceCard>
-      </Flex.Item>
+      </WorkspacePane>
 
-      <Flex.Item basis="56%" grow m={0.4} style={{ minWidth: '23rem' }}>
+      <WorkspacePane basis="56%" minWidth="23rem">
         <SurfaceCard
-          title={
-            selectedBlueprint
-              ? getDisplayText(selectedBlueprint.name, 'Шаблон')
-              : 'Шаблон не выбран'
-          }
+          title="Рабочий шаблон"
           subtitle={
             selectedBlueprint
               ? !selectedBlueprint.valid
                 ? 'Недоступен'
                 : isSelectedBlueprintActive
-                  ? 'Активен'
-                  : undefined
+                  ? 'Готов к предпросмотру и размещению'
+                  : 'Выбирается'
               : undefined
           }
           tone={
@@ -1445,23 +1723,6 @@ const BlueprintStampWorkspace = (props: {
                   ? 'good'
                   : 'average'
           }
-          actions={
-            !!selectedBlueprint &&
-            selectedBlueprint.valid &&
-            !isSelectedBlueprintActive && (
-              <Button
-                compact
-                color="average"
-                onClick={() =>
-                  act('load_blueprint', {
-                    blueprint_id: selectedBlueprint.id,
-                  })
-                }
-              >
-                Использовать
-              </Button>
-            )
-          }
         >
           {!selectedBlueprint && (
             <Box color="label">Выберите шаблон слева.</Box>
@@ -1469,9 +1730,12 @@ const BlueprintStampWorkspace = (props: {
 
           {!!selectedBlueprint && (
             <>
+              <Box bold style={{ fontSize: '1.15em' }}>
+                {getDisplayText(selectedBlueprint.name, 'Шаблон без имени')}
+              </Box>
               {!selectedBlueprint.valid && (
                 <NoticeBox danger>
-                  {selectedBlueprint.error || 'Шаблон невалиден.'}
+                  {selectedBlueprint.error || 'Шаблон недоступен.'}
                 </NoticeBox>
               )}
               <CompactStatusRow
@@ -1506,17 +1770,25 @@ const BlueprintStampWorkspace = (props: {
                   },
                 ]}
               />
+              {selectedBlueprint.valid &&
+                isSelectedBlueprintActive &&
+                hasPlacementControlsForTool(data) && (
+                  <Box
+                    mt={0.7}
+                    pt={0.55}
+                    style={{ borderTop: '1px solid rgba(70, 107, 150, 0.45)' }}
+                  >
+                    <Box bold mb={0.35}>
+                      Размещение
+                    </Box>
+                    <PlacementControlsBody data={data} act={act} />
+                  </Box>
+                )}
             </>
           )}
         </SurfaceCard>
-
-        <PlacementControlsCard
-          data={data}
-          act={act}
-          title="Разместить шаблон"
-        />
-      </Flex.Item>
-    </Flex>
+      </WorkspacePane>
+    </WorkspaceGrid>
   );
 };
 
@@ -1570,39 +1842,43 @@ const OutpostRadiusWorkspace = (props: {
   }
 
   return (
-    <Flex wrap mx={-0.4}>
-      <Flex.Item basis="50%" grow m={0.4} style={{ minWidth: '22rem' }}>
+    <WorkspaceGrid>
+      <WorkspacePane basis="50%" minWidth="22rem">
         <FieldListCard
           title="Конфигурация форпоста"
           fields={layoutFields}
           act={act}
+          mt={0}
         />
         <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
         <FieldListCard title="Оборона" fields={sentryFields} act={act} />
-      </Flex.Item>
+      </WorkspacePane>
 
-      <Flex.Item basis="48%" grow m={0.4} style={{ minWidth: '22rem' }}>
+      <WorkspacePane basis="48%" minWidth="22rem">
         <SurfaceCard
-          title="Итог форпоста"
+          title="Сводка форпоста"
+          subtitle={data.preview_valid ? 'Готов' : 'Нужен предпросмотр'}
           tone={data.preview_valid ? 'good' : 'average'}
         >
           <CompactStatusRow basis="48%" items={summaryTiles} />
+          {hasPlacementControlsForTool(data) && (
+            <Box mt={0.7}>
+              <Box bold mb={0.35}>
+                Размещение
+              </Box>
+              <PlacementControlsBody data={data} act={act} />
+            </Box>
+          )}
         </SurfaceCard>
 
-        <PlacementControlsCard
-          data={data}
-          act={act}
-          title="Развернуть на карте"
-        />
-
-        <Collapsible title="Пресеты и сохранение" mt={0.6} open={false}>
+        <Collapsible title="Пресеты и экспорт" mt={0.55} open={false}>
           {!!data.can_manage_presets && (
             <PresetLibrarySection data={data} act={act} />
           )}
           <BlueprintExportSection data={data} act={act} />
         </Collapsible>
-      </Flex.Item>
-    </Flex>
+      </WorkspacePane>
+    </WorkspaceGrid>
   );
 };
 
@@ -1630,65 +1906,75 @@ const DestructionPackWorkspace = (props: {
   const damageProfile = `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}`;
   const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
     ?.value;
+  const destructiveEnabled = blastEnabled || damageProfile !== 'none';
+  const dangerEnabled = destructiveEnabled || fireEnabled;
 
   return (
     <>
-      <SurfaceCard title="Безопасное перемещение" tone="good">
-        <Flex wrap mx={-0.35}>
-          <Flex.Item basis="48%" grow m={0.35} style={{ minWidth: '19rem' }}>
-            <FieldListCard title="Область" fields={areaFields} act={act} />
-          </Flex.Item>
-          <Flex.Item basis="48%" grow m={0.35} style={{ minWidth: '19rem' }}>
-            <FieldListCard
-              title="Перемещение и лимиты"
+      <SurfaceCard title="Безопасная зона" subtitle="Без взрыва и урона">
+        <WorkspaceGrid>
+          <WorkspacePane basis="56%" minWidth="19rem">
+            <FieldBlock title="Зона" fields={areaFields} act={act} />
+          </WorkspacePane>
+          <WorkspacePane basis="42%" minWidth="19rem">
+            <FieldBlock
+              title="Перемещение"
               fields={safeMovementFields}
               act={act}
             />
-          </Flex.Item>
-        </Flex>
+          </WorkspacePane>
+        </WorkspaceGrid>
       </SurfaceCard>
 
-      <SurfaceCard
-        title="Опасные режимы"
-        tone={blastEnabled || damageProfile !== 'none' ? 'bad' : 'average'}
+      <Collapsible
+        title={dangerEnabled ? 'Опасные режимы включены' : 'Опасные режимы'}
         mt={0.6}
+        open={dangerEnabled}
       >
-        <NoticeBox danger>
-          Взрыв и прямой структурный урон могут отключить полный откат для этой
-          операции.
-        </NoticeBox>
+        <SurfaceCard
+          title="Опасное воздействие"
+          tone={
+            destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'
+          }
+        >
+          {destructiveEnabled ? (
+            <NoticeBox danger>Взрыв и урон ограничивают откат.</NoticeBox>
+          ) : (
+            <Box color="label">Взрыв и структурный урон выключены.</Box>
+          )}
 
-        <Flex wrap mx={-0.35} mt={0.35}>
-          <Flex.Item basis="32%" grow m={0.35} style={{ minWidth: '18rem' }}>
-            <FieldListCard
-              title="Огонь"
-              fields={fireFields}
-              act={act}
-              tone={fireEnabled ? 'average' : 'default'}
-            />
-          </Flex.Item>
-          <Flex.Item basis="32%" grow m={0.35} style={{ minWidth: '18rem' }}>
-            <FieldListCard
-              title="Взрыв"
-              subtitle={blastEnabled ? 'Откат ограничен.' : undefined}
-              fields={blastFields}
-              act={act}
-              tone={blastEnabled ? 'bad' : 'default'}
-            />
-          </Flex.Item>
-          <Flex.Item basis="32%" grow m={0.35} style={{ minWidth: '18rem' }}>
-            <FieldListCard
-              title="Структурный урон"
-              subtitle={
-                damageProfile !== 'none' ? 'Откат ограничен.' : undefined
-              }
-              fields={damageFields}
-              act={act}
-              tone={damageProfile !== 'none' ? 'bad' : 'default'}
-            />
-          </Flex.Item>
-        </Flex>
-      </SurfaceCard>
+          <WorkspaceGrid>
+            <WorkspacePane basis="34%" minWidth="18rem">
+              <FieldBlock
+                title="Огонь"
+                fields={fireFields}
+                act={act}
+                tone={fireEnabled ? 'average' : 'default'}
+              />
+            </WorkspacePane>
+            <WorkspacePane basis="31%" minWidth="18rem">
+              <FieldBlock
+                title="Взрыв"
+                subtitle={blastEnabled ? 'Откат ограничен' : undefined}
+                fields={blastFields}
+                act={act}
+                tone={blastEnabled ? 'bad' : 'default'}
+              />
+            </WorkspacePane>
+            <WorkspacePane basis="31%" minWidth="18rem">
+              <FieldBlock
+                title="Структурный урон"
+                subtitle={
+                  damageProfile !== 'none' ? 'Откат ограничен' : undefined
+                }
+                fields={damageFields}
+                act={act}
+                tone={damageProfile !== 'none' ? 'bad' : 'default'}
+              />
+            </WorkspacePane>
+          </WorkspaceGrid>
+        </SurfaceCard>
+      </Collapsible>
     </>
   );
 };
@@ -1704,23 +1990,17 @@ const GenericFieldGroups = (props: {
   }
 
   return (
-    <Flex wrap mx={-0.35}>
+    <WorkspaceGrid>
       {groupNames.map((groupName) => (
-        <Flex.Item
-          key={groupName}
-          basis="48%"
-          grow
-          m={0.35}
-          style={{ minWidth: '20rem' }}
-        >
+        <WorkspacePane key={groupName} basis="48%" minWidth="20rem">
           <FieldListCard
             title={groupName}
             fields={groupedFields[groupName] || []}
             act={act}
           />
-        </Flex.Item>
+        </WorkspacePane>
       ))}
-    </Flex>
+    </WorkspaceGrid>
   );
 };
 
@@ -1736,7 +2016,7 @@ const GenericToolWorkspace = (props: {
 
   return (
     <>
-      {!hasPrimaryContent && <Box color="label">Настроек пока нет.</Box>}
+      {!hasPrimaryContent && <Box color="label">Нет настроек.</Box>}
 
       {!!data.has_inline_fields && (
         <GenericFieldGroups
@@ -1816,48 +2096,49 @@ const HistoryDetailsSection = (props: {
   ].filter(Boolean) as SummaryTile[];
 
   return (
-    <Collapsible title="Детали" mt={0.8} open={false}>
-      <SurfaceCard title="История">
-        <Flex wrap mx={-0.25}>
-          <Flex.Item m={0.25}>
-            <Button
-              compact
-              color="average"
-              disabled={!data.can_undo_last_operation}
-              onClick={() => act('undo_last_operation')}
-            >
-              Откатить
-            </Button>
-          </Flex.Item>
-          <Flex.Item m={0.25}>
-            <Button
-              compact
-              color="average"
-              disabled={!data.can_cleanup_last_owned_effects}
-              onClick={() => act('cleanup_last_owned_effects')}
-            >
-              Очистить эффекты
-            </Button>
-          </Flex.Item>
-          <Flex.Item m={0.25}>
-            <Button
-              compact
-              color="average"
-              onClick={() => act('clear_history')}
-            >
-              Очистить историю
-            </Button>
-          </Flex.Item>
-        </Flex>
-
+    <Collapsible title="Журнал и дополнительно" mt={0.75} open={false}>
+      <SurfaceCard
+        title="Журнал"
+        actions={
+          <Flex wrap mx={-0.2}>
+            <Flex.Item m={0.2}>
+              <Button
+                compact
+                color="average"
+                disabled={!data.can_cleanup_last_owned_effects}
+                onClick={() => act('cleanup_last_owned_effects')}
+              >
+                Очистить эффекты
+              </Button>
+            </Flex.Item>
+            <Flex.Item m={0.2}>
+              <Button
+                compact
+                color="average"
+                onClick={() => act('clear_history')}
+              >
+                Очистить журнал
+              </Button>
+            </Flex.Item>
+          </Flex>
+        }
+      >
         {!data.last_changeset && !data.history_entries?.length && (
-          <Box color="label" mt={0.6}>
-            Операций пока не было.
-          </Box>
+          <Box color="label">Журнал пуст.</Box>
         )}
 
         {!!data.last_changeset && (
-          <SurfaceCard title="Последняя операция" mt={0.6}>
+          <Box
+            p={0.45}
+            style={{
+              border: '1px solid rgba(70, 107, 150, 0.45)',
+              background: 'rgba(70, 107, 150, 0.08)',
+              borderRadius: '4px',
+            }}
+          >
+            <Box bold mb={0.3}>
+              Последняя операция
+            </Box>
             <CompactStatusRow
               basis="32%"
               items={[
@@ -1890,15 +2171,15 @@ const HistoryDetailsSection = (props: {
               ]}
             />
             <Box color="label" mt={0.25}>
-              Создано: {data.last_changeset.created_entries} | Перемещено:{' '}
-              {data.last_changeset.moved_entries} | Собственных эффектов:{' '}
+              Создано: {data.last_changeset.created_entries} · Перемещено:{' '}
+              {data.last_changeset.moved_entries} · Эффекты:{' '}
               {data.last_changeset.owned_effect_entries}
             </Box>
-          </SurfaceCard>
+          </Box>
         )}
 
         {!!data.history_entries?.length && (
-          <Box mt={0.6}>
+          <Box mt={0.55}>
             {data.history_entries.map((entry, index) => (
               <Collapsible
                 key={`${entry.time}_${entry.generator_id}_${index}`}
@@ -1942,30 +2223,23 @@ const HistoryDetailsSection = (props: {
                     },
                   ]}
                 />
-                <Box color="label" mt={0.5}>
-                  {entry.message || 'Подробности операции не сохранены.'}
+                <Box color="label" mt={0.45}>
+                  {entry.message || 'Подробности не сохранены.'}
                 </Box>
-                {(!!entry.params_short ||
-                  !!entry.operation_id ||
-                  !!entry.source_operation_id) && (
-                  <Collapsible title="Служебно" mt={0.5} open={false}>
-                    {!!entry.params_short && (
-                      <Box color="label">
-                        Параметры:{' '}
-                        {getDisplayText(entry.params_short, EMPTY_LABEL)}
-                      </Box>
-                    )}
-                    {!!entry.operation_id && (
-                      <Box color="label" mt={0.3}>
-                        Идентификатор операции: {entry.operation_id}
-                      </Box>
-                    )}
-                    {!!entry.source_operation_id && (
-                      <Box color="label" mt={0.3}>
-                        Исходная операция: {entry.source_operation_id}
-                      </Box>
-                    )}
-                  </Collapsible>
+                {!!entry.params_short && (
+                  <Box color="label" mt={0.35}>
+                    Параметры: {getDisplayText(entry.params_short, EMPTY_LABEL)}
+                  </Box>
+                )}
+                {!!entry.operation_id && (
+                  <Box color="label" mt={0.25}>
+                    ID операции: {entry.operation_id}
+                  </Box>
+                )}
+                {!!entry.source_operation_id && (
+                  <Box color="label" mt={0.25}>
+                    Исходная операция: {entry.source_operation_id}
+                  </Box>
                 )}
               </Collapsible>
             ))}
@@ -1973,7 +2247,7 @@ const HistoryDetailsSection = (props: {
         )}
       </SurfaceCard>
 
-      <Collapsible title="Служебно" mt={0.6} open={false}>
+      <Collapsible title="Технические данные" mt={0.55} open={false}>
         <SurfaceCard title="Сеанс">
           <CompactStatusRow
             basis="32%"
@@ -2013,72 +2287,75 @@ const HistoryDetailsSection = (props: {
                   ? 'average'
                   : 'label'
             }
-            mt={0.5}
+            mt={0.45}
           >
-            {data.preview_message || 'Предпросмотр еще не запускался.'}
+            {data.preview_message || 'Предпросмотр не запускался.'}
           </Box>
-        </SurfaceCard>
 
-        {!!(data.last_apply_message || data.last_apply_success) && (
-          <Collapsible title="Последнее применение" mt={0.6} open={false}>
-            <Box color={data.last_apply_success ? 'good' : 'average'}>
-              {data.last_apply_message ||
-                'Применение в этой сессии еще не запускалось.'}
+          {!!(data.last_apply_message || data.last_apply_success) && (
+            <Box color={data.last_apply_success ? 'good' : 'average'} mt={0.45}>
+              {data.last_apply_message || 'Применение не запускалось.'}
             </Box>
-          </Collapsible>
-        )}
+          )}
 
-        {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
-          <Collapsible title="Сырые данные предпросмотра" mt={0.6} open={false}>
-            <CompactStatusRow
-              basis="32%"
-              items={Object.entries(data.preview_meta).map(([key, value]) => ({
-                label: key,
-                value: renderMetaValue(value),
-              }))}
-            />
-          </Collapsible>
-        )}
+          {!!placementDiagnostics.length && (
+            <Box mt={0.45}>
+              <CompactStatusRow basis="48%" items={placementDiagnostics} />
+            </Box>
+          )}
 
-        {!!placementDiagnostics.length && (
-          <Collapsible title="Размещение" mt={0.6} open={false}>
-            <CompactStatusRow basis="48%" items={placementDiagnostics} />
-          </Collapsible>
-        )}
+          {!!data.preview_meta && !!Object.keys(data.preview_meta).length && (
+            <Box mt={0.55}>
+              <Box bold mb={0.25}>
+                Данные предпросмотра
+              </Box>
+              <CompactStatusRow
+                basis="32%"
+                items={Object.entries(data.preview_meta).map(
+                  ([key, value]) => ({
+                    label: key,
+                    value: renderMetaValue(value),
+                  }),
+                )}
+              />
+            </Box>
+          )}
 
-        {!!data.runtime_status?.length && (
-          <Collapsible title="Состояние выполнения" mt={0.6} open={false}>
-            <LabeledList>
-              {data.runtime_status.map((entry, index) => (
-                <LabeledList.Item
-                  key={`${entry.label}_${index}`}
-                  label={entry.label}
-                >
-                  {entry.value}
-                </LabeledList.Item>
-              ))}
-            </LabeledList>
-          </Collapsible>
-        )}
+          {!!data.runtime_status?.length && (
+            <Box mt={0.55}>
+              <Box bold mb={0.25}>
+                Выполнение
+              </Box>
+              <LabeledList>
+                {data.runtime_status.map((entry, index) => (
+                  <LabeledList.Item
+                    key={`${entry.label}_${index}`}
+                    label={entry.label}
+                  >
+                    {entry.value}
+                  </LabeledList.Item>
+                ))}
+              </LabeledList>
+            </Box>
+          )}
 
-        <Collapsible title="Действия" mt={0.6} open={false}>
-          <Flex wrap mx={-0.25}>
+          <Flex wrap mx={-0.25} mt={0.55}>
             <Flex.Item m={0.25}>
               <Button
                 compact
                 disabled={!data.can_refresh_ui}
                 onClick={() => act('refresh_ui')}
               >
-                Обновить панель
+                Обновить данные
               </Button>
             </Flex.Item>
             <Flex.Item m={0.25}>
               <Button compact onClick={() => act('reset_generator')}>
-                Сбросить инструмент
+                Сбросить настройки
               </Button>
             </Flex.Item>
           </Flex>
-        </Collapsible>
+        </SurfaceCard>
       </Collapsible>
     </Collapsible>
   );
@@ -2111,51 +2388,71 @@ const EditorToolbar = (props: {
   return (
     <Box
       mb={0.8}
-      px={0.5}
-      py={0.35}
+      px={0.65}
+      py={0.45}
       style={{
         position: 'sticky',
         top: '0',
         zIndex: '5',
-        background: 'rgba(18, 20, 22, 0.96)',
-        borderBottom: '1px solid #466b96',
+        background: 'rgba(17, 20, 24, 0.97)',
+        border: '1px solid rgba(70, 107, 150, 0.75)',
+        borderRadius: '4px',
       }}
     >
       <Flex align="center" wrap mx={-0.25}>
-        <Flex.Item grow basis="18rem" m={0.25}>
+        <Flex.Item grow basis="17rem" m={0.25}>
           <Box bold>{toolbar.title}</Box>
-          <Box color={toolbar.stateColor || 'label'} mt={0.1}>
+          {!!toolbar.context && (
+            <Box color="label" mt={0.1}>
+              {toolbar.context}
+            </Box>
+          )}
+        </Flex.Item>
+
+        <Flex.Item basis="12rem" m={0.25}>
+          <Box
+            color={toolbar.stateColor || 'label'}
+            px={0.5}
+            py={0.25}
+            style={{
+              border: '1px solid rgba(70, 107, 150, 0.45)',
+              background: 'rgba(70, 107, 150, 0.10)',
+              borderRadius: '4px',
+            }}
+          >
             {toolbar.state}
           </Box>
         </Flex.Item>
 
-        {!!toolbar.primary && (
-          <Flex.Item basis="11rem" m={0.25}>
-            {renderAction(toolbar.primary)}
-          </Flex.Item>
-        )}
-        {!!toolbar.secondary && (
-          <Flex.Item m={0.25}>
-            {renderAction(toolbar.secondary, true)}
-          </Flex.Item>
-        )}
-        {!!toolbar.modeAction && (
-          <Flex.Item m={0.25}>
-            {renderAction(toolbar.modeAction, true)}
-          </Flex.Item>
-        )}
-        {!!data.has_generator && (
-          <Flex.Item m={0.25}>
-            <Button
-              compact
-              color="average"
-              disabled={!data.can_undo_last_operation}
-              onClick={() => act('undo_last_operation')}
-            >
-              Откатить
-            </Button>
-          </Flex.Item>
-        )}
+        <Flex.Item m={0.25}>
+          <Flex align="center" wrap mx={-0.15}>
+            {!!toolbar.previewAction && (
+              <Flex.Item m={0.15}>
+                {renderAction(toolbar.previewAction)}
+              </Flex.Item>
+            )}
+            {!!toolbar.applyAction && (
+              <Flex.Item m={0.15}>
+                {renderAction(toolbar.applyAction)}
+              </Flex.Item>
+            )}
+            {!!toolbar.placementAction && (
+              <Flex.Item m={0.15} ml={0.35}>
+                {renderAction(toolbar.placementAction, true)}
+              </Flex.Item>
+            )}
+            {!!toolbar.collectorAction && (
+              <Flex.Item m={0.15}>
+                {renderAction(toolbar.collectorAction, true)}
+              </Flex.Item>
+            )}
+            {!!toolbar.undoAction && (
+              <Flex.Item m={0.15} ml={0.35}>
+                {renderAction(toolbar.undoAction, true)}
+              </Flex.Item>
+            )}
+          </Flex>
+        </Flex.Item>
       </Flex>
     </Box>
   );
@@ -2170,25 +2467,45 @@ const Sidebar = (props: {
 
   return (
     <Section fill scrollable fitted title="Инструменты">
-      <Tabs vertical fluid>
+      <Box p={0.25}>
         {(data.categories || []).map((category) => {
           const primaryGenerator = category.generators?.[0];
           const tabLabel =
             TOOL_PICKER_LABELS[primaryGenerator?.id || ''] ||
             primaryGenerator?.name_ru ||
             category.category;
+          const isActive = category.category === activeCategory;
           return (
-            <Tabs.Tab
+            <Box
               key={category.category}
-              selected={category.category === activeCategory}
-              fontSize={0.9}
+              px={0.5}
+              py={0.4}
+              mb={0.15}
               onClick={() => onSelectCategory(category)}
+              style={{
+                borderLeft: isActive
+                  ? '3px solid #4c9f39'
+                  : '3px solid transparent',
+                borderBottom: '1px solid rgba(70, 107, 150, 0.22)',
+                background: isActive
+                  ? 'rgba(76, 159, 57, 0.14)'
+                  : 'rgba(70, 107, 150, 0.03)',
+                borderRadius: '2px',
+                cursor: 'pointer',
+              }}
             >
-              {tabLabel}
-            </Tabs.Tab>
+              <Box bold color={isActive ? 'good' : 'white'}>
+                {tabLabel}
+              </Box>
+              {isActive && (
+                <Box color="label" mt={0.1} style={{ fontSize: '0.82em' }}>
+                  Активен
+                </Box>
+              )}
+            </Box>
           );
         })}
-      </Tabs>
+      </Box>
     </Section>
   );
 };
