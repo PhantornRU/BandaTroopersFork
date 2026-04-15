@@ -373,6 +373,10 @@ const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
   scatter_cluster: { glyph: '✳' },
 };
 
+const PLACEMENT_MODE_ORDER = ['single', 'repeat'];
+const PLACEMENT_DIRECTION_ORDER = ['north', 'east', 'south', 'west'];
+const PLACEMENT_SHAPE_ORDER = Object.keys(PLACEMENT_SHAPE_LABELS);
+
 const OUTPOST_FAMILY_LABELS: Record<string, string> = {
   metal_perimeter: 'Металл, контур',
   wired_metal_perimeter: 'Металл с проволокой',
@@ -627,29 +631,16 @@ const getFieldOptionLabel = (field?: UiField, fallback = NONE_LABEL) => {
   return translateOptionLabel(field.id, option.label, option.value);
 };
 
-const getPlacementOptionLabel = (
-  options: PlacementOption[] | undefined,
-  value: unknown,
-  kind: 'shape' | 'mode' | 'direction',
-  fallback = NONE_LABEL,
-) => {
-  const option = (options || []).find(
-    (entry) => `${entry.value}` === `${value}`,
-  );
-  if (!option) {
-    return fallback;
-  }
+const getPlacementOptionValueSet = (options?: PlacementOption[]) =>
+  new Set((options || []).map((option) => `${option.value}`));
 
-  if (kind === 'mode') {
-    return getTranslatedPlacementMode(option.value || option.label);
-  }
-  if (kind === 'direction') {
-    return getTranslatedDirection(option.value || option.label);
-  }
-  if (kind === 'shape') {
-    return getTranslatedShapeLabel(option.value || option.label);
-  }
-  return getDisplayText(option.label, fallback);
+const getOrderedShapeValues = (options?: PlacementOption[]) => {
+  const extraValues = (options || [])
+    .map((option) => `${option.value}`)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .filter((value) => !PLACEMENT_SHAPE_ORDER.includes(value));
+
+  return [...PLACEMENT_SHAPE_ORDER, ...extraValues];
 };
 
 const getGeneratorDisplayName = (data: BackendData, generatorId?: string) => {
@@ -777,7 +768,7 @@ const getPlacementNextClickText = (data: BackendData) => {
       case 'param_only':
         return 'Клик: опорная клетка.';
       default:
-        return 'Клик: точка размещения.';
+        return '';
     }
   }
 
@@ -797,7 +788,7 @@ const getPlacementNextClickText = (data: BackendData) => {
     return 'Клик: опорная клетка.';
   }
 
-  return 'Клик: разместить.';
+  return '';
 };
 
 const getToolbarContextLine = (data: BackendData) => {
@@ -820,28 +811,6 @@ const getToolbarContextLine = (data: BackendData) => {
     );
     items.push(
       `Вариант: ${getFieldOptionLabel(getField(data.ui_fields, 'layout_variant'))}`,
-    );
-    items.push(
-      `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
-    );
-  } else if (data.current_generator_id === 'destruction_pack') {
-    const activeModes = [
-      getField(data.ui_fields, 'shuffle_enabled')?.value ? 'перемешивание' : '',
-      getField(data.ui_fields, 'scatter_enabled')?.value ? 'разброс' : '',
-      getField(data.ui_fields, 'persistent_fire_enabled')?.value ? 'огонь' : '',
-      getField(data.ui_fields, 'blast_enabled')?.value ? 'взрыв' : '',
-      `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}` !==
-      'none'
-        ? 'урон'
-        : '',
-    ].filter(Boolean);
-    items.push(
-      `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
-    );
-    items.push(
-      activeModes.length
-        ? `Режим: ${activeModes.join(', ')}`
-        : 'Режим не задан',
     );
   }
 
@@ -1037,50 +1006,180 @@ const ShapeOptionStrip = (props: {
   readonly onSelected: (value: string) => void;
 }) => {
   const { options, selected, disabled, onSelected } = props;
-
-  if (!options.length) {
-    return <Box color="label">Нет вариантов.</Box>;
-  }
+  const availableValues = getPlacementOptionValueSet(options);
+  const orderedValues = getOrderedShapeValues(options);
 
   return (
-    <Flex wrap mx={-0.15}>
-      {options.map((option) => {
-        const value = `${option.value}`;
-        const label = getTranslatedShapeLabel(option.value || option.label);
+    <Box
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+        gap: '0.25rem',
+      }}
+    >
+      {orderedValues.map((value) => {
+        const label = getTranslatedShapeLabel(value);
         const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || '•';
-        const isSelected = value === selected;
+        const isAvailable = availableValues.has(value);
+        const isSelected = isAvailable && value === selected;
 
         return (
-          <Flex.Item key={value} m={0.15}>
+          <Button
+            key={value}
+            compact
+            selected={isSelected}
+            color={isSelected ? 'good' : undefined}
+            disabled={disabled || !isAvailable}
+            tooltip={label}
+            onClick={() => onSelected(value)}
+            style={{
+              width: '100%',
+              minWidth: '0',
+              height: '2.2rem',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              as="span"
+              style={{
+                fontSize: '1.05rem',
+                lineHeight: '1',
+                display: 'inline-block',
+                minWidth: '1rem',
+                textAlign: 'center',
+              }}
+            >
+              {glyph}
+            </Box>
+          </Button>
+        );
+      })}
+    </Box>
+  );
+};
+
+const ToolbarControlGroup = (props: {
+  readonly title: string;
+  readonly width: string;
+  readonly children: ReactNode;
+}) => {
+  const { title, width, children } = props;
+
+  return (
+    <Box
+      p={0.45}
+      style={{
+        width,
+        border: '1px solid rgba(70, 107, 150, 0.45)',
+        background: 'rgba(70, 107, 150, 0.08)',
+        borderRadius: '4px',
+      }}
+    >
+      <Box bold mb={0.35}>
+        {title}
+      </Box>
+      {children}
+    </Box>
+  );
+};
+
+const ToolbarModeStrip = (props: {
+  readonly options: PlacementOption[];
+  readonly selected: string;
+  readonly disabled?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const { options, selected, disabled, onSelected } = props;
+  const availableValues = getPlacementOptionValueSet(options);
+
+  return (
+    <Box
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: '0.3rem',
+      }}
+    >
+      {PLACEMENT_MODE_ORDER.map((value) => {
+        const isAvailable = availableValues.has(value);
+        const isSelected = isAvailable && value === selected;
+        return (
+          <Button
+            key={value}
+            compact
+            fluid
+            selected={isSelected}
+            disabled={disabled || !isAvailable}
+            onClick={() => onSelected(value)}
+            style={{
+              justifyContent: 'center',
+            }}
+          >
+            {getTranslatedPlacementMode(value)}
+          </Button>
+        );
+      })}
+    </Box>
+  );
+};
+
+const ToolbarDirectionControls = (props: {
+  readonly options: PlacementOption[];
+  readonly selected: string;
+  readonly disabled?: boolean;
+  readonly usesFacing: boolean;
+  readonly onToggleUsesFacing: () => void;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const {
+    options,
+    selected,
+    disabled,
+    usesFacing,
+    onToggleUsesFacing,
+    onSelected,
+  } = props;
+  const availableValues = getPlacementOptionValueSet(options);
+
+  return (
+    <>
+      <Button.Checkbox
+        checked={usesFacing}
+        disabled={disabled}
+        fluid
+        onClick={onToggleUsesFacing}
+      >
+        По направлению взгляда
+      </Button.Checkbox>
+      <Box
+        mt={0.35}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: '0.3rem',
+        }}
+      >
+        {PLACEMENT_DIRECTION_ORDER.map((value) => {
+          const isAvailable = availableValues.has(value);
+          const isSelected = isAvailable && value === selected;
+          return (
             <Button
+              key={value}
               compact
+              fluid
               selected={isSelected}
-              color={isSelected ? 'good' : undefined}
-              disabled={disabled}
-              tooltip={label}
+              disabled={disabled || usesFacing || !isAvailable}
               onClick={() => onSelected(value)}
               style={{
-                minWidth: '2.4rem',
                 justifyContent: 'center',
               }}
             >
-              <Box
-                as="span"
-                style={{
-                  fontSize: '1.15rem',
-                  lineHeight: '1',
-                  display: 'inline-block',
-                  minWidth: '1rem',
-                  textAlign: 'center',
-                }}
-              >
-                {glyph}
-              </Box>
+              {getTranslatedDirection(value)}
             </Button>
-          </Flex.Item>
-        );
-      })}
-    </Flex>
+          );
+        })}
+      </Box>
+    </>
   );
 };
 
@@ -1515,21 +1614,44 @@ const hasPlacementControlsForTool = (data: BackendData) =>
   data.placement_shape_supported ||
   data.placement_supports_direction;
 
+const hasPlacementSecondaryContent = (
+  data: BackendData,
+  extraFields?: UiField[],
+) => {
+  const visibleExtraFields = (extraFields || []).filter(
+    (field) => field.visible !== false,
+  );
+  const visibleShapeFields = (data.placement_shape_fields || []).filter(
+    (field) => field.visible !== false,
+  );
+  const hasCollectorProgress =
+    data.placement_interaction_kind === 'collector' &&
+    (data.click_mode_active || data.placement_collector_point_count > 0);
+
+  return (
+    !!visibleExtraFields.length ||
+    !!visibleShapeFields.length ||
+    hasCollectorProgress
+  );
+};
+
 const PlacementControlsBody = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
   readonly extraFields?: UiField[];
 }) => {
   const { data, act, extraFields } = props;
-  const hasPlacementControls =
-    data.placement_supported ||
-    data.placement_shape_supported ||
-    data.placement_supports_direction;
   const visibleExtraFields = (extraFields || []).filter(
     (field) => field.visible !== false,
   );
+  const visibleShapeFields = (data.placement_shape_fields || []).filter(
+    (field) => field.visible !== false,
+  );
+  const hasCollectorProgress =
+    data.placement_interaction_kind === 'collector' &&
+    (data.click_mode_active || data.placement_collector_point_count > 0);
 
-  if (!hasPlacementControls && !visibleExtraFields.length) {
+  if (!hasPlacementSecondaryContent(data, extraFields)) {
     return null;
   }
 
@@ -1538,113 +1660,18 @@ const PlacementControlsBody = (props: {
     data.placement_collector_min_points || 0,
     1,
   );
-  const visibleShapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const showShapeSelector =
-    !!data.placement_shape_supported &&
-    ((data.placement_shape_options || []).length > 1 ||
-      !!visibleShapeFields.length);
-  const showPlacementModeSelector =
-    !!data.placement_supported &&
-    (data.placement_mode_options || []).length > 1;
 
   return (
     <>
-      <Box color={data.click_mode_active ? 'white' : 'label'}>
-        {getPlacementNextClickText(data)}
-      </Box>
-
-      <Box mt={0.45}>
-        <LabeledList>
-          {showShapeSelector && (
-            <LabeledList.Item label="Форма">
-              <>
-                <ShapeOptionStrip
-                  options={data.placement_shape_options || []}
-                  selected={data.placement_shape}
-                  onSelected={(value) =>
-                    act('set_placement_shape', {
-                      shape: value,
-                    })
-                  }
-                />
-                <Box color="label" mt={0.35}>
-                  {getPlacementOptionLabel(
-                    data.placement_shape_options,
-                    data.placement_shape,
-                    'shape',
-                  )}
-                </Box>
-              </>
-            </LabeledList.Item>
-          )}
-
-          {showPlacementModeSelector && (
-            <LabeledList.Item label="После клика">
-              <ChoiceStrip
-                options={(data.placement_mode_options || []).map((option) => ({
-                  value: option.value,
-                  displayText: getTranslatedPlacementMode(
-                    option.value || option.label,
-                  ),
-                }))}
-                selected={data.placement_mode}
-                onSelected={(value) =>
-                  act('set_placement_mode', {
-                    mode: value,
-                  })
-                }
-              />
-            </LabeledList.Item>
-          )}
-
-          {!!data.placement_supports_direction && (
-            <LabeledList.Item label="Направление">
-              <>
-                <Button.Checkbox
-                  checked={data.placement_dir_uses_facing}
-                  onClick={() =>
-                    act('set_placement_dir_uses_facing', {
-                      enabled: !data.placement_dir_uses_facing,
-                    })
-                  }
-                >
-                  По направлению взгляда
-                </Button.Checkbox>
-                <Box mt={0.35}>
-                  <SmartSelect
-                    options={(data.placement_dir_options || []).map(
-                      (option) => ({
-                        value: option.value,
-                        displayText: getTranslatedDirection(
-                          option.value || option.label,
-                        ),
-                      }),
-                    )}
-                    selected={data.placement_dir}
-                    disabled={data.placement_dir_uses_facing}
-                    displayText={getPlacementOptionLabel(
-                      data.placement_dir_options,
-                      data.placement_dir,
-                      'direction',
-                    )}
-                    onSelected={(value) =>
-                      act('set_placement_dir', {
-                        direction: value,
-                      })
-                    }
-                  />
-                </Box>
-              </>
-            </LabeledList.Item>
-          )}
-
-          {visibleExtraFields.map((field) => (
-            <FieldEditor key={field.id} field={field} act={act} />
-          ))}
-        </LabeledList>
-      </Box>
+      {!!visibleExtraFields.length && (
+        <Box>
+          <LabeledList>
+            {visibleExtraFields.map((field) => (
+              <FieldEditor key={field.id} field={field} act={act} />
+            ))}
+          </LabeledList>
+        </Box>
+      )}
 
       {!!visibleShapeFields.length && (
         <Collapsible title="Параметры формы" mt={0.6} open={false}>
@@ -1656,38 +1683,36 @@ const PlacementControlsBody = (props: {
         </Collapsible>
       )}
 
-      {data.placement_interaction_kind === 'collector' &&
-        (data.click_mode_active ||
-          data.placement_collector_point_count > 0) && (
-          <Box mt={0.6}>
-            <Box
-              bold
-              color={data.can_finish_placement_collection ? 'good' : 'average'}
-              mb={0.25}
-            >
-              Сбор формы
-            </Box>
-            <ProgressBar
-              value={data.placement_collector_point_count || 0}
-              maxValue={collectorTarget}
-              ranges={{
-                average: [
-                  0,
-                  Math.max(data.placement_collector_min_points || 1, 1),
-                ],
-                good: [
-                  Math.max(data.placement_collector_min_points || 1, 1),
-                  collectorTarget,
-                ],
-              }}
-            >
-              {`${data.placement_collector_point_count || 0}/${collectorTarget}`}
-            </ProgressBar>
-            <Box color="label" mt={0.35}>
-              Минимум: {Math.max(data.placement_collector_min_points || 1, 1)}
-            </Box>
+      {hasCollectorProgress && (
+        <Box mt={0.6}>
+          <Box
+            bold
+            color={data.can_finish_placement_collection ? 'good' : 'average'}
+            mb={0.25}
+          >
+            Сбор формы
           </Box>
-        )}
+          <ProgressBar
+            value={data.placement_collector_point_count || 0}
+            maxValue={collectorTarget}
+            ranges={{
+              average: [
+                0,
+                Math.max(data.placement_collector_min_points || 1, 1),
+              ],
+              good: [
+                Math.max(data.placement_collector_min_points || 1, 1),
+                collectorTarget,
+              ],
+            }}
+          >
+            {`${data.placement_collector_point_count || 0}/${collectorTarget}`}
+          </ProgressBar>
+          <Box color="label" mt={0.35}>
+            Минимум: {Math.max(data.placement_collector_min_points || 1, 1)}
+          </Box>
+        </Box>
+      )}
     </>
   );
 };
@@ -1698,30 +1723,6 @@ const getCurrentModeExtraFields = (data: BackendData) => {
   }
 
   return [] as UiField[];
-};
-
-const getDestructionModeLabels = (data: BackendData) => {
-  const labels: string[] = [];
-
-  if (getField(data.ui_fields, 'shuffle_enabled')?.value) {
-    labels.push('перемешивание');
-  }
-  if (getField(data.ui_fields, 'scatter_enabled')?.value) {
-    labels.push('разброс');
-  }
-  if (getField(data.ui_fields, 'persistent_fire_enabled')?.value) {
-    labels.push('огонь');
-  }
-  if (getField(data.ui_fields, 'blast_enabled')?.value) {
-    labels.push('взрыв');
-  }
-
-  const damageProfileField = getField(data.ui_fields, 'damage_profile');
-  if (`${damageProfileField?.value || 'none'}` !== 'none') {
-    labels.push(getFieldOptionLabel(damageProfileField));
-  }
-
-  return labels;
 };
 
 const getDestructionPreviewLegendItems = (
@@ -1772,38 +1773,7 @@ const getCurrentModeLeadText = (data: BackendData) => {
     : 'Измените параметры и примените результат.';
 };
 
-const getCurrentModeSummaryItems = (data: BackendData): SummaryTile[] => {
-  const items: SummaryTile[] = [];
-
-  if (data.current_generator_id === 'destruction_pack') {
-    const activeModes = getDestructionModeLabels(data);
-    const hasHardDanger =
-      activeModes.includes('взрыв') ||
-      activeModes.some((label) =>
-        ['ruin', 'collapse'].includes(label.toLowerCase()),
-      );
-
-    items.push(
-      {
-        label: 'Центр',
-        value: 'Выбранный тайл',
-      },
-      {
-        label: 'Радиус',
-        value: getDisplayText(getField(data.ui_fields, 'radius')?.value),
-      },
-      {
-        label: 'Воздействие',
-        value: activeModes.length
-          ? activeModes.join(', ')
-          : 'Безопасное перемещение',
-        color: hasHardDanger ? 'bad' : activeModes.length ? 'average' : 'good',
-      },
-    );
-  }
-
-  return items;
-};
+const getCurrentModeSummaryItems = (_data: BackendData): SummaryTile[] => [];
 
 const CurrentModePanel = (props: {
   readonly data: BackendData;
@@ -1822,10 +1792,7 @@ const CurrentModePanel = (props: {
     ?.value;
   const blastEnabled = !!getField(data.ui_fields, 'blast_enabled')?.value;
   const damageProfile = `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}`;
-  const hasControls =
-    hasPlacementControlsForTool(data) ||
-    !!data.placement_supports_direction ||
-    !!visibleExtraFields.length;
+  const hasControls = hasPlacementSecondaryContent(data, visibleExtraFields);
 
   if (
     !data.has_generator ||
@@ -2115,7 +2082,6 @@ const OutpostRadiusWorkspace = (props: {
   const familyField = getField(data.ui_fields, 'family');
   const layoutField = getField(data.ui_fields, 'layout_variant');
   const openingWidthField = getField(data.ui_fields, 'opening_width');
-  const radiusField = getField(data.ui_fields, 'radius');
   const barricadePatternField = getField(data.ui_fields, 'barricade_pattern');
   const sentryToggleField = getField(data.ui_fields, 'place_sentries');
   const guardModeField = getField(data.ui_fields, 'guard_mode');
@@ -2152,16 +2118,6 @@ const OutpostRadiusWorkspace = (props: {
     {
       label: 'Проход',
       value: openingWidthSummary,
-    },
-    {
-      label: 'Радиус',
-      value: getDisplayText(radiusField?.value, EMPTY_LABEL),
-    },
-    {
-      label: 'Форма',
-      value: getTranslatedShapeLabel(
-        previewMeta.placement_shape || data.placement_shape,
-      ),
     },
     {
       label: 'Периметр',
@@ -2551,6 +2507,12 @@ const EditorToolbar = (props: {
 }) => {
   const { data, act } = props;
   const toolbar = getToolbarState(data);
+  const shapeControlsDisabled =
+    !data.has_generator || !data.placement_shape_supported;
+  const modeControlsDisabled =
+    !data.has_generator || !data.placement_supported;
+  const directionControlsDisabled =
+    !data.has_generator || !data.placement_supports_direction;
 
   const renderAction = (action?: ToolbarAction, compact = false) => {
     if (!action) {
@@ -2584,17 +2546,25 @@ const EditorToolbar = (props: {
         borderRadius: '4px',
       }}
     >
-      <Flex align="center" wrap mx={-0.25}>
-        <Flex.Item grow basis="17rem" m={0.25}>
-          <Box bold>{toolbar.title}</Box>
-          {!!toolbar.context && (
-            <Box color="label" mt={0.1}>
-              {toolbar.context}
-            </Box>
-          )}
+      <Flex align="center" mx={-0.2}>
+        <Flex.Item m={0.2} style={{ flex: '0 0 auto' }}>
+          <Box bold style={{ whiteSpace: 'nowrap' }}>
+            {toolbar.title}
+          </Box>
         </Flex.Item>
-
-        <Flex.Item basis="12rem" m={0.25}>
+        <Flex.Item grow m={0.2} style={{ minWidth: '0' }}>
+          <Box
+            color="label"
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {toolbar.context || ''}
+          </Box>
+        </Flex.Item>
+        <Flex.Item m={0.2} style={{ flex: '0 0 auto' }}>
           <Box
             color={toolbar.stateColor || 'label'}
             px={0.5}
@@ -2608,51 +2578,104 @@ const EditorToolbar = (props: {
             {toolbar.state}
           </Box>
         </Flex.Item>
-
-        <Flex.Item m={0.25}>
-          <Flex align="center" wrap mx={-0.15}>
-            {!!toolbar.previewAction && (
-              <Flex.Item m={0.15}>
-                {renderAction(toolbar.previewAction)}
-              </Flex.Item>
-            )}
-            {!!toolbar.applyAction && (
-              <Flex.Item m={0.15}>
-                {renderAction(toolbar.applyAction)}
-              </Flex.Item>
-            )}
-            {!!toolbar.placementAction && (
-              <Flex.Item m={0.15} ml={0.35}>
-                {renderAction(toolbar.placementAction, data.click_mode_active)}
-              </Flex.Item>
-            )}
-            {!!toolbar.collectorAction && (
-              <Flex.Item m={0.15}>
-                {renderAction(toolbar.collectorAction, true)}
-              </Flex.Item>
-            )}
-            {!!toolbar.undoAction && (
-              <Flex.Item m={0.15} ml={0.35}>
-                {renderAction(toolbar.undoAction, true)}
-              </Flex.Item>
-            )}
-            {data.has_generator && (
-              <Flex.Item m={0.15} ml={0.35}>
-                <Button.Checkbox
-                  checked={data.confirm_before_apply}
-                  onClick={() =>
-                    act('set_confirm_before_apply', {
-                      enabled: !data.confirm_before_apply,
-                    })
-                  }
-                >
-                  Спрашивать перед применением
-                </Button.Checkbox>
-              </Flex.Item>
-            )}
-          </Flex>
-        </Flex.Item>
       </Flex>
+
+      <Box mt={0.45}>
+        <Flex align="center" wrap={false} mx={-0.15}>
+          {!!toolbar.previewAction && (
+            <Flex.Item m={0.15}>{renderAction(toolbar.previewAction)}</Flex.Item>
+          )}
+          {!!toolbar.applyAction && (
+            <Flex.Item m={0.15}>{renderAction(toolbar.applyAction)}</Flex.Item>
+          )}
+          {!!toolbar.placementAction && (
+            <Flex.Item m={0.15} ml={0.35}>
+              {renderAction(toolbar.placementAction, data.click_mode_active)}
+            </Flex.Item>
+          )}
+          {!!toolbar.collectorAction && (
+            <Flex.Item m={0.15}>
+              {renderAction(toolbar.collectorAction, true)}
+            </Flex.Item>
+          )}
+          {!!toolbar.undoAction && (
+            <Flex.Item m={0.15} ml={0.35}>
+              {renderAction(toolbar.undoAction, true)}
+            </Flex.Item>
+          )}
+          {data.has_generator && (
+            <Flex.Item m={0.15} ml={0.35}>
+              <Button.Checkbox
+                checked={data.confirm_before_apply}
+                onClick={() =>
+                  act('set_confirm_before_apply', {
+                    enabled: !data.confirm_before_apply,
+                  })
+                }
+              >
+                Спрашивать перед применением
+              </Button.Checkbox>
+            </Flex.Item>
+          )}
+        </Flex>
+      </Box>
+
+      <Box mt={0.45}>
+        <Box
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '15rem 9.5rem 12.5rem',
+            gap: '0.55rem',
+            justifyContent: 'start',
+            alignItems: 'start',
+          }}
+        >
+          <ToolbarControlGroup title="Форма" width="15rem">
+            <ShapeOptionStrip
+              options={data.placement_shape_options || []}
+              selected={data.placement_shape}
+              disabled={shapeControlsDisabled}
+              onSelected={(value) =>
+                act('set_placement_shape', {
+                  shape: value,
+                })
+              }
+            />
+          </ToolbarControlGroup>
+
+          <ToolbarControlGroup title="Режим клика" width="9.5rem">
+            <ToolbarModeStrip
+              options={data.placement_mode_options || []}
+              selected={data.placement_mode}
+              disabled={modeControlsDisabled}
+              onSelected={(value) =>
+                act('set_placement_mode', {
+                  mode: value,
+                })
+              }
+            />
+          </ToolbarControlGroup>
+
+          <ToolbarControlGroup title="Направление" width="12.5rem">
+            <ToolbarDirectionControls
+              options={data.placement_dir_options || []}
+              selected={data.placement_dir}
+              disabled={directionControlsDisabled}
+              usesFacing={data.placement_dir_uses_facing}
+              onToggleUsesFacing={() =>
+                act('set_placement_dir_uses_facing', {
+                  enabled: !data.placement_dir_uses_facing,
+                })
+              }
+              onSelected={(value) =>
+                act('set_placement_dir', {
+                  direction: value,
+                })
+              }
+            />
+          </ToolbarControlGroup>
+        </Box>
+      </Box>
     </Box>
   );
 };
