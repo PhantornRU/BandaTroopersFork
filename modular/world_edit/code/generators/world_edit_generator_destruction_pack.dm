@@ -81,19 +81,19 @@
 	return 12
 
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_min()
-	return 0.05
+	return 1
 
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_max()
-	return 0.20
+	return 100
 
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_default()
-	return 0.10
+	return 10
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_power_min()
 	return 100
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_power_max()
-	return 600
+	return 5000
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_power_default()
 	return 250
@@ -102,10 +102,24 @@
 	return 100
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_falloff_max()
-	return 1200
+	return 10000
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_falloff_default()
 	return 600
+
+/datum/world_edit_generator/destruction_pack/proc/coerce_persistent_fire_density_percent(value)
+	var/density = text2num("[value]")
+	if(!isnum(density))
+		return null
+	if(density > 0 && density <= 1)
+		density *= 100
+	return density
+
+/datum/world_edit_generator/destruction_pack/proc/normalize_persistent_fire_density_percent(value)
+	var/density = coerce_persistent_fire_density_percent(value)
+	if(!isnum(density))
+		return get_persistent_fire_density_default()
+	return clamp(round(density), get_persistent_fire_density_min(), get_persistent_fire_density_max())
 
 /datum/world_edit_generator/destruction_pack/proc/build_damage_profile_options()
 	return list(
@@ -190,7 +204,8 @@
 	if(!length(area_turfs) || density <= 0)
 		return fire_entries
 
-	var/target_count = round(length(area_turfs) * density)
+	var/density_ratio = density / 100
+	var/target_count = round(length(area_turfs) * density_ratio)
 	target_count = clamp(target_count, 0, get_persistent_fire_cap())
 	if(target_count <= 0)
 		return fire_entries
@@ -364,7 +379,7 @@
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
-	var/persistent_fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	var/persistent_fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/blast_power = text2num("[params["blast_power"]]") || get_blast_power_default()
 	var/blast_falloff = text2num("[params["blast_falloff"]]") || get_blast_falloff_default()
@@ -487,8 +502,8 @@
 		return "Unable to resolve the anchor turf."
 
 	var/radius = text2num("[params["radius"]]")
-	if(!isnum(radius) || radius < 1 || radius > 5)
-		return "radius must stay in the range 1..5."
+	if(!isnum(radius) || radius < 1 || radius > 10)
+		return "radius must stay in the range 1..10."
 
 	var/max_atoms = text2num("[params["max_atoms"]]")
 	if(!isnum(max_atoms) || max_atoms < 1 || max_atoms > 100)
@@ -512,7 +527,7 @@
 	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
 	if(persistent_fire_enabled)
-		var/persistent_fire_density = text2num("[params["persistent_fire_density"]]")
+		var/persistent_fire_density = coerce_persistent_fire_density_percent(params["persistent_fire_density"])
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
 			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
 	if(blast_enabled)
@@ -718,10 +733,10 @@
 			"kind" = "number",
 			"group" = "Area",
 			"description" = "Square radius around the current turf.",
-			"validate_hint" = "Allowed range: 1..5",
+			"validate_hint" = "Allowed range: 1..10",
 			"value" = text2num("[current_params["radius"]]") || 3,
 			"min" = 1,
-			"max" = 5,
+			"max" = 10,
 			"step" = 1,
 		),
 		list(
@@ -753,13 +768,12 @@
 			"label" = "Fire Density",
 			"kind" = "number",
 			"group" = "Fire",
-			"description" = "Fraction of open candidate tiles used for persistent fire before the hard cap is applied.",
-			"validate_hint" = "Allowed range: [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]",
-			"value" = text2num("[current_params["persistent_fire_density"]]") || get_persistent_fire_density_default(),
+			"description" = "Percent of open candidate tiles used for persistent fire before the hard cap is applied.",
+			"validate_hint" = "Allowed range: [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]%",
+			"value" = normalize_persistent_fire_density_percent(current_params["persistent_fire_density"]),
 			"min" = get_persistent_fire_density_min(),
 			"max" = get_persistent_fire_density_max(),
-			"step" = 0.01,
-			"disabled" = !persistent_fire_enabled,
+			"step" = 1,
 		),
 		list(
 			"id" = "blast_enabled",
@@ -779,8 +793,7 @@
 			"value" = text2num("[current_params["blast_power"]]") || get_blast_power_default(),
 			"min" = get_blast_power_min(),
 			"max" = get_blast_power_max(),
-			"step" = 10,
-			"disabled" = !blast_enabled,
+			"step" = 50,
 		),
 		list(
 			"id" = "blast_falloff",
@@ -792,8 +805,7 @@
 			"value" = text2num("[current_params["blast_falloff"]]") || get_blast_falloff_default(),
 			"min" = get_blast_falloff_min(),
 			"max" = get_blast_falloff_max(),
-			"step" = 10,
-			"disabled" = !blast_enabled,
+			"step" = 50,
 		),
 		list(
 			"id" = "damage_profile",
@@ -837,7 +849,7 @@
 
 	switch(param_id)
 		if("radius")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 5)
+			new_params[param_id] = clamp(text2num("[value]"), 1, 10)
 
 		if("shuffle_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
@@ -854,7 +866,7 @@
 				new_params["persistent_fire_density"] = get_persistent_fire_density_default()
 
 		if("persistent_fire_density")
-			new_params[param_id] = clamp(text2num("[value]"), get_persistent_fire_density_min(), get_persistent_fire_density_max())
+			new_params[param_id] = normalize_persistent_fire_density_percent(value)
 
 		if("blast_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
@@ -894,5 +906,5 @@
 	return "Применить разрушение зоны? Радиус [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_enabled ? "да" : "нет"], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
-	var/fire_density = text2num("[params["persistent_fire_density"]]") || get_persistent_fire_density_default()
+	var/fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
 	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"

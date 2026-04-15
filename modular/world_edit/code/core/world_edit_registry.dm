@@ -50,7 +50,7 @@
 		"scatter_enabled" = FALSE,
 		"scatter_steps" = 2,
 		"persistent_fire_enabled" = FALSE,
-		"persistent_fire_density" = 0.10,
+		"persistent_fire_density" = 10,
 		"blast_enabled" = FALSE,
 		"blast_power" = 250,
 		"blast_falloff" = 600,

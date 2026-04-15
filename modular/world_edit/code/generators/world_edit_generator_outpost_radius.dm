@@ -214,6 +214,12 @@
 		WORLD_EDIT_SHAPE_TRIANGLE,
 	)
 
+/datum/world_edit_generator/outpost_radius/supports_placement_direction()
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/get_default_placement_direction()
+	return NORTH
+
 /datum/world_edit_generator/outpost_radius/proc/build_type_options(list/type_list)
 	var/list/options = list()
 	for(var/datum/human_ai_defense/type_path as anything in type_list)
@@ -962,8 +968,8 @@
 	effective_layout_profile["guard_dirs"] = get_guard_dirs_for_mode(guard_mode, layout_profile)
 
 	var/radius = text2num("[params["radius"]]") || 4
-	if(!isnum(radius))
-		config["error"] = "radius must stay in the range 1..8."
+	if(!isnum(radius) || radius < 1 || radius > 10)
+		config["error"] = "radius must stay in the range 1..10."
 		return config
 	opening_half_width = clamp(round(opening_half_width), 0, max(radius, 0))
 	effective_layout_profile["opening_half_width"] = opening_half_width
@@ -1362,7 +1368,7 @@
 
 /datum/world_edit_generator/outpost_radius/build_plan(list/params)
 	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, NORTH)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
 	if(shape_result["error"])
 		var/datum/world_edit_plan/error_plan = new
 		error_plan.metadata["error"] = "[shape_result["error"]]"
@@ -1385,8 +1391,8 @@
 		return "[config["error"]]"
 
 	var/radius = config["radius"]
-	if(!isnum(radius) || radius < 1 || radius > 8)
-		return "radius must stay in the range 1..8."
+	if(!isnum(radius) || radius < 1 || radius > 10)
+		return "radius must stay in the range 1..10."
 
 	var/place_sentries = config["place_sentries"]
 	if(place_sentries)
@@ -1396,13 +1402,13 @@
 		if(!(config["faction"] in valid_factions))
 			return "Invalid faction selected for sentries."
 
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, center_turf, null, params, NORTH)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, center_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
 	if(shape_result["error"])
 		return "[shape_result["error"]]"
 
 	var/planned_total = (radius * 8) + get_layout_expected_opening_count(config["layout_profile"]) + (place_sentries ? length(get_layout_guard_dirs(config["layout_profile"])) : 0)
-	if((!length(shape_result["turfs"]) || length(shape_result["turfs"]) <= 1) && planned_total > 68)
-		return "The requested outpost exceeds the Phase 1 placement cap."
+	if((!length(shape_result["turfs"]) || length(shape_result["turfs"]) <= 1) && planned_total > 120)
+		return "The requested outpost exceeds the safe placement cap."
 
 	var/datum/world_edit_plan/plan = build_placement_plan(user, params, list(
 		"mode" = manager?.get_effective_placement_mode() || "single",
@@ -1560,10 +1566,10 @@
 			"kind" = "number",
 			"group" = "Layout",
 			"description" = "Square perimeter radius around the current turf.",
-			"validate_hint" = "Allowed range: 1..8",
+			"validate_hint" = "Allowed range: 1..10",
 			"value" = text2num("[current_params["radius"]]") || 4,
 			"min" = 1,
-			"max" = 8,
+			"max" = 10,
 			"step" = 1,
 		),
 		list(
@@ -1667,7 +1673,7 @@
 			new_params[param_id] = "[value]"
 
 		if("radius")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 8)
+			new_params[param_id] = clamp(text2num("[value]"), 1, 10)
 
 		if("barricade_path")
 			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id())["default_barricade_path"])
@@ -1721,4 +1727,4 @@
 	return "Применить профиль '[family_profile["label"] || "Outpost"] / [layout_profile["label"] || "Crossroads"]' с радиусом [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
-	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] radius=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"
+	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] radius=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"
