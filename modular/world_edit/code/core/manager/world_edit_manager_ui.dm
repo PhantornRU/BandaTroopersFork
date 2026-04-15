@@ -191,6 +191,7 @@
 				return TRUE
 			placement_mode = new_mode
 			last_ui_error = ""
+			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
@@ -202,6 +203,7 @@
 				return TRUE
 			placement_shape = new_shape
 			last_ui_error = ""
+			save_current_generator_context()
 			refresh_runtime_after_config_change(TRUE, TRUE)
 			return TRUE
 
@@ -210,6 +212,7 @@
 				return TRUE
 			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
 			last_ui_error = ""
+			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
@@ -218,6 +221,7 @@
 				return TRUE
 			placement_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(params["enabled"])
 			last_ui_error = ""
+			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
@@ -329,6 +333,7 @@
 
 	current_params = new_params
 	last_ui_error = ""
+	save_current_generator_context()
 	refresh_runtime_after_config_change()
 	return TRUE
 

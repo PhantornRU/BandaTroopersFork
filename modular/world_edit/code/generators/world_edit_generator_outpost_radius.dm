@@ -299,9 +299,19 @@
 			"description" = "Keep each passage one tile wide.",
 		),
 		list(
+			"label" = "Two Tiles",
+			"value" = "double",
+			"description" = "Leave a two-tile passage on each selected side.",
+		),
+		list(
 			"label" = "Three Tiles",
 			"value" = "wide",
 			"description" = "Leave a three-tile passage on each selected side.",
+		),
+		list(
+			"label" = "Four Tiles",
+			"value" = "quad",
+			"description" = "Leave a four-tile passage on each selected side.",
 		),
 		list(
 			"label" = "Five Tiles",
@@ -365,16 +375,25 @@
 		return get_layout_opening_dirs(layout_profile)
 	return guard_dirs.Copy()
 
-/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_half_width(list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_width(list/layout_profile)
+	var/opening_width = 0
+	if(islist(layout_profile))
+		opening_width = text2num("[layout_profile["opening_width"]]")
+	if(isnum(opening_width) && opening_width >= 1)
+		return clamp(round(opening_width), 1, 5)
+
 	var/opening_half_width = 0
 	if(islist(layout_profile))
 		opening_half_width = text2num("[layout_profile["opening_half_width"]]")
 	if(!isnum(opening_half_width))
-		return 0
-	return clamp(round(opening_half_width), 0, 2)
+		return 1
+	return clamp((round(opening_half_width) * 2) + 1, 1, 5)
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_half_width(list/layout_profile)
+	return max(round((get_layout_opening_width(layout_profile) - 1) / 2), 0)
 
 /datum/world_edit_generator/outpost_radius/proc/get_layout_opening_slots_per_dir(list/layout_profile)
-	return (get_layout_opening_half_width(layout_profile) * 2) + 1
+	return get_layout_opening_width(layout_profile)
 
 /datum/world_edit_generator/outpost_radius/proc/get_layout_expected_opening_count(list/layout_profile)
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
@@ -423,8 +442,8 @@
 			return list(NORTH, EAST, SOUTH, WEST)
 	return get_layout_guard_dirs(layout_profile)
 
-/datum/world_edit_generator/outpost_radius/proc/resolve_opening_half_width(value, list/layout_profile)
-	var/default_width = get_layout_opening_half_width(layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/resolve_opening_width(value, list/layout_profile)
+	var/default_width = get_layout_opening_width(layout_profile)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
 		return default_width
 
@@ -432,11 +451,15 @@
 		if("profile")
 			return default_width
 		if("narrow")
-			return 0
-		if("wide")
 			return 1
-		if("broad")
+		if("double")
 			return 2
+		if("wide")
+			return 3
+		if("quad")
+			return 4
+		if("broad")
+			return 5
 	return null
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_whitelisted_type(value, list/type_list, expected_root, default_value = null)
@@ -484,13 +507,17 @@
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	if(!islist(opening_dirs) || !(dir_to_use in opening_dirs))
 		return FALSE
-	var/opening_half_width = get_layout_opening_half_width(layout_profile)
+	var/opening_width = get_layout_opening_width(layout_profile)
+	var/opening_start = -((opening_width - 1) / 2)
+	if((opening_width % 2) == 0)
+		opening_start = -(opening_width / 2)
+	var/opening_end = opening_start + opening_width - 1
 
 	switch(dir_to_use)
 		if(NORTH, SOUTH)
-			return abs(offset_x) <= opening_half_width
+			return (offset_x >= opening_start) && (offset_x <= opening_end)
 		if(EAST, WEST)
-			return abs(offset_y) <= opening_half_width
+			return (offset_y >= opening_start) && (offset_y <= opening_end)
 
 	return FALSE
 
@@ -947,8 +974,8 @@
 		config["error"] = "Invalid outpost layout selected."
 		return config
 
-	var/opening_half_width = resolve_opening_half_width(params["opening_width"], layout_profile)
-	if(isnull(opening_half_width))
+	var/opening_width = resolve_opening_width(params["opening_width"], layout_profile)
+	if(isnull(opening_width))
 		config["error"] = "Invalid outpost passage width selected."
 		return config
 
@@ -964,15 +991,15 @@
 
 	var/list/effective_layout_profile = layout_profile.Copy()
 	effective_layout_profile["opening_dirs"] = get_layout_opening_dirs(layout_profile)
-	effective_layout_profile["opening_half_width"] = opening_half_width
+	effective_layout_profile["opening_width"] = opening_width
 	effective_layout_profile["guard_dirs"] = get_guard_dirs_for_mode(guard_mode, layout_profile)
 
 	var/radius = text2num("[params["radius"]]") || 4
 	if(!isnum(radius) || radius < 1 || radius > 10)
 		config["error"] = "radius must stay in the range 1..10."
 		return config
-	opening_half_width = clamp(round(opening_half_width), 0, max(radius, 0))
-	effective_layout_profile["opening_half_width"] = opening_half_width
+	opening_width = clamp(round(opening_width), 1, (radius * 2) + 1)
+	effective_layout_profile["opening_width"] = opening_width
 
 	var/place_sentries = GLOB.world_edit_helpers.parse_bool(params["place_sentries"])
 	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, family_profile["default_barricade_path"])
@@ -994,7 +1021,7 @@
 	config["family_profile"] = family_profile
 	config["layout_variant"] = layout_id
 	config["layout_profile"] = effective_layout_profile
-	config["opening_width"] = opening_half_width
+	config["opening_width"] = opening_width
 	config["guard_mode"] = guard_mode
 	config["radius"] = radius
 	config["place_sentries"] = place_sentries
@@ -1667,7 +1694,7 @@
 			new_params[param_id] = layout_id
 
 		if("opening_width")
-			var/opening_width = resolve_opening_half_width(value, get_outpost_layout_profile(resolve_outpost_layout_id(new_params["layout_variant"]) || get_default_outpost_layout_id()))
+			var/opening_width = resolve_opening_width(value, get_outpost_layout_profile(resolve_outpost_layout_id(new_params["layout_variant"]) || get_default_outpost_layout_id()))
 			if(isnull(opening_width))
 				return "Invalid outpost passage width selected."
 			new_params[param_id] = "[value]"

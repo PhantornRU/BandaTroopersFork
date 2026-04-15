@@ -9,7 +9,6 @@ import {
   Flex,
   Input,
   LabeledList,
-  NoticeBox,
   NumberInput,
   ProgressBar,
   Section,
@@ -406,7 +405,9 @@ const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
 const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
   profile: 'По варианту',
   narrow: '1 клетка',
+  double: '2 клетки',
   wide: '3 клетки',
+  quad: '4 клетки',
   broad: '5 клеток',
 };
 
@@ -924,10 +925,11 @@ const ChoiceStrip = (props: {
   readonly options: ChoiceOption[];
   readonly selected: string;
   readonly disabled?: boolean;
+  readonly basis?: string;
   readonly onSelected: (value: string) => void;
 }) => {
-  const { options, selected, disabled, onSelected } = props;
-  const basis = options.length <= 2 ? '45%' : '22%';
+  const { options, selected, disabled, basis, onSelected } = props;
+  const itemBasis = basis || (options.length <= 2 ? '45%' : '22%');
 
   if (!options.length) {
     return <Box color="label">Нет вариантов.</Box>;
@@ -938,7 +940,7 @@ const ChoiceStrip = (props: {
       {options.map((option) => {
         const isSelected = `${option.value}` === `${selected}`;
         return (
-          <Flex.Item key={option.value} grow basis={basis} m={0.15}>
+          <Flex.Item key={option.value} grow basis={itemBasis} m={0.15}>
             <Button
               compact
               fluid
@@ -997,6 +999,21 @@ const SmartSelect = (props: {
     />
   );
 };
+
+type FieldChoiceOption = {
+  value: string;
+  displayText: string;
+  rawValue: unknown;
+};
+
+const getFieldChoiceOptions = (field?: UiField): FieldChoiceOption[] =>
+  (field?.options || []).map((option) => ({
+    value: `${option.value}`,
+    displayText: translateOptionLabel(field?.id || '', option.label, option.value),
+    rawValue: option.value,
+  }));
+
+const getSelectedFieldChoiceValue = (field?: UiField) => `${field?.value ?? ''}`;
 
 const ShapeOptionStrip = (props: {
   readonly options: PlacementOption[];
@@ -1060,24 +1077,28 @@ const ShapeOptionStrip = (props: {
 const ToolbarControlGroup = (props: {
   readonly title: string;
   readonly width: string;
+  readonly minHeight?: string;
   readonly children: ReactNode;
 }) => {
-  const { title, width, children } = props;
+  const { title, width, minHeight, children } = props;
 
   return (
     <Box
       p={0.45}
       style={{
         width,
+        minHeight: minHeight || '10rem',
         border: '1px solid rgba(70, 107, 150, 0.45)',
         background: 'rgba(70, 107, 150, 0.08)',
         borderRadius: '4px',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <Box bold mb={0.35}>
         {title}
       </Box>
-      {children}
+      <Box style={{ flex: '1 1 auto' }}>{children}</Box>
     </Box>
   );
 };
@@ -1111,6 +1132,7 @@ const ToolbarModeStrip = (props: {
             disabled={disabled || !isAvailable}
             onClick={() => onSelected(value)}
             style={{
+              height: '2rem',
               justifyContent: 'center',
             }}
           >
@@ -1161,6 +1183,7 @@ const ToolbarRadiusControl = (props: {
             borderRadius: '4px',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {readOnlyValue || '—'}
@@ -1188,10 +1211,10 @@ const ToolbarDirectionControls = (props: {
   } = props;
   const availableValues = getPlacementOptionValueSet(options);
   const directionLayout = [
-    { value: 'north', gridColumn: '1 / span 2' },
-    { value: 'west' },
-    { value: 'east' },
-    { value: 'south', gridColumn: '1 / span 2' },
+    { value: 'north', gridColumn: '2', gridRow: '1' },
+    { value: 'west', gridColumn: '1', gridRow: '2' },
+    { value: 'east', gridColumn: '3', gridRow: '2' },
+    { value: 'south', gridColumn: '2', gridRow: '3' },
   ];
 
   return (
@@ -1206,6 +1229,8 @@ const ToolbarDirectionControls = (props: {
           whiteSpace: 'normal',
           lineHeight: '1.15',
           textAlign: 'left',
+          minHeight: '2.9rem',
+          padding: '0.2rem 0.45rem',
         }}
       >
         По направлению взгляда
@@ -1214,11 +1239,13 @@ const ToolbarDirectionControls = (props: {
         mt={0.35}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridTemplateRows: 'repeat(3, 1.9rem)',
           gap: '0.3rem',
+          alignItems: 'stretch',
         }}
       >
-        {directionLayout.map(({ value, gridColumn }) => {
+        {directionLayout.map(({ value, gridColumn, gridRow }) => {
           const isAvailable = availableValues.has(value);
           const isSelected = isAvailable && value === selected;
           return (
@@ -1231,7 +1258,11 @@ const ToolbarDirectionControls = (props: {
               onClick={() => onSelected(value)}
               style={{
                 gridColumn,
+                gridRow,
+                height: '1.9rem',
                 justifyContent: 'center',
+                textAlign: 'center',
+                padding: '0 0.35rem',
               }}
             >
               {getTranslatedDirection(value)}
@@ -1404,6 +1435,124 @@ const FieldEditor = (props: {
         </Box>
       )}
     </LabeledList.Item>
+  );
+};
+
+const FieldControl = (props: {
+  readonly field: UiField;
+  readonly act: ActFn;
+  readonly forceChoiceStrip?: boolean;
+  readonly choiceStripBasis?: string;
+}) => {
+  const { field, act, forceChoiceStrip, choiceStripBasis } = props;
+  const isDisabled = !!field.disabled;
+
+  const emitValue = (value: unknown) => {
+    act('set_param', {
+      param_id: field.id,
+      value,
+    });
+  };
+
+  if (field.kind === 'boolean') {
+    return (
+      <Button.Checkbox
+        checked={!!field.value}
+        disabled={isDisabled}
+        onClick={() => emitValue(!field.value)}
+      >
+        {field.value ? 'Р”Р°' : 'РќРµС‚'}
+      </Button.Checkbox>
+    );
+  }
+
+  if (field.kind === 'number') {
+    return (
+      <NumberInput
+        value={Number(field.value) || 0}
+        minValue={field.min ?? -1000000}
+        maxValue={field.max ?? 1000000}
+        step={field.step || 1}
+        width="100%"
+        disabled={isDisabled}
+        onChange={(value) => emitValue(value)}
+      />
+    );
+  }
+
+  if (field.kind === 'text') {
+    return (
+      <Input
+        key={`${field.id}_${String(field.value ?? '')}`}
+        value={`${field.value ?? ''}`}
+        disabled={isDisabled}
+        placeholder={field.placeholder || ''}
+        onChange={(_, value) => emitValue(value)}
+      />
+    );
+  }
+
+  if (field.kind === 'select') {
+    const options = getFieldChoiceOptions(field);
+    const selected = getSelectedFieldChoiceValue(field);
+    const handleSelected = (selectedOptionValue: string) => {
+      const selectedOption = options.find(
+        (option) => option.value === `${selectedOptionValue}`,
+      );
+      emitValue(selectedOption?.rawValue);
+    };
+
+    return forceChoiceStrip ? (
+      <ChoiceStrip
+        options={options}
+        selected={selected}
+        basis={choiceStripBasis}
+        disabled={isDisabled || !options.length}
+        onSelected={handleSelected}
+      />
+    ) : (
+      <SmartSelect
+        options={options}
+        selected={selected}
+        displayText={getFieldOptionLabel(field)}
+        disabled={isDisabled || !options.length}
+        placeholder="Р’С‹Р±РµСЂРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ"
+        onSelected={handleSelected}
+      />
+    );
+  }
+
+  return <Box color="bad">РќРµРїРѕРґРґРµСЂР¶РёРІР°РµРјС‹Р№ С‚РёРї РїРѕР»СЏ.</Box>;
+};
+
+const FieldControlStack = (props: {
+  readonly field?: UiField;
+  readonly act: ActFn;
+  readonly forceChoiceStrip?: boolean;
+  readonly choiceStripBasis?: string;
+}) => {
+  const { field, act, forceChoiceStrip, choiceStripBasis } = props;
+  if (!field || field.visible === false) {
+    return null;
+  }
+
+  return (
+    <Box>
+      <Box color="label" mb={0.25}>
+        {getTranslatedFieldLabel(field)}
+      </Box>
+      <FieldControl
+        field={field}
+        act={act}
+        forceChoiceStrip={forceChoiceStrip}
+        choiceStripBasis={choiceStripBasis}
+      />
+      {!!field.validate_hint && (
+        <Box color="average" mt={0.25}>
+          {field.validate_hint}
+        </Box>
+      )}
+    </Box>
   );
 };
 
@@ -1902,6 +2051,17 @@ const CurrentModePanel = (props: {
   );
 };
 
+const getBlueprintLibraryMetaText = (blueprint: BlueprintEntry) => {
+  const parts = [
+    `${getPositiveCountText(blueprint.entry_count, '0')} объектов`,
+    `r${getPositiveCountText(blueprint.radius, '0')}`,
+  ];
+  if (!isBlankDisplayValue(blueprint.source)) {
+    parts.push(`${blueprint.source}`);
+  }
+  return parts.join(' · ');
+};
+
 const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
@@ -1946,172 +2106,117 @@ const BlueprintStampWorkspace = (props: {
     data.blueprint_entries?.find(
       (entry) => entry.id === data.active_blueprint_id,
     );
-  const isSelectedBlueprintActive =
-    !!selectedBlueprint && selectedBlueprint.id === data.active_blueprint_id;
   const totalBlueprints = data.blueprint_entries?.length || 0;
 
   return (
-    <WorkspaceGrid>
-      <WorkspacePane basis="42%" minWidth="19rem">
-        <SurfaceCard
-          title="Библиотека"
-          subtitle={`${filteredBlueprints.length} из ${totalBlueprints}`}
-          actions={
-            <Button compact onClick={() => act('list_blueprints')}>
-              Обновить
-            </Button>
-          }
-        >
-          <Input
-            value={searchQuery}
-            placeholder="Поиск"
-            onChange={(_, value) => setSearchQuery(value)}
-          />
+    <SurfaceCard
+      title="Библиотека"
+      subtitle={`${filteredBlueprints.length} из ${totalBlueprints}`}
+      actions={
+        <Button compact onClick={() => act('list_blueprints')}>
+          Обновить
+        </Button>
+      }
+      mt={0}
+    >
+      <Input
+        value={searchQuery}
+        placeholder="Поиск"
+        onChange={(_, value) => setSearchQuery(value)}
+      />
 
-          {!data.blueprint_entries?.length && (
-            <Box color="label" mt={0.7}>
-              Нет шаблонов.
-            </Box>
-          )}
+      {!data.blueprint_entries?.length && (
+        <Box color="label" mt={0.7}>
+          Нет шаблонов.
+        </Box>
+      )}
 
-          {!!data.blueprint_entries?.length && !filteredBlueprints.length && (
-            <Box color="label" mt={0.7}>
-              Ничего не найдено.
-            </Box>
-          )}
+      {!!data.blueprint_entries?.length && !filteredBlueprints.length && (
+        <Box color="label" mt={0.7}>
+          Ничего не найдено.
+        </Box>
+      )}
 
-          {!!filteredBlueprints.length && (
-            <Box mt={0.7}>
-              {filteredBlueprints.map((blueprint) => {
-                const isActive = blueprint.id === data.active_blueprint_id;
-                const isSelected = blueprint.id === selectedBlueprint?.id;
-                return (
-                  <Box
-                    key={blueprint.id}
-                    p={0.45}
-                    mb={0.3}
-                    onClick={() => {
-                      setSelectedBlueprintId(blueprint.id);
-                      if (
-                        blueprint.valid &&
-                        blueprint.id !== data.active_blueprint_id
-                      ) {
-                        act('load_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }
-                    }}
-                    style={{
-                      border: isActive
-                        ? '1px solid #4c9f39'
-                        : isSelected
-                          ? '1px solid #7696c5'
-                          : '1px solid rgba(70, 107, 150, 0.55)',
-                      borderLeft: isActive
-                        ? '3px solid #4c9f39'
-                        : isSelected
-                          ? '3px solid #7696c5'
-                          : '3px solid transparent',
-                      background: isActive
-                        ? 'rgba(76, 159, 57, 0.16)'
-                        : isSelected
-                          ? 'rgba(118, 150, 197, 0.14)'
-                          : 'rgba(70, 107, 150, 0.10)',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                    }}
-                  >
+      {!!filteredBlueprints.length && (
+        <Box mt={0.7}>
+          {filteredBlueprints.map((blueprint) => {
+            const isActive = blueprint.id === data.active_blueprint_id;
+            const isSelected = blueprint.id === selectedBlueprint?.id;
+            return (
+              <Box
+                key={blueprint.id}
+                p={0.45}
+                mb={0.3}
+                onClick={() => {
+                  setSelectedBlueprintId(blueprint.id);
+                  if (blueprint.valid && blueprint.id !== data.active_blueprint_id) {
+                    act('load_blueprint', {
+                      blueprint_id: blueprint.id,
+                    });
+                  }
+                }}
+                style={{
+                  border: isActive
+                    ? '1px solid #4c9f39'
+                    : isSelected
+                      ? '1px solid #7696c5'
+                      : '1px solid rgba(70, 107, 150, 0.55)',
+                  borderLeft: isActive
+                    ? '3px solid #4c9f39'
+                    : isSelected
+                      ? '3px solid #7696c5'
+                      : '3px solid transparent',
+                  background: isActive
+                    ? 'rgba(76, 159, 57, 0.16)'
+                    : isSelected
+                      ? 'rgba(118, 150, 197, 0.14)'
+                      : 'rgba(70, 107, 150, 0.10)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                <Flex align="center" wrap>
+                  <Flex.Item grow basis="14rem" style={{ minWidth: '0' }}>
                     <Box
                       bold
-                      color={isActive ? 'good' : isSelected ? 'white' : 'white'}
+                      color={isActive ? 'good' : 'white'}
+                      style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
                     >
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
-                    {!blueprint.valid && (
+                  </Flex.Item>
+                  {blueprint.valid && (
+                    <Flex.Item style={{ minWidth: '0' }}>
                       <Box
-                        color="bad"
-                        mt={0.2}
+                        color="label"
+                        style={{
+                          fontSize: '0.92rem',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '24rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
                       >
-                        Недоступен
+                        {getBlueprintLibraryMetaText(blueprint)}
                       </Box>
-                    )}
+                    </Flex.Item>
+                  )}
+                </Flex>
+                {!blueprint.valid && (
+                  <Box color="bad" mt={0.2}>
+                    {blueprint.error || 'Шаблон недоступен.'}
                   </Box>
-                );
-              })}
-            </Box>
-          )}
-        </SurfaceCard>
-      </WorkspacePane>
-
-      <WorkspacePane basis="56%" minWidth="23rem">
-        <SurfaceCard
-          title="Рабочий шаблон"
-          subtitle={
-            selectedBlueprint
-              ? !selectedBlueprint.valid
-                ? 'Недоступен'
-                : isSelectedBlueprintActive
-                  ? 'Выбран'
-                  : 'Подготовлен'
-              : undefined
-          }
-          tone={
-            !selectedBlueprint
-              ? 'default'
-              : !selectedBlueprint.valid
-                ? 'bad'
-                : isSelectedBlueprintActive
-                  ? 'good'
-                  : 'average'
-          }
-        >
-          {!selectedBlueprint && (
-            <Box color="label">Выберите шаблон слева.</Box>
-          )}
-
-          {!!selectedBlueprint && (
-            <>
-              <Box bold style={{ fontSize: '1.15em' }}>
-                {getDisplayText(selectedBlueprint.name, 'Шаблон без имени')}
+                )}
               </Box>
-              {!selectedBlueprint.valid && (
-                <NoticeBox danger>
-                  {selectedBlueprint.error || 'Шаблон недоступен.'}
-                </NoticeBox>
-              )}
-              <CompactStatusRow
-                basis="31%"
-                items={[
-                  {
-                    label: 'Объектов',
-                    value: getPositiveCountText(
-                      selectedBlueprint.entry_count,
-                      '0',
-                    ),
-                  },
-                  {
-                    label: 'Источник',
-                    value: getDisplayText(
-                      selectedBlueprint.source,
-                      EMPTY_LABEL,
-                    ),
-                    color: 'label',
-                  },
-                  {
-                    label: 'Автор',
-                    value: getDisplayText(
-                      selectedBlueprint.created_by,
-                      EMPTY_LABEL,
-                    ),
-                    color: 'label',
-                  },
-                ]}
-              />
-            </>
-          )}
-        </SurfaceCard>
-      </WorkspacePane>
-    </WorkspaceGrid>
+            );
+          })}
+        </Box>
+      )}
+    </SurfaceCard>
   );
 };
 
@@ -2125,13 +2230,24 @@ const OutpostRadiusWorkspace = (props: {
   const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout').filter(
     (field) => field.id !== 'radius',
   );
+  const familyField = getField(layoutFields, 'family');
+  const layoutVariantField = getField(layoutFields, 'layout_variant');
+  const openingWidthField = getField(layoutFields, 'opening_width');
+  const extraLayoutFields = layoutFields.filter(
+    (field) => !['family', 'layout_variant', 'opening_width'].includes(field.id),
+  );
+  const sentryToggleField = getField(sentryFields, 'place_sentries');
+  const sentryDetailFields = getFieldsById(sentryFields, [
+    'guard_mode',
+    'sentry_path',
+    'faction',
+    'turned_on',
+  ]).filter((field) => field.visible !== false);
 
   return (
     <Box>
-      <FieldListCard
+      <SurfaceCard
         title="Профиль и вариант"
-        fields={layoutFields}
-        act={act}
         mt={0}
         actions={
           data.can_save_blueprint_from_plan ? (
@@ -2140,9 +2256,59 @@ const OutpostRadiusWorkspace = (props: {
             </Button>
           ) : undefined
         }
-      />
+      >
+        <Box
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: '0.6rem',
+          }}
+        >
+          <FieldControlStack field={familyField} act={act} />
+          <FieldControlStack field={layoutVariantField} act={act} />
+        </Box>
+        {!!openingWidthField && (
+          <Box mt={0.6}>
+            <FieldControlStack
+              field={openingWidthField}
+              act={act}
+              forceChoiceStrip
+              choiceStripBasis="15.8%"
+            />
+          </Box>
+        )}
+        {!!extraLayoutFields.filter((field) => field.visible !== false).length && (
+          <Box mt={0.6}>
+            <LabeledList>
+              {extraLayoutFields
+                .filter((field) => field.visible !== false)
+                .map((field) => (
+                  <FieldEditor key={field.id} field={field} act={act} />
+                ))}
+            </LabeledList>
+          </Box>
+        )}
+      </SurfaceCard>
       <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
-      <FieldListCard title="Оборона" fields={sentryFields} act={act} />
+      <SurfaceCard title="Оборона" mt={0.6}>
+        <Box style={{ maxWidth: '16rem' }}>
+          <FieldControlStack field={sentryToggleField} act={act} />
+        </Box>
+        {!!sentryDetailFields.length && (
+          <Box
+            mt={0.6}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: '0.6rem',
+            }}
+          >
+            {sentryDetailFields.map((field) => (
+              <FieldControlStack key={field.id} field={field} act={act} />
+            ))}
+          </Box>
+        )}
+      </SurfaceCard>
     </Box>
   );
 };
@@ -2174,31 +2340,48 @@ const DestructionPackWorkspace = (props: {
   const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
     ?.value;
   const destructiveEnabled = blastEnabled || damageProfile !== 'none';
+  const movementEnabled =
+    !!getField(data.ui_fields, 'shuffle_enabled')?.value ||
+    !!getField(data.ui_fields, 'scatter_enabled')?.value;
+  const visibleAreaFields = areaFields.filter((field) => field.visible !== false);
+  const visibleMovementFields = safeMovementFields.filter(
+    (field) => field.visible !== false,
+  );
 
   return (
     <>
-      <WorkspaceGrid>
-        <WorkspacePane basis="56%" minWidth="19rem">
-          <FieldBlock title="Зона" fields={areaFields} act={act} />
-        </WorkspacePane>
-        <WorkspacePane basis="42%" minWidth="19rem">
-          <FieldBlock
-            title="Перемещение"
-            fields={safeMovementFields}
-            act={act}
-          />
-        </WorkspacePane>
-      </WorkspaceGrid>
+      {(!!visibleAreaFields.length || !!visibleMovementFields.length) && (
+        <WorkspaceGrid>
+          {!!visibleMovementFields.length && (
+            <WorkspacePane
+              basis={visibleAreaFields.length ? '48%' : '100%'}
+              minWidth="19rem"
+            >
+              <FieldBlock
+                title="Перемещение"
+                fields={visibleMovementFields}
+                act={act}
+                tone={movementEnabled ? 'average' : 'default'}
+              />
+            </WorkspacePane>
+          )}
+          {!!visibleAreaFields.length && (
+            <WorkspacePane basis="48%" minWidth="19rem">
+              <FieldBlock title="Зона" fields={visibleAreaFields} act={act} />
+            </WorkspacePane>
+          )}
+        </WorkspaceGrid>
+      )}
 
       <SurfaceCard
         title="Опасные режимы"
-        mt={0.6}
+        mt={visibleAreaFields.length || visibleMovementFields.length ? 0.6 : 0}
         tone={
           destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'
         }
       >
         <WorkspaceGrid>
-          <WorkspacePane basis="34%" minWidth="18rem">
+          <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
               title="Огонь"
               fields={fireFields}
@@ -2206,7 +2389,7 @@ const DestructionPackWorkspace = (props: {
               tone={fireEnabled ? 'average' : 'default'}
             />
           </WorkspacePane>
-          <WorkspacePane basis="31%" minWidth="18rem">
+          <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
               title="Взрыв"
               subtitle={blastEnabled ? 'Откат ограничен' : undefined}
@@ -2215,7 +2398,7 @@ const DestructionPackWorkspace = (props: {
               tone={blastEnabled ? 'bad' : 'default'}
             />
           </WorkspacePane>
-          <WorkspacePane basis="31%" minWidth="18rem">
+          <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
               title="Структурный урон"
               subtitle={
@@ -2591,13 +2774,13 @@ const EditorToolbar = (props: {
         <Box
           style={{
             display: 'grid',
-            gridTemplateColumns: '13.75rem 10rem 11rem',
+            gridTemplateColumns: '13.75rem 10rem 13rem',
             gap: '0.55rem',
             justifyContent: 'start',
-            alignItems: 'start',
+            alignItems: 'stretch',
           }}
         >
-          <ToolbarControlGroup title="Форма" width="13.75rem">
+          <ToolbarControlGroup title="Форма" width="13.75rem" minHeight="10.3rem">
             <ShapeOptionStrip
               options={data.placement_shape_options || []}
               selected={data.placement_shape}
@@ -2610,7 +2793,7 @@ const EditorToolbar = (props: {
             />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Режим клика" width="10rem">
+          <ToolbarControlGroup title="Режим клика" width="10rem" minHeight="10.3rem">
             <ToolbarModeStrip
               options={data.placement_mode_options || []}
               selected={data.placement_mode}
@@ -2628,7 +2811,7 @@ const EditorToolbar = (props: {
             />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Направление" width="11rem">
+          <ToolbarControlGroup title="Направление" width="13rem" minHeight="10.3rem">
             <ToolbarDirectionControls
               options={data.placement_dir_options || []}
               selected={data.placement_dir}

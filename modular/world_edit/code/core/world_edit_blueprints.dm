@@ -709,6 +709,7 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 	if(!islist(current_params))
 		current_params = list()
 	current_params["blueprint_id"] = "[blueprint_id]"
+	save_current_generator_context()
 	if(blueprint_changed)
 		refresh_runtime_after_config_change()
 
