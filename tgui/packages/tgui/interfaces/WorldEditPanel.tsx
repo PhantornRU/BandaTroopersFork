@@ -374,7 +374,6 @@ const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
 };
 
 const PLACEMENT_MODE_ORDER = ['single', 'repeat'];
-const PLACEMENT_DIRECTION_ORDER = ['north', 'east', 'south', 'west'];
 const PLACEMENT_SHAPE_ORDER = Object.keys(PLACEMENT_SHAPE_LABELS);
 
 const OUTPOST_FAMILY_LABELS: Record<string, string> = {
@@ -1123,6 +1122,54 @@ const ToolbarModeStrip = (props: {
   );
 };
 
+const ToolbarRadiusControl = (props: {
+  readonly field?: UiField;
+  readonly readOnlyValue?: ReactNode;
+  readonly act: ActFn;
+}) => {
+  const { field, readOnlyValue, act } = props;
+
+  return (
+    <Box mt={0.45}>
+      <Box color="label" mb={0.2}>
+        Радиус
+      </Box>
+      {!!field && field.kind === 'number' ? (
+        <NumberInput
+          value={Number(field.value) || 0}
+          minValue={field.min ?? -1000000}
+          maxValue={field.max ?? 1000000}
+          step={field.step || 1}
+          width="100%"
+          disabled={!!field.disabled}
+          onChange={(value) =>
+            act('set_param', {
+              param_id: field.id,
+              value,
+            })
+          }
+        />
+      ) : (
+        <Box
+          px={0.45}
+          py={0.32}
+          color={readOnlyValue ? 'white' : 'label'}
+          style={{
+            minHeight: '2rem',
+            border: '1px solid rgba(70, 107, 150, 0.45)',
+            background: 'rgba(70, 107, 150, 0.08)',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          {readOnlyValue || '—'}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 const ToolbarDirectionControls = (props: {
   readonly options: PlacementOption[];
   readonly selected: string;
@@ -1140,6 +1187,12 @@ const ToolbarDirectionControls = (props: {
     onSelected,
   } = props;
   const availableValues = getPlacementOptionValueSet(options);
+  const directionLayout = [
+    { value: 'north', gridColumn: '1 / span 2' },
+    { value: 'west' },
+    { value: 'east' },
+    { value: 'south', gridColumn: '1 / span 2' },
+  ];
 
   return (
     <>
@@ -1148,6 +1201,12 @@ const ToolbarDirectionControls = (props: {
         disabled={disabled}
         fluid
         onClick={onToggleUsesFacing}
+        style={{
+          width: '100%',
+          whiteSpace: 'normal',
+          lineHeight: '1.15',
+          textAlign: 'left',
+        }}
       >
         По направлению взгляда
       </Button.Checkbox>
@@ -1159,7 +1218,7 @@ const ToolbarDirectionControls = (props: {
           gap: '0.3rem',
         }}
       >
-        {PLACEMENT_DIRECTION_ORDER.map((value) => {
+        {directionLayout.map(({ value, gridColumn }) => {
           const isAvailable = availableValues.has(value);
           const isSelected = isAvailable && value === selected;
           return (
@@ -1171,6 +1230,7 @@ const ToolbarDirectionControls = (props: {
               disabled={disabled || usesFacing || !isAvailable}
               onClick={() => onSelected(value)}
               style={{
+                gridColumn,
                 justifyContent: 'center',
               }}
             >
@@ -1967,27 +2027,12 @@ const BlueprintStampWorkspace = (props: {
                     >
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
-                    <Box color={blueprint.valid ? 'label' : 'bad'} mt={0.2}>
-                      {blueprint.valid
-                        ? `${getPositiveCountText(blueprint.entry_count, '0')} объектов · радиус ${getPositiveCountText(blueprint.radius, '0')}`
-                        : 'Шаблон недоступен'}
-                    </Box>
-                    {(!blueprint.valid || isActive) && (
+                    {!blueprint.valid && (
                       <Box
-                        color={
-                          !blueprint.valid
-                            ? 'bad'
-                            : isActive
-                              ? 'good'
-                              : 'average'
-                        }
+                        color="bad"
                         mt={0.2}
                       >
-                        {!blueprint.valid
-                          ? 'Недоступен'
-                          : isActive
-                            ? 'Выбран'
-                            : ''}
+                        Недоступен
                       </Box>
                     )}
                   </Box>
@@ -2035,7 +2080,7 @@ const BlueprintStampWorkspace = (props: {
                 </NoticeBox>
               )}
               <CompactStatusRow
-                basis="48%"
+                basis="31%"
                 items={[
                   {
                     label: 'Объектов',
@@ -2043,10 +2088,6 @@ const BlueprintStampWorkspace = (props: {
                       selectedBlueprint.entry_count,
                       '0',
                     ),
-                  },
-                  {
-                    label: 'Радиус',
-                    value: getPositiveCountText(selectedBlueprint.radius, '0'),
                   },
                   {
                     label: 'Источник',
@@ -2079,102 +2120,30 @@ const OutpostRadiusWorkspace = (props: {
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
-  const familyField = getField(data.ui_fields, 'family');
-  const layoutField = getField(data.ui_fields, 'layout_variant');
-  const openingWidthField = getField(data.ui_fields, 'opening_width');
-  const barricadePatternField = getField(data.ui_fields, 'barricade_pattern');
-  const sentryToggleField = getField(data.ui_fields, 'place_sentries');
-  const guardModeField = getField(data.ui_fields, 'guard_mode');
   const sentryFields = getFieldsByGroup(data.ui_fields, 'Sentries');
   const barricadeFields = getFieldsByGroup(data.ui_fields, 'Barricades');
-  const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout');
-
-  const previewMeta = data.preview_meta || {};
-  const familySummary = getFieldOptionLabel(familyField);
-  const layoutSummary = data.preview_valid
-    ? translateOptionLabel(
-        'layout_variant',
-        `${previewMeta.layout_label || ''}`,
-        previewMeta.layout_variant || layoutField?.value,
-      )
-    : getFieldOptionLabel(layoutField);
-  const openingWidthSummary = getFieldOptionLabel(openingWidthField);
-  const barricadePatternSummary =
-    barricadePatternField?.visible === false
-      ? 'Единый материал'
-      : getFieldOptionLabel(barricadePatternField);
-  const guardSummary = sentryToggleField?.value
-    ? getFieldOptionLabel(guardModeField)
-    : OFF_LABEL;
-  const summaryTiles: SummaryTile[] = [
-    {
-      label: 'Профиль',
-      value: familySummary,
-    },
-    {
-      label: 'Вариант',
-      value: layoutSummary,
-    },
-    {
-      label: 'Проход',
-      value: openingWidthSummary,
-    },
-    {
-      label: 'Периметр',
-      value: barricadePatternSummary,
-    },
-    {
-      label: 'Турели',
-      value: guardSummary,
-      color: sentryToggleField?.value ? 'good' : 'label',
-    },
-  ];
-
-  if (data.preview_valid) {
-    summaryTiles.push(
-      {
-        label: 'Проходы',
-        value: getDisplayText(previewMeta.opening_count, '0'),
-      },
-      {
-        label: 'Построек',
-        value: `${getDisplayText(previewMeta.barricade_count, '0')} баррикад / ${getDisplayText(previewMeta.sentry_count, '0')} турелей`,
-      },
-    );
-  }
+  const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout').filter(
+    (field) => field.id !== 'radius',
+  );
 
   return (
-    <WorkspaceGrid>
-      <WorkspacePane basis="50%" minWidth="22rem">
-        <FieldListCard
-          title="Профиль и вариант"
-          fields={layoutFields}
-          act={act}
-          mt={0}
-        />
-        <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
-        <FieldListCard title="Оборона" fields={sentryFields} act={act} />
-      </WorkspacePane>
-
-      <WorkspacePane basis="48%" minWidth="22rem">
-        <SurfaceCard
-          title="План форпоста"
-          subtitle={
-            data.preview_valid ? 'Предпросмотр готов' : 'Без предпросмотра'
-          }
-          tone={data.preview_valid ? 'good' : 'default'}
-          actions={
-            data.can_save_blueprint_from_plan ? (
-              <Button compact onClick={() => act('save_blueprint')}>
-                Сохранить как шаблон
-              </Button>
-            ) : undefined
-          }
-        >
-          <CompactStatusRow basis="31%" items={summaryTiles} />
-        </SurfaceCard>
-      </WorkspacePane>
-    </WorkspaceGrid>
+    <Box>
+      <FieldListCard
+        title="Профиль и вариант"
+        fields={layoutFields}
+        act={act}
+        mt={0}
+        actions={
+          data.can_save_blueprint_from_plan ? (
+            <Button compact onClick={() => act('save_blueprint')}>
+              Сохранить как шаблон
+            </Button>
+          ) : undefined
+        }
+      />
+      <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
+      <FieldListCard title="Оборона" fields={sentryFields} act={act} />
+    </Box>
   );
 };
 
@@ -2183,7 +2152,9 @@ const DestructionPackWorkspace = (props: {
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
-  const areaFields = getFieldsByGroup(data.ui_fields, 'Area');
+  const areaFields = getFieldsByGroup(data.ui_fields, 'Area').filter(
+    (field) => field.id !== 'radius',
+  );
   const safeMovementFields = [
     ...getFieldsById(data.ui_fields, ['shuffle_enabled', 'scatter_enabled']),
     ...getSafeFieldList(data.ui_fields, ['scatter_steps', 'max_atoms']),
@@ -2203,74 +2174,60 @@ const DestructionPackWorkspace = (props: {
   const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
     ?.value;
   const destructiveEnabled = blastEnabled || damageProfile !== 'none';
-  const dangerEnabled = destructiveEnabled || fireEnabled;
 
   return (
     <>
-      <SurfaceCard title="Безопасная зона" subtitle="Без взрыва и урона">
+      <WorkspaceGrid>
+        <WorkspacePane basis="56%" minWidth="19rem">
+          <FieldBlock title="Зона" fields={areaFields} act={act} />
+        </WorkspacePane>
+        <WorkspacePane basis="42%" minWidth="19rem">
+          <FieldBlock
+            title="Перемещение"
+            fields={safeMovementFields}
+            act={act}
+          />
+        </WorkspacePane>
+      </WorkspaceGrid>
+
+      <SurfaceCard
+        title="Опасные режимы"
+        mt={0.6}
+        tone={
+          destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'
+        }
+      >
         <WorkspaceGrid>
-          <WorkspacePane basis="56%" minWidth="19rem">
-            <FieldBlock title="Зона" fields={areaFields} act={act} />
-          </WorkspacePane>
-          <WorkspacePane basis="42%" minWidth="19rem">
+          <WorkspacePane basis="34%" minWidth="18rem">
             <FieldBlock
-              title="Перемещение"
-              fields={safeMovementFields}
+              title="Огонь"
+              fields={fireFields}
               act={act}
+              tone={fireEnabled ? 'average' : 'default'}
+            />
+          </WorkspacePane>
+          <WorkspacePane basis="31%" minWidth="18rem">
+            <FieldBlock
+              title="Взрыв"
+              subtitle={blastEnabled ? 'Откат ограничен' : undefined}
+              fields={blastFields}
+              act={act}
+              tone={blastEnabled ? 'bad' : 'default'}
+            />
+          </WorkspacePane>
+          <WorkspacePane basis="31%" minWidth="18rem">
+            <FieldBlock
+              title="Структурный урон"
+              subtitle={
+                damageProfile !== 'none' ? 'Откат ограничен' : undefined
+              }
+              fields={damageFields}
+              act={act}
+              tone={damageProfile !== 'none' ? 'bad' : 'default'}
             />
           </WorkspacePane>
         </WorkspaceGrid>
       </SurfaceCard>
-
-      <Collapsible
-        title={dangerEnabled ? 'Опасные режимы включены' : 'Опасные режимы'}
-        mt={0.6}
-        open={dangerEnabled}
-      >
-        <SurfaceCard
-          title="Опасное воздействие"
-          tone={
-            destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'
-          }
-        >
-          {destructiveEnabled ? (
-            <NoticeBox danger>Взрыв и урон ограничивают откат.</NoticeBox>
-          ) : (
-            <Box color="label">Взрыв и структурный урон выключены.</Box>
-          )}
-
-          <WorkspaceGrid>
-            <WorkspacePane basis="34%" minWidth="18rem">
-              <FieldBlock
-                title="Огонь"
-                fields={fireFields}
-                act={act}
-                tone={fireEnabled ? 'average' : 'default'}
-              />
-            </WorkspacePane>
-            <WorkspacePane basis="31%" minWidth="18rem">
-              <FieldBlock
-                title="Взрыв"
-                subtitle={blastEnabled ? 'Откат ограничен' : undefined}
-                fields={blastFields}
-                act={act}
-                tone={blastEnabled ? 'bad' : 'default'}
-              />
-            </WorkspacePane>
-            <WorkspacePane basis="31%" minWidth="18rem">
-              <FieldBlock
-                title="Структурный урон"
-                subtitle={
-                  damageProfile !== 'none' ? 'Откат ограничен' : undefined
-                }
-                fields={damageFields}
-                act={act}
-                tone={damageProfile !== 'none' ? 'bad' : 'default'}
-              />
-            </WorkspacePane>
-          </WorkspaceGrid>
-        </SurfaceCard>
-      </Collapsible>
     </>
   );
 };
@@ -2507,6 +2464,16 @@ const EditorToolbar = (props: {
 }) => {
   const { data, act } = props;
   const toolbar = getToolbarState(data);
+  const radiusField = getField(data.ui_fields, 'radius');
+  const activeBlueprint = getSelectedBlueprint(data);
+  const toolbarRadiusField =
+    radiusField?.visible === false ? undefined : radiusField;
+  const toolbarRadiusReadOnly =
+    !toolbarRadiusField &&
+    data.current_generator_id === 'blueprint_stamp' &&
+    activeBlueprint
+      ? getPositiveCountText(activeBlueprint.radius, '0')
+      : undefined;
   const shapeControlsDisabled =
     !data.has_generator || !data.placement_shape_supported;
   const modeControlsDisabled =
@@ -2624,13 +2591,13 @@ const EditorToolbar = (props: {
         <Box
           style={{
             display: 'grid',
-            gridTemplateColumns: '15rem 9.5rem 12.5rem',
+            gridTemplateColumns: '13.75rem 10rem 11rem',
             gap: '0.55rem',
             justifyContent: 'start',
             alignItems: 'start',
           }}
         >
-          <ToolbarControlGroup title="Форма" width="15rem">
+          <ToolbarControlGroup title="Форма" width="13.75rem">
             <ShapeOptionStrip
               options={data.placement_shape_options || []}
               selected={data.placement_shape}
@@ -2643,7 +2610,7 @@ const EditorToolbar = (props: {
             />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Режим клика" width="9.5rem">
+          <ToolbarControlGroup title="Режим клика" width="10rem">
             <ToolbarModeStrip
               options={data.placement_mode_options || []}
               selected={data.placement_mode}
@@ -2654,9 +2621,14 @@ const EditorToolbar = (props: {
                 })
               }
             />
+            <ToolbarRadiusControl
+              field={toolbarRadiusField}
+              readOnlyValue={toolbarRadiusReadOnly}
+              act={act}
+            />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Направление" width="12.5rem">
+          <ToolbarControlGroup title="Направление" width="11rem">
             <ToolbarDirectionControls
               options={data.placement_dir_options || []}
               selected={data.placement_dir}
@@ -2756,7 +2728,9 @@ const WorkspacePage = (props: {
         onSelectWorkspaceTab={onSelectWorkspaceTab}
       />
 
-      {!!data.has_generator && workspaceTab === 'editor' && (
+      {!!data.has_generator &&
+        workspaceTab === 'editor' &&
+        data.current_generator_id !== 'destruction_pack' && (
         <CurrentModePanel data={data} act={act} />
       )}
 
@@ -2845,7 +2819,7 @@ export const WorldEditPanel = () => {
   };
 
   return (
-    <Window title="World Edit Panel" width={1040} height={680}>
+    <Window title="World Edit Panel" width={920} height={620}>
       <Window.Content>
         <WorkspacePage
           data={data}
