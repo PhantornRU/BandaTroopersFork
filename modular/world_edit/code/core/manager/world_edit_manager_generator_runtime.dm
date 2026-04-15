@@ -129,6 +129,7 @@
 		new_params = preserve_active_placement_runtime_params(new_params)
 
 	current_params = new_params
+	save_current_generator_context()
 	last_ui_error = ""
 	refresh_runtime_after_config_change()
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
@@ -166,7 +167,7 @@
 
 	if(point_count < min_points)
 		last_preview_success = FALSE
-		last_preview_message = "[message_prefix]Collector progress: [point_count]/[min_points] points collected."
+		last_preview_message = "[message_prefix]Собрано точек: [point_count]/[min_points]."
 		invalidate_preview_state()
 		if(length(collector_turfs))
 			GLOB.world_edit_helpers.apply_turf_preview(src, collector_turfs)
@@ -187,7 +188,7 @@
 	var/list/anchor_turfs = shape_result["turfs"]
 	if(!length(anchor_turfs))
 		last_preview_success = FALSE
-		last_preview_message = "Unable to build a valid placement footprint."
+		last_preview_message = "Не удалось построить корректный контур размещения."
 		last_preview_meta = shape_result["metadata"] || list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -211,7 +212,7 @@
 	))
 	if(!istype(plan))
 		last_preview_success = FALSE
-		last_preview_message = "Unable to build the placement plan."
+		last_preview_message = "Не удалось собрать план размещения."
 		last_preview_meta = list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -225,7 +226,7 @@
 		return FALSE
 	if(!length(plan.placements) && !length(plan.deletions))
 		last_preview_success = FALSE
-		last_preview_message = "Placement footprint contains no valid actions."
+		last_preview_message = "Контур размещения не содержит допустимых действий."
 		last_preview_meta = plan.metadata.Copy()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -247,25 +248,25 @@
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE
 	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("Collector needs at least [get_placement_collector_min_points(shape_id)] points before it can be finished."))
+		to_chat(user, SPAN_WARNING("Для завершения сбора нужно минимум [get_placement_collector_min_points(shape_id)] точек."))
 		return TRUE
 
 	preview_turf = preview_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
 	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("Collector origin is missing; add at least one point first."))
+		to_chat(user, SPAN_WARNING("Точка начала сбора не задана; сначала добавьте хотя бы одну точку."))
 		return TRUE
 
-	if(!update_placement_collector_runtime_state(user, preview_turf, "Collector finalize. "))
+	if(!update_placement_collector_runtime_state(user, preview_turf, "Завершение сбора. "))
 		return TRUE
 
 	var/datum/world_edit_plan/collector_plan = current_generator?.current_plan
 	if(!istype(collector_plan) || !is_preview_state_valid())
-		to_chat(user, SPAN_WARNING("Collector footprint is not ready for apply yet."))
+		to_chat(user, SPAN_WARNING("Собранный контур ещё не готов к применению."))
 		return TRUE
 
 	if(confirm_before_apply)
 		var/confirm_text = build_safe_placement_confirm_text(collector_plan)
-		var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение размещения", list("Подтвердить", "Отмена"))
 		if(answer != "Подтвердить")
 			return TRUE
 
@@ -285,7 +286,7 @@
 	else if(collector_result.success)
 		sync_click_intercept_state()
 		placement_click_active = click_intercept_owned ? TRUE : FALSE
-		to_chat(user, SPAN_NOTICE("Collector remains active and is ready for the next footprint."))
+		to_chat(user, SPAN_NOTICE("Сбор остаётся активным и готов к следующему контуру."))
 	return TRUE
 
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
@@ -294,14 +295,15 @@
 	var/anchor_count = metadata["anchor_count"] || 1
 	var/entry_count = metadata["entry_count"] || length(placements)
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
+	var/mode_label = mode == "single" ? "один раз" : mode == "repeat" ? "повтор" : "[mode]"
 	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
-	var/message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count]."
+	var/message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count]."
 	if(metadata["collector_point_count"])
-		message += " Collector points=[metadata["collector_point_count"]]."
+		message += " Точек в сборе=[metadata["collector_point_count"]]."
 	if(metadata["placement_dir_label"])
-		message = "Placement preview ready: shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count], dir=[metadata["placement_dir_label"]]."
+		message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count], направление=[metadata["placement_dir_label"]]."
 		if(metadata["collector_point_count"])
-			message += " Collector points=[metadata["collector_point_count"]]."
+			message += " Точек в сборе=[metadata["collector_point_count"]]."
 	return message
 
 /datum/world_edit_manager/proc/build_safe_placement_confirm_text(datum/world_edit_plan/plan)
@@ -310,11 +312,12 @@
 	var/anchor_count = metadata["anchor_count"] || 1
 	var/entry_count = metadata["entry_count"] || length(placements)
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
+	var/mode_label = mode == "single" ? "один раз" : mode == "repeat" ? "повтор" : "[mode]"
 	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
 	var/dir_suffix = ""
 	if(metadata["placement_dir_label"])
-		dir_suffix = ", dir=[metadata["placement_dir_label"]]"
-	return "Apply [current_definition?.name_ru || current_definition?.id] placement? shape=[shape_label], mode=[mode], anchors=[anchor_count], entries=[entry_count][dir_suffix]."
+		dir_suffix = ", направление=[metadata["placement_dir_label"]]"
+	return "Применить размещение [current_definition?.name_ru || current_definition?.id]? форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count][dir_suffix]."
 
 /datum/world_edit_manager/proc/record_apply_result(mob/user, datum/world_edit_apply_result/result, duration_ds)
 	var/turf/center_turf = result.center_turf || get_turf(user)
@@ -366,11 +369,11 @@
 
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_apply(user, "Недостаточно прав для placement mode World Edit.")
+		return fail_apply(user, "Недостаточно прав для режима размещения World Edit.")
 	if(!current_generator || !current_definition)
 		return fail_apply(user, "Сначала выберите генератор.")
 	if(!supports_current_placement_ux())
-		return fail_apply(user, "Для текущего генератора safe placement UX в этой фазе недоступен.")
+		return fail_apply(user, "Для текущего генератора безопасный режим размещения сейчас недоступен.")
 
 	var/shape_id = get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/interaction_kind = get_placement_interaction_kind(shape_id)
@@ -388,15 +391,15 @@
 	sync_click_intercept_state()
 
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
-	var/dir_suffix = supports_current_placement_direction() ? " DIR=[GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
+	var/dir_suffix = supports_current_placement_direction() ? " Направление: [GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
 	if(interaction_kind == "anchor_pair")
-		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: first LMB sets anchor, second LMB previews and applies. MMB resets the pending anchor[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: первый ЛКМ ставит опорную точку, второй ЛКМ строит предпросмотр и применяет результат. СКМ сбрасывает опорную точку.[dir_suffix]"))
 	else if(interaction_kind == "collector")
-		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB collects points, MMB removes the last point, and RMB or Finish collection confirms/apply once the footprint is valid[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ добавляет точки, СКМ удаляет последнюю точку, а ПКМ или кнопка завершения подтверждают и применяют результат после валидации контура.[dir_suffix]"))
 	else if(interaction_kind == "param_only")
-		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB uses the clicked turf as anchor and resolves the footprint from current shape parameters. Interactive point collection is not part of this pass[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ использует выбранный тайл как опорную точку и строит контур по текущим параметрам формы. Интерактивный сбор точек в этом режиме не используется.[dir_suffix]"))
 	else
-		to_chat(user, SPAN_NOTICE("Placement mode active for [shape_label]: LMB previews and applies at the clicked turf. MMB resets the pending anchor[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ строит предпросмотр и применяет результат по выбранному тайлу. СКМ сбрасывает опорную точку.[dir_suffix]"))
 	return TRUE
 
 /datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
@@ -419,21 +422,21 @@
 				clear_placement_collector_origin()
 				clear_placement_collector_points()
 				clear_preview_plan_state()
-				to_chat(user, SPAN_NOTICE("Collector cleared."))
+				to_chat(user, SPAN_NOTICE("Сбор очищен."))
 				return TRUE
 
 			collector_points.Cut(length(collector_points), length(collector_points) + 1)
 			set_placement_collector_points(collector_points)
 			if(length(collector_points))
 				placement_anchor_turf = get_placement_collector_origin_turf()
-				update_placement_collector_runtime_state(user, clicked_turf, "Collector point removed. ")
+				update_placement_collector_runtime_state(user, clicked_turf, "Последняя точка удалена. ")
 			else
 				placement_anchor_turf = null
 				clear_placement_collector_origin()
 				clear_placement_collector_points()
 				clear_preview_plan_state()
 				last_preview_success = FALSE
-				last_preview_message = "Collector cleared."
+				last_preview_message = "Сбор очищен."
 				last_preview_meta = list()
 				invalidate_preview_state()
 				to_chat(user, SPAN_NOTICE(last_preview_message))
@@ -441,7 +444,7 @@
 
 		placement_anchor_turf = null
 		clear_preview_plan_state()
-		to_chat(user, SPAN_NOTICE("Pending placement anchor cleared."))
+		to_chat(user, SPAN_NOTICE("Опорная точка очищена."))
 		return TRUE
 
 	if(LAZYACCESS(modifiers, RIGHT_CLICK))
@@ -461,7 +464,7 @@
 			placement_anchor_turf = clicked_turf
 			set_placement_collector_origin_turf(clicked_turf)
 			set_placement_collector_points(list(list("x" = 0, "y" = 0)))
-			update_placement_collector_runtime_state(user, clicked_turf, "Collector started. ")
+			update_placement_collector_runtime_state(user, clicked_turf, "Сбор начат. ")
 			return TRUE
 
 		if(!istype(origin_turf))
@@ -477,23 +480,23 @@
 			var/existing_x = text2num("[existing_point["x"]]")
 			var/existing_y = text2num("[existing_point["y"]]")
 			if("[existing_x],[existing_y]" == new_key)
-				to_chat(user, SPAN_NOTICE("Collector point already captured."))
+				to_chat(user, SPAN_NOTICE("Эта точка уже добавлена в сбор."))
 				return TRUE
 		if(length(collector_points) >= max_points)
-			to_chat(user, SPAN_WARNING("Collector reached the safe cap of [max_points] points. Finish collection or remove the last point."))
+			to_chat(user, SPAN_WARNING("Достигнут безопасный лимит в [max_points] точек. Завершите сбор или удалите последнюю точку."))
 			return TRUE
 
 		collector_points += list(list("x" = new_x, "y" = new_y))
 		placement_anchor_turf = origin_turf
 		set_placement_collector_points(collector_points)
-		update_placement_collector_runtime_state(user, clicked_turf, "Collector updated. ")
+		update_placement_collector_runtime_state(user, clicked_turf, "Сбор обновлён. ")
 		return TRUE
 
 	if(interaction_kind == "anchor_pair" && !placement_anchor_turf)
 		placement_anchor_turf = clicked_turf
 		clear_preview_plan_state()
 		GLOB.world_edit_helpers.apply_turf_preview(src, list(clicked_turf))
-		to_chat(user, SPAN_NOTICE("Placement anchor set: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]. Select the second point."))
+		to_chat(user, SPAN_NOTICE("Опорная точка выбрана: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]. Теперь укажите вторую точку."))
 		return TRUE
 
 	var/turf/start_turf = (interaction_kind == "anchor_pair") ? placement_anchor_turf : clicked_turf
@@ -511,7 +514,7 @@
 		return TRUE
 	if(!length(anchor_turfs))
 		last_preview_success = FALSE
-		last_preview_message = "Unable to build a valid placement footprint."
+		last_preview_message = "Не удалось построить корректный контур размещения."
 		last_preview_meta = shape_result["metadata"] || list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -529,7 +532,7 @@
 	))
 	if(!istype(plan))
 		last_preview_success = FALSE
-		last_preview_message = "Unable to build the placement plan."
+		last_preview_message = "Не удалось собрать план размещения."
 		last_preview_meta = list()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -543,7 +546,7 @@
 		return TRUE
 	if(!length(plan.placements) && !length(plan.deletions))
 		last_preview_success = FALSE
-		last_preview_message = "Placement footprint contains no valid actions."
+		last_preview_message = "Контур размещения не содержит допустимых действий."
 		last_preview_meta = plan.metadata.Copy()
 		invalidate_preview_state()
 		to_chat(user, SPAN_WARNING(last_preview_message))
@@ -561,7 +564,7 @@
 
 	if(confirm_before_apply)
 		var/confirm_text = build_safe_placement_confirm_text(plan)
-		var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirm", list("Подтвердить", "Отмена"))
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение размещения", list("Подтвердить", "Отмена"))
 		if(answer != "Подтвердить")
 			clear_preview_plan_state()
 			return TRUE
@@ -579,7 +582,7 @@
 	else if(result.success)
 		sync_click_intercept_state()
 		placement_click_active = click_intercept_owned ? TRUE : FALSE
-		to_chat(user, SPAN_NOTICE("Placement mode remains active."))
+		to_chat(user, SPAN_NOTICE("Режим размещения остаётся активным."))
 	return TRUE
 
 /datum/world_edit_manager/proc/run_preview(mob/user)
@@ -593,7 +596,7 @@
 		return fail_preview(user, "Недостаточно прав для предпросмотра этого генератора.")
 
 	if(click_intercept_owned)
-		return fail_preview(user, "Остановите активный click/placement mode перед обычным preview.")
+		return fail_preview(user, "Остановите активный режим размещения перед обычным предпросмотром.")
 
 	var/error_text = current_generator.validate_params(user, current_params)
 	if(error_text)
@@ -637,7 +640,7 @@
 		return fail_apply(user, "Предпросмотр не готов.")
 
 	if(click_intercept_owned)
-		return fail_apply(user, "Остановите активный click/placement mode перед обычным apply.")
+		return fail_apply(user, "Остановите активный режим размещения перед обычным применением.")
 
 	if(confirm_before_apply)
 		var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
@@ -681,19 +684,19 @@
 
 /datum/world_edit_manager/proc/undo_last_operation(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_undo_action(user, "undo", "Недостаточно прав для undo World Edit.")
+		return fail_undo_action(user, "undo", "Недостаточно прав для отката World Edit.")
 
 	var/datum/world_edit_changeset/changeset = get_last_changeset()
 	if(!istype(changeset))
-		return fail_undo_action(user, "undo", "В session нет записанной операции для undo.")
+		return fail_undo_action(user, "undo", "В текущей сессии нет операции для отката.")
 	if(!changeset.can_undo())
-		return fail_undo_action(user, "undo", "Последняя записанная операция не поддерживает undo в этой фазе.")
+		return fail_undo_action(user, "undo", "Последняя операция не поддерживает откат на этой стадии.")
 
 	var/list/undo_result = GLOB.world_edit_changesets.revert_changeset(changeset)
 	var/reverted_count = text2num("[undo_result["reverted_count"]]") || 0
 	var/skipped_count = text2num("[undo_result["skipped_count"]]") || 0
 	var/outcome = "[undo_result["outcome"] || "none"]"
-	var/message = "Undo [changeset.generator_id] ([changeset.undo_policy]): reverted=[reverted_count], skipped=[skipped_count], outcome=[outcome]."
+	var/message = "Откат [changeset.generator_id] ([changeset.undo_policy]): восстановлено=[reverted_count], пропущено=[skipped_count], итог=[outcome]."
 	var/turf/center_turf = changeset.metadata["center_turf"] || get_turf(user)
 	var/params_short = "source=[changeset.generator_id]; operation_id=[changeset.operation_id]; policy=[changeset.undo_policy]"
 	var/result_code = (outcome == "full") ? "undo_ok" : ((outcome == "partial") ? "undo_partial" : "undo_skipped")
@@ -736,19 +739,19 @@
 
 /datum/world_edit_manager/proc/cleanup_last_owned_effects(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_undo_action(user, "cleanup", "Недостаточно прав для cleanup owned effects.")
+		return fail_undo_action(user, "cleanup", "Недостаточно прав для очистки связанных эффектов.")
 
 	var/datum/world_edit_changeset/changeset = get_last_changeset()
 	if(!istype(changeset))
-		return fail_undo_action(user, "cleanup", "В session нет записанной операции для cleanup owned effects.")
+		return fail_undo_action(user, "cleanup", "В текущей сессии нет операции для очистки связанных эффектов.")
 	if(!changeset.can_cleanup_owned_effects())
-		return fail_undo_action(user, "cleanup", "Последняя записанная операция не содержит owned effects для cleanup.")
+		return fail_undo_action(user, "cleanup", "Последняя операция не содержит связанных эффектов для очистки.")
 
 	var/list/cleanup_result = GLOB.world_edit_changesets.cleanup_changeset_owned_effects(changeset)
 	var/removed_count = text2num("[cleanup_result["reverted_count"]]") || 0
 	var/skipped_count = text2num("[cleanup_result["skipped_count"]]") || 0
 	var/outcome = "[cleanup_result["outcome"] || "none"]"
-	var/message = "Cleanup owned effects for [changeset.generator_id]: removed=[removed_count], skipped=[skipped_count], outcome=[outcome]."
+	var/message = "Очистка связанных эффектов для [changeset.generator_id]: удалено=[removed_count], пропущено=[skipped_count], итог=[outcome]."
 	var/turf/center_turf = changeset.metadata["center_turf"] || get_turf(user)
 	var/params_short = "source=[changeset.generator_id]; operation_id=[changeset.operation_id]"
 	var/result_code = (outcome == "full") ? "cleanup_ok" : ((outcome == "partial") ? "cleanup_partial" : "cleanup_skipped")

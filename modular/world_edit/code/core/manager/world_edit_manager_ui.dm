@@ -186,7 +186,7 @@
 		if("set_placement_mode")
 			var/new_mode = "[params["mode"]]"
 			if(!(new_mode in get_supported_placement_modes()))
-				last_ui_error = "Выбранный placement mode недоступен для текущего генератора."
+				last_ui_error = "Выбранный режим размещения недоступен для текущего генератора."
 				to_chat(ui.user, SPAN_WARNING(last_ui_error))
 				return TRUE
 			placement_mode = new_mode
@@ -198,7 +198,7 @@
 		if("set_placement_shape")
 			var/new_shape = "[params["shape"]]"
 			if(!(new_shape in get_supported_placement_shapes()))
-				last_ui_error = "The selected placement shape is not available for the current generator."
+				last_ui_error = "Выбранная форма размещения недоступна для текущего генератора."
 				to_chat(ui.user, SPAN_WARNING(last_ui_error))
 				return TRUE
 			placement_shape = new_shape
@@ -261,7 +261,7 @@
 
 		if("stop_click_mode")
 			reset_preview_runtime()
-			to_chat(ui.user, SPAN_NOTICE("Click-режим остановлен."))
+			to_chat(ui.user, SPAN_NOTICE("Режим размещения остановлен."))
 			return TRUE
 
 		if("clear_history")

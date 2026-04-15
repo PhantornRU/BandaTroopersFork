@@ -515,6 +515,9 @@ const getFieldsById = (fields: UiField[], ids: string[]) =>
 const getFieldsByGroup = (fields: UiField[], groupName: string) =>
   (fields || []).filter((field) => field.group === groupName);
 
+const getVisibleFields = (fields: UiField[] = []) =>
+  (fields || []).filter((field) => field.visible !== false);
+
 const getSafeFieldList = (fields: UiField[], ids: string[]) =>
   getFieldsById(fields, ids).filter(
     (field) => field.visible !== false && !field.disabled,
@@ -1051,7 +1054,7 @@ const ShapeOptionStrip = (props: {
             style={{
               width: '100%',
               minWidth: '0',
-              height: '2.2rem',
+              height: '2rem',
               justifyContent: 'center',
             }}
           >
@@ -1076,28 +1079,33 @@ const ShapeOptionStrip = (props: {
 
 const ToolbarControlGroup = (props: {
   readonly title: string;
+  readonly subtitle?: ReactNode;
   readonly width: string;
   readonly minHeight?: string;
   readonly children: ReactNode;
 }) => {
-  const { title, width, minHeight, children } = props;
+  const { title, subtitle, width, minHeight, children } = props;
 
   return (
     <Box
-      p={0.45}
+      p={0.4}
       style={{
         width,
-        minHeight: minHeight || '10rem',
-        border: '1px solid rgba(70, 107, 150, 0.45)',
-        background: 'rgba(70, 107, 150, 0.08)',
+        minHeight: minHeight || '9.2rem',
+        border: '1px solid rgba(70, 107, 150, 0.32)',
+        background: 'rgba(70, 107, 150, 0.05)',
         borderRadius: '4px',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <Box bold mb={0.35}>
-        {title}
-      </Box>
+      <Box bold>{title}</Box>
+      {!!subtitle && (
+        <Box color="label" mt={0.1} mb={0.25}>
+          {subtitle}
+        </Box>
+      )}
+      {!subtitle && <Box mb={0.25} />}
       <Box style={{ flex: '1 1 auto' }}>{children}</Box>
     </Box>
   );
@@ -1132,7 +1140,7 @@ const ToolbarModeStrip = (props: {
             disabled={disabled || !isAvailable}
             onClick={() => onSelected(value)}
             style={{
-              height: '2rem',
+              height: '1.85rem',
               justifyContent: 'center',
             }}
           >
@@ -1152,7 +1160,7 @@ const ToolbarRadiusControl = (props: {
   const { field, readOnlyValue, act } = props;
 
   return (
-    <Box mt={0.45}>
+    <Box mt={0.35}>
       <Box color="label" mb={0.2}>
         Радиус
       </Box>
@@ -1177,7 +1185,7 @@ const ToolbarRadiusControl = (props: {
           py={0.32}
           color={readOnlyValue ? 'white' : 'label'}
           style={{
-            minHeight: '2rem',
+            minHeight: '1.85rem',
             border: '1px solid rgba(70, 107, 150, 0.45)',
             background: 'rgba(70, 107, 150, 0.08)',
             borderRadius: '4px',
@@ -1229,7 +1237,7 @@ const ToolbarDirectionControls = (props: {
           whiteSpace: 'normal',
           lineHeight: '1.15',
           textAlign: 'left',
-          minHeight: '2.9rem',
+          minHeight: '2.4rem',
           padding: '0.2rem 0.45rem',
         }}
       >
@@ -1240,8 +1248,8 @@ const ToolbarDirectionControls = (props: {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          gridTemplateRows: 'repeat(3, 1.9rem)',
-          gap: '0.3rem',
+          gridTemplateRows: 'repeat(3, 1.7rem)',
+          gap: '0.25rem',
           alignItems: 'stretch',
         }}
       >
@@ -1259,7 +1267,7 @@ const ToolbarDirectionControls = (props: {
               style={{
                 gridColumn,
                 gridRow,
-                height: '1.9rem',
+                height: '1.7rem',
                 justifyContent: 'center',
                 textAlign: 'center',
                 padding: '0 0.35rem',
@@ -1330,12 +1338,17 @@ const SurfaceCard = (props: {
   );
 };
 
-const FieldEditor = (props: {
-  readonly field: UiField;
-  readonly act: ActFn;
-  readonly showHints?: boolean;
-}) => {
-  const { field, act, showHints } = props;
+type FieldControlOptions = {
+  readonly forceChoiceStrip?: boolean;
+  readonly choiceStripBasis?: string;
+};
+
+const renderFieldControl = (
+  field: UiField,
+  act: ActFn,
+  options?: FieldControlOptions,
+) => {
+  const { forceChoiceStrip, choiceStripBasis } = options || {};
   const isDisabled = !!field.disabled;
 
   const emitValue = (value: unknown) => {
@@ -1345,10 +1358,8 @@ const FieldEditor = (props: {
     });
   };
 
-  let control = <Box color="bad">Неподдерживаемый тип поля.</Box>;
-
   if (field.kind === 'boolean') {
-    control = (
+    return (
       <Button.Checkbox
         checked={!!field.value}
         disabled={isDisabled}
@@ -1360,7 +1371,7 @@ const FieldEditor = (props: {
   }
 
   if (field.kind === 'number') {
-    control = (
+    return (
       <NumberInput
         value={Number(field.value) || 0}
         minValue={field.min ?? -1000000}
@@ -1374,7 +1385,7 @@ const FieldEditor = (props: {
   }
 
   if (field.kind === 'text') {
-    control = (
+    return (
       <Input
         key={`${field.id}_${String(field.value ?? '')}`}
         value={`${field.value ?? ''}`}
@@ -1386,39 +1397,44 @@ const FieldEditor = (props: {
   }
 
   if (field.kind === 'select') {
-    const options = field.options || [];
-    const valueByKey = new Map<string, unknown>();
-    const dropdownOptions = options.map((option, index) => {
-      const key = `${index}`;
-      valueByKey.set(key, option.value);
-      return {
-        value: key,
-        displayText: translateOptionLabel(field.id, option.label, option.value),
-      };
-    });
+    const choiceOptions = getFieldChoiceOptions(field);
+    const selected = getSelectedFieldChoiceValue(field);
+    const handleSelected = (selectedOptionValue: string) => {
+      const selectedOption = choiceOptions.find(
+        (option) => option.value === `${selectedOptionValue}`,
+      );
+      emitValue(selectedOption?.rawValue);
+    };
 
-    let selectedKey = '';
-    for (let index = 0; index < options.length; index++) {
-      if (`${options[index].value}` === `${field.value}`) {
-        selectedKey = `${index}`;
-        break;
-      }
-    }
-
-    control = (
+    return forceChoiceStrip ? (
+      <ChoiceStrip
+        options={choiceOptions}
+        selected={selected}
+        basis={choiceStripBasis}
+        disabled={isDisabled || !choiceOptions.length}
+        onSelected={handleSelected}
+      />
+    ) : (
       <SmartSelect
-        options={dropdownOptions}
-        selected={selectedKey}
+        options={choiceOptions}
+        selected={selected}
         displayText={getFieldOptionLabel(field)}
-        disabled={isDisabled || !options.length}
+        disabled={isDisabled || !choiceOptions.length}
         placeholder="Выберите значение"
-        onSelected={(selectedOptionKey) => {
-          const mappedValue = valueByKey.get(`${selectedOptionKey}`);
-          emitValue(mappedValue);
-        }}
+        onSelected={handleSelected}
       />
     );
   }
+
+  return <Box color="bad">Неподдерживаемый тип поля.</Box>;
+};
+
+const FieldEditor = (props: {
+  readonly field: UiField;
+  readonly act: ActFn;
+  readonly showHints?: boolean;
+}) => {
+  const { field, act, showHints } = props;
 
   return (
     <LabeledList.Item
@@ -1428,7 +1444,7 @@ const FieldEditor = (props: {
           : getTranslatedFieldLabel(field)
       }
     >
-      {control}
+      {renderFieldControl(field, act)}
       {!!showHints && !!field.validate_hint && (
         <Box color="average" mt={0.35}>
           {field.validate_hint}
@@ -1445,84 +1461,10 @@ const FieldControl = (props: {
   readonly choiceStripBasis?: string;
 }) => {
   const { field, act, forceChoiceStrip, choiceStripBasis } = props;
-  const isDisabled = !!field.disabled;
-
-  const emitValue = (value: unknown) => {
-    act('set_param', {
-      param_id: field.id,
-      value,
-    });
-  };
-
-  if (field.kind === 'boolean') {
-    return (
-      <Button.Checkbox
-        checked={!!field.value}
-        disabled={isDisabled}
-        onClick={() => emitValue(!field.value)}
-      >
-        {field.value ? 'Р”Р°' : 'РќРµС‚'}
-      </Button.Checkbox>
-    );
-  }
-
-  if (field.kind === 'number') {
-    return (
-      <NumberInput
-        value={Number(field.value) || 0}
-        minValue={field.min ?? -1000000}
-        maxValue={field.max ?? 1000000}
-        step={field.step || 1}
-        width="100%"
-        disabled={isDisabled}
-        onChange={(value) => emitValue(value)}
-      />
-    );
-  }
-
-  if (field.kind === 'text') {
-    return (
-      <Input
-        key={`${field.id}_${String(field.value ?? '')}`}
-        value={`${field.value ?? ''}`}
-        disabled={isDisabled}
-        placeholder={field.placeholder || ''}
-        onChange={(_, value) => emitValue(value)}
-      />
-    );
-  }
-
-  if (field.kind === 'select') {
-    const options = getFieldChoiceOptions(field);
-    const selected = getSelectedFieldChoiceValue(field);
-    const handleSelected = (selectedOptionValue: string) => {
-      const selectedOption = options.find(
-        (option) => option.value === `${selectedOptionValue}`,
-      );
-      emitValue(selectedOption?.rawValue);
-    };
-
-    return forceChoiceStrip ? (
-      <ChoiceStrip
-        options={options}
-        selected={selected}
-        basis={choiceStripBasis}
-        disabled={isDisabled || !options.length}
-        onSelected={handleSelected}
-      />
-    ) : (
-      <SmartSelect
-        options={options}
-        selected={selected}
-        displayText={getFieldOptionLabel(field)}
-        disabled={isDisabled || !options.length}
-        placeholder="Р’С‹Р±РµСЂРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ"
-        onSelected={handleSelected}
-      />
-    );
-  }
-
-  return <Box color="bad">РќРµРїРѕРґРґРµСЂР¶РёРІР°РµРјС‹Р№ С‚РёРї РїРѕР»СЏ.</Box>;
+  return renderFieldControl(field, act, {
+    forceChoiceStrip,
+    choiceStripBasis,
+  });
 };
 
 const FieldControlStack = (props: {
@@ -1556,6 +1498,26 @@ const FieldControlStack = (props: {
   );
 };
 
+const FieldListContent = (props: {
+  readonly fields: UiField[];
+  readonly act: ActFn;
+  readonly showHints?: boolean;
+}) => {
+  const { fields, act, showHints } = props;
+  return (
+    <LabeledList>
+      {fields.map((field) => (
+        <FieldEditor
+          key={field.id}
+          field={field}
+          act={act}
+          showHints={showHints}
+        />
+      ))}
+    </LabeledList>
+  );
+};
+
 const FieldListCard = (props: {
   readonly title: string;
   readonly fields: UiField[];
@@ -1567,9 +1529,7 @@ const FieldListCard = (props: {
   readonly mt?: number;
 }) => {
   const { title, fields, act, tone, subtitle, showHints, actions, mt } = props;
-  const visibleFields = (fields || []).filter(
-    (field) => field.visible !== false,
-  );
+  const visibleFields = getVisibleFields(fields);
   if (!visibleFields.length) {
     return null;
   }
@@ -1582,16 +1542,7 @@ const FieldListCard = (props: {
       actions={actions}
       mt={mt ?? 0.6}
     >
-      <LabeledList>
-        {visibleFields.map((field) => (
-          <FieldEditor
-            key={field.id}
-            field={field}
-            act={act}
-            showHints={showHints}
-          />
-        ))}
-      </LabeledList>
+      <FieldListContent fields={visibleFields} act={act} showHints={showHints} />
     </SurfaceCard>
   );
 };
@@ -1605,9 +1556,7 @@ const FieldBlock = (props: {
   readonly showHints?: boolean;
 }) => {
   const { title, fields, act, tone, subtitle, showHints } = props;
-  const visibleFields = (fields || []).filter(
-    (field) => field.visible !== false,
-  );
+  const visibleFields = getVisibleFields(fields);
   if (!visibleFields.length) {
     return null;
   }
@@ -1619,7 +1568,8 @@ const FieldBlock = (props: {
       p={0.5}
       style={{
         borderTop: `2px solid ${borderColor}`,
-        background: 'rgba(70, 107, 150, 0.06)',
+        border: `1px solid ${borderColor}`,
+        background: 'rgba(70, 107, 150, 0.03)',
         borderRadius: '4px',
       }}
     >
@@ -1630,16 +1580,7 @@ const FieldBlock = (props: {
         </Box>
       )}
       <Box mt={0.35}>
-        <LabeledList>
-          {visibleFields.map((field) => (
-            <FieldEditor
-              key={field.id}
-              field={field}
-              act={act}
-              showHints={showHints}
-            />
-          ))}
-        </LabeledList>
+        <FieldListContent fields={visibleFields} act={act} showHints={showHints} />
       </Box>
     </Box>
   );
@@ -1982,17 +1923,12 @@ const getCurrentModeLeadText = (data: BackendData) => {
     : 'Измените параметры и примените результат.';
 };
 
-const getCurrentModeSummaryItems = (_data: BackendData): SummaryTile[] => [];
-
 const CurrentModePanel = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
-  const visibleExtraFields = getCurrentModeExtraFields(data).filter(
-    (field) => field.visible !== false,
-  );
-  const summaryItems = getCurrentModeSummaryItems(data);
+  const visibleExtraFields = getVisibleFields(getCurrentModeExtraFields(data));
   const previewLegendItems =
     data.current_generator_id === 'destruction_pack'
       ? getDestructionPreviewLegendItems(data)
@@ -2005,7 +1941,7 @@ const CurrentModePanel = (props: {
 
   if (
     !data.has_generator ||
-    (!summaryItems.length && !hasControls && !previewLegendItems.length)
+    (!hasControls && !previewLegendItems.length)
   ) {
     return null;
   }
@@ -2027,15 +1963,8 @@ const CurrentModePanel = (props: {
       }
       mt={0.55}
     >
-      {!!summaryItems.length && (
-        <CompactStatusRow
-          basis={summaryItems.length <= 3 ? '31%' : '24%'}
-          items={summaryItems}
-        />
-      )}
-
       {hasControls && (
-        <Box mt={summaryItems.length ? 0.55 : 0}>
+        <Box>
           <PlacementControlsBody
             data={data}
             act={act}
@@ -2068,7 +1997,6 @@ const BlueprintStampWorkspace = (props: {
 }) => {
   const { data, act } = props;
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBlueprintId, setSelectedBlueprintId] = useState('');
 
   const filteredBlueprints = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -2083,29 +2011,6 @@ const BlueprintStampWorkspace = (props: {
       return haystack.includes(query);
     });
   }, [data.blueprint_entries, searchQuery]);
-
-  useEffect(() => {
-    const preferredId =
-      data.active_blueprint_id &&
-      filteredBlueprints.some((entry) => entry.id === data.active_blueprint_id)
-        ? data.active_blueprint_id
-        : filteredBlueprints[0]?.id || '';
-
-    if (
-      selectedBlueprintId &&
-      filteredBlueprints.some((entry) => entry.id === selectedBlueprintId)
-    ) {
-      return;
-    }
-
-    setSelectedBlueprintId(preferredId);
-  }, [data.active_blueprint_id, filteredBlueprints, selectedBlueprintId]);
-
-  const selectedBlueprint =
-    filteredBlueprints.find((entry) => entry.id === selectedBlueprintId) ||
-    data.blueprint_entries?.find(
-      (entry) => entry.id === data.active_blueprint_id,
-    );
   const totalBlueprints = data.blueprint_entries?.length || 0;
 
   return (
@@ -2141,15 +2046,14 @@ const BlueprintStampWorkspace = (props: {
         <Box mt={0.7}>
           {filteredBlueprints.map((blueprint) => {
             const isActive = blueprint.id === data.active_blueprint_id;
-            const isSelected = blueprint.id === selectedBlueprint?.id;
+            const canLoad = blueprint.valid && !isActive;
             return (
               <Box
                 key={blueprint.id}
                 p={0.45}
                 mb={0.3}
                 onClick={() => {
-                  setSelectedBlueprintId(blueprint.id);
-                  if (blueprint.valid && blueprint.id !== data.active_blueprint_id) {
+                  if (canLoad) {
                     act('load_blueprint', {
                       blueprint_id: blueprint.id,
                     });
@@ -2158,21 +2062,15 @@ const BlueprintStampWorkspace = (props: {
                 style={{
                   border: isActive
                     ? '1px solid #4c9f39'
-                    : isSelected
-                      ? '1px solid #7696c5'
-                      : '1px solid rgba(70, 107, 150, 0.55)',
+                    : '1px solid rgba(70, 107, 150, 0.55)',
                   borderLeft: isActive
                     ? '3px solid #4c9f39'
-                    : isSelected
-                      ? '3px solid #7696c5'
-                      : '3px solid transparent',
+                    : '3px solid transparent',
                   background: isActive
                     ? 'rgba(76, 159, 57, 0.16)'
-                    : isSelected
-                      ? 'rgba(118, 150, 197, 0.14)'
-                      : 'rgba(70, 107, 150, 0.10)',
+                    : 'rgba(70, 107, 150, 0.10)',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: canLoad ? 'pointer' : 'default',
                 }}
               >
                 <Flex align="center" wrap>
@@ -2189,17 +2087,30 @@ const BlueprintStampWorkspace = (props: {
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
                   </Flex.Item>
+                  {isActive && (
+                    <Flex.Item style={{ flex: '0 0 auto' }}>
+                      <Box
+                        color="good"
+                        px={0.35}
+                        py={0.12}
+                        style={{
+                          border: '1px solid rgba(76, 159, 57, 0.45)',
+                          background: 'rgba(76, 159, 57, 0.14)',
+                          borderRadius: '999px',
+                          fontSize: '0.82rem',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Активен
+                      </Box>
+                    </Flex.Item>
+                  )}
                   {blueprint.valid && (
-                    <Flex.Item style={{ minWidth: '0' }}>
+                    <Flex.Item basis="100%" style={{ minWidth: '0' }}>
                       <Box
                         color="label"
-                        style={{
-                          fontSize: '0.92rem',
-                          whiteSpace: 'nowrap',
-                          maxWidth: '24rem',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
+                        mt={0.2}
+                        style={{ fontSize: '0.92rem' }}
                       >
                         {getBlueprintLibraryMetaText(blueprint)}
                       </Box>
@@ -2663,6 +2574,10 @@ const EditorToolbar = (props: {
     !data.has_generator || !data.placement_supported;
   const directionControlsDisabled =
     !data.has_generator || !data.placement_supports_direction;
+  const selectedShapeLabel =
+    data.placement_shape_supported && data.has_generator
+      ? getTranslatedShapeLabel(data.placement_shape)
+      : undefined;
 
   const renderAction = (action?: ToolbarAction, compact = false) => {
     if (!action) {
@@ -2685,14 +2600,14 @@ const EditorToolbar = (props: {
   return (
     <Box
       mb={0.8}
-      px={0.65}
-      py={0.45}
+      px={0.55}
+      py={0.4}
       style={{
         position: 'sticky',
         top: '0',
         zIndex: '5',
         background: 'rgba(17, 20, 24, 0.97)',
-        border: '1px solid rgba(70, 107, 150, 0.75)',
+        border: '1px solid rgba(70, 107, 150, 0.6)',
         borderRadius: '4px',
       }}
     >
@@ -2731,7 +2646,7 @@ const EditorToolbar = (props: {
       </Flex>
 
       <Box mt={0.45}>
-        <Flex align="center" wrap={false} mx={-0.15}>
+        <Flex align="center" wrap mx={-0.15}>
           {!!toolbar.previewAction && (
             <Flex.Item m={0.15}>{renderAction(toolbar.previewAction)}</Flex.Item>
           )}
@@ -2753,9 +2668,11 @@ const EditorToolbar = (props: {
               {renderAction(toolbar.undoAction, true)}
             </Flex.Item>
           )}
+          <Flex.Item grow />
           {data.has_generator && (
-            <Flex.Item m={0.15} ml={0.35}>
+            <Flex.Item m={0.15}>
               <Button.Checkbox
+                compact
                 checked={data.confirm_before_apply}
                 onClick={() =>
                   act('set_confirm_before_apply', {
@@ -2775,12 +2692,17 @@ const EditorToolbar = (props: {
           style={{
             display: 'grid',
             gridTemplateColumns: '13.75rem 10rem 13rem',
-            gap: '0.55rem',
+            gap: '0.45rem',
             justifyContent: 'start',
             alignItems: 'stretch',
           }}
         >
-          <ToolbarControlGroup title="Форма" width="13.75rem" minHeight="10.3rem">
+          <ToolbarControlGroup
+            title="Форма"
+            subtitle={selectedShapeLabel}
+            width="13.75rem"
+            minHeight="9.35rem"
+          >
             <ShapeOptionStrip
               options={data.placement_shape_options || []}
               selected={data.placement_shape}
@@ -2793,7 +2715,7 @@ const EditorToolbar = (props: {
             />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Режим клика" width="10rem" minHeight="10.3rem">
+          <ToolbarControlGroup title="Режим клика" width="10rem" minHeight="9.35rem">
             <ToolbarModeStrip
               options={data.placement_mode_options || []}
               selected={data.placement_mode}
@@ -2811,7 +2733,7 @@ const EditorToolbar = (props: {
             />
           </ToolbarControlGroup>
 
-          <ToolbarControlGroup title="Направление" width="13rem" minHeight="10.3rem">
+          <ToolbarControlGroup title="Направление" width="13rem" minHeight="9.35rem">
             <ToolbarDirectionControls
               options={data.placement_dir_options || []}
               selected={data.placement_dir}
@@ -2855,25 +2777,31 @@ const NavigationTabs = (props: {
   }
 
   return (
-    <Tabs mb={0.55}>
-      {toolTabs.map((generator) => (
-        <Tabs.Tab
-          key={generator.id}
-          selected={
-            workspaceTab === 'editor' && generator.id === activeGeneratorId
-          }
-          onClick={() => onSelectGenerator(generator.id)}
+    <Flex align="center" mb={0.55} mx={-0.15}>
+      <Flex.Item grow m={0.15}>
+        <Tabs mb={0}>
+          {toolTabs.map((generator) => (
+            <Tabs.Tab
+              key={generator.id}
+              selected={
+                workspaceTab === 'editor' && generator.id === activeGeneratorId
+              }
+              onClick={() => onSelectGenerator(generator.id)}
+            >
+              {TOOL_PICKER_LABELS[generator.id] || generator.name_ru}
+            </Tabs.Tab>
+          ))}
+        </Tabs>
+      </Flex.Item>
+      <Flex.Item m={0.15}>
+        <Button
+          selected={workspaceTab === 'history'}
+          onClick={() => onSelectWorkspaceTab('history')}
         >
-          {TOOL_PICKER_LABELS[generator.id] || generator.name_ru}
-        </Tabs.Tab>
-      ))}
-      <Tabs.Tab
-        selected={workspaceTab === 'history'}
-        onClick={() => onSelectWorkspaceTab('history')}
-      >
-        Журнал
-      </Tabs.Tab>
-    </Tabs>
+          Журнал
+        </Button>
+      </Flex.Item>
+    </Flex>
   );
 };
 
@@ -2972,17 +2900,6 @@ export const WorldEditPanel = () => {
   }, [data.ui_fields]);
 
   const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
-
-  useEffect(() => {
-    if (!data.has_generator) {
-      const firstGenerator = toolTabs[0];
-      if (firstGenerator?.id) {
-        act('select_generator', {
-          generator_id: firstGenerator.id,
-        });
-      }
-    }
-  }, [act, data.has_generator, toolTabs]);
 
   useEffect(() => {
     if (!data.has_generator && workspaceTab !== 'editor') {

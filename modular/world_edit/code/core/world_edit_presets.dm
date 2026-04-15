@@ -286,6 +286,7 @@ GLOBAL_DATUM_INIT(world_edit_presets, /datum/world_edit_preset_service, new)
 		validated_result["params"] = preserve_active_placement_runtime_params(validated_result["params"])
 
 	current_params = validated_result["params"]
+	save_current_generator_context()
 	refresh_runtime_after_config_change()
 	last_ui_error = ""
 	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' загружен."))
