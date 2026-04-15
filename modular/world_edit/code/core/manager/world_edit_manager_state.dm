@@ -153,6 +153,7 @@
 		"placement_mode" = placement_mode,
 		"placement_shape" = placement_shape,
 		"placement_dir" = placement_dir,
+		"placement_dir_uses_facing" = placement_dir_uses_facing,
 	)
 
 /datum/world_edit_manager/proc/save_current_generator_context()
@@ -183,6 +184,7 @@
 	var/snapshot_dir = text2num("[snapshot["placement_dir"]]")
 	if(snapshot_dir in GLOB.cardinals)
 		placement_dir = snapshot_dir
+	placement_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(snapshot["placement_dir_uses_facing"])
 
 	get_effective_placement_mode()
 	get_effective_placement_shape()
@@ -252,6 +254,10 @@
 	var/default_dir = current_generator?.get_default_placement_direction() || NORTH
 	if(!(placement_dir in GLOB.cardinals))
 		placement_dir = default_dir
+	if(placement_dir_uses_facing)
+		var/current_facing_dir = holder?.mob?.dir
+		if(current_facing_dir in GLOB.cardinals)
+			return current_facing_dir
 	return placement_dir
 
 /datum/world_edit_manager/proc/build_placement_mode_options()
@@ -420,6 +426,7 @@
 		placement_mode = "single"
 		placement_shape = current_generator?.get_default_placement_shape() || WORLD_EDIT_SHAPE_POINT
 		placement_dir = current_generator?.get_default_placement_direction() || NORTH
+		placement_dir_uses_facing = FALSE
 
 /datum/world_edit_manager/proc/sync_click_intercept_state()
 	if(holder?.click_intercept == src)

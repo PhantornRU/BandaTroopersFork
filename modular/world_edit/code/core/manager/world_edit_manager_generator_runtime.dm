@@ -48,6 +48,22 @@
 
 	return result
 
+/datum/world_edit_manager/proc/ensure_default_generator_selected()
+	if(current_definition && current_generator)
+		return TRUE
+
+	var/list/categories = build_available_generator_categories()
+	for(var/list/category as anything in categories)
+		var/list/generators = category["generators"]
+		if(!islist(generators) || !length(generators))
+			continue
+
+		for(var/list/generator_entry as anything in generators)
+			if(set_generator_by_id(generator_entry["id"]))
+				return TRUE
+
+	return FALSE
+
 /datum/world_edit_manager/proc/set_generator_by_id(generator_id, preserve_click_mode = FALSE)
 	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!definition)

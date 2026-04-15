@@ -21,10 +21,14 @@
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH
 	generator_type = /datum/world_edit_generator/outpost_radius
 	default_params = list(
-		"family" = "standard",
+		"family" = "metal_perimeter",
+		"layout_variant" = "crossroads",
+		"opening_width" = "profile",
 		"radius" = 4,
 		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "profile",
 		"place_sentries" = FALSE,
+		"guard_mode" = "layout",
 		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
 		"faction" = FACTION_MARINE,
 		"turned_on" = TRUE

@@ -159,6 +159,7 @@ type BackendData = {
   can_finish_placement_collection: boolean;
   placement_supports_direction: boolean;
   placement_dir: string;
+  placement_dir_uses_facing: boolean;
   placement_dir_options: PlacementOption[];
   placement_anchor?: string;
   can_start_placement_mode: boolean;
@@ -193,6 +194,11 @@ type SummaryTile = {
   label: string;
   value: ReactNode;
   color?: string;
+};
+
+type PreviewLegendItem = {
+  label: string;
+  color: string;
 };
 
 type SurfaceTone = 'default' | 'good' | 'average' | 'bad';
@@ -246,9 +252,13 @@ const TOOL_PICKER_LABELS: Record<string, string> = {
 
 const FIELD_LABELS: Record<string, string> = {
   family: 'Профиль форпоста',
+  layout_variant: 'Вариант',
+  opening_width: 'Ширина проходов',
   radius: 'Радиус',
   barricade_path: 'Материал баррикад',
+  barricade_pattern: 'Раскладка баррикад',
   place_sentries: 'Турели у проходов',
+  guard_mode: 'Схема турелей',
   sentry_path: 'Турель',
   faction: 'IFF',
   turned_on: 'Включить сразу',
@@ -313,9 +323,50 @@ const PLACEMENT_SHAPE_LABELS: Record<string, string> = {
 };
 
 const OUTPOST_FAMILY_LABELS: Record<string, string> = {
-  standard: 'Стандартный',
-  fortified: 'Укрепленный',
-  light: 'Легкий',
+  metal_perimeter: 'Металл, контур',
+  wired_metal_perimeter: 'Металл с проволокой',
+  plasteel_bastion: 'Пласталь, бастион',
+  plasteel_wired_bastion: 'Пласталь с проволокой',
+  sandbag_redoubt: 'Мешки с песком',
+  wooden_screen: 'Деревянное прикрытие',
+  mixed_standard: 'Смешанный стандарт',
+  mixed_siege: 'Смешанный осадный',
+};
+
+const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
+  crossroads: 'Крест',
+  wide_crossroads: 'Широкий крест',
+  lane_ns: 'Коридор север-юг',
+  lane_ew: 'Коридор восток-запад',
+  north_gate: 'Северные ворота',
+  south_gate: 'Южные ворота',
+  east_gate: 'Восточные ворота',
+  west_gate: 'Западные ворота',
+  corner_ne: 'Угол север-восток',
+  corner_se: 'Угол юго-восток',
+  corner_sw: 'Угол юго-запад',
+  corner_nw: 'Угол северо-запад',
+  sealed_redoubt: 'Закрытый редут',
+};
+
+const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
+  profile: 'По варианту',
+  narrow: '1 клетка',
+  wide: '3 клетки',
+  broad: '5 клеток',
+};
+
+const OUTPOST_BARRICADE_PATTERN_LABELS: Record<string, string> = {
+  profile: 'По профилю',
+  uniform: 'Единый материал',
+  cycle: 'Чередование',
+  paired: 'Парные секции',
+};
+
+const OUTPOST_GUARD_MODE_LABELS: Record<string, string> = {
+  layout: 'По варианту',
+  openings: 'Только проходы',
+  all_sides: 'Все стороны',
 };
 
 const DAMAGE_PROFILE_LABELS: Record<string, string> = {
@@ -476,6 +527,26 @@ const translateOptionLabel = (
     case 'family':
       return (
         OUTPOST_FAMILY_LABELS[value] || label || getDisplayText(optionValue)
+      );
+    case 'layout_variant':
+      return (
+        OUTPOST_LAYOUT_LABELS[value] || label || getDisplayText(optionValue)
+      );
+    case 'opening_width':
+      return (
+        OUTPOST_OPENING_WIDTH_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
+      );
+    case 'barricade_pattern':
+      return (
+        OUTPOST_BARRICADE_PATTERN_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
+      );
+    case 'guard_mode':
+      return (
+        OUTPOST_GUARD_MODE_LABELS[value] || label || getDisplayText(optionValue)
       );
     case 'damage_profile':
       return (
@@ -677,7 +748,11 @@ const getPlacementContextItems = (data: BackendData) => {
     items.push(`Клик: ${getTranslatedPlacementMode(data.placement_mode)}`);
   }
   if (data.placement_supports_direction) {
-    items.push(`Напр.: ${getTranslatedDirection(data.placement_dir)}`);
+    items.push(
+      data.placement_dir_uses_facing
+        ? `Напр.: по взгляду (${getTranslatedDirection(data.placement_dir)})`
+        : `Напр.: ${getTranslatedDirection(data.placement_dir)}`,
+    );
   }
   return items;
 };
@@ -699,6 +774,9 @@ const getToolbarContextLine = (data: BackendData) => {
   } else if (data.current_generator_id === 'outpost_radius') {
     items.push(
       `Профиль: ${getFieldOptionLabel(getField(data.ui_fields, 'family'))}`,
+    );
+    items.push(
+      `Вариант: ${getFieldOptionLabel(getField(data.ui_fields, 'layout_variant'))}`,
     );
     items.push(
       `Радиус: ${getDisplayText(getField(data.ui_fields, 'radius')?.value)}`,
@@ -748,6 +826,54 @@ const CompactStatusRow = (props: {
         </Flex.Item>
       ))}
     </Flex>
+  );
+};
+
+const PreviewLegend = (props: {
+  readonly title?: string;
+  readonly items: PreviewLegendItem[];
+  readonly mt?: number;
+}) => {
+  const { title = 'Цвета на карте', items, mt = 0.6 } = props;
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <Box mt={mt}>
+      <Box bold mb={0.3}>
+        {title}
+      </Box>
+      <Flex wrap mx={-0.2}>
+        {items.map((item) => (
+          <Flex.Item key={item.label} m={0.2}>
+            <Box
+              px={0.45}
+              py={0.25}
+              style={{
+                border: '1px solid rgba(70, 107, 150, 0.45)',
+                borderRadius: '4px',
+                background: 'rgba(70, 107, 150, 0.10)',
+              }}
+            >
+              <Box
+                as="span"
+                mr={0.35}
+                style={{
+                  display: 'inline-block',
+                  width: '0.8rem',
+                  height: '0.8rem',
+                  borderRadius: '3px',
+                  background: item.color,
+                  verticalAlign: 'middle',
+                }}
+              />
+              <Box as="span">{item.label}</Box>
+            </Box>
+          </Flex.Item>
+        ))}
+      </Flex>
+    </Box>
   );
 };
 
@@ -1167,17 +1293,22 @@ const getToolbarState = (data: BackendData): ToolbarState => {
 
   const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
     ? {
-        label: 'Начать размещение',
+        label: 'Разместить',
         action: 'start_placement_mode',
-        color: 'average',
+        color: 'good',
         disabled: !canStartPlacement,
       }
     : undefined;
 
-  if (startPlacementAction) {
-    startPlacementAction.label = 'Разместить на карте';
-    startPlacementAction.color = 'good';
-  }
+  const placePreviewAction: ToolbarAction | undefined =
+    hasPlacementControls && hasVisiblePreview
+      ? {
+          label: 'Разместить',
+          action: 'run_apply',
+          color: 'good',
+          disabled: !canApply,
+        }
+      : undefined;
 
   const stopPlacementAction: ToolbarAction = {
     label: 'Остановить размещение',
@@ -1212,7 +1343,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     applyAction: effectiveApplyAction,
     placementAction: data.click_mode_active
       ? stopPlacementAction
-      : startPlacementAction,
+      : placePreviewAction || startPlacementAction,
     collectorAction,
     undoAction,
   };
@@ -1344,51 +1475,44 @@ const PlacementControlsBody = (props: {
             </LabeledList.Item>
           )}
 
-          {!!data.placement_supported && (
-            <LabeledList.Item label="После клика">
-              <SmartSelect
-                options={(data.placement_mode_options || []).map((option) => ({
-                  value: option.value,
-                  displayText: getTranslatedPlacementMode(
-                    option.value || option.label,
-                  ),
-                }))}
-                selected={data.placement_mode}
-                displayText={getPlacementOptionLabel(
-                  data.placement_mode_options,
-                  data.placement_mode,
-                  'mode',
-                )}
-                onSelected={(value) =>
-                  act('set_placement_mode', {
-                    mode: value,
-                  })
-                }
-              />
-            </LabeledList.Item>
-          )}
-
           {!!data.placement_supports_direction && (
             <LabeledList.Item label="Направление">
-              <SmartSelect
-                options={(data.placement_dir_options || []).map((option) => ({
-                  value: option.value,
-                  displayText: getTranslatedDirection(
-                    option.value || option.label,
-                  ),
-                }))}
-                selected={data.placement_dir}
-                displayText={getPlacementOptionLabel(
-                  data.placement_dir_options,
-                  data.placement_dir,
-                  'direction',
-                )}
-                onSelected={(value) =>
-                  act('set_placement_dir', {
-                    direction: value,
-                  })
-                }
-              />
+              <>
+                <Button.Checkbox
+                  checked={data.placement_dir_uses_facing}
+                  onClick={() =>
+                    act('set_placement_dir_uses_facing', {
+                      enabled: !data.placement_dir_uses_facing,
+                    })
+                  }
+                >
+                  По направлению взгляда
+                </Button.Checkbox>
+                <Box mt={0.35}>
+                  <SmartSelect
+                    options={(data.placement_dir_options || []).map(
+                      (option) => ({
+                        value: option.value,
+                        displayText: getTranslatedDirection(
+                          option.value || option.label,
+                        ),
+                      }),
+                    )}
+                    selected={data.placement_dir}
+                    disabled={data.placement_dir_uses_facing}
+                    displayText={getPlacementOptionLabel(
+                      data.placement_dir_options,
+                      data.placement_dir,
+                      'direction',
+                    )}
+                    onSelected={(value) =>
+                      act('set_placement_dir', {
+                        direction: value,
+                      })
+                    }
+                  />
+                </Box>
+              </>
             </LabeledList.Item>
           )}
 
@@ -1738,25 +1862,63 @@ const OutpostRadiusWorkspace = (props: {
 }) => {
   const { data, act } = props;
   const familyField = getField(data.ui_fields, 'family');
+  const layoutField = getField(data.ui_fields, 'layout_variant');
+  const openingWidthField = getField(data.ui_fields, 'opening_width');
   const radiusField = getField(data.ui_fields, 'radius');
+  const barricadePatternField = getField(data.ui_fields, 'barricade_pattern');
   const sentryToggleField = getField(data.ui_fields, 'place_sentries');
+  const guardModeField = getField(data.ui_fields, 'guard_mode');
   const sentryFields = getFieldsByGroup(data.ui_fields, 'Sentries');
+  const barricadeFields = getFieldsByGroup(data.ui_fields, 'Barricades');
   const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout');
 
   const previewMeta = data.preview_meta || {};
   const familySummary = getFieldOptionLabel(familyField);
+  const layoutSummary = data.preview_valid
+    ? translateOptionLabel(
+        'layout_variant',
+        `${previewMeta.layout_label || ''}`,
+        previewMeta.layout_variant || layoutField?.value,
+      )
+    : getFieldOptionLabel(layoutField);
+  const openingWidthSummary = getFieldOptionLabel(openingWidthField);
+  const barricadePatternSummary =
+    barricadePatternField?.visible === false
+      ? 'Единый материал'
+      : getFieldOptionLabel(barricadePatternField);
+  const guardSummary = sentryToggleField?.value
+    ? getFieldOptionLabel(guardModeField)
+    : OFF_LABEL;
   const summaryTiles: SummaryTile[] = [
     {
       label: 'Профиль',
       value: familySummary,
     },
     {
+      label: 'Вариант',
+      value: layoutSummary,
+    },
+    {
+      label: 'Проход',
+      value: openingWidthSummary,
+    },
+    {
       label: 'Радиус',
       value: getDisplayText(radiusField?.value, EMPTY_LABEL),
     },
     {
+      label: 'Форма',
+      value: getTranslatedShapeLabel(
+        previewMeta.placement_shape || data.placement_shape,
+      ),
+    },
+    {
+      label: 'Периметр',
+      value: barricadePatternSummary,
+    },
+    {
       label: 'Турели',
-      value: sentryToggleField?.value ? 'Включены' : OFF_LABEL,
+      value: guardSummary,
       color: sentryToggleField?.value ? 'good' : 'label',
     },
   ];
@@ -1778,11 +1940,12 @@ const OutpostRadiusWorkspace = (props: {
     <WorkspaceGrid>
       <WorkspacePane basis="50%" minWidth="22rem">
         <FieldListCard
-          title="Профиль и радиус"
+          title="Профиль и вариант"
           fields={layoutFields}
           act={act}
           mt={0}
         />
+        <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
         <FieldListCard title="Оборона" fields={sentryFields} act={act} />
       </WorkspacePane>
 
@@ -1801,7 +1964,7 @@ const OutpostRadiusWorkspace = (props: {
             ) : undefined
           }
         >
-          <CompactStatusRow basis="48%" items={summaryTiles} />
+          <CompactStatusRow basis="31%" items={summaryTiles} />
           {hasPlacementControlsForTool(data) && (
             <Box mt={0.7}>
               <Box bold mb={0.35}>
@@ -1842,6 +2005,32 @@ const DestructionPackWorkspace = (props: {
     ?.value;
   const destructiveEnabled = blastEnabled || damageProfile !== 'none';
   const dangerEnabled = destructiveEnabled || fireEnabled;
+  const previewMeta = data.preview_meta || {};
+  const moveEnabled = data.preview_valid
+    ? Number(previewMeta.moved_count || 0) > 0
+    : !!getField(data.ui_fields, 'shuffle_enabled')?.value ||
+      !!getField(data.ui_fields, 'scatter_enabled')?.value;
+  const previewFireEnabled = data.preview_valid
+    ? Number(previewMeta.fire_count || 0) > 0
+    : fireEnabled;
+  const previewBlastEnabled = data.preview_valid
+    ? Number(previewMeta.blast_count || 0) > 0
+    : blastEnabled;
+  const previewDamageEnabled = data.preview_valid
+    ? Number(previewMeta.damage_count || 0) > 0
+    : damageProfile !== 'none';
+  const previewLegendItems: PreviewLegendItem[] = [
+    ...(moveEnabled ? [{ label: 'Синий: перемещение', color: '#4e8eff' }] : []),
+    ...(previewFireEnabled
+      ? [{ label: 'Оранжевый: огонь', color: '#ff9438' }]
+      : []),
+    ...(previewDamageEnabled
+      ? [{ label: 'Фиолетовый: урон', color: '#b85cff' }]
+      : []),
+    ...(previewBlastEnabled
+      ? [{ label: 'Красный: центр взрыва', color: '#ff4e4e' }]
+      : []),
+  ];
 
   return (
     <>
@@ -1858,6 +2047,7 @@ const DestructionPackWorkspace = (props: {
             />
           </WorkspacePane>
         </WorkspaceGrid>
+        <PreviewLegend items={previewLegendItems} />
       </SurfaceCard>
 
       <Collapsible
@@ -2276,6 +2466,12 @@ const EditorToolbar = (props: {
 }) => {
   const { data, act } = props;
   const toolbar = getToolbarState(data);
+  const toolbarPlacementModes = (data.placement_mode_options || []).map(
+    (option) => ({
+      value: `${option.value}`,
+      label: getTranslatedPlacementMode(option.value || option.label),
+    }),
+  );
 
   const renderAction = (action?: ToolbarAction, compact = false) => {
     if (!action) {
@@ -2378,6 +2574,38 @@ const EditorToolbar = (props: {
           </Flex>
         </Flex.Item>
       </Flex>
+
+      {data.placement_supported && toolbarPlacementModes.length > 1 && (
+        <Box
+          mt={0.45}
+          pt={0.45}
+          style={{ borderTop: '1px solid rgba(70, 107, 150, 0.35)' }}
+        >
+          <Flex align="center" wrap mx={-0.15}>
+            <Flex.Item m={0.15}>
+              <Box color="label">После клика</Box>
+            </Flex.Item>
+            {toolbarPlacementModes.map((option) => (
+              <Flex.Item key={option.value} m={0.15}>
+                <Button
+                  compact
+                  selected={option.value === data.placement_mode}
+                  color={
+                    option.value === data.placement_mode ? 'good' : undefined
+                  }
+                  onClick={() =>
+                    act('set_placement_mode', {
+                      mode: option.value,
+                    })
+                  }
+                >
+                  {option.label}
+                </Button>
+              </Flex.Item>
+            ))}
+          </Flex>
+        </Box>
+      )}
     </Box>
   );
 };

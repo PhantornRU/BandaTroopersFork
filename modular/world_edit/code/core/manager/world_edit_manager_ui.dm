@@ -3,6 +3,7 @@
 		return
 	if(!check_rights_for(holder, R_DEBUG))
 		return
+	ensure_default_generator_selected()
 
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
@@ -30,6 +31,7 @@
 
 	ensure_preset_cache_loaded()
 	ensure_blueprint_cache_loaded()
+	ensure_default_generator_selected()
 
 	var/list/data = list()
 	var/has_generator = (current_definition && current_generator) ? TRUE : FALSE
@@ -82,6 +84,7 @@
 	data["can_finish_placement_collection"] = (click_mode_active && is_current_placement_collector() && get_placement_collector_point_count() >= get_placement_collector_min_points()) ? TRUE : FALSE
 	data["placement_supports_direction"] = supports_current_placement_direction() ? TRUE : FALSE
 	data["placement_dir"] = GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())
+	data["placement_dir_uses_facing"] = placement_dir_uses_facing ? TRUE : FALSE
 	data["placement_dir_options"] = build_placement_dir_options()
 	data["placement_anchor"] = get_placement_anchor_desc()
 	data["can_start_placement_mode"] = (supports_current_placement_ux() && !click_mode_active) ? TRUE : FALSE
@@ -206,6 +209,14 @@
 			if(!supports_current_placement_direction())
 				return TRUE
 			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
+			last_ui_error = ""
+			refresh_runtime_after_config_change()
+			return TRUE
+
+		if("set_placement_dir_uses_facing")
+			if(!supports_current_placement_direction())
+				return TRUE
+			placement_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(params["enabled"])
 			last_ui_error = ""
 			refresh_runtime_after_config_change()
 			return TRUE

@@ -375,13 +375,14 @@
 	var/damage_severity = get_damage_profile_severity(damage_profile)
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
+	var/has_non_move_mode = persistent_fire_enabled || has_high_risk_mode
 	var/list/area_turfs = collect_area_turfs(center_turf, radius)
 	if(!length(area_turfs))
 		plan.metadata["error"] = "No valid area turfs were found around the current turf."
 		return plan
 
 	var/list/targets = collect_targets(area_turfs, affect_anchored)
-	if(has_move_mode && length(targets) > max_atoms)
+	if(has_move_mode && length(targets) > max_atoms && !has_non_move_mode)
 		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 		return plan
 
@@ -426,11 +427,20 @@
 	plan.metadata["seed"] = rand(1, 1000000)
 	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75)) || has_high_risk_mode
 	plan.metadata["undo_policy"] = has_high_risk_mode ? WORLD_EDIT_UNDO_NONE : ((has_move_mode || persistent_fire_enabled) ? WORLD_EDIT_UNDO_PARTIAL : WORLD_EDIT_UNDO_NONE)
+	plan.metadata["move_requested"] = has_move_mode
+	plan.metadata["move_skipped"] = FALSE
 
 	if(has_move_mode)
-		if(!length(targets))
+		if(length(targets) > max_atoms)
+			plan.metadata["move_skipped"] = TRUE
+			plan.metadata["move_skip_reason"] = "target_cap"
+			targets = list()
+		if(!length(targets) && !has_non_move_mode)
 			plan.metadata["error"] = "No movable targets matched the selected area."
 			return plan
+		if(!length(targets) && has_non_move_mode)
+			plan.metadata["move_skipped"] = TRUE
+			plan.metadata["move_skip_reason"] = "no_targets"
 
 		var/list/area_lookup = build_area_lookup(area_turfs)
 		for(var/atom/movable/target as anything in targets)
@@ -496,7 +506,8 @@
 	if(isnull(damage_profile))
 		return "Invalid damage profile selected."
 	var/has_move_mode = shuffle_enabled || scatter_enabled
-	if(!has_move_mode && !persistent_fire_enabled && !blast_enabled && damage_profile == "none")
+	var/has_non_move_mode = persistent_fire_enabled || blast_enabled || damage_profile != "none"
+	if(!has_move_mode && !has_non_move_mode)
 		return "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
 	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
@@ -517,7 +528,7 @@
 		return "No valid area turfs were found around the current turf."
 
 	var/list/targets = collect_targets(area_turfs, FALSE)
-	if(has_move_mode && length(targets) > max_atoms)
+	if(has_move_mode && length(targets) > max_atoms && !has_non_move_mode)
 		return "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 
 	return null
@@ -537,7 +548,6 @@
 	result.success = TRUE
 	result.preview_images = build_plan_preview_images(plan)
 	result.meta = plan.metadata.Copy()
-	result.meta["preview_legend"] = "Blue = movement, orange = persistent fire, purple = structural damage, red = blast center."
 	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]], fire_tiles=[plan.metadata["fire_count"]], blasts=[plan.metadata["blast_count"]], damage=[plan.metadata["damage_profile_label"] || "None"], undo=[plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE]."
 	return result
 
@@ -550,11 +560,6 @@
 	if(!length(plan.placements) && !length(plan.deletions))
 		result.message = plan.metadata["error"] || "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
 		return result
-	if(plan.metadata["heavy_operation"])
-		var/heavy_answer = tgui_alert(user, "This is a heavy destruction pack apply. Confirm the second-stage execution.", "World Edit: Heavy Confirm", list("Execute", "Cancel"))
-		if(heavy_answer != "Execute")
-			result.message = "Destruction pack was cancelled during the heavy confirmation."
-			return result
 
 	var/moved_count = 0
 	var/fire_count = 0
