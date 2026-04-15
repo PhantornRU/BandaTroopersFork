@@ -207,6 +207,10 @@ type ChoiceOption = {
   displayText: string;
 };
 
+type ShapeGlyphSpec = {
+  glyph: string;
+};
+
 type WorkspaceTabKey = 'editor' | 'history';
 
 type ToolbarAction = {
@@ -349,6 +353,24 @@ const PLACEMENT_SHAPE_LABELS: Record<string, string> = {
   custom_mask: 'Своя маска',
   brush_path: 'Кисть по пути',
   scatter_cluster: 'Кластер разброса',
+};
+
+const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
+  point: { glyph: '•' },
+  line: { glyph: '─' },
+  rectangle: { glyph: '□' },
+  filled_rectangle: { glyph: '■' },
+  circle: { glyph: '○' },
+  ring: { glyph: '◎' },
+  ellipse: { glyph: '⬭' },
+  diamond: { glyph: '◇' },
+  triangle: { glyph: '△' },
+  sector: { glyph: '◔' },
+  polygon: { glyph: '⬡' },
+  polyline: { glyph: '〰' },
+  custom_mask: { glyph: '▦' },
+  brush_path: { glyph: '✎' },
+  scatter_cluster: { glyph: '✳' },
 };
 
 const OUTPOST_FAMILY_LABELS: Record<string, string> = {
@@ -711,7 +733,9 @@ const getBlueprintToolbarState = (data: BackendData) => {
 
 const getPlacementStateLine = (data: BackendData) => {
   if (!data.click_mode_active) {
-    return 'Размещение выключено.';
+    return data.current_generator_id === 'destruction_pack'
+      ? 'Выбор центра зоны выключен.'
+      : 'Размещение выключено.';
   }
 
   if (data.placement_interaction_kind === 'collector') {
@@ -732,10 +756,18 @@ const getPlacementStateLine = (data: BackendData) => {
     return 'Ждет опорную точку.';
   }
 
-  return 'Размещение активно.';
+  return data.current_generator_id === 'destruction_pack'
+    ? 'Выбор центра зоны активен.'
+    : 'Размещение активно.';
 };
 
 const getPlacementNextClickText = (data: BackendData) => {
+  if (data.current_generator_id === 'destruction_pack') {
+    return data.click_mode_active
+      ? 'Клик: выбрать центр зоны.'
+      : 'Клик: центр зоны.';
+  }
+
   if (!data.click_mode_active) {
     switch (data.placement_interaction_kind) {
       case 'collector':
@@ -995,6 +1027,60 @@ const SmartSelect = (props: {
       disabled={disabled || !options.length}
       onSelected={onSelected}
     />
+  );
+};
+
+const ShapeOptionStrip = (props: {
+  readonly options: PlacementOption[];
+  readonly selected: string;
+  readonly disabled?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const { options, selected, disabled, onSelected } = props;
+
+  if (!options.length) {
+    return <Box color="label">Нет вариантов.</Box>;
+  }
+
+  return (
+    <Flex wrap mx={-0.15}>
+      {options.map((option) => {
+        const value = `${option.value}`;
+        const label = getTranslatedShapeLabel(option.value || option.label);
+        const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || '•';
+        const isSelected = value === selected;
+
+        return (
+          <Flex.Item key={value} m={0.15}>
+            <Button
+              compact
+              selected={isSelected}
+              color={isSelected ? 'good' : undefined}
+              disabled={disabled}
+              tooltip={label}
+              onClick={() => onSelected(value)}
+              style={{
+                minWidth: '2.4rem',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                as="span"
+                style={{
+                  fontSize: '1.15rem',
+                  lineHeight: '1',
+                  display: 'inline-block',
+                  minWidth: '1rem',
+                  textAlign: 'center',
+                }}
+              >
+                {glyph}
+              </Box>
+            </Button>
+          </Flex.Item>
+        );
+      })}
+    </Flex>
   );
 };
 
@@ -1473,29 +1559,24 @@ const PlacementControlsBody = (props: {
         <LabeledList>
           {showShapeSelector && (
             <LabeledList.Item label="Форма">
-              <SmartSelect
-                options={(data.placement_shape_options || []).map((option) => ({
-                  value: option.value,
-                  displayText: getTranslatedShapeLabel(
-                    option.value || option.label,
-                  ),
-                }))}
-                selected={data.placement_shape}
-                displayText={getPlacementOptionLabel(
-                  data.placement_shape_options,
-                  data.placement_shape,
-                  'shape',
-                )}
-                forceDropdown={
-                  (data.placement_shape_options || []).length >=
-                  SMALL_CHOICE_DROPDOWN_THRESHOLD
-                }
-                onSelected={(value) =>
-                  act('set_placement_shape', {
-                    shape: value,
-                  })
-                }
-              />
+              <>
+                <ShapeOptionStrip
+                  options={data.placement_shape_options || []}
+                  selected={data.placement_shape}
+                  onSelected={(value) =>
+                    act('set_placement_shape', {
+                      shape: value,
+                    })
+                  }
+                />
+                <Box color="label" mt={0.35}>
+                  {getPlacementOptionLabel(
+                    data.placement_shape_options,
+                    data.placement_shape,
+                    'shape',
+                  )}
+                </Box>
+              </>
             </LabeledList.Item>
           )}
 
@@ -1611,39 +1692,6 @@ const PlacementControlsBody = (props: {
   );
 };
 
-const PlacementControlsCard = (props: {
-  readonly data: BackendData;
-  readonly act: ActFn;
-  readonly title?: string;
-  readonly extraFields?: UiField[];
-}) => {
-  const { data, act, title, extraFields } = props;
-
-  if (
-    !hasPlacementControlsForTool(data) &&
-    !(extraFields || []).some((field) => field.visible !== false)
-  ) {
-    return null;
-  }
-
-  return (
-    <SurfaceCard
-      title={title || 'Текущий режим'}
-      subtitle={getPlacementStateLine(data)}
-      tone={
-        data.click_mode_active && data.can_finish_placement_collection
-          ? 'good'
-          : data.click_mode_active
-            ? 'average'
-            : 'default'
-      }
-      mt={0.6}
-    >
-      <PlacementControlsBody data={data} act={act} extraFields={extraFields} />
-    </SurfaceCard>
-  );
-};
-
 const getCurrentModeExtraFields = (data: BackendData) => {
   if (data.current_generator_id === 'blueprint_stamp') {
     return getFieldsById(data.ui_fields, ['stamp_spacing']);
@@ -1726,13 +1774,6 @@ const getCurrentModeLeadText = (data: BackendData) => {
 
 const getCurrentModeSummaryItems = (data: BackendData): SummaryTile[] => {
   const items: SummaryTile[] = [];
-  const visibleShapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const showShapeSummary =
-    !!data.placement_shape_supported &&
-    ((data.placement_shape_options || []).length > 1 ||
-      !!visibleShapeFields.length);
 
   if (data.current_generator_id === 'destruction_pack') {
     const activeModes = getDestructionModeLabels(data);
@@ -1761,29 +1802,6 @@ const getCurrentModeSummaryItems = (data: BackendData): SummaryTile[] => {
     );
   }
 
-  if (showShapeSummary) {
-    items.push({
-      label: 'Форма',
-      value: getTranslatedShapeLabel(data.placement_shape),
-    });
-  }
-
-  if (data.placement_supported) {
-    items.push({
-      label: 'После клика',
-      value: getTranslatedPlacementMode(data.placement_mode),
-    });
-  }
-
-  if (data.placement_supports_direction) {
-    items.push({
-      label: 'Направление',
-      value: data.placement_dir_uses_facing
-        ? `По взгляду (${getTranslatedDirection(data.placement_dir)})`
-        : getTranslatedDirection(data.placement_dir),
-    });
-  }
-
   return items;
 };
 
@@ -1795,43 +1813,23 @@ const CurrentModePanel = (props: {
   const visibleExtraFields = getCurrentModeExtraFields(data).filter(
     (field) => field.visible !== false,
   );
-  const visibleShapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const collectorTarget = Math.max(
-    data.placement_collector_max_points || 0,
-    data.placement_collector_min_points || 0,
-    1,
-  );
   const summaryItems = getCurrentModeSummaryItems(data);
   const previewLegendItems =
     data.current_generator_id === 'destruction_pack'
       ? getDestructionPreviewLegendItems(data)
       : [];
-  const placementModes = (data.placement_mode_options || []).map((option) => ({
-    value: `${option.value}`,
-    label: getTranslatedPlacementMode(option.value || option.label),
-  }));
-  const showShapeSelector =
-    !!data.placement_shape_supported &&
-    ((data.placement_shape_options || []).length > 1 ||
-      !!visibleShapeFields.length);
   const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
     ?.value;
   const blastEnabled = !!getField(data.ui_fields, 'blast_enabled')?.value;
   const damageProfile = `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}`;
   const hasControls =
-    showShapeSelector ||
-    (data.placement_supported && placementModes.length > 1) ||
+    hasPlacementControlsForTool(data) ||
     !!data.placement_supports_direction ||
     !!visibleExtraFields.length;
 
   if (
     !data.has_generator ||
-    (!summaryItems.length &&
-      !hasControls &&
-      !visibleShapeFields.length &&
-      !previewLegendItems.length)
+    (!summaryItems.length && !hasControls && !previewLegendItems.length)
   ) {
     return null;
   }
@@ -1862,144 +1860,13 @@ const CurrentModePanel = (props: {
 
       {hasControls && (
         <Box mt={summaryItems.length ? 0.55 : 0}>
-          <LabeledList>
-            {showShapeSelector && (
-              <LabeledList.Item label="Форма">
-                <SmartSelect
-                  options={(data.placement_shape_options || []).map(
-                    (option) => ({
-                      value: option.value,
-                      displayText: getTranslatedShapeLabel(
-                        option.value || option.label,
-                      ),
-                    }),
-                  )}
-                  selected={data.placement_shape}
-                  displayText={getPlacementOptionLabel(
-                    data.placement_shape_options,
-                    data.placement_shape,
-                    'shape',
-                  )}
-                  forceDropdown={
-                    (data.placement_shape_options || []).length >=
-                    SMALL_CHOICE_DROPDOWN_THRESHOLD
-                  }
-                  onSelected={(value) =>
-                    act('set_placement_shape', {
-                      shape: value,
-                    })
-                  }
-                />
-              </LabeledList.Item>
-            )}
-
-            {data.placement_supported && placementModes.length > 1 && (
-              <LabeledList.Item label="После клика">
-                <ChoiceStrip
-                  options={placementModes.map((option) => ({
-                    value: option.value,
-                    displayText: option.label,
-                  }))}
-                  selected={data.placement_mode}
-                  onSelected={(value) =>
-                    act('set_placement_mode', {
-                      mode: value,
-                    })
-                  }
-                />
-              </LabeledList.Item>
-            )}
-
-            {!!data.placement_supports_direction && (
-              <LabeledList.Item label="Направление">
-                <>
-                  <Button.Checkbox
-                    checked={data.placement_dir_uses_facing}
-                    onClick={() =>
-                      act('set_placement_dir_uses_facing', {
-                        enabled: !data.placement_dir_uses_facing,
-                      })
-                    }
-                  >
-                    По направлению взгляда
-                  </Button.Checkbox>
-                  <Box mt={0.35}>
-                    <SmartSelect
-                      options={(data.placement_dir_options || []).map(
-                        (option) => ({
-                          value: option.value,
-                          displayText: getTranslatedDirection(
-                            option.value || option.label,
-                          ),
-                        }),
-                      )}
-                      selected={data.placement_dir}
-                      disabled={data.placement_dir_uses_facing}
-                      displayText={getPlacementOptionLabel(
-                        data.placement_dir_options,
-                        data.placement_dir,
-                        'direction',
-                      )}
-                      onSelected={(value) =>
-                        act('set_placement_dir', {
-                          direction: value,
-                        })
-                      }
-                    />
-                  </Box>
-                </>
-              </LabeledList.Item>
-            )}
-
-            {visibleExtraFields.map((field) => (
-              <FieldEditor key={field.id} field={field} act={act} />
-            ))}
-          </LabeledList>
+          <PlacementControlsBody
+            data={data}
+            act={act}
+            extraFields={visibleExtraFields}
+          />
         </Box>
       )}
-
-      {!!visibleShapeFields.length && (
-        <Collapsible title="Параметры формы" mt={0.6} open={false}>
-          <LabeledList>
-            {visibleShapeFields.map((field) => (
-              <FieldEditor key={field.id} field={field} act={act} />
-            ))}
-          </LabeledList>
-        </Collapsible>
-      )}
-
-      {data.placement_interaction_kind === 'collector' &&
-        (data.click_mode_active ||
-          data.placement_collector_point_count > 0) && (
-          <Box mt={0.6}>
-            <Box
-              bold
-              color={data.can_finish_placement_collection ? 'good' : 'average'}
-              mb={0.25}
-            >
-              Сбор формы
-            </Box>
-            <ProgressBar
-              value={data.placement_collector_point_count || 0}
-              maxValue={collectorTarget}
-              ranges={{
-                average: [
-                  0,
-                  Math.max(data.placement_collector_min_points || 1, 1),
-                ],
-                good: [
-                  Math.max(data.placement_collector_min_points || 1, 1),
-                  collectorTarget,
-                ],
-              }}
-            >
-              {`${data.placement_collector_point_count || 0}/${collectorTarget}`}
-            </ProgressBar>
-            <Box color="label" mt={0.35}>
-              Минимум: {Math.max(data.placement_collector_min_points || 1, 1)}
-            </Box>
-          </Box>
-        )}
 
       {!!previewLegendItems.length && (
         <PreviewLegend title="Карта предпросмотра" items={previewLegendItems} />

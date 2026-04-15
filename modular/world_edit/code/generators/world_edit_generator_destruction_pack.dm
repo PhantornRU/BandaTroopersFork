@@ -1,6 +1,12 @@
 /datum/world_edit_generator/destruction_pack
 	requires_preview_before_apply = TRUE
 
+/datum/world_edit_generator/destruction_pack/get_supported_placement_modes()
+	return list("single", "repeat")
+
+/datum/world_edit_generator/destruction_pack/get_supported_placement_shapes()
+	return list(WORLD_EDIT_SHAPE_POINT)
+
 /datum/world_edit_generator/destruction_pack/proc/collect_area_turfs(turf/center_turf, radius)
 	var/list/area_turfs = list()
 	if(!center_turf)
@@ -366,9 +372,9 @@
 
 	return GLOB.world_edit_helpers.build_grouped_turf_preview_images(groups)
 
-/datum/world_edit_generator/destruction_pack/build_plan(list/params)
+/datum/world_edit_generator/destruction_pack/build_plan(list/params, turf/center_turf_override = null, list/placement_context = null)
 	var/datum/world_edit_plan/plan = new
-	var/turf/center_turf = get_turf(manager?.holder?.mob)
+	var/turf/center_turf = center_turf_override || get_turf(manager?.holder?.mob)
 	if(!center_turf)
 		return plan
 
@@ -423,10 +429,24 @@
 		plan.metadata["error"] = "No valid fire tiles matched the selected area."
 		return plan
 
+	var/placement_mode = "single"
+	var/placement_shape = WORLD_EDIT_SHAPE_POINT
+	var/anchor_count = 1
+	if(islist(placement_context))
+		if(length("[placement_context["mode"]]"))
+			placement_mode = "[placement_context["mode"]]"
+		if(length("[placement_context["shape"]]"))
+			placement_shape = "[placement_context["shape"]]"
+		anchor_count = max(length(placement_context["anchor_turfs"]) || 0, 1)
+
 	plan.affected_turfs = area_turfs.Copy()
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["radius"] = radius
 	plan.metadata["area_tiles"] = length(area_turfs)
+	plan.metadata["placement_mode"] = placement_mode
+	plan.metadata["placement_shape"] = placement_shape
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(plan.metadata["placement_shape"])
+	plan.metadata["anchor_count"] = anchor_count
 	plan.metadata["target_count"] = length(targets)
 	plan.metadata["shuffle"] = shuffle_enabled
 	plan.metadata["scatter"] = scatter_enabled
@@ -495,6 +515,12 @@
 	if(!length(plan.placements) && !length(plan.deletions))
 		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
 	return plan
+
+/datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/turf/center_turf = placement_context["end_turf"] || placement_context["start_turf"] || get_turf(user)
+	if(!istype(center_turf))
+		center_turf = get_turf(manager?.holder?.mob)
+	return build_plan(params, center_turf, placement_context)
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)
