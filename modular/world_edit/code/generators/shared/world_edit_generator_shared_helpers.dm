@@ -126,7 +126,7 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 			return null
 	return current_turf
 
-/datum/world_edit_helpers/proc/build_turf_preview_images(list/turfs, icon_state = "greenOverlay")
+/datum/world_edit_helpers/proc/build_turf_preview_images(list/turfs, icon_state = "greenOverlay", color = null, alpha = null)
 	var/list/images = list()
 	if(!length(turfs))
 		return images
@@ -134,16 +134,37 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 	for(var/turf/target_turf as anything in turfs)
 		var/image/overlay = image('icons/turf/overlays.dmi', target_turf, icon_state)
 		overlay.plane = ABOVE_LIGHTING_PLANE
+		if(!isnull(color))
+			overlay.color = color
+		if(isnum(alpha))
+			overlay.alpha = clamp(round(alpha), 0, 255)
 		images += overlay
 
 	return images
 
-/datum/world_edit_helpers/proc/apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay")
+/datum/world_edit_helpers/proc/build_grouped_turf_preview_images(list/groups)
+	var/list/images = list()
+	if(!islist(groups) || !length(groups))
+		return images
+
+	for(var/list/group as anything in groups)
+		if(!islist(group))
+			continue
+
+		var/list/turfs = group["turfs"]
+		var/icon_state = length("[group["icon_state"]]") ? "[group["icon_state"]]" : "greenOverlay"
+		var/color = group["color"]
+		var/alpha = group["alpha"]
+		images += build_turf_preview_images(turfs, icon_state, color, alpha)
+
+	return images
+
+/datum/world_edit_helpers/proc/apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay", color = null, alpha = null)
 	if(!manager || !manager.holder)
 		return
 
 	manager.clear_preview_images()
-	var/list/images = build_turf_preview_images(turfs, icon_state)
+	var/list/images = build_turf_preview_images(turfs, icon_state, color, alpha)
 
 	if(length(images))
 		manager.holder.images += images

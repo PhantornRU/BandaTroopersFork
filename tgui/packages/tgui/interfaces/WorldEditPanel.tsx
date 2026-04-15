@@ -1132,6 +1132,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     data.placement_supported ||
     data.placement_shape_supported ||
     data.placement_supports_direction;
+  const hasVisiblePreview = !!data.preview_valid;
   const canPreview =
     data.can_run_preview && !data.click_mode_active && !isToolBlocked;
   const canApply =
@@ -1149,12 +1150,20 @@ const getToolbarState = (data: BackendData): ToolbarState => {
         }
       : undefined;
 
+  if (previewAction) {
+    previewAction.action = hasVisiblePreview ? 'clear_preview' : 'run_preview';
+    previewAction.color = hasVisiblePreview ? 'good' : 'average';
+    previewAction.disabled = hasVisiblePreview ? false : !canPreview;
+  }
+
   const applyAction: ToolbarAction = {
     label: 'Применить',
     action: 'run_apply',
     color: 'good',
     disabled: !canApply,
   };
+
+  const effectiveApplyAction = hasPlacementControls ? undefined : applyAction;
 
   const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
     ? {
@@ -1164,6 +1173,11 @@ const getToolbarState = (data: BackendData): ToolbarState => {
         disabled: !canStartPlacement,
       }
     : undefined;
+
+  if (startPlacementAction) {
+    startPlacementAction.label = 'Разместить на карте';
+    startPlacementAction.color = 'good';
+  }
 
   const stopPlacementAction: ToolbarAction = {
     label: 'Остановить размещение',
@@ -1195,7 +1209,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     stateColor: 'label',
     context: getToolbarContextLine(data),
     previewAction,
-    applyAction,
+    applyAction: effectiveApplyAction,
     placementAction: data.click_mode_active
       ? stopPlacementAction
       : startPlacementAction,
@@ -2273,6 +2287,7 @@ const EditorToolbar = (props: {
         compact={compact}
         color={action.color}
         disabled={action.disabled}
+        selected={action.action === 'clear_preview'}
         onClick={() => act(action.action, action.payload)}
       >
         {action.label}
@@ -2333,7 +2348,7 @@ const EditorToolbar = (props: {
             )}
             {!!toolbar.placementAction && (
               <Flex.Item m={0.15} ml={0.35}>
-                {renderAction(toolbar.placementAction, true)}
+                {renderAction(toolbar.placementAction, data.click_mode_active)}
               </Flex.Item>
             )}
             {!!toolbar.collectorAction && (

@@ -18,44 +18,119 @@
 		/datum/human_ai_defense/defense/sentry/wy,
 	)
 	var/static/list/outpost_family_profiles = list(
-		"standard" = list(
-			"label" = "Standard",
-			"description" = "Balanced perimeter with cardinal passages and a mixed barricade ring.",
+		"metal_perimeter" = list(
+			"label" = "Metal Perimeter",
+			"description" = "Single-material metal perimeter with minimal barricade mixing.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/metal,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/metal,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		),
+		"wired_metal_perimeter" = list(
+			"label" = "Wired Metal",
+			"description" = "Uniform wired-metal perimeter for stricter chokepoints.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/metal/wired,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/metal/wired,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/shotgun,
+		),
+		"plasteel_bastion" = list(
+			"label" = "Plasteel Bastion",
+			"description" = "Heavy plasteel perimeter for high-value fortified holds.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/plasteel,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
+		),
+		"plasteel_wired_bastion" = list(
+			"label" = "Wired Plasteel",
+			"description" = "Reinforced plasteel perimeter with wired barricade emphasis.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel/wired,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/plasteel/wired,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
+		),
+		"sandbag_redoubt" = list(
+			"label" = "Sandbag Redoubt",
+			"description" = "Temporary sandbag hold with broad cover and cheaper perimeter pieces.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/sandbag,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/sandbag,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/shotgun,
+		),
+		"wooden_screen" = list(
+			"label" = "Wooden Screen",
+			"description" = "Fast wooden perimeter for expedient forward cover.",
+			"default_barricade_path" = /datum/human_ai_defense/barricade/wooden,
+			"barricade_mix" = list(
+				/datum/human_ai_defense/barricade/wooden,
+			),
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/mini,
+		),
+		"mixed_standard" = list(
+			"label" = "Mixed Standard",
+			"description" = "Balanced mixed perimeter with metal and sandbag rotation.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/metal,
 			"barricade_mix" = list(
 				/datum/human_ai_defense/barricade/metal,
 				/datum/human_ai_defense/barricade/metal/wired,
 				/datum/human_ai_defense/barricade/sandbag,
-				/datum/human_ai_defense/barricade/plasteel,
 			),
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 		),
-		"fortified" = list(
-			"label" = "Fortified",
-			"description" = "Plasteel-forward ring with reinforced openings and heavier sentry defaults.",
+		"mixed_siege" = list(
+			"label" = "Mixed Siege",
+			"description" = "Heavier mixed perimeter that rotates plasteel and wired cover.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel,
 			"barricade_mix" = list(
 				/datum/human_ai_defense/barricade/plasteel,
 				/datum/human_ai_defense/barricade/plasteel/wired,
-				/datum/human_ai_defense/barricade/metal/wired,
-				/datum/human_ai_defense/barricade/sandbag,
-			),
-			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		),
-		"light" = list(
-			"label" = "Light",
-			"description" = "Cheaper temporary outpost with wooden and sandbag elements.",
-			"default_barricade_path" = /datum/human_ai_defense/barricade/wooden,
-			"barricade_mix" = list(
-				/datum/human_ai_defense/barricade/wooden,
-				/datum/human_ai_defense/barricade/sandbag,
 				/datum/human_ai_defense/barricade/metal,
 				/datum/human_ai_defense/barricade/metal/wired,
 			),
-			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/shotgun,
+			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
+		),
+	)
+	var/static/list/outpost_layout_profiles = list(
+		"crossroads" = list(
+			"label" = "Crossroads",
+			"description" = "One passage on every cardinal side.",
 			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
+			"opening_half_width" = 0,
+		),
+		"wide_crossroads" = list(
+			"label" = "Wide Crossroads",
+			"description" = "Wider passages on every cardinal side for larger traffic.",
+			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
+			"opening_half_width" = 1,
+		),
+		"lane_ns" = list(
+			"label" = "North-South Lane",
+			"description" = "Two broad passages aligned north-south.",
+			"opening_dirs" = list(NORTH, SOUTH),
+			"guard_dirs" = list(NORTH, SOUTH),
+			"opening_half_width" = 1,
+		),
+		"lane_ew" = list(
+			"label" = "East-West Lane",
+			"description" = "Two broad passages aligned east-west.",
+			"opening_dirs" = list(EAST, WEST),
+			"guard_dirs" = list(EAST, WEST),
+			"opening_half_width" = 1,
+		),
+		"sealed_redoubt" = list(
+			"label" = "Sealed Redoubt",
+			"description" = "No direct passages; inner sentries guard the perimeter from inside.",
+			"opening_dirs" = list(),
+			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
+			"opening_half_width" = 0,
 		),
 	)
 
@@ -67,8 +142,12 @@
 		WORLD_EDIT_SHAPE_POINT,
 		WORLD_EDIT_SHAPE_LINE,
 		WORLD_EDIT_SHAPE_RECTANGLE,
+		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
 		WORLD_EDIT_SHAPE_CIRCLE,
 		WORLD_EDIT_SHAPE_RING,
+		WORLD_EDIT_SHAPE_ELLIPSE,
+		WORLD_EDIT_SHAPE_DIAMOND,
+		WORLD_EDIT_SHAPE_TRIANGLE,
 	)
 
 /datum/world_edit_generator/outpost_radius/proc/build_type_options(list/type_list)
@@ -82,7 +161,10 @@
 	return options
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_family_id()
-	return "standard"
+	return "metal_perimeter"
+
+/datum/world_edit_generator/outpost_radius/proc/get_default_outpost_layout_id()
+	return "crossroads"
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_family_id(value)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
@@ -98,6 +180,20 @@
 		return null
 	return outpost_family_profiles[family_id]
 
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_layout_id(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_outpost_layout_id()
+
+	var/layout_id = "[value]"
+	if(layout_id in outpost_layout_profiles)
+		return layout_id
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_layout_profile(layout_id)
+	if(!(layout_id in outpost_layout_profiles))
+		return null
+	return outpost_layout_profiles[layout_id]
+
 /datum/world_edit_generator/outpost_radius/proc/build_family_options()
 	var/list/options = list()
 	for(var/family_id in outpost_family_profiles)
@@ -108,6 +204,41 @@
 			"description" = profile["description"] || "",
 		))
 	return options
+
+/datum/world_edit_generator/outpost_radius/proc/build_layout_options()
+	var/list/options = list()
+	for(var/layout_id in outpost_layout_profiles)
+		var/list/profile = outpost_layout_profiles[layout_id]
+		options += list(list(
+			"label" = profile["label"] || layout_id,
+			"value" = layout_id,
+			"description" = profile["description"] || "",
+		))
+	return options
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_dirs(list/layout_profile)
+	var/list/opening_dirs = islist(layout_profile) ? layout_profile["opening_dirs"] : null
+	if(!islist(opening_dirs))
+		return list()
+	return opening_dirs.Copy()
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_guard_dirs(list/layout_profile)
+	var/list/guard_dirs = islist(layout_profile) ? layout_profile["guard_dirs"] : null
+	if(!islist(guard_dirs) || !length(guard_dirs))
+		return get_layout_opening_dirs(layout_profile)
+	return guard_dirs.Copy()
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_half_width(list/layout_profile)
+	var/opening_half_width = text2num("[islist(layout_profile) ? layout_profile["opening_half_width"] : 0]")
+	if(!isnum(opening_half_width))
+		return 0
+	return clamp(round(opening_half_width), 0, 2)
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_expected_opening_count(list/layout_profile)
+	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	if(!length(opening_dirs))
+		return 0
+	return length(opening_dirs) * ((get_layout_opening_half_width(layout_profile) * 2) + 1)
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_whitelisted_type(value, list/type_list, expected_root, default_value = null)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
