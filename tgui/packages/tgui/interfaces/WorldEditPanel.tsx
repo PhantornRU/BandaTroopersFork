@@ -10,7 +10,6 @@ import {
   Input,
   LabeledList,
   NumberInput,
-  ProgressBar,
   Section,
   Tabs,
 } from '../components';
@@ -372,8 +371,45 @@ const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
   scatter_cluster: { glyph: '✳' },
 };
 
-const PLACEMENT_MODE_ORDER = ['single', 'repeat'];
 const PLACEMENT_SHAPE_ORDER = Object.keys(PLACEMENT_SHAPE_LABELS);
+const CHROME_CONTROL_GROUP_HEIGHT = '4.9rem';
+
+const DEFAULT_PLACEMENT_MODE_OPTIONS: ChoiceOption[] = [
+  {
+    value: 'single',
+    displayText: PLACEMENT_MODE_LABELS.single,
+  },
+  {
+    value: 'repeat',
+    displayText: PLACEMENT_MODE_LABELS.repeat,
+  },
+];
+
+const DEFAULT_DIRECTION_OPTIONS: ChoiceOption[] = [
+  {
+    value: 'north',
+    displayText: DIRECTION_LABELS.north,
+  },
+  {
+    value: 'east',
+    displayText: DIRECTION_LABELS.east,
+  },
+  {
+    value: 'south',
+    displayText: DIRECTION_LABELS.south,
+  },
+  {
+    value: 'west',
+    displayText: DIRECTION_LABELS.west,
+  },
+];
+
+const DEFAULT_POINT_SHAPE_OPTION: PlacementOption[] = [
+  {
+    value: 'point',
+    label: 'point',
+  },
+];
 
 const OUTPOST_FAMILY_LABELS: Record<string, string> = {
   metal_perimeter: 'Металл, контур',
@@ -755,45 +791,6 @@ const getPlacementStateLine = (data: BackendData) => {
     : 'Размещение активно.';
 };
 
-const getPlacementNextClickText = (data: BackendData) => {
-  if (data.current_generator_id === 'destruction_pack') {
-    return data.click_mode_active
-      ? 'Клик: выбрать центр зоны.'
-      : 'Клик: центр зоны.';
-  }
-
-  if (!data.click_mode_active) {
-    switch (data.placement_interaction_kind) {
-      case 'collector':
-        return 'Клик: начать форму.';
-      case 'anchor_pair':
-        return 'Клик: первая точка.';
-      case 'param_only':
-        return 'Клик: опорная клетка.';
-      default:
-        return '';
-    }
-  }
-
-  if (data.placement_interaction_kind === 'collector') {
-    return data.can_finish_placement_collection
-      ? 'Сбор готов. Можно добавить точку.'
-      : 'Клик: добавить точку.';
-  }
-
-  if (data.placement_interaction_kind === 'anchor_pair') {
-    return data.placement_anchor
-      ? 'Клик: вторая точка.'
-      : 'Клик: первая точка.';
-  }
-
-  if (data.placement_interaction_kind === 'param_only') {
-    return 'Клик: опорная клетка.';
-  }
-
-  return '';
-};
-
 const getToolbarContextLine = (data: BackendData) => {
   if (!data.has_generator) {
     return '';
@@ -1012,19 +1009,31 @@ type FieldChoiceOption = {
 const getFieldChoiceOptions = (field?: UiField): FieldChoiceOption[] =>
   (field?.options || []).map((option) => ({
     value: `${option.value}`,
-    displayText: translateOptionLabel(field?.id || '', option.label, option.value),
+    displayText: translateOptionLabel(
+      field?.id || '',
+      option.label,
+      option.value,
+    ),
     rawValue: option.value,
   }));
 
-const getSelectedFieldChoiceValue = (field?: UiField) => `${field?.value ?? ''}`;
+const getSelectedFieldChoiceValue = (field?: UiField) =>
+  `${field?.value ?? ''}`;
 
 const ShapeOptionStrip = (props: {
   readonly options: PlacementOption[];
   readonly selected: string;
   readonly disabled?: boolean;
   readonly onSelected: (value: string) => void;
+  readonly buttonMinWidth?: string;
 }) => {
-  const { options, selected, disabled, onSelected } = props;
+  const {
+    options,
+    selected,
+    disabled,
+    onSelected,
+    buttonMinWidth = '2rem',
+  } = props;
   const availableValues = getPlacementOptionValueSet(options);
   const orderedValues = getOrderedShapeValues(options);
 
@@ -1053,7 +1062,7 @@ const ShapeOptionStrip = (props: {
             onClick={() => onSelected(value)}
             style={{
               width: '100%',
-              minWidth: '0',
+              minWidth: buttonMinWidth,
               height: '2rem',
               justifyContent: 'center',
             }}
@@ -1077,208 +1086,118 @@ const ShapeOptionStrip = (props: {
   );
 };
 
-const ToolbarControlGroup = (props: {
-  readonly title: string;
-  readonly subtitle?: ReactNode;
-  readonly width: string;
-  readonly minHeight?: string;
-  readonly children: ReactNode;
-}) => {
-  const { title, subtitle, width, minHeight, children } = props;
-
-  return (
-    <Box
-      p={0.4}
-      style={{
-        width,
-        minHeight: minHeight || '9.2rem',
-        border: '1px solid rgba(70, 107, 150, 0.32)',
-        background: 'rgba(70, 107, 150, 0.05)',
-        borderRadius: '4px',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <Box bold>{title}</Box>
-      {!!subtitle && (
-        <Box color="label" mt={0.1} mb={0.25}>
-          {subtitle}
-        </Box>
-      )}
-      {!subtitle && <Box mb={0.25} />}
-      <Box style={{ flex: '1 1 auto' }}>{children}</Box>
-    </Box>
-  );
-};
-
-const ToolbarModeStrip = (props: {
-  readonly options: PlacementOption[];
-  readonly selected: string;
+const CompactFieldControl = (props: {
+  readonly field?: UiField;
+  readonly act: ActFn;
   readonly disabled?: boolean;
-  readonly onSelected: (value: string) => void;
 }) => {
-  const { options, selected, disabled, onSelected } = props;
-  const availableValues = getPlacementOptionValueSet(options);
+  const { field, act, disabled } = props;
+  if (!field || field.visible === false) {
+    return null;
+  }
+
+  const effectiveField = disabled ? { ...field, disabled: true } : field;
 
   return (
-    <Box
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '0.3rem',
-      }}
-    >
-      {PLACEMENT_MODE_ORDER.map((value) => {
-        const isAvailable = availableValues.has(value);
-        const isSelected = isAvailable && value === selected;
-        return (
-          <Button
-            key={value}
-            compact
-            fluid
-            selected={isSelected}
-            disabled={disabled || !isAvailable}
-            onClick={() => onSelected(value)}
-            style={{
-              height: '1.85rem',
-              justifyContent: 'center',
-            }}
-          >
-            {getTranslatedPlacementMode(value)}
-          </Button>
-        );
+    <Box style={{ minWidth: '10.5rem' }}>
+      <Box color="label" mb={0.2}>
+        {getTranslatedFieldLabel(field)}
+      </Box>
+      {renderFieldControl(effectiveField, act, {
+        forceChoiceStrip:
+          effectiveField.kind === 'select' &&
+          (effectiveField.options || []).length > 0 &&
+          (effectiveField.options || []).length <= 4,
+        choiceStripBasis: '46%',
       })}
     </Box>
   );
 };
 
-const ToolbarRadiusControl = (props: {
-  readonly field?: UiField;
-  readonly readOnlyValue?: ReactNode;
-  readonly act: ActFn;
-}) => {
-  const { field, readOnlyValue, act } = props;
-
-  return (
-    <Box mt={0.35}>
-      <Box color="label" mb={0.2}>
-        Радиус
-      </Box>
-      {!!field && field.kind === 'number' ? (
-        <NumberInput
-          value={Number(field.value) || 0}
-          minValue={field.min ?? -1000000}
-          maxValue={field.max ?? 1000000}
-          step={field.step || 1}
-          width="100%"
-          disabled={!!field.disabled}
-          onChange={(value) =>
-            act('set_param', {
-              param_id: field.id,
-              value,
-            })
-          }
-        />
-      ) : (
-        <Box
-          px={0.45}
-          py={0.32}
-          color={readOnlyValue ? 'white' : 'label'}
-          style={{
-            minHeight: '1.85rem',
-            border: '1px solid rgba(70, 107, 150, 0.45)',
-            background: 'rgba(70, 107, 150, 0.08)',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {readOnlyValue || '—'}
-        </Box>
-      )}
-    </Box>
-  );
-};
-
-const ToolbarDirectionControls = (props: {
-  readonly options: PlacementOption[];
+const CompactChoiceStrip = (props: {
+  readonly options: ChoiceOption[];
   readonly selected: string;
   readonly disabled?: boolean;
-  readonly usesFacing: boolean;
-  readonly onToggleUsesFacing: () => void;
   readonly onSelected: (value: string) => void;
+  readonly buttonMinWidth?: string;
 }) => {
   const {
     options,
     selected,
     disabled,
-    usesFacing,
-    onToggleUsesFacing,
     onSelected,
+    buttonMinWidth = '6rem',
   } = props;
-  const availableValues = getPlacementOptionValueSet(options);
-  const directionLayout = [
-    { value: 'north', gridColumn: '2', gridRow: '1' },
-    { value: 'west', gridColumn: '1', gridRow: '2' },
-    { value: 'east', gridColumn: '3', gridRow: '2' },
-    { value: 'south', gridColumn: '2', gridRow: '3' },
-  ];
+
+  if (!options.length) {
+    return <Box color="label">Нет вариантов.</Box>;
+  }
 
   return (
-    <>
-      <Button.Checkbox
-        checked={usesFacing}
-        disabled={disabled}
-        fluid
-        onClick={onToggleUsesFacing}
-        style={{
-          width: '100%',
-          whiteSpace: 'normal',
-          lineHeight: '1.15',
-          textAlign: 'left',
-          minHeight: '2.4rem',
-          padding: '0.2rem 0.45rem',
-        }}
-      >
-        По направлению взгляда
-      </Button.Checkbox>
-      <Box
-        mt={0.35}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          gridTemplateRows: 'repeat(3, 1.7rem)',
-          gap: '0.25rem',
-          alignItems: 'stretch',
-        }}
-      >
-        {directionLayout.map(({ value, gridColumn, gridRow }) => {
-          const isAvailable = availableValues.has(value);
-          const isSelected = isAvailable && value === selected;
-          return (
+    <Flex mx={-0.12}>
+      {options.map((option) => {
+        const isSelected = `${option.value}` === `${selected}`;
+        return (
+          <Flex.Item key={option.value} m={0.12}>
             <Button
-              key={value}
               compact
-              fluid
               selected={isSelected}
-              disabled={disabled || usesFacing || !isAvailable}
-              onClick={() => onSelected(value)}
+              color={isSelected ? 'good' : undefined}
+              disabled={disabled}
+              onClick={() => onSelected(option.value)}
               style={{
-                gridColumn,
-                gridRow,
-                height: '1.7rem',
+                minWidth: buttonMinWidth,
                 justifyContent: 'center',
-                textAlign: 'center',
-                padding: '0 0.35rem',
               }}
             >
-              {getTranslatedDirection(value)}
+              {option.displayText}
             </Button>
-          );
-        })}
+          </Flex.Item>
+        );
+      })}
+    </Flex>
+  );
+};
+
+const TopShellControlGroup = (props: {
+  readonly label: string;
+  readonly value?: ReactNode;
+  readonly basis: string;
+  readonly disabled?: boolean;
+  readonly children: ReactNode;
+}) => {
+  const { label, value, basis, disabled, children } = props;
+
+  return (
+    <Flex.Item basis={basis} grow={false} shrink={0} m={0.16}>
+      <Box
+        px={0.45}
+        py={0.4}
+        style={{
+          minHeight: CHROME_CONTROL_GROUP_HEIGHT,
+          border: '1px solid rgba(70, 107, 150, 0.55)',
+          background: disabled
+            ? 'rgba(70, 107, 150, 0.06)'
+            : 'rgba(70, 107, 150, 0.10)',
+          borderRadius: '4px',
+          opacity: disabled ? '0.82' : '1',
+        }}
+      >
+        <Flex align="center" mb={0.35}>
+          <Flex.Item grow>
+            <Box color="label">{label}</Box>
+          </Flex.Item>
+          {!!value && (
+            <Flex.Item>
+              <Box color={disabled ? 'label' : 'white'} bold>
+                {value}
+              </Box>
+            </Flex.Item>
+          )}
+        </Flex>
+        {children}
       </Box>
-    </>
+    </Flex.Item>
   );
 };
 
@@ -1542,7 +1461,11 @@ const FieldListCard = (props: {
       actions={actions}
       mt={mt ?? 0.6}
     >
-      <FieldListContent fields={visibleFields} act={act} showHints={showHints} />
+      <FieldListContent
+        fields={visibleFields}
+        act={act}
+        showHints={showHints}
+      />
     </SurfaceCard>
   );
 };
@@ -1580,7 +1503,11 @@ const FieldBlock = (props: {
         </Box>
       )}
       <Box mt={0.35}>
-        <FieldListContent fields={visibleFields} act={act} showHints={showHints} />
+        <FieldListContent
+          fields={visibleFields}
+          act={act}
+          showHints={showHints}
+        />
       </Box>
     </Box>
   );
@@ -1759,120 +1686,19 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   };
 };
 
-const hasPlacementControlsForTool = (data: BackendData) =>
-  data.placement_supported ||
-  data.placement_shape_supported ||
-  data.placement_supports_direction;
-
-const hasPlacementSecondaryContent = (
-  data: BackendData,
-  extraFields?: UiField[],
-) => {
-  const visibleExtraFields = (extraFields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const visibleShapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const hasCollectorProgress =
-    data.placement_interaction_kind === 'collector' &&
-    (data.click_mode_active || data.placement_collector_point_count > 0);
-
-  return (
-    !!visibleExtraFields.length ||
-    !!visibleShapeFields.length ||
-    hasCollectorProgress
-  );
-};
-
-const PlacementControlsBody = (props: {
-  readonly data: BackendData;
-  readonly act: ActFn;
-  readonly extraFields?: UiField[];
-}) => {
-  const { data, act, extraFields } = props;
-  const visibleExtraFields = (extraFields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const visibleShapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
-  const hasCollectorProgress =
-    data.placement_interaction_kind === 'collector' &&
-    (data.click_mode_active || data.placement_collector_point_count > 0);
-
-  if (!hasPlacementSecondaryContent(data, extraFields)) {
-    return null;
-  }
-
-  const collectorTarget = Math.max(
-    data.placement_collector_max_points || 0,
-    data.placement_collector_min_points || 0,
-    1,
-  );
-
-  return (
-    <>
-      {!!visibleExtraFields.length && (
-        <Box>
-          <LabeledList>
-            {visibleExtraFields.map((field) => (
-              <FieldEditor key={field.id} field={field} act={act} />
-            ))}
-          </LabeledList>
-        </Box>
-      )}
-
-      {!!visibleShapeFields.length && (
-        <Collapsible title="Параметры формы" mt={0.6} open={false}>
-          <LabeledList>
-            {visibleShapeFields.map((field) => (
-              <FieldEditor key={field.id} field={field} act={act} />
-            ))}
-          </LabeledList>
-        </Collapsible>
-      )}
-
-      {hasCollectorProgress && (
-        <Box mt={0.6}>
-          <Box
-            bold
-            color={data.can_finish_placement_collection ? 'good' : 'average'}
-            mb={0.25}
-          >
-            Сбор формы
-          </Box>
-          <ProgressBar
-            value={data.placement_collector_point_count || 0}
-            maxValue={collectorTarget}
-            ranges={{
-              average: [
-                0,
-                Math.max(data.placement_collector_min_points || 1, 1),
-              ],
-              good: [
-                Math.max(data.placement_collector_min_points || 1, 1),
-                collectorTarget,
-              ],
-            }}
-          >
-            {`${data.placement_collector_point_count || 0}/${collectorTarget}`}
-          </ProgressBar>
-          <Box color="label" mt={0.35}>
-            Минимум: {Math.max(data.placement_collector_min_points || 1, 1)}
-          </Box>
-        </Box>
-      )}
-    </>
-  );
-};
-
-const getCurrentModeExtraFields = (data: BackendData) => {
+const getSharedChromeFields = (data: BackendData) => {
   if (data.current_generator_id === 'blueprint_stamp') {
-    return getFieldsById(data.ui_fields, ['stamp_spacing']);
+    return [
+      ...getFieldsById(data.ui_fields, ['stamp_spacing']),
+      ...(data.placement_shape_fields || []).filter(
+        (field) => field.visible !== false,
+      ),
+    ];
   }
 
-  return [] as UiField[];
+  return (data.placement_shape_fields || []).filter(
+    (field) => field.visible !== false,
+  );
 };
 
 const getDestructionPreviewLegendItems = (
@@ -1905,78 +1731,181 @@ const getDestructionPreviewLegendItems = (
   ];
 };
 
-const getCurrentModeLeadText = (data: BackendData) => {
-  if (!data.has_generator) {
-    return '';
-  }
-
-  if (hasPlacementControlsForTool(data)) {
-    return getPlacementNextClickText(data);
-  }
-
-  if (data.current_generator_id === 'destruction_pack') {
-    return 'Предпросмотр и применение используют выбранный тайл как центр зоны.';
-  }
-
-  return data.current_generator_supports_preview
-    ? 'Подготовьте параметры и соберите предпросмотр.'
-    : 'Измените параметры и примените результат.';
+const getPlacementModeChoices = (data: BackendData): ChoiceOption[] => {
+  const options = (data.placement_mode_options || []).map((option) => ({
+    value: option.value,
+    displayText: getTranslatedPlacementMode(option.value || option.label),
+  }));
+  return options.length ? options : DEFAULT_PLACEMENT_MODE_OPTIONS;
 };
 
-const CurrentModePanel = (props: {
-  readonly data: BackendData;
-  readonly act: ActFn;
-}) => {
-  const { data, act } = props;
-  const visibleExtraFields = getVisibleFields(getCurrentModeExtraFields(data));
-  const previewLegendItems =
-    data.current_generator_id === 'destruction_pack'
-      ? getDestructionPreviewLegendItems(data)
-      : [];
-  const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
-    ?.value;
-  const blastEnabled = !!getField(data.ui_fields, 'blast_enabled')?.value;
-  const damageProfile = `${getField(data.ui_fields, 'damage_profile')?.value || 'none'}`;
-  const hasControls = hasPlacementSecondaryContent(data, visibleExtraFields);
-
-  if (
-    !data.has_generator ||
-    (!hasControls && !previewLegendItems.length)
-  ) {
-    return null;
+const getPlacementShapeOptionsForShell = (data: BackendData) => {
+  if (data.placement_shape_options?.length) {
+    return data.placement_shape_options;
   }
 
-  return (
-    <SurfaceCard
-      title="Текущий режим"
-      subtitle={getCurrentModeLeadText(data)}
-      tone={
-        data.click_mode_active && data.can_finish_placement_collection
-          ? 'good'
-          : data.click_mode_active
-            ? 'average'
-            : blastEnabled || damageProfile !== 'none'
-              ? 'bad'
-              : fireEnabled
-                ? 'average'
-                : 'default'
-      }
-      mt={0.55}
-    >
-      {hasControls && (
-        <Box>
-          <PlacementControlsBody
-            data={data}
-            act={act}
-            extraFields={visibleExtraFields}
-          />
-        </Box>
-      )}
+  if (data.placement_shape) {
+    return [
+      {
+        value: data.placement_shape,
+        label: data.placement_shape,
+      },
+    ];
+  }
 
-      {!!previewLegendItems.length && (
-        <PreviewLegend title="Карта предпросмотра" items={previewLegendItems} />
-      )}
-    </SurfaceCard>
+  return DEFAULT_POINT_SHAPE_OPTION;
+};
+
+const getPlacementDirectionChoices = (data: BackendData): ChoiceOption[] => {
+  const options = (data.placement_dir_options || []).map((option) => ({
+    value: option.value,
+    displayText: getTranslatedDirection(option.value || option.label),
+  }));
+  return options.length ? options : DEFAULT_DIRECTION_OPTIONS;
+};
+
+const SharedModePanel = (props: {
+  readonly data: BackendData;
+  readonly act: ActFn;
+  readonly workspaceTab: WorkspaceTabKey;
+}) => {
+  const { data, act, workspaceTab } = props;
+  const isHistoryTab = workspaceTab === 'history';
+  const hasGenerator = !!data.has_generator;
+  const shapeOptions = getPlacementShapeOptionsForShell(data);
+  const modeOptions = getPlacementModeChoices(data);
+  const directionOptions = getPlacementDirectionChoices(data);
+  const sharedFields = getSharedChromeFields(data).filter(
+    (field) => field.visible !== false,
+  );
+  const selectedShape =
+    data.current_generator_id === 'destruction_pack'
+      ? 'point'
+      : `${data.placement_shape || shapeOptions[0]?.value || 'point'}`;
+  const selectedMode = `${data.placement_mode || modeOptions[0]?.value || 'single'}`;
+  const selectedDirection = `${data.placement_dir || directionOptions[0]?.value || 'north'}`;
+  const shapeDisabled =
+    isHistoryTab ||
+    !hasGenerator ||
+    !data.placement_shape_supported ||
+    data.current_generator_id === 'destruction_pack';
+  const modeDisabled =
+    isHistoryTab || !hasGenerator || !data.placement_supported;
+  const directionDisabled =
+    isHistoryTab || !hasGenerator || !data.placement_supports_direction;
+  const parametersDisabled =
+    isHistoryTab || !hasGenerator || !sharedFields.length;
+
+  return (
+    <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+      <Flex style={{ width: 'max-content', minWidth: '100%' }} mx={-0.16}>
+        <TopShellControlGroup
+          label="Форма"
+          value={getTranslatedShapeLabel(selectedShape)}
+          basis="23rem"
+          disabled={shapeDisabled}
+        >
+          <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+            <ShapeOptionStrip
+              options={shapeOptions}
+              selected={selectedShape}
+              disabled={shapeDisabled}
+              buttonMinWidth="2.05rem"
+              onSelected={(value) =>
+                act('set_placement_shape', {
+                  shape: value,
+                })
+              }
+            />
+          </Box>
+        </TopShellControlGroup>
+
+        <TopShellControlGroup
+          label="После клика"
+          basis="12rem"
+          disabled={modeDisabled}
+        >
+          <CompactChoiceStrip
+            options={modeOptions}
+            selected={selectedMode}
+            disabled={modeDisabled}
+            buttonMinWidth="5rem"
+            onSelected={(value) =>
+              act('set_placement_mode', {
+                mode: value,
+              })
+            }
+          />
+        </TopShellControlGroup>
+
+        <TopShellControlGroup
+          label="Направление"
+          value={
+            directionDisabled
+              ? 'Недоступно'
+              : data.placement_dir_uses_facing
+                ? 'Взгляд'
+                : getTranslatedDirection(selectedDirection)
+          }
+          basis="20.5rem"
+          disabled={directionDisabled}
+        >
+          <>
+            <Button.Checkbox
+              checked={data.placement_dir_uses_facing}
+              disabled={directionDisabled}
+              onClick={() =>
+                act('set_placement_dir_uses_facing', {
+                  enabled: !data.placement_dir_uses_facing,
+                })
+              }
+            >
+              По направлению взгляда
+            </Button.Checkbox>
+            <Box mt={0.3}>
+              <CompactChoiceStrip
+                options={directionOptions}
+                selected={selectedDirection}
+                disabled={directionDisabled || data.placement_dir_uses_facing}
+                buttonMinWidth="4.65rem"
+                onSelected={(value) =>
+                  act('set_placement_dir', {
+                    direction: value,
+                  })
+                }
+              />
+            </Box>
+          </>
+        </TopShellControlGroup>
+
+        <TopShellControlGroup
+          label="Параметры"
+          value={sharedFields.length ? `${sharedFields.length}` : 'Нет'}
+          basis="22rem"
+          disabled={parametersDisabled}
+        >
+          {sharedFields.length ? (
+            <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+              <Flex wrap={false} mx={-0.18}>
+                {sharedFields.map((field) => (
+                  <Flex.Item key={field.id} m={0.18}>
+                    <CompactFieldControl
+                      field={field}
+                      act={act}
+                      disabled={parametersDisabled}
+                    />
+                  </Flex.Item>
+                ))}
+              </Flex>
+            </Box>
+          ) : (
+            <Box color="label" mt={0.35}>
+              Доп. параметры не нужны.
+            </Box>
+          )}
+        </TopShellControlGroup>
+      </Flex>
+    </Box>
   );
 };
 
@@ -2145,7 +2074,8 @@ const OutpostRadiusWorkspace = (props: {
   const layoutVariantField = getField(layoutFields, 'layout_variant');
   const openingWidthField = getField(layoutFields, 'opening_width');
   const extraLayoutFields = layoutFields.filter(
-    (field) => !['family', 'layout_variant', 'opening_width'].includes(field.id),
+    (field) =>
+      !['family', 'layout_variant', 'opening_width'].includes(field.id),
   );
   const sentryToggleField = getField(sentryFields, 'place_sentries');
   const sentryDetailFields = getFieldsById(sentryFields, [
@@ -2188,7 +2118,8 @@ const OutpostRadiusWorkspace = (props: {
             />
           </Box>
         )}
-        {!!extraLayoutFields.filter((field) => field.visible !== false).length && (
+        {!!extraLayoutFields.filter((field) => field.visible !== false)
+          .length && (
           <Box mt={0.6}>
             <LabeledList>
               {extraLayoutFields
@@ -2254,42 +2185,49 @@ const DestructionPackWorkspace = (props: {
   const movementEnabled =
     !!getField(data.ui_fields, 'shuffle_enabled')?.value ||
     !!getField(data.ui_fields, 'scatter_enabled')?.value;
-  const visibleAreaFields = areaFields.filter((field) => field.visible !== false);
+  const visibleAreaFields = areaFields.filter(
+    (field) => field.visible !== false,
+  );
   const visibleMovementFields = safeMovementFields.filter(
     (field) => field.visible !== false,
   );
+  const previewLegendItems = getDestructionPreviewLegendItems(data);
 
   return (
     <>
+      {!!previewLegendItems.length && (
+        <PreviewLegend items={previewLegendItems} mt={0} />
+      )}
+
       {(!!visibleAreaFields.length || !!visibleMovementFields.length) && (
-        <WorkspaceGrid>
-          {!!visibleMovementFields.length && (
-            <WorkspacePane
-              basis={visibleAreaFields.length ? '48%' : '100%'}
-              minWidth="19rem"
-            >
-              <FieldBlock
-                title="Перемещение"
-                fields={visibleMovementFields}
-                act={act}
-                tone={movementEnabled ? 'average' : 'default'}
-              />
-            </WorkspacePane>
-          )}
-          {!!visibleAreaFields.length && (
-            <WorkspacePane basis="48%" minWidth="19rem">
-              <FieldBlock title="Зона" fields={visibleAreaFields} act={act} />
-            </WorkspacePane>
-          )}
-        </WorkspaceGrid>
+        <SurfaceCard title="Безопасная зона" subtitle="Без взрыва и урона">
+          <WorkspaceGrid>
+            {!!visibleMovementFields.length && (
+              <WorkspacePane
+                basis={visibleAreaFields.length ? '48%' : '100%'}
+                minWidth="19rem"
+              >
+                <FieldBlock
+                  title="Перемещение"
+                  fields={visibleMovementFields}
+                  act={act}
+                  tone={movementEnabled ? 'average' : 'default'}
+                />
+              </WorkspacePane>
+            )}
+            {!!visibleAreaFields.length && (
+              <WorkspacePane basis="48%" minWidth="19rem">
+                <FieldBlock title="Зона" fields={visibleAreaFields} act={act} />
+              </WorkspacePane>
+            )}
+          </WorkspaceGrid>
+        </SurfaceCard>
       )}
 
       <SurfaceCard
         title="Опасные режимы"
         mt={visibleAreaFields.length || visibleMovementFields.length ? 0.6 : 0}
-        tone={
-          destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'
-        }
+        tone={destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'}
       >
         <WorkspaceGrid>
           <WorkspacePane basis="33%" minWidth="16rem">
@@ -2552,32 +2490,26 @@ const HistoryWorkspace = (props: {
   );
 };
 
-const EditorToolbar = (props: {
+const EditorChrome = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
+  readonly toolTabs: GeneratorEntry[];
+  readonly workspaceTab: WorkspaceTabKey;
+  readonly onSelectGenerator: (generatorId: string) => void;
+  readonly onSelectWorkspaceTab: (tab: WorkspaceTabKey) => void;
 }) => {
-  const { data, act } = props;
+  const {
+    data,
+    act,
+    toolTabs,
+    workspaceTab,
+    onSelectGenerator,
+    onSelectWorkspaceTab,
+  } = props;
   const toolbar = getToolbarState(data);
-  const radiusField = getField(data.ui_fields, 'radius');
-  const activeBlueprint = getSelectedBlueprint(data);
-  const toolbarRadiusField =
-    radiusField?.visible === false ? undefined : radiusField;
-  const toolbarRadiusReadOnly =
-    !toolbarRadiusField &&
-    data.current_generator_id === 'blueprint_stamp' &&
-    activeBlueprint
-      ? getPositiveCountText(activeBlueprint.radius, '0')
-      : undefined;
-  const shapeControlsDisabled =
-    !data.has_generator || !data.placement_shape_supported;
-  const modeControlsDisabled =
-    !data.has_generator || !data.placement_supported;
-  const directionControlsDisabled =
-    !data.has_generator || !data.placement_supports_direction;
-  const selectedShapeLabel =
-    data.placement_shape_supported && data.has_generator
-      ? getTranslatedShapeLabel(data.placement_shape)
-      : undefined;
+  const actionsDisabled = !data.has_generator;
+  const chromeTitle = toolbar.title;
+  const chromeContext = toolbar.context;
 
   const renderAction = (action?: ToolbarAction, compact = false) => {
     if (!action) {
@@ -2588,7 +2520,7 @@ const EditorToolbar = (props: {
       <Button
         compact={compact}
         color={action.color}
-        disabled={action.disabled}
+        disabled={actionsDisabled || action.disabled}
         selected={action.action === 'clear_preview'}
         onClick={() => act(action.action, action.payload)}
       >
@@ -2600,158 +2532,144 @@ const EditorToolbar = (props: {
   return (
     <Box
       mb={0.8}
-      px={0.55}
-      py={0.4}
       style={{
         position: 'sticky',
         top: '0',
         zIndex: '5',
         background: 'rgba(17, 20, 24, 0.97)',
-        border: '1px solid rgba(70, 107, 150, 0.6)',
+        border: '1px solid rgba(70, 107, 150, 0.75)',
         borderRadius: '4px',
       }}
     >
-      <Flex align="center" mx={-0.2}>
-        <Flex.Item m={0.2} style={{ flex: '0 0 auto' }}>
-          <Box bold style={{ whiteSpace: 'nowrap' }}>
-            {toolbar.title}
-          </Box>
-        </Flex.Item>
-        <Flex.Item grow m={0.2} style={{ minWidth: '0' }}>
-          <Box
-            color="label"
-            style={{
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
+      <Box px={0.65} py={0.45} style={{ minHeight: '4.25rem' }}>
+        <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+          <Flex
+            align="center"
+            mx={-0.25}
+            style={{ width: 'max-content', minWidth: '100%' }}
           >
-            {toolbar.context || ''}
-          </Box>
-        </Flex.Item>
-        <Flex.Item m={0.2} style={{ flex: '0 0 auto' }}>
-          <Box
-            color={toolbar.stateColor || 'label'}
-            px={0.5}
-            py={0.25}
-            style={{
-              border: '1px solid rgba(70, 107, 150, 0.45)',
-              background: 'rgba(70, 107, 150, 0.10)',
-              borderRadius: '4px',
-            }}
-          >
-            {toolbar.state}
-          </Box>
-        </Flex.Item>
-      </Flex>
-
-      <Box mt={0.45}>
-        <Flex align="center" wrap mx={-0.15}>
-          {!!toolbar.previewAction && (
-            <Flex.Item m={0.15}>{renderAction(toolbar.previewAction)}</Flex.Item>
-          )}
-          {!!toolbar.applyAction && (
-            <Flex.Item m={0.15}>{renderAction(toolbar.applyAction)}</Flex.Item>
-          )}
-          {!!toolbar.placementAction && (
-            <Flex.Item m={0.15} ml={0.35}>
-              {renderAction(toolbar.placementAction, data.click_mode_active)}
-            </Flex.Item>
-          )}
-          {!!toolbar.collectorAction && (
-            <Flex.Item m={0.15}>
-              {renderAction(toolbar.collectorAction, true)}
-            </Flex.Item>
-          )}
-          {!!toolbar.undoAction && (
-            <Flex.Item m={0.15} ml={0.35}>
-              {renderAction(toolbar.undoAction, true)}
-            </Flex.Item>
-          )}
-          <Flex.Item grow />
-          {data.has_generator && (
-            <Flex.Item m={0.15}>
-              <Button.Checkbox
-                compact
-                checked={data.confirm_before_apply}
-                onClick={() =>
-                  act('set_confirm_before_apply', {
-                    enabled: !data.confirm_before_apply,
-                  })
-                }
+            <Flex.Item grow basis="15rem" m={0.25}>
+              <Box
+                bold
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
               >
-                Спрашивать перед применением
-              </Button.Checkbox>
+                {chromeTitle}
+              </Box>
+              <Box
+                color="label"
+                mt={0.1}
+                style={{
+                  minHeight: '1.1rem',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {chromeContext || '\u00a0'}
+              </Box>
             </Flex.Item>
-          )}
-        </Flex>
+
+            <Flex.Item basis="11.5rem" grow={false} shrink={0} m={0.25}>
+              <Box
+                color={toolbar.stateColor || 'label'}
+                px={0.5}
+                py={0.25}
+                style={{
+                  border: '1px solid rgba(70, 107, 150, 0.45)',
+                  background: 'rgba(70, 107, 150, 0.10)',
+                  borderRadius: '4px',
+                }}
+              >
+                {toolbar.state}
+              </Box>
+            </Flex.Item>
+
+            <Flex.Item grow={false} shrink={0} m={0.25}>
+              <Flex
+                align="center"
+                mx={-0.15}
+                style={{ width: 'max-content', minWidth: '31rem' }}
+              >
+                {!!toolbar.previewAction && (
+                  <Flex.Item m={0.15}>
+                    {renderAction(toolbar.previewAction)}
+                  </Flex.Item>
+                )}
+                {!!toolbar.applyAction && (
+                  <Flex.Item m={0.15}>
+                    {renderAction(toolbar.applyAction)}
+                  </Flex.Item>
+                )}
+                {!!toolbar.placementAction && (
+                  <Flex.Item m={0.15}>
+                    {renderAction(
+                      toolbar.placementAction,
+                      data.click_mode_active,
+                    )}
+                  </Flex.Item>
+                )}
+                {!!toolbar.collectorAction && (
+                  <Flex.Item m={0.15}>
+                    {renderAction(toolbar.collectorAction, true)}
+                  </Flex.Item>
+                )}
+                {!!toolbar.undoAction && (
+                  <Flex.Item m={0.15}>
+                    {renderAction(toolbar.undoAction, true)}
+                  </Flex.Item>
+                )}
+                {data.has_generator && (
+                  <Flex.Item m={0.15}>
+                    <Button.Checkbox
+                      checked={data.confirm_before_apply}
+                      disabled={actionsDisabled}
+                      onClick={() =>
+                        act('set_confirm_before_apply', {
+                          enabled: !data.confirm_before_apply,
+                        })
+                      }
+                    >
+                      Спрашивать перед применением
+                    </Button.Checkbox>
+                  </Flex.Item>
+                )}
+              </Flex>
+            </Flex.Item>
+          </Flex>
+        </Box>
       </Box>
 
-      <Box mt={0.45}>
-        <Box
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '13.75rem 10rem 13rem',
-            gap: '0.45rem',
-            justifyContent: 'start',
-            alignItems: 'stretch',
-          }}
-        >
-          <ToolbarControlGroup
-            title="Форма"
-            subtitle={selectedShapeLabel}
-            width="13.75rem"
-            minHeight="9.35rem"
-          >
-            <ShapeOptionStrip
-              options={data.placement_shape_options || []}
-              selected={data.placement_shape}
-              disabled={shapeControlsDisabled}
-              onSelected={(value) =>
-                act('set_placement_shape', {
-                  shape: value,
-                })
-              }
-            />
-          </ToolbarControlGroup>
+      <Box
+        px={0.65}
+        py={0.45}
+        style={{
+          minHeight: '6rem',
+          borderTop: '1px solid rgba(70, 107, 150, 0.35)',
+        }}
+      >
+        <SharedModePanel data={data} act={act} workspaceTab={workspaceTab} />
+      </Box>
 
-          <ToolbarControlGroup title="Режим клика" width="10rem" minHeight="9.35rem">
-            <ToolbarModeStrip
-              options={data.placement_mode_options || []}
-              selected={data.placement_mode}
-              disabled={modeControlsDisabled}
-              onSelected={(value) =>
-                act('set_placement_mode', {
-                  mode: value,
-                })
-              }
-            />
-            <ToolbarRadiusControl
-              field={toolbarRadiusField}
-              readOnlyValue={toolbarRadiusReadOnly}
-              act={act}
-            />
-          </ToolbarControlGroup>
-
-          <ToolbarControlGroup title="Направление" width="13rem" minHeight="9.35rem">
-            <ToolbarDirectionControls
-              options={data.placement_dir_options || []}
-              selected={data.placement_dir}
-              disabled={directionControlsDisabled}
-              usesFacing={data.placement_dir_uses_facing}
-              onToggleUsesFacing={() =>
-                act('set_placement_dir_uses_facing', {
-                  enabled: !data.placement_dir_uses_facing,
-                })
-              }
-              onSelected={(value) =>
-                act('set_placement_dir', {
-                  direction: value,
-                })
-              }
-            />
-          </ToolbarControlGroup>
-        </Box>
+      <Box
+        px={0.5}
+        pt={0.45}
+        pb={0.3}
+        style={{
+          minHeight: '2.55rem',
+          borderTop: '1px solid rgba(70, 107, 150, 0.35)',
+        }}
+      >
+        <NavigationTabs
+          toolTabs={toolTabs}
+          activeGeneratorId={data.current_generator_id}
+          workspaceTab={workspaceTab}
+          onSelectGenerator={onSelectGenerator}
+          onSelectWorkspaceTab={onSelectWorkspaceTab}
+        />
       </Box>
     </Box>
   );
@@ -2777,31 +2695,25 @@ const NavigationTabs = (props: {
   }
 
   return (
-    <Flex align="center" mb={0.55} mx={-0.15}>
-      <Flex.Item grow m={0.15}>
-        <Tabs mb={0}>
-          {toolTabs.map((generator) => (
-            <Tabs.Tab
-              key={generator.id}
-              selected={
-                workspaceTab === 'editor' && generator.id === activeGeneratorId
-              }
-              onClick={() => onSelectGenerator(generator.id)}
-            >
-              {TOOL_PICKER_LABELS[generator.id] || generator.name_ru}
-            </Tabs.Tab>
-          ))}
-        </Tabs>
-      </Flex.Item>
-      <Flex.Item m={0.15}>
-        <Button
-          selected={workspaceTab === 'history'}
-          onClick={() => onSelectWorkspaceTab('history')}
+    <Tabs mb={0}>
+      {toolTabs.map((generator) => (
+        <Tabs.Tab
+          key={generator.id}
+          selected={
+            workspaceTab === 'editor' && generator.id === activeGeneratorId
+          }
+          onClick={() => onSelectGenerator(generator.id)}
         >
-          Журнал
-        </Button>
-      </Flex.Item>
-    </Flex>
+          {TOOL_PICKER_LABELS[generator.id] || generator.name_ru}
+        </Tabs.Tab>
+      ))}
+      <Tabs.Tab
+        selected={workspaceTab === 'history'}
+        onClick={() => onSelectWorkspaceTab('history')}
+      >
+        Журнал
+      </Tabs.Tab>
+    </Tabs>
   );
 };
 
@@ -2830,20 +2742,14 @@ const WorkspacePage = (props: {
 
   return (
     <Section fill scrollable>
-      <EditorToolbar data={data} act={act} />
-      <NavigationTabs
+      <EditorChrome
+        data={data}
+        act={act}
         toolTabs={toolTabs}
-        activeGeneratorId={data.current_generator_id}
         workspaceTab={workspaceTab}
         onSelectGenerator={onSelectGenerator}
         onSelectWorkspaceTab={onSelectWorkspaceTab}
       />
-
-      {!!data.has_generator &&
-        workspaceTab === 'editor' &&
-        data.current_generator_id !== 'destruction_pack' && (
-        <CurrentModePanel data={data} act={act} />
-      )}
 
       {!data.has_generator && !!data.categories?.length && (
         <SurfaceCard title="Открываем инструмент">
