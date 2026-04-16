@@ -2,7 +2,6 @@
 #define WORLD_EDIT_EXECUTION_CLICK "click"
 #define WORLD_EDIT_STATUS_DRAFT "draft"
 #define WORLD_EDIT_STATUS_READY "ready"
-#define WORLD_EDIT_STATUS_DEPRECATED "deprecated"
 #define WORLD_EDIT_HISTORY_LIMIT 50
 #define WORLD_EDIT_PLACEMENT_MAX_ANCHORS 48
 #define WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS 240
@@ -41,10 +40,6 @@
 	manager = new_manager
 	definition = new_definition
 	current_plan = null
-
-/// Возвращает обновленные параметры либо null при отмене шага настройки.
-/datum/world_edit_generator/proc/configure_params(mob/user, list/current_params)
-	return current_params
 
 /// Возвращает null при валидных параметрах либо текст ошибки.
 /datum/world_edit_generator/proc/validate_params(mob/user, list/params)
@@ -87,8 +82,7 @@
 /datum/world_edit_generator/proc/is_destructive(list/params)
 	return FALSE
 
-/// Возвращает описание полей для inline-настройки в TGUI.
-/// Если null, используется fallback-мастер configure_params.
+/// Возвращает описание полей для live inline-настройки в TGUI.
 /datum/world_edit_generator/proc/get_ui_fields(list/current_params)
 	return null
 

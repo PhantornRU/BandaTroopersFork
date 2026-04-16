@@ -18,7 +18,6 @@
 			"execution_mode" = definition.execution_mode,
 			"required_rights" = rights2text(definition.required_rights, " "),
 			"supports_preview" = definition.supports_preview ? TRUE : FALSE,
-			"status" = definition.status,
 		))
 
 	var/list/result = list()
@@ -108,7 +107,7 @@
 	reset_generator_runtime()
 	detach_current_generator()
 
-/datum/world_edit_manager/proc/configure_current_generator(mob/user)
+/datum/world_edit_manager/proc/rejected_generator_configuration_request(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return
 	if(!current_generator || !current_definition)
@@ -118,7 +117,7 @@
 		to_chat(user, SPAN_WARNING("Недостаточно прав для настройки этого генератора."))
 		return
 
-	var/list/new_params = current_generator.configure_params(user, current_params)
+	var/list/new_params = null
 	if(isnull(new_params))
 		return
 	if(!islist(new_params))

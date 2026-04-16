@@ -161,3 +161,29 @@
 	TEST_ASSERT_EQUAL(placement_counts["opening"] || 0, 4, "Shape-aware outpost plan should emit four opening placements with sentries enabled.")
 	TEST_ASSERT_EQUAL(placement_counts["barricade"] || 0, 12, "Shape-aware outpost plan should emit twelve barricade placements with sentries enabled.")
 	TEST_ASSERT_EQUAL(placement_counts["sentry"] || 0, 4, "Shape-aware outpost plan should emit four sentry placements when the toggle is enabled.")
+
+/datum/unit_test/world_edit_live_contract/ready_generators_expose_inline_fields/Run()
+	var/list/expected_ready_ids = list(
+		"outpost_radius",
+		"destruction_pack",
+		"blueprint_stamp",
+	)
+	var/list/seen_ready_ids = list()
+
+	for(var/generator_id in GLOB.world_edit_registry.definitions_by_id)
+		var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.definitions_by_id[generator_id]
+		TEST_ASSERT(definition.status == WORLD_EDIT_STATUS_DRAFT || definition.status == WORLD_EDIT_STATUS_READY, "[generator_id] exposed an unsupported World Edit status [definition.status].")
+		if(definition.status != WORLD_EDIT_STATUS_READY)
+			continue
+
+		seen_ready_ids += definition.id
+		var/datum/world_edit_generator/generator = allocate(definition.generator_type)
+		generator.attach(null, definition)
+		var/list/ui_fields = generator.get_ui_fields(definition.default_params?.Copy() || list())
+
+		TEST_ASSERT(islist(ui_fields), "[generator_id] should expose inline ui_fields for the live TGUI contract.")
+		TEST_ASSERT(length(ui_fields), "[generator_id] should expose at least one inline ui_field.")
+
+	for(var/expected_id in expected_ready_ids)
+		TEST_ASSERT(expected_id in seen_ready_ids, "World Edit ready generator [expected_id] dropped out of the live runtime surface.")
+	TEST_ASSERT_EQUAL(length(seen_ready_ids), length(expected_ready_ids), "World Edit ready generator surface changed unexpectedly.")

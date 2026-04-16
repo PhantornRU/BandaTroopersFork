@@ -1,7 +1,7 @@
 import { Box } from '../../components';
 import { FieldListCard } from './fieldControls';
 import { WorkspaceGrid, WorkspacePane } from './primitives';
-import type { ActFn, BackendData, UiField } from './types';
+import type { ActFn, UiField } from './types';
 
 const GenericFieldGroups = (props: {
   readonly groupedFields: Record<string, UiField[]>;
@@ -29,20 +29,19 @@ const GenericFieldGroups = (props: {
 };
 
 const GenericToolWorkspace = (props: {
-  readonly data: BackendData;
   readonly act: ActFn;
   readonly groupedFields: Record<string, UiField[]>;
   readonly groupNames: string[];
   readonly showPlacementSetup: boolean;
 }) => {
-  const { data, act, groupedFields, groupNames, showPlacementSetup } = props;
-  const hasPrimaryContent = data.has_inline_fields || showPlacementSetup;
+  const { act, groupedFields, groupNames, showPlacementSetup } = props;
+  const hasPrimaryContent = groupNames.length > 0 || showPlacementSetup;
 
   return (
     <>
       {!hasPrimaryContent && <Box color="label">Нет настроек.</Box>}
 
-      {!!data.has_inline_fields && (
+      {!!groupNames.length && (
         <GenericFieldGroups
           groupedFields={groupedFields}
           groupNames={groupNames}

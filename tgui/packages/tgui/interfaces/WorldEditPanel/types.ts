@@ -7,7 +7,6 @@ export type GeneratorEntry = {
   execution_mode: string;
   required_rights: string;
   supports_preview: boolean;
-  status: string;
 };
 
 export type GeneratorCategory = {
@@ -112,13 +111,10 @@ export type BackendData = {
   current_generator_description?: string;
   current_generator_execution_mode?: string;
   current_generator_required_rights?: string;
-  current_generator_status?: string;
   current_generator_supports_preview: boolean;
   requires_preview_before_apply: boolean;
   current_params_text: string;
   ui_fields: UiField[];
-  has_inline_fields: boolean;
-  ui_mode: 'inline' | 'wizard_fallback';
   runtime_status: RuntimeStatusEntry[];
   placement_supported: boolean;
   placement_active: boolean;

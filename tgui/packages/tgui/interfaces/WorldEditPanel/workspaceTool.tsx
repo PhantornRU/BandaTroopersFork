@@ -27,7 +27,6 @@ const ToolWorkspace = (props: {
 
   return (
     <GenericToolWorkspace
-      data={data}
       act={act}
       groupedFields={groupedFields}
       groupNames={groupNames}

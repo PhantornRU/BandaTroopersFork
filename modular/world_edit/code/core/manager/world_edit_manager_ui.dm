@@ -36,7 +36,6 @@
 	var/list/data = list()
 	var/has_generator = (current_definition && current_generator) ? TRUE : FALSE
 	var/list/ui_fields = get_normalized_ui_fields()
-	var/has_inline_fields = length(ui_fields) > 0
 	var/requires_preview = current_generator?.requires_preview_before_apply ? TRUE : FALSE
 	var/list/placement_modes = build_placement_mode_options()
 	var/list/placement_shapes = build_placement_shape_options()
@@ -54,14 +53,11 @@
 	data["current_generator_description"] = current_definition?.description_ru
 	data["current_generator_execution_mode"] = current_definition?.execution_mode
 	data["current_generator_required_rights"] = current_definition ? rights2text(current_definition.required_rights, " ") : ""
-	data["current_generator_status"] = current_definition?.status
 	data["current_generator_supports_preview"] = current_definition?.supports_preview ? TRUE : FALSE
 	data["requires_preview_before_apply"] = requires_preview
 
 	data["current_params_text"] = GLOB.world_edit_logging.params_to_text(current_params, 600)
 	data["ui_fields"] = ui_fields
-	data["has_inline_fields"] = has_inline_fields
-	data["ui_mode"] = has_inline_fields ? "inline" : "wizard_fallback"
 	data["runtime_status"] = current_generator?.get_runtime_status() || list()
 	data["placement_supported"] = placement_supported ? TRUE : FALSE
 	data["placement_active"] = (placement_click_active && click_mode_active) ? TRUE : FALSE
@@ -127,6 +123,16 @@
 		return
 	if(!check_rights_for(holder, R_DEBUG))
 		return
+	if(handle_generator_ui_action(ui.user, action, params))
+		return TRUE
+	if(handle_preset_ui_action(ui.user, action, params))
+		return TRUE
+	if(handle_blueprint_ui_action(ui.user, action, params))
+		return TRUE
+	if(handle_placement_ui_action(ui.user, action, params))
+		return TRUE
+	if(handle_runtime_ui_action(ui.user, action, params))
+		return TRUE
 
 	switch(action)
 		if("select_generator")
@@ -174,10 +180,6 @@
 
 		if("apply_blueprint")
 			apply_blueprint_by_id(ui.user, params["blueprint_id"])
-			return TRUE
-
-		if("configure_wizard")
-			configure_current_generator(ui.user)
 			return TRUE
 
 		if("set_param")
