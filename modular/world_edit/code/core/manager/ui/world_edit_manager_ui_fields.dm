@@ -1,0 +1,190 @@
+/datum/world_edit_manager/proc/refresh_current_generator_ui(mob/user)
+	if(!current_generator || !current_definition)
+		last_ui_error = "Сначала выберите генератор."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return
+
+	current_generator.refresh_ui_state(user, current_params)
+	last_ui_error = ""
+	refresh_runtime_after_config_change()
+	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
+
+/datum/world_edit_manager/proc/handle_set_param_action(mob/user, list/params)
+	if(!current_generator || !current_definition)
+		return TRUE
+
+	if(!check_rights_for(holder, current_definition.required_rights))
+		last_ui_error = "Недостаточно прав для настройки этого генератора."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	var/param_id = params["param_id"]
+	if(!param_id)
+		last_ui_error = "Не передан идентификатор параметра."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	var/list/ui_fields = get_normalized_ui_fields()
+	var/list/target_field = find_ui_field_by_id(ui_fields, param_id)
+	if(!target_field)
+		last_ui_error = "Параметр '[param_id]' недоступен в текущей форме генератора."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	if(GLOB.world_edit_helpers.parse_bool(target_field["disabled"]))
+		var/target_field_label = "[target_field["label"]]"
+		last_ui_error = "Параметр '[target_field_label]' сейчас недоступен для редактирования."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	var/value = params["value"]
+	var/new_params = current_generator.set_ui_param(user, current_params, param_id, value)
+	if(isnull(new_params))
+		return TRUE
+
+	if(istext(new_params))
+		last_ui_error = new_params
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	if(!islist(new_params))
+		last_ui_error = "Не удалось обновить параметр генератора."
+		to_chat(user, SPAN_WARNING(last_ui_error))
+		return TRUE
+
+	if(is_safe_placement_mode_active())
+		new_params = preserve_active_placement_runtime_params(new_params)
+
+	current_params = new_params
+	last_ui_error = ""
+	save_current_generator_context()
+	refresh_runtime_after_config_change()
+	return TRUE
+
+/datum/world_edit_manager/proc/get_normalized_ui_fields()
+	if(!current_generator)
+		return list()
+
+	var/list/raw_fields = current_generator.get_ui_fields(current_params)
+	return normalize_ui_fields(raw_fields)
+
+/datum/world_edit_manager/proc/normalize_ui_fields(list/raw_fields)
+	var/list/normalized_fields = list()
+	if(!islist(raw_fields) || !length(raw_fields))
+		return normalized_fields
+
+	var/static/list/supported_kinds = list("select", "number", "boolean", "text")
+	for(var/list/raw_field as anything in raw_fields)
+		if(!islist(raw_field))
+			continue
+
+		var/field_id = "[raw_field["id"]]"
+		if(!length(field_id))
+			continue
+
+		var/visible = TRUE
+		if("visible" in raw_field)
+			visible = GLOB.world_edit_helpers.parse_bool(raw_field["visible"])
+		if(!visible)
+			continue
+
+		var/field_kind = lowertext("[raw_field["kind"] || "text"]")
+		if(!(field_kind in supported_kinds))
+			continue
+
+		var/list/field = list()
+		field["id"] = field_id
+		field["label"] = raw_field["label"] ? "[raw_field["label"]]" : field_id
+		field["kind"] = field_kind
+		field["group"] = raw_field["group"] ? "[raw_field["group"]]" : "Основные"
+		field["disabled"] = ("disabled" in raw_field) ? GLOB.world_edit_helpers.parse_bool(raw_field["disabled"]) : FALSE
+		field["required"] = ("required" in raw_field) ? GLOB.world_edit_helpers.parse_bool(raw_field["required"]) : FALSE
+
+		var/value = raw_field["value"]
+		if(isnull(value) && islist(current_params) && (field_id in current_params))
+			value = current_params[field_id]
+		field["value"] = value
+
+		if(!isnull(raw_field["description"]))
+			field["description"] = "[raw_field["description"]]"
+		if(!isnull(raw_field["placeholder"]))
+			field["placeholder"] = "[raw_field["placeholder"]]"
+		if(!isnull(raw_field["validate_hint"]))
+			field["validate_hint"] = "[raw_field["validate_hint"]]"
+
+		switch(field_kind)
+			if("select")
+				field["options"] = normalize_ui_select_options(raw_field["options"])
+			if("number")
+				if("min" in raw_field)
+					var/min_value = text2num("[raw_field["min"]]")
+					if(isnum(min_value))
+						field["min"] = min_value
+				if("max" in raw_field)
+					var/max_value = text2num("[raw_field["max"]]")
+					if(isnum(max_value))
+						field["max"] = max_value
+				if("step" in raw_field)
+					var/step_value = text2num("[raw_field["step"]]")
+					if(isnum(step_value))
+						field["step"] = step_value
+
+		normalized_fields += list(field)
+
+	return normalized_fields
+
+/datum/world_edit_manager/proc/normalize_ui_select_options(list/raw_options)
+	var/list/options = list()
+	if(!islist(raw_options) || !length(raw_options))
+		return options
+
+	var/list/label_counts = list()
+	for(var/raw_option in raw_options)
+		var/option_value
+		var/option_label
+		var/option_description = ""
+
+		if(islist(raw_option))
+			var/list/entry = raw_option
+			if(!("value" in entry))
+				continue
+			option_value = entry["value"]
+			option_label = entry["label"]
+			if(!isnull(entry["description"]))
+				option_description = "[entry["description"]]"
+		else
+			option_value = raw_option
+			option_label = "[raw_option]"
+
+		if(isnull(option_value))
+			continue
+
+		if(!length("[option_label]"))
+			option_label = "[option_value]"
+
+		var/base_label = "[option_label]"
+		var/next_count = (label_counts[base_label] || 0) + 1
+		label_counts[base_label] = next_count
+		if(next_count > 1)
+			option_label = "[base_label] ([next_count])"
+
+		var/list/normalized_option = list(
+			"label" = option_label,
+			"value" = option_value,
+		)
+		if(length(option_description))
+			normalized_option["description"] = option_description
+
+		options += list(normalized_option)
+
+	return options
+
+/datum/world_edit_manager/proc/find_ui_field_by_id(list/ui_fields, field_id)
+	if(!islist(ui_fields) || !length(field_id))
+		return null
+
+	for(var/list/field as anything in ui_fields)
+		if("[field["id"]]" == "[field_id]")
+			return field
+
+	return null

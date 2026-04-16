@@ -7,7 +7,7 @@
 
 		if("reset_generator")
 			reset_current_generator()
-			to_chat(user, SPAN_NOTICE("Current generator reset."))
+			to_chat(user, SPAN_NOTICE("Текущий генератор сброшен."))
 			return TRUE
 
 		if("refresh_ui")
@@ -65,7 +65,7 @@
 		if("set_placement_mode")
 			var/new_mode = "[params["mode"]]"
 			if(!(new_mode in get_supported_placement_modes()))
-				last_ui_error = "Selected placement mode is not available for the current generator."
+				last_ui_error = "Выбранный режим размещения недоступен для текущего генератора."
 				to_chat(user, SPAN_WARNING(last_ui_error))
 				return TRUE
 			placement_shared_mode = new_mode
@@ -77,7 +77,7 @@
 		if("set_placement_shape")
 			var/new_shape = "[params["shape"]]"
 			if(!(new_shape in get_supported_placement_shapes()))
-				last_ui_error = "Selected placement shape is not available for the current generator."
+				last_ui_error = "Выбранная форма размещения недоступна для текущего генератора."
 				to_chat(user, SPAN_WARNING(last_ui_error))
 				return TRUE
 			placement_shared_shape = new_shape
@@ -141,12 +141,12 @@
 
 		if("clear_preview")
 			refresh_runtime_after_config_change()
-			to_chat(user, SPAN_NOTICE("Preview cleared."))
+			to_chat(user, SPAN_NOTICE("Предпросмотр очищен."))
 			return TRUE
 
 		if("stop_click_mode")
 			reset_preview_runtime()
-			to_chat(user, SPAN_NOTICE("Placement mode stopped."))
+			to_chat(user, SPAN_NOTICE("Режим размещения остановлен."))
 			return TRUE
 
 		if("clear_history")
@@ -162,5 +162,5 @@
 			qdel(changeset)
 	changeset_entries = list()
 	reset_undo_feedback()
-	to_chat(user, SPAN_NOTICE("Operation history and undo stack cleared."))
+	to_chat(user, SPAN_NOTICE("История операций и undo-стек очищены."))
 	return TRUE

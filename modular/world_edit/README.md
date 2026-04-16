@@ -13,8 +13,8 @@
 - `code/core/world_edit_types.dm`: базовые типы, контракты и результаты операций.
 - `code/core/world_edit_logging.dm`: единый контракт audit-логов.
 - `code/core/world_edit_registry.dm`: реестр live-генераторов и проверок доступа.
-- `code/core/manager/world_edit_manager_*.dm`: менеджер сессии, UI, preview/apply, click-intercept и история.
-- `code/generators/world_edit_generator_*.dm`: реализации live-генераторов.
+- `code/core/manager/lifecycle/*`, `state/*`, `runtime/*`, `session/*`, `ui/*`: менеджер сессии, runtime, интеграции и TGUI разложены по доменам ответственности.
+- `code/generators/outpost_radius/*`, `destruction_pack/*`, `blueprint_stamp/*`: live-генераторы сгруппированы по семействам, чтобы planner/runtime/ui split шел внутри своей папки.
 - `code/generators/shared/world_edit_generator_shared_helpers.dm`: общие helper-процедуры генераторов.
 - `code/effects/world_edit_persistent_fire.dm`: служебные эффекты модуля.
 
