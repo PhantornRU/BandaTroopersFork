@@ -210,6 +210,8 @@ type ShapeGlyphSpec = {
 };
 
 type WorkspaceTabKey = 'editor' | 'history';
+type WorkflowStepKey = 'select' | 'configure' | 'preview' | 'apply' | 'history';
+type ToneKey = SurfaceTone | 'label';
 
 type ToolbarAction = {
   label: string;
@@ -242,6 +244,16 @@ const TOOL_TAB_ORDER = [
   'blueprint_stamp',
   'outpost_radius',
   'destruction_pack',
+];
+const WORKFLOW_STEP_ORDER: Array<{
+  key: WorkflowStepKey;
+  label: string;
+}> = [
+  { key: 'select', label: 'Выбор' },
+  { key: 'configure', label: 'Настройка' },
+  { key: 'preview', label: 'Предпросмотр' },
+  { key: 'apply', label: 'Применение' },
+  { key: 'history', label: 'Журнал' },
 ];
 
 const buildOrderedToolTabs = (categories: GeneratorCategory[] = []) => {
@@ -559,7 +571,7 @@ const getSafeFieldList = (fields: UiField[], ids: string[]) =>
     (field) => field.visible !== false && !field.disabled,
   );
 
-const toneForHistoryResult = (result?: string) => {
+const toneForHistoryResult = (result?: string): ToneKey => {
   switch ((result || '').toLowerCase()) {
     case 'ok':
     case 'success':
@@ -817,6 +829,194 @@ const getToolbarContextLine = (data: BackendData) => {
   return items.slice(0, 3).join(' · ');
 };
 
+const getWorkflowStepKey = (
+  data: BackendData,
+  workspaceTab: WorkspaceTabKey,
+): WorkflowStepKey => {
+  if (workspaceTab === 'history') {
+    return 'history';
+  }
+
+  if (!data.has_generator) {
+    return 'select';
+  }
+
+  if (data.click_mode_active) {
+    return data.can_finish_placement_collection ? 'apply' : 'preview';
+  }
+
+  if (
+    data.current_generator_id === 'blueprint_stamp' &&
+    !data.active_blueprint_id
+  ) {
+    return 'configure';
+  }
+
+  if (data.requires_preview_before_apply) {
+    return data.preview_valid ? 'apply' : 'preview';
+  }
+
+  if (data.preview_valid) {
+    return 'apply';
+  }
+
+  return 'configure';
+};
+
+const getWorkflowHintText = (
+  data: BackendData,
+  workspaceTab: WorkspaceTabKey,
+) => {
+  if (workspaceTab === 'history') {
+    return data.history_entries?.length
+      ? 'Проверьте последнюю операцию и при необходимости выполните откат.'
+      : 'История появится после первого применения.';
+  }
+
+  if (!data.has_generator) {
+    return 'Выберите доступный инструмент и начните настройку.';
+  }
+
+  if (data.click_mode_active) {
+    return getPlacementStateLine(data);
+  }
+
+  if (
+    data.current_generator_id === 'blueprint_stamp' &&
+    !data.active_blueprint_id
+  ) {
+    return 'Сначала выберите шаблон из библиотеки слева.';
+  }
+
+  if (data.last_ui_error) {
+    return data.last_ui_error;
+  }
+
+  if (data.requires_preview_before_apply && !data.preview_valid) {
+    return 'Соберите безопасный предпросмотр перед применением.';
+  }
+
+  if (data.preview_valid) {
+    return 'Предпросмотр готов: можно применить или скорректировать параметры.';
+  }
+
+  if (data.current_generator_supports_preview) {
+    return 'Настройте параметры и соберите предпросмотр.';
+  }
+
+  return 'Настройте параметры и применяйте, когда будете готовы.';
+};
+
+const getUndoTone = (status?: string): ToneKey => {
+  switch ((status || '').toLowerCase()) {
+    case 'available':
+    case 'full':
+      return 'good';
+    case 'cleanup_available':
+    case 'partial':
+      return 'average';
+    case 'not_available':
+    case 'none':
+      return 'label';
+    default:
+      return 'label';
+  }
+};
+
+const getWorkflowTone = (
+  data: BackendData,
+  workspaceTab: WorkspaceTabKey,
+): ToneKey => {
+  if (workspaceTab === 'history') {
+    return data.history_entries?.length ? 'good' : 'label';
+  }
+  if (data.last_ui_error) {
+    return 'bad';
+  }
+  if (data.click_mode_active) {
+    return data.can_finish_placement_collection ? 'good' : 'average';
+  }
+  if (data.preview_valid) {
+    return 'good';
+  }
+  if (data.requires_preview_before_apply) {
+    return 'average';
+  }
+  return 'label';
+};
+
+const buildChromeSummaryItems = (
+  data: BackendData,
+  workspaceTab: WorkspaceTabKey,
+): Array<{
+  label: string;
+  value: ReactNode;
+  tone?: ToneKey;
+}> => {
+  const items: Array<{
+    label: string;
+    value: ReactNode;
+    tone?: ToneKey;
+  }> = [];
+
+  const contextLine = getToolbarContextLine(data);
+  if (contextLine) {
+    items.push({
+      label: 'Контекст',
+      value: contextLine,
+      tone: 'label',
+    });
+  }
+
+  items.push({
+    label: workspaceTab === 'history' ? 'Фокус' : 'Дальше',
+    value: getWorkflowHintText(data, workspaceTab),
+    tone: getWorkflowTone(data, workspaceTab),
+  });
+
+  if (
+    data.click_mode_active &&
+    data.placement_interaction_kind === 'collector'
+  ) {
+    items.push({
+      label: 'Сбор',
+      value: `${data.placement_collector_point_count || 0}/${Math.max(
+        data.placement_collector_min_points || 0,
+        1,
+      )}`,
+      tone: data.can_finish_placement_collection ? 'good' : 'average',
+    });
+  } else if (data.preview_valid) {
+    items.push({
+      label: 'Предпросмотр',
+      value: 'Готов',
+      tone: 'good',
+    });
+  } else if (data.requires_preview_before_apply) {
+    items.push({
+      label: 'Предпросмотр',
+      value: 'Нужен',
+      tone: 'average',
+    });
+  }
+
+  if (data.can_undo_last_operation) {
+    items.push({
+      label: 'Откат',
+      value: 'Доступен',
+      tone: 'good',
+    });
+  } else if (data.can_cleanup_last_owned_effects) {
+    items.push({
+      label: 'Очистка',
+      value: 'Доступна',
+      tone: 'average',
+    });
+  }
+
+  return items.slice(0, 4);
+};
+
 const CompactStatusRow = (props: {
   readonly items: SummaryTile[];
   readonly basis?: string;
@@ -836,6 +1036,94 @@ const CompactStatusRow = (props: {
           </Box>
         </Flex.Item>
       ))}
+    </Flex>
+  );
+};
+
+const getToneColors = (tone?: ToneKey) => {
+  if (tone === 'good') {
+    return {
+      borderColor: 'rgba(76, 159, 57, 0.55)',
+      background: 'rgba(76, 159, 57, 0.14)',
+      textColor: 'good',
+    };
+  }
+  if (tone === 'average') {
+    return {
+      borderColor: 'rgba(185, 140, 53, 0.55)',
+      background: 'rgba(185, 140, 53, 0.14)',
+      textColor: 'average',
+    };
+  }
+  if (tone === 'bad') {
+    return {
+      borderColor: 'rgba(143, 60, 52, 0.62)',
+      background: 'rgba(143, 60, 52, 0.18)',
+      textColor: 'bad',
+    };
+  }
+  return {
+    borderColor: 'rgba(70, 107, 150, 0.45)',
+    background: 'rgba(70, 107, 150, 0.10)',
+    textColor: 'label',
+  };
+};
+
+const StatusPill = (props: {
+  readonly label: string;
+  readonly value: ReactNode;
+  readonly tone?: ToneKey;
+}) => {
+  const { label, value, tone } = props;
+  const colors = getToneColors(tone);
+
+  return (
+    <Box
+      px={0.45}
+      py={0.28}
+      style={{
+        border: `1px solid ${colors.borderColor}`,
+        background: colors.background,
+        borderRadius: '999px',
+      }}
+    >
+      <Box as="span" color="label">
+        {label}:{' '}
+      </Box>
+      <Box as="span" color={colors.textColor}>
+        {value}
+      </Box>
+    </Box>
+  );
+};
+
+const WorkflowTrack = (props: {
+  readonly data: BackendData;
+  readonly workspaceTab: WorkspaceTabKey;
+}) => {
+  const { data, workspaceTab } = props;
+  const currentStep = getWorkflowStepKey(data, workspaceTab);
+  const currentIndex = WORKFLOW_STEP_ORDER.findIndex(
+    (step) => step.key === currentStep,
+  );
+
+  return (
+    <Flex wrap mx={-0.15}>
+      {WORKFLOW_STEP_ORDER.map((step, index) => {
+        const isActive = index === currentIndex;
+        const isDone = index < currentIndex;
+        const tone: ToneKey = isActive ? 'good' : isDone ? 'average' : 'label';
+
+        return (
+          <Flex.Item key={step.key} m={0.15}>
+            <StatusPill
+              label={isDone ? 'Готово' : isActive ? 'Сейчас' : 'Далее'}
+              value={step.label}
+              tone={tone}
+            />
+          </Flex.Item>
+        );
+      })}
     </Flex>
   );
 };
@@ -1134,7 +1422,7 @@ const CompactChoiceStrip = (props: {
   }
 
   return (
-    <Flex mx={-0.12}>
+    <Flex wrap mx={-0.12}>
       {options.map((option) => {
         const isSelected = `${option.value}` === `${selected}`;
         return (
@@ -1163,13 +1451,21 @@ const TopShellControlGroup = (props: {
   readonly label: string;
   readonly value?: ReactNode;
   readonly basis: string;
+  readonly minWidth?: string;
   readonly disabled?: boolean;
+  readonly grow?: boolean;
   readonly children: ReactNode;
 }) => {
-  const { label, value, basis, disabled, children } = props;
+  const { label, value, basis, minWidth, disabled, grow, children } = props;
 
   return (
-    <Flex.Item basis={basis} grow={false} shrink={0} m={0.16}>
+    <Flex.Item
+      basis={basis}
+      grow={grow === undefined ? true : grow}
+      shrink={1}
+      m={0.16}
+      style={{ minWidth: minWidth || basis }}
+    >
       <Box
         px={0.45}
         py={0.4}
@@ -1797,32 +2093,32 @@ const SharedModePanel = (props: {
     isHistoryTab || !hasGenerator || !sharedFields.length;
 
   return (
-    <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-      <Flex style={{ width: 'max-content', minWidth: '100%' }} mx={-0.16}>
+    <Box>
+      <Flex wrap mx={-0.16}>
         <TopShellControlGroup
           label="Форма"
           value={getTranslatedShapeLabel(selectedShape)}
-          basis="23rem"
+          basis="15rem"
+          minWidth="13.5rem"
           disabled={shapeDisabled}
         >
-          <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-            <ShapeOptionStrip
-              options={shapeOptions}
-              selected={selectedShape}
-              disabled={shapeDisabled}
-              buttonMinWidth="2.05rem"
-              onSelected={(value) =>
-                act('set_placement_shape', {
-                  shape: value,
-                })
-              }
-            />
-          </Box>
+          <ShapeOptionStrip
+            options={shapeOptions}
+            selected={selectedShape}
+            disabled={shapeDisabled}
+            buttonMinWidth="2.05rem"
+            onSelected={(value) =>
+              act('set_placement_shape', {
+                shape: value,
+              })
+            }
+          />
         </TopShellControlGroup>
 
         <TopShellControlGroup
           label="После клика"
-          basis="12rem"
+          basis="10.5rem"
+          minWidth="10.5rem"
           disabled={modeDisabled}
         >
           <CompactChoiceStrip
@@ -1847,7 +2143,8 @@ const SharedModePanel = (props: {
                 ? 'Взгляд'
                 : getTranslatedDirection(selectedDirection)
           }
-          basis="20.5rem"
+          basis="15rem"
+          minWidth="14rem"
           disabled={directionDisabled}
         >
           <>
@@ -1877,18 +2174,25 @@ const SharedModePanel = (props: {
             </Box>
           </>
         </TopShellControlGroup>
+      </Flex>
 
-        <TopShellControlGroup
-          label="Параметры"
-          value={sharedFields.length ? `${sharedFields.length}` : 'Нет'}
-          basis="22rem"
-          disabled={parametersDisabled}
-        >
-          {sharedFields.length ? (
-            <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-              <Flex wrap={false} mx={-0.18}>
+      {!!sharedFields.length && (
+        <Box mt={0.45}>
+          <Collapsible
+            title={`Доп. параметры (${sharedFields.length})`}
+            color={parametersDisabled ? 'label' : 'average'}
+            open={sharedFields.length <= 2 || data.click_mode_active}
+          >
+            <Box mt={0.1}>
+              <Flex wrap mx={-0.18}>
                 {sharedFields.map((field) => (
-                  <Flex.Item key={field.id} m={0.18}>
+                  <Flex.Item
+                    key={field.id}
+                    basis="12.5rem"
+                    grow
+                    m={0.18}
+                    style={{ minWidth: '10.5rem' }}
+                  >
                     <CompactFieldControl
                       field={field}
                       act={act}
@@ -1898,13 +2202,15 @@ const SharedModePanel = (props: {
                 ))}
               </Flex>
             </Box>
-          ) : (
-            <Box color="label" mt={0.35}>
-              Доп. параметры не нужны.
-            </Box>
-          )}
-        </TopShellControlGroup>
-      </Flex>
+          </Collapsible>
+        </Box>
+      )}
+
+      {!sharedFields.length && (
+        <Box color="label" mt={0.45}>
+          Дополнительные параметры для текущего режима не нужны.
+        </Box>
+      )}
     </Box>
   );
 };
@@ -2355,6 +2661,27 @@ const HistoryWorkspace = (props: {
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
+  const historyEntries = data.history_entries || [];
+  const historyMetrics = historyEntries.reduce(
+    (acc, entry) => {
+      const tone = toneForHistoryResult(entry.result);
+      acc.total += 1;
+      if (tone === 'good') {
+        acc.good += 1;
+      } else if (tone === 'average') {
+        acc.average += 1;
+      } else if (tone === 'bad') {
+        acc.bad += 1;
+      }
+      return acc;
+    },
+    {
+      total: 0,
+      good: 0,
+      average: 0,
+      bad: 0,
+    },
+  );
 
   return (
     <SurfaceCard
@@ -2383,22 +2710,89 @@ const HistoryWorkspace = (props: {
         </Flex>
       }
     >
-      {!data.last_changeset && !data.history_entries?.length && (
+      {!data.last_changeset && !historyEntries.length && (
         <Box color="label">Журнал пуст.</Box>
+      )}
+
+      {!!historyEntries.length && (
+        <Box mb={0.55}>
+          <Flex wrap mx={-0.2}>
+            <Flex.Item m={0.2}>
+              <StatusPill
+                label="Записей"
+                value={`${historyMetrics.total}`}
+                tone="label"
+              />
+            </Flex.Item>
+            <Flex.Item m={0.2}>
+              <StatusPill
+                label="Успех"
+                value={`${historyMetrics.good}`}
+                tone="good"
+              />
+            </Flex.Item>
+            <Flex.Item m={0.2}>
+              <StatusPill
+                label="Частично"
+                value={`${historyMetrics.average}`}
+                tone="average"
+              />
+            </Flex.Item>
+            <Flex.Item m={0.2}>
+              <StatusPill
+                label="Проблемы"
+                value={`${historyMetrics.bad}`}
+                tone="bad"
+              />
+            </Flex.Item>
+            <Flex.Item m={0.2}>
+              <StatusPill
+                label="Откат"
+                value={
+                  data.can_undo_last_operation
+                    ? 'Доступен'
+                    : data.can_cleanup_last_owned_effects
+                      ? 'Очистка'
+                      : 'Нет'
+                }
+                tone={
+                  data.can_undo_last_operation
+                    ? 'good'
+                    : data.can_cleanup_last_owned_effects
+                      ? 'average'
+                      : 'label'
+                }
+              />
+            </Flex.Item>
+          </Flex>
+        </Box>
       )}
 
       {!!data.last_changeset && (
         <Box
           p={0.45}
+          mb={historyEntries.length ? 0.55 : 0}
           style={{
-            border: '1px solid rgba(70, 107, 150, 0.45)',
-            background: 'rgba(70, 107, 150, 0.08)',
+            border: '1px solid rgba(70, 107, 150, 0.55)',
+            background: 'rgba(70, 107, 150, 0.12)',
             borderRadius: '4px',
           }}
         >
-          <Box bold mb={0.3}>
-            Последняя операция
-          </Box>
+          <Flex align="center" wrap mb={0.35}>
+            <Flex.Item grow basis="12rem">
+              <Box bold>Последняя операция</Box>
+              <Box color="label" mt={0.1}>
+                Быстрый срез по undo/callback surface.
+              </Box>
+            </Flex.Item>
+            <Flex.Item>
+              <StatusPill
+                label="Статус"
+                value={getTranslatedUndoStatus(data.last_changeset.undo_status)}
+                tone={getUndoTone(data.last_changeset.undo_status)}
+              />
+            </Flex.Item>
+          </Flex>
           <CompactStatusRow
             basis="32%"
             items={[
@@ -2434,9 +2828,9 @@ const HistoryWorkspace = (props: {
         </Box>
       )}
 
-      {!!data.history_entries?.length && (
-        <Box mt={0.55}>
-          {data.history_entries.map((entry, index) => (
+      {!!historyEntries.length && (
+        <Box>
+          {historyEntries.map((entry, index) => (
             <Collapsible
               key={`${entry.time}_${entry.generator_id}_${index}`}
               title={`${entry.time} · ${getGeneratorDisplayName(
@@ -2444,8 +2838,26 @@ const HistoryWorkspace = (props: {
                 entry.generator_id,
               )} · ${getHistoryResultText(entry.result)}`}
               color={toneForHistoryResult(entry.result)}
-              open={false}
+              open={index === 0}
             >
+              <Flex wrap mx={-0.18} mb={0.35}>
+                <Flex.Item m={0.18}>
+                  <StatusPill
+                    label="Результат"
+                    value={getHistoryResultText(entry.result)}
+                    tone={toneForHistoryResult(entry.result)}
+                  />
+                </Flex.Item>
+                {!!entry.undo_policy && (
+                  <Flex.Item m={0.18}>
+                    <StatusPill
+                      label="Откат"
+                      value={getTranslatedUndoStatus(entry.undo_status)}
+                      tone={getUndoTone(entry.undo_status)}
+                    />
+                  </Flex.Item>
+                )}
+              </Flex>
               <CompactStatusRow
                 basis="32%"
                 items={[
@@ -2510,6 +2922,14 @@ const EditorChrome = (props: {
   const actionsDisabled = !data.has_generator;
   const chromeTitle = toolbar.title;
   const chromeContext = toolbar.context;
+  const workflowHint = getWorkflowHintText(data, workspaceTab);
+  const summaryItems = buildChromeSummaryItems(data, workspaceTab);
+  const primaryActions = [
+    toolbar.previewAction,
+    toolbar.applyAction,
+    toolbar.placementAction,
+    toolbar.collectorAction,
+  ].filter((action): action is ToolbarAction => !!action);
 
   const renderAction = (action?: ToolbarAction, compact = false) => {
     if (!action) {
@@ -2541,14 +2961,15 @@ const EditorChrome = (props: {
         borderRadius: '4px',
       }}
     >
-      <Box px={0.65} py={0.45} style={{ minHeight: '4.25rem' }}>
-        <Box style={{ overflowX: 'auto', overflowY: 'hidden' }}>
-          <Flex
-            align="center"
-            mx={-0.25}
-            style={{ width: 'max-content', minWidth: '100%' }}
-          >
-            <Flex.Item grow basis="15rem" m={0.25}>
+      <Box px={0.65} py={0.5}>
+        <Flex align="stretch" wrap mx={-0.25}>
+          <Flex.Item grow basis="18rem" m={0.25}>
+            <Box
+              p={0.15}
+              style={{
+                minHeight: '100%',
+              }}
+            >
               <Box
                 bold
                 style={{
@@ -2564,59 +2985,60 @@ const EditorChrome = (props: {
                 mt={0.1}
                 style={{
                   minHeight: '1.1rem',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
                 }}
               >
                 {chromeContext || '\u00a0'}
               </Box>
-            </Flex.Item>
+              <Box mt={0.45}>
+                <WorkflowTrack data={data} workspaceTab={workspaceTab} />
+              </Box>
+            </Box>
+          </Flex.Item>
 
-            <Flex.Item basis="11.5rem" grow={false} shrink={0} m={0.25}>
-              <Box
-                color={toolbar.stateColor || 'label'}
-                px={0.5}
-                py={0.25}
-                style={{
-                  border: '1px solid rgba(70, 107, 150, 0.45)',
-                  background: 'rgba(70, 107, 150, 0.10)',
-                  borderRadius: '4px',
-                }}
-              >
+          <Flex.Item basis="15rem" grow m={0.25} style={{ minWidth: '14rem' }}>
+            <Box
+              px={0.55}
+              py={0.45}
+              style={{
+                minHeight: '100%',
+                border: '1px solid rgba(70, 107, 150, 0.45)',
+                background: 'rgba(70, 107, 150, 0.10)',
+                borderRadius: '4px',
+              }}
+            >
+              <Box color="label">Сейчас</Box>
+              <Box color={toolbar.stateColor || 'label'} bold mt={0.15}>
                 {toolbar.state}
               </Box>
-            </Flex.Item>
+              <Box color="label" mt={0.3}>
+                {workflowHint}
+              </Box>
+            </Box>
+          </Flex.Item>
 
-            <Flex.Item grow={false} shrink={0} m={0.25}>
-              <Flex
-                align="center"
-                mx={-0.15}
-                style={{ width: 'max-content', minWidth: '31rem' }}
-              >
-                {!!toolbar.previewAction && (
-                  <Flex.Item m={0.15}>
-                    {renderAction(toolbar.previewAction)}
-                  </Flex.Item>
-                )}
-                {!!toolbar.applyAction && (
-                  <Flex.Item m={0.15}>
-                    {renderAction(toolbar.applyAction)}
-                  </Flex.Item>
-                )}
-                {!!toolbar.placementAction && (
-                  <Flex.Item m={0.15}>
+          <Flex.Item basis="22rem" grow m={0.25} style={{ minWidth: '17rem' }}>
+            <Box
+              px={0.15}
+              py={0.1}
+              style={{
+                minHeight: '100%',
+              }}
+            >
+              <Box color="label" mb={0.25}>
+                Основные действия
+              </Box>
+              <Flex wrap mx={-0.15}>
+                {primaryActions.map((action) => (
+                  <Flex.Item key={action.action} m={0.15}>
                     {renderAction(
-                      toolbar.placementAction,
-                      data.click_mode_active,
+                      action,
+                      action.action === 'finish_placement_collection' ||
+                        data.click_mode_active,
                     )}
                   </Flex.Item>
-                )}
-                {!!toolbar.collectorAction && (
-                  <Flex.Item m={0.15}>
-                    {renderAction(toolbar.collectorAction, true)}
-                  </Flex.Item>
-                )}
+                ))}
+              </Flex>
+              <Flex wrap align="center" mx={-0.15} mt={0.35}>
                 {!!toolbar.undoAction && (
                   <Flex.Item m={0.15}>
                     {renderAction(toolbar.undoAction, true)}
@@ -2633,21 +3055,37 @@ const EditorChrome = (props: {
                         })
                       }
                     >
-                      Спрашивать перед применением
+                      Подтверждать применение
                     </Button.Checkbox>
                   </Flex.Item>
                 )}
               </Flex>
-            </Flex.Item>
-          </Flex>
-        </Box>
+            </Box>
+          </Flex.Item>
+        </Flex>
+
+        {!!summaryItems.length && (
+          <Box mt={0.45}>
+            <Flex wrap mx={-0.2}>
+              {summaryItems.map((item) => (
+                <Flex.Item key={item.label} m={0.2}>
+                  <StatusPill
+                    label={item.label}
+                    value={item.value}
+                    tone={item.tone}
+                  />
+                </Flex.Item>
+              ))}
+            </Flex>
+          </Box>
+        )}
       </Box>
 
       <Box
         px={0.65}
         py={0.45}
         style={{
-          minHeight: '6rem',
+          minHeight: '5rem',
           borderTop: '1px solid rgba(70, 107, 150, 0.35)',
         }}
       >
@@ -2825,7 +3263,7 @@ export const WorldEditPanel = () => {
   };
 
   return (
-    <Window title="World Edit Panel" width={920} height={620}>
+    <Window title="World Edit Panel" width={980} height={690}>
       <Window.Content>
         <WorkspacePage
           data={data}
