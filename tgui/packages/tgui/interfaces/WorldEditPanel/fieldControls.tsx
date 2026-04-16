@@ -136,6 +136,8 @@ const ShapeOptionStrip = (props: {
   readonly disabled?: boolean;
   readonly onSelected: (value: string) => void;
   readonly buttonMinWidth?: string;
+  readonly columns?: number;
+  readonly buttonSize?: string;
 }) => {
   const {
     options,
@@ -143,6 +145,8 @@ const ShapeOptionStrip = (props: {
     disabled,
     onSelected,
     buttonMinWidth = '2rem',
+    columns = 5,
+    buttonSize = '2rem',
   } = props;
   const availableValues = getPlacementOptionValueSet(options);
   const orderedValues = getOrderedShapeValues(options);
@@ -151,7 +155,7 @@ const ShapeOptionStrip = (props: {
     <Box
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
         gap: '0.25rem',
       }}
     >
@@ -165,6 +169,7 @@ const ShapeOptionStrip = (props: {
           <Button
             key={value}
             compact
+            verticalAlignContent="middle"
             selected={isSelected}
             color={isSelected ? 'good' : undefined}
             disabled={disabled || !isAvailable}
@@ -173,16 +178,20 @@ const ShapeOptionStrip = (props: {
             style={{
               width: '100%',
               minWidth: buttonMinWidth,
-              height: '2rem',
+              height: buttonSize,
               justifyContent: 'center',
             }}
           >
             <Box
               as="span"
               style={{
+                display: 'flex',
+                width: '100%',
+                height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
                 fontSize: '1.05rem',
                 lineHeight: '1',
-                display: 'inline-block',
                 minWidth: '1rem',
                 textAlign: 'center',
               }}

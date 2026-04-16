@@ -1,19 +1,12 @@
 import { type ReactNode } from 'react';
 
 import { Box, Flex } from '../../components';
-import {
-  CHROME_CONTROL_GROUP_HEIGHT,
-  WORKFLOW_STEP_ORDER,
-  WORKSPACE_GUTTER,
-} from './constants';
-import { getWorkflowStepKey } from './helpers';
+import { WORKSPACE_GUTTER } from './constants';
 import type {
-  BackendData,
   PreviewLegendItem,
   SummaryTile,
   SurfaceTone,
   ToneKey,
-  WorkspaceTabKey,
 } from './types';
 
 const CompactStatusRow = (props: {
@@ -93,37 +86,6 @@ const StatusPill = (props: {
         {value}
       </Box>
     </Box>
-  );
-};
-
-const WorkflowTrack = (props: {
-  readonly data: BackendData;
-  readonly workspaceTab: WorkspaceTabKey;
-}) => {
-  const { data, workspaceTab } = props;
-  const currentStep = getWorkflowStepKey(data, workspaceTab);
-  const currentIndex = WORKFLOW_STEP_ORDER.findIndex(
-    (step) => step.key === currentStep,
-  );
-
-  return (
-    <Flex wrap mx={-0.15}>
-      {WORKFLOW_STEP_ORDER.map((step, index) => {
-        const isActive = index === currentIndex;
-        const isDone = index < currentIndex;
-        const tone: ToneKey = isActive ? 'good' : isDone ? 'average' : 'label';
-
-        return (
-          <Flex.Item key={step.key} m={0.15}>
-            <StatusPill
-              label={isDone ? 'Готово' : isActive ? 'Сейчас' : 'Далее'}
-              value={step.label}
-              tone={tone}
-            />
-          </Flex.Item>
-        );
-      })}
-    </Flex>
   );
 };
 
@@ -208,56 +170,6 @@ const WorkspacePane = (props: {
   );
 };
 
-const TopShellControlGroup = (props: {
-  readonly label: string;
-  readonly value?: ReactNode;
-  readonly basis: string;
-  readonly minWidth?: string;
-  readonly disabled?: boolean;
-  readonly grow?: boolean;
-  readonly children: ReactNode;
-}) => {
-  const { label, value, basis, minWidth, disabled, grow, children } = props;
-
-  return (
-    <Flex.Item
-      basis={basis}
-      grow={grow === undefined ? true : grow}
-      shrink={1}
-      m={0.16}
-      style={{ minWidth: minWidth || basis }}
-    >
-      <Box
-        px={0.45}
-        py={0.4}
-        style={{
-          minHeight: CHROME_CONTROL_GROUP_HEIGHT,
-          border: '1px solid rgba(70, 107, 150, 0.55)',
-          background: disabled
-            ? 'rgba(70, 107, 150, 0.06)'
-            : 'rgba(70, 107, 150, 0.10)',
-          borderRadius: '4px',
-          opacity: disabled ? '0.82' : '1',
-        }}
-      >
-        <Flex align="center" mb={0.35}>
-          <Flex.Item grow>
-            <Box color="label">{label}</Box>
-          </Flex.Item>
-          {!!value && (
-            <Flex.Item>
-              <Box color={disabled ? 'label' : 'white'} bold>
-                {value}
-              </Box>
-            </Flex.Item>
-          )}
-        </Flex>
-        {children}
-      </Box>
-    </Flex.Item>
-  );
-};
-
 const getSurfaceColors = (tone?: SurfaceTone) => ({
   borderColor:
     tone === 'good'
@@ -320,8 +232,6 @@ export {
   PreviewLegend,
   StatusPill,
   SurfaceCard,
-  TopShellControlGroup,
-  WorkflowTrack,
   WorkspaceGrid,
   WorkspacePane,
 };

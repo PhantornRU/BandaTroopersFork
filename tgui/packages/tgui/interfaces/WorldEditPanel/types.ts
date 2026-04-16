@@ -195,12 +195,6 @@ export type ShapeGlyphSpec = {
 };
 
 export type WorkspaceTabKey = 'editor' | 'history';
-export type WorkflowStepKey =
-  | 'select'
-  | 'configure'
-  | 'preview'
-  | 'apply'
-  | 'history';
 export type ToneKey = SurfaceTone | 'label';
 
 export type ToolbarAction = {
@@ -211,11 +205,7 @@ export type ToolbarAction = {
   payload?: Record<string, unknown>;
 };
 
-export type ToolbarState = {
-  title: string;
-  state: string;
-  stateColor?: string;
-  context?: string;
+export type ToolbarActions = {
   previewAction?: ToolbarAction;
   applyAction?: ToolbarAction;
   placementAction?: ToolbarAction;

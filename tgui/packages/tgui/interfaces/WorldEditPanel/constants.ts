@@ -4,7 +4,6 @@ import type {
   GeneratorEntry,
   PlacementOption,
   ShapeGlyphSpec,
-  WorkflowStepKey,
 } from './types';
 
 export const EMPTY_LABEL = 'Не задано';
@@ -16,17 +15,6 @@ const TOOL_TAB_ORDER = [
   'blueprint_stamp',
   'outpost_radius',
   'destruction_pack',
-];
-
-export const WORKFLOW_STEP_ORDER: Array<{
-  key: WorkflowStepKey;
-  label: string;
-}> = [
-  { key: 'select', label: 'Выбор' },
-  { key: 'configure', label: 'Настройка' },
-  { key: 'preview', label: 'Предпросмотр' },
-  { key: 'apply', label: 'Применение' },
-  { key: 'history', label: 'Журнал' },
 ];
 
 export const buildOrderedToolTabs = (categories: GeneratorCategory[] = []) => {
@@ -157,8 +145,6 @@ export const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
 };
 
 export const PLACEMENT_SHAPE_ORDER = Object.keys(PLACEMENT_SHAPE_LABELS);
-export const CHROME_CONTROL_GROUP_HEIGHT = '4.9rem';
-
 export const DEFAULT_PLACEMENT_MODE_OPTIONS: ChoiceOption[] = [
   {
     value: 'single',

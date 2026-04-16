@@ -426,7 +426,7 @@
 		placement_mode = "single"
 		placement_shape = current_generator?.get_default_placement_shape() || WORLD_EDIT_SHAPE_POINT
 		placement_dir = current_generator?.get_default_placement_direction() || NORTH
-		placement_dir_uses_facing = FALSE
+		placement_dir_uses_facing = TRUE
 
 /datum/world_edit_manager/proc/sync_click_intercept_state()
 	if(holder?.click_intercept == src)

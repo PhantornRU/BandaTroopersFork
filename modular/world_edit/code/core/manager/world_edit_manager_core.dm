@@ -36,7 +36,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/placement_mode = "single"
 	var/placement_shape = WORLD_EDIT_SHAPE_POINT
 	var/placement_dir = NORTH
-	var/placement_dir_uses_facing = FALSE
+	var/placement_dir_uses_facing = TRUE
 	var/turf/placement_anchor_turf
 
 /datum/world_edit_manager/New(client/new_holder)

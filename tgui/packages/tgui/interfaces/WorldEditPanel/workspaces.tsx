@@ -340,7 +340,7 @@ const DestructionPackWorkspace = (props: {
       )}
 
       {(!!visibleAreaFields.length || !!visibleMovementFields.length) && (
-        <SurfaceCard title="Безопасная зона" subtitle="Без взрыва и урона">
+        <SurfaceCard title="Безопасная зона">
           <WorkspaceGrid>
             {!!visibleMovementFields.length && (
               <WorkspacePane
@@ -381,7 +381,6 @@ const DestructionPackWorkspace = (props: {
           <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
               title="Взрыв"
-              subtitle={blastEnabled ? 'Откат ограничен' : undefined}
               fields={blastFields}
               act={act}
               tone={blastEnabled ? 'bad' : 'default'}
@@ -390,9 +389,6 @@ const DestructionPackWorkspace = (props: {
           <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
               title="Структурный урон"
-              subtitle={
-                damageProfile !== 'none' ? 'Откат ограничен' : undefined
-              }
               fields={damageFields}
               act={act}
               tone={damageProfile !== 'none' ? 'bad' : 'default'}
@@ -449,10 +445,6 @@ const GenericToolWorkspace = (props: {
           groupNames={groupNames}
           act={act}
         />
-      )}
-
-      {!data.has_inline_fields && showPlacementSetup && (
-        <Box color="label">Управление режимом находится выше.</Box>
       )}
     </>
   );
@@ -615,9 +607,6 @@ const HistoryWorkspace = (props: {
           <Flex align="center" wrap mb={0.35}>
             <Flex.Item grow basis="12rem">
               <Box bold>Последняя операция</Box>
-              <Box color="label" mt={0.1}>
-                Быстрый срез по undo/callback surface.
-              </Box>
             </Flex.Item>
             <Flex.Item>
               <StatusPill
@@ -771,17 +760,15 @@ const WorkspacePage = (props: {
       />
 
       {!data.has_generator && !!data.categories?.length && (
-        <SurfaceCard title="Открываем инструмент">
-          <Box color="label">
-            Первый доступный инструмент подгружается автоматически.
-          </Box>
-        </SurfaceCard>
+        <Box color="label" mt={0.1}>
+          Загрузка...
+        </Box>
       )}
 
       {!data.has_generator && !data.categories?.length && (
-        <SurfaceCard title="Выберите инструмент">
-          <Box color="label">Шаблон, форпост, разрушение.</Box>
-        </SurfaceCard>
+        <Box color="label" mt={0.1}>
+          Нет инструментов.
+        </Box>
       )}
 
       {!!data.has_generator &&

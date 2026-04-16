@@ -1,30 +1,20 @@
-import { Box, Button, Collapsible, Flex, Tabs } from '../../components';
+import type { ReactNode } from 'react';
+
+import { Box, Button, Collapsible, Flex, Icon, Tabs } from '../../components';
 import {
   DEFAULT_DIRECTION_OPTIONS,
   DEFAULT_PLACEMENT_MODE_OPTIONS,
   DEFAULT_POINT_SHAPE_OPTION,
   TOOL_PICKER_LABELS,
 } from './constants';
+import { CompactFieldControl, ShapeOptionStrip } from './fieldControls';
 import {
-  CompactChoiceStrip,
-  CompactFieldControl,
-  ShapeOptionStrip,
-} from './fieldControls';
-import {
-  buildChromeSummaryItems,
-  getBlueprintToolbarState,
-  getCurrentToolTitle,
   getField,
   getFieldsById,
-  getPlacementStateLine,
-  getToolbarContextLine,
   getTranslatedDirection,
   getTranslatedPlacementMode,
-  getTranslatedShapeLabel,
-  getWorkflowHintText,
   isBlueprintToolBlocked,
 } from './helpers';
-import { StatusPill, TopShellControlGroup, WorkflowTrack } from './primitives';
 import type {
   ActFn,
   BackendData,
@@ -32,29 +22,63 @@ import type {
   GeneratorEntry,
   PreviewLegendItem,
   ToolbarAction,
-  ToolbarState,
+  ToolbarActions,
   WorkspaceTabKey,
 } from './types';
 
-const getToolbarState = (data: BackendData): ToolbarState => {
-  const title = getCurrentToolTitle(data);
-  if (!data.has_generator && data.categories?.length) {
-    return {
-      title: 'World Edit',
-      state: 'Открываем инструмент...',
-      stateColor: 'label',
-    };
-  }
+const CHROME_SQUARE_BUTTON_SIZE = '1.9rem';
+const CHROME_ACTION_BUTTON_MIN_WIDTH = '6.25rem';
+const CHROME_CONTROL_BUTTON_WIDTH = '6.6rem';
+const CHROME_CONTROL_BUTTON_HEIGHT = '1.45rem';
+const CHROME_DIRECTION_BUTTON_GAP = '0.25rem';
+const CHROME_DIRECTION_COLUMN_WIDTH = `calc(${CHROME_SQUARE_BUTTON_SIZE} * 2 + ${CHROME_DIRECTION_BUTTON_GAP})`;
+const CHROME_CONTROL_COLUMN_PADDING = '0.85rem';
+const CHROME_PLACEMENT_COLUMN_GAP = '1.15rem';
+const CHROME_PLACEMENT_SECTION_GAP = '0.22rem';
+const CHROME_SHARED_CENTER_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center' as const,
+  lineHeight: '1',
+};
+const CHROME_ACTION_BUTTON_STYLE = {
+  ...CHROME_SHARED_CENTER_STYLE,
+  minWidth: CHROME_ACTION_BUTTON_MIN_WIDTH,
+  minHeight: CHROME_SQUARE_BUTTON_SIZE,
+  height: CHROME_SQUARE_BUTTON_SIZE,
+  padding: '0 0.55rem',
+};
+const CHROME_ICON_BUTTON_STYLE = {
+  ...CHROME_SHARED_CENTER_STYLE,
+  width: CHROME_SQUARE_BUTTON_SIZE,
+  minWidth: CHROME_SQUARE_BUTTON_SIZE,
+  height: CHROME_SQUARE_BUTTON_SIZE,
+  minHeight: CHROME_SQUARE_BUTTON_SIZE,
+  padding: '0',
+};
+const CHROME_CONTROL_BUTTON_STYLE = {
+  ...CHROME_SHARED_CENTER_STYLE,
+  width: CHROME_CONTROL_BUTTON_WIDTH,
+  minWidth: CHROME_CONTROL_BUTTON_WIDTH,
+  maxWidth: CHROME_CONTROL_BUTTON_WIDTH,
+  minHeight: CHROME_CONTROL_BUTTON_HEIGHT,
+  height: CHROME_CONTROL_BUTTON_HEIGHT,
+  padding: '0 0.4rem',
+  fontSize: '0.92rem',
+};
+const DIRECTION_BUTTON_LABELS: Record<string, string> = {
+  north: 'С',
+  east: 'В',
+  south: 'Ю',
+  west: 'З',
+};
 
+const getToolbarActions = (data: BackendData): ToolbarActions => {
   if (!data.has_generator) {
-    return {
-      title: 'World Edit',
-      state: 'Инструмент не выбран.',
-      stateColor: 'label',
-    };
+    return {};
   }
 
-  const blueprintState = getBlueprintToolbarState(data);
   const isToolBlocked = isBlueprintToolBlocked(data);
   const hasPlacementControls =
     data.placement_supported ||
@@ -136,11 +160,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
     disabled: !data.can_undo_last_operation,
   };
 
-  const baseState: ToolbarState = {
-    title,
-    state: 'Готово.',
-    stateColor: 'label',
-    context: getToolbarContextLine(data),
+  return {
     previewAction,
     applyAction: effectiveApplyAction,
     placementAction: data.click_mode_active
@@ -148,64 +168,6 @@ const getToolbarState = (data: BackendData): ToolbarState => {
       : placePreviewAction || startPlacementAction,
     collectorAction,
     undoAction,
-  };
-
-  if (data.last_ui_error) {
-    return {
-      ...baseState,
-      state: data.last_ui_error,
-      stateColor: 'bad',
-    };
-  }
-
-  if (blueprintState) {
-    return {
-      ...baseState,
-      state: blueprintState.state,
-      stateColor: blueprintState.color,
-    };
-  }
-
-  if (data.click_mode_active) {
-    return {
-      ...baseState,
-      state: getPlacementStateLine(data),
-      stateColor:
-        data.placement_interaction_kind === 'collector' &&
-        data.can_finish_placement_collection
-          ? 'good'
-          : 'average',
-    };
-  }
-
-  if (data.requires_preview_before_apply && !data.preview_valid) {
-    return {
-      ...baseState,
-      state: data.preview_message || 'Нет предпросмотра.',
-      stateColor: data.preview_message ? 'bad' : 'label',
-    };
-  }
-
-  if (data.preview_valid) {
-    return {
-      ...baseState,
-      state: 'Предпросмотр готов.',
-      stateColor: 'good',
-    };
-  }
-
-  if (data.current_generator_supports_preview) {
-    return {
-      ...baseState,
-      state: 'Нет предпросмотра.',
-      stateColor: 'label',
-    };
-  }
-
-  return {
-    ...baseState,
-    state: 'Можно применить.',
-    stateColor: 'good',
   };
 };
 
@@ -281,10 +243,235 @@ const getPlacementShapeOptionsForShell = (data: BackendData) => {
 
 const getPlacementDirectionChoices = (data: BackendData): ChoiceOption[] => {
   const options = (data.placement_dir_options || []).map((option) => ({
-    value: option.value,
+    value: `${option.value || option.label || ''}`.trim().toLowerCase(),
     displayText: getTranslatedDirection(option.value || option.label),
   }));
   return options.length ? options : DEFAULT_DIRECTION_OPTIONS;
+};
+
+const hasSharedModeContent = (
+  data: BackendData,
+  workspaceTab: WorkspaceTabKey,
+) => {
+  return workspaceTab !== 'history' && !!data.has_generator;
+};
+
+const ControlSectionLabel = (props: { readonly children: ReactNode }) => (
+  <Box color="label" mb={0.18}>
+    {props.children}
+  </Box>
+);
+
+const FillButtonText = (props: { readonly children: string }) => (
+  <Box
+    as="span"
+    style={{
+      display: 'block',
+      width: '100%',
+      lineHeight: '1',
+      textAlign: 'center',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    {props.children}
+  </Box>
+);
+
+const InlineButtonText = (props: { readonly children: string }) => (
+  <Box
+    as="span"
+    style={{
+      display: 'inline-block',
+      lineHeight: '1',
+      textAlign: 'center',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    {props.children}
+  </Box>
+);
+
+const CenteredIcon = (props: { readonly name: string }) => (
+  <Box
+    as="span"
+    style={{
+      display: 'flex',
+      width: '100%',
+      height: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+    }}
+  >
+    <Icon
+      name={props.name}
+      style={{
+        marginLeft: '0',
+        marginRight: '0',
+        minWidth: '0',
+      }}
+    />
+  </Box>
+);
+
+const CompactIconLabel = (props: {
+  readonly icon: string;
+  readonly label: string;
+}) => (
+  <Box
+    as="span"
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.25rem',
+      width: '100%',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    <Icon
+      name={props.icon}
+      style={{
+        marginLeft: '0',
+        marginRight: '0',
+        minWidth: '1rem',
+      }}
+    />
+    <InlineButtonText>{props.label}</InlineButtonText>
+  </Box>
+);
+
+const CompactToggleButton = (props: {
+  readonly checked: boolean;
+  readonly label: string;
+  readonly disabled?: boolean;
+  readonly onClick: () => void;
+}) => (
+  <Button
+    compact
+    verticalAlignContent="middle"
+    selected={props.checked}
+    color={props.checked ? 'good' : 'transparent'}
+    disabled={props.disabled}
+    onClick={props.onClick}
+    style={CHROME_CONTROL_BUTTON_STYLE}
+  >
+    <CompactIconLabel
+      icon={props.checked ? 'check-square-o' : 'square-o'}
+      label={props.label}
+    />
+  </Button>
+);
+
+const CompactStackedChoiceButtons = (props: {
+  readonly options: ChoiceOption[];
+  readonly selected: string;
+  readonly disabled?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => (
+  <Box
+    style={{
+      display: 'grid',
+      rowGap: '0.18rem',
+      justifyItems: 'stretch',
+    }}
+  >
+    {props.options.map((option) => {
+      const isSelected = `${option.value}` === `${props.selected}`;
+      return (
+        <Button
+          key={option.value}
+          compact
+          verticalAlignContent="middle"
+          selected={isSelected}
+          color={isSelected ? 'good' : undefined}
+          disabled={props.disabled}
+          onClick={() => props.onSelected(option.value)}
+          style={CHROME_CONTROL_BUTTON_STYLE}
+        >
+          <FillButtonText>{option.displayText}</FillButtonText>
+        </Button>
+      );
+    })}
+  </Box>
+);
+
+const DirectionCompass = (props: {
+  readonly options: ChoiceOption[];
+  readonly selected: string;
+  readonly usesFacing: boolean;
+  readonly disabled?: boolean;
+  readonly onSelected: (value: string) => void;
+}) => {
+  const { options, selected, usesFacing, disabled, onSelected } = props;
+  const availableValues = new Set(
+    options.map((option) => `${option.value}`.trim().toLowerCase()),
+  );
+  const usingFacing = !disabled && usesFacing;
+  const effectiveSelected = `${selected}`.trim().toLowerCase();
+
+  const renderDirectionButton = (value: string) => {
+    if (!availableValues.has(value)) {
+      return null;
+    }
+
+    return (
+      <Button
+        key={value}
+        compact
+        verticalAlignContent="middle"
+        selected={!usingFacing && effectiveSelected === value}
+        color={!usingFacing && effectiveSelected === value ? 'good' : undefined}
+        disabled={disabled || usingFacing}
+        tooltip={getTranslatedDirection(value)}
+        onClick={() => onSelected(value)}
+        style={CHROME_ICON_BUTTON_STYLE}
+      >
+        <Box
+          as="span"
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1rem',
+            lineHeight: '1',
+          }}
+        >
+          {DIRECTION_BUTTON_LABELS[value] || getTranslatedDirection(value)}
+        </Box>
+      </Button>
+    );
+  };
+
+  return (
+    <Box
+      style={{
+        width: CHROME_DIRECTION_COLUMN_WIDTH,
+        display: 'grid',
+        justifyItems: 'center',
+        rowGap: CHROME_DIRECTION_BUTTON_GAP,
+      }}
+    >
+      <Box style={{ display: 'flex', justifyContent: 'center' }}>
+        {renderDirectionButton('north')}
+      </Box>
+      <Box
+        style={{
+          display: 'grid',
+          gridAutoFlow: 'column',
+          gap: CHROME_DIRECTION_BUTTON_GAP,
+        }}
+      >
+        {renderDirectionButton('west')}
+        {renderDirectionButton('east')}
+      </Box>
+      <Box style={{ display: 'flex', justifyContent: 'center' }}>
+        {renderDirectionButton('south')}
+      </Box>
+    </Box>
+  );
 };
 
 const SharedModePanel = (props: {
@@ -301,141 +488,177 @@ const SharedModePanel = (props: {
   const sharedFields = getSharedChromeFields(data).filter(
     (field) => field.visible !== false,
   );
-  const selectedShape =
-    data.current_generator_id === 'destruction_pack'
-      ? 'point'
-      : `${data.placement_shape || shapeOptions[0]?.value || 'point'}`;
+  const selectedShape = `${data.placement_shape || shapeOptions[0]?.value || 'point'}`;
   const selectedMode = `${data.placement_mode || modeOptions[0]?.value || 'single'}`;
-  const selectedDirection = `${data.placement_dir || directionOptions[0]?.value || 'north'}`;
-  const shapeDisabled =
-    isHistoryTab ||
-    !hasGenerator ||
-    !data.placement_shape_supported ||
-    data.current_generator_id === 'destruction_pack';
-  const modeDisabled =
-    isHistoryTab || !hasGenerator || !data.placement_supported;
-  const directionDisabled =
-    isHistoryTab || !hasGenerator || !data.placement_supports_direction;
-  const parametersDisabled =
-    isHistoryTab || !hasGenerator || !sharedFields.length;
+  const selectedDirection =
+    `${data.placement_dir || directionOptions[0]?.value || 'north'}`
+      .trim()
+      .toLowerCase();
+  const showShapeSection = !isHistoryTab && hasGenerator;
+  const showModeSection = !isHistoryTab && hasGenerator;
+  const showDirectionSection = !isHistoryTab && hasGenerator;
+  const hasTopControls =
+    showShapeSection || showModeSection || showDirectionSection;
+
+  if (!hasTopControls && !sharedFields.length) {
+    return null;
+  }
 
   return (
     <Box>
-      <Flex wrap mx={-0.16}>
-        <TopShellControlGroup
-          label="Форма"
-          value={getTranslatedShapeLabel(selectedShape)}
-          basis="15rem"
-          minWidth="13.5rem"
-          disabled={shapeDisabled}
-        >
-          <ShapeOptionStrip
-            options={shapeOptions}
-            selected={selectedShape}
-            disabled={shapeDisabled}
-            buttonMinWidth="2.05rem"
-            onSelected={(value) =>
-              act('set_placement_shape', {
-                shape: value,
-              })
-            }
-          />
-        </TopShellControlGroup>
-
-        <TopShellControlGroup
-          label="После клика"
-          basis="10.5rem"
-          minWidth="10.5rem"
-          disabled={modeDisabled}
-        >
-          <CompactChoiceStrip
-            options={modeOptions}
-            selected={selectedMode}
-            disabled={modeDisabled}
-            buttonMinWidth="5rem"
-            onSelected={(value) =>
-              act('set_placement_mode', {
-                mode: value,
-              })
-            }
-          />
-        </TopShellControlGroup>
-
-        <TopShellControlGroup
-          label="Направление"
-          value={
-            directionDisabled
-              ? 'Недоступно'
-              : data.placement_dir_uses_facing
-                ? 'Взгляд'
-                : getTranslatedDirection(selectedDirection)
-          }
-          basis="15rem"
-          minWidth="14rem"
-          disabled={directionDisabled}
-        >
-          <>
-            <Button.Checkbox
-              checked={data.placement_dir_uses_facing}
-              disabled={directionDisabled}
-              onClick={() =>
-                act('set_placement_dir_uses_facing', {
-                  enabled: !data.placement_dir_uses_facing,
-                })
-              }
+      {hasTopControls && (
+        <Box style={{ display: 'inline-block', maxWidth: '100%' }}>
+          <Box
+            p={0.25}
+            style={{
+              display: 'inline-grid',
+              maxWidth: '100%',
+              border: '1px solid rgba(70, 107, 150, 0.55)',
+              background: 'rgba(70, 107, 150, 0.10)',
+              borderRadius: '4px',
+            }}
+          >
+            <Box
+              style={{
+                display: 'inline-grid',
+                gridTemplateColumns: 'max-content max-content',
+                columnGap: CHROME_PLACEMENT_COLUMN_GAP,
+                alignItems: 'start',
+              }}
             >
-              По направлению взгляда
-            </Button.Checkbox>
-            <Box mt={0.3}>
-              <CompactChoiceStrip
-                options={directionOptions}
-                selected={selectedDirection}
-                disabled={directionDisabled || data.placement_dir_uses_facing}
-                buttonMinWidth="4.65rem"
-                onSelected={(value) =>
-                  act('set_placement_dir', {
-                    direction: value,
-                  })
-                }
-              />
+              {showShapeSection && !!selectedShape && (
+                <Box>
+                  <ControlSectionLabel>Форма</ControlSectionLabel>
+                  <ShapeOptionStrip
+                    options={shapeOptions}
+                    selected={selectedShape}
+                    disabled={!data.placement_shape_supported}
+                    buttonMinWidth={CHROME_SQUARE_BUTTON_SIZE}
+                    buttonSize={CHROME_SQUARE_BUTTON_SIZE}
+                    columns={5}
+                    onSelected={(value) =>
+                      act('set_placement_shape', {
+                        shape: value,
+                      })
+                    }
+                  />
+                </Box>
+              )}
+
+              {(showModeSection || showDirectionSection) && (
+                <Box
+                  style={{
+                    minWidth: CHROME_CONTROL_BUTTON_WIDTH,
+                    paddingLeft: CHROME_CONTROL_COLUMN_PADDING,
+                    borderLeft: '1px solid rgba(70, 107, 150, 0.35)',
+                    display: 'inline-grid',
+                    gridTemplateColumns: `${CHROME_CONTROL_BUTTON_WIDTH} ${CHROME_DIRECTION_COLUMN_WIDTH}`,
+                    gridTemplateAreas: `
+                      "directionLabel compass"
+                      "directionToggle compass"
+                      "modeLabel compass"
+                      "modeButtons compass"
+                    `,
+                    columnGap: CHROME_PLACEMENT_COLUMN_GAP,
+                    rowGap: CHROME_PLACEMENT_SECTION_GAP,
+                    alignItems: 'start',
+                  }}
+                >
+                  {showDirectionSection && (
+                    <>
+                      <Box style={{ gridArea: 'directionLabel' }}>
+                        <ControlSectionLabel>Направление</ControlSectionLabel>
+                      </Box>
+                      <Box style={{ gridArea: 'directionToggle' }}>
+                        <CompactToggleButton
+                          checked={
+                            !!(
+                              data.placement_supports_direction &&
+                              data.placement_dir_uses_facing
+                            )
+                          }
+                          label="По взгляду"
+                          disabled={!data.placement_supports_direction}
+                          onClick={() =>
+                            act('set_placement_dir_uses_facing', {
+                              enabled: !data.placement_dir_uses_facing,
+                            })
+                          }
+                        />
+                      </Box>
+                  )}
+
+                  {showModeSection && (
+                    <Box pt={showDirectionSection ? 0.1 : 0}>
+                        <ControlSectionLabel>После клика</ControlSectionLabel>
+                      </Box>
+                      <Box style={{ gridArea: 'modeButtons' }}>
+                        <CompactStackedChoiceButtons
+                          options={modeOptions}
+                          selected={selectedMode}
+                          disabled={!data.placement_supported}
+                          onSelected={(value) =>
+                            act('set_placement_mode', {
+                              mode: value,
+                            })
+                          }
+                        />
+                      </Box>
+                    </>
+                  )}
+
+                  {showDirectionSection && (
+                    <Box
+                      style={{
+                        gridArea: 'compass',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <DirectionCompass
+                        options={directionOptions}
+                        selected={selectedDirection}
+                        usesFacing={data.placement_dir_uses_facing}
+                        disabled={!data.placement_supports_direction}
+                        onSelected={(value) =>
+                          act('set_placement_dir', {
+                            direction: value,
+                          })
+                        }
+                      />
+                    </Box>
+                  )}
+                </Box>
+              )}
             </Box>
-          </>
-        </TopShellControlGroup>
-      </Flex>
+          </Box>
+        </Box>
+      )}
 
       {!!sharedFields.length && (
-        <Box mt={0.45}>
+        <Box mt={0.35}>
           <Collapsible
             title={`Доп. параметры (${sharedFields.length})`}
-            color={parametersDisabled ? 'label' : 'average'}
+            color="average"
             open={sharedFields.length <= 2 || data.click_mode_active}
           >
             <Box mt={0.1}>
-              <Flex wrap mx={-0.18}>
+              <Flex wrap mx={-0.16}>
                 {sharedFields.map((field) => (
                   <Flex.Item
                     key={field.id}
                     basis="12.5rem"
                     grow
-                    m={0.18}
+                    m={0.16}
                     style={{ minWidth: '10.5rem' }}
                   >
-                    <CompactFieldControl
-                      field={field}
-                      act={act}
-                      disabled={parametersDisabled}
-                    />
+                    <CompactFieldControl field={field} act={act} />
                   </Flex.Item>
                 ))}
               </Flex>
             </Box>
           </Collapsible>
-        </Box>
-      )}
-
-      {!sharedFields.length && (
-        <Box color="label" mt={0.45}>
-          Дополнительные параметры для текущего режима не нужны.
         </Box>
       )}
     </Box>
@@ -458,12 +681,10 @@ const EditorChrome = (props: {
     onSelectGenerator,
     onSelectWorkspaceTab,
   } = props;
-  const toolbar = getToolbarState(data);
+  const toolbar = getToolbarActions(data);
   const actionsDisabled = !data.has_generator;
-  const chromeTitle = toolbar.title;
-  const chromeContext = toolbar.context;
-  const workflowHint = getWorkflowHintText(data, workspaceTab);
-  const summaryItems = buildChromeSummaryItems(data, workspaceTab);
+  const showSharedModeShell = hasSharedModeContent(data, workspaceTab);
+  const chromeError = `${data.last_ui_error || ''}`.trim();
   const primaryActions = [
     toolbar.previewAction,
     toolbar.applyAction,
@@ -479,15 +700,59 @@ const EditorChrome = (props: {
     return (
       <Button
         compact={compact}
+        verticalAlignContent="middle"
         color={action.color}
         disabled={actionsDisabled || action.disabled}
         selected={action.action === 'clear_preview'}
+        tooltip={compact ? action.label : undefined}
         onClick={() => act(action.action, action.payload)}
+        style={CHROME_ACTION_BUTTON_STYLE}
       >
         {action.label}
       </Button>
     );
   };
+
+  const renderUndoAction = (action?: ToolbarAction) => {
+    if (!action) {
+      return null;
+    }
+
+    return (
+      <Button
+        compact
+        verticalAlignContent="middle"
+        color={action.color}
+        disabled={actionsDisabled || action.disabled}
+        tooltip={action.label}
+        onClick={() => act(action.action, action.payload)}
+        style={CHROME_ICON_BUTTON_STYLE}
+      >
+        <CenteredIcon name="undo" />
+      </Button>
+    );
+  };
+
+  const renderConfirmAction = () => (
+    <Button
+      compact
+      verticalAlignContent="middle"
+      selected={data.confirm_before_apply}
+      color={data.confirm_before_apply ? 'good' : 'transparent'}
+      disabled={actionsDisabled}
+      tooltip="Подтверждать применение"
+      onClick={() =>
+        act('set_confirm_before_apply', {
+          enabled: !data.confirm_before_apply,
+        })
+      }
+      style={CHROME_ICON_BUTTON_STYLE}
+    >
+      <CenteredIcon
+        name={data.confirm_before_apply ? 'check-square-o' : 'square-o'}
+      />
+    </Button>
+  );
 
   return (
     <Box
@@ -501,143 +766,56 @@ const EditorChrome = (props: {
         borderRadius: '4px',
       }}
     >
-      <Box px={0.65} py={0.5}>
-        <Flex align="stretch" wrap mx={-0.25}>
-          <Flex.Item grow basis="18rem" m={0.25}>
-            <Box
-              p={0.15}
-              style={{
-                minHeight: '100%',
-              }}
-            >
-              <Box
-                bold
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {chromeTitle}
-              </Box>
-              <Box
-                color="label"
-                mt={0.1}
-                style={{
-                  minHeight: '1.1rem',
-                }}
-              >
-                {chromeContext || '\u00a0'}
-              </Box>
-              <Box mt={0.45}>
-                <WorkflowTrack data={data} workspaceTab={workspaceTab} />
-              </Box>
-            </Box>
-          </Flex.Item>
-
-          <Flex.Item basis="15rem" grow m={0.25} style={{ minWidth: '14rem' }}>
-            <Box
-              px={0.55}
-              py={0.45}
-              style={{
-                minHeight: '100%',
-                border: '1px solid rgba(70, 107, 150, 0.45)',
-                background: 'rgba(70, 107, 150, 0.10)',
-                borderRadius: '4px',
-              }}
-            >
-              <Box color="label">Сейчас</Box>
-              <Box color={toolbar.stateColor || 'label'} bold mt={0.15}>
-                {toolbar.state}
-              </Box>
-              <Box color="label" mt={0.3}>
-                {workflowHint}
-              </Box>
-            </Box>
-          </Flex.Item>
-
-          <Flex.Item basis="22rem" grow m={0.25} style={{ minWidth: '17rem' }}>
-            <Box
-              px={0.15}
-              py={0.1}
-              style={{
-                minHeight: '100%',
-              }}
-            >
-              <Box color="label" mb={0.25}>
-                Основные действия
-              </Box>
-              <Flex wrap mx={-0.15}>
-                {primaryActions.map((action) => (
-                  <Flex.Item key={action.action} m={0.15}>
-                    {renderAction(
-                      action,
-                      action.action === 'finish_placement_collection' ||
-                        data.click_mode_active,
-                    )}
-                  </Flex.Item>
-                ))}
-              </Flex>
-              <Flex wrap align="center" mx={-0.15} mt={0.35}>
-                {!!toolbar.undoAction && (
-                  <Flex.Item m={0.15}>
-                    {renderAction(toolbar.undoAction, true)}
-                  </Flex.Item>
-                )}
-                {data.has_generator && (
-                  <Flex.Item m={0.15}>
-                    <Button.Checkbox
-                      checked={data.confirm_before_apply}
-                      disabled={actionsDisabled}
-                      onClick={() =>
-                        act('set_confirm_before_apply', {
-                          enabled: !data.confirm_before_apply,
-                        })
-                      }
-                    >
-                      Подтверждать применение
-                    </Button.Checkbox>
-                  </Flex.Item>
-                )}
-              </Flex>
-            </Box>
-          </Flex.Item>
+      <Box px={0.5} py={0.3}>
+        <Flex wrap align="center" mx={-0.1}>
+          {primaryActions.map((action) => (
+            <Flex.Item key={action.action} m={0.1}>
+              {renderAction(action, true)}
+            </Flex.Item>
+          ))}
+          {!!toolbar.undoAction && (
+            <Flex.Item m={0.1}>
+              {renderUndoAction(toolbar.undoAction)}
+            </Flex.Item>
+          )}
+          {data.has_generator && (
+            <Flex.Item m={0.1}>{renderConfirmAction()}</Flex.Item>
+          )}
         </Flex>
-
-        {!!summaryItems.length && (
-          <Box mt={0.45}>
-            <Flex wrap mx={-0.2}>
-              {summaryItems.map((item) => (
-                <Flex.Item key={item.label} m={0.2}>
-                  <StatusPill
-                    label={item.label}
-                    value={item.value}
-                    tone={item.tone}
-                  />
-                </Flex.Item>
-              ))}
-            </Flex>
-          </Box>
-        )}
       </Box>
 
-      <Box
-        px={0.65}
-        py={0.45}
-        style={{
-          minHeight: '5rem',
-          borderTop: '1px solid rgba(70, 107, 150, 0.35)',
-        }}
-      >
-        <SharedModePanel data={data} act={act} workspaceTab={workspaceTab} />
-      </Box>
+      {!!chromeError && (
+        <Box
+          px={0.5}
+          py={0.22}
+          color="bad"
+          style={{
+            borderTop: '1px solid rgba(143, 60, 52, 0.45)',
+            background: 'rgba(143, 60, 52, 0.14)',
+          }}
+        >
+          {chromeError}
+        </Box>
+      )}
+
+      {showSharedModeShell && (
+        <Box
+          px={0.4}
+          py={0.3}
+          style={{
+            borderTop: '1px solid rgba(70, 107, 150, 0.35)',
+          }}
+        >
+          <SharedModePanel data={data} act={act} workspaceTab={workspaceTab} />
+        </Box>
+      )}
 
       <Box
-        px={0.5}
-        pt={0.45}
-        pb={0.3}
+        px={0.45}
+        pt={0.3}
+        pb={0.2}
         style={{
-          minHeight: '2.55rem',
+          minHeight: '2.15rem',
           borderTop: '1px solid rgba(70, 107, 150, 0.35)',
         }}
       >
