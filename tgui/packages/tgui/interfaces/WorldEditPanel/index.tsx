@@ -2,35 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useBackend } from '../../backend';
 import { Window } from '../../layouts';
-import { buildOrderedToolTabs } from './constants';
-import type { BackendData, UiField, WorkspaceTabKey } from './types';
+import type { BackendData, WorkspaceTabKey } from './types';
+import { buildWorldEditViewModel } from './viewModel';
 import { WorkspacePage } from './workspaces';
 
 export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTabKey>('editor');
-  const showPlacementSetup =
-    data.placement_supported ||
-    data.placement_shape_supported ||
-    data.placement_supports_direction;
-  const toolTabs = useMemo(
-    () => buildOrderedToolTabs(data.categories || []),
-    [data.categories],
-  );
-
-  const groupedFields = useMemo(() => {
-    const groups: Record<string, UiField[]> = {};
-    for (const field of data.ui_fields || []) {
-      const groupName = field.group || 'Основные';
-      if (!groups[groupName]) {
-        groups[groupName] = [];
-      }
-      groups[groupName].push(field);
-    }
-    return groups;
-  }, [data.ui_fields]);
-
-  const groupNames = useMemo(() => Object.keys(groupedFields), [groupedFields]);
+  const viewModel = useMemo(() => buildWorldEditViewModel(data), [data]);
 
   useEffect(() => {
     if (!data.has_generator && workspaceTab !== 'editor') {
@@ -55,10 +34,10 @@ export const WorldEditPanel = () => {
         <WorkspacePage
           data={data}
           act={act}
-          groupedFields={groupedFields}
-          groupNames={groupNames}
-          showPlacementSetup={showPlacementSetup}
-          toolTabs={toolTabs}
+          groupedFields={viewModel.groupedFields}
+          groupNames={viewModel.groupNames}
+          showPlacementSetup={viewModel.showPlacementSetup}
+          toolTabs={viewModel.toolTabs}
           workspaceTab={workspaceTab}
           onSelectGenerator={handleSelectGenerator}
           onSelectWorkspaceTab={setWorkspaceTab}
