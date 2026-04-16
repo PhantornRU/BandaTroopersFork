@@ -26,15 +26,41 @@ import type {
   WorkspaceTabKey,
 } from './types';
 
-const CHROME_SQUARE_BUTTON_SIZE = '1.9rem';
+const CHROME_SQUARE_BUTTON_REM = 1.9;
 const CHROME_ACTION_BUTTON_MIN_WIDTH = '6.25rem';
-const CHROME_CONTROL_BUTTON_WIDTH = '6.6rem';
-const CHROME_CONTROL_BUTTON_HEIGHT = '1.45rem';
-const CHROME_DIRECTION_BUTTON_GAP = '0.25rem';
-const CHROME_DIRECTION_COLUMN_WIDTH = `calc(${CHROME_SQUARE_BUTTON_SIZE} * 2 + ${CHROME_DIRECTION_BUTTON_GAP})`;
-const CHROME_CONTROL_COLUMN_PADDING = '0.85rem';
-const CHROME_PLACEMENT_COLUMN_GAP = '1.15rem';
-const CHROME_PLACEMENT_SECTION_GAP = '0.22rem';
+const CHROME_CONTROL_BUTTON_WIDTH_REM = 6.6;
+const CHROME_CONTROL_BUTTON_HEIGHT_REM = 1.45;
+const CHROME_DIRECTION_BUTTON_GAP_REM = 0.25;
+const CHROME_CONTROL_COLUMN_PADDING_REM = 0.85;
+const CHROME_PLACEMENT_COLUMN_GAP_REM = 1.15;
+const CHROME_PLACEMENT_SECTION_GAP_REM = 0.22;
+const CHROME_SHAPE_GRID_COLUMNS = 5;
+const toRem = (value: number) => `${value}rem`;
+const CHROME_SQUARE_BUTTON_SIZE = toRem(CHROME_SQUARE_BUTTON_REM);
+const CHROME_CONTROL_BUTTON_WIDTH = toRem(CHROME_CONTROL_BUTTON_WIDTH_REM);
+const CHROME_CONTROL_BUTTON_HEIGHT = toRem(CHROME_CONTROL_BUTTON_HEIGHT_REM);
+const CHROME_DIRECTION_BUTTON_GAP = toRem(CHROME_DIRECTION_BUTTON_GAP_REM);
+const CHROME_DIRECTION_COLUMN_WIDTH = toRem(
+  CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM,
+);
+const CHROME_CONTROL_COLUMN_PADDING = toRem(CHROME_CONTROL_COLUMN_PADDING_REM);
+const CHROME_PLACEMENT_COLUMN_GAP = toRem(CHROME_PLACEMENT_COLUMN_GAP_REM);
+const CHROME_PLACEMENT_SECTION_GAP = toRem(CHROME_PLACEMENT_SECTION_GAP_REM);
+const CHROME_SHAPE_COLUMN_WIDTH = toRem(
+  CHROME_SQUARE_BUTTON_REM * CHROME_SHAPE_GRID_COLUMNS +
+    CHROME_DIRECTION_BUTTON_GAP_REM * (CHROME_SHAPE_GRID_COLUMNS - 1),
+);
+const CHROME_RIGHT_GROUP_CONTENT_WIDTH = toRem(
+  CHROME_CONTROL_BUTTON_WIDTH_REM +
+    CHROME_PLACEMENT_COLUMN_GAP_REM +
+    (CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM),
+);
+const CHROME_RIGHT_GROUP_WIDTH = toRem(
+  CHROME_CONTROL_COLUMN_PADDING_REM +
+    CHROME_CONTROL_BUTTON_WIDTH_REM +
+    CHROME_PLACEMENT_COLUMN_GAP_REM +
+    (CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM),
+);
 const CHROME_SHARED_CENTER_STYLE = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -48,6 +74,8 @@ const CHROME_ACTION_BUTTON_STYLE = {
   minHeight: CHROME_SQUARE_BUTTON_SIZE,
   height: CHROME_SQUARE_BUTTON_SIZE,
   padding: '0 0.55rem',
+  marginRight: '0',
+  marginBottom: '0',
 };
 const CHROME_ICON_BUTTON_STYLE = {
   ...CHROME_SHARED_CENTER_STYLE,
@@ -56,6 +84,8 @@ const CHROME_ICON_BUTTON_STYLE = {
   height: CHROME_SQUARE_BUTTON_SIZE,
   minHeight: CHROME_SQUARE_BUTTON_SIZE,
   padding: '0',
+  marginRight: '0',
+  marginBottom: '0',
 };
 const CHROME_CONTROL_BUTTON_STYLE = {
   ...CHROME_SHARED_CENTER_STYLE,
@@ -66,6 +96,8 @@ const CHROME_CONTROL_BUTTON_STYLE = {
   height: CHROME_CONTROL_BUTTON_HEIGHT,
   padding: '0 0.4rem',
   fontSize: '0.92rem',
+  marginRight: '0',
+  marginBottom: '0',
 };
 const DIRECTION_BUTTON_LABELS: Record<string, string> = {
   north: 'С',
@@ -452,6 +484,7 @@ const DirectionCompass = (props: {
         display: 'grid',
         justifyItems: 'center',
         rowGap: CHROME_DIRECTION_BUTTON_GAP,
+        overflow: 'hidden',
       }}
     >
       <Box style={{ display: 'flex', justifyContent: 'center' }}>
@@ -521,13 +554,13 @@ const SharedModePanel = (props: {
             <Box
               style={{
                 display: 'inline-grid',
-                gridTemplateColumns: 'max-content max-content',
+                gridTemplateColumns: `${CHROME_SHAPE_COLUMN_WIDTH} ${CHROME_RIGHT_GROUP_WIDTH}`,
                 columnGap: CHROME_PLACEMENT_COLUMN_GAP,
                 alignItems: 'start',
               }}
             >
               {showShapeSection && !!selectedShape && (
-                <Box>
+                <Box style={{ width: CHROME_SHAPE_COLUMN_WIDTH }}>
                   <ControlSectionLabel>Форма</ControlSectionLabel>
                   <ShapeOptionStrip
                     options={shapeOptions}
@@ -535,7 +568,7 @@ const SharedModePanel = (props: {
                     disabled={!data.placement_shape_supported}
                     buttonMinWidth={CHROME_SQUARE_BUTTON_SIZE}
                     buttonSize={CHROME_SQUARE_BUTTON_SIZE}
-                    columns={5}
+                    columns={CHROME_SHAPE_GRID_COLUMNS}
                     onSelected={(value) =>
                       act('set_placement_shape', {
                         shape: value,
@@ -548,28 +581,29 @@ const SharedModePanel = (props: {
               {(showModeSection || showDirectionSection) && (
                 <Box
                   style={{
-                    minWidth: CHROME_CONTROL_BUTTON_WIDTH,
+                    width: CHROME_RIGHT_GROUP_WIDTH,
+                    minWidth: CHROME_RIGHT_GROUP_WIDTH,
+                    maxWidth: CHROME_RIGHT_GROUP_WIDTH,
                     paddingLeft: CHROME_CONTROL_COLUMN_PADDING,
                     borderLeft: '1px solid rgba(70, 107, 150, 0.35)',
                     display: 'inline-grid',
                     gridTemplateColumns: `${CHROME_CONTROL_BUTTON_WIDTH} ${CHROME_DIRECTION_COLUMN_WIDTH}`,
-                    gridTemplateAreas: `
-                      "directionLabel compass"
-                      "directionToggle compass"
-                      "modeLabel compass"
-                      "modeButtons compass"
-                    `,
                     columnGap: CHROME_PLACEMENT_COLUMN_GAP,
-                    rowGap: CHROME_PLACEMENT_SECTION_GAP,
                     alignItems: 'start',
                   }}
                 >
-                  {showDirectionSection && (
-                    <>
-                      <Box style={{ gridArea: 'directionLabel' }}>
+                  <Box
+                    style={{
+                      width: CHROME_CONTROL_BUTTON_WIDTH,
+                      minWidth: CHROME_CONTROL_BUTTON_WIDTH,
+                      display: 'grid',
+                      rowGap: CHROME_PLACEMENT_SECTION_GAP,
+                      alignContent: 'start',
+                    }}
+                  >
+                    {showDirectionSection && (
+                      <Box>
                         <ControlSectionLabel>Направление</ControlSectionLabel>
-                      </Box>
-                      <Box style={{ gridArea: 'directionToggle' }}>
                         <CompactToggleButton
                           checked={
                             !!(
@@ -586,13 +620,11 @@ const SharedModePanel = (props: {
                           }
                         />
                       </Box>
-                  )}
+                    )}
 
-                  {showModeSection && (
-                    <Box pt={showDirectionSection ? 0.1 : 0}>
+                    {showModeSection && (
+                      <Box pt={showDirectionSection ? 0.1 : 0}>
                         <ControlSectionLabel>После клика</ControlSectionLabel>
-                      </Box>
-                      <Box style={{ gridArea: 'modeButtons' }}>
                         <CompactStackedChoiceButtons
                           options={modeOptions}
                           selected={selectedMode}
@@ -604,18 +636,25 @@ const SharedModePanel = (props: {
                           }
                         />
                       </Box>
-                    </>
-                  )}
+                    )}
+                  </Box>
 
                   {showDirectionSection && (
                     <Box
                       style={{
-                        gridArea: 'compass',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        width: CHROME_DIRECTION_COLUMN_WIDTH,
+                        minWidth: CHROME_DIRECTION_COLUMN_WIDTH,
+                        display: 'grid',
+                        rowGap: CHROME_PLACEMENT_SECTION_GAP,
+                        justifyItems: 'center',
+                        alignContent: 'start',
                       }}
                     >
+                      <ControlSectionLabel>
+                        <Box as="span" style={{ visibility: 'hidden' }}>
+                          Направление
+                        </Box>
+                      </ControlSectionLabel>
                       <DirectionCompass
                         options={directionOptions}
                         selected={selectedDirection}
@@ -685,14 +724,22 @@ const EditorChrome = (props: {
   const actionsDisabled = !data.has_generator;
   const showSharedModeShell = hasSharedModeContent(data, workspaceTab);
   const chromeError = `${data.last_ui_error || ''}`.trim();
-  const primaryActions = [
-    toolbar.previewAction,
-    toolbar.applyAction,
-    toolbar.placementAction,
-    toolbar.collectorAction,
-  ].filter((action): action is ToolbarAction => !!action);
+  const leadingAction = toolbar.previewAction;
+  const centerAction =
+    toolbar.placementAction || toolbar.applyAction || toolbar.collectorAction;
+  const trailingAction =
+    toolbar.collectorAction &&
+    toolbar.collectorAction.action !== centerAction?.action
+      ? toolbar.collectorAction
+      : undefined;
 
-  const renderAction = (action?: ToolbarAction, compact = false) => {
+  const renderAction = (
+    action?: ToolbarAction,
+    compact = false,
+    options?: {
+      readonly fluid?: boolean;
+    },
+  ) => {
     if (!action) {
       return null;
     }
@@ -700,13 +747,21 @@ const EditorChrome = (props: {
     return (
       <Button
         compact={compact}
+        fluid={options?.fluid}
         verticalAlignContent="middle"
         color={action.color}
         disabled={actionsDisabled || action.disabled}
         selected={action.action === 'clear_preview'}
         tooltip={compact ? action.label : undefined}
         onClick={() => act(action.action, action.payload)}
-        style={CHROME_ACTION_BUTTON_STYLE}
+        style={{
+          ...CHROME_ACTION_BUTTON_STYLE,
+          ...(options?.fluid
+            ? {
+                width: '100%',
+              }
+            : {}),
+        }}
       >
         {action.label}
       </Button>
@@ -758,6 +813,7 @@ const EditorChrome = (props: {
     <Box
       mb={0.8}
       style={{
+        width: '100%',
         position: 'sticky',
         top: '0',
         zIndex: '5',
@@ -766,22 +822,45 @@ const EditorChrome = (props: {
         borderRadius: '4px',
       }}
     >
-      <Box px={0.5} py={0.3}>
-        <Flex wrap align="center" mx={-0.1}>
-          {primaryActions.map((action) => (
-            <Flex.Item key={action.action} m={0.1}>
-              {renderAction(action, true)}
-            </Flex.Item>
-          ))}
+      <Box px={0.35} py={0.3}>
+        <Box
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.2rem',
+            width: '100%',
+          }}
+        >
+          {!!leadingAction && (
+            <Box style={{ flex: '0 0 auto' }}>
+              {renderAction(leadingAction, true)}
+            </Box>
+          )}
+
+          {!!centerAction && (
+            <Box style={{ flex: '1 1 auto', minWidth: '0' }}>
+              {renderAction(centerAction, true, {
+                fluid: true,
+              })}
+            </Box>
+          )}
+
+          {!!trailingAction && (
+            <Box style={{ flex: '0 0 auto' }}>
+              {renderAction(trailingAction, true)}
+            </Box>
+          )}
+
           {!!toolbar.undoAction && (
-            <Flex.Item m={0.1}>
+            <Box style={{ flex: '0 0 auto' }}>
               {renderUndoAction(toolbar.undoAction)}
-            </Flex.Item>
+            </Box>
           )}
+
           {data.has_generator && (
-            <Flex.Item m={0.1}>{renderConfirmAction()}</Flex.Item>
+            <Box style={{ flex: '0 0 auto' }}>{renderConfirmAction()}</Box>
           )}
-        </Flex>
+        </Box>
       </Box>
 
       {!!chromeError && (
