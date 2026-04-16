@@ -187,3 +187,44 @@
 	for(var/expected_id in expected_ready_ids)
 		TEST_ASSERT(expected_id in seen_ready_ids, "World Edit ready generator [expected_id] dropped out of the live runtime surface.")
 	TEST_ASSERT_EQUAL(length(seen_ready_ids), length(expected_ready_ids), "World Edit ready generator surface changed unexpectedly.")
+
+/datum/unit_test/world_edit_manager_state/context_restore_strips_runtime_params/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	manager.current_definition = definition
+	manager.current_params = list(
+		"radius" = 5,
+		"shape_points_origin" = "10,10,1",
+		"shape_points_text" = "0,0;1,0;1,1",
+	)
+
+	TEST_ASSERT(manager.save_current_generator_context(), "World Edit manager should save context for an active generator definition.")
+
+	manager.current_params = list()
+	TEST_ASSERT(manager.restore_generator_context(definition.id), "World Edit manager should restore saved context by generator id.")
+	TEST_ASSERT_EQUAL(manager.current_params["radius"], 5, "World Edit manager should restore persistent generator params.")
+	TEST_ASSERT(isnull(manager.current_params["shape_points_origin"]), "World Edit manager should not persist collector origin runtime params.")
+	TEST_ASSERT(isnull(manager.current_params["shape_points_text"]), "World Edit manager should not persist collector points runtime params.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_state/preview_state_invalidates_on_signature_change/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	manager.current_definition = definition
+	manager.current_params = list("radius" = 4)
+
+	TEST_ASSERT(!manager.is_preview_state_valid(), "Fresh World Edit manager preview state should start invalid.")
+
+	manager.mark_preview_state()
+	TEST_ASSERT(manager.is_preview_state_valid(), "Marked World Edit preview state should be valid before any signature change.")
+
+	manager.current_params["radius"] = 6
+	TEST_ASSERT(!manager.is_preview_state_valid(), "Changing generator params should invalidate cached World Edit preview state.")
+
+	manager.current_params["radius"] = 4
+	manager.mark_preview_state()
+	manager.current_definition = new /datum/world_edit_generator_definition/destruction_pack
+	TEST_ASSERT(!manager.is_preview_state_valid(), "Switching generator definition should invalidate cached World Edit preview state.")
+
+	qdel(manager)
