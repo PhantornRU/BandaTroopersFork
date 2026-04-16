@@ -11,6 +11,15 @@ import { Window } from './layouts';
 
 const requireInterface = require.context('./interfaces');
 
+// Support both legacy single-file interfaces and folder-based interfaces
+// with an index entrypoint.
+const getInterfaceCandidatePaths = (name: string) => [
+  `./${name}.tsx`,
+  `./${name}.jsx`,
+  `./${name}/index.tsx`,
+  `./${name}/index.jsx`,
+];
+
 const routingError =
   (type: 'notFound' | 'missingExport', name: string) => () => {
     return (
@@ -70,18 +79,11 @@ export const getRoutedComponent = () => {
   }
 
   const name = config?.interface;
-  const interfacePathBuilders = [
-    (name: string) => `./${name}.tsx`,
-    (name: string) => `./${name}.jsx`,
-    (name: string) => `./${name}/index.tsx`,
-    (name: string) => `./${name}/index.jsx`,
-  ];
   let esModule;
-  while (!esModule && interfacePathBuilders.length > 0) {
-    const interfacePathBuilder = interfacePathBuilders.shift()!;
-    const interfacePath = interfacePathBuilder(name);
+  for (const interfacePath of getInterfaceCandidatePaths(name)) {
     try {
       esModule = requireInterface(interfacePath);
+      break;
     } catch (err) {
       if (err.code !== 'MODULE_NOT_FOUND') {
         throw err;
