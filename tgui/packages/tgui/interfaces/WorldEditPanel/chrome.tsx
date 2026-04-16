@@ -35,12 +35,13 @@ import type {
   ToolbarState,
   WorkspaceTabKey,
 } from './types';
+
 const getToolbarState = (data: BackendData): ToolbarState => {
   const title = getCurrentToolTitle(data);
   if (!data.has_generator && data.categories?.length) {
     return {
       title: 'World Edit',
-      state: 'РћС‚РєСЂС‹РІР°РµРј РёРЅСЃС‚СЂСѓРјРµРЅС‚...',
+      state: 'Открываем инструмент...',
       stateColor: 'label',
     };
   }
@@ -48,7 +49,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (!data.has_generator) {
     return {
       title: 'World Edit',
-      state: 'РРЅСЃС‚СЂСѓРјРµРЅС‚ РЅРµ РІС‹Р±СЂР°РЅ.',
+      state: 'Инструмент не выбран.',
       stateColor: 'label',
     };
   }
@@ -70,7 +71,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview
       ? {
-          label: 'РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ',
+          label: 'Предпросмотр',
           action: 'run_preview',
           color: 'average',
           disabled: !canPreview,
@@ -84,7 +85,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   }
 
   const applyAction: ToolbarAction = {
-    label: 'РџСЂРёРјРµРЅРёС‚СЊ',
+    label: 'Применить',
     action: 'run_apply',
     color: 'good',
     disabled: !canApply,
@@ -94,7 +95,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
 
   const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
     ? {
-        label: 'Р Р°Р·РјРµСЃС‚РёС‚СЊ',
+        label: 'Разместить',
         action: 'start_placement_mode',
         color: 'good',
         disabled: !canStartPlacement,
@@ -104,7 +105,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   const placePreviewAction: ToolbarAction | undefined =
     hasPlacementControls && hasVisiblePreview
       ? {
-          label: 'Р Р°Р·РјРµСЃС‚РёС‚СЊ',
+          label: 'Разместить',
           action: 'run_apply',
           color: 'good',
           disabled: !canApply,
@@ -112,7 +113,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
       : undefined;
 
   const stopPlacementAction: ToolbarAction = {
-    label: 'РћСЃС‚Р°РЅРѕРІРёС‚СЊ СЂР°Р·РјРµС‰РµРЅРёРµ',
+    label: 'Остановить размещение',
     action: 'stop_click_mode',
     color: 'average',
     disabled: !data.can_stop_click_mode,
@@ -121,7 +122,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   const collectorAction: ToolbarAction | undefined =
     data.click_mode_active && data.placement_interaction_kind === 'collector'
       ? {
-          label: 'Р—Р°РІРµСЂС€РёС‚СЊ СЃР±РѕСЂ',
+          label: 'Завершить сбор',
           action: 'finish_placement_collection',
           color: 'good',
           disabled: !data.can_finish_placement_collection,
@@ -129,7 +130,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
       : undefined;
 
   const undoAction: ToolbarAction = {
-    label: 'РћС‚РєР°С‚РёС‚СЊ РїРѕСЃР»РµРґРЅРµРµ',
+    label: 'Откатить последнее',
     action: 'undo_last_operation',
     color: 'average',
     disabled: !data.can_undo_last_operation,
@@ -137,7 +138,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
 
   const baseState: ToolbarState = {
     title,
-    state: 'Р“РѕС‚РѕРІРѕ.',
+    state: 'Готово.',
     stateColor: 'label',
     context: getToolbarContextLine(data),
     previewAction,
@@ -180,7 +181,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (data.requires_preview_before_apply && !data.preview_valid) {
     return {
       ...baseState,
-      state: data.preview_message || 'РќРµС‚ РїСЂРµРґРїСЂРѕСЃРјРѕС‚СЂР°.',
+      state: data.preview_message || 'Нет предпросмотра.',
       stateColor: data.preview_message ? 'bad' : 'label',
     };
   }
@@ -188,7 +189,7 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (data.preview_valid) {
     return {
       ...baseState,
-      state: 'РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ РіРѕС‚РѕРІ.',
+      state: 'Предпросмотр готов.',
       stateColor: 'good',
     };
   }
@@ -196,14 +197,14 @@ const getToolbarState = (data: BackendData): ToolbarState => {
   if (data.current_generator_supports_preview) {
     return {
       ...baseState,
-      state: 'РќРµС‚ РїСЂРµРґРїСЂРѕСЃРјРѕС‚СЂР°.',
+      state: 'Нет предпросмотра.',
       stateColor: 'label',
     };
   }
 
   return {
     ...baseState,
-    state: 'РњРѕР¶РЅРѕ РїСЂРёРјРµРЅРёС‚СЊ.',
+    state: 'Можно применить.',
     stateColor: 'good',
   };
 };
@@ -246,12 +247,10 @@ const getDestructionPreviewLegendItems = (
     : damageProfile !== 'none';
 
   return [
-    ...(moveEnabled
-      ? [{ label: 'РџРµСЂРµРјРµС‰РµРЅРёРµ', color: '#4e8eff' }]
-      : []),
-    ...(previewFireEnabled ? [{ label: 'РћРіРѕРЅСЊ', color: '#ff9438' }] : []),
-    ...(previewDamageEnabled ? [{ label: 'РЈСЂРѕРЅ', color: '#b85cff' }] : []),
-    ...(previewBlastEnabled ? [{ label: 'Р’Р·СЂС‹РІ', color: '#ff4e4e' }] : []),
+    ...(moveEnabled ? [{ label: 'Перемещение', color: '#4e8eff' }] : []),
+    ...(previewFireEnabled ? [{ label: 'Огонь', color: '#ff9438' }] : []),
+    ...(previewDamageEnabled ? [{ label: 'Урон', color: '#b85cff' }] : []),
+    ...(previewBlastEnabled ? [{ label: 'Взрыв', color: '#ff4e4e' }] : []),
   ];
 };
 
@@ -324,7 +323,7 @@ const SharedModePanel = (props: {
     <Box>
       <Flex wrap mx={-0.16}>
         <TopShellControlGroup
-          label="Р¤РѕСЂРјР°"
+          label="Форма"
           value={getTranslatedShapeLabel(selectedShape)}
           basis="15rem"
           minWidth="13.5rem"
@@ -344,7 +343,7 @@ const SharedModePanel = (props: {
         </TopShellControlGroup>
 
         <TopShellControlGroup
-          label="РџРѕСЃР»Рµ РєР»РёРєР°"
+          label="После клика"
           basis="10.5rem"
           minWidth="10.5rem"
           disabled={modeDisabled}
@@ -363,12 +362,12 @@ const SharedModePanel = (props: {
         </TopShellControlGroup>
 
         <TopShellControlGroup
-          label="РќР°РїСЂР°РІР»РµРЅРёРµ"
+          label="Направление"
           value={
             directionDisabled
-              ? 'РќРµРґРѕСЃС‚СѓРїРЅРѕ'
+              ? 'Недоступно'
               : data.placement_dir_uses_facing
-                ? 'Р’Р·РіР»СЏРґ'
+                ? 'Взгляд'
                 : getTranslatedDirection(selectedDirection)
           }
           basis="15rem"
@@ -385,7 +384,7 @@ const SharedModePanel = (props: {
                 })
               }
             >
-              РџРѕ РЅР°РїСЂР°РІР»РµРЅРёСЋ РІР·РіР»СЏРґР°
+              По направлению взгляда
             </Button.Checkbox>
             <Box mt={0.3}>
               <CompactChoiceStrip
@@ -407,7 +406,7 @@ const SharedModePanel = (props: {
       {!!sharedFields.length && (
         <Box mt={0.45}>
           <Collapsible
-            title={`Р”РѕРї. РїР°СЂР°РјРµС‚СЂС‹ (${sharedFields.length})`}
+            title={`Доп. параметры (${sharedFields.length})`}
             color={parametersDisabled ? 'label' : 'average'}
             open={sharedFields.length <= 2 || data.click_mode_active}
           >
@@ -436,8 +435,7 @@ const SharedModePanel = (props: {
 
       {!sharedFields.length && (
         <Box color="label" mt={0.45}>
-          Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ РґР»СЏ
-          С‚РµРєСѓС‰РµРіРѕ СЂРµР¶РёРјР° РЅРµ РЅСѓР¶РЅС‹.
+          Дополнительные параметры для текущего режима не нужны.
         </Box>
       )}
     </Box>
@@ -548,7 +546,7 @@ const EditorChrome = (props: {
                 borderRadius: '4px',
               }}
             >
-              <Box color="label">РЎРµР№С‡Р°СЃ</Box>
+              <Box color="label">Сейчас</Box>
               <Box color={toolbar.stateColor || 'label'} bold mt={0.15}>
                 {toolbar.state}
               </Box>
@@ -567,7 +565,7 @@ const EditorChrome = (props: {
               }}
             >
               <Box color="label" mb={0.25}>
-                РћСЃРЅРѕРІРЅС‹Рµ РґРµР№СЃС‚РІРёСЏ
+                Основные действия
               </Box>
               <Flex wrap mx={-0.15}>
                 {primaryActions.map((action) => (
@@ -597,7 +595,7 @@ const EditorChrome = (props: {
                         })
                       }
                     >
-                      РџРѕРґС‚РІРµСЂР¶РґР°С‚СЊ РїСЂРёРјРµРЅРµРЅРёРµ
+                      Подтверждать применение
                     </Button.Checkbox>
                   </Flex.Item>
                 )}
@@ -691,7 +689,7 @@ const NavigationTabs = (props: {
         selected={workspaceTab === 'history'}
         onClick={() => onSelectWorkspaceTab('history')}
       >
-        Р–СѓСЂРЅР°Р»
+        Журнал
       </Tabs.Tab>
     </Tabs>
   );

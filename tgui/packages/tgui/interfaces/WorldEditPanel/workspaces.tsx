@@ -48,15 +48,16 @@ import type {
   UiField,
   WorkspaceTabKey,
 } from './types';
+
 const getBlueprintLibraryMetaText = (blueprint: BlueprintEntry) => {
   const parts = [
-    `${getPositiveCountText(blueprint.entry_count, '0')} РѕР±СЉРµРєС‚РѕРІ`,
+    `${getPositiveCountText(blueprint.entry_count, '0')} объектов`,
     `r${getPositiveCountText(blueprint.radius, '0')}`,
   ];
   if (!isBlankDisplayValue(blueprint.source)) {
     parts.push(`${blueprint.source}`);
   }
-  return parts.join(' В· ');
+  return parts.join(' · ');
 };
 
 const BlueprintStampWorkspace = (props: {
@@ -83,30 +84,30 @@ const BlueprintStampWorkspace = (props: {
 
   return (
     <SurfaceCard
-      title="Р‘РёР±Р»РёРѕС‚РµРєР°"
-      subtitle={`${filteredBlueprints.length} РёР· ${totalBlueprints}`}
+      title="Библиотека"
+      subtitle={`${filteredBlueprints.length} из ${totalBlueprints}`}
       actions={
         <Button compact onClick={() => act('list_blueprints')}>
-          РћР±РЅРѕРІРёС‚СЊ
+          Обновить
         </Button>
       }
       mt={0}
     >
       <Input
         value={searchQuery}
-        placeholder="РџРѕРёСЃРє"
+        placeholder="Поиск"
         onChange={(_, value) => setSearchQuery(value)}
       />
 
       {!data.blueprint_entries?.length && (
         <Box color="label" mt={0.7}>
-          РќРµС‚ С€Р°Р±Р»РѕРЅРѕРІ.
+          Нет шаблонов.
         </Box>
       )}
 
       {!!data.blueprint_entries?.length && !filteredBlueprints.length && (
         <Box color="label" mt={0.7}>
-          РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.
+          Ничего не найдено.
         </Box>
       )}
 
@@ -152,10 +153,7 @@ const BlueprintStampWorkspace = (props: {
                         textOverflow: 'ellipsis',
                       }}
                     >
-                      {getDisplayText(
-                        blueprint.name,
-                        'РЁР°Р±Р»РѕРЅ Р±РµР· РёРјРµРЅРё',
-                      )}
+                      {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
                   </Flex.Item>
                   {isActive && (
@@ -172,7 +170,7 @@ const BlueprintStampWorkspace = (props: {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        РђРєС‚РёРІРµРЅ
+                        Активен
                       </Box>
                     </Flex.Item>
                   )}
@@ -190,7 +188,7 @@ const BlueprintStampWorkspace = (props: {
                 </Flex>
                 {!blueprint.valid && (
                   <Box color="bad" mt={0.2}>
-                    {blueprint.error || 'РЁР°Р±Р»РѕРЅ РЅРµРґРѕСЃС‚СѓРїРµРЅ.'}
+                    {blueprint.error || 'Шаблон недоступен.'}
                   </Box>
                 )}
               </Box>
@@ -230,12 +228,12 @@ const OutpostRadiusWorkspace = (props: {
   return (
     <Box>
       <SurfaceCard
-        title="РџСЂРѕС„РёР»СЊ Рё РІР°СЂРёР°РЅС‚"
+        title="Профиль и вариант"
         mt={0}
         actions={
           data.can_save_blueprint_from_plan ? (
             <Button compact onClick={() => act('save_blueprint')}>
-              РЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє С€Р°Р±Р»РѕРЅ
+              Сохранить как шаблон
             </Button>
           ) : undefined
         }
@@ -273,12 +271,8 @@ const OutpostRadiusWorkspace = (props: {
           </Box>
         )}
       </SurfaceCard>
-      <FieldListCard
-        title="РџРµСЂРёРјРµС‚СЂ"
-        fields={barricadeFields}
-        act={act}
-      />
-      <SurfaceCard title="РћР±РѕСЂРѕРЅР°" mt={0.6}>
+      <FieldListCard title="Периметр" fields={barricadeFields} act={act} />
+      <SurfaceCard title="Оборона" mt={0.6}>
         <Box style={{ maxWidth: '16rem' }}>
           <FieldControlStack field={sentryToggleField} act={act} />
         </Box>
@@ -346,10 +340,7 @@ const DestructionPackWorkspace = (props: {
       )}
 
       {(!!visibleAreaFields.length || !!visibleMovementFields.length) && (
-        <SurfaceCard
-          title="Р‘РµР·РѕРїР°СЃРЅР°СЏ Р·РѕРЅР°"
-          subtitle="Р‘РµР· РІР·СЂС‹РІР° Рё СѓСЂРѕРЅР°"
-        >
+        <SurfaceCard title="Безопасная зона" subtitle="Без взрыва и урона">
           <WorkspaceGrid>
             {!!visibleMovementFields.length && (
               <WorkspacePane
@@ -357,7 +348,7 @@ const DestructionPackWorkspace = (props: {
                 minWidth="19rem"
               >
                 <FieldBlock
-                  title="РџРµСЂРµРјРµС‰РµРЅРёРµ"
+                  title="Перемещение"
                   fields={visibleMovementFields}
                   act={act}
                   tone={movementEnabled ? 'average' : 'default'}
@@ -366,11 +357,7 @@ const DestructionPackWorkspace = (props: {
             )}
             {!!visibleAreaFields.length && (
               <WorkspacePane basis="48%" minWidth="19rem">
-                <FieldBlock
-                  title="Р—РѕРЅР°"
-                  fields={visibleAreaFields}
-                  act={act}
-                />
+                <FieldBlock title="Зона" fields={visibleAreaFields} act={act} />
               </WorkspacePane>
             )}
           </WorkspaceGrid>
@@ -378,14 +365,14 @@ const DestructionPackWorkspace = (props: {
       )}
 
       <SurfaceCard
-        title="РћРїР°СЃРЅС‹Рµ СЂРµР¶РёРјС‹"
+        title="Опасные режимы"
         mt={visibleAreaFields.length || visibleMovementFields.length ? 0.6 : 0}
         tone={destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'}
       >
         <WorkspaceGrid>
           <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
-              title="РћРіРѕРЅСЊ"
+              title="Огонь"
               fields={fireFields}
               act={act}
               tone={fireEnabled ? 'average' : 'default'}
@@ -393,10 +380,8 @@ const DestructionPackWorkspace = (props: {
           </WorkspacePane>
           <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
-              title="Р’Р·СЂС‹РІ"
-              subtitle={
-                blastEnabled ? 'РћС‚РєР°С‚ РѕРіСЂР°РЅРёС‡РµРЅ' : undefined
-              }
+              title="Взрыв"
+              subtitle={blastEnabled ? 'Откат ограничен' : undefined}
               fields={blastFields}
               act={act}
               tone={blastEnabled ? 'bad' : 'default'}
@@ -404,11 +389,9 @@ const DestructionPackWorkspace = (props: {
           </WorkspacePane>
           <WorkspacePane basis="33%" minWidth="16rem">
             <FieldBlock
-              title="РЎС‚СЂСѓРєС‚СѓСЂРЅС‹Р№ СѓСЂРѕРЅ"
+              title="Структурный урон"
               subtitle={
-                damageProfile !== 'none'
-                  ? 'РћС‚РєР°С‚ РѕРіСЂР°РЅРёС‡РµРЅ'
-                  : undefined
+                damageProfile !== 'none' ? 'Откат ограничен' : undefined
               }
               fields={damageFields}
               act={act}
@@ -428,9 +411,7 @@ const GenericFieldGroups = (props: {
 }) => {
   const { groupedFields, groupNames, act } = props;
   if (!groupNames.length) {
-    return (
-      <Box color="label">РџРѕР»СЏ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРЅС‹.</Box>
-    );
+    return <Box color="label">Поля временно недоступны.</Box>;
   }
 
   return (
@@ -460,7 +441,7 @@ const GenericToolWorkspace = (props: {
 
   return (
     <>
-      {!hasPrimaryContent && <Box color="label">РќРµС‚ РЅР°СЃС‚СЂРѕРµРє.</Box>}
+      {!hasPrimaryContent && <Box color="label">Нет настроек.</Box>}
 
       {!!data.has_inline_fields && (
         <GenericFieldGroups
@@ -471,9 +452,7 @@ const GenericToolWorkspace = (props: {
       )}
 
       {!data.has_inline_fields && showPlacementSetup && (
-        <Box color="label">
-          РЈРїСЂР°РІР»РµРЅРёРµ СЂРµР¶РёРјРѕРј РЅР°С…РѕРґРёС‚СЃСЏ РІС‹С€Рµ.
-        </Box>
+        <Box color="label">Управление режимом находится выше.</Box>
       )}
     </>
   );
@@ -540,7 +519,7 @@ const HistoryWorkspace = (props: {
 
   return (
     <SurfaceCard
-      title="Р–СѓСЂРЅР°Р»"
+      title="Журнал"
       actions={
         <Flex wrap mx={-0.2}>
           <Flex.Item m={0.2}>
@@ -550,7 +529,7 @@ const HistoryWorkspace = (props: {
               disabled={!data.can_cleanup_last_owned_effects}
               onClick={() => act('cleanup_last_owned_effects')}
             >
-              РћС‡РёСЃС‚РёС‚СЊ СЌС„С„РµРєС‚С‹
+              Очистить эффекты
             </Button>
           </Flex.Item>
           <Flex.Item m={0.2}>
@@ -559,14 +538,14 @@ const HistoryWorkspace = (props: {
               color="average"
               onClick={() => act('clear_history')}
             >
-              РћС‡РёСЃС‚РёС‚СЊ Р¶СѓСЂРЅР°Р»
+              Очистить журнал
             </Button>
           </Flex.Item>
         </Flex>
       }
     >
       {!data.last_changeset && !historyEntries.length && (
-        <Box color="label">Р–СѓСЂРЅР°Р» РїСѓСЃС‚.</Box>
+        <Box color="label">Журнал пуст.</Box>
       )}
 
       {!!historyEntries.length && (
@@ -574,41 +553,41 @@ const HistoryWorkspace = (props: {
           <Flex wrap mx={-0.2}>
             <Flex.Item m={0.2}>
               <StatusPill
-                label="Р—Р°РїРёСЃРµР№"
+                label="Записей"
                 value={`${historyMetrics.total}`}
                 tone="label"
               />
             </Flex.Item>
             <Flex.Item m={0.2}>
               <StatusPill
-                label="РЈСЃРїРµС…"
+                label="Успех"
                 value={`${historyMetrics.good}`}
                 tone="good"
               />
             </Flex.Item>
             <Flex.Item m={0.2}>
               <StatusPill
-                label="Р§Р°СЃС‚РёС‡РЅРѕ"
+                label="Частично"
                 value={`${historyMetrics.average}`}
                 tone="average"
               />
             </Flex.Item>
             <Flex.Item m={0.2}>
               <StatusPill
-                label="РџСЂРѕР±Р»РµРјС‹"
+                label="Проблемы"
                 value={`${historyMetrics.bad}`}
                 tone="bad"
               />
             </Flex.Item>
             <Flex.Item m={0.2}>
               <StatusPill
-                label="РћС‚РєР°С‚"
+                label="Откат"
                 value={
                   data.can_undo_last_operation
-                    ? 'Р”РѕСЃС‚СѓРїРµРЅ'
+                    ? 'Доступен'
                     : data.can_cleanup_last_owned_effects
-                      ? 'РћС‡РёСЃС‚РєР°'
-                      : 'РќРµС‚'
+                      ? 'Очистка'
+                      : 'Нет'
                 }
                 tone={
                   data.can_undo_last_operation
@@ -635,14 +614,14 @@ const HistoryWorkspace = (props: {
         >
           <Flex align="center" wrap mb={0.35}>
             <Flex.Item grow basis="12rem">
-              <Box bold>РџРѕСЃР»РµРґРЅСЏСЏ РѕРїРµСЂР°С†РёСЏ</Box>
+              <Box bold>Последняя операция</Box>
               <Box color="label" mt={0.1}>
-                Р‘С‹СЃС‚СЂС‹Р№ СЃСЂРµР· РїРѕ undo/callback surface.
+                Быстрый срез по undo/callback surface.
               </Box>
             </Flex.Item>
             <Flex.Item>
               <StatusPill
-                label="РЎС‚Р°С‚СѓСЃ"
+                label="Статус"
                 value={getTranslatedUndoStatus(data.last_changeset.undo_status)}
                 tone={getUndoTone(data.last_changeset.undo_status)}
               />
@@ -652,22 +631,22 @@ const HistoryWorkspace = (props: {
             basis="32%"
             items={[
               {
-                label: 'РРЅСЃС‚СЂСѓРјРµРЅС‚',
+                label: 'Инструмент',
                 value: getGeneratorDisplayName(
                   data,
                   data.last_changeset.generator_id,
                 ),
               },
               {
-                label: 'РћС‚РєР°С‚',
+                label: 'Откат',
                 value: getTranslatedUndoPolicy(data.last_changeset.undo_policy),
               },
               {
-                label: 'РЎС‚Р°С‚СѓСЃ',
+                label: 'Статус',
                 value: getTranslatedUndoStatus(data.last_changeset.undo_status),
               },
               {
-                label: 'Р’СЂРµРјСЏ',
+                label: 'Время',
                 value: getDisplayText(
                   data.last_changeset.created_at,
                   EMPTY_LABEL,
@@ -676,9 +655,9 @@ const HistoryWorkspace = (props: {
             ]}
           />
           <Box color="label" mt={0.25}>
-            РЎРѕР·РґР°РЅРѕ: {data.last_changeset.created_entries} В·
-            РџРµСЂРµРјРµС‰РµРЅРѕ: {data.last_changeset.moved_entries} В·
-            Р­С„С„РµРєС‚С‹: {data.last_changeset.owned_effect_entries}
+            Создано: {data.last_changeset.created_entries} · Перемещено:{' '}
+            {data.last_changeset.moved_entries} · Эффекты:{' '}
+            {data.last_changeset.owned_effect_entries}
           </Box>
         </Box>
       )}
@@ -688,17 +667,17 @@ const HistoryWorkspace = (props: {
           {historyEntries.map((entry, index) => (
             <Collapsible
               key={`${entry.time}_${entry.generator_id}_${index}`}
-              title={`${entry.time} В· ${getGeneratorDisplayName(
+              title={`${entry.time} · ${getGeneratorDisplayName(
                 data,
                 entry.generator_id,
-              )} В· ${getHistoryResultText(entry.result)}`}
+              )} · ${getHistoryResultText(entry.result)}`}
               color={toneForHistoryResult(entry.result)}
               open={index === 0}
             >
               <Flex wrap mx={-0.18} mb={0.35}>
                 <Flex.Item m={0.18}>
                   <StatusPill
-                    label="Р РµР·СѓР»СЊС‚Р°С‚"
+                    label="Результат"
                     value={getHistoryResultText(entry.result)}
                     tone={toneForHistoryResult(entry.result)}
                   />
@@ -706,7 +685,7 @@ const HistoryWorkspace = (props: {
                 {!!entry.undo_policy && (
                   <Flex.Item m={0.18}>
                     <StatusPill
-                      label="РћС‚РєР°С‚"
+                      label="Откат"
                       value={getTranslatedUndoStatus(entry.undo_status)}
                       tone={getUndoTone(entry.undo_status)}
                     />
@@ -717,19 +696,19 @@ const HistoryWorkspace = (props: {
                 basis="32%"
                 items={[
                   {
-                    label: 'РЎРѕР·РґР°РЅРѕ',
+                    label: 'Создано',
                     value: `${entry.created_count}`,
                   },
                   {
-                    label: 'РЈРґР°Р»РµРЅРѕ',
+                    label: 'Удалено',
                     value: `${entry.deleted_count}`,
                   },
                   {
-                    label: 'Р¦РµРЅС‚СЂ',
+                    label: 'Центр',
                     value: getDisplayText(entry.center_turf, EMPTY_LABEL),
                   },
                   {
-                    label: 'РћС‚РєР°С‚',
+                    label: 'Откат',
                     value: entry.undo_policy
                       ? `${getTranslatedUndoPolicy(entry.undo_policy)} / ${getTranslatedUndoStatus(
                           entry.undo_status,
@@ -737,7 +716,7 @@ const HistoryWorkspace = (props: {
                       : EMPTY_LABEL,
                   },
                   {
-                    label: 'РћС‚РєР°С‚ / РїСЂРѕРїСѓСЃРє',
+                    label: 'Откат / пропуск',
                     value:
                       entry.reverted_count !== undefined ||
                       entry.skipped_count !== undefined
@@ -747,8 +726,7 @@ const HistoryWorkspace = (props: {
                 ]}
               />
               <Box color="label" mt={0.45}>
-                {entry.message ||
-                  'РџРѕРґСЂРѕР±РЅРѕСЃС‚Рё РЅРµ СЃРѕС…СЂР°РЅРµРЅС‹.'}
+                {entry.message || 'Подробности не сохранены.'}
               </Box>
             </Collapsible>
           ))}
@@ -793,19 +771,16 @@ const WorkspacePage = (props: {
       />
 
       {!data.has_generator && !!data.categories?.length && (
-        <SurfaceCard title="РћС‚РєСЂС‹РІР°РµРј РёРЅСЃС‚СЂСѓРјРµРЅС‚">
+        <SurfaceCard title="Открываем инструмент">
           <Box color="label">
-            РџРµСЂРІС‹Р№ РґРѕСЃС‚СѓРїРЅС‹Р№ РёРЅСЃС‚СЂСѓРјРµРЅС‚
-            РїРѕРґРіСЂСѓР¶Р°РµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё.
+            Первый доступный инструмент подгружается автоматически.
           </Box>
         </SurfaceCard>
       )}
 
       {!data.has_generator && !data.categories?.length && (
-        <SurfaceCard title="Р’С‹Р±РµСЂРёС‚Рµ РёРЅСЃС‚СЂСѓРјРµРЅС‚">
-          <Box color="label">
-            РЁР°Р±Р»РѕРЅ, С„РѕСЂРїРѕСЃС‚, СЂР°Р·СЂСѓС€РµРЅРёРµ.
-          </Box>
+        <SurfaceCard title="Выберите инструмент">
+          <Box color="label">Шаблон, форпост, разрушение.</Box>
         </SurfaceCard>
       )}
 

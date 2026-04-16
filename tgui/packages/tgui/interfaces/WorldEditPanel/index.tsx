@@ -5,6 +5,7 @@ import { Window } from '../../layouts';
 import { buildOrderedToolTabs } from './constants';
 import type { BackendData, UiField, WorkspaceTabKey } from './types';
 import { WorkspacePage } from './workspaces';
+
 export const WorldEditPanel = () => {
   const { data, act } = useBackend<BackendData>();
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTabKey>('editor');
@@ -20,7 +21,7 @@ export const WorldEditPanel = () => {
   const groupedFields = useMemo(() => {
     const groups: Record<string, UiField[]> = {};
     for (const field of data.ui_fields || []) {
-      const groupName = field.group || 'РћСЃРЅРѕРІРЅС‹Рµ';
+      const groupName = field.group || 'Основные';
       if (!groups[groupName]) {
         groups[groupName] = [];
       }

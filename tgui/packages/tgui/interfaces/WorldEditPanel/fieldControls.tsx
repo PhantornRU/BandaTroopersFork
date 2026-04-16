@@ -42,7 +42,7 @@ const ChoiceStrip = (props: {
   const itemBasis = basis || (options.length <= 2 ? '45%' : '22%');
 
   if (!options.length) {
-    return <Box color="label">РќРµС‚ РІР°СЂРёР°РЅС‚РѕРІ.</Box>;
+    return <Box color="label">Нет вариантов.</Box>;
   }
 
   return (
@@ -157,7 +157,7 @@ const ShapeOptionStrip = (props: {
     >
       {orderedValues.map((value) => {
         const label = getTranslatedShapeLabel(value);
-        const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || 'вЂў';
+        const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || '•';
         const isAvailable = availableValues.has(value);
         const isSelected = isAvailable && value === selected;
 
@@ -240,7 +240,7 @@ const CompactChoiceStrip = (props: {
   } = props;
 
   if (!options.length) {
-    return <Box color="label">РќРµС‚ РІР°СЂРёР°РЅС‚РѕРІ.</Box>;
+    return <Box color="label">Нет вариантов.</Box>;
   }
 
   return (
@@ -296,7 +296,7 @@ const renderFieldControl = (
         disabled={isDisabled}
         onClick={() => emitValue(!field.value)}
       >
-        {field.value ? 'Р”Р°' : 'РќРµС‚'}
+        {field.value ? 'Да' : 'Нет'}
       </Button.Checkbox>
     );
   }
@@ -351,15 +351,13 @@ const renderFieldControl = (
         selected={selected}
         displayText={getFieldOptionLabel(field)}
         disabled={isDisabled || !choiceOptions.length}
-        placeholder="Р’С‹Р±РµСЂРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ"
+        placeholder="Выберите значение"
         onSelected={handleSelected}
       />
     );
   }
 
-  return (
-    <Box color="bad">РќРµРїРѕРґРґРµСЂР¶РёРІР°РµРјС‹Р№ С‚РёРї РїРѕР»СЏ.</Box>
-  );
+  return <Box color="bad">Неподдерживаемый тип поля.</Box>;
 };
 
 const FieldEditor = (props: {

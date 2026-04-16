@@ -116,13 +116,7 @@ const WorkflowTrack = (props: {
         return (
           <Flex.Item key={step.key} m={0.15}>
             <StatusPill
-              label={
-                isDone
-                  ? 'Р“РѕС‚РѕРІРѕ'
-                  : isActive
-                    ? 'РЎРµР№С‡Р°СЃ'
-                    : 'Р”Р°Р»РµРµ'
-              }
+              label={isDone ? 'Готово' : isActive ? 'Сейчас' : 'Далее'}
               value={step.label}
               tone={tone}
             />
@@ -138,7 +132,7 @@ const PreviewLegend = (props: {
   readonly items: PreviewLegendItem[];
   readonly mt?: number;
 }) => {
-  const { title = 'Р¦РІРµС‚Р° РЅР° РєР°СЂС‚Рµ', items, mt = 0.6 } = props;
+  const { title = 'Цвета на карте', items, mt = 0.6 } = props;
   if (!items.length) {
     return null;
   }
