@@ -412,8 +412,17 @@ const FieldControlStack = (props: {
   readonly act: ActFn;
   readonly forceChoiceStrip?: boolean;
   readonly choiceStripBasis?: string;
+  readonly labelOverride?: string;
+  readonly showHint?: boolean;
 }) => {
-  const { field, act, forceChoiceStrip, choiceStripBasis } = props;
+  const {
+    field,
+    act,
+    forceChoiceStrip,
+    choiceStripBasis,
+    labelOverride,
+    showHint = true,
+  } = props;
   if (!field || field.visible === false) {
     return null;
   }
@@ -421,7 +430,7 @@ const FieldControlStack = (props: {
   return (
     <Box>
       <Box color="label" mb={0.25}>
-        {getTranslatedFieldLabel(field)}
+        {labelOverride || getTranslatedFieldLabel(field)}
       </Box>
       <FieldControl
         field={field}
@@ -429,7 +438,7 @@ const FieldControlStack = (props: {
         forceChoiceStrip={forceChoiceStrip}
         choiceStripBasis={choiceStripBasis}
       />
-      {!!field.validate_hint && (
+      {!!showHint && !!field.validate_hint && (
         <Box color="average" mt={0.25}>
           {field.validate_hint}
         </Box>

@@ -7,10 +7,11 @@ import {
   DEFAULT_POINT_SHAPE_OPTION,
   TOOL_PICKER_LABELS,
 } from './constants';
-import { CompactFieldControl, ShapeOptionStrip } from './fieldControls';
+import { CompactFieldControl, FieldControl, ShapeOptionStrip } from './fieldControls';
 import {
   getField,
   getFieldsById,
+  getSelectedBlueprint,
   getTranslatedDirection,
   getTranslatedPlacementMode,
   isBlueprintToolBlocked,
@@ -31,17 +32,24 @@ const CHROME_ACTION_BUTTON_MIN_WIDTH = '6.25rem';
 const CHROME_CONTROL_BUTTON_WIDTH_REM = 6.6;
 const CHROME_CONTROL_BUTTON_HEIGHT_REM = 1.45;
 const CHROME_DIRECTION_BUTTON_GAP_REM = 0.25;
-const CHROME_CONTROL_COLUMN_PADDING_REM = 0.85;
-const CHROME_PLACEMENT_COLUMN_GAP_REM = 1.15;
+const CHROME_CONTROL_COLUMN_PADDING_REM = 0.7;
+const CHROME_PLACEMENT_COLUMN_GAP_REM = 0.9;
 const CHROME_PLACEMENT_SECTION_GAP_REM = 0.22;
 const CHROME_SHAPE_GRID_COLUMNS = 5;
+const CHROME_RADIUS_COLUMN_WIDTH_REM = 5.2;
 const toRem = (value: number) => `${value}rem`;
 const CHROME_SQUARE_BUTTON_SIZE = toRem(CHROME_SQUARE_BUTTON_REM);
 const CHROME_CONTROL_BUTTON_WIDTH = toRem(CHROME_CONTROL_BUTTON_WIDTH_REM);
 const CHROME_CONTROL_BUTTON_HEIGHT = toRem(CHROME_CONTROL_BUTTON_HEIGHT_REM);
 const CHROME_DIRECTION_BUTTON_GAP = toRem(CHROME_DIRECTION_BUTTON_GAP_REM);
+const CHROME_DIRECTION_COMPASS_WIDTH = toRem(
+  CHROME_SQUARE_BUTTON_REM * 3 + CHROME_DIRECTION_BUTTON_GAP_REM * 2,
+);
 const CHROME_DIRECTION_COLUMN_WIDTH = toRem(
-  CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM,
+  Math.max(
+    CHROME_CONTROL_BUTTON_WIDTH_REM,
+    CHROME_SQUARE_BUTTON_REM * 3 + CHROME_DIRECTION_BUTTON_GAP_REM * 2,
+  ),
 );
 const CHROME_CONTROL_COLUMN_PADDING = toRem(CHROME_CONTROL_COLUMN_PADDING_REM);
 const CHROME_PLACEMENT_COLUMN_GAP = toRem(CHROME_PLACEMENT_COLUMN_GAP_REM);
@@ -50,17 +58,7 @@ const CHROME_SHAPE_COLUMN_WIDTH = toRem(
   CHROME_SQUARE_BUTTON_REM * CHROME_SHAPE_GRID_COLUMNS +
     CHROME_DIRECTION_BUTTON_GAP_REM * (CHROME_SHAPE_GRID_COLUMNS - 1),
 );
-const CHROME_RIGHT_GROUP_CONTENT_WIDTH = toRem(
-  CHROME_CONTROL_BUTTON_WIDTH_REM +
-    CHROME_PLACEMENT_COLUMN_GAP_REM +
-    (CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM),
-);
-const CHROME_RIGHT_GROUP_WIDTH = toRem(
-  CHROME_CONTROL_COLUMN_PADDING_REM +
-    CHROME_CONTROL_BUTTON_WIDTH_REM +
-    CHROME_PLACEMENT_COLUMN_GAP_REM +
-    (CHROME_SQUARE_BUTTON_REM * 2 + CHROME_DIRECTION_BUTTON_GAP_REM),
-);
+const CHROME_RADIUS_COLUMN_WIDTH = toRem(CHROME_RADIUS_COLUMN_WIDTH_REM);
 const CHROME_SHARED_CENTER_STYLE = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -294,6 +292,73 @@ const ControlSectionLabel = (props: { readonly children: ReactNode }) => (
   </Box>
 );
 
+const ToolbarControlColumn = (props: {
+  readonly label: ReactNode;
+  readonly width: string;
+  readonly separated?: boolean;
+  readonly align?: 'stretch' | 'center';
+  readonly children: ReactNode;
+}) => {
+  const {
+    label,
+    width,
+    separated = false,
+    align = 'stretch',
+    children,
+  } = props;
+
+  return (
+    <Box
+      style={{
+        width,
+        minWidth: width,
+        paddingLeft: separated ? CHROME_CONTROL_COLUMN_PADDING : '0',
+        borderLeft: separated
+          ? '1px solid rgba(70, 107, 150, 0.35)'
+          : 'none',
+        display: 'grid',
+        rowGap: CHROME_PLACEMENT_SECTION_GAP,
+        alignContent: 'start',
+        justifyItems: align === 'center' ? 'center' : 'stretch',
+      }}
+    >
+      <ControlSectionLabel>{label}</ControlSectionLabel>
+      {children}
+    </Box>
+  );
+};
+
+const ToolbarReadOnlyValue = (props: {
+  readonly value: ReactNode;
+  readonly disabled?: boolean;
+}) => {
+  const { value, disabled } = props;
+
+  return (
+    <Box
+      px={0.35}
+      color={disabled ? 'label' : 'white'}
+      style={{
+        ...CHROME_SHARED_CENTER_STYLE,
+        width: '100%',
+        minHeight: CHROME_CONTROL_BUTTON_HEIGHT,
+        height: CHROME_CONTROL_BUTTON_HEIGHT,
+        border: `1px solid ${
+          disabled
+            ? 'rgba(70, 107, 150, 0.25)'
+            : 'rgba(70, 107, 150, 0.45)'
+        }`,
+        background: disabled
+          ? 'rgba(70, 107, 150, 0.05)'
+          : 'rgba(70, 107, 150, 0.12)',
+        borderRadius: '4px',
+      }}
+    >
+      {value}
+    </Box>
+  );
+};
+
 const FillButtonText = (props: { readonly children: string }) => (
   <Box
     as="span"
@@ -439,7 +504,6 @@ const DirectionCompass = (props: {
   const availableValues = new Set(
     options.map((option) => `${option.value}`.trim().toLowerCase()),
   );
-  const usingFacing = !disabled && usesFacing;
   const effectiveSelected = `${selected}`.trim().toLowerCase();
 
   const renderDirectionButton = (value: string) => {
@@ -452,9 +516,9 @@ const DirectionCompass = (props: {
         key={value}
         compact
         verticalAlignContent="middle"
-        selected={!usingFacing && effectiveSelected === value}
-        color={!usingFacing && effectiveSelected === value ? 'good' : undefined}
-        disabled={disabled || usingFacing}
+        selected={!usesFacing && effectiveSelected === value}
+        color={!usesFacing && effectiveSelected === value ? 'good' : undefined}
+        disabled={disabled}
         tooltip={getTranslatedDirection(value)}
         onClick={() => onSelected(value)}
         style={CHROME_ICON_BUTTON_STYLE}
@@ -480,27 +544,28 @@ const DirectionCompass = (props: {
   return (
     <Box
       style={{
-        width: CHROME_DIRECTION_COLUMN_WIDTH,
+        width: CHROME_DIRECTION_COMPASS_WIDTH,
+        minWidth: CHROME_DIRECTION_COMPASS_WIDTH,
         display: 'grid',
+        gridTemplateColumns: `repeat(3, ${CHROME_SQUARE_BUTTON_SIZE})`,
+        gridTemplateRows: `repeat(3, ${CHROME_SQUARE_BUTTON_SIZE})`,
+        justifyContent: 'center',
         justifyItems: 'center',
+        alignItems: 'center',
+        columnGap: CHROME_DIRECTION_BUTTON_GAP,
         rowGap: CHROME_DIRECTION_BUTTON_GAP,
-        overflow: 'hidden',
       }}
     >
-      <Box style={{ display: 'flex', justifyContent: 'center' }}>
+      <Box style={{ gridColumn: '2', gridRow: '1' }}>
         {renderDirectionButton('north')}
       </Box>
-      <Box
-        style={{
-          display: 'grid',
-          gridAutoFlow: 'column',
-          gap: CHROME_DIRECTION_BUTTON_GAP,
-        }}
-      >
+      <Box style={{ gridColumn: '1', gridRow: '2' }}>
         {renderDirectionButton('west')}
+      </Box>
+      <Box style={{ gridColumn: '3', gridRow: '2' }}>
         {renderDirectionButton('east')}
       </Box>
-      <Box style={{ display: 'flex', justifyContent: 'center' }}>
+      <Box style={{ gridColumn: '2', gridRow: '3' }}>
         {renderDirectionButton('south')}
       </Box>
     </Box>
@@ -527,11 +592,24 @@ const SharedModePanel = (props: {
     `${data.placement_dir || directionOptions[0]?.value || 'north'}`
       .trim()
       .toLowerCase();
+  const radiusField = getField(data.ui_fields, 'radius');
+  const activeBlueprint =
+    data.current_generator_id === 'blueprint_stamp'
+      ? getSelectedBlueprint(data)
+      : undefined;
+  const showRadiusSection =
+    !isHistoryTab &&
+    hasGenerator &&
+    (data.current_generator_id === 'blueprint_stamp' ||
+      (!!radiusField && radiusField.visible !== false));
   const showShapeSection = !isHistoryTab && hasGenerator;
   const showModeSection = !isHistoryTab && hasGenerator;
   const showDirectionSection = !isHistoryTab && hasGenerator;
   const hasTopControls =
-    showShapeSection || showModeSection || showDirectionSection;
+    showShapeSection ||
+    showModeSection ||
+    showDirectionSection ||
+    showRadiusSection;
 
   if (!hasTopControls && !sharedFields.length) {
     return null;
@@ -540,12 +618,13 @@ const SharedModePanel = (props: {
   return (
     <Box>
       {hasTopControls && (
-        <Box style={{ display: 'inline-block', maxWidth: '100%' }}>
+        <Box style={{ overflowX: 'auto' }}>
           <Box
             p={0.25}
             style={{
               display: 'inline-grid',
-              maxWidth: '100%',
+              width: 'max-content',
+              minWidth: '100%',
               border: '1px solid rgba(70, 107, 150, 0.55)',
               background: 'rgba(70, 107, 150, 0.10)',
               borderRadius: '4px',
@@ -553,15 +632,18 @@ const SharedModePanel = (props: {
           >
             <Box
               style={{
-                display: 'inline-grid',
-                gridTemplateColumns: `${CHROME_SHAPE_COLUMN_WIDTH} ${CHROME_RIGHT_GROUP_WIDTH}`,
+                display: 'grid',
+                gridAutoFlow: 'column',
+                gridAutoColumns: 'max-content',
                 columnGap: CHROME_PLACEMENT_COLUMN_GAP,
                 alignItems: 'start',
               }}
             >
               {showShapeSection && !!selectedShape && (
-                <Box style={{ width: CHROME_SHAPE_COLUMN_WIDTH }}>
-                  <ControlSectionLabel>Форма</ControlSectionLabel>
+                <ToolbarControlColumn
+                  label="Форма"
+                  width={CHROME_SHAPE_COLUMN_WIDTH}
+                >
                   <ShapeOptionStrip
                     options={shapeOptions}
                     selected={selectedShape}
@@ -575,100 +657,86 @@ const SharedModePanel = (props: {
                       })
                     }
                   />
-                </Box>
+                </ToolbarControlColumn>
               )}
 
-              {(showModeSection || showDirectionSection) && (
-                <Box
-                  style={{
-                    width: CHROME_RIGHT_GROUP_WIDTH,
-                    minWidth: CHROME_RIGHT_GROUP_WIDTH,
-                    maxWidth: CHROME_RIGHT_GROUP_WIDTH,
-                    paddingLeft: CHROME_CONTROL_COLUMN_PADDING,
-                    borderLeft: '1px solid rgba(70, 107, 150, 0.35)',
-                    display: 'inline-grid',
-                    gridTemplateColumns: `${CHROME_CONTROL_BUTTON_WIDTH} ${CHROME_DIRECTION_COLUMN_WIDTH}`,
-                    columnGap: CHROME_PLACEMENT_COLUMN_GAP,
-                    alignItems: 'start',
-                  }}
+              {showModeSection && (
+                <ToolbarControlColumn
+                  label="После клика"
+                  width={CHROME_CONTROL_BUTTON_WIDTH}
+                  separated
+                >
+                  <CompactStackedChoiceButtons
+                    options={modeOptions}
+                    selected={selectedMode}
+                    disabled={!data.placement_supported}
+                    onSelected={(value) =>
+                      act('set_placement_mode', {
+                        mode: value,
+                      })
+                    }
+                  />
+                </ToolbarControlColumn>
+              )}
+
+              {showDirectionSection && (
+                <ToolbarControlColumn
+                  label="Направление"
+                  width={CHROME_DIRECTION_COLUMN_WIDTH}
+                  separated
+                  align="center"
                 >
                   <Box
                     style={{
-                      width: CHROME_CONTROL_BUTTON_WIDTH,
-                      minWidth: CHROME_CONTROL_BUTTON_WIDTH,
                       display: 'grid',
                       rowGap: CHROME_PLACEMENT_SECTION_GAP,
-                      alignContent: 'start',
+                      justifyItems: 'center',
                     }}
                   >
-                    {showDirectionSection && (
-                      <Box>
-                        <ControlSectionLabel>Направление</ControlSectionLabel>
-                        <CompactToggleButton
-                          checked={
-                            !!(
-                              data.placement_supports_direction &&
-                              data.placement_dir_uses_facing
-                            )
-                          }
-                          label="По взгляду"
-                          disabled={!data.placement_supports_direction}
-                          onClick={() =>
-                            act('set_placement_dir_uses_facing', {
-                              enabled: !data.placement_dir_uses_facing,
-                            })
-                          }
-                        />
-                      </Box>
-                    )}
-
-                    {showModeSection && (
-                      <Box pt={showDirectionSection ? 0.1 : 0}>
-                        <ControlSectionLabel>После клика</ControlSectionLabel>
-                        <CompactStackedChoiceButtons
-                          options={modeOptions}
-                          selected={selectedMode}
-                          disabled={!data.placement_supported}
-                          onSelected={(value) =>
-                            act('set_placement_mode', {
-                              mode: value,
-                            })
-                          }
-                        />
-                      </Box>
-                    )}
+                    <CompactToggleButton
+                      checked={!!data.placement_dir_uses_facing}
+                      label="По взгляду"
+                      disabled={!data.placement_supports_direction}
+                      onClick={() =>
+                        act('set_placement_dir_uses_facing', {
+                          enabled: !data.placement_dir_uses_facing,
+                        })
+                      }
+                    />
+                    <DirectionCompass
+                      options={directionOptions}
+                      selected={selectedDirection}
+                      usesFacing={data.placement_dir_uses_facing}
+                      disabled={!data.placement_supports_direction}
+                      onSelected={(value) =>
+                        act('set_placement_dir', {
+                          direction: value,
+                        })
+                      }
+                    />
                   </Box>
+                </ToolbarControlColumn>
+              )}
 
-                  {showDirectionSection && (
-                    <Box
-                      style={{
-                        width: CHROME_DIRECTION_COLUMN_WIDTH,
-                        minWidth: CHROME_DIRECTION_COLUMN_WIDTH,
-                        display: 'grid',
-                        rowGap: CHROME_PLACEMENT_SECTION_GAP,
-                        justifyItems: 'center',
-                        alignContent: 'start',
-                      }}
-                    >
-                      <ControlSectionLabel>
-                        <Box as="span" style={{ visibility: 'hidden' }}>
-                          Направление
-                        </Box>
-                      </ControlSectionLabel>
-                      <DirectionCompass
-                        options={directionOptions}
-                        selected={selectedDirection}
-                        usesFacing={data.placement_dir_uses_facing}
-                        disabled={!data.placement_supports_direction}
-                        onSelected={(value) =>
-                          act('set_placement_dir', {
-                            direction: value,
-                          })
-                        }
-                      />
-                    </Box>
+              {showRadiusSection && (
+                <ToolbarControlColumn
+                  label="Радиус"
+                  width={CHROME_RADIUS_COLUMN_WIDTH}
+                  separated
+                >
+                  {data.current_generator_id === 'blueprint_stamp' ? (
+                    <ToolbarReadOnlyValue
+                      value={
+                        activeBlueprint ? `${activeBlueprint.radius ?? 0}` : '—'
+                      }
+                      disabled={!activeBlueprint || !activeBlueprint.valid}
+                    />
+                  ) : radiusField && radiusField.visible !== false ? (
+                    <FieldControl field={radiusField} act={act} />
+                  ) : (
+                    <ToolbarReadOnlyValue value="—" disabled />
                   )}
-                </Box>
+                </ToolbarControlColumn>
               )}
             </Box>
           </Box>

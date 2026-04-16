@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 import {
   Box,
@@ -25,7 +25,6 @@ import {
   getGeneratorDisplayName,
   getHistoryResultText,
   getPositiveCountText,
-  getSafeFieldList,
   getTranslatedUndoPolicy,
   getTranslatedUndoStatus,
   getUndoTone,
@@ -34,7 +33,7 @@ import {
 } from './helpers';
 import {
   CompactStatusRow,
-  PreviewLegend,
+  getSurfaceColors,
   StatusPill,
   SurfaceCard,
   WorkspaceGrid,
@@ -49,6 +48,58 @@ import type {
   WorkspaceTabKey,
 } from './types';
 
+const DESTRUCTION_COLOR_GUIDE = [
+  {
+    label: 'Перемещение',
+    color: '#4e8eff',
+    description: 'Синий слой показывает клетки, по которым shuffle и scatter будут двигать объекты.',
+  },
+  {
+    label: 'Огонь',
+    color: '#ff9438',
+    description: 'Оранжевая подсветка отмечает клетки, где будет создан постоянный огонь.',
+  },
+  {
+    label: 'Урон',
+    color: '#b85cff',
+    description: 'Фиолетовый слой показывает прямой структурный урон без взрывной волны.',
+  },
+  {
+    label: 'Взрыв',
+    color: '#ff4e4e',
+    description: 'Красная зона отмечает центр и область controlled blast.',
+  },
+] as const;
+
+const getDestructionRangeSuffix = (field: UiField) => {
+  if (typeof field.min !== 'number' || typeof field.max !== 'number') {
+    return '';
+  }
+
+  const rangeText = `${field.min}-${field.max}`;
+  if (field.id === 'persistent_fire_density') {
+    return ` [${rangeText}%]`;
+  }
+  return ` [${rangeText}]`;
+};
+
+const getDestructionFieldLabel = (field: UiField) => {
+  switch (field.id) {
+    case 'scatter_steps':
+      return `Шаги разброса${getDestructionRangeSuffix(field)}`;
+    case 'max_atoms':
+      return `Лимит объектов${getDestructionRangeSuffix(field)}`;
+    case 'persistent_fire_density':
+      return `Плотность огня${getDestructionRangeSuffix(field)}`;
+    case 'blast_power':
+      return `Мощность взрыва${getDestructionRangeSuffix(field)}`;
+    case 'blast_falloff':
+      return `Спад взрыва${getDestructionRangeSuffix(field)}`;
+    default:
+      return undefined;
+  }
+};
+
 const getBlueprintLibraryMetaText = (blueprint: BlueprintEntry) => {
   const parts = [
     `${getPositiveCountText(blueprint.entry_count, '0')} объектов`,
@@ -58,6 +109,249 @@ const getBlueprintLibraryMetaText = (blueprint: BlueprintEntry) => {
     parts.push(`${blueprint.source}`);
   }
   return parts.join(' · ');
+};
+
+const DestructionSplitBlock = (props: {
+  readonly title: string;
+  readonly tone?: 'default' | 'good' | 'average' | 'bad';
+  readonly children: ReactNode;
+}) => {
+  const { title, tone, children } = props;
+  const { borderColor } = getSurfaceColors(tone);
+
+  return (
+    <Box
+      p={0.5}
+      style={{
+        height: '100%',
+        borderTop: `2px solid ${borderColor}`,
+        border: `1px solid ${borderColor}`,
+        background: 'rgba(70, 107, 150, 0.03)',
+        borderRadius: '4px',
+      }}
+    >
+      <Box bold>{title}</Box>
+      <Box mt={0.4}>{children}</Box>
+    </Box>
+  );
+};
+
+const DestructionColorGuide = (props: {
+  readonly activeItems: { label: string; color: string }[];
+}) => {
+  const { activeItems } = props;
+  const activeLabels = new Set(activeItems.map((item) => item.label));
+
+  return (
+    <Box
+      style={{
+        display: 'grid',
+        alignContent: 'start',
+        alignSelf: 'start',
+        width: '100%',
+      }}
+    >
+      <Box bold>Цвета на карте</Box>
+      <Box
+        mt={0.35}
+        style={{
+          display: 'grid',
+          rowGap: '0.36rem',
+          alignContent: 'start',
+        }}
+      >
+        {DESTRUCTION_COLOR_GUIDE.map((item) => {
+          const isActive = activeLabels.has(item.label);
+          return (
+            <Box
+              key={item.label}
+              p={0.38}
+              style={{
+                border: `1px solid ${isActive ? item.color : 'rgba(70, 107, 150, 0.35)'}`,
+                background: isActive
+                  ? 'rgba(70, 107, 150, 0.12)'
+                  : 'rgba(70, 107, 150, 0.05)',
+                borderRadius: '4px',
+                opacity: isActive ? '1' : '0.72',
+              }}
+            >
+              <Flex align="center">
+                <Flex.Item grow basis="10rem" style={{ minWidth: '0' }}>
+                  <Box
+                    as="span"
+                    mr={0.38}
+                    style={{
+                      display: 'inline-block',
+                      width: '0.82rem',
+                      height: '0.82rem',
+                      borderRadius: '3px',
+                      background: item.color,
+                      verticalAlign: 'middle',
+                    }}
+                  />
+                  <Box as="span" bold color={isActive ? 'white' : 'label'}>
+                    {item.label}
+                  </Box>
+                </Flex.Item>
+              </Flex>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+};
+
+const DestructionMovementBlock = (props: {
+  readonly shuffleField?: UiField;
+  readonly scatterField?: UiField;
+  readonly maxAtomsField?: UiField;
+  readonly scatterStepsField?: UiField;
+  readonly act: ActFn;
+  readonly tone?: 'default' | 'good' | 'average' | 'bad';
+  readonly activeItems: { label: string; color: string }[];
+}) => {
+  const {
+    shuffleField,
+    scatterField,
+    maxAtomsField,
+    scatterStepsField,
+    act,
+    tone,
+    activeItems,
+  } = props;
+
+  return (
+    <DestructionSplitBlock title="Перемещение" tone={tone}>
+      <Box
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.05fr) minmax(15rem, 0.95fr)',
+          gridTemplateAreas: `
+            "shuffle legend"
+            "scatter legend"
+            "maxAtoms scatterSteps"
+          `,
+          columnGap: '0.85rem',
+          rowGap: '0.58rem',
+          alignItems: 'start',
+        }}
+      >
+        {!!shuffleField && (
+          <Box style={{ gridArea: 'shuffle', minWidth: '0' }}>
+            <FieldControlStack
+              field={shuffleField}
+              act={act}
+              labelOverride={getDestructionFieldLabel(shuffleField)}
+              showHint={false}
+            />
+          </Box>
+        )}
+        {!!scatterField && (
+          <Box style={{ gridArea: 'scatter', minWidth: '0' }}>
+            <FieldControlStack
+              field={scatterField}
+              act={act}
+              labelOverride={getDestructionFieldLabel(scatterField)}
+              showHint={false}
+            />
+          </Box>
+        )}
+        {!!maxAtomsField && (
+          <Box style={{ gridArea: 'maxAtoms', minWidth: '0' }}>
+            <FieldControlStack
+              field={maxAtomsField}
+              act={act}
+              labelOverride={getDestructionFieldLabel(maxAtomsField)}
+              showHint={false}
+            />
+          </Box>
+        )}
+        <Box
+          style={{
+            gridArea: 'legend',
+            minWidth: '0',
+            alignSelf: 'start',
+          }}
+        >
+          <DestructionColorGuide activeItems={activeItems} />
+        </Box>
+        {!!scatterStepsField && (
+          <Box
+            style={{
+              gridArea: 'scatterSteps',
+              minWidth: '0',
+              alignSelf: 'start',
+            }}
+          >
+            <FieldControlStack
+              field={scatterStepsField}
+              act={act}
+              labelOverride={getDestructionFieldLabel(scatterStepsField)}
+              showHint={false}
+            />
+          </Box>
+        )}
+      </Box>
+    </DestructionSplitBlock>
+  );
+};
+
+const DestructionModeBlock = (props: {
+  readonly title: string;
+  readonly fields: UiField[];
+  readonly act: ActFn;
+  readonly tone?: 'default' | 'good' | 'average' | 'bad';
+}) => {
+  const { title, fields, act, tone } = props;
+  const visibleFields = fields.filter((field) => field.visible !== false);
+  if (!visibleFields.length) {
+    return null;
+  }
+
+  const [primaryField, ...detailFields] = visibleFields;
+
+  return (
+    <DestructionSplitBlock title={title} tone={tone}>
+      <Box
+        style={{
+          display: 'grid',
+          rowGap: '0.58rem',
+          alignContent: 'start',
+          height: '100%',
+        }}
+      >
+        {!!primaryField && (
+          <FieldControlStack
+            field={primaryField}
+            act={act}
+            labelOverride={getDestructionFieldLabel(primaryField)}
+            showHint={false}
+          />
+        )}
+        {!!detailFields.length && (
+          <Box
+            pt={0.4}
+            style={{
+              display: 'grid',
+              rowGap: '0.58rem',
+              borderTop: '1px solid rgba(70, 107, 150, 0.24)',
+            }}
+          >
+            {detailFields.map((field) => (
+              <FieldControlStack
+                key={field.id}
+                field={field}
+                act={act}
+                labelOverride={getDestructionFieldLabel(field)}
+                showHint={false}
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
+    </DestructionSplitBlock>
+  );
 };
 
 const BlueprintStampWorkspace = (props: {
@@ -303,10 +597,10 @@ const DestructionPackWorkspace = (props: {
   const areaFields = getFieldsByGroup(data.ui_fields, 'Area').filter(
     (field) => field.id !== 'radius',
   );
-  const safeMovementFields = [
-    ...getFieldsById(data.ui_fields, ['shuffle_enabled', 'scatter_enabled']),
-    ...getSafeFieldList(data.ui_fields, ['scatter_steps', 'max_atoms']),
-  ];
+  const shuffleField = getField(data.ui_fields, 'shuffle_enabled');
+  const scatterField = getField(data.ui_fields, 'scatter_enabled');
+  const maxAtomsField = getField(data.ui_fields, 'max_atoms');
+  const scatterStepsField = getField(data.ui_fields, 'scatter_steps');
   const fireFields = [
     ...getFieldsById(data.ui_fields, ['persistent_fire_enabled']),
     ...getFieldsById(data.ui_fields, ['persistent_fire_density']),
@@ -328,17 +622,24 @@ const DestructionPackWorkspace = (props: {
   const visibleAreaFields = areaFields.filter(
     (field) => field.visible !== false,
   );
-  const visibleMovementFields = safeMovementFields.filter(
-    (field) => field.visible !== false,
-  );
+  const visibleShuffleField =
+    shuffleField?.visible !== false ? shuffleField : undefined;
+  const visibleScatterField =
+    scatterField?.visible !== false ? scatterField : undefined;
+  const visibleMaxAtomsField =
+    maxAtomsField?.visible !== false ? maxAtomsField : undefined;
+  const visibleScatterStepsField =
+    scatterStepsField?.visible !== false ? scatterStepsField : undefined;
+  const visibleMovementFields = [
+    visibleShuffleField,
+    visibleScatterField,
+    visibleMaxAtomsField,
+    visibleScatterStepsField,
+  ].filter((field): field is UiField => !!field);
   const previewLegendItems = getDestructionPreviewLegendItems(data);
 
   return (
     <>
-      {!!previewLegendItems.length && (
-        <PreviewLegend items={previewLegendItems} mt={0} />
-      )}
-
       {(!!visibleAreaFields.length || !!visibleMovementFields.length) && (
         <SurfaceCard title="Безопасная зона">
           <WorkspaceGrid>
@@ -347,11 +648,14 @@ const DestructionPackWorkspace = (props: {
                 basis={visibleAreaFields.length ? '48%' : '100%'}
                 minWidth="19rem"
               >
-                <FieldBlock
-                  title="Перемещение"
-                  fields={visibleMovementFields}
+                <DestructionMovementBlock
+                  shuffleField={visibleShuffleField}
+                  scatterField={visibleScatterField}
+                  maxAtomsField={visibleMaxAtomsField}
+                  scatterStepsField={visibleScatterStepsField}
                   act={act}
                   tone={movementEnabled ? 'average' : 'default'}
+                  activeItems={previewLegendItems}
                 />
               </WorkspacePane>
             )}
@@ -370,23 +674,23 @@ const DestructionPackWorkspace = (props: {
         tone={destructiveEnabled ? 'bad' : fireEnabled ? 'average' : 'default'}
       >
         <WorkspaceGrid>
-          <WorkspacePane basis="33%" minWidth="16rem">
-            <FieldBlock
+          <WorkspacePane basis="48%" minWidth="16rem">
+            <DestructionModeBlock
               title="Огонь"
               fields={fireFields}
               act={act}
               tone={fireEnabled ? 'average' : 'default'}
             />
           </WorkspacePane>
-          <WorkspacePane basis="33%" minWidth="16rem">
-            <FieldBlock
+          <WorkspacePane basis="48%" minWidth="16rem">
+            <DestructionModeBlock
               title="Взрыв"
               fields={blastFields}
               act={act}
               tone={blastEnabled ? 'bad' : 'default'}
             />
           </WorkspacePane>
-          <WorkspacePane basis="33%" minWidth="16rem">
+          <WorkspacePane basis="100%" minWidth="16rem">
             <FieldBlock
               title="Структурный урон"
               fields={damageFields}

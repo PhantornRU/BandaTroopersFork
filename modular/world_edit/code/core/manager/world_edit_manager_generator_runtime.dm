@@ -92,8 +92,8 @@
 	current_generator.attach(src, definition)
 	current_params = definition.default_params?.Copy() || list()
 	reset_placement_runtime(TRUE)
-	placement_dir = current_generator?.get_default_placement_direction() || NORTH
 	restore_generator_context(definition.id)
+	apply_shared_placement_prefs_to_current_generator()
 	if(keep_active_placement)
 		if(sync_click_intercept_state() && supports_current_placement_ux())
 			placement_click_active = click_intercept_owned ? TRUE : FALSE

@@ -150,10 +150,6 @@
 
 	return list(
 		"params" = sanitize_persistent_generator_params(current_params),
-		"placement_mode" = placement_mode,
-		"placement_shape" = placement_shape,
-		"placement_dir" = placement_dir,
-		"placement_dir_uses_facing" = placement_dir_uses_facing,
 	)
 
 /datum/world_edit_manager/proc/save_current_generator_context()
@@ -175,20 +171,6 @@
 
 	var/list/snapshot_params = snapshot["params"]
 	current_params = sanitize_persistent_generator_params(snapshot_params)
-
-	if(length("[snapshot["placement_mode"]]"))
-		placement_mode = "[snapshot["placement_mode"]]"
-	if(length("[snapshot["placement_shape"]]"))
-		placement_shape = "[snapshot["placement_shape"]]"
-
-	var/snapshot_dir = text2num("[snapshot["placement_dir"]]")
-	if(snapshot_dir in GLOB.cardinals)
-		placement_dir = snapshot_dir
-	placement_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(snapshot["placement_dir_uses_facing"])
-
-	get_effective_placement_mode()
-	get_effective_placement_shape()
-	get_effective_placement_dir()
 	return TRUE
 
 /datum/world_edit_manager/proc/clear_generator_context(generator_id = null)
@@ -230,30 +212,61 @@
 /datum/world_edit_manager/proc/supports_current_placement_direction()
 	return current_generator?.supports_placement_direction() ? TRUE : FALSE
 
-/datum/world_edit_manager/proc/get_effective_placement_mode()
+/datum/world_edit_manager/proc/resolve_supported_placement_mode(requested_mode = null)
 	var/list/modes = get_supported_placement_modes()
 	if(!length(modes))
+		return null
+
+	if(length("[requested_mode]") && (requested_mode in modes))
+		return "[requested_mode]"
+	return "[modes[1]]"
+
+/datum/world_edit_manager/proc/resolve_supported_placement_shape(requested_shape = null)
+	var/list/shapes = get_supported_placement_shapes()
+	if(!length(shapes))
+		return null
+
+	if(length("[requested_shape]") && (requested_shape in shapes))
+		return "[requested_shape]"
+
+	var/default_shape = current_generator?.get_default_placement_shape()
+	if(length("[default_shape]") && (default_shape in shapes))
+		return "[default_shape]"
+	return "[shapes[1]]"
+
+/datum/world_edit_manager/proc/resolve_supported_placement_dir(requested_dir = null)
+	var/default_dir = current_generator?.get_default_placement_direction() || NORTH
+	if(requested_dir in GLOB.cardinals)
+		return requested_dir
+	return default_dir
+
+/datum/world_edit_manager/proc/apply_shared_placement_prefs_to_current_generator()
+	placement_mode = resolve_supported_placement_mode(placement_shared_mode) || "single"
+	placement_shape = resolve_supported_placement_shape(placement_shared_shape) || WORLD_EDIT_SHAPE_POINT
+	placement_dir = resolve_supported_placement_dir(placement_shared_dir)
+	placement_dir_uses_facing = placement_shared_dir_uses_facing ? TRUE : FALSE
+	return TRUE
+
+/datum/world_edit_manager/proc/get_effective_placement_mode()
+	var/resolved_mode = resolve_supported_placement_mode(placement_mode)
+	if(!length("[resolved_mode]"))
 		placement_mode = "single"
 		return null
 
-	if(!(placement_mode in modes))
-		placement_mode = "[modes[1]]"
+	placement_mode = resolved_mode
 	return placement_mode
 
 /datum/world_edit_manager/proc/get_effective_placement_shape()
-	var/list/shapes = get_supported_placement_shapes()
-	if(!length(shapes))
+	var/resolved_shape = resolve_supported_placement_shape(placement_shape)
+	if(!length("[resolved_shape]"))
 		placement_shape = WORLD_EDIT_SHAPE_POINT
 		return null
 
-	if(!(placement_shape in shapes))
-		placement_shape = "[shapes[1]]"
+	placement_shape = resolved_shape
 	return placement_shape
 
 /datum/world_edit_manager/proc/get_effective_placement_dir()
-	var/default_dir = current_generator?.get_default_placement_direction() || NORTH
-	if(!(placement_dir in GLOB.cardinals))
-		placement_dir = default_dir
+	placement_dir = resolve_supported_placement_dir(placement_dir)
 	if(placement_dir_uses_facing)
 		var/current_facing_dir = holder?.mob?.dir
 		if(current_facing_dir in GLOB.cardinals)
@@ -423,9 +436,9 @@
 	reset_placement_collector_state()
 
 	if(reset_config)
-		placement_mode = "single"
-		placement_shape = current_generator?.get_default_placement_shape() || WORLD_EDIT_SHAPE_POINT
-		placement_dir = current_generator?.get_default_placement_direction() || NORTH
+		placement_mode = resolve_supported_placement_mode() || "single"
+		placement_shape = resolve_supported_placement_shape() || WORLD_EDIT_SHAPE_POINT
+		placement_dir = resolve_supported_placement_dir()
 		placement_dir_uses_facing = TRUE
 
 /datum/world_edit_manager/proc/sync_click_intercept_state()

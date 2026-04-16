@@ -33,6 +33,10 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/datum/click_intercept_previous
 	var/click_intercept_owned = FALSE
 	var/placement_click_active = FALSE
+	var/placement_shared_mode = "single"
+	var/placement_shared_shape = WORLD_EDIT_SHAPE_POINT
+	var/placement_shared_dir = NORTH
+	var/placement_shared_dir_uses_facing = TRUE
 	var/placement_mode = "single"
 	var/placement_shape = WORLD_EDIT_SHAPE_POINT
 	var/placement_dir = NORTH

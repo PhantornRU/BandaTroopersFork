@@ -189,9 +189,9 @@
 				last_ui_error = "Выбранный режим размещения недоступен для текущего генератора."
 				to_chat(ui.user, SPAN_WARNING(last_ui_error))
 				return TRUE
+			placement_shared_mode = new_mode
 			placement_mode = new_mode
 			last_ui_error = ""
-			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
@@ -201,27 +201,29 @@
 				last_ui_error = "Выбранная форма размещения недоступна для текущего генератора."
 				to_chat(ui.user, SPAN_WARNING(last_ui_error))
 				return TRUE
+			placement_shared_shape = new_shape
 			placement_shape = new_shape
 			last_ui_error = ""
-			save_current_generator_context()
 			refresh_runtime_after_config_change(TRUE, TRUE)
 			return TRUE
 
 		if("set_placement_dir")
 			if(!supports_current_placement_direction())
 				return TRUE
-			placement_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
+			placement_shared_dir = GLOB.world_edit_helpers.dir_from_label("[params["direction"]]", current_generator?.get_default_placement_direction() || NORTH)
+			placement_shared_dir_uses_facing = FALSE
+			placement_dir = resolve_supported_placement_dir(placement_shared_dir)
+			placement_dir_uses_facing = FALSE
 			last_ui_error = ""
-			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_placement_dir_uses_facing")
 			if(!supports_current_placement_direction())
 				return TRUE
-			placement_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(params["enabled"])
+			placement_shared_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(params["enabled"])
+			placement_dir_uses_facing = placement_shared_dir_uses_facing
 			last_ui_error = ""
-			save_current_generator_context()
 			refresh_runtime_after_config_change()
 			return TRUE
 
