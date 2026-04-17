@@ -48,10 +48,10 @@
 
 /datum/world_edit_generator/destruction_pack/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/radius = text2num("[params["radius"]]") || 0
-	if(radius < 1)
+	if(radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 		return list(
 			"support_class" = "full",
-			"error" = "radius must stay in the range 1..10.",
+			"error" = "radius must stay in the range 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX].",
 			"metadata" = list("shape_support_class" = "full"),
 		)
 
@@ -82,9 +82,9 @@
 		plan.metadata["error"] = "Unable to resolve the anchor turf."
 		return plan
 
-	var/radius = text2num("[params["radius"]]") || 3
-	var/max_atoms = text2num("[params["max_atoms"]]") || 60
-	var/scatter_steps = text2num("[params["scatter_steps"]]") || 2
+	var/radius = clamp(text2num("[params["radius"]]") || 3, 1, WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
+	var/max_atoms = clamp(text2num("[params["max_atoms"]]") || 60, 1, WORLD_EDIT_DESTRUCTION_MAX_ATOMS)
+	var/scatter_steps = clamp(text2num("[params["scatter_steps"]]") || 2, 1, WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS)
 	var/affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
@@ -240,16 +240,16 @@
 		return "Unable to resolve the anchor turf."
 
 	var/radius = text2num("[params["radius"]]")
-	if(!isnum(radius) || radius < 1 || radius > 10)
-		return "radius must stay in the range 1..10."
+	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
+		return "radius must stay in the range 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX]."
 
 	var/max_atoms = text2num("[params["max_atoms"]]")
-	if(!isnum(max_atoms) || max_atoms < 1 || max_atoms > 100)
-		return "max_atoms must stay in the range 1..100."
+	if(!isnum(max_atoms) || max_atoms < 1 || max_atoms > WORLD_EDIT_DESTRUCTION_MAX_ATOMS)
+		return "max_atoms must stay in the range 1..[WORLD_EDIT_DESTRUCTION_MAX_ATOMS]."
 
 	var/scatter_steps = text2num("[params["scatter_steps"]]")
-	if(!isnum(scatter_steps) || scatter_steps < 1 || scatter_steps > 4)
-		return "scatter_steps must stay in the range 1..4."
+	if(!isnum(scatter_steps) || scatter_steps < 1 || scatter_steps > WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS)
+		return "scatter_steps must stay in the range 1..[WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS]."
 
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])

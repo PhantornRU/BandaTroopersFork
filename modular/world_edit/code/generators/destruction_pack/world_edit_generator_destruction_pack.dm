@@ -1,3 +1,8 @@
+#define WORLD_EDIT_DESTRUCTION_RADIUS_MAX 25
+#define WORLD_EDIT_DESTRUCTION_MAX_ATOMS 250
+#define WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS 10
+#define WORLD_EDIT_DESTRUCTION_PERSISTENT_FIRE_CAP 30
+
 /datum/world_edit_generator/destruction_pack
 	requires_preview_before_apply = TRUE
 

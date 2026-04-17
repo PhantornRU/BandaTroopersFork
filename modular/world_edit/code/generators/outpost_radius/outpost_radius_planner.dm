@@ -559,8 +559,8 @@
 	effective_layout_profile["guard_dirs"] = get_guard_dirs_for_mode(guard_mode, layout_profile)
 
 	var/radius = text2num("[params["radius"]]") || 4
-	if(!isnum(radius) || radius < 1 || radius > 10)
-		config["error"] = "radius must stay in the range 1..10."
+	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
+		config["error"] = "radius must stay in the range 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
 		return config
 	opening_width = clamp(round(opening_width), 1, (radius * 2) + 1)
 	effective_layout_profile["opening_width"] = opening_width

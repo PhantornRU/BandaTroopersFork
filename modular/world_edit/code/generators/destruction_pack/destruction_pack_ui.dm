@@ -11,10 +11,10 @@
 			"kind" = "number",
 			"group" = "Area",
 			"description" = "Influence radius around each resolved shape seed. Effects weaken toward the radius edge.",
-			"validate_hint" = "Allowed range: 1..10",
+			"validate_hint" = "Allowed range: 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX]",
 			"value" = text2num("[current_params["radius"]]") || 3,
 			"min" = 1,
-			"max" = 10,
+			"max" = WORLD_EDIT_DESTRUCTION_RADIUS_MAX,
 			"step" = 1,
 		),
 		list(
@@ -100,10 +100,10 @@
 			"kind" = "number",
 			"group" = "Modes",
 			"description" = "Number of random movement steps when scatter is enabled.",
-			"validate_hint" = "Allowed range: 1..4",
+			"validate_hint" = "Allowed range: 1..[WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS]",
 			"value" = text2num("[current_params["scatter_steps"]]") || 2,
 			"min" = 1,
-			"max" = 4,
+			"max" = WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS,
 			"step" = 1,
 			"visible" = scatter_enabled,
 			"disabled" = !scatter_enabled,
@@ -114,10 +114,10 @@
 			"kind" = "number",
 			"group" = "Limits",
 			"description" = "Hard cap for movable targets processed by one apply when shuffle or scatter is enabled.",
-			"validate_hint" = "Allowed range: 1..100",
+			"validate_hint" = "Allowed range: 1..[WORLD_EDIT_DESTRUCTION_MAX_ATOMS]",
 			"value" = text2num("[current_params["max_atoms"]]") || 60,
 			"min" = 1,
-			"max" = 100,
+			"max" = WORLD_EDIT_DESTRUCTION_MAX_ATOMS,
 			"step" = 1,
 		),
 	)
@@ -127,7 +127,7 @@
 
 	switch(param_id)
 		if("radius")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 10)
+			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 
 		if("shuffle_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
@@ -136,7 +136,7 @@
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
 		if("scatter_steps")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 4)
+			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS)
 
 		if("persistent_fire_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
@@ -166,7 +166,7 @@
 			new_params[param_id] = profile_id
 
 		if("max_atoms")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 100)
+			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_DESTRUCTION_MAX_ATOMS)
 
 		if("affect_anchored")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)

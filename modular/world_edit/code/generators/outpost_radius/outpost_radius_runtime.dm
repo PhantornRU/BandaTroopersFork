@@ -386,8 +386,8 @@
 		return "[config["error"]]"
 
 	var/radius = config["radius"]
-	if(!isnum(radius) || radius < 1 || radius > 10)
-		return "radius must stay in the range 1..10."
+	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
+		return "radius must stay in the range 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
 
 	var/place_sentries = config["place_sentries"]
 	if(place_sentries)
@@ -402,7 +402,7 @@
 		return "[shape_result["error"]]"
 
 	var/planned_total = (radius * 8) + get_layout_expected_opening_count(config["layout_profile"]) + (place_sentries ? length(get_layout_guard_dirs(config["layout_profile"])) : 0)
-	if((!length(shape_result["turfs"]) || length(shape_result["turfs"]) <= 1) && planned_total > 120)
+	if((!length(shape_result["turfs"]) || length(shape_result["turfs"]) <= 1) && planned_total > WORLD_EDIT_OUTPOST_SINGLE_POINT_SAFE_PLACEMENT_CAP)
 		return "The requested outpost exceeds the safe placement cap."
 
 	var/datum/world_edit_plan/plan = build_placement_plan(user, params, list(

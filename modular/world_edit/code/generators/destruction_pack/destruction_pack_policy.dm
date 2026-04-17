@@ -1,5 +1,5 @@
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_cap()
-	return 12
+	return WORLD_EDIT_DESTRUCTION_PERSISTENT_FIRE_CAP
 
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_min()
 	return 1

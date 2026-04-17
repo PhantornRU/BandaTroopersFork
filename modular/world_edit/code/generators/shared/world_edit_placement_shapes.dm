@@ -14,8 +14,8 @@
 #define WORLD_EDIT_SHAPE_BRUSH_PATH "brush_path"
 #define WORLD_EDIT_SHAPE_SCATTER_CLUSTER "scatter_cluster"
 
-#define WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS 24
-#define WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS 24
+#define WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS 60
+#define WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS 60
 
 GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape_service, new)
 

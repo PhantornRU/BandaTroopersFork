@@ -51,10 +51,10 @@
 			"kind" = "number",
 			"group" = "Layout",
 			"description" = "Offset thickness around the resolved footprint before the perimeter shell is built.",
-			"validate_hint" = "Allowed range: 1..10",
+			"validate_hint" = "Allowed range: 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]",
 			"value" = text2num("[current_params["radius"]]") || 4,
 			"min" = 1,
-			"max" = 10,
+			"max" = WORLD_EDIT_OUTPOST_RADIUS_MAX,
 			"step" = 1,
 		),
 		list(
@@ -158,7 +158,7 @@
 			new_params[param_id] = "[value]"
 
 		if("radius")
-			new_params[param_id] = clamp(text2num("[value]"), 1, 10)
+			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_OUTPOST_RADIUS_MAX)
 
 		if("barricade_path")
 			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id())["default_barricade_path"])
