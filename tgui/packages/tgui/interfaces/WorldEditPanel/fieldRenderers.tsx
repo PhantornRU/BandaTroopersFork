@@ -273,6 +273,7 @@ const renderFieldControl = (
   if (field.kind === 'number') {
     return (
       <NumberInput
+        key={`${field.id}_${String(field.label ?? '')}_${String(field.min ?? '')}_${String(field.max ?? '')}`}
         value={Number(field.value) || 0}
         minValue={field.min ?? -1000000}
         maxValue={field.max ?? 1000000}

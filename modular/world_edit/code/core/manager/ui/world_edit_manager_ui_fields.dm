@@ -18,19 +18,25 @@
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
-	var/param_id = params["param_id"]
-	if(!param_id)
+	var/raw_param_id = params["param_id"]
+	var/param_id = normalize_ui_field_id(raw_param_id)
+	if(!length(param_id))
 		last_ui_error = "Не передан идентификатор параметра."
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
 	var/list/ui_fields = get_normalized_ui_fields()
 	var/list/target_field = find_ui_field_by_id(ui_fields, param_id)
+	var/shape_field = FALSE
+	if(!target_field)
+		target_field = find_shape_ui_field_by_id(param_id)
+		shape_field = islist(target_field)
 	if(!target_field)
 		last_ui_error = "Параметр '[param_id]' недоступен в текущей форме генератора."
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
+	param_id = normalize_ui_field_id(target_field["id"])
 	if(GLOB.world_edit_helpers.parse_bool(target_field["disabled"]))
 		var/target_field_label = "[target_field["label"]]"
 		last_ui_error = "Параметр '[target_field_label]' сейчас недоступен для редактирования."
@@ -44,6 +50,25 @@
 		last_ui_error = ""
 		save_current_generator_context()
 		refresh_runtime_after_config_change(FALSE, FALSE)
+		refresh_active_shape_preview_after_param_change(user)
+		return TRUE
+
+	if(shape_field)
+		var/new_shape_params = apply_shape_ui_param_to_params(current_params, param_id, value, target_field)
+		if(istext(new_shape_params))
+			last_ui_error = new_shape_params
+			to_chat(user, SPAN_WARNING(last_ui_error))
+			return TRUE
+		if(!islist(new_shape_params))
+			last_ui_error = "Не удалось обновить параметр формы."
+			to_chat(user, SPAN_WARNING(last_ui_error))
+			return TRUE
+
+		current_params = new_shape_params
+		last_ui_error = ""
+		save_current_generator_context()
+		refresh_runtime_after_config_change(FALSE, FALSE)
+		refresh_active_shape_preview_after_param_change(user)
 		return TRUE
 
 	var/new_params = current_generator.set_ui_param(user, current_params, param_id, value)
@@ -72,6 +97,112 @@
 
 	var/list/raw_fields = current_generator.get_ui_fields(current_params)
 	return normalize_ui_fields(raw_fields)
+
+/datum/world_edit_manager/proc/get_normalized_shape_ui_fields(shape_id = null, list/source_params = null)
+	shape_id = shape_id || get_effective_placement_shape()
+	if(!length("[shape_id]"))
+		return list()
+
+	var/list/raw_fields = GLOB.world_edit_shape_catalog.build_shape_ui_fields(shape_id, islist(source_params) ? source_params : current_params)
+	return normalize_ui_fields(raw_fields)
+
+/datum/world_edit_manager/proc/get_all_normalized_shape_ui_fields(list/source_params = null)
+	var/list/normalized_fields = list()
+	var/list/field_lookup = list()
+	for(var/shape_id in GLOB.world_edit_shape_catalog.get_supported_shape_ids())
+		var/list/shape_fields = get_normalized_shape_ui_fields(shape_id, source_params)
+		for(var/list/field as anything in shape_fields)
+			var/field_id = "[field["id"]]"
+			if(!length(field_id) || field_lookup[field_id])
+				continue
+			field_lookup[field_id] = TRUE
+			normalized_fields += list(field)
+	return normalized_fields
+
+/datum/world_edit_manager/proc/find_shape_ui_field_by_id(field_id, shape_id = null, list/source_params = null)
+	var/list/target_field = find_ui_field_by_id(get_normalized_shape_ui_fields(shape_id, source_params), field_id)
+	if(islist(target_field))
+		return target_field
+	return find_ui_field_by_id(get_all_normalized_shape_ui_fields(source_params), field_id)
+
+/datum/world_edit_manager/proc/normalize_ui_field_id(field_id)
+	var/normalized_id = trim("[field_id]")
+	if(!length(normalized_id))
+		return ""
+	return normalized_id
+
+/datum/world_edit_manager/proc/build_ui_field_id_candidates(field_id)
+	var/list/candidates = list()
+	var/normalized_id = normalize_ui_field_id(field_id)
+	if(!length(normalized_id))
+		return candidates
+
+	candidates += normalized_id
+	for(var/separator in list(".", ":", " ", "\t", "\n", "\r", "[", "(", "{"))
+		var/split_index = findtext(normalized_id, "[separator]")
+		if(split_index <= 1)
+			continue
+		var/base_id = trim(copytext(normalized_id, 1, split_index))
+		if(length(base_id) && !(base_id in candidates))
+			candidates += base_id
+	return candidates
+
+/datum/world_edit_manager/proc/apply_shape_ui_param_to_params(list/source_params, param_id, value, list/target_field = null)
+	if(!islist(target_field))
+		target_field = find_shape_ui_field_by_id(param_id, null, source_params)
+	if(!islist(target_field))
+		return "Parameter '[param_id]' is unavailable in the placement-shape catalog."
+
+	var/list/new_params = islist(source_params) ? source_params.Copy() : list()
+	var/canonical_param_id = normalize_ui_field_id(target_field["id"])
+	var/field_kind = lowertext("[target_field["kind"] || "text"]")
+	switch(field_kind)
+		if("boolean")
+			new_params[canonical_param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
+		if("number")
+			var/number_value = text2num("[value]")
+			if(!isnum(number_value))
+				return "Parameter '[target_field["label"] || param_id]' requires a numeric value."
+			var/min_value = text2num("[target_field["min"]]")
+			var/max_value = text2num("[target_field["max"]]")
+			if(isnum(min_value))
+				number_value = max(number_value, min_value)
+			if(isnum(max_value))
+				number_value = min(number_value, max_value)
+			new_params[canonical_param_id] = number_value
+		if("select")
+			new_params[canonical_param_id] = value
+		else
+			new_params[canonical_param_id] = isnull(value) ? "" : "[value]"
+	return new_params
+
+/datum/world_edit_manager/proc/refresh_active_shape_preview_after_param_change(mob/user)
+	if(!is_safe_placement_mode_active() || !supports_current_placement_ux())
+		return FALSE
+
+	var/shape_id = get_effective_placement_shape()
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
+	switch(interaction_kind)
+		if("anchor_pair")
+			if(!istype(placement_anchor_turf))
+				return FALSE
+			if(!istype(placement_hover_turf) || placement_hover_turf == placement_anchor_turf)
+				show_anchor_pair_preview(placement_anchor_turf, shape_id)
+				return TRUE
+			return evaluate_safe_placement_preview(user, shape_id, placement_anchor_turf, placement_hover_turf, null, "", TRUE, TRUE)
+		if("collector")
+			if(!length(get_placement_collector_points()))
+				return FALSE
+			var/turf/preview_turf = placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf
+			if(!istype(preview_turf))
+				return FALSE
+			return update_placement_collector_runtime_state_v2(user, preview_turf, "", TRUE, FALSE)
+		if("single", "param_only")
+			var/turf/preview_turf = placement_hover_turf || placement_anchor_turf
+			if(!istype(preview_turf))
+				return FALSE
+			return evaluate_safe_placement_preview(user, shape_id, preview_turf, preview_turf, null, "", TRUE, TRUE)
+	return FALSE
 
 /datum/world_edit_manager/proc/normalize_ui_fields(list/raw_fields)
 	var/list/normalized_fields = list()
@@ -185,11 +316,16 @@
 	return options
 
 /datum/world_edit_manager/proc/find_ui_field_by_id(list/ui_fields, field_id)
-	if(!islist(ui_fields) || !length(field_id))
+	if(!islist(ui_fields))
 		return null
 
-	for(var/list/field as anything in ui_fields)
-		if("[field["id"]]" == "[field_id]")
-			return field
+	var/list/id_candidates = build_ui_field_id_candidates(field_id)
+	if(!length(id_candidates))
+		return null
+
+	for(var/id_candidate in id_candidates)
+		for(var/list/field as anything in ui_fields)
+			if(normalize_ui_field_id(field["id"]) == "[id_candidate]")
+				return field
 
 	return null

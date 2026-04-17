@@ -31,6 +31,7 @@ const SharedModePanel = (props: {
 }) => {
   const { data, act, workspaceTab } = props;
   const viewModel = getSharedModeViewModel(data, workspaceTab);
+  const sharedFieldContextKey = `${data.current_generator_id || 'no-generator'}:${data.placement_shape || 'point'}`;
 
   if (!viewModel.hasTopControls && !viewModel.sharedFields.length) {
     return null;
@@ -159,7 +160,11 @@ const SharedModePanel = (props: {
                     />
                   ) : viewModel.radiusField &&
                     viewModel.radiusField.visible !== false ? (
-                    <FieldControl field={viewModel.radiusField} act={act} />
+                    <FieldControl
+                      key={`${sharedFieldContextKey}:radius:${viewModel.radiusField.id}:${viewModel.radiusField.label || ''}`}
+                      field={viewModel.radiusField}
+                      act={act}
+                    />
                   ) : (
                     <ToolbarReadOnlyValue value="—" disabled />
                   )}
@@ -183,7 +188,7 @@ const SharedModePanel = (props: {
               <Flex wrap mx={-0.16}>
                 {viewModel.sharedFields.map((field) => (
                   <Flex.Item
-                    key={field.id}
+                    key={`${sharedFieldContextKey}:${field.id}`}
                     basis="12.5rem"
                     grow
                     m={0.16}

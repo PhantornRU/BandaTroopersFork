@@ -125,11 +125,10 @@
 		if(
 			WORLD_EDIT_SHAPE_POLYLINE,
 			WORLD_EDIT_SHAPE_BRUSH_PATH,
-			WORLD_EDIT_SHAPE_CUSTOM_MASK
+			WORLD_EDIT_SHAPE_CUSTOM_MASK,
+			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
 		)
 			return "limited"
-		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			return "risky"
 	return "unsupported"
 
 /datum/world_edit_generator/outpost_radius/proc/count_shape_connected_components(list/footprint_turfs)

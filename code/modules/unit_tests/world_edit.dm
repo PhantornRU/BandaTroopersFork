@@ -86,8 +86,8 @@
 			params["shape_brush_radius"] = 1
 			end_turf = origin_turf
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			params["shape_scatter_radius"] = 2
-			params["shape_scatter_count"] = 4
+			params["shape_scatter_radius"] = 1
+			params["shape_scatter_count"] = 5
 			params["shape_scatter_seed"] = 13
 			end_turf = origin_turf
 		else
@@ -205,6 +205,9 @@
 /datum/world_edit_generator/world_edit_test_apply_hook/supports_placement_direction()
 	return TRUE
 
+/datum/world_edit_generator/world_edit_test_apply_hook
+	var/apply_calls = 0
+
 /datum/world_edit_generator/world_edit_test_apply_hook/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
 	var/list/anchor_turfs = placement_context["anchor_turfs"] || list()
@@ -223,6 +226,7 @@
 
 /datum/world_edit_generator/world_edit_test_apply_hook/apply(mob/user, list/params)
 	var/datum/world_edit_apply_result/result = new
+	apply_calls++
 	result.success = TRUE
 	result.message = "ok"
 	result.meta = list("applied" = TRUE)
@@ -746,6 +750,29 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_manager_ui_payload/shape_params_apply_without_generator_field_lookup/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	manager.current_params = list()
+
+	var/list/shape_field = manager.find_shape_ui_field_by_id("shape_sector_angle", WORLD_EDIT_SHAPE_SECTOR)
+	TEST_ASSERT(islist(shape_field), "World Edit shape ui-field lookup should resolve sector-only shape parameters outside the generator field catalog.")
+
+	var/list/new_params = manager.apply_shape_ui_param_to_params(manager.current_params, "shape_sector_angle", 135, shape_field)
+	TEST_ASSERT(islist(new_params), "World Edit shape ui-field application should return a params list for supported shape fields.")
+	TEST_ASSERT_EQUAL(text2num("[new_params["shape_sector_angle"]]"), 135, "World Edit shape ui-field application should persist sector angle values.")
+	TEST_ASSERT(isnull(new_params["shape_sector_angle.2"]), "World Edit shape ui-field application should not persist malformed duplicate parameter ids.")
+
+	new_params = manager.apply_shape_ui_param_to_params(new_params, "shape_sector_angle.2", 180)
+	TEST_ASSERT(islist(new_params), "World Edit shape ui-field application should canonicalize dotted numeric suffixes from stale UI controls.")
+	TEST_ASSERT_EQUAL(text2num("[new_params["shape_sector_angle"]]"), 180, "World Edit shape ui-field canonicalization should still update the intended sector field.")
+	TEST_ASSERT(isnull(new_params["shape_sector_angle.2"]), "World Edit shape ui-field canonicalization should collapse dotted suffix ids to the shared canonical field id.")
+
+	new_params = manager.apply_shape_ui_param_to_params(new_params, "shape_scatter_radius", 99)
+	TEST_ASSERT(islist(new_params), "World Edit shape ui-field application should also work for non-current-shape fields.")
+	TEST_ASSERT_EQUAL(text2num("[new_params["shape_scatter_radius"]]"), 12, "World Edit shape ui-field application should clamp values to the shared shape field contract.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/shape_hook_runtime/anchor_pair_click_path_invokes_shape_support_hook/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_shape_hook/definition = new
@@ -824,6 +851,70 @@
 	TEST_ASSERT_EQUAL(generator.shape_support_calls, 1, "World Edit param-only click path should invoke the shape-support hook once.")
 	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit param-only click path should stop before build_placement_plan when the hook rejects the shape.")
 	TEST_ASSERT_EQUAL(manager.last_preview_message, "Unit test rejected scatter_cluster.", "World Edit param-only click path should surface the shape hook error.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/collector_clicking_first_point_finishes_open_and_closed_paths/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit collector-first-point test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit collector-first-point test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit collector-first-point test triangle turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	manager.placement_shape = "polygon"
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit polygon collector should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit polygon collector should accept the third point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should finish when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit polygon collector should apply immediately when the user closes the chain on the first point.")
+
+	manager.reset_placement_runtime()
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = "polyline"
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit polyline collector should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit polyline collector should accept the third point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should finish when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 2, "World Edit polyline collector should use the first-point click as a finish gesture without requiring right-click.")
+
+	manager.reset_placement_runtime()
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = "brush_path"
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit brush-path collector should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit brush-path collector should accept the third point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should finish when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 3, "World Edit brush-path collector should reuse the first-point click as a finish gesture for open paths.")
+
+	manager.reset_placement_runtime()
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = "custom_mask"
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit custom-mask collector should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit custom-mask collector should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit custom-mask collector should treat a repeated first point as a duplicate, not as a finish gesture.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 3, "World Edit custom-mask collector should stay in exact-point mode and should not auto-finish on the first point.")
 
 	qdel(manager)
 
@@ -1265,10 +1356,10 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/outpost_shape_scatter_cluster_returns_explicit_support_error/Run()
+/datum/unit_test/world_edit_corner_slots/outpost_connected_freeform_shapes_build_shape_aware_plans/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost scatter-cluster test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost connected-freeform test center turf was not resolved.")
 
 	var/list/params = list(
 		"family" = "metal_perimeter",
@@ -1283,23 +1374,21 @@
 		"faction" = FACTION_MARINE,
 		"turned_on" = TRUE,
 	)
-	params["radius"] = 1
-	params["shape_scatter_radius"] = 4
-	params["shape_scatter_count"] = 8
-	params["shape_scatter_seed"] = 19
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs("scatter_cluster", center_turf, null, params, NORTH)
-	TEST_ASSERT(!shape_result["error"], "World Edit outpost scatter-cluster test should build deterministic scatter anchors.")
+	for(var/shape_id in list(WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_CUSTOM_MASK, WORLD_EDIT_SHAPE_BRUSH_PATH, WORLD_EDIT_SHAPE_SCATTER_CLUSTER))
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, params, NORTH)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/case_params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit outpost connected-freeform test should build a shared shape result for '[shape_id]'.")
 
-	var/shape_error = generator.get_shape_support_error("scatter_cluster", shape_result["turfs"] || list(), params, list(
-		"mode" = "single",
-		"shape" = "scatter_cluster",
-		"shape_metadata" = shape_result["metadata"] || list(),
-		"anchor_turfs" = shape_result["turfs"] || list(),
-		"start_turf" = center_turf,
-		"end_turf" = center_turf,
-		"direction" = NORTH,
-	))
-	TEST_ASSERT_EQUAL(shape_error, "Outpost Radius does not support Scatter Cluster yet; use a connected contour or anchor-based shape instead.", "World Edit outpost scatter-cluster should fail with an explicit support error instead of a silent bad plan.")
+		var/shape_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), case_params, placement_context)
+		TEST_ASSERT(isnull(shape_error), "World Edit outpost should accept connected freeform shape '[shape_id]' instead of rejecting it at the support boundary.")
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, case_params, placement_context)
+		TEST_ASSERT(!plan.metadata["error"], "World Edit outpost should build a shape-aware plan for connected freeform shape '[shape_id]'.")
+		TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost should not leave connected freeform shape '[shape_id]' with an empty plan.")
+
+	qdel(generator)
 
 /datum/unit_test/world_edit_corner_slots/outpost_shape_support_rejects_impossible_openings/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
@@ -1363,6 +1452,36 @@
 	TEST_ASSERT(length(plan.placements) > 0, "World Edit destruction build_plan should produce fire placements for the selected footprint.")
 
 	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/destruction_connected_freeform_shapes_build_plans/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction connected-freeform test center turf was not resolved.")
+
+	var/list/params = list(
+		"radius" = 2,
+		"shuffle_enabled" = FALSE,
+		"scatter_enabled" = FALSE,
+		"persistent_fire_enabled" = TRUE,
+		"persistent_fire_density" = 100,
+		"blast_enabled" = FALSE,
+		"damage_profile" = "none",
+	)
+	for(var/shape_id in list(WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_CUSTOM_MASK, WORLD_EDIT_SHAPE_BRUSH_PATH, WORLD_EDIT_SHAPE_SCATTER_CLUSTER))
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, params, EAST)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/case_params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit destruction connected-freeform test should build a shared shape result for '[shape_id]'.")
+
+		var/shape_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), case_params, placement_context)
+		TEST_ASSERT(isnull(shape_error), "World Edit destruction should accept freeform shape '[shape_id]' at the support boundary.")
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, case_params, placement_context)
+		TEST_ASSERT(!plan.metadata["error"], "World Edit destruction should build a plan for freeform shape '[shape_id]'.")
+		TEST_ASSERT(length(plan.placements) > 0 || length(plan.deletions) > 0, "World Edit destruction should not leave freeform shape '[shape_id]' with an empty plan.")
+
+	qdel(generator)
 
 /datum/unit_test/world_edit_corner_slots/destruction_influence_map_uses_nearest_seed_without_stacking/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

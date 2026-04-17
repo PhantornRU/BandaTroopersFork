@@ -15,11 +15,14 @@
 
 	for(var/param_id in sanitized_payload)
 		var/key_text = "[param_id]"
-		if(!(key_text in definition.default_params))
-			qdel(temp_generator)
-			return list("error" = "Preset contains an unsupported parameter '[key_text]'.")
-
-		var/new_params = temp_generator.set_ui_param(user, params_to_apply, key_text, sanitized_payload[param_id])
+		var/new_params = null
+		if(key_text in definition.default_params)
+			new_params = temp_generator.set_ui_param(user, params_to_apply, key_text, sanitized_payload[param_id])
+		else
+			new_params = apply_shape_ui_param_to_params(params_to_apply, key_text, sanitized_payload[param_id])
+			if(!islist(new_params) && !istext(new_params))
+				qdel(temp_generator)
+				return list("error" = "Preset contains an unsupported parameter '[key_text]'.")
 		if(istext(new_params))
 			qdel(temp_generator)
 			return list("error" = "[new_params]")

@@ -67,6 +67,8 @@
 	last_preview_success = success ? TRUE : FALSE
 	last_preview_message = "[message]"
 	last_preview_meta = islist(meta) ? meta.Copy() : list()
+	if(success)
+		last_ui_error = ""
 	if(mark_valid)
 		mark_preview_state()
 	else
@@ -246,6 +248,12 @@
 		return TRUE
 	return FALSE
 
+/datum/world_edit_manager/proc/collector_first_point_click_finishes(shape_id)
+	switch("[shape_id]")
+		if(WORLD_EDIT_SHAPE_POLYGON, WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_BRUSH_PATH)
+			return TRUE
+	return FALSE
+
 /datum/world_edit_manager/proc/handle_safe_placement_click_v2(mob/user, params, atom/object)
 	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
@@ -321,6 +329,14 @@
 		var/new_x = clicked_turf.x - origin_turf.x
 		var/new_y = clicked_turf.y - origin_turf.y
 		var/new_key = "[new_x],[new_y]"
+		var/list/first_point = length(collector_points) ? collector_points[1] : null
+		var/first_point_key = null
+		if(islist(first_point))
+			first_point_key = "[text2num("[first_point["x"]]")],[text2num("[first_point["y"]]")]"
+		if(length(first_point_key) && new_key == first_point_key && collector_first_point_click_finishes(shape_id) && length(collector_points) >= get_placement_collector_min_points(shape_id))
+			set_placement_anchor_turf(origin_turf)
+			set_placement_hover_turf(clicked_turf)
+			return finish_placement_collection_v2(user, clicked_turf)
 		var/max_points = get_placement_collector_max_points(shape_id)
 		if("[shape_id]" == WORLD_EDIT_SHAPE_CUSTOM_MASK)
 			for(var/list/existing_point as anything in collector_points)
