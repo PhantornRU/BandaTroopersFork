@@ -26,5 +26,8 @@
 		"placement_dir_uses_facing" = placement_dir_uses_facing ? TRUE : FALSE,
 		"placement_dir_options" = build_placement_dir_options(),
 		"placement_anchor" = get_placement_anchor_desc(),
+		"placement_hover" = placement_hover_turf ? "[placement_hover_turf.x],[placement_hover_turf.y],[placement_hover_turf.z]" : "",
+		"placement_preview_shape_tiles" = length(placement_preview_final_turfs),
+		"placement_preview_effect_tiles" = length(placement_preview_generator_effect_turfs),
 		"can_start_placement_mode" = (supports_current_placement_ux() && !click_mode_active) ? TRUE : FALSE,
 	)

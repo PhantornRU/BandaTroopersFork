@@ -106,6 +106,73 @@
 
 	return bounds
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_class(shape_id)
+	switch("[shape_id]")
+		if(
+			WORLD_EDIT_SHAPE_POINT,
+			WORLD_EDIT_SHAPE_LINE,
+			WORLD_EDIT_SHAPE_RECTANGLE,
+			WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
+			WORLD_EDIT_SHAPE_CIRCLE,
+			WORLD_EDIT_SHAPE_RING,
+			WORLD_EDIT_SHAPE_ELLIPSE,
+			WORLD_EDIT_SHAPE_DIAMOND,
+			WORLD_EDIT_SHAPE_TRIANGLE,
+			WORLD_EDIT_SHAPE_SECTOR,
+			WORLD_EDIT_SHAPE_POLYGON
+		)
+			return "full"
+		if(
+			WORLD_EDIT_SHAPE_POLYLINE,
+			WORLD_EDIT_SHAPE_BRUSH_PATH,
+			WORLD_EDIT_SHAPE_CUSTOM_MASK
+		)
+			return "limited"
+		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
+			return "risky"
+	return "unsupported"
+
+/datum/world_edit_generator/outpost_radius/proc/count_shape_connected_components(list/footprint_turfs)
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return 0
+
+	var/list/lookup = build_turf_lookup(footprint_turfs)
+	var/list/unvisited = lookup.Copy()
+	var/component_count = 0
+	for(var/turf/start_turf as anything in footprint_turfs)
+		if(!istype(start_turf) || !unvisited[start_turf])
+			continue
+		component_count++
+		var/list/open_list = list(start_turf)
+		unvisited[start_turf] = FALSE
+		while(length(open_list))
+			var/turf/current_turf = open_list[length(open_list)]
+			open_list.Cut(length(open_list), length(open_list) + 1)
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/neighbor_turf = get_step(current_turf, check_dir)
+				if(!lookup[neighbor_turf] || !unvisited[neighbor_turf])
+					continue
+				unvisited[neighbor_turf] = FALSE
+				open_list += neighbor_turf
+	return component_count
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_validation_error(shape_id, list/footprint_turfs, list/placement_context = null)
+	var/support_class = get_outpost_shape_support_class(shape_id)
+	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+	switch(support_class)
+		if("unsupported")
+			return "Outpost Radius does not support [shape_label]."
+		if("risky")
+			return "Outpost Radius does not support [shape_label] yet; use a connected contour or anchor-based shape instead."
+
+	if(support_class != "limited")
+		return null
+
+	var/component_count = count_shape_connected_components(footprint_turfs)
+	if(component_count > 1)
+		return "[shape_label] resolves to disconnected islands; Outpost Radius requires one connected footprint."
+	return null
+
 /datum/world_edit_generator/outpost_radius/proc/get_cardinal_opposite_dir(dir_to_flip)
 	switch(dir_to_flip)
 		if(NORTH)
@@ -427,6 +494,7 @@
 	plan.metadata["radius"] = radius
 	plan.metadata["shape_mode"] = "footprint_offset"
 	plan.metadata["shape_footprint_count"] = length(footprint_turfs)
+	plan.metadata["base_shape_turfs"] = footprint_turfs.Copy()
 	plan.metadata["anchor_count"] = length(footprint_turfs)
 	plan.metadata["family"] = config["family"]
 	plan.metadata["family_label"] = config["family_profile"]["label"]
@@ -445,6 +513,7 @@
 	plan.metadata["blocked_openings"] = total_blocked_openings
 	plan.metadata["blocked_perimeter"] = total_blocked_barricades + total_blocked_openings
 	plan.metadata["blocked_sentries"] = total_blocked_sentries
+	plan.metadata["generator_effect_turfs"] = plan.affected_turfs.Copy()
 	return plan
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_configuration(list/params)
@@ -549,10 +618,14 @@
 	if(!length(footprint_turfs))
 		return "Unable to resolve the shape footprint."
 
+	var/support_validation_error = get_outpost_shape_support_validation_error(shape_id, footprint_turfs, placement_context)
+	if(length("[support_validation_error]"))
+		return support_validation_error
+
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
 	if(!length(candidate_slots))
-		return "Unable to build a perimeter shell around the selected footprint."
+		return "Selected footprint cannot build a perimeter shell for Outpost Radius."
 
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
@@ -570,14 +643,14 @@
 
 		for(var/opening_dir as anything in opening_dirs)
 			if(!placeable_by_dir["[opening_dir]"])
-				return "Selected footprint cannot support the required outpost openings."
+				return "Selected footprint cannot support the required Outpost Radius openings."
 
 	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config)
 	if(shape_plan.metadata["error"])
 		return "[shape_plan.metadata["error"]]"
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
-		return "No valid outpost placements were found for the selected footprint."
+		return "Outpost Radius could not build any valid placements for the selected footprint."
 	if((shape_plan.metadata["opening_count"] || 0) <= 0 && length(opening_dirs))
-		return "Selected footprint cannot support the required outpost openings."
+		return "Selected footprint cannot support the required Outpost Radius openings."
 
 	return null

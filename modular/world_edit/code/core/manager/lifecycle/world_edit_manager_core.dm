@@ -42,6 +42,18 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/placement_dir = NORTH
 	var/placement_dir_uses_facing = TRUE
 	var/turf/placement_anchor_turf
+	var/turf/placement_hover_turf
+	var/list/placement_preview_shape_result = list()
+	var/list/placement_preview_anchor_turfs = list()
+	var/list/placement_preview_vertex_turfs = list()
+	var/list/placement_preview_edge_turfs = list()
+	var/list/placement_preview_closure_turfs = list()
+	var/list/placement_preview_final_turfs = list()
+	var/list/placement_preview_guide_turfs = list()
+	var/list/placement_preview_generator_effect_turfs = list()
+	var/list/placement_collector_points = list()
+	var/placement_collector_is_closed_candidate = FALSE
+	var/turf/placement_collector_origin_turf
 
 /datum/world_edit_manager/New(client/new_holder)
 	. = ..()
@@ -56,6 +68,15 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	last_preview_meta = list()
 	last_ui_error = ""
 	confirm_before_apply = TRUE
+	placement_preview_shape_result = list()
+	placement_preview_anchor_turfs = list()
+	placement_preview_vertex_turfs = list()
+	placement_preview_edge_turfs = list()
+	placement_preview_closure_turfs = list()
+	placement_preview_final_turfs = list()
+	placement_preview_guide_turfs = list()
+	placement_preview_generator_effect_turfs = list()
+	placement_collector_points = list()
 
 /datum/world_edit_manager/Destroy(force, ...)
 	stop_click_mode()
@@ -94,6 +115,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 /datum/world_edit_manager/proc/clear_preview_plan_state()
 	clear_preview_images()
 	current_generator?.clear_built_plan()
+	clear_placement_shape_preview_state()
 	invalidate_preview_state()
 	reset_preview_feedback()
 

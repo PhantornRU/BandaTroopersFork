@@ -142,6 +142,8 @@
 	return GLOB.world_edit_placement_shapes.world_edit_get_shape_rollout_stage(shape_id)
 
 /datum/world_edit_manager/proc/get_placement_collector_origin_text()
+	if(istype(placement_collector_origin_turf))
+		return "[placement_collector_origin_turf.x],[placement_collector_origin_turf.y],[placement_collector_origin_turf.z]"
 	if(!islist(current_params))
 		return ""
 	var/origin_text = current_params["shape_points_origin"]
@@ -150,6 +152,9 @@
 	return "[origin_text]"
 
 /datum/world_edit_manager/proc/get_placement_collector_origin_turf()
+	if(istype(placement_collector_origin_turf))
+		return placement_collector_origin_turf
+
 	var/list/parts = splittext(get_placement_collector_origin_text(), ",")
 	if(length(parts) < 3)
 		return null
@@ -159,11 +164,13 @@
 	var/z_value = text2num(trim("[parts[3]]"))
 	if(!isnum(x_value) || !isnum(y_value) || !isnum(z_value))
 		return null
-	return locate(x_value, y_value, z_value)
+	placement_collector_origin_turf = locate(x_value, y_value, z_value)
+	return placement_collector_origin_turf
 
 /datum/world_edit_manager/proc/set_placement_collector_origin_turf(turf/origin_turf)
 	if(!islist(current_params))
 		current_params = list()
+	placement_collector_origin_turf = origin_turf
 	if(!istype(origin_turf))
 		current_params -= "shape_points_origin"
 		return ""
@@ -172,12 +179,24 @@
 	return current_params["shape_points_origin"]
 
 /datum/world_edit_manager/proc/clear_placement_collector_origin()
-	if(!islist(current_params))
-		return
-	current_params -= "shape_points_origin"
+	placement_collector_origin_turf = null
+	if(islist(current_params))
+		current_params -= "shape_points_origin"
 
 /datum/world_edit_manager/proc/get_placement_collector_points()
-	return GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(current_params["shape_points_text"])
+	var/raw_text = ""
+	if(islist(current_params) && !isnull(current_params["shape_points_text"]))
+		raw_text = "[current_params["shape_points_text"]]"
+	if(!length(raw_text))
+		placement_collector_points = list()
+		placement_collector_is_closed_candidate = FALSE
+		return list()
+
+	var/formatted_cached_points = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(placement_collector_points)
+	if(raw_text != formatted_cached_points)
+		placement_collector_points = GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(raw_text)
+	placement_collector_is_closed_candidate = ("[get_effective_placement_shape()]" == WORLD_EDIT_SHAPE_POLYGON && length(placement_collector_points) >= 2) ? TRUE : FALSE
+	return GLOB.world_edit_placement_shapes.world_edit_copy_points(placement_collector_points)
 
 /datum/world_edit_manager/proc/get_placement_collector_point_count()
 	var/list/points = get_placement_collector_points()
@@ -201,13 +220,16 @@
 /datum/world_edit_manager/proc/set_placement_collector_points(list/points)
 	if(!islist(current_params))
 		current_params = list()
-	current_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(points)
+	placement_collector_points = islist(points) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(points) : list()
+	placement_collector_is_closed_candidate = ("[get_effective_placement_shape()]" == WORLD_EDIT_SHAPE_POLYGON && length(placement_collector_points) >= 2) ? TRUE : FALSE
+	current_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(placement_collector_points)
 	return current_params["shape_points_text"]
 
 /datum/world_edit_manager/proc/clear_placement_collector_points()
-	if(!islist(current_params))
-		return
-	current_params -= "shape_points_text"
+	placement_collector_points = list()
+	placement_collector_is_closed_candidate = FALSE
+	if(islist(current_params))
+		current_params -= "shape_points_text"
 
 /datum/world_edit_manager/proc/get_placement_collector_points_text()
 	if(!islist(current_params))
@@ -218,9 +240,7 @@
 	return "[points_text]"
 
 /datum/world_edit_manager/proc/reset_placement_collector_state(clear_points = FALSE)
-	if(!islist(current_params))
-		return
-	current_params -= "shape_points_origin"
+	clear_placement_collector_origin()
 	if(clear_points)
 		clear_placement_collector_points()
 
@@ -235,6 +255,84 @@
 		origin_desc = "none"
 	return "Collector [shape_label]: points=[point_count]/[max_points], min=[min_points], origin=[origin_desc]"
 
+/datum/world_edit_manager/proc/clear_placement_shape_preview_state()
+	placement_preview_shape_result = list()
+	placement_preview_anchor_turfs = list()
+	placement_preview_vertex_turfs = list()
+	placement_preview_edge_turfs = list()
+	placement_preview_closure_turfs = list()
+	placement_preview_final_turfs = list()
+	placement_preview_guide_turfs = list()
+	placement_preview_generator_effect_turfs = list()
+	placement_hover_turf = null
+
+/datum/world_edit_manager/proc/store_placement_shape_preview_result(list/shape_result)
+	clear_placement_shape_preview_state()
+	if(!islist(shape_result))
+		return
+
+	placement_preview_shape_result = shape_result
+	var/list/metadata = shape_result["metadata"]
+	var/list/preview_layers = islist(metadata) ? metadata["preview_layers"] : null
+	if(!islist(preview_layers))
+		return
+
+	placement_preview_anchor_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["anchor_turfs"])
+	placement_preview_vertex_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["vertex_turfs"])
+	placement_preview_edge_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["edge_turfs"])
+	placement_preview_closure_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["closure_turfs"])
+	placement_preview_final_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["final_turfs"])
+	placement_preview_guide_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(preview_layers["guide_turfs"])
+
+/datum/world_edit_manager/proc/set_placement_preview_generator_effect_turfs(list/turfs)
+	placement_preview_generator_effect_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(turfs)
+
+/datum/world_edit_manager/proc/get_placement_preview_groups()
+	return list(
+		list(
+			"turfs" = placement_preview_anchor_turfs,
+			"icon_state" = "blueOverlay",
+			"color" = "#78C8FF",
+			"alpha" = 255,
+		),
+		list(
+			"turfs" = placement_preview_vertex_turfs,
+			"icon_state" = "blueOverlay",
+			"color" = "#B8F3FF",
+			"alpha" = 210,
+		),
+		list(
+			"turfs" = placement_preview_edge_turfs,
+			"icon_state" = "greenOverlay",
+			"color" = "#4DE1C1",
+			"alpha" = 190,
+		),
+		list(
+			"turfs" = placement_preview_closure_turfs,
+			"icon_state" = "redOverlay",
+			"color" = "#FFB347",
+			"alpha" = 180,
+		),
+		list(
+			"turfs" = placement_preview_final_turfs,
+			"icon_state" = "greenOverlay",
+			"color" = "#8BFFB5",
+			"alpha" = 120,
+		),
+		list(
+			"turfs" = placement_preview_guide_turfs,
+			"icon_state" = "blueOverlay",
+			"color" = "#D7B8FF",
+			"alpha" = 150,
+		),
+		list(
+			"turfs" = placement_preview_generator_effect_turfs,
+			"icon_state" = "redOverlay",
+			"color" = "#FF6B6B",
+			"alpha" = 110,
+		),
+	)
+
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
 	if(!placement_anchor_turf)
 		return ""
@@ -243,6 +341,8 @@
 /datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE, clear_points = TRUE)
 	placement_click_active = FALSE
 	placement_anchor_turf = null
+	placement_hover_turf = null
+	clear_placement_shape_preview_state()
 	reset_placement_collector_state(clear_points)
 
 	if(reset_config)

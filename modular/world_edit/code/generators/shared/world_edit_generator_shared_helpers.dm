@@ -169,3 +169,13 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 	if(length(images))
 		manager.holder.images += images
 		manager.preview_images = images.Copy()
+
+/datum/world_edit_helpers/proc/apply_grouped_turf_preview(datum/world_edit_manager/manager, list/groups)
+	if(!manager || !manager.holder)
+		return
+
+	manager.clear_preview_images()
+	var/list/images = build_grouped_turf_preview_images(groups)
+	if(length(images))
+		manager.holder.images += images
+		manager.preview_images = images.Copy()

@@ -1,6 +1,9 @@
 /datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(shape_id, turf/start_turf, turf/end_turf)
 	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, start_turf, end_turf, current_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
 
+/datum/world_edit_manager/proc/build_safe_placement_anchor_turfs_with_params(shape_id, turf/start_turf, turf/end_turf, list/source_params)
+	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, start_turf, end_turf, source_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
+
 /datum/world_edit_manager/proc/get_safe_placement_shape_support_error(shape_id, list/anchor_turfs, turf/start_turf, turf/end_turf, list/shape_metadata = null)
 	if(!current_generator || !length("[shape_id]"))
 		return null
@@ -32,6 +35,8 @@
 	return turfs
 
 /datum/world_edit_manager/proc/update_placement_collector_runtime_state(mob/user, turf/preview_turf, message_prefix = "")
+	return update_placement_collector_runtime_state_v2(user, preview_turf, message_prefix, FALSE, FALSE)
+
 	var/shape_id = get_effective_placement_shape()
 	var/min_points = get_placement_collector_min_points(shape_id)
 	var/point_count = get_placement_collector_point_count()
@@ -133,6 +138,8 @@
 	return TRUE
 
 /datum/world_edit_manager/proc/finish_placement_collection(mob/user, turf/preview_turf = null)
+	return finish_placement_collection_v2(user, preview_turf)
+
 	var/shape_id = get_effective_placement_shape()
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE

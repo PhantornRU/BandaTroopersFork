@@ -22,6 +22,93 @@
 		counts[kind] = (counts[kind] || 0) + 1
 	return counts
 
+/datum/unit_test/world_edit_corner_slots/proc/build_relative_turf_lookup(list/turfs, turf/origin_turf)
+	var/list/lookup = list()
+	if(!istype(origin_turf) || !islist(turfs))
+		return lookup
+
+	for(var/turf/target_turf as anything in turfs)
+		if(!istype(target_turf))
+			continue
+		lookup["[target_turf.x - origin_turf.x],[target_turf.y - origin_turf.y]"] = TRUE
+	return lookup
+
+/datum/unit_test/world_edit_corner_slots/proc/build_shape_result(shape_id, turf/origin_turf, list/params = null, direction = NORTH, turf/end_turf = null)
+	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, origin_turf, end_turf, params || list(), direction)
+
+/datum/unit_test/world_edit_corner_slots/proc/build_shape_integration_case(shape_id, turf/origin_turf, list/base_params = null, direction = EAST)
+	var/list/params = islist(base_params) ? base_params.Copy() : list()
+	var/turf/end_turf = origin_turf
+
+	switch("[shape_id]")
+		if(WORLD_EDIT_SHAPE_LINE)
+			params["shape_line_length"] = 4
+			params["shape_line_spacing"] = 1
+			end_turf = locate(origin_turf.x + 3, origin_turf.y, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)
+			params["shape_rect_width"] = 3
+			params["shape_rect_height"] = 3
+			end_turf = locate(origin_turf.x + 2, origin_turf.y + 2, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_CIRCLE)
+			params["shape_radius"] = 2
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_RING)
+			params["shape_radius"] = 2
+			params["shape_thickness"] = 1
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_ELLIPSE)
+			params["shape_radius_x"] = 3
+			params["shape_radius_y"] = 2
+			end_turf = locate(origin_turf.x + 3, origin_turf.y + 2, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_DIAMOND)
+			params["shape_radius"] = 2
+			end_turf = locate(origin_turf.x + 2, origin_turf.y, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_TRIANGLE)
+			params["shape_triangle_size"] = 3
+			end_turf = locate(origin_turf.x + 3, origin_turf.y, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_SECTOR)
+			params["shape_radius"] = 3
+			params["shape_thickness"] = 1
+			params["shape_sector_angle"] = 90
+			end_turf = locate(origin_turf.x + 3, origin_turf.y + 1, origin_turf.z)
+		if(WORLD_EDIT_SHAPE_POLYGON)
+			params["shape_points_text"] = "0,0; 2,0; 2,2; 0,2"
+			params["shape_polygon_filled"] = TRUE
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_POLYLINE)
+			params["shape_points_text"] = "0,0; 2,0; 3,1; 4,1"
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
+			params["shape_points_text"] = "0,0; 1,0; 1,1"
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
+			params["shape_points_text"] = "0,0; 2,0; 3,1"
+			params["shape_brush_radius"] = 1
+			end_turf = origin_turf
+		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
+			params["shape_scatter_radius"] = 2
+			params["shape_scatter_count"] = 4
+			params["shape_scatter_seed"] = 13
+			end_turf = origin_turf
+		else
+			end_turf = origin_turf
+
+	var/list/shape_result = build_shape_result(shape_id, origin_turf, params, direction, end_turf)
+	return list(
+		"params" = params,
+		"end_turf" = end_turf,
+		"shape_result" = shape_result,
+		"placement_context" = list(
+			"mode" = "single",
+			"shape" = shape_id,
+			"shape_metadata" = shape_result["metadata"] || list(),
+			"anchor_turfs" = shape_result["turfs"] || list(),
+			"start_turf" = origin_turf,
+			"end_turf" = end_turf,
+			"direction" = direction,
+		),
+	)
+
 /datum/world_edit_generator_definition/world_edit_test_shape_hook
 	id = "world_edit_test_shape_hook"
 	name_ru = "World Edit Test Shape Hook"
@@ -80,6 +167,66 @@
 	var/datum/world_edit_plan/plan = new
 	plan.metadata["test_plan_built"] = TRUE
 	return plan
+
+/datum/world_edit_generator_definition/world_edit_test_apply_hook
+	id = "world_edit_test_apply_hook"
+	name_ru = "World Edit Test Apply Hook"
+	category_ru = "Tests"
+	description_ru = "Unit-test helper definition for preview/apply runtime coverage."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = "batch"
+	generator_type = /datum/world_edit_generator/world_edit_test_apply_hook
+	default_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+		"shape_rect_width" = 3,
+		"shape_rect_height" = 3,
+		"shape_radius" = 3,
+		"shape_radius_x" = 3,
+		"shape_radius_y" = 2,
+		"shape_triangle_size" = 3,
+		"shape_sector_angle" = 90,
+		"shape_points_text" = "",
+		"shape_polygon_filled" = TRUE,
+		"shape_brush_radius" = 1,
+		"shape_scatter_radius" = 3,
+		"shape_scatter_count" = 4,
+		"shape_scatter_seed" = 13,
+	)
+	status = "draft"
+
+/datum/world_edit_generator/world_edit_test_apply_hook/get_supported_placement_modes()
+	return list("single", "repeat")
+
+/datum/world_edit_generator/world_edit_test_apply_hook/get_supported_placement_shapes()
+	return GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids().Copy()
+
+/datum/world_edit_generator/world_edit_test_apply_hook/supports_placement_direction()
+	return TRUE
+
+/datum/world_edit_generator/world_edit_test_apply_hook/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/datum/world_edit_plan/plan = new
+	var/list/anchor_turfs = placement_context["anchor_turfs"] || list()
+	for(var/turf/anchor_turf as anything in anchor_turfs)
+		if(!istype(anchor_turf))
+			continue
+		plan.placements += list(list("kind" = "test", "turf" = anchor_turf, "dir" = placement_context["direction"] || NORTH))
+		plan.affected_turfs += anchor_turf
+	plan.metadata["anchor_count"] = length(anchor_turfs)
+	plan.metadata["entry_count"] = length(plan.placements)
+	plan.metadata["placement_shape"] = "[placement_context["shape"]]"
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(placement_context["shape"])
+	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
+	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_context["direction"] || NORTH)
+	return plan
+
+/datum/world_edit_generator/world_edit_test_apply_hook/apply(mob/user, list/params)
+	var/datum/world_edit_apply_result/result = new
+	result.success = TRUE
+	result.message = "ok"
+	result.meta = list("applied" = TRUE)
+	return result
 
 /datum/unit_test/world_edit_corner_slots/outpost_perimeter/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
@@ -534,6 +681,8 @@
 	TEST_ASSERT("placement_shape_rollout_stage" in data, "World Edit UI payload builder should expose placement rollout stage keys.")
 	TEST_ASSERT("placement_collector_summary" in data, "World Edit UI payload builder should expose collector summary keys.")
 	TEST_ASSERT("placement_anchor" in data, "World Edit UI payload builder should expose placement anchor keys.")
+	TEST_ASSERT("placement_hover" in data, "World Edit UI payload builder should expose placement hover keys.")
+	TEST_ASSERT("placement_preview_effect_tiles" in data, "World Edit UI payload builder should expose preview effect tile counts.")
 	TEST_ASSERT("preset_entries" in data, "World Edit UI payload builder should include preset contract keys.")
 	TEST_ASSERT("blueprint_entries" in data, "World Edit UI payload builder should include blueprint contract keys.")
 	TEST_ASSERT("history_entries" in data, "World Edit UI payload builder should include history contract keys.")
@@ -664,6 +813,306 @@
 	TEST_ASSERT_EQUAL(jointext(destruction_generator.get_supported_placement_shapes(), "|"), jointext(expected_shapes, "|"), "Destruction generator should expose the full shared World Edit shape catalog.")
 	TEST_ASSERT(destruction_generator.supports_placement_direction(), "Destruction generator should expose direction support for directional shapes.")
 
+/datum/unit_test/world_edit_corner_slots/generator_integration/outpost_advertised_shapes_are_never_silent/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost integration test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["place_sentries"] = FALSE
+
+	for(var/shape_id in generator.get_supported_placement_shapes())
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, manager.current_params, EAST)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit outpost integration should build a shared shape result for advertised shape '[shape_id]'.")
+
+		var/shape_support_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), params, placement_context)
+		if(length("[shape_support_error]"))
+			continue
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+		TEST_ASSERT(istype(plan), "World Edit outpost integration should return a plan datum or an explicit support error for shape '[shape_id]'.")
+		if(plan.metadata["error"])
+			continue
+		TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost integration should not leave advertised shape '[shape_id]' with a silent empty plan.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/generator_integration/blueprint_stamp_advertised_shapes_are_never_silent/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/blueprint_stamp/definition = new
+	var/datum/world_edit_generator/blueprint_stamp/generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit blueprint integration test center turf was not resolved.")
+
+	var/list/blueprint = list(
+		"id" = "world_edit_shape_contract_test",
+		"name" = "World Edit Shape Contract Test",
+		"created_at" = "2026-04-17T00:00:00Z",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list("radius" = 0),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/barricade/metal]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	)
+	var/blueprint_file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint)
+	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit blueprint integration test should save the helper blueprint definition.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["blueprint_id"] = blueprint["id"]
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list(list(
+		"id" = blueprint["id"],
+		"valid" = TRUE,
+		"file_path" = blueprint_file_path,
+	))
+
+	for(var/shape_id in generator.get_supported_placement_shapes())
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, manager.current_params, EAST)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit blueprint integration should build a shared shape result for advertised shape '[shape_id]'.")
+
+		var/shape_support_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), params, placement_context)
+		if(length("[shape_support_error]"))
+			continue
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+		TEST_ASSERT(istype(plan), "World Edit blueprint integration should return a plan datum or an explicit support error for shape '[shape_id]'.")
+		if(plan.metadata["error"])
+			continue
+		TEST_ASSERT(length(plan.placements) > 0, "World Edit blueprint integration should not leave advertised shape '[shape_id]' with a silent empty plan.")
+
+	if(length("[blueprint_file_path]") && fexists(blueprint_file_path))
+		fdel(blueprint_file_path)
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/generator_integration/destruction_pack_advertised_shapes_are_never_silent/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/destruction_pack/definition = new
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction integration test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 2
+	manager.current_params["shuffle_enabled"] = FALSE
+	manager.current_params["scatter_enabled"] = FALSE
+	manager.current_params["persistent_fire_enabled"] = TRUE
+	manager.current_params["persistent_fire_density"] = 100
+	manager.current_params["blast_enabled"] = FALSE
+	manager.current_params["damage_profile"] = "none"
+
+	for(var/shape_id in generator.get_supported_placement_shapes())
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, manager.current_params, EAST)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit destruction integration should build a shared shape result for advertised shape '[shape_id]'.")
+
+		var/shape_support_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), params, placement_context)
+		if(length("[shape_support_error]"))
+			continue
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+		TEST_ASSERT(istype(plan), "World Edit destruction integration should return a plan datum or an explicit support error for shape '[shape_id]'.")
+		if(plan.metadata["error"])
+			continue
+		TEST_ASSERT(length(plan.placements) > 0 || length(plan.deletions) > 0, "World Edit destruction integration should not leave advertised shape '[shape_id]' with a silent empty plan.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/shape_geometry/line_rectangles_and_fill_contracts/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit geometry test center turf was not resolved.")
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit geometry test end turf was not resolved.")
+
+	var/list/line_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+		"shape_radius" = 9,
+	)
+	var/list/line_result = build_shape_result("line", center_turf, line_params, EAST, end_turf)
+	TEST_ASSERT(!line_result["error"], "World Edit line test should build a line footprint.")
+	TEST_ASSERT_EQUAL(line_result["degenerate_kind"], "", "World Edit line test should not degenerate when the end turf resolves four tiles.")
+	var/list/line_lookup = build_relative_turf_lookup(line_result["turfs"], center_turf)
+	TEST_ASSERT(line_lookup["0,0"] && line_lookup["1,0"] && line_lookup["2,0"] && line_lookup["3,0"], "World Edit line footprint should ignore shape_radius and keep only the resolved line tiles.")
+
+	var/list/spaced_params = line_params.Copy()
+	spaced_params["shape_line_spacing"] = 2
+	var/list/spaced_line_result = build_shape_result("line", center_turf, spaced_params, EAST, end_turf)
+	var/list/spaced_lookup = build_relative_turf_lookup(spaced_line_result["turfs"], center_turf)
+	TEST_ASSERT_EQUAL(length(spaced_line_result["turfs"]), 2, "World Edit line spacing should keep every second tile on the resolved line.")
+	TEST_ASSERT(spaced_lookup["0,0"] && spaced_lookup["2,0"], "World Edit line spacing should preserve ordered subsampling of the base line.")
+
+	var/list/rect_point_result = build_shape_result("rectangle", center_turf, list("shape_rect_width" = 1, "shape_rect_height" = 1))
+	TEST_ASSERT_EQUAL(rect_point_result["degenerate_kind"], "point", "World Edit rectangle 1x1 should collapse to a point.")
+	TEST_ASSERT_EQUAL(length(rect_point_result["turfs"]), 1, "World Edit rectangle 1x1 should keep exactly one turf.")
+
+	var/list/rect_line_result = build_shape_result("rectangle", center_turf, list("shape_rect_width" = 1, "shape_rect_height" = 3))
+	TEST_ASSERT_EQUAL(rect_line_result["degenerate_kind"], "line", "World Edit rectangle 1xN should collapse to a line.")
+	TEST_ASSERT_EQUAL(length(rect_line_result["turfs"]), 3, "World Edit rectangle 1xN should keep the thin border as a line footprint.")
+
+	var/list/filled_rect_result = build_shape_result("filled_rectangle", center_turf, list("shape_rect_width" = 3, "shape_rect_height" = 3))
+	TEST_ASSERT(!filled_rect_result["error"], "World Edit filled rectangle test should build a footprint.")
+	TEST_ASSERT(filled_rect_result["is_filled"], "World Edit filled rectangle should report a filled footprint.")
+	TEST_ASSERT_EQUAL(length(filled_rect_result["turfs"]), 9, "World Edit filled rectangle 3x3 should keep the full area.")
+
+/datum/unit_test/world_edit_corner_slots/shape_geometry/degenerate_area_contracts/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit degenerate-area test center turf was not resolved.")
+
+	var/list/circle_result = build_shape_result("circle", center_turf, list("shape_radius" = 0))
+	TEST_ASSERT_EQUAL(circle_result["degenerate_kind"], "point", "World Edit circle radius 0 should collapse to a point.")
+
+	var/list/ring_result = build_shape_result("ring", center_turf, list("shape_radius" = 0, "shape_thickness" = 5))
+	TEST_ASSERT_EQUAL(ring_result["degenerate_kind"], "point", "World Edit ring radius 0 should collapse to a point.")
+
+	var/list/ellipse_point_result = build_shape_result("ellipse", center_turf, list("shape_radius_x" = 0, "shape_radius_y" = 0))
+	TEST_ASSERT_EQUAL(ellipse_point_result["degenerate_kind"], "point", "World Edit ellipse 0/0 should collapse to a point.")
+	var/list/ellipse_line_result = build_shape_result("ellipse", center_turf, list("shape_radius_x" = 3, "shape_radius_y" = 0))
+	TEST_ASSERT_EQUAL(ellipse_line_result["degenerate_kind"], "line", "World Edit ellipse N/0 should collapse to a line.")
+
+	var/list/diamond_result = build_shape_result("diamond", center_turf, list("shape_radius" = 0))
+	TEST_ASSERT_EQUAL(diamond_result["degenerate_kind"], "point", "World Edit diamond radius 0 should collapse to a point.")
+
+	var/list/triangle_result = build_shape_result("triangle", center_turf, list("shape_triangle_size" = 0))
+	TEST_ASSERT_EQUAL(triangle_result["degenerate_kind"], "point", "World Edit triangle size 0 should collapse to a point.")
+
+	var/list/sector_result = build_shape_result("sector", center_turf, list("shape_radius" = 0, "shape_sector_angle" = 30), EAST)
+	TEST_ASSERT_EQUAL(sector_result["degenerate_kind"], "point", "World Edit sector radius 0 should collapse to a point.")
+
+/datum/unit_test/world_edit_corner_slots/shape_geometry/freeform_contracts/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit freeform test center turf was not resolved.")
+
+	var/list/polygon_result = build_shape_result("polygon", center_turf, list(
+		"shape_points_text" = "0,0; 2,0; 2,2; 2,2; 0,2",
+		"shape_polygon_filled" = TRUE,
+	))
+	TEST_ASSERT(!polygon_result["error"], "World Edit polygon test should build a closed footprint.")
+	TEST_ASSERT(polygon_result["is_closed"], "World Edit polygon should stay closed.")
+	TEST_ASSERT(polygon_result["is_filled"], "World Edit polygon filled flag should be preserved.")
+	var/list/polygon_metadata = polygon_result["metadata"]
+	var/list/polygon_layers = polygon_metadata["preview_layers"]
+	TEST_ASSERT_EQUAL(polygon_metadata["custom_point_count"], 4, "World Edit polygon should normalize repeated consecutive points.")
+	TEST_ASSERT(length(polygon_layers["closure_turfs"]) > 0, "World Edit polygon preview should keep a closure edge.")
+	var/list/polygon_lookup = build_relative_turf_lookup(polygon_result["turfs"], center_turf)
+	TEST_ASSERT(polygon_lookup["1,1"], "World Edit filled polygon should include interior tiles.")
+
+	var/list/polyline_result = build_shape_result("polyline", center_turf, list("shape_points_text" = "0,0; 2,0; 2,2"))
+	TEST_ASSERT(!polyline_result["is_closed"], "World Edit polyline should stay open.")
+	TEST_ASSERT(!polyline_result["is_filled"], "World Edit polyline should never be filled.")
+	var/list/polyline_metadata = polyline_result["metadata"]
+	var/list/polyline_layers = polyline_metadata["preview_layers"]
+	TEST_ASSERT_EQUAL(length(polyline_layers["closure_turfs"]), 0, "World Edit polyline preview should not emit closure tiles.")
+
+	var/list/custom_mask_result = build_shape_result("custom_mask", center_turf, list("shape_points_text" = "0,0; 2,0; 2,2; 2,0"))
+	TEST_ASSERT(!custom_mask_result["error"], "World Edit custom mask should keep exact point masks.")
+	TEST_ASSERT_EQUAL(length(custom_mask_result["turfs"]), 3, "World Edit custom mask should dedupe exact points without drawing edges.")
+	var/list/custom_mask_metadata = custom_mask_result["metadata"]
+	var/list/custom_mask_layers = custom_mask_metadata["preview_layers"]
+	TEST_ASSERT_EQUAL(length(custom_mask_layers["edge_turfs"]), 0, "World Edit custom mask preview should not emit edge tiles.")
+
+/datum/unit_test/world_edit_corner_slots/shape_geometry/brush_and_scatter_contracts/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit brush/scatter test center turf was not resolved.")
+
+	var/list/brush_result = build_shape_result("brush_path", center_turf, list(
+		"shape_points_text" = "0,0; 2,0; 2,2",
+		"shape_brush_radius" = 0,
+	))
+	TEST_ASSERT(!brush_result["error"], "World Edit brush-path radius 0 should still build a path footprint.")
+	TEST_ASSERT(!brush_result["is_filled"], "World Edit brush-path radius 0 should behave like a path footprint, not a filled area.")
+	var/list/brush_lookup = build_relative_turf_lookup(brush_result["turfs"], center_turf)
+	TEST_ASSERT(brush_lookup["1,0"] && brush_lookup["2,1"], "World Edit brush-path radius 0 should keep the polyline path tiles.")
+
+	var/list/scatter_result = build_shape_result("scatter_cluster", center_turf, list(
+		"shape_scatter_radius" = 0,
+		"shape_scatter_count" = 5,
+		"shape_scatter_seed" = 0,
+	))
+	TEST_ASSERT(!scatter_result["error"], "World Edit scatter-cluster radius 0 should keep a valid degenerate footprint.")
+	TEST_ASSERT_EQUAL(length(scatter_result["turfs"]), 1, "World Edit scatter-cluster radius 0 should collapse to one deduped point.")
+	TEST_ASSERT_EQUAL(scatter_result["degenerate_kind"], "point", "World Edit scatter-cluster radius 0 should report point degeneration.")
+	TEST_ASSERT((scatter_result["metadata"]["seed"] || 0) > 0, "World Edit scatter-cluster auto seed should resolve to a deterministic non-zero seed.")
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/preview_layers_follow_shape_semantics_and_cleanup/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	var/turf/hover_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit manager preview test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit manager preview test end turf was not resolved.")
+	TEST_ASSERT_NOTNULL(hover_turf, "World Edit manager preview test hover turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(null, "line", center_turf, end_turf, null, "", TRUE), "World Edit manager preview test should build an anchor-pair preview.")
+	TEST_ASSERT(manager.placement_hover_turf == end_turf, "World Edit manager preview should store the current hover turf.")
+	TEST_ASSERT(length(manager.placement_preview_anchor_turfs) > 0, "World Edit manager preview should keep anchor preview tiles.")
+	TEST_ASSERT(length(manager.placement_preview_edge_turfs) > 0, "World Edit manager preview should keep skeleton edge tiles.")
+	TEST_ASSERT(length(manager.placement_preview_final_turfs) > 0, "World Edit manager preview should keep the final shape footprint.")
+	TEST_ASSERT(length(manager.placement_preview_generator_effect_turfs) > 0, "World Edit manager preview should keep generator effect tiles separate from the shape footprint.")
+
+	manager.placement_shape = "polygon"
+	manager.set_placement_collector_origin_turf(center_turf)
+	manager.set_placement_collector_points(list(
+		list("x" = 0, "y" = 0),
+		list("x" = 2, "y" = 0),
+	))
+	TEST_ASSERT(manager.update_placement_collector_runtime_state_v2(null, hover_turf, "", TRUE, TRUE), "World Edit manager preview should build a hover-time polygon collector preview.")
+	TEST_ASSERT(length(manager.placement_preview_closure_turfs) > 0, "World Edit polygon collector preview should expose closure tiles on hover.")
+
+	manager.placement_shape = "polyline"
+	TEST_ASSERT(manager.update_placement_collector_runtime_state_v2(null, hover_turf, "", TRUE, TRUE), "World Edit manager preview should build a hover-time polyline collector preview.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_closure_turfs), 0, "World Edit polyline collector preview should not expose closure tiles.")
+
+	manager.placement_shape = "custom_mask"
+	manager.set_placement_collector_points(list(
+		list("x" = 0, "y" = 0),
+		list("x" = 2, "y" = 0),
+		list("x" = 2, "y" = 2),
+	))
+	TEST_ASSERT(manager.update_placement_collector_runtime_state_v2(null, hover_turf, "", TRUE, FALSE), "World Edit manager preview should build a custom-mask collector preview.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_edge_turfs), 0, "World Edit custom-mask collector preview should not expose edge tiles.")
+
+	manager.reset_placement_runtime()
+	TEST_ASSERT(isnull(manager.placement_hover_turf), "World Edit manager reset should clear the hover turf.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_anchor_turfs), 0, "World Edit manager reset should clear anchor preview tiles.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_generator_effect_turfs), 0, "World Edit manager reset should clear generator effect preview tiles.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/outpost_shape_sector_builds_shape_aware_plan/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
@@ -771,19 +1220,24 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/outpost_shape_scatter_cluster_builds_shape_aware_plan/Run()
+/datum/unit_test/world_edit_corner_slots/outpost_shape_scatter_cluster_returns_explicit_support_error/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
-	var/datum/world_edit_generator_definition/outpost_radius/definition = new
-	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost scatter-cluster test center turf was not resolved.")
 
-	generator.attach(manager, definition)
-	manager.current_definition = definition
-	manager.current_generator = generator
-	manager.current_params = definition.default_params?.Copy() || list()
-
-	var/list/params = definition.default_params?.Copy() || list()
+	var/list/params = list(
+		"family" = "metal_perimeter",
+		"layout_variant" = "crossroads",
+		"opening_width" = "profile",
+		"radius" = 1,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "profile",
+		"place_sentries" = FALSE,
+		"guard_mode" = "layout",
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+	)
 	params["radius"] = 1
 	params["shape_scatter_radius"] = 4
 	params["shape_scatter_count"] = 8
@@ -791,7 +1245,7 @@
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs("scatter_cluster", center_turf, null, params, NORTH)
 	TEST_ASSERT(!shape_result["error"], "World Edit outpost scatter-cluster test should build deterministic scatter anchors.")
 
-	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, list(
+	var/shape_error = generator.get_shape_support_error("scatter_cluster", shape_result["turfs"] || list(), params, list(
 		"mode" = "single",
 		"shape" = "scatter_cluster",
 		"shape_metadata" = shape_result["metadata"] || list(),
@@ -800,12 +1254,7 @@
 		"end_turf" = center_turf,
 		"direction" = NORTH,
 	))
-	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost scatter-cluster test should build a param-driven outpost plan.")
-	TEST_ASSERT_EQUAL(plan.metadata["placement_shape"], "scatter_cluster", "World Edit outpost scatter-cluster plan should record the scatter-cluster shape id.")
-	TEST_ASSERT((plan.metadata["anchor_count"] || 0) > 1, "World Edit outpost scatter-cluster plan should keep multiple resolved anchors.")
-	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost scatter-cluster plan should produce outpost placements.")
-
-	qdel(manager)
+	TEST_ASSERT_EQUAL(shape_error, "Outpost Radius does not support Scatter Cluster yet; use a connected contour or anchor-based shape instead.", "World Edit outpost scatter-cluster should fail with an explicit support error instead of a silent bad plan.")
 
 /datum/unit_test/world_edit_corner_slots/outpost_shape_support_rejects_impossible_openings/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
@@ -835,7 +1284,7 @@
 		"end_turf" = center_turf,
 		"direction" = NORTH,
 	))
-	TEST_ASSERT_EQUAL(shape_error, "Selected footprint cannot support the required outpost openings.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
+	TEST_ASSERT_EQUAL(shape_error, "Selected footprint cannot support the required Outpost Radius openings.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
 
 /datum/unit_test/world_edit_corner_slots/destruction_shape_build_plan_uses_manager_shape_prefs/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

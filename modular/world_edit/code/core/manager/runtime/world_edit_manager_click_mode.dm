@@ -64,7 +64,7 @@
 	if(!check_rights_for(holder, current_definition.required_rights))
 		return FALSE
 	if(placement_click_active)
-		return handle_safe_placement_click(user, params, object)
+		return handle_safe_placement_click_v2(user, params, object)
 	if(current_definition.execution_mode != WORLD_EDIT_EXECUTION_CLICK)
 		return FALSE
 	return current_generator.InterceptClickOn(user, params, object)

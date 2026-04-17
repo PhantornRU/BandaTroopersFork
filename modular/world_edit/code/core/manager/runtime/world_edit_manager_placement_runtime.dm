@@ -28,6 +28,286 @@
 		dir_suffix = ", направление=[metadata["placement_dir_label"]]"
 	return "Применить размещение [current_definition?.name_ru || current_definition?.id]? форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count][dir_suffix]."
 
+/datum/world_edit_manager/proc/build_safe_placement_plan_from_shape_result(mob/user, shape_id, list/shape_result, turf/start_turf, turf/end_turf, list/shape_metadata_override = null)
+	if(!current_generator || !islist(shape_result))
+		return null
+
+	var/list/anchor_turfs = shape_result["turfs"]
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		return null
+
+	var/list/effective_shape_metadata = islist(shape_metadata_override) ? shape_metadata_override.Copy() : islist(shape_result["metadata"]) ? shape_result["metadata"].Copy() : list()
+	return current_generator.build_placement_plan(user, current_params, list(
+		"mode" = get_effective_placement_mode() || "single",
+		"shape" = shape_id,
+		"shape_metadata" = effective_shape_metadata,
+		"anchor_turfs" = anchor_turfs,
+		"start_turf" = start_turf,
+		"end_turf" = end_turf,
+		"direction" = get_effective_placement_dir(),
+	))
+
+/datum/world_edit_manager/proc/get_safe_placement_generator_effect_turfs(datum/world_edit_plan/plan)
+	if(!istype(plan))
+		return list()
+
+	var/list/metadata = plan.metadata
+	if(islist(metadata) && islist(metadata["generator_effect_turfs"]))
+		return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(metadata["generator_effect_turfs"])
+	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(plan.affected_turfs)
+
+/datum/world_edit_manager/proc/render_safe_placement_preview(list/shape_result, datum/world_edit_plan/plan = null)
+	store_placement_shape_preview_result(shape_result)
+	set_placement_preview_generator_effect_turfs(get_safe_placement_generator_effect_turfs(plan))
+	GLOB.world_edit_helpers.apply_grouped_turf_preview(src, get_placement_preview_groups())
+
+/datum/world_edit_manager/proc/set_safe_placement_preview_feedback(success, message, list/meta = null, mark_valid = FALSE)
+	last_preview_success = success ? TRUE : FALSE
+	last_preview_message = "[message]"
+	last_preview_meta = islist(meta) ? meta.Copy() : list()
+	if(mark_valid)
+		mark_preview_state()
+	else
+		invalidate_preview_state()
+
+/datum/world_edit_manager/proc/evaluate_safe_placement_preview(mob/user, shape_id, turf/start_turf, turf/end_turf, list/shape_metadata_override = null, message_prefix = "", silent = FALSE)
+	clear_preview_plan_state()
+	placement_hover_turf = end_turf
+
+	var/list/shape_result = build_safe_placement_anchor_turfs(shape_id, start_turf, end_turf)
+	var/list/shape_metadata = islist(shape_result["metadata"]) ? shape_result["metadata"].Copy() : list()
+	if(islist(shape_metadata_override))
+		for(var/key in shape_metadata_override)
+			shape_metadata[key] = shape_metadata_override[key]
+
+	if(shape_result["error"])
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix][shape_result["error"]]", shape_metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+
+	var/list/anchor_turfs = shape_result["turfs"]
+	if(!length(anchor_turfs))
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Invalid placement footprint.", shape_metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+
+	var/shape_support_error = get_safe_placement_shape_support_error(shape_id, anchor_turfs, start_turf, end_turf, shape_metadata)
+	if(length("[shape_support_error]"))
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix][shape_support_error]", shape_metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+
+	var/datum/world_edit_plan/plan = build_safe_placement_plan_from_shape_result(user, shape_id, shape_result, start_turf, end_turf, shape_metadata)
+	if(!istype(plan))
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Failed to build placement plan.", shape_metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+	if(plan.metadata["error"])
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix][plan.metadata["error"]]", plan.metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+	if(!length(plan.placements) && !length(plan.deletions))
+		render_safe_placement_preview(shape_result, null)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Placement plan is empty.", plan.metadata, FALSE)
+		if(!silent)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
+
+	current_generator.current_plan = plan
+	render_safe_placement_preview(shape_result, plan)
+	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(plan)]", plan.metadata, TRUE)
+	if(!silent)
+		to_chat(user, SPAN_NOTICE(last_preview_message))
+	return TRUE
+
+/datum/world_edit_manager/proc/apply_safe_placement_current_plan(mob/user)
+	var/datum/world_edit_plan/plan = current_generator?.current_plan
+	if(!istype(plan) || !is_preview_state_valid())
+		to_chat(user, SPAN_WARNING("Placement preview is not ready."))
+		return TRUE
+
+	if(confirm_before_apply)
+		var/confirm_text = build_safe_placement_confirm_text(plan)
+		var/answer = tgui_alert(user, confirm_text, "World Edit: Placement Confirmation", list("Confirm", "Cancel"))
+		if(answer != "Confirm")
+			return TRUE
+
+	var/mode = get_effective_placement_mode()
+	var/start_ds = world.time
+	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
+	if(!istype(result))
+		clear_preview_plan_state()
+		return fail_apply(user, "Generator returned an invalid apply result.")
+
+	record_apply_result(user, result, world.time - start_ds)
+	clear_preview_plan_state()
+	if(mode == "single")
+		stop_click_mode()
+	else if(result.success)
+		sync_click_intercept_state()
+		placement_click_active = click_intercept_owned ? TRUE : FALSE
+		if(is_current_placement_collector())
+			placement_anchor_turf = get_placement_collector_origin_turf()
+			placement_hover_turf = placement_anchor_turf
+		else
+			placement_anchor_turf = null
+			placement_hover_turf = null
+		to_chat(user, SPAN_NOTICE("Placement mode stays active."))
+	return TRUE
+
+/datum/world_edit_manager/proc/show_anchor_pair_preview(turf/anchor_turf, shape_id)
+	clear_preview_plan_state()
+	placement_anchor_turf = anchor_turf
+	placement_hover_turf = anchor_turf
+	var/list/shape_result = build_safe_placement_anchor_turfs(shape_id, anchor_turf, anchor_turf)
+	render_safe_placement_preview(shape_result, null)
+
+/datum/world_edit_manager/proc/handle_safe_placement_hover(mob/user, turf/hover_turf)
+	if(!placement_click_active || !supports_current_placement_ux() || !istype(hover_turf))
+		return FALSE
+	if(holder != user?.client)
+		return FALSE
+
+	var/shape_id = get_effective_placement_shape()
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
+	if(interaction_kind == "anchor_pair")
+		if(!istype(placement_anchor_turf))
+			return FALSE
+		evaluate_safe_placement_preview(user, shape_id, placement_anchor_turf, hover_turf, null, "", TRUE)
+		return TRUE
+	if(interaction_kind == "collector")
+		if(!length(get_placement_collector_points()))
+			return FALSE
+		update_placement_collector_runtime_state_v2(user, hover_turf, "", TRUE, TRUE)
+		return TRUE
+	if(interaction_kind == "single" || interaction_kind == "param_only")
+		evaluate_safe_placement_preview(user, shape_id, hover_turf, hover_turf, null, "", TRUE)
+		return TRUE
+	return FALSE
+
+/datum/world_edit_manager/proc/handle_safe_placement_click_v2(mob/user, params, atom/object)
+	if(!placement_click_active || !supports_current_placement_ux())
+		return FALSE
+
+	var/list/modifiers = params2list(params)
+	var/turf/clicked_turf = get_turf(object)
+	if(!clicked_turf)
+		return TRUE
+
+	var/shape_id = get_effective_placement_shape()
+	var/interaction_kind = get_placement_interaction_kind(shape_id)
+	if(!length(shape_id))
+		return TRUE
+
+	if(LAZYACCESS(modifiers, MIDDLE_CLICK))
+		var/list/collector_points = get_placement_collector_points()
+		if(interaction_kind == "collector")
+			if(!length(collector_points))
+				placement_anchor_turf = null
+				placement_hover_turf = null
+				clear_placement_collector_origin()
+				clear_placement_collector_points()
+				clear_preview_plan_state()
+				to_chat(user, SPAN_NOTICE("Collection cleared."))
+				return TRUE
+
+			collector_points.Cut(length(collector_points), length(collector_points) + 1)
+			set_placement_collector_points(collector_points)
+			if(length(collector_points))
+				placement_anchor_turf = get_placement_collector_origin_turf()
+				placement_hover_turf = clicked_turf
+				update_placement_collector_runtime_state_v2(user, clicked_turf, "Last point removed. ", FALSE, FALSE)
+			else
+				placement_anchor_turf = null
+				placement_hover_turf = null
+				clear_placement_collector_origin()
+				clear_placement_collector_points()
+				clear_preview_plan_state()
+				set_safe_placement_preview_feedback(FALSE, "Collection cleared.", list(), FALSE)
+				to_chat(user, SPAN_NOTICE(last_preview_message))
+			return TRUE
+
+		placement_anchor_turf = null
+		placement_hover_turf = null
+		clear_preview_plan_state()
+		to_chat(user, SPAN_NOTICE("Anchor cleared."))
+		return TRUE
+
+	if(LAZYACCESS(modifiers, RIGHT_CLICK))
+		if(interaction_kind == "collector")
+			return finish_placement_collection_v2(user, placement_hover_turf || clicked_turf)
+		return TRUE
+
+	if(!LAZYACCESS(modifiers, LEFT_CLICK))
+		return TRUE
+
+	if(interaction_kind == "collector")
+		var/list/collector_points = get_placement_collector_points()
+		var/turf/origin_turf = get_placement_collector_origin_turf()
+		if(!length(collector_points))
+			placement_anchor_turf = clicked_turf
+			placement_hover_turf = clicked_turf
+			set_placement_collector_origin_turf(clicked_turf)
+			set_placement_collector_points(list(list("x" = 0, "y" = 0)))
+			update_placement_collector_runtime_state_v2(user, clicked_turf, "Collection started. ", FALSE, FALSE)
+			return TRUE
+
+		if(!istype(origin_turf))
+			origin_turf = placement_anchor_turf || clicked_turf
+			set_placement_collector_origin_turf(origin_turf)
+			placement_anchor_turf = origin_turf
+
+		var/new_x = clicked_turf.x - origin_turf.x
+		var/new_y = clicked_turf.y - origin_turf.y
+		var/new_key = "[new_x],[new_y]"
+		var/max_points = get_placement_collector_max_points(shape_id)
+		if("[shape_id]" == WORLD_EDIT_SHAPE_CUSTOM_MASK)
+			for(var/list/existing_point as anything in collector_points)
+				var/existing_x = text2num("[existing_point["x"]]")
+				var/existing_y = text2num("[existing_point["y"]]")
+				if("[existing_x],[existing_y]" == new_key)
+					to_chat(user, SPAN_NOTICE("This point is already in the custom mask."))
+					return TRUE
+		if(length(collector_points) >= max_points)
+			to_chat(user, SPAN_WARNING("Reached the safe collector cap of [max_points] points."))
+			return TRUE
+
+		collector_points += list(list("x" = new_x, "y" = new_y))
+		placement_anchor_turf = origin_turf
+		placement_hover_turf = clicked_turf
+		set_placement_collector_points(collector_points)
+		update_placement_collector_runtime_state_v2(user, clicked_turf, "Collection updated. ", FALSE, FALSE)
+		return TRUE
+
+	if(interaction_kind == "anchor_pair" && !istype(placement_anchor_turf))
+		show_anchor_pair_preview(clicked_turf, shape_id)
+		to_chat(user, SPAN_NOTICE("Anchor selected: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]."))
+		return TRUE
+
+	var/turf/start_turf = (interaction_kind == "anchor_pair") ? placement_anchor_turf : clicked_turf
+	var/turf/end_turf = clicked_turf
+	if(interaction_kind == "anchor_pair")
+		placement_hover_turf = clicked_turf
+
+	if(!evaluate_safe_placement_preview(user, shape_id, start_turf, end_turf, null, "", FALSE))
+		if(interaction_kind == "anchor_pair")
+			placement_anchor_turf = start_turf
+		return TRUE
+
+	if(interaction_kind == "anchor_pair")
+		placement_anchor_turf = null
+	return apply_safe_placement_current_plan(user)
+
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
 		return fail_apply(user, "Недостаточно прав для режима размещения World Edit.")
@@ -64,6 +344,8 @@
 	return TRUE
 
 /datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
+	return handle_safe_placement_click_v2(user, params, object)
+
 	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
 
