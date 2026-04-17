@@ -232,9 +232,9 @@
 	plan.metadata["blocked_sentries"] = sentry_data["blocked_count"]
 	return plan
 
-/datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
+/datum/world_edit_generator/outpost_radius/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
-	var/list/anchor_turfs = placement_context["anchor_turfs"]
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		plan.metadata["error"] = "Unable to resolve the anchor turf."
 		return plan
@@ -244,8 +244,8 @@
 		plan.metadata["error"] = "[config["error"]]"
 		return plan
 
-	var/shape_id = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
-	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	var/shape_label = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(shape_id)
 	plan.metadata["placement_shape"] = shape_id
 	plan.metadata["shape_label"] = shape_label
 	plan.metadata["family"] = config["family"]
@@ -272,10 +272,11 @@
 		plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
 		plan.metadata["anchor_count"] = length(anchor_turfs)
 		plan.metadata["shape_label"] = shape_label
-		if(islist(placement_context["shape_metadata"]))
-			for(var/key in placement_context["shape_metadata"])
+		var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
+		if(islist(shape_metadata))
+			for(var/key in shape_metadata)
 				if(!(key in plan.metadata))
-					plan.metadata[key] = placement_context["shape_metadata"][key]
+					plan.metadata[key] = shape_metadata[key]
 		return plan
 
 	var/list/occupied_lookup = list()
@@ -349,11 +350,16 @@
 	plan.metadata["opening_count"] = total_openings
 	plan.metadata["blocked_openings"] = total_blocked_openings
 	plan.metadata["shape_label"] = shape_label
-	if(islist(placement_context["shape_metadata"]))
-		for(var/key in placement_context["shape_metadata"])
+	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
+	if(islist(shape_metadata))
+		for(var/key in shape_metadata)
 			if(!(key in plan.metadata))
-				plan.metadata[key] = placement_context["shape_metadata"][key]
+				plan.metadata[key] = shape_metadata[key]
 	return plan
+
+/datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
+	return build_plan_from_shape_contract(user, shape_contract, params, placement_context)
 
 /datum/world_edit_generator/outpost_radius/build_plan(list/params)
 	var/turf/anchor_turf = get_turf(manager?.holder?.mob)

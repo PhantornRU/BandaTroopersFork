@@ -63,7 +63,7 @@
 
 	return FALSE
 
-/datum/world_edit_manager/proc/set_generator_by_id(generator_id, preserve_click_mode = FALSE)
+/datum/world_edit_manager/proc/set_generator_by_id(generator_id)
 	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!definition)
 		return FALSE
@@ -72,18 +72,10 @@
 	if(!check_rights_for(holder, definition.required_rights))
 		return FALSE
 
-	var/keep_active_placement = preserve_click_mode && is_safe_placement_mode_active()
-
 	if(current_definition?.id)
 		save_current_generator_context()
 
-	if(keep_active_placement)
-		clear_preview_plan_state()
-		reset_apply_feedback()
-		last_ui_error = ""
-		current_generator?.disable_click_mode()
-	else
-		reset_generator_runtime()
+	reset_generator_runtime()
 	detach_current_generator()
 
 	current_definition = definition
@@ -93,11 +85,6 @@
 	reset_placement_runtime(TRUE)
 	restore_generator_context(definition.id)
 	apply_shared_placement_prefs_to_current_generator()
-	if(keep_active_placement)
-		if(sync_click_intercept_state() && supports_current_placement_ux())
-			placement_click_active = click_intercept_owned ? TRUE : FALSE
-		else
-			stop_click_mode()
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_current_generator()

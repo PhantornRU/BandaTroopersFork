@@ -625,6 +625,30 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_manager_state/preview_state_invalidates_on_collector_session_change/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	manager.current_definition = definition
+	manager.current_params = list("radius" = 4)
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYGON
+	manager.set_placement_collector_points(list(
+		list("x" = 0, "y" = 0),
+		list("x" = 1, "y" = 0),
+		list("x" = 1, "y" = 1),
+	))
+
+	manager.mark_preview_state()
+	TEST_ASSERT(manager.is_preview_state_valid(), "World Edit preview state should be valid before collector-session changes.")
+
+	manager.set_placement_collector_points(list(
+		list("x" = 0, "y" = 0),
+		list("x" = 2, "y" = 0),
+		list("x" = 2, "y" = 2),
+	))
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit preview signature should invalidate when collector-session points change.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_manager_state/reset_placement_runtime_clears_anchor_and_collector_points/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
@@ -1061,6 +1085,24 @@
 	TEST_ASSERT_EQUAL(scatter_result["degenerate_kind"], "point", "World Edit scatter-cluster radius 0 should report point degeneration.")
 	TEST_ASSERT((scatter_result["metadata"]["seed"] || 0) > 0, "World Edit scatter-cluster auto seed should resolve to a deterministic non-zero seed.")
 
+/datum/unit_test/world_edit_corner_slots/shape_geometry/shape_contract_service_builds_preview_model/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit shape-contract service test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit shape-contract service test end turf was not resolved.")
+
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(WORLD_EDIT_SHAPE_LINE, center_turf, end_turf, list("shape_line_spacing" = 1), EAST)
+	TEST_ASSERT(istype(shape_contract), "World Edit shape-contract service should return a shape contract datum.")
+	TEST_ASSERT_EQUAL(shape_contract.shape_id, WORLD_EDIT_SHAPE_LINE, "World Edit shape-contract service should preserve the requested shape id.")
+	TEST_ASSERT_EQUAL(shape_contract.interaction_kind, "anchor_pair", "World Edit shape-contract service should expose the interaction kind.")
+	TEST_ASSERT(length(shape_contract.anchor_turfs) > 0, "World Edit shape-contract service should keep the resolved footprint turfs.")
+
+	var/datum/world_edit_preview_model/preview_model = GLOB.world_edit_shape_preview.build_shape_preview(shape_contract)
+	TEST_ASSERT(istype(preview_model), "World Edit preview-model service should return a preview model datum.")
+	TEST_ASSERT(length(preview_model.anchor_turfs) > 0, "World Edit preview-model service should expose anchor tiles.")
+	TEST_ASSERT(length(preview_model.edge_turfs) > 0, "World Edit preview-model service should expose edge tiles.")
+	TEST_ASSERT(length(preview_model.final_turfs) > 0, "World Edit preview-model service should expose final footprint tiles.")
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/preview_layers_follow_shape_semantics_and_cleanup/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -1079,6 +1121,9 @@
 
 	TEST_ASSERT(manager.evaluate_safe_placement_preview(null, "line", center_turf, end_turf, null, "", TRUE), "World Edit manager preview test should build an anchor-pair preview.")
 	TEST_ASSERT(manager.placement_hover_turf == end_turf, "World Edit manager preview should store the current hover turf.")
+	TEST_ASSERT(istype(manager.get_placement_preview_candidate(), /datum/world_edit_placement_candidate), "World Edit manager preview should store the resolved placement candidate in session state.")
+	TEST_ASSERT(istype(manager.get_placement_preview_candidate().plan, /datum/world_edit_plan), "World Edit manager preview should keep the resolved plan on the placement candidate.")
+	TEST_ASSERT(isnull(generator.current_plan), "World Edit safe placement preview should no longer rely on generator.current_plan as preview-session state.")
 	TEST_ASSERT(length(manager.placement_preview_anchor_turfs) > 0, "World Edit manager preview should keep anchor preview tiles.")
 	TEST_ASSERT(length(manager.placement_preview_edge_turfs) > 0, "World Edit manager preview should keep skeleton edge tiles.")
 	TEST_ASSERT(length(manager.placement_preview_final_turfs) > 0, "World Edit manager preview should keep the final shape footprint.")

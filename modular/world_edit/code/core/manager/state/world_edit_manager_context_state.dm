@@ -7,14 +7,7 @@
 /datum/world_edit_manager/proc/preserve_active_placement_runtime_params(list/target_params)
 	if(!islist(target_params))
 		target_params = list()
-	if(!islist(current_params))
-		return target_params
-
-	if(!isnull(current_params["shape_points_origin"]))
-		target_params["shape_points_origin"] = current_params["shape_points_origin"]
-	if(!isnull(current_params["shape_points_text"]))
-		target_params["shape_points_text"] = current_params["shape_points_text"]
-	return target_params
+	return sanitize_persistent_generator_params(target_params)
 
 /datum/world_edit_manager/proc/build_current_generator_context_snapshot()
 	if(!current_definition?.id)

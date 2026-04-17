@@ -597,35 +597,66 @@
 	config["turned_on"] = turned_on
 	return config
 
-/datum/world_edit_generator/outpost_radius/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
+/datum/world_edit_generator/outpost_radius/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
+	var/support_class = get_outpost_shape_support_class(shape_id)
 	if("[shape_id]" == WORLD_EDIT_SHAPE_POINT)
-		return null
+		return list(
+			"support_class" = support_class,
+			"error" = null,
+			"metadata" = list("shape_support_class" = support_class),
+		)
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
-		return "Unable to resolve the shape footprint."
+		return list(
+			"support_class" = support_class,
+			"error" = "Unable to resolve the shape footprint.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/list/config = resolve_outpost_configuration(params)
 	if(config["error"])
-		return "[config["error"]]"
+		return list(
+			"support_class" = support_class,
+			"error" = "[config["error"]]",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/list/footprint_lookup = build_turf_lookup(anchor_turfs)
 	if(!length(footprint_lookup))
-		return "Unable to resolve the shape footprint."
+		return list(
+			"support_class" = support_class,
+			"error" = "Unable to resolve the shape footprint.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/list/footprint_turfs = list()
 	for(var/turf/footprint_turf as anything in footprint_lookup)
 		if(istype(footprint_turf))
 			footprint_turfs += footprint_turf
 	if(!length(footprint_turfs))
-		return "Unable to resolve the shape footprint."
+		return list(
+			"support_class" = support_class,
+			"error" = "Unable to resolve the shape footprint.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/support_validation_error = get_outpost_shape_support_validation_error(shape_id, footprint_turfs, placement_context)
 	if(length("[support_validation_error]"))
-		return support_validation_error
+		return list(
+			"support_class" = support_class,
+			"error" = support_validation_error,
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
 	if(!length(candidate_slots))
-		return "Selected footprint cannot build a perimeter shell for Outpost Radius."
+		return list(
+			"support_class" = support_class,
+			"error" = "Selected footprint cannot build a perimeter shell for Outpost Radius.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
@@ -643,14 +674,39 @@
 
 		for(var/opening_dir as anything in opening_dirs)
 			if(!placeable_by_dir["[opening_dir]"])
-				return "Selected footprint cannot support the required Outpost Radius openings."
+				return list(
+					"support_class" = support_class,
+					"error" = "Selected footprint cannot support the required Outpost Radius openings.",
+					"metadata" = list("shape_support_class" = support_class),
+				)
 
 	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config)
 	if(shape_plan.metadata["error"])
-		return "[shape_plan.metadata["error"]]"
+		return list(
+			"support_class" = support_class,
+			"error" = "[shape_plan.metadata["error"]]",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
-		return "Outpost Radius could not build any valid placements for the selected footprint."
+		return list(
+			"support_class" = support_class,
+			"error" = "Outpost Radius could not build any valid placements for the selected footprint.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 	if((shape_plan.metadata["opening_count"] || 0) <= 0 && length(opening_dirs))
-		return "Selected footprint cannot support the required Outpost Radius openings."
+		return list(
+			"support_class" = support_class,
+			"error" = "Selected footprint cannot support the required Outpost Radius openings.",
+			"metadata" = list("shape_support_class" = support_class),
+		)
 
-	return null
+	return list(
+		"support_class" = support_class,
+		"error" = null,
+		"metadata" = list("shape_support_class" = support_class),
+	)
+
+/datum/world_edit_generator/outpost_radius/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, anchor_turfs, placement_context)
+	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
+	return support_result["error"]

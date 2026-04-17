@@ -39,13 +39,13 @@
 /datum/world_edit_manager/proc/can_save_blueprint_from_current_plan()
 	if(current_definition?.id != "outpost_radius")
 		return FALSE
-	return istype(current_generator?.current_plan, /datum/world_edit_plan)
+	return is_preview_state_valid() && istype(get_current_preview_plan(), /datum/world_edit_plan)
 
 /datum/world_edit_manager/proc/save_blueprint_from_current_plan(mob/user)
 	if(!can_save_blueprint_from_current_plan())
 		return fail_blueprint_action(user, "РЎРЅР°С‡Р°Р»Р° РІС‹РїРѕР»РЅРёС‚Рµ preview outpost_radius РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ blueprint.")
 
-	var/datum/world_edit_plan/current_plan = current_generator.current_plan
+	var/datum/world_edit_plan/current_plan = get_current_preview_plan()
 	var/turf/anchor_turf = current_plan?.metadata["center_turf"]
 	if(!anchor_turf)
 		anchor_turf = get_turf(user)

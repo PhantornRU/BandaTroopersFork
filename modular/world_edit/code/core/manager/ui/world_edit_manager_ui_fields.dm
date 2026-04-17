@@ -38,6 +38,14 @@
 		return TRUE
 
 	var/value = params["value"]
+	if(param_id == "shape_points_text")
+		var/list/parsed_points = GLOB.world_edit_placement_shapes.world_edit_parse_shape_points("[value]")
+		set_placement_collector_points(parsed_points)
+		last_ui_error = ""
+		save_current_generator_context()
+		refresh_runtime_after_config_change(FALSE, FALSE)
+		return TRUE
+
 	var/new_params = current_generator.set_ui_param(user, current_params, param_id, value)
 	if(isnull(new_params))
 		return TRUE
@@ -52,13 +60,10 @@
 		to_chat(user, SPAN_WARNING(last_ui_error))
 		return TRUE
 
-	if(is_safe_placement_mode_active())
-		new_params = preserve_active_placement_runtime_params(new_params)
-
 	current_params = new_params
 	last_ui_error = ""
 	save_current_generator_context()
-	refresh_runtime_after_config_change()
+	refresh_runtime_after_config_change(is_safe_placement_mode_active(), is_safe_placement_mode_active())
 	return TRUE
 
 /datum/world_edit_manager/proc/get_normalized_ui_fields()

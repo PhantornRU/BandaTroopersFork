@@ -118,7 +118,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   };
 
   const collectorAction: ToolbarAction | undefined =
-    data.click_mode_active && data.placement_interaction_kind === 'collector'
+    data.placement_active && data.placement_interaction_kind === 'collector'
       ? {
           label: 'Завершить сбор',
           action: 'finish_placement_collection',
@@ -137,7 +137,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   return {
     previewAction,
     applyAction: effectiveApplyAction,
-    placementAction: data.click_mode_active
+    placementAction: data.placement_active
       ? stopPlacementAction
       : placePreviewAction || startPlacementAction,
     collectorAction,

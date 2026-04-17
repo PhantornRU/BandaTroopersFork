@@ -1,7 +1,7 @@
 /datum/world_edit_manager/proc/handle_generator_ui_action(mob/user, action, list/params)
 	switch(action)
 		if("select_generator")
-			if(set_generator_by_id(params["generator_id"], is_safe_placement_mode_active()))
+			if(set_generator_by_id(params["generator_id"]))
 				last_ui_error = ""
 			return TRUE
 

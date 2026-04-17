@@ -41,6 +41,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/placement_shape = WORLD_EDIT_SHAPE_POINT
 	var/placement_dir = NORTH
 	var/placement_dir_uses_facing = TRUE
+	var/datum/world_edit_placement_session/placement_session
 	var/turf/placement_anchor_turf
 	var/turf/placement_hover_turf
 	var/list/placement_preview_shape_result = list()
@@ -68,6 +69,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	last_preview_meta = list()
 	last_ui_error = ""
 	confirm_before_apply = TRUE
+	placement_session = new
 	placement_preview_shape_result = list()
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
@@ -135,4 +137,5 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	QDEL_NULL(current_generator)
 	current_definition = null
 	current_params = list()
+	QDEL_NULL(placement_session)
 	reset_placement_runtime(TRUE)

@@ -46,9 +46,38 @@
 
 	return build_placement_plan(manager?.holder?.mob, params, effective_context)
 
-/datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
+/datum/world_edit_generator/destruction_pack/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	var/radius = text2num("[params["radius"]]") || 0
+	if(radius < 1)
+		return list(
+			"support_class" = "full",
+			"error" = "radius must stay in the range 1..10.",
+			"metadata" = list("shape_support_class" = "full"),
+		)
+
+	var/list/influence_map = build_influence_map(shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"], radius)
+	if(!length(influence_map["seed_turfs"]))
+		return list(
+			"support_class" = "full",
+			"error" = "Unable to resolve the destruction footprint.",
+			"metadata" = list("shape_support_class" = "full"),
+		)
+	if(!length(influence_map["turfs"]))
+		return list(
+			"support_class" = "full",
+			"error" = "No valid area turfs were found around the selected footprint.",
+			"metadata" = list("shape_support_class" = "full"),
+		)
+
+	return list(
+		"support_class" = "full",
+		"error" = null,
+		"metadata" = list("shape_support_class" = "full"),
+	)
+
+/datum/world_edit_generator/destruction_pack/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
-	var/list/anchor_turfs = placement_context["anchor_turfs"]
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		plan.metadata["error"] = "Unable to resolve the anchor turf."
 		return plan
@@ -104,7 +133,7 @@
 		return plan
 
 	var/placement_mode = "[placement_context["mode"] || "single"]"
-	var/placement_shape = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	var/placement_shape = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
 	var/placement_dir = placement_context["direction"] || manager?.get_effective_placement_dir() || NORTH
 	var/list/band_counts = influence_map["band_counts"] || list()
 
@@ -115,7 +144,7 @@
 	plan.metadata["influence_tile_count"] = length(influence_turfs)
 	plan.metadata["placement_mode"] = placement_mode
 	plan.metadata["placement_shape"] = placement_shape
-	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(placement_shape)
+	plan.metadata["shape_label"] = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(placement_shape)
 	plan.metadata["placement_dir"] = placement_dir
 	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
 	plan.metadata["anchor_count"] = length(seed_turfs)
@@ -196,17 +225,14 @@
 		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
 	return plan
 
-/datum/world_edit_generator/destruction_pack/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
-	var/radius = text2num("[params["radius"]]") || 0
-	if(radius < 1)
-		return "radius must stay in the range 1..10."
+/datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
+	return build_plan_from_shape_contract(user, shape_contract, params, placement_context)
 
-	var/list/influence_map = build_influence_map(anchor_turfs, radius)
-	if(!length(influence_map["seed_turfs"]))
-		return "Unable to resolve the destruction footprint."
-	if(!length(influence_map["turfs"]))
-		return "No valid area turfs were found around the selected footprint."
-	return null
+/datum/world_edit_generator/destruction_pack/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, anchor_turfs, placement_context)
+	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
+	return support_result["error"]
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)

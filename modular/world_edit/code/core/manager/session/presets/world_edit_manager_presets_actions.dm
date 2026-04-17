@@ -61,18 +61,18 @@
 	if(validated_result["error"])
 		return fail_preset_action(user, validated_result["error"])
 
-	var/keep_active_placement = is_safe_placement_mode_active()
+	var/had_active_placement = is_safe_placement_mode_active()
 	var/same_generator = current_definition?.id == generator_id
 	if(!same_generator)
-		if(!set_generator_by_id(generator_id, keep_active_placement))
+		if(!set_generator_by_id(generator_id))
 			return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ preset.")
-
-	if(keep_active_placement && same_generator)
-		validated_result["params"] = preserve_active_placement_runtime_params(validated_result["params"])
 
 	current_params = validated_result["params"]
 	save_current_generator_context()
-	refresh_runtime_after_config_change()
+	if(had_active_placement)
+		stop_click_mode()
+	else
+		refresh_runtime_after_config_change(TRUE, TRUE)
 	last_ui_error = ""
 	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' Р·Р°РіСЂСѓР¶РµРЅ."))
 	return TRUE

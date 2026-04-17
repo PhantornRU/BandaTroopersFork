@@ -11,12 +11,13 @@
 	if(click_intercept_owned)
 		return fail_preview(user, "Остановите активный режим размещения перед обычным предпросмотром.")
 
-	var/error_text = current_generator.validate_params(user, current_params)
+	var/list/effective_params = build_effective_generator_params()
+	var/error_text = current_generator.validate_params(user, effective_params)
 	if(error_text)
 		return fail_preview(user, error_text)
 
 	clear_preview_plan_state()
-	var/datum/world_edit_preview_result/result = current_generator.preview(user, current_params)
+	var/datum/world_edit_preview_result/result = current_generator.preview(user, effective_params)
 	if(!istype(result))
 		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
 
@@ -45,7 +46,8 @@
 	if(!check_rights_for(holder, current_definition.required_rights))
 		return fail_apply(user, "Недостаточно прав для применения этого генератора.")
 
-	var/error_text = current_generator.validate_params(user, current_params)
+	var/list/effective_params = build_effective_generator_params()
+	var/error_text = current_generator.validate_params(user, effective_params)
 	if(error_text)
 		return fail_apply(user, error_text)
 
@@ -56,13 +58,13 @@
 		return fail_apply(user, "Остановите активный режим размещения перед обычным применением.")
 
 	if(confirm_before_apply)
-		var/confirm_text = current_generator.get_apply_confirmation_text(current_params)
+		var/confirm_text = current_generator.get_apply_confirmation_text(effective_params)
 		var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
 		if(answer != "Подтвердить")
 			return null
 
 	var/start_ds = world.time
-	var/datum/world_edit_apply_result/result = current_generator.apply(user, current_params)
+	var/datum/world_edit_apply_result/result = current_generator.apply(user, effective_params)
 	if(!istype(result))
 		return fail_apply(user, "Генератор вернул некорректный результат применения.")
 
@@ -97,7 +99,7 @@
 
 /datum/world_edit_manager/proc/record_apply_result(mob/user, datum/world_edit_apply_result/result, duration_ds)
 	var/turf/center_turf = result.center_turf || get_turf(user)
-	var/params_short = current_generator.get_params_short(current_params)
+	var/params_short = current_generator.get_params_short(build_effective_generator_params())
 	var/result_code = result.success ? "ok" : "error"
 	var/datum/world_edit_changeset/changeset
 	if(result.success && istype(result.changeset))

@@ -48,7 +48,8 @@
 /datum/world_edit_manager/proc/refresh_runtime_after_config_change(clear_placement_progress = FALSE, clear_collector_points = FALSE)
 	clear_preview_plan_state()
 	if(clear_placement_progress)
-		placement_anchor_turf = null
+		set_placement_anchor_turf(null)
+		set_placement_hover_turf(null)
 		reset_placement_collector_state(clear_collector_points)
 
 	if(sync_click_intercept_state() && placement_click_active && !supports_current_placement_ux())

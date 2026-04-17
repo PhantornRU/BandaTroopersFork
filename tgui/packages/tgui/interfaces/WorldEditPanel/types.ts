@@ -140,6 +140,9 @@ export type BackendData = {
   placement_dir_uses_facing: boolean;
   placement_dir_options: PlacementOption[];
   placement_anchor?: string;
+  placement_hover?: string;
+  placement_preview_shape_tiles: number;
+  placement_preview_effect_tiles: number;
   can_start_placement_mode: boolean;
   can_manage_presets: boolean;
   preset_entries: PresetEntry[];
