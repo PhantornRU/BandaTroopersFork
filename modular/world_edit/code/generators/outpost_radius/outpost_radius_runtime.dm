@@ -259,7 +259,7 @@
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
 
-	if(length(anchor_turfs) > 1)
+	if(shape_id != WORLD_EDIT_SHAPE_POINT)
 		var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(anchor_turfs, config)
 		if(shape_plan.metadata["error"])
 			plan.metadata["error"] = "[shape_plan.metadata["error"]]"

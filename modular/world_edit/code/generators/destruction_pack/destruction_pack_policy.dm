@@ -52,12 +52,12 @@
 		list(
 			"label" = "Ruin",
 			"value" = "ruin",
-			"description" = "Low-severity structural and tile damage. Good for controlled ruin passes.",
+			"description" = "Low-severity structural and tile damage. Only the core influence band is affected.",
 		),
 		list(
 			"label" = "Collapse",
 			"value" = "collapse",
-			"description" = "Medium-severity structural and tile damage. Good for stronger ruin/collapse passes.",
+			"description" = "Stronger structural damage. The core band collapses and the mid band receives ruin damage.",
 		),
 	)
 
@@ -97,6 +97,112 @@
 		return FALSE
 	return TRUE
 
+/datum/world_edit_generator/destruction_pack/proc/build_damage_entries(list/influence_turfs, list/influence_lookup, damage_profile)
+	var/list/damage_entries = list()
+	var/resolved_profile = resolve_damage_profile(damage_profile)
+	if(resolved_profile == "none" || !length(influence_turfs))
+		return damage_entries
+
+	var/list/core_turfs = list()
+	var/list/mid_turfs = list()
+	for(var/turf/influence_turf as anything in influence_turfs)
+		var/list/influence_info = islist(influence_lookup) ? influence_lookup[influence_turf] : null
+		var/band = islist(influence_info) ? "[influence_info["band"]]" : ""
+		switch(resolved_profile)
+			if("ruin")
+				if(band == "core")
+					core_turfs += influence_turf
+			if("collapse")
+				if(band == "core")
+					core_turfs += influence_turf
+				else if(band == "mid")
+					mid_turfs += influence_turf
+
+	if(length(core_turfs))
+		damage_entries += list(list(
+			"kind" = "damage",
+			"area_turfs" = core_turfs.Copy(),
+			"damage_profile" = resolved_profile,
+			"severity" = get_damage_profile_severity(resolved_profile),
+			"band" = "core",
+		))
+	if(length(mid_turfs))
+		damage_entries += list(list(
+			"kind" = "damage",
+			"area_turfs" = mid_turfs.Copy(),
+			"damage_profile" = "ruin",
+			"severity" = get_damage_profile_severity("ruin"),
+			"band" = "mid",
+		))
+
+	return damage_entries
+
+/datum/world_edit_generator/destruction_pack/proc/build_blast_centers(list/seed_turfs, turf/center_turf, radius, plan_seed)
+	var/list/centers = list()
+	if(!islist(seed_turfs) || !length(seed_turfs) || radius < 1)
+		return centers
+
+	if(!istype(center_turf))
+		center_turf = build_shape_center_turf(seed_turfs)
+	if(!istype(center_turf))
+		return centers
+
+	centers += center_turf
+
+	var/requires_secondary_centers = FALSE
+	for(var/turf/seed_turf as anything in seed_turfs)
+		if(get_chebyshev_distance(center_turf, seed_turf) > radius)
+			requires_secondary_centers = TRUE
+			break
+	if(!requires_secondary_centers)
+		return centers
+
+	while(length(centers) < 6)
+		var/turf/best_candidate = null
+		var/best_score = -1
+		for(var/turf/candidate_turf as anything in seed_turfs)
+			if(!istype(candidate_turf))
+				continue
+
+			var/min_distance_to_existing = WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS
+			for(var/turf/existing_center as anything in centers)
+				min_distance_to_existing = min(min_distance_to_existing, get_chebyshev_distance(candidate_turf, existing_center))
+
+			if(min_distance_to_existing <= radius * 2)
+				continue
+
+			var/score = (min_distance_to_existing * 100) + get_deterministic_turf_score(plan_seed, candidate_turf, length(centers))
+			if(score <= best_score)
+				continue
+
+			best_score = score
+			best_candidate = candidate_turf
+
+		if(!istype(best_candidate))
+			break
+
+		centers += best_candidate
+
+	return centers
+
+/datum/world_edit_generator/destruction_pack/proc/build_blast_entries(list/seed_turfs, turf/center_turf, radius, blast_power, blast_falloff, plan_seed)
+	var/list/blast_entries = list()
+	var/list/blast_centers = build_blast_centers(seed_turfs, center_turf, radius, plan_seed)
+	var/index = 0
+	for(var/turf/blast_center as anything in blast_centers)
+		index++
+		var/effective_power = index == 1 ? blast_power : max(1, round(blast_power * 0.6))
+		var/effective_falloff = index == 1 ? blast_falloff : max(1, round(blast_falloff * 0.75))
+		blast_entries += list(list(
+			"kind" = "blast",
+			"center_turf" = blast_center,
+			"power" = effective_power,
+			"falloff" = effective_falloff,
+			"blast_index" = index,
+		))
+
+	return blast_entries
+
 /datum/world_edit_generator/destruction_pack/proc/apply_structural_damage_profile(list/area_turfs, severity, datum/cause_data/cause_data)
 	var/damaged_turf_count = 0
 	if(!islist(area_turfs) || !length(area_turfs) || severity <= 0)
@@ -120,37 +226,48 @@
 
 	return damaged_turf_count
 
-/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/area_turfs, density)
+/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/influence_turfs, list/influence_lookup, density, plan_seed)
 	var/list/fire_entries = list()
-	if(!length(area_turfs) || density <= 0)
+	if(!length(influence_turfs) || density <= 0)
 		return fire_entries
 
 	var/density_ratio = density / 100
-	var/target_count = round(length(area_turfs) * density_ratio)
+	var/target_count = round(length(influence_turfs) * density_ratio)
 	target_count = clamp(target_count, 0, get_persistent_fire_cap())
 	if(target_count <= 0)
 		return fire_entries
 
-	var/list/pool = area_turfs.Copy()
-	while(target_count > 0 && length(pool))
-		var/turf/target_turf = pick_n_take(pool)
-		if(!can_place_persistent_fire_on_turf(target_turf))
-			continue
+	var/list/pool = list()
+	for(var/turf/target_turf as anything in influence_turfs)
+		if(can_place_persistent_fire_on_turf(target_turf))
+			pool += target_turf
 
+	while(target_count > 0 && length(pool))
+		var/turf/selected_turf = pick_weighted_turf(pool, influence_lookup, plan_seed, 1000 + length(fire_entries))
+		if(!istype(selected_turf))
+			break
+
+		pool -= selected_turf
 		fire_entries += list(list(
 			"kind" = "fire",
-			"turf" = target_turf,
+			"turf" = selected_turf,
 		))
 		target_count--
 
 	return fire_entries
 
-/datum/world_edit_generator/destruction_pack/proc/build_target_movement_entry(atom/movable/target, list/area_turfs, list/area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
+/datum/world_edit_generator/destruction_pack/proc/build_target_movement_entry(atom/movable/target, list/area_turfs, list/influence_lookup, shuffle_enabled, scatter_enabled, scatter_steps, plan_seed, salt = 0)
 	if(!target || QDELETED(target))
 		return null
 
 	var/turf/source_turf = get_turf(target)
 	if(!source_turf)
+		return null
+
+	var/source_weight = get_influence_weight_for_turf(influence_lookup, source_turf)
+	if(source_weight <= 0)
+		return null
+	if(get_deterministic_turf_score(plan_seed, source_turf, salt) > source_weight)
 		return null
 
 	var/list/path_turfs = list()
@@ -165,7 +282,7 @@
 				continue
 			shuffle_candidates += candidate_turf
 
-		var/turf/shuffle_turf = length(shuffle_candidates) ? pick(shuffle_candidates) : null
+		var/turf/shuffle_turf = pick_weighted_turf(shuffle_candidates, influence_lookup, plan_seed, salt + 100)
 		if(shuffle_turf && shuffle_turf != current_turf)
 			path_turfs += shuffle_turf
 			current_turf = shuffle_turf
@@ -175,13 +292,13 @@
 			var/list/step_candidates = list()
 			for(var/cardinal_dir in GLOB.cardinals)
 				var/turf/next_turf = get_step(current_turf, cardinal_dir)
-				if(!next_turf || !area_lookup[next_turf] || next_turf == current_turf)
+				if(!next_turf || !influence_lookup[next_turf] || next_turf == current_turf)
 					continue
 				if(!can_relocate_target_to_turf(target, next_turf))
 					continue
 				step_candidates += next_turf
 
-			var/turf/next_turf = length(step_candidates) ? pick(step_candidates) : null
+			var/turf/next_turf = pick_weighted_turf(step_candidates, influence_lookup, plan_seed, salt + (200 * i))
 			if(!next_turf)
 				continue
 

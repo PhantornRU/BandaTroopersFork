@@ -47,10 +47,10 @@
 		),
 		list(
 			"id" = "radius",
-			"label" = "Radius",
+			"label" = "Perimeter Offset",
 			"kind" = "number",
 			"group" = "Layout",
-			"description" = "Square perimeter radius around the current turf.",
+			"description" = "Offset thickness around the resolved footprint before the perimeter shell is built.",
 			"validate_hint" = "Allowed range: 1..10",
 			"value" = text2num("[current_params["radius"]]") || 4,
 			"min" = 1,
@@ -209,7 +209,7 @@
 		layout_id = get_default_outpost_layout_id()
 	var/list/family_profile = get_outpost_family_profile(family_id)
 	var/list/layout_profile = get_outpost_layout_profile(layout_id)
-	return "Применить профиль '[family_profile["label"] || "Outpost"] / [layout_profile["label"] || "Crossroads"]' с радиусом [params["radius"]]?"
+	return "Применить профиль '[family_profile["label"] || "Outpost"] / [layout_profile["label"] || "Crossroads"]' с отступом периметра [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
-	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] radius=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"
+	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"

@@ -7,10 +7,10 @@
 	return list(
 		list(
 			"id" = "radius",
-			"label" = "Radius",
+			"label" = "Impact Radius",
 			"kind" = "number",
 			"group" = "Area",
-			"description" = "Square radius around the current turf.",
+			"description" = "Influence radius around each resolved shape seed. Effects weaken toward the radius edge.",
 			"validate_hint" = "Allowed range: 1..10",
 			"value" = text2num("[current_params["radius"]]") || 3,
 			"min" = 1,
@@ -181,8 +181,8 @@
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/damage_profile = get_damage_profile_label(params["damage_profile"])
 	var/undo_policy = (blast_enabled || resolve_damage_profile(params["damage_profile"]) != "none") ? WORLD_EDIT_UNDO_NONE : WORLD_EDIT_UNDO_PARTIAL
-	return "Применить разрушение зоны? Радиус [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_enabled ? "да" : "нет"], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
+	return "Применить разрушение зоны? Радиус воздействия [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_enabled ? "да" : "нет"], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
 	var/fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
-	return "radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	return "impact_radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"

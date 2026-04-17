@@ -1,6 +1,23 @@
 /datum/world_edit_manager/proc/build_safe_placement_anchor_turfs(shape_id, turf/start_turf, turf/end_turf)
 	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, start_turf, end_turf, current_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
 
+/datum/world_edit_manager/proc/get_safe_placement_shape_support_error(shape_id, list/anchor_turfs, turf/start_turf, turf/end_turf, list/shape_metadata = null)
+	if(!current_generator || !length("[shape_id]"))
+		return null
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		return null
+
+	var/list/effective_shape_metadata = islist(shape_metadata) ? shape_metadata.Copy() : list()
+	return current_generator.get_shape_support_error("[shape_id]", anchor_turfs, current_params, list(
+		"mode" = get_effective_placement_mode() || "single",
+		"shape" = "[shape_id]",
+		"shape_metadata" = effective_shape_metadata,
+		"anchor_turfs" = anchor_turfs,
+		"start_turf" = start_turf,
+		"end_turf" = end_turf,
+		"direction" = get_effective_placement_dir(),
+	))
+
 /datum/world_edit_manager/proc/get_placement_collector_absolute_turfs(turf/origin_turf)
 	var/list/turfs = list()
 	if(!istype(origin_turf))
@@ -65,6 +82,14 @@
 	var/list/collector_shape_metadata = shape_metadata.Copy()
 	collector_shape_metadata["collector_point_count"] = point_count
 	collector_shape_metadata["collector_origin"] = get_placement_collector_origin_text() || ""
+	var/shape_support_error = get_safe_placement_shape_support_error(shape_id, anchor_turfs, origin_turf, preview_turf, collector_shape_metadata)
+	if(length("[shape_support_error]"))
+		last_preview_success = FALSE
+		last_preview_message = "[shape_support_error]"
+		last_preview_meta = collector_shape_metadata.Copy()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return FALSE
 	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
 		"mode" = get_effective_placement_mode() || "single",
 		"shape" = shape_id,
@@ -152,4 +177,3 @@
 		placement_click_active = click_intercept_owned ? TRUE : FALSE
 		to_chat(user, SPAN_NOTICE("Сбор остаётся активным и готов к следующему контуру."))
 	return TRUE
-

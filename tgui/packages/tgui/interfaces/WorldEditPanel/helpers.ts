@@ -103,7 +103,24 @@ export const getTranslatedUndoStatus = (value?: string) => {
   return UNDO_STATUS_LABELS[key] || getDisplayText(value, EMPTY_LABEL);
 };
 
+const getTranslatedRadiusFieldLabel = (field: UiField) => {
+  const backendLabel = `${field.label || ''}`.trim().toLowerCase();
+
+  switch (backendLabel) {
+    case 'perimeter offset':
+      return 'Отступ периметра';
+    case 'impact radius':
+      return 'Радиус воздействия';
+    default:
+      return FIELD_LABELS[field.id] || field.label;
+  }
+};
+
 export const getTranslatedFieldLabel = (field: UiField) => {
+  if (field.id === 'radius') {
+    return getTranslatedRadiusFieldLabel(field);
+  }
+
   switch (field.id) {
     case 'shape_radius':
       return 'Радиус формы';

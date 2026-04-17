@@ -1,3 +1,4 @@
+import { PLACEMENT_SHAPE_ORDER } from './constants';
 import type { BackendData, HistoryEntry, UiField } from './types';
 import {
   buildWorldEditViewModel,
@@ -257,6 +258,59 @@ describe('WorldEditPanel view model', () => {
     expect(
       model.sharedFields.map((field) => getTranslatedFieldLabel(field)),
     ).toEqual(['Радиус формы', 'Горизонтальный радиус', 'Вертикальный радиус']);
+  });
+
+  it('keeps tool-specific radius labels distinct in the shared controller', () => {
+    const { getTranslatedFieldLabel } = require('./helpers');
+
+    expect(
+      getTranslatedFieldLabel(
+        makeField({
+          id: 'radius',
+          kind: 'number',
+          label: 'Perimeter Offset',
+          value: 2,
+        }),
+      ),
+    ).toBe('Отступ периметра');
+
+    expect(
+      getTranslatedFieldLabel(
+        makeField({
+          id: 'radius',
+          kind: 'number',
+          label: 'Impact Radius',
+          value: 3,
+        }),
+      ),
+    ).toBe('Радиус воздействия');
+  });
+
+  it('exposes the full shared shape catalog for outpost and destruction tools', () => {
+    const shapeOptions = PLACEMENT_SHAPE_ORDER.map((shapeId) => ({
+      value: shapeId,
+      label: shapeId,
+    }));
+
+    for (const generatorId of ['outpost_radius', 'destruction_pack']) {
+      const shared = getSharedModeViewModel(
+        makeData({
+          current_generator_id: generatorId,
+          placement_shape_supported: true,
+          placement_shape: 'sector',
+          placement_shape_options: shapeOptions,
+          placement_supports_direction: true,
+        }),
+        'editor',
+      );
+
+      expect(shared.showShapeSection).toBe(true);
+      expect(shared.shapeOptions.map((option) => `${option.value}`)).toEqual(
+        PLACEMENT_SHAPE_ORDER,
+      );
+      expect(shared.showDirectionSection).toBe(true);
+      expect(shared.selectedShape).toBe('sector');
+    }
   });
 
   it('keeps direction chrome visible but disabled-ready for unsupported tools', () => {

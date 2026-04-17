@@ -1,7 +1,56 @@
 /datum/world_edit_generator/destruction_pack/build_plan(list/params, turf/center_turf_override = null, list/placement_context = null)
+	var/list/effective_context = islist(placement_context) ? placement_context.Copy() : list()
+	var/list/anchor_turfs = effective_context["anchor_turfs"]
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		var/datum/world_edit_plan/error_plan = new
+		var/turf/anchor_turf = center_turf_override || get_turf(manager?.holder?.mob)
+		if(!istype(anchor_turf))
+			error_plan.metadata["error"] = "Unable to resolve the anchor turf."
+			return error_plan
+
+		var/shape_id = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+		var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(
+			shape_id,
+			anchor_turf,
+			null,
+			params,
+			manager?.supports_current_placement_direction() ? manager?.get_effective_placement_dir() : NORTH,
+		)
+		if(shape_result["error"])
+			error_plan.metadata["error"] = "[shape_result["error"]]"
+			return error_plan
+
+		anchor_turfs = shape_result["turfs"] || list(anchor_turf)
+		var/shape_support_error = get_shape_support_error(shape_id, anchor_turfs, params, list(
+			"mode" = manager?.get_effective_placement_mode() || "single",
+			"shape" = shape_id,
+			"shape_metadata" = shape_result["metadata"] || list(),
+			"anchor_turfs" = anchor_turfs,
+			"start_turf" = anchor_turf,
+			"end_turf" = anchor_turf,
+			"direction" = manager?.get_effective_placement_dir() || NORTH,
+		))
+		if(length("[shape_support_error]"))
+			error_plan.metadata["error"] = "[shape_support_error]"
+			return error_plan
+
+		effective_context = list(
+			"mode" = manager?.get_effective_placement_mode() || "single",
+			"shape" = shape_id,
+			"shape_metadata" = shape_result["metadata"] || list(),
+			"anchor_turfs" = anchor_turfs,
+			"start_turf" = anchor_turf,
+			"end_turf" = anchor_turf,
+			"direction" = manager?.get_effective_placement_dir() || NORTH,
+		)
+
+	return build_placement_plan(manager?.holder?.mob, params, effective_context)
+
+/datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
-	var/turf/center_turf = center_turf_override || get_turf(manager?.holder?.mob)
-	if(!center_turf)
+	var/list/anchor_turfs = placement_context["anchor_turfs"]
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		plan.metadata["error"] = "Unable to resolve the anchor turf."
 		return plan
 
 	var/radius = text2num("[params["radius"]]") || 3
@@ -19,16 +68,24 @@
 	if(isnull(damage_profile))
 		plan.metadata["error"] = "Invalid damage profile selected."
 		return plan
-	var/damage_severity = get_damage_profile_severity(damage_profile)
+
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
 	var/has_non_move_mode = persistent_fire_enabled || has_high_risk_mode
-	var/list/area_turfs = collect_area_turfs(center_turf, radius)
-	if(!length(area_turfs))
-		plan.metadata["error"] = "No valid area turfs were found around the current turf."
+
+	var/list/influence_map = build_influence_map(anchor_turfs, radius)
+	var/list/influence_turfs = influence_map["turfs"] || list()
+	var/list/influence_lookup = influence_map["lookup"] || list()
+	var/list/seed_turfs = influence_map["seed_turfs"] || list()
+	if(!length(influence_turfs))
+		plan.metadata["error"] = "No valid area turfs were found around the selected footprint."
 		return plan
 
-	var/list/targets = collect_targets(area_turfs, affect_anchored)
+	var/turf/center_turf = influence_map["center_turf"] || placement_context["end_turf"] || placement_context["start_turf"] || get_turf(user)
+	if(!istype(center_turf))
+		center_turf = seed_turfs[1]
+
+	var/list/targets = collect_targets(influence_turfs, affect_anchored)
 	if(has_move_mode && length(targets) > max_atoms && !has_non_move_mode)
 		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
 		return plan
@@ -37,42 +94,38 @@
 		plan.metadata["error"] = "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
 		return plan
 
-	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(area_turfs, persistent_fire_density) : list()
-	var/list/blast_entries = blast_enabled ? list(list(
-		"kind" = "blast",
-		"center_turf" = center_turf,
-		"power" = blast_power,
-		"falloff" = blast_falloff,
-	)) : list()
-	var/list/damage_entries = damage_profile != "none" ? list(list(
-		"kind" = "damage",
-		"area_turfs" = area_turfs.Copy(),
-		"damage_profile" = damage_profile,
-		"severity" = damage_severity,
-	)) : list()
+	var/plan_seed = build_plan_seed(params, seed_turfs)
+	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(influence_turfs, influence_lookup, persistent_fire_density, plan_seed) : list()
+	var/list/blast_entries = blast_enabled ? build_blast_entries(seed_turfs, center_turf, radius, blast_power, blast_falloff, plan_seed) : list()
+	var/list/damage_entries = build_damage_entries(influence_turfs, influence_lookup, damage_profile)
 
 	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode && !has_high_risk_mode)
 		plan.metadata["error"] = "No valid fire tiles matched the selected area."
 		return plan
 
-	var/placement_mode = "single"
-	var/placement_shape = WORLD_EDIT_SHAPE_POINT
-	var/anchor_count = 1
-	if(islist(placement_context))
-		if(length("[placement_context["mode"]]"))
-			placement_mode = "[placement_context["mode"]]"
-		if(length("[placement_context["shape"]]"))
-			placement_shape = "[placement_context["shape"]]"
-		anchor_count = max(length(placement_context["anchor_turfs"]) || 0, 1)
+	var/placement_mode = "[placement_context["mode"] || "single"]"
+	var/placement_shape = "[placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	var/placement_dir = placement_context["direction"] || manager?.get_effective_placement_dir() || NORTH
+	var/list/band_counts = influence_map["band_counts"] || list()
 
-	plan.affected_turfs = area_turfs.Copy()
+	plan.affected_turfs = influence_turfs.Copy()
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["radius"] = radius
-	plan.metadata["area_tiles"] = length(area_turfs)
+	plan.metadata["area_tiles"] = length(influence_turfs)
+	plan.metadata["influence_tile_count"] = length(influence_turfs)
 	plan.metadata["placement_mode"] = placement_mode
 	plan.metadata["placement_shape"] = placement_shape
-	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(plan.metadata["placement_shape"])
-	plan.metadata["anchor_count"] = anchor_count
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(placement_shape)
+	plan.metadata["placement_dir"] = placement_dir
+	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
+	plan.metadata["anchor_count"] = length(seed_turfs)
+	plan.metadata["seed_count"] = length(seed_turfs)
+	plan.metadata["shape_seed_count"] = influence_map["shape_seed_count"] || length(seed_turfs)
+	plan.metadata["shape_footprint_count"] = influence_map["shape_footprint_count"] || length(seed_turfs)
+	plan.metadata["falloff_model"] = "nearest_seed_nonstacking"
+	plan.metadata["core_tile_count"] = band_counts["core"] || 0
+	plan.metadata["mid_tile_count"] = band_counts["mid"] || 0
+	plan.metadata["outer_tile_count"] = band_counts["outer"] || 0
 	plan.metadata["target_count"] = length(targets)
 	plan.metadata["shuffle"] = shuffle_enabled
 	plan.metadata["scatter"] = scatter_enabled
@@ -82,11 +135,11 @@
 	plan.metadata["blast"] = blast_enabled
 	plan.metadata["blast_power"] = blast_power
 	plan.metadata["blast_falloff"] = blast_falloff
+	plan.metadata["blast_center_count"] = length(blast_entries)
 	plan.metadata["damage_profile"] = damage_profile
 	plan.metadata["damage_profile_label"] = get_damage_profile_label(damage_profile)
-	plan.metadata["damage_severity"] = damage_severity
-	plan.metadata["seed"] = rand(1, 1000000)
-	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75)) || has_high_risk_mode
+	plan.metadata["seed"] = plan_seed
+	plan.metadata["heavy_operation"] = (has_move_mode && (length(targets) >= round(max_atoms * 0.75))) || (radius >= 4) || (persistent_fire_enabled && length(fire_entries) >= round(get_persistent_fire_cap() * 0.75)) || has_high_risk_mode || length(blast_entries) > 1
 	plan.metadata["undo_policy"] = has_high_risk_mode ? WORLD_EDIT_UNDO_NONE : ((has_move_mode || persistent_fire_enabled) ? WORLD_EDIT_UNDO_PARTIAL : WORLD_EDIT_UNDO_NONE)
 	plan.metadata["move_requested"] = has_move_mode
 	plan.metadata["move_skipped"] = FALSE
@@ -103,9 +156,10 @@
 			plan.metadata["move_skipped"] = TRUE
 			plan.metadata["move_skip_reason"] = "no_targets"
 
-		var/list/area_lookup = build_area_lookup(area_turfs)
+		var/target_index = 0
 		for(var/atom/movable/target as anything in targets)
-			var/list/move_entry = build_target_movement_entry(target, area_turfs, area_lookup, shuffle_enabled, scatter_enabled, scatter_steps)
+			target_index++
+			var/list/move_entry = build_target_movement_entry(target, influence_turfs, influence_lookup, shuffle_enabled, scatter_enabled, scatter_steps, plan_seed, target_index)
 			if(move_entry)
 				plan.placements += list(move_entry)
 
@@ -129,7 +183,7 @@
 		if(deletion["kind"] == "blast")
 			blast_count++
 		if(deletion["kind"] == "damage")
-			damage_count++
+			damage_count += length(deletion["area_turfs"]) || 0
 
 	plan.metadata["moved_count"] = moved_count
 	plan.metadata["fire_count"] = fire_count
@@ -142,11 +196,17 @@
 		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
 	return plan
 
-/datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
-	var/turf/center_turf = placement_context["end_turf"] || placement_context["start_turf"] || get_turf(user)
-	if(!istype(center_turf))
-		center_turf = get_turf(manager?.holder?.mob)
-	return build_plan(params, center_turf, placement_context)
+/datum/world_edit_generator/destruction_pack/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
+	var/radius = text2num("[params["radius"]]") || 0
+	if(radius < 1)
+		return "radius must stay in the range 1..10."
+
+	var/list/influence_map = build_influence_map(anchor_turfs, radius)
+	if(!length(influence_map["seed_turfs"]))
+		return "Unable to resolve the destruction footprint."
+	if(!length(influence_map["turfs"]))
+		return "No valid area turfs were found around the selected footprint."
+	return null
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
 	var/turf/center_turf = get_turf(user)
@@ -172,16 +232,19 @@
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 	if(isnull(damage_profile))
 		return "Invalid damage profile selected."
+
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_non_move_mode = persistent_fire_enabled || blast_enabled || damage_profile != "none"
 	if(!has_move_mode && !has_non_move_mode)
 		return "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
 	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
 		return "Anchored targets are disabled in the strict MVP safety pass."
+
 	if(persistent_fire_enabled)
 		var/persistent_fire_density = coerce_persistent_fire_density_percent(params["persistent_fire_density"])
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
 			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
+
 	if(blast_enabled)
 		var/blast_power = text2num("[params["blast_power"]]")
 		if(!isnum(blast_power) || blast_power < get_blast_power_min() || blast_power > get_blast_power_max())
@@ -190,12 +253,10 @@
 		if(!isnum(blast_falloff) || blast_falloff < get_blast_falloff_min() || blast_falloff > get_blast_falloff_max())
 			return "blast_falloff must stay in the range [get_blast_falloff_min()]..[get_blast_falloff_max()]."
 
-	var/list/area_turfs = collect_area_turfs(center_turf, radius)
-	if(!length(area_turfs))
-		return "No valid area turfs were found around the current turf."
-
-	var/list/targets = collect_targets(area_turfs, FALSE)
-	if(has_move_mode && length(targets) > max_atoms && !has_non_move_mode)
-		return "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
+	var/datum/world_edit_plan/plan = build_plan(params, center_turf)
+	if(plan.metadata["error"])
+		return "[plan.metadata["error"]]"
+	if(!length(plan.placements) && !length(plan.deletions))
+		return "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
 
 	return null

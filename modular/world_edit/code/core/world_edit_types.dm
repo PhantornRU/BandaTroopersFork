@@ -123,5 +123,8 @@
 /datum/world_edit_generator/proc/get_default_placement_direction()
 	return NORTH
 
+/datum/world_edit_generator/proc/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
+	return null
+
 /datum/world_edit_generator/proc/build_placement_plan(mob/user, list/params, list/placement_context)
 	return null

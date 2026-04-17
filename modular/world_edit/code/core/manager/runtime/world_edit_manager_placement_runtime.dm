@@ -181,6 +181,15 @@
 		to_chat(user, SPAN_WARNING(last_preview_message))
 		return TRUE
 
+	var/shape_support_error = get_safe_placement_shape_support_error(shape_id, anchor_turfs, start_turf, end_turf, shape_result["metadata"])
+	if(length("[shape_support_error]"))
+		last_preview_success = FALSE
+		last_preview_message = "[shape_support_error]"
+		last_preview_meta = shape_result["metadata"] || list()
+		invalidate_preview_state()
+		to_chat(user, SPAN_WARNING(last_preview_message))
+		return TRUE
+
 	clear_preview_plan_state()
 	var/datum/world_edit_plan/plan = current_generator.build_placement_plan(user, current_params, list(
 		"mode" = mode,
