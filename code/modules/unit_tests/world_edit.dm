@@ -260,6 +260,106 @@
 	TEST_ASSERT(perimeter_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(bottom_right, SOUTH)], "Bottom-right corner lost its south-facing slot.")
 	TEST_ASSERT(perimeter_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(bottom_right, EAST)], "Bottom-right corner lost its east-facing slot.")
 
+/datum/unit_test/world_edit_corner_slots/radius_policy/shared_helper_handles_windows_and_reachability/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit radius-policy helper test center turf was not resolved.")
+	var/turf/window_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	var/turf/far_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(window_turf, "World Edit radius-policy helper test window turf was not resolved.")
+	TEST_ASSERT_NOTNULL(far_turf, "World Edit radius-policy helper test far turf was not resolved.")
+
+	var/list/default_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(list())
+	TEST_ASSERT(default_policy["only_clear_tiles"], "World Edit radius-policy helper should default to only-clear filtering.")
+	TEST_ASSERT(!default_policy["only_reachable_tiles"], "World Edit radius-policy helper should keep reachable filtering disabled by default.")
+	TEST_ASSERT(default_policy["treat_windows_as_blockers"], "World Edit radius-policy helper should treat windows as blockers by default.")
+
+	var/obj/structure/window/test_window = allocate(/obj/structure/window, window_turf)
+	TEST_ASSERT_NOTNULL(test_window, "World Edit radius-policy helper test should create a window blocker.")
+
+	var/list/reachable_blocked = GLOB.world_edit_helpers.filter_radius_candidate_turfs(
+		list(center_turf),
+		list(center_turf, window_turf, far_turf),
+		list(center_turf, window_turf, far_turf),
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = TRUE,
+			"treat_windows_as_blockers" = TRUE,
+		),
+		list(center_turf),
+	)
+	TEST_ASSERT(center_turf in reachable_blocked, "World Edit radius-policy helper should keep the selected anchor turf pinned.")
+	TEST_ASSERT(!(window_turf in reachable_blocked), "World Edit radius-policy helper should exclude a window tile when windows count as blockers.")
+	TEST_ASSERT(!(far_turf in reachable_blocked), "World Edit radius-policy helper should block tiles behind the window when reachable filtering is enabled.")
+
+	var/list/reachable_unblocked = GLOB.world_edit_helpers.filter_radius_candidate_turfs(
+		list(center_turf),
+		list(center_turf, window_turf, far_turf),
+		list(center_turf, window_turf, far_turf),
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = TRUE,
+			"treat_windows_as_blockers" = FALSE,
+		),
+		list(center_turf),
+	)
+	TEST_ASSERT(window_turf in reachable_unblocked, "World Edit radius-policy helper should allow a window tile when windows are not blockers.")
+	TEST_ASSERT(far_turf in reachable_unblocked, "World Edit radius-policy helper should restore tiles behind the window when window blocking is disabled.")
+
+	qdel(test_window)
+
+/datum/unit_test/world_edit_corner_slots/outpost_perimeter/radius_policy_reachable_filters_blocked_shell_tiles/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost radius-policy test center turf was not resolved.")
+
+	var/list/layout_profile = list(
+		"opening_dirs" = list(),
+		"opening_width" = 1,
+	)
+	var/list/barricade_cycle = list(/datum/human_ai_defense/barricade/metal)
+	var/list/barriers = list()
+	for(var/offset_y in -2 to 2)
+		var/turf/barrier_turf = locate(center_turf.x + 1, center_turf.y + offset_y, center_turf.z)
+		TEST_ASSERT_NOTNULL(barrier_turf, "World Edit outpost radius-policy barrier turf was not resolved.")
+		barriers += allocate(/obj/structure/barricade/metal, barrier_turf)
+
+	var/list/traversal_turfs = generator.build_point_radius_area_turfs(center_turf, 2)
+	var/list/no_reach = generator.collect_perimeter_placements(
+		center_turf,
+		2,
+		layout_profile,
+		barricade_cycle,
+		"uniform",
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = FALSE,
+			"treat_windows_as_blockers" = TRUE,
+		),
+		traversal_turfs,
+	)
+	var/list/with_reach = generator.collect_perimeter_placements(
+		center_turf,
+		2,
+		layout_profile,
+		barricade_cycle,
+		"uniform",
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = TRUE,
+			"treat_windows_as_blockers" = TRUE,
+		),
+		traversal_turfs,
+	)
+	var/turf/east_shell_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/east_shell_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(east_shell_turf, EAST)
+	var/list/no_reach_lookup = build_slot_lookup(no_reach["placements"])
+	var/list/with_reach_lookup = build_slot_lookup(with_reach["placements"])
+	TEST_ASSERT(no_reach_lookup[east_shell_key], "World Edit outpost perimeter without reachable filtering should keep the east shell slot behind the blocker line.")
+	TEST_ASSERT(!with_reach_lookup[east_shell_key], "World Edit outpost perimeter reachable filtering should drop shell slots behind a full blocker line.")
+
+	for(var/obj/barrier as anything in barriers)
+		qdel(barrier)
+
 /datum/unit_test/world_edit_corner_slots/shape_shell/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/anchor_turf = get_world_edit_test_center_turf()
@@ -1498,6 +1598,41 @@
 	TEST_ASSERT_EQUAL(text2num("[influence_info["distance"]]"), 2, "World Edit destruction influence-map should keep the nearest-seed distance without stacking.")
 	TEST_ASSERT_EQUAL(round((text2num("[influence_info["normalized_weight"]]") || 0) * 100), 50, "World Edit destruction influence-map should preserve the nearest-seed normalized weight.")
 	TEST_ASSERT(influence_info["seed_turf"] == seed_a || influence_info["seed_turf"] == seed_b, "World Edit destruction influence-map should attribute midpoint turf to one nearest seed.")
+
+/datum/unit_test/world_edit_corner_slots/destruction_radius_policy_blocks_tiles_behind_windows/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction radius-policy test center turf was not resolved.")
+	var/turf/window_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	var/turf/far_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(window_turf, "World Edit destruction radius-policy test window turf was not resolved.")
+	TEST_ASSERT_NOTNULL(far_turf, "World Edit destruction radius-policy test far turf was not resolved.")
+
+	var/obj/structure/window/test_window = allocate(/obj/structure/window, window_turf)
+	TEST_ASSERT_NOTNULL(test_window, "World Edit destruction radius-policy test should create a window blocker.")
+
+	var/list/blocked_map = generator.build_influence_map(
+		list(center_turf),
+		2,
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = TRUE,
+			"treat_windows_as_blockers" = TRUE,
+		),
+	)
+	var/list/unblocked_map = generator.build_influence_map(
+		list(center_turf),
+		2,
+		list(
+			"only_clear_tiles" = TRUE,
+			"only_reachable_tiles" = TRUE,
+			"treat_windows_as_blockers" = FALSE,
+		),
+	)
+	TEST_ASSERT(!(far_turf in (blocked_map["lookup"] || list())), "World Edit destruction reachable radius should stop behind window blockers.")
+	TEST_ASSERT(far_turf in (unblocked_map["lookup"] || list()), "World Edit destruction reachable radius should continue through windows when window blocking is disabled.")
+
+	qdel(test_window)
 
 /datum/unit_test/world_edit_corner_slots/destruction_damage_entries_follow_core_mid_outer_bands/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

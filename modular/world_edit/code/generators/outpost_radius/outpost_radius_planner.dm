@@ -106,6 +106,77 @@
 
 	return bounds
 
+/datum/world_edit_generator/outpost_radius/proc/build_point_radius_area_turfs(turf/center_turf, radius)
+	var/list/area_turfs = list()
+	if(!istype(center_turf))
+		return area_turfs
+
+	radius = max(round(radius), 1)
+	for(var/turf/target_turf in range(radius, center_turf))
+		if(!istype(target_turf) || target_turf.z != center_turf.z)
+			continue
+		if(max(abs(target_turf.x - center_turf.x), abs(target_turf.y - center_turf.y)) > radius)
+			continue
+		area_turfs += target_turf
+
+	return area_turfs
+
+/datum/world_edit_generator/outpost_radius/proc/build_shape_radius_area_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds)
+	var/list/area_turfs = list()
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return area_turfs
+
+	radius = max(round(radius), 1)
+	var/z_level = shape_bounds["z"]
+	if(isnull(z_level))
+		return area_turfs
+
+	for(var/y in (shape_bounds["min_y"] - radius) to (shape_bounds["max_y"] + radius))
+		for(var/x in (shape_bounds["min_x"] - radius) to (shape_bounds["max_x"] + radius))
+			var/turf/target_turf = locate(x, y, z_level)
+			if(!istype(target_turf))
+				continue
+			if(footprint_lookup[target_turf])
+				area_turfs += target_turf
+				continue
+			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs) > radius)
+				continue
+			area_turfs += target_turf
+
+	return area_turfs
+
+/datum/world_edit_generator/outpost_radius/proc/filter_outpost_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null)
+	return GLOB.world_edit_helpers.filter_radius_candidate_turfs(
+		start_turfs,
+		candidate_turfs,
+		traversal_turfs,
+		radius_policy,
+		pinned_turfs,
+	)
+
+/datum/world_edit_generator/outpost_radius/proc/filter_outpost_slots_by_radius_policy(list/start_turfs, list/candidate_slots, list/traversal_turfs, list/radius_policy)
+	if(!islist(candidate_slots) || !length(candidate_slots))
+		return list()
+
+	var/list/candidate_turfs = list()
+	var/list/candidate_turf_lookup = list()
+	for(var/list/candidate_slot as anything in candidate_slots)
+		var/turf/target_turf = candidate_slot["turf"]
+		if(!istype(target_turf) || candidate_turf_lookup[target_turf])
+			continue
+		candidate_turf_lookup[target_turf] = TRUE
+		candidate_turfs += target_turf
+
+	var/list/allowed_turfs = filter_outpost_candidate_turfs(start_turfs, candidate_turfs, traversal_turfs, radius_policy, start_turfs)
+	var/list/allowed_lookup = build_turf_lookup(allowed_turfs)
+	var/list/filtered_slots = list()
+	for(var/list/candidate_slot as anything in candidate_slots)
+		var/turf/target_turf = candidate_slot["turf"]
+		if(allowed_lookup[target_turf])
+			filtered_slots += list(candidate_slot)
+
+	return filtered_slots
+
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_class(shape_id)
 	switch("[shape_id]")
 		if(
@@ -375,13 +446,33 @@
 	var/list/footprint_lookup = build_turf_lookup(footprint_turfs)
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
 	var/radius = config["radius"]
+	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/place_sentries = config["place_sentries"]
+	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, radius, footprint_lookup, shape_bounds)
+	candidate_slots = filter_outpost_slots_by_radius_policy(footprint_turfs, candidate_slots, traversal_turfs, radius_policy)
+	if(!length(candidate_slots))
+		plan.metadata["error"] = "Selected footprint cannot build a perimeter shell with the current radius blocker policy."
+		return plan
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
 	var/list/opening_slots = select_shape_direction_slots(candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds)
 	var/list/guard_slots = place_sentries ? select_shape_direction_slots(candidate_slots, guard_dirs, 1, shape_bounds) : list()
+	var/list/guard_sentry_candidates = list()
+	var/list/raw_sentry_candidate_turfs = list()
+	var/list/raw_sentry_candidate_lookup = list()
+	if(place_sentries)
+		for(var/list/guard_slot as anything in guard_slots)
+			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot)
+			guard_sentry_candidates += list(sentry_candidates)
+			for(var/list/sentry_candidate as anything in sentry_candidates)
+				var/turf/sentry_turf = sentry_candidate["turf"]
+				if(!istype(sentry_turf) || raw_sentry_candidate_lookup[sentry_turf])
+					continue
+				raw_sentry_candidate_lookup[sentry_turf] = TRUE
+				raw_sentry_candidate_turfs += sentry_turf
+	var/list/allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(footprint_turfs, raw_sentry_candidate_turfs, traversal_turfs, radius_policy, footprint_turfs))
 	var/list/opening_lookup = list()
 	var/list/opening_seen_lookup = list()
 	for(var/list/opening_slot as anything in opening_slots)
@@ -447,12 +538,13 @@
 		))
 
 	if(place_sentries)
+		var/guard_index = 1
 		for(var/list/guard_slot as anything in guard_slots)
-			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot)
+			var/list/sentry_candidates = guard_sentry_candidates[guard_index++]
 			var/placed_sentry = FALSE
 			for(var/list/sentry_candidate as anything in sentry_candidates)
 				var/turf/sentry_turf = sentry_candidate["turf"]
-				if(!istype(sentry_turf) || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
+				if(!istype(sentry_turf) || !allowed_sentry_lookup[sentry_turf] || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
 					continue
 				if(!can_place_sentry_on_turf(sentry_turf))
 					continue
@@ -491,6 +583,9 @@
 
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["radius"] = radius
+	plan.metadata["radius_only_clear_tiles"] = radius_policy["only_clear_tiles"]
+	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
+	plan.metadata["radius_windows_blockers"] = radius_policy["treat_windows_as_blockers"]
 	plan.metadata["shape_mode"] = "footprint_offset"
 	plan.metadata["shape_footprint_count"] = length(footprint_turfs)
 	plan.metadata["base_shape_turfs"] = footprint_turfs.Copy()
@@ -565,6 +660,7 @@
 	effective_layout_profile["opening_width"] = opening_width
 
 	var/place_sentries = GLOB.world_edit_helpers.parse_bool(params["place_sentries"])
+	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
 	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, family_profile["default_barricade_path"])
 	if(!barricade_path)
 		config["error"] = "Invalid barricade type selected."
@@ -587,6 +683,7 @@
 	config["opening_width"] = opening_width
 	config["guard_mode"] = guard_mode
 	config["radius"] = radius
+	config["radius_policy"] = radius_policy
 	config["place_sentries"] = place_sentries
 	config["barricade_path"] = barricade_path
 	config["barricade_cycle"] = build_barricade_cycle(family_profile, barricade_path)
@@ -649,11 +746,14 @@
 		)
 
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
+	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
+	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
+	candidate_slots = filter_outpost_slots_by_radius_policy(footprint_turfs, candidate_slots, traversal_turfs, radius_policy)
 	if(!length(candidate_slots))
 		return list(
 			"support_class" = support_class,
-			"error" = "Selected footprint cannot build a perimeter shell for Outpost Radius.",
+			"error" = "Selected footprint cannot build a perimeter shell with the current radius blocker policy.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 

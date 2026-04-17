@@ -67,6 +67,152 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 	return FALSE
 
+/datum/world_edit_helpers/proc/get_world_edit_radius_policy(list/params)
+	var/list/policy = list(
+		"only_clear_tiles" = TRUE,
+		"only_reachable_tiles" = FALSE,
+		"treat_windows_as_blockers" = TRUE,
+	)
+	if(!islist(params))
+		return policy
+
+	var/only_clear_raw = params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]
+	var/only_reachable_raw = params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]
+	var/windows_blockers_raw = params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]
+
+	policy["only_clear_tiles"] = isnull(only_clear_raw) ? TRUE : parse_bool(only_clear_raw)
+	policy["only_reachable_tiles"] = isnull(only_reachable_raw) ? FALSE : parse_bool(only_reachable_raw)
+	policy["treat_windows_as_blockers"] = isnull(windows_blockers_raw) ? TRUE : parse_bool(windows_blockers_raw)
+	if(policy["only_reachable_tiles"])
+		policy["only_clear_tiles"] = TRUE
+
+	return policy
+
+/datum/world_edit_helpers/proc/is_radius_turf_center_blocked(turf/checking_turf, treat_windows_as_blockers = TRUE)
+	if(!checking_turf || checking_turf.density)
+		return TRUE
+
+	for(var/atom/blocker as anything in checking_turf)
+		if(ismob(blocker))
+			continue
+		if(istype(blocker, /obj/structure/window))
+			if(treat_windows_as_blockers)
+				return TRUE
+			continue
+		if(!blocker.density)
+			continue
+		if(blocker.flags_atom & ON_BORDER)
+			continue
+		return TRUE
+
+	return FALSE
+
+/datum/world_edit_helpers/proc/get_adjacent_radius_turfs(turf/current_turf, treat_windows_as_blockers = TRUE)
+	var/list/adjacent_turfs = list()
+	if(!current_turf)
+		return adjacent_turfs
+
+	if(!treat_windows_as_blockers)
+		return current_turf.AdjacentTurfs()
+
+	for(var/turf/adjacent_turf as anything in current_turf.AdjacentTurfs())
+		if(is_radius_turf_center_blocked(adjacent_turf, TRUE))
+			continue
+		adjacent_turfs += adjacent_turf
+
+	return adjacent_turfs
+
+/datum/world_edit_helpers/proc/filter_radius_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs = null, list/radius_policy = null, list/pinned_turfs = null)
+	var/list/result = list()
+	var/list/result_lookup = list()
+	var/list/policy = islist(radius_policy) ? radius_policy : get_world_edit_radius_policy(radius_policy)
+	var/only_clear_tiles = !!policy["only_clear_tiles"]
+	var/only_reachable_tiles = !!policy["only_reachable_tiles"]
+	var/treat_windows_as_blockers = !!policy["treat_windows_as_blockers"]
+	var/list/start_lookup = list()
+	var/list/pinned_lookup = list()
+	var/z_level = null
+
+	if(islist(start_turfs))
+		for(var/turf/start_turf as anything in start_turfs)
+			if(!istype(start_turf))
+				continue
+			if(isnull(z_level))
+				z_level = start_turf.z
+			if(start_turf.z != z_level || start_lookup[start_turf])
+				continue
+			start_lookup[start_turf] = TRUE
+
+	if(islist(pinned_turfs))
+		for(var/turf/pinned_turf as anything in pinned_turfs)
+			if(!istype(pinned_turf))
+				continue
+			if(isnull(z_level))
+				z_level = pinned_turf.z
+			if(pinned_turf.z != z_level || pinned_lookup[pinned_turf])
+				continue
+			pinned_lookup[pinned_turf] = TRUE
+			if(!result_lookup[pinned_turf])
+				result_lookup[pinned_turf] = TRUE
+				result += pinned_turf
+
+	var/list/filtered_candidate_lookup = list()
+	var/list/filtered_candidates = list()
+	if(islist(candidate_turfs))
+		for(var/turf/candidate_turf as anything in candidate_turfs)
+			if(!istype(candidate_turf))
+				continue
+			if(isnull(z_level))
+				z_level = candidate_turf.z
+			if(candidate_turf.z != z_level || filtered_candidate_lookup[candidate_turf])
+				continue
+			if(!pinned_lookup[candidate_turf] && (only_clear_tiles || only_reachable_tiles) && is_radius_turf_center_blocked(candidate_turf, treat_windows_as_blockers))
+				continue
+			filtered_candidate_lookup[candidate_turf] = TRUE
+			filtered_candidates += candidate_turf
+			if(!only_reachable_tiles && !result_lookup[candidate_turf])
+				result_lookup[candidate_turf] = TRUE
+				result += candidate_turf
+
+	if(!only_reachable_tiles)
+		return result
+
+	var/list/traversal_lookup = list()
+	var/list/raw_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : filtered_candidates
+	for(var/turf/traversal_turf as anything in raw_traversal_turfs)
+		if(!istype(traversal_turf))
+			continue
+		if(isnull(z_level))
+			z_level = traversal_turf.z
+		if(traversal_turf.z != z_level || traversal_lookup[traversal_turf])
+			continue
+		if((only_clear_tiles || only_reachable_tiles) && is_radius_turf_center_blocked(traversal_turf, treat_windows_as_blockers))
+			continue
+		traversal_lookup[traversal_turf] = TRUE
+
+	var/list/visited_lookup = list()
+	var/list/open_turfs = list()
+	for(var/turf/start_turf as anything in start_lookup)
+		if(!istype(start_turf) || visited_lookup[start_turf])
+			continue
+		visited_lookup[start_turf] = TRUE
+		open_turfs += start_turf
+
+	var/search_index = 1
+	while(search_index <= length(open_turfs))
+		var/turf/current_turf = open_turfs[search_index++]
+		if(filtered_candidate_lookup[current_turf] && !result_lookup[current_turf])
+			result_lookup[current_turf] = TRUE
+			result += current_turf
+
+		for(var/turf/adjacent_turf as anything in get_adjacent_radius_turfs(current_turf, treat_windows_as_blockers))
+			if(!traversal_lookup[adjacent_turf] || visited_lookup[adjacent_turf])
+				continue
+			visited_lookup[adjacent_turf] = TRUE
+			open_turfs += adjacent_turf
+
+	return result
+
 /datum/world_edit_helpers/proc/collect_line_turfs(turf/start_turf, turf/end_turf)
 	var/list/turfs = list()
 	if(!start_turf || !end_turf || start_turf.z != end_turf.z)

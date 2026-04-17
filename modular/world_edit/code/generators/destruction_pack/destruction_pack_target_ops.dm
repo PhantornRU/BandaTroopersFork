@@ -36,7 +36,7 @@
 
 	return seed_turfs[clamp(round((length(seed_turfs) + 1) / 2), 1, length(seed_turfs))]
 
-/datum/world_edit_generator/destruction_pack/proc/build_influence_map(list/seed_turfs, radius)
+/datum/world_edit_generator/destruction_pack/proc/build_influence_map(list/seed_turfs, radius, list/radius_policy = null)
 	var/list/result = list(
 		"turfs" = list(),
 		"lookup" = list(),
@@ -68,6 +68,32 @@
 	if(!length(unique_seed_turfs))
 		return result
 
+	var/list/raw_candidate_lookup = list()
+	var/list/raw_candidate_turfs = list()
+	for(var/turf/seed_turf as anything in unique_seed_turfs)
+		for(var/turf/target_turf in range(radius, seed_turf))
+			if(target_turf.z != seed_turf.z)
+				continue
+
+			var/distance = get_chebyshev_distance(seed_turf, target_turf)
+			if(distance > radius || raw_candidate_lookup[target_turf])
+				continue
+
+			raw_candidate_lookup[target_turf] = TRUE
+			raw_candidate_turfs += target_turf
+
+	var/list/filtered_turfs = GLOB.world_edit_helpers.filter_radius_candidate_turfs(
+		unique_seed_turfs,
+		raw_candidate_turfs,
+		raw_candidate_turfs,
+		radius_policy,
+		unique_seed_turfs,
+	)
+	var/list/filtered_lookup = list()
+	for(var/turf/filtered_turf as anything in filtered_turfs)
+		if(istype(filtered_turf))
+			filtered_lookup[filtered_turf] = TRUE
+
 	var/list/influence_lookup = result["lookup"]
 	for(var/turf/seed_turf as anything in unique_seed_turfs)
 		for(var/turf/target_turf in range(radius, seed_turf))
@@ -75,7 +101,7 @@
 				continue
 
 			var/distance = get_chebyshev_distance(seed_turf, target_turf)
-			if(distance > radius)
+			if(distance > radius || !filtered_lookup[target_turf])
 				continue
 
 			var/list/existing_info = influence_lookup[target_turf]
@@ -102,6 +128,7 @@
 	result["shape_seed_count"] = length(unique_seed_turfs)
 	result["shape_footprint_count"] = length(unique_seed_turfs)
 	result["influence_tile_count"] = length(influence_turfs)
+	result["radius_policy"] = islist(radius_policy) ? radius_policy.Copy() : GLOB.world_edit_helpers.get_world_edit_radius_policy(radius_policy)
 	return result
 
 /datum/world_edit_generator/destruction_pack/proc/build_area_lookup(list/area_turfs)

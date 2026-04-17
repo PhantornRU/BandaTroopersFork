@@ -1,3 +1,4 @@
+import { RADIUS_POLICY_FIELD_IDS } from './constants';
 import { getField, getFieldsByGroup, getFieldsById } from './helpers';
 import type { BackendData, PreviewLegendItem, UiField } from './types';
 
@@ -116,7 +117,10 @@ const getDestructionWorkspaceViewModel = (
   data: BackendData,
 ): DestructionWorkspaceViewModel => {
   const areaFields = getFieldsByGroup(data.ui_fields, 'Area').filter(
-    (field) => field.id !== 'radius' && field.visible !== false,
+    (field) =>
+      field.id !== 'radius' &&
+      !RADIUS_POLICY_FIELD_IDS.includes(field.id) &&
+      field.visible !== false,
   );
   const fireFields = getFieldsById(data.ui_fields, [
     'persistent_fire_enabled',

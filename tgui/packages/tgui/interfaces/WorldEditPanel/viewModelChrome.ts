@@ -2,6 +2,7 @@ import {
   DEFAULT_DIRECTION_OPTIONS,
   DEFAULT_PLACEMENT_MODE_OPTIONS,
   DEFAULT_POINT_SHAPE_OPTION,
+  RADIUS_POLICY_FIELD_IDS,
 } from './constants';
 import {
   getField,
@@ -40,6 +41,7 @@ type SharedModeViewModel = {
   selectedMode: string;
   selectedDirection: string;
   radiusField?: UiField;
+  radiusToggleFields: UiField[];
   activeBlueprint?: ReturnType<typeof getSelectedBlueprint>;
   showRadiusSection: boolean;
   showShapeSection: boolean;
@@ -147,7 +149,10 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
 
 const getSharedChromeFields = (data: BackendData) => {
   const shapeFields = (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false && field.id !== 'radius',
+    (field) =>
+      field.visible !== false &&
+      field.id !== 'radius' &&
+      !RADIUS_POLICY_FIELD_IDS.includes(field.id),
   );
 
   if (data.current_generator_id === 'blueprint_stamp') {
@@ -255,6 +260,10 @@ const getSharedModeViewModel = (
     (field) => field.visible !== false,
   );
   const radiusField = getField(data.ui_fields, 'radius');
+  const radiusToggleFields = getFieldsById(
+    data.ui_fields,
+    RADIUS_POLICY_FIELD_IDS,
+  ).filter((field) => field.visible !== false);
   const activeBlueprint =
     data.current_generator_id === 'blueprint_stamp'
       ? getSelectedBlueprint(data)
@@ -264,7 +273,8 @@ const getSharedModeViewModel = (
     !isHistoryTab &&
     hasGenerator &&
     (data.current_generator_id === 'blueprint_stamp' ||
-      (!!radiusField && radiusField.visible !== false));
+      (!!radiusField && radiusField.visible !== false) ||
+      !!radiusToggleFields.length);
   const showShapeSection =
     !isHistoryTab &&
     hasGenerator &&
@@ -299,6 +309,7 @@ const getSharedModeViewModel = (
         .trim()
         .toLowerCase(),
     radiusField,
+    radiusToggleFields,
     activeBlueprint,
     showRadiusSection,
     showShapeSection,

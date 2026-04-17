@@ -1,4 +1,5 @@
 import { Box, Collapsible, Flex } from '../../components';
+import { RADIUS_POLICY_SHORT_LABELS } from './constants';
 import {
   CompactStackedChoiceButtons,
   CompactToggleButton,
@@ -23,6 +24,9 @@ import {
 } from './fieldControls';
 import type { ActFn, BackendData, WorkspaceTabKey } from './types';
 import { getSharedModeViewModel } from './viewModel';
+
+const getRadiusToggleTooltip = (label?: string, description?: string) =>
+  [label, description].filter(Boolean).join(': ');
 
 const SharedModePanel = (props: {
   readonly data: BackendData;
@@ -158,13 +162,44 @@ const SharedModePanel = (props: {
                         !viewModel.activeBlueprint.valid
                       }
                     />
-                  ) : viewModel.radiusField &&
-                    viewModel.radiusField.visible !== false ? (
-                    <FieldControl
-                      key={`${sharedFieldContextKey}:radius:${viewModel.radiusField.id}:${viewModel.radiusField.label || ''}`}
-                      field={viewModel.radiusField}
-                      act={act}
-                    />
+                  ) : (viewModel.radiusField &&
+                      viewModel.radiusField.visible !== false) ||
+                    viewModel.radiusToggleFields.length ? (
+                    <Box
+                      style={{
+                        display: 'grid',
+                        rowGap: '0.18rem',
+                      }}
+                    >
+                      {viewModel.radiusField &&
+                      viewModel.radiusField.visible !== false ? (
+                        <FieldControl
+                          key={`${sharedFieldContextKey}:radius:${viewModel.radiusField.id}:${viewModel.radiusField.label || ''}`}
+                          field={viewModel.radiusField}
+                          act={act}
+                        />
+                      ) : (
+                        <ToolbarReadOnlyValue value="—" disabled />
+                      )}
+                      {viewModel.radiusToggleFields.map((field) => (
+                        <CompactToggleButton
+                          key={`${sharedFieldContextKey}:radius-toggle:${field.id}`}
+                          checked={!!field.value}
+                          label={RADIUS_POLICY_SHORT_LABELS[field.id] || field.label}
+                          tooltip={getRadiusToggleTooltip(
+                            field.label,
+                            field.description,
+                          )}
+                          disabled={field.disabled}
+                          onClick={() =>
+                            act('set_param', {
+                              param_id: field.id,
+                              value: !field.value,
+                            })
+                          }
+                        />
+                      ))}
+                    </Box>
                   ) : (
                     <ToolbarReadOnlyValue value="—" disabled />
                   )}

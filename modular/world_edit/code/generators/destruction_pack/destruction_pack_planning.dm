@@ -48,6 +48,7 @@
 
 /datum/world_edit_generator/destruction_pack/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/radius = text2num("[params["radius"]]") || 0
+	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
 	if(radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 		return list(
 			"support_class" = "full",
@@ -55,7 +56,7 @@
 			"metadata" = list("shape_support_class" = "full"),
 		)
 
-	var/list/influence_map = build_influence_map(shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"], radius)
+	var/list/influence_map = build_influence_map(shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"], radius, radius_policy)
 	if(!length(influence_map["seed_turfs"]))
 		return list(
 			"support_class" = "full",
@@ -85,6 +86,7 @@
 	var/radius = clamp(text2num("[params["radius"]]") || 3, 1, WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 	var/max_atoms = clamp(text2num("[params["max_atoms"]]") || 60, 1, WORLD_EDIT_DESTRUCTION_MAX_ATOMS)
 	var/scatter_steps = clamp(text2num("[params["scatter_steps"]]") || 2, 1, WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS)
+	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
 	var/affect_anchored = GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
@@ -102,7 +104,7 @@
 	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
 	var/has_non_move_mode = persistent_fire_enabled || has_high_risk_mode
 
-	var/list/influence_map = build_influence_map(anchor_turfs, radius)
+	var/list/influence_map = build_influence_map(anchor_turfs, radius, radius_policy)
 	var/list/influence_turfs = influence_map["turfs"] || list()
 	var/list/influence_lookup = influence_map["lookup"] || list()
 	var/list/seed_turfs = influence_map["seed_turfs"] || list()
@@ -140,6 +142,9 @@
 	plan.affected_turfs = influence_turfs.Copy()
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["radius"] = radius
+	plan.metadata["radius_only_clear_tiles"] = radius_policy["only_clear_tiles"]
+	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
+	plan.metadata["radius_windows_blockers"] = radius_policy["treat_windows_as_blockers"]
 	plan.metadata["area_tiles"] = length(influence_turfs)
 	plan.metadata["influence_tile_count"] = length(influence_turfs)
 	plan.metadata["placement_mode"] = placement_mode

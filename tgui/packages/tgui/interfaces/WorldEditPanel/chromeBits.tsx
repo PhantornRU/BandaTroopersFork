@@ -168,6 +168,7 @@ const CompactToggleButton = (props: {
   readonly checked: boolean;
   readonly label: string;
   readonly disabled?: boolean;
+  readonly tooltip?: string;
   readonly onClick: () => void;
 }) => (
   <Button
@@ -176,6 +177,7 @@ const CompactToggleButton = (props: {
     selected={props.checked}
     color={props.checked ? 'good' : 'transparent'}
     disabled={props.disabled}
+    tooltip={props.tooltip}
     onClick={props.onClick}
     style={CHROME_CONTROL_BUTTON_STYLE}
   >

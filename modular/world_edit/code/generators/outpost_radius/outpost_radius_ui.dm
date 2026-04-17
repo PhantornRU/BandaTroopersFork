@@ -58,6 +58,30 @@
 			"step" = 1,
 		),
 		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES,
+			"label" = "Only clear tiles",
+			"kind" = "boolean",
+			"group" = "Layout",
+			"description" = "Perimeter offset skips dense tile centers. The selected footprint itself still stays valid.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]),
+		),
+		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES,
+			"label" = "Only reachable tiles",
+			"kind" = "boolean",
+			"group" = "Layout",
+			"description" = "Perimeter and sentry candidates must stay reachable through adjacent clear tiles from the selected footprint.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]) ? FALSE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]),
+		),
+		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS,
+			"label" = "Treat windows as blockers",
+			"kind" = "boolean",
+			"group" = "Layout",
+			"description" = "Counts windows as blockers while evaluating clear/reachable perimeter expansion.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]),
+		),
+		list(
 			"id" = "barricade_path",
 			"label" = "Barricade Type",
 			"kind" = "select",
@@ -160,6 +184,19 @@
 		if("radius")
 			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_OUTPOST_RADIUS_MAX)
 
+		if(WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(!new_params[param_id] && GLOB.world_edit_helpers.parse_bool(new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]))
+				new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES] = FALSE
+
+		if(WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(new_params[param_id])
+				new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES] = TRUE
+
+		if(WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+
 		if("barricade_path")
 			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id())["default_barricade_path"])
 			if(!path_value)
@@ -212,4 +249,5 @@
 	return "Применить профиль '[family_profile["label"] || "Outpost"] / [layout_profile["label"] || "Crossroads"]' с отступом периметра [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
-	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"
+	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
+	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"

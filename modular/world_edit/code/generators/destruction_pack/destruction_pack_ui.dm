@@ -18,6 +18,30 @@
 			"step" = 1,
 		),
 		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES,
+			"label" = "Only clear tiles",
+			"kind" = "boolean",
+			"group" = "Area",
+			"description" = "Radius expansion skips dense tile centers. The selected footprint stays valid even when it starts on blocked tiles.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]),
+		),
+		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES,
+			"label" = "Only reachable tiles",
+			"kind" = "boolean",
+			"group" = "Area",
+			"description" = "Radius expansion keeps only tiles reachable through adjacent clear tiles from the selected footprint.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]) ? FALSE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]),
+		),
+		list(
+			"id" = WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS,
+			"label" = "Treat windows as blockers",
+			"kind" = "boolean",
+			"group" = "Area",
+			"description" = "Counts windows as blockers for clear/reachable radius filtering.",
+			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]),
+		),
+		list(
 			"id" = "shuffle_enabled",
 			"label" = "Shuffle Targets",
 			"kind" = "boolean",
@@ -129,6 +153,19 @@
 		if("radius")
 			new_params[param_id] = clamp(text2num("[value]"), 1, WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 
+		if(WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(!new_params[param_id] && GLOB.world_edit_helpers.parse_bool(new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]))
+				new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES] = FALSE
+
+		if(WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+			if(new_params[param_id])
+				new_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES] = TRUE
+
+		if(WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS)
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+
 		if("shuffle_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
@@ -185,4 +222,5 @@
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
 	var/fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
-	return "impact_radius=[params["radius"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
+	return "impact_radius=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"

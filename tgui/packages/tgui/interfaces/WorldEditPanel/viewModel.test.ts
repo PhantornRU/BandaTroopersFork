@@ -263,6 +263,55 @@ describe('WorldEditPanel view model', () => {
     ).toEqual(['Радиус формы', 'Горизонтальный радиус', 'Вертикальный радиус']);
   });
 
+  it('surfaces radius policy toggles only in the shared radius chrome', () => {
+    const model = getSharedModeViewModel(
+      makeData({
+        current_generator_id: 'destruction_pack',
+        ui_fields: [
+          makeField({
+            id: 'radius',
+            kind: 'number',
+            value: 3,
+            group: 'Area',
+          }),
+          makeField({
+            id: 'radius_only_clear_tiles',
+            value: true,
+            group: 'Area',
+          }),
+          makeField({
+            id: 'radius_only_reachable_tiles',
+            value: false,
+            group: 'Area',
+          }),
+          makeField({
+            id: 'radius_windows_blockers',
+            value: true,
+            group: 'Area',
+          }),
+        ],
+        placement_shape_fields: [
+          makeField({
+            id: 'shape_radius',
+            kind: 'number',
+            value: 2,
+          }),
+        ],
+      }),
+      'editor',
+    );
+
+    expect(model.showRadiusSection).toBe(true);
+    expect(model.radiusToggleFields.map((field) => field.id)).toEqual([
+      'radius_only_clear_tiles',
+      'radius_only_reachable_tiles',
+      'radius_windows_blockers',
+    ]);
+    expect(model.sharedFields.map((field) => field.id)).toEqual([
+      'shape_radius',
+    ]);
+  });
+
   it('keeps tool-specific radius labels distinct in the shared controller', () => {
     const { getTranslatedFieldLabel } = require('./helpers');
 
@@ -467,6 +516,21 @@ describe('WorldEditPanel view model', () => {
       makeData({
         ui_fields: [
           makeField({ id: 'radius', kind: 'number', value: 3, group: 'Area' }),
+          makeField({
+            id: 'radius_only_clear_tiles',
+            group: 'Area',
+            value: true,
+          }),
+          makeField({
+            id: 'radius_only_reachable_tiles',
+            group: 'Area',
+            value: false,
+          }),
+          makeField({
+            id: 'radius_windows_blockers',
+            group: 'Area',
+            value: true,
+          }),
           makeField({ id: 'safe', group: 'Area' }),
           makeField({ id: 'shuffle_enabled', value: true }),
           makeField({ id: 'scatter_enabled', value: true }),

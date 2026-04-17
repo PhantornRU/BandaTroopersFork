@@ -89,7 +89,7 @@
 	result["blocked_count"]++
 	result["blocked_barricades"]++
 
-/datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, list/barricade_cycle, barricade_pattern)
+/datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, list/barricade_cycle, barricade_pattern, list/radius_policy = null, list/traversal_turfs = null)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_count" = 0,
@@ -97,48 +97,118 @@
 		"blocked_openings" = 0,
 		"opening_count" = 0,
 		"openings" = list(),
+		"policy_filtered_count" = 0,
 	)
 	if(!center_turf)
 		return result
 	var/slot_index = 0
+	var/list/raw_slots = list()
 
 	for(var/offset_x in -radius to radius)
 		slot_index++
 		var/turf/top_turf = locate(center_turf.x + offset_x, center_turf.y + radius, center_turf.z)
-		register_perimeter_slot(result, top_turf, NORTH, slot_index, offset_x, radius, radius, layout_profile, barricade_cycle, barricade_pattern)
+		raw_slots += list(list(
+			"turf" = top_turf,
+			"dir" = NORTH,
+			"slot_index" = slot_index,
+			"offset_x" = offset_x,
+			"offset_y" = radius,
+		))
 
 		slot_index++
 		var/turf/bottom_turf = locate(center_turf.x + offset_x, center_turf.y - radius, center_turf.z)
-		register_perimeter_slot(result, bottom_turf, SOUTH, slot_index, offset_x, -radius, radius, layout_profile, barricade_cycle, barricade_pattern)
+		raw_slots += list(list(
+			"turf" = bottom_turf,
+			"dir" = SOUTH,
+			"slot_index" = slot_index,
+			"offset_x" = offset_x,
+			"offset_y" = -radius,
+		))
 
 	for(var/offset_y in -radius to radius)
 		slot_index++
 		var/turf/right_turf = locate(center_turf.x + radius, center_turf.y + offset_y, center_turf.z)
-		register_perimeter_slot(result, right_turf, EAST, slot_index, radius, offset_y, radius, layout_profile, barricade_cycle, barricade_pattern)
+		raw_slots += list(list(
+			"turf" = right_turf,
+			"dir" = EAST,
+			"slot_index" = slot_index,
+			"offset_x" = radius,
+			"offset_y" = offset_y,
+		))
 
 		slot_index++
 		var/turf/left_turf = locate(center_turf.x - radius, center_turf.y + offset_y, center_turf.z)
-		register_perimeter_slot(result, left_turf, WEST, slot_index, -radius, offset_y, radius, layout_profile, barricade_cycle, barricade_pattern)
+		raw_slots += list(list(
+			"turf" = left_turf,
+			"dir" = WEST,
+			"slot_index" = slot_index,
+			"offset_x" = -radius,
+			"offset_y" = offset_y,
+		))
+
+	var/list/effective_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : build_point_radius_area_turfs(center_turf, radius)
+	var/list/filtered_slots = filter_outpost_slots_by_radius_policy(list(center_turf), raw_slots, effective_traversal_turfs, radius_policy)
+	result["policy_filtered_count"] = max(length(raw_slots) - length(filtered_slots), 0)
+	for(var/list/candidate_slot as anything in filtered_slots)
+		register_perimeter_slot(
+			result,
+			candidate_slot["turf"],
+			candidate_slot["dir"],
+			candidate_slot["slot_index"],
+			candidate_slot["offset_x"],
+			candidate_slot["offset_y"],
+			radius,
+			layout_profile,
+			barricade_cycle,
+			barricade_pattern,
+		)
 
 	return result
 
-/datum/world_edit_generator/outpost_radius/proc/collect_sentry_placements(turf/center_turf, radius, list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/collect_sentry_placements(turf/center_turf, radius, list/layout_profile, list/radius_policy = null, list/traversal_turfs = null)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_count" = 0,
+		"policy_filtered_count" = 0,
 	)
 	if(!center_turf)
 		return result
 	var/list/placements = result["placements"]
 	var/inner_radius = max(radius - 1, 1)
 	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
+	var/list/effective_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : build_point_radius_area_turfs(center_turf, radius)
+	var/list/raw_candidate_turfs = list()
+	var/list/raw_candidate_lookup = list()
+	var/list/guard_candidates = list()
 
 	for(var/dir_to_guard as anything in guard_dirs)
-		var/list/candidates = build_sentry_guard_candidates(dir_to_guard, inner_radius)
+		var/list/candidates = list()
+		for(var/list/candidate as anything in build_sentry_guard_candidates(dir_to_guard, inner_radius))
+			var/turf/target_turf = locate(center_turf.x + candidate["dx"], center_turf.y + candidate["dy"], center_turf.z)
+			var/list/candidate_entry = list(
+				"turf" = target_turf,
+				"dir" = candidate["dir"],
+				"opening_dir" = dir_to_guard,
+			)
+			candidates += list(candidate_entry)
+			if(istype(target_turf) && !raw_candidate_lookup[target_turf])
+				raw_candidate_lookup[target_turf] = TRUE
+				raw_candidate_turfs += target_turf
+		guard_candidates += list(candidates)
+
+	var/list/allowed_sentry_lookup = list()
+	for(var/turf/allowed_turf as anything in filter_outpost_candidate_turfs(list(center_turf), raw_candidate_turfs, effective_traversal_turfs, radius_policy, list(center_turf)))
+		if(raw_candidate_lookup[allowed_turf])
+			allowed_sentry_lookup[allowed_turf] = TRUE
+	result["policy_filtered_count"] = max(length(raw_candidate_turfs) - length(allowed_sentry_lookup), 0)
+
+	var/guard_index = 1
+	for(var/dir_to_guard as anything in guard_dirs)
+		var/list/candidates = guard_candidates[guard_index++]
 		var/placed = FALSE
 		for(var/list/candidate as anything in candidates)
-			var/turf/target_turf = locate(center_turf.x + candidate["dx"], center_turf.y + candidate["dy"], center_turf.z)
-			if(!can_place_sentry_on_turf(target_turf))
+			var/turf/target_turf = candidate["turf"]
+			if(!istype(target_turf) || !allowed_sentry_lookup[target_turf] || !can_place_sentry_on_turf(target_turf))
 				continue
 
 			placements += list(list(
@@ -175,11 +245,14 @@
 	var/turned_on = config["turned_on"]
 	var/barricade_path = config["barricade_path"]
 	var/sentry_path = config["sentry_path"]
+	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
+	var/list/traversal_turfs = build_point_radius_area_turfs(center_turf, radius)
 
-	var/list/perimeter_data = collect_perimeter_placements(center_turf, radius, layout_profile, barricade_cycle, config["barricade_pattern"])
-	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius, layout_profile) : list(
+	var/list/perimeter_data = collect_perimeter_placements(center_turf, radius, layout_profile, barricade_cycle, config["barricade_pattern"], radius_policy, traversal_turfs)
+	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius, layout_profile, radius_policy, traversal_turfs) : list(
 		"placements" = list(),
 		"blocked_count" = 0,
+		"policy_filtered_count" = 0,
 	)
 
 	var/list/preview_turf_lookup = list()
@@ -211,8 +284,20 @@
 	for(var/turf/preview_turf as anything in preview_turf_lookup)
 		plan.affected_turfs += preview_turf
 
+	var/expected_openings = get_layout_expected_opening_count(layout_profile)
+	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	if(length(opening_dirs) && (perimeter_data["opening_count"] || 0) < expected_openings)
+		plan.metadata["error"] = "Selected center cannot support the required Outpost Radius openings with the current radius blocker policy."
+		return plan
+	if(!length(plan.placements))
+		plan.metadata["error"] = "Outpost Radius could not build any valid placements with the current radius blocker policy."
+		return plan
+
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["radius"] = radius
+	plan.metadata["radius_only_clear_tiles"] = radius_policy["only_clear_tiles"]
+	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
+	plan.metadata["radius_windows_blockers"] = radius_policy["treat_windows_as_blockers"]
 	plan.metadata["family"] = config["family"]
 	plan.metadata["family_label"] = family_profile["label"]
 	plan.metadata["family_description"] = family_profile["description"]
@@ -230,6 +315,8 @@
 	plan.metadata["blocked_openings"] = perimeter_data["blocked_openings"]
 	plan.metadata["blocked_perimeter"] = perimeter_data["blocked_count"]
 	plan.metadata["blocked_sentries"] = sentry_data["blocked_count"]
+	plan.metadata["policy_filtered_perimeter"] = perimeter_data["policy_filtered_count"] || 0
+	plan.metadata["policy_filtered_sentries"] = sentry_data["policy_filtered_count"] || 0
 	return plan
 
 /datum/world_edit_generator/outpost_radius/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)

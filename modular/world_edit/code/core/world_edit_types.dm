@@ -5,6 +5,9 @@
 #define WORLD_EDIT_HISTORY_LIMIT 125
 #define WORLD_EDIT_PLACEMENT_MAX_ANCHORS 120
 #define WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS 600
+#define WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES "radius_only_clear_tiles"
+#define WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES "radius_only_reachable_tiles"
+#define WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS "radius_windows_blockers"
 
 /// Результат этапа предпросмотра генератора.
 /datum/world_edit_preview_result
