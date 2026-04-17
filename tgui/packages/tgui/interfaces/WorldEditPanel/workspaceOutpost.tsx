@@ -1,9 +1,5 @@
 import { Box, Button, LabeledList } from '../../components';
-import {
-  FieldControlStack,
-  FieldEditor,
-  FieldListCard,
-} from './fieldControls';
+import { FieldControlStack, FieldEditor, FieldListCard } from './fieldControls';
 import { getField, getFieldsByGroup, getFieldsById } from './helpers';
 import { SurfaceCard } from './primitives';
 import type { ActFn, BackendData } from './types';

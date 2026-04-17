@@ -1,11 +1,11 @@
-import { buildOrderedToolTabs } from './constants';
+import { getOrderedToolTabs } from './toolRegistry';
 import type { BackendData, UiField } from './types';
 
 type WorldEditViewModel = {
   showPlacementSetup: boolean;
   groupedFields: Record<string, UiField[]>;
   groupNames: string[];
-  toolTabs: ReturnType<typeof buildOrderedToolTabs>;
+  toolTabs: ReturnType<typeof getOrderedToolTabs>;
 };
 
 const buildGroupedFields = (fields: UiField[] = []) => {
@@ -33,7 +33,7 @@ const buildWorldEditViewModel = (data: BackendData): WorldEditViewModel => {
       data.placement_supports_direction,
     groupedFields,
     groupNames: getGroupNames(groupedFields),
-    toolTabs: buildOrderedToolTabs(data.categories || []),
+    toolTabs: getOrderedToolTabs(data.categories || []),
   };
 };
 

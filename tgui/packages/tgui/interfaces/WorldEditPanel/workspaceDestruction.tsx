@@ -18,7 +18,7 @@ const DestructionPackWorkspace = (props: {
     <>
       {(!!viewModel.areaFields.length ||
         !!viewModel.movementFields.visibleMovementFields.length) && (
-        <SurfaceCard title="Безопасная зона">
+        <SurfaceCard>
           <WorkspaceGrid>
             {!!viewModel.movementFields.visibleMovementFields.length && (
               <WorkspacePane
@@ -38,7 +38,11 @@ const DestructionPackWorkspace = (props: {
             )}
             {!!viewModel.areaFields.length && (
               <WorkspacePane basis="48%" minWidth="19rem">
-                <FieldBlock title="Зона" fields={viewModel.areaFields} act={act} />
+                <FieldBlock
+                  title="Зона"
+                  fields={viewModel.areaFields}
+                  act={act}
+                />
               </WorkspacePane>
             )}
           </WorkspaceGrid>
@@ -46,7 +50,6 @@ const DestructionPackWorkspace = (props: {
       )}
 
       <SurfaceCard
-        title="Опасные режимы"
         mt={
           viewModel.areaFields.length ||
           viewModel.movementFields.visibleMovementFields.length

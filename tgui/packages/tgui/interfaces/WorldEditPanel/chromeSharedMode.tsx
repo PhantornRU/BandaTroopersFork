@@ -16,7 +16,11 @@ import {
   CHROME_SHAPE_GRID_COLUMNS,
   CHROME_SQUARE_BUTTON_SIZE,
 } from './chromeLayout';
-import { CompactFieldControl, FieldControl, ShapeOptionStrip } from './fieldControls';
+import {
+  CompactFieldControl,
+  FieldControl,
+  ShapeOptionStrip,
+} from './fieldControls';
 import type { ActFn, BackendData, WorkspaceTabKey } from './types';
 import { getSharedModeViewModel } from './viewModel';
 
@@ -149,7 +153,8 @@ const SharedModePanel = (props: {
                           : '—'
                       }
                       disabled={
-                        !viewModel.activeBlueprint || !viewModel.activeBlueprint.valid
+                        !viewModel.activeBlueprint ||
+                        !viewModel.activeBlueprint.valid
                       }
                     />
                   ) : viewModel.radiusField &&
@@ -170,7 +175,9 @@ const SharedModePanel = (props: {
           <Collapsible
             title={`Доп. параметры (${viewModel.sharedFields.length})`}
             color="average"
-            open={viewModel.sharedFields.length <= 2 || data.click_mode_active}
+            open={
+              viewModel.sharedFields.length <= 2 || !!data.click_mode_active
+            }
           >
             <Box mt={0.1}>
               <Flex wrap mx={-0.16}>

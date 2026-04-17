@@ -210,3 +210,11 @@ export type ToolbarActions = {
 };
 
 export type ActFn = (action: string, payload?: Record<string, unknown>) => void;
+
+export type ToolWorkspaceProps = {
+  data: BackendData;
+  act: ActFn;
+  groupedFields: Record<string, UiField[]>;
+  groupNames: string[];
+  showPlacementSetup: boolean;
+};

@@ -1,10 +1,29 @@
 import { useMemo, useState } from 'react';
 
-import { Box, Button, Flex, Input } from '../../components';
+import { Box, Button, Dropdown, Flex, Input } from '../../components';
 import { getDisplayText } from './helpers';
 import { SurfaceCard } from './primitives';
 import type { ActFn, BackendData } from './types';
-import { getBlueprintLibraryMetaText } from './viewModel';
+import type { BlueprintFilterMode, BlueprintSortMode } from './viewModel';
+import {
+  filterAndSortBlueprintEntries,
+  getBlueprintActionState,
+  getBlueprintLibraryMetaText,
+} from './viewModel';
+
+const FILTER_OPTIONS = [
+  { value: 'all', displayText: 'Все' },
+  { value: 'valid', displayText: 'Валидные' },
+  { value: 'invalid', displayText: 'Ошибки' },
+  { value: 'active', displayText: 'Активный' },
+] as const;
+
+const SORT_OPTIONS = [
+  { value: 'activity', displayText: 'Статус' },
+  { value: 'name', displayText: 'Имя' },
+  { value: 'newest', displayText: 'Новые' },
+  { value: 'size', displayText: 'Размер' },
+] as const;
 
 const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
@@ -12,26 +31,37 @@ const BlueprintStampWorkspace = (props: {
 }) => {
   const { data, act } = props;
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<BlueprintFilterMode>('all');
+  const [sortMode, setSortMode] = useState<BlueprintSortMode>('activity');
 
   const filteredBlueprints = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) {
-      return data.blueprint_entries || [];
-    }
+    const queryEntries = !query
+      ? data.blueprint_entries || []
+      : (data.blueprint_entries || []).filter((entry) => {
+          const haystack = [
+            entry.name,
+            entry.source,
+            entry.created_by,
+            entry.id,
+          ]
+            .join(' ')
+            .toLowerCase();
+          return haystack.includes(query);
+        });
 
-    return (data.blueprint_entries || []).filter((entry) => {
-      const haystack = [entry.name, entry.source, entry.created_by, entry.id]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [data.blueprint_entries, searchQuery]);
+    return filterAndSortBlueprintEntries(
+      data,
+      queryEntries,
+      filterMode,
+      sortMode,
+    );
+  }, [data, filterMode, searchQuery, sortMode]);
   const totalBlueprints = data.blueprint_entries?.length || 0;
 
   return (
     <SurfaceCard
-      title="Библиотека"
-      subtitle={`${filteredBlueprints.length} из ${totalBlueprints}`}
+      title={`Библиотека (${filteredBlueprints.length} из ${totalBlueprints})`}
       actions={
         <Button compact onClick={() => act('list_blueprints')}>
           Обновить
@@ -39,60 +69,98 @@ const BlueprintStampWorkspace = (props: {
       }
       mt={0}
     >
-      <Input
-        value={searchQuery}
-        placeholder="Поиск"
-        onChange={(_, value) => setSearchQuery(value)}
-      />
+      <Box
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: '0.4rem',
+          alignItems: 'center',
+        }}
+      >
+        <Box>
+          <Input
+            className="WorldEditPanel__compactInput"
+            fluid
+            value={searchQuery}
+            placeholder="Поиск"
+            onChange={(_, value) => setSearchQuery(value)}
+          />
+        </Box>
+        <Box>
+          <Dropdown
+            className="WorldEditPanel__compactDropdown"
+            width="100%"
+            options={[...FILTER_OPTIONS]}
+            selected={filterMode}
+            displayText={`Фильтр: ${
+              FILTER_OPTIONS.find((option) => option.value === filterMode)
+                ?.displayText || 'Все'
+            }`}
+            onSelected={(value) => setFilterMode(value as BlueprintFilterMode)}
+          />
+        </Box>
+        <Box>
+          <Dropdown
+            className="WorldEditPanel__compactDropdown"
+            width="100%"
+            options={[...SORT_OPTIONS]}
+            selected={sortMode}
+            displayText={`Сорт: ${
+              SORT_OPTIONS.find((option) => option.value === sortMode)
+                ?.displayText || 'Статус'
+            }`}
+            onSelected={(value) => setSortMode(value as BlueprintSortMode)}
+          />
+        </Box>
+      </Box>
 
       {!data.blueprint_entries?.length && (
-        <Box color="label" mt={0.7}>
+        <Box color="label" mt={0.55}>
           Нет шаблонов.
         </Box>
       )}
 
       {!!data.blueprint_entries?.length && !filteredBlueprints.length && (
-        <Box color="label" mt={0.7}>
+        <Box color="label" mt={0.55}>
           Ничего не найдено.
         </Box>
       )}
 
       {!!filteredBlueprints.length && (
-        <Box mt={0.7}>
+        <Box mt={0.55}>
           {filteredBlueprints.map((blueprint) => {
-            const isActive = blueprint.id === data.active_blueprint_id;
-            const canLoad = blueprint.valid && !isActive;
+            const actionState = getBlueprintActionState(data, blueprint);
             return (
               <Box
                 key={blueprint.id}
                 p={0.45}
                 mb={0.3}
                 onClick={() => {
-                  if (canLoad) {
+                  if (actionState.canLoad) {
                     act('load_blueprint', {
                       blueprint_id: blueprint.id,
                     });
                   }
                 }}
                 style={{
-                  border: isActive
+                  border: actionState.isActive
                     ? '1px solid #4c9f39'
                     : '1px solid rgba(70, 107, 150, 0.55)',
-                  borderLeft: isActive
+                  borderLeft: actionState.isActive
                     ? '3px solid #4c9f39'
                     : '3px solid transparent',
-                  background: isActive
+                  background: actionState.isActive
                     ? 'rgba(76, 159, 57, 0.16)'
                     : 'rgba(70, 107, 150, 0.10)',
                   borderRadius: '4px',
-                  cursor: canLoad ? 'pointer' : 'default',
+                  cursor: actionState.canLoad ? 'pointer' : 'default',
                 }}
               >
                 <Flex align="center" wrap>
                   <Flex.Item grow basis="14rem" style={{ minWidth: '0' }}>
                     <Box
                       bold
-                      color={isActive ? 'good' : 'white'}
+                      color={actionState.isActive ? 'good' : 'white'}
                       style={{
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -102,7 +170,7 @@ const BlueprintStampWorkspace = (props: {
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
                   </Flex.Item>
-                  {isActive && (
+                  {actionState.isActive && (
                     <Flex.Item style={{ flex: '0 0 auto' }}>
                       <Box
                         color="good"

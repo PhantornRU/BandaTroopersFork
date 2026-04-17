@@ -1,57 +1,13 @@
-import type {
-  ChoiceOption,
-  GeneratorCategory,
-  GeneratorEntry,
-  PlacementOption,
-  ShapeGlyphSpec,
-} from './types';
+import type { ChoiceOption, PlacementOption, ShapeGlyphSpec } from './types';
 
 export const EMPTY_LABEL = 'Не задано';
 export const NONE_LABEL = 'Не выбрано';
 export const WORKSPACE_GUTTER = 0.35;
 export const SMALL_CHOICE_DROPDOWN_THRESHOLD = 5;
 
-const TOOL_TAB_ORDER = [
-  'blueprint_stamp',
-  'outpost_radius',
-  'destruction_pack',
-];
-
-export const buildOrderedToolTabs = (categories: GeneratorCategory[] = []) => {
-  const entryById = new Map<string, GeneratorEntry>();
-
-  for (const category of categories || []) {
-    for (const generator of category.generators || []) {
-      entryById.set(generator.id, generator);
-    }
-  }
-
-  const ordered: GeneratorEntry[] = [];
-  for (const generatorId of TOOL_TAB_ORDER) {
-    const entry = entryById.get(generatorId);
-    if (entry) {
-      ordered.push(entry);
-      entryById.delete(generatorId);
-    }
-  }
-
-  const remaining = Array.from(entryById.values()).sort((a, b) =>
-    `${a.name_ru}`.localeCompare(`${b.name_ru}`),
-  );
-  ordered.push(...remaining);
-  return ordered;
-};
-
-export const TOOL_TITLE_LABELS: Record<string, string> = {
-  blueprint_stamp: 'Штамп по шаблону',
-  outpost_radius: 'Форпост',
-  destruction_pack: 'Разрушение зоны',
-};
-
-export const TOOL_PICKER_LABELS: Record<string, string> = {
-  blueprint_stamp: 'Шаблон',
-  outpost_radius: 'Форпост',
-  destruction_pack: 'Разрушение',
+export const EXECUTION_MODE_LABELS: Record<string, string> = {
+  batch: 'Пакетный',
+  click: 'По клику',
 };
 
 export const FIELD_LABELS: Record<string, string> = {

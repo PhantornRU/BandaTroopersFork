@@ -190,7 +190,7 @@ const getSurfaceColors = (tone?: SurfaceTone) => ({
 });
 
 const SurfaceCard = (props: {
-  readonly title: string;
+  readonly title?: ReactNode;
   readonly subtitle?: ReactNode;
   readonly tone?: SurfaceTone;
   readonly actions?: ReactNode;
@@ -199,6 +199,7 @@ const SurfaceCard = (props: {
 }) => {
   const { title, subtitle, tone, actions, children, mt } = props;
   const { borderColor, background } = getSurfaceColors(tone);
+  const hasHeader = !!title || !!subtitle || !!actions;
 
   return (
     <Box
@@ -210,17 +211,19 @@ const SurfaceCard = (props: {
         borderRadius: '4px',
       }}
     >
-      <Flex align="center" wrap mb={0.4}>
-        <Flex.Item grow basis="14rem">
-          <Box bold>{title}</Box>
-          {!!subtitle && (
-            <Box color="label" mt={0.1}>
-              {subtitle}
-            </Box>
-          )}
-        </Flex.Item>
-        {!!actions && <Flex.Item>{actions}</Flex.Item>}
-      </Flex>
+      {hasHeader && (
+        <Flex align="center" wrap mb={0.4}>
+          <Flex.Item grow basis="14rem">
+            {!!title && <Box bold>{title}</Box>}
+            {!!subtitle && (
+              <Box color="label" mt={title ? 0.1 : 0}>
+                {subtitle}
+              </Box>
+            )}
+          </Flex.Item>
+          {!!actions && <Flex.Item>{actions}</Flex.Item>}
+        </Flex>
+      )}
       {children}
     </Box>
   );

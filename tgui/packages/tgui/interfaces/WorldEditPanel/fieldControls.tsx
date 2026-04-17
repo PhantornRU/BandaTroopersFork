@@ -6,7 +6,4 @@ export {
   FieldEditor,
   FieldListCard,
 } from './fieldBlocks';
-export {
-  CompactChoiceStrip,
-  ShapeOptionStrip,
-} from './fieldRenderers';
+export { CompactChoiceStrip, ShapeOptionStrip } from './fieldRenderers';

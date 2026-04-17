@@ -240,10 +240,10 @@
 		return ""
 	return "[placement_anchor_turf.x],[placement_anchor_turf.y],[placement_anchor_turf.z]"
 
-/datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE)
+/datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE, clear_points = TRUE)
 	placement_click_active = FALSE
 	placement_anchor_turf = null
-	reset_placement_collector_state()
+	reset_placement_collector_state(clear_points)
 
 	if(reset_config)
 		placement_mode = resolve_supported_placement_mode() || "single"

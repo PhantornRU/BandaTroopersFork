@@ -43,9 +43,7 @@ const ToolbarControlColumn = (props: {
         width,
         minWidth: width,
         paddingLeft: separated ? CHROME_CONTROL_COLUMN_PADDING : '0',
-        borderLeft: separated
-          ? '1px solid rgba(70, 107, 150, 0.35)'
-          : 'none',
+        borderLeft: separated ? '1px solid rgba(70, 107, 150, 0.35)' : 'none',
         display: 'grid',
         rowGap: CHROME_PLACEMENT_SECTION_GAP,
         alignContent: 'start',
@@ -74,9 +72,7 @@ const ToolbarReadOnlyValue = (props: {
         minHeight: CHROME_CONTROL_BUTTON_HEIGHT,
         height: CHROME_CONTROL_BUTTON_HEIGHT,
         border: `1px solid ${
-          disabled
-            ? 'rgba(70, 107, 150, 0.25)'
-            : 'rgba(70, 107, 150, 0.45)'
+          disabled ? 'rgba(70, 107, 150, 0.25)' : 'rgba(70, 107, 150, 0.45)'
         }`,
         background: disabled
           ? 'rgba(70, 107, 150, 0.05)'

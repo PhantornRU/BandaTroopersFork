@@ -1,4 +1,11 @@
-import { Box, Button, Dropdown, Flex, Input, NumberInput } from '../../components';
+import {
+  Box,
+  Button,
+  Dropdown,
+  Flex,
+  Input,
+  NumberInput,
+} from '../../components';
 import {
   PLACEMENT_SHAPE_GLYPHS,
   SMALL_CHOICE_DROPDOWN_THRESHOLD,
@@ -10,12 +17,7 @@ import {
   getTranslatedShapeLabel,
   translateOptionLabel,
 } from './helpers';
-import type {
-  ActFn,
-  ChoiceOption,
-  PlacementOption,
-  UiField,
-} from './types';
+import type { ActFn, ChoiceOption, PlacementOption, UiField } from './types';
 
 type FieldChoiceOption = {
   value: string;

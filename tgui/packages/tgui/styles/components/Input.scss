@@ -73,3 +73,18 @@ $font-family: Verdana, sans-serif !default;
 .Input--monospace .Input__input {
   font-family: 'Consolas', monospace;
 }
+
+.Input.WorldEditPanel__compactInput {
+  line-height: base.em(15px);
+  padding: 0 base.em(4px);
+
+  .Input__baseline {
+    line-height: base.em(15px);
+  }
+
+  .Input__input {
+    line-height: base.em(15px);
+    height: base.em(15px);
+    padding: 0 base.em(6px);
+  }
+}

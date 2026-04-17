@@ -8,7 +8,9 @@ type HistoryMetrics = {
   bad: number;
 };
 
-const getHistoryMetrics = (historyEntries: HistoryEntry[] = []): HistoryMetrics =>
+const getHistoryMetrics = (
+  historyEntries: HistoryEntry[] = [],
+): HistoryMetrics =>
   historyEntries.reduce(
     (acc, entry) => {
       const tone = toneForHistoryResult(entry.result);

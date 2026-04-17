@@ -3,6 +3,7 @@ import {
   DAMAGE_PROFILE_LABELS,
   DIRECTION_LABELS,
   EMPTY_LABEL,
+  EXECUTION_MODE_LABELS,
   FIELD_LABELS,
   NONE_LABEL,
   OUTPOST_BARRICADE_PATTERN_LABELS,
@@ -14,10 +15,10 @@ import {
   PLACEMENT_SHAPE_LABELS,
   PLACEMENT_SHAPE_ORDER,
   SENTRY_LABELS,
-  TOOL_TITLE_LABELS,
   UNDO_POLICY_LABELS,
   UNDO_STATUS_LABELS,
 } from './constants';
+import { getToolTitleLabel } from './toolRegistry';
 import type { BackendData, PlacementOption, ToneKey, UiField } from './types';
 
 export const isBlankDisplayValue = (value?: unknown) => {
@@ -87,6 +88,11 @@ export const getTranslatedPlacementMode = (value?: unknown) => {
   return PLACEMENT_MODE_LABELS[key] || getDisplayText(value, NONE_LABEL);
 };
 
+export const getTranslatedExecutionMode = (value?: unknown) => {
+  const key = `${value ?? ''}`.trim().toLowerCase();
+  return EXECUTION_MODE_LABELS[key] || getDisplayText(value, NONE_LABEL);
+};
+
 export const getTranslatedUndoPolicy = (value?: string) => {
   const key = `${value ?? ''}`.trim().toLowerCase();
   return UNDO_POLICY_LABELS[key] || getDisplayText(value, EMPTY_LABEL);
@@ -97,8 +103,22 @@ export const getTranslatedUndoStatus = (value?: string) => {
   return UNDO_STATUS_LABELS[key] || getDisplayText(value, EMPTY_LABEL);
 };
 
-export const getTranslatedFieldLabel = (field: UiField) =>
-  FIELD_LABELS[field.id] || field.label;
+export const getTranslatedFieldLabel = (field: UiField) => {
+  switch (field.id) {
+    case 'shape_radius':
+      return 'Радиус формы';
+    case 'shape_radius_x':
+      return 'Горизонтальный радиус';
+    case 'shape_radius_y':
+      return 'Вертикальный радиус';
+    case 'shape_brush_radius':
+      return 'Ширина кисти';
+    case 'shape_scatter_radius':
+      return 'Радиус кластера';
+    default:
+      return FIELD_LABELS[field.id] || field.label;
+  }
+};
 
 export const translateOptionLabel = (
   fieldId: string,
@@ -177,8 +197,9 @@ export const getGeneratorDisplayName = (
   data: BackendData,
   generatorId?: string,
 ) => {
-  if (generatorId && TOOL_TITLE_LABELS[generatorId]) {
-    return TOOL_TITLE_LABELS[generatorId];
+  const titleLabel = getToolTitleLabel(generatorId);
+  if (titleLabel) {
+    return titleLabel;
   }
 
   for (const category of data.categories || []) {

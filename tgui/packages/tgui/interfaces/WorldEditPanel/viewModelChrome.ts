@@ -146,25 +146,44 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
 };
 
 const getSharedChromeFields = (data: BackendData) => {
+  const shapeFields = (data.placement_shape_fields || []).filter(
+    (field) => field.visible !== false && field.id !== 'radius',
+  );
+
   if (data.current_generator_id === 'blueprint_stamp') {
     return [
       ...getFieldsById(data.ui_fields, ['stamp_spacing']),
-      ...(data.placement_shape_fields || []).filter(
-        (field) => field.visible !== false,
-      ),
+      ...shapeFields,
     ];
   }
 
-  return (data.placement_shape_fields || []).filter(
-    (field) => field.visible !== false,
-  );
+  return shapeFields;
 };
 
 const getPlacementModeChoices = (data: BackendData): ChoiceOption[] => {
-  const options = (data.placement_mode_options || []).map((option) => ({
-    value: option.value,
-    displayText: getTranslatedPlacementMode(option.value || option.label),
-  }));
+  const options: ChoiceOption[] = [];
+  const seenValues = new Set<string>();
+
+  for (const option of data.placement_mode_options || []) {
+    const normalizedValue = `${option.value || option.label || ''}`
+      .trim()
+      .toLowerCase();
+
+    if (!['single', 'repeat'].includes(normalizedValue)) {
+      continue;
+    }
+
+    if (seenValues.has(normalizedValue)) {
+      continue;
+    }
+
+    seenValues.add(normalizedValue);
+    options.push({
+      value: normalizedValue,
+      displayText: getTranslatedPlacementMode(normalizedValue),
+    });
+  }
+
   return options.length ? options : DEFAULT_PLACEMENT_MODE_OPTIONS;
 };
 
@@ -246,14 +265,27 @@ const getSharedModeViewModel = (
     hasGenerator &&
     (data.current_generator_id === 'blueprint_stamp' ||
       (!!radiusField && radiusField.visible !== false));
-  const showShapeSection = !isHistoryTab && hasGenerator;
-  const showModeSection = !isHistoryTab && hasGenerator;
-  const showDirectionSection = !isHistoryTab && hasGenerator;
+  const showShapeSection =
+    !isHistoryTab &&
+    hasGenerator &&
+    data.placement_shape_supported &&
+    !!shapeOptions.length;
+  const showModeSection =
+    !isHistoryTab && hasGenerator && data.placement_supported;
+  const showDirectionSection =
+    !isHistoryTab && hasGenerator && !!directionOptions.length;
   const hasTopControls =
     showShapeSection ||
     showModeSection ||
     showDirectionSection ||
     showRadiusSection;
+  const selectedMode =
+    modeOptions.find(
+      (option) =>
+        option.value === `${data.placement_mode || ''}`.trim().toLowerCase(),
+    )?.value ||
+    modeOptions[0]?.value ||
+    'single';
 
   return {
     sharedFields,
@@ -261,10 +293,11 @@ const getSharedModeViewModel = (
     modeOptions,
     directionOptions,
     selectedShape: `${data.placement_shape || shapeOptions[0]?.value || 'point'}`,
-    selectedMode: `${data.placement_mode || modeOptions[0]?.value || 'single'}`,
-    selectedDirection: `${data.placement_dir || directionOptions[0]?.value || 'north'}`
-      .trim()
-      .toLowerCase(),
+    selectedMode,
+    selectedDirection:
+      `${data.placement_dir || directionOptions[0]?.value || 'north'}`
+        .trim()
+        .toLowerCase(),
     radiusField,
     activeBlueprint,
     showRadiusSection,

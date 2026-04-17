@@ -1,12 +1,11 @@
 import { Box, Button, Tabs } from '../../components';
 import { CenteredIcon } from './chromeBits';
-import { CHROME_ACTION_BUTTON_STYLE, CHROME_ICON_BUTTON_STYLE } from './chromeLayout';
-import { TOOL_PICKER_LABELS } from './constants';
-import type {
-  GeneratorEntry,
-  ToolbarAction,
-  WorkspaceTabKey,
-} from './types';
+import {
+  CHROME_ACTION_BUTTON_STYLE,
+  CHROME_ICON_BUTTON_STYLE,
+} from './chromeLayout';
+import { getToolPickerLabel } from './toolRegistry';
+import type { GeneratorEntry, ToolbarAction, WorkspaceTabKey } from './types';
 
 const ToolbarActionRow = (props: {
   readonly leadingAction?: ToolbarAction;
@@ -97,9 +96,7 @@ const ToolbarActionRow = (props: {
       onClick={onToggleConfirmBeforeApply}
       style={CHROME_ICON_BUTTON_STYLE}
     >
-      <CenteredIcon
-        name={confirmBeforeApply ? 'check-square-o' : 'square-o'}
-      />
+      <CenteredIcon name={confirmBeforeApply ? 'check-square-o' : 'square-o'} />
     </Button>
   );
 
@@ -114,7 +111,9 @@ const ToolbarActionRow = (props: {
         }}
       >
         {!!leadingAction && (
-          <Box style={{ flex: '0 0 auto' }}>{renderAction(leadingAction, true)}</Box>
+          <Box style={{ flex: '0 0 auto' }}>
+            {renderAction(leadingAction, true)}
+          </Box>
         )}
 
         {!!centerAction && (
@@ -126,7 +125,9 @@ const ToolbarActionRow = (props: {
         )}
 
         {!!trailingAction && (
-          <Box style={{ flex: '0 0 auto' }}>{renderAction(trailingAction, true)}</Box>
+          <Box style={{ flex: '0 0 auto' }}>
+            {renderAction(trailingAction, true)}
+          </Box>
         )}
 
         {!!undoAction && (
@@ -165,10 +166,12 @@ const NavigationTabs = (props: {
       {toolTabs.map((generator) => (
         <Tabs.Tab
           key={generator.id}
-          selected={workspaceTab === 'editor' && generator.id === activeGeneratorId}
+          selected={
+            workspaceTab === 'editor' && generator.id === activeGeneratorId
+          }
           onClick={() => onSelectGenerator(generator.id)}
         >
-          {TOOL_PICKER_LABELS[generator.id] || generator.name_ru}
+          {getToolPickerLabel(generator.id) || generator.name_ru}
         </Tabs.Tab>
       ))}
       <Tabs.Tab

@@ -203,8 +203,8 @@
 	TEST_ASSERT(length(blueprint["entries"]), "Blueprint export should contain at least one entry.")
 
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
-		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
-		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
 		"id" = blueprint["id"],
 		"name" = blueprint["name"],
 		"created_at" = blueprint["created_at"],
@@ -282,8 +282,8 @@
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_duplicate_relative_slots/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
-		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
-		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
 		"id" = "dupeslots001",
 		"name" = "Duplicate Slots",
 		"created_at" = "",
@@ -322,8 +322,8 @@
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_barricade_vars/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
-		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
-		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
 		"id" = "badvars00001",
 		"name" = "Invalid Vars",
 		"created_at" = "",
@@ -362,8 +362,8 @@
 
 	for(var/generator_id in GLOB.world_edit_registry.definitions_by_id)
 		var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.definitions_by_id[generator_id]
-		TEST_ASSERT(definition.status == WORLD_EDIT_STATUS_DRAFT || definition.status == WORLD_EDIT_STATUS_READY, "[generator_id] exposed an unsupported World Edit status [definition.status].")
-		if(definition.status != WORLD_EDIT_STATUS_READY)
+		TEST_ASSERT(definition.status == "draft" || definition.status == "ready", "[generator_id] exposed an unsupported World Edit status [definition.status].")
+		if(definition.status != "ready")
 			continue
 
 		seen_ready_ids += definition.id
@@ -419,6 +419,29 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_manager_state/reset_placement_runtime_clears_anchor_and_collector_points/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
+	var/center_y = round((run_loc_floor_bottom_left.y + run_loc_floor_top_right.y) / 2)
+	var/turf/center_turf = locate(center_x, center_y, run_loc_floor_bottom_left.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit placement reset test center turf was not resolved.")
+
+	manager.current_params = list(
+		"shape_points_origin" = "[center_turf.x],[center_turf.y],[center_turf.z]",
+		"shape_points_text" = "0,0;1,0;1,1",
+	)
+	manager.placement_anchor_turf = center_turf
+	manager.placement_click_active = TRUE
+
+	manager.reset_placement_runtime()
+
+	TEST_ASSERT(!manager.placement_click_active, "World Edit placement reset should stop click-mode state.")
+	TEST_ASSERT(isnull(manager.placement_anchor_turf), "World Edit placement reset should clear the active anchor turf.")
+	TEST_ASSERT(isnull(manager.current_params["shape_points_origin"]), "World Edit placement reset should clear collector origin runtime params.")
+	TEST_ASSERT(isnull(manager.current_params["shape_points_text"]), "World Edit placement reset should clear collector point runtime params.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_manager_ui_payload/live_payload_exposes_flat_contract/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
@@ -442,9 +465,51 @@
 	TEST_ASSERT(islist(data["ui_fields"]), "World Edit UI payload builder should expose normalized inline ui_fields.")
 	TEST_ASSERT(length(data["ui_fields"]), "World Edit UI payload builder should include at least one inline ui_field for a live generator.")
 	TEST_ASSERT("placement_supported" in data, "World Edit UI payload builder should include placement contract keys.")
+	TEST_ASSERT("current_generator_description" in data, "World Edit UI payload builder should expose generator description keys.")
+	TEST_ASSERT("current_generator_execution_mode" in data, "World Edit UI payload builder should expose execution mode keys.")
+	TEST_ASSERT("current_generator_required_rights" in data, "World Edit UI payload builder should expose rights summary keys.")
+	TEST_ASSERT("runtime_status" in data, "World Edit UI payload builder should expose runtime status keys.")
+	TEST_ASSERT("current_params_text" in data, "World Edit UI payload builder should expose params summary keys.")
+	TEST_ASSERT("requires_preview_before_apply" in data, "World Edit UI payload builder should expose preview requirement keys.")
+	TEST_ASSERT("placement_interaction_label" in data, "World Edit UI payload builder should expose placement interaction summary keys.")
+	TEST_ASSERT("placement_shape_rollout_stage" in data, "World Edit UI payload builder should expose placement rollout stage keys.")
+	TEST_ASSERT("placement_collector_summary" in data, "World Edit UI payload builder should expose collector summary keys.")
+	TEST_ASSERT("placement_anchor" in data, "World Edit UI payload builder should expose placement anchor keys.")
 	TEST_ASSERT("preset_entries" in data, "World Edit UI payload builder should include preset contract keys.")
 	TEST_ASSERT("blueprint_entries" in data, "World Edit UI payload builder should include blueprint contract keys.")
 	TEST_ASSERT("history_entries" in data, "World Edit UI payload builder should include history contract keys.")
 	TEST_ASSERT("can_run_preview" in data, "World Edit UI payload builder should include actionability contract keys.")
+	TEST_ASSERT("can_refresh_ui" in data, "World Edit UI payload builder should expose refresh availability keys.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_ui_payload/preset_flag_follows_ready_generator_support/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/outpost_definition = new
+	var/datum/world_edit_generator/outpost_radius/outpost_generator = allocate(/datum/world_edit_generator/outpost_radius)
+	outpost_generator.attach(manager, outpost_definition)
+
+	manager.current_definition = outpost_definition
+	manager.current_generator = outpost_generator
+	manager.current_params = outpost_definition.default_params?.Copy() || list()
+	manager.preset_cache_loaded = TRUE
+	manager.preset_entries_cache = list()
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list()
+	manager.apply_shared_placement_prefs_to_current_generator()
+
+	var/list/outpost_data = manager.build_ui_data_payload()
+	TEST_ASSERT(outpost_data["can_manage_presets"], "World Edit outpost generator should expose preset support in UI payload.")
+
+	var/datum/world_edit_generator_definition/blueprint_stamp/blueprint_definition = new
+	var/datum/world_edit_generator/blueprint_stamp/blueprint_generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	blueprint_generator.attach(manager, blueprint_definition)
+	manager.current_definition = blueprint_definition
+	manager.current_generator = blueprint_generator
+	manager.current_params = blueprint_definition.default_params?.Copy() || list()
+	manager.apply_shared_placement_prefs_to_current_generator()
+
+	var/list/blueprint_data = manager.build_ui_data_payload()
+	TEST_ASSERT(!blueprint_data["can_manage_presets"], "Blueprint stamp should not expose preset support outside the ready preset scope.")
 
 	qdel(manager)

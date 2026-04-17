@@ -1,6 +1,8 @@
 import type { BackendData, HistoryEntry, UiField } from './types';
 import {
   buildWorldEditViewModel,
+  filterAndSortBlueprintEntries,
+  getBlueprintActionState,
   getDestructionPreviewLegendItems,
   getDestructionWorkspaceViewModel,
   getHistoryMetrics,
@@ -8,7 +10,9 @@ import {
   getToolbarActions,
 } from './viewModel';
 
-const makeField = (overrides: Partial<UiField> & Pick<UiField, 'id'>): UiField => ({
+const makeField = (
+  overrides: Partial<UiField> & Pick<UiField, 'id'>,
+): UiField => ({
   id: overrides.id,
   label: overrides.label || overrides.id,
   kind: overrides.kind || 'boolean',
@@ -26,9 +30,7 @@ const makeField = (overrides: Partial<UiField> & Pick<UiField, 'id'>): UiField =
   validate_hint: overrides.validate_hint,
 });
 
-const makeHistoryEntry = (
-  overrides: Partial<HistoryEntry>,
-): HistoryEntry => ({
+const makeHistoryEntry = (overrides: Partial<HistoryEntry>): HistoryEntry => ({
   time: overrides.time || '12:00',
   generator_id: overrides.generator_id || 'blueprint_stamp',
   result: overrides.result || 'success',
@@ -127,7 +129,7 @@ describe('WorldEditPanel view model', () => {
           generators: [
             {
               id: 'destruction_pack',
-              name_ru: 'Разрушение',
+              name_ru: 'Р Р°Р·СЂСѓС€РµРЅРёРµ',
               description_ru: '',
               execution_mode: '',
               required_rights: '',
@@ -202,8 +204,176 @@ describe('WorldEditPanel view model', () => {
     expect(model.shapeOptions).toEqual([{ value: 'line', label: 'line' }]);
     expect(model.selectedDirection).toBe('west');
     expect(model.showRadiusSection).toBe(true);
-    expect(model.sharedFields.map((field) => field.id)).toContain('stamp_spacing');
+    expect(model.sharedFields.map((field) => field.id)).toContain(
+      'stamp_spacing',
+    );
     expect(model.activeBlueprint?.radius).toBe(7);
+  });
+
+  it('keeps top radius unique and makes shape radius labels explicit', () => {
+    const { getTranslatedFieldLabel } = require('./helpers');
+    const model = getSharedModeViewModel(
+      makeData({
+        current_generator_id: 'outpost_radius',
+        ui_fields: [
+          makeField({
+            id: 'radius',
+            kind: 'number',
+            value: 5,
+          }),
+        ],
+        placement_shape_fields: [
+          makeField({
+            id: 'radius',
+            kind: 'number',
+            value: 5,
+          }),
+          makeField({
+            id: 'shape_radius',
+            kind: 'number',
+            value: 3,
+          }),
+          makeField({
+            id: 'shape_radius_x',
+            kind: 'number',
+            value: 4,
+          }),
+          makeField({
+            id: 'shape_radius_y',
+            kind: 'number',
+            value: 2,
+          }),
+        ],
+      }),
+      'editor',
+    );
+
+    expect(model.showRadiusSection).toBe(true);
+    expect(model.sharedFields.map((field) => field.id)).toEqual([
+      'shape_radius',
+      'shape_radius_x',
+      'shape_radius_y',
+    ]);
+    expect(
+      model.sharedFields.map((field) => getTranslatedFieldLabel(field)),
+    ).toEqual(['Радиус формы', 'Горизонтальный радиус', 'Вертикальный радиус']);
+  });
+
+  it('keeps direction chrome visible but disabled-ready for unsupported tools', () => {
+    const data = makeData({
+      current_generator_id: 'destruction_pack',
+      placement_supported: false,
+      placement_shape_supported: false,
+      placement_supports_direction: false,
+    });
+
+    const shared = getSharedModeViewModel(data, 'editor');
+
+    expect(shared.showShapeSection).toBe(false);
+    expect(shared.showModeSection).toBe(false);
+    expect(shared.showDirectionSection).toBe(true);
+    expect(shared.hasTopControls).toBe(true);
+  });
+
+  it('falls back to valid placement mode choices when backend sends garbage', () => {
+    const shared = getSharedModeViewModel(
+      makeData({
+        current_generator_id: 'destruction_pack',
+        placement_supported: true,
+        placement_mode: '0',
+        placement_mode_options: [
+          {
+            value: '0',
+            label: '0',
+          },
+        ],
+      }),
+      'editor',
+    );
+
+    expect(shared.modeOptions).toEqual([
+      {
+        value: 'single',
+        displayText: 'Один раз',
+      },
+      {
+        value: 'repeat',
+        displayText: 'Повторять',
+      },
+    ]);
+    expect(shared.selectedMode).toBe('single');
+  });
+
+  it('sorts blueprint entries by activity and tracks activation state', () => {
+    const data = makeData({
+      active_blueprint_id: 'bp-2',
+      preview_valid: true,
+      can_run_apply: true,
+      blueprint_entries: [
+        {
+          id: 'bp-1',
+          name: 'Alpha',
+          entry_count: 4,
+          radius: 3,
+          created_at: '2026-04-10',
+          created_by: '',
+          source: '',
+          valid: true,
+          error: '',
+        },
+        {
+          id: 'bp-2',
+          name: 'Bravo',
+          entry_count: 2,
+          radius: 2,
+          created_at: '2026-04-12',
+          created_by: '',
+          source: '',
+          valid: true,
+          error: '',
+        },
+        {
+          id: 'bp-3',
+          name: 'Corrupt',
+          entry_count: 9,
+          radius: 6,
+          created_at: '2026-04-11',
+          created_by: '',
+          source: '',
+          valid: false,
+          error: 'broken',
+        },
+      ],
+    });
+
+    const sorted = filterAndSortBlueprintEntries(
+      data,
+      data.blueprint_entries,
+      'all',
+      'activity',
+    );
+    const activeState = getBlueprintActionState(data, sorted[0]);
+    const inactiveState = getBlueprintActionState(data, sorted[1]);
+    const invalidState = getBlueprintActionState(data, sorted[2]);
+
+    expect(sorted.map((entry) => entry.id)).toEqual(['bp-2', 'bp-1', 'bp-3']);
+    expect(activeState).toMatchObject({
+      isActive: true,
+      canLoad: false,
+      canPreview: true,
+      canApply: true,
+    });
+    expect(inactiveState).toMatchObject({
+      isActive: false,
+      canLoad: true,
+      canPreview: true,
+      canApply: false,
+    });
+    expect(invalidState).toMatchObject({
+      canLoad: false,
+      canPreview: false,
+      canApply: false,
+    });
   });
 
   it('uses preview meta to derive destruction legend state', () => {
@@ -251,7 +421,11 @@ describe('WorldEditPanel view model', () => {
             visible: false,
           }),
           makeField({ id: 'persistent_fire_enabled', value: false }),
-          makeField({ id: 'persistent_fire_density', kind: 'number', value: 10 }),
+          makeField({
+            id: 'persistent_fire_density',
+            kind: 'number',
+            value: 10,
+          }),
           makeField({ id: 'blast_enabled', value: false }),
           makeField({ id: 'blast_power', kind: 'number', value: 100 }),
           makeField({ id: 'blast_falloff', kind: 'number', value: 200 }),
@@ -265,11 +439,9 @@ describe('WorldEditPanel view model', () => {
     );
 
     expect(model.areaFields.map((field) => field.id)).toEqual(['safe']);
-    expect(model.movementFields.visibleMovementFields.map((field) => field.id)).toEqual([
-      'shuffle_enabled',
-      'scatter_enabled',
-      'max_atoms',
-    ]);
+    expect(
+      model.movementFields.visibleMovementFields.map((field) => field.id),
+    ).toEqual(['shuffle_enabled', 'scatter_enabled', 'max_atoms']);
     expect(model.movementFields.scatterStepsField).toBeUndefined();
   });
 

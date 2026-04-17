@@ -1,4 +1,12 @@
-export { getBlueprintLibraryMetaText } from './viewModelBlueprint';
+export type {
+  BlueprintFilterMode,
+  BlueprintSortMode,
+} from './viewModelBlueprint';
+export {
+  filterAndSortBlueprintEntries,
+  getBlueprintActionState,
+  getBlueprintLibraryMetaText,
+} from './viewModelBlueprint';
 export type {
   EditorChromeViewModel,
   SharedModeViewModel,
@@ -26,4 +34,8 @@ export {
 export type { HistoryMetrics } from './viewModelHistory';
 export { getHistoryMetrics } from './viewModelHistory';
 export type { WorldEditViewModel } from './viewModelPage';
-export { buildGroupedFields, buildWorldEditViewModel, getGroupNames } from './viewModelPage';
+export {
+  buildGroupedFields,
+  buildWorldEditViewModel,
+  getGroupNames,
+} from './viewModelPage';
