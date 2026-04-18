@@ -1,19 +1,3 @@
-#define WORLD_EDIT_SHAPE_POINT "point"
-#define WORLD_EDIT_SHAPE_LINE "line"
-#define WORLD_EDIT_SHAPE_RECTANGLE "rectangle"
-#define WORLD_EDIT_SHAPE_FILLED_RECTANGLE "filled_rectangle"
-#define WORLD_EDIT_SHAPE_CIRCLE "circle"
-#define WORLD_EDIT_SHAPE_RING "ring"
-#define WORLD_EDIT_SHAPE_ELLIPSE "ellipse"
-#define WORLD_EDIT_SHAPE_DIAMOND "diamond"
-#define WORLD_EDIT_SHAPE_TRIANGLE "triangle"
-#define WORLD_EDIT_SHAPE_SECTOR "sector"
-#define WORLD_EDIT_SHAPE_POLYGON "polygon"
-#define WORLD_EDIT_SHAPE_POLYLINE "polyline"
-#define WORLD_EDIT_SHAPE_CUSTOM_MASK "custom_mask"
-#define WORLD_EDIT_SHAPE_BRUSH_PATH "brush_path"
-#define WORLD_EDIT_SHAPE_SCATTER_CLUSTER "scatter_cluster"
-
 #define WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS 60
 #define WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS 60
 
@@ -21,7 +5,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 
 /datum/world_edit_placement_shape_service
 
-/datum/world_edit_placement_shape_service/proc/world_edit_get_supported_shape_ids()
+/datum/world_edit_placement_shape_service/proc/world_edit_get_supported_shape_ids() as /list
 	return list(
 		WORLD_EDIT_SHAPE_POINT,
 		WORLD_EDIT_SHAPE_LINE,

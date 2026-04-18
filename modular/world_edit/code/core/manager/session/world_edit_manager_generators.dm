@@ -82,9 +82,7 @@
 	current_generator = new definition.generator_type()
 	current_generator.attach(src, definition)
 	current_params = definition.default_params?.Copy() || list()
-	reset_placement_runtime(TRUE)
-	restore_generator_context(definition.id)
-	apply_shared_placement_prefs_to_current_generator()
+	restore_generator_session_state(definition.id)
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_current_generator()
@@ -93,3 +91,11 @@
 		clear_generator_context(current_generator_id)
 	reset_generator_runtime()
 	detach_current_generator()
+
+/datum/world_edit_manager/proc/restore_generator_session_state(generator_id = null)
+	reset_placement_runtime(TRUE)
+	var/restored_context = FALSE
+	if(length("[generator_id]"))
+		restored_context = restore_generator_context(generator_id)
+	sync_shared_placement_prefs()
+	return restored_context

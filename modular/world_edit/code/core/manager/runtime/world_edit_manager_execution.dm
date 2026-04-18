@@ -21,7 +21,11 @@
 	if(!istype(result))
 		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
 
-	if(length(result.preview_images))
+	var/rendered_with_placement_layers = FALSE
+	if(result.success)
+		rendered_with_placement_layers = render_plan_preview_with_placement_layers(user, current_generator.current_plan, effective_params)
+
+	if(!rendered_with_placement_layers && length(result.preview_images))
 		holder.images += result.preview_images
 		preview_images = result.preview_images.Copy()
 

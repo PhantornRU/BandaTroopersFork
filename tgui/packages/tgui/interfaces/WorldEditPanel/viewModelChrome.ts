@@ -1,6 +1,5 @@
 import {
   DEFAULT_DIRECTION_OPTIONS,
-  DEFAULT_PLACEMENT_MODE_OPTIONS,
   DEFAULT_POINT_SHAPE_OPTION,
   RADIUS_POLICY_FIELD_IDS,
 } from './constants';
@@ -10,6 +9,7 @@ import {
   getSelectedBlueprint,
   getTranslatedDirection,
   getTranslatedPlacementMode,
+  getTranslatedPlacementModeTooltip,
   isBlueprintToolBlocked,
 } from './helpers';
 import type {
@@ -50,6 +50,33 @@ type SharedModeViewModel = {
   hasTopControls: boolean;
 };
 
+const getDisabledBlueprintRadiusToggleFields = (): UiField[] => [
+  {
+    id: 'radius_only_clear_tiles',
+    label: 'Только чистые клетки',
+    kind: 'boolean',
+    value: true,
+    description: 'Недоступно для шаблонов.',
+    disabled: true,
+  },
+  {
+    id: 'radius_only_reachable_tiles',
+    label: 'Только достижимые клетки',
+    kind: 'boolean',
+    value: false,
+    description: 'Недоступно для шаблонов.',
+    disabled: true,
+  },
+  {
+    id: 'radius_windows_blockers',
+    label: 'Окна как блокираторы',
+    kind: 'boolean',
+    value: true,
+    description: 'Недоступно для шаблонов.',
+    disabled: true,
+  },
+];
+
 const getToolbarActions = (data: BackendData): ToolbarActions => {
   if (!data.has_generator) {
     return {};
@@ -71,7 +98,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview
       ? {
-          label: 'Предпросмотр',
+          label: 'Просм.',
+          tooltip: 'Показать предпросмотр',
           action: 'run_preview',
           color: 'average',
           disabled: !canPreview,
@@ -82,10 +110,14 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     previewAction.action = hasVisiblePreview ? 'clear_preview' : 'run_preview';
     previewAction.color = hasVisiblePreview ? 'good' : 'average';
     previewAction.disabled = hasVisiblePreview ? false : !canPreview;
+    previewAction.tooltip = hasVisiblePreview
+      ? 'Скрыть предпросмотр'
+      : 'Показать предпросмотр';
   }
 
   const applyAction: ToolbarAction = {
-    label: 'Применить',
+    label: 'Прим.',
+    tooltip: 'Применить сразу',
     action: 'run_apply',
     color: 'good',
     disabled: !canApply,
@@ -95,7 +127,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
 
   const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
     ? {
-        label: 'Разместить',
+        label: 'Разм.',
+        tooltip: 'Запустить размещение',
         action: 'start_placement_mode',
         color: 'good',
         disabled: !canStartPlacement,
@@ -105,7 +138,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const placePreviewAction: ToolbarAction | undefined =
     hasPlacementControls && hasVisiblePreview
       ? {
-          label: 'Разместить',
+          label: 'Разм.',
+          tooltip: 'Применить текущее превью',
           action: 'run_apply',
           color: 'good',
           disabled: !canApply,
@@ -113,7 +147,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
       : undefined;
 
   const stopPlacementAction: ToolbarAction = {
-    label: 'Остановить размещение',
+    label: 'Стоп',
+    tooltip: 'Остановить режим размещения',
     action: 'stop_click_mode',
     color: 'average',
     disabled: !data.can_stop_click_mode,
@@ -122,7 +157,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const collectorAction: ToolbarAction | undefined =
     data.placement_active && data.placement_interaction_kind === 'collector'
       ? {
-          label: 'Завершить сбор',
+          label: 'Готово',
+          tooltip: 'Завершить сбор точек',
           action: 'finish_placement_collection',
           color: 'good',
           disabled: !data.can_finish_placement_collection,
@@ -130,7 +166,8 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
       : undefined;
 
   const undoAction: ToolbarAction = {
-    label: 'Откатить последнее',
+    label: 'Откат',
+    tooltip: 'Откатить последнее действие',
     action: 'undo_last_operation',
     color: 'average',
     disabled: !data.can_undo_last_operation,
@@ -186,10 +223,24 @@ const getPlacementModeChoices = (data: BackendData): ChoiceOption[] => {
     options.push({
       value: normalizedValue,
       displayText: getTranslatedPlacementMode(normalizedValue),
+      tooltip: getTranslatedPlacementModeTooltip(normalizedValue),
     });
   }
 
-  return options.length ? options : DEFAULT_PLACEMENT_MODE_OPTIONS;
+  return options.length
+    ? options
+    : [
+        {
+          value: 'single',
+          displayText: getTranslatedPlacementMode('single'),
+          tooltip: getTranslatedPlacementModeTooltip('single'),
+        },
+        {
+          value: 'repeat',
+          displayText: getTranslatedPlacementMode('repeat'),
+          tooltip: getTranslatedPlacementModeTooltip('repeat'),
+        },
+      ];
 };
 
 const getPlacementShapeOptionsForShell = (
@@ -260,10 +311,12 @@ const getSharedModeViewModel = (
     (field) => field.visible !== false,
   );
   const radiusField = getField(data.ui_fields, 'radius');
-  const radiusToggleFields = getFieldsById(
-    data.ui_fields,
-    RADIUS_POLICY_FIELD_IDS,
-  ).filter((field) => field.visible !== false);
+  const radiusToggleFields =
+    data.current_generator_id === 'blueprint_stamp'
+      ? getDisabledBlueprintRadiusToggleFields()
+      : getFieldsById(data.ui_fields, RADIUS_POLICY_FIELD_IDS).filter(
+          (field) => field.visible !== false,
+        );
   const activeBlueprint =
     data.current_generator_id === 'blueprint_stamp'
       ? getSelectedBlueprint(data)

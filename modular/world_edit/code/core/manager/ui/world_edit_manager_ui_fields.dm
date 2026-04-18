@@ -138,7 +138,7 @@
 		return candidates
 
 	candidates += normalized_id
-	for(var/separator in list(".", ":", " ", "\t", "\n", "\r", "[", "(", "{"))
+	for(var/separator in list(".", ":", " ", "\t", "\n", ascii2text(13), "\[", "(", "{"))
 		var/split_index = findtext(normalized_id, "[separator]")
 		if(split_index <= 1)
 			continue

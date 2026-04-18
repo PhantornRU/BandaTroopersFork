@@ -173,7 +173,7 @@ describe('WorldEditPanel view model', () => {
     expect(actions.applyAction).toBeUndefined();
     expect(actions.placementAction).toMatchObject({
       action: 'run_apply',
-      label: 'Разместить',
+      label: 'Разм.',
     });
   });
 
@@ -212,6 +212,14 @@ describe('WorldEditPanel view model', () => {
       'stamp_spacing',
     );
     expect(model.activeBlueprint?.radius).toBe(7);
+    expect(model.radiusToggleFields.map((field) => field.id)).toEqual([
+      'radius_only_clear_tiles',
+      'radius_only_reachable_tiles',
+      'radius_windows_blockers',
+    ]);
+    expect(model.radiusToggleFields.every((field) => field.disabled)).toBe(
+      true,
+    );
   });
 
   it('keeps top radius unique and makes shape radius labels explicit', () => {
@@ -400,11 +408,13 @@ describe('WorldEditPanel view model', () => {
     expect(shared.modeOptions).toEqual([
       {
         value: 'single',
-        displayText: 'Один раз',
+        displayText: '1 раз',
+        tooltip: 'Один раз',
       },
       {
         value: 'repeat',
-        displayText: 'Повторять',
+        displayText: 'Повт.',
+        tooltip: 'Повторять',
       },
     ]);
     expect(shared.selectedMode).toBe('single');

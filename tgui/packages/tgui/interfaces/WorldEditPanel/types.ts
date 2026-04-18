@@ -187,6 +187,7 @@ export type SurfaceTone = 'default' | 'good' | 'average' | 'bad';
 export type ChoiceOption = {
   value: string;
   displayText: string;
+  tooltip?: string;
 };
 
 export type ShapeGlyphSpec = {
@@ -198,6 +199,7 @@ export type ToneKey = SurfaceTone | 'label';
 
 export type ToolbarAction = {
   label: string;
+  tooltip?: string;
   action: string;
   color?: 'good' | 'average' | 'bad';
   disabled?: boolean;

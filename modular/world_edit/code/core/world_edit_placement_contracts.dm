@@ -90,6 +90,7 @@
 	var/turf/collector_origin_turf
 	var/list/collector_points = list()
 	var/datum/world_edit_placement_candidate/preview_candidate
+	var/preview_locked = FALSE
 	var/active_shape = null
 	var/active_mode = null
 
@@ -105,7 +106,8 @@
 	shape_contract.interaction_kind = GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_contract.shape_id)
 	shape_contract.preview_kind = GLOB.world_edit_shape_catalog.get_shape_preview_kind(shape_contract.shape_id)
 	shape_contract.anchor_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(anchor_turfs)
-	var/list/shape_metadata = islist(placement_context) && islist(placement_context["shape_metadata"]) ? placement_context["shape_metadata"].Copy() : list()
+	var/list/source_shape_metadata = islist(placement_context) ? placement_context["shape_metadata"] : null
+	var/list/shape_metadata = islist(source_shape_metadata) ? source_shape_metadata.Copy() : list()
 	shape_contract.metadata = shape_metadata
 	shape_contract.is_closed = GLOB.world_edit_helpers.parse_bool(shape_metadata["is_closed"])
 	shape_contract.is_filled = GLOB.world_edit_helpers.parse_bool(shape_metadata["is_filled"])

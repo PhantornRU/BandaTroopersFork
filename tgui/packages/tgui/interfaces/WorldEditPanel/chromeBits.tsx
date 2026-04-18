@@ -211,6 +211,7 @@ const CompactStackedChoiceButtons = (props: {
           selected={isSelected}
           color={isSelected ? 'good' : undefined}
           disabled={props.disabled}
+          tooltip={option.tooltip || option.displayText}
           onClick={() => props.onSelected(option.value)}
           style={CHROME_CONTROL_BUTTON_STYLE}
         >

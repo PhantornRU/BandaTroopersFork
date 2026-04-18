@@ -85,7 +85,26 @@ export const getTranslatedShapeLabel = (value?: unknown) => {
 
 export const getTranslatedPlacementMode = (value?: unknown) => {
   const key = `${value ?? ''}`.trim().toLowerCase();
-  return PLACEMENT_MODE_LABELS[key] || getDisplayText(value, NONE_LABEL);
+  switch (key) {
+    case 'single':
+      return '1 раз';
+    case 'repeat':
+      return 'Повт.';
+    default:
+      return PLACEMENT_MODE_LABELS[key] || getDisplayText(value, NONE_LABEL);
+  }
+};
+
+export const getTranslatedPlacementModeTooltip = (value?: unknown) => {
+  const key = `${value ?? ''}`.trim().toLowerCase();
+  switch (key) {
+    case 'single':
+      return 'Один раз';
+    case 'repeat':
+      return 'Повторять';
+    default:
+      return getTranslatedPlacementMode(value);
+  }
 };
 
 export const getTranslatedExecutionMode = (value?: unknown) => {
@@ -134,6 +153,30 @@ export const getTranslatedFieldLabel = (field: UiField) => {
       return 'Радиус кластера';
     default:
       return FIELD_LABELS[field.id] || field.label;
+  }
+};
+
+export const getTranslatedFieldDescription = (field?: UiField) => {
+  const description = `${field?.description || ''}`.trim();
+  if (!description) {
+    return '';
+  }
+
+  switch (description) {
+    case 'Perimeter offset skips dense tile centers. The selected footprint itself still stays valid.':
+      return 'Смещение периметра пропускает плотные тайлы. Выбранный контур остаётся допустимым.';
+    case 'Perimeter and sentry candidates must stay reachable through adjacent clear tiles from the selected footprint.':
+      return 'Периметр и турели остаются только на клетках, достижимых по соседним свободным тайлам от выбранного контура.';
+    case 'Counts windows as blockers while evaluating clear/reachable perimeter expansion.':
+      return 'Окна считаются препятствиями при проверке чистых и достижимых клеток.';
+    case 'Radius expansion skips dense tile centers. The selected footprint stays valid even when it starts on blocked tiles.':
+      return 'Радиус пропускает плотные тайлы. Выбранный контур остаётся допустимым, даже если стартует на занятой клетке.';
+    case 'Radius expansion keeps only tiles reachable through adjacent clear tiles from the selected footprint.':
+      return 'В радиусе остаются только клетки, достижимые по соседним свободным тайлам от выбранного контура.';
+    case 'Counts windows as blockers for clear/reachable radius filtering.':
+      return 'Окна считаются препятствиями при фильтрации чистых и достижимых клеток.';
+    default:
+      return description;
   }
 };
 

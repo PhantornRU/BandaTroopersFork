@@ -62,9 +62,9 @@ export const RADIUS_POLICY_FIELD_IDS = [
 ];
 
 export const RADIUS_POLICY_SHORT_LABELS: Record<string, string> = {
-  radius_only_clear_tiles: 'Clear',
-  radius_only_reachable_tiles: 'Reach',
-  radius_windows_blockers: 'Wnd',
+  radius_only_clear_tiles: 'Чист.',
+  radius_only_reachable_tiles: 'Дост.',
+  radius_windows_blockers: 'Окна',
 };
 
 export const PLACEMENT_MODE_LABELS: Record<string, string> = {

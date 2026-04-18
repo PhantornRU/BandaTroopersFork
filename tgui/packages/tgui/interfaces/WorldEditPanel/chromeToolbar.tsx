@@ -49,7 +49,7 @@ const ToolbarActionRow = (props: {
         color={action.color}
         disabled={actionsDisabled || action.disabled}
         selected={action.action === 'clear_preview'}
-        tooltip={compact ? action.label : undefined}
+        tooltip={compact ? action.tooltip || action.label : undefined}
         onClick={() => onRunAction(action)}
         style={{
           ...CHROME_ACTION_BUTTON_STYLE,
@@ -76,7 +76,7 @@ const ToolbarActionRow = (props: {
         verticalAlignContent="middle"
         color={action.color}
         disabled={actionsDisabled || action.disabled}
-        tooltip={action.label}
+        tooltip={action.tooltip || action.label}
         onClick={() => onRunAction(action)}
         style={CHROME_ICON_BUTTON_STYLE}
       >

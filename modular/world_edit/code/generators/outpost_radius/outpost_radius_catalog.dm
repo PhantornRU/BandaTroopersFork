@@ -67,77 +67,77 @@
 /datum/world_edit_generator/outpost_radius/proc/build_opening_width_options()
 	return list(
 		list(
-			"label" = "Profile Default",
+			"label" = "По профилю",
 			"value" = "profile",
-			"description" = "Use the width baked into the selected layout variant.",
+			"description" = "Использовать ширину, заданную выбранным вариантом схемы.",
 		),
 		list(
-			"label" = "Single Tile",
+			"label" = "1 клетка",
 			"value" = "narrow",
-			"description" = "Keep each passage one tile wide.",
+			"description" = "Оставлять каждый проход шириной в одну клетку.",
 		),
 		list(
-			"label" = "Two Tiles",
+			"label" = "2 клетки",
 			"value" = "double",
-			"description" = "Leave a two-tile passage on each selected side.",
+			"description" = "Оставлять проход шириной в две клетки на каждой выбранной стороне.",
 		),
 		list(
-			"label" = "Three Tiles",
+			"label" = "3 клетки",
 			"value" = "wide",
-			"description" = "Leave a three-tile passage on each selected side.",
+			"description" = "Оставлять проход шириной в три клетки на каждой выбранной стороне.",
 		),
 		list(
-			"label" = "Four Tiles",
+			"label" = "4 клетки",
 			"value" = "quad",
-			"description" = "Leave a four-tile passage on each selected side.",
+			"description" = "Оставлять проход шириной в четыре клетки на каждой выбранной стороне.",
 		),
 		list(
-			"label" = "Five Tiles",
+			"label" = "5 клеток",
 			"value" = "broad",
-			"description" = "Leave a five-tile passage for wider movement corridors.",
+			"description" = "Оставлять проход шириной в пять клеток для более широкого движения.",
 		),
 	)
 
 /datum/world_edit_generator/outpost_radius/proc/build_guard_mode_options()
 	return list(
 		list(
-			"label" = "By Layout",
+			"label" = "По схеме",
 			"value" = "layout",
-			"description" = "Use the guard directions recommended by the layout variant.",
+			"description" = "Использовать направления охраны, заданные вариантом схемы.",
 		),
 		list(
-			"label" = "By Passages",
+			"label" = "По проходам",
 			"value" = "openings",
-			"description" = "Only guard the currently open passages.",
+			"description" = "Охранять только текущие открытые проходы.",
 		),
 		list(
-			"label" = "All Sides",
+			"label" = "Все стороны",
 			"value" = "all_sides",
-			"description" = "Attempt to place guards for all four cardinal approaches.",
+			"description" = "Пытаться поставить охрану на все четыре стороны света.",
 		),
 	)
 
 /datum/world_edit_generator/outpost_radius/proc/build_barricade_pattern_options()
 	return list(
 		list(
-			"label" = "Profile Default",
+			"label" = "По профилю",
 			"value" = "profile",
-			"description" = "Use the barricade rhythm recommended by the selected family.",
+			"description" = "Использовать схему баррикад, рекомендованную выбранным профилем.",
 		),
 		list(
-			"label" = "Uniform",
+			"label" = "Единый",
 			"value" = "uniform",
-			"description" = "Keep one barricade type across the whole perimeter.",
+			"description" = "Использовать один тип баррикад по всему периметру.",
 		),
 		list(
-			"label" = "Alternating",
+			"label" = "Чередование",
 			"value" = "cycle",
-			"description" = "Rotate through the family mix every slot.",
+			"description" = "Чередовать материалы профиля в каждом слоте.",
 		),
 		list(
-			"label" = "Paired",
+			"label" = "Парами",
 			"value" = "paired",
-			"description" = "Use the family mix in wider paired segments for a calmer look.",
+			"description" = "Использовать материалы профиля более широкими парными сегментами.",
 		),
 	)
 
@@ -274,7 +274,7 @@
 
 /datum/world_edit_generator/outpost_radius/proc/format_opening_dirs(list/opening_dirs)
 	if(!islist(opening_dirs) || !length(opening_dirs))
-		return "none"
+		return "нет"
 
 	var/list/labels = list()
 	for(var/dir_value as anything in opening_dirs)

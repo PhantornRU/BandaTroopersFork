@@ -1,5 +1,4 @@
 import { Box, Collapsible, Flex } from '../../components';
-import { RADIUS_POLICY_SHORT_LABELS } from './constants';
 import {
   CompactStackedChoiceButtons,
   CompactToggleButton,
@@ -17,11 +16,16 @@ import {
   CHROME_SHAPE_GRID_COLUMNS,
   CHROME_SQUARE_BUTTON_SIZE,
 } from './chromeLayout';
+import { RADIUS_POLICY_SHORT_LABELS } from './constants';
 import {
   CompactFieldControl,
   FieldControl,
   ShapeOptionStrip,
 } from './fieldControls';
+import {
+  getTranslatedFieldDescription,
+  getTranslatedFieldLabel,
+} from './helpers';
 import type { ActFn, BackendData, WorkspaceTabKey } from './types';
 import { getSharedModeViewModel } from './viewModel';
 
@@ -121,7 +125,8 @@ const SharedModePanel = (props: {
                   >
                     <CompactToggleButton
                       checked={!!data.placement_dir_uses_facing}
-                      label="По взгляду"
+                      label="Взгляд"
+                      tooltip="Использовать направление взгляда"
                       disabled={!data.placement_supports_direction}
                       onClick={() =>
                         act('set_placement_dir_uses_facing', {
@@ -150,29 +155,30 @@ const SharedModePanel = (props: {
                   width={CHROME_RADIUS_COLUMN_WIDTH}
                   separated
                 >
-                  {data.current_generator_id === 'blueprint_stamp' ? (
-                    <ToolbarReadOnlyValue
-                      value={
-                        viewModel.activeBlueprint
-                          ? `${viewModel.activeBlueprint.radius ?? 0}`
-                          : '—'
-                      }
-                      disabled={
-                        !viewModel.activeBlueprint ||
-                        !viewModel.activeBlueprint.valid
-                      }
-                    />
-                  ) : (viewModel.radiusField &&
-                      viewModel.radiusField.visible !== false) ||
-                    viewModel.radiusToggleFields.length ? (
+                  {data.current_generator_id === 'blueprint_stamp' ||
+                  (viewModel.radiusField &&
+                    viewModel.radiusField.visible !== false) ||
+                  viewModel.radiusToggleFields.length ? (
                     <Box
                       style={{
                         display: 'grid',
                         rowGap: '0.18rem',
                       }}
                     >
-                      {viewModel.radiusField &&
-                      viewModel.radiusField.visible !== false ? (
+                      {data.current_generator_id === 'blueprint_stamp' ? (
+                        <ToolbarReadOnlyValue
+                          value={
+                            viewModel.activeBlueprint
+                              ? `${viewModel.activeBlueprint.radius ?? 0}`
+                              : '—'
+                          }
+                          disabled={
+                            !viewModel.activeBlueprint ||
+                            !viewModel.activeBlueprint.valid
+                          }
+                        />
+                      ) : viewModel.radiusField &&
+                        viewModel.radiusField.visible !== false ? (
                         <FieldControl
                           key={`${sharedFieldContextKey}:radius:${viewModel.radiusField.id}:${viewModel.radiusField.label || ''}`}
                           field={viewModel.radiusField}
@@ -185,10 +191,12 @@ const SharedModePanel = (props: {
                         <CompactToggleButton
                           key={`${sharedFieldContextKey}:radius-toggle:${field.id}`}
                           checked={!!field.value}
-                          label={RADIUS_POLICY_SHORT_LABELS[field.id] || field.label}
+                          label={
+                            RADIUS_POLICY_SHORT_LABELS[field.id] || field.label
+                          }
                           tooltip={getRadiusToggleTooltip(
-                            field.label,
-                            field.description,
+                            getTranslatedFieldLabel(field),
+                            getTranslatedFieldDescription(field),
                           )}
                           disabled={field.disabled}
                           onClick={() =>

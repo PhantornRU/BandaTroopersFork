@@ -697,14 +697,87 @@
 		"shape_points_origin" = "10,10,1",
 		"shape_points_text" = "0,0;1,0;1,1",
 	)
+	manager.placement_mode = "repeat"
+	manager.placement_shape = WORLD_EDIT_SHAPE_BRUSH_PATH
+	manager.placement_dir = WEST
+	manager.placement_dir_uses_facing = FALSE
 
 	TEST_ASSERT(manager.save_current_generator_context(), "World Edit manager should save context for an active generator definition.")
 
 	manager.current_params = list()
+	manager.placement_mode = "single"
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_dir = NORTH
+	manager.placement_dir_uses_facing = TRUE
 	TEST_ASSERT(manager.restore_generator_context(definition.id), "World Edit manager should restore saved context by generator id.")
 	TEST_ASSERT_EQUAL(manager.current_params["radius"], 5, "World Edit manager should restore persistent generator params.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_origin"]), "World Edit manager should not persist collector origin runtime params.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_text"]), "World Edit manager should not persist collector points runtime params.")
+	TEST_ASSERT_EQUAL(manager.placement_mode, "repeat", "World Edit manager should restore placement mode from generator context.")
+	TEST_ASSERT_EQUAL(manager.placement_shape, WORLD_EDIT_SHAPE_BRUSH_PATH, "World Edit manager should restore placement shape from generator context.")
+	TEST_ASSERT_EQUAL(manager.placement_dir, WEST, "World Edit manager should restore placement direction from generator context.")
+	TEST_ASSERT(!manager.placement_dir_uses_facing, "World Edit manager should restore the facing-toggle preference from generator context.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_state/restore_generator_session_state_uses_generator_defaults_without_snapshot/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	generator.attach(manager, definition)
+
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shared_mode = "repeat"
+	manager.placement_shared_shape = WORLD_EDIT_SHAPE_BRUSH_PATH
+	manager.placement_shared_dir = WEST
+	manager.placement_shared_dir_uses_facing = FALSE
+	manager.placement_mode = "repeat"
+	manager.placement_shape = WORLD_EDIT_SHAPE_BRUSH_PATH
+	manager.placement_dir = WEST
+	manager.placement_dir_uses_facing = FALSE
+
+	TEST_ASSERT(!manager.restore_generator_session_state(definition.id), "World Edit manager should report that no saved generator snapshot exists yet.")
+	TEST_ASSERT_EQUAL(manager.placement_mode, "single", "World Edit manager should use the generator default mode when no saved snapshot exists.")
+	TEST_ASSERT_EQUAL(manager.placement_shape, WORLD_EDIT_SHAPE_POINT, "World Edit manager should use the generator default shape instead of inheriting a previous generator brush shape.")
+	TEST_ASSERT_EQUAL(manager.placement_dir, NORTH, "World Edit manager should use the generator default direction when no saved snapshot exists.")
+	TEST_ASSERT(manager.placement_dir_uses_facing, "World Edit manager should restore the default facing-toggle state when no saved snapshot exists.")
+	TEST_ASSERT_EQUAL(manager.placement_shared_mode, "single", "World Edit manager should keep shared placement mode in sync with the restored generator state.")
+	TEST_ASSERT_EQUAL(manager.placement_shared_shape, WORLD_EDIT_SHAPE_POINT, "World Edit manager should keep shared placement shape in sync with the restored generator state.")
+	TEST_ASSERT_EQUAL(manager.placement_shared_dir, NORTH, "World Edit manager should keep shared placement direction in sync with the restored generator state.")
+	TEST_ASSERT(manager.placement_shared_dir_uses_facing, "World Edit manager should keep the shared facing-toggle state in sync with the restored generator state.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_state/restore_generator_session_state_restores_saved_placement_prefs/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	generator.attach(manager, definition)
+
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 7
+	manager.placement_mode = "repeat"
+	manager.placement_shape = WORLD_EDIT_SHAPE_BRUSH_PATH
+	manager.placement_dir = WEST
+	manager.placement_dir_uses_facing = FALSE
+	TEST_ASSERT(manager.save_current_generator_context(), "World Edit manager should save placement prefs together with generator params.")
+
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_mode = "single"
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_dir = NORTH
+	manager.placement_dir_uses_facing = TRUE
+
+	TEST_ASSERT(manager.restore_generator_session_state(definition.id), "World Edit manager should restore the saved generator snapshot when it exists.")
+	TEST_ASSERT_EQUAL(manager.current_params["radius"], 7, "World Edit manager should restore saved generator params when re-entering a generator.")
+	TEST_ASSERT_EQUAL(manager.placement_mode, "repeat", "World Edit manager should restore the saved placement mode for a generator.")
+	TEST_ASSERT_EQUAL(manager.placement_shape, WORLD_EDIT_SHAPE_BRUSH_PATH, "World Edit manager should restore the saved placement shape for a generator.")
+	TEST_ASSERT_EQUAL(manager.placement_dir, WEST, "World Edit manager should restore the saved placement direction for a generator.")
+	TEST_ASSERT(!manager.placement_dir_uses_facing, "World Edit manager should restore the saved facing-toggle state for a generator.")
 
 	qdel(manager)
 
@@ -924,6 +997,36 @@
 	TEST_ASSERT_EQUAL(generator.shape_support_calls, 1, "World Edit collector click path should invoke the shape-support hook once the collector becomes valid.")
 	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit collector click path should stop before build_placement_plan when the hook rejects the shape.")
 	TEST_ASSERT_EQUAL(manager.last_preview_message, "Unit test rejected custom_mask.", "World Edit collector click path should surface the shape hook error.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/right_click_cancels_invalid_outpost_collection/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit invalid-outpost collector test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["opening_width"] = "broad"
+	manager.placement_shape = "custom_mask"
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept the first collector point.")
+	TEST_ASSERT_EQUAL(manager.last_preview_message, "Выбранный контур не поддерживает обязательные проходы форпоста.", "World Edit invalid-outpost collector test should surface the expected support error before cancellation.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active until the user cancels it.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(RIGHT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept right-click cancellation.")
+	TEST_ASSERT(!manager.placement_click_active, "World Edit invalid-outpost collector test should stop placement mode after right-clicking an invalid collector preview.")
+	TEST_ASSERT(isnull(manager.placement_anchor_turf), "World Edit invalid-outpost collector test should clear the active anchor when cancellation stops placement mode.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit invalid-outpost collector test should clear collector points when cancellation stops placement mode.")
 
 	qdel(manager)
 
@@ -1294,6 +1397,77 @@
 	TEST_ASSERT(length(preview_model.edge_turfs) > 0, "World Edit preview-model service should expose edge tiles.")
 	TEST_ASSERT(length(preview_model.final_turfs) > 0, "World Edit preview-model service should expose final footprint tiles.")
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/locked_preview_ignores_pending_hover_and_click_updates/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/other_turf = locate(center_turf.x + 2, center_turf.y + 1, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit locked-preview test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(other_turf, "World Edit locked-preview test alternate turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(user, WORLD_EDIT_SHAPE_POINT, center_turf, center_turf, null, "", TRUE), "World Edit locked-preview test should resolve a point preview before locking it.")
+	var/datum/world_edit_placement_candidate/locked_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(locked_candidate), "World Edit locked-preview test should keep the resolved preview candidate in session state.")
+	TEST_ASSERT(manager.placement_hover_turf == center_turf, "World Edit locked-preview test should keep the confirmed turf as the preview hover anchor.")
+
+	manager.set_placement_preview_locked(TRUE, center_turf)
+	TEST_ASSERT(manager.is_placement_preview_locked(), "World Edit locked-preview test should expose the pending-confirmation lock flag.")
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, other_turf), "World Edit locked-preview test should swallow hover updates while confirmation is pending.")
+	TEST_ASSERT(manager.handle_safe_placement_click_v2(user, list2params(list(LEFT_CLICK = 1)), other_turf), "World Edit locked-preview test should swallow click updates while confirmation is pending.")
+	TEST_ASSERT(manager.placement_hover_turf == center_turf, "World Edit locked-preview test should keep the preview fixed on the confirmed turf while locked.")
+	TEST_ASSERT(manager.get_placement_preview_candidate() == locked_candidate, "World Edit locked-preview test should keep the original preview candidate while locked.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 0, "World Edit locked-preview test should not apply anything while the preview is locked for confirmation.")
+
+	manager.set_placement_preview_locked(FALSE)
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/standard_preview_reuses_placement_layers/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit standard-preview layer test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit standard-preview layer test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/list/effective_params = manager.build_effective_generator_params()
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(WORLD_EDIT_SHAPE_LINE, center_turf, end_turf, effective_params, EAST)
+	TEST_ASSERT(!shape_result["error"], "World Edit standard-preview layer test should resolve the shared line footprint.")
+
+	var/datum/world_edit_plan/plan = manager.build_safe_placement_plan_from_shape_result(null, WORLD_EDIT_SHAPE_LINE, shape_result, center_turf, end_turf)
+	TEST_ASSERT(istype(plan), "World Edit standard-preview layer test should build a placement plan from the shared shape result.")
+	plan.metadata["center_turf"] = center_turf
+
+	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, effective_params), "World Edit standard-preview layer test should build grouped placement layers from a normal preview plan.")
+	var/datum/world_edit_placement_candidate/preview_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(preview_candidate), "World Edit standard-preview layer test should store the synthesized placement candidate.")
+	TEST_ASSERT(preview_candidate.plan == plan, "World Edit standard-preview layer test should keep the original preview plan on the synthesized candidate.")
+	TEST_ASSERT(length(manager.placement_preview_anchor_turfs) > 0, "World Edit standard-preview layer test should expose anchor tiles.")
+	TEST_ASSERT(length(manager.placement_preview_edge_turfs) > 0, "World Edit standard-preview layer test should expose edge tiles.")
+	TEST_ASSERT(length(manager.placement_preview_final_turfs) > 0, "World Edit standard-preview layer test should expose final footprint tiles.")
+	TEST_ASSERT(length(manager.placement_preview_generator_effect_turfs) > 0, "World Edit standard-preview layer test should expose generator effect tiles.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/preview_layers_follow_shape_semantics_and_cleanup/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -1312,8 +1486,9 @@
 
 	TEST_ASSERT(manager.evaluate_safe_placement_preview(null, "line", center_turf, end_turf, null, "", TRUE), "World Edit manager preview test should build an anchor-pair preview.")
 	TEST_ASSERT(manager.placement_hover_turf == end_turf, "World Edit manager preview should store the current hover turf.")
-	TEST_ASSERT(istype(manager.get_placement_preview_candidate(), /datum/world_edit_placement_candidate), "World Edit manager preview should store the resolved placement candidate in session state.")
-	TEST_ASSERT(istype(manager.get_placement_preview_candidate().plan, /datum/world_edit_plan), "World Edit manager preview should keep the resolved plan on the placement candidate.")
+	var/datum/world_edit_placement_candidate/preview_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(preview_candidate, /datum/world_edit_placement_candidate), "World Edit manager preview should store the resolved placement candidate in session state.")
+	TEST_ASSERT(istype(preview_candidate.plan, /datum/world_edit_plan), "World Edit manager preview should keep the resolved plan on the placement candidate.")
 	TEST_ASSERT(isnull(generator.current_plan), "World Edit safe placement preview should no longer rely on generator.current_plan as preview-session state.")
 	TEST_ASSERT(length(manager.placement_preview_anchor_turfs) > 0, "World Edit manager preview should keep anchor preview tiles.")
 	TEST_ASSERT(length(manager.placement_preview_edge_turfs) > 0, "World Edit manager preview should keep skeleton edge tiles.")
@@ -1518,7 +1693,7 @@
 		"end_turf" = center_turf,
 		"direction" = NORTH,
 	))
-	TEST_ASSERT_EQUAL(shape_error, "Selected footprint cannot support the required Outpost Radius openings.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
+	TEST_ASSERT_EQUAL(shape_error, "Выбранный контур не поддерживает обязательные проходы форпоста.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
 
 /datum/unit_test/world_edit_corner_slots/destruction_shape_build_plan_uses_manager_shape_prefs/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

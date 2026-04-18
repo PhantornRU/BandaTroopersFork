@@ -198,7 +198,7 @@
 
 	return effective_params
 
-/datum/world_edit_manager/proc/get_placement_preview_candidate()
+/datum/world_edit_manager/proc/get_placement_preview_candidate() as /datum/world_edit_placement_candidate
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	return session.preview_candidate
 
@@ -213,6 +213,18 @@
 	session.hover_turf = hover_turf
 	sync_placement_session_cache()
 	return hover_turf
+
+/datum/world_edit_manager/proc/is_placement_preview_locked()
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	return session.preview_locked ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/set_placement_preview_locked(locked, turf/focus_turf = null)
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	session.preview_locked = locked ? TRUE : FALSE
+	if(istype(focus_turf))
+		session.hover_turf = focus_turf
+	sync_placement_session_cache()
+	return session.preview_locked
 
 /datum/world_edit_manager/proc/get_current_preview_plan()
 	var/datum/world_edit_placement_candidate/candidate = get_placement_preview_candidate()
@@ -310,6 +322,7 @@
 /datum/world_edit_manager/proc/clear_placement_shape_preview_state()
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	session.preview_candidate = null
+	session.preview_locked = FALSE
 	session.hover_turf = null
 	placement_preview_shape_result = list()
 	placement_preview_anchor_turfs = list()
@@ -415,6 +428,7 @@
 	session.anchor_turf = null
 	session.hover_turf = null
 	session.preview_candidate = null
+	session.preview_locked = FALSE
 	session.active_shape = null
 	session.active_mode = null
 	clear_placement_shape_preview_state()

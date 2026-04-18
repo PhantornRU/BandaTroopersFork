@@ -72,7 +72,7 @@
 
 	if(preview_point_count < min_points)
 		render_safe_placement_preview(preview_candidate)
-		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Collected points: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Точек собрано: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
 		if(!silent)
 			to_chat(user, SPAN_NOTICE(last_preview_message))
 		return FALSE
@@ -96,14 +96,14 @@
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE
 	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("Need at least [get_placement_collector_min_points(shape_id)] points to finish the collection."))
+		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
 		return TRUE
 
 	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
 	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("Collector origin is not set."))
+		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
 		return TRUE
 
-	if(!update_placement_collector_runtime_state_v2(user, preview_turf, "Finishing collection. ", FALSE, FALSE))
+	if(!update_placement_collector_runtime_state_v2(user, preview_turf, "Завершение контура. ", FALSE, FALSE))
 		return TRUE
 	return apply_safe_placement_current_plan(user)

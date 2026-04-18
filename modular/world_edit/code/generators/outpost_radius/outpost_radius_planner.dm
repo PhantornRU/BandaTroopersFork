@@ -231,16 +231,16 @@
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
 	switch(support_class)
 		if("unsupported")
-			return "Outpost Radius does not support [shape_label]."
+			return "Генератор форпоста не поддерживает форму [shape_label]."
 		if("risky")
-			return "Outpost Radius does not support [shape_label] yet; use a connected contour or anchor-based shape instead."
+			return "Форма [shape_label] пока не поддерживается; используйте связный контур или форму с опорой."
 
 	if(support_class != "limited")
 		return null
 
 	var/component_count = count_shape_connected_components(footprint_turfs)
 	if(component_count > 1)
-		return "[shape_label] resolves to disconnected islands; Outpost Radius requires one connected footprint."
+		return "Форма [shape_label] распадается на несвязанные островки; для форпоста нужен один связный контур."
 	return null
 
 /datum/world_edit_generator/outpost_radius/proc/get_cardinal_opposite_dir(dir_to_flip)
@@ -433,7 +433,7 @@
 /datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params)
 	var/datum/world_edit_plan/plan = new
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
-		plan.metadata["error"] = "Unable to resolve the shape footprint."
+		plan.metadata["error"] = "Не удалось определить контур формы."
 		return plan
 
 	var/list/config = params
@@ -452,7 +452,7 @@
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, radius, footprint_lookup, shape_bounds)
 	candidate_slots = filter_outpost_slots_by_radius_policy(footprint_turfs, candidate_slots, traversal_turfs, radius_policy)
 	if(!length(candidate_slots))
-		plan.metadata["error"] = "Selected footprint cannot build a perimeter shell with the current radius blocker policy."
+		plan.metadata["error"] = "Выбранный контур не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
@@ -614,37 +614,37 @@
 	var/list/config = list()
 	var/family_id = resolve_outpost_family_id(params["family"])
 	if(!family_id)
-		config["error"] = "Invalid outpost family selected."
+		config["error"] = "Выбран недопустимый профиль форпоста."
 		return config
 
 	var/list/family_profile = get_outpost_family_profile(family_id)
 	if(!islist(family_profile))
-		config["error"] = "Invalid outpost family selected."
+		config["error"] = "Выбран недопустимый профиль форпоста."
 		return config
 
 	var/layout_id = resolve_outpost_layout_id(params["layout_variant"])
 	if(!layout_id)
-		config["error"] = "Invalid outpost layout selected."
+		config["error"] = "Выбран недопустимый вариант схемы форпоста."
 		return config
 
 	var/list/layout_profile = get_outpost_layout_profile(layout_id)
 	if(!islist(layout_profile))
-		config["error"] = "Invalid outpost layout selected."
+		config["error"] = "Выбран недопустимый вариант схемы форпоста."
 		return config
 
 	var/opening_width = resolve_opening_width(params["opening_width"], layout_profile)
 	if(isnull(opening_width))
-		config["error"] = "Invalid outpost passage width selected."
+		config["error"] = "Выбрана недопустимая ширина проходов."
 		return config
 
 	var/guard_mode = resolve_guard_mode(params["guard_mode"])
 	if(isnull(guard_mode))
-		config["error"] = "Invalid outpost guard mode selected."
+		config["error"] = "Выбран недопустимый режим охвата турелей."
 		return config
 
 	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"], family_profile)
 	if(isnull(barricade_pattern))
-		config["error"] = "Invalid barricade pattern selected."
+		config["error"] = "Выбрана недопустимая схема баррикад."
 		return config
 
 	var/list/effective_layout_profile = layout_profile.Copy()
@@ -654,7 +654,7 @@
 
 	var/radius = text2num("[params["radius"]]") || 4
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
-		config["error"] = "radius must stay in the range 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
+		config["error"] = "Радиус должен быть в диапазоне 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
 		return config
 	opening_width = clamp(round(opening_width), 1, (radius * 2) + 1)
 	effective_layout_profile["opening_width"] = opening_width
@@ -663,14 +663,14 @@
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
 	var/barricade_path = resolve_whitelisted_type(params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, family_profile["default_barricade_path"])
 	if(!barricade_path)
-		config["error"] = "Invalid barricade type selected."
+		config["error"] = "Выбран недопустимый тип баррикады."
 		return config
 
 	var/sentry_path = null
 	if(place_sentries)
 		sentry_path = resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry, family_profile["default_sentry_path"])
 		if(!sentry_path)
-			config["error"] = "Invalid sentry type selected."
+			config["error"] = "Выбран недопустимый тип турели."
 			return config
 
 	var/faction = "[params["faction"]]"
@@ -706,7 +706,7 @@
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		return list(
 			"support_class" = support_class,
-			"error" = "Unable to resolve the shape footprint.",
+			"error" = "Не удалось определить контур формы.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
@@ -722,7 +722,7 @@
 	if(!length(footprint_lookup))
 		return list(
 			"support_class" = support_class,
-			"error" = "Unable to resolve the shape footprint.",
+			"error" = "Не удалось определить контур формы.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
@@ -733,7 +733,7 @@
 	if(!length(footprint_turfs))
 		return list(
 			"support_class" = support_class,
-			"error" = "Unable to resolve the shape footprint.",
+			"error" = "Не удалось определить контур формы.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
@@ -753,7 +753,7 @@
 	if(!length(candidate_slots))
 		return list(
 			"support_class" = support_class,
-			"error" = "Selected footprint cannot build a perimeter shell with the current radius blocker policy.",
+			"error" = "Выбранный контур не позволяет построить оболочку периметра при текущей политике блокировок радиуса.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
@@ -775,7 +775,7 @@
 			if(!placeable_by_dir["[opening_dir]"])
 				return list(
 					"support_class" = support_class,
-					"error" = "Selected footprint cannot support the required Outpost Radius openings.",
+					"error" = "Выбранный контур не поддерживает обязательные проходы форпоста.",
 					"metadata" = list("shape_support_class" = support_class),
 				)
 
@@ -789,13 +789,13 @@
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
 		return list(
 			"support_class" = support_class,
-			"error" = "Outpost Radius could not build any valid placements for the selected footprint.",
+			"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 	if((shape_plan.metadata["opening_count"] || 0) <= 0 && length(opening_dirs))
 		return list(
 			"support_class" = support_class,
-			"error" = "Selected footprint cannot support the required Outpost Radius openings.",
+			"error" = "Выбранный контур не поддерживает обязательные проходы форпоста.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
 

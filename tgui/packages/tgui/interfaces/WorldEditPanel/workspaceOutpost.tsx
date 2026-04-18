@@ -1,5 +1,5 @@
-import { RADIUS_POLICY_FIELD_IDS } from './constants';
 import { Box, Button, LabeledList } from '../../components';
+import { RADIUS_POLICY_FIELD_IDS } from './constants';
 import { FieldControlStack, FieldEditor, FieldListCard } from './fieldControls';
 import { getField, getFieldsByGroup, getFieldsById } from './helpers';
 import { SurfaceCard } from './primitives';
@@ -13,7 +13,8 @@ const OutpostRadiusWorkspace = (props: {
   const sentryFields = getFieldsByGroup(data.ui_fields, 'Sentries');
   const barricadeFields = getFieldsByGroup(data.ui_fields, 'Barricades');
   const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout').filter(
-    (field) => field.id !== 'radius' && !RADIUS_POLICY_FIELD_IDS.includes(field.id),
+    (field) =>
+      field.id !== 'radius' && !RADIUS_POLICY_FIELD_IDS.includes(field.id),
   );
   const familyField = getField(layoutFields, 'family');
   const layoutVariantField = getField(layoutFields, 'layout_variant');

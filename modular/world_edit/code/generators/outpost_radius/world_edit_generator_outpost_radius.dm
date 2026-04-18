@@ -22,8 +22,8 @@
 	)
 	var/static/list/outpost_family_profiles = list(
 		"metal_perimeter" = list(
-			"label" = "Metal Perimeter",
-			"description" = "Single-material metal perimeter with minimal barricade mixing.",
+			"label" = "Металл, контур",
+			"description" = "Однородный металлический периметр с минимальным смешением баррикад.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/metal,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -32,8 +32,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
 		),
 		"wired_metal_perimeter" = list(
-			"label" = "Wired Metal",
-			"description" = "Uniform wired-metal perimeter for stricter chokepoints.",
+			"label" = "Металл с проволокой",
+			"description" = "Ровный периметр из металла с проволокой для более жёстких узких проходов.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/metal/wired,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -42,8 +42,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/shotgun,
 		),
 		"plasteel_bastion" = list(
-			"label" = "Plasteel Bastion",
-			"description" = "Heavy plasteel perimeter for high-value fortified holds.",
+			"label" = "Пласталь, бастион",
+			"description" = "Тяжёлый пласталевый периметр для укреплённых опорных точек.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -52,8 +52,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
 		),
 		"plasteel_wired_bastion" = list(
-			"label" = "Wired Plasteel",
-			"description" = "Reinforced plasteel perimeter with wired barricade emphasis.",
+			"label" = "Пласталь с проволокой",
+			"description" = "Усиленный пласталевый периметр с упором на проволочные баррикады.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel/wired,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -62,8 +62,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
 		),
 		"sandbag_redoubt" = list(
-			"label" = "Sandbag Redoubt",
-			"description" = "Temporary sandbag hold with broad cover and cheaper perimeter pieces.",
+			"label" = "Мешки с песком",
+			"description" = "Временное укрепление из мешков с песком с широким прикрытием и дешёвым периметром.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/sandbag,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -72,8 +72,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/shotgun,
 		),
 		"wooden_screen" = list(
-			"label" = "Wooden Screen",
-			"description" = "Fast wooden perimeter for expedient forward cover.",
+			"label" = "Деревянное прикрытие",
+			"description" = "Быстрый деревянный периметр для спешного передового укрытия.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/wooden,
 			"default_barricade_pattern" = "uniform",
 			"barricade_mix" = list(
@@ -82,8 +82,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/mini,
 		),
 		"mixed_standard" = list(
-			"label" = "Mixed Standard",
-			"description" = "Balanced mixed perimeter with metal and sandbag rotation.",
+			"label" = "Смешанный стандарт",
+			"description" = "Сбалансированный смешанный периметр с чередованием металла и мешков с песком.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/metal,
 			"default_barricade_pattern" = "paired",
 			"barricade_mix" = list(
@@ -94,8 +94,8 @@
 			"default_sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
 		),
 		"mixed_siege" = list(
-			"label" = "Mixed Siege",
-			"description" = "Heavier mixed perimeter that rotates plasteel and wired cover.",
+			"label" = "Смешанный осадный",
+			"description" = "Более тяжёлый смешанный периметр с чередованием пластали и проволочного укрытия.",
 			"default_barricade_path" = /datum/human_ai_defense/barricade/plasteel,
 			"default_barricade_pattern" = "paired",
 			"barricade_mix" = list(
@@ -109,92 +109,92 @@
 	)
 	var/static/list/outpost_layout_profiles = list(
 		"crossroads" = list(
-			"label" = "Crossroads",
-			"description" = "One passage on every cardinal side.",
+			"label" = "Крест",
+			"description" = "По одному проходу на каждой стороне света.",
 			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
 			"opening_half_width" = 0,
 		),
 		"wide_crossroads" = list(
-			"label" = "Wide Crossroads",
-			"description" = "Wider passages on every cardinal side for larger traffic.",
+			"label" = "Широкий крест",
+			"description" = "Более широкие проходы на каждой стороне света для интенсивного движения.",
 			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
 			"opening_half_width" = 1,
 		),
 		"lane_ns" = list(
-			"label" = "North-South Lane",
-			"description" = "Two broad passages aligned north-south.",
+			"label" = "Коридор север-юг",
+			"description" = "Два широких прохода по линии север-юг.",
 			"opening_dirs" = list(NORTH, SOUTH),
 			"guard_dirs" = list(NORTH, SOUTH),
 			"opening_half_width" = 1,
 		),
 		"lane_ew" = list(
-			"label" = "East-West Lane",
-			"description" = "Two broad passages aligned east-west.",
+			"label" = "Коридор восток-запад",
+			"description" = "Два широких прохода по линии восток-запад.",
 			"opening_dirs" = list(EAST, WEST),
 			"guard_dirs" = list(EAST, WEST),
 			"opening_half_width" = 1,
 		),
 		"north_gate" = list(
-			"label" = "North Gate",
-			"description" = "Single northern passage with inward cover.",
+			"label" = "Северные ворота",
+			"description" = "Один северный проход с внутренним прикрытием.",
 			"opening_dirs" = list(NORTH),
 			"guard_dirs" = list(NORTH),
 			"opening_half_width" = 1,
 		),
 		"south_gate" = list(
-			"label" = "South Gate",
-			"description" = "Single southern passage with inward cover.",
+			"label" = "Южные ворота",
+			"description" = "Один южный проход с внутренним прикрытием.",
 			"opening_dirs" = list(SOUTH),
 			"guard_dirs" = list(SOUTH),
 			"opening_half_width" = 1,
 		),
 		"east_gate" = list(
-			"label" = "East Gate",
-			"description" = "Single eastern passage with inward cover.",
+			"label" = "Восточные ворота",
+			"description" = "Один восточный проход с внутренним прикрытием.",
 			"opening_dirs" = list(EAST),
 			"guard_dirs" = list(EAST),
 			"opening_half_width" = 1,
 		),
 		"west_gate" = list(
-			"label" = "West Gate",
-			"description" = "Single western passage with inward cover.",
+			"label" = "Западные ворота",
+			"description" = "Один западный проход с внутренним прикрытием.",
 			"opening_dirs" = list(WEST),
 			"guard_dirs" = list(WEST),
 			"opening_half_width" = 1,
 		),
 		"corner_ne" = list(
-			"label" = "North-East Corner",
-			"description" = "Two corner exits that favor a north-east push.",
+			"label" = "Угол северо-восток",
+			"description" = "Два угловых выхода с упором на северо-восточное направление.",
 			"opening_dirs" = list(NORTH, EAST),
 			"guard_dirs" = list(NORTH, EAST),
 			"opening_half_width" = 0,
 		),
 		"corner_se" = list(
-			"label" = "South-East Corner",
-			"description" = "Two corner exits that favor a south-east push.",
+			"label" = "Угол юго-восток",
+			"description" = "Два угловых выхода с упором на юго-восточное направление.",
 			"opening_dirs" = list(SOUTH, EAST),
 			"guard_dirs" = list(SOUTH, EAST),
 			"opening_half_width" = 0,
 		),
 		"corner_sw" = list(
-			"label" = "South-West Corner",
-			"description" = "Two corner exits that favor a south-west push.",
+			"label" = "Угол юго-запад",
+			"description" = "Два угловых выхода с упором на юго-западное направление.",
 			"opening_dirs" = list(SOUTH, WEST),
 			"guard_dirs" = list(SOUTH, WEST),
 			"opening_half_width" = 0,
 		),
 		"corner_nw" = list(
-			"label" = "North-West Corner",
-			"description" = "Two corner exits that favor a north-west push.",
+			"label" = "Угол северо-запад",
+			"description" = "Два угловых выхода с упором на северо-западное направление.",
 			"opening_dirs" = list(NORTH, WEST),
 			"guard_dirs" = list(NORTH, WEST),
 			"opening_half_width" = 0,
 		),
 		"sealed_redoubt" = list(
-			"label" = "Sealed Redoubt",
-			"description" = "No direct passages; inner sentries guard the perimeter from inside.",
+			"label" = "Закрытый редут",
+			"description" = "Без прямых проходов; внутренние турели охраняют периметр изнутри.",
 			"opening_dirs" = list(),
 			"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
 			"opening_half_width" = 0,

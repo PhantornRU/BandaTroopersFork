@@ -13,9 +13,9 @@
 
 /datum/world_edit_generator_definition/outpost_radius
 	id = "outpost_radius"
-	name_ru = "Outpost Radius"
-	category_ru = "Construction"
-	description_ru = "Safe radius-based perimeter outpost builder."
+	name_ru = "Форпост по радиусу"
+	category_ru = "Строительство"
+	description_ru = "Безопасный генератор периметрального форпоста по радиусу."
 	required_rights = R_EVENT
 	supports_preview = TRUE
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH

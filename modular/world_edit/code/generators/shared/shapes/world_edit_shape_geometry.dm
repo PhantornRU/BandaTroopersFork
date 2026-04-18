@@ -21,7 +21,8 @@ GLOBAL_DATUM_INIT(world_edit_shape_geometry, /datum/world_edit_shape_geometry_se
 	shape_contract.is_closed = GLOB.world_edit_helpers.parse_bool(shape_result["is_closed"])
 	shape_contract.is_filled = GLOB.world_edit_helpers.parse_bool(shape_result["is_filled"])
 	shape_contract.degenerate_kind = shape_result["degenerate_kind"]
-	shape_contract.metadata = islist(shape_result["metadata"]) ? shape_result["metadata"].Copy() : list()
+	var/list/source_metadata = shape_result["metadata"]
+	shape_contract.metadata = islist(source_metadata) ? source_metadata.Copy() : list()
 	shape_contract.anchor_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(shape_result["turfs"])
 	shape_contract.metadata["is_closed"] = shape_contract.is_closed ? TRUE : FALSE
 	shape_contract.metadata["is_filled"] = shape_contract.is_filled ? TRUE : FALSE
