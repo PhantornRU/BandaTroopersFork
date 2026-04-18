@@ -354,7 +354,7 @@
 	var/east_shell_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(east_shell_turf, EAST)
 	var/list/no_reach_lookup = build_slot_lookup(no_reach["placements"])
 	var/list/with_reach_lookup = build_slot_lookup(with_reach["placements"])
-	TEST_ASSERT(no_reach_lookup[east_shell_key], "World Edit outpost perimeter without reachable filtering should keep the east shell slot behind the blocker line.")
+	TEST_ASSERT(!no_reach_lookup[east_shell_key], "World Edit outpost perimeter clear-path filtering should drop shell slots hidden behind a full blocker line.")
 	TEST_ASSERT(!with_reach_lookup[east_shell_key], "World Edit outpost perimeter reachable filtering should drop shell slots behind a full blocker line.")
 
 	for(var/obj/barrier as anything in barriers)
@@ -826,6 +826,49 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_manager_state/preview_state_invalidates_on_anchor_and_resolved_target_change/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
+	var/center_y = round((run_loc_floor_bottom_left.y + run_loc_floor_top_right.y) / 2)
+	var/turf/center_turf = locate(center_x, center_y, run_loc_floor_bottom_left.z)
+	var/turf/end_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/other_turf = locate(center_turf.x + 3, center_turf.y + 1, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit preview-signature anchor test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit preview-signature anchor test end turf was not resolved.")
+	TEST_ASSERT_NOTNULL(other_turf, "World Edit preview-signature anchor test alternate turf was not resolved.")
+
+	manager.current_definition = definition
+	manager.current_params = list("radius" = 4)
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.set_placement_anchor_turf(center_turf)
+
+	var/datum/world_edit_placement_candidate/candidate = new
+	candidate.placement_context = list(
+		"seed_turf" = center_turf,
+		"requested_end_turf" = end_turf,
+		"resolved_end_turf" = end_turf,
+	)
+	manager.store_placement_preview_candidate(candidate)
+	manager.mark_preview_state()
+	TEST_ASSERT(manager.is_preview_state_valid(), "World Edit preview signature should start valid before anchor/target changes.")
+
+	manager.set_placement_anchor_turf(other_turf)
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit preview signature should invalidate when the active anchor turf changes.")
+
+	manager.set_placement_anchor_turf(center_turf)
+	manager.mark_preview_state()
+	var/datum/world_edit_placement_candidate/updated_candidate = new
+	updated_candidate.placement_context = list(
+		"seed_turf" = center_turf,
+		"requested_end_turf" = end_turf,
+		"resolved_end_turf" = other_turf,
+	)
+	manager.store_placement_preview_candidate(updated_candidate)
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit preview signature should invalidate when the resolved preview target changes.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_manager_state/reset_placement_runtime_clears_anchor_and_collector_points/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
@@ -1020,7 +1063,7 @@
 	manager.placement_click_active = TRUE
 
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept the first collector point.")
-	TEST_ASSERT_EQUAL(manager.last_preview_message, "Выбранный контур не поддерживает обязательные проходы форпоста.", "World Edit invalid-outpost collector test should surface the expected support error before cancellation.")
+	TEST_ASSERT(findtext("[manager.last_preview_message]", "Выбранный контур размещения не поддерживает обязательные проходы форпоста."), "World Edit invalid-outpost collector test should surface the expected support error before cancellation.")
 	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active until the user cancels it.")
 
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(RIGHT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept right-click cancellation.")
@@ -1130,6 +1173,56 @@
 	TEST_ASSERT(outpost_generator.supports_placement_direction(), "Outpost generator should keep direction support when the full shape catalog is enabled.")
 	TEST_ASSERT_EQUAL(jointext(destruction_generator.get_supported_placement_shapes(), "|"), jointext(expected_shapes, "|"), "Destruction generator should expose the full shared World Edit shape catalog.")
 	TEST_ASSERT(destruction_generator.supports_placement_direction(), "Destruction generator should expose direction support for directional shapes.")
+
+/datum/unit_test/world_edit_live_contract/placement_generator_validate_params_are_map_agnostic/Run()
+	var/datum/world_edit_generator_definition/outpost_radius/outpost_definition = new
+	var/datum/world_edit_generator/outpost_radius/outpost_generator = allocate(/datum/world_edit_generator/outpost_radius)
+	TEST_ASSERT(isnull(outpost_generator.validate_params(null, outpost_definition.default_params?.Copy() || list())), "Outpost validate_params should stay map-agnostic without a live user turf.")
+
+	var/datum/world_edit_generator_definition/destruction_pack/destruction_definition = new
+	var/datum/world_edit_generator/destruction_pack/destruction_generator = allocate(/datum/world_edit_generator/destruction_pack)
+	TEST_ASSERT(isnull(destruction_generator.validate_params(null, destruction_definition.default_params?.Copy() || list())), "Destruction validate_params should stay map-agnostic without a live user turf.")
+
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/blueprint_stamp/blueprint_definition = new
+	var/datum/world_edit_generator/blueprint_stamp/blueprint_generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	var/list/blueprint = list(
+		"id" = "world_edit_validate_params_test",
+		"name" = "World Edit Validate Params Test",
+		"created_at" = "2026-04-18T00:00:00Z",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list("radius" = 0),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/barricade/metal]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	)
+	var/blueprint_file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint)
+	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit validate_params test should save the helper blueprint definition.")
+
+	blueprint_generator.attach(manager, blueprint_definition)
+	manager.current_definition = blueprint_definition
+	manager.current_generator = blueprint_generator
+	manager.current_params = blueprint_definition.default_params?.Copy() || list()
+	manager.current_params["blueprint_id"] = blueprint["id"]
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list(list(
+		"id" = blueprint["id"],
+		"valid" = TRUE,
+		"file_path" = blueprint_file_path,
+	))
+	TEST_ASSERT(isnull(blueprint_generator.validate_params(null, manager.current_params)), "Blueprint validate_params should stay map-agnostic without a live anchor turf.")
+
+	if(length("[blueprint_file_path]") && fexists(blueprint_file_path))
+		fdel(blueprint_file_path)
+	qdel(manager)
 
 /datum/unit_test/world_edit_corner_slots/generator_integration/outpost_advertised_shapes_are_never_silent/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
@@ -1456,11 +1549,14 @@
 	var/datum/world_edit_plan/plan = manager.build_safe_placement_plan_from_shape_result(null, WORLD_EDIT_SHAPE_LINE, shape_result, center_turf, end_turf)
 	TEST_ASSERT(istype(plan), "World Edit standard-preview layer test should build a placement plan from the shared shape result.")
 	plan.metadata["center_turf"] = center_turf
+	TEST_ASSERT(islist(plan.metadata["shape_result"]), "World Edit standard-preview layer test should keep the canonical shape snapshot on the plan metadata.")
 
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, effective_params), "World Edit standard-preview layer test should build grouped placement layers from a normal preview plan.")
 	var/datum/world_edit_placement_candidate/preview_candidate = manager.get_placement_preview_candidate()
 	TEST_ASSERT(istype(preview_candidate), "World Edit standard-preview layer test should store the synthesized placement candidate.")
 	TEST_ASSERT(preview_candidate.plan == plan, "World Edit standard-preview layer test should keep the original preview plan on the synthesized candidate.")
+	TEST_ASSERT(preview_candidate.placement_context["start_turf"] == center_turf, "World Edit standard-preview layer test should keep the original shape origin on the synthesized candidate.")
+	TEST_ASSERT(preview_candidate.placement_context["resolved_end_turf"] == end_turf, "World Edit standard-preview layer test should restore the resolved shape endpoint from plan metadata.")
 	TEST_ASSERT(length(manager.placement_preview_anchor_turfs) > 0, "World Edit standard-preview layer test should expose anchor tiles.")
 	TEST_ASSERT(length(manager.placement_preview_edge_turfs) > 0, "World Edit standard-preview layer test should expose edge tiles.")
 	TEST_ASSERT(length(manager.placement_preview_final_turfs) > 0, "World Edit standard-preview layer test should expose final footprint tiles.")
@@ -1693,7 +1789,91 @@
 		"end_turf" = center_turf,
 		"direction" = NORTH,
 	))
-	TEST_ASSERT_EQUAL(shape_error, "Выбранный контур не поддерживает обязательные проходы форпоста.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
+	TEST_ASSERT_EQUAL(shape_error, "Выбранный контур размещения не поддерживает обязательные проходы форпоста.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
+
+/datum/unit_test/world_edit_corner_slots/outpost_point_support_respects_clicked_footprint_policy/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost point-footprint policy test center turf was not resolved.")
+
+	var/obj/structure/window/test_window = allocate(/obj/structure/window, center_turf)
+	TEST_ASSERT_NOTNULL(test_window, "World Edit outpost point-footprint policy test should create a window blocker on the clicked turf.")
+
+	var/list/params = list(
+		"family" = "metal_perimeter",
+		"layout_variant" = "crossroads",
+		"opening_width" = "profile",
+		"radius" = 2,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "profile",
+		"place_sentries" = FALSE,
+		"guard_mode" = "layout",
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+		"radius_only_clear_tiles" = TRUE,
+		"radius_only_reachable_tiles" = FALSE,
+		"radius_windows_blockers" = TRUE,
+	)
+
+	var/shape_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_POINT, list(center_turf), params, list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"shape_origin_turf" = center_turf,
+		"seed_turf" = center_turf,
+		"requested_end_turf" = center_turf,
+		"resolved_end_turf" = center_turf,
+		"direction" = NORTH,
+	))
+	TEST_ASSERT(isnull(shape_error), "World Edit outpost point validation should keep a blocked clicked tile valid and let radius filtering cut only the expansion behind blockers.")
+
+	qdel(test_window)
+
+/datum/unit_test/world_edit_corner_slots/outpost_radius_policy_keeps_blocked_candidate_tiles_with_clear_approach/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost blocked-candidate test center turf was not resolved.")
+
+	var/turf/blocked_candidate_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	var/turf/far_candidate_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(blocked_candidate_turf, "World Edit outpost blocked-candidate test adjacent turf was not resolved.")
+	TEST_ASSERT_NOTNULL(far_candidate_turf, "World Edit outpost blocked-candidate test far turf was not resolved.")
+
+	var/obj/structure/window/test_window = allocate(/obj/structure/window, blocked_candidate_turf)
+	TEST_ASSERT_NOTNULL(test_window, "World Edit outpost blocked-candidate test should create a blocking window on the candidate turf.")
+
+	var/list/policy = list(
+		"only_clear_tiles" = TRUE,
+		"only_reachable_tiles" = FALSE,
+		"treat_windows_as_blockers" = TRUE,
+	)
+	var/list/allowed_blocked_candidate = generator.filter_outpost_candidate_turfs(
+		list(center_turf),
+		list(blocked_candidate_turf),
+		list(center_turf, blocked_candidate_turf),
+		policy,
+		list(center_turf),
+	)
+	TEST_ASSERT(blocked_candidate_turf in allowed_blocked_candidate, "World Edit outpost radius-policy filtering should keep a blocked candidate tile when the approach from the drawing start is still clear.")
+
+	qdel(test_window)
+	var/obj/structure/barricade/metal/test_barrier = allocate(/obj/structure/barricade/metal, blocked_candidate_turf)
+	TEST_ASSERT_NOTNULL(test_barrier, "World Edit outpost blocked-candidate test should create a blocker between the start and the far tile.")
+
+	var/list/blocked_far_candidate = generator.filter_outpost_candidate_turfs(
+		list(center_turf),
+		list(far_candidate_turf),
+		list(center_turf, blocked_candidate_turf, far_candidate_turf),
+		policy,
+		list(center_turf),
+	)
+	TEST_ASSERT(!(far_candidate_turf in blocked_far_candidate), "World Edit outpost radius-policy filtering should still drop tiles that sit behind a blocker line from the drawing start.")
+
+	qdel(test_barrier)
 
 /datum/unit_test/world_edit_corner_slots/destruction_shape_build_plan_uses_manager_shape_prefs/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

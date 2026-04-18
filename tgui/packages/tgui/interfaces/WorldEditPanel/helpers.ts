@@ -163,18 +163,24 @@ export const getTranslatedFieldDescription = (field?: UiField) => {
   }
 
   switch (description) {
+    case 'Stops radius expansion at blockers, but does not invalidate the clicked tile or selected contour itself.':
+      return 'Останавливает расширение радиуса у блокираторов, но не запрещает саму кликнутую клетку или выбранный контур.';
+    case 'Keeps only tiles that stay reachable from the drawing start through adjacent non-blocked tiles. This toggle always enables clear-path filtering.':
+      return 'Оставляет только клетки, до которых можно дойти от начала рисования через соседние незаблокированные клетки. Этот режим всегда включает фильтрацию чистого пути.';
+    case 'Counts windows as blockers while checking clear paths and reachable expansion.':
+      return 'Считает окна блокираторами при проверке чистого пути и достижимости.';
     case 'Perimeter offset skips dense tile centers. The selected footprint itself still stays valid.':
       return 'Смещение периметра пропускает плотные тайлы. Выбранный контур остаётся допустимым.';
     case 'Perimeter and sentry candidates must stay reachable through adjacent clear tiles from the selected footprint.':
-      return 'Периметр и турели остаются только на клетках, достижимых по соседним свободным тайлам от выбранного контура.';
+      return 'Контур, периметр и расширение остаются только в зоне, достижимой от стартовой точки. Этот режим всегда включает чистые клетки.';
     case 'Counts windows as blockers while evaluating clear/reachable perimeter expansion.':
-      return 'Окна считаются препятствиями при проверке чистых и достижимых клеток.';
+      return 'Окна считаются блокираторами проходимости и достижимости для ограничителей радиуса.';
     case 'Radius expansion skips dense tile centers. The selected footprint stays valid even when it starts on blocked tiles.':
-      return 'Радиус пропускает плотные тайлы. Выбранный контур остаётся допустимым, даже если стартует на занятой клетке.';
+      return 'Контур размещения и радиусное расширение не проходят через заблокированные клетки по текущим правилам ограничителей.';
     case 'Radius expansion keeps only tiles reachable through adjacent clear tiles from the selected footprint.':
-      return 'В радиусе остаются только клетки, достижимые по соседним свободным тайлам от выбранного контура.';
+      return 'Контур, периметр и расширение остаются только в зоне, достижимой от стартовой точки. Этот режим всегда включает чистые клетки.';
     case 'Counts windows as blockers for clear/reachable radius filtering.':
-      return 'Окна считаются препятствиями при фильтрации чистых и достижимых клеток.';
+      return 'Окна считаются блокираторами проходимости и достижимости для ограничителей радиуса.';
     default:
       return description;
   }

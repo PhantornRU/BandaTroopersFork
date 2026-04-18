@@ -29,7 +29,7 @@ export const WorldEditPanel = () => {
   };
 
   return (
-    <Window title="World Edit Panel" width={430} height={600}>
+    <Window title="Панель редактирования мира" width={450} height={600}>
       <Window.Content>
         <WorkspacePage
           data={data}

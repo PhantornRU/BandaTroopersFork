@@ -228,6 +228,7 @@
 
 	if(!length(plan.placements) && !length(plan.deletions))
 		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
+	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)
@@ -240,10 +241,6 @@
 	return support_result["error"]
 
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		return "Unable to resolve the anchor turf."
-
 	var/radius = text2num("[params["radius"]]")
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 		return "radius must stay in the range 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX]."
@@ -283,11 +280,5 @@
 		var/blast_falloff = text2num("[params["blast_falloff"]]")
 		if(!isnum(blast_falloff) || blast_falloff < get_blast_falloff_min() || blast_falloff > get_blast_falloff_max())
 			return "blast_falloff must stay in the range [get_blast_falloff_min()]..[get_blast_falloff_max()]."
-
-	var/datum/world_edit_plan/plan = build_plan(params, center_turf)
-	if(plan.metadata["error"])
-		return "[plan.metadata["error"]]"
-	if(!length(plan.placements) && !length(plan.deletions))
-		return "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
 
 	return null

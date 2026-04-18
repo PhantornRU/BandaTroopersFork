@@ -14,26 +14,39 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 /datum/world_edit_helpers/proc/dir_to_label(direction)
 	switch(direction)
 		if(NORTH)
-			return "North"
+			return "Север"
 		if(EAST)
-			return "East"
+			return "Восток"
 		if(SOUTH)
-			return "South"
+			return "Юг"
 		if(WEST)
-			return "West"
-	return "North"
+			return "Запад"
+	return "Север"
 
 /datum/world_edit_helpers/proc/dir_from_label(label, fallback_dir = NORTH)
 	switch("[label]")
 		if("North")
 			return NORTH
+		if("Север")
+			return NORTH
 		if("East")
+			return EAST
+		if("Восток")
 			return EAST
 		if("South")
 			return SOUTH
+		if("Юг")
+			return SOUTH
 		if("West")
 			return WEST
+		if("Запад")
+			return WEST
 	return fallback_dir
+
+/datum/world_edit_helpers/proc/turf_to_text(turf/target_turf)
+	if(!istype(target_turf))
+		return ""
+	return "[target_turf.x],[target_turf.y],[target_turf.z]"
 
 /datum/world_edit_helpers/proc/is_cardinal_dir(direction)
 	return direction in GLOB.cardinals

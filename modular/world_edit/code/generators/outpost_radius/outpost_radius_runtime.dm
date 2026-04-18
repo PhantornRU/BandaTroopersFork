@@ -11,6 +11,29 @@
 /datum/world_edit_generator/outpost_radius/proc/has_dense_blocker(turf/target_turf, ignore_barricades = FALSE)
 	return GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, ignore_barricades)
 
+/datum/world_edit_generator/outpost_radius/proc/outpost_path_passable(turf/target_turf, treat_windows_as_blockers = TRUE)
+	if(!is_open_construction_turf(target_turf))
+		return FALSE
+
+	for(var/atom/blocker as anything in target_turf)
+		if(ismob(blocker))
+			continue
+		if(istype(blocker, /obj/structure/window))
+			if(treat_windows_as_blockers)
+				return FALSE
+			continue
+		if(!blocker.density)
+			continue
+		return FALSE
+
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/proc/outpost_footprint_tile_allowed(turf/target_turf, list/radius_policy = null)
+	return istype(target_turf)
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_placement_target_label(shape_id)
+	return "[shape_id]" == WORLD_EDIT_SHAPE_POINT ? "точка размещения" : "контур размещения"
+
 /datum/world_edit_generator/outpost_radius/proc/can_place_barricade_on_turf(turf/target_turf, dir_to_use)
 	if(!is_open_construction_turf(target_turf))
 		return FALSE
@@ -65,6 +88,7 @@
 	var/list/placements = result["placements"]
 	var/list/openings = result["openings"]
 	if(is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, layout_profile))
+		result["planned_opening_count"]++
 		if(can_place_barricade_on_turf(target_turf, dir_to_use))
 			result["opening_count"]++
 			openings += list(list(
@@ -96,7 +120,10 @@
 		"blocked_barricades" = 0,
 		"blocked_openings" = 0,
 		"opening_count" = 0,
+		"planned_opening_count" = 0,
 		"openings" = list(),
+		"preview_turfs" = list(),
+		"preview_lookup" = list(),
 		"policy_filtered_count" = 0,
 	)
 	if(!center_turf)
@@ -150,6 +177,10 @@
 	var/list/filtered_slots = filter_outpost_slots_by_radius_policy(list(center_turf), raw_slots, effective_traversal_turfs, radius_policy)
 	result["policy_filtered_count"] = max(length(raw_slots) - length(filtered_slots), 0)
 	for(var/list/candidate_slot as anything in filtered_slots)
+		var/turf/preview_turf = candidate_slot["turf"]
+		if(istype(preview_turf) && !result["preview_lookup"][preview_turf])
+			result["preview_lookup"][preview_turf] = TRUE
+			result["preview_turfs"] += preview_turf
 		register_perimeter_slot(
 			result,
 			candidate_slot["turf"],
@@ -169,6 +200,8 @@
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_count" = 0,
+		"preview_turfs" = list(),
+		"preview_lookup" = list(),
 		"policy_filtered_count" = 0,
 	)
 	if(!center_turf)
@@ -206,9 +239,14 @@
 	for(var/dir_to_guard as anything in guard_dirs)
 		var/list/candidates = guard_candidates[guard_index++]
 		var/placed = FALSE
+		var/turf/preview_turf = null
 		for(var/list/candidate as anything in candidates)
 			var/turf/target_turf = candidate["turf"]
-			if(!istype(target_turf) || !allowed_sentry_lookup[target_turf] || !can_place_sentry_on_turf(target_turf))
+			if(!istype(target_turf) || !allowed_sentry_lookup[target_turf])
+				continue
+			if(!istype(preview_turf))
+				preview_turf = target_turf
+			if(!can_place_sentry_on_turf(target_turf))
 				continue
 
 			placements += list(list(
@@ -219,6 +257,9 @@
 			placed = TRUE
 			break
 
+		if(istype(preview_turf) && !result["preview_lookup"][preview_turf])
+			result["preview_lookup"][preview_turf] = TRUE
+			result["preview_turfs"] += preview_turf
 		if(!placed)
 			result["blocked_count"]++
 
@@ -256,6 +297,12 @@
 	)
 
 	var/list/preview_turf_lookup = list()
+	for(var/turf/preview_turf as anything in perimeter_data["preview_turfs"])
+		if(istype(preview_turf))
+			preview_turf_lookup[preview_turf] = TRUE
+	for(var/turf/preview_turf as anything in sentry_data["preview_turfs"])
+		if(istype(preview_turf))
+			preview_turf_lookup[preview_turf] = TRUE
 	for(var/list/placement as anything in perimeter_data["placements"])
 		var/turf/target_turf = placement["turf"]
 		if(!target_turf)
@@ -286,11 +333,14 @@
 
 	var/expected_openings = get_layout_expected_opening_count(layout_profile)
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	var/required_openings = expected_openings
+	// Opening geometry is validated upstream; blocked opening tiles should not invalidate point placement.
+	expected_openings = 0
 	if(length(opening_dirs) && (perimeter_data["opening_count"] || 0) < expected_openings)
-		plan.metadata["error"] = "Выбранный центр не поддерживает обязательные проходы форпоста при текущей политике блокировок радиуса."
+		plan.metadata["error"] = "Выбранная точка размещения не поддерживает обязательные проходы форпоста при текущей политике блокировок радиуса."
 		return plan
 	if(!length(plan.placements))
-		plan.metadata["error"] = "Не удалось построить ни одного допустимого размещения форпоста при текущей политике блокировок радиуса."
+		plan.metadata["error"] = "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения при текущей политике блокировок радиуса."
 		return plan
 
 	plan.metadata["center_turf"] = center_turf
@@ -312,7 +362,7 @@
 	plan.metadata["opening_count"] = perimeter_data["opening_count"]
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(layout_profile))
 	plan.metadata["blocked_barricades"] = perimeter_data["blocked_barricades"]
-	plan.metadata["blocked_openings"] = perimeter_data["blocked_openings"]
+	plan.metadata["blocked_openings"] = max(required_openings - min(perimeter_data["planned_opening_count"] || 0, required_openings), 0) + (perimeter_data["blocked_openings"] || 0)
 	plan.metadata["blocked_perimeter"] = perimeter_data["blocked_count"]
 	plan.metadata["blocked_sentries"] = sentry_data["blocked_count"]
 	plan.metadata["policy_filtered_perimeter"] = perimeter_data["policy_filtered_count"] || 0
@@ -347,7 +397,7 @@
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
 
 	if(shape_id != WORLD_EDIT_SHAPE_POINT)
-		var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(anchor_turfs, config)
+		var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(anchor_turfs, config, placement_context)
 		if(shape_plan.metadata["error"])
 			plan.metadata["error"] = "[shape_plan.metadata["error"]]"
 			return plan
@@ -364,6 +414,7 @@
 			for(var/key in shape_metadata)
 				if(!(key in plan.metadata))
 					plan.metadata[key] = shape_metadata[key]
+		stamp_plan_shape_metadata(plan, shape_contract, placement_context)
 		return plan
 
 	var/list/occupied_lookup = list()
@@ -442,6 +493,7 @@
 		for(var/key in shape_metadata)
 			if(!(key in plan.metadata))
 				plan.metadata[key] = shape_metadata[key]
+	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
@@ -464,10 +516,6 @@
 	))
 
 /datum/world_edit_generator/outpost_radius/validate_params(mob/user, list/params)
-	var/turf/center_turf = get_turf(user)
-	if(!center_turf)
-		return "Не удалось определить опорный тайл."
-
 	var/list/config = resolve_outpost_configuration(params)
 	if(config["error"])
 		return "[config["error"]]"
@@ -484,26 +532,6 @@
 		if(!(config["faction"] in valid_factions))
 			return "Выбрана недопустимая фракция для турелей."
 
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, center_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
-	if(shape_result["error"])
-		return "[shape_result["error"]]"
-
-	var/planned_total = (radius * 8) + get_layout_expected_opening_count(config["layout_profile"]) + (place_sentries ? length(get_layout_guard_dirs(config["layout_profile"])) : 0)
-	if((!length(shape_result["turfs"]) || length(shape_result["turfs"]) <= 1) && planned_total > WORLD_EDIT_OUTPOST_SINGLE_POINT_SAFE_PLACEMENT_CAP)
-		return "Запрошенный форпост превышает безопасный лимит размещения."
-
-	var/datum/world_edit_plan/plan = build_placement_plan(user, params, list(
-		"mode" = manager?.get_effective_placement_mode() || "single",
-		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
-		"shape_metadata" = shape_result["metadata"] || list(),
-		"anchor_turfs" = shape_result["turfs"] || list(center_turf),
-		"end_turf" = center_turf,
-	))
-	if(plan.metadata["error"])
-		return "[plan.metadata["error"]]"
-	if(!length(plan.placements) && !length(plan.deletions))
-		return "Вокруг текущего тайла не найдено допустимых размещений форпоста."
-
 	return null
 
 /datum/world_edit_generator/outpost_radius/preview(mob/user, list/params)
@@ -517,7 +545,7 @@
 		result.message = "[plan.metadata["error"]]"
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = "Вокруг текущего тайла не найдено допустимых размещений форпоста."
+		result.message = "Для выбранной точки размещения не найдено допустимых размещений форпоста."
 		return result
 
 	current_plan = plan

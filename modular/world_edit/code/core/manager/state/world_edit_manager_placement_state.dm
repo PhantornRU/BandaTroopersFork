@@ -303,6 +303,23 @@
 /datum/world_edit_manager/proc/get_placement_collector_points_text()
 	return GLOB.world_edit_placement_shapes.world_edit_format_shape_points(get_placement_collector_points())
 
+/datum/world_edit_manager/proc/get_placement_collector_last_absolute_turf(turf/origin_turf = null)
+	origin_turf = origin_turf || get_placement_collector_origin_turf()
+	if(!istype(origin_turf))
+		return null
+
+	var/list/collector_points = get_placement_collector_points()
+	if(!length(collector_points))
+		return origin_turf
+
+	var/list/last_point = collector_points[length(collector_points)]
+	if(!islist(last_point))
+		return origin_turf
+
+	var/target_x = origin_turf.x + text2num("[last_point["x"]]")
+	var/target_y = origin_turf.y + text2num("[last_point["y"]]")
+	return locate(target_x, target_y, origin_turf.z)
+
 /datum/world_edit_manager/proc/reset_placement_collector_state(clear_points = FALSE)
 	clear_placement_collector_origin()
 	if(clear_points)
@@ -319,11 +336,11 @@
 		origin_desc = "none"
 	return "Collector [shape_label]: points=[point_count]/[max_points], min=[min_points], origin=[origin_desc]"
 
-/datum/world_edit_manager/proc/clear_placement_shape_preview_state()
+/datum/world_edit_manager/proc/clear_placement_shape_preview_state(preserve_lock = FALSE, turf/preserved_hover_turf = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	session.preview_candidate = null
-	session.preview_locked = FALSE
-	session.hover_turf = null
+	session.preview_locked = preserve_lock ? TRUE : FALSE
+	session.hover_turf = preserve_lock ? preserved_hover_turf : null
 	placement_preview_shape_result = list()
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
@@ -332,16 +349,19 @@
 	placement_preview_final_turfs = list()
 	placement_preview_guide_turfs = list()
 	placement_preview_generator_effect_turfs = list()
-	placement_hover_turf = null
+	placement_hover_turf = preserve_lock ? preserved_hover_turf : null
 
 /datum/world_edit_manager/proc/store_placement_preview_candidate(datum/world_edit_placement_candidate/candidate)
-	clear_placement_shape_preview_state()
 	var/datum/world_edit_placement_session/session = get_placement_session()
+	var/keep_lock = session.preview_locked ? TRUE : FALSE
+	var/turf/locked_hover_turf = keep_lock ? session.hover_turf : null
+	clear_placement_shape_preview_state(keep_lock, locked_hover_turf)
 	session.preview_candidate = candidate
 	if(!istype(candidate))
 		return
 
-	session.hover_turf = islist(candidate.placement_context) ? candidate.placement_context["end_turf"] : null
+	if(!keep_lock)
+		session.hover_turf = islist(candidate.placement_context) ? candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"] : null
 	placement_hover_turf = session.hover_turf
 	if(istype(candidate.shape_contract))
 		placement_preview_shape_result = candidate.shape_contract.as_shape_result()
@@ -418,9 +438,7 @@
 	)
 
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
-	if(!placement_anchor_turf)
-		return ""
-	return "[placement_anchor_turf.x],[placement_anchor_turf.y],[placement_anchor_turf.z]"
+	return GLOB.world_edit_helpers.turf_to_text(placement_anchor_turf)
 
 /datum/world_edit_manager/proc/reset_placement_runtime(reset_config = FALSE, clear_points = TRUE)
 	var/datum/world_edit_placement_session/session = get_placement_session()

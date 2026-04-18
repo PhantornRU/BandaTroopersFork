@@ -62,7 +62,7 @@
 			"label" = "Только чистые клетки",
 			"kind" = "boolean",
 			"group" = "Компоновка",
-			"description" = "Отступ периметра пропускает плотные клетки. Выбранный контур при этом остаётся допустимым.",
+			"description" = "Stops radius expansion at blockers, but does not invalidate the clicked tile or selected contour itself.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]),
 		),
 		list(
@@ -70,7 +70,7 @@
 			"label" = "Только достижимые клетки",
 			"kind" = "boolean",
 			"group" = "Компоновка",
-			"description" = "Периметр и кандидаты для турелей остаются только на клетках, достижимых по соседним свободным тайлам от выбранного контура.",
+			"description" = "Keeps only tiles that stay reachable from the drawing start through adjacent non-blocked tiles. This toggle always enables clear-path filtering.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]) ? FALSE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]),
 		),
 		list(
@@ -78,7 +78,7 @@
 			"label" = "Окна как блокираторы",
 			"kind" = "boolean",
 			"group" = "Компоновка",
-			"description" = "Считает окна препятствиями при проверке чистого и достижимого расширения периметра.",
+			"description" = "Counts windows as blockers while checking clear paths and reachable expansion.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]),
 		),
 		list(

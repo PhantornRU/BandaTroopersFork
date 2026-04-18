@@ -4,23 +4,19 @@
 		var/turf/collector_origin = manager?.get_placement_collector_origin_turf()
 		if(istype(collector_origin))
 			return collector_origin
+	var/turf/anchor_turf = manager?.placement_anchor_turf
+	if(istype(anchor_turf))
+		return anchor_turf
 	return get_turf(user)
 
 /datum/world_edit_generator/blueprint_stamp/validate_params(mob/user, list/params)
 	var/blueprint_id = sanitize_filename("[params["blueprint_id"]]")
 	if(!length(blueprint_id))
 		return "Сначала загрузите blueprint из server-side библиотеки."
-	var/turf/anchor_turf = resolve_shape_anchor_turf(user)
-	if(!anchor_turf)
-		return "Unable to resolve the anchor turf."
 
 	var/list/load_result = manager?.load_blueprint_definition_by_id(blueprint_id)
 	if(load_result["error"])
 		return "[load_result["error"]]"
-
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
-	if(shape_result["error"])
-		return "[shape_result["error"]]"
 
 	return null
 

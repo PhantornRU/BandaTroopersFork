@@ -129,6 +129,7 @@
 		for(var/key in shape_metadata)
 			if(!(key in plan.metadata))
 				plan.metadata[key] = shape_metadata[key]
+	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/blueprint_stamp/build_placement_plan(mob/user, list/params, list/placement_context)

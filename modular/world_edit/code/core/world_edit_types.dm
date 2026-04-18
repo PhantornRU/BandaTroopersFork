@@ -131,3 +131,44 @@
 
 /datum/world_edit_generator/proc/build_placement_plan(mob/user, list/params, list/placement_context)
 	return null
+
+/datum/world_edit_generator/proc/get_shape_placement_seed_turf(datum/world_edit_shape_contract/shape_contract, list/placement_context)
+	var/turf/seed_turf = islist(placement_context) ? placement_context["seed_turf"] : null
+	if(istype(seed_turf))
+		return seed_turf
+
+	var/turf/origin_turf = islist(placement_context) ? (placement_context["shape_origin_turf"] || placement_context["start_turf"]) : null
+	if(istype(origin_turf))
+		return origin_turf
+
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || (islist(placement_context) ? placement_context["anchor_turfs"] : null)
+	if(islist(anchor_turfs) && length(anchor_turfs))
+		var/turf/first_anchor = anchor_turfs[1]
+		if(istype(first_anchor))
+			return first_anchor
+	return null
+
+/datum/world_edit_generator/proc/stamp_plan_shape_metadata(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context)
+	if(!istype(plan))
+		return null
+	if(!islist(plan.metadata))
+		plan.metadata = list()
+	if(!istype(shape_contract))
+		shape_contract = build_shape_contract_from_placement_context(null, null, placement_context)
+	if(!istype(shape_contract))
+		return plan
+
+	var/turf/shape_origin_turf = islist(placement_context) ? (placement_context["shape_origin_turf"] || placement_context["start_turf"]) : null
+	var/turf/requested_end_turf = islist(placement_context) ? (placement_context["requested_end_turf"] || placement_context["end_turf"]) : null
+	var/turf/resolved_end_turf = islist(placement_context) ? (placement_context["resolved_end_turf"] || placement_context["end_turf"]) : null
+	var/turf/seed_turf = get_shape_placement_seed_turf(shape_contract, placement_context)
+	var/list/shape_result = shape_contract.as_shape_result()
+
+	plan.metadata["shape_result"] = shape_result
+	plan.metadata["shape_origin_turf"] = shape_origin_turf
+	plan.metadata["requested_end_turf"] = requested_end_turf
+	plan.metadata["resolved_end_turf"] = resolved_end_turf
+	plan.metadata["seed_turf"] = seed_turf
+	plan.metadata["placement_shape"] = plan.metadata["placement_shape"] || shape_contract.shape_id
+	plan.metadata["shape_label"] = plan.metadata["shape_label"] || shape_contract.shape_label
+	return plan

@@ -62,9 +62,7 @@
 	var/list/runtime_params = list()
 	var/list/placement_context = list()
 
-/datum/world_edit_placement_candidate/proc/is_ready_for_apply()
-	if(hover_only)
-		return FALSE
+/datum/world_edit_placement_candidate/proc/is_preview_ready()
 	if(length("[resolve_error]"))
 		return FALSE
 	if(length("[support_error]"))
@@ -74,6 +72,11 @@
 	if(plan.metadata["error"])
 		return FALSE
 	return (length(plan.placements) || length(plan.deletions)) ? TRUE : FALSE
+
+/datum/world_edit_placement_candidate/proc/is_ready_for_apply()
+	if(hover_only)
+		return FALSE
+	return is_preview_ready()
 
 /datum/world_edit_placement_candidate/proc/get_failure_message()
 	if(length("[resolve_error]"))

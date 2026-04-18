@@ -16,7 +16,7 @@
 		return TRUE
 
 	if(holder.click_intercept && holder.click_intercept != src)
-		var/answer = tgui_alert(holder.mob, "Сейчас клики перехватывает другой инструмент ([holder.click_intercept]). Перехватить управление для режима '[mode_name]'?", "World Edit: Перехват клика", list("Да", "Нет"))
+		var/answer = tgui_alert(holder.mob, "Сейчас клики перехватывает другой инструмент ([holder.click_intercept]). Перехватить управление для режима '[mode_name]'?", "Панель размещения: перехват клика", list("Да", "Нет"))
 		if(answer != "Да")
 			return FALSE
 		click_intercept_previous = holder.click_intercept

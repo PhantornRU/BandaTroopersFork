@@ -187,6 +187,18 @@ const SharedModePanel = (props: {
                       ) : (
                         <ToolbarReadOnlyValue value="—" disabled />
                       )}
+                      {!!viewModel.radiusToggleFields.length && (
+                        <Box
+                          style={{
+                            fontSize: '0.72rem',
+                            lineHeight: '1.1',
+                            opacity: '0.78',
+                            paddingTop: '0.08rem',
+                          }}
+                        >
+                          Ограничители
+                        </Box>
+                      )}
                       {viewModel.radiusToggleFields.map((field) => (
                         <CompactToggleButton
                           key={`${sharedFieldContextKey}:radius-toggle:${field.id}`}

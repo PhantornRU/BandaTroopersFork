@@ -31,7 +31,7 @@
 
 	last_preview_success = result.success ? TRUE : FALSE
 	last_preview_message = result.message
-	last_preview_meta = islist(result.meta) ? result.meta.Copy() : list()
+	last_preview_meta = sanitize_preview_feedback_meta(result.meta)
 
 	if(result.success)
 		mark_preview_state()
@@ -63,7 +63,7 @@
 
 	if(confirm_before_apply)
 		var/confirm_text = current_generator.get_apply_confirmation_text(effective_params)
-		var/answer = tgui_alert(user, confirm_text, "World Edit: Подтверждение", list("Подтвердить", "Отмена"))
+		var/answer = tgui_alert(user, confirm_text, "Панель размещения: подтверждение", list("Подтвердить", "Отмена"))
 		if(answer != "Подтвердить")
 			return null
 

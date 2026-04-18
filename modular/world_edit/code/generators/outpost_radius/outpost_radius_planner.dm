@@ -146,15 +146,121 @@
 	return area_turfs
 
 /datum/world_edit_generator/outpost_radius/proc/filter_outpost_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null)
-	return GLOB.world_edit_helpers.filter_radius_candidate_turfs(
-		start_turfs,
-		candidate_turfs,
-		traversal_turfs,
-		radius_policy,
-		pinned_turfs,
-	)
+	var/list/result = list()
+	var/list/result_lookup = list()
+	var/list/policy = islist(radius_policy) ? radius_policy : GLOB.world_edit_helpers.get_world_edit_radius_policy(radius_policy)
+	var/only_clear_tiles = !!policy["only_clear_tiles"]
+	var/only_reachable_tiles = !!policy["only_reachable_tiles"]
+	var/treat_windows_as_blockers = !!policy["treat_windows_as_blockers"]
+	var/list/start_lookup = list()
+	var/list/pinned_lookup = list()
+	var/z_level = null
 
-/datum/world_edit_generator/outpost_radius/proc/filter_outpost_slots_by_radius_policy(list/start_turfs, list/candidate_slots, list/traversal_turfs, list/radius_policy)
+	if(islist(start_turfs))
+		for(var/turf/start_turf as anything in start_turfs)
+			if(!istype(start_turf))
+				continue
+			if(isnull(z_level))
+				z_level = start_turf.z
+			if(start_turf.z != z_level || start_lookup[start_turf])
+				continue
+			start_lookup[start_turf] = TRUE
+
+	if(islist(pinned_turfs))
+		for(var/turf/pinned_turf as anything in pinned_turfs)
+			if(!istype(pinned_turf))
+				continue
+			if(isnull(z_level))
+				z_level = pinned_turf.z
+			if(pinned_turf.z != z_level || pinned_lookup[pinned_turf])
+				continue
+			pinned_lookup[pinned_turf] = TRUE
+			if(!result_lookup[pinned_turf])
+				result_lookup[pinned_turf] = TRUE
+				result += pinned_turf
+
+	if(!length(start_lookup))
+		for(var/turf/pinned_turf as anything in pinned_lookup)
+			start_lookup[pinned_turf] = TRUE
+
+	var/list/filtered_candidate_lookup = list()
+	var/list/filtered_candidates = list()
+	if(islist(candidate_turfs))
+		for(var/turf/candidate_turf as anything in candidate_turfs)
+			if(!istype(candidate_turf))
+				continue
+			if(isnull(z_level))
+				z_level = candidate_turf.z
+			if(candidate_turf.z != z_level || filtered_candidate_lookup[candidate_turf])
+				continue
+			filtered_candidate_lookup[candidate_turf] = TRUE
+			filtered_candidates += candidate_turf
+			if(!only_clear_tiles && !only_reachable_tiles && !result_lookup[candidate_turf])
+				result_lookup[candidate_turf] = TRUE
+				result += candidate_turf
+
+	if(!only_clear_tiles && !only_reachable_tiles)
+		return result
+
+	if(!only_reachable_tiles)
+		for(var/turf/candidate_turf as anything in filtered_candidates)
+			if(result_lookup[candidate_turf])
+				continue
+
+			var/is_allowed = FALSE
+			for(var/turf/start_turf as anything in start_lookup)
+				if(has_clear_outpost_approach(start_turf, candidate_turf, treat_windows_as_blockers, pinned_lookup))
+					is_allowed = TRUE
+					break
+
+			if(!is_allowed)
+				continue
+
+			result_lookup[candidate_turf] = TRUE
+			result += candidate_turf
+
+		return result
+
+	var/list/traversal_lookup = list()
+	var/list/raw_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : filtered_candidates
+	for(var/turf/traversal_turf as anything in raw_traversal_turfs)
+		if(!istype(traversal_turf))
+			continue
+		if(isnull(z_level))
+			z_level = traversal_turf.z
+		if(traversal_turf.z != z_level || traversal_lookup[traversal_turf])
+			continue
+		if((only_clear_tiles || only_reachable_tiles) && !outpost_path_passable(traversal_turf, treat_windows_as_blockers))
+			continue
+		traversal_lookup[traversal_turf] = TRUE
+
+	var/list/visited_lookup = list()
+	var/list/open_turfs = list()
+	for(var/turf/start_turf as anything in start_lookup)
+		if(!istype(start_turf) || visited_lookup[start_turf])
+			continue
+		visited_lookup[start_turf] = TRUE
+		open_turfs += start_turf
+
+	var/search_index = 1
+	while(search_index <= length(open_turfs))
+		var/turf/current_turf = open_turfs[search_index++]
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/adjacent_turf = get_step(current_turf, check_dir)
+			if(!traversal_lookup[adjacent_turf] || visited_lookup[adjacent_turf])
+				continue
+			visited_lookup[adjacent_turf] = TRUE
+			open_turfs += adjacent_turf
+
+	for(var/turf/candidate_turf as anything in filtered_candidates)
+		if(result_lookup[candidate_turf] || !is_outpost_candidate_reachable_from_seed(candidate_turf, visited_lookup))
+			continue
+		result_lookup[candidate_turf] = TRUE
+		result += candidate_turf
+
+	return result
+
+/datum/world_edit_generator/outpost_radius/proc/filter_outpost_slots_by_radius_policy(list/start_turfs, list/candidate_slots, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null)
 	if(!islist(candidate_slots) || !length(candidate_slots))
 		return list()
 
@@ -167,7 +273,7 @@
 		candidate_turf_lookup[target_turf] = TRUE
 		candidate_turfs += target_turf
 
-	var/list/allowed_turfs = filter_outpost_candidate_turfs(start_turfs, candidate_turfs, traversal_turfs, radius_policy, start_turfs)
+	var/list/allowed_turfs = filter_outpost_candidate_turfs(start_turfs, candidate_turfs, traversal_turfs, radius_policy, pinned_turfs || start_turfs)
 	var/list/allowed_lookup = build_turf_lookup(allowed_turfs)
 	var/list/filtered_slots = list()
 	for(var/list/candidate_slot as anything in candidate_slots)
@@ -176,6 +282,97 @@
 			filtered_slots += list(candidate_slot)
 
 	return filtered_slots
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_shape_seed_turf(list/footprint_turfs, list/placement_context)
+	var/turf/seed_turf = get_shape_placement_seed_turf(null, placement_context)
+	if(istype(seed_turf))
+		return seed_turf
+	if(islist(footprint_turfs) && length(footprint_turfs))
+		return footprint_turfs[1]
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/has_clear_outpost_approach(turf/start_turf, turf/target_turf, treat_windows_as_blockers, list/pinned_lookup = null)
+	if(!istype(start_turf) || !istype(target_turf) || start_turf.z != target_turf.z)
+		return FALSE
+
+	var/list/line_turfs = GLOB.world_edit_helpers.collect_line_turfs(start_turf, target_turf)
+	if(!length(line_turfs))
+		return FALSE
+
+	for(var/turf/line_turf as anything in line_turfs)
+		if(!istype(line_turf))
+			continue
+		if(line_turf == start_turf || line_turf == target_turf)
+			continue
+		if(islist(pinned_lookup) && pinned_lookup[line_turf])
+			continue
+		if(!outpost_path_passable(line_turf, treat_windows_as_blockers))
+			return FALSE
+
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/proc/is_outpost_candidate_reachable_from_seed(turf/candidate_turf, list/reachable_lookup)
+	if(!istype(candidate_turf) || !islist(reachable_lookup))
+		return FALSE
+	if(reachable_lookup[candidate_turf])
+		return TRUE
+
+	for(var/check_dir in GLOB.cardinals)
+		if(reachable_lookup[get_step(candidate_turf, check_dir)])
+			return TRUE
+
+	return FALSE
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_radius_policy_error(shape_id, suffix = "")
+	var/target_label = get_outpost_placement_target_label(shape_id)
+	var/prefix = ("[shape_id]" == WORLD_EDIT_SHAPE_POINT) ? "Выбранная" : "Выбранный"
+	var/error_message = "[prefix] [target_label] не поддерживает обязательные проходы форпоста"
+	if(length("[suffix]"))
+		error_message += " [suffix]"
+	return "[error_message]."
+
+/datum/world_edit_generator/outpost_radius/proc/validate_outpost_footprint_radius_policy(list/footprint_turfs, turf/seed_turf, list/radius_policy, shape_id)
+	var/list/policy = islist(radius_policy) ? radius_policy : GLOB.world_edit_helpers.get_world_edit_radius_policy(radius_policy)
+	var/only_clear_tiles = !!policy["only_clear_tiles"]
+	var/only_reachable_tiles = !!policy["only_reachable_tiles"]
+	if(!only_clear_tiles && !only_reachable_tiles)
+		return null
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return "Не удалось определить контур формы."
+
+	var/list/footprint_lookup = build_turf_lookup(footprint_turfs)
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		if(!istype(footprint_turf))
+			continue
+		if(!outpost_footprint_tile_allowed(footprint_turf, policy))
+			return get_outpost_radius_policy_error(shape_id, "при текущей политике блокировок радиуса")
+
+	if(!only_reachable_tiles)
+		return null
+
+	if(!istype(seed_turf) || !footprint_lookup[seed_turf])
+		return get_outpost_radius_policy_error(shape_id, "при текущей политике блокировок радиуса")
+
+	var/list/visited_lookup = list()
+	visited_lookup[seed_turf] = TRUE
+	var/list/open_turfs = list(seed_turf)
+	var/search_index = 1
+	while(search_index <= length(open_turfs))
+		var/turf/current_turf = open_turfs[search_index++]
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/neighbor_turf = get_step(current_turf, check_dir)
+			if(!footprint_lookup[neighbor_turf] || visited_lookup[neighbor_turf])
+				continue
+			if(!outpost_path_passable(neighbor_turf, policy["treat_windows_as_blockers"]))
+				continue
+			visited_lookup[neighbor_turf] = TRUE
+			open_turfs += neighbor_turf
+
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		if(!visited_lookup[footprint_turf])
+			return get_outpost_radius_policy_error(shape_id, "при текущей политике блокировок радиуса")
+
+	return null
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_class(shape_id)
 	switch("[shape_id]")
@@ -430,7 +627,7 @@
 
 	return candidates
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params, list/placement_context = null)
 	var/datum/world_edit_plan/plan = new
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
 		plan.metadata["error"] = "Не удалось определить контур формы."
@@ -448,11 +645,14 @@
 	var/radius = config["radius"]
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/place_sentries = config["place_sentries"]
+	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
+	if(!istype(seed_turf))
+		seed_turf = footprint_turfs[1]
 	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, radius, footprint_lookup, shape_bounds)
-	candidate_slots = filter_outpost_slots_by_radius_policy(footprint_turfs, candidate_slots, traversal_turfs, radius_policy)
+	candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, radius_policy, footprint_turfs)
 	if(!length(candidate_slots))
-		plan.metadata["error"] = "Выбранный контур не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
+		plan.metadata["error"] = "Выбранный контур размещения не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
@@ -472,7 +672,7 @@
 					continue
 				raw_sentry_candidate_lookup[sentry_turf] = TRUE
 				raw_sentry_candidate_turfs += sentry_turf
-	var/list/allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(footprint_turfs, raw_sentry_candidate_turfs, traversal_turfs, radius_policy, footprint_turfs))
+	var/list/allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(list(seed_turf), raw_sentry_candidate_turfs, traversal_turfs, radius_policy, footprint_turfs))
 	var/list/opening_lookup = list()
 	var/list/opening_seen_lookup = list()
 	for(var/list/opening_slot as anything in opening_slots)
@@ -497,6 +697,7 @@
 		var/barricade_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, candidate_dir)
 		if(!istype(target_turf))
 			continue
+		preview_turf_lookup[target_turf] = TRUE
 		if(!length(barricade_slot_key))
 			continue
 		if(opening_lookup[barricade_slot_key])
@@ -525,6 +726,7 @@
 		if(!istype(open_turf))
 			total_blocked_openings++
 			continue
+		preview_turf_lookup[open_turf] = TRUE
 		if(!can_place_barricade_on_turf(open_turf, opening_slot["dir"]))
 			total_blocked_openings++
 			continue
@@ -542,9 +744,14 @@
 		for(var/list/guard_slot as anything in guard_slots)
 			var/list/sentry_candidates = guard_sentry_candidates[guard_index++]
 			var/placed_sentry = FALSE
+			var/turf/preview_sentry_turf = null
 			for(var/list/sentry_candidate as anything in sentry_candidates)
 				var/turf/sentry_turf = sentry_candidate["turf"]
-				if(!istype(sentry_turf) || !allowed_sentry_lookup[sentry_turf] || preview_turf_lookup[sentry_turf] || sentry_lookup[sentry_turf])
+				if(!istype(sentry_turf) || !allowed_sentry_lookup[sentry_turf] || sentry_lookup[sentry_turf])
+					continue
+				if(!istype(preview_sentry_turf))
+					preview_sentry_turf = sentry_turf
+				if(preview_turf_lookup[sentry_turf])
 					continue
 				if(!can_place_sentry_on_turf(sentry_turf))
 					continue
@@ -564,6 +771,8 @@
 				total_sentries++
 				break
 
+			if(istype(preview_sentry_turf))
+				preview_turf_lookup[preview_sentry_turf] = TRUE
 			if(!placed_sentry)
 				total_blocked_sentries++
 
@@ -587,6 +796,7 @@
 	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
 	plan.metadata["radius_windows_blockers"] = radius_policy["treat_windows_as_blockers"]
 	plan.metadata["shape_mode"] = "footprint_offset"
+	plan.metadata["seed_turf"] = seed_turf
 	plan.metadata["shape_footprint_count"] = length(footprint_turfs)
 	plan.metadata["base_shape_turfs"] = footprint_turfs.Copy()
 	plan.metadata["anchor_count"] = length(footprint_turfs)
@@ -697,12 +907,6 @@
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	var/support_class = get_outpost_shape_support_class(shape_id)
-	if("[shape_id]" == WORLD_EDIT_SHAPE_POINT)
-		return list(
-			"support_class" = support_class,
-			"error" = null,
-			"metadata" = list("shape_support_class" = support_class),
-		)
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		return list(
 			"support_class" = support_class,
@@ -737,6 +941,8 @@
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
+	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
+	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
 	var/support_validation_error = get_outpost_shape_support_validation_error(shape_id, footprint_turfs, placement_context)
 	if(length("[support_validation_error]"))
 		return list(
@@ -746,14 +952,13 @@
 		)
 
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
-	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
 	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
-	candidate_slots = filter_outpost_slots_by_radius_policy(footprint_turfs, candidate_slots, traversal_turfs, radius_policy)
+	candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, radius_policy, footprint_turfs)
 	if(!length(candidate_slots))
 		return list(
 			"support_class" = support_class,
-			"error" = "Выбранный контур не позволяет построить оболочку периметра при текущей политике блокировок радиуса.",
+			"error" = get_outpost_radius_policy_error(shape_id, "при текущей политике блокировок радиуса"),
 			"metadata" = list("shape_support_class" = support_class),
 		)
 
@@ -761,25 +966,22 @@
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	if(length(opening_dirs))
 		var/list/opening_slots = select_shape_direction_slots(candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds)
-		var/list/placeable_by_dir = list()
+		var/list/opening_slots_by_dir = list()
 		for(var/list/opening_slot as anything in opening_slots)
 			var/opening_dir = opening_slot["dir"]
-			var/turf/open_turf = opening_slot["turf"]
 			if(!GLOB.world_edit_helpers.is_cardinal_dir(opening_dir))
 				continue
-			if(!can_place_barricade_on_turf(open_turf, opening_dir))
-				continue
-			placeable_by_dir["[opening_dir]"] = TRUE
+			opening_slots_by_dir["[opening_dir]"] = TRUE
 
 		for(var/opening_dir as anything in opening_dirs)
-			if(!placeable_by_dir["[opening_dir]"])
+			if(!opening_slots_by_dir["[opening_dir]"])
 				return list(
 					"support_class" = support_class,
-					"error" = "Выбранный контур не поддерживает обязательные проходы форпоста.",
+					"error" = get_outpost_radius_policy_error(shape_id),
 					"metadata" = list("shape_support_class" = support_class),
 				)
 
-	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config, placement_context)
 	if(shape_plan.metadata["error"])
 		return list(
 			"support_class" = support_class,
@@ -789,16 +991,9 @@
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
 		return list(
 			"support_class" = support_class,
-			"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура.",
+			"error" = "[shape_id]" == WORLD_EDIT_SHAPE_POINT ? "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения." : "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
 			"metadata" = list("shape_support_class" = support_class),
 		)
-	if((shape_plan.metadata["opening_count"] || 0) <= 0 && length(opening_dirs))
-		return list(
-			"support_class" = support_class,
-			"error" = "Выбранный контур не поддерживает обязательные проходы форпоста.",
-			"metadata" = list("shape_support_class" = support_class),
-		)
-
 	return list(
 		"support_class" = support_class,
 		"error" = null,
