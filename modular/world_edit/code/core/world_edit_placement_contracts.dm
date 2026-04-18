@@ -93,6 +93,8 @@
 	var/turf/collector_origin_turf
 	var/list/collector_points = list()
 	var/datum/world_edit_placement_candidate/preview_candidate
+	var/turf/confirm_arm_turf
+	var/confirm_arm_signature = null
 	var/preview_locked = FALSE
 	var/active_shape = null
 	var/active_mode = null

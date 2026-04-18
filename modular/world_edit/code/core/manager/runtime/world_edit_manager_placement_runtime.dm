@@ -493,6 +493,19 @@
 			return TRUE
 	return FALSE
 
+/datum/world_edit_manager/proc/arm_safe_placement_preview_for_confirm(mob/user, turf/confirm_turf = null)
+	if(!arm_placement_confirm_for_turf(confirm_turf))
+		return FALSE
+	if(user)
+		to_chat(user, SPAN_NOTICE("Предпросмотр закреплён. Нажмите ещё раз по этому тайлу для подтверждения."))
+	return TRUE
+
+/datum/world_edit_manager/proc/handle_repeated_safe_placement_confirm_click(mob/user, turf/confirm_turf = null)
+	if(!is_placement_confirm_armed_for_turf(confirm_turf))
+		return FALSE
+	clear_placement_confirm_arm()
+	return apply_safe_placement_current_plan(user, TRUE)
+
 /datum/world_edit_manager/proc/handle_safe_placement_click_v2(mob/user, params, atom/object)
 	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
@@ -545,7 +558,7 @@
 		return TRUE
 
 	if(LAZYACCESS(modifiers, RIGHT_CLICK))
-		return handle_safe_placement_right_click(user, clicked_turf || placement_hover_turf)
+		return TRUE
 
 	if(!LAZYACCESS(modifiers, LEFT_CLICK))
 		return TRUE
@@ -576,7 +589,12 @@
 		if(length(first_point_key) && new_key == first_point_key && collector_first_point_click_finishes(shape_id) && length(collector_points) >= get_placement_collector_min_points(shape_id))
 			set_placement_anchor_turf(origin_turf)
 			set_placement_hover_turf(clicked_turf)
-			return finish_placement_collection_v2(user, clicked_turf)
+			if(handle_repeated_safe_placement_confirm_click(user, clicked_turf))
+				return TRUE
+			if(!prepare_finished_placement_collection_preview_v2(user, clicked_turf))
+				return TRUE
+			arm_safe_placement_preview_for_confirm(user, clicked_turf)
+			return TRUE
 		var/max_points = get_placement_collector_max_points(shape_id)
 		if("[shape_id]" == WORLD_EDIT_SHAPE_CUSTOM_MASK)
 			for(var/list/existing_point as anything in collector_points)
@@ -627,14 +645,16 @@
 	if(interaction_kind == "anchor_pair")
 		set_placement_hover_turf(clicked_turf)
 
+	if(handle_repeated_safe_placement_confirm_click(user, clicked_turf))
+		return TRUE
+
 	if(!evaluate_safe_placement_preview(user, shape_id, start_turf, end_turf, null, "", FALSE, FALSE))
 		if(interaction_kind == "anchor_pair")
 			set_placement_anchor_turf(start_turf)
 		return TRUE
 
-	if(interaction_kind == "anchor_pair")
-		set_placement_anchor_turf(null)
-	return apply_safe_placement_current_plan(user)
+	arm_safe_placement_preview_for_confirm(user, clicked_turf)
+	return TRUE
 
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
@@ -665,13 +685,13 @@
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
 	var/dir_suffix = supports_current_placement_direction() ? " Направление: [GLOB.world_edit_helpers.dir_to_label(get_effective_placement_dir())]." : "."
 	if(interaction_kind == "anchor_pair")
-		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: первый ЛКМ ставит опорную точку, второй ЛКМ строит предпросмотр и применяет результат. СКМ сбрасывает опорную точку.[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: первый ЛКМ ставит опорную точку, второй ЛКМ строит предпросмотр, повторный ЛКМ по тому же тайлу открывает подтверждение. СКМ сбрасывает опорную точку.[dir_suffix]"))
 	else if(interaction_kind == "collector")
-		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ добавляет точки, СКМ удаляет последнюю точку, а ПКМ или кнопка завершения подтверждают и применяют результат после валидации контура.[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ добавляет точки, клик по первой точке строит финальный предпросмотр, повторный ЛКМ по тому же тайлу открывает подтверждение. СКМ удаляет последнюю точку, кнопка завершения тоже работает.[dir_suffix]"))
 	else if(interaction_kind == "param_only")
-		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ использует выбранный тайл как опорную точку и строит контур по текущим параметрам формы. Интерактивный сбор точек в этом режиме не используется.[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ использует выбранный тайл как опорную точку и строит контур по текущим параметрам формы, повторный ЛКМ по тому же тайлу открывает подтверждение. Интерактивный сбор точек в этом режиме не используется.[dir_suffix]"))
 	else
-		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ строит предпросмотр и применяет результат по выбранному тайлу. СКМ сбрасывает опорную точку.[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ закрепляет предпросмотр по выбранному тайлу, повторный ЛКМ по тому же тайлу открывает подтверждение. СКМ сбрасывает опорную точку.[dir_suffix]"))
 	return TRUE
 
 /datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)

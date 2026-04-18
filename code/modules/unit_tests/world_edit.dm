@@ -1043,7 +1043,7 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/right_click_cancels_invalid_outpost_collection/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/right_click_is_ignored_during_invalid_outpost_collection/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
@@ -1066,10 +1066,10 @@
 	TEST_ASSERT(findtext("[manager.last_preview_message]", "Выбранный контур размещения не поддерживает обязательные проходы форпоста."), "World Edit invalid-outpost collector test should surface the expected support error before cancellation.")
 	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active until the user cancels it.")
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(RIGHT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept right-click cancellation.")
-	TEST_ASSERT(!manager.placement_click_active, "World Edit invalid-outpost collector test should stop placement mode after right-clicking an invalid collector preview.")
-	TEST_ASSERT(isnull(manager.placement_anchor_turf), "World Edit invalid-outpost collector test should clear the active anchor when cancellation stops placement mode.")
-	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit invalid-outpost collector test should clear collector points when cancellation stops placement mode.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(RIGHT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should swallow right-click after the RMB confirm flow is removed.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active after right-click because RMB no longer cancels placement.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit invalid-outpost collector test should keep the active anchor after right-click.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 1, "World Edit invalid-outpost collector test should keep collector points after right-click.")
 
 	qdel(manager)
 
@@ -1124,8 +1124,11 @@
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should accept the first point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit polygon collector should accept the second point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit polygon collector should accept the third point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should finish when the first point is clicked again.")
-	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit polygon collector should apply immediately when the user closes the chain on the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should build a finish preview when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 0, "World Edit polygon collector should wait for a repeated click on the same tile before applying.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit polygon collector should arm confirmation on the finishing tile.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polygon collector should confirm on a repeated click over the same first point.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit polygon collector should apply after the repeated finish click.")
 
 	manager.reset_placement_runtime()
 	manager.current_params = definition.default_params?.Copy() || list()
@@ -1136,8 +1139,11 @@
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should accept the first point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit polyline collector should accept the second point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit polyline collector should accept the third point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should finish when the first point is clicked again.")
-	TEST_ASSERT_EQUAL(generator.apply_calls, 2, "World Edit polyline collector should use the first-point click as a finish gesture without requiring right-click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should build a finish preview when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit polyline collector should wait for a repeated click on the same tile before applying.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit polyline collector should arm confirmation on the finishing tile.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit polyline collector should confirm on a repeated click over the same first point.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 2, "World Edit polyline collector should apply after the repeated finish click.")
 
 	manager.reset_placement_runtime()
 	manager.current_params = definition.default_params?.Copy() || list()
@@ -1148,8 +1154,11 @@
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should accept the first point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit brush-path collector should accept the second point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit brush-path collector should accept the third point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should finish when the first point is clicked again.")
-	TEST_ASSERT_EQUAL(generator.apply_calls, 3, "World Edit brush-path collector should reuse the first-point click as a finish gesture for open paths.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should build a finish preview when the first point is clicked again.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 2, "World Edit brush-path collector should wait for a repeated click on the same tile before applying.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit brush-path collector should arm confirmation on the finishing tile.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit brush-path collector should confirm on a repeated click over the same first point.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 3, "World Edit brush-path collector should apply after the repeated finish click.")
 
 	manager.reset_placement_runtime()
 	manager.current_params = definition.default_params?.Copy() || list()
@@ -1161,6 +1170,39 @@
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit custom-mask collector should accept the second point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit custom-mask collector should treat a repeated first point as a duplicate, not as a finish gesture.")
 	TEST_ASSERT_EQUAL(generator.apply_calls, 3, "World Edit custom-mask collector should stay in exact-point mode and should not auto-finish on the first point.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/anchor_pair_requires_repeat_click_for_confirm/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit anchor-pair confirm test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit anchor-pair confirm test end turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair confirm test should accept the first anchor click.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit anchor-pair confirm test should keep the selected anchor turf.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit anchor-pair confirm test should build a preview on the second click.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 0, "World Edit anchor-pair confirm test should not apply on the first endpoint click.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit anchor-pair confirm test should keep the anchor until the repeated click confirms placement.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(end_turf), "World Edit anchor-pair confirm test should arm confirmation on the chosen endpoint.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit anchor-pair confirm test should accept the repeated endpoint click.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit anchor-pair confirm test should apply after the repeated endpoint click.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit anchor-pair confirm test should record a successful apply instead of reporting that preview is not ready.")
 
 	qdel(manager)
 

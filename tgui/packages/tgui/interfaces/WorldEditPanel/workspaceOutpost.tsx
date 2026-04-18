@@ -5,14 +5,37 @@ import { getField, getFieldsByGroup, getFieldsById } from './helpers';
 import { SurfaceCard } from './primitives';
 import type { ActFn, BackendData } from './types';
 
+const getFieldsByGroupAliases = (
+  fields: BackendData['ui_fields'],
+  aliases: string[],
+) => {
+  for (const alias of aliases) {
+    const matched = getFieldsByGroup(fields, alias);
+    if (matched.length) {
+      return matched;
+    }
+  }
+
+  return [];
+};
+
 const OutpostRadiusWorkspace = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
-  const sentryFields = getFieldsByGroup(data.ui_fields, 'Sentries');
-  const barricadeFields = getFieldsByGroup(data.ui_fields, 'Barricades');
-  const layoutFields = getFieldsByGroup(data.ui_fields, 'Layout').filter(
+  const sentryFields = getFieldsByGroupAliases(data.ui_fields, [
+    'Турели',
+    'Sentries',
+  ]);
+  const barricadeFields = getFieldsByGroupAliases(data.ui_fields, [
+    'Баррикады',
+    'Barricades',
+  ]);
+  const layoutFields = getFieldsByGroupAliases(data.ui_fields, [
+    'Компоновка',
+    'Layout',
+  ]).filter(
     (field) =>
       field.id !== 'radius' && !RADIUS_POLICY_FIELD_IDS.includes(field.id),
   );

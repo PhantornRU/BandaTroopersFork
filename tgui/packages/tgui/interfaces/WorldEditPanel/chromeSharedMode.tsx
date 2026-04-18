@@ -189,10 +189,9 @@ const SharedModePanel = (props: {
                       )}
                       {!!viewModel.radiusToggleFields.length && (
                         <Box
+                          color="label"
                           style={{
-                            fontSize: '0.72rem',
-                            lineHeight: '1.1',
-                            opacity: '0.78',
+                            lineHeight: '1',
                             paddingTop: '0.08rem',
                           }}
                         >

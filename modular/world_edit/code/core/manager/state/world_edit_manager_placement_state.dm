@@ -214,6 +214,50 @@
 	sync_placement_session_cache()
 	return hover_turf
 
+/datum/world_edit_manager/proc/get_placement_confirm_target_turf(datum/world_edit_placement_candidate/candidate = null)
+	candidate = candidate || get_placement_preview_candidate()
+	if(istype(candidate) && islist(candidate.placement_context))
+		var/turf/confirm_turf = candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"]
+		if(istype(confirm_turf))
+			return confirm_turf
+	return placement_hover_turf
+
+/datum/world_edit_manager/proc/clear_placement_confirm_arm()
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	session.confirm_arm_turf = null
+	session.confirm_arm_signature = null
+	return TRUE
+
+/datum/world_edit_manager/proc/arm_placement_confirm_for_turf(turf/confirm_turf = null, datum/world_edit_placement_candidate/candidate = null)
+	candidate = candidate || get_placement_preview_candidate()
+	if(!istype(candidate) || !candidate.is_ready_for_apply() || !is_preview_state_valid())
+		return FALSE
+
+	confirm_turf = confirm_turf || get_placement_confirm_target_turf(candidate)
+	if(!istype(confirm_turf))
+		return FALSE
+
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	session.confirm_arm_turf = confirm_turf
+	session.confirm_arm_signature = build_preview_params_signature()
+	return TRUE
+
+/datum/world_edit_manager/proc/is_placement_confirm_armed_for_turf(turf/confirm_turf = null, datum/world_edit_placement_candidate/candidate = null)
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	if(!istype(session.confirm_arm_turf))
+		return FALSE
+	if(session.confirm_arm_signature != build_preview_params_signature())
+		return FALSE
+
+	candidate = candidate || get_placement_preview_candidate()
+	if(!istype(candidate) || !candidate.is_ready_for_apply() || !is_preview_state_valid())
+		return FALSE
+
+	confirm_turf = confirm_turf || get_placement_confirm_target_turf(candidate)
+	if(!istype(confirm_turf))
+		return FALSE
+	return (session.confirm_arm_turf == confirm_turf)
+
 /datum/world_edit_manager/proc/is_placement_preview_locked()
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	return session.preview_locked ? TRUE : FALSE
@@ -221,6 +265,8 @@
 /datum/world_edit_manager/proc/set_placement_preview_locked(locked, turf/focus_turf = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	session.preview_locked = locked ? TRUE : FALSE
+	if(locked)
+		clear_placement_confirm_arm()
 	if(istype(focus_turf))
 		session.hover_turf = focus_turf
 	sync_placement_session_cache()
@@ -340,6 +386,8 @@
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	session.preview_candidate = null
 	session.preview_locked = preserve_lock ? TRUE : FALSE
+	session.confirm_arm_turf = null
+	session.confirm_arm_signature = null
 	session.hover_turf = preserve_lock ? preserved_hover_turf : null
 	placement_preview_shape_result = list()
 	placement_preview_anchor_turfs = list()
@@ -446,6 +494,8 @@
 	session.anchor_turf = null
 	session.hover_turf = null
 	session.preview_candidate = null
+	session.confirm_arm_turf = null
+	session.confirm_arm_signature = null
 	session.preview_locked = FALSE
 	session.active_shape = null
 	session.active_mode = null

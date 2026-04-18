@@ -194,3 +194,18 @@
 	if(!update_placement_collector_runtime_state_v2(user, preview_turf, "Завершение контура. ", FALSE, FALSE))
 		return TRUE
 	return apply_safe_placement_current_plan(user)
+
+/datum/world_edit_manager/proc/prepare_finished_placement_collection_preview_v2(mob/user, turf/preview_turf = null)
+	var/shape_id = get_effective_placement_shape()
+	if(get_placement_interaction_kind(shape_id) != "collector")
+		return FALSE
+	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
+		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
+		return FALSE
+
+	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
+	if(!istype(preview_turf))
+		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
+		return FALSE
+
+	return update_placement_collector_runtime_state_v2(user, preview_turf, "Завершение контура. ", FALSE, FALSE)
