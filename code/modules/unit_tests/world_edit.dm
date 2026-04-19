@@ -913,7 +913,7 @@
 	TEST_ASSERT(manager.save_current_generator_context(), "World Edit manager should save context for an active generator definition.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_origin"]), "World Edit manager should scrub runtime collector origin params while saving generator context.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_text"]), "World Edit manager should scrub runtime collector point params while saving generator context.")
-	TEST_ASSERT(!istype(manager.get_placement_collector_origin_turf()), "World Edit manager should not hydrate collector origin into placement_session while saving generator context.")
+	TEST_ASSERT_NULL(manager.get_placement_collector_origin_turf(), "World Edit manager should not hydrate collector origin into placement_session while saving generator context.")
 	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit manager should not hydrate collector points into placement_session while saving generator context.")
 
 	manager.current_params = list()
@@ -959,7 +959,7 @@
 	TEST_ASSERT_EQUAL(manager.current_params["radius"], 5, "World Edit context-restore snapshot test should restore persistent params from the snapshot.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_origin"]), "World Edit context-restore snapshot test should scrub runtime collector origin params from the snapshot.")
 	TEST_ASSERT(isnull(manager.current_params["shape_points_text"]), "World Edit context-restore snapshot test should scrub runtime collector point params from the snapshot.")
-	TEST_ASSERT(!istype(manager.get_placement_collector_origin_turf()), "World Edit context-restore snapshot test should not hydrate collector origin into placement_session during restore.")
+	TEST_ASSERT_NULL(manager.get_placement_collector_origin_turf(), "World Edit context-restore snapshot test should not hydrate collector origin into placement_session during restore.")
 	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit context-restore snapshot test should not hydrate collector points into placement_session during restore.")
 	TEST_ASSERT_EQUAL(manager.placement_mode, "repeat", "World Edit context-restore snapshot test should still restore placement mode.")
 	TEST_ASSERT_EQUAL(manager.placement_shape, WORLD_EDIT_SHAPE_POLYGON, "World Edit context-restore snapshot test should still restore placement shape.")

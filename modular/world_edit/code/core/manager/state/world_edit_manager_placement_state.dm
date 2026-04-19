@@ -257,7 +257,7 @@
 		return ""
 	return "[session.collector_origin_turf.x],[session.collector_origin_turf.y],[session.collector_origin_turf.z]"
 
-/datum/world_edit_manager/proc/get_placement_collector_origin_turf()
+/datum/world_edit_manager/proc/get_placement_collector_origin_turf() as /turf
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	return session.collector_origin_turf
 
