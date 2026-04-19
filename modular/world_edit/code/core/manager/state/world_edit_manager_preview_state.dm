@@ -69,4 +69,5 @@
 	if(holder && length(preview_images))
 		holder.images -= preview_images
 	preview_images = list()
+	preview_groups_signature = null
 	current_generator?.cleanup_preview(holder?.mob)

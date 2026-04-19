@@ -366,6 +366,23 @@
 
 /datum/world_edit_generator/outpost_radius/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
+	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
+	if(islist(support_result))
+		var/list/support_metadata = support_result["metadata"]
+		if(islist(support_metadata))
+			if(!islist(shape_contract?.metadata))
+				shape_contract.metadata = list()
+			for(var/key in support_metadata)
+				shape_contract.metadata[key] = support_metadata[key]
+		var/datum/world_edit_plan/prebuilt_plan = support_result["plan"]
+		if(length("[support_result["error"]]"))
+			plan.metadata["error"] = "[support_result["error"]]"
+			return plan
+		if(istype(prebuilt_plan))
+			plan = prebuilt_plan
+			finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
+			return plan
+
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		plan.metadata["error"] = "Не удалось определить опорный тайл."

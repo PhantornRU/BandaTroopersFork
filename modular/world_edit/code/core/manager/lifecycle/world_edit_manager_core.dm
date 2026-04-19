@@ -8,6 +8,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/last_ui_error = ""
 
 	var/list/preview_images = list()
+	var/preview_groups_signature
 	var/preview_valid = FALSE
 	var/preview_generator_id
 	var/preview_params_signature
@@ -45,6 +46,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/turf/placement_anchor_turf
 	var/turf/placement_hover_turf
 	var/list/placement_preview_shape_result = list()
+	var/placement_preview_signature
 	var/list/placement_preview_anchor_turfs = list()
 	var/list/placement_preview_vertex_turfs = list()
 	var/list/placement_preview_edge_turfs = list()
@@ -64,12 +66,14 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	preset_entries_cache = list()
 	blueprint_entries_cache = list()
 	preview_images = list()
+	preview_groups_signature = null
 	current_params = list()
 	last_preview_meta = list()
 	last_ui_error = ""
 	confirm_before_apply = TRUE
 	placement_session = new
 	placement_preview_shape_result = list()
+	placement_preview_signature = null
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
 	placement_preview_edge_turfs = list()

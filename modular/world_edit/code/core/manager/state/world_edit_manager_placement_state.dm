@@ -362,6 +362,7 @@
 	session.confirm_arm_signature = null
 	session.hover_turf = preserve_lock ? preserved_hover_turf : null
 	placement_preview_shape_result = list()
+	placement_preview_signature = null
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
 	placement_preview_edge_turfs = list()
@@ -383,6 +384,7 @@
 	if(!keep_lock)
 		session.hover_turf = islist(candidate.placement_context) ? candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"] : null
 	placement_hover_turf = session.hover_turf
+	placement_preview_signature = build_preview_params_signature(candidate.runtime_params)
 	if(istype(candidate.shape_contract))
 		placement_preview_shape_result = candidate.shape_contract.as_shape_result()
 	if(istype(candidate.preview_model))

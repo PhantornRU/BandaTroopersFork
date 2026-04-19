@@ -340,6 +340,34 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 	return images
 
+/datum/world_edit_helpers/proc/build_grouped_turf_preview_signature(list/groups)
+	if(!islist(groups) || !length(groups))
+		return md5("<empty>")
+
+	var/list/signature_chunks = list()
+	for(var/list/group as anything in groups)
+		if(!islist(group))
+			continue
+
+		var/list/group_chunks = list()
+		group_chunks += length("[group["icon_state"]]") ? "[group["icon_state"]]" : "greenOverlay"
+		group_chunks += isnull(group["color"]) ? "" : "[group["color"]]"
+
+		var/alpha = group["alpha"]
+		group_chunks += isnum(alpha) ? "[clamp(round(alpha), 0, 255)]" : ""
+
+		var/list/turf_chunks = list()
+		var/list/turfs = group["turfs"]
+		if(islist(turfs))
+			for(var/turf/target_turf as anything in turfs)
+				if(!istype(target_turf))
+					continue
+				turf_chunks += turf_to_text(target_turf)
+		group_chunks += jointext(turf_chunks, ";")
+		signature_chunks += jointext(group_chunks, "|")
+
+	return md5(jointext(signature_chunks, "||"))
+
 /datum/world_edit_helpers/proc/apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay", color = null, alpha = null)
 	if(!manager || !manager.holder)
 		return
@@ -355,8 +383,13 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 	if(!manager || !manager.holder)
 		return
 
+	var/groups_signature = build_grouped_turf_preview_signature(groups)
+	if(manager.preview_groups_signature == groups_signature)
+		return
+
 	manager.clear_preview_images()
 	var/list/images = build_grouped_turf_preview_images(groups)
 	if(length(images))
 		manager.holder.images += images
 		manager.preview_images = images.Copy()
+	manager.preview_groups_signature = groups_signature

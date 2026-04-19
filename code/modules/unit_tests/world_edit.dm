@@ -272,6 +272,63 @@
 		return error_plan
 	return ..()
 
+/datum/world_edit_generator_definition/world_edit_test_support_plan_hook
+	id = "world_edit_test_support_plan_hook"
+	name_ru = "World Edit Test Support Plan Hook"
+	category_ru = "Tests"
+	description_ru = "Unit-test helper definition for support-result plan reuse coverage."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = "batch"
+	generator_type = /datum/world_edit_generator/world_edit_test_support_plan_hook
+	default_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+	)
+	status = "draft"
+
+/datum/world_edit_generator/world_edit_test_support_plan_hook
+	parent_type = /datum/world_edit_generator/world_edit_test_apply_hook
+	var/support_plan_calls = 0
+	var/build_plan_from_shape_contract_calls = 0
+
+/datum/world_edit_generator/world_edit_test_support_plan_hook/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	support_plan_calls++
+	var/datum/world_edit_plan/plan = new
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"] || list()
+	if(!length(anchor_turfs))
+		return list(
+			"support_class" = "full",
+			"error" = "Unit test support-plan hook is missing anchors.",
+			"metadata" = list("shape_support_class" = "full"),
+		)
+
+	for(var/turf/anchor_turf as anything in anchor_turfs)
+		if(!istype(anchor_turf))
+			continue
+		plan.placements += list(list(
+			"kind" = "test",
+			"turf" = anchor_turf,
+			"dir" = placement_context["direction"] || NORTH,
+		))
+		plan.affected_turfs += anchor_turf
+
+	plan.metadata["center_turf"] = placement_context["end_turf"] || placement_context["start_turf"]
+	plan.metadata["entry_count"] = length(plan.placements)
+	return list(
+		"support_class" = "full",
+		"error" = null,
+		"metadata" = list(
+			"shape_support_class" = "full",
+			"shape_effective_id" = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]",
+		),
+		"plan" = plan,
+	)
+
+/datum/world_edit_generator/world_edit_test_support_plan_hook/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	build_plan_from_shape_contract_calls++
+	return ..()
+
 /datum/world_edit_generator_definition/world_edit_test_outpost_clamp
 	id = "world_edit_test_outpost_clamp"
 	name_ru = "World Edit Test Outpost Clamp"
@@ -3375,3 +3432,64 @@
 			if(j > length(blast_centers))
 				continue
 			TEST_ASSERT(generator.get_chebyshev_distance(blast_centers[i], blast_centers[j]) > 2, "World Edit destruction blast-center selection should keep every center more than radius*2 apart.")
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/support_result_plan_reuses_candidate_build_path/Run()
+	var/datum/world_edit_generator_definition/world_edit_test_support_plan_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_support_plan_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_support_plan_hook)
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit support-plan reuse test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+
+	var/datum/world_edit_placement_candidate/candidate = manager.resolve_placement_candidate(null, center_turf, center_turf)
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit support-plan reuse test should return a placement candidate.")
+	TEST_ASSERT(candidate.is_preview_ready(), "World Edit support-plan reuse test should still build a preview-ready candidate when support returns a prebuilt plan.")
+	TEST_ASSERT_EQUAL(generator.support_plan_calls, 1, "World Edit support-plan reuse test should resolve support exactly once.")
+	TEST_ASSERT_EQUAL(generator.build_plan_from_shape_contract_calls, 0, "World Edit support-plan reuse test should reuse the support-provided plan instead of rebuilding it.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["placement_shape"], WORLD_EDIT_SHAPE_POINT, "World Edit support-plan reuse test should still finalize shared placement metadata on the reused plan.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["anchor_count"], 1, "World Edit support-plan reuse test should keep anchor metadata on the reused plan.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/outpost_build_plan_path_matches_support_validation_for_disconnected_limited_shapes/Run()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost support/build consistency test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_CUSTOM_MASK
+
+	var/list/shape_result = build_shape_result(WORLD_EDIT_SHAPE_CUSTOM_MASK, center_turf, list(
+		"shape_points_text" = "0,0; 2,0",
+	))
+	TEST_ASSERT(!shape_result["error"], "World Edit outpost support/build consistency test should build a disconnected custom-mask footprint without shape-service errors.")
+
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_CUSTOM_MASK,
+		"shape_metadata" = shape_result["metadata"] || list(),
+		"anchor_turfs" = shape_result["turfs"] || list(),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract_from_result(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result)
+	var/shape_support_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result["turfs"] || list(), manager.current_params, placement_context)
+	TEST_ASSERT(length("[shape_support_error]"), "World Edit outpost support/build consistency test should still reject disconnected limited shapes at the support boundary.")
+
+	var/datum/world_edit_plan/plan = generator.build_plan_from_shape_contract(null, shape_contract, manager.current_params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost support/build consistency test should still return a plan datum on the build path.")
+	TEST_ASSERT_EQUAL("[plan.metadata["error"]]", "[shape_support_error]", "World Edit outpost build_plan_from_shape_contract should return the same explicit support failure instead of drifting into a misleading plan path.")
+
+	qdel(manager)

@@ -992,6 +992,7 @@
 		return list(
 			"support_class" = support_class,
 			"error" = null,
+			"plan" = point_plan,
 			"metadata" = support_metadata.Copy(),
 		)
 
@@ -1049,6 +1050,7 @@
 	return list(
 		"support_class" = support_class,
 		"error" = null,
+		"plan" = shape_plan,
 		"metadata" = support_metadata.Copy(),
 	)
 

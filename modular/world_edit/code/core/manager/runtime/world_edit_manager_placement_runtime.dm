@@ -236,6 +236,7 @@
 		return candidate
 
 	var/list/support_result = current_generator.evaluate_shape_contract(shape_contract, effective_params, candidate.placement_context)
+	var/datum/world_edit_plan/prebuilt_plan = null
 	if(islist(support_result))
 		var/list/support_metadata = support_result["metadata"]
 		if(islist(support_metadata))
@@ -243,17 +244,18 @@
 				shape_contract.metadata[key] = support_metadata[key]
 			update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
 		candidate.support_error = support_result["error"]
+		prebuilt_plan = support_result["plan"]
 	else
 		candidate.support_error = support_result
 	if(length("[candidate.support_error]"))
 		return candidate
 
-	var/datum/world_edit_plan/plan = current_generator.build_plan_from_shape_contract(user, shape_contract, effective_params, candidate.placement_context)
+	var/datum/world_edit_plan/plan = istype(prebuilt_plan) ? prebuilt_plan : current_generator.build_plan_from_shape_contract(user, shape_contract, effective_params, candidate.placement_context)
 	if(!istype(plan))
 		candidate.resolve_error = "Не удалось построить план размещения."
 		return candidate
 	candidate.plan = plan
-	stamp_placement_plan_shape_metadata(plan, shape_contract, candidate.placement_context)
+	current_generator.finalize_shared_placement_plan_metadata(plan, shape_contract, candidate.placement_context)
 	if(plan.metadata["error"])
 		candidate.resolve_error = "[plan.metadata["error"]]"
 		return candidate
@@ -464,6 +466,9 @@
 	if(holder != user?.client)
 		return FALSE
 	if(is_placement_confirm_armed_for_turf())
+		return TRUE
+	var/datum/world_edit_placement_candidate/current_candidate = get_placement_preview_candidate()
+	if(hover_turf == placement_hover_turf && istype(current_candidate) && current_candidate.hover_only && placement_preview_signature == build_preview_params_signature(current_candidate.runtime_params))
 		return TRUE
 
 	return rebuild_active_safe_placement_preview(user, null, hover_turf, TRUE, TRUE, FALSE)
