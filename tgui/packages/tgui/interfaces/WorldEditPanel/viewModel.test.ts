@@ -75,7 +75,6 @@ const BASE_BACKEND_DATA: BackendData = {
   placement_shape_uses_anchor_pair: false,
   placement_interaction_kind: '',
   placement_interaction_label: '',
-  placement_shape_rollout_stage: '',
   placement_collector_point_count: 0,
   placement_collector_min_points: 0,
   placement_collector_max_points: 0,
@@ -182,7 +181,7 @@ describe('WorldEditPanel view model', () => {
       current_generator_id: 'blueprint_stamp',
       placement_shape: 'line',
       placement_shape_options: [],
-      placement_dir: 'West',
+      placement_dir: 'west',
       ui_fields: [
         makeField({ id: 'stamp_spacing', kind: 'number', value: 3 }),
         makeField({ id: 'radius', kind: 'number', value: 5 }),

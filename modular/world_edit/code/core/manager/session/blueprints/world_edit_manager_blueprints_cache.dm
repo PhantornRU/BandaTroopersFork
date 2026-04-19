@@ -30,3 +30,18 @@
 		if("[entry["id"]]" == "[blueprint_id]")
 			return entry
 	return null
+
+/datum/world_edit_manager/proc/get_active_blueprint_revision()
+	var/blueprint_id = get_active_blueprint_id()
+	if(!length("[blueprint_id]"))
+		return ""
+
+	var/list/entry = find_cached_blueprint_entry(blueprint_id)
+	var/file_path = islist(entry) ? entry["file_path"] : null
+	if(!length("[file_path]") || !fexists(file_path))
+		return ""
+
+	var/json_text = file2text(file_path)
+	if(!length(json_text))
+		return ""
+	return md5(json_text)

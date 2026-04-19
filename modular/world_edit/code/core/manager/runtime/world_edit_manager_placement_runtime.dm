@@ -338,7 +338,7 @@
 	return candidate
 
 /datum/world_edit_manager/proc/evaluate_safe_placement_preview(mob/user, shape_id, turf/start_turf, turf/end_turf, list/shape_metadata_override = null, message_prefix = "", silent = FALSE, hover_only = FALSE)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime()
 	set_placement_hover_turf(end_turf)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_outpost_clamp(user, start_turf, end_turf, build_effective_generator_params(null, shape_id), hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
 	render_safe_placement_preview(candidate)
@@ -378,21 +378,21 @@
 	var/start_ds = world.time
 	var/datum/world_edit_apply_result/result = current_generator.apply_built_plan(user, candidate.runtime_params, plan)
 	if(!istype(result))
-		clear_preview_plan_state()
+		teardown_preview_session_runtime()
 		return fail_apply(user, "Генератор вернул некорректный результат применения.")
 
 	record_apply_result(user, result, world.time - start_ds)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime()
 	if(mode == "single")
 		if(result.success)
-			stop_click_mode()
+			teardown_preview_session_runtime(TRUE, FALSE, FALSE, TRUE)
 		else
 			sync_click_intercept_state()
 			placement_click_active = click_intercept_owned ? TRUE : FALSE
 	else if(result.success)
 		sync_click_intercept_state()
 		placement_click_active = click_intercept_owned ? TRUE : FALSE
-		clear_active_placement_progress(is_current_placement_collector())
+		teardown_preview_session_runtime(FALSE, TRUE, is_current_placement_collector())
 		to_chat(user, SPAN_NOTICE("Режим размещения остаётся активным."))
 	return TRUE
 
@@ -411,7 +411,7 @@
 	return TRUE
 
 /datum/world_edit_manager/proc/show_anchor_pair_preview(turf/anchor_turf, shape_id)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime()
 	set_placement_anchor_turf(anchor_turf)
 	set_placement_hover_turf(anchor_turf)
 	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, anchor_turf, anchor_turf, build_effective_generator_params(null, shape_id), supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
@@ -446,7 +446,7 @@
 			var/turf/effective_preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf
 			if(!istype(effective_preview_turf))
 				return FALSE
-			return update_placement_collector_runtime_state_v2(user, effective_preview_turf, "", silent, hover_only)
+			return update_placement_collector_runtime_state(user, effective_preview_turf, "", silent, hover_only)
 		if("single", "param_only")
 			var/turf/effective_preview_turf = preview_turf || placement_hover_turf || placement_anchor_turf
 			if(!istype(effective_preview_turf))
@@ -474,39 +474,25 @@
 			return TRUE
 	return FALSE
 
+/datum/world_edit_manager/proc/collector_repeated_last_point_finishes(shape_id)
+	switch("[shape_id]")
+		if(WORLD_EDIT_SHAPE_POLYGON, WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_CUSTOM_MASK, WORLD_EDIT_SHAPE_BRUSH_PATH)
+			return TRUE
+	return FALSE
+
 /datum/world_edit_manager/proc/reset_safe_placement_attempt(mob/user, message = "Текущая попытка размещения отменена.")
-	clear_active_placement_progress(FALSE)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime(TRUE, TRUE, FALSE)
 	set_safe_placement_preview_feedback(FALSE, "[message]", list(), FALSE)
 	if(user)
 		to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE
 
 /datum/world_edit_manager/proc/reset_safe_placement_collection_attempt(mob/user, message = "Сбор точек очищен.")
-	clear_active_placement_progress(TRUE)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime(TRUE, TRUE, TRUE)
 	set_safe_placement_preview_feedback(FALSE, "[message]", list(), FALSE)
 	if(user)
 		to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE
-
-/datum/world_edit_manager/proc/undo_last_safe_placement_collection_point(mob/user, list/collector_points)
-	if(!islist(collector_points) || !length(collector_points))
-		return reset_safe_placement_collection_attempt(user)
-
-	collector_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(collector_points)
-	collector_points.Cut(length(collector_points), length(collector_points) + 1)
-	if(!length(collector_points))
-		return reset_safe_placement_collection_attempt(user)
-
-	set_placement_collector_points(collector_points)
-	var/turf/origin_turf = get_placement_collector_origin_turf()
-	var/turf/undo_preview_turf = get_placement_collector_last_absolute_turf(origin_turf)
-	if(!istype(origin_turf) || !istype(undo_preview_turf))
-		return reset_safe_placement_collection_attempt(user)
-	set_placement_anchor_turf(origin_turf)
-	set_placement_hover_turf(undo_preview_turf)
-	return update_placement_collector_runtime_state_v2(user, undo_preview_turf, "Последняя точка удалена. ", FALSE, FALSE)
 
 /datum/world_edit_manager/proc/should_reset_failed_anchor_pair_same_tile_click(turf/start_turf, turf/clicked_turf)
 	if(!istype(start_turf) || !istype(clicked_turf))
@@ -530,7 +516,7 @@
 	clear_placement_confirm_arm()
 	return apply_safe_placement_current_plan(user, TRUE)
 
-/datum/world_edit_manager/proc/handle_safe_placement_click_v2(mob/user, params, atom/object)
+/datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
 	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
 	if(is_placement_preview_locked())
@@ -557,7 +543,7 @@
 			set_placement_hover_turf(clicked_turf)
 			set_placement_collector_origin_turf(clicked_turf)
 			set_placement_collector_points(list(list("x" = 0, "y" = 0)))
-			update_placement_collector_runtime_state_v2(user, clicked_turf, "Сбор начат. ", FALSE, FALSE)
+			update_placement_collector_runtime_state(user, clicked_turf, "Сбор начат. ", FALSE, FALSE)
 			return TRUE
 
 		if(!istype(origin_turf))
@@ -578,15 +564,22 @@
 		var/last_point_key = null
 		if(islist(last_point))
 			last_point_key = "[text2num("[last_point["x"]]")],[text2num("[last_point["y"]]")]"
-		if(length(last_point_key) && new_key == last_point_key)
-			undo_last_safe_placement_collection_point(user, collector_points)
-			return TRUE
 		if(length(first_point_key) && new_key == first_point_key && collector_first_point_click_finishes(shape_id) && length(collector_points) >= get_placement_collector_min_points(shape_id))
 			set_placement_anchor_turf(origin_turf)
 			set_placement_hover_turf(clicked_turf)
-			if(!prepare_finished_placement_collection_preview_v2(user, clicked_turf))
+			if(!prepare_finished_placement_collection_preview(user, clicked_turf))
 				return TRUE
 			arm_safe_placement_preview_for_confirm(user)
+			return TRUE
+		if(length(last_point_key) && new_key == last_point_key)
+			if(length(collector_points) >= get_placement_collector_min_points(shape_id) && collector_repeated_last_point_finishes(shape_id))
+				set_placement_anchor_turf(origin_turf)
+				set_placement_hover_turf(clicked_turf)
+				if(!prepare_finished_placement_collection_preview(user, clicked_turf))
+					return TRUE
+				arm_safe_placement_preview_for_confirm(user)
+				return TRUE
+			to_chat(user, SPAN_NOTICE("Р­С‚Р° С‚РѕС‡РєР° СѓР¶Рµ РїРѕСЃР»РµРґРЅСЏСЏ РІ РєРѕРЅС‚СѓСЂРµ. Р”РѕР±Р°РІСЊС‚Рµ РЅРѕРІСѓСЋ С‚РѕС‡РєСѓ РёР»Рё Р·Р°РІРµСЂС€РёС‚Рµ СЃР±РѕСЂ."))
 			return TRUE
 		var/max_points = get_placement_collector_max_points(shape_id)
 		if("[shape_id]" == WORLD_EDIT_SHAPE_CUSTOM_MASK)
@@ -605,7 +598,7 @@
 		if(istype(current_generator, /datum/world_edit_generator/outpost_radius) && length(proposed_points) >= get_placement_collector_min_points(shape_id))
 			set_placement_anchor_turf(origin_turf)
 			set_placement_hover_turf(clicked_turf)
-			if(!update_placement_collector_runtime_state_v2(user, clicked_turf, "Сбор обновлён. ", FALSE, FALSE, proposed_points))
+			if(!update_placement_collector_runtime_state(user, clicked_turf, "Сбор обновлён. ", FALSE, FALSE, proposed_points))
 				return TRUE
 
 			var/datum/world_edit_placement_candidate/collector_candidate = get_placement_preview_candidate()
@@ -625,7 +618,7 @@
 		set_placement_anchor_turf(origin_turf)
 		set_placement_hover_turf(clicked_turf)
 		set_placement_collector_points(collector_points)
-		update_placement_collector_runtime_state_v2(user, clicked_turf, "Сбор обновлён. ", FALSE, FALSE)
+		update_placement_collector_runtime_state(user, clicked_turf, "Сбор обновлён. ", FALSE, FALSE)
 		return TRUE
 
 	if(interaction_kind == "anchor_pair" && !istype(placement_anchor_turf))
@@ -670,8 +663,7 @@
 		return fail_apply(user, "Перехват клика не активирован.")
 
 	placement_click_active = TRUE
-	clear_active_placement_progress(TRUE)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime(TRUE, TRUE, TRUE)
 	sync_click_intercept_state()
 
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
@@ -679,12 +671,9 @@
 	if(interaction_kind == "anchor_pair")
 		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: первый ЛКМ ставит опорную точку, второй ЛКМ строит предпросмотр, повторный ЛКМ по тому же тайлу открывает подтверждение. Если контур из той же опорной точки невалиден, повторный ЛКМ по ней сбрасывает текущую попытку.[dir_suffix]"))
 	else if(interaction_kind == "collector")
-		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ добавляет точки, повторный ЛКМ по последней точке откатывает её, клик по первой точке строит финальный предпросмотр там, где это поддерживается, повторный ЛКМ по тому же тайлу открывает подтверждение. Кнопка завершения тоже работает.[dir_suffix]"))
+		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ добавляет точки, повторный ЛКМ по последней точке строит финальный предпросмотр, клик по первой точке тоже может замкнуть контур там, где это поддерживается, повторный ЛКМ по тому же тайлу открывает подтверждение. Кнопка завершения тоже работает.[dir_suffix]"))
 	else if(interaction_kind == "param_only")
 		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ использует выбранный тайл как опорную точку и строит контур по текущим параметрам формы, повторный ЛКМ по тому же тайлу открывает подтверждение. Интерактивный сбор точек в этом режиме не используется.[dir_suffix]"))
 	else
 		to_chat(user, SPAN_NOTICE("Режим размещения для [shape_label] активен: ЛКМ закрепляет предпросмотр по выбранному тайлу, повторный ЛКМ по тому же тайлу открывает подтверждение.[dir_suffix]"))
 	return TRUE
-
-/datum/world_edit_manager/proc/handle_safe_placement_click(mob/user, params, atom/object)
-	return handle_safe_placement_click_v2(user, params, object)

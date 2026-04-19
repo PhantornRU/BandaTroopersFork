@@ -119,6 +119,7 @@
 	plan.metadata["footprint_height"] = dimensions["height"]
 	plan.metadata["stamp_spacing"] = effective_spacing
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
+	plan.metadata["anchor_count"] = length(anchor_turfs)
 	return plan
 
 /datum/world_edit_generator/blueprint_stamp/build_placement_plan(mob/user, list/params, list/placement_context)

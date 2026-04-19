@@ -104,5 +104,10 @@
 		"entries" = entries,
 	)
 
-	rustg_file_write(json_encode(file_payload), file_path)
+	var/serialized_payload = json_encode(file_payload)
+	rustg_file_write(serialized_payload, file_path)
+	if(!fexists(file_path))
+		return FALSE
+	if(file2text(file_path) != serialized_payload)
+		return FALSE
 	return file_path

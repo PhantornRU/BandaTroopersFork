@@ -4,18 +4,13 @@
 	sanitized -= "shape_points_text"
 	return sanitized
 
-/datum/world_edit_manager/proc/preserve_active_placement_runtime_params(list/target_params)
-	if(!islist(target_params))
-		target_params = list()
-	return sanitize_persistent_generator_params(target_params)
-
 /datum/world_edit_manager/proc/build_current_generator_context_snapshot()
 	if(!current_definition?.id)
 		return null
-	hydrate_legacy_collector_session_from_params(current_params)
+	current_params = sanitize_persistent_generator_params(current_params)
 
 	return list(
-		"params" = sanitize_persistent_generator_params(current_params),
+		"params" = current_params.Copy(),
 		"placement_mode" = length("[placement_mode]") ? "[placement_mode]" : "single",
 		"placement_shape" = length("[placement_shape]") ? "[placement_shape]" : WORLD_EDIT_SHAPE_POINT,
 		"placement_dir" = placement_dir || NORTH,
@@ -40,9 +35,7 @@
 		return FALSE
 
 	var/list/snapshot_params = snapshot["params"]
-	current_params = islist(snapshot_params) ? snapshot_params.Copy() : list()
-	hydrate_legacy_collector_session_from_params(current_params)
-	current_params = sanitize_persistent_generator_params(current_params)
+	current_params = sanitize_persistent_generator_params(snapshot_params)
 
 	if("placement_mode" in snapshot)
 		var/raw_mode = snapshot["placement_mode"]

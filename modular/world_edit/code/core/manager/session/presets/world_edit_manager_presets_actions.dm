@@ -68,8 +68,7 @@
 		if(!set_generator_by_id(generator_id))
 			return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ preset.")
 
-	current_params = validated_result["params"]
-	hydrate_legacy_collector_session_from_params(current_params)
+	current_params = sanitize_persistent_generator_params(validated_result["params"])
 	save_current_generator_context()
 	if(!same_generator)
 		refresh_runtime_after_config_change(TRUE, TRUE)

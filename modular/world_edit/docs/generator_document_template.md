@@ -28,7 +28,7 @@
 5. Пример валидного набора.
 
 ## 5. UI fields contract
-1. Используется схема `ui_field_schema_v2`.
+1. Используется схема `ui_field_schema`.
 2. Поля `get_ui_fields`: `id`, `label`, `kind`, `value`.
 3. Допустимые метаданные: `options`, `min`, `max`, `step`, `description`, `validate_hint`, `group`, `visible`, `disabled`, `required`, `placeholder`.
 4. `set_ui_param` должен возвращать обновленный `list`, строку ошибки или `null`.

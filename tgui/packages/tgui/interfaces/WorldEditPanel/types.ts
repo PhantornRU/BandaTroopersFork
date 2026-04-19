@@ -127,7 +127,6 @@ export type BackendData = {
   placement_shape_uses_anchor_pair: boolean;
   placement_interaction_kind: string;
   placement_interaction_label: string;
-  placement_shape_rollout_stage: string;
   placement_collector_point_count: number;
   placement_collector_min_points: number;
   placement_collector_max_points: number;

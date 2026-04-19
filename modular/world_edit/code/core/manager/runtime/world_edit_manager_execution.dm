@@ -16,7 +16,7 @@
 	if(error_text)
 		return fail_preview(user, error_text)
 
-	clear_preview_plan_state()
+	teardown_preview_session_runtime()
 	var/datum/world_edit_preview_result/result = current_generator.preview(user, effective_params)
 	if(!istype(result))
 		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
@@ -80,7 +80,7 @@
 	return result
 
 /datum/world_edit_manager/proc/fail_preview(mob/user, message)
-	clear_preview_plan_state()
+	teardown_preview_session_runtime()
 	last_preview_success = FALSE
 	last_preview_message = message
 	last_preview_meta = list()

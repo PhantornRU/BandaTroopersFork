@@ -17,9 +17,6 @@ GLOBAL_DATUM_INIT(world_edit_shape_catalog, /datum/world_edit_shape_catalog_serv
 /datum/world_edit_shape_catalog_service/proc/get_shape_interaction_label(shape_id)
 	return GLOB.world_edit_placement_shapes.world_edit_get_shape_interaction_label(shape_id)
 
-/datum/world_edit_shape_catalog_service/proc/get_shape_rollout_stage(shape_id)
-	return GLOB.world_edit_placement_shapes.world_edit_get_shape_rollout_stage(shape_id)
-
 /datum/world_edit_shape_catalog_service/proc/get_shape_preview_kind(shape_id)
 	return GLOB.world_edit_placement_shapes.world_edit_get_shape_preview_kind(shape_id)
 

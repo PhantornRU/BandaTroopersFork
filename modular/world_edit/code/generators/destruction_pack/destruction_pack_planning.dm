@@ -128,7 +128,7 @@
 	var/plan_seed = build_plan_seed(params, seed_turfs)
 	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(influence_turfs, influence_lookup, persistent_fire_density, plan_seed) : list()
 	var/list/blast_entries = blast_enabled ? build_blast_entries(seed_turfs, center_turf, radius, blast_power, blast_falloff, plan_seed) : list()
-	var/list/damage_entries = build_damage_entries(influence_turfs, influence_lookup, damage_profile)
+	var/list/damage_entries = build_damage_entries(influence_turfs, influence_lookup, damage_profile, plan_seed)
 
 	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode && !has_high_risk_mode)
 		plan.metadata["error"] = "No valid fire tiles matched the selected area."

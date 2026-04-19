@@ -97,7 +97,7 @@
 		return FALSE
 	return TRUE
 
-/datum/world_edit_generator/destruction_pack/proc/build_damage_entries(list/influence_turfs, list/influence_lookup, damage_profile)
+/datum/world_edit_generator/destruction_pack/proc/build_damage_entries(list/influence_turfs, list/influence_lookup, damage_profile, plan_seed = 0)
 	var/list/damage_entries = list()
 	var/resolved_profile = resolve_damage_profile(damage_profile)
 	if(resolved_profile == "none" || !length(influence_turfs))
@@ -105,18 +105,16 @@
 
 	var/list/core_turfs = list()
 	var/list/mid_turfs = list()
+	var/list/outer_turfs = list()
 	for(var/turf/influence_turf as anything in influence_turfs)
 		var/list/influence_info = islist(influence_lookup) ? influence_lookup[influence_turf] : null
 		var/band = islist(influence_info) ? "[influence_info["band"]]" : ""
-		switch(resolved_profile)
-			if("ruin")
-				if(band == "core")
-					core_turfs += influence_turf
-			if("collapse")
-				if(band == "core")
-					core_turfs += influence_turf
-				else if(band == "mid")
-					mid_turfs += influence_turf
+		if(band == "core")
+			core_turfs += influence_turf
+		else if(band == "mid")
+			mid_turfs += influence_turf
+		else if(band == "outer")
+			outer_turfs += influence_turf
 
 	if(length(core_turfs))
 		damage_entries += list(list(
@@ -126,13 +124,37 @@
 			"severity" = get_damage_profile_severity(resolved_profile),
 			"band" = "core",
 		))
-	if(length(mid_turfs))
+	if(resolved_profile == "collapse" && length(mid_turfs))
 		damage_entries += list(list(
 			"kind" = "damage",
 			"area_turfs" = mid_turfs.Copy(),
 			"damage_profile" = "ruin",
 			"severity" = get_damage_profile_severity("ruin"),
 			"band" = "mid",
+		))
+	var/list/mid_spill_turfs = list()
+	var/list/outer_spill_turfs = list()
+	switch(resolved_profile)
+		if("ruin")
+			mid_spill_turfs = build_weighted_turf_subset(mid_turfs, influence_lookup, 0.55, plan_seed, 500)
+			outer_spill_turfs = build_weighted_turf_subset(outer_turfs, influence_lookup, 0.3, plan_seed, 700)
+		if("collapse")
+			outer_spill_turfs = build_weighted_turf_subset(outer_turfs, influence_lookup, 0.45, plan_seed, 900)
+	if(length(mid_spill_turfs))
+		damage_entries += list(list(
+			"kind" = "damage",
+			"area_turfs" = mid_spill_turfs,
+			"damage_profile" = "ruin",
+			"severity" = get_damage_profile_severity("ruin"),
+			"band" = "mid_spill",
+		))
+	if(length(outer_spill_turfs))
+		damage_entries += list(list(
+			"kind" = "damage",
+			"area_turfs" = outer_spill_turfs,
+			"damage_profile" = "ruin",
+			"severity" = get_damage_profile_severity("ruin"),
+			"band" = "outer",
 		))
 
 	return damage_entries
@@ -264,7 +286,7 @@
 	if(!source_turf)
 		return null
 
-	var/source_weight = get_influence_weight_for_turf(influence_lookup, source_turf)
+	var/source_weight = get_balanced_influence_selection_weight(get_influence_weight_for_turf(influence_lookup, source_turf))
 	if(source_weight <= 0)
 		return null
 	if(get_deterministic_turf_score(plan_seed, source_turf, salt) > source_weight)

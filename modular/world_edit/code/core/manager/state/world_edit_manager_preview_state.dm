@@ -7,6 +7,7 @@
 
 	var/list/session_points = islist(session.collector_points) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(session.collector_points) : list()
 	var/list/effective_params = build_generator_params_for_shape(source_params, shape_id, session_points)
+	var/params_hash = GLOB.world_edit_logging.params_hash(effective_params)
 	var/raw_mode = resolve_supported_placement_mode(placement_mode)
 	var/effective_mode = length("[raw_mode]") ? "[raw_mode]" : (length("[placement_mode]") ? "[placement_mode]" : "single")
 	if(!length(effective_mode))
@@ -39,7 +40,11 @@
 		requested_desc = GLOB.world_edit_helpers.turf_to_text(preview_candidate.placement_context["requested_end_turf"])
 		resolved_desc = GLOB.world_edit_helpers.turf_to_text(preview_candidate.placement_context["resolved_end_turf"] || preview_candidate.placement_context["end_turf"])
 
-	return "[GLOB.world_edit_logging.params_to_text(effective_params, 400)]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::points=[points_text]::anchor=[anchor_desc]::origin=[origin_desc]::hover=[hover_desc]::seed=[seed_desc]::requested=[requested_desc]::resolved=[resolved_desc]"
+	var/blueprint_revision = ""
+	if(current_definition?.id == "blueprint_stamp")
+		blueprint_revision = get_active_blueprint_revision()
+
+	return "params_hash=[params_hash]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::points=[points_text]::anchor=[anchor_desc]::origin=[origin_desc]::hover=[hover_desc]::seed=[seed_desc]::requested=[requested_desc]::resolved=[resolved_desc]::blueprint_rev=[blueprint_revision]"
 
 /datum/world_edit_manager/proc/mark_preview_state()
 	preview_valid = TRUE

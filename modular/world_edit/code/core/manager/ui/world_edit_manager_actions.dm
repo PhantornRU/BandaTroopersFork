@@ -118,7 +118,7 @@
 			return TRUE
 
 		if("finish_placement_collection")
-			finish_placement_collection_v2(user)
+			finish_placement_collection(user)
 			return TRUE
 
 	return FALSE

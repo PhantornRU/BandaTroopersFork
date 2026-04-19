@@ -218,6 +218,9 @@
 	return report_failed_active_placement_rebuild(user, preserved_preview_turf)
 
 /datum/world_edit_manager/proc/refresh_shape_preview_after_param_change(mob/user, preserve_confirm_arm = TRUE)
+	if(!placement_click_active || !supports_current_placement_ux())
+		refresh_runtime_after_config_change()
+		return TRUE
 	return refresh_active_placement_preview_after_live_config_change(user, preserve_confirm_arm)
 
 /datum/world_edit_manager/proc/refresh_active_shape_preview_after_param_change(mob/user, preserved_hover_only = null)

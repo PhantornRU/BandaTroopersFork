@@ -20,7 +20,7 @@
 
 ## Документация
 - `docs/game_design.md`: live UX, права, guardrails, click-intercept.
-- `docs/ui_field_schema_v2.md`: inline UI-контракт генераторов.
+- `docs/ui_field_schema.md`: inline UI-контракт генераторов.
 - `docs/generator_document_template.md`: шаблон документации для live-генератора.
 
 ## Current ready surface

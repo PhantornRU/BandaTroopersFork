@@ -11,6 +11,11 @@ GLOBAL_DATUM_INIT(world_edit_logging, /datum/world_edit_logging_service, new)
 		serialized = "[copytext(serialized, 1, max_length)]..."
 	return serialized
 
+/datum/world_edit_logging_service/proc/params_hash(list/params)
+	if(!islist(params) || !length(params))
+		return md5("<empty>")
+	return md5("[params]")
+
 /datum/world_edit_logging_service/proc/log_operation(client/user, generator_id, rights_used, turf/center_turf, created_count, deleted_count, duration_ds, result, params_short)
 	if(!user)
 		return

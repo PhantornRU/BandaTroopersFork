@@ -136,16 +136,6 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			return "Param-Driven"
 	return "Single Click"
 
-/datum/world_edit_placement_shape_service/proc/world_edit_get_shape_rollout_stage(shape_id)
-	switch(world_edit_get_shape_interaction_kind(shape_id))
-		if("anchor_pair")
-			return "v2_anchor_pair"
-		if("collector")
-			return "v2_collector"
-		if("param_only")
-			return "v2_param"
-	return "v1"
-
 /datum/world_edit_placement_shape_service/proc/world_edit_get_shape_preview_kind(shape_id)
 	switch("[shape_id]")
 		if(WORLD_EDIT_SHAPE_POINT)
@@ -215,7 +205,6 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		"description" = world_edit_get_placement_shape_description(shape_id),
 		"interaction_kind" = world_edit_get_shape_interaction_kind(shape_id),
 		"interaction_label" = world_edit_get_shape_interaction_label(shape_id),
-		"rollout_stage" = world_edit_get_shape_rollout_stage(shape_id),
 	)
 
 /datum/world_edit_placement_shape_service/proc/world_edit_shape_num_param(list/current_params, param_id, default_value, min_value = null, max_value = null)
@@ -972,21 +961,31 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		return turfs
 
 	seed_value = world_edit_resolve_scatter_seed(anchor_turf, radius, count, seed_value)
+	var/target_count = min(count, length(candidates))
+	var/list/candidate_lookup = world_edit_build_turf_lookup(candidates)
 	var/list/selected_lookup = list()
-	for(var/i in 1 to min(count, length(candidates)))
-		var/index = 1 + ((seed_value + (i * 73)) % length(candidates))
-		var/turf/candidate_turf = candidates[index]
-		var/safety_counter = 0
-		while(selected_lookup[candidate_turf] && safety_counter < length(candidates))
-			index++
-			if(index > length(candidates))
-				index = 1
-			candidate_turf = candidates[index]
-			safety_counter++
-		if(selected_lookup[candidate_turf])
+	var/list/growth_frontier = list()
+	world_edit_add_turf_unique(turfs, selected_lookup, anchor_turf, anchor_turf.z)
+	growth_frontier += anchor_turf
+	while(length(turfs) < target_count)
+		var/list/frontier_candidates = list()
+		var/list/frontier_lookup = list()
+		for(var/turf/frontier_turf as anything in growth_frontier)
+			if(!istype(frontier_turf))
+				continue
+			for(var/cardinal_dir in GLOB.cardinals)
+				var/turf/neighbor_turf = get_step(frontier_turf, cardinal_dir)
+				if(!candidate_lookup[neighbor_turf] || selected_lookup[neighbor_turf])
+					continue
+				world_edit_add_turf_unique(frontier_candidates, frontier_lookup, neighbor_turf, anchor_turf.z)
+		if(!length(frontier_candidates))
 			break
-		selected_lookup[candidate_turf] = TRUE
-		turfs += candidate_turf
+		var/index = 1 + ((seed_value + (length(turfs) * 73)) % length(frontier_candidates))
+		var/turf/next_turf = frontier_candidates[index]
+		if(!istype(next_turf))
+			break
+		world_edit_add_turf_unique(turfs, selected_lookup, next_turf, anchor_turf.z)
+		growth_frontier += next_turf
 	return turfs
 
 /datum/world_edit_placement_shape_service/proc/world_edit_collect_boundary_turfs(list/turfs)
@@ -1079,7 +1078,6 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			"shape_label" = shape_label,
 			"interaction_kind" = interaction_kind,
 			"interaction_label" = world_edit_get_shape_interaction_label(shape_id),
-			"rollout_stage" = world_edit_get_shape_rollout_stage(shape_id),
 			"preview_kind" = preview_kind,
 			"uses_anchor_pair" = world_edit_shape_uses_anchor_pair(shape_id) ? TRUE : FALSE,
 			"preview_layers" = world_edit_build_preview_layers(),

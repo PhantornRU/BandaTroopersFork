@@ -331,14 +331,9 @@
 	for(var/turf/preview_turf as anything in preview_turf_lookup)
 		plan.affected_turfs += preview_turf
 
-	var/expected_openings = get_layout_expected_opening_count(layout_profile)
-	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
-	var/required_openings = expected_openings
-	// Opening geometry is validated upstream; blocked opening tiles should not invalidate point placement.
-	expected_openings = 0
-	if(length(opening_dirs) && (perimeter_data["opening_count"] || 0) < expected_openings)
-		plan.metadata["error"] = "Выбранная точка размещения не поддерживает обязательные проходы форпоста при текущей политике блокировок радиуса."
-		return plan
+	// Opening geometry is validated upstream; blocked opening tiles only affect
+	// runtime metadata for point placement and should not invalidate the plan.
+	var/required_openings = get_layout_expected_opening_count(layout_profile)
 	if(!length(plan.placements))
 		plan.metadata["error"] = "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения при текущей политике блокировок радиуса."
 		return plan

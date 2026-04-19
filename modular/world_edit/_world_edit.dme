@@ -68,7 +68,6 @@
 #include "code/core/manager/ui/world_edit_manager_actions.dm"
 #include "code/core/manager/runtime/world_edit_manager_generator_runtime.dm"
 #include "code/core/manager/runtime/world_edit_manager_placement_collection.dm"
-#include "code/core/manager/runtime/world_edit_manager_placement_collection_v2.dm"
 #include "code/core/manager/runtime/world_edit_manager_placement_runtime.dm"
 #include "code/core/manager/runtime/world_edit_manager_execution.dm"
 #include "code/core/world_edit_admin_hooks.dm"

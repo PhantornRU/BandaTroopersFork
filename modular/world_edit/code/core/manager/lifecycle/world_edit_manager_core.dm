@@ -120,9 +120,31 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	invalidate_preview_state()
 	reset_preview_feedback()
 
+/// Internal teardown switchboard for preview/session/runtime cleanup paths.
+/datum/world_edit_manager/proc/teardown_preview_session_runtime(clear_preview_state = TRUE, clear_placement_progress = FALSE, clear_collector_points = FALSE, stop_click_mode = FALSE)
+	if(clear_preview_state)
+		clear_preview_plan_state()
+
+	if(stop_click_mode)
+		current_generator?.disable_click_mode()
+		reset_placement_runtime()
+
+		if(holder && click_intercept_owned && holder.click_intercept == src)
+			if(click_intercept_previous && !QDELETED(click_intercept_previous))
+				holder.click_intercept = click_intercept_previous
+			else
+				holder.click_intercept = null
+
+		click_intercept_previous = null
+		click_intercept_owned = FALSE
+		return TRUE
+
+	if(clear_placement_progress)
+		clear_active_placement_progress(clear_collector_points)
+	return TRUE
+
 /datum/world_edit_manager/proc/reset_preview_runtime()
-	stop_click_mode()
-	clear_preview_plan_state()
+	return teardown_preview_session_runtime(TRUE, FALSE, FALSE, TRUE)
 
 /// Сбрасывает runtime генератора (preview/apply/click), но не очищает историю.
 /datum/world_edit_manager/proc/reset_generator_runtime()

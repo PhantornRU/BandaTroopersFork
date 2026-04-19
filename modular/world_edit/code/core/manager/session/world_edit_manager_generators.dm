@@ -83,8 +83,7 @@
 	current_definition = definition
 	current_generator = new definition.generator_type()
 	current_generator.attach(src, definition)
-	current_params = definition.default_params?.Copy() || list()
-	hydrate_legacy_collector_session_from_params(current_params)
+	current_params = sanitize_persistent_generator_params(definition.default_params?.Copy() || list())
 	restore_generator_session_state(definition.id)
 	return TRUE
 

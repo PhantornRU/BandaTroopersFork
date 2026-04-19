@@ -23,7 +23,29 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 			return "Запад"
 	return "Север"
 
+/datum/world_edit_helpers/proc/dir_to_ui_value(direction)
+	switch(direction)
+		if(NORTH)
+			return "north"
+		if(EAST)
+			return "east"
+		if(SOUTH)
+			return "south"
+		if(WEST)
+			return "west"
+	return "north"
+
 /datum/world_edit_helpers/proc/dir_from_label(label, fallback_dir = NORTH)
+	var/normalized_label = lowertext(trim("[label]"))
+	switch(normalized_label)
+		if("north")
+			return NORTH
+		if("east")
+			return EAST
+		if("south")
+			return SOUTH
+		if("west")
+			return WEST
 	switch("[label]")
 		if("North")
 			return NORTH

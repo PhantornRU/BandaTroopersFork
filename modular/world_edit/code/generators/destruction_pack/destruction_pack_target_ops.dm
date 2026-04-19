@@ -176,6 +176,12 @@
 		return 0
 	return text2num("[influence_info["normalized_weight"]]") || 0
 
+/datum/world_edit_generator/destruction_pack/proc/get_balanced_influence_selection_weight(normalized_weight)
+	normalized_weight = clamp(normalized_weight, 0, 1)
+	if(normalized_weight <= 0)
+		return 0
+	return max(sqrt(normalized_weight), 0.2)
+
 /datum/world_edit_generator/destruction_pack/proc/pick_weighted_turf(list/candidates, list/influence_lookup, plan_seed, salt = 0)
 	if(!length(candidates))
 		return null
@@ -188,11 +194,12 @@
 			continue
 
 		index++
-		var/weight = get_influence_weight_for_turf(influence_lookup, candidate_turf)
+		var/weight = get_balanced_influence_selection_weight(get_influence_weight_for_turf(influence_lookup, candidate_turf))
 		if(weight <= 0)
 			continue
 
-		var/score = (weight * 100) + get_deterministic_turf_score(plan_seed, candidate_turf, salt + index)
+		var/random_roll = max(get_deterministic_turf_score(plan_seed, candidate_turf, salt + index), 0.0001)
+		var/score = random_roll ** (1 / weight)
 		if(score <= best_score)
 			continue
 
@@ -200,6 +207,23 @@
 		best_turf = candidate_turf
 
 	return best_turf
+
+/datum/world_edit_generator/destruction_pack/proc/build_weighted_turf_subset(list/candidates, list/influence_lookup, fill_ratio, plan_seed, salt = 0)
+	var/list/selected_turfs = list()
+	if(!islist(candidates) || !length(candidates) || fill_ratio <= 0)
+		return selected_turfs
+	if(fill_ratio >= 1)
+		return candidates.Copy()
+
+	var/target_count = clamp(round(length(candidates) * fill_ratio), 1, length(candidates))
+	var/list/pool = candidates.Copy()
+	while(length(selected_turfs) < target_count && length(pool))
+		var/turf/selected_turf = pick_weighted_turf(pool, influence_lookup, plan_seed, salt + (length(selected_turfs) * 97))
+		if(!istype(selected_turf))
+			break
+		pool -= selected_turf
+		selected_turfs += selected_turf
+	return selected_turfs
 
 /datum/world_edit_generator/destruction_pack/proc/should_skip_target(atom/movable/target, affect_anchored = FALSE)
 	if(!target || QDELETED(target))

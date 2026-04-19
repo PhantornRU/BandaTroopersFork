@@ -1,4 +1,4 @@
-# UI Field Schema v2 для World Edit
+# UI Field Schema для World Edit
 
 ## Назначение
 Схема описывает live inline-поля генераторов для `WorldEditPanel`. Это единственный пользовательский путь настройки параметров для готовых генераторов.

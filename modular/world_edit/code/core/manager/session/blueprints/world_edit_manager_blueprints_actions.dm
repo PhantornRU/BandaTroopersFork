@@ -22,8 +22,7 @@
 
 	if(!activate_blueprint_generator(user, blueprint_id, FALSE))
 		return FALSE
-	run_preview(user)
-	return TRUE
+	return run_preview(user)
 
 /datum/world_edit_manager/proc/apply_blueprint_by_id(mob/user, blueprint_id)
 	if(!check_blueprint_library_runtime_action_allowed(user))
@@ -36,11 +35,14 @@
 	if(is_safe_placement_mode_active())
 		return fail_blueprint_action(user, "Сначала выполните preview выбранного blueprint.")
 
-	run_preview(user)
+	var/datum/world_edit_preview_result/preview_result = run_preview(user)
+	if(!istype(preview_result))
+		return null
+	if(!preview_result.success)
+		return preview_result
 	if(!is_preview_state_valid())
 		return fail_blueprint_action(user, "Сначала выполните preview выбранного blueprint.")
-	run_apply(user)
-	return TRUE
+	return run_apply(user)
 
 /datum/world_edit_manager/proc/can_save_blueprint_from_current_plan()
 	if(current_definition?.id != "outpost_radius")

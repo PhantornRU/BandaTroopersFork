@@ -16,9 +16,6 @@
 /datum/world_edit_manager/proc/supports_current_placement_ux()
 	return (length(get_supported_placement_modes()) || length(get_supported_placement_shapes())) ? TRUE : FALSE
 
-/datum/world_edit_manager/proc/supports_current_placement_shapes()
-	return length(get_supported_placement_shapes()) ? TRUE : FALSE
-
 /datum/world_edit_manager/proc/supports_current_placement_direction()
 	return current_generator?.supports_placement_direction() ? TRUE : FALSE
 
@@ -113,10 +110,10 @@
 
 /datum/world_edit_manager/proc/build_placement_dir_options()
 	return list(
-		list("label" = "North", "value" = "North"),
-		list("label" = "East", "value" = "East"),
-		list("label" = "South", "value" = "South"),
-		list("label" = "West", "value" = "West"),
+		list("label" = "North", "value" = "north"),
+		list("label" = "East", "value" = "east"),
+		list("label" = "South", "value" = "south"),
+		list("label" = "West", "value" = "west"),
 	)
 
 /datum/world_edit_manager/proc/placement_mode_uses_anchor_pair(mode = null)
@@ -135,13 +132,7 @@
 		return "Single Click"
 	return GLOB.world_edit_shape_catalog.get_shape_interaction_label(shape_id)
 
-/datum/world_edit_manager/proc/get_placement_shape_rollout_stage(shape_id = null)
-	shape_id = shape_id || get_effective_placement_shape()
-	if(!length(shape_id))
-		return "v1"
-	return GLOB.world_edit_shape_catalog.get_shape_rollout_stage(shape_id)
-
-/datum/world_edit_manager/proc/get_placement_session()
+/datum/world_edit_manager/proc/get_placement_session() as /datum/world_edit_placement_session
 	if(!istype(placement_session))
 		placement_session = new
 	return placement_session
@@ -152,30 +143,6 @@
 	placement_hover_turf = session.hover_turf
 	placement_collector_origin_turf = session.collector_origin_turf
 	placement_collector_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(session.collector_points)
-	return session
-
-/datum/world_edit_manager/proc/hydrate_legacy_collector_session_from_params(list/source_params = null, scrub_source = TRUE)
-	var/datum/world_edit_placement_session/session = get_placement_session()
-	var/list/params_to_use = islist(source_params) ? source_params : current_params
-	if(!islist(params_to_use))
-		return session
-
-	if(!istype(session.collector_origin_turf) && !isnull(params_to_use["shape_points_origin"]))
-		var/list/parts = splittext("[params_to_use["shape_points_origin"]]", ",")
-		if(length(parts) >= 3)
-			var/x_value = text2num(trim("[parts[1]]"))
-			var/y_value = text2num(trim("[parts[2]]"))
-			var/z_value = text2num(trim("[parts[3]]"))
-			if(isnum(x_value) && isnum(y_value) && isnum(z_value))
-				session.collector_origin_turf = locate(x_value, y_value, z_value)
-
-	if(!length(session.collector_points) && !isnull(params_to_use["shape_points_text"]))
-		session.collector_points = GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(params_to_use["shape_points_text"])
-
-	if(scrub_source)
-		params_to_use -= "shape_points_origin"
-		params_to_use -= "shape_points_text"
-	sync_placement_session_cache()
 	return session
 
 /datum/world_edit_manager/proc/build_generator_params_for_shape(list/source_params = null, shape_id = null, list/collector_points = null)
@@ -291,7 +258,8 @@
 	return "[session.collector_origin_turf.x],[session.collector_origin_turf.y],[session.collector_origin_turf.z]"
 
 /datum/world_edit_manager/proc/get_placement_collector_origin_turf()
-	return get_placement_session().collector_origin_turf
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	return session.collector_origin_turf
 
 /datum/world_edit_manager/proc/set_placement_collector_origin_turf(turf/origin_turf)
 	var/datum/world_edit_placement_session/session = get_placement_session()
@@ -425,23 +393,6 @@
 		placement_preview_final_turfs = islist(candidate.preview_model.final_turfs) ? candidate.preview_model.final_turfs.Copy() : list()
 		placement_preview_guide_turfs = islist(candidate.preview_model.guide_turfs) ? candidate.preview_model.guide_turfs.Copy() : list()
 		placement_preview_generator_effect_turfs = islist(candidate.preview_model.generator_effect_turfs) ? candidate.preview_model.generator_effect_turfs.Copy() : list()
-
-/datum/world_edit_manager/proc/store_placement_shape_preview_result(list/shape_result)
-	if(!islist(shape_result))
-		return clear_placement_shape_preview_state()
-
-	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract_from_result(shape_result["shape_id"] || get_effective_placement_shape(), shape_result)
-	var/datum/world_edit_preview_model/preview_model = GLOB.world_edit_shape_preview.build_shape_preview(shape_contract)
-	var/datum/world_edit_placement_candidate/candidate = new
-	candidate.shape_contract = shape_contract
-	candidate.preview_model = preview_model
-	store_placement_preview_candidate(candidate)
-
-/datum/world_edit_manager/proc/set_placement_preview_generator_effect_turfs(list/turfs)
-	placement_preview_generator_effect_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(turfs)
-	var/datum/world_edit_placement_candidate/candidate = get_placement_preview_candidate()
-	if(istype(candidate?.preview_model))
-		candidate.preview_model.generator_effect_turfs = placement_preview_generator_effect_turfs.Copy()
 
 /datum/world_edit_manager/proc/get_placement_preview_groups()
 	return list(

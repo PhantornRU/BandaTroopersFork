@@ -82,6 +82,25 @@
 
 	return list("vars" = safe_vars)
 
+/datum/world_edit_blueprint_service/proc/world_edit_parse_strict_integer(raw_value)
+	var/value_text = trim("[raw_value]")
+	if(!length(value_text))
+		return null
+
+	var/start_index = 1
+	var/first_char = copytext(value_text, 1, 2)
+	if(first_char == "+" || first_char == "-")
+		start_index = 2
+	if(start_index > length(value_text))
+		return null
+
+	for(var/i = start_index, i <= length(value_text), i++)
+		var/char = copytext(value_text, i, i + 1)
+		if(!(char in list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
+			return null
+
+	return text2num(value_text)
+
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry(list/raw_entry)
 	if(!islist(raw_entry))
 		return list("error" = "Blueprint entry must be a list.")
@@ -92,10 +111,10 @@
 	if(!rule)
 		return list("error" = "Blueprint contains a non-whitelisted type '[type_text]'.")
 
-	var/dx = text2num("[raw_entry["dx"]]")
-	var/dy = text2num("[raw_entry["dy"]]")
-	var/dz = text2num("[raw_entry["dz"]]")
-	if(!isnum(dx) || !isnum(dy) || !isnum(dz))
+	var/dx = world_edit_parse_strict_integer(raw_entry["dx"])
+	var/dy = world_edit_parse_strict_integer(raw_entry["dy"])
+	var/dz = world_edit_parse_strict_integer(raw_entry["dz"])
+	if(isnull(dx) || isnull(dy) || isnull(dz))
 		return list("error" = "Blueprint coordinates must be numeric.")
 	if(dz != 0)
 		return list("error" = "Phase 3A blueprints must stay on the same z-level.")

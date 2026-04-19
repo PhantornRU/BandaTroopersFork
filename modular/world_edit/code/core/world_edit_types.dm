@@ -82,9 +82,6 @@
 /datum/world_edit_generator/proc/get_params_short(list/params)
 	return GLOB.world_edit_logging.params_to_text(params)
 
-/datum/world_edit_generator/proc/is_destructive(list/params)
-	return FALSE
-
 /// Возвращает описание полей для live inline-настройки в TGUI.
 /datum/world_edit_generator/proc/get_ui_fields(list/current_params)
 	return null
@@ -186,7 +183,7 @@
 	var/raw_mode = placement_context["mode"]
 	var/placement_mode = length("[raw_mode]") ? "[raw_mode]" : "single"
 	var/placement_dir = islist(placement_context) ? placement_context["direction"] : null
-	if(!(placement_dir in GLOB.cardinals) && manager?.supports_placement_direction())
+	if(!(placement_dir in GLOB.cardinals) && manager?.supports_current_placement_direction())
 		placement_dir = manager.get_effective_placement_dir()
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || (islist(placement_context) ? placement_context["anchor_turfs"] : null)
 	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : (islist(placement_context) ? placement_context["shape_metadata"] : null)
