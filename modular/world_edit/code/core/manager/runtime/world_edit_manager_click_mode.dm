@@ -45,15 +45,33 @@
 	click_intercept_previous = null
 	click_intercept_owned = FALSE
 
+/datum/world_edit_manager/proc/clear_active_placement_progress(clear_collector_points = FALSE)
+	set_placement_anchor_turf(null)
+	set_placement_hover_turf(null)
+	reset_placement_collector_state(clear_collector_points)
+	clear_placement_confirm_arm()
+	return TRUE
+
 /datum/world_edit_manager/proc/refresh_runtime_after_config_change(clear_placement_progress = FALSE, clear_collector_points = FALSE)
 	clear_preview_plan_state()
 	if(clear_placement_progress)
-		set_placement_anchor_turf(null)
-		set_placement_hover_turf(null)
-		reset_placement_collector_state(clear_collector_points)
+		clear_active_placement_progress(clear_collector_points)
 
 	if(sync_click_intercept_state() && placement_click_active && !supports_current_placement_ux())
 		stop_click_mode()
+
+/datum/world_edit_manager/proc/has_active_safe_placement_preview()
+	var/datum/world_edit_placement_candidate/candidate = get_placement_preview_candidate()
+	if(!placement_click_active || !supports_current_placement_ux())
+		return FALSE
+	return (istype(candidate) && candidate.is_ready_for_apply() && is_preview_state_valid()) ? TRUE : FALSE
+
+/datum/world_edit_manager/proc/rebuild_runtime_after_generator_config_change(mob/user, preserve_active_placement = FALSE, clear_placement_progress = FALSE, clear_collector_points = FALSE, preserve_confirm_arm = FALSE)
+	if(preserve_active_placement && placement_click_active && supports_current_placement_ux())
+		return refresh_active_placement_preview_after_live_config_change(user, preserve_confirm_arm)
+
+	refresh_runtime_after_config_change(clear_placement_progress, clear_collector_points)
+	return TRUE
 
 /datum/world_edit_manager/proc/InterceptClickOn(mob/user, params, atom/object)
 	if(!sync_click_intercept_state())

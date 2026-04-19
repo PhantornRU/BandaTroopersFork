@@ -21,8 +21,10 @@
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/apply(mob/user, list/params)
+	return apply_plan(user, params, current_plan)
+
+/datum/world_edit_generator/blueprint_stamp/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
-	var/datum/world_edit_plan/plan = current_plan
 	if(!istype(plan))
 		result.message = "Run preview first to build the blueprint plan."
 		return result

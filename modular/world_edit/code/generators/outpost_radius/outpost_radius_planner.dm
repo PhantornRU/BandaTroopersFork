@@ -754,11 +754,6 @@
 
 		total_openings++
 		preview_turf_lookup[open_turf] = TRUE
-		plan.placements += list(list(
-			"kind" = "opening",
-			"turf" = open_turf,
-			"dir" = opening_slot["dir"],
-		))
 
 	if(place_sentries)
 		var/guard_index = 1
@@ -803,6 +798,9 @@
 	var/expected_openings = get_layout_expected_opening_count(layout_profile)
 	if(expected_openings > total_openings)
 		total_blocked_openings += expected_openings - total_openings
+	if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
+		plan.metadata["error"] = "Запрошенное размещение форпоста превышает безопасный лимит ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
+		return plan
 
 	for(var/turf/preview_turf as anything in preview_turf_lookup)
 		plan.affected_turfs += preview_turf
@@ -830,7 +828,7 @@
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
-	plan.metadata["barricade_count"] = length(plan.placements) - total_openings - total_sentries
+	plan.metadata["barricade_count"] = length(plan.placements) - total_sentries
 	plan.metadata["sentry_count"] = total_sentries
 	plan.metadata["opening_count"] = total_openings
 	plan.metadata["opening_dirs"] = format_opening_dirs(opening_dirs)

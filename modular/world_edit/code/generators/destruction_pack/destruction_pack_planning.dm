@@ -134,9 +134,6 @@
 		plan.metadata["error"] = "No valid fire tiles matched the selected area."
 		return plan
 
-	var/placement_mode = "[placement_context["mode"] || "single"]"
-	var/placement_shape = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
-	var/placement_dir = placement_context["direction"] || manager?.get_effective_placement_dir() || NORTH
 	var/list/band_counts = influence_map["band_counts"] || list()
 
 	plan.affected_turfs = influence_turfs.Copy()
@@ -147,12 +144,6 @@
 	plan.metadata["radius_windows_blockers"] = radius_policy["treat_windows_as_blockers"]
 	plan.metadata["area_tiles"] = length(influence_turfs)
 	plan.metadata["influence_tile_count"] = length(influence_turfs)
-	plan.metadata["placement_mode"] = placement_mode
-	plan.metadata["placement_shape"] = placement_shape
-	plan.metadata["shape_label"] = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(placement_shape)
-	plan.metadata["placement_dir"] = placement_dir
-	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
-	plan.metadata["anchor_count"] = length(seed_turfs)
 	plan.metadata["seed_count"] = length(seed_turfs)
 	plan.metadata["shape_seed_count"] = influence_map["shape_seed_count"] || length(seed_turfs)
 	plan.metadata["shape_footprint_count"] = influence_map["shape_footprint_count"] || length(seed_turfs)
@@ -228,7 +219,7 @@
 
 	if(!length(plan.placements) && !length(plan.deletions))
 		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
-	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
+	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/destruction_pack/build_placement_plan(mob/user, list/params, list/placement_context)

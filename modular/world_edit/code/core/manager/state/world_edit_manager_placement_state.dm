@@ -152,16 +152,16 @@
 	placement_hover_turf = session.hover_turf
 	placement_collector_origin_turf = session.collector_origin_turf
 	placement_collector_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(session.collector_points)
-	placement_collector_is_closed_candidate = ("[get_effective_placement_shape()]" == WORLD_EDIT_SHAPE_POLYGON && length(placement_collector_points) >= 2) ? TRUE : FALSE
 	return session
 
-/datum/world_edit_manager/proc/migrate_legacy_placement_runtime_params()
+/datum/world_edit_manager/proc/hydrate_legacy_collector_session_from_params(list/source_params = null, scrub_source = TRUE)
 	var/datum/world_edit_placement_session/session = get_placement_session()
-	if(!islist(current_params))
+	var/list/params_to_use = islist(source_params) ? source_params : current_params
+	if(!islist(params_to_use))
 		return session
 
-	if(!istype(session.collector_origin_turf) && !isnull(current_params["shape_points_origin"]))
-		var/list/parts = splittext("[current_params["shape_points_origin"]]", ",")
+	if(!istype(session.collector_origin_turf) && !isnull(params_to_use["shape_points_origin"]))
+		var/list/parts = splittext("[params_to_use["shape_points_origin"]]", ",")
 		if(length(parts) >= 3)
 			var/x_value = text2num(trim("[parts[1]]"))
 			var/y_value = text2num(trim("[parts[2]]"))
@@ -169,26 +169,24 @@
 			if(isnum(x_value) && isnum(y_value) && isnum(z_value))
 				session.collector_origin_turf = locate(x_value, y_value, z_value)
 
-	if(!length(session.collector_points) && !isnull(current_params["shape_points_text"]))
-		session.collector_points = GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(current_params["shape_points_text"])
+	if(!length(session.collector_points) && !isnull(params_to_use["shape_points_text"]))
+		session.collector_points = GLOB.world_edit_placement_shapes.world_edit_parse_shape_points(params_to_use["shape_points_text"])
 
-	current_params -= "shape_points_origin"
-	current_params -= "shape_points_text"
+	if(scrub_source)
+		params_to_use -= "shape_points_origin"
+		params_to_use -= "shape_points_text"
 	sync_placement_session_cache()
 	return session
 
-/datum/world_edit_manager/proc/build_effective_generator_params(list/source_params = null, shape_id = null, list/collector_points_override = null)
+/datum/world_edit_manager/proc/build_generator_params_for_shape(list/source_params = null, shape_id = null, list/collector_points = null)
 	var/list/base_params = islist(source_params) ? source_params : current_params
 	var/list/effective_params = sanitize_persistent_generator_params(base_params)
-	shape_id = shape_id || get_effective_placement_shape()
+	shape_id = "[shape_id]"
 	if(!length(shape_id))
 		return effective_params
 
-	var/list/effective_points = collector_points_override
-	if(!islist(effective_points))
-		effective_points = get_placement_collector_points()
-
-	if("[shape_id]" in list(
+	var/list/effective_points = islist(collector_points) ? collector_points : list()
+	if(shape_id in list(
 		WORLD_EDIT_SHAPE_POLYGON,
 		WORLD_EDIT_SHAPE_POLYLINE,
 		WORLD_EDIT_SHAPE_CUSTOM_MASK,
@@ -197,6 +195,14 @@
 		effective_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(effective_points)
 
 	return effective_params
+
+/datum/world_edit_manager/proc/build_effective_generator_params(list/source_params = null, shape_id = null, list/collector_points_override = null)
+	shape_id = shape_id || get_effective_placement_shape()
+
+	var/list/effective_points = collector_points_override
+	if(!islist(effective_points))
+		effective_points = get_placement_collector_points()
+	return build_generator_params_for_shape(source_params, shape_id, effective_points)
 
 /datum/world_edit_manager/proc/get_placement_preview_candidate() as /datum/world_edit_placement_candidate
 	var/datum/world_edit_placement_session/session = get_placement_session()
@@ -279,14 +285,13 @@
 	return current_generator?.current_plan
 
 /datum/world_edit_manager/proc/get_placement_collector_origin_text()
-	var/datum/world_edit_placement_session/session = migrate_legacy_placement_runtime_params()
+	var/datum/world_edit_placement_session/session = get_placement_session()
 	if(!istype(session.collector_origin_turf))
 		return ""
 	return "[session.collector_origin_turf.x],[session.collector_origin_turf.y],[session.collector_origin_turf.z]"
 
 /datum/world_edit_manager/proc/get_placement_collector_origin_turf()
-	var/datum/world_edit_placement_session/session = migrate_legacy_placement_runtime_params()
-	return session.collector_origin_turf
+	return get_placement_session().collector_origin_turf
 
 /datum/world_edit_manager/proc/set_placement_collector_origin_turf(turf/origin_turf)
 	var/datum/world_edit_placement_session/session = get_placement_session()
@@ -306,10 +311,9 @@
 	sync_placement_session_cache()
 
 /datum/world_edit_manager/proc/get_placement_collector_points()
-	var/datum/world_edit_placement_session/session = migrate_legacy_placement_runtime_params()
+	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/list/points = islist(session.collector_points) ? session.collector_points : list()
 	placement_collector_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(points)
-	placement_collector_is_closed_candidate = ("[get_effective_placement_shape()]" == WORLD_EDIT_SHAPE_POLYGON && length(placement_collector_points) >= 2) ? TRUE : FALSE
 	return GLOB.world_edit_placement_shapes.world_edit_copy_points(placement_collector_points)
 
 /datum/world_edit_manager/proc/get_placement_collector_point_count()
@@ -497,8 +501,6 @@
 	session.confirm_arm_turf = null
 	session.confirm_arm_signature = null
 	session.preview_locked = FALSE
-	session.active_shape = null
-	session.active_mode = null
 	clear_placement_shape_preview_state()
 	reset_placement_collector_state(clear_points)
 	sync_placement_session_cache()

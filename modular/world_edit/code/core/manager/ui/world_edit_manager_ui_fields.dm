@@ -6,10 +6,7 @@
 
 	current_generator.refresh_ui_state(user, current_params)
 	last_ui_error = ""
-	if(is_safe_placement_mode_active() && supports_current_placement_ux())
-		refresh_active_placement_preview_after_live_config_change(user)
-	else
-		refresh_runtime_after_config_change()
+	rebuild_runtime_after_generator_config_change(user, TRUE, FALSE, FALSE, TRUE)
 	to_chat(user, SPAN_NOTICE("Параметры генератора обновлены."))
 
 /datum/world_edit_manager/proc/handle_set_param_action(mob/user, list/params)
@@ -89,10 +86,7 @@
 	current_params = new_params
 	last_ui_error = ""
 	save_current_generator_context()
-	if(is_safe_placement_mode_active() && supports_current_placement_ux())
-		refresh_active_placement_preview_after_live_config_change(user)
-	else
-		refresh_runtime_after_config_change()
+	rebuild_runtime_after_generator_config_change(user, TRUE, FALSE, FALSE, TRUE)
 	return TRUE
 
 /datum/world_edit_manager/proc/get_normalized_ui_fields()
@@ -191,49 +185,60 @@
 	return get_placement_collector_last_absolute_turf()
 
 /datum/world_edit_manager/proc/can_preserve_active_placement_for_shape_change(old_shape_id, new_shape_id)
-	if(!is_safe_placement_mode_active() || !supports_current_placement_ux())
+	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
 	if(!length("[old_shape_id]") || !length("[new_shape_id]"))
 		return FALSE
 	return (get_placement_interaction_kind(old_shape_id) == get_placement_interaction_kind(new_shape_id))
 
-/datum/world_edit_manager/proc/refresh_active_placement_preview_after_live_config_change(mob/user)
+/datum/world_edit_manager/proc/report_failed_active_placement_rebuild(mob/user, turf/preserved_preview_turf = null)
+	clear_placement_confirm_arm()
+	if(istype(preserved_preview_turf) && !istype(placement_hover_turf))
+		set_placement_hover_turf(preserved_preview_turf)
+	if(!length("[last_preview_message]"))
+		set_safe_placement_preview_feedback(FALSE, "Текущий предпросмотр размещения не удалось перестроить с обновлёнными параметрами.", list(), FALSE)
+	if(user)
+		to_chat(user, SPAN_WARNING(last_preview_message))
+	return FALSE
+
+/datum/world_edit_manager/proc/refresh_active_placement_preview_after_live_config_change(mob/user, preserve_confirm_arm = TRUE)
+	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/turf/preserved_preview_turf = get_shape_preview_turf_for_param_change()
+	var/had_placement_progress = istype(session.preview_candidate) || istype(session.anchor_turf) || istype(session.hover_turf) || istype(session.collector_origin_turf) || length(session.collector_points)
+	var/had_confirm_arm = preserve_confirm_arm ? has_active_safe_placement_preview() && is_placement_confirm_armed_for_turf() : FALSE
+	var/preserved_hover_only = istype(session.preview_candidate) ? (session.preview_candidate.hover_only ? TRUE : FALSE) : null
 	refresh_runtime_after_config_change(FALSE, FALSE)
 	if(istype(preserved_preview_turf))
 		set_placement_hover_turf(preserved_preview_turf)
-	return refresh_active_shape_preview_after_param_change(user)
+	var/rebuild_result = refresh_active_shape_preview_after_param_change(user, preserved_hover_only)
+	if(rebuild_result && had_confirm_arm && has_active_safe_placement_preview())
+		arm_placement_confirm_for_turf(get_placement_confirm_target_turf())
+	if(rebuild_result || !had_placement_progress)
+		return rebuild_result
+	return report_failed_active_placement_rebuild(user, preserved_preview_turf)
 
-/datum/world_edit_manager/proc/refresh_shape_preview_after_param_change(mob/user)
-	return refresh_active_placement_preview_after_live_config_change(user)
+/datum/world_edit_manager/proc/refresh_shape_preview_after_param_change(mob/user, preserve_confirm_arm = TRUE)
+	return refresh_active_placement_preview_after_live_config_change(user, preserve_confirm_arm)
 
-/datum/world_edit_manager/proc/refresh_active_shape_preview_after_param_change(mob/user)
-	if(!is_safe_placement_mode_active() || !supports_current_placement_ux())
+/datum/world_edit_manager/proc/refresh_active_shape_preview_after_param_change(mob/user, preserved_hover_only = null)
+	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
 
 	var/shape_id = get_effective_placement_shape()
 	var/interaction_kind = get_placement_interaction_kind(shape_id)
-	switch(interaction_kind)
-		if("anchor_pair")
-			if(!istype(placement_anchor_turf))
-				return FALSE
-			if(!istype(placement_hover_turf) || placement_hover_turf == placement_anchor_turf)
-				show_anchor_pair_preview(placement_anchor_turf, shape_id)
-				return TRUE
-			return evaluate_safe_placement_preview(user, shape_id, placement_anchor_turf, placement_hover_turf, null, "", TRUE, TRUE)
-		if("collector")
-			if(!length(get_placement_collector_points()))
-				return FALSE
-			var/turf/preview_turf = placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf
-			if(!istype(preview_turf))
-				return FALSE
-			return update_placement_collector_runtime_state_v2(user, preview_turf, "", TRUE, FALSE)
-		if("single", "param_only")
-			var/turf/preview_turf = placement_hover_turf || placement_anchor_turf
-			if(!istype(preview_turf))
-				return FALSE
-			return evaluate_safe_placement_preview(user, shape_id, preview_turf, preview_turf, null, "", TRUE, TRUE)
-	return FALSE
+	var/effective_hover_only
+	if(isnull(preserved_hover_only))
+		effective_hover_only = (interaction_kind == "collector") ? FALSE : TRUE
+	else
+		effective_hover_only = preserved_hover_only ? TRUE : FALSE
+	return rebuild_active_safe_placement_preview(
+		user,
+		shape_id,
+		null,
+		TRUE,
+		effective_hover_only,
+		interaction_kind == "anchor_pair",
+	)
 
 /datum/world_edit_manager/proc/normalize_ui_fields(list/raw_fields)
 	var/list/normalized_fields = list()

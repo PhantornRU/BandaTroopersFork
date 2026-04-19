@@ -12,12 +12,10 @@
 		return fail_blueprint_action(user, load_result["error"])
 
 	var/current_blueprint_id = get_active_blueprint_id()
-	if(preserve_valid_preview && current_definition?.id == "blueprint_stamp" && current_blueprint_id == "[blueprint_id]" && is_preview_state_valid())
-		last_ui_error = ""
-		return TRUE
+	var/same_generator = current_definition?.id == "blueprint_stamp"
 
 	var/had_active_placement = is_safe_placement_mode_active()
-	if(current_definition?.id != "blueprint_stamp")
+	if(!same_generator)
 		if(!set_generator_by_id("blueprint_stamp"))
 			return fail_blueprint_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ blueprint stamp generator.")
 
@@ -26,11 +24,10 @@
 		current_params = list()
 	current_params["blueprint_id"] = "[blueprint_id]"
 	save_current_generator_context()
-	if(blueprint_changed)
-		if(had_active_placement)
-			stop_click_mode()
-		else
-			refresh_runtime_after_config_change(TRUE, TRUE)
+	if(!same_generator)
+		refresh_runtime_after_config_change(TRUE, TRUE)
+	else if(blueprint_changed || had_active_placement || !is_preview_state_valid())
+		rebuild_runtime_after_generator_config_change(user, had_active_placement, !had_active_placement, !had_active_placement, TRUE)
 
 	last_ui_error = ""
 	return TRUE

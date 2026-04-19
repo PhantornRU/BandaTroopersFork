@@ -118,18 +118,7 @@
 	plan.metadata["footprint_width"] = dimensions["width"]
 	plan.metadata["footprint_height"] = dimensions["height"]
 	plan.metadata["stamp_spacing"] = effective_spacing
-	plan.metadata["anchor_count"] = length(anchor_turfs)
-	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
-	plan.metadata["placement_shape"] = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
-	plan.metadata["shape_label"] = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(plan.metadata["placement_shape"])
-	plan.metadata["placement_dir"] = placement_dir
-	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
-	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
-	if(islist(shape_metadata))
-		for(var/key in shape_metadata)
-			if(!(key in plan.metadata))
-				plan.metadata[key] = shape_metadata[key]
-	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
+	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/blueprint_stamp/build_placement_plan(mob/user, list/params, list/placement_context)

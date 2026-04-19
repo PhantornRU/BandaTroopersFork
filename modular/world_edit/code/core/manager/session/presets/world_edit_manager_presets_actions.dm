@@ -11,7 +11,8 @@
 	if(!check_rights_for(holder, current_definition.required_rights))
 		return fail_preset_action(user, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ preset.")
 
-	var/error_text = current_generator.validate_params(user, current_params)
+	var/list/preset_params = build_effective_generator_params(current_params)
+	var/error_text = current_generator.validate_params(user, preset_params)
 	if(error_text)
 		return fail_preset_action(user, error_text)
 
@@ -32,7 +33,7 @@
 		"id" = "preset_[GLOB.world_edit_presets.world_edit_build_storage_id(current_definition.id)]",
 		"generator_id" = current_definition.id,
 		"name" = copytext(preset_name, 1, WORLD_EDIT_PRESET_NAME_MAX_LEN + 1),
-		"params" = GLOB.world_edit_presets.world_edit_sanitize_preset_payload(current_params),
+		"params" = GLOB.world_edit_presets.world_edit_sanitize_preset_payload(preset_params),
 		"created_at" = time_stamp(),
 	)
 
@@ -68,11 +69,12 @@
 			return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ preset.")
 
 	current_params = validated_result["params"]
+	hydrate_legacy_collector_session_from_params(current_params)
 	save_current_generator_context()
-	if(had_active_placement)
-		stop_click_mode()
-	else
+	if(!same_generator)
 		refresh_runtime_after_config_change(TRUE, TRUE)
+	else
+		rebuild_runtime_after_generator_config_change(user, had_active_placement, !had_active_placement, !had_active_placement, TRUE)
 	last_ui_error = ""
 	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' Р·Р°РіСЂСѓР¶РµРЅ."))
 	return TRUE

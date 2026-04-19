@@ -53,7 +53,6 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/list/placement_preview_guide_turfs = list()
 	var/list/placement_preview_generator_effect_turfs = list()
 	var/list/placement_collector_points = list()
-	var/placement_collector_is_closed_candidate = FALSE
 	var/turf/placement_collector_origin_turf
 
 /datum/world_edit_manager/New(client/new_holder)

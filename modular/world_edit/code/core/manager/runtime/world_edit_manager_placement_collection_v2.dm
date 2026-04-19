@@ -1,7 +1,5 @@
 /datum/world_edit_manager/proc/build_collector_runtime_preview_params(list/base_params, list/preview_points)
-	var/list/preview_params = sanitize_persistent_generator_params(base_params)
-	preview_params["shape_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(preview_points)
-	return preview_params
+	return build_generator_params_for_shape(base_params, get_effective_placement_shape(), preview_points)
 
 /datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE)
 	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points)
@@ -77,7 +75,7 @@
 		clamped_candidate.placement_context["clamp_reason"] = "endpoint"
 		clamped_candidate.placement_context["requested_end_turf"] = preview_turf
 		clamped_candidate.placement_context["resolved_end_turf"] = clamped_preview_turf
-		current_generator?.stamp_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
+		stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
 		return clamped_candidate
 
 	return candidate
@@ -128,27 +126,8 @@
 		shape_contract.metadata = list()
 	for(var/key in collector_meta)
 		shape_contract.metadata[key] = collector_meta[key]
-	var/datum/world_edit_preview_model/preview_model = GLOB.world_edit_shape_preview.build_shape_preview(shape_contract)
-	var/datum/world_edit_placement_candidate/preview_candidate = new
-	preview_candidate.hover_only = hover_only ? TRUE : FALSE
-	preview_candidate.shape_contract = shape_contract
-	preview_candidate.preview_model = preview_model
-	preview_candidate.collector_state_summary = collector_meta.Copy()
-	preview_candidate.runtime_params = preview_params.Copy()
-	preview_candidate.placement_context = list(
-		"mode" = get_effective_placement_mode() || "single",
-		"shape" = shape_contract.shape_id,
-		"shape_contract" = shape_contract,
-		"shape_metadata" = shape_contract.copy_metadata(),
-		"anchor_turfs" = shape_contract.copy_anchor_turfs(),
-		"start_turf" = origin_turf,
-		"end_turf" = preview_turf,
-		"shape_origin_turf" = origin_turf,
-		"seed_turf" = origin_turf,
-		"requested_end_turf" = preview_turf,
-		"resolved_end_turf" = preview_turf,
-		"direction" = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH,
-	)
+	var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf)
+	var/datum/world_edit_placement_candidate/preview_candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
 
 	if(shape_contract.error)
 		render_safe_placement_preview(preview_candidate)
@@ -179,21 +158,10 @@
 	return TRUE
 
 /datum/world_edit_manager/proc/finish_placement_collection_v2(mob/user, turf/preview_turf = null)
-	var/shape_id = get_effective_placement_shape()
-	if(get_placement_interaction_kind(shape_id) != "collector")
-		return FALSE
-	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
+	if(!prepare_finished_placement_collection_preview_v2(user, preview_turf))
 		return TRUE
-
-	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
-	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
-		return TRUE
-
-	if(!update_placement_collector_runtime_state_v2(user, preview_turf, "Завершение контура. ", FALSE, FALSE))
-		return TRUE
-	return apply_safe_placement_current_plan(user, TRUE)
+	arm_safe_placement_preview_for_confirm(user)
+	return TRUE
 
 /datum/world_edit_manager/proc/prepare_finished_placement_collection_preview_v2(mob/user, turf/preview_turf = null)
 	var/shape_id = get_effective_placement_shape()

@@ -69,6 +69,8 @@
 		return FALSE
 	if(definition.status != WORLD_EDIT_STATUS_READY)
 		return FALSE
+	if(current_definition?.id == definition.id && current_generator)
+		return TRUE
 	if(!check_rights_for(holder, definition.required_rights))
 		return FALSE
 
@@ -82,6 +84,7 @@
 	current_generator = new definition.generator_type()
 	current_generator.attach(src, definition)
 	current_params = definition.default_params?.Copy() || list()
+	hydrate_legacy_collector_session_from_params(current_params)
 	restore_generator_session_state(definition.id)
 	return TRUE
 

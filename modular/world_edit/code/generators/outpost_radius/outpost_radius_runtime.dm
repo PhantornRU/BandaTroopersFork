@@ -383,10 +383,7 @@
 
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
 	var/effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, anchor_turfs)
-	var/shape_label = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(shape_id)
-	plan.metadata["placement_shape"] = shape_id
 	plan.metadata["shape_effective_id"] = effective_shape_id
-	plan.metadata["shape_label"] = shape_label
 	plan.metadata["family"] = config["family"]
 	plan.metadata["family_label"] = config["family_profile"]["label"]
 	plan.metadata["family_description"] = config["family_profile"]["description"]
@@ -408,15 +405,7 @@
 		plan.affected_turfs = shape_plan.affected_turfs.Copy()
 		for(var/key in shape_plan.metadata)
 			plan.metadata[key] = shape_plan.metadata[key]
-		plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
-		plan.metadata["anchor_count"] = length(anchor_turfs)
-		plan.metadata["shape_label"] = shape_label
-		var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
-		if(islist(shape_metadata))
-			for(var/key in shape_metadata)
-				if(!(key in plan.metadata))
-					plan.metadata[key] = shape_metadata[key]
-		stamp_plan_shape_metadata(plan, shape_contract, placement_context)
+		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
 	var/list/occupied_lookup = list()
@@ -476,8 +465,6 @@
 	plan.metadata["sentry_count"] = total_sentries
 	plan.metadata["blocked_barricades"] = total_blocked_barricades
 	plan.metadata["blocked_sentries"] = total_blocked_sentries
-	plan.metadata["anchor_count"] = length(anchor_turfs)
-	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
 	plan.metadata["family"] = config["family"]
 	plan.metadata["family_label"] = config["family_profile"]["label"]
 	plan.metadata["family_description"] = config["family_profile"]["description"]
@@ -489,13 +476,7 @@
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["opening_count"] = total_openings
 	plan.metadata["blocked_openings"] = total_blocked_openings
-	plan.metadata["shape_label"] = shape_label
-	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
-	if(islist(shape_metadata))
-		for(var/key in shape_metadata)
-			if(!(key in plan.metadata))
-				plan.metadata[key] = shape_metadata[key]
-	stamp_plan_shape_metadata(plan, shape_contract, placement_context)
+	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
 /datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
@@ -558,8 +539,10 @@
 	return result
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
+	return apply_plan(user, params, current_plan)
+
+/datum/world_edit_generator/outpost_radius/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
-	var/datum/world_edit_plan/plan = current_plan
 	if(!istype(plan))
 		result.message = "Сначала выполните предпросмотр, чтобы построить план форпоста."
 		return result

@@ -17,8 +17,10 @@
 	return result
 
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
+	return apply_plan(user, params, current_plan)
+
+/datum/world_edit_generator/destruction_pack/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
-	var/datum/world_edit_plan/plan = current_plan
 	if(!istype(plan))
 		result.message = "Run preview first to build the destruction plan."
 		return result

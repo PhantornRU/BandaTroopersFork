@@ -172,3 +172,35 @@
 	plan.metadata["placement_shape"] = plan.metadata["placement_shape"] || shape_contract.shape_id
 	plan.metadata["shape_label"] = plan.metadata["shape_label"] || shape_contract.shape_label
 	return plan
+
+/datum/world_edit_generator/proc/finalize_shared_placement_plan_metadata(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context)
+	if(!istype(plan))
+		return null
+	if(!islist(plan.metadata))
+		plan.metadata = list()
+	if(!istype(shape_contract))
+		shape_contract = build_shape_contract_from_placement_context(null, null, placement_context)
+
+	var/raw_shape_id = shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape()
+	var/placement_shape = length("[raw_shape_id]") ? "[raw_shape_id]" : WORLD_EDIT_SHAPE_POINT
+	var/raw_mode = placement_context["mode"]
+	var/placement_mode = length("[raw_mode]") ? "[raw_mode]" : "single"
+	var/placement_dir = islist(placement_context) ? placement_context["direction"] : null
+	if(!(placement_dir in GLOB.cardinals) && manager?.supports_placement_direction())
+		placement_dir = manager.get_effective_placement_dir()
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || (islist(placement_context) ? placement_context["anchor_turfs"] : null)
+	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : (islist(placement_context) ? placement_context["shape_metadata"] : null)
+
+	plan.metadata["placement_mode"] = plan.metadata["placement_mode"] || placement_mode
+	plan.metadata["placement_shape"] = plan.metadata["placement_shape"] || placement_shape
+	plan.metadata["shape_label"] = plan.metadata["shape_label"] || shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(placement_shape)
+	if(placement_dir in GLOB.cardinals)
+		plan.metadata["placement_dir"] = plan.metadata["placement_dir"] || placement_dir
+		plan.metadata["placement_dir_label"] = plan.metadata["placement_dir_label"] || GLOB.world_edit_helpers.dir_to_label(placement_dir)
+	if(islist(anchor_turfs) && !plan.metadata["anchor_count"])
+		plan.metadata["anchor_count"] = length(anchor_turfs)
+	if(islist(shape_metadata))
+		for(var/key in shape_metadata)
+			if(!(key in plan.metadata))
+				plan.metadata[key] = shape_metadata[key]
+	return stamp_plan_shape_metadata(plan, shape_contract, placement_context)

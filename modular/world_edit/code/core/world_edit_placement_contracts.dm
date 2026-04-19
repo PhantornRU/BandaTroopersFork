@@ -96,8 +96,6 @@
 	var/turf/confirm_arm_turf
 	var/confirm_arm_signature = null
 	var/preview_locked = FALSE
-	var/active_shape = null
-	var/active_mode = null
 
 /datum/world_edit_generator/proc/build_shape_contract_from_placement_context(shape_id, list/anchor_turfs, list/placement_context)
 	if(islist(placement_context))
@@ -134,14 +132,18 @@
 	)
 
 /datum/world_edit_generator/proc/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
-	return build_placement_plan(user, params, placement_context)
+	var/datum/world_edit_plan/plan = build_placement_plan(user, params, placement_context)
+	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
+	return plan
 
 /datum/world_edit_generator/proc/apply_built_plan(mob/user, list/params, datum/world_edit_plan/plan)
-	if(!istype(plan))
-		return null
+	return apply_plan(user, params, plan)
 
-	var/datum/world_edit_plan/previous_plan = current_plan
-	current_plan = plan
-	var/datum/world_edit_apply_result/result = apply(user, params)
-	current_plan = previous_plan
+/datum/world_edit_generator/proc/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
+	var/datum/world_edit_apply_result/result = new
+	if(!istype(plan))
+		result.message = "No built placement plan is available."
+		return result
+
+	result.message = "Placement generators must override apply_plan() for safe placement."
 	return result
