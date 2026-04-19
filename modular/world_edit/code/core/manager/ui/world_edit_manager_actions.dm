@@ -71,10 +71,14 @@
 			placement_shared_mode = new_mode
 			placement_mode = new_mode
 			last_ui_error = ""
-			refresh_runtime_after_config_change()
+			if(is_safe_placement_mode_active() && supports_current_placement_ux())
+				refresh_active_placement_preview_after_live_config_change(user)
+			else
+				refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_placement_shape")
+			var/old_shape = get_effective_placement_shape()
 			var/new_shape = "[params["shape"]]"
 			if(!(new_shape in get_supported_placement_shapes()))
 				last_ui_error = "Выбранная форма размещения недоступна для текущего генератора."
@@ -83,7 +87,10 @@
 			placement_shared_shape = new_shape
 			placement_shape = new_shape
 			last_ui_error = ""
-			refresh_runtime_after_config_change(TRUE, TRUE)
+			if(can_preserve_active_placement_for_shape_change(old_shape, new_shape))
+				refresh_active_placement_preview_after_live_config_change(user)
+			else
+				refresh_runtime_after_config_change(TRUE, TRUE)
 			return TRUE
 
 		if("set_placement_dir")
@@ -94,7 +101,10 @@
 			placement_dir = resolve_supported_placement_dir(placement_shared_dir)
 			placement_dir_uses_facing = FALSE
 			last_ui_error = ""
-			refresh_runtime_after_config_change()
+			if(is_safe_placement_mode_active() && supports_current_placement_ux())
+				refresh_active_placement_preview_after_live_config_change(user)
+			else
+				refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_placement_dir_uses_facing")
@@ -103,7 +113,10 @@
 			placement_shared_dir_uses_facing = GLOB.world_edit_helpers.parse_bool(params["enabled"])
 			placement_dir_uses_facing = placement_shared_dir_uses_facing
 			last_ui_error = ""
-			refresh_runtime_after_config_change()
+			if(is_safe_placement_mode_active() && supports_current_placement_ux())
+				refresh_active_placement_preview_after_live_config_change(user)
+			else
+				refresh_runtime_after_config_change()
 			return TRUE
 
 		if("set_confirm_before_apply")

@@ -382,8 +382,10 @@
 		return plan
 
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	var/effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, anchor_turfs)
 	var/shape_label = shape_contract?.shape_label || GLOB.world_edit_shape_catalog.get_placement_shape_label(shape_id)
 	plan.metadata["placement_shape"] = shape_id
+	plan.metadata["shape_effective_id"] = effective_shape_id
 	plan.metadata["shape_label"] = shape_label
 	plan.metadata["family"] = config["family"]
 	plan.metadata["family_label"] = config["family_profile"]["label"]
@@ -396,7 +398,7 @@
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
 
-	if(shape_id != WORLD_EDIT_SHAPE_POINT)
+	if(effective_shape_id != WORLD_EDIT_SHAPE_POINT)
 		var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(anchor_turfs, config, placement_context)
 		if(shape_plan.metadata["error"])
 			plan.metadata["error"] = "[shape_plan.metadata["error"]]"

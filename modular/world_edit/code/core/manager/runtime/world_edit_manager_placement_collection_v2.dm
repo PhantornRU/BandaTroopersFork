@@ -193,7 +193,7 @@
 
 	if(!update_placement_collector_runtime_state_v2(user, preview_turf, "Завершение контура. ", FALSE, FALSE))
 		return TRUE
-	return apply_safe_placement_current_plan(user)
+	return apply_safe_placement_current_plan(user, TRUE)
 
 /datum/world_edit_manager/proc/prepare_finished_placement_collection_preview_v2(mob/user, turf/preview_turf = null)
 	var/shape_id = get_effective_placement_shape()

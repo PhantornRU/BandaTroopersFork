@@ -232,6 +232,126 @@
 	result.meta = list("applied" = TRUE)
 	return result
 
+/datum/world_edit_generator_definition/world_edit_test_outpost_clamp
+	id = "world_edit_test_outpost_clamp"
+	name_ru = "World Edit Test Outpost Clamp"
+	category_ru = "Tests"
+	description_ru = "Unit-test helper definition for anchor-pair clamp confirmation coverage."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = "batch"
+	generator_type = /datum/world_edit_generator/outpost_radius/world_edit_test_clamp
+	default_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+	)
+	status = "draft"
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp
+	var/apply_calls = 0
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/get_supported_placement_modes()
+	return list("single", "repeat")
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/get_supported_placement_shapes()
+	return list(
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_POLYLINE,
+	)
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/supports_placement_direction()
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_LINE]"
+	var/list/support_metadata = list(
+		"shape_support_class" = "shape",
+		"shape_requested_id" = shape_id,
+		"shape_effective_id" = shape_id,
+	)
+	var/turf/requested_end_turf = placement_context["requested_end_turf"]
+	var/turf/resolved_end_turf = placement_context["resolved_end_turf"] || placement_context["end_turf"]
+	if(!istype(requested_end_turf) || !istype(resolved_end_turf))
+		return list(
+			"support_class" = "shape",
+			"error" = "Unit test clamp generator is missing preview endpoints.",
+			"metadata" = support_metadata.Copy(),
+		)
+	if(requested_end_turf == resolved_end_turf)
+		return list(
+			"support_class" = "shape",
+			"error" = "Unit test rejected unclamped endpoint.",
+			"metadata" = support_metadata.Copy(),
+		)
+	return list(
+		"support_class" = "shape",
+		"error" = null,
+		"metadata" = support_metadata.Copy(),
+	)
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/build_placement_plan(mob/user, list/params, list/placement_context)
+	var/datum/world_edit_plan/plan = new
+	var/list/anchor_turfs = placement_context["anchor_turfs"] || list()
+	for(var/turf/anchor_turf as anything in anchor_turfs)
+		if(!istype(anchor_turf))
+			continue
+		plan.placements += list(list("kind" = "test", "turf" = anchor_turf, "dir" = placement_context["direction"] || NORTH))
+		plan.affected_turfs += anchor_turf
+	plan.metadata["anchor_count"] = length(anchor_turfs)
+	plan.metadata["entry_count"] = length(plan.placements)
+	plan.metadata["placement_shape"] = "[placement_context["shape"]]"
+	plan.metadata["shape_label"] = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(placement_context["shape"])
+	plan.metadata["placement_mode"] = "[placement_context["mode"] || "single"]"
+	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_context["direction"] || NORTH)
+	return plan
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/apply(mob/user, list/params)
+	var/datum/world_edit_apply_result/result = new
+	apply_calls++
+	result.success = TRUE
+	result.message = "ok"
+	result.meta = list("applied" = TRUE)
+	return result
+
+/datum/world_edit_generator_definition/world_edit_test_apply_failure_hook
+	id = "world_edit_test_apply_failure_hook"
+	name_ru = "World Edit Test Apply Failure Hook"
+	category_ru = "Tests"
+	description_ru = "Unit-test helper definition for failed apply runtime coverage."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = "batch"
+	generator_type = /datum/world_edit_generator/world_edit_test_apply_failure_hook
+	default_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+		"shape_rect_width" = 3,
+		"shape_rect_height" = 3,
+		"shape_radius" = 3,
+		"shape_radius_x" = 3,
+		"shape_radius_y" = 2,
+		"shape_triangle_size" = 3,
+		"shape_sector_angle" = 90,
+		"shape_points_text" = "",
+		"shape_polygon_filled" = TRUE,
+		"shape_brush_radius" = 1,
+		"shape_scatter_radius" = 3,
+		"shape_scatter_count" = 4,
+		"shape_scatter_seed" = 13,
+	)
+	status = "draft"
+
+/datum/world_edit_generator/world_edit_test_apply_failure_hook
+	parent_type = /datum/world_edit_generator/world_edit_test_apply_hook
+
+/datum/world_edit_generator/world_edit_test_apply_failure_hook/apply(mob/user, list/params)
+	var/datum/world_edit_apply_result/result = new
+	apply_calls++
+	result.success = FALSE
+	result.message = "failed"
+	result.meta = list("applied" = FALSE)
+	return result
+
 /datum/unit_test/world_edit_corner_slots/outpost_perimeter/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
@@ -1043,12 +1163,14 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/right_click_is_ignored_during_invalid_outpost_collection/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/left_click_on_last_collector_point_clears_invalid_outpost_collection_attempt/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit invalid-outpost collector test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit invalid-outpost collector cancel test center turf was not resolved.")
+	var/turf/disconnected_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(disconnected_turf, "World Edit invalid-outpost collector cancel test disconnected turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -1062,14 +1184,18 @@
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should accept the first collector point.")
-	TEST_ASSERT(findtext("[manager.last_preview_message]", "Выбранный контур размещения не поддерживает обязательные проходы форпоста."), "World Edit invalid-outpost collector test should surface the expected support error before cancellation.")
-	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active until the user cancels it.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector cancel test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit invalid-outpost collector cancel test should accept the disconnected collector point for validation.")
+	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector test should surface the disconnected-footprint support error before cancellation.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector cancel test should keep placement mode active until the user resets the attempt.")
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(RIGHT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector test should swallow right-click after the RMB confirm flow is removed.")
-	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector test should keep placement mode active after right-click because RMB no longer cancels placement.")
-	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit invalid-outpost collector test should keep the active anchor after right-click.")
-	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 1, "World Edit invalid-outpost collector test should keep collector points after right-click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector cancel test should clear the current attempt when the user repeats LKM on the last committed point.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector cancel test should keep placement mode active after the left-click reset.")
+	TEST_ASSERT_NULL(manager.placement_anchor_turf, "World Edit invalid-outpost collector cancel test should clear the active anchor after the left-click reset.")
+	TEST_ASSERT_NULL(manager.get_placement_collector_origin_turf(), "World Edit invalid-outpost collector cancel test should clear the collector origin after the left-click reset.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit invalid-outpost collector cancel test should clear collector points after the left-click reset.")
+	TEST_ASSERT_NULL(manager.get_placement_preview_candidate(), "World Edit invalid-outpost collector cancel test should clear the preview candidate after the left-click reset.")
+	TEST_ASSERT(findtext("[manager.last_preview_message]", "РЎР±РѕСЂ С‚РѕС‡РµРє РѕС‡РёС‰РµРЅ"), "World Edit invalid-outpost collector cancel test should report that the collector attempt was cleared.")
 
 	qdel(manager)
 
@@ -1097,6 +1223,80 @@
 	TEST_ASSERT_EQUAL(generator.shape_support_calls, 1, "World Edit param-only click path should invoke the shape-support hook once.")
 	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit param-only click path should stop before build_placement_plan when the hook rejects the shape.")
 	TEST_ASSERT_EQUAL(manager.last_preview_message, "Unit test rejected scatter_cluster.", "World Edit param-only click path should surface the shape hook error.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/param_only_shape_param_refresh_keeps_selected_preview_turf/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit param-only refresh test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["shape_scatter_radius"] = 3
+	manager.current_params["shape_scatter_count"] = 6
+	manager.current_params["shape_scatter_seed"] = 27
+	manager.placement_shape = WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+	manager.placement_mode = "single"
+	manager.placement_dir = SOUTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit param-only refresh test should accept the initial placement click.")
+	TEST_ASSERT(istype(manager.get_placement_preview_candidate()), "World Edit param-only refresh test should keep the initial preview candidate.")
+	TEST_ASSERT(manager.placement_hover_turf == center_turf, "World Edit param-only refresh test should keep the selected preview turf before the shape-param update.")
+
+	var/list/new_params = manager.apply_shape_ui_param_to_params(manager.current_params, "shape_scatter_radius", 5)
+	TEST_ASSERT(islist(new_params), "World Edit param-only refresh test should update the scatter radius through the shared shape-ui field contract.")
+	manager.current_params = new_params
+	TEST_ASSERT(manager.refresh_shape_preview_after_param_change(user), "World Edit param-only refresh test should rebuild the active preview after a shape-param change.")
+	TEST_ASSERT(manager.placement_hover_turf == center_turf, "World Edit param-only refresh test should preserve the selected preview turf after the shape-param change.")
+	var/datum/world_edit_placement_candidate/refreshed_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(refreshed_candidate), "World Edit param-only refresh test should rebuild a preview candidate after the shape-param change.")
+	TEST_ASSERT(istype(refreshed_candidate.plan), "World Edit param-only refresh test should keep a resolved plan on the rebuilt preview candidate.")
+	TEST_ASSERT(text2num("[manager.current_params["shape_scatter_radius"]]") == 5, "World Edit param-only refresh test should persist the updated scatter radius value.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/refresh_ui_keeps_active_collector_preview_context/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit live-refresh collector test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit live-refresh collector test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit live-refresh collector test triangle turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 5
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYGON
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit live-refresh collector test should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit live-refresh collector test should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit live-refresh collector test should accept the third point.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 3, "World Edit live-refresh collector test should start with three committed collector points.")
+
+	manager.refresh_current_generator_ui(user)
+	TEST_ASSERT(manager.placement_click_active, "World Edit live-refresh collector test should keep click-mode active after refresh.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 3, "World Edit live-refresh collector test should preserve committed collector points across refresh.")
+	TEST_ASSERT(manager.get_placement_collector_origin_turf() == center_turf, "World Edit live-refresh collector test should preserve the collector origin across refresh.")
+	TEST_ASSERT(manager.placement_hover_turf == triangle_turf, "World Edit live-refresh collector test should preserve the active preview turf across refresh.")
+	var/datum/world_edit_placement_candidate/refreshed_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(refreshed_candidate), "World Edit live-refresh collector test should rebuild the collector preview after refresh.")
+	TEST_ASSERT_EQUAL(refreshed_candidate.shape_contract?.shape_id, WORLD_EDIT_SHAPE_POLYGON, "World Edit live-refresh collector test should keep the current collector shape after refresh.")
 
 	qdel(manager)
 
@@ -1173,6 +1373,156 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/collector_shape_switch_preserves_points_when_interaction_kind_matches/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit collector shape-switch test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit collector shape-switch test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit collector shape-switch test triangle turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYGON
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector shape-switch test should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit collector shape-switch test should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit collector shape-switch test should accept the third point.")
+
+	TEST_ASSERT(manager.handle_placement_ui_action(user, "set_placement_shape", list("shape" = WORLD_EDIT_SHAPE_POLYLINE)), "World Edit collector shape-switch test should accept switching to another collector shape.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 3, "World Edit collector shape-switch test should preserve collected points when the new shape uses the same collector interaction kind.")
+	TEST_ASSERT(manager.get_placement_collector_origin_turf() == center_turf, "World Edit collector shape-switch test should preserve the collector origin across collector-shape switches.")
+	TEST_ASSERT(manager.placement_hover_turf == triangle_turf, "World Edit collector shape-switch test should preserve the active preview turf across collector-shape switches.")
+	TEST_ASSERT_EQUAL(manager.placement_shape, WORLD_EDIT_SHAPE_POLYLINE, "World Edit collector shape-switch test should switch the selected shape id.")
+	var/datum/world_edit_placement_candidate/switched_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(switched_candidate), "World Edit collector shape-switch test should rebuild the preview after switching collector shapes.")
+	TEST_ASSERT_EQUAL(switched_candidate.shape_contract?.shape_id, WORLD_EDIT_SHAPE_POLYLINE, "World Edit collector shape-switch test should rebuild the preview for the new collector shape.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/collector_repeat_mode_clears_finished_contour_before_next_attempt/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	var/turf/restart_turf = locate(center_turf.x + 4, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit collector-repeat reset test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit collector-repeat reset test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit collector-repeat reset test triangle turf was not resolved.")
+	TEST_ASSERT_NOTNULL(restart_turf, "World Edit collector-repeat reset test restart turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYGON
+	manager.placement_mode = "repeat"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector-repeat reset test should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit collector-repeat reset test should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit collector-repeat reset test should accept the third point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector-repeat reset test should build the finish preview on the first-point click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector-repeat reset test should apply on the repeated finish click.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit collector-repeat reset test should apply exactly once for the finished contour.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 0, "World Edit collector-repeat reset test should clear committed collector points after a successful repeat-mode apply.")
+	TEST_ASSERT_NULL(manager.get_placement_collector_origin_turf(), "World Edit collector-repeat reset test should clear the collector origin after a successful repeat-mode apply.")
+	TEST_ASSERT_NULL(manager.placement_anchor_turf, "World Edit collector-repeat reset test should clear the active anchor after a successful repeat-mode apply.")
+	TEST_ASSERT_NULL(manager.placement_hover_turf, "World Edit collector-repeat reset test should clear the preview hover turf after a successful repeat-mode apply.")
+
+	manager.placement_click_active = TRUE
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), restart_turf), "World Edit collector-repeat reset test should let the next click start a fresh contour.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 1, "World Edit collector-repeat reset test should start a new contour from a single fresh point after the reset.")
+	TEST_ASSERT(manager.get_placement_collector_origin_turf() == restart_turf, "World Edit collector-repeat reset test should treat the next click as a new collector origin.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/collector_repeated_last_point_click_undoes_last_point_with_left_click/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit collector-left-undo test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit collector-left-undo test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit collector-left-undo test triangle turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYLINE
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector-left-undo test should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit collector-left-undo test should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit collector-left-undo test should accept the third point.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 3, "World Edit collector-left-undo test should keep all committed points before the undo click.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit collector-left-undo test should undo the last point when the same tile is clicked again.")
+	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 2, "World Edit collector-left-undo test should remove the repeated last point from the collector state.")
+	TEST_ASSERT(manager.get_placement_collector_origin_turf() == center_turf, "World Edit collector-left-undo test should preserve the collector origin after the left-click undo.")
+	TEST_ASSERT(manager.placement_hover_turf == line_turf, "World Edit collector-left-undo test should move the preview hover turf back to the new last point after the left-click undo.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 0, "World Edit collector-left-undo test should not apply while only undoing the last point.")
+	var/datum/world_edit_placement_candidate/undo_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(undo_candidate), "World Edit collector-left-undo test should rebuild the collector preview after the left-click undo.")
+	TEST_ASSERT(undo_candidate.placement_context["resolved_end_turf"] == line_turf, "World Edit collector-left-undo test should keep the rebuilt preview anchored on the remaining last point.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(triangle_turf), "World Edit collector-left-undo test should not leave confirmation armed on the removed point.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/anchor_pair_same_tile_click_keeps_valid_minimum_footprint_placeable/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit anchor-pair same-tile valid test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_FILLED_RECTANGLE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair same-tile valid test should accept the first anchor click.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit anchor-pair same-tile valid test should keep the selected anchor turf after the first click.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair same-tile valid test should build a minimum-size preview when the anchor tile is clicked again.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit anchor-pair same-tile valid test should keep placement mode active while the preview waits for confirmation.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit anchor-pair same-tile valid test should keep the active anchor for the valid minimum-size footprint.")
+	var/datum/world_edit_placement_candidate/minimum_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(minimum_candidate), "World Edit anchor-pair same-tile valid test should keep a preview candidate for the valid same-tile footprint.")
+	TEST_ASSERT(minimum_candidate.placement_context["resolved_end_turf"] == center_turf, "World Edit anchor-pair same-tile valid test should keep the same tile as the resolved footprint endpoint.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit anchor-pair same-tile valid test should arm confirmation for the valid same-tile footprint.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 0, "World Edit anchor-pair same-tile valid test should not apply before the repeated confirmation click.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair same-tile valid test should confirm on the repeated click over the valid same-tile footprint.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit anchor-pair same-tile valid test should apply the minimum-size footprint after confirmation.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit anchor-pair same-tile valid test should record a successful apply for the minimum-size footprint.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/anchor_pair_requires_repeat_click_for_confirm/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -1203,6 +1553,210 @@
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit anchor-pair confirm test should accept the repeated endpoint click.")
 	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit anchor-pair confirm test should apply after the repeated endpoint click.")
 	TEST_ASSERT(manager.last_apply_success, "World Edit anchor-pair confirm test should record a successful apply instead of reporting that preview is not ready.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/armed_single_preview_ignores_hover_updates_until_next_click/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/other_turf = locate(center_turf.x + 2, center_turf.y + 1, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit armed-hover test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(other_turf, "World Edit armed-hover test alternate turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit armed-hover test should accept the first placement click.")
+	var/datum/world_edit_placement_candidate/armed_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(armed_candidate), "World Edit armed-hover test should keep the armed preview candidate.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit armed-hover test should arm confirmation on the selected tile.")
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, other_turf), "World Edit armed-hover test should swallow hover updates while a placement confirm is armed.")
+	TEST_ASSERT(manager.placement_hover_turf == center_turf, "World Edit armed-hover test should keep the armed preview turf fixed while confirmation is pending.")
+	TEST_ASSERT(manager.get_placement_preview_candidate() == armed_candidate, "World Edit armed-hover test should keep the original armed preview candidate while hover is ignored.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit armed-hover test should keep the confirm arm valid after ignored hover movement.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit armed-hover test should accept the repeated click on the armed tile.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit armed-hover test should still apply after ignored hover movement.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/mode_switch_keeps_active_anchor_pair_preview_context/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit mode-switch preview test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit mode-switch preview test end turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit mode-switch preview test should accept the first anchor click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit mode-switch preview test should build the initial anchor-pair preview.")
+	TEST_ASSERT(manager.handle_placement_ui_action(user, "set_placement_mode", list("mode" = "repeat")), "World Edit mode-switch preview test should accept switching placement mode during an active preview.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit mode-switch preview test should preserve the active anchor across a placement-mode switch.")
+	TEST_ASSERT(manager.placement_hover_turf == end_turf, "World Edit mode-switch preview test should preserve the preview target across a placement-mode switch.")
+	TEST_ASSERT_EQUAL(manager.placement_mode, "repeat", "World Edit mode-switch preview test should persist the new placement mode.")
+	var/datum/world_edit_placement_candidate/mode_switched_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(mode_switched_candidate), "World Edit mode-switch preview test should rebuild the preview after switching placement mode.")
+	TEST_ASSERT(mode_switched_candidate.placement_context["start_turf"] == center_turf, "World Edit mode-switch preview test should keep the original anchor in the rebuilt preview context.")
+	TEST_ASSERT(mode_switched_candidate.placement_context["resolved_end_turf"] == end_turf, "World Edit mode-switch preview test should keep the original end turf in the rebuilt preview context.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/single_mode_apply_failure_keeps_click_mode_active/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_failure_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_failure_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_failure_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/other_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit single-failure test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(other_turf, "World Edit single-failure test alternate turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit single-failure test should accept the initial placement click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit single-failure test should accept the repeated confirm click and run apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit single-failure test should run the failing apply exactly once.")
+	TEST_ASSERT(!manager.last_apply_success, "World Edit single-failure test should record the failed apply result.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit single-failure test should keep click-mode active after a failed apply in single mode.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), other_turf), "World Edit single-failure test should let the user start another attempt immediately after the failed apply.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(other_turf), "World Edit single-failure test should rebuild and arm a new preview after the failed apply.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/anchor_pair_clamp_arms_confirm_on_resolved_preview_turf/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_outpost_clamp/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_clamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/clamped_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/requested_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit anchor-pair clamp-confirm test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(clamped_turf, "World Edit anchor-pair clamp-confirm test clamped turf was not resolved.")
+	TEST_ASSERT_NOTNULL(requested_turf, "World Edit anchor-pair clamp-confirm test requested turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair clamp-confirm test should accept the first anchor click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), requested_turf), "World Edit anchor-pair clamp-confirm test should build a clamped preview on the second click.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate), "World Edit anchor-pair clamp-confirm test should keep the clamped preview candidate.")
+	TEST_ASSERT(candidate.placement_context["requested_end_turf"] == requested_turf, "World Edit anchor-pair clamp-confirm test should keep the original requested endpoint on the preview context.")
+	TEST_ASSERT(candidate.placement_context["resolved_end_turf"] == clamped_turf, "World Edit anchor-pair clamp-confirm test should expose the clamped endpoint on the preview context.")
+	TEST_ASSERT(manager.placement_hover_turf == clamped_turf, "World Edit anchor-pair clamp-confirm test should move the preview hover turf to the clamped endpoint.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(clamped_turf), "World Edit anchor-pair clamp-confirm test should arm confirmation on the resolved clamped endpoint.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(requested_turf), "World Edit anchor-pair clamp-confirm test should not keep confirmation armed on the rejected requested endpoint.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), clamped_turf), "World Edit anchor-pair clamp-confirm test should accept the repeated click on the clamped endpoint.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit anchor-pair clamp-confirm test should apply after repeating the click on the resolved endpoint.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit anchor-pair clamp-confirm test should record a successful apply on the resolved endpoint.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/collector_clamp_arms_confirm_on_resolved_finish_turf/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_outpost_clamp/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_clamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	var/turf/triangle_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
+	var/turf/clamped_turf = locate(center_turf.x + 1, center_turf.y + 1, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit collector clamp-confirm test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit collector clamp-confirm test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(triangle_turf, "World Edit collector clamp-confirm test triangle turf was not resolved.")
+	TEST_ASSERT_NOTNULL(clamped_turf, "World Edit collector clamp-confirm test clamped turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYLINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector clamp-confirm test should accept the first point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit collector clamp-confirm test should accept the second point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), triangle_turf), "World Edit collector clamp-confirm test should accept the third point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit collector clamp-confirm test should build a clamped finish preview when the first point is clicked again.")
+	var/datum/world_edit_placement_candidate/collector_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(collector_candidate), "World Edit collector clamp-confirm test should keep the clamped finish preview candidate.")
+	TEST_ASSERT(collector_candidate.placement_context["requested_end_turf"] == center_turf, "World Edit collector clamp-confirm test should keep the requested finish turf in the preview context.")
+	TEST_ASSERT(collector_candidate.placement_context["resolved_end_turf"] == clamped_turf, "World Edit collector clamp-confirm test should expose the clamped finish turf in the preview context.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(clamped_turf), "World Edit collector clamp-confirm test should arm confirmation on the resolved clamped finish turf.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit collector clamp-confirm test should not keep confirmation armed on the rejected first-point turf.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), clamped_turf), "World Edit collector clamp-confirm test should accept the repeated click on the resolved clamped finish turf.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit collector clamp-confirm test should apply after repeating the click on the resolved collector finish turf.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit collector clamp-confirm test should record a successful apply on the resolved collector finish turf.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_anchor_pair_same_tile_click_cancels_current_attempt/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost same-tile anchor cancel test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["opening_width"] = "broad"
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost same-tile anchor cancel test should accept the first anchor click.")
+	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit outpost same-tile anchor cancel test should keep the selected anchor turf after the first click.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost same-tile anchor cancel test should accept the repeated same-tile click.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit outpost same-tile anchor cancel test should keep placement mode active after resetting the current attempt.")
+	TEST_ASSERT_NULL(manager.placement_anchor_turf, "World Edit outpost same-tile anchor cancel test should clear the active anchor instead of leaving an invalid preview state.")
+	TEST_ASSERT_NULL(manager.get_placement_preview_candidate(), "World Edit outpost same-tile anchor cancel test should clear the preview candidate after the reset.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost same-tile anchor cancel test should not arm confirmation for the degenerate same-tile click.")
+	TEST_ASSERT(findtext("[manager.last_preview_message]", "конечная точка совпала с опорной"), "World Edit outpost same-tile anchor cancel test should report the reset reason instead of surfacing the outpost support error.")
 
 	qdel(manager)
 
@@ -1803,10 +2357,10 @@
 
 	qdel(generator)
 
-/datum/unit_test/world_edit_corner_slots/outpost_shape_support_rejects_impossible_openings/Run()
+/datum/unit_test/world_edit_corner_slots/outpost_pointlike_shapes_fall_back_to_point_support/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost impossible-openings test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost pointlike-fallback test center turf was not resolved.")
 
 	var/list/params = list(
 		"family" = "metal_perimeter",
@@ -1822,16 +2376,27 @@
 		"turned_on" = TRUE,
 	)
 
-	var/shape_error = generator.get_shape_support_error("custom_mask", list(center_turf), params, list(
+	var/list/placement_context = list(
 		"mode" = "single",
 		"shape" = "custom_mask",
-		"shape_metadata" = list(),
+		"shape_metadata" = list("degenerate_kind" = "point"),
 		"anchor_turfs" = list(center_turf),
 		"start_turf" = center_turf,
 		"end_turf" = center_turf,
+		"shape_origin_turf" = center_turf,
+		"seed_turf" = center_turf,
+		"requested_end_turf" = center_turf,
+		"resolved_end_turf" = center_turf,
 		"direction" = NORTH,
-	))
-	TEST_ASSERT_EQUAL(shape_error, "Выбранный контур размещения не поддерживает обязательные проходы форпоста.", "World Edit outpost shape validation should reject footprints that cannot satisfy required openings.")
+	)
+	var/shape_error = generator.get_shape_support_error("custom_mask", list(center_turf), params, placement_context)
+	TEST_ASSERT(isnull(shape_error), "World Edit outpost pointlike-fallback test should keep a point-degenerate shape placeable instead of rejecting it on required openings.")
+
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost pointlike-fallback test should build a valid plan for a point-degenerate shape.")
+	TEST_ASSERT_EQUAL(plan.metadata["placement_shape"], "custom_mask", "World Edit outpost pointlike-fallback test should preserve the requested shape id on the plan metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["shape_effective_id"], WORLD_EDIT_SHAPE_POINT, "World Edit outpost pointlike-fallback test should mark the effective point fallback semantics.")
+	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost pointlike-fallback test should still produce outpost placements for the degenerate point footprint.")
 
 /datum/unit_test/world_edit_corner_slots/outpost_point_support_respects_clicked_footprint_policy/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)

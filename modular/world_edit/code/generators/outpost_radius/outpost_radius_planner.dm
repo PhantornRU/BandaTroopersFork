@@ -399,6 +399,27 @@
 			return "limited"
 	return "unsupported"
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_effective_shape_id(shape_id, datum/world_edit_shape_contract/shape_contract = null, list/placement_context = null, list/footprint_turfs = null)
+	var/effective_shape_id = "[shape_id || shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT)
+		return WORLD_EDIT_SHAPE_POINT
+
+	var/degenerate_kind = ""
+	if(istype(shape_contract))
+		degenerate_kind = "[shape_contract.degenerate_kind]"
+		if(!length(degenerate_kind) && islist(shape_contract.metadata))
+			degenerate_kind = "[shape_contract.metadata["degenerate_kind"]]"
+	if(!length(degenerate_kind) && islist(placement_context))
+		var/list/shape_metadata = placement_context["shape_metadata"]
+		if(islist(shape_metadata))
+			degenerate_kind = "[shape_metadata["degenerate_kind"]]"
+
+	if(degenerate_kind == "point")
+		return WORLD_EDIT_SHAPE_POINT
+	if(islist(footprint_turfs) && length(footprint_turfs) <= 1)
+		return WORLD_EDIT_SHAPE_POINT
+	return effective_shape_id
+
 /datum/world_edit_generator/outpost_radius/proc/count_shape_connected_components(list/footprint_turfs)
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
 		return 0
@@ -906,12 +927,18 @@
 /datum/world_edit_generator/outpost_radius/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
-	var/support_class = get_outpost_shape_support_class(shape_id)
+	var/effective_shape_id = shape_id
+	var/support_class = get_outpost_shape_support_class(effective_shape_id)
+	var/list/support_metadata = list(
+		"shape_support_class" = support_class,
+		"shape_requested_id" = shape_id,
+		"shape_effective_id" = effective_shape_id,
+	)
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
 		return list(
 			"support_class" = support_class,
 			"error" = "Не удалось определить контур формы.",
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
 
 	var/list/config = resolve_outpost_configuration(params)
@@ -919,7 +946,7 @@
 		return list(
 			"support_class" = support_class,
 			"error" = "[config["error"]]",
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
 
 	var/list/footprint_lookup = build_turf_lookup(anchor_turfs)
@@ -927,7 +954,7 @@
 		return list(
 			"support_class" = support_class,
 			"error" = "Не удалось определить контур формы.",
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
 
 	var/list/footprint_turfs = list()
@@ -938,17 +965,44 @@
 		return list(
 			"support_class" = support_class,
 			"error" = "Не удалось определить контур формы.",
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
+
+	effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, footprint_turfs)
+	support_class = get_outpost_shape_support_class(effective_shape_id)
+	support_metadata["shape_support_class"] = support_class
+	support_metadata["shape_effective_id"] = effective_shape_id
 
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
-	var/support_validation_error = get_outpost_shape_support_validation_error(shape_id, footprint_turfs, placement_context)
+	if(!istype(seed_turf))
+		seed_turf = footprint_turfs[1]
+	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT)
+		var/datum/world_edit_plan/point_plan = build_outpost_plan(seed_turf, config)
+		if(point_plan.metadata["error"])
+			return list(
+				"support_class" = support_class,
+				"error" = "[point_plan.metadata["error"]]",
+				"metadata" = support_metadata.Copy(),
+			)
+		if(!length(point_plan.placements) && !length(point_plan.deletions))
+			return list(
+				"support_class" = support_class,
+				"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения.",
+				"metadata" = support_metadata.Copy(),
+			)
+		return list(
+			"support_class" = support_class,
+			"error" = null,
+			"metadata" = support_metadata.Copy(),
+		)
+
+	var/support_validation_error = get_outpost_shape_support_validation_error(effective_shape_id, footprint_turfs, placement_context)
 	if(length("[support_validation_error]"))
 		return list(
 			"support_class" = support_class,
 			"error" = support_validation_error,
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
 
 	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
@@ -958,8 +1012,8 @@
 	if(!length(candidate_slots))
 		return list(
 			"support_class" = support_class,
-			"error" = get_outpost_radius_policy_error(shape_id, "при текущей политике блокировок радиуса"),
-			"metadata" = list("shape_support_class" = support_class),
+			"error" = get_outpost_radius_policy_error(effective_shape_id, "при текущей политике блокировок радиуса"),
+			"metadata" = support_metadata.Copy(),
 		)
 
 	var/list/layout_profile = config["layout_profile"]
@@ -977,8 +1031,8 @@
 			if(!opening_slots_by_dir["[opening_dir]"])
 				return list(
 					"support_class" = support_class,
-					"error" = get_outpost_radius_policy_error(shape_id),
-					"metadata" = list("shape_support_class" = support_class),
+					"error" = get_outpost_radius_policy_error(effective_shape_id),
+					"metadata" = support_metadata.Copy(),
 				)
 
 	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config, placement_context)
@@ -986,18 +1040,18 @@
 		return list(
 			"support_class" = support_class,
 			"error" = "[shape_plan.metadata["error"]]",
-			"metadata" = list("shape_support_class" = support_class),
+			"metadata" = support_metadata.Copy(),
 		)
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
 		return list(
 			"support_class" = support_class,
-			"error" = "[shape_id]" == WORLD_EDIT_SHAPE_POINT ? "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения." : "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
-			"metadata" = list("shape_support_class" = support_class),
+			"error" = effective_shape_id == WORLD_EDIT_SHAPE_POINT ? "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения." : "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
+			"metadata" = support_metadata.Copy(),
 		)
 	return list(
 		"support_class" = support_class,
 		"error" = null,
-		"metadata" = list("shape_support_class" = support_class),
+		"metadata" = support_metadata.Copy(),
 	)
 
 /datum/world_edit_generator/outpost_radius/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
