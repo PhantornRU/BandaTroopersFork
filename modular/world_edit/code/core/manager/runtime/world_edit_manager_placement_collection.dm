@@ -137,7 +137,7 @@
 		var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf)
 		var/datum/world_edit_placement_candidate/preview_candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
 		render_safe_placement_preview(preview_candidate)
-		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Р СћР С•РЎвЂЎР ВµР С” РЎРѓР С•Р В±РЎР‚Р В°Р Р…Р С•: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Точек собрано: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
 		if(!silent)
 			to_chat(user, SPAN_NOTICE(last_preview_message))
 		return FALSE
@@ -167,11 +167,11 @@
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE
 	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("РќСѓР¶РЅРѕ РєР°Рє РјРёРЅРёРјСѓРј [get_placement_collector_min_points(shape_id)] С‚РѕС‡РµРє, С‡С‚РѕР±С‹ Р·Р°РІРµСЂС€РёС‚СЊ РєРѕРЅС‚СѓСЂ."))
+		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
 		return FALSE
 
 	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
 	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("РќРµ Р·Р°РґР°РЅР° РёСЃС…РѕРґРЅР°СЏ С‚РѕС‡РєР° РєРѕРЅС‚СѓСЂР°."))
+		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
 		return FALSE
-	return update_placement_collector_runtime_state(user, preview_turf, "Р—Р°РІРµСЂС€РµРЅРёРµ РєРѕРЅС‚СѓСЂР°. ", FALSE, FALSE)
+	return update_placement_collector_runtime_state(user, preview_turf, "Завершение контура. ", FALSE, FALSE)
