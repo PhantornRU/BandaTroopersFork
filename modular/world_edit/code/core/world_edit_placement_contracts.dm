@@ -92,6 +92,9 @@
 	var/turf/hover_turf
 	var/turf/collector_origin_turf
 	var/list/collector_points = list()
+	var/collector_points_text = ""
+	var/collector_points_revision = 0
+	var/preview_context_revision = 0
 	var/datum/world_edit_placement_candidate/preview_candidate
 	var/turf/confirm_arm_turf
 	var/confirm_arm_signature = null

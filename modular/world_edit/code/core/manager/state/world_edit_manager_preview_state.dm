@@ -1,3 +1,7 @@
+/datum/world_edit_manager/proc/build_preview_signature_params_hash(list/source_params = null)
+	var/list/base_params = islist(source_params) ? source_params : current_params
+	return GLOB.world_edit_logging.params_hash(sanitize_persistent_generator_params(base_params))
+
 /datum/world_edit_manager/proc/build_preview_params_signature(list/source_params = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/raw_shape_id = resolve_supported_placement_shape(placement_shape)
@@ -5,9 +9,7 @@
 	if(!length(shape_id))
 		shape_id = WORLD_EDIT_SHAPE_POINT
 
-	var/list/session_points = islist(session.collector_points) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(session.collector_points) : list()
-	var/list/effective_params = build_generator_params_for_shape(source_params, shape_id, session_points)
-	var/params_hash = GLOB.world_edit_logging.params_hash(effective_params)
+	var/params_hash = build_preview_signature_params_hash(source_params)
 	var/raw_mode = resolve_supported_placement_mode(placement_mode)
 	var/effective_mode = length("[raw_mode]") ? "[raw_mode]" : (length("[placement_mode]") ? "[placement_mode]" : "single")
 	if(!length(effective_mode))
@@ -19,37 +21,16 @@
 		if(current_facing_dir in GLOB.cardinals)
 			effective_dir = current_facing_dir
 
-	var/points_text = ""
-	if(shape_id in list(
-		WORLD_EDIT_SHAPE_POLYGON,
-		WORLD_EDIT_SHAPE_POLYLINE,
-		WORLD_EDIT_SHAPE_CUSTOM_MASK,
-		WORLD_EDIT_SHAPE_BRUSH_PATH
-	))
-		points_text = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(session_points)
-
-	var/anchor_desc = GLOB.world_edit_helpers.turf_to_text(session.anchor_turf)
-	var/origin_desc = GLOB.world_edit_helpers.turf_to_text(session.collector_origin_turf)
-	var/hover_desc = GLOB.world_edit_helpers.turf_to_text(session.hover_turf)
-	var/seed_desc = ""
-	var/requested_desc = ""
-	var/resolved_desc = ""
-	var/datum/world_edit_placement_candidate/preview_candidate = session.preview_candidate
-	if(istype(preview_candidate) && islist(preview_candidate.placement_context))
-		seed_desc = GLOB.world_edit_helpers.turf_to_text(preview_candidate.placement_context["seed_turf"])
-		requested_desc = GLOB.world_edit_helpers.turf_to_text(preview_candidate.placement_context["requested_end_turf"])
-		resolved_desc = GLOB.world_edit_helpers.turf_to_text(preview_candidate.placement_context["resolved_end_turf"] || preview_candidate.placement_context["end_turf"])
-
 	var/blueprint_revision = ""
 	if(current_definition?.id == "blueprint_stamp")
 		blueprint_revision = get_active_blueprint_revision()
 
-	return "params_hash=[params_hash]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::points=[points_text]::anchor=[anchor_desc]::origin=[origin_desc]::hover=[hover_desc]::seed=[seed_desc]::requested=[requested_desc]::resolved=[resolved_desc]::blueprint_rev=[blueprint_revision]"
+	return "params_hash=[params_hash]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::collector_rev=[session.collector_points_revision || 0]::context_rev=[session.preview_context_revision || 0]::blueprint_rev=[blueprint_revision]"
 
 /datum/world_edit_manager/proc/mark_preview_state()
 	preview_valid = TRUE
 	preview_generator_id = current_definition?.id
-	preview_params_signature = build_preview_params_signature()
+	preview_params_signature = placement_preview_signature || build_preview_params_signature()
 
 /datum/world_edit_manager/proc/invalidate_preview_state()
 	preview_valid = FALSE

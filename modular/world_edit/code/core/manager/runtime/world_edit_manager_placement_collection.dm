@@ -1,8 +1,8 @@
-/datum/world_edit_manager/proc/build_collector_runtime_preview_params(list/base_params, list/preview_points)
-	return build_generator_params_for_shape(base_params, get_effective_placement_shape(), preview_points)
+/datum/world_edit_manager/proc/build_collector_runtime_preview_params(list/base_params, list/preview_points, preview_points_text = null)
+	return build_generator_params_for_shape(base_params, get_effective_placement_shape(), preview_points, preview_points_text)
 
-/datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE)
-	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points)
+/datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE, preview_points_text = null)
+	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points, preview_points_text)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate(
 		user,
 		origin_turf,
@@ -39,6 +39,8 @@
 	if(!islist(segment_turfs) || length(segment_turfs) <= 1)
 		return candidate
 
+	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
+	var/list/attempted_signatures = list()
 	for(var/i = length(segment_turfs) - 1, i >= 1, i--)
 		var/turf/clamped_preview_turf = segment_turfs[i]
 		if(!istype(clamped_preview_turf) || clamped_preview_turf == preview_turf || clamped_preview_turf == segment_start_turf)
@@ -52,21 +54,17 @@
 		last_point["y"] = clamped_preview_turf.y - origin_turf.y
 
 		var/list/clamped_meta = collector_meta.Copy()
-		clamped_meta["collector_points_text"] = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(clamped_points)
-		var/list/clamped_params = build_collector_runtime_preview_params(current_params, clamped_points)
-		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate(
-			user,
-			origin_turf,
-			clamped_preview_turf,
-			clamped_params,
-			hover_only,
-			clamped_meta,
-			clamped_meta,
-			shape_id,
-			preview_turf,
-			origin_turf,
-			origin_turf,
-		)
+		var/clamped_points_text = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(clamped_points)
+		clamped_meta["collector_points_text"] = clamped_points_text
+		var/list/clamped_params = build_collector_runtime_preview_params(current_params, clamped_points, clamped_points_text)
+		var/datum/world_edit_shape_contract/clamped_shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, origin_turf, clamped_preview_turf, clamped_params, effective_direction)
+		var/attempt_signature = build_shape_contract_attempt_signature(clamped_shape_contract)
+		if(length(attempt_signature))
+			if(attempted_signatures[attempt_signature])
+				continue
+			attempted_signatures[attempt_signature] = TRUE
+
+		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(user, clamped_shape_contract, origin_turf, clamped_preview_turf, clamped_params, effective_direction, hover_only, clamped_meta, clamped_meta, preview_turf, origin_turf, origin_turf)
 		if(!istype(clamped_candidate) || !clamped_candidate.is_preview_ready())
 			continue
 		clamped_candidate.collector_state_summary = clamped_meta.Copy()
@@ -106,18 +104,18 @@
 		if(append_hover_point)
 			preview_points += list(hover_point)
 
-	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points)
+	var/preview_points_text = GLOB.world_edit_placement_shapes.world_edit_format_shape_points(preview_points)
+	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points, preview_points_text)
 	var/preview_point_count = length(preview_points)
 	var/list/collector_meta = list(
 		"collector_point_count" = length(committed_points),
 		"collector_preview_point_count" = preview_point_count,
 		"collector_min_points" = min_points,
-		"collector_points_text" = preview_params["shape_points_text"] || "",
+		"collector_points_text" = preview_points_text,
 		"collector_origin" = get_placement_collector_origin_text() || "",
 		"collector_hover" = hover_only ? TRUE : FALSE,
 	)
 
-	teardown_preview_session_runtime()
 	set_placement_anchor_turf(origin_turf)
 	set_placement_hover_turf(preview_turf)
 
@@ -143,7 +141,7 @@
 			to_chat(user, SPAN_NOTICE(last_preview_message))
 		return FALSE
 
-	var/datum/world_edit_placement_candidate/candidate = resolve_outpost_collector_candidate(user, shape_id, origin_turf, preview_turf, preview_points, collector_meta, hover_only)
+	var/datum/world_edit_placement_candidate/candidate = resolve_outpost_collector_candidate(user, shape_id, origin_turf, preview_turf, preview_points, collector_meta, hover_only, preview_points_text)
 	render_safe_placement_preview(candidate)
 	var/failure_message = candidate.get_failure_message()
 	if(length("[failure_message]"))
@@ -168,12 +166,12 @@
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE
 	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("РќСѓР¶РЅРѕ РєР°Рє РјРёРЅРёРјСѓРј [get_placement_collector_min_points(shape_id)] С‚РѕС‡РµРє, С‡С‚РѕР±С‹ Р·Р°РІРµСЂС€РёС‚СЊ РєРѕРЅС‚СѓСЂ."))
+		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
 		return FALSE
 
 	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
 	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("РќРµ Р·Р°РґР°РЅР° РёСЃС…РѕРґРЅР°СЏ С‚РѕС‡РєР° РєРѕРЅС‚СѓСЂР°."))
+		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
 		return FALSE
 
-	return update_placement_collector_runtime_state(user, preview_turf, "Р—Р°РІРµСЂС€РµРЅРёРµ РєРѕРЅС‚СѓСЂР°. ", FALSE, FALSE)
+	return update_placement_collector_runtime_state(user, preview_turf, "Завершение контура. ", FALSE, FALSE)

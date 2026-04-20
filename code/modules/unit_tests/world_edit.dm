@@ -1216,6 +1216,28 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_manager_state/preview_state_invalidates_on_preview_lock_change/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
+	var/center_y = round((run_loc_floor_bottom_left.y + run_loc_floor_top_right.y) / 2)
+	var/turf/center_turf = locate(center_x, center_y, run_loc_floor_bottom_left.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit preview-signature lock test center turf was not resolved.")
+
+	manager.current_definition = definition
+	manager.current_params = list("radius" = 4)
+	manager.mark_preview_state()
+	TEST_ASSERT(manager.is_preview_state_valid(), "World Edit preview signature should start valid before preview-lock changes.")
+
+	manager.set_placement_preview_locked(TRUE, center_turf)
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit preview signature should invalidate when the preview enters the locked confirmation state.")
+
+	manager.mark_preview_state()
+	manager.set_placement_preview_locked(FALSE)
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit preview signature should invalidate when the preview leaves the locked confirmation state.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_manager_state/reset_placement_runtime_clears_anchor_and_collector_points/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/center_x = round((run_loc_floor_bottom_left.x + run_loc_floor_top_right.x) / 2)
@@ -1422,7 +1444,7 @@
 	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 2, "World Edit invalid-outpost collector finish test should keep committed collector points after the failed finish attempt.")
 	TEST_ASSERT(istype(manager.get_placement_preview_candidate(), /datum/world_edit_placement_candidate), "World Edit invalid-outpost collector finish test should keep the invalid preview candidate instead of clearing it.")
 	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(disconnected_turf), "World Edit invalid-outpost collector finish test should not arm confirmation while the shape remains invalid.")
-	TEST_ASSERT(findtext("[manager.last_preview_message]", "РЅРµСЃРІСЏР·Р°РЅРЅС‹Рµ РѕСЃС‚СЂРѕРІРєРё"), "World Edit invalid-outpost collector finish test should keep surfacing the disconnected-footprint error after the repeated click.")
+	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector finish test should keep surfacing the disconnected-footprint error after the repeated click.")
 	qdel(manager)
 
 /datum/unit_test/world_edit_corner_slots/shape_hook_runtime/param_only_click_path_invokes_shape_support_hook/Run()

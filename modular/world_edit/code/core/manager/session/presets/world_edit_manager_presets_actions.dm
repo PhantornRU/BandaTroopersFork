@@ -5,11 +5,11 @@
 
 /datum/world_edit_manager/proc/save_current_preset(mob/user)
 	if(!current_generator || !current_definition)
-		return fail_preset_action(user, "РЎРЅР°С‡Р°Р»Р° РІС‹Р±РµСЂРёС‚Рµ РіРµРЅРµСЂР°С‚РѕСЂ.")
+		return fail_preset_action(user, "Сначала выберите генератор.")
 	if(!can_manage_current_generator_presets())
-		return fail_preset_action(user, "Р”Р»СЏ С‚РµРєСѓС‰РµРіРѕ РіРµРЅРµСЂР°С‚РѕСЂР° presets РЅРµРґРѕСЃС‚СѓРїРЅС‹ РІ СЌС‚РѕР№ С„Р°Р·Рµ.")
+		return fail_preset_action(user, "Для текущего генератора presets недоступны в этой фазе.")
 	if(!check_rights_for(holder, current_definition.required_rights))
-		return fail_preset_action(user, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ preset.")
+		return fail_preset_action(user, "Недостаточно прав для сохранения preset.")
 
 	var/list/preset_params = build_effective_generator_params(current_params)
 	var/error_text = current_generator.validate_params(user, preset_params)
@@ -18,10 +18,10 @@
 
 	ensure_preset_cache_loaded()
 	if(length(preset_entries_cache) >= WORLD_EDIT_PRESET_LIMIT)
-		return fail_preset_action(user, "Р”РѕСЃС‚РёРіРЅСѓС‚ Р»РёРјРёС‚ preset'РѕРІ РґР»СЏ СЌС‚РѕРіРѕ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°.")
+		return fail_preset_action(user, "Достигнут лимит preset'ов для этого администратора.")
 
 	var/default_name = current_definition.name_ru || current_definition.id
-	var/raw_name = tgui_input_text(user, "Р’РІРµРґРёС‚Рµ РёРјСЏ preset'Р°. РћСЃС‚Р°РІСЊС‚Рµ РїРѕР»Рµ РїСѓСЃС‚С‹Рј РґР»СЏ РёРјРµРЅРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ.", "World Edit: Save Preset", default_name, WORLD_EDIT_PRESET_NAME_MAX_LEN, FALSE, FALSE)
+	var/raw_name = tgui_input_text(user, "Введите имя preset'а. Оставьте поле пустым для имени по умолчанию.", "World Edit: Save Preset", default_name, WORLD_EDIT_PRESET_NAME_MAX_LEN, FALSE, FALSE)
 	if(isnull(raw_name))
 		return FALSE
 
@@ -40,23 +40,23 @@
 	preset_entries_cache += list(entry)
 	if(!GLOB.world_edit_presets.world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
 		preset_entries_cache.Cut(length(preset_entries_cache), length(preset_entries_cache) + 1)
-		return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ preset РЅР° СЃРµСЂРІРµСЂРµ.")
+		return fail_preset_action(user, "Не удалось сохранить preset на сервере.")
 
 	last_ui_error = ""
-	to_chat(user, SPAN_NOTICE("Preset '[preset_name]' СЃРѕС…СЂР°РЅС‘РЅ."))
+	to_chat(user, SPAN_NOTICE("Preset '[preset_name]' сохранён."))
 	return TRUE
 
 /datum/world_edit_manager/proc/load_preset_by_id(mob/user, preset_id)
 	var/list/preset_entry = find_cached_preset_entry(preset_id)
 	if(!preset_entry)
-		return fail_preset_action(user, "Preset РЅРµ РЅР°Р№РґРµРЅ.")
+		return fail_preset_action(user, "Preset не найден.")
 
 	var/generator_id = "[preset_entry["generator_id"]]"
 	var/datum/world_edit_generator_definition/definition = GLOB.world_edit_registry.get_generator_definition(generator_id)
 	if(!GLOB.world_edit_presets.world_edit_is_preset_definition_supported(definition))
-		return fail_preset_action(user, "Preset СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° РіРµРЅРµСЂР°С‚РѕСЂ РІРЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµРјРѕРіРѕ READY scope.")
+		return fail_preset_action(user, "Preset ссылается на генератор вне поддерживаемого READY scope.")
 	if(!check_rights_for(holder, definition.required_rights))
-		return fail_preset_action(user, "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ Р·Р°РіСЂСѓР·РєРё СЌС‚РѕРіРѕ preset.")
+		return fail_preset_action(user, "Недостаточно прав для загрузки этого preset.")
 
 	var/list/validated_result = build_validated_preset_params(user, definition, preset_entry["params"])
 	if(validated_result["error"])
@@ -66,7 +66,7 @@
 	var/same_generator = current_definition?.id == generator_id
 	if(!same_generator)
 		if(!set_generator_by_id(generator_id))
-			return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ preset.")
+			return fail_preset_action(user, "Не удалось активировать генератор для preset.")
 
 	current_params = sanitize_persistent_generator_params(validated_result["params"])
 	save_current_generator_context()
@@ -75,7 +75,7 @@
 	else
 		rebuild_runtime_after_generator_config_change(user, had_active_placement, !had_active_placement, !had_active_placement, TRUE)
 	last_ui_error = ""
-	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' Р·Р°РіСЂСѓР¶РµРЅ."))
+	to_chat(user, SPAN_NOTICE("Preset '[preset_entry["name"] || generator_id]' загружен."))
 	return TRUE
 
 /datum/world_edit_manager/proc/delete_preset_by_id(mob/user, preset_id)
@@ -92,13 +92,13 @@
 		break
 
 	if(!entry_index)
-		return fail_preset_action(user, "Preset РЅРµ РЅР°Р№РґРµРЅ.")
+		return fail_preset_action(user, "Preset не найден.")
 
 	preset_entries_cache.Cut(entry_index, entry_index + 1)
 	if(!GLOB.world_edit_presets.world_edit_save_presets_for_ckey(get_storage_ckey(), preset_entries_cache))
 		refresh_preset_cache()
-		return fail_preset_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ СѓРґР°Р»РёС‚СЊ preset РЅР° СЃРµСЂРІРµСЂРµ.")
+		return fail_preset_action(user, "Не удалось удалить preset на сервере.")
 
 	last_ui_error = ""
-	to_chat(user, SPAN_NOTICE("Preset '[entry_name || preset_id]' СѓРґР°Р»С‘РЅ."))
+	to_chat(user, SPAN_NOTICE("Preset '[entry_name || preset_id]' удалён."))
 	return TRUE

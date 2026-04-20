@@ -123,6 +123,40 @@
 		"direction" = effective_direction,
 	)
 
+/datum/world_edit_manager/proc/apply_shape_contract_runtime_metadata(datum/world_edit_shape_contract/shape_contract, list/shape_metadata_override = null, list/collector_state_summary = null)
+	if(!istype(shape_contract))
+		return null
+	if(!islist(shape_contract.metadata))
+		shape_contract.metadata = list()
+	if(islist(shape_metadata_override))
+		for(var/key in shape_metadata_override)
+			shape_contract.metadata[key] = shape_metadata_override[key]
+	if(islist(collector_state_summary))
+		for(var/key in collector_state_summary)
+			shape_contract.metadata[key] = collector_state_summary[key]
+	return shape_contract
+
+/datum/world_edit_manager/proc/build_shape_contract_attempt_signature(datum/world_edit_shape_contract/shape_contract)
+	if(!istype(shape_contract))
+		return null
+	if(length("[shape_contract.error]"))
+		return "__error__:[shape_contract.shape_id]:[shape_contract.error]"
+
+	var/list/anchor_turfs = shape_contract.anchor_turfs
+	if(!islist(anchor_turfs) || !length(anchor_turfs))
+		return "__empty__:[shape_contract.shape_id]:[shape_contract.degenerate_kind]"
+
+	var/list/signature_chunks = list(
+		"[shape_contract.shape_id]",
+		"[shape_contract.degenerate_kind]",
+		"[length(anchor_turfs)]",
+	)
+	for(var/turf/anchor_turf as anything in anchor_turfs)
+		if(!istype(anchor_turf))
+			continue
+		signature_chunks += "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
+	return jointext(signature_chunks, ";")
+
 /datum/world_edit_manager/proc/build_placement_candidate(datum/world_edit_shape_contract/shape_contract, list/placement_context, datum/world_edit_plan/plan = null, list/runtime_params = null, hover_only = FALSE, list/collector_state_summary = null)
 	if(!istype(shape_contract))
 		return null
@@ -193,39 +227,20 @@
 	else
 		invalidate_preview_state()
 
-/datum/world_edit_manager/proc/resolve_placement_candidate(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)
+/datum/world_edit_manager/proc/resolve_placement_candidate_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, turf/start_turf, turf/end_turf, list/effective_params, effective_direction, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)
 	var/datum/world_edit_placement_candidate/candidate = new
 	candidate.hover_only = hover_only ? TRUE : FALSE
-	if(!current_generator)
-		candidate.resolve_error = "Генератор не активен."
+	if(!istype(shape_contract))
+		candidate.resolve_error = "Не удалось построить контракт формы для размещения."
 		return candidate
 
-	var/shape_id = shape_id_override || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
-	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
-	var/list/effective_params = islist(runtime_params) ? runtime_params.Copy() : build_effective_generator_params(null, shape_id)
-	candidate.runtime_params = effective_params.Copy()
-	var/list/placement_context = null
-
-	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, start_turf, end_turf, effective_params, effective_direction)
-	candidate.shape_contract = shape_contract
-	if(islist(shape_metadata_override))
-		if(!islist(shape_contract.metadata))
-			shape_contract.metadata = list()
-		for(var/key in shape_metadata_override)
-			shape_contract.metadata[key] = shape_metadata_override[key]
-	if(islist(collector_state_summary))
-		candidate.collector_state_summary = collector_state_summary.Copy()
-		if(!islist(shape_contract.metadata))
-			shape_contract.metadata = list()
-		for(var/key in collector_state_summary)
-			shape_contract.metadata[key] = collector_state_summary[key]
-
-	placement_context = build_placement_context(shape_contract, start_turf, end_turf, requested_end_turf || end_turf, seed_turf, shape_origin_turf, effective_direction)
+	apply_shape_contract_runtime_metadata(shape_contract, shape_metadata_override, collector_state_summary)
+	var/list/placement_context = build_placement_context(shape_contract, start_turf, end_turf, requested_end_turf || end_turf, seed_turf, shape_origin_turf, effective_direction)
 	candidate = build_placement_candidate(shape_contract, placement_context, null, effective_params, hover_only, collector_state_summary)
 	if(!istype(candidate))
 		candidate = new
 		candidate.hover_only = hover_only ? TRUE : FALSE
-		candidate.resolve_error = "РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРіРѕС‚РѕРІРёС‚СЊ placement candidate."
+		candidate.resolve_error = "Не удалось подготовить кандидата размещения."
 		return candidate
 
 	if(shape_contract.error)
@@ -265,6 +280,19 @@
 	if(istype(candidate.preview_model))
 		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
 	return candidate
+
+/datum/world_edit_manager/proc/resolve_placement_candidate(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)
+	if(!current_generator)
+		var/datum/world_edit_placement_candidate/candidate = new
+		candidate.hover_only = hover_only ? TRUE : FALSE
+		candidate.resolve_error = "Генератор не активен."
+		return candidate
+
+	var/shape_id = shape_id_override || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
+	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
+	var/list/effective_params = islist(runtime_params) ? runtime_params.Copy() : build_effective_generator_params(null, shape_id)
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, start_turf, end_turf, effective_params, effective_direction)
+	return resolve_placement_candidate_from_shape_contract(user, shape_contract, start_turf, end_turf, effective_params, effective_direction, hover_only, shape_metadata_override, collector_state_summary, requested_end_turf, seed_turf, shape_origin_turf)
 
 /datum/world_edit_manager/proc/can_attempt_outpost_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null)
 	if(!istype(current_generator, /datum/world_edit_generator/outpost_radius))
@@ -309,20 +337,31 @@
 	if(!islist(segment_turfs) || length(segment_turfs) <= 1)
 		return candidate
 
+	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
+	var/list/effective_params = islist(runtime_params) ? runtime_params.Copy() : build_effective_generator_params(null, requested_shape_id)
+	var/list/attempted_signatures = list()
 	for(var/i = length(segment_turfs) - 1, i >= 1, i--)
 		var/turf/clamped_end_turf = segment_turfs[i]
 		if(!istype(clamped_end_turf) || clamped_end_turf == requested_turf || clamped_end_turf == segment_start_turf)
 			continue
 
-		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate(
+		var/datum/world_edit_shape_contract/clamped_shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(requested_shape_id, start_turf, clamped_end_turf, effective_params, effective_direction)
+		var/attempt_signature = build_shape_contract_attempt_signature(clamped_shape_contract)
+		if(length(attempt_signature))
+			if(attempted_signatures[attempt_signature])
+				continue
+			attempted_signatures[attempt_signature] = TRUE
+
+		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(
 			user,
+			clamped_shape_contract,
 			start_turf,
 			clamped_end_turf,
-			runtime_params,
+			effective_params,
+			effective_direction,
 			hover_only,
 			shape_metadata_override,
 			collector_state_summary,
-			requested_shape_id,
 			requested_turf,
 			seed_turf,
 			shape_origin_turf,
@@ -340,9 +379,9 @@
 	return candidate
 
 /datum/world_edit_manager/proc/evaluate_safe_placement_preview(mob/user, shape_id, turf/start_turf, turf/end_turf, list/shape_metadata_override = null, message_prefix = "", silent = FALSE, hover_only = FALSE)
-	teardown_preview_session_runtime()
 	set_placement_hover_turf(end_turf)
-	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_outpost_clamp(user, start_turf, end_turf, build_effective_generator_params(null, shape_id), hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
+	var/list/effective_params = build_effective_generator_params(null, shape_id)
+	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_outpost_clamp(user, start_turf, end_turf, effective_params, hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
 	render_safe_placement_preview(candidate)
 	var/failure_message = candidate.get_failure_message()
 	if(length("[failure_message]"))
@@ -584,7 +623,7 @@
 					return TRUE
 				arm_safe_placement_preview_for_confirm(user)
 				return TRUE
-			to_chat(user, SPAN_NOTICE("Р­С‚Р° С‚РѕС‡РєР° СѓР¶Рµ РїРѕСЃР»РµРґРЅСЏСЏ РІ РєРѕРЅС‚СѓСЂРµ. Р”РѕР±Р°РІСЊС‚Рµ РЅРѕРІСѓСЋ С‚РѕС‡РєСѓ РёР»Рё Р·Р°РІРµСЂС€РёС‚Рµ СЃР±РѕСЂ."))
+			to_chat(user, SPAN_NOTICE("Эта точка уже последняя в контуре. Добавьте новую точку или завершите сбор."))
 			return TRUE
 		var/max_points = get_placement_collector_max_points(shape_id)
 		if("[shape_id]" == WORLD_EDIT_SHAPE_CUSTOM_MASK)

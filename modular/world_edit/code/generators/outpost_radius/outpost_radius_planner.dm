@@ -121,7 +121,7 @@
 
 	return area_turfs
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_radius_area_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_radius_area_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
 	var/list/area_turfs = list()
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
 		return area_turfs
@@ -139,7 +139,7 @@
 			if(footprint_lookup[target_turf])
 				area_turfs += target_turf
 				continue
-			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs) > radius)
+			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs, distance_cache) > radius)
 				continue
 			area_turfs += target_turf
 
@@ -473,9 +473,11 @@
 			return EAST
 	return dir_to_flip
 
-/datum/world_edit_generator/outpost_radius/proc/get_shape_chebyshev_distance_to_footprint(turf/target_turf, list/footprint_turfs)
+/datum/world_edit_generator/outpost_radius/proc/get_shape_chebyshev_distance_to_footprint(turf/target_turf, list/footprint_turfs, list/distance_cache = null)
 	if(!istype(target_turf) || !islist(footprint_turfs) || !length(footprint_turfs))
 		return null
+	if(islist(distance_cache) && !isnull(distance_cache[target_turf]))
+		return distance_cache[target_turf]
 
 	var/best_distance = null
 	for(var/turf/source_turf as anything in footprint_turfs)
@@ -488,9 +490,11 @@
 			if(best_distance <= 0)
 				break
 
+	if(islist(distance_cache) && !isnull(best_distance))
+		distance_cache[target_turf] = best_distance
 	return best_distance
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
 	var/list/result = list(
 		"turfs" = list(),
 		"lookup" = list(),
@@ -511,7 +515,7 @@
 			if(!istype(target_turf) || footprint_lookup[target_turf])
 				continue
 
-			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs) != radius)
+			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs, distance_cache) != radius)
 				continue
 
 			shell_lookup[target_turf] = TRUE
@@ -519,7 +523,7 @@
 
 	return result
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_slot_dirs(turf/target_turf, radius, list/footprint_turfs, list/shell_lookup)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_shell_slot_dirs(turf/target_turf, radius, list/footprint_turfs, list/shell_lookup, list/distance_cache = null)
 	var/list/slot_dirs = list()
 	if(!istype(target_turf) || !islist(shell_lookup))
 		return slot_dirs
@@ -529,7 +533,7 @@
 		if(shell_lookup[neighbor_turf])
 			continue
 
-		var/neighbor_distance = get_shape_chebyshev_distance_to_footprint(neighbor_turf, footprint_turfs)
+		var/neighbor_distance = get_shape_chebyshev_distance_to_footprint(neighbor_turf, footprint_turfs, distance_cache)
 		if(isnull(neighbor_distance) || neighbor_distance > radius)
 			slot_dirs += dir_to_use
 
@@ -555,21 +559,21 @@
 
 	return 0
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_perimeter_candidates(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_perimeter_candidates(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
 	var/list/candidates = list()
 	var/list/candidate_lookup = list()
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
 		return candidates
 
 	radius = max(round(radius), 1)
-	var/list/shell_data = build_shape_shell_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds)
+	var/list/shell_data = build_shape_shell_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds, distance_cache)
 	var/list/shell_turfs = shell_data["turfs"]
 	var/list/shell_lookup = shell_data["lookup"]
 	for(var/turf/target_turf as anything in shell_turfs)
 		if(!istype(target_turf))
 			continue
 
-		var/list/slot_dirs = build_shape_shell_slot_dirs(target_turf, radius, footprint_turfs, shell_lookup)
+		var/list/slot_dirs = build_shape_shell_slot_dirs(target_turf, radius, footprint_turfs, shell_lookup, distance_cache)
 		for(var/dir_to_use as anything in slot_dirs)
 			var/candidate_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, dir_to_use)
 			if(!length(candidate_key) || candidate_lookup[candidate_key])
@@ -648,37 +652,96 @@
 
 	return candidates
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params, list/placement_context = null)
-	var/datum/world_edit_plan/plan = new
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_shape_analysis(list/footprint_turfs, list/params, list/placement_context = null)
+	var/list/analysis = list(
+		"error" = null,
+		"config" = null,
+		"footprint_turfs" = list(),
+		"footprint_lookup" = list(),
+		"shape_bounds" = list(),
+		"seed_turf" = null,
+		"traversal_turfs" = list(),
+		"candidate_slots" = list(),
+		"filtered_candidate_slots" = list(),
+		"opening_slots" = list(),
+		"opening_dirs" = list(),
+		"distance_cache" = list(),
+	)
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
-		plan.metadata["error"] = "Не удалось определить контур формы."
-		return plan
+		analysis["error"] = "Не удалось определить контур формы."
+		return analysis
 
 	var/list/config = params
 	if(!islist(config) || !config["family_profile"])
 		config = resolve_outpost_configuration(params)
 	if(config["error"])
-		plan.metadata["error"] = "[config["error"]]"
-		return plan
+		analysis["error"] = "[config["error"]]"
+		return analysis
 
 	var/list/footprint_lookup = build_turf_lookup(footprint_turfs)
-	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
+	if(!length(footprint_lookup))
+		analysis["error"] = "Не удалось определить контур формы."
+		return analysis
+
+	var/list/unique_footprint_turfs = list()
+	for(var/turf/footprint_turf as anything in footprint_lookup)
+		if(istype(footprint_turf))
+			unique_footprint_turfs += footprint_turf
+	if(!length(unique_footprint_turfs))
+		analysis["error"] = "Не удалось определить контур формы."
+		return analysis
+
+	var/list/shape_bounds = build_turf_bounds(unique_footprint_turfs)
+	var/turf/seed_turf = resolve_outpost_shape_seed_turf(unique_footprint_turfs, placement_context)
+	if(!istype(seed_turf))
+		seed_turf = unique_footprint_turfs[1]
+	var/list/distance_cache = list()
+	var/list/traversal_turfs = build_shape_radius_area_turfs(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
+	var/list/candidate_slots = build_shape_perimeter_candidates(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
+	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs)
+	var/list/layout_profile = config["layout_profile"]
+	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	var/list/opening_slots = length(opening_dirs) ? select_shape_direction_slots(filtered_candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds) : list()
+
+	analysis["config"] = config
+	analysis["footprint_turfs"] = unique_footprint_turfs
+	analysis["footprint_lookup"] = footprint_lookup
+	analysis["shape_bounds"] = shape_bounds
+	analysis["seed_turf"] = seed_turf
+	analysis["traversal_turfs"] = traversal_turfs
+	analysis["candidate_slots"] = candidate_slots
+	analysis["filtered_candidate_slots"] = filtered_candidate_slots
+	analysis["opening_slots"] = opening_slots
+	analysis["opening_dirs"] = opening_dirs
+	analysis["distance_cache"] = distance_cache
+	return analysis
+
+/datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params, list/placement_context = null, list/shape_analysis = null)
+	var/datum/world_edit_plan/plan = new
+	shape_analysis = islist(shape_analysis) ? shape_analysis : build_outpost_shape_analysis(footprint_turfs, params, placement_context)
+	if(!islist(shape_analysis))
+		plan.metadata["error"] = "Не удалось определить контур формы."
+		return plan
+	if(shape_analysis["error"])
+		plan.metadata["error"] = "[shape_analysis["error"]]"
+		return plan
+
+	var/list/config = shape_analysis["config"]
+	footprint_turfs = shape_analysis["footprint_turfs"]
+	var/list/shape_bounds = shape_analysis["shape_bounds"]
 	var/radius = config["radius"]
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/place_sentries = config["place_sentries"]
-	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
-	if(!istype(seed_turf))
-		seed_turf = footprint_turfs[1]
-	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, radius, footprint_lookup, shape_bounds)
-	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, radius, footprint_lookup, shape_bounds)
-	candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, radius_policy, footprint_turfs)
+	var/turf/seed_turf = shape_analysis["seed_turf"]
+	var/list/traversal_turfs = shape_analysis["traversal_turfs"]
+	var/list/candidate_slots = shape_analysis["filtered_candidate_slots"]
 	if(!length(candidate_slots))
 		plan.metadata["error"] = "Выбранный контур размещения не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
 	var/list/layout_profile = config["layout_profile"]
-	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	var/list/opening_dirs = shape_analysis["opening_dirs"]
 	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
-	var/list/opening_slots = select_shape_direction_slots(candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds)
+	var/list/opening_slots = shape_analysis["opening_slots"]
 	var/list/guard_slots = place_sentries ? select_shape_direction_slots(candidate_slots, guard_dirs, 1, shape_bounds) : list()
 	var/list/guard_sentry_candidates = list()
 	var/list/raw_sentry_candidate_turfs = list()
@@ -971,7 +1034,6 @@
 	support_metadata["shape_support_class"] = support_class
 	support_metadata["shape_effective_id"] = effective_shape_id
 
-	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
 	if(!istype(seed_turf))
 		seed_turf = footprint_turfs[1]
@@ -1004,21 +1066,25 @@
 			"metadata" = support_metadata.Copy(),
 		)
 
-	var/list/shape_bounds = build_turf_bounds(footprint_turfs)
-	var/list/traversal_turfs = build_shape_radius_area_turfs(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
-	var/list/candidate_slots = build_shape_perimeter_candidates(footprint_turfs, config["radius"], footprint_lookup, shape_bounds)
-	candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, radius_policy, footprint_turfs)
-	if(!length(candidate_slots))
+	var/list/shape_analysis = build_outpost_shape_analysis(footprint_turfs, config, placement_context)
+	if(shape_analysis["error"])
 		return list(
 			"support_class" = support_class,
-			"error" = get_outpost_radius_policy_error(effective_shape_id, "при текущей политике блокировок радиуса"),
+			"error" = "[shape_analysis["error"]]",
 			"metadata" = support_metadata.Copy(),
 		)
 
-	var/list/layout_profile = config["layout_profile"]
-	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+	var/list/candidate_slots = shape_analysis["filtered_candidate_slots"]
+	if(!length(candidate_slots))
+		return list(
+			"support_class" = support_class,
+			"error" = get_outpost_radius_policy_error(effective_shape_id),
+			"metadata" = support_metadata.Copy(),
+		)
+
+	var/list/opening_dirs = shape_analysis["opening_dirs"]
 	if(length(opening_dirs))
-		var/list/opening_slots = select_shape_direction_slots(candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds)
+		var/list/opening_slots = shape_analysis["opening_slots"]
 		var/list/opening_slots_by_dir = list()
 		for(var/list/opening_slot as anything in opening_slots)
 			var/opening_dir = opening_slot["dir"]
@@ -1034,7 +1100,7 @@
 					"metadata" = support_metadata.Copy(),
 				)
 
-	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config, placement_context)
+	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config, placement_context, shape_analysis)
 	if(shape_plan.metadata["error"])
 		return list(
 			"support_class" = support_class,
@@ -1044,7 +1110,7 @@
 	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
 		return list(
 			"support_class" = support_class,
-			"error" = effective_shape_id == WORLD_EDIT_SHAPE_POINT ? "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения." : "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
+			"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
 			"metadata" = support_metadata.Copy(),
 		)
 	return list(
