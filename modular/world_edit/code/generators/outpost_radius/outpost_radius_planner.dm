@@ -962,7 +962,15 @@
 	var/list/traversal_turfs = build_shape_radius_area_turfs(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
 	var/list/candidate_slots = build_shape_perimeter_candidates(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
 	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache)
-	var/list/layout_profile = config["layout_profile"]
+	var/list/family_profile = islist(config["family_profile"]) ? config["family_profile"] : list()
+	var/list/layout_profile = islist(config["layout_profile"]) ? config["layout_profile"] : list(
+		"opening_dirs" = islist(family_profile["opening_dirs"]) ? family_profile["opening_dirs"].Copy() : list(NORTH, EAST, SOUTH, WEST),
+		"guard_dirs" = islist(family_profile["opening_dirs"]) ? family_profile["opening_dirs"].Copy() : list(NORTH, EAST, SOUTH, WEST),
+		"opening_width" = max(text2num("[config["opening_width"]]"), 1),
+		"opening_slots_per_dir" = 1,
+		"opening_slot_mode" = "centered",
+	)
+	config["layout_profile"] = layout_profile
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	var/opening_tiles_per_dir = get_layout_total_opening_tiles_per_dir(layout_profile)
 	var/list/opening_slots = length(opening_dirs) ? select_shape_direction_slots(filtered_candidate_slots, opening_dirs, opening_tiles_per_dir, shape_bounds, get_layout_opening_slot_mode(layout_profile)) : list()
@@ -1034,6 +1042,7 @@
 	var/list/config = shape_analysis["config"]
 	footprint_turfs = shape_analysis["footprint_turfs"]
 	var/list/shape_bounds = shape_analysis["shape_bounds"]
+	var/list/family_profile = islist(config["family_profile"]) ? config["family_profile"] : list()
 	var/radius = config["radius"]
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/place_sentries = config["place_sentries"]
@@ -1042,7 +1051,15 @@
 	if(!length(candidate_slots))
 		plan.metadata["error"] = "Выбранный контур размещения не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
-	var/list/layout_profile = config["layout_profile"]
+	var/list/layout_profile = islist(config["layout_profile"]) ? config["layout_profile"] : list(
+		"label" = config["layout_variant"] || "shape_layout",
+		"description" = "",
+		"opening_dirs" = islist(shape_analysis["opening_dirs"]) ? shape_analysis["opening_dirs"].Copy() : list(),
+		"guard_dirs" = islist(shape_analysis["guard_dirs"]) ? shape_analysis["guard_dirs"].Copy() : list(),
+		"opening_width" = max(text2num("[config["opening_width"]]"), 1),
+		"opening_slots_per_dir" = 1,
+		"opening_slot_mode" = "centered",
+	)
 	var/list/opening_dirs = shape_analysis["opening_dirs"]
 	var/list/guard_dirs = shape_analysis["guard_dirs"]
 	var/list/opening_slots = shape_analysis["opening_slots"]
@@ -1171,11 +1188,11 @@
 	plan.metadata["base_shape_turfs"] = footprint_turfs.Copy()
 	plan.metadata["anchor_count"] = length(footprint_turfs)
 	plan.metadata["family"] = config["family"]
-	plan.metadata["family_label"] = config["family_profile"]["label"]
-	plan.metadata["family_description"] = config["family_profile"]["description"]
+	plan.metadata["family_label"] = family_profile["label"]
+	plan.metadata["family_description"] = family_profile["description"]
 	plan.metadata["layout_variant"] = config["layout_variant"]
-	plan.metadata["layout_label"] = config["layout_profile"]["label"]
-	plan.metadata["layout_description"] = config["layout_profile"]["description"]
+	plan.metadata["layout_label"] = layout_profile["label"]
+	plan.metadata["layout_description"] = layout_profile["description"]
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
 	plan.metadata["sentry_profile"] = config["sentry_profile"]

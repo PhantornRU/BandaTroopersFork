@@ -81,6 +81,36 @@
 	qdel(defense_definition)
 	return created_object
 
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_preview_spec_from_placement(list/placement)
+	if(!islist(placement))
+		return null
+
+	var/turf/target_turf = placement["turf"]
+	var/defense_path = placement["defense_path"]
+	if(!istype(target_turf) || !ispath(defense_path, /datum/human_ai_defense))
+		return null
+
+	var/obj_path = GLOB.world_edit_blueprints.world_edit_resolve_defense_spawn_path(defense_path)
+	if(!ispath(obj_path, /obj))
+		return null
+
+	var/list/entry_vars = list()
+	if("[placement["kind"]]" == "sentry")
+		entry_vars["turned_on"] = GLOB.world_edit_helpers.parse_bool(placement["turned_on"]) ? TRUE : FALSE
+
+	return GLOB.world_edit_helpers.build_world_edit_atom_preview_spec(obj_path, target_turf, placement["dir"], entry_vars)
+
+/datum/world_edit_generator/outpost_radius/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	var/list/specs = list()
+	if(!istype(plan))
+		return specs
+
+	for(var/list/placement as anything in plan.placements)
+		var/list/spec = build_outpost_preview_spec_from_placement(placement)
+		if(islist(spec))
+			specs += list(spec)
+	return specs
+
 /datum/world_edit_generator/outpost_radius/proc/register_perimeter_slot(list/result, turf/target_turf, dir_to_use, slot_index, offset_x, offset_y, radius, list/layout_profile, list/barricade_cycle, barricade_pattern)
 	if(!islist(result))
 		return
@@ -550,6 +580,7 @@
 	current_plan = plan
 	result.success = TRUE
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
+	result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
 	result.message = "Предпросмотр готов: профиль=[plan.metadata["family_label"] || "Стандарт"], вариант=[plan.metadata["layout_label"] || "Крест"], опор=[plan.metadata["anchor_count"] || 1], проходов=[plan.metadata["opening_count"] || 0], баррикад=[plan.metadata["barricade_count"]], турелей=[plan.metadata["sentry_count"]], заблокировано=[(plan.metadata["blocked_barricades"] || 0) + (plan.metadata["blocked_openings"] || 0) + (plan.metadata["blocked_sentries"] || 0)]."
 	return result

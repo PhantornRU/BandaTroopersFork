@@ -94,6 +94,8 @@ export type BlueprintEntry = {
   name: string;
   entry_count: number;
   radius: number;
+  footprint_width?: number;
+  footprint_height?: number;
   created_at: string;
   created_by: string;
   source: string;

@@ -33,6 +33,21 @@
 		lookup["[target_turf.x - origin_turf.x],[target_turf.y - origin_turf.y]"] = TRUE
 	return lookup
 
+/datum/unit_test/world_edit_corner_slots/proc/build_blueprint_relative_slot_lookup(list/entries)
+	var/list/lookup = list()
+	if(!islist(entries))
+		return lookup
+
+	var/barricade_prefix = "/obj/structure/barricade/"
+	for(var/list/entry as anything in entries)
+		if(!islist(entry) || copytext("[entry["type"]]", 1, length(barricade_prefix) + 1) != barricade_prefix)
+			continue
+		var/dx = text2num("[entry["dx"]]")
+		var/dy = text2num("[entry["dy"]]")
+		var/dir_value = text2num("[entry["dir"]]")
+		lookup["[dx],[dy],[dir_value]"] = TRUE
+	return lookup
+
 /datum/unit_test/world_edit_corner_slots/proc/build_shape_result(shape_id, turf/origin_turf, list/params = null, direction = NORTH, turf/end_turf = null)
 	return GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, origin_turf, end_turf, params || list(), direction)
 
@@ -3718,6 +3733,94 @@
 	TEST_ASSERT_EQUAL(none_config["sentry_profile"], "none", "World Edit sentry-profile test should preserve an explicit sentry_profile override instead of forcing the family default.")
 	TEST_ASSERT_EQUAL(length(generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), none_config["sentry_profile"])), 0, "World Edit sentry-profile test should disable all guard axes when sentry_profile=none.")
 
+/datum/unit_test/world_edit_corner_slots/outpost_plan_preview_specs_follow_runtime_placements/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost preview-spec test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_dir = NORTH
+	manager.placement_anchor_turf = center_turf
+
+	var/list/params = definition.default_params?.Copy() || list()
+	params["family"] = "wired_metal_perimeter"
+	params["layout_variant"] = "gate"
+	params["opening_width"] = "profile"
+	params["radius"] = 2
+	params["place_sentries"] = TRUE
+	params["guard_mode"] = "layout"
+	params["sentry_profile"] = "entry_guard"
+	params["turned_on"] = TRUE
+	manager.current_params = params.Copy()
+
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost preview-spec test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost preview-spec test should build a valid plan.")
+	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost preview-spec test should produce runtime placements.")
+	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit outpost preview-spec test should synthesize placement-preview layers from the plan.")
+
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate?.preview_model, /datum/world_edit_preview_model), "World Edit outpost preview-spec test should keep a preview model on the synthesized candidate.")
+	TEST_ASSERT_EQUAL(length(candidate.preview_model.generator_preview_object_specs), length(plan.placements), "World Edit outpost preview-spec test should expose one object-preview spec per runtime placement.")
+	TEST_ASSERT_EQUAL(length(GLOB.world_edit_helpers.build_preview_images_from_specs(candidate.preview_model.generator_preview_object_specs)), length(plan.placements), "World Edit outpost preview-spec test should resolve each object-preview spec into a preview image.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/blueprint_stamp_plan_preview_specs_follow_runtime_placements/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/blueprint_stamp/definition = new
+	var/datum/world_edit_generator/blueprint_stamp/generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit blueprint preview-spec test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_dir = NORTH
+	manager.placement_anchor_turf = center_turf
+	manager.refresh_blueprint_cache()
+
+	var/list/params = definition.default_params?.Copy() || list()
+	params["blueprint_id"] = "checkpoint_gate"
+	manager.current_params = params.Copy()
+
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit blueprint preview-spec test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit blueprint preview-spec test should build a valid blueprint plan.")
+	TEST_ASSERT(length(plan.placements) > 0, "World Edit blueprint preview-spec test should expose runtime placements.")
+	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit blueprint preview-spec test should synthesize placement-preview layers from the plan.")
+
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate?.preview_model, /datum/world_edit_preview_model), "World Edit blueprint preview-spec test should keep a preview model on the synthesized candidate.")
+	TEST_ASSERT_EQUAL(length(candidate.preview_model.generator_preview_object_specs), length(plan.placements), "World Edit blueprint preview-spec test should expose one object-preview spec per blueprint placement.")
+	TEST_ASSERT_EQUAL(length(GLOB.world_edit_helpers.build_preview_images_from_specs(candidate.preview_model.generator_preview_object_specs)), length(plan.placements), "World Edit blueprint preview-spec test should resolve each blueprint object-preview spec into a preview image.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/blueprint_library_curated_tactical_pack_entries_are_valid/Run()
 	var/list/summaries = GLOB.world_edit_blueprints.world_edit_load_blueprint_library_summaries()
 	var/list/summary_lookup = list()
@@ -3751,14 +3854,119 @@
 		var/list/summary = summary_lookup["[blueprint_id]"]
 		TEST_ASSERT(islist(summary), "World Edit curated tactical-pack test should expose blueprint '[blueprint_id]' in the server-side library summary list.")
 		TEST_ASSERT(summary["valid"], "World Edit curated tactical-pack test should keep blueprint '[blueprint_id]' valid in the server-side library.")
+		TEST_ASSERT((summary["footprint_width"] || 0) > 0, "World Edit curated tactical-pack test should expose a positive footprint width for blueprint '[blueprint_id]'.")
+		TEST_ASSERT((summary["footprint_height"] || 0) > 0, "World Edit curated tactical-pack test should expose a positive footprint height for blueprint '[blueprint_id]'.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_library_curated_pack_corner_slots_use_multi_dir_border_semantics/Run()
+	var/list/summaries = GLOB.world_edit_blueprints.world_edit_load_blueprint_library_summaries()
+	var/list/file_path_lookup = list()
+	for(var/list/summary as anything in summaries)
+		if(!islist(summary) || !summary["valid"] || !length("[summary["id"]]"))
+			continue
+		file_path_lookup["[summary["id"]]"] = "[summary["file_path"]]"
+
+	var/list/expectations = list(
+		"checkpoint_gate" = list(
+			"-2,1,8",
+			"2,1,4",
+		),
+		"killbox_alpha" = list(
+			"-3,2,8",
+			"3,2,4",
+			"-3,-2,8",
+			"3,-2,4",
+		),
+		"funnel_nest" = list(
+			"-2,2,8",
+			"2,2,4",
+			"-1,-1,8",
+			"1,-1,4",
+		),
+		"fallback_pocket" = list(
+			"-2,2,8",
+			"1,2,4",
+			"-2,-1,8",
+		),
+		"wire_gate" = list(
+			"-2,1,8",
+			"2,1,4",
+		),
+		"vehicle_stop" = list(
+			"-3,1,8",
+			"3,1,4",
+		),
+		"crossfire_corner" = list(
+			"-2,0,1",
+			"-2,-2,8",
+			"0,-2,4",
+		),
+		"arc_hold" = list(
+			"-2,2,8",
+			"2,2,4",
+		),
+		"courtyard_compound" = list(
+			"-2,2,8",
+			"2,2,4",
+			"-2,-2,8",
+			"2,-2,4",
+		),
+		"ammo_cache" = list(
+			"-1,1,8",
+			"1,1,4",
+		),
+		"generator_shelter" = list(
+			"-2,2,8",
+			"2,2,4",
+			"-2,-2,8",
+			"2,-2,4",
+		),
+		"comms_post" = list(
+			"-1,1,8",
+			"1,1,4",
+		),
+		"inner_bastion" = list(
+			"-1,1,8",
+			"1,1,4",
+			"-1,-1,8",
+			"1,-1,4",
+		),
+		"broken_outpost" = list(
+			"-2,2,8",
+			"2,2,4",
+		),
+		"encampment_light" = list(
+			"-2,1,8",
+			"2,1,4",
+		),
+		"turret_pad" = list(
+			"-1,1,8",
+			"1,1,4",
+		),
+		"split_entry_checkpoint" = list(
+			"-3,1,8",
+			"3,1,4",
+		),
+	)
+
+	for(var/blueprint_id as anything in expectations)
+		var/file_path = file_path_lookup["[blueprint_id]"]
+		TEST_ASSERT(length(file_path), "World Edit blueprint corner-slot test should resolve a library file path for curated blueprint '[blueprint_id]'.")
+		var/list/load_result = GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(file_path)
+		TEST_ASSERT(!load_result["error"], "World Edit blueprint corner-slot test should load curated blueprint '[blueprint_id]' from disk.")
+		var/list/blueprint = load_result["blueprint"]
+		var/list/slot_lookup = build_blueprint_relative_slot_lookup(blueprint["entries"])
+		for(var/slot_key as anything in expectations[blueprint_id])
+			TEST_ASSERT(slot_lookup[slot_key], "World Edit blueprint corner-slot test should keep the expected multi-dir border slot '[slot_key]' in curated blueprint '[blueprint_id]'.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_support_props_follow_whitelist_and_slot_rules/Run()
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit support-prop blueprint test center turf was not resolved.")
+	var/blueprint_schema = "world_edit_blueprint_lite"
+	var/blueprint_version = 1
 
 	var/list/valid_blueprint = list(
-		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
-		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"schema" = blueprint_schema,
+		"version" = blueprint_version,
 		"id" = "support_prop_ok",
 		"name" = "Support Prop OK",
 		"created_at" = "",
@@ -3786,8 +3994,8 @@
 	TEST_ASSERT(!valid_result["error"], "World Edit support-prop blueprint test should accept whitelisted support props in Blueprint Lite definitions.")
 
 	var/list/invalid_blueprint = list(
-		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
-		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"schema" = blueprint_schema,
+		"version" = blueprint_version,
 		"id" = "support_prop_bad",
 		"name" = "Support Prop Bad",
 		"created_at" = "",

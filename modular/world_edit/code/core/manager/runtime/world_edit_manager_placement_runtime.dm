@@ -173,6 +173,7 @@
 	if(!istype(preview_model))
 		return null
 
+	var/object_preview_signature = GLOB.world_edit_helpers.build_preview_spec_signature(preview_model.generator_preview_object_specs)
 	return jointext(list(
 		build_placement_preview_layer_render_token(preview_model.anchor_turfs, "blueOverlay", "#78C8FF", 255),
 		build_placement_preview_layer_render_token(preview_model.vertex_turfs, "blueOverlay", "#B8F3FF", 210),
@@ -181,6 +182,7 @@
 		build_placement_preview_layer_render_token(preview_model.final_turfs, "greenOverlay", "#8BFFB5", 120),
 		build_placement_preview_layer_render_token(preview_model.guide_turfs, "blueOverlay", "#D7B8FF", 150),
 		build_placement_preview_layer_render_token(preview_model.generator_effect_turfs, "redOverlay", "#FF6B6B", 110),
+		object_preview_signature,
 	), "||")
 
 /datum/world_edit_manager/proc/build_placement_candidate(datum/world_edit_shape_contract/shape_contract, list/placement_context, datum/world_edit_plan/plan = null, list/runtime_params = null, hover_only = FALSE, list/collector_state_summary = null)
@@ -200,6 +202,7 @@
 	if(istype(candidate.preview_model))
 		if(istype(plan))
 			candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
+			candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, candidate.runtime_params, candidate.placement_context, hover_only)
 		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
 		candidate.preview_model.preview_render_token = candidate.preview_render_token
 	return candidate
@@ -236,7 +239,21 @@
 
 /datum/world_edit_manager/proc/render_safe_placement_preview(datum/world_edit_placement_candidate/candidate)
 	store_placement_preview_candidate(candidate)
-	GLOB.world_edit_helpers.apply_grouped_turf_preview(src, get_placement_preview_groups(), placement_preview_render_token)
+	if(!holder)
+		return
+	var/render_token = length("[placement_preview_render_token]") ? "[placement_preview_render_token]" : null
+	if(preview_groups_signature == render_token && length("[render_token]"))
+		return
+
+	clear_preview_images()
+	var/list/images = GLOB.world_edit_helpers.build_grouped_turf_preview_images(get_placement_preview_groups())
+	var/list/object_specs = candidate?.preview_model?.generator_preview_object_specs
+	if(islist(object_specs) && length(object_specs))
+		images += GLOB.world_edit_helpers.build_preview_images_from_specs(object_specs)
+	if(length(images))
+		holder.images += images
+		preview_images = images.Copy()
+	preview_groups_signature = render_token || GLOB.world_edit_helpers.build_grouped_turf_preview_signature(get_placement_preview_groups())
 
 /datum/world_edit_manager/proc/render_plan_preview_with_placement_layers(mob/user, datum/world_edit_plan/plan, list/effective_params = null)
 	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate_from_plan(plan, effective_params, user)
@@ -308,6 +325,9 @@
 		return candidate
 	if(istype(candidate.preview_model))
 		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
+		candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, effective_params, candidate.placement_context, hover_only)
+		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
+		candidate.preview_model.preview_render_token = candidate.preview_render_token
 	return candidate
 
 /datum/world_edit_manager/proc/resolve_placement_candidate(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)

@@ -111,6 +111,22 @@
       "dz": 0,
       "dir": 4,
       "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/wired",
+      "dx": -3,
+      "dy": 1,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/wired",
+      "dx": 3,
+      "dy": 1,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
     }
   ]
 }

@@ -79,6 +79,14 @@
       "dz": 0,
       "dir": 1,
       "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/wooden",
+      "dx": -1,
+      "dy": 0,
+      "dz": 0,
+      "dir": 1,
+      "vars": {}
     }
   ]
 }

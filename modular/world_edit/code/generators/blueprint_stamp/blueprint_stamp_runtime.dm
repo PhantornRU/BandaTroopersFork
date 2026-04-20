@@ -1,3 +1,26 @@
+/datum/world_edit_generator/blueprint_stamp/proc/build_blueprint_preview_spec_from_placement(list/placement)
+	if(!islist(placement))
+		return null
+
+	var/turf/target_turf = placement["turf"]
+	var/obj_path = placement["obj_path"]
+	if(!istype(target_turf) || !ispath(obj_path, /obj))
+		return null
+
+	var/list/entry_vars = islist(placement["vars"]) ? placement["vars"] : list()
+	return GLOB.world_edit_helpers.build_world_edit_atom_preview_spec(obj_path, target_turf, placement["dir"], entry_vars)
+
+/datum/world_edit_generator/blueprint_stamp/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	var/list/specs = list()
+	if(!istype(plan))
+		return specs
+
+	for(var/list/placement as anything in plan.placements)
+		var/list/spec = build_blueprint_preview_spec_from_placement(placement)
+		if(islist(spec))
+			specs += list(spec)
+	return specs
+
 /datum/world_edit_generator/blueprint_stamp/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new
 	clear_built_plan()
@@ -16,6 +39,7 @@
 	current_plan = plan
 	result.success = TRUE
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
+	result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
 	result.message = "Blueprint preview ready: anchors=[plan.metadata["anchor_count"]], entries=[plan.metadata["entry_count"]], skipped=[plan.metadata["skipped_entry_count"] || 0], dir=[plan.metadata["placement_dir_label"]]."
 	return result

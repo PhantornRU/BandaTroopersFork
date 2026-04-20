@@ -340,6 +340,259 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 	return images
 
+/datum/world_edit_helpers/proc/build_preview_overlay_image(list/spec)
+	if(!islist(spec))
+		return null
+
+	var/icon_file = spec["icon"]
+	if(isnull(icon_file))
+		return null
+
+	var/icon_state = length("[spec["icon_state"]]") ? "[spec["icon_state"]]" : null
+	var/dir_to_use = text2num("[spec["dir"]]")
+	if(!is_cardinal_dir(dir_to_use))
+		dir_to_use = SOUTH
+
+	var/image/overlay = image(icon_file, null, icon_state, null, dir_to_use)
+	if(!isnull(spec["color"]))
+		overlay.color = spec["color"]
+	if(!isnull(spec["alpha"]))
+		overlay.alpha = clamp(round(text2num("[spec["alpha"]]")), 0, 255)
+	if(!isnull(spec["pixel_x"]))
+		overlay.pixel_x = round(text2num("[spec["pixel_x"]]"))
+	if(!isnull(spec["pixel_y"]))
+		overlay.pixel_y = round(text2num("[spec["pixel_y"]]"))
+	return overlay
+
+/datum/world_edit_helpers/proc/build_preview_image_from_spec(list/spec)
+	if(!islist(spec))
+		return null
+
+	var/turf/target_turf = spec["turf"]
+	var/icon_file = spec["icon"]
+	if(!istype(target_turf) || isnull(icon_file))
+		return null
+
+	var/icon_state = length("[spec["icon_state"]]") ? "[spec["icon_state"]]" : null
+	var/dir_to_use = text2num("[spec["dir"]]")
+	if(!is_cardinal_dir(dir_to_use))
+		dir_to_use = SOUTH
+
+	var/layer = isnull(spec["layer"]) ? OBJ_LAYER : spec["layer"]
+	var/image/preview = image(icon_file, target_turf, icon_state, layer, dir_to_use)
+	if(!isnull(spec["plane"]))
+		preview.plane = spec["plane"]
+	if(!isnull(spec["color"]))
+		preview.color = spec["color"]
+	if(!isnull(spec["alpha"]))
+		preview.alpha = clamp(round(text2num("[spec["alpha"]]")), 0, 255)
+	if(!isnull(spec["pixel_x"]))
+		preview.pixel_x = round(text2num("[spec["pixel_x"]]"))
+	if(!isnull(spec["pixel_y"]))
+		preview.pixel_y = round(text2num("[spec["pixel_y"]]"))
+
+	var/list/overlay_specs = spec["overlays"]
+	if(islist(overlay_specs))
+		for(var/list/overlay_spec as anything in overlay_specs)
+			var/image/overlay = build_preview_overlay_image(overlay_spec)
+			if(istype(overlay))
+				preview.overlays += overlay
+
+	return preview
+
+/datum/world_edit_helpers/proc/build_preview_images_from_specs(list/specs)
+	var/list/images = list()
+	if(!islist(specs) || !length(specs))
+		return images
+
+	for(var/list/spec as anything in specs)
+		var/image/preview = build_preview_image_from_spec(spec)
+		if(istype(preview))
+			images += preview
+
+	return images
+
+/datum/world_edit_helpers/proc/build_preview_spec_signature_chunk(list/spec, include_turf = TRUE)
+	if(!islist(spec))
+		return ""
+
+	var/list/chunks = list()
+	if(include_turf)
+		var/turf/target_turf = spec["turf"]
+		chunks += turf_to_text(target_turf)
+	else
+		chunks += ""
+	chunks += isnull(spec["icon"]) ? "" : "[spec["icon"]]"
+	chunks += length("[spec["icon_state"]]") ? "[spec["icon_state"]]" : ""
+	chunks += isnull(spec["dir"]) ? "" : "[spec["dir"]]"
+	chunks += isnull(spec["layer"]) ? "" : "[spec["layer"]]"
+	chunks += isnull(spec["plane"]) ? "" : "[spec["plane"]]"
+	chunks += isnull(spec["pixel_x"]) ? "" : "[round(text2num("[spec["pixel_x"]]"))]"
+	chunks += isnull(spec["pixel_y"]) ? "" : "[round(text2num("[spec["pixel_y"]]"))]"
+	chunks += isnull(spec["alpha"]) ? "" : "[clamp(round(text2num("[spec["alpha"]]")), 0, 255)]"
+	chunks += isnull(spec["color"]) ? "" : "[spec["color"]]"
+
+	var/list/overlay_chunks = list()
+	var/list/overlay_specs = spec["overlays"]
+	if(islist(overlay_specs))
+		for(var/list/overlay_spec as anything in overlay_specs)
+			overlay_chunks += build_preview_spec_signature_chunk(overlay_spec, FALSE)
+	chunks += jointext(overlay_chunks, ";;")
+	return jointext(chunks, "|")
+
+/datum/world_edit_helpers/proc/build_preview_spec_signature(list/specs)
+	if(!islist(specs) || !length(specs))
+		return "<empty>"
+
+	var/list/signature_chunks = list()
+	for(var/list/spec as anything in specs)
+		signature_chunks += build_preview_spec_signature_chunk(spec)
+	return md5(jointext(signature_chunks, "||"))
+
+/datum/world_edit_helpers/proc/build_world_edit_preview_overlay_spec(icon_file, icon_state = null, dir_to_use = SOUTH, pixel_x = 0, pixel_y = 0, alpha = 230, color = null)
+	if(isnull(icon_file))
+		return null
+
+	return list(
+		"icon" = icon_file,
+		"icon_state" = icon_state,
+		"dir" = is_cardinal_dir(dir_to_use) ? dir_to_use : SOUTH,
+		"pixel_x" = round(text2num("[pixel_x]")),
+		"pixel_y" = round(text2num("[pixel_y]")),
+		"alpha" = isnull(alpha) ? null : clamp(round(text2num("[alpha]")), 0, 255),
+		"color" = color,
+	)
+
+/datum/world_edit_helpers/proc/build_world_edit_preview_object_spec(turf/target_turf, icon_file, icon_state = null, dir_to_use = SOUTH, layer = null, plane = null, pixel_x = 0, pixel_y = 0, alpha = 230, color = null, list/overlays = null)
+	if(!istype(target_turf) || isnull(icon_file))
+		return null
+
+	return list(
+		"turf" = target_turf,
+		"icon" = icon_file,
+		"icon_state" = icon_state,
+		"dir" = is_cardinal_dir(dir_to_use) ? dir_to_use : SOUTH,
+		"layer" = layer,
+		"plane" = plane,
+		"pixel_x" = round(text2num("[pixel_x]")),
+		"pixel_y" = round(text2num("[pixel_y]")),
+		"alpha" = isnull(alpha) ? null : clamp(round(text2num("[alpha]")), 0, 255),
+		"color" = color,
+		"overlays" = islist(overlays) ? overlays.Copy() : list(),
+	)
+
+/datum/world_edit_helpers/proc/get_world_edit_barricade_preview_layer(obj_path, dir_to_use)
+	if(!ispath(obj_path, /obj/structure/barricade))
+		return OBJ_LAYER
+
+	var/obj/structure/barricade/preview_barricade = obj_path
+	var/base_layer = initial(preview_barricade.layer)
+	var/resolved_layer = base_layer
+
+	switch(dir_to_use)
+		if(SOUTH)
+			resolved_layer = ABOVE_MOB_LAYER
+		if(NORTH)
+			resolved_layer = base_layer - 0.01
+		else
+			resolved_layer = base_layer
+
+	if((ispath(obj_path, /obj/structure/barricade/metal) || ispath(obj_path, /obj/structure/barricade/sandbags)) && dir_to_use > 2)
+		resolved_layer = OBJ_LAYER
+
+	return resolved_layer
+
+/datum/world_edit_helpers/proc/build_world_edit_barricade_preview_spec(obj_path, turf/target_turf, dir_to_use = SOUTH)
+	if(!ispath(obj_path, /obj/structure/barricade) || !istype(target_turf))
+		return null
+
+	var/obj/structure/barricade/preview_barricade = obj_path
+	var/icon_file = initial(preview_barricade.icon)
+	var/icon_state = initial(preview_barricade.icon_state)
+	var/pixel_y = 0
+	var/list/overlay_specs = list()
+	var/is_wired = ispath(obj_path, /obj/structure/barricade/metal/wired) || ispath(obj_path, /obj/structure/barricade/metal/plasteel/wired) || ispath(obj_path, /obj/structure/barricade/sandbags/wired)
+	if(ispath(obj_path, /obj/structure/barricade/sandbags/full))
+		icon_state = "sandbag5"
+		if(dir_to_use == NORTH)
+			pixel_y = 7
+		else if(dir_to_use == SOUTH)
+			pixel_y = -7
+	if(is_wired)
+		var/barricade_type = "[initial(preview_barricade.barricade_type)]"
+		if(length(barricade_type))
+			overlay_specs += list(build_world_edit_preview_overlay_spec(icon_file, "[barricade_type]_wire", dir_to_use, 0, pixel_y))
+
+	return build_world_edit_preview_object_spec(
+		target_turf,
+		icon_file,
+		icon_state,
+		dir_to_use,
+		get_world_edit_barricade_preview_layer(obj_path, dir_to_use),
+		initial(preview_barricade.plane),
+		0,
+		pixel_y,
+		230,
+		null,
+		overlay_specs,
+	)
+
+/datum/world_edit_helpers/proc/build_world_edit_sentry_preview_spec(obj_path, turf/target_turf, dir_to_use = SOUTH, turned_on = TRUE)
+	if(!ispath(obj_path, /obj/structure/machinery/defenses/sentry) || !istype(target_turf))
+		return null
+
+	var/obj/structure/machinery/defenses/sentry/preview_sentry = obj_path
+	var/icon_file = initial(preview_sentry.icon)
+	var/icon_state = initial(preview_sentry.icon_state)
+	var/defense_type = "[initial(preview_sentry.defense_type)]"
+	var/sentry_type = "[initial(preview_sentry.sentry_type)]"
+	var/list/overlay_specs = list()
+	if(length(defense_type) && length(sentry_type))
+		var/overlay_state = turned_on ? "[defense_type] [sentry_type]_on" : "[defense_type] [sentry_type]"
+		overlay_specs += list(build_world_edit_preview_overlay_spec(icon_file, overlay_state, dir_to_use))
+
+	return build_world_edit_preview_object_spec(
+		target_turf,
+		icon_file,
+		length("[icon_state]") ? "[icon_state]" : null,
+		dir_to_use,
+		initial(preview_sentry.layer),
+		initial(preview_sentry.plane),
+		0,
+		0,
+		230,
+		null,
+		overlay_specs,
+	)
+
+/datum/world_edit_helpers/proc/build_world_edit_atom_preview_spec(obj_path, turf/target_turf, dir_to_use = SOUTH, list/entry_vars = null)
+	if(!ispath(obj_path, /obj) || !istype(target_turf))
+		return null
+
+	if(ispath(obj_path, /obj/structure/barricade))
+		return build_world_edit_barricade_preview_spec(obj_path, target_turf, dir_to_use)
+	if(ispath(obj_path, /obj/structure/machinery/defenses/sentry))
+		return build_world_edit_sentry_preview_spec(obj_path, target_turf, dir_to_use, parse_bool(islist(entry_vars) ? entry_vars["turned_on"] : null))
+
+	var/atom/spawn_atom = obj_path
+	var/icon_file = initial(spawn_atom.icon)
+	if(isnull(icon_file))
+		return null
+
+	return build_world_edit_preview_object_spec(
+		target_turf,
+		icon_file,
+		length("[initial(spawn_atom.icon_state)]") ? "[initial(spawn_atom.icon_state)]" : null,
+		is_cardinal_dir(dir_to_use) ? dir_to_use : initial(spawn_atom.dir),
+		initial(spawn_atom.layer),
+		initial(spawn_atom.plane),
+		initial(spawn_atom.pixel_x),
+		initial(spawn_atom.pixel_y),
+		230,
+		null,
+		null,
+	)
+
 /datum/world_edit_helpers/proc/build_grouped_turf_preview_signature(list/groups)
 	if(!islist(groups) || !length(groups))
 		return md5("<empty>")

@@ -71,6 +71,30 @@
       "dz": 0,
       "dir": 1,
       "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel",
+      "dx": -2,
+      "dy": 0,
+      "dz": 0,
+      "dir": 1,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -2,
+      "dy": -2,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal",
+      "dx": 0,
+      "dy": -2,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
     }
   ]
 }

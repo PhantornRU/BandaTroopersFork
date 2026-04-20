@@ -1,4 +1,3 @@
-import { getPositiveCountText, isBlankDisplayValue } from './helpers';
 import type { BackendData, BlueprintEntry } from './types';
 
 type BlueprintFilterMode = 'all' | 'valid' | 'invalid' | 'active';
@@ -7,15 +6,28 @@ type BlueprintSortMode = 'activity' | 'name' | 'newest' | 'size';
 const compareBlueprintNames = (left: BlueprintEntry, right: BlueprintEntry) =>
   `${left.name || ''}`.localeCompare(`${right.name || ''}`);
 
-const getBlueprintLibraryMetaText = (blueprint: BlueprintEntry) => {
-  const parts = [
-    `${getPositiveCountText(blueprint.entry_count, '0')} объектов`,
-    `r${getPositiveCountText(blueprint.radius, '0')}`,
-  ];
-  if (!isBlankDisplayValue(blueprint.source)) {
-    parts.push(`${blueprint.source}`);
+const getBlueprintFootprintText = (blueprint: BlueprintEntry) => {
+  const width = Math.max(Number(blueprint.footprint_width) || 0, 0);
+  const height = Math.max(Number(blueprint.footprint_height) || 0, 0);
+  if (width > 0 && height > 0) {
+    return `${width}x${height}`;
   }
-  return parts.join(' · ');
+
+  const fallbackSpan = Math.max((Number(blueprint.radius) || 0) * 2 + 1, 0);
+  if (fallbackSpan > 0) {
+    return `${fallbackSpan}x${fallbackSpan}`;
+  }
+
+  return '0x0';
+};
+
+const getBlueprintFootprintArea = (blueprint: BlueprintEntry) => {
+  const width = Number(blueprint.footprint_width) || 0;
+  const height = Number(blueprint.footprint_height) || 0;
+  if (width > 0 && height > 0) {
+    return width * height;
+  }
+  return Number(blueprint.entry_count) || 0;
 };
 
 const getBlueprintActionState = (
@@ -65,9 +77,11 @@ const filterAndSortBlueprintEntries = (
       );
     }
     if (sortMode === 'size') {
-      const entryDiff = (right.entry_count || 0) - (left.entry_count || 0);
-      if (entryDiff !== 0) {
-        return entryDiff;
+      const leftArea = getBlueprintFootprintArea(left);
+      const rightArea = getBlueprintFootprintArea(right);
+      const areaDiff = rightArea - leftArea;
+      if (areaDiff !== 0) {
+        return areaDiff;
       }
       return compareBlueprintNames(left, right);
     }
@@ -87,6 +101,6 @@ const filterAndSortBlueprintEntries = (
 export {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
-  getBlueprintLibraryMetaText,
+  getBlueprintFootprintText,
 };
 export type { BlueprintFilterMode, BlueprintSortMode };

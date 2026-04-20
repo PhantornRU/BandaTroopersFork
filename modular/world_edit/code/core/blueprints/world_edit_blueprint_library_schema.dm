@@ -202,11 +202,15 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_summary(list/blueprint, file_path = null, valid = TRUE, error_text = "")
 	var/list/bounds = blueprint["bounds"] || list()
+	var/footprint_width = (bounds["max_x"] - bounds["min_x"]) + 1
+	var/footprint_height = (bounds["max_y"] - bounds["min_y"]) + 1
 	var/list/summary = list(
 		"id" = blueprint["id"],
 		"name" = blueprint["name"],
 		"entry_count" = length(blueprint["entries"]),
 		"radius" = bounds["radius"] || 0,
+		"footprint_width" = max(footprint_width, 0),
+		"footprint_height" = max(footprint_height, 0),
 		"created_at" = blueprint["created_at"] || "",
 		"created_by" = blueprint["created_by"] || "",
 		"source" = blueprint["source"] || "",

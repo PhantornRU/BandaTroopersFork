@@ -87,6 +87,38 @@
       "dz": 0,
       "dir": 2,
       "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/wired",
+      "dx": -2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/wired",
+      "dx": 2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/sandbags/full",
+      "dx": -1,
+      "dy": -1,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/sandbags/full",
+      "dx": 1,
+      "dy": -1,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
     }
   ]
 }

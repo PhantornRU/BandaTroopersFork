@@ -8,7 +8,7 @@ import type { BlueprintFilterMode, BlueprintSortMode } from './viewModel';
 import {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
-  getBlueprintLibraryMetaText,
+  getBlueprintFootprintText,
 } from './viewModel';
 
 const FILTER_OPTIONS = [
@@ -156,7 +156,7 @@ const BlueprintStampWorkspace = (props: {
                   cursor: actionState.canLoad ? 'pointer' : 'default',
                 }}
               >
-                <Flex align="center" wrap>
+                <Flex align="center">
                   <Flex.Item grow basis="14rem" style={{ minWidth: '0' }}>
                     <Box
                       bold
@@ -170,41 +170,18 @@ const BlueprintStampWorkspace = (props: {
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
                   </Flex.Item>
-                  {actionState.isActive && (
-                    <Flex.Item style={{ flex: '0 0 auto' }}>
-                      <Box
-                        color="good"
-                        px={0.35}
-                        py={0.12}
-                        style={{
-                          border: '1px solid rgba(76, 159, 57, 0.45)',
-                          background: 'rgba(76, 159, 57, 0.14)',
-                          borderRadius: '999px',
-                          fontSize: '0.82rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Активен
-                      </Box>
-                    </Flex.Item>
-                  )}
-                  {blueprint.valid && (
-                    <Flex.Item basis="100%" style={{ minWidth: '0' }}>
-                      <Box
-                        color="label"
-                        mt={0.2}
-                        style={{ fontSize: '0.92rem' }}
-                      >
-                        {getBlueprintLibraryMetaText(blueprint)}
-                      </Box>
-                    </Flex.Item>
-                  )}
+                  <Flex.Item style={{ flex: '0 0 auto' }}>
+                    <Box
+                      color={blueprint.valid ? 'label' : 'bad'}
+                      style={{
+                        fontSize: '0.92rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {getBlueprintFootprintText(blueprint)}
+                    </Box>
+                  </Flex.Item>
                 </Flex>
-                {!blueprint.valid && (
-                  <Box color="bad" mt={0.2}>
-                    {blueprint.error || 'Шаблон недоступен.'}
-                  </Box>
-                )}
               </Box>
             );
           })}

@@ -95,6 +95,22 @@
       "dz": 0,
       "dir": 1,
       "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/metal/plasteel/wired",
+      "dx": -2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 8,
+      "vars": {}
+    },
+    {
+      "type": "/obj/structure/barricade/wooden",
+      "dx": 2,
+      "dy": 2,
+      "dz": 0,
+      "dir": 4,
+      "vars": {}
     }
   ]
 }

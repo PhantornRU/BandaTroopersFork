@@ -39,6 +39,7 @@
 	var/list/final_turfs = list()
 	var/list/guide_turfs = list()
 	var/list/generator_effect_turfs = list()
+	var/list/generator_preview_object_specs = list()
 	var/preview_render_token = null
 
 /datum/world_edit_preview_model/proc/as_preview_layers()
@@ -50,6 +51,7 @@
 		"final_turfs" = islist(final_turfs) ? final_turfs.Copy() : list(),
 		"guide_turfs" = islist(guide_turfs) ? guide_turfs.Copy() : list(),
 		"generator_effect_turfs" = islist(generator_effect_turfs) ? generator_effect_turfs.Copy() : list(),
+		"generator_preview_object_specs" = islist(generator_preview_object_specs) ? generator_preview_object_specs.Copy() : list(),
 		"preview_render_token" = preview_render_token,
 	)
 

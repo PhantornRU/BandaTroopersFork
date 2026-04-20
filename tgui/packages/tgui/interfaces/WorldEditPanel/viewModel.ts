@@ -5,7 +5,7 @@ export type {
 export {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
-  getBlueprintLibraryMetaText,
+  getBlueprintFootprintText,
 } from './viewModelBlueprint';
 export type {
   EditorChromeViewModel,

@@ -105,6 +105,11 @@
 /datum/world_edit_generator/proc/get_runtime_status()
 	return list()
 
+/// Возвращает опциональные object-preview specs для runtime/placement preview.
+/// По умолчанию генератор не добавляет свои объектные слои.
+/datum/world_edit_generator/proc/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	return list()
+
 /datum/world_edit_generator/proc/get_supported_placement_modes()
 	return list()
 

@@ -62,6 +62,8 @@
 				"name" = "[file_name]",
 				"entry_count" = 0,
 				"radius" = 0,
+				"footprint_width" = 0,
+				"footprint_height" = 0,
 				"created_at" = "",
 				"created_by" = "",
 				"source" = "file",

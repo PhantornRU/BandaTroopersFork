@@ -33,6 +33,7 @@ const OutpostRadiusWorkspace = (props: {
     'Barricades',
   ]);
   const layoutFields = getFieldsByGroupAliases(data.ui_fields, [
+    'Схема',
     'Компоновка',
     'Layout',
   ]).filter(
