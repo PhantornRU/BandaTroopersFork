@@ -223,6 +223,103 @@
 			return EXPLOSION_THRESHOLD_LOW
 	return 0
 
+/datum/world_edit_generator/destruction_pack/proc/get_structural_damage_power(atom/target_atom, severity)
+	if(!target_atom || severity <= 0)
+		return 0
+
+	if(istype(target_atom, /turf/closed/wall))
+		var/damage = severity * EXPLOSION_DAMAGE_MULTIPLIER_WALL
+		if(istype(target_atom, /turf/closed/wall/resin))
+			damage *= RESIN_EXPLOSIVE_MULTIPLIER
+		return damage
+
+	if(istype(target_atom, /obj/structure/window))
+		return severity * EXPLOSION_DAMAGE_MULTIPLIER_WINDOW
+
+	if(istype(target_atom, /obj/structure/machinery/door/airlock) || istype(target_atom, /obj/structure/airlock_assembly) || istype(target_atom, /obj/structure/mineral_door))
+		var/damage = severity * EXPLOSION_DAMAGE_MULTIPLIER_DOOR
+		if(!target_atom.density)
+			damage *= EXPLOSION_DAMAGE_MODIFIER_DOOR_OPEN
+		return damage
+
+	return severity
+
+/datum/world_edit_generator/destruction_pack/proc/apply_nonterminal_progress_damage(atom/target_atom, damage_amount, mob/source_mob = null)
+	if(!target_atom || QDELETED(target_atom) || damage_amount <= 0)
+		return FALSE
+
+	var/current_damage = text2num("[target_atom.vars["damage"]]")
+	var/damage_cap = text2num("[target_atom.vars["damage_cap"]]")
+	if(!isnum(current_damage) || !isnum(damage_cap) || damage_cap <= 1)
+		return FALSE
+
+	var/remaining_budget = max(damage_cap - current_damage - 1, 0)
+	if(remaining_budget <= 0)
+		return TRUE
+
+	var/applied_damage = min(damage_amount, remaining_budget)
+	if(applied_damage <= 0)
+		return TRUE
+
+	if(hascall(target_atom, "take_damage"))
+		call(target_atom, "take_damage")(applied_damage, source_mob)
+	else
+		target_atom.vars["damage"] = current_damage + applied_damage
+
+	return TRUE
+
+/datum/world_edit_generator/destruction_pack/proc/apply_nonterminal_health_damage(atom/target_atom, damage_amount)
+	if(!target_atom || QDELETED(target_atom) || damage_amount <= 0)
+		return FALSE
+
+	var/current_health = text2num("[target_atom.vars["health"]]")
+	if(!isnum(current_health) || current_health <= 1)
+		return FALSE
+
+	var/applied_damage = min(damage_amount, current_health - 1)
+	if(applied_damage <= 0)
+		return TRUE
+
+	target_atom.vars["health"] = current_health - applied_damage
+	if(hascall(target_atom, "healthcheck"))
+		call(target_atom, "healthcheck")()
+
+	return TRUE
+
+/datum/world_edit_generator/destruction_pack/proc/apply_ruin_damage_to_turf(turf/target_turf, severity, datum/cause_data/cause_data)
+	if(!istype(target_turf) || severity <= 0)
+		return FALSE
+
+	var/mob/source_mob = cause_data?.resolve_mob()
+	if(istype(target_turf, /turf/closed/wall))
+		var/damage_amount = get_structural_damage_power(target_turf, severity)
+		return apply_nonterminal_progress_damage(target_turf, damage_amount, source_mob)
+
+	if(istype(target_turf, /turf/open/floor))
+		var/turf/open/floor/floor_turf = target_turf
+		floor_turf.break_tile()
+		return TRUE
+
+	return FALSE
+
+/datum/world_edit_generator/destruction_pack/proc/apply_ruin_damage_to_atom(atom/target_atom, severity, datum/cause_data/cause_data)
+	if(!target_atom || QDELETED(target_atom) || ismob(target_atom) || severity <= 0)
+		return FALSE
+	if(istype(target_atom, /obj/effect/world_edit_persistent_fire))
+		return FALSE
+
+	var/mob/source_mob = cause_data?.resolve_mob()
+	var/damage_amount = get_structural_damage_power(target_atom, severity)
+	if(damage_amount <= 0)
+		return FALSE
+
+	if(apply_nonterminal_progress_damage(target_atom, damage_amount, source_mob))
+		return TRUE
+	if(apply_nonterminal_health_damage(target_atom, damage_amount))
+		return TRUE
+
+	return FALSE
+
 /datum/world_edit_generator/destruction_pack/proc/can_place_persistent_fire_on_turf(turf/target_turf)
 	if(!istype(target_turf) || target_turf.density)
 		return FALSE
@@ -358,17 +455,25 @@
 
 	return blast_entries
 
-/datum/world_edit_generator/destruction_pack/proc/apply_structural_damage_profile(list/area_turfs, severity, datum/cause_data/cause_data)
+/datum/world_edit_generator/destruction_pack/proc/apply_structural_damage_profile(list/area_turfs, severity, datum/cause_data/cause_data, damage_profile = "collapse")
 	var/damaged_turf_count = 0
 	if(!islist(area_turfs) || !length(area_turfs) || severity <= 0)
 		return damaged_turf_count
+
+	var/resolved_profile = resolve_damage_profile(damage_profile)
+	var/preserve_targets = resolved_profile == "ruin"
 
 	for(var/turf/target_turf as anything in area_turfs)
 		if(!istype(target_turf))
 			continue
 
-		target_turf.ex_act(severity, null, cause_data)
-		damaged_turf_count++
+		var/applied_turf_damage = FALSE
+		var/applied_atom_damage = FALSE
+		if(preserve_targets)
+			applied_turf_damage = apply_ruin_damage_to_turf(target_turf, severity, cause_data)
+		else
+			target_turf.ex_act(severity, null, cause_data)
+			applied_turf_damage = TRUE
 
 		for(var/atom/target_atom as anything in target_turf)
 			if(QDELETED(target_atom))
@@ -377,7 +482,14 @@
 				continue
 			if(istype(target_atom, /obj/effect/world_edit_persistent_fire))
 				continue
+			if(preserve_targets)
+				applied_atom_damage = apply_ruin_damage_to_atom(target_atom, severity, cause_data) || applied_atom_damage
+				continue
 			target_atom.ex_act(severity, null, cause_data)
+			applied_atom_damage = TRUE
+
+		if(applied_turf_damage || applied_atom_damage)
+			damaged_turf_count++
 
 	return damaged_turf_count
 
@@ -389,50 +501,18 @@
 	var/resolved_fire_color = sanitize_hexcolor(fire_color, get_persistent_fire_preset_color(get_default_persistent_fire_color_id()))
 	var/resolved_fire_mode = resolve_persistent_fire_mode(fire_mode) || get_default_persistent_fire_mode()
 
-	var/density_ratio = density / 100
-	var/target_count = round(length(influence_turfs) * density_ratio)
-	target_count = clamp(target_count, 0, get_persistent_fire_cap())
-	if(target_count <= 0)
-		return fire_entries
-
 	var/list/pool = list()
 	for(var/turf/target_turf as anything in influence_turfs)
 		if(can_place_persistent_fire_on_turf(target_turf))
 			pool += target_turf
+	if(!length(pool))
+		return fire_entries
 
-	if(target_count > 1)
-		var/list/core_pool = list()
-		var/list/outer_pool = list()
-		for(var/turf/candidate_turf as anything in pool)
-			var/list/influence_info = islist(influence_lookup) ? influence_lookup[candidate_turf] : null
-			var/band = islist(influence_info) ? "[influence_info["band"]]" : ""
-			if(band == "core")
-				core_pool += candidate_turf
-			else if(band == "outer")
-				outer_pool += candidate_turf
-
-		var/turf/core_turf = pick_weighted_turf(core_pool, influence_lookup, plan_seed, 700)
-		if(istype(core_turf))
-			pool -= core_turf
-			fire_entries += list(list(
-				"kind" = "fire",
-				"turf" = core_turf,
-				"fire_color" = resolved_fire_color,
-				"fire_mode" = resolved_fire_mode,
-			))
-			target_count--
-
-		if(target_count > 0)
-			var/turf/outer_turf = pick_weighted_turf(outer_pool, influence_lookup, plan_seed, 900)
-			if(istype(outer_turf) && outer_turf in pool)
-				pool -= outer_turf
-				fire_entries += list(list(
-					"kind" = "fire",
-					"turf" = outer_turf,
-					"fire_color" = resolved_fire_color,
-					"fire_mode" = resolved_fire_mode,
-				))
-				target_count--
+	var/density_ratio = density / 100
+	var/target_count = round(length(pool) * density_ratio)
+	target_count = clamp(target_count, 0, get_persistent_fire_cap())
+	if(target_count <= 0)
+		return fire_entries
 
 	while(target_count > 0 && length(pool))
 		var/turf/selected_turf = pick_weighted_turf(pool, influence_lookup, plan_seed, 1000 + length(fire_entries))

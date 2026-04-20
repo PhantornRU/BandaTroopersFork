@@ -119,10 +119,11 @@
 		if(deletion["kind"] == "damage")
 			var/list/damage_area_turfs = deletion["area_turfs"]
 			var/severity = text2num("[deletion["severity"]]") || 0
+			var/damage_profile = resolve_damage_profile(deletion["damage_profile"]) || "collapse"
 			if(!islist(damage_area_turfs) || !length(damage_area_turfs) || severity <= 0)
 				skipped_runtime++
 				continue
-			damage_count += apply_structural_damage_profile(damage_area_turfs, severity, cause_data)
+			damage_count += apply_structural_damage_profile(damage_area_turfs, severity, cause_data, damage_profile)
 			continue
 
 		skipped_runtime++

@@ -3532,6 +3532,33 @@
 	TEST_ASSERT(collapse_bands["mid"], "World Edit destruction collapse profile should keep the full mid band damage entry.")
 	TEST_ASSERT(collapse_bands["outer"], "World Edit destruction collapse profile should also reach the outer band.")
 
+/datum/unit_test/world_edit_corner_slots/destruction_ruin_keeps_objects_but_collapse_breaks_them/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction ruin-vs-collapse runtime test center turf was not resolved.")
+
+	var/turf/ruin_turf = get_step(center_turf, EAST)
+	var/turf/collapse_turf = get_step(center_turf, WEST)
+	TEST_ASSERT(istype(ruin_turf), "World Edit destruction ruin-vs-collapse runtime test should resolve a turf for ruin damage.")
+	TEST_ASSERT(istype(collapse_turf), "World Edit destruction ruin-vs-collapse runtime test should resolve a turf for collapse damage.")
+
+	var/obj/structure/ruin_target = allocate(/obj/structure, ruin_turf)
+	var/obj/structure/collapse_target = allocate(/obj/structure, collapse_turf)
+	TEST_ASSERT_NOTNULL(ruin_target, "World Edit destruction ruin-vs-collapse runtime test should spawn a ruin target.")
+	TEST_ASSERT_NOTNULL(collapse_target, "World Edit destruction ruin-vs-collapse runtime test should spawn a collapse target.")
+	ruin_target.health = 1
+	collapse_target.health = 1
+
+	var/ruin_count = generator.apply_structural_damage_profile(list(ruin_turf), EXPLOSION_THRESHOLD_VLOW, null, "ruin")
+	var/collapse_count = generator.apply_structural_damage_profile(list(collapse_turf), EXPLOSION_THRESHOLD_LOW, null, "collapse")
+
+	TEST_ASSERT_EQUAL(ruin_count, 1, "World Edit destruction ruin-vs-collapse runtime test should still register ruin damage on the target turf.")
+	TEST_ASSERT(!QDELETED(ruin_target), "World Edit destruction ruin-vs-collapse runtime test should keep the ruin target alive.")
+	TEST_ASSERT_EQUAL(ruin_target.loc, ruin_turf, "World Edit destruction ruin-vs-collapse runtime test should keep the ruin target on its turf.")
+	TEST_ASSERT(ruin_target.health > 0, "World Edit destruction ruin-vs-collapse runtime test should leave the ruin target with non-zero health.")
+	TEST_ASSERT_EQUAL(collapse_count, 1, "World Edit destruction ruin-vs-collapse runtime test should register collapse damage on the target turf.")
+	TEST_ASSERT(QDELETED(collapse_target) || collapse_target.loc != collapse_turf, "World Edit destruction ruin-vs-collapse runtime test should destroy or remove the collapse target.")
+
 /datum/unit_test/world_edit_corner_slots/destruction_persistent_fire_reaches_outer_band/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
 	var/turf/center_turf = get_world_edit_test_center_turf()
@@ -3549,6 +3576,35 @@
 	TEST_ASSERT(length(fire_entries) > 0, "World Edit destruction persistent-fire reach test should produce fire placements at non-zero density.")
 	TEST_ASSERT(fire_bands["core"], "World Edit destruction persistent-fire reach test should still favor the core band.")
 	TEST_ASSERT(fire_bands["outer"], "World Edit destruction persistent-fire reach test should also place fire on the outer band.")
+
+/datum/unit_test/world_edit_corner_slots/destruction_persistent_fire_density_uses_placeable_pool/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction persistent-fire density test center turf was not resolved.")
+
+	var/turf/east_turf = get_step(center_turf, EAST)
+	var/turf/west_turf = get_step(center_turf, WEST)
+	var/turf/north_turf = get_step(center_turf, NORTH)
+	var/turf/south_turf = get_step(center_turf, SOUTH)
+	TEST_ASSERT(istype(east_turf) && istype(west_turf) && istype(north_turf) && istype(south_turf), "World Edit destruction persistent-fire density test should resolve four neighbor turfs.")
+
+	var/list/influence_turfs = list(center_turf, east_turf, west_turf, north_turf)
+	var/list/influence_lookup = list()
+	influence_lookup[center_turf] = list("normalized_weight" = 1, "band" = "core")
+	influence_lookup[east_turf] = list("normalized_weight" = 0.7, "band" = "mid")
+	influence_lookup[west_turf] = list("normalized_weight" = 0.5, "band" = "mid")
+	influence_lookup[north_turf] = list("normalized_weight" = 0.2, "band" = "outer")
+
+	var/obj/structure/blocked_structure = allocate(/obj/structure, east_turf)
+	var/obj/effect/world_edit_persistent_fire/existing_fire = allocate(/obj/effect/world_edit_persistent_fire, west_turf)
+	TEST_ASSERT_NOTNULL(blocked_structure, "World Edit destruction persistent-fire density test should spawn a dense blocker.")
+	TEST_ASSERT_NOTNULL(existing_fire, "World Edit destruction persistent-fire density test should spawn an existing fire tile.")
+
+	var/list/fire_entries = generator.build_persistent_fire_entries(influence_turfs, influence_lookup, 50, 4242)
+	TEST_ASSERT_EQUAL(length(fire_entries), 1, "World Edit destruction persistent-fire density test should use only valid placeable tiles when calculating density.")
+	for(var/list/fire_entry as anything in fire_entries)
+		var/turf/fire_turf = fire_entry["turf"]
+		TEST_ASSERT(fire_turf == center_turf || fire_turf == north_turf, "World Edit destruction persistent-fire density test should only place fire on the two valid tiles.")
 
 /datum/unit_test/world_edit_corner_slots/destruction_persistent_fire_plan_keeps_mode_and_color/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

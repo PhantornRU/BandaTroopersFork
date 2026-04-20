@@ -174,13 +174,16 @@
 	if(!istype(target_turf))
 		return 0
 
-	var/value = (plan_seed * 97)
-	value += (target_turf.x * 92821)
-	value += (target_turf.y * 68917)
-	value += (target_turf.z * 31337)
-	value += (salt * 15731)
+	var/value = round(abs(plan_seed))
+	value ^= (round(abs(salt)) * 1013904223)
+	value ^= (target_turf.x * 374761393)
+	value ^= (target_turf.y * 668265263)
+	value ^= (target_turf.z * 2147483647)
+	value ^= (value >> 13)
+	value *= 1274126177
+	value ^= (value >> 16)
 	value = round(abs(value))
-	return (value % 10000) / 10000
+	return ((value % 1000000) + 1) / 1000001
 
 /datum/world_edit_generator/destruction_pack/proc/get_influence_weight_for_turf(list/influence_lookup, turf/target_turf)
 	var/list/influence_info = islist(influence_lookup) ? influence_lookup[target_turf] : null

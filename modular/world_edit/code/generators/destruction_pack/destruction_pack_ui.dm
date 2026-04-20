@@ -79,7 +79,6 @@
 			"min" = get_persistent_fire_density_min(),
 			"max" = get_persistent_fire_density_max(),
 			"step" = 1,
-			"visible" = persistent_fire_enabled,
 			"disabled" = !persistent_fire_enabled,
 		),
 		list(
