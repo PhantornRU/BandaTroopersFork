@@ -25,12 +25,27 @@ const DESTRUCTION_COLOR_GUIDE = [
   },
 ] as const;
 
+const DESTRUCTION_MOVEMENT_GRID_COLUMNS =
+  'minmax(0, 1.05fr) minmax(15rem, 0.95fr)';
+const DESTRUCTION_MOVEMENT_COLUMN_GAP = '0.85rem';
+const DESTRUCTION_MOVEMENT_ROW_GAP = '0.58rem';
+
 const DestructionSplitBlock = (props: {
   readonly title: string;
   readonly tone?: 'default' | 'good' | 'average' | 'bad';
+  readonly headerAside?: ReactNode;
+  readonly headerColumns?: string;
+  readonly headerColumnGap?: string;
   readonly children: ReactNode;
 }) => {
-  const { title, tone, children } = props;
+  const {
+    title,
+    tone,
+    headerAside,
+    headerColumns,
+    headerColumnGap,
+    children,
+  } = props;
   const { borderColor } = getSurfaceColors(tone);
 
   return (
@@ -44,7 +59,23 @@ const DestructionSplitBlock = (props: {
         borderRadius: '4px',
       }}
     >
-      <Box bold>{title}</Box>
+      {headerAside ? (
+        <Box
+          style={{
+            display: 'grid',
+            gridTemplateColumns: headerColumns || 'minmax(0, 1fr) auto',
+            columnGap: headerColumnGap || DESTRUCTION_MOVEMENT_COLUMN_GAP,
+            alignItems: 'start',
+          }}
+        >
+          <Box bold>{title}</Box>
+          <Box bold style={{ minWidth: '0' }}>
+            {headerAside}
+          </Box>
+        </Box>
+      ) : (
+        <Box bold>{title}</Box>
+      )}
       <Box mt={0.4}>{children}</Box>
     </Box>
   );
@@ -52,8 +83,9 @@ const DestructionSplitBlock = (props: {
 
 const DestructionColorGuide = (props: {
   readonly activeItems: { label: string; color: string }[];
+  readonly showTitle?: boolean;
 }) => {
-  const { activeItems } = props;
+  const { activeItems, showTitle = true } = props;
   const activeLabels = new Set(activeItems.map((item) => item.label));
 
   return (
@@ -65,9 +97,9 @@ const DestructionColorGuide = (props: {
         width: '100%',
       }}
     >
-      <Box bold>Цвета на карте</Box>
+      {showTitle && <Box bold>Цвета на карте</Box>}
       <Box
-        mt={0.35}
+        mt={showTitle ? 0.35 : 0}
         style={{
           display: 'grid',
           rowGap: '0.36rem',
@@ -132,85 +164,81 @@ const DestructionMovementBlock = (props: {
     tone,
     activeItems,
   } = props;
+  const leftFieldEntries: { key: string; field: UiField }[] = [
+    ...(shuffleField ? [{ key: 'shuffle', field: shuffleField }] : []),
+    ...(scatterField ? [{ key: 'scatter', field: scatterField }] : []),
+    ...(maxAtomsField ? [{ key: 'maxAtoms', field: maxAtomsField }] : []),
+  ];
+  const scatterStepsRow = scatterStepsField
+    ? leftFieldEntries.length > 1
+      ? leftFieldEntries.length
+      : 2
+    : undefined;
+  const legendRowSpan = scatterStepsField
+    ? Math.max((scatterStepsRow || 1) - 1, 1)
+    : Math.max(leftFieldEntries.length, 1);
 
   return (
-    <DestructionSplitBlock title="Перемещение" tone={tone}>
+    <DestructionSplitBlock
+      title="Перемещение"
+      tone={tone}
+      headerAside="Цвета на карте"
+      headerColumns={DESTRUCTION_MOVEMENT_GRID_COLUMNS}
+      headerColumnGap={DESTRUCTION_MOVEMENT_COLUMN_GAP}
+    >
       <Box
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.05fr) minmax(15rem, 0.95fr)',
-          columnGap: '0.85rem',
-          rowGap: '0.58rem',
-          alignItems: 'stretch',
+          gridTemplateColumns: DESTRUCTION_MOVEMENT_GRID_COLUMNS,
+          columnGap: DESTRUCTION_MOVEMENT_COLUMN_GAP,
+          rowGap: DESTRUCTION_MOVEMENT_ROW_GAP,
+          alignItems: 'start',
         }}
       >
+        {leftFieldEntries.map((entry, index) => (
+          <Box
+            key={entry.key}
+            style={{
+              minWidth: '0',
+              gridColumn: '1',
+              gridRow: `${index + 1}`,
+            }}
+          >
+            <FieldControlStack
+              field={entry.field}
+              act={act}
+              labelOverride={getDestructionFieldLabel(entry.field)}
+              showHint={false}
+            />
+          </Box>
+        ))}
         <Box
           style={{
             minWidth: '0',
-            display: 'grid',
-            rowGap: '0.58rem',
-            alignContent: 'start',
+            gridColumn: '2',
+            gridRow: `1 / span ${legendRowSpan}`,
+            alignSelf: 'start',
           }}
         >
-          {!!shuffleField && (
-            <FieldControlStack
-              field={shuffleField}
-              act={act}
-              labelOverride={getDestructionFieldLabel(shuffleField)}
-              showHint={false}
-            />
-          )}
-          {!!scatterField && (
-            <FieldControlStack
-              field={scatterField}
-              act={act}
-              labelOverride={getDestructionFieldLabel(scatterField)}
-              showHint={false}
-            />
-          )}
-          {!!maxAtomsField && (
-            <FieldControlStack
-              field={maxAtomsField}
-              act={act}
-              labelOverride={getDestructionFieldLabel(maxAtomsField)}
-              showHint={false}
-            />
-          )}
+          <DestructionColorGuide activeItems={activeItems} showTitle={false} />
         </Box>
-        <Box
-          style={{
-            minWidth: '0',
-            display: 'grid',
-            gridTemplateRows: scatterStepsField ? '1fr auto' : '1fr',
-            rowGap: '0.58rem',
-            height: '100%',
-            alignContent: 'stretch',
-          }}
-        >
+        {!!scatterStepsField && (
           <Box
             style={{
               minWidth: '0',
+              gridColumn: '2',
+              gridRow: `${scatterStepsRow}`,
               alignSelf: 'start',
             }}
           >
-            <DestructionColorGuide activeItems={activeItems} />
+            <FieldControlStack
+              field={scatterStepsField}
+              act={act}
+              labelOverride={getDestructionFieldLabel(scatterStepsField)}
+              showHint={false}
+            />
           </Box>
-          {!!scatterStepsField && (
-            <Box
-              style={{
-                minWidth: '0',
-                alignSelf: 'end',
-              }}
-            >
-              <FieldControlStack
-                field={scatterStepsField}
-                act={act}
-                labelOverride={getDestructionFieldLabel(scatterStepsField)}
-                showHint={false}
-              />
-            </Box>
-          )}
-        </Box>
+        )}
       </Box>
     </DestructionSplitBlock>
   );
