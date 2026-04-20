@@ -3625,3 +3625,205 @@
 	TEST_ASSERT_EQUAL("[plan.metadata["error"]]", "[shape_support_error]", "World Edit outpost build_plan_from_shape_contract should return the same explicit support failure instead of drifting into a misleading plan path.")
 
 	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/outpost_layout_aliases_resolve_to_dir_driven_profiles/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/list/params = list(
+		"family" = "expedition_light",
+		"layout_variant" = "north_gate",
+		"opening_width" = "profile",
+		"radius" = 2,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "profile",
+		"place_sentries" = TRUE,
+		"guard_mode" = "layout",
+		"sentry_profile" = "profile",
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+	)
+
+	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("north_gate"), "gate", "World Edit outpost DIR-layout test should collapse old gate ids to the canonical DIR-driven layout id.")
+	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("corner_se"), "corner", "World Edit outpost DIR-layout test should collapse old corner ids to the canonical DIR-driven layout id.")
+	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("double_gate_ns"), "double_gate", "World Edit outpost DIR-layout test should collapse old double-gate ids to the canonical DIR-driven layout id.")
+
+	var/list/config = generator.resolve_outpost_configuration(params, list("direction" = EAST))
+	TEST_ASSERT(!config["error"], "World Edit outpost DIR-layout test should resolve a gate layout without configuration errors.")
+	TEST_ASSERT_EQUAL(config["layout_variant"], "gate", "World Edit outpost DIR-layout test should keep the canonical layout id on resolved config.")
+	TEST_ASSERT_EQUAL(config["placement_dir"], EAST, "World Edit outpost DIR-layout test should preserve the placement DIR on resolved config.")
+	TEST_ASSERT_EQUAL(length(config["layout_profile"]["opening_dirs"] || list()), 1, "World Edit outpost DIR-layout test should keep exactly one gate opening.")
+	TEST_ASSERT_EQUAL(config["layout_profile"]["opening_dirs"][1], EAST, "World Edit outpost DIR-layout test should rotate the gate opening to the current placement DIR instead of using a hardcoded north-facing layout.")
+	TEST_ASSERT_EQUAL(config["layout_profile"]["guard_dirs"][1], EAST, "World Edit outpost DIR-layout test should rotate guard coverage with the placement DIR as well.")
+
+/datum/unit_test/world_edit_corner_slots/outpost_split_layout_builds_separated_openings/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/list/config = generator.resolve_outpost_configuration(list(
+		"family" = "choke_wall",
+		"layout_variant" = "split_mouth",
+		"opening_width" = "profile",
+		"radius" = 3,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal/wired,
+		"barricade_pattern" = "profile",
+		"place_sentries" = FALSE,
+		"guard_mode" = "layout",
+		"sentry_profile" = "profile",
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+	), list("direction" = NORTH))
+
+	TEST_ASSERT(!config["error"], "World Edit split-opening test should resolve split_mouth without configuration errors.")
+	TEST_ASSERT_EQUAL(generator.get_layout_opening_slot_mode(config["layout_profile"]), "split_pair", "World Edit split-opening test should keep split_pair slot mode on the resolved layout.")
+	TEST_ASSERT_EQUAL(generator.get_layout_total_opening_tiles_per_dir(config["layout_profile"]), 2, "World Edit split-opening test should expose two total opening tiles on the split-mouthed side.")
+
+	var/list/opening_ranges = generator.build_point_opening_ranges(NORTH, config["radius"], config["layout_profile"])
+	TEST_ASSERT_EQUAL(length(opening_ranges), 2, "World Edit split-opening test should build two distinct opening ranges for the split mouth.")
+	TEST_ASSERT(opening_ranges[1]["end"] < opening_ranges[2]["start"], "World Edit split-opening test should keep the two openings separated by a closed center segment.")
+	TEST_ASSERT(!generator.is_perimeter_opening_slot(NORTH, 0, config["radius"], config["layout_profile"], config["radius"]), "World Edit split-opening test should keep the centered front slot closed for split-mouthed layouts.")
+
+/datum/unit_test/world_edit_corner_slots/outpost_sentry_profiles_follow_family_defaults_and_overrides/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/list/base_params = list(
+		"family" = "crossfire_hub",
+		"layout_variant" = "crossroads",
+		"opening_width" = "profile",
+		"radius" = 2,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "profile",
+		"place_sentries" = TRUE,
+		"guard_mode" = "layout",
+		"sentry_profile" = "profile",
+		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+	)
+
+	var/list/crossfire_config = generator.resolve_outpost_configuration(base_params, list("direction" = NORTH))
+	TEST_ASSERT(!crossfire_config["error"], "World Edit sentry-profile test should resolve the default crossfire_hub family profile.")
+	TEST_ASSERT_EQUAL(crossfire_config["sentry_profile"], "crossfire", "World Edit sentry-profile test should inherit the family's default sentry profile when the UI stays on profile mode.")
+	var/list/crossfire_dirs = generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), crossfire_config["sentry_profile"])
+	TEST_ASSERT_EQUAL(length(crossfire_dirs), 4, "World Edit sentry-profile test should keep up to four prioritized guard axes for crossfire layouts.")
+
+	var/list/light_params = base_params.Copy()
+	light_params["family"] = "expedition_light"
+	var/list/light_config = generator.resolve_outpost_configuration(light_params, list("direction" = NORTH))
+	TEST_ASSERT(!light_config["error"], "World Edit sentry-profile test should resolve the expedition_light family profile.")
+	TEST_ASSERT_EQUAL(light_config["sentry_profile"], "light_cover", "World Edit sentry-profile test should inherit the family's lighter sentry posture.")
+	TEST_ASSERT_EQUAL(length(generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), light_config["sentry_profile"])), 2, "World Edit sentry-profile test should trim light-cover guard axes down to at most two directions.")
+
+	var/list/none_params = base_params.Copy()
+	none_params["sentry_profile"] = "none"
+	var/list/none_config = generator.resolve_outpost_configuration(none_params, list("direction" = NORTH))
+	TEST_ASSERT(!none_config["error"], "World Edit sentry-profile test should accept an explicit sentry_profile override.")
+	TEST_ASSERT_EQUAL(none_config["sentry_profile"], "none", "World Edit sentry-profile test should preserve an explicit sentry_profile override instead of forcing the family default.")
+	TEST_ASSERT_EQUAL(length(generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), none_config["sentry_profile"])), 0, "World Edit sentry-profile test should disable all guard axes when sentry_profile=none.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_library_curated_tactical_pack_entries_are_valid/Run()
+	var/list/summaries = GLOB.world_edit_blueprints.world_edit_load_blueprint_library_summaries()
+	var/list/summary_lookup = list()
+	for(var/list/summary as anything in summaries)
+		summary_lookup["[summary["id"]]"] = summary
+
+	var/list/expected_ids = list(
+		"checkpoint_gate",
+		"killbox_alpha",
+		"funnel_nest",
+		"fallback_pocket",
+		"wire_gate",
+		"vehicle_stop",
+		"trench_stub",
+		"crossfire_corner",
+		"arc_hold",
+		"courtyard_compound",
+		"ammo_cache",
+		"med_evac_point",
+		"generator_shelter",
+		"comms_post",
+		"inner_bastion",
+		"zigzag_cover_strip",
+		"broken_outpost",
+		"encampment_light",
+		"turret_pad",
+		"split_entry_checkpoint",
+	)
+
+	for(var/blueprint_id as anything in expected_ids)
+		var/list/summary = summary_lookup["[blueprint_id]"]
+		TEST_ASSERT(islist(summary), "World Edit curated tactical-pack test should expose blueprint '[blueprint_id]' in the server-side library summary list.")
+		TEST_ASSERT(summary["valid"], "World Edit curated tactical-pack test should keep blueprint '[blueprint_id]' valid in the server-side library.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_support_props_follow_whitelist_and_slot_rules/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit support-prop blueprint test center turf was not resolved.")
+
+	var/list/valid_blueprint = list(
+		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
+		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"id" = "support_prop_ok",
+		"name" = "Support Prop OK",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = 0,
+			"max_x" = 0,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 0,
+		),
+		"entries" = list(list(
+			"type" = "/obj/structure/closet/crate/ammo",
+			"dx" = 0,
+			"dy" = 0,
+			"dz" = 0,
+			"dir" = NORTH,
+			"vars" = list(),
+		)),
+	)
+	var/list/valid_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(valid_blueprint)
+	TEST_ASSERT(!valid_result["error"], "World Edit support-prop blueprint test should accept whitelisted support props in Blueprint Lite definitions.")
+
+	var/list/invalid_blueprint = list(
+		"schema" = WORLD_EDIT_BLUEPRINT_SCHEMA,
+		"version" = WORLD_EDIT_BLUEPRINT_VERSION,
+		"id" = "support_prop_bad",
+		"name" = "Support Prop Bad",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = 0,
+			"max_x" = 0,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 0,
+		),
+		"entries" = list(list(
+			"type" = "/obj/structure/closet/crate",
+			"dx" = 0,
+			"dy" = 0,
+			"dz" = 0,
+			"dir" = NORTH,
+			"vars" = list(),
+		)),
+	)
+	var/list/invalid_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(invalid_blueprint)
+	TEST_ASSERT(length("[invalid_result["error"]]"), "World Edit support-prop blueprint test should reject non-whitelisted support props at schema-validation time.")
+
+	TEST_ASSERT(isnull(GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(center_turf, /obj/structure/closet/crate/ammo, NORTH)), "World Edit support-prop blueprint test should allow a support prop on an empty construction turf.")
+
+	var/obj/structure/barricade/metal/barrier = allocate(/obj/structure/barricade/metal, center_turf)
+	TEST_ASSERT_NOTNULL(barrier, "World Edit support-prop blueprint test should create a barricade helper.")
+	barrier.setDir(NORTH)
+	TEST_ASSERT(isnull(GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(center_turf, /obj/structure/closet/crate/ammo, NORTH)), "World Edit support-prop blueprint test should still allow support props on a turf that only contains barricades.")
+	qdel(barrier)
+
+	var/obj/structure/deployable_beacon/beacon = allocate(/obj/structure/deployable_beacon, center_turf)
+	TEST_ASSERT_NOTNULL(beacon, "World Edit support-prop blueprint test should create a non-barricade support object helper.")
+	var/support_prop_error = GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(center_turf, /obj/structure/closet/crate/ammo, NORTH)
+	TEST_ASSERT(length("[support_prop_error]"), "World Edit support-prop blueprint test should reject support props on a turf that already contains a non-barricade structure.")
+	qdel(beacon)

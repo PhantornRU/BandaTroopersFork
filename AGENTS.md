@@ -10,7 +10,6 @@
    - [`modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`](./modular/__agents/.AI_AGENT/WORKFLOW_RULES.md)
    - [`modular/__agents/.AI_AGENT/POLICIES.md`](./modular/__agents/.AI_AGENT/POLICIES.md)
    - [`modular/__agents/.AI_AGENT/REQUEST_PATTERNS.md`](./modular/__agents/.AI_AGENT/REQUEST_PATTERNS.md)
-3. Репозиторный overlay:
    - [`modular/__docs/SS220_DEVELOPMENT_RULES.md`](./modular/__docs/SS220_DEVELOPMENT_RULES.md)
 4. Активный task-state:
    - [`modular/__agents/.AI_AGENT/PLAN.md`](./modular/__agents/.AI_AGENT/PLAN.md)

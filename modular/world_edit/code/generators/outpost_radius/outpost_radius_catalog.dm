@@ -14,6 +14,45 @@
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_layout_id()
 	return "crossroads"
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_effective_placement_dir(list/placement_context = null)
+	var/dir_to_use = islist(placement_context) ? placement_context["direction"] : null
+	if(!GLOB.world_edit_helpers.is_cardinal_dir(dir_to_use))
+		dir_to_use = manager?.get_effective_placement_dir()
+	if(!GLOB.world_edit_helpers.is_cardinal_dir(dir_to_use))
+		dir_to_use = get_default_placement_direction()
+	return dir_to_use
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_relative_outpost_dir(dir_value, placement_dir)
+	if(GLOB.world_edit_helpers.is_cardinal_dir(dir_value))
+		return dir_value
+
+	switch(lowertext("[dir_value]"))
+		if("forward")
+			return placement_dir
+		if("back")
+			return get_cardinal_opposite_dir(placement_dir)
+		if("left")
+			return turn(placement_dir, 90)
+		if("right")
+			return turn(placement_dir, -90)
+
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_dir_list(raw_dir_list, placement_dir)
+	var/list/resolved_dirs = list()
+	var/list/seen_lookup = list()
+	if(!islist(raw_dir_list) || !length(raw_dir_list))
+		return resolved_dirs
+
+	for(var/dir_value as anything in raw_dir_list)
+		var/resolved_dir = resolve_relative_outpost_dir(dir_value, placement_dir)
+		if(!GLOB.world_edit_helpers.is_cardinal_dir(resolved_dir) || seen_lookup["[resolved_dir]"])
+			continue
+		seen_lookup["[resolved_dir]"] = TRUE
+		resolved_dirs += resolved_dir
+
+	return resolved_dirs
+
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_family_id(value)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
 		return get_default_outpost_family_id()
@@ -33,6 +72,8 @@
 		return get_default_outpost_layout_id()
 
 	var/layout_id = "[value]"
+	if(layout_id in outpost_layout_aliases)
+		layout_id = outpost_layout_aliases[layout_id]
 	if(layout_id in outpost_layout_profiles)
 		return layout_id
 	return null
@@ -67,34 +108,34 @@
 /datum/world_edit_generator/outpost_radius/proc/build_opening_width_options()
 	return list(
 		list(
-			"label" = "По профилю",
+			"label" = "По схеме",
 			"value" = "profile",
-			"description" = "Использовать ширину, заданную выбранным вариантом схемы.",
+			"description" = "Использовать ширину проходов, рекомендованную выбранной схемой.",
 		),
 		list(
 			"label" = "1 клетка",
 			"value" = "narrow",
-			"description" = "Оставлять каждый проход шириной в одну клетку.",
+			"description" = "Каждый проход шириной в одну клетку.",
 		),
 		list(
 			"label" = "2 клетки",
 			"value" = "double",
-			"description" = "Оставлять проход шириной в две клетки на каждой выбранной стороне.",
+			"description" = "Каждый проход шириной в две клетки.",
 		),
 		list(
 			"label" = "3 клетки",
 			"value" = "wide",
-			"description" = "Оставлять проход шириной в три клетки на каждой выбранной стороне.",
+			"description" = "Каждый проход шириной в три клетки.",
 		),
 		list(
 			"label" = "4 клетки",
 			"value" = "quad",
-			"description" = "Оставлять проход шириной в четыре клетки на каждой выбранной стороне.",
+			"description" = "Каждый проход шириной в четыре клетки.",
 		),
 		list(
 			"label" = "5 клеток",
 			"value" = "broad",
-			"description" = "Оставлять проход шириной в пять клеток для более широкого движения.",
+			"description" = "Каждый проход шириной в пять клеток.",
 		),
 	)
 
@@ -103,17 +144,51 @@
 		list(
 			"label" = "По схеме",
 			"value" = "layout",
-			"description" = "Использовать направления охраны, заданные вариантом схемы.",
+			"description" = "Использовать направления охраны, заданные схемой.",
 		),
 		list(
-			"label" = "По проходам",
+			"label" = "Только проходы",
 			"value" = "openings",
-			"description" = "Охранять только текущие открытые проходы.",
+			"description" = "Охранять только открытые направления входа.",
 		),
 		list(
 			"label" = "Все стороны",
 			"value" = "all_sides",
-			"description" = "Пытаться поставить охрану на все четыре стороны света.",
+			"description" = "Пытаться покрыть все четыре стороны.",
+		),
+	)
+
+/datum/world_edit_generator/outpost_radius/proc/build_sentry_profile_options()
+	return list(
+		list(
+			"label" = "По профилю",
+			"value" = "profile",
+			"description" = "Использовать стиль турелей, рекомендованный выбранным профилем.",
+		),
+		list(
+			"label" = "Без турелей",
+			"value" = "none",
+			"description" = "Не ставить турели даже при включенном турельном слое.",
+		),
+		list(
+			"label" = "Легкое прикрытие",
+			"value" = "light_cover",
+			"description" = "Ставить не больше одной-двух турелей на самые важные дуги.",
+		),
+		list(
+			"label" = "Охрана входа",
+			"value" = "entry_guard",
+			"description" = "Предпочитать турели рядом с самим проходом.",
+		),
+		list(
+			"label" = "Внутренняя охрана",
+			"value" = "inner_guard",
+			"description" = "Предпочитать более глубокие внутренние позиции турелей.",
+		),
+		list(
+			"label" = "Перекрестный огонь",
+			"value" = "crossfire",
+			"description" = "Предпочитать меньшее число внутренних осей с перекрывающимся огнем.",
 		),
 	)
 
@@ -122,36 +197,34 @@
 		list(
 			"label" = "По профилю",
 			"value" = "profile",
-			"description" = "Использовать схему баррикад, рекомендованную выбранным профилем.",
+			"description" = "Использовать раскладку баррикад, рекомендованную выбранным профилем.",
 		),
 		list(
-			"label" = "Единый",
+			"label" = "Равномерно",
 			"value" = "uniform",
-			"description" = "Использовать один тип баррикад по всему периметру.",
+			"description" = "Использовать один материал баррикад по всему контуру.",
 		),
 		list(
 			"label" = "Чередование",
 			"value" = "cycle",
-			"description" = "Чередовать материалы профиля в каждом слоте.",
+			"description" = "Чередовать материалы из выбранного профиля по каждому слоту.",
 		),
 		list(
-			"label" = "Парами",
+			"label" = "Парные секции",
 			"value" = "paired",
-			"description" = "Использовать материалы профиля более широкими парными сегментами.",
+			"description" = "Чередовать материалы профиля более широкими парными секциями.",
 		),
 	)
 
-/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_dirs(list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_dirs(list/layout_profile, placement_dir = NORTH)
 	var/list/opening_dirs = islist(layout_profile) ? layout_profile["opening_dirs"] : null
-	if(!islist(opening_dirs))
-		return list()
-	return opening_dirs.Copy()
+	return resolve_outpost_dir_list(opening_dirs, placement_dir)
 
-/datum/world_edit_generator/outpost_radius/proc/get_layout_guard_dirs(list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/get_layout_guard_dirs(list/layout_profile, placement_dir = NORTH)
 	var/list/guard_dirs = islist(layout_profile) ? layout_profile["guard_dirs"] : null
 	if(!islist(guard_dirs) || !length(guard_dirs))
-		return get_layout_opening_dirs(layout_profile)
-	return guard_dirs.Copy()
+		return get_layout_opening_dirs(layout_profile, placement_dir)
+	return resolve_outpost_dir_list(guard_dirs, placement_dir)
 
 /datum/world_edit_generator/outpost_radius/proc/get_layout_opening_width(list/layout_profile)
 	var/opening_width = 0
@@ -171,13 +244,26 @@
 	return max(round((get_layout_opening_width(layout_profile) - 1) / 2), 0)
 
 /datum/world_edit_generator/outpost_radius/proc/get_layout_opening_slots_per_dir(list/layout_profile)
-	return get_layout_opening_width(layout_profile)
+	var/slots_per_dir = islist(layout_profile) ? text2num("[layout_profile["opening_slots_per_dir"]]") : null
+	if(isnum(slots_per_dir) && slots_per_dir >= 1)
+		return clamp(round(slots_per_dir), 1, 2)
+	return 1
 
-/datum/world_edit_generator/outpost_radius/proc/get_layout_expected_opening_count(list/layout_profile)
-	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/get_layout_opening_slot_mode(list/layout_profile)
+	var/slot_mode = lowertext("[islist(layout_profile) ? (layout_profile["opening_slot_mode"] || "centered") : "centered"]")
+	switch(slot_mode)
+		if("centered", "split_pair")
+			return slot_mode
+	return "centered"
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_total_opening_tiles_per_dir(list/layout_profile)
+	return get_layout_opening_slots_per_dir(layout_profile) * get_layout_opening_width(layout_profile)
+
+/datum/world_edit_generator/outpost_radius/proc/get_layout_expected_opening_count(list/layout_profile, placement_dir = NORTH)
+	var/list/opening_dirs = get_layout_opening_dirs(layout_profile, placement_dir)
 	if(!length(opening_dirs))
 		return 0
-	return length(opening_dirs) * get_layout_opening_slots_per_dir(layout_profile)
+	return length(opening_dirs) * get_layout_total_opening_tiles_per_dir(layout_profile)
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_barricade_pattern(list/family_profile)
 	var/pattern = islist(family_profile) ? "[family_profile["default_barricade_pattern"] || "uniform"]" : "uniform"
@@ -185,6 +271,13 @@
 		if("uniform", "cycle", "paired")
 			return pattern
 	return "uniform"
+
+/datum/world_edit_generator/outpost_radius/proc/get_default_sentry_profile(list/family_profile)
+	var/sentry_profile = lowertext("[islist(family_profile) ? (family_profile["default_sentry_profile"] || "entry_guard") : "entry_guard"]")
+	switch(sentry_profile)
+		if("none", "light_cover", "entry_guard", "inner_guard", "crossfire")
+			return sentry_profile
+	return "entry_guard"
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_barricade_pattern(value, list/family_profile)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
@@ -212,13 +305,26 @@
 			return guard_mode
 	return null
 
-/datum/world_edit_generator/outpost_radius/proc/get_guard_dirs_for_mode(guard_mode, list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/resolve_sentry_profile(value, list/family_profile)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_sentry_profile(family_profile)
+
+	var/sentry_profile = lowertext("[value]")
+	if(sentry_profile == "profile")
+		return get_default_sentry_profile(family_profile)
+
+	switch(sentry_profile)
+		if("none", "light_cover", "entry_guard", "inner_guard", "crossfire")
+			return sentry_profile
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/get_guard_dirs_for_mode(guard_mode, list/layout_profile, placement_dir = NORTH)
 	switch("[guard_mode]")
 		if("openings")
-			return get_layout_opening_dirs(layout_profile)
+			return get_layout_opening_dirs(layout_profile, placement_dir)
 		if("all_sides")
 			return list(NORTH, EAST, SOUTH, WEST)
-	return get_layout_guard_dirs(layout_profile)
+	return get_layout_guard_dirs(layout_profile, placement_dir)
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_opening_width(value, list/layout_profile)
 	var/default_width = get_layout_opening_width(layout_profile)
@@ -274,7 +380,7 @@
 
 /datum/world_edit_generator/outpost_radius/proc/format_opening_dirs(list/opening_dirs)
 	if(!islist(opening_dirs) || !length(opening_dirs))
-		return "нет"
+		return "none"
 
 	var/list/labels = list()
 	for(var/dir_value as anything in opening_dirs)

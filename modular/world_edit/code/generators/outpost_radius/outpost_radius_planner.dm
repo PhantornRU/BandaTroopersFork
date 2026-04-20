@@ -1,18 +1,59 @@
-/datum/world_edit_generator/outpost_radius/proc/is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, list/layout_profile)
+/datum/world_edit_generator/outpost_radius/proc/build_centered_opening_range(center_offset, opening_width, radius)
+	var/start_offset = center_offset - ((opening_width - 1) / 2)
+	if((opening_width % 2) == 0)
+		start_offset = center_offset - (opening_width / 2)
+	start_offset = max(round(start_offset), -radius)
+	var/end_offset = min(start_offset + opening_width - 1, radius)
+	start_offset = max(end_offset - opening_width + 1, -radius)
+	return list(
+		"start" = start_offset,
+		"end" = end_offset,
+	)
+
+/datum/world_edit_generator/outpost_radius/proc/build_split_pair_opening_ranges(radius, opening_width)
+	var/span = (radius * 2) + 1
+	if(span < opening_width * 2)
+		return list(build_centered_opening_range(0, opening_width, radius))
+
+	var/separation = max(round(radius / 2), 1)
+	var/list/left_range = build_centered_opening_range(-separation, opening_width, radius)
+	var/list/right_range = build_centered_opening_range(separation, opening_width, radius)
+	if(left_range["end"] >= right_range["start"])
+		return list(build_centered_opening_range(0, opening_width, radius))
+	return list(left_range, right_range)
+
+/datum/world_edit_generator/outpost_radius/proc/build_point_opening_ranges(dir_to_use, radius, list/layout_profile)
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	if(!islist(opening_dirs) || !(dir_to_use in opening_dirs))
-		return FALSE
+		return list()
+
 	var/opening_width = get_layout_opening_width(layout_profile)
-	var/opening_start = -((opening_width - 1) / 2)
-	if((opening_width % 2) == 0)
-		opening_start = -(opening_width / 2)
-	var/opening_end = opening_start + opening_width - 1
+	var/slot_mode = get_layout_opening_slot_mode(layout_profile)
+	var/slots_per_dir = get_layout_opening_slots_per_dir(layout_profile)
+	if(slot_mode == "split_pair" && slots_per_dir >= 2)
+		return build_split_pair_opening_ranges(radius, opening_width)
+	return list(build_centered_opening_range(0, opening_width, radius))
+
+/datum/world_edit_generator/outpost_radius/proc/is_offset_in_opening_ranges(offset_value, list/opening_ranges)
+	if(!islist(opening_ranges))
+		return FALSE
+	for(var/list/range_data as anything in opening_ranges)
+		if(!islist(range_data))
+			continue
+		if(offset_value >= range_data["start"] && offset_value <= range_data["end"])
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/outpost_radius/proc/is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, list/layout_profile, radius)
+	var/list/opening_ranges = build_point_opening_ranges(dir_to_use, radius, layout_profile)
+	if(!length(opening_ranges))
+		return FALSE
 
 	switch(dir_to_use)
 		if(NORTH, SOUTH)
-			return (offset_x >= opening_start) && (offset_x <= opening_end)
+			return is_offset_in_opening_ranges(offset_x, opening_ranges)
 		if(EAST, WEST)
-			return (offset_y >= opening_start) && (offset_y <= opening_end)
+			return is_offset_in_opening_ranges(offset_y, opening_ranges)
 
 	return FALSE
 
@@ -30,33 +71,127 @@
 	var/cycle_index = ((effective_slot_index + max(radius, 1) - 1) % length(barricade_cycle)) + 1
 	return barricade_cycle[cycle_index]
 
-/datum/world_edit_generator/outpost_radius/proc/build_sentry_guard_candidates(dir_to_guard, inner_radius)
+/datum/world_edit_generator/outpost_radius/proc/build_sentry_profile_guard_dirs(list/guard_dirs, sentry_profile)
+	var/list/resolved_guard_dirs = islist(guard_dirs) ? guard_dirs.Copy() : list()
+	if(!length(resolved_guard_dirs))
+		return list()
+
+	switch("[sentry_profile]")
+		if("none")
+			return list()
+		if("light_cover")
+			return resolved_guard_dirs.Copy(1, min(length(resolved_guard_dirs), 2) + 1)
+		if("crossfire")
+			var/list/prioritized_dirs = list()
+			if((NORTH in resolved_guard_dirs) && (SOUTH in resolved_guard_dirs))
+				prioritized_dirs += NORTH
+				prioritized_dirs += SOUTH
+			if((EAST in resolved_guard_dirs) && (WEST in resolved_guard_dirs))
+				prioritized_dirs += EAST
+				prioritized_dirs += WEST
+			for(var/dir_to_guard as anything in resolved_guard_dirs)
+				if(dir_to_guard in prioritized_dirs)
+					continue
+				prioritized_dirs += dir_to_guard
+			return prioritized_dirs.Copy(1, min(length(prioritized_dirs), 4) + 1)
+	return resolved_guard_dirs
+
+/datum/world_edit_generator/outpost_radius/proc/build_sentry_guard_candidates(dir_to_guard, inner_radius, sentry_profile = "entry_guard")
 	var/fallback_distance = max(inner_radius - 1, 0)
+	var/deep_distance = max(inner_radius - 2, 0)
 
 	switch(dir_to_guard)
 		if(NORTH)
+			switch("[sentry_profile]")
+				if("inner_guard")
+					return list(
+						list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
+					)
+				if("crossfire")
+					return list(
+						list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
+						list("dx" = 0, "dy" = deep_distance, "dir" = NORTH),
+						list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
+					)
 			return list(
 				list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
 				list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
 				list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
+				list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
 			)
 		if(SOUTH)
+			switch("[sentry_profile]")
+				if("inner_guard")
+					return list(
+						list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
+					)
+				if("crossfire")
+					return list(
+						list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
+						list("dx" = 0, "dy" = -deep_distance, "dir" = SOUTH),
+						list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
+					)
 			return list(
 				list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
 				list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
 				list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
+				list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
 			)
 		if(EAST)
+			switch("[sentry_profile]")
+				if("inner_guard")
+					return list(
+						list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
+						list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
+						list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
+						list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
+					)
+				if("crossfire")
+					return list(
+						list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
+						list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
+						list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
+						list("dx" = deep_distance, "dy" = 0, "dir" = EAST),
+						list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
+					)
 			return list(
 				list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
 				list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
 				list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
+				list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
 			)
 		if(WEST)
+			switch("[sentry_profile]")
+				if("inner_guard")
+					return list(
+						list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
+						list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
+						list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
+						list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
+					)
+				if("crossfire")
+					return list(
+						list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
+						list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
+						list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
+						list("dx" = -deep_distance, "dy" = 0, "dir" = WEST),
+						list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
+					)
 			return list(
 				list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
 				list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
 				list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
+				list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
 			)
 
 	return list()
@@ -588,6 +723,48 @@
 
 	return 0
 
+/datum/world_edit_generator/outpost_radius/proc/get_shape_slot_cross_axis(list/candidate_slot, list/shape_bounds)
+	var/turf/source_turf = candidate_slot["turf"]
+	if(!istype(source_turf))
+		source_turf = candidate_slot["source_turf"]
+	var/dir_to_use = candidate_slot["dir"]
+	if(!istype(source_turf))
+		return 0
+
+	switch(dir_to_use)
+		if(NORTH, SOUTH)
+			return source_turf.x - shape_bounds["center_x"]
+		if(EAST, WEST)
+			return source_turf.y - shape_bounds["center_y"]
+	return 0
+
+/datum/world_edit_generator/outpost_radius/proc/select_best_shape_slots(list/candidate_slots, slots_to_select, list/shape_bounds, list/selected_lookup)
+	var/list/selected_slots = list()
+	if(!islist(candidate_slots) || !length(candidate_slots))
+		return selected_slots
+
+	for(var/i in 1 to max(round(text2num("[slots_to_select]") || 0), 0))
+		var/list/best_slot = null
+		var/best_score = null
+		for(var/list/candidate_slot as anything in candidate_slots)
+			var/slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(candidate_slot["turf"], candidate_slot["dir"])
+			if(!length(slot_key) || selected_lookup[slot_key])
+				continue
+			var/score = score_shape_opening_slot(candidate_slot, shape_bounds)
+			if(isnull(best_score) || score < best_score)
+				best_score = score
+				best_slot = candidate_slot
+
+		if(!islist(best_slot))
+			break
+
+		var/best_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(best_slot["turf"], best_slot["dir"])
+		if(length(best_slot_key))
+			selected_lookup[best_slot_key] = TRUE
+		selected_slots += list(best_slot)
+
+	return selected_slots
+
 /datum/world_edit_generator/outpost_radius/proc/build_shape_perimeter_candidates(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
 	var/list/candidates = list()
 	var/list/candidate_lookup = list()
@@ -618,7 +795,7 @@
 
 	return candidates
 
-/datum/world_edit_generator/outpost_radius/proc/select_shape_direction_slots(list/candidate_slots, list/target_dirs, slots_per_dir, list/shape_bounds)
+/datum/world_edit_generator/outpost_radius/proc/select_shape_direction_slots(list/candidate_slots, list/target_dirs, slots_per_dir, list/shape_bounds, slot_mode = "centered")
 	var/list/selected_slots = list()
 	if(!islist(candidate_slots) || !length(candidate_slots))
 		return selected_slots
@@ -628,31 +805,35 @@
 	var/slots_to_select = max(round(text2num("[slots_per_dir]") || 0), 1)
 	var/list/selected_lookup = list()
 	for(var/dir_to_use as anything in target_dirs)
-		for(var/i in 1 to slots_to_select)
-			var/list/best_slot = null
-			var/best_score = null
-			for(var/list/candidate_slot as anything in candidate_slots)
-				if(candidate_slot["dir"] != dir_to_use)
-					continue
-				var/slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(candidate_slot["turf"], candidate_slot["dir"])
-				if(!length(slot_key) || selected_lookup[slot_key])
-					continue
-				var/score = score_shape_opening_slot(candidate_slot, shape_bounds)
-				if(isnull(best_score) || score < best_score)
-					best_score = score
-					best_slot = candidate_slot
+		var/list/dir_candidates = list()
+		var/list/negative_candidates = list()
+		var/list/positive_candidates = list()
+		for(var/list/candidate_slot as anything in candidate_slots)
+			if(candidate_slot["dir"] != dir_to_use)
+				continue
+			dir_candidates += list(candidate_slot)
+			var/cross_axis = get_shape_slot_cross_axis(candidate_slot, shape_bounds)
+			if(cross_axis < 0)
+				negative_candidates += list(candidate_slot)
+			else if(cross_axis > 0)
+				positive_candidates += list(candidate_slot)
 
-			if(!islist(best_slot))
-				break
+		if(slot_mode == "split_pair" && slots_to_select >= 2 && length(negative_candidates) && length(positive_candidates))
+			var/dir_selected_before = length(selected_slots)
+			var/negative_count = round(slots_to_select / 2)
+			var/positive_count = slots_to_select - negative_count
+			selected_slots += select_best_shape_slots(negative_candidates, negative_count, shape_bounds, selected_lookup)
+			selected_slots += select_best_shape_slots(positive_candidates, positive_count, shape_bounds, selected_lookup)
+			var/missing_count = slots_to_select - (length(selected_slots) - dir_selected_before)
+			if(missing_count > 0)
+				selected_slots += select_best_shape_slots(dir_candidates, missing_count, shape_bounds, selected_lookup)
+			continue
 
-			var/best_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(best_slot["turf"], best_slot["dir"])
-			if(length(best_slot_key))
-				selected_lookup[best_slot_key] = TRUE
-			selected_slots += list(best_slot)
+		selected_slots += select_best_shape_slots(dir_candidates, slots_to_select, shape_bounds, selected_lookup)
 
 	return selected_slots
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_sentry_candidates(list/opening_slot)
+/datum/world_edit_generator/outpost_radius/proc/build_shape_sentry_candidates(list/opening_slot, sentry_profile = "entry_guard")
 	var/list/candidates = list()
 	if(!islist(opening_slot))
 		return candidates
@@ -664,14 +845,55 @@
 	if(!istype(source_turf))
 		return candidates
 
+	var/inward_dir = get_cardinal_opposite_dir(dir_to_guard)
+	var/turf/inward_turf = GLOB.world_edit_helpers.step_turf(source_turf, inward_dir, 1)
+	var/turf/deep_turf = istype(inward_turf) ? GLOB.world_edit_helpers.step_turf(inward_turf, inward_dir, 1) : null
+
+	switch("[sentry_profile]")
+		if("inner_guard")
+			if(istype(inward_turf))
+				candidates += list(list(
+					"turf" = inward_turf,
+					"dir" = dir_to_guard,
+					"opening_dir" = dir_to_guard,
+				))
+			if(istype(deep_turf))
+				candidates += list(list(
+					"turf" = deep_turf,
+					"dir" = dir_to_guard,
+					"opening_dir" = dir_to_guard,
+				))
+			candidates += list(list(
+				"turf" = source_turf,
+				"dir" = dir_to_guard,
+				"opening_dir" = dir_to_guard,
+			))
+			return candidates
+		if("crossfire")
+			if(istype(inward_turf))
+				candidates += list(list(
+					"turf" = inward_turf,
+					"dir" = dir_to_guard,
+					"opening_dir" = dir_to_guard,
+				))
+			if(istype(deep_turf))
+				candidates += list(list(
+					"turf" = deep_turf,
+					"dir" = dir_to_guard,
+					"opening_dir" = dir_to_guard,
+				))
+			candidates += list(list(
+				"turf" = source_turf,
+				"dir" = dir_to_guard,
+				"opening_dir" = dir_to_guard,
+			))
+			return candidates
+
 	candidates += list(list(
 		"turf" = source_turf,
 		"dir" = dir_to_guard,
 		"opening_dir" = dir_to_guard,
 	))
-
-	var/inward_dir = get_cardinal_opposite_dir(dir_to_guard)
-	var/turf/inward_turf = GLOB.world_edit_helpers.step_turf(source_turf, inward_dir, 1)
 	if(istype(inward_turf))
 		candidates += list(list(
 			"turf" = inward_turf,
@@ -712,7 +934,7 @@
 
 	var/list/config = params
 	if(!islist(config) || !config["family_profile"])
-		config = resolve_outpost_configuration(params)
+		config = resolve_outpost_configuration(params, placement_context)
 	if(config["error"])
 		analysis["error"] = "[config["error"]]"
 		return analysis
@@ -742,7 +964,8 @@
 	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache)
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
-	var/list/opening_slots = length(opening_dirs) ? select_shape_direction_slots(filtered_candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds) : list()
+	var/opening_tiles_per_dir = get_layout_total_opening_tiles_per_dir(layout_profile)
+	var/list/opening_slots = length(opening_dirs) ? select_shape_direction_slots(filtered_candidate_slots, opening_dirs, opening_tiles_per_dir, shape_bounds, get_layout_opening_slot_mode(layout_profile)) : list()
 	var/list/opening_slot_keys = list()
 	var/list/opening_lookup = list()
 	var/list/opening_slots_by_dir = list()
@@ -754,9 +977,9 @@
 		opening_slot_keys += opening_slot_key
 		var/opening_dir = opening_slot["dir"]
 		if(GLOB.world_edit_helpers.is_cardinal_dir(opening_dir))
-			opening_slots_by_dir["[opening_dir]"] = TRUE
+			opening_slots_by_dir["[opening_dir]"] = (opening_slots_by_dir["[opening_dir]"] || 0) + 1
 
-	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
+	var/list/guard_dirs = build_sentry_profile_guard_dirs(get_layout_guard_dirs(layout_profile), config["sentry_profile"])
 	var/list/guard_slots = list()
 	var/list/guard_sentry_candidates = list()
 	var/list/raw_sentry_candidate_turfs = list()
@@ -765,7 +988,7 @@
 		guard_slots = select_shape_direction_slots(filtered_candidate_slots, guard_dirs, 1, shape_bounds)
 		var/list/raw_sentry_candidate_lookup = list()
 		for(var/list/guard_slot as anything in guard_slots)
-			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot)
+			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot, config["sentry_profile"])
 			guard_sentry_candidates += list(sentry_candidates)
 			for(var/list/sentry_candidate as anything in sentry_candidates)
 				var/turf/sentry_turf = sentry_candidate["turf"]
@@ -955,6 +1178,7 @@
 	plan.metadata["layout_description"] = config["layout_profile"]["description"]
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
+	plan.metadata["sentry_profile"] = config["sentry_profile"]
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["barricade_count"] = length(plan.placements) - total_sentries
 	plan.metadata["sentry_count"] = total_sentries
@@ -967,7 +1191,7 @@
 	plan.metadata["generator_effect_turfs"] = plan.affected_turfs.Copy()
 	return plan
 
-/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_configuration(list/params)
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_configuration(list/params, list/placement_context = null)
 	var/list/config = list()
 	var/family_id = resolve_outpost_family_id(params["family"])
 	if(!family_id)
@@ -999,15 +1223,23 @@
 		config["error"] = "Выбран недопустимый режим охвата турелей."
 		return config
 
+	var/sentry_profile = resolve_sentry_profile(params["sentry_profile"], family_profile)
+	if(isnull(sentry_profile))
+		config["error"] = "Выбран недопустимый стиль турелей."
+		return config
+
 	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"], family_profile)
 	if(isnull(barricade_pattern))
 		config["error"] = "Выбрана недопустимая схема баррикад."
 		return config
 
+	var/placement_dir = get_outpost_effective_placement_dir(placement_context)
 	var/list/effective_layout_profile = layout_profile.Copy()
-	effective_layout_profile["opening_dirs"] = get_layout_opening_dirs(layout_profile)
+	effective_layout_profile["opening_dirs"] = get_layout_opening_dirs(layout_profile, placement_dir)
 	effective_layout_profile["opening_width"] = opening_width
-	effective_layout_profile["guard_dirs"] = get_guard_dirs_for_mode(guard_mode, layout_profile)
+	effective_layout_profile["guard_dirs"] = get_guard_dirs_for_mode(guard_mode, layout_profile, placement_dir)
+	effective_layout_profile["opening_slot_mode"] = get_layout_opening_slot_mode(layout_profile)
+	effective_layout_profile["opening_slots_per_dir"] = get_layout_opening_slots_per_dir(layout_profile)
 
 	var/radius = text2num("[params["radius"]]") || 4
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
@@ -1037,8 +1269,10 @@
 	config["family_profile"] = family_profile
 	config["layout_variant"] = layout_id
 	config["layout_profile"] = effective_layout_profile
+	config["placement_dir"] = placement_dir
 	config["opening_width"] = opening_width
 	config["guard_mode"] = guard_mode
+	config["sentry_profile"] = sentry_profile
 	config["radius"] = radius
 	config["radius_policy"] = radius_policy
 	config["place_sentries"] = place_sentries
@@ -1067,7 +1301,7 @@
 			"metadata" = support_metadata.Copy(),
 		)
 
-	var/list/config = resolve_outpost_configuration(params)
+	var/list/config = resolve_outpost_configuration(params, placement_context)
 	if(config["error"])
 		return list(
 			"support_class" = support_class,
@@ -1150,8 +1384,9 @@
 	var/list/opening_dirs = shape_analysis["opening_dirs"]
 	if(length(opening_dirs))
 		var/list/opening_slots_by_dir = shape_analysis["opening_slots_by_dir"]
+		var/required_opening_tiles_per_dir = get_layout_total_opening_tiles_per_dir(config["layout_profile"])
 		for(var/opening_dir as anything in opening_dirs)
-			if(!opening_slots_by_dir["[opening_dir]"])
+			if((opening_slots_by_dir["[opening_dir]"] || 0) < required_opening_tiles_per_dir)
 				return list(
 					"support_class" = support_class,
 					"error" = get_outpost_radius_policy_error(effective_shape_id),

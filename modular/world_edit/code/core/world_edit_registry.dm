@@ -29,6 +29,7 @@
 		"barricade_pattern" = "profile",
 		"place_sentries" = FALSE,
 		"guard_mode" = "layout",
+		"sentry_profile" = "profile",
 		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
 		"faction" = FACTION_MARINE,
 		"turned_on" = TRUE

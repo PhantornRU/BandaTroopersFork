@@ -49,6 +49,7 @@ const OutpostRadiusWorkspace = (props: {
   const sentryToggleField = getField(sentryFields, 'place_sentries');
   const sentryDetailFields = getFieldsById(sentryFields, [
     'guard_mode',
+    'sentry_profile',
     'sentry_path',
     'faction',
     'turned_on',

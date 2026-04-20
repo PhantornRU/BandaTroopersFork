@@ -87,7 +87,7 @@
 
 	var/list/placements = result["placements"]
 	var/list/openings = result["openings"]
-	if(is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, layout_profile))
+	if(is_perimeter_opening_slot(dir_to_use, offset_x, offset_y, layout_profile, radius))
 		result["planned_opening_count"]++
 		if(can_place_barricade_on_turf(target_turf, dir_to_use))
 			result["opening_count"]++
@@ -196,7 +196,7 @@
 
 	return result
 
-/datum/world_edit_generator/outpost_radius/proc/collect_sentry_placements(turf/center_turf, radius, list/layout_profile, list/radius_policy = null, list/traversal_turfs = null)
+/datum/world_edit_generator/outpost_radius/proc/collect_sentry_placements(turf/center_turf, radius, list/layout_profile, sentry_profile = "entry_guard", list/radius_policy = null, list/traversal_turfs = null)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_count" = 0,
@@ -208,7 +208,7 @@
 		return result
 	var/list/placements = result["placements"]
 	var/inner_radius = max(radius - 1, 1)
-	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
+	var/list/guard_dirs = build_sentry_profile_guard_dirs(get_layout_guard_dirs(layout_profile), sentry_profile)
 	var/list/effective_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : build_point_radius_area_turfs(center_turf, radius)
 	var/list/raw_candidate_turfs = list()
 	var/list/raw_candidate_lookup = list()
@@ -216,7 +216,7 @@
 
 	for(var/dir_to_guard as anything in guard_dirs)
 		var/list/candidates = list()
-		for(var/list/candidate as anything in build_sentry_guard_candidates(dir_to_guard, inner_radius))
+		for(var/list/candidate as anything in build_sentry_guard_candidates(dir_to_guard, inner_radius, sentry_profile))
 			var/turf/target_turf = locate(center_turf.x + candidate["dx"], center_turf.y + candidate["dy"], center_turf.z)
 			var/list/candidate_entry = list(
 				"turf" = target_turf,
@@ -290,7 +290,7 @@
 	var/list/traversal_turfs = build_point_radius_area_turfs(center_turf, radius)
 
 	var/list/perimeter_data = collect_perimeter_placements(center_turf, radius, layout_profile, barricade_cycle, config["barricade_pattern"], radius_policy, traversal_turfs)
-	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius, layout_profile, radius_policy, traversal_turfs) : list(
+	var/list/sentry_data = place_sentries ? collect_sentry_placements(center_turf, radius, layout_profile, config["sentry_profile"], radius_policy, traversal_turfs) : list(
 		"placements" = list(),
 		"blocked_count" = 0,
 		"policy_filtered_count" = 0,
@@ -351,6 +351,7 @@
 	plan.metadata["layout_description"] = layout_profile["description"]
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
+	plan.metadata["sentry_profile"] = config["sentry_profile"]
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["barricade_count"] = length(perimeter_data["placements"])
 	plan.metadata["sentry_count"] = length(sentry_data["placements"])
@@ -388,7 +389,7 @@
 		plan.metadata["error"] = "Не удалось определить опорный тайл."
 		return plan
 
-	var/list/config = resolve_outpost_configuration(params)
+	var/list/config = resolve_outpost_configuration(params, placement_context)
 	if(config["error"])
 		plan.metadata["error"] = "[config["error"]]"
 		return plan
@@ -404,6 +405,7 @@
 	plan.metadata["layout_description"] = config["layout_profile"]["description"]
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
+	plan.metadata["sentry_profile"] = config["sentry_profile"]
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
 
@@ -485,6 +487,7 @@
 	plan.metadata["layout_description"] = config["layout_profile"]["description"]
 	plan.metadata["opening_width"] = config["opening_width"]
 	plan.metadata["guard_mode"] = config["guard_mode"]
+	plan.metadata["sentry_profile"] = config["sentry_profile"]
 	plan.metadata["barricade_pattern"] = config["barricade_pattern"]
 	plan.metadata["opening_count"] = total_openings
 	plan.metadata["blocked_openings"] = total_blocked_openings
@@ -508,6 +511,7 @@
 		"shape_metadata" = shape_result["metadata"] || list(),
 		"anchor_turfs" = shape_result["turfs"] || list(anchor_turf),
 		"end_turf" = anchor_turf,
+		"direction" = manager?.get_effective_placement_dir() || NORTH,
 	))
 
 /datum/world_edit_generator/outpost_radius/validate_params(mob/user, list/params)

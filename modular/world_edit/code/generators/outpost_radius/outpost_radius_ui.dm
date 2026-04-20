@@ -22,35 +22,35 @@
 			"id" = "family",
 			"label" = "Профиль форпоста",
 			"kind" = "select",
-			"group" = "Компоновка",
-			"description" = "Определяет базовые материалы, турели и схему проходов.",
-			"value" = current_params["family"] || family_id,
+			"group" = "Схема",
+			"description" = "Определяет материалы, стандартный стиль турелей и тактический характер форпоста.",
+			"value" = family_id,
 			"options" = build_family_options(),
 		),
 		list(
 			"id" = "layout_variant",
-			"label" = "Вариант схемы",
+			"label" = "Схема",
 			"kind" = "select",
-			"group" = "Компоновка",
-			"description" = "Задаёт, где останутся проходы и как форпост встречает подход к нему.",
-			"value" = current_params["layout_variant"] || layout_id,
+			"group" = "Схема",
+			"description" = "Определяет, где находятся проходы и дуги охраны. Направление следует текущему DIR размещения.",
+			"value" = layout_id,
 			"options" = build_layout_options(),
 		),
 		list(
 			"id" = "opening_width",
 			"label" = "Ширина проходов",
 			"kind" = "select",
-			"group" = "Компоновка",
-			"description" = "Переопределяет ширину каждого запланированного прохода.",
+			"group" = "Схема",
+			"description" = "Переопределяет ширину каждого планируемого прохода.",
 			"value" = current_params["opening_width"] || "profile",
 			"options" = build_opening_width_options(),
 		),
 		list(
 			"id" = "radius",
-			"label" = "Отступ периметра",
+			"label" = "Смещение периметра",
 			"kind" = "number",
-			"group" = "Компоновка",
-			"description" = "Толщина отступа вокруг выбранного контура перед построением периметра.",
+			"group" = "Схема",
+			"description" = "Насколько далеко сгенерированный контур отстоит от выбранного отпечатка размещения.",
 			"validate_hint" = "Допустимый диапазон: 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]",
 			"value" = text2num("[current_params["radius"]]") || 4,
 			"min" = 1,
@@ -61,24 +61,24 @@
 			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES,
 			"label" = "Только чистые клетки",
 			"kind" = "boolean",
-			"group" = "Компоновка",
-			"description" = "Stops radius expansion at blockers, but does not invalidate the clicked tile or selected contour itself.",
+			"group" = "Схема",
+			"description" = "Останавливает расширение радиуса у блокеров, но не делает недействительной кликнутую клетку или выбранный контур.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES]),
 		),
 		list(
 			"id" = WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES,
 			"label" = "Только достижимые клетки",
 			"kind" = "boolean",
-			"group" = "Компоновка",
-			"description" = "Keeps only tiles that stay reachable from the drawing start through adjacent non-blocked tiles. This toggle always enables clear-path filtering.",
+			"group" = "Схема",
+			"description" = "Оставляет только клетки, до которых можно добраться от начала рисования через соседние незаблокированные клетки. Этот режим всегда включает фильтрацию чистого пути.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]) ? FALSE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES]),
 		),
 		list(
 			"id" = WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS,
-			"label" = "Окна как блокираторы",
+			"label" = "Окна блокируют путь",
 			"kind" = "boolean",
-			"group" = "Компоновка",
-			"description" = "Counts windows as blockers while checking clear paths and reachable expansion.",
+			"group" = "Схема",
+			"description" = "Считает окна блокерами при проверке чистого пути и достижимости расширения.",
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]),
 		),
 		list(
@@ -86,37 +86,48 @@
 			"label" = "Тип баррикады",
 			"kind" = "select",
 			"group" = "Баррикады",
-			"description" = "Разрешённый тип баррикады из human_ai_defense. Профиль использует его как основной материал в смеси.",
+			"description" = "Разрешенный тип human_ai_defense barricade, который используется как основной материал профиля.",
 			"value" = "[current_params["barricade_path"] || default_barricade_path]",
 			"options" = build_type_options(allowed_barricade_types),
 			"visible" = FALSE,
 		),
 		list(
 			"id" = "barricade_pattern",
-			"label" = "Схема баррикад",
+			"label" = "Раскладка баррикад",
 			"kind" = "select",
 			"group" = "Баррикады",
-			"description" = "Управляет чередованием материалов по периметру.",
+			"description" = "Определяет, как материалы профиля чередуются по контуру.",
 			"value" = current_params["barricade_pattern"] || "profile",
 			"options" = build_barricade_pattern_options(),
 			"visible" = length(family_mix) > 1,
 		),
 		list(
 			"id" = "place_sentries",
-			"label" = "Ставить турели у проходов",
+			"label" = "Ставить турели",
 			"kind" = "boolean",
 			"group" = "Турели",
-			"description" = "Добавляет турели с внутренней стороны каждого запланированного прохода.",
+			"description" = "Добавляет опциональные точки турелей на внутренней стороне выбранных дуг схемы.",
 			"value" = place_sentries,
 		),
 		list(
 			"id" = "guard_mode",
-			"label" = "Охват турелей",
+			"label" = "Охват охраны",
 			"kind" = "select",
 			"group" = "Турели",
-			"description" = "Определяет, охраняют ли турели только проходы, все стороны или следуют варианту схемы.",
+			"description" = "Выбирает, какие стороны должен прикрывать турельный слой.",
 			"value" = current_params["guard_mode"] || "layout",
 			"options" = build_guard_mode_options(),
+			"visible" = place_sentries,
+			"disabled" = !place_sentries,
+		),
+		list(
+			"id" = "sentry_profile",
+			"label" = "Стиль турелей",
+			"kind" = "select",
+			"group" = "Турели",
+			"description" = "Определяет, насколько турели прижимаются к проходам или смещаются внутрь.",
+			"value" = current_params["sentry_profile"] || "profile",
+			"options" = build_sentry_profile_options(),
 			"visible" = place_sentries,
 			"disabled" = !place_sentries,
 		),
@@ -125,7 +136,7 @@
 			"label" = "Тип турели",
 			"kind" = "select",
 			"group" = "Турели",
-			"description" = "Разрешённый тип турели для внутренних охранных позиций.",
+			"description" = "Разрешенный тип human_ai_defense sentry для внутренних охранных позиций.",
 			"value" = "[current_params["sentry_path"] || default_sentry_path]",
 			"options" = build_type_options(allowed_sentry_types),
 			"visible" = place_sentries,
@@ -133,10 +144,10 @@
 		),
 		list(
 			"id" = "faction",
-			"label" = "Фракция IFF",
+			"label" = "IFF-фракция",
 			"kind" = "select",
 			"group" = "Турели",
-			"description" = "Фракция, которая будет передана турелям human_ai_defense.",
+			"description" = "Фракция, которая передается создаваемым турелям human_ai_defense.",
 			"value" = current_params["faction"] || FACTION_MARINE,
 			"options" = faction_options,
 			"visible" = place_sentries,
@@ -144,10 +155,10 @@
 		),
 		list(
 			"id" = "turned_on",
-			"label" = "Включить турели сразу",
+			"label" = "Включить сразу",
 			"kind" = "boolean",
 			"group" = "Турели",
-			"description" = "Включает турели сразу после установки.",
+			"description" = "Включает созданные турели сразу после размещения.",
 			"value" = current_params["turned_on"] ? TRUE : FALSE,
 			"visible" = place_sentries,
 			"disabled" = !place_sentries,
@@ -168,11 +179,13 @@
 			var/current_sentry_path = resolve_whitelisted_type(new_params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
 			if(!current_sentry_path)
 				new_params["sentry_path"] = family_profile["default_sentry_path"] || /datum/human_ai_defense/defense/sentry/uscm
+			if(isnull(resolve_sentry_profile(new_params["sentry_profile"], family_profile)))
+				new_params["sentry_profile"] = "profile"
 
 		if("layout_variant")
 			var/layout_id = resolve_outpost_layout_id(value)
 			if(!layout_id)
-				return "Выбран недопустимый вариант схемы форпоста."
+				return "Выбрана недопустимая схема форпоста."
 			new_params[param_id] = layout_id
 
 		if("opening_width")
@@ -206,7 +219,7 @@
 		if("barricade_pattern")
 			var/pattern_value = resolve_barricade_pattern(value, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id()))
 			if(isnull(pattern_value))
-				return "Выбрана недопустимая схема баррикад."
+				return "Выбрана недопустимая раскладка баррикад."
 			new_params[param_id] = "[value]"
 
 		if("place_sentries")
@@ -215,7 +228,13 @@
 		if("guard_mode")
 			var/guard_mode = resolve_guard_mode(value)
 			if(isnull(guard_mode))
-				return "Выбран недопустимый режим охвата турелей."
+				return "Выбран недопустимый режим охраны турелей."
+			new_params[param_id] = "[value]"
+
+		if("sentry_profile")
+			var/sentry_profile = resolve_sentry_profile(value, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id()))
+			if(isnull(sentry_profile))
+				return "Выбран недопустимый стиль турелей."
 			new_params[param_id] = "[value]"
 
 		if("sentry_path")
@@ -226,7 +245,7 @@
 
 		if("faction")
 			if(!("[value]" in valid_factions))
-				return "Выбрана недопустимая фракция для турели."
+				return "Выбрана недопустимая IFF-фракция."
 			new_params[param_id] = "[value]"
 
 		if("turned_on")
@@ -246,8 +265,8 @@
 		layout_id = get_default_outpost_layout_id()
 	var/list/family_profile = get_outpost_family_profile(family_id)
 	var/list/layout_profile = get_outpost_layout_profile(layout_id)
-	return "Применить профиль '[family_profile["label"] || "Форпост"] / [layout_profile["label"] || "Крест"]' с отступом периметра [params["radius"]]?"
+	return "Применить '[family_profile["label"] || "Форпост"] / [layout_profile["label"] || "Крест"]' со смещением периметра [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	return "family=[params["family"] || get_default_outpost_family_id()] layout=[params["layout_variant"] || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_type=[params["sentry_path"]]"
+	return "family=[resolve_outpost_family_id(params["family"]) || get_default_outpost_family_id()] layout=[resolve_outpost_layout_id(params["layout_variant"]) || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_profile=[params["sentry_profile"] || "profile"] sentry_type=[params["sentry_path"]]"
