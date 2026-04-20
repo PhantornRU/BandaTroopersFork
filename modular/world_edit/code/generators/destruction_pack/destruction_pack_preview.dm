@@ -1,4 +1,8 @@
-/datum/world_edit_generator/destruction_pack/proc/build_preview_style_catalog()
+/datum/world_edit_generator/destruction_pack/proc/build_preview_style_catalog(datum/world_edit_plan/plan = null)
+	var/fire_color = istype(plan) ? sanitize_hexcolor(plan.metadata["persistent_fire_preview_color"], "") : ""
+	if(!length(fire_color))
+		fire_color = get_persistent_fire_preset_color(get_default_persistent_fire_color_id())
+
 	return list(
 		"move" = list(
 			"icon_state" = "greenOverlay",
@@ -7,7 +11,7 @@
 		),
 		"fire" = list(
 			"icon_state" = "greenOverlay",
-			"color" = rgb(255, 148, 56),
+			"color" = fire_color,
 			"priority" = 20,
 		),
 		"damage" = list(
@@ -41,7 +45,7 @@
 	if(!istype(plan))
 		return preview_images
 
-	var/list/style_catalog = build_preview_style_catalog()
+	var/list/style_catalog = build_preview_style_catalog(plan)
 	var/list/style_lookup = list()
 
 	for(var/list/placement as anything in plan.placements)

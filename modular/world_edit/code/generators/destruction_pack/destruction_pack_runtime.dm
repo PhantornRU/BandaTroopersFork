@@ -50,13 +50,18 @@
 				skipped_runtime++
 				continue
 
+			var/fire_color = sanitize_hexcolor(placement["fire_color"], plan.metadata["persistent_fire_color"])
+			var/fire_mode = resolve_persistent_fire_mode(placement["fire_mode"]) || plan.metadata["persistent_fire_mode"] || get_default_persistent_fire_mode()
 			var/obj/effect/world_edit_persistent_fire/fire = new /obj/effect/world_edit_persistent_fire(target_turf)
 			if(!istype(fire))
 				skipped_runtime++
 				continue
+			fire.configure_persistent_fire(fire_color, fire_mode)
 			fire.set_world_edit_owner(changeset.operation_id, definition?.id)
 			changeset.add_owned_effect(fire, changeset.operation_id, target_turf, list(
 				"kind" = "persistent_fire",
+				"fire_color" = fire.fire_color,
+				"fire_mode" = fire.fire_mode,
 			))
 			fire_count++
 			continue
@@ -161,12 +166,16 @@
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/persistent_fire_mode = get_persistent_fire_mode_label(params["persistent_fire_mode"])
+	var/persistent_fire_color = get_persistent_fire_color_label(params["persistent_fire_color"], params["persistent_fire_custom_color"])
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 
 	return list(
 		list("label" = "Move mode", "value" = (shuffle_enabled || scatter_enabled) ? "active" : "off"),
 		list("label" = "Persistent fire", "value" = persistent_fire_enabled ? "active" : "off"),
+		list("label" = "Fire mode", "value" = persistent_fire_enabled ? persistent_fire_mode : "n/a"),
+		list("label" = "Fire color", "value" = persistent_fire_enabled ? persistent_fire_color : "n/a"),
 		list("label" = "Blast", "value" = blast_enabled ? "active" : "off"),
 		list("label" = "Damage profile", "value" = get_damage_profile_label(damage_profile)),
 		list("label" = "Fire cap", "value" = "[get_persistent_fire_cap()] tiles"),

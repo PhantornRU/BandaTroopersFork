@@ -28,6 +28,9 @@ const getDestructionPreviewLegendItems = (
   data: BackendData,
 ): PreviewLegendItem[] => {
   const previewMeta = data.preview_meta || {};
+  const firePreviewColor = data.preview_valid
+    ? `${previewMeta.persistent_fire_preview_color || '#ff9438'}`
+    : '#ff9438';
   const fireEnabled = !!getField(data.ui_fields, 'persistent_fire_enabled')
     ?.value;
   const blastEnabled = !!getField(data.ui_fields, 'blast_enabled')?.value;
@@ -48,7 +51,7 @@ const getDestructionPreviewLegendItems = (
 
   return [
     ...(moveEnabled ? [{ label: 'Перемещение', color: '#4e8eff' }] : []),
-    ...(previewFireEnabled ? [{ label: 'Огонь', color: '#ff9438' }] : []),
+    ...(previewFireEnabled ? [{ label: 'Огонь', color: firePreviewColor }] : []),
     ...(previewDamageEnabled ? [{ label: 'Урон', color: '#b85cff' }] : []),
     ...(previewBlastEnabled ? [{ label: 'Взрыв', color: '#ff4e4e' }] : []),
   ];
@@ -125,6 +128,9 @@ const getDestructionWorkspaceViewModel = (
   const fireFields = getFieldsById(data.ui_fields, [
     'persistent_fire_enabled',
     'persistent_fire_density',
+    'persistent_fire_mode',
+    'persistent_fire_color',
+    'persistent_fire_custom_color',
   ]);
   const blastFields = getFieldsById(data.ui_fields, [
     'blast_enabled',

@@ -92,6 +92,9 @@
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
 	var/persistent_fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
+	var/persistent_fire_mode = resolve_persistent_fire_mode(params["persistent_fire_mode"])
+	var/persistent_fire_color_id = resolve_persistent_fire_color_id(params["persistent_fire_color"])
+	var/persistent_fire_color = resolve_persistent_fire_color(persistent_fire_color_id, params["persistent_fire_custom_color"])
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/blast_power = text2num("[params["blast_power"]]") || get_blast_power_default()
 	var/blast_falloff = text2num("[params["blast_falloff"]]") || get_blast_falloff_default()
@@ -99,6 +102,23 @@
 	if(isnull(damage_profile))
 		plan.metadata["error"] = "Invalid damage profile selected."
 		return plan
+	if(persistent_fire_enabled && isnull(persistent_fire_mode))
+		plan.metadata["error"] = "Invalid persistent fire mode selected."
+		return plan
+	if(persistent_fire_enabled && isnull(persistent_fire_color_id))
+		plan.metadata["error"] = "Invalid persistent fire color selected."
+		return plan
+	if(persistent_fire_enabled && isnull(persistent_fire_color))
+		plan.metadata["error"] = "Custom persistent fire color must be a hex value like #ff9933."
+		return plan
+	if(isnull(persistent_fire_mode))
+		persistent_fire_mode = get_default_persistent_fire_mode()
+	if(isnull(persistent_fire_color_id))
+		persistent_fire_color_id = get_default_persistent_fire_color_id()
+	if(isnull(persistent_fire_color))
+		persistent_fire_color = get_persistent_fire_preset_color(persistent_fire_color_id)
+	var/persistent_fire_mode_label = get_persistent_fire_mode_label(persistent_fire_mode)
+	var/persistent_fire_color_label = get_persistent_fire_color_label(persistent_fire_color_id, params["persistent_fire_custom_color"])
 
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_high_risk_mode = blast_enabled || damage_profile != "none"
@@ -126,7 +146,7 @@
 		return plan
 
 	var/plan_seed = build_plan_seed(params, seed_turfs)
-	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(influence_turfs, influence_lookup, persistent_fire_density, plan_seed) : list()
+	var/list/fire_entries = persistent_fire_enabled ? build_persistent_fire_entries(influence_turfs, influence_lookup, persistent_fire_density, plan_seed, persistent_fire_color, persistent_fire_mode) : list()
 	var/list/blast_entries = blast_enabled ? build_blast_entries(seed_turfs, center_turf, radius, blast_power, blast_falloff, plan_seed) : list()
 	var/list/damage_entries = build_damage_entries(influence_turfs, influence_lookup, damage_profile, plan_seed)
 
@@ -156,6 +176,12 @@
 	plan.metadata["scatter"] = scatter_enabled
 	plan.metadata["persistent_fire"] = persistent_fire_enabled
 	plan.metadata["persistent_fire_density"] = persistent_fire_density
+	plan.metadata["persistent_fire_mode"] = persistent_fire_mode
+	plan.metadata["persistent_fire_mode_label"] = persistent_fire_mode_label
+	plan.metadata["persistent_fire_color_id"] = persistent_fire_color_id
+	plan.metadata["persistent_fire_color"] = persistent_fire_color
+	plan.metadata["persistent_fire_color_label"] = persistent_fire_color_label
+	plan.metadata["persistent_fire_preview_color"] = persistent_fire_color
 	plan.metadata["persistent_fire_cap"] = get_persistent_fire_cap()
 	plan.metadata["blast"] = blast_enabled
 	plan.metadata["blast_power"] = blast_power
@@ -263,6 +289,14 @@
 		var/persistent_fire_density = coerce_persistent_fire_density_percent(params["persistent_fire_density"])
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
 			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
+		var/persistent_fire_mode = resolve_persistent_fire_mode(params["persistent_fire_mode"])
+		if(isnull(persistent_fire_mode))
+			return "persistent_fire_mode must be either damaging or decorative."
+		var/persistent_fire_color_id = resolve_persistent_fire_color_id(params["persistent_fire_color"])
+		if(isnull(persistent_fire_color_id))
+			return "persistent_fire_color must be one of amber, white, red, blue, green, violet, or custom."
+		if(persistent_fire_color_id == "custom" && !length(normalize_persistent_fire_custom_color(params["persistent_fire_custom_color"])))
+			return "persistent_fire_custom_color must be a hex value like #ff9933 when the custom fire color is selected."
 
 	if(blast_enabled)
 		var/blast_power = text2num("[params["blast_power"]]")

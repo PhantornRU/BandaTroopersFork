@@ -1,6 +1,9 @@
 /datum/world_edit_generator/destruction_pack/get_ui_fields(list/current_params)
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])
 	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(current_params["persistent_fire_enabled"])
+	var/persistent_fire_mode = resolve_persistent_fire_mode(current_params["persistent_fire_mode"]) || get_default_persistent_fire_mode()
+	var/persistent_fire_color_id = resolve_persistent_fire_color_id(current_params["persistent_fire_color"]) || get_default_persistent_fire_color_id()
+	var/persistent_fire_custom_color = trim(sanitize_text(current_params["persistent_fire_custom_color"], ""))
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(current_params["blast_enabled"])
 	var/damage_profile = resolve_damage_profile(current_params["damage_profile"])
 
@@ -76,6 +79,42 @@
 			"min" = get_persistent_fire_density_min(),
 			"max" = get_persistent_fire_density_max(),
 			"step" = 1,
+			"visible" = persistent_fire_enabled,
+			"disabled" = !persistent_fire_enabled,
+		),
+		list(
+			"id" = "persistent_fire_mode",
+			"label" = "Fire Mode",
+			"kind" = "select",
+			"group" = "Fire",
+			"description" = "Choose whether the persistent fire burns targets or stays decorative-only.",
+			"value" = persistent_fire_mode,
+			"options" = build_persistent_fire_mode_options(),
+			"visible" = persistent_fire_enabled,
+			"disabled" = !persistent_fire_enabled,
+		),
+		list(
+			"id" = "persistent_fire_color",
+			"label" = "Fire Color",
+			"kind" = "select",
+			"group" = "Fire",
+			"description" = "Select the flame tint used both in preview and at runtime.",
+			"value" = persistent_fire_color_id,
+			"options" = build_persistent_fire_color_options(),
+			"visible" = persistent_fire_enabled,
+			"disabled" = !persistent_fire_enabled,
+		),
+		list(
+			"id" = "persistent_fire_custom_color",
+			"label" = "Custom Fire Color",
+			"kind" = "text",
+			"group" = "Fire",
+			"description" = "Custom fire hex color in the form #RRGGBB.",
+			"validate_hint" = "Use a full hex color, for example #4fc3ff.",
+			"placeholder" = "#RRGGBB",
+			"value" = persistent_fire_custom_color,
+			"visible" = persistent_fire_enabled && persistent_fire_color_id == "custom",
+			"disabled" = !persistent_fire_enabled || persistent_fire_color_id != "custom",
 		),
 		list(
 			"id" = "blast_enabled",
@@ -179,9 +218,28 @@
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 			if(new_params[param_id] && isnull(new_params["persistent_fire_density"]))
 				new_params["persistent_fire_density"] = get_persistent_fire_density_default()
+			if(new_params[param_id] && isnull(new_params["persistent_fire_mode"]))
+				new_params["persistent_fire_mode"] = get_default_persistent_fire_mode()
+			if(new_params[param_id] && isnull(new_params["persistent_fire_color"]))
+				new_params["persistent_fire_color"] = get_default_persistent_fire_color_id()
 
 		if("persistent_fire_density")
 			new_params[param_id] = normalize_persistent_fire_density_percent(value)
+
+		if("persistent_fire_mode")
+			var/fire_mode = resolve_persistent_fire_mode(value)
+			if(isnull(fire_mode))
+				return "Invalid persistent fire mode selected."
+			new_params[param_id] = fire_mode
+
+		if("persistent_fire_color")
+			var/fire_color_id = resolve_persistent_fire_color_id(value)
+			if(isnull(fire_color_id))
+				return "Invalid persistent fire color selected."
+			new_params[param_id] = fire_color_id
+
+		if("persistent_fire_custom_color")
+			new_params[param_id] = trim(sanitize_text(value, ""))
 
 		if("blast_enabled")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
@@ -215,12 +273,17 @@
 
 /datum/world_edit_generator/destruction_pack/get_apply_confirmation_text(list/params)
 	var/fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
+	var/fire_mode = get_persistent_fire_mode_label(params["persistent_fire_mode"])
+	var/fire_color = get_persistent_fire_color_label(params["persistent_fire_color"], params["persistent_fire_custom_color"])
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/damage_profile = get_damage_profile_label(params["damage_profile"])
 	var/undo_policy = (blast_enabled || resolve_damage_profile(params["damage_profile"]) != "none") ? WORLD_EDIT_UNDO_NONE : WORLD_EDIT_UNDO_PARTIAL
-	return "Применить разрушение зоны? Радиус воздействия [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_enabled ? "да" : "нет"], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
+	var/fire_summary = fire_enabled ? "да ([fire_mode], [fire_color])" : "нет"
+	return "Применить разрушение зоны? Радиус воздействия [params["radius"]], перемещение=[params["shuffle_enabled"]], разброс=[params["scatter_enabled"]], огонь=[fire_summary], взрыв=[blast_enabled ? "да" : "нет"], урон=[damage_profile], откат=[undo_policy]."
 
 /datum/world_edit_generator/destruction_pack/get_params_short(list/params)
 	var/fire_density = normalize_persistent_fire_density_percent(params["persistent_fire_density"])
+	var/fire_mode = resolve_persistent_fire_mode(params["persistent_fire_mode"]) || get_default_persistent_fire_mode()
+	var/fire_color = resolve_persistent_fire_color(params["persistent_fire_color"], params["persistent_fire_custom_color"]) || get_persistent_fire_preset_color(get_default_persistent_fire_color_id())
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	return "impact_radius=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	return "impact_radius=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] fire_mode=[fire_mode] fire_color=[fire_color] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"

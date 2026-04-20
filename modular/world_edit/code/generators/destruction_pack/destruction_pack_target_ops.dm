@@ -150,6 +150,9 @@
 	seed = (seed * 37) + (text2num("[params["blast_power"]]") || 0)
 	seed = (seed * 37) + (text2num("[params["blast_falloff"]]") || 0)
 	seed = (seed * 37) + (resolve_damage_profile(params["damage_profile"]) == "collapse" ? 2 : resolve_damage_profile(params["damage_profile"]) == "ruin" ? 1 : 0)
+	seed = mix_text_plan_seed(seed, resolve_persistent_fire_mode(params["persistent_fire_mode"]) || get_default_persistent_fire_mode())
+	seed = mix_text_plan_seed(seed, resolve_persistent_fire_color_id(params["persistent_fire_color"]) || get_default_persistent_fire_color_id())
+	seed = mix_text_plan_seed(seed, trim(sanitize_text(params["persistent_fire_custom_color"], "")))
 
 	for(var/turf/seed_turf as anything in seed_turfs)
 		if(!istype(seed_turf))
@@ -157,6 +160,15 @@
 		seed = (seed * 131) + (seed_turf.x * 17) + (seed_turf.y * 19) + (seed_turf.z * 23)
 
 	return round(abs(seed))
+
+/datum/world_edit_generator/destruction_pack/proc/mix_text_plan_seed(seed, value)
+	var/text_value = "[value]"
+	if(!length(text_value) || text_value == "null")
+		return seed
+
+	for(var/i in 1 to length(text_value))
+		seed = (seed * 131) + text2ascii(text_value, i)
+	return seed
 
 /datum/world_edit_generator/destruction_pack/proc/get_deterministic_turf_score(plan_seed, turf/target_turf, salt = 0)
 	if(!istype(target_turf))

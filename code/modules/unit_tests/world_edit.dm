@@ -3550,6 +3550,85 @@
 	TEST_ASSERT(fire_bands["core"], "World Edit destruction persistent-fire reach test should still favor the core band.")
 	TEST_ASSERT(fire_bands["outer"], "World Edit destruction persistent-fire reach test should also place fire on the outer band.")
 
+/datum/unit_test/world_edit_corner_slots/destruction_persistent_fire_plan_keeps_mode_and_color/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction persistent-fire mode/color test center turf was not resolved.")
+
+	var/list/params = list(
+		"radius" = 2,
+		"shuffle_enabled" = FALSE,
+		"scatter_enabled" = FALSE,
+		"persistent_fire_enabled" = TRUE,
+		"persistent_fire_density" = 100,
+		"persistent_fire_mode" = "decorative",
+		"persistent_fire_color" = "custom",
+		"persistent_fire_custom_color" = "#33aaff",
+		"blast_enabled" = FALSE,
+		"damage_profile" = "none",
+		"max_atoms" = 60,
+		"scatter_steps" = 2,
+	)
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit destruction persistent-fire mode/color test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit destruction persistent-fire mode/color test should build a valid plan.")
+	TEST_ASSERT_EQUAL(plan.metadata["persistent_fire_mode"], "decorative", "World Edit destruction persistent-fire mode/color test should keep the selected fire mode in plan metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["persistent_fire_color"], "#33aaff", "World Edit destruction persistent-fire mode/color test should keep the resolved custom fire color in plan metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["persistent_fire_preview_color"], "#33aaff", "World Edit destruction persistent-fire mode/color test should publish the resolved fire color for preview consumers.")
+
+	var/fire_entries = 0
+	for(var/list/placement as anything in plan.placements)
+		if(placement["kind"] != "fire")
+			continue
+		fire_entries++
+		TEST_ASSERT_EQUAL(placement["fire_mode"], "decorative", "World Edit destruction persistent-fire mode/color test should stamp the selected mode onto each fire placement.")
+		TEST_ASSERT_EQUAL(placement["fire_color"], "#33aaff", "World Edit destruction persistent-fire mode/color test should stamp the resolved color onto each fire placement.")
+
+	TEST_ASSERT(fire_entries > 0, "World Edit destruction persistent-fire mode/color test should produce fire placements for the selected area.")
+
+/datum/unit_test/world_edit_corner_slots/destruction_persistent_fire_validation_rejects_bad_custom_hex/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/list/params = list(
+		"radius" = 2,
+		"shuffle_enabled" = FALSE,
+		"scatter_enabled" = FALSE,
+		"persistent_fire_enabled" = TRUE,
+		"persistent_fire_density" = 50,
+		"persistent_fire_mode" = "damaging",
+		"persistent_fire_color" = "custom",
+		"persistent_fire_custom_color" = "blue",
+		"blast_enabled" = FALSE,
+		"damage_profile" = "none",
+		"max_atoms" = 60,
+		"scatter_steps" = 2,
+	)
+
+	var/error_text = generator.validate_params(null, params)
+	TEST_ASSERT(length("[error_text]"), "World Edit destruction persistent-fire validation test should reject invalid custom fire colors.")
+
+/datum/unit_test/world_edit_corner_slots/world_edit_persistent_fire_configuration_updates_runtime_contract/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit persistent-fire runtime contract test center turf was not resolved.")
+
+	var/obj/effect/world_edit_persistent_fire/fire = allocate(/obj/effect/world_edit_persistent_fire, center_turf)
+	TEST_ASSERT_NOTNULL(fire, "World Edit persistent-fire runtime contract test should create a persistent fire object.")
+	fire.configure_persistent_fire("#33aaff", "decorative")
+
+	TEST_ASSERT_EQUAL(fire.fire_color, "#33aaff", "World Edit persistent-fire runtime contract test should update the fire color.")
+	TEST_ASSERT_EQUAL(fire.light_color, "#33aaff", "World Edit persistent-fire runtime contract test should keep the light color aligned with the configured fire color.")
+	TEST_ASSERT_EQUAL(fire.color, "#33aaff", "World Edit persistent-fire runtime contract test should tint the visual to the configured fire color.")
+	TEST_ASSERT(fire.is_decorative_mode(), "World Edit persistent-fire runtime contract test should expose decorative mode after configuration.")
+
 /datum/unit_test/world_edit_corner_slots/destruction_blast_centers_cap_and_spacing_hold_for_large_seed_sets/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
 	var/turf/center_turf = get_world_edit_test_center_turf()

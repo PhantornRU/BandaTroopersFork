@@ -10,6 +10,139 @@
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_density_default()
 	return 10
 
+/datum/world_edit_generator/destruction_pack/proc/get_default_persistent_fire_mode()
+	return "damaging"
+
+/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_mode_options()
+	return list(
+		list(
+			"label" = "Burning",
+			"value" = "damaging",
+			"description" = "Emits heat, ignites mobs, and damages the turf over time.",
+		),
+		list(
+			"label" = "Decorative",
+			"value" = "decorative",
+			"description" = "Visual-only fire. Keeps the light and owned cleanup path, but does not damage mobs or turfs.",
+		),
+	)
+
+/datum/world_edit_generator/destruction_pack/proc/resolve_persistent_fire_mode(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_persistent_fire_mode()
+
+	var/resolved_value = lowertext(trim("[value]"))
+	switch(resolved_value)
+		if("damaging", "decorative")
+			return resolved_value
+	return null
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_mode_label(mode)
+	switch(resolve_persistent_fire_mode(mode))
+		if("decorative")
+			return "Decorative"
+	return "Burning"
+
+/datum/world_edit_generator/destruction_pack/proc/get_default_persistent_fire_color_id()
+	return "amber"
+
+/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_color_options()
+	return list(
+		list(
+			"label" = "Amber",
+			"value" = "amber",
+			"description" = "Legacy World Edit fire color.",
+		),
+		list(
+			"label" = "White",
+			"value" = "white",
+			"description" = "Cold white flame for sterile or electrical scenes.",
+		),
+		list(
+			"label" = "Red",
+			"value" = "red",
+			"description" = "Alarm-like red flame.",
+		),
+		list(
+			"label" = "Blue",
+			"value" = "blue",
+			"description" = "Hot blue flame.",
+		),
+		list(
+			"label" = "Green",
+			"value" = "green",
+			"description" = "Toxic or chemical-looking flame.",
+		),
+		list(
+			"label" = "Violet",
+			"value" = "violet",
+			"description" = "Synthetic violet flame.",
+		),
+		list(
+			"label" = "Custom",
+			"value" = "custom",
+			"description" = "Use a custom #RRGGBB color.",
+		),
+	)
+
+/datum/world_edit_generator/destruction_pack/proc/resolve_persistent_fire_color_id(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_persistent_fire_color_id()
+
+	var/resolved_value = lowertext(trim("[value]"))
+	switch(resolved_value)
+		if("amber", "white", "red", "blue", "green", "violet", "custom")
+			return resolved_value
+	return null
+
+/datum/world_edit_generator/destruction_pack/proc/normalize_persistent_fire_custom_color(value)
+	var/raw_value = trim(sanitize_text(value, ""))
+	if(!length(raw_value))
+		return ""
+	return sanitize_hexcolor(raw_value, "")
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_preset_color(color_id)
+	switch(resolve_persistent_fire_color_id(color_id))
+		if("white")
+			return "#f4f7ff"
+		if("red")
+			return "#ff5f63"
+		if("blue")
+			return "#4fc3ff"
+		if("green")
+			return "#6aff8f"
+		if("violet")
+			return "#c284ff"
+	return "#ff8c2b"
+
+/datum/world_edit_generator/destruction_pack/proc/resolve_persistent_fire_color(color_id, custom_color = null)
+	var/resolved_color_id = resolve_persistent_fire_color_id(color_id)
+	if(isnull(resolved_color_id))
+		return null
+	if(resolved_color_id == "custom")
+		var/resolved_custom_color = normalize_persistent_fire_custom_color(custom_color)
+		if(!length(resolved_custom_color))
+			return null
+		return resolved_custom_color
+	return get_persistent_fire_preset_color(resolved_color_id)
+
+/datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_color_label(color_id, custom_color = null)
+	switch(resolve_persistent_fire_color_id(color_id))
+		if("white")
+			return "White"
+		if("red")
+			return "Red"
+		if("blue")
+			return "Blue"
+		if("green")
+			return "Green"
+		if("violet")
+			return "Violet"
+		if("custom")
+			var/resolved_custom_color = normalize_persistent_fire_custom_color(custom_color)
+			return length(resolved_custom_color) ? "Custom ([resolved_custom_color])" : "Custom"
+	return "Amber"
+
 /datum/world_edit_generator/destruction_pack/proc/get_blast_power_min()
 	return 100
 
@@ -248,10 +381,13 @@
 
 	return damaged_turf_count
 
-/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/influence_turfs, list/influence_lookup, density, plan_seed)
+/datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_entries(list/influence_turfs, list/influence_lookup, density, plan_seed, fire_color = null, fire_mode = null)
 	var/list/fire_entries = list()
 	if(!length(influence_turfs) || density <= 0)
 		return fire_entries
+
+	var/resolved_fire_color = sanitize_hexcolor(fire_color, get_persistent_fire_preset_color(get_default_persistent_fire_color_id()))
+	var/resolved_fire_mode = resolve_persistent_fire_mode(fire_mode) || get_default_persistent_fire_mode()
 
 	var/density_ratio = density / 100
 	var/target_count = round(length(influence_turfs) * density_ratio)
@@ -264,6 +400,40 @@
 		if(can_place_persistent_fire_on_turf(target_turf))
 			pool += target_turf
 
+	if(target_count > 1)
+		var/list/core_pool = list()
+		var/list/outer_pool = list()
+		for(var/turf/candidate_turf as anything in pool)
+			var/list/influence_info = islist(influence_lookup) ? influence_lookup[candidate_turf] : null
+			var/band = islist(influence_info) ? "[influence_info["band"]]" : ""
+			if(band == "core")
+				core_pool += candidate_turf
+			else if(band == "outer")
+				outer_pool += candidate_turf
+
+		var/turf/core_turf = pick_weighted_turf(core_pool, influence_lookup, plan_seed, 700)
+		if(istype(core_turf))
+			pool -= core_turf
+			fire_entries += list(list(
+				"kind" = "fire",
+				"turf" = core_turf,
+				"fire_color" = resolved_fire_color,
+				"fire_mode" = resolved_fire_mode,
+			))
+			target_count--
+
+		if(target_count > 0)
+			var/turf/outer_turf = pick_weighted_turf(outer_pool, influence_lookup, plan_seed, 900)
+			if(istype(outer_turf) && outer_turf in pool)
+				pool -= outer_turf
+				fire_entries += list(list(
+					"kind" = "fire",
+					"turf" = outer_turf,
+					"fire_color" = resolved_fire_color,
+					"fire_mode" = resolved_fire_mode,
+				))
+				target_count--
+
 	while(target_count > 0 && length(pool))
 		var/turf/selected_turf = pick_weighted_turf(pool, influence_lookup, plan_seed, 1000 + length(fire_entries))
 		if(!istype(selected_turf))
@@ -273,6 +443,8 @@
 		fire_entries += list(list(
 			"kind" = "fire",
 			"turf" = selected_turf,
+			"fire_color" = resolved_fire_color,
+			"fire_mode" = resolved_fire_mode,
 		))
 		target_count--
 
