@@ -39,6 +39,7 @@
 	var/list/final_turfs = list()
 	var/list/guide_turfs = list()
 	var/list/generator_effect_turfs = list()
+	var/preview_render_token = null
 
 /datum/world_edit_preview_model/proc/as_preview_layers()
 	return list(
@@ -49,6 +50,7 @@
 		"final_turfs" = islist(final_turfs) ? final_turfs.Copy() : list(),
 		"guide_turfs" = islist(guide_turfs) ? guide_turfs.Copy() : list(),
 		"generator_effect_turfs" = islist(generator_effect_turfs) ? generator_effect_turfs.Copy() : list(),
+		"preview_render_token" = preview_render_token,
 	)
 
 /datum/world_edit_placement_candidate
@@ -61,6 +63,7 @@
 	var/list/collector_state_summary = list()
 	var/list/runtime_params = list()
 	var/list/placement_context = list()
+	var/preview_render_token = null
 
 /datum/world_edit_placement_candidate/proc/is_preview_ready()
 	if(length("[resolve_error]"))

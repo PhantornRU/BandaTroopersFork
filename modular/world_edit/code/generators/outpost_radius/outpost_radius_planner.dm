@@ -145,7 +145,7 @@
 
 	return area_turfs
 
-/datum/world_edit_generator/outpost_radius/proc/filter_outpost_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null)
+/datum/world_edit_generator/outpost_radius/proc/filter_outpost_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null, list/pinned_lookup_override = null, list/approach_line_cache = null, list/approach_result_cache = null)
 	var/list/result = list()
 	var/list/result_lookup = list()
 	var/list/policy = islist(radius_policy) ? radius_policy : GLOB.world_edit_helpers.get_world_edit_radius_policy(radius_policy)
@@ -153,7 +153,7 @@
 	var/only_reachable_tiles = !!policy["only_reachable_tiles"]
 	var/treat_windows_as_blockers = !!policy["treat_windows_as_blockers"]
 	var/list/start_lookup = list()
-	var/list/pinned_lookup = list()
+	var/list/pinned_lookup = islist(pinned_lookup_override) ? pinned_lookup_override : list()
 	var/z_level = null
 
 	if(islist(start_turfs))
@@ -166,15 +166,17 @@
 				continue
 			start_lookup[start_turf] = TRUE
 
-	if(islist(pinned_turfs))
-		for(var/turf/pinned_turf as anything in pinned_turfs)
+	var/list/pinned_source = islist(pinned_lookup_override) ? pinned_lookup_override : pinned_turfs
+	if(islist(pinned_source))
+		for(var/turf/pinned_turf as anything in pinned_source)
 			if(!istype(pinned_turf))
 				continue
 			if(isnull(z_level))
 				z_level = pinned_turf.z
 			if(pinned_turf.z != z_level || pinned_lookup[pinned_turf])
 				continue
-			pinned_lookup[pinned_turf] = TRUE
+			if(!islist(pinned_lookup_override))
+				pinned_lookup[pinned_turf] = TRUE
 			if(!result_lookup[pinned_turf])
 				result_lookup[pinned_turf] = TRUE
 				result += pinned_turf
@@ -209,7 +211,7 @@
 
 			var/is_allowed = FALSE
 			for(var/turf/start_turf as anything in start_lookup)
-				if(has_clear_outpost_approach(start_turf, candidate_turf, treat_windows_as_blockers, pinned_lookup))
+				if(has_clear_outpost_approach(start_turf, candidate_turf, treat_windows_as_blockers, pinned_lookup, approach_line_cache, approach_result_cache))
 					is_allowed = TRUE
 					break
 
@@ -260,7 +262,7 @@
 
 	return result
 
-/datum/world_edit_generator/outpost_radius/proc/filter_outpost_slots_by_radius_policy(list/start_turfs, list/candidate_slots, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null)
+/datum/world_edit_generator/outpost_radius/proc/filter_outpost_slots_by_radius_policy(list/start_turfs, list/candidate_slots, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null, list/pinned_lookup_override = null, list/approach_line_cache = null, list/approach_result_cache = null)
 	if(!islist(candidate_slots) || !length(candidate_slots))
 		return list()
 
@@ -273,7 +275,7 @@
 		candidate_turf_lookup[target_turf] = TRUE
 		candidate_turfs += target_turf
 
-	var/list/allowed_turfs = filter_outpost_candidate_turfs(start_turfs, candidate_turfs, traversal_turfs, radius_policy, pinned_turfs || start_turfs)
+	var/list/allowed_turfs = filter_outpost_candidate_turfs(start_turfs, candidate_turfs, traversal_turfs, radius_policy, pinned_turfs || start_turfs, pinned_lookup_override, approach_line_cache, approach_result_cache)
 	var/list/allowed_lookup = build_turf_lookup(allowed_turfs)
 	var/list/filtered_slots = list()
 	for(var/list/candidate_slot as anything in candidate_slots)
@@ -291,12 +293,35 @@
 		return footprint_turfs[1]
 	return null
 
-/datum/world_edit_generator/outpost_radius/proc/has_clear_outpost_approach(turf/start_turf, turf/target_turf, treat_windows_as_blockers, list/pinned_lookup = null)
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_approach_line_cache_key(turf/start_turf, turf/target_turf)
+	if(!istype(start_turf) || !istype(target_turf))
+		return null
+	return "[REF(start_turf)]>[REF(target_turf)]"
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_approach_result_cache_key(turf/start_turf, turf/target_turf, treat_windows_as_blockers, list/pinned_lookup = null)
+	var/line_key = build_outpost_approach_line_cache_key(start_turf, target_turf)
+	if(!length(line_key))
+		return null
+	var/pinned_lookup_ref = islist(pinned_lookup) ? "[REF(pinned_lookup)]" : ""
+	return "[line_key]|[treat_windows_as_blockers ? 1 : 0]|[pinned_lookup_ref]"
+
+/datum/world_edit_generator/outpost_radius/proc/has_clear_outpost_approach(turf/start_turf, turf/target_turf, treat_windows_as_blockers, list/pinned_lookup = null, list/approach_line_cache = null, list/approach_result_cache = null)
 	if(!istype(start_turf) || !istype(target_turf) || start_turf.z != target_turf.z)
 		return FALSE
 
-	var/list/line_turfs = GLOB.world_edit_helpers.collect_line_turfs(start_turf, target_turf)
+	var/result_cache_key = build_outpost_approach_result_cache_key(start_turf, target_turf, treat_windows_as_blockers, pinned_lookup)
+	if(length(result_cache_key) && islist(approach_result_cache) && !isnull(approach_result_cache[result_cache_key]))
+		return approach_result_cache[result_cache_key]
+
+	var/line_cache_key = build_outpost_approach_line_cache_key(start_turf, target_turf)
+	var/list/line_turfs = length(line_cache_key) && islist(approach_line_cache) ? approach_line_cache[line_cache_key] : null
+	if(!islist(line_turfs))
+		line_turfs = GLOB.world_edit_helpers.collect_line_turfs(start_turf, target_turf)
+		if(length(line_cache_key) && islist(approach_line_cache))
+			approach_line_cache[line_cache_key] = line_turfs
 	if(!length(line_turfs))
+		if(length(result_cache_key) && islist(approach_result_cache))
+			approach_result_cache[result_cache_key] = FALSE
 		return FALSE
 
 	for(var/turf/line_turf as anything in line_turfs)
@@ -307,8 +332,12 @@
 		if(islist(pinned_lookup) && pinned_lookup[line_turf])
 			continue
 		if(!outpost_path_passable(line_turf, treat_windows_as_blockers))
+			if(length(result_cache_key) && islist(approach_result_cache))
+				approach_result_cache[result_cache_key] = FALSE
 			return FALSE
 
+	if(length(result_cache_key) && islist(approach_result_cache))
+		approach_result_cache[result_cache_key] = TRUE
 	return TRUE
 
 /datum/world_edit_generator/outpost_radius/proc/is_outpost_candidate_reachable_from_seed(turf/candidate_turf, list/reachable_lookup)
@@ -664,8 +693,18 @@
 		"candidate_slots" = list(),
 		"filtered_candidate_slots" = list(),
 		"opening_slots" = list(),
+		"opening_slot_keys" = list(),
+		"opening_lookup" = list(),
+		"opening_slots_by_dir" = list(),
+		"guard_dirs" = list(),
+		"guard_slots" = list(),
+		"guard_sentry_candidates" = list(),
+		"raw_sentry_candidate_turfs" = list(),
+		"allowed_sentry_lookup" = list(),
 		"opening_dirs" = list(),
 		"distance_cache" = list(),
+		"approach_line_cache" = list(),
+		"approach_result_cache" = list(),
 	)
 	if(!islist(footprint_turfs) || !length(footprint_turfs))
 		analysis["error"] = "Не удалось определить контур формы."
@@ -696,12 +735,45 @@
 	if(!istype(seed_turf))
 		seed_turf = unique_footprint_turfs[1]
 	var/list/distance_cache = list()
+	var/list/approach_line_cache = list()
+	var/list/approach_result_cache = list()
 	var/list/traversal_turfs = build_shape_radius_area_turfs(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
 	var/list/candidate_slots = build_shape_perimeter_candidates(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
-	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs)
+	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache)
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = get_layout_opening_dirs(layout_profile)
 	var/list/opening_slots = length(opening_dirs) ? select_shape_direction_slots(filtered_candidate_slots, opening_dirs, get_layout_opening_slots_per_dir(layout_profile), shape_bounds) : list()
+	var/list/opening_slot_keys = list()
+	var/list/opening_lookup = list()
+	var/list/opening_slots_by_dir = list()
+	for(var/list/opening_slot as anything in opening_slots)
+		var/opening_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(opening_slot["turf"], opening_slot["dir"])
+		if(!length(opening_slot_key) || opening_lookup[opening_slot_key])
+			continue
+		opening_lookup[opening_slot_key] = TRUE
+		opening_slot_keys += opening_slot_key
+		var/opening_dir = opening_slot["dir"]
+		if(GLOB.world_edit_helpers.is_cardinal_dir(opening_dir))
+			opening_slots_by_dir["[opening_dir]"] = TRUE
+
+	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
+	var/list/guard_slots = list()
+	var/list/guard_sentry_candidates = list()
+	var/list/raw_sentry_candidate_turfs = list()
+	var/list/allowed_sentry_lookup = list()
+	if(config["place_sentries"])
+		guard_slots = select_shape_direction_slots(filtered_candidate_slots, guard_dirs, 1, shape_bounds)
+		var/list/raw_sentry_candidate_lookup = list()
+		for(var/list/guard_slot as anything in guard_slots)
+			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot)
+			guard_sentry_candidates += list(sentry_candidates)
+			for(var/list/sentry_candidate as anything in sentry_candidates)
+				var/turf/sentry_turf = sentry_candidate["turf"]
+				if(!istype(sentry_turf) || raw_sentry_candidate_lookup[sentry_turf])
+					continue
+				raw_sentry_candidate_lookup[sentry_turf] = TRUE
+				raw_sentry_candidate_turfs += sentry_turf
+		allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(list(seed_turf), raw_sentry_candidate_turfs, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache))
 
 	analysis["config"] = config
 	analysis["footprint_turfs"] = unique_footprint_turfs
@@ -712,8 +784,18 @@
 	analysis["candidate_slots"] = candidate_slots
 	analysis["filtered_candidate_slots"] = filtered_candidate_slots
 	analysis["opening_slots"] = opening_slots
+	analysis["opening_slot_keys"] = opening_slot_keys
+	analysis["opening_lookup"] = opening_lookup
+	analysis["opening_slots_by_dir"] = opening_slots_by_dir
+	analysis["guard_dirs"] = guard_dirs
+	analysis["guard_slots"] = guard_slots
+	analysis["guard_sentry_candidates"] = guard_sentry_candidates
+	analysis["raw_sentry_candidate_turfs"] = raw_sentry_candidate_turfs
+	analysis["allowed_sentry_lookup"] = allowed_sentry_lookup
 	analysis["opening_dirs"] = opening_dirs
 	analysis["distance_cache"] = distance_cache
+	analysis["approach_line_cache"] = approach_line_cache
+	analysis["approach_result_cache"] = approach_result_cache
 	return analysis
 
 /datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params, list/placement_context = null, list/shape_analysis = null)
@@ -733,38 +815,19 @@
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/place_sentries = config["place_sentries"]
 	var/turf/seed_turf = shape_analysis["seed_turf"]
-	var/list/traversal_turfs = shape_analysis["traversal_turfs"]
 	var/list/candidate_slots = shape_analysis["filtered_candidate_slots"]
 	if(!length(candidate_slots))
 		plan.metadata["error"] = "Выбранный контур размещения не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
 	var/list/layout_profile = config["layout_profile"]
 	var/list/opening_dirs = shape_analysis["opening_dirs"]
-	var/list/guard_dirs = get_layout_guard_dirs(layout_profile)
+	var/list/guard_dirs = shape_analysis["guard_dirs"]
 	var/list/opening_slots = shape_analysis["opening_slots"]
-	var/list/guard_slots = place_sentries ? select_shape_direction_slots(candidate_slots, guard_dirs, 1, shape_bounds) : list()
-	var/list/guard_sentry_candidates = list()
-	var/list/raw_sentry_candidate_turfs = list()
-	var/list/raw_sentry_candidate_lookup = list()
-	if(place_sentries)
-		for(var/list/guard_slot as anything in guard_slots)
-			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot)
-			guard_sentry_candidates += list(sentry_candidates)
-			for(var/list/sentry_candidate as anything in sentry_candidates)
-				var/turf/sentry_turf = sentry_candidate["turf"]
-				if(!istype(sentry_turf) || raw_sentry_candidate_lookup[sentry_turf])
-					continue
-				raw_sentry_candidate_lookup[sentry_turf] = TRUE
-				raw_sentry_candidate_turfs += sentry_turf
-	var/list/allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(list(seed_turf), raw_sentry_candidate_turfs, traversal_turfs, radius_policy, footprint_turfs))
-	var/list/opening_lookup = list()
-	var/list/opening_seen_lookup = list()
-	for(var/list/opening_slot as anything in opening_slots)
-		var/opening_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(opening_slot["turf"], opening_slot["dir"])
-		if(!length(opening_slot_key) || opening_seen_lookup[opening_slot_key])
-			continue
-		opening_seen_lookup[opening_slot_key] = TRUE
-		opening_lookup[opening_slot_key] = TRUE
+	var/list/guard_slots = shape_analysis["guard_slots"]
+	var/list/guard_sentry_candidates = shape_analysis["guard_sentry_candidates"]
+	var/list/allowed_sentry_lookup = shape_analysis["allowed_sentry_lookup"]
+	var/list/opening_lookup = shape_analysis["opening_lookup"]
+	var/list/opening_slot_keys = shape_analysis["opening_slot_keys"]
 
 	var/list/preview_turf_lookup = list()
 	var/list/barricade_lookup = list()
@@ -801,9 +864,11 @@
 			"defense_path" = select_barricade_path_for_slot(config["barricade_cycle"], candidate_slot["slot_index"] || 1, radius, config["barricade_pattern"]) || config["barricade_path"],
 		))
 
+	var/list/opening_seen_lookup = opening_lookup.Copy()
+	var/opening_index = 1
 	for(var/list/opening_slot as anything in opening_slots)
 		var/turf/open_turf = opening_slot["turf"]
-		var/opening_slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(open_turf, opening_slot["dir"])
+		var/opening_slot_key = opening_slot_keys[opening_index++]
 		if(!length(opening_slot_key) || opening_seen_lookup[opening_slot_key] != TRUE)
 			continue
 		opening_seen_lookup[opening_slot_key] = FALSE
@@ -1084,14 +1149,7 @@
 
 	var/list/opening_dirs = shape_analysis["opening_dirs"]
 	if(length(opening_dirs))
-		var/list/opening_slots = shape_analysis["opening_slots"]
-		var/list/opening_slots_by_dir = list()
-		for(var/list/opening_slot as anything in opening_slots)
-			var/opening_dir = opening_slot["dir"]
-			if(!GLOB.world_edit_helpers.is_cardinal_dir(opening_dir))
-				continue
-			opening_slots_by_dir["[opening_dir]"] = TRUE
-
+		var/list/opening_slots_by_dir = shape_analysis["opening_slots_by_dir"]
 		for(var/opening_dir as anything in opening_dirs)
 			if(!opening_slots_by_dir["[opening_dir]"])
 				return list(

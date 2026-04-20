@@ -1,6 +1,19 @@
 /datum/world_edit_manager/proc/build_preview_signature_params_hash(list/source_params = null)
 	var/list/base_params = islist(source_params) ? source_params : current_params
+	if(!islist(source_params) || base_params == current_params)
+		if(cached_params_hash_revision == params_revision && length(cached_params_hash))
+			return cached_params_hash
+		var/list/sanitized_params = sanitize_persistent_generator_params(base_params)
+		cached_params_hash = GLOB.world_edit_logging.params_hash(sanitized_params)
+		cached_params_hash_revision = params_revision
+		return cached_params_hash
 	return GLOB.world_edit_logging.params_hash(sanitize_persistent_generator_params(base_params))
+
+/datum/world_edit_manager/proc/bump_preview_params_revision()
+	params_revision = (params_revision || 0) + 1
+	cached_params_hash = null
+	cached_params_hash_revision = -1
+	return params_revision
 
 /datum/world_edit_manager/proc/build_preview_params_signature(list/source_params = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()

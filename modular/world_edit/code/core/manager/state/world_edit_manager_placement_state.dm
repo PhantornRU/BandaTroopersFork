@@ -312,15 +312,17 @@
 		current_params -= "shape_points_origin"
 	sync_placement_session_cache()
 
+/datum/world_edit_manager/proc/get_placement_collector_points_snapshot()
+	get_placement_session()
+	if(!islist(placement_collector_points))
+		sync_placement_session_cache()
+	return islist(placement_collector_points) ? placement_collector_points : list()
+
 /datum/world_edit_manager/proc/get_placement_collector_points()
-	var/datum/world_edit_placement_session/session = get_placement_session()
-	var/list/points = islist(session.collector_points) ? session.collector_points : list()
-	placement_collector_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(points)
-	return GLOB.world_edit_placement_shapes.world_edit_copy_points(placement_collector_points)
+	return GLOB.world_edit_placement_shapes.world_edit_copy_points(get_placement_collector_points_snapshot())
 
 /datum/world_edit_manager/proc/get_placement_collector_point_count()
-	var/list/points = get_placement_collector_points()
-	return length(points)
+	return length(get_placement_collector_points_snapshot())
 
 /datum/world_edit_manager/proc/get_placement_collector_min_points(shape_id = null)
 	shape_id = shape_id || get_effective_placement_shape()
@@ -374,7 +376,7 @@
 	if(!istype(origin_turf))
 		return null
 
-	var/list/collector_points = get_placement_collector_points()
+	var/list/collector_points = get_placement_collector_points_snapshot()
 	if(!length(collector_points))
 		return origin_turf
 
@@ -404,7 +406,7 @@
 
 /datum/world_edit_manager/proc/clear_placement_shape_preview_state(preserve_lock = FALSE, turf/preserved_hover_turf = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()
-	var/should_bump_context = istype(session.preview_candidate) || session.preview_locked || istype(session.confirm_arm_turf) || istype(session.hover_turf) || length(placement_preview_shape_result) || length(placement_preview_anchor_turfs) || length(placement_preview_vertex_turfs) || length(placement_preview_edge_turfs) || length(placement_preview_closure_turfs) || length(placement_preview_final_turfs) || length(placement_preview_guide_turfs) || length(placement_preview_generator_effect_turfs)
+	var/should_bump_context = istype(session.preview_candidate) || session.preview_locked || istype(session.confirm_arm_turf) || istype(session.hover_turf) || length(placement_preview_shape_result) || length("[placement_preview_render_token]") || length(placement_preview_anchor_turfs) || length(placement_preview_vertex_turfs) || length(placement_preview_edge_turfs) || length(placement_preview_closure_turfs) || length(placement_preview_final_turfs) || length(placement_preview_guide_turfs) || length(placement_preview_generator_effect_turfs)
 	session.preview_candidate = null
 	session.preview_locked = preserve_lock ? TRUE : FALSE
 	session.confirm_arm_turf = null
@@ -412,6 +414,7 @@
 	session.hover_turf = preserve_lock ? preserved_hover_turf : null
 	placement_preview_shape_result = list()
 	placement_preview_signature = null
+	placement_preview_render_token = null
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
 	placement_preview_edge_turfs = list()
@@ -437,19 +440,24 @@
 	bump_preview_context_revision()
 	placement_hover_turf = session.hover_turf
 	placement_preview_signature = build_preview_params_signature(candidate.runtime_params)
+	if(islist(candidate.placement_context))
+		candidate.placement_context["preview_signature"] = placement_preview_signature
 	if(istype(candidate.shape_contract))
-		placement_preview_shape_result = candidate.shape_contract.as_shape_result()
+		placement_preview_shape_result = islist(candidate.shape_contract.raw_result) ? candidate.shape_contract.raw_result : list()
+	placement_preview_render_token = length("[candidate.preview_render_token]") ? "[candidate.preview_render_token]" : null
 	if(istype(candidate.preview_model))
-		placement_preview_anchor_turfs = islist(candidate.preview_model.anchor_turfs) ? candidate.preview_model.anchor_turfs.Copy() : list()
-		placement_preview_vertex_turfs = islist(candidate.preview_model.vertex_turfs) ? candidate.preview_model.vertex_turfs.Copy() : list()
-		placement_preview_edge_turfs = islist(candidate.preview_model.edge_turfs) ? candidate.preview_model.edge_turfs.Copy() : list()
-		placement_preview_closure_turfs = islist(candidate.preview_model.closure_turfs) ? candidate.preview_model.closure_turfs.Copy() : list()
-		placement_preview_final_turfs = islist(candidate.preview_model.final_turfs) ? candidate.preview_model.final_turfs.Copy() : list()
-		placement_preview_guide_turfs = islist(candidate.preview_model.guide_turfs) ? candidate.preview_model.guide_turfs.Copy() : list()
-		placement_preview_generator_effect_turfs = islist(candidate.preview_model.generator_effect_turfs) ? candidate.preview_model.generator_effect_turfs.Copy() : list()
+		placement_preview_anchor_turfs = islist(candidate.preview_model.anchor_turfs) ? candidate.preview_model.anchor_turfs : list()
+		placement_preview_vertex_turfs = islist(candidate.preview_model.vertex_turfs) ? candidate.preview_model.vertex_turfs : list()
+		placement_preview_edge_turfs = islist(candidate.preview_model.edge_turfs) ? candidate.preview_model.edge_turfs : list()
+		placement_preview_closure_turfs = islist(candidate.preview_model.closure_turfs) ? candidate.preview_model.closure_turfs : list()
+		placement_preview_final_turfs = islist(candidate.preview_model.final_turfs) ? candidate.preview_model.final_turfs : list()
+		placement_preview_guide_turfs = islist(candidate.preview_model.guide_turfs) ? candidate.preview_model.guide_turfs : list()
+		placement_preview_generator_effect_turfs = islist(candidate.preview_model.generator_effect_turfs) ? candidate.preview_model.generator_effect_turfs : list()
+		if(!length(placement_preview_render_token) && length("[candidate.preview_model.preview_render_token]"))
+			placement_preview_render_token = "[candidate.preview_model.preview_render_token]"
 
 /datum/world_edit_manager/proc/get_placement_preview_groups()
-	return list(
+	var/list/groups = list(
 		list(
 			"turfs" = placement_preview_anchor_turfs,
 			"icon_state" = "blueOverlay",
@@ -493,6 +501,8 @@
 			"alpha" = 110,
 		),
 	)
+	groups["preview_render_token"] = placement_preview_render_token
+	return groups
 
 /datum/world_edit_manager/proc/get_placement_anchor_desc()
 	return GLOB.world_edit_helpers.turf_to_text(placement_anchor_turf)

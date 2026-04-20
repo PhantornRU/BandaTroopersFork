@@ -157,6 +157,32 @@
 		signature_chunks += "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
 	return jointext(signature_chunks, ";")
 
+/datum/world_edit_manager/proc/build_placement_preview_layer_render_token(list/turfs, icon_state, color = null, alpha = null)
+	var/turf_count = islist(turfs) ? length(turfs) : 0
+	var/list_ref = islist(turfs) ? "[REF(turfs)]" : ""
+	var/list/token_chunks = list(
+		length("[icon_state]") ? "[icon_state]" : "greenOverlay",
+		isnull(color) ? "" : "[color]",
+		isnum(alpha) ? "[clamp(round(alpha), 0, 255)]" : "",
+		"[turf_count]",
+		list_ref,
+	)
+	return jointext(token_chunks, "|")
+
+/datum/world_edit_manager/proc/build_placement_preview_render_token(datum/world_edit_preview_model/preview_model)
+	if(!istype(preview_model))
+		return null
+
+	return jointext(list(
+		build_placement_preview_layer_render_token(preview_model.anchor_turfs, "blueOverlay", "#78C8FF", 255),
+		build_placement_preview_layer_render_token(preview_model.vertex_turfs, "blueOverlay", "#B8F3FF", 210),
+		build_placement_preview_layer_render_token(preview_model.edge_turfs, "greenOverlay", "#4DE1C1", 190),
+		build_placement_preview_layer_render_token(preview_model.closure_turfs, "redOverlay", "#FFB347", 180),
+		build_placement_preview_layer_render_token(preview_model.final_turfs, "greenOverlay", "#8BFFB5", 120),
+		build_placement_preview_layer_render_token(preview_model.guide_turfs, "blueOverlay", "#D7B8FF", 150),
+		build_placement_preview_layer_render_token(preview_model.generator_effect_turfs, "redOverlay", "#FF6B6B", 110),
+	), "||")
+
 /datum/world_edit_manager/proc/build_placement_candidate(datum/world_edit_shape_contract/shape_contract, list/placement_context, datum/world_edit_plan/plan = null, list/runtime_params = null, hover_only = FALSE, list/collector_state_summary = null)
 	if(!istype(shape_contract))
 		return null
@@ -171,8 +197,11 @@
 	update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
 	if(islist(collector_state_summary))
 		candidate.collector_state_summary = collector_state_summary.Copy()
-	if(istype(plan) && istype(candidate.preview_model))
-		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
+	if(istype(candidate.preview_model))
+		if(istype(plan))
+			candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
+		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
+		candidate.preview_model.preview_render_token = candidate.preview_render_token
 	return candidate
 
 /datum/world_edit_manager/proc/stamp_placement_plan_shape_metadata(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context)
@@ -207,7 +236,7 @@
 
 /datum/world_edit_manager/proc/render_safe_placement_preview(datum/world_edit_placement_candidate/candidate)
 	store_placement_preview_candidate(candidate)
-	GLOB.world_edit_helpers.apply_grouped_turf_preview(src, get_placement_preview_groups())
+	GLOB.world_edit_helpers.apply_grouped_turf_preview(src, get_placement_preview_groups(), placement_preview_render_token)
 
 /datum/world_edit_manager/proc/render_plan_preview_with_placement_layers(mob/user, datum/world_edit_plan/plan, list/effective_params = null)
 	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate_from_plan(plan, effective_params, user)
@@ -455,9 +484,10 @@
 	teardown_preview_session_runtime()
 	set_placement_anchor_turf(anchor_turf)
 	set_placement_hover_turf(anchor_turf)
-	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, anchor_turf, anchor_turf, build_effective_generator_params(null, shape_id), supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
+	var/list/effective_params = build_effective_generator_params(null, shape_id)
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, anchor_turf, anchor_turf, effective_params, supports_current_placement_direction() ? get_effective_placement_dir() : NORTH)
 	var/list/placement_context = build_placement_context(shape_contract, anchor_turf, anchor_turf, anchor_turf, anchor_turf, anchor_turf)
-	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate(shape_contract, placement_context, null, build_effective_generator_params(null, shape_id), TRUE)
+	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate(shape_contract, placement_context, null, effective_params, TRUE)
 	render_safe_placement_preview(candidate)
 
 /datum/world_edit_manager/proc/rebuild_active_safe_placement_preview(mob/user, shape_id = null, turf/preview_turf = null, silent = TRUE, hover_only = TRUE, allow_anchor_placeholder = FALSE)
@@ -507,7 +537,8 @@
 	if(is_placement_confirm_armed_for_turf())
 		return TRUE
 	var/datum/world_edit_placement_candidate/current_candidate = get_placement_preview_candidate()
-	if(hover_turf == placement_hover_turf && istype(current_candidate) && current_candidate.hover_only && placement_preview_signature == build_preview_params_signature(current_candidate.runtime_params))
+	var/current_candidate_signature = islist(current_candidate?.placement_context) ? current_candidate.placement_context["preview_signature"] : null
+	if(hover_turf == placement_hover_turf && istype(current_candidate) && current_candidate.hover_only && current_candidate_signature == placement_preview_signature)
 		return TRUE
 
 	return rebuild_active_safe_placement_preview(user, null, hover_turf, TRUE, TRUE, FALSE)

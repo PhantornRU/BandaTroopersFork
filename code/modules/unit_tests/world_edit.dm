@@ -207,8 +207,10 @@
 
 /datum/world_edit_generator/world_edit_test_apply_hook
 	var/apply_calls = 0
+	var/build_plan_calls = 0
 
 /datum/world_edit_generator/world_edit_test_apply_hook/build_placement_plan(mob/user, list/params, list/placement_context)
+	build_plan_calls++
 	var/datum/world_edit_plan/plan = new
 	var/list/anchor_turfs = placement_context["anchor_turfs"] || list()
 	for(var/turf/anchor_turf as anything in anchor_turfs)
@@ -2305,6 +2307,35 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/repeated_same_hover_preview_is_noop/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit same-hover test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit same-hover test should build the initial hover preview.")
+	var/datum/world_edit_placement_candidate/first_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(first_candidate, /datum/world_edit_placement_candidate), "World Edit same-hover test should keep the first hover preview candidate.")
+	TEST_ASSERT(first_candidate.hover_only, "World Edit same-hover test should keep the initial hover candidate in hover-only mode.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit same-hover test should build exactly one preview plan for the first hover request.")
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit same-hover test should treat an identical hover request as a no-op success.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit same-hover test should not rebuild the preview plan for the same hover request.")
+	TEST_ASSERT(manager.get_placement_preview_candidate() == first_candidate, "World Edit same-hover test should keep the existing preview candidate instead of rebuilding it.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/mode_switch_keeps_active_anchor_pair_preview_context/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -2962,6 +2993,37 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/store_preview_candidate_reuses_snapshot_layers_and_render_token/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit preview-token test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit preview-token test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+
+	var/datum/world_edit_placement_candidate/candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit preview-token test should build a placement candidate.")
+	TEST_ASSERT(istype(candidate.preview_model, /datum/world_edit_preview_model), "World Edit preview-token test should build a preview model for the placement candidate.")
+	TEST_ASSERT(length("[candidate.preview_render_token]"), "World Edit preview-token test should stamp a preview render token on the placement candidate.")
+
+	var/anchor_ref = islist(candidate.preview_model.anchor_turfs) ? "[REF(candidate.preview_model.anchor_turfs)]" : ""
+	var/final_ref = islist(candidate.preview_model.final_turfs) ? "[REF(candidate.preview_model.final_turfs)]" : ""
+	manager.store_placement_preview_candidate(candidate)
+	TEST_ASSERT_EQUAL(manager.placement_preview_render_token, candidate.preview_render_token, "World Edit preview-token test should preserve the candidate render token in preview session state.")
+	TEST_ASSERT_EQUAL(islist(manager.placement_preview_anchor_turfs) ? "[REF(manager.placement_preview_anchor_turfs)]" : "", anchor_ref, "World Edit preview-token test should reuse the anchor-layer snapshot instead of copying it again.")
+	TEST_ASSERT_EQUAL(islist(manager.placement_preview_final_turfs) ? "[REF(manager.placement_preview_final_turfs)]" : "", final_ref, "World Edit preview-token test should reuse the final-layer snapshot instead of copying it again.")
+
+	var/list/groups = manager.get_placement_preview_groups()
+	TEST_ASSERT_EQUAL("[groups["preview_render_token"]]", "[candidate.preview_render_token]", "World Edit preview-token test should expose the stored render token through grouped preview payloads.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/outpost_shape_sector_builds_shape_aware_plan/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
@@ -3270,6 +3332,54 @@
 	TEST_ASSERT(!(far_candidate_turf in blocked_far_candidate), "World Edit outpost radius-policy filtering should still drop tiles that sit behind a blocker line from the drawing start.")
 
 	qdel(test_barrier)
+
+/datum/unit_test/world_edit_corner_slots/outpost_radius_policy_reuses_approach_cache_for_identical_queries/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/adjacent_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	var/turf/far_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost approach-cache test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(adjacent_turf, "World Edit outpost approach-cache test adjacent turf was not resolved.")
+	TEST_ASSERT_NOTNULL(far_turf, "World Edit outpost approach-cache test far turf was not resolved.")
+
+	var/list/policy = list(
+		"only_clear_tiles" = TRUE,
+		"only_reachable_tiles" = FALSE,
+		"treat_windows_as_blockers" = TRUE,
+	)
+	var/list/pinned_lookup = generator.build_turf_lookup(list(center_turf))
+	var/list/approach_line_cache = list()
+	var/list/approach_result_cache = list()
+	var/list/first_allowed = generator.filter_outpost_candidate_turfs(
+		list(center_turf),
+		list(adjacent_turf, far_turf),
+		list(center_turf, adjacent_turf, far_turf),
+		policy,
+		list(center_turf),
+		pinned_lookup,
+		approach_line_cache,
+		approach_result_cache,
+	)
+	var/first_line_cache_size = length(approach_line_cache)
+	var/first_result_cache_size = length(approach_result_cache)
+	TEST_ASSERT(first_line_cache_size > 0, "World Edit outpost approach-cache test should populate the cached line-of-approach table on the first query.")
+	TEST_ASSERT(first_result_cache_size > 0, "World Edit outpost approach-cache test should populate the cached approach result table on the first query.")
+
+	var/list/second_allowed = generator.filter_outpost_candidate_turfs(
+		list(center_turf),
+		list(adjacent_turf, far_turf),
+		list(center_turf, adjacent_turf, far_turf),
+		policy,
+		list(center_turf),
+		pinned_lookup,
+		approach_line_cache,
+		approach_result_cache,
+	)
+	TEST_ASSERT_EQUAL(length(approach_line_cache), first_line_cache_size, "World Edit outpost approach-cache test should reuse cached line data for identical policy queries instead of appending new entries.")
+	TEST_ASSERT_EQUAL(length(approach_result_cache), first_result_cache_size, "World Edit outpost approach-cache test should reuse cached passability results for identical policy queries instead of appending new entries.")
+	TEST_ASSERT_EQUAL(length(first_allowed), length(second_allowed), "World Edit outpost approach-cache test should keep the allowed-candidate count stable when cache reuse kicks in.")
+	TEST_ASSERT((adjacent_turf in first_allowed) == (adjacent_turf in second_allowed), "World Edit outpost approach-cache test should preserve adjacent candidate results when reusing the cache.")
+	TEST_ASSERT((far_turf in first_allowed) == (far_turf in second_allowed), "World Edit outpost approach-cache test should preserve far candidate results when reusing the cache.")
 
 /datum/unit_test/world_edit_corner_slots/destruction_shape_build_plan_uses_manager_shape_prefs/Run()
 	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)

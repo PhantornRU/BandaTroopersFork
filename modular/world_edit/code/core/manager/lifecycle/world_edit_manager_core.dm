@@ -6,6 +6,9 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/datum/world_edit_generator/current_generator
 	var/list/current_params = list()
 	var/last_ui_error = ""
+	var/params_revision = 0
+	var/cached_params_hash = null
+	var/cached_params_hash_revision = -1
 
 	var/list/preview_images = list()
 	var/preview_groups_signature
@@ -47,6 +50,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/turf/placement_hover_turf
 	var/list/placement_preview_shape_result = list()
 	var/placement_preview_signature
+	var/placement_preview_render_token = null
 	var/list/placement_preview_anchor_turfs = list()
 	var/list/placement_preview_vertex_turfs = list()
 	var/list/placement_preview_edge_turfs = list()
@@ -74,6 +78,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	placement_session = new
 	placement_preview_shape_result = list()
 	placement_preview_signature = null
+	placement_preview_render_token = null
 	placement_preview_anchor_turfs = list()
 	placement_preview_vertex_turfs = list()
 	placement_preview_edge_turfs = list()
@@ -152,12 +157,14 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 
 /// Сбрасывает runtime генератора (preview/apply/click), но не очищает историю.
 /datum/world_edit_manager/proc/reset_generator_runtime()
+	bump_preview_params_revision()
 	reset_preview_runtime()
 	reset_apply_feedback()
 	last_ui_error = ""
 
 /// Корректно отсоединяет текущий экземпляр генератора.
 /datum/world_edit_manager/proc/detach_current_generator()
+	bump_preview_params_revision()
 	current_generator?.clear_built_plan()
 	QDEL_NULL(current_generator)
 	current_definition = null

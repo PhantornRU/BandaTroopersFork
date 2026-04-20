@@ -368,6 +368,17 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 	return md5(jointext(signature_chunks, "||"))
 
+/datum/world_edit_helpers/proc/get_grouped_turf_preview_render_token(list/groups, render_token = null)
+	if(length("[render_token]"))
+		return "[render_token]"
+
+	if(islist(groups))
+		var/groups_render_token = groups["preview_render_token"]
+		if(length("[groups_render_token]"))
+			return "[groups_render_token]"
+
+	return null
+
 /datum/world_edit_helpers/proc/apply_turf_preview(datum/world_edit_manager/manager, list/turfs, icon_state = "greenOverlay", color = null, alpha = null)
 	if(!manager || !manager.holder)
 		return
@@ -379,11 +390,13 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 		manager.holder.images += images
 		manager.preview_images = images.Copy()
 
-/datum/world_edit_helpers/proc/apply_grouped_turf_preview(datum/world_edit_manager/manager, list/groups)
+/datum/world_edit_helpers/proc/apply_grouped_turf_preview(datum/world_edit_manager/manager, list/groups, render_token = null)
 	if(!manager || !manager.holder)
 		return
 
-	var/groups_signature = build_grouped_turf_preview_signature(groups)
+	var/groups_signature = get_grouped_turf_preview_render_token(groups, render_token)
+	if(!length("[groups_signature]"))
+		groups_signature = build_grouped_turf_preview_signature(groups)
 	if(manager.preview_groups_signature == groups_signature)
 		return
 

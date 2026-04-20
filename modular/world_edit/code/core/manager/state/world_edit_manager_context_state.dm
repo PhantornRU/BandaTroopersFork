@@ -8,6 +8,7 @@
 	if(!current_definition?.id)
 		return null
 	current_params = sanitize_persistent_generator_params(current_params)
+	bump_preview_params_revision()
 
 	return list(
 		"params" = current_params.Copy(),

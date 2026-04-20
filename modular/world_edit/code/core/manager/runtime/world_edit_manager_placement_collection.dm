@@ -1,8 +1,9 @@
 /datum/world_edit_manager/proc/build_collector_runtime_preview_params(list/base_params, list/preview_points, preview_points_text = null)
 	return build_generator_params_for_shape(base_params, get_effective_placement_shape(), preview_points, preview_points_text)
 
-/datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE, preview_points_text = null)
-	var/list/preview_params = build_collector_runtime_preview_params(current_params, preview_points, preview_points_text)
+/datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE, preview_points_text = null, list/preview_params = null)
+	if(!islist(preview_params))
+		preview_params = build_collector_runtime_preview_params(current_params, preview_points, preview_points_text)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate(
 		user,
 		origin_turf,
@@ -67,7 +68,6 @@
 		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(user, clamped_shape_contract, origin_turf, clamped_preview_turf, clamped_params, effective_direction, hover_only, clamped_meta, clamped_meta, preview_turf, origin_turf, origin_turf)
 		if(!istype(clamped_candidate) || !clamped_candidate.is_preview_ready())
 			continue
-		clamped_candidate.collector_state_summary = clamped_meta.Copy()
 		if(!islist(clamped_candidate.placement_context))
 			clamped_candidate.placement_context = list()
 		clamped_candidate.placement_context["clamp_reason"] = "endpoint"
@@ -82,8 +82,8 @@
 	var/shape_id = get_effective_placement_shape()
 	var/min_points = get_placement_collector_min_points(shape_id)
 	var/turf/origin_turf = get_placement_collector_origin_turf() || placement_anchor_turf || preview_turf
-	var/list/committed_points = islist(committed_points_override) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(committed_points_override) : get_placement_collector_points()
-	var/list/preview_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(committed_points)
+	var/list/committed_points = islist(committed_points_override) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(committed_points_override) : get_placement_collector_points_snapshot()
+	var/list/preview_points = islist(committed_points) ? GLOB.world_edit_placement_shapes.world_edit_copy_points(committed_points) : list()
 	if(!istype(origin_turf))
 		return FALSE
 
@@ -124,10 +124,9 @@
 		shape_contract.metadata = list()
 	for(var/key in collector_meta)
 		shape_contract.metadata[key] = collector_meta[key]
-	var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf)
-	var/datum/world_edit_placement_candidate/preview_candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
-
 	if(shape_contract.error)
+		var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf)
+		var/datum/world_edit_placement_candidate/preview_candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
 		render_safe_placement_preview(preview_candidate)
 		set_safe_placement_preview_feedback(FALSE, "[message_prefix][shape_contract.error]", shape_contract.metadata, FALSE)
 		if(!silent)
@@ -135,13 +134,15 @@
 		return FALSE
 
 	if(preview_point_count < min_points)
+		var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf)
+		var/datum/world_edit_placement_candidate/preview_candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
 		render_safe_placement_preview(preview_candidate)
-		set_safe_placement_preview_feedback(FALSE, "[message_prefix]РўРѕС‡РµРє СЃРѕР±СЂР°РЅРѕ: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
+		set_safe_placement_preview_feedback(FALSE, "[message_prefix]Р СћР С•РЎвЂЎР ВµР С” РЎРѓР С•Р В±РЎР‚Р В°Р Р…Р С•: [preview_point_count]/[min_points].", shape_contract.metadata, FALSE)
 		if(!silent)
 			to_chat(user, SPAN_NOTICE(last_preview_message))
 		return FALSE
 
-	var/datum/world_edit_placement_candidate/candidate = resolve_outpost_collector_candidate(user, shape_id, origin_turf, preview_turf, preview_points, collector_meta, hover_only, preview_points_text)
+	var/datum/world_edit_placement_candidate/candidate = resolve_outpost_collector_candidate(user, shape_id, origin_turf, preview_turf, preview_points, collector_meta, hover_only, preview_points_text, preview_params)
 	render_safe_placement_preview(candidate)
 	var/failure_message = candidate.get_failure_message()
 	if(length("[failure_message]"))
@@ -166,12 +167,11 @@
 	if(get_placement_interaction_kind(shape_id) != "collector")
 		return FALSE
 	if(get_placement_collector_point_count() < get_placement_collector_min_points(shape_id))
-		to_chat(user, SPAN_WARNING("Нужно как минимум [get_placement_collector_min_points(shape_id)] точек, чтобы завершить контур."))
+		to_chat(user, SPAN_WARNING("РќСѓР¶РЅРѕ РєР°Рє РјРёРЅРёРјСѓРј [get_placement_collector_min_points(shape_id)] С‚РѕС‡РµРє, С‡С‚РѕР±С‹ Р·Р°РІРµСЂС€РёС‚СЊ РєРѕРЅС‚СѓСЂ."))
 		return FALSE
 
 	preview_turf = preview_turf || placement_hover_turf || get_placement_collector_origin_turf() || placement_anchor_turf || get_turf(user)
 	if(!istype(preview_turf))
-		to_chat(user, SPAN_WARNING("Не задана исходная точка контура."))
+		to_chat(user, SPAN_WARNING("РќРµ Р·Р°РґР°РЅР° РёСЃС…РѕРґРЅР°СЏ С‚РѕС‡РєР° РєРѕРЅС‚СѓСЂР°."))
 		return FALSE
-
-	return update_placement_collector_runtime_state(user, preview_turf, "Завершение контура. ", FALSE, FALSE)
+	return update_placement_collector_runtime_state(user, preview_turf, "Р—Р°РІРµСЂС€РµРЅРёРµ РєРѕРЅС‚СѓСЂР°. ", FALSE, FALSE)
