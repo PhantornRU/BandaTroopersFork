@@ -140,6 +140,113 @@
 		"vars" = vars_result["vars"],
 	))
 
+/datum/world_edit_blueprint_service/proc/world_edit_validate_outpost_recipe_footprint_offsets(raw_offsets)
+	if(isnull(raw_offsets))
+		return list("footprint_offsets" = list(list(0, 0)))
+	if(!islist(raw_offsets) || !length(raw_offsets))
+		return list("error" = "Blueprint outpost_recipe footprint_offsets must contain at least one offset.")
+
+	var/list/sanitized_offsets = list()
+	var/list/offset_lookup = list()
+	for(var/raw_offset as anything in raw_offsets)
+		if(!islist(raw_offset) || length(raw_offset) < 2)
+			return list("error" = "Blueprint outpost_recipe footprint_offsets entries must be (dx, dy) lists.")
+		var/dx = world_edit_parse_strict_integer(raw_offset[1])
+		var/dy = world_edit_parse_strict_integer(raw_offset[2])
+		if(isnull(dx) || isnull(dy))
+			return list("error" = "Blueprint outpost_recipe footprint offsets must be numeric.")
+		var/offset_key = "[dx],[dy]"
+		if(offset_lookup[offset_key])
+			continue
+		offset_lookup[offset_key] = TRUE
+		sanitized_offsets += list(list(dx, dy))
+
+	if(!length(sanitized_offsets))
+		sanitized_offsets += list(list(0, 0))
+	return list("footprint_offsets" = sanitized_offsets)
+
+/datum/world_edit_blueprint_service/proc/world_edit_validate_outpost_recipe(raw_recipe)
+	if(isnull(raw_recipe))
+		return list("outpost_recipe" = null)
+	if(!islist(raw_recipe))
+		return list("error" = "Blueprint outpost_recipe payload must be an object.")
+
+	var/family = trim(sanitize_text("[raw_recipe["family"]]", ""))
+	var/layout_variant = trim(sanitize_text("[raw_recipe["layout_variant"]]", ""))
+	if(!length(family) || !length(layout_variant))
+		return list("error" = "Blueprint outpost_recipe must include family and layout_variant.")
+
+	var/placement_dir = text2num("[raw_recipe["placement_dir"]]")
+	if(!(placement_dir in GLOB.cardinals))
+		return list("error" = "Blueprint outpost_recipe placement_dir must be cardinal.")
+
+	var/radius = world_edit_parse_strict_integer(raw_recipe["radius"])
+	if(isnull(radius) || radius < 1 || radius > 25)
+		return list("error" = "Blueprint outpost_recipe radius must be in the range 1..25.")
+
+	var/opening_width = world_edit_parse_strict_integer(raw_recipe["opening_width"])
+	if(isnull(opening_width) || opening_width < 1 || opening_width > (radius * 2) + 1)
+		return list("error" = "Blueprint outpost_recipe opening_width is invalid for the stored radius.")
+
+	var/guard_mode = "[raw_recipe["guard_mode"] || "layout"]"
+	if(!(guard_mode in list("layout", "openings", "all_sides")))
+		return list("error" = "Blueprint outpost_recipe guard_mode is unsupported.")
+
+	var/sentry_profile = lowertext("[raw_recipe["sentry_profile"] || "entry_guard"]")
+	if(!(sentry_profile in list("none", "light_cover", "entry_guard", "inner_guard", "crossfire")))
+		return list("error" = "Blueprint outpost_recipe sentry_profile is unsupported.")
+
+	var/place_sentries = GLOB.world_edit_helpers.parse_bool(raw_recipe["place_sentries"]) ? TRUE : FALSE
+	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(raw_recipe["place_barricade_doors"]) ? TRUE : FALSE
+	var/turned_on = GLOB.world_edit_helpers.parse_bool(raw_recipe["turned_on"]) ? TRUE : FALSE
+
+	var/barricade_pattern = lowertext("[raw_recipe["barricade_pattern"] || "uniform"]")
+	if(!(barricade_pattern in list("uniform", "cycle", "paired")))
+		return list("error" = "Blueprint outpost_recipe barricade_pattern is unsupported.")
+
+	var/barricade_concentration_percent = world_edit_parse_strict_integer(raw_recipe["barricade_concentration_percent"])
+	if(isnull(barricade_concentration_percent))
+		barricade_concentration_percent = 0
+	if(barricade_concentration_percent < 0 || barricade_concentration_percent > 100)
+		return list("error" = "Blueprint outpost_recipe barricade_concentration_percent must be in the range 0..100.")
+
+	var/barricade_path = text2path("[raw_recipe["barricade_path"]]")
+	if(!ispath(barricade_path, /datum/human_ai_defense/barricade))
+		return list("error" = "Blueprint outpost_recipe barricade_path must be a barricade definition path.")
+
+	var/sentry_path = null
+	if(!isnull(raw_recipe["sentry_path"]) && length("[raw_recipe["sentry_path"]]") && "[raw_recipe["sentry_path"]]" != "null")
+		sentry_path = text2path("[raw_recipe["sentry_path"]]")
+		if(!ispath(sentry_path, /datum/human_ai_defense/defense/sentry))
+			return list("error" = "Blueprint outpost_recipe sentry_path must be a sentry definition path.")
+
+	var/faction = "[raw_recipe["faction"] || ""]"
+	if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
+		return list("error" = "Blueprint outpost_recipe contains an invalid faction.")
+
+	var/list/footprint_result = world_edit_validate_outpost_recipe_footprint_offsets(raw_recipe["footprint_offsets"])
+	if(footprint_result["error"])
+		return footprint_result
+
+	return list("outpost_recipe" = list(
+		"family" = family,
+		"layout_variant" = layout_variant,
+		"placement_dir" = placement_dir,
+		"radius" = radius,
+		"opening_width" = opening_width,
+		"guard_mode" = guard_mode,
+		"sentry_profile" = sentry_profile,
+		"place_sentries" = place_sentries,
+		"barricade_path" = "[barricade_path]",
+		"barricade_pattern" = barricade_pattern,
+		"barricade_concentration_percent" = barricade_concentration_percent,
+		"place_barricade_doors" = place_barricade_doors,
+		"sentry_path" = sentry_path ? "[sentry_path]" : null,
+		"faction" = faction,
+		"turned_on" = turned_on,
+		"footprint_offsets" = footprint_result["footprint_offsets"],
+	))
+
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_definition(list/raw_definition)
 	if(!islist(raw_definition))
 		return list("error" = "Blueprint payload is not a JSON object.")
@@ -190,6 +297,10 @@
 	if(!world_edit_blueprint_bounds_match(raw_definition["bounds"], computed_bounds))
 		return list("error" = "Blueprint bounds metadata is stale or invalid.")
 
+	var/list/outpost_recipe_result = world_edit_validate_outpost_recipe(raw_definition["outpost_recipe"])
+	if(outpost_recipe_result["error"])
+		return outpost_recipe_result
+
 	return list("blueprint" = list(
 		"id" = blueprint_id,
 		"name" = blueprint_name,
@@ -198,6 +309,7 @@
 		"source" = "[raw_definition["source"] || "server"]",
 		"bounds" = computed_bounds,
 		"entries" = sanitized_entries,
+		"outpost_recipe" = outpost_recipe_result["outpost_recipe"],
 	))
 
 /datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_summary(list/blueprint, file_path = null, valid = TRUE, error_text = "")
@@ -219,4 +331,8 @@
 	)
 	if(file_path)
 		summary["file_path"] = file_path
+	if(islist(blueprint["outpost_recipe"]))
+		summary["has_outpost_recipe"] = TRUE
+		summary["outpost_family"] = blueprint["outpost_recipe"]["family"] || ""
+		summary["outpost_layout_variant"] = blueprint["outpost_recipe"]["layout_variant"] || ""
 	return summary

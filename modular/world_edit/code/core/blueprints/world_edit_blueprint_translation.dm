@@ -67,4 +67,6 @@
 	plan.metadata["radius"] = blueprint["bounds"] ? blueprint["bounds"]["radius"] : 0
 	plan.metadata["placement_dir"] = placement_dir
 	plan.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
+	if(islist(blueprint["outpost_recipe"]))
+		plan.metadata["outpost_recipe"] = blueprint["outpost_recipe"]
 	return plan

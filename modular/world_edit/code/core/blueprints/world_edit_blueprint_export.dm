@@ -7,6 +7,60 @@
 	qdel(definition)
 	return obj_path
 
+/datum/world_edit_blueprint_service/proc/world_edit_build_outpost_recipe_footprint_offsets(datum/world_edit_plan/plan, turf/anchor_turf)
+	var/list/offsets = list()
+	if(!istype(anchor_turf))
+		return offsets
+	if("[plan?.metadata["shape_mode"]]" != "footprint_offset")
+		return list(list(0, 0))
+
+	var/list/footprint_turfs = islist(plan?.metadata["base_shape_turfs"]) ? plan.metadata["base_shape_turfs"] : null
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return list(list(0, 0))
+
+	var/list/offset_lookup = list()
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		if(!istype(footprint_turf) || footprint_turf.z != anchor_turf.z)
+			continue
+		var/dx = footprint_turf.x - anchor_turf.x
+		var/dy = footprint_turf.y - anchor_turf.y
+		var/offset_key = "[dx],[dy]"
+		if(offset_lookup[offset_key])
+			continue
+		offset_lookup[offset_key] = TRUE
+		offsets += list(list(dx, dy))
+
+	if(!length(offsets))
+		offsets += list(list(0, 0))
+	return offsets
+
+/datum/world_edit_blueprint_service/proc/world_edit_build_outpost_recipe_from_plan(datum/world_edit_plan/plan, turf/anchor_turf)
+	if(!istype(plan) || !istype(anchor_turf))
+		return null
+
+	var/list/metadata = islist(plan.metadata) ? plan.metadata : list()
+	if(!length("[metadata["family"]]") || !length("[metadata["layout_variant"]]"))
+		return null
+
+	return list(
+		"family" = "[metadata["family"]]",
+		"layout_variant" = "[metadata["layout_variant"]]",
+		"placement_dir" = text2num("[metadata["placement_dir"]]") || NORTH,
+		"radius" = text2num("[metadata["radius"]]") || 0,
+		"opening_width" = text2num("[metadata["opening_width"]]") || 1,
+		"guard_mode" = "[metadata["guard_mode"] || "layout"]",
+		"sentry_profile" = "[metadata["sentry_profile"] || "entry_guard"]",
+		"place_sentries" = GLOB.world_edit_helpers.parse_bool(metadata["place_sentries"]) ? TRUE : FALSE,
+		"barricade_path" = "[metadata["barricade_path"]]",
+		"barricade_pattern" = "[metadata["barricade_pattern"] || "uniform"]",
+		"barricade_concentration_percent" = text2num("[metadata["barricade_concentration_percent"]]") || 0,
+		"place_barricade_doors" = GLOB.world_edit_helpers.parse_bool(metadata["place_barricade_doors"]) ? TRUE : FALSE,
+		"sentry_path" = metadata["sentry_path"] ? "[metadata["sentry_path"]]" : null,
+		"faction" = "[metadata["faction"] || ""]",
+		"turned_on" = GLOB.world_edit_helpers.parse_bool(metadata["turned_on"]) ? TRUE : FALSE,
+		"footprint_offsets" = world_edit_build_outpost_recipe_footprint_offsets(plan, anchor_turf),
+	)
+
 /datum/world_edit_blueprint_service/proc/world_edit_export_blueprint_from_outpost_plan(datum/world_edit_plan/plan, turf/anchor_turf, blueprint_name, actor_ckey)
 	if(!istype(plan))
 		return list("error" = "No built outpost plan is available.")
@@ -74,6 +128,8 @@
 	if(bounds["radius"] > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
 		return list("error" = "Current plan exceeds the Blueprint Lite radius cap.")
 
+	var/list/outpost_recipe = world_edit_build_outpost_recipe_from_plan(plan, anchor_turf)
+
 	return list("blueprint" = list(
 		"id" = world_edit_build_blueprint_id(),
 		"name" = copytext(trim(sanitize_text("[blueprint_name]", "Outpost Blueprint")), 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1),
@@ -82,4 +138,5 @@
 		"source" = "outpost_radius_plan",
 		"bounds" = bounds,
 		"entries" = entries,
+		"outpost_recipe" = outpost_recipe,
 	))

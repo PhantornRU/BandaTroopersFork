@@ -21,6 +21,11 @@
 	world_edit_register_blueprint_type(., /obj/structure/largecrate/supply/generator, "support_prop", "Ящик с генератором")
 	world_edit_register_blueprint_type(., /obj/structure/deployable_beacon, "support_prop", "Развертываемый маяк")
 
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/metal, "barricade", "Metal Folding Barricade")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/metal/wired, "barricade", "Metal Folding Barricade - Wired")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel, "barricade", "Plasteel Folding Barricade")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/wired, "barricade", "Plasteel Folding Barricade - Wired")
+
 /datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_type(list/rules, obj_path, category, label)
 	rules["[obj_path]"] = list(
 		"obj_path" = obj_path,

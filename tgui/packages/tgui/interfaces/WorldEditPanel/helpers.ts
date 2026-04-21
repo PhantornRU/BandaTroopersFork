@@ -6,11 +6,11 @@ import {
   EXECUTION_MODE_LABELS,
   FIELD_LABELS,
   NONE_LABEL,
-  OUTPOST_BARRICADE_PATTERN_LABELS,
-  OUTPOST_FAMILY_LABELS,
   OUTPOST_GUARD_MODE_LABELS,
   OUTPOST_LAYOUT_LABELS,
   OUTPOST_OPENING_WIDTH_LABELS,
+  OUTPOST_PERIMETER_PATTERN_LABELS,
+  OUTPOST_TACTICAL_PROFILE_LABELS,
   PLACEMENT_MODE_LABELS,
   PLACEMENT_SHAPE_LABELS,
   PLACEMENT_SHAPE_ORDER,
@@ -196,8 +196,11 @@ export const translateOptionLabel = (
 
   switch (fieldId) {
     case 'family':
+    case 'defense_profile':
       return (
-        OUTPOST_FAMILY_LABELS[value] || label || getDisplayText(optionValue)
+        OUTPOST_TACTICAL_PROFILE_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
       );
     case 'layout_variant':
       return (
@@ -211,7 +214,7 @@ export const translateOptionLabel = (
       );
     case 'barricade_pattern':
       return (
-        OUTPOST_BARRICADE_PATTERN_LABELS[value] ||
+        OUTPOST_PERIMETER_PATTERN_LABELS[value] ||
         label ||
         getDisplayText(optionValue)
       );
@@ -224,6 +227,12 @@ export const translateOptionLabel = (
         DAMAGE_PROFILE_LABELS[value] || label || getDisplayText(optionValue)
       );
     case 'barricade_path':
+    case 'primary_material_path':
+    case 'primary_barricade_path':
+    case 'secondary_material_path':
+    case 'secondary_barricade_path':
+    case 'primary_door_path':
+    case 'secondary_door_path':
       return BARRICADE_LABELS[label] || label || getDisplayText(optionValue);
     case 'sentry_path':
       return SENTRY_LABELS[label] || label || getDisplayText(optionValue);

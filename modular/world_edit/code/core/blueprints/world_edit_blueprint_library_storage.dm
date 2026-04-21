@@ -105,6 +105,8 @@
 		"bounds" = bounds,
 		"entries" = entries,
 	)
+	if(islist(blueprint["outpost_recipe"]))
+		file_payload["outpost_recipe"] = blueprint["outpost_recipe"]
 
 	var/serialized_payload = json_encode(file_payload)
 	rustg_file_write(serialized_payload, file_path)

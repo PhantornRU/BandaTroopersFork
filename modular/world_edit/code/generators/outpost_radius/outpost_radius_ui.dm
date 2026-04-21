@@ -1,38 +1,63 @@
 /datum/world_edit_generator/outpost_radius/get_ui_fields(list/current_params)
-	var/place_sentries = GLOB.world_edit_helpers.parse_bool(current_params["place_sentries"])
-	var/family_id = resolve_outpost_family_id(current_params["family"])
-	if(!family_id)
-		family_id = get_default_outpost_family_id()
+	var/defense_profile_id = resolve_outpost_defense_profile_id(current_params["defense_profile"])
+	if(!defense_profile_id)
+		defense_profile_id = resolve_outpost_defense_profile_id(current_params["family"])
+	if(!defense_profile_id)
+		defense_profile_id = get_default_outpost_defense_profile_id()
+
 	var/layout_id = resolve_outpost_layout_id(current_params["layout_variant"])
 	if(!layout_id)
 		layout_id = get_default_outpost_layout_id()
-	var/list/family_profile = get_outpost_family_profile(family_id)
-	var/list/family_mix = islist(family_profile["barricade_mix"]) ? family_profile["barricade_mix"] : list()
-	var/default_barricade_path = family_profile["default_barricade_path"] || /datum/human_ai_defense/barricade/metal
-	var/default_sentry_path = family_profile["default_sentry_path"] || /datum/human_ai_defense/defense/sentry/uscm
-	var/list/faction_options = list()
-	for(var/faction in valid_factions)
-		faction_options += list(list(
-			"label" = "[faction]",
-			"value" = faction,
-		))
+
+	var/family_id = resolve_outpost_family_id(current_params["family"])
+	var/list/legacy_material_defaults = family_id ? build_outpost_legacy_family_material_defaults(family_id) : list()
+	var/barricade_pattern = resolve_barricade_pattern(current_params["barricade_pattern"], family_id ? get_outpost_family_profile(family_id) : null) || (legacy_material_defaults["barricade_pattern"] || "uniform")
+	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(current_params["place_barricade_doors"])
+	var/primary_material_share_percent = clamp(round(text2num("[current_params["primary_material_share_percent"] || current_params["barricade_concentration_percent"] || legacy_material_defaults["primary_material_share_percent"] || 100]")), 0, 100)
+	if(barricade_pattern == "uniform")
+		primary_material_share_percent = 100
+
+	var/primary_material_path = resolve_whitelisted_type(
+		current_params["primary_material_path"] || current_params["barricade_path"],
+		allowed_barricade_types,
+		/datum/human_ai_defense/barricade,
+		legacy_material_defaults["primary_material_path"] || /datum/human_ai_defense/barricade/metal,
+	)
+	if(!primary_material_path)
+		primary_material_path = legacy_material_defaults["primary_material_path"] || /datum/human_ai_defense/barricade/metal
+
+	var/secondary_material_path = resolve_whitelisted_type(
+		current_params["secondary_material_path"],
+		allowed_barricade_types,
+		/datum/human_ai_defense/barricade,
+		legacy_material_defaults["secondary_material_path"] || primary_material_path,
+	)
+	if(!secondary_material_path)
+		secondary_material_path = legacy_material_defaults["secondary_material_path"] || primary_material_path
+
+	var/primary_door_selection = resolve_outpost_door_selection(current_params["primary_door_path"] || legacy_material_defaults["primary_door_path"])
+	if(isnull(primary_door_selection))
+		primary_door_selection = "follow_material"
+	var/secondary_door_selection = resolve_outpost_door_selection(current_params["secondary_door_path"] || legacy_material_defaults["secondary_door_path"])
+	if(isnull(secondary_door_selection))
+		secondary_door_selection = "follow_material"
 
 	return list(
 		list(
-			"id" = "family",
-			"label" = "Профиль форпоста",
+			"id" = "defense_profile",
+			"label" = "Тактический профиль",
 			"kind" = "select",
 			"group" = "Схема",
-			"description" = "Определяет материалы, стандартный стиль турелей и тактический характер форпоста.",
-			"value" = family_id,
-			"options" = build_family_options(),
+			"description" = "Определяет оборонительные объекты, проволоку, мины и дополнительные защитные узлы без привязки к материалу периметра.",
+			"value" = defense_profile_id,
+			"options" = build_defense_profile_options(),
 		),
 		list(
 			"id" = "layout_variant",
 			"label" = "Схема",
 			"kind" = "select",
 			"group" = "Схема",
-			"description" = "Определяет, где находятся проходы и дуги охраны. Направление следует текущему DIR размещения.",
+			"description" = "Определяет, где находятся проходы и как вращается раскладка относительно текущего DIR размещения.",
 			"value" = layout_id,
 			"options" = build_layout_options(),
 		),
@@ -42,7 +67,7 @@
 			"kind" = "select",
 			"group" = "Схема",
 			"description" = "Переопределяет ширину каждого планируемого прохода.",
-			"value" = current_params["opening_width"] || "profile",
+			"value" = current_params["opening_width"] || "layout",
 			"options" = build_opening_width_options(),
 		),
 		list(
@@ -82,86 +107,73 @@
 			"value" = isnull(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]) ? TRUE : GLOB.world_edit_helpers.parse_bool(current_params[WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS]),
 		),
 		list(
-			"id" = "barricade_path",
-			"label" = "Тип баррикады",
+			"id" = "primary_material_path",
+			"label" = "Основной материал",
 			"kind" = "select",
-			"group" = "Баррикады",
-			"description" = "Разрешенный тип human_ai_defense barricade, который используется как основной материал профиля.",
-			"value" = "[current_params["barricade_path"] || default_barricade_path]",
+			"group" = "Периметр",
+			"description" = "Базовый материал для периметра форпоста.",
+			"value" = "[primary_material_path]",
 			"options" = build_type_options(allowed_barricade_types),
-			"visible" = FALSE,
+		),
+		list(
+			"id" = "secondary_material_path",
+			"label" = "Вспомогательный материал",
+			"kind" = "select",
+			"group" = "Периметр",
+			"description" = "Материал для чередования или парных секций.",
+			"value" = "[secondary_material_path]",
+			"options" = build_type_options(allowed_barricade_types),
+			"visible" = barricade_pattern != "uniform",
 		),
 		list(
 			"id" = "barricade_pattern",
 			"label" = "Раскладка баррикад",
 			"kind" = "select",
-			"group" = "Баррикады",
-			"description" = "Определяет, как материалы профиля чередуются по контуру.",
-			"value" = current_params["barricade_pattern"] || "profile",
+			"group" = "Периметр",
+			"description" = "Определяет, как основной и вспомогательный материалы распределяются по каноническому порядку периметра.",
+			"value" = barricade_pattern,
 			"options" = build_barricade_pattern_options(),
-			"visible" = length(family_mix) > 1,
 		),
 		list(
-			"id" = "place_sentries",
-			"label" = "Ставить турели",
+			"id" = "primary_material_share_percent",
+			"label" = "Доля основного материала",
+			"kind" = "number",
+			"group" = "Периметр",
+			"description" = "Точная доля не-opening секций периметра, которая должна использовать основной материал. Ближайшие к проходам слоты получают приоритет.",
+			"validate_hint" = "Допустимый диапазон: 0..100",
+			"value" = primary_material_share_percent,
+			"min" = 0,
+			"max" = 100,
+			"step" = 1,
+			"visible" = barricade_pattern != "uniform",
+		),
+		list(
+			"id" = "place_barricade_doors",
+			"label" = "Ставить двери в проходы",
 			"kind" = "boolean",
-			"group" = "Турели",
-			"description" = "Добавляет опциональные точки турелей на внутренней стороне выбранных дуг схемы.",
-			"value" = place_sentries,
+			"group" = "Периметр",
+			"description" = "Пытается заменить проходы folding-дверями по lane-материалу или явному override.",
+			"value" = place_barricade_doors,
 		),
 		list(
-			"id" = "guard_mode",
-			"label" = "Охват охраны",
+			"id" = "primary_door_path",
+			"label" = "Основные двери",
 			"kind" = "select",
-			"group" = "Турели",
-			"description" = "Выбирает, какие стороны должен прикрывать турельный слой.",
-			"value" = current_params["guard_mode"] || "layout",
-			"options" = build_guard_mode_options(),
-			"visible" = place_sentries,
-			"disabled" = !place_sentries,
+			"group" = "Периметр",
+			"description" = "Тип folding-двери для секций основного материала.",
+			"value" = ispath(primary_door_selection, /datum/human_ai_defense/barricade) ? "[primary_door_selection]" : "[primary_door_selection]",
+			"options" = build_outpost_door_type_options(),
+			"visible" = place_barricade_doors,
 		),
 		list(
-			"id" = "sentry_profile",
-			"label" = "Стиль турелей",
+			"id" = "secondary_door_path",
+			"label" = "Вспомогательные двери",
 			"kind" = "select",
-			"group" = "Турели",
-			"description" = "Определяет, насколько турели прижимаются к проходам или смещаются внутрь.",
-			"value" = current_params["sentry_profile"] || "profile",
-			"options" = build_sentry_profile_options(),
-			"visible" = place_sentries,
-			"disabled" = !place_sentries,
-		),
-		list(
-			"id" = "sentry_path",
-			"label" = "Тип турели",
-			"kind" = "select",
-			"group" = "Турели",
-			"description" = "Разрешенный тип human_ai_defense sentry для внутренних охранных позиций.",
-			"value" = "[current_params["sentry_path"] || default_sentry_path]",
-			"options" = build_type_options(allowed_sentry_types),
-			"visible" = place_sentries,
-			"disabled" = !place_sentries,
-		),
-		list(
-			"id" = "faction",
-			"label" = "IFF-фракция",
-			"kind" = "select",
-			"group" = "Турели",
-			"description" = "Фракция, которая передается создаваемым турелям human_ai_defense.",
-			"value" = current_params["faction"] || FACTION_MARINE,
-			"options" = faction_options,
-			"visible" = place_sentries,
-			"disabled" = !place_sentries,
-		),
-		list(
-			"id" = "turned_on",
-			"label" = "Включить сразу",
-			"kind" = "boolean",
-			"group" = "Турели",
-			"description" = "Включает созданные турели сразу после размещения.",
-			"value" = current_params["turned_on"] ? TRUE : FALSE,
-			"visible" = place_sentries,
-			"disabled" = !place_sentries,
+			"group" = "Периметр",
+			"description" = "Тип folding-двери для секций вспомогательного материала.",
+			"value" = ispath(secondary_door_selection, /datum/human_ai_defense/barricade) ? "[secondary_door_selection]" : "[secondary_door_selection]",
+			"options" = build_outpost_door_type_options(),
+			"visible" = place_barricade_doors && barricade_pattern != "uniform",
 		),
 	)
 
@@ -172,15 +184,24 @@
 		if("family")
 			var/family_id = resolve_outpost_family_id(value)
 			if(!family_id)
-				return "Выбран недопустимый профиль форпоста."
-			new_params[param_id] = family_id
-			var/list/family_profile = get_outpost_family_profile(family_id)
-			new_params["barricade_path"] = family_profile["default_barricade_path"] || /datum/human_ai_defense/barricade/metal
-			var/current_sentry_path = resolve_whitelisted_type(new_params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry)
-			if(!current_sentry_path)
-				new_params["sentry_path"] = family_profile["default_sentry_path"] || /datum/human_ai_defense/defense/sentry/uscm
-			if(isnull(resolve_sentry_profile(new_params["sentry_profile"], family_profile)))
-				new_params["sentry_profile"] = "profile"
+				return "Выбран недопустимый legacy-профиль форпоста."
+			var/defense_profile_id = get_outpost_legacy_family_defense_profile_id(family_id)
+			var/list/legacy_defaults = build_outpost_legacy_family_material_defaults(family_id)
+			new_params["family"] = family_id
+			new_params["defense_profile"] = defense_profile_id
+			new_params["primary_material_path"] = legacy_defaults["primary_material_path"]
+			new_params["secondary_material_path"] = legacy_defaults["secondary_material_path"]
+			new_params["barricade_pattern"] = legacy_defaults["barricade_pattern"]
+			new_params["primary_material_share_percent"] = legacy_defaults["primary_material_share_percent"]
+			new_params["primary_door_path"] = legacy_defaults["primary_door_path"]
+			new_params["secondary_door_path"] = legacy_defaults["secondary_door_path"]
+			new_params["place_barricade_doors"] = GLOB.world_edit_helpers.parse_bool(current_params["place_barricade_doors"])
+
+		if("defense_profile")
+			var/defense_profile_id = resolve_outpost_defense_profile_id(value)
+			if(!defense_profile_id)
+				return "Выбран недопустимый тактический профиль."
+			new_params[param_id] = defense_profile_id
 
 		if("layout_variant")
 			var/layout_id = resolve_outpost_layout_id(value)
@@ -210,46 +231,54 @@
 		if(WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS)
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
-		if("barricade_path")
-			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id())["default_barricade_path"])
+		if("primary_material_path")
+			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
 			if(!path_value)
-				return "Выбран недопустимый тип баррикады."
+				return "Выбран недопустимый основной материал периметра."
+			new_params[param_id] = path_value
+			if(isnull(new_params["secondary_material_path"]))
+				new_params["secondary_material_path"] = path_value
+
+		if("secondary_material_path")
+			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, new_params["primary_material_path"] || /datum/human_ai_defense/barricade/metal)
+			if(!path_value)
+				return "Выбран недопустимый вспомогательный материал периметра."
 			new_params[param_id] = path_value
 
 		if("barricade_pattern")
-			var/pattern_value = resolve_barricade_pattern(value, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id()))
+			var/pattern_value = resolve_barricade_pattern(value, null)
 			if(isnull(pattern_value))
 				return "Выбрана недопустимая раскладка баррикад."
-			new_params[param_id] = "[value]"
+			new_params[param_id] = pattern_value
+			if(pattern_value == "uniform")
+				new_params["primary_material_share_percent"] = 100
 
-		if("place_sentries")
+		if("primary_material_share_percent", "barricade_concentration_percent")
+			var/share_percent = clamp(round(text2num("[value]")), 0, 100)
+			if("[new_params["barricade_pattern"] || "uniform"]" == "uniform")
+				share_percent = 100
+			new_params["primary_material_share_percent"] = share_percent
+
+		if("place_barricade_doors")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
 
-		if("guard_mode")
-			var/guard_mode = resolve_guard_mode(value)
-			if(isnull(guard_mode))
-				return "Выбран недопустимый режим охраны турелей."
-			new_params[param_id] = "[value]"
+		if("primary_door_path")
+			var/door_selection = resolve_outpost_door_selection(value)
+			if(isnull(door_selection))
+				return "Выбран недопустимый тип основных дверей."
+			new_params[param_id] = door_selection
 
-		if("sentry_profile")
-			var/sentry_profile = resolve_sentry_profile(value, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id()))
-			if(isnull(sentry_profile))
-				return "Выбран недопустимый стиль турелей."
-			new_params[param_id] = "[value]"
+		if("secondary_door_path")
+			var/door_selection = resolve_outpost_door_selection(value)
+			if(isnull(door_selection))
+				return "Выбран недопустимый тип вспомогательных дверей."
+			new_params[param_id] = door_selection
 
-		if("sentry_path")
-			var/path_value = resolve_whitelisted_type(value, allowed_sentry_types, /datum/human_ai_defense/defense/sentry, get_outpost_family_profile(resolve_outpost_family_id(new_params["family"]) || get_default_outpost_family_id())["default_sentry_path"])
+		if("barricade_path")
+			var/path_value = resolve_whitelisted_type(value, allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
 			if(!path_value)
-				return "Выбран недопустимый тип турели."
-			new_params[param_id] = path_value
-
-		if("faction")
-			if(!("[value]" in valid_factions))
-				return "Выбрана недопустимая IFF-фракция."
-			new_params[param_id] = "[value]"
-
-		if("turned_on")
-			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value)
+				return "Выбран недопустимый тип баррикады."
+			new_params["primary_material_path"] = path_value
 
 		else
 			return ..()
@@ -257,16 +286,20 @@
 	return new_params
 
 /datum/world_edit_generator/outpost_radius/get_apply_confirmation_text(list/params)
-	var/family_id = resolve_outpost_family_id(params["family"])
-	if(!family_id)
-		family_id = get_default_outpost_family_id()
+	var/defense_profile_id = resolve_outpost_defense_profile_id(params["defense_profile"])
+	if(!defense_profile_id)
+		defense_profile_id = resolve_outpost_defense_profile_id(params["family"])
+	if(!defense_profile_id)
+		defense_profile_id = get_default_outpost_defense_profile_id()
+
 	var/layout_id = resolve_outpost_layout_id(params["layout_variant"])
 	if(!layout_id)
 		layout_id = get_default_outpost_layout_id()
-	var/list/family_profile = get_outpost_family_profile(family_id)
+
+	var/list/defense_profile = get_outpost_defense_profile(defense_profile_id)
 	var/list/layout_profile = get_outpost_layout_profile(layout_id)
-	return "Применить '[family_profile["label"] || "Форпост"] / [layout_profile["label"] || "Крест"]' со смещением периметра [params["radius"]]?"
+	return "Применить '[defense_profile["label"] || "Форпост"] / [layout_profile["label"] || "Крест"]' со смещением периметра [params["radius"]]?"
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	return "family=[resolve_outpost_family_id(params["family"]) || get_default_outpost_family_id()] layout=[resolve_outpost_layout_id(params["layout_variant"]) || get_default_outpost_layout_id()] width=[params["opening_width"] || "profile"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] barricade=[params["barricade_path"]] barricade_pattern=[params["barricade_pattern"] || "profile"] sentries=[params["place_sentries"]] guard_mode=[params["guard_mode"] || "layout"] sentry_profile=[params["sentry_profile"] || "profile"] sentry_type=[params["sentry_path"]]"
+	return "defense=[resolve_outpost_defense_profile_id(params["defense_profile"] || params["family"]) || get_default_outpost_defense_profile_id()] layout=[resolve_outpost_layout_id(params["layout_variant"]) || get_default_outpost_layout_id()] width=[params["opening_width"] || "layout"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] primary_material=[params["primary_material_path"] || params["barricade_path"]] secondary_material=[params["secondary_material_path"]] primary_share=[params["primary_material_share_percent"] || params["barricade_concentration_percent"] || 100] doors=[GLOB.world_edit_helpers.parse_bool(params["place_barricade_doors"])] primary_door=[params["primary_door_path"] || "follow_material"] secondary_door=[params["secondary_door_path"] || "follow_material"] pattern=[params["barricade_pattern"] || "uniform"]"

@@ -8,8 +8,27 @@
 		))
 	return options
 
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_door_type_options()
+	var/list/options = list(
+		list(
+			"label" = "По материалу",
+			"value" = "follow_material",
+			"description" = "Подобрать folding-дверь автоматически по выбранному материалу секции.",
+		),
+		list(
+			"label" = "Без дверей",
+			"value" = "none",
+			"description" = "Оставлять проходы этой секции пустыми, даже если двери включены.",
+		),
+	)
+	options += build_type_options(allowed_outpost_door_types)
+	return options
+
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_family_id()
 	return "metal_perimeter"
+
+/datum/world_edit_generator/outpost_radius/proc/get_default_outpost_defense_profile_id()
+	return "fallback_redoubt"
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_layout_id()
 	return "crossroads"
@@ -67,6 +86,75 @@
 		return null
 	return outpost_family_profiles[family_id]
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_legacy_family_defense_profile_id(family_id)
+	if(!length("[family_id]"))
+		return get_default_outpost_defense_profile_id()
+	if(outpost_legacy_family_to_defense_profile[family_id])
+		return outpost_legacy_family_to_defense_profile[family_id]
+
+	var/list/family_profile = get_outpost_family_profile(family_id)
+	var/default_sentry_profile = get_default_sentry_profile(family_profile)
+	switch(default_sentry_profile)
+		if("none")
+			return "none"
+		if("light_cover")
+			return "outrider_camp"
+		if("inner_guard")
+			return "fallback_redoubt"
+		if("crossfire")
+			return "crossfire_hub"
+	return "lane_fort"
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_legacy_family_material_defaults(family_id)
+	var/list/family_profile = get_outpost_family_profile(family_id)
+	var/list/family_mix = islist(family_profile) && islist(family_profile["barricade_mix"]) ? family_profile["barricade_mix"] : list()
+	var/primary_material_path = islist(family_profile) ? family_profile["default_barricade_path"] : null
+	if(!ispath(primary_material_path, /datum/human_ai_defense/barricade))
+		primary_material_path = /datum/human_ai_defense/barricade/metal
+
+	var/secondary_material_path = null
+	for(var/datum/human_ai_defense/barricade/type_path as anything in family_mix)
+		if(type_path == primary_material_path)
+			continue
+		secondary_material_path = type_path
+		break
+	if(!ispath(secondary_material_path, /datum/human_ai_defense/barricade))
+		secondary_material_path = primary_material_path
+
+	var/pattern_id = lowertext("[islist(family_profile) ? (family_profile["default_barricade_pattern"] || "uniform") : "uniform"]")
+	switch(pattern_id)
+		if("cycle")
+			pattern_id = "alternating"
+		if("paired")
+			pattern_id = "paired"
+		else
+			pattern_id = "uniform"
+
+	return list(
+		"primary_material_path" = primary_material_path,
+		"secondary_material_path" = secondary_material_path,
+		"barricade_pattern" = pattern_id,
+		"primary_material_share_percent" = pattern_id == "uniform" ? 100 : 50,
+		"primary_door_path" = "follow_material",
+		"secondary_door_path" = "follow_material",
+	)
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_defense_profile_id(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return get_default_outpost_defense_profile_id()
+
+	var/profile_id = "[value]"
+	if(profile_id in outpost_defense_profiles)
+		return profile_id
+	if(profile_id in outpost_family_profiles)
+		return get_outpost_legacy_family_defense_profile_id(profile_id)
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_defense_profile(profile_id)
+	if(!(profile_id in outpost_defense_profiles))
+		return null
+	return outpost_defense_profiles[profile_id]
+
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_layout_id(value)
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
 		return get_default_outpost_layout_id()
@@ -94,6 +182,17 @@
 		))
 	return options
 
+/datum/world_edit_generator/outpost_radius/proc/build_defense_profile_options()
+	var/list/options = list()
+	for(var/profile_id in outpost_defense_profiles)
+		var/list/profile = outpost_defense_profiles[profile_id]
+		options += list(list(
+			"label" = profile["label"] || profile_id,
+			"value" = profile_id,
+			"description" = profile["description"] || "",
+		))
+	return options
+
 /datum/world_edit_generator/outpost_radius/proc/build_layout_options()
 	var/list/options = list()
 	for(var/layout_id in outpost_layout_profiles)
@@ -109,7 +208,7 @@
 	return list(
 		list(
 			"label" = "По схеме",
-			"value" = "profile",
+			"value" = "layout",
 			"description" = "Использовать ширину проходов, рекомендованную выбранной схемой.",
 		),
 		list(
@@ -195,24 +294,19 @@
 /datum/world_edit_generator/outpost_radius/proc/build_barricade_pattern_options()
 	return list(
 		list(
-			"label" = "По профилю",
-			"value" = "profile",
-			"description" = "Использовать раскладку баррикад, рекомендованную выбранным профилем.",
-		),
-		list(
 			"label" = "Равномерно",
 			"value" = "uniform",
-			"description" = "Использовать один материал баррикад по всему контуру.",
+			"description" = "Использовать основной материал по всему контуру.",
 		),
 		list(
 			"label" = "Чередование",
-			"value" = "cycle",
-			"description" = "Чередовать материалы из выбранного профиля по каждому слоту.",
+			"value" = "alternating",
+			"description" = "Чередовать основной и вспомогательный материалы по каждому слоту.",
 		),
 		list(
 			"label" = "Парные секции",
 			"value" = "paired",
-			"description" = "Чередовать материалы профиля более широкими парными секциями.",
+			"description" = "Чередовать материалы более широкими парными секциями.",
 		),
 	)
 
@@ -268,8 +362,10 @@
 /datum/world_edit_generator/outpost_radius/proc/get_default_barricade_pattern(list/family_profile)
 	var/pattern = islist(family_profile) ? "[family_profile["default_barricade_pattern"] || "uniform"]" : "uniform"
 	switch(pattern)
-		if("uniform", "cycle", "paired")
+		if("uniform", "paired")
 			return pattern
+		if("cycle", "alternating")
+			return "alternating"
 	return "uniform"
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_sentry_profile(list/family_profile)
@@ -286,9 +382,11 @@
 	var/pattern_id = "[value]"
 	if(pattern_id == "profile")
 		return get_default_barricade_pattern(family_profile)
+	if(pattern_id == "cycle")
+		pattern_id = "alternating"
 
 	switch(pattern_id)
-		if("uniform", "cycle", "paired")
+		if("uniform", "alternating", "paired")
 			return pattern_id
 	return null
 
@@ -332,7 +430,7 @@
 		return default_width
 
 	switch("[value]")
-		if("profile")
+		if("profile", "layout")
 			return default_width
 		if("narrow")
 			return 1
@@ -377,6 +475,31 @@
 			cycle += default_barricade_path
 
 	return cycle
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_material_cycle(primary_material_path, secondary_material_path)
+	var/list/cycle = list()
+	if(ispath(primary_material_path, /datum/human_ai_defense/barricade))
+		cycle += primary_material_path
+	if(ispath(secondary_material_path, /datum/human_ai_defense/barricade) && secondary_material_path != primary_material_path)
+		cycle += secondary_material_path
+	if(!length(cycle) && ispath(primary_material_path, /datum/human_ai_defense/barricade))
+		cycle += primary_material_path
+	return cycle
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_door_selection(value)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return "follow_material"
+
+	var/path_value = text2path("[value]")
+	if(ispath(path_value, /datum/human_ai_defense/barricade) && (path_value in allowed_outpost_door_types))
+		return path_value
+
+	switch(lowertext("[value]"))
+		if("follow_material")
+			return "follow_material"
+		if("none")
+			return "none"
+	return null
 
 /datum/world_edit_generator/outpost_radius/proc/format_opening_dirs(list/opening_dirs)
 	if(!islist(opening_dirs) || !length(opening_dirs))

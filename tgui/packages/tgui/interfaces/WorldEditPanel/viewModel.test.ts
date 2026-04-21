@@ -132,7 +132,7 @@ describe('WorldEditPanel view model', () => {
           generators: [
             {
               id: 'destruction_pack',
-              name_ru: 'Р Р°Р·СЂСѓС€РµРЅРёРµ',
+              name_ru: 'Разрушение',
               description_ru: '',
               execution_mode: '',
               required_rights: '',
@@ -589,5 +589,64 @@ describe('WorldEditPanel view model', () => {
       average: 1,
       bad: 1,
     });
+  });
+
+  it('surfaces tactical profile and perimeter material labels without profile semantics', () => {
+    const { getTranslatedFieldLabel, translateOptionLabel } = require('./helpers');
+
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'family' })),
+    ).toBe('Тактический профиль');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'defense_profile' })),
+    ).toBe('Тактический профиль');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'layout_variant' })),
+    ).toBe('Схема');
+    expect(getTranslatedFieldLabel(makeField({ id: 'barricade_path' }))).toBe(
+      'Основной материал',
+    );
+    expect(
+      getTranslatedFieldLabel(
+        makeField({ id: 'primary_material_path' }),
+      ),
+    ).toBe('Основной материал');
+    expect(
+      getTranslatedFieldLabel(
+        makeField({ id: 'secondary_material_path' }),
+      ),
+    ).toBe('Вспомогательный материал');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'primary_door_path' })),
+    ).toBe('Основные двери');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'secondary_door_path' })),
+    ).toBe('Вспомогательные двери');
+    expect(
+      getTranslatedFieldLabel(
+        makeField({ id: 'barricade_concentration_percent', kind: 'number' }),
+      ),
+    ).toBe('Доля основного материала');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'place_barricade_doors' })),
+    ).toBe('Двери в проходах');
+    expect(
+      translateOptionLabel('family', '', 'mixed_standard'),
+    ).toBe('Сбалансированный опорник');
+    expect(
+      translateOptionLabel('defense_profile', '', 'mixed_standard'),
+    ).toBe('Сбалансированный опорник');
+    expect(
+      translateOptionLabel('barricade_pattern', '', 'uniform'),
+    ).toBe('Единый материал');
+    expect(
+      translateOptionLabel('barricade_pattern', '', 'alternating'),
+    ).toBe('Чередование');
+    expect(
+      translateOptionLabel('barricade_pattern', '', 'paired'),
+    ).toBe('Парные секции');
+    expect(
+      translateOptionLabel('barricade_pattern', '', 'profile'),
+    ).toBe('По материалам');
   });
 });

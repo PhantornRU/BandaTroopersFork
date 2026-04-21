@@ -542,6 +542,90 @@
 	TEST_ASSERT(perimeter_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(bottom_right, SOUTH)], "Bottom-right corner lost its south-facing slot.")
 	TEST_ASSERT(perimeter_lookup[GLOB.world_edit_helpers.build_turf_dir_slot_key(bottom_right, EAST)], "Bottom-right corner lost its east-facing slot.")
 
+/datum/unit_test/world_edit_corner_slots/outpost_perimeter/concentration_prefers_openings_and_places_doors/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit barricade-concentration test center turf was not resolved.")
+
+	var/list/layout_profile = list(
+		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+		"opening_width" = 1,
+	)
+	var/list/barricade_cycle = list(
+		/datum/human_ai_defense/barricade/metal,
+		/datum/human_ai_defense/barricade/sandbag,
+	)
+	var/list/perimeter_data = generator.collect_perimeter_placements(
+		center_turf,
+		2,
+		layout_profile,
+		barricade_cycle,
+		"uniform",
+		null,
+		null,
+		50,
+		TRUE,
+		/datum/human_ai_defense/barricade/metal,
+	)
+
+	TEST_ASSERT_EQUAL(perimeter_data["dominant_barricade_count"], 8, "World Edit barricade-concentration test should assign the dominant type to exactly half of the non-opening perimeter slots.")
+	TEST_ASSERT_EQUAL(perimeter_data["door_count"], 4, "World Edit barricade-concentration test should emit one folding door per supported opening.")
+	TEST_ASSERT_EQUAL(perimeter_data["unsupported_door_openings"], 0, "World Edit barricade-concentration test should not mark supported metal openings as unsupported.")
+	TEST_ASSERT_EQUAL(perimeter_data["blocked_door_openings"], 0, "World Edit barricade-concentration test should not block door slots on the unit-test floor.")
+
+	var/list/dominant_slot_lookup = list()
+	var/observed_door_count = 0
+	for(var/list/placement as anything in perimeter_data["placements"])
+		if(placement["is_barricade_door"])
+			observed_door_count++
+			TEST_ASSERT(placement["barricade_path"] == /datum/human_ai_defense/barricade/metal_folding, "World Edit barricade-concentration test should map metal openings to metal folding barricades.")
+			continue
+		if(placement["barricade_path"] == /datum/human_ai_defense/barricade/metal)
+			var/slot_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(placement["turf"], placement["dir"])
+			if(length(slot_key))
+				dominant_slot_lookup[slot_key] = TRUE
+
+	TEST_ASSERT_EQUAL(observed_door_count, 4, "World Edit barricade-concentration test should tag the emitted door placements.")
+
+	var/list/expected_dominant_slots = list(
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x - 1, center_turf.y + 2, center_turf.z), NORTH),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x + 1, center_turf.y + 2, center_turf.z), NORTH),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x - 1, center_turf.y - 2, center_turf.z), SOUTH),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x + 1, center_turf.y - 2, center_turf.z), SOUTH),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x + 2, center_turf.y - 1, center_turf.z), EAST),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x + 2, center_turf.y + 1, center_turf.z), EAST),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x - 2, center_turf.y - 1, center_turf.z), WEST),
+		GLOB.world_edit_helpers.build_turf_dir_slot_key(locate(center_turf.x - 2, center_turf.y + 1, center_turf.z), WEST),
+	)
+	for(var/slot_key as anything in expected_dominant_slots)
+		TEST_ASSERT(dominant_slot_lookup[slot_key], "World Edit barricade-concentration test should prioritize slots adjacent to openings before more distant perimeter tiles.")
+
+/datum/unit_test/world_edit_corner_slots/outpost_perimeter/unsupported_door_material_leaves_openings_empty/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit unsupported-door test center turf was not resolved.")
+
+	var/list/layout_profile = list(
+		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+		"opening_width" = 1,
+	)
+	var/list/perimeter_data = generator.collect_perimeter_placements(
+		center_turf,
+		2,
+		layout_profile,
+		list(/datum/human_ai_defense/barricade/sandbag),
+		"uniform",
+		null,
+		null,
+		0,
+		TRUE,
+		/datum/human_ai_defense/barricade/sandbag,
+	)
+
+	TEST_ASSERT_EQUAL(perimeter_data["door_count"], 0, "World Edit unsupported-door test should not emit folding doors for unsupported materials.")
+	TEST_ASSERT_EQUAL(perimeter_data["unsupported_door_openings"], 4, "World Edit unsupported-door test should report every sandbag opening as unsupported for door conversion.")
+	TEST_ASSERT_EQUAL(length(perimeter_data["placements"]), 16, "World Edit unsupported-door test should keep only the non-opening barricade placements when folding doors are unavailable.")
+
 /datum/unit_test/world_edit_corner_slots/radius_policy/shared_helper_handles_windows_and_reachability/Run()
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit radius-policy helper test center turf was not resolved.")
@@ -733,10 +817,18 @@
 			"description" = "Unit test family profile",
 			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 		),
+		"layout_variant" = "crossroads",
+		"placement_dir" = NORTH,
+		"opening_width" = 1,
+		"guard_mode" = "layout",
+		"sentry_profile" = "entry_guard",
 		"radius" = 1,
 		"place_sentries" = TRUE,
 		"barricade_path" = /datum/human_ai_defense/barricade/metal,
 		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
+		"barricade_pattern" = "uniform",
+		"barricade_concentration_percent" = 50,
+		"place_barricade_doors" = TRUE,
 		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
 		"faction" = FACTION_MARINE,
 		"turned_on" = FALSE,
@@ -753,6 +845,57 @@
 	TEST_ASSERT_EQUAL(placement_counts["opening"] || 0, 0, "Shape-aware outpost plan should keep openings in metadata/preview only instead of emitting non-executable opening placements.")
 	TEST_ASSERT_EQUAL(placement_counts["barricade"] || 0, 12, "Shape-aware outpost plan should emit twelve barricade placements with sentries enabled.")
 	TEST_ASSERT_EQUAL(placement_counts["sentry"] || 0, 4, "Shape-aware outpost plan should emit four sentry placements when the toggle is enabled.")
+
+/datum/unit_test/world_edit_corner_slots/shape_plan_with_barricade_doors/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit shape-door test center turf was not resolved.")
+
+	var/list/footprint_turfs = list(
+		center_turf,
+		locate(center_turf.x + 1, center_turf.y, center_turf.z),
+		locate(center_turf.x, center_turf.y + 1, center_turf.z),
+		locate(center_turf.x + 1, center_turf.y + 1, center_turf.z),
+	)
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-door footprint resolved outside the unit-test floor area.")
+
+	var/list/config = list(
+		"family" = "standard",
+		"family_profile" = list(
+			"label" = "Standard",
+			"description" = "Unit test family profile",
+			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
+		),
+		"layout_variant" = "crossroads",
+		"placement_dir" = NORTH,
+		"opening_width" = 1,
+		"guard_mode" = "layout",
+		"sentry_profile" = "entry_guard",
+		"radius" = 1,
+		"place_sentries" = FALSE,
+		"barricade_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_cycle" = list(
+			/datum/human_ai_defense/barricade/metal,
+			/datum/human_ai_defense/barricade/sandbag,
+		),
+		"barricade_pattern" = "uniform",
+		"barricade_concentration_percent" = 50,
+		"place_barricade_doors" = TRUE,
+		"sentry_path" = null,
+		"faction" = FACTION_MARINE,
+		"turned_on" = FALSE,
+	)
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/placement_counts = count_placements_by_kind(plan.placements)
+
+	TEST_ASSERT_NOTNULL(plan, "Shape-door outpost plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Shape-door outpost plan unexpectedly failed.")
+	TEST_ASSERT_EQUAL(plan.metadata["opening_count"], 4, "Shape-door outpost plan should preserve four openings.")
+	TEST_ASSERT_EQUAL(plan.metadata["door_count"], 4, "Shape-door outpost plan should emit four folding door placements.")
+	TEST_ASSERT_EQUAL(plan.metadata["dominant_barricade_count"], 6, "Shape-door outpost plan should keep the dominant material on exactly half of the non-opening shell.")
+	TEST_ASSERT_EQUAL(placement_counts["barricade"] || 0, 16, "Shape-door outpost plan should emit twelve shell barricades plus four folding doors.")
+	TEST_ASSERT_EQUAL(placement_counts["sentry"] || 0, 0, "Shape-door outpost plan should not emit sentries when the toggle is disabled.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_export_roundtrip_validates/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
@@ -793,6 +936,10 @@
 	var/list/blueprint = export_result["blueprint"]
 	TEST_ASSERT(islist(blueprint), "Blueprint export should produce a blueprint payload.")
 	TEST_ASSERT(length(blueprint["entries"]), "Blueprint export should contain at least one entry.")
+	TEST_ASSERT(islist(blueprint["outpost_recipe"]), "Blueprint export should persist optional outpost_recipe metadata for authored outpost plans.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["barricade_concentration_percent"], 50, "Blueprint export should persist the resolved barricade concentration.")
+	TEST_ASSERT(blueprint["outpost_recipe"]["place_barricade_doors"], "Blueprint export should persist the folding-door toggle in outpost_recipe.")
+	TEST_ASSERT_EQUAL(length(blueprint["outpost_recipe"]["footprint_offsets"]), 4, "Blueprint export should persist the relative footprint offsets for shape-authored outposts.")
 
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
 		"schema" = "world_edit_blueprint_lite",
@@ -804,8 +951,10 @@
 		"source" = blueprint["source"],
 		"bounds" = blueprint["bounds"],
 		"entries" = blueprint["entries"],
+		"outpost_recipe" = blueprint["outpost_recipe"],
 	))
 	TEST_ASSERT(!validation_result["error"], "Exported blueprint payload should validate against the live blueprint library schema.")
+	TEST_ASSERT(islist(validation_result["blueprint"]["outpost_recipe"]), "Blueprint validation should preserve optional outpost_recipe metadata.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_plan_rotation_translates_offsets/Run()
 	var/turf/anchor_turf = get_world_edit_test_center_turf()
@@ -871,6 +1020,46 @@
 	TEST_ASSERT_EQUAL(created_object.dir, WEST, "Blueprint spawn helper should preserve the requested barricade dir.")
 
 	qdel(created_object)
+
+/datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_folding_barricades/Run()
+	var/turf/anchor_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit folding-barricade blueprint test anchor turf was not resolved.")
+
+	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
+		"id" = "foldingbarr01",
+		"name" = "Folding Barricade",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = 0,
+			"max_x" = 0,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 0,
+		),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/barricade/plasteel/metal]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = EAST,
+				"vars" = list(),
+			),
+		),
+	))
+	TEST_ASSERT(!validation_result["error"], "World Edit folding-barricade blueprint test should accept whitelisted folding barricades.")
+
+	var/datum/world_edit_plan/plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, NORTH)
+	TEST_ASSERT_NOTNULL(plan, "World Edit folding-barricade blueprint test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit folding-barricade blueprint test should translate a valid folding barricade blueprint.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit folding-barricade blueprint test should keep the translated folding barricade placement.")
+	TEST_ASSERT_EQUAL(plan.placements[1]["obj_path"], /obj/structure/barricade/plasteel/metal, "World Edit folding-barricade blueprint test should preserve the folding barricade obj path.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_duplicate_relative_slots/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(

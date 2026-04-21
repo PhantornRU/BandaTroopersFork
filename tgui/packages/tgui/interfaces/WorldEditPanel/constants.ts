@@ -11,12 +11,22 @@ export const EXECUTION_MODE_LABELS: Record<string, string> = {
 };
 
 export const FIELD_LABELS: Record<string, string> = {
-  family: 'Профиль форпоста',
-  layout_variant: 'Вариант',
+  family: 'Тактический профиль',
+  defense_profile: 'Тактический профиль',
+  layout_variant: 'Схема',
   opening_width: 'Ширина проходов',
   radius: 'Радиус',
-  barricade_path: 'Материал баррикад',
-  barricade_pattern: 'Раскладка баррикад',
+  barricade_path: 'Основной материал',
+  primary_material_path: 'Основной материал',
+  primary_barricade_path: 'Основной материал',
+  secondary_material_path: 'Вспомогательный материал',
+  secondary_barricade_path: 'Вспомогательный материал',
+  primary_door_path: 'Основные двери',
+  secondary_door_path: 'Вспомогательные двери',
+  barricade_concentration_percent: 'Доля основного материала',
+  primary_material_share_percent: 'Доля основного материала',
+  place_barricade_doors: 'Двери в проходах',
+  barricade_pattern: 'Раскладка материалов',
   place_sentries: 'Турели у проходов',
   guard_mode: 'Схема турелей',
   sentry_path: 'Турель',
@@ -153,16 +163,33 @@ export const DEFAULT_POINT_SHAPE_OPTION: PlacementOption[] = [
   },
 ];
 
-export const OUTPOST_FAMILY_LABELS: Record<string, string> = {
-  metal_perimeter: 'Металл, контур',
-  wired_metal_perimeter: 'Металл с проволокой',
-  plasteel_bastion: 'Пласталь, бастион',
-  plasteel_wired_bastion: 'Пласталь с проволокой',
-  sandbag_redoubt: 'Мешки с песком',
-  wooden_screen: 'Деревянное прикрытие',
-  mixed_standard: 'Смешанный стандарт',
-  mixed_siege: 'Смешанный осадный',
+export const OUTPOST_TACTICAL_PROFILE_LABELS: Record<string, string> = {
+  metal_perimeter: 'Легкий контур',
+  wired_metal_perimeter: 'Контур с проволокой',
+  plasteel_bastion: 'Тяжелый бастион',
+  plasteel_wired_bastion: 'Усиленный бастион',
+  sandbag_redoubt: 'Полевой редут',
+  wooden_screen: 'Импровизированное прикрытие',
+  mixed_standard: 'Сбалансированный опорник',
+  mixed_siege: 'Осадный опорник',
+  expedition_light: 'Легкий экспедиционный',
+  assault_screen: 'Штурмовой экран',
+  choke_wall: 'Горловинная стена',
+  killbox_wired: 'Killbox с проволокой',
+  bastion_heavy: 'Тяжелый бастион',
+  mixed_siege_plus: 'Усиленный осадный',
+  sandbag_nest: 'Полевое гнездо',
+  wooden_emergency: 'Экстренное прикрытие',
+  fallback_redoubt: 'Редут отхода',
+  lane_fort: 'Линейный форт',
+  pocket_defense: 'Карман обороны',
+  crossfire_hub: 'Узел перекрестного огня',
+  anti_vehicle_stop: 'Противотранспортный стоп',
+  outrider_camp: 'Лагерь аутрайдеров',
+  forward_medical_cover: 'Передовое медукрытие',
 };
+
+export const OUTPOST_FAMILY_LABELS = OUTPOST_TACTICAL_PROFILE_LABELS;
 
 export const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
   crossroads: 'Крест',
@@ -181,7 +208,7 @@ export const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
 };
 
 export const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
-  profile: 'По варианту',
+  profile: 'По схеме',
   narrow: '1 клетка',
   double: '2 клетки',
   wide: '3 клетки',
@@ -190,14 +217,17 @@ export const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
 };
 
 export const OUTPOST_BARRICADE_PATTERN_LABELS: Record<string, string> = {
-  profile: 'По профилю',
+  profile: 'По материалам',
   uniform: 'Единый материал',
+  alternating: 'Чередование',
   cycle: 'Чередование',
   paired: 'Парные секции',
 };
 
+export const OUTPOST_PERIMETER_PATTERN_LABELS = OUTPOST_BARRICADE_PATTERN_LABELS;
+
 export const OUTPOST_GUARD_MODE_LABELS: Record<string, string> = {
-  layout: 'По варианту',
+  layout: 'По схеме',
   openings: 'Только проходы',
   all_sides: 'Все стороны',
 };
@@ -211,9 +241,13 @@ export const DAMAGE_PROFILE_LABELS: Record<string, string> = {
 export const BARRICADE_LABELS: Record<string, string> = {
   'Metal Barricade': 'Металлическая',
   'Metal Barricade - Wired': 'Металлическая, с проволокой',
+  'Metal Folding Barricade': 'Складная металлическая',
+  'Metal Folding Barricade - Wired': 'Складная металлическая, с проволокой',
   Sandbags: 'Мешки с песком',
   'Plasteel Barricade': 'Пласталевая',
   'Plasteel Barricade - Wired': 'Пласталевая, с проволокой',
+  'Plasteel Folding Barricade': 'Складная пласталевая',
+  'Plasteel Folding Barricade - Wired': 'Складная пласталевая, с проволокой',
   'Wooden Barricade': 'Деревянная',
 };
 

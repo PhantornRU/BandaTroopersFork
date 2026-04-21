@@ -21,18 +21,18 @@
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH
 	generator_type = /datum/world_edit_generator/outpost_radius
 	default_params = list(
-		"family" = "metal_perimeter",
+		"defense_profile" = "fallback_redoubt",
 		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
+		"opening_width" = "layout",
 		"radius" = 4,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_profile" = "profile",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE
+		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"secondary_material_path" = /datum/human_ai_defense/barricade/sandbag,
+		"primary_material_share_percent" = 50,
+		"place_barricade_doors" = FALSE,
+		"primary_door_path" = "follow_material",
+		"secondary_door_path" = "follow_material",
+		"barricade_pattern" = "alternating",
+		"place_sentries" = FALSE
 	)
 	status = WORLD_EDIT_STATUS_READY
 
