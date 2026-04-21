@@ -22,9 +22,17 @@
 
 	if(ispath(obj_path, /obj/structure/machinery/defenses))
 		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
-			return "Blueprint target turf is blocked for a sentry."
+			return "Blueprint target turf is blocked for a defense structure."
 		for(var/obj/structure/machinery/defenses/existing_defense in target_turf)
 			return "Blueprint target turf already contains a defense structure."
+		return null
+
+	if(islist(rule) && "[rule["category"]]" == "mine")
+		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
+			return "Blueprint target turf is blocked for a mine."
+		for(var/obj/item/existing_item as anything in target_turf)
+			if(istype(existing_item, /obj/item/explosive/mine) || istype(existing_item, /obj/item/device/assembly/prox_sensor/active))
+				return "Blueprint target turf already contains a mine."
 		return null
 
 	if(islist(rule) && "[rule["category"]]" == "support_prop")
@@ -44,6 +52,7 @@
 	var/list/entry_vars = placement["vars"] || list()
 	if(!istype(target_turf) || !ispath(obj_path, /obj))
 		return null
+	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 
 	if(ispath(obj_path, /obj/structure/barricade))
 		var/obj/structure/barricade/barricade = new obj_path(target_turf)
@@ -62,7 +71,14 @@
 			defense.power_off()
 		return defense
 
-	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
+	if(islist(rule) && "[rule["category"]]" == "mine")
+		var/obj/item/mine_object = new obj_path(target_turf)
+		if(istype(mine_object))
+			mine_object.setDir(dir_value)
+			if(entry_vars["faction"] && ("iff_signal" in mine_object.vars))
+				mine_object.vars["iff_signal"] = entry_vars["faction"]
+		return mine_object
+
 	if(islist(rule) && "[rule["category"]]" == "support_prop")
 		var/obj/structure/support_object = new obj_path(target_turf)
 		if(istype(support_object))

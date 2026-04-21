@@ -124,6 +124,23 @@
 		),
 	)
 
+/datum/unit_test/world_edit_corner_slots/proc/build_outpost_test_params(defense_profile = "none", layout_variant = "crossroads", opening_width = "layout", radius = 1)
+	return list(
+		"defense_profile" = defense_profile,
+		"layout_variant" = layout_variant,
+		"opening_width" = opening_width,
+		"radius" = radius,
+		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"secondary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"primary_material_share_percent" = 100,
+		"place_barricade_doors" = FALSE,
+		"primary_door_path" = "follow_material",
+		"secondary_door_path" = "follow_material",
+		"barricade_pattern" = "uniform",
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+	)
+
 /datum/world_edit_generator_definition/world_edit_test_shape_hook
 	id = "world_edit_test_shape_hook"
 	name_ru = "World Edit Test Shape Hook"
@@ -519,11 +536,10 @@
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost test center turf was not resolved.")
 
-	var/list/family_profile = list(
+	var/list/layout_profile = list(
 		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 	)
-	var/list/barricade_cycle = list(/datum/human_ai_defense/barricade/metal)
-	var/list/perimeter_data = generator.collect_perimeter_placements(center_turf, 1, family_profile, barricade_cycle)
+	var/list/perimeter_data = generator.collect_perimeter_placements(center_turf, 1, layout_profile, /datum/human_ai_defense/barricade/metal)
 	var/list/perimeter_lookup = build_slot_lookup(perimeter_data["placements"])
 
 	TEST_ASSERT_EQUAL(length(perimeter_data["placements"]), 8, "Radius-1 outpost perimeter should keep four corner tiles with two DIR slots each.")
@@ -551,21 +567,19 @@
 		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
 		"opening_width" = 1,
 	)
-	var/list/barricade_cycle = list(
-		/datum/human_ai_defense/barricade/metal,
-		/datum/human_ai_defense/barricade/sandbag,
-	)
 	var/list/perimeter_data = generator.collect_perimeter_placements(
 		center_turf,
 		2,
 		layout_profile,
-		barricade_cycle,
-		"uniform",
+		/datum/human_ai_defense/barricade/metal,
+		/datum/human_ai_defense/barricade/sandbag,
+		"alternating",
 		null,
 		null,
 		50,
 		TRUE,
-		/datum/human_ai_defense/barricade/metal,
+		/datum/human_ai_defense/barricade/metal_folding,
+		/datum/human_ai_defense/barricade/metal_folding,
 	)
 
 	TEST_ASSERT_EQUAL(perimeter_data["dominant_barricade_count"], 8, "World Edit barricade-concentration test should assign the dominant type to exactly half of the non-opening perimeter slots.")
@@ -613,13 +627,14 @@
 		center_turf,
 		2,
 		layout_profile,
-		list(/datum/human_ai_defense/barricade/sandbag),
+		/datum/human_ai_defense/barricade/sandbag,
+		null,
 		"uniform",
 		null,
 		null,
-		0,
+		100,
 		TRUE,
-		/datum/human_ai_defense/barricade/sandbag,
+		"follow_material",
 	)
 
 	TEST_ASSERT_EQUAL(perimeter_data["door_count"], 0, "World Edit unsupported-door test should not emit folding doors for unsupported materials.")
@@ -682,7 +697,6 @@
 		"opening_dirs" = list(),
 		"opening_width" = 1,
 	)
-	var/list/barricade_cycle = list(/datum/human_ai_defense/barricade/metal)
 	var/list/barriers = list()
 	for(var/offset_y in -2 to 2)
 		var/turf/barrier_turf = locate(center_turf.x + 1, center_turf.y + offset_y, center_turf.z)
@@ -694,7 +708,8 @@
 		center_turf,
 		2,
 		layout_profile,
-		barricade_cycle,
+		/datum/human_ai_defense/barricade/metal,
+		null,
 		"uniform",
 		list(
 			"only_clear_tiles" = TRUE,
@@ -707,7 +722,8 @@
 		center_turf,
 		2,
 		layout_profile,
-		barricade_cycle,
+		/datum/human_ai_defense/barricade/metal,
+		null,
 		"uniform",
 		list(
 			"only_clear_tiles" = TRUE,
@@ -768,22 +784,8 @@
 	for(var/turf/footprint_turf as anything in footprint_turfs)
 		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-plan footprint resolved outside the unit-test floor area.")
 
-	var/list/config = list(
-		"family" = "standard",
-		"family_profile" = list(
-			"label" = "Standard",
-			"description" = "Unit test family profile",
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		),
-		"radius" = 1,
-		"place_sentries" = FALSE,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
-		"sentry_path" = null,
-		"faction" = FACTION_MARINE,
-		"turned_on" = FALSE,
-	)
-	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 1)
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, params)
 	var/list/placement_counts = count_placements_by_kind(plan.placements)
 
 	TEST_ASSERT_NOTNULL(plan, "Shape-aware outpost plan was not created.")
@@ -810,30 +812,8 @@
 	for(var/turf/footprint_turf as anything in footprint_turfs)
 		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-plan footprint resolved outside the unit-test floor area.")
 
-	var/list/config = list(
-		"family" = "standard",
-		"family_profile" = list(
-			"label" = "Standard",
-			"description" = "Unit test family profile",
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		),
-		"layout_variant" = "crossroads",
-		"placement_dir" = NORTH,
-		"opening_width" = 1,
-		"guard_mode" = "layout",
-		"sentry_profile" = "entry_guard",
-		"radius" = 1,
-		"place_sentries" = TRUE,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
-		"barricade_pattern" = "uniform",
-		"barricade_concentration_percent" = 50,
-		"place_barricade_doors" = TRUE,
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = FALSE,
-	)
-	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/params = build_outpost_test_params("anti_vehicle_stop", "crossroads", "layout", 1)
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, params)
 	var/list/placement_counts = count_placements_by_kind(plan.placements)
 
 	TEST_ASSERT_NOTNULL(plan, "Shape-aware outpost plan was not created.")
@@ -860,33 +840,12 @@
 	for(var/turf/footprint_turf as anything in footprint_turfs)
 		TEST_ASSERT_NOTNULL(footprint_turf, "Shape-door footprint resolved outside the unit-test floor area.")
 
-	var/list/config = list(
-		"family" = "standard",
-		"family_profile" = list(
-			"label" = "Standard",
-			"description" = "Unit test family profile",
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		),
-		"layout_variant" = "crossroads",
-		"placement_dir" = NORTH,
-		"opening_width" = 1,
-		"guard_mode" = "layout",
-		"sentry_profile" = "entry_guard",
-		"radius" = 1,
-		"place_sentries" = FALSE,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_cycle" = list(
-			/datum/human_ai_defense/barricade/metal,
-			/datum/human_ai_defense/barricade/sandbag,
-		),
-		"barricade_pattern" = "uniform",
-		"barricade_concentration_percent" = 50,
-		"place_barricade_doors" = TRUE,
-		"sentry_path" = null,
-		"faction" = FACTION_MARINE,
-		"turned_on" = FALSE,
-	)
-	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 1)
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/sandbag
+	params["primary_material_share_percent"] = 50
+	params["place_barricade_doors"] = TRUE
+	params["barricade_pattern"] = "alternating"
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, params)
 	var/list/placement_counts = count_placements_by_kind(plan.placements)
 
 	TEST_ASSERT_NOTNULL(plan, "Shape-door outpost plan was not created.")
@@ -911,22 +870,12 @@
 	for(var/turf/footprint_turf as anything in footprint_turfs)
 		TEST_ASSERT_NOTNULL(footprint_turf, "Blueprint-export footprint resolved outside the unit-test floor area.")
 
-	var/list/config = list(
-		"family" = "standard",
-		"family_profile" = list(
-			"label" = "Standard",
-			"description" = "Unit test family profile",
-			"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		),
-		"radius" = 1,
-		"place_sentries" = TRUE,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_cycle" = list(/datum/human_ai_defense/barricade/metal),
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = FALSE,
-	)
-	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, config)
+	var/list/params = build_outpost_test_params("lane_fort", "crossroads", "layout", 1)
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/sandbag
+	params["primary_material_share_percent"] = 50
+	params["place_barricade_doors"] = TRUE
+	params["barricade_pattern"] = "alternating"
+	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, params)
 	TEST_ASSERT_NOTNULL(plan, "Unit-test outpost plan for blueprint export was not created.")
 	TEST_ASSERT(!plan.metadata["error"], "Unit-test outpost plan for blueprint export unexpectedly failed.")
 
@@ -937,7 +886,8 @@
 	TEST_ASSERT(islist(blueprint), "Blueprint export should produce a blueprint payload.")
 	TEST_ASSERT(length(blueprint["entries"]), "Blueprint export should contain at least one entry.")
 	TEST_ASSERT(islist(blueprint["outpost_recipe"]), "Blueprint export should persist optional outpost_recipe metadata for authored outpost plans.")
-	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["barricade_concentration_percent"], 50, "Blueprint export should persist the resolved barricade concentration.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["defense_profile"], "lane_fort", "Blueprint export should persist the resolved tactical profile id.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["primary_material_share_percent"], 50, "Blueprint export should persist the resolved primary material share.")
 	TEST_ASSERT(blueprint["outpost_recipe"]["place_barricade_doors"], "Blueprint export should persist the folding-door toggle in outpost_recipe.")
 	TEST_ASSERT_EQUAL(length(blueprint["outpost_recipe"]["footprint_offsets"]), 4, "Blueprint export should persist the relative footprint offsets for shape-authored outposts.")
 
@@ -2780,9 +2730,7 @@
 	generator.attach(manager, definition)
 	manager.current_definition = definition
 	manager.current_generator = generator
-	manager.current_params = definition.default_params?.Copy() || list()
-	manager.current_params["radius"] = 1
-	manager.current_params["place_sentries"] = FALSE
+	manager.current_params = build_outpost_test_params("none", "crossroads", "layout", 1)
 
 	for(var/shape_id in generator.get_supported_placement_shapes())
 		var/list/case_data = build_shape_integration_case(shape_id, center_turf, manager.current_params, EAST)
@@ -3271,21 +3219,9 @@
 	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
 	TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost line-shape validation test end turf was not resolved.")
 
-	var/list/params = list(
-		"family" = "metal_perimeter",
-		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
-		"radius" = 1,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-		"shape_line_length" = 4,
-		"shape_line_spacing" = 1,
-	)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 1)
+	params["shape_line_length"] = 4
+	params["shape_line_spacing"] = 1
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs("line", center_turf, end_turf, params, EAST)
 	TEST_ASSERT(!shape_result["error"], "World Edit outpost line-shape validation test should build line anchor turfs.")
 
@@ -3340,19 +3276,7 @@
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost connected-freeform test center turf was not resolved.")
 
-	var/list/params = list(
-		"family" = "metal_perimeter",
-		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
-		"radius" = 1,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-	)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 1)
 	for(var/shape_id in list(WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_CUSTOM_MASK, WORLD_EDIT_SHAPE_BRUSH_PATH, WORLD_EDIT_SHAPE_SCATTER_CLUSTER))
 		var/list/case_data = build_shape_integration_case(shape_id, center_turf, params, NORTH)
 		var/list/shape_result = case_data["shape_result"]
@@ -3374,22 +3298,10 @@
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost scatter-cluster connectivity test center turf was not resolved.")
 
-	var/list/params = list(
-		"family" = "metal_perimeter",
-		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
-		"radius" = 1,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-		"shape_scatter_radius" = 4,
-		"shape_scatter_count" = 11,
-		"shape_scatter_seed" = 29,
-	)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 1)
+	params["shape_scatter_radius"] = 4
+	params["shape_scatter_count"] = 11
+	params["shape_scatter_seed"] = 29
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(WORLD_EDIT_SHAPE_SCATTER_CLUSTER, center_turf, center_turf, params, NORTH)
 	TEST_ASSERT(!shape_result["error"], "World Edit outpost scatter-cluster connectivity test should build a shared shape result.")
 	TEST_ASSERT_EQUAL(generator.count_shape_connected_components(shape_result["turfs"] || list()), 1, "World Edit scatter-cluster shape service should keep the footprint connected for outpost support.")
@@ -3417,19 +3329,7 @@
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost pointlike-fallback test center turf was not resolved.")
 
-	var/list/params = list(
-		"family" = "metal_perimeter",
-		"layout_variant" = "crossroads",
-		"opening_width" = "broad",
-		"radius" = 1,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-	)
+	var/list/params = build_outpost_test_params("none", "crossroads", "broad", 1)
 
 	var/list/placement_context = list(
 		"mode" = "single",
@@ -3461,22 +3361,10 @@
 	var/obj/structure/window/test_window = allocate(/obj/structure/window, center_turf)
 	TEST_ASSERT_NOTNULL(test_window, "World Edit outpost point-footprint policy test should create a window blocker on the clicked turf.")
 
-	var/list/params = list(
-		"family" = "metal_perimeter",
-		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
-		"radius" = 2,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-		"radius_only_clear_tiles" = TRUE,
-		"radius_only_reachable_tiles" = FALSE,
-		"radius_windows_blockers" = TRUE,
-	)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 2)
+	params["radius_only_clear_tiles"] = TRUE
+	params["radius_only_reachable_tiles"] = FALSE
+	params["radius_windows_blockers"] = TRUE
 
 	var/shape_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_POINT, list(center_turf), params, list(
 		"mode" = "single",
@@ -3965,26 +3853,9 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/outpost_layout_aliases_resolve_to_dir_driven_profiles/Run()
+/datum/unit_test/world_edit_corner_slots/outpost_dir_driven_layouts_rotate_with_placement_dir/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
-	var/list/params = list(
-		"family" = "expedition_light",
-		"layout_variant" = "north_gate",
-		"opening_width" = "profile",
-		"radius" = 2,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = TRUE,
-		"guard_mode" = "layout",
-		"sentry_profile" = "profile",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-	)
-
-	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("north_gate"), "gate", "World Edit outpost DIR-layout test should collapse old gate ids to the canonical DIR-driven layout id.")
-	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("corner_se"), "corner", "World Edit outpost DIR-layout test should collapse old corner ids to the canonical DIR-driven layout id.")
-	TEST_ASSERT_EQUAL(generator.resolve_outpost_layout_id("double_gate_ns"), "double_gate", "World Edit outpost DIR-layout test should collapse old double-gate ids to the canonical DIR-driven layout id.")
+	var/list/params = build_outpost_test_params("none", "gate", "layout", 2)
 
 	var/list/config = generator.resolve_outpost_configuration(params, list("direction" = EAST))
 	TEST_ASSERT(!config["error"], "World Edit outpost DIR-layout test should resolve a gate layout without configuration errors.")
@@ -3992,24 +3863,11 @@
 	TEST_ASSERT_EQUAL(config["placement_dir"], EAST, "World Edit outpost DIR-layout test should preserve the placement DIR on resolved config.")
 	TEST_ASSERT_EQUAL(length(config["layout_profile"]["opening_dirs"] || list()), 1, "World Edit outpost DIR-layout test should keep exactly one gate opening.")
 	TEST_ASSERT_EQUAL(config["layout_profile"]["opening_dirs"][1], EAST, "World Edit outpost DIR-layout test should rotate the gate opening to the current placement DIR instead of using a hardcoded north-facing layout.")
-	TEST_ASSERT_EQUAL(config["layout_profile"]["guard_dirs"][1], EAST, "World Edit outpost DIR-layout test should rotate guard coverage with the placement DIR as well.")
 
 /datum/unit_test/world_edit_corner_slots/outpost_split_layout_builds_separated_openings/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
-	var/list/config = generator.resolve_outpost_configuration(list(
-		"family" = "choke_wall",
-		"layout_variant" = "split_mouth",
-		"opening_width" = "profile",
-		"radius" = 3,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal/wired,
-		"barricade_pattern" = "profile",
-		"place_sentries" = FALSE,
-		"guard_mode" = "layout",
-		"sentry_profile" = "profile",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-	), list("direction" = NORTH))
+	var/list/params = build_outpost_test_params("none", "split_mouth", "layout", 3)
+	var/list/config = generator.resolve_outpost_configuration(params, list("direction" = NORTH))
 
 	TEST_ASSERT(!config["error"], "World Edit split-opening test should resolve split_mouth without configuration errors.")
 	TEST_ASSERT_EQUAL(generator.get_layout_opening_slot_mode(config["layout_profile"]), "split_pair", "World Edit split-opening test should keep split_pair slot mode on the resolved layout.")
@@ -4020,42 +3878,30 @@
 	TEST_ASSERT(opening_ranges[1]["end"] < opening_ranges[2]["start"], "World Edit split-opening test should keep the two openings separated by a closed center segment.")
 	TEST_ASSERT(!generator.is_perimeter_opening_slot(NORTH, 0, config["radius"], config["layout_profile"], config["radius"]), "World Edit split-opening test should keep the centered front slot closed for split-mouthed layouts.")
 
-/datum/unit_test/world_edit_corner_slots/outpost_sentry_profiles_follow_family_defaults_and_overrides/Run()
+/datum/unit_test/world_edit_corner_slots/outpost_defense_profiles_resolve_without_legacy_switches/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
-	var/list/base_params = list(
-		"family" = "crossfire_hub",
-		"layout_variant" = "crossroads",
-		"opening_width" = "profile",
-		"radius" = 2,
-		"barricade_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "profile",
-		"place_sentries" = TRUE,
-		"guard_mode" = "layout",
-		"sentry_profile" = "profile",
-		"sentry_path" = /datum/human_ai_defense/defense/sentry/uscm/dmr,
-		"faction" = FACTION_MARINE,
-		"turned_on" = TRUE,
-	)
+	var/list/heavy_params = build_outpost_test_params("anti_vehicle_stop", "crossroads", "layout", 2)
+	var/list/heavy_config = generator.resolve_outpost_configuration(heavy_params, list("direction" = NORTH))
+	TEST_ASSERT(!heavy_config["error"], "World Edit defense-profile test should resolve the anti_vehicle_stop tactical profile.")
+	TEST_ASSERT_EQUAL(heavy_config["defense_profile"], "anti_vehicle_stop", "World Edit defense-profile test should preserve the selected tactical profile id.")
+	TEST_ASSERT(heavy_config["needs_anchor_map"], "World Edit defense-profile test should request anchor-map generation for active defenses.")
+	var/list/heavy_profile = heavy_config["defense_profile_data"]
+	TEST_ASSERT_EQUAL(length(heavy_profile["defense_rules"] || list()), 4, "World Edit defense-profile test should expose the bundled sentry, mine and extra-defense rules for the selected tactical profile.")
+	var/list/tesla_rule = null
+	for(var/list/rule as anything in heavy_profile["defense_rules"] || list())
+		if(rule["kind"] == "extra_defense")
+			tesla_rule = rule
+			break
+	var/tesla_path = islist(tesla_rule) ? tesla_rule["defense_path"] : null
+	TEST_ASSERT_EQUAL(tesla_path, /datum/human_ai_defense/defense/tesla, "World Edit defense-profile test should keep the heavy profile's tesla placement rule.")
 
-	var/list/crossfire_config = generator.resolve_outpost_configuration(base_params, list("direction" = NORTH))
-	TEST_ASSERT(!crossfire_config["error"], "World Edit sentry-profile test should resolve the default crossfire_hub family profile.")
-	TEST_ASSERT_EQUAL(crossfire_config["sentry_profile"], "crossfire", "World Edit sentry-profile test should inherit the family's default sentry profile when the UI stays on profile mode.")
-	var/list/crossfire_dirs = generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), crossfire_config["sentry_profile"])
-	TEST_ASSERT_EQUAL(length(crossfire_dirs), 4, "World Edit sentry-profile test should keep up to four prioritized guard axes for crossfire layouts.")
-
-	var/list/light_params = base_params.Copy()
-	light_params["family"] = "expedition_light"
-	var/list/light_config = generator.resolve_outpost_configuration(light_params, list("direction" = NORTH))
-	TEST_ASSERT(!light_config["error"], "World Edit sentry-profile test should resolve the expedition_light family profile.")
-	TEST_ASSERT_EQUAL(light_config["sentry_profile"], "light_cover", "World Edit sentry-profile test should inherit the family's lighter sentry posture.")
-	TEST_ASSERT_EQUAL(length(generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), light_config["sentry_profile"])), 2, "World Edit sentry-profile test should trim light-cover guard axes down to at most two directions.")
-
-	var/list/none_params = base_params.Copy()
-	none_params["sentry_profile"] = "none"
+	var/list/none_params = build_outpost_test_params("none", "crossroads", "layout", 2)
 	var/list/none_config = generator.resolve_outpost_configuration(none_params, list("direction" = NORTH))
-	TEST_ASSERT(!none_config["error"], "World Edit sentry-profile test should accept an explicit sentry_profile override.")
-	TEST_ASSERT_EQUAL(none_config["sentry_profile"], "none", "World Edit sentry-profile test should preserve an explicit sentry_profile override instead of forcing the family default.")
-	TEST_ASSERT_EQUAL(length(generator.build_sentry_profile_guard_dirs(list(NORTH, EAST, SOUTH, WEST), none_config["sentry_profile"])), 0, "World Edit sentry-profile test should disable all guard axes when sentry_profile=none.")
+	TEST_ASSERT(!none_config["error"], "World Edit defense-profile test should resolve the empty tactical profile.")
+	TEST_ASSERT_EQUAL(none_config["defense_profile"], "none", "World Edit defense-profile test should preserve the explicit no-defense profile.")
+	TEST_ASSERT(!(none_config["needs_anchor_map"]), "World Edit defense-profile test should skip anchor-map work for the no-defense profile.")
+	var/list/none_profile = none_config["defense_profile_data"]
+	TEST_ASSERT_EQUAL(length(none_profile["defense_rules"] || list()), 0, "World Edit defense-profile test should expose no defense rules for the no-defense profile.")
 
 /datum/unit_test/world_edit_corner_slots/outpost_plan_preview_specs_follow_runtime_placements/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
@@ -4071,15 +3917,9 @@
 	manager.placement_dir = NORTH
 	manager.placement_anchor_turf = center_turf
 
-	var/list/params = definition.default_params?.Copy() || list()
-	params["family"] = "wired_metal_perimeter"
-	params["layout_variant"] = "gate"
-	params["opening_width"] = "profile"
-	params["radius"] = 2
-	params["place_sentries"] = TRUE
-	params["guard_mode"] = "layout"
-	params["sentry_profile"] = "entry_guard"
-	params["turned_on"] = TRUE
+	var/list/params = build_outpost_test_params("lane_fort", "gate", "layout", 2)
+	params["primary_material_path"] = /datum/human_ai_defense/barricade/metal/wired
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/metal/wired
 	manager.current_params = params.Copy()
 
 	var/list/placement_context = list(

@@ -1,4 +1,6 @@
 /datum/world_edit_generator/outpost_radius/proc/build_centered_opening_range(center_offset, opening_width, radius)
+	if(opening_width <= 0)
+		return null
 	var/start_offset = center_offset - ((opening_width - 1) / 2)
 	if((opening_width % 2) == 0)
 		start_offset = center_offset - (opening_width / 2)
@@ -11,6 +13,8 @@
 	)
 
 /datum/world_edit_generator/outpost_radius/proc/build_split_pair_opening_ranges(radius, opening_width)
+	if(opening_width <= 0)
+		return list()
 	var/span = (radius * 2) + 1
 	if(span < opening_width * 2)
 		return list(build_centered_opening_range(0, opening_width, radius))
@@ -28,6 +32,8 @@
 		return list()
 
 	var/opening_width = get_layout_opening_width(layout_profile)
+	if(opening_width <= 0)
+		return list()
 	var/slot_mode = get_layout_opening_slot_mode(layout_profile)
 	var/slots_per_dir = get_layout_opening_slots_per_dir(layout_profile)
 	if(slot_mode == "split_pair" && slots_per_dir >= 2)
@@ -79,8 +85,6 @@
 		return 100
 	return clamp(round(percent), 0, 100)
 
-/datum/world_edit_generator/outpost_radius/proc/get_barricade_concentration_percent(raw_value)
-	return get_primary_material_share_percent(raw_value)
 
 /datum/world_edit_generator/outpost_radius/proc/get_folding_barricade_path(barricade_path)
 	switch(barricade_path)
@@ -417,6 +421,10 @@
 	if(!islist(metadata) || !islist(config))
 		return
 
+	var/primary_material_share_percent = text2num("[config["primary_material_share_percent"]]")
+	if(!isnum(primary_material_share_percent))
+		primary_material_share_percent = 100
+
 	metadata["defense_profile"] = config["defense_profile"]
 	metadata["layout_variant"] = config["layout_variant"]
 	metadata["placement_dir"] = config["placement_dir"]
@@ -427,9 +435,8 @@
 	metadata["primary_door_path"] = ispath(config["primary_door_path"], /datum/human_ai_defense/barricade) ? "[config["primary_door_path"]]" : "[config["primary_door_path"] || "follow_material"]"
 	metadata["secondary_door_path"] = ispath(config["secondary_door_path"], /datum/human_ai_defense/barricade) ? "[config["secondary_door_path"]]" : "[config["secondary_door_path"] || "follow_material"]"
 	metadata["barricade_pattern"] = config["barricade_pattern"]
-	metadata["primary_material_share_percent"] = config["primary_material_share_percent"] || 100
+	metadata["primary_material_share_percent"] = primary_material_share_percent
 	metadata["place_barricade_doors"] = config["place_barricade_doors"] ? TRUE : FALSE
-	metadata["legacy_family"] = config["legacy_family"]
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_anchor_candidate(turf/target_turf, dir_to_use, group_id, source_dir = null, source_turf = null)
 	if(!istype(target_turf))
@@ -612,7 +619,12 @@
 			reserved_lookup[target_turf] = TRUE
 	return reserved_lookup
 
-/datum/world_edit_generator/outpost_radius/proc/build_outpost_defense_placements(list/anchor_map, list/defense_profile, list/reserved_turf_lookup = null)
+/datum/world_edit_generator/outpost_radius/proc/outpost_defense_profile_needs_anchor_map(list/defense_profile)
+	if(!islist(defense_profile))
+		return FALSE
+	return (length(defense_profile["wired_groups"]) || length(defense_profile["defense_rules"])) ? TRUE : FALSE
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_defense_placements(list/anchor_map, list/defense_profile, list/reserved_turf_lookup = null, default_faction = null)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_sentries" = 0,
@@ -651,12 +663,13 @@
 				continue
 
 			var/kind = "[rule["kind"]]"
+			var/faction = "[rule["faction"] || defense_profile["faction"] || default_faction]"
 			result["placements"] += list(list(
 				"kind" = kind,
 				"turf" = target_turf,
 				"dir" = dir_to_use,
 				"defense_path" = defense_path,
-				"faction" = rule["faction"],
+				"faction" = length(faction) ? faction : null,
 				"turned_on" = GLOB.world_edit_helpers.parse_bool(rule["turned_on"]) ? TRUE : FALSE,
 			))
 			occupied_lookup[target_turf] = TRUE
@@ -684,131 +697,6 @@
 				result["blocked_extra_defenses"] += blocked_count
 
 	return result
-
-/datum/world_edit_generator/outpost_radius/proc/build_sentry_profile_guard_dirs(list/guard_dirs, sentry_profile)
-	var/list/resolved_guard_dirs = islist(guard_dirs) ? guard_dirs.Copy() : list()
-	if(!length(resolved_guard_dirs))
-		return list()
-
-	switch("[sentry_profile]")
-		if("none")
-			return list()
-		if("light_cover")
-			return resolved_guard_dirs.Copy(1, min(length(resolved_guard_dirs), 2) + 1)
-		if("crossfire")
-			var/list/prioritized_dirs = list()
-			if((NORTH in resolved_guard_dirs) && (SOUTH in resolved_guard_dirs))
-				prioritized_dirs += NORTH
-				prioritized_dirs += SOUTH
-			if((EAST in resolved_guard_dirs) && (WEST in resolved_guard_dirs))
-				prioritized_dirs += EAST
-				prioritized_dirs += WEST
-			for(var/dir_to_guard as anything in resolved_guard_dirs)
-				if(dir_to_guard in prioritized_dirs)
-					continue
-				prioritized_dirs += dir_to_guard
-			return prioritized_dirs.Copy(1, min(length(prioritized_dirs), 4) + 1)
-	return resolved_guard_dirs
-
-/datum/world_edit_generator/outpost_radius/proc/build_sentry_guard_candidates(dir_to_guard, inner_radius, sentry_profile = "entry_guard")
-	var/fallback_distance = max(inner_radius - 1, 0)
-	var/deep_distance = max(inner_radius - 2, 0)
-
-	switch(dir_to_guard)
-		if(NORTH)
-			switch("[sentry_profile]")
-				if("inner_guard")
-					return list(
-						list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
-					)
-				if("crossfire")
-					return list(
-						list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
-						list("dx" = 0, "dy" = deep_distance, "dir" = NORTH),
-						list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
-					)
-			return list(
-				list("dx" = 0, "dy" = inner_radius, "dir" = NORTH),
-				list("dx" = 1, "dy" = fallback_distance, "dir" = NORTH),
-				list("dx" = -1, "dy" = fallback_distance, "dir" = NORTH),
-				list("dx" = 0, "dy" = fallback_distance, "dir" = NORTH),
-			)
-		if(SOUTH)
-			switch("[sentry_profile]")
-				if("inner_guard")
-					return list(
-						list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
-					)
-				if("crossfire")
-					return list(
-						list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
-						list("dx" = 0, "dy" = -deep_distance, "dir" = SOUTH),
-						list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
-					)
-			return list(
-				list("dx" = 0, "dy" = -inner_radius, "dir" = SOUTH),
-				list("dx" = 1, "dy" = -fallback_distance, "dir" = SOUTH),
-				list("dx" = -1, "dy" = -fallback_distance, "dir" = SOUTH),
-				list("dx" = 0, "dy" = -fallback_distance, "dir" = SOUTH),
-			)
-		if(EAST)
-			switch("[sentry_profile]")
-				if("inner_guard")
-					return list(
-						list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
-						list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
-						list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
-						list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
-					)
-				if("crossfire")
-					return list(
-						list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
-						list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
-						list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
-						list("dx" = deep_distance, "dy" = 0, "dir" = EAST),
-						list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
-					)
-			return list(
-				list("dx" = inner_radius, "dy" = 0, "dir" = EAST),
-				list("dx" = fallback_distance, "dy" = 1, "dir" = EAST),
-				list("dx" = fallback_distance, "dy" = -1, "dir" = EAST),
-				list("dx" = fallback_distance, "dy" = 0, "dir" = EAST),
-			)
-		if(WEST)
-			switch("[sentry_profile]")
-				if("inner_guard")
-					return list(
-						list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
-						list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
-						list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
-						list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
-					)
-				if("crossfire")
-					return list(
-						list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
-						list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
-						list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
-						list("dx" = -deep_distance, "dy" = 0, "dir" = WEST),
-						list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
-					)
-			return list(
-				list("dx" = -inner_radius, "dy" = 0, "dir" = WEST),
-				list("dx" = -fallback_distance, "dy" = 1, "dir" = WEST),
-				list("dx" = -fallback_distance, "dy" = -1, "dir" = WEST),
-				list("dx" = -fallback_distance, "dy" = 0, "dir" = WEST),
-			)
-
-	return list()
 
 /datum/world_edit_generator/outpost_radius/proc/build_turf_lookup(list/turfs)
 	var/list/lookup = list()
@@ -1416,7 +1304,9 @@
 	if(!islist(target_dirs) || !length(target_dirs))
 		return selected_slots
 
-	var/slots_to_select = max(round(text2num("[slots_per_dir]") || 0), 1)
+	var/slots_to_select = max(round(text2num("[slots_per_dir]") || 0), 0)
+	if(slots_to_select <= 0)
+		return selected_slots
 	var/list/selected_lookup = list()
 	for(var/dir_to_use as anything in target_dirs)
 		var/list/dir_candidates = list()
@@ -1447,76 +1337,6 @@
 
 	return selected_slots
 
-/datum/world_edit_generator/outpost_radius/proc/build_shape_sentry_candidates(list/opening_slot, sentry_profile = "entry_guard")
-	var/list/candidates = list()
-	if(!islist(opening_slot))
-		return candidates
-
-	var/turf/source_turf = opening_slot["source_turf"]
-	if(!istype(source_turf))
-		source_turf = opening_slot["turf"]
-	var/dir_to_guard = opening_slot["dir"]
-	if(!istype(source_turf))
-		return candidates
-
-	var/inward_dir = get_cardinal_opposite_dir(dir_to_guard)
-	var/turf/inward_turf = GLOB.world_edit_helpers.step_turf(source_turf, inward_dir, 1)
-	var/turf/deep_turf = istype(inward_turf) ? GLOB.world_edit_helpers.step_turf(inward_turf, inward_dir, 1) : null
-
-	switch("[sentry_profile]")
-		if("inner_guard")
-			if(istype(inward_turf))
-				candidates += list(list(
-					"turf" = inward_turf,
-					"dir" = dir_to_guard,
-					"opening_dir" = dir_to_guard,
-				))
-			if(istype(deep_turf))
-				candidates += list(list(
-					"turf" = deep_turf,
-					"dir" = dir_to_guard,
-					"opening_dir" = dir_to_guard,
-				))
-			candidates += list(list(
-				"turf" = source_turf,
-				"dir" = dir_to_guard,
-				"opening_dir" = dir_to_guard,
-			))
-			return candidates
-		if("crossfire")
-			if(istype(inward_turf))
-				candidates += list(list(
-					"turf" = inward_turf,
-					"dir" = dir_to_guard,
-					"opening_dir" = dir_to_guard,
-				))
-			if(istype(deep_turf))
-				candidates += list(list(
-					"turf" = deep_turf,
-					"dir" = dir_to_guard,
-					"opening_dir" = dir_to_guard,
-				))
-			candidates += list(list(
-				"turf" = source_turf,
-				"dir" = dir_to_guard,
-				"opening_dir" = dir_to_guard,
-			))
-			return candidates
-
-	candidates += list(list(
-		"turf" = source_turf,
-		"dir" = dir_to_guard,
-		"opening_dir" = dir_to_guard,
-	))
-	if(istype(inward_turf))
-		candidates += list(list(
-			"turf" = inward_turf,
-			"dir" = dir_to_guard,
-			"opening_dir" = dir_to_guard,
-		))
-
-	return candidates
-
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_shape_analysis(list/footprint_turfs, list/params, list/placement_context = null)
 	var/list/analysis = list(
 		"error" = null,
@@ -1534,11 +1354,6 @@
 		"opening_lookup" = list(),
 		"opening_slots_by_dir" = list(),
 		"anchor_map" = list(),
-		"guard_dirs" = list(),
-		"guard_slots" = list(),
-		"guard_sentry_candidates" = list(),
-		"raw_sentry_candidate_turfs" = list(),
-		"allowed_sentry_lookup" = list(),
 		"opening_dirs" = list(),
 		"distance_cache" = list(),
 		"approach_line_cache" = list(),
@@ -1580,8 +1395,7 @@
 	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache)
 	var/list/layout_profile = islist(config["layout_profile"]) ? config["layout_profile"] : list(
 		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		"guard_dirs" = list(NORTH, EAST, SOUTH, WEST),
-		"opening_width" = max(text2num("[config["opening_width"]]"), 1),
+		"opening_width" = max(text2num("[config["opening_width"]]"), 0),
 		"opening_slots_per_dir" = 1,
 		"opening_slot_mode" = "centered",
 	)
@@ -1610,25 +1424,7 @@
 		slot_data["is_opening"] = length(slot_key) && opening_lookup[slot_key] ? TRUE : FALSE
 		perimeter_slots += list(slot_data)
 
-	var/list/anchor_map = build_outpost_anchor_map(unique_footprint_turfs, perimeter_slots, opening_slots, config["placement_dir"])
-	var/list/guard_dirs = build_sentry_profile_guard_dirs(get_guard_dirs_for_mode(config["guard_mode"], layout_profile), config["sentry_profile"])
-	var/list/guard_slots = list()
-	var/list/guard_sentry_candidates = list()
-	var/list/raw_sentry_candidate_turfs = list()
-	var/list/allowed_sentry_lookup = list()
-	if(config["use_legacy_sentry_layer"])
-		guard_slots = select_shape_direction_slots(filtered_candidate_slots, guard_dirs, 1, shape_bounds)
-		var/list/raw_sentry_candidate_lookup = list()
-		for(var/list/guard_slot as anything in guard_slots)
-			var/list/sentry_candidates = build_shape_sentry_candidates(guard_slot, config["sentry_profile"])
-			guard_sentry_candidates += list(sentry_candidates)
-			for(var/list/sentry_candidate as anything in sentry_candidates)
-				var/turf/sentry_turf = sentry_candidate["turf"]
-				if(!istype(sentry_turf) || raw_sentry_candidate_lookup[sentry_turf])
-					continue
-				raw_sentry_candidate_lookup[sentry_turf] = TRUE
-				raw_sentry_candidate_turfs += sentry_turf
-		allowed_sentry_lookup = build_turf_lookup(filter_outpost_candidate_turfs(list(seed_turf), raw_sentry_candidate_turfs, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache))
+	var/list/anchor_map = config["needs_anchor_map"] ? build_outpost_anchor_map(unique_footprint_turfs, perimeter_slots, opening_slots, config["placement_dir"]) : list()
 
 	analysis["config"] = config
 	analysis["footprint_turfs"] = unique_footprint_turfs
@@ -1644,11 +1440,6 @@
 	analysis["opening_lookup"] = opening_lookup
 	analysis["opening_slots_by_dir"] = opening_slots_by_dir
 	analysis["anchor_map"] = anchor_map
-	analysis["guard_dirs"] = guard_dirs
-	analysis["guard_slots"] = guard_slots
-	analysis["guard_sentry_candidates"] = guard_sentry_candidates
-	analysis["raw_sentry_candidate_turfs"] = raw_sentry_candidate_turfs
-	analysis["allowed_sentry_lookup"] = allowed_sentry_lookup
 	analysis["opening_dirs"] = opening_dirs
 	analysis["distance_cache"] = distance_cache
 	analysis["approach_line_cache"] = approach_line_cache
@@ -1668,8 +1459,7 @@
 	var/list/config = shape_analysis["config"]
 	footprint_turfs = shape_analysis["footprint_turfs"]
 	var/list/shape_bounds = shape_analysis["shape_bounds"]
-	var/list/family_profile = islist(config["family_profile"]) ? config["family_profile"] : list()
-	var/list/defense_profile = islist(config["active_defense_profile_data"]) ? config["active_defense_profile_data"] : get_outpost_defense_profile("none")
+	var/list/defense_profile = islist(config["defense_profile_data"]) ? config["defense_profile_data"] : get_outpost_defense_profile("none")
 	var/radius = config["radius"]
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/turf/seed_turf = shape_analysis["seed_turf"]
@@ -1677,28 +1467,21 @@
 	if(!length(candidate_slots))
 		plan.metadata["error"] = "Выбранный контур размещения не позволяет построить оболочку периметра при текущей политике блокировок радиуса."
 		return plan
+	var/list/shape_opening_dirs = islist(shape_analysis["opening_dirs"]) ? shape_analysis["opening_dirs"] : null
 	var/list/layout_profile = islist(config["layout_profile"]) ? config["layout_profile"] : list(
 		"label" = config["layout_variant"] || "shape_layout",
 		"description" = "",
-		"opening_dirs" = islist(shape_analysis["opening_dirs"]) ? shape_analysis["opening_dirs"].Copy() : list(),
-		"guard_dirs" = islist(shape_analysis["guard_dirs"]) ? shape_analysis["guard_dirs"].Copy() : list(),
-		"opening_width" = max(text2num("[config["opening_width"]]"), 1),
+		"opening_dirs" = islist(shape_opening_dirs) ? shape_opening_dirs.Copy() : list(),
+		"opening_width" = max(text2num("[config["opening_width"]]"), 0),
 		"opening_slots_per_dir" = 1,
 		"opening_slot_mode" = "centered",
 	)
 	var/list/opening_dirs = shape_analysis["opening_dirs"]
-	var/list/guard_dirs = shape_analysis["guard_dirs"]
-	var/list/guard_slots = shape_analysis["guard_slots"]
-	var/list/guard_sentry_candidates = shape_analysis["guard_sentry_candidates"]
-	var/list/allowed_sentry_lookup = shape_analysis["allowed_sentry_lookup"]
 	var/list/perimeter_slots = shape_analysis["perimeter_slots"]
 	var/list/anchor_map = shape_analysis["anchor_map"]
-	var/list/wired_lookup = build_wired_anchor_lookup(anchor_map, defense_profile["wired_groups"])
+	var/list/wired_lookup = config["needs_anchor_map"] ? build_wired_anchor_lookup(anchor_map, defense_profile["wired_groups"]) : list()
 
 	var/list/preview_turf_lookup = list()
-	var/list/sentry_lookup = list()
-	var/legacy_sentry_count = 0
-	var/legacy_blocked_sentries = 0
 
 	for(var/list/candidate_slot as anything in candidate_slots)
 		var/turf/target_turf = candidate_slot["turf"]
@@ -1729,54 +1512,13 @@
 		))
 
 	var/list/reserved_turf_lookup = build_outpost_reserved_turf_lookup(plan.placements)
-	var/list/defense_data = build_outpost_defense_placements(anchor_map, defense_profile, reserved_turf_lookup)
+	var/list/defense_data = build_outpost_defense_placements(anchor_map, defense_profile, reserved_turf_lookup, config["faction"])
 	for(var/list/placement as anything in defense_data["placements"])
 		var/turf/defense_turf = placement["turf"]
 		if(istype(defense_turf))
 			preview_turf_lookup[defense_turf] = TRUE
 			reserved_turf_lookup[defense_turf] = TRUE
 		plan.placements += list(placement.Copy())
-
-	if(config["use_legacy_sentry_layer"])
-		var/guard_index = 1
-		for(var/list/guard_slot as anything in guard_slots)
-			var/list/sentry_candidates = guard_sentry_candidates[guard_index++]
-			var/placed_sentry = FALSE
-			var/turf/preview_sentry_turf = null
-			for(var/list/sentry_candidate as anything in sentry_candidates)
-				var/turf/sentry_turf = sentry_candidate["turf"]
-				if(!istype(sentry_turf) || !allowed_sentry_lookup[sentry_turf] || sentry_lookup[sentry_turf] || reserved_turf_lookup[sentry_turf])
-					continue
-				if(!istype(preview_sentry_turf))
-					preview_sentry_turf = sentry_turf
-				if(preview_turf_lookup[sentry_turf])
-					continue
-				if(!can_place_sentry_on_turf(sentry_turf))
-					continue
-
-				sentry_lookup[sentry_turf] = TRUE
-				preview_turf_lookup[sentry_turf] = TRUE
-				plan.placements += list(list(
-					"kind" = "sentry",
-					"turf" = sentry_turf,
-					"dir" = sentry_candidate["dir"],
-					"opening_dir" = sentry_candidate["opening_dir"],
-					"defense_path" = config["sentry_path"],
-					"faction" = config["faction"],
-					"turned_on" = config["turned_on"],
-				))
-				placed_sentry = TRUE
-				legacy_sentry_count++
-				reserved_turf_lookup[sentry_turf] = TRUE
-				break
-
-			if(istype(preview_sentry_turf))
-				preview_turf_lookup[preview_sentry_turf] = TRUE
-			if(!placed_sentry)
-				legacy_blocked_sentries++
-
-		if(length(guard_dirs) > length(guard_slots))
-			legacy_blocked_sentries += length(guard_dirs) - length(guard_slots)
 
 	var/total_openings = perimeter_data["opening_count"] || 0
 	var/total_blocked_openings = perimeter_data["blocked_openings"] || 0
@@ -1807,12 +1549,12 @@
 	populate_outpost_recipe_metadata(plan.metadata, config)
 	plan.metadata["defense_profile_label"] = defense_profile["label"]
 	plan.metadata["defense_profile_description"] = defense_profile["description"]
-	plan.metadata["family_label"] = length("[family_profile["label"]]") ? family_profile["label"] : defense_profile["label"]
-	plan.metadata["family_description"] = length("[family_profile["description"]]") ? family_profile["description"] : defense_profile["description"]
+	plan.metadata["tactical_profile_label"] = defense_profile["label"]
+	plan.metadata["tactical_profile_description"] = defense_profile["description"]
 	plan.metadata["layout_label"] = layout_profile["label"]
 	plan.metadata["layout_description"] = layout_profile["description"]
 	plan.metadata["barricade_count"] = length(perimeter_data["placements"])
-	plan.metadata["sentry_count"] = (defense_data["sentry_count"] || 0) + legacy_sentry_count
+	plan.metadata["sentry_count"] = defense_data["sentry_count"] || 0
 	plan.metadata["wire_object_count"] = defense_data["wire_object_count"] || 0
 	plan.metadata["mine_count"] = defense_data["mine_count"] || 0
 	plan.metadata["extra_defense_count"] = defense_data["extra_defense_count"] || 0
@@ -1821,7 +1563,7 @@
 	plan.metadata["blocked_barricades"] = perimeter_data["blocked_barricades"] || 0
 	plan.metadata["blocked_openings"] = total_blocked_openings
 	plan.metadata["blocked_perimeter"] = (perimeter_data["blocked_count"] || 0) + max(expected_openings - total_openings, 0)
-	plan.metadata["blocked_sentries"] = (defense_data["blocked_sentries"] || 0) + legacy_blocked_sentries
+	plan.metadata["blocked_sentries"] = defense_data["blocked_sentries"] || 0
 	plan.metadata["blocked_wire_objects"] = defense_data["blocked_wire_objects"] || 0
 	plan.metadata["blocked_mines"] = defense_data["blocked_mines"] || 0
 	plan.metadata["blocked_extra_defenses"] = defense_data["blocked_extra_defenses"] || 0
@@ -1838,23 +1580,15 @@
 
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_configuration(list/params, list/placement_context = null)
 	var/list/config = list()
-	var/has_explicit_defense_profile = !isnull(params["defense_profile"]) && length("[params["defense_profile"]]") && "[params["defense_profile"]]" != "null"
-	var/has_legacy_family = !isnull(params["family"]) && length("[params["family"]]") && "[params["family"]]" != "null"
-	var/legacy_mode = !has_explicit_defense_profile && has_legacy_family
-	var/family_id = null
-	var/list/family_profile = null
-	if(has_legacy_family)
-		family_id = resolve_outpost_family_id(params["family"])
-		if(!family_id)
-			config["error"] = "Invalid legacy outpost profile."
+	for(var/legacy_param in list("family", "guard_mode", "sentry_profile", "sentry_path", "barricade_path", "barricade_concentration_percent"))
+		if(!isnull(params[legacy_param]) && length("[params[legacy_param]]") && "[params[legacy_param]]" != "null")
+			config["error"] = "Legacy outpost parameter '[legacy_param]' is no longer supported."
 			return config
+	if(GLOB.world_edit_helpers.parse_bool(params["place_sentries"]))
+		config["error"] = "Legacy outpost parameter 'place_sentries' is no longer supported."
+		return config
 
-		family_profile = get_outpost_family_profile(family_id)
-		if(!islist(family_profile))
-			config["error"] = "Invalid legacy outpost profile."
-			return config
-
-	var/defense_profile_id = resolve_outpost_defense_profile_id(has_explicit_defense_profile ? params["defense_profile"] : family_id)
+	var/defense_profile_id = resolve_outpost_defense_profile_id(params["defense_profile"])
 	if(!defense_profile_id)
 		config["error"] = "Invalid tactical outpost profile."
 		return config
@@ -1879,25 +1613,7 @@
 		config["error"] = "Invalid outpost opening width."
 		return config
 
-	var/guard_mode = resolve_guard_mode(params["guard_mode"])
-	if(isnull(guard_mode))
-		config["error"] = "Invalid legacy sentry guard mode."
-		return config
-
-	var/sentry_profile = resolve_sentry_profile(params["sentry_profile"], family_profile)
-	if(isnull(sentry_profile))
-		config["error"] = "Invalid legacy sentry profile."
-		return config
-
-	var/list/legacy_material_defaults = family_id ? build_outpost_legacy_family_material_defaults(family_id) : list(
-		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
-		"secondary_material_path" = /datum/human_ai_defense/barricade/metal,
-		"barricade_pattern" = "uniform",
-		"primary_material_share_percent" = 100,
-		"primary_door_path" = "follow_material",
-		"secondary_door_path" = "follow_material",
-	)
-	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"], family_profile)
+	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"])
 	if(isnull(barricade_pattern))
 		config["error"] = "Invalid perimeter material pattern."
 		return config
@@ -1906,7 +1622,6 @@
 	var/list/effective_layout_profile = layout_profile.Copy()
 	effective_layout_profile["opening_dirs"] = get_layout_opening_dirs(layout_profile, placement_dir)
 	effective_layout_profile["opening_width"] = opening_width
-	effective_layout_profile["guard_dirs"] = get_layout_guard_dirs(layout_profile, placement_dir)
 	effective_layout_profile["opening_slot_mode"] = get_layout_opening_slot_mode(layout_profile)
 	effective_layout_profile["opening_slots_per_dir"] = get_layout_opening_slots_per_dir(layout_profile)
 
@@ -1914,75 +1629,54 @@
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
 		config["error"] = "Outpost radius must stay within the supported range."
 		return config
-	opening_width = clamp(round(opening_width), 1, (radius * 2) + 1)
+	opening_width = clamp(round(opening_width), 0, (radius * 2) + 1)
 	effective_layout_profile["opening_width"] = opening_width
 
-	var/place_sentries = legacy_mode ? GLOB.world_edit_helpers.parse_bool(params["place_sentries"]) : FALSE
-	var/primary_material_share_percent = get_primary_material_share_percent(params["primary_material_share_percent"] || params["barricade_concentration_percent"] || legacy_material_defaults["primary_material_share_percent"])
+	var/primary_material_share_percent = get_primary_material_share_percent(params["primary_material_share_percent"])
 	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(params["place_barricade_doors"])
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	var/primary_material_path = resolve_whitelisted_type(params["primary_material_path"] || params["barricade_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, legacy_material_defaults["primary_material_path"])
+	var/primary_material_path = resolve_whitelisted_type(params["primary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
 	if(!primary_material_path)
 		config["error"] = "Invalid primary perimeter material."
 		return config
 
-	var/secondary_material_path = resolve_whitelisted_type(params["secondary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, legacy_material_defaults["secondary_material_path"] || primary_material_path)
+	var/secondary_material_path = resolve_whitelisted_type(params["secondary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, primary_material_path)
 	if(!secondary_material_path)
 		secondary_material_path = primary_material_path
 	if(barricade_pattern == "uniform")
 		secondary_material_path = primary_material_path
 		primary_material_share_percent = 100
 
-	var/primary_door_path = resolve_outpost_door_selection(params["primary_door_path"] || legacy_material_defaults["primary_door_path"])
+	var/primary_door_path = resolve_outpost_door_selection(params["primary_door_path"])
 	if(isnull(primary_door_path))
 		config["error"] = "Invalid primary door material."
 		return config
-	var/secondary_door_path = resolve_outpost_door_selection(params["secondary_door_path"] || legacy_material_defaults["secondary_door_path"])
+	var/secondary_door_path = resolve_outpost_door_selection(params["secondary_door_path"])
 	if(isnull(secondary_door_path))
 		config["error"] = "Invalid secondary door material."
 		return config
 	if(barricade_pattern == "uniform")
 		secondary_door_path = primary_door_path
 
-	var/sentry_path = null
-	if(place_sentries)
-		sentry_path = resolve_whitelisted_type(params["sentry_path"], allowed_sentry_types, /datum/human_ai_defense/defense/sentry, family_profile ? family_profile["default_sentry_path"] : /datum/human_ai_defense/defense/sentry/uscm)
-		if(!sentry_path)
-			config["error"] = "Invalid legacy sentry type."
-			return config
-
 	var/faction = "[params["faction"]]"
 	var/turned_on = GLOB.world_edit_helpers.parse_bool(params["turned_on"])
-	var/list/active_defense_profile = legacy_mode ? get_outpost_defense_profile("none") : defense_profile
 
-	config["family"] = family_id
-	config["family_profile"] = family_profile
-	config["legacy_family"] = family_id
-	config["legacy_mode"] = legacy_mode
 	config["defense_profile"] = defense_profile_id
 	config["defense_profile_data"] = defense_profile
-	config["active_defense_profile_data"] = active_defense_profile
+	config["needs_anchor_map"] = outpost_defense_profile_needs_anchor_map(defense_profile)
 	config["layout_variant"] = layout_id
 	config["layout_profile"] = effective_layout_profile
 	config["placement_dir"] = placement_dir
 	config["opening_width"] = opening_width
-	config["guard_mode"] = guard_mode
-	config["sentry_profile"] = sentry_profile
 	config["radius"] = radius
 	config["radius_policy"] = radius_policy
-	config["place_sentries"] = place_sentries
-	config["use_legacy_sentry_layer"] = place_sentries
-	config["barricade_path"] = primary_material_path
-	config["barricade_cycle"] = build_outpost_material_cycle(primary_material_path, secondary_material_path)
 	config["barricade_pattern"] = barricade_pattern
 	config["primary_material_path"] = primary_material_path
 	config["secondary_material_path"] = secondary_material_path
 	config["primary_material_share_percent"] = primary_material_share_percent
-	config["barricade_concentration_percent"] = primary_material_share_percent
 	config["place_barricade_doors"] = place_barricade_doors
 	config["primary_door_path"] = primary_door_path
 	config["secondary_door_path"] = secondary_door_path
-	config["sentry_path"] = sentry_path
 	config["faction"] = faction
 	config["turned_on"] = turned_on
 	return config
@@ -2119,6 +1813,3 @@
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, anchor_turfs, placement_context)
 	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
 	return support_result["error"]
-
-
-

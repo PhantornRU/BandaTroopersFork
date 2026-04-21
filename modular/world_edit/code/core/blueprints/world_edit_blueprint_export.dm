@@ -2,9 +2,17 @@
 	if(!ispath(defense_path, /datum/human_ai_defense))
 		return null
 
+	var/static/list/defense_spawn_path_cache = list()
+	var/cache_key = "[defense_path]"
+	var/cached_obj_path = defense_spawn_path_cache[cache_key]
+	if(ispath(cached_obj_path, /obj))
+		return cached_obj_path
+
 	var/datum/human_ai_defense/definition = new defense_path()
 	var/obj_path = definition.path_to_spawn
 	qdel(definition)
+	if(ispath(obj_path, /obj))
+		defense_spawn_path_cache[cache_key] = obj_path
 	return obj_path
 
 /datum/world_edit_blueprint_service/proc/world_edit_build_outpost_recipe_footprint_offsets(datum/world_edit_plan/plan, turf/anchor_turf)
@@ -39,25 +47,29 @@
 		return null
 
 	var/list/metadata = islist(plan.metadata) ? plan.metadata : list()
-	if(!length("[metadata["family"]]") || !length("[metadata["layout_variant"]]"))
+	if(!length("[metadata["defense_profile"]]") || !length("[metadata["layout_variant"]]"))
 		return null
 
+	var/primary_material_share_percent = text2num("[metadata["primary_material_share_percent"]]")
+	if(!isnum(primary_material_share_percent))
+		primary_material_share_percent = 100
+	var/opening_width = world_edit_parse_strict_integer(metadata["opening_width"])
+	if(isnull(opening_width))
+		opening_width = 1
+
 	return list(
-		"family" = "[metadata["family"]]",
+		"defense_profile" = "[metadata["defense_profile"]]",
 		"layout_variant" = "[metadata["layout_variant"]]",
 		"placement_dir" = text2num("[metadata["placement_dir"]]") || NORTH,
 		"radius" = text2num("[metadata["radius"]]") || 0,
-		"opening_width" = text2num("[metadata["opening_width"]]") || 1,
-		"guard_mode" = "[metadata["guard_mode"] || "layout"]",
-		"sentry_profile" = "[metadata["sentry_profile"] || "entry_guard"]",
-		"place_sentries" = GLOB.world_edit_helpers.parse_bool(metadata["place_sentries"]) ? TRUE : FALSE,
-		"barricade_path" = "[metadata["barricade_path"]]",
+		"opening_width" = opening_width,
+		"primary_material_path" = "[metadata["primary_material_path"]]",
+		"secondary_material_path" = "[metadata["secondary_material_path"] || metadata["primary_material_path"]]",
 		"barricade_pattern" = "[metadata["barricade_pattern"] || "uniform"]",
-		"barricade_concentration_percent" = text2num("[metadata["barricade_concentration_percent"]]") || 0,
+		"primary_material_share_percent" = primary_material_share_percent,
 		"place_barricade_doors" = GLOB.world_edit_helpers.parse_bool(metadata["place_barricade_doors"]) ? TRUE : FALSE,
-		"sentry_path" = metadata["sentry_path"] ? "[metadata["sentry_path"]]" : null,
-		"faction" = "[metadata["faction"] || ""]",
-		"turned_on" = GLOB.world_edit_helpers.parse_bool(metadata["turned_on"]) ? TRUE : FALSE,
+		"primary_door_path" = "[metadata["primary_door_path"] || "follow_material"]",
+		"secondary_door_path" = "[metadata["secondary_door_path"] || "follow_material"]",
 		"footprint_offsets" = world_edit_build_outpost_recipe_footprint_offsets(plan, anchor_turf),
 	)
 
@@ -74,7 +86,7 @@
 	var/list/relative_coord_lookup = list()
 	for(var/list/placement as anything in plan.placements)
 		var/placement_kind = "[placement["kind"]]"
-		if(!(placement_kind in list("barricade", "sentry")))
+		if(!(placement_kind in list("barricade", "sentry", "wire_object", "mine", "extra_defense")))
 			return list("error" = "Current plan contains a placement kind that Blueprint Lite does not support.")
 
 		var/turf/target_turf = placement["turf"]
@@ -96,12 +108,19 @@
 			return list("error" = "Current plan contains a non-cardinal dir.")
 
 		var/list/entry_vars = list()
-		if(placement_kind == "sentry")
+		if(placement_kind in list("sentry", "extra_defense"))
 			var/faction = "[placement["faction"]]"
-			if(!(faction in GLOB.world_edit_blueprint_valid_factions))
-				return list("error" = "Current plan contains an invalid sentry faction.")
-			entry_vars["faction"] = faction
+			if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
+				return list("error" = "Current plan contains an invalid defense faction.")
+			if(length(faction))
+				entry_vars["faction"] = faction
 			entry_vars["turned_on"] = GLOB.world_edit_helpers.parse_bool(placement["turned_on"]) ? TRUE : FALSE
+		else if(placement_kind == "mine")
+			var/faction = "[placement["faction"]]"
+			if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
+				return list("error" = "Current plan contains an invalid mine faction.")
+			if(length(faction))
+				entry_vars["faction"] = faction
 
 		var/dx = target_turf.x - anchor_turf.x
 		var/dy = target_turf.y - anchor_turf.y

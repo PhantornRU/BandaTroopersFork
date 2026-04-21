@@ -591,62 +591,39 @@ describe('WorldEditPanel view model', () => {
     });
   });
 
-  it('surfaces tactical profile and perimeter material labels without profile semantics', () => {
+  it('surfaces canonical outpost labels without legacy ids', () => {
     const { getTranslatedFieldLabel, translateOptionLabel } = require('./helpers');
 
-    expect(
-      getTranslatedFieldLabel(makeField({ id: 'family' })),
-    ).toBe('Тактический профиль');
-    expect(
-      getTranslatedFieldLabel(makeField({ id: 'defense_profile' })),
-    ).toBe('Тактический профиль');
-    expect(
-      getTranslatedFieldLabel(makeField({ id: 'layout_variant' })),
-    ).toBe('Схема');
-    expect(getTranslatedFieldLabel(makeField({ id: 'barricade_path' }))).toBe(
-      'Основной материал',
+    expect(getTranslatedFieldLabel(makeField({ id: 'defense_profile' }))).not.toBe(
+      'defense_profile',
+    );
+    expect(getTranslatedFieldLabel(makeField({ id: 'layout_variant' }))).not.toBe(
+      'layout_variant',
     );
     expect(
-      getTranslatedFieldLabel(
-        makeField({ id: 'primary_material_path' }),
-      ),
-    ).toBe('Основной материал');
+      getTranslatedFieldLabel(makeField({ id: 'primary_material_path' })),
+    ).not.toBe('primary_material_path');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'secondary_material_path' })),
+    ).not.toBe('secondary_material_path');
     expect(
       getTranslatedFieldLabel(
-        makeField({ id: 'secondary_material_path' }),
+        makeField({ id: 'primary_material_share_percent', kind: 'number' }),
       ),
-    ).toBe('Вспомогательный материал');
+    ).not.toBe('primary_material_share_percent');
     expect(
-      getTranslatedFieldLabel(makeField({ id: 'primary_door_path' })),
-    ).toBe('Основные двери');
+      translateOptionLabel('defense_profile', '', 'fallback_redoubt'),
+    ).not.toBe('fallback_redoubt');
     expect(
-      getTranslatedFieldLabel(makeField({ id: 'secondary_door_path' })),
-    ).toBe('Вспомогательные двери');
-    expect(
-      getTranslatedFieldLabel(
-        makeField({ id: 'barricade_concentration_percent', kind: 'number' }),
-      ),
-    ).toBe('Доля основного материала');
-    expect(
-      getTranslatedFieldLabel(makeField({ id: 'place_barricade_doors' })),
-    ).toBe('Двери в проходах');
-    expect(
-      translateOptionLabel('family', '', 'mixed_standard'),
-    ).toBe('Сбалансированный опорник');
-    expect(
-      translateOptionLabel('defense_profile', '', 'mixed_standard'),
-    ).toBe('Сбалансированный опорник');
+      translateOptionLabel('layout_variant', '', 'funnel_front'),
+    ).not.toBe('funnel_front');
     expect(
       translateOptionLabel('barricade_pattern', '', 'uniform'),
-    ).toBe('Единый материал');
+    ).not.toBe('uniform');
     expect(
-      translateOptionLabel('barricade_pattern', '', 'alternating'),
-    ).toBe('Чередование');
-    expect(
-      translateOptionLabel('barricade_pattern', '', 'paired'),
-    ).toBe('Парные секции');
-    expect(
-      translateOptionLabel('barricade_pattern', '', 'profile'),
-    ).toBe('По материалам');
+      translateOptionLabel('barricade_pattern', '', 'unexpected_pattern'),
+    ).toBe(
+      'unexpected_pattern',
+    );
   });
 });

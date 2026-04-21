@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 
 import { Box, Button, Dropdown, Flex, Input } from '../../components';
-import { getDisplayText } from './helpers';
+import { getDisplayText, translateOptionLabel } from './helpers';
 import { SurfaceCard } from './primitives';
-import type { ActFn, BackendData } from './types';
+import type { ActFn, BackendData, BlueprintEntry } from './types';
 import type { BlueprintFilterMode, BlueprintSortMode } from './viewModel';
 import {
   filterAndSortBlueprintEntries,
@@ -24,6 +24,31 @@ const SORT_OPTIONS = [
   { value: 'newest', displayText: 'Новые' },
   { value: 'size', displayText: 'Размер' },
 ] as const;
+
+const getBlueprintOutpostSummary = (blueprint: BlueprintEntry) => {
+  if (!blueprint.has_outpost_recipe) {
+    return '';
+  }
+
+  const summaryParts = [
+    blueprint.outpost_defense_profile
+      ? translateOptionLabel(
+          'defense_profile',
+          '',
+          blueprint.outpost_defense_profile,
+        )
+      : '',
+    blueprint.outpost_layout_variant
+      ? translateOptionLabel(
+          'layout_variant',
+          '',
+          blueprint.outpost_layout_variant,
+        )
+      : '',
+  ].filter(Boolean);
+
+  return summaryParts.join(' / ');
+};
 
 const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
@@ -130,6 +155,7 @@ const BlueprintStampWorkspace = (props: {
         <Box mt={0.55}>
           {filteredBlueprints.map((blueprint) => {
             const actionState = getBlueprintActionState(data, blueprint);
+            const outpostSummary = getBlueprintOutpostSummary(blueprint);
             return (
               <Box
                 key={blueprint.id}
@@ -182,6 +208,19 @@ const BlueprintStampWorkspace = (props: {
                     </Box>
                   </Flex.Item>
                 </Flex>
+                {!!outpostSummary && (
+                  <Box
+                    color="label"
+                    style={{
+                      fontSize: '0.82rem',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {outpostSummary}
+                  </Box>
+                )}
               </Box>
             );
           })}

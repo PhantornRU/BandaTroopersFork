@@ -20,33 +20,14 @@ const PERIMETER_GROUP_ALIASES = [
   'Barricades',
 ];
 
-const DEFENSE_GROUP_ALIASES = [
-  'Оборона',
-  'Defense',
-  'Турели',
-  'Sentries',
-];
-
 const PERIMETER_MATERIAL_FIELD_IDS = [
-  'barricade_path',
   'primary_material_path',
-  'primary_barricade_path',
   'secondary_material_path',
-  'secondary_barricade_path',
   'primary_door_path',
   'secondary_door_path',
   'barricade_pattern',
-  'barricade_concentration_percent',
   'primary_material_share_percent',
   'place_barricade_doors',
-];
-
-const DEFENSE_DETAIL_FIELD_IDS = [
-  'guard_mode',
-  'sentry_profile',
-  'sentry_path',
-  'faction',
-  'turned_on',
 ];
 
 const getFieldsByGroupAliases = (
@@ -94,9 +75,8 @@ const OutpostRadiusWorkspace = (props: {
       field.id !== 'radius' && !RADIUS_POLICY_FIELD_IDS.includes(field.id),
   );
   const tacticalProfileField =
-    getFieldByIds(data.ui_fields, ['defense_profile', 'family']) ||
-    getField(layoutFields, 'defense_profile') ||
-    getField(layoutFields, 'family');
+    getFieldByIds(data.ui_fields, ['defense_profile']) ||
+    getField(layoutFields, 'defense_profile');
   const layoutVariantField =
     getFieldByIds(layoutFields, ['layout_variant']) ||
     getField(data.ui_fields, 'layout_variant');
@@ -105,7 +85,7 @@ const OutpostRadiusWorkspace = (props: {
     getField(data.ui_fields, 'opening_width');
   const extraLayoutFields = layoutFields.filter(
     (field) =>
-      !['defense_profile', 'family', 'layout_variant', 'opening_width'].includes(
+      !['defense_profile', 'layout_variant', 'opening_width'].includes(
         field.id,
       ),
   );
@@ -121,23 +101,6 @@ const OutpostRadiusWorkspace = (props: {
     (field) =>
       field.visible !== false &&
       !PERIMETER_MATERIAL_FIELD_IDS.includes(field.id),
-  );
-  const defenseFields = getFieldsByGroupAliases(
-    data.ui_fields,
-    DEFENSE_GROUP_ALIASES,
-  );
-  const sentryToggleField =
-    getFieldByIds(data.ui_fields, ['place_sentries']) ||
-    getField(defenseFields, 'place_sentries');
-  const sentryDetailFields = getFieldsById(
-    data.ui_fields,
-    DEFENSE_DETAIL_FIELD_IDS,
-  ).filter((field) => field.visible !== false);
-  const extraDefenseFields = defenseFields.filter(
-    (field) =>
-      field.visible !== false &&
-      field.id !== 'place_sentries' &&
-      !DEFENSE_DETAIL_FIELD_IDS.includes(field.id),
   );
 
   return (
@@ -169,7 +132,7 @@ const OutpostRadiusWorkspace = (props: {
               field={openingWidthField}
               act={act}
               forceChoiceStrip
-              choiceStripBasis="15.8%"
+              choiceStripBasis="13.6%"
             />
           </Box>
         )}
@@ -204,34 +167,6 @@ const OutpostRadiusWorkspace = (props: {
           <Box mt={0.6}>
             <LabeledList>
               {perimeterExtraFields.map((field) => (
-                <FieldEditor key={field.id} field={field} act={act} />
-              ))}
-            </LabeledList>
-          </Box>
-        )}
-      </SurfaceCard>
-      <SurfaceCard title="Оборона" mt={0.6}>
-        <Box style={{ maxWidth: '16rem' }}>
-          <FieldControlStack field={sentryToggleField} act={act} />
-        </Box>
-        {!!sentryDetailFields.length && (
-          <Box
-            mt={0.6}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: '0.6rem',
-            }}
-          >
-            {sentryDetailFields.map((field) => (
-              <FieldControlStack key={field.id} field={field} act={act} />
-            ))}
-          </Box>
-        )}
-        {!!extraDefenseFields.length && (
-          <Box mt={0.6}>
-            <LabeledList>
-              {extraDefenseFields.map((field) => (
                 <FieldEditor key={field.id} field={field} act={act} />
               ))}
             </LabeledList>

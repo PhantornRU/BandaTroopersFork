@@ -31,8 +31,7 @@
 		"place_barricade_doors" = FALSE,
 		"primary_door_path" = "follow_material",
 		"secondary_door_path" = "follow_material",
-		"barricade_pattern" = "alternating",
-		"place_sentries" = FALSE
+		"barricade_pattern" = "alternating"
 	)
 	status = WORLD_EDIT_STATUS_READY
 

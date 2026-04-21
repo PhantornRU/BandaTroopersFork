@@ -5,31 +5,18 @@ export const NONE_LABEL = 'Не выбрано';
 export const WORKSPACE_GUTTER = 0.35;
 export const SMALL_CHOICE_DROPDOWN_THRESHOLD = 5;
 
-export const EXECUTION_MODE_LABELS: Record<string, string> = {
-  batch: 'Пакетный',
-  click: 'По клику',
-};
-
 export const FIELD_LABELS: Record<string, string> = {
-  family: 'Тактический профиль',
   defense_profile: 'Тактический профиль',
   layout_variant: 'Схема',
   opening_width: 'Ширина проходов',
   radius: 'Радиус',
-  barricade_path: 'Основной материал',
   primary_material_path: 'Основной материал',
-  primary_barricade_path: 'Основной материал',
   secondary_material_path: 'Вспомогательный материал',
-  secondary_barricade_path: 'Вспомогательный материал',
   primary_door_path: 'Основные двери',
   secondary_door_path: 'Вспомогательные двери',
-  barricade_concentration_percent: 'Доля основного материала',
   primary_material_share_percent: 'Доля основного материала',
   place_barricade_doors: 'Двери в проходах',
   barricade_pattern: 'Раскладка материалов',
-  place_sentries: 'Турели у проходов',
-  guard_mode: 'Схема турелей',
-  sentry_path: 'Турель',
   faction: 'IFF',
   turned_on: 'Включить сразу',
   shuffle_enabled: 'Перемешать объекты',
@@ -126,17 +113,6 @@ export const PLACEMENT_SHAPE_GLYPHS: Record<string, ShapeGlyphSpec> = {
 };
 
 export const PLACEMENT_SHAPE_ORDER = Object.keys(PLACEMENT_SHAPE_LABELS);
-export const DEFAULT_PLACEMENT_MODE_OPTIONS: ChoiceOption[] = [
-  {
-    value: 'single',
-    displayText: PLACEMENT_MODE_LABELS.single,
-  },
-  {
-    value: 'repeat',
-    displayText: PLACEMENT_MODE_LABELS.repeat,
-  },
-];
-
 export const DEFAULT_DIRECTION_OPTIONS: ChoiceOption[] = [
   {
     value: 'north',
@@ -164,36 +140,40 @@ export const DEFAULT_POINT_SHAPE_OPTION: PlacementOption[] = [
 ];
 
 export const OUTPOST_TACTICAL_PROFILE_LABELS: Record<string, string> = {
-  metal_perimeter: 'Легкий контур',
-  wired_metal_perimeter: 'Контур с проволокой',
-  plasteel_bastion: 'Тяжелый бастион',
-  plasteel_wired_bastion: 'Усиленный бастион',
-  sandbag_redoubt: 'Полевой редут',
-  wooden_screen: 'Импровизированное прикрытие',
-  mixed_standard: 'Сбалансированный опорник',
-  mixed_siege: 'Осадный опорник',
-  expedition_light: 'Легкий экспедиционный',
-  assault_screen: 'Штурмовой экран',
-  choke_wall: 'Горловинная стена',
-  killbox_wired: 'Killbox с проволокой',
-  bastion_heavy: 'Тяжелый бастион',
-  mixed_siege_plus: 'Усиленный осадный',
-  sandbag_nest: 'Полевое гнездо',
-  wooden_emergency: 'Экстренное прикрытие',
+  none: 'Без обороны',
+  outrider_camp: 'Легкий дозор',
   fallback_redoubt: 'Редут отхода',
   lane_fort: 'Линейный форт',
   pocket_defense: 'Карман обороны',
   crossfire_hub: 'Узел перекрестного огня',
   anti_vehicle_stop: 'Противотранспортный стоп',
-  outrider_camp: 'Лагерь аутрайдеров',
   forward_medical_cover: 'Передовое медукрытие',
 };
-
-export const OUTPOST_FAMILY_LABELS = OUTPOST_TACTICAL_PROFILE_LABELS;
 
 export const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
   crossroads: 'Крест',
   wide_crossroads: 'Широкий крест',
+  lane: 'Линия',
+  gate: 'Ворота',
+  corner: 'Угол',
+  sealed_redoubt: 'Запечатанный редут',
+  t_junction: 'T-перекресток',
+  three_side_open: 'Три стороны открыты',
+  three_side_lock: 'Три стороны под замком',
+  double_gate: 'Двойные ворота',
+  funnel_front: 'Фронтальная воронка',
+  narrow_funnel: 'Узкая воронка',
+  broad_funnel: 'Широкая воронка',
+  inner_pocket: 'Внутренний карман',
+  fallback_pocket_layout: 'Карман отхода',
+  split_mouth: 'Раздвоенный вход',
+  split_entry_guard: 'Раздвоенный вход с охраной',
+  corner_wide: 'Широкий угол',
+  lane_narrow: 'Узкая линия',
+  lane_wide: 'Широкая линия',
+  bastion_face: 'Фасад бастиона',
+  sealed_shell: 'Запечатанная оболочка',
+  sealed_redoubt_heavy: 'Тяжелый запечатанный редут',
   lane_ns: 'Коридор север-юг',
   lane_ew: 'Коридор восток-запад',
   north_gate: 'Северные ворота',
@@ -204,11 +184,24 @@ export const OUTPOST_LAYOUT_LABELS: Record<string, string> = {
   corner_se: 'Угол юго-восток',
   corner_sw: 'Угол юго-запад',
   corner_nw: 'Угол северо-запад',
-  sealed_redoubt: 'Закрытый редут',
+  double_gate_ns: 'Двойные ворота север-юг',
+  double_gate_ew: 'Двойные ворота восток-запад',
+  corner_ne_wide: 'Широкий угол север-восток',
+  corner_se_wide: 'Широкий угол юго-восток',
+  corner_sw_wide: 'Широкий угол юго-запад',
+  corner_nw_wide: 'Широкий угол северо-запад',
+  lane_ns_narrow: 'Узкая линия север-юг',
+  lane_ns_wide: 'Широкая линия север-юг',
+  lane_ew_narrow: 'Узкая линия восток-запад',
+  lane_ew_wide: 'Широкая линия восток-запад',
+  bastion_face_north: 'Фасад бастиона север',
+  bastion_face_south: 'Фасад бастиона юг',
+  bastion_face_east: 'Фасад бастиона восток',
+  bastion_face_west: 'Фасад бастиона запад',
 };
-
 export const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
-  profile: 'По схеме',
+  layout: 'По схеме',
+  zero: '0 тайлов',
   narrow: '1 клетка',
   double: '2 клетки',
   wide: '3 клетки',
@@ -217,20 +210,12 @@ export const OUTPOST_OPENING_WIDTH_LABELS: Record<string, string> = {
 };
 
 export const OUTPOST_BARRICADE_PATTERN_LABELS: Record<string, string> = {
-  profile: 'По материалам',
   uniform: 'Единый материал',
   alternating: 'Чередование',
-  cycle: 'Чередование',
   paired: 'Парные секции',
 };
 
 export const OUTPOST_PERIMETER_PATTERN_LABELS = OUTPOST_BARRICADE_PATTERN_LABELS;
-
-export const OUTPOST_GUARD_MODE_LABELS: Record<string, string> = {
-  layout: 'По схеме',
-  openings: 'Только проходы',
-  all_sides: 'Все стороны',
-};
 
 export const DAMAGE_PROFILE_LABELS: Record<string, string> = {
   none: 'Без урона',
@@ -249,15 +234,6 @@ export const BARRICADE_LABELS: Record<string, string> = {
   'Plasteel Folding Barricade': 'Складная пласталевая',
   'Plasteel Folding Barricade - Wired': 'Складная пласталевая, с проволокой',
   'Wooden Barricade': 'Деревянная',
-};
-
-export const SENTRY_LABELS: Record<string, string> = {
-  'USCM Sentry': 'USCM',
-  'USCM Sentry - DMR': 'USCM DMR',
-  'USCM Sentry - Shotgun': 'USCM дробовик',
-  'USCM Sentry - Mini': 'USCM mini',
-  'UPP Sentry': 'UPP',
-  'W-Y Sentry': 'W-Y',
 };
 
 export const UNDO_POLICY_LABELS: Record<string, string> = {

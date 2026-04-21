@@ -132,14 +132,14 @@
 		return null
 
 	var/list/entry_vars = list()
-	if("[placement["kind"]]" == "sentry")
+	if("[placement["kind"]]" in list("sentry", "extra_defense"))
 		entry_vars["turned_on"] = GLOB.world_edit_helpers.parse_bool(placement["turned_on"]) ? TRUE : FALSE
 
 	return GLOB.world_edit_helpers.build_world_edit_atom_preview_spec(obj_path, target_turf, placement["dir"], entry_vars)
 
 /datum/world_edit_generator/outpost_radius/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
 	var/list/specs = list()
-	if(!istype(plan))
+	if(!istype(plan) || hover_only)
 		return specs
 
 	for(var/list/placement as anything in plan.placements)
@@ -180,7 +180,7 @@
 	result["blocked_count"]++
 	result["blocked_barricades"]++
 
-/datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, primary_material_path, secondary_material_path = null, barricade_pattern = "uniform", list/radius_policy = null, list/traversal_turfs = null, primary_material_share_percent = 100, place_barricade_doors = FALSE, primary_door_path = "follow_material", secondary_door_path = "follow_material", list/footprint_turfs = null, placement_dir = NORTH, list/wired_groups = null)
+/datum/world_edit_generator/outpost_radius/proc/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, primary_material_path, secondary_material_path = null, barricade_pattern = "uniform", list/radius_policy = null, list/traversal_turfs = null, primary_material_share_percent = 100, place_barricade_doors = FALSE, primary_door_path = "follow_material", secondary_door_path = "follow_material", list/footprint_turfs = null, placement_dir = NORTH, list/wired_groups = null, build_anchor_map = TRUE)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_count" = 0,
@@ -264,9 +264,9 @@
 			result["opening_slots"] += list(candidate_slot.Copy())
 
 	var/list/effective_footprint_turfs = islist(footprint_turfs) && length(footprint_turfs) ? footprint_turfs : list(center_turf)
-	var/list/anchor_map = build_outpost_anchor_map(effective_footprint_turfs, filtered_slots, result["opening_slots"], placement_dir)
+	var/list/anchor_map = build_anchor_map ? build_outpost_anchor_map(effective_footprint_turfs, filtered_slots, result["opening_slots"], placement_dir) : list()
 	result["anchor_map"] = anchor_map
-	var/list/wired_lookup = build_wired_anchor_lookup(anchor_map, wired_groups)
+	var/list/wired_lookup = build_anchor_map ? build_wired_anchor_lookup(anchor_map, wired_groups) : list()
 
 	var/list/perimeter_result = build_outpost_perimeter_result(
 		filtered_slots,
@@ -286,75 +286,6 @@
 		result[key] = perimeter_result[key]
 
 	return result
-/datum/world_edit_generator/outpost_radius/proc/collect_sentry_placements(turf/center_turf, radius, list/layout_profile, sentry_profile = "entry_guard", list/radius_policy = null, list/traversal_turfs = null)
-	var/list/result = list(
-		"placements" = list(),
-		"blocked_count" = 0,
-		"preview_turfs" = list(),
-		"preview_lookup" = list(),
-		"policy_filtered_count" = 0,
-	)
-	if(!center_turf)
-		return result
-	var/list/placements = result["placements"]
-	var/inner_radius = max(radius - 1, 1)
-	var/list/guard_dirs = build_sentry_profile_guard_dirs(get_layout_guard_dirs(layout_profile), sentry_profile)
-	var/list/effective_traversal_turfs = islist(traversal_turfs) ? traversal_turfs : build_point_radius_area_turfs(center_turf, radius)
-	var/list/raw_candidate_turfs = list()
-	var/list/raw_candidate_lookup = list()
-	var/list/guard_candidates = list()
-
-	for(var/dir_to_guard as anything in guard_dirs)
-		var/list/candidates = list()
-		for(var/list/candidate as anything in build_sentry_guard_candidates(dir_to_guard, inner_radius, sentry_profile))
-			var/turf/target_turf = locate(center_turf.x + candidate["dx"], center_turf.y + candidate["dy"], center_turf.z)
-			var/list/candidate_entry = list(
-				"turf" = target_turf,
-				"dir" = candidate["dir"],
-				"opening_dir" = dir_to_guard,
-			)
-			candidates += list(candidate_entry)
-			if(istype(target_turf) && !raw_candidate_lookup[target_turf])
-				raw_candidate_lookup[target_turf] = TRUE
-				raw_candidate_turfs += target_turf
-		guard_candidates += list(candidates)
-
-	var/list/allowed_sentry_lookup = list()
-	for(var/turf/allowed_turf as anything in filter_outpost_candidate_turfs(list(center_turf), raw_candidate_turfs, effective_traversal_turfs, radius_policy, list(center_turf)))
-		if(raw_candidate_lookup[allowed_turf])
-			allowed_sentry_lookup[allowed_turf] = TRUE
-	result["policy_filtered_count"] = max(length(raw_candidate_turfs) - length(allowed_sentry_lookup), 0)
-
-	var/guard_index = 1
-	for(var/dir_to_guard as anything in guard_dirs)
-		var/list/candidates = guard_candidates[guard_index++]
-		var/placed = FALSE
-		var/turf/preview_turf = null
-		for(var/list/candidate as anything in candidates)
-			var/turf/target_turf = candidate["turf"]
-			if(!istype(target_turf) || !allowed_sentry_lookup[target_turf])
-				continue
-			if(!istype(preview_turf))
-				preview_turf = target_turf
-			if(!can_place_sentry_on_turf(target_turf))
-				continue
-
-			placements += list(list(
-				"turf" = target_turf,
-				"dir" = candidate["dir"],
-				"opening_dir" = dir_to_guard,
-			))
-			placed = TRUE
-			break
-
-		if(istype(preview_turf) && !result["preview_lookup"][preview_turf])
-			result["preview_lookup"][preview_turf] = TRUE
-			result["preview_turfs"] += preview_turf
-		if(!placed)
-			result["blocked_count"]++
-
-	return result
-
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_plan(turf/center_turf, list/params)
 	var/datum/world_edit_plan/plan = new
 	if(!center_turf)
@@ -368,8 +299,7 @@
 		return plan
 
 	var/radius = config["radius"]
-	var/list/family_profile = islist(config["family_profile"]) ? config["family_profile"] : list()
-	var/list/defense_profile = islist(config["active_defense_profile_data"]) ? config["active_defense_profile_data"] : get_outpost_defense_profile("none")
+	var/list/defense_profile = islist(config["defense_profile_data"]) ? config["defense_profile_data"] : get_outpost_defense_profile("none")
 	var/list/layout_profile = config["layout_profile"]
 	var/list/radius_policy = islist(config["radius_policy"]) ? config["radius_policy"] : GLOB.world_edit_helpers.get_world_edit_radius_policy(config)
 	var/list/traversal_turfs = build_point_radius_area_turfs(center_turf, radius)
@@ -390,6 +320,7 @@
 		list(center_turf),
 		config["placement_dir"],
 		defense_profile["wired_groups"],
+		config["needs_anchor_map"],
 	)
 	var/list/preview_turf_lookup = list()
 	for(var/turf/preview_turf as anything in perimeter_data["preview_turfs"])
@@ -411,7 +342,7 @@
 		))
 
 	var/list/reserved_turf_lookup = build_outpost_reserved_turf_lookup(plan.placements)
-	var/list/defense_data = build_outpost_defense_placements(perimeter_data["anchor_map"], defense_profile, reserved_turf_lookup)
+	var/list/defense_data = build_outpost_defense_placements(perimeter_data["anchor_map"], defense_profile, reserved_turf_lookup, config["faction"])
 	for(var/list/placement as anything in defense_data["placements"])
 		var/turf/target_turf = placement["turf"]
 		if(!istype(target_turf))
@@ -419,30 +350,6 @@
 		preview_turf_lookup[target_turf] = TRUE
 		reserved_turf_lookup[target_turf] = TRUE
 		plan.placements += list(placement.Copy())
-
-	var/list/legacy_sentry_data = config["use_legacy_sentry_layer"] ? collect_sentry_placements(center_turf, radius, layout_profile, config["sentry_profile"], radius_policy, traversal_turfs) : list(
-		"placements" = list(),
-		"blocked_count" = 0,
-		"policy_filtered_count" = 0,
-		"preview_turfs" = list(),
-	)
-	for(var/turf/preview_turf as anything in legacy_sentry_data["preview_turfs"])
-		if(istype(preview_turf))
-			preview_turf_lookup[preview_turf] = TRUE
-	for(var/list/placement as anything in legacy_sentry_data["placements"])
-		var/turf/target_turf = placement["turf"]
-		if(!istype(target_turf) || reserved_turf_lookup[target_turf])
-			continue
-		preview_turf_lookup[target_turf] = TRUE
-		reserved_turf_lookup[target_turf] = TRUE
-		plan.placements += list(list(
-			"kind" = "sentry",
-			"turf" = target_turf,
-			"dir" = placement["dir"],
-			"defense_path" = config["sentry_path"],
-			"faction" = config["faction"],
-			"turned_on" = config["turned_on"],
-		))
 
 	for(var/turf/preview_turf as anything in preview_turf_lookup)
 		plan.affected_turfs += preview_turf
@@ -463,12 +370,12 @@
 	populate_outpost_recipe_metadata(plan.metadata, config)
 	plan.metadata["defense_profile_label"] = defense_profile["label"]
 	plan.metadata["defense_profile_description"] = defense_profile["description"]
-	plan.metadata["family_label"] = length("[family_profile["label"]]") ? family_profile["label"] : defense_profile["label"]
-	plan.metadata["family_description"] = length("[family_profile["description"]]") ? family_profile["description"] : defense_profile["description"]
+	plan.metadata["tactical_profile_label"] = defense_profile["label"]
+	plan.metadata["tactical_profile_description"] = defense_profile["description"]
 	plan.metadata["layout_label"] = layout_profile["label"]
 	plan.metadata["layout_description"] = layout_profile["description"]
 	plan.metadata["barricade_count"] = length(perimeter_data["placements"])
-	plan.metadata["sentry_count"] = (defense_data["sentry_count"] || 0) + length(legacy_sentry_data["placements"])
+	plan.metadata["sentry_count"] = defense_data["sentry_count"] || 0
 	plan.metadata["wire_object_count"] = defense_data["wire_object_count"] || 0
 	plan.metadata["mine_count"] = defense_data["mine_count"] || 0
 	plan.metadata["extra_defense_count"] = defense_data["extra_defense_count"] || 0
@@ -477,7 +384,7 @@
 	plan.metadata["blocked_barricades"] = perimeter_data["blocked_barricades"]
 	plan.metadata["blocked_openings"] = max(required_openings - min(perimeter_data["planned_opening_count"] || 0, required_openings), 0) + (perimeter_data["blocked_openings"] || 0)
 	plan.metadata["blocked_perimeter"] = perimeter_data["blocked_count"]
-	plan.metadata["blocked_sentries"] = (defense_data["blocked_sentries"] || 0) + (legacy_sentry_data["blocked_count"] || 0)
+	plan.metadata["blocked_sentries"] = defense_data["blocked_sentries"] || 0
 	plan.metadata["blocked_wire_objects"] = defense_data["blocked_wire_objects"] || 0
 	plan.metadata["blocked_mines"] = defense_data["blocked_mines"] || 0
 	plan.metadata["blocked_extra_defenses"] = defense_data["blocked_extra_defenses"] || 0
@@ -490,7 +397,7 @@
 	plan.metadata["wired_conversion_count"] = perimeter_data["wired_conversion_count"] || 0
 	plan.metadata["unsupported_wired_conversions"] = perimeter_data["unsupported_wired_conversions"] || 0
 	plan.metadata["policy_filtered_perimeter"] = perimeter_data["policy_filtered_count"] || 0
-	plan.metadata["policy_filtered_sentries"] = legacy_sentry_data["policy_filtered_count"] || 0
+	plan.metadata["policy_filtered_sentries"] = 0
 	return plan
 /datum/world_edit_generator/outpost_radius/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
@@ -523,10 +430,13 @@
 
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
 	var/effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, anchor_turfs)
+	var/list/defense_profile = islist(config["defense_profile_data"]) ? config["defense_profile_data"] : get_outpost_defense_profile(config["defense_profile"])
 	plan.metadata["shape_effective_id"] = effective_shape_id
 	populate_outpost_recipe_metadata(plan.metadata, config)
-	plan.metadata["family_label"] = config["family_profile"]["label"]
-	plan.metadata["family_description"] = config["family_profile"]["description"]
+	plan.metadata["defense_profile_label"] = defense_profile["label"]
+	plan.metadata["defense_profile_description"] = defense_profile["description"]
+	plan.metadata["tactical_profile_label"] = defense_profile["label"]
+	plan.metadata["tactical_profile_description"] = defense_profile["description"]
 	plan.metadata["layout_label"] = config["layout_profile"]["label"]
 	plan.metadata["layout_description"] = config["layout_profile"]["description"]
 	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
@@ -552,10 +462,20 @@
 	var/total_openings = 0
 	var/total_blocked_openings = 0
 	var/total_blocked_sentries = 0
+	var/total_wire_objects = 0
+	var/total_mines = 0
+	var/total_extra_defenses = 0
+	var/total_blocked_wire_objects = 0
+	var/total_blocked_mines = 0
+	var/total_blocked_extra_defenses = 0
 	var/total_doors = 0
 	var/total_unsupported_door_openings = 0
 	var/total_blocked_door_openings = 0
 	var/total_dominant_barricades = 0
+	var/total_primary_materials = 0
+	var/total_secondary_materials = 0
+	var/total_wired_conversions = 0
+	var/total_unsupported_wired_conversions = 0
 	for(var/turf/anchor_turf as anything in anchor_turfs)
 		if(!istype(anchor_turf))
 			continue
@@ -591,10 +511,20 @@
 		total_openings += anchor_plan.metadata["opening_count"] || 0
 		total_blocked_openings += anchor_plan.metadata["blocked_openings"] || 0
 		total_blocked_sentries += anchor_plan.metadata["blocked_sentries"] || 0
+		total_wire_objects += anchor_plan.metadata["wire_object_count"] || 0
+		total_mines += anchor_plan.metadata["mine_count"] || 0
+		total_extra_defenses += anchor_plan.metadata["extra_defense_count"] || 0
+		total_blocked_wire_objects += anchor_plan.metadata["blocked_wire_objects"] || 0
+		total_blocked_mines += anchor_plan.metadata["blocked_mines"] || 0
+		total_blocked_extra_defenses += anchor_plan.metadata["blocked_extra_defenses"] || 0
 		total_doors += anchor_plan.metadata["door_count"] || 0
 		total_unsupported_door_openings += anchor_plan.metadata["unsupported_door_openings"] || 0
 		total_blocked_door_openings += anchor_plan.metadata["blocked_door_openings"] || 0
 		total_dominant_barricades += anchor_plan.metadata["dominant_barricade_count"] || 0
+		total_primary_materials += anchor_plan.metadata["primary_material_count"] || 0
+		total_secondary_materials += anchor_plan.metadata["secondary_material_count"] || 0
+		total_wired_conversions += anchor_plan.metadata["wired_conversion_count"] || 0
+		total_unsupported_wired_conversions += anchor_plan.metadata["unsupported_wired_conversions"] || 0
 
 	for(var/turf/preview_turf as anything in preview_lookup)
 		plan.affected_turfs += preview_turf
@@ -610,10 +540,18 @@
 	plan.metadata["anchor_count"] = length(anchor_turfs)
 	plan.metadata["barricade_count"] = total_barricades
 	plan.metadata["sentry_count"] = total_sentries
+	plan.metadata["wire_object_count"] = total_wire_objects
+	plan.metadata["mine_count"] = total_mines
+	plan.metadata["extra_defense_count"] = total_extra_defenses
 	plan.metadata["blocked_barricades"] = total_blocked_barricades
 	plan.metadata["blocked_sentries"] = total_blocked_sentries
-	plan.metadata["family_label"] = config["family_profile"]["label"]
-	plan.metadata["family_description"] = config["family_profile"]["description"]
+	plan.metadata["blocked_wire_objects"] = total_blocked_wire_objects
+	plan.metadata["blocked_mines"] = total_blocked_mines
+	plan.metadata["blocked_extra_defenses"] = total_blocked_extra_defenses
+	plan.metadata["defense_profile_label"] = defense_profile["label"]
+	plan.metadata["defense_profile_description"] = defense_profile["description"]
+	plan.metadata["tactical_profile_label"] = defense_profile["label"]
+	plan.metadata["tactical_profile_description"] = defense_profile["description"]
 	plan.metadata["layout_label"] = config["layout_profile"]["label"]
 	plan.metadata["layout_description"] = config["layout_profile"]["description"]
 	plan.metadata["opening_count"] = total_openings
@@ -622,6 +560,10 @@
 	plan.metadata["unsupported_door_openings"] = total_unsupported_door_openings
 	plan.metadata["blocked_door_openings"] = total_blocked_door_openings
 	plan.metadata["dominant_barricade_count"] = total_dominant_barricades
+	plan.metadata["primary_material_count"] = total_primary_materials
+	plan.metadata["secondary_material_count"] = total_secondary_materials
+	plan.metadata["wired_conversion_count"] = total_wired_conversions
+	plan.metadata["unsupported_wired_conversions"] = total_unsupported_wired_conversions
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
@@ -654,13 +596,9 @@
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
 		return "Radius must be in the range 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
 
-	var/place_sentries = config["place_sentries"]
-	if(place_sentries)
-		if(radius < 2)
-			return "Radius must be at least 2 when sentries are enabled."
-
-		if(!(config["faction"] in valid_factions))
-			return "Selected sentry faction is not allowed."
+	var/faction = "[config["faction"]]"
+	if(length(faction) && !(faction in valid_factions))
+		return "Selected outpost faction is not allowed."
 
 	return null
 
@@ -683,9 +621,9 @@
 	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 	result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	var/blocked_total = (plan.metadata["blocked_barricades"] || 0) + (plan.metadata["blocked_openings"] || 0) + (plan.metadata["blocked_sentries"] || 0)
+	var/blocked_total = (plan.metadata["blocked_barricades"] || 0) + (plan.metadata["blocked_openings"] || 0) + (plan.metadata["blocked_sentries"] || 0) + (plan.metadata["blocked_wire_objects"] || 0) + (plan.metadata["blocked_mines"] || 0) + (plan.metadata["blocked_extra_defenses"] || 0)
 	var/unavailable_doors = (plan.metadata["unsupported_door_openings"] || 0) + (plan.metadata["blocked_door_openings"] || 0)
-	result.message = "Preview ready: profile=[plan.metadata["family_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], openings=[plan.metadata["opening_count"] || 0], doors=[plan.metadata["door_count"] || 0], dominant=[plan.metadata["dominant_barricade_count"] || 0], barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], unavailable_doors=[unavailable_doors], blocked=[blocked_total]."
+	result.message = "Preview ready: profile=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], openings=[plan.metadata["opening_count"] || 0], doors=[plan.metadata["door_count"] || 0], dominant=[plan.metadata["dominant_barricade_count"] || 0], barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], wire=[plan.metadata["wire_object_count"] || 0], mines=[plan.metadata["mine_count"] || 0], support=[plan.metadata["extra_defense_count"] || 0], unavailable_doors=[unavailable_doors], blocked=[blocked_total]."
 	return result
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
@@ -706,6 +644,9 @@
 	var/created_barricades = 0
 	var/created_sentries = 0
 	var/created_doors = 0
+	var/created_wire_objects = 0
+	var/created_mines = 0
+	var/created_extra_defenses = 0
 	var/skipped_runtime = 0
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "outpost_radius", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = center_turf,
@@ -733,24 +674,36 @@
 			else
 				skipped_runtime++
 			continue
-		if(placement_kind != "sentry")
+		if(!(placement_kind in list("sentry", "wire_object", "mine", "extra_defense")))
 			skipped_runtime++
 			continue
-		if(!can_place_sentry_on_turf(target_turf))
+		if(!can_place_outpost_support_on_turf(target_turf, defense_path, placement["dir"]))
 			skipped_runtime++
 			continue
-		var/obj/created_sentry = spawn_defense_path(target_turf, placement["dir"], defense_path, placement["faction"], placement["turned_on"])
-		if(created_sentry)
-			created_sentries++
-			changeset.add_created(created_sentry, target_turf, list("kind" = placement_kind))
-		else
+		var/obj/created_support = spawn_defense_path(target_turf, placement["dir"], defense_path, placement["faction"], placement["turned_on"])
+		if(!created_support)
 			skipped_runtime++
+			continue
+
+		switch(placement_kind)
+			if("sentry")
+				created_sentries++
+			if("wire_object")
+				created_wire_objects++
+			if("mine")
+				created_mines++
+			if("extra_defense")
+				created_extra_defenses++
+		changeset.add_created(created_support, target_turf, list("kind" = placement_kind))
 
 	result.center_turf = center_turf
-	result.created_count = created_barricades + created_sentries
+	result.created_count = created_barricades + created_sentries + created_wire_objects + created_mines + created_extra_defenses
 	result.meta["barricade_count"] = created_barricades
 	result.meta["sentry_count"] = created_sentries
 	result.meta["door_count"] = created_doors
+	result.meta["wire_object_count"] = created_wire_objects
+	result.meta["mine_count"] = created_mines
+	result.meta["extra_defense_count"] = created_extra_defenses
 	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(result.created_count <= 0)
@@ -759,7 +712,5 @@
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Outpost created: profile=[plan.metadata["family_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], barricades=[created_barricades], doors=[created_doors], sentries=[created_sentries], skipped=[skipped_runtime]."
+	result.message = "Outpost created: profile=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], barricades=[created_barricades], doors=[created_doors], sentries=[created_sentries], wire=[created_wire_objects], mines=[created_mines], support=[created_extra_defenses], skipped=[skipped_runtime]."
 	return result
-
-

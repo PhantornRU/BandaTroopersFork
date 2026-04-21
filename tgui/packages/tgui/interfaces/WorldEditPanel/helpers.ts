@@ -3,10 +3,8 @@ import {
   DAMAGE_PROFILE_LABELS,
   DIRECTION_LABELS,
   EMPTY_LABEL,
-  EXECUTION_MODE_LABELS,
   FIELD_LABELS,
   NONE_LABEL,
-  OUTPOST_GUARD_MODE_LABELS,
   OUTPOST_LAYOUT_LABELS,
   OUTPOST_OPENING_WIDTH_LABELS,
   OUTPOST_PERIMETER_PATTERN_LABELS,
@@ -14,7 +12,6 @@ import {
   PLACEMENT_MODE_LABELS,
   PLACEMENT_SHAPE_LABELS,
   PLACEMENT_SHAPE_ORDER,
-  SENTRY_LABELS,
   UNDO_POLICY_LABELS,
   UNDO_STATUS_LABELS,
 } from './constants';
@@ -23,14 +20,11 @@ import type { BackendData, PlacementOption, ToneKey, UiField } from './types';
 
 export const isBlankDisplayValue = (value?: unknown) => {
   const text = `${value ?? ''}`.trim().toLowerCase();
-  return !text || text === '0' || text === 'none' || text === 'n/a';
+  return !text || text === 'n/a';
 };
 
 export const getDisplayText = (value?: unknown, fallback = EMPTY_LABEL) =>
   isBlankDisplayValue(value) ? fallback : `${value}`;
-
-export const getPositiveCountText = (value?: number, fallback = EMPTY_LABEL) =>
-  value && value > 0 ? `${value}` : fallback;
 
 export const getField = (fields: UiField[], id: string) =>
   (fields || []).find((field) => field.id === id);
@@ -45,11 +39,6 @@ export const getFieldsByGroup = (fields: UiField[], groupName: string) =>
 
 export const getVisibleFields = (fields: UiField[] = []) =>
   (fields || []).filter((field) => field.visible !== false);
-
-export const getSafeFieldList = (fields: UiField[], ids: string[]) =>
-  getFieldsById(fields, ids).filter(
-    (field) => field.visible !== false && !field.disabled,
-  );
 
 export const toneForHistoryResult = (result?: string): ToneKey => {
   switch ((result || '').toLowerCase()) {
@@ -105,11 +94,6 @@ export const getTranslatedPlacementModeTooltip = (value?: unknown) => {
     default:
       return getTranslatedPlacementMode(value);
   }
-};
-
-export const getTranslatedExecutionMode = (value?: unknown) => {
-  const key = `${value ?? ''}`.trim().toLowerCase();
-  return EXECUTION_MODE_LABELS[key] || getDisplayText(value, NONE_LABEL);
 };
 
 export const getTranslatedUndoPolicy = (value?: string) => {
@@ -195,7 +179,6 @@ export const translateOptionLabel = (
   const value = `${optionValue ?? ''}`.trim().toLowerCase();
 
   switch (fieldId) {
-    case 'family':
     case 'defense_profile':
       return (
         OUTPOST_TACTICAL_PROFILE_LABELS[value] ||
@@ -218,24 +201,15 @@ export const translateOptionLabel = (
         label ||
         getDisplayText(optionValue)
       );
-    case 'guard_mode':
-      return (
-        OUTPOST_GUARD_MODE_LABELS[value] || label || getDisplayText(optionValue)
-      );
     case 'damage_profile':
       return (
         DAMAGE_PROFILE_LABELS[value] || label || getDisplayText(optionValue)
       );
-    case 'barricade_path':
     case 'primary_material_path':
-    case 'primary_barricade_path':
     case 'secondary_material_path':
-    case 'secondary_barricade_path':
     case 'primary_door_path':
     case 'secondary_door_path':
       return BARRICADE_LABELS[label] || label || getDisplayText(optionValue);
-    case 'sentry_path':
-      return SENTRY_LABELS[label] || label || getDisplayText(optionValue);
     default:
       return label || getDisplayText(optionValue);
   }

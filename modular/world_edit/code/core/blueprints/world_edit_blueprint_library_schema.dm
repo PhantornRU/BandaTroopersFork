@@ -64,7 +64,7 @@
 	if(!length(raw_vars))
 		return list("vars" = safe_vars)
 
-	if(category != "sentry")
+	if(!(category in list("sentry", "defense", "mine")))
 		return list("error" = "Vars are not allowed for '[obj_path]'.")
 
 	for(var/var_id in raw_vars)
@@ -73,9 +73,11 @@
 			if("faction")
 				var/faction = "[raw_vars[var_id]]"
 				if(!(faction in GLOB.world_edit_blueprint_valid_factions))
-					return list("error" = "Blueprint contains an invalid sentry faction.")
+					return list("error" = "Blueprint contains an invalid defense faction.")
 				safe_vars[key_text] = faction
 			if("turned_on")
+				if(category == "mine")
+					return list("error" = "Mine blueprint entries do not support 'turned_on'.")
 				safe_vars[key_text] = GLOB.world_edit_helpers.parse_bool(raw_vars[var_id]) ? TRUE : FALSE
 			else
 				return list("error" = "Blueprint contains a non-whitelisted var '[key_text]'.")
@@ -171,10 +173,18 @@
 	if(!islist(raw_recipe))
 		return list("error" = "Blueprint outpost_recipe payload must be an object.")
 
-	var/family = trim(sanitize_text("[raw_recipe["family"]]", ""))
+	var/defense_profile = trim(sanitize_text("[raw_recipe["defense_profile"]]", ""))
 	var/layout_variant = trim(sanitize_text("[raw_recipe["layout_variant"]]", ""))
-	if(!length(family) || !length(layout_variant))
-		return list("error" = "Blueprint outpost_recipe must include family and layout_variant.")
+	if(length(trim(sanitize_text("[raw_recipe["family"]]", ""))))
+		return list("error" = "Blueprint outpost_recipe family is no longer supported. Use defense_profile.")
+	if(length(trim(sanitize_text("[raw_recipe["barricade_path"]]", ""))))
+		return list("error" = "Blueprint outpost_recipe barricade_path is no longer supported. Use primary_material_path.")
+	if(!isnull(raw_recipe["barricade_concentration_percent"]))
+		return list("error" = "Blueprint outpost_recipe barricade_concentration_percent is no longer supported. Use primary_material_share_percent.")
+	if(!length(defense_profile))
+		return list("error" = "Blueprint outpost_recipe must include defense_profile.")
+	if(!length(layout_variant))
+		return list("error" = "Blueprint outpost_recipe must include layout_variant.")
 
 	var/placement_dir = text2num("[raw_recipe["placement_dir"]]")
 	if(!(placement_dir in GLOB.cardinals))
@@ -184,68 +194,102 @@
 	if(isnull(radius) || radius < 1 || radius > 25)
 		return list("error" = "Blueprint outpost_recipe radius must be in the range 1..25.")
 
-	var/opening_width = world_edit_parse_strict_integer(raw_recipe["opening_width"])
-	if(isnull(opening_width) || opening_width < 1 || opening_width > (radius * 2) + 1)
+	var/datum/world_edit_generator/outpost_radius/outpost_generator = new
+	var/resolved_defense_profile = outpost_generator.resolve_outpost_defense_profile_id(defense_profile)
+	if(!length("[resolved_defense_profile]"))
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe defense_profile is unsupported.")
+
+	var/resolved_layout_variant = outpost_generator.resolve_outpost_layout_id(layout_variant)
+	var/list/layout_profile = outpost_generator.get_outpost_layout_profile(resolved_layout_variant)
+	if(!length("[resolved_layout_variant]") || !islist(layout_profile))
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe layout_variant is unsupported.")
+
+	var/opening_width = outpost_generator.resolve_opening_width(raw_recipe["opening_width"], layout_profile)
+	if(isnull(opening_width) || opening_width < 0 || opening_width > (radius * 2) + 1)
+		qdel(outpost_generator)
 		return list("error" = "Blueprint outpost_recipe opening_width is invalid for the stored radius.")
 
-	var/guard_mode = "[raw_recipe["guard_mode"] || "layout"]"
-	if(!(guard_mode in list("layout", "openings", "all_sides")))
-		return list("error" = "Blueprint outpost_recipe guard_mode is unsupported.")
-
-	var/sentry_profile = lowertext("[raw_recipe["sentry_profile"] || "entry_guard"]")
-	if(!(sentry_profile in list("none", "light_cover", "entry_guard", "inner_guard", "crossfire")))
-		return list("error" = "Blueprint outpost_recipe sentry_profile is unsupported.")
-
-	var/place_sentries = GLOB.world_edit_helpers.parse_bool(raw_recipe["place_sentries"]) ? TRUE : FALSE
-	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(raw_recipe["place_barricade_doors"]) ? TRUE : FALSE
-	var/turned_on = GLOB.world_edit_helpers.parse_bool(raw_recipe["turned_on"]) ? TRUE : FALSE
-
-	var/barricade_pattern = lowertext("[raw_recipe["barricade_pattern"] || "uniform"]")
-	if(!(barricade_pattern in list("uniform", "cycle", "paired")))
+	var/list/default_materials = list(
+		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"secondary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"barricade_pattern" = "uniform",
+		"primary_material_share_percent" = 100,
+		"primary_door_path" = "follow_material",
+		"secondary_door_path" = "follow_material",
+	)
+	var/barricade_pattern = outpost_generator.resolve_barricade_pattern(raw_recipe["barricade_pattern"])
+	if(isnull(barricade_pattern))
+		qdel(outpost_generator)
 		return list("error" = "Blueprint outpost_recipe barricade_pattern is unsupported.")
 
-	var/barricade_concentration_percent = world_edit_parse_strict_integer(raw_recipe["barricade_concentration_percent"])
-	if(isnull(barricade_concentration_percent))
-		barricade_concentration_percent = 0
-	if(barricade_concentration_percent < 0 || barricade_concentration_percent > 100)
-		return list("error" = "Blueprint outpost_recipe barricade_concentration_percent must be in the range 0..100.")
+	var/primary_material_share_percent = world_edit_parse_strict_integer(raw_recipe["primary_material_share_percent"])
+	if(isnull(primary_material_share_percent))
+		primary_material_share_percent = default_materials["primary_material_share_percent"] || 100
+	if(primary_material_share_percent < 0 || primary_material_share_percent > 100)
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe primary_material_share_percent must be in the range 0..100.")
 
-	var/barricade_path = text2path("[raw_recipe["barricade_path"]]")
-	if(!ispath(barricade_path, /datum/human_ai_defense/barricade))
-		return list("error" = "Blueprint outpost_recipe barricade_path must be a barricade definition path.")
+	var/primary_material_path = outpost_generator.resolve_whitelisted_type(
+		raw_recipe["primary_material_path"],
+		outpost_generator.allowed_barricade_types,
+		/datum/human_ai_defense/barricade,
+		default_materials["primary_material_path"] || /datum/human_ai_defense/barricade/metal,
+	)
+	if(!ispath(primary_material_path, /datum/human_ai_defense/barricade))
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe primary_material_path must be a barricade definition path.")
 
-	var/sentry_path = null
-	if(!isnull(raw_recipe["sentry_path"]) && length("[raw_recipe["sentry_path"]]") && "[raw_recipe["sentry_path"]]" != "null")
-		sentry_path = text2path("[raw_recipe["sentry_path"]]")
-		if(!ispath(sentry_path, /datum/human_ai_defense/defense/sentry))
-			return list("error" = "Blueprint outpost_recipe sentry_path must be a sentry definition path.")
+	var/secondary_material_path = outpost_generator.resolve_whitelisted_type(
+		raw_recipe["secondary_material_path"],
+		outpost_generator.allowed_barricade_types,
+		/datum/human_ai_defense/barricade,
+		default_materials["secondary_material_path"] || primary_material_path,
+	)
+	if(!ispath(secondary_material_path, /datum/human_ai_defense/barricade))
+		secondary_material_path = default_materials["secondary_material_path"] || primary_material_path
+	if(!ispath(secondary_material_path, /datum/human_ai_defense/barricade))
+		secondary_material_path = primary_material_path
 
-	var/faction = "[raw_recipe["faction"] || ""]"
-	if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
-		return list("error" = "Blueprint outpost_recipe contains an invalid faction.")
+	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(raw_recipe["place_barricade_doors"]) ? TRUE : FALSE
+	var/primary_door_path = outpost_generator.resolve_outpost_door_selection(raw_recipe["primary_door_path"] || default_materials["primary_door_path"])
+	if(isnull(primary_door_path))
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe primary_door_path is unsupported.")
+
+	var/secondary_door_path = outpost_generator.resolve_outpost_door_selection(raw_recipe["secondary_door_path"] || default_materials["secondary_door_path"])
+	if(isnull(secondary_door_path))
+		qdel(outpost_generator)
+		return list("error" = "Blueprint outpost_recipe secondary_door_path is unsupported.")
+
+	if(barricade_pattern == "uniform")
+		secondary_material_path = primary_material_path
+		secondary_door_path = primary_door_path
+		primary_material_share_percent = 100
 
 	var/list/footprint_result = world_edit_validate_outpost_recipe_footprint_offsets(raw_recipe["footprint_offsets"])
 	if(footprint_result["error"])
+		qdel(outpost_generator)
 		return footprint_result
 
-	return list("outpost_recipe" = list(
-		"family" = family,
-		"layout_variant" = layout_variant,
+	var/list/sanitized_recipe = list(
+		"defense_profile" = resolved_defense_profile,
+		"layout_variant" = resolved_layout_variant,
 		"placement_dir" = placement_dir,
 		"radius" = radius,
 		"opening_width" = opening_width,
-		"guard_mode" = guard_mode,
-		"sentry_profile" = sentry_profile,
-		"place_sentries" = place_sentries,
-		"barricade_path" = "[barricade_path]",
+		"primary_material_path" = "[primary_material_path]",
+		"secondary_material_path" = "[secondary_material_path]",
 		"barricade_pattern" = barricade_pattern,
-		"barricade_concentration_percent" = barricade_concentration_percent,
+		"primary_material_share_percent" = primary_material_share_percent,
 		"place_barricade_doors" = place_barricade_doors,
-		"sentry_path" = sentry_path ? "[sentry_path]" : null,
-		"faction" = faction,
-		"turned_on" = turned_on,
+		"primary_door_path" = ispath(primary_door_path, /datum/human_ai_defense/barricade) ? "[primary_door_path]" : "[primary_door_path]",
+		"secondary_door_path" = ispath(secondary_door_path, /datum/human_ai_defense/barricade) ? "[secondary_door_path]" : "[secondary_door_path]",
 		"footprint_offsets" = footprint_result["footprint_offsets"],
-	))
+	)
+	qdel(outpost_generator)
+	return list("outpost_recipe" = sanitized_recipe)
 
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_definition(list/raw_definition)
 	if(!islist(raw_definition))
@@ -333,6 +377,6 @@
 		summary["file_path"] = file_path
 	if(islist(blueprint["outpost_recipe"]))
 		summary["has_outpost_recipe"] = TRUE
-		summary["outpost_family"] = blueprint["outpost_recipe"]["family"] || ""
+		summary["outpost_defense_profile"] = blueprint["outpost_recipe"]["defense_profile"] || ""
 		summary["outpost_layout_variant"] = blueprint["outpost_recipe"]["layout_variant"] || ""
 	return summary
