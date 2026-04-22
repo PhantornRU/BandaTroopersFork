@@ -110,6 +110,12 @@
 /datum/world_edit_generator/proc/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
 	return list()
 
+/datum/world_edit_generator/proc/should_skip_plan_build_for_safe_preview(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	return hover_only ? should_skip_plan_build_for_hover_only_placement(shape_contract, runtime_params, placement_context) : FALSE
+
+/datum/world_edit_generator/proc/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	return FALSE
+
 /// Явный opt-in для manager-owned placement-layer preview во время обычного preview.
 /// Нужен только тем генераторам, у которых placement layers эквивалентны их runtime preview.
 /datum/world_edit_generator/proc/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)

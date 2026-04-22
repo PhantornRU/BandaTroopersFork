@@ -630,6 +630,14 @@
 /datum/world_edit_generator/outpost_radius/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
 	return istype(plan) ? TRUE : FALSE
 
+/datum/world_edit_generator/outpost_radius/should_skip_plan_build_for_safe_preview(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	var/interaction_kind = "[shape_contract?.interaction_kind || placement_context["interaction_kind"] || "single"]"
+	if(interaction_kind == "collector")
+		return FALSE
+	// Full outpost planning is intentionally deferred until confirm/apply; safe-preview
+	// only needs the shared shape footprint, otherwise interactive placement can stall the server.
+	return TRUE
+
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)
 

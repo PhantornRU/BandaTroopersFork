@@ -182,7 +182,10 @@
 		"started_at_ds" = world.time,
 		"hover_preview_requests" = 0,
 		"hover_resolve_calls" = 0,
+		"hover_plan_skips" = 0,
+		"preview_plan_defers" = 0,
 		"click_resolve_calls" = 0,
+		"deferred_apply_plan_builds" = 0,
 		"resolve_cache_hits" = 0,
 		"resolve_cache_misses" = 0,
 		"outpost_clamp_attempts" = 0,
@@ -229,7 +232,10 @@
 	for(var/counter_id in list(
 		"hover_preview_requests",
 		"hover_resolve_calls",
+		"hover_plan_skips",
+		"preview_plan_defers",
 		"click_resolve_calls",
+		"deferred_apply_plan_builds",
 		"resolve_cache_hits",
 		"resolve_cache_misses",
 		"outpost_clamp_attempts",
@@ -247,7 +253,10 @@
 		var/started_at_ds = diagnostics["started_at_ds"] || world.time
 		var/hover_preview_requests = diagnostics["hover_preview_requests"] || 0
 		var/hover_resolve_calls = diagnostics["hover_resolve_calls"] || 0
+		var/hover_plan_skips = diagnostics["hover_plan_skips"] || 0
+		var/preview_plan_defers = diagnostics["preview_plan_defers"] || 0
 		var/click_resolve_calls = diagnostics["click_resolve_calls"] || 0
+		var/deferred_apply_plan_builds = diagnostics["deferred_apply_plan_builds"] || 0
 		var/resolve_cache_hits = diagnostics["resolve_cache_hits"] || 0
 		var/resolve_cache_misses = diagnostics["resolve_cache_misses"] || 0
 		var/outpost_clamp_attempts = diagnostics["outpost_clamp_attempts"] || 0
@@ -262,7 +271,10 @@
 			list("label" = "Session", "value" = "[elapsed_seconds]s"),
 			list("label" = "Hover preview", "value" = "[hover_preview_requests]"),
 			list("label" = "Hover resolve", "value" = "[hover_resolve_calls]"),
+			list("label" = "Hover plan skip", "value" = "[hover_plan_skips]"),
+			list("label" = "Preview defer", "value" = "[preview_plan_defers]"),
 			list("label" = "Click resolve", "value" = "[click_resolve_calls]"),
+			list("label" = "Apply plan", "value" = "[deferred_apply_plan_builds]"),
 			list("label" = "Cache", "value" = "[resolve_cache_hits]/[resolve_cache_misses]"),
 			list("label" = "Clamp tries", "value" = "[outpost_clamp_attempts]"),
 			list("label" = "Clamp ok", "value" = "[outpost_clamp_successes]"),
@@ -413,6 +425,59 @@
 	update_placement_context_shape_metadata(placement_context, shape_contract)
 	return plan
 
+/datum/world_edit_manager/proc/populate_resolved_placement_candidate_plan(mob/user, datum/world_edit_placement_candidate/candidate, list/effective_params = null, hover_only = FALSE)
+	if(!istype(candidate) || !current_generator)
+		return candidate
+	if(length("[candidate.support_error]") || length("[candidate.resolve_error]") || istype(candidate.plan))
+		return candidate
+
+	var/datum/world_edit_shape_contract/shape_contract = candidate.shape_contract
+	if(!istype(shape_contract))
+		candidate.resolve_error = "Не удалось определить контур размещения."
+		return candidate
+
+	if(!islist(candidate.placement_context))
+		candidate.placement_context = list()
+	update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+
+	var/list/runtime_params = islist(effective_params) ? effective_params.Copy() : (islist(candidate.runtime_params) ? candidate.runtime_params.Copy() : list())
+	candidate.runtime_params = runtime_params.Copy()
+
+	var/list/support_result = current_generator.evaluate_shape_contract(shape_contract, runtime_params, candidate.placement_context)
+	var/datum/world_edit_plan/prebuilt_plan = null
+	if(islist(support_result))
+		var/list/support_metadata = support_result["metadata"]
+		if(islist(support_metadata))
+			for(var/key in support_metadata)
+				shape_contract.metadata[key] = support_metadata[key]
+			update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+		candidate.support_error = support_result["error"]
+		prebuilt_plan = support_result["plan"]
+	else
+		candidate.support_error = support_result
+	if(length("[candidate.support_error]"))
+		return candidate
+
+	var/datum/world_edit_plan/plan = istype(prebuilt_plan) ? prebuilt_plan : current_generator.build_plan_from_shape_contract(user, shape_contract, runtime_params, candidate.placement_context)
+	if(!istype(plan))
+		candidate.resolve_error = "Не удалось построить план размещения."
+		return candidate
+
+	candidate.plan = plan
+	current_generator.finalize_shared_placement_plan_metadata(plan, shape_contract, candidate.placement_context)
+	if(plan.metadata["error"])
+		candidate.resolve_error = "[plan.metadata["error"]]"
+		return candidate
+	if(!length(plan.placements) && !length(plan.deletions))
+		candidate.resolve_error = "План размещения пуст."
+		return candidate
+	if(istype(candidate.preview_model))
+		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
+		candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, runtime_params, candidate.placement_context, hover_only)
+		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
+		candidate.preview_model.preview_render_token = candidate.preview_render_token
+	return candidate
+
 /datum/world_edit_manager/proc/build_safe_placement_plan_from_shape_result(mob/user, shape_id, list/shape_result, turf/start_turf, turf/end_turf, list/shape_metadata_override = null)
 	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract_from_result(shape_id, shape_result)
 	if(islist(shape_metadata_override))
@@ -513,6 +578,17 @@
 		return candidate
 	if(!length(shape_contract.anchor_turfs))
 		candidate.resolve_error = "Недопустимый контур размещения."
+		return candidate
+
+	if(current_generator?.should_skip_plan_build_for_safe_preview(shape_contract, effective_params, candidate.placement_context, hover_only))
+		increment_runtime_diagnostic("preview_plan_defers")
+		if(hover_only)
+			increment_runtime_diagnostic("hover_plan_skips")
+		return candidate
+
+	populate_resolved_placement_candidate_plan(user, candidate, effective_params, hover_only)
+	if(istype(candidate.plan) || length("[candidate.get_failure_message()]"))
+		cache_last_resolved_placement_candidate(candidate, shape_contract)
 		return candidate
 
 	var/list/support_result = current_generator.evaluate_shape_contract(shape_contract, effective_params, candidate.placement_context)
@@ -670,13 +746,23 @@
 			to_chat(user, SPAN_WARNING(last_preview_message))
 		return FALSE
 
-	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan)]", candidate.plan.metadata, hover_only ? FALSE : TRUE)
+	var/list/preview_feedback_meta = candidate.plan?.metadata || candidate.shape_contract?.metadata || list()
+	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
 	if(!silent)
 		to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE
 
 /datum/world_edit_manager/proc/apply_resolved_placement_candidate(mob/user, datum/world_edit_placement_candidate/candidate = null, force_confirm = FALSE, cancel_placement_on_confirm_reject = FALSE)
 	candidate = candidate || get_placement_preview_candidate()
+	if(istype(candidate) && !candidate.hover_only && !istype(candidate.plan) && current_generator?.should_skip_plan_build_for_safe_preview(candidate.shape_contract, candidate.runtime_params, candidate.placement_context, FALSE))
+		increment_runtime_diagnostic("deferred_apply_plan_builds")
+		populate_resolved_placement_candidate_plan(user, candidate, candidate.runtime_params, FALSE)
+		if(length("[candidate.get_failure_message()]"))
+			render_safe_placement_preview(candidate)
+			set_safe_placement_preview_feedback(FALSE, "[candidate.get_failure_message()]", candidate.plan?.metadata || candidate.shape_contract?.metadata, FALSE)
+			to_chat(user, SPAN_WARNING(last_preview_message))
+			return TRUE
+		cache_last_resolved_placement_candidate(candidate, candidate.shape_contract)
 	if(!istype(candidate) || !candidate.is_ready_for_apply() || !is_preview_state_valid())
 		to_chat(user, SPAN_WARNING("Предпросмотр размещения ещё не готов."))
 		return TRUE

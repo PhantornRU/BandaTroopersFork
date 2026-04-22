@@ -82,19 +82,18 @@ const WorkspacePage = (props: {
 
       {!!data.has_generator &&
         (workspaceTab === 'editor' ? (
-          <>
-            <ToolWorkspace
-              data={data}
-              act={act}
-              groupedFields={groupedFields}
-              groupNames={groupNames}
-              showPlacementSetup={showPlacementSetup}
-            />
-            <RuntimeStatusCard data={data} />
-          </>
+          <ToolWorkspace
+            data={data}
+            act={act}
+            groupedFields={groupedFields}
+            groupNames={groupNames}
+            showPlacementSetup={showPlacementSetup}
+          />
         ) : (
           <HistoryWorkspace data={data} act={act} />
         ))}
+
+      {!!data.has_generator && <RuntimeStatusCard data={data} />}
     </Section>
   );
 };
