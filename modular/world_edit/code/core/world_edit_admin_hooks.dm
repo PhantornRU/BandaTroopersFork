@@ -1,6 +1,6 @@
 
 /client/proc/open_world_edit_panel()
-	set name = "World Edit Panel"
+	set name = "Панель редактирования мира"
 	set category = "Game Master"
 
 	if(!check_rights(R_DEBUG))

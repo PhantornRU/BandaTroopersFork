@@ -135,7 +135,7 @@ export const DEFAULT_DIRECTION_OPTIONS: ChoiceOption[] = [
 export const DEFAULT_POINT_SHAPE_OPTION: PlacementOption[] = [
   {
     value: 'point',
-    label: 'point',
+    label: 'Точка',
   },
 ];
 

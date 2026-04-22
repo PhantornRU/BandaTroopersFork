@@ -32,7 +32,7 @@
 	return istype(target_turf)
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_placement_target_label(shape_id)
-	return "[shape_id]" == WORLD_EDIT_SHAPE_POINT ? "placement anchor" : "placement outline"
+	return "[shape_id]" == WORLD_EDIT_SHAPE_POINT ? "опорная точка размещения" : "контур размещения"
 
 /datum/world_edit_generator/outpost_radius/proc/can_place_barricade_on_turf(turf/target_turf, dir_to_use)
 	if(!is_open_construction_turf(target_turf))
@@ -356,7 +356,7 @@
 
 	var/required_openings = get_layout_expected_opening_count(layout_profile)
 	if(!length(plan.placements))
-		plan.metadata["error"] = "Failed to build any valid outpost placements for the selected anchor under the current radius policy."
+		plan.metadata["error"] = "Не удалось построить ни одного допустимого размещения форпоста для выбранной опоры при текущей политике радиуса."
 		return plan
 
 	plan.metadata["center_turf"] = center_turf
@@ -420,7 +420,7 @@
 
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
-		plan.metadata["error"] = "Failed to resolve an anchor tile for the requested outpost placement."
+		plan.metadata["error"] = "Не удалось определить опорный тайл для запрошенного размещения форпоста."
 		return plan
 
 	var/list/config = resolve_outpost_configuration(params, placement_context)
@@ -495,14 +495,14 @@
 			if(!length(placement_key))
 				continue
 			if(occupied_lookup[placement_key])
-				plan.metadata["error"] = "The requested outpost footprint overlaps with itself."
+				plan.metadata["error"] = "Запрошенный отпечаток форпоста пересекается сам с собой."
 				plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
 				return plan
 			occupied_lookup[placement_key] = TRUE
 			preview_lookup[target_turf] = TRUE
 			plan.placements += list(placement.Copy())
 		if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
-			plan.metadata["error"] = "The requested outpost placement exceeds the safe placement limit ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
+			plan.metadata["error"] = "Запрошенное размещение форпоста превышает безопасный лимит размещений ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
 			return plan
 
 		total_barricades += anchor_plan.metadata["barricade_count"] || 0
@@ -594,11 +594,11 @@
 
 	var/radius = config["radius"]
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
-		return "Radius must be in the range 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
+		return "Радиус должен быть в диапазоне 1..[WORLD_EDIT_OUTPOST_RADIUS_MAX]."
 
 	var/faction = "[config["faction"]]"
 	if(length(faction) && !(faction in valid_factions))
-		return "Selected outpost faction is not allowed."
+		return "Выбранная фракция форпоста недопустима."
 
 	return null
 
@@ -607,23 +607,24 @@
 	clear_built_plan()
 	var/datum/world_edit_plan/plan = build_plan(params)
 	if(!istype(plan))
-		result.message = "Failed to build an outpost plan."
+		result.message = "Не удалось построить план форпоста."
 		return result
 	if(plan.metadata["error"])
 		result.message = "[plan.metadata["error"]]"
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = "No valid outpost placements were found for the selected anchor."
+		result.message = "Для выбранной опоры не найдено допустимых размещений форпоста."
 		return result
 
 	current_plan = plan
 	result.success = TRUE
-	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
-	result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
+	if(!manager?.should_use_placement_layer_preview(plan))
+		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
+		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
 	var/blocked_total = (plan.metadata["blocked_barricades"] || 0) + (plan.metadata["blocked_openings"] || 0) + (plan.metadata["blocked_sentries"] || 0) + (plan.metadata["blocked_wire_objects"] || 0) + (plan.metadata["blocked_mines"] || 0) + (plan.metadata["blocked_extra_defenses"] || 0)
 	var/unavailable_doors = (plan.metadata["unsupported_door_openings"] || 0) + (plan.metadata["blocked_door_openings"] || 0)
-	result.message = "Preview ready: profile=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], openings=[plan.metadata["opening_count"] || 0], doors=[plan.metadata["door_count"] || 0], dominant=[plan.metadata["dominant_barricade_count"] || 0], barricades=[plan.metadata["barricade_count"]], sentries=[plan.metadata["sentry_count"]], wire=[plan.metadata["wire_object_count"] || 0], mines=[plan.metadata["mine_count"] || 0], support=[plan.metadata["extra_defense_count"] || 0], unavailable_doors=[unavailable_doors], blocked=[blocked_total]."
+	result.message = "Предпросмотр готов: профиль=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Стандарт"], схема=[plan.metadata["layout_label"] || "Крест"], опор=[plan.metadata["anchor_count"] || 1], проходов=[plan.metadata["opening_count"] || 0], дверей=[plan.metadata["door_count"] || 0], доминирующих секций=[plan.metadata["dominant_barricade_count"] || 0], баррикад=[plan.metadata["barricade_count"]], турелей=[plan.metadata["sentry_count"]], проволоки=[plan.metadata["wire_object_count"] || 0], мин=[plan.metadata["mine_count"] || 0], поддержки=[plan.metadata["extra_defense_count"] || 0], недоступных дверей=[unavailable_doors], блокировок=[blocked_total]."
 	return result
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
@@ -632,13 +633,13 @@
 /datum/world_edit_generator/outpost_radius/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
-		result.message = "Run preview first so the outpost plan can be built."
+		result.message = "Сначала выполните предпросмотр, чтобы построить план форпоста."
 		return result
 	if(plan.metadata["error"])
 		result.message = "[plan.metadata["error"]]"
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = "Outpost apply finished without any valid placements."
+		result.message = "Применение форпоста завершилось без допустимых размещений."
 		return result
 	var/turf/center_turf = plan.metadata["center_turf"]
 	var/created_barricades = 0
@@ -707,10 +708,10 @@
 	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(result.created_count <= 0)
-		result.message = "Outpost apply finished without creating any objects."
+		result.message = "Применение форпоста завершилось без создания объектов."
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Outpost created: profile=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Standard"], variant=[plan.metadata["layout_label"] || "Crossroads"], anchors=[plan.metadata["anchor_count"] || 1], barricades=[created_barricades], doors=[created_doors], sentries=[created_sentries], wire=[created_wire_objects], mines=[created_mines], support=[created_extra_defenses], skipped=[skipped_runtime]."
+	result.message = "Форпост создан: профиль=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Стандарт"], схема=[plan.metadata["layout_label"] || "Крест"], опор=[plan.metadata["anchor_count"] || 1], баррикад=[created_barricades], дверей=[created_doors], турелей=[created_sentries], проволоки=[created_wire_objects], мин=[created_mines], поддержки=[created_extra_defenses], пропущено=[skipped_runtime]."
 	return result

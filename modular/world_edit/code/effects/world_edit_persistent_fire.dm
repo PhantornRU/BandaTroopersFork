@@ -1,7 +1,7 @@
 /// Постоянный огонь для World Edit.
 /// Не затухает сам со временем и тушится штатным огнетушителем через water.reaction_obj -> extinguish().
 /obj/effect/world_edit_persistent_fire
-	name = "persistent fire"
+	name = "постоянный огонь"
 	desc = "Административный очаг постоянного горения."
 	anchored = TRUE
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT

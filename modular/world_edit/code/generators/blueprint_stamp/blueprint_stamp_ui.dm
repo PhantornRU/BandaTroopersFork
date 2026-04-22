@@ -6,10 +6,10 @@
 
 	return list(list(
 		"id" = "stamp_spacing",
-		"label" = "Stamp Spacing",
+		"label" = "Интервал штамповки",
 		"kind" = "number",
-		"group" = "Placement",
-		"description" = "Spacing between repeated blueprint stamps. Default = max(width, height).",
+		"group" = "Размещение",
+		"description" = "Интервал между повторяющимися штампами шаблона. По умолчанию: max(width, height).",
 		"value" = text2num("[current_params["stamp_spacing"]]") || default_spacing,
 		"min" = 1,
 		"max" = WORLD_EDIT_PLACEMENT_MAX_ANCHORS,

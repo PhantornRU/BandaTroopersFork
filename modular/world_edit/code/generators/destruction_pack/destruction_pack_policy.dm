@@ -16,14 +16,14 @@
 /datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_mode_options()
 	return list(
 		list(
-			"label" = "Burning",
+			"label" = "С уроном",
 			"value" = "damaging",
-			"description" = "Emits heat, ignites mobs, and damages the turf over time.",
+			"description" = "Излучает жар, поджигает мобов и со временем наносит урон тайлу.",
 		),
 		list(
-			"label" = "Decorative",
+			"label" = "Декоративный",
 			"value" = "decorative",
-			"description" = "Visual-only fire. Keeps the light and owned cleanup path, but does not damage mobs or turfs.",
+			"description" = "Только визуальный огонь. Сохраняет свет и путь очистки владельца, но не наносит урон мобам и тайлам.",
 		),
 	)
 
@@ -40,8 +40,8 @@
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_mode_label(mode)
 	switch(resolve_persistent_fire_mode(mode))
 		if("decorative")
-			return "Decorative"
-	return "Burning"
+			return "Декоративный"
+	return "С уроном"
 
 /datum/world_edit_generator/destruction_pack/proc/get_default_persistent_fire_color_id()
 	return "amber"
@@ -49,39 +49,39 @@
 /datum/world_edit_generator/destruction_pack/proc/build_persistent_fire_color_options()
 	return list(
 		list(
-			"label" = "Amber",
+			"label" = "Янтарный",
 			"value" = "amber",
-			"description" = "Legacy World Edit fire color.",
+			"description" = "Классический цвет огня панели редактирования мира.",
 		),
 		list(
-			"label" = "White",
+			"label" = "Белый",
 			"value" = "white",
-			"description" = "Cold white flame for sterile or electrical scenes.",
+			"description" = "Холодное белое пламя для стерильных или электрических сцен.",
 		),
 		list(
-			"label" = "Red",
+			"label" = "Красный",
 			"value" = "red",
-			"description" = "Alarm-like red flame.",
+			"description" = "Тревожно-красное пламя.",
 		),
 		list(
-			"label" = "Blue",
+			"label" = "Синий",
 			"value" = "blue",
-			"description" = "Hot blue flame.",
+			"description" = "Горячее синее пламя.",
 		),
 		list(
-			"label" = "Green",
+			"label" = "Зеленый",
 			"value" = "green",
-			"description" = "Toxic or chemical-looking flame.",
+			"description" = "Пламя с токсичным или химическим оттенком.",
 		),
 		list(
-			"label" = "Violet",
+			"label" = "Фиолетовый",
 			"value" = "violet",
-			"description" = "Synthetic violet flame.",
+			"description" = "Синтетическое фиолетовое пламя.",
 		),
 		list(
-			"label" = "Custom",
+			"label" = "Пользовательский",
 			"value" = "custom",
-			"description" = "Use a custom #RRGGBB color.",
+			"description" = "Использовать собственный цвет #RRGGBB.",
 		),
 	)
 
@@ -129,19 +129,19 @@
 /datum/world_edit_generator/destruction_pack/proc/get_persistent_fire_color_label(color_id, custom_color = null)
 	switch(resolve_persistent_fire_color_id(color_id))
 		if("white")
-			return "White"
+			return "Белый"
 		if("red")
-			return "Red"
+			return "Красный"
 		if("blue")
-			return "Blue"
+			return "Синий"
 		if("green")
-			return "Green"
+			return "Зеленый"
 		if("violet")
-			return "Violet"
+			return "Фиолетовый"
 		if("custom")
 			var/resolved_custom_color = normalize_persistent_fire_custom_color(custom_color)
-			return length(resolved_custom_color) ? "Custom ([resolved_custom_color])" : "Custom"
-	return "Amber"
+			return length(resolved_custom_color) ? "Пользовательский ([resolved_custom_color])" : "Пользовательский"
+	return "Янтарный"
 
 /datum/world_edit_generator/destruction_pack/proc/get_blast_power_min()
 	return 100
@@ -178,19 +178,19 @@
 /datum/world_edit_generator/destruction_pack/proc/build_damage_profile_options()
 	return list(
 		list(
-			"label" = "None",
+			"label" = "Нет",
 			"value" = "none",
-			"description" = "Only shuffle, scatter, persistent fire, and/or blast are applied.",
+			"description" = "Применяются только перемешивание, разброс, постоянный огонь и/или взрыв.",
 		),
 		list(
-			"label" = "Ruin",
+			"label" = "Руины",
 			"value" = "ruin",
-			"description" = "Low-severity structural and tile damage. Only the core influence band is affected.",
+			"description" = "Слабые структурные повреждения и урон тайлам. Затрагивается только центральная зона влияния.",
 		),
 		list(
-			"label" = "Collapse",
+			"label" = "Обрушение",
 			"value" = "collapse",
-			"description" = "Stronger structural damage. The core band collapses and the mid band receives ruin damage.",
+			"description" = "Более сильные структурные повреждения. Центральная зона обрушивается, а средняя получает урон как у режима 'Руины'.",
 		),
 	)
 
@@ -210,10 +210,10 @@
 /datum/world_edit_generator/destruction_pack/proc/get_damage_profile_label(profile_id)
 	switch(resolve_damage_profile(profile_id))
 		if("ruin")
-			return "Ruin"
+			return "Руины"
 		if("collapse")
-			return "Collapse"
-	return "None"
+			return "Обрушение"
+	return "Нет"
 
 /datum/world_edit_generator/destruction_pack/proc/get_damage_profile_severity(profile_id)
 	switch(resolve_damage_profile(profile_id))

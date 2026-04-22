@@ -15,7 +15,7 @@
 	cached_params_hash_revision = -1
 	return params_revision
 
-/datum/world_edit_manager/proc/build_preview_params_signature(list/source_params = null)
+/datum/world_edit_manager/proc/build_preview_params_signature(list/source_params = null, include_context_revision = TRUE)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/raw_shape_id = resolve_supported_placement_shape(placement_shape)
 	var/shape_id = length("[raw_shape_id]") ? "[raw_shape_id]" : (length("[placement_shape]") ? "[placement_shape]" : WORLD_EDIT_SHAPE_POINT)
@@ -38,7 +38,8 @@
 	if(current_definition?.id == "blueprint_stamp")
 		blueprint_revision = get_active_blueprint_revision()
 
-	return "params_hash=[params_hash]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::collector_rev=[session.collector_points_revision || 0]::context_rev=[session.preview_context_revision || 0]::blueprint_rev=[blueprint_revision]"
+	var/context_revision = include_context_revision ? (session.preview_context_revision || 0) : 0
+	return "params_hash=[params_hash]::mode=[effective_mode]::shape=[shape_id]::dir=[effective_dir]::collector_rev=[session.collector_points_revision || 0]::context_rev=[context_revision]::blueprint_rev=[blueprint_revision]"
 
 /datum/world_edit_manager/proc/mark_preview_state()
 	preview_valid = TRUE

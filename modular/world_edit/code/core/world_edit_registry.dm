@@ -37,9 +37,9 @@
 
 /datum/world_edit_generator_definition/destruction_pack
 	id = "destruction_pack"
-	name_ru = "Destruction Pack"
-	category_ru = "Destruction"
-	description_ru = "Limited radius-based shuffle/scatter/fire/blast/ruin/collapse pack for movable atoms."
+	name_ru = "Пакет разрушения"
+	category_ru = "Разрушение"
+	description_ru = "Ограниченный пакет shuffle/scatter/огня/взрыва/урона по радиусу для подвижных атомов."
 	required_rights = R_DEBUG
 	supports_preview = TRUE
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH
@@ -65,9 +65,9 @@
 
 /datum/world_edit_generator_definition/blueprint_stamp
 	id = "blueprint_stamp"
-	name_ru = "Blueprint Stamp"
-	category_ru = "Blueprints"
-	description_ru = "Safe structure stamping from the World Edit Blueprint Lite library."
+	name_ru = "Штамп шаблона"
+	category_ru = "Шаблоны"
+	description_ru = "Безопасное штампование структур из библиотеки World Edit Blueprint Lite."
 	required_rights = R_EVENT
 	supports_preview = TRUE
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH

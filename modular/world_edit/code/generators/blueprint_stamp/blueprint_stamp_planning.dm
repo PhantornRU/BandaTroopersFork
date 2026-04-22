@@ -51,10 +51,10 @@
 	var/list/anchor_turfs = normalize_anchor_turfs(shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"])
 	anchor_turfs = apply_stamp_spacing(anchor_turfs, params, blueprint)
 	if(!length(anchor_turfs))
-		plan.metadata["error"] = "Unable to resolve the blueprint anchor turf."
+		plan.metadata["error"] = "Не удалось определить опорный тайл шаблона."
 		return plan
 	if(length(anchor_turfs) > WORLD_EDIT_PLACEMENT_MAX_ANCHORS)
-		plan.metadata["error"] = "Requested footprint exceeds the safe anchor cap ([WORLD_EDIT_PLACEMENT_MAX_ANCHORS])."
+		plan.metadata["error"] = "Запрошенный контур превышает безопасный лимит опор ([WORLD_EDIT_PLACEMENT_MAX_ANCHORS])."
 		return plan
 
 	var/placement_dir = text2num("[placement_context["direction"]]")
@@ -71,7 +71,7 @@
 	for(var/turf/anchor_turf as anything in anchor_turfs)
 		var/datum/world_edit_plan/anchor_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(blueprint, anchor_turf, placement_dir)
 		if(!istype(anchor_plan))
-			plan.metadata["error"] = "Unable to build the blueprint plan."
+			plan.metadata["error"] = "Не удалось построить план шаблона."
 			return plan
 		if(anchor_plan.metadata["error"])
 			plan.metadata = anchor_plan.metadata.Copy()
@@ -95,7 +95,7 @@
 			plan.placements += list(placement.Copy())
 
 		if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
-			plan.metadata["error"] = "Requested placement exceeds the safe placement cap ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
+			plan.metadata["error"] = "Запрошенное размещение превышает безопасный лимит размещений ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
 			return plan
 
 	for(var/turf/affected_turf as anything in affected_lookup)

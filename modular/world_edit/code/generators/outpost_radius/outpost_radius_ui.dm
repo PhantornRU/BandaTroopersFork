@@ -57,7 +57,7 @@
 			"label" = "Схема",
 			"kind" = "select",
 			"group" = "Схема",
-			"description" = "Определяет, где находятся проходы и как вращается раскладка относительно текущего DIR размещения.",
+			"description" = "Определяет, где находятся проходы и как вращается раскладка относительно текущего направления размещения.",
 			"value" = layout_id,
 			"options" = build_layout_options(),
 		),
@@ -139,7 +139,7 @@
 			"label" = "Доля основного материала",
 			"kind" = "number",
 			"group" = "Периметр",
-			"description" = "Точная доля не-opening секций периметра, которая должна использовать основной материал. Ближайшие к проходам слоты получают приоритет.",
+			"description" = "Точная доля секций периметра вне проходов, которая должна использовать основной материал. Ближайшие к проходам слоты получают приоритет.",
 			"validate_hint" = "Допустимый диапазон: 0..100",
 			"value" = primary_material_share_percent,
 			"min" = 0,
@@ -152,7 +152,7 @@
 			"label" = "Ставить двери в проходы",
 			"kind" = "boolean",
 			"group" = "Периметр",
-			"description" = "Пытается заменить проходы folding-дверями по lane-материалу или явному override.",
+			"description" = "Пытается заменить проходы складными дверями по материалу секции или явному переопределению.",
 			"value" = place_barricade_doors,
 		),
 		list(
@@ -160,7 +160,7 @@
 			"label" = "Основные двери",
 			"kind" = "select",
 			"group" = "Периметр",
-			"description" = "Тип folding-двери для секций основного материала.",
+			"description" = "Тип складной двери для секций основного материала.",
 			"value" = ispath(primary_door_selection, /datum/human_ai_defense/barricade) ? "[primary_door_selection]" : "[primary_door_selection]",
 			"options" = build_outpost_door_type_options(),
 			"visible" = place_barricade_doors,
@@ -170,7 +170,7 @@
 			"label" = "Вспомогательные двери",
 			"kind" = "select",
 			"group" = "Периметр",
-			"description" = "Тип folding-двери для секций вспомогательного материала.",
+			"description" = "Тип складной двери для секций вспомогательного материала.",
 			"value" = ispath(secondary_door_selection, /datum/human_ai_defense/barricade) ? "[secondary_door_selection]" : "[secondary_door_selection]",
 			"options" = build_outpost_door_type_options(),
 			"visible" = place_barricade_doors && barricade_pattern != "uniform",
@@ -196,7 +196,7 @@
 		if("opening_width")
 			var/option_id = get_outpost_opening_width_option_id(value)
 			if(isnull(option_id))
-				return "Р’С‹Р±СЂР°РЅР° РЅРµРґРѕРїСѓСЃС‚РёРјР°СЏ С€РёСЂРёРЅР° РїСЂРѕС…РѕРґРѕРІ."
+				return "Выбрана недопустимая ширина проходов."
 			var/opening_width = resolve_opening_width(option_id, get_outpost_layout_profile(resolve_outpost_layout_id(new_params["layout_variant"]) || get_default_outpost_layout_id()))
 			if(isnull(opening_width))
 				return "Выбрана недопустимая ширина проходов."

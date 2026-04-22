@@ -3,9 +3,9 @@
 
 /datum/world_edit_manager/proc/build_validated_preset_params(mob/user, datum/world_edit_generator_definition/definition, list/raw_payload)
 	if(!istype(definition))
-		return list("error" = "Preset references an unknown generator.")
+		return list("error" = "Пресет ссылается на неизвестный генератор.")
 	if(!GLOB.world_edit_presets.world_edit_is_preset_definition_supported(definition))
-		return list("error" = "Presets are not supported for this generator.")
+		return list("error" = "Пресеты не поддерживаются для этого генератора.")
 
 	var/datum/world_edit_generator/temp_generator = new definition.generator_type()
 	temp_generator.attach(src, definition)
@@ -22,13 +22,13 @@
 			new_params = apply_shape_ui_param_to_params(params_to_apply, key_text, sanitized_payload[param_id])
 			if(!islist(new_params) && !istext(new_params))
 				qdel(temp_generator)
-				return list("error" = "Preset contains an unsupported parameter '[key_text]'.")
+				return list("error" = "Пресет содержит неподдерживаемый параметр '[key_text]'.")
 		if(istext(new_params))
 			qdel(temp_generator)
 			return list("error" = "[new_params]")
 		if(!islist(new_params))
 			qdel(temp_generator)
-			return list("error" = "Preset payload could not be applied to generator params.")
+			return list("error" = "Не удалось применить данные пресета к параметрам генератора.")
 
 		params_to_apply = new_params
 

@@ -1,9 +1,9 @@
 /datum/world_edit_manager/proc/load_blueprint_definition_by_id(blueprint_id)
 	var/list/entry = find_cached_blueprint_entry(blueprint_id)
 	if(!entry)
-		return list("error" = "Blueprint РЅРµ РЅР°Р№РґРµРЅ.")
+		return list("error" = "Шаблон не найден.")
 	if(!entry["valid"])
-		return list("error" = entry["error"] || "Blueprint РЅРµРІР°Р»РёРґРµРЅ.")
+		return list("error" = entry["error"] || "Шаблон невалиден.")
 	return GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(entry["file_path"])
 
 /datum/world_edit_manager/proc/activate_blueprint_generator(mob/user, blueprint_id, preserve_valid_preview = FALSE)
@@ -17,12 +17,14 @@
 	var/had_active_placement = is_safe_placement_mode_active()
 	if(!same_generator)
 		if(!set_generator_by_id("blueprint_stamp"))
-			return fail_blueprint_action(user, "РќРµ СѓРґР°Р»РѕСЃСЊ Р°РєС‚РёРІРёСЂРѕРІР°С‚СЊ blueprint stamp generator.")
+			return fail_blueprint_action(user, "Не удалось активировать генератор Штамп шаблона.")
 
 	var/blueprint_changed = current_blueprint_id != "[blueprint_id]"
 	if(!islist(current_params))
 		current_params = list()
 	current_params["blueprint_id"] = "[blueprint_id]"
+	if(blueprint_changed || !same_generator)
+		invalidate_active_blueprint_revision_cache()
 	save_current_generator_context()
 	if(!same_generator)
 		refresh_runtime_after_config_change(TRUE, TRUE)

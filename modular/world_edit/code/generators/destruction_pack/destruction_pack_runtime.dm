@@ -3,17 +3,17 @@
 	clear_built_plan()
 	var/datum/world_edit_plan/plan = build_plan(params)
 	if(!istype(plan))
-		result.message = "Unable to build the destruction plan."
+		result.message = "Не удалось построить план разрушения."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
+		result.message = plan.metadata["error"] || "В выбранной зоне не найдено подвижных целей, тайлов огня, взрывных действий или целей для урона."
 		return result
 
 	current_plan = plan
 	result.success = TRUE
 	result.preview_images = build_plan_preview_images(plan)
 	result.meta = plan.metadata.Copy()
-	result.message = "Preview ready: tiles=[plan.metadata["area_tiles"]], movable_targets=[plan.metadata["target_count"]], planned_moves=[plan.metadata["moved_count"]], fire_tiles=[plan.metadata["fire_count"]], blasts=[plan.metadata["blast_count"]], damage=[plan.metadata["damage_profile_label"] || "None"], undo=[plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE]."
+	result.message = "Предпросмотр готов: тайлов=[plan.metadata["area_tiles"]], подвижных целей=[plan.metadata["target_count"]], запланированных перемещений=[plan.metadata["moved_count"]], тайлов огня=[plan.metadata["fire_count"]], взрывов=[plan.metadata["blast_count"]], профиль урона=[plan.metadata["damage_profile_label"] || "Нет"], откат=[plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE]."
 	return result
 
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
@@ -22,10 +22,10 @@
 /datum/world_edit_generator/destruction_pack/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
-		result.message = "Run preview first to build the destruction plan."
+		result.message = "Сначала выполните предпросмотр, чтобы построить план разрушения."
 		return result
 	if(!length(plan.placements) && !length(plan.deletions))
-		result.message = plan.metadata["error"] || "No movable targets, fire tiles, blast actions, or damage targets matched the selected area."
+		result.message = plan.metadata["error"] || "В выбранной зоне не найдено подвижных целей, тайлов огня, взрывных действий или целей для урона."
 		return result
 
 	var/moved_count = 0
@@ -142,42 +142,22 @@
 	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(total_actions <= 0)
-		result.message = plan.metadata["error"] || "Destruction pack finished without applying any moves, fire tiles, blasts, or damage profiles."
+		result.message = plan.metadata["error"] || "Пакет разрушения завершился без применения перемещений, тайлов огня, взрывов или профилей урона."
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
 	var/list/summaries = list()
 	if(moved_count > 0)
-		summaries += "[moved_count] moved targets"
+		summaries += "[moved_count] перемещённых целей"
 	if(fire_count > 0)
-		summaries += "[fire_count] owned fire tiles"
+		summaries += "[fire_count] тайлов управляемого огня"
 	if(blast_count > 0)
-		summaries += "[blast_count] blasts"
+		summaries += "[blast_count] взрывов"
 	if(damage_count > 0)
-		summaries += "[damage_count] damaged turfs"
+		summaries += "[damage_count] повреждённых тайлов"
 	var/summary_text = jointext(summaries, ", ")
 	if(!length(summary_text))
-		summary_text = "no-op"
-	result.message = "Destruction pack applied: [summary_text]. Undo=[changeset.undo_policy]."
+		summary_text = "без изменений"
+	result.message = "Пакет разрушения применён: [summary_text]. Откат=[changeset.undo_policy]."
 	return result
-
-/datum/world_edit_generator/destruction_pack/get_runtime_status()
-	var/list/params = manager?.current_params || list()
-	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
-	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
-	var/persistent_fire_enabled = GLOB.world_edit_helpers.parse_bool(params["persistent_fire_enabled"])
-	var/persistent_fire_mode = get_persistent_fire_mode_label(params["persistent_fire_mode"])
-	var/persistent_fire_color = get_persistent_fire_color_label(params["persistent_fire_color"], params["persistent_fire_custom_color"])
-	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
-	var/damage_profile = resolve_damage_profile(params["damage_profile"])
-
-	return list(
-		list("label" = "Move mode", "value" = (shuffle_enabled || scatter_enabled) ? "active" : "off"),
-		list("label" = "Persistent fire", "value" = persistent_fire_enabled ? "active" : "off"),
-		list("label" = "Fire mode", "value" = persistent_fire_enabled ? persistent_fire_mode : "n/a"),
-		list("label" = "Fire color", "value" = persistent_fire_enabled ? persistent_fire_color : "n/a"),
-		list("label" = "Blast", "value" = blast_enabled ? "active" : "off"),
-		list("label" = "Damage profile", "value" = get_damage_profile_label(damage_profile)),
-		list("label" = "Fire cap", "value" = "[get_persistent_fire_cap()] tiles"),
-	)

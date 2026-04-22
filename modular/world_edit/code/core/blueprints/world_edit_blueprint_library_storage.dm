@@ -24,11 +24,11 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_load_blueprint_from_file(file_path)
 	if(!file_path || !fexists(file_path))
-		return list("error" = "Blueprint file was not found.")
+		return list("error" = "Файл шаблона не найден.")
 
 	var/json_text = file2text(file_path)
 	if(!length(json_text))
-		return list("error" = "Blueprint file is empty.")
+		return list("error" = "Файл шаблона пуст.")
 
 	var/list/raw_definition = json_decode(json_text)
 	var/list/validation_result = world_edit_validate_blueprint_definition(raw_definition)

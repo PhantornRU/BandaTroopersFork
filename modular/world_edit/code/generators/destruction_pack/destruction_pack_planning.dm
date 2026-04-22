@@ -5,7 +5,7 @@
 		var/datum/world_edit_plan/error_plan = new
 		var/turf/anchor_turf = center_turf_override || get_turf(manager?.holder?.mob)
 		if(!istype(anchor_turf))
-			error_plan.metadata["error"] = "Unable to resolve the anchor turf."
+			error_plan.metadata["error"] = "Не удалось определить опорный тайл."
 			return error_plan
 
 		var/shape_id = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
@@ -52,7 +52,7 @@
 	if(radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
 		return list(
 			"support_class" = "full",
-			"error" = "radius must stay in the range 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX].",
+			"error" = "Радиус должен оставаться в диапазоне 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX].",
 			"metadata" = list("shape_support_class" = "full"),
 		)
 
@@ -60,13 +60,13 @@
 	if(!length(influence_map["seed_turfs"]))
 		return list(
 			"support_class" = "full",
-			"error" = "Unable to resolve the destruction footprint.",
+			"error" = "Не удалось определить контур разрушения.",
 			"metadata" = list("shape_support_class" = "full"),
 		)
 	if(!length(influence_map["turfs"]))
 		return list(
 			"support_class" = "full",
-			"error" = "No valid area turfs were found around the selected footprint.",
+			"error" = "Вокруг выбранного контура не найдено подходящих тайлов.",
 			"metadata" = list("shape_support_class" = "full"),
 		)
 
@@ -80,7 +80,7 @@
 	var/datum/world_edit_plan/plan = new
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	if(!islist(anchor_turfs) || !length(anchor_turfs))
-		plan.metadata["error"] = "Unable to resolve the anchor turf."
+		plan.metadata["error"] = "Не удалось определить опорный тайл."
 		return plan
 
 	var/radius = clamp(text2num("[params["radius"]]") || 3, 1, WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
@@ -100,16 +100,16 @@
 	var/blast_falloff = text2num("[params["blast_falloff"]]") || get_blast_falloff_default()
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 	if(isnull(damage_profile))
-		plan.metadata["error"] = "Invalid damage profile selected."
+		plan.metadata["error"] = "Выбран некорректный профиль урона."
 		return plan
 	if(persistent_fire_enabled && isnull(persistent_fire_mode))
-		plan.metadata["error"] = "Invalid persistent fire mode selected."
+		plan.metadata["error"] = "Выбран некорректный режим постоянного огня."
 		return plan
 	if(persistent_fire_enabled && isnull(persistent_fire_color_id))
-		plan.metadata["error"] = "Invalid persistent fire color selected."
+		plan.metadata["error"] = "Выбран некорректный цвет постоянного огня."
 		return plan
 	if(persistent_fire_enabled && isnull(persistent_fire_color))
-		plan.metadata["error"] = "Custom persistent fire color must be a hex value like #ff9933."
+		plan.metadata["error"] = "Пользовательский цвет постоянного огня должен быть HEX-значением вроде #ff9933."
 		return plan
 	if(isnull(persistent_fire_mode))
 		persistent_fire_mode = get_default_persistent_fire_mode()
@@ -129,7 +129,7 @@
 	var/list/influence_lookup = influence_map["lookup"] || list()
 	var/list/seed_turfs = influence_map["seed_turfs"] || list()
 	if(!length(influence_turfs))
-		plan.metadata["error"] = "No valid area turfs were found around the selected footprint."
+		plan.metadata["error"] = "Вокруг выбранного контура не найдено подходящих тайлов."
 		return plan
 
 	var/turf/center_turf = influence_map["center_turf"] || placement_context["end_turf"] || placement_context["start_turf"] || get_turf(user)
@@ -138,11 +138,11 @@
 
 	var/list/targets = collect_targets(influence_turfs, affect_anchored)
 	if(has_move_mode && length(targets) > max_atoms && !has_non_move_mode)
-		plan.metadata["error"] = "The operation was blocked because [length(targets)] targets exceed the cap of [max_atoms]."
+		plan.metadata["error"] = "Операция заблокирована: [length(targets)] целей превышают лимит [max_atoms]."
 		return plan
 
 	if(!has_move_mode && !persistent_fire_enabled && !has_high_risk_mode)
-		plan.metadata["error"] = "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
+		plan.metadata["error"] = "Включите хотя бы один режим: перемешивание, разброс, взрыв, руины, обрушение или постоянный огонь."
 		return plan
 
 	var/plan_seed = build_plan_seed(params, seed_turfs)
@@ -151,7 +151,7 @@
 	var/list/damage_entries = build_damage_entries(influence_turfs, influence_lookup, damage_profile, plan_seed)
 
 	if(persistent_fire_enabled && !length(fire_entries) && !has_move_mode && !has_high_risk_mode)
-		plan.metadata["error"] = "No valid fire tiles matched the selected area."
+		plan.metadata["error"] = "В выбранной области не найдено подходящих тайлов для огня."
 		return plan
 
 	var/list/band_counts = influence_map["band_counts"] || list()
@@ -201,7 +201,7 @@
 			plan.metadata["move_skip_reason"] = "target_cap"
 			targets = list()
 		if(!length(targets) && !has_non_move_mode)
-			plan.metadata["error"] = "No movable targets matched the selected area."
+			plan.metadata["error"] = "В выбранной области не найдено подходящих подвижных целей."
 			return plan
 		if(!length(targets) && has_non_move_mode)
 			plan.metadata["move_skipped"] = TRUE
@@ -244,7 +244,7 @@
 	plan.metadata["destructive_action_count"] = blast_count + damage_count
 
 	if(!length(plan.placements) && !length(plan.deletions))
-		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "No movable targets, fire tiles, blast actions, or damage targets matched the selected area." : "Destruction pack finished with no movable targets that can change position."
+		plan.metadata["error"] = persistent_fire_enabled || has_high_risk_mode ? "В выбранной области не найдено подходящих подвижных целей, огненных тайлов, взрывных действий или целей для урона." : "Пакет разрушения завершился без подвижных целей, способных сменить позицию."
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
@@ -260,15 +260,15 @@
 /datum/world_edit_generator/destruction_pack/validate_params(mob/user, list/params)
 	var/radius = text2num("[params["radius"]]")
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_DESTRUCTION_RADIUS_MAX)
-		return "radius must stay in the range 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX]."
+		return "Радиус должен оставаться в диапазоне 1..[WORLD_EDIT_DESTRUCTION_RADIUS_MAX]."
 
 	var/max_atoms = text2num("[params["max_atoms"]]")
 	if(!isnum(max_atoms) || max_atoms < 1 || max_atoms > WORLD_EDIT_DESTRUCTION_MAX_ATOMS)
-		return "max_atoms must stay in the range 1..[WORLD_EDIT_DESTRUCTION_MAX_ATOMS]."
+		return "Лимит целей должен оставаться в диапазоне 1..[WORLD_EDIT_DESTRUCTION_MAX_ATOMS]."
 
 	var/scatter_steps = text2num("[params["scatter_steps"]]")
 	if(!isnum(scatter_steps) || scatter_steps < 1 || scatter_steps > WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS)
-		return "scatter_steps must stay in the range 1..[WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS]."
+		return "Количество шагов разброса должно оставаться в диапазоне 1..[WORLD_EDIT_DESTRUCTION_MAX_SCATTER_STEPS]."
 
 	var/shuffle_enabled = GLOB.world_edit_helpers.parse_bool(params["shuffle_enabled"])
 	var/scatter_enabled = GLOB.world_edit_helpers.parse_bool(params["scatter_enabled"])
@@ -276,34 +276,34 @@
 	var/blast_enabled = GLOB.world_edit_helpers.parse_bool(params["blast_enabled"])
 	var/damage_profile = resolve_damage_profile(params["damage_profile"])
 	if(isnull(damage_profile))
-		return "Invalid damage profile selected."
+		return "Выбран некорректный профиль урона."
 
 	var/has_move_mode = shuffle_enabled || scatter_enabled
 	var/has_non_move_mode = persistent_fire_enabled || blast_enabled || damage_profile != "none"
 	if(!has_move_mode && !has_non_move_mode)
-		return "Enable at least one mode: shuffle, scatter, blast, ruin, collapse or persistent fire."
+		return "Включите хотя бы один режим: перемешивание, разброс, взрыв, руины, обрушение или постоянный огонь."
 	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
-		return "Anchored targets are disabled in the strict MVP safety pass."
+		return "Зафиксированные цели отключены в строгом MVP-проходе безопасности."
 
 	if(persistent_fire_enabled)
 		var/persistent_fire_density = coerce_persistent_fire_density_percent(params["persistent_fire_density"])
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())
-			return "persistent_fire_density must stay in the range [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
+			return "Плотность постоянного огня должна оставаться в диапазоне [get_persistent_fire_density_min()]..[get_persistent_fire_density_max()]."
 		var/persistent_fire_mode = resolve_persistent_fire_mode(params["persistent_fire_mode"])
 		if(isnull(persistent_fire_mode))
-			return "persistent_fire_mode must be either damaging or decorative."
+			return "Режим постоянного огня должен быть damaging или decorative."
 		var/persistent_fire_color_id = resolve_persistent_fire_color_id(params["persistent_fire_color"])
 		if(isnull(persistent_fire_color_id))
-			return "persistent_fire_color must be one of amber, white, red, blue, green, violet, or custom."
+			return "Цвет постоянного огня должен быть одним из: amber, white, red, blue, green, violet, custom."
 		if(persistent_fire_color_id == "custom" && !length(normalize_persistent_fire_custom_color(params["persistent_fire_custom_color"])))
-			return "persistent_fire_custom_color must be a hex value like #ff9933 when the custom fire color is selected."
+			return "Пользовательский цвет постоянного огня должен быть HEX-значением вроде #ff9933, если выбран custom-цвет."
 
 	if(blast_enabled)
 		var/blast_power = text2num("[params["blast_power"]]")
 		if(!isnum(blast_power) || blast_power < get_blast_power_min() || blast_power > get_blast_power_max())
-			return "blast_power must stay in the range [get_blast_power_min()]..[get_blast_power_max()]."
+			return "Мощность взрыва должна оставаться в диапазоне [get_blast_power_min()]..[get_blast_power_max()]."
 		var/blast_falloff = text2num("[params["blast_falloff"]]")
 		if(!isnum(blast_falloff) || blast_falloff < get_blast_falloff_min() || blast_falloff > get_blast_falloff_max())
-			return "blast_falloff must stay in the range [get_blast_falloff_min()]..[get_blast_falloff_max()]."
+			return "Затухание взрыва должно оставаться в диапазоне [get_blast_falloff_min()]..[get_blast_falloff_max()]."
 
 	return null

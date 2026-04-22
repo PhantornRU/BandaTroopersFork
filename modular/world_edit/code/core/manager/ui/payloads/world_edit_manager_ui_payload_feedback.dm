@@ -10,7 +10,6 @@
 		"last_apply_message" = last_apply_message,
 		"last_undo_success" = last_undo_success,
 		"last_undo_message" = last_undo_message,
-		"last_undo_action" = last_undo_action,
 		"last_changeset" = build_last_changeset_summary(),
 	)
 
@@ -24,7 +23,6 @@
 		"can_stop_click_mode" = click_mode_active ? TRUE : FALSE,
 		"can_undo_last_operation" = can_undo_last_operation(),
 		"can_cleanup_last_owned_effects" = can_cleanup_last_owned_effects(),
-		"can_refresh_ui" = has_generator ? TRUE : FALSE,
 	)
 
 /datum/world_edit_manager/proc/build_history_ui_payload()

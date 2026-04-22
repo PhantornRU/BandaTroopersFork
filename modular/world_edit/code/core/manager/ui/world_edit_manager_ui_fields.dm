@@ -149,7 +149,7 @@
 	if(!islist(target_field))
 		target_field = find_shape_ui_field_by_id(param_id, null, source_params)
 	if(!islist(target_field))
-		return "Parameter '[param_id]' is unavailable in the placement-shape catalog."
+		return "Параметр '[param_id]' недоступен в каталоге форм размещения."
 
 	var/list/new_params = islist(source_params) ? source_params.Copy() : list()
 	var/canonical_param_id = normalize_ui_field_id(target_field["id"])
@@ -160,7 +160,7 @@
 		if("number")
 			var/number_value = text2num("[value]")
 			if(!isnum(number_value))
-				return "Parameter '[target_field["label"] || param_id]' requires a numeric value."
+				return "Параметр '[target_field["label"] || param_id]' требует числовое значение."
 			var/min_value = text2num("[target_field["min"]]")
 			var/max_value = text2num("[target_field["max"]]")
 			if(isnum(min_value))

@@ -86,11 +86,11 @@
 		var/list/entry = list("value" = "[mode]")
 		switch("[mode]")
 			if("single")
-				entry["label"] = "Single"
-				entry["description"] = "One placement and exit."
+				entry["label"] = "Один раз"
+				entry["description"] = "Одно размещение и выход из режима."
 			if("repeat")
-				entry["label"] = "Repeat"
-				entry["description"] = "Keep placement mode active after each apply."
+				entry["label"] = "Повтор"
+				entry["description"] = "Оставлять режим размещения активным после каждого применения."
 			else
 				entry["label"] = "[mode]"
 		options += list(entry)
@@ -110,10 +110,10 @@
 
 /datum/world_edit_manager/proc/build_placement_dir_options()
 	return list(
-		list("label" = "North", "value" = "north"),
-		list("label" = "East", "value" = "east"),
-		list("label" = "South", "value" = "south"),
-		list("label" = "West", "value" = "west"),
+		list("label" = "Север", "value" = "north"),
+		list("label" = "Восток", "value" = "east"),
+		list("label" = "Юг", "value" = "south"),
+		list("label" = "Запад", "value" = "west"),
 	)
 
 /datum/world_edit_manager/proc/placement_mode_uses_anchor_pair(mode = null)
@@ -129,7 +129,7 @@
 /datum/world_edit_manager/proc/get_placement_interaction_label(shape_id = null)
 	shape_id = shape_id || get_effective_placement_shape()
 	if(!length(shape_id))
-		return "Single Click"
+		return "Один клик"
 	return GLOB.world_edit_shape_catalog.get_shape_interaction_label(shape_id)
 
 /datum/world_edit_manager/proc/get_placement_session() as /datum/world_edit_placement_session
@@ -401,12 +401,13 @@
 	var/point_count = get_placement_collector_point_count()
 	var/origin_desc = get_placement_collector_origin_text()
 	if(!length(origin_desc))
-		origin_desc = "none"
-	return "Collector [shape_label]: points=[point_count]/[max_points], min=[min_points], origin=[origin_desc]"
+		origin_desc = "не задано"
+	return "Сборщик [shape_label]: точек=[point_count]/[max_points], минимум=[min_points], начало=[origin_desc]"
 
 /datum/world_edit_manager/proc/clear_placement_shape_preview_state(preserve_lock = FALSE, turf/preserved_hover_turf = null)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/should_bump_context = istype(session.preview_candidate) || session.preview_locked || istype(session.confirm_arm_turf) || istype(session.hover_turf) || length(placement_preview_shape_result) || length("[placement_preview_render_token]") || length(placement_preview_anchor_turfs) || length(placement_preview_vertex_turfs) || length(placement_preview_edge_turfs) || length(placement_preview_closure_turfs) || length(placement_preview_final_turfs) || length(placement_preview_guide_turfs) || length(placement_preview_generator_effect_turfs)
+	clear_last_resolved_placement_candidate_cache()
 	session.preview_candidate = null
 	session.preview_locked = preserve_lock ? TRUE : FALSE
 	session.confirm_arm_turf = null

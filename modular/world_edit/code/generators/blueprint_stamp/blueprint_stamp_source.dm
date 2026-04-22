@@ -12,7 +12,7 @@
 /datum/world_edit_generator/blueprint_stamp/validate_params(mob/user, list/params)
 	var/blueprint_id = sanitize_filename("[params["blueprint_id"]]")
 	if(!length(blueprint_id))
-		return "Сначала загрузите blueprint из server-side библиотеки."
+		return "Сначала загрузите шаблон из серверной библиотеки."
 
 	var/list/load_result = manager?.load_blueprint_definition_by_id(blueprint_id)
 	if(load_result["error"])
@@ -23,8 +23,8 @@
 /datum/world_edit_generator/blueprint_stamp/proc/load_active_blueprint(list/params)
 	var/blueprint_id = sanitize_filename("[params["blueprint_id"]]")
 	if(!length(blueprint_id))
-		return list("error" = "Сначала загрузите blueprint из server-side библиотеки.")
-	return manager?.load_blueprint_definition_by_id(blueprint_id) || list("error" = "Blueprint payload is unavailable.")
+		return list("error" = "Сначала загрузите шаблон из серверной библиотеки.")
+	return manager?.load_blueprint_definition_by_id(blueprint_id) || list("error" = "Данные шаблона недоступны.")
 
 /datum/world_edit_generator/blueprint_stamp/proc/get_blueprint_footprint_dimensions(list/blueprint)
 	var/list/bounds = islist(blueprint) ? blueprint["bounds"] : null

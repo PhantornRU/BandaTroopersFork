@@ -11,39 +11,39 @@
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path, dir_value = SOUTH)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!world_edit_is_open_construction_turf_for_blueprint(target_turf))
-		return "Blueprint target must be an open construction turf."
+		return "Цель шаблона должна находиться на открытом строительном тайле."
 
 	if(ispath(obj_path, /obj/structure/barricade))
 		if(GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, TRUE))
-			return "Blueprint target turf is blocked for a barricade."
+			return "Целевой тайл шаблона заблокирован для баррикады."
 		if(GLOB.world_edit_helpers.has_barricade_in_dir(target_turf, dir_value))
-			return "Blueprint target turf already contains a barricade on that side."
+			return "Целевой тайл шаблона уже содержит баррикаду с этой стороны."
 		return null
 
 	if(ispath(obj_path, /obj/structure/machinery/defenses))
 		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
-			return "Blueprint target turf is blocked for a defense structure."
+			return "Целевой тайл шаблона заблокирован для оборонительной конструкции."
 		for(var/obj/structure/machinery/defenses/existing_defense in target_turf)
-			return "Blueprint target turf already contains a defense structure."
+			return "Целевой тайл шаблона уже содержит оборонительную конструкцию."
 		return null
 
 	if(islist(rule) && "[rule["category"]]" == "mine")
 		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
-			return "Blueprint target turf is blocked for a mine."
+			return "Целевой тайл шаблона заблокирован для мины."
 		for(var/obj/item/existing_item as anything in target_turf)
 			if(istype(existing_item, /obj/item/explosive/mine) || istype(existing_item, /obj/item/device/assembly/prox_sensor/active))
-				return "Blueprint target turf already contains a mine."
+				return "Целевой тайл шаблона уже содержит мину."
 		return null
 
 	if(islist(rule) && "[rule["category"]]" == "support_prop")
 		if(world_edit_has_dense_blocker_for_blueprint(target_turf))
-			return "Blueprint target turf is blocked for a support prop."
+			return "Целевой тайл шаблона заблокирован для вспомогательного объекта."
 		for(var/obj/existing_object as anything in target_turf)
 			if(!istype(existing_object, /obj/structure/barricade))
-				return "Blueprint target turf already contains a non-barricade structure."
+				return "Целевой тайл шаблона уже содержит структуру, отличную от баррикады."
 		return null
 
-	return "Blueprint contains an unsupported placement type."
+	return "Шаблон содержит неподдерживаемый тип размещения."
 
 /datum/world_edit_blueprint_service/proc/world_edit_spawn_blueprint_entry(list/placement)
 	var/obj_path = placement["obj_path"]

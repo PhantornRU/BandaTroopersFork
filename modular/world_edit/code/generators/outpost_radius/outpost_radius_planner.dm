@@ -1582,40 +1582,40 @@
 	var/list/config = list()
 	for(var/legacy_param in list("family", "guard_mode", "sentry_profile", "sentry_path", "barricade_path", "barricade_concentration_percent"))
 		if(!isnull(params[legacy_param]) && length("[params[legacy_param]]") && "[params[legacy_param]]" != "null")
-			config["error"] = "Legacy outpost parameter '[legacy_param]' is no longer supported."
+			config["error"] = "Устаревший параметр форпоста '[legacy_param]' больше не поддерживается."
 			return config
 	if(GLOB.world_edit_helpers.parse_bool(params["place_sentries"]))
-		config["error"] = "Legacy outpost parameter 'place_sentries' is no longer supported."
+		config["error"] = "Устаревший параметр форпоста 'place_sentries' больше не поддерживается."
 		return config
 
 	var/defense_profile_id = resolve_outpost_defense_profile_id(params["defense_profile"])
 	if(!defense_profile_id)
-		config["error"] = "Invalid tactical outpost profile."
+		config["error"] = "Некорректный тактический профиль форпоста."
 		return config
 
 	var/list/defense_profile = get_outpost_defense_profile(defense_profile_id)
 	if(!islist(defense_profile))
-		config["error"] = "Invalid tactical outpost profile."
+		config["error"] = "Некорректный тактический профиль форпоста."
 		return config
 
 	var/layout_id = resolve_outpost_layout_id(params["layout_variant"])
 	if(!layout_id)
-		config["error"] = "Invalid outpost layout variant."
+		config["error"] = "Некорректная схема форпоста."
 		return config
 
 	var/list/layout_profile = get_outpost_layout_profile(layout_id)
 	if(!islist(layout_profile))
-		config["error"] = "Invalid outpost layout variant."
+		config["error"] = "Некорректная схема форпоста."
 		return config
 
 	var/opening_width = resolve_opening_width(params["opening_width"], layout_profile)
 	if(isnull(opening_width))
-		config["error"] = "Invalid outpost opening width."
+		config["error"] = "Некорректная ширина проходов форпоста."
 		return config
 
 	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"])
 	if(isnull(barricade_pattern))
-		config["error"] = "Invalid perimeter material pattern."
+		config["error"] = "Некорректный шаблон материалов периметра."
 		return config
 
 	var/placement_dir = get_outpost_effective_placement_dir(placement_context)
@@ -1627,7 +1627,7 @@
 
 	var/radius = text2num("[params["radius"]]") || 4
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
-		config["error"] = "Outpost radius must stay within the supported range."
+		config["error"] = "Радиус форпоста должен оставаться в поддерживаемом диапазоне."
 		return config
 	opening_width = clamp(round(opening_width), 0, (radius * 2) + 1)
 	effective_layout_profile["opening_width"] = opening_width
@@ -1637,7 +1637,7 @@
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
 	var/primary_material_path = resolve_whitelisted_type(params["primary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
 	if(!primary_material_path)
-		config["error"] = "Invalid primary perimeter material."
+		config["error"] = "Некорректный основной материал периметра."
 		return config
 
 	var/secondary_material_path = resolve_whitelisted_type(params["secondary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, primary_material_path)
@@ -1649,11 +1649,11 @@
 
 	var/primary_door_path = resolve_outpost_door_selection(params["primary_door_path"])
 	if(isnull(primary_door_path))
-		config["error"] = "Invalid primary door material."
+		config["error"] = "Некорректный материал основной двери."
 		return config
 	var/secondary_door_path = resolve_outpost_door_selection(params["secondary_door_path"])
 	if(isnull(secondary_door_path))
-		config["error"] = "Invalid secondary door material."
+		config["error"] = "Некорректный материал вспомогательной двери."
 		return config
 	if(barricade_pattern == "uniform")
 		secondary_door_path = primary_door_path

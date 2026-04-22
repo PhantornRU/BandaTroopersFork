@@ -1,16 +1,16 @@
 /datum/world_edit_blueprint_service/proc/world_edit_build_plan_from_blueprint(list/blueprint, turf/anchor_turf, placement_dir = NORTH)
 	var/datum/world_edit_plan/plan = new
 	if(!anchor_turf)
-		plan.metadata["error"] = "Unable to resolve the blueprint anchor turf."
+		plan.metadata["error"] = "Не удалось определить опорный тайл шаблона."
 		return plan
 
 	if(!islist(blueprint))
-		plan.metadata["error"] = "Blueprint payload is missing."
+		plan.metadata["error"] = "Отсутствуют данные шаблона."
 		return plan
 
 	var/list/entries = blueprint["entries"]
 	if(!islist(entries) || !length(entries))
-		plan.metadata["error"] = "Blueprint contains no entries."
+		plan.metadata["error"] = "Шаблон не содержит записей."
 		return plan
 
 	var/list/affected_lookup = list()
@@ -22,13 +22,13 @@
 		var/list/rotated_offset = world_edit_rotate_blueprint_offset(text2num("[entry["dx"]]"), text2num("[entry["dy"]]"), placement_dir)
 		var/turf/target_turf = locate(anchor_turf.x + rotated_offset["dx"], anchor_turf.y + rotated_offset["dy"], anchor_turf.z)
 		if(!istype(target_turf))
-			plan.metadata["error"] = "Blueprint points outside the current z-level bounds."
+			plan.metadata["error"] = "Шаблон выходит за пределы текущего z-уровня."
 			return plan
 
 		var/dir_value = world_edit_rotate_blueprint_dir(text2num("[entry["dir"]]"), placement_dir)
 		var/placement_key = world_edit_build_blueprint_target_slot_key(target_turf, obj_path, dir_value)
 		if(!length(placement_key))
-			plan.metadata["error"] = "Blueprint contains an invalid directional placement slot."
+			plan.metadata["error"] = "Шаблон содержит недопустимый слот направленного размещения."
 			return plan
 		if(placement_lookup[placement_key])
 			duplicate_entry_count++
@@ -36,7 +36,7 @@
 
 		var/error_text = world_edit_validate_blueprint_target_turf(target_turf, obj_path, dir_value)
 		if(error_text)
-			if(error_text == "Blueprint contains an unsupported placement type.")
+			if(error_text == "Шаблон содержит неподдерживаемый тип размещения.")
 				plan.metadata["error"] = error_text
 				return plan
 			if(isnull(plan.metadata["first_blocked_turf"]))

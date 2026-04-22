@@ -2,9 +2,6 @@ GLOBAL_DATUM_INIT(world_edit_shape_preview, /datum/world_edit_shape_preview_serv
 
 /datum/world_edit_shape_preview_service
 
-/datum/world_edit_shape_preview_service/proc/copy_preview_layer_turfs(list/raw_turfs)
-	return islist(raw_turfs) ? raw_turfs.Copy() : list()
-
 /datum/world_edit_shape_preview_service/proc/build_shape_preview(datum/world_edit_shape_contract/shape_contract, preview_render_token = null)
 	var/datum/world_edit_preview_model/preview_model = new
 	if(!istype(shape_contract))

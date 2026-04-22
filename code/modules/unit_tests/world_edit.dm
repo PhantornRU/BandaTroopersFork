@@ -1049,7 +1049,7 @@
 		),
 	))
 
-	TEST_ASSERT_EQUAL(validation_result["error"], "Blueprint contains multiple placements for the same relative slot.", "Blueprint validation should reject duplicate relative slot definitions.")
+	TEST_ASSERT_EQUAL(validation_result["error"], "В шаблоне несколько размещений для одного и того же относительного слота.", "Blueprint validation should reject duplicate relative slot definitions.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_barricade_vars/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
@@ -1081,7 +1081,7 @@
 		),
 	))
 
-	TEST_ASSERT_EQUAL(validation_result["error"], "Vars are not allowed for '/obj/structure/barricade/metal'.", "Blueprint validation should reject vars for non-sentry types.")
+	TEST_ASSERT_EQUAL(validation_result["error"], "Для '/obj/structure/barricade/metal' vars не поддерживаются.", "Blueprint validation should reject vars for non-sentry types.")
 
 /datum/unit_test/world_edit_live_contract/ready_generators_expose_inline_fields/Run()
 	var/list/expected_ready_ids = list(
@@ -1440,22 +1440,28 @@
 	TEST_ASSERT(islist(data["ui_fields"]), "World Edit UI payload builder should expose normalized inline ui_fields.")
 	TEST_ASSERT(length(data["ui_fields"]), "World Edit UI payload builder should include at least one inline ui_field for a live generator.")
 	TEST_ASSERT("placement_supported" in data, "World Edit UI payload builder should include placement contract keys.")
-	TEST_ASSERT("current_generator_description" in data, "World Edit UI payload builder should expose generator description keys.")
-	TEST_ASSERT("current_generator_execution_mode" in data, "World Edit UI payload builder should expose execution mode keys.")
-	TEST_ASSERT("current_generator_required_rights" in data, "World Edit UI payload builder should expose rights summary keys.")
-	TEST_ASSERT("runtime_status" in data, "World Edit UI payload builder should expose runtime status keys.")
-	TEST_ASSERT("current_params_text" in data, "World Edit UI payload builder should expose params summary keys.")
 	TEST_ASSERT("requires_preview_before_apply" in data, "World Edit UI payload builder should expose preview requirement keys.")
 	TEST_ASSERT("placement_interaction_label" in data, "World Edit UI payload builder should expose placement interaction summary keys.")
-	TEST_ASSERT("placement_collector_summary" in data, "World Edit UI payload builder should expose collector summary keys.")
 	TEST_ASSERT("placement_anchor" in data, "World Edit UI payload builder should expose placement anchor keys.")
-	TEST_ASSERT("placement_hover" in data, "World Edit UI payload builder should expose placement hover keys.")
-	TEST_ASSERT("placement_preview_effect_tiles" in data, "World Edit UI payload builder should expose preview effect tile counts.")
 	TEST_ASSERT("preset_entries" in data, "World Edit UI payload builder should include preset contract keys.")
 	TEST_ASSERT("blueprint_entries" in data, "World Edit UI payload builder should include blueprint contract keys.")
 	TEST_ASSERT("history_entries" in data, "World Edit UI payload builder should include history contract keys.")
 	TEST_ASSERT("can_run_preview" in data, "World Edit UI payload builder should include actionability contract keys.")
-	TEST_ASSERT("can_refresh_ui" in data, "World Edit UI payload builder should expose refresh availability keys.")
+	TEST_ASSERT(!("current_generator_name" in data), "World Edit UI payload builder should prune legacy generator name keys.")
+	TEST_ASSERT(!("current_generator_category" in data), "World Edit UI payload builder should prune legacy generator category keys.")
+	TEST_ASSERT(!("current_generator_description" in data), "World Edit UI payload builder should prune legacy generator description keys.")
+	TEST_ASSERT(!("current_generator_execution_mode" in data), "World Edit UI payload builder should prune legacy execution mode keys.")
+	TEST_ASSERT(!("current_generator_required_rights" in data), "World Edit UI payload builder should prune legacy rights summary keys.")
+	TEST_ASSERT(!("runtime_status" in data), "World Edit UI payload builder should prune legacy runtime status keys.")
+	TEST_ASSERT(!("current_params_text" in data), "World Edit UI payload builder should prune legacy params summary keys.")
+	TEST_ASSERT(!("placement_collector_origin" in data), "World Edit UI payload builder should prune legacy collector origin keys.")
+	TEST_ASSERT(!("placement_collector_points_text" in data), "World Edit UI payload builder should prune legacy collector points text keys.")
+	TEST_ASSERT(!("placement_collector_summary" in data), "World Edit UI payload builder should prune legacy collector summary keys.")
+	TEST_ASSERT(!("placement_hover" in data), "World Edit UI payload builder should prune legacy hover keys.")
+	TEST_ASSERT(!("placement_preview_shape_tiles" in data), "World Edit UI payload builder should prune legacy preview shape tile counts.")
+	TEST_ASSERT(!("placement_preview_effect_tiles" in data), "World Edit UI payload builder should prune legacy preview effect counts.")
+	TEST_ASSERT(!("last_undo_action" in data), "World Edit UI payload builder should prune legacy undo action keys.")
+	TEST_ASSERT(!("can_refresh_ui" in data), "World Edit UI payload builder should prune legacy refresh availability keys.")
 
 	qdel(manager)
 

@@ -75,11 +75,11 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_export_blueprint_from_outpost_plan(datum/world_edit_plan/plan, turf/anchor_turf, blueprint_name, actor_ckey)
 	if(!istype(plan))
-		return list("error" = "No built outpost plan is available.")
+		return list("error" = "Нет готового плана форпоста для экспорта.")
 	if(!anchor_turf)
-		return list("error" = "Unable to resolve the blueprint anchor turf.")
+		return list("error" = "Не удалось определить опорный тайл шаблона.")
 	if(!length(plan.placements))
-		return list("error" = "Current outpost plan contains no placeable entries.")
+		return list("error" = "Текущий план форпоста не содержит размещаемых элементов.")
 
 	var/list/entries = list()
 	var/list/spawn_path_cache = list()
@@ -87,11 +87,11 @@
 	for(var/list/placement as anything in plan.placements)
 		var/placement_kind = "[placement["kind"]]"
 		if(!(placement_kind in list("barricade", "sentry", "wire_object", "mine", "extra_defense")))
-			return list("error" = "Current plan contains a placement kind that Blueprint Lite does not support.")
+			return list("error" = "Текущий план содержит тип размещения, который Blueprint Lite не поддерживает.")
 
 		var/turf/target_turf = placement["turf"]
 		if(!istype(target_turf) || target_turf.z != anchor_turf.z)
-			return list("error" = "Current plan contains a placement outside the allowed z-level.")
+			return list("error" = "Текущий план содержит размещение вне допустимого z-уровня.")
 
 		var/defense_path = placement["defense_path"]
 		var/obj_path = spawn_path_cache["[defense_path]"]
@@ -101,24 +101,24 @@
 
 		var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 		if(!rule)
-			return list("error" = "Current plan contains a non-whitelisted placeable type.")
+			return list("error" = "Текущий план содержит неразрешенный размещаемый тип.")
 
 		var/dir_value = text2num("[placement["dir"]]")
 		if(!(dir_value in GLOB.cardinals))
-			return list("error" = "Current plan contains a non-cardinal dir.")
+			return list("error" = "Текущий план содержит некардинальное направление.")
 
 		var/list/entry_vars = list()
 		if(placement_kind in list("sentry", "extra_defense"))
 			var/faction = "[placement["faction"]]"
 			if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
-				return list("error" = "Current plan contains an invalid defense faction.")
+				return list("error" = "Текущий план содержит недопустимую фракцию обороны.")
 			if(length(faction))
 				entry_vars["faction"] = faction
 			entry_vars["turned_on"] = GLOB.world_edit_helpers.parse_bool(placement["turned_on"]) ? TRUE : FALSE
 		else if(placement_kind == "mine")
 			var/faction = "[placement["faction"]]"
 			if(length(faction) && !(faction in GLOB.world_edit_blueprint_valid_factions))
-				return list("error" = "Current plan contains an invalid mine faction.")
+				return list("error" = "Текущий план содержит недопустимую фракцию мин.")
 			if(length(faction))
 				entry_vars["faction"] = faction
 
@@ -126,9 +126,9 @@
 		var/dy = target_turf.y - anchor_turf.y
 		var/coord_key = world_edit_build_blueprint_relative_slot_key(obj_path, dx, dy, 0, dir_value)
 		if(!length(coord_key))
-			return list("error" = "Current plan contains an invalid directional placement slot.")
+			return list("error" = "Текущий план содержит недопустимый слот направленного размещения.")
 		if(relative_coord_lookup[coord_key])
-			return list("error" = "Current plan contains multiple placements for the same relative slot.")
+			return list("error" = "Текущий план содержит несколько размещений для одного и того же относительного слота.")
 		relative_coord_lookup[coord_key] = TRUE
 
 		entries += list(list(
@@ -141,17 +141,17 @@
 		))
 
 	if(length(entries) > WORLD_EDIT_BLUEPRINT_MAX_ENTRIES)
-		return list("error" = "Current plan exceeds the Blueprint Lite entry cap.")
+		return list("error" = "Текущий план превышает лимит записей Blueprint Lite.")
 
 	var/list/bounds = world_edit_compute_blueprint_bounds(entries)
 	if(bounds["radius"] > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
-		return list("error" = "Current plan exceeds the Blueprint Lite radius cap.")
+		return list("error" = "Текущий план превышает лимит радиуса Blueprint Lite.")
 
 	var/list/outpost_recipe = world_edit_build_outpost_recipe_from_plan(plan, anchor_turf)
 
 	return list("blueprint" = list(
 		"id" = world_edit_build_blueprint_id(),
-		"name" = copytext(trim(sanitize_text("[blueprint_name]", "Outpost Blueprint")), 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1),
+		"name" = copytext(trim(sanitize_text("[blueprint_name]", "Форпостный шаблон")), 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1),
 		"created_at" = time_stamp(),
 		"created_by" = ckey("[actor_ckey]"),
 		"source" = "outpost_radius_plan",

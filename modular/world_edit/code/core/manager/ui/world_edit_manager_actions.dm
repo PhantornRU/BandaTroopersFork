@@ -10,10 +10,6 @@
 			to_chat(user, SPAN_NOTICE("Текущий генератор сброшен."))
 			return TRUE
 
-		if("refresh_ui")
-			refresh_current_generator_ui(user)
-			return TRUE
-
 		if("set_param")
 			return handle_set_param_action(user, params)
 

@@ -111,16 +111,9 @@ export type BackendData = {
   categories: GeneratorCategory[];
   has_generator: boolean;
   current_generator_id?: string;
-  current_generator_name?: string;
-  current_generator_category?: string;
-  current_generator_description?: string;
-  current_generator_execution_mode?: string;
-  current_generator_required_rights?: string;
   current_generator_supports_preview: boolean;
   requires_preview_before_apply: boolean;
-  current_params_text: string;
   ui_fields: UiField[];
-  runtime_status: RuntimeStatusEntry[];
   placement_supported: boolean;
   placement_active: boolean;
   placement_mode: string;
@@ -135,18 +128,12 @@ export type BackendData = {
   placement_collector_point_count: number;
   placement_collector_min_points: number;
   placement_collector_max_points: number;
-  placement_collector_origin: string;
-  placement_collector_points_text: string;
-  placement_collector_summary: string;
   can_finish_placement_collection: boolean;
   placement_supports_direction: boolean;
   placement_dir: string;
   placement_dir_uses_facing: boolean;
   placement_dir_options: PlacementOption[];
   placement_anchor?: string;
-  placement_hover?: string;
-  placement_preview_shape_tiles: number;
-  placement_preview_effect_tiles: number;
   can_start_placement_mode: boolean;
   can_manage_presets: boolean;
   preset_entries: PresetEntry[];
@@ -163,7 +150,6 @@ export type BackendData = {
   last_apply_message: string;
   last_undo_success: boolean;
   last_undo_message: string;
-  last_undo_action?: string;
   last_changeset?: ChangesetSummary;
   click_mode_active: boolean;
   can_run_preview: boolean;
@@ -171,7 +157,6 @@ export type BackendData = {
   can_stop_click_mode: boolean;
   can_undo_last_operation: boolean;
   can_cleanup_last_owned_effects: boolean;
-  can_refresh_ui: boolean;
   history_entries: HistoryEntry[];
 };
 

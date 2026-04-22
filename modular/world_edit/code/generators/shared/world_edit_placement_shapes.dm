@@ -27,69 +27,69 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 /datum/world_edit_placement_shape_service/proc/world_edit_get_placement_shape_label(shape_id)
 	switch("[shape_id]")
 		if(WORLD_EDIT_SHAPE_POINT)
-			return "Point"
+			return "Точка"
 		if(WORLD_EDIT_SHAPE_LINE)
-			return "Line"
+			return "Линия"
 		if(WORLD_EDIT_SHAPE_RECTANGLE)
-			return "Rectangle"
+			return "Прямоугольник"
 		if(WORLD_EDIT_SHAPE_FILLED_RECTANGLE)
-			return "Filled Rectangle"
+			return "Заполненный прямоугольник"
 		if(WORLD_EDIT_SHAPE_CIRCLE)
-			return "Circle"
+			return "Круг"
 		if(WORLD_EDIT_SHAPE_RING)
-			return "Ring"
+			return "Кольцо"
 		if(WORLD_EDIT_SHAPE_ELLIPSE)
-			return "Ellipse"
+			return "Эллипс"
 		if(WORLD_EDIT_SHAPE_DIAMOND)
-			return "Diamond"
+			return "Ромб"
 		if(WORLD_EDIT_SHAPE_TRIANGLE)
-			return "Triangle"
+			return "Треугольник"
 		if(WORLD_EDIT_SHAPE_SECTOR)
-			return "Arc / Sector"
+			return "Дуга / сектор"
 		if(WORLD_EDIT_SHAPE_POLYGON)
-			return "Polygon"
+			return "Полигон"
 		if(WORLD_EDIT_SHAPE_POLYLINE)
-			return "Open Polyline"
+			return "Открытая полилиния"
 		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
-			return "Exact Point Mask"
+			return "Точная маска точек"
 		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
-			return "Brush Path"
+			return "Кистевой путь"
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			return "Scatter Cluster"
+			return "Кластер разброса"
 	return "[shape_id]"
 
 /datum/world_edit_placement_shape_service/proc/world_edit_get_placement_shape_description(shape_id)
 	switch("[shape_id]")
 		if(WORLD_EDIT_SHAPE_POINT)
-			return "Single anchor at the selected turf."
+			return "Одна опора на выбранном тайле."
 		if(WORLD_EDIT_SHAPE_LINE)
-			return "Line of anchors. Click placement uses two points; ordinary preview uses length and spacing."
+			return "Линия опор. При размещении кликами использует две точки; обычный предпросмотр использует длину и шаг."
 		if(WORLD_EDIT_SHAPE_RECTANGLE)
-			return "Closed rectangle border. Click placement uses two corners; ordinary preview uses width and height."
+			return "Замкнутая граница прямоугольника. При размещении кликами использует два угла; обычный предпросмотр использует ширину и высоту."
 		if(WORLD_EDIT_SHAPE_FILLED_RECTANGLE)
-			return "Closed filled rectangle. Click placement uses two corners; ordinary preview uses width and height."
+			return "Замкнутый заполненный прямоугольник. При размещении кликами использует два угла; обычный предпросмотр использует ширину и высоту."
 		if(WORLD_EDIT_SHAPE_CIRCLE)
-			return "Filled circular footprint around the anchor turf."
+			return "Заполненный круговой отпечаток вокруг опорного тайла."
 		if(WORLD_EDIT_SHAPE_RING)
-			return "Circular ring around the anchor turf."
+			return "Круговое кольцо вокруг опорного тайла."
 		if(WORLD_EDIT_SHAPE_ELLIPSE)
-			return "Filled ellipse footprint. Click placement can derive radii from the anchor pair."
+			return "Заполненный эллиптический отпечаток. При размещении кликами может выводить радиусы из пары опор."
 		if(WORLD_EDIT_SHAPE_DIAMOND)
-			return "Diamond footprint using Manhattan distance."
+			return "Ромбовидный отпечаток по манхэттенскому расстоянию."
 		if(WORLD_EDIT_SHAPE_TRIANGLE)
-			return "Directional wedge / triangle footprint."
+			return "Направленный клин / треугольный отпечаток."
 		if(WORLD_EDIT_SHAPE_SECTOR)
-			return "Directional sector footprint with configurable angle and thickness."
+			return "Направленный сектор с настраиваемым углом и толщиной."
 		if(WORLD_EDIT_SHAPE_POLYGON)
-			return "Closed irregular contour from an interactive point collector."
+			return "Замкнутый произвольный контур из интерактивного сборщика точек."
 		if(WORLD_EDIT_SHAPE_POLYLINE)
-			return "Open freeform path from an interactive point collector."
+			return "Открытый произвольный путь из интерактивного сборщика точек."
 		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
-			return "Exact collected point mask without edges or closure."
+			return "Точная маска собранных точек без рёбер и замыкания."
 		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
-			return "Brush-stamped path from an interactive point collector."
+			return "Путь с отпечатками кисти из интерактивного сборщика точек."
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			return "Deterministic scatter cluster around the anchor."
+			return "Детерминированный кластер разброса вокруг опоры."
 	return ""
 
 /datum/world_edit_placement_shape_service/proc/world_edit_shape_uses_anchor_pair(shape_id)
@@ -129,12 +129,12 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 /datum/world_edit_placement_shape_service/proc/world_edit_get_shape_interaction_label(shape_id)
 	switch(world_edit_get_shape_interaction_kind(shape_id))
 		if("anchor_pair")
-			return "Anchor Pair"
+			return "Пара опор"
 		if("collector")
-			return "Multi-Point Collector"
+			return "Сборщик точек"
 		if("param_only")
-			return "Param-Driven"
-	return "Single Click"
+			return "Параметрическая"
+	return "Один клик"
 
 /datum/world_edit_placement_shape_service/proc/world_edit_get_shape_preview_kind(shape_id)
 	switch("[shape_id]")
@@ -228,9 +228,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_line_length",
-					"label" = "Length",
+					"label" = "Длина",
 					"kind" = "number",
-					"description" = "Fallback line length for ordinary preview/apply.",
+					"description" = "Резервная длина линии для обычного предпросмотра и применения.",
 					"value" = world_edit_shape_num_param(current_params, "shape_line_length", 5, 1, WORLD_EDIT_PLACEMENT_MAX_ANCHORS),
 					"min" = 1,
 					"max" = WORLD_EDIT_PLACEMENT_MAX_ANCHORS,
@@ -238,9 +238,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				),
 				list(
 					"id" = "shape_line_spacing",
-					"label" = "Spacing",
+					"label" = "Шаг",
 					"kind" = "number",
-					"description" = "Anchor spacing along the resolved line.",
+					"description" = "Шаг опор вдоль рассчитанной линии.",
 					"value" = world_edit_shape_num_param(current_params, "shape_line_spacing", 1, 1, 8),
 					"min" = 1,
 					"max" = 8,
@@ -251,9 +251,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_rect_width",
-					"label" = "Width",
+					"label" = "Ширина",
 					"kind" = "number",
-					"description" = "Fallback width for ordinary preview/apply.",
+					"description" = "Резервная ширина для обычного предпросмотра и применения.",
 					"value" = world_edit_shape_num_param(current_params, "shape_rect_width", 5, 1, WORLD_EDIT_PLACEMENT_MAX_ANCHORS),
 					"min" = 1,
 					"max" = WORLD_EDIT_PLACEMENT_MAX_ANCHORS,
@@ -261,9 +261,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				),
 				list(
 					"id" = "shape_rect_height",
-					"label" = "Height",
+					"label" = "Высота",
 					"kind" = "number",
-					"description" = "Fallback height for ordinary preview/apply.",
+					"description" = "Резервная высота для обычного предпросмотра и применения.",
 					"value" = world_edit_shape_num_param(current_params, "shape_rect_height", 5, 1, WORLD_EDIT_PLACEMENT_MAX_ANCHORS),
 					"min" = 1,
 					"max" = WORLD_EDIT_PLACEMENT_MAX_ANCHORS,
@@ -274,9 +274,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_radius",
-					"label" = "Radius",
+					"label" = "Радиус",
 					"kind" = "number",
-					"description" = "Shape radius around the anchor turf. 0 is allowed for degenerate previews.",
+					"description" = "Радиус формы вокруг опорного тайла. Для вырожденных предпросмотров допускается 0.",
 					"value" = world_edit_shape_num_param(current_params, "shape_radius", 3, 0, 12),
 					"min" = 0,
 					"max" = 12,
@@ -286,9 +286,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			if("[shape_id]" == WORLD_EDIT_SHAPE_RING || "[shape_id]" == WORLD_EDIT_SHAPE_SECTOR)
 				fields += list(list(
 					"id" = "shape_thickness",
-					"label" = "Thickness",
+					"label" = "Толщина",
 					"kind" = "number",
-					"description" = "Ring / arc thickness in tiles. 0 keeps a thin outline for rings and a filled wedge for sectors.",
+					"description" = "Толщина кольца / дуги в тайлах. 0 оставляет тонкий контур для колец и заполненный клин для секторов.",
 					"value" = world_edit_shape_num_param(current_params, "shape_thickness", 1, 0, 12),
 					"min" = 0,
 					"max" = 12,
@@ -297,9 +297,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			if("[shape_id]" == WORLD_EDIT_SHAPE_SECTOR)
 				fields += list(list(
 					"id" = "shape_sector_angle",
-					"label" = "Angle",
+					"label" = "Угол",
 					"kind" = "number",
-					"description" = "Sector angle in degrees.",
+					"description" = "Угол сектора в градусах.",
 					"value" = world_edit_shape_num_param(current_params, "shape_sector_angle", 90, 1, 360),
 					"min" = 1,
 					"max" = 360,
@@ -309,9 +309,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_radius_x",
-					"label" = "Radius X",
+					"label" = "Радиус X",
 					"kind" = "number",
-					"description" = "Horizontal ellipse radius. 0 collapses the footprint to a vertical line / point.",
+					"description" = "Горизонтальный радиус эллипса. 0 сворачивает отпечаток в вертикальную линию / точку.",
 					"value" = world_edit_shape_num_param(current_params, "shape_radius_x", 4, 0, 12),
 					"min" = 0,
 					"max" = 12,
@@ -319,9 +319,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				),
 				list(
 					"id" = "shape_radius_y",
-					"label" = "Radius Y",
+					"label" = "Радиус Y",
 					"kind" = "number",
-					"description" = "Vertical ellipse radius. 0 collapses the footprint to a horizontal line / point.",
+					"description" = "Вертикальный радиус эллипса. 0 сворачивает отпечаток в горизонтальную линию / точку.",
 					"value" = world_edit_shape_num_param(current_params, "shape_radius_y", 2, 0, 12),
 					"min" = 0,
 					"max" = 12,
@@ -331,9 +331,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		if(WORLD_EDIT_SHAPE_TRIANGLE)
 			fields += list(list(
 				"id" = "shape_triangle_size",
-				"label" = "Size",
+				"label" = "Размер",
 				"kind" = "number",
-				"description" = "Triangle depth in tiles. 0 collapses to a point.",
+				"description" = "Глубина треугольника в тайлах. 0 сворачивает форму в точку.",
 				"value" = world_edit_shape_num_param(current_params, "shape_triangle_size", 4, 0, 12),
 				"min" = 0,
 				"max" = 12,
@@ -343,35 +343,35 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_points_text",
-					"label" = "Points",
+					"label" = "Точки",
 					"kind" = "text",
-					"description" = "Closed contour points: x,y; x,y; x,y",
+					"description" = "Точки замкнутого контура: x,y; x,y; x,y",
 					"placeholder" = "0,0; 4,0; 3,2; 0,3",
 					"value" = length(points_text) ? points_text : "0,0; 4,0; 3,2; 0,3",
 				),
 				list(
 					"id" = "shape_polygon_filled",
-					"label" = "Filled",
+					"label" = "Заполнение",
 					"kind" = "boolean",
-					"description" = "Fill the polygon interior.",
+					"description" = "Заполнять внутреннюю область полигона.",
 					"value" = polygon_filled,
 				),
 			)
 		if(WORLD_EDIT_SHAPE_POLYLINE)
 			fields += list(list(
 				"id" = "shape_points_text",
-				"label" = "Points",
+				"label" = "Точки",
 				"kind" = "text",
-				"description" = "Open path points: x,y; x,y; x,y",
+				"description" = "Точки открытого пути: x,y; x,y; x,y",
 				"placeholder" = "0,0; 2,1; 4,1; 5,3",
 				"value" = length(points_text) ? points_text : "0,0; 2,1; 4,1; 5,3",
 			))
 		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
 			fields += list(list(
 				"id" = "shape_points_text",
-				"label" = "Points",
+				"label" = "Точки",
 				"kind" = "text",
-				"description" = "Exact point mask: x,y; x,y; x,y",
+				"description" = "Точная маска точек: x,y; x,y; x,y",
 				"placeholder" = "0,0; 1,0; 1,1; 2,1",
 				"value" = length(points_text) ? points_text : "0,0; 1,0; 1,1; 2,1",
 			))
@@ -379,17 +379,17 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_points_text",
-					"label" = "Points",
+					"label" = "Точки",
 					"kind" = "text",
-					"description" = "Open brush path points: x,y; x,y; x,y",
+					"description" = "Точки открытого кистевого пути: x,y; x,y; x,y",
 					"placeholder" = "0,0; 2,1; 4,2; 6,2",
 					"value" = length(points_text) ? points_text : "0,0; 2,1; 4,2; 6,2",
 				),
 				list(
 					"id" = "shape_brush_radius",
-					"label" = "Brush Radius",
+					"label" = "Радиус кисти",
 					"kind" = "number",
-					"description" = "Brush radius stamped along the path. 0 resolves to a path-only footprint.",
+					"description" = "Радиус кисти, отпечатываемый вдоль пути. 0 оставляет только контур пути.",
 					"value" = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, 6),
 					"min" = 0,
 					"max" = 6,
@@ -400,9 +400,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			fields += list(
 				list(
 					"id" = "shape_scatter_radius",
-					"label" = "Radius",
+					"label" = "Радиус",
 					"kind" = "number",
-					"description" = "Scatter radius around the anchor turf. 0 keeps the cluster on the anchor.",
+					"description" = "Радиус разброса вокруг опорного тайла. 0 оставляет кластер на опоре.",
 					"value" = world_edit_shape_num_param(current_params, "shape_scatter_radius", 4, 0, 12),
 					"min" = 0,
 					"max" = 12,
@@ -410,9 +410,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				),
 				list(
 					"id" = "shape_scatter_count",
-					"label" = "Count",
+					"label" = "Количество",
 					"kind" = "number",
-					"description" = "Number of anchors to pick.",
+					"description" = "Количество выбираемых опор.",
 					"value" = world_edit_shape_num_param(current_params, "shape_scatter_count", 8, 1, WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS),
 					"min" = 1,
 					"max" = WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS,
@@ -420,9 +420,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				),
 				list(
 					"id" = "shape_scatter_seed",
-					"label" = "Seed",
+					"label" = "Сид",
 					"kind" = "number",
-					"description" = "Optional deterministic seed. 0 derives a stable seed from the anchor.",
+					"description" = "Необязательный детерминированный сид. 0 выводит стабильный сид из опоры.",
 					"value" = world_edit_shape_num_param(current_params, "shape_scatter_seed", 0, 0, 999999),
 					"min" = 0,
 					"max" = 999999,
@@ -1132,7 +1132,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 /datum/world_edit_placement_shape_service/proc/world_edit_build_shape_turfs(shape_id, turf/start_turf, turf/end_turf, list/current_params, direction = NORTH)
 	var/list/result = world_edit_build_shape_result(shape_id)
 	if(!istype(start_turf))
-		result["error"] = "Unable to resolve the shape anchor turf."
+		result["error"] = "Не удалось определить опорный тайл формы."
 		return result
 
 	var/has_pair_end = istype(end_turf) && end_turf.z == start_turf.z
@@ -1291,7 +1291,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			var/polygon_filled = current_params ? GLOB.world_edit_helpers.parse_bool(current_params["shape_polygon_filled"]) : FALSE
 			vertex_turfs = world_edit_points_to_turfs(start_turf, polygon_points)
 			if(!length(polygon_points))
-				result["error"] = "Polygon shape requires at least one valid relative point."
+				result["error"] = "Для формы-полигона нужна хотя бы одна корректная относительная точка."
 				return result
 			if(length(polygon_points) == 1)
 				final_turfs = world_edit_points_to_turfs(start_turf, polygon_points)
@@ -1324,7 +1324,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			var/list/polyline_points = world_edit_dedupe_consecutive_points(world_edit_parse_shape_points(current_params ? current_params["shape_points_text"] : null))
 			vertex_turfs = world_edit_points_to_turfs(start_turf, polyline_points)
 			if(!length(polyline_points))
-				result["error"] = "Polyline shape requires at least one valid relative point."
+				result["error"] = "Для полилинии нужна хотя бы одна корректная относительная точка."
 				return result
 			if(length(polyline_points) == 1)
 				final_turfs = world_edit_points_to_turfs(start_turf, polyline_points)
@@ -1338,7 +1338,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
 			var/list/mask_points = world_edit_dedupe_points_preserve_order(world_edit_parse_shape_points(current_params ? current_params["shape_points_text"] : null))
 			if(!length(mask_points))
-				result["error"] = "Custom mask requires at least one valid relative point."
+				result["error"] = "Для пользовательской маски нужна хотя бы одна корректная относительная точка."
 				return result
 			final_turfs = world_edit_points_to_turfs(start_turf, mask_points)
 			vertex_turfs = final_turfs.Copy()
@@ -1352,7 +1352,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			var/brush_radius = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, 6)
 			vertex_turfs = world_edit_points_to_turfs(start_turf, brush_points)
 			if(!length(brush_points))
-				result["error"] = "Brush path requires at least one valid relative point."
+				result["error"] = "Для кистевого пути нужна хотя бы одна корректная относительная точка."
 				return result
 			if(length(brush_points) == 1 && brush_radius <= 0)
 				final_turfs = world_edit_points_to_turfs(start_turf, brush_points)

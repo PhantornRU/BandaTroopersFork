@@ -13,7 +13,7 @@ GLOBAL_DATUM_INIT(world_edit_shape_geometry, /datum/world_edit_shape_geometry_se
 	shape_contract.interaction_kind = GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_contract.shape_id)
 	shape_contract.preview_kind = GLOB.world_edit_shape_catalog.get_shape_preview_kind(shape_contract.shape_id)
 	if(!islist(shape_result))
-		shape_contract.error = "Unable to resolve the placement shape."
+		shape_contract.error = "Не удалось определить форму размещения."
 		return shape_contract
 
 	shape_contract.raw_result = shape_result.Copy()

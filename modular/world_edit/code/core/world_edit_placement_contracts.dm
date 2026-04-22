@@ -1,6 +1,6 @@
 /datum/world_edit_shape_contract
 	var/shape_id = WORLD_EDIT_SHAPE_POINT
-	var/shape_label = "Point"
+	var/shape_label = "Точка"
 	var/interaction_kind = "single"
 	var/is_closed = FALSE
 	var/is_filled = FALSE
@@ -101,6 +101,11 @@
 	var/collector_points_revision = 0
 	var/preview_context_revision = 0
 	var/datum/world_edit_placement_candidate/preview_candidate
+	var/datum/world_edit_placement_candidate/last_resolved_candidate
+	var/last_resolved_candidate_params_signature = null
+	var/last_resolved_candidate_attempt_signature = null
+	var/turf/last_resolved_candidate_end_turf
+	var/last_resolved_candidate_hover_only = FALSE
 	var/turf/confirm_arm_turf
 	var/confirm_arm_signature = null
 	var/preview_locked = FALSE
@@ -129,7 +134,7 @@
 	if(!istype(shape_contract))
 		return list(
 			"support_class" = "unsupported",
-			"error" = "Unable to resolve the placement shape contract.",
+			"error" = "Не удалось определить контракт формы размещения.",
 			"metadata" = list(),
 		)
 
@@ -150,8 +155,8 @@
 /datum/world_edit_generator/proc/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
-		result.message = "No built placement plan is available."
+		result.message = "Готовый план размещения недоступен."
 		return result
 
-	result.message = "Placement generators must override apply_plan() for safe placement."
+	result.message = "Генераторы размещения должны переопределять apply_plan() для безопасного размещения."
 	return result

@@ -64,6 +64,12 @@
 		return null
 	return GLOB.world_edit_shape_geometry.build_shape_contract_from_result(shape_id, shape_result)
 
+/datum/world_edit_manager/proc/should_use_placement_layer_preview(datum/world_edit_plan/plan)
+	if(!supports_current_placement_ux() || !istype(plan))
+		return FALSE
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_plan_metadata(plan)
+	return istype(shape_contract, /datum/world_edit_shape_contract) ? TRUE : FALSE
+
 /datum/world_edit_manager/proc/build_placement_candidate_from_plan(datum/world_edit_plan/plan, list/effective_params = null, mob/user = null)
 	if(!supports_current_placement_ux() || !istype(plan))
 		return null
@@ -156,6 +162,73 @@
 			continue
 		signature_chunks += "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
 	return jointext(signature_chunks, ";")
+
+/datum/world_edit_manager/proc/clear_last_resolved_placement_candidate_cache()
+	var/datum/world_edit_placement_session/session = placement_session
+	if(!istype(session))
+		return FALSE
+
+	session.last_resolved_candidate = null
+	session.last_resolved_candidate_params_signature = null
+	session.last_resolved_candidate_attempt_signature = null
+	session.last_resolved_candidate_end_turf = null
+	session.last_resolved_candidate_hover_only = FALSE
+	return TRUE
+
+/datum/world_edit_manager/proc/get_last_resolved_placement_candidate(list/effective_params, datum/world_edit_shape_contract/shape_contract, turf/resolved_end_turf, hover_only = FALSE, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null, list/collector_state_summary = null)
+	var/datum/world_edit_placement_session/session = placement_session
+	if(!istype(session))
+		return null
+
+	var/datum/world_edit_placement_candidate/candidate = session.last_resolved_candidate
+	if(!istype(candidate) || !istype(resolved_end_turf))
+		return null
+	if(session.last_resolved_candidate_hover_only != (hover_only ? TRUE : FALSE))
+		return null
+
+	var/params_signature = build_preview_params_signature(effective_params, FALSE)
+	if(session.last_resolved_candidate_params_signature != params_signature)
+		return null
+
+	var/attempt_signature = build_shape_contract_attempt_signature(shape_contract)
+	if(session.last_resolved_candidate_attempt_signature != attempt_signature)
+		return null
+	if(session.last_resolved_candidate_end_turf != resolved_end_turf)
+		return null
+
+	candidate.hover_only = hover_only ? TRUE : FALSE
+	candidate.runtime_params = islist(effective_params) ? effective_params.Copy() : list()
+	candidate.shape_contract = shape_contract
+	if(islist(collector_state_summary))
+		candidate.collector_state_summary = collector_state_summary.Copy()
+	if(!islist(candidate.placement_context))
+		candidate.placement_context = list()
+	candidate.placement_context["requested_end_turf"] = requested_end_turf || resolved_end_turf
+	candidate.placement_context["resolved_end_turf"] = resolved_end_turf
+	if(istype(seed_turf))
+		candidate.placement_context["seed_turf"] = seed_turf
+	if(istype(shape_origin_turf))
+		candidate.placement_context["shape_origin_turf"] = shape_origin_turf
+	update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+	if(istype(candidate.plan))
+		stamp_placement_plan_shape_metadata(candidate.plan, shape_contract, candidate.placement_context)
+	return candidate
+
+/datum/world_edit_manager/proc/cache_last_resolved_placement_candidate(datum/world_edit_placement_candidate/candidate, datum/world_edit_shape_contract/shape_contract = null)
+	var/datum/world_edit_placement_session/session = placement_session
+	if(!istype(session) || !istype(candidate) || !candidate.is_preview_ready())
+		return FALSE
+
+	var/turf/resolved_end_turf = islist(candidate.placement_context) ? (candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"]) : null
+	if(!istype(resolved_end_turf))
+		return FALSE
+
+	session.last_resolved_candidate = candidate
+	session.last_resolved_candidate_params_signature = build_preview_params_signature(candidate.runtime_params, FALSE)
+	session.last_resolved_candidate_attempt_signature = build_shape_contract_attempt_signature(shape_contract || candidate.shape_contract)
+	session.last_resolved_candidate_end_turf = resolved_end_turf
+	session.last_resolved_candidate_hover_only = candidate.hover_only ? TRUE : FALSE
+	return TRUE
 
 /datum/world_edit_manager/proc/build_placement_preview_layer_render_token(list/turfs, icon_state, color = null, alpha = null)
 	var/turf_count = islist(turfs) ? length(turfs) : 0
@@ -296,6 +369,19 @@
 		candidate.resolve_error = "Недопустимый контур размещения."
 		return candidate
 
+	var/datum/world_edit_placement_candidate/cached_candidate = get_last_resolved_placement_candidate(
+		effective_params,
+		shape_contract,
+		end_turf,
+		hover_only,
+		requested_end_turf || end_turf,
+		seed_turf,
+		shape_origin_turf,
+		collector_state_summary,
+	)
+	if(istype(cached_candidate))
+		return cached_candidate
+
 	var/list/support_result = current_generator.evaluate_shape_contract(shape_contract, effective_params, candidate.placement_context)
 	var/datum/world_edit_plan/prebuilt_plan = null
 	if(islist(support_result))
@@ -328,6 +414,7 @@
 		candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, effective_params, candidate.placement_context, hover_only)
 		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
 		candidate.preview_model.preview_render_token = candidate.preview_render_token
+	cache_last_resolved_placement_candidate(candidate, shape_contract)
 	return candidate
 
 /datum/world_edit_manager/proc/resolve_placement_candidate(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)
@@ -741,7 +828,7 @@
 
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_apply(user, "Недостаточно прав для режима размещения World Edit.")
+		return fail_apply(user, "Недостаточно прав для режима размещения в панели редактирования мира.")
 	if(!current_generator || !current_definition)
 		return fail_apply(user, "Сначала выберите генератор.")
 	if(!supports_current_placement_ux())

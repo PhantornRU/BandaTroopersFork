@@ -53,19 +53,19 @@
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry_vars(obj_path, raw_vars)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!rule)
-		return list("error" = "Blueprint contains a non-whitelisted type.")
+		return list("error" = "Шаблон содержит неразрешенный тип.")
 
 	var/list/safe_vars = list()
 	var/category = "[rule["category"]]"
 	if(isnull(raw_vars))
 		return list("vars" = safe_vars)
 	if(!islist(raw_vars))
-		return list("error" = "Blueprint vars payload must be a list.")
+		return list("error" = "Поле vars шаблона должно быть списком.")
 	if(!length(raw_vars))
 		return list("vars" = safe_vars)
 
 	if(!(category in list("sentry", "defense", "mine")))
-		return list("error" = "Vars are not allowed for '[obj_path]'.")
+		return list("error" = "Для '[obj_path]' vars не поддерживаются.")
 
 	for(var/var_id in raw_vars)
 		var/key_text = "[var_id]"
@@ -73,14 +73,14 @@
 			if("faction")
 				var/faction = "[raw_vars[var_id]]"
 				if(!(faction in GLOB.world_edit_blueprint_valid_factions))
-					return list("error" = "Blueprint contains an invalid defense faction.")
+					return list("error" = "В шаблоне указана недопустимая фракция обороны.")
 				safe_vars[key_text] = faction
 			if("turned_on")
 				if(category == "mine")
-					return list("error" = "Mine blueprint entries do not support 'turned_on'.")
+					return list("error" = "Записи мин в шаблоне не поддерживают 'turned_on'.")
 				safe_vars[key_text] = GLOB.world_edit_helpers.parse_bool(raw_vars[var_id]) ? TRUE : FALSE
 			else
-				return list("error" = "Blueprint contains a non-whitelisted var '[key_text]'.")
+				return list("error" = "В шаблоне указан неразрешенный var '[key_text]'.")
 
 	return list("vars" = safe_vars)
 
@@ -105,29 +105,29 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry(list/raw_entry)
 	if(!islist(raw_entry))
-		return list("error" = "Blueprint entry must be a list.")
+		return list("error" = "Запись шаблона должна быть списком.")
 
 	var/type_text = "[raw_entry["type"]]"
 	var/obj_path = text2path(type_text)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!rule)
-		return list("error" = "Blueprint contains a non-whitelisted type '[type_text]'.")
+		return list("error" = "В шаблоне указан неразрешенный тип '[type_text]'.")
 
 	var/dx = world_edit_parse_strict_integer(raw_entry["dx"])
 	var/dy = world_edit_parse_strict_integer(raw_entry["dy"])
 	var/dz = world_edit_parse_strict_integer(raw_entry["dz"])
 	if(isnull(dx) || isnull(dy) || isnull(dz))
-		return list("error" = "Blueprint coordinates must be numeric.")
+		return list("error" = "Координаты шаблона должны быть числовыми.")
 	if(dz != 0)
-		return list("error" = "Phase 3A blueprints must stay on the same z-level.")
+		return list("error" = "Шаблоны Phase 3A должны оставаться на одном z-уровне.")
 	if(abs(dx) > WORLD_EDIT_BLUEPRINT_MAX_RADIUS || abs(dy) > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
-		return list("error" = "Blueprint exceeds the allowed radius cap.")
+		return list("error" = "Шаблон превышает допустимый лимит радиуса.")
 
 	var/dir_value = SOUTH
 	if("dir" in raw_entry)
 		dir_value = text2num("[raw_entry["dir"]]")
 		if(!(dir_value in GLOB.cardinals))
-			return list("error" = "Blueprint contains a non-cardinal dir.")
+			return list("error" = "В шаблоне указано некардинальное направление.")
 
 	var/list/vars_result = world_edit_validate_blueprint_entry_vars(obj_path, raw_entry["vars"])
 	if(vars_result["error"])
@@ -146,17 +146,17 @@
 	if(isnull(raw_offsets))
 		return list("footprint_offsets" = list(list(0, 0)))
 	if(!islist(raw_offsets) || !length(raw_offsets))
-		return list("error" = "Blueprint outpost_recipe footprint_offsets must contain at least one offset.")
+		return list("error" = "Blueprint outpost_recipe должен содержать хотя бы одно смещение в footprint_offsets.")
 
 	var/list/sanitized_offsets = list()
 	var/list/offset_lookup = list()
 	for(var/raw_offset as anything in raw_offsets)
 		if(!islist(raw_offset) || length(raw_offset) < 2)
-			return list("error" = "Blueprint outpost_recipe footprint_offsets entries must be (dx, dy) lists.")
+			return list("error" = "Элементы Blueprint outpost_recipe.footprint_offsets должны быть списками вида (dx, dy).")
 		var/dx = world_edit_parse_strict_integer(raw_offset[1])
 		var/dy = world_edit_parse_strict_integer(raw_offset[2])
 		if(isnull(dx) || isnull(dy))
-			return list("error" = "Blueprint outpost_recipe footprint offsets must be numeric.")
+			return list("error" = "Смещения в Blueprint outpost_recipe.footprint_offsets должны быть числовыми.")
 		var/offset_key = "[dx],[dy]"
 		if(offset_lookup[offset_key])
 			continue
@@ -171,45 +171,45 @@
 	if(isnull(raw_recipe))
 		return list("outpost_recipe" = null)
 	if(!islist(raw_recipe))
-		return list("error" = "Blueprint outpost_recipe payload must be an object.")
+		return list("error" = "Blueprint outpost_recipe должен быть объектом.")
 
 	var/defense_profile = trim(sanitize_text("[raw_recipe["defense_profile"]]", ""))
 	var/layout_variant = trim(sanitize_text("[raw_recipe["layout_variant"]]", ""))
 	if(length(trim(sanitize_text("[raw_recipe["family"]]", ""))))
-		return list("error" = "Blueprint outpost_recipe family is no longer supported. Use defense_profile.")
+		return list("error" = "Blueprint outpost_recipe.family больше не поддерживается. Используйте defense_profile.")
 	if(length(trim(sanitize_text("[raw_recipe["barricade_path"]]", ""))))
-		return list("error" = "Blueprint outpost_recipe barricade_path is no longer supported. Use primary_material_path.")
+		return list("error" = "Blueprint outpost_recipe.barricade_path больше не поддерживается. Используйте primary_material_path.")
 	if(!isnull(raw_recipe["barricade_concentration_percent"]))
-		return list("error" = "Blueprint outpost_recipe barricade_concentration_percent is no longer supported. Use primary_material_share_percent.")
+		return list("error" = "Blueprint outpost_recipe.barricade_concentration_percent больше не поддерживается. Используйте primary_material_share_percent.")
 	if(!length(defense_profile))
-		return list("error" = "Blueprint outpost_recipe must include defense_profile.")
+		return list("error" = "Blueprint outpost_recipe должен включать defense_profile.")
 	if(!length(layout_variant))
-		return list("error" = "Blueprint outpost_recipe must include layout_variant.")
+		return list("error" = "Blueprint outpost_recipe должен включать layout_variant.")
 
 	var/placement_dir = text2num("[raw_recipe["placement_dir"]]")
 	if(!(placement_dir in GLOB.cardinals))
-		return list("error" = "Blueprint outpost_recipe placement_dir must be cardinal.")
+		return list("error" = "Blueprint outpost_recipe.placement_dir должен быть кардинальным направлением.")
 
 	var/radius = world_edit_parse_strict_integer(raw_recipe["radius"])
 	if(isnull(radius) || radius < 1 || radius > 25)
-		return list("error" = "Blueprint outpost_recipe radius must be in the range 1..25.")
+		return list("error" = "Blueprint outpost_recipe.radius должен быть в диапазоне 1..25.")
 
 	var/datum/world_edit_generator/outpost_radius/outpost_generator = new
 	var/resolved_defense_profile = outpost_generator.resolve_outpost_defense_profile_id(defense_profile)
 	if(!length("[resolved_defense_profile]"))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe defense_profile is unsupported.")
+		return list("error" = "Blueprint outpost_recipe.defense_profile не поддерживается.")
 
 	var/resolved_layout_variant = outpost_generator.resolve_outpost_layout_id(layout_variant)
 	var/list/layout_profile = outpost_generator.get_outpost_layout_profile(resolved_layout_variant)
 	if(!length("[resolved_layout_variant]") || !islist(layout_profile))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe layout_variant is unsupported.")
+		return list("error" = "Blueprint outpost_recipe.layout_variant не поддерживается.")
 
 	var/opening_width = outpost_generator.resolve_opening_width(raw_recipe["opening_width"], layout_profile)
 	if(isnull(opening_width) || opening_width < 0 || opening_width > (radius * 2) + 1)
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe opening_width is invalid for the stored radius.")
+		return list("error" = "Blueprint outpost_recipe.opening_width недопустим для сохраненного радиуса.")
 
 	var/list/default_materials = list(
 		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
@@ -222,14 +222,14 @@
 	var/barricade_pattern = outpost_generator.resolve_barricade_pattern(raw_recipe["barricade_pattern"])
 	if(isnull(barricade_pattern))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe barricade_pattern is unsupported.")
+		return list("error" = "Blueprint outpost_recipe.barricade_pattern не поддерживается.")
 
 	var/primary_material_share_percent = world_edit_parse_strict_integer(raw_recipe["primary_material_share_percent"])
 	if(isnull(primary_material_share_percent))
 		primary_material_share_percent = default_materials["primary_material_share_percent"] || 100
 	if(primary_material_share_percent < 0 || primary_material_share_percent > 100)
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe primary_material_share_percent must be in the range 0..100.")
+		return list("error" = "Blueprint outpost_recipe.primary_material_share_percent должен быть в диапазоне 0..100.")
 
 	var/primary_material_path = outpost_generator.resolve_whitelisted_type(
 		raw_recipe["primary_material_path"],
@@ -239,7 +239,7 @@
 	)
 	if(!ispath(primary_material_path, /datum/human_ai_defense/barricade))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe primary_material_path must be a barricade definition path.")
+		return list("error" = "Blueprint outpost_recipe.primary_material_path должен указывать на путь определения баррикады.")
 
 	var/secondary_material_path = outpost_generator.resolve_whitelisted_type(
 		raw_recipe["secondary_material_path"],
@@ -256,12 +256,12 @@
 	var/primary_door_path = outpost_generator.resolve_outpost_door_selection(raw_recipe["primary_door_path"] || default_materials["primary_door_path"])
 	if(isnull(primary_door_path))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe primary_door_path is unsupported.")
+		return list("error" = "Blueprint outpost_recipe.primary_door_path не поддерживается.")
 
 	var/secondary_door_path = outpost_generator.resolve_outpost_door_selection(raw_recipe["secondary_door_path"] || default_materials["secondary_door_path"])
 	if(isnull(secondary_door_path))
 		qdel(outpost_generator)
-		return list("error" = "Blueprint outpost_recipe secondary_door_path is unsupported.")
+		return list("error" = "Blueprint outpost_recipe.secondary_door_path не поддерживается.")
 
 	if(barricade_pattern == "uniform")
 		secondary_material_path = primary_material_path
@@ -293,19 +293,19 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_definition(list/raw_definition)
 	if(!islist(raw_definition))
-		return list("error" = "Blueprint payload is not a JSON object.")
+		return list("error" = "Данные шаблона должны быть JSON-объектом.")
 	if("[raw_definition["schema"]]" != WORLD_EDIT_BLUEPRINT_SCHEMA)
-		return list("error" = "Blueprint schema is missing or unsupported.")
+		return list("error" = "В шаблоне отсутствует schema или она не поддерживается.")
 
 	var/version = text2num("[raw_definition["version"]]")
 	if(version != WORLD_EDIT_BLUEPRINT_VERSION)
-		return list("error" = "Blueprint version is unsupported.")
+		return list("error" = "Версия шаблона не поддерживается.")
 
 	var/blueprint_id = sanitize_filename("[raw_definition["id"]]")
 	if(!length(blueprint_id))
-		return list("error" = "Blueprint id is missing.")
+		return list("error" = "У шаблона отсутствует id.")
 	if(length(blueprint_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
-		return list("error" = "Blueprint id exceeds the Phase 3A length cap.")
+		return list("error" = "id шаблона превышает лимит длины Phase 3A.")
 
 	var/blueprint_name = trim(sanitize_text("[raw_definition["name"]]", ""))
 	if(!length(blueprint_name))
@@ -314,9 +314,9 @@
 
 	var/list/raw_entries = raw_definition["entries"]
 	if(!islist(raw_entries) || !length(raw_entries))
-		return list("error" = "Blueprint contains no entries.")
+		return list("error" = "Шаблон не содержит записей.")
 	if(length(raw_entries) > WORLD_EDIT_BLUEPRINT_MAX_ENTRIES)
-		return list("error" = "Blueprint exceeds the entry cap.")
+		return list("error" = "Шаблон превышает лимит записей.")
 
 	var/list/sanitized_entries = list()
 	var/list/relative_coord_lookup = list()
@@ -328,18 +328,18 @@
 		var/obj_path = text2path("[sanitized_entry["type"]]")
 		var/coord_key = world_edit_build_blueprint_relative_slot_key(obj_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
 		if(!length(coord_key))
-			return list("error" = "Blueprint contains an invalid directional placement slot.")
+			return list("error" = "В шаблоне указан недопустимый слот направленного размещения.")
 		if(relative_coord_lookup[coord_key])
-			return list("error" = "Blueprint contains multiple placements for the same relative slot.")
+			return list("error" = "В шаблоне несколько размещений для одного и того же относительного слота.")
 		relative_coord_lookup[coord_key] = TRUE
 		sanitized_entries += list(sanitized_entry)
 
 	var/list/computed_bounds = world_edit_compute_blueprint_bounds(sanitized_entries)
 	if(computed_bounds["radius"] > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
-		return list("error" = "Blueprint exceeds the allowed radius cap.")
+		return list("error" = "Шаблон превышает допустимый лимит радиуса.")
 
 	if(!world_edit_blueprint_bounds_match(raw_definition["bounds"], computed_bounds))
-		return list("error" = "Blueprint bounds metadata is stale or invalid.")
+		return list("error" = "Метаданные bounds шаблона устарели или некорректны.")
 
 	var/list/outpost_recipe_result = world_edit_validate_outpost_recipe(raw_definition["outpost_recipe"])
 	if(outpost_recipe_result["error"])

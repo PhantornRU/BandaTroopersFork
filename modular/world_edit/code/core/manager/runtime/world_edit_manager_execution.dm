@@ -1,6 +1,6 @@
 /datum/world_edit_manager/proc/run_preview(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_preview(user, "Недостаточно прав для предпросмотра World Edit.")
+		return fail_preview(user, "Недостаточно прав для предпросмотра в панели редактирования мира.")
 	if(!current_generator || !current_definition)
 		return fail_preview(user, "Сначала выберите генератор.")
 	if(!current_definition.supports_preview)
@@ -22,7 +22,7 @@
 		return fail_preview(user, "Генератор вернул некорректный результат предпросмотра.")
 
 	var/rendered_with_placement_layers = FALSE
-	if(result.success)
+	if(result.success && should_use_placement_layer_preview(current_generator.current_plan))
 		rendered_with_placement_layers = render_plan_preview_with_placement_layers(user, current_generator.current_plan, effective_params)
 
 	if(!rendered_with_placement_layers && length(result.preview_images))
@@ -44,7 +44,7 @@
 
 /datum/world_edit_manager/proc/run_apply(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_apply(user, "Недостаточно прав для применения World Edit.")
+		return fail_apply(user, "Недостаточно прав для применения в панели редактирования мира.")
 	if(!current_generator || !current_definition)
 		return fail_apply(user, "Сначала выберите генератор.")
 	if(!check_rights_for(holder, current_definition.required_rights))
@@ -151,7 +151,7 @@
 
 /datum/world_edit_manager/proc/undo_last_operation(mob/user)
 	if(!holder || !check_rights_for(holder, R_DEBUG))
-		return fail_undo_action(user, "undo", "Недостаточно прав для отката World Edit.")
+		return fail_undo_action(user, "undo", "Недостаточно прав для отката в панели редактирования мира.")
 
 	var/datum/world_edit_changeset/changeset = get_last_changeset()
 	if(!istype(changeset))

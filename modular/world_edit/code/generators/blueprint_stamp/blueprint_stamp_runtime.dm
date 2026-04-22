@@ -27,21 +27,22 @@
 
 	var/datum/world_edit_plan/plan = build_plan(params)
 	if(!istype(plan))
-		result.message = "Unable to build the blueprint plan."
+		result.message = "Не удалось построить план шаблона."
 		return result
 	if(plan.metadata["error"])
 		result.message = "[plan.metadata["error"]]"
 		return result
 	if(!length(plan.placements))
-		result.message = "Blueprint contains no valid placements."
+		result.message = "В шаблоне нет допустимых размещений."
 		return result
 
 	current_plan = plan
 	result.success = TRUE
-	result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
-	result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
+	if(!manager?.should_use_placement_layer_preview(plan))
+		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
+		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Blueprint preview ready: anchors=[plan.metadata["anchor_count"]], entries=[plan.metadata["entry_count"]], skipped=[plan.metadata["skipped_entry_count"] || 0], dir=[plan.metadata["placement_dir_label"]]."
+	result.message = "Предпросмотр шаблона готов: опор=[plan.metadata["anchor_count"]], элементов=[plan.metadata["entry_count"]], пропущено=[plan.metadata["skipped_entry_count"] || 0], направление=[plan.metadata["placement_dir_label"]]."
 	return result
 
 /datum/world_edit_generator/blueprint_stamp/apply(mob/user, list/params)
@@ -50,13 +51,13 @@
 /datum/world_edit_generator/blueprint_stamp/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
-		result.message = "Run preview first to build the blueprint plan."
+		result.message = "Сначала выполните предпросмотр, чтобы построить план шаблона."
 		return result
 	if(plan.metadata["error"])
 		result.message = "[plan.metadata["error"]]"
 		return result
 	if(!length(plan.placements))
-		result.message = "Blueprint apply finished with no valid placements."
+		result.message = "Применение шаблона завершилось без допустимых размещений."
 		return result
 
 	var/created_count = 0
@@ -93,10 +94,10 @@
 	result.meta["skipped_runtime"] = skipped_runtime
 
 	if(created_count <= 0)
-		result.message = "Blueprint apply finished without creating any structures."
+		result.message = "Применение шаблона завершилось без создания структур."
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Blueprint '[plan.metadata["blueprint_name"]]' stamped successfully: anchors=[plan.metadata["anchor_count"]], created=[created_count], skipped=[skipped_runtime], dir=[plan.metadata["placement_dir_label"]]."
+	result.message = "Шаблон '[plan.metadata["blueprint_name"]]' успешно отпечатан: опор=[plan.metadata["anchor_count"]], создано=[created_count], пропущено=[skipped_runtime], направление=[plan.metadata["placement_dir_label"]]."
 	return result
