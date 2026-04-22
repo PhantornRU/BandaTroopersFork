@@ -1,17 +1,20 @@
-/datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan)
-	var/list/metadata = plan?.metadata || list()
+/datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan, list/fallback_meta = null)
+	var/list/metadata = plan?.metadata || fallback_meta || list()
 	var/list/placements = plan?.placements || list()
 	var/anchor_count = metadata["anchor_count"] || 1
 	var/entry_count = metadata["entry_count"] || length(placements)
+	var/entry_label = "[entry_count]"
+	if(!length(placements) && isnull(metadata["entry_count"]) && GLOB.world_edit_helpers.parse_bool(metadata["preview_plan_deferred"]))
+		entry_label = "отложено"
 	var/collector_point_count = metadata["collector_preview_point_count"] || metadata["collector_point_count"]
 	var/mode = metadata["placement_mode"] || get_effective_placement_mode() || "single"
 	var/mode_label = mode == "single" ? "один раз" : mode == "repeat" ? "повтор" : "[mode]"
 	var/shape_label = metadata["shape_label"] || GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(metadata["placement_shape"] || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT)
-	var/message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count]."
+	var/message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_label]."
 	if(collector_point_count)
 		message += " Точек в сборе=[collector_point_count]."
 	if(metadata["placement_dir_label"])
-		message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_count], направление=[metadata["placement_dir_label"]]."
+		message = "Предпросмотр размещения готов: форма=[shape_label], режим=[mode_label], опор=[anchor_count], действий=[entry_label], направление=[metadata["placement_dir_label"]]."
 		if(collector_point_count)
 			message += " Точек в сборе=[collector_point_count]."
 	return message
@@ -581,6 +584,22 @@
 		return candidate
 
 	if(current_generator?.should_skip_plan_build_for_safe_preview(shape_contract, effective_params, candidate.placement_context, hover_only))
+		if(!islist(shape_contract.metadata))
+			shape_contract.metadata = list()
+		shape_contract.metadata["preview_plan_deferred"] = TRUE
+		update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+		if(!hover_only && istype(current_generator, /datum/world_edit_generator/outpost_radius))
+			var/datum/world_edit_generator/outpost_radius/outpost_generator = current_generator
+			var/list/support_result = outpost_generator.evaluate_shape_contract_for_deferred_preview(shape_contract, effective_params, candidate.placement_context)
+			if(islist(support_result))
+				var/list/support_metadata = support_result["metadata"]
+				if(islist(support_metadata))
+					for(var/key in support_metadata)
+						shape_contract.metadata[key] = support_metadata[key]
+					update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+				candidate.support_error = support_result["error"]
+			else
+				candidate.support_error = support_result
 		increment_runtime_diagnostic("preview_plan_defers")
 		if(hover_only)
 			increment_runtime_diagnostic("hover_plan_skips")
@@ -673,7 +692,7 @@
 	)
 	if(!istype(candidate))
 		return candidate
-	if(candidate.is_preview_ready())
+	if(candidate.is_preview_ready() || (candidate.is_ready_for_apply() && !length("[candidate.get_failure_message()]")))
 		return candidate
 	// Hover previews must stay cheap: endpoint clamp can retry many shorter shapes and
 	// explode into repeated full plan builds while the cursor is moving.
@@ -719,14 +738,15 @@
 			seed_turf,
 			shape_origin_turf,
 		)
-		if(!istype(clamped_candidate) || !clamped_candidate.is_preview_ready())
+		if(!istype(clamped_candidate) || !(clamped_candidate.is_preview_ready() || (clamped_candidate.is_ready_for_apply() && !length("[clamped_candidate.get_failure_message()]"))))
 			continue
 		if(!islist(clamped_candidate.placement_context))
 			clamped_candidate.placement_context = list()
 		clamped_candidate.placement_context["clamp_reason"] = "endpoint"
 		clamped_candidate.placement_context["requested_end_turf"] = requested_turf
 		clamped_candidate.placement_context["resolved_end_turf"] = clamped_end_turf
-		stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
+		if(istype(clamped_candidate.plan))
+			stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
 		increment_runtime_diagnostic("outpost_clamp_successes")
 		return clamped_candidate
 
@@ -747,7 +767,7 @@
 		return FALSE
 
 	var/list/preview_feedback_meta = candidate.plan?.metadata || candidate.shape_contract?.metadata || list()
-	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
+	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan, preview_feedback_meta)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
 	if(!silent)
 		to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE
@@ -1076,6 +1096,7 @@
 
 	placement_click_active = TRUE
 	teardown_preview_session_runtime(TRUE, TRUE, TRUE)
+	reset_runtime_diagnostics()
 	sync_click_intercept_state()
 
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)

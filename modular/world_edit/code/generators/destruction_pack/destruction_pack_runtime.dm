@@ -16,6 +16,10 @@
 	result.message = "Предпросмотр готов: тайлов=[plan.metadata["area_tiles"]], подвижных целей=[plan.metadata["target_count"]], запланированных перемещений=[plan.metadata["moved_count"]], тайлов огня=[plan.metadata["fire_count"]], взрывов=[plan.metadata["blast_count"]], профиль урона=[plan.metadata["damage_profile_label"] || "Нет"], откат=[plan.metadata["undo_policy"] || WORLD_EDIT_UNDO_NONE]."
 	return result
 
+/datum/world_edit_generator/destruction_pack/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	// Hover motion should not rebuild the full destruction plan every frame.
+	return TRUE
+
 /datum/world_edit_generator/destruction_pack/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)
 

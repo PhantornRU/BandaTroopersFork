@@ -1,23 +1,77 @@
 /datum/world_edit_manager/proc/build_collector_runtime_preview_params(list/base_params, list/preview_points, preview_points_text = null)
 	return build_generator_params_for_shape(base_params, get_effective_placement_shape(), preview_points, preview_points_text)
 
+/datum/world_edit_manager/proc/build_deferred_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/resolved_preview_turf, list/preview_params, list/collector_meta, hover_only = FALSE, turf/requested_preview_turf = null, record_diagnostics = TRUE)
+	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
+	var/turf/effective_requested_turf = requested_preview_turf || resolved_preview_turf
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, origin_turf, resolved_preview_turf, preview_params, effective_direction)
+	apply_shape_contract_runtime_metadata(shape_contract, collector_meta, collector_meta)
+	var/list/placement_context = build_placement_context(shape_contract, origin_turf, resolved_preview_turf, effective_requested_turf, origin_turf, origin_turf, effective_direction)
+	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate(shape_contract, placement_context, null, preview_params, hover_only, collector_meta)
+	if(!istype(candidate))
+		candidate = new
+		candidate.hover_only = hover_only ? TRUE : FALSE
+		candidate.shape_contract = shape_contract
+		candidate.runtime_params = islist(preview_params) ? preview_params.Copy() : list()
+		candidate.placement_context = islist(placement_context) ? placement_context.Copy() : list()
+		if(islist(collector_meta))
+			candidate.collector_state_summary = collector_meta.Copy()
+	if(record_diagnostics)
+		increment_runtime_diagnostic("preview_plan_defers")
+		if(hover_only)
+			increment_runtime_diagnostic("hover_plan_skips")
+	if(shape_contract.error)
+		candidate.resolve_error = "[shape_contract.error]"
+		return candidate
+	if(hover_only)
+		return candidate
+
+	var/datum/world_edit_generator/outpost_radius/outpost_generator = current_generator
+	if(!istype(outpost_generator))
+		return candidate
+
+	var/list/support_result = outpost_generator.evaluate_shape_contract_for_deferred_preview(shape_contract, candidate.runtime_params, candidate.placement_context)
+	if(islist(support_result))
+		var/list/support_metadata = support_result["metadata"]
+		if(islist(support_metadata))
+			for(var/key in support_metadata)
+				shape_contract.metadata[key] = support_metadata[key]
+			update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
+		candidate.support_error = support_result["error"]
+	else
+		candidate.support_error = support_result
+	return candidate
+
 /datum/world_edit_manager/proc/resolve_outpost_collector_candidate(mob/user, shape_id, turf/origin_turf, turf/preview_turf, list/preview_points, list/collector_meta, hover_only = FALSE, preview_points_text = null, list/preview_params = null)
 	if(!islist(preview_params))
 		preview_params = build_collector_runtime_preview_params(current_params, preview_points, preview_points_text)
-	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate(
-		user,
-		origin_turf,
-		preview_turf,
-		preview_params,
-		hover_only,
-		collector_meta,
-		collector_meta,
-		shape_id,
-		preview_turf,
-		origin_turf,
-		origin_turf,
-	)
-	if(!istype(candidate) || candidate.is_preview_ready() || !istype(current_generator, /datum/world_edit_generator/outpost_radius))
+	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, origin_turf, preview_turf, preview_params, effective_direction)
+	var/list/placement_context = build_placement_context(shape_contract, origin_turf, preview_turf, preview_turf, origin_turf, origin_turf, effective_direction)
+	var/defer_preview = current_generator?.should_skip_plan_build_for_safe_preview(shape_contract, preview_params, placement_context, hover_only)
+	var/datum/world_edit_placement_candidate/candidate
+	if(defer_preview)
+		candidate = build_deferred_outpost_collector_candidate(user, shape_id, origin_turf, preview_turf, preview_params, collector_meta, hover_only, preview_turf, TRUE)
+	else
+		candidate = resolve_placement_candidate(
+			user,
+			origin_turf,
+			preview_turf,
+			preview_params,
+			hover_only,
+			collector_meta,
+			collector_meta,
+			shape_id,
+			preview_turf,
+			origin_turf,
+			origin_turf,
+		)
+	var/candidate_resolved = FALSE
+	if(defer_preview)
+		candidate_resolved = istype(candidate) && !length("[candidate.get_failure_message()]")
+	else
+		candidate_resolved = istype(candidate) && candidate.is_preview_ready()
+	if(!istype(candidate) || candidate_resolved || !istype(current_generator, /datum/world_edit_generator/outpost_radius))
 		return candidate
 	if(!islist(preview_points) || length(preview_points) < get_placement_collector_min_points(shape_id))
 		return candidate
@@ -40,7 +94,6 @@
 	if(!islist(segment_turfs) || length(segment_turfs) <= 1)
 		return candidate
 
-	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
 	var/list/attempted_signatures = list()
 	for(var/i = length(segment_turfs) - 1, i >= 1, i--)
 		var/turf/clamped_preview_turf = segment_turfs[i]
@@ -65,15 +118,25 @@
 				continue
 			attempted_signatures[attempt_signature] = TRUE
 
-		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(user, clamped_shape_contract, origin_turf, clamped_preview_turf, clamped_params, effective_direction, hover_only, clamped_meta, clamped_meta, preview_turf, origin_turf, origin_turf)
-		if(!istype(clamped_candidate) || !clamped_candidate.is_preview_ready())
+		var/datum/world_edit_placement_candidate/clamped_candidate
+		if(defer_preview)
+			clamped_candidate = build_deferred_outpost_collector_candidate(user, shape_id, origin_turf, clamped_preview_turf, clamped_params, clamped_meta, hover_only, preview_turf, FALSE)
+		else
+			clamped_candidate = resolve_placement_candidate_from_shape_contract(user, clamped_shape_contract, origin_turf, clamped_preview_turf, clamped_params, effective_direction, hover_only, clamped_meta, clamped_meta, preview_turf, origin_turf, origin_turf)
+		var/clamped_candidate_resolved = FALSE
+		if(defer_preview)
+			clamped_candidate_resolved = istype(clamped_candidate) && !length("[clamped_candidate.get_failure_message()]")
+		else
+			clamped_candidate_resolved = istype(clamped_candidate) && clamped_candidate.is_preview_ready()
+		if(!istype(clamped_candidate) || !clamped_candidate_resolved)
 			continue
 		if(!islist(clamped_candidate.placement_context))
 			clamped_candidate.placement_context = list()
 		clamped_candidate.placement_context["clamp_reason"] = "endpoint"
 		clamped_candidate.placement_context["requested_end_turf"] = preview_turf
 		clamped_candidate.placement_context["resolved_end_turf"] = clamped_preview_turf
-		stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
+		if(istype(clamped_candidate.plan))
+			stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
 		return clamped_candidate
 
 	return candidate
@@ -151,7 +214,8 @@
 			to_chat(user, SPAN_WARNING(last_preview_message))
 		return FALSE
 
-	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan)]", candidate.plan.metadata, hover_only ? FALSE : TRUE)
+	var/list/preview_feedback_meta = candidate.plan?.metadata || candidate.shape_contract?.metadata || list()
+	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan, preview_feedback_meta)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
 	if(!silent)
 		to_chat(user, SPAN_NOTICE(last_preview_message))
 	return TRUE

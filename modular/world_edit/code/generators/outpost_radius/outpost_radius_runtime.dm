@@ -631,12 +631,16 @@
 	return istype(plan) ? TRUE : FALSE
 
 /datum/world_edit_generator/outpost_radius/should_skip_plan_build_for_safe_preview(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
-	var/interaction_kind = "[shape_contract?.interaction_kind || placement_context["interaction_kind"] || "single"]"
-	if(interaction_kind == "collector")
-		return FALSE
-	// Full outpost planning is intentionally deferred until confirm/apply; safe-preview
-	// only needs the shared shape footprint, otherwise interactive placement can stall the server.
-	return TRUE
+	// Hover previews stay deferred so the cursor can move without rebuilding the full
+	// outpost plan every tick. Non-point shapes also stay deferred because their
+	// shape-aware perimeter planning is the expensive path.
+	if(hover_only)
+		return TRUE
+
+	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || (islist(placement_context) ? placement_context["anchor_turfs"] : null)
+	var/effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, anchor_turfs)
+	return (effective_shape_id != WORLD_EDIT_SHAPE_POINT)
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)

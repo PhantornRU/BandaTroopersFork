@@ -78,10 +78,20 @@
 		return FALSE
 	return (length(plan.placements) || length(plan.deletions)) ? TRUE : FALSE
 
+/datum/world_edit_placement_candidate/proc/is_preview_plan_deferred()
+	var/list/metadata = plan?.metadata || shape_contract?.metadata
+	return GLOB.world_edit_helpers.parse_bool(metadata["preview_plan_deferred"])
+
 /datum/world_edit_placement_candidate/proc/is_ready_for_apply()
 	if(hover_only)
 		return FALSE
-	return is_preview_ready()
+	if(is_preview_ready())
+		return TRUE
+	if(length("[resolve_error]"))
+		return FALSE
+	if(length("[support_error]"))
+		return FALSE
+	return is_preview_plan_deferred()
 
 /datum/world_edit_placement_candidate/proc/get_failure_message()
 	if(length("[resolve_error]"))

@@ -457,6 +457,25 @@
 /datum/world_edit_generator/outpost_radius/world_edit_test_clamp
 	var/apply_calls = 0
 
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector
+	var/build_plan_calls = 0
+	var/apply_calls = 0
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	build_plan_calls++
+	return ..()
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
+	var/datum/world_edit_apply_result/result = new
+	apply_calls++
+	if(!istype(plan))
+		result.message = "missing plan"
+		return result
+	result.success = TRUE
+	result.message = "ok"
+	result.meta = islist(plan.metadata) ? plan.metadata.Copy() : list()
+	return result
+
 /datum/world_edit_generator/outpost_radius/world_edit_test_clamp/get_supported_placement_modes()
 	return list("single", "repeat")
 
@@ -3487,6 +3506,103 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/destruction_pack_hover_only_skips_full_plan_build/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/destruction_pack/definition = new
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction hover-defer test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 4
+	manager.current_params["shuffle_enabled"] = TRUE
+	manager.current_params["scatter_enabled"] = FALSE
+	manager.current_params["persistent_fire_enabled"] = FALSE
+	manager.current_params["blast_enabled"] = FALSE
+	manager.current_params["damage_profile"] = "none"
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit destruction hover-defer test should accept the hover-only point preview.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit destruction hover-defer test should keep a hover candidate in session state.")
+	TEST_ASSERT(candidate.hover_only, "World Edit destruction hover-defer test should preserve hover-only semantics on the stored candidate.")
+	TEST_ASSERT_NULL(candidate.plan, "World Edit destruction hover-defer test should skip the expensive destruction plan build on hover-only preview.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit destruction hover-defer test should keep a non-error placeholder state while the full plan is deferred.")
+	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit destruction hover-defer test should still expose a shared shape preview footprint when the heavy plan build is skipped.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit destruction hover-defer test should record the deferred hover-only plan build.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit destruction hover-defer test should count the deferred preview path in shared runtime diagnostics.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/blueprint_stamp_hover_only_skips_full_plan_build/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/blueprint_stamp/definition = new
+	var/datum/world_edit_generator/blueprint_stamp/generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit blueprint hover-defer test center turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+	var/list/blueprint = list(
+		"id" = "world_edit_hover_blueprint_preview_test",
+		"name" = "World Edit Hover Blueprint Preview Test",
+		"created_at" = "2026-04-22T00:00:00Z",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list("radius" = 0),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/barricade/metal]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	)
+	var/blueprint_file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint)
+	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit blueprint hover-defer test should save the helper blueprint definition.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["blueprint_id"] = blueprint["id"]
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list(list(
+		"id" = blueprint["id"],
+		"valid" = TRUE,
+		"file_path" = blueprint_file_path,
+	))
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit blueprint hover-defer test should accept the hover-only point preview.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit blueprint hover-defer test should keep a hover candidate in session state.")
+	TEST_ASSERT(candidate.hover_only, "World Edit blueprint hover-defer test should preserve hover-only semantics on the stored candidate.")
+	TEST_ASSERT_NULL(candidate.plan, "World Edit blueprint hover-defer test should skip the expensive stamp plan build on hover-only preview.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit blueprint hover-defer test should keep a non-error placeholder state while the full plan is deferred.")
+	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit blueprint hover-defer test should still expose a shared shape preview footprint when the heavy plan build is skipped.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit blueprint hover-defer test should record the deferred hover-only plan build.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit blueprint hover-defer test should count the deferred preview path in shared runtime diagnostics.")
+
+	if(length("[blueprint_file_path]") && fexists(blueprint_file_path))
+		fdel(blueprint_file_path)
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_hover_only_skips_full_plan_build/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
@@ -3519,12 +3635,12 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_click_preview_defers_full_plan_build/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_click_preview_builds_plan_immediately/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost click-defer test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost point-preview test center turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3537,15 +3653,132 @@
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost click-defer test should accept the initial point placement click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point-preview test should accept the initial point placement click.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost click-defer test should keep the click-preview candidate in session state.")
-	TEST_ASSERT(!candidate.hover_only, "World Edit outpost click-defer test should preserve non-hover semantics on the stored candidate.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost click-defer test should defer the expensive full outpost plan build until confirm/apply.")
-	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost click-defer test should still arm confirmation for the selected turf.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost point-preview test should keep the click-preview candidate in session state.")
+	TEST_ASSERT(!candidate.hover_only, "World Edit outpost point-preview test should preserve non-hover semantics on the stored candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost point-preview test should build the full point plan on the initial click so the user gets a real preview before confirm.")
+	TEST_ASSERT(candidate.is_preview_ready(), "World Edit outpost point-preview test should keep the point candidate preview-ready after the eager plan build.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost point-preview test should still arm confirmation for the selected turf.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost click-defer test should record the deferred preview build.")
+	TEST_ASSERT_NULL(runtime_status["Preview defer"], "World Edit outpost point-preview test should not defer the point plan build anymore.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_anchor_pair_click_preview_defers_full_plan_build_and_applies_on_confirm/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost anchor-pair defer test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost anchor-pair defer test end turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["opening_width"] = "layout"
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost anchor-pair defer test should accept the first anchor click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair defer test should accept the second anchor click.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost anchor-pair defer test should keep the click-preview candidate in session state.")
+	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost anchor-pair defer test should defer the expensive full outpost plan build until confirm/apply.")
+	TEST_ASSERT(candidate.is_ready_for_apply(), "World Edit outpost anchor-pair defer test should still keep the deferred line candidate confirm/apply-ready.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(end_turf), "World Edit outpost anchor-pair defer test should arm confirmation on the selected endpoint.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair defer test should accept the repeated confirm click.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost anchor-pair defer test should build the deferred outpost plan exactly once during apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost anchor-pair defer test should apply exactly once after the lazy plan build.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit outpost anchor-pair defer test should record a successful apply after the lazy anchor-pair plan build.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost anchor-pair defer test should record the deferred preview build.")
+	TEST_ASSERT_EQUAL(runtime_status["Clamp tries"], "0", "World Edit outpost anchor-pair defer test should not enter the clamp retry loop when the deferred requested line is already valid.")
+	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "1", "World Edit outpost anchor-pair defer test should record the lazy plan build during apply.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_click_preview_defers_full_plan_build/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector click-defer test center turf was not resolved.")
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector click-defer test line turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["opening_width"] = "broad"
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYLINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector click-defer test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector click-defer test should accept the second collector point.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector click-defer test should keep the collector preview candidate in session state.")
+	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost collector click-defer test should defer the full outpost plan build while the contour is still being collected.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit outpost collector click-defer test should keep a valid collector preview placeholder instead of surfacing a fake plan error.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit outpost collector click-defer test should not build the full plan during intermediate collector clicks.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(line_turf), "World Edit outpost collector click-defer test should not arm confirmation before the collector is explicitly finished.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost collector click-defer test should record the deferred intermediate collector preview build.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_finish_preview_builds_plan_on_apply/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector deferred-apply test center turf was not resolved.")
+	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector deferred-apply test line turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["radius"] = 1
+	manager.current_params["opening_width"] = "broad"
+	manager.placement_shape = WORLD_EDIT_SHAPE_POLYLINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector deferred-apply test should accept the second collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should finish the collector on the repeated first-point click.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector deferred-apply test should keep the finished collector preview candidate.")
+	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost collector deferred-apply test should still defer the full plan build after the finish preview is armed.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit outpost collector deferred-apply test should not build the full plan while only arming confirmation.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost collector deferred-apply test should arm confirmation on the finished collector tile.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should accept the repeated confirm click on the finished collector tile.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost collector deferred-apply test should build the deferred outpost plan exactly once during apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost collector deferred-apply test should apply exactly once after the lazy plan build.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit outpost collector deferred-apply test should record a successful apply after the lazy collector plan build.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "1", "World Edit outpost collector deferred-apply test should record the lazy outpost plan build during apply.")
 
 	qdel(manager)
 
