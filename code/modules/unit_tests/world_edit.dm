@@ -3,6 +3,43 @@
 	var/center_y = round((run_loc_floor_bottom_left.y + run_loc_floor_top_right.y) / 2)
 	return locate(center_x, center_y, run_loc_floor_bottom_left.z)
 
+/datum/unit_test/world_edit_corner_slots
+	var/list/tracked_fortify_room_contexts
+
+/datum/unit_test/world_edit_corner_slots/New()
+	. = ..()
+	tracked_fortify_room_contexts = list()
+
+/datum/unit_test/world_edit_corner_slots/Destroy()
+	for(var/list/room_context as anything in tracked_fortify_room_contexts)
+		cleanup_fortify_test_room(room_context)
+
+	tracked_fortify_room_contexts = null
+	return ..()
+
+/datum/unit_test/world_edit_corner_slots/proc/track_fortify_test_room(list/context)
+	if(!islist(context))
+		return context
+
+	if(!islist(tracked_fortify_room_contexts))
+		tracked_fortify_room_contexts = list()
+	tracked_fortify_room_contexts += list(context)
+	return context
+
+/datum/unit_test/world_edit_corner_slots/proc/build_runtime_status_lookup(list/runtime_status_entries)
+	var/list/lookup = list()
+	if(!islist(runtime_status_entries))
+		return lookup
+
+	for(var/list/entry as anything in runtime_status_entries)
+		if(!islist(entry))
+			continue
+		var/label = "[entry["label"]]"
+		if(!length(label))
+			continue
+		lookup[label] = "[entry["value"]]"
+	return lookup
+
 /datum/unit_test/world_edit_corner_slots/proc/build_slot_lookup(list/placements)
 	var/list/slot_lookup = list()
 	for(var/list/placement as anything in placements)
@@ -240,6 +277,13 @@
 /datum/world_edit_generator/world_edit_test_apply_hook
 	var/apply_calls = 0
 	var/build_plan_calls = 0
+
+/datum/world_edit_manager/world_edit_test_cache_probe
+	var/build_placement_candidate_calls = 0
+
+/datum/world_edit_manager/world_edit_test_cache_probe/build_placement_candidate(datum/world_edit_shape_contract/shape_contract, list/placement_context, datum/world_edit_plan/plan = null, list/runtime_params = null, hover_only = FALSE, list/collector_state_summary = null)
+	build_placement_candidate_calls++
+	return ..()
 
 /datum/world_edit_generator/world_edit_test_apply_hook/build_placement_plan(mob/user, list/params, list/placement_context)
 	build_plan_calls++
@@ -1452,7 +1496,8 @@
 	TEST_ASSERT(!("current_generator_description" in data), "World Edit UI payload builder should prune legacy generator description keys.")
 	TEST_ASSERT(!("current_generator_execution_mode" in data), "World Edit UI payload builder should prune legacy execution mode keys.")
 	TEST_ASSERT(!("current_generator_required_rights" in data), "World Edit UI payload builder should prune legacy rights summary keys.")
-	TEST_ASSERT(!("runtime_status" in data), "World Edit UI payload builder should prune legacy runtime status keys.")
+	TEST_ASSERT("runtime_status" in data, "World Edit UI payload builder should expose runtime status entries for the live panel contract.")
+	TEST_ASSERT(islist(data["runtime_status"]), "World Edit UI payload builder should keep runtime status in a list form even before counters are populated.")
 	TEST_ASSERT(!("current_params_text" in data), "World Edit UI payload builder should prune legacy params summary keys.")
 	TEST_ASSERT(!("placement_collector_origin" in data), "World Edit UI payload builder should prune legacy collector origin keys.")
 	TEST_ASSERT(!("placement_collector_points_text" in data), "World Edit UI payload builder should prune legacy collector points text keys.")
@@ -2668,6 +2713,58 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/anchor_pair_hover_only_preview_does_not_run_outpost_clamp/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_outpost_clamp/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_clamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/requested_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit anchor-pair hover-no-clamp test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(requested_turf, "World Edit anchor-pair hover-no-clamp test requested turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit anchor-pair hover-no-clamp test should accept the first anchor click.")
+	TEST_ASSERT(!manager.handle_safe_placement_hover(user, requested_turf), "World Edit anchor-pair hover-no-clamp test should keep the hover-only preview invalid when only the unclamped endpoint is available.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit anchor-pair hover-no-clamp test should still keep a hover candidate for the requested endpoint.")
+	TEST_ASSERT(candidate.hover_only, "World Edit anchor-pair hover-no-clamp test should keep hover-only semantics on the stored candidate.")
+	TEST_ASSERT(candidate.placement_context["requested_end_turf"] == requested_turf, "World Edit anchor-pair hover-no-clamp test should keep the original requested endpoint on the hover candidate context.")
+	TEST_ASSERT(candidate.placement_context["resolved_end_turf"] == requested_turf, "World Edit anchor-pair hover-no-clamp test should not clamp the resolved endpoint during hover-only preview.")
+	TEST_ASSERT(!candidate.is_preview_ready(), "World Edit anchor-pair hover-no-clamp test should avoid synthesizing a valid clamped plan during hover-only preview.")
+	TEST_ASSERT(manager.placement_hover_turf == requested_turf, "World Edit anchor-pair hover-no-clamp test should leave the hover turf on the actual requested endpoint.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/placement_preview_render_token_uses_turf_contents_not_list_identity/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/other_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit preview-render-token test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(other_turf, "World Edit preview-render-token test sibling turf was not resolved.")
+
+	var/datum/world_edit_preview_model/first_preview_model = new
+	first_preview_model.final_turfs = list(center_turf, other_turf)
+	first_preview_model.generator_effect_turfs = list(center_turf)
+
+	var/datum/world_edit_preview_model/second_preview_model = new
+	second_preview_model.final_turfs = list(center_turf, other_turf)
+	second_preview_model.generator_effect_turfs = list(center_turf)
+
+	var/first_render_token = manager.build_placement_preview_render_token(first_preview_model)
+	var/second_render_token = manager.build_placement_preview_render_token(second_preview_model)
+	TEST_ASSERT_EQUAL(first_render_token, second_render_token, "World Edit preview-render-token test should keep identical preview contents stable across fresh list instances.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/collector_clamp_arms_confirm_on_resolved_finish_turf/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_outpost_clamp/definition = new
@@ -3287,6 +3384,101 @@
 	var/datum/world_edit_placement_candidate/fresh_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
 	TEST_ASSERT(istype(fresh_candidate, /datum/world_edit_placement_candidate), "World Edit memoization test should still resolve a candidate after the runtime reset.")
 	TEST_ASSERT_NOTEQUAL("[REF(fresh_candidate)]", initial_ref, "World Edit memoization test should clear the cached resolved candidate on a full runtime reset.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/cached_resolve_skips_rebuilding_preview_candidate/Run()
+	var/datum/world_edit_manager/world_edit_test_cache_probe/manager = new
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit resolve-cache build-skip test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit resolve-cache build-skip test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/initial_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(initial_candidate, /datum/world_edit_placement_candidate), "World Edit resolve-cache build-skip test should build the initial placement candidate.")
+	TEST_ASSERT(initial_candidate.is_preview_ready(), "World Edit resolve-cache build-skip test should cache a preview-ready initial candidate.")
+	TEST_ASSERT_EQUAL(manager.build_placement_candidate_calls, 1, "World Edit resolve-cache build-skip test should build exactly one preview candidate on the first resolve.")
+
+	var/datum/world_edit_placement_candidate/reused_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(reused_candidate, /datum/world_edit_placement_candidate), "World Edit resolve-cache build-skip test should still resolve a candidate on the repeated query.")
+	TEST_ASSERT_EQUAL("[REF(reused_candidate)]", "[REF(initial_candidate)]", "World Edit resolve-cache build-skip test should reuse the cached candidate object on an identical repeated query.")
+	TEST_ASSERT_EQUAL(manager.build_placement_candidate_calls, 1, "World Edit resolve-cache build-skip test should not rebuild the preview candidate before returning the cached result.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/runtime_status_tracks_hover_render_and_cache_churn/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit runtime-status hover/render test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit runtime-status hover/render test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/initial_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf, null, TRUE)
+	TEST_ASSERT(istype(initial_candidate, /datum/world_edit_placement_candidate), "World Edit runtime-status hover/render test should build the initial hover candidate.")
+	TEST_ASSERT(initial_candidate.is_preview_ready(), "World Edit runtime-status hover/render test should build a preview-ready hover candidate.")
+
+	manager.render_safe_placement_preview(initial_candidate)
+	manager.render_safe_placement_preview(initial_candidate)
+
+	var/datum/world_edit_placement_candidate/reused_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf, null, TRUE)
+	TEST_ASSERT(istype(reused_candidate, /datum/world_edit_placement_candidate), "World Edit runtime-status hover/render test should resolve a repeated hover candidate.")
+	TEST_ASSERT_EQUAL("[REF(reused_candidate)]", "[REF(initial_candidate)]", "World Edit runtime-status hover/render test should reuse the cached hover candidate on the repeated resolve.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Hover resolve"], "2", "World Edit runtime-status hover/render test should report both hover resolves.")
+	TEST_ASSERT_EQUAL(runtime_status["Cache"], "1/1", "World Edit runtime-status hover/render test should expose one cache hit and one miss after the repeated hover resolve.")
+	TEST_ASSERT_EQUAL(runtime_status["Render rebuilds"], "1", "World Edit runtime-status hover/render test should expose a single preview image rebuild for the first render.")
+	TEST_ASSERT_EQUAL(runtime_status["Render skips"], "1", "World Edit runtime-status hover/render test should expose the token-reuse skip for the second identical render.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/runtime_status_tracks_outpost_clamp_skip_and_success/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_outpost_clamp/definition = new
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_clamp/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_clamp)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/requested_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit runtime-status clamp test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(requested_turf, "World Edit runtime-status clamp test requested turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit runtime-status clamp test should accept the first anchor click.")
+	TEST_ASSERT(!manager.handle_safe_placement_hover(user, requested_turf), "World Edit runtime-status clamp test should keep the hover-only preview invalid on the unclamped endpoint.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), requested_turf), "World Edit runtime-status clamp test should build the clamped preview on click.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Clamp hover skip"], "1", "World Edit runtime-status clamp test should record the skipped hover-only clamp path.")
+	TEST_ASSERT_EQUAL(runtime_status["Clamp tries"], "1", "World Edit runtime-status clamp test should record the single click-time clamp attempt.")
+	TEST_ASSERT_EQUAL(runtime_status["Clamp ok"], "1", "World Edit runtime-status clamp test should record the successful click-time clamp result.")
 
 	qdel(manager)
 
@@ -4345,3 +4537,510 @@
 	var/support_prop_error = GLOB.world_edit_blueprints.world_edit_validate_blueprint_target_turf(center_turf, /obj/structure/closet/crate/ammo, NORTH)
 	TEST_ASSERT(length("[support_prop_error]"), "World Edit support-prop blueprint test should reject support props on a turf that already contains a non-barricade structure.")
 	qdel(beacon)
+
+/datum/unit_test/world_edit_corner_slots/proc/capture_fortify_test_turf_state(turf/target_turf)
+	if(!istype(target_turf))
+		return null
+
+	return list(
+		"x" = target_turf.x,
+		"y" = target_turf.y,
+		"z" = target_turf.z,
+		"type" = target_turf.type,
+		"baseturfs" = islist(target_turf.baseturfs) ? target_turf.baseturfs.Copy() : target_turf.baseturfs,
+	)
+
+/datum/unit_test/world_edit_corner_slots/proc/setup_fortify_test_room(turf/center_turf, interior_half_width = 1, interior_half_height = 1, include_north_door = TRUE, include_east_window = TRUE)
+	var/list/result = list(
+		"states" = list(),
+		"cleanup_atoms" = list(),
+		"interior_count" = ((interior_half_width * 2) + 1) * ((interior_half_height * 2) + 1),
+	)
+	if(!istype(center_turf))
+		return result
+
+	var/list/states = result["states"]
+	var/min_x = center_turf.x - interior_half_width - 1
+	var/max_x = center_turf.x + interior_half_width + 1
+	var/min_y = center_turf.y - interior_half_height - 1
+	var/max_y = center_turf.y + interior_half_height + 1
+
+	for(var/x in min_x to max_x)
+		for(var/y in min_y to max_y)
+			var/turf/current_turf = locate(x, y, center_turf.z)
+			if(!istype(current_turf))
+				continue
+
+			var/list/state = capture_fortify_test_turf_state(current_turf)
+			if(islist(state))
+				states[length(states) + 1] = state
+
+			var/dx = x - center_turf.x
+			var/dy = y - center_turf.y
+			var/target_type = (abs(dx) <= interior_half_width && abs(dy) <= interior_half_height) ? /turf/open/floor/plating : /turf/closed/wall/almayer
+			current_turf.ChangeTurf(target_type)
+
+	var/list/cleanup_atoms = result["cleanup_atoms"]
+	var/turf/north_boundary_turf = locate(center_turf.x, center_turf.y + interior_half_height + 1, center_turf.z)
+	if(include_north_door && istype(north_boundary_turf))
+		north_boundary_turf = north_boundary_turf.ChangeTurf(/turf/open/floor/plating)
+		var/obj/structure/machinery/door/unpowered/test_door = allocate(/obj/structure/machinery/door/unpowered, north_boundary_turf)
+		if(!test_door)
+			result["error"] = "World Edit fortify room helper should create a door boundary atom."
+		else
+			cleanup_atoms[length(cleanup_atoms) + 1] = test_door
+			result["north_boundary_turf"] = north_boundary_turf
+			result["north_door"] = test_door
+
+	var/turf/east_boundary_turf = locate(center_turf.x + interior_half_width + 1, center_turf.y, center_turf.z)
+	if(include_east_window && istype(east_boundary_turf))
+		east_boundary_turf = east_boundary_turf.ChangeTurf(/turf/open/floor/plating)
+		var/obj/structure/window/test_window = allocate(/obj/structure/window, east_boundary_turf)
+		if(!test_window)
+			result["error"] = result["error"] || "World Edit fortify room helper should create a window boundary atom."
+		else
+			cleanup_atoms[length(cleanup_atoms) + 1] = test_window
+			result["east_boundary_turf"] = east_boundary_turf
+			result["east_window"] = test_window
+
+	result["center_turf"] = locate(center_turf.x, center_turf.y, center_turf.z)
+	result["north_edge_turf"] = locate(center_turf.x, center_turf.y + interior_half_height, center_turf.z)
+	result["east_edge_turf"] = locate(center_turf.x + interior_half_width, center_turf.y, center_turf.z)
+	return result
+
+/datum/unit_test/world_edit_corner_slots/proc/cleanup_fortify_test_room(list/context)
+	if(!islist(context))
+		return
+
+	for(var/atom/cleanup_atom as anything in context["cleanup_atoms"] || list())
+		if(cleanup_atom && !QDELETED(cleanup_atom))
+			qdel(cleanup_atom)
+
+	for(var/list/state as anything in context["states"] || list())
+		if(!islist(state))
+			continue
+		var/turf/current_turf = locate(text2num("[state["x"]]"), text2num("[state["y"]]"), text2num("[state["z"]]"))
+		if(!istype(current_turf))
+			continue
+		current_turf.ChangeTurf(state["type"], state["baseturfs"])
+
+/datum/unit_test/world_edit_corner_slots/proc/build_fortify_test_placement_context(turf/anchor_turf, mode = "single")
+	return list(
+		"mode" = mode,
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(anchor_turf),
+		"start_turf" = anchor_turf,
+		"end_turf" = anchor_turf,
+		"shape_origin_turf" = anchor_turf,
+		"seed_turf" = anchor_turf,
+		"requested_end_turf" = anchor_turf,
+		"resolved_end_turf" = anchor_turf,
+		"direction" = NORTH,
+	)
+
+/datum/unit_test/world_edit_corner_slots/proc/build_fortify_relative_slot_lookup(list/placements, turf/origin_turf)
+	var/list/lookup = list()
+	if(!istype(origin_turf) || !islist(placements))
+		return lookup
+
+	for(var/list/placement as anything in placements)
+		if(!islist(placement))
+			continue
+		var/turf/target_turf = placement["turf"]
+		var/dir_to_use = placement["dir"]
+		var/kind = "[placement["kind"]]"
+		if(!istype(target_turf) || !length(kind))
+			continue
+		lookup["[target_turf.x - origin_turf.x],[target_turf.y - origin_turf.y],[dir_to_use],[kind]"] = placement["obj_path"]
+	return lookup
+
+/datum/unit_test/world_edit_corner_slots/proc/assert_fortify_test_room_ready(list/room_context, context_label)
+	TEST_ASSERT(islist(room_context), "[context_label] should keep a valid tracked room context.")
+	TEST_ASSERT(!length("[room_context["error"]]"), "[room_context["error"]]")
+
+/datum/world_edit_generator/fortify_room/world_edit_test_over_limit
+	var/forced_placement_count = 601
+
+/datum/world_edit_generator/fortify_room/world_edit_test_over_limit/collect_fortify_room_scan(turf/seed_turf, list/config, list/global_room_lookup = null, list/global_slot_lookup = null)
+	var/list/result = list(
+		"room_turfs" = list(),
+		"placements" = list(),
+		"room_tile_count" = 0,
+		"window_slot_count" = 0,
+		"door_slot_count" = 0,
+		"skipped_existing_count" = 0,
+		"cap_hit" = FALSE,
+	)
+	if(!istype(seed_turf))
+		result["error"] = "World Edit fortify over-limit test could not resolve a seed turf."
+		return result
+	if(islist(global_room_lookup) && global_room_lookup[seed_turf])
+		return result
+	if(islist(global_room_lookup))
+		global_room_lookup[seed_turf] = TRUE
+
+	var/list/placements = list()
+	for(var/i in 1 to forced_placement_count)
+		placements += list(list(
+			"kind" = "window_barricade",
+			"boundary_kind" = "window",
+			"turf" = seed_turf,
+			"dir" = NORTH,
+			"obj_path" = /obj/structure/barricade/metal,
+			"slot_key" = "world_edit_test_over_limit_[i]",
+		))
+
+	result["room_turfs"] = list(seed_turf)
+	result["placements"] = placements
+	result["room_tile_count"] = 1
+	result["window_slot_count"] = forced_placement_count
+	return result
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_preset_mapping_and_manual_override/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify preset test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify preset test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify preset test should keep a valid center turf after room setup.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_anchor_turf = center_turf
+
+	var/list/expectations = list(
+		"legacy_wood" = list(
+			"main" = /obj/structure/barricade/wooden,
+			"door" = null,
+		),
+		"legacy_sandbag" = list(
+			"main" = /obj/structure/barricade/sandbags/full,
+			"door" = null,
+		),
+		"legacy_sandbag_wired" = list(
+			"main" = /obj/structure/barricade/sandbags/wired,
+			"door" = null,
+		),
+		"legacy_metal" = list(
+			"main" = /obj/structure/barricade/metal,
+			"door" = /obj/structure/barricade/plasteel/metal,
+		),
+		"legacy_metal_wired" = list(
+			"main" = /obj/structure/barricade/metal/wired,
+			"door" = /obj/structure/barricade/plasteel/metal/wired,
+		),
+		"legacy_plasteel" = list(
+			"main" = /obj/structure/barricade/metal/plasteel,
+			"door" = /obj/structure/barricade/plasteel,
+		),
+		"legacy_plasteel_wired" = list(
+			"main" = /obj/structure/barricade/metal/plasteel/wired,
+			"door" = /obj/structure/barricade/plasteel/wired,
+		),
+	)
+
+	for(var/preset_id as anything in expectations)
+		var/list/params = definition.default_params?.Copy() || list()
+		params["preset_id"] = preset_id
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, build_fortify_test_placement_context(center_turf))
+		TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify preset test should build a placement plan for preset '[preset_id]'.")
+		TEST_ASSERT(!plan.metadata["error"], "World Edit fortify preset test should not emit a plan error for preset '[preset_id]'.")
+
+		var/list/expected = expectations[preset_id]
+		var/main_path = expected["main"]
+		var/door_path = expected["door"]
+		var/list/kind_counts = count_placements_by_kind(plan.placements)
+		TEST_ASSERT_EQUAL(kind_counts["window_barricade"] || 0, 1, "World Edit fortify preset test should always place exactly one window barricade for preset '[preset_id]' in the controlled room.")
+		if(ispath(door_path, /obj/structure/barricade))
+			TEST_ASSERT_EQUAL(kind_counts["door_barricade"] || 0, 1, "World Edit fortify preset test should place exactly one folding door barricade for preset '[preset_id]'.")
+		else
+			TEST_ASSERT_EQUAL(kind_counts["door_barricade"] || 0, 0, "World Edit fortify preset test should skip door barricades for preset '[preset_id]' when legacy behavior has none.")
+
+		for(var/list/placement as anything in plan.placements)
+			if(placement["kind"] == "window_barricade")
+				TEST_ASSERT_EQUAL(placement["obj_path"], main_path, "World Edit fortify preset test should map preset '[preset_id]' to the expected window barricade path.")
+			else if(placement["kind"] == "door_barricade")
+				TEST_ASSERT_EQUAL(placement["obj_path"], door_path, "World Edit fortify preset test should map preset '[preset_id]' to the expected folding door path.")
+
+	var/list/ui_params = definition.default_params?.Copy() || list()
+	var/list/preset_params = generator.set_ui_param(null, ui_params, "preset_id", "legacy_metal")
+	TEST_ASSERT(islist(preset_params), "World Edit fortify preset UI test should return a params list after selecting a legacy preset.")
+	var/list/customized_params = generator.set_ui_param(null, preset_params, "material_family", "plasteel")
+	TEST_ASSERT(islist(customized_params), "World Edit fortify preset UI test should return a params list after manual material override.")
+	TEST_ASSERT_EQUAL(customized_params["preset_id"], "custom", "World Edit fortify preset UI test should switch the preset id back to custom after a manual material override.")
+	TEST_ASSERT_EQUAL(customized_params["material_family"], "plasteel", "World Edit fortify preset UI test should keep the manually selected material family.")
+	TEST_ASSERT_EQUAL(customized_params["door_policy"], "auto", "World Edit fortify preset UI test should preserve the automatic door policy on a manual material override.")
+	TEST_ASSERT_EQUAL(customized_params["door_material_family"], "plasteel", "World Edit fortify preset UI test should re-sync auto door material to the manual main material override.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_boundary_scan_respects_window_and_door_toggles/Run()
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify boundary test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify boundary test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify boundary test should keep a valid center turf after room setup.")
+
+	var/list/default_config = generator.resolve_fortify_configuration(list(
+		"preset_id" = "legacy_metal",
+	))
+	var/list/default_scan = generator.collect_fortify_room_scan(center_turf, default_config)
+	TEST_ASSERT(!default_scan["error"], "World Edit fortify boundary test should scan the default room without errors.")
+	TEST_ASSERT_EQUAL(default_scan["room_tile_count"], 9, "World Edit fortify boundary test should keep the 3x3 room interior size when windows and doors are treated as boundaries.")
+	TEST_ASSERT_EQUAL(default_scan["window_slot_count"], 1, "World Edit fortify boundary test should expose one window slot in the controlled room.")
+	TEST_ASSERT_EQUAL(default_scan["door_slot_count"], 1, "World Edit fortify boundary test should expose one door slot in the controlled room.")
+
+	var/list/no_door_config = generator.resolve_fortify_configuration(list(
+		"preset_id" = "legacy_metal",
+		"treat_doors_as_boundary" = FALSE,
+	))
+	var/list/no_door_scan = generator.collect_fortify_room_scan(center_turf, no_door_config)
+	TEST_ASSERT(!no_door_scan["error"], "World Edit fortify boundary test should scan successfully when door boundaries are disabled.")
+	TEST_ASSERT_EQUAL(no_door_scan["room_tile_count"], 10, "World Edit fortify boundary test should absorb the door turf into the room when door boundaries are disabled.")
+	TEST_ASSERT_EQUAL(no_door_scan["door_slot_count"], 0, "World Edit fortify boundary test should suppress door placements when doors are not treated as room boundaries.")
+	TEST_ASSERT_EQUAL(no_door_scan["window_slot_count"], 1, "World Edit fortify boundary test should keep the window slot when only door boundaries are disabled.")
+
+	var/list/no_window_config = generator.resolve_fortify_configuration(list(
+		"preset_id" = "legacy_metal",
+		"treat_windows_as_boundary" = FALSE,
+	))
+	var/list/no_window_scan = generator.collect_fortify_room_scan(center_turf, no_window_config)
+	TEST_ASSERT(!no_window_scan["error"], "World Edit fortify boundary test should scan successfully when window boundaries are disabled.")
+	TEST_ASSERT_EQUAL(no_window_scan["room_tile_count"], 10, "World Edit fortify boundary test should absorb the window turf into the room when window boundaries are disabled.")
+	TEST_ASSERT_EQUAL(no_window_scan["window_slot_count"], 0, "World Edit fortify boundary test should suppress window placements when windows are not treated as room boundaries.")
+	TEST_ASSERT_EQUAL(no_window_scan["door_slot_count"], 1, "World Edit fortify boundary test should keep the door slot when only window boundaries are disabled.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_scan_honors_room_tile_cap/Run()
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify cap test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf, 3, 3, FALSE, FALSE))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify cap test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify cap test should keep a valid center turf after room setup.")
+
+	var/list/config = generator.resolve_fortify_configuration(list(
+		"preset_id" = "legacy_metal",
+		"room_tile_cap" = 25,
+	))
+	var/list/scan_result = generator.collect_fortify_room_scan(center_turf, config)
+	TEST_ASSERT(!scan_result["error"], "World Edit fortify cap test should scan the oversized room without hard errors.")
+	TEST_ASSERT(scan_result["cap_hit"], "World Edit fortify cap test should report that the scan cap was hit for the oversized room.")
+	TEST_ASSERT_EQUAL(scan_result["room_tile_count"], 25, "World Edit fortify cap test should clamp the reported room tile count to the requested cap.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_plan_builds_expected_window_and_door_slots/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify plan test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify plan test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify plan test should keep a valid center turf after room setup.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "repeat"
+	manager.placement_anchor_turf = center_turf
+
+	var/list/params = definition.default_params?.Copy() || list()
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, build_fortify_test_placement_context(center_turf, "repeat"))
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify plan test should build a placement plan.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit fortify plan test should not emit a plan error in the controlled room.")
+	TEST_ASSERT_EQUAL(plan.metadata["seed_turf"], center_turf, "World Edit fortify plan test should preserve the point seed turf in plan metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["placement_mode"], "repeat", "World Edit fortify plan test should preserve the repeat placement mode in shared plan metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["placement_count"], 2, "World Edit fortify plan test should expose two additive placements in the controlled room.")
+	TEST_ASSERT_EQUAL(plan.metadata["window_slot_count"], 1, "World Edit fortify plan test should expose the single window slot count in metadata.")
+	TEST_ASSERT_EQUAL(plan.metadata["door_slot_count"], 1, "World Edit fortify plan test should expose the single door slot count in metadata.")
+
+	var/list/relative_slot_lookup = build_fortify_relative_slot_lookup(plan.placements, center_turf)
+	TEST_ASSERT_EQUAL(length(relative_slot_lookup), 2, "World Edit fortify plan test should produce exactly the expected two relative barricade slots.")
+	TEST_ASSERT(relative_slot_lookup["0,1,1,door_barricade"], "World Edit fortify plan test should create the folding barricade slot on the north interior edge.")
+	TEST_ASSERT(relative_slot_lookup["1,0,4,window_barricade"], "World Edit fortify plan test should create the window barricade slot on the east interior edge.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_plan_rejects_unsafe_placement_count/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/world_edit_test_over_limit/generator = allocate(/datum/world_edit_generator/fortify_room/world_edit_test_over_limit)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify over-limit test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "repeat"
+	manager.placement_anchor_turf = center_turf
+
+	var/list/params = definition.default_params?.Copy() || list()
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, build_fortify_test_placement_context(center_turf, "repeat"))
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify over-limit test should still return a plan datum on guard failure.")
+	TEST_ASSERT_EQUAL("[plan.metadata["error"]]", "Fortify Room requested placement exceeds safe limit (600).", "World Edit fortify over-limit test should reject synthetic scans that exceed the placement safety cap.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 0, "World Edit fortify over-limit test should clear placements when the safety cap trips.")
+	TEST_ASSERT_EQUAL(length(plan.affected_turfs), 0, "World Edit fortify over-limit test should clear affected turf state when the safety cap trips.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_apply_and_undo_preserves_existing_barricades/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify apply/undo test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify apply/undo test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	var/turf/east_edge_turf = room_context["east_edge_turf"]
+	var/turf/north_edge_turf = room_context["north_edge_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify apply/undo test should keep a valid center turf after room setup.")
+	TEST_ASSERT_NOTNULL(east_edge_turf, "World Edit fortify apply/undo test should resolve the east interior edge turf.")
+	TEST_ASSERT_NOTNULL(north_edge_turf, "World Edit fortify apply/undo test should resolve the north interior edge turf.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_anchor_turf = center_turf
+
+	var/obj/structure/barricade/metal/existing_window_barricade = allocate(/obj/structure/barricade/metal, east_edge_turf)
+	TEST_ASSERT_NOTNULL(existing_window_barricade, "World Edit fortify apply/undo test should create an existing same-direction barricade helper.")
+	existing_window_barricade.setDir(EAST)
+	var/list/cleanup_atoms = room_context["cleanup_atoms"]
+	cleanup_atoms[length(cleanup_atoms) + 1] = existing_window_barricade
+
+	var/list/params = definition.default_params?.Copy() || list()
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, build_fortify_test_placement_context(center_turf))
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify apply/undo test should build a placement plan.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit fortify apply/undo test should not emit a plan error in the controlled room.")
+	TEST_ASSERT_EQUAL(plan.metadata["skipped_existing_count"], 1, "World Edit fortify apply/undo test should mark the pre-existing same-direction barricade slot as skipped.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit fortify apply/undo test should keep only the door placement once the matching window slot already exists.")
+
+	var/datum/world_edit_apply_result/apply_result = generator.apply_plan(null, params, plan)
+	TEST_ASSERT(istype(apply_result, /datum/world_edit_apply_result), "World Edit fortify apply/undo test should return an apply result datum.")
+	TEST_ASSERT(apply_result.success, "World Edit fortify apply/undo test should still succeed when only the door slot remains additive.")
+	TEST_ASSERT_EQUAL(apply_result.created_count, 1, "World Edit fortify apply/undo test should create exactly one new barricade after skipping the existing window slot.")
+	TEST_ASSERT_EQUAL(apply_result.meta["created_door_count"], 1, "World Edit fortify apply/undo test should report the created folding door barricade.")
+	TEST_ASSERT_EQUAL(apply_result.meta["created_window_count"], 0, "World Edit fortify apply/undo test should not create a new window barricade when that slot is already occupied.")
+
+	var/obj/structure/barricade/plasteel/created_door_barricade = null
+	for(var/obj/structure/barricade/plasteel/test_barricade in north_edge_turf)
+		if(test_barricade.dir == NORTH)
+			created_door_barricade = test_barricade
+			break
+	TEST_ASSERT_NOTNULL(created_door_barricade, "World Edit fortify apply/undo test should place the folding barricade door on the north edge turf.")
+	TEST_ASSERT_NOTNULL(existing_window_barricade, "World Edit fortify apply/undo test should keep the original east-edge barricade instance alive after apply.")
+	TEST_ASSERT(!QDELETED(existing_window_barricade), "World Edit fortify apply/undo test should preserve the original east-edge barricade instead of replacing it.")
+
+	var/list/undo_result = GLOB.world_edit_changesets.revert_changeset(apply_result.changeset)
+	TEST_ASSERT_EQUAL(undo_result["outcome"], "full", "World Edit fortify apply/undo test should fully revert the created folding barricade door.")
+	TEST_ASSERT_EQUAL(undo_result["reverted_count"], 1, "World Edit fortify apply/undo test should revert exactly the created folding barricade door.")
+	TEST_ASSERT(QDELETED(created_door_barricade), "World Edit fortify apply/undo test should remove the created folding barricade door on undo.")
+	TEST_ASSERT(!QDELETED(existing_window_barricade), "World Edit fortify apply/undo test should leave the pre-existing east-edge barricade intact after undo.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_apply_noop_with_fully_fortified_room_is_successful/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify no-op apply test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify no-op apply test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	var/turf/east_edge_turf = room_context["east_edge_turf"]
+	var/turf/north_edge_turf = room_context["north_edge_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify no-op apply test should keep a valid center turf after room setup.")
+	TEST_ASSERT_NOTNULL(east_edge_turf, "World Edit fortify no-op apply test should resolve the east interior edge turf.")
+	TEST_ASSERT_NOTNULL(north_edge_turf, "World Edit fortify no-op apply test should resolve the north interior edge turf.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_anchor_turf = center_turf
+
+	var/obj/structure/barricade/metal/existing_window_barricade = allocate(/obj/structure/barricade/metal, east_edge_turf)
+	TEST_ASSERT_NOTNULL(existing_window_barricade, "World Edit fortify no-op apply test should create the pre-existing window barricade helper.")
+	existing_window_barricade.setDir(EAST)
+
+	var/obj/structure/barricade/plasteel/metal/existing_door_barricade = allocate(/obj/structure/barricade/plasteel/metal, north_edge_turf)
+	TEST_ASSERT_NOTNULL(existing_door_barricade, "World Edit fortify no-op apply test should create the pre-existing door barricade helper.")
+	existing_door_barricade.setDir(NORTH)
+
+	var/list/cleanup_atoms = room_context["cleanup_atoms"]
+	cleanup_atoms[length(cleanup_atoms) + 1] = existing_window_barricade
+	cleanup_atoms[length(cleanup_atoms) + 1] = existing_door_barricade
+
+	var/list/params = definition.default_params?.Copy() || list()
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, build_fortify_test_placement_context(center_turf))
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify no-op apply test should build a placement plan.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit fortify no-op apply test should not emit a plan error in the controlled room.")
+	TEST_ASSERT_EQUAL(plan.metadata["skipped_existing_count"], 2, "World Edit fortify no-op apply test should skip both pre-existing same-direction barricade slots.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 0, "World Edit fortify no-op apply test should produce no new placements when every slot is already fortified.")
+
+	var/datum/world_edit_apply_result/apply_result = generator.apply_plan(null, params, plan)
+	TEST_ASSERT(istype(apply_result, /datum/world_edit_apply_result), "World Edit fortify no-op apply test should return an apply result datum.")
+	TEST_ASSERT(apply_result.success, "World Edit fortify no-op apply test should treat a fully-fortified room as a successful no-op apply.")
+	TEST_ASSERT_EQUAL(apply_result.created_count, 0, "World Edit fortify no-op apply test should not create any new barricades.")
+	TEST_ASSERT_EQUAL(apply_result.meta["created_window_count"], 0, "World Edit fortify no-op apply test should report zero created window barricades.")
+	TEST_ASSERT_EQUAL(apply_result.meta["created_door_count"], 0, "World Edit fortify no-op apply test should report zero created door barricades.")
+	TEST_ASSERT_EQUAL(apply_result.meta["skipped_runtime"], 0, "World Edit fortify no-op apply test should not accumulate runtime skips when the plan is already empty.")
+	TEST_ASSERT_NULL(apply_result.changeset, "World Edit fortify no-op apply test should not create an undo changeset for a successful no-op apply.")
+
+/datum/unit_test/world_edit_corner_slots/fortify_room_preview_specs_match_plan_placements_and_seed_fallbacks/Run()
+	var/datum/world_edit_manager/manager = allocate(/datum/world_edit_manager)
+	var/datum/world_edit_generator_definition/fortify_room/definition = allocate(/datum/world_edit_generator_definition/fortify_room)
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify preview-spec test center turf was not resolved.")
+
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify preview-spec test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify preview-spec test should keep a valid center turf after room setup.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+
+	var/mob/living/carbon/human/human = allocate(/mob/living/carbon/human, center_turf)
+	TEST_ASSERT_NOTNULL(human, "World Edit fortify preview-spec test should create a fallback-seed human helper.")
+	var/list/cleanup_atoms = room_context["cleanup_atoms"]
+	cleanup_atoms[length(cleanup_atoms) + 1] = human
+
+	manager.placement_anchor_turf = null
+	TEST_ASSERT_EQUAL(generator.resolve_fortify_anchor_turf(human), center_turf, "World Edit fortify preview-spec test should fall back to the user's current turf when no placement anchor is active.")
+
+	manager.placement_anchor_turf = center_turf
+	TEST_ASSERT_EQUAL(generator.resolve_fortify_anchor_turf(human), center_turf, "World Edit fortify preview-spec test should prefer the active placement anchor when one exists.")
+
+	var/list/params = definition.default_params?.Copy() || list()
+	manager.current_params = params.Copy()
+	var/datum/world_edit_plan/plan = generator.build_plan(params)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit fortify preview-spec test should build a plan from the manager anchor turf.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit fortify preview-spec test should build a valid fortify plan from the manager anchor turf.")
+	TEST_ASSERT_EQUAL(plan.metadata["seed_turf"], center_turf, "World Edit fortify preview-spec test should expose the point seed turf in the built plan metadata.")
+	TEST_ASSERT_EQUAL(length(generator.build_plan_preview_object_specs(plan, params, build_fortify_test_placement_context(center_turf), TRUE)), 0, "World Edit fortify preview-spec test should skip expensive object-preview specs for hover-only placement previews.")
+	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit fortify preview-spec test should synthesize placement-preview layers from the fortify plan.")
+
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate?.preview_model, /datum/world_edit_preview_model), "World Edit fortify preview-spec test should keep a preview model on the synthesized placement candidate.")
+	TEST_ASSERT_EQUAL(length(candidate.preview_model.generator_preview_object_specs), length(plan.placements), "World Edit fortify preview-spec test should expose one object-preview spec per planned barricade placement.")
+	TEST_ASSERT_EQUAL(length(GLOB.world_edit_helpers.build_preview_images_from_specs(candidate.preview_model.generator_preview_object_specs)), length(plan.placements), "World Edit fortify preview-spec test should resolve each planned barricade placement into a preview image.")

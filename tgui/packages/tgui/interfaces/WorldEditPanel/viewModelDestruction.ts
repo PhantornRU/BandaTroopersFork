@@ -51,7 +51,9 @@ const getDestructionPreviewLegendItems = (
 
   return [
     ...(moveEnabled ? [{ label: 'Перемещение', color: '#4e8eff' }] : []),
-    ...(previewFireEnabled ? [{ label: 'Огонь', color: firePreviewColor }] : []),
+    ...(previewFireEnabled
+      ? [{ label: 'Огонь', color: firePreviewColor }]
+      : []),
     ...(previewDamageEnabled ? [{ label: 'Урон', color: '#b85cff' }] : []),
     ...(previewBlastEnabled ? [{ label: 'Взрыв', color: '#ff4e4e' }] : []),
   ];

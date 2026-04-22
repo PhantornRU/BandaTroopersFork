@@ -177,6 +177,114 @@
 	session.last_resolved_candidate_hover_only = FALSE
 	return TRUE
 
+/datum/world_edit_manager/proc/reset_runtime_diagnostics()
+	runtime_diagnostics = list(
+		"started_at_ds" = world.time,
+		"hover_preview_requests" = 0,
+		"hover_resolve_calls" = 0,
+		"click_resolve_calls" = 0,
+		"resolve_cache_hits" = 0,
+		"resolve_cache_misses" = 0,
+		"outpost_clamp_attempts" = 0,
+		"outpost_clamp_successes" = 0,
+		"outpost_clamp_hover_skips" = 0,
+		"preview_render_calls" = 0,
+		"preview_render_skips" = 0,
+		"preview_image_rebuilds" = 0,
+		"preview_images_last" = 0,
+		"preview_images_peak" = 0,
+	)
+	return runtime_diagnostics
+
+/datum/world_edit_manager/proc/get_runtime_diagnostics()
+	if(!islist(runtime_diagnostics) || !length(runtime_diagnostics))
+		reset_runtime_diagnostics()
+	return runtime_diagnostics
+
+/datum/world_edit_manager/proc/increment_runtime_diagnostic(counter_id, amount = 1)
+	if(!length("[counter_id]"))
+		return 0
+
+	var/list/diagnostics = get_runtime_diagnostics()
+	var/current_value = text2num("[diagnostics[counter_id]]")
+	current_value += amount
+	diagnostics[counter_id] = current_value
+	return current_value
+
+/datum/world_edit_manager/proc/set_runtime_diagnostic_peak(counter_id, value)
+	if(!length("[counter_id]"))
+		return 0
+
+	var/list/diagnostics = get_runtime_diagnostics()
+	var/current_value = text2num("[diagnostics[counter_id]]")
+	var/next_value = max(current_value, value)
+	diagnostics[counter_id] = next_value
+	return next_value
+
+/datum/world_edit_manager/proc/build_runtime_status_entries()
+	var/list/entries = list()
+	var/list/diagnostics = get_runtime_diagnostics()
+	var/list/generator_entries = current_generator?.get_runtime_status()
+	var/has_placement_activity = FALSE
+	for(var/counter_id in list(
+		"hover_preview_requests",
+		"hover_resolve_calls",
+		"click_resolve_calls",
+		"resolve_cache_hits",
+		"resolve_cache_misses",
+		"outpost_clamp_attempts",
+		"outpost_clamp_successes",
+		"outpost_clamp_hover_skips",
+		"preview_render_calls",
+		"preview_render_skips",
+		"preview_image_rebuilds",
+	))
+		if(text2num("[diagnostics[counter_id]]") > 0)
+			has_placement_activity = TRUE
+			break
+
+	if(supports_current_placement_ux() && has_placement_activity)
+		var/started_at_ds = diagnostics["started_at_ds"] || world.time
+		var/hover_preview_requests = diagnostics["hover_preview_requests"] || 0
+		var/hover_resolve_calls = diagnostics["hover_resolve_calls"] || 0
+		var/click_resolve_calls = diagnostics["click_resolve_calls"] || 0
+		var/resolve_cache_hits = diagnostics["resolve_cache_hits"] || 0
+		var/resolve_cache_misses = diagnostics["resolve_cache_misses"] || 0
+		var/outpost_clamp_attempts = diagnostics["outpost_clamp_attempts"] || 0
+		var/outpost_clamp_successes = diagnostics["outpost_clamp_successes"] || 0
+		var/outpost_clamp_hover_skips = diagnostics["outpost_clamp_hover_skips"] || 0
+		var/preview_image_rebuilds = diagnostics["preview_image_rebuilds"] || 0
+		var/preview_render_skips = diagnostics["preview_render_skips"] || 0
+		var/preview_images_last = diagnostics["preview_images_last"] || 0
+		var/preview_images_peak = diagnostics["preview_images_peak"] || 0
+		var/elapsed_seconds = round(max(0, world.time - started_at_ds) / 10, 1)
+		entries += list(
+			list("label" = "Session", "value" = "[elapsed_seconds]s"),
+			list("label" = "Hover preview", "value" = "[hover_preview_requests]"),
+			list("label" = "Hover resolve", "value" = "[hover_resolve_calls]"),
+			list("label" = "Click resolve", "value" = "[click_resolve_calls]"),
+			list("label" = "Cache", "value" = "[resolve_cache_hits]/[resolve_cache_misses]"),
+			list("label" = "Clamp tries", "value" = "[outpost_clamp_attempts]"),
+			list("label" = "Clamp ok", "value" = "[outpost_clamp_successes]"),
+			list("label" = "Clamp hover skip", "value" = "[outpost_clamp_hover_skips]"),
+			list("label" = "Render rebuilds", "value" = "[preview_image_rebuilds]"),
+			list("label" = "Render skips", "value" = "[preview_render_skips]"),
+			list("label" = "Images", "value" = "[preview_images_last]/[preview_images_peak]"),
+		)
+
+	if(islist(generator_entries))
+		for(var/list/entry as anything in generator_entries)
+			if(!islist(entry))
+				continue
+			var/label = "[entry["label"]]"
+			if(!length(label))
+				continue
+			entries += list(list(
+				"label" = label,
+				"value" = "[entry["value"]]",
+			))
+	return entries
+
 /datum/world_edit_manager/proc/get_last_resolved_placement_candidate(list/effective_params, datum/world_edit_shape_contract/shape_contract, turf/resolved_end_turf, hover_only = FALSE, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null, list/collector_state_summary = null)
 	var/datum/world_edit_placement_session/session = placement_session
 	if(!istype(session))
@@ -199,6 +307,7 @@
 		return null
 
 	candidate.hover_only = hover_only ? TRUE : FALSE
+	increment_runtime_diagnostic(hover_only ? "hover_resolve_calls" : "click_resolve_calls")
 	candidate.runtime_params = islist(effective_params) ? effective_params.Copy() : list()
 	candidate.shape_contract = shape_contract
 	if(islist(collector_state_summary))
@@ -232,15 +341,29 @@
 	session.last_resolved_candidate_hover_only = candidate.hover_only ? TRUE : FALSE
 	return TRUE
 
+/datum/world_edit_manager/proc/build_placement_preview_turf_signature(list/turfs)
+	if(!islist(turfs) || !length(turfs))
+		return "<empty>"
+
+	var/list/turf_chunks = list()
+	for(var/turf/target_turf as anything in turfs)
+		if(!istype(target_turf))
+			continue
+		turf_chunks += GLOB.world_edit_helpers.turf_to_text(target_turf)
+
+	if(!length(turf_chunks))
+		return "<empty>"
+	return md5(jointext(turf_chunks, ";"))
+
 /datum/world_edit_manager/proc/build_placement_preview_layer_render_token(list/turfs, icon_state, color = null, alpha = null)
 	var/turf_count = islist(turfs) ? length(turfs) : 0
-	var/list_ref = islist(turfs) ? "[REF(turfs)]" : ""
+	var/turf_signature = build_placement_preview_turf_signature(turfs)
 	var/list/token_chunks = list(
 		length("[icon_state]") ? "[icon_state]" : "greenOverlay",
 		isnull(color) ? "" : "[color]",
 		isnum(alpha) ? "[clamp(round(alpha), 0, 255)]" : "",
 		"[turf_count]",
-		list_ref,
+		turf_signature,
 	)
 	return jointext(token_chunks, "|")
 
@@ -313,11 +436,13 @@
 	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(plan.affected_turfs)
 
 /datum/world_edit_manager/proc/render_safe_placement_preview(datum/world_edit_placement_candidate/candidate)
+	increment_runtime_diagnostic("preview_render_calls")
 	store_placement_preview_candidate(candidate)
 	if(!holder)
 		return
 	var/render_token = length("[placement_preview_render_token]") ? "[placement_preview_render_token]" : null
 	if(preview_groups_signature == render_token && length("[render_token]"))
+		increment_runtime_diagnostic("preview_render_skips")
 		return
 
 	clear_preview_images()
@@ -325,6 +450,9 @@
 	var/list/object_specs = candidate?.preview_model?.generator_preview_object_specs
 	if(islist(object_specs) && length(object_specs))
 		images += GLOB.world_edit_helpers.build_preview_images_from_specs(object_specs)
+	increment_runtime_diagnostic("preview_image_rebuilds")
+	get_runtime_diagnostics()["preview_images_last"] = length(images)
+	set_runtime_diagnostic_peak("preview_images_peak", length(images))
 	if(length(images))
 		holder.images += images
 		preview_images = images.Copy()
@@ -351,11 +479,27 @@
 /datum/world_edit_manager/proc/resolve_placement_candidate_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, turf/start_turf, turf/end_turf, list/effective_params, effective_direction, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null)
 	var/datum/world_edit_placement_candidate/candidate = new
 	candidate.hover_only = hover_only ? TRUE : FALSE
+	increment_runtime_diagnostic(hover_only ? "hover_resolve_calls" : "click_resolve_calls")
 	if(!istype(shape_contract))
 		candidate.resolve_error = "Не удалось построить контракт формы для размещения."
 		return candidate
 
 	apply_shape_contract_runtime_metadata(shape_contract, shape_metadata_override, collector_state_summary)
+	var/datum/world_edit_placement_candidate/cached_candidate = get_last_resolved_placement_candidate(
+		effective_params,
+		shape_contract,
+		end_turf,
+		hover_only,
+		requested_end_turf || end_turf,
+		seed_turf,
+		shape_origin_turf,
+		collector_state_summary,
+	)
+	if(istype(cached_candidate))
+		increment_runtime_diagnostic("resolve_cache_hits")
+		return cached_candidate
+	increment_runtime_diagnostic("resolve_cache_misses")
+
 	var/list/placement_context = build_placement_context(shape_contract, start_turf, end_turf, requested_end_turf || end_turf, seed_turf, shape_origin_turf, effective_direction)
 	candidate = build_placement_candidate(shape_contract, placement_context, null, effective_params, hover_only, collector_state_summary)
 	if(!istype(candidate))
@@ -370,19 +514,6 @@
 	if(!length(shape_contract.anchor_turfs))
 		candidate.resolve_error = "Недопустимый контур размещения."
 		return candidate
-
-	var/datum/world_edit_placement_candidate/cached_candidate = get_last_resolved_placement_candidate(
-		effective_params,
-		shape_contract,
-		end_turf,
-		hover_only,
-		requested_end_turf || end_turf,
-		seed_turf,
-		shape_origin_turf,
-		collector_state_summary,
-	)
-	if(istype(cached_candidate))
-		return cached_candidate
 
 	var/list/support_result = current_generator.evaluate_shape_contract(shape_contract, effective_params, candidate.placement_context)
 	var/datum/world_edit_plan/prebuilt_plan = null
@@ -450,6 +581,7 @@
 /datum/world_edit_manager/proc/resolve_placement_candidate_with_optional_outpost_clamp(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null, turf/segment_start_turf = null)
 	var/requested_shape_id = shape_id_override || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/turf/requested_turf = requested_end_turf || end_turf
+	var/can_attempt_clamp = can_attempt_outpost_endpoint_clamp(requested_shape_id, start_turf, requested_turf, segment_start_turf)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate(
 		user,
 		start_turf,
@@ -467,7 +599,13 @@
 		return candidate
 	if(candidate.is_preview_ready())
 		return candidate
-	if(!can_attempt_outpost_endpoint_clamp(requested_shape_id, start_turf, requested_turf, segment_start_turf))
+	// Hover previews must stay cheap: endpoint clamp can retry many shorter shapes and
+	// explode into repeated full plan builds while the cursor is moving.
+	if(hover_only)
+		if(can_attempt_clamp)
+			increment_runtime_diagnostic("outpost_clamp_hover_skips")
+		return candidate
+	if(!can_attempt_clamp)
 		return candidate
 
 	segment_start_turf = segment_start_turf || start_turf
@@ -490,6 +628,7 @@
 				continue
 			attempted_signatures[attempt_signature] = TRUE
 
+		increment_runtime_diagnostic("outpost_clamp_attempts")
 		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(
 			user,
 			clamped_shape_contract,
@@ -512,12 +651,15 @@
 		clamped_candidate.placement_context["requested_end_turf"] = requested_turf
 		clamped_candidate.placement_context["resolved_end_turf"] = clamped_end_turf
 		stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
+		increment_runtime_diagnostic("outpost_clamp_successes")
 		return clamped_candidate
 
 	return candidate
 
 /datum/world_edit_manager/proc/evaluate_safe_placement_preview(mob/user, shape_id, turf/start_turf, turf/end_turf, list/shape_metadata_override = null, message_prefix = "", silent = FALSE, hover_only = FALSE)
 	set_placement_hover_turf(end_turf)
+	if(hover_only)
+		increment_runtime_diagnostic("hover_preview_requests")
 	var/list/effective_params = build_effective_generator_params(null, shape_id)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_outpost_clamp(user, start_turf, end_turf, effective_params, hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
 	render_safe_placement_preview(candidate)

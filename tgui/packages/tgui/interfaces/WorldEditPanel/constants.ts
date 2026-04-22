@@ -30,6 +30,16 @@ export const FIELD_LABELS: Record<string, string> = {
   damage_profile: 'Структурный урон',
   max_atoms: 'Лимит объектов',
   stamp_spacing: 'Шаг между шаблонами',
+  preset_id: 'Пресет',
+  material_family: 'Материал',
+  material_wired: 'Проволока',
+  door_policy: 'Двери',
+  door_material_family: 'Материал дверей',
+  door_wired: 'Проволока на дверях',
+  room_tile_cap: 'Лимит клеток',
+  treat_windows_as_boundary: 'Окна как граница',
+  fortify_windows: 'Укреплять окна',
+  treat_doors_as_boundary: 'Двери как граница',
   shape_line_length: 'Длина линии',
   shape_line_spacing: 'Шаг линии',
   shape_rect_width: 'Ширина',
@@ -215,7 +225,31 @@ export const OUTPOST_BARRICADE_PATTERN_LABELS: Record<string, string> = {
   paired: 'Парные секции',
 };
 
-export const OUTPOST_PERIMETER_PATTERN_LABELS = OUTPOST_BARRICADE_PATTERN_LABELS;
+export const OUTPOST_PERIMETER_PATTERN_LABELS =
+  OUTPOST_BARRICADE_PATTERN_LABELS;
+
+export const FORTIFY_PRESET_LABELS: Record<string, string> = {
+  legacy_wood: 'Дерево',
+  legacy_sandbag: 'Мешки',
+  legacy_sandbag_wired: 'Мешки + проволока',
+  legacy_metal: 'Металл',
+  legacy_metal_wired: 'Металл + проволока',
+  legacy_plasteel: 'Пласталь',
+  legacy_plasteel_wired: 'Пласталь + проволока',
+  custom: 'Свой',
+};
+
+export const FORTIFY_MATERIAL_LABELS: Record<string, string> = {
+  wood: 'Дерево',
+  sandbag: 'Мешки',
+  metal: 'Металл',
+  plasteel: 'Пласталь',
+};
+
+export const FORTIFY_DOOR_POLICY_LABELS: Record<string, string> = {
+  auto: 'Авто',
+  custom: 'Вручную',
+};
 
 export const DAMAGE_PROFILE_LABELS: Record<string, string> = {
   none: 'Без урона',

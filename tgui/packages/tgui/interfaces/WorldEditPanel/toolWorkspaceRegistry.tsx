@@ -1,6 +1,7 @@
 import type { ToolWorkspaceProps } from './types';
 import { BlueprintStampWorkspace } from './workspaceBlueprint';
 import { DestructionPackWorkspace } from './workspaceDestruction';
+import { FortifyRoomWorkspace } from './workspaceFortify';
 import { GenericToolWorkspace } from './workspaceGeneric';
 import { OutpostRadiusWorkspace } from './workspaceOutpost';
 
@@ -9,6 +10,9 @@ type ToolWorkspaceRenderer = (props: ToolWorkspaceProps) => JSX.Element;
 const TOOL_WORKSPACE_RENDERERS: Record<string, ToolWorkspaceRenderer> = {
   blueprint_stamp: ({ data, act }) => (
     <BlueprintStampWorkspace data={data} act={act} />
+  ),
+  fortify_room: ({ data, act }) => (
+    <FortifyRoomWorkspace data={data} act={act} />
   ),
   outpost_radius: ({ data, act }) => (
     <OutpostRadiusWorkspace data={data} act={act} />

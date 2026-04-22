@@ -1,5 +1,6 @@
 import { Box, Section } from '../../components';
 import { EditorChrome } from './editorChrome';
+import { CompactStatusRow, SurfaceCard } from './primitives';
 import type {
   ActFn,
   BackendData,
@@ -9,6 +10,29 @@ import type {
 } from './types';
 import { HistoryWorkspace } from './workspaceHistory';
 import { ToolWorkspace } from './workspaceTool';
+
+const RuntimeStatusCard = (props: { readonly data: BackendData }) => {
+  const items = (props.data.runtime_status || [])
+    .filter((entry) => `${entry.label || ''}`.trim().length > 0)
+    .map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+    }));
+
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <SurfaceCard
+      title="Runtime"
+      subtitle="Live hover/clamp/render counters for the current tool session."
+      mt={0.6}
+    >
+      <CompactStatusRow items={items} basis="31%" />
+    </SurfaceCard>
+  );
+};
 
 const WorkspacePage = (props: {
   readonly data: BackendData;
@@ -58,13 +82,16 @@ const WorkspacePage = (props: {
 
       {!!data.has_generator &&
         (workspaceTab === 'editor' ? (
-          <ToolWorkspace
-            data={data}
-            act={act}
-            groupedFields={groupedFields}
-            groupNames={groupNames}
-            showPlacementSetup={showPlacementSetup}
-          />
+          <>
+            <ToolWorkspace
+              data={data}
+              act={act}
+              groupedFields={groupedFields}
+              groupNames={groupNames}
+              showPlacementSetup={showPlacementSetup}
+            />
+            <RuntimeStatusCard data={data} />
+          </>
         ) : (
           <HistoryWorkspace data={data} act={act} />
         ))}

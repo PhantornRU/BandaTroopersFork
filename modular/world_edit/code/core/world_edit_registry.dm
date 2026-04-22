@@ -35,6 +35,29 @@
 	)
 	status = WORLD_EDIT_STATUS_READY
 
+/datum/world_edit_generator_definition/fortify_room
+	id = "fortify_room"
+	name_ru = "Fortify Room"
+	category_ru = "Construction"
+	description_ru = "Point-seeded room fortification with preview-first additive barricade placement."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = WORLD_EDIT_EXECUTION_BATCH
+	generator_type = /datum/world_edit_generator/fortify_room
+	default_params = list(
+		"preset_id" = "legacy_metal",
+		"material_family" = "metal",
+		"material_wired" = FALSE,
+		"door_policy" = "auto",
+		"door_material_family" = "metal",
+		"door_wired" = FALSE,
+		"room_tile_cap" = 195,
+		"treat_windows_as_boundary" = TRUE,
+		"fortify_windows" = TRUE,
+		"treat_doors_as_boundary" = TRUE,
+	)
+	status = WORLD_EDIT_STATUS_READY
+
 /datum/world_edit_generator_definition/destruction_pack
 	id = "destruction_pack"
 	name_ru = "Пакет разрушения"

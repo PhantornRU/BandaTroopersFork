@@ -62,6 +62,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/list/placement_preview_generator_effect_turfs = list()
 	var/list/placement_collector_points = list()
 	var/turf/placement_collector_origin_turf
+	var/list/runtime_diagnostics = list()
 
 /datum/world_edit_manager/New(client/new_holder)
 	. = ..()
@@ -91,6 +92,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	placement_preview_guide_turfs = list()
 	placement_preview_generator_effect_turfs = list()
 	placement_collector_points = list()
+	reset_runtime_diagnostics()
 
 /datum/world_edit_manager/Destroy(force, ...)
 	stop_click_mode()
@@ -167,6 +169,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	reset_preview_runtime()
 	reset_apply_feedback()
 	last_ui_error = ""
+	reset_runtime_diagnostics()
 
 /// Корректно отсоединяет текущий экземпляр генератора.
 /datum/world_edit_manager/proc/detach_current_generator()

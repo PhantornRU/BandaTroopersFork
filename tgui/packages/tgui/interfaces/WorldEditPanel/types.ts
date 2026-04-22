@@ -146,6 +146,7 @@ export type BackendData = {
   preview_success: boolean;
   preview_message: string;
   preview_meta: Record<string, unknown>;
+  runtime_status: RuntimeStatusEntry[];
   last_apply_success: boolean;
   last_apply_message: string;
   last_undo_success: boolean;

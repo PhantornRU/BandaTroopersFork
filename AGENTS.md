@@ -34,6 +34,7 @@
 - В `code/**` и других не-`modular/` путях держать только минимальные точки интеграции, fallback и glue-код.
 - Маркеры `SS220 EDIT` применяются в upstream и согласованных config surfaces по правилам из [`modular/__docs/SS220_DEVELOPMENT_RULES.md`](./modular/__docs/SS220_DEVELOPMENT_RULES.md).
 - Сборку и compile-проверки запускать через `BUILD.cmd` или `tools/build/build`, а не через DreamMaker-only workflow.
+- Для локальной итерации не гонять полный `dm-test` на каждую правку: сначала compile/targeted checks, а полный unit-test suite запускать только по необходимости и перед финализацией behavior-sensitive изменений по правилам из [`modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`](./modular/__agents/.AI_AGENT/WORKFLOW_RULES.md).
 - Не использовать деструктивные git-команды без прямого запроса пользователя.
 
 ## Маршрутизация

@@ -4,6 +4,9 @@ import {
   DIRECTION_LABELS,
   EMPTY_LABEL,
   FIELD_LABELS,
+  FORTIFY_DOOR_POLICY_LABELS,
+  FORTIFY_MATERIAL_LABELS,
+  FORTIFY_PRESET_LABELS,
   NONE_LABEL,
   OUTPOST_LAYOUT_LABELS,
   OUTPOST_OPENING_WIDTH_LABELS,
@@ -179,6 +182,21 @@ export const translateOptionLabel = (
   const value = `${optionValue ?? ''}`.trim().toLowerCase();
 
   switch (fieldId) {
+    case 'preset_id':
+      return (
+        FORTIFY_PRESET_LABELS[value] || label || getDisplayText(optionValue)
+      );
+    case 'material_family':
+    case 'door_material_family':
+      return (
+        FORTIFY_MATERIAL_LABELS[value] || label || getDisplayText(optionValue)
+      );
+    case 'door_policy':
+      return (
+        FORTIFY_DOOR_POLICY_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
+      );
     case 'defense_profile':
       return (
         OUTPOST_TACTICAL_PROFILE_LABELS[value] ||

@@ -6,6 +6,7 @@
 		"preview_success" = last_preview_success,
 		"preview_message" = last_preview_message,
 		"preview_meta" = last_preview_meta || list(),
+		"runtime_status" = build_runtime_status_entries(),
 		"last_apply_success" = last_apply_success,
 		"last_apply_message" = last_apply_message,
 		"last_undo_success" = last_undo_success,

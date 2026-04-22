@@ -14,6 +14,12 @@ const TOOL_META_REGISTRY: Record<string, ToolMeta> = {
     titleLabel: 'Штамп по шаблону',
     pickerLabel: 'Шаблон',
   },
+  fortify_room: {
+    id: 'fortify_room',
+    order: 15,
+    titleLabel: 'Fortify Room',
+    pickerLabel: 'Fortify',
+  },
   outpost_radius: {
     id: 'outpost_radius',
     order: 20,

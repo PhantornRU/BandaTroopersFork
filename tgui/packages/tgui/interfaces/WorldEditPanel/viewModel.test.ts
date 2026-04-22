@@ -10,6 +10,7 @@ import {
   getSharedModeViewModel,
   getToolbarActions,
 } from './viewModel';
+import { getFortifyWorkspaceViewModel } from './viewModelFortify';
 
 const makeField = (
   overrides: Partial<UiField> & Pick<UiField, 'id'>,
@@ -89,6 +90,7 @@ const BASE_BACKEND_DATA: BackendData = {
   preview_success: false,
   preview_message: '',
   preview_meta: {},
+  runtime_status: [],
   last_apply_success: false,
   last_apply_message: '',
   last_undo_success: false,
@@ -138,6 +140,50 @@ describe('WorldEditPanel view model', () => {
     expect(model.groupNames).toEqual(['First', 'Second']);
     expect(model.groupedFields.First.map((field) => field.id)).toEqual(['a']);
     expect(model.toolTabs.map((tab) => tab.id)).toEqual(['destruction_pack']);
+  });
+
+  it('orders the fortify tool between blueprint and outpost tabs', () => {
+    const model = buildWorldEditViewModel(
+      makeData({
+        categories: [
+          {
+            category: 'Tools',
+            generators: [
+              {
+                id: 'outpost_radius',
+                name_ru: 'Outpost',
+                description_ru: '',
+                execution_mode: '',
+                required_rights: '',
+                supports_preview: true,
+              },
+              {
+                id: 'fortify_room',
+                name_ru: 'Fortify Room',
+                description_ru: '',
+                execution_mode: '',
+                required_rights: '',
+                supports_preview: true,
+              },
+              {
+                id: 'blueprint_stamp',
+                name_ru: 'Blueprint',
+                description_ru: '',
+                execution_mode: '',
+                required_rights: '',
+                supports_preview: true,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(model.toolTabs.map((tab) => tab.id)).toEqual([
+      'blueprint_stamp',
+      'fortify_room',
+      'outpost_radius',
+    ]);
   });
 
   it('derives toolbar actions from preview and placement state', () => {
@@ -577,14 +623,17 @@ describe('WorldEditPanel view model', () => {
   });
 
   it('surfaces canonical outpost labels without legacy ids', () => {
-    const { getTranslatedFieldLabel, translateOptionLabel } = require('./helpers');
+    const {
+      getTranslatedFieldLabel,
+      translateOptionLabel,
+    } = require('./helpers');
 
-    expect(getTranslatedFieldLabel(makeField({ id: 'defense_profile' }))).not.toBe(
-      'defense_profile',
-    );
-    expect(getTranslatedFieldLabel(makeField({ id: 'layout_variant' }))).not.toBe(
-      'layout_variant',
-    );
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'defense_profile' })),
+    ).not.toBe('defense_profile');
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'layout_variant' })),
+    ).not.toBe('layout_variant');
     expect(
       getTranslatedFieldLabel(makeField({ id: 'primary_material_path' })),
     ).not.toBe('primary_material_path');
@@ -599,16 +648,114 @@ describe('WorldEditPanel view model', () => {
     expect(
       translateOptionLabel('defense_profile', '', 'fallback_redoubt'),
     ).not.toBe('fallback_redoubt');
-    expect(
-      translateOptionLabel('layout_variant', '', 'funnel_front'),
-    ).not.toBe('funnel_front');
-    expect(
-      translateOptionLabel('barricade_pattern', '', 'uniform'),
-    ).not.toBe('uniform');
+    expect(translateOptionLabel('layout_variant', '', 'funnel_front')).not.toBe(
+      'funnel_front',
+    );
+    expect(translateOptionLabel('barricade_pattern', '', 'uniform')).not.toBe(
+      'uniform',
+    );
     expect(
       translateOptionLabel('barricade_pattern', '', 'unexpected_pattern'),
-    ).toBe(
-      'unexpected_pattern',
+    ).toBe('unexpected_pattern');
+  });
+
+  it('translates fortify labels and option values through canonical ids', () => {
+    const {
+      getTranslatedFieldLabel,
+      translateOptionLabel,
+    } = require('./helpers');
+
+    expect(
+      getTranslatedFieldLabel(makeField({ id: 'preset_id', kind: 'select' })),
+    ).toBe('Пресет');
+    expect(
+      getTranslatedFieldLabel(
+        makeField({ id: 'door_material_family', kind: 'select' }),
+      ),
+    ).toBe('Материал дверей');
+    expect(translateOptionLabel('preset_id', '', 'legacy_metal_wired')).toBe(
+      'Металл + проволока',
     );
+    expect(translateOptionLabel('material_family', '', 'plasteel')).toBe(
+      'Пласталь',
+    );
+    expect(translateOptionLabel('door_policy', '', 'custom')).toBe('Вручную');
+  });
+
+  it('partitions fortify workspace fields into compact config and bounds groups', () => {
+    const viewModel = getFortifyWorkspaceViewModel(
+      makeData({
+        current_generator_id: 'fortify_room',
+        ui_fields: [
+          makeField({
+            id: 'preset_id',
+            kind: 'select',
+            value: 'legacy_metal',
+          }),
+          makeField({
+            id: 'material_family',
+            kind: 'select',
+            value: 'metal',
+          }),
+          makeField({
+            id: 'material_wired',
+            kind: 'boolean',
+            value: false,
+          }),
+          makeField({
+            id: 'door_policy',
+            kind: 'select',
+            value: 'custom',
+          }),
+          makeField({
+            id: 'door_material_family',
+            kind: 'select',
+            value: 'plasteel',
+          }),
+          makeField({
+            id: 'door_wired',
+            kind: 'boolean',
+            value: true,
+          }),
+          makeField({
+            id: 'room_tile_cap',
+            kind: 'number',
+            value: 195,
+          }),
+          makeField({
+            id: 'treat_windows_as_boundary',
+            kind: 'boolean',
+            value: true,
+          }),
+          makeField({
+            id: 'fortify_windows',
+            kind: 'boolean',
+            value: true,
+          }),
+          makeField({
+            id: 'treat_doors_as_boundary',
+            kind: 'boolean',
+            value: true,
+          }),
+        ],
+      }),
+    );
+
+    expect(viewModel.primaryConfigFields.map((field) => field.id)).toEqual([
+      'preset_id',
+      'material_family',
+      'material_wired',
+      'door_policy',
+    ]);
+    expect(viewModel.extraConfigFields.map((field) => field.id)).toEqual([
+      'door_material_family',
+      'door_wired',
+    ]);
+    expect(viewModel.boundsFields.map((field) => field.id)).toEqual([
+      'room_tile_cap',
+      'treat_windows_as_boundary',
+      'fortify_windows',
+      'treat_doors_as_boundary',
+    ]);
   });
 });

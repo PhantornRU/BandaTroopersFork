@@ -38,14 +38,8 @@ const DestructionSplitBlock = (props: {
   readonly headerColumnGap?: string;
   readonly children: ReactNode;
 }) => {
-  const {
-    title,
-    tone,
-    headerAside,
-    headerColumns,
-    headerColumnGap,
-    children,
-  } = props;
+  const { title, tone, headerAside, headerColumns, headerColumnGap, children } =
+    props;
   const { borderColor } = getSurfaceColors(tone);
 
   return (
