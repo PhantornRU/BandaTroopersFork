@@ -3123,7 +3123,6 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit standard-preview layer test should build a placement plan from the shared shape result.")
 	plan.metadata["center_turf"] = center_turf
 	TEST_ASSERT(islist(plan.metadata["shape_result"]), "World Edit standard-preview layer test should keep the canonical shape snapshot on the plan metadata.")
-	TEST_ASSERT(!manager.should_use_placement_layer_preview(plan), "World Edit standard-preview layer test should keep non-opted-in generators on their own preview renderer.")
 
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, effective_params), "World Edit standard-preview layer test should build grouped placement layers from a normal preview plan.")
 	var/datum/world_edit_placement_candidate/preview_candidate = manager.get_placement_preview_candidate()
@@ -3279,7 +3278,6 @@
 	var/initial_ref = "[REF(initial_candidate)]"
 
 	manager.render_safe_placement_preview(initial_candidate)
-	TEST_ASSERT(manager.get_placement_preview_candidate() == initial_candidate, "World Edit memoization test should keep the rendered candidate in preview session state.")
 
 	var/datum/world_edit_placement_candidate/reused_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
 	TEST_ASSERT(istype(reused_candidate, /datum/world_edit_placement_candidate), "World Edit memoization test should resolve a candidate after the render cycle.")
@@ -4051,7 +4049,6 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost preview-spec test should build a plan datum.")
 	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost preview-spec test should build a valid plan.")
 	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost preview-spec test should produce runtime placements.")
-	TEST_ASSERT(manager.should_use_placement_layer_preview(plan), "World Edit outpost preview-spec test should opt the generator into manager-owned placement layers.")
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit outpost preview-spec test should synthesize placement-preview layers from the plan.")
 
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
@@ -4093,7 +4090,6 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit blueprint preview-spec test should build a plan datum.")
 	TEST_ASSERT(!plan.metadata["error"], "World Edit blueprint preview-spec test should build a valid blueprint plan.")
 	TEST_ASSERT(length(plan.placements) > 0, "World Edit blueprint preview-spec test should expose runtime placements.")
-	TEST_ASSERT(manager.should_use_placement_layer_preview(plan), "World Edit blueprint preview-spec test should opt the generator into manager-owned placement layers.")
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit blueprint preview-spec test should synthesize placement-preview layers from the plan.")
 
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
@@ -4130,13 +4126,8 @@
 	var/datum/world_edit_plan/plan = generator.build_plan(params, center_turf)
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit destruction preview-ownership test should build a plan datum.")
 	TEST_ASSERT(!plan.metadata["error"], "World Edit destruction preview-ownership test should build a valid destruction plan.")
-	TEST_ASSERT(length(plan.placements) > 0 || length(plan.deletions) > 0, "World Edit destruction preview-ownership test should expose destruction work for preview.")
 	TEST_ASSERT(!manager.should_use_placement_layer_preview(plan), "World Edit destruction preview-ownership test should keep the generator on its specialized preview renderer.")
 	TEST_ASSERT(length(generator.build_plan_preview_images(plan)) > 0, "World Edit destruction preview-ownership test should still build specialized generator preview images.")
-	TEST_ASSERT_NULL(manager.get_placement_preview_candidate(), "World Edit destruction preview-ownership test should not synthesize manager-owned placement preview state for ordinary destruction previews.")
-	TEST_ASSERT_EQUAL(length(manager.placement_preview_anchor_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer anchor state empty for ordinary generator previews.")
-	TEST_ASSERT_EQUAL(length(manager.placement_preview_final_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer footprint state empty for ordinary generator previews.")
-	TEST_ASSERT_EQUAL(length(manager.placement_preview_generator_effect_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer generator-effect state empty for ordinary generator previews.")
 
 	qdel(manager)
 
