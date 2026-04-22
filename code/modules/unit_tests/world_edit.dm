@@ -1967,6 +1967,79 @@
 		fdel(blueprint_file_path)
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/activate_blueprint_generator_invalidates_same_id_preview_revision_cache/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/blueprint_stamp/definition = new
+	var/datum/world_edit_generator/blueprint_stamp/generator = allocate(/datum/world_edit_generator/blueprint_stamp)
+	var/list/blueprint = list(
+		"id" = "world_edit_blueprint_revision_refresh_test",
+		"name" = "World Edit Blueprint Revision Refresh Test",
+		"created_at" = "2026-04-22T00:00:00Z",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list("radius" = 1),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/barricade/metal]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	)
+	var/blueprint_file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint)
+	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit blueprint revision-refresh test should save the initial helper blueprint definition.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params["blueprint_id"] = blueprint["id"]
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list(list(
+		"id" = blueprint["id"],
+		"valid" = TRUE,
+		"file_path" = blueprint_file_path,
+	))
+
+	var/initial_revision = manager.get_active_blueprint_revision()
+	TEST_ASSERT(length(initial_revision), "World Edit blueprint revision-refresh test should resolve the initial revision hash.")
+	manager.mark_preview_state()
+	TEST_ASSERT(manager.is_preview_state_valid(), "World Edit blueprint revision-refresh test should start with a valid cached preview signature.")
+
+	blueprint["entries"] = list(
+		list(
+			"type" = "[/obj/structure/barricade/metal]",
+			"dx" = 0,
+			"dy" = 0,
+			"dz" = 0,
+			"dir" = NORTH,
+			"vars" = list(),
+		),
+		list(
+			"type" = "[/obj/structure/barricade/metal]",
+			"dx" = 1,
+			"dy" = 0,
+			"dz" = 0,
+			"dir" = EAST,
+			"vars" = list(),
+		),
+	)
+	TEST_ASSERT_EQUAL(GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint), blueprint_file_path, "World Edit blueprint revision-refresh test should overwrite the helper blueprint file in place.")
+	TEST_ASSERT(manager.is_preview_state_valid(), "World Edit blueprint revision-refresh test should still expose the stale cached signature before the same-id reload invalidates it.")
+	TEST_ASSERT(manager.activate_blueprint_generator(null, blueprint["id"], FALSE), "World Edit blueprint revision-refresh test should allow reloading the same blueprint id.")
+
+	var/refreshed_revision = manager.get_active_blueprint_revision()
+	TEST_ASSERT(length(refreshed_revision), "World Edit blueprint revision-refresh test should resolve the refreshed revision hash after reload.")
+	TEST_ASSERT_NOTEQUAL(refreshed_revision, initial_revision, "World Edit blueprint revision-refresh test should invalidate and recalculate the active blueprint revision hash after a same-id reload.")
+	TEST_ASSERT(!manager.is_preview_state_valid(), "World Edit blueprint revision-refresh test should invalidate the stale preview signature after reloading the same blueprint id.")
+
+	if(length("[blueprint_file_path]") && fexists(blueprint_file_path))
+		fdel(blueprint_file_path)
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/refresh_ui_keeps_active_collector_preview_context/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -3050,6 +3123,7 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit standard-preview layer test should build a placement plan from the shared shape result.")
 	plan.metadata["center_turf"] = center_turf
 	TEST_ASSERT(islist(plan.metadata["shape_result"]), "World Edit standard-preview layer test should keep the canonical shape snapshot on the plan metadata.")
+	TEST_ASSERT(!manager.should_use_placement_layer_preview(plan), "World Edit standard-preview layer test should keep non-opted-in generators on their own preview renderer.")
 
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, effective_params), "World Edit standard-preview layer test should build grouped placement layers from a normal preview plan.")
 	var/datum/world_edit_placement_candidate/preview_candidate = manager.get_placement_preview_candidate()
@@ -3179,6 +3253,42 @@
 
 	var/list/groups = manager.get_placement_preview_groups()
 	TEST_ASSERT_EQUAL("[groups["preview_render_token"]]", "[candidate.preview_render_token]", "World Edit preview-token test should expose the stored render token through grouped preview payloads.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/render_cycle_preserves_last_resolved_placement_candidate_cache/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit memoization test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit memoization test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/initial_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(initial_candidate, /datum/world_edit_placement_candidate), "World Edit memoization test should build the initial placement candidate.")
+	TEST_ASSERT(initial_candidate.is_preview_ready(), "World Edit memoization test should build a preview-ready initial candidate.")
+	var/initial_ref = "[REF(initial_candidate)]"
+
+	manager.render_safe_placement_preview(initial_candidate)
+	TEST_ASSERT(manager.get_placement_preview_candidate() == initial_candidate, "World Edit memoization test should keep the rendered candidate in preview session state.")
+
+	var/datum/world_edit_placement_candidate/reused_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(reused_candidate, /datum/world_edit_placement_candidate), "World Edit memoization test should resolve a candidate after the render cycle.")
+	TEST_ASSERT_EQUAL("[REF(reused_candidate)]", initial_ref, "World Edit memoization test should reuse the cached resolved candidate after rendering the preview.")
+
+	manager.reset_preview_runtime()
+	var/datum/world_edit_placement_candidate/fresh_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(fresh_candidate, /datum/world_edit_placement_candidate), "World Edit memoization test should still resolve a candidate after the runtime reset.")
+	TEST_ASSERT_NOTEQUAL("[REF(fresh_candidate)]", initial_ref, "World Edit memoization test should clear the cached resolved candidate on a full runtime reset.")
 
 	qdel(manager)
 
@@ -3941,6 +4051,7 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost preview-spec test should build a plan datum.")
 	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost preview-spec test should build a valid plan.")
 	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost preview-spec test should produce runtime placements.")
+	TEST_ASSERT(manager.should_use_placement_layer_preview(plan), "World Edit outpost preview-spec test should opt the generator into manager-owned placement layers.")
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit outpost preview-spec test should synthesize placement-preview layers from the plan.")
 
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
@@ -3982,12 +4093,50 @@
 	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit blueprint preview-spec test should build a plan datum.")
 	TEST_ASSERT(!plan.metadata["error"], "World Edit blueprint preview-spec test should build a valid blueprint plan.")
 	TEST_ASSERT(length(plan.placements) > 0, "World Edit blueprint preview-spec test should expose runtime placements.")
+	TEST_ASSERT(manager.should_use_placement_layer_preview(plan), "World Edit blueprint preview-spec test should opt the generator into manager-owned placement layers.")
 	TEST_ASSERT(manager.render_plan_preview_with_placement_layers(null, plan, params), "World Edit blueprint preview-spec test should synthesize placement-preview layers from the plan.")
 
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
 	TEST_ASSERT(istype(candidate?.preview_model, /datum/world_edit_preview_model), "World Edit blueprint preview-spec test should keep a preview model on the synthesized candidate.")
 	TEST_ASSERT_EQUAL(length(candidate.preview_model.generator_preview_object_specs), length(plan.placements), "World Edit blueprint preview-spec test should expose one object-preview spec per blueprint placement.")
 	TEST_ASSERT_EQUAL(length(GLOB.world_edit_helpers.build_preview_images_from_specs(candidate.preview_model.generator_preview_object_specs)), length(plan.placements), "World Edit blueprint preview-spec test should resolve each blueprint object-preview spec into a preview image.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/destruction_pack_preview_stays_generator_owned/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/destruction_pack/definition = new
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction preview-ownership test center turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+
+	var/list/params = definition.default_params?.Copy() || list()
+	params["radius"] = 2
+	params["shuffle_enabled"] = FALSE
+	params["scatter_enabled"] = FALSE
+	params["persistent_fire_enabled"] = TRUE
+	params["persistent_fire_density"] = 100
+	params["blast_enabled"] = FALSE
+	params["damage_profile"] = "none"
+	manager.current_params = params.Copy()
+
+	var/datum/world_edit_plan/plan = generator.build_plan(params, center_turf)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit destruction preview-ownership test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit destruction preview-ownership test should build a valid destruction plan.")
+	TEST_ASSERT(length(plan.placements) > 0 || length(plan.deletions) > 0, "World Edit destruction preview-ownership test should expose destruction work for preview.")
+	TEST_ASSERT(!manager.should_use_placement_layer_preview(plan), "World Edit destruction preview-ownership test should keep the generator on its specialized preview renderer.")
+	TEST_ASSERT(length(generator.build_plan_preview_images(plan)) > 0, "World Edit destruction preview-ownership test should still build specialized generator preview images.")
+	TEST_ASSERT_NULL(manager.get_placement_preview_candidate(), "World Edit destruction preview-ownership test should not synthesize manager-owned placement preview state for ordinary destruction previews.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_anchor_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer anchor state empty for ordinary generator previews.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_final_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer footprint state empty for ordinary generator previews.")
+	TEST_ASSERT_EQUAL(length(manager.placement_preview_generator_effect_turfs), 0, "World Edit destruction preview-ownership test should leave placement-layer generator-effect state empty for ordinary generator previews.")
 
 	qdel(manager)
 

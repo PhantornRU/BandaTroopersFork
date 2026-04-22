@@ -45,6 +45,9 @@
 	result.message = "Предпросмотр шаблона готов: опор=[plan.metadata["anchor_count"]], элементов=[plan.metadata["entry_count"]], пропущено=[plan.metadata["skipped_entry_count"] || 0], направление=[plan.metadata["placement_dir_label"]]."
 	return result
 
+/datum/world_edit_generator/blueprint_stamp/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
+	return istype(plan) ? TRUE : FALSE
+
 /datum/world_edit_generator/blueprint_stamp/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)
 

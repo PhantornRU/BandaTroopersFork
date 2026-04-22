@@ -404,10 +404,11 @@
 		origin_desc = "не задано"
 	return "Сборщик [shape_label]: точек=[point_count]/[max_points], минимум=[min_points], начало=[origin_desc]"
 
-/datum/world_edit_manager/proc/clear_placement_shape_preview_state(preserve_lock = FALSE, turf/preserved_hover_turf = null)
+/datum/world_edit_manager/proc/clear_placement_shape_preview_state(preserve_lock = FALSE, turf/preserved_hover_turf = null, clear_resolved_candidate_cache = TRUE)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/should_bump_context = istype(session.preview_candidate) || session.preview_locked || istype(session.confirm_arm_turf) || istype(session.hover_turf) || length(placement_preview_shape_result) || length("[placement_preview_render_token]") || length(placement_preview_anchor_turfs) || length(placement_preview_vertex_turfs) || length(placement_preview_edge_turfs) || length(placement_preview_closure_turfs) || length(placement_preview_final_turfs) || length(placement_preview_guide_turfs) || length(placement_preview_generator_effect_turfs)
-	clear_last_resolved_placement_candidate_cache()
+	if(clear_resolved_candidate_cache)
+		clear_last_resolved_placement_candidate_cache()
 	session.preview_candidate = null
 	session.preview_locked = preserve_lock ? TRUE : FALSE
 	session.confirm_arm_turf = null
@@ -431,7 +432,7 @@
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/keep_lock = session.preview_locked ? TRUE : FALSE
 	var/turf/locked_hover_turf = keep_lock ? session.hover_turf : null
-	clear_placement_shape_preview_state(keep_lock, locked_hover_turf)
+	clear_placement_shape_preview_state(keep_lock, locked_hover_turf, FALSE)
 	session.preview_candidate = candidate
 	if(!istype(candidate))
 		return

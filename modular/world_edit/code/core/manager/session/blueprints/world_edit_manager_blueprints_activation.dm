@@ -10,6 +10,7 @@
 	var/list/load_result = load_blueprint_definition_by_id(blueprint_id)
 	if(load_result["error"])
 		return fail_blueprint_action(user, load_result["error"])
+	invalidate_active_blueprint_revision_cache()
 
 	var/current_blueprint_id = get_active_blueprint_id()
 	var/same_generator = current_definition?.id == "blueprint_stamp"
@@ -23,8 +24,6 @@
 	if(!islist(current_params))
 		current_params = list()
 	current_params["blueprint_id"] = "[blueprint_id]"
-	if(blueprint_changed || !same_generator)
-		invalidate_active_blueprint_revision_cache()
 	save_current_generator_context()
 	if(!same_generator)
 		refresh_runtime_after_config_change(TRUE, TRUE)

@@ -67,6 +67,8 @@
 /datum/world_edit_manager/proc/should_use_placement_layer_preview(datum/world_edit_plan/plan)
 	if(!supports_current_placement_ux() || !istype(plan))
 		return FALSE
+	if(!current_generator?.should_render_preview_via_placement_layers(plan))
+		return FALSE
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_plan_metadata(plan)
 	return istype(shape_contract, /datum/world_edit_shape_contract) ? TRUE : FALSE
 

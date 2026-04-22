@@ -110,6 +110,11 @@
 /datum/world_edit_generator/proc/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
 	return list()
 
+/// Явный opt-in для manager-owned placement-layer preview во время обычного preview.
+/// Нужен только тем генераторам, у которых placement layers эквивалентны их runtime preview.
+/datum/world_edit_generator/proc/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
+	return FALSE
+
 /datum/world_edit_generator/proc/get_supported_placement_modes()
 	return list()
 

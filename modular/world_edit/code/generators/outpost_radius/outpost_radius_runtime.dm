@@ -627,6 +627,9 @@
 	result.message = "Предпросмотр готов: профиль=[plan.metadata["tactical_profile_label"] || plan.metadata["defense_profile_label"] || "Стандарт"], схема=[plan.metadata["layout_label"] || "Крест"], опор=[plan.metadata["anchor_count"] || 1], проходов=[plan.metadata["opening_count"] || 0], дверей=[plan.metadata["door_count"] || 0], доминирующих секций=[plan.metadata["dominant_barricade_count"] || 0], баррикад=[plan.metadata["barricade_count"]], турелей=[plan.metadata["sentry_count"]], проволоки=[plan.metadata["wire_object_count"] || 0], мин=[plan.metadata["mine_count"] || 0], поддержки=[plan.metadata["extra_defense_count"] || 0], недоступных дверей=[unavailable_doors], блокировок=[blocked_total]."
 	return result
 
+/datum/world_edit_generator/outpost_radius/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
+	return istype(plan) ? TRUE : FALSE
+
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)
 
