@@ -63,6 +63,9 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/list/placement_collector_points = list()
 	var/turf/placement_collector_origin_turf
 	var/list/runtime_diagnostics = list()
+	var/list/runtime_trace = list()
+	var/list/runtime_trace_payload_cache = list()
+	var/runtime_trace_sequence = 0
 
 /datum/world_edit_manager/New(client/new_holder)
 	. = ..()
@@ -93,6 +96,9 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	placement_preview_generator_effect_turfs = list()
 	placement_collector_points = list()
 	reset_runtime_diagnostics()
+	runtime_trace = list()
+	runtime_trace_payload_cache = list()
+	runtime_trace_sequence = 0
 
 /datum/world_edit_manager/Destroy(force, ...)
 	stop_click_mode()

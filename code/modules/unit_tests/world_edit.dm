@@ -460,6 +460,16 @@
 /datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector
 	var/build_plan_calls = 0
 	var/apply_calls = 0
+	var/evaluate_shape_contract_calls = 0
+	var/collect_perimeter_calls = 0
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	evaluate_shape_contract_calls++
+	return ..()
+
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, primary_material_path, secondary_material_path = null, barricade_pattern = "uniform", list/radius_policy = null, list/traversal_turfs = null, primary_material_share_percent = 100, place_barricade_doors = FALSE, primary_door_path = "follow_material", secondary_door_path = "follow_material", list/footprint_turfs = null, placement_dir = NORTH, list/wired_groups = null, build_anchor_map = TRUE)
+	collect_perimeter_calls++
+	return ..()
 
 /datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	build_plan_calls++
@@ -1561,6 +1571,46 @@
 	TEST_ASSERT(!("placement_preview_effect_tiles" in data), "World Edit UI payload builder should prune legacy preview effect counts.")
 	TEST_ASSERT(!("last_undo_action" in data), "World Edit UI payload builder should prune legacy undo action keys.")
 	TEST_ASSERT(!("can_refresh_ui" in data), "World Edit UI payload builder should prune legacy refresh availability keys.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_ui_payload/preview_feedback_meta_sanitizes_ui_unsafe_values/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit preview-meta sanitize test center turf was not resolved.")
+
+	var/list/raw_meta = list(
+		"moved_count" = 2,
+		"persistent_fire_preview_color" = "#33aaff",
+		"center_turf" = center_turf,
+		"base_shape_turfs" = list(center_turf),
+		"primary_material_path" = /datum/human_ai_defense/barricade/metal,
+		"preview_layers" = list("final_turfs" = list(center_turf)),
+		"shape_result" = list("turfs" = list(center_turf)),
+		"shape_origin_turf" = center_turf,
+		"requested_end_turf" = center_turf,
+		"resolved_end_turf" = center_turf,
+		"seed_turf" = center_turf,
+	)
+
+	var/list/safe_meta = manager.sanitize_preview_feedback_meta(raw_meta)
+	var/center_text = GLOB.world_edit_helpers.turf_to_text(center_turf)
+
+	TEST_ASSERT_EQUAL(safe_meta["moved_count"], 2, "World Edit preview-meta sanitize test should preserve scalar movement counters for UI consumers.")
+	TEST_ASSERT_EQUAL(safe_meta["persistent_fire_preview_color"], "#33aaff", "World Edit preview-meta sanitize test should preserve scalar preview color metadata for destruction UI consumers.")
+	TEST_ASSERT_EQUAL(safe_meta["center_turf"], center_text, "World Edit preview-meta sanitize test should stringify top-level turf references.")
+	TEST_ASSERT_EQUAL(text2num("[safe_meta["base_shape_turfs"]]"), 1, "World Edit preview-meta sanitize test should collapse nested turf lists to a bounded summary count.")
+	TEST_ASSERT_EQUAL(safe_meta["primary_material_path"], "[/datum/human_ai_defense/barricade/metal]", "World Edit preview-meta sanitize test should stringify raw type paths before they enter the TGUI payload.")
+	TEST_ASSERT_EQUAL(text2num("[safe_meta["preview_layers"]]"), 1, "World Edit preview-meta sanitize test should collapse nested preview-layer structures to a bounded summary count.")
+	TEST_ASSERT_EQUAL(safe_meta["shape_origin"], center_text, "World Edit preview-meta sanitize test should keep the derived shape origin text.")
+	TEST_ASSERT_EQUAL(safe_meta["requested_end"], center_text, "World Edit preview-meta sanitize test should keep the derived requested-end text.")
+	TEST_ASSERT_EQUAL(safe_meta["resolved_end"], center_text, "World Edit preview-meta sanitize test should keep the derived resolved-end text.")
+	TEST_ASSERT_EQUAL(safe_meta["seed"], center_text, "World Edit preview-meta sanitize test should keep the derived seed text.")
+	TEST_ASSERT(!("shape_result" in safe_meta), "World Edit preview-meta sanitize test should still prune the raw shape snapshot from UI payloads.")
+	TEST_ASSERT(!islist(safe_meta["preview_layers"]), "World Edit preview-meta sanitize test should not leave nested preview-layer lists in the UI payload.")
+
+	var/safe_json = json_encode(list("preview_meta" = safe_meta))
+	TEST_ASSERT(length("[safe_json]"), "World Edit preview-meta sanitize test should keep the sanitized payload JSON-serializable for TGUI updates.")
 
 	qdel(manager)
 
@@ -3470,6 +3520,48 @@
 
 	qdel(manager)
 
+/datum/unit_test/world_edit_corner_slots/manager_runtime/deferred_resolve_cache_reuses_apply_ready_candidate_and_invalidates_on_param_change/Run()
+	var/datum/world_edit_manager/world_edit_test_cache_probe/manager = new
+	var/datum/world_edit_generator_definition/world_edit_test_deferred_preview_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_deferred_preview_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_deferred_preview_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit deferred resolve-cache test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit deferred resolve-cache test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/initial_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(initial_candidate, /datum/world_edit_placement_candidate), "World Edit deferred resolve-cache test should build the initial candidate.")
+	TEST_ASSERT_NULL(initial_candidate.plan, "World Edit deferred resolve-cache test should keep the initial candidate plan-deferred.")
+	TEST_ASSERT(!initial_candidate.is_ready_for_apply(), "World Edit deferred resolve-cache test should not treat a deferred candidate as apply-ready before the real plan exists.")
+	TEST_ASSERT(initial_candidate.is_confirm_ready(), "World Edit deferred resolve-cache test should still keep the initial deferred candidate confirm-ready.")
+	TEST_ASSERT_EQUAL(manager.build_placement_candidate_calls, 1, "World Edit deferred resolve-cache test should build exactly one candidate on the first resolve.")
+
+	var/datum/world_edit_placement_candidate/reused_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(reused_candidate, /datum/world_edit_placement_candidate), "World Edit deferred resolve-cache test should resolve a repeated deferred candidate.")
+	TEST_ASSERT_EQUAL("[REF(reused_candidate)]", "[REF(initial_candidate)]", "World Edit deferred resolve-cache test should reuse the confirm-ready deferred candidate on an identical repeated query.")
+	TEST_ASSERT(reused_candidate.is_confirm_ready(), "World Edit deferred resolve-cache test should keep the cached deferred candidate confirm-ready after the cache-hit shape contract refresh.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(reused_candidate.shape_contract?.metadata["preview_plan_deferred"]), "World Edit deferred resolve-cache test should preserve deferred-preview metadata on the refreshed cached shape contract.")
+	TEST_ASSERT_EQUAL(manager.build_placement_candidate_calls, 1, "World Edit deferred resolve-cache test should not rebuild the deferred candidate before returning the cached result.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Cache"], "1/1", "World Edit deferred resolve-cache test should expose one cache hit and one miss before any invalidation.")
+
+	manager.current_params["shape_line_length"] = 6
+	var/datum/world_edit_placement_candidate/fresh_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(fresh_candidate, /datum/world_edit_placement_candidate), "World Edit deferred resolve-cache test should still resolve a candidate after the live param change.")
+	TEST_ASSERT_NOTEQUAL("[REF(fresh_candidate)]", "[REF(initial_candidate)]", "World Edit deferred resolve-cache test should invalidate the cached deferred candidate after the params change.")
+	TEST_ASSERT_EQUAL(manager.build_placement_candidate_calls, 2, "World Edit deferred resolve-cache test should rebuild the deferred candidate once after the params change.")
+
+	qdel(manager)
+
 /datum/unit_test/world_edit_corner_slots/manager_runtime/runtime_status_tracks_hover_render_and_cache_churn/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
@@ -3503,6 +3595,94 @@
 	TEST_ASSERT_EQUAL(runtime_status["Cache"], "1/1", "World Edit runtime-status hover/render test should expose one cache hit and one miss after the repeated hover resolve.")
 	TEST_ASSERT_EQUAL(runtime_status["Render rebuilds"], "1", "World Edit runtime-status hover/render test should expose a single preview image rebuild for the first render.")
 	TEST_ASSERT_EQUAL(runtime_status["Render skips"], "1", "World Edit runtime-status hover/render test should expose the token-reuse skip for the second identical render.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/render_skip_fast_path_updates_session_candidate_without_rebuilding_images/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit render fast-path test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit render fast-path test end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/initial_candidate = manager.resolve_placement_candidate(null, center_turf, end_turf)
+	TEST_ASSERT(istype(initial_candidate, /datum/world_edit_placement_candidate), "World Edit render fast-path test should build the initial preview candidate.")
+	TEST_ASSERT(istype(initial_candidate.plan, /datum/world_edit_plan), "World Edit render fast-path test should build a real initial plan.")
+	manager.render_safe_placement_preview(initial_candidate)
+
+	var/datum/world_edit_placement_session/session = manager.get_placement_session()
+	var/context_revision_after_first_render = session.preview_context_revision || 0
+	var/datum/world_edit_plan/second_plan = new
+	second_plan.placements = initial_candidate.plan.placements.Copy()
+	second_plan.deletions = initial_candidate.plan.deletions.Copy()
+	second_plan.affected_turfs = initial_candidate.plan.affected_turfs.Copy()
+	second_plan.metadata = initial_candidate.plan.metadata.Copy()
+	var/datum/world_edit_placement_candidate/second_candidate = manager.build_placement_candidate_from_plan(second_plan, initial_candidate.runtime_params)
+	TEST_ASSERT(istype(second_candidate, /datum/world_edit_placement_candidate), "World Edit render fast-path test should synthesize a second candidate from the copied plan.")
+	TEST_ASSERT_NOTEQUAL("[REF(second_candidate)]", "[REF(initial_candidate)]", "World Edit render fast-path test should use a distinct second candidate object.")
+	TEST_ASSERT_EQUAL("[REF(second_candidate.plan)]", "[REF(second_plan)]", "World Edit render fast-path test should keep the copied plan on the synthesized candidate.")
+	TEST_ASSERT_EQUAL(second_candidate.preview_render_token, initial_candidate.preview_render_token, "World Edit render fast-path test should keep the preview render token stable for identical rendered contents.")
+
+	manager.render_safe_placement_preview(second_candidate)
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL("[REF(manager.get_placement_preview_candidate())]", "[REF(second_candidate)]", "World Edit render fast-path test should update the stored preview candidate even when the render is skipped.")
+	TEST_ASSERT_EQUAL("[REF(manager.get_current_preview_plan())]", "[REF(second_plan)]", "World Edit render fast-path test should update the stored preview plan even when the render is skipped.")
+	TEST_ASSERT_EQUAL(runtime_status["Render rebuilds"], "1", "World Edit render fast-path test should avoid rebuilding preview images on the second identical render.")
+	TEST_ASSERT_EQUAL(runtime_status["Render skips"], "1", "World Edit render fast-path test should count the fast-path render skip for the copied candidate.")
+	TEST_ASSERT_EQUAL(session.preview_context_revision || 0, context_revision_after_first_render, "World Edit render fast-path test should not churn preview context revision when only the candidate object changed.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/render_rebuilds_images_across_distinct_preview_tokens/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_apply_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_apply_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_apply_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	var/turf/first_end_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	var/turf/second_end_turf = locate(center_turf.x + 4, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit render-rebuild test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(first_end_turf, "World Edit render-rebuild test first end turf was not resolved.")
+	TEST_ASSERT_NOTNULL(second_end_turf, "World Edit render-rebuild test second end turf was not resolved.")
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	manager.placement_mode = "single"
+	manager.placement_dir = EAST
+
+	var/datum/world_edit_placement_candidate/first_candidate = manager.resolve_placement_candidate(null, center_turf, first_end_turf)
+	var/datum/world_edit_placement_candidate/second_candidate = manager.resolve_placement_candidate(null, center_turf, second_end_turf)
+	TEST_ASSERT(istype(first_candidate, /datum/world_edit_placement_candidate), "World Edit render-rebuild test should resolve the first preview candidate.")
+	TEST_ASSERT(istype(second_candidate, /datum/world_edit_placement_candidate), "World Edit render-rebuild test should resolve the second preview candidate.")
+	TEST_ASSERT_NOTEQUAL(first_candidate.preview_render_token, second_candidate.preview_render_token, "World Edit render-rebuild test should use distinct render tokens for the two previews.")
+
+	manager.render_safe_placement_preview(first_candidate)
+	var/list/first_images = manager.preview_images.Copy()
+	TEST_ASSERT(length(first_images) > 0, "World Edit render-rebuild test should create preview images on the first render.")
+
+	manager.render_safe_placement_preview(second_candidate)
+
+	var/shared_count = min(length(first_images), length(manager.preview_images))
+	TEST_ASSERT(shared_count > 0, "World Edit render-rebuild test should expose comparable preview image slots between renders.")
+	for(var/i in 1 to shared_count)
+		TEST_ASSERT_NOTEQUAL("[REF(first_images[i])]", "[REF(manager.preview_images[i])]", "World Edit render-rebuild test should rebuild the preview image datum at slot [i] for a distinct preview token.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(runtime_status["Render rebuilds"], "2", "World Edit render-rebuild test should rebuild preview images for both distinct preview tokens.")
+	TEST_ASSERT_EQUAL(runtime_status["Render skips"], "0", "World Edit render-rebuild test should not count a render skip when the preview token changes.")
 
 	qdel(manager)
 
@@ -3635,12 +3815,12 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_click_preview_builds_plan_immediately/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_hover_then_click_builds_full_preview_plan_and_applies_on_confirm/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
-	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost point-preview test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost point preview test center turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3653,27 +3833,53 @@
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point-preview test should accept the initial point placement click.")
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit outpost point preview test should accept the initial hover preview.")
+	var/datum/world_edit_placement_candidate/hover_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(hover_candidate, /datum/world_edit_placement_candidate), "World Edit outpost point preview test should keep the hover candidate in session state.")
+	TEST_ASSERT(hover_candidate.hover_only, "World Edit outpost point preview test should preserve hover-only semantics before the click preview.")
+	TEST_ASSERT_NULL(hover_candidate.plan, "World Edit outpost point preview test should keep the hover preview plan-deferred.")
+	TEST_ASSERT(!length(hover_candidate.preview_model?.generator_effect_turfs), "World Edit outpost point preview test should keep the hover path on the cheap shape-only preview.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point preview test should accept the initial point placement click.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost point-preview test should keep the click-preview candidate in session state.")
-	TEST_ASSERT(!candidate.hover_only, "World Edit outpost point-preview test should preserve non-hover semantics on the stored candidate.")
-	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost point-preview test should build the full point plan on the initial click so the user gets a real preview before confirm.")
-	TEST_ASSERT(candidate.is_preview_ready(), "World Edit outpost point-preview test should keep the point candidate preview-ready after the eager plan build.")
-	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost point-preview test should still arm confirmation for the selected turf.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost point preview test should keep the click-preview candidate in session state.")
+	TEST_ASSERT(!candidate.hover_only, "World Edit outpost point preview test should promote the click preview to a non-hover candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost point preview test should build the real outpost preview plan on the first click.")
+	TEST_ASSERT(candidate.is_ready_for_apply(), "World Edit outpost point preview test should keep the first-click candidate apply-ready once the preview plan exists.")
+	TEST_ASSERT(candidate.is_confirm_ready(), "World Edit outpost point preview test should arm confirmation on the fully-built point preview.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_effect_turfs) > 0, "World Edit outpost point preview test should expose generator effect turfs once the real preview plan is built.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit outpost point preview test should expose generator object preview specs once the real preview plan is built.")
+	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 1, "World Edit outpost point preview test should evaluate the point support contract during the first click preview.")
+	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 1, "World Edit outpost point preview test should build perimeter placements during the first click preview.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost point preview test should arm confirmation for the selected turf.")
+	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(candidate.shape_contract?.metadata["preview_plan_deferred"]), "World Edit outpost point preview test should not leave the first-click shape contract in deferred-preview mode.")
+	TEST_ASSERT(islist(manager.last_preview_meta["preview_layers"]), "World Edit outpost point preview test should expose placement-layer preview metadata after the real plan is built.")
+	var/feedback_json = json_encode(list("payload" = manager.build_feedback_ui_payload()))
+	TEST_ASSERT(length("[feedback_json]"), "World Edit outpost point preview test should keep the click-preview feedback payload JSON-serializable after the first click.")
+	var/full_ui_json = json_encode(list("payload" = manager.build_ui_data_payload()))
+	TEST_ASSERT(length("[full_ui_json]"), "World Edit outpost point preview test should keep the full World Edit panel payload JSON-serializable after the first click.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point preview test should accept the repeated confirm click.")
+	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 1, "World Edit outpost point preview test should not rebuild the point support contract during confirm/apply.")
+	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 1, "World Edit outpost point preview test should not rebuild perimeter placements during confirm/apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost point preview test should apply exactly once after the armed preview.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit outpost point preview test should record a successful apply after the armed point preview.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_NULL(runtime_status["Preview defer"], "World Edit outpost point-preview test should not defer the point plan build anymore.")
+	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit outpost point preview test should record the hover-only deferred point preview.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost point preview test should only count the hover placeholder as deferred.")
+	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "0", "World Edit outpost point preview test should not defer the real point plan build to apply-time.")
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_anchor_pair_click_preview_defers_full_plan_build_and_applies_on_confirm/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_anchor_pair_click_preview_builds_full_plan_and_applies_on_confirm/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	var/turf/end_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost anchor-pair defer test center turf was not resolved.")
-	TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost anchor-pair defer test end turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost anchor-pair preview test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost anchor-pair preview test end turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3687,34 +3893,36 @@
 	manager.placement_dir = EAST
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost anchor-pair defer test should accept the first anchor click.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair defer test should accept the second anchor click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost anchor-pair preview test should accept the first anchor click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair preview test should accept the second anchor click.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost anchor-pair defer test should keep the click-preview candidate in session state.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost anchor-pair defer test should defer the expensive full outpost plan build until confirm/apply.")
-	TEST_ASSERT(candidate.is_ready_for_apply(), "World Edit outpost anchor-pair defer test should still keep the deferred line candidate confirm/apply-ready.")
-	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(end_turf), "World Edit outpost anchor-pair defer test should arm confirmation on the selected endpoint.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost anchor-pair preview test should keep the click-preview candidate in session state.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost anchor-pair preview test should build the full outpost preview plan on the second anchor click.")
+	TEST_ASSERT(candidate.is_ready_for_apply(), "World Edit outpost anchor-pair preview test should keep the preview apply-ready once the real plan exists.")
+	TEST_ASSERT(candidate.is_confirm_ready(), "World Edit outpost anchor-pair preview test should still keep the fully-built line candidate confirm-ready.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost anchor-pair preview test should build the preview plan exactly once before confirmation.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(end_turf), "World Edit outpost anchor-pair preview test should arm confirmation on the selected endpoint.")
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair defer test should accept the repeated confirm click.")
-	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost anchor-pair defer test should build the deferred outpost plan exactly once during apply.")
-	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost anchor-pair defer test should apply exactly once after the lazy plan build.")
-	TEST_ASSERT(manager.last_apply_success, "World Edit outpost anchor-pair defer test should record a successful apply after the lazy anchor-pair plan build.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), end_turf), "World Edit outpost anchor-pair preview test should accept the repeated confirm click.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost anchor-pair preview test should reuse the armed preview plan during apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost anchor-pair preview test should apply exactly once after confirmation.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit outpost anchor-pair preview test should record a successful apply after the armed anchor-pair plan.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost anchor-pair defer test should record the deferred preview build.")
-	TEST_ASSERT_EQUAL(runtime_status["Clamp tries"], "0", "World Edit outpost anchor-pair defer test should not enter the clamp retry loop when the deferred requested line is already valid.")
-	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "1", "World Edit outpost anchor-pair defer test should record the lazy plan build during apply.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "0", "World Edit outpost anchor-pair preview test should not defer the click-time line preview build.")
+	TEST_ASSERT_EQUAL(runtime_status["Clamp tries"], "0", "World Edit outpost anchor-pair preview test should not enter the clamp retry loop when the requested line is already valid.")
+	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "0", "World Edit outpost anchor-pair preview test should not defer the line plan build to apply-time.")
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_click_preview_defers_full_plan_build/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_click_preview_builds_full_plan/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector click-defer test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector click-preview test center turf was not resolved.")
 	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
-	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector click-defer test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector click-preview test line turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3728,28 +3936,28 @@
 	manager.placement_dir = EAST
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector click-defer test should accept the first collector point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector click-defer test should accept the second collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector click-preview test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector click-preview test should accept the second collector point.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector click-defer test should keep the collector preview candidate in session state.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost collector click-defer test should defer the full outpost plan build while the contour is still being collected.")
-	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit outpost collector click-defer test should keep a valid collector preview placeholder instead of surfacing a fake plan error.")
-	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit outpost collector click-defer test should not build the full plan during intermediate collector clicks.")
-	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(line_turf), "World Edit outpost collector click-defer test should not arm confirmation before the collector is explicitly finished.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector click-preview test should keep the collector preview candidate in session state.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost collector click-preview test should build the full outpost plan once the collector preview becomes valid.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit outpost collector click-preview test should keep a valid collector preview instead of surfacing a fake plan error.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost collector click-preview test should build the full plan during the intermediate collector preview.")
+	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(line_turf), "World Edit outpost collector click-preview test should not arm confirmation before the collector is explicitly finished.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost collector click-defer test should record the deferred intermediate collector preview build.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "0", "World Edit outpost collector click-preview test should not defer the intermediate collector preview build.")
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_finish_preview_builds_plan_on_apply/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_collector_finish_preview_reuses_built_plan_on_apply/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/generator = allocate(/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector deferred-apply test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector finish-preview test center turf was not resolved.")
 	var/turf/line_turf = locate(center_turf.x + 2, center_turf.y, center_turf.z)
-	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector deferred-apply test line turf was not resolved.")
+	TEST_ASSERT_NOTNULL(line_turf, "World Edit outpost collector finish-preview test line turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3763,22 +3971,23 @@
 	manager.placement_dir = EAST
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should accept the first collector point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector deferred-apply test should accept the second collector point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should finish the collector on the repeated first-point click.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector finish-preview test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), line_turf), "World Edit outpost collector finish-preview test should accept the second collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector finish-preview test should finish the collector on the repeated first-point click.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector deferred-apply test should keep the finished collector preview candidate.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost collector deferred-apply test should still defer the full plan build after the finish preview is armed.")
-	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit outpost collector deferred-apply test should not build the full plan while only arming confirmation.")
-	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost collector deferred-apply test should arm confirmation on the finished collector tile.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost collector finish-preview test should keep the finished collector preview candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost collector finish-preview test should keep a built plan after the finish preview is armed.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 2, "World Edit outpost collector finish-preview test should build one plan for the intermediate preview and one for the armed finish preview.")
+	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost collector finish-preview test should arm confirmation on the finished collector tile.")
 
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector deferred-apply test should accept the repeated confirm click on the finished collector tile.")
-	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit outpost collector deferred-apply test should build the deferred outpost plan exactly once during apply.")
-	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost collector deferred-apply test should apply exactly once after the lazy plan build.")
-	TEST_ASSERT(manager.last_apply_success, "World Edit outpost collector deferred-apply test should record a successful apply after the lazy collector plan build.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost collector finish-preview test should accept the repeated confirm click on the finished collector tile.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 2, "World Edit outpost collector finish-preview test should reuse the armed finish preview during apply.")
+	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost collector finish-preview test should apply exactly once after the armed collector preview.")
+	TEST_ASSERT(manager.last_apply_success, "World Edit outpost collector finish-preview test should record a successful apply after the armed collector plan.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "1", "World Edit outpost collector deferred-apply test should record the lazy outpost plan build during apply.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "0", "World Edit outpost collector finish-preview test should not defer the finish preview build.")
+	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "0", "World Edit outpost collector finish-preview test should not defer the outpost plan build to apply-time.")
 
 	qdel(manager)
 
@@ -3803,6 +4012,8 @@
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
 	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit deferred-apply test should keep the deferred preview candidate in session state.")
 	TEST_ASSERT_NULL(candidate.plan, "World Edit deferred-apply test should defer plan construction during preview.")
+	TEST_ASSERT(candidate.is_confirm_ready(), "World Edit deferred-apply test should still keep the deferred preview candidate confirm-ready before apply.")
+	TEST_ASSERT(!candidate.is_ready_for_apply(), "World Edit deferred-apply test should not mark the deferred preview candidate apply-ready before the lazy plan build.")
 	TEST_ASSERT_EQUAL(generator.build_plan_calls, 0, "World Edit deferred-apply test should not build the plan during the preview click.")
 
 	TEST_ASSERT(manager.apply_safe_placement_current_plan(user), "World Edit deferred-apply test should resolve and apply the deferred plan on demand.")

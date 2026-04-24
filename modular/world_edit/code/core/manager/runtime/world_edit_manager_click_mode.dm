@@ -53,7 +53,7 @@
 	var/datum/world_edit_placement_candidate/candidate = get_placement_preview_candidate()
 	if(!placement_click_active || !supports_current_placement_ux())
 		return FALSE
-	return (istype(candidate) && candidate.is_ready_for_apply() && is_preview_state_valid()) ? TRUE : FALSE
+	return (istype(candidate) && candidate.is_confirm_ready() && is_preview_state_valid()) ? TRUE : FALSE
 
 /datum/world_edit_manager/proc/rebuild_runtime_after_generator_config_change(mob/user, preserve_active_placement = FALSE, clear_placement_progress = FALSE, clear_collector_points = FALSE, preserve_confirm_arm = FALSE)
 	if(preserve_active_placement && placement_click_active && supports_current_placement_ux())

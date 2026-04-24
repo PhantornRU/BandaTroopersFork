@@ -91,6 +91,7 @@ const BASE_BACKEND_DATA: BackendData = {
   preview_message: '',
   preview_meta: {},
   runtime_status: [],
+  runtime_trace: [],
   last_apply_success: false,
   last_apply_message: '',
   last_undo_success: false,

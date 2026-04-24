@@ -34,6 +34,30 @@ const RuntimeStatusCard = (props: { readonly data: BackendData }) => {
   );
 };
 
+const RuntimeTraceCard = (props: { readonly data: BackendData }) => {
+  const items = (props.data.runtime_trace || [])
+    .map((entry) => `${entry || ''}`.trim())
+    .filter((entry) => entry.length > 0);
+
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <SurfaceCard
+      title="Trace"
+      subtitle="Last confirmed runtime stages for the current tool session."
+      mt={0.6}
+    >
+      {items.map((entry, index) => (
+        <Box key={`${index}-${entry}`} color="label">
+          {entry}
+        </Box>
+      ))}
+    </SurfaceCard>
+  );
+};
+
 const WorkspacePage = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
@@ -94,6 +118,7 @@ const WorkspacePage = (props: {
         ))}
 
       {!!data.has_generator && <RuntimeStatusCard data={data} />}
+      {!!data.has_generator && <RuntimeTraceCard data={data} />}
     </Section>
   );
 };

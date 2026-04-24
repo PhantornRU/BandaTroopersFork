@@ -36,11 +36,11 @@
 	if(!islist(meta))
 		return list()
 
-	var/list/safe_meta = meta.Copy()
-	var/turf/shape_origin_turf = safe_meta["shape_origin_turf"]
-	var/turf/requested_end_turf = safe_meta["requested_end_turf"]
-	var/turf/resolved_end_turf = safe_meta["resolved_end_turf"]
-	var/turf/seed_turf = safe_meta["seed_turf"]
+	var/list/safe_meta = list()
+	var/turf/shape_origin_turf = meta["shape_origin_turf"]
+	var/turf/requested_end_turf = meta["requested_end_turf"]
+	var/turf/resolved_end_turf = meta["resolved_end_turf"]
+	var/turf/seed_turf = meta["seed_turf"]
 	if(istype(shape_origin_turf))
 		safe_meta["shape_origin"] = GLOB.world_edit_helpers.turf_to_text(shape_origin_turf)
 	if(istype(requested_end_turf))
@@ -49,12 +49,30 @@
 		safe_meta["resolved_end"] = GLOB.world_edit_helpers.turf_to_text(resolved_end_turf)
 	if(istype(seed_turf))
 		safe_meta["seed"] = GLOB.world_edit_helpers.turf_to_text(seed_turf)
-	safe_meta -= "shape_result"
-	safe_meta -= "shape_origin_turf"
-	safe_meta -= "requested_end_turf"
-	safe_meta -= "resolved_end_turf"
-	safe_meta -= "seed_turf"
+
+	for(var/key in meta)
+		var/key_text = "[key]"
+		if(key_text in list("shape_result", "shape_origin_turf", "requested_end_turf", "resolved_end_turf", "seed_turf"))
+			continue
+		safe_meta[key_text] = sanitize_preview_feedback_meta_value(meta[key])
 	return safe_meta
+
+/datum/world_edit_manager/proc/sanitize_preview_feedback_meta_value(value)
+	if(isnull(value) || isnum(value) || istext(value))
+		return value
+	if(ispath(value))
+		return "[value]"
+	if(istype(value, /turf))
+		return GLOB.world_edit_helpers.turf_to_text(value)
+	if(istype(value, /atom))
+		var/atom/atom_value = value
+		return "[atom_value.type]"
+	if(istype(value, /datum))
+		var/datum/datum_value = value
+		return "[datum_value.type]"
+	if(islist(value))
+		return length(value)
+	return "[value]"
 
 /datum/world_edit_manager/proc/build_shape_contract_from_plan_metadata(datum/world_edit_plan/plan)
 	var/list/metadata = plan?.metadata
@@ -66,6 +84,21 @@
 	if(!length("[shape_id]") || !islist(shape_result) || !length(shape_result))
 		return null
 	return GLOB.world_edit_shape_geometry.build_shape_contract_from_result(shape_id, shape_result)
+
+/datum/world_edit_manager/proc/mark_shape_contract_preview_deferred(datum/world_edit_shape_contract/shape_contract, list/placement_context = null)
+	if(!istype(shape_contract))
+		return FALSE
+
+	if(!islist(shape_contract.metadata))
+		shape_contract.metadata = list()
+	shape_contract.metadata["preview_plan_deferred"] = TRUE
+	if(isnull(shape_contract.metadata["anchor_count"]))
+		shape_contract.metadata["anchor_count"] = length(shape_contract.anchor_turfs)
+
+	var/placement_dir = islist(placement_context) ? text2num("[placement_context["direction"]]") : null
+	if(GLOB.world_edit_helpers.is_cardinal_dir(placement_dir) && !length("[shape_contract.metadata["placement_dir_label"]]"))
+		shape_contract.metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(placement_dir)
+	return TRUE
 
 /datum/world_edit_manager/proc/should_use_placement_layer_preview(datum/world_edit_plan/plan)
 	if(!supports_current_placement_ux() || !istype(plan))
@@ -191,21 +224,116 @@
 		"deferred_apply_plan_builds" = 0,
 		"resolve_cache_hits" = 0,
 		"resolve_cache_misses" = 0,
-		"outpost_clamp_attempts" = 0,
-		"outpost_clamp_successes" = 0,
-		"outpost_clamp_hover_skips" = 0,
+		"preview_endpoint_clamp_attempts" = 0,
+		"preview_endpoint_clamp_successes" = 0,
+		"preview_endpoint_clamp_hover_skips" = 0,
 		"preview_render_calls" = 0,
 		"preview_render_skips" = 0,
 		"preview_image_rebuilds" = 0,
+		"preview_image_creations" = 0,
+		"preview_image_reuses" = 0,
 		"preview_images_last" = 0,
 		"preview_images_peak" = 0,
+		"preview_eval_hover_total_ds" = 0,
+		"preview_eval_hover_peak_ds" = 0,
+		"preview_eval_click_total_ds" = 0,
+		"preview_eval_click_peak_ds" = 0,
+		"preview_shape_contract_total_ds" = 0,
+		"preview_shape_contract_peak_ds" = 0,
+		"preview_model_build_total_ds" = 0,
+		"preview_model_build_peak_ds" = 0,
+		"preview_render_token_total_ds" = 0,
+		"preview_render_token_peak_ds" = 0,
+		"preview_render_total_ds" = 0,
+		"preview_render_peak_ds" = 0,
+		"preview_render_clear_total_ds" = 0,
+		"preview_render_clear_peak_ds" = 0,
+		"preview_render_groups_total_ds" = 0,
+		"preview_render_groups_peak_ds" = 0,
+		"preview_render_specs_total_ds" = 0,
+		"preview_render_specs_peak_ds" = 0,
+		"preview_render_attach_total_ds" = 0,
+		"preview_render_attach_peak_ds" = 0,
+		"ui_data_total_ds" = 0,
+		"ui_data_peak_ds" = 0,
+		"tgui_update_messages" = 0,
+		"tgui_update_encode_total_ds" = 0,
+		"tgui_update_encode_peak_ds" = 0,
+		"tgui_update_output_total_ds" = 0,
+		"tgui_update_output_peak_ds" = 0,
+		"tgui_update_bytes_last" = 0,
+		"tgui_update_bytes_peak" = 0,
+		"last_slow_stage" = null,
+		"last_slow_duration_ds" = 0,
+		"last_slow_details" = null,
+		"last_slow_log_signature" = null,
+		"last_slow_log_at_ds" = 0,
 	)
+	reset_runtime_trace()
 	return runtime_diagnostics
 
 /datum/world_edit_manager/proc/get_runtime_diagnostics()
 	if(!islist(runtime_diagnostics) || !length(runtime_diagnostics))
 		reset_runtime_diagnostics()
 	return runtime_diagnostics
+
+/datum/world_edit_manager/proc/reset_runtime_trace()
+	runtime_trace = list()
+	runtime_trace_payload_cache = list()
+	runtime_trace_sequence = 0
+	return runtime_trace
+
+/datum/world_edit_manager/proc/build_runtime_trace_gc_snapshot()
+	if(!SSgarbage)
+		return "gc=n/a"
+
+	var/list/queue_sizes = list()
+	if(islist(SSgarbage.queues))
+		for(var/list/queue as anything in SSgarbage.queues)
+			queue_sizes += length(queue)
+	var/queue_text = length(queue_sizes) ? queue_sizes.Join(",") : "n/a"
+	return "gcQ=[queue_text] D=[SSgarbage.delslasttick] G=[SSgarbage.gcedlasttick] TD=[SSgarbage.totaldels] TG=[SSgarbage.totalgcs]"
+
+/datum/world_edit_manager/proc/append_runtime_trace(stage, details = null)
+	var/stage_text = trim("[stage]")
+	if(!length(stage_text))
+		return FALSE
+
+	if(!islist(runtime_trace))
+		runtime_trace = list()
+	if(!placement_click_active && !length(runtime_trace) && findtext(stage_text, "click:") != 1 && findtext(stage_text, "preview:") != 1)
+		return FALSE
+	runtime_trace_sequence = text2num("[runtime_trace_sequence]") + 1
+	var/list/parts = list(
+		"[runtime_trace_sequence]. [stage_text]",
+		"t=[round(world.time / 10, 1)]s",
+	)
+	var/details_text = trim("[details]")
+	if(length(details_text))
+		parts += details_text
+	var/entry_text = jointext(parts, " | ")
+	runtime_trace += entry_text
+	if(length(runtime_trace) > 40)
+		runtime_trace.Cut(1, length(runtime_trace) - 39)
+	if(!islist(runtime_trace_payload_cache))
+		runtime_trace_payload_cache = list()
+	var/payload_entry = entry_text
+	if(length(payload_entry) > 220)
+		payload_entry = "[copytext(payload_entry, 1, 220)]..."
+	runtime_trace_payload_cache += payload_entry
+	if(length(runtime_trace_payload_cache) > 12)
+		runtime_trace_payload_cache.Cut(1, length(runtime_trace_payload_cache) - 11)
+	return TRUE
+
+/datum/world_edit_manager/proc/get_runtime_trace_entries()
+	if(!islist(runtime_trace))
+		runtime_trace = list()
+	return runtime_trace
+
+/datum/world_edit_manager/proc/build_runtime_trace_payload(max_entries = 12, max_entry_length = 220)
+	if(!islist(runtime_trace_payload_cache))
+		runtime_trace_payload_cache = list()
+	return runtime_trace_payload_cache.Copy()
 
 /datum/world_edit_manager/proc/increment_runtime_diagnostic(counter_id, amount = 1)
 	if(!length("[counter_id]"))
@@ -227,6 +355,45 @@
 	diagnostics[counter_id] = next_value
 	return next_value
 
+/datum/world_edit_manager/proc/record_runtime_diagnostic_duration(counter_id_prefix, started_at_ds)
+	if(!length("[counter_id_prefix]"))
+		return 0
+
+	var/duration_ds = max(REALTIMEOFDAY - started_at_ds, 0)
+	increment_runtime_diagnostic("[counter_id_prefix]_total_ds", duration_ds)
+	set_runtime_diagnostic_peak("[counter_id_prefix]_peak_ds", duration_ds)
+	return duration_ds
+
+/datum/world_edit_manager/proc/format_runtime_diagnostic_duration(duration_ds)
+	return "[round(max(text2num("[duration_ds]"), 0) / 10, 1)]s"
+
+/datum/world_edit_manager/proc/record_runtime_stage_duration(counter_id_prefix, stage_label, started_at_ds, details = null, log_threshold_ds = 2)
+	var/duration_ds = record_runtime_diagnostic_duration(counter_id_prefix, started_at_ds)
+	if(duration_ds < max(text2num("[log_threshold_ds]"), 0))
+		return duration_ds
+
+	var/details_text = trim("[details]")
+	if(length(details_text) > 180)
+		details_text = "[copytext(details_text, 1, 181)]..."
+
+	var/list/diagnostics = get_runtime_diagnostics()
+	diagnostics["last_slow_stage"] = "[stage_label]"
+	diagnostics["last_slow_duration_ds"] = duration_ds
+	diagnostics["last_slow_details"] = details_text
+	var/log_signature = "[stage_label]|[details_text]"
+	var/last_log_signature = "[diagnostics["last_slow_log_signature"]]"
+	var/last_log_at_ds = text2num("[diagnostics["last_slow_log_at_ds"]]")
+	if(last_log_signature == log_signature && (world.time - last_log_at_ds) < 10)
+		return duration_ds
+	diagnostics["last_slow_log_signature"] = log_signature
+	diagnostics["last_slow_log_at_ds"] = world.time
+
+	var/generator_id = current_definition?.id || (current_generator ? "[current_generator.type]" : "<none>")
+	var/shape_id = resolve_supported_placement_shape(placement_shape) || placement_shape || WORLD_EDIT_SHAPE_POINT
+	var/mode_id = resolve_supported_placement_mode(placement_mode) || placement_mode || "single"
+	log_world("WORLD EDIT PERF: generator=[generator_id] stage=[stage_label] duration=[duration_ds]ds shape=[shape_id] mode=[mode_id] details=[details_text]")
+	return duration_ds
+
 /datum/world_edit_manager/proc/build_runtime_status_entries()
 	var/list/entries = list()
 	var/list/diagnostics = get_runtime_diagnostics()
@@ -241,12 +408,14 @@
 		"deferred_apply_plan_builds",
 		"resolve_cache_hits",
 		"resolve_cache_misses",
-		"outpost_clamp_attempts",
-		"outpost_clamp_successes",
-		"outpost_clamp_hover_skips",
+		"preview_endpoint_clamp_attempts",
+		"preview_endpoint_clamp_successes",
+		"preview_endpoint_clamp_hover_skips",
 		"preview_render_calls",
 		"preview_render_skips",
 		"preview_image_rebuilds",
+		"preview_image_creations",
+		"preview_image_reuses",
 	))
 		if(text2num("[diagnostics[counter_id]]") > 0)
 			has_placement_activity = TRUE
@@ -262,13 +431,37 @@
 		var/deferred_apply_plan_builds = diagnostics["deferred_apply_plan_builds"] || 0
 		var/resolve_cache_hits = diagnostics["resolve_cache_hits"] || 0
 		var/resolve_cache_misses = diagnostics["resolve_cache_misses"] || 0
-		var/outpost_clamp_attempts = diagnostics["outpost_clamp_attempts"] || 0
-		var/outpost_clamp_successes = diagnostics["outpost_clamp_successes"] || 0
-		var/outpost_clamp_hover_skips = diagnostics["outpost_clamp_hover_skips"] || 0
+		var/preview_endpoint_clamp_attempts = diagnostics["preview_endpoint_clamp_attempts"] || 0
+		var/preview_endpoint_clamp_successes = diagnostics["preview_endpoint_clamp_successes"] || 0
+		var/preview_endpoint_clamp_hover_skips = diagnostics["preview_endpoint_clamp_hover_skips"] || 0
 		var/preview_image_rebuilds = diagnostics["preview_image_rebuilds"] || 0
+		var/preview_image_creations = diagnostics["preview_image_creations"] || 0
+		var/preview_image_reuses = diagnostics["preview_image_reuses"] || 0
 		var/preview_render_skips = diagnostics["preview_render_skips"] || 0
 		var/preview_images_last = diagnostics["preview_images_last"] || 0
 		var/preview_images_peak = diagnostics["preview_images_peak"] || 0
+		var/preview_eval_hover_total_ds = diagnostics["preview_eval_hover_total_ds"] || 0
+		var/preview_eval_hover_peak_ds = diagnostics["preview_eval_hover_peak_ds"] || 0
+		var/preview_eval_click_total_ds = diagnostics["preview_eval_click_total_ds"] || 0
+		var/preview_eval_click_peak_ds = diagnostics["preview_eval_click_peak_ds"] || 0
+		var/preview_shape_contract_peak_ds = diagnostics["preview_shape_contract_peak_ds"] || 0
+		var/preview_model_build_peak_ds = diagnostics["preview_model_build_peak_ds"] || 0
+		var/preview_render_token_peak_ds = diagnostics["preview_render_token_peak_ds"] || 0
+		var/preview_render_total_ds = diagnostics["preview_render_total_ds"] || 0
+		var/preview_render_peak_ds = diagnostics["preview_render_peak_ds"] || 0
+		var/preview_render_clear_peak_ds = diagnostics["preview_render_clear_peak_ds"] || 0
+		var/preview_render_groups_peak_ds = diagnostics["preview_render_groups_peak_ds"] || 0
+		var/preview_render_specs_peak_ds = diagnostics["preview_render_specs_peak_ds"] || 0
+		var/preview_render_attach_peak_ds = diagnostics["preview_render_attach_peak_ds"] || 0
+		var/ui_data_total_ds = diagnostics["ui_data_total_ds"] || 0
+		var/ui_data_peak_ds = diagnostics["ui_data_peak_ds"] || 0
+		var/tgui_update_messages = diagnostics["tgui_update_messages"] || 0
+		var/tgui_update_encode_peak_ds = diagnostics["tgui_update_encode_peak_ds"] || 0
+		var/tgui_update_output_peak_ds = diagnostics["tgui_update_output_peak_ds"] || 0
+		var/tgui_update_bytes_last = diagnostics["tgui_update_bytes_last"] || 0
+		var/tgui_update_bytes_peak = diagnostics["tgui_update_bytes_peak"] || 0
+		var/last_slow_stage = diagnostics["last_slow_stage"]
+		var/last_slow_duration_ds = diagnostics["last_slow_duration_ds"] || 0
 		var/elapsed_seconds = round(max(0, world.time - started_at_ds) / 10, 1)
 		entries += list(
 			list("label" = "Session", "value" = "[elapsed_seconds]s"),
@@ -279,13 +472,41 @@
 			list("label" = "Click resolve", "value" = "[click_resolve_calls]"),
 			list("label" = "Apply plan", "value" = "[deferred_apply_plan_builds]"),
 			list("label" = "Cache", "value" = "[resolve_cache_hits]/[resolve_cache_misses]"),
-			list("label" = "Clamp tries", "value" = "[outpost_clamp_attempts]"),
-			list("label" = "Clamp ok", "value" = "[outpost_clamp_successes]"),
-			list("label" = "Clamp hover skip", "value" = "[outpost_clamp_hover_skips]"),
+			list("label" = "Clamp tries", "value" = "[preview_endpoint_clamp_attempts]"),
+			list("label" = "Clamp ok", "value" = "[preview_endpoint_clamp_successes]"),
+			list("label" = "Clamp hover skip", "value" = "[preview_endpoint_clamp_hover_skips]"),
 			list("label" = "Render rebuilds", "value" = "[preview_image_rebuilds]"),
 			list("label" = "Render skips", "value" = "[preview_render_skips]"),
+			list("label" = "Image new", "value" = "[preview_image_creations]"),
+			list("label" = "Image reuse", "value" = "[preview_image_reuses]"),
 			list("label" = "Images", "value" = "[preview_images_last]/[preview_images_peak]"),
+			list("label" = "Hover eval", "value" = "[format_runtime_diagnostic_duration(preview_eval_hover_total_ds)]/[format_runtime_diagnostic_duration(preview_eval_hover_peak_ds)]"),
+			list("label" = "Click eval", "value" = "[format_runtime_diagnostic_duration(preview_eval_click_total_ds)]/[format_runtime_diagnostic_duration(preview_eval_click_peak_ds)]"),
+			list("label" = "Render time", "value" = "[format_runtime_diagnostic_duration(preview_render_total_ds)]/[format_runtime_diagnostic_duration(preview_render_peak_ds)]"),
+			list("label" = "UI data", "value" = "[format_runtime_diagnostic_duration(ui_data_total_ds)]/[format_runtime_diagnostic_duration(ui_data_peak_ds)]"),
+			list("label" = "TGUI encode", "value" = "[tgui_update_messages]x/[format_runtime_diagnostic_duration(tgui_update_encode_peak_ds)]"),
+			list("label" = "TGUI output", "value" = "[tgui_update_messages]x/[format_runtime_diagnostic_duration(tgui_update_output_peak_ds)]"),
+			list("label" = "TGUI bytes", "value" = "[tgui_update_bytes_last]/[tgui_update_bytes_peak]"),
 		)
+		if(preview_shape_contract_peak_ds > 0)
+			entries += list(list("label" = "Shape build", "value" = "[format_runtime_diagnostic_duration(preview_shape_contract_peak_ds)]"))
+		if(preview_model_build_peak_ds > 0)
+			entries += list(list("label" = "Preview model", "value" = "[format_runtime_diagnostic_duration(preview_model_build_peak_ds)]"))
+		if(preview_render_token_peak_ds > 0)
+			entries += list(list("label" = "Render token", "value" = "[format_runtime_diagnostic_duration(preview_render_token_peak_ds)]"))
+		if(preview_render_clear_peak_ds > 0)
+			entries += list(list("label" = "Render clear", "value" = "[format_runtime_diagnostic_duration(preview_render_clear_peak_ds)]"))
+		if(preview_render_groups_peak_ds > 0)
+			entries += list(list("label" = "Render groups", "value" = "[format_runtime_diagnostic_duration(preview_render_groups_peak_ds)]"))
+		if(preview_render_specs_peak_ds > 0)
+			entries += list(list("label" = "Render specs", "value" = "[format_runtime_diagnostic_duration(preview_render_specs_peak_ds)]"))
+		if(preview_render_attach_peak_ds > 0)
+			entries += list(list("label" = "Render attach", "value" = "[format_runtime_diagnostic_duration(preview_render_attach_peak_ds)]"))
+		if(length("[last_slow_stage]"))
+			entries += list(
+				list("label" = "Slow stage", "value" = "[last_slow_stage]"),
+				list("label" = "Slow time", "value" = "[format_runtime_diagnostic_duration(last_slow_duration_ds)]"),
+			)
 
 	if(islist(generator_entries))
 		for(var/list/entry as anything in generator_entries)
@@ -306,6 +527,7 @@
 		return null
 
 	var/datum/world_edit_placement_candidate/candidate = session.last_resolved_candidate
+	var/datum/world_edit_shape_contract/cached_shape_contract = candidate?.shape_contract
 	if(!istype(candidate) || !istype(resolved_end_turf))
 		return null
 	if(session.last_resolved_candidate_hover_only != (hover_only ? TRUE : FALSE))
@@ -324,6 +546,11 @@
 	candidate.hover_only = hover_only ? TRUE : FALSE
 	increment_runtime_diagnostic(hover_only ? "hover_resolve_calls" : "click_resolve_calls")
 	candidate.runtime_params = islist(effective_params) ? effective_params.Copy() : list()
+	if(istype(shape_contract) && !istype(candidate.plan) && islist(cached_shape_contract?.metadata))
+		if(!islist(shape_contract.metadata))
+			shape_contract.metadata = list()
+		for(var/key in cached_shape_contract.metadata)
+			shape_contract.metadata[key] = cached_shape_contract.metadata[key]
 	candidate.shape_contract = shape_contract
 	if(islist(collector_state_summary))
 		candidate.collector_state_summary = collector_state_summary.Copy()
@@ -342,7 +569,7 @@
 
 /datum/world_edit_manager/proc/cache_last_resolved_placement_candidate(datum/world_edit_placement_candidate/candidate, datum/world_edit_shape_contract/shape_contract = null)
 	var/datum/world_edit_placement_session/session = placement_session
-	if(!istype(session) || !istype(candidate) || !candidate.is_preview_ready())
+	if(!istype(session) || !istype(candidate) || !candidate.is_confirm_ready())
 		return FALSE
 
 	var/turf/resolved_end_turf = islist(candidate.placement_context) ? (candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"]) : null
@@ -398,6 +625,22 @@
 		object_preview_signature,
 	), "||")
 
+/datum/world_edit_manager/proc/build_preview_model_runtime_summary(datum/world_edit_preview_model/preview_model)
+	if(!istype(preview_model))
+		return "preview=0"
+
+	return "a=[length(preview_model.anchor_turfs)] v=[length(preview_model.vertex_turfs)] e=[length(preview_model.edge_turfs)] c=[length(preview_model.closure_turfs)] f=[length(preview_model.final_turfs)] g=[length(preview_model.guide_turfs)] eff=[length(preview_model.generator_effect_turfs)] obj=[length(preview_model.generator_preview_object_specs)]"
+
+/datum/world_edit_manager/proc/refresh_candidate_preview_render_token(datum/world_edit_placement_candidate/candidate)
+	if(!istype(candidate?.preview_model))
+		return null
+
+	var/token_started_at = REALTIMEOFDAY
+	candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
+	candidate.preview_model.preview_render_token = candidate.preview_render_token
+	record_runtime_stage_duration("preview_render_token", "preview-token", token_started_at, build_preview_model_runtime_summary(candidate.preview_model))
+	return candidate.preview_render_token
+
 /datum/world_edit_manager/proc/build_placement_candidate(datum/world_edit_shape_contract/shape_contract, list/placement_context, datum/world_edit_plan/plan = null, list/runtime_params = null, hover_only = FALSE, list/collector_state_summary = null)
 	if(!istype(shape_contract))
 		return null
@@ -405,7 +648,9 @@
 	var/datum/world_edit_placement_candidate/candidate = new
 	candidate.hover_only = hover_only ? TRUE : FALSE
 	candidate.shape_contract = shape_contract
+	var/model_started_at = REALTIMEOFDAY
 	candidate.preview_model = GLOB.world_edit_shape_preview.build_shape_preview(shape_contract)
+	record_runtime_stage_duration("preview_model_build", "preview-model", model_started_at, "shape=[shape_contract.shape_id] anchors=[length(shape_contract.anchor_turfs)]")
 	candidate.plan = plan
 	candidate.runtime_params = islist(runtime_params) ? runtime_params.Copy() : list()
 	candidate.placement_context = islist(placement_context) ? placement_context.Copy() : list()
@@ -416,8 +661,7 @@
 		if(istype(plan))
 			candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
 			candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, candidate.runtime_params, candidate.placement_context, hover_only)
-		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
-		candidate.preview_model.preview_render_token = candidate.preview_render_token
+		refresh_candidate_preview_render_token(candidate)
 	return candidate
 
 /datum/world_edit_manager/proc/stamp_placement_plan_shape_metadata(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context)
@@ -477,8 +721,7 @@
 	if(istype(candidate.preview_model))
 		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
 		candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, runtime_params, candidate.placement_context, hover_only)
-		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
-		candidate.preview_model.preview_render_token = candidate.preview_render_token
+		refresh_candidate_preview_render_token(candidate)
 	return candidate
 
 /datum/world_edit_manager/proc/build_safe_placement_plan_from_shape_result(mob/user, shape_id, list/shape_result, turf/start_turf, turf/end_turf, list/shape_metadata_override = null)
@@ -504,27 +747,60 @@
 	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(plan.affected_turfs)
 
 /datum/world_edit_manager/proc/render_safe_placement_preview(datum/world_edit_placement_candidate/candidate)
+	var/render_started_at = REALTIMEOFDAY
 	increment_runtime_diagnostic("preview_render_calls")
-	store_placement_preview_candidate(candidate)
+	append_runtime_trace("render:start", "candidate=[candidate ? TRUE : FALSE] images=[length(preview_images)] [build_runtime_trace_gc_snapshot()]")
+	var/incoming_render_token = length("[candidate?.preview_render_token]") ? "[candidate.preview_render_token]" : (length("[candidate?.preview_model?.preview_render_token]") ? "[candidate.preview_model.preview_render_token]" : null)
+	var/reused_preview_state = FALSE
+	if(length("[incoming_render_token]") && incoming_render_token == placement_preview_render_token)
+		update_placement_preview_candidate_state(candidate, TRUE)
+		reused_preview_state = TRUE
+		if(preview_groups_signature == incoming_render_token)
+			increment_runtime_diagnostic("preview_render_skips")
+			record_runtime_diagnostic_duration("preview_render", render_started_at)
+			append_runtime_trace("render:skip", "reason=token-match token_len=[length(incoming_render_token)] token_hash=[md5(incoming_render_token)]")
+			return
+	if(!reused_preview_state)
+		store_placement_preview_candidate(candidate)
 	if(!holder)
+		record_runtime_diagnostic_duration("preview_render", render_started_at)
+		append_runtime_trace("render:no-holder")
 		return
 	var/render_token = length("[placement_preview_render_token]") ? "[placement_preview_render_token]" : null
 	if(preview_groups_signature == render_token && length("[render_token]"))
 		increment_runtime_diagnostic("preview_render_skips")
+		record_runtime_diagnostic_duration("preview_render", render_started_at)
+		append_runtime_trace("render:skip", "reason=group-signature token_len=[length(render_token)] token_hash=[md5(render_token)]")
 		return
 
+	var/previous_image_count = length(preview_images)
+	var/clear_started_at = REALTIMEOFDAY
 	clear_preview_images()
+	record_runtime_stage_duration("preview_render_clear", "render-clear", clear_started_at, "old_images=[previous_image_count]")
+
+	var/groups_started_at = REALTIMEOFDAY
 	var/list/images = GLOB.world_edit_helpers.build_grouped_turf_preview_images(get_placement_preview_groups())
+	record_runtime_stage_duration("preview_render_groups", "render-groups", groups_started_at, "group_images=[length(images)]")
+
 	var/list/object_specs = candidate?.preview_model?.generator_preview_object_specs
 	if(islist(object_specs) && length(object_specs))
+		var/specs_started_at = REALTIMEOFDAY
 		images += GLOB.world_edit_helpers.build_preview_images_from_specs(object_specs)
-	increment_runtime_diagnostic("preview_image_rebuilds")
-	get_runtime_diagnostics()["preview_images_last"] = length(images)
-	set_runtime_diagnostic_peak("preview_images_peak", length(images))
+		record_runtime_stage_duration("preview_render_specs", "render-specs", specs_started_at, "specs=[length(object_specs)] total_images=[length(images)]")
+
+	var/attach_started_at = REALTIMEOFDAY
 	if(length(images))
 		holder.images += images
 		preview_images = images.Copy()
+		increment_runtime_diagnostic("preview_image_creations", length(images))
+	record_runtime_stage_duration("preview_render_attach", "render-attach", attach_started_at, "images=[length(images)]")
+	increment_runtime_diagnostic("preview_image_rebuilds")
+	get_runtime_diagnostics()["preview_images_last"] = length(images)
+	set_runtime_diagnostic_peak("preview_images_peak", length(images))
 	preview_groups_signature = render_token || GLOB.world_edit_helpers.build_grouped_turf_preview_signature(get_placement_preview_groups())
+	record_runtime_diagnostic_duration("preview_render", render_started_at)
+	var/render_token_hash = length(render_token) ? md5(render_token) : "<empty>"
+	append_runtime_trace("render:done", "mode=grouped specs=[length(object_specs)] images=[length(images)] token_len=[length(render_token)] token_hash=[render_token_hash]")
 
 /datum/world_edit_manager/proc/render_plan_preview_with_placement_layers(mob/user, datum/world_edit_plan/plan, list/effective_params = null)
 	var/datum/world_edit_placement_candidate/candidate = build_placement_candidate_from_plan(plan, effective_params, user)
@@ -584,22 +860,8 @@
 		return candidate
 
 	if(current_generator?.should_skip_plan_build_for_safe_preview(shape_contract, effective_params, candidate.placement_context, hover_only))
-		if(!islist(shape_contract.metadata))
-			shape_contract.metadata = list()
-		shape_contract.metadata["preview_plan_deferred"] = TRUE
+		mark_shape_contract_preview_deferred(shape_contract, candidate.placement_context)
 		update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
-		if(!hover_only && istype(current_generator, /datum/world_edit_generator/outpost_radius))
-			var/datum/world_edit_generator/outpost_radius/outpost_generator = current_generator
-			var/list/support_result = outpost_generator.evaluate_shape_contract_for_deferred_preview(shape_contract, effective_params, candidate.placement_context)
-			if(islist(support_result))
-				var/list/support_metadata = support_result["metadata"]
-				if(islist(support_metadata))
-					for(var/key in support_metadata)
-						shape_contract.metadata[key] = support_metadata[key]
-					update_placement_context_shape_metadata(candidate.placement_context, shape_contract)
-				candidate.support_error = support_result["error"]
-			else
-				candidate.support_error = support_result
 		increment_runtime_diagnostic("preview_plan_defers")
 		if(hover_only)
 			increment_runtime_diagnostic("hover_plan_skips")
@@ -640,8 +902,7 @@
 	if(istype(candidate.preview_model))
 		candidate.preview_model.generator_effect_turfs = get_safe_placement_generator_effect_turfs(plan)
 		candidate.preview_model.generator_preview_object_specs = current_generator?.build_plan_preview_object_specs(plan, effective_params, candidate.placement_context, hover_only)
-		candidate.preview_render_token = build_placement_preview_render_token(candidate.preview_model)
-		candidate.preview_model.preview_render_token = candidate.preview_render_token
+		refresh_candidate_preview_render_token(candidate)
 	cache_last_resolved_placement_candidate(candidate, shape_contract)
 	return candidate
 
@@ -655,17 +916,15 @@
 	var/shape_id = shape_id_override || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
 	var/list/effective_params = islist(runtime_params) ? runtime_params.Copy() : build_effective_generator_params(null, shape_id)
+	var/shape_contract_started_at = REALTIMEOFDAY
 	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, start_turf, end_turf, effective_params, effective_direction)
+	record_runtime_stage_duration("preview_shape_contract", "shape-contract", shape_contract_started_at, "shape=[shape_id] start=[GLOB.world_edit_helpers.turf_to_text(start_turf)] end=[GLOB.world_edit_helpers.turf_to_text(end_turf)]")
 	return resolve_placement_candidate_from_shape_contract(user, shape_contract, start_turf, end_turf, effective_params, effective_direction, hover_only, shape_metadata_override, collector_state_summary, requested_end_turf, seed_turf, shape_origin_turf)
 
-/datum/world_edit_manager/proc/can_attempt_outpost_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null)
-	if(!istype(current_generator, /datum/world_edit_generator/outpost_radius))
-		return FALSE
+/datum/world_edit_manager/proc/can_attempt_preview_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null, list/runtime_params = null, list/placement_context = null)
 	if(!istype(start_turf) || !istype(requested_end_turf))
 		return FALSE
-
-	var/interaction_kind = get_placement_interaction_kind(shape_id)
-	if(!(interaction_kind in list("anchor_pair", "collector")))
+	if(!current_generator?.should_attempt_preview_endpoint_clamp(shape_id, start_turf, requested_end_turf, segment_start_turf, runtime_params, placement_context))
 		return FALSE
 
 	segment_start_turf = segment_start_turf || start_turf
@@ -673,10 +932,10 @@
 		return FALSE
 	return TRUE
 
-/datum/world_edit_manager/proc/resolve_placement_candidate_with_optional_outpost_clamp(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null, turf/segment_start_turf = null)
+/datum/world_edit_manager/proc/resolve_placement_candidate_with_optional_endpoint_clamp(mob/user, turf/start_turf, turf/end_turf, list/runtime_params = null, hover_only = FALSE, list/shape_metadata_override = null, list/collector_state_summary = null, shape_id_override = null, turf/requested_end_turf = null, turf/seed_turf = null, turf/shape_origin_turf = null, turf/segment_start_turf = null)
 	var/requested_shape_id = shape_id_override || get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	var/turf/requested_turf = requested_end_turf || end_turf
-	var/can_attempt_clamp = can_attempt_outpost_endpoint_clamp(requested_shape_id, start_turf, requested_turf, segment_start_turf)
+	var/can_attempt_clamp = can_attempt_preview_endpoint_clamp(requested_shape_id, start_turf, requested_turf, segment_start_turf, runtime_params)
 	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate(
 		user,
 		start_turf,
@@ -692,13 +951,13 @@
 	)
 	if(!istype(candidate))
 		return candidate
-	if(candidate.is_preview_ready() || (candidate.is_ready_for_apply() && !length("[candidate.get_failure_message()]")))
+	if(candidate.is_confirm_ready() && !length("[candidate.get_failure_message()]"))
 		return candidate
 	// Hover previews must stay cheap: endpoint clamp can retry many shorter shapes and
 	// explode into repeated full plan builds while the cursor is moving.
 	if(hover_only)
 		if(can_attempt_clamp)
-			increment_runtime_diagnostic("outpost_clamp_hover_skips")
+			increment_runtime_diagnostic("preview_endpoint_clamp_hover_skips")
 		return candidate
 	if(!can_attempt_clamp)
 		return candidate
@@ -723,7 +982,7 @@
 				continue
 			attempted_signatures[attempt_signature] = TRUE
 
-		increment_runtime_diagnostic("outpost_clamp_attempts")
+		increment_runtime_diagnostic("preview_endpoint_clamp_attempts")
 		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(
 			user,
 			clamped_shape_contract,
@@ -738,7 +997,7 @@
 			seed_turf,
 			shape_origin_turf,
 		)
-		if(!istype(clamped_candidate) || !(clamped_candidate.is_preview_ready() || (clamped_candidate.is_ready_for_apply() && !length("[clamped_candidate.get_failure_message()]"))))
+		if(!istype(clamped_candidate) || !clamped_candidate.is_confirm_ready() || length("[clamped_candidate.get_failure_message()]"))
 			continue
 		if(!islist(clamped_candidate.placement_context))
 			clamped_candidate.placement_context = list()
@@ -747,30 +1006,45 @@
 		clamped_candidate.placement_context["resolved_end_turf"] = clamped_end_turf
 		if(istype(clamped_candidate.plan))
 			stamp_placement_plan_shape_metadata(clamped_candidate.plan, clamped_candidate.shape_contract, clamped_candidate.placement_context)
-		increment_runtime_diagnostic("outpost_clamp_successes")
+		increment_runtime_diagnostic("preview_endpoint_clamp_successes")
 		return clamped_candidate
 
 	return candidate
 
 /datum/world_edit_manager/proc/evaluate_safe_placement_preview(mob/user, shape_id, turf/start_turf, turf/end_turf, list/shape_metadata_override = null, message_prefix = "", silent = FALSE, hover_only = FALSE)
+	var/preview_started_at = REALTIMEOFDAY
+	var/success = FALSE
+	append_runtime_trace(
+		hover_only ? "preview:hover:start" : "preview:click:start",
+		"shape=[shape_id] start=[GLOB.world_edit_helpers.turf_to_text(start_turf)] end=[GLOB.world_edit_helpers.turf_to_text(end_turf)]",
+	)
 	set_placement_hover_turf(end_turf)
 	if(hover_only)
 		increment_runtime_diagnostic("hover_preview_requests")
 	var/list/effective_params = build_effective_generator_params(null, shape_id)
-	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_outpost_clamp(user, start_turf, end_turf, effective_params, hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
+	var/datum/world_edit_placement_candidate/candidate = resolve_placement_candidate_with_optional_endpoint_clamp(user, start_turf, end_turf, effective_params, hover_only, shape_metadata_override, null, shape_id, end_turf, start_turf, start_turf, start_turf)
 	render_safe_placement_preview(candidate)
 	var/failure_message = candidate.get_failure_message()
-	if(length("[failure_message]"))
+	var/preview_ready_for_stage = hover_only ? !length("[failure_message]") : candidate.is_confirm_ready()
+	if(length("[failure_message]") || !preview_ready_for_stage)
+		if(!length("[failure_message]"))
+			failure_message = "Предпросмотр размещения ещё не готов."
 		set_safe_placement_preview_feedback(FALSE, "[message_prefix][failure_message]", candidate.plan?.metadata || candidate.shape_contract?.metadata, FALSE)
 		if(!silent)
 			to_chat(user, SPAN_WARNING(last_preview_message))
-		return FALSE
-
-	var/list/preview_feedback_meta = candidate.plan?.metadata || candidate.shape_contract?.metadata || list()
-	set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan, preview_feedback_meta)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
-	if(!silent)
-		to_chat(user, SPAN_NOTICE(last_preview_message))
-	return TRUE
+		append_runtime_trace(hover_only ? "preview:hover:fail" : "preview:click:fail", "message=[failure_message]")
+	else
+		var/list/preview_feedback_meta = candidate.plan?.metadata || candidate.shape_contract?.metadata || list()
+		set_safe_placement_preview_feedback(TRUE, "[message_prefix][build_safe_placement_preview_message(candidate.plan, preview_feedback_meta)]", preview_feedback_meta, hover_only ? FALSE : TRUE)
+		if(!silent)
+			to_chat(user, SPAN_NOTICE(last_preview_message))
+		success = TRUE
+		append_runtime_trace(
+			hover_only ? "preview:hover:ok" : "preview:click:ok",
+			"confirm_ready=[candidate.is_confirm_ready()] apply_ready=[candidate.is_ready_for_apply()] plan=[candidate.plan ? TRUE : FALSE] images=[length(preview_images)]",
+		)
+	record_runtime_diagnostic_duration(hover_only ? "preview_eval_hover" : "preview_eval_click", preview_started_at)
+	return success
 
 /datum/world_edit_manager/proc/apply_resolved_placement_candidate(mob/user, datum/world_edit_placement_candidate/candidate = null, force_confirm = FALSE, cancel_placement_on_confirm_reject = FALSE)
 	candidate = candidate || get_placement_preview_candidate()
@@ -967,6 +1241,11 @@
 	if(!LAZYACCESS(modifiers, LEFT_CLICK))
 		return TRUE
 
+	append_runtime_trace(
+		"click:start",
+		"shape=[shape_id] kind=[interaction_kind] turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)] images=[length(preview_images)] [build_runtime_trace_gc_snapshot()]",
+	)
+
 	if(interaction_kind == "collector")
 		var/list/collector_points = get_placement_collector_points()
 		var/turf/origin_turf = get_placement_collector_origin_turf()
@@ -1001,7 +1280,8 @@
 			set_placement_hover_turf(clicked_turf)
 			if(!prepare_finished_placement_collection_preview(user, clicked_turf))
 				return TRUE
-			arm_safe_placement_preview_for_confirm(user)
+			if(!arm_safe_placement_preview_for_confirm(user))
+				to_chat(user, SPAN_WARNING("Предпросмотр размещения ещё не готов."))
 			return TRUE
 		if(length(last_point_key) && new_key == last_point_key)
 			if(length(collector_points) >= get_placement_collector_min_points(shape_id) && collector_repeated_last_point_finishes(shape_id))
@@ -1009,7 +1289,8 @@
 				set_placement_hover_turf(clicked_turf)
 				if(!prepare_finished_placement_collection_preview(user, clicked_turf))
 					return TRUE
-				arm_safe_placement_preview_for_confirm(user)
+				if(!arm_safe_placement_preview_for_confirm(user))
+					to_chat(user, SPAN_WARNING("Предпросмотр размещения ещё не готов."))
 				return TRUE
 			to_chat(user, SPAN_NOTICE("Эта точка уже последняя в контуре. Добавьте новую точку или завершите сбор."))
 			return TRUE
@@ -1027,7 +1308,7 @@
 
 		var/list/proposed_points = GLOB.world_edit_placement_shapes.world_edit_copy_points(collector_points)
 		proposed_points += list(list("x" = new_x, "y" = new_y))
-		if(istype(current_generator, /datum/world_edit_generator/outpost_radius) && length(proposed_points) >= get_placement_collector_min_points(shape_id))
+		if(length(proposed_points) >= get_placement_collector_min_points(shape_id) && current_generator?.should_preview_collector_points_before_commit(shape_id, proposed_points))
 			set_placement_anchor_turf(origin_turf)
 			set_placement_hover_turf(clicked_turf)
 			if(!update_placement_collector_runtime_state(user, clicked_turf, "Сбор обновлён. ", FALSE, FALSE, proposed_points))
@@ -1054,6 +1335,7 @@
 		return TRUE
 
 	if(interaction_kind == "anchor_pair" && !istype(placement_anchor_turf))
+		append_runtime_trace("click:anchor-arm", "anchor=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)]")
 		show_anchor_pair_preview(clicked_turf, shape_id)
 		to_chat(user, SPAN_NOTICE("Опорная точка выбрана: [clicked_turf.x],[clicked_turf.y],[clicked_turf.z]."))
 		return TRUE
@@ -1064,16 +1346,23 @@
 		set_placement_hover_turf(clicked_turf)
 
 	if(handle_repeated_safe_placement_confirm_click(user, clicked_turf))
+		append_runtime_trace("click:confirm", "turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)]")
 		return TRUE
 
+	append_runtime_trace("click:before-eval", "start=[GLOB.world_edit_helpers.turf_to_text(start_turf)] end=[GLOB.world_edit_helpers.turf_to_text(end_turf)]")
 	if(!evaluate_safe_placement_preview(user, shape_id, start_turf, end_turf, null, "", FALSE, FALSE))
 		if(interaction_kind == "anchor_pair")
 			set_placement_anchor_turf(start_turf)
 			if(should_reset_failed_anchor_pair_same_tile_click(start_turf, clicked_turf))
 				return reset_safe_placement_attempt(user, "Текущая попытка размещения отменена: конечная точка совпала с опорной.")
+		append_runtime_trace("click:preview-failed", "turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)]")
 		return TRUE
 
-	arm_safe_placement_preview_for_confirm(user)
+	if(!arm_safe_placement_preview_for_confirm(user))
+		append_runtime_trace("click:arm-failed", "turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)]")
+		to_chat(user, SPAN_WARNING("Предпросмотр размещения ещё не готов."))
+		return TRUE
+	append_runtime_trace("click:armed", "turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)]")
 	return TRUE
 
 /datum/world_edit_manager/proc/start_safe_placement_mode(mob/user)

@@ -389,3 +389,17 @@
 
 /datum/world_edit_generator/outpost_radius/get_default_placement_direction()
 	return NORTH
+
+/datum/world_edit_generator/outpost_radius/should_attempt_preview_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null, list/runtime_params = null, list/placement_context = null)
+	var/interaction_kind = GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_id)
+	if(!(interaction_kind in list("anchor_pair", "collector")))
+		return FALSE
+	if(!istype(start_turf) || !istype(requested_end_turf))
+		return FALSE
+	segment_start_turf = segment_start_turf || start_turf
+	if(!istype(segment_start_turf) || segment_start_turf == requested_end_turf)
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/should_preview_collector_points_before_commit(shape_id, list/proposed_points = null)
+	return GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_id) == "collector"

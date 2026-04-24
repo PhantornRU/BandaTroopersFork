@@ -29,10 +29,17 @@
 	if(!holder || holder != user?.client || !check_rights_for(holder, R_DEBUG))
 		return list()
 
+	append_runtime_trace("ui_data:start", build_runtime_trace_gc_snapshot())
 	ensure_preset_cache_loaded()
 	ensure_blueprint_cache_loaded()
 	ensure_default_generator_selected()
-	return build_ui_data_payload()
+	var/ui_data_started_at = REALTIMEOFDAY
+	var/list/payload = build_ui_data_payload()
+	var/field_count = islist(payload["ui_fields"]) ? length(payload["ui_fields"]) : 0
+	var/history_count = islist(payload["history_entries"]) ? length(payload["history_entries"]) : 0
+	record_runtime_diagnostic_duration("ui_data", ui_data_started_at)
+	append_runtime_trace("ui_data:done", "fields=[field_count] history=[history_count]")
+	return payload
 
 /datum/world_edit_manager/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()

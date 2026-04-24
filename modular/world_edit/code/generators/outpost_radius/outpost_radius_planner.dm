@@ -1681,7 +1681,7 @@
 	config["turned_on"] = turned_on
 	return config
 
-/datum/world_edit_generator/outpost_radius/proc/build_outpost_shape_support_context(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context, include_shape_analysis = FALSE)
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_exact_plan_context(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
 	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	var/effective_shape_id = shape_id
@@ -1733,17 +1733,17 @@
 	if(!istype(seed_turf))
 		seed_turf = footprint_turfs[1]
 
+	var/support_validation_error = get_outpost_shape_support_validation_error(effective_shape_id, footprint_turfs, placement_context)
+	if(length("[support_validation_error]"))
+		context["error"] = support_validation_error
+		return context
+
 	context["support_class"] = support_class
 	context["effective_shape_id"] = effective_shape_id
 	context["config"] = config
 	context["footprint_turfs"] = footprint_turfs
 	context["seed_turf"] = seed_turf
-	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT || !include_shape_analysis)
-		return context
-
-	var/support_validation_error = get_outpost_shape_support_validation_error(effective_shape_id, footprint_turfs, placement_context)
-	if(length("[support_validation_error]"))
-		context["error"] = support_validation_error
+	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT)
 		return context
 
 	var/list/shape_analysis = build_outpost_shape_analysis(footprint_turfs, config, placement_context)
@@ -1768,174 +1768,38 @@
 	context["shape_analysis"] = shape_analysis
 	return context
 
-/datum/world_edit_generator/outpost_radius/proc/evaluate_shape_contract_for_deferred_preview(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
-	var/list/support_context = build_outpost_shape_support_context(shape_contract, params, placement_context, TRUE)
-	var/support_class = support_context["support_class"]
-	var/list/support_metadata = islist(support_context["support_metadata"]) ? support_context["support_metadata"].Copy() : list()
-	if(length("[support_context["error"]]"))
+/datum/world_edit_generator/outpost_radius/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	var/list/plan_context = build_outpost_exact_plan_context(shape_contract, params, placement_context)
+	var/support_class = plan_context["support_class"] || get_outpost_shape_support_class(shape_contract?.shape_id || WORLD_EDIT_SHAPE_POINT)
+	var/list/support_metadata = islist(plan_context["support_metadata"]) ? plan_context["support_metadata"].Copy() : list()
+	if(length("[plan_context["error"]]"))
 		return list(
 			"support_class" = support_class,
-			"error" = "[support_context["error"]]",
+			"error" = "[plan_context["error"]]",
 			"metadata" = support_metadata,
 		)
 
-	var/list/config = support_context["config"]
-	var/list/footprint_turfs = support_context["footprint_turfs"]
-	var/list/shape_analysis = support_context["shape_analysis"]
-	var/list/defense_profile = islist(config["defense_profile_data"]) ? config["defense_profile_data"] : get_outpost_defense_profile(config["defense_profile"])
-	populate_outpost_recipe_metadata(support_metadata, config)
-	support_metadata["preview_plan_deferred"] = TRUE
-	support_metadata["anchor_count"] = length(footprint_turfs)
-	support_metadata["shape_footprint_count"] = length(footprint_turfs)
-	support_metadata["defense_profile_label"] = defense_profile["label"]
-	support_metadata["defense_profile_description"] = defense_profile["description"]
-	support_metadata["tactical_profile_label"] = defense_profile["label"]
-	support_metadata["tactical_profile_description"] = defense_profile["description"]
-	support_metadata["layout_label"] = config["layout_profile"]["label"]
-	support_metadata["layout_description"] = config["layout_profile"]["description"]
-	support_metadata["placement_dir_label"] = GLOB.world_edit_helpers.dir_to_label(config["placement_dir"])
-	if(islist(shape_analysis))
-		var/list/filtered_candidate_slots = shape_analysis["filtered_candidate_slots"]
-		var/list/opening_slots = shape_analysis["opening_slots"]
-		support_metadata["opening_dirs"] = format_opening_dirs(shape_analysis["opening_dirs"])
-		support_metadata["shape_candidate_slot_count"] = length(filtered_candidate_slots)
-		support_metadata["shape_opening_slot_count"] = length(opening_slots)
+	var/datum/world_edit_plan/plan = build_outpost_exact_plan_from_context(shape_contract, placement_context, plan_context)
+	if(!istype(plan))
+		return list(
+			"support_class" = support_class,
+			"error" = "Не удалось построить план форпоста.",
+			"metadata" = support_metadata,
+		)
+	if(plan.metadata["error"])
+		return list(
+			"support_class" = support_class,
+			"error" = "[plan.metadata["error"]]",
+			"metadata" = support_metadata,
+		)
 	return list(
 		"support_class" = support_class,
 		"error" = null,
+		"plan" = plan,
 		"metadata" = support_metadata,
-	)
-
-/datum/world_edit_generator/outpost_radius/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
-	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
-	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
-	var/effective_shape_id = shape_id
-	var/support_class = get_outpost_shape_support_class(effective_shape_id)
-	var/list/support_metadata = list(
-		"shape_support_class" = support_class,
-		"shape_requested_id" = shape_id,
-		"shape_effective_id" = effective_shape_id,
-	)
-	if(!islist(anchor_turfs) || !length(anchor_turfs))
-		return list(
-			"support_class" = support_class,
-			"error" = "Не удалось определить контур формы.",
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/config = resolve_outpost_configuration(params, placement_context)
-	if(config["error"])
-		return list(
-			"support_class" = support_class,
-			"error" = "[config["error"]]",
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/footprint_lookup = build_turf_lookup(anchor_turfs)
-	if(!length(footprint_lookup))
-		return list(
-			"support_class" = support_class,
-			"error" = "Не удалось определить контур формы.",
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/footprint_turfs = list()
-	for(var/turf/footprint_turf as anything in footprint_lookup)
-		if(istype(footprint_turf))
-			footprint_turfs += footprint_turf
-	if(!length(footprint_turfs))
-		return list(
-			"support_class" = support_class,
-			"error" = "Не удалось определить контур формы.",
-			"metadata" = support_metadata.Copy(),
-		)
-
-	effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, footprint_turfs)
-	support_class = get_outpost_shape_support_class(effective_shape_id)
-	support_metadata["shape_support_class"] = support_class
-	support_metadata["shape_effective_id"] = effective_shape_id
-
-	var/turf/seed_turf = resolve_outpost_shape_seed_turf(footprint_turfs, placement_context)
-	if(!istype(seed_turf))
-		seed_turf = footprint_turfs[1]
-	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT)
-		var/datum/world_edit_plan/point_plan = build_outpost_plan(seed_turf, config)
-		if(point_plan.metadata["error"])
-			return list(
-				"support_class" = support_class,
-				"error" = "[point_plan.metadata["error"]]",
-				"metadata" = support_metadata.Copy(),
-			)
-		if(!length(point_plan.placements) && !length(point_plan.deletions))
-			return list(
-				"support_class" = support_class,
-				"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранной точки размещения.",
-				"metadata" = support_metadata.Copy(),
-			)
-		return list(
-			"support_class" = support_class,
-			"error" = null,
-			"plan" = point_plan,
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/support_validation_error = get_outpost_shape_support_validation_error(effective_shape_id, footprint_turfs, placement_context)
-	if(length("[support_validation_error]"))
-		return list(
-			"support_class" = support_class,
-			"error" = support_validation_error,
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/shape_analysis = build_outpost_shape_analysis(footprint_turfs, config, placement_context)
-	if(shape_analysis["error"])
-		return list(
-			"support_class" = support_class,
-			"error" = "[shape_analysis["error"]]",
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/candidate_slots = shape_analysis["filtered_candidate_slots"]
-	if(!length(candidate_slots))
-		return list(
-			"support_class" = support_class,
-			"error" = get_outpost_radius_policy_error(effective_shape_id),
-			"metadata" = support_metadata.Copy(),
-		)
-
-	var/list/opening_dirs = shape_analysis["opening_dirs"]
-	if(length(opening_dirs))
-		var/list/opening_slots_by_dir = shape_analysis["opening_slots_by_dir"]
-		var/required_opening_tiles_per_dir = get_layout_total_opening_tiles_per_dir(config["layout_profile"])
-		for(var/opening_dir as anything in opening_dirs)
-			if((opening_slots_by_dir["[opening_dir]"] || 0) < required_opening_tiles_per_dir)
-				return list(
-					"support_class" = support_class,
-					"error" = get_outpost_radius_policy_error(effective_shape_id),
-					"metadata" = support_metadata.Copy(),
-				)
-
-	var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(footprint_turfs, config, placement_context, shape_analysis)
-	if(shape_plan.metadata["error"])
-		return list(
-			"support_class" = support_class,
-			"error" = "[shape_plan.metadata["error"]]",
-			"metadata" = support_metadata.Copy(),
-		)
-	if(!length(shape_plan.placements) && !length(shape_plan.deletions))
-		return list(
-			"support_class" = support_class,
-			"error" = "Не удалось построить ни одного допустимого размещения форпоста для выбранного контура размещения.",
-			"metadata" = support_metadata.Copy(),
-		)
-	return list(
-		"support_class" = support_class,
-		"error" = null,
-		"plan" = shape_plan,
-		"metadata" = support_metadata.Copy(),
 	)
 
 /datum/world_edit_generator/outpost_radius/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, anchor_turfs, placement_context)
-	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
-	return support_result["error"]
+	var/list/plan_context = build_outpost_exact_plan_context(shape_contract, params, placement_context)
+	return plan_context["error"]

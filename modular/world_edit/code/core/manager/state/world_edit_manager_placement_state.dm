@@ -225,7 +225,7 @@
 
 /datum/world_edit_manager/proc/arm_placement_confirm_for_turf(turf/confirm_turf = null, datum/world_edit_placement_candidate/candidate = null)
 	candidate = candidate || get_placement_preview_candidate()
-	if(!istype(candidate) || !candidate.is_ready_for_apply() || !is_preview_state_valid())
+	if(!istype(candidate) || !candidate.is_confirm_ready() || !is_preview_state_valid())
 		return FALSE
 
 	confirm_turf = confirm_turf || get_placement_confirm_target_turf(candidate)
@@ -245,7 +245,7 @@
 		return FALSE
 
 	candidate = candidate || get_placement_preview_candidate()
-	if(!istype(candidate) || !candidate.is_ready_for_apply() || !is_preview_state_valid())
+	if(!istype(candidate) || !candidate.is_confirm_ready() || !is_preview_state_valid())
 		return FALSE
 
 	confirm_turf = confirm_turf || get_placement_confirm_target_turf(candidate)
@@ -428,19 +428,22 @@
 	if(should_bump_context || preserve_lock)
 		bump_preview_context_revision()
 
-/datum/world_edit_manager/proc/store_placement_preview_candidate(datum/world_edit_placement_candidate/candidate)
+/datum/world_edit_manager/proc/update_placement_preview_candidate_state(datum/world_edit_placement_candidate/candidate, allow_context_bump = TRUE)
 	var/datum/world_edit_placement_session/session = get_placement_session()
 	var/keep_lock = session.preview_locked ? TRUE : FALSE
-	var/turf/locked_hover_turf = keep_lock ? session.hover_turf : null
-	clear_placement_shape_preview_state(keep_lock, locked_hover_turf, FALSE)
+	var/turf/previous_hover_turf = session.hover_turf
+	var/had_candidate = istype(session.preview_candidate)
 	session.preview_candidate = candidate
+	session.confirm_arm_turf = null
+	session.confirm_arm_signature = null
 	if(!istype(candidate))
 		return
 
 	if(!keep_lock)
 		session.hover_turf = islist(candidate.placement_context) ? candidate.placement_context["resolved_end_turf"] || candidate.placement_context["end_turf"] : null
-	bump_preview_context_revision()
 	placement_hover_turf = session.hover_turf
+	if(allow_context_bump && (!had_candidate || previous_hover_turf != session.hover_turf))
+		bump_preview_context_revision()
 	placement_preview_signature = build_preview_params_signature(candidate.runtime_params)
 	if(islist(candidate.placement_context))
 		candidate.placement_context["preview_signature"] = placement_preview_signature
@@ -457,6 +460,13 @@
 		placement_preview_generator_effect_turfs = islist(candidate.preview_model.generator_effect_turfs) ? candidate.preview_model.generator_effect_turfs : list()
 		if(!length(placement_preview_render_token) && length("[candidate.preview_model.preview_render_token]"))
 			placement_preview_render_token = "[candidate.preview_model.preview_render_token]"
+
+/datum/world_edit_manager/proc/store_placement_preview_candidate(datum/world_edit_placement_candidate/candidate)
+	var/datum/world_edit_placement_session/session = get_placement_session()
+	var/keep_lock = session.preview_locked ? TRUE : FALSE
+	var/turf/locked_hover_turf = keep_lock ? session.hover_turf : null
+	clear_placement_shape_preview_state(keep_lock, locked_hover_turf, FALSE)
+	update_placement_preview_candidate_state(candidate, FALSE)
 
 /datum/world_edit_manager/proc/get_placement_preview_groups()
 	var/list/groups = list(
