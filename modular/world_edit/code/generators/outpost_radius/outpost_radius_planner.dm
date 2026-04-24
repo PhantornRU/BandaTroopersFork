@@ -743,6 +743,146 @@
 
 	return bounds
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_budget_error(budget_kind, actual, limit)
+	return "Запрошенный форпост слишком большой для безопасного предпросмотра ([budget_kind]: [actual]/[limit]). Уменьшите радиус или контур."
+
+/datum/world_edit_generator/outpost_radius/proc/stamp_outpost_budget_metadata(list/metadata, budget_kind, actual, limit)
+	if(!islist(metadata))
+		return
+	metadata["budget_kind"] = "[budget_kind]"
+	metadata["budget_actual"] = actual
+	metadata["budget_limit"] = limit
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_scan_tile_count(list/shape_bounds, radius)
+	if(!islist(shape_bounds) || isnull(shape_bounds["min_x"]) || isnull(shape_bounds["max_x"]) || isnull(shape_bounds["min_y"]) || isnull(shape_bounds["max_y"]))
+		return 0
+	radius = max(round(radius), 1)
+	return ((shape_bounds["max_x"] - shape_bounds["min_x"] + 1) + (radius * 2)) * ((shape_bounds["max_y"] - shape_bounds["min_y"] + 1) + (radius * 2))
+
+/datum/world_edit_generator/outpost_radius/proc/normalize_outpost_footprint(list/raw_turfs, shape_id, turf/seed_turf = null)
+	var/list/result = list(
+		"turfs" = list(),
+		"lookup" = list(),
+		"z" = null,
+		"error" = null,
+		"budget_kind" = null,
+		"budget_actual" = 0,
+		"budget_limit" = 0,
+	)
+	if(!islist(raw_turfs) || !length(raw_turfs))
+		result["error"] = "Не удалось определить контур формы."
+		return result
+
+	var/list/lookup = list()
+	var/list/normalized_turfs = list()
+	var/z_level = null
+	for(var/turf/source_turf as anything in raw_turfs)
+		if(!istype(source_turf))
+			continue
+		if(isnull(z_level))
+			z_level = source_turf.z
+		if(source_turf.z != z_level)
+			result["error"] = "Форпост поддерживает только контур на одном Z-уровне."
+			return result
+		if(lookup[source_turf])
+			continue
+		lookup[source_turf] = TRUE
+		normalized_turfs += source_turf
+
+	if(!length(normalized_turfs))
+		result["error"] = "Не удалось определить контур формы."
+		return result
+	if(length(normalized_turfs) > WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS)
+		result["budget_kind"] = "footprint"
+		result["budget_actual"] = length(normalized_turfs)
+		result["budget_limit"] = WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS
+		result["error"] = get_outpost_budget_error("footprint", length(normalized_turfs), WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS)
+		return result
+
+	var/component_count = count_shape_connected_components(normalized_turfs)
+	if(component_count > 1)
+		var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+		result["error"] = "Форма [shape_label] распадается на несвязанные островки; для форпоста нужен один связный контур."
+		return result
+
+	if(istype(seed_turf) && !lookup[seed_turf])
+		seed_turf = normalized_turfs[1]
+
+	result["turfs"] = normalized_turfs
+	result["lookup"] = lookup
+	result["z"] = z_level
+	return result
+
+/datum/world_edit_generator/outpost_radius/proc/build_shape_chebyshev_distance_map(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
+	var/list/result = list(
+		"error" = null,
+		"distances" = islist(distance_cache) ? distance_cache : list(),
+		"area_turfs" = list(),
+		"shell_turfs" = list(),
+		"shell_lookup" = list(),
+		"scan_tile_count" = 0,
+	)
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		result["error"] = "Не удалось определить контур формы."
+		return result
+
+	radius = max(round(radius), 1)
+	var/z_level = shape_bounds["z"]
+	if(isnull(z_level))
+		result["error"] = "Не удалось определить Z-уровень контура формы."
+		return result
+
+	var/scan_tile_count = get_outpost_scan_tile_count(shape_bounds, radius)
+	result["scan_tile_count"] = scan_tile_count
+	if(scan_tile_count > WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS)
+		result["error"] = get_outpost_budget_error("scan", scan_tile_count, WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS)
+		result["budget_kind"] = "scan"
+		result["budget_actual"] = scan_tile_count
+		result["budget_limit"] = WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS
+		return result
+
+	var/min_x = shape_bounds["min_x"] - radius
+	var/max_x = shape_bounds["max_x"] + radius
+	var/min_y = shape_bounds["min_y"] - radius
+	var/max_y = shape_bounds["max_y"] + radius
+	var/list/distances = result["distances"]
+	var/list/open_turfs = list()
+	for(var/turf/footprint_turf as anything in footprint_turfs)
+		if(!istype(footprint_turf) || footprint_turf.z != z_level)
+			continue
+		distances[footprint_turf] = 0
+		open_turfs += footprint_turf
+
+	var/search_index = 1
+	while(search_index <= length(open_turfs))
+		var/turf/current_turf = open_turfs[search_index++]
+		var/current_distance = text2num("[distances[current_turf]]")
+		if(current_distance >= radius)
+			continue
+		for(var/check_dir in GLOB.alldirs)
+			var/turf/neighbor_turf = get_step(current_turf, check_dir)
+			if(!istype(neighbor_turf) || neighbor_turf.z != z_level)
+				continue
+			if(neighbor_turf.x < min_x || neighbor_turf.x > max_x || neighbor_turf.y < min_y || neighbor_turf.y > max_y)
+				continue
+			if(!isnull(distances[neighbor_turf]))
+				continue
+			distances[neighbor_turf] = current_distance + 1
+			open_turfs += neighbor_turf
+
+	var/list/area_turfs = result["area_turfs"]
+	var/list/shell_turfs = result["shell_turfs"]
+	var/list/shell_lookup = result["shell_lookup"]
+	for(var/turf/known_turf as anything in distances)
+		if(!istype(known_turf))
+			continue
+		area_turfs += known_turf
+		if(distances[known_turf] == radius && !footprint_lookup[known_turf])
+			shell_lookup[known_turf] = TRUE
+			shell_turfs += known_turf
+
+	return result
+
 /datum/world_edit_generator/outpost_radius/proc/build_point_radius_area_turfs(turf/center_turf, radius)
 	var/list/area_turfs = list()
 	if(!istype(center_turf))
@@ -759,28 +899,10 @@
 	return area_turfs
 
 /datum/world_edit_generator/outpost_radius/proc/build_shape_radius_area_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
-	var/list/area_turfs = list()
-	if(!islist(footprint_turfs) || !length(footprint_turfs))
-		return area_turfs
-
-	radius = max(round(radius), 1)
-	var/z_level = shape_bounds["z"]
-	if(isnull(z_level))
-		return area_turfs
-
-	for(var/y in (shape_bounds["min_y"] - radius) to (shape_bounds["max_y"] + radius))
-		for(var/x in (shape_bounds["min_x"] - radius) to (shape_bounds["max_x"] + radius))
-			var/turf/target_turf = locate(x, y, z_level)
-			if(!istype(target_turf))
-				continue
-			if(footprint_lookup[target_turf])
-				area_turfs += target_turf
-				continue
-			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs, distance_cache) > radius)
-				continue
-			area_turfs += target_turf
-
-	return area_turfs
+	var/list/distance_data = build_shape_chebyshev_distance_map(footprint_turfs, radius, footprint_lookup, shape_bounds, distance_cache)
+	if(distance_data["error"])
+		return list()
+	return distance_data["area_turfs"]
 
 /datum/world_edit_generator/outpost_radius/proc/filter_outpost_candidate_turfs(list/start_turfs, list/candidate_turfs, list/traversal_turfs, list/radius_policy, list/pinned_turfs = null, list/pinned_lookup_override = null, list/approach_line_cache = null, list/approach_result_cache = null)
 	var/list/result = list()
@@ -1049,20 +1171,9 @@
 			WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
 			WORLD_EDIT_SHAPE_CIRCLE,
 			WORLD_EDIT_SHAPE_RING,
-			WORLD_EDIT_SHAPE_ELLIPSE,
-			WORLD_EDIT_SHAPE_DIAMOND,
-			WORLD_EDIT_SHAPE_TRIANGLE,
-			WORLD_EDIT_SHAPE_SECTOR,
-			WORLD_EDIT_SHAPE_POLYGON
+			WORLD_EDIT_SHAPE_DIAMOND
 		)
 			return "full"
-		if(
-			WORLD_EDIT_SHAPE_POLYLINE,
-			WORLD_EDIT_SHAPE_BRUSH_PATH,
-			WORLD_EDIT_SHAPE_CUSTOM_MASK,
-			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
-		)
-			return "limited"
 	return "unsupported"
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_effective_shape_id(shape_id, datum/world_edit_shape_contract/shape_contract = null, list/placement_context = null, list/footprint_turfs = null)
@@ -1102,7 +1213,7 @@
 		while(length(open_list))
 			var/turf/current_turf = open_list[length(open_list)]
 			open_list.Cut(length(open_list), length(open_list) + 1)
-			for(var/check_dir in GLOB.cardinals)
+			for(var/check_dir in GLOB.alldirs)
 				var/turf/neighbor_turf = get_step(current_turf, check_dir)
 				if(!lookup[neighbor_turf] || !unvisited[neighbor_turf])
 					continue
@@ -1115,12 +1226,7 @@
 	var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
 	switch(support_class)
 		if("unsupported")
-			return "Генератор форпоста не поддерживает форму [shape_label]."
-		if("risky")
-			return "Форма [shape_label] пока не поддерживается; используйте связный контур или форму с опорой."
-
-	if(support_class != "limited")
-		return null
+			return "Форма [shape_label] временно не поддерживается стабильным planner v1 форпоста."
 
 	var/component_count = count_shape_connected_components(footprint_turfs)
 	if(component_count > 1)
@@ -1139,54 +1245,17 @@
 			return EAST
 	return dir_to_flip
 
-/datum/world_edit_generator/outpost_radius/proc/get_shape_chebyshev_distance_to_footprint(turf/target_turf, list/footprint_turfs, list/distance_cache = null)
-	if(!istype(target_turf) || !islist(footprint_turfs) || !length(footprint_turfs))
-		return null
-	if(islist(distance_cache) && !isnull(distance_cache[target_turf]))
-		return distance_cache[target_turf]
-
-	var/best_distance = null
-	for(var/turf/source_turf as anything in footprint_turfs)
-		if(!istype(source_turf))
-			continue
-
-		var/current_distance = max(abs(target_turf.x - source_turf.x), abs(target_turf.y - source_turf.y))
-		if(isnull(best_distance) || current_distance < best_distance)
-			best_distance = current_distance
-			if(best_distance <= 0)
-				break
-
-	if(islist(distance_cache) && !isnull(best_distance))
-		distance_cache[target_turf] = best_distance
-	return best_distance
-
 /datum/world_edit_generator/outpost_radius/proc/build_shape_shell_turfs(list/footprint_turfs, radius, list/footprint_lookup, list/shape_bounds, list/distance_cache = null)
 	var/list/result = list(
 		"turfs" = list(),
 		"lookup" = list(),
 	)
-	if(!islist(footprint_turfs) || !length(footprint_turfs))
+	var/list/distance_data = build_shape_chebyshev_distance_map(footprint_turfs, radius, footprint_lookup, shape_bounds, distance_cache)
+	if(distance_data["error"])
 		return result
 
-	radius = max(round(radius), 1)
-	var/list/shell_turfs = result["turfs"]
-	var/list/shell_lookup = result["lookup"]
-	var/z_level = shape_bounds["z"]
-	if(isnull(z_level))
-		return result
-
-	for(var/y in (shape_bounds["min_y"] - radius) to (shape_bounds["max_y"] + radius))
-		for(var/x in (shape_bounds["min_x"] - radius) to (shape_bounds["max_x"] + radius))
-			var/turf/target_turf = locate(x, y, z_level)
-			if(!istype(target_turf) || footprint_lookup[target_turf])
-				continue
-
-			if(get_shape_chebyshev_distance_to_footprint(target_turf, footprint_turfs, distance_cache) != radius)
-				continue
-
-			shell_lookup[target_turf] = TRUE
-			shell_turfs += target_turf
-
+	result["turfs"] = distance_data["shell_turfs"]
+	result["lookup"] = distance_data["shell_lookup"]
 	return result
 
 /datum/world_edit_generator/outpost_radius/proc/build_shape_shell_slot_dirs(turf/target_turf, radius, list/footprint_turfs, list/shell_lookup, list/distance_cache = null)
@@ -1199,7 +1268,7 @@
 		if(shell_lookup[neighbor_turf])
 			continue
 
-		var/neighbor_distance = get_shape_chebyshev_distance_to_footprint(neighbor_turf, footprint_turfs, distance_cache)
+		var/neighbor_distance = islist(distance_cache) ? distance_cache[neighbor_turf] : null
 		if(isnull(neighbor_distance) || neighbor_distance > radius)
 			slot_dirs += dir_to_use
 
@@ -1294,6 +1363,8 @@
 				"dir" = dir_to_use,
 				"slot_index" = length(candidates) + 1,
 			))
+			if(length(candidates) > WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS)
+				return candidates
 
 	return candidates
 
@@ -1370,18 +1441,15 @@
 		analysis["error"] = "[config["error"]]"
 		return analysis
 
-	var/list/footprint_lookup = build_turf_lookup(footprint_turfs)
-	if(!length(footprint_lookup))
-		analysis["error"] = "Не удалось определить контур формы."
+	var/list/normalized_footprint = normalize_outpost_footprint(footprint_turfs, islist(placement_context) ? (placement_context["shape"] || WORLD_EDIT_SHAPE_POINT) : WORLD_EDIT_SHAPE_POINT)
+	if(normalized_footprint["error"])
+		analysis["error"] = "[normalized_footprint["error"]]"
+		analysis["budget_kind"] = normalized_footprint["budget_kind"]
+		analysis["budget_actual"] = normalized_footprint["budget_actual"]
+		analysis["budget_limit"] = normalized_footprint["budget_limit"]
 		return analysis
-
-	var/list/unique_footprint_turfs = list()
-	for(var/turf/footprint_turf as anything in footprint_lookup)
-		if(istype(footprint_turf))
-			unique_footprint_turfs += footprint_turf
-	if(!length(unique_footprint_turfs))
-		analysis["error"] = "Не удалось определить контур формы."
-		return analysis
+	var/list/footprint_lookup = normalized_footprint["lookup"]
+	var/list/unique_footprint_turfs = normalized_footprint["turfs"]
 
 	var/list/shape_bounds = build_turf_bounds(unique_footprint_turfs)
 	var/turf/seed_turf = resolve_outpost_shape_seed_turf(unique_footprint_turfs, placement_context)
@@ -1390,8 +1458,21 @@
 	var/list/distance_cache = list()
 	var/list/approach_line_cache = list()
 	var/list/approach_result_cache = list()
-	var/list/traversal_turfs = build_shape_radius_area_turfs(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
+	var/list/distance_data = build_shape_chebyshev_distance_map(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
+	if(distance_data["error"])
+		analysis["error"] = "[distance_data["error"]]"
+		analysis["budget_kind"] = distance_data["budget_kind"]
+		analysis["budget_actual"] = distance_data["budget_actual"]
+		analysis["budget_limit"] = distance_data["budget_limit"]
+		return analysis
+	var/list/traversal_turfs = distance_data["area_turfs"]
 	var/list/candidate_slots = build_shape_perimeter_candidates(unique_footprint_turfs, config["radius"], footprint_lookup, shape_bounds, distance_cache)
+	if(length(candidate_slots) > WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS)
+		analysis["error"] = get_outpost_budget_error("candidate_slots", length(candidate_slots), WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS)
+		analysis["budget_kind"] = "candidate_slots"
+		analysis["budget_actual"] = length(candidate_slots)
+		analysis["budget_limit"] = WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS
+		return analysis
 	var/list/filtered_candidate_slots = filter_outpost_slots_by_radius_policy(list(seed_turf), candidate_slots, traversal_turfs, config["radius_policy"], unique_footprint_turfs, footprint_lookup, approach_line_cache, approach_result_cache)
 	var/list/layout_profile = islist(config["layout_profile"]) ? config["layout_profile"] : list(
 		"opening_dirs" = list(NORTH, EAST, SOUTH, WEST),
@@ -1444,6 +1525,10 @@
 	analysis["distance_cache"] = distance_cache
 	analysis["approach_line_cache"] = approach_line_cache
 	analysis["approach_result_cache"] = approach_result_cache
+	analysis["scan_tile_count"] = distance_data["scan_tile_count"]
+	analysis["budget_kind"] = null
+	analysis["budget_actual"] = 0
+	analysis["budget_limit"] = 0
 	return analysis
 
 /datum/world_edit_generator/outpost_radius/proc/build_shape_aware_perimeter_plan(list/footprint_turfs, list/params, list/placement_context = null, list/shape_analysis = null)
@@ -1454,6 +1539,8 @@
 		return plan
 	if(shape_analysis["error"])
 		plan.metadata["error"] = "[shape_analysis["error"]]"
+		if(shape_analysis["budget_kind"])
+			stamp_outpost_budget_metadata(plan.metadata, shape_analysis["budget_kind"], shape_analysis["budget_actual"], shape_analysis["budget_limit"])
 		return plan
 
 	var/list/config = shape_analysis["config"]
@@ -1537,6 +1624,7 @@
 		center_turf = footprint_turfs[clamp(round((length(footprint_turfs) + 1) / 2), 1, length(footprint_turfs))]
 
 	plan.metadata["center_turf"] = center_turf
+	plan.metadata["planner_version"] = WORLD_EDIT_OUTPOST_PLANNER_VERSION
 	plan.metadata["radius"] = radius
 	plan.metadata["radius_only_clear_tiles"] = radius_policy["only_clear_tiles"]
 	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
@@ -1544,6 +1632,9 @@
 	plan.metadata["shape_mode"] = "footprint_offset"
 	plan.metadata["seed_turf"] = seed_turf
 	plan.metadata["shape_footprint_count"] = length(footprint_turfs)
+	plan.metadata["shape_scan_tile_count"] = shape_analysis["scan_tile_count"] || 0
+	plan.metadata["shape_candidate_slot_count"] = length(shape_analysis["candidate_slots"])
+	stamp_outpost_budget_metadata(plan.metadata, "scan", shape_analysis["scan_tile_count"] || 0, WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS)
 	plan.metadata["base_shape_turfs"] = footprint_turfs.Copy()
 	plan.metadata["anchor_count"] = length(footprint_turfs)
 	populate_outpost_recipe_metadata(plan.metadata, config)
@@ -1687,6 +1778,7 @@
 	var/effective_shape_id = shape_id
 	var/support_class = get_outpost_shape_support_class(effective_shape_id)
 	var/list/support_metadata = list(
+		"planner_version" = WORLD_EDIT_OUTPOST_PLANNER_VERSION,
 		"shape_support_class" = support_class,
 		"shape_requested_id" = shape_id,
 		"shape_effective_id" = effective_shape_id,
@@ -1710,19 +1802,18 @@
 	if(config["error"])
 		context["error"] = "[config["error"]]"
 		return context
-
-	var/list/footprint_lookup = build_turf_lookup(anchor_turfs)
-	if(!length(footprint_lookup))
-		context["error"] = "Не удалось определить контур формы."
+	var/initial_support_error = get_outpost_shape_support_validation_error(shape_id, anchor_turfs, placement_context)
+	if(length("[initial_support_error]"))
+		context["error"] = initial_support_error
 		return context
 
-	var/list/footprint_turfs = list()
-	for(var/turf/footprint_turf as anything in footprint_lookup)
-		if(istype(footprint_turf))
-			footprint_turfs += footprint_turf
-	if(!length(footprint_turfs))
-		context["error"] = "Не удалось определить контур формы."
+	var/list/normalized_footprint = normalize_outpost_footprint(anchor_turfs, shape_id)
+	if(normalized_footprint["error"])
+		context["error"] = "[normalized_footprint["error"]]"
+		if(normalized_footprint["budget_kind"])
+			stamp_outpost_budget_metadata(support_metadata, normalized_footprint["budget_kind"], normalized_footprint["budget_actual"], normalized_footprint["budget_limit"])
 		return context
+	var/list/footprint_turfs = normalized_footprint["turfs"]
 
 	effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, footprint_turfs)
 	support_class = get_outpost_shape_support_class(effective_shape_id)
@@ -1749,6 +1840,8 @@
 	var/list/shape_analysis = build_outpost_shape_analysis(footprint_turfs, config, placement_context)
 	if(shape_analysis["error"])
 		context["error"] = "[shape_analysis["error"]]"
+		if(shape_analysis["budget_kind"])
+			stamp_outpost_budget_metadata(support_metadata, shape_analysis["budget_kind"], shape_analysis["budget_actual"], shape_analysis["budget_limit"])
 		return context
 
 	var/list/candidate_slots = shape_analysis["filtered_candidate_slots"]

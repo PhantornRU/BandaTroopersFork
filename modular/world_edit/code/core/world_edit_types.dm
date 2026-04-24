@@ -119,6 +119,9 @@
 /datum/world_edit_generator/proc/should_attempt_preview_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null, list/runtime_params = null, list/placement_context = null)
 	return FALSE
 
+/datum/world_edit_generator/proc/get_preview_endpoint_clamp_attempt_limit()
+	return 24
+
 /datum/world_edit_generator/proc/should_preview_collector_points_before_commit(shape_id, list/proposed_points = null)
 	return FALSE
 

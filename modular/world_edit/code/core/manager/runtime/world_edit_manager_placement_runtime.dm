@@ -1,3 +1,5 @@
+#define WORLD_EDIT_RUNTIME_TRACE_ENABLED FALSE
+
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan, list/fallback_meta = null)
 	var/list/metadata = plan?.metadata || fallback_meta || list()
 	var/list/placements = plan?.placements || list()
@@ -295,6 +297,9 @@
 	return "gcQ=[queue_text] D=[SSgarbage.delslasttick] G=[SSgarbage.gcedlasttick] TD=[SSgarbage.totaldels] TG=[SSgarbage.totalgcs]"
 
 /datum/world_edit_manager/proc/append_runtime_trace(stage, details = null)
+	if(!WORLD_EDIT_RUNTIME_TRACE_ENABLED)
+		return FALSE
+
 	var/stage_text = trim("[stage]")
 	if(!length(stage_text))
 		return FALSE
@@ -970,7 +975,13 @@
 	var/effective_direction = supports_current_placement_direction() ? get_effective_placement_dir() : NORTH
 	var/list/effective_params = islist(runtime_params) ? runtime_params.Copy() : build_effective_generator_params(null, requested_shape_id)
 	var/list/attempted_signatures = list()
+	var/max_clamp_attempts = max(0, current_generator?.get_preview_endpoint_clamp_attempt_limit() || 0)
+	if(max_clamp_attempts <= 0)
+		return candidate
+	var/clamp_attempt_count = 0
 	for(var/i = length(segment_turfs) - 1, i >= 1, i--)
+		if(clamp_attempt_count >= max_clamp_attempts)
+			break
 		var/turf/clamped_end_turf = segment_turfs[i]
 		if(!istype(clamped_end_turf) || clamped_end_turf == requested_turf || clamped_end_turf == segment_start_turf)
 			continue
@@ -982,6 +993,7 @@
 				continue
 			attempted_signatures[attempt_signature] = TRUE
 
+		clamp_attempt_count++
 		increment_runtime_diagnostic("preview_endpoint_clamp_attempts")
 		var/datum/world_edit_placement_candidate/clamped_candidate = resolve_placement_candidate_from_shape_contract(
 			user,

@@ -142,10 +142,18 @@
 	if(!istype(plan) || hover_only)
 		return specs
 
+	var/total_specs = 0
 	for(var/list/placement as anything in plan.placements)
 		var/list/spec = build_outpost_preview_spec_from_placement(placement)
-		if(islist(spec))
-			specs += list(spec)
+		if(!islist(spec))
+			continue
+		total_specs++
+		if(length(specs) >= WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS)
+			continue
+		specs += list(spec)
+
+	plan.metadata["preview_object_specs_total"] = total_specs
+	plan.metadata["preview_object_specs_truncated"] = total_specs > length(specs)
 	return specs
 
 /datum/world_edit_generator/outpost_radius/proc/register_perimeter_slot(list/result, turf/target_turf, dir_to_use, slot_index, offset_x, offset_y, radius, list/layout_profile, list/barricade_cycle, barricade_pattern)
@@ -361,6 +369,7 @@
 		return plan
 
 	plan.metadata["center_turf"] = center_turf
+	plan.metadata["planner_version"] = WORLD_EDIT_OUTPOST_PLANNER_VERSION
 	plan.metadata["radius"] = radius
 	plan.metadata["radius_only_clear_tiles"] = radius_policy["only_clear_tiles"]
 	plan.metadata["radius_only_reachable_tiles"] = radius_policy["only_reachable_tiles"]
@@ -368,6 +377,7 @@
 	plan.metadata["shape_mode"] = "point_anchor"
 	plan.metadata["base_shape_turfs"] = list(center_turf)
 	plan.metadata["anchor_count"] = 1
+	stamp_outpost_budget_metadata(plan.metadata, "point", 1, WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS)
 	populate_outpost_recipe_metadata(plan.metadata, config)
 	plan.metadata["defense_profile_label"] = defense_profile["label"]
 	plan.metadata["defense_profile_description"] = defense_profile["description"]
@@ -503,10 +513,12 @@
 		center_turf = anchor_turfs[clamp(round((length(anchor_turfs) + 1) / 2), 1, length(anchor_turfs))]
 
 	plan.metadata["center_turf"] = center_turf
+	plan.metadata["planner_version"] = WORLD_EDIT_OUTPOST_PLANNER_VERSION
 	plan.metadata["radius"] = config["radius"]
 	plan.metadata["shape_mode"] = "point_anchor"
 	plan.metadata["base_shape_turfs"] = anchor_turfs.Copy()
 	plan.metadata["anchor_count"] = length(anchor_turfs)
+	stamp_outpost_budget_metadata(plan.metadata, "footprint", length(anchor_turfs), WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS)
 	plan.metadata["barricade_count"] = total_barricades
 	plan.metadata["sentry_count"] = total_sentries
 	plan.metadata["wire_object_count"] = total_wire_objects
@@ -575,7 +587,7 @@
 	var/datum/world_edit_plan/error_plan = new
 	var/list/support_result = evaluate_shape_contract(shape_contract, params, placement_context)
 	if(!islist(support_result))
-		error_plan.metadata["error"] = "РќРµ СѓРґР°Р»РѕСЃСЊ РѕС†РµРЅРёС‚СЊ РєРѕРЅС‚СЂР°РєС‚ С„РѕСЂРјС‹ С„РѕСЂРїРѕСЃС‚Р°."
+		error_plan.metadata["error"] = "Не удалось оценить контракт формы форпоста."
 		return error_plan
 
 	var/list/support_metadata = support_result["metadata"]
@@ -584,6 +596,7 @@
 			shape_contract.metadata = list()
 		for(var/key in support_metadata)
 			shape_contract.metadata[key] = support_metadata[key]
+			error_plan.metadata[key] = support_metadata[key]
 
 	if(length("[support_result["error"]]"))
 		error_plan.metadata["error"] = "[support_result["error"]]"
@@ -591,178 +604,27 @@
 
 	var/datum/world_edit_plan/plan = support_result["plan"]
 	if(!istype(plan))
-		error_plan.metadata["error"] = "Р“РµРЅРµСЂР°С‚РѕСЂ С„РѕСЂРїРѕСЃС‚Р° РЅРµ РІРµСЂРЅСѓР» РїР»Р°РЅ СЂР°Р·РјРµС‰РµРЅРёСЏ."
+		error_plan.metadata["error"] = "Генератор форпоста не вернул план размещения."
 		return error_plan
 
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan
 
-/*
-
-	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
-	if(!islist(anchor_turfs) || !length(anchor_turfs))
-		plan.metadata["error"] = "Не удалось определить опорный тайл для запрошенного размещения форпоста."
-		return plan
-
-	var/list/config = resolve_outpost_configuration(params, placement_context)
-	if(config["error"])
-		plan.metadata["error"] = "[config["error"]]"
-		return plan
-
-	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]"
-	var/effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, anchor_turfs)
-	var/list/defense_profile = islist(config["defense_profile_data"]) ? config["defense_profile_data"] : get_outpost_defense_profile(config["defense_profile"])
-	plan.metadata["shape_effective_id"] = effective_shape_id
-	populate_outpost_recipe_metadata(plan.metadata, config)
-	plan.metadata["defense_profile_label"] = defense_profile["label"]
-	plan.metadata["defense_profile_description"] = defense_profile["description"]
-	plan.metadata["tactical_profile_label"] = defense_profile["label"]
-	plan.metadata["tactical_profile_description"] = defense_profile["description"]
-	plan.metadata["layout_label"] = config["layout_profile"]["label"]
-	plan.metadata["layout_description"] = config["layout_profile"]["description"]
-	plan.metadata["opening_dirs"] = format_opening_dirs(get_layout_opening_dirs(config["layout_profile"]))
-
-	if(effective_shape_id != WORLD_EDIT_SHAPE_POINT)
-		var/datum/world_edit_plan/shape_plan = build_shape_aware_perimeter_plan(anchor_turfs, config, placement_context)
-		if(shape_plan.metadata["error"])
-			plan.metadata["error"] = "[shape_plan.metadata["error"]]"
-			return plan
-
-		plan.placements = shape_plan.placements.Copy()
-		plan.affected_turfs = shape_plan.affected_turfs.Copy()
-		for(var/key in shape_plan.metadata)
-			plan.metadata[key] = shape_plan.metadata[key]
-		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
-		return plan
-
-	var/list/occupied_lookup = list()
-	var/list/preview_lookup = list()
-	var/total_barricades = 0
-	var/total_sentries = 0
-	var/total_blocked_barricades = 0
-	var/total_openings = 0
-	var/total_blocked_openings = 0
-	var/total_blocked_sentries = 0
-	var/total_wire_objects = 0
-	var/total_mines = 0
-	var/total_extra_defenses = 0
-	var/total_blocked_wire_objects = 0
-	var/total_blocked_mines = 0
-	var/total_blocked_extra_defenses = 0
-	var/total_doors = 0
-	var/total_unsupported_door_openings = 0
-	var/total_blocked_door_openings = 0
-	var/total_dominant_barricades = 0
-	var/total_primary_materials = 0
-	var/total_secondary_materials = 0
-	var/total_wired_conversions = 0
-	var/total_unsupported_wired_conversions = 0
-	for(var/turf/anchor_turf as anything in anchor_turfs)
-		if(!istype(anchor_turf))
-			continue
-		var/datum/world_edit_plan/anchor_plan = build_outpost_plan(anchor_turf, config)
-		if(anchor_plan.metadata["error"])
-			plan.metadata["error"] = "[anchor_plan.metadata["error"]]"
-			return plan
-		for(var/list/placement as anything in anchor_plan.placements)
-			var/turf/target_turf = placement["turf"]
-			if(!istype(target_turf))
-				continue
-			var/placement_key
-			if(placement["kind"] == "barricade")
-				placement_key = GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, placement["dir"])
-			else
-				placement_key = "[target_turf.x],[target_turf.y],[target_turf.z]:[placement["kind"]]"
-			if(!length(placement_key))
-				continue
-			if(occupied_lookup[placement_key])
-				plan.metadata["error"] = "Запрошенный отпечаток форпоста пересекается сам с собой."
-				plan.metadata["blocked_turf"] = "[target_turf.x],[target_turf.y],[target_turf.z]"
-				return plan
-			occupied_lookup[placement_key] = TRUE
-			preview_lookup[target_turf] = TRUE
-			plan.placements += list(placement.Copy())
-		if(length(plan.placements) > WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS)
-			plan.metadata["error"] = "Запрошенное размещение форпоста превышает безопасный лимит размещений ([WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS])."
-			return plan
-
-		total_barricades += anchor_plan.metadata["barricade_count"] || 0
-		total_sentries += anchor_plan.metadata["sentry_count"] || 0
-		total_blocked_barricades += anchor_plan.metadata["blocked_barricades"] || 0
-		total_openings += anchor_plan.metadata["opening_count"] || 0
-		total_blocked_openings += anchor_plan.metadata["blocked_openings"] || 0
-		total_blocked_sentries += anchor_plan.metadata["blocked_sentries"] || 0
-		total_wire_objects += anchor_plan.metadata["wire_object_count"] || 0
-		total_mines += anchor_plan.metadata["mine_count"] || 0
-		total_extra_defenses += anchor_plan.metadata["extra_defense_count"] || 0
-		total_blocked_wire_objects += anchor_plan.metadata["blocked_wire_objects"] || 0
-		total_blocked_mines += anchor_plan.metadata["blocked_mines"] || 0
-		total_blocked_extra_defenses += anchor_plan.metadata["blocked_extra_defenses"] || 0
-		total_doors += anchor_plan.metadata["door_count"] || 0
-		total_unsupported_door_openings += anchor_plan.metadata["unsupported_door_openings"] || 0
-		total_blocked_door_openings += anchor_plan.metadata["blocked_door_openings"] || 0
-		total_dominant_barricades += anchor_plan.metadata["dominant_barricade_count"] || 0
-		total_primary_materials += anchor_plan.metadata["primary_material_count"] || 0
-		total_secondary_materials += anchor_plan.metadata["secondary_material_count"] || 0
-		total_wired_conversions += anchor_plan.metadata["wired_conversion_count"] || 0
-		total_unsupported_wired_conversions += anchor_plan.metadata["unsupported_wired_conversions"] || 0
-
-	for(var/turf/preview_turf as anything in preview_lookup)
-		plan.affected_turfs += preview_turf
-
-	var/turf/center_turf = placement_context["end_turf"]
-	if(!istype(center_turf))
-		center_turf = anchor_turfs[clamp(round((length(anchor_turfs) + 1) / 2), 1, length(anchor_turfs))]
-
-	plan.metadata["center_turf"] = center_turf
-	plan.metadata["radius"] = config["radius"]
-	plan.metadata["shape_mode"] = "point_anchor"
-	plan.metadata["base_shape_turfs"] = anchor_turfs.Copy()
-	plan.metadata["anchor_count"] = length(anchor_turfs)
-	plan.metadata["barricade_count"] = total_barricades
-	plan.metadata["sentry_count"] = total_sentries
-	plan.metadata["wire_object_count"] = total_wire_objects
-	plan.metadata["mine_count"] = total_mines
-	plan.metadata["extra_defense_count"] = total_extra_defenses
-	plan.metadata["blocked_barricades"] = total_blocked_barricades
-	plan.metadata["blocked_sentries"] = total_blocked_sentries
-	plan.metadata["blocked_wire_objects"] = total_blocked_wire_objects
-	plan.metadata["blocked_mines"] = total_blocked_mines
-	plan.metadata["blocked_extra_defenses"] = total_blocked_extra_defenses
-	plan.metadata["defense_profile_label"] = defense_profile["label"]
-	plan.metadata["defense_profile_description"] = defense_profile["description"]
-	plan.metadata["tactical_profile_label"] = defense_profile["label"]
-	plan.metadata["tactical_profile_description"] = defense_profile["description"]
-	plan.metadata["layout_label"] = config["layout_profile"]["label"]
-	plan.metadata["layout_description"] = config["layout_profile"]["description"]
-	plan.metadata["opening_count"] = total_openings
-	plan.metadata["blocked_openings"] = total_blocked_openings
-	plan.metadata["door_count"] = total_doors
-	plan.metadata["unsupported_door_openings"] = total_unsupported_door_openings
-	plan.metadata["blocked_door_openings"] = total_blocked_door_openings
-	plan.metadata["dominant_barricade_count"] = total_dominant_barricades
-	plan.metadata["primary_material_count"] = total_primary_materials
-	plan.metadata["secondary_material_count"] = total_secondary_materials
-	plan.metadata["wired_conversion_count"] = total_wired_conversions
-	plan.metadata["unsupported_wired_conversions"] = total_unsupported_wired_conversions
-	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
-	return plan
-*/
 
 /datum/world_edit_generator/outpost_radius/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
 	return build_plan_from_shape_contract(user, shape_contract, params, placement_context)
 
-/datum/world_edit_generator/outpost_radius/build_plan(list/params)
-	var/turf/anchor_turf = get_turf(manager?.holder?.mob)
-	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
+/datum/world_edit_generator/outpost_radius/build_plan(list/params, turf/center_turf_override = null)
+	var/turf/anchor_turf = center_turf_override || get_turf(manager?.holder?.mob)
+	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(WORLD_EDIT_SHAPE_POINT, anchor_turf, null, params, manager?.get_effective_placement_dir() || NORTH)
 	if(shape_result["error"])
 		var/datum/world_edit_plan/error_plan = new
 		error_plan.metadata["error"] = "[shape_result["error"]]"
 		return error_plan
 	return build_placement_plan(manager?.holder?.mob, params, list(
-		"mode" = manager?.get_effective_placement_mode() || "single",
-		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
 		"shape_metadata" = shape_result["metadata"] || list(),
 		"anchor_turfs" = shape_result["turfs"] || list(anchor_turf),
 		"end_turf" = anchor_turf,

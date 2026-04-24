@@ -1,5 +1,11 @@
 #define WORLD_EDIT_OUTPOST_RADIUS_MAX 25
 #define WORLD_EDIT_OUTPOST_SINGLE_POINT_SAFE_PLACEMENT_CAP 300
+#define WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS 120
+#define WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS 4096
+#define WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS 900
+#define WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS 300
+#define WORLD_EDIT_OUTPOST_MAX_ENDPOINT_CLAMP_ATTEMPTS 0
+#define WORLD_EDIT_OUTPOST_PLANNER_VERSION "stable_v1"
 
 /datum/world_edit_generator/outpost_radius
 	requires_preview_before_apply = TRUE
@@ -382,7 +388,15 @@
 	return list("single", "repeat")
 
 /datum/world_edit_generator/outpost_radius/get_supported_placement_shapes()
-	return GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids().Copy()
+	return list(
+		WORLD_EDIT_SHAPE_POINT,
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_RECTANGLE,
+		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
+		WORLD_EDIT_SHAPE_CIRCLE,
+		WORLD_EDIT_SHAPE_RING,
+		WORLD_EDIT_SHAPE_DIAMOND,
+	)
 
 /datum/world_edit_generator/outpost_radius/supports_placement_direction()
 	return TRUE
@@ -391,15 +405,10 @@
 	return NORTH
 
 /datum/world_edit_generator/outpost_radius/should_attempt_preview_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null, list/runtime_params = null, list/placement_context = null)
-	var/interaction_kind = GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_id)
-	if(!(interaction_kind in list("anchor_pair", "collector")))
-		return FALSE
-	if(!istype(start_turf) || !istype(requested_end_turf))
-		return FALSE
-	segment_start_turf = segment_start_turf || start_turf
-	if(!istype(segment_start_turf) || segment_start_turf == requested_end_turf)
-		return FALSE
-	return TRUE
+	return FALSE
+
+/datum/world_edit_generator/outpost_radius/get_preview_endpoint_clamp_attempt_limit()
+	return WORLD_EDIT_OUTPOST_MAX_ENDPOINT_CLAMP_ATTEMPTS
 
 /datum/world_edit_generator/outpost_radius/should_preview_collector_points_before_commit(shape_id, list/proposed_points = null)
-	return GLOB.world_edit_shape_catalog.get_shape_interaction_kind(shape_id) == "collector"
+	return FALSE
