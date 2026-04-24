@@ -6,25 +6,67 @@
   1. `rg` по именам типов, proc, define, map/config ключам и комментариям-маркерам.
   2. Проверка entrypoints, include graph, callsites и data flow.
   3. Поиск существующих extension points, signals и modular hooks.
-  4. Только после этого план правок и точечное изменение файлов.
+  4. Только после этого planning-mutation в task-state; implementation-правки начинаются только после актуального контракта задачи.
 - Не читать крупные директории целиком, если задачу можно сузить выборочными запросами.
 - Для задач в `modular/**` сначала проверять `colonialmarines.dme`, `modular/modular.dme`, relevant `_*.dme`, затем целевой модуль и его callsites.
 - Для HALO port/sync/update задач до анализа кода открыть [`../../halo/__docs/HALO_PORT_STATE.md`](../../halo/__docs/HALO_PORT_STATE.md); pinned upstream commit из него считать каноническим baseline, пока этот документ не обновлен в той же задаче.
 - Для правок в upstream сначала проверять, существует ли уже modular hook, adapter или modpack-level abstraction, через которые можно закрыть задачу.
 
-## Read-only и mutating границы
+## Read-only, planning-mutation и implementation-mutation границы
 - Read-only действия: поиск, чтение, diff, анализ include/call graph, dry-run проверки без изменения tracked файлов.
-- Mutating действия: редактирование файлов, кодоген, formatters с rewrite, любые команды, целенаправленно меняющие репозиторный state.
-- Не смешивать exploratory read-only шаги с реализацией без явного понимания границ задачи.
+- Planning-mutation: правки только `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md`, нужные чтобы создать или подтвердить контракт текущей задачи. Они разрешены после read-only discovery и до реализации.
+- Implementation-mutation: правки продуктового кода, тестов, карт, tgui, stable docs, кодоген, formatters с rewrite и любые команды, целенаправленно меняющие репозиторный state вне active task-state.
+- Не смешивать exploratory read-only шаги, planning-mutation и implementation-mutation. Если контракт задачи еще не создан, implementation-mutation запрещена.
 
 ## Правила выполнения задач
 - Сначала определить тип задачи: docs, DM-код, maps, tgui, build/CI или смешанный scope.
-- Для nontrivial изменений сначала формировать decision-complete plan с рисками, альтернативами и acceptance criteria.
-- Перед правками апстрима проверить, нельзя ли закрыть задачу через `modular/**`.
+- Для nontrivial изменений без готового пользовательского плана сначала формировать decision-complete plan с рисками, альтернативами и acceptance criteria.
+- Если пользователь дал готовый план, утвердил план или попросил `IMPLEMENT THIS PLAN`, этот план становится контрактом задачи. Цель агента - максимально точное приближение к плану; тесты и compile-проверки подтверждают результат, но не заменяют соответствие плану.
+- Для утвержденного плана действует один порядок:
+  1. read-only discovery по scope, entrypoints, include graph, callsites, data flow и side effects;
+  2. planning-mutation: обновить или явно подтвердить `PLAN/TODO/DECISIONS/EVIDENCE` как контракт;
+  3. read-only plan-mapping challenge;
+  4. implementation-mutation только по утвержденному контракту;
+  5. old-path audit, diff-level evidence и синхронизация task-state;
+  6. verification checks и финальный ответ.
+- Контракт задачи обязателен до implementation-правок любого размера, даже если изменение кажется маленьким hotfix:
+  - `PLAN.md`: цель, границы, entrypoints, expected new paths, forbidden old paths.
+  - `TODO.md`: compact contract table с `MUST`, `KEEP`, `REJECT`, `CHECK`; каждый пункт связан с файлами/proc/контрактом или помечен как blocked.
+  - `DECISIONS.md`: только реальные отклонения/tradeoff, которые меняют исходный план; нельзя молча заменять rewrite на patch.
+  - `EVIDENCE.md`: evidence по соответствию плану, включая entrypoint/call path, old path audit, `rg`-проверки и незакрытые пункты.
+- `Plan mapping challenge` обязателен перед реализацией утвержденного плана:
+  - основной агент сначала раскладывает план на `MUST/KEEP/REJECT/CHECK`, expected new paths, forbidden old paths и forbidden substitutions.
+  - read-only subagent/reviewer используется только если пользователь явно попросил или разрешил subagents и это не запрещено текущими инструкциями; он независимо проверяет маппинг через `rg`, entrypoints, include graph, callsites и data flow.
+  - если subagent/reviewer недоступен или не разрешен, основной агент обязан выполнить отдельный self-challenge pass и записать его как evidence.
+  - challenge ищет пропущенные пункты плана, старые production-reachable/callable paths, несогласованные compatibility/fallback/hotfix решения и случаи, где patch/wrapper подменяет rewrite/remove/replace.
+  - результат challenge записывается в `EVIDENCE.md` до реализации: `PASS`, `PASS WITH RISKS`, или `BLOCKED`.
+  - `PASS WITH RISKS` разрешает реализацию только если риски не меняют `MUST/KEEP/REJECT` и не требуют отклонения от утвержденного плана; иначе это `BLOCKED`.
+  - при `BLOCKED` нельзя начинать альтернативную реализацию без исправления контракта или явного согласия пользователя.
+- `Forbidden substitutions` должны быть явно перечислены в `TODO.md`. Они не закрывают rewrite/remove/replace без явного согласия пользователя:
+  - wrapper вокруг старого ядра вместо переписи;
+  - budget/guard/validation вокруг старой логики вместо удаления опасного пути;
+  - fallback/compat/config-gated path, который оставляет старое ядро production-reachable или callable;
+  - test-only closure без diff-level evidence;
+  - перенос логики в путь, не утвержденный планом;
+  - мелкий hotfix вместо требуемой архитектурной замены.
+- `Old path audit` обязателен для rewrite/remove/replace/core-behavior планов. В `TODO.md` нужно перечислить старые proc/type/include/callsites, ожидаемый статус (`removed`, `not production-reachable`, `not callable`, `compat only with user approval`, `blocked`) и команду/evidence для проверки. В `EVIDENCE.md` нужно записать итоговый результат аудита.
+- Rewrite/remove/replace триггеры включают русские и английские формулировки: `переписать`, `заменить`, `удалить`, `полностью`, `ядро`, `rewrite`, `replace`, `remove`, `delete`, `fully`, `migrate`, `move`, `drop`, `retire`, `replace all usages`, `bounded pipeline`. Для таких пунктов старое ядро считается недоверенным, пока не доказано обратное через old path audit.
+- `Blocked` не является разрешением на fallback. Если `MUST`, `KEEP` или `REJECT` заблокирован, финальный статус задачи не может быть `DONE`; если блокер меняет утвержденный план, нужно остановиться, записать evidence, предложить варианты и получить явное согласие пользователя перед alternate path.
+- Нельзя закрывать `MUST`, `KEEP` или `REJECT` только тестом. Нужен diff-level evidence: удаленный proc/type/include, новый call path, измененный entrypoint, сохраненный API/metadata contract, `rg`-проверка forbidden path или явная blocked reason. `CHECK` закрывает verification, но не заменяет Plan Fidelity.
+- Перед финальным ответом нужно синхронизировать `TODO.md`, `DECISIONS.md` и `EVIDENCE.md`, затем обновить в `EVIDENCE.md` финальную `Plan fidelity matrix`:
+
+| ID | Type | Requirement | Evidence | Status |
+| --- | --- | --- | --- | --- |
+| M1 | MUST | ... | diff/rg/check или blocked reason | DONE/PARTIAL/BLOCKED/DEVIATED |
+
+- Финальный ответ для задач по готовому плану обязан содержать `Plan fidelity` и совпадать с matrix из `EVIDENCE.md`. Перечислить все `PARTIAL`, `BLOCKED`, `DEVIATED`; нельзя писать `done/implemented`, если хотя бы один `MUST`, `KEEP` или `REJECT` не имеет статуса `DONE`.
+- Перед правками апстрима проверить, нельзя ли закрыть задачу через `modular/**`. Эта проверка не отменяет явно утвержденный пользователем путь; если modular-first противоречит плану, записать это в `DECISIONS.md` и запросить согласие перед отклонением.
 - При изменении upstream и согласованных config surfaces учитывать требования `SS220 EDIT` из [`../../__docs/SS220_DEVELOPMENT_RULES.md`](../../__docs/SS220_DEVELOPMENT_RULES.md).
 - Existing `SS220 EDIT` в `modular/**` считать legacy markers и не использовать их как precedent для новых правок.
 
 ## Минимальные проверки по типам задач
+Проверки не должны съедать усилия, если пользователь явно просит приоритет на реализации плана. В таких задачах сначала закрыть `MUST/KEEP/REJECT` контракт и только потом выполнять минимально достаточные проверки. Verification status ведется отдельно от Plan Fidelity: непройденная или незапущенная проверка не превращает незакрытый пункт плана в `DONE` и не отменяет diff-level evidence.
+
 1. Docs-only:
    - проверить ссылки;
    - проверить UTF-8 и отсутствие mojibake;
@@ -45,7 +87,7 @@
    - при необходимости использовать CI-путь из `.github/workflows/run_unit_tests.yml`
    - не запускать полный `tools/build/build --ci dm-test` на каждую локальную итерацию; для быстрого цикла сначала использовать `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror` и только релевантные дополнительные проверки
    - для точечной локальной отладки unit tests допустим временный `TEST_FOCUS(...)` или эквивалентный локальный focus-only подход, но он не должен оставаться в коммите или финальном diff
-   - полный `dm-test` обязателен только когда задача реально меняет runtime behavior, покрываемый unit tests, или когда targeted checks уже не закрывают риск; в остальных случаях явно фиксировать, почему полный suite не запускался
+   - полный `dm-test` ожидается для runtime behavior, покрываемого unit tests, когда это укладывается в приоритет задачи и локально исполнимо; если пользователь явно просит не тратить усилия на тесты, runner заблокирован или targeted checks достаточно закрывают риск, явно фиксировать Verification status и причину без подмены Plan Fidelity
    - если `dm-test` был прерван или aborted, нельзя считать его результат валидным; в отчете нужно явно помечать прогон как незавершенный и при необходимости проверять/останавливать оставшиеся `DreamDaemon` процессы
 
 ## Кодировка
