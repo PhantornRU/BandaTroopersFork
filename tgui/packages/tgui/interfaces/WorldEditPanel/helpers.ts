@@ -8,7 +8,9 @@ import {
   FORTIFY_MATERIAL_LABELS,
   FORTIFY_PRESET_LABELS,
   NONE_LABEL,
+  OUTPOST_LAYER_PROFILE_LABELS,
   OUTPOST_LAYOUT_LABELS,
+  OUTPOST_MINEFIELD_PROFILE_LABELS,
   OUTPOST_OPENING_WIDTH_LABELS,
   OUTPOST_PERIMETER_PATTERN_LABELS,
   OUTPOST_TACTICAL_PROFILE_LABELS,
@@ -216,6 +218,20 @@ export const translateOptionLabel = (
     case 'barricade_pattern':
       return (
         OUTPOST_PERIMETER_PATTERN_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
+      );
+    case 'sentry_layer_profile':
+    case 'extra_defense_layer_profile':
+    case 'wire_layer_profile':
+      return (
+        OUTPOST_LAYER_PROFILE_LABELS[value] ||
+        label ||
+        getDisplayText(optionValue)
+      );
+    case 'minefield_profile':
+      return (
+        OUTPOST_MINEFIELD_PROFILE_LABELS[value] ||
         label ||
         getDisplayText(optionValue)
       );

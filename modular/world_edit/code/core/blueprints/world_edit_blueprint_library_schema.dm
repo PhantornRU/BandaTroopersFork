@@ -191,8 +191,8 @@
 		return list("error" = "Blueprint outpost_recipe.placement_dir должен быть кардинальным направлением.")
 
 	var/radius = world_edit_parse_strict_integer(raw_recipe["radius"])
-	if(isnull(radius) || radius < 1 || radius > 25)
-		return list("error" = "Blueprint outpost_recipe.radius должен быть в диапазоне 1..25.")
+	if(isnull(radius) || radius < 1 || radius > 40)
+		return list("error" = "Blueprint outpost_recipe.radius must be in range 1..40.")
 
 	var/datum/world_edit_generator/outpost_radius/outpost_generator = new
 	var/resolved_defense_profile = outpost_generator.resolve_outpost_defense_profile_id(defense_profile)
@@ -273,6 +273,43 @@
 		qdel(outpost_generator)
 		return footprint_result
 
+	var/list/config_params = list(
+		"defense_profile" = resolved_defense_profile,
+		"layout_variant" = resolved_layout_variant,
+		"opening_width" = opening_width,
+		"radius" = radius,
+		"primary_material_path" = primary_material_path,
+		"secondary_material_path" = secondary_material_path,
+		"barricade_pattern" = barricade_pattern,
+		"primary_material_share_percent" = primary_material_share_percent,
+		"place_barricade_doors" = place_barricade_doors,
+		"primary_door_path" = primary_door_path,
+		"secondary_door_path" = secondary_door_path,
+		"faction" = raw_recipe["faction"],
+		"turned_on" = raw_recipe["turned_on"],
+		"sentry_layer_profile" = raw_recipe["sentry_layer_profile"],
+		"sentry_type" = raw_recipe["sentry_type"],
+		"extra_defense_layer_profile" = raw_recipe["extra_defense_layer_profile"],
+		"extra_defense_type" = raw_recipe["extra_defense_type"],
+		"flag_type" = raw_recipe["flag_type"],
+		"wire_layer_profile" = raw_recipe["wire_layer_profile"],
+		"wire_offset" = raw_recipe["wire_offset"],
+		"wire_rows" = raw_recipe["wire_rows"],
+		"wire_row_step" = raw_recipe["wire_row_step"],
+		"wire_spacing" = raw_recipe["wire_spacing"],
+		"wire_concentration_percent" = raw_recipe["wire_concentration_percent"],
+		"minefield_profile" = raw_recipe["minefield_profile"],
+		"mine_type" = raw_recipe["mine_type"],
+		"minefield_offset" = raw_recipe["minefield_offset"],
+		"minefield_depth" = raw_recipe["minefield_depth"],
+		"minefield_density_percent" = raw_recipe["minefield_density_percent"],
+		"minefield_seed" = raw_recipe["minefield_seed"],
+	)
+	var/list/resolved_config = outpost_generator.resolve_outpost_configuration(config_params, list("direction" = placement_dir))
+	if(resolved_config["error"])
+		qdel(outpost_generator)
+		return list("error" = "[resolved_config["error"]]")
+
 	var/list/sanitized_recipe = list(
 		"defense_profile" = resolved_defense_profile,
 		"layout_variant" = resolved_layout_variant,
@@ -286,6 +323,25 @@
 		"place_barricade_doors" = place_barricade_doors,
 		"primary_door_path" = ispath(primary_door_path, /datum/human_ai_defense/barricade) ? "[primary_door_path]" : "[primary_door_path]",
 		"secondary_door_path" = ispath(secondary_door_path, /datum/human_ai_defense/barricade) ? "[secondary_door_path]" : "[secondary_door_path]",
+		"faction" = resolved_config["faction"],
+		"turned_on" = resolved_config["turned_on"] ? TRUE : FALSE,
+		"sentry_layer_profile" = resolved_config["sentry_layer_profile"],
+		"sentry_type" = "[resolved_config["sentry_type"]]",
+		"extra_defense_layer_profile" = resolved_config["extra_defense_layer_profile"],
+		"extra_defense_type" = "[resolved_config["extra_defense_type"]]",
+		"flag_type" = ispath(resolved_config["flag_type"], /datum/human_ai_defense/defense/flag) ? "[resolved_config["flag_type"]]" : "none",
+		"wire_layer_profile" = resolved_config["wire_layer_profile"],
+		"wire_offset" = resolved_config["wire_offset"],
+		"wire_rows" = resolved_config["wire_rows"],
+		"wire_row_step" = resolved_config["wire_row_step"],
+		"wire_spacing" = resolved_config["wire_spacing"],
+		"wire_concentration_percent" = resolved_config["wire_concentration_percent"],
+		"minefield_profile" = resolved_config["minefield_profile"],
+		"mine_type" = "[resolved_config["mine_type"]]",
+		"minefield_offset" = resolved_config["minefield_offset"],
+		"minefield_depth" = resolved_config["minefield_depth"],
+		"minefield_density_percent" = resolved_config["minefield_density_percent"],
+		"minefield_seed" = resolved_config["minefield_seed"],
 		"footprint_offsets" = footprint_result["footprint_offsets"],
 	)
 	qdel(outpost_generator)

@@ -546,7 +546,7 @@
 	evaluate_shape_contract_calls++
 	return ..()
 
-/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, primary_material_path, secondary_material_path = null, barricade_pattern = "uniform", list/radius_policy = null, list/traversal_turfs = null, primary_material_share_percent = 100, place_barricade_doors = FALSE, primary_door_path = "follow_material", secondary_door_path = "follow_material", list/footprint_turfs = null, placement_dir = NORTH, list/wired_groups = null, build_anchor_map = TRUE)
+/datum/world_edit_generator/outpost_radius/world_edit_test_deferred_collector/collect_perimeter_placements(turf/center_turf, radius, list/layout_profile, primary_material_path, secondary_material_path = null, barricade_pattern = "uniform", list/radius_policy = null, list/traversal_turfs = null, primary_material_share_percent = 100, place_barricade_doors = FALSE, primary_door_path = "follow_material", secondary_door_path = "follow_material", list/footprint_turfs = null, placement_dir = NORTH, list/wired_groups = null, build_anchor_map = TRUE, list/layer_config = null)
 	collect_perimeter_calls++
 	return ..()
 
@@ -1062,6 +1062,25 @@
 	params["primary_material_share_percent"] = 50
 	params["place_barricade_doors"] = TRUE
 	params["barricade_pattern"] = "alternating"
+	params["faction"] = FACTION_UPP
+	params["turned_on"] = FALSE
+	params["sentry_layer_profile"] = "guard"
+	params["sentry_type"] = /datum/human_ai_defense/defense/sentry/upp
+	params["extra_defense_layer_profile"] = "rear"
+	params["extra_defense_type"] = /datum/human_ai_defense/defense/tesla/stun
+	params["flag_type"] = /datum/human_ai_defense/defense/flag/upp
+	params["wire_layer_profile"] = "openings"
+	params["wire_offset"] = 3
+	params["wire_rows"] = 2
+	params["wire_row_step"] = 1
+	params["wire_spacing"] = 1
+	params["wire_concentration_percent"] = 100
+	params["minefield_profile"] = "medium"
+	params["mine_type"] = /datum/human_ai_defense/mine/sebb
+	params["minefield_offset"] = 3
+	params["minefield_depth"] = 2
+	params["minefield_density_percent"] = 35
+	params["minefield_seed"] = 42
 	var/datum/world_edit_plan/plan = generator.build_shape_aware_perimeter_plan(footprint_turfs, params)
 	TEST_ASSERT_NOTNULL(plan, "Unit-test outpost plan for blueprint export was not created.")
 	TEST_ASSERT(!plan.metadata["error"], "Unit-test outpost plan for blueprint export unexpectedly failed.")
@@ -1076,6 +1095,13 @@
 	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["defense_profile"], "lane_fort", "Blueprint export should persist the resolved tactical profile id.")
 	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["primary_material_share_percent"], 50, "Blueprint export should persist the resolved primary material share.")
 	TEST_ASSERT(blueprint["outpost_recipe"]["place_barricade_doors"], "Blueprint export should persist the folding-door toggle in outpost_recipe.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["faction"], FACTION_UPP, "Blueprint export should persist selected outpost IFF faction.")
+	TEST_ASSERT(!blueprint["outpost_recipe"]["turned_on"], "Blueprint export should persist the turned_on defense toggle.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["sentry_type"], "[/datum/human_ai_defense/defense/sentry/upp]", "Blueprint export should persist selected sentry path.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["extra_defense_type"], "[/datum/human_ai_defense/defense/tesla/stun]", "Blueprint export should persist selected extra-defense path.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["flag_type"], "[/datum/human_ai_defense/defense/flag/upp]", "Blueprint export should persist selected flag path.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["mine_type"], "[/datum/human_ai_defense/mine/sebb]", "Blueprint export should persist selected mine path.")
+	TEST_ASSERT_EQUAL(blueprint["outpost_recipe"]["minefield_seed"], 42, "Blueprint export should persist minefield seed.")
 	TEST_ASSERT_EQUAL(length(blueprint["outpost_recipe"]["footprint_offsets"]), 4, "Blueprint export should persist the relative footprint offsets for shape-authored outposts.")
 
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
@@ -1092,6 +1118,10 @@
 	))
 	TEST_ASSERT(!validation_result["error"], "Exported blueprint payload should validate against the live blueprint library schema.")
 	TEST_ASSERT(islist(validation_result["blueprint"]["outpost_recipe"]), "Blueprint validation should preserve optional outpost_recipe metadata.")
+	TEST_ASSERT_EQUAL(validation_result["blueprint"]["outpost_recipe"]["sentry_type"], "[/datum/human_ai_defense/defense/sentry/upp]", "Blueprint validation should preserve selected sentry path.")
+	TEST_ASSERT_EQUAL(validation_result["blueprint"]["outpost_recipe"]["extra_defense_type"], "[/datum/human_ai_defense/defense/tesla/stun]", "Blueprint validation should preserve selected tesla path.")
+	TEST_ASSERT_EQUAL(validation_result["blueprint"]["outpost_recipe"]["flag_type"], "[/datum/human_ai_defense/defense/flag/upp]", "Blueprint validation should preserve selected flag path.")
+	TEST_ASSERT_EQUAL(validation_result["blueprint"]["outpost_recipe"]["mine_type"], "[/datum/human_ai_defense/mine/sebb]", "Blueprint validation should preserve selected mine path.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_plan_rotation_translates_offsets/Run()
 	var/turf/anchor_turf = get_world_edit_test_center_turf()
@@ -1395,6 +1425,15 @@
 	TEST_ASSERT_EQUAL(manager.placement_shared_dir, NORTH, "World Edit manager should keep shared placement direction in sync with the restored generator state.")
 	TEST_ASSERT(manager.placement_shared_dir_uses_facing, "World Edit manager should keep the shared facing-toggle state in sync with the restored generator state.")
 
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_state/outpost_default_profile_and_no_rights_default_generator_fallback/Run()
+	var/datum/world_edit_generator_definition/outpost_radius/definition = new
+	TEST_ASSERT_EQUAL(definition.default_params["defense_profile"], "none", "World Edit outpost generator defaults should start with no defense profile.")
+
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	TEST_ASSERT(!manager.ensure_default_generator_selected(), "World Edit manager without debug rights should fail default-generator selection cleanly instead of selecting an unauthorized generator.")
+	TEST_ASSERT_NULL(manager.current_definition, "World Edit manager without debug rights should not keep a current generator after default fallback fails.")
 	qdel(manager)
 
 /datum/unit_test/world_edit_manager_state/restore_generator_session_state_restores_saved_placement_prefs/Run()
@@ -1743,7 +1782,7 @@
 
 	new_params = manager.apply_shape_ui_param_to_params(new_params, "shape_scatter_radius", 99)
 	TEST_ASSERT(islist(new_params), "World Edit shape ui-field application should also work for non-current-shape fields.")
-	TEST_ASSERT_EQUAL(text2num("[new_params["shape_scatter_radius"]]"), 12, "World Edit shape ui-field application should clamp values to the shared shape field contract.")
+	TEST_ASSERT_EQUAL(text2num("[new_params["shape_scatter_radius"]]"), 24, "World Edit shape ui-field application should clamp values to the shared shape field contract.")
 
 	qdel(manager)
 
@@ -1801,27 +1840,40 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/repeated_last_collector_point_keeps_invalid_outpost_preview_active/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/repeated_last_collector_point_keeps_component_outpost_preview_active/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit invalid-outpost collector cancel test center turf was not resolved.")
-	var/turf/disconnected_turf = locate(center_turf.x + 2, center_turf.y + 2, center_turf.z)
-	TEST_ASSERT_NOTNULL(disconnected_turf, "World Edit invalid-outpost collector cancel test disconnected turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit component-outpost collector test center turf was not resolved.")
+	var/turf/disconnected_turf = locate(center_turf.x + 4, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(disconnected_turf, "World Edit component-outpost collector test disconnected turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
 	manager.current_definition = definition
 	manager.current_generator = generator
-	manager.current_params = definition.default_params?.Copy() || list()
-	manager.current_params["radius"] = 1
-	manager.current_params["opening_width"] = "broad"
+	manager.current_params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
 	manager.placement_shape = "custom_mask"
 	manager.placement_mode = "single"
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit component-outpost collector test should accept the first collector point.")
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit component-outpost collector test should accept the disconnected collector point for component-aware planning.")
+	TEST_ASSERT(!findtext("[manager.last_preview_message]", "disconnected"), "World Edit component-outpost collector test should no longer surface the old disconnected-footprint support error.")
+	TEST_ASSERT(manager.placement_click_active, "World Edit component-outpost collector test should keep placement mode active while the collector remains open.")
+
+	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit component-outpost collector test should treat a repeated click on the last point as a finish attempt.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit component-outpost collector test should keep a preview candidate after the finish attempt.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit component-outpost collector test should build a plan for disconnected collector components.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit component-outpost collector test should keep the component-aware preview valid.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["shape_mode"], "component_footprint_offset", "World Edit component-outpost collector test should build a component-aware outpost plan.")
+	TEST_ASSERT((candidate.plan.metadata["component_count"] || 0) >= 2, "World Edit component-outpost collector test should report multiple outpost components.")
+	TEST_ASSERT(length(candidate.plan.placements) > 0, "World Edit component-outpost collector test should produce placements for disconnected components.")
+	qdel(manager)
+	return
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector finish test should accept the first collector point.")
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit invalid-outpost collector finish test should accept the disconnected collector point for validation.")
 	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector test should surface the disconnected-footprint support error before cancellation.")
@@ -2482,7 +2534,7 @@
 	generator.attach(manager, definition)
 	manager.current_definition = definition
 	manager.current_generator = generator
-	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
 	manager.placement_shape = WORLD_EDIT_SHAPE_CUSTOM_MASK
 	manager.placement_mode = "single"
 	manager.placement_dir = NORTH
@@ -4368,6 +4420,174 @@
 
 	qdel(generator)
 
+/datum/unit_test/world_edit_corner_slots/outpost_all_shared_shapes_build_shape_aware_plans/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost all-shapes test center turf was not resolved.")
+
+	var/list/base_params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+	for(var/shape_id in GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids())
+		var/list/case_data = build_shape_integration_case(shape_id, center_turf, base_params, EAST)
+		var/list/shape_result = case_data["shape_result"]
+		var/list/case_params = case_data["params"]
+		var/list/placement_context = case_data["placement_context"]
+		TEST_ASSERT(!shape_result["error"], "World Edit outpost all-shapes test should build shared shape '[shape_id]'.")
+
+		var/shape_error = generator.get_shape_support_error(shape_id, shape_result["turfs"] || list(), case_params, placement_context)
+		TEST_ASSERT(isnull(shape_error), "World Edit outpost all-shapes test should advertise and support shared shape '[shape_id]'.")
+
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, case_params, placement_context)
+		TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost all-shapes test should return a plan datum for '[shape_id]'.")
+		TEST_ASSERT(!plan.metadata["error"], "World Edit outpost all-shapes test should build a valid plan for '[shape_id]'.")
+		TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost all-shapes test should produce placements for '[shape_id]'.")
+
+	qdel(generator)
+
+/datum/unit_test/world_edit_corner_slots/outpost_line_shapes_accept_raised_length_limits/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost long-line test center turf was not resolved.")
+
+	var/start_x = max(run_loc_floor_bottom_left.x + 2, min(center_turf.x - 32, run_loc_floor_top_right.x - 66))
+	var/turf/start_turf = locate(start_x, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(start_turf, "World Edit outpost long-line test start turf was not resolved.")
+
+	for(var/line_length in list(16, 32, 64))
+		var/turf/end_turf = locate(start_turf.x + line_length - 1, start_turf.y, start_turf.z)
+		TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost long-line test end turf for length [line_length] was not resolved.")
+		var/list/params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+		params["shape_line_length"] = line_length
+		params["shape_line_spacing"] = 1
+
+		var/list/shape_result = build_shape_result(WORLD_EDIT_SHAPE_LINE, start_turf, params, EAST, end_turf)
+		TEST_ASSERT(!shape_result["error"], "World Edit outpost long-line test should build line shape length [line_length] without hitting shared caps.")
+		TEST_ASSERT((length(shape_result["turfs"] || list())) >= line_length, "World Edit outpost long-line test should preserve line anchors for length [line_length].")
+
+		var/list/placement_context = list(
+			"mode" = "single",
+			"shape" = WORLD_EDIT_SHAPE_LINE,
+			"shape_metadata" = shape_result["metadata"] || list(),
+			"anchor_turfs" = shape_result["turfs"] || list(),
+			"start_turf" = start_turf,
+			"end_turf" = end_turf,
+			"direction" = EAST,
+		)
+		var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+		TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost long-line test should return a plan datum for length [line_length].")
+		TEST_ASSERT(!plan.metadata["error"], "World Edit outpost long-line test should build a valid outpost plan for length [line_length].")
+		TEST_ASSERT((plan.metadata["anchor_count"] || 0) >= line_length, "World Edit outpost long-line test should keep line anchors in plan metadata for length [line_length].")
+		if(line_length == 16)
+			var/list/hover_specs = generator.build_plan_preview_object_specs(plan, params, placement_context, TRUE)
+			TEST_ASSERT(length(hover_specs) > 0, "World Edit outpost long-line test should expose hover object preview specs for length 16.")
+			TEST_ASSERT(length(hover_specs) <= 512, "World Edit outpost long-line test should keep hover object preview specs bounded for length 16.")
+
+	qdel(generator)
+
+/datum/unit_test/world_edit_corner_slots/outpost_collector_span_overflow_rejected_before_expensive_planning/Run()
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector-span test center turf was not resolved.")
+
+	var/list/params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+	params["shape_points_text"] = "0,0; 161,0"
+	var/list/shape_result = build_shape_result(WORLD_EDIT_SHAPE_CUSTOM_MASK, center_turf, params, NORTH)
+	TEST_ASSERT(length("[shape_result["error"]]"), "World Edit outpost collector-span test should reject huge collector spans in the shared shape service.")
+	TEST_ASSERT(findtext(lowertext("[shape_result["error"]]"), "span"), "World Edit outpost collector-span test should report the span-cap failure before planner work.")
+
+/datum/unit_test/world_edit_corner_slots/outpost_exterior_layers_and_faction_are_explicit_and_deterministic/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost exterior-layer test center turf was not resolved.")
+
+	var/list/params = build_outpost_test_params("none", "gate", "layout", 2)
+	params["faction"] = FACTION_UPP
+	params["turned_on"] = TRUE
+	params["sentry_layer_profile"] = "guard"
+	params["sentry_type"] = /datum/human_ai_defense/defense/sentry/upp
+	params["extra_defense_layer_profile"] = "rear"
+	params["extra_defense_type"] = /datum/human_ai_defense/defense/tesla/stun
+	params["wire_layer_profile"] = "perimeter"
+	params["wire_offset"] = 3
+	params["wire_rows"] = 1
+	params["wire_row_step"] = 1
+	params["wire_spacing"] = 1
+	params["wire_concentration_percent"] = 100
+	params["minefield_profile"] = "dense"
+	params["mine_type"] = /datum/human_ai_defense/mine/sebb
+	params["minefield_offset"] = 3
+	params["minefield_depth"] = 3
+	params["minefield_density_percent"] = 100
+	params["minefield_seed"] = 77
+
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost exterior-layer test should return a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost exterior-layer test should build a valid plan.")
+
+	var/list/opening_turfs = list(
+		locate(center_turf.x - 1, center_turf.y + 2, center_turf.z),
+		locate(center_turf.x, center_turf.y + 2, center_turf.z),
+		locate(center_turf.x + 1, center_turf.y + 2, center_turf.z),
+	)
+	var/list/opening_standoff_lookup = generator.build_opening_standoff_lookup(opening_turfs)
+	var/list/placement_counts = count_placements_by_kind(plan.placements)
+	var/list/mine_keys = list()
+	for(var/list/placement as anything in plan.placements)
+		var/turf/target_turf = placement["turf"]
+		var/kind = "[placement["kind"]]"
+		if(kind in list("sentry", "extra_defense", "mine"))
+			TEST_ASSERT_EQUAL(placement["faction"], FACTION_UPP, "World Edit outpost exterior-layer test should propagate the selected IFF faction to [kind].")
+		if(kind == "wire_object")
+			TEST_ASSERT(max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)) >= 5, "World Edit outpost exterior-layer test should place razorwire outside the radius-2 perimeter at offset 3.")
+		if(kind == "mine")
+			TEST_ASSERT(max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)) >= 5, "World Edit outpost exterior-layer test should place mines outside the radius-2 perimeter at offset 3.")
+			TEST_ASSERT(!opening_standoff_lookup[target_turf], "World Edit outpost exterior-layer test should not place mines on or adjacent to gate opening tiles.")
+			mine_keys += "[target_turf.x],[target_turf.y],[target_turf.z]"
+
+	TEST_ASSERT((placement_counts["wire_object"] || 0) > 0, "World Edit outpost exterior-layer test should emit exterior razorwire placements.")
+	TEST_ASSERT((placement_counts["mine"] || 0) > 0, "World Edit outpost exterior-layer test should emit exterior mine placements.")
+	TEST_ASSERT((placement_counts["sentry"] || 0) > 0, "World Edit outpost exterior-layer test should emit interior sentry placements.")
+	TEST_ASSERT((placement_counts["extra_defense"] || 0) > 0, "World Edit outpost exterior-layer test should emit interior extra-defense placements.")
+
+	var/datum/world_edit_plan/second_plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(!second_plan.metadata["error"], "World Edit outpost exterior-layer test should build the deterministic comparison plan.")
+	var/list/second_mine_keys = list()
+	for(var/list/placement as anything in second_plan.placements)
+		if("[placement["kind"]]" != "mine")
+			continue
+		var/turf/target_turf = placement["turf"]
+		second_mine_keys += "[target_turf.x],[target_turf.y],[target_turf.z]"
+	TEST_ASSERT_EQUAL(json_encode(second_mine_keys), json_encode(mine_keys), "World Edit outpost exterior-layer test should keep minefield scattering deterministic for the same seed and shape.")
+
+	qdel(generator)
+
+/datum/unit_test/world_edit_corner_slots/outpost_invalid_layer_faction_and_type_choices_are_rejected/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+
+	var/list/invalid_faction_params = build_outpost_test_params("none", "gate", "layout", 2)
+	invalid_faction_params["faction"] = "bad_faction"
+	var/list/invalid_faction_config = generator.resolve_outpost_configuration(invalid_faction_params, list("direction" = NORTH))
+	TEST_ASSERT(length("[invalid_faction_config["error"]]"), "World Edit outpost validation should reject invalid explicit factions.")
+
+	var/list/invalid_sentry_params = build_outpost_test_params("none", "gate", "layout", 2)
+	invalid_sentry_params["sentry_type"] = /datum/human_ai_defense/defense/bell_tower
+	var/list/invalid_sentry_config = generator.resolve_outpost_configuration(invalid_sentry_params, list("direction" = NORTH))
+	TEST_ASSERT(length("[invalid_sentry_config["error"]]"), "World Edit outpost validation should reject sentry types outside the curated sentry whitelist.")
+
+	var/list/invalid_mine_params = build_outpost_test_params("none", "gate", "layout", 2)
+	invalid_mine_params["mine_type"] = /datum/human_ai_defense/defense/tesla
+	var/list/invalid_mine_config = generator.resolve_outpost_configuration(invalid_mine_params, list("direction" = NORTH))
+	TEST_ASSERT(length("[invalid_mine_config["error"]]"), "World Edit outpost validation should reject mine types outside the curated mine whitelist.")
+
+	qdel(generator)
+
 /datum/unit_test/world_edit_corner_slots/outpost_scatter_cluster_stays_connected_for_large_radius/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
@@ -4901,11 +5121,12 @@
 	generator.attach(manager, definition)
 	manager.current_definition = definition
 	manager.current_generator = generator
-	manager.current_params = definition.default_params?.Copy() || list()
+	manager.current_params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+	manager.current_params["radius_only_clear_tiles"] = FALSE
 	manager.placement_shape = WORLD_EDIT_SHAPE_CUSTOM_MASK
 
 	var/list/shape_result = build_shape_result(WORLD_EDIT_SHAPE_CUSTOM_MASK, center_turf, list(
-		"shape_points_text" = "0,0; 2,0",
+		"shape_points_text" = "0,0; 1,0; 4,0; 5,0",
 	))
 	TEST_ASSERT(!shape_result["error"], "World Edit outpost support/build consistency test should build a disconnected custom-mask footprint without shape-service errors.")
 
@@ -4919,6 +5140,18 @@
 		"direction" = NORTH,
 	)
 	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract_from_result(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result)
+	var/component_shape_support_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result["turfs"] || list(), manager.current_params, placement_context)
+	TEST_ASSERT(isnull(component_shape_support_error), "World Edit outpost support/build consistency test should accept disconnected limited shapes for component-aware planning.")
+
+	var/datum/world_edit_plan/component_plan = generator.build_plan_from_shape_contract(null, shape_contract, manager.current_params, placement_context)
+	TEST_ASSERT(istype(component_plan, /datum/world_edit_plan), "World Edit outpost support/build consistency test should still return a plan datum on the build path.")
+	TEST_ASSERT(!component_plan.metadata["error"], "World Edit outpost build_plan_from_shape_contract should build disconnected shapes through component-aware planning: [component_plan.metadata["error"]]")
+	TEST_ASSERT_EQUAL(component_plan.metadata["shape_mode"], "component_footprint_offset", "World Edit outpost support/build consistency test should preserve component-aware shape mode.")
+	TEST_ASSERT_EQUAL(component_plan.metadata["component_count"], 2, "World Edit outpost support/build consistency test should keep cardinal-disconnected custom-mask points as two outpost components.")
+	TEST_ASSERT(length(component_plan.placements) > 0, "World Edit outpost support/build consistency test should emit placements for each component.")
+	qdel(manager)
+	return
+
 	var/shape_support_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result["turfs"] || list(), manager.current_params, placement_context)
 	TEST_ASSERT(length("[shape_support_error]"), "World Edit outpost support/build consistency test should still reject disconnected limited shapes at the support boundary.")
 
@@ -4961,14 +5194,22 @@
 	TEST_ASSERT_EQUAL(heavy_config["defense_profile"], "anti_vehicle_stop", "World Edit defense-profile test should preserve the selected tactical profile id.")
 	TEST_ASSERT(heavy_config["needs_anchor_map"], "World Edit defense-profile test should request anchor-map generation for active defenses.")
 	var/list/heavy_profile = heavy_config["defense_profile_data"]
-	TEST_ASSERT_EQUAL(length(heavy_profile["defense_rules"] || list()), 4, "World Edit defense-profile test should expose the bundled sentry, mine and extra-defense rules for the selected tactical profile.")
+	TEST_ASSERT_EQUAL(length(heavy_profile["defense_rules"] || list()), 5, "World Edit defense-profile test should expose the explicit sentry, exterior wire, exterior mine and extra-defense rules for the selected tactical profile.")
 	var/list/tesla_rule = null
+	var/list/wire_rule = null
+	var/list/mine_rule = null
 	for(var/list/rule as anything in heavy_profile["defense_rules"] || list())
+		TEST_ASSERT(rule["group"] != "opening_flanks", "World Edit defense-profile test should keep razorwire out of the old inward opening_flanks group.")
 		if(rule["kind"] == "extra_defense")
 			tesla_rule = rule
-			break
+		if(rule["kind"] == "wire_object")
+			wire_rule = rule
+		if(rule["kind"] == "mine")
+			mine_rule = rule
 	var/tesla_path = islist(tesla_rule) ? tesla_rule["defense_path"] : null
 	TEST_ASSERT_EQUAL(tesla_path, /datum/human_ai_defense/defense/tesla, "World Edit defense-profile test should keep the heavy profile's tesla placement rule.")
+	TEST_ASSERT_EQUAL(islist(wire_rule) ? wire_rule["group"] : null, "exterior_wire_slots", "World Edit defense-profile test should place razorwire in exterior perimeter slots.")
+	TEST_ASSERT_EQUAL(islist(mine_rule) ? mine_rule["group"] : null, "exterior_mine_slots", "World Edit defense-profile test should place mines in exterior minefield slots.")
 
 	var/list/none_params = build_outpost_test_params("none", "crossroads", "layout", 2)
 	var/list/none_config = generator.resolve_outpost_configuration(none_params, list("direction" = NORTH))

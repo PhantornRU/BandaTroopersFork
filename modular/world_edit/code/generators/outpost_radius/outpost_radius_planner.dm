@@ -449,6 +449,25 @@
 	metadata["barricade_pattern"] = config["barricade_pattern"]
 	metadata["primary_material_share_percent"] = primary_material_share_percent
 	metadata["place_barricade_doors"] = config["place_barricade_doors"] ? TRUE : FALSE
+	metadata["faction"] = config["faction"]
+	metadata["turned_on"] = config["turned_on"] ? TRUE : FALSE
+	metadata["sentry_layer_profile"] = config["sentry_layer_profile"]
+	metadata["sentry_type"] = config["sentry_type"]
+	metadata["extra_defense_layer_profile"] = config["extra_defense_layer_profile"]
+	metadata["extra_defense_type"] = config["extra_defense_type"]
+	metadata["flag_type"] = config["flag_type"]
+	metadata["wire_layer_profile"] = config["wire_layer_profile"]
+	metadata["wire_offset"] = config["wire_offset"]
+	metadata["wire_rows"] = config["wire_rows"]
+	metadata["wire_row_step"] = config["wire_row_step"]
+	metadata["wire_spacing"] = config["wire_spacing"]
+	metadata["wire_concentration_percent"] = config["wire_concentration_percent"]
+	metadata["minefield_profile"] = config["minefield_profile"]
+	metadata["mine_type"] = config["mine_type"]
+	metadata["minefield_offset"] = config["minefield_offset"]
+	metadata["minefield_depth"] = config["minefield_depth"]
+	metadata["minefield_density_percent"] = config["minefield_density_percent"]
+	metadata["minefield_seed"] = config["minefield_seed"]
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_anchor_candidate(turf/target_turf, dir_to_use, group_id, source_dir = null, source_turf = null)
 	if(!istype(target_turf))
@@ -487,7 +506,51 @@
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_back_dir(placement_dir)
 	return get_cardinal_opposite_dir(placement_dir)
 
-/datum/world_edit_generator/outpost_radius/proc/build_outpost_anchor_map(list/footprint_turfs, list/perimeter_slots, list/opening_slots, placement_dir)
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_deterministic_percent(turf/target_turf, seed_value = 0, salt = 0)
+	if(!istype(target_turf))
+		return 100
+	var/raw_value = (target_turf.x * 73856093) + (target_turf.y * 19349663) + (target_turf.z * 83492791) + (round(text2num("[seed_value]") || 0) * 2654435761) + (round(text2num("[salt]") || 0) * 97531)
+	return abs(raw_value) % 100
+
+/datum/world_edit_generator/outpost_radius/proc/build_opening_standoff_lookup(list/opening_turfs)
+	var/list/lookup = list()
+	if(!islist(opening_turfs))
+		return lookup
+	for(var/turf/opening_turf as anything in opening_turfs)
+		if(!istype(opening_turf))
+			continue
+		lookup[opening_turf] = TRUE
+		for(var/check_dir as anything in GLOB.alldirs)
+			var/turf/adjacent_turf = get_step(opening_turf, check_dir)
+			if(istype(adjacent_turf))
+				lookup[adjacent_turf] = TRUE
+	return lookup
+
+/datum/world_edit_generator/outpost_radius/proc/should_select_outpost_wire_slot(list/perimeter_slot, turf/target_turf, row_index, list/config)
+	if(!islist(config) || !islist(perimeter_slot) || !istype(target_turf))
+		return FALSE
+	var/concentration = clamp(round(text2num("[config["wire_concentration_percent"]]") || 0), 0, 100)
+	if(concentration <= 0)
+		return FALSE
+	var/spacing = max(round(text2num("[config["wire_spacing"]]") || 1), 1)
+	var/slot_index = max(round(text2num("[perimeter_slot["slot_index"]]") || 1), 1)
+	if(spacing > 1 && (((slot_index + max(round(row_index), 1) - 2) % spacing) != 0))
+		return FALSE
+	if(concentration >= 100)
+		return TRUE
+	return get_outpost_deterministic_percent(target_turf, row_index, slot_index) < concentration
+
+/datum/world_edit_generator/outpost_radius/proc/should_select_outpost_mine_slot(turf/target_turf, depth_index, list/config)
+	if(!islist(config) || !istype(target_turf))
+		return FALSE
+	var/density = clamp(round(text2num("[config["minefield_density_percent"]]") || 0), 0, 100)
+	if(density <= 0)
+		return FALSE
+	if(density >= 100)
+		return TRUE
+	return get_outpost_deterministic_percent(target_turf, config["minefield_seed"], depth_index) < density
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_anchor_map(list/footprint_turfs, list/perimeter_slots, list/opening_slots, placement_dir, list/config = null)
 	var/list/anchor_map = list(
 		"perimeter_slots" = list(),
 		"opening_slots" = list(),
@@ -495,6 +558,10 @@
 		"guard_slots" = list(),
 		"corner_slots" = list(),
 		"outer_approach_slots" = list(),
+		"exterior_wire_slots" = list(),
+		"exterior_opening_wire_slots" = list(),
+		"exterior_mine_slots" = list(),
+		"exterior_opening_mine_slots" = list(),
 		"rear_slots" = list(),
 	)
 	if(!islist(footprint_turfs))
@@ -506,6 +573,7 @@
 
 	var/list/opening_turfs = list()
 	var/list/opening_turf_lookup = list()
+	var/list/opening_slot_lookup = list()
 	var/list/group_lookups = list()
 	for(var/group_id in anchor_map)
 		group_lookups[group_id] = list()
@@ -516,6 +584,9 @@
 	for(var/list/opening_slot as anything in opening_slots)
 		var/list/opening_candidate = opening_slot.Copy()
 		add_outpost_anchor_candidate(anchor_map["opening_slots"], group_lookups["opening_slots"], opening_candidate.Copy())
+		var/opening_slot_key = build_outpost_slot_key(opening_candidate)
+		if(length(opening_slot_key))
+			opening_slot_lookup[opening_slot_key] = TRUE
 
 		var/turf/opening_turf = opening_candidate["turf"]
 		if(istype(opening_turf) && !opening_turf_lookup[opening_turf])
@@ -542,6 +613,54 @@
 			if(islist(flank_candidate) && istype(overlay_turf))
 				flank_candidate["overlay_slot_key"] = GLOB.world_edit_helpers.build_turf_dir_slot_key(overlay_turf, opening_dir)
 			add_outpost_anchor_candidate(anchor_map["opening_flanks"], group_lookups["opening_flanks"], flank_candidate, TRUE)
+
+	var/list/opening_standoff_lookup = build_opening_standoff_lookup(opening_turfs)
+	var/wire_rows = islist(config) ? max(round(text2num("[config["wire_rows"]]") || 0), 0) : 0
+	var/wire_offset = islist(config) ? max(round(text2num("[config["wire_offset"]]") || 3), 1) : 3
+	var/wire_row_step = islist(config) ? max(round(text2num("[config["wire_row_step"]]") || 1), 1) : 1
+	var/minefield_depth = islist(config) ? max(round(text2num("[config["minefield_depth"]]") || 0), 0) : 0
+	var/minefield_offset = islist(config) ? max(round(text2num("[config["minefield_offset"]]") || 3), 1) : 3
+	for(var/list/perimeter_slot as anything in perimeter_slots)
+		var/turf/perimeter_turf = perimeter_slot["turf"]
+		var/perimeter_dir = perimeter_slot["dir"]
+		if(!istype(perimeter_turf) || !GLOB.world_edit_helpers.is_cardinal_dir(perimeter_dir))
+			continue
+		var/perimeter_slot_key = build_outpost_slot_key(perimeter_slot)
+		var/is_opening_slot = (perimeter_slot["is_opening"] || opening_slot_lookup[perimeter_slot_key]) ? TRUE : FALSE
+
+		if(wire_rows > 0)
+			for(var/wire_row in 1 to wire_rows)
+				var/wire_distance = wire_offset + ((wire_row - 1) * wire_row_step)
+				var/turf/wire_turf = GLOB.world_edit_helpers.step_turf(perimeter_turf, perimeter_dir, wire_distance)
+				if(!should_select_outpost_wire_slot(perimeter_slot, wire_turf, wire_row, config))
+					continue
+				var/list/wire_candidate = build_outpost_anchor_candidate(wire_turf, perimeter_dir, "exterior_wire_slots", perimeter_dir, perimeter_turf)
+				if(islist(wire_candidate))
+					wire_candidate["layer_offset"] = wire_distance
+					wire_candidate["layer_row"] = wire_row
+				add_outpost_anchor_candidate(anchor_map["exterior_wire_slots"], group_lookups["exterior_wire_slots"], wire_candidate, TRUE)
+				if(is_opening_slot)
+					if(islist(wire_candidate))
+						var/list/opening_wire_candidate = wire_candidate.Copy()
+						opening_wire_candidate["group"] = "exterior_opening_wire_slots"
+						add_outpost_anchor_candidate(anchor_map["exterior_opening_wire_slots"], group_lookups["exterior_opening_wire_slots"], opening_wire_candidate, TRUE)
+
+		if(minefield_depth > 0)
+			for(var/mine_depth in 1 to minefield_depth)
+				var/mine_distance = minefield_offset + mine_depth - 1
+				var/turf/mine_turf = GLOB.world_edit_helpers.step_turf(perimeter_turf, perimeter_dir, mine_distance)
+				if(opening_standoff_lookup[mine_turf] || !should_select_outpost_mine_slot(mine_turf, mine_depth, config))
+					continue
+				var/list/mine_candidate = build_outpost_anchor_candidate(mine_turf, perimeter_dir, "exterior_mine_slots", perimeter_dir, perimeter_turf)
+				if(islist(mine_candidate))
+					mine_candidate["layer_offset"] = mine_distance
+					mine_candidate["layer_depth"] = mine_depth
+				add_outpost_anchor_candidate(anchor_map["exterior_mine_slots"], group_lookups["exterior_mine_slots"], mine_candidate, TRUE)
+				if(is_opening_slot)
+					if(islist(mine_candidate))
+						var/list/opening_mine_candidate = mine_candidate.Copy()
+						opening_mine_candidate["group"] = "exterior_opening_mine_slots"
+						add_outpost_anchor_candidate(anchor_map["exterior_opening_mine_slots"], group_lookups["exterior_opening_mine_slots"], opening_mine_candidate, TRUE)
 
 	var/list/source_lookup = list()
 	for(var/list/perimeter_slot as anything in perimeter_slots)
@@ -636,7 +755,7 @@
 		return FALSE
 	return (length(defense_profile["wired_groups"]) || length(defense_profile["defense_rules"])) ? TRUE : FALSE
 
-/datum/world_edit_generator/outpost_radius/proc/build_outpost_defense_placements(list/anchor_map, list/defense_profile, list/reserved_turf_lookup = null, default_faction = null)
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_defense_placements(list/anchor_map, list/defense_profile, list/reserved_turf_lookup = null, default_faction = null, default_turned_on = FALSE)
 	var/list/result = list(
 		"placements" = list(),
 		"blocked_sentries" = 0,
@@ -675,14 +794,15 @@
 				continue
 
 			var/kind = "[rule["kind"]]"
-			var/faction = "[rule["faction"] || defense_profile["faction"] || default_faction]"
+			var/faction = "[default_faction || defense_profile["faction"] || rule["faction"]]"
+			var/placement_turned_on = isnull(rule["turned_on"]) ? GLOB.world_edit_helpers.parse_bool(default_turned_on) : GLOB.world_edit_helpers.parse_bool(rule["turned_on"])
 			result["placements"] += list(list(
 				"kind" = kind,
 				"turf" = target_turf,
 				"dir" = dir_to_use,
 				"defense_path" = defense_path,
 				"faction" = length(faction) ? faction : null,
-				"turned_on" = GLOB.world_edit_helpers.parse_bool(rule["turned_on"]) ? TRUE : FALSE,
+				"turned_on" = placement_turned_on ? TRUE : FALSE,
 			))
 			occupied_lookup[target_turf] = TRUE
 			placed_count++
@@ -809,12 +929,6 @@
 		result["budget_actual"] = length(normalized_turfs)
 		result["budget_limit"] = WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS
 		result["error"] = get_outpost_budget_error("footprint", length(normalized_turfs), WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS)
-		return result
-
-	var/component_count = count_shape_connected_components(normalized_turfs)
-	if(component_count > 1)
-		var/shape_label = GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
-		result["error"] = "Форма [shape_label] распадается на несвязанные островки; для форпоста нужен один связный контур."
 		return result
 
 	if(istype(seed_turf) && !lookup[seed_turf])
@@ -1175,17 +1289,8 @@
 	return null
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_class(shape_id)
-	switch("[shape_id]")
-		if(
-			WORLD_EDIT_SHAPE_POINT,
-			WORLD_EDIT_SHAPE_LINE,
-			WORLD_EDIT_SHAPE_RECTANGLE,
-			WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
-			WORLD_EDIT_SHAPE_CIRCLE,
-			WORLD_EDIT_SHAPE_RING,
-			WORLD_EDIT_SHAPE_DIAMOND
-		)
-			return "full"
+	if("[shape_id]" in GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids())
+		return "full"
 	return "unsupported"
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_effective_shape_id(shape_id, datum/world_edit_shape_contract/shape_contract = null, list/placement_context = null, list/footprint_turfs = null)
@@ -1225,13 +1330,40 @@
 		while(length(open_list))
 			var/turf/current_turf = open_list[length(open_list)]
 			open_list.Cut(length(open_list), length(open_list) + 1)
-			for(var/check_dir in GLOB.alldirs)
+			for(var/check_dir in GLOB.cardinals)
 				var/turf/neighbor_turf = get_step(current_turf, check_dir)
 				if(!lookup[neighbor_turf] || !unvisited[neighbor_turf])
 					continue
 				unvisited[neighbor_turf] = FALSE
 				open_list += neighbor_turf
 	return component_count
+
+/datum/world_edit_generator/outpost_radius/proc/split_outpost_footprint_components(list/footprint_turfs)
+	var/list/components = list()
+	if(!islist(footprint_turfs) || !length(footprint_turfs))
+		return components
+
+	var/list/lookup = build_turf_lookup(footprint_turfs)
+	var/list/unvisited = lookup.Copy()
+	for(var/turf/start_turf as anything in footprint_turfs)
+		if(!istype(start_turf) || !unvisited[start_turf])
+			continue
+		var/list/component = list()
+		var/list/open_list = list(start_turf)
+		unvisited[start_turf] = FALSE
+		while(length(open_list))
+			var/turf/current_turf = open_list[length(open_list)]
+			open_list.Cut(length(open_list), length(open_list) + 1)
+			component += current_turf
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/neighbor_turf = get_step(current_turf, check_dir)
+				if(!lookup[neighbor_turf] || !unvisited[neighbor_turf])
+					continue
+				unvisited[neighbor_turf] = FALSE
+				open_list += neighbor_turf
+		if(length(component))
+			components += list(component)
+	return components
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_shape_support_validation_error(shape_id, list/footprint_turfs, list/placement_context = null)
 	var/support_class = get_outpost_shape_support_class(shape_id)
@@ -1240,9 +1372,6 @@
 		if("unsupported")
 			return "Форма [shape_label] временно не поддерживается стабильным planner v1 форпоста."
 
-	var/component_count = count_shape_connected_components(footprint_turfs)
-	if(component_count > 1)
-		return "Форма [shape_label] распадается на несвязанные островки; для форпоста нужен один связный контур."
 	return null
 
 /datum/world_edit_generator/outpost_radius/proc/get_cardinal_opposite_dir(dir_to_flip)
@@ -1517,7 +1646,7 @@
 		slot_data["is_opening"] = length(slot_key) && opening_lookup[slot_key] ? TRUE : FALSE
 		perimeter_slots += list(slot_data)
 
-	var/list/anchor_map = config["needs_anchor_map"] ? build_outpost_anchor_map(unique_footprint_turfs, perimeter_slots, opening_slots, config["placement_dir"]) : list()
+	var/list/anchor_map = config["needs_anchor_map"] ? build_outpost_anchor_map(unique_footprint_turfs, perimeter_slots, opening_slots, config["placement_dir"], config) : list()
 
 	analysis["config"] = config
 	analysis["footprint_turfs"] = unique_footprint_turfs
@@ -1611,7 +1740,7 @@
 		))
 
 	var/list/reserved_turf_lookup = build_outpost_reserved_turf_lookup(plan.placements)
-	var/list/defense_data = build_outpost_defense_placements(anchor_map, defense_profile, reserved_turf_lookup, config["faction"])
+	var/list/defense_data = build_outpost_defense_placements(anchor_map, defense_profile, reserved_turf_lookup, config["faction"], config["turned_on"])
 	for(var/list/placement as anything in defense_data["placements"])
 		var/turf/defense_turf = placement["turf"]
 		if(istype(defense_turf))
@@ -1681,6 +1810,154 @@
 	plan.metadata["generator_effect_turfs"] = plan.affected_turfs.Copy()
 	return plan
 
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_param_or_default(list/params, list/defaults, param_id)
+	if(islist(params) && !isnull(params[param_id]) && length("[params[param_id]]") && "[params[param_id]]" != "null")
+		return params[param_id]
+	if(islist(defaults))
+		return defaults[param_id]
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_bounded_outpost_number(value, default_value, min_value, max_value)
+	var/number_value = text2num("[value]")
+	if(!isnum(number_value))
+		number_value = default_value
+	return clamp(round(number_value), min_value, max_value)
+
+/datum/world_edit_generator/outpost_radius/proc/get_outpost_profile_layer_defaults(profile_id)
+	var/list/defaults = list(
+		"faction" = FACTION_MARINE,
+		"turned_on" = TRUE,
+		"sentry_layer_profile" = "none",
+		"sentry_type" = /datum/human_ai_defense/defense/sentry/uscm,
+		"extra_defense_layer_profile" = "none",
+		"extra_defense_type" = /datum/human_ai_defense/defense/tesla,
+		"flag_type" = "none",
+		"wire_layer_profile" = "none",
+		"wire_offset" = 3,
+		"wire_rows" = 1,
+		"wire_row_step" = 1,
+		"wire_spacing" = 2,
+		"wire_concentration_percent" = 70,
+		"minefield_profile" = "none",
+		"mine_type" = /datum/human_ai_defense/mine/claymore,
+		"minefield_offset" = 3,
+		"minefield_depth" = 3,
+		"minefield_density_percent" = 35,
+		"minefield_seed" = 0,
+	)
+
+	switch("[profile_id]")
+		if("outrider_camp")
+			defaults["sentry_layer_profile"] = "guard"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/mini
+			defaults["wire_layer_profile"] = "openings"
+		if("lane_fort")
+			defaults["sentry_layer_profile"] = "guard"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/shotgun
+			defaults["wire_layer_profile"] = "openings"
+			defaults["minefield_profile"] = "light"
+			defaults["mine_type"] = /datum/human_ai_defense/mine/claymore
+			defaults["minefield_density_percent"] = 25
+		if("fallback_redoubt")
+			defaults["sentry_layer_profile"] = "rear"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm
+			defaults["wire_layer_profile"] = "openings"
+			defaults["minefield_profile"] = "light"
+			defaults["mine_type"] = /datum/human_ai_defense/mine/prox_sensor
+			defaults["flag_type"] = /datum/human_ai_defense/defense/flag/uscm/range
+		if("pocket_defense")
+			defaults["sentry_layer_profile"] = "guard"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/shotgun
+			defaults["extra_defense_layer_profile"] = "rear"
+			defaults["extra_defense_type"] = /datum/human_ai_defense/defense/tesla/stun
+			defaults["wire_layer_profile"] = "openings"
+			defaults["minefield_profile"] = "light"
+			defaults["mine_type"] = /datum/human_ai_defense/mine/sebb
+		if("crossfire_hub")
+			defaults["sentry_layer_profile"] = "corners"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/dmr
+			defaults["extra_defense_layer_profile"] = "rear"
+			defaults["extra_defense_type"] = /datum/human_ai_defense/defense/bell_tower/md
+			defaults["wire_layer_profile"] = "openings"
+			defaults["minefield_profile"] = "medium"
+			defaults["mine_type"] = /datum/human_ai_defense/mine/m760ap
+			defaults["minefield_density_percent"] = 35
+		if("anti_vehicle_stop")
+			defaults["sentry_layer_profile"] = "guard_corners"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/dmr
+			defaults["extra_defense_layer_profile"] = "rear"
+			defaults["extra_defense_type"] = /datum/human_ai_defense/defense/tesla
+			defaults["wire_layer_profile"] = "perimeter"
+			defaults["minefield_profile"] = "dense"
+			defaults["mine_type"] = /datum/human_ai_defense/mine/m760ap/strong
+			defaults["minefield_density_percent"] = 50
+		if("forward_medical_cover")
+			defaults["sentry_layer_profile"] = "rear"
+			defaults["sentry_type"] = /datum/human_ai_defense/defense/sentry/uscm/mini
+			defaults["wire_layer_profile"] = "openings"
+			defaults["flag_type"] = /datum/human_ai_defense/defense/flag/uscm
+
+	return defaults
+
+/datum/world_edit_generator/outpost_radius/proc/add_outpost_layer_rule(list/rules, kind, group_id, limit, defense_path, turned_on = null)
+	if(!islist(rules) || !length("[kind]") || !length("[group_id]") || !ispath(defense_path, /datum/human_ai_defense))
+		return
+
+	var/list/rule = list(
+		"kind" = "[kind]",
+		"group" = "[group_id]",
+		"limit" = max(round(text2num("[limit]") || 0), 1),
+		"defense_path" = defense_path,
+	)
+	if(!isnull(turned_on))
+		rule["turned_on"] = turned_on ? TRUE : FALSE
+	rules += list(rule)
+
+/datum/world_edit_generator/outpost_radius/proc/build_outpost_effective_defense_profile(list/config, list/base_profile)
+	var/list/profile = list(
+		"label" = islist(base_profile) ? (base_profile["label"] || "Custom") : "Custom",
+		"description" = islist(base_profile) ? (base_profile["description"] || "") : "",
+		"defense_rules" = list(),
+		"wired_groups" = islist(base_profile) && islist(base_profile["wired_groups"]) ? base_profile["wired_groups"].Copy() : list(),
+	)
+	var/list/rules = profile["defense_rules"]
+	var/turned_on = GLOB.world_edit_helpers.parse_bool(config["turned_on"])
+	var/sentry_type = config["sentry_type"]
+	var/extra_defense_type = config["extra_defense_type"]
+	var/flag_type = config["flag_type"]
+	var/mine_type = config["mine_type"]
+
+	switch("[config["sentry_layer_profile"]]")
+		if("guard")
+			add_outpost_layer_rule(rules, "sentry", "guard_slots", 2, sentry_type, turned_on)
+		if("rear")
+			add_outpost_layer_rule(rules, "sentry", "rear_slots", 2, sentry_type, turned_on)
+		if("corners")
+			add_outpost_layer_rule(rules, "sentry", "corner_slots", 4, sentry_type, turned_on)
+		if("guard_corners")
+			add_outpost_layer_rule(rules, "sentry", "guard_slots", 2, sentry_type, turned_on)
+			add_outpost_layer_rule(rules, "sentry", "corner_slots", 2, sentry_type, turned_on)
+
+	switch("[config["extra_defense_layer_profile"]]")
+		if("rear")
+			add_outpost_layer_rule(rules, "extra_defense", "rear_slots", 1, extra_defense_type, turned_on)
+		if("corners")
+			add_outpost_layer_rule(rules, "extra_defense", "corner_slots", 2, extra_defense_type, turned_on)
+
+	if(ispath(flag_type, /datum/human_ai_defense/defense/flag))
+		add_outpost_layer_rule(rules, "extra_defense", "rear_slots", 1, flag_type, turned_on)
+
+	switch("[config["wire_layer_profile"]]")
+		if("openings")
+			add_outpost_layer_rule(rules, "wire_object", "exterior_opening_wire_slots", WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS, /datum/human_ai_defense/misc_defences/razorwire)
+		if("perimeter")
+			add_outpost_layer_rule(rules, "wire_object", "exterior_wire_slots", WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS, /datum/human_ai_defense/misc_defences/razorwire)
+
+	if("[config["minefield_profile"]]" != "none")
+		add_outpost_layer_rule(rules, "mine", "exterior_mine_slots", WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS, mine_type)
+
+	return profile
+
 /datum/world_edit_generator/outpost_radius/proc/resolve_outpost_configuration(list/params, list/placement_context = null)
 	var/list/config = list()
 	for(var/legacy_param in list("family", "guard_mode", "sentry_profile", "sentry_path", "barricade_path", "barricade_concentration_percent"))
@@ -1701,6 +1978,8 @@
 		config["error"] = "Некорректный тактический профиль форпоста."
 		return config
 
+	var/list/profile_layer_defaults = get_outpost_profile_layer_defaults(defense_profile_id)
+
 	var/layout_id = resolve_outpost_layout_id(params["layout_variant"])
 	if(!layout_id)
 		config["error"] = "Некорректная схема форпоста."
@@ -1711,12 +1990,12 @@
 		config["error"] = "Некорректная схема форпоста."
 		return config
 
-	var/opening_width = resolve_opening_width(params["opening_width"], layout_profile)
+	var/opening_width = resolve_opening_width(get_outpost_param_or_default(params, profile_layer_defaults, "opening_width"), layout_profile)
 	if(isnull(opening_width))
 		config["error"] = "Некорректная ширина проходов форпоста."
 		return config
 
-	var/barricade_pattern = resolve_barricade_pattern(params["barricade_pattern"])
+	var/barricade_pattern = resolve_barricade_pattern(get_outpost_param_or_default(params, profile_layer_defaults, "barricade_pattern"))
 	if(isnull(barricade_pattern))
 		config["error"] = "Некорректный шаблон материалов периметра."
 		return config
@@ -1728,45 +2007,93 @@
 	effective_layout_profile["opening_slot_mode"] = get_layout_opening_slot_mode(layout_profile)
 	effective_layout_profile["opening_slots_per_dir"] = get_layout_opening_slots_per_dir(layout_profile)
 
-	var/radius = text2num("[params["radius"]]") || 4
+	var/radius = text2num("[get_outpost_param_or_default(params, profile_layer_defaults, "radius")]") || 4
 	if(!isnum(radius) || radius < 1 || radius > WORLD_EDIT_OUTPOST_RADIUS_MAX)
 		config["error"] = "Радиус форпоста должен оставаться в поддерживаемом диапазоне."
 		return config
 	opening_width = clamp(round(opening_width), 0, (radius * 2) + 1)
 	effective_layout_profile["opening_width"] = opening_width
 
-	var/primary_material_share_percent = get_primary_material_share_percent(params["primary_material_share_percent"])
-	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(params["place_barricade_doors"])
+	var/primary_material_share_percent = get_primary_material_share_percent(get_outpost_param_or_default(params, profile_layer_defaults, "primary_material_share_percent"))
+	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(get_outpost_param_or_default(params, profile_layer_defaults, "place_barricade_doors"))
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	var/primary_material_path = resolve_whitelisted_type(params["primary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
+	var/primary_material_path = resolve_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "primary_material_path"), allowed_barricade_types, /datum/human_ai_defense/barricade, /datum/human_ai_defense/barricade/metal)
 	if(!primary_material_path)
 		config["error"] = "Некорректный основной материал периметра."
 		return config
 
-	var/secondary_material_path = resolve_whitelisted_type(params["secondary_material_path"], allowed_barricade_types, /datum/human_ai_defense/barricade, primary_material_path)
+	var/secondary_material_path = resolve_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "secondary_material_path"), allowed_barricade_types, /datum/human_ai_defense/barricade, primary_material_path)
 	if(!secondary_material_path)
 		secondary_material_path = primary_material_path
 	if(barricade_pattern == "uniform")
 		secondary_material_path = primary_material_path
 		primary_material_share_percent = 100
 
-	var/primary_door_path = resolve_outpost_door_selection(params["primary_door_path"])
+	var/primary_door_path = resolve_outpost_door_selection(get_outpost_param_or_default(params, profile_layer_defaults, "primary_door_path"))
 	if(isnull(primary_door_path))
 		config["error"] = "Некорректный материал основной двери."
 		return config
-	var/secondary_door_path = resolve_outpost_door_selection(params["secondary_door_path"])
+	var/secondary_door_path = resolve_outpost_door_selection(get_outpost_param_or_default(params, profile_layer_defaults, "secondary_door_path"))
 	if(isnull(secondary_door_path))
 		config["error"] = "Некорректный материал вспомогательной двери."
 		return config
 	if(barricade_pattern == "uniform")
 		secondary_door_path = primary_door_path
 
-	var/faction = "[params["faction"]]"
-	var/turned_on = GLOB.world_edit_helpers.parse_bool(params["turned_on"])
+	var/faction = resolve_outpost_faction(get_outpost_param_or_default(params, profile_layer_defaults, "faction"), FACTION_MARINE)
+	if(isnull(faction))
+		config["error"] = "Selected outpost faction is not allowed."
+		return config
+	var/turned_on = GLOB.world_edit_helpers.parse_bool(get_outpost_param_or_default(params, profile_layer_defaults, "turned_on"))
+
+	var/sentry_layer_profile = resolve_id_option(get_outpost_param_or_default(params, profile_layer_defaults, "sentry_layer_profile"), list("none", "guard", "rear", "corners", "guard_corners"), "none")
+	if(isnull(sentry_layer_profile))
+		config["error"] = "Selected sentry layer profile is not allowed."
+		return config
+	var/sentry_type = resolve_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "sentry_type"), allowed_sentry_types, /datum/human_ai_defense/defense/sentry, /datum/human_ai_defense/defense/sentry/uscm)
+	if(!sentry_type)
+		config["error"] = "Selected sentry type is not allowed."
+		return config
+
+	var/extra_defense_layer_profile = resolve_id_option(get_outpost_param_or_default(params, profile_layer_defaults, "extra_defense_layer_profile"), list("none", "rear", "corners"), "none")
+	if(isnull(extra_defense_layer_profile))
+		config["error"] = "Selected extra defense layer profile is not allowed."
+		return config
+	var/extra_defense_type = resolve_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "extra_defense_type"), allowed_extra_defense_types, /datum/human_ai_defense/defense, /datum/human_ai_defense/defense/tesla)
+	if(!extra_defense_type)
+		config["error"] = "Selected extra defense type is not allowed."
+		return config
+
+	var/flag_type = resolve_optional_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "flag_type"), allowed_flag_types, /datum/human_ai_defense/defense/flag, profile_layer_defaults["flag_type"])
+	if(isnull(flag_type))
+		config["error"] = "Selected flag type is not allowed."
+		return config
+
+	var/wire_layer_profile = resolve_id_option(get_outpost_param_or_default(params, profile_layer_defaults, "wire_layer_profile"), list("none", "openings", "perimeter"), "none")
+	if(isnull(wire_layer_profile))
+		config["error"] = "Selected wire layer profile is not allowed."
+		return config
+	var/wire_offset = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "wire_offset"), 3, 1, 12)
+	var/wire_rows = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "wire_rows"), 1, 0, 8)
+	var/wire_row_step = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "wire_row_step"), 1, 1, 6)
+	var/wire_spacing = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "wire_spacing"), 2, 1, 12)
+	var/wire_concentration_percent = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "wire_concentration_percent"), 70, 0, 100)
+
+	var/minefield_profile = resolve_id_option(get_outpost_param_or_default(params, profile_layer_defaults, "minefield_profile"), list("none", "light", "medium", "dense"), "none")
+	if(isnull(minefield_profile))
+		config["error"] = "Selected minefield profile is not allowed."
+		return config
+	var/mine_type = resolve_whitelisted_type(get_outpost_param_or_default(params, profile_layer_defaults, "mine_type"), allowed_mine_types, /datum/human_ai_defense/mine, /datum/human_ai_defense/mine/claymore)
+	if(!mine_type)
+		config["error"] = "Selected mine type is not allowed."
+		return config
+	var/minefield_offset = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "minefield_offset"), 3, 1, 12)
+	var/minefield_depth = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "minefield_depth"), 3, 0, 8)
+	var/minefield_density_percent = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "minefield_density_percent"), 35, 0, 100)
+	var/minefield_seed = resolve_bounded_outpost_number(get_outpost_param_or_default(params, profile_layer_defaults, "minefield_seed"), 0, 0, 999999)
 
 	config["defense_profile"] = defense_profile_id
-	config["defense_profile_data"] = defense_profile
-	config["needs_anchor_map"] = outpost_defense_profile_needs_anchor_map(defense_profile)
+	config["base_defense_profile_data"] = defense_profile
 	config["layout_variant"] = layout_id
 	config["layout_profile"] = effective_layout_profile
 	config["placement_dir"] = placement_dir
@@ -1782,6 +2109,25 @@
 	config["secondary_door_path"] = secondary_door_path
 	config["faction"] = faction
 	config["turned_on"] = turned_on
+	config["sentry_layer_profile"] = sentry_layer_profile
+	config["sentry_type"] = sentry_type
+	config["extra_defense_layer_profile"] = extra_defense_layer_profile
+	config["extra_defense_type"] = extra_defense_type
+	config["flag_type"] = flag_type
+	config["wire_layer_profile"] = wire_layer_profile
+	config["wire_offset"] = wire_offset
+	config["wire_rows"] = wire_rows
+	config["wire_row_step"] = wire_row_step
+	config["wire_spacing"] = wire_spacing
+	config["wire_concentration_percent"] = wire_concentration_percent
+	config["minefield_profile"] = minefield_profile
+	config["mine_type"] = mine_type
+	config["minefield_offset"] = minefield_offset
+	config["minefield_depth"] = minefield_depth
+	config["minefield_density_percent"] = minefield_density_percent
+	config["minefield_seed"] = minefield_seed
+	config["defense_profile_data"] = build_outpost_effective_defense_profile(config, defense_profile)
+	config["needs_anchor_map"] = outpost_defense_profile_needs_anchor_map(config["defense_profile_data"])
 	return config
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_exact_plan_context(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
@@ -1802,6 +2148,7 @@
 		"effective_shape_id" = effective_shape_id,
 		"config" = null,
 		"footprint_turfs" = list(),
+		"footprint_components" = list(),
 		"seed_turf" = null,
 		"shape_analysis" = null,
 		"error" = null,
@@ -1826,6 +2173,9 @@
 			stamp_outpost_budget_metadata(support_metadata, normalized_footprint["budget_kind"], normalized_footprint["budget_actual"], normalized_footprint["budget_limit"])
 		return context
 	var/list/footprint_turfs = normalized_footprint["turfs"]
+	var/list/footprint_components = split_outpost_footprint_components(footprint_turfs)
+	if(!length(footprint_components))
+		footprint_components = list(footprint_turfs)
 
 	effective_shape_id = get_outpost_effective_shape_id(shape_id, shape_contract, placement_context, footprint_turfs)
 	support_class = get_outpost_shape_support_class(effective_shape_id)
@@ -1845,8 +2195,11 @@
 	context["effective_shape_id"] = effective_shape_id
 	context["config"] = config
 	context["footprint_turfs"] = footprint_turfs
+	context["footprint_components"] = footprint_components
 	context["seed_turf"] = seed_turf
 	if(effective_shape_id == WORLD_EDIT_SHAPE_POINT)
+		return context
+	if(length(footprint_components) > 1)
 		return context
 
 	var/list/shape_analysis = build_outpost_shape_analysis(footprint_turfs, config, placement_context)

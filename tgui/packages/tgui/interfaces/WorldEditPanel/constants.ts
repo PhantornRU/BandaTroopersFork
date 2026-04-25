@@ -18,6 +18,23 @@ export const FIELD_LABELS: Record<string, string> = {
   place_barricade_doors: 'Двери в проходах',
   barricade_pattern: 'Раскладка материалов',
   faction: 'IFF',
+  sentry_layer_profile: 'Sentry layer',
+  sentry_type: 'Sentry type',
+  extra_defense_layer_profile: 'Support layer',
+  extra_defense_type: 'Support type',
+  flag_type: 'Flag',
+  wire_layer_profile: 'Wire layer',
+  wire_offset: 'Wire offset',
+  wire_rows: 'Wire rows',
+  wire_row_step: 'Wire row step',
+  wire_spacing: 'Wire spacing',
+  wire_concentration_percent: 'Wire concentration',
+  minefield_profile: 'Minefield',
+  mine_type: 'Mine type',
+  minefield_offset: 'Mine offset',
+  minefield_depth: 'Mine depth',
+  minefield_density_percent: 'Mine density',
+  minefield_seed: 'Mine seed',
   turned_on: 'Включить сразу',
   shuffle_enabled: 'Перемешать объекты',
   scatter_enabled: 'Разбросать по области',
@@ -227,6 +244,23 @@ export const OUTPOST_BARRICADE_PATTERN_LABELS: Record<string, string> = {
 
 export const OUTPOST_PERIMETER_PATTERN_LABELS =
   OUTPOST_BARRICADE_PATTERN_LABELS;
+
+export const OUTPOST_LAYER_PROFILE_LABELS: Record<string, string> = {
+  none: 'None',
+  guard: 'Interior guard',
+  rear: 'Rear support',
+  corners: 'Corners',
+  guard_corners: 'Guard + corners',
+  openings: 'Outside openings',
+  perimeter: 'Outside perimeter',
+};
+
+export const OUTPOST_MINEFIELD_PROFILE_LABELS: Record<string, string> = {
+  none: 'None',
+  light: 'Light field',
+  medium: 'Medium field',
+  dense: 'Dense field',
+};
 
 export const FORTIFY_PRESET_LABELS: Record<string, string> = {
   legacy_wood: 'Дерево',

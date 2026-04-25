@@ -19,7 +19,7 @@
 	var/list/offsets = list()
 	if(!istype(anchor_turf))
 		return offsets
-	if("[plan?.metadata["shape_mode"]]" != "footprint_offset")
+	if(!("[plan?.metadata["shape_mode"]]" in list("footprint_offset", "component_footprint_offset")))
 		return list(list(0, 0))
 
 	var/list/footprint_turfs = islist(plan?.metadata["base_shape_turfs"]) ? plan.metadata["base_shape_turfs"] : null
@@ -70,6 +70,25 @@
 		"place_barricade_doors" = GLOB.world_edit_helpers.parse_bool(metadata["place_barricade_doors"]) ? TRUE : FALSE,
 		"primary_door_path" = "[metadata["primary_door_path"] || "follow_material"]",
 		"secondary_door_path" = "[metadata["secondary_door_path"] || "follow_material"]",
+		"faction" = "[metadata["faction"] || FACTION_MARINE]",
+		"turned_on" = GLOB.world_edit_helpers.parse_bool(metadata["turned_on"]) ? TRUE : FALSE,
+		"sentry_layer_profile" = "[metadata["sentry_layer_profile"] || "none"]",
+		"sentry_type" = "[metadata["sentry_type"] || /datum/human_ai_defense/defense/sentry/uscm]",
+		"extra_defense_layer_profile" = "[metadata["extra_defense_layer_profile"] || "none"]",
+		"extra_defense_type" = "[metadata["extra_defense_type"] || /datum/human_ai_defense/defense/tesla]",
+		"flag_type" = "[metadata["flag_type"] || "none"]",
+		"wire_layer_profile" = "[metadata["wire_layer_profile"] || "none"]",
+		"wire_offset" = text2num("[metadata["wire_offset"]]") || 3,
+		"wire_rows" = text2num("[metadata["wire_rows"]]") || 0,
+		"wire_row_step" = text2num("[metadata["wire_row_step"]]") || 1,
+		"wire_spacing" = text2num("[metadata["wire_spacing"]]") || 2,
+		"wire_concentration_percent" = text2num("[metadata["wire_concentration_percent"]]") || 0,
+		"minefield_profile" = "[metadata["minefield_profile"] || "none"]",
+		"mine_type" = "[metadata["mine_type"] || /datum/human_ai_defense/mine/claymore]",
+		"minefield_offset" = text2num("[metadata["minefield_offset"]]") || 3,
+		"minefield_depth" = text2num("[metadata["minefield_depth"]]") || 0,
+		"minefield_density_percent" = text2num("[metadata["minefield_density_percent"]]") || 0,
+		"minefield_seed" = text2num("[metadata["minefield_seed"]]") || 0,
 		"footprint_offsets" = world_edit_build_outpost_recipe_footprint_offsets(plan, anchor_turf),
 	)
 

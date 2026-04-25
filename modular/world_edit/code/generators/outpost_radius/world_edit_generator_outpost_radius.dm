@@ -1,11 +1,11 @@
-#define WORLD_EDIT_OUTPOST_RADIUS_MAX 25
+#define WORLD_EDIT_OUTPOST_RADIUS_MAX 40
 #define WORLD_EDIT_OUTPOST_SINGLE_POINT_SAFE_PLACEMENT_CAP 300
-#define WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS 120
-#define WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS 4096
-#define WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS 900
-#define WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS 300
-#define WORLD_EDIT_OUTPOST_MAX_HOVER_PREVIEW_OBJECT_SPECS 96
-#define WORLD_EDIT_OUTPOST_HOVER_OBJECT_PREVIEW_MAX_ANCHORS 4
+#define WORLD_EDIT_OUTPOST_MAX_FOOTPRINT_TURFS 2400
+#define WORLD_EDIT_OUTPOST_MAX_SCAN_TURFS 65536
+#define WORLD_EDIT_OUTPOST_MAX_CANDIDATE_SLOTS 7200
+#define WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS 2400
+#define WORLD_EDIT_OUTPOST_MAX_HOVER_PREVIEW_OBJECT_SPECS 512
+#define WORLD_EDIT_OUTPOST_HOVER_OBJECT_PREVIEW_MAX_ANCHORS 32
 #define WORLD_EDIT_OUTPOST_MAX_ENDPOINT_CLAMP_ATTEMPTS 0
 #define WORLD_EDIT_OUTPOST_PLANNER_VERSION "stable_v1"
 
@@ -25,6 +25,41 @@
 		/datum/human_ai_defense/barricade/metal_folding/wired,
 		/datum/human_ai_defense/barricade/plasteel_folding,
 		/datum/human_ai_defense/barricade/plasteel_folding/wired,
+	)
+	var/static/list/allowed_sentry_types = list(
+		/datum/human_ai_defense/defense/sentry/uscm,
+		/datum/human_ai_defense/defense/sentry/uscm/dmr,
+		/datum/human_ai_defense/defense/sentry/uscm/shotgun,
+		/datum/human_ai_defense/defense/sentry/uscm/mini,
+		/datum/human_ai_defense/defense/sentry/upp,
+		/datum/human_ai_defense/defense/sentry/wy,
+	)
+	var/static/list/allowed_extra_defense_types = list(
+		/datum/human_ai_defense/defense/tesla,
+		/datum/human_ai_defense/defense/tesla/stun,
+		/datum/human_ai_defense/defense/tesla/micro,
+		/datum/human_ai_defense/defense/bell_tower,
+		/datum/human_ai_defense/defense/bell_tower/md,
+		/datum/human_ai_defense/defense/bell_tower/cloaked,
+	)
+	var/static/list/allowed_flag_types = list(
+		/datum/human_ai_defense/defense/flag/uscm,
+		/datum/human_ai_defense/defense/flag/uscm/range,
+		/datum/human_ai_defense/defense/flag/uscm/warbanner,
+		/datum/human_ai_defense/defense/flag/upp,
+		/datum/human_ai_defense/defense/flag/wy,
+	)
+	var/static/list/allowed_wire_types = list(
+		/datum/human_ai_defense/misc_defences/razorwire,
+	)
+	var/static/list/allowed_mine_types = list(
+		/datum/human_ai_defense/mine/claymore,
+		/datum/human_ai_defense/mine/claymore/strong,
+		/datum/human_ai_defense/mine/claymore/wy,
+		/datum/human_ai_defense/mine/sebb,
+		/datum/human_ai_defense/mine/prox_sensor,
+		/datum/human_ai_defense/mine/m760ap,
+		/datum/human_ai_defense/mine/m760ap/strong,
 	)
 	var/static/list/outpost_defense_profiles = list(
 		"none" = list(
@@ -390,15 +425,7 @@
 	return list("single", "repeat")
 
 /datum/world_edit_generator/outpost_radius/get_supported_placement_shapes()
-	return list(
-		WORLD_EDIT_SHAPE_POINT,
-		WORLD_EDIT_SHAPE_LINE,
-		WORLD_EDIT_SHAPE_RECTANGLE,
-		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
-		WORLD_EDIT_SHAPE_CIRCLE,
-		WORLD_EDIT_SHAPE_RING,
-		WORLD_EDIT_SHAPE_DIAMOND,
-	)
+	return GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids()
 
 /datum/world_edit_generator/outpost_radius/supports_placement_direction()
 	return TRUE

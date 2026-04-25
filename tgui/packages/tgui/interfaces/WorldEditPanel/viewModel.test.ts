@@ -11,6 +11,7 @@ import {
   getToolbarActions,
 } from './viewModel';
 import { getFortifyWorkspaceViewModel } from './viewModelFortify';
+import { getOutpostWorkspaceViewModel } from './viewModelOutpost';
 
 const makeField = (
   overrides: Partial<UiField> & Pick<UiField, 'id'>,
@@ -658,6 +659,112 @@ describe('WorldEditPanel view model', () => {
     expect(
       translateOptionLabel('barricade_pattern', '', 'unexpected_pattern'),
     ).toBe('unexpected_pattern');
+  });
+
+  it('surfaces outpost layer labels and option values', () => {
+    const {
+      getTranslatedFieldLabel,
+      translateOptionLabel,
+    } = require('./helpers');
+
+    for (const id of [
+      'faction',
+      'sentry_layer_profile',
+      'sentry_type',
+      'extra_defense_layer_profile',
+      'extra_defense_type',
+      'flag_type',
+      'wire_layer_profile',
+      'wire_offset',
+      'wire_rows',
+      'wire_row_step',
+      'wire_spacing',
+      'wire_concentration_percent',
+      'minefield_profile',
+      'mine_type',
+      'minefield_offset',
+      'minefield_depth',
+      'minefield_density_percent',
+      'minefield_seed',
+    ]) {
+      expect(getTranslatedFieldLabel(makeField({ id }))).not.toBe(id);
+    }
+
+    expect(translateOptionLabel('sentry_layer_profile', '', 'guard')).not.toBe(
+      'guard',
+    );
+    expect(
+      translateOptionLabel('wire_layer_profile', '', 'perimeter'),
+    ).not.toBe('perimeter');
+    expect(translateOptionLabel('minefield_profile', '', 'dense')).not.toBe(
+      'dense',
+    );
+  });
+
+  it('keeps outpost custom defense groups visible in the workspace model', () => {
+    const uiFields = [
+      makeField({
+        id: 'defense_profile',
+        group: 'Схема',
+        kind: 'select',
+      }),
+      makeField({
+        id: 'layout_variant',
+        group: 'Схема',
+        kind: 'select',
+      }),
+      makeField({
+        id: 'opening_width',
+        group: 'Схема',
+        kind: 'select',
+      }),
+      makeField({
+        id: 'primary_material_path',
+        group: 'Периметр',
+        kind: 'select',
+      }),
+      makeField({ id: 'faction', group: 'IFF', kind: 'select' }),
+      makeField({
+        id: 'sentry_layer_profile',
+        group: 'Defense',
+        kind: 'select',
+      }),
+      makeField({
+        id: 'wire_layer_profile',
+        group: 'Wire',
+        kind: 'select',
+      }),
+      makeField({
+        id: 'minefield_profile',
+        group: 'Minefields',
+        kind: 'select',
+      }),
+    ];
+
+    const viewModel = getOutpostWorkspaceViewModel(uiFields);
+
+    expect(viewModel.tacticalProfileField?.id).toBe('defense_profile');
+    expect(viewModel.perimeterMaterialFields.map((field) => field.id)).toEqual([
+      'primary_material_path',
+    ]);
+    expect(viewModel.extraGroupNames).toEqual([
+      'IFF',
+      'Defense',
+      'Wire',
+      'Minefields',
+    ]);
+    expect(viewModel.extraFieldGroups.IFF.map((field) => field.id)).toEqual([
+      'faction',
+    ]);
+    expect(viewModel.extraFieldGroups.Defense.map((field) => field.id)).toEqual(
+      ['sentry_layer_profile'],
+    );
+    expect(viewModel.extraFieldGroups.Wire.map((field) => field.id)).toEqual([
+      'wire_layer_profile',
+    ]);
+    expect(
+      viewModel.extraFieldGroups.Minefields.map((field) => field.id),
+    ).toEqual(['minefield_profile']);
   });
 
   it('translates fortify labels and option values through canonical ids', () => {

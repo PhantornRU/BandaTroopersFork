@@ -51,6 +51,9 @@
 	if(current_definition && current_generator)
 		return TRUE
 
+	if(set_generator_by_id("outpost_radius"))
+		return TRUE
+
 	var/list/categories = build_available_generator_categories()
 	for(var/list/category as anything in categories)
 		var/list/generators = category["generators"]

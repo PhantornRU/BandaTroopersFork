@@ -1,107 +1,24 @@
 import { Box, Button, LabeledList } from '../../components';
-import { RADIUS_POLICY_FIELD_IDS } from './constants';
 import { FieldControlStack, FieldEditor } from './fieldControls';
-import { getField, getFieldsByGroup, getFieldsById } from './helpers';
 import { SurfaceCard } from './primitives';
 import type { ActFn, BackendData } from './types';
-
-const LAYOUT_GROUP_ALIASES = [
-  'Схема',
-  'Компоновка',
-  'Layout',
-  'Профиль и вариант',
-  'Тактический профиль и схема',
-];
-
-const PERIMETER_GROUP_ALIASES = [
-  'Периметр',
-  'Perimeter',
-  'Баррикады',
-  'Barricades',
-];
-
-const PERIMETER_MATERIAL_FIELD_IDS = [
-  'primary_material_path',
-  'secondary_material_path',
-  'primary_door_path',
-  'secondary_door_path',
-  'barricade_pattern',
-  'primary_material_share_percent',
-  'place_barricade_doors',
-];
-
-const getFieldsByGroupAliases = (
-  fields: BackendData['ui_fields'],
-  aliases: string[],
-) => {
-  const matchedFields: BackendData['ui_fields'] = [];
-  const seenLookup = new Set<string>();
-
-  for (const alias of aliases) {
-    const matched = getFieldsByGroup(fields, alias);
-    for (const field of matched) {
-      if (seenLookup.has(field.id)) {
-        continue;
-      }
-      seenLookup.add(field.id);
-      matchedFields.push(field);
-    }
-  }
-
-  return matchedFields;
-};
-
-const getFieldByIds = (fields: BackendData['ui_fields'], ids: string[]) => {
-  for (const id of ids) {
-    const field = getField(fields, id);
-    if (field) {
-      return field;
-    }
-  }
-
-  return undefined;
-};
+import { getOutpostWorkspaceViewModel } from './viewModelOutpost';
 
 const OutpostRadiusWorkspace = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
 }) => {
   const { data, act } = props;
-  const layoutFields = getFieldsByGroupAliases(
-    data.ui_fields,
-    LAYOUT_GROUP_ALIASES,
-  ).filter(
-    (field) =>
-      field.id !== 'radius' && !RADIUS_POLICY_FIELD_IDS.includes(field.id),
-  );
-  const tacticalProfileField =
-    getFieldByIds(data.ui_fields, ['defense_profile']) ||
-    getField(layoutFields, 'defense_profile');
-  const layoutVariantField =
-    getFieldByIds(layoutFields, ['layout_variant']) ||
-    getField(data.ui_fields, 'layout_variant');
-  const openingWidthField =
-    getFieldByIds(layoutFields, ['opening_width']) ||
-    getField(data.ui_fields, 'opening_width');
-  const extraLayoutFields = layoutFields.filter(
-    (field) =>
-      !['defense_profile', 'layout_variant', 'opening_width'].includes(
-        field.id,
-      ),
-  );
-  const perimeterFields = getFieldsByGroupAliases(
-    data.ui_fields,
-    PERIMETER_GROUP_ALIASES,
-  );
-  const perimeterMaterialFields = getFieldsById(
-    data.ui_fields,
-    PERIMETER_MATERIAL_FIELD_IDS,
-  ).filter((field) => field.visible !== false);
-  const perimeterExtraFields = perimeterFields.filter(
-    (field) =>
-      field.visible !== false &&
-      !PERIMETER_MATERIAL_FIELD_IDS.includes(field.id),
-  );
+  const {
+    tacticalProfileField,
+    layoutVariantField,
+    openingWidthField,
+    extraLayoutFields,
+    perimeterMaterialFields,
+    perimeterExtraFields,
+    extraFieldGroups,
+    extraGroupNames,
+  } = getOutpostWorkspaceViewModel(data.ui_fields);
 
   return (
     <Box>
@@ -173,6 +90,15 @@ const OutpostRadiusWorkspace = (props: {
           </Box>
         )}
       </SurfaceCard>
+      {extraGroupNames.map((groupName) => (
+        <SurfaceCard key={groupName} title={groupName} mt={0.6}>
+          <LabeledList>
+            {extraFieldGroups[groupName].map((field) => (
+              <FieldEditor key={field.id} field={field} act={act} />
+            ))}
+          </LabeledList>
+        </SurfaceCard>
+      ))}
     </Box>
   );
 };

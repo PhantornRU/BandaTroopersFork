@@ -8,6 +8,98 @@
 		))
 	return options
 
+/datum/world_edit_generator/outpost_radius/proc/build_type_options_with_none(list/type_list)
+	var/list/options = list(list(
+		"label" = "None",
+		"value" = "none",
+		"description" = "",
+	))
+	options += build_type_options(type_list)
+	return options
+
+/datum/world_edit_generator/outpost_radius/proc/build_id_options(list/ids, list/labels = null)
+	var/list/options = list()
+	for(var/id as anything in ids)
+		options += list(list(
+			"label" = islist(labels) ? (labels[id] || "[id]") : "[id]",
+			"value" = "[id]",
+		))
+	return options
+
+/datum/world_edit_generator/outpost_radius/proc/build_faction_options()
+	var/list/labels = list(
+		FACTION_MARINE = "USCM",
+		FACTION_UA_REBEL = "UA Rebel",
+		FACTION_UPP = "UPP",
+		FACTION_CANC = "CANC",
+		FACTION_WY = "W-Y",
+		FACTION_FREELANCER = "Freelancer",
+		FACTION_TWE = "TWE",
+		FACTION_TWE_REBEL = "TWE Rebel",
+		FACTION_MERCENARY = "Mercenary",
+	)
+	var/list/options = list()
+	for(var/faction as anything in valid_factions)
+		options += list(list(
+			"label" = labels[faction] || "[faction]",
+			"value" = "[faction]",
+		))
+	return options
+
+/datum/world_edit_generator/outpost_radius/proc/build_sentry_layer_profile_options()
+	return build_id_options(list("none", "guard", "rear", "corners", "guard_corners"), list(
+		"none" = "None",
+		"guard" = "Interior guard",
+		"rear" = "Rear support",
+		"corners" = "Corners",
+		"guard_corners" = "Guard + corners",
+	))
+
+/datum/world_edit_generator/outpost_radius/proc/build_extra_defense_layer_profile_options()
+	return build_id_options(list("none", "rear", "corners"), list(
+		"none" = "None",
+		"rear" = "Rear support",
+		"corners" = "Corners",
+	))
+
+/datum/world_edit_generator/outpost_radius/proc/build_wire_layer_profile_options()
+	return build_id_options(list("none", "openings", "perimeter"), list(
+		"none" = "None",
+		"openings" = "Outside openings",
+		"perimeter" = "Outside perimeter",
+	))
+
+/datum/world_edit_generator/outpost_radius/proc/build_minefield_profile_options()
+	return build_id_options(list("none", "light", "medium", "dense"), list(
+		"none" = "None",
+		"light" = "Light field",
+		"medium" = "Medium field",
+		"dense" = "Dense field",
+	))
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_id_option(value, list/allowed_ids, default_value = "none")
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return default_value
+	var/id = lowertext("[value]")
+	if(id in allowed_ids)
+		return id
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_outpost_faction(value, default_value = FACTION_MARINE)
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		return default_value
+	var/faction = "[value]"
+	if(faction in valid_factions)
+		return faction
+	return null
+
+/datum/world_edit_generator/outpost_radius/proc/resolve_optional_whitelisted_type(value, list/type_list, expected_root, default_value = "none")
+	if(isnull(value) || !length("[value]") || "[value]" == "null")
+		value = default_value
+	if("[value]" == "none")
+		return "none"
+	return resolve_whitelisted_type(value, type_list, expected_root, ispath(default_value, expected_root) ? default_value : null)
+
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_door_type_options()
 	var/list/options = list(
 		list(
@@ -25,7 +117,7 @@
 	return options
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_defense_profile_id()
-	return "fallback_redoubt"
+	return "none"
 
 /datum/world_edit_generator/outpost_radius/proc/get_default_outpost_layout_id()
 	return "crossroads"
@@ -277,7 +369,12 @@
 			return default_value
 		return null
 
-	var/path_value = ispath(value) ? value : text2path("[value]")
+	var/path_value = ispath(value) ? value : null
+	if(!path_value)
+		for(var/allowed_path as anything in type_list)
+			if("[allowed_path]" == "[value]")
+				path_value = allowed_path
+				break
 	if(!ispath(path_value, expected_root))
 		return null
 	if(!(path_value in type_list))
@@ -288,7 +385,12 @@
 	if(isnull(value) || !length("[value]") || "[value]" == "null")
 		return "follow_material"
 
-	var/path_value = text2path("[value]")
+	var/path_value = ispath(value) ? value : null
+	if(!path_value)
+		for(var/allowed_path as anything in allowed_outpost_door_types)
+			if("[allowed_path]" == "[value]")
+				path_value = allowed_path
+				break
 	if(ispath(path_value, /datum/human_ai_defense/barricade) && (path_value in allowed_outpost_door_types))
 		return path_value
 

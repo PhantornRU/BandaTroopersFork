@@ -1,5 +1,9 @@
-#define WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS 60
-#define WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS 60
+#define WORLD_EDIT_PLACEMENT_MAX_CUSTOM_POINTS 480
+#define WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS 480
+#define WORLD_EDIT_PLACEMENT_MAX_COLLECTOR_SPAN 160
+#define WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS 24
+#define WORLD_EDIT_PLACEMENT_MAX_BRUSH_RADIUS 12
+#define WORLD_EDIT_PLACEMENT_MAX_SCATTER_RADIUS 24
 
 GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape_service, new)
 
@@ -277,9 +281,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Радиус",
 					"kind" = "number",
 					"description" = "Радиус формы вокруг опорного тайла. Для вырожденных предпросмотров допускается 0.",
-					"value" = world_edit_shape_num_param(current_params, "shape_radius", 3, 0, 12),
+					"value" = world_edit_shape_num_param(current_params, "shape_radius", 3, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS),
 					"min" = 0,
-					"max" = 12,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS,
 					"step" = 1,
 				),
 			)
@@ -289,9 +293,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Толщина",
 					"kind" = "number",
 					"description" = "Толщина кольца / дуги в тайлах. 0 оставляет тонкий контур для колец и заполненный клин для секторов.",
-					"value" = world_edit_shape_num_param(current_params, "shape_thickness", 1, 0, 12),
+					"value" = world_edit_shape_num_param(current_params, "shape_thickness", 1, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS),
 					"min" = 0,
-					"max" = 12,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS,
 					"step" = 1,
 				))
 			if("[shape_id]" == WORLD_EDIT_SHAPE_SECTOR)
@@ -312,9 +316,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Радиус X",
 					"kind" = "number",
 					"description" = "Горизонтальный радиус эллипса. 0 сворачивает отпечаток в вертикальную линию / точку.",
-					"value" = world_edit_shape_num_param(current_params, "shape_radius_x", 4, 0, 12),
+					"value" = world_edit_shape_num_param(current_params, "shape_radius_x", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS),
 					"min" = 0,
-					"max" = 12,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS,
 					"step" = 1,
 				),
 				list(
@@ -322,9 +326,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Радиус Y",
 					"kind" = "number",
 					"description" = "Вертикальный радиус эллипса. 0 сворачивает отпечаток в горизонтальную линию / точку.",
-					"value" = world_edit_shape_num_param(current_params, "shape_radius_y", 2, 0, 12),
+					"value" = world_edit_shape_num_param(current_params, "shape_radius_y", 2, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS),
 					"min" = 0,
-					"max" = 12,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS,
 					"step" = 1,
 				),
 			)
@@ -334,9 +338,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				"label" = "Размер",
 				"kind" = "number",
 				"description" = "Глубина треугольника в тайлах. 0 сворачивает форму в точку.",
-				"value" = world_edit_shape_num_param(current_params, "shape_triangle_size", 4, 0, 12),
+				"value" = world_edit_shape_num_param(current_params, "shape_triangle_size", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS),
 				"min" = 0,
-				"max" = 12,
+				"max" = WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS,
 				"step" = 1,
 			))
 		if(WORLD_EDIT_SHAPE_POLYGON)
@@ -390,9 +394,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Радиус кисти",
 					"kind" = "number",
 					"description" = "Радиус кисти, отпечатываемый вдоль пути. 0 оставляет только контур пути.",
-					"value" = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, 6),
+					"value" = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, WORLD_EDIT_PLACEMENT_MAX_BRUSH_RADIUS),
 					"min" = 0,
-					"max" = 6,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_BRUSH_RADIUS,
 					"step" = 1,
 				),
 			)
@@ -403,9 +407,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 					"label" = "Радиус",
 					"kind" = "number",
 					"description" = "Радиус разброса вокруг опорного тайла. 0 оставляет кластер на опоре.",
-					"value" = world_edit_shape_num_param(current_params, "shape_scatter_radius", 4, 0, 12),
+					"value" = world_edit_shape_num_param(current_params, "shape_scatter_radius", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SCATTER_RADIUS),
 					"min" = 0,
-					"max" = 12,
+					"max" = WORLD_EDIT_PLACEMENT_MAX_SCATTER_RADIUS,
 					"step" = 1,
 				),
 				list(
@@ -488,6 +492,36 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 		if(islist(copied_point))
 			copied += list(copied_point)
 	return copied
+
+/datum/world_edit_placement_shape_service/proc/world_edit_get_points_span_error(list/points)
+	if(!islist(points) || !length(points))
+		return null
+
+	var/min_x = null
+	var/max_x = null
+	var/min_y = null
+	var/max_y = null
+	for(var/list/point as anything in points)
+		if(!islist(point))
+			continue
+		var/x_value = text2num("[point["x"]]")
+		var/y_value = text2num("[point["y"]]")
+		if(!isnum(x_value) || !isnum(y_value))
+			continue
+		if(isnull(min_x) || x_value < min_x)
+			min_x = x_value
+		if(isnull(max_x) || x_value > max_x)
+			max_x = x_value
+		if(isnull(min_y) || y_value < min_y)
+			min_y = y_value
+		if(isnull(max_y) || y_value > max_y)
+			max_y = y_value
+
+	if(isnull(min_x) || isnull(max_x) || isnull(min_y) || isnull(max_y))
+		return null
+	if((max_x - min_x) > WORLD_EDIT_PLACEMENT_MAX_COLLECTOR_SPAN || (max_y - min_y) > WORLD_EDIT_PLACEMENT_MAX_COLLECTOR_SPAN)
+		return "Collector shape coordinate span exceeds the safe cap ([WORLD_EDIT_PLACEMENT_MAX_COLLECTOR_SPAN] tiles)."
+	return null
 
 /datum/world_edit_placement_shape_service/proc/world_edit_points_match(list/a, list/b)
 	if(!islist(a) || !islist(b))
@@ -1210,7 +1244,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				shape_is_filled = FALSE
 
 		if(WORLD_EDIT_SHAPE_CIRCLE)
-			var/circle_radius = world_edit_shape_num_param(current_params, "shape_radius", 3, 0, 12)
+			var/circle_radius = world_edit_shape_num_param(current_params, "shape_radius", 3, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			final_turfs = world_edit_collect_circle_turfs(start_turf, circle_radius, 0)
 			edge_turfs = world_edit_collect_circle_turfs(start_turf, circle_radius, max(circle_radius - 1, 0))
 			shape_is_closed = circle_radius > 0
@@ -1220,8 +1254,8 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				degenerate_kind = "point"
 
 		if(WORLD_EDIT_SHAPE_RING)
-			var/ring_radius = world_edit_shape_num_param(current_params, "shape_radius", 4, 0, 12)
-			var/ring_thickness = world_edit_shape_num_param(current_params, "shape_thickness", 1, 0, 12)
+			var/ring_radius = world_edit_shape_num_param(current_params, "shape_radius", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
+			var/ring_thickness = world_edit_shape_num_param(current_params, "shape_thickness", 1, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			var/inner_radius = (ring_thickness > 0) ? max(ring_radius - ring_thickness, 0) : max(ring_radius - 1, 0)
 			final_turfs = world_edit_collect_circle_turfs(start_turf, ring_radius, inner_radius)
 			edge_turfs = world_edit_collect_circle_turfs(start_turf, ring_radius, max(ring_radius - 1, 0))
@@ -1236,8 +1270,8 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				degenerate_kind = "filled_area"
 
 		if(WORLD_EDIT_SHAPE_ELLIPSE)
-			var/radius_x = has_pair_end ? abs(end_turf.x - start_turf.x) : world_edit_shape_num_param(current_params, "shape_radius_x", 4, 0, 12)
-			var/radius_y = has_pair_end ? abs(end_turf.y - start_turf.y) : world_edit_shape_num_param(current_params, "shape_radius_y", 2, 0, 12)
+			var/radius_x = has_pair_end ? abs(end_turf.x - start_turf.x) : world_edit_shape_num_param(current_params, "shape_radius_x", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
+			var/radius_y = has_pair_end ? abs(end_turf.y - start_turf.y) : world_edit_shape_num_param(current_params, "shape_radius_y", 2, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			final_turfs = world_edit_collect_ellipse_turfs(start_turf, radius_x, radius_y)
 			edge_turfs = world_edit_collect_boundary_turfs(final_turfs)
 			extra_metadata["radius_x"] = radius_x
@@ -1251,7 +1285,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				shape_is_filled = TRUE
 
 		if(WORLD_EDIT_SHAPE_DIAMOND)
-			var/diamond_radius = has_pair_end ? (abs(end_turf.x - start_turf.x) + abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_radius", 4, 0, 12)
+			var/diamond_radius = has_pair_end ? (abs(end_turf.x - start_turf.x) + abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_radius", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			final_turfs = world_edit_collect_diamond_turfs(start_turf, diamond_radius)
 			edge_turfs = world_edit_collect_boundary_turfs(final_turfs)
 			shape_is_closed = diamond_radius > 0
@@ -1261,7 +1295,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				degenerate_kind = "point"
 
 		if(WORLD_EDIT_SHAPE_TRIANGLE)
-			var/triangle_size = has_pair_end ? max(abs(end_turf.x - start_turf.x), abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_triangle_size", 4, 0, 12)
+			var/triangle_size = has_pair_end ? max(abs(end_turf.x - start_turf.x), abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_triangle_size", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			final_turfs = world_edit_collect_triangle_turfs(start_turf, triangle_size, effective_direction)
 			edge_turfs = world_edit_collect_boundary_turfs(final_turfs)
 			guide_turfs = world_edit_collect_line_turfs_between(start_turf, GLOB.world_edit_helpers.step_turf(start_turf, effective_direction, max(triangle_size, 1)))
@@ -1272,9 +1306,9 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 				degenerate_kind = "point"
 
 		if(WORLD_EDIT_SHAPE_SECTOR)
-			var/sector_radius = has_pair_end ? max(abs(end_turf.x - start_turf.x), abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_radius", 4, 0, 12)
+			var/sector_radius = has_pair_end ? max(abs(end_turf.x - start_turf.x), abs(end_turf.y - start_turf.y)) : world_edit_shape_num_param(current_params, "shape_radius", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			var/sector_angle = world_edit_shape_num_param(current_params, "shape_sector_angle", 90, 1, 360)
-			var/sector_thickness = world_edit_shape_num_param(current_params, "shape_thickness", 0, 0, 12)
+			var/sector_thickness = world_edit_shape_num_param(current_params, "shape_thickness", 0, 0, WORLD_EDIT_PLACEMENT_MAX_SHAPE_RADIUS)
 			final_turfs = world_edit_collect_sector_turfs(start_turf, sector_radius, sector_angle, sector_thickness, effective_direction)
 			edge_turfs = world_edit_collect_boundary_turfs(final_turfs)
 			guide_turfs = world_edit_collect_line_turfs_between(start_turf, GLOB.world_edit_helpers.step_turf(start_turf, effective_direction, max(sector_radius, 1)))
@@ -1292,6 +1326,10 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			vertex_turfs = world_edit_points_to_turfs(start_turf, polygon_points)
 			if(!length(polygon_points))
 				result["error"] = "Для формы-полигона нужна хотя бы одна корректная относительная точка."
+				return result
+			var/polygon_span_error = world_edit_get_points_span_error(polygon_points)
+			if(length("[polygon_span_error]"))
+				result["error"] = polygon_span_error
 				return result
 			if(length(polygon_points) == 1)
 				final_turfs = world_edit_points_to_turfs(start_turf, polygon_points)
@@ -1326,6 +1364,10 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			if(!length(polyline_points))
 				result["error"] = "Для полилинии нужна хотя бы одна корректная относительная точка."
 				return result
+			var/polyline_span_error = world_edit_get_points_span_error(polyline_points)
+			if(length("[polyline_span_error]"))
+				result["error"] = polyline_span_error
+				return result
 			if(length(polyline_points) == 1)
 				final_turfs = world_edit_points_to_turfs(start_turf, polyline_points)
 				degenerate_kind = "point"
@@ -1340,6 +1382,10 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			if(!length(mask_points))
 				result["error"] = "Для пользовательской маски нужна хотя бы одна корректная относительная точка."
 				return result
+			var/mask_span_error = world_edit_get_points_span_error(mask_points)
+			if(length("[mask_span_error]"))
+				result["error"] = mask_span_error
+				return result
 			final_turfs = world_edit_points_to_turfs(start_turf, mask_points)
 			vertex_turfs = final_turfs.Copy()
 			if(length(mask_points) == 1)
@@ -1349,10 +1395,14 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 
 		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
 			var/list/brush_points = world_edit_dedupe_consecutive_points(world_edit_parse_shape_points(current_params ? current_params["shape_points_text"] : null))
-			var/brush_radius = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, 6)
+			var/brush_radius = world_edit_shape_num_param(current_params, "shape_brush_radius", 1, 0, WORLD_EDIT_PLACEMENT_MAX_BRUSH_RADIUS)
 			vertex_turfs = world_edit_points_to_turfs(start_turf, brush_points)
 			if(!length(brush_points))
 				result["error"] = "Для кистевого пути нужна хотя бы одна корректная относительная точка."
+				return result
+			var/brush_span_error = world_edit_get_points_span_error(brush_points)
+			if(length("[brush_span_error]"))
+				result["error"] = brush_span_error
 				return result
 			if(length(brush_points) == 1 && brush_radius <= 0)
 				final_turfs = world_edit_points_to_turfs(start_turf, brush_points)
@@ -1367,7 +1417,7 @@ GLOBAL_DATUM_INIT(world_edit_placement_shapes, /datum/world_edit_placement_shape
 			extra_metadata["brush_radius"] = brush_radius
 
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			var/scatter_radius = world_edit_shape_num_param(current_params, "shape_scatter_radius", 4, 0, 12)
+			var/scatter_radius = world_edit_shape_num_param(current_params, "shape_scatter_radius", 4, 0, WORLD_EDIT_PLACEMENT_MAX_SCATTER_RADIUS)
 			var/scatter_count = world_edit_shape_num_param(current_params, "shape_scatter_count", 8, 1, WORLD_EDIT_PLACEMENT_MAX_SCATTER_POINTS)
 			var/requested_seed = world_edit_shape_num_param(current_params, "shape_scatter_seed", 0, 0, 999999)
 			var/scatter_seed = world_edit_resolve_scatter_seed(start_turf, scatter_radius, scatter_count, requested_seed)
