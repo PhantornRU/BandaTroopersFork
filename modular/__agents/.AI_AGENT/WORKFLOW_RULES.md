@@ -11,12 +11,126 @@
 - Для задач в `modular/**` сначала проверять `colonialmarines.dme`, `modular/modular.dme`, relevant `_*.dme`, затем целевой модуль и его callsites.
 - Для HALO port/sync/update задач до анализа кода открыть [`../../halo/__docs/HALO_PORT_STATE.md`](../../halo/__docs/HALO_PORT_STATE.md); pinned upstream commit из него считать каноническим baseline, пока этот документ не обновлен в той же задаче.
 - Для правок в upstream сначала проверять, существует ли уже modular hook, adapter или modpack-level abstraction, через которые можно закрыть задачу.
+- Для runtime/performance/freeze задач перед планом правок обязательно выполнить `Runtime freeze / MC / CPU spike triage`.
+- Для BYOND/DM planner/list-heavy задач перед планом правок обязательно выполнить `BYOND/DM list mutation safety` audit.
+
+## Runtime freeze / MC / CPU spike triage
+Если задача описывает MC death, CPU spike, зависание сервера, зависание preview/apply, бесконечную обработку, резкий рост нагрузки или подозрение на утечку памяти, сначала считать это runtime-runaway проблемой.
+
+Перед архитектурными гипотезами и full rewrite обязательно выполнить минимальный runaway-аудит:
+
+1. Определить точный синхронный entrypoint пользовательского действия:
+   - UI action;
+   - preview;
+   - apply;
+   - click handler;
+   - hover handler;
+   - subsystem tick;
+   - unit test path.
+
+2. Сузить модуль через targeted search:
+   ```bash
+   rg -n "while\(" <target_module>
+   rg -n "for\(" <target_module>
+   rg -n "\-=|\+=|Cut\(|Remove|Add" <target_module>
+   rg -n "spawn\(|sleep\(|CHECK_TICK|stoplag" <target_module>
+   ```
+
+3. Для каждого `while` в затронутом call path доказать progress invariant:
+   - что меняется на каждой итерации;
+   - какой список, индекс или счетчик гарантированно уменьшается/растет;
+   - что происходит, если удаление/фильтрация не сработала;
+   - есть ли safety cap или понятный выход.
+
+4. Для циклов по спискам проверить:
+   - удаление элемента во время итерации;
+   - повторное добавление того же элемента;
+   - mutation outer-list через nested-list;
+   - отсутствие duplicate guard;
+   - отсутствие лимита на candidate/result size.
+
+5. Для preview/apply/planner/pathfinding/flood-fill задач проверить:
+   - максимальное число turfs/candidates/placements;
+   - отсутствие `area * footprint` алгоритмов без бюджета;
+   - отсутствие полного rebuild на hover;
+   - отсутствие повторного full-plan build на confirm/apply;
+   - кэш инвалидируется при смене generator/params/shape/mode.
+
+6. Только после этого переходить к архитектурным гипотезам:
+   - stale cache;
+   - preview ownership;
+   - deferred execution;
+   - shape routing;
+   - endpoint clamp;
+   - full planner rewrite.
+
+## BYOND/DM list mutation safety
+Для BYOND/DM кода отдельно проверять небезопасные операции со списками.
+Дополнительные DM-specific правила живут в [`DM_RULES.md`](DM_RULES.md).
+
+Опасные паттерны:
+
+```dm
+outer_list -= nested_list
+outer_list -= assoc_list
+while(length(items))
+	...
+	items -= selected_item
+```
+
+Если элемент списка сам является `list` или assoc-list, нельзя полагаться на `outer -= selected_item` как на безопасное удаление выбранного элемента из outer-list.
+
+Предпочтительный паттерн:
+
+```dm
+var/best_index = null
+
+for(var/i in 1 to length(candidates))
+	var/list/candidate = candidates[i]
+	if(is_best_candidate(candidate))
+		best_index = i
+
+if(!isnull(best_index))
+	ordered += list(candidates[best_index])
+	candidates.Cut(best_index, best_index + 1)
+```
+
+Правила:
+
+1. Для nested-list/assoc-list candidates удалять выбранный элемент через индекс и `Cut(index, index + 1)`.
+2. В сортировках и best-candidate loops хранить `best_index`, а не только `best_candidate`.
+3. Любой `while(length(list))` должен иметь гарантированное потребление элемента или safety guard.
+4. Если цикл строит preview/apply/runtime plan, добавить focused test на:
+   - список уменьшается;
+   - один candidate не возвращается повторно;
+   - длина результата не превышает длину входного списка, если это ожидаемый контракт.
 
 ## Read-only, planning-mutation и implementation-mutation границы
 - Read-only действия: поиск, чтение, diff, анализ include/call graph, dry-run проверки без изменения tracked файлов.
 - Planning-mutation: правки только `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md`, нужные чтобы создать или подтвердить контракт текущей задачи. Они разрешены после read-only discovery и до реализации.
 - Implementation-mutation: правки продуктового кода, тестов, карт, tgui, stable docs, кодоген, formatters с rewrite и любые команды, целенаправленно меняющие репозиторный state вне active task-state.
 - Не смешивать exploratory read-only шаги, planning-mutation и implementation-mutation. Если контракт задачи еще не создан, implementation-mutation запрещена.
+
+## Regression before rewrite
+Если задача является regression или пользователь говорит, что "раньше работало":
+
+1. Не начинать с full rewrite.
+2. Сначала найти максимально узкое окно:
+   - last known good commit;
+   - first known bad commit;
+   - или минимальный commit range.
+3. Просмотреть diff first-bad range по затронутому модулю.
+4. В first-bad diff сначала искать:
+   - новые `while`;
+   - новые nested-list mutations;
+   - новые caches;
+   - новые deferred paths;
+   - новые full-plan builders;
+   - удаленные тестовые assertions.
+5. Full rewrite разрешен только после короткого отчета:
+   - почему минимальный fix/rollback невозможен;
+   - какой invariant сломан;
+   - какие tests/acceptance criteria доказывают новую реализацию.
 
 ## Правила выполнения задач
 - Сначала определить тип задачи: docs, DM-код, maps, tgui, build/CI или смешанный scope.
@@ -74,6 +188,11 @@
 2. DM/code changes:
    - `BUILD.cmd`
    - или `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
+2a. Runtime/performance-sensitive DM changes:
+   - выполнить обычную DM-сборку;
+   - добавить или обновить focused unit/runtime test, если баг связан с циклом, preview, planner, pathfinding, flood-fill, cache или apply;
+   - compile-only не считается достаточной проверкой для runtime freeze;
+   - для fixed runaway bugs тест должен проверять bounded behavior, а не только отсутствие compile errors.
 3. Lint/CI-equivalent checks:
    - `tools/build/build --ci lint tgui-test`
    - `tools/bootstrap/python -m tools.maplint.source --github`
