@@ -41,6 +41,7 @@
 	var/list/generator_effect_turfs = list()
 	var/list/generator_preview_object_specs = list()
 	var/preview_render_token = null
+	var/hover_preview_mode = null
 
 /datum/world_edit_preview_model/proc/as_preview_layers()
 	return list(
@@ -53,6 +54,7 @@
 		"generator_effect_turfs" = islist(generator_effect_turfs) ? generator_effect_turfs.Copy() : list(),
 		"generator_preview_object_specs" = islist(generator_preview_object_specs) ? generator_preview_object_specs.Copy() : list(),
 		"preview_render_token" = preview_render_token,
+		"hover_preview_mode" = hover_preview_mode,
 	)
 
 /datum/world_edit_placement_candidate
@@ -126,6 +128,7 @@
 	var/last_resolved_candidate_attempt_signature = null
 	var/turf/last_resolved_candidate_end_turf
 	var/last_resolved_candidate_hover_only = FALSE
+	var/hover_object_preview_next_allowed_ds = 0
 	var/turf/confirm_arm_turf
 	var/confirm_arm_signature = null
 	var/preview_locked = FALSE

@@ -1,3 +1,6 @@
+#define WORLD_EDIT_BLUEPRINT_STAMP_MAX_HOVER_PREVIEW_OBJECT_SPECS 96
+#define WORLD_EDIT_BLUEPRINT_STAMP_HOVER_OBJECT_PREVIEW_MAX_ANCHORS 2
+
 /datum/world_edit_generator/blueprint_stamp
 	requires_preview_before_apply = TRUE
 

@@ -379,6 +379,48 @@
 	)
 	return result
 
+/datum/world_edit_generator_definition/world_edit_test_hover_object_preview_hook
+	id = "world_edit_test_hover_object_preview_hook"
+	name_ru = "World Edit Test Hover Object Preview Hook"
+	category_ru = "Tests"
+	description_ru = "Unit-test helper definition for bounded hover object-preview plan builds."
+	required_rights = R_DEBUG
+	supports_preview = TRUE
+	execution_mode = "batch"
+	generator_type = /datum/world_edit_generator/world_edit_test_hover_object_preview_hook
+	default_params = list(
+		"shape_line_length" = 4,
+		"shape_line_spacing" = 1,
+	)
+	status = "draft"
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook
+	parent_type = /datum/world_edit_generator/world_edit_test_apply_hook
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/should_skip_plan_build_for_safe_preview(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	return TRUE
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	return TRUE
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/get_hover_object_preview_anchor_limit()
+	return 1
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/get_hover_object_preview_min_interval_ds()
+	return 2
+
+/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
+	var/list/specs = list()
+	if(!istype(plan))
+		return specs
+
+	for(var/list/placement as anything in plan.placements)
+		var/turf/target_turf = placement["turf"]
+		var/list/spec = GLOB.world_edit_helpers.build_world_edit_atom_preview_spec(/obj/structure/barricade/metal, target_turf, placement["dir"] || NORTH)
+		if(islist(spec))
+			specs += list(spec)
+	return specs
+
 /datum/world_edit_generator_definition/world_edit_test_rebuild_failure_hook
 	id = "world_edit_test_rebuild_failure_hook"
 	name_ru = "World Edit Test Rebuild Failure Hook"
@@ -1793,6 +1835,56 @@
 	TEST_ASSERT(istype(manager.get_placement_preview_candidate(), /datum/world_edit_placement_candidate), "World Edit invalid-outpost collector finish test should keep the invalid preview candidate instead of clearing it.")
 	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(disconnected_turf), "World Edit invalid-outpost collector finish test should not arm confirmation while the shape remains invalid.")
 	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector finish test should keep surfacing the disconnected-footprint error after the repeated click.")
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/hover_object_preview_opt_in_is_bounded/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/world_edit_test_hover_object_preview_hook/definition = new
+	var/datum/world_edit_generator/world_edit_test_hover_object_preview_hook/generator = allocate(/datum/world_edit_generator/world_edit_test_hover_object_preview_hook)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit hover object-preview test center turf was not resolved.")
+	var/turf/east_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(east_turf, "World Edit hover object-preview test east turf was not resolved.")
+	var/turf/far_east_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(far_east_turf, "World Edit hover object-preview test far east turf was not resolved.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_dir = NORTH
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(user, WORLD_EDIT_SHAPE_POINT, center_turf, center_turf, null, "", TRUE, TRUE), "World Edit hover object-preview test should accept an opted-in point hover preview.")
+	var/datum/world_edit_placement_candidate/point_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(point_candidate?.plan, /datum/world_edit_plan), "World Edit hover object-preview test should build a visual hover plan for opted-in point previews.")
+	TEST_ASSERT(length(point_candidate.preview_model?.generator_preview_object_specs), "World Edit hover object-preview test should include object specs for the visual hover plan.")
+	TEST_ASSERT_EQUAL(point_candidate.preview_model?.hover_preview_mode, "ghost", "World Edit hover object-preview test should mark object-spec hover as Ghost mode.")
+	TEST_ASSERT(!point_candidate.is_ready_for_apply(), "World Edit hover object-preview test should not make a hover candidate apply-ready.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit hover object-preview test should build exactly one plan for the first hover.")
+
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(user, WORLD_EDIT_SHAPE_POINT, east_turf, east_turf, null, "", TRUE, TRUE), "World Edit hover object-preview test should keep shape-only hover responsive when throttled.")
+	var/datum/world_edit_placement_candidate/throttled_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(!istype(throttled_candidate?.plan, /datum/world_edit_plan), "World Edit hover object-preview throttle should fall back to shape-only preview.")
+	TEST_ASSERT_EQUAL(throttled_candidate.preview_model?.hover_preview_mode, "compact", "World Edit hover object-preview throttle should mark the fallback as Compact mode.")
+	TEST_ASSERT(length(throttled_candidate.preview_model?.generator_effect_turfs), "World Edit hover object-preview throttle should expose a red compact footprint.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit hover object-preview throttle should not build another plan in the same tick window.")
+	TEST_ASSERT((manager.get_runtime_diagnostics()["hover_object_plan_throttle_skips"] || 0) >= 1, "World Edit hover object-preview test should record a throttle skip.")
+
+	var/datum/world_edit_placement_session/session = manager.get_placement_session()
+	session.hover_object_preview_next_allowed_ds = 0
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(user, WORLD_EDIT_SHAPE_LINE, center_turf, far_east_turf, null, "", TRUE, TRUE), "World Edit hover object-preview test should keep large-shape hover responsive when anchor capped.")
+	var/datum/world_edit_placement_candidate/anchor_capped_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(!istype(anchor_capped_candidate?.plan, /datum/world_edit_plan), "World Edit hover object-preview anchor cap should fall back to shape-only preview.")
+	TEST_ASSERT_EQUAL(anchor_capped_candidate.preview_model?.hover_preview_mode, "compact", "World Edit hover object-preview anchor cap should mark the fallback as Compact mode.")
+	TEST_ASSERT(length(anchor_capped_candidate.preview_model?.generator_effect_turfs), "World Edit hover object-preview anchor cap should expose a red compact footprint.")
+	TEST_ASSERT_EQUAL(generator.build_plan_calls, 1, "World Edit hover object-preview anchor cap should not build a plan.")
+	TEST_ASSERT((manager.get_runtime_diagnostics()["hover_object_plan_anchor_skips"] || 0) >= 1, "World Edit hover object-preview test should record an anchor-cap skip.")
+
 	qdel(manager)
 
 /datum/unit_test/world_edit_corner_slots/shape_hook_runtime/param_only_click_path_invokes_shape_support_hook/Run()
@@ -3753,6 +3845,8 @@
 	TEST_ASSERT_NULL(candidate.plan, "World Edit destruction hover-defer test should skip the expensive destruction plan build on hover-only preview.")
 	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit destruction hover-defer test should keep a non-error placeholder state while the full plan is deferred.")
 	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit destruction hover-defer test should still expose a shared shape preview footprint when the heavy plan build is skipped.")
+	TEST_ASSERT_EQUAL(candidate.preview_model?.hover_preview_mode, "compact", "World Edit destruction hover-defer test should mark the fallback as Compact mode.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_effect_turfs) > 0, "World Edit destruction hover-defer test should expose a red compact footprint without building the destruction plan.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
 	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit destruction hover-defer test should record the deferred hover-only plan build.")
@@ -3760,12 +3854,53 @@
 
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/blueprint_stamp_hover_only_skips_full_plan_build/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/fortify_room_hover_uses_ghost_preview_with_bounded_plan/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	var/datum/world_edit_generator_definition/fortify_room/definition = new
+	var/datum/world_edit_generator/fortify_room/generator = allocate(/datum/world_edit_generator/fortify_room)
+	var/turf/base_center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(base_center_turf, "World Edit fortify hover ghost test center turf was not resolved.")
+	var/list/room_context = track_fortify_test_room(setup_fortify_test_room(base_center_turf))
+	assert_fortify_test_room_ready(room_context, "World Edit fortify hover ghost test room helper")
+	var/turf/center_turf = room_context["center_turf"]
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit fortify hover ghost test should keep a valid center turf after room setup.")
+	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
+
+	generator.attach(manager, definition)
+	manager.current_definition = definition
+	manager.current_generator = generator
+	manager.current_params = definition.default_params?.Copy() || list()
+	manager.placement_shape = WORLD_EDIT_SHAPE_POINT
+	manager.placement_mode = "single"
+	manager.placement_click_active = TRUE
+
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit fortify hover ghost test should accept the hover-only point preview.")
+	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit fortify hover ghost test should keep a hover candidate in session state.")
+	TEST_ASSERT(candidate.hover_only, "World Edit fortify hover ghost test should preserve hover-only semantics on the stored candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit fortify hover ghost test should build a bounded visual room plan on hover.")
+	TEST_ASSERT(!candidate.is_ready_for_apply(), "World Edit fortify hover ghost test should not make a hover candidate apply-ready.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit fortify hover ghost test should expose barricade object specs during hover.")
+	TEST_ASSERT_EQUAL(candidate.preview_model?.hover_preview_mode, "ghost", "World Edit fortify hover ghost test should mark object-spec hover as Ghost mode.")
+	TEST_ASSERT((candidate.plan.metadata["room_tile_cap"] || 0) <= 96, "World Edit fortify hover ghost test should clamp room scanning with the hover tile cap.")
+
+	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
+	TEST_ASSERT_EQUAL(manager.get_runtime_diagnostics()["hover_object_plan_builds"], 1, "World Edit fortify hover ghost test should record one bounded hover object-preview plan.")
+	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "0", "World Edit fortify hover ghost test should not defer an opted-in point hover preview.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "0", "World Edit fortify hover ghost test should not count the opted-in point hover preview as deferred.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_corner_slots/manager_runtime/blueprint_stamp_hover_object_preview_is_bounded/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/blueprint_stamp/definition = new
 	var/datum/world_edit_generator/blueprint_stamp/generator = allocate(/datum/world_edit_generator/blueprint_stamp)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit blueprint hover-defer test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit blueprint hover object-preview test center turf was not resolved.")
+	var/turf/east_turf = locate(center_turf.x + 1, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(east_turf, "World Edit blueprint hover object-preview test east turf was not resolved.")
+	var/turf/far_east_turf = locate(center_turf.x + 3, center_turf.y, center_turf.z)
+	TEST_ASSERT_NOTNULL(far_east_turf, "World Edit blueprint hover object-preview test far east turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 	var/list/blueprint = list(
 		"id" = "world_edit_hover_blueprint_preview_test",
@@ -3786,7 +3921,7 @@
 		),
 	)
 	var/blueprint_file_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(blueprint)
-	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit blueprint hover-defer test should save the helper blueprint definition.")
+	TEST_ASSERT(length("[blueprint_file_path]"), "World Edit blueprint hover object-preview test should save the helper blueprint definition.")
 
 	generator.attach(manager, definition)
 	manager.current_definition = definition
@@ -3804,28 +3939,45 @@
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit blueprint hover-defer test should accept the hover-only point preview.")
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit blueprint hover object-preview test should accept an opted-in point hover preview.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit blueprint hover-defer test should keep a hover candidate in session state.")
-	TEST_ASSERT(candidate.hover_only, "World Edit blueprint hover-defer test should preserve hover-only semantics on the stored candidate.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit blueprint hover-defer test should skip the expensive stamp plan build on hover-only preview.")
-	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit blueprint hover-defer test should keep a non-error placeholder state while the full plan is deferred.")
-	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit blueprint hover-defer test should still expose a shared shape preview footprint when the heavy plan build is skipped.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit blueprint hover object-preview test should keep a hover candidate in session state.")
+	TEST_ASSERT(candidate.hover_only, "World Edit blueprint hover object-preview test should preserve hover-only semantics on the stored candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit blueprint hover object-preview test should build a bounded visual plan for point hover.")
+	TEST_ASSERT(!candidate.is_ready_for_apply(), "World Edit blueprint hover object-preview test should not make a hover candidate apply-ready.")
+	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit blueprint hover object-preview test should still expose a shared shape preview footprint.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit blueprint hover object-preview test should expose template object specs during point hover.")
+	TEST_ASSERT_EQUAL(candidate.preview_model?.hover_preview_mode, "ghost", "World Edit blueprint hover object-preview test should mark object-spec hover as Ghost mode.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["preview_object_specs_hover"], TRUE, "World Edit blueprint hover object-preview test should mark hover preview specs in plan metadata.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["preview_object_specs_truncated"], FALSE, "World Edit blueprint hover object-preview test should not truncate a single-entry helper blueprint.")
 
-	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit blueprint hover-defer test should record the deferred hover-only plan build.")
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit blueprint hover-defer test should count the deferred preview path in shared runtime diagnostics.")
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, east_turf), "World Edit blueprint hover object-preview test should update Ghost preview while the cursor moves.")
+	var/datum/world_edit_placement_candidate/moved_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(istype(moved_candidate?.plan, /datum/world_edit_plan), "World Edit blueprint hover object-preview cursor move should build another bounded visual plan.")
+	TEST_ASSERT_EQUAL(moved_candidate.preview_model?.hover_preview_mode, "ghost", "World Edit blueprint hover object-preview cursor move should stay in Ghost mode.")
+	TEST_ASSERT(length(moved_candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit blueprint hover object-preview cursor move should keep object specs visible.")
+	TEST_ASSERT((manager.get_runtime_diagnostics()["hover_object_plan_builds"] || 0) >= 2, "World Edit blueprint hover object-preview test should build Ghost previews for distinct cursor turfs.")
+
+	var/datum/world_edit_placement_session/session = manager.get_placement_session()
+	session.hover_object_preview_next_allowed_ds = 0
+	manager.placement_shape = WORLD_EDIT_SHAPE_LINE
+	TEST_ASSERT(manager.evaluate_safe_placement_preview(user, WORLD_EDIT_SHAPE_LINE, center_turf, far_east_turf, null, "", TRUE, TRUE), "World Edit blueprint hover object-preview test should keep large-shape hover responsive when anchor capped.")
+	var/datum/world_edit_placement_candidate/anchor_capped_candidate = manager.get_placement_preview_candidate()
+	TEST_ASSERT(!istype(anchor_capped_candidate?.plan, /datum/world_edit_plan), "World Edit blueprint hover object-preview anchor cap should fall back to shape-only preview.")
+	TEST_ASSERT_EQUAL(anchor_capped_candidate.preview_model?.hover_preview_mode, "compact", "World Edit blueprint hover object-preview anchor cap should mark the fallback as Compact mode.")
+	TEST_ASSERT(length(anchor_capped_candidate.preview_model?.generator_effect_turfs) > 0, "World Edit blueprint hover object-preview anchor cap should expose a red compact footprint.")
+	TEST_ASSERT((manager.get_runtime_diagnostics()["hover_object_plan_anchor_skips"] || 0) >= 1, "World Edit blueprint hover object-preview test should record an anchor-cap skip.")
 
 	if(length("[blueprint_file_path]") && fexists(blueprint_file_path))
 		fdel(blueprint_file_path)
 	qdel(manager)
 
-/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_hover_only_skips_full_plan_build/Run()
+/datum/unit_test/world_edit_corner_slots/manager_runtime/outpost_point_hover_object_preview_is_bounded/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
 	var/datum/world_edit_generator_definition/outpost_radius/definition = new
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/turf/center_turf = get_world_edit_test_center_turf()
-	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost hover-skip test center turf was not resolved.")
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost hover object-preview test center turf was not resolved.")
 	var/mob/living/carbon/human/user = allocate(/mob/living/carbon/human, center_turf)
 
 	generator.attach(manager, definition)
@@ -3838,17 +3990,19 @@
 	manager.placement_dir = NORTH
 	manager.placement_click_active = TRUE
 
-	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit outpost hover-skip test should accept the hover-only point preview.")
+	TEST_ASSERT(manager.handle_safe_placement_hover(user, center_turf), "World Edit outpost hover object-preview test should accept an opted-in point hover preview.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
-	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost hover-skip test should keep a hover candidate in session state.")
-	TEST_ASSERT(candidate.hover_only, "World Edit outpost hover-skip test should preserve hover-only semantics on the stored candidate.")
-	TEST_ASSERT_NULL(candidate.plan, "World Edit outpost hover-skip test should skip the expensive outpost plan build on hover-only point preview.")
-	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit outpost hover-skip test should keep hover-only point preview in a non-error placeholder state.")
-	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit outpost hover-skip test should still expose a shape preview footprint when the hover-only plan build is skipped.")
+	TEST_ASSERT(istype(candidate, /datum/world_edit_placement_candidate), "World Edit outpost hover object-preview test should keep a hover candidate in session state.")
+	TEST_ASSERT(candidate.hover_only, "World Edit outpost hover object-preview test should preserve hover-only semantics on the stored candidate.")
+	TEST_ASSERT(istype(candidate.plan, /datum/world_edit_plan), "World Edit outpost hover object-preview test should build a bounded visual plan for point hover.")
+	TEST_ASSERT(!candidate.is_ready_for_apply(), "World Edit outpost hover object-preview test should not make a hover candidate apply-ready.")
+	TEST_ASSERT_NULL(candidate.get_failure_message(), "World Edit outpost hover object-preview test should keep hover-only point preview in a non-error state.")
+	TEST_ASSERT(length(candidate.preview_model?.final_turfs) > 0, "World Edit outpost hover object-preview test should still expose a shape preview footprint.")
+	TEST_ASSERT(length(candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit outpost hover object-preview test should expose object preview specs during point hover.")
+	TEST_ASSERT_EQUAL(candidate.preview_model?.hover_preview_mode, "ghost", "World Edit outpost hover object-preview test should mark object-spec hover as Ghost mode.")
+	TEST_ASSERT_EQUAL(candidate.plan.metadata["preview_object_specs_hover"], TRUE, "World Edit outpost hover object-preview test should mark hover preview specs in plan metadata.")
 
-	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit outpost hover-skip test should record the deferred hover-only plan build.")
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost hover-skip test should count the deferred preview path in shared runtime diagnostics.")
+	TEST_ASSERT_EQUAL(manager.get_runtime_diagnostics()["hover_object_plan_builds"], 1, "World Edit outpost hover object-preview test should record one bounded hover plan build.")
 
 	qdel(manager)
 
@@ -3874,8 +4028,11 @@
 	var/datum/world_edit_placement_candidate/hover_candidate = manager.get_placement_preview_candidate()
 	TEST_ASSERT(istype(hover_candidate, /datum/world_edit_placement_candidate), "World Edit outpost point preview test should keep the hover candidate in session state.")
 	TEST_ASSERT(hover_candidate.hover_only, "World Edit outpost point preview test should preserve hover-only semantics before the click preview.")
-	TEST_ASSERT_NULL(hover_candidate.plan, "World Edit outpost point preview test should keep the hover preview plan-deferred.")
-	TEST_ASSERT(!length(hover_candidate.preview_model?.generator_effect_turfs), "World Edit outpost point preview test should keep the hover path on the cheap shape-only preview.")
+	TEST_ASSERT(istype(hover_candidate.plan, /datum/world_edit_plan), "World Edit outpost point preview test should build a bounded visual plan during hover.")
+	TEST_ASSERT(length(hover_candidate.preview_model?.generator_effect_turfs), "World Edit outpost point preview test should expose generator effect turfs during hover.")
+	TEST_ASSERT(length(hover_candidate.preview_model?.generator_preview_object_specs), "World Edit outpost point preview test should expose object specs during hover.")
+	TEST_ASSERT_EQUAL(hover_candidate.preview_model?.hover_preview_mode, "ghost", "World Edit outpost point preview test should mark object-spec hover as Ghost mode.")
+	TEST_ASSERT(!hover_candidate.is_ready_for_apply(), "World Edit outpost point preview test should keep the hover candidate non-apply-ready.")
 
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point preview test should accept the initial point placement click.")
 	var/datum/world_edit_placement_candidate/candidate = manager.get_placement_preview_candidate()
@@ -3886,8 +4043,8 @@
 	TEST_ASSERT(candidate.is_confirm_ready(), "World Edit outpost point preview test should arm confirmation on the fully-built point preview.")
 	TEST_ASSERT(length(candidate.preview_model?.generator_effect_turfs) > 0, "World Edit outpost point preview test should expose generator effect turfs once the real preview plan is built.")
 	TEST_ASSERT(length(candidate.preview_model?.generator_preview_object_specs) > 0, "World Edit outpost point preview test should expose generator object preview specs once the real preview plan is built.")
-	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 1, "World Edit outpost point preview test should evaluate the point support contract during the first click preview.")
-	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 1, "World Edit outpost point preview test should build perimeter placements during the first click preview.")
+	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 2, "World Edit outpost point preview test should evaluate once for hover and once for the first click preview.")
+	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 2, "World Edit outpost point preview test should build perimeter placements once for hover and once for the first click preview.")
 	TEST_ASSERT(manager.is_placement_confirm_armed_for_turf(center_turf), "World Edit outpost point preview test should arm confirmation for the selected turf.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(candidate.shape_contract?.metadata["preview_plan_deferred"]), "World Edit outpost point preview test should not leave the first-click shape contract in deferred-preview mode.")
 	TEST_ASSERT(islist(manager.last_preview_meta["preview_layers"]), "World Edit outpost point preview test should expose placement-layer preview metadata after the real plan is built.")
@@ -3897,14 +4054,15 @@
 	TEST_ASSERT(length("[full_ui_json]"), "World Edit outpost point preview test should keep the full World Edit panel payload JSON-serializable after the first click.")
 
 	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit outpost point preview test should accept the repeated confirm click.")
-	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 1, "World Edit outpost point preview test should not rebuild the point support contract during confirm/apply.")
-	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 1, "World Edit outpost point preview test should not rebuild perimeter placements during confirm/apply.")
+	TEST_ASSERT_EQUAL(generator.evaluate_shape_contract_calls, 2, "World Edit outpost point preview test should not rebuild the point support contract during confirm/apply.")
+	TEST_ASSERT_EQUAL(generator.collect_perimeter_calls, 2, "World Edit outpost point preview test should not rebuild perimeter placements during confirm/apply.")
 	TEST_ASSERT_EQUAL(generator.apply_calls, 1, "World Edit outpost point preview test should apply exactly once after the armed preview.")
 	TEST_ASSERT(manager.last_apply_success, "World Edit outpost point preview test should record a successful apply after the armed point preview.")
 
 	var/list/runtime_status = build_runtime_status_lookup(manager.build_runtime_status_entries())
-	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "1", "World Edit outpost point preview test should record the hover-only deferred point preview.")
-	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "1", "World Edit outpost point preview test should only count the hover placeholder as deferred.")
+	TEST_ASSERT_EQUAL(manager.get_runtime_diagnostics()["hover_object_plan_builds"], 1, "World Edit outpost point preview test should record one bounded hover object-preview plan.")
+	TEST_ASSERT_EQUAL(runtime_status["Hover plan skip"], "0", "World Edit outpost point preview test should not defer the opted-in point hover preview.")
+	TEST_ASSERT_EQUAL(runtime_status["Preview defer"], "0", "World Edit outpost point preview test should not count the opted-in point hover preview as deferred.")
 	TEST_ASSERT_EQUAL(runtime_status["Apply plan"], "0", "World Edit outpost point preview test should not defer the real point plan build to apply-time.")
 
 	qdel(manager)

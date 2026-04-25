@@ -15,10 +15,18 @@
 	if(!istype(plan))
 		return specs
 
+	var/spec_limit = hover_only ? WORLD_EDIT_BLUEPRINT_STAMP_MAX_HOVER_PREVIEW_OBJECT_SPECS : length(plan.placements)
+	var/total_specs = length(plan.placements)
 	for(var/list/placement as anything in plan.placements)
+		if(length(specs) >= spec_limit)
+			break
 		var/list/spec = build_blueprint_preview_spec_from_placement(placement)
 		if(islist(spec))
 			specs += list(spec)
+
+	plan.metadata["preview_object_specs_total"] = total_specs
+	plan.metadata["preview_object_specs_truncated"] = total_specs > length(specs)
+	plan.metadata["preview_object_specs_hover"] = hover_only ? TRUE : FALSE
 	return specs
 
 /datum/world_edit_generator/blueprint_stamp/preview(mob/user, list/params)
@@ -49,8 +57,25 @@
 	return istype(plan) ? TRUE : FALSE
 
 /datum/world_edit_generator/blueprint_stamp/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
-	// Hover motion should keep the shared shape preview responsive without rebuilding every stamp placement.
+	// Manager-side hover object preview budgets can opt into a bounded visual plan.
+	// Otherwise cursor motion stays shape-only and the real plan is built on click.
 	return TRUE
+
+/datum/world_edit_generator/blueprint_stamp/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	if(!istype(shape_contract) || length("[shape_contract.error]"))
+		return FALSE
+	if(!length(shape_contract.anchor_turfs))
+		return FALSE
+	var/blueprint_id = islist(runtime_params) ? runtime_params["blueprint_id"] : null
+	if(!length("[blueprint_id]"))
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/blueprint_stamp/get_hover_object_preview_anchor_limit()
+	return WORLD_EDIT_BLUEPRINT_STAMP_HOVER_OBJECT_PREVIEW_MAX_ANCHORS
+
+/datum/world_edit_generator/blueprint_stamp/get_hover_object_preview_min_interval_ds()
+	return WORLD_EDIT_HOVER_OBJECT_PREVIEW_MIN_INTERVAL_DS
 
 /datum/world_edit_generator/blueprint_stamp/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)

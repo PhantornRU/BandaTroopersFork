@@ -1876,7 +1876,8 @@
 /datum/world_edit_generator/outpost_radius/evaluate_shape_contract(datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/list/plan_context = build_outpost_exact_plan_context(shape_contract, params, placement_context)
 	var/support_class = plan_context["support_class"] || get_outpost_shape_support_class(shape_contract?.shape_id || WORLD_EDIT_SHAPE_POINT)
-	var/list/support_metadata = islist(plan_context["support_metadata"]) ? plan_context["support_metadata"].Copy() : list()
+	var/list/raw_support_metadata = plan_context["support_metadata"]
+	var/list/support_metadata = islist(raw_support_metadata) ? raw_support_metadata.Copy() : list()
 	if(length("[plan_context["error"]]"))
 		return list(
 			"support_class" = support_class,

@@ -229,6 +229,8 @@
 	if(config["error"])
 		plan.metadata["error"] = "[config["error"]]"
 		return plan
+	if(GLOB.world_edit_helpers.parse_bool(placement_context["hover_object_preview"]))
+		config["room_tile_cap"] = min(text2num("[config["room_tile_cap"]]") || WORLD_EDIT_FORTIFY_ROOM_TILE_CAP_DEFAULT, WORLD_EDIT_FORTIFY_ROOM_HOVER_TILE_CAP)
 
 	var/list/anchor_turfs = normalize_fortify_anchor_turfs(shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"])
 	if(!length(anchor_turfs))
@@ -357,9 +359,12 @@
 
 /datum/world_edit_generator/fortify_room/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
 	var/list/specs = list()
-	if(!istype(plan) || hover_only)
+	if(!istype(plan))
 		return specs
+	var/spec_limit = hover_only ? WORLD_EDIT_FORTIFY_ROOM_MAX_HOVER_PREVIEW_OBJECT_SPECS : length(plan.placements)
 	for(var/list/placement as anything in plan.placements)
+		if(length(specs) >= spec_limit)
+			break
 		var/list/spec = build_fortify_preview_spec_from_placement(placement)
 		if(islist(spec))
 			specs += list(spec)
@@ -367,6 +372,23 @@
 
 /datum/world_edit_generator/fortify_room/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
 	return istype(plan) ? TRUE : FALSE
+
+/datum/world_edit_generator/fortify_room/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	// Manager-side hover object preview budgets can opt into a bounded visual room scan.
+	// Otherwise cursor motion stays on the shared Compact footprint.
+	return TRUE
+
+/datum/world_edit_generator/fortify_room/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	if(!istype(shape_contract) || length("[shape_contract.error]"))
+		return FALSE
+	if(shape_contract.shape_id != WORLD_EDIT_SHAPE_POINT)
+		return FALSE
+	if(!length(shape_contract.anchor_turfs))
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/fortify_room/get_hover_object_preview_anchor_limit()
+	return WORLD_EDIT_FORTIFY_ROOM_HOVER_OBJECT_PREVIEW_MAX_ANCHORS
 
 /datum/world_edit_generator/fortify_room/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new

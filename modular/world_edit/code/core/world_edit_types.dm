@@ -5,6 +5,10 @@
 #define WORLD_EDIT_HISTORY_LIMIT 125
 #define WORLD_EDIT_PLACEMENT_MAX_ANCHORS 120
 #define WORLD_EDIT_PLACEMENT_MAX_TOTAL_PLACEMENTS 600
+#define WORLD_EDIT_HOVER_OBJECT_PREVIEW_MIN_INTERVAL_DS 0
+#define WORLD_EDIT_HOVER_OBJECT_PREVIEW_MAX_ANCHORS 8
+#define WORLD_EDIT_HOVER_PREVIEW_MODE_GHOST "ghost"
+#define WORLD_EDIT_HOVER_PREVIEW_MODE_COMPACT "compact"
 #define WORLD_EDIT_RADIUS_POLICY_ONLY_CLEAR_TILES "radius_only_clear_tiles"
 #define WORLD_EDIT_RADIUS_POLICY_ONLY_REACHABLE_TILES "radius_only_reachable_tiles"
 #define WORLD_EDIT_RADIUS_POLICY_WINDOWS_BLOCKERS "radius_windows_blockers"
@@ -115,6 +119,15 @@
 
 /datum/world_edit_generator/proc/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
 	return FALSE
+
+/datum/world_edit_generator/proc/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	return FALSE
+
+/datum/world_edit_generator/proc/get_hover_object_preview_anchor_limit()
+	return WORLD_EDIT_HOVER_OBJECT_PREVIEW_MAX_ANCHORS
+
+/datum/world_edit_generator/proc/get_hover_object_preview_min_interval_ds()
+	return WORLD_EDIT_HOVER_OBJECT_PREVIEW_MIN_INTERVAL_DS
 
 /datum/world_edit_generator/proc/should_attempt_preview_endpoint_clamp(shape_id, turf/start_turf, turf/requested_end_turf, turf/segment_start_turf = null, list/runtime_params = null, list/placement_context = null)
 	return FALSE

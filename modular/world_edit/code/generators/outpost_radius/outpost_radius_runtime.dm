@@ -139,21 +139,22 @@
 
 /datum/world_edit_generator/outpost_radius/build_plan_preview_object_specs(datum/world_edit_plan/plan, list/runtime_params = null, list/placement_context = null, hover_only = FALSE)
 	var/list/specs = list()
-	if(!istype(plan) || hover_only)
+	if(!istype(plan))
 		return specs
 
-	var/total_specs = 0
+	var/spec_limit = hover_only ? WORLD_EDIT_OUTPOST_MAX_HOVER_PREVIEW_OBJECT_SPECS : WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS
+	var/total_specs = length(plan.placements)
 	for(var/list/placement as anything in plan.placements)
+		if(length(specs) >= spec_limit)
+			break
 		var/list/spec = build_outpost_preview_spec_from_placement(placement)
 		if(!islist(spec))
-			continue
-		total_specs++
-		if(length(specs) >= WORLD_EDIT_OUTPOST_MAX_PREVIEW_OBJECT_SPECS)
 			continue
 		specs += list(spec)
 
 	plan.metadata["preview_object_specs_total"] = total_specs
 	plan.metadata["preview_object_specs_truncated"] = total_specs > length(specs)
+	plan.metadata["preview_object_specs_hover"] = hover_only ? TRUE : FALSE
 	return specs
 
 /datum/world_edit_generator/outpost_radius/proc/register_perimeter_slot(list/result, turf/target_turf, dir_to_use, slot_index, offset_x, offset_y, radius, list/layout_profile, list/barricade_cycle, barricade_pattern)
@@ -675,9 +676,22 @@
 	return FALSE
 
 /datum/world_edit_generator/outpost_radius/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
-	// Keep cursor motion cheap, but build the real preview plan on click like the
-	// other shared World Edit placement tools.
+	// Manager-side hover object preview budgets can opt into a bounded visual plan.
+	// Otherwise cursor motion stays shape-only and the real plan is built on click.
 	return TRUE
+
+/datum/world_edit_generator/outpost_radius/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
+	if(!istype(shape_contract) || length("[shape_contract.error]"))
+		return FALSE
+	if(!length(shape_contract.anchor_turfs))
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/outpost_radius/get_hover_object_preview_anchor_limit()
+	return WORLD_EDIT_OUTPOST_HOVER_OBJECT_PREVIEW_MAX_ANCHORS
+
+/datum/world_edit_generator/outpost_radius/get_hover_object_preview_min_interval_ds()
+	return WORLD_EDIT_HOVER_OBJECT_PREVIEW_MIN_INTERVAL_DS
 
 /datum/world_edit_generator/outpost_radius/apply(mob/user, list/params)
 	return apply_plan(user, params, current_plan)

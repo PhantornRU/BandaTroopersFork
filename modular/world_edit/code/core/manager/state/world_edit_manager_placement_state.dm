@@ -413,6 +413,8 @@
 	session.preview_locked = preserve_lock ? TRUE : FALSE
 	session.confirm_arm_turf = null
 	session.confirm_arm_signature = null
+	if(!preserve_lock && clear_resolved_candidate_cache)
+		session.hover_object_preview_next_allowed_ds = 0
 	session.hover_turf = preserve_lock ? preserved_hover_turf : null
 	placement_preview_shape_result = list()
 	placement_preview_signature = null
