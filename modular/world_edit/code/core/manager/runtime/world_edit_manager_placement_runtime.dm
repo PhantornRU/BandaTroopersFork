@@ -1,4 +1,5 @@
 #define WORLD_EDIT_RUNTIME_TRACE_ENABLED FALSE
+#define WORLD_EDIT_RUNTIME_DIAGNOSTICS_UI_ENABLED FALSE
 
 /datum/world_edit_manager/proc/build_safe_placement_preview_message(datum/world_edit_plan/plan, list/fallback_meta = null)
 	var/list/metadata = plan?.metadata || fallback_meta || list()
@@ -296,6 +297,11 @@
 	var/queue_text = length(queue_sizes) ? queue_sizes.Join(",") : "n/a"
 	return "gcQ=[queue_text] D=[SSgarbage.delslasttick] G=[SSgarbage.gcedlasttick] TD=[SSgarbage.totaldels] TG=[SSgarbage.totalgcs]"
 
+/datum/world_edit_manager/proc/build_runtime_trace_gc_snapshot_if_enabled()
+	if(!WORLD_EDIT_RUNTIME_TRACE_ENABLED)
+		return null
+	return build_runtime_trace_gc_snapshot()
+
 /datum/world_edit_manager/proc/append_runtime_trace(stage, details = null)
 	if(!WORLD_EDIT_RUNTIME_TRACE_ENABLED)
 		return FALSE
@@ -403,6 +409,20 @@
 	var/list/entries = list()
 	var/list/diagnostics = get_runtime_diagnostics()
 	var/list/generator_entries = current_generator?.get_runtime_status()
+	if(!WORLD_EDIT_RUNTIME_DIAGNOSTICS_UI_ENABLED)
+		if(islist(generator_entries))
+			for(var/list/entry as anything in generator_entries)
+				if(!islist(entry))
+					continue
+				var/label = "[entry["label"]]"
+				if(!length(label))
+					continue
+				entries += list(list(
+					"label" = label,
+					"value" = "[entry["value"]]",
+				))
+		return entries
+
 	var/has_placement_activity = FALSE
 	for(var/counter_id in list(
 		"hover_preview_requests",
@@ -754,7 +774,7 @@
 /datum/world_edit_manager/proc/render_safe_placement_preview(datum/world_edit_placement_candidate/candidate)
 	var/render_started_at = REALTIMEOFDAY
 	increment_runtime_diagnostic("preview_render_calls")
-	append_runtime_trace("render:start", "candidate=[candidate ? TRUE : FALSE] images=[length(preview_images)] [build_runtime_trace_gc_snapshot()]")
+	append_runtime_trace("render:start", "candidate=[candidate ? TRUE : FALSE] images=[length(preview_images)] [build_runtime_trace_gc_snapshot_if_enabled()]")
 	var/incoming_render_token = length("[candidate?.preview_render_token]") ? "[candidate.preview_render_token]" : (length("[candidate?.preview_model?.preview_render_token]") ? "[candidate.preview_model.preview_render_token]" : null)
 	var/reused_preview_state = FALSE
 	if(length("[incoming_render_token]") && incoming_render_token == placement_preview_render_token)
@@ -1255,7 +1275,7 @@
 
 	append_runtime_trace(
 		"click:start",
-		"shape=[shape_id] kind=[interaction_kind] turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)] images=[length(preview_images)] [build_runtime_trace_gc_snapshot()]",
+		"shape=[shape_id] kind=[interaction_kind] turf=[GLOB.world_edit_helpers.turf_to_text(clicked_turf)] images=[length(preview_images)] [build_runtime_trace_gc_snapshot_if_enabled()]",
 	)
 
 	if(interaction_kind == "collector")

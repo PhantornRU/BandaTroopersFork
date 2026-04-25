@@ -154,23 +154,35 @@
 			if(candidate_slot["dir"] == dir_to_use)
 				dir_candidates += list(candidate_slot)
 
+		var/safety_iterations = 0
+		var/max_iterations = length(dir_candidates) + 4
 		while(length(dir_candidates))
+			safety_iterations++
+			if(safety_iterations > max_iterations)
+				log_world("WORLD EDIT OUTPOST: canonical slot ordering stopped after failing to consume candidates for dir=[dir_to_use].")
+				break
+
 			var/list/best_slot = null
 			var/best_coord = null
 			var/best_slot_index = null
-			for(var/list/candidate_slot as anything in dir_candidates)
+			var/best_index = null
+			for(var/i in 1 to length(dir_candidates))
+				var/list/candidate_slot = dir_candidates[i]
+				if(!islist(candidate_slot))
+					continue
 				var/coord_value = get_outpost_slot_order_coord(candidate_slot)
 				var/current_slot_index = text2num("[candidate_slot["slot_index"]]") || 0
 				if(isnull(best_coord) || coord_value < best_coord || (coord_value == best_coord && current_slot_index < best_slot_index))
 					best_slot = candidate_slot
 					best_coord = coord_value
 					best_slot_index = current_slot_index
+					best_index = i
 
-			if(!islist(best_slot))
+			if(!islist(best_slot) || isnull(best_index))
 				break
 
 			ordered_slots += list(best_slot)
-			dir_candidates -= best_slot
+			dir_candidates.Cut(best_index, best_index + 1)
 
 	return ordered_slots
 

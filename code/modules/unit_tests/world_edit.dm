@@ -178,6 +178,43 @@
 		"turned_on" = TRUE,
 	)
 
+/datum/unit_test/world_edit_corner_slots/outpost_canonical_slot_order_consumes_nested_candidates/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost slot-order test center turf was not resolved.")
+
+	var/list/first_candidate = list(
+		"turf" = locate(center_turf.x - 1, center_turf.y, center_turf.z),
+		"dir" = NORTH,
+		"slot_index" = 2,
+		"offset_x" = -1,
+		"offset_y" = 1,
+		"slot_key" = "a",
+	)
+	var/list/second_candidate = list(
+		"turf" = locate(center_turf.x + 1, center_turf.y, center_turf.z),
+		"dir" = NORTH,
+		"slot_index" = 1,
+		"offset_x" = 1,
+		"offset_y" = 1,
+		"slot_key" = "b",
+	)
+	var/list/third_candidate = list(
+		"turf" = locate(center_turf.x, center_turf.y + 1, center_turf.z),
+		"dir" = NORTH,
+		"slot_index" = 3,
+		"offset_x" = 0,
+		"offset_y" = 1,
+		"slot_key" = "c",
+	)
+	var/list/candidate_slots = list(first_candidate, second_candidate, third_candidate)
+
+	var/list/ordered = generator.build_canonical_outpost_slot_order(candidate_slots)
+	TEST_ASSERT_EQUAL(length(ordered), length(candidate_slots), "World Edit outpost slot-order test should consume each nested candidate exactly once.")
+	TEST_ASSERT(ordered[1] != ordered[2], "World Edit outpost slot-order test should not repeatedly return the same nested candidate.")
+	TEST_ASSERT(ordered[1] != ordered[3], "World Edit outpost slot-order test should not repeat the first nested candidate later.")
+	TEST_ASSERT(ordered[2] != ordered[3], "World Edit outpost slot-order test should not repeat the second nested candidate later.")
+
 /datum/world_edit_generator_definition/world_edit_test_shape_hook
 	id = "world_edit_test_shape_hook"
 	name_ru = "World Edit Test Shape Hook"

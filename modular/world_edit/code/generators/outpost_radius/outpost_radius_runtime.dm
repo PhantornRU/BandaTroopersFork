@@ -672,7 +672,7 @@
 	return result
 
 /datum/world_edit_generator/outpost_radius/should_render_preview_via_placement_layers(datum/world_edit_plan/plan)
-	return istype(plan) ? TRUE : FALSE
+	return FALSE
 
 /datum/world_edit_generator/outpost_radius/should_skip_plan_build_for_hover_only_placement(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
 	// Keep cursor motion cheap, but build the real preview plan on click like the

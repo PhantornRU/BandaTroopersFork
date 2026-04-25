@@ -29,7 +29,7 @@
 	if(!holder || holder != user?.client || !check_rights_for(holder, R_DEBUG))
 		return list()
 
-	append_runtime_trace("ui_data:start", build_runtime_trace_gc_snapshot())
+	append_runtime_trace("ui_data:start", build_runtime_trace_gc_snapshot_if_enabled())
 	ensure_preset_cache_loaded()
 	ensure_blueprint_cache_loaded()
 	ensure_default_generator_selected()
