@@ -1,5 +1,6 @@
 author: Codex
 delete-after: True
 changes:
-  - tweak: "Updated the HALO Kig-Yar follow-up from upstream PR #97 for BT modular layout, keeping the riot shield loadout wiring and restoring the missing Ruuhtian harness armor baseline."
-  - rscadd: "Added a targeted unit test that covers the Ruuhtian minor preset, shield slot wiring and expected harness armor values."
+  - rscadd: "Updated HALO Kig-Yar Ruuhtian loadouts from the latest upstream PR #97 tail, adding modular plasma pistol, needler, plasma rifle, carbine, marksman, and sniper variants."
+  - tweak: "Updated the Ruuhtian point defense gauntlet block values, AI preset wiring, and Human AI creator exposure while keeping the BT modular HALO layout."
+  - rscadd: "Expanded targeted unit coverage for Ruuhtian shield values, job defines, sniper gear, and AI preset wiring."

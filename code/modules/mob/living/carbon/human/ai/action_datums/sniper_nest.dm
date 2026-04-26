@@ -92,6 +92,8 @@
 		/datum/equipment_preset/mercenary/sentinel/marksman::name = /datum/equipment_preset/mercenary/sentinel/marksman,
 		/datum/equipment_preset/mercenary/infiltrator::name = /datum/equipment_preset/mercenary/infiltrator,
 		/datum/equipment_preset/fil/rifleman/sniper::name = /datum/equipment_preset/fil/rifleman/sniper,
+		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine::name = /datum/equipment_preset/covenant/ruuhtian/marksman/carbine, // SS220 EDIT: expose modular HALO Ruuhtian marksman preset to the shared Human AI sniper creator
+		/datum/equipment_preset/covenant/ruuhtian/sniper/carbine::name = /datum/equipment_preset/covenant/ruuhtian/sniper/carbine, // SS220 EDIT: expose modular HALO Ruuhtian sniper preset to the shared Human AI sniper creator
 	)
 
 	if(!check_rights(R_DEBUG))

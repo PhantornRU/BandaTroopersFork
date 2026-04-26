@@ -84,6 +84,9 @@
 	armor_laser = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_bomb = CLOTHING_ARMOR_MEDIUM
 
+/obj/item/clothing/head/helmet/marine/ruuhtian/better
+	parent_type = /obj/item/clothing/head/helmet/marine/ruuhtian/major
+
 /obj/item/clothing/head/helmet/marine/ruuhtian/sniper
 	name = "\improper Ruuhtian sniper helmet"
 	desc = "An optics-heavy helmet variant issued to Kig-Yar sharpshooters."
