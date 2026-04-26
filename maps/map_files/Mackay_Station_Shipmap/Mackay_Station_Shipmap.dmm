@@ -170,38 +170,45 @@
 /turf/open/floor/almayer/research,
 /area/mackay_station/pathways)
 "aay" = (
+/obj/structure/machinery/light/double/blue{
+	dir = 8
+	},
 /turf/open/floor/almayer/edge/smooth/west,
 /area/mackay_station/pathways)
 "aaz" = (
 /turf/open/floor/almayer/edge/smooth/north,
 /area/mackay_station/pathways)
 "aaA" = (
+/obj/structure/machinery/camera/autoname,
+/turf/open/floor/almayer/edge/smooth/north,
+/area/mackay_station/pathways)
+"aaB" = (
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/halo{
 	id = "spacewalk2";
 	name = "Blast Door"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/mackay_station/pathways)
-"aaB" = (
+"aaC" = (
 /obj/structure/machinery/door/airlock/unsc{
 	dir = 1;
 	name = "Checkpoint Entry"
 	},
 /turf/open/floor/almayer/research,
 /area/mackay_station/pathways)
-"aaC" = (
+"aaD" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning"
 	},
 /turf/open/floor/almayer/edge/smooth/corner,
 /area/mackay_station/pathways)
-"aaD" = (
+"aaE" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning"
 	},
 /turf/open/floor/almayer/edge/smooth/corner/east,
 /area/mackay_station/pathways)
-"aaE" = (
+"aaF" = (
 /obj/structure/surface/table/almayer{
 	color = "#96918c"
 	},
@@ -223,18 +230,22 @@
 	},
 /turf/open/floor/almayer/edge/smooth/southwest,
 /area/mackay_station/pathways)
-"aaF" = (
+"aaG" = (
 /obj/structure/bed/chair/comfy/ares,
 /turf/open/floor/almayer/edge/smooth,
 /area/mackay_station/pathways)
-"aaG" = (
+"aaH" = (
 /obj/structure/machinery/photocopier,
 /turf/open/floor/almayer/edge/smooth,
 /area/mackay_station/pathways)
-"aaH" = (
+"aaI" = (
+/obj/structure/machinery/light/double/blue,
+/turf/open/floor/almayer/edge/smooth/southeast,
+/area/mackay_station/pathways)
+"aaJ" = (
 /turf/open/floor/almayer/edge/smooth/east,
 /area/mackay_station/pathways)
-"aaI" = (
+"aaK" = (
 /obj/structure/surface/table/reinforced/almayer_B,
 /obj/structure/machinery/door/poddoor/shutters/almayer/open{
 	icon_state = "shutterc1";
@@ -243,14 +254,17 @@
 	},
 /turf/open/floor/almayer/research,
 /area/mackay_station/pathways)
-"aaJ" = (
+"aaL" = (
+/turf/open/floor/almayer/edge/smooth/west,
+/area/mackay_station/pathways)
+"aaM" = (
 /obj/structure/machinery/door/poddoor/shutters/almayer{
 	dir = 8;
 	id = "spacewalk1"
 	},
 /turf/open/floor/almayer/pod_landing_floor,
 /area/mackay_station/pathways)
-"aaK" = (
+"aaN" = (
 /obj/structure/closet/secure_closet/guncabinet{
 	req_access = null
 	},
@@ -268,26 +282,26 @@
 /obj/item/ammo_magazine/smg/halo/m7,
 /turf/open/floor/almayer/pod_landing_floor,
 /area/mackay_station/pathways)
-"aaL" = (
+"aaO" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning";
 	dir = 8
 	},
 /turf/open/floor/almayer/edge/smooth/corner/west,
 /area/mackay_station/pathways)
-"aaM" = (
+"aaP" = (
 /obj/structure/bed/chair/comfy/ares{
 	dir = 8
 	},
 /turf/open/floor/almayer/edge/smooth/west,
 /area/mackay_station/pathways)
-"aaN" = (
+"aaQ" = (
 /obj/structure/bed/chair/comfy/ares{
 	dir = 1
 	},
 /turf/open/floor/almayer/research,
 /area/mackay_station/pathways)
-"aaO" = (
+"aaR" = (
 /obj/structure/surface/table/almayer{
 	color = "#96918c"
 	},
@@ -312,11 +326,11 @@
 	},
 /turf/open/floor/almayer/edge/smooth/northwest,
 /area/mackay_station/pathways)
-"aaP" = (
+"aaS" = (
 /obj/structure/machinery/disposal,
 /turf/open/floor/almayer/edge/smooth/north,
 /area/mackay_station/pathways)
-"aaQ" = (
+"aaT" = (
 /obj/structure/surface/table/almayer{
 	color = "#96918c"
 	},
@@ -328,14 +342,14 @@
 	},
 /turf/open/floor/almayer/edge/smooth/north,
 /area/mackay_station/pathways)
-"aaR" = (
+"aaU" = (
 /obj/structure/surface/table/almayer{
 	color = "#96918c"
 	},
 /obj/structure/machinery/computer/cameras,
 /turf/open/floor/almayer/edge/smooth/north,
 /area/mackay_station/pathways)
-"aaS" = (
+"aaV" = (
 /obj/structure/surface/table/almayer{
 	color = "#96918c"
 	},
@@ -349,34 +363,10 @@
 	},
 /turf/open/floor/almayer/edge/smooth/north,
 /area/mackay_station/pathways)
-"aaT" = (
+"aaW" = (
 /obj/structure/closet/crate/unsc,
 /turf/open/floor/almayer/research,
 /area/mackay_station/golf/greenarmory)
-"aaU" = (
-/obj/structure/machinery/light/double/blue,
-/turf/open/floor/almayer/edge/smooth,
-/area/mackay_station/pathways)
-"aaV" = (
-/obj/structure/machinery/light/double/blue{
-	dir = 8
-	},
-/turf/open/floor/almayer/edge/smooth/west,
-/area/mackay_station/pathways)
-"aaW" = (
-/obj/structure/machinery/light/double/blue{
-	dir = 1
-	},
-/turf/open/floor/almayer/edge/smooth/north,
-/area/mackay_station/pathways)
-"aaX" = (
-/obj/structure/machinery/camera/autoname,
-/turf/open/floor/almayer/edge/smooth/north,
-/area/mackay_station/pathways)
-"aaY" = (
-/obj/structure/machinery/light/double/blue,
-/turf/open/floor/almayer/edge/smooth/southeast,
-/area/mackay_station/pathways)
 "aaZ" = (
 /obj/structure/cargo_container/unsc/vertical/south_3/endcap_2,
 /turf/open/shuttle/escapepod,
@@ -1230,6 +1220,12 @@
 	},
 /turf/open/floor/almayer/silver/northeast,
 /area/mackay_station/golf/greenmedical)
+"aEF" = (
+/obj/structure/machinery/light/double/blue{
+	dir = 1
+	},
+/turf/open/floor/almayer/edge/smooth/north,
+/area/mackay_station/pathways)
 "aEZ" = (
 /obj/effect/decal/cleanable/dirt{
 	layer = 2.52
@@ -35111,6 +35107,10 @@
 	},
 /turf/open/floor/almayer/silver,
 /area/mackay_station/romeo/redhangars)
+"yln" = (
+/obj/structure/machinery/light/double/blue,
+/turf/open/floor/almayer/edge/smooth,
+/area/mackay_station/pathways)
 "ylt" = (
 /turf/open/floor/almayer/silver/west,
 /area/mackay_station/golf/greenrec)
@@ -57697,7 +57697,7 @@ oNw
 oNw
 oNw
 pAo
-aaT
+aaW
 ovx
 udL
 udL
@@ -118288,7 +118288,7 @@ oYy
 xdq
 xdq
 xPb
-aaL
+aaO
 lSi
 fci
 fkq
@@ -118604,10 +118604,10 @@ dTg
 oYy
 xdq
 fkq
-aaW
+aEF
 mqn
 mqn
-aaU
+yln
 fkq
 fkq
 fkq
@@ -118927,7 +118927,7 @@ mqn
 kRr
 fkq
 ewN
-aaV
+aay
 aaw
 fkq
 fkq
@@ -119241,8 +119241,8 @@ fkq
 aaz
 mqn
 mqn
-aaC
-aaA
+aaD
+aaB
 jZw
 aax
 kZh
@@ -120189,15 +120189,15 @@ xdq
 xdq
 xdq
 fkq
-aaW
+aEF
 aax
 aax
-aaD
+aaE
 mct
 qdV
 mqn
 aax
-aaU
+yln
 fkq
 fkq
 fkq
@@ -120507,8 +120507,8 @@ xdq
 mhZ
 fkq
 pFF
-aaH
-aaH
+aaJ
+aaJ
 nDa
 fkq
 aaz
@@ -120824,11 +120824,11 @@ xdq
 mhZ
 fkq
 fkq
-aaI
-aaI
+aaK
+aaK
 fkq
 fkq
-aaW
+aEF
 mqn
 kdo
 kZh
@@ -121140,12 +121140,12 @@ tYe
 xdq
 mhZ
 fkq
-aaO
-aaM
-aay
-aaE
+aaR
+aaP
+aaL
+aaF
 fkq
-aaX
+aaA
 mqn
 mqn
 mqn
@@ -121457,10 +121457,10 @@ tFy
 xdq
 mhZ
 fkq
-aaP
+aaS
 aax
 aax
-aaF
+aaG
 cwt
 aaz
 aax
@@ -121774,7 +121774,7 @@ tFy
 xdq
 mhZ
 fkq
-aaQ
+aaT
 aax
 kdo
 kRr
@@ -122091,14 +122091,14 @@ tFy
 xdq
 mhZ
 fkq
-aaR
-aaN
+aaU
+aaQ
 aax
-aaG
+aaH
 fkq
 aaz
 aax
-aaU
+yln
 fkq
 fkq
 fkq
@@ -122408,11 +122408,11 @@ khe
 xdq
 mhZ
 fkq
-aaS
+aaV
 aax
 aax
 aan
-aaB
+aaC
 mDQ
 bwT
 rdE
@@ -122726,9 +122726,9 @@ xdq
 mhZ
 fkq
 pFF
-aaH
-aaH
-aaY
+aaJ
+aaJ
+aaI
 fkq
 pFF
 nDa
@@ -123043,8 +123043,8 @@ xdq
 mhZ
 fkq
 fkq
-aaJ
-aaJ
+aaM
+aaM
 fkq
 fkq
 fkq
@@ -123360,8 +123360,8 @@ xdq
 mhZ
 fkq
 fkq
-aaK
-aaK
+aaN
+aaN
 fkq
 fkq
 kIa
