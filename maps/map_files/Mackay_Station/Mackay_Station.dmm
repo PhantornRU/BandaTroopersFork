@@ -307,6 +307,9 @@
 	pixel_x = 5;
 	pixel_y = -2
 	},
+/obj/structure/machinery/light/double/blue{
+	dir = 1
+	},
 /turf/open/floor/almayer/edge/smooth/northwest,
 /area/mackay_station/pathways)
 "aaP" = (
@@ -350,6 +353,30 @@
 /obj/structure/closet/crate/unsc,
 /turf/open/floor/almayer/research,
 /area/mackay_station/golf/greenarmory)
+"aaU" = (
+/obj/structure/machinery/light/double/blue,
+/turf/open/floor/almayer/edge/smooth,
+/area/mackay_station/pathways)
+"aaV" = (
+/obj/structure/machinery/light/double/blue{
+	dir = 8
+	},
+/turf/open/floor/almayer/edge/smooth/west,
+/area/mackay_station/pathways)
+"aaW" = (
+/obj/structure/machinery/light/double/blue{
+	dir = 1
+	},
+/turf/open/floor/almayer/edge/smooth/north,
+/area/mackay_station/pathways)
+"aaX" = (
+/obj/structure/machinery/camera/autoname,
+/turf/open/floor/almayer/edge/smooth/north,
+/area/mackay_station/pathways)
+"aaY" = (
+/obj/structure/machinery/light/double/blue,
+/turf/open/floor/almayer/edge/smooth/southeast,
+/area/mackay_station/pathways)
 "aaZ" = (
 /obj/structure/cargo_container/unsc/vertical/south_3/endcap_2,
 /turf/open/shuttle/escapepod,
@@ -7334,6 +7361,9 @@
 /turf/open/floor/almayer/green/east,
 /area/mackay_station/golf/greenrec)
 "fci" = (
+/obj/structure/machinery/camera/autoname{
+	dir = 4
+	},
 /turf/open/floor/almayer/edge/smooth/southwest,
 /area/mackay_station/pathways)
 "fcP" = (
@@ -118466,10 +118496,10 @@ dTg
 oYy
 xdq
 fkq
-aaz
+aaW
 mqn
 mqn
-kRr
+aaU
 fkq
 fkq
 fkq
@@ -118789,7 +118819,7 @@ mqn
 kRr
 fkq
 ewN
-aay
+aaV
 aaw
 fkq
 fkq
@@ -120051,7 +120081,7 @@ xdq
 xdq
 xdq
 fkq
-aaz
+aaW
 aax
 aax
 aaD
@@ -120059,7 +120089,7 @@ mct
 qdV
 mqn
 aax
-kRr
+aaU
 fkq
 fkq
 fkq
@@ -120690,7 +120720,7 @@ aaI
 aaI
 fkq
 fkq
-aaz
+aaW
 mqn
 kdo
 kZh
@@ -121007,7 +121037,7 @@ aaM
 aay
 aaE
 fkq
-aaz
+aaX
 mqn
 mqn
 mqn
@@ -121960,7 +121990,7 @@ aaG
 fkq
 aaz
 aax
-kRr
+aaU
 fkq
 fkq
 fkq
@@ -122590,7 +122620,7 @@ fkq
 pFF
 aaH
 aaH
-nDa
+aaY
 fkq
 pFF
 nDa

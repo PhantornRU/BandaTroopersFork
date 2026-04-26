@@ -21,7 +21,7 @@
 
 1. [`cmss13-pve-halo#46`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/46)
    - брать только residual scope после `15f2cc13bc`
-   - текущий tracked head для анализа: `5d6398ae32`
+   - tracked head for final verification: `8c4697c6f0` (previous anchor `5d6398ae32`; fresh Mackay lighting tail ported)
 2. [`cmss13-pve-halo#126`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/126)
    - брать delta после `1bac3e1d51`
    - текущий tracked head: `94cce6a541`
@@ -39,7 +39,9 @@
    - shrapnel/projectile follow-up
 9. [`cmss13-pve-halo#143`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/143)
    - BR55 recoil follow-up
-10. supporting BT packaging
+10. [`cmss13-pve-halo#137`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/137)
+   - audit-only modularization source; current reviewed head: `03820aa288`
+11. supporting BT packaging
    - `HALO_PORT_STATE.md`
    - `HALO_PORT_BACKLOG.md`
    - `CODEOWNERS`
@@ -83,6 +85,8 @@
 
 Статус:
 - audit-only source.
+- current reviewed head: `03820aa288`
+- fresh delta from previous anchor is legacy-layout `colonialmarines.dme` include ordering only; current BT `modular/halo/_halo.dme` does not require a runtime/code port.
 
 Что считаем no-op:
 - любую чистую modularization, уже перекрытую текущим `modular/halo/**`.
