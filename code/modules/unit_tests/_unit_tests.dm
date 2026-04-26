@@ -97,6 +97,7 @@
 // #include "halo_ship_platoons_ui.dm"
 // #include "halo_tts.dm"
 // #include "halo_unggoy_ai.dm"
+#include "halo_unggoy_equipment.dm" // SS220 EDIT: include latest upstream PR97 Unggoy armor and loadout regression coverage
 // #include "human_ai_grenade_throws.dm" // SS220 EDIT: include grenade-throw regression tests for shared human AI and HALO Sangheili hand-throw behavior
 // #include "human_ai_squad_spawner.dm" // SS220 EDIT: include Human AI squad spawner regression tests
 // #include "human_ai_inventory.dm" // SS220 EDIT: keep shared human AI store-item logic safe when held refs or storage slots disappear mid-action

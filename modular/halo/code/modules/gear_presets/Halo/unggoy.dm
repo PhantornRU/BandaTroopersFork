@@ -44,6 +44,28 @@
 	if(new_human)
 		new_human.halo_apply_species_tts_seed()
 
+/datum/equipment_preset/covenant/unggoy/proc/equip_unggoy_basics(mob/living/carbon/human/new_human, suit_type, belt_type = null)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/unggoy(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new suit_type(new_human), WEAR_JACKET)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/unggoy(new_human), WEAR_FACE)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
+	if(belt_type)
+		new_human.equip_to_slot_or_del(new belt_type(new_human), WEAR_WAIST)
+
+/datum/equipment_preset/covenant/unggoy/proc/add_unggoy_needler_crystals(mob/living/carbon/human/new_human, count = 5)
+	for(var/i in 1 to count)
+		new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/needler_crystal(new_human), WEAR_IN_BELT)
+
+/datum/equipment_preset/covenant/unggoy/proc/add_plasma_pistol_package(mob/living/carbon/human/new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/unggoy/proc/add_needler_package(mob/living/carbon/human/new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
+	add_unggoy_needler_crystals(new_human, 5)
+
+/datum/equipment_preset/covenant/unggoy/proc/add_plasma_rifle_package(mob/living/carbon/human/new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+
 // BASIC ROLES
 
 // MINOR
@@ -66,6 +88,27 @@
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/minor(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/minor/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/minor/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/minor/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/minor/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor)
+	add_plasma_rifle_package(new_human)
 
 // MAJOR
 /datum/equipment_preset/covenant/unggoy/major
@@ -97,6 +140,27 @@
 		new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/major(new_human), WEAR_WAIST)
 		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
 
+/datum/equipment_preset/covenant/unggoy/major/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/major/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/major/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/major/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/major/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/major/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/major, /obj/item/storage/belt/marine/covenant/unggoy/major)
+	add_plasma_rifle_package(new_human)
+
 // HEAVY
 /datum/equipment_preset/covenant/unggoy/heavy
 	name = parent_type::name + " тяжелый"
@@ -127,6 +191,27 @@
 		new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/heavy(new_human), WEAR_WAIST)
 		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
+/datum/equipment_preset/covenant/unggoy/heavy/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/heavy/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/heavy/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/heavy/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/heavy, /obj/item/storage/belt/marine/covenant/unggoy/heavy)
+	add_plasma_rifle_package(new_human)
+
 // Ultra
 /datum/equipment_preset/covenant/unggoy/ultra
 	name = parent_type::name + " ультра"
@@ -148,6 +233,27 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/ultra(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
+/datum/equipment_preset/covenant/unggoy/ultra/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/ultra/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/ultra, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/ultra/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/ultra/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/ultra, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/ultra/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/ultra/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/ultra, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_plasma_rifle_package(new_human)
+
 // SpecOps
 /datum/equipment_preset/covenant/unggoy/specops
 	name = parent_type::name + " SpecOps"
@@ -168,6 +274,34 @@
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/specops(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/unggoy/specops/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/specops/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/specops/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	add_plasma_rifle_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops/cloaking
+	name = parent_type::name + " (Plasma Rifle) !!CLOAKED!!"
+
+/datum/equipment_preset/covenant/unggoy/specops/cloaking/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops/lesser
 	name = parent_type::name + " (пониженный ранг)"
@@ -210,6 +344,34 @@
 	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra(new_human), WEAR_WAIST)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	add_plasma_rifle_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/cloaking
+	name = parent_type::name + " (Plasma Rifle) !!CLOAKED!!"
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/cloaking/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	add_plasma_rifle_package(new_human)
+
 // Deacon
 /datum/equipment_preset/covenant/unggoy/deacon
 	name = parent_type::name + " дьякон"
@@ -229,6 +391,27 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/unggoy(new_human), WEAR_FACE)
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_pistol(new_human), WEAR_J_STORE)
+
+/datum/equipment_preset/covenant/unggoy/deacon/plasma_pistol
+	name = parent_type::name + " (Plasma Pistol)"
+
+/datum/equipment_preset/covenant/unggoy/deacon/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/deacon, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/deacon/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/deacon/needler/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/deacon, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/deacon/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/deacon/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/deacon, /obj/item/storage/belt/marine/covenant/unggoy/ultra)
+	add_plasma_rifle_package(new_human)
 
 // AI-ONLY ROLES
 

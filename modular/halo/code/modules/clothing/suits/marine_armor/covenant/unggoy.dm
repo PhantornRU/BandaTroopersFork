@@ -18,6 +18,9 @@
 
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 
+	valid_accessory_slots = list(ACCESSORY_SLOT_UNGGOY_BICEP, ACCESSORY_SLOT_UNGGOY_SHOULDER)
+	restricted_accessory_slots = list(ACCESSORY_SLOT_UNGGOY_BICEP, ACCESSORY_SLOT_UNGGOY_SHOULDER)
+
 /obj/item/clothing/suit/marine/unggoy/minor
 	name = "боевая сбруя унггоя-минора"
 	desc = "Боевая сбруя для воинов-унггоев, выполненная из прочного наноламинатного композита и окрашенная в соответствии с рангом владельца. Из-за веса метанового баллона, который обычно крепится к сбруе, реальная площадь бронирования остаётся сравнительно небольшой и прикрывает в основном грудь, талию и плечи. <b>Этот вариант указывает, что владелец - унггой-минор.</b>"
@@ -35,7 +38,7 @@
 	icon_state = "unggoy_heavy"
 	item_state = "unggoy_heavy"
 
-	armor_bomb = CLOTHING_ARMOR_HIGH
+	armor_bomb = CLOTHING_ARMOR_VERYHIGH
 
 /obj/item/clothing/suit/marine/unggoy/ultra
 	name = "боевая сбруя унггоя-ультры"

@@ -95,6 +95,8 @@
 		/datum/equipment_preset/clf/soldier/machinegunner::name = /datum/equipment_preset/clf/soldier/machinegunner,
 		/datum/equipment_preset/mercenary/sentinel/mg::name = /datum/equipment_preset/mercenary/sentinel/mg,
 		/datum/equipment_preset/fil/rifleman/mg::name = /datum/equipment_preset/fil/rifleman/mg,
+		/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol::name = /datum/equipment_preset/covenant/unggoy/minor/plasma_pistol, // SS220 EDIT: expose modular HALO Unggoy plasma-pistol preset to the shared Human AI machinegunner creator
+		/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle::name = /datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle, // SS220 EDIT: expose modular HALO Unggoy heavy plasma-rifle preset to the shared Human AI machinegunner creator
 		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle::name = /datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle, // SS220 EDIT: expose modular HALO Ruuhtian plasma-rifle preset to the shared Human AI machinegunner creator
 	)
 
