@@ -6,6 +6,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Previous pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (2026-03-11)
 - Current pinned upstream commit for the active follow-up wave: `33a011138b2529982de18896616a7cfa9d38f376` (2026-04-24 snapshot)
+- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR refs were refreshed before final modularization.
 - Current port wave: `follow-up maps + mines/shrapnel + weapon assets/offsets + Kig-Yar PR94 refresh`
 
 ## Scope Summary
@@ -18,7 +19,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
   - map PR `#134`, `#135`, `#136`;
   - gameplay/runtime PR `#139`, `#140`, `#141`, `#143`;
   - audit-only review of `PR #137`.
-- Separate `PR #94` update ports only the fresh Kig-Yar tail from upstream `PR #97`.
+- Separate `PR #94` update ports only the fresh Kig-Yar tail from upstream `PR #97`, including semantic equivalents of `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, and `7e34c9db50`.
 
 ## BandaTroopers Sync Anchors
 - Main wave base: `master` / `upstream/master` on `66bf244f0ecf925736d9081053d35abb59fb6c6e`
@@ -29,7 +30,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - HALO guns stay modular in `modular/halo/code/modules/projectiles/guns/halo/**`; upstream HALO gun file layout is not restored.
 - HALO mine content and HALO/Covenant-specific defense support stay modular-first; upstream shared explosive/shrapnel/projectile surfaces receive only minimal glue that current BT runtime actually needs.
 - HALO Kig-Yar armor/shield/loadout wiring in `PR #94` stays on `ruuhtian` modular files instead of upstream `standard.dm` layout.
-- `PR #137` is treated as an audit source, not as a mandatory refactor import. Only missing runtime objects/contracts may be copied from it.
+- `PR #137` is treated as an audit source, not as a mandatory refactor import. Current reviewed head is `b8067cc367`; only missing runtime objects/contracts may be copied from it.
 
 ## Compatibility Hotspots
 - Recheck `modular/halo/code/modules/projectiles/guns/halo/{unsc_guns,unsc_gun_attachables}.dm` together with `icons/halo/obj/items/weapons/guns_by_faction/unsc/*.dmi`.

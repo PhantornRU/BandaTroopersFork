@@ -6,6 +6,7 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Previous pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (`2026-03-11`)
 - Target upstream head for this wave: `33a011138b2529982de18896616a7cfa9d38f376` (`2026-04-24 snapshot`)
+- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization.
 - BandaTroopers execution model:
   - PR 1: new main HALO follow-up wave from `master`
   - PR 2: update existing `ss220club/BandaTroopers#94` with fresh `PR #97` tail only
@@ -31,7 +32,7 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 
 | Upstream PR | Title | Local State At Start | Planned Action |
 | --- | --- | --- | --- |
-| [`#97`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/97) | Kig-Yar framework | BT `PR #94` already contains the base port, but misses the fresh tail | port only `21fe2b79f4`, `4424f96051`, `7e34c9db50` through current modular layout |
+| [`#97`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/97) | Kig-Yar framework | BT `PR #94` already contains the base port, but missed the refreshed tail | port `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, `7e34c9db50` through current modular layout |
 | [`#100`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/100) | Spartan stuff | already represented by current `PR #94` base | no new scope requested in this follow-up wave |
 
 ## Branch Status

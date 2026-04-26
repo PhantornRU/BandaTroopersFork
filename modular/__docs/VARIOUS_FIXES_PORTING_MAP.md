@@ -8,6 +8,7 @@
 ## База пересборки
 
 - source-of-truth upstream repo: `https://github.com/cmss13-devs/cmss13-pve-halo`
+- latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR heads below were rechecked against their live heads.
 - merged BT baseline перед этой волной: `ss220club/BandaTroopers#93`
 - base main-wave ветки: `ss220club/master` на `66bf244f0ecf925736d9081053d35abb59fb6c6e`
 - source upstream head для этой волны: `cm-pve-halo/master` на `33a011138b2529982de18896616a7cfa9d38f376`
@@ -40,7 +41,7 @@
 9. [`cmss13-pve-halo#143`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/143)
    - BR55 recoil follow-up
 10. [`cmss13-pve-halo#137`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/137)
-   - audit-only modularization source; current reviewed head: `03820aa288`
+   - audit-only modularization source; current reviewed head: `b8067cc367`
 11. supporting BT packaging
    - `HALO_PORT_STATE.md`
    - `HALO_PORT_BACKLOG.md`
@@ -55,7 +56,13 @@
    - переносится в текущие `ruuhtian` armor contracts
 2. semantic equivalent `4424f96051` `gawfwsdfsad`
    - shield typepath/item state/onmob icons + preset wiring
-3. semantic equivalent `7e34c9db50` `Update colonialmarines.dme`
+3. semantic equivalent `4996ca9d10` `Delete standard.dm`
+   - stale upstream `standard.dm` layout is intentionally absent in BT; scope remains in modular Ruuhtian files
+4. semantic equivalent `437039a158` `gaaa`
+   - Ruuhtian emote/species access and shield block values; emote access was already covered, shield values are ported in modular shield type
+5. semantic equivalent `f9c7909f44` `mega pr stuff`
+   - modular Ruuhtian loadout variants, AI preset registry, job defines, and minimal Human AI creator glue
+6. semantic equivalent `7e34c9db50` `Update colonialmarines.dme`
    - переносится только если реально нужен текущему BT include graph; иначе фиксируется как audited no-op
 4. filled changelog snippet для обновления `PR #94`
 
@@ -79,13 +86,14 @@
 Что сохраняем:
 - armor stat/default fixes;
 - Kig-Yar shield runtime/preset wiring;
+- modular Ruuhtian weapon variants and Human AI preset exposure from `f9c7909f44`;
 - include-coverage только там, где current BT graph действительно этого требует.
 
 ### 3. `PR #137`
 
 Статус:
 - audit-only source.
-- current reviewed head: `03820aa288`
+- current reviewed head: `b8067cc367`
 - fresh delta from previous anchor is legacy-layout `colonialmarines.dme` include ordering only; current BT `modular/halo/_halo.dme` does not require a runtime/code port.
 
 Что считаем no-op:

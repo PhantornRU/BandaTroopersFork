@@ -1,3 +1,4 @@
+// SS220 EDIT: unit coverage for modular HALO Covenant mine and breaching-charge wiring.
 /datum/unit_test/halo_covenant_mine_wiring
 /datum/unit_test/halo_covenant_mine_wiring/Run()
 	var/obj/item/explosive/mine/covenant/plasma/plasma_mine = allocate(/obj/item/explosive/mine/covenant/plasma)
