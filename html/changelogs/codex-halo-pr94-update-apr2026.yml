@@ -1,0 +1,5 @@
+author: Codex
+delete-after: True
+changes:
+  - tweak: "Updated the HALO Kig-Yar follow-up from upstream PR #97 for BT modular layout, keeping the riot shield loadout wiring and restoring the missing Ruuhtian harness armor baseline."
+  - rscadd: "Added a targeted unit test that covers the Ruuhtian minor preset, shield slot wiring and expected harness armor values."

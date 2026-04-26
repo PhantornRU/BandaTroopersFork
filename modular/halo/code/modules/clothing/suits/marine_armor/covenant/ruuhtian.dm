@@ -11,6 +11,9 @@
 		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/armor.dmi'
 	)
 	allowed_species_list = list(SPECIES_RUUHTIAN)
+	armor_melee = CLOTHING_ARMOR_MEDIUMHIGH
+	armor_bullet = CLOTHING_ARMOR_MEDIUMHIGH
+	armor_laser = CLOTHING_ARMOR_MEDIUMHIGH
 
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 

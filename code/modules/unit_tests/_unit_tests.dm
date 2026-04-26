@@ -85,6 +85,7 @@
 // #include "halo_ammo_drops.dm" // keep HALO RTO support and ammo-drop regression coverage active on this branch
 // #include "halo_ai_localization.dm"
 // #include "halo_name_localization.dm" // cover the explicit localized display-name helper used for future HALO name migration
+#include "halo_ruuhtian_equipment.dm"
 // #include "halo_sangheili_equipment.dm"
 // #include "halo_sangheili_equipment_ai.dm"
 // #include "halo_sangheili_equipment_shields.dm"
