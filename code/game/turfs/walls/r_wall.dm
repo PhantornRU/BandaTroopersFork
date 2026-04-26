@@ -225,6 +225,9 @@
 	icon_state = "bunker"
 	walltype = WALL_REINFORCED_BUNKER
 
+/turf/closed/wall/r_wall/bunker/hull
+	hull = TRUE
+
 //Prison
 
 /turf/closed/wall/r_wall/prison
@@ -293,4 +296,3 @@
 
 /turf/closed/wall/r_wall/elevator/button/arrivals
 	icon_state = "wall_button_arrivals"
-
