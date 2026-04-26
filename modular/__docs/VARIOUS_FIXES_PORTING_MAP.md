@@ -50,7 +50,7 @@
 
 ## Что входит в update ветки PR94
 
-Ветка `codex/pr94-update` содержит только свежий Kig-Yar хвост:
+Ветка `codex/pr94-update` содержит только свежий Kig-Yar/Unggoy хвост из `PR #97`:
 
 1. semantic equivalent `21fe2b79f4` `Update standard.dm`
    - переносится в текущие `ruuhtian` armor contracts
@@ -62,6 +62,7 @@
    - Ruuhtian emote/species access and shield block values; emote access was already covered, shield values are ported in modular shield type
 5. semantic equivalent `f9c7909f44` `mega pr stuff`
    - modular Ruuhtian loadout variants, AI preset registry, job defines, and minimal Human AI creator glue
+   - Unggoy harness accessory slots, heavy blast armor, deterministic weapon preset variants, and Human AI machinegunner exposure
 6. semantic equivalent `7e34c9db50` `Update colonialmarines.dme`
    - переносится только если реально нужен текущему BT include graph; иначе фиксируется как audited no-op
 4. filled changelog snippet для обновления `PR #94`
@@ -81,12 +82,13 @@
 
 Почему не переносится file-to-file:
 - upstream свежие изменения приходят в `code/modules/clothing/suits/marine_armor/covenant/standard.dm`;
-- в BT этот scope уже разложен по `modular/halo/**`, включая `ruuhtian.dm` и modular shield wiring.
+- в BT этот scope уже разложен по `modular/halo/**`, включая `ruuhtian.dm`, `unggoy.dm` и modular shield/loadout wiring.
 
 Что сохраняем:
 - armor stat/default fixes;
 - Kig-Yar shield runtime/preset wiring;
 - modular Ruuhtian weapon variants and Human AI preset exposure from `f9c7909f44`;
+- modular Unggoy harness slots, heavy armor value, weapon preset variants and Human AI preset exposure from `f9c7909f44`;
 - include-coverage только там, где current BT graph действительно этого требует.
 
 ### 3. `PR #137`
@@ -109,12 +111,14 @@
 1. `modular/halo/code/modules/projectiles/guns/halo/unsc_guns.dm`
 2. `modular/halo/code/game/objects/items/weapons/halo_shields.dm`
 3. `modular/halo/code/modules/gear_presets/Halo/ruuhtian.dm`
-4. `code/game/objects/items/explosives/mine.dm`
-5. `code/datums/ammo/shrapnel.dm`
-6. `code/modules/projectiles/projectile.dm`
-7. `code/modules/mob/living/carbon/human/ai/defense_creator.dm`
-8. `maps/map_files/halo_new_irvine_covenant/halo_new_irvine_covenant.dmm`
-9. `maps/map_files/{oni_shield_base,valorous_chant,686_regretful_flame}/`
+4. `modular/halo/code/modules/gear_presets/Halo/unggoy.dm`
+5. `modular/halo/code/modules/clothing/suits/marine_armor/covenant/unggoy.dm`
+6. `code/game/objects/items/explosives/mine.dm`
+7. `code/datums/ammo/shrapnel.dm`
+8. `code/modules/projectiles/projectile.dm`
+9. `code/modules/mob/living/carbon/human/ai/defense_creator.dm`
+10. `maps/map_files/halo_new_irvine_covenant/halo_new_irvine_covenant.dmm`
+11. `maps/map_files/{oni_shield_base,valorous_chant,686_regretful_flame}/`
 
 Причина:
 - именно здесь пересекаются modular/upstream split, shared runtime glue, map compile risks и fresh HALO asset contracts.
@@ -133,5 +137,5 @@ Main PR:
 PR94 update:
 - ветка: `codex/pr94-update`
 - scope:
-  - только свежий Kig-Yar tail из `#97`
+  - только свежий Kig-Yar/Unggoy tail из `#97`
   - без нового Spartan scope

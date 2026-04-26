@@ -9,7 +9,7 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization.
 - BandaTroopers execution model:
   - PR 1: new main HALO follow-up wave from `master`
-  - PR 2: update existing `ss220club/BandaTroopers#94` with fresh `PR #97` tail only
+  - PR 2: update existing `ss220club/BandaTroopers#94` with fresh Kig-Yar/Unggoy `PR #97` tail only
 
 ## Requested Upstream PR Matrix
 
@@ -32,7 +32,7 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 
 | Upstream PR | Title | Local State At Start | Planned Action |
 | --- | --- | --- | --- |
-| [`#97`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/97) | Kig-Yar framework | BT `PR #94` already contains the base port, but missed the refreshed tail | port `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, `7e34c9db50` through current modular layout |
+| [`#97`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/97) | Kig-Yar framework plus Unggoy tail | BT `PR #94` already contains the base port, but missed the refreshed tail | port `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, `7e34c9db50` through current modular layout |
 | [`#100`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/100) | Spartan stuff | already represented by current `PR #94` base | no new scope requested in this follow-up wave |
 
 ## Branch Status
@@ -50,6 +50,8 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - `modular/halo/code/modules/projectiles/guns/halo/{unsc_guns,unsc_gun_attachables}.dm`
 - `modular/halo/code/game/objects/items/weapons/halo_shields.dm`
 - `modular/halo/code/modules/gear_presets/Halo/ruuhtian.dm`
+- `modular/halo/code/modules/gear_presets/Halo/unggoy.dm`
+- `modular/halo/code/modules/clothing/suits/marine_armor/covenant/unggoy.dm`
 
 ## Update Rules
 - Update this document in the same commits that change HALO port coverage or the upstream sync target.
