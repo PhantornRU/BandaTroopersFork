@@ -4,6 +4,10 @@
 
 /datum/unit_test/halo_preset_coverage/Run()
 	var/list/equipment_presets = list(
+		/datum/equipment_preset/covenant/sangheili/minor,
+		/datum/equipment_preset/covenant/sangheili/major,
+		/datum/equipment_preset/covenant/sangheili/ultra,
+		/datum/equipment_preset/covenant/sangheili/zealot,
 		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle,
 		/datum/equipment_preset/covenant/sangheili/minor/needler,
 		/datum/equipment_preset/covenant/sangheili/minor/carbine,
@@ -24,6 +28,10 @@
 		/datum/equipment_preset/covenant/sangheili/stealth,
 		/datum/equipment_preset/covenant/sangheili/stealth/needler,
 		/datum/equipment_preset/covenant/sangheili/honor_guard,
+		/datum/equipment_preset/covenant/unggoy/minor,
+		/datum/equipment_preset/covenant/unggoy/major,
+		/datum/equipment_preset/covenant/unggoy/heavy,
+		/datum/equipment_preset/covenant/unggoy/ultra,
 		/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/minor/needler,
 		/datum/equipment_preset/covenant/unggoy/minor/plasma_rifle,
@@ -36,6 +44,10 @@
 		/datum/equipment_preset/covenant/unggoy/ultra/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/ultra/needler,
 		/datum/equipment_preset/covenant/unggoy/ultra/plasma_rifle,
+		/datum/equipment_preset/covenant/unggoy/specops,
+		/datum/equipment_preset/covenant/unggoy/specops/lesser,
+		/datum/equipment_preset/covenant/unggoy/specops_ultra,
+		/datum/equipment_preset/covenant/unggoy/deacon,
 		/datum/equipment_preset/covenant/unggoy/specops/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/specops/needler,
 		/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle,
@@ -47,6 +59,11 @@
 		/datum/equipment_preset/covenant/unggoy/deacon/plasma_rifle,
 		/datum/equipment_preset/covenant/unggoy/ai/support_medical,
 		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber,
+		/datum/equipment_preset/covenant/ruuhtian/minor,
+		/datum/equipment_preset/covenant/ruuhtian/major,
+		/datum/equipment_preset/covenant/ruuhtian/ultra,
+		/datum/equipment_preset/covenant/ruuhtian/marksman,
+		/datum/equipment_preset/covenant/ruuhtian/sniper,
 		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol,
 		/datum/equipment_preset/covenant/ruuhtian/minor/needler,
 		/datum/equipment_preset/covenant/ruuhtian/major/needler,
@@ -119,6 +136,24 @@
 	validate_equipment_faction(/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle, FACTION_SPECOPS_UNGGOY)
 	validate_equipment_faction(/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol, FACTION_KIGYAR)
 	validate_equipment_faction(/datum/equipment_preset/unsc/spartan/equipped, FACTION_UNSC)
+
+	validate_store_weapon(/datum/equipment_preset/covenant/sangheili/minor, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/sangheili/major, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/sangheili/ultra, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/sangheili/zealot, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/minor, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/major, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/heavy, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/ultra, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops/lesser, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops_ultra, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/deacon, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
+	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/minor, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
+	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/major, /obj/item/weapon/gun/smg/covenant_needler)
+	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/ultra, /obj/item/weapon/gun/smg/covenant_needler)
+	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/marksman, /obj/item/weapon/gun/rifle/covenant_carbine)
+	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/sniper, /obj/item/weapon/gun/rifle/covenant_carbine)
 
 	var/list/human_ai_presets = list(
 		/datum/human_ai_equipment_preset/covenant/sangheili/minor = FACTION_SANGHEILI,
@@ -196,6 +231,15 @@
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	if(!test_human.species || test_human.species.name != expected_species)
 		Fail("[preset_path] expected species [expected_species], got [test_human.species?.name || "none"]", __FILE__, __LINE__)
+	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_store_weapon(preset_path, expected_type)
+	var/datum/equipment_preset/preset = new preset_path
+	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
+	var/obj/item/stored_item = test_human.get_item_by_slot(WEAR_J_STORE)
+	if(!istype(stored_item, expected_type))
+		Fail("[preset_path] expected [expected_type] in suit storage, got [stored_item?.type || "none"]", __FILE__, __LINE__)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_equipment_faction(preset_path, expected_faction)

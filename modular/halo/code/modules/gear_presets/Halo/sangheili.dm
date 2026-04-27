@@ -144,11 +144,7 @@
 
 /datum/equipment_preset/covenant/sangheili/minor/load_gear(mob/living/carbon/human/new_human)
 	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/minor, /obj/item/clothing/suit/marine/shielded/sangheili/minor, /obj/item/clothing/gloves/marine/sangheili/minor, /obj/item/clothing/shoes/sangheili/minor, /obj/item/storage/belt/marine/covenant/sangheili/minor)
-	if(prob(80))
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
-	else
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/smg/covenant_needler(new_human), WEAR_J_STORE)
-		add_needler_crystals(new_human, 5)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
 // =================================
 // Major
@@ -168,11 +164,7 @@
 
 /datum/equipment_preset/covenant/sangheili/major/load_gear(mob/living/carbon/human/new_human)
 	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/major, /obj/item/clothing/suit/marine/shielded/sangheili/major, /obj/item/clothing/gloves/marine/sangheili/major, /obj/item/clothing/shoes/sangheili/major, /obj/item/storage/belt/marine/covenant/sangheili/major)
-	if(prob(60))
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
-	else
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/covenant_carbine(new_human), WEAR_J_STORE)
-		add_carbine_mags(new_human, 5)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 	add_rank_utility(new_human, "major")
 
 // =================================
@@ -193,11 +185,7 @@
 
 /datum/equipment_preset/covenant/sangheili/ultra/load_gear(mob/living/carbon/human/new_human)
 	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/ultra, /obj/item/clothing/suit/marine/shielded/sangheili/ultra, /obj/item/clothing/gloves/marine/sangheili/ultra, /obj/item/clothing/shoes/sangheili/ultra, /obj/item/storage/belt/marine/covenant/sangheili/ultra)
-	if(prob(60))
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
-	else
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/covenant_carbine(new_human), WEAR_J_STORE)
-		add_carbine_mags(new_human, 5)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 	add_rank_utility(new_human, "ultra")
 
 // =================================
@@ -218,11 +206,7 @@
 
 /datum/equipment_preset/covenant/sangheili/zealot/load_gear(mob/living/carbon/human/new_human)
 	equip_sangheili_basics(new_human, /obj/item/clothing/head/helmet/marine/sangheili/zealot, /obj/item/clothing/suit/marine/shielded/sangheili/zealot, /obj/item/clothing/gloves/marine/sangheili/zealot, /obj/item/clothing/shoes/sangheili/zealot, /obj/item/storage/belt/marine/covenant/sangheili/zealot)
-	if(prob(60))
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
-	else
-		new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/rifle/covenant_carbine(new_human), WEAR_J_STORE)
-		add_carbine_mags(new_human, 5)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 	add_rank_utility(new_human, "zealot")
 
 // AI-ONLY ROLES

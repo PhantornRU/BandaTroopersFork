@@ -19,6 +19,7 @@
 	TEST_ASSERT(istype(human.wear_suit, /obj/item/clothing/suit/marine/ruuhtian/minor), "Kig-Yar preset did not equip the expected minor harness.")
 	TEST_ASSERT(istype(human.belt, /obj/item/storage/belt/marine/covenant/ruuhtian/minor), "Kig-Yar preset did not equip the expected Ruuhtian belt.")
 	TEST_ASSERT(istype(human.l_store, /obj/item/weapon/shield/riot/covenant), "Kig-Yar preset did not equip the expected point defense gauntlet.")
+	TEST_ASSERT(istype(human.r_store, /obj/item/weapon/gun/energy/plasma/plasma_pistol), "Kig-Yar minor root preset drifted from the expected plasma-pistol default.")
 
 	var/obj/item/clothing/suit/marine/ruuhtian/minor/harness = human.wear_suit
 	TEST_ASSERT_EQUAL(harness.armor_melee, CLOTHING_ARMOR_MEDIUMHIGH, "Ruuhtian harness melee armor drifted from the expected medium-high baseline.")
@@ -45,6 +46,22 @@
 
 	var/datum/human_ai_equipment_preset/covenant/ruuhtian/sniper/ai_sniper = new
 	TEST_ASSERT_EQUAL(ai_sniper.path, /datum/equipment_preset/covenant/ruuhtian/sniper/carbine, "Ruuhtian sniper AI preset did not point to the latest PR97 carbine loadout.")
+
+/datum/unit_test/halo_ruuhtian_root_defaults
+	parent_type = /datum/unit_test/halo_ruuhtian_equipment
+
+/datum/unit_test/halo_ruuhtian_root_defaults/Run()
+	var/mob/living/carbon/human/major = create_test_human()
+	arm_equipment(major, /datum/equipment_preset/covenant/ruuhtian/major, FALSE)
+	TEST_ASSERT(istype(major.r_store, /obj/item/weapon/gun/smg/covenant_needler), "Ruuhtian major root preset drifted from the expected needler default.")
+
+	var/mob/living/carbon/human/ultra = create_test_human()
+	arm_equipment(ultra, /datum/equipment_preset/covenant/ruuhtian/ultra, FALSE)
+	TEST_ASSERT(istype(ultra.r_store, /obj/item/weapon/gun/smg/covenant_needler), "Ruuhtian ultra root preset drifted from the expected needler default.")
+
+	var/mob/living/carbon/human/marksman = create_test_human()
+	arm_equipment(marksman, /datum/equipment_preset/covenant/ruuhtian/marksman, FALSE)
+	TEST_ASSERT(istype(marksman.r_store, /obj/item/weapon/gun/rifle/covenant_carbine), "Ruuhtian marksman root preset drifted from the expected carbine default.")
 
 /datum/unit_test/halo_ruuhtian_preset_coverage
 	parent_type = /datum/unit_test/halo_ruuhtian_equipment

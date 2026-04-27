@@ -523,6 +523,42 @@
 		new_human.equip_to_slot_or_del(new shoulder_path(new_human), WEAR_ACCESSORY)
 	if(bicep_path)
 		new_human.equip_to_slot_or_del(new bicep_path(new_human), WEAR_ACCESSORY)
+	ensure_grunt_full_kit(new_human, mask_rank, tank_rank, pads_rank)
+
+/datum/equipment_preset/proc/ensure_grunt_full_kit(mob/living/carbon/human/new_human, mask_rank, tank_rank, pads_rank)
+	if(!istype(new_human))
+		return
+
+	if(!new_human.head && !new_human.wear_mask)
+		var/helmet_path = text2path("/obj/item/clothing/head/helmet/marine/unggoy/[mask_rank]")
+		if(helmet_path)
+			new_human.equip_to_slot_or_del(new helmet_path(new_human), WEAR_HEAD)
+		else
+			new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/unggoy(new_human), WEAR_FACE)
+
+	if(!new_human.back)
+		var/list/tank_candidates = list(
+			text2path("/obj/item/storage/backpack/covenant/unggoy/[tank_rank]/pointy"),
+			text2path("/obj/item/storage/backpack/covenant/unggoy/[tank_rank]/curlback"),
+			text2path("/obj/item/storage/backpack/covenant/unggoy/[tank_rank]/doubleprong"),
+			text2path("/obj/item/storage/backpack/covenant/unggoy/[tank_rank]/canister"),
+		)
+		for(var/tank_path in tank_candidates)
+			if(!tank_path)
+				continue
+			new_human.equip_to_slot_or_del(new tank_path(new_human), WEAR_BACK)
+			if(new_human.back)
+				break
+
+	if(!new_human.gloves)
+		var/gloves_path = text2path("/obj/item/clothing/gloves/marine/unggoy/[pads_rank]")
+		if(gloves_path)
+			new_human.equip_to_slot_or_del(new gloves_path(new_human), WEAR_HANDS)
+
+	if(!new_human.shoes)
+		var/shoes_path = text2path("/obj/item/clothing/shoes/unggoy/[pads_rank]")
+		if(shoes_path)
+			new_human.equip_to_slot_or_del(new shoes_path(new_human), WEAR_FEET)
 
 /datum/equipment_preset/proc/add_grunt_minor(mob/living/carbon/human/new_human)
 	add_grunt_rank_gear(new_human, /obj/item/clothing/suit/marine/unggoy/minor, /obj/item/storage/belt/marine/covenant/unggoy/minor, "minor", "minor", "minor")

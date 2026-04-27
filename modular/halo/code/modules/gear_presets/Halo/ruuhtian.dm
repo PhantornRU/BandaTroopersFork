@@ -149,7 +149,7 @@
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/load_gear(mob/living/carbon/human/new_human)
 	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
-	add_plasma_rifle_package(new_human)
+	add_needler_package(new_human)
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/needler
 	name = parent_type::name + " (Needler)"
