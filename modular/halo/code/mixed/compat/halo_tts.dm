@@ -34,6 +34,16 @@ GLOBAL_LIST_INIT(halo_tts_seed_plans, list(
 			),
 		),
 	),
+	SPECIES_RUUHTIAN = list(
+		"default" = "Ziggs",
+		"packs" = list(
+			"Pack A (Recommended)" = list(
+				"Ziggs",
+				"Twitch",
+				"Gazlowe",
+			),
+		),
+	),
 ))
 
 /proc/halo_get_tts_seed_plan(species_name)

@@ -158,3 +158,39 @@
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_sword = 1,
 		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
 	)
+
+/datum/human_ai_squad_preset/covenant/ruuhtian_patrol_pair
+	name = "Kig-Yar Patrol Pair"
+	desc = "A light Kig-Yar patrol with a plasma rifle major and needler minor."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/ruuhtian/minor/needler = 1,
+	)
+
+/datum/human_ai_squad_preset/covenant/ruuhtian_marksman_overwatch
+	name = "Kig-Yar Marksman Overwatch"
+	desc = "A Kig-Yar marksman cell with carbine overwatch and shielded escorts."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 2,
+	)
+
+/datum/human_ai_squad_preset/covenant/ruuhtian_sniper_cell
+	name = "Kig-Yar Sniper Cell"
+	desc = "A Kig-Yar sniper element with a carbine sniper and marksman support."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/ruuhtian/sniper/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/major/needler = 1,
+	)
+
+/datum/human_ai_squad_preset/covenant/kigyar_unggoy_lance
+	name = "Kig-Yar/Unggoy Lance"
+	desc = "A mixed Covenant lance with Kig-Yar carbine support and Unggoy infantry."
+	ai_to_spawn = list(
+		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = 1,
+		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 3,
+	)
