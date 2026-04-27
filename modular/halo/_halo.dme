@@ -101,6 +101,7 @@
 #include "code/mixed/structures/halo_windows.dm"
 #include "code/mixed/turfs/halo_floors.dm"
 #include "code/mixed/turfs/halo_forerunner.dm"
+#include "code/mixed/turfs/halo_new_irvine_auto_turfs.dm"
 #include "code/mixed/turfs/halo_imported_map_turfs.dm"
 #include "code/mixed/turfs/halo_imported_map_walls.dm"
 #include "code/mixed/turfs/halo_new_varadero.dm"

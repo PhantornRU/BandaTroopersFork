@@ -41,6 +41,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - Covenant gear/faction/loadout sync from upstream `PR #129/#132/#138` stays in modular `modular/halo/**` files. Shared faction defines are limited to the existing `SS220 EDIT` HALO faction block in `code/__DEFINES/mode.dm`.
 - Flavor text updates from upstream `PR #118` stay in `modular/halo/code/mixed/flavor/halo_master_flavor.dm`; the upstream `modular_pve_halo/**` layout is not imported.
 - The `prime_priority` removal from upstream `PR #113` is applied through `modular/halo/code/mixed/jobs/halo_master_job_overrides.dm` instead of editing the base job files.
+- `PR #126` New Irvine auto-grass turf definitions stay in `modular/halo/code/mixed/turfs/halo_new_irvine_auto_turfs.dm`; the base `r_wall/bunker/hull` subtype is intentionally anchored as a tiny `SS220 EDIT` shared wall compatibility block because New Irvine DMMs reference the shared wall path directly.
 - `PR #142` is treated as covered because current `maps/shuttles/dropship_pelican.dmm` already contains the additional Pelican roof nodes. `PR #144` has no runtime delta for BT beyond the already present PhantornRU CODEOWNERS section.
 - `PR #137` is treated as an audit source, not as a mandatory refactor import. Current reviewed head is `b8067cc367`; only missing runtime objects/contracts may be copied from it.
 
@@ -50,6 +51,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - Recheck `code/modules/mob/living/carbon/human/ai/defense_creator.dm` for overlap between existing BT mine logic and upstream `PR #139`.
 - Recheck `modular/halo/code/modules/gear_presets/Halo/{ruuhtian,unggoy}.dm`, `modular/halo/code/modules/clothing/suits/marine_armor/covenant/unggoy.dm`, and the shared Human AI creator preset lists together for `PR #97`.
 - Recheck `code/game/area/halo_new_irvine.dm`, `code/modules/cm_phone/halo/phone_base.dm`, and both New Irvine map/json files together.
+- Recheck `modular/halo/code/mixed/turfs/halo_new_irvine_auto_turfs.dm`, `icons/turf/floors/auto_forest_irvine.dmi`, New Irvine flora/area DMI assets, and `code/game/turfs/walls/r_wall.dm` together for `PR #126` map/turf parity.
 - Recheck `map_config/maps.txt`, `code/modules/cm_marines/equipment/maps.dm`, and any new area/map prop hooks together for map PR `#134/#135/#136`.
 - Recheck `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm`, `maps/shuttles/bumblebee_west.dmm`, and `modular/halo/code/modules/shuttle/halo/bumblebee.dm` together for `PR #145`.
 - Recheck `code/_onclick/hud/human.dm`, `modular/halo/code/mixed/components/halo_motion_sensor.dm`, and `modular/halo/code/mixed/clothing/unsc_helmets.dm` together for `PR #146`.

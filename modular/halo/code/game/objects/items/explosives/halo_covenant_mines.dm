@@ -1,5 +1,5 @@
 /proc/is_halo_covenant_species(mob/living/carbon/human/user)
-	return isunggoy(user) || issangheili(user)
+	return istype(user) && (isunggoy(user) || issangheili(user))
 
 /obj/item/explosive/mine/covenant
 	icon = 'icons/obj/items/weapons/covenant_mines.dmi'

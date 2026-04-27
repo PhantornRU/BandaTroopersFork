@@ -27,6 +27,7 @@
 2. [`cmss13-pve-halo#126`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/126)
    - брать delta после `1bac3e1d51`
    - текущий tracked head: `94cce6a541`
+   - targeted follow-up: `r_wall/bunker/hull` is anchored in shared `code/game/turfs/walls/r_wall.dm` as minimal `SS220 EDIT` compatibility glue; New Irvine `irvine_grass` auto-turf definitions stay in `modular/halo/code/mixed/turfs/halo_new_irvine_auto_turfs.dm`; missing New Irvine DMI assets are imported from `94cce6a541`
 3. [`cmss13-pve-halo#134`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/134)
    - `ONI Shield Base`
 4. [`cmss13-pve-halo#135`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/135)
