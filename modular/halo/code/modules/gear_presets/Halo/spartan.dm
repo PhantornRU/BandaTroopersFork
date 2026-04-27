@@ -106,7 +106,17 @@
 	new_human.equip_to_slot_or_del(new /obj/item/ammo_magazine/pistol/halo/m6d(new_human), WEAR_IN_ACCESSORY)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full(new_human), WEAR_L_STORE)
 	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full_bio(new_human), WEAR_R_STORE)
-	new_human.equip_to_slot_or_del(new /obj/item/storage/large_holster/spnkr/filled(new_human), WEAR_BACK)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/large_holster/spnkr/filled/launcher(new_human), WEAR_BACK)
+
+/datum/equipment_preset/unsc/spartan/spnkr/ai_man
+	name = parent_type::name + " (AI)"
+
+/datum/equipment_preset/unsc/spartan/spnkr/ai_man/load_gear(mob/living/carbon/human/new_human)
+	equip_spartan_basics(new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/belt/marine(new_human), WEAR_WAIST)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full(new_human), WEAR_L_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/pouch/medkit/unsc/full_bio(new_human), WEAR_R_STORE)
+	new_human.equip_to_slot_or_del(new /obj/item/storage/large_holster/spnkr/filled/launcher(new_human), WEAR_BACK)
 
 /datum/equipment_preset/unsc/spartan/cqc
 	name = "Spartan CQC"

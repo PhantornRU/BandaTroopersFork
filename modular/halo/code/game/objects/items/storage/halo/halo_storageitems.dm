@@ -350,7 +350,7 @@
 /obj/item/storage/large_holster/spnkr/filled/launcher/fill_preset_inventory()
 	for(var/i = 1 to 2)
 		new /obj/item/ammo_magazine/spnkr(src)
-	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr())
+	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded())
 	update_icon()
 
 /obj/item/storage/backpack/marine/ammo_rack/spnkr
@@ -419,11 +419,7 @@
 	storage_slots = 5
 
 /obj/item/storage/unsc_speckit/spnkr/fill_preset_inventory()
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/storage/large_holster/spnkr(src)
-	new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded(src)
+	new /obj/item/storage/large_holster/spnkr/filled/launcher(src)
 
 /obj/item/storage/unsc_speckit/srs99
 	name = "кейс комплекта SRS99-AM"

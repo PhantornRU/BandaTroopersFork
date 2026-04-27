@@ -154,6 +154,11 @@
 	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/ultra, /obj/item/weapon/gun/smg/covenant_needler)
 	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/marksman, /obj/item/weapon/gun/rifle/covenant_carbine)
 	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/sniper, /obj/item/weapon/gun/rifle/covenant_carbine)
+	validate_spnkr_pack(/datum/equipment_preset/unsc/spec/equipped_spnkr/ai_man)
+	validate_spnkr_pack(/datum/equipment_preset/unsc/spec/odst/equipped_spnkr/ai_man)
+	validate_spnkr_pack(/datum/equipment_preset/unsc/spartan/spnkr)
+	validate_spnkr_pack(/datum/equipment_preset/unsc/spartan/spnkr/ai_man)
+	validate_designated_rifle_resupply()
 
 	var/list/human_ai_presets = list(
 		/datum/human_ai_equipment_preset/covenant/sangheili/minor = FACTION_SANGHEILI,
@@ -241,6 +246,44 @@
 	if(!istype(stored_item, expected_type))
 		Fail("[preset_path] expected [expected_type] in suit storage, got [stored_item?.type || "none"]", __FILE__, __LINE__)
 	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_spnkr_pack(preset_path)
+	var/datum/equipment_preset/preset = new preset_path
+	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
+	var/obj/item/storage/large_holster/spnkr/spnkr_pack = test_human.get_item_by_slot(WEAR_BACK)
+	if(!istype(spnkr_pack))
+		Fail("[preset_path] did not equip a SPNKr transport pack on the back slot", __FILE__, __LINE__)
+		qdel(preset)
+		return
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo in spnkr_pack.contents)
+		ammo_count++
+	if(ammo_count != 2)
+		Fail("[preset_path] expected 2 SPNKr rocket tubes in the pack, got [ammo_count]", __FILE__, __LINE__)
+	if(!locate(/obj/item/weapon/gun/halo_launcher/spnkr/unloaded, spnkr_pack.contents))
+		Fail("[preset_path] expected an unloaded M41 SPNKr inside the pack", __FILE__, __LINE__)
+	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_designated_rifle_resupply()
+	var/obj/item/ammo_box/magazine/unsc/dmr/dmr_box = new
+	if(dmr_box.magazine_type != /obj/item/ammo_magazine/rifle/halo/dmr)
+		Fail("HALO DMR ammo box points to [dmr_box.magazine_type] instead of the M392 magazine type", __FILE__, __LINE__)
+	if(dmr_box.num_of_magazines != 24)
+		Fail("HALO DMR ammo box expected 24 magazines, got [dmr_box.num_of_magazines]", __FILE__, __LINE__)
+	qdel(dmr_box)
+
+	var/obj/structure/largecrate/supply/ammo/halo/rifle/rifle_case = new
+	if(rifle_case.supplies[/obj/item/ammo_box/magazine/unsc/br55])
+		Fail("HALO rifle ammo case still carries BR55 magazines instead of keeping them with designated-rifle resupply", __FILE__, __LINE__)
+	qdel(rifle_case)
+
+	var/obj/structure/largecrate/supply/ammo/halo/marksman/marksman_case = new
+	if(marksman_case.supplies[/obj/item/ammo_box/magazine/unsc/br55] != 2)
+		Fail("HALO designated-rifle ammo case is missing BR55 reserve boxes", __FILE__, __LINE__)
+	if(marksman_case.supplies[/obj/item/ammo_box/magazine/unsc/dmr] != 2)
+		Fail("HALO designated-rifle ammo case is missing DMR reserve boxes", __FILE__, __LINE__)
+	qdel(marksman_case)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_equipment_faction(preset_path, expected_faction)
 	var/datum/equipment_preset/preset = new preset_path

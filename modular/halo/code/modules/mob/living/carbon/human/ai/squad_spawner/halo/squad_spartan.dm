@@ -20,7 +20,7 @@
 	name = "UNSC, Spartan Hunter-Killer Team"
 	desc = "A compact Spartan hunter-killer element with anti-armor and breaching support."
 	ai_to_spawn = list(
-		/datum/equipment_preset/unsc/spartan/spnkr = 1,
+		/datum/equipment_preset/unsc/spartan/spnkr/ai_man = 1,
 		/datum/equipment_preset/unsc/spartan/cqc = 1,
 		/datum/equipment_preset/unsc/spartan/equipped = 1,
 	)
@@ -31,6 +31,6 @@
 	ai_to_spawn = list(
 		/datum/equipment_preset/unsc/spartan/equipped = 1,
 		/datum/equipment_preset/unsc/spartan/cqc = 1,
-		/datum/equipment_preset/unsc/spartan/spnkr = 1,
+		/datum/equipment_preset/unsc/spartan/spnkr/ai_man = 1,
 		/datum/equipment_preset/unsc/spartan/sniper = 1,
 	)

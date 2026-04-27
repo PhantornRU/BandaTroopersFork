@@ -13,8 +13,8 @@
 
 /datum/human_ai_equipment_preset/unsc/spartan/spnkr
 	name = "Spartan SPNKR"
-	desc = "A Spartan anti-armor specialist carrying a SPNKR and close-defense weaponry."
-	path = /datum/equipment_preset/unsc/spartan/spnkr
+	desc = "A Spartan anti-armor specialist carrying a packed SPNKR system."
+	path = /datum/equipment_preset/unsc/spartan/spnkr/ai_man
 
 /datum/human_ai_equipment_preset/unsc/spartan/cqc
 	name = "Spartan Breacher"
