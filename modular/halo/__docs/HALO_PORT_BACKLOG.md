@@ -6,7 +6,7 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Previous pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (`2026-03-11`)
 - Target upstream head for this wave: `33a011138b2529982de18896616a7cfa9d38f376` (`2026-04-24 snapshot`)
-- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization.
+- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization; `PR #145` head `6d1c763440d1` and `PR #146` head `7a0bd462fe86` were added to the main wave on 2026-04-27.
 - BandaTroopers execution model:
   - PR 1: new main HALO follow-up wave from `master`
   - PR 2: update existing `ss220club/BandaTroopers#94` with fresh Kig-Yar/Unggoy `PR #97` tail only
@@ -27,6 +27,8 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 | [`#140`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/140) | More Weapon Sprites | missing | sync DMI states and modular HALO gun offsets |
 | [`#141`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/141) | Shrapnel overwork | missing | port shrapnel/projectile behavior needed by mine wave |
 | [`#143`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/143) | BR55 Recoil | missing | port recoil/runtime delta into modular HALO gun file |
+| [`#145`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/145) | bumblebee | missing | port Bumblebee escape pod assets, shuttle template, and Dark Was The Night placement through modular HALO shuttle runtime |
+| [`#146`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/146) | Adds Motion Sensor HUD | missing | port UNSC helmet motion sensor HUD through modular HALO component with minimal shared HUD glue |
 
 ### Existing PR94 Update
 
@@ -44,6 +46,12 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - `map_config/maps.txt`
 - `code/game/area/{halo_new_irvine,shield_base,valorous_chant,606_regretful_flame}.dm`
 - `maps/map_files/{halo_new_irvine_covenant,oni_shield_base,valorous_chant,686_regretful_flame}/**`
+- `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm`
+- `maps/shuttles/bumblebee_west.dmm`
+- `modular/halo/code/modules/shuttle/halo/bumblebee.dm`
+- `code/_onclick/hud/human.dm`
+- `modular/halo/code/mixed/components/halo_motion_sensor.dm`
+- `modular/halo/code/mixed/clothing/unsc_helmets.dm`
 - `code/game/objects/items/explosives/mine.dm`
 - `code/datums/ammo/shrapnel.dm`
 - `code/modules/projectiles/projectile.dm`

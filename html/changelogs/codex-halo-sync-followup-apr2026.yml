@@ -2,6 +2,8 @@ author: Codex
 delete-after: True
 changes:
   - maptweak: "Synced the HALO follow-up wave from upstream PRs #46, #126, #134, #135 and #136, including New Irvine Covenant, ONI Shield Base, Valorous Chant, 686 Regretful Flame and the latest Pelican/LZ/armory map updates."
+  - maptweak: "Ported upstream PR #145 Bumblebee escape pod support into Dark Was The Night, including the modular shuttle template and HALO Bumblebee structures."
+  - rscadd: "Ported upstream PR #146 UNSC helmet motion sensor HUD support as modular HALO equipment wiring."
   - rscadd: "Added modular Covenant plasma and needle mines, plus the Covenant plasma breaching charge wiring used by Human AI tooling."
   - tweak: "Updated HALO weapon tuning, shrapnel behavior, and attachments from upstream PRs #140, #141 and #143, including the M7 attachment offsets and BR55 recoil."
-  - imageadd: "Updated HALO weapon, mine and map support sprites required by the latest upstream HALO content wave."
+  - imageadd: "Updated HALO weapon, mine, Bumblebee and motion sensor sprites required by the latest upstream HALO content wave."

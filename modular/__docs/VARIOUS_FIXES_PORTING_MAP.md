@@ -40,9 +40,13 @@
    - shrapnel/projectile follow-up
 9. [`cmss13-pve-halo#143`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/143)
    - BR55 recoil follow-up
-10. [`cmss13-pve-halo#137`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/137)
+10. [`cmss13-pve-halo#145`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/145)
+   - `Bumblebee` escape pod; tracked head `6d1c763440d1`
+11. [`cmss13-pve-halo#146`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/146)
+   - UNSC helmet motion sensor HUD; tracked head `7a0bd462fe86`
+12. [`cmss13-pve-halo#137`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/137)
    - audit-only modularization source; current reviewed head: `b8067cc367`
-11. supporting BT packaging
+13. supporting BT packaging
    - `HALO_PORT_STATE.md`
    - `HALO_PORT_BACKLOG.md`
    - `CODEOWNERS`
@@ -119,6 +123,12 @@
 9. `code/modules/mob/living/carbon/human/ai/defense_creator.dm`
 10. `maps/map_files/halo_new_irvine_covenant/halo_new_irvine_covenant.dmm`
 11. `maps/map_files/{oni_shield_base,valorous_chant,686_regretful_flame}/`
+12. `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm`
+13. `maps/shuttles/bumblebee_west.dmm`
+14. `modular/halo/code/modules/shuttle/halo/bumblebee.dm`
+15. `code/_onclick/hud/human.dm`
+16. `modular/halo/code/mixed/components/halo_motion_sensor.dm`
+17. `modular/halo/code/mixed/clothing/unsc_helmets.dm`
 
 Причина:
 - именно здесь пересекаются modular/upstream split, shared runtime glue, map compile risks и fresh HALO asset contracts.
@@ -131,6 +141,8 @@ Main PR:
   - main HALO follow-up wave
   - карты `#126/#134/#135/#136`
   - mines/shrapnel/weapons `#139/#140/#141/#143`
+  - Bumblebee escape pod `#145`
+  - UNSC helmet motion sensor HUD `#146`
   - audit `#137`
   - docs/changelog/CODEOWNERS
 
