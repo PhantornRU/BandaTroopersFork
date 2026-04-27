@@ -14,7 +14,7 @@
 /datum/human_ai_equipment_preset/unsc/spnkr
 	name = "Специалист SPNKR UNSC"
 	desc = "Специалист морской пехоты, вооруженный установкой SPNKR."
-	path = /datum/equipment_preset/unsc/spec/equipped_spnkr
+	path = /datum/equipment_preset/unsc/spec/equipped_spnkr/ai_man
 
 /datum/human_ai_equipment_preset/unsc/squadleader
 	name = "Командир группы UNSC"

@@ -24,7 +24,7 @@
 1. [`cmss13-pve-halo#46`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/46)
    - брать только residual scope после `15f2cc13bc`
    - tracked head for final verification: `8c4697c6f0` (previous anchor `5d6398ae32`; fresh Mackay lighting tail ported)
-   - Mackay/ONI Digsite shuttle IDs and map item contracts are covered in current BT glue: `code/__DEFINES/bandamarines/halo_map_support.dm`, `code/modules/cm_marines/equipment/maps.dm`, and `code/modules/unit_tests/halo_current_map_resolution.dm`
+   - Mackay/ONI Digsite shuttle IDs are covered in current BT glue: `code/__DEFINES/bandamarines/halo_map_support.dm`; map item contracts are covered via JSON `map_item_type` resolution and direct fallback creation
 2. [`cmss13-pve-halo#126`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/126)
    - брать delta после `1bac3e1d51`
    - текущий tracked head: `94cce6a541`
@@ -117,6 +117,7 @@
 Статус:
 - audit-only source.
 - current reviewed head: `b8067cc367`
+- sunglasses and UNSC grenade runtime additions are already covered in current BT modular HALO files.
 - fresh delta from previous anchor is legacy-layout `colonialmarines.dme` include ordering only; current BT `modular/halo/_halo.dme` does not require a runtime/code port.
 
 Что считаем no-op:

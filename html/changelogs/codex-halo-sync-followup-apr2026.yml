@@ -8,6 +8,7 @@ changes:
   - rscadd: "Added the upstream PR #126 New Irvine auto-grass turf and forest flora contracts with missing New Irvine visual assets."
   - rscadd: "Added modular Covenant plasma and needle mines, plus the Covenant plasma breaching charge wiring used by Human AI tooling."
   - tweak: "Applied upstream PR #132 Covenant AI weapon pacing contracts, keeping the AI hooks modular while matching Covenant ammo speed behavior."
+  - tweak: "Added HALO entries to Game Master HumanAI machinegunner and sniper menus and routed UNSC SPNKR HAI to an AI-safe loadout."
   - tweak: "Updated HALO weapon tuning, shrapnel behavior, and attachments from upstream PRs #140, #141 and #143, including the M7 attachment offsets and BR55 recoil."
   - tweak: "Matched upstream PR #126 bunker hull wall behavior for New Irvine map walls."
   - tweak: "Updated defense creator mine support with split Covenant factions, distinct weak/strong PMC claymores and upstream M20 mine wording."
