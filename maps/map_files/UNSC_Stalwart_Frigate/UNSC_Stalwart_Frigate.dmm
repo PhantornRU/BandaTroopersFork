@@ -8696,7 +8696,7 @@
 /obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
 /obj/item/device/binoculars/range/designator/sergeant,
 /obj/item/attachable/attached_gun/grenade/ma5c,
-/obj/item/weapon/gun/rifle/halo/br55/unloaded,
+/obj/item/weapon/gun/rifle/halo/dmr/unloaded,
 /turf/open/floor/almayer/plating_striped/east,
 /area/unsc_stalwart_frigate/armory)
 "aqd" = (
@@ -8725,7 +8725,7 @@
 /obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
 /obj/item/device/binoculars/range/designator/sergeant,
 /obj/item/attachable/attached_gun/grenade/ma5c,
-/obj/item/weapon/gun/rifle/halo/br55/unloaded,
+/obj/item/weapon/gun/rifle/halo/dmr/unloaded,
 /turf/open/floor/almayer/plating_striped/west,
 /area/unsc_stalwart_frigate/armory)
 "aqi" = (

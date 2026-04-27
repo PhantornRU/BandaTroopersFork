@@ -26,8 +26,14 @@
 	return ..()
 
 /datum/equipment_preset/zombie/load_race(mob/living/carbon/human/new_human)
-	new_human.set_species(SPECIES_HUMAN) // Set back, so that we can get our claws again
-	new_human.set_species(SPECIES_ZOMBIE)
+	// SS220 EDIT - START
+	// new_human.set_species(SPECIES_HUMAN) // Set back, so that we can get our claws again
+	// new_human.set_species(SPECIES_ZOMBIE)
+	if(new_human.species?.name != SPECIES_ZOMBIE)
+		new_human.set_species(SPECIES_ZOMBIE)
+	else
+		new_human.species.refresh_intrinsic_equipment(new_human)
+	// SS220 EDIT - END
 	new_human.zombie_delimb_chance_multi = GLOB.gm_set_zombie_delimb_multi ? GLOB.gm_set_zombie_delimb_multi : null
 	if(GLOB.gm_set_zombie_random_helmet)
 		GLOB.gm_set_zombie_helmet_chance = clamp(GLOB.gm_set_zombie_helmet_chance,0, 100)

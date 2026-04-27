@@ -145,6 +145,16 @@
 	max_rounds = 24
 	caliber = "8g"
 
+/obj/item/ammo_magazine/shotgun/slug/unsc
+	name = "UNSC 8-gauge shotgun slug box"
+	desc = "Коробка, заполненная пулевыми патронами MAG 15P-SL 8-го калибра."
+	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_magazines.dmi'
+	icon_state = "8g"
+	default_ammo = /datum/ammo/bullet/shotgun/slug
+	transfer_handful_amount = 6
+	max_rounds = 24
+	caliber = "8g"
+
 /obj/item/ammo_magazine/shotgun/beanbag/unsc
 	name = "UNSC 8-gauge shotgun beanbag box"
 	desc = "Коробка, заполненная травматическими патронами MAG LLHB 8-го калибра."

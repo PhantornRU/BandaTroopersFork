@@ -293,58 +293,59 @@
 				arm_equipment(ai_human, gotten_path, randomise_appearance, FALSE, mob_client = ai_human.client)
 				var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
 				var/expected_species = assigned_preset?.expected_species
+				var/needs_species_intrinsic_refresh = FALSE // SS220 EDIT: restore owner-bound intrinsic equipment after shared Create AI cleanup
 				if(expected_species && ai_human.species?.group != expected_species && ai_human.species?.name != expected_species) // SS220 EDIT: accept canonical HALO species ids through group as well as species.name
 					ai_human.set_species(expected_species)
+				var/final_species = species || ai_human.species?.name // SS220 EDIT: only refresh intrinsic equipment when the finished species remains the same
 				if(selected_equipment == "No Weapons")
 					ai_human.strip_weapons()
+					needs_species_intrinsic_refresh = TRUE // SS220 EDIT: preserve species-owned weapons like zombie claws after shared weapon stripping
 				else if(selected_equipment == "Birthday Suit")
 					ai_human.strip_all()
+					needs_species_intrinsic_refresh = TRUE // SS220 EDIT: preserve species-owned intrinsics after full strip
 
 				ai_human.face_dir(user.dir)
 				ai_human.forceMove(get_turf(object))
 
 				if(paradrop)
 					ai_human.paradrop()
-				if(species == "Zombie") //setting species to zombie throws off all of these
-					ai_human.strip_weapons()
-					if(!prob(zombie_outer_wear_chance) || !zombie_outer_wear)
-						qdel(ai_human.head)
+				if(species == SPECIES_ZOMBIE) //setting species to zombie throws off all of these
+					var/keep_outer_wear = prob(zombie_outer_wear_chance) && zombie_outer_wear
+					ai_human.strip_weapons() // SS220 EDIT: keep zombie-specific cleanup, then restore zombie intrinsics via species hook below
+					needs_species_intrinsic_refresh = TRUE
+					if(!keep_outer_wear)
+						if(ai_human.head)
+							qdel(ai_human.head)
+					else if(!ai_human.head)
+						var/helmetpath = pick(
+							/obj/item/clothing/head/helmet/marine,
+							/obj/item/clothing/head/helmet/marine/reporter,
+							/obj/item/clothing/head/helmet/riot,
+							/obj/item/clothing/head/helmet/riot,
+							/obj/item/clothing/head/helmet/construction,
+							/obj/item/clothing/head/helmet/construction,
+							/obj/item/clothing/head/militia/bucket,
+							/obj/item/clothing/head/welding,
+							/obj/item/clothing/head/welding,
+							/obj/item/clothing/head/hardhat,
+							/obj/item/clothing/head/hardhat/dblue,
+							/obj/item/clothing/head/hardhat/red,
+							/obj/item/clothing/head/hardhat/white,
+						)
+						ai_human.equip_to_slot_or_del(new helmetpath(ai_human), WEAR_HEAD, TRUE)
+					if(ai_human.gloves)
 						qdel(ai_human.gloves)
-						qdel(ai_human.l_hand)
-						qdel(ai_human.r_hand)
-						qdel(ai_human.head)
+					if(ai_human.glasses && !istype(ai_human.glasses, /obj/item/clothing/glasses/zombie_eyes))
 						qdel(ai_human.glasses)
-						qdel(ai_human.wear_mask)
-					else
-						if(!ai_human.head) //this supposed helmeted zombie has NO helmet! NOTHING.
-							var/helmetpath = pick(
-								/obj/item/clothing/head/helmet/marine,
-								/obj/item/clothing/head/helmet/marine/reporter,
-								/obj/item/clothing/head/helmet/riot,
-								/obj/item/clothing/head/helmet/riot,
-								/obj/item/clothing/head/helmet/construction,
-								/obj/item/clothing/head/helmet/construction,
-								/obj/item/clothing/head/militia/bucket,
-								/obj/item/clothing/head/welding,
-								/obj/item/clothing/head/welding,
-								/obj/item/clothing/head/hardhat,
-								/obj/item/clothing/head/hardhat/dblue,
-								/obj/item/clothing/head/hardhat/red,
-								/obj/item/clothing/head/hardhat/white,
-								)
-							ai_human.head = new helmetpath(ai_human)
-						INVOKE_NEXT_TICK(ai_human, TYPE_PROC_REF(/mob/living/carbon/human, equip_to_slot_or_del), ai_human.head, WEAR_HEAD)
-						qdel(ai_human.gloves)
-						qdel(ai_human.l_hand)
-						qdel(ai_human.r_hand)
-						qdel(ai_human.head)
-						qdel(ai_human.glasses)
+					if(ai_human.wear_mask)
 						qdel(ai_human.wear_mask)
 				// if(species != ai_human.species?.name) //might be redundant
 				if(species && species != ai_human.species?.name) // SS220 EDIT: skip empty overrides so preset species do not fall back to Human
 					ai_human.set_species(species)
 					if(issynth(ai_human))
 						ai_human.set_skills(/datum/skills/synthetic)
+				if(needs_species_intrinsic_refresh && ai_human.species?.name == final_species)
+					ai_human.species.refresh_intrinsic_equipment(ai_human) // SS220 EDIT: reapply owner-bound intrinsic equipment after Create AI cleanup if the resulting species is unchanged
 				if(selected_faction != faction_of_preset)
 					ai_human.faction = selected_faction
 					var/obj/item/card/id/faction_tags = ai_human.wear_id

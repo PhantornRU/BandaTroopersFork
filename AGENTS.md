@@ -40,6 +40,7 @@
 - Сборку и compile-проверки запускать через `BUILD.cmd` или `tools/build/build`, а не через DreamMaker-only workflow.
 - Для локальной итерации не гонять полный `dm-test` на каждую правку: сначала compile/targeted checks. Verification-статус не заменяет Plan Fidelity; если пользователь явно приоритизировал реализацию плана над тестами, фиксировать непройденные проверки как остаточный риск по правилам из [`modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`](./modular/__agents/.AI_AGENT/WORKFLOW_RULES.md).
 - Не использовать деструктивные git-команды без прямого запроса пользователя.
+- `modular/__agents/.AI_AGENT/PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md` не должны попадать в коммиты и PR. Перед коммитом или открытием PR их нужно вернуть к baseline-состоянию, если задача явно не требует отдельного согласованного обновления этих файлов.
 
 ## Маршрутизация
 - Агентная база знаний: [`modular/__agents/.AI_AGENT/`](./modular/__agents/.AI_AGENT/README.md)

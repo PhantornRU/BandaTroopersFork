@@ -26,6 +26,7 @@
 #include "code/effects/laser_markers.dm"
 #include "code/runtime/validation_result.dm"
 #include "code/runtime/request.dm"
+#include "code/runtime/resource_pool_state.dm"
 #include "code/runtime/visibility_zone.dm"
 #include "code/controller/registry.dm"
 #include "code/controller/controller.dm"

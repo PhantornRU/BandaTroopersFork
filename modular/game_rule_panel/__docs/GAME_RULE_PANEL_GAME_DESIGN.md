@@ -21,6 +21,15 @@
 - Глобально включать и отключать `RTO Support`.
 - Менять общий множитель `shared cooldown`.
 - Менять локальный множитель `personal cooldown`.
+- Переключать `Resource mode` для RTO support.
+- Включать и выключать глобальное пополнение charges.
+- Менять множители recharge и capacity для charges.
+- Включать global manual-only режим для ручной выдачи charges.
+- Менять количество одновременно доступных RTO package slots.
+- Менять задержку полного сброса RTO package slots после первого выбора.
+- Смотреть active RTO charge pools игроков.
+- Ручками менять current/max charges для конкретного активного RTO.
+- Отключать пополнение и включать manual-only режим для конкретного активного RTO.
 - Сбрасывать RTO-настройки к значениям по умолчанию.
 
 ### Вкладка Fire Support
@@ -51,6 +60,14 @@
 
 - Новые `shared cooldown` у RTO-абилок.
 - Новые `personal cooldown` у RTO-абилок.
+
+Применяется сразу к текущему controller state:
+
+- Новый `Resource mode` для RTO support.
+- Новые глобальные charge multipliers и recharge toggles.
+- Новый лимит `RTO package slots`.
+- Новое время полного сброса `RTO package slots`.
+- Ручные правки `current/max charges` активных RTO.
 
 Не пересчитывается задним числом:
 

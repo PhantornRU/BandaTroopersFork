@@ -2181,6 +2181,15 @@ not all weapons use normal magazines etc. load_into_chamber() itself is designed
 
 	return TRUE
 
+/obj/item/weapon/gun/proc/get_ai_followup_fire_callback(mob/living/carbon/human/user, atom/target)
+	return null
+
+/obj/item/weapon/gun/proc/get_ai_followup_fire_delay(mob/living/carbon/human/user, atom/target)
+	return null
+
+/obj/item/weapon/gun/proc/get_ai_followup_fire_cooldown(mob/living/carbon/human/user, atom/target)
+	return get_ai_followup_fire_delay(user, target)
+
 /// For ejecting the spent casing from corresponding guns
 /obj/item/weapon/gun/proc/eject_casing()
 	if(empty_casings == 0)

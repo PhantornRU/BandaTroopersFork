@@ -17,22 +17,22 @@
 	return "uscm"
 
 /obj/item/device/binoculars/rto/halo
-	name = "HALO RTO binoculars"
-	desc = "A HALO-issue RTO binocular set adapted to the modular support workflow."
+	name = "UNSC RTO binoculars"
+	desc = "A UNSC-issue RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/get_support_profile()
 	return "halo"
 
 /obj/item/device/binoculars/rto/halo/unsc
 	name = "UNSC RTO binoculars"
-	desc = "A UNSC RTO binocular set adapted to the modular HALO support workflow."
+	desc = "A UNSC RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/unsc/get_support_profile()
 	return "unsc"
 
 /obj/item/device/binoculars/rto/halo/odst
 	name = "ODST RTO binoculars"
-	desc = "An ODST RTO binocular set adapted to the modular HALO support workflow."
+	desc = "An ODST RTO binocular set adapted to the modular support workflow."
 
 /obj/item/device/binoculars/rto/halo/odst/get_support_profile()
 	return "odst"
@@ -115,6 +115,8 @@
 	. += SPAN_NOTICE("Кнопка 'Лазерная отметка': постоянный режим живой лазерной подсветки через бинокль.")
 
 	var/list/selected_templates = controller.get_selected_templates()
+	var/max_selected_templates = controller.get_max_selected_templates()
+	var/reset_delay_minutes = controller.get_selection_reset_delay_minutes()
 	if(length(selected_templates))
 		var/list/template_names = list()
 		for(var/datum/rto_support_template/template as anything in selected_templates)
@@ -122,11 +124,33 @@
 		. += SPAN_NOTICE("Выбранные пакеты: [jointext(template_names, ", ")].")
 	else
 		. += SPAN_NOTICE("Пакеты поддержки ещё не выбраны.")
+	. += SPAN_NOTICE("Лимит слотов пакетов: [max_selected_templates]. Полный сброс становится доступен через [reset_delay_minutes] мин. от первого выбора.")
+
+	for(var/datum/rto_support_template/template as anything in selected_templates)
+		if(!controller.template_uses_support_pool(template))
+			continue
+
+		var/current_charges = controller.get_support_pool_current_charges(template)
+		var/capacity = controller.get_support_pool_capacity(template)
+		var/next_recharge_in = controller.get_support_pool_next_recharge_in(template)
+
+		if(controller.is_support_pool_manual_only(template))
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], пополнение только вручную.")
+			continue
+
+		if(!controller.is_support_pool_auto_recharge_enabled(template))
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], автопополнение отключено.")
+			continue
+
+		if(next_recharge_in > 0 && current_charges < capacity)
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity], следующее пополнение через [round(next_recharge_in / 10)] сек.")
+		else
+			. += SPAN_NOTICE("[template.name]: заряды [current_charges]/[capacity].")
 
 	if(length(selected_templates) == 1)
 		var/datum/rto_support_template/solo_template = selected_templates[1]
 		if(controller.uses_single_template_zone_discount(solo_template))
-			. += SPAN_NOTICE("РџРѕРєР° РІС‹Р±СЂР°РЅ С‚РѕР»СЊРєРѕ РѕРґРёРЅ Р±РѕРµРІРѕР№ РїР°РєРµС‚, РєСѓР»РґР°СѓРЅ РµРіРѕ СЃРµРєС‚РѕСЂР° СЃРЅРёР¶РµРЅ РІ 2 СЂР°Р·Р°.")
+			. += SPAN_NOTICE("Пока выбран только один боевой пакет, кулдаун его сектора снижен в 2 раза.")
 
 	var/reset_ready_in = controller.get_selection_reset_ready_in()
 	if(length(selected_templates))
