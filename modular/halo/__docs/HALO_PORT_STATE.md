@@ -8,7 +8,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - Current pinned upstream commit for the active follow-up wave: `a4943e1cd28387b86e47ba282a8cd06e7b953c96` (2026-04-27 current master)
 - Original April snapshot for this wave: `33a011138b2529982de18896616a7cfa9d38f376` (2026-04-24)
 - Latest verification fetch: `cm-pve-halo/master` at `a4943e1c` on 2026-04-27; requested PR refs were refreshed before final modularization, including `PR #97` at `7e34c9db`, `PR #145` at `6d1c763440d1`, `PR #146` at `7a0bd462fe86`, and the current-master audit for `PR #113/#118/#129/#132/#138/#142/#144`.
-- Current port wave: `follow-up maps + mines/shrapnel + weapon assets/offsets + Bumblebee escape pod + motion sensor HUD + Covenant master sync + Kig-Yar/Unggoy PR94 refresh + HALO preset coverage cleanup`
+- Current port wave: `follow-up maps + mines/shrapnel + weapon assets/offsets + Bumblebee escape pod + motion sensor HUD + Covenant master sync + HALO preset coverage cleanup`
 
 ## Scope Summary
 - HALO content ownership stays split by module boundary:
@@ -25,7 +25,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
   - audit-only review of already covered `PR #142` Pelican roof node delta and no-runtime `PR #144` CODEOWNERS/changelog delta;
   - audit-only review of `PR #137`.
 - Separate `PR #94` update ports only the fresh Kig-Yar/Unggoy tail from upstream `PR #97`, including semantic equivalents of `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, and `7e34c9db50`.
-- Preset coverage cleanup keeps the same upstream anchors but verifies concrete combat-ready presets across Sangheili, Unggoy, Ruuhtian/Kig-Yar, UNSC, ODST, UNSC Crew, ONI, UEG Police and Insurrectionist families.
+- Preset coverage cleanup keeps the same upstream anchors but verifies concrete combat-ready presets across Sangheili, Unggoy, UNSC, ODST, UNSC Crew, ONI, UEG Police and Insurrectionist families. Ruuhtian/Kig-Yar preset/species coverage belongs to the separate `PR #94` update branch.
 
 ## BandaTroopers Sync Anchors
 - Main wave base: `master` / `upstream/master` on `66bf244f0ecf925736d9081053d35abb59fb6c6e`
@@ -37,7 +37,7 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - HALO mine content and HALO/Covenant-specific defense support stay modular-first; upstream shared explosive/shrapnel/projectile surfaces receive only minimal glue that current BT runtime actually needs.
 - HALO Kig-Yar armor/shield/loadout wiring in `PR #94` stays on `ruuhtian` modular files instead of upstream `standard.dm` layout.
 - HALO Unggoy armor/loadout wiring from `PR #97` stays in modular `unggoy` files; shared Human AI creator surfaces receive only the minimal preset exposure required by current BT runtime.
-- Ruuhtian/Kig-Yar species, organs, language, clothing, shields, presets, HumanAI wrappers and squad spawner cells stay in `modular/halo/**`; only existing Game Master HumanAI action-datum preset lists in `code/**` receive minimal `SS220 EDIT` glue.
+- Ruuhtian/Kig-Yar species, organs, language, clothing, shields, presets, HumanAI wrappers and squad spawner cells are intentionally owned by the separate `PR #94` update branch; the main wave keeps only shared Covenant faction/AI compatibility needed by upstream `PR #129/#138`.
 - UNSC/ODST leader equipped presets intentionally use M392 DMRs, and UNSC Frigate Squad Leader job lockers place unloaded DMRs instead of BR55s. Rifleman/medic/RTO/pilot BR55/MA5C loadouts are left unchanged.
 - Bumblebee escape pod runtime from `PR #145` stays in `modular/halo/code/modules/shuttle/halo/bumblebee.dm`; upstream `modular_pve_halo/**` includes are not imported.
 - Motion sensor HUD runtime from `PR #146` stays in `modular/halo/code/mixed/components/halo_motion_sensor.dm`; shared HUD receives only one `SS220 EDIT` draw call, and UNSC helmet wiring stays in `modular/halo/code/mixed/clothing/unsc_helmets.dm`.

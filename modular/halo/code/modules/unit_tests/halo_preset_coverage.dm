@@ -47,15 +47,6 @@
 		/datum/equipment_preset/covenant/unggoy/deacon/plasma_rifle,
 		/datum/equipment_preset/covenant/unggoy/ai/support_medical,
 		/datum/equipment_preset/covenant/unggoy/ai/suicide_bomber,
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol,
-		/datum/equipment_preset/covenant/ruuhtian/minor/needler,
-		/datum/equipment_preset/covenant/ruuhtian/major/needler,
-		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle,
-		/datum/equipment_preset/covenant/ruuhtian/ultra/needler,
-		/datum/equipment_preset/covenant/ruuhtian/ultra/plasma_rifle,
-		/datum/equipment_preset/covenant/ruuhtian/ultra/carbine,
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine,
-		/datum/equipment_preset/covenant/ruuhtian/sniper/carbine,
 		/datum/equipment_preset/unsc/pfc/equipped,
 		/datum/equipment_preset/unsc/medic/equipped,
 		/datum/equipment_preset/unsc/rto/equipped,
@@ -106,16 +97,12 @@
 
 	validate_species_preset(/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle, SPECIES_SANGHEILI)
 	validate_species_preset(/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol, SPECIES_UNGGOY)
-	validate_species_preset(/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol, SPECIES_RUUHTIAN)
 
 	var/list/human_ai_presets = list(
 		/datum/human_ai_equipment_preset/covenant/sangheili/minor = FACTION_SANGHEILI,
 		/datum/human_ai_equipment_preset/covenant/sangheili/honor_guard = FACTION_SANGHEILI,
 		/datum/human_ai_equipment_preset/covenant/unggoy/heavy/plasma_rifle = FACTION_UNGGOY,
 		/datum/human_ai_equipment_preset/covenant/unggoy/suicide_bomber = FACTION_UNGGOY,
-		/datum/human_ai_equipment_preset/covenant/ruuhtian/major/plasma_rifle = FACTION_KIGYAR,
-		/datum/human_ai_equipment_preset/covenant/ruuhtian/marksman = FACTION_KIGYAR,
-		/datum/human_ai_equipment_preset/covenant/ruuhtian/sniper = FACTION_KIGYAR,
 		/datum/human_ai_equipment_preset/unsc/squadleader = FACTION_UNSC,
 		/datum/human_ai_equipment_preset/unsc/odst/spnkr = FACTION_UNSC,
 		/datum/human_ai_equipment_preset/oni/security = FACTION_ONI,
@@ -132,10 +119,6 @@
 		/datum/human_ai_squad_preset/unsc/atteam,
 		/datum/human_ai_squad_preset/unsc/odst/sniper,
 		/datum/human_ai_squad_preset/unsc/odst/atteam,
-		/datum/human_ai_squad_preset/covenant/ruuhtian_patrol_pair,
-		/datum/human_ai_squad_preset/covenant/ruuhtian_marksman_overwatch,
-		/datum/human_ai_squad_preset/covenant/ruuhtian_sniper_cell,
-		/datum/human_ai_squad_preset/covenant/kigyar_unggoy_lance,
 	)
 	for(var/squad_preset_path as anything in squad_presets)
 		validate_squad_preset(squad_preset_path)

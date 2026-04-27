@@ -2,6 +2,3 @@ GLOBAL_LIST_INIT(first_names_sangheili, ss220_load_personal_name_bank("halo/firs
 GLOBAL_LIST_INIT(last_names_sangheili, ss220_load_personal_name_bank("halo/last_names_sangheili.txt"))
 GLOBAL_LIST_INIT(first_names_unggoy, ss220_load_personal_name_bank("halo/first_names_unggoy.txt"))
 GLOBAL_LIST_INIT(last_names_unggoy, ss220_load_personal_name_bank("halo/last_names_unggoy.txt"))
-GLOBAL_LIST_INIT(first_names_jackal, list("Car", "Caz", "Cak", "Cax", "Can", "Crik", "Crith", "Cad", "Craz", "Croth", "Cruth", "Crez", "Crim", "Krith", "Krit", "Kroth", "Kruth", "Krut", "Kup", "Kut", "Kuz", "Kud", "Zhar", "Zhak", "Zhap", "Zhad", "Zad", "Zak", "Zik", "Ziv", "Zeev"))
-GLOBAL_LIST_EMPTY_TYPED(kigyar_mob_list, /mob/living/carbon/human)
-GLOBAL_REFERENCE_LIST_INDEXED(ruuhtian_hair_styles_list, /datum/sprite_accessory/ruuhtian_hair, name)

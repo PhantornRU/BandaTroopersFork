@@ -100,7 +100,6 @@
 		/datum/equipment_preset/covenant/sangheili/minor::name = /datum/equipment_preset/covenant/sangheili/minor,
 		/datum/equipment_preset/covenant/unggoy/minor::name = /datum/equipment_preset/covenant/unggoy/minor,
 		/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle::name = /datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle,
-		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle::name = /datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle,
 		/datum/equipment_preset/unsc/pfc/equipped::name = /datum/equipment_preset/unsc/pfc/equipped,
 		/datum/equipment_preset/police/officer/geared/smg::name = /datum/equipment_preset/police/officer/geared/smg,
 		/datum/equipment_preset/oni/security::name = /datum/equipment_preset/oni/security,

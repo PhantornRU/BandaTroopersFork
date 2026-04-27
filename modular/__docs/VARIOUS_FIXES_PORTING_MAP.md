@@ -111,7 +111,7 @@
 - modular Ruuhtian weapon variants and Human AI preset exposure from `f9c7909f44`;
 - modular Unggoy harness slots, heavy armor value, weapon preset variants and Human AI preset exposure from `f9c7909f44`;
 - include-coverage только там, где current BT graph действительно этого требует.
-- follow-up preset coverage cleanup adds full Ruuhtian/Kig-Yar species, organs, language, clothing, shield, concrete loadouts, HumanAI wrappers, Game Master entries, squad spawner cells and unit-test path coverage in the modular HALO layout.
+- follow-up preset coverage cleanup for Ruuhtian/Kig-Yar belongs to the dedicated PR94 update branch; the main wave keeps Sangheili/Unggoy and human-faction preset coverage only.
 - UNSC/ODST leader equipped presets and UNSC Frigate Squad Leader job lockers intentionally use M392 DMRs; non-leader rifleman/medic/RTO/pilot weapons stay unchanged.
 
 ### 3. `PR #137`
@@ -168,7 +168,7 @@ Main PR:
   - Bumblebee escape pod `#145`
   - UNSC helmet motion sensor HUD `#146`
   - Covenant current-master sync `#129/#132/#138`
-  - HALO preset coverage cleanup for Covenant, Ruuhtian/Kig-Yar, UNSC/ODST, ONI, Police and Insurrectionist HumanAI/squad exposure
+  - HALO preset coverage cleanup for Covenant Sangheili/Unggoy, UNSC/ODST, ONI, Police and Insurrectionist HumanAI/squad exposure
   - full-master flavor/job audit `#113/#118`
   - audited no-op `#142/#144`
   - audit `#137`

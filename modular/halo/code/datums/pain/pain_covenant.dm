@@ -28,15 +28,3 @@
 	threshold_horrible = 150
 
 	feels_pain = TRUE
-
-/datum/pain/ruuhtian
-	max_pain = 225
-
-	threshold_mild = 25
-	threshold_discomforting = 50
-	threshold_moderate = 75
-	threshold_distressing = 100
-	threshold_severe = 125
-	threshold_horrible = 150
-
-	feels_pain = TRUE
