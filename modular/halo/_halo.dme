@@ -94,6 +94,7 @@
 #include "code/mixed/structures/halo_supply_crates.dm"
 #include "code/mixed/structures/halo_imported_map_structures.dm"
 #include "code/mixed/structures/halo_phones.dm"
+#include "code/mixed/structures/halo_new_irvine_flora.dm"
 #include "code/mixed/structures/halo_imported_map_windows.dm"
 #include "code/mixed/structures/halo_new_varadero_props.dm"
 #include "code/mixed/structures/halo_visible_disposalpipes.dm"

@@ -24,10 +24,11 @@
 1. [`cmss13-pve-halo#46`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/46)
    - брать только residual scope после `15f2cc13bc`
    - tracked head for final verification: `8c4697c6f0` (previous anchor `5d6398ae32`; fresh Mackay lighting tail ported)
+   - Mackay/ONI Digsite shuttle IDs and map item contracts are covered in current BT glue: `code/__DEFINES/bandamarines/halo_map_support.dm`, `code/modules/cm_marines/equipment/maps.dm`, and `code/modules/unit_tests/halo_current_map_resolution.dm`
 2. [`cmss13-pve-halo#126`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/126)
    - брать delta после `1bac3e1d51`
    - текущий tracked head: `94cce6a541`
-   - targeted follow-up: `r_wall/bunker/hull` is anchored in shared `code/game/turfs/walls/r_wall.dm` as minimal `SS220 EDIT` compatibility glue; New Irvine `irvine_grass` auto-turf definitions stay in `modular/halo/code/mixed/turfs/halo_new_irvine_auto_turfs.dm`; missing New Irvine DMI assets are imported from `94cce6a541`
+   - targeted follow-up: `r_wall/bunker/hull` is anchored in shared `code/game/turfs/walls/r_wall.dm` as minimal `SS220 EDIT` compatibility glue; New Irvine `irvine_grass` auto-turf definitions stay in `modular/halo/code/mixed/turfs/halo_new_irvine_auto_turfs.dm`; New Irvine forest flora definitions stay in `modular/halo/code/mixed/structures/halo_new_irvine_flora.dm`; missing New Irvine DMI assets are imported from `94cce6a541`
 3. [`cmss13-pve-halo#134`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/134)
    - `ONI Shield Base`
 4. [`cmss13-pve-halo#135`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/135)
