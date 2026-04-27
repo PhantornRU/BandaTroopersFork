@@ -9,6 +9,12 @@
 	motion_sensor.screen_loc = ui_datum.UI_MOTION_LOC
 	infodisplay += motion_sensor
 
+/datum/hud/human/Destroy()
+	if(motion_sensor)
+		infodisplay -= motion_sensor
+		QDEL_NULL(motion_sensor)
+	return ..()
+
 /atom/movable/screen/motion_sensor
 	name = "motion sensor"
 	icon = 'icons/halo/mob/hud/motion_sensor.dmi'
