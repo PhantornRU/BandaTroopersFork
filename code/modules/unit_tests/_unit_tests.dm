@@ -84,6 +84,7 @@
 // #include "halo_current_map_resolution.dm"
 // #include "halo_ammo_drops.dm" // keep HALO RTO support and ammo-drop regression coverage active on this branch
 // #include "halo_ai_localization.dm"
+#include "halo_covenant_gear_master_sync.dm" // SS220 EDIT: cover modularized upstream Covenant gear/faction/shield contracts.
 #include "halo_covenant_mines.dm" // SS220 EDIT: keep Covenant mine and breaching-charge wiring covered while the HALO landmine port stays modularized.
 #include "halo_motion_sensor.dm" // SS220 EDIT: cover modular HALO motion sensor and Bumblebee shuttle wiring.
 // #include "halo_name_localization.dm" // cover the explicit localized display-name helper used for future HALO name migration

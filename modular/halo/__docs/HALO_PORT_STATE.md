@@ -5,9 +5,10 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 ## Source Baseline
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Previous pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (2026-03-11)
-- Current pinned upstream commit for the active follow-up wave: `33a011138b2529982de18896616a7cfa9d38f376` (2026-04-24 snapshot)
-- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR refs were refreshed before final modularization, including `PR #145` at `6d1c763440d1` and `PR #146` at `7a0bd462fe86`.
-- Current port wave: `follow-up maps + mines/shrapnel + weapon assets/offsets + Bumblebee escape pod + motion sensor HUD + Kig-Yar/Unggoy PR94 refresh`
+- Current pinned upstream commit for the active follow-up wave: `2ec6b82a5bbcb7bc386d14a60c890b408bb0bead` (2026-04-26 current master)
+- Original April snapshot for this wave: `33a011138b2529982de18896616a7cfa9d38f376` (2026-04-24)
+- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR refs were refreshed before final modularization, including `PR #145` at `6d1c763440d1`, `PR #146` at `7a0bd462fe86`, and the current-master audit for `PR #113/#118/#129/#132/#138/#142/#144`.
+- Current port wave: `follow-up maps + mines/shrapnel + weapon assets/offsets + Bumblebee escape pod + motion sensor HUD + Covenant master sync + Kig-Yar/Unggoy PR94 refresh`
 
 ## Scope Summary
 - HALO content ownership stays split by module boundary:
@@ -20,6 +21,8 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
   - gameplay/runtime PR `#139`, `#140`, `#141`, `#143`;
   - Bumblebee escape pod `PR #145`;
   - UNSC helmet motion sensor HUD `PR #146`;
+  - current-master Covenant/job/flavor follow-ups from `PR #113`, `PR #118`, `PR #129`, `PR #132`, and `PR #138`;
+  - audit-only review of already covered `PR #142` Pelican roof node delta and no-runtime `PR #144` CODEOWNERS/changelog delta;
   - audit-only review of `PR #137`.
 - Separate `PR #94` update ports only the fresh Kig-Yar/Unggoy tail from upstream `PR #97`, including semantic equivalents of `21fe2b79f4`, `4424f96051`, `4996ca9d10`, `437039a158`, `f9c7909f44`, and `7e34c9db50`.
 
@@ -35,6 +38,10 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - HALO Unggoy armor/loadout wiring from `PR #97` stays in modular `unggoy` files; shared Human AI creator surfaces receive only the minimal preset exposure required by current BT runtime.
 - Bumblebee escape pod runtime from `PR #145` stays in `modular/halo/code/modules/shuttle/halo/bumblebee.dm`; upstream `modular_pve_halo/**` includes are not imported.
 - Motion sensor HUD runtime from `PR #146` stays in `modular/halo/code/mixed/components/halo_motion_sensor.dm`; shared HUD receives only one `SS220 EDIT` draw call, and UNSC helmet wiring stays in `modular/halo/code/mixed/clothing/unsc_helmets.dm`.
+- Covenant gear/faction/loadout sync from upstream `PR #129/#132/#138` stays in modular `modular/halo/**` files. Shared faction defines are limited to the existing `SS220 EDIT` HALO faction block in `code/__DEFINES/mode.dm`.
+- Flavor text updates from upstream `PR #118` stay in `modular/halo/code/mixed/flavor/halo_master_flavor.dm`; the upstream `modular_pve_halo/**` layout is not imported.
+- The `prime_priority` removal from upstream `PR #113` is applied through `modular/halo/code/mixed/jobs/halo_master_job_overrides.dm` instead of editing the base job files.
+- `PR #142` is treated as covered because current `maps/shuttles/dropship_pelican.dmm` already contains the additional Pelican roof nodes. `PR #144` has no runtime delta for BT beyond the already present PhantornRU CODEOWNERS section.
 - `PR #137` is treated as an audit source, not as a mandatory refactor import. Current reviewed head is `b8067cc367`; only missing runtime objects/contracts may be copied from it.
 
 ## Compatibility Hotspots
@@ -46,24 +53,27 @@ Canonical source of truth for the active HALO sync baseline. For HALO port, sync
 - Recheck `map_config/maps.txt`, `code/modules/cm_marines/equipment/maps.dm`, and any new area/map prop hooks together for map PR `#134/#135/#136`.
 - Recheck `maps/map_files/unsc_dark_was_the_night/unsc_dark_was_the_night.dmm`, `maps/shuttles/bumblebee_west.dmm`, and `modular/halo/code/modules/shuttle/halo/bumblebee.dm` together for `PR #145`.
 - Recheck `code/_onclick/hud/human.dm`, `modular/halo/code/mixed/components/halo_motion_sensor.dm`, and `modular/halo/code/mixed/clothing/unsc_helmets.dm` together for `PR #146`.
+- Recheck `modular/halo/code/modules/clothing/covenant_gear_master_sync.dm`, `modular/halo/code/modules/gear_presets/Halo/covenant_master_sync.dm`, `modular/halo/code/game/objects/items/storage/halo/covenant_storage_master_sync.dm`, and Covenant DMI assets together for `PR #138`.
+- Recheck `modular/halo/code/mixed/flavor/halo_master_flavor.dm` and `modular/halo/code/mixed/jobs/halo_master_job_overrides.dm` when auditing full upstream master PRs `#113/#118`.
 
 ## Last Validation Snapshot
-- Validation status: refreshed on `halo_sync_followup_apr2026` after adding `PR #145/#146` on 2026-04-27.
+- Validation status: refreshed on `halo_sync_followup_apr2026` after adding current-master Covenant/job/flavor sync on 2026-04-27.
 - Passed on main wave branch:
   - `git diff --check`
   - `tools/bootstrap/python tools/ci/validate_dme.py < colonialmarines.dme`
   - `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
+  - `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -DUNIT_TESTS -Werror`
   - `tools/build/build --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE`
   - `tools/build/build --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA`
   - `tools/bootstrap/python -m dmi.test`
-- Maplint status: changed HALO maps/templates passed, including `unsc_dark_was_the_night.dmm` and `bumblebee_west.dmm`; full repository maplint still fails on pre-existing `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm` cp1251 `UnicodeDecodeError`, outside this PR diff.
+- Maplint status: changed HALO maps/templates passed with `tools/bootstrap/python -m maplint.source --github`, including `halo_new_irvine_covenant`, `oni_shield_base`, `valorous_chant`, `686_regretful_flame`, `unsc_dark_was_the_night.dmm`, `bumblebee_west.dmm`, and `dropship_pelican.dmm`; full repository maplint still fails on pre-existing `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm` cp1251 `UnicodeDecodeError`, outside this PR diff.
 - Required verification set for this wave:
   - `git diff --check`
   - `tools/bootstrap/python tools/ci/validate_dme.py < colonialmarines.dme`
   - `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
   - `tools/build/build --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_BASE`
   - `tools/build/build --ci dm -DCIBUILDING -DCITESTING -DALL_MAPS -DALL_MAPS_STAGE_EXTRA`
-  - `tools/bootstrap/python -m tools.maplint.source --github`
+  - `tools/bootstrap/python -m maplint.source --github`
   - `tools/bootstrap/python -m dmi.test`
 
 ## Update Protocol

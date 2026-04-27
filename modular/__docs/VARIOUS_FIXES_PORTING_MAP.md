@@ -8,10 +8,11 @@
 ## База пересборки
 
 - source-of-truth upstream repo: `https://github.com/cmss13-devs/cmss13-pve-halo`
-- latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR heads below were rechecked against their live heads.
+- latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27; requested PR heads below were rechecked against their live heads, then the current upstream master audit added PR `#113/#118/#129/#132/#138/#142/#144`.
 - merged BT baseline перед этой волной: `ss220club/BandaTroopers#93`
 - base main-wave ветки: `ss220club/master` на `66bf244f0ecf925736d9081053d35abb59fb6c6e`
-- source upstream head для этой волны: `cm-pve-halo/master` на `33a011138b2529982de18896616a7cfa9d38f376`
+- original source upstream head для этой волны: `cm-pve-halo/master` на `33a011138b2529982de18896616a7cfa9d38f376`
+- current full-master source-of-truth: `cm-pve-halo/master` на `2ec6b82a5bbcb7bc386d14a60c890b408bb0bead`
 - base ветки обновления `PR #94`: `origin/halo_jackal_spartan_wave_apr2026` на `d7a830c7dfdde8a8f849792ce01a7205a976cb4e`
 - принцип пересборки:
   - сохранять authored non-merge commits или их semantic equivalent;
@@ -46,7 +47,21 @@
    - UNSC helmet motion sensor HUD; tracked head `7a0bd462fe86`
 12. [`cmss13-pve-halo#137`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/137)
    - audit-only modularization source; current reviewed head: `b8067cc367`
-13. supporting BT packaging
+13. [`cmss13-pve-halo#113`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/113)
+   - removes prime rolling; applied through modular HALO job overrides, no base job file edit
+14. [`cmss13-pve-halo#118`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/118)
+   - flavor fixes; ported as modular HALO flavor overrides instead of importing upstream `modular_pve_halo/**`
+15. [`cmss13-pve-halo#129`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/129)
+   - Covenant HAI/faction split and stealth armor; ported only missing semantic contracts into `modular/halo/**`
+16. [`cmss13-pve-halo#132`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/132)
+   - Covenant AI rate-of-fire limits; AI hook equivalent is modular, remaining ammo speed tail is ported
+17. [`cmss13-pve-halo#138`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/138)
+   - Covenant gear update; DMI assets, storage, gear, loadouts and SpecOps/Honor Guard contracts are ported modular-first
+18. [`cmss13-pve-halo#142`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/142)
+   - Pelican roof fix; audited covered by current `maps/shuttles/dropship_pelican.dmm`
+19. [`cmss13-pve-halo#144`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/144)
+   - CODEOWNERS/changelog only; no runtime port needed because BT already carries the PhantornRU section
+20. supporting BT packaging
    - `HALO_PORT_STATE.md`
    - `HALO_PORT_BACKLOG.md`
    - `CODEOWNERS`
@@ -129,6 +144,10 @@
 15. `code/_onclick/hud/human.dm`
 16. `modular/halo/code/mixed/components/halo_motion_sensor.dm`
 17. `modular/halo/code/mixed/clothing/unsc_helmets.dm`
+18. `modular/halo/code/modules/clothing/covenant_gear_master_sync.dm`
+19. `modular/halo/code/modules/gear_presets/Halo/covenant_master_sync.dm`
+20. `modular/halo/code/mixed/flavor/halo_master_flavor.dm`
+21. `modular/halo/code/mixed/jobs/halo_master_job_overrides.dm`
 
 Причина:
 - именно здесь пересекаются modular/upstream split, shared runtime glue, map compile risks и fresh HALO asset contracts.
@@ -143,6 +162,9 @@ Main PR:
   - mines/shrapnel/weapons `#139/#140/#141/#143`
   - Bumblebee escape pod `#145`
   - UNSC helmet motion sensor HUD `#146`
+  - Covenant current-master sync `#129/#132/#138`
+  - full-master flavor/job audit `#113/#118`
+  - audited no-op `#142/#144`
   - audit `#137`
   - docs/changelog/CODEOWNERS
 

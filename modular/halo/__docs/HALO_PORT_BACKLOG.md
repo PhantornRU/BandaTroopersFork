@@ -5,8 +5,9 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 ## Active Sync Wave
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Previous pinned upstream commit: `95a84ab9f59f9118e5543f664b2793e7a1841c55` (`2026-03-11`)
-- Target upstream head for this wave: `33a011138b2529982de18896616a7cfa9d38f376` (`2026-04-24 snapshot`)
-- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization; `PR #145` head `6d1c763440d1` and `PR #146` head `7a0bd462fe86` were added to the main wave on 2026-04-27.
+- Target upstream head for this wave: `2ec6b82a5bbcb7bc386d14a60c890b408bb0bead` (`2026-04-26 current master`)
+- Original requested snapshot: `33a011138b2529982de18896616a7cfa9d38f376` (`2026-04-24 snapshot`)
+- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` on 2026-04-27, with requested PR refs refreshed before final modularization; `PR #145` head `6d1c763440d1` and `PR #146` head `7a0bd462fe86` were added to the main wave on 2026-04-27, then full-master audit added `PR #113/#118/#129/#132/#138/#142/#144`.
 - BandaTroopers execution model:
   - PR 1: new main HALO follow-up wave from `master`
   - PR 2: update existing `ss220club/BandaTroopers#94` with fresh Kig-Yar/Unggoy `PR #97` tail only
@@ -29,6 +30,18 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 | [`#143`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/143) | BR55 Recoil | missing | port recoil/runtime delta into modular HALO gun file |
 | [`#145`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/145) | bumblebee | missing | port Bumblebee escape pod assets, shuttle template, and Dark Was The Night placement through modular HALO shuttle runtime |
 | [`#146`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/146) | Adds Motion Sensor HUD | missing | port UNSC helmet motion sensor HUD through modular HALO component with minimal shared HUD glue |
+
+### Full Master Audit Additions
+
+| Upstream PR | Title | Local State At Audit | Planned Action |
+| --- | --- | --- | --- |
+| [`#113`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/113) | removes prime rolling | base job files still had `prime_priority` on AI command roles | apply through modular job overrides, no base job file edit |
+| [`#118`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/118) | Flavor Fixes | upstream `modular_pve_halo/**` layout absent in BT | port semantic flavor overrides into `modular/halo/code/mixed/flavor/` |
+| [`#129`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/129) | Cov Create HAI updates, faction splitting | partially covered by existing HALO AI helpers | port missing Covenant split factions, SpecOps loadouts, stealth armor, and AI preset contracts modular-first |
+| [`#132`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/132) | CovenantAI rate of fire limits | AI hook equivalent already present; ammo speed tail missing | keep modular AI follow-up callbacks and port remaining ammo speed contract |
+| [`#138`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/138) | covenant gear update | missing Covenant DMI/gear/loadout tail | port Covenant gear/assets/storage/presets into `modular/halo/**` |
+| [`#142`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/142) | fixes pelican roofs | already covered by current Pelican shuttle template roof nodes | audited no-op, document as covered |
+| [`#144`](https://github.com/cmss13-devs/cmss13-pve-halo/pull/144) | Update CODEOWNERS | no HALO runtime delta; PhantornRU section already present locally | audited no-op for runtime |
 
 ### Existing PR94 Update
 
@@ -60,6 +73,10 @@ Secondary tracking document for the active HALO follow-up wave. `HALO_PORT_STATE
 - `modular/halo/code/modules/gear_presets/Halo/ruuhtian.dm`
 - `modular/halo/code/modules/gear_presets/Halo/unggoy.dm`
 - `modular/halo/code/modules/clothing/suits/marine_armor/covenant/unggoy.dm`
+- `modular/halo/code/modules/clothing/covenant_gear_master_sync.dm`
+- `modular/halo/code/modules/gear_presets/Halo/covenant_master_sync.dm`
+- `modular/halo/code/mixed/flavor/halo_master_flavor.dm`
+- `modular/halo/code/mixed/jobs/halo_master_job_overrides.dm`
 
 ## Update Rules
 - Update this document in the same commits that change HALO port coverage or the upstream sync target.
