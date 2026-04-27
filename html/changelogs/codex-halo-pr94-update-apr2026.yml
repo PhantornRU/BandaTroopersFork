@@ -2,6 +2,7 @@ author: Codex
 delete-after: True
 changes:
   - rscadd: "Updated HALO Kig-Yar Ruuhtian loadouts from the latest upstream PR #97 tail, adding modular plasma pistol, needler, plasma rifle, carbine, marksman, and sniper variants."
+  - rscadd: "Moved the follow-up Ruuhtian/Kig-Yar squad spawner and preset coverage cleanup into the Kig-Yar PR track."
   - tweak: "Updated the Ruuhtian point defense gauntlet block values, AI preset wiring, and Human AI creator exposure while keeping the BT modular HALO layout."
   - rscadd: "Expanded targeted unit coverage for Ruuhtian shield values, job defines, sniper gear, and AI preset wiring."
   - rscadd: "Ported the latest upstream PR #97 Unggoy armor and loadout tail, including accessory slots, heavy harness blast armor, deterministic public weapon presets, and Human AI machinegunner entries."

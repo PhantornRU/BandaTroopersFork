@@ -45,3 +45,56 @@
 
 	var/datum/human_ai_equipment_preset/covenant/ruuhtian/sniper/ai_sniper = new
 	TEST_ASSERT_EQUAL(ai_sniper.path, /datum/equipment_preset/covenant/ruuhtian/sniper/carbine, "Ruuhtian sniper AI preset did not point to the latest PR97 carbine loadout.")
+
+/datum/unit_test/halo_ruuhtian_preset_coverage
+	parent_type = /datum/unit_test/halo_ruuhtian_equipment
+
+/datum/unit_test/halo_ruuhtian_preset_coverage/Run()
+	var/list/equipment_presets = list(
+		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol,
+		/datum/equipment_preset/covenant/ruuhtian/minor/needler,
+		/datum/equipment_preset/covenant/ruuhtian/major/needler,
+		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle,
+		/datum/equipment_preset/covenant/ruuhtian/ultra/needler,
+		/datum/equipment_preset/covenant/ruuhtian/ultra/plasma_rifle,
+		/datum/equipment_preset/covenant/ruuhtian/ultra/carbine,
+		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine,
+		/datum/equipment_preset/covenant/ruuhtian/sniper/carbine,
+	)
+	for(var/preset_path as anything in equipment_presets)
+		var/mob/living/carbon/human/human = create_test_human()
+		arm_equipment(human, preset_path, FALSE)
+		TEST_ASSERT_EQUAL(human.species?.name, SPECIES_RUUHTIAN, "[preset_path] did not set Ruuhtian species.")
+		TEST_ASSERT(human.w_uniform, "[preset_path] did not equip a uniform.")
+		TEST_ASSERT(human.wear_suit, "[preset_path] did not equip armor.")
+		TEST_ASSERT(human.get_active_hand() || human.r_store || human.l_store || human.back || human.s_store, "[preset_path] did not equip a weapon or shield.")
+
+	var/list/ai_presets = list(
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/minor,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/minor/needler,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/major,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/major/plasma_rifle,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/ultra,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/ultra/plasma_rifle,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/ultra/carbine,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/marksman,
+		/datum/human_ai_equipment_preset/covenant/ruuhtian/sniper,
+	)
+	for(var/ai_preset_path as anything in ai_presets)
+		var/datum/human_ai_equipment_preset/ai_preset = new ai_preset_path
+		TEST_ASSERT(ispath(ai_preset.path, /datum/equipment_preset), "[ai_preset_path] points to missing equipment preset [ai_preset.path].")
+
+	var/list/squad_presets = list(
+		/datum/human_ai_squad_preset/covenant/ruuhtian_pair,
+		/datum/human_ai_squad_preset/covenant/ruuhtian_screen_team,
+		/datum/human_ai_squad_preset/covenant/ruuhtian_marksman_cell,
+		/datum/human_ai_squad_preset/covenant/ruuhtian_patrol_pair,
+		/datum/human_ai_squad_preset/covenant/ruuhtian_marksman_overwatch,
+		/datum/human_ai_squad_preset/covenant/ruuhtian_sniper_cell,
+		/datum/human_ai_squad_preset/covenant/kigyar_unggoy_lance,
+	)
+	for(var/squad_preset_path as anything in squad_presets)
+		var/datum/human_ai_squad_preset/squad_preset = new squad_preset_path
+		TEST_ASSERT(length(squad_preset.ai_to_spawn), "[squad_preset_path] has no equipment presets.")
+		for(var/equipment_preset_path as anything in squad_preset.ai_to_spawn)
+			TEST_ASSERT(ispath(equipment_preset_path, /datum/equipment_preset), "[squad_preset_path] points to missing equipment preset [equipment_preset_path].")
