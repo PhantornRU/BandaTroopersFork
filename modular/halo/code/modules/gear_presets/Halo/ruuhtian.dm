@@ -5,7 +5,7 @@
 	assignment = JOB_COV_CIV
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	paygrades = list(PAY_SHORT_COV_CIV = JOB_PLAYTIME_TIER_0)
-	faction = FACTION_COVENANT
+	faction = FACTION_KIGYAR
 	skills = /datum/skills/covenant/ruuhtian
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_RUUHTIAN)
 

@@ -13,7 +13,7 @@
 	assignment = JOB_COV_CIV
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	paygrades = list(PAY_SHORT_COV_CIV = JOB_PLAYTIME_TIER_0)
-	faction = FACTION_COVENANT
+	faction = FACTION_SANGHEILI
 	skills = /datum/skills/covenant/sangheili
 	var/halo_sangheili_sword_only = FALSE
 	var/halo_sangheili_sword_charge_range = 5

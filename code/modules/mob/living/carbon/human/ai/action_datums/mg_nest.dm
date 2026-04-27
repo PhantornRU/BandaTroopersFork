@@ -95,9 +95,17 @@
 		/datum/equipment_preset/clf/soldier/machinegunner::name = /datum/equipment_preset/clf/soldier/machinegunner,
 		/datum/equipment_preset/mercenary/sentinel/mg::name = /datum/equipment_preset/mercenary/sentinel/mg,
 		/datum/equipment_preset/fil/rifleman/mg::name = /datum/equipment_preset/fil/rifleman/mg,
-		/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol::name = /datum/equipment_preset/covenant/unggoy/minor/plasma_pistol, // SS220 EDIT: expose modular HALO Unggoy plasma-pistol preset to the shared Human AI machinegunner creator
-		/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle::name = /datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle, // SS220 EDIT: expose modular HALO Unggoy heavy plasma-rifle preset to the shared Human AI machinegunner creator
-		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle::name = /datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle, // SS220 EDIT: expose modular HALO Ruuhtian plasma-rifle preset to the shared Human AI machinegunner creator
+		// SS220 EDIT - START
+		// HALO AI machinegunner presets.
+		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle::name = /datum/equipment_preset/covenant/sangheili/minor/plasma_rifle,
+		/datum/equipment_preset/covenant/unggoy/minor/plasma_pistol::name = /datum/equipment_preset/covenant/unggoy/minor/plasma_pistol,
+		/datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle::name = /datum/equipment_preset/covenant/unggoy/heavy/plasma_rifle,
+		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle::name = /datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle,
+		/datum/equipment_preset/unsc/pfc/equipped::name = /datum/equipment_preset/unsc/pfc/equipped,
+		/datum/equipment_preset/police/officer/geared/smg::name = /datum/equipment_preset/police/officer/geared/smg,
+		/datum/equipment_preset/oni/security::name = /datum/equipment_preset/oni/security,
+		/datum/equipment_preset/insurgent/rifleman::name = /datum/equipment_preset/insurgent/rifleman,
+		// SS220 EDIT - END
 	)
 
 	if(!check_rights(R_DEBUG))

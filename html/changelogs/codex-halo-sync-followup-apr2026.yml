@@ -1,0 +1,18 @@
+author: Codex
+delete-after: True
+changes:
+  - maptweak: "Synced the HALO follow-up wave from upstream PRs #46, #126, #134, #135 and #136, including New Irvine Covenant, ONI Shield Base, Valorous Chant, 686 Regretful Flame and the latest Pelican/LZ/armory map updates."
+  - maptweak: "Ported upstream PR #145 Bumblebee escape pod support into Dark Was The Night, including the modular shuttle template and HALO Bumblebee structures."
+  - rscadd: "Ported upstream PR #146 UNSC helmet motion sensor HUD support as modular HALO equipment wiring."
+  - rscadd: "Synced upstream current-master Covenant gear from PRs #129 and #138, including split Covenant AI factions, SpecOps/Honor Guard loadouts, updated Unggoy accessories and methane tanks."
+  - rscadd: "Completed HALO preset coverage for Sangheili, Unggoy, UNSC/ODST, ONI, UEG Police and Insurrectionist HumanAI and squad spawner usage."
+  - rscadd: "Added the upstream PR #126 New Irvine auto-grass turf and forest flora contracts with missing New Irvine visual assets."
+  - rscadd: "Added modular Covenant plasma and needle mines, plus the Covenant plasma breaching charge wiring used by Human AI tooling."
+  - tweak: "Applied upstream PR #132 Covenant AI weapon pacing contracts, keeping the AI hooks modular while matching Covenant ammo speed behavior."
+  - tweak: "Added HALO entries to Game Master HumanAI machinegunner and sniper menus and routed UNSC SPNKR HAI to an AI-safe loadout."
+  - tweak: "Moved UNSC and ODST leader equipped presets and UNSC Frigate Squad Leader lockers from BR55 rifles to M392 DMRs."
+  - tweak: "Updated HALO weapon tuning, shrapnel behavior, and attachments from upstream PRs #140, #141 and #143, including the M7 attachment offsets and BR55 recoil."
+  - tweak: "Matched upstream PR #126 bunker hull wall behavior for New Irvine map walls."
+  - tweak: "Updated defense creator mine support with split Covenant factions, distinct weak/strong PMC claymores and upstream M20 mine wording."
+  - spellcheck: "Ported upstream PR #118 HALO flavor/name text overrides for UNSC-linked props, food, clothing and utility items through modular HALO files."
+  - imageadd: "Updated HALO weapon, mine, Bumblebee, motion sensor and Covenant gear sprites required by the latest upstream HALO content wave."

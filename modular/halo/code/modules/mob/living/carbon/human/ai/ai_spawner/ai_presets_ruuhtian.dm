@@ -1,9 +1,14 @@
 /datum/human_ai_equipment_preset/covenant/ruuhtian
-	faction = FACTION_COVENANT
+	faction = FACTION_KIGYAR
 
 /datum/human_ai_equipment_preset/covenant/ruuhtian/minor
 	name = "Ruuhtian Minor (Plasma Pistol)"
 	desc = "A light Kig-Yar skirmisher equipped with a plasma pistol and point defense gauntlet."
+	path = /datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol
+
+/datum/human_ai_equipment_preset/covenant/ruuhtian/minor/plasma_pistol
+	name = "Ruuhtian Minor (Plasma Pistol)"
+	desc = "An explicit Kig-Yar plasma pistol spawn variant for HumanAI."
 	path = /datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol
 
 /datum/human_ai_equipment_preset/covenant/ruuhtian/minor/needler
@@ -21,6 +26,11 @@
 	desc = "A veteran Kig-Yar raider equipped with a needler, shield gauntlet, and extra crystals."
 	path = /datum/equipment_preset/covenant/ruuhtian/major/needler
 
+/datum/human_ai_equipment_preset/covenant/ruuhtian/major/needler
+	name = "Ruuhtian Major (Needler)"
+	desc = "An explicit Kig-Yar needler spawn variant for HumanAI."
+	path = /datum/equipment_preset/covenant/ruuhtian/major/needler
+
 /datum/human_ai_equipment_preset/covenant/ruuhtian/major/plasma_rifle
 	name = "Ruuhtian Major (Plasma Rifle)"
 	desc = "A veteran Kig-Yar raider equipped for medium range plasma fire."
@@ -34,6 +44,11 @@
 /datum/human_ai_equipment_preset/covenant/ruuhtian/ultra
 	name = "Ruuhtian Ultra (Needler)"
 	desc = "An elite Kig-Yar line veteran equipped with a needler and reinforced gear."
+	path = /datum/equipment_preset/covenant/ruuhtian/ultra/needler
+
+/datum/human_ai_equipment_preset/covenant/ruuhtian/ultra/needler
+	name = "Ruuhtian Ultra (Needler)"
+	desc = "An explicit Kig-Yar ultra needler spawn variant for HumanAI."
 	path = /datum/equipment_preset/covenant/ruuhtian/ultra/needler
 
 /datum/human_ai_equipment_preset/covenant/ruuhtian/ultra/plasma_rifle
@@ -56,6 +71,11 @@
 	desc = "A light Kig-Yar marksman equipped with a covenant carbine and long-range optics."
 	path = /datum/equipment_preset/covenant/ruuhtian/marksman/carbine
 
+/datum/human_ai_equipment_preset/covenant/ruuhtian/marksman/carbine
+	name = "Ruuhtian Marksman (Carbine)"
+	desc = "An explicit Kig-Yar marksman carbine variant for HumanAI."
+	path = /datum/equipment_preset/covenant/ruuhtian/marksman/carbine
+
 /datum/human_ai_equipment_preset/covenant/ruuhtian/marksman_carbine
 	name = "Kig-Yar Marksman"
 	desc = "A Kig-Yar marksman equipped with a covenant carbine and long-range optics."
@@ -64,4 +84,9 @@
 /datum/human_ai_equipment_preset/covenant/ruuhtian/sniper
 	name = "Ruuhtian Sniper (Carbine)"
 	desc = "A tougher Kig-Yar sharpshooter equipped with a covenant carbine and sniper optics."
+	path = /datum/equipment_preset/covenant/ruuhtian/sniper/carbine
+
+/datum/human_ai_equipment_preset/covenant/ruuhtian/sniper/carbine
+	name = "Ruuhtian Sniper (Carbine)"
+	desc = "An explicit Kig-Yar sniper carbine variant for HumanAI."
 	path = /datum/equipment_preset/covenant/ruuhtian/sniper/carbine

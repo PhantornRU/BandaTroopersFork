@@ -1,5 +1,6 @@
 /datum/equipment_preset/unsc/spartan
 	name = "Spartan"
+	expected_species = SPECIES_SPARTAN
 	assignment = JOB_SPARTAN
 	rank = JOB_SPARTAN
 	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
