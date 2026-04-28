@@ -358,7 +358,7 @@
 	TEST_ASSERT_EQUAL(admin_row["name"], "Charge Admin Target", "Game Rule Panel live RTO data should expose the owner's display name.")
 	TEST_ASSERT_EQUAL(length(admin_row["selected_template_entries"]), 1, "Game Rule Panel live RTO data should expose selected template rows for per-player package management.")
 	TEST_ASSERT_EQUAL(length(admin_row["pools"]), 1, "Game Rule Panel live RTO data should expose the synthetic charge pool.")
-	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by raw or normalized ckey for Game Rule Panel actions.")
+	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by ckey for Game Rule Panel actions.")
 
 	TEST_ASSERT(controller.set_template_pool_current_charges(template.template_id, 1, "gm_alpha"), "GM current-charge override should succeed for an active RTO pool.")
 	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 1, "GM current-charge override did not update the live charge pool.")
@@ -385,7 +385,7 @@
 	var/list/refreshed_pool = refreshed_row["pools"][1]
 	TEST_ASSERT_EQUAL(refreshed_pool["current_charges"], 3, "Refreshed live RTO data did not report the restored charge count.")
 	TEST_ASSERT_EQUAL(refreshed_pool["capacity"], 3, "Refreshed live RTO data did not report the restored pool capacity.")
-	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], ckey("gm_alpha"), "Refreshed live RTO data did not keep the normalized last GM editor attribution.")
+	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], "gm_alpha", "Refreshed live RTO data did not keep the last GM editor attribution.")
 
 /datum/unit_test/game_rule_panel_rto_remove_selected_template
 	parent_type = /datum/unit_test/game_rule_panel

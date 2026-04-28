@@ -309,7 +309,7 @@
 /obj/item/sharp/incendiary
 	name = "\improper 9X-I Sticky Incendiary Dart"
 	desc = "It looks like a used 9X-T Sticky Incendiary Dart, useless now."
-	icon_state = "sharp_incendiary_dart"
+	icon_state = "sonicharpoon"
 
 /obj/item/sharp/track
 	name = "\improper 9X-T sticky tracker dart"
@@ -319,7 +319,7 @@
 /obj/item/sharp/flechette
 	name = "\improper 9X-F flechette dart"
 	desc = "It looks like a used 9X-F Flechette Dart, useless now."
-	icon_state = "sharp_flechette_dart"
+	icon_state = "sonicharpoon_flechette"
 
 /obj/item/shard/shrapnel/tutorial
 	damage_on_move = 0
