@@ -385,7 +385,7 @@
 	var/list/refreshed_pool = refreshed_row["pools"][1]
 	TEST_ASSERT_EQUAL(refreshed_pool["current_charges"], 3, "Refreshed live RTO data did not report the restored charge count.")
 	TEST_ASSERT_EQUAL(refreshed_pool["capacity"], 3, "Refreshed live RTO data did not report the restored pool capacity.")
-	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], "gm_alpha", "Refreshed live RTO data did not keep the last GM editor attribution.")
+	TEST_ASSERT_EQUAL(refreshed_pool["last_modified_by_admin_ckey"], ckey("gm_alpha"), "Refreshed live RTO data did not keep the normalized last GM editor attribution.")
 
 /datum/unit_test/game_rule_panel_rto_remove_selected_template
 	parent_type = /datum/unit_test/game_rule_panel
