@@ -200,7 +200,7 @@
 
 	if(!shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
 		if(shield_fx_enabled())
-			var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
+			var/image/shield_flicker = image('modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
 			shield_flicker.dir = user.dir
 			flick_overlay(user, shield_flicker, 22)
 			add_shield_filter(user)
@@ -304,12 +304,12 @@
 /obj/item/clothing/suit/marine/shielded/sangheili
 	name = "YOU SHOULDN'T SEE THIS"
 	desc = "Центральный элемент комплекта продвинутой боевой брони производства Ковенанта. Выполнен из наноламината и оснащён энергетическими щитами, поэтому намного прочнее экипировки большинства других видов."
-	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/armor.dmi'
 	icon_state = "sang_minor"
 	item_state = "sang_minor"
 
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)

@@ -93,27 +93,6 @@ Contains most of the procs that are called when a mob is attacked by something
 				return TRUE
 	return FALSE
 
-/mob/living/carbon/human/proc/check_energy_shield(damage = 0, attack_text = "the attack")
-	if(damage <= 0)
-		return 0
-	if(istype(wear_suit, /obj/item/clothing/suit/marine/shielded))
-		var/obj/item/clothing/suit/marine/shielded/shield_harness = wear_suit
-		var/residual_damage = shield_harness.take_damage(damage, src)
-		if(residual_damage < damage)
-			visible_message(SPAN_NOTICE("[src]'s energy shield shimmers from [attack_text]."), SPAN_DANGER("Your energy shield shimmers from [attack_text]!"))
-		return residual_damage
-	return damage
-
-/mob/living/carbon/human/proc/armor_degrade(damage = 0)
-	if(istype(wear_suit, /obj/item/clothing/suit/marine/unsc/mjolnir))
-		var/obj/item/clothing/suit/marine/unsc/mjolnir/mjolnir_armor = wear_suit
-		if(mjolnir_armor.armor_status > 0)
-			var/armor_loss = max(damage * 0.005, 0.05) // SS220 EDIT: scale Mjolnir degradation by incoming damage while keeping a small minimum wear
-			mjolnir_armor.armor_status = max(mjolnir_armor.armor_status - armor_loss, 0)
-			mjolnir_armor.armor_check()
-			return TRUE
-	return FALSE
-
 /mob/living/carbon/human/proc/check_shields(damage = 0, attack_text = "the attack", combistick=0)
 	if(l_hand && istype(l_hand, /obj/item/weapon))//Current base is the prob(50-d/3)
 		if(combistick && istype(l_hand,/obj/item/weapon/yautja/combistick) && prob(66))
@@ -215,6 +194,7 @@ Contains most of the procs that are called when a mob is attacked by something
 	if((user != src) && check_shields(I.force, "the [I.name]"))
 		return FALSE
 
+	// SS220 EDIT: HALO modular energy shield hook.
 	var/remaining_force = check_energy_shield(I.force, "the [I.name]")
 	if(!remaining_force)
 		return FALSE
@@ -328,6 +308,7 @@ Contains most of the procs that are called when a mob is attacked by something
 	if ((thrower != src) && check_shields(impact_damage, "[O]"))
 		return
 
+	// SS220 EDIT: HALO modular energy shield hook.
 	impact_damage = check_energy_shield(impact_damage, "[O]")
 	if(!impact_damage)
 		return

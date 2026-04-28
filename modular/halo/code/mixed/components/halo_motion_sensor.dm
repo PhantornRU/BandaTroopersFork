@@ -17,7 +17,7 @@
 
 /atom/movable/screen/motion_sensor
 	name = "motion sensor"
-	icon = 'icons/halo/mob/hud/motion_sensor.dmi'
+	icon = 'modular/halo/icons/halo/mob/hud/motion_sensor.dmi'
 	icon_state = "base"
 	alpha = 0
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT

@@ -1,14 +1,14 @@
 /obj/item/clothing/shoes/sangheili
 	name = "боевые сапоги сангхейли"
 	desc = "Пара подогнанных поножей с сопутствующими сапогами. Хотя внешний наноламинатный слой может намекать на жёсткость и неудобство, внутренняя подкладка неожиданно мягкая, отводит влагу и пассивно регулирует температуру. Благодаря этому воин думает об искусстве убивать, а не о том, как сильно ему надоела маршировка."
-	icon = 'icons/halo/obj/items/clothing/covenant/shoes.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/shoes.dmi'
 	icon_state = "sangboots_minor"
 	item_state = "sangboots_minor"
 
 	drop_sound = "armorequip"
 
 	item_icons = list(
-		WEAR_FEET = 'icons/halo/mob/humans/onmob/clothing/sangheili/shoes.dmi'
+		WEAR_FEET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/shoes.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)
@@ -54,14 +54,14 @@
 /obj/item/clothing/shoes/ruuhtian
 	name = "Ruuhtian foot guards"
 	desc = "Foot guards fitted to Kig-Yar combat harnesses."
-	icon = 'icons/halo/obj/items/clothing/covenant/shoes.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/shoes.dmi'
 	icon_state = "ruuhtian_minor"
 	item_state = "ruuhtian_minor"
 
 	drop_sound = "armorequip"
 
 	item_icons = list(
-		WEAR_FEET = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/shoes.dmi'
+		WEAR_FEET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/shoes.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_RUUHTIAN)

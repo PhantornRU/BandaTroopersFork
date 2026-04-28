@@ -1,12 +1,12 @@
 /obj/item/clothing/gloves/marine/sangheili
 	name = "\improper наручи сангхейли"
 	desc = "Простые латные перчатки, которые сангхейли носят поверх запястий и предплечий. Выполнены из обычных наноламинатных композитов. Благодаря точной посадке они ничуть не мешают работе воина, а если приходится полагаться на чистую силу, вполне сойдут и за импровизированное оружие."
-	icon = 'icons/halo/obj/items/clothing/covenant/gloves.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/gloves.dmi'
 	icon_state = "sanggauntlets_minor"
 	item_state = "sanggauntlets_minor"
 
 	item_icons = list(
-		WEAR_HANDS = 'icons/halo/mob/humans/onmob/clothing/sangheili/gloves.dmi'
+		WEAR_HANDS = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/gloves.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)
@@ -52,12 +52,12 @@
 /obj/item/clothing/gloves/marine/ruuhtian
 	name = "\improper Ruuhtian vambrace"
 	desc = "A protected weapon-hand vambrace designed for Kig-Yar warriors."
-	icon = 'icons/halo/obj/items/clothing/covenant/gloves.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/gloves.dmi'
 	icon_state = "ruuhtian_vambrace"
 	item_state = "ruuhtian_vambrace"
 
 	item_icons = list(
-		WEAR_HANDS = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/gloves.dmi'
+		WEAR_HANDS = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/gloves.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_RUUHTIAN)

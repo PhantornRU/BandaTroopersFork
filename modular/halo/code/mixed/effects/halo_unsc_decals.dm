@@ -1,6 +1,6 @@
 /obj/effect/decal/unsc
 	name = "informative decal"
-	icon = 'icons/halo/effects/area_signs.dmi'
+	icon = 'modular/halo/icons/halo/effects/area_signs.dmi'
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	layer = TURF_LAYER
 	plane = FLOOR_PLANE

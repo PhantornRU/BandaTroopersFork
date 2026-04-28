@@ -3,12 +3,12 @@
 	desc = "A combat harness made to fit a Kig-Yar warrior."
 	slowdown = SLOWDOWN_ARMOR_LIGHT
 
-	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/armor.dmi'
 	icon_state = "ruuhtian_minor"
 	item_state = "ruuhtian_minor"
 
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/armor.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/armor.dmi'
 	)
 	allowed_species_list = list(SPECIES_RUUHTIAN)
 	armor_melee = CLOTHING_ARMOR_MEDIUMHIGH

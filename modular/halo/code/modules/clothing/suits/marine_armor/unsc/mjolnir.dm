@@ -1,13 +1,13 @@
 /obj/item/clothing/suit/marine/unsc/mjolnir
 	name = "\improper Mjolnir Mk IV armour"
 	desc = "A powered assault armor system built exclusively for Spartan operators."
-	icon = 'icons/halo/obj/items/clothing/suits/suits_by_faction/suit_48.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/suits/suits_by_faction/suit_48.dmi'
 	icon_state = "mk_iv"
 	item_state = "mk_iv"
 	valid_accessory_slots = list(ACCESSORY_SLOT_MEDAL, ACCESSORY_SLOT_DECORARMOR, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORSHIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_PAINT, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PONCHO)
 	restricted_accessory_slots = list(ACCESSORY_SLOT_DECORARMOR, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_DECORSHIN, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PAINT)
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_48.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_48.dmi'
 	)
 	flags_armor_protection = BODY_FLAG_CHEST|BODY_FLAG_GROIN|BODY_FLAG_ARMS|BODY_FLAG_LEGS|BODY_FLAG_HANDS|BODY_FLAG_FEET
 	flags_cold_protection = BODY_FLAG_CHEST|BODY_FLAG_GROIN|BODY_FLAG_ARMS|BODY_FLAG_LEGS|BODY_FLAG_HANDS|BODY_FLAG_FEET

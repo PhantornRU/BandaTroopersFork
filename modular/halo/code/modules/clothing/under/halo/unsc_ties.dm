@@ -3,12 +3,12 @@
 /obj/item/clothing/accessory/pads/unsc
 	name = "\improper M52B Shoulder Pads"
 	desc = "Пара наплечников из сплава Ti-A, крепящихся к бронекомплекту M52B корпуса морской пехоты ККОН и защищающих плечи с верхней частью рук."
-	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "pads"
 	item_state = "pads"
 	slot = ACCESSORY_SLOT_DECORARMOR
 	flags_atom = NO_SNOW_TYPE
-	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
+	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
 
 /obj/item/clothing/accessory/pads/unsc/bracers
 	name = "\improper M52B Arm Bracers"
@@ -133,12 +133,12 @@
 /obj/item/clothing/accessory/storage/webbing/m52b
 	name = "\improper M52B Pattern Webbing"
 	desc = "Универсальная конфигурация для переноски снаряжения. Состоит из жаростойких синтетических тканей и крепится прямо к жёстким точкам брони M52B системой пряжек."
-	icon = 'icons/halo/obj/items/clothing/accessories/accessories.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/accessories/accessories.dmi'
 	icon_state = "m52b_webbing"
 	hold = /obj/item/storage/internal/accessory/webbing/m52bgeneric
 	slot = ACCESSORY_SLOT_M3UTILITY
 	flags_atom = NO_SNOW_TYPE
-	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
+	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
 
 /obj/item/storage/internal/accessory/webbing/m52bgeneric
 	cant_hold = list(

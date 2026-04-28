@@ -1,12 +1,12 @@
 /obj/item/clothing/head/helmet/marine/sangheili
 	name = "\improper шлем сангхейли"
 	desc = "Наноламинатный шлем, вдохновлённый древними доспехами сангхейли доковенантной эпохи и почти не менявший дизайн полсотни поколений. Оснащён полноценными системами связи и smart-link, позволяющими владельцу управлять своими подчинёнными и точно работать с оружием."
-	icon = 'icons/halo/obj/items/clothing/covenant/helmets.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/helmets.dmi'
 	icon_state = "sanghelmet_minor"
 	item_state = "sanghelmet_minor"
 
 	item_icons = list(
-		WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/sangheili/hat.dmi'
+		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/hat.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)
@@ -58,12 +58,12 @@
 /obj/item/clothing/head/helmet/marine/ruuhtian
 	name = "\improper Ruuhtian combat helmet"
 	desc = "A basic helmet given to Kig-Yar warriors."
-	icon = 'icons/halo/obj/items/clothing/covenant/helmets.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/helmets.dmi'
 	icon_state = "standard_helmet"
 	item_state = "standard_helmet"
 
 	item_icons = list(
-		WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/ruuhtian/hat.dmi'
+		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/hat.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_RUUHTIAN)

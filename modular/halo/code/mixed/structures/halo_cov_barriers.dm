@@ -3,7 +3,7 @@
 	desc = "Прочный наноламинатный барьер. Почти неуязвим для обычного стрелкового оружия."
 	breakable = FALSE
 	indestructible = TRUE
-	icon = 'icons/halo/obj/structures/cov_barriers.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/cov_barriers.dmi'
 	icon_state = "cov_barrier"
 	density = TRUE
 	var/is_wide = FALSE

@@ -1,12 +1,12 @@
 /obj/item/weapon/covenant
 	name = "Covenant weapon holder"
 	desc = "Вы не должны это видеть. Если всё же видите, сообщите сопровождающему проекта."
-	icon = 'icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
 	embeddable = FALSE
-	var/mouse_pointer = 'icons/halo/effects/mouse_pointer/energy_sword.dmi'
+	var/mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/energy_sword.dmi'
 	item_icons = list(
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
 	)
 
 /obj/item/weapon/covenant/proc/update_mouse_pointer(mob/user, new_cursor)
@@ -276,5 +276,5 @@
 /obj/item/weapon/twohanded/covenant
 	name = "Covenant weapon holder"
 	desc = "Вы не должны это видеть. Если всё же видите, сообщите сопровождающему проекта."
-	icon = 'icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/melee_by_faction/covenant/covenant_melee.dmi'
 	embeddable = FALSE

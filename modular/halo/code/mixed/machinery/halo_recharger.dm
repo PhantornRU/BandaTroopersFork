@@ -1,7 +1,7 @@
 /obj/structure/machinery/recharger/covenant
 	name = "\improper плазменный зарядный ящик"
 	desc = "Ящик из фиолетового инопланетного материала. Подходит только для подзарядки плазменного оружия Ковенанта."
-	icon = 'icons/halo/obj/structures/machinery/cov_recharger.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/cov_recharger.dmi'
 	icon_state = "cov_recharger"
 	density = TRUE
 	allowed_devices = list(/obj/item/weapon/gun/energy/plasma)

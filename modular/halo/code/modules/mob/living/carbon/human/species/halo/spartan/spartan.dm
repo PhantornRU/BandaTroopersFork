@@ -38,12 +38,12 @@
 	stun_reduction = 2
 	knock_out_reduction = 2
 
-	icobase = 'icons/halo/mob/humans/species/spartan/r_spartan.dmi'
-	deform = 'icons/halo/mob/humans/species/spartan/r_spartan.dmi'
-	eye_icon = 'icons/halo/mob/humans/species/spartan/eyes.dmi'
-	dam_icon = 'icons/halo/mob/humans/species/spartan/dam_spartan.dmi'
-	blood_mask = 'icons/halo/mob/humans/species/spartan/blood_mask.dmi'
-	icon_template = 'icons/mob/humans/template_64.dmi'
+	icobase = 'modular/halo/icons/halo/mob/humans/species/spartan/r_spartan.dmi'
+	deform = 'modular/halo/icons/halo/mob/humans/species/spartan/r_spartan.dmi'
+	eye_icon = 'modular/halo/icons/halo/mob/humans/species/spartan/eyes.dmi'
+	dam_icon = 'modular/halo/icons/halo/mob/humans/species/spartan/dam_spartan.dmi'
+	blood_mask = 'modular/halo/icons/halo/mob/humans/species/spartan/blood_mask.dmi'
+	icon_template = 'modular/halo/icons/mob/humans/template_64.dmi'
 
 /datum/species/spartan/New()
 	..()
@@ -116,3 +116,6 @@
 	spartan.AddComponent(/datum/component/leaping, _leap_range = 4, _leap_cooldown = 4 SECONDS, _leaper_allow_pass_flags = PASS_OVER|PASS_MOB_THRU)
 	spartan.AddComponent(/datum/component/jump, _jump_duration = 0.75 SECONDS, _jump_cooldown = 1 SECONDS, _jump_height = 32, _jump_sound = 'sound/weapons/thudswoosh.ogg', _jump_flags = JUMP_SPIN, _jumper_allow_pass_flags = PASS_OVER|PASS_MOB_THRU)
 	return ..()
+
+/mob/living/carbon/human/spartan/Initialize(mapload)
+	. = ..(mapload, new_species = SPECIES_SPARTAN)

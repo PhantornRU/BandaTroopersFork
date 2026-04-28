@@ -77,7 +77,7 @@
 
 	give_action(src, /datum/action/ghost)
 
-	if(!gibbed && HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE) && istype(buckled, /obj/vehicle/multitile/warthog) && prob(75))
+	if(!gibbed && HAS_TRAIT(src, TRAIT_IN_OPEN_VEHICLE) && istype(buckled, /obj/vehicle/multitile/warthog) && prob(75)) // SS220 EDIT: HALO Warthog open-vehicle death safety hook
 		var/obj/vehicle/multitile/warthog/open_vehicle = buckled
 		open_vehicle.manual_unbuckle(src)
 

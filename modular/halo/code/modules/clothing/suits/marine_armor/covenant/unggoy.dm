@@ -3,12 +3,12 @@
 	desc = "Боевая сбруя, подогнанная под унггоя. Заглушка."
 	slowdown = SLOWDOWN_ARMOR_LIGHT
 
-	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/armor.dmi'
 	icon_state = "unggoy_minor"
 	item_state = "unggoy_minor"
 
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/unggoy/armor.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/armor.dmi'
 	)
 	allowed_species_list = list(SPECIES_UNGGOY)
 
@@ -77,9 +77,9 @@
 	slowdown = SLOWDOWN_ARMOR_LIGHT
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 
-	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/armor.dmi'
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/unggoy/armor.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/armor.dmi'
 	)
 	allowed_species_list = list(SPECIES_UNGGOY)
 

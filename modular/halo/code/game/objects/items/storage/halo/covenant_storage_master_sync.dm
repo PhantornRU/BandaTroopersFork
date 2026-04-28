@@ -82,10 +82,10 @@
 /obj/item/storage/backpack/covenant/unggoy
 	name = "\improper Unggoy methane tank pack"
 	desc = "A gas tank full of methane. It comes with limited magnetic attachment points."
-	icon = 'icons/halo/obj/items/clothing/covenant/back.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/back.dmi'
 	icon_state = "unggoy_minor_1"
 	item_state = "unggoy_minor_1"
-	item_icons = list(WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/unggoy/back.dmi')
+	item_icons = list(WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/back.dmi')
 	worn_accessible = TRUE
 	max_storage_space = 10
 	flags_item = ITEM_OVERRIDE_NORTHFACE

@@ -5,7 +5,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 /obj/structure/halo_droppod
 	name = "\improper M8823 HEV drop pod"
 	health = 4000 //Hopefully immune to most things. Probably not.
-	icon = 'icons/halo/obj/structures/drop_pod.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "drop_pod"
 	layer = 5.1
 	pixel_x = -16
@@ -67,7 +67,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 /obj/item/drop_pod_door
 	name = "\improper M8823 HEV pod door"
-	icon = 'icons/halo/obj/structures/drop_pod.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "pod_door"
 	layer = 5.8
 	anchored = 1
@@ -79,7 +79,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 /obj/structure/drop_pod_chute
 	name = "\improper M8823 HEV pod chute"
-	icon = 'icons/halo/obj/structures/drop_pod.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/drop_pod.dmi'
 	icon_state = "chute"
 	layer = 5.7
 

@@ -31,11 +31,11 @@
 	dodge_pool_regen_restoration = 0.2
 	dp_regen_base_reactivation_time = 30
 
-	icobase = 'icons/halo/mob/humans/species/ruuhtian/r_ruuhtian.dmi'
-	deform = 'icons/halo/mob/humans/species/ruuhtian/r_ruuhtian.dmi'
-	eye_icon = 'icons/halo/mob/humans/species/ruuhtian/eyes.dmi'
-	dam_icon = 'icons/halo/mob/humans/species/ruuhtian/dam_ruuhtian.dmi'
-	blood_mask = 'icons/halo/mob/humans/species/ruuhtian/blood_mask.dmi'
+	icobase = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/r_ruuhtian.dmi'
+	deform = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/r_ruuhtian.dmi'
+	eye_icon = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/eyes.dmi'
+	dam_icon = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/dam_ruuhtian.dmi'
+	blood_mask = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/blood_mask.dmi'
 
 	has_organ = list(
 		"heart" = /datum/internal_organ/heart/kigyar,
@@ -104,3 +104,6 @@
 		return hairstyle
 
 	return ..()
+
+/mob/living/carbon/human/ruuhtian/Initialize(mapload)
+	. = ..(mapload, new_species = SPECIES_RUUHTIAN)

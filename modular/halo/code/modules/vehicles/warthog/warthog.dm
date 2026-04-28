@@ -17,7 +17,7 @@
 	desc_lore = "Оснащённый низкопрофильным жидкостно-охлаждаемым ДВС на впрыскиваемом водороде и солнечно-солевым приводом Graf/Hauptman, M12 Warthog может превращать даже солоноватую и солёную стоячую воду в пригодный водород, обеспечивая запас хода свыше 790 километров без дозаправки. В сочетании с бесступенчатой трансмиссией и надёжным полным приводом Warthog остаётся одной из лучших внедорожных боевых машин."
 	layer = ABOVE_XENO_LAYER // its probably fine
 
-	icon = 'icons/halo/obj/vehicles/warthog.dmi'
+	icon = 'modular/halo/icons/halo/obj/vehicles/warthog.dmi'
 	icon_state = "warthog_base"
 	pixel_x = -16
 	pixel_y = -16
@@ -41,8 +41,8 @@
 		"cooldown" = 1
 	)
 
-	movement_sound = 'sound/vehicles/halo/warthog_med.ogg'
-	honk_sound = 'sound/vehicles/halo/hog_horn.ogg'
+	movement_sound = 'modular/halo/sound/vehicles/halo/warthog_med.ogg'
+	honk_sound = 'modular/halo/sound/vehicles/halo/hog_horn.ogg'
 
 	light_range = 3
 	vehicle_light_range = 6
@@ -436,10 +436,10 @@
 	if(istype(wheel, /obj/item/steering_wheel))
 		if(wheel.flags_item & WIELDED)
 			move_delay = VEHICLE_SPEED_FAST
-			movement_sound = 'sound/vehicles/halo/warthog_hi.ogg'
+			movement_sound = 'modular/halo/sound/vehicles/halo/warthog_hi.ogg'
 		else
 			move_delay = VEHICLE_SPEED_FASTNORMAL
-			movement_sound = 'sound/vehicles/halo/warthog_med.ogg'
+			movement_sound = 'modular/halo/sound/vehicles/halo/warthog_med.ogg'
 		for(var/obj/item/hardpoint/locomotion/warthog_wheels/wheels in hardpoints)
 			if(wheels && wheels.health == 0)
 				move_delay = VEHICLE_SPEED_STATIC
@@ -449,10 +449,10 @@
 	if(istype(wheel, /obj/item/steering_wheel))
 		if(wheel.flags_item & WIELDED)
 			move_delay = VEHICLE_SPEED_FAST
-			movement_sound = 'sound/vehicles/halo/warthog_hi.ogg'
+			movement_sound = 'modular/halo/sound/vehicles/halo/warthog_hi.ogg'
 		else
 			move_delay = VEHICLE_SPEED_FASTNORMAL
-			movement_sound = 'sound/vehicles/halo/warthog_med.ogg'
+			movement_sound = 'modular/halo/sound/vehicles/halo/warthog_med.ogg'
 			if(prob(5) && user.get_active_hand())
 				direction = pick(turn(direction, 90), turn(direction, -90))
 				user.visible_message(
@@ -576,7 +576,7 @@
 
 /obj/effect/vehicle_spawner/warthog
 	name = "спавнер Warthog"
-	icon = 'icons/halo/obj/vehicles/warthog.dmi'
+	icon = 'modular/halo/icons/halo/obj/vehicles/warthog.dmi'
 	icon_state = "warthog_base"
 	pixel_x = -16
 	pixel_y = -16
@@ -630,7 +630,7 @@
 /obj/item/steering_wheel
 	name = "руль"
 	desc = "Используется для вождения. Говорят, если держать его обеими руками, можно ехать быстрее."
-	icon = 'icons/halo/obj/vehicles/hardpoints/warthog.dmi'
+	icon = 'modular/halo/icons/halo/obj/vehicles/hardpoints/warthog.dmi'
 	icon_state = "steering_wheel"
 	w_class = SIZE_LARGE
 	flags_item = DELONDROP|TWOHANDED|CANTSTRIP

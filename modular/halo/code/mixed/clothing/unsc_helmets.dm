@@ -1,14 +1,14 @@
 /obj/item/clothing/head/helmet/marine/unsc
 	name = "\improper CH252 helmet"
 	desc = "Штатный шлем корпуса морской пехоты ККОН. Различные точки крепления позволяют устанавливать на него дополнительное оборудование."
-	icon = 'icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
 	icon_state = "helmet"
 	item_state = "helmet"
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 	built_in_visors = null
 	start_down_visor_type = null
 	item_icons = list(
-		WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_unsc.dmi',
+		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_unsc.dmi',
 	)
 
 /obj/item/clothing/head/helmet/marine/unsc/Initialize(mapload, list/new_protection)

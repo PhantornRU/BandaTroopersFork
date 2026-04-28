@@ -486,18 +486,18 @@
 				sound = pick('sound/effects/odst_pod/pod_land_1.ogg', 'sound/effects/odst_pod/pod_land_2.ogg', 'sound/effects/odst_pod/pod_land_3.ogg', 'sound/effects/odst_pod/pod_land_4.ogg')
 
 			// HALO covenant voices
-			if("pain_sangheili")
-				sound = pick('sound/voice/sangheili/pain_1.ogg', 'sound/voice/sangheili/pain_2.ogg', 'sound/voice/sangheili/pain_3.ogg', 'sound/voice/sangheili/pain_4.ogg', 'sound/voice/sangheili/pain_5.ogg')
-			if("warcry_sangheili")
-				sound = pick('sound/voice/sangheili/warcry_1.ogg', 'sound/voice/sangheili/warcry_2.ogg', 'sound/voice/sangheili/warcry_3.ogg')
-			if("pain_unggoy")
-				sound = pick('sound/voice/unggoy/pain_1.ogg', 'sound/voice/unggoy/pain_2.ogg', 'sound/voice/unggoy/pain_3.ogg', 'sound/voice/unggoy/pain_4.ogg')
-			if("warcry_unggoy")
-				sound = pick('sound/voice/unggoy/warcry_1.ogg', 'sound/voice/unggoy/warcry_2.ogg', 'sound/voice/unggoy/warcry_3.ogg')
-			if("pain_ruuhtian")
-				sound = pick('sound/voice/ruuhtian/pain_1.ogg', 'sound/voice/ruuhtian/pain_2.ogg', 'sound/voice/ruuhtian/pain_3.ogg')
-			if("warcry_ruuhtian")
-				sound = pick('sound/voice/ruuhtian/warcry_1.ogg', 'sound/voice/ruuhtian/warcry_2.ogg')
+			if("pain_sangheili") // SS220 EDIT: HALO modular voice route
+				sound = pick('modular/halo/sound/voice/sangheili/pain_1.ogg', 'modular/halo/sound/voice/sangheili/pain_2.ogg', 'modular/halo/sound/voice/sangheili/pain_3.ogg', 'modular/halo/sound/voice/sangheili/pain_4.ogg', 'modular/halo/sound/voice/sangheili/pain_5.ogg')
+			if("warcry_sangheili") // SS220 EDIT: HALO modular voice route
+				sound = pick('modular/halo/sound/voice/sangheili/warcry_1.ogg', 'modular/halo/sound/voice/sangheili/warcry_2.ogg', 'modular/halo/sound/voice/sangheili/warcry_3.ogg')
+			if("pain_unggoy") // SS220 EDIT: HALO modular voice route
+				sound = pick('modular/halo/sound/voice/unggoy/pain_1.ogg', 'modular/halo/sound/voice/unggoy/pain_2.ogg', 'modular/halo/sound/voice/unggoy/pain_3.ogg', 'modular/halo/sound/voice/unggoy/pain_4.ogg')
+			if("warcry_unggoy") // SS220 EDIT: HALO modular voice route
+				sound = pick('modular/halo/sound/voice/unggoy/warcry_1.ogg', 'modular/halo/sound/voice/unggoy/warcry_2.ogg', 'modular/halo/sound/voice/unggoy/warcry_3.ogg')
+			if("pain_ruuhtian") // SS220 EDIT: HALO Ruuhtian modular voice route
+				sound = pick('modular/halo/sound/voice/ruuhtian/pain_1.ogg', 'modular/halo/sound/voice/ruuhtian/pain_2.ogg', 'modular/halo/sound/voice/ruuhtian/pain_3.ogg')
+			if("warcry_ruuhtian") // SS220 EDIT: HALO Ruuhtian modular voice route
+				sound = pick('modular/halo/sound/voice/ruuhtian/warcry_1.ogg', 'modular/halo/sound/voice/ruuhtian/warcry_2.ogg')
 
 			// HALO guns COV
 			if("gun_lightplasma")

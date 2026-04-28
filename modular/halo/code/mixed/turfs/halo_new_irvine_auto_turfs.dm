@@ -1,6 +1,6 @@
 /turf/open/auto_turf/irvine_grass
 	name = "matted grass"
-	icon = 'icons/turf/floors/auto_forest_irvine.dmi'
+	icon = 'modular/halo/icons/turf/floors/auto_forest_irvine.dmi'
 	icon_state = "grass_1"
 	icon_prefix = "grass"
 	layer_name = list("ground", "lush thick grass")

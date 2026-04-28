@@ -1,12 +1,12 @@
 /obj/item/clothing/under/marine/odst
 	name = "ODST bodyglove"
-	icon = 'icons/halo/obj/items/clothing/undersuit.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/undersuit.dmi'
 	icon_state = "odst"
 	worn_state = "odst"
 	flags_jumpsuit = null
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 	item_icons = list(
-		WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/uniforms.dmi',
+		WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/uniforms.dmi',
 	)
 
 /obj/item/clothing/under/marine/crew
@@ -14,11 +14,11 @@
 	desc = "Штатная форма члена экипажа ККОН, обычно носимая небоевым персоналом и выпускаемая в разных цветах в зависимости от роли носителя на корабле или станции."
 	flags_jumpsuit = null
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
-	icon = 'icons/halo/obj/items/clothing/undersuit.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/undersuit.dmi'
 	icon_state = "crewjumpsuit"
 	worn_state = "crewjumpsuit"
 	item_icons = list(
-		WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/uniforms.dmi',
+		WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/uniforms.dmi',
 	)
 
 /obj/item/clothing/under/marine/crew/flight

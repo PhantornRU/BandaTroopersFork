@@ -6,5 +6,5 @@
 	density = FALSE
 
 /obj/structure/machinery/computer/crew/unsc/big
-	icon = 'icons/halo/obj/structures/machinery/64x64computer.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/64x64computer.dmi'
 	bound_width = 64

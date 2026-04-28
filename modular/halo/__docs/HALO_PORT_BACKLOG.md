@@ -33,11 +33,27 @@ Secondary tracking document for the active `PR #94` refresh after HALO `PR #96` 
   - HumanAI preset faction wiring;
   - new squad preset path validity.
 - Refreshed branch-facing docs and changelog text so `PR #94` no longer describes itself as only a narrow Kig-Yar tail.
+- Completed the 2026-04-28 modular asset audit:
+  - HALO DMI assets now live under `modular/halo/icons/**`;
+  - HALO voice and Warthog sounds now live under `modular/halo/sound/**`;
+  - old root Warthog code was moved into `modular/halo/code/modules/vehicles/warthog/**`;
+  - Spartan generic glove/shoe states were split into dedicated modular DMI files instead of staying injected into root `icons/obj/items/clothing/*.dmi`;
+  - root generic glove/shoe DMI diffs now only remove the old `spartan` state and do not carry unrelated icon state additions or pixel changes;
+  - shared Ruuhtian/Spartan/Gun Ho compile constants were consolidated into `code/__DEFINES/bandamarines/halo_species_support.dm`;
+  - root species/pain/skill/mob concrete definitions that were HALO-only were moved into `modular/halo/**`.
 
 ## Explicit Non-Goals
 - Do not reopen merged `PR #96` scope except where the current master merge requires conflict resolution.
 - Do not collapse HALO modular code back into `code/**`.
 - Do not reintroduce wholesale upstream layout just to mirror filenames.
+- Do not edit generic root DMI files for HALO icon states. New HALO states must be represented by modular DMI files and HALO type paths must point at those files.
+
+## Remaining Root Glue To Watch
+- `code/game/sound.dm`: only routes shared sound keys to modular HALO voice files.
+- `code/modules/mob/living/carbon/human/{emote,human_attackhand,human_defense,human_helpers}.dm`: shared species/combat hooks only.
+- `code/modules/projectiles/{gun,gun_helpers,projectile}.dm`: shared Gun Ho and Mjolnir integration hooks only.
+- `code/modules/mob/living/carbon/human/ai/action_datums/{mg_nest,sniper_nest}.dm`: Game Master menu exposure only.
+- `code/modules/mob/living/carbon/human/death.dm`: pre-existing shared Warthog death/ejection callsite only.
 
 ## Completion Check
 - Merge state is clean after the pending merge commit is written.

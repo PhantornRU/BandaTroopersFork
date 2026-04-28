@@ -1,3 +1,8 @@
+/datum/skill/gun_ho
+	skill_name = SKILL_GUN_HO
+	skill_level = SKILL_GUN_HO_UNTRAINED
+	max_skill_level = SKILL_GUN_HO_MAX
+
 /datum/skills/combat_medic/odst
 	name = "ODST Corpsman"
 	skills = list(

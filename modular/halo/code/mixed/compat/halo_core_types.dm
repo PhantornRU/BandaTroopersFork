@@ -20,20 +20,20 @@
 /obj/item/clothing/glasses/sunglasses/big/unsc
 	name = "\improper UNSC shooting shades"
 	desc = "Пара штатных затемнённых очков. Некоторые модели оснащаются встроенной HUD-системой, но этот экземпляр явно без неё."
-	icon = 'icons/halo/obj/items/clothing/glasses/glasses.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/glasses/glasses.dmi'
 	icon_state = "hudglasses"
 	item_state = "hudglasses"
 	item_icons = list(
-		WEAR_EYES = 'icons/halo/mob/humans/onmob/clothing/eyes.dmi',
-		WEAR_FACE = 'icons/halo/mob/humans/onmob/clothing/eyes.dmi'
+		WEAR_EYES = 'modular/halo/icons/halo/mob/humans/onmob/clothing/eyes.dmi',
+		WEAR_FACE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/eyes.dmi'
 	)
 
 /obj/item/clothing/head/cmcap/oni
 	name = "\improper ONI security forces patrol cap"
 	desc = "A black patrol cap, with the insignia of ONI in the center."
-	icon = 'icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
 	item_icons = list(
-		WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_unsc.dmi'
+		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_unsc.dmi'
 	)
 	icon_state = "oni_cap"
 
@@ -44,11 +44,11 @@
 /obj/item/card/id/covenant
 	name = "Covenant identity disk"
 	desc = "An identitiy disk forged from nanolaminate. Four holoprojectors, two on each arm, display the personal identification readout of its owner."
-	icon = 'icons/halo/obj/items/card.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/card.dmi'
 	icon_state = "cov"
 	item_state = "cov_id"
 	item_icons = list(
-		WEAR_ID = 'icons/halo/mob/humans/onmob/id.dmi'
+		WEAR_ID = 'modular/halo/icons/halo/mob/humans/onmob/id.dmi'
 	)
 
 /obj/item/device/encryptionkey/oni

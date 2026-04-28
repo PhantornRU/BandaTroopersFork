@@ -1,14 +1,14 @@
 /obj/structure/magazine_box/unsc
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base"
-	text_markings_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	text_markings_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 
 /obj/item/ammo_box/magazine/misc/unsc
 	name = "\improper UNSC storage crate"
 	desc = "Типовой ящик снабжения ККОН. Похоже, сейчас он пуст... и вы вообще не должны были этого видеть."
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 	deployed_object = /obj/structure/magazine_box/unsc
 	icon_state = "base"
 	magazine_type = null
@@ -95,10 +95,10 @@
 /obj/item/ammo_box/magazine/unsc
 	name = "UNSC magazine box"
 	desc = "Типовой ящик с боеприпасами для оружия ККОН."
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base_ammo"
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
-	text_markings_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	text_markings_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
 	limit_per_tile = 1
 	deployed_object = /obj/structure/magazine_box/unsc
 

@@ -1,7 +1,7 @@
 /obj/structure/gun_rack/halo
 	name = "halo gun rack holder"
 	desc = "Оружейная стойка ККОН."
-	icon = 'icons/halo/obj/structures/gun_racks.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/gun_racks.dmi'
 	icon_state = "template"
 
 /obj/structure/gun_rack/halo/medkit
@@ -61,7 +61,7 @@
 
 /obj/structure/gun_rack/halo/big
 	name = "weapon rack"
-	icon = 'icons/halo/obj/structures/gun_racks_32x48.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/gun_racks_32x48.dmi'
 	max_stored = 5
 	initial_stored = 5
 

@@ -1,7 +1,7 @@
 /obj/item/clothing/head/helmet/marine/unsc/mjolnir
 	name = "\improper Mjolnir Mk IV helmet"
 	desc = "A sealed VISR-equipped helmet for the Mjolnir Mk IV armor system."
-	icon = 'icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/hats/hats_by_faction/hat_unsc.dmi'
 	icon_state = "mk_iv_0"
 	item_state = "mk_iv_0"
 	light_system = DIRECTIONAL_LIGHT
@@ -17,7 +17,7 @@
 	armor_internaldamage = CLOTHING_ARMOR_VERYHIGH
 	actions_types = list(/datum/action/item_action/toggle)
 	item_icons = list(
-		WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_48.dmi',
+		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_48.dmi',
 	)
 	var/toggleable = TRUE
 

@@ -1,28 +1,28 @@
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/halo
 	name = "heavy blast door"
 	desc = "Тяжёлая взрывозащитная дверь, предназначенная для герметизации зон или обеспечения широкого прохода через один вход."
-	icon = 'icons/halo/obj/structures/doors/podlocks/4x1_blast_hor.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/podlocks/4x1_blast_hor.dmi'
 	icon_state = "blast1"
 	base_icon_state = "blast"
 
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/vertical/halo
 	name = "heavy blast door"
 	desc = "Тяжёлая взрывозащитная дверь, предназначенная для герметизации зон или обеспечения широкого прохода через один вход."
-	icon = 'icons/halo/obj/structures/doors/podlocks/4x1_blast_vert.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/podlocks/4x1_blast_vert.dmi'
 	icon_state = "blast1"
 	base_icon_state = "blast"
 
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/five_tile
 	name = "heavy blast door"
 	desc = "Тяжёлая взрывозащитная дверь, предназначенная для герметизации зон или обеспечения широкого прохода через один вход."
-	icon = 'icons/halo/obj/structures/doors/podlocks/5x1_blast_hor.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/podlocks/5x1_blast_hor.dmi'
 	icon_state = "blast1"
 	base_icon_state = "blast"
 	shutter_length = 5
 	var/obj/structure/machinery/door/poddoor/filler_object/f5
 
 /obj/structure/machinery/door/poddoor/two_tile/four_tile/five_tile/secure
-	icon = 'icons/halo/obj/structures/doors/podlocks/5x1_blast_visegard_hor.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/podlocks/5x1_blast_visegard_hor.dmi'
 	openspeed = 7
 	unacidable = TRUE
 

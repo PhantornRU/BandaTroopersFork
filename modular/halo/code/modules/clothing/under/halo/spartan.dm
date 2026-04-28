@@ -1,7 +1,7 @@
 /obj/item/clothing/under/marine/spartan
 	name = "\improper Mjolnir Mk IV undersuit"
 	desc = "A reinforced undersuit tailored for the Mjolnir armor platform."
-	icon = 'icons/halo/obj/items/clothing/undersuit.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/undersuit.dmi'
 	icon_state = "spartan"
 	item_state = "spartan"
 	worn_state = "spartan"
@@ -9,9 +9,9 @@
 	allowed_species_list = list(SPECIES_SPARTAN)
 	item_state_slots = list()
 	item_icons = list(
-		WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/uniforms_48.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/uniforms_48.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 	flags_jumpsuit = null
 	armor_melee = CLOTHING_ARMOR_LOW

@@ -1,0 +1,6 @@
+author: Codex
+delete-after: True
+changes:
+  - code: "Normalized HALO port ownership so HALO-only runtime, icons, and sounds live under modular/halo while shared code keeps only explicit SS220 glue."
+  - imagetweak: "Moved HALO icon sheets out of root icon paths into modular HALO asset paths without changing intended visuals."
+  - soundtweak: "Moved HALO voice lines and Warthog sounds into modular HALO asset paths without changing intended audio."

@@ -1034,6 +1034,7 @@
 			return TRUE
 	// SS220 EDIT - END
 
+	// SS220 EDIT: HALO modular Mjolnir armor degradation hook.
 	if(istype(wear_suit, /obj/item/clothing/suit/marine/unsc/mjolnir))
 		armor_degrade(P.damage)
 

@@ -1,12 +1,12 @@
 /obj/item/clothing/accessory/pads/sangheili
 	name = "\improper наплечники сангхейли"
 	desc = "Наплечники почтенного дизайна, крепящиеся к боевой сбруе воина для защиты плеч и верхней части рук. Несмотря на простоту функции, прочные наноламинатные композиты дают им весьма достойную защиту."
-	icon = 'icons/halo/obj/items/clothing/covenant/accessories.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/accessories.dmi'
 	icon_state = "sangpads_minor"
 	item_state = "sangpads_minor"
 	slot = ACCESSORY_SLOT_SANG_SHOULDER
 	flags_atom = NO_SNOW_TYPE
-	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/sangheili/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/sangheili/accessories.dmi')
+	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/accessories.dmi')
 
 /obj/item/clothing/accessory/pads/sangheili/minor
 	name = "\improper наплечники сангхейли-минора"

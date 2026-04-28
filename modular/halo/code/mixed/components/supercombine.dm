@@ -38,7 +38,7 @@
 	var/turf/turf = get_turf(parent_carbon)
 	var/cause_data = create_cause_data("supercombine explosion", shooter_name)
 	cell_explosion(turf, 50, 40, EXPLOSION_FALLOFF_SHAPE_LINEAR, direction, cause_data)
-	flick_overlay(parent_carbon, image('icons/halo/effects/supercombine.dmi', null, "supercombine"), 3)
+	flick_overlay(parent_carbon, image('modular/halo/icons/halo/effects/supercombine.dmi', null, "supercombine"), 3)
 	playsound(parent_carbon, 'sound/effects/halo/supercombine.ogg')
 	src.needles = 0
 	for(var/obj/item/shard/shrapnel/needler/needle in parent_carbon.embedded_items)
@@ -52,7 +52,7 @@
 /datum/component/supercombine/proc/generate_overlay()
 	needler_overlay = new()
 	overlay_present = TRUE
-	needler_overlay.icon = 'icons/halo/effects/supercombine.dmi'
+	needler_overlay.icon = 'modular/halo/icons/halo/effects/supercombine.dmi'
 	needler_overlay.icon_state = needle_overlay(needles)
 	needler_overlay.layer = ABOVE_MOB_LAYER
 	needler_overlay.vis_flags = VIS_INHERIT_ID|VIS_INHERIT_DIR

@@ -1,5 +1,5 @@
 /datum/sprite_accessory/ruuhtian_hair
-	icon = 'icons/halo/mob/humans/species/ruuhtian/ruuhtian_hair.dmi'
+	icon = 'modular/halo/icons/halo/mob/humans/species/ruuhtian/ruuhtian_hair.dmi'
 	species_allowed = list(SPECIES_RUUHTIAN)
 	do_coloration = FALSE
 
