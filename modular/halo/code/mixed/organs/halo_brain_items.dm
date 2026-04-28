@@ -13,5 +13,5 @@
 /obj/item/organ/brain/kigyar
 	name = "kig-yar brain"
 	icon = 'icons/halo/obj/items/organs.dmi'
-	icon_state = "ruuhtian_brain"
+	icon_state = "kigyar_brain"
 	organ_type = /datum/internal_organ/brain/kigyar

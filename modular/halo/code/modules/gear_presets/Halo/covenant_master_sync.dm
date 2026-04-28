@@ -384,9 +384,16 @@
 	add_grunt_deacon(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 
+/datum/equipment_preset/proc/add_elite_basics(mob/living/carbon/human/new_human)
+	if(!istype(new_human))
+		return
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/sangheili(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
+
 /datum/equipment_preset/proc/add_elite_minor(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/minor(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/minor(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/minor(new_human), WEAR_FEET)
@@ -399,6 +406,7 @@
 /datum/equipment_preset/proc/add_elite_major(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/major(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/major(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/major(new_human), WEAR_FEET)
@@ -411,6 +419,7 @@
 /datum/equipment_preset/proc/add_elite_ultra(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/ultra(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/ultra(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/ultra(new_human), WEAR_FEET)
@@ -423,6 +432,7 @@
 /datum/equipment_preset/proc/add_elite_zealot(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/zealot(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/zealot(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/zealot(new_human), WEAR_FEET)
@@ -435,6 +445,7 @@
 /datum/equipment_preset/proc/add_elite_specops(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/specops(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/specops(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/specops(new_human), WEAR_FEET)
@@ -447,6 +458,7 @@
 /datum/equipment_preset/proc/add_elite_specops_ultra(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/specops/ultra(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/specops/ultra(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/specops/ultra(new_human), WEAR_FEET)
@@ -459,6 +471,7 @@
 /datum/equipment_preset/proc/add_elite_stealth(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/stealth(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/stealth(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/stealth(new_human), WEAR_FEET)
@@ -471,6 +484,7 @@
 /datum/equipment_preset/proc/add_elite_honor_guard(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return
+	add_elite_basics(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/suit/marine/shielded/sangheili/honor_guard(new_human), WEAR_JACKET)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/gloves/marine/sangheili/honor_guard(new_human), WEAR_HANDS)
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/shoes/sangheili/honor_guard(new_human), WEAR_FEET)

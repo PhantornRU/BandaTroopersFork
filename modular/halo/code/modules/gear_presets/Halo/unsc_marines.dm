@@ -535,6 +535,7 @@
 
 //rifleman
 /datum/equipment_preset/unsc/pfc/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/pfc/equipped/load_gear(mob/living/carbon/human/new_human)
@@ -781,6 +782,7 @@
 
 //rto
 /datum/equipment_preset/unsc/rto/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/rto/equipped/load_gear(mob/living/carbon/human/new_human)
@@ -923,6 +925,7 @@
 	new_human.nutrition = NUTRITION_HIGH
 
 /datum/equipment_preset/unsc/platco/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = parent_type::name + " (снаряжен)"
 
 /datum/equipment_preset/unsc/platco/equipped/load_gear(mob/living/carbon/human/new_human)
@@ -972,6 +975,7 @@
 
 /datum/equipment_preset/unsc/platco/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/platco/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = "ODST Platoon Commander (Equipped)"
 	assignment = JOB_SO_ODST
 	rank = JOB_SO_ODST
@@ -1059,6 +1063,7 @@
 
 //rifleman
 /datum/equipment_preset/unsc/pfc/odst/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = parent_type::name + " (снаряжен)"
 	odst_visual_role = TRUE
 
@@ -1125,6 +1130,7 @@
 
 /datum/equipment_preset/unsc/rto/odst/equipped
 	parent_type = /datum/equipment_preset/unsc/rto/equipped
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	name = "Радиооператор ODST (Снаряжен)"
 	assignment = JOB_SQUAD_RTO_ODST
 	rank = JOB_SQUAD_RTO_ODST

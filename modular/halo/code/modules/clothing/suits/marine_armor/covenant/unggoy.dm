@@ -94,8 +94,8 @@
 /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra
 	name = "спецоперативная боевая сбруя унггоя-ультры"
 	desc = "Модификация сбруи Spec-Ops, используемая ветеранами и специалистами из Special Warfare Group. Это заметное улучшение по сравнению с обычной спецоперативной сбруей: усиленные композиты рассчитаны уже на прямой бой. Многие считают унггоев трусливыми и слабыми, но немногие из тех, кто увидел этот чёрный комплект, доживают до рассказа об этом - а те, кто доживает, меняют мнение."
-	icon_state = "unggoy_specops_ultra"
-	item_state = "unggoy_specops_ultra"
+	icon_state = "unggoy_specultra"
+	item_state = "unggoy_specultra"
 
 	armor_melee = CLOTHING_ARMOR_HIGH
 	armor_bullet = CLOTHING_ARMOR_HIGHPLUS

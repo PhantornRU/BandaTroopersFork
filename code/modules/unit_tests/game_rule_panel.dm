@@ -354,11 +354,11 @@
 	var/list/admin_rows = rules.build_active_rto_charge_admin_data()
 	TEST_ASSERT_EQUAL(length(admin_rows), 1, "Game Rule Panel should expose one active RTO controller in the live charge admin table.")
 	var/list/admin_row = admin_rows[1]
-	TEST_ASSERT_EQUAL(admin_row["ckey"], "charge_admin_target", "Game Rule Panel live RTO data should expose the owner's ckey.")
+	TEST_ASSERT_EQUAL(admin_row["ckey"], ckey("charge_admin_target"), "Game Rule Panel live RTO data should expose the owner's normalized ckey.")
 	TEST_ASSERT_EQUAL(admin_row["name"], "Charge Admin Target", "Game Rule Panel live RTO data should expose the owner's display name.")
 	TEST_ASSERT_EQUAL(length(admin_row["selected_template_entries"]), 1, "Game Rule Panel live RTO data should expose selected template rows for per-player package management.")
 	TEST_ASSERT_EQUAL(length(admin_row["pools"]), 1, "Game Rule Panel live RTO data should expose the synthetic charge pool.")
-	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by ckey for Game Rule Panel actions.")
+	TEST_ASSERT_NOTNULL(registry.find_controller_by_ckey("charge_admin_target"), "RTO registry should resolve an active controller by raw or normalized ckey for Game Rule Panel actions.")
 
 	TEST_ASSERT(controller.set_template_pool_current_charges(template.template_id, 1, "gm_alpha"), "GM current-charge override should succeed for an active RTO pool.")
 	TEST_ASSERT_EQUAL(controller.get_support_pool_current_charges(template), 1, "GM current-charge override did not update the live charge pool.")

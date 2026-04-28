@@ -152,19 +152,11 @@
 	parent_type = /obj/item/attachable/flashlight/ma5
 	name = "\improper MA5C integrated flashlight"
 	desc = "Встроенный фонарь MA5C, штатно устанавливаемый на любую штурмовую винтовку серии MA5."
-	icon_state = "ma5c_flashlight"
-	attach_icon = "ma5c_flashlight"
-	original_state = "ma5c_flashlight"
-	original_attach = "ma5c_flashlight"
 
 /obj/item/attachable/flashlight/ma5b
 	parent_type = /obj/item/attachable/flashlight/ma5
 	name = "\improper MA5B integrated flashlight"
 	desc = "Встроенный фонарь MA5B, штатно устанавливаемый на любую штурмовую винтовку серии MA5 и фактически необходимый для нормального хвата."
-	icon_state = "ma5b_flashlight"
-	attach_icon = "ma5b_flashlight"
-	original_state = "ma5b_flashlight"
-	original_attach = "ma5b_flashlight"
 
 /obj/item/attachable/flashlight/ma5/ma3a
 	name = "\improper MA3A integrated flashlight"
@@ -580,8 +572,8 @@
 	name = "\improper spnkr handle"
 	desc = "Эта деталь не должна отделяться от оружия. Как это вообще произошло?"
 	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_attachments.dmi'
-	icon_state = "spnkr_handle"
-	attach_icon = "spnkr_handle"
+	icon_state = "spnkr_scope"
+	attach_icon = "spnkr_scope"
 	slot = "under"
 	wield_delay_mod = WIELD_DELAY_NONE
 	flags_attach_features = NO_FLAGS
