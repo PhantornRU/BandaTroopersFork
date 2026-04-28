@@ -30,7 +30,6 @@
 	name = "\improper M41 SPNKr"
 	desc = "M41 SPNKr - многоцелевая многоразовая ракетная система, способная захватывать как воздушные, так и наземные цели. Среди бойцов ККОН, которым она досталась, её часто называют Jackhammer."
 	icon_state = "spnkr"
-	base_gun_icon = "m83a2"
 	item_state = "spnkr"
 	layer = ABOVE_OBJ_LAYER
 	flags_equip_slot = SLOT_BLOCK_SUIT_STORE|SLOT_BACK
@@ -45,7 +44,6 @@
 	unload_sound = 'sound/weapons/halo/gun_spnkr_unload.ogg'
 	item_icons = list(
 		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/heavy_weapons_32.dmi',
-		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
 		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
@@ -55,9 +53,7 @@
 	var/aa_cooldown_time = 7 SECONDS
 	var/cancel_sounds
 	var/atom/movable/overlay/ammo_overlay
-	starting_attachment_types = list(/obj/item/attachable/spnkr_handle)
 	attachable_allowed = list(
-		/obj/item/attachable/spnkr_handle,
 		/obj/item/attachable/scope/spnkr,
 	)
 

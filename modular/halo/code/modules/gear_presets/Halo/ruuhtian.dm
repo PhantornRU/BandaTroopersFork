@@ -148,28 +148,28 @@
 	role_comm_title = "Ultra"
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/load_gear(mob/living/carbon/human/new_human)
-	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
+	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/better, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
 	add_needler_package(new_human)
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/needler
 	name = parent_type::name + " (Needler)"
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/needler/load_gear(mob/living/carbon/human/new_human)
-	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
+	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/better, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
 	add_needler_package(new_human)
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/plasma_rifle
 	name = parent_type::name + " (Plasma Rifle)"
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
-	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
+	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/better, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
 	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/carbine
 	name = parent_type::name + " (Carbine)"
 
 /datum/equipment_preset/covenant/ruuhtian/ultra/carbine/load_gear(mob/living/carbon/human/new_human)
-	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
+	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/better, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
 	add_cov_carbine_package(new_human)
 
 // =================================
@@ -245,7 +245,7 @@
 	role_comm_title = "Ultra"
 
 /datum/equipment_preset/covenant/ruuhtian/ai/ultra_plasma/load_gear(mob/living/carbon/human/new_human)
-	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/major, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
+	equip_ruuhtian_basics(new_human, /obj/item/clothing/head/helmet/marine/ruuhtian/better, /obj/item/clothing/suit/marine/ruuhtian/ultra, /obj/item/clothing/shoes/ruuhtian/ultra, /obj/item/storage/belt/marine/covenant/ruuhtian/ultra)
 	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine

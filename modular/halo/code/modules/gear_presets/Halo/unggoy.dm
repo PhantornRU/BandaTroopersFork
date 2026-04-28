@@ -281,28 +281,28 @@
 	name = parent_type::name + " (Plasma Pistol)"
 
 /datum/equipment_preset/covenant/unggoy/specops/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
 	add_plasma_pistol_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops/needler
 	name = parent_type::name + " (Needler)"
 
 /datum/equipment_preset/covenant/unggoy/specops/needler/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
 	add_needler_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops/plasma_rifle
 	name = parent_type::name + " (Plasma Rifle)"
 
 /datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
 	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops/cloaking
 	name = parent_type::name + " (Plasma Rifle) !!CLOAKED!!"
 
 /datum/equipment_preset/covenant/unggoy/specops/cloaking/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops, /obj/item/storage/belt/marine/covenant/unggoy/specops)
 	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops/lesser
@@ -359,28 +359,28 @@
 	name = parent_type::name + " (Plasma Pistol)"
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_pistol/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops_ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
 	add_plasma_pistol_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/needler
 	name = parent_type::name + " (Needler)"
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/needler/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops_ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
 	add_needler_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle
 	name = parent_type::name + " (Plasma Rifle)"
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops_ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
 	add_plasma_rifle_package(new_human)
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/cloaking
 	name = parent_type::name + " (Plasma Rifle) !!CLOAKED!!"
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/cloaking/load_gear(mob/living/carbon/human/new_human)
-	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
+	equip_unggoy_basics(new_human, /obj/item/clothing/suit/marine/unggoy/cloaking/specops_ultra, /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra)
 	add_plasma_rifle_package(new_human)
 
 // Deacon

@@ -2,7 +2,7 @@
 
 /obj/item/clothing/gloves/marine/sangheili
 	icon_state = "sang_minor"
-	item_state = "sangauntlets_minor"
+	item_state = "sang_minor"
 
 /obj/item/clothing/gloves/marine/sangheili/major
 	icon_state = "sang_major"

@@ -8695,7 +8695,7 @@
 "aqb" = (
 /obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
 /obj/item/device/binoculars/range/designator/sergeant,
-/obj/item/attachable/attached_gun/grenade/ma5c,
+/obj/item/attachable/attached_gun/grenade/ma5,
 /obj/item/ammo_box/magazine/unsc/dmr,
 /obj/item/weapon/gun/rifle/halo/dmr/unloaded,
 /turf/open/floor/almayer/plating_striped/east,
@@ -8725,7 +8725,7 @@
 "aqh" = (
 /obj/structure/closet/secure_closet/halo/job_locker/squad_leader,
 /obj/item/device/binoculars/range/designator/sergeant,
-/obj/item/attachable/attached_gun/grenade/ma5c,
+/obj/item/attachable/attached_gun/grenade/ma5,
 /obj/item/ammo_box/magazine/unsc/dmr,
 /obj/item/weapon/gun/rifle/halo/dmr/unloaded,
 /turf/open/floor/almayer/plating_striped/west,

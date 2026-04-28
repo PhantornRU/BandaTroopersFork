@@ -374,22 +374,3 @@
 	. = ..()
 	var/obj/item/clothing/accessory/pads/sangheili/ultra/pads = new()
 	src.attach_accessory(null, pads, TRUE)
-
-/obj/item/clothing/suit/marine/shielded/sangheili/zealot
-	name = "\improper боевая сбруя сангхейли-зилота"
-	desc = "Золотой блеск этой сбруи выдаёт в гордом сангхейли одного из прославленных зилотов - воинов почётных Орденов. Она неизмеримо превосходит любые более низкие комплекты: говорят, её наноламинатные сплавы напрямую насыщены священными металлами, благодаря чему броня одновременно удивительно лёгкая и нелепо прочная. К этой обычной прочности добавляются мощные энергетические щиты, превращающие воина в неудержимую силу на пути к цели."
-	desc_lore = "Будь то личное ведение войск в славный бой или захват Святых Реликвий в дерзких и не слишком афишируемых операциях, с носителем этой сбруи лучше не шутить и тем более не становиться у него на пути."
-
-	icon_state = "sang_zealot"
-	item_state = "sang_zealot"
-
-	shield = SANG_SHIELD_ZEALOT
-	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
-	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH
-	armor_laser = CLOTHING_ARMOR_VERYHIGH
-	armor_bomb = CLOTHING_ARMOR_HIGH
-
-/obj/item/clothing/suit/marine/shielded/sangheili/zealot/Initialize(mapload)
-	. = ..()
-	var/obj/item/clothing/accessory/pads/sangheili/zealot/pads = new()
-	src.attach_accessory(null, pads, TRUE)

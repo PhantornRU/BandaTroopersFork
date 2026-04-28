@@ -2854,7 +2854,7 @@
 	pixel_x = 0;
 	pixel_y = -1
 	},
-/obj/item/attachable/flashlight/ma5c{
+/obj/item/attachable/flashlight/ma5{
 	pixel_x = -3;
 	pixel_y = -4
 	},
@@ -20719,7 +20719,7 @@
 /obj/structure/surface/table/reinforced/prison{
 	color = "#6b675e"
 	},
-/obj/item/attachable/flashlight/ma5c/ma3a,
+/obj/item/attachable/flashlight/ma5/ma3a,
 /turf/open/floor/prison/floor_plate,
 /area/gamma_sector/closed_soft/observation_hab)
 "lsH" = (
@@ -24133,11 +24133,11 @@
 /obj/structure/surface/table/reinforced/prison{
 	color = "#6b675e"
 	},
-/obj/item/attachable/flashlight/ma5c{
+/obj/item/attachable/flashlight/ma5{
 	pixel_x = 0;
 	pixel_y = 3
 	},
-/obj/item/attachable/attached_gun/grenade/ma5c{
+/obj/item/attachable/attached_gun/grenade/ma5{
 	pixel_x = 7;
 	pixel_y = 10
 	},
@@ -43776,11 +43776,11 @@
 	color = "#6b675e";
 	layer = 2.79
 	},
-/obj/item/attachable/flashlight/ma5c{
+/obj/item/attachable/flashlight/ma5{
 	pixel_x = 1;
 	pixel_y = 3
 	},
-/obj/item/attachable/flashlight/ma5c{
+/obj/item/attachable/flashlight/ma5{
 	pixel_x = 4;
 	pixel_y = -5
 	},

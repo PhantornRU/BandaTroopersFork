@@ -74,7 +74,7 @@
 	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
 	built_in_visors = list()
 
-/obj/item/clothing/head/helmet/marine/ruuhtian/major
+/obj/item/clothing/head/helmet/marine/ruuhtian/better
 	name = "\improper superior Ruuhtian combat helmet"
 	icon_state = "superior_helmet"
 	item_state = "superior_helmet"
@@ -83,9 +83,6 @@
 	armor_bullet = CLOTHING_ARMOR_HIGH
 	armor_laser = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_bomb = CLOTHING_ARMOR_MEDIUM
-
-/obj/item/clothing/head/helmet/marine/ruuhtian/better
-	parent_type = /obj/item/clothing/head/helmet/marine/ruuhtian/major
 
 /obj/item/clothing/head/helmet/marine/ruuhtian/sniper
 	name = "\improper Ruuhtian sniper helmet"

@@ -51,11 +51,6 @@
 		return ..()
 	return FALSE
 
-/obj/item/attachable/attached_gun/grenade/ma5c
-	parent_type = /obj/item/attachable/attached_gun/grenade/ma5
-	name = "\improper M301C 40mm grenade launcher"
-	desc = "Подствольный 40-мм гранатомёт. Вариант M301C специально разработан для платформы MA5C ICWS и одновременно служит передней рукоятью, подобно штатному фонарю MA5C."
-
 /obj/item/attachable/ma3a_shroud
 	name = "\improper MA3A shroud"
 	desc = "Эта деталь не должна отделяться от оружия. Как это вообще произошло?"
@@ -148,16 +143,6 @@
 	original_attach = "ma5_flashlight"
 	slot = "under"
 
-/obj/item/attachable/flashlight/ma5c
-	parent_type = /obj/item/attachable/flashlight/ma5
-	name = "\improper MA5C integrated flashlight"
-	desc = "Встроенный фонарь MA5C, штатно устанавливаемый на любую штурмовую винтовку серии MA5."
-
-/obj/item/attachable/flashlight/ma5b
-	parent_type = /obj/item/attachable/flashlight/ma5
-	name = "\improper MA5B integrated flashlight"
-	desc = "Встроенный фонарь MA5B, штатно устанавливаемый на любую штурмовую винтовку серии MA5 и фактически необходимый для нормального хвата."
-
 /obj/item/attachable/flashlight/ma5/ma3a
 	name = "\improper MA3A integrated flashlight"
 	desc = "Подствольная рукоять для MA3A, совмещённая с фонарём."
@@ -171,9 +156,6 @@
 /obj/item/attachable/flashlight/ma5/ma3a/New()
 	..()
 	recoil_mod = -RECOIL_AMOUNT_TIER_4
-
-/obj/item/attachable/flashlight/ma5c/ma3a
-	parent_type = /obj/item/attachable/flashlight/ma5/ma3a
 
 /obj/item/attachable/flashlight/m90
 	name = "\improper M90 integrated flashlight"
@@ -567,15 +549,3 @@
 	attach_icon = "m7_grip"
 	wield_delay_mod = WIELD_DELAY_NONE
 	size_mod = 1
-
-/obj/item/attachable/spnkr_handle
-	name = "\improper spnkr handle"
-	desc = "Эта деталь не должна отделяться от оружия. Как это вообще произошло?"
-	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_attachments.dmi'
-	icon_state = "spnkr_scope"
-	attach_icon = "spnkr_scope"
-	slot = "under"
-	wield_delay_mod = WIELD_DELAY_NONE
-	flags_attach_features = NO_FLAGS
-	melee_mod = 0 //Integrated attachment for visuals, stats handled on main gun.
-	size_mod = 0

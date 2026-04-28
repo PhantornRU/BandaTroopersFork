@@ -627,7 +627,7 @@
 	name = "\improper Ruuhtian combat belt"
 	desc = "A modular belt for Kig-Yar field gear and ammunition."
 	icon_state = "ruuhtian_minor"
-	item_state = "belt_minor"
+	item_state = "ruuhtian_minor"
 	item_icons = list(
 		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/belts.dmi'
 		)
@@ -648,4 +648,4 @@
 	name = "\improper Ruuhtian Ultra combat belt"
 	desc = "An elite combat belt for Kig-Yar line veterans."
 	icon_state = "ruuhtian_ultra"
-	item_state = "ruuhtian_ultra"
+	item_state = "belt_ultra"
