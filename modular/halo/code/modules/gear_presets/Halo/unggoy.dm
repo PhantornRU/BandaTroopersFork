@@ -319,6 +319,20 @@
 
 /datum/equipment_preset/covenant/unggoy/specops/lesser/load_gear(mob/living/carbon/human/new_human)
 	add_grunt_specops(new_human)
+	add_plasma_pistol_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops/lesser/needler
+	name = parent_type::name + " (Needler)"
+
+/datum/equipment_preset/covenant/unggoy/specops/lesser/needler/load_gear(mob/living/carbon/human/new_human)
+	add_grunt_specops(new_human)
+	add_needler_package(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops/lesser/plasma_rifle
+	name = parent_type::name + " (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/unggoy/specops/lesser/plasma_rifle/load_gear(mob/living/carbon/human/new_human)
+	add_grunt_specops(new_human)
 	add_plasma_rifle_package(new_human)
 
 // SpecOps Ultra

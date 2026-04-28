@@ -19,6 +19,7 @@
 		/datum/equipment_preset/covenant/sangheili/zealot/plasma_rifle,
 		/datum/equipment_preset/covenant/sangheili/zealot/carbine,
 		/datum/equipment_preset/covenant/sangheili/zealot/cloaking,
+		/datum/equipment_preset/covenant/sangheili/zealot/stealth,
 		/datum/equipment_preset/covenant/sangheili/specops,
 		/datum/equipment_preset/covenant/sangheili/specops/carbine,
 		/datum/equipment_preset/covenant/sangheili/specops/cloaking,
@@ -51,9 +52,13 @@
 		/datum/equipment_preset/covenant/unggoy/specops/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/specops/needler,
 		/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle,
+		/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked,
+		/datum/equipment_preset/covenant/unggoy/specops/lesser/needler,
+		/datum/equipment_preset/covenant/unggoy/specops/lesser/plasma_rifle,
 		/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/specops_ultra/needler,
 		/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle,
+		/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked,
 		/datum/equipment_preset/covenant/unggoy/deacon/plasma_pistol,
 		/datum/equipment_preset/covenant/unggoy/deacon/needler,
 		/datum/equipment_preset/covenant/unggoy/deacon/plasma_rifle,
@@ -146,7 +151,9 @@
 	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/heavy, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
 	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/ultra, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
 	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
-	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops/lesser, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops/lesser, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops/lesser/needler, /obj/item/weapon/gun/smg/covenant_needler)
+	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops/lesser/plasma_rifle, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
 	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/specops_ultra, /obj/item/weapon/gun/energy/plasma/plasma_rifle)
 	validate_store_weapon(/datum/equipment_preset/covenant/unggoy/deacon, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
 	validate_store_weapon(/datum/equipment_preset/covenant/ruuhtian/minor, /obj/item/weapon/gun/energy/plasma/plasma_pistol)
@@ -162,8 +169,19 @@
 
 	var/list/human_ai_presets = list(
 		/datum/human_ai_equipment_preset/covenant/sangheili/minor = FACTION_SANGHEILI,
+		/datum/human_ai_equipment_preset/covenant/sangheili/stealth = FACTION_SPECOPS_SANGHEILI,
+		/datum/human_ai_equipment_preset/covenant/sangheili/stealth_zealot = FACTION_SPECOPS_SANGHEILI,
 		/datum/human_ai_equipment_preset/covenant/sangheili/honor_guard = FACTION_SANGHEILI,
+		/datum/human_ai_equipment_preset/covenant/unggoy/heavy = FACTION_UNGGOY,
 		/datum/human_ai_equipment_preset/covenant/unggoy/heavy/plasma_rifle = FACTION_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops/needler = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops/plasma_rifle = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops_lesser = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/needler = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle = FACTION_SPECOPS_UNGGOY,
+		/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked = FACTION_SPECOPS_UNGGOY,
 		/datum/human_ai_equipment_preset/covenant/specops_unggoy/specops/plasma_pistol = FACTION_SPECOPS_UNGGOY,
 		/datum/human_ai_equipment_preset/covenant/unggoy/suicide_bomber = FACTION_UNGGOY,
 		/datum/human_ai_equipment_preset/covenant/ruuhtian/minor = FACTION_KIGYAR,
@@ -175,6 +193,7 @@
 		/datum/human_ai_equipment_preset/unsc/spartan/cqc = FACTION_UNSC,
 		/datum/human_ai_equipment_preset/unsc/spartan/spnkr = FACTION_UNSC,
 		/datum/human_ai_equipment_preset/oni/security = FACTION_ONI,
+		/datum/human_ai_equipment_preset/oni/security/sl = FACTION_ONI,
 		/datum/human_ai_equipment_preset/oni/field/agent/senior = FACTION_ONI,
 		/datum/human_ai_equipment_preset/police/officer/geared/smg = FACTION_UEG_POLICE,
 		/datum/human_ai_equipment_preset/police/officer/sergeant/geared = FACTION_UEG_POLICE,
@@ -186,6 +205,8 @@
 		validate_human_ai_preset(ai_preset_path, human_ai_presets[ai_preset_path])
 
 	var/list/squad_presets = list(
+		/datum/human_ai_squad_preset/covenant/unggoy_levy,
+		/datum/human_ai_squad_preset/covenant/unggoy_lance,
 		/datum/human_ai_squad_preset/covenant/ruuhtian_sniper_cell,
 		/datum/human_ai_squad_preset/covenant/covenant_specops_strike_cell,
 		/datum/human_ai_squad_preset/covenant/kigyar_raider_lance,

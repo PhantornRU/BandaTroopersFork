@@ -61,6 +61,11 @@
 	desc = "BT AI-safe plasma rifle Unggoy heavy."
 	path = /datum/equipment_preset/covenant/unggoy/ai/heavy_plasma
 
+/datum/human_ai_equipment_preset/covenant/unggoy/heavy
+	name = "Unggoy Heavy"
+	desc = "Upstream-compatible alias for a fully equipped AI-safe plasma rifle Unggoy heavy."
+	path = /datum/equipment_preset/covenant/unggoy/ai/heavy_plasma
+
 /datum/human_ai_equipment_preset/covenant/unggoy/heavy/plasma_rifle
 	name = "Unggoy Heavy (Plasma Rifle)"
 	desc = "Upstream-compatible alias for a fully equipped AI-safe plasma rifle Unggoy heavy."
@@ -112,17 +117,59 @@
 	faction = FACTION_SPECOPS_UNGGOY
 	path = /datum/equipment_preset/covenant/unggoy/ai/specops_plasma
 
+/datum/human_ai_equipment_preset/covenant/unggoy/specops
+	name = "Unggoy SpecOps"
+	desc = "Upstream-compatible alias for a fully equipped AI-safe plasma rifle SpecOps Unggoy."
+	faction = FACTION_SPECOPS_UNGGOY
+	path = /datum/equipment_preset/covenant/unggoy/ai/specops_plasma
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops/plasma_rifle
+	name = "Unggoy SpecOps (Plasma Rifle)"
+	desc = "Upstream-compatible alias for a fully equipped plasma rifle SpecOps Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops/plasma_rifle
+
 /datum/human_ai_equipment_preset/covenant/unggoy/specops_needler
 	name = "Unggoy SpecOps (Needler)"
 	desc = "BT AI-safe needler SpecOps Unggoy."
 	faction = FACTION_SPECOPS_UNGGOY
 	path = /datum/equipment_preset/covenant/unggoy/ai/specops_needler
 
+/datum/human_ai_equipment_preset/covenant/unggoy/specops/needler
+	name = "Unggoy SpecOps (Needler)"
+	desc = "Upstream-compatible alias for a fully equipped needler SpecOps Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops/needler
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked
+	name = "Unggoy SpecOps (Plasma Rifle, Cloaked)"
+	desc = "Upstream-compatible alias for a cloaked plasma rifle SpecOps Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops_lesser
+	name = "Unggoy SpecOps (Lesser)"
+	desc = "Upstream-compatible alias for the lesser SpecOps Unggoy."
+	faction = FACTION_SPECOPS_UNGGOY
+	path = /datum/equipment_preset/covenant/unggoy/specops/lesser
+
 /datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra
 	name = "Unggoy SpecOps Ultra"
 	desc = "BT AI-safe SpecOps Ultra Unggoy."
 	faction = FACTION_SPECOPS_UNGGOY
 	path = /datum/equipment_preset/covenant/unggoy/ai/specops_ultra
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/needler
+	name = "Unggoy SpecOps Ultra (Needler)"
+	desc = "Upstream-compatible alias for a fully equipped needler SpecOps Ultra Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops_ultra/needler
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle
+	name = "Unggoy SpecOps Ultra (Plasma Rifle)"
+	desc = "Upstream-compatible alias for a fully equipped plasma rifle SpecOps Ultra Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle
+
+/datum/human_ai_equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked
+	name = "Unggoy SpecOps Ultra (Plasma Rifle, Cloaked)"
+	desc = "Upstream-compatible alias for a cloaked plasma rifle SpecOps Ultra Unggoy."
+	path = /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked
 
 /datum/human_ai_equipment_preset/covenant/unggoy/deacon_command
 	name = "Unggoy Deacon (Command)"

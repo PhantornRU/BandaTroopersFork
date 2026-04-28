@@ -89,6 +89,15 @@
 	add_rank_utility(new_human, "zealot")
 	elite_camouflage(new_human)
 
+/datum/equipment_preset/covenant/sangheili/zealot/stealth
+	name = "Sangheili Stealth Zealot (Plasma Rifle)"
+
+/datum/equipment_preset/covenant/sangheili/zealot/stealth/load_gear(mob/living/carbon/human/new_human)
+	add_elite_zealot(new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	add_rank_utility(new_human, "zealot")
+	elite_camouflage(new_human)
+
 /datum/equipment_preset/covenant/sangheili/specops
 	name = "Sangheili Special Operations"
 	assignment = JOB_COV_SPECOPS
@@ -332,6 +341,14 @@
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 	grunt_camouflage(new_human)
 
+/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked
+	name = "Unggoy Special Operations (Plasma Rifle, Cloaked)"
+
+/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked/load_gear(mob/living/carbon/human/new_human)
+	add_grunt_specops(new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	grunt_camouflage(new_human)
+
 /datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_pistol
 	name = "Unggoy Special Operations Ultra (Plasma Pistol)"
 
@@ -358,6 +375,14 @@
 	name = "Unggoy Special Operations Ultra (Cloaking)"
 
 /datum/equipment_preset/covenant/unggoy/specops_ultra/cloaking/load_gear(mob/living/carbon/human/new_human)
+	add_grunt_specops_ultra(new_human)
+	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
+	grunt_camouflage(new_human)
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked
+	name = "Unggoy Special Operations Ultra (Plasma Rifle, Cloaked)"
+
+/datum/equipment_preset/covenant/unggoy/specops_ultra/plasma_rifle/cloaked/load_gear(mob/living/carbon/human/new_human)
 	add_grunt_specops_ultra(new_human)
 	new_human.equip_to_slot_or_del(new /obj/item/weapon/gun/energy/plasma/plasma_rifle(new_human), WEAR_J_STORE)
 	grunt_camouflage(new_human)

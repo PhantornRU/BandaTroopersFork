@@ -56,6 +56,18 @@
 	desc = "Shock leader Sangheili zealot with active camouflage."
 	path = /datum/equipment_preset/covenant/sangheili/zealot/cloaking
 
+/datum/human_ai_equipment_preset/covenant/sangheili/stealth
+	name = "Sangheili Stealth (Plasma Rifle)"
+	desc = "Upstream-compatible stealth Sangheili alias using the split SpecOps faction."
+	faction = FACTION_SPECOPS_SANGHEILI
+	path = /datum/equipment_preset/covenant/sangheili/stealth/plasma_rifle
+
+/datum/human_ai_equipment_preset/covenant/sangheili/stealth_zealot
+	name = "Sangheili Stealth Zealot (Plasma Rifle)"
+	desc = "Upstream-compatible stealth zealot alias using the split SpecOps faction."
+	faction = FACTION_SPECOPS_SANGHEILI
+	path = /datum/equipment_preset/covenant/sangheili/zealot/stealth
+
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra_sword
 	name = "Sangheili Ultra (Sword)"
 	desc = "BT AI-safe ultra focused on melee combat with an energy sword."

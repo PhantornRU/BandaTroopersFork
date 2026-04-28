@@ -152,6 +152,15 @@
 	armor_laser = CLOTHING_ARMOR_HIGH
 	armor_bomb = CLOTHING_ARMOR_MEDIUMHIGH
 
+/obj/item/clothing/suit/marine/shielded/sangheili/stealth
+	parent_type = /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/stealth
+
+/obj/item/clothing/suit/marine/shielded/sangheili/stealth/minor
+	parent_type = /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/stealth
+
+/obj/item/clothing/suit/marine/shielded/sangheili/stealth/zealot
+	parent_type = /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/zealot
+
 /obj/item/clothing/suit/marine/unggoy/cloaking
 	slowdown = SLOWDOWN_ARMOR_LIGHT
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
@@ -293,6 +302,15 @@
 	armor_bio = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_rad = CLOTHING_ARMOR_MEDIUM
 	armor_internaldamage = CLOTHING_ARMOR_MEDIUMHIGH
+
+/obj/item/clothing/suit/marine/unggoy/cloaked
+	parent_type = /obj/item/clothing/suit/marine/unggoy/cloaking
+
+/obj/item/clothing/suit/marine/unggoy/cloaked/special_ops
+	parent_type = /obj/item/clothing/suit/marine/unggoy/cloaking/specops
+
+/obj/item/clothing/suit/marine/unggoy/cloaked/special_ops/ultra
+	parent_type = /obj/item/clothing/suit/marine/unggoy/cloaking/specops_ultra
 
 #undef HALO_FULL_CAMO_ALPHA
 #undef HALO_VISIBLE_CAMO_ALPHA

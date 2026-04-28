@@ -6,7 +6,7 @@
 	display_name_plural = "Kig-Yar"
 	mob_flags = KNOWS_TECHNOLOGY
 	uses_skin_color = TRUE
-	flags = HAS_HARDCRIT|HAS_SKIN_COLOR|SPECIAL_BONEBREAK|NO_SHRAPNEL
+	flags = HAS_HARDCRIT|HAS_SKIN_COLOR|SPECIAL_BONEBREAK
 	mob_inherent_traits = list(
 		TRAIT_COV_TECH,
 		TRAIT_SUPER_STRONG,

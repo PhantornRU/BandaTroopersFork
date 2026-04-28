@@ -16,6 +16,11 @@
 	desc = "ONI security squad leader with BR55 and pistol."
 	path = /datum/equipment_preset/oni/security/lead
 
+/datum/human_ai_equipment_preset/oni/security/sl
+	name = "ONI Security Forces Squad Leader (BR55/Pistol)"
+	desc = "Upstream-compatible squad leader alias."
+	path = /datum/equipment_preset/oni/security/lead
+
 /datum/human_ai_equipment_preset/oni/field
 	name = "ONI Field Operative (BR55/Pistol)"
 	desc = "ONI field operative with BR55 and pistol."

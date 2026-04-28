@@ -28,6 +28,13 @@
 		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 
+/obj/item/clothing/under/marine/covenant/sangheili/fullbody
+	flags_jumpsuit = null
+	flags_armor_protection = BODY_FLAG_ALL_BUT_HEAD
+	icon_state = "sangheili_undersuit_2"
+	item_state = "sangheili_undersuit_2"
+	worn_state = "sangheili_undersuit_2"
+
 /obj/item/clothing/under/marine/covenant/unggoy
 	name = "\improper магнитная разгрузка унггоя"
 	desc = "Выдаваемая унггоям как часть боевого комплекта, эта система ремней с магнитными замками рассчитана на ношение вместе со штатной бронёй. Она неудобна и почти не спасает от натирания, но кожа у унггоев и без того весьма прочная."
