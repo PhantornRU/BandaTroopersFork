@@ -36,7 +36,7 @@
 
 	RegisterSignal(human_user, list(COMSIG_MOB_FIRED_GUN, COMSIG_MOB_FIRED_GUN_ATTACHMENT), PROC_REF(fade_in))
 	RegisterSignal(human_user, COMSIG_HUMAN_EXTINGUISH, PROC_REF(wrapper_fizzle_camouflage))
-	RegisterSignal(human_user, list(COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL), PROC_REF(deactivate_camouflage))
+	RegisterSignal(human_user, list(COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL), PROC_REF(deactivate_camouflage), override = TRUE)
 
 	camo_active = TRUE
 	ADD_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
@@ -192,7 +192,7 @@
 
 	RegisterSignal(human_user, list(COMSIG_MOB_FIRED_GUN, COMSIG_MOB_FIRED_GUN_ATTACHMENT), PROC_REF(fade_in))
 	RegisterSignal(human_user, COMSIG_HUMAN_EXTINGUISH, PROC_REF(wrapper_fizzle_camouflage))
-	RegisterSignal(human_user, list(COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL), PROC_REF(deactivate_camouflage))
+	RegisterSignal(human_user, list(COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL), PROC_REF(deactivate_camouflage), override = TRUE)
 
 	camo_active = TRUE
 	ADD_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
