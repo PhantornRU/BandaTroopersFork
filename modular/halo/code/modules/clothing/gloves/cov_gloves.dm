@@ -2,8 +2,8 @@
 	name = "\improper наручи сангхейли"
 	desc = "Простые латные перчатки, которые сангхейли носят поверх запястий и предплечий. Выполнены из обычных наноламинатных композитов. Благодаря точной посадке они ничуть не мешают работе воина, а если приходится полагаться на чистую силу, вполне сойдут и за импровизированное оружие."
 	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/gloves.dmi'
-	icon_state = "sanggauntlets_minor"
-	item_state = "sanggauntlets_minor"
+	icon_state = "sang_minor"
+	item_state = "sang_minor"
 
 	item_icons = list(
 		WEAR_HANDS = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/gloves.dmi'
@@ -21,8 +21,8 @@
 
 /obj/item/clothing/gloves/marine/sangheili/major
 	name = "\improper наручи сангхейли-майора"
-	icon_state = "sanggauntlets_major"
-	item_state = "sanggauntlets_major"
+	icon_state = "sang_major"
+	item_state = "sang_major"
 
 	armor_melee = CLOTHING_ARMOR_HIGHPLUS
 	armor_bullet = CLOTHING_ARMOR_HIGHPLUS
@@ -31,8 +31,8 @@
 
 /obj/item/clothing/gloves/marine/sangheili/ultra
 	name = "\improper наручи сангхейли-ультры"
-	icon_state = "sanggauntlets_ultra"
-	item_state = "sanggauntlets_ultra"
+	icon_state = "sang_ultra"
+	item_state = "sang_ultra"
 
 	armor_melee = CLOTHING_ARMOR_VERYHIGH
 	armor_bullet = CLOTHING_ARMOR_VERYHIGH
@@ -41,8 +41,8 @@
 
 /obj/item/clothing/gloves/marine/sangheili/zealot
 	name = "\improper наручи сангхейли-зилота"
-	icon_state = "sanggauntlets_zealot"
-	item_state = "sanggauntlets_zealot"
+	icon_state = "sang_zealot"
+	item_state = "sang_zealot"
 
 	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
 	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH

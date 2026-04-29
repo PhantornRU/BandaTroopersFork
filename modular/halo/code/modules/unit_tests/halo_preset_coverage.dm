@@ -120,8 +120,9 @@
 		/datum/equipment_preset/insurgent/cell_leader,
 	)
 
+	var/list/equipment_presets_to_validate = list()
 	for(var/preset_path as anything in equipment_presets)
-		validate_equipment_preset(preset_path)
+		equipment_presets_to_validate[preset_path] = TRUE
 
 	validate_cloaked_preset_hud_cleanup(/datum/equipment_preset/covenant/sangheili/specops/cloaking)
 	validate_cloaked_preset_hud_cleanup(/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked)
@@ -230,8 +231,59 @@
 	for(var/squad_preset_path as anything in squad_presets)
 		validate_squad_preset(squad_preset_path)
 
+	collect_halo_human_ai_equipment(equipment_presets_to_validate)
+	collect_halo_squad_equipment(equipment_presets_to_validate)
+	for(var/preset_path as anything in equipment_presets_to_validate)
+		validate_equipment_preset(preset_path)
+
+	validate_halo_item_tree_icons()
+
 /datum/unit_test/halo_preset_coverage/proc/create_test_human()
 	return new /mob/living/carbon/human(run_loc_floor_bottom_left)
+
+/datum/unit_test/halo_preset_coverage/proc/is_halo_human_ai_preset_path(ai_preset_path)
+	return ispath(ai_preset_path, /datum/human_ai_equipment_preset/covenant) \
+		|| ispath(ai_preset_path, /datum/human_ai_equipment_preset/unsc) \
+		|| ispath(ai_preset_path, /datum/human_ai_equipment_preset/unsc_crew) \
+		|| ispath(ai_preset_path, /datum/human_ai_equipment_preset/oni) \
+		|| ispath(ai_preset_path, /datum/human_ai_equipment_preset/police) \
+		|| ispath(ai_preset_path, /datum/human_ai_equipment_preset/insurgent)
+
+/datum/unit_test/halo_preset_coverage/proc/is_halo_squad_preset_path(squad_preset_path)
+	return ispath(squad_preset_path, /datum/human_ai_squad_preset/covenant) \
+		|| ispath(squad_preset_path, /datum/human_ai_squad_preset/unsc) \
+		|| ispath(squad_preset_path, /datum/human_ai_squad_preset/oni) \
+		|| ispath(squad_preset_path, /datum/human_ai_squad_preset/police) \
+		|| ispath(squad_preset_path, /datum/human_ai_squad_preset/insurgent)
+
+/datum/unit_test/halo_preset_coverage/proc/collect_halo_human_ai_equipment(list/equipment_presets_to_validate)
+	for(var/datum/human_ai_equipment_preset/ai_preset_path as anything in subtypesof(/datum/human_ai_equipment_preset))
+		if(!is_halo_human_ai_preset_path(ai_preset_path))
+			continue
+		if(!ai_preset_path::name || !ai_preset_path::path)
+			continue
+
+		var/datum/human_ai_equipment_preset/ai_preset = new ai_preset_path
+		if(!ispath(ai_preset.path, /datum/equipment_preset))
+			Fail("[ai_preset_path] points to missing equipment preset [ai_preset.path]", __FILE__, __LINE__)
+		else
+			equipment_presets_to_validate[ai_preset.path] = TRUE
+		qdel(ai_preset)
+
+/datum/unit_test/halo_preset_coverage/proc/collect_halo_squad_equipment(list/equipment_presets_to_validate)
+	for(var/datum/human_ai_squad_preset/squad_preset_path as anything in subtypesof(/datum/human_ai_squad_preset))
+		if(!is_halo_squad_preset_path(squad_preset_path))
+			continue
+		if(!squad_preset_path::name)
+			continue
+
+		validate_squad_preset(squad_preset_path)
+
+		var/datum/human_ai_squad_preset/squad_preset = new squad_preset_path
+		for(var/equipment_preset_path as anything in squad_preset.ai_to_spawn)
+			if(ispath(equipment_preset_path, /datum/equipment_preset))
+				equipment_presets_to_validate[equipment_preset_path] = TRUE
+		qdel(squad_preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_equipment_preset(preset_path)
 	if(!ispath(preset_path, /datum/equipment_preset))
@@ -242,14 +294,231 @@
 		Fail("[preset_path] is not exposed through extra presets", __FILE__, __LINE__)
 	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
-	if(!test_human.get_item_by_slot(WEAR_BODY))
-		Fail("[preset_path] did not equip a uniform", __FILE__, __LINE__)
-	if(!test_human.get_item_by_slot(WEAR_JACKET))
-		Fail("[preset_path] did not equip armor/suit", __FILE__, __LINE__)
-	if(!test_human.get_item_by_slot(WEAR_J_STORE) && !test_human.get_item_by_slot(WEAR_BACK))
-		Fail("[preset_path] did not equip a primary or back weapon", __FILE__, __LINE__)
+	if(halo_preset_requires_combat_gear(preset_path))
+		if(!test_human.get_item_by_slot(WEAR_BODY))
+			Fail("[preset_path] did not equip a uniform", __FILE__, __LINE__)
+		if(!test_human.get_item_by_slot(WEAR_JACKET))
+			Fail("[preset_path] did not equip armor/suit", __FILE__, __LINE__)
+		if(!halo_human_has_combat_item(test_human))
+			Fail("[preset_path] did not equip a combat weapon", __FILE__, __LINE__)
+	validate_halo_human_inventory_icons(test_human, "[preset_path]")
 	qdel(test_human)
 	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/halo_preset_requires_combat_gear(preset_path)
+	if(ispath(preset_path, /datum/equipment_preset/unsc_crew))
+		return FALSE
+	if(preset_path == /datum/equipment_preset/police/officer || preset_path == /datum/equipment_preset/police/officer/sergeant)
+		return FALSE
+	if(ispath(preset_path, /datum/equipment_preset/insurgent/partisan/plainclothes))
+		return FALSE
+	return TRUE
+
+/datum/unit_test/halo_preset_coverage/proc/halo_human_has_combat_item(mob/living/carbon/human/test_human)
+	var/list/seen_items = list()
+	var/list/combat_slots = list(
+		WEAR_J_STORE,
+		WEAR_BACK,
+		WEAR_WAIST,
+		WEAR_L_HAND,
+		WEAR_R_HAND,
+	)
+	for(var/slot as anything in combat_slots)
+		var/obj/item/item = test_human.get_item_by_slot(slot)
+		if(halo_item_tree_has_combat_item(item, seen_items))
+			return TRUE
+	for(var/obj/item/item in test_human.contents)
+		if(halo_item_tree_has_combat_item(item, seen_items))
+			return TRUE
+	return FALSE
+
+/datum/unit_test/halo_preset_coverage/proc/halo_item_tree_has_combat_item(obj/item/item, list/seen_items)
+	if(!item || seen_items[item])
+		return FALSE
+	seen_items[item] = TRUE
+	if(istype(item, /obj/item/weapon/gun) || istype(item, /obj/item/weapon/covenant/energy_sword) || istype(item, /obj/item/explosive))
+		return TRUE
+	for(var/obj/item/contained_item in item.contents)
+		if(halo_item_tree_has_combat_item(contained_item, seen_items))
+			return TRUE
+	return FALSE
+
+/datum/unit_test/halo_preset_coverage/proc/is_halo_icon_file(icon_file)
+	if(!icon_file)
+		return FALSE
+	var/icon_path = "[icon_file]"
+	return findtext(icon_path, "modular/halo/") || findtext(icon_path, "icons/halo/")
+
+/datum/unit_test/halo_preset_coverage/proc/should_audit_halo_item(obj/item/item)
+	if(!item)
+		return FALSE
+	var/type_path = "[item.type]"
+	if(findtext(type_path, "/covenant") || findtext(type_path, "/sangheili") || findtext(type_path, "/unggoy") || findtext(type_path, "/ruuhtian") || findtext(type_path, "/kigyar"))
+		return TRUE
+	if(findtext(type_path, "/spartan") || findtext(type_path, "/spnkr") || findtext(type_path, "/halo") || findtext(type_path, "/ma5") || findtext(type_path, "/br55") || findtext(type_path, "/dmr"))
+		return TRUE
+	if(findtext(type_path, "/unsc") || findtext(type_path, "/odst") || findtext(type_path, "/oni"))
+		return TRUE
+	if(is_halo_icon_file(item.icon) || is_halo_icon_file(item.icon_override))
+		return TRUE
+	if(LAZYLEN(item.item_icons))
+		for(var/slot as anything in item.item_icons)
+			if(is_halo_icon_file(item.item_icons[slot]))
+				return TRUE
+	if(LAZYLEN(item.sprite_sheets))
+		for(var/bodytype as anything in item.sprite_sheets)
+			if(is_halo_icon_file(item.sprite_sheets[bodytype]))
+				return TRUE
+	if(istype(item, /obj/item/clothing/accessory))
+		var/obj/item/clothing/accessory/accessory = item
+		for(var/slot as anything in accessory.accessory_icons)
+			if(is_halo_icon_file(accessory.accessory_icons[slot]))
+				return TRUE
+	return FALSE
+
+/datum/unit_test/halo_preset_coverage/proc/halo_icon_state_exists(icon_file, icon_state)
+	if(!icon_file || isnull(icon_state) || !length("[icon_state]"))
+		return TRUE
+	var/static/list/icon_state_cache = list()
+	var/icon_key = "[icon_file]"
+	if(isnull(icon_state_cache[icon_key]))
+		icon_state_cache[icon_key] = icon_states(icon_file, 1)
+	return "[icon_state]" in icon_state_cache[icon_key]
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_icon_state(context, icon_file, icon_state)
+	if(!icon_file || isnull(icon_state) || !length("[icon_state]"))
+		return
+	if(!halo_icon_state_exists(icon_file, icon_state))
+		Fail("[context] references missing icon_state \"[icon_state]\" in '[icon_file]'", __FILE__, __LINE__)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_human_inventory_icons(mob/living/carbon/human/test_human, context)
+	var/list/seen_items = list()
+	var/list/worn_slots = list(
+		WEAR_BODY,
+		WEAR_JACKET,
+		WEAR_HANDS,
+		WEAR_FEET,
+		WEAR_HEAD,
+		WEAR_WAIST,
+		WEAR_BACK,
+		WEAR_J_STORE,
+		WEAR_L_EAR,
+		WEAR_R_EAR,
+		WEAR_EYES,
+		WEAR_FACE,
+		WEAR_ID,
+		WEAR_ACCESSORY,
+		WEAR_L_HAND,
+		WEAR_R_HAND,
+	)
+	for(var/slot as anything in worn_slots)
+		var/worn_slot_value = test_human.get_item_by_slot(slot)
+		if(islist(worn_slot_value))
+			for(var/obj/item/worn_list_item in worn_slot_value)
+				validate_halo_item_icon_states(worn_list_item, test_human, context, seen_items, slot)
+			continue
+		var/obj/item/worn_item = worn_slot_value
+		if(worn_item)
+			validate_halo_item_icon_states(worn_item, test_human, context, seen_items, slot)
+	for(var/obj/item/item in test_human.contents)
+		validate_halo_item_icon_states(item, test_human, context, seen_items)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_item_icon_states(obj/item/item, mob/living/carbon/human/test_human, context, list/seen_items, worn_slot = null)
+	if(!item || seen_items[item])
+		return
+	seen_items[item] = TRUE
+
+	var/audit_item = should_audit_halo_item(item)
+	if(audit_item)
+		validate_halo_icon_state("[context] [item.type] object", item.icon, item.icon_state)
+		if(!isnull(worn_slot))
+			validate_halo_worn_icon_state(item, test_human, context, worn_slot)
+		if(istype(item, /obj/item/attachable))
+			var/obj/item/attachable/attachable = item
+			validate_halo_icon_state("[context] [item.type] attach overlay", attachable.icon, attachable.attach_icon)
+		if(istype(item, /obj/item/clothing/accessory))
+			validate_halo_accessory_icon_states(item, context, worn_slot)
+
+	if(istype(item, /obj/item/clothing))
+		var/obj/item/clothing/clothing = item
+		for(var/obj/item/clothing/accessory/accessory in clothing.accessories)
+			validate_halo_item_icon_states(accessory, test_human, context, seen_items, worn_slot)
+
+	for(var/obj/item/contained_item in item.contents)
+		validate_halo_item_icon_states(contained_item, test_human, context, seen_items)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_worn_icon_state(obj/item/item, mob/living/carbon/human/test_human, context, worn_slot)
+	var/worn_state = item.get_icon_state(test_human, worn_slot)
+	var/worn_icon
+	if(item.icon_override)
+		worn_icon = item.icon_override
+		if(worn_slot == WEAR_L_HAND)
+			worn_state = "[worn_state]_l"
+		else if(worn_slot == WEAR_R_HAND)
+			worn_state = "[worn_state]_r"
+	else if(ishuman(test_human))
+		var/bodytype = test_human.species.get_bodytype(test_human)
+		if(item.use_spritesheet(bodytype, worn_slot, worn_state))
+			worn_icon = item.sprite_sheets[bodytype]
+	if(!worn_icon && item.contained_sprite)
+		worn_icon = item.icon
+	if(!worn_icon && LAZYISIN(item.item_icons, worn_slot))
+		worn_icon = item.item_icons[worn_slot]
+	if(worn_icon)
+		validate_halo_icon_state("[context] [item.type] worn slot [worn_slot]", worn_icon, worn_state)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_accessory_icon_states(obj/item/clothing/accessory/accessory, context, worn_slot = null)
+	var/accessory_state = accessory.overlay_state ? accessory.overlay_state : accessory.icon_state
+	if(!isnull(worn_slot) && LAZYISIN(accessory.accessory_icons, worn_slot))
+		validate_halo_icon_state("[context] [accessory.type] accessory slot [worn_slot]", accessory.accessory_icons[worn_slot], accessory_state)
+	if(accessory.icon_override && halo_icon_state_exists(accessory.icon_override, "[accessory_state]_mob"))
+		validate_halo_icon_state("[context] [accessory.type] accessory override", accessory.icon_override, "[accessory_state]_mob")
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_item_tree_icons()
+	var/list/item_roots = list(
+		list(/obj/item/clothing/gloves/marine/sangheili, SPECIES_SANGHEILI, WEAR_HANDS),
+		list(/obj/item/clothing/head/helmet/marine/sangheili, SPECIES_SANGHEILI, WEAR_HEAD),
+		list(/obj/item/clothing/shoes/sangheili, SPECIES_SANGHEILI, WEAR_FEET),
+		list(/obj/item/clothing/suit/marine/shielded/sangheili, SPECIES_SANGHEILI, WEAR_JACKET),
+		list(/obj/item/clothing/suit/marine/shielded/sangheili/cloaking, SPECIES_SANGHEILI, WEAR_JACKET),
+		list(/obj/item/clothing/accessory/pads/sangheili, SPECIES_SANGHEILI, WEAR_JACKET),
+		list(/obj/item/clothing/gloves/marine/unggoy, SPECIES_UNGGOY, WEAR_HANDS),
+		list(/obj/item/clothing/head/helmet/marine/unggoy, SPECIES_UNGGOY, WEAR_HEAD),
+		list(/obj/item/clothing/shoes/unggoy, SPECIES_UNGGOY, WEAR_FEET),
+		list(/obj/item/clothing/suit/marine/unggoy, SPECIES_UNGGOY, WEAR_JACKET),
+		list(/obj/item/clothing/suit/marine/unggoy/cloaking, SPECIES_UNGGOY, WEAR_JACKET),
+		list(/obj/item/clothing/accessory/pads/unggoy, SPECIES_UNGGOY, WEAR_JACKET),
+		list(/obj/item/storage/belt/marine/covenant/unggoy, SPECIES_UNGGOY, WEAR_WAIST),
+		list(/obj/item/storage/backpack/covenant/unggoy, SPECIES_UNGGOY, WEAR_BACK),
+		list(/obj/item/clothing/gloves/marine/ruuhtian, SPECIES_RUUHTIAN, WEAR_HANDS),
+		list(/obj/item/clothing/head/helmet/marine/ruuhtian, SPECIES_RUUHTIAN, WEAR_HEAD),
+		list(/obj/item/clothing/shoes/ruuhtian, SPECIES_RUUHTIAN, WEAR_FEET),
+		list(/obj/item/clothing/suit/marine/ruuhtian, SPECIES_RUUHTIAN, WEAR_JACKET),
+		list(/obj/item/storage/belt/marine/covenant/ruuhtian, SPECIES_RUUHTIAN, WEAR_WAIST),
+		list(/obj/item/attachable/flashlight/ma5, null, null),
+		list(/obj/item/attachable/attached_gun/grenade/ma5, null, null),
+		list(/obj/item/weapon/gun/halo_launcher/spnkr, null, null),
+		list(/obj/item/storage/large_holster/spnkr, null, WEAR_BACK),
+	)
+
+	for(var/list/item_root_data as anything in item_roots)
+		validate_halo_item_type_tree(item_root_data[1], item_root_data[2], item_root_data[3])
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_item_type_tree(item_root, species_name, worn_slot)
+	var/list/item_types = list(item_root)
+	item_types += subtypesof(item_root)
+	for(var/item_type as anything in item_types)
+		if(!ispath(item_type, /obj/item))
+			continue
+		var/obj/item/item_path = item_type
+		if(initial(item_path.flags_item) & ITEM_ABSTRACT)
+			continue
+		var/mob/living/carbon/human/test_human = create_test_human()
+		if(species_name)
+			test_human.set_species(species_name)
+		var/obj/item/item = new item_type(test_human)
+		validate_halo_item_icon_states(item, test_human, "[item_type]", list(), worn_slot)
+		qdel(test_human)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_cloaked_preset_hud_cleanup(preset_path)
 	var/datum/equipment_preset/preset = new preset_path

@@ -2,8 +2,8 @@
 	name = "боевые сапоги сангхейли"
 	desc = "Пара подогнанных поножей с сопутствующими сапогами. Хотя внешний наноламинатный слой может намекать на жёсткость и неудобство, внутренняя подкладка неожиданно мягкая, отводит влагу и пассивно регулирует температуру. Благодаря этому воин думает об искусстве убивать, а не о том, как сильно ему надоела маршировка."
 	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/shoes.dmi'
-	icon_state = "sangboots_minor"
-	item_state = "sangboots_minor"
+	icon_state = "sang_minor"
+	item_state = "sang_minor"
 
 	drop_sound = "armorequip"
 
@@ -23,8 +23,8 @@
 
 /obj/item/clothing/shoes/sangheili/major
 	name = "боевые сапоги сангхейли-майора"
-	icon_state = "sangboots_major"
-	item_state = "sangboots_major"
+	icon_state = "sang_major"
+	item_state = "sang_major"
 
 	armor_melee = CLOTHING_ARMOR_HIGHPLUS
 	armor_bullet = CLOTHING_ARMOR_HIGHPLUS
@@ -33,8 +33,8 @@
 
 /obj/item/clothing/shoes/sangheili/ultra
 	name = "боевые сапоги сангхейли-ультры"
-	icon_state = "sangboots_ultra"
-	item_state = "sangboots_ultra"
+	icon_state = "sang_ultra"
+	item_state = "sang_ultra"
 
 	armor_melee = CLOTHING_ARMOR_VERYHIGH
 	armor_bullet = CLOTHING_ARMOR_VERYHIGH
@@ -43,8 +43,8 @@
 
 /obj/item/clothing/shoes/sangheili/zealot
 	name = "боевые сапоги сангхейли-зилота"
-	icon_state = "sangboots_zealot"
-	item_state = "sangboots_zealot"
+	icon_state = "sang_zealot"
+	item_state = "sang_zealot"
 
 	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
 	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH
