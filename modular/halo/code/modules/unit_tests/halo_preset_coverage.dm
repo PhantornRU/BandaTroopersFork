@@ -207,6 +207,8 @@
 	for(var/ai_preset_path as anything in human_ai_presets)
 		validate_human_ai_preset(ai_preset_path, human_ai_presets[ai_preset_path])
 
+	validate_halo_covenant_friendship_matrix()
+
 	var/list/squad_presets = list(
 		/datum/human_ai_squad_preset/covenant/unggoy_levy,
 		/datum/human_ai_squad_preset/covenant/unggoy_lance,
@@ -347,6 +349,34 @@
 	if(!ispath(ai_preset.path, /datum/equipment_preset))
 		Fail("[ai_preset_path] points to missing equipment preset [ai_preset.path]", __FILE__, __LINE__)
 	qdel(ai_preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_covenant_friendship_matrix()
+	if(!SShuman_ai)
+		Fail("HALO Covenant faction friendship matrix could not be validated without SShuman_ai", __FILE__, __LINE__)
+		return
+
+	var/list/covenant_factions = list(
+		FACTION_COVENANT,
+		FACTION_UNGGOY,
+		FACTION_KIGYAR,
+		FACTION_SANGHEILI,
+		FACTION_SPECOPS_SANGHEILI,
+		FACTION_SPECOPS_KIGYAR,
+		FACTION_SPECOPS_UNGGOY,
+	)
+
+	for(var/faction_name as anything in covenant_factions)
+		var/datum/human_ai_faction/faction_datum = SShuman_ai.human_ai_factions[faction_name]
+		if(!faction_datum)
+			Fail("HALO Covenant faction [faction_name] is missing from SShuman_ai", __FILE__, __LINE__)
+			continue
+
+		var/list/friendly_factions = faction_datum.get_friendly_factions()
+		for(var/other_faction as anything in covenant_factions)
+			if(other_faction == faction_name)
+				continue
+			if(!(other_faction in friendly_factions))
+				Fail("HALO Covenant faction [faction_name] does not treat [other_faction] as friendly", __FILE__, __LINE__)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_squad_preset(squad_preset_path)
 	if(!ispath(squad_preset_path, /datum/human_ai_squad_preset))
