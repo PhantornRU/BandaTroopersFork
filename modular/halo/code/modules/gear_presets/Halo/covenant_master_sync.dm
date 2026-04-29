@@ -415,6 +415,12 @@
 	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/sangheili(new_human), WEAR_BODY)
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
 
+/datum/equipment_preset/proc/add_elite_basics_fullbody(mob/living/carbon/human/new_human)
+	if(!istype(new_human))
+		return
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/under/marine/covenant/sangheili/fullbody(new_human), WEAR_BODY)
+	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/covenant(new_human), WEAR_L_EAR)
+
 /datum/equipment_preset/proc/add_elite_minor(mob/living/carbon/human/new_human)
 	if(!istype(new_human))
 		return

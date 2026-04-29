@@ -1,4 +1,21 @@
-/datum/firearm_appraisal/halo_plasma_pistol
+/datum/firearm_appraisal/covenant
+	gun_types = list()
+	disposable = FALSE
+
+/datum/firearm_appraisal/covenant/get_primary_weight(mob/living/carbon/human/user)
+	if(isunggoy(user) || issangheili(user) || isruuhtian(user))
+		return primary_weight * 3
+	return ..()
+
+/datum/firearm_appraisal/covenant/plasma
+	gun_types = list(
+		/obj/item/weapon/gun/energy/plasma,
+	)
+	primary_weight = 7
+	burst_amount_max = 4
+	count_every_shot_toward_burst_limit = TRUE
+
+/datum/firearm_appraisal/covenant/plasma/pistol
 	minimum_range = 1
 	optimal_range = 4
 	maximum_range = 9
@@ -7,9 +24,9 @@
 	gun_types = list(
 		/obj/item/weapon/gun/energy/plasma/plasma_pistol,
 	)
-	primary_weight = 2
+	primary_weight = 6
 
-/datum/firearm_appraisal/halo_plasma_rifle
+/datum/firearm_appraisal/covenant/plasma/rifle
 	minimum_range = 2
 	optimal_range = 5
 	maximum_range = 11
@@ -18,9 +35,9 @@
 	gun_types = list(
 		/obj/item/weapon/gun/energy/plasma/plasma_rifle,
 	)
-	primary_weight = 5
+	primary_weight = 7
 
-/datum/firearm_appraisal/halo_needler
+/datum/firearm_appraisal/covenant/needler
 	minimum_range = 1
 	optimal_range = 4
 	maximum_range = 9
@@ -29,7 +46,50 @@
 	gun_types = list(
 		/obj/item/weapon/gun/smg/covenant_needler,
 	)
-	primary_weight = 4
+	primary_weight = 7
+
+#define PLASMA_VENT_CHANCE_DIRECT_COMBAT 6
+#define PLASMA_VENT_CHANCE_INDIRECT_COMBAT 12
+
+/datum/firearm_appraisal/covenant/plasma/before_fire(obj/item/weapon/gun/energy/plasma/firearm, mob/living/carbon/user, datum/human_ai_brain/AI)
+	. = ..()
+	if(firearm.dispersing)
+		AI.try_cover()
+		return
+	if(firearm.heat < 60)
+		return
+	var/vent_decision = 0
+	if(AI.current_target)
+		vent_decision = max(0, -20 + (PLASMA_VENT_CHANCE_DIRECT_COMBAT * get_dist(AI.tied_human, AI.current_target)))
+	else if(AI.target_turf)
+		vent_decision = max(0, -20 + (PLASMA_VENT_CHANCE_INDIRECT_COMBAT * get_dist(AI.tied_human, AI.target_turf)))
+	vent_decision += max(0, firearm.heat - 65)
+	if(prob(max(0, vent_decision)))
+		AI.unholster_primary()
+		AI.ensure_primary_hand(firearm)
+		firearm.unwield(user)
+		sleep(AI.micro_action_delay * AI.action_delay_mult)
+		user.swap_hand()
+		sleep(AI.short_action_delay * AI.action_delay_mult)
+		firearm.unload(user)
+		sleep(AI.micro_action_delay * AI.action_delay_mult)
+		user.swap_hand()
+		AI.wield_primary_sleep()
+
+#undef PLASMA_VENT_CHANCE_DIRECT_COMBAT
+#undef PLASMA_VENT_CHANCE_INDIRECT_COMBAT
+
+/datum/firearm_appraisal/halo_plasma_pistol
+	parent_type = /datum/firearm_appraisal/covenant/plasma/pistol
+	gun_types = list()
+
+/datum/firearm_appraisal/halo_plasma_rifle
+	parent_type = /datum/firearm_appraisal/covenant/plasma/rifle
+	gun_types = list()
+
+/datum/firearm_appraisal/halo_needler
+	parent_type = /datum/firearm_appraisal/covenant/needler
+	gun_types = list()
 
 /datum/firearm_appraisal/halo_carbine
 	minimum_range = 2
@@ -41,6 +101,11 @@
 		/obj/item/weapon/gun/rifle/covenant_carbine,
 	)
 	primary_weight = 5
+
+/datum/firearm_appraisal/halo_carbine/get_primary_weight(mob/living/carbon/human/user)
+	if(isunggoy(user) || issangheili(user) || isruuhtian(user))
+		return primary_weight * 3
+	return ..()
 
 /datum/firearm_appraisal/halo_spnkr
 	minimum_range = 3

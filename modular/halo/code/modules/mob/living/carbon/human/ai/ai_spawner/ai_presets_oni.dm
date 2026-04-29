@@ -11,13 +11,8 @@
 	desc = "ONI security corpsman with basic ONI armor and medical gear."
 	path = /datum/equipment_preset/oni/security/corpsman
 
-/datum/human_ai_equipment_preset/oni/security/lead
-	name = "ONI Security Forces Squad Leader (BR55/Pistol)"
-	desc = "ONI security squad leader with BR55 and pistol."
-	path = /datum/equipment_preset/oni/security/lead
-
 /datum/human_ai_equipment_preset/oni/security/sl
-	name = "ONI Security Forces Squad Leader (BR55/Pistol)"
+	name = "ONI Security Forces Squad Leader (BR55/Pistol, Upstream Alias)"
 	desc = "Upstream-compatible squad leader alias."
 	path = /datum/equipment_preset/oni/security/lead
 

@@ -1,5 +1,9 @@
 // EVERYTHING ELSE (ALSO LAZY)
 
+/atom/movable/screen/action_button/covenant
+	icon = 'modular/halo/icons/halo/mob/hud/actions.dmi'
+	icon_state = "template"
+
 /datum/action/item_action/toggle_shield
 	name = "Toggle Shield"
 	action_icon_state = "shield"

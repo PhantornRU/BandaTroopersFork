@@ -39,6 +39,11 @@
 	QDEL_NULL(hiss_loop)
 	return ..()
 
+/obj/item/explosive/grenade/high_explosive/plasma
+	parent_type = /obj/item/explosive/grenade/high_explosive/covenant/plasma
+	name = "\improper Anskum-pattern plasma grenade"
+	desc = "Also referred to as a 'Firebomb', 'Holy Light' and 'Flare', the Anskum-pattern is the standard issue hand tossed explosive given to Covenant troops."
+
 /obj/item/explosive/grenade/high_explosive/covenant/plasma/activate(mob/user = null, hand_throw = TRUE)
 	..()
 	if(active)

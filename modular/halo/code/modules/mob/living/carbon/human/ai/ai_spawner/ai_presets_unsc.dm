@@ -59,11 +59,6 @@
 	desc = "ODST corpsman with medical equipment."
 	path = /datum/equipment_preset/unsc/medic/odst/equipped
 
-/datum/human_ai_equipment_preset/unsc/rto/odst
-	name = "ODST RTO"
-	desc = "ODST radio telephone operator with radio support gear."
-	path = /datum/equipment_preset/unsc/rto/odst/equipped
-
 /datum/human_ai_equipment_preset/unsc/odst/rto
 	name = "ODST RTO"
 	desc = "ODST radio telephone operator with radio support gear."

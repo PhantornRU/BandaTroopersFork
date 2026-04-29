@@ -14,6 +14,11 @@
 	allowed_type = /obj/item/storage/firstaid/unsc
 	populate_type = /obj/item/storage/firstaid/unsc
 
+/obj/structure/gun_rack/halo/armory
+	name = "weapon rack"
+	max_stored = 5
+	initial_stored = 5
+
 /obj/structure/gun_rack/halo/armory/Initialize()
 	. = ..()
 	if(prob(50))
@@ -64,6 +69,46 @@
 	icon = 'modular/halo/icons/halo/obj/structures/gun_racks_32x48.dmi'
 	max_stored = 5
 	initial_stored = 5
+	var/not_usable
+
+/obj/structure/gun_rack/halo/big/attack_hand(mob/living/user)
+	if(not_usable)
+		return
+	if(!contents.len)
+		to_chat(user, SPAN_WARNING("[src] is empty."))
+		return
+
+	var/obj/stored_obj = contents[contents.len]
+	contents -= stored_obj
+	user.put_in_hands(stored_obj)
+	to_chat(user, SPAN_NOTICE("You grab [stored_obj] from [src]."))
+	playsound(src, "gunequip", 25, TRUE)
+	if(contents.len == 0)
+		flick("[initial(icon_state)]_reset", src)
+		playsound(src, 'sound/machines/elevator_openclose.ogg', 25)
+		if(initial_stored)
+			var/i = 0
+			while(i < initial_stored)
+				contents += new populate_type(src)
+				i++
+		not_usable = TRUE
+		addtimer(CALLBACK(src, PROC_REF(restore_usability)), 7 SECONDS)
+		addtimer(CALLBACK(src, PROC_REF(play_sound)), 4.5 SECONDS)
+	update_icon()
+
+/obj/structure/gun_rack/halo/big/attackby(obj/item/O, mob/user)
+	if(not_usable)
+		return
+	if(istype(O, allowed_type) && contents.len < max_stored)
+		user.drop_inv_item_to_loc(O, src)
+		contents += O
+		update_icon()
+
+/obj/structure/gun_rack/halo/big/proc/restore_usability()
+	not_usable = FALSE
+
+/obj/structure/gun_rack/halo/big/proc/play_sound()
+	playsound(src, 'sound/machines/elevator_openclose.ogg', 25)
 
 /obj/structure/gun_rack/halo/big/ma5c
 	name = "MA5C weapon rack"

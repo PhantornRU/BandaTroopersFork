@@ -140,7 +140,7 @@
 	name = "Пара сангхейли"
 	desc = "Легкий патруль из двух воинов-сангхейли, вооруженных плазменными винтовками."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/minor/needler = 1,
 	)
 
@@ -149,7 +149,7 @@
 	desc = "Дисциплинированная огневая группа сангхейли под командованием мажора с двумя минорами с плазменным оружием."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/major/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/minor/needler = 1,
 	)
 
@@ -157,9 +157,9 @@
 	name = "Элитная группа сангхейли"
 	desc = "Ветеранский отряд сангхейли, собранный вокруг ультры, мажора с карабином и поддерживающих миноров."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/ultra/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/sangheili/major/carbine = 1,
-		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/minor/needler = 1,
 	)
 
@@ -183,7 +183,7 @@
 	name = "Kig-Yar Pair"
 	desc = "A light Kig-Yar skirmisher pair armed with plasma pistols and shields."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/ruuhtian/minor/needler = 1,
 	)
 
@@ -191,16 +191,16 @@
 	name = "Kig-Yar Screen Team"
 	desc = "A screen team of shielded Kig-Yar raiders built to probe and harass the front line."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/ruuhtian/major/needler = 1,
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 2,
+		/datum/equipment_preset/covenant/ruuhtian/ai/major_needler = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/ruuhtian_marksman_cell
 	name = "Kig-Yar Marksman Cell"
 	desc = "A ranged Kig-Yar cell with a marksman and shielded escorts."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/ruuhtian/minor/needler = 1,
 	)
 
@@ -216,9 +216,9 @@
 	name = "Kig-Yar Marksman Overwatch"
 	desc = "A Kig-Yar marksman cell with carbine overwatch and shielded escorts."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
 		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 2,
+		/datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma = 2,
 	)
 
 /datum/human_ai_squad_preset/covenant/ruuhtian_sniper_cell
@@ -226,17 +226,17 @@
 	desc = "A Kig-Yar sniper element with a carbine sniper and marksman support."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/ruuhtian/sniper/carbine = 1,
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
-		/datum/equipment_preset/covenant/ruuhtian/major/needler = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/major_needler = 1,
 	)
 
 /datum/human_ai_squad_preset/covenant/covenant_skirmisher_lance
 	name = "Covenant Skirmisher Lance"
 	desc = "A lore-aligned mixed lance with an Elite leader, Kig-Yar skirmishers, and Unggoy line troops."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/ruuhtian/major/needler = 1,
-		/datum/equipment_preset/covenant/ruuhtian/minor/plasma_pistol = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/major_needler = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)
 
@@ -244,8 +244,8 @@
 	name = "Covenant Marksman Lance"
 	desc = "A mixed Covenant lance led by an Elite with Kig-Yar marksmen and Unggoy escorts."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/major/carbine = 1,
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 2,
+		/datum/equipment_preset/covenant/sangheili/ai/major_carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 2,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)
 
@@ -253,9 +253,9 @@
 	name = "Covenant Raider Lance"
 	desc = "A harder mixed raider lance with an Elite ultra, veteran Kig-Yar, and heavy Unggoy support."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/ultra/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/ruuhtian/major/needler = 1,
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/major_needler = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/heavy_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)
@@ -264,7 +264,7 @@
 	name = "Kig-Yar/Unggoy Lance"
 	desc = "A mixed Covenant lance with Kig-Yar carbine support and Unggoy infantry."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
 		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/major_plasma = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 3,
@@ -274,10 +274,10 @@
 	name = "Sangheili Command Lance"
 	desc = "A lore-led Sangheili command lance built around a zealot, veterans, and a line escort."
 	ai_to_spawn = list(
-		/datum/equipment_preset/covenant/sangheili/zealot/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/zealot_command = 1,
 		/datum/equipment_preset/covenant/sangheili/ultra/carbine = 1,
 		/datum/equipment_preset/covenant/sangheili/major/needler = 1,
-		/datum/equipment_preset/covenant/sangheili/minor/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/minor_plasma = 1,
 	)
 
 /datum/human_ai_squad_preset/covenant/sangheili_honor_guard_triad
@@ -285,7 +285,7 @@
 	desc = "A ceremonial but lethal Sangheili honor detail with close escort and ranged support."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/honor_guard = 1,
-		/datum/equipment_preset/covenant/sangheili/ultra/plasma_rifle = 1,
+		/datum/equipment_preset/covenant/sangheili/ai/ultra_plasma = 1,
 		/datum/equipment_preset/covenant/sangheili/minor/needler = 1,
 	)
 
@@ -304,7 +304,7 @@
 	desc = "A Kig-Yar-led raider lance with skirmish screens, marksman pressure, and Unggoy support."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/ruuhtian/major/plasma_rifle = 1,
-		/datum/equipment_preset/covenant/ruuhtian/marksman/carbine = 1,
+		/datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine = 1,
 		/datum/equipment_preset/covenant/ruuhtian/minor/needler = 1,
 		/datum/equipment_preset/covenant/unggoy/ai/minor_plasma = 2,
 	)

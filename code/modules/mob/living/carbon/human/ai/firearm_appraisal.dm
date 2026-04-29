@@ -40,6 +40,11 @@ GLOBAL_LIST_INIT_TYPED(firearm_appraisals, /datum/firearm_appraisal, build_firea
 	/// The selection weight of the weapon type. If an AI has multiple weapons, it'll use weighting to determine its primary. In short, higher weight = more powerful
 	var/primary_weight = 1
 
+// SS220 EDIT - START: modular primary weapon selection hook
+/datum/firearm_appraisal/proc/get_primary_weight(mob/living/carbon/human/user)
+	return primary_weight
+// SS220 EDIT - END
+
 /// List of things we do before beginning to spray bullets based off weapon type
 /datum/firearm_appraisal/proc/before_fire(obj/item/weapon/gun/firearm, mob/living/carbon/user, datum/human_ai_brain/AI)
 	SHOULD_CALL_PARENT(TRUE) // Every weapon may be twohanded or have safety

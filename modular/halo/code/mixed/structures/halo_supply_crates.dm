@@ -9,7 +9,6 @@
 	supplies = list(
 		/obj/item/ammo_box/magazine/unsc/ma5c = 1,
 		/obj/item/ammo_box/magazine/unsc/ma5b = 1,
-		/obj/item/ammo_box/magazine/unsc/br55 = 1,
 	)
 
 /obj/structure/largecrate/supply/ammo/halo/marksman
@@ -33,11 +32,7 @@
 /obj/structure/largecrate/supply/ammo/halo/shotgun
 	name = "UNSC shotgun ammunition case"
 	desc = "A compact UNSC shotgun case intended for one breacher."
-<<<<<<< codex/halo-modular-port-cleanup
-	supplies = list(/obj/item/ammo_magazine/shotgun/buckshot/unsc = 3)
-=======
 	supplies = list(/obj/item/ammo_magazine/shotgun/buckshot/unsc = 4)
->>>>>>> master
 
 /obj/structure/largecrate/supply/ammo/halo/sniper
 	name = "UNSC sniper ammunition case"

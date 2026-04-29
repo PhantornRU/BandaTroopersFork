@@ -2,9 +2,9 @@
 	faction = FACTION_SANGHEILI
 
 /datum/human_ai_equipment_preset/covenant/sangheili/minor
-	name = "Sangheili Minor (Plasma Rifle)"
-	desc = "Line Sangheili minor with a plasma rifle."
-	path = /datum/equipment_preset/covenant/sangheili/minor/plasma_rifle
+	name = "Sangheili Minor (Plasma Rifle, Upstream Alias)"
+	desc = "Upstream-compatible alias using the BT AI-safe plasma rifle Sangheili minor."
+	path = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma
 
 /datum/human_ai_equipment_preset/covenant/sangheili/minor/needler
 	name = "Sangheili Minor (Needler)"
@@ -27,14 +27,14 @@
 	path = /datum/equipment_preset/covenant/sangheili/major/needler
 
 /datum/human_ai_equipment_preset/covenant/sangheili/major/carbine
-	name = "Sangheili Major (Carbine)"
-	desc = "Veteran Sangheili major with a Covenant carbine."
-	path = /datum/equipment_preset/covenant/sangheili/major/carbine
+	name = "Sangheili Major (Carbine, Upstream Alias)"
+	desc = "Upstream-compatible alias using the BT AI-safe carbine Sangheili major."
+	path = /datum/equipment_preset/covenant/sangheili/ai/major_carbine
 
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra
-	name = "Sangheili Ultra (Plasma Rifle)"
-	desc = "Elite Sangheili ultra with a plasma rifle."
-	path = /datum/equipment_preset/covenant/sangheili/ultra/plasma_rifle
+	name = "Sangheili Ultra (Plasma Rifle, Upstream Alias)"
+	desc = "Upstream-compatible alias using the BT AI-safe plasma rifle Sangheili ultra."
+	path = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma
 
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra/carbine
 	name = "Sangheili Ultra (Carbine)"
