@@ -123,6 +123,9 @@
 	for(var/preset_path as anything in equipment_presets)
 		validate_equipment_preset(preset_path)
 
+	validate_cloaked_preset_hud_cleanup(/datum/equipment_preset/covenant/sangheili/specops/cloaking)
+	validate_cloaked_preset_hud_cleanup(/datum/equipment_preset/covenant/unggoy/specops/plasma_rifle/cloaked)
+
 	validate_leader_dmr(/datum/equipment_preset/unsc/tl/equipped)
 	validate_leader_dmr(/datum/equipment_preset/unsc/leader/equipped)
 	validate_leader_dmr(/datum/equipment_preset/unsc/platco/equipped)
@@ -225,6 +228,9 @@
 	for(var/squad_preset_path as anything in squad_presets)
 		validate_squad_preset(squad_preset_path)
 
+/datum/unit_test/halo_preset_coverage/proc/create_test_human()
+	return new /mob/living/carbon/human(run_loc_floor_bottom_left)
+
 /datum/unit_test/halo_preset_coverage/proc/validate_equipment_preset(preset_path)
 	if(!ispath(preset_path, /datum/equipment_preset))
 		Fail("[preset_path] is not an equipment preset path", __FILE__, __LINE__)
@@ -232,7 +238,7 @@
 	var/datum/equipment_preset/preset = new preset_path
 	if(!(preset.flags & EQUIPMENT_PRESET_EXTRA))
 		Fail("[preset_path] is not exposed through extra presets", __FILE__, __LINE__)
-	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	if(!test_human.get_item_by_slot(WEAR_BODY))
 		Fail("[preset_path] did not equip a uniform", __FILE__, __LINE__)
@@ -240,41 +246,59 @@
 		Fail("[preset_path] did not equip armor/suit", __FILE__, __LINE__)
 	if(!test_human.get_item_by_slot(WEAR_J_STORE) && !test_human.get_item_by_slot(WEAR_BACK))
 		Fail("[preset_path] did not equip a primary or back weapon", __FILE__, __LINE__)
+	qdel(test_human)
+	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_cloaked_preset_hud_cleanup(preset_path)
+	var/datum/equipment_preset/preset = new preset_path
+	var/mob/living/carbon/human/test_human = create_test_human()
+	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
+	var/datum/mob_hud/security/advanced/security_hud = GLOB.huds[MOB_HUD_SECURITY_ADVANCED]
+	var/datum/mob_hud/xeno_infection/infection_hud = GLOB.huds[MOB_HUD_XENO_INFECTION]
+	qdel(test_human)
+	if(test_human in security_hud.hudmobs)
+		Fail("[preset_path] left a qdel'd human in the advanced security HUD", __FILE__, __LINE__)
+	if(test_human in infection_hud.hudmobs)
+		Fail("[preset_path] left a qdel'd human in the xeno infection HUD", __FILE__, __LINE__)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_leader_dmr(preset_path)
 	var/datum/equipment_preset/preset = new preset_path
-	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	var/obj/item/weapon/gun/rifle/halo/dmr/leader_dmr = test_human.get_item_by_slot(WEAR_J_STORE)
 	if(!istype(leader_dmr))
 		Fail("[preset_path] did not equip an M392 DMR in suit storage", __FILE__, __LINE__)
+	qdel(test_human)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_species_preset(preset_path, expected_species)
 	var/datum/equipment_preset/preset = new preset_path
-	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	if(!test_human.species || test_human.species.name != expected_species)
 		Fail("[preset_path] expected species [expected_species], got [test_human.species?.name || "none"]", __FILE__, __LINE__)
+	qdel(test_human)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_store_weapon(preset_path, expected_type)
 	var/datum/equipment_preset/preset = new preset_path
-	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	var/obj/item/stored_item = test_human.get_item_by_slot(WEAR_J_STORE)
 	if(!istype(stored_item, expected_type))
 		Fail("[preset_path] expected [expected_type] in suit storage, got [stored_item?.type || "none"]", __FILE__, __LINE__)
+	qdel(test_human)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_spnkr_pack(preset_path)
 	var/datum/equipment_preset/preset = new preset_path
-	var/mob/living/carbon/human/test_human = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/test_human = create_test_human()
 	preset.load_preset(test_human, FALSE, FALSE, null, TRUE)
 	var/obj/item/storage/large_holster/spnkr/spnkr_pack = test_human.get_item_by_slot(WEAR_BACK)
 	if(!istype(spnkr_pack))
 		Fail("[preset_path] did not equip a SPNKr transport pack on the back slot", __FILE__, __LINE__)
+		qdel(test_human)
 		qdel(preset)
 		return
 	var/ammo_count = 0
@@ -284,6 +308,7 @@
 		Fail("[preset_path] expected 2 SPNKr rocket tubes in the pack, got [ammo_count]", __FILE__, __LINE__)
 	if(!locate(/obj/item/weapon/gun/halo_launcher/spnkr/unloaded, spnkr_pack.contents))
 		Fail("[preset_path] expected an unloaded M41 SPNKr inside the pack", __FILE__, __LINE__)
+	qdel(test_human)
 	qdel(preset)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_designated_rifle_resupply()

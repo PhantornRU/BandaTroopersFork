@@ -4,7 +4,8 @@
 	icon_state = "forerunner_1"
 	hull_floor = TRUE
 
-/turf/open/floor/forerunner/random/Initialize()
+/turf/open/floor/forerunner/random/Initialize(mapload, ...)
+	. = ..()
 	icon_state = "forerunner_[rand(1, 6)]"
 
 /obj/structure/prop/invuln/the_gate

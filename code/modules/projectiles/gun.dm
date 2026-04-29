@@ -206,6 +206,8 @@
 
 	///the default gun icon_state. change to reskin the gun
 	var/base_gun_icon
+	/// Optional stats sheet lineart state when the live base icon has no lineart counterpart.
+	var/lineart_gun_icon // SS220 EDIT: allow modular guns to reuse existing lineart without changing live overlays
 	/// whether gun has icon state of (base_gun_icon)_e
 	var/has_empty_icon = TRUE
 	/// whether gun has icon state of (base_gun_icon)_o

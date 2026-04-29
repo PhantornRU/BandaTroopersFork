@@ -14,7 +14,7 @@
 
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/dropped(mob/user)
 	if(ishuman(user) && !issynth(user))
-		deactivate_camouflage(user, FALSE)
+		deactivate_camouflage(user, FALSE, FALSE, QDELETED(user))
 	return ..()
 
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/attack_self(mob/user)
@@ -22,7 +22,7 @@
 	camouflage(user)
 
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/camouflage(mob/user)
-	if(!user || user.is_mob_incapacitated(TRUE) || !ishuman(user))
+	if(!user || QDELETED(user) || user.is_mob_incapacitated(TRUE) || !ishuman(user))
 		return FALSE
 
 	var/mob/living/carbon/human/human_user = user
@@ -58,7 +58,7 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/fade_in(mob/user)
 	SIGNAL_HANDLER
 	var/mob/living/carbon/human/human_user = user
-	if(!camo_active || !istype(human_user))
+	if(!camo_active || !istype(human_user) || QDELETED(human_user))
 		return
 
 	if(current_camo < full_camo_alpha)
@@ -72,7 +72,7 @@
 	animate(human_user, alpha = full_camo_alpha + 5, time = camouflage_break, easing = LINEAR_EASING, flags = ANIMATION_END_NOW)
 
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/fade_out_finish(mob/living/carbon/human/human_user)
-	if(camo_active && human_user?.wear_suit == src)
+	if(camo_active && !QDELETED(human_user) && human_user?.wear_suit == src)
 		ADD_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
 		to_chat(human_user, SPAN_BOLDNOTICE("Your cloak shimmers, returning to its perfectly camouflaged state!"))
 		animate(human_user, alpha = full_camo_alpha)
@@ -81,24 +81,32 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/wrapper_fizzle_camouflage()
 	SIGNAL_HANDLER
 	var/mob/wearer = src.loc
+	if(!istype(wearer) || QDELETED(wearer))
+		return
 	wearer.visible_message(SPAN_DANGER("[wearer]'s cloak fizzles out!"), SPAN_DANGER("Your cloak fizzles out!"))
 	var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
 	sparks.set_up(5, 4, src)
 	sparks.start()
 	deactivate_camouflage(wearer, TRUE, TRUE)
 
-/obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/deactivate_camouflage(mob/living/carbon/human/human_user, anim = TRUE, forced)
+/obj/item/clothing/suit/marine/shielded/sangheili/cloaking/proc/deactivate_camouflage(mob/living/carbon/human/human_user, anim = TRUE, forced, silent_cleanup = FALSE)
 	SIGNAL_HANDLER
 	if(!istype(human_user))
+		return FALSE
+	if(QDELETED(human_user))
+		silent_cleanup = TRUE
+	if(!camo_active)
 		return FALSE
 
 	UnregisterSignal(human_user, list(COMSIG_MOB_FIRED_GUN, COMSIG_MOB_FIRED_GUN_ATTACHMENT, COMSIG_HUMAN_EXTINGUISH, COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL))
 
-	if(forced)
+	if(forced && !silent_cleanup)
 		cloak_cooldown = world.time + 10 SECONDS
 
 	camo_active = FALSE
 	REMOVE_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
+	if(silent_cleanup)
+		return TRUE
 	human_user.visible_message(SPAN_DANGER("[human_user] shimmers into existence!"), SPAN_WARNING("Your cloak's camouflage has deactivated!"), max_distance = 4)
 	playsound(human_user.loc, 'sound/effects/cloak_scout_off.ogg', 15, TRUE)
 
@@ -170,7 +178,7 @@
 
 /obj/item/clothing/suit/marine/unggoy/cloaking/dropped(mob/user)
 	if(ishuman(user) && !issynth(user))
-		deactivate_camouflage(user, FALSE)
+		deactivate_camouflage(user, FALSE, FALSE, QDELETED(user))
 	return ..()
 
 /obj/item/clothing/suit/marine/unggoy/cloaking/attack_self(mob/user)
@@ -178,7 +186,7 @@
 	camouflage(user)
 
 /obj/item/clothing/suit/marine/unggoy/cloaking/proc/camouflage(mob/user)
-	if(!user || user.is_mob_incapacitated(TRUE) || !ishuman(user))
+	if(!user || QDELETED(user) || user.is_mob_incapacitated(TRUE) || !ishuman(user))
 		return FALSE
 
 	var/mob/living/carbon/human/human_user = user
@@ -213,7 +221,7 @@
 /obj/item/clothing/suit/marine/unggoy/cloaking/proc/fade_in(mob/user)
 	SIGNAL_HANDLER
 	var/mob/living/carbon/human/human_user = user
-	if(!camo_active || !istype(human_user))
+	if(!camo_active || !istype(human_user) || QDELETED(human_user))
 		return
 
 	if(current_camo < full_camo_alpha)
@@ -227,7 +235,7 @@
 	animate(human_user, alpha = full_camo_alpha + 5, time = camouflage_break, easing = LINEAR_EASING, flags = ANIMATION_END_NOW)
 
 /obj/item/clothing/suit/marine/unggoy/cloaking/proc/fade_out_finish(mob/living/carbon/human/human_user)
-	if(camo_active && human_user?.wear_suit == src)
+	if(camo_active && !QDELETED(human_user) && human_user?.wear_suit == src)
 		ADD_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
 		to_chat(human_user, SPAN_BOLDNOTICE("Your cloak shimmers, returning to its perfectly camouflaged state!"))
 		animate(human_user, alpha = full_camo_alpha)
@@ -236,24 +244,32 @@
 /obj/item/clothing/suit/marine/unggoy/cloaking/proc/wrapper_fizzle_camouflage()
 	SIGNAL_HANDLER
 	var/mob/wearer = src.loc
+	if(!istype(wearer) || QDELETED(wearer))
+		return
 	wearer.visible_message(SPAN_DANGER("[wearer]'s cloak fizzles out!"), SPAN_DANGER("Your cloak fizzles out!"))
 	var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
 	sparks.set_up(5, 4, src)
 	sparks.start()
 	deactivate_camouflage(wearer, TRUE, TRUE)
 
-/obj/item/clothing/suit/marine/unggoy/cloaking/proc/deactivate_camouflage(mob/living/carbon/human/human_user, anim = TRUE, forced)
+/obj/item/clothing/suit/marine/unggoy/cloaking/proc/deactivate_camouflage(mob/living/carbon/human/human_user, anim = TRUE, forced, silent_cleanup = FALSE)
 	SIGNAL_HANDLER
 	if(!istype(human_user))
+		return FALSE
+	if(QDELETED(human_user))
+		silent_cleanup = TRUE
+	if(!camo_active)
 		return FALSE
 
 	UnregisterSignal(human_user, list(COMSIG_MOB_FIRED_GUN, COMSIG_MOB_FIRED_GUN_ATTACHMENT, COMSIG_HUMAN_EXTINGUISH, COMSIG_MOB_DEATH, COMSIG_MOB_EFFECT_CLOAK_CANCEL))
 
-	if(forced)
+	if(forced && !silent_cleanup)
 		cloak_cooldown = world.time + 10 SECONDS
 
 	camo_active = FALSE
 	REMOVE_TRAIT(human_user, TRAIT_CLOAKED, TRAIT_SOURCE_EQUIPMENT(WEAR_JACKET))
+	if(silent_cleanup)
+		return TRUE
 	human_user.visible_message(SPAN_DANGER("[human_user] shimmers into existence!"), SPAN_WARNING("Your cloak's camouflage has deactivated!"), max_distance = 4)
 	playsound(human_user.loc, 'sound/effects/cloak_scout_off.ogg', 15, TRUE)
 	human_user.alpha = initial(human_user.alpha)
