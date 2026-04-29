@@ -55,3 +55,48 @@
       props, food, clothing and utility items through modular HALO files.'
   - imageadd: Updated HALO weapon, mine, Bumblebee, motion sensor and Covenant gear
       sprites required by the latest upstream HALO content wave.
+  - tweak: Refreshed the HALO PR94 branch on top of the merged HALO main-wave master
+      sync while preserving the SS220 modular split.
+  - rscadd: 'Updated HALO Kig-Yar Ruuhtian loadouts from the latest upstream PR #97
+      tail, adding modular plasma pistol, needler, plasma rifle, carbine, marksman,
+      and sniper variants.'
+  - rscadd: Completed modular Spartan HumanAI wrappers and added lore-oriented Spartan
+      assault, sniper, hunter-killer, and strike-team squad presets.
+  - tweak: Aligned HALO Sangheili, Unggoy, and Kig-Yar equipment presets with Covenant
+      split-faction ownership so Create Humans, HumanAI Spawn, and Squad Spawner preserve
+      the correct HALO subfactions.
+  - rscadd: Expanded the HALO squad roster with refreshed Sangheili and Kig-Yar lances
+      plus new Covenant SpecOps and honor-guard oriented squad variants.
+  - rscadd: Expanded PR94 HumanAI and Squad Spawner coverage for Unggoy weapon aliases,
+      richer UNSC and ODST support teams, ONI field cells, UEG police response teams,
+      and insurgent breach or command groups.
+  - tweak: Aligned UNSC Stalwart Frigate fireteam leader job lockers with the new
+      HALO DMR leader baseline instead of legacy BR55 issue.
+  - rscadd: Expanded targeted unit coverage for split-faction equipment contracts,
+      Kig-Yar and Spartan species wiring, HumanAI faction exposure, and the new HALO
+      squad presets.
+  - rscadd: 'Ported the latest upstream PR #97 Unggoy armor and loadout tail, including
+      accessory slots, heavy harness blast armor, deterministic public weapon presets,
+      and Human AI machinegunner entries.'
+  - rscadd: 'Added targeted unit coverage for PR #97 Unggoy harness slots, heavy armor
+      values, and plasma pistol/plasma rifle preset wiring.'
+  NordFire:
+  - rscadd: " \u0414\u043E\u0431\u0430\u0432\u0438\u043B \u043D\u043E\u0432\u044B\u0439\
+      \ \u043F\u0430\u043A\u0435\u0442 \u0441 \u0432\u043E\u043E\u0440\u0443\u0436\
+      \u0435\u043D\u0438\u0435\u043C \u0432 \u0431\u043E\u0435\u0432\u044B\u0445 \u043F\
+      \u0440\u0438\u043F\u0430\u0441\u043E\u0432"
+  - balance: "\u041F\u0435\u0440\u0435\u0440\u0430\u0431\u043E\u0442\u0430\u043B \u0440\
+      \u0430\u0441\u043F\u0440\u0435\u0434\u0435\u043B\u0435\u043D\u0438\u0435 \u043E\
+      \u0447\u043A\u043E\u0432 \u0438 \u0441\u043E\u0441\u0442\u0430\u0432 \u043F\u0440\
+      \u0438\u043F\u0430\u0441\u043E\u0432 \u0443 \u0420\u0422\u041E"
+  - spellcheck: "\u041F\u043E\u043F\u0440\u0430\u0432\u0438\u043B \u0438 \u0430\u043A\
+      \u0442\u0443\u0430\u043B\u0438\u0437\u0438\u0440\u043E\u0432\u0430\u043B \u043F\
+      \u0435\u0440\u0435\u0432\u043E\u0434\u044B"
+  PhantornRU:
+  - rscadd: Added HALO Kig-Yar and Spartan content, including new species, gear, squads,
+      and spawn support.
+  - bugfix: Fixed Spartan shield, armor degradation, and tactical reload integration
+      for BandaTroopers HALO compat surfaces.
+  - imageadd: Added Kig-Yar and Spartan sprites, clothing sheets, and rendering support
+      assets.
+  - soundadd: Added Kig-Yar voice lines.
