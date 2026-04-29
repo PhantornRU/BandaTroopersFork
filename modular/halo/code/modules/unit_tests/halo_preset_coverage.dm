@@ -496,6 +496,8 @@
 		list(/obj/item/storage/belt/marine/covenant/ruuhtian, SPECIES_RUUHTIAN, WEAR_WAIST),
 		list(/obj/item/attachable/flashlight/ma5, null, null),
 		list(/obj/item/attachable/attached_gun/grenade/ma5, null, null),
+		list(/obj/item/weapon/gun/rifle/halo/dmr, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/rifle/halo/dmr, null, WEAR_R_HAND),
 		list(/obj/item/weapon/gun/halo_launcher/spnkr, null, null),
 		list(/obj/item/storage/large_holster/spnkr, null, WEAR_BACK),
 	)
@@ -576,8 +578,14 @@
 		ammo_count++
 	if(ammo_count != 2)
 		Fail("[preset_path] expected 2 SPNKr rocket tubes in the pack, got [ammo_count]", __FILE__, __LINE__)
-	if(!locate(/obj/item/weapon/gun/halo_launcher/spnkr/unloaded, spnkr_pack.contents))
-		Fail("[preset_path] expected an unloaded M41 SPNKr inside the pack", __FILE__, __LINE__)
+	var/obj/item/weapon/gun/halo_launcher/spnkr/launcher = locate(/obj/item/weapon/gun/halo_launcher/spnkr) in spnkr_pack.contents
+	if(!launcher)
+		Fail("[preset_path] expected an M41 SPNKr inside the pack", __FILE__, __LINE__)
+	else
+		if(istype(launcher, /obj/item/weapon/gun/halo_launcher/spnkr/unloaded) || !launcher.current_mag)
+			Fail("[preset_path] expected a loaded M41 SPNKr inside the pack", __FILE__, __LINE__)
+	if(spnkr_pack.icon_state != "spnkrpack_2")
+		Fail("[preset_path] expected a full SPNKr pack icon_state, got [spnkr_pack.icon_state]", __FILE__, __LINE__)
 	qdel(test_human)
 	qdel(preset)
 

@@ -2,8 +2,8 @@
 	faction = FACTION_SANGHEILI
 
 /datum/human_ai_equipment_preset/covenant/sangheili/minor
-	name = "Sangheili Minor (Plasma Rifle, Upstream Alias)"
-	desc = "Upstream-compatible alias using the BT AI-safe plasma rifle Sangheili minor."
+	name = "Sangheili Minor (Plasma Rifle)"
+	desc = "Line Sangheili minor with a plasma rifle."
 	path = /datum/equipment_preset/covenant/sangheili/ai/minor_plasma
 
 /datum/human_ai_equipment_preset/covenant/sangheili/minor/needler
@@ -27,13 +27,13 @@
 	path = /datum/equipment_preset/covenant/sangheili/major/needler
 
 /datum/human_ai_equipment_preset/covenant/sangheili/major/carbine
-	name = "Sangheili Major (Carbine, Upstream Alias)"
-	desc = "Upstream-compatible alias using the BT AI-safe carbine Sangheili major."
+	name = "Sangheili Major (Carbine)"
+	desc = "Veteran Sangheili major with a Covenant carbine."
 	path = /datum/equipment_preset/covenant/sangheili/ai/major_carbine
 
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra
-	name = "Sangheili Ultra (Plasma Rifle, Upstream Alias)"
-	desc = "Upstream-compatible alias using the BT AI-safe plasma rifle Sangheili ultra."
+	name = "Sangheili Ultra (Plasma Rifle)"
+	desc = "Elite Sangheili ultra with a plasma rifle."
 	path = /datum/equipment_preset/covenant/sangheili/ai/ultra_plasma
 
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra/carbine
@@ -58,29 +58,29 @@
 
 /datum/human_ai_equipment_preset/covenant/sangheili/stealth
 	name = "Sangheili Stealth (Plasma Rifle)"
-	desc = "Upstream-compatible stealth Sangheili alias using the split SpecOps faction."
+	desc = "Stealth Sangheili with a plasma rifle and active camouflage."
 	faction = FACTION_SPECOPS_SANGHEILI
 	path = /datum/equipment_preset/covenant/sangheili/stealth/plasma_rifle
 
 /datum/human_ai_equipment_preset/covenant/sangheili/stealth_zealot
 	name = "Sangheili Stealth Zealot (Plasma Rifle)"
-	desc = "Upstream-compatible stealth zealot alias using the split SpecOps faction."
+	desc = "Stealth zealot with a plasma rifle and active camouflage."
 	faction = FACTION_SPECOPS_SANGHEILI
 	path = /datum/equipment_preset/covenant/sangheili/zealot/stealth
 
 /datum/human_ai_equipment_preset/covenant/sangheili/ultra_sword
 	name = "Sangheili Ultra (Sword)"
-	desc = "BT AI-safe ultra focused on melee combat with an energy sword."
+	desc = "Elite Sangheili ultra focused on melee combat with an energy sword."
 	path = /datum/equipment_preset/covenant/sangheili/ai/ultra_sword
 
 /datum/human_ai_equipment_preset/covenant/sangheili/zealot_sword
 	name = "Sangheili Zealot (Sword)"
-	desc = "BT AI-safe zealot focused on melee combat with an energy sword."
+	desc = "Shock leader Sangheili zealot focused on melee combat with an energy sword."
 	path = /datum/equipment_preset/covenant/sangheili/ai/zealot_sword
 
 /datum/human_ai_equipment_preset/covenant/sangheili/zealot_command
 	name = "Sangheili Zealot (Command)"
-	desc = "BT AI-safe zealot retaining command behavior and utility."
+	desc = "Command Sangheili zealot with combat utility."
 	path = /datum/equipment_preset/covenant/sangheili/ai/zealot_command
 
 /datum/human_ai_equipment_preset/covenant/sangheili/honor_guard

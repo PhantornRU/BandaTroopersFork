@@ -625,7 +625,7 @@
 	new_human.nutrition = NUTRITION_HIGH
 
 /datum/equipment_preset/unsc/spec/equipped_sniper/ai_sniper
-	name = parent_type::name + " (снайпер, снаряжен, AI)"
+	name = "UNSC Sniper Specialist"
 
 /datum/equipment_preset/unsc/spec/equipped_sniper/ai_sniper/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -703,7 +703,7 @@
 	new_human.nutrition = NUTRITION_HIGH
 
 /datum/equipment_preset/unsc/spec/equipped_spnkr/ai_man
-	name = parent_type::name + " (SPNKR, снаряжен, AI)"
+	name = "UNSC SPNKR Specialist"
 
 /datum/equipment_preset/unsc/spec/equipped_spnkr/ai_man/load_gear(mob/living/carbon/human/new_human)
 	new_human.undershirt = "Marine Undershirt"
@@ -1274,7 +1274,7 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/unsc/spec/odst/equipped_sniper/ai_sniper
-	name = "ODST Squad Weapons Specialist (Sniper, AI)"
+	name = "ODST Sniper Specialist"
 
 /datum/equipment_preset/unsc/spec/odst/equipped_spnkr
 	parent_type = /datum/equipment_preset/unsc/spec/equipped_spnkr
@@ -1304,4 +1304,4 @@
 		new_human.equip_to_slot_or_del(new /obj/item/clothing/mask/rebreather/scarf, WEAR_FACE)
 
 /datum/equipment_preset/unsc/spec/odst/equipped_spnkr/ai_man
-	name = "ODST Squad Weapons Specialist (SPNKr, AI)"
+	name = "ODST SPNKR Specialist"

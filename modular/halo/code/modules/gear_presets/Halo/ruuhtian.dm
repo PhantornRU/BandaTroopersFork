@@ -235,12 +235,14 @@
 // AI-ONLY ROLES
 
 /datum/equipment_preset/covenant/ruuhtian/ai
-	name = "Kig-Yar AI"
+	name = "Kig-Yar Combat Template"
+	flags = EQUIPMENT_PRESET_STUB
 	assignment = JOB_COV_MINOR
 	rank = JOB_COV_MINOR
 
 /datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma
 	name = "Kig-Yar Minor (Plasma)"
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 
 /datum/equipment_preset/covenant/ruuhtian/ai/minor_plasma/load_gear(mob/living/carbon/human/new_human)
 	equip_ruuhtian_basics(new_human, pick_ruuhtian_minor_helmet(), /obj/item/clothing/suit/marine/ruuhtian/minor, /obj/item/clothing/shoes/ruuhtian/minor, /obj/item/storage/belt/marine/covenant/ruuhtian/minor)
@@ -248,6 +250,7 @@
 
 /datum/equipment_preset/covenant/ruuhtian/ai/major_needler
 	name = "Kig-Yar Major (Needler)"
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	assignment = JOB_COV_MAJOR
 	rank = JOB_COV_MAJOR
 	paygrades = list(PAY_SHORT_COV_MAJOR = JOB_PLAYTIME_TIER_0)
@@ -259,6 +262,7 @@
 
 /datum/equipment_preset/covenant/ruuhtian/ai/ultra_plasma
 	name = "Kig-Yar Ultra (Plasma)"
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	assignment = JOB_COV_ULTRA
 	rank = JOB_COV_ULTRA
 	paygrades = list(PAY_SHORT_COV_ULTRA = JOB_PLAYTIME_TIER_0)
@@ -270,6 +274,7 @@
 
 /datum/equipment_preset/covenant/ruuhtian/ai/marksman_carbine
 	name = "Kig-Yar Marksman (Carbine)"
+	flags = EQUIPMENT_PRESET_EXTRA|EQUIPMENT_PRESET_MARINE
 	assignment = JOB_COV_MARKSMAN
 	rank = JOB_COV_MARKSMAN
 	paygrades = list(PAY_SHORT_COV_MINOR = JOB_PLAYTIME_TIER_0)

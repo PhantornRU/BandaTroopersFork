@@ -306,6 +306,8 @@
 /obj/item/storage/large_holster/spnkr/Initialize()
 	. = ..()
 	spnkr_overlay = overlay_image('modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr")
+	if(length(contents))
+		update_icon()
 
 /obj/item/storage/large_holster/spnkr/Destroy()
 	QDEL_NULL(spnkr_overlay)
@@ -350,7 +352,7 @@
 /obj/item/storage/large_holster/spnkr/filled/launcher/fill_preset_inventory()
 	for(var/i = 1 to 2)
 		new /obj/item/ammo_magazine/spnkr(src)
-	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded())
+	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr())
 	update_icon()
 
 /obj/item/storage/backpack/marine/ammo_rack/spnkr

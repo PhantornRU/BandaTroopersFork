@@ -3,7 +3,7 @@
 
 /datum/human_ai_squad_preset/covenant/unggoy_levy
 	name = "Unggoy Levy"
-	desc = "Upstream-compatible Covenant levy with one major and two minor Unggoy."
+	desc = "Covenant levy with one major and two minor Unggoy."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/unggoy/major = 1,
 		/datum/equipment_preset/covenant/unggoy/minor = 2,
@@ -11,7 +11,7 @@
 
 /datum/human_ai_squad_preset/covenant/unggoy_lance
 	name = "Unggoy Lance"
-	desc = "Upstream-compatible Covenant lance led by a Sangheili minor."
+	desc = "Covenant lance led by a Sangheili minor."
 	ai_to_spawn = list(
 		/datum/equipment_preset/covenant/sangheili/minor = 1,
 		/datum/equipment_preset/covenant/unggoy/major = 2,
