@@ -1203,6 +1203,37 @@
 
 	qdel(created_object)
 
+/datum/unit_test/world_edit_corner_slots/blueprint_spawn_entry_sets_covenant_triptych_footprint/Run()
+	var/turf/target_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(target_turf, "World Edit Covenant triptych blueprint-spawn turf was not resolved.")
+
+	var/obj/structure/covenant_barricade/wide/created_object = GLOB.world_edit_blueprints.world_edit_spawn_blueprint_entry(list(
+		"obj_path" = /obj/structure/covenant_barricade/wide,
+		"turf" = target_turf,
+		"dir" = EAST,
+		"vars" = list(),
+	))
+	TEST_ASSERT(istype(created_object, /obj/structure/covenant_barricade/wide), "Blueprint spawn helper should create Covenant triptych barricades.")
+	TEST_ASSERT_EQUAL(created_object.dir, EAST, "Blueprint spawn helper should preserve Covenant triptych dir.")
+	TEST_ASSERT_EQUAL(created_object.pixel_x, 0, "Covenant triptych east/west placement should keep the sprite anchored on the center tile horizontally.")
+	TEST_ASSERT_EQUAL(created_object.pixel_y, -16, "Covenant triptych placement should keep the wide sprite baseline offset.")
+	TEST_ASSERT_EQUAL(created_object.wide_overlay_pixel_y, 64, "Covenant triptych east/west placement should preserve the overlay offset.")
+	TEST_ASSERT_EQUAL(length(created_object.blocker_parts), 2, "Covenant triptych east/west placement should create two side blockers.")
+
+	var/turf/north_turf = get_step(target_turf, NORTH)
+	var/turf/south_turf = get_step(target_turf, SOUTH)
+	var/found_north_blocker = FALSE
+	var/found_south_blocker = FALSE
+	for(var/obj/structure/blocker/invisible_wall/covenant_barrier/blocker as anything in created_object.blocker_parts)
+		if(blocker.loc == north_turf)
+			found_north_blocker = TRUE
+		if(blocker.loc == south_turf)
+			found_south_blocker = TRUE
+	TEST_ASSERT(found_north_blocker, "Covenant triptych east/west placement should block the north side tile.")
+	TEST_ASSERT(found_south_blocker, "Covenant triptych east/west placement should block the south side tile.")
+
+	qdel(created_object)
+
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_folding_barricades/Run()
 	var/turf/anchor_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit folding-barricade blueprint test anchor turf was not resolved.")
@@ -1283,6 +1314,195 @@
 	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit Covenant barrier blueprint test should keep the translated Covenant barrier placement.")
 	TEST_ASSERT_EQUAL(plan.placements[1]["obj_path"], /obj/structure/covenant_barricade, "World Edit Covenant barrier blueprint test should preserve the Covenant barrier obj path.")
 	TEST_ASSERT_EQUAL(plan.placements[1]["dir"], WEST, "World Edit Covenant barrier blueprint test should preserve the Covenant barrier dir.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_covenant_triptych_footprint/Run()
+	var/turf/anchor_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit Covenant triptych blueprint test anchor turf was not resolved.")
+
+	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
+		"id" = "covtriptych01",
+		"name" = "Covenant Triptych",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = -1,
+			"max_x" = 1,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 1,
+		),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/covenant_barricade/wide]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	))
+	TEST_ASSERT(!validation_result["error"], "World Edit Covenant triptych blueprint test should accept wide Covenant barricades with expanded bounds.")
+
+	var/datum/world_edit_plan/north_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, NORTH)
+	TEST_ASSERT_NOTNULL(north_plan, "World Edit Covenant triptych blueprint test should build a north-facing plan datum.")
+	TEST_ASSERT(!north_plan.metadata["error"], "World Edit Covenant triptych blueprint test should translate a valid north-facing triptych blueprint.")
+	TEST_ASSERT_EQUAL(length(north_plan.placements), 1, "World Edit Covenant triptych blueprint test should keep one center placement.")
+	TEST_ASSERT_EQUAL(length(north_plan.affected_turfs), 3, "World Edit Covenant triptych blueprint test should reserve all three north-facing footprint turfs.")
+	var/list/north_affected_lookup = build_relative_turf_lookup(north_plan.affected_turfs, anchor_turf)
+	TEST_ASSERT(north_affected_lookup["-1,0"], "World Edit Covenant triptych north-facing footprint should reserve the west side tile.")
+	TEST_ASSERT(north_affected_lookup["0,0"], "World Edit Covenant triptych north-facing footprint should reserve the center tile.")
+	TEST_ASSERT(north_affected_lookup["1,0"], "World Edit Covenant triptych north-facing footprint should reserve the east side tile.")
+
+	var/datum/world_edit_plan/east_plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, EAST)
+	TEST_ASSERT_NOTNULL(east_plan, "World Edit Covenant triptych blueprint test should build an east-facing plan datum.")
+	TEST_ASSERT(!east_plan.metadata["error"], "World Edit Covenant triptych blueprint test should translate a valid east-facing triptych blueprint.")
+	TEST_ASSERT_EQUAL(length(east_plan.placements), 1, "World Edit Covenant triptych east-facing blueprint test should keep one center placement.")
+	TEST_ASSERT_EQUAL(east_plan.placements[1]["dir"], EAST, "World Edit Covenant triptych east-facing blueprint test should rotate NORTH to EAST.")
+	TEST_ASSERT_EQUAL(length(east_plan.affected_turfs), 3, "World Edit Covenant triptych blueprint test should reserve all three east-facing footprint turfs.")
+	var/list/east_affected_lookup = build_relative_turf_lookup(east_plan.affected_turfs, anchor_turf)
+	TEST_ASSERT(east_affected_lookup["0,-1"], "World Edit Covenant triptych east-facing footprint should reserve the south side tile.")
+	TEST_ASSERT(east_affected_lookup["0,0"], "World Edit Covenant triptych east-facing footprint should reserve the center tile.")
+	TEST_ASSERT(east_affected_lookup["0,1"], "World Edit Covenant triptych east-facing footprint should reserve the north side tile.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_translation_merges_adjacent_covenant_barriers_into_triptych/Run()
+	var/turf/anchor_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit Covenant triptych merge test anchor turf was not resolved.")
+
+	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
+		"id" = "covtripmerge01",
+		"name" = "Covenant Triptych Merge",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = -1,
+			"max_x" = 1,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 1,
+		),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/covenant_barricade]",
+				"dx" = -1,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+			list(
+				"type" = "[/obj/structure/covenant_barricade]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+			list(
+				"type" = "[/obj/structure/covenant_barricade]",
+				"dx" = 1,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = NORTH,
+				"vars" = list(),
+			),
+		),
+	))
+	TEST_ASSERT(!validation_result["error"], "World Edit Covenant triptych merge test should accept three adjacent single Covenant barriers.")
+
+	var/datum/world_edit_plan/plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, NORTH)
+	TEST_ASSERT_NOTNULL(plan, "World Edit Covenant triptych merge test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit Covenant triptych merge test should translate a valid blueprint.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit Covenant triptych merge test should replace three adjacent singles with one placement.")
+	TEST_ASSERT_EQUAL(plan.placements[1]["obj_path"], /obj/structure/covenant_barricade/wide, "World Edit Covenant triptych merge test should use the real triptych barrier path.")
+	TEST_ASSERT_EQUAL(plan.placements[1]["dir"], NORTH, "World Edit Covenant triptych merge test should preserve the shared barrier direction.")
+	TEST_ASSERT_EQUAL(plan.metadata["covenant_triptych_merge_count"], 1, "World Edit Covenant triptych merge test should report one triptych merge.")
+	TEST_ASSERT_EQUAL(length(plan.affected_turfs), 3, "World Edit Covenant triptych merge test should still reserve all three occupied turfs.")
+	var/list/affected_lookup = build_relative_turf_lookup(plan.affected_turfs, anchor_turf)
+	TEST_ASSERT(affected_lookup["-1,0"], "World Edit Covenant triptych merge test should reserve the west side turf.")
+	TEST_ASSERT(affected_lookup["0,0"], "World Edit Covenant triptych merge test should reserve the center turf.")
+	TEST_ASSERT(affected_lookup["1,0"], "World Edit Covenant triptych merge test should reserve the east side turf.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_covenant_support_props/Run()
+	var/turf/anchor_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit Covenant support-prop blueprint test anchor turf was not resolved.")
+	TEST_ASSERT(islist(GLOB.world_edit_blueprints.world_edit_get_blueprint_type_rule(/obj/structure/machinery/recharger/covenant)), "World Edit Blueprint Lite should expose the Covenant plasma charger support prop.")
+	TEST_ASSERT(islist(GLOB.world_edit_blueprints.world_edit_get_blueprint_type_rule(/obj/structure/machinery/prop/almayer/CICmap/yautja/empty)), "World Edit Blueprint Lite should expose the Covenant globe support prop.")
+
+	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
+		"id" = "covsupport01",
+		"name" = "Covenant Support Props",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = -1,
+			"max_x" = 1,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 1,
+		),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/machinery/recharger/covenant]",
+				"dx" = -1,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = EAST,
+				"vars" = list(),
+			),
+			list(
+				"type" = "[/obj/structure/machinery/prop/almayer/CICmap/yautja/empty]",
+				"dx" = 1,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = WEST,
+				"vars" = list(),
+			),
+		),
+	))
+	TEST_ASSERT(!validation_result["error"], "World Edit Covenant support-prop blueprint test should accept whitelisted Covenant props.")
+
+	var/datum/world_edit_plan/plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, NORTH)
+	TEST_ASSERT_NOTNULL(plan, "World Edit Covenant support-prop blueprint test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit Covenant support-prop blueprint test should translate valid Covenant props.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 2, "World Edit Covenant support-prop blueprint test should keep both support props.")
+
+	var/found_charger = FALSE
+	var/found_globe = FALSE
+	for(var/list/placement as anything in plan.placements)
+		if(placement["obj_path"] == /obj/structure/machinery/recharger/covenant)
+			found_charger = TRUE
+			TEST_ASSERT_EQUAL(placement["dir"], EAST, "World Edit Covenant support-prop blueprint test should preserve the plasma charger dir.")
+		if(placement["obj_path"] == /obj/structure/machinery/prop/almayer/CICmap/yautja/empty)
+			found_globe = TRUE
+			TEST_ASSERT_EQUAL(placement["dir"], WEST, "World Edit Covenant support-prop blueprint test should preserve the globe dir.")
+	TEST_ASSERT(found_charger, "World Edit Covenant support-prop blueprint test should keep the plasma charger placement.")
+	TEST_ASSERT(found_globe, "World Edit Covenant support-prop blueprint test should keep the globe placement.")
+
+	var/obj/created_object = GLOB.world_edit_blueprints.world_edit_spawn_blueprint_entry(list(
+		"obj_path" = /obj/structure/machinery/recharger/covenant,
+		"turf" = anchor_turf,
+		"dir" = EAST,
+		"vars" = list(),
+	))
+	TEST_ASSERT(istype(created_object, /obj/structure/machinery/recharger/covenant), "Blueprint spawn helper should create Covenant plasma chargers.")
+	TEST_ASSERT_EQUAL(created_object.dir, EAST, "Blueprint spawn helper should preserve Covenant plasma charger dir.")
+	qdel(created_object)
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_duplicate_relative_slots/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
@@ -1745,6 +1965,52 @@
 	TEST_ASSERT(!("placement_preview_effect_tiles" in data), "World Edit UI payload builder should prune legacy preview effect counts.")
 	TEST_ASSERT(!("last_undo_action" in data), "World Edit UI payload builder should prune legacy undo action keys.")
 	TEST_ASSERT(!("can_refresh_ui" in data), "World Edit UI payload builder should prune legacy refresh availability keys.")
+
+	qdel(manager)
+
+/datum/unit_test/world_edit_manager_ui_payload/blueprint_entries_include_recent_usage_metadata/Run()
+	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
+	manager.blueprint_cache_loaded = TRUE
+	manager.blueprint_entries_cache = list(
+		list(
+			"id" = "bp-old",
+			"name" = "Old",
+			"valid" = TRUE,
+		),
+		list(
+			"id" = "bp-new",
+			"name" = "New",
+			"valid" = TRUE,
+		),
+		list(
+			"id" = "bp-unused",
+			"name" = "Unused",
+			"valid" = TRUE,
+		),
+	)
+
+	manager.record_blueprint_usage("bp-old")
+	manager.record_blueprint_usage("bp-new")
+	manager.record_blueprint_usage("bp-old")
+
+	var/list/entries = manager.get_blueprint_entries_for_ui()
+	var/list/entry_lookup = list()
+	for(var/list/entry as anything in entries)
+		entry_lookup["[entry["id"]]"] = entry
+
+	var/list/old_entry = entry_lookup["bp-old"]
+	var/list/new_entry = entry_lookup["bp-new"]
+	var/list/unused_entry = entry_lookup["bp-unused"]
+	TEST_ASSERT(islist(old_entry), "World Edit blueprint usage metadata test should keep the first used blueprint entry in the UI payload.")
+	TEST_ASSERT(islist(new_entry), "World Edit blueprint usage metadata test should keep the later used blueprint entry in the UI payload.")
+	TEST_ASSERT(islist(unused_entry), "World Edit blueprint usage metadata test should keep unused blueprint entries in the UI payload.")
+	TEST_ASSERT_EQUAL(old_entry["use_count"], 2, "World Edit blueprint usage metadata test should count repeated blueprint activation.")
+	TEST_ASSERT_EQUAL(new_entry["use_count"], 1, "World Edit blueprint usage metadata test should count single blueprint activation.")
+	TEST_ASSERT(text2num("[old_entry["last_used_rank"]]") > text2num("[new_entry["last_used_rank"]]"), "World Edit blueprint usage metadata test should rank the most recently used blueprint highest.")
+	TEST_ASSERT(length("[old_entry["last_used_at"]]"), "World Edit blueprint usage metadata test should expose a display timestamp for used blueprints.")
+	TEST_ASSERT_EQUAL(unused_entry["use_count"], 0, "World Edit blueprint usage metadata test should expose zero use_count for unused blueprints.")
+	TEST_ASSERT_EQUAL(unused_entry["last_used_rank"], 0, "World Edit blueprint usage metadata test should expose zero last_used_rank for unused blueprints.")
+	TEST_ASSERT_EQUAL(unused_entry["last_used_at"], "", "World Edit blueprint usage metadata test should expose blank last_used_at for unused blueprints.")
 
 	qdel(manager)
 
@@ -4592,7 +4858,14 @@
 		locate(center_turf.x, center_turf.y + 2, center_turf.z),
 		locate(center_turf.x + 1, center_turf.y + 2, center_turf.z),
 	)
+	var/list/opening_slots = list()
+	for(var/turf/opening_turf as anything in opening_turfs)
+		opening_slots += list(list(
+			"turf" = opening_turf,
+			"dir" = NORTH,
+		))
 	var/list/opening_standoff_lookup = generator.build_opening_standoff_lookup(opening_turfs)
+	var/list/opening_mine_clearance_lookup = generator.build_opening_mine_clearance_lookup(opening_slots, params["minefield_offset"], params["minefield_depth"])
 	var/list/placement_counts = count_placements_by_kind(plan.placements)
 	var/list/mine_keys = list()
 	for(var/list/placement as anything in plan.placements)
@@ -4605,6 +4878,8 @@
 		if(kind == "mine")
 			TEST_ASSERT(max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)) >= 5, "World Edit outpost exterior-layer test should place mines outside the radius-2 perimeter at offset 3.")
 			TEST_ASSERT(!opening_standoff_lookup[target_turf], "World Edit outpost exterior-layer test should not place mines on or adjacent to gate opening tiles.")
+			TEST_ASSERT(!opening_mine_clearance_lookup[target_turf], "World Edit outpost exterior-layer test should not place mines on the direct gate passage lane.")
+			TEST_ASSERT(max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)) > 2, "World Edit outpost exterior-layer test should never place mines inside the radius-2 outpost footprint.")
 			mine_keys += "[target_turf.x],[target_turf.y],[target_turf.z]"
 
 	TEST_ASSERT((placement_counts["wire_object"] || 0) > 0, "World Edit outpost exterior-layer test should emit exterior razorwire placements.")
@@ -4651,9 +4926,10 @@
 		/datum/human_ai_defense/barricade/snow,
 		/datum/human_ai_defense/barricade/deployable,
 		/datum/human_ai_defense/barricade/covenant,
-		/datum/human_ai_defense/barricade/covenant/wide,
 	))
 		TEST_ASSERT(barricade_path in generator.allowed_barricade_types, "World Edit outpost catalog should expose [barricade_path].")
+	TEST_ASSERT(!(/datum/human_ai_defense/barricade/covenant/wide in generator.allowed_barricade_types), "World Edit outpost catalog should keep Covenant Triptych Barrier out of ordinary material choices.")
+	TEST_ASSERT(islist(GLOB.world_edit_blueprints.world_edit_get_blueprint_type_rule(/obj/structure/covenant_barricade/wide)), "World Edit Blueprint Lite should keep Covenant Triptych Barrier available as a blueprint object.")
 
 	for(var/mine_path as anything in list(
 		/datum/human_ai_defense/mine/claymore/wy/strong,
@@ -4673,15 +4949,20 @@
 
 	var/list/params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
 	params["primary_material_path"] = /datum/human_ai_defense/barricade/covenant
-	params["secondary_material_path"] = /datum/human_ai_defense/barricade/covenant/wide
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/covenant
 	params["faction"] = FACTION_COVENANT
 	params["mine_type"] = /datum/human_ai_defense/mine/covenant/plasma
 	var/list/config = generator.resolve_outpost_configuration(params, list("direction" = NORTH))
 	TEST_ASSERT(!config["error"], "World Edit outpost config should accept Covenant barricade, mine, and IFF choices.")
 	TEST_ASSERT_EQUAL(config["primary_material_path"], /datum/human_ai_defense/barricade/covenant, "World Edit outpost config should keep the selected Covenant primary material.")
-	TEST_ASSERT_EQUAL(config["secondary_material_path"], /datum/human_ai_defense/barricade/covenant/wide, "World Edit outpost config should keep the selected Covenant secondary material.")
+	TEST_ASSERT_EQUAL(config["secondary_material_path"], /datum/human_ai_defense/barricade/covenant, "World Edit outpost config should keep the selected Covenant secondary material.")
 	TEST_ASSERT_EQUAL(config["faction"], FACTION_COVENANT, "World Edit outpost config should keep the selected Covenant IFF.")
 	TEST_ASSERT_EQUAL(config["mine_type"], /datum/human_ai_defense/mine/covenant/plasma, "World Edit outpost config should keep the selected Covenant mine type.")
+
+	var/list/invalid_triptych_params = params.Copy()
+	invalid_triptych_params["secondary_material_path"] = /datum/human_ai_defense/barricade/covenant/wide
+	var/list/invalid_triptych_config = generator.resolve_outpost_configuration(invalid_triptych_params, list("direction" = NORTH))
+	TEST_ASSERT(length("[invalid_triptych_config["error"]]"), "World Edit outpost config should reject Covenant Triptych Barrier as an ordinary material choice.")
 
 	qdel(generator)
 
@@ -5457,6 +5738,15 @@
 		"encampment_light",
 		"turret_pad",
 		"split_entry_checkpoint",
+		"covenant_triptych_3",
+		"covenant_triptych_6",
+		"covenant_triptych_9",
+		"covenant_forward_watch",
+		"covenant_plasma_cache",
+		"covenant_needle_crossfire",
+		"covenant_shield_courtyard",
+		"covenant_gate_redoubt",
+		"covenant_field_sanctum",
 	)
 
 	for(var/blueprint_id as anything in expected_ids)
@@ -5465,6 +5755,59 @@
 		TEST_ASSERT(summary["valid"], "World Edit curated tactical-pack test should keep blueprint '[blueprint_id]' valid in the server-side library.")
 		TEST_ASSERT((summary["footprint_width"] || 0) > 0, "World Edit curated tactical-pack test should expose a positive footprint width for blueprint '[blueprint_id]'.")
 		TEST_ASSERT((summary["footprint_height"] || 0) > 0, "World Edit curated tactical-pack test should expose a positive footprint height for blueprint '[blueprint_id]'.")
+
+	var/list/covenant_footprint_widths = list(
+		"covenant_triptych_3" = 3,
+		"covenant_triptych_6" = 6,
+		"covenant_triptych_9" = 9,
+	)
+	for(var/blueprint_id as anything in covenant_footprint_widths)
+		var/list/summary = summary_lookup["[blueprint_id]"]
+		TEST_ASSERT_EQUAL(summary["footprint_width"], covenant_footprint_widths[blueprint_id], "World Edit curated Covenant triptych blueprint '[blueprint_id]' should expose its full horizontal footprint width.")
+		TEST_ASSERT_EQUAL(summary["footprint_height"], 1, "World Edit curated Covenant triptych blueprint '[blueprint_id]' should expose a single-tile footprint height.")
+
+	var/list/covenant_outpost_ids = list(
+		"covenant_forward_watch",
+		"covenant_plasma_cache",
+		"covenant_needle_crossfire",
+		"covenant_shield_courtyard",
+		"covenant_gate_redoubt",
+		"covenant_field_sanctum",
+	)
+	var/found_covenant_charger = FALSE
+	for(var/blueprint_id as anything in covenant_outpost_ids)
+		var/list/summary = summary_lookup["[blueprint_id]"]
+		TEST_ASSERT_EQUAL(summary["source"], "curated_covenant_pack_v2", "World Edit curated Covenant outpost blueprint '[blueprint_id]' should come from the Covenant pack.")
+		var/list/load_result = GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(summary["file_path"])
+		TEST_ASSERT(!load_result["error"], "World Edit curated Covenant outpost blueprint '[blueprint_id]' should load from disk.")
+		var/list/blueprint = load_result["blueprint"]
+		var/list/bounds = blueprint["bounds"]
+		var/list/barrier_turf_lookup = list()
+		var/list/mine_turf_lookup = list()
+		for(var/list/entry as anything in blueprint["entries"])
+			var/obj_path = text2path("[entry["type"]]")
+			var/dx = text2num("[entry["dx"]]")
+			var/dy = text2num("[entry["dy"]]")
+			if(ispath(obj_path, /obj/structure/covenant_barricade))
+				for(var/list/offset as anything in GLOB.world_edit_blueprints.world_edit_get_blueprint_occupied_offsets(obj_path, text2num("[entry["dir"]]")))
+					if(!islist(offset) || length(offset) < 2)
+						continue
+					var/occupied_dx = dx + (text2num("[offset[1]]") || 0)
+					var/occupied_dy = dy + (text2num("[offset[2]]") || 0)
+					barrier_turf_lookup["[occupied_dx],[occupied_dy]"] = TRUE
+			if(ispath(obj_path, /obj/item/explosive/mine) || ispath(obj_path, /obj/item/device/assembly/prox_sensor/active))
+				var/mine_key = "[dx],[dy]"
+				mine_turf_lookup[mine_key] = TRUE
+				TEST_ASSERT(dx != 0 && dy != 0, "World Edit curated Covenant outpost blueprint '[blueprint_id]' should keep mines off direct cardinal passage axes.")
+				TEST_ASSERT(dx == bounds["min_x"] || dx == bounds["max_x"] || dy == bounds["min_y"] || dy == bounds["max_y"], "World Edit curated Covenant outpost blueprint '[blueprint_id]' should keep mines on exterior boundary slots, not inside the blueprint interior.")
+			if("[entry["type"]]" == "[/obj/structure/machinery/recharger/covenant]")
+				found_covenant_charger = TRUE
+		if("[blueprint_id]" == "covenant_plasma_cache")
+			TEST_ASSERT(!barrier_turf_lookup["0,2"], "World Edit curated Covenant Plasma Cache should keep the north center exit clear of barriers.")
+			TEST_ASSERT(!barrier_turf_lookup["0,-2"], "World Edit curated Covenant Plasma Cache should keep the south center exit clear of barriers.")
+			TEST_ASSERT(!mine_turf_lookup["0,3"], "World Edit curated Covenant Plasma Cache should keep the north exit lane clear of mines.")
+			TEST_ASSERT(!mine_turf_lookup["0,-3"], "World Edit curated Covenant Plasma Cache should keep the south exit lane clear of mines.")
+	TEST_ASSERT(found_covenant_charger, "World Edit curated Covenant outpost pack should include at least one Covenant plasma charger.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_library_curated_pack_corner_slots_use_multi_dir_border_semantics/Run()
 	var/list/summaries = GLOB.world_edit_blueprints.world_edit_load_blueprint_library_summaries()

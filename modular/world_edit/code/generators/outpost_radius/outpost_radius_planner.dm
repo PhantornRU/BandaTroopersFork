@@ -526,6 +526,25 @@
 				lookup[adjacent_turf] = TRUE
 	return lookup
 
+/datum/world_edit_generator/outpost_radius/proc/build_opening_mine_clearance_lookup(list/opening_slots, minefield_offset = 3, minefield_depth = 0)
+	var/list/lookup = list()
+	if(!islist(opening_slots))
+		return lookup
+
+	var/max_distance = max(round(text2num("[minefield_offset]") || 3) + max(round(text2num("[minefield_depth]") || 0), 1) - 1, 1)
+	for(var/list/opening_slot as anything in opening_slots)
+		if(!islist(opening_slot))
+			continue
+		var/turf/opening_turf = opening_slot["turf"]
+		var/opening_dir = opening_slot["dir"]
+		if(!istype(opening_turf) || !GLOB.world_edit_helpers.is_cardinal_dir(opening_dir))
+			continue
+		for(var/distance in 0 to max_distance)
+			var/turf/clearance_turf = GLOB.world_edit_helpers.step_turf(opening_turf, opening_dir, distance)
+			if(istype(clearance_turf))
+				lookup[clearance_turf] = TRUE
+	return lookup
+
 /datum/world_edit_generator/outpost_radius/proc/should_select_outpost_wire_slot(list/perimeter_slot, turf/target_turf, row_index, list/config)
 	if(!islist(config) || !islist(perimeter_slot) || !istype(target_turf))
 		return FALSE
@@ -614,12 +633,17 @@
 				flank_candidate["overlay_slot_key"] = GLOB.world_edit_helpers.build_turf_dir_slot_key(overlay_turf, opening_dir)
 			add_outpost_anchor_candidate(anchor_map["opening_flanks"], group_lookups["opening_flanks"], flank_candidate, TRUE)
 
-	var/list/opening_standoff_lookup = build_opening_standoff_lookup(opening_turfs)
+	var/list/footprint_lookup = build_turf_lookup(footprint_turfs)
 	var/wire_rows = islist(config) ? max(round(text2num("[config["wire_rows"]]") || 0), 0) : 0
 	var/wire_offset = islist(config) ? max(round(text2num("[config["wire_offset"]]") || 3), 1) : 3
 	var/wire_row_step = islist(config) ? max(round(text2num("[config["wire_row_step"]]") || 1), 1) : 1
 	var/minefield_depth = islist(config) ? max(round(text2num("[config["minefield_depth"]]") || 0), 0) : 0
 	var/minefield_offset = islist(config) ? max(round(text2num("[config["minefield_offset"]]") || 3), 1) : 3
+	var/list/opening_standoff_lookup = build_opening_standoff_lookup(opening_turfs)
+	var/list/opening_mine_clearance_lookup = build_opening_mine_clearance_lookup(opening_slots, minefield_offset, minefield_depth)
+	for(var/turf/standoff_turf as anything in opening_standoff_lookup)
+		if(istype(standoff_turf))
+			opening_mine_clearance_lookup[standoff_turf] = TRUE
 	for(var/list/perimeter_slot as anything in perimeter_slots)
 		var/turf/perimeter_turf = perimeter_slot["turf"]
 		var/perimeter_dir = perimeter_slot["dir"]
@@ -649,7 +673,7 @@
 			for(var/mine_depth in 1 to minefield_depth)
 				var/mine_distance = minefield_offset + mine_depth - 1
 				var/turf/mine_turf = GLOB.world_edit_helpers.step_turf(perimeter_turf, perimeter_dir, mine_distance)
-				if(opening_standoff_lookup[mine_turf] || !should_select_outpost_mine_slot(mine_turf, mine_depth, config))
+				if(footprint_lookup[mine_turf] || opening_mine_clearance_lookup[mine_turf] || !should_select_outpost_mine_slot(mine_turf, mine_depth, config))
 					continue
 				var/list/mine_candidate = build_outpost_anchor_candidate(mine_turf, perimeter_dir, "exterior_mine_slots", perimeter_dir, perimeter_turf)
 				if(islist(mine_candidate))

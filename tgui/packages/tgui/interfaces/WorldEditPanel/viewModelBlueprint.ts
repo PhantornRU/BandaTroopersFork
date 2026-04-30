@@ -1,10 +1,28 @@
 import type { BackendData, BlueprintEntry } from './types';
 
 type BlueprintFilterMode = 'all' | 'valid' | 'invalid' | 'active';
-type BlueprintSortMode = 'activity' | 'name' | 'newest' | 'size';
+type BlueprintSortMode =
+  | 'recent'
+  | 'status'
+  | 'name_asc'
+  | 'name_desc'
+  | 'newest'
+  | 'oldest'
+  | 'size_desc'
+  | 'size_asc'
+  | 'entries_desc'
+  | 'entries_asc';
 
-const compareBlueprintNames = (left: BlueprintEntry, right: BlueprintEntry) =>
-  `${left.name || ''}`.localeCompare(`${right.name || ''}`);
+const compareBlueprintText = (left: unknown, right: unknown) =>
+  `${left || ''}`.localeCompare(`${right || ''}`);
+
+const compareBlueprintNames = (left: BlueprintEntry, right: BlueprintEntry) => {
+  const nameDiff = compareBlueprintText(left.name, right.name);
+  if (nameDiff !== 0) {
+    return nameDiff;
+  }
+  return compareBlueprintText(left.id, right.id);
+};
 
 const getBlueprintFootprintText = (blueprint: BlueprintEntry) => {
   const width = Math.max(Number(blueprint.footprint_width) || 0, 0);
@@ -29,6 +47,34 @@ const getBlueprintFootprintArea = (blueprint: BlueprintEntry) => {
   }
   return Number(blueprint.entry_count) || 0;
 };
+
+const getBlueprintLastUsedRank = (blueprint: BlueprintEntry) =>
+  Math.max(Number(blueprint.last_used_rank) || 0, 0);
+
+const getBlueprintEntryCount = (blueprint: BlueprintEntry) =>
+  Math.max(Number(blueprint.entry_count) || 0, 0);
+
+const compareBlueprintStatus = (
+  data: BackendData,
+  left: BlueprintEntry,
+  right: BlueprintEntry,
+) => {
+  const leftState = getBlueprintActionState(data, left);
+  const rightState = getBlueprintActionState(data, right);
+  if (leftState.isActive !== rightState.isActive) {
+    return leftState.isActive ? -1 : 1;
+  }
+  if (left.valid !== right.valid) {
+    return left.valid ? -1 : 1;
+  }
+  return compareBlueprintNames(left, right);
+};
+
+const compareBlueprintNumber = (
+  leftValue: number,
+  rightValue: number,
+  descending: boolean,
+) => (descending ? rightValue - leftValue : leftValue - rightValue);
 
 const getBlueprintActionState = (
   data: BackendData,
@@ -68,33 +114,54 @@ const filterAndSortBlueprintEntries = (
   });
 
   return [...filteredEntries].sort((left, right) => {
-    if (sortMode === 'name') {
+    if (sortMode === 'name_asc') {
       return compareBlueprintNames(left, right);
     }
-    if (sortMode === 'newest') {
-      return `${right.created_at || ''}`.localeCompare(
-        `${left.created_at || ''}`,
-      );
+    if (sortMode === 'name_desc') {
+      return compareBlueprintNames(right, left);
     }
-    if (sortMode === 'size') {
+    if (sortMode === 'newest') {
+      const dateDiff = compareBlueprintText(right.created_at, left.created_at);
+      return dateDiff || compareBlueprintNames(left, right);
+    }
+    if (sortMode === 'oldest') {
+      const dateDiff = compareBlueprintText(left.created_at, right.created_at);
+      return dateDiff || compareBlueprintNames(left, right);
+    }
+    if (sortMode === 'size_desc' || sortMode === 'size_asc') {
       const leftArea = getBlueprintFootprintArea(left);
       const rightArea = getBlueprintFootprintArea(right);
-      const areaDiff = rightArea - leftArea;
+      const areaDiff = compareBlueprintNumber(
+        leftArea,
+        rightArea,
+        sortMode === 'size_desc',
+      );
       if (areaDiff !== 0) {
         return areaDiff;
       }
       return compareBlueprintNames(left, right);
     }
+    if (sortMode === 'entries_desc' || sortMode === 'entries_asc') {
+      const entryDiff = compareBlueprintNumber(
+        getBlueprintEntryCount(left),
+        getBlueprintEntryCount(right),
+        sortMode === 'entries_desc',
+      );
+      if (entryDiff !== 0) {
+        return entryDiff;
+      }
+      return compareBlueprintNames(left, right);
+    }
+    if (sortMode === 'status') {
+      return compareBlueprintStatus(data, left, right);
+    }
 
-    const leftState = getBlueprintActionState(data, left);
-    const rightState = getBlueprintActionState(data, right);
-    if (leftState.isActive !== rightState.isActive) {
-      return leftState.isActive ? -1 : 1;
+    const rankDiff =
+      getBlueprintLastUsedRank(right) - getBlueprintLastUsedRank(left);
+    if (rankDiff !== 0) {
+      return rankDiff;
     }
-    if (left.valid !== right.valid) {
-      return left.valid ? -1 : 1;
-    }
-    return compareBlueprintNames(left, right);
+    return compareBlueprintStatus(data, left, right);
   });
 };
 

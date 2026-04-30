@@ -15,20 +15,27 @@
 		var/dx = text2num("[entry["dx"]]")
 		var/dy = text2num("[entry["dy"]]")
 		var/dz = text2num("[entry["dz"]]")
-		if(is_first)
-			min_x = max_x = dx
-			min_y = max_y = dy
-			min_z = max_z = dz
-			is_first = FALSE
-		else
-			min_x = min(min_x, dx)
-			max_x = max(max_x, dx)
-			min_y = min(min_y, dy)
-			max_y = max(max_y, dy)
-			min_z = min(min_z, dz)
-			max_z = max(max_z, dz)
+		var/obj_path = text2path("[entry["type"]]")
+		var/dir_value = text2num("[entry["dir"]]")
+		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(obj_path, dir_value))
+			if(!islist(offset) || length(offset) < 2)
+				continue
+			var/occupied_dx = dx + (text2num("[offset[1]]") || 0)
+			var/occupied_dy = dy + (text2num("[offset[2]]") || 0)
+			if(is_first)
+				min_x = max_x = occupied_dx
+				min_y = max_y = occupied_dy
+				min_z = max_z = dz
+				is_first = FALSE
+			else
+				min_x = min(min_x, occupied_dx)
+				max_x = max(max_x, occupied_dx)
+				min_y = min(min_y, occupied_dy)
+				max_y = max(max_y, occupied_dy)
+				min_z = min(min_z, dz)
+				max_z = max(max_z, dz)
 
-		radius = max(radius, abs(dx), abs(dy))
+			radius = max(radius, abs(occupied_dx), abs(occupied_dy))
 
 	return list(
 		"min_x" = min_x,
@@ -382,12 +389,13 @@
 			return entry_result
 		var/list/sanitized_entry = entry_result["entry"]
 		var/obj_path = text2path("[sanitized_entry["type"]]")
-		var/coord_key = world_edit_build_blueprint_relative_slot_key(obj_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
-		if(!length(coord_key))
+		var/list/coord_keys = world_edit_build_blueprint_relative_slot_keys(obj_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
+		if(!length(coord_keys))
 			return list("error" = "В шаблоне указан недопустимый слот направленного размещения.")
-		if(relative_coord_lookup[coord_key])
-			return list("error" = "В шаблоне несколько размещений для одного и того же относительного слота.")
-		relative_coord_lookup[coord_key] = TRUE
+		for(var/coord_key as anything in coord_keys)
+			if(relative_coord_lookup[coord_key])
+				return list("error" = "В шаблоне несколько размещений для одного и того же относительного слота.")
+			relative_coord_lookup[coord_key] = TRUE
 		sanitized_entries += list(sanitized_entry)
 
 	var/list/computed_bounds = world_edit_compute_blueprint_bounds(sanitized_entries)

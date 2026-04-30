@@ -19,10 +19,16 @@ const FILTER_OPTIONS = [
 ] as const;
 
 const SORT_OPTIONS = [
-  { value: 'activity', displayText: 'Статус' },
-  { value: 'name', displayText: 'Имя' },
+  { value: 'recent', displayText: 'Последние' },
+  { value: 'status', displayText: 'Статус' },
+  { value: 'name_asc', displayText: 'Имя А-Я' },
+  { value: 'name_desc', displayText: 'Имя Я-А' },
   { value: 'newest', displayText: 'Новые' },
-  { value: 'size', displayText: 'Размер' },
+  { value: 'oldest', displayText: 'Старые' },
+  { value: 'size_desc', displayText: 'Размер ↓' },
+  { value: 'size_asc', displayText: 'Размер ↑' },
+  { value: 'entries_desc', displayText: 'Объекты ↓' },
+  { value: 'entries_asc', displayText: 'Объекты ↑' },
 ] as const;
 
 const getBlueprintOutpostSummary = (blueprint: BlueprintEntry) => {
@@ -57,7 +63,7 @@ const BlueprintStampWorkspace = (props: {
   const { data, act } = props;
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<BlueprintFilterMode>('all');
-  const [sortMode, setSortMode] = useState<BlueprintSortMode>('activity');
+  const [sortMode, setSortMode] = useState<BlueprintSortMode>('recent');
 
   const filteredBlueprints = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -132,7 +138,7 @@ const BlueprintStampWorkspace = (props: {
             selected={sortMode}
             displayText={`Сорт: ${
               SORT_OPTIONS.find((option) => option.value === sortMode)
-                ?.displayText || 'Статус'
+                ?.displayText || 'Последние'
             }`}
             onSelected={(value) => setSortMode(value as BlueprintSortMode)}
           />

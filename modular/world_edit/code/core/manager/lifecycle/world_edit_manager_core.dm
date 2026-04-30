@@ -32,6 +32,8 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	var/preset_cache_loaded = FALSE
 	var/list/blueprint_entries_cache = list()
 	var/blueprint_cache_loaded = FALSE
+	var/list/blueprint_recent_usage = list()
+	var/blueprint_recent_usage_sequence = 0
 	var/active_blueprint_revision_id = null
 	var/active_blueprint_revision_hash = ""
 	var/confirm_before_apply = TRUE
@@ -75,6 +77,8 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	generator_context_cache = list()
 	preset_entries_cache = list()
 	blueprint_entries_cache = list()
+	blueprint_recent_usage = list()
+	blueprint_recent_usage_sequence = 0
 	active_blueprint_revision_id = null
 	active_blueprint_revision_hash = ""
 	preview_images = list()
@@ -112,6 +116,7 @@ GLOBAL_LIST_EMPTY(world_edit_managers_by_client)
 	generator_context_cache = null
 	preset_entries_cache = null
 	blueprint_entries_cache = null
+	blueprint_recent_usage = null
 	active_blueprint_revision_id = null
 	active_blueprint_revision_hash = null
 	if(holder && GLOB.world_edit_managers_by_client[holder] == src)

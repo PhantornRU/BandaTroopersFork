@@ -571,6 +571,29 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 	if(ispath(obj_path, /obj/structure/barricade))
 		return build_world_edit_barricade_preview_spec(obj_path, target_turf, dir_to_use)
+	if(ispath(obj_path, /obj/structure/covenant_barricade/wide))
+		var/obj/structure/covenant_barricade/wide/preview_barrier = obj_path
+		var/pixel_x = 0
+		var/pixel_y = -16
+		var/overlay_pixel_y = 0
+		switch(dir_to_use)
+			if(NORTH, SOUTH)
+				pixel_x = -16
+			if(EAST, WEST)
+				overlay_pixel_y = 64
+		return build_world_edit_preview_object_spec(
+			target_turf,
+			initial(preview_barrier.icon),
+			initial(preview_barrier.icon_state),
+			dir_to_use,
+			initial(preview_barrier.layer),
+			initial(preview_barrier.plane),
+			pixel_x,
+			pixel_y,
+			230,
+			null,
+			list(build_world_edit_preview_overlay_spec(initial(preview_barrier.icon), "[initial(preview_barrier.icon_state)]_o", dir_to_use, 0, overlay_pixel_y)),
+		)
 	if(ispath(obj_path, /obj/structure/machinery/defenses/sentry))
 		return build_world_edit_sentry_preview_spec(obj_path, target_turf, dir_to_use, parse_bool(islist(entry_vars) ? entry_vars["turned_on"] : null))
 

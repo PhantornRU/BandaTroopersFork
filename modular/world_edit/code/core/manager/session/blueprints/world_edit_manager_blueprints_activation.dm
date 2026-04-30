@@ -30,5 +30,6 @@
 	else if(blueprint_changed || had_active_placement || !is_preview_state_valid())
 		rebuild_runtime_after_generator_config_change(user, had_active_placement, !had_active_placement, !had_active_placement, TRUE)
 
+	record_blueprint_usage(blueprint_id)
 	last_ui_error = ""
 	return TRUE

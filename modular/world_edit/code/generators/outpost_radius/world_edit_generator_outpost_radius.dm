@@ -22,7 +22,6 @@
 		/datum/human_ai_defense/barricade/snow,
 		/datum/human_ai_defense/barricade/deployable,
 		/datum/human_ai_defense/barricade/covenant,
-		/datum/human_ai_defense/barricade/covenant/wide,
 	)
 	var/static/list/allowed_outpost_door_types = list(
 		/datum/human_ai_defense/barricade/metal_folding,
@@ -122,7 +121,7 @@
 				),
 				list(
 					"kind" = "mine",
-					"group" = "outer_approach_slots",
+					"group" = "exterior_mine_slots",
 					"limit" = 2,
 					"defense_path" = /datum/human_ai_defense/mine/claymore,
 					"faction" = FACTION_MARINE,
@@ -150,7 +149,7 @@
 				),
 				list(
 					"kind" = "mine",
-					"group" = "outer_approach_slots",
+					"group" = "exterior_mine_slots",
 					"limit" = 2,
 					"defense_path" = /datum/human_ai_defense/mine/prox_sensor,
 					"faction" = FACTION_MARINE,
@@ -186,7 +185,7 @@
 				),
 				list(
 					"kind" = "mine",
-					"group" = "outer_approach_slots",
+					"group" = "exterior_mine_slots",
 					"limit" = 2,
 					"defense_path" = /datum/human_ai_defense/mine/sebb,
 					"faction" = FACTION_MARINE,
@@ -216,7 +215,7 @@
 				),
 				list(
 					"kind" = "mine",
-					"group" = "outer_approach_slots",
+					"group" = "exterior_mine_slots",
 					"limit" = 3,
 					"defense_path" = /datum/human_ai_defense/mine/m760ap,
 					"faction" = FACTION_MARINE,
@@ -246,7 +245,7 @@
 				),
 				list(
 					"kind" = "mine",
-					"group" = "outer_approach_slots",
+					"group" = "exterior_mine_slots",
 					"limit" = 3,
 					"defense_path" = /datum/human_ai_defense/mine/m760ap/strong,
 					"faction" = FACTION_MARINE,

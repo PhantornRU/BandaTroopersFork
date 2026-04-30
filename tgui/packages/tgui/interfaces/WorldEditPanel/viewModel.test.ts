@@ -452,7 +452,7 @@ describe('WorldEditPanel view model', () => {
     expect(shared.selectedMode).toBe('single');
   });
 
-  it('sorts blueprint entries by activity and tracks activation state', () => {
+  it('sorts blueprint entries by status and tracks activation state', () => {
     const data = makeData({
       active_blueprint_id: 'bp-2',
       preview_valid: true,
@@ -498,7 +498,7 @@ describe('WorldEditPanel view model', () => {
       data,
       data.blueprint_entries,
       'all',
-      'activity',
+      'status',
     );
     const activeState = getBlueprintActionState(data, sorted[0]);
     const inactiveState = getBlueprintActionState(data, sorted[1]);
@@ -522,6 +522,113 @@ describe('WorldEditPanel view model', () => {
       canPreview: false,
       canApply: false,
     });
+  });
+
+  it('sorts blueprint entries by recent usage, footprint size, and entry count', () => {
+    const data = makeData({
+      active_blueprint_id: 'bp-small',
+      blueprint_entries: [
+        {
+          id: 'bp-small',
+          name: 'Alpha',
+          entry_count: 3,
+          radius: 1,
+          footprint_width: 2,
+          footprint_height: 2,
+          created_at: '2026-04-10',
+          created_by: '',
+          source: '',
+          valid: true,
+          error: '',
+          last_used_rank: 2,
+          use_count: 1,
+        },
+        {
+          id: 'bp-large',
+          name: 'Bravo',
+          entry_count: 8,
+          radius: 3,
+          footprint_width: 6,
+          footprint_height: 5,
+          created_at: '2026-04-12',
+          created_by: '',
+          source: '',
+          valid: true,
+          error: '',
+          last_used_rank: 5,
+          use_count: 3,
+        },
+        {
+          id: 'bp-unused',
+          name: 'Charlie',
+          entry_count: 12,
+          radius: 4,
+          footprint_width: 4,
+          footprint_height: 4,
+          created_at: '2026-04-11',
+          created_by: '',
+          source: '',
+          valid: true,
+          error: '',
+          last_used_rank: 0,
+          use_count: 0,
+        },
+      ],
+    });
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'recent',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-large', 'bp-small', 'bp-unused']);
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'size_desc',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-large', 'bp-unused', 'bp-small']);
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'size_asc',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-small', 'bp-unused', 'bp-large']);
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'name_desc',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-unused', 'bp-large', 'bp-small']);
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'oldest',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-small', 'bp-unused', 'bp-large']);
+
+    expect(
+      filterAndSortBlueprintEntries(
+        data,
+        data.blueprint_entries,
+        'all',
+        'entries_desc',
+      ).map((entry) => entry.id),
+    ).toEqual(['bp-unused', 'bp-large', 'bp-small']);
   });
 
   it('uses preview meta to derive destruction legend state', () => {

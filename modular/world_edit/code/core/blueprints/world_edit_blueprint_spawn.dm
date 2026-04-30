@@ -14,10 +14,13 @@
 		return "Цель шаблона должна находиться на открытом строительном тайле."
 
 	if(ispath(obj_path, /obj/structure/barricade) || (islist(rule) && "[rule["category"]]" == "barricade"))
-		if(GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, TRUE))
-			return "Целевой тайл шаблона заблокирован для баррикады."
-		if(GLOB.world_edit_helpers.has_barricade_in_dir(target_turf, dir_value))
-			return "Целевой тайл шаблона уже содержит баррикаду с этой стороны."
+		for(var/turf/occupied_turf as anything in world_edit_get_blueprint_occupied_turfs(target_turf, obj_path, dir_value))
+			if(!world_edit_is_open_construction_turf_for_blueprint(occupied_turf))
+				return "Целевой тайл шаблона должен находиться на открытом строительном тайле."
+			if(GLOB.world_edit_helpers.has_dense_nonmob_blocker(occupied_turf, TRUE))
+				return "Целевой тайл шаблона заблокирован для баррикады."
+			if(GLOB.world_edit_helpers.has_barricade_in_dir(occupied_turf, dir_value))
+				return "Целевой тайл шаблона уже содержит баррикаду с этой стороны."
 		return null
 
 	if(ispath(obj_path, /obj/structure/machinery/defenses))

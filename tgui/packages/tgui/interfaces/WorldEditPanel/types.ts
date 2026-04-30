@@ -102,6 +102,9 @@ export type BlueprintEntry = {
   valid: boolean;
   error: string;
   active?: boolean;
+  last_used_rank?: number;
+  last_used_at?: string;
+  use_count?: number;
   has_outpost_recipe?: boolean;
   outpost_defense_profile?: string;
   outpost_layout_variant?: string;

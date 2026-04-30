@@ -13,6 +13,29 @@
 	active_blueprint_revision_hash = ""
 	return TRUE
 
+/datum/world_edit_manager/proc/record_blueprint_usage(blueprint_id)
+	var/blueprint_key = "[blueprint_id]"
+	if(!length(blueprint_key))
+		return FALSE
+
+	if(!islist(blueprint_recent_usage))
+		blueprint_recent_usage = list()
+
+	blueprint_recent_usage_sequence++
+	var/list/usage = blueprint_recent_usage[blueprint_key]
+	var/use_count = islist(usage) ? text2num("[usage["use_count"]]") : 0
+	blueprint_recent_usage[blueprint_key] = list(
+		"last_used_rank" = blueprint_recent_usage_sequence,
+		"last_used_at" = time_stamp(),
+		"use_count" = max(use_count, 0) + 1,
+	)
+	return TRUE
+
+/datum/world_edit_manager/proc/get_blueprint_usage_data(blueprint_id)
+	if(!islist(blueprint_recent_usage))
+		return null
+	return blueprint_recent_usage["[blueprint_id]"]
+
 /datum/world_edit_manager/proc/get_blueprint_entries_for_ui()
 	ensure_blueprint_cache_loaded()
 
@@ -21,6 +44,10 @@
 	for(var/list/entry as anything in blueprint_entries_cache)
 		var/list/ui_entry = entry.Copy()
 		ui_entry["active"] = "[entry["id"]]" == active_blueprint_id
+		var/list/usage = get_blueprint_usage_data(entry["id"])
+		ui_entry["last_used_rank"] = islist(usage) ? (usage["last_used_rank"] || 0) : 0
+		ui_entry["last_used_at"] = islist(usage) ? (usage["last_used_at"] || "") : ""
+		ui_entry["use_count"] = islist(usage) ? (usage["use_count"] || 0) : 0
 		ui_entries += list(ui_entry)
 	return ui_entries
 
