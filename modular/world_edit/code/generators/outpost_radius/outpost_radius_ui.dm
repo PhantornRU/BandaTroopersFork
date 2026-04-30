@@ -9,9 +9,8 @@
 
 	var/barricade_pattern = resolve_barricade_pattern(current_params["barricade_pattern"]) || "uniform"
 	var/place_barricade_doors = GLOB.world_edit_helpers.parse_bool(current_params["place_barricade_doors"])
-	var/primary_material_share_percent = clamp(round(text2num("[current_params["primary_material_share_percent"] || 100]")), 0, 100)
-	if(barricade_pattern == "uniform")
-		primary_material_share_percent = 100
+	var/raw_primary_material_share_percent = text2num("[current_params["primary_material_share_percent"]]")
+	var/primary_material_share_percent = clamp(round(isnum(raw_primary_material_share_percent) ? raw_primary_material_share_percent : 100), 0, 100)
 
 	var/primary_material_path = resolve_whitelisted_type(
 		current_params["primary_material_path"],
@@ -393,7 +392,7 @@
 				return "Выбран недопустимый тактический профиль."
 			new_params[param_id] = defense_profile_id
 			var/list/profile_defaults = get_outpost_profile_layer_defaults(defense_profile_id)
-			for(var/default_param_id in list("faction", "turned_on", "sentry_layer_profile", "sentry_type", "extra_defense_layer_profile", "extra_defense_type", "flag_type", "wire_layer_profile", "wire_offset", "wire_rows", "wire_row_step", "wire_spacing", "wire_concentration_percent", "minefield_profile", "mine_type", "minefield_offset", "minefield_depth", "minefield_density_percent", "minefield_seed"))
+			for(var/default_param_id in list("faction", "turned_on", "sentry_layer_profile", "sentry_type", "sentry_guard_limit", "sentry_rear_limit", "sentry_corner_limit", "extra_defense_layer_profile", "extra_defense_type", "extra_defense_limit", "flag_type", "wire_layer_profile", "wire_offset", "wire_rows", "wire_row_step", "wire_spacing", "wire_concentration_percent", "wire_limit", "minefield_profile", "mine_type", "minefield_offset", "minefield_depth", "minefield_density_percent", "minefield_seed", "mine_limit"))
 				new_params[default_param_id] = profile_defaults[default_param_id]
 
 		if("layout_variant")
@@ -537,13 +536,9 @@
 			if(isnull(pattern_value))
 				return "Выбрана недопустимая раскладка баррикад."
 			new_params[param_id] = pattern_value
-			if(pattern_value == "uniform")
-				new_params["primary_material_share_percent"] = 100
 
 		if("primary_material_share_percent")
 			var/share_percent = clamp(round(text2num("[value]")), 0, 100)
-			if("[new_params["barricade_pattern"] || "uniform"]" == "uniform")
-				share_percent = 100
 			new_params["primary_material_share_percent"] = share_percent
 
 		if("place_barricade_doors")
@@ -581,4 +576,6 @@
 
 /datum/world_edit_generator/outpost_radius/get_params_short(list/params)
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	return "defense=[resolve_outpost_defense_profile_id(params["defense_profile"]) || get_default_outpost_defense_profile_id()] layout=[resolve_outpost_layout_id(params["layout_variant"]) || get_default_outpost_layout_id()] width=[get_outpost_opening_width_option_id(params["opening_width"]) || "layout"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] primary_material=[params["primary_material_path"]] secondary_material=[params["secondary_material_path"]] primary_share=[params["primary_material_share_percent"] || 100] doors=[GLOB.world_edit_helpers.parse_bool(params["place_barricade_doors"])] primary_door=[params["primary_door_path"] || "follow_material"] secondary_door=[params["secondary_door_path"] || "follow_material"] pattern=[params["barricade_pattern"] || "uniform"]"
+	var/raw_primary_share = text2num("[params["primary_material_share_percent"]]")
+	var/primary_share = isnum(raw_primary_share) ? clamp(round(raw_primary_share), 0, 100) : 100
+	return "defense=[resolve_outpost_defense_profile_id(params["defense_profile"]) || get_default_outpost_defense_profile_id()] layout=[resolve_outpost_layout_id(params["layout_variant"]) || get_default_outpost_layout_id()] width=[get_outpost_opening_width_option_id(params["opening_width"]) || "layout"] perimeter_offset=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] mode=[manager?.get_effective_placement_mode() || "single"] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)] primary_material=[params["primary_material_path"]] secondary_material=[params["secondary_material_path"]] primary_share=[primary_share] doors=[GLOB.world_edit_helpers.parse_bool(params["place_barricade_doors"])] primary_door=[params["primary_door_path"] || "follow_material"] secondary_door=[params["secondary_door_path"] || "follow_material"] pattern=[params["barricade_pattern"] || "uniform"]"

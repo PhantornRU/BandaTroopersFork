@@ -172,6 +172,7 @@
 	plan.metadata["mid_tile_count"] = band_counts["mid"] || 0
 	plan.metadata["outer_tile_count"] = band_counts["outer"] || 0
 	plan.metadata["target_count"] = length(targets)
+	plan.metadata["affect_anchored"] = affect_anchored
 	plan.metadata["shuffle"] = shuffle_enabled
 	plan.metadata["scatter"] = scatter_enabled
 	plan.metadata["persistent_fire"] = persistent_fire_enabled
@@ -282,9 +283,6 @@
 	var/has_non_move_mode = persistent_fire_enabled || blast_enabled || damage_profile != "none"
 	if(!has_move_mode && !has_non_move_mode)
 		return "Включите хотя бы один режим: перемешивание, разброс, взрыв, руины, обрушение или постоянный огонь."
-	if(has_move_mode && GLOB.world_edit_helpers.parse_bool(params["affect_anchored"]))
-		return "Зафиксированные цели отключены в строгом MVP-проходе безопасности."
-
 	if(persistent_fire_enabled)
 		var/persistent_fire_density = coerce_persistent_fire_density_percent(params["persistent_fire_density"])
 		if(!isnum(persistent_fire_density) || persistent_fire_density < get_persistent_fire_density_min() || persistent_fire_density > get_persistent_fire_density_max())

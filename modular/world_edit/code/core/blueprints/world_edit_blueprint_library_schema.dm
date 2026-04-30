@@ -233,7 +233,8 @@
 
 	var/primary_material_share_percent = world_edit_parse_strict_integer(raw_recipe["primary_material_share_percent"])
 	if(isnull(primary_material_share_percent))
-		primary_material_share_percent = default_materials["primary_material_share_percent"] || 100
+		var/default_primary_material_share_percent = world_edit_parse_strict_integer(default_materials["primary_material_share_percent"])
+		primary_material_share_percent = isnull(default_primary_material_share_percent) ? 100 : default_primary_material_share_percent
 	if(primary_material_share_percent < 0 || primary_material_share_percent > 100)
 		qdel(outpost_generator)
 		return list("error" = "Blueprint outpost_recipe.primary_material_share_percent должен быть в диапазоне 0..100.")

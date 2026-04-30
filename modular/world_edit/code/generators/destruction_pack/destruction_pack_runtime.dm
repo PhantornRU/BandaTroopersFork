@@ -78,7 +78,7 @@
 		if(!istype(target, /atom/movable) || QDELETED(target))
 			skipped_runtime++
 			continue
-		if(should_skip_target(target, FALSE))
+		if(should_skip_target(target, GLOB.world_edit_helpers.parse_bool(plan.metadata["affect_anchored"])))
 			skipped_runtime++
 			continue
 

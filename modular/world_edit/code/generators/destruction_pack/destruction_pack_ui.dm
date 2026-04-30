@@ -182,6 +182,15 @@
 			"max" = WORLD_EDIT_DESTRUCTION_MAX_ATOMS,
 			"step" = 1,
 		),
+		list(
+			"id" = "affect_anchored",
+			"label" = "Трогать закреплённые цели",
+			"kind" = "boolean",
+			"group" = "Лимиты",
+			"description" = "Включает закреплённые подвижные цели в shuffle/scatter. Плотные структуры и механизмы остаются защищены.",
+			"value" = GLOB.world_edit_helpers.parse_bool(current_params["affect_anchored"]),
+			"disabled" = !(GLOB.world_edit_helpers.parse_bool(current_params["shuffle_enabled"]) || GLOB.world_edit_helpers.parse_bool(current_params["scatter_enabled"])),
+		),
 	)
 
 /datum/world_edit_generator/destruction_pack/set_ui_param(mob/user, list/current_params, param_id, value)
@@ -285,4 +294,4 @@
 	var/fire_mode = resolve_persistent_fire_mode(params["persistent_fire_mode"]) || get_default_persistent_fire_mode()
 	var/fire_color = resolve_persistent_fire_color(params["persistent_fire_color"], params["persistent_fire_custom_color"]) || get_persistent_fire_preset_color(get_default_persistent_fire_color_id())
 	var/list/radius_policy = GLOB.world_edit_helpers.get_world_edit_radius_policy(params)
-	return "impact_radius=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] fire_mode=[fire_mode] fire_color=[fire_color] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]]"
+	return "impact_radius=[params["radius"]] clear=[radius_policy["only_clear_tiles"]] reachable=[radius_policy["only_reachable_tiles"]] windows=[radius_policy["treat_windows_as_blockers"]] shuffle=[params["shuffle_enabled"]] scatter=[params["scatter_enabled"]] fire=[params["persistent_fire_enabled"]] density=[fire_density] fire_mode=[fire_mode] fire_color=[fire_color] blast=[params["blast_enabled"]] blast_power=[params["blast_power"]] blast_falloff=[params["blast_falloff"]] damage=[params["damage_profile"]] steps=[params["scatter_steps"]] max=[params["max_atoms"]] anchored=[GLOB.world_edit_helpers.parse_bool(params["affect_anchored"])]"

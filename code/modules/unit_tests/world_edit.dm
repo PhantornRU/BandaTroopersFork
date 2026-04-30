@@ -4805,6 +4805,39 @@
 
 	qdel(generator)
 
+/datum/unit_test/world_edit_corner_slots/outpost_diagonal_line_builds_single_shape_aware_perimeter/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/start_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(start_turf, "World Edit outpost diagonal-line test start turf was not resolved.")
+	var/turf/end_turf = locate(start_turf.x + 4, start_turf.y + 4, start_turf.z)
+	TEST_ASSERT_NOTNULL(end_turf, "World Edit outpost diagonal-line test end turf was not resolved.")
+
+	var/list/params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+	params["shape_line_length"] = 5
+	params["shape_line_spacing"] = 1
+	var/list/shape_result = build_shape_result(WORLD_EDIT_SHAPE_LINE, start_turf, params, EAST, end_turf)
+	TEST_ASSERT(!shape_result["error"], "World Edit outpost diagonal-line test should build a shared diagonal line footprint.")
+	TEST_ASSERT_EQUAL(length(shape_result["turfs"] || list()), 5, "World Edit outpost diagonal-line test should keep every diagonal anchor tile.")
+
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_LINE,
+		"shape_metadata" = shape_result["metadata"] || list(),
+		"anchor_turfs" = shape_result["turfs"] || list(),
+		"start_turf" = start_turf,
+		"end_turf" = end_turf,
+		"direction" = EAST,
+	)
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost diagonal-line test should return a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit outpost diagonal-line test should build a valid shape-aware plan.")
+	TEST_ASSERT_EQUAL(plan.metadata["shape_mode"], "footprint_offset", "World Edit outpost diagonal-line test should build one footprint perimeter instead of per-point component outposts.")
+	TEST_ASSERT(!(plan.metadata["component_count"] > 1), "World Edit outpost diagonal-line test should not split an 8-connected diagonal line into repeated point outposts.")
+	TEST_ASSERT_EQUAL(plan.metadata["anchor_count"], length(shape_result["turfs"] || list()), "World Edit outpost diagonal-line test should preserve all line anchors in metadata.")
+	TEST_ASSERT(length(plan.placements) > 0, "World Edit outpost diagonal-line test should emit perimeter placements.")
+
+	qdel(generator)
+
 /datum/unit_test/world_edit_corner_slots/outpost_collector_span_overflow_rejected_before_expensive_planning/Run()
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost collector-span test center turf was not resolved.")
@@ -4868,6 +4901,7 @@
 	var/list/opening_mine_clearance_lookup = generator.build_opening_mine_clearance_lookup(opening_slots, params["minefield_offset"], params["minefield_depth"])
 	var/list/placement_counts = count_placements_by_kind(plan.placements)
 	var/list/mine_keys = list()
+	var/list/mine_turfs = list()
 	for(var/list/placement as anything in plan.placements)
 		var/turf/target_turf = placement["turf"]
 		var/kind = "[placement["kind"]]"
@@ -4881,11 +4915,19 @@
 			TEST_ASSERT(!opening_mine_clearance_lookup[target_turf], "World Edit outpost exterior-layer test should not place mines on the direct gate passage lane.")
 			TEST_ASSERT(max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)) > 2, "World Edit outpost exterior-layer test should never place mines inside the radius-2 outpost footprint.")
 			mine_keys += "[target_turf.x],[target_turf.y],[target_turf.z]"
+			mine_turfs += target_turf
 
 	TEST_ASSERT((placement_counts["wire_object"] || 0) > 0, "World Edit outpost exterior-layer test should emit exterior razorwire placements.")
 	TEST_ASSERT((placement_counts["mine"] || 0) > 0, "World Edit outpost exterior-layer test should emit exterior mine placements.")
 	TEST_ASSERT((placement_counts["sentry"] || 0) > 0, "World Edit outpost exterior-layer test should emit interior sentry placements.")
 	TEST_ASSERT((placement_counts["extra_defense"] || 0) > 0, "World Edit outpost exterior-layer test should emit interior extra-defense placements.")
+	for(var/i in 1 to length(mine_turfs))
+		for(var/j in (i + 1) to length(mine_turfs))
+			if(j > length(mine_turfs))
+				continue
+			var/turf/first_mine_turf = mine_turfs[i]
+			var/turf/second_mine_turf = mine_turfs[j]
+			TEST_ASSERT(max(abs(first_mine_turf.x - second_mine_turf.x), abs(first_mine_turf.y - second_mine_turf.y)) >= 2, "World Edit outpost dense minefields should keep practical gaps instead of producing solid adjacent rows.")
 
 	var/datum/world_edit_plan/second_plan = generator.build_placement_plan(null, params, placement_context)
 	TEST_ASSERT(!second_plan.metadata["error"], "World Edit outpost exterior-layer test should build the deterministic comparison plan.")
@@ -4896,6 +4938,64 @@
 		var/turf/target_turf = placement["turf"]
 		second_mine_keys += "[target_turf.x],[target_turf.y],[target_turf.z]"
 	TEST_ASSERT_EQUAL(json_encode(second_mine_keys), json_encode(mine_keys), "World Edit outpost exterior-layer test should keep minefield scattering deterministic for the same seed and shape.")
+
+	qdel(generator)
+
+/datum/unit_test/world_edit_corner_slots/outpost_wire_controls_change_counts_and_offsets/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit outpost wire-control test center turf was not resolved.")
+
+	var/list/base_params = build_outpost_test_params("none", "sealed_redoubt", "zero", 2)
+	base_params["wire_layer_profile"] = "perimeter"
+	base_params["wire_offset"] = 3
+	base_params["wire_rows"] = 1
+	base_params["wire_row_step"] = 1
+	base_params["wire_spacing"] = 1
+	base_params["wire_concentration_percent"] = 100
+	base_params["minefield_profile"] = "none"
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+
+	var/datum/world_edit_plan/dense_plan = generator.build_placement_plan(null, base_params, placement_context)
+	TEST_ASSERT(!dense_plan.metadata["error"], "World Edit outpost wire-control test should build a dense wire plan.")
+	var/dense_wire_count = count_placements_by_kind(dense_plan.placements)["wire_object"] || 0
+	TEST_ASSERT(dense_wire_count > 0, "World Edit outpost wire-control test should emit wire for dense perimeter settings.")
+
+	var/list/spaced_params = base_params.Copy()
+	spaced_params["wire_spacing"] = 3
+	var/datum/world_edit_plan/spaced_plan = generator.build_placement_plan(null, spaced_params, placement_context)
+	TEST_ASSERT(!spaced_plan.metadata["error"], "World Edit outpost wire-control test should build a spaced wire plan.")
+	var/spaced_wire_count = count_placements_by_kind(spaced_plan.placements)["wire_object"] || 0
+	TEST_ASSERT(spaced_wire_count > 0, "World Edit outpost wire-control test should still emit some wire after spacing.")
+	TEST_ASSERT(spaced_wire_count < dense_wire_count, "World Edit outpost wire spacing should reduce the number of wire placements.")
+
+	var/list/no_wire_params = base_params.Copy()
+	no_wire_params["wire_concentration_percent"] = 0
+	var/datum/world_edit_plan/no_wire_plan = generator.build_placement_plan(null, no_wire_params, placement_context)
+	TEST_ASSERT(!no_wire_plan.metadata["error"], "World Edit outpost wire-control test should build a zero-concentration plan.")
+	TEST_ASSERT_EQUAL(count_placements_by_kind(no_wire_plan.placements)["wire_object"] || 0, 0, "World Edit outpost wire concentration 0 should suppress wire placements.")
+
+	var/list/two_row_params = base_params.Copy()
+	two_row_params["wire_rows"] = 2
+	two_row_params["wire_row_step"] = 2
+	two_row_params["wire_spacing"] = 2
+	var/datum/world_edit_plan/two_row_plan = generator.build_placement_plan(null, two_row_params, placement_context)
+	TEST_ASSERT(!two_row_plan.metadata["error"], "World Edit outpost wire-control test should build a two-row wire plan.")
+	var/farthest_wire_distance = 0
+	for(var/list/placement as anything in two_row_plan.placements)
+		if(placement["kind"] != "wire_object")
+			continue
+		var/turf/target_turf = placement["turf"]
+		farthest_wire_distance = max(farthest_wire_distance, max(abs(center_turf.x - target_turf.x), abs(center_turf.y - target_turf.y)))
+	TEST_ASSERT(farthest_wire_distance >= 7, "World Edit outpost wire row step should push the second wire row farther from the radius-2 perimeter.")
 
 	qdel(generator)
 
@@ -5422,6 +5522,57 @@
 	var/error_text = generator.validate_params(null, params)
 	TEST_ASSERT(length("[error_text]"), "World Edit destruction persistent-fire validation test should reject invalid custom fire colors.")
 
+/datum/unit_test/world_edit_corner_slots/destruction_affect_anchored_collects_safe_movable_targets/Run()
+	var/datum/world_edit_generator/destruction_pack/generator = allocate(/datum/world_edit_generator/destruction_pack)
+	var/turf/center_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(center_turf, "World Edit destruction anchored-target test center turf was not resolved.")
+
+	var/obj/item/anchored_item = allocate(/obj/item, center_turf)
+	TEST_ASSERT_NOTNULL(anchored_item, "World Edit destruction anchored-target test should create a safe movable target.")
+	anchored_item.anchored = TRUE
+
+	var/list/without_anchored_targets = generator.collect_targets(list(center_turf), FALSE)
+	TEST_ASSERT(!(anchored_item in without_anchored_targets), "World Edit destruction anchored-target test should skip anchored targets by default.")
+	var/list/with_anchored_targets = generator.collect_targets(list(center_turf), TRUE)
+	TEST_ASSERT(anchored_item in with_anchored_targets, "World Edit destruction anchored-target test should collect anchored movable targets when the parameter is enabled.")
+
+	var/list/params = list(
+		"radius" = 1,
+		"shuffle_enabled" = TRUE,
+		"scatter_enabled" = FALSE,
+		"persistent_fire_enabled" = FALSE,
+		"persistent_fire_density" = 10,
+		"persistent_fire_mode" = "damaging",
+		"persistent_fire_color" = "amber",
+		"blast_enabled" = FALSE,
+		"blast_power" = 250,
+		"blast_falloff" = 600,
+		"damage_profile" = "none",
+		"max_atoms" = 10,
+		"scatter_steps" = 2,
+		"affect_anchored" = TRUE,
+	)
+	var/validation_error = generator.validate_params(null, params)
+	TEST_ASSERT(!length("[validation_error]"), "World Edit destruction anchored-target validation should allow affect_anchored with move modes.")
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = WORLD_EDIT_SHAPE_POINT,
+		"shape_metadata" = list(),
+		"anchor_turfs" = list(center_turf),
+		"start_turf" = center_turf,
+		"end_turf" = center_turf,
+		"direction" = NORTH,
+	)
+	var/datum/world_edit_plan/plan = generator.build_placement_plan(null, params, placement_context)
+	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit destruction anchored-target test should return a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit destruction anchored-target test should build a valid movement plan.")
+	TEST_ASSERT(plan.metadata["affect_anchored"], "World Edit destruction anchored-target test should keep affect_anchored in plan metadata.")
+	TEST_ASSERT((plan.metadata["target_count"] || 0) >= 1, "World Edit destruction anchored-target test should include the anchored movable target in target count.")
+	TEST_ASSERT((plan.metadata["moved_count"] || 0) >= 1, "World Edit destruction anchored-target test should create movement entries for anchored movable targets.")
+
+	qdel(anchored_item)
+	qdel(generator)
+
 /datum/unit_test/world_edit_corner_slots/world_edit_persistent_fire_configuration_updates_runtime_contract/Run()
 	var/turf/center_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(center_turf, "World Edit persistent-fire runtime contract test center turf was not resolved.")
@@ -5564,6 +5715,44 @@
 	TEST_ASSERT(opening_ranges[1]["end"] < opening_ranges[2]["start"], "World Edit split-opening test should keep the two openings separated by a closed center segment.")
 	TEST_ASSERT(!generator.is_perimeter_opening_slot(NORTH, 0, config["radius"], config["layout_profile"], config["radius"]), "World Edit split-opening test should keep the centered front slot closed for split-mouthed layouts.")
 
+/datum/unit_test/world_edit_corner_slots/outpost_primary_material_share_ui_preserves_zero/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+	var/list/params = build_outpost_test_params("none", "crossroads", "layout", 2)
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/plasteel
+	params["barricade_pattern"] = "alternating"
+
+	var/list/share_params = generator.set_ui_param(null, params, "primary_material_share_percent", 0)
+	TEST_ASSERT(islist(share_params), "World Edit outpost material-share UI test should return updated params for share 0.")
+	TEST_ASSERT_EQUAL(share_params["primary_material_share_percent"], 0, "World Edit outpost material-share UI should store a raw 0 share.")
+	var/list/ui_fields = generator.get_ui_fields(share_params)
+	var/list/share_field = null
+	for(var/list/field as anything in ui_fields)
+		if(field["id"] == "primary_material_share_percent")
+			share_field = field
+			break
+	TEST_ASSERT(islist(share_field), "World Edit outpost material-share UI test should expose the share field for non-uniform patterns.")
+	TEST_ASSERT_EQUAL(share_field["value"], 0, "World Edit outpost material-share UI should display 0 instead of falling back to 100.")
+	TEST_ASSERT(share_field["visible"], "World Edit outpost material-share UI should keep the share field visible for non-uniform patterns.")
+
+	var/list/uniform_params = generator.set_ui_param(null, share_params, "barricade_pattern", "uniform")
+	TEST_ASSERT(islist(uniform_params), "World Edit outpost material-share UI test should return params for uniform pattern.")
+	TEST_ASSERT_EQUAL(uniform_params["primary_material_share_percent"], 0, "World Edit outpost material-share UI should preserve raw 0 while uniform forces only the effective config.")
+	var/list/uniform_config = generator.resolve_outpost_configuration(uniform_params, list("direction" = NORTH))
+	TEST_ASSERT(!uniform_config["error"], "World Edit outpost material-share UI test should resolve uniform config.")
+	TEST_ASSERT_EQUAL(uniform_config["primary_material_share_percent"], 100, "World Edit outpost uniform pattern should still use effective 100 percent primary material.")
+
+	var/list/paired_params = generator.set_ui_param(null, uniform_params, "barricade_pattern", "paired")
+	TEST_ASSERT(islist(paired_params), "World Edit outpost material-share UI test should return params for paired pattern.")
+	var/list/paired_fields = generator.get_ui_fields(paired_params)
+	var/list/paired_share_field = null
+	for(var/list/field as anything in paired_fields)
+		if(field["id"] == "primary_material_share_percent")
+			paired_share_field = field
+			break
+	TEST_ASSERT_EQUAL(paired_share_field["value"], 0, "World Edit outpost material-share UI should restore preserved 0 when returning to a non-uniform pattern.")
+
+	qdel(generator)
+
 /datum/unit_test/world_edit_corner_slots/outpost_defense_profiles_resolve_without_legacy_switches/Run()
 	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
 	var/list/heavy_params = build_outpost_test_params("anti_vehicle_stop", "crossroads", "layout", 2)
@@ -5571,6 +5760,13 @@
 	TEST_ASSERT(!heavy_config["error"], "World Edit defense-profile test should resolve the anti_vehicle_stop tactical profile.")
 	TEST_ASSERT_EQUAL(heavy_config["defense_profile"], "anti_vehicle_stop", "World Edit defense-profile test should preserve the selected tactical profile id.")
 	TEST_ASSERT(heavy_config["needs_anchor_map"], "World Edit defense-profile test should request anchor-map generation for active defenses.")
+	var/list/lane_params = build_outpost_test_params("lane_fort", "crossroads", "layout", 2)
+	var/list/lane_config = generator.resolve_outpost_configuration(lane_params, list("direction" = NORTH))
+	TEST_ASSERT(!lane_config["error"], "World Edit defense-profile test should resolve the lane_fort tactical profile.")
+	TEST_ASSERT(heavy_config["wire_rows"] > lane_config["wire_rows"], "World Edit tactical profiles should materially change wire rows instead of only relabeling the same values.")
+	TEST_ASSERT(heavy_config["minefield_depth"] > lane_config["minefield_depth"], "World Edit tactical profiles should materially change minefield depth.")
+	TEST_ASSERT(heavy_config["minefield_density_percent"] > lane_config["minefield_density_percent"], "World Edit tactical profiles should materially change minefield density.")
+	TEST_ASSERT(heavy_config["mine_limit"] > lane_config["mine_limit"], "World Edit tactical profiles should materially change mine limits.")
 	var/list/heavy_profile = heavy_config["defense_profile_data"]
 	TEST_ASSERT_EQUAL(length(heavy_profile["defense_rules"] || list()), 5, "World Edit defense-profile test should expose the explicit sentry, exterior wire, exterior mine and extra-defense rules for the selected tactical profile.")
 	var/list/tesla_rule = null

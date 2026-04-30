@@ -245,7 +245,7 @@
 		return TRUE
 	if(ismob(target))
 		return TRUE
-	if(target.anchored)
+	if(target.anchored && !affect_anchored)
 		return TRUE
 	if(istype(target, /atom/movable/screen))
 		return TRUE
