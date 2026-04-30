@@ -1188,6 +1188,21 @@
 
 	qdel(created_object)
 
+/datum/unit_test/world_edit_corner_slots/blueprint_spawn_entry_sets_covenant_barrier_dir/Run()
+	var/turf/target_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(target_turf, "World Edit Covenant blueprint-spawn turf was not resolved.")
+
+	var/obj/created_object = GLOB.world_edit_blueprints.world_edit_spawn_blueprint_entry(list(
+		"obj_path" = /obj/structure/covenant_barricade,
+		"turf" = target_turf,
+		"dir" = EAST,
+		"vars" = list(),
+	))
+	TEST_ASSERT(istype(created_object, /obj/structure/covenant_barricade), "Blueprint spawn helper should create Covenant barricade-category objects.")
+	TEST_ASSERT_EQUAL(created_object.dir, EAST, "Blueprint spawn helper should preserve Covenant barricade-category object dir.")
+
+	qdel(created_object)
+
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_folding_barricades/Run()
 	var/turf/anchor_turf = get_world_edit_test_center_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit folding-barricade blueprint test anchor turf was not resolved.")
@@ -1227,6 +1242,47 @@
 	TEST_ASSERT(!plan.metadata["error"], "World Edit folding-barricade blueprint test should translate a valid folding barricade blueprint.")
 	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit folding-barricade blueprint test should keep the translated folding barricade placement.")
 	TEST_ASSERT_EQUAL(plan.placements[1]["obj_path"], /obj/structure/barricade/plasteel/metal, "World Edit folding-barricade blueprint test should preserve the folding barricade obj path.")
+
+/datum/unit_test/world_edit_corner_slots/blueprint_validation_accepts_covenant_barriers/Run()
+	var/turf/anchor_turf = get_world_edit_test_center_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "World Edit Covenant barrier blueprint test anchor turf was not resolved.")
+
+	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
+		"schema" = "world_edit_blueprint_lite",
+		"version" = 1,
+		"id" = "covenantbarr01",
+		"name" = "Covenant Barrier",
+		"created_at" = "",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"bounds" = list(
+			"min_x" = 0,
+			"max_x" = 0,
+			"min_y" = 0,
+			"max_y" = 0,
+			"min_z" = 0,
+			"max_z" = 0,
+			"radius" = 0,
+		),
+		"entries" = list(
+			list(
+				"type" = "[/obj/structure/covenant_barricade]",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = WEST,
+				"vars" = list(),
+			),
+		),
+	))
+	TEST_ASSERT(!validation_result["error"], "World Edit Covenant barrier blueprint test should accept whitelisted Covenant barriers.")
+
+	var/datum/world_edit_plan/plan = GLOB.world_edit_blueprints.world_edit_build_plan_from_blueprint(validation_result["blueprint"], anchor_turf, NORTH)
+	TEST_ASSERT_NOTNULL(plan, "World Edit Covenant barrier blueprint test should build a plan datum.")
+	TEST_ASSERT(!plan.metadata["error"], "World Edit Covenant barrier blueprint test should translate a valid Covenant barrier blueprint.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 1, "World Edit Covenant barrier blueprint test should keep the translated Covenant barrier placement.")
+	TEST_ASSERT_EQUAL(plan.placements[1]["obj_path"], /obj/structure/covenant_barricade, "World Edit Covenant barrier blueprint test should preserve the Covenant barrier obj path.")
+	TEST_ASSERT_EQUAL(plan.placements[1]["dir"], WEST, "World Edit Covenant barrier blueprint test should preserve the Covenant barrier dir.")
 
 /datum/unit_test/world_edit_corner_slots/blueprint_validation_rejects_duplicate_relative_slots/Run()
 	var/list/validation_result = GLOB.world_edit_blueprints.world_edit_validate_blueprint_definition(list(
@@ -4585,6 +4641,47 @@
 	invalid_mine_params["mine_type"] = /datum/human_ai_defense/defense/tesla
 	var/list/invalid_mine_config = generator.resolve_outpost_configuration(invalid_mine_params, list("direction" = NORTH))
 	TEST_ASSERT(length("[invalid_mine_config["error"]]"), "World Edit outpost validation should reject mine types outside the curated mine whitelist.")
+
+	qdel(generator)
+
+/datum/unit_test/world_edit_corner_slots/outpost_catalog_accepts_covenant_and_new_defense_choices/Run()
+	var/datum/world_edit_generator/outpost_radius/generator = allocate(/datum/world_edit_generator/outpost_radius)
+
+	for(var/barricade_path as anything in list(
+		/datum/human_ai_defense/barricade/snow,
+		/datum/human_ai_defense/barricade/deployable,
+		/datum/human_ai_defense/barricade/covenant,
+		/datum/human_ai_defense/barricade/covenant/wide,
+	))
+		TEST_ASSERT(barricade_path in generator.allowed_barricade_types, "World Edit outpost catalog should expose [barricade_path].")
+
+	for(var/mine_path as anything in list(
+		/datum/human_ai_defense/mine/claymore/wy/strong,
+		/datum/human_ai_defense/mine/m5a3betty,
+		/datum/human_ai_defense/mine/m5a3betty/strong,
+		/datum/human_ai_defense/mine/fzd91,
+		/datum/human_ai_defense/mine/fzd91/strong,
+		/datum/human_ai_defense/mine/tn13,
+		/datum/human_ai_defense/mine/tn13/strong,
+		/datum/human_ai_defense/mine/covenant/plasma,
+		/datum/human_ai_defense/mine/covenant/needle,
+	))
+		TEST_ASSERT(mine_path in generator.allowed_mine_types, "World Edit outpost catalog should expose [mine_path].")
+
+	TEST_ASSERT(FACTION_COVENANT in generator.valid_factions, "World Edit outpost catalog should allow Covenant IFF.")
+	TEST_ASSERT(FACTION_COVENANT in GLOB.world_edit_blueprint_valid_factions, "World Edit Blueprint Lite should allow Covenant IFF.")
+
+	var/list/params = build_outpost_test_params("none", "sealed_redoubt", "zero", 1)
+	params["primary_material_path"] = /datum/human_ai_defense/barricade/covenant
+	params["secondary_material_path"] = /datum/human_ai_defense/barricade/covenant/wide
+	params["faction"] = FACTION_COVENANT
+	params["mine_type"] = /datum/human_ai_defense/mine/covenant/plasma
+	var/list/config = generator.resolve_outpost_configuration(params, list("direction" = NORTH))
+	TEST_ASSERT(!config["error"], "World Edit outpost config should accept Covenant barricade, mine, and IFF choices.")
+	TEST_ASSERT_EQUAL(config["primary_material_path"], /datum/human_ai_defense/barricade/covenant, "World Edit outpost config should keep the selected Covenant primary material.")
+	TEST_ASSERT_EQUAL(config["secondary_material_path"], /datum/human_ai_defense/barricade/covenant/wide, "World Edit outpost config should keep the selected Covenant secondary material.")
+	TEST_ASSERT_EQUAL(config["faction"], FACTION_COVENANT, "World Edit outpost config should keep the selected Covenant IFF.")
+	TEST_ASSERT_EQUAL(config["mine_type"], /datum/human_ai_defense/mine/covenant/plasma, "World Edit outpost config should keep the selected Covenant mine type.")
 
 	qdel(generator)
 

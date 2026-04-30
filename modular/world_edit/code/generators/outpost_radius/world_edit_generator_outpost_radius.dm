@@ -11,7 +11,7 @@
 
 /datum/world_edit_generator/outpost_radius
 	requires_preview_before_apply = TRUE
-	var/static/list/valid_factions = list(FACTION_MARINE, FACTION_UA_REBEL, FACTION_UPP, FACTION_CANC, FACTION_WY, FACTION_FREELANCER, FACTION_TWE, FACTION_TWE_REBEL, FACTION_MERCENARY)
+	var/static/list/valid_factions = list(FACTION_MARINE, FACTION_UA_REBEL, FACTION_UPP, FACTION_CANC, FACTION_WY, FACTION_FREELANCER, FACTION_TWE, FACTION_TWE_REBEL, FACTION_MERCENARY, FACTION_COVENANT)
 	var/static/list/allowed_barricade_types = list(
 		/datum/human_ai_defense/barricade/metal,
 		/datum/human_ai_defense/barricade/metal/wired,
@@ -19,6 +19,10 @@
 		/datum/human_ai_defense/barricade/plasteel,
 		/datum/human_ai_defense/barricade/plasteel/wired,
 		/datum/human_ai_defense/barricade/wooden,
+		/datum/human_ai_defense/barricade/snow,
+		/datum/human_ai_defense/barricade/deployable,
+		/datum/human_ai_defense/barricade/covenant,
+		/datum/human_ai_defense/barricade/covenant/wide,
 	)
 	var/static/list/allowed_outpost_door_types = list(
 		/datum/human_ai_defense/barricade/metal_folding,
@@ -56,10 +60,19 @@
 		/datum/human_ai_defense/mine/claymore,
 		/datum/human_ai_defense/mine/claymore/strong,
 		/datum/human_ai_defense/mine/claymore/wy,
+		/datum/human_ai_defense/mine/claymore/wy/strong,
 		/datum/human_ai_defense/mine/sebb,
 		/datum/human_ai_defense/mine/prox_sensor,
 		/datum/human_ai_defense/mine/m760ap,
 		/datum/human_ai_defense/mine/m760ap/strong,
+		/datum/human_ai_defense/mine/m5a3betty,
+		/datum/human_ai_defense/mine/m5a3betty/strong,
+		/datum/human_ai_defense/mine/fzd91,
+		/datum/human_ai_defense/mine/fzd91/strong,
+		/datum/human_ai_defense/mine/tn13,
+		/datum/human_ai_defense/mine/tn13/strong,
+		/datum/human_ai_defense/mine/covenant/plasma,
+		/datum/human_ai_defense/mine/covenant/needle,
 	)
 	var/static/list/outpost_defense_profiles = list(
 		"none" = list(

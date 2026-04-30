@@ -16,6 +16,7 @@ GLOBAL_LIST_INIT(world_edit_blueprint_valid_factions, list(
 	FACTION_TWE,
 	FACTION_TWE_REBEL,
 	FACTION_MERCENARY,
+	FACTION_COVENANT,
 ))
 
 GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, new)

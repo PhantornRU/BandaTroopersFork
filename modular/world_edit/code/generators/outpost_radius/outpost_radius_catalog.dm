@@ -37,6 +37,7 @@
 		FACTION_TWE = "TWE",
 		FACTION_TWE_REBEL = "TWE Rebel",
 		FACTION_MERCENARY = "Mercenary",
+		FACTION_COVENANT = "Covenant",
 	)
 	var/list/options = list()
 	for(var/faction as anything in valid_factions)

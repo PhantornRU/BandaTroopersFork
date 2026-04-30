@@ -13,7 +13,7 @@
 	if(!world_edit_is_open_construction_turf_for_blueprint(target_turf))
 		return "Цель шаблона должна находиться на открытом строительном тайле."
 
-	if(ispath(obj_path, /obj/structure/barricade))
+	if(ispath(obj_path, /obj/structure/barricade) || (islist(rule) && "[rule["category"]]" == "barricade"))
 		if(GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf, TRUE))
 			return "Целевой тайл шаблона заблокирован для баррикады."
 		if(GLOB.world_edit_helpers.has_barricade_in_dir(target_turf, dir_value))
@@ -54,10 +54,11 @@
 		return null
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 
-	if(ispath(obj_path, /obj/structure/barricade))
-		var/obj/structure/barricade/barricade = new obj_path(target_turf)
-		barricade.setDir(dir_value)
-		return barricade
+	if(ispath(obj_path, /obj/structure/barricade) || (islist(rule) && "[rule["category"]]" == "barricade"))
+		var/obj/barricade_object = new obj_path(target_turf)
+		if(istype(barricade_object))
+			barricade_object.setDir(dir_value)
+		return barricade_object
 
 	if(ispath(obj_path, /obj/structure/machinery/defenses))
 		var/obj/structure/machinery/defenses/defense = new obj_path(target_turf)
