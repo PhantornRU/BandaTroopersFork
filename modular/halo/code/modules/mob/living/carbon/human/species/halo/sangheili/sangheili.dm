@@ -44,6 +44,7 @@
 	eye_icon = 'modular/halo/icons/halo/mob/humans/species/sangheili/eyes.dmi'
 	dam_icon = 'modular/halo/icons/halo/mob/humans/species/sangheili/dam_sangheili.dmi'
 	blood_mask = 'modular/halo/icons/halo/mob/humans/species/sangheili/blood_mask.dmi'
+	icon_template = 'modular/halo/icons/mob/humans/template_96.dmi'
 
 	has_organ = list(
 		"heart" = /datum/internal_organ/heart/sangheili,

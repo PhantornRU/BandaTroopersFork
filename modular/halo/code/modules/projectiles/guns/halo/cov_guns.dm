@@ -9,11 +9,14 @@
 	empty_click = null
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/plasma_pistol.dmi'
 	muzzleflash_icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	inhand_x_dimension = 64
+	inhand_y_dimension = 64
 	item_icons = list(
 		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
 		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
-		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_padded_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_padded_64.dmi'
 	)
 
 	var/works_in_cov_recharger = TRUE
@@ -378,14 +381,16 @@
 	muzzleflash_iconstate = "muzzle_flash_pink"
 	muzzle_flash_color = LIGHT_COLOR_PINK
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/needler.dmi'
+	inhand_x_dimension = 64
+	inhand_y_dimension = 64
 	start_automatic = TRUE
 	empty_sound = null
 	current_mag = /obj/item/ammo_magazine/needler_crystal
 	item_icons = list(
 		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
 		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
-		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_padded_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_padded_64.dmi'
 	)
 
 /obj/item/weapon/gun/smg/covenant_needler/Initialize(mapload, spawn_empty)
@@ -478,7 +483,7 @@
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	item_icons = list(
-		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/marksman_rifles_64.dmi',
 		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
 		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
 		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'

@@ -497,6 +497,7 @@
 	name = "\improper WMT Law Enforcement Shotgun"
 	desc = "Гражданская вариация M90 CAWS производства WMT, рассчитанная на правоохранительные структуры... хотя временами она оказывается и в руках обычных граждан."
 	icon_state = "m90_police"
+	item_state = "m90_police"
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90/police)
 	starting_attachment_types = list(/obj/item/attachable/flashlight/m90/police)
 	current_mag = /obj/item/ammo_magazine/internal/shotgun/m90/police

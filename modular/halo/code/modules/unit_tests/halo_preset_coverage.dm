@@ -235,6 +235,7 @@
 	for(var/preset_path as anything in equipment_presets_to_validate)
 		validate_equipment_preset(preset_path)
 
+	validate_halo_species_icon_templates()
 	validate_halo_item_tree_icons()
 
 /datum/unit_test/halo_preset_coverage/proc/create_test_human()
@@ -348,6 +349,12 @@
 	var/icon_path = "[icon_file]"
 	return findtext(icon_path, "modular/halo/") || findtext(icon_path, "icons/halo/")
 
+/datum/unit_test/halo_preset_coverage/proc/is_halo_object_icon_file(icon_file)
+	if(!icon_file)
+		return FALSE
+	var/icon_path = "[icon_file]"
+	return findtext(icon_path, "modular/halo/icons/halo/obj/") || findtext(icon_path, "icons/halo/obj/")
+
 /datum/unit_test/halo_preset_coverage/proc/should_audit_halo_item(obj/item/item)
 	if(!item)
 		return FALSE
@@ -449,6 +456,7 @@
 /datum/unit_test/halo_preset_coverage/proc/validate_halo_worn_icon_state(obj/item/item, mob/living/carbon/human/test_human, context, worn_slot)
 	var/worn_state = item.get_icon_state(test_human, worn_slot)
 	var/worn_icon
+	var/uses_contained_sprite = FALSE
 	if(item.icon_override)
 		worn_icon = item.icon_override
 		if(worn_slot == WEAR_L_HAND)
@@ -460,11 +468,25 @@
 		if(item.use_spritesheet(bodytype, worn_slot, worn_state))
 			worn_icon = item.sprite_sheets[bodytype]
 	if(!worn_icon && item.contained_sprite)
+		uses_contained_sprite = TRUE
 		worn_icon = item.icon
 	if(!worn_icon && LAZYISIN(item.item_icons, worn_slot))
 		worn_icon = item.item_icons[worn_slot]
+	if(!worn_icon && LAZYISIN(GLOB.default_onmob_icons, worn_slot))
+		worn_icon = GLOB.default_onmob_icons[worn_slot]
 	if(worn_icon)
+		validate_halo_worn_icon_source(item, context, worn_slot, worn_icon, uses_contained_sprite)
 		validate_halo_icon_state("[context] [item.type] worn slot [worn_slot]", worn_icon, worn_state)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_worn_icon_source(obj/item/item, context, worn_slot, worn_icon, uses_contained_sprite)
+	if(worn_slot == WEAR_L_HAND || worn_slot == WEAR_R_HAND)
+		return
+
+	if(uses_contained_sprite && is_halo_object_icon_file(item.icon))
+		Fail("[context] [item.type] worn slot [worn_slot] uses contained_sprite from object icon '[item.icon]'", __FILE__, __LINE__)
+
+	if(is_halo_object_icon_file(worn_icon))
+		Fail("[context] [item.type] worn slot [worn_slot] uses object icon '[worn_icon]' as an onmob overlay", __FILE__, __LINE__)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_halo_accessory_icon_states(obj/item/clothing/accessory/accessory, context, worn_slot = null)
 	var/accessory_state = accessory.overlay_state ? accessory.overlay_state : accessory.icon_state
@@ -496,14 +518,40 @@
 		list(/obj/item/storage/belt/marine/covenant/ruuhtian, SPECIES_RUUHTIAN, WEAR_WAIST),
 		list(/obj/item/attachable/flashlight/ma5, null, null),
 		list(/obj/item/attachable/attached_gun/grenade/ma5, null, null),
-		list(/obj/item/weapon/gun/rifle/halo/dmr, null, WEAR_BACK),
-		list(/obj/item/weapon/gun/rifle/halo/dmr, null, WEAR_R_HAND),
-		list(/obj/item/weapon/gun/halo_launcher/spnkr, null, null),
+		list(/obj/item/weapon/gun/rifle/halo, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/rifle/halo, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/rifle/halo, null, WEAR_R_HAND),
+		list(/obj/item/weapon/gun/smg/halo, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/smg/halo, null, WEAR_WAIST),
+		list(/obj/item/weapon/gun/smg/halo, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/shotgun/pump/halo, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/shotgun/pump/halo, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/rifle/sniper/halo, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/energy/plasma, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/energy/plasma/plasma_pistol, null, WEAR_WAIST),
+		list(/obj/item/weapon/gun/energy/plasma, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/smg/covenant_needler, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/smg/covenant_needler, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/rifle/covenant_carbine, null, WEAR_BACK),
+		list(/obj/item/weapon/gun/rifle/covenant_carbine, null, WEAR_J_STORE),
+		list(/obj/item/weapon/gun/halo_launcher/spnkr, null, WEAR_BACK),
 		list(/obj/item/storage/large_holster/spnkr, null, WEAR_BACK),
+		list(/obj/item/storage/belt/gun/m6, null, WEAR_WAIST),
+		list(/obj/item/storage/belt/gun/m7, null, WEAR_WAIST),
 	)
 
 	for(var/list/item_root_data as anything in item_roots)
 		validate_halo_item_type_tree(item_root_data[1], item_root_data[2], item_root_data[3])
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_species_icon_templates()
+	validate_halo_adjusted_species_template(/datum/species/sangheili)
+	validate_halo_adjusted_species_template(/datum/species/unggoy)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_halo_adjusted_species_template(species_path)
+	var/datum/species/species = new species_path
+	if(species.icon_template != 'modular/halo/icons/mob/humans/template_96.dmi')
+		Fail("[species_path] uses [species.icon_template] instead of the modular PVE 96x96 offset template", __FILE__, __LINE__)
+	qdel(species)
 
 /datum/unit_test/halo_preset_coverage/proc/validate_halo_item_type_tree(item_root, species_name, worn_slot)
 	var/list/item_types = list(item_root)

@@ -7,12 +7,15 @@
 	desc = "M276 - стандартная система разгрузочного снаряжения ККОН. Она состоит из модульного пояса с различными креплениями. В этой версии установлен кобурный модуль, позволяющий носить самые распространённые пистолеты, а также боковые подсумки под большинство пистолетных магазинов."
 	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m6_holster"
-	item_state = "s_marinebelt"
+	item_state = "m6_holster"
 	item_icons = list(
 		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
 		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
+	item_state_slots = list(
+		WEAR_L_HAND = "s_marinebelt",
+		WEAR_R_HAND = "s_marinebelt")
 	storage_slots = 7
 	can_hold = list(
 		/obj/item/weapon/gun/pistol/halo,
@@ -54,7 +57,7 @@
 	desc = "Специальная разгрузка под M7, редко выдаваемая вспомогательному и специализированному персоналу ККОН в качестве PDW."
 	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m7_holster"
-	item_state = "s_marinebelt"
+	item_state = "m7_holster"
 	storage_slots = 3
 	max_w_class = 6
 	can_hold = list(
@@ -70,6 +73,9 @@
 		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
+	item_state_slots = list(
+		WEAR_L_HAND = "s_marinebelt",
+		WEAR_R_HAND = "s_marinebelt")
 
 /obj/item/storage/belt/gun/m7/full/fill_preset_inventory()
 	handle_item_insertion(new /obj/item/weapon/gun/smg/halo/m7/folded_up())
