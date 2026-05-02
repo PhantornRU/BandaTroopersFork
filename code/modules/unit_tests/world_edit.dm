@@ -2195,21 +2195,6 @@
 	TEST_ASSERT((candidate.plan.metadata["component_count"] || 0) >= 2, "World Edit component-outpost collector test should report multiple outpost components.")
 	TEST_ASSERT(length(candidate.plan.placements) > 0, "World Edit component-outpost collector test should produce placements for disconnected components.")
 	qdel(manager)
-	return
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), center_turf), "World Edit invalid-outpost collector finish test should accept the first collector point.")
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit invalid-outpost collector finish test should accept the disconnected collector point for validation.")
-	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector test should surface the disconnected-footprint support error before cancellation.")
-	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector finish test should keep placement mode active while the preview stays invalid.")
-
-	TEST_ASSERT(manager.handle_safe_placement_click(user, list2params(list(LEFT_CLICK = 1)), disconnected_turf), "World Edit invalid-outpost collector finish test should treat a repeated click on the last point as a finish attempt, not as a reset.")
-	TEST_ASSERT(manager.placement_click_active, "World Edit invalid-outpost collector finish test should keep placement mode active after the failed finish attempt.")
-	TEST_ASSERT(manager.placement_anchor_turf == center_turf, "World Edit invalid-outpost collector finish test should preserve the active anchor after the failed finish attempt.")
-	TEST_ASSERT(manager.get_placement_collector_origin_turf() == center_turf, "World Edit invalid-outpost collector finish test should preserve the collector origin after the failed finish attempt.")
-	TEST_ASSERT_EQUAL(manager.get_placement_collector_point_count(), 2, "World Edit invalid-outpost collector finish test should keep committed collector points after the failed finish attempt.")
-	TEST_ASSERT(istype(manager.get_placement_preview_candidate(), /datum/world_edit_placement_candidate), "World Edit invalid-outpost collector finish test should keep the invalid preview candidate instead of clearing it.")
-	TEST_ASSERT(!manager.is_placement_confirm_armed_for_turf(disconnected_turf), "World Edit invalid-outpost collector finish test should not arm confirmation while the shape remains invalid.")
-	TEST_ASSERT(findtext("[manager.last_preview_message]", "несвязанные островки"), "World Edit invalid-outpost collector finish test should keep surfacing the disconnected-footprint error after the repeated click.")
-	qdel(manager)
 
 /datum/unit_test/world_edit_corner_slots/manager_runtime/hover_object_preview_opt_in_is_bounded/Run()
 	var/datum/world_edit_manager/manager = new /datum/world_edit_manager()
@@ -5678,16 +5663,6 @@
 	TEST_ASSERT_EQUAL(component_plan.metadata["shape_mode"], "component_footprint_offset", "World Edit outpost support/build consistency test should preserve component-aware shape mode.")
 	TEST_ASSERT_EQUAL(component_plan.metadata["component_count"], 2, "World Edit outpost support/build consistency test should keep cardinal-disconnected custom-mask points as two outpost components.")
 	TEST_ASSERT(length(component_plan.placements) > 0, "World Edit outpost support/build consistency test should emit placements for each component.")
-	qdel(manager)
-	return
-
-	var/shape_support_error = generator.get_shape_support_error(WORLD_EDIT_SHAPE_CUSTOM_MASK, shape_result["turfs"] || list(), manager.current_params, placement_context)
-	TEST_ASSERT(length("[shape_support_error]"), "World Edit outpost support/build consistency test should still reject disconnected limited shapes at the support boundary.")
-
-	var/datum/world_edit_plan/plan = generator.build_plan_from_shape_contract(null, shape_contract, manager.current_params, placement_context)
-	TEST_ASSERT(istype(plan, /datum/world_edit_plan), "World Edit outpost support/build consistency test should still return a plan datum on the build path.")
-	TEST_ASSERT_EQUAL("[plan.metadata["error"]]", "[shape_support_error]", "World Edit outpost build_plan_from_shape_contract should return the same explicit support failure instead of drifting into a misleading plan path.")
-
 	qdel(manager)
 
 /datum/unit_test/world_edit_corner_slots/outpost_dir_driven_layouts_rotate_with_placement_dir/Run()

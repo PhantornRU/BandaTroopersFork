@@ -509,7 +509,7 @@
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_deterministic_percent(turf/target_turf, seed_value = 0, salt = 0)
 	if(!istype(target_turf))
 		return 100
-	var/raw_value = (target_turf.x * 73856093) + (target_turf.y * 19349663) + (target_turf.z * 83492791) + (round(text2num("[seed_value]") || 0) * 2654435761) + (round(text2num("[salt]") || 0) * 97531)
+	var/raw_value = (target_turf.x * 73856093) + (target_turf.y * 19349663) + (target_turf.z * 83492791) + (round(text2num("[seed_value]") || 0) * 4435761) + (round(text2num("[salt]") || 0) * 97531)
 	return abs(raw_value) % 100
 
 /datum/world_edit_generator/outpost_radius/proc/get_outpost_layer_candidate_salt(list/candidate, salt_offset = 0)
@@ -2086,11 +2086,12 @@
 	rules += list(rule)
 
 /datum/world_edit_generator/outpost_radius/proc/build_outpost_effective_defense_profile(list/config, list/base_profile)
+	var/list/base_wired_groups = islist(base_profile) && islist(base_profile["wired_groups"]) ? base_profile["wired_groups"] : null
 	var/list/profile = list(
 		"label" = islist(base_profile) ? (base_profile["label"] || "Custom") : "Custom",
 		"description" = islist(base_profile) ? (base_profile["description"] || "") : "",
 		"defense_rules" = list(),
-		"wired_groups" = islist(base_profile) && islist(base_profile["wired_groups"]) ? base_profile["wired_groups"].Copy() : list(),
+		"wired_groups" = isnull(base_wired_groups) ? list() : base_wired_groups.Copy(),
 	)
 	var/list/rules = profile["defense_rules"]
 	var/turned_on = GLOB.world_edit_helpers.parse_bool(config["turned_on"])
