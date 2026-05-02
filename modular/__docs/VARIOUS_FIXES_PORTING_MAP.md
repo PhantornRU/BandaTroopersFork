@@ -181,6 +181,20 @@ PR94 update:
   - сохранение Kig-Yar/Unggoy tail из `#97` и ранее заведенного Spartan base из `#100`
   - branch-local gameplay completion для Kig-Yar, Sangheili, Unggoy и Spartan preset/HumanAI/squad coverage по modular rules SS220
 
+## Follow-up 2026-05-02: PR #149 RTO and ODST SL fixes
+
+Source-of-truth:
+- `cmss13-devs/cmss13-pve-halo#149`
+- merge commit: `498f55a`
+- PR head inspected during port: `d2a1bbf865004ed59b3f74f136bc69818ca1a869`
+
+Port notes:
+- upstream changed `code/datums/factions/unsc.dm`; BT owns the UNSC faction overlay in `modular/halo/code/datums/factions/unsc.dm`, so the HUD-rank fixes are applied there.
+- upstream changed root `code/game/jobs/job/marine/squad/standard.dm`; BT ports the RTO rank-selection behavior as modular proc overrides in `modular/squads/code/job/jobs/halo/job_option_handlers.dm`.
+- regular USCM RTO options now resolve as CPL -> base preset, LCPL -> `lance_corporal`, PFC -> `pfc`.
+- HALO UNSC/ODST RTO options now resolve as LCPL -> base preset, PFC -> `lesser_rank`; no new HALO CPL option is added.
+- UNSC HUD fallback now resolves canonical squad roles through `GET_DEFAULT_ROLE()` so UNSC/ODST modular RTO and SL titles share the same HUD icon contracts as the base roles.
+
 ## Follow-up 2026-05-02: PR #146/#150 refresh
 
 Source-of-truth:
