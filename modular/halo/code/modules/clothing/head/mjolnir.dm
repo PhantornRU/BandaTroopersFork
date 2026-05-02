@@ -16,9 +16,6 @@
 	armor_bomb = CLOTHING_ARMOR_VERYHIGH
 	armor_internaldamage = CLOTHING_ARMOR_VERYHIGH
 	actions_types = list(/datum/action/item_action/toggle)
-	item_icons = list(
-		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_48.dmi',
-	)
 	var/toggleable = TRUE
 
 /obj/item/clothing/head/helmet/marine/unsc/mjolnir/Initialize()
