@@ -1,27 +1,35 @@
 # EVIDENCE
 
-## Confirmed root causes
-- Duration editor only accepted numbers because `TrackInspectorSection` used `NumberInput` and `index.tsx` forwarded `duration_seconds` as a numeric field to `set_variant_duration`. Backend parsing was `text2num`-only in `modular/admin/code/admin_music/admin_music_panel.dm`.
-- Preset name editor desynced from header/title because `PresetMetaSection` used raw `Input` with `onInput`, while the underlying `Input` component only applies its `value` prop on mount.
-- Launch settings (`repeat`, `playback_mode`, etc.) were stored only in local React state and reset on every `draft_token` through `buildLaunchSettings(draft)`.
-- `PlayTab` and `EditTab` were conditionally rendered, so switching tabs unmounted one subtree and reset its local search/focus state.
+## E-001: Исходное состояние
+- Активная ветка на старте фикса: `another_halo_fixes_wave`.
+- `git status --short --branch` показал чистое рабочее дерево.
 
-## Implemented fixes
-- `tgui/packages/tgui/interfaces/AdminMusicPanel/shared.ts`
-  - added `parseDurationInput(...)`, `formatDurationInputValue(...)`
-  - added `coerceLaunchSettings(...)`
-  - added persisted Admin Music Panel UI-state helpers over `common/storage`
-- `tgui/packages/tgui/interfaces/AdminMusicPanel/sections.tsx`
-  - added `BufferedDurationInput`
-  - switched preset name field to `BufferedInput`
-  - replaced `NumberInput` duration editor with buffered text duration parsing
-- `tgui/packages/tgui/interfaces/AdminMusicPanel/index.tsx`
-  - hydrate/persist `activeTab` and `launchSettings`
-  - stop remounting `PlayTab`/`EditTab` on tab switch
-- `modular/admin/code/admin_music/admin_music_panel.dm`
-  - added backend duration parser for integer and timecode input
+## E-002: Подтвержденная первопричина
+- `setup_species()` в `code/_globalvars/global_lists.dm` индексирует species datums по `all_species[S.name]`.
+- `set_species()` в `code/modules/mob/living/carbon/human/human.dm` делает lookup через `GLOB.all_species[new_species]` и fallback'ом уходит в `Human`, если ключ не найден.
+- HALO species datums были изменены на `name = "Сангхейли"` и `name = "Унггой"`, из-за чего lookup по `SPECIES_SANGHEILI`/`SPECIES_UNGGOY` перестал находить нужные datums.
 
-## Verification
-- `git diff --check`
-- `tools/build/build --ci lint tgui-test`
-- `tools/build/build --ci dm -DCIBUILDING -DANSICOLORS -Werror`
+## E-003: Fallout по спавну и экипировке
+- HALO gear presets (`modular/halo/code/modules/gear_presets/Halo/{sangheili,unggoy}.dm`) по-прежнему вызывают `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)`.
+- После failed species lookup такие мобы падали в `Human`, а covenant clothing restrictions переставали пропускать HALO экипировку, что проявлялось как спавн голого человека.
+
+## E-004: Create Human / direct subtype surface
+- В `code/modules/mob/living/carbon/human/human.dm` уже существуют прямые subtype initializers вроде `/mob/living/carbon/human/synthetic/Initialize(mapload)`.
+- Для Sangheili/Unggoy таких subtype path'ов не было, поэтому прямой human subtype spawn для админских create-object/create-human flow отсутствовал.
+
+## E-005: Blood contract
+- `sangheili.dm` и `unggoy.dm` уже задают `blood_color = BLOOD_COLOR_SANGHEILI|BLOOD_COLOR_UNGGOY` и в `handle_post_spawn()` переводят `blood_type` на `S*`.
+- Симптом с красной человеческой кровью согласуется с fallback-спавном в `Human`, а не с отсутствием species-side blood definitions.
+
+## E-006: Реализация фикса
+- HALO species datums переведены обратно на canonical `name = SPECIES_SANGHEILI|SPECIES_UNGGOY`, а локализованные названия вынесены в explicit display-layer.
+- В `human.dm` добавлены subtype initializers `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- HALO compat/TTS/helper paths переведены на более безопасное использование `species.group` там, где это уместно для HALO species contract.
+
+## E-007: Проверки
+- `git diff --check`: passed.
+- `BUILD.cmd`: ранее выполнил полноценный compile с `0 errors, 0 warnings`; повторный вызов после этого уже скипал `dm` как up-to-date.
+- `tools/build/build dm-test --ci -DCIBUILDING -DANSICOLORS -Werror`: test DME compile passed (`colonialmarines.test.dmb - 0 errors, 0 warnings`).
+- По `data/unit_tests.json` наши новые проверки `/datum/unit_test/halo_tts_species_defaults`, `/datum/unit_test/halo_tts_preset_defaults`, `/datum/unit_test/halo_tts_species_subtypes` и существующие HALO `halo_unggoy_ai*` прошли со статусом `0`.
+- Финальный wrapper-exit у `dm-test` остался красным из-за уже существующих нерелевантных падений: `/datum/unit_test/medical_regressions`, `/datum/unit_test/missing_icons`, `/datum/unit_test/check_runtimes`.
+- Попытка принудительного `tools/build/build clean dm ...` уткнулась в Windows file lock (`EBUSY` на `colonialmarines.dyn.rsc`), поэтому отдельный clean-rebuild именно последней однострочной правки не завершён через juke-clean path.

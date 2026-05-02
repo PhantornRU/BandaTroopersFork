@@ -1,28 +1,27 @@
 # PLAN
 
-## Active task
-Stabilize Admin Music Panel UX/input behavior on `codex/admin-music-panel`:
-- accept track duration as either raw seconds or timecode (`1:57`, `01:57`, `1:02:03`);
-- mirror resolved/loaded metadata title into the editable track title field;
-- preserve launch settings and relevant UI focus/selection state across tab switches and window reopen instead of resetting to defaults.
+## Активная задача
+Починить HALO species regression в ветке `another_halo_fixes_wave`: Sangheili/Unggoy снова должны спавниться своей расой, корректно экипироваться через HALO presets, иметь прямые subtype-спавны для админских create-human/create-object flow и не использовать человеческую красную кровь.
 
 ## Scope
-- `tgui/packages/tgui/interfaces/AdminMusicPanel/{index.tsx,sections.tsx,shared.ts}`
-- `modular/admin/code/admin_music/{admin_music_panel.dm,admin_music_service.dm}` only if backend persistence/normalization needs adjustment
-- task-state docs for this task
+- Подтвердить и устранить корень поломки в `species.name`/`set_species()`/HALO compat checks.
+- Добавить прямые subtype path'ы `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy`.
+- Сохранить локализованные player-facing названия без повторного ломания canonical species IDs.
+- Добавить regression tests на species spawn, blood color/type и HALO preset equip.
+- Обновить PR #87 и допушить follow-up commit в текущую ветку.
 
 ## Out of scope
-- broad UI redesigns
-- unrelated Admin Music Panel polish
-- unrelated admin or TGUI refactors
+- Новая волна полной HALO name-localization migration по всем surface'ам.
+- Несвязанные правки AI, транспорта, RTO или вендоров из уже открытого PR.
+
+## Решение
+- Вернуть `species.name` у HALO-рас к каноническим `SPECIES_*` ключам.
+- Для локализованного UX использовать отдельный display-layer, а не canonical `name`.
+- Добавить прямые human subtype initializers в upstream `human.dm` как минимальный glue.
 
 ## Acceptance criteria
-- duration field accepts `117` and `1:57` for the same 117-second result
-- metadata/title sync fills the editable track title, not only read-only summary areas
-- playback mode / repeat / launch context do not reset unexpectedly on tab switch or reopen
-- focus/selection does not bounce back to defaults during normal panel interactions
-- `git diff --check` and relevant build/lint checks pass
-
-## Outcome
-- Implemented in `AdminMusicPanel` TGUI plus `admin_music_panel.dm`
-- Acceptance criteria satisfied by local code review and green verification checks
+- `set_species(SPECIES_SANGHEILI|SPECIES_UNGGOY)` снова находит правильные species datums.
+- HALO covenant presets больше не создают голых людей вместо Sangheili/Unggoy.
+- Прямой spawn `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` работает.
+- У Sangheili/Unggoy после спавна не остается человеческий blood color/type.
+- `git diff --check` и `BUILD.cmd` проходят.
