@@ -180,3 +180,43 @@ PR94 update:
   - обновление от вмерженного `upstream/master` на `5d2ad73b68` после BT `#96`
   - сохранение Kig-Yar/Unggoy tail из `#97` и ранее заведенного Spartan base из `#100`
   - branch-local gameplay completion для Kig-Yar, Sangheili, Unggoy и Spartan preset/HumanAI/squad coverage по modular rules SS220
+
+## Follow-up 2026-05-02: PR #146/#150 refresh
+
+Source-of-truth:
+- `cm-pve-halo/master`: `9a9285051c8c`
+- `cm-pve-halo/pr/146`: `e6fb1d57ae99`
+- `cm-pve-halo/pr/150`: `af455e7d2cc7`
+
+### `PR #146` motion sensor refresh
+
+BT уже имел базовый modular port сенсора через:
+- `modular/halo/code/mixed/components/halo_motion_sensor.dm`
+- `modular/halo/code/mixed/clothing/unsc_helmets.dm`
+- minimal root HUD glue в `code/_onclick/hud/human.dm`
+
+Добор текущего refresh:
+- `modular/halo/icons/halo/mob/hud/actions.dmi` обновлен из upstream, добавлен `motion_sensor` action-state.
+- `halo_motion_sensor_manager` теперь принимает IFF/color параметры и конфигурирует HUD перед выдачей/повторным включением.
+- USCM Smartgunner, FTL, SL и SO покрыты modular override-файлом `modular/halo/code/mixed/components/halo_motion_sensor_uscm.dm`; сенсор цепляется к уже выданному worn item и использует `FACTION_MARINE`.
+
+Что не переносится file-to-file:
+- upstream `code/datums/components/motion_sensor_manager.dm` и HUD root-файлы не импортируются напрямую, потому что в BT они уже разложены по modular HALO component + minimal root hook.
+- upstream subtype `/obj/item/clothing/head/helmet/marine/unsc/motion` не добавляется: в BT sensor component висит на базовом UNSC helmet family, что покрывает UNSC/ODST наследников шире и без замены preset paths.
+
+### `PR #150` universal naming refresh
+
+Ограничение текущего порта:
+- ничего не удалять;
+- не менять object typepaths;
+- не менять loadout `path` и `allowed_origins`;
+- переносить только `name`, `desc`, `display_name` и ru-name translation data.
+
+Реализация:
+- object `name/desc` и preferences `display_name` overrides находятся в `modular/halo/code/mixed/flavor/halo_universal_flavor.dm`.
+- ru-name entries добавлены в `modular/translations/code/translation_data/ru_names/halo_universal_items.toml`.
+- отсутствующие в BT upstream-only typepaths вроде `/obj/item/device/helmet_visor/po_visor/marine/unsc` и `/obj/item/prop/helmetgarb/flair_io/halo` не создавались, чтобы не нарушать запрет на новые/измененные type contracts в scope PR #150. Для существующих BT equivalents обновлены `/marine`, `/marine/yellow`, `/flair_io` и `/flair_peace`.
+
+Поведение:
+- USCM-specific labels в loadout UI заменяются на универсальные формулировки там, где это не создает duplicate `display_name` collisions и не меняет доступность предметов.
+- gear entries с существующими USCM-only paths остаются на своих typepaths/origin restrictions; меняется только player-facing label.
