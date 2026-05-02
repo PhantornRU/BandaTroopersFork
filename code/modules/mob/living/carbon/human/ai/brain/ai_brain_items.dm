@@ -490,7 +490,7 @@
 /datum/human_ai_brain/proc/item_search(list/things_around)
 	// SS220 EDIT - START: grenade threat must come only from the current local scan, not from stale refs.
 	active_grenade_found = null
-	var/can_handle_live_grenade = !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
+	var/can_handle_live_grenade = can_throw_back_grenades && !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
 	// SS220 EDIT - END
 	search_loop:
 		for(var/obj/item/thing in things_around)

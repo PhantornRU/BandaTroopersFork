@@ -234,3 +234,14 @@ BT уже имел базовый modular port сенсора через:
 Поведение:
 - USCM-specific labels в loadout UI заменяются на универсальные формулировки там, где это не создает duplicate `display_name` collisions и не меняет доступность предметов.
 - gear entries с существующими USCM-only paths остаются на своих typepaths/origin restrictions; меняется только player-facing label.
+
+## Follow-up 2026-05-02: PR #148 grenade throwback rules
+
+Source-of-truth:
+- `cmss13-devs/cmss13-pve-halo#148`
+- source head: `7374bbda7a9a7084582efe628f1149e5715086f0`
+
+Port notes:
+- upstream gates throw-back through Sangheili-only dexterity and removes it from Unggoy/non-Sangheili cAI.
+- BT keeps regular combat HumanAI capable of throw-back and ports the gameplay intent as a preset-level brain capability: Unggoy, civilians, survivors, support staff, militia/partisan/guerilla and other weak AI presets opt out.
+- shared `code/**` changes are limited to the `can_throw_back_grenades` brain flag, the modular brain-capability hook, and stale-action guards; the deny-list lives in modular HALO override surfaces.

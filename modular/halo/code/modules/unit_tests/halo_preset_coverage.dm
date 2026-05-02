@@ -170,6 +170,7 @@
 	validate_spnkr_pack(/datum/equipment_preset/unsc/spartan/spnkr)
 	validate_spnkr_pack(/datum/equipment_preset/unsc/spartan/spnkr/ai_man)
 	validate_designated_rifle_resupply()
+	validate_grenade_throwback_rules()
 
 	var/list/human_ai_presets = list(
 		/datum/human_ai_equipment_preset/covenant/sangheili/minor = FACTION_SANGHEILI,
@@ -634,6 +635,46 @@
 			Fail("[preset_path] expected a loaded M41 SPNKr inside the pack", __FILE__, __LINE__)
 	if(spnkr_pack.icon_state != "spnkrpack_2")
 		Fail("[preset_path] expected a full SPNKr pack icon_state, got [spnkr_pack.icon_state]", __FILE__, __LINE__)
+	qdel(test_human)
+	qdel(preset)
+
+/datum/unit_test/halo_preset_coverage/proc/validate_grenade_throwback_rules()
+	var/list/preset_expectations = list(
+		/datum/equipment_preset/covenant/unggoy/minor = FALSE,
+		/datum/equipment_preset/covenant/sangheili/minor = TRUE,
+		/datum/equipment_preset/covenant/ruuhtian/minor = TRUE,
+		/datum/equipment_preset/unsc/pfc/equipped = TRUE,
+		/datum/equipment_preset/insurgent/partisan = FALSE,
+		/datum/equipment_preset/insurgent/rifleman = TRUE,
+		/datum/equipment_preset/survivor = FALSE,
+		/datum/equipment_preset/colonist/bluecollar = FALSE,
+		/datum/equipment_preset/colonist/security = FALSE,
+		/datum/equipment_preset/colonist/security/guard = TRUE,
+		/datum/equipment_preset/police/officer = FALSE,
+		/datum/equipment_preset/police/officer/geared/smg = TRUE,
+		/datum/equipment_preset/upp/militia = FALSE,
+		/datum/equipment_preset/upp/rifleman = TRUE,
+		/datum/equipment_preset/canc/remnant/lowgear = FALSE,
+		/datum/equipment_preset/canc/remnant = TRUE,
+		/datum/equipment_preset/unsc_crew/generic = FALSE,
+		/datum/equipment_preset/synth/working_joe/upp = FALSE,
+		/datum/equipment_preset/synth/working_joe/upp/combat = TRUE,
+	)
+
+	for(var/preset_path as anything in preset_expectations)
+		validate_grenade_throwback_rule(preset_path, preset_expectations[preset_path])
+
+/datum/unit_test/halo_preset_coverage/proc/validate_grenade_throwback_rule(preset_path, expected_can_throw_back)
+	var/mob/living/carbon/human/test_human = create_test_human()
+	var/datum/equipment_preset/preset = new preset_path
+	var/datum/human_ai_brain/brain = new(test_human)
+	if(hascall(preset, "modular_apply_human_ai_brain_capabilities"))
+		call(preset, "modular_apply_human_ai_brain_capabilities")(brain, test_human)
+	if(hascall(preset, "modular_apply_human_ai_brain_overrides"))
+		call(preset, "modular_apply_human_ai_brain_overrides")(brain, test_human)
+	if(brain.can_throw_back_grenades != expected_can_throw_back)
+		Fail("[preset_path] expected can_throw_back_grenades [expected_can_throw_back], got [brain.can_throw_back_grenades]", __FILE__, __LINE__)
+	qdel(brain)
 	qdel(test_human)
 	qdel(preset)
 
