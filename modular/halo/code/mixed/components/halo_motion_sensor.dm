@@ -17,7 +17,7 @@
 
 /atom/movable/screen/motion_sensor
 	name = "motion sensor"
-	icon = 'icons/halo/mob/hud/motion_sensor.dmi'
+	icon = 'modular/halo/icons/halo/mob/hud/motion_sensor.dmi'
 	icon_state = "base"
 	alpha = 0
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
@@ -112,10 +112,18 @@
 /datum/component/halo_motion_sensor_manager
 	dupe_mode = COMPONENT_DUPE_HIGHLANDER
 	var/datum/action/item_action/halo_motion_sensor/sensor_action
+	var/iff_signal = FACTION_UNSC
+	var/background_color = "#0080ae"
+	var/friendly_color = "#ddff00"
+	var/hostile_color = "#d30000"
 
-/datum/component/halo_motion_sensor_manager/Initialize()
+/datum/component/halo_motion_sensor_manager/Initialize(new_iff_signal = FACTION_UNSC, new_background_color = "#0080ae", new_friendly_color = "#ddff00", new_hostile_color = "#d30000")
 	if(!isitem(parent))
 		return COMPONENT_INCOMPATIBLE
+	iff_signal = new_iff_signal
+	background_color = new_background_color
+	friendly_color = new_friendly_color
+	hostile_color = new_hostile_color
 	return ..()
 
 /datum/component/halo_motion_sensor_manager/RegisterWithParent()
@@ -123,7 +131,7 @@
 	RegisterSignal(parent, COMSIG_ITEM_EQUIPPED, PROC_REF(on_equipped))
 	RegisterSignal(parent, COMSIG_ITEM_DROPPED, PROC_REF(on_unequipped))
 	RegisterSignal(parent, COMSIG_ITEM_UNEQUIPPED, PROC_REF(on_unequipped))
-	sensor_action = new /datum/action/item_action/halo_motion_sensor(parent)
+	sensor_action = new /datum/action/item_action/halo_motion_sensor(parent, null, background_color)
 	RegisterSignal(sensor_action, COMSIG_ACTION_ACTIVATED, PROC_REF(toggle))
 
 /datum/component/halo_motion_sensor_manager/UnregisterFromParent()
@@ -142,6 +150,7 @@
 	if(!ishuman(human) || !human.hud_used?.motion_sensor)
 		return
 	if(is_equipped(human))
+		human.hud_used.motion_sensor.configure(iff_signal, background_color, friendly_color, hostile_color)
 		human.hud_used.motion_sensor.give(human)
 	else
 		human.hud_used.motion_sensor.remove()
@@ -167,6 +176,7 @@
 		return
 
 	if(human.hud_used.motion_sensor.alpha == 0)
+		human.hud_used.motion_sensor.configure(iff_signal, background_color, friendly_color, hostile_color)
 		human.hud_used.motion_sensor.give(human)
 	else
 		human.hud_used.motion_sensor.remove()
@@ -177,10 +187,20 @@
 	var/obj/item/parent_item = parent
 	return parent_item.is_valid_slot(human.get_slot_by_item(parent_item), TRUE)
 
-/datum/action/item_action/halo_motion_sensor/New(Target, obj/item/holder)
+/datum/action/item_action/halo_motion_sensor
+	var/overlay_color
+
+/datum/action/item_action/halo_motion_sensor/New(Target, obj/item/holder, _overlay_color = "#0080ae")
 	. = ..()
 	name = "Toggle Motion Sensor"
 	button.name = name
+	overlay_color = _overlay_color
+	update_button_icon()
+
+/datum/action/item_action/halo_motion_sensor/update_button_icon()
+	var/image/sensor_overlay = image('modular/halo/icons/halo/mob/hud/actions.dmi', button, "motion_sensor")
+	sensor_overlay.color = overlay_color
+	button.overlays += sensor_overlay
 
 /datum/action/item_action/halo_motion_sensor/action_activate()
 	if(!ismob(holder_item.loc))

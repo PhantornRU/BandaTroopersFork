@@ -163,5 +163,3 @@
 
 	target.Move(user.loc, get_dir(target.loc, user.loc))
 	target.update_transform(TRUE)
-
-

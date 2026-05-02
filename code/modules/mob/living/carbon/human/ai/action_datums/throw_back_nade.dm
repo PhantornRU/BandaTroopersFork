@@ -11,6 +11,9 @@
 	var/throw_finished = FALSE // SS220 EDIT: transient async state completes the action on the next scheduler tick
 
 /datum/ai_action/throw_back_nade/get_weight(datum/human_ai_brain/brain)
+	if(!brain.can_throw_back_grenades) // SS220 EDIT: modular HALO weak AI presets must not enter throw-back mode
+		return 0
+
 	if(QDELETED(brain.active_grenade_found))
 		return 0
 
@@ -88,6 +91,11 @@
 
 	if(mid_throw)
 		return ONGOING_ACTION_UNFINISHED
+
+	if(!brain.can_throw_back_grenades) // SS220 EDIT: abort stale throw-back actions after preset capability changes
+		brain.active_grenade_found = null
+		throw_ready_time = 0
+		return ONGOING_ACTION_COMPLETED
 
 	var/obj/item/explosive/grenade/active_grenade_found = brain.active_grenade_found
 	if(QDELETED(active_grenade_found) || !active_grenade_found.active || (!isturf(active_grenade_found.loc) && active_grenade_found.loc != brain.tied_human))

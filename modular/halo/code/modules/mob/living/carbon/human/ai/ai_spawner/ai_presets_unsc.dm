@@ -38,12 +38,12 @@
 
 /datum/human_ai_equipment_preset/unsc/sniper
 	name = "UNSC Sniper Specialist"
-	desc = "AI-safe UNSC sniper specialist."
+	desc = "UNSC sniper specialist with a sniper rifle and specialist kit."
 	path = /datum/equipment_preset/unsc/spec/equipped_sniper/ai_sniper
 
 /datum/human_ai_equipment_preset/unsc/spnkr
 	name = "UNSC SPNKR Specialist"
-	desc = "AI-safe UNSC SPNKR specialist."
+	desc = "UNSC SPNKR specialist with a launcher backpack and spare rockets."
 	path = /datum/equipment_preset/unsc/spec/equipped_spnkr/ai_man
 
 /datum/human_ai_equipment_preset/unsc/odst
@@ -58,11 +58,6 @@
 	name = "ODST Hospital Corpsman"
 	desc = "ODST corpsman with medical equipment."
 	path = /datum/equipment_preset/unsc/medic/odst/equipped
-
-/datum/human_ai_equipment_preset/unsc/rto/odst
-	name = "ODST RTO"
-	desc = "ODST radio telephone operator with radio support gear."
-	path = /datum/equipment_preset/unsc/rto/odst/equipped
 
 /datum/human_ai_equipment_preset/unsc/odst/rto
 	name = "ODST RTO"
@@ -86,10 +81,10 @@
 
 /datum/human_ai_equipment_preset/unsc/odst/sniper
 	name = "ODST Sniper Specialist"
-	desc = "AI-safe ODST sniper specialist."
+	desc = "ODST sniper specialist with a sniper rifle and specialist kit."
 	path = /datum/equipment_preset/unsc/spec/odst/equipped_sniper/ai_sniper
 
 /datum/human_ai_equipment_preset/unsc/odst/spnkr
 	name = "ODST SPNKR Specialist"
-	desc = "AI-safe ODST SPNKR specialist."
+	desc = "ODST SPNKR specialist with a launcher backpack and spare rockets."
 	path = /datum/equipment_preset/unsc/spec/odst/equipped_spnkr/ai_man

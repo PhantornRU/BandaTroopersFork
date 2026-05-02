@@ -71,7 +71,7 @@
 
 ## Что входит в update ветки PR94
 
-Ветка `codex/pr94-update` содержит только свежий Kig-Yar/Unggoy хвост из `PR #97`:
+Ветка `halo_jackal_spartan_wave_apr2026` после refresh от `upstream/master` содержит Kig-Yar/Unggoy хвост из `PR #97`, исходный Spartan base из `#100` и branch-local gameplay completion по preset/HumanAI/squad coverage:
 
 1. semantic equivalent `21fe2b79f4` `Update standard.dm`
    - переносится в текущие `ruuhtian` armor contracts
@@ -175,7 +175,73 @@ Main PR:
   - docs/changelog/CODEOWNERS
 
 PR94 update:
-- ветка: `codex/pr94-update`
+- ветка: `halo_jackal_spartan_wave_apr2026`
 - scope:
-  - только свежий Kig-Yar/Unggoy tail из `#97`
-  - без нового Spartan scope
+  - обновление от вмерженного `upstream/master` на `5d2ad73b68` после BT `#96`
+  - сохранение Kig-Yar/Unggoy tail из `#97` и ранее заведенного Spartan base из `#100`
+  - branch-local gameplay completion для Kig-Yar, Sangheili, Unggoy и Spartan preset/HumanAI/squad coverage по modular rules SS220
+
+## Follow-up 2026-05-02: PR #149 RTO and ODST SL fixes
+
+Source-of-truth:
+- `cmss13-devs/cmss13-pve-halo#149`
+- merge commit: `498f55a`
+- PR head inspected during port: `d2a1bbf865004ed59b3f74f136bc69818ca1a869`
+
+Port notes:
+- upstream changed `code/datums/factions/unsc.dm`; BT owns the UNSC faction overlay in `modular/halo/code/datums/factions/unsc.dm`, so the HUD-rank fixes are applied there.
+- upstream changed root `code/game/jobs/job/marine/squad/standard.dm`; BT ports the RTO rank-selection behavior as modular proc overrides in `modular/squads/code/job/jobs/halo/job_option_handlers.dm`.
+- regular USCM RTO options now resolve as CPL -> base preset, LCPL -> `lance_corporal`, PFC -> `pfc`.
+- HALO UNSC/ODST RTO options now resolve as LCPL -> base preset, PFC -> `lesser_rank`; no new HALO CPL option is added.
+- UNSC HUD fallback now resolves canonical squad roles through `GET_DEFAULT_ROLE()` so UNSC/ODST modular RTO and SL titles share the same HUD icon contracts as the base roles.
+
+## Follow-up 2026-05-02: PR #146/#150 refresh
+
+Source-of-truth:
+- `cm-pve-halo/master`: `9a9285051c8c`
+- `cm-pve-halo/pr/146`: `e6fb1d57ae99`
+- `cm-pve-halo/pr/150`: `af455e7d2cc7`
+
+### `PR #146` motion sensor refresh
+
+BT уже имел базовый modular port сенсора через:
+- `modular/halo/code/mixed/components/halo_motion_sensor.dm`
+- `modular/halo/code/mixed/clothing/unsc_helmets.dm`
+- minimal root HUD glue в `code/_onclick/hud/human.dm`
+
+Добор текущего refresh:
+- `modular/halo/icons/halo/mob/hud/actions.dmi` обновлен из upstream, добавлен `motion_sensor` action-state.
+- `halo_motion_sensor_manager` теперь принимает IFF/color параметры и конфигурирует HUD перед выдачей/повторным включением.
+- USCM Smartgunner, FTL, SL и SO покрыты modular override-файлом `modular/halo/code/mixed/components/halo_motion_sensor_uscm.dm`; сенсор цепляется к уже выданному worn item и использует `FACTION_MARINE`.
+
+Что не переносится file-to-file:
+- upstream `code/datums/components/motion_sensor_manager.dm` и HUD root-файлы не импортируются напрямую, потому что в BT они уже разложены по modular HALO component + minimal root hook.
+- upstream subtype `/obj/item/clothing/head/helmet/marine/unsc/motion` не добавляется: в BT sensor component висит на базовом UNSC helmet family, что покрывает UNSC/ODST наследников шире и без замены preset paths.
+
+### `PR #150` universal naming refresh
+
+Ограничение текущего порта:
+- ничего не удалять;
+- не менять object typepaths;
+- не менять loadout `path` и `allowed_origins`;
+- переносить только `name`, `desc`, `display_name` и ru-name translation data.
+
+Реализация:
+- object `name/desc` и preferences `display_name` overrides находятся в `modular/halo/code/mixed/flavor/halo_universal_flavor.dm`.
+- ru-name entries добавлены в `modular/translations/code/translation_data/ru_names/halo_universal_items.toml`.
+- отсутствующие в BT upstream-only typepaths вроде `/obj/item/device/helmet_visor/po_visor/marine/unsc` и `/obj/item/prop/helmetgarb/flair_io/halo` не создавались, чтобы не нарушать запрет на новые/измененные type contracts в scope PR #150. Для существующих BT equivalents обновлены `/marine`, `/marine/yellow`, `/flair_io` и `/flair_peace`.
+
+Поведение:
+- USCM-specific labels в loadout UI заменяются на универсальные формулировки там, где это не создает duplicate `display_name` collisions и не меняет доступность предметов.
+- gear entries с существующими USCM-only paths остаются на своих typepaths/origin restrictions; меняется только player-facing label.
+
+## Follow-up 2026-05-02: PR #148 grenade throwback rules
+
+Source-of-truth:
+- `cmss13-devs/cmss13-pve-halo#148`
+- source head: `7374bbda7a9a7084582efe628f1149e5715086f0`
+
+Port notes:
+- upstream gates throw-back through Sangheili-only dexterity and removes it from Unggoy/non-Sangheili cAI.
+- BT keeps regular combat HumanAI capable of throw-back and ports the gameplay intent as a preset-level brain capability: Unggoy, civilians, survivors, support staff, militia/partisan/guerilla and other weak AI presets opt out.
+- shared `code/**` changes are limited to the `can_throw_back_grenades` brain flag, the modular brain-capability hook, and stale-action guards; the deny-list lives in modular HALO override surfaces.

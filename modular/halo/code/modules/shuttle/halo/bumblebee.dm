@@ -2,7 +2,7 @@
 
 /obj/structure/shuttle/part/bumblebee
 	name = "SKT-9 \"Bumblebee\" Lifeboat"
-	icon = 'icons/halo/obj/structures/bumblebee_parts.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/bumblebee_parts.dmi'
 	icon_state = "0,1"
 	layer = WALL_LAYER
 
@@ -30,18 +30,18 @@
 
 /obj/structure/machinery/door/airlock/evacuation/bumblebee
 	name = "\improper Bumblebee Evacuation Airlock"
-	icon = 'icons/halo/obj/structures/doors/bumblebee_door.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/bumblebee_door.dmi'
 	unslashable = TRUE
 	unacidable = TRUE
 	opacity = FALSE
 	glass = TRUE
 
 /obj/structure/machinery/computer/shuttle/escape_pod_panel/bumblebee
-	icon = 'icons/halo/obj/structures/machinery/bumblebee_computer.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/bumblebee_computer.dmi'
 	icon_state = "console_on"
 
 /obj/structure/roof/bumblebee_roof
-	icon = 'icons/halo/obj/structures/bumblebee.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/bumblebee.dmi'
 	icon_state = "bumblebee"
 	indestructible = TRUE
 	unslashable = TRUE
@@ -65,7 +65,7 @@
 	under_image.alpha = 75
 
 /obj/effect/roof_node/bumblebee
-	icon = 'icons/halo/landmarks.dmi'
+	icon = 'modular/halo/icons/halo/landmarks.dmi'
 	icon_state = "roof"
 
 /obj/docking_port/mobile/crashable/escape_shuttle/bumblebee_west

@@ -58,6 +58,25 @@
 		/datum/equipment_preset/unsc/medic/equipped = 1,
 	)
 
+/datum/human_ai_squad_preset/unsc/support_section
+	name = "UNSC, Support Section"
+	desc = "A lore-friendly UNSC support section with section leader, RTO, corpsman, and line escorts."
+	ai_to_spawn = list(
+		/datum/equipment_preset/unsc/leader/equipped = 1,
+		/datum/equipment_preset/unsc/rto/equipped = 1,
+		/datum/equipment_preset/unsc/medic/equipped = 1,
+		/datum/equipment_preset/unsc/pfc/equipped = 2,
+	)
+
+/datum/human_ai_squad_preset/unsc/marksman_section
+	name = "UNSC, Marksman Section"
+	desc = "A UNSC line section with a DMR-equipped fireteam leader, sniper specialist, and rifle escort."
+	ai_to_spawn = list(
+		/datum/equipment_preset/unsc/tl/equipped = 1,
+		/datum/equipment_preset/unsc/spec/equipped_sniper/ai_sniper = 1,
+		/datum/equipment_preset/unsc/pfc/equipped = 2,
+	)
+
 /datum/human_ai_squad_preset/unsc/odst
 	faction = FACTION_UNSC
 
@@ -107,5 +126,15 @@
 		/datum/equipment_preset/unsc/leader/odst/equipped = 1,
 		/datum/equipment_preset/unsc/rto/odst/equipped = 1,
 		/datum/equipment_preset/unsc/medic/odst/equipped = 1,
+		/datum/equipment_preset/unsc/pfc/odst/equipped = 2,
+	)
+
+/datum/human_ai_squad_preset/unsc/odst/strike_team
+	name = "ODST, Strike Team"
+	desc = "A harder ODST strike team built around a DMR team leader, sniper, SPNKR specialist, and assault escorts."
+	ai_to_spawn = list(
+		/datum/equipment_preset/unsc/tl/odst/equipped = 1,
+		/datum/equipment_preset/unsc/spec/odst/equipped_sniper/ai_sniper = 1,
+		/datum/equipment_preset/unsc/spec/odst/equipped_spnkr/ai_man = 1,
 		/datum/equipment_preset/unsc/pfc/odst/equipped = 2,
 	)

@@ -14,6 +14,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	/// If TRUE, shoots until the target is dead. Else, stops when downed
 	var/shoot_to_kill = TRUE
 
+	/// If TRUE, may enter the grenade throw-back action from nearby live grenades.
+	var/can_throw_back_grenades = TRUE // SS220 EDIT: modular HALO presets can opt weak HumanAI out of grenade throw-back
+
 	/// Distance for view checks
 	var/view_distance = 6
 

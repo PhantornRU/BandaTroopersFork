@@ -31,11 +31,6 @@
 	desc = "Veteran Special Operations Sangheili pre-cloaked with a plasma rifle."
 	path = /datum/equipment_preset/covenant/sangheili/specops_ultra/cloaking
 
-/datum/human_ai_equipment_preset/covenant/specops_sangheili/stealth
-	name = "Sangheili Stealth (Plasma Rifle)"
-	desc = "Stealth Sangheili intelligence operative with a plasma rifle."
-	path = /datum/equipment_preset/covenant/sangheili/stealth/plasma_rifle
-
 /datum/human_ai_equipment_preset/covenant/specops_sangheili/stealth/needler
 	name = "Sangheili Stealth (Needler)"
 	desc = "Stealth Sangheili intelligence operative with a needler."

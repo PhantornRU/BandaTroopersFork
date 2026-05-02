@@ -2,7 +2,8 @@
 	return istype(user) && (isunggoy(user) || issangheili(user))
 
 /obj/item/explosive/mine/covenant
-	icon = 'icons/obj/items/weapons/covenant_mines.dmi'
+	icon = 'modular/halo/icons/obj/items/weapons/covenant_mines.dmi'
+	icon_state = "plasmamine"
 	angle = 360
 	has_tripwire = FALSE
 	var/disarmed = FALSE
@@ -197,7 +198,7 @@
 /obj/item/explosive/plastic/breaching_charge/plasma/halo
 	name = "covenant plasma charge"
 	desc = "An alien explosive device. Who knows what it might do."
-	icon = 'icons/obj/items/weapons/covenant_mines.dmi'
+	icon = 'modular/halo/icons/obj/items/weapons/covenant_mines.dmi'
 	icon_state = "plasmacharge"
 	overlay_image = "plasmacharge_active"
 	w_class = SIZE_SMALL

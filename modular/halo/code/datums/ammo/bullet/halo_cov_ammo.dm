@@ -1,6 +1,6 @@
 /datum/ammo/energy/halo_plasma
 	name = "plasma bolt"
-	icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
 	shell_speed = AMMO_SPEED_TIER_3
 	flags_ammo_behavior = AMMO_BALLISTIC
 	sound_hit = "plasma_impact"
@@ -34,7 +34,7 @@
 
 /datum/ammo/needler
 	name = "needle"
-	icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
 	icon_state = "needle"
 	headshot_state = HEADSHOT_OVERLAY_MEDIUM
 	damage = 28
@@ -61,7 +61,7 @@
 
 /datum/ammo/bullet/rifle/carbine
 	name = "carbine bullet"
-	icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
 	icon_state = "carbine"
 	headshot_state = HEADSHOT_OVERLAY_MEDIUM
 	damage = 50

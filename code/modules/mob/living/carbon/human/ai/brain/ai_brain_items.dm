@@ -271,8 +271,11 @@
 		add_secondary_weapon(tied_human.back)
 		return
 
-	if(!istype(tied_human.back, /obj/item/storage/backpack))
+	// SS220 EDIT - START: HALO transport rigs such as the SPNKr pack sit on the back slot as storage,
+	// but they are not guaranteed to inherit backpack. AI still needs to appraise their contents.
+	if(!istype(tied_human.back, /obj/item/storage))
 		return
+	// SS220 EDIT - END
 
 	for(var/id in equipment_map)
 		for(var/obj/item/item as anything in equipment_map[id])
@@ -487,7 +490,7 @@
 /datum/human_ai_brain/proc/item_search(list/things_around)
 	// SS220 EDIT - START: grenade threat must come only from the current local scan, not from stale refs.
 	active_grenade_found = null
-	var/can_handle_live_grenade = !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
+	var/can_handle_live_grenade = can_throw_back_grenades && !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
 	// SS220 EDIT - END
 	search_loop:
 		for(var/obj/item/thing in things_around)

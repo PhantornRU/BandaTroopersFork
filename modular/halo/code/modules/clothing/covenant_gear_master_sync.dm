@@ -2,7 +2,7 @@
 
 /obj/item/clothing/gloves/marine/sangheili
 	icon_state = "sang_minor"
-	item_state = "sangauntlets_minor"
+	item_state = "sang_minor"
 
 /obj/item/clothing/gloves/marine/sangheili/major
 	icon_state = "sang_major"
@@ -55,10 +55,10 @@
 /obj/item/clothing/gloves/marine/unggoy
 	name = "\improper Unggoy bracers"
 	desc = "Simple bracers worn over the wrists of an Unggoy."
-	icon = 'icons/halo/obj/items/clothing/covenant/gloves.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/gloves.dmi'
 	icon_state = "unggoy_minor"
 	item_state = "unggoy_minor"
-	item_icons = list(WEAR_HANDS = 'icons/halo/mob/humans/onmob/clothing/unggoy/gloves.dmi')
+	item_icons = list(WEAR_HANDS = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/gloves.dmi')
 	allowed_species_list = list(SPECIES_UNGGOY)
 	armor_melee = CLOTHING_ARMOR_MEDIUMLOW
 	armor_bullet = CLOTHING_ARMOR_MEDIUMLOW
@@ -210,7 +210,7 @@
 	name = "\improper Sangheili Honor Guard helmet"
 	icon_state = "sang_honorguard"
 	item_state = "sang_honorguard"
-	item_icons = list(WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/sangheili/hat_64.dmi')
+	item_icons = list(WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/hat_64.dmi')
 	armor_melee = CLOTHING_ARMOR_GIGAHIGH
 	armor_bullet = CLOTHING_ARMOR_GIGAHIGH
 	armor_laser = CLOTHING_ARMOR_GIGAHIGH
@@ -219,10 +219,10 @@
 /obj/item/clothing/head/helmet/marine/unggoy
 	name = "\improper Unggoy helmet"
 	desc = "A nanolaminate helmet for Unggoy."
-	icon = 'icons/halo/obj/items/clothing/covenant/helmets.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/helmets.dmi'
 	icon_state = "unggoy_minor_assault"
 	item_state = "unggoy_minor_assault"
-	item_icons = list(WEAR_HEAD = 'icons/halo/mob/humans/onmob/clothing/unggoy/hat.dmi')
+	item_icons = list(WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/hat.dmi')
 	allowed_species_list = list(SPECIES_UNGGOY)
 	flags_marine_helmet = NO_FLAGS
 	flags_inventory = NO_FLAGS
@@ -328,11 +328,11 @@
 /obj/item/clothing/shoes/unggoy
 	name = "\improper Unggoy greaves"
 	desc = "A pair of fitted greaves."
-	icon = 'icons/halo/obj/items/clothing/covenant/shoes.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/shoes.dmi'
 	icon_state = "unggoy_minor"
 	item_state = "unggoy_minor"
 	drop_sound = "armorequip"
-	item_icons = list(WEAR_FEET = 'icons/halo/mob/humans/onmob/clothing/unggoy/shoes.dmi')
+	item_icons = list(WEAR_FEET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/shoes.dmi')
 	allowed_species_list = list(SPECIES_UNGGOY)
 	armor_melee = CLOTHING_ARMOR_MEDIUMLOW
 	armor_bullet = CLOTHING_ARMOR_MEDIUMLOW
@@ -490,13 +490,13 @@
 /obj/item/clothing/accessory/pads/unggoy
 	name = "\improper Unggoy shoulder pads"
 	desc = "Pauldrons fitted to an Unggoy combat harness to protect the shoulders and upper arms."
-	icon = 'icons/halo/obj/items/clothing/covenant/accessories.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/accessories.dmi'
 	icon_state = "unggoy_minor_shoulder"
 	item_state = "unggoy_minor_shoulder"
 	allowed_species_list = list(SPECIES_UNGGOY)
 	slot = ACCESSORY_SLOT_UNGGOY_SHOULDER
 	flags_atom = NO_SNOW_TYPE
-	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi')
+	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi')
 
 /obj/item/clothing/accessory/pads/unggoy/minor
 	name = "\improper Unggoy Minor shoulder pads"
@@ -529,13 +529,13 @@
 /obj/item/clothing/accessory/pads/unggoy/bicep
 	name = "\improper Unggoy bicep armor"
 	desc = "Supplemental armor fitted to an Unggoy combat harness to protect the upper arms."
-	icon = 'icons/halo/obj/items/clothing/covenant/accessories.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/accessories.dmi'
 	icon_state = "unggoy_minor_bicep"
 	item_state = "unggoy_minor_bicep"
 	allowed_species_list = list(SPECIES_UNGGOY)
 	slot = ACCESSORY_SLOT_UNGGOY_BICEP
 	flags_atom = NO_SNOW_TYPE
-	accessory_icons = list(WEAR_BODY = 'icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi', WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi')
+	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/accessories.dmi')
 
 /obj/item/clothing/accessory/pads/unggoy/bicep/minor
 	name = "\improper Unggoy Minor bicep armor"

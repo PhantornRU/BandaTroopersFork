@@ -1,12 +1,12 @@
 /obj/item/clothing/suit/marine/unsc
 	name = "\improper M52B body armor"
 	desc = "Штатная броня корпуса морской пехоты ККОН. Комплект M52B принят на вооружение к 2531 году для войны с Ковенантом. Обновлённый состав сплава Titanium-A заметно усилил защиту от направленной энергии, хотя и не настолько, как рассчитывали."
-	icon = 'icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
 	icon_state = "m52b"
 	item_state = "m52b"
 	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_unsc.dmi',
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_unsc.dmi',
 	)
 	valid_accessory_slots = list(ACCESSORY_SLOT_MEDAL, ACCESSORY_SLOT_DECORARMOR, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORSHIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_PAINT, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PONCHO)
 	restricted_accessory_slots = list(ACCESSORY_SLOT_DECORARMOR, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_DECORSHIN, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PAINT)
@@ -43,13 +43,13 @@
 /obj/item/clothing/suit/marine/unsc/police
 	name = "\improper police RD90 ballistic armor"
 	desc = "Более старая модель брони M52B, обозначаемая местной полицией и силами безопасности как RD90. Пусть она и не столь удобна, для большинства пользователей она всё ещё справляется со своей задачей, а вдобавок лучше защищает от ударов в ближнем бою."
-	icon = 'icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/suits/suits_by_faction/suit_unsc.dmi'
 	valid_accessory_slots = list(ACCESSORY_SLOT_MEDAL, ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_PAINT, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PONCHO)
 	restricted_accessory_slots = list(ACCESSORY_SLOT_DECORGROIN, ACCESSORY_SLOT_DECORBRACER, ACCESSORY_SLOT_DECORNECK, ACCESSORY_SLOT_M3UTILITY, ACCESSORY_SLOT_PAINT)
 	icon_state = "police"
 	item_state = "police"
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_unsc.dmi',
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suits/suits_by_faction/suit_unsc.dmi',
 	)
 	armor_melee = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_bullet = CLOTHING_ARMOR_MEDIUMLOW

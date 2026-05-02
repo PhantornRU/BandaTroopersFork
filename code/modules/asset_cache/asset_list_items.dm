@@ -425,10 +425,12 @@
 			continue
 		if(initial(current_gun.flags_gun_features) & GUN_UNUSUAL_DESIGN)
 			continue // These don't have a way to inspect weapon stats
-		var/icon_state = initial(current_gun.base_gun_icon) // SS220 EDIT: allow lineart-only aliases without changing the live gun sprite
+		var/icon_state = initial(current_gun.lineart_gun_icon) // SS220 EDIT: prefer explicit stats sheet lineart aliases for modular guns
+		if(isnull(icon_state))
+			icon_state = initial(current_gun.base_gun_icon) // SS220 EDIT: allow lineart-only aliases without changing the live gun sprite
 		if(isnull(icon_state))
 			var/obj/item/weapon/gun/temp_gun = new current_gun
-			icon_state = temp_gun.base_gun_icon // base_gun_icon is set in Initialize generally
+			icon_state = temp_gun.lineart_gun_icon || temp_gun.base_gun_icon // SS220 EDIT: lineart_gun_icon may be set during Initialize
 			qdel(temp_gun)
 		if(icon_state && isnull(sprites[icon_state]))
 			// downgrade this to a log_debug if we don't want missing lineart to be a lint
