@@ -11,6 +11,11 @@ GLOBAL_VAR_INIT(overmind_cancel, FALSE)
 	/// Optional alternate weed merge icon used by Pathogen weeds.
 	var/mycelium_food_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 
+/mob/living/get_weed_food_icon(obj/effect/alien/weeds/absorbing_weeds)
+	if(absorbing_weeds?.hivenumber == XENO_HIVE_PATHOGEN)
+		return mycelium_food_icon
+	return ..()
+
 /mob/living/proc/grant_spawn_protection(duration)
 	status_flags |= GODMODE
 	RegisterSignal(src, list(COMSIG_LIVING_FLAMER_CROSSED, COMSIG_LIVING_FLAMER_FLAMED), PROC_REF(handle_fire_protection))
@@ -29,6 +34,38 @@ GLOBAL_VAR_INIT(overmind_cancel, FALSE)
 	name = "mycelium heart"
 	desc = "Mycelium heart removed from a strange creature."
 	black_market_value = 120
+
+/mob/living/carbon/xenomorph/get_xeno_organ_type()
+	if(hivenumber == XENO_HIVE_PATHOGEN)
+		return /obj/item/organ/xeno/pathogen
+	return ..()
+
+/mob/living/carbon/xenomorph/apply_modular_xeno_name()
+	if(HAS_TRAIT(src, TRAIT_PATHOGEN_OVERMIND))
+		name = "Overmind ([full_designation])"
+		return TRUE
+	return ..()
+
+/mob/living/carbon/xenomorph/after_set_hive_and_update(new_hivenumber)
+	if(new_hivenumber == XENO_HIVE_PATHOGEN)
+		make_pathogen_speaker()
+		return TRUE
+	return ..()
+
+/mob/living/carbon/xenomorph/give_modular_abilities()
+	if(give_blight_core())
+		return TRUE
+	return ..()
+
+/mob/living/carbon/xenomorph/get_weed_type()
+	if(hivenumber == XENO_HIVE_PATHOGEN)
+		return /obj/effect/alien/weeds/pathogen
+	return ..()
+
+/mob/living/carbon/xenomorph/get_weed_node_type()
+	if(hivenumber == XENO_HIVE_PATHOGEN)
+		return /obj/effect/alien/weeds/node/pathogen
+	return ..()
 
 /datum/hive_status/pathogen
 	name = "Pathogen Confluence"

@@ -2,16 +2,16 @@
 	caste_type = XENO_CASTE_BODYBURSTER
 	tier = 2
 
-	melee_damage_lower = XENO_DAMAGE_TIER_3
+	melee_damage_lower = XENO_DAMAGE_TIER_4
 	melee_damage_upper = XENO_DAMAGE_TIER_5
 	melee_vehicle_damage = XENO_DAMAGE_TIER_4
-	max_health = XENO_HEALTH_TIER_4
+	max_health = XENO_HEALTH_TIER_2
 	plasma_gain = XENO_PLASMA_GAIN_TIER_8
 	plasma_max = XENO_PLASMA_TIER_10
-	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
+	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_4
 	armor_deflection = XENO_ARMOR_TIER_3
 	evasion = XENO_EVASION_MEDIUM
-	speed = XENO_SPEED_TIER_7
+	speed = XENO_SPEED_RAPTOR
 
 	evolves_to = list()
 	deevolves_to = list()
@@ -28,7 +28,7 @@
 /mob/living/carbon/xenomorph/bodyburster
 	caste_type = XENO_CASTE_BODYBURSTER
 	name = XENO_CASTE_BODYBURSTER
-	desc = "A horrific abberation of the usual alien, with an armored carapace."
+	desc = "A horrific abberation of the usual alien, with an armored carapace. The human skull is almost clearly visible within its head, and bits of skin and gore still cling to crevices in its body."
 	icon = 'modular/xeno_races/icons/mob/xenos/bodyburster.dmi'
 	icon_size = 48
 	icon_state = "Normal Bodyburster Walking"
@@ -44,10 +44,10 @@
 
 	icon_xeno = 'modular/xeno_races/icons/mob/xenos/bodyburster.dmi'
 	icon_xenonid = 'icons/mob/xenonids/warrior.dmi'
-	acid_blood_damage = 40 /// Better than drone worse than soldier
-	acid_blood_spatter = FALSE /// We dont want that for these guys
+	acid_blood_damage = 45 /// yowch!
+	acid_blood_spatter = TRUE /// They should be dangerous in close quarters
 
-	weed_food_icon = 'icons/mob/xenos/weeds_64x64.dmi'
+	weed_food_icon = 'modular/xeno_races/icons/mob/xenos/weeds_64x64.dmi'
 	weed_food_states = list("Warrior_1","Warrior_2","Warrior_3")
 	weed_food_states_flipped = list("Warrior_1","Warrior_2","Warrior_3")
 
@@ -342,6 +342,61 @@
 /obj/item/alien_embryo/bodyburster
 	icon = 'modular/xeno_races/icons/mob/xenos/bodyburster.dmi'
 	flags_embryo = FLAG_EMBRYO_HYBRID
+
+/obj/item/alien_embryo/bodyburster/can_autodoc_remove()
+	return FALSE
+
+/obj/item/alien_embryo/bodyburster/get_embryo_growth_delta(datum/hive_status/hive, delta_time)
+	return 3 * hive.larva_gestation_multiplier * delta_time
+
+/obj/item/alien_embryo/bodyburster/get_custom_xeno_type()
+	return /mob/living/carbon/xenomorph/bodyburster
+
+/obj/item/alien_embryo/bodyburster/handle_modular_stage_effect(stage)
+	switch(stage)
+		if(2)
+			if(prob(4))
+				affected_mob.pain.apply_pain(PAIN_CHESTBURST_WEAK)
+				affected_mob.visible_message(SPAN_DANGER("[affected_mob] starts to shiver and tremble!"), \
+											SPAN_DANGER("You feel a slight ache in your bones, and your hairs stand on end."))
+				affected_mob.make_jittery(50)
+			else if(prob(2))
+				var/message = SPAN_WARNING("[pick("Your skin prickles and twitches", "You feel an odd sensation in your bones")].")
+				to_chat(affected_mob, message)
+			return TRUE
+		if(3)
+			if(prob(2))
+				var/message = SPAN_WARNING("[pick("A trickle of sweat runs down your back", "Your muscles and bones ache")].")
+				to_chat(affected_mob, message)
+			else if(prob(1))
+				to_chat(affected_mob, SPAN_WARNING("Your muscles ache."))
+				if(prob(20))
+					affected_mob.take_limb_damage(1)
+			else if(prob(2))
+				affected_mob.emote("[pick("shiver", "twitch")]")
+			if(prob(5))
+				affected_mob.pain.apply_pain(PAIN_XENO_DRAG)
+				affected_mob.visible_message(SPAN_DANGER("[affected_mob] starts to shiver and tremble!"), \
+											SPAN_DANGER("You feel your muscles contort and tremble, and your bones twitch!"))
+				affected_mob.apply_effect(10, DAZE)
+				affected_mob.make_jittery(75)
+			return TRUE
+		if(4)
+			if(prob(2))
+				affected_mob.pain.apply_pain(PAIN_CHESTBURST_WEAK)
+				var/message = pick("Your chest hurts badly", "It becomes difficult to breathe", "Your heart starts beating rapidly, and each beat is painful")
+				message = SPAN_WARNING("[message].")
+				to_chat(affected_mob, message)
+				if(prob(50))
+					affected_mob.emote("scream")
+			if(prob(6))
+				affected_mob.pain.apply_pain(PAIN_XENO_GRAB)
+				affected_mob.visible_message(SPAN_DANGER("[affected_mob] starts to shiver and tremble!"), \
+											SPAN_DANGER("You feel your bones crack and shift, and your body begins to convulse!"))
+				affected_mob.apply_effect(20, DAZE)
+				affected_mob.make_jittery(100)
+			return TRUE
+	return ..()
 
 #undef AGGRESSION_MINIMUM
 #undef AGGRESSION_MAXIMUM

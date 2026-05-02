@@ -354,11 +354,8 @@
 		src.hivenumber = hivenumber
 	//putting the organ in for research
 	if(organ_value != 0)
-		var/obj/item/organ/xeno/organ
-		if(src.hivenumber == XENO_HIVE_PATHOGEN)
-			organ = new /obj/item/organ/xeno/pathogen()
-		else
-			organ = new()
+		var/organ_type = get_xeno_organ_type() // SS220 EDIT: modular xeno races may provide custom research organs
+		var/obj/item/organ/xeno/organ = new organ_type()
 		organ.forceMove(src)
 		organ.research_value = organ_value
 		organ.caste_origin = caste_type
@@ -591,17 +588,15 @@
 	if(!HAS_TRAIT(src, TRAIT_NO_COLOR))
 		color = in_hive.color
 
-	if(HAS_TRAIT(src, TRAIT_PATHOGEN_OVERMIND))
-		name = "Overmind ([full_designation])"
-	else
-		var/age_display = show_age_prefix ? age_prefix : ""
-		var/name_display = ""
-		// Rare easter egg
-		if(nicknumber == 666)
-			number_decorator = "Infernal "
-		if(show_name_numbers)
-			name_display = show_only_numbers ? " ([nicknumber])" : " ([name_client_prefix][nicknumber][name_client_postfix])"
-		name = "[name_prefix][number_decorator][age_display][caste.display_name || caste.caste_type][name_display]"
+	var/age_display = show_age_prefix ? age_prefix : ""
+	var/name_display = ""
+	// Rare easter egg
+	if(nicknumber == 666)
+		number_decorator = "Infernal "
+	if(show_name_numbers)
+		name_display = show_only_numbers ? " ([nicknumber])" : " ([name_client_prefix][nicknumber][name_client_postfix])"
+	name = "[name_prefix][number_decorator][age_display][caste.display_name || caste.caste_type][name_display]"
+	apply_modular_xeno_name() // SS220 EDIT: allow modular xeno race name variants
 
 	//Update linked data so they show up properly
 	change_real_name(src, name)
@@ -852,10 +847,21 @@
 	// Update the hive status UI
 	new_hive.hive_ui.update_all_xeno_data()
 
-	if(new_hivenumber == XENO_HIVE_PATHOGEN)
-		make_pathogen_speaker()
+	after_set_hive_and_update(new_hivenumber) // SS220 EDIT: allow modular hives to update language/state after hive changes
 
 	return TRUE
+
+/// SS220 EDIT: modular xeno race organ hook.
+/mob/living/carbon/xenomorph/proc/get_xeno_organ_type()
+	return /obj/item/organ/xeno
+
+/// SS220 EDIT: modular xeno race name hook.
+/mob/living/carbon/xenomorph/proc/apply_modular_xeno_name()
+	return FALSE
+
+/// SS220 EDIT: modular hive-change hook.
+/mob/living/carbon/xenomorph/proc/after_set_hive_and_update(new_hivenumber)
+	return FALSE
 
 
 //*********************************************************//

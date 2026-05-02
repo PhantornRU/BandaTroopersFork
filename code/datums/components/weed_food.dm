@@ -319,10 +319,7 @@
 		var/is_flipped = parent_mob.transform.b == -1 // Technically we should check if d is 1 too, but corpses can only be rotated 90 or 270 (1/-1 or -1/1)
 		if(parent_mob.dir & WEST)
 			is_flipped = !is_flipped // The direction reversed the effect of the flip!
-		var/icon_to_use = parent_mob.weed_food_icon
-		if(absorbing_weeds?.hivenumber == XENO_HIVE_PATHOGEN)
-			icon_to_use = parent_mob.mycelium_food_icon
-		weed_appearance = new(null, is_flipped, icon_to_use, parent_mob.weed_food_states, parent_mob.weed_food_states_flipped)
+		weed_appearance = new(null, is_flipped, parent_mob.get_weed_food_icon(absorbing_weeds), parent_mob.weed_food_states, parent_mob.weed_food_states_flipped) // SS220 EDIT: let modular weed variants choose corpse merge icon
 	weed_appearance.color = absorbing_weeds.color
 	parent_mob.vis_contents += weed_appearance
 
@@ -357,3 +354,7 @@
 
 #undef WEED_FOOD_DELAY
 #undef WEED_FOOD_STATE_DELAY
+
+/// SS220 EDIT: hook for modular weed variants with alternate corpse merge icons.
+/mob/living/proc/get_weed_food_icon(obj/effect/alien/weeds/absorbing_weeds)
+	return weed_food_icon

@@ -1,4 +1,4 @@
-// SS220 xeno race extensions. Keep compile-time constants here so modular code can stay in modular/.
+// SS220 EDIT: shared compile-time constants for modular xeno_races.
 
 #define XENO_HIVE_PATHOGEN "xeno_hive_pathogen"
 
@@ -33,6 +33,10 @@
 
 #define BODY_BURSTING (1<<8)
 #define BLOOD_BURSTING BODY_BURSTING
+
+#define XENO_SPEED_LANKY 0.1
+#define XENO_SPEED_RAPTOR -0.9
+#define XENO_ARMOR_TIER_9 60
 
 #define XENO_PLASMA_TIER_7 700 * XENO_UNIVERSAL_PLASMAMULT
 #define XENO_PLASMA_TIER_9 900 * XENO_UNIVERSAL_PLASMAMULT

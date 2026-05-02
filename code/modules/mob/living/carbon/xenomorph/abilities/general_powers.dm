@@ -62,9 +62,6 @@
 		return
 
 	var/list/to_convert
-	var/weed_type = /obj/effect/alien/weeds
-	if(xeno.hivenumber == XENO_HIVE_PATHOGEN)
-		weed_type = /obj/effect/alien/weeds/pathogen
 	if(node)
 		to_convert = node.children.Copy()
 
@@ -76,7 +73,7 @@
 		for(var/cur_weed in to_convert)
 			var/turf/target_turf = get_turf(cur_weed)
 			if(target_turf && !target_turf.density)
-				new weed_type(target_turf, new_node)
+				new weed_type(target_turf, new_node) // SS220 EDIT: use action-configured modular weed conversion type
 			qdel(cur_weed)
 
 	playsound(xeno.loc, "alien_resin_build", 25)
@@ -278,7 +275,7 @@
 	if(target_turf.z != X.z)
 		to_chat(X, SPAN_XENOWARNING("This area is too far away to affect!"))
 		return
-	if(!X.hive.allow_no_queen_actions && (!X.hive.living_xeno_queen || X.hive.living_xeno_queen.z != X.z))
+	if(!X.hive.allow_no_queen_actions && (!X.hive.living_xeno_queen || X.hive.living_xeno_queen.z != X.z)) // SS220 EDIT: support modular hives without queen-gated marker actions
 		to_chat(X, SPAN_XENOWARNING("We have no queen, the psychic link is gone!"))
 		return
 
@@ -548,9 +545,7 @@
 			return
 		if(!T.check_xeno_trap_placement(X))
 			return
-		var/replace_weed_type = /obj/effect/alien/weeds
-		if(X.hivenumber == XENO_HIVE_PATHOGEN)
-			replace_weed_type = /obj/effect/alien/weeds/pathogen
+		var/replace_weed_type = X.get_replacement_weed_type() // SS220 EDIT: delegate modular replacement weed type
 		var/obj/effect/alien/weeds/the_replacer = new replace_weed_type(T)
 		the_replacer.hivenumber = X.hivenumber
 		the_replacer.linked_hive = X.hive
@@ -684,7 +679,7 @@
 		qdel(structure_template)
 		return FALSE
 
-	var/queen_on_zlevel = X.hive.allow_no_queen_actions || !X.hive.living_xeno_queen || X.hive.living_xeno_queen.z == T.z
+	var/queen_on_zlevel = X.hive.allow_no_queen_actions || !X.hive.living_xeno_queen || X.hive.living_xeno_queen.z == T.z // SS220 EDIT: support modular hives without queen-gated construction
 	if(!queen_on_zlevel)
 		to_chat(X, SPAN_WARNING("Our link to the Queen is too weak here. She is on another world."))
 		qdel(structure_template)
@@ -933,7 +928,7 @@
 		return FALSE
 
 	var/distance = get_dist(stabbing_xeno, targetted_atom)
-	if(distance > stab_range)
+	if(distance > stab_range) // SS220 EDIT: use per-action modular tail stab range
 		return FALSE
 
 	var/list/turf/path = get_line(stabbing_xeno, targetted_atom, include_start_atom = FALSE)
@@ -995,6 +990,18 @@
 
 /datum/action/xeno_action/activable/tail_stab/proc/pre_ability_act(mob/living/carbon/xenomorph/stabbing_xeno, atom/targetted_atom)
 	return
+
+/// SS220 EDIT: modular xeno weed hook.
+/mob/living/carbon/xenomorph/proc/get_weed_type()
+	return /obj/effect/alien/weeds
+
+/// SS220 EDIT: modular xeno weed node hook.
+/mob/living/carbon/xenomorph/proc/get_weed_node_type()
+	return /obj/effect/alien/weeds/node
+
+/// SS220 EDIT: modular xeno weed replacement hook.
+/mob/living/carbon/xenomorph/proc/get_replacement_weed_type()
+	return get_weed_type()
 
 /datum/action/xeno_action/activable/tail_stab/proc/ability_act(mob/living/carbon/xenomorph/stabbing_xeno, mob/living/carbon/target, obj/limb/limb)
 

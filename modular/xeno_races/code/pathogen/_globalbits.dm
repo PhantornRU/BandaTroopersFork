@@ -44,11 +44,30 @@
 	hivenumber = XENO_HIVE_PATHOGEN
 	node_overlay_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 
+/obj/effect/alien/weeds/node/proc/xeno_races_pathogen_node_overlay_image()
+	var/static/image/pathogen_node_image
+	if(!pathogen_node_image)
+		pathogen_node_image = image('modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi', "weednode", ABOVE_OBJ_LAYER)
+	return pathogen_node_image
+
+/obj/effect/alien/weeds/node/pathogen/get_node_overlay_image()
+	return xeno_races_pathogen_node_overlay_image()
+
+/obj/effect/alien/weeds/node/pathogen/Initialize(mapload, hive, mob/living/carbon/xenomorph/xeno)
+	. = ..()
+	if(weed_strength >= WEED_LEVEL_HIVE)
+		name = "confluence blight node"
+
 /obj/effect/alien/weeds/pathogen
 	name = "mycelium blight"
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+
+/obj/effect/alien/weeds/pathogen/Initialize(mapload, obj/effect/alien/weeds/node/node, use_node_strength = TRUE, do_spread = TRUE)
+	. = ..()
+	if(weed_strength >= WEED_LEVEL_HIVE)
+		name = "confluence blight"
 
 /obj/effect/alien/weeds/weedwall/pathogen
 	name = "mycelium blight"
@@ -175,6 +194,7 @@
 
 	plant_on_semiweedable = TRUE
 	node_type = /obj/effect/alien/weeds/node/pathogen
+	weed_type = /obj/effect/alien/weeds/pathogen
 
 /datum/action/xeno_action/onclick/plant_weeds/pathogen/popper
 	name = "Spread Blight (100)"
@@ -216,6 +236,25 @@
 			return
 
 		C.hivemind_broadcast(message, GLOB.hive_datum[C.hivenumber])
+
+/mob/living/carbon/xenomorph/can_understand_xeno_speech(datum/language/speaking)
+	if(istype(speaking, /datum/language/pathogen))
+		return FALSE
+	return ..()
+
+/mob/living/carbon/get_hivemind_render(hivenumber, tier, message, tracker)
+	if(hivenumber != XENO_HIVE_PATHOGEN)
+		return ..()
+
+	var/normal_message = "[LANGUAGE_PATHOGEN_MIND], [tracker] clicks, <span class='normal'>'[message]'</span>"
+	var/leader_message = "[LANGUAGE_PATHOGEN_MIND], Leader [tracker] clicks, <span class='normal'>'[message]'</span>"
+
+	switch(tier)
+		if("royal")
+			return SPAN_XENOQUEEN(normal_message)
+		if("leader")
+			return SPAN_XENOLEADER(leader_message)
+	return SPAN_XENO(normal_message)
 
 
 

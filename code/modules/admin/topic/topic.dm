@@ -21,6 +21,9 @@
 	if(!CheckAdminHref(href, href_list))
 		return
 
+	if(hascall(src, "modular_handle_xeno_races_admin_topic")) // SS220 EDIT: delegate xeno-races admin hrefs to modular layer
+		if(call(src, "modular_handle_xeno_races_admin_topic")(href_list))
+			return
 
 	if(href_list["ahelp"])
 		if(!check_rights(R_ADMIN|R_MOD, TRUE))
@@ -2205,28 +2208,6 @@
 		message_admins("[key_name_admin(usr)] has denied a distress beacon, requested by [key_name_admin(ref_person)]", 1)
 
 		//unanswered_distress -= ref_person
-
-	if(href_list["overmind_deny"])
-		var/mob/ref_person = locate(href_list["overmind_deny"])
-		log_game("[key_name_admin(usr)] has refused the Overmind Request from [key_name_admin(ref_person)].")
-		message_admins("[key_name_admin(usr)] has refused the Overmind Request from [key_name_admin(ref_person)].", 1)
-		return
-
-	if(href_list["overmind_approve"])
-		GLOB.overmind_cancel = FALSE
-		var/mob/ref_person = locate(href_list["overmind_approve"])
-		message_admins("[key_name_admin(usr)] has granted the Overmind Request from [key_name_admin(ref_person)]! Finalizing in 10 seconds... (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];overmind_cancel=\ref[usr]'>CANCEL</A>)")
-		addtimer(CALLBACK(src, PROC_REF(approve_overmind), usr, ref_person), 10 SECONDS)
-		return
-
-	if(href_list["overmind_cancel"])
-		if(GLOB.overmind_cancel)
-			to_chat(usr, "The Overmind Request was either canceled, or you are too late to cancel.")
-			return
-		log_game("[key_name_admin(usr)] has canceled the Overmind Request.")
-		message_admins("[key_name_admin(usr)] has canceled the Overmind Request.")
-		GLOB.overmind_cancel = TRUE
-		return
 
 	if(href_list["distresscancel"])
 		if(GLOB.distress_cancel)

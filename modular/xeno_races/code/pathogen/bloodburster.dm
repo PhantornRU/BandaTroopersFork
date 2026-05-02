@@ -256,3 +256,6 @@
 	flags_embryo = FLAG_EMBRYO_PATHOGEN
 	hivenumber = XENO_HIVE_PATHOGEN
 
+/obj/item/alien_embryo/bloodburster/get_custom_xeno_type()
+	return /mob/living/carbon/xenomorph/bloodburster
+

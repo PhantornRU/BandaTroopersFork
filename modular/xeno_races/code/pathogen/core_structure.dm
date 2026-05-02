@@ -197,8 +197,17 @@
 	lesser_drone_spawn_limit = 0
 
 /obj/effect/alien/weeds/node/pylon/pathogen_core
+	name = "confluence blight node"
+	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	node_range = WEED_RANGE_CORE
 	hivenumber = XENO_HIVE_PATHOGEN
+	node_overlay_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
+
+/obj/effect/alien/weeds/node/pylon/pathogen_core/get_node_overlay_image()
+	return xeno_races_pathogen_node_overlay_image()
+
+/obj/effect/alien/weeds/node/pylon/pathogen_core/weed_expand()
+	return xeno_races_pathogen_weed_expand()
 
 /obj/effect/alien/resin/special/pylon/pathogen_core/Initialize(mapload, datum/hive_status/hive_ref)
 	. = ..()

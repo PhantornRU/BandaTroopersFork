@@ -509,15 +509,18 @@
 	var/obj/effect/alien/weeds/replacement_child = new weed_type(T, src)
 	add_child(replacement_child)
 
+/obj/effect/alien/weeds/node/proc/get_node_overlay_image()
+	return staticnode // SS220 EDIT: allow modular weed nodes to provide faction-specific node overlays
+
 /obj/effect/alien/weeds/node/update_icon()
 	..()
 	if(overlay_node)
-		overlays += staticnode
+		overlays += get_node_overlay_image() // SS220 EDIT: allow modular weed nodes to provide faction-specific node overlays
 
 /obj/effect/alien/weeds/node/proc/trap_destroyed()
 	SIGNAL_HANDLER
 	overlay_node = FALSE
-	overlays += staticnode
+	overlays += get_node_overlay_image() // SS220 EDIT: allow modular weed nodes to provide faction-specific node overlays
 
 /obj/effect/alien/weeds/node/Initialize(mapload, hive, mob/living/carbon/xenomorph/xeno)
 	if (hive)

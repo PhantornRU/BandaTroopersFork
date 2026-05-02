@@ -25,6 +25,31 @@
 	message_admins("[key_name_admin(approver)] has approved [key_name_admin(candidate)] to become the Pathogen Overmind!")
 	core.make_overmind(candidate)
 
+/datum/admins/proc/modular_handle_xeno_races_admin_topic(list/href_list)
+	if(href_list["overmind_deny"])
+		var/mob/ref_person = locate(href_list["overmind_deny"])
+		log_game("[key_name_admin(usr)] has refused the Overmind Request from [key_name_admin(ref_person)].")
+		message_admins("[key_name_admin(usr)] has refused the Overmind Request from [key_name_admin(ref_person)].", 1)
+		return TRUE
+
+	if(href_list["overmind_approve"])
+		GLOB.overmind_cancel = FALSE
+		var/mob/ref_person = locate(href_list["overmind_approve"])
+		message_admins("[key_name_admin(usr)] has granted the Overmind Request from [key_name_admin(ref_person)]! Finalizing in 10 seconds... (<A href='byond://?_src_=admin_holder;[HrefToken(forceGlobal = TRUE)];overmind_cancel=\ref[usr]'>CANCEL</A>)")
+		addtimer(CALLBACK(src, PROC_REF(approve_overmind), usr, ref_person), 10 SECONDS)
+		return TRUE
+
+	if(href_list["overmind_cancel"])
+		if(GLOB.overmind_cancel)
+			to_chat(usr, "The Overmind Request was either canceled, or you are too late to cancel.")
+			return TRUE
+		log_game("[key_name_admin(usr)] has canceled the Overmind Request.")
+		message_admins("[key_name_admin(usr)] has canceled the Overmind Request.")
+		GLOB.overmind_cancel = TRUE
+		return TRUE
+
+	return FALSE
+
 /obj/effect/alien/resin/special/pylon/pathogen_core/proc/allowed_to_overmind(mob/living/carbon/xenomorph/possible_overmind)
 	if(overmind_mob)
 		return FALSE

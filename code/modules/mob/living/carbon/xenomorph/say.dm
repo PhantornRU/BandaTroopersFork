@@ -73,9 +73,13 @@
 	..(message, speaking, verb, null, null, message_range, null)
 
 /mob/living/carbon/xenomorph/say_understands(mob/other, datum/language/speaking = null)
-	if(!istype(speaking, /datum/language/pathogen) && isxeno(other))
+	if(isxeno(other) && can_understand_xeno_speech(speaking)) // SS220 EDIT: modular xeno languages may opt out of shared xeno understanding
 		return TRUE
 	return ..()
+
+/// SS220 EDIT: modular xeno language understanding hook.
+/mob/living/carbon/xenomorph/proc/can_understand_xeno_speech(datum/language/speaking)
+	return TRUE
 
 
 //General proc for hivemind. Lame, but effective.
@@ -146,14 +150,8 @@
 				S.show_message(rendered, SHOW_MESSAGE_AUDIBLE)
 
 /mob/living/carbon/proc/get_hivemind_render(hivenumber, tier, message, tracker)
-	var/channel_name = "Hivemind"
-	var/speech_verb = "hisses"
-	if(hivenumber == XENO_HIVE_PATHOGEN)
-		channel_name = LANGUAGE_PATHOGEN_MIND
-		speech_verb = "clicks"
-
-	var/normal_message = "[channel_name], [tracker] [speech_verb], <span class='normal'>'[message]'</span>"
-	var/leader_message = "[channel_name], Leader [tracker] [speech_verb], <span class='normal'>'[message]'</span>"
+	var/normal_message = "Hivemind, [tracker] hisses, <span class='normal'>'[message]'</span>" // SS220 EDIT: shared render hook for modular hivemind flavors
+	var/leader_message = "Hivemind, Leader [tracker] hisses, <span class='normal'>'[message]'</span>"
 
 	switch(tier)
 		if("royal")

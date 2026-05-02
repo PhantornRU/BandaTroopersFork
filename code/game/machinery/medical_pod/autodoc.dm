@@ -531,7 +531,7 @@
 									qdel(I)
 						var/obj/item/alien_embryo/larva_ref = locate(/obj/item/alien_embryo) in H.contents
 						if(S.limb_ref.name == "chest" && larva_ref)
-							if(larva_ref.flags_embryo & FLAG_EMBRYO_HYBRID)
+							if(!larva_ref.can_autodoc_remove()) // SS220 EDIT: delegate modular embryo removal rules to the embryo type
 								visible_message("[icon2html(src, viewers(src))] \The <b>[src]</b> croaks: Procedure has been deemed impossible.")
 								playsound(src.loc, 'sound/machines/buzz-two.ogg', 15, 1)
 								surgery_todo_list -= S
