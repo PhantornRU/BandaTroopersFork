@@ -247,6 +247,8 @@
 /datum/world_edit_generator/destruction_pack/proc/apply_nonterminal_progress_damage(atom/target_atom, damage_amount, mob/source_mob = null)
 	if(!target_atom || QDELETED(target_atom) || damage_amount <= 0)
 		return FALSE
+	if(!hasvar(target_atom, "damage") || !hasvar(target_atom, "damage_cap"))
+		return FALSE
 
 	var/current_damage = text2num("[target_atom.vars["damage"]]")
 	var/damage_cap = text2num("[target_atom.vars["damage_cap"]]")
@@ -270,6 +272,8 @@
 
 /datum/world_edit_generator/destruction_pack/proc/apply_nonterminal_health_damage(atom/target_atom, damage_amount)
 	if(!target_atom || QDELETED(target_atom) || damage_amount <= 0)
+		return FALSE
+	if(!hasvar(target_atom, "health"))
 		return FALSE
 
 	var/current_health = text2num("[target_atom.vars["health"]]")
