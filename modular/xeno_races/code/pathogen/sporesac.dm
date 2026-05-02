@@ -3,6 +3,14 @@
 	density = FALSE
 	anchored = TRUE
 
+/obj/item/var/xeno_races_sporeproof = FALSE
+
+/obj/item/clothing/mask/gas/pve_mopp
+	xeno_races_sporeproof = TRUE
+
+/obj/item/clothing/head/helmet/marine/cbrn_hood
+	xeno_races_sporeproof = TRUE
+
 /obj/effect/pathogen/spore_sac
 	name = "spore sacs"
 	desc = "They look like clusters of mushroom spores."
@@ -227,10 +235,16 @@
 	var/obj/item/mask = human_passer.wear_mask
 	var/obj/item/helmet = human_passer.head
 	if(mask)
+		if(mask.xeno_races_sporeproof)
+			inhaling = FALSE
+			return FALSE
 		if(prob(98) && (mask.flags_inventory & BLOCKGASEFFECT))
 			inhaling = FALSE
 			return FALSE
 	if(helmet)
+		if(helmet.xeno_races_sporeproof)
+			inhaling = FALSE
+			return FALSE
 		if(prob(98) && (helmet.flags_inventory & BLOCKGASEFFECT))
 			inhaling = FALSE
 			return FALSE

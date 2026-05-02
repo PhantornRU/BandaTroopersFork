@@ -42,6 +42,7 @@
 	desc = "A weird, pulsating node."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	node_overlay_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 
 /obj/effect/alien/weeds/pathogen
 	name = "mycelium blight"
@@ -66,6 +67,102 @@
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+
+/obj/effect/alien/weeds/proc/xeno_races_pathogen_weed_expand()
+	if(!parent)
+		return
+
+	var/obj/effect/alien/weeds/node/node = parent
+	var/turf/U = get_turf(src)
+
+	if(!istype(U))
+		return
+
+	var/list/weeds = list()
+	for(var/dirn in GLOB.cardinals)
+		var/turf/T = get_step(src, dirn)
+		if(!istype(T))
+			continue
+		var/is_weedable = T.is_weedable()
+		if(!is_weedable)
+			continue
+		if(!spread_on_semiweedable && is_weedable < FULLY_WEEDABLE)
+			continue
+
+		var/obj/effect/alien/resin/fruit/old_fruit
+
+		var/obj/effect/alien/weeds/W = locate() in T
+		if(W)
+			if(W.indestructible)
+				continue
+			else if(W.weed_strength >= WEED_LEVEL_HIVE)
+				continue
+			else if(W.linked_hive == node.linked_hive && W.weed_strength >= node.weed_strength)
+				continue
+
+			old_fruit = locate() in T
+
+			if(old_fruit)
+				old_fruit.unregister_weed_expiration_signal()
+
+			qdel(W)
+
+		if(!istype(T, /turf/closed/wall/resin) && T.density)
+			if(istype(T, /turf/closed/wall))
+				weeds.Add(new /obj/effect/alien/weeds/weedwall/pathogen(T, node))
+				continue
+			else if(istype(T, /turf/closed))
+				weeds.Add(new /obj/effect/alien/weeds/pathogen(T, node, TRUE, FALSE))
+				continue
+
+		if(!xeno_races_pathogen_weed_expand_objects(T, dirn))
+			continue
+
+		var/obj/effect/alien/weeds/new_weed = new /obj/effect/alien/weeds/pathogen(T, node)
+		weeds += new_weed
+
+		if(old_fruit)
+			old_fruit.register_weed_expiration_signal(new_weed)
+
+	on_weed_expand(src, weeds)
+	if(parent)
+		parent.on_weed_expand(src, weeds)
+
+	return weeds
+
+/obj/effect/alien/weeds/proc/xeno_races_pathogen_weed_expand_objects(turf/T, direction)
+	for(var/obj/structure/platform/P in src.loc)
+		if(P.dir == reverse_direction(direction))
+			return FALSE
+	for(var/obj/structure/barricade/from_blocking_cade in loc)
+		if(from_blocking_cade.density && from_blocking_cade.dir == direction && from_blocking_cade.health >= (from_blocking_cade.maxhealth / 4))
+			return FALSE
+
+	for(var/obj/O in T)
+		if(istype(O, /obj/structure/platform))
+			if(O.dir == direction)
+				return FALSE
+
+		if(istype(O, /obj/structure/barricade))
+			var/obj/structure/barricade/to_blocking_cade = O
+			if(to_blocking_cade.density && to_blocking_cade.dir == GLOB.reverse_dir[direction] && to_blocking_cade.health >= (to_blocking_cade.maxhealth / 4))
+				return FALSE
+
+		if(istype(O, /obj/structure/window/framed))
+			new /obj/effect/alien/weeds/weedwall/window/pathogen(T, parent)
+			return FALSE
+		else if(istype(O, /obj/structure/window_frame))
+			new /obj/effect/alien/weeds/weedwall/frame/pathogen(T, parent)
+			return FALSE
+		else if(istype(O, /obj/structure/machinery/door) && O.density && (!(O.flags_atom & ON_BORDER) || O.dir != direction))
+			return FALSE
+	return TRUE
+
+/obj/effect/alien/weeds/pathogen/weed_expand()
+	return xeno_races_pathogen_weed_expand()
+
+/obj/effect/alien/weeds/node/pathogen/weed_expand()
+	return xeno_races_pathogen_weed_expand()
 
 /datum/action/xeno_action/onclick/plant_weeds/pathogen
 	name = "Spread Blight (200)"
