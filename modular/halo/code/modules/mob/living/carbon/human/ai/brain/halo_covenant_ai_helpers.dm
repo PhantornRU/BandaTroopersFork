@@ -572,7 +572,7 @@
 		halo_sangheili_track_drawn_sword(sword, storage_loc)
 		halo_sangheili_begin_melee_commit(sword)
 		if(!sword.activated && !sword.nonfunctional)
-			sword.toggle_activation(human)
+			sword.set_activation_state(TRUE, human)
 		ensure_primary_hand(sword)
 		return sword
 
@@ -600,7 +600,7 @@
 	halo_sangheili_begin_melee_commit(sword)
 
 	if(!sword.activated && !sword.nonfunctional)
-		sword.toggle_activation(human)
+		sword.set_activation_state(TRUE, human)
 	ensure_primary_hand(sword)
 	return sword
 
@@ -615,7 +615,7 @@
 		return FALSE
 
 	if(sword.activated)
-		sword.toggle_activation(human)
+		sword.set_activation_state(FALSE, human)
 
 	if(sword.loc != human)
 		on_halo_sangheili_sword_dropped()

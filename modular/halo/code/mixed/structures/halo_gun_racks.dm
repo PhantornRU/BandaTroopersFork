@@ -86,11 +86,9 @@
 	if(contents.len == 0)
 		flick("[initial(icon_state)]_reset", src)
 		playsound(src, 'sound/machines/elevator_openclose.ogg', 25)
-		if(initial_stored)
-			var/i = 0
-			while(i < initial_stored)
-				contents += new populate_type(src)
-				i++
+		if(initial_stored && populate_type)
+			for(var/i in 1 to initial_stored)
+				new populate_type(src)
 		not_usable = TRUE
 		addtimer(CALLBACK(src, PROC_REF(restore_usability)), 7 SECONDS)
 		addtimer(CALLBACK(src, PROC_REF(play_sound)), 4.5 SECONDS)
