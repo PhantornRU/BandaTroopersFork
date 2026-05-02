@@ -14,6 +14,10 @@
 	var/shared_cooldown = 0
 	/// Personal cooldown applied only to this action.
 	var/personal_cooldown = 0
+	/// Shared weighted resource cost paid from the package pool.
+	var/support_pool_cost = 0
+	/// Short anti-spam lockout used by charge-based templates.
+	var/personal_lockout = 0
 	/// Whether the action requires an active visibility sector.
 	var/requires_visibility_zone = TRUE
 	/// Optional grouping label for UI.
@@ -41,6 +45,8 @@
 	entry.scatter = scatter
 	entry.shared_cooldown = controller ? controller.get_effective_shared_cooldown(src) : shared_cooldown
 	entry.personal_cooldown = controller ? controller.get_effective_personal_cooldown(src) : personal_cooldown
+	entry.support_pool_cost = controller ? controller.get_effective_support_pool_cost(src) : support_pool_cost
+	entry.personal_lockout = controller ? controller.get_effective_action_lockout(src) : personal_lockout
 	entry.requires_visibility_zone = requires_visibility_zone
 	entry.icon_state = icon_state
 	entry.altitude_requirement = altitude_requirement

@@ -322,11 +322,13 @@
 		return
 
 	var/obj/docking_port/stationary/marine_dropship/dropzone = destination
-	if(mode == SHUTTLE_PREARRIVAL && !dropzone.landing_lights_on)
-		if(istype(destination, /obj/docking_port/stationary/marine_dropship))
-			dropzone.turn_on_landing_lights()
+	// SS220 EDIT - START: shuttle manipulator loads can transiently prearrive into non-marine docks before live registration finishes
+	// if(mode == SHUTTLE_PREARRIVAL && !dropzone.landing_lights_on)
+	if(mode == SHUTTLE_PREARRIVAL && istype(dropzone) && !dropzone.landing_lights_on)
+		dropzone.turn_on_landing_lights()
 		playsound(dropzone.return_center_turf(), landing_sound, 60, 0)
 		playsound(return_center_turf(), landing_sound, 60, 0)
+	// SS220 EDIT - END
 
 	automated_check()
 

@@ -7,8 +7,8 @@
 	var/paired_binocular_type = /obj/item/device/binoculars/rto
 
 /obj/item/storage/pouch/sling/rto/halo
-	name = "HALO RTO sling pouch"
-	desc = "A HALO sling pouch configured for a paired RTO binocular set."
+	name = "UNSC RTO sling pouch"
+	desc = "A sling pouch configured for a paired UNSC RTO binocular set."
 
 /obj/item/storage/pouch/sling/rto/halo/unsc
 	name = "UNSC RTO sling pouch"

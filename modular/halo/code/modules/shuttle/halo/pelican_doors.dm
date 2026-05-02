@@ -1,7 +1,7 @@
 /obj/structure/machinery/door/airlock/unsc/pelican/cockpit
 	name = "\improper D77H-TCE \"Pelican\" cockpit door"
 	desc = "The cockpit door to a pelican."
-	icon = 'icons/halo/obj/structures/doors/pelican_cockpit.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/pelican_cockpit.dmi'
 	opacity = TRUE
 	openspeed = 7
 	autoclose = FALSE
@@ -11,7 +11,7 @@
 /obj/structure/machinery/door/airlock/multi_tile/almayer/dropshiprear/pelican
 	name = "\improper D77H-TCE \"Pelican\" rear hatch"
 	desc = "The rear hatch to a pelican."
-	icon = 'icons/halo/obj/structures/doors/pelican_hatch.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/doors/pelican_hatch.dmi'
 
 	id = "aft_door"
 	opacity = FALSE

@@ -1,33 +1,28 @@
 # PLAN
 
-## Активная задача
-Обновить текущую ветку `various_fixes` из актуального `upstream/master`, проверить итоговый git-state и отдельно выровнять удаленную ветку `origin/master` ровно на `upstream/master`, не переключая текущую ветку.
+## Active Task
+Normalize repository AI-agent instructions so approved implementation plans cannot be replaced by small fixes, wrappers, or test-only closure.
+
+## Goal
+- Remove contradictions between `AGENTS.md`, `.AI_AGENT/README.md`, `WORKFLOW_RULES.md`, and `POLICIES.md`.
+- Establish one execution order for approved plans: read-only discovery -> task-state contract -> plan-mapping challenge -> product-code/docs edits -> old-path audit -> task-state sync -> verification/final.
+- Preserve the existing repository preferences for `rg`, modular-first development, build tooling, UTF-8 docs, and non-destructive git behavior.
 
 ## Scope
-- Обновить refs из remotes.
-- Синхронизировать `various_fixes` с `upstream/master`.
-- Проверить итоговый git-state и отсутствие конфликтных хвостов.
-- Переставить локальный `master` на `upstream/master`.
-- Форс-пушнуть `origin/master` на точный upstream commit.
+- Stable guidance files:
+  - `AGENTS.md`
+  - `modular/__agents/.AI_AGENT/README.md`
+  - `modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`
+  - `modular/__agents/.AI_AGENT/POLICIES.md`
+- Active task-state files:
+  - `modular/__agents/.AI_AGENT/PLAN.md`
+  - `modular/__agents/.AI_AGENT/TODO.md`
+  - `modular/__agents/.AI_AGENT/DECISIONS.md`
+  - `modular/__agents/.AI_AGENT/EVIDENCE.md`
 
-## Out of scope
-- Rebase или иное переписывание истории текущей рабочей ветки.
-- Любые кодовые правки вне автоматического merge.
-- Полный build/CI-прогон, если merge завершится без конфликтов и пользователь не просит compile-проверки отдельно.
-
-## Решение
-- Использовать `fetch -> merge -> verify -> push`.
-- Для `master` использовать отдельный ref update и force-push без checkout.
-
-## Итоговый статус
-- `upstream/master` обновлен до `8667f84537`.
-- `various_fixes` синхронизирована merge-коммитом `c94263128e`.
-- `origin/various_fixes` обновлен до `c94263128e`.
-- Локальный `master` и `origin/master` выровнены на `8667f84537`.
-- Рабочее дерево чистое.
-
-## Acceptance criteria
-- `git fetch --all --prune` выполнен успешно.
-- `upstream/master` является предком `HEAD`.
-- `git diff --check` не сообщает ошибок.
-- `origin/master` и `upstream/master` указывают на один и тот же commit.
+## Acceptance Criteria
+- No rule still depends on "large task" when the user has given or approved a concrete plan.
+- Task-state edits are clearly separated from product-code/docs edits.
+- `PASS WITH RISKS`, `BLOCKED`, and test status cannot hide incomplete `MUST/KEEP/REJECT` items.
+- Subagents are only used when explicitly allowed by the user and current higher-priority instructions.
+- Docs stay concise UTF-8 Markdown with no mojibake.

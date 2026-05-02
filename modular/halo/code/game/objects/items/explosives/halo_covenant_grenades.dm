@@ -1,5 +1,5 @@
 /obj/item/explosive/grenade/high_explosive/covenant
-	icon = 'icons/halo/obj/items/weapons/grenades.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi'
 	icon_state = "m9"
 	item_state = "m9"
 	arm_sound = 'sound/weapons/grenade.ogg'
@@ -38,6 +38,11 @@
 /obj/item/explosive/grenade/high_explosive/covenant/plasma/Destroy()
 	QDEL_NULL(hiss_loop)
 	return ..()
+
+/obj/item/explosive/grenade/high_explosive/plasma
+	parent_type = /obj/item/explosive/grenade/high_explosive/covenant/plasma
+	name = "\improper Anskum-pattern plasma grenade"
+	desc = "Also referred to as a 'Firebomb', 'Holy Light' and 'Flare', the Anskum-pattern is the standard issue hand tossed explosive given to Covenant troops."
 
 /obj/item/explosive/grenade/high_explosive/covenant/plasma/activate(mob/user = null, hand_throw = TRUE)
 	..()
@@ -206,14 +211,14 @@
 		if(SOUTHWEST)
 			x_offset += 6
 			y_offset += 6
-	attached_icon = image(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
-	attached_icon_em = emissive_appearance(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
+	attached_icon = image(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
+	attached_icon_em = emissive_appearance(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
 
 /datum/component/status_effect/plasma_stuck/proc/update_human_icon()
 	x_offset = rand(-3, 3)
 	if(zone in list("chest", "head", "groin"))
-		attached_icon = image(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma_centerbody")
-		attached_icon_em = emissive_appearance(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma_centerbody")
+		attached_icon = image(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma_centerbody")
+		attached_icon_em = emissive_appearance(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma_centerbody")
 		if(zone == "head")
 			y_offset = rand(4, 7)
 		else if(zone == "chest")
@@ -221,8 +226,8 @@
 		else
 			y_offset = rand(1, -2)
 	else
-		attached_icon = image(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
-		attached_icon_em = emissive_appearance(icon = 'icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
+		attached_icon = image(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
+		attached_icon_em = emissive_appearance(icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi', icon_state = "stuck_plasma")
 		if(zone in list("r_arm", "r_leg", "r_hand", "r_foot", "l_foot"))
 			attached_icon.transform = matrix(-1, 0, 0, 0, 1, 0)
 			attached_icon.transform.Translate(32, 0)

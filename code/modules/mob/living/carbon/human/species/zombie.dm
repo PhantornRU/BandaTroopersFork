@@ -56,11 +56,7 @@
 	if(zombie.glasses) zombie.drop_inv_item_on_ground(zombie.glasses, FALSE, TRUE)
 	if(zombie.wear_mask) zombie.drop_inv_item_on_ground(zombie.wear_mask, FALSE, TRUE)
 
-	var/obj/item/weapon/zombie_claws/ZC = new(zombie)
-	ZC.icon_state = "claw_r"
-	zombie.equip_to_slot_or_del(ZC, WEAR_R_HAND, TRUE)
-	zombie.equip_to_slot_or_del(new /obj/item/weapon/zombie_claws(zombie), WEAR_L_HAND, TRUE)
-	zombie.equip_to_slot_or_del(new /obj/item/clothing/glasses/zombie_eyes(zombie), WEAR_EYES, TRUE)
+	refresh_intrinsic_equipment(zombie) // SS220 EDIT: restore zombie-owned claws/eyes through the shared intrinsic refresh hook
 
 	var/datum/disease/black_goo/zombie_infection = locate() in zombie.viruses
 	if(!zombie_infection)
@@ -71,6 +67,29 @@
 	Hu.add_hud_to(zombie, zombie)
 
 	return ..()
+
+// SS220 EDIT - START
+/datum/species/zombie/refresh_intrinsic_equipment(mob/living/carbon/human/zombie)
+	if(zombie.l_hand && !istype(zombie.l_hand, /obj/item/weapon/zombie_claws))
+		zombie.drop_inv_item_on_ground(zombie.l_hand, FALSE, TRUE)
+	if(zombie.r_hand && !istype(zombie.r_hand, /obj/item/weapon/zombie_claws))
+		zombie.drop_inv_item_on_ground(zombie.r_hand, FALSE, TRUE)
+	if(zombie.glasses && !istype(zombie.glasses, /obj/item/clothing/glasses/zombie_eyes))
+		zombie.drop_inv_item_on_ground(zombie.glasses, FALSE, TRUE)
+
+	if(!istype(zombie.r_hand, /obj/item/weapon/zombie_claws))
+		var/obj/item/weapon/zombie_claws/right_claw = new(zombie)
+		right_claw.icon_state = "claw_r"
+		zombie.equip_to_slot_or_del(right_claw, WEAR_R_HAND, TRUE)
+	else
+		var/obj/item/weapon/zombie_claws/right_claw = zombie.r_hand
+		right_claw.icon_state = "claw_r"
+
+	if(!istype(zombie.l_hand, /obj/item/weapon/zombie_claws))
+		zombie.equip_to_slot_or_del(new /obj/item/weapon/zombie_claws(zombie), WEAR_L_HAND, TRUE)
+	if(!istype(zombie.glasses, /obj/item/clothing/glasses/zombie_eyes))
+		zombie.equip_to_slot_or_del(new /obj/item/clothing/glasses/zombie_eyes(zombie), WEAR_EYES, TRUE)
+// SS220 EDIT - END
 
 
 

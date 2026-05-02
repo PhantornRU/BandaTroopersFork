@@ -2,7 +2,7 @@
 	name = "\improper blamite needler charge"
 	desc = "Светящийся розовый кристаллический заряд для игольника."
 	caliber = "needle"
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'
 	icon_state = "blamite"
 	item_state = "blamite"
 	w_class = SIZE_MEDIUM
@@ -16,7 +16,7 @@
 	name = "\improper carbine magazine"
 	desc = "Вмещает 18 зарядов радиоактивного безумия."
 	caliber = "8x60mm"
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_magazines.dmi'
 	icon_state = "carbine_mag"
 	item_state = "carbine_mag"
 	w_class = SIZE_MEDIUM

@@ -1,6 +1,6 @@
 /datum/language/sangheili
 	name = LANGUAGE_SANGHEILI
-	desc = "An ancient language utilized by the Sangheili, though in common use by Covenant members."
+	desc = "Древний язык сангхейли, который в Ковенанте понимают и используют многие его члены."
 	speech_verb = "произносит"
 	ask_verb = "спрашивает"
 	exclaim_verb = list("восклицает", "рычит")
@@ -11,7 +11,7 @@
 
 /datum/language/unggoy
 	name = LANGUAGE_UNGGOY
-	desc = "A language frequently utilized by Unggoy for private conversation."
+	desc = "Язык, которым унггои часто пользуются для своих разговоров и перебранок."
 	speech_verb = "тараторит"
 	ask_verb = "пищит"
 	exclaim_verb = list("визжит", "верещит")
@@ -19,3 +19,14 @@
 	key = "u"
 	syllables = list("wrab","gub","zub","graf","wraf","grub","wr","af","ah","wa","snr","ne","uh")
 	space_chance = 40
+
+/datum/language/ruuhtian
+	name = LANGUAGE_RUUHTIAN
+	desc = "The clipped and rasping speech of Kig-Yar warriors."
+	speech_verb = "rasps"
+	ask_verb = "clicks"
+	exclaim_verb = list("shrills", "hisses")
+	color = "ruuhtian"
+	key = "k"
+	syllables = list("car", "caz", "cak", "crik", "crith", "croth", "krut", "kup", "kut", "zhar", "zhak", "zad", "zak", "zik", "zeev")
+	space_chance = 35

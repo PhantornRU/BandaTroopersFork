@@ -1,7 +1,7 @@
 /obj/item/storage/box/tear_packet
 	name = "packet"
 	desc = "Пластиковый пакет."
-	icon = 'icons/halo/obj/items/storage/packets.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/storage/packets.dmi'
 	icon_state = "ammo_packet"
 	w_class = SIZE_SMALL
 	can_hold = list()

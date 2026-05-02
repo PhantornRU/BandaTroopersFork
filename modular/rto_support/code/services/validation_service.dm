@@ -18,7 +18,7 @@
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure(controller.get_action_block_message(RTO_SUPPORT_ARM_VISIBILITY_ZONE, template.template_id))
 		return failure
-	if(template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
+	if(!GLOB.game_rule_state?.support_underground_enabled && template.visibility_altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Точка недоступна для авиационного сектора.")
 		return failure
@@ -36,7 +36,12 @@
 	var/datum/rto_support_validation_result/result = validate_support_context(controller, template, target_turf, user, binoculars, require_zone, action_template.allow_closed_turf)
 	if(!result.success)
 		return result
-	if(controller.get_remaining_shared_cooldown(template.template_id) > 0)
+	if(controller.template_uses_support_pool(template))
+		if(!controller.can_pay_support_pool_cost(action_template, template.template_id))
+			var/datum/rto_support_validation_result/failure = new
+			failure.set_failure(controller.get_action_block_message(action_template.action_id, template.template_id))
+			return failure
+	else if(controller.get_remaining_shared_cooldown(template.template_id) > 0)
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure(controller.get_action_block_message(action_template.action_id, template.template_id))
 		return failure
@@ -44,7 +49,7 @@
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure(controller.get_action_block_message(action_template.action_id, template.template_id))
 		return failure
-	if(action_template.altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
+	if(!GLOB.game_rule_state?.support_underground_enabled && action_template.altitude_requirement == RTO_SUPPORT_ALTITUDE_HIGH && !is_high_altitude_target_valid(user, target_turf))
 		var/datum/rto_support_validation_result/failure = new
 		failure.set_failure("Точка недоступна для этого типа поддержки.")
 		return failure

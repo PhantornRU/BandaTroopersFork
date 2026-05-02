@@ -35,7 +35,7 @@
 			continue
 
 		var/datum/firearm_appraisal/this_appraisal = get_firearm_appraisal(secondary) || default_appraisal // SS220 EDIT - HALO GUN FIX
-		if(this_appraisal.primary_weight > best_secondary_appraisal.primary_weight)
+		if(this_appraisal.get_primary_weight(tied_human) > best_secondary_appraisal.get_primary_weight(tied_human)) // SS220 EDIT: allow modular firearm appraisals to bias primary selection
 			best_secondary = secondary
 			best_secondary_appraisal = this_appraisal
 			continue

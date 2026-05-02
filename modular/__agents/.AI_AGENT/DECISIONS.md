@@ -1,17 +1,13 @@
 # DECISIONS
 
-## D-001: Синхронизация `various_fixes` делается через merge
-- Решение: влить `upstream/master` в текущую ветку.
-- Почему: ветка уже живет с merge-историей, а пользователь просит обновить ветку и решить конфликты, а не переписывать историю.
+## D-001: Use one normalized workflow instead of additive exceptions
+- Decision: rewrite the affected instruction sections so approved-plan execution has one order and one set of blocking statuses.
+- Why: adding extra warnings without removing old thresholds left escape hatches such as "small hotfix", "tests passed", and "not a large task".
 
-## D-002: Перед merge обязательно обновляются все refs
-- Решение: сначала выполнить `git fetch --all --prune`.
-- Почему: нужно выравниваться по реальному состоянию remotes, а не по потенциально устаревшим локальным tracking refs.
+## D-002: Treat task-state edits as the allowed planning mutation
+- Decision: after read-only discovery, updating `PLAN/TODO/DECISIONS/EVIDENCE` is the only mutation allowed before implementation edits.
+- Why: the previous wording required task-state updates before mutating edits while also classifying every file edit as mutating.
 
-## D-003: `master` обновляется без переключения текущей ветки
-- Решение: переставить локальный `master` на `upstream/master` отдельной командой и затем форс-пушнуть `origin/master`.
-- Почему: пользователь явно попросил не трогать текущую ветку, но привести `MASTER` на репозитории к полному соответствию апстриму.
-
-## D-004: При чистом автоматическом merge compile-проверки не обязательны
-- Решение: ограничиться git-проверками (`status`, `diff --check`, remote refs`) в рамках этой задачи.
-- Почему: пользователь запросил git-sync/reset, merge завершился без конфликтов и без ручных кодовых правок.
+## D-003: Verification is separate from plan fidelity
+- Decision: tests and compile checks remain expected evidence, but they cannot close `MUST/KEEP/REJECT` items by themselves.
+- Why: the user's current priority is adherence to approved plans; verification should not become a substitute for requested architecture work.

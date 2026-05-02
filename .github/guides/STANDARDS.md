@@ -103,6 +103,15 @@ var/path_type = "/obj/item/baseball_bat"
 
 * Changes to the `/config` tree must be made in a way that allows for updating server deployments while preserving previous behaviour. This is due to the fact that the config tree is to be considered owned by the user and not necessarily updated alongside the remainder of the code. The code to preserve previous behaviour may be removed at some point in the future given the OK by maintainers.
 
+### Tests
+
+Tests should protect the highest-value contract of a change, not mirror every nearby implementation detail.
+
+* Prefer one focused regression test per bug or contract over broad suites that restate the whole implementation.
+* Assert only the smallest stable set of facts needed to prove the important behavior.
+* Avoid exhaustively checking internal metadata, helper-by-helper transitions, or large matrices unless that detail is itself the public/stable contract.
+* Expand coverage broadly only for high-risk surfaces such as security, persistence, serialization, or areas with repeated regressions.
+
 ## Structural
 ### No duplicated code (Don't repeat yourself)
 Copying code from one place to another may be suitable for small, short-time projects, but /tg/station is a long-term project and highly discourages this.

@@ -1,7 +1,7 @@
 /obj/structure/closet/crate/unsc
 	name = "UNSC supply crate"
 	desc = "Стандартный ящик снабжения сил ККОН, пригодный для хранения самых разных предметов."
-	icon = 'icons/halo/obj/structures/crates.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/crates.dmi'
 	icon_state = "closed_unsc"
 	icon_opened = "open_unsc"
 	icon_closed = "closed_unsc"
@@ -9,14 +9,14 @@
 /obj/structure/prop/unsc_crate
 	name = "UNSC crate"
 	desc = "Военный грузовой ящик."
-	icon = 'icons/halo/obj/structures/props/crates.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/props/crates.dmi'
 	icon_state = null
 	density = TRUE
 
 /obj/structure/prop/unsc_crate/stack
 	name = "secured UNSC supply crates"
 	desc = "Два ящика снабжения, стянутые между собой ремнём."
-	icon = 'icons/halo/obj/structures/crates.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/crates.dmi'
 	icon_state = "cratestack"
 
 /obj/structure/prop/unsc_crate/standard
@@ -51,7 +51,7 @@
 /obj/structure/prop/unsc_crate/big
 	name = "large UNSC crate"
 	desc = "Крупный военный грузовой ящик."
-	icon = 'icons/halo/obj/structures/props/64x64crates.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/props/64x64crates.dmi'
 	icon_state = "crate"
 	bound_height = 64
 	pixel_x = -5
@@ -68,7 +68,7 @@
 /obj/structure/cargo_container/unsc
 	name = "UNSC cargo container"
 	desc = "Крупный грузовой контейнер оливкового цвета."
-	icon = 'icons/halo/obj/structures/props/containers.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/props/containers.dmi'
 	icon_state = "main_1"
 	density = TRUE
 	health = 400

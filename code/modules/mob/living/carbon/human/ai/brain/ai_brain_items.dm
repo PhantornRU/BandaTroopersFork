@@ -99,22 +99,45 @@
 	return (locate(object_path) in equipment_map[object_type])
 
 /datum/human_ai_brain/proc/store_item(obj/item/object_ref, object_loc, slot_type)
+	// SS220 EDIT - START: late AI store callbacks can outlive the held item, owner, or original storage slot
+	if(!has_valid_tied_human() || QDELETED(object_ref))
+		to_pickup -= object_ref
+		equipped_items_original_loc -= object_ref
+		if(slot_type)
+			equipment_map[slot_type] -= object_ref
+		return FALSE
+
 	if(object_ref.loc != tied_human)
-		return
+		to_pickup -= object_ref
+		equipped_items_original_loc -= object_ref
+		if(slot_type)
+			equipment_map[slot_type] -= object_ref
+		return FALSE
+
+	var/storage_loc = object_loc
+	var/obj/item/storage/storage_object
 
 	if(object_ref in equipped_items_original_loc)
-		var/obj/item/storage/storage_object = get_object_from_loc(equipped_items_original_loc[object_ref])
+		storage_loc = equipped_items_original_loc[object_ref]
+		storage_object = get_object_from_loc(storage_loc)
 		equipped_items_original_loc -= object_ref
-		storage_object.attempt_item_insertion(object_ref, FALSE, tied_human)
+	else if(storage_loc) // we assume that we've already checked if something will fit or not
+		storage_object = container_refs[storage_loc]
+
+	if(!storage_object || !storage_object.attempt_item_insertion(object_ref, FALSE, tied_human))
 		if(slot_type)
-			equipment_map[slot_type][object_ref] = object_loc
-	else if(object_loc) // we assume that we've already checked if something will fit or not
-		var/obj/item/storage/storage_item = container_refs[object_loc]
-		storage_item.attempt_item_insertion(object_ref, FALSE, tied_human)
-		if(slot_type)
-			equipment_map[slot_type][object_ref] = object_loc
+			equipment_map[slot_type] -= object_ref
+		if(tied_human.is_holding(object_ref))
+			tied_human.drop_held_item(object_ref)
+		to_pickup -= object_ref
+		return FALSE
+
+	if(slot_type)
+		equipment_map[slot_type][object_ref] = storage_loc
 
 	to_pickup -= object_ref
+	return TRUE
+	// SS220 EDIT - END
 
 /// Whenever an item is deleted, purge it from anywhere it may be stored in here
 /datum/human_ai_brain/proc/on_item_delete(obj/item/source, force)
@@ -126,6 +149,7 @@
 		active_grenade_found = null
 	invalidate_nearby_item_search()
 	invalidate_halo_runtime_caches()
+	equipped_items_original_loc -= source // SS220 EDIT: deleted held items must not keep stale original-slot tracking
 
 	for(var/name in container_refs)
 		if(source == container_refs[name])
@@ -247,8 +271,11 @@
 		add_secondary_weapon(tied_human.back)
 		return
 
-	if(!istype(tied_human.back, /obj/item/storage/backpack))
+	// SS220 EDIT - START: HALO transport rigs such as the SPNKr pack sit on the back slot as storage,
+	// but they are not guaranteed to inherit backpack. AI still needs to appraise their contents.
+	if(!istype(tied_human.back, /obj/item/storage))
 		return
+	// SS220 EDIT - END
 
 	for(var/id in equipment_map)
 		for(var/obj/item/item as anything in equipment_map[id])
@@ -463,7 +490,7 @@
 /datum/human_ai_brain/proc/item_search(list/things_around)
 	// SS220 EDIT - START: grenade threat must come only from the current local scan, not from stale refs.
 	active_grenade_found = null
-	var/can_handle_live_grenade = !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
+	var/can_handle_live_grenade = can_throw_back_grenades && !((tied_human.l_hand?.flags_item & NODROP) && (tied_human.r_hand?.flags_item & NODROP))
 	// SS220 EDIT - END
 	search_loop:
 		for(var/obj/item/thing in things_around)

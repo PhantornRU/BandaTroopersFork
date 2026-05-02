@@ -1,7 +1,9 @@
 /datum/species/unggoy
 	group = SPECIES_UNGGOY
-	name = "Unggoy"
-	name_plural = "Unggoy"
+	name = SPECIES_UNGGOY
+	name_plural = SPECIES_UNGGOY
+	display_name = "Унггой"
+	display_name_plural = "Унггои"
 	mob_flags = KNOWS_TECHNOLOGY
 	uses_skin_color = TRUE
 	flags = HAS_HARDCRIT|HAS_SKIN_COLOR|SPECIAL_BONEBREAK|NO_SHRAPNEL
@@ -33,11 +35,12 @@
 	stun_reduction = 2.5
 	knock_out_reduction = 2.5
 
-	icobase = 'icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
-	deform = 'icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
-	eye_icon = 'icons/halo/mob/humans/species/unggoy/eyes.dmi'
-	dam_icon = 'icons/halo/mob/humans/species/unggoy/dam_unggoy.dmi'
-	blood_mask = 'icons/halo/mob/humans/species/unggoy/blood_mask.dmi'
+	icobase = 'modular/halo/icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
+	deform = 'modular/halo/icons/halo/mob/humans/species/unggoy/r_unggoy.dmi'
+	eye_icon = 'modular/halo/icons/halo/mob/humans/species/unggoy/eyes.dmi'
+	dam_icon = 'modular/halo/icons/halo/mob/humans/species/unggoy/dam_unggoy.dmi'
+	blood_mask = 'modular/halo/icons/halo/mob/humans/species/unggoy/blood_mask.dmi'
+	icon_template = 'modular/halo/icons/mob/humans/template_96.dmi'
 
 	has_organ = list(
 		"heart" = /datum/internal_organ/heart/unggoy,

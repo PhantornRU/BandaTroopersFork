@@ -14,6 +14,9 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	/// If TRUE, shoots until the target is dead. Else, stops when downed
 	var/shoot_to_kill = TRUE
 
+	/// If TRUE, may enter the grenade throw-back action from nearby live grenades.
+	var/can_throw_back_grenades = TRUE // SS220 EDIT: modular HALO presets can opt weak HumanAI out of grenade throw-back
+
 	/// Distance for view checks
 	var/view_distance = 6
 
@@ -89,7 +92,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	RegisterSignal(tied_human, COMSIG_HUMAN_UNEQUIPPED_ITEM, PROC_REF(on_item_unequip))
 	RegisterSignal(tied_human, COMSIG_MOB_PICKUP_ITEM, PROC_REF(on_item_pickup))
 	RegisterSignal(tied_human, COMSIG_MOB_DROP_ITEM, PROC_REF(on_item_drop))
-	RegisterSignal(tied_human, COMSIG_MOB_DEATH, PROC_REF(reset_ai))
+	RegisterSignal(tied_human, COMSIG_MOB_DEATH, PROC_REF(on_human_death)) // SS220 EDIT: HALO death guard should tear down AI and force corpses prone immediately
 	RegisterSignal(tied_human, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
 	RegisterSignal(tied_human, COMSIG_HUMAN_BULLET_ACT, PROC_REF(on_shot))
 	RegisterSignal(tied_human, COMSIG_HUMAN_HANDCUFFED, PROC_REF(on_handcuffed))
@@ -115,6 +118,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 /datum/human_ai_brain/proc/reset_ai()
 	end_cover()
 	clear_detection_radius()
+	wake_rethink_queued_at = -1 // SS220 EDIT: reset must always cancel deferred wake-up recovery before owner teardown finishes
 
 	in_combat = FALSE
 	active_grenade_found = null // SS220 EDIT: reset stale grenade threat state so AI can leave throw-back mode cleanly
@@ -143,6 +147,19 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		reset_ai()
 		return
 
+	if(tied_human.stat == DEAD) // SS220 EDIT: dead HALO AI must never remain in the wake-up recovery path
+		clear_detection_radius()
+		wake_rethink_queued_at = -1 // SS220 EDIT: death fallback must kill any queued wake rethink that survived until process()
+		for(var/action in ongoing_actions)
+			qdel(action)
+		ongoing_actions.Cut()
+		lose_target()
+		if(!tied_human.resting)
+			tied_human.set_resting(TRUE, TRUE)
+		else
+			tied_human.set_lying_down()
+		return
+
 	if(tied_human.is_mob_incapacitated())
 		clear_detection_radius() // SS220 EDIT: stunned or dead AI should not keep turf-enter listeners alive
 		for(var/action in ongoing_actions)
@@ -159,8 +176,20 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if(should_force_resting)
 		if(!tied_human.resting)
 			tied_human.set_resting(TRUE, TRUE)
-	else if(tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
-		tied_human.set_resting(FALSE, TRUE)
+		else
+			tied_human.set_lying_down() // SS220 EDIT: crit-resting AI can keep a stale standing transform unless prone is re-asserted through the shared helper
+		clear_detection_radius() // SS220 EDIT: prone hardcrit AI should not keep live projectile listeners or continue active combat movement
+		for(var/action in ongoing_actions)
+			qdel(action)
+		ongoing_actions.Cut()
+		to_pickup.Cut() // SS220 EDIT: lying crit AI must drop stale pickup goals so it does not keep chasing far-away weapons after forced prone
+		invalidate_nearby_item_search()
+		return
+	else if((tied_human.stat == CONSCIOUS) && tied_human.resting && !HAS_TRAIT(tied_human, TRAIT_FLOORED))
+		// SS220 EDIT - START: final stand-up gate must stay exactly aligned with the existing wake rethink eligibility rules
+		if(has_valid_tied_human() && !tied_human.client && !tied_human.buckled && (tied_human.stat == CONSCIOUS) && !tied_human.is_mob_incapacitated())
+			tied_human.set_resting(FALSE, TRUE)
+		// SS220 EDIT - END
 	// SS220 EDIT - END
 
 	if(tied_human.buckled)
@@ -284,7 +313,21 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	SIGNAL_HANDLER
 	clear_detection_radius() // SS220 EDIT: aggressively tear down brain state before component qdel catches up
 	reset_ai()
+	wake_rethink_queued_at = -1 // SS220 EDIT: owner delete must not leave a queued wake rethink pointing at a null tied human
 	tied_human = null
+
+/datum/human_ai_brain/proc/on_human_death(datum/source)
+	SIGNAL_HANDLER
+	reset_ai()
+	wake_rethink_queued_at = -1 // SS220 EDIT: death signal must immediately invalidate any deferred wake processing
+	if(!has_valid_tied_human() || (tied_human.stat != DEAD))
+		return
+	if(tied_human.buckled) // SS220 EDIT: only the direct death path should release forced-standing buckle state
+		tied_human.buckled.unbuckle()
+	if(!tied_human.resting)
+		tied_human.set_resting(TRUE, TRUE)
+	else
+		tied_human.set_lying_down()
 
 /datum/human_ai_brain/proc/on_species_change(datum/source, new_species)
 	SIGNAL_HANDLER
@@ -298,7 +341,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 	if((new_position != STANDING_UP) || (old_position != LYING_DOWN))
 		return
 
-	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || (tied_human.stat != CONSCIOUS) || tied_human.is_mob_incapacitated())
 		return
 
 	invalidate_nearby_item_search() // SS220 EDIT: wake-up should immediately invalidate idle pickup/grenade scan throttles
@@ -316,7 +359,7 @@ GLOBAL_LIST_EMPTY(human_ai_brains)
 		return
 
 	wake_rethink_queued_at = -1
-	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || tied_human.is_mob_incapacitated())
+	if(!has_valid_tied_human() || tied_human.client || tied_human.buckled || (tied_human.stat != CONSCIOUS) || tied_human.is_mob_incapacitated())
 		return
 
 	if((last_process_tick == queued_tick) || (last_process_tick == world.time))

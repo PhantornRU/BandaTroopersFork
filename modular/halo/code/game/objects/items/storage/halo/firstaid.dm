@@ -1,7 +1,7 @@
 /obj/item/storage/firstaid/unsc
 	name = "UNSC health pack"
 	desc = "Первоклассные армейские медикаменты обычно лежат именно в этих восьмиугольных аптечках."
-	icon = 'icons/halo/obj/items/storage/medical.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/storage/medical.dmi'
 	icon_state = "healthpack"
 	open_state = "healthpack_empty"
 	storage_slots = 11
@@ -79,7 +79,7 @@
 /obj/item/storage/syringe_case/unsc
 	name = "syringe case"
 	desc = "Медицинский футляр для хранения шприцов."
-	icon = 'icons/halo/obj/items/storage/medical.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/storage/medical.dmi'
 	icon_state = "syringecase"
 	use_sound = "toolbox"
 	throw_speed = SPEED_FAST

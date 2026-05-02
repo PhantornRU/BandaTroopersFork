@@ -1,0 +1,33 @@
+GLOBAL_DATUM_INIT(world_edit_shape_catalog, /datum/world_edit_shape_catalog_service, new)
+
+/datum/world_edit_shape_catalog_service
+
+/datum/world_edit_shape_catalog_service/proc/get_supported_shape_ids()
+	return GLOB.world_edit_placement_shapes.world_edit_get_supported_shape_ids()
+
+/datum/world_edit_shape_catalog_service/proc/get_placement_shape_label(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_label(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_placement_shape_description(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_placement_shape_description(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_shape_interaction_kind(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_interaction_kind(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_shape_interaction_label(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_interaction_label(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_shape_preview_kind(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_preview_kind(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_shape_collector_min_points(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_collector_min_points(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/get_shape_collector_max_points(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_get_shape_collector_max_points(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/build_placement_shape_option(shape_id)
+	return GLOB.world_edit_placement_shapes.world_edit_build_placement_shape_option(shape_id)
+
+/datum/world_edit_shape_catalog_service/proc/build_shape_ui_fields(shape_id, list/current_params)
+	return GLOB.world_edit_placement_shapes.world_edit_build_shape_ui_fields(shape_id, current_params)

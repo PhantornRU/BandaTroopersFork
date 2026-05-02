@@ -117,10 +117,10 @@ Shared и personal cooldown'ы не рисуются как secondary labels.
 
 Primary label:
 
-- больший из `Общий КД: Ns` и `Личный КД: Ns`, если активны оба
-- иначе `Личный КД: Ns`, если активен personal cooldown
-- иначе `Общий КД: Ns`, если активен shared cooldown
-- иначе `Готово`
+- `Лок: Ns`, если активен personal lockout
+- `Нужно: X (есть Y)`, если не хватает shared charges пакета
+- `Заряды: Y/Z`, если ability готова и использует shared pool
+- `Готово`, только если пакет не использует charges
 
 ## 8. Utility modes
 

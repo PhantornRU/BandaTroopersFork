@@ -1,4 +1,4 @@
-﻿\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\__DEFINES\halo_shields.dm:/datum/halo_shield/sangheili/major
+\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\__DEFINES\halo_shields.dm:/datum/halo_shield/sangheili/major
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\__DEFINES\halo_shields.dm:/datum/halo_shield/sangheili/minor
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\__DEFINES\halo_shields.dm:/datum/halo_shield/sangheili/stealth
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\__DEFINES\halo_shields.dm:/datum/halo_shield/sangheili/ultra
@@ -593,12 +593,8 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/item/clothing/suit/marine/shielded/sangheili/minor/Initialize
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/item/clothing/suit/marine/shielded/sangheili/ultra
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/item/clothing/suit/marine/shielded/sangheili/ultra/Initialize
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/item/clothing/suit/marine/shielded/sangheili/zealot
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/item/clothing/suit/marine/shielded/sangheili/zealot/Initialize
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\shield_armor.dm:/obj/items/clothing/covenant/armor
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/mob/humans/onmob/clothing/unggoy/armor
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/obj/item/clothing/suit/marine/stealth/unggoy_specops
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/obj/item/clothing/suit/marine/unggoy
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/obj/item/clothing/suit/marine/unggoy/deacon
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\clothing\suits\marine_armor\covenant\unggoy.dm:/obj/item/clothing/suit/marine/unggoy/heavy
@@ -969,7 +965,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/clothing/suit/marine/shielded/sangheili/major
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/clothing/suit/marine/shielded/sangheili/minor
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/clothing/suit/marine/shielded/sangheili/ultra
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/clothing/suit/marine/shielded/sangheili/zealot
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/clothing/under/marine/covenant/sangheili
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/device/radio/headset/almayer/marine/covenant
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\sangheili.dm:/obj/item/storage/belt/marine/covenant/sangheili/major
@@ -1003,8 +998,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/ammo_magazine/needler_crystal
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/card/id/covenant
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/mask/gas/unggoy
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/suit/marine/stealth/unggoy_specops
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/suit/marine/stealth/unggoy_specops/ultra
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/suit/marine/unggoy/deacon
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/suit/marine/unggoy/heavy
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\gear_presets\Halo\unggoy.dm:/obj/item/clothing/suit/marine/unggoy/major
@@ -1441,8 +1434,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\cov_magazines.dm:/obj/item/weapon/gun/smg/covenant_needler
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\cov_magazines.dm:/obj/items/weapons/guns_by_faction/covenant/covenant_magazines
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/datum/action/item_action/toggle
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/attached_gun/grenade/ma5c
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/attached_gun/grenade/ma5c/New
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/bipod/srs_bipod
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/br55_barrel
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/br55_barrel/New
@@ -1457,10 +1448,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/m7
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/m90
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/m90/police
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/ma5c
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/ma5c/ma3a
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/ma5c/ma3a/New
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/flashlight/ma5c/New
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/m90_muzzle
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/ma3a_barrel
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_gun_attachables.dm:/obj/item/attachable/ma3a_barrel/New
@@ -1527,7 +1514,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/ammo_magazine/rifle/halo/vk78
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/ammo_magazine/smg/halo/m7
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/ammo_magazine/spnkr
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/attached_gun/grenade/ma5c
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/attachment
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/bipod/srs_bipod
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/br55_barrel
@@ -1540,8 +1526,6 @@
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/flashlight/m7
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/flashlight/m90
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/flashlight/m90/police
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/flashlight/ma5c
-\Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/flashlight/ma5c/ma3a
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/m90_muzzle/integrated
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/ma3a_barrel
 \Users\Alexey\Documents\GitHub\BandaTroopers\modular\halo\code\modules\projectiles\guns\halo\unsc_guns.dm:/obj/item/attachable/ma3a_shroud

@@ -180,15 +180,20 @@
 	desc = "An ammunition case containing eight boxes of slugs, eight boxes of buckshot, and four boxes of flechette rounds."
 	supplies = list(/obj/item/ammo_magazine/shotgun/slugs = 8, /obj/item/ammo_magazine/shotgun/buckshot = 8, /obj/item/ammo_magazine/shotgun/flechette = 4)
 
+/obj/structure/largecrate/supply/ammo/shotgun/half
+	name = "12 Gauge ammunition crate (x3)"
+	desc = "An ammunition case containing three boxes of shotgun slugs."
+	supplies = list(/obj/item/ammo_magazine/shotgun/slugs = 3)
+
 /obj/structure/largecrate/supply/ammo/m39
 	name = "\improper M39 HV magazine case (x16)"
 	desc = "An ammunition case containing sixteen M39 HV magazines."
 	supplies = list(/obj/item/ammo_magazine/smg/m39 = 16)
 
 /obj/structure/largecrate/supply/ammo/m39/half
-	name = "\improper M39 HV magazine case (x8)"
-	desc = "An ammunition case containing eight M39 HV magazines."
-	supplies = list(/obj/item/ammo_magazine/smg/m39 = 8)
+	name = "\improper M39 HV magazine case (x6)"
+	desc = "An ammunition case containing six M39 HV magazines."
+	supplies = list(/obj/item/ammo_magazine/smg/m39 = 6)
 
 /obj/structure/largecrate/supply/ammo/pistol
 	name = "sidearm ammunition case (x40)"
@@ -196,9 +201,9 @@
 	supplies = list(/obj/item/ammo_magazine/revolver = 16, /obj/item/ammo_magazine/pistol = 24)
 
 /obj/structure/largecrate/supply/ammo/pistol/half
-	name = "sidearm ammunition case (x20)"
-	desc = "An ammunition case containing eight M44 speedloaders, and twelve M4A3 magazines."
-	supplies = list(/obj/item/ammo_magazine/revolver = 8, /obj/item/ammo_magazine/pistol = 12)
+	name = "sidearm ammunition case (x12)"
+	desc = "An ammunition case containing four M44 speedloaders and eight M4A3 magazines."
+	supplies = list(/obj/item/ammo_magazine/revolver = 4, /obj/item/ammo_magazine/pistol = 8)
 
 /obj/structure/largecrate/supply/ammo/sentry
 	name = "\improper UA 571-C ammunition drum case (x6)"
@@ -251,8 +256,8 @@
 	icon_state = "case_double"
 
 /obj/structure/largecrate/supply/explosives/mines
-	name = "\improper M20A2 claymore case (x25)"
-	desc = "A case containing five boxes of five M20A2 claymores."
+	name = "M20A2 claymore bulk crate (x25)" // SS220 EDIT: sync HALO PR139 M20 mine crate wording.
+	desc = "A crate containing five cases of five M20A2 claymores." // SS220 EDIT: sync HALO PR139 M20 mine crate wording.
 	supplies = list(/obj/item/storage/box/explosive_mines = 5)
 
 /obj/structure/largecrate/supply/explosives/mines/m760

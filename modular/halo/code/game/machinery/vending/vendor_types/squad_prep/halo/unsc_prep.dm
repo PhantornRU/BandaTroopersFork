@@ -255,6 +255,27 @@
 
 //===========================//CORPSMAN\\================================\\
 
+/obj/effect/essentials_set/m90caws
+	spawned_gear_list = list(
+		/obj/item/weapon/gun/shotgun/pump/halo/m90/unloaded,
+		/obj/item/ammo_magazine/shotgun/buckshot/unsc,
+		/obj/item/ammo_magazine/shotgun/buckshot/unsc,
+	)
+
+/obj/effect/essentials_set/ma5_launcher
+	spawned_gear_list = list(
+		/obj/item/attachable/attached_gun/grenade/ma5,
+		/obj/item/ammo_box/magazine/misc/unsc/grenade/launchable,
+	)
+
+/obj/effect/essentials_set/m9_frag_4_pack
+	spawned_gear_list = list(
+		/obj/item/explosive/grenade/high_explosive/m15/unsc,
+		/obj/item/explosive/grenade/high_explosive/m15/unsc,
+		/obj/item/explosive/grenade/high_explosive/m15/unsc,
+		/obj/item/explosive/grenade/high_explosive/m15/unsc,
+	)
+
 GLOBAL_LIST_INIT(cm_vending_clothing_medic_unsc, list(
 
 		list("ОСНОВНОЕ", 0, null, null, null),
@@ -292,6 +313,7 @@ GLOBAL_LIST_INIT(cm_vending_clothing_medic_unsc, list(
 
 /obj/structure/machinery/cm_vending/clothing/medic/unsc
 	name = "\improper UNSC Squad Medical Equipment Rack"
+	vendor_role = list(JOB_SQUAD_MEDIC, JOB_SQUAD_MEDIC_UNSC, JOB_SQUAD_MEDIC_ODST)
 
 /obj/structure/machinery/cm_vending/clothing/medic/unsc/get_listed_products(mob/user)
 	return GLOB.cm_vending_clothing_medic_unsc

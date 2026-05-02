@@ -11,7 +11,7 @@
 	sound_bounce = "rocket_ricochet"
 	damage_falloff = 0
 	flags_ammo_behavior = AMMO_EXPLOSIVE|AMMO_ROCKET|AMMO_STRIKES_SURFACE
-	var/datum/effect_system/smoke_spread/smoke
+	var/datum/effect_system/smoke_spread/smoke = new /datum/effect_system/smoke_spread
 
 	accuracy = HIT_ACCURACY_TIER_2
 	accurate_range = 7
@@ -23,36 +23,29 @@
 	var/blast_power = 300
 	var/falloff_rate = 40
 
-/datum/ammo/rocket/New()
-	..()
-	smoke = new()
-
 /datum/ammo/rocket/Destroy()
 	qdel(smoke)
 	smoke = null
 	. = ..()
 
+/datum/ammo/rocket/proc/impact_explosion_and_smoke(turf/impact_turf, obj/projectile/projectile, falloff_shape = EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL)
+	cell_explosion(impact_turf, blast_power, falloff_rate, falloff_shape, null, projectile.weapon_cause_data)
+	smoke.set_up(1, impact_turf)
+	smoke.start()
+
 /datum/ammo/rocket/on_hit_mob(mob/mob, obj/projectile/projectile)
 	if(iscarbon(mob)) // Doesn't matter how built-different you are, it's an explosive rocket-propelled projectile hitting you.
 		mob.ex_act((blast_power*2), null, projectile.weapon_cause_data, 100)
-	cell_explosion(get_turf(mob), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(mob))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(mob), projectile)
 
 /datum/ammo/rocket/on_hit_obj(obj/object, obj/projectile/projectile)
-	cell_explosion(get_turf(object), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(object))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(object), projectile)
 
 /datum/ammo/rocket/on_hit_turf(turf/turf, obj/projectile/projectile)
-	cell_explosion(turf, blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, turf)
-	smoke.start()
+	impact_explosion_and_smoke(turf, projectile)
 
 /datum/ammo/rocket/do_at_max_range(obj/projectile/projectile)
-	cell_explosion(get_turf(projectile), blast_power, falloff_rate, EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL, null, projectile.weapon_cause_data)
-	smoke.set_up(1, get_turf(projectile))
-	smoke.start()
+	impact_explosion_and_smoke(get_turf(projectile), projectile)
 
 /datum/ammo/rocket/smoke
 	name = "hypervelocity smoke rocket"
@@ -334,6 +327,52 @@
 
 	shell_speed = AMMO_SPEED_TIER_4
 
+//RIDGEWAY TANK CANNON
+/datum/ammo/rocket/ltb/ridgeway
+	name = "115-мм снаряд"
+	icon_state = "ridgeway"
+	flags_ammo_behavior = AMMO_EXPLOSIVE|AMMO_ROCKET
+
+	accuracy = HIT_ACCURACY_TIER_4
+	accurate_range = 32
+	max_range = 32
+	damage = 250
+	shell_speed = AMMO_SPEED_TIER_4
+	penetration= ARMOR_PENETRATION_TIER_6
+
+/datum/ammo/rocket/ltb/ridgeway/on_hit_mob(mob/mob, obj/projectile/projectile)
+	if(iscarbon(mob)) // Tank beats everything.
+		mob.ex_act(350, null, projectile.weapon_cause_data, 150)
+	if(mob.mob_size >= MOB_SIZE_BIG)
+		var/mob/living/alivent = mob
+		alivent.apply_armoured_damage(damage*15, ARMOR_BOMB, BRUTE, null, penetration)
+	cell_explosion(get_turf(mob), 175, 50, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+	cell_explosion(get_turf(mob), 160, 100, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+
+/datum/ammo/rocket/ltb/ridgeway/on_hit_obj(obj/object, obj/projectile/projectile)
+	if(istype(object, /obj/vehicle/multitile))
+		var/obj/vehicle/multitile/mob = object
+		mob.next_move = world.time + vehicle_slowdown_time
+		playsound(mob, 'sound/effects/meteorimpact.ogg', 35)
+		mob.at_munition_interior_explosion_effect(cause_data = create_cause_data("Противотанковая ракета"))
+		mob.interior_crash_effect()
+		var/turf/turf = get_turf(mob.loc)
+		mob.ex_act(150, projectile.dir, projectile.weapon_cause_data, 100)
+		smoke.set_up(1, turf)
+		smoke.start()
+		return
+	cell_explosion(get_turf(object), 175, 50, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+	cell_explosion(get_turf(object), 160, 100, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+
+/datum/ammo/rocket/ltb/ridgeway/on_hit_turf(turf/turf, obj/projectile/projectile)
+	cell_explosion(get_turf(turf), 175, 50, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+	cell_explosion(get_turf(turf), 160, 100, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+
+/datum/ammo/rocket/ltb/ridgeway/do_at_max_range(obj/projectile/projectile)
+	cell_explosion(get_turf(projectile), 175, 50, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+	cell_explosion(get_turf(projectile), 160, 100, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, projectile.weapon_cause_data)
+
+
 /datum/ammo/rocket/wp
 	name = "white phosphorous rocket"
 	flags_ammo_behavior = AMMO_ROCKET|AMMO_EXPLOSIVE|AMMO_STRIKES_SURFACE
@@ -463,4 +502,3 @@
 
 /datum/ammo/rocket/custom/do_at_max_range(obj/projectile/projectile)
 	prime(null, projectile)
-

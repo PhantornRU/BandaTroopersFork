@@ -7,7 +7,7 @@
 
 	var/datum/equipment_preset/assigned_preset = ai_human.assigned_equipment_preset
 	var/expected_species = assigned_preset?.expected_species
-	if(expected_species && ai_human.species?.name != expected_species)
+	if(expected_species && ai_human.species?.group != expected_species && ai_human.species?.name != expected_species)
 		ai_human.set_species(expected_species)
 
 	if(!isnull(facing_dir))

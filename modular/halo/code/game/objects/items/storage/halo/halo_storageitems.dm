@@ -5,14 +5,17 @@
 /obj/item/storage/belt/gun/m6
 	name = "\improper M6 general pistol holster rig"
 	desc = "M276 - стандартная система разгрузочного снаряжения ККОН. Она состоит из модульного пояса с различными креплениями. В этой версии установлен кобурный модуль, позволяющий носить самые распространённые пистолеты, а также боковые подсумки под большинство пистолетных магазинов."
-	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m6_holster"
-	item_state = "s_marinebelt"
+	item_state = "m6_holster"
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
+	item_state_slots = list(
+		WEAR_L_HAND = "s_marinebelt",
+		WEAR_R_HAND = "s_marinebelt")
 	storage_slots = 7
 	can_hold = list(
 		/obj/item/weapon/gun/pistol/halo,
@@ -52,9 +55,9 @@
 /obj/item/storage/belt/gun/m7
 	name = "\improper M7 holster rig"
 	desc = "Специальная разгрузка под M7, редко выдаваемая вспомогательному и специализированному персоналу ККОН в качестве PDW."
-	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_state = "m7_holster"
-	item_state = "s_marinebelt"
+	item_state = "m7_holster"
 	storage_slots = 3
 	max_w_class = 6
 	can_hold = list(
@@ -66,10 +69,13 @@
 			"icon_x" = 0,
 			"icon_y" = 0))
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
+	item_state_slots = list(
+		WEAR_L_HAND = "s_marinebelt",
+		WEAR_R_HAND = "s_marinebelt")
 
 /obj/item/storage/belt/gun/m7/full/fill_preset_inventory()
 	handle_item_insertion(new /obj/item/weapon/gun/smg/halo/m7/folded_up())
@@ -87,14 +93,14 @@
 
 /obj/item/storage/belt/medical/unsc
 	name = "\improper M8A pattern medical storage rig"
-	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. Он состоит из модульного пояса с различными креплениями. Эта конфигурация встречается реже и предназначена для переноски более громоздких медицинских принадлежностей. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicalbelt"
 	item_state = "medicalbelt"
 	has_gamemode_skin = FALSE
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
 	item_state_slots = list(
@@ -119,7 +125,7 @@
 
 /obj/item/storage/belt/medical/lifesaver/unsc
 	name = "\improper M8A pattern lifesaver rig"
-	icon = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	desc = "M8A - один из стандартных разгрузочных комплектов ККОН. В этой конфигурации к нему крепится сумка, заполненная различными инжекторами и лёгкими медицинскими средствами, поэтому она особенно популярна у медиков. \nЩёлкните по спрайту правой кнопкой мыши и выберите \"toggle belt mode\", чтобы доставать таблетки из бутылочек простым нажатием."
 	icon_state = "medicbag"
 	item_state = "medicbag"
@@ -140,8 +146,8 @@
 	)
 	has_gamemode_skin = FALSE
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/belts/belts_by_faction/belt_unsc.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
 		WEAR_L_HAND = 'icons/mob/humans/onmob/items_lefthand_1.dmi',
 		WEAR_R_HAND = 'icons/mob/humans/onmob/items_righthand_1.dmi')
 	item_state_slots = list(
@@ -167,13 +173,20 @@
 	new /obj/item/stack/medical/splint(src)
 	new /obj/item/stack/medical/splint(src)
 
+/obj/item/storage/belt/shotgun/unsc
+	name = "\improper M276 pattern shotgun shell loading rig"
+
+/obj/item/storage/belt/shotgun/unsc/fill_preset_inventory()
+	for(var/i = 1 to storage_slots)
+		new /obj/item/ammo_magazine/handful/shotgun/buckshot_unsc(src)
+
 //======================
 // POUCHES
 //======================
 
 /obj/item/storage/pouch/medkit/unsc
 	name = "UNSC medical kit pouch"
-	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "medpouch"
 	can_hold_skill = list(
 		/obj/item/device/healthanalyzer = list(SKILL_MEDICAL, SKILL_MEDICAL_MEDIC),
@@ -204,15 +217,24 @@
 	new /obj/item/stack/medical/advanced/ointment(src)
 	new /obj/item/stack/medical/splint(src)
 
+/obj/item/storage/pouch/medkit/unsc/full_bio/fill_preset_inventory()
+	new /obj/item/storage/syringe_case/unsc/burnguard(src)
+	new /obj/item/stack/medical/advanced/bruise_pack(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/primeable/biofoam(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/primeable/biofoam(src)
+	new /obj/item/stack/medical/splint(src)
+	new /obj/item/reagent_container/glass/beaker/unsc/tramadol(src)
+	new /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo(src)
+
 //======================
 // HOLSTER POUCHES
 //======================
 
 /obj/item/storage/pouch/pistol/unsc
 	name = "\improper M6 pistol holster"
-	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "m6"
-	gun_underlay_path = 'icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
+	gun_underlay_path = 'modular/halo/icons/halo/obj/items/clothing/belts/belts_by_faction/belt_unsc.dmi'
 	icon_x = 0
 	icon_y = 0
 	can_hold = list(
@@ -222,7 +244,7 @@
 
 /obj/item/storage/pouch/magazine/pistol/unsc
 	name = "pistol magazine pouch"
-	icon = 'icons/halo/obj/items/clothing/pouches.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/pouches.dmi'
 	icon_state = "pistolmag"
 	can_hold = list(/obj/item/ammo_magazine/pistol/halo)
 
@@ -237,13 +259,13 @@
 
 /obj/item/storage/backpack/marine/satchel/rto/unsc
 	name = "UNSC radio backpack"
-	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "radiopack"
 	item_state = "radiopack"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 	networks_receive = list(FACTION_UNSC, FACTION_MARINE)
 	networks_transmit = list(FACTION_UNSC, FACTION_MARINE)
 	phone_category = PHONE_UNSC
@@ -251,53 +273,118 @@
 /obj/item/storage/backpack/marine/satchel/unsc
 	name = "UNSC buttpack"
 	desc = "Штатный задний подсумок пехоты ККОН."
-	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "buttpack"
 	item_state = "buttpack"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
 /obj/item/storage/backpack/marine/unsc
 	name = "UNSC rucksack"
 	desc = "Большой песочный рюкзак, крепящийся прямо к точкам подвеса брони M52B. Штатное снаряжение, используемое почти всеми ветвями ККОН с XXV века."
-	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "rucksack"
 	item_state = "rucksack"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
 
-/obj/item/storage/backpack/marine/ammo_rack/spnkr
-	name = "SPNKr tube storage backpack"
-	desc = "Две отдельные тканевые сумки, каждая из которых вмещает один двухтрубный блок M19 для M41 SPNKr."
-	icon = 'icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
+/obj/item/storage/large_holster/spnkr
+	name = "транспортный ранец для SPNKr"
+	desc = "Транспортная рама с двумя жёсткими тубусами под блоки M19 и отдельной подвесной системой под сам M41 SPNKr."
+	icon = 'modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi'
 	icon_state = "spnkrpack_0"
-	base_icon_state = "spnkrpack"
 	item_state = "spnkrpack"
-	storage_slots = 2
-	can_hold = list(/obj/item/ammo_magazine/spnkr)
+	flags_equip_slot = SLOT_BACK
+	storage_slots = 3
+	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
 	has_gamemode_skin = FALSE
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi')
+	drawSound = "rustle"
+	var/image/spnkr_overlay
 
-/obj/item/storage/backpack/marine/ammo_rack/spnkr/filled/fill_preset_inventory()
-	for(var/i = 1 to storage_slots)
+/obj/item/storage/large_holster/spnkr/Initialize()
+	. = ..()
+	spnkr_overlay = overlay_image('modular/halo/icons/halo/obj/items/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr")
+	if(length(contents))
+		update_icon()
+
+/obj/item/storage/large_holster/spnkr/Destroy()
+	QDEL_NULL(spnkr_overlay)
+	. = ..()
+
+/obj/item/storage/large_holster/spnkr/handle_item_insertion(obj/item/new_item, prevent_warning = FALSE, mob/user)
+	if(istype(new_item, /obj/item/weapon/gun/halo_launcher/spnkr) && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		return FALSE
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo in contents)
+		ammo_count++
+	if(istype(new_item, /obj/item/ammo_magazine/spnkr) && (ammo_count > 1))
+		return FALSE
+	return ..()
+
+/obj/item/storage/large_holster/spnkr/update_icon()
+	icon_state = "spnkrpack_0"
+	overlays -= spnkr_overlay
+	if(locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		overlays += spnkr_overlay
+	var/ammo_count = 0
+	for(var/obj/item/ammo_magazine/spnkr/ammo in contents)
+		ammo_count++
+		icon_state = "spnkrpack_[ammo_count]"
+	item_state = "spnkrpack"
+	var/mob/living/carbon/human/user = loc
+	if(istype(user))
+		user.update_inv_back()
+
+/obj/item/storage/large_holster/spnkr/get_mob_overlay(mob/user_mob, slot)
+	var/image/ret = ..()
+	if(slot == WEAR_BACK && locate(/obj/item/weapon/gun/halo_launcher/spnkr, contents))
+		var/image/weapon_holstered = overlay_image('modular/halo/icons/halo/mob/humans/onmob/clothing/back/back_by_faction/back_unsc.dmi', "+spnkr", color, RESET_COLOR)
+		ret.overlays += weapon_holstered
+	return ret
+
+/obj/item/storage/large_holster/spnkr/filled/fill_preset_inventory()
+	for(var/i = 1 to 2)
 		new /obj/item/ammo_magazine/spnkr(src)
 	update_icon()
+
+/obj/item/storage/large_holster/spnkr/filled/launcher/fill_preset_inventory()
+	for(var/i = 1 to 2)
+		new /obj/item/ammo_magazine/spnkr(src)
+	handle_item_insertion(new /obj/item/weapon/gun/halo_launcher/spnkr())
+	update_icon()
+
+/obj/item/storage/backpack/marine/ammo_rack/spnkr
+	parent_type = /obj/item/storage/large_holster/spnkr
+
+/obj/item/storage/backpack/marine/ammo_rack/spnkr/filled
+	parent_type = /obj/item/storage/large_holster/spnkr/filled
 
 //======================
 // BOXES
 //======================
 
+/obj/item/storage/box/personalcase/unsc
+	name = "оружейный кейс UNSC"
+	desc = "Защищенный кейс с замком, содержащий чье-то заказное оружие."
+	icon = 'modular/halo/icons/halo/obj/items/storage/kits.dmi'
+
+/obj/item/storage/box/personalcase/unsc/assign_owner(new_owner)
+	owner = new_owner
+	name = "\improper оружейный кейс UNSC ([owner])"
+	desc = "Защищенный кейс с замком, содержащий заказное оружие, закрепленное за [owner]."
+
 /obj/item/storage/unsc_speckit
-	name = "UNSC specialist kit box"
+	name = "ящик комплекта специалиста UNSC"
 	desc = "Неподписанный и никак не маркированный ящик со специализированным снаряжением. Остаётся лишь гадать, что лежит внутри."
-	icon = 'icons/halo/obj/items/storage/spec_kits.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/storage/spec_kits.dmi'
 	icon_state = "template"
 	var/open_state = "template_o"
 	var/icon_full = "template" //icon state to use when kit is full
@@ -331,23 +418,19 @@
 		open(user)
 
 /obj/item/storage/unsc_speckit/spnkr
-	name = "SPNKr equipment case"
+	name = "кейс комплекта SPNKr"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SPNKr."
 	icon_state = "spnkr"
 	open_state = "spnkr_o"
 	icon_full = "spnkr"
-	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/storage/backpack/marine/ammo_rack/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
+	can_hold = list(/obj/item/ammo_magazine/spnkr, /obj/item/storage/large_holster/spnkr, /obj/item/weapon/gun/halo_launcher/spnkr)
 	storage_slots = 5
 
 /obj/item/storage/unsc_speckit/spnkr/fill_preset_inventory()
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/ammo_magazine/spnkr(src)
-	new /obj/item/storage/backpack/marine/ammo_rack/spnkr(src)
-	new /obj/item/weapon/gun/halo_launcher/spnkr/unloaded(src)
+	new /obj/item/storage/large_holster/spnkr/filled/launcher(src)
 
 /obj/item/storage/unsc_speckit/srs99
-	name = "SRS99-AM equipment case"
+	name = "кейс комплекта SRS99-AM"
 	desc = "Кейс с самым необходимым для оружейного специалиста ККОН. На крышке этого экземпляра нанесена эмблема SRS99-AM."
 	icon_state = "srs99"
 	open_state = "srs99_o"
@@ -372,7 +455,7 @@
 /obj/item/storage/belt/marine/covenant
 	name = "\improper Covenant ammunition belt"
 	desc = "Модульное крепление для боевого снаряжения воина, принимающее несколько жёстких контейнеров для личного хранения и кобурирования оружия. Благодаря развитию умных материалов пояс теоретически действительно подходит всем."
-	icon = 'icons/halo/obj/items/clothing/covenant/belts.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/belts.dmi'
 	icon_state = "sangbelt_minor"
 	has_gamemode_skin = FALSE
 	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
@@ -438,7 +521,7 @@
 	SIGNAL_HANDLER
 	if(source != grenade_scatter_owner || source.belt != src)
 		return
-	if(!issangheili(source) && !isunggoy(source))
+	if(!issangheili(source) && !isunggoy(source) && !isruuhtian(source))
 		return
 
 	INVOKE_ASYNC(src, PROC_REF(scatter_stored_grenades), source, get_turf(source))
@@ -447,9 +530,7 @@
 	if(!isturf(origin_turf) || !length(contents))
 		return
 
-	var/list/grenades_to_scatter = list()
-	for(var/obj/item/explosive/grenade/grenade as anything in contents)
-		grenades_to_scatter += grenade
+	var/list/grenades_to_scatter = get_stored_grenades_for_scatter()
 
 	if(!length(grenades_to_scatter))
 		return
@@ -474,71 +555,105 @@
 		if(target_turf != origin_turf)
 			grenade.throw_atom(target_turf, get_dist(origin_turf, target_turf), SPEED_FAST, source, TRUE)
 
+/obj/item/storage/belt/marine/covenant/proc/get_stored_grenades_for_scatter()
+	var/list/grenades_to_scatter = list()
+	for(var/obj/item/stored_item as anything in contents)
+		if(istype(stored_item, /obj/item/explosive/grenade))
+			grenades_to_scatter += stored_item
+	return grenades_to_scatter
+
 /obj/item/storage/belt/marine/covenant/sangheili
-	name = "\improper Sangheili ammunition belt"
+	name = "\improper патронташ сангхейли"
 	icon_state = "sangbelt_minor"
 	item_state = "sangbelt_minor"
 	storage_slots = 9
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/sangheili/belts.dmi'
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/belts.dmi'
 		)
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor
-	name = "\improper Sangheili Minor ammunition belt"
+	name = "\improper патронташ сангхейли-минора"
 
 /obj/item/storage/belt/marine/covenant/sangheili/minor/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/major
-	name = "\improper Sangheili Major ammunition belt"
+	name = "\improper патронташ сангхейли-майора"
 	icon_state = "sangbelt_major"
 	item_state = "sangbelt_major"
 
 /obj/item/storage/belt/marine/covenant/sangheili/major/stored_needles
 
 /obj/item/storage/belt/marine/covenant/sangheili/ultra
-	name = "\improper Sangheili Ultra ammunition belt"
+	name = "\improper патронташ сангхейли-ультры"
 	icon_state = "sangbelt_ultra"
 	item_state = "sangbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/sangheili/zealot
-	name = "\improper Sangheili Zealot ammunition belt"
+	name = "\improper патронташ сангхейли-зилота"
 	icon_state = "sangbelt_zealot"
 	item_state = "sangbelt_zealot"
 
 /obj/item/storage/belt/marine/covenant/unggoy
-	name = "\improper Unggoy ammunition belt"
+	name = "\improper патронташ унггоя"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 	item_icons = list(
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/unggoy/belts.dmi'
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/unggoy/belts.dmi'
 		)
 
 /obj/item/storage/belt/marine/covenant/unggoy/minor
-	name = "\improper Unggoy Minor ammunition belt"
+	name = "\improper патронташ унггоя-минора"
 	icon_state = "gruntbelt_minor"
 	item_state = "gruntbelt_minor"
 
 /obj/item/storage/belt/marine/covenant/unggoy/major
-	name = "\improper Unggoy Major ammunition belt"
+	name = "\improper патронташ унггоя-майора"
 	icon_state = "gruntbelt_major"
 	item_state = "gruntbelt_major"
 
 /obj/item/storage/belt/marine/covenant/unggoy/heavy
-	name = "\improper Heavy Unggoy ammunition belt"
+	name = "\improper тяжёлый патронташ унггоя"
 	icon_state = "gruntbelt_heavy"
 	item_state = "gruntbelt_heavy"
 
 /obj/item/storage/belt/marine/covenant/unggoy/ultra
-	name = "\improper Unggoy Ultra ammunition belt"
+	name = "\improper патронташ унггоя-ультры"
 	icon_state = "gruntbelt_ultra"
 	item_state = "gruntbelt_ultra"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops
-	name = "\improper Unggoy SpecOps ammunition belt"
+	name = "\improper спецоперативный патронташ унггоя"
 	icon_state = "gruntbelt_specops"
 	item_state = "gruntbelt_specops"
 
 /obj/item/storage/belt/marine/covenant/unggoy/specops_ultra
-	name = "\improper Unggoy SpecOps Ultra ammunition belt"
+	name = "\improper спецоперативный патронташ унггоя-ультры"
 	icon_state = "gruntbelt_specops_ultra"
 	item_state = "gruntbelt_specops_ultra"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian
+	name = "\improper Ruuhtian combat belt"
+	desc = "A modular belt for Kig-Yar field gear and ammunition."
+	icon_state = "ruuhtian_minor"
+	item_state = "ruuhtian_minor"
+	item_icons = list(
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/ruuhtian/belts.dmi'
+		)
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/minor
+	name = "\improper Ruuhtian Minor combat belt"
+	desc = "A light combat belt for Kig-Yar skirmishers."
+	icon_state = "ruuhtian_minor"
+	item_state = "ruuhtian_minor"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/major
+	name = "\improper Ruuhtian Major combat belt"
+	desc = "A veteran combat belt for Kig-Yar skirmishers."
+	icon_state = "ruuhtian_major"
+	item_state = "ruuhtian_major"
+
+/obj/item/storage/belt/marine/covenant/ruuhtian/ultra
+	name = "\improper Ruuhtian Ultra combat belt"
+	desc = "An elite combat belt for Kig-Yar line veterans."
+	icon_state = "ruuhtian_ultra"
+	item_state = "belt_ultra"

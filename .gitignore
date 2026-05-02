@@ -11,7 +11,12 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
-data/
+data/*
+!data/world_edit/
+data/world_edit/*
+!data/world_edit/blueprints/
+data/world_edit/blueprints/*
+!data/world_edit/blueprints/*.json
 cfg/
 !cfg/.keep
 tmp/
@@ -44,3 +49,5 @@ modular/__agents/.AI_AGENT/DECISIONS.md
 modular/__agents/.AI_AGENT/EVIDENCE.md
 modular/__agents/.AI_AGENT/PLAN.md
 modular/__agents/.AI_AGENT/TODO.md
+/.codex-tmp
+/.tmp
