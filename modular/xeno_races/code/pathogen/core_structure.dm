@@ -201,7 +201,11 @@
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	node_range = WEED_RANGE_CORE
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
 	node_overlay_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
+
+/obj/effect/alien/weeds/node/pylon/pathogen_core/Initialize(mapload, hive, mob/living/carbon/xenomorph/xeno)
+	return ..(mapload, XENO_HIVE_PATHOGEN, xeno)
 
 /obj/effect/alien/weeds/node/pylon/pathogen_core/get_node_overlay_image()
 	return xeno_races_pathogen_node_overlay_image()

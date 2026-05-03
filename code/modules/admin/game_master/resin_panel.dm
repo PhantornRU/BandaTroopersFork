@@ -124,7 +124,7 @@ list( \
 	var/list/modifiers = params2list(params)
 
 	if(LAZYACCESS(modifiers, MIDDLE_CLICK)) //remove
-		if(!(object.type in removal_allowlist))
+		if(!is_type_in_list(object, removal_allowlist)) // SS220 EDIT: allow modular resin panel subtypes to be removed by their base allowlist entry
 			return
 
 		if(isturf(object))

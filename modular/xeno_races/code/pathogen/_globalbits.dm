@@ -42,6 +42,7 @@
 	desc = "A weird, pulsating node."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
 	node_overlay_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 
 /obj/effect/alien/weeds/node/proc/xeno_races_pathogen_node_overlay_image()
@@ -54,7 +55,7 @@
 	return xeno_races_pathogen_node_overlay_image()
 
 /obj/effect/alien/weeds/node/pathogen/Initialize(mapload, hive, mob/living/carbon/xenomorph/xeno)
-	. = ..()
+	. = ..(mapload, XENO_HIVE_PATHOGEN, xeno)
 	if(weed_strength >= WEED_LEVEL_HIVE)
 		name = "confluence blight node"
 
@@ -63,6 +64,7 @@
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
 
 /obj/effect/alien/weeds/pathogen/Initialize(mapload, obj/effect/alien/weeds/node/node, use_node_strength = TRUE, do_spread = TRUE)
 	. = ..()
@@ -74,18 +76,26 @@
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
 
 /obj/effect/alien/weeds/weedwall/window/pathogen
 	name = "mycelium blight"
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
 
 /obj/effect/alien/weeds/weedwall/frame/pathogen
 	name = "mycelium blight"
 	desc = "A mycelium growth of strange origins..."
 	icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
 	hivenumber = XENO_HIVE_PATHOGEN
+	weed_family = XENO_HIVE_PATHOGEN
+
+/datum/resin_construction/resin_obj/resin_node/build(turf/build_turf, hivenumber, mob/living/carbon/xenomorph/builder)
+	if(hivenumber == XENO_HIVE_PATHOGEN)
+		return new /obj/effect/alien/weeds/node/pathogen(build_turf, XENO_HIVE_PATHOGEN, builder)
+	return ..()
 
 /obj/effect/alien/weeds/proc/xeno_races_pathogen_weed_expand()
 	if(!parent)
