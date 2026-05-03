@@ -57,6 +57,37 @@ const getBlueprintOutpostSummary = (blueprint: BlueprintEntry) => {
   return summaryParts.join(' / ');
 };
 
+const BLUEPRINT_ACTION_BUTTON_STYLE = {
+  width: '1.55rem',
+  minWidth: '1.55rem',
+  height: '1.45rem',
+  padding: '0',
+  textAlign: 'center' as const,
+};
+
+const BlueprintActionButton = (props: {
+  readonly icon: string;
+  readonly tooltip: string;
+  readonly disabled?: boolean;
+  readonly color?: string;
+  readonly onClick: (event: any) => void;
+}) => {
+  const { icon, tooltip, disabled, color, onClick } = props;
+
+  return (
+    <Button
+      compact
+      icon={icon}
+      color={color}
+      disabled={disabled}
+      tooltip={tooltip}
+      tooltipPosition="top"
+      onClick={onClick}
+      style={BLUEPRINT_ACTION_BUTTON_STYLE}
+    />
+  );
+};
+
 const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
@@ -121,7 +152,8 @@ const BlueprintStampWorkspace = (props: {
       <Box
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridTemplateColumns:
+            'minmax(7rem, 1.35fr) minmax(5.5rem, 0.82fr) minmax(6.25rem, 0.95fr)',
           gap: '0.4rem',
           alignItems: 'center',
         }}
@@ -141,10 +173,10 @@ const BlueprintStampWorkspace = (props: {
             width="100%"
             options={[...FILTER_OPTIONS]}
             selected={filterMode}
-            displayText={`Фильтр: ${
+            displayText={
               FILTER_OPTIONS.find((option) => option.value === filterMode)
                 ?.displayText || 'Все'
-            }`}
+            }
             onSelected={(value) => setFilterMode(value as BlueprintFilterMode)}
           />
         </Box>
@@ -154,10 +186,10 @@ const BlueprintStampWorkspace = (props: {
             width="100%"
             options={[...SORT_OPTIONS]}
             selected={sortMode}
-            displayText={`Сорт: ${
+            displayText={
               SORT_OPTIONS.find((option) => option.value === sortMode)
                 ?.displayText || 'Последние'
-            }`}
+            }
             onSelected={(value) => setSortMode(value as BlueprintSortMode)}
           />
         </Box>
@@ -208,52 +240,141 @@ const BlueprintStampWorkspace = (props: {
                   cursor: actionState.canLoad ? 'pointer' : 'default',
                 }}
               >
-                <Flex align="center">
-                  <Flex.Item grow basis="14rem" style={{ minWidth: '0' }}>
-                    <Box
-                      bold
-                      color={actionState.isActive ? 'good' : 'white'}
-                      style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {getDisplayText(blueprint.name, 'Шаблон без имени')}
-                    </Box>
-                  </Flex.Item>
-                  {isCompactPreview && (
-                    <Flex.Item mr={0.45} style={{ flex: '0 0 auto' }}>
-                      <Box color="average" style={{ fontSize: '0.82rem' }}>
-                        компакт
-                      </Box>
-                    </Flex.Item>
-                  )}
-                  <Flex.Item style={{ flex: '0 0 auto' }}>
-                    <Box
-                      color={blueprint.valid ? 'label' : 'bad'}
-                      style={{
-                        fontSize: '0.92rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {getBlueprintFootprintText(blueprint)}
-                    </Box>
-                  </Flex.Item>
-                </Flex>
-                {!!outpostSummary && (
+                <Box
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    gap: '0.45rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Box style={{ minWidth: '0' }}>
+                    <Flex align="center">
+                      <Flex.Item grow style={{ minWidth: '0' }}>
+                        <Box
+                          bold
+                          color={actionState.isActive ? 'good' : 'white'}
+                          style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {getDisplayText(blueprint.name, 'Шаблон без имени')}
+                        </Box>
+                      </Flex.Item>
+                      <Flex.Item ml={0.35} style={{ flex: '0 0 auto' }}>
+                        <Box
+                          color={blueprint.valid ? 'label' : 'bad'}
+                          style={{
+                            fontSize: '0.9rem',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {getBlueprintFootprintText(blueprint)}
+                        </Box>
+                      </Flex.Item>
+                    </Flex>
+                    <Flex align="center" mt={0.2}>
+                      <Flex.Item style={{ minWidth: '0' }}>
+                        <Box
+                          color="label"
+                          style={{
+                            fontSize: '0.78rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {blueprint.valid
+                            ? `${blueprint.entry_count || 0} объектов`
+                            : 'ошибка'}
+                          {isCompactPreview ? ' / компактный предпросмотр' : ''}
+                          {!!outpostSummary ? ` / ${outpostSummary}` : ''}
+                        </Box>
+                      </Flex.Item>
+                    </Flex>
+                  </Box>
                   <Box
-                    color="label"
                     style={{
-                      fontSize: '0.82rem',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(6, 1.55rem)',
+                      gap: '0.18rem',
+                      justifyContent: 'end',
                     }}
                   >
-                    {outpostSummary}
+                    <BlueprintActionButton
+                      icon="sign-in"
+                      tooltip="Загрузить"
+                      disabled={!actionState.canLoad}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('load_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
+                    <BlueprintActionButton
+                      icon="eye"
+                      tooltip="Предпросмотр"
+                      disabled={!actionState.canPreview}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('preview_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
+                    <BlueprintActionButton
+                      icon="check"
+                      tooltip="Применить"
+                      color={actionState.canApply ? 'good' : undefined}
+                      disabled={!actionState.canApply}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('apply_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
+                    <BlueprintActionButton
+                      icon="download"
+                      tooltip="Экспорт .dmm"
+                      color="transparent"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('export_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
+                    <BlueprintActionButton
+                      icon="edit"
+                      tooltip="Переименовать"
+                      color="transparent"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('rename_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
+                    <BlueprintActionButton
+                      icon="trash"
+                      tooltip="Удалить"
+                      color="bad"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('delete_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    />
                   </Box>
-                )}
+                </Box>
                 {!!blueprint.error && !blueprint.valid && (
                   <Box
                     color="bad"
@@ -267,101 +388,6 @@ const BlueprintStampWorkspace = (props: {
                     {blueprint.error}
                   </Box>
                 )}
-                <Flex wrap mt={0.35} mx={-0.15}>
-                  <Flex.Item m={0.15}>
-                    <Button
-                      compact
-                      icon="sign-in"
-                      disabled={!actionState.canLoad}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('load_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Загрузить
-                    </Button>
-                  </Flex.Item>
-                  <Flex.Item m={0.15}>
-                    <Button
-                      compact
-                      icon="eye"
-                      disabled={!actionState.canPreview}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('preview_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Предпросмотр
-                    </Button>
-                  </Flex.Item>
-                  <Flex.Item m={0.15}>
-                    <Button
-                      compact
-                      icon="check"
-                      color="good"
-                      disabled={!actionState.canApply}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('apply_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Применить
-                    </Button>
-                  </Flex.Item>
-                  <Flex.Item m={0.15}>
-                    <Button
-                      compact
-                      icon="download"
-                      disabled={!blueprint.valid}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('export_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Экспорт
-                    </Button>
-                  </Flex.Item>
-                  <Flex.Item m={0.15}>
-                    <Button
-                      compact
-                      icon="edit"
-                      disabled={!blueprint.valid}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('rename_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Имя
-                    </Button>
-                  </Flex.Item>
-                  <Flex.Item m={0.15}>
-                    <Button.Confirm
-                      compact
-                      icon="trash"
-                      color="bad"
-                      confirmContent="Удалить?"
-                      disabled={!blueprint.valid}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        act('delete_blueprint', {
-                          blueprint_id: blueprint.id,
-                        });
-                      }}
-                    >
-                      Удалить
-                    </Button.Confirm>
-                  </Flex.Item>
-                </Flex>
               </Box>
             );
           })}
