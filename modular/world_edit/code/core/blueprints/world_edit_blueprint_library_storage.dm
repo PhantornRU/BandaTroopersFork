@@ -273,6 +273,7 @@
 				"error" = load_result["error"],
 				"file_path" = file_path,
 				"preview_mode" = "compact",
+				"preview_cells" = list(),
 			))
 			continue
 

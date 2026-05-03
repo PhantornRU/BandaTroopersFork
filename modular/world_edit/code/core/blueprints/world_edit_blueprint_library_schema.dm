@@ -430,6 +430,92 @@
 		"outpost_recipe" = outpost_recipe_result["outpost_recipe"],
 	))
 
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_preview_category_priority(category)
+	switch("[category]")
+		if("mine")
+			return 60
+		if("sentry", "defense")
+			return 50
+		if("wire_object")
+			return 40
+		if("support_prop")
+			return 30
+		if("barricade")
+			return 20
+	return 10
+
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_preview_tone(category)
+	switch("[category]")
+		if("mine")
+			return "mine"
+		if("sentry", "defense")
+			return "defense"
+		if("wire_object")
+			return "wire"
+		if("support_prop")
+			return "support"
+		if("barricade")
+			return "barricade"
+	return "other"
+
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_preview_cells(list/blueprint)
+	if(!islist(blueprint))
+		return list()
+	var/list/bounds = blueprint["bounds"]
+	var/list/entries = blueprint["entries"]
+	if(!islist(bounds) || !islist(entries) || !length(entries))
+		return list()
+
+	var/min_x = text2num("[bounds["min_x"]]")
+	var/max_x = text2num("[bounds["max_x"]]")
+	var/min_y = text2num("[bounds["min_y"]]")
+	var/max_y = text2num("[bounds["max_y"]]")
+	if(max_x < min_x || max_y < min_y)
+		return list()
+
+	var/list/cell_by_coord = list()
+	for(var/list/entry as anything in entries)
+		var/obj_path = text2path("[entry["type"]]")
+		var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
+		if(!islist(rule))
+			continue
+
+		var/category = "[rule["category"]]"
+		var/priority = world_edit_get_blueprint_preview_category_priority(category)
+		var/tone = world_edit_get_blueprint_preview_tone(category)
+		var/dx = text2num("[entry["dx"]]")
+		var/dy = text2num("[entry["dy"]]")
+		var/dir_value = text2num("[entry["dir"]]") || SOUTH
+		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(obj_path, dir_value))
+			if(!islist(offset) || length(offset) < 2)
+				continue
+			var/occupied_dx = dx + (text2num("[offset[1]]") || 0)
+			var/occupied_dy = dy + (text2num("[offset[2]]") || 0)
+			var/coord_key = "[occupied_dx],[occupied_dy]"
+			var/list/current_cell = cell_by_coord[coord_key]
+			if(islist(current_cell) && text2num("[current_cell["priority"]]") > priority)
+				continue
+			cell_by_coord[coord_key] = list(
+				"category" = category,
+				"tone" = tone,
+				"priority" = priority,
+			)
+
+	var/list/preview_cells = list()
+	for(var/map_y = max_y, map_y >= min_y, map_y--)
+		for(var/map_x = min_x, map_x <= max_x, map_x++)
+			var/list/cell = cell_by_coord["[map_x],[map_y]"]
+			if(!islist(cell))
+				continue
+			preview_cells += list(list(
+				"x" = (map_x - min_x) + 1,
+				"y" = (max_y - map_y) + 1,
+				"category" = cell["category"],
+				"tone" = cell["tone"],
+			))
+
+	return preview_cells
+
 /datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_summary(list/blueprint, file_path = null, valid = TRUE, error_text = "")
 	var/list/bounds = blueprint["bounds"] || list()
 	var/footprint_width = (bounds["max_x"] - bounds["min_x"]) + 1
@@ -447,6 +533,7 @@
 		"valid" = valid ? TRUE : FALSE,
 		"error" = error_text,
 		"preview_mode" = length(blueprint["entries"]) > WORLD_EDIT_BLUEPRINT_COMPACT_PREVIEW_ENTRY_THRESHOLD ? "compact" : "detail",
+		"preview_cells" = world_edit_build_blueprint_preview_cells(blueprint),
 	)
 	if(file_path)
 		summary["file_path"] = file_path

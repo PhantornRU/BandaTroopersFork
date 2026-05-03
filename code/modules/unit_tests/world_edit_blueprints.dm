@@ -32,6 +32,15 @@
 	TEST_ASSERT_EQUAL(entry["dy"], 0, "1x1 anchor should preserve dy=0")
 	TEST_ASSERT_EQUAL(entry["dir"], 2, "dir var edit should be preserved")
 
+	var/list/summary = GLOB.world_edit_blueprints.world_edit_build_blueprint_summary(blueprint)
+	var/list/preview_cells = summary["preview_cells"]
+	TEST_ASSERT_EQUAL(length(preview_cells), 1, "summary should include one schematic preview cell")
+	var/list/preview_cell = preview_cells[1]
+	TEST_ASSERT_EQUAL(preview_cell["x"], 1, "preview cell x should be footprint-local")
+	TEST_ASSERT_EQUAL(preview_cell["y"], 1, "preview cell y should be footprint-local")
+	TEST_ASSERT_EQUAL(preview_cell["category"], "barricade", "preview cell should include blueprint category")
+	TEST_ASSERT_EQUAL(preview_cell["tone"], "barricade", "preview cell should include UI tone")
+
 	var/list/serialize_result = GLOB.world_edit_blueprints.world_edit_serialize_blueprint_to_dmm(blueprint)
 	TEST_ASSERT(!serialize_result["error"], "valid blueprint should serialize to DMM")
 	var/list/reparse_result = parse_dmm(serialize_result["dmm_text"], "unit_valid")

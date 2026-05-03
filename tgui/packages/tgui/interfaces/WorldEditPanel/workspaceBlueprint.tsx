@@ -3,7 +3,12 @@ import { useMemo, useState } from 'react';
 import { Box, Button, Dropdown, Flex, Input } from '../../components';
 import { getDisplayText, translateOptionLabel } from './helpers';
 import { SurfaceCard } from './primitives';
-import type { ActFn, BackendData, BlueprintEntry } from './types';
+import type {
+  ActFn,
+  BackendData,
+  BlueprintEntry,
+  BlueprintPreviewCell,
+} from './types';
 import type { BlueprintFilterMode, BlueprintSortMode } from './viewModel';
 import {
   filterAndSortBlueprintEntries,
@@ -31,6 +36,15 @@ const SORT_OPTIONS = [
   { value: 'entries_desc', displayText: 'Объекты ↓' },
   { value: 'entries_asc', displayText: 'Объекты ↑' },
 ] as const;
+
+const PREVIEW_TONE_COLORS: Record<string, string> = {
+  barricade: '#82a9c8',
+  wire: '#d4bd5f',
+  mine: '#d75f55',
+  defense: '#b68cff',
+  support: '#67bd8b',
+  other: '#aeb7c1',
+};
 
 const getBlueprintOutpostSummary = (blueprint: BlueprintEntry) => {
   if (!blueprint.has_outpost_recipe) {
@@ -69,6 +83,119 @@ const getBlueprintMetaText = (
   ].filter(Boolean);
 
   return metaParts.join(' / ');
+};
+
+const getBlueprintPreviewDimension = (
+  blueprint: BlueprintEntry,
+  axis: 'width' | 'height',
+) => {
+  const value =
+    axis === 'width'
+      ? Number(blueprint.footprint_width)
+      : Number(blueprint.footprint_height);
+  return Math.max(Math.min(Math.floor(value) || 1, 32), 1);
+};
+
+const getBlueprintPreviewCells = (blueprint: BlueprintEntry) => {
+  const width = getBlueprintPreviewDimension(blueprint, 'width');
+  const height = getBlueprintPreviewDimension(blueprint, 'height');
+  return (blueprint.preview_cells || []).filter((cell) => {
+    const x = Math.floor(Number(cell.x) || 0);
+    const y = Math.floor(Number(cell.y) || 0);
+    return x >= 1 && x <= width && y >= 1 && y <= height;
+  });
+};
+
+const getFittedPreviewSize = (
+  width: number,
+  height: number,
+  maxWidthRem: number,
+  maxHeightRem: number,
+) => {
+  const ratio = Math.max(width, 1) / Math.max(height, 1);
+  const maxRatio = maxWidthRem / maxHeightRem;
+  if (ratio >= maxRatio) {
+    return {
+      width: `${maxWidthRem}rem`,
+      height: `${maxWidthRem / ratio}rem`,
+    };
+  }
+
+  return {
+    width: `${maxHeightRem * ratio}rem`,
+    height: `${maxHeightRem}rem`,
+  };
+};
+
+const getPreviewCellColor = (cell: BlueprintPreviewCell) =>
+  PREVIEW_TONE_COLORS[cell.tone] ||
+  PREVIEW_TONE_COLORS[cell.category] ||
+  PREVIEW_TONE_COLORS.other;
+
+const BlueprintPreviewGrid = (props: {
+  readonly blueprint: BlueprintEntry;
+  readonly size: 'thumbnail' | 'full';
+}) => {
+  const { blueprint, size } = props;
+  const width = getBlueprintPreviewDimension(blueprint, 'width');
+  const height = getBlueprintPreviewDimension(blueprint, 'height');
+  const cells = getBlueprintPreviewCells(blueprint);
+  const isFull = size === 'full';
+  const outerWidth = isFull ? 8.25 : 2.45;
+  const outerHeight = isFull ? 8.25 : 1.42;
+  const fittedSize = getFittedPreviewSize(
+    width,
+    height,
+    outerWidth,
+    outerHeight,
+  );
+
+  return (
+    <Box
+      style={{
+        width: `${outerWidth}rem`,
+        height: `${outerHeight}rem`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        style={{
+          ...fittedSize,
+          display: 'grid',
+          gridTemplateColumns: `repeat(${width}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${height}, minmax(0, 1fr))`,
+          gap: isFull ? '1px' : '0',
+          padding: isFull ? '2px' : '1px',
+          border: `1px solid ${
+            blueprint.valid
+              ? 'rgba(70, 107, 150, 0.65)'
+              : 'rgba(143, 60, 52, 0.75)'
+          }`,
+          borderRadius: '3px',
+          background: 'rgba(4, 8, 12, 0.55)',
+          boxSizing: 'border-box',
+        }}
+      >
+        {cells.map((cell, index) => (
+          <Box
+            key={`${cell.x}-${cell.y}-${index}`}
+            style={{
+              gridColumn: `${Math.floor(Number(cell.x) || 1)}`,
+              gridRow: `${Math.floor(Number(cell.y) || 1)}`,
+              minWidth: '0',
+              minHeight: '0',
+              borderRadius: isFull ? '1px' : '0',
+              background: getPreviewCellColor(cell),
+              opacity: blueprint.valid ? '0.95' : '0.6',
+            }}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
 };
 
 const BlueprintStampWorkspace = (props: {
@@ -194,26 +321,75 @@ const BlueprintStampWorkspace = (props: {
           py={0.32}
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) auto',
+            gridTemplateColumns: '8.35rem minmax(0, 1fr)',
             gap: '0.45rem',
-            alignItems: 'center',
+            alignItems: 'start',
             borderTop: '1px solid rgba(70, 107, 150, 0.45)',
             borderBottom: '1px solid rgba(70, 107, 150, 0.45)',
             background: 'rgba(17, 20, 24, 0.28)',
           }}
         >
+          <BlueprintPreviewGrid blueprint={activeBlueprint} size="full" />
           <Box style={{ minWidth: '0' }}>
-            <Box
-              bold
-              color={activeBlueprint.valid ? 'good' : 'bad'}
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {getDisplayText(activeBlueprint.name, 'Шаблон без имени')}
-            </Box>
+            <Flex align="center">
+              <Flex.Item grow style={{ minWidth: '0' }}>
+                <Box
+                  bold
+                  color={activeBlueprint.valid ? 'good' : 'bad'}
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {getDisplayText(activeBlueprint.name, 'Шаблон без имени')}
+                </Box>
+              </Flex.Item>
+              <Flex.Item ml={0.35}>
+                <Button
+                  compact
+                  icon="download"
+                  disabled={!activeBlueprint.valid}
+                  tooltip="Экспорт .dmm"
+                  onClick={() =>
+                    act('export_blueprint', {
+                      blueprint_id: activeBlueprint.id,
+                    })
+                  }
+                >
+                  Экспорт
+                </Button>
+              </Flex.Item>
+              <Flex.Item ml={0.25}>
+                <Button
+                  compact
+                  icon="edit"
+                  disabled={!activeBlueprint.valid}
+                  tooltip="Переименовать"
+                  onClick={() =>
+                    act('rename_blueprint', {
+                      blueprint_id: activeBlueprint.id,
+                    })
+                  }
+                >
+                  Имя
+                </Button>
+              </Flex.Item>
+              <Flex.Item ml={0.25}>
+                <Button
+                  compact
+                  icon="trash"
+                  color="bad"
+                  disabled={!activeBlueprint.valid}
+                  tooltip="Удалить"
+                  onClick={() =>
+                    act('delete_blueprint', {
+                      blueprint_id: activeBlueprint.id,
+                    })
+                  }
+                />
+              </Flex.Item>
+            </Flex>
             <Box
               color="label"
               style={{
@@ -230,53 +406,18 @@ const BlueprintStampWorkspace = (props: {
                 activeIsCompactPreview,
               )}
             </Box>
+            <Box
+              color="label"
+              style={{
+                fontSize: '0.78rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {activeBlueprint.id}
+            </Box>
           </Box>
-          <Flex>
-            <Flex.Item mr={0.25}>
-              <Button
-                compact
-                icon="download"
-                disabled={!activeBlueprint.valid}
-                tooltip="Экспорт .dmm"
-                onClick={() =>
-                  act('export_blueprint', {
-                    blueprint_id: activeBlueprint.id,
-                  })
-                }
-              >
-                Экспорт
-              </Button>
-            </Flex.Item>
-            <Flex.Item mr={0.25}>
-              <Button
-                compact
-                icon="edit"
-                disabled={!activeBlueprint.valid}
-                tooltip="Переименовать"
-                onClick={() =>
-                  act('rename_blueprint', {
-                    blueprint_id: activeBlueprint.id,
-                  })
-                }
-              >
-                Имя
-              </Button>
-            </Flex.Item>
-            <Flex.Item>
-              <Button
-                compact
-                icon="trash"
-                color="bad"
-                disabled={!activeBlueprint.valid}
-                tooltip="Удалить"
-                onClick={() =>
-                  act('delete_blueprint', {
-                    blueprint_id: activeBlueprint.id,
-                  })
-                }
-              />
-            </Flex.Item>
-          </Flex>
         </Box>
       )}
 
@@ -330,8 +471,19 @@ const BlueprintStampWorkspace = (props: {
                   cursor: actionState.canLoad ? 'pointer' : 'default',
                 }}
               >
-                <Flex align="center">
-                  <Flex.Item grow style={{ minWidth: '0' }}>
+                <Box
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2.55rem minmax(0, 1fr) auto',
+                    gap: '0.38rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <BlueprintPreviewGrid
+                    blueprint={blueprint}
+                    size="thumbnail"
+                  />
+                  <Box style={{ minWidth: '0' }}>
                     <Box
                       bold
                       color={actionState.isActive ? 'good' : 'white'}
@@ -343,8 +495,19 @@ const BlueprintStampWorkspace = (props: {
                     >
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
-                  </Flex.Item>
-                  <Flex.Item ml={0.35} style={{ flex: '0 0 auto' }}>
+                    <Box
+                      color="label"
+                      style={{
+                        fontSize: '0.78rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {metaText}
+                    </Box>
+                  </Box>
+                  <Box style={{ flex: '0 0 auto' }}>
                     <Box
                       color={blueprint.valid ? 'label' : 'bad'}
                       style={{
@@ -354,18 +517,7 @@ const BlueprintStampWorkspace = (props: {
                     >
                       {getBlueprintFootprintText(blueprint)}
                     </Box>
-                  </Flex.Item>
-                </Flex>
-                <Box
-                  color="label"
-                  style={{
-                    fontSize: '0.78rem',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {metaText}
+                  </Box>
                 </Box>
                 {!!blueprint.error && !blueprint.valid && (
                   <Box

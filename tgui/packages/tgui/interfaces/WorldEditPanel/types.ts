@@ -109,6 +109,14 @@ export type BlueprintEntry = {
   outpost_defense_profile?: string;
   outpost_layout_variant?: string;
   preview_mode?: 'detail' | 'compact';
+  preview_cells?: BlueprintPreviewCell[];
+};
+
+export type BlueprintPreviewCell = {
+  x: number;
+  y: number;
+  category: string;
+  tone: string;
 };
 
 export type BackendData = {
