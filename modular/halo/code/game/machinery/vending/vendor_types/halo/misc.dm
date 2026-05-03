@@ -1,7 +1,7 @@
 /obj/structure/machinery/cm_vending/sorted/marine_food/unsc
 	name = "military food dispenser"
 	desc = "Автоматизированная станция приготовления и выдачи пищи. Заранее подготавливает еду и напитки для персонала ККОН и автоматически очищает себя и возвращённые в неё подносы. Функцию самоочистки часто отключают, чтобы поддерживать дисциплину среди морпехов."
-	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "top_unsc_food"
 	tiles_with = list(
 		/obj/structure/window/framed/unsc,
@@ -20,7 +20,7 @@
 /obj/structure/machinery/vending/dinnerware/unsc
 	name = "\improper military utensils dispenser"
 	desc = "В паре с пищевым автоматом эта машина выглядит куда проще и требует лишь ручного пополнения."
-	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "top_unsc_dinnerware"
 	icon_vend = "top_unsc_dinnerware_vend"
 	icon_deny = "top_unsc_dinnerware_deny"
@@ -38,7 +38,7 @@
 /obj/structure/machinery/cm_vending/sorted/medical/unsc
 	name = "\improper Optican Military Supply"
 	desc = "Автомат по выдаче медикаментов и фармацевтики. Поставляется компанией Optican."
-	icon = 'icons/halo/obj/structures/machinery/vending.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/vending.dmi'
 	icon_state = "shipmed"
 	vendor_theme = VENDOR_THEME_USCM
 
@@ -105,7 +105,7 @@ GLOBAL_LIST_INIT(cm_vending_chemical_medic_halo, list(
 /obj/structure/machinery/cm_vending/gear/medic_chemical/unsc
 	name = "\improper Optican Military Chemical Supply"
 	desc = "Автоматизированная стойка со специализированной химией для госпитального корсмана ККОН."
-	icon = 'icons/halo/obj/structures/machinery/vending_32x64.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/machinery/vending_32x64.dmi'
 	icon_state = "chemvendor"
 	show_points = TRUE
 	use_snowflake_points = TRUE

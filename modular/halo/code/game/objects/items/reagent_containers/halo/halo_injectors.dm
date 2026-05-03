@@ -3,7 +3,7 @@
 // ----------------------------- Primeable Injectors -----------------------------
 
 /obj/item/reagent_container/hypospray/autoinjector/primeable
-	icon = 'icons/halo/obj/items/medical.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/medical.dmi'
 	icon_state = "othercan"
 	var/primed = FALSE
 	var/prime_sound
@@ -150,7 +150,7 @@
 
 /obj/item/reagent_container/syringe/halo // I HATE SYRINGESTAB. FUCKING SHITCODE but i dont want to override it :>
 	name = "milspec syringe"
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 	icon_state = "0"
 
 /obj/item/reagent_container/syringe/halo/afterattack(obj/target, mob/user, proximity) // i am a monument to all your sins
@@ -306,7 +306,7 @@
 	item_state = "syringe_[rounded_vol]"
 
 	if(reagents.total_volume)
-		var/image/filling = image('icons/halo/obj/items/chemistry.dmi', src, "syringe10")
+		var/image/filling = image('modular/halo/icons/halo/obj/items/chemistry.dmi', src, "syringe10")
 
 		filling.icon_state = "syringe[rounded_vol]"
 
@@ -316,43 +316,43 @@
 // ----------------------------- Autoinjectors -----------------------------
 
 /obj/item/reagent_container/hypospray/autoinjector/tricord/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/adrenaline/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/adrenaline_concentrated/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/dexalinp/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/chloralhydrate/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/tramadol/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/oxycodone/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/kelotane/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/bicaridine/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/inaprovaline/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 
 /obj/item/reagent_container/hypospray/autoinjector/dylovene/halo
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 	amount_per_transfer_from_this = REAGENTS_OVERDOSE * INJECTOR_PERCENTAGE_OF_OD
 	volume = (REAGENTS_OVERDOSE * INJECTOR_PERCENTAGE_OF_OD) * INJECTOR_USES
 
 /obj/item/reagent_container/hypospray/autoinjector/halo_peridaxon
 	name = "\improper peridaxon autoinjector"
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 	chemname = "peridaxon"
 	desc = "Автоинъектор с тремя дозами перидаксона - новой смеси препаратов, которая ВРЕМЕННО сдерживает симптомы повреждения органов."
 	amount_per_transfer_from_this = LOWH_REAGENTS_OVERDOSE * INJECTOR_PERCENTAGE_OF_OD

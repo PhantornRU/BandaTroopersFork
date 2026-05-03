@@ -2,15 +2,15 @@
 
 /obj/item/weapon/gun/rifle/halo
 	name = "Halo rifle holder"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/ma5c.dmi'
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/ma5c.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	base_gun_icon = "m41a"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 
 /obj/item/weapon/gun/rifle/halo/ma5c
@@ -31,11 +31,11 @@
 	start_automatic = TRUE
 	map_specific_decoration = FALSE
 
-	starting_attachment_types = list(/obj/item/attachable/flashlight/ma5c)
+	starting_attachment_types = list(/obj/item/attachable/flashlight/ma5)
 	current_mag = /obj/item/ammo_magazine/rifle/halo/ma5c
 	attachable_allowed = list(
-		/obj/item/attachable/attached_gun/grenade/ma5c,
-		/obj/item/attachable/flashlight/ma5c,
+		/obj/item/attachable/attached_gun/grenade/ma5,
+		/obj/item/attachable/flashlight/ma5,
 		/obj/item/attachable/ma5c_muzzle,
 	)
 
@@ -76,7 +76,7 @@
 	icon_state = "ma5b"
 	item_state = "ma5b"
 	caliber = "7.62x51mm"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/ma5b.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/ma5b.dmi'
 
 	fire_sound = "gun_ma5b"
 	fire_rattle = "gun_ma5b"
@@ -91,13 +91,15 @@
 	start_automatic = TRUE
 	map_specific_decoration = FALSE
 	current_mag = /obj/item/ammo_magazine/rifle/halo/ma5b
+	starting_attachment_types = list(/obj/item/attachable/flashlight/ma5)
 	attachable_allowed = list(
 		/obj/item/attachable/ma5b_muzzle,
-		/obj/item/attachable/flashlight/ma5b,
+		/obj/item/attachable/flashlight/ma5,
+		/obj/item/attachable/attached_gun/grenade/ma5,
 	)
 
 /obj/item/weapon/gun/rifle/halo/ma5b/set_gun_attachment_offsets()
-	attachable_offset = list("muzzle_x" = 32, "muzzle_y" = 16,"rail_x" = 0, "rail_y" = 0, "under_x" = 48, "under_y" = 16, "stock_x" = 0, "stock_y" = 0, "special_x" = 48, "special_y" = 16)
+	attachable_offset = list("muzzle_x" = 32, "muzzle_y" = 16,"rail_x" = 0, "rail_y" = 0, "under_x" = 29, "under_y" = 16, "stock_x" = 0, "stock_y" = 0, "special_x" = 48, "special_y" = 16)
 
 /obj/item/weapon/gun/rifle/halo/ma5b/handle_starting_attachment()
 	..()
@@ -105,10 +107,6 @@
 	integrated.flags_attach_features &= ~ATTACH_REMOVABLE
 	integrated.Attach(src)
 	update_attachable(integrated.slot)
-	var/obj/item/attachable/flashlight/ma5b/integrated2 = new(src)
-	integrated2.flags_attach_features &= ~ATTACH_REMOVABLE
-	integrated2.Attach(src)
-	update_attachable(integrated2.slot)
 
 /obj/item/weapon/gun/rifle/halo/ma5b/set_gun_config_values()
 	..()
@@ -149,11 +147,11 @@
 	start_automatic = TRUE
 	map_specific_decoration = FALSE
 
-	starting_attachment_types = list(/obj/item/attachable/flashlight/ma5c/ma3a, /obj/item/attachable/ma3a_barrel, /obj/item/attachable/scope/mini/ma3a)
+	starting_attachment_types = list(/obj/item/attachable/flashlight/ma5/ma3a, /obj/item/attachable/ma3a_barrel, /obj/item/attachable/scope/mini/ma3a)
 	current_mag = /obj/item/ammo_magazine/rifle/halo/ma3a
 	attachable_allowed = list(
 		/obj/item/attachable/ma3a_shroud,
-		/obj/item/attachable/flashlight/ma5c/ma3a,
+		/obj/item/attachable/flashlight/ma5/ma3a,
 		/obj/item/attachable/ma3a_barrel,
 		/obj/item/attachable/scope/mini/ma3a,
 	)
@@ -253,7 +251,7 @@
 	icon_state = "br55"
 	item_state = "br55"
 	caliber = "9.5x40mm"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/br55.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/br55.dmi'
 
 	fire_sound = "gun_br55"
 	reload_sound = 'sound/weapons/halo/gun_br55_reload.ogg'
@@ -295,7 +293,7 @@
 	scatter_unwielded = SCATTER_AMOUNT_TIER_6
 	damage_mult = BASE_BULLET_DAMAGE_MULT
 	recoil_unwielded = RECOIL_AMOUNT_TIER_3
-	recoil = RECOIL_AMOUNT_TIER_4
+	recoil = RECOIL_AMOUNT_TIER_5
 	fa_scatter_peak = 16
 	fa_max_scatter = 2
 
@@ -310,7 +308,7 @@
 	base_gun_icon = "rmcdmr"
 	item_state = "dmr"
 	caliber = "7.62x51mm"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/br55.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/br55.dmi'
 
 	fire_sound = null
 	fire_sounds = list('sound/weapons/halo/gun_m392_1.ogg', 'sound/weapons/halo/gun_m392_2.ogg', 'sound/weapons/halo/gun_m392_3.ogg')
@@ -360,15 +358,15 @@
 
 /obj/item/weapon/gun/smg/halo
 	name = "halo smg holder"
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	base_gun_icon = "p90"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/smgs_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi',
-		WEAR_WAIST = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/smgs_32.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi'
 	)
 
 /obj/item/weapon/gun/smg/halo/m7
@@ -377,7 +375,7 @@
 	icon_state = "m7"
 	item_state = "m7"
 	caliber = "5x23mm"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/ma5b.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/ma5b.dmi'
 
 	fire_sound = "gun_m7"
 	fire_rattle = "gun_m7"
@@ -404,7 +402,7 @@
 	starting_attachment_types = list(/obj/item/attachable/stock/m7, /obj/item/attachable/stock/m7/grip)
 
 /obj/item/weapon/gun/smg/halo/m7/set_gun_attachment_offsets()
-	attachable_offset = list("muzzle_x" = 27, "muzzle_y" = 15,"rail_x" = 16, "rail_y" = 16, "under_x" = 30, "under_y" = 15, "stock_x" = 13, "stock_y" = 14, "special_x" = 11, "special_y" = 16)
+	attachable_offset = list("muzzle_x" = 27, "muzzle_y" = 15,"rail_x" = 16, "rail_y" = 16, "under_x" = 30, "under_y" = 15, "stock_x" = 13, "stock_y" = 14, "special_x" = 17, "special_y" = 16)
 
 /obj/item/weapon/gun/smg/halo/m7/set_gun_config_values()
 	..()
@@ -444,14 +442,14 @@
 
 /obj/item/weapon/gun/shotgun/pump/halo
 	name = "Halo shotgun holder"
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	base_gun_icon = "m37"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/shotguns_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/shotguns_32.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 
 /obj/item/weapon/gun/shotgun/pump/halo/m90
@@ -462,7 +460,7 @@
 	fire_sound = "gun_m90"
 	pump_sound = 'sound/weapons/halo/gun_m90_pump.ogg'
 	reload_sound = 'sound/weapons/halo/gun_m90_reload.ogg'
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/shotgun.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/shotgun.dmi'
 	current_mag = /obj/item/ammo_magazine/internal/shotgun/m90
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90)
 	starting_attachment_types = list(/obj/item/attachable/flashlight/m90)
@@ -499,6 +497,7 @@
 	name = "\improper WMT Law Enforcement Shotgun"
 	desc = "Гражданская вариация M90 CAWS производства WMT, рассчитанная на правоохранительные структуры... хотя временами она оказывается и в руках обычных граждан."
 	icon_state = "m90_police"
+	item_state = "m90_police"
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90/police)
 	starting_attachment_types = list(/obj/item/attachable/flashlight/m90/police)
 	current_mag = /obj/item/ammo_magazine/internal/shotgun/m90/police
@@ -508,20 +507,20 @@
 /obj/item/weapon/gun/rifle/sniper/halo
 	name = "SRS99-AM sniper rifle"
 	desc = "Новая штатная снайперская винтовка ККОН. Использует магазин на 4 патрона 14.5x114 мм APFSDS и показывает выдающиеся результаты на предельных дистанциях. Её характерная особенность - заметная модульность, особенно в районе ствола, который можно быстро заменить целиком."
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = "srs99"
 	base_gun_icon = "m42a"
 	item_state = "srs99"
 	caliber = "14.5x114mm"
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/srs99.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/srs99.dmi'
 	inhand_x_dimension = 64
 	inhand_y_dimension = 64
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/marksman_rifles_64.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/marksman_rifles_64.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
 	)
 
 	fire_sound = "gun_srs99"
@@ -608,16 +607,16 @@
 
 /obj/item/weapon/gun/pistol/halo
 	name = "Halo pistol holder"
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 	base_gun_icon = "smartpistol"
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/pistols_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/pistols_32.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/magnum.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/magnum.dmi'
 	reload_sound = 'sound/weapons/halo/gun_magnum_reload.ogg'
 	unload_sound = 'sound/weapons/halo/gun_magnum_unload.ogg'
 	cocked_sound = 'sound/weapons/halo/gun_magnum_cocked.ogg'
@@ -795,7 +794,7 @@
 	name = "M9 fragmentation grenade"
 	desc = "Штатная осколочная граната ККОН. 190 граммов состава L надёжно засыпают осколками радиус до 15 метров."
 	desc_lore = "Ходят слухи, что с каждым новым назначением дизайн осколочной гранаты M9 снова чем-то отличается от тех, что держали в руках раньше."
-	icon = 'icons/halo/obj/items/weapons/grenades.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi'
 	icon_state = "m9"
 	item_state = "m9"
 	falloff_mode = EXPLOSION_FALLOFF_SHAPE_EXPONENTIAL_HALF
@@ -803,10 +802,13 @@
 /obj/item/explosive/grenade/high_explosive/m15/unsc/launchable
 	name = "40mm explosive grenade"
 	desc = "40-мм фугасная граната. Её нельзя привести в боевое положение вручную - она должна быть заряжена в подствольный гранатомёт винтовки."
-	icon = 'icons/halo/obj/items/weapons/grenades.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/grenades.dmi'
 	icon_state = "he_40mm"
 	item_state = "he_40mm"
 	caliber = "40mm"
+	explosion_power = 80
+	explosion_falloff = 40
+	shrapnel_count = 0
 	hand_throwable = FALSE
 	has_arm_sound = FALSE
 	dangerous = FALSE

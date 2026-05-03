@@ -8,6 +8,7 @@
 	controller = new_controller
 	..()
 	button.icon_state = "template"
+	refresh_button_overlay()
 	refresh_from_controller()
 
 /datum/action/human_action/rto/Destroy()
@@ -22,6 +23,13 @@
 
 /datum/action/human_action/rto/proc/refresh_from_controller()
 	return
+
+/datum/action/human_action/rto/proc/refresh_button_overlay()
+	if(!button || !icon_file || !action_icon_state)
+		return FALSE
+	button.overlays.Cut()
+	button.overlays += image(icon_file, button, action_icon_state)
+	return TRUE
 
 /datum/action/human_action/rto/proc/set_button_state(button_state, disabled = FALSE)
 	if(!button)
@@ -56,7 +64,7 @@
 
 /datum/action/human_action/rto/select_preset
 	name = "Выбрать пакеты поддержки"
-	action_icon_state = "designator_swap_mortar"
+	action_icon_state = "designator_mortar"
 
 /datum/action/human_action/rto/select_preset/action_activate()
 	. = ..()
@@ -78,6 +86,8 @@
 
 /datum/action/human_action/rto/visibility_zone
 	name = "Развернуть сектор наведения"
+	icon_file = 'icons/mob/hud/actions.dmi'
+	action_icon_state = "designator_one_weapon"
 	var/template_id
 
 /datum/action/human_action/rto/visibility_zone/New(datum/rto_support_controller/new_controller, new_template_id)
@@ -88,6 +98,7 @@
 		icon_file = template.visibility_action_icon_file
 		action_icon_state = template.visibility_action_icon_state
 	..()
+	refresh_button_overlay()
 
 /datum/action/human_action/rto/visibility_zone/Destroy()
 	template_id = null
@@ -108,6 +119,9 @@
 		set_button_state(RTO_SUPPORT_BUTTON_STATE_DISABLED, TRUE)
 		set_button_countdown(null)
 		return
+	icon_file = template.visibility_action_icon_file || 'icons/mob/hud/actions.dmi'
+	action_icon_state = template.visibility_action_icon_state || "designator_mortar"
+	refresh_button_overlay()
 
 	var/list/state = controller.build_visibility_action_state(template_id)
 	var/button_state = state["is_armed"] ? RTO_SUPPORT_BUTTON_STATE_ARMED : RTO_SUPPORT_BUTTON_STATE_READY
@@ -172,11 +186,13 @@
 /datum/action/human_action/rto/support/New(datum/rto_support_controller/new_controller, new_template_id, datum/rto_support_action_template/new_action_template)
 	template_id = new_template_id
 	action_template = new_action_template
+	var/datum/rto_support_template/template = new_controller?.get_selected_template(template_id)
 	if(action_template)
 		name = action_template.name
-		icon_file = action_template.icon_file
-		action_icon_state = action_template.icon_state
+		icon_file = template?.support_action_icon_file || action_template.icon_file
+		action_icon_state = template?.support_action_icon_state || action_template.icon_state
 	..(new_controller)
+	refresh_button_overlay()
 
 /datum/action/human_action/rto/support/Destroy()
 	template_id = null

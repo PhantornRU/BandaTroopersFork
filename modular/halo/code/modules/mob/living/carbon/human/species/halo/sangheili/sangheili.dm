@@ -39,11 +39,12 @@
 	stun_reduction = 6
 	knock_out_reduction = 6
 
-	icobase = 'icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'
-	deform = 'icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'
-	eye_icon = 'icons/halo/mob/humans/species/sangheili/eyes.dmi'
-	dam_icon = 'icons/halo/mob/humans/species/sangheili/dam_sangheili.dmi'
-	blood_mask = 'icons/halo/mob/humans/species/sangheili/blood_mask.dmi'
+	icobase = 'modular/halo/icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'
+	deform = 'modular/halo/icons/halo/mob/humans/species/sangheili/r_sangheili.dmi'
+	eye_icon = 'modular/halo/icons/halo/mob/humans/species/sangheili/eyes.dmi'
+	dam_icon = 'modular/halo/icons/halo/mob/humans/species/sangheili/dam_sangheili.dmi'
+	blood_mask = 'modular/halo/icons/halo/mob/humans/species/sangheili/blood_mask.dmi'
+	icon_template = 'modular/halo/icons/mob/humans/template_96.dmi'
 
 	has_organ = list(
 		"heart" = /datum/internal_organ/heart/sangheili,

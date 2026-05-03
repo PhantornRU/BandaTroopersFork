@@ -157,6 +157,40 @@
 
 	return non_marine_titles
 
+/datum/authority/branch/role/proc/is_halo_shipboard_command_role(job_or_title)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return FALSE
+
+	return !!list(
+		JOB_UNSC_CREW_ENGI_CHIEF,
+		JOB_UNSC_CREW_FLIGHT_CHIEF,
+		JOB_UNSC_CREW_MED_CHIEF,
+		JOB_UNSC_CREW_OPS_CHIEF,
+		JOB_UNSC_CREW_COM,
+		JOB_UNSC_CREW_COM_XO,
+		JOB_UNSC_CREW_COM_CPT
+	).Find(job_title)
+
+/datum/authority/branch/role/proc/get_halo_shipboard_headset_type(job_or_title, platoon_type)
+	var/job_title = resolve_job_title(job_or_title)
+	if(!job_title)
+		return null
+
+	var/target_family = get_ship_surface_family(platoon_type)
+	var/unsc_family = get_ship_surface_family(/datum/squad/marine/halo/unsc/alpha)
+	var/odst_family = get_ship_surface_family(/datum/squad/marine/halo/odst/alpha)
+	var/command_role = is_halo_shipboard_command_role(job_title)
+	if(target_family == odst_family)
+		return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command/odst : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew/odst
+	if(target_family == unsc_family)
+		return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew
+
+	return command_role ? /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/command : /obj/item/device/radio/headset/almayer/marine/solardevils/unsc/crew
+
+/datum/authority/branch/role/proc/get_active_halo_shipboard_headset_type(job_or_title, platoon_type = get_active_ship_platoon_type())
+	return get_halo_shipboard_headset_type(job_or_title, platoon_type)
+
 /datum/authority/branch/role/proc/filter_role_authority_squads_to_types(list/keep_types, conflict_only = FALSE)
 	if(!islist(keep_types) || !length(keep_types))
 		return FALSE

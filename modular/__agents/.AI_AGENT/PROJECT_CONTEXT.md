@@ -26,9 +26,11 @@
 - Скомпилированные артефакты (`*.dmb`, `*.rsc`) и `node_modules` не считаются source of truth для ручных правок.
 - Existing extension points, signals и адаптеры проверяются до того, как вносить новую интеграцию в апстрим.
 - `modular/**` следует рассматривать не как произвольную папку с расширениями, а как отдельный интеграционный слой поверх upstream.
+- Для runtime-heavy модульных инструментов, preview/apply pipelines, planner-кода, генераторов форм, pathfinding/flood-fill и map/turf scanners обязательны bounded алгоритмы, понятные caps и focused regression tests на зависания.
 
 ## Что не менять без согласования
 - Build workflow contract: `BUILD.cmd`, `tools/build/**`, CI-вызовы из `.github/workflows/**`.
+- Не заменять большой runtime/planner модуль full rewrite только из-за regression, пока не найдено last_good/first_bad окно или не оформлено обоснование, почему минимальный fix невозможен.
 - CI-facing команды lint/build/test, уже используемые workflow.
 - Семантику ротации карт, `map_config/**` и `.github/maps_to_ignore.txt`, если задача не про карты.
 - Стабильные squad/runtime контракты и другие upstream-facing интерфейсы, на которые опираются SS220-модули.

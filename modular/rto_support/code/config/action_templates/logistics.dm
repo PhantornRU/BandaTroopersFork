@@ -1,24 +1,92 @@
-/datum/rto_support_action_template/logistics_supply
-	action_id = "logistics_supply"
-	name = "Supply drop"
-	description = "Drops a general-purpose supply crate for frontline resupply."
+/datum/rto_support_action_template/logistics_rifle_mag_drop
+	action_id = "logistics_rifle_mag_drop"
+	name = "Ящик винтовочных магазинов"
+	description = "Сбрасывает основной ящик снабжения с двадцатью магазинами M41A для стрелковой линии."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 600 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
-	fire_support_path = /datum/fire_support/supply_drop
+	fire_support_path = /datum/fire_support/supply_drop/uscm/rifle
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_rifle_box_drop
+	action_id = "logistics_rifle_box_drop"
+	name = "Ящик винтовочных коробов"
+	description = "Сбрасывает четыре короба по 600 патронов M41A для длительного огня или быстрой набивки магазинов."
+	scatter = 1
+	shared_cooldown = 300 SECONDS
+	personal_cooldown = 660 SECONDS
+	support_pool_cost = 2
+	personal_lockout = 5 SECONDS
+	category = "logistics"
+	icon_state = "ammo"
+	fire_support_path = /datum/fire_support/supply_drop/uscm/rifle_box
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_shotgun_ammo_drop
+	action_id = "logistics_shotgun_ammo_drop"
+	name = "Ящик дробовых патронов"
+	description = "Сбрасывает компактный запас пулевых патронов под одного бричера, а не под всё отделение."
+	scatter = 1
+	shared_cooldown = 180 SECONDS
+	personal_cooldown = 420 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
+	category = "logistics"
+	icon_state = "ammo"
+	fire_support_path = /datum/fire_support/supply_drop/uscm/shotgun/compact
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_smg_ammo_drop
+	action_id = "logistics_smg_ammo_drop"
+	name = "Ящик боеприпасов M39"
+	description = "Сбрасывает компактный запас для M39, не съедая слишком много логистического объёма."
+	scatter = 1
+	shared_cooldown = 180 SECONDS
+	personal_cooldown = 420 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
+	category = "logistics"
+	icon_state = "ammo"
+	fire_support_path = /datum/fire_support/supply_drop/uscm/smg/compact
+	requires_visibility_zone = FALSE
+	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
+	allow_closed_turf = FALSE
+
+/datum/rto_support_action_template/logistics_sidearm_ammo_drop
+	action_id = "logistics_sidearm_ammo_drop"
+	name = "Боеприпасы вторичного оружия"
+	description = "Сбрасывает умеренный запас для пистолетов и резервного оружия, не конкурируя с винтовочным снабжением."
+	scatter = 1
+	shared_cooldown = 180 SECONDS
+	personal_cooldown = 420 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
+	category = "logistics"
+	icon_state = "ammo"
+	fire_support_path = /datum/fire_support/supply_drop/uscm/sidearm/compact
 	requires_visibility_zone = FALSE
 	altitude_requirement = RTO_SUPPORT_ALTITUDE_HIGH
 	allow_closed_turf = FALSE
 
 /datum/rto_support_action_template/logistics_mine_crate
 	action_id = "logistics_mine_crate"
-	name = "Mine crate drop"
-	description = "Drops anti-personnel mine reserves for rapid position prep."
+	name = "Ящик мин"
+	description = "Сбрасывает запас противопехотных мин для быстрого укрепления позиции."
 	scatter = 1
-	shared_cooldown = 180 SECONDS
-	personal_cooldown = 420 SECONDS
+	shared_cooldown = 240 SECONDS
+	personal_cooldown = 480 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/mine_crate
@@ -28,11 +96,13 @@
 
 /datum/rto_support_action_template/logistics_mini_sentry
 	action_id = "logistics_mini_sentry"
-	name = "Mini-sentry drop"
-	description = "Drops a rapid-deploy mini sentry with a limited ammunition load."
+	name = "Мини-турель"
+	description = "Сбрасывает быстроразворачиваемую мини-турель с ограниченным боезапасом."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/mini
@@ -42,11 +112,13 @@
 
 /datum/rto_support_action_template/logistics_full_sentry
 	action_id = "logistics_full_sentry"
-	name = "Full sentry drop"
-	description = "Drops a full sentry pod with the longest logistics cooldown in the package."
+	name = "Полноразмерная турель"
+	description = "Сбрасывает полноразмерную турель. Это самый тяжёлый оборонительный вызов пакета и он тратит 2 заряда."
 	scatter = 1
 	shared_cooldown = 360 SECONDS
 	personal_cooldown = 780 SECONDS
+	support_pool_cost = 2
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "sentry"
 	fire_support_path = /datum/fire_support/sentry_drop/full
@@ -56,11 +128,13 @@
 
 /datum/rto_support_action_template/logistics_grenade_drop
 	action_id = "logistics_grenade_drop"
-	name = "Grenade crate drop"
-	description = "Drops a crate of M40 grenades for breaching and emergency defense."
+	name = "Ящик гранат"
+	description = "Сбрасывает сбалансированный запас гранат для пролома, зачистки помещений и экстренной обороны."
 	scatter = 1
-	shared_cooldown = 180 SECONDS
-	personal_cooldown = 420 SECONDS
+	shared_cooldown = 210 SECONDS
+	personal_cooldown = 450 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/grenade_crate
@@ -70,11 +144,13 @@
 
 /datum/rto_support_action_template/logistics_sentry_ammo_drop
 	action_id = "logistics_sentry_ammo_drop"
-	name = "Sentry ammo drop"
-	description = "Drops a sentry ammunition crate to keep deployed guns fed."
+	name = "Боеприпасы для турели"
+	description = "Сбрасывает ящик патронов для турели, чтобы поддерживать уже развёрнутые орудия без вызова новой установки."
 	scatter = 1
 	shared_cooldown = 240 SECONDS
 	personal_cooldown = 540 SECONDS
+	support_pool_cost = 1
+	personal_lockout = 5 SECONDS
 	category = "logistics"
 	icon_state = "ammo"
 	fire_support_path = /datum/fire_support/supply_drop/sentry_ammo

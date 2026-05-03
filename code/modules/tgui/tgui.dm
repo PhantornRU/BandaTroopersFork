@@ -243,6 +243,10 @@
  * return list
  */
 /datum/tgui/proc/get_payload(custom_data, with_data, with_static_data)
+	var/datum/world_edit_manager/world_edit_manager = null
+	if(istype(src_object, /datum/world_edit_manager))
+		world_edit_manager = src_object
+		world_edit_manager.append_runtime_trace("tgui:payload:start", "with_data=[with_data] static=[with_static_data]")
 	var/list/json_data = list()
 	json_data["config"] = list(
 		"title" = title,
@@ -273,11 +277,17 @@
 	var/data = custom_data || with_data && src_object.ui_data(user)
 	if(data)
 		json_data["data"] = data
+	if(world_edit_manager)
+		world_edit_manager.append_runtime_trace("tgui:payload:data", "has_data=[data ? TRUE : FALSE]")
 	var/static_data = with_static_data && src_object.ui_static_data(user)
 	if(static_data)
 		json_data["static_data"] = static_data
+	if(world_edit_manager)
+		world_edit_manager.append_runtime_trace("tgui:payload:static", "has_static=[static_data ? TRUE : FALSE]")
 	if(src_object.tgui_shared_states)
 		json_data["shared"] = src_object.tgui_shared_states
+	if(world_edit_manager)
+		world_edit_manager.append_runtime_trace("tgui:payload:done", "shared=[src_object.tgui_shared_states ? TRUE : FALSE]")
 	return json_data
 
 /**

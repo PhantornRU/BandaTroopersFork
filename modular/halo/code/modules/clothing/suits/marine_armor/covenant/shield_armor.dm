@@ -200,7 +200,7 @@
 
 	if(!shield_effect && COOLDOWN_FINISHED(src, shield_hit_visual_cd))
 		if(shield_fx_enabled())
-			var/image/shield_flicker = image('icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
+			var/image/shield_flicker = image('modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi', icon_state = "+flicker", layer = ABOVE_MOB_LAYER)
 			shield_flicker.dir = user.dir
 			flick_overlay(user, shield_flicker, 22)
 			add_shield_filter(user)
@@ -304,12 +304,12 @@
 /obj/item/clothing/suit/marine/shielded/sangheili
 	name = "YOU SHOULDN'T SEE THIS"
 	desc = "Центральный элемент комплекта продвинутой боевой брони производства Ковенанта. Выполнен из наноламината и оснащён энергетическими щитами, поэтому намного прочнее экипировки большинства других видов."
-	icon = 'icons/halo/obj/items/clothing/covenant/armor.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/covenant/armor.dmi'
 	icon_state = "sang_minor"
 	item_state = "sang_minor"
 
 	item_icons = list(
-		WEAR_JACKET = 'icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi'
+		WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/sangheili/armor.dmi'
 	)
 
 	allowed_species_list = list(SPECIES_SANGHEILI)
@@ -373,23 +373,4 @@
 /obj/item/clothing/suit/marine/shielded/sangheili/ultra/Initialize(mapload)
 	. = ..()
 	var/obj/item/clothing/accessory/pads/sangheili/ultra/pads = new()
-	src.attach_accessory(null, pads, TRUE)
-
-/obj/item/clothing/suit/marine/shielded/sangheili/zealot
-	name = "\improper боевая сбруя сангхейли-зилота"
-	desc = "Золотой блеск этой сбруи выдаёт в гордом сангхейли одного из прославленных зилотов - воинов почётных Орденов. Она неизмеримо превосходит любые более низкие комплекты: говорят, её наноламинатные сплавы напрямую насыщены священными металлами, благодаря чему броня одновременно удивительно лёгкая и нелепо прочная. К этой обычной прочности добавляются мощные энергетические щиты, превращающие воина в неудержимую силу на пути к цели."
-	desc_lore = "Будь то личное ведение войск в славный бой или захват Святых Реликвий в дерзких и не слишком афишируемых операциях, с носителем этой сбруи лучше не шутить и тем более не становиться у него на пути."
-
-	icon_state = "sang_zealot"
-	item_state = "sang_zealot"
-
-	shield = SANG_SHIELD_ZEALOT
-	armor_melee = CLOTHING_ARMOR_ULTRAHIGH
-	armor_bullet = CLOTHING_ARMOR_ULTRAHIGH
-	armor_laser = CLOTHING_ARMOR_VERYHIGH
-	armor_bomb = CLOTHING_ARMOR_HIGH
-
-/obj/item/clothing/suit/marine/shielded/sangheili/zealot/Initialize(mapload)
-	. = ..()
-	var/obj/item/clothing/accessory/pads/sangheili/zealot/pads = new()
 	src.attach_accessory(null, pads, TRUE)

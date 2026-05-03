@@ -1,16 +1,16 @@
 /datum/fire_support/missile
-	name = "LGM strike"
+	name = "Ракетный удар"
 	fire_support_firer = FIRESUPPORT_CAS
 	fire_support_type = FIRESUPPORT_TYPE_MISSILE
 	scatter_range = 1
 	cost = 4
 	icon_state = "missile"
-	initiate_chat_message = "TARGET ACQUIRED MISSILE INBOUND."
+	initiate_chat_message = "ЦЕЛЬ ПРИНЯТА. РАКЕТА В ПУТИ."
 	initiate_screen_message = list(
-		"TGP on lase, one out.",
-		"Hope that target's worth it, sending one.",
-		"One big boom, on the way.",
-		"Missile inbound, keep your heads down.",
+		"Цель на лазере, одна ракета пошла.",
+		"Надеюсь, цель того стоит. Отправляю одну.",
+		"Один большой взрыв уже в пути.",
+		"Ракета в пути, всем пригнуться.",
 		)
 	initiate_sound = 'sound/effects/IncomingRocket.ogg'
 	start_visual = null
@@ -35,11 +35,11 @@
 	initiate_title = "Pig-1"
 
 /datum/fire_support/missile/napalm
-	name = "Napalm strike"
+	name = "Напалмовый удар"
 	fire_support_type = FIRESUPPORT_TYPE_NAPALM_MISSILE
 	cost = 3
 	icon_state = "napalm_missile"
-	initiate_chat_message = "TARGET ACQUIRED NAPALM MISSILE INBOUND."
+	initiate_chat_message = "ЦЕЛЬ ПРИНЯТА. НАПАЛМОВАЯ РАКЕТА В ПУТИ."
 	impact_start_visual = /obj/effect/temp_visual/falling_obj/napalm
 
 /datum/fire_support/missile/napalm/do_impact(turf/target_turf)
@@ -54,11 +54,11 @@
 	initiate_title = "Pig-1"
 
 /datum/fire_support/missile/smoke
-	name = "SMK missile"
+	name = "Дымовая ракета"
 	fire_support_type = FIRESUPPORT_TYPE_SMOKE_MISSILE
 	cost = 2
 	icon_state = "smoke_missile"
-	initiate_chat_message = "TARGET ACQUIRED SMOKE MISSILE INBOUND."
+	initiate_chat_message = "ЦЕЛЬ ПРИНЯТА. ДЫМОВАЯ РАКЕТА В ПУТИ."
 	impact_start_visual = /obj/effect/temp_visual/falling_obj/banshee
 	///smoke type created when the grenade is primed
 	var/datum/effect_system/smoke_spread/smoketype = /datum/effect_system/smoke_spread/bad
@@ -81,11 +81,11 @@
 	initiate_title = "Pig-1"
 
 /datum/fire_support/missile/smoke/nerve
-	name = "CN-20 missile"
+	name = "Ракета CN-20"
 	fire_support_type = FIRESUPPORT_TYPE_NERVE_MISSILE_UPP
 	cost = 3
 	icon_state = "nerve_missile"
-	initiate_screen_message = list("Nerve gas, inbound!")
+	initiate_screen_message = list("Газ CN-20 уже в пути!")
 	smoketype = /datum/effect_system/smoke_spread/cn20
 	smoke_duration = 30
 
@@ -97,11 +97,11 @@
 	initiate_title = "Pig-1"
 
 /datum/fire_support/missile/smoke/lsd
-	name = "LSD missile"
+	name = "Ракета LSD"
 	fire_support_type = FIRESUPPORT_TYPE_LSD_MISSILE_UPP
 	cost = 2
 	icon_state = "lsd_missile"
-	initiate_screen_message = list("LSD gas, inbound!")
+	initiate_screen_message = list("Заряд LSD уже в пути!")
 	smoketype = /datum/effect_system/smoke_spread/LSD
 	smoke_duration = 30
 

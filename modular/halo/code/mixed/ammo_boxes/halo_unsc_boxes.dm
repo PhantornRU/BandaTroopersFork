@@ -1,14 +1,14 @@
 /obj/structure/magazine_box/unsc
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base"
-	text_markings_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	text_markings_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 
 /obj/item/ammo_box/magazine/misc/unsc
 	name = "\improper UNSC storage crate"
 	desc = "Типовой ящик снабжения ККОН. Похоже, сейчас он пуст... и вы вообще не должны были этого видеть."
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 	deployed_object = /obj/structure/magazine_box/unsc
 	icon_state = "base"
 	magazine_type = null
@@ -95,10 +95,10 @@
 /obj/item/ammo_box/magazine/unsc
 	name = "UNSC magazine box"
 	desc = "Типовой ящик с боеприпасами для оружия ККОН."
-	icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base_ammo"
-	magazines_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
-	text_markings_icon = 'icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
+	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
+	text_markings_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
 	limit_per_tile = 1
 	deployed_object = /obj/structure/magazine_box/unsc
 
@@ -144,6 +144,17 @@
 	overlay_ammo_type = "_ext"
 	magazine_type = /obj/item/ammo_magazine/rifle/halo/br55/extended
 
+/obj/item/ammo_box/magazine/unsc/dmr
+	name = "UNSC magazine box (DMR x 24)"
+	desc = "Ящик с 24 магазинами для M392 DMR."
+	icon_state = "base_ammo"
+	overlay_gun_type = "_dmr"
+	magazine_type = /obj/item/ammo_magazine/rifle/halo/dmr
+	num_of_magazines = 24
+
+/obj/item/ammo_box/magazine/unsc/dmr/empty
+	empty = TRUE
+
 /obj/item/ammo_box/magazine/unsc/small
 	name = "UNSC magazine box"
 	icon_state = "base_ammosmall"
@@ -169,4 +180,11 @@
 	desc = "Ящик с 22 магазинами для M6G."
 	icon_state = "base_ammosmall2"
 	magazine_type = /obj/item/ammo_magazine/pistol/halo/m6g
+	num_of_magazines = 22
+
+/obj/item/ammo_box/magazine/unsc/small/m6d
+	name = "UNSC magazine box (M6D x 22)"
+	desc = "Ящик с 22 магазинами для M6D."
+	icon_state = "base_ammosmall3"
+	magazine_type = /obj/item/ammo_magazine/pistol/halo/m6d
 	num_of_magazines = 22

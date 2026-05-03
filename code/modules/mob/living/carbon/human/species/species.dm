@@ -394,6 +394,12 @@
 	add_inherent_verbs(H)
 	apply_signals(H)
 
+// SS220 EDIT - START
+/// Reapply species-owned intrinsic items after shared cleanup paths (for example, Create AI strips).
+/datum/species/proc/refresh_intrinsic_equipment(mob/living/carbon/human/H)
+	return
+// SS220 EDIT - END
+
 /// Apply signals to the human
 /datum/species/proc/apply_signals(mob/living/carbon/human/H)
 	return

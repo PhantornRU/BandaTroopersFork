@@ -1,7 +1,7 @@
 /obj/item/reagent_container/glass/barrel
 	name = "canister"
 	desc = "Канистра. Вмещает до 240 единиц."
-	icon = 'icons/halo/obj/objects.dmi'
+	icon = 'modular/halo/icons/halo/obj/objects.dmi'
 	icon_state = "sbarrel"
 	item_state = "sbarrel"
 	matter = list("metal" = 4000)

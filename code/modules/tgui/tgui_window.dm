@@ -264,16 +264,40 @@
 /datum/tgui_window/proc/send_message(type, payload, force)
 	if(!client)
 		return
+	var/datum/world_edit_manager/world_edit_manager = null
+	var/update_encode_started_at = 0
+	var/update_output_started_at = 0
+	if(type == "update")
+		var/datum/tgui/ui = locked_by
+		if(istype(ui?.src_object, /datum/world_edit_manager))
+			world_edit_manager = ui.src_object
+			update_encode_started_at = REALTIMEOFDAY
+			world_edit_manager.append_runtime_trace("tgui:update:before-encode", "window=[id]")
 	var/message = TGUI_CREATE_MESSAGE(type, payload)
+	var/message_length = length("[message]")
+	if(world_edit_manager)
+		world_edit_manager.increment_runtime_diagnostic("tgui_update_messages")
+		world_edit_manager.get_runtime_diagnostics()["tgui_update_bytes_last"] = message_length
+		world_edit_manager.set_runtime_diagnostic_peak("tgui_update_bytes_peak", message_length)
+		world_edit_manager.record_runtime_diagnostic_duration("tgui_update_encode", update_encode_started_at)
+		world_edit_manager.append_runtime_trace("tgui:update:after-encode", "bytes=[message_length]")
 	// Place into queue if window is still loading
 	if(!force && status != TGUI_WINDOW_READY)
 		if(!message_queue)
 			message_queue = list()
 		message_queue += list(message)
+		if(world_edit_manager)
+			world_edit_manager.append_runtime_trace("tgui:update:queued", "status=[status]")
 		return
+	if(world_edit_manager)
+		update_output_started_at = REALTIMEOFDAY
+		world_edit_manager.append_runtime_trace("tgui:update:before-output", "browser=[is_browser]")
 	client << output(message, is_browser \
 		? "[id]:update" \
 		: "[id].browser:update")
+	if(world_edit_manager)
+		world_edit_manager.record_runtime_diagnostic_duration("tgui_update_output", update_output_started_at)
+		world_edit_manager.append_runtime_trace("tgui:update:after-output", "window=[id]")
 
 /**
  * public

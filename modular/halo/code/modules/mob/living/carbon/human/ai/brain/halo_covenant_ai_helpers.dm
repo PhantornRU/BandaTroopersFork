@@ -566,13 +566,14 @@
 
 	var/storage_loc = halo_sangheili_sword_storage_loc
 
-	if(sword.loc == human)
+	if(sword == human.l_hand || sword == human.r_hand)
 		if(human.get_inactive_hand() == sword)
 			human.swap_hand()
-		else if(!human.get_active_hand())
-			human.put_in_active_hand(sword)
 		halo_sangheili_track_drawn_sword(sword, storage_loc)
 		halo_sangheili_begin_melee_commit(sword)
+		if(!sword.activated && !sword.nonfunctional)
+			sword.set_activation_state(TRUE, human)
+		ensure_primary_hand(sword)
 		return sword
 
 	if(!halo_covenant_clear_hands())

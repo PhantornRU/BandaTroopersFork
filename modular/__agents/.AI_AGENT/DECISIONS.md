@@ -1,13 +1,13 @@
 # DECISIONS
 
-## D-001: `species.name` у HALO-рас возвращается к canonical `SPECIES_*`
-- Решение: использовать `SPECIES_SANGHEILI` и `SPECIES_UNGGOY` как `name` в species datum.
-- Почему: `setup_species()`, `set_species()`, AI/preset flow и часть совместимости завязаны на `species.name` как на ключ lookup/contract, а не как на display label.
+## D-001: Use one normalized workflow instead of additive exceptions
+- Decision: rewrite the affected instruction sections so approved-plan execution has one order and one set of blocking statuses.
+- Why: adding extra warnings without removing old thresholds left escape hatches such as "small hotfix", "tests passed", and "not a large task".
 
-## D-002: Локализация species-имен отделяется от canonical ID
-- Решение: локализованные названия держать в explicit display-layer (`display_name`, `display_name_plural`) и использовать его только в player-facing сообщениях.
-- Почему: предыдущая попытка локализовать raw `name` сломала species registration и HALO equip restrictions.
+## D-002: Treat task-state edits as the allowed planning mutation
+- Decision: after read-only discovery, updating `PLAN/TODO/DECISIONS/EVIDENCE` is the only mutation allowed before implementation edits.
+- Why: the previous wording required task-state updates before mutating edits while also classifying every file edit as mutating.
 
-## D-003: Прямые subtype-спавны добавляются в upstream `human.dm`
-- Решение: завести `/mob/living/carbon/human/sangheili` и `/mob/living/carbon/human/unggoy` по примеру `/mob/living/carbon/human/synthetic`.
-- Почему: пользователь явно просит create-human/create-object surface для прямого спавна рас без обязательного gear preset.
+## D-003: Verification is separate from plan fidelity
+- Decision: tests and compile checks remain expected evidence, but they cannot close `MUST/KEEP/REJECT` items by themselves.
+- Why: the user's current priority is adherence to approved plans; verification should not become a substitute for requested architecture work.

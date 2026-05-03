@@ -194,6 +194,11 @@ Contains most of the procs that are called when a mob is attacked by something
 	if((user != src) && check_shields(I.force, "the [I.name]"))
 		return FALSE
 
+	// SS220 EDIT: HALO modular energy shield hook.
+	var/remaining_force = check_energy_shield(I.force, "the [I.name]")
+	if(!remaining_force)
+		return FALSE
+
 	if(LAZYLEN(I.attack_verb))
 		visible_message(SPAN_DANGER("<B>[src] has been [pick(I.attack_verb)] in the [hit_area] with [I.name] by [user]!</B>"), null, null, 5)
 	else
@@ -207,14 +212,14 @@ Contains most of the procs that are called when a mob is attacked by something
 		weapon_sharp = FALSE
 		weapon_edge = FALSE
 
-	if(!I.force)
+	if(!remaining_force)
 		return FALSE
 	if(weapon_sharp)
 		user.flick_attack_overlay(src, "punch")
 	else
 		user.flick_attack_overlay(src, "punch")
 
-	var/damage = armor_damage_reduction(GLOB.marine_melee, I.force, armor, (weapon_sharp?30:0) + (weapon_edge?10:0)) // no penetration frm punches
+	var/damage = armor_damage_reduction(GLOB.marine_melee, remaining_force, armor, (weapon_sharp?30:0) + (weapon_edge?10:0)) // no penetration frm punches
 	apply_damage(damage, I.damtype, affecting, sharp=weapon_sharp, edge=weapon_edge, used_weapon=I)
 
 	if(damage > 5)
@@ -301,6 +306,11 @@ Contains most of the procs that are called when a mob is attacked by something
 	O.throwing = FALSE //it hit, so stop moving
 
 	if ((thrower != src) && check_shields(impact_damage, "[O]"))
+		return
+
+	// SS220 EDIT: HALO modular energy shield hook.
+	impact_damage = check_energy_shield(impact_damage, "[O]")
+	if(!impact_damage)
 		return
 
 	var/obj/limb/affecting = get_limb(zone)

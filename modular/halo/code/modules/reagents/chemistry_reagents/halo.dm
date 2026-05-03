@@ -1,3 +1,11 @@
+/datum/reagent/blood/sangheili_blood
+	name = "Sangheili Blood"
+	id = "sangheiliblood"
+	description = "A thick purple blood, definitely not human."
+	color = BLOOD_COLOR_SANGHEILI
+	chemclass = CHEM_CLASS_SPECIAL
+	objective_value = OBJECTIVE_HIGH_VALUE
+
 /datum/reagent/medical/biofoam
 	name = "Bio-Foam"
 	id = "biofoam"

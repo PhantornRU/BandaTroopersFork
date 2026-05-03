@@ -109,7 +109,7 @@ Additional game mode variables.
 
 
 /datum/game_mode/proc/get_roles_list()
-	return GLOB.RoleAuthority?.get_shipside_role_titles() || GLOB.ROLES_USCM
+	return GLOB.RoleAuthority?.get_gamemode_role_titles(name) || GLOB.RoleAuthority?.get_shipside_role_titles() || GLOB.ROLES_USCM // SS220 EDIT: latejoin/roundstart mode roles must respect the active ship profile before broad shipside fallback
 
 //===================================================\\
 
