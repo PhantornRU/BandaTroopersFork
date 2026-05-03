@@ -15,8 +15,12 @@
 	if(!istype(plan))
 		return specs
 
-	var/spec_limit = hover_only ? WORLD_EDIT_BLUEPRINT_STAMP_MAX_HOVER_PREVIEW_OBJECT_SPECS : length(plan.placements)
 	var/total_specs = length(plan.placements)
+	var/spec_limit = total_specs
+	if(hover_only)
+		spec_limit = min(total_specs, WORLD_EDIT_BLUEPRINT_STAMP_MAX_HOVER_PREVIEW_OBJECT_SPECS)
+	else if(total_specs > WORLD_EDIT_BLUEPRINT_COMPACT_PREVIEW_ENTRY_THRESHOLD)
+		spec_limit = 0
 	for(var/list/placement as anything in plan.placements)
 		if(length(specs) >= spec_limit)
 			break

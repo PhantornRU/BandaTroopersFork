@@ -1,11 +1,14 @@
 export type {
   BlueprintFilterMode,
+  BlueprintLibraryActionId,
   BlueprintSortMode,
 } from './viewModelBlueprint';
 export {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
   getBlueprintFootprintText,
+  getBlueprintLibraryActions,
+  getBlueprintPreviewMode,
 } from './viewModelBlueprint';
 export type {
   EditorChromeViewModel,

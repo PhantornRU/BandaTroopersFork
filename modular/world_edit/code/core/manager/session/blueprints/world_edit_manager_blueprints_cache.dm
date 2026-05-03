@@ -78,8 +78,8 @@
 	if(!length("[file_path]") || !fexists(file_path))
 		return ""
 
-	var/json_text = file2text(file_path)
-	if(!length(json_text))
+	var/dmm_text = file2text(file_path)
+	if(!length(dmm_text))
 		return ""
-	active_blueprint_revision_hash = md5(json_text)
+	active_blueprint_revision_hash = md5(dmm_text)
 	return active_blueprint_revision_hash

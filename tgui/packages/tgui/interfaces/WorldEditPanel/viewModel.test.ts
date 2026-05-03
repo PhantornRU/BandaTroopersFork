@@ -5,6 +5,8 @@ import {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
   getDestructionPreviewLegendItems,
+  getBlueprintLibraryActions,
+  getBlueprintPreviewMode,
   getDestructionWorkspaceViewModel,
   getHistoryMetrics,
   getSharedModeViewModel,
@@ -629,6 +631,51 @@ describe('WorldEditPanel view model', () => {
         'entries_desc',
       ).map((entry) => entry.id),
     ).toEqual(['bp-unused', 'bp-large', 'bp-small']);
+  });
+
+  it('exposes DMM blueprint library actions and compact preview state', () => {
+    const data = makeData({
+      active_blueprint_id: 'bp-1',
+      preview_valid: true,
+      can_run_apply: true,
+    });
+    const blueprint = {
+      id: 'bp-1',
+      name: 'Heavy',
+      entry_count: 256,
+      radius: 8,
+      created_at: '',
+      created_by: '',
+      source: 'server',
+      valid: true,
+      error: '',
+      preview_mode: 'compact' as const,
+    };
+
+    expect(getBlueprintPreviewMode(blueprint)).toBe('compact');
+    expect(
+      getBlueprintPreviewMode({ ...blueprint, preview_mode: undefined }),
+    ).toBe('detail');
+    expect(getBlueprintLibraryActions(data, blueprint)).toEqual([
+      { action: 'load_blueprint', disabled: true },
+      { action: 'preview_blueprint', disabled: false },
+      { action: 'apply_blueprint', disabled: false },
+      { action: 'export_blueprint', disabled: false },
+      { action: 'rename_blueprint', disabled: false },
+      { action: 'delete_blueprint', disabled: false },
+    ]);
+    expect(
+      getBlueprintLibraryActions(data, { ...blueprint, valid: false }).filter(
+        (entry) =>
+          ['export_blueprint', 'rename_blueprint', 'delete_blueprint'].includes(
+            entry.action,
+          ),
+      ),
+    ).toEqual([
+      { action: 'export_blueprint', disabled: true },
+      { action: 'rename_blueprint', disabled: true },
+      { action: 'delete_blueprint', disabled: true },
+    ]);
   });
 
   it('uses preview meta to derive destruction legend state', () => {

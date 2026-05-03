@@ -57,6 +57,18 @@
 
 	return TRUE
 
+/datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_footprint_bounds(list/bounds)
+	if(!islist(bounds))
+		return "У шаблона отсутствуют bounds."
+
+	var/footprint_width = (text2num("[bounds["max_x"]]") - text2num("[bounds["min_x"]]")) + 1
+	var/footprint_height = (text2num("[bounds["max_y"]]") - text2num("[bounds["min_y"]]")) + 1
+	if(footprint_width <= 0 || footprint_height <= 0)
+		return "Шаблон содержит некорректные границы."
+	if(footprint_width > WORLD_EDIT_BLUEPRINT_MAX_DIMENSION || footprint_height > WORLD_EDIT_BLUEPRINT_MAX_DIMENSION)
+		return "Шаблон превышает лимит размера [WORLD_EDIT_BLUEPRINT_MAX_DIMENSION]x[WORLD_EDIT_BLUEPRINT_MAX_DIMENSION]."
+	return null
+
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_entry_vars(obj_path, raw_vars)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!rule)
@@ -357,19 +369,13 @@
 
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_definition(list/raw_definition)
 	if(!islist(raw_definition))
-		return list("error" = "Данные шаблона должны быть JSON-объектом.")
-	if("[raw_definition["schema"]]" != WORLD_EDIT_BLUEPRINT_SCHEMA)
-		return list("error" = "В шаблоне отсутствует schema или она не поддерживается.")
-
-	var/version = text2num("[raw_definition["version"]]")
-	if(version != WORLD_EDIT_BLUEPRINT_VERSION)
-		return list("error" = "Версия шаблона не поддерживается.")
+		return list("error" = "Данные шаблона должны быть объектом.")
 
 	var/blueprint_id = sanitize_filename("[raw_definition["id"]]")
 	if(!length(blueprint_id))
 		return list("error" = "У шаблона отсутствует id.")
 	if(length(blueprint_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
-		return list("error" = "id шаблона превышает лимит длины Phase 3A.")
+		return list("error" = "id шаблона превышает лимит длины.")
 
 	var/blueprint_name = trim(sanitize_text("[raw_definition["name"]]", ""))
 	if(!length(blueprint_name))
@@ -402,8 +408,11 @@
 	var/list/computed_bounds = world_edit_compute_blueprint_bounds(sanitized_entries)
 	if(computed_bounds["radius"] > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
 		return list("error" = "Шаблон превышает допустимый лимит радиуса.")
+	var/footprint_error = world_edit_validate_blueprint_footprint_bounds(computed_bounds)
+	if(footprint_error)
+		return list("error" = footprint_error)
 
-	if(!world_edit_blueprint_bounds_match(raw_definition["bounds"], computed_bounds))
+	if(islist(raw_definition["bounds"]) && !world_edit_blueprint_bounds_match(raw_definition["bounds"], computed_bounds))
 		return list("error" = "Метаданные bounds шаблона устарели или некорректны.")
 
 	var/list/outpost_recipe_result = world_edit_validate_outpost_recipe(raw_definition["outpost_recipe"])
@@ -415,7 +424,7 @@
 		"name" = blueprint_name,
 		"created_at" = "[raw_definition["created_at"] || ""]",
 		"created_by" = ckey("[raw_definition["created_by"]]"),
-		"source" = "[raw_definition["source"] || "server"]",
+		"source" = "[raw_definition["source"] || "dmm"]",
 		"bounds" = computed_bounds,
 		"entries" = sanitized_entries,
 		"outpost_recipe" = outpost_recipe_result["outpost_recipe"],
@@ -437,6 +446,7 @@
 		"source" = blueprint["source"] || "",
 		"valid" = valid ? TRUE : FALSE,
 		"error" = error_text,
+		"preview_mode" = length(blueprint["entries"]) > WORLD_EDIT_BLUEPRINT_COMPACT_PREVIEW_ENTRY_THRESHOLD ? "compact" : "detail",
 	)
 	if(file_path)
 		summary["file_path"] = file_path

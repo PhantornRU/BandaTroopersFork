@@ -108,6 +108,7 @@ export type BlueprintEntry = {
   has_outpost_recipe?: boolean;
   outpost_defense_profile?: string;
   outpost_layout_variant?: string;
+  preview_mode?: 'detail' | 'compact';
 };
 
 export type BackendData = {

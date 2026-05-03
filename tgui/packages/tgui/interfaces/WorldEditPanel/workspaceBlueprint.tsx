@@ -9,6 +9,7 @@ import {
   filterAndSortBlueprintEntries,
   getBlueprintActionState,
   getBlueprintFootprintText,
+  getBlueprintPreviewMode,
 } from './viewModel';
 
 const FILTER_OPTIONS = [
@@ -94,9 +95,26 @@ const BlueprintStampWorkspace = (props: {
     <SurfaceCard
       title={`Библиотека (${filteredBlueprints.length} из ${totalBlueprints})`}
       actions={
-        <Button compact onClick={() => act('list_blueprints')}>
-          Обновить
-        </Button>
+        <Flex>
+          <Flex.Item mr={0.3}>
+            <Button
+              compact
+              icon="upload"
+              onClick={() => act('import_blueprint')}
+            >
+              Импорт
+            </Button>
+          </Flex.Item>
+          <Flex.Item>
+            <Button
+              compact
+              icon="refresh"
+              onClick={() => act('list_blueprints')}
+            >
+              Обновить
+            </Button>
+          </Flex.Item>
+        </Flex>
       }
       mt={0}
     >
@@ -162,6 +180,8 @@ const BlueprintStampWorkspace = (props: {
           {filteredBlueprints.map((blueprint) => {
             const actionState = getBlueprintActionState(data, blueprint);
             const outpostSummary = getBlueprintOutpostSummary(blueprint);
+            const isCompactPreview =
+              getBlueprintPreviewMode(blueprint) === 'compact';
             return (
               <Box
                 key={blueprint.id}
@@ -202,6 +222,13 @@ const BlueprintStampWorkspace = (props: {
                       {getDisplayText(blueprint.name, 'Шаблон без имени')}
                     </Box>
                   </Flex.Item>
+                  {isCompactPreview && (
+                    <Flex.Item mr={0.45} style={{ flex: '0 0 auto' }}>
+                      <Box color="average" style={{ fontSize: '0.82rem' }}>
+                        компакт
+                      </Box>
+                    </Flex.Item>
+                  )}
                   <Flex.Item style={{ flex: '0 0 auto' }}>
                     <Box
                       color={blueprint.valid ? 'label' : 'bad'}
@@ -227,6 +254,114 @@ const BlueprintStampWorkspace = (props: {
                     {outpostSummary}
                   </Box>
                 )}
+                {!!blueprint.error && !blueprint.valid && (
+                  <Box
+                    color="bad"
+                    style={{
+                      fontSize: '0.82rem',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {blueprint.error}
+                  </Box>
+                )}
+                <Flex wrap mt={0.35} mx={-0.15}>
+                  <Flex.Item m={0.15}>
+                    <Button
+                      compact
+                      icon="sign-in"
+                      disabled={!actionState.canLoad}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('load_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Загрузить
+                    </Button>
+                  </Flex.Item>
+                  <Flex.Item m={0.15}>
+                    <Button
+                      compact
+                      icon="eye"
+                      disabled={!actionState.canPreview}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('preview_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Предпросмотр
+                    </Button>
+                  </Flex.Item>
+                  <Flex.Item m={0.15}>
+                    <Button
+                      compact
+                      icon="check"
+                      color="good"
+                      disabled={!actionState.canApply}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('apply_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Применить
+                    </Button>
+                  </Flex.Item>
+                  <Flex.Item m={0.15}>
+                    <Button
+                      compact
+                      icon="download"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('export_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Экспорт
+                    </Button>
+                  </Flex.Item>
+                  <Flex.Item m={0.15}>
+                    <Button
+                      compact
+                      icon="edit"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('rename_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Имя
+                    </Button>
+                  </Flex.Item>
+                  <Flex.Item m={0.15}>
+                    <Button.Confirm
+                      compact
+                      icon="trash"
+                      color="bad"
+                      confirmContent="Удалить?"
+                      disabled={!blueprint.valid}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        act('delete_blueprint', {
+                          blueprint_id: blueprint.id,
+                        });
+                      }}
+                    >
+                      Удалить
+                    </Button.Confirm>
+                  </Flex.Item>
+                </Flex>
               </Box>
             );
           })}

@@ -165,16 +165,21 @@
 	var/list/bounds = world_edit_compute_blueprint_bounds(entries)
 	if(bounds["radius"] > WORLD_EDIT_BLUEPRINT_MAX_RADIUS)
 		return list("error" = "Текущий план превышает лимит радиуса Blueprint Lite.")
+	var/footprint_error = world_edit_validate_blueprint_footprint_bounds(bounds)
+	if(footprint_error)
+		return list("error" = footprint_error)
 
-	var/list/outpost_recipe = world_edit_build_outpost_recipe_from_plan(plan, anchor_turf)
+	var/blueprint_id = sanitize_filename(trim("[blueprint_name]"))
+	if(!length(blueprint_id))
+		blueprint_id = world_edit_build_blueprint_id()
+	blueprint_id = copytext(blueprint_id, 1, WORLD_EDIT_BLUEPRINT_ID_LEN + 1)
 
 	return list("blueprint" = list(
-		"id" = world_edit_build_blueprint_id(),
-		"name" = copytext(trim(sanitize_text("[blueprint_name]", "Форпостный шаблон")), 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1),
+		"id" = blueprint_id,
+		"name" = blueprint_id,
 		"created_at" = time_stamp(),
 		"created_by" = ckey("[actor_ckey]"),
 		"source" = "outpost_radius_plan",
 		"bounds" = bounds,
 		"entries" = entries,
-		"outpost_recipe" = outpost_recipe,
 	))
