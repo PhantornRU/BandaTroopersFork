@@ -191,6 +191,8 @@
 	name = PATHOGEN_STRUCTURE_COCOON
 	desc = "A cocoon to grow a Pathogen Popper."
 	construction_name = "mycelial cocoon"
+	construction_icon = 'modular/xeno_races/icons/mob/pathogen/pathogen_weeds.dmi'
+	construction_icon_state = "cocoon_full"
 	cost = 800
 	max_per_xeno = 3
 
@@ -387,5 +389,4 @@
 
 	selected_structure.hatch(xeno_candidate)
 	return TRUE
-
 

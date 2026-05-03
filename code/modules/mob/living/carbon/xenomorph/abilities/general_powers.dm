@@ -166,7 +166,7 @@
 
 		entry["name"] = RC.name
 		entry["desc"] = RC.desc
-		entry["image"] = replacetext(RC.construction_name, " ", "-")
+		entry["image"] = replacetext(RC.get_construction_icon_state(), " ", "-") // SS220 EDIT: allow modular resin constructions to keep custom text and icon state separate
 		entry["plasma_cost"] = RC.cost
 		entry["max_per_xeno"] = RC.max_per_xeno
 		entry["id"] = "[type]"
@@ -226,7 +226,7 @@
 	if(to_chat)
 		to_chat(usr, SPAN_NOTICE("We will now build <b>[resin_construction.construction_name]\s</b> when secreting resin."))
 	button.overlays.Cut()
-	button.overlays += image('icons/mob/hud/actions_xeno.dmi', button, resin_construction.construction_name)
+	button.overlays += image(resin_construction.get_construction_icon(), button, resin_construction.get_construction_icon_state()) // SS220 EDIT: allow modular resin constructions to use modular icon files
 
 // Resin
 /datum/action/xeno_action/activable/secrete_resin/use_ability(atom/A)
