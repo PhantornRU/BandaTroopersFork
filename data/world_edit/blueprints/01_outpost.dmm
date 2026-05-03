@@ -32,22 +32,6 @@
 	},
 /turf/template_noop,
 /area/template_noop)
-"fff" = (
-/obj/structure/machinery/defenses/sentry{
-	dir = 8;
-	faction = "USCM";
-	turned_on = 1
-	},
-/turf/template_noop,
-/area/template_noop)
-"ggg" = (
-/obj/structure/machinery/defenses/sentry{
-	dir = 4;
-	faction = "USCM";
-	turned_on = 1
-	},
-/turf/template_noop,
-/area/template_noop)
 "hhh" = (
 /obj/structure/barricade/metal/plasteel{
 	dir = 4
@@ -88,7 +72,7 @@ iii
 "}
 (2,1,1) = {"
 bbb
-fff
+ccc
 ccc
 ccc
 jjj
@@ -102,7 +86,7 @@ ccc
 "}
 (4,1,1) = {"
 bbb
-ggg
+ccc
 ccc
 ccc
 jjj
