@@ -170,6 +170,7 @@
 
 	changeset.created_entries = list()
 	changeset.moved_entries = list()
+	changeset.changed_turf_entries = list()
 	prune_changeset_stack()
 	reset_preview_runtime()
 

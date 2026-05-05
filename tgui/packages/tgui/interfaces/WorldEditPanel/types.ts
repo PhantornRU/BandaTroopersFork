@@ -68,6 +68,7 @@ export type ChangesetSummary = {
   undo_policy: string;
   created_entries: number;
   moved_entries: number;
+  changed_turf_entries?: number;
   owned_effect_entries: number;
   created_at: string;
   can_undo: boolean;

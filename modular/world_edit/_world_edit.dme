@@ -44,6 +44,7 @@
 #include "code/generators/blueprint_stamp/blueprint_stamp_ui.dm"
 #include "code/generators/blueprint_stamp/blueprint_stamp_planning.dm"
 #include "code/generators/blueprint_stamp/blueprint_stamp_runtime.dm"
+#include "code/generators/building_layout/world_edit_generator_building_layout.dm"
 #include "code/effects/world_edit_persistent_fire.dm"
 #include "code/core/manager/lifecycle/world_edit_manager_core.dm"
 #include "code/core/manager/state/world_edit_manager_state.dm"
