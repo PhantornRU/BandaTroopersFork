@@ -112,6 +112,15 @@ export type BlueprintEntry = {
   preview_cells?: BlueprintPreviewCell[];
 };
 
+export type ActiveBlueprintPreview = {
+  mode?: 'sprite' | 'schematic';
+  image_url?: string;
+  width?: number;
+  height?: number;
+  entry_count?: number;
+  reason?: string;
+};
+
 export type BlueprintPreviewCell = {
   x: number;
   y: number;
@@ -151,6 +160,7 @@ export type BackendData = {
   preset_entries: PresetEntry[];
   blueprint_entries: BlueprintEntry[];
   active_blueprint_id?: string;
+  active_blueprint_preview?: ActiveBlueprintPreview;
   can_save_blueprint_from_plan: boolean;
   confirm_before_apply: boolean;
   last_ui_error: string;

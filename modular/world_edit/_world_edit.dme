@@ -11,6 +11,7 @@
 #include "code/core/blueprints/world_edit_blueprint_library.dm"
 #include "code/core/blueprints/world_edit_blueprint_library_catalog.dm"
 #include "code/core/blueprints/world_edit_blueprint_library_schema.dm"
+#include "code/core/blueprints/world_edit_blueprint_preview_assets.dm"
 #include "code/core/blueprints/world_edit_blueprint_library_storage.dm"
 #include "code/core/blueprints/world_edit_blueprint_runtime.dm"
 #include "code/core/blueprints/world_edit_blueprint_export.dm"

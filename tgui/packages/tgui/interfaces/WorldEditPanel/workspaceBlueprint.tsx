@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 
-import { Box, Button, Dropdown, Flex, Input } from '../../components';
+import { Box, Button, Dropdown, Flex, Image, Input } from '../../components';
 import { getDisplayText, translateOptionLabel } from './helpers';
 import { SurfaceCard } from './primitives';
 import type {
   ActFn,
+  ActiveBlueprintPreview,
   BackendData,
   BlueprintEntry,
   BlueprintPreviewCell,
@@ -198,6 +199,58 @@ const BlueprintPreviewGrid = (props: {
   );
 };
 
+const canUseSpritePreview = (
+  blueprint: BlueprintEntry,
+  preview?: ActiveBlueprintPreview,
+) =>
+  !!blueprint.valid &&
+  preview?.mode === 'sprite' &&
+  !!preview.image_url &&
+  Number(preview.width || 0) > 0 &&
+  Number(preview.height || 0) > 0;
+
+const BlueprintSelectedPreview = (props: {
+  readonly blueprint: BlueprintEntry;
+  readonly preview?: ActiveBlueprintPreview;
+}) => {
+  const { blueprint, preview } = props;
+  const useSpritePreview = canUseSpritePreview(blueprint, preview);
+  const imageUrl = preview?.image_url || '';
+
+  if (!useSpritePreview) {
+    return <BlueprintPreviewGrid blueprint={blueprint} size="full" />;
+  }
+
+  return (
+    <Box
+      style={{
+        width: '8.25rem',
+        height: '8.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        padding: '0.2rem',
+        border: '1px solid rgba(70, 107, 150, 0.65)',
+        borderRadius: '3px',
+        background: 'rgba(4, 8, 12, 0.55)',
+        boxSizing: 'border-box',
+      }}
+    >
+      <Image
+        fixErrors
+        objectFit="contain"
+        src={imageUrl}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'block',
+        }}
+      />
+    </Box>
+  );
+};
+
 const BlueprintStampWorkspace = (props: {
   readonly data: BackendData;
   readonly act: ActFn;
@@ -329,7 +382,10 @@ const BlueprintStampWorkspace = (props: {
             background: 'rgba(17, 20, 24, 0.28)',
           }}
         >
-          <BlueprintPreviewGrid blueprint={activeBlueprint} size="full" />
+          <BlueprintSelectedPreview
+            blueprint={activeBlueprint}
+            preview={data.active_blueprint_preview}
+          />
           <Box style={{ minWidth: '0' }}>
             <Flex align="center">
               <Flex.Item grow style={{ minWidth: '0' }}>

@@ -1,4 +1,4 @@
-/datum/world_edit_manager/proc/build_ui_data_payload()
+/datum/world_edit_manager/proc/build_ui_data_payload(mob/user = null)
 	var/has_generator = (current_definition && current_generator) ? TRUE : FALSE
 	append_runtime_trace("ui_payload:ui_fields:start")
 	var/list/ui_fields = get_normalized_ui_fields()
@@ -28,7 +28,7 @@
 	apply_ui_payload(data, build_preset_ui_payload())
 	append_runtime_trace("ui_payload:preset:done")
 	append_runtime_trace("ui_payload:blueprint:start")
-	apply_ui_payload(data, build_blueprint_ui_payload())
+	apply_ui_payload(data, build_blueprint_ui_payload(user))
 	append_runtime_trace("ui_payload:blueprint:done")
 	append_runtime_trace("ui_payload:feedback:start")
 	apply_ui_payload(data, build_feedback_ui_payload())
