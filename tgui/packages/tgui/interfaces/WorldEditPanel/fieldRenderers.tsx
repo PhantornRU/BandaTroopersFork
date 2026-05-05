@@ -5,6 +5,7 @@ import {
   Flex,
   Input,
   NumberInput,
+  Slider,
 } from '../../components';
 import {
   PLACEMENT_SHAPE_GLYPHS,
@@ -271,6 +272,32 @@ const renderFieldControl = (
   }
 
   if (field.kind === 'number') {
+    const minValue = Number(field.min);
+    const maxValue = Number(field.max);
+    const hasBoundedRange =
+      Number.isFinite(minValue) &&
+      Number.isFinite(maxValue) &&
+      maxValue > minValue;
+    const rawValue = Number(field.value);
+    const numericValue = Number.isFinite(rawValue) ? rawValue : minValue;
+
+    if (hasBoundedRange) {
+      const boundedValue = Math.min(Math.max(numericValue, minValue), maxValue);
+      return (
+        <Slider
+          key={`${field.id}_${String(field.label ?? '')}_${String(field.min ?? '')}_${String(field.max ?? '')}`}
+          value={boundedValue}
+          minValue={minValue}
+          maxValue={maxValue}
+          step={field.step || 1}
+          stepPixelSize={5}
+          onChange={
+            isDisabled ? undefined : (_event, value) => emitValue(value)
+          }
+        />
+      );
+    }
+
     return (
       <NumberInput
         key={`${field.id}_${String(field.label ?? '')}_${String(field.min ?? '')}_${String(field.max ?? '')}`}
