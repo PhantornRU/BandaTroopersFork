@@ -915,6 +915,112 @@
 				append_unique_turf(reserved, reserved_lookup, nearby_turf)
 	return reserved
 
+/datum/world_edit_generator/building_layout/proc/get_coord_from_bound_side(list/bounds, outward_dir, index_inside)
+	switch(outward_dir)
+		if(NORTH)
+			return bounds["max_y"] - index_inside
+		if(SOUTH)
+			return bounds["min_y"] + index_inside
+		if(EAST)
+			return bounds["max_x"] - index_inside
+		if(WEST)
+			return bounds["min_x"] + index_inside
+	return null
+
+/datum/world_edit_generator/building_layout/proc/get_corner_room_turf(list/bounds, back_out_dir, side_out_dir, depth_index, side_index)
+	var/x_value
+	var/y_value
+	if(side_out_dir in list(EAST, WEST))
+		x_value = get_coord_from_bound_side(bounds, side_out_dir, side_index)
+		y_value = get_coord_from_bound_side(bounds, back_out_dir, depth_index)
+	else
+		x_value = get_coord_from_bound_side(bounds, back_out_dir, depth_index)
+		y_value = get_coord_from_bound_side(bounds, side_out_dir, side_index)
+	if(isnull(x_value) || isnull(y_value))
+		return null
+	return locate(x_value, y_value, bounds["z"])
+
+/datum/world_edit_generator/building_layout/proc/try_build_corner_room_partition(list/footprint_lookup, list/boundary_lookup, list/blocked_lookup, list/bounds, placement_dir, side_out_dir, room_width, room_depth)
+	var/list/result = list("wall_turfs" = list(), "door_turfs" = list(), "door_dirs" = list(), "zone_turfs" = list())
+	var/back_out_dir = turn(placement_dir, 180)
+	var/list/zone_turfs = result["zone_turfs"]
+	var/list/zone_lookup = list()
+	for(var/depth_index in 1 to room_depth)
+		for(var/side_index in 1 to room_width)
+			var/turf/room_turf = get_corner_room_turf(bounds, back_out_dir, side_out_dir, depth_index, side_index)
+			if(!footprint_lookup[room_turf] || boundary_lookup[room_turf] || blocked_lookup[room_turf])
+				zone_turfs.Cut()
+				return result
+			append_unique_turf(zone_turfs, zone_lookup, room_turf)
+
+	var/list/wall_turfs = result["wall_turfs"]
+	var/list/wall_lookup = list()
+	var/list/door_turfs = result["door_turfs"]
+	var/list/door_dirs = result["door_dirs"]
+	var/door_depth_index = clamp(round((room_depth + 1) / 2), 1, room_depth)
+	var/turf/door_turf = get_corner_room_turf(bounds, back_out_dir, side_out_dir, door_depth_index, room_width + 1)
+	if(!footprint_lookup[door_turf] || boundary_lookup[door_turf] || blocked_lookup[door_turf])
+		zone_turfs.Cut()
+		return result
+
+	for(var/depth_index in 1 to room_depth)
+		var/turf/wall_turf = get_corner_room_turf(bounds, back_out_dir, side_out_dir, depth_index, room_width + 1)
+		if(wall_turf == door_turf)
+			continue
+		if(!footprint_lookup[wall_turf] || boundary_lookup[wall_turf] || blocked_lookup[wall_turf])
+			wall_turfs.Cut()
+			zone_turfs.Cut()
+			return result
+		append_unique_turf(wall_turfs, wall_lookup, wall_turf)
+	for(var/side_index in 1 to (room_width + 1))
+		var/turf/wall_turf = get_corner_room_turf(bounds, back_out_dir, side_out_dir, room_depth + 1, side_index)
+		if(wall_turf == door_turf)
+			continue
+		if(!footprint_lookup[wall_turf] || boundary_lookup[wall_turf] || blocked_lookup[wall_turf])
+			wall_turfs.Cut()
+			zone_turfs.Cut()
+			return result
+		append_unique_turf(wall_turfs, wall_lookup, wall_turf)
+	if(length(wall_turfs) < 3 || length(zone_turfs) < 6)
+		wall_turfs.Cut()
+		zone_turfs.Cut()
+		return result
+	door_turfs += door_turf
+	door_dirs[door_turf] = turn(side_out_dir, 180)
+	return result
+
+/datum/world_edit_generator/building_layout/proc/build_internal_partition(list/interior, list/footprint_lookup, list/boundary_lookup, list/door_turfs, list/window_turfs, list/bounds, list/config, center_x, center_y, placement_dir)
+	var/list/empty_result = list("wall_turfs" = list(), "door_turfs" = list(), "door_dirs" = list(), "zone_turfs" = list())
+	var/layout_variant = "[config["layout_variant"]]"
+	if(config["interior_density"] <= 0 || !(layout_variant in list("living", "office", "checkpoint")))
+		return empty_result
+	if(!islist(interior) || length(interior) < 12 || !islist(bounds))
+		return empty_result
+	var/width = text2num("[bounds["width"]]")
+	var/height = text2num("[bounds["height"]]")
+	if(!(placement_dir in GLOB.cardinals))
+		placement_dir = NORTH
+	var/axis_space = (placement_dir in list(NORTH, SOUTH)) ? (width - 2) : (height - 2)
+	var/depth_space = (placement_dir in list(NORTH, SOUTH)) ? (height - 2) : (width - 2)
+	if(axis_space < 6 || depth_space < 6)
+		return empty_result
+	var/list/blocked_lookup = list()
+	for(var/turf/door_turf as anything in door_turfs)
+		if(istype(door_turf))
+			blocked_lookup[door_turf] = TRUE
+	for(var/turf/window_turf as anything in window_turfs)
+		if(istype(window_turf))
+			blocked_lookup[window_turf] = TRUE
+
+	var/room_width = axis_space >= 8 ? 4 : 3
+	var/room_depth = depth_space >= 8 ? 4 : 3
+	var/list/side_dirs = list(get_side_axis_negative_dir(placement_dir), get_side_axis_positive_dir(placement_dir))
+	for(var/side_out_dir as anything in side_dirs)
+		var/list/room_result = try_build_corner_room_partition(footprint_lookup, boundary_lookup, blocked_lookup, bounds, placement_dir, side_out_dir, room_width, room_depth)
+		if(length(room_result["wall_turfs"]))
+			return room_result
+	return empty_result
+
 /datum/world_edit_generator/building_layout/proc/get_interior_slots(layout_variant, faction_preset = null)
 	if("[faction_preset]" == "covenant")
 		switch("[layout_variant]")
@@ -998,106 +1104,241 @@
 			wall_count++
 	return wall_count
 
-/datum/world_edit_generator/building_layout/proc/select_interior_candidate(list/candidates, slot, turf/center_turf, list/wall_lookup, list/object_lookup, list/reserved_lookup, prefer_wall = FALSE, prefer_open = FALSE)
+/datum/world_edit_generator/building_layout/proc/can_place_interior_object(turf/target_turf, list/candidate_lookup, list/object_lookup, list/reserved_lookup)
+	return istype(target_turf) && candidate_lookup[target_turf] && !object_lookup[target_turf] && !reserved_lookup[target_turf]
+
+/datum/world_edit_generator/building_layout/proc/append_interior_object(datum/world_edit_plan/plan, turf/target_turf, slot, list/config, list/object_lookup, dir_to_use)
+	if(!istype(plan) || !istype(target_turf) || object_lookup[target_turf])
+		return FALSE
+	var/obj_path = resolve_interior_obj_path(config, slot)
+	if(!obj_path)
+		return FALSE
+	plan.placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
+	object_lookup[target_turf] = TRUE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/get_adjacent_wall_dirs(turf/target_turf, list/wall_lookup)
+	var/list/wall_dirs = list()
+	if(!istype(target_turf) || !islist(wall_lookup))
+		return wall_dirs
+	for(var/check_dir in GLOB.cardinals)
+		if(wall_lookup[get_step(target_turf, check_dir)])
+			wall_dirs += check_dir
+	return wall_dirs
+
+/datum/world_edit_generator/building_layout/proc/collect_wall_row_from_seed(turf/seed_turf, wall_dir, list/candidate_lookup, list/object_lookup, list/reserved_lookup, list/wall_lookup)
+	var/list/result = list("turfs" = list(), "wall_dir" = wall_dir)
+	if(!can_place_interior_object(seed_turf, candidate_lookup, object_lookup, reserved_lookup) || !wall_lookup[get_step(seed_turf, wall_dir)])
+		return result
+	var/list/row_turfs = result["turfs"]
+	row_turfs += seed_turf
+	var/list/axis_dirs = list(get_side_axis_negative_dir(wall_dir), get_side_axis_positive_dir(wall_dir))
+	var/axis_dir = axis_dirs[1]
+	var/turf/check_turf = get_step(seed_turf, axis_dir)
+	while(can_place_interior_object(check_turf, candidate_lookup, object_lookup, reserved_lookup) && wall_lookup[get_step(check_turf, wall_dir)])
+		row_turfs.Insert(1, check_turf)
+		check_turf = get_step(check_turf, axis_dir)
+	axis_dir = axis_dirs[2]
+	check_turf = get_step(seed_turf, axis_dir)
+	while(can_place_interior_object(check_turf, candidate_lookup, object_lookup, reserved_lookup) && wall_lookup[get_step(check_turf, wall_dir)])
+		row_turfs += check_turf
+		check_turf = get_step(check_turf, axis_dir)
+	return result
+
+/datum/world_edit_generator/building_layout/proc/select_best_wall_row(list/candidates, list/candidate_lookup, list/object_lookup, list/reserved_lookup, list/wall_lookup, turf/center_turf, min_length = 2)
+	var/list/best_row = null
+	var/best_score = -999999999
+	for(var/turf/candidate as anything in candidates)
+		if(!can_place_interior_object(candidate, candidate_lookup, object_lookup, reserved_lookup))
+			continue
+		var/list/wall_dirs = get_adjacent_wall_dirs(candidate, wall_lookup)
+		for(var/wall_dir as anything in wall_dirs)
+			var/list/row = collect_wall_row_from_seed(candidate, wall_dir, candidate_lookup, object_lookup, reserved_lookup, wall_lookup)
+			var/list/row_turfs = row["turfs"]
+			if(length(row_turfs) < min_length)
+				continue
+			var/distance = istype(center_turf) ? (abs(candidate.x - center_turf.x) + abs(candidate.y - center_turf.y)) : 0
+			var/score = length(row_turfs) * 100 - distance
+			if(isnull(best_row) || score > best_score)
+				best_row = row
+				best_score = score
+	return best_row
+
+/datum/world_edit_generator/building_layout/proc/append_wall_storage_rows(datum/world_edit_plan/plan, list/candidates, list/candidate_lookup, list/wall_lookup, list/reserved_lookup, list/object_lookup, list/config, slot, target_count, turf/center_turf)
+	var/created = 0
+	while(created < target_count)
+		var/list/row = select_best_wall_row(candidates, candidate_lookup, object_lookup, reserved_lookup, wall_lookup, center_turf, 2)
+		if(!islist(row))
+			break
+		var/list/row_turfs = row["turfs"]
+		var/wall_dir = row["wall_dir"]
+		var/placed_this_row = 0
+		for(var/turf/row_turf as anything in row_turfs)
+			if(created >= target_count)
+				break
+			if(!append_interior_object(plan, row_turf, slot, config, object_lookup, turn(wall_dir, 180)))
+				continue
+			created++
+			placed_this_row++
+		if(!placed_this_row)
+			break
+	return created
+
+/datum/world_edit_generator/building_layout/proc/select_table_group_seed(list/candidates, list/candidate_lookup, list/object_lookup, list/reserved_lookup, list/wall_lookup, turf/center_turf)
 	var/turf/best_turf = null
 	var/best_score = -999999999
-	for(var/turf/interior_candidate as anything in candidates)
-		if(!istype(interior_candidate) || object_lookup[interior_candidate] || reserved_lookup[interior_candidate])
+	for(var/turf/candidate as anything in candidates)
+		if(!can_place_interior_object(candidate, candidate_lookup, object_lookup, reserved_lookup))
 			continue
-		var/wall_count = get_wall_adjacency_count(interior_candidate, wall_lookup)
-		var/center_distance = istype(center_turf) ? (abs(interior_candidate.x - center_turf.x) + abs(interior_candidate.y - center_turf.y)) : 0
-		var/score = -center_distance
-		if(prefer_wall)
-			score += wall_count * 120
-			if(wall_count >= 2)
-				score += 80
-		else if(prefer_open)
-			score += (4 - wall_count) * 90
-			score -= center_distance * 8
-		else
-			score += wall_count * 35
-			score -= center_distance * 3
-		if(slot in list("bed", "cabinet", "rack", "barrier", "tech"))
-			score += wall_count * 55
-		if(slot == "table" && prefer_open)
-			score -= wall_count * 20
+		var/free_adjacent = 0
+		for(var/check_dir in GLOB.cardinals)
+			if(can_place_interior_object(get_step(candidate, check_dir), candidate_lookup, object_lookup, reserved_lookup))
+				free_adjacent++
+		if(free_adjacent < 2)
+			continue
+		var/wall_count = get_wall_adjacency_count(candidate, wall_lookup)
+		var/center_distance = istype(center_turf) ? (abs(candidate.x - center_turf.x) + abs(candidate.y - center_turf.y)) : 0
+		var/score = free_adjacent * 120 - wall_count * 80 - center_distance * 5
 		if(!istype(best_turf) || score > best_score)
-			best_turf = interior_candidate
+			best_turf = candidate
 			best_score = score
 	return best_turf
 
-/datum/world_edit_generator/building_layout/proc/find_adjacent_interior_candidate(turf/source_turf, list/candidate_lookup, list/object_lookup, list/reserved_lookup, turf/center_turf, list/wall_lookup)
-	if(!istype(source_turf) || !islist(candidate_lookup))
-		return null
+/datum/world_edit_generator/building_layout/proc/select_adjacent_table_turf(turf/source_turf, list/candidate_lookup, list/object_lookup, list/reserved_lookup, list/wall_lookup, turf/center_turf)
 	var/turf/best_turf = null
 	var/best_score = -999999999
 	for(var/check_dir in GLOB.cardinals)
 		var/turf/nearby_turf = get_step(source_turf, check_dir)
-		if(!candidate_lookup[nearby_turf] || object_lookup[nearby_turf] || reserved_lookup[nearby_turf])
+		if(!can_place_interior_object(nearby_turf, candidate_lookup, object_lookup, reserved_lookup))
 			continue
 		var/wall_count = get_wall_adjacency_count(nearby_turf, wall_lookup)
 		var/center_distance = istype(center_turf) ? (abs(nearby_turf.x - center_turf.x) + abs(nearby_turf.y - center_turf.y)) : 0
-		var/score = ((4 - wall_count) * 80) - (center_distance * 4)
+		var/score = -wall_count * 90 - center_distance
 		if(!istype(best_turf) || score > best_score)
 			best_turf = nearby_turf
 			best_score = score
 	return best_turf
 
-/datum/world_edit_generator/building_layout/proc/append_interior_placements(datum/world_edit_plan/plan, list/interior_turfs, list/wall_lookup, list/reserved_turfs, turf/center_turf, list/config, list/object_lookup)
+/datum/world_edit_generator/building_layout/proc/append_table_group(datum/world_edit_plan/plan, list/candidates, list/candidate_lookup, list/wall_lookup, list/reserved_lookup, list/object_lookup, list/config, target_count, turf/center_turf)
+	if(target_count <= 0)
+		return 0
+	var/turf/table_seed = select_table_group_seed(candidates, candidate_lookup, object_lookup, reserved_lookup, wall_lookup, center_turf)
+	if(!istype(table_seed))
+		return 0
+	var/created = 0
+	var/list/table_turfs = list()
+	if(append_interior_object(plan, table_seed, "table", config, object_lookup, get_cardinal_dir_toward(table_seed, center_turf, SOUTH)))
+		table_turfs += table_seed
+		created++
+	if(created < target_count - 2)
+		var/turf/second_table = select_adjacent_table_turf(table_seed, candidate_lookup, object_lookup, reserved_lookup, wall_lookup, center_turf)
+		if(append_interior_object(plan, second_table, "table", config, object_lookup, get_cardinal_dir_toward(second_table, center_turf, SOUTH)))
+			table_turfs += second_table
+			created++
+	for(var/turf/table_turf as anything in table_turfs)
+		for(var/check_dir in GLOB.cardinals)
+			if(created >= target_count)
+				return created
+			var/turf/chair_turf = get_step(table_turf, check_dir)
+			if(!can_place_interior_object(chair_turf, candidate_lookup, object_lookup, reserved_lookup))
+				continue
+			if(append_interior_object(plan, chair_turf, "chair", config, object_lookup, get_cardinal_dir_toward(chair_turf, table_turf, SOUTH)))
+				created++
+	return created
+
+/datum/world_edit_generator/building_layout/proc/append_interior_placements(datum/world_edit_plan/plan, list/interior_turfs, list/wall_lookup, list/outer_wall_lookup, list/reserved_turfs, turf/center_turf, list/config, list/object_lookup, list/private_zone_turfs = null)
 	if(!istype(plan) || !length(interior_turfs) || config["interior_density"] <= 0)
 		return 0
 
 	var/list/reserved_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(reserved_turfs)
-	var/list/near_wall = list()
-	var/list/open_floor = list()
+	var/list/private_zone_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(private_zone_turfs)
 	var/list/candidates = list()
+	var/list/private_candidates = list()
+	var/list/main_candidates = list()
 	for(var/turf/interior_turf as anything in interior_turfs)
-		if(!istype(interior_turf) || reserved_lookup[interior_turf] || object_lookup[interior_turf])
+		if(!istype(interior_turf) || wall_lookup[interior_turf] || reserved_lookup[interior_turf] || object_lookup[interior_turf])
 			continue
 		candidates += interior_turf
-		if(get_wall_adjacency_count(interior_turf, wall_lookup))
-			near_wall += interior_turf
+		if(private_zone_lookup[interior_turf])
+			private_candidates += interior_turf
 		else
-			open_floor += interior_turf
+			main_candidates += interior_turf
 
 	if(!length(candidates))
 		return 0
 	var/list/candidate_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(candidates)
+	var/list/private_candidate_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(private_candidates)
+	var/list/main_candidate_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(main_candidates)
+	if(!islist(outer_wall_lookup))
+		outer_wall_lookup = wall_lookup
+	if(!length(main_candidates))
+		main_candidates = candidates
+		main_candidate_lookup = candidate_lookup
+	if(!length(private_candidates))
+		private_candidates = main_candidates
+		private_candidate_lookup = main_candidate_lookup
 	var/layout_variant = "[config["layout_variant"]]"
 	var/layout_cap = get_interior_motif_cap(layout_variant, config["faction_preset"])
 	var/desired_count = round(layout_cap * config["interior_density"] / 100)
 	if(config["interior_density"] > 0)
 		desired_count = max(desired_count, 1)
 	desired_count = min(desired_count, length(candidates), layout_cap, WORLD_EDIT_BUILDING_MAX_INTERIOR_OBJECTS)
-	var/list/slots = get_interior_slots(config["layout_variant"], config["faction_preset"])
 	var/created_plan_count = 0
-	var/slot_index = 1
-	var/turf/last_table_turf = null
-	var/attempts = 0
-	var/max_attempts = max(length(candidates) * 3, desired_count * max(length(slots), 1) * 3)
-	while(created_plan_count < desired_count && attempts < max_attempts)
-		attempts++
-		var/slot = slots[slot_index]
-		var/obj_path = resolve_interior_obj_path(config, slot)
-		if(obj_path)
-			var/turf/target_turf = null
-			if(slot == "chair" && istype(last_table_turf))
-				target_turf = find_adjacent_interior_candidate(last_table_turf, candidate_lookup, object_lookup, reserved_lookup, center_turf, wall_lookup)
-			if(!istype(target_turf))
-				var/prefer_wall = (slot in list("bed", "cabinet", "rack", "barrier", "tech")) || layout_variant == "courtyard" || (layout_variant == "storage" && slot != "chair")
-				var/prefer_open = (slot == "table" && !(layout_variant in list("storage", "workshop", "courtyard")))
-				var/list/selection_pool = prefer_wall ? (near_wall + open_floor) : (open_floor + near_wall)
-				target_turf = select_interior_candidate(selection_pool, slot, center_turf, wall_lookup, object_lookup, reserved_lookup, prefer_wall, prefer_open)
-			if(istype(target_turf))
-				var/dir_to_use = (slot == "chair" && istype(last_table_turf)) ? get_cardinal_dir_toward(target_turf, last_table_turf, SOUTH) : get_cardinal_dir_toward(target_turf, center_turf, SOUTH)
-				plan.placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
-				object_lookup[target_turf] = TRUE
-				if(slot == "table")
-					last_table_turf = target_turf
-				created_plan_count++
-		slot_index++
-		if(slot_index > length(slots))
-			slot_index = 1
+	var/faction_preset = "[config["faction_preset"]]"
+
+	if(faction_preset == "covenant")
+		if(layout_variant in list("storage", "workshop"))
+			var/tech_target = min(desired_count, max(2, round(desired_count * 0.75)))
+			created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "tech", tech_target, center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "barrier", desired_count - created_plan_count, center_turf)
+			return created_plan_count
+		created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "barrier", min(desired_count, max(2, round(desired_count * 0.6))), center_turf)
+		if(created_plan_count < desired_count)
+			created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "tech", desired_count - created_plan_count, center_turf)
+		return created_plan_count
+
+	switch(layout_variant)
+		if("living")
+			created_plan_count += append_wall_storage_rows(plan, private_candidates, private_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "bed", min(desired_count, 2), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, private_candidates, private_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", min(desired_count - created_plan_count, 2), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_table_group(plan, main_candidates, main_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, min(desired_count - created_plan_count, 5), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, main_candidates, main_candidate_lookup, outer_wall_lookup, reserved_lookup, object_lookup, config, "rack", min(desired_count - created_plan_count, 2), center_turf)
+		if("workshop")
+			var/storage_target = min(desired_count, max(3, round(desired_count * 0.55)))
+			created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "rack", storage_target, center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_table_group(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, min(desired_count - created_plan_count, 5), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", desired_count - created_plan_count, center_turf)
+		if("office")
+			created_plan_count += append_table_group(plan, main_candidates, main_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, min(desired_count, 6), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, private_candidates, private_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", min(desired_count - created_plan_count, 3), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, main_candidates, main_candidate_lookup, outer_wall_lookup, reserved_lookup, object_lookup, config, "rack", min(desired_count - created_plan_count, 2), center_turf)
+		if("storage")
+			var/rack_target = min(desired_count, max(3, round(desired_count * 0.8)))
+			created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "rack", rack_target, center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", desired_count - created_plan_count, center_turf)
+		if("checkpoint")
+			created_plan_count += append_table_group(plan, main_candidates, main_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, min(desired_count, 4), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, private_candidates, private_candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "rack", min(desired_count - created_plan_count, 2), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, main_candidates, main_candidate_lookup, outer_wall_lookup, reserved_lookup, object_lookup, config, "cabinet", min(desired_count - created_plan_count, 2), center_turf)
+		if("courtyard")
+			created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", min(desired_count, 2), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "rack", desired_count - created_plan_count, center_turf)
+		else
+			created_plan_count += append_table_group(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, min(desired_count, 4), center_turf)
+			if(created_plan_count < desired_count)
+				created_plan_count += append_wall_storage_rows(plan, candidates, candidate_lookup, wall_lookup, reserved_lookup, object_lookup, config, "cabinet", desired_count - created_plan_count, center_turf)
 	return created_plan_count
 
 /datum/world_edit_generator/building_layout/proc/collect_open_structure_core_turfs(list/footprint, turf/center_turf, list/config)
@@ -1288,11 +1529,29 @@
 	var/list/window_turfs = select_window_turfs(boundary, door_turfs, footprint_lookup, center_x, center_y, config["window_density"])
 	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(door_turfs)
 	var/list/window_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(window_turfs)
+	var/list/boundary_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(boundary)
 	var/list/wall_lookup = list()
 	for(var/turf/boundary_turf as anything in boundary)
 		if(door_lookup[boundary_turf] || window_lookup[boundary_turf])
 			continue
 		wall_lookup[boundary_turf] = TRUE
+	var/list/outer_wall_lookup = wall_lookup.Copy()
+	var/list/internal_door_dir_lookup = list()
+	var/list/internal_partition = build_internal_partition(interior, footprint_lookup, boundary_lookup, door_turfs, window_turfs, bounds, config, center_x, center_y, placement_dir)
+	var/list/internal_wall_turfs = internal_partition["wall_turfs"]
+	var/list/internal_zone_turfs = internal_partition["zone_turfs"]
+	for(var/turf/internal_wall_turf as anything in internal_wall_turfs)
+		if(!istype(internal_wall_turf))
+			continue
+		wall_lookup[internal_wall_turf] = TRUE
+	var/list/internal_door_turfs = internal_partition["door_turfs"]
+	var/list/internal_door_dirs = internal_partition["door_dirs"]
+	for(var/turf/internal_door_turf as anything in internal_door_turfs)
+		if(!istype(internal_door_turf))
+			continue
+		door_turfs += internal_door_turf
+		internal_door_dir_lookup[internal_door_turf] = internal_door_dirs[internal_door_turf] || placement_dir
+	door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(door_turfs)
 
 	for(var/turf/footprint_turf as anything in footprint)
 		if(wall_lookup[footprint_turf])
@@ -1302,7 +1561,7 @@
 		plan.affected_turfs += footprint_turf
 
 	for(var/turf/door_turf as anything in door_turfs)
-		var/door_dir = get_outward_dir(door_turf, footprint_lookup, center_x, center_y, placement_dir)
+		var/door_dir = internal_door_dir_lookup[door_turf] || get_outward_dir(door_turf, footprint_lookup, center_x, center_y, placement_dir)
 		plan.placements += list(build_object_placement("door", door_turf, config["door_type"], door_dir))
 	for(var/turf/window_turf as anything in window_turfs)
 		var/window_dir = get_outward_dir(window_turf, footprint_lookup, center_x, center_y, placement_dir)
@@ -1321,7 +1580,7 @@
 		object_lookup[object_turf] = TRUE
 	for(var/turf/object_turf as anything in window_turfs)
 		object_lookup[object_turf] = TRUE
-	var/interior_object_count = append_interior_placements(plan, interior, wall_lookup, reserved_path, center_turf, config, object_lookup)
+	var/interior_object_count = append_interior_placements(plan, interior, wall_lookup, outer_wall_lookup, reserved_path, center_turf, config, object_lookup, internal_zone_turfs)
 
 	plan.metadata["center_turf"] = center_turf
 	plan.metadata["entry_count"] = length(plan.placements)
@@ -1330,6 +1589,9 @@
 	plan.metadata["wall_count"] = length(wall_lookup)
 	plan.metadata["floor_count"] = length(floor_turfs)
 	plan.metadata["door_count"] = length(door_turfs)
+	plan.metadata["internal_wall_count"] = length(internal_wall_turfs)
+	plan.metadata["internal_door_count"] = length(internal_door_turfs)
+	plan.metadata["internal_zone_count"] = length(internal_zone_turfs)
 	plan.metadata["window_count"] = length(window_turfs)
 	plan.metadata["interior_object_count"] = interior_object_count
 	plan.metadata["patterned_layout"] = TRUE
