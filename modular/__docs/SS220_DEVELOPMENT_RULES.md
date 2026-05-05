@@ -28,7 +28,7 @@ Stable agent rules живут в [`../__agents/.AI_AGENT/`](../__agents/.AI_AGEN
 - Для map-sensitive изменений использовать релевантные map/build-проверки из `.AI_AGENT/WORKFLOW_RULES.md`.
 - Для `map_config/**` и других согласованных config surfaces `SS220 EDIT` допускается, если это часть сопровождаемого апстрим-диффа.
 
-### Docs и configs
+- For data-only World Edit seed-blueprint tasks, prefer exact schema/JSON verification and scope audit over broad test rewrites; expand tests only when the task explicitly requires it.
 - Документация и конфиги должны оставаться в UTF-8 и без mojibake.
 - Не дублировать здесь общие agent-процессы, уже описанные в `.AI_AGENT`, если правило не является SS220-specific.
 

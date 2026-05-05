@@ -24,6 +24,17 @@
 /tools/docker/ @Fira
 /Dockerfile @Fira
 
+# PhantornRU
+
+/modular/admin/ @PhantornRU
+/modular/game_master/ @PhantornRU
+/modular/game_rule_panel/ @PhantornRU
+/modular/player_survival/ @PhantornRU
+/modular/rto_support/ @PhantornRU
+/modular/squads/ @PhantornRU
+/modular/supply_packs/ @PhantornRU
+/modular/world_edit/ @PhantornRU
+
 # Zonespace
 
 /code/datums/tutorial/ @Zonespace27

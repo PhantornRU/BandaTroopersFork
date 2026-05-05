@@ -1,7 +1,7 @@
 // rocket launchers
 
 /obj/item/weapon/gun/halo_launcher // im a lazy bastard and dont want to deal with killing all of the dumb procs sorry :)
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/unsc_weapons.dmi'
 	icon_state = null
 
 // ====================== SPNKR LAUNCHER ====================== \\
@@ -30,12 +30,12 @@
 	name = "\improper M41 SPNKr"
 	desc = "M41 SPNKr - многоцелевая многоразовая ракетная система, способная захватывать как воздушные, так и наземные цели. Среди бойцов ККОН, которым она досталась, её часто называют Jackhammer."
 	icon_state = "spnkr"
-	base_gun_icon = "m83a2"
 	item_state = "spnkr"
+	lineart_gun_icon = "m83a2"
 	layer = ABOVE_OBJ_LAYER
 	flags_equip_slot = SLOT_BLOCK_SUIT_STORE|SLOT_BACK
 	w_class = SIZE_LARGE
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/spnkr.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/spnkr.dmi'
 	var/cover_open = FALSE
 	current_mag = /obj/item/ammo_magazine/spnkr
 	aim_slowdown = SLOWDOWN_ADS_RIFLE
@@ -44,10 +44,9 @@
 	reload_sound = 'sound/weapons/halo/gun_spnkr_reload.ogg'
 	unload_sound = 'sound/weapons/halo/gun_spnkr_unload.ogg'
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/heavy_weapons_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_unsc.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/heavy_weapons_32.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 	var/datum/looping_sound/spnkr_lockon/lockon
 	var/datum/looping_sound/spnkr_locking/locking
@@ -55,9 +54,7 @@
 	var/aa_cooldown_time = 7 SECONDS
 	var/cancel_sounds
 	var/atom/movable/overlay/ammo_overlay
-	starting_attachment_types = list(/obj/item/attachable/spnkr_handle)
 	attachable_allowed = list(
-		/obj/item/attachable/spnkr_handle,
 		/obj/item/attachable/scope/spnkr,
 	)
 
@@ -235,7 +232,7 @@
 		overlays += image("+[base_gun_icon]_cover_closed")
 	if(current_mag)
 		ammo_overlay = new()
-		ammo_overlay.icon = 'icons/halo/obj/items/weapons/guns_by_faction/unsc/special.dmi'
+		ammo_overlay.icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/unsc/special.dmi'
 		ammo_overlay.icon_state = "spnkr_rockets"
 		ammo_overlay.vis_flags = VIS_INHERIT_ID | VIS_INHERIT_PLANE
 		ammo_overlay.layer = src.layer - 0.1

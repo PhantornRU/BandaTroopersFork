@@ -6,6 +6,16 @@
 	powernet_name = "New Irvine"
 	minimap_color = MINIMAP_AREA_COLONY
 
+/area/new_irvine/outdoors
+	name = "New Irvine - Outdoors"
+	icon_state = "S1 OUTDOOR"
+	ceiling = CEILING_NONE
+
+/area/new_irvine/indoors
+	name = "New Irvine - Indoors"
+	icon_state = "S1 INDOOR"
+	ceiling = CEILING_METAL
+
 /area/new_irvine/water
 	name = "New Irvine - Water"
 	icon_state = "S5 BRIDGE"

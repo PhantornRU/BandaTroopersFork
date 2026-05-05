@@ -1,5 +1,5 @@
 /particles/plasma
-	icon = 'icons/halo/effects/plasma.dmi'
+	icon = 'modular/halo/icons/halo/effects/plasma.dmi'
 	icon_state = "circle"
 	width = 340
 	height = 340
@@ -18,7 +18,7 @@
 	drift = generator(GEN_VECTOR, list(-0.5, 0), list(0.5, 0), LINEAR_RAND)
 
 /particles/plasma_explosion
-	icon = 'icons/halo/effects/plasma.dmi'
+	icon = 'modular/halo/icons/halo/effects/plasma.dmi'
 	icon_state = list("shape_1" = 1, "shape_2" = 1, "shape_3" = 1, "shape_4" = 1)
 	width = 340
 	height = 340
@@ -70,7 +70,7 @@
 	scale = generator(GEN_NUM, 0.2, 0.25)
 
 /particles/shield_spark
-	icon = 'icons/halo/effects/plasma.dmi'
+	icon = 'modular/halo/icons/halo/effects/plasma.dmi'
 	icon_state = "circle"
 	width = 150
 	height = 150
@@ -207,32 +207,32 @@
 			animate(src, pixel_w = -pixel_distance, time = duration)
 
 /obj/effect/temp_visual/flyby/banshee_flyby
-	icon = 'icons/halo/effects/banshee_flyby.dmi'
+	icon = 'modular/halo/icons/halo/effects/banshee_flyby.dmi'
 	icon_state = "banshee_shadow"
 	pixel_x = -64
 	pixel_y = -64
 
 /obj/effect/temp_visual/flyby/seraph_flyby
-	icon = 'icons/halo/effects/kai_seraph_flyby.dmi'
+	icon = 'modular/halo/icons/halo/effects/kai_seraph_flyby.dmi'
 	icon_state = "kai_shadow"
 	pixel_x = -140
 	pixel_y = -140
 
 /obj/effect/temp_visual/flyby/wombat_flyby
-	icon = 'icons/halo/effects/wombat_flyby.dmi'
+	icon = 'modular/halo/icons/halo/effects/wombat_flyby.dmi'
 	icon_state = "wombat_shadow"
 	pixel_x = -144
 	pixel_y = -144
 
 /obj/effect/temp_visual/flyby/c712_longsword_flyby
-	icon = 'icons/halo/effects/c712_flyby.dmi'
+	icon = 'modular/halo/icons/halo/effects/c712_flyby.dmi'
 	icon_state = "c712_shadow"
 	pixel_x = -352
 	pixel_y = -352
 	pixel_distance = 1920
 
 /obj/effect/temp_visual/flyby/c709_longsword_flyby
-	icon = 'icons/halo/effects/c709_flyby.dmi'
+	icon = 'modular/halo/icons/halo/effects/c709_flyby.dmi'
 	icon_state = "c709_shadow"
 	pixel_distance = 2240 // this thing is massive and needs extra travel distance.
 	pixel_y = -720
@@ -240,7 +240,7 @@
 	duration = 5 SECONDS
 
 /obj/effect/temp_visual/glassing_beam
-	icon = 'icons/halo/effects/glassing.dmi'
+	icon = 'modular/halo/icons/halo/effects/glassing.dmi'
 	icon_state = "beam"
 	pixel_x = -50
 	duration = 8.5 SECONDS

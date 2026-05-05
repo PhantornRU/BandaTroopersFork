@@ -1,6 +1,6 @@
 /obj/structure/platform/pelican
 	name = "tandem seat steps"
-	icon = 'icons/halo/obj/structures/pelican_structures.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/pelican_structures.dmi'
 	icon_state = "platform"
 	dir = WEST
 	plane = FLOOR_PLANE
@@ -8,11 +8,11 @@
 /obj/structure/prop/pelican_holotank
 	name = "pelican holotank"
 	desc = "A small holotank capable of projecting a hologram, and rarely the avatar of an AI."
-	icon = 'icons/halo/obj/structures/pelican_structures.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/pelican_structures.dmi'
 	icon_state = "holotank"
 
 /obj/structure/roof/pelican_roof
-	icon = 'icons/halo/obj/structures/pelican.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/pelican.dmi'
 	icon_state = "pelican"
 	indestructible = TRUE
 	unslashable = TRUE
@@ -59,5 +59,5 @@
 
 
 /obj/effect/roof_node/pelican
-	icon = 'icons/halo/landmarks.dmi'
+	icon = 'modular/halo/icons/halo/landmarks.dmi'
 	icon_state = "roof"

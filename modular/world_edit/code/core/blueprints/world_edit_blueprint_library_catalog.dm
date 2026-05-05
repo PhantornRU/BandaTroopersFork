@@ -1,0 +1,75 @@
+/datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_type_rules()
+	. = list()
+
+	world_edit_register_blueprint_type(., /obj/structure/barricade/metal, "barricade", "Металлическая баррикада")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/metal/wired, "barricade", "Металлическая баррикада с проволокой")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/sandbags/full, "barricade", "Мешки с песком")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/metal/plasteel, "barricade", "Пласталевая баррикада")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/metal/plasteel/wired, "barricade", "Пласталевая баррикада с проволокой")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/wooden, "barricade", "Деревянная баррикада")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/snow, "barricade", "Снежная баррикада")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/deployable, "barricade", "Portable Barricade")
+	world_edit_register_blueprint_type(., /obj/structure/covenant_barricade, "barricade", "Covenant Barrier")
+	world_edit_register_blueprint_type(., /obj/structure/covenant_barricade/wide, "barricade", "Covenant Triptych Barrier")
+
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry, "sentry", "Турель USCM")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/dmr, "sentry", "Турель USCM DMR")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/shotgun, "sentry", "Турель USCM дробовик")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/mini, "sentry", "Турель USCM mini")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/upp, "sentry", "Турель UPP")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/sentry/wy, "sentry", "Турель W-Y")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/tesla_coil, "defense", "Тесла-башня USCM")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/tesla_coil/stun, "defense", "Тесла-башня USCM - Overclocked")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/tesla_coil/micro, "defense", "Тесла-башня USCM - Micro")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/bell_tower, "defense", "Колокольная башня USCM")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/bell_tower/md, "defense", "Колокольная башня USCM - MD")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/bell_tower/cloaker, "defense", "Колокольная башня USCM - Cloaker")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/planted_flag, "defense", "Флаг USCM")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/planted_flag/range, "defense", "Флаг USCM - Range+")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/planted_flag/warbanner, "defense", "Флаг USCM - Warbanner")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/planted_flag/upp, "defense", "Флаг UPP")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/defenses/planted_flag/wy, "defense", "Флаг W-Y")
+
+	world_edit_register_blueprint_type(., /obj/structure/closet/crate/ammo, "support_prop", "Ящик с боеприпасами")
+	world_edit_register_blueprint_type(., /obj/structure/closet/crate/medical, "support_prop", "Медицинский ящик")
+	world_edit_register_blueprint_type(., /obj/structure/bed/medevac_stretcher, "support_prop", "Медэвак-носилки")
+	world_edit_register_blueprint_type(., /obj/structure/largecrate/supply/generator, "support_prop", "Ящик с генератором")
+	world_edit_register_blueprint_type(., /obj/structure/deployable_beacon, "support_prop", "Развертываемый маяк")
+
+	world_edit_register_blueprint_type(., /obj/structure/machinery/recharger/covenant, "support_prop", "Covenant Plasma Charger")
+	world_edit_register_blueprint_type(., /obj/structure/machinery/prop/almayer/CICmap/yautja/empty, "support_prop", "Covenant Globe")
+
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/metal, "barricade", "Metal Folding Barricade")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/metal/wired, "barricade", "Metal Folding Barricade - Wired")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel, "barricade", "Plasteel Folding Barricade")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/plasteel/wired, "barricade", "Plasteel Folding Barricade - Wired")
+	world_edit_register_blueprint_type(., /obj/structure/barricade/razorwire, "wire_object", "Razor Wire")
+
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/active, "mine", "Claymore")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/strong/active, "mine", "Claymore - Strong")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/pmc/active, "mine", "Claymore PMC")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/pmc/strong/active, "mine", "Claymore PMC - Strong")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/sebb/active, "mine", "SEBB Mine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/m760ap/active, "mine", "M760AP Mine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/m760ap/strong/active, "mine", "M760AP Mine - Strong")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/m5a3betty/active, "mine", "M5A3 Bounding Mine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/m5a3betty/strong/active, "mine", "M5A3 Bounding Mine - Strong")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/fzd91/active, "mine", "FZD-91 Landmine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/fzd91/strong/active, "mine", "FZD-91 Landmine - Strong")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/tn13/active, "mine", "TN-13 Landmine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/tn13/strong/active, "mine", "TN-13 Landmine - Regular")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/covenant/plasma/active, "mine", "Covenant Plasma Mine")
+	world_edit_register_blueprint_type(., /obj/item/explosive/mine/covenant/needle_mine/active, "mine", "Covenant Needle Mine")
+	world_edit_register_blueprint_type(., /obj/item/device/assembly/prox_sensor/active, "mine", "Prox Sensor Mine")
+
+/datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_type(list/rules, obj_path, category, label)
+	rules["[obj_path]"] = list(
+		"obj_path" = obj_path,
+		"category" = category,
+		"label" = label,
+	)
+
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_type_rule(obj_path)
+	if(!ispath(obj_path, /obj))
+		return null
+	return world_edit_blueprint_type_rules["[obj_path]"]

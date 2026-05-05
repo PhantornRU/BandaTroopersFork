@@ -1,17 +1,21 @@
 // EVERYTHING ELSE (ALSO LAZY)
 
+/atom/movable/screen/action_button/covenant
+	icon = 'modular/halo/icons/halo/mob/hud/actions.dmi'
+	icon_state = "template"
+
 /datum/action/item_action/toggle_shield
 	name = "Toggle Shield"
 	action_icon_state = "shield"
-	icon_file = 'icons/halo/mob/hud/actions.dmi'
+	icon_file = 'modular/halo/icons/halo/mob/hud/actions.dmi'
 
 /datum/action/item_action/toggle_shield/New(mob/living/user, obj/item/holder)
 	..()
 	name = "Toggle Shield"
 	button.name = name
 	button.overlays.Cut()
-	button.icon = 'icons/halo/mob/hud/actions.dmi'
-	var/image/IMG = image('icons/halo/mob/hud/actions.dmi', button, "shield")
+	button.icon = 'modular/halo/icons/halo/mob/hud/actions.dmi'
+	var/image/IMG = image('modular/halo/icons/halo/mob/hud/actions.dmi', button, "shield")
 	button.overlays += IMG
 
 /datum/action/item_action/toggle_shield/can_use_action()
@@ -26,13 +30,13 @@
 
 /datum/action/human_action/activable/covenant
 	name = "Covenant Actions"
-	icon_file = 'icons/halo/mob/hud/actions.dmi'
+	icon_file = 'modular/halo/icons/halo/mob/hud/actions.dmi'
 	button_icon_state = "template"
 	var/active = FALSE
 
 /datum/action/human_action/activable/covenant/sangheili_kick
 	name = "kick"
-	icon_file = 'icons/halo/mob/hud/actions.dmi'
+	icon_file = 'modular/halo/icons/halo/mob/hud/actions.dmi'
 	action_icon_state = "kick"
 	var/cd_kick = 15 SECONDS
 	var/cd_stomp = 25 SECONDS
@@ -47,7 +51,7 @@
 	button.icon = icon_file
 	button.name = name
 	button.overlays.Cut()
-	var/image/IMG = image('icons/halo/mob/hud/actions.dmi', button, "kick")
+	var/image/IMG = image('modular/halo/icons/halo/mob/hud/actions.dmi', button, "kick")
 	button.overlays += IMG
 	update_button_icon()
 

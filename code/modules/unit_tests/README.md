@@ -47,6 +47,16 @@ Unit tests exist to prevent bugs that would happen in a real game. Thus, they sh
 
 Unit tests should also be just that--testing *units* of code. For example, instead of having one massive test for reagents, there are instead several smaller tests for testing exposure, metabolization, etc.
 
+### Keep tests focused on what matters
+
+When writing a new test, start from the most important behavior that would hurt players or developers if it regressed.
+
+* Prefer one focused regression test per bug or stable contract.
+* Assert only the minimum stable facts needed to prove that behavior.
+* Do not turn a targeted regression test into a broad audit of every nearby helper, metadata field, or intermediate state unless those details are themselves the contract being protected.
+* If you can remove half the assertions and the test still reliably catches the regression, prefer the smaller version.
+* Broader coverage is justified for high-risk areas such as security, persistence, serialization, or bugs that have repeatedly regressed.
+
 ## The unit testing API
 
 You can find more information about all of these from their respective doc comments, but for a brief overview:

@@ -1,7 +1,7 @@
 /obj/item/reagent_container/glass/beaker/unsc
 	name = "\improper medical vial"
 	desc = "Медицинский флакон приличного объёма, обычно встречающийся в военных аптечках."
-	icon = 'icons/halo/obj/items/chemistry.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/chemistry.dmi'
 	icon_state = "bottle"
 	ground_offset_x = 9
 	ground_offset_y = 8
@@ -21,7 +21,7 @@
 	overlays.Cut()
 
 	if(reagents && reagents.total_volume)
-		var/image/filling = image('icons/halo/obj/items/chemistry.dmi', src, "[icon_state]10")
+		var/image/filling = image('modular/halo/icons/halo/obj/items/chemistry.dmi', src, "[icon_state]10")
 
 		var/percent = floor((reagents.total_volume / volume) * 100)
 		switch(percent)
@@ -36,7 +36,7 @@
 		filling.color = mix_color_from_reagents(reagents.reagent_list)
 		overlays += filling
 	if(label_color)
-		var/image/label = image('icons/halo/obj/items/chemistry.dmi', src, label_color)
+		var/image/label = image('modular/halo/icons/halo/obj/items/chemistry.dmi', src, label_color)
 		overlays += label
 
 	if(!is_open_container())

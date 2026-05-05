@@ -80,3 +80,19 @@
   height: base.em(17px);
   width: calc(100% - 1.2em);
 }
+
+.Dropdown__control.WorldEditPanel__compactDropdown {
+  height: base.em(18px);
+  line-height: base.em(14px);
+  padding: base.em(1px) base.em(6px);
+
+  .Dropdown__selected-text {
+    height: base.em(14px);
+    width: calc(100% - 1.35em);
+  }
+
+  .Dropdown__arrow-button {
+    line-height: base.em(14px);
+    padding-left: 0.25em;
+  }
+}

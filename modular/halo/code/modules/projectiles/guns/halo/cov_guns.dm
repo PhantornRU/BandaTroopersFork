@@ -1,19 +1,22 @@
 /obj/item/weapon/gun/energy/plasma
 	name = "Covenant weapon"
 	desc = "Инопланетное оружие, стреляющее плазмой. В норме вы не должны видеть этот базовый экземпляр."
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "plasma_pistol"
 	base_gun_icon = "es4"
 	flags_gun_features = GUN_CAN_POINTBLANK
 	works_in_recharger = FALSE
 	empty_click = null
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/plasma_pistol.dmi'
-	muzzleflash_icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/plasma_pistol.dmi'
+	muzzleflash_icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	inhand_x_dimension = 64
+	inhand_y_dimension = 64
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
+		WEAR_WAIST = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_padded_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_padded_64.dmi'
 	)
 
 	var/works_in_cov_recharger = TRUE
@@ -330,7 +333,7 @@
 	start_automatic = TRUE
 	muzzleflash_iconstate = "muzzle_flash_blue"
 	muzzle_flash_color = COLOR_PLASMA_BLUE
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/plasma_rifle.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/plasma_rifle.dmi'
 
 /obj/item/weapon/gun/energy/plasma/plasma_rifle/Initialize(mapload, spawn_empty)
 	. = ..()
@@ -365,7 +368,7 @@
 /obj/item/weapon/gun/smg/covenant_needler
 	name = "\improper needler"
 	desc = null
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "needler"
 	base_gun_icon = "p90"
 	item_state = "needler"
@@ -374,18 +377,20 @@
 	cocked_sound = 'sound/weapons/halo/gun_needler_cocked.ogg'
 	unload_sound = 'sound/weapons/halo/gun_needler_reload.ogg'
 	flags_gun_features = GUN_CAN_POINTBLANK
-	muzzleflash_icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	muzzleflash_icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
 	muzzleflash_iconstate = "muzzle_flash_pink"
 	muzzle_flash_color = LIGHT_COLOR_PINK
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/needler.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/needler.dmi'
+	inhand_x_dimension = 64
+	inhand_y_dimension = 64
 	start_automatic = TRUE
 	empty_sound = null
 	current_mag = /obj/item/ammo_magazine/needler_crystal
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_padded_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_padded_64.dmi'
 	)
 
 /obj/item/weapon/gun/smg/covenant_needler/Initialize(mapload, spawn_empty)
@@ -456,7 +461,7 @@
 /obj/item/weapon/gun/rifle/covenant_carbine
 	name = "\improper carbine"
 	desc = null
-	icon = 'icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/weapons/guns_by_faction/covenant/covenant_weapons.dmi'
 	icon_state = "carbine"
 	base_gun_icon = "type71"
 	item_state = "carbine"
@@ -469,19 +474,19 @@
 	current_mag = /obj/item/ammo_magazine/carbine
 	map_specific_decoration = FALSE
 	attachable_allowed = list(/obj/item/attachable/carbine_muzzle)
-	muzzleflash_icon = 'icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	muzzleflash_icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
 	muzzleflash_iconstate = "muzzle_flash_green"
 	muzzle_flash_color = LIGHT_COLOR_GREEN
-	mouse_pointer = 'icons/halo/effects/mouse_pointer/carbine.dmi'
+	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/carbine.dmi'
 	inhand_x_dimension = 64
 	inhand_y_dimension = 64
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	item_icons = list(
-		WEAR_BACK = 'icons/halo/mob/humans/onmob/clothing/back/guns_by_type/rifles_32.dmi',
-		WEAR_J_STORE = 'icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
-		WEAR_L_HAND = 'icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
-		WEAR_R_HAND = 'icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
+		WEAR_BACK = 'modular/halo/icons/halo/mob/humans/onmob/clothing/back/guns_by_type/marksman_rifles_64.dmi',
+		WEAR_J_STORE = 'modular/halo/icons/halo/mob/humans/onmob/clothing/suit_storage/suit_storage_by_faction/suit_slot_cov.dmi',
+		WEAR_L_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_lefthand_halo_64.dmi',
+		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo_64.dmi'
 	)
 
 /obj/item/weapon/gun/rifle/covenant_carbine/Initialize(mapload, spawn_empty)

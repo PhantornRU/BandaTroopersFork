@@ -1,0 +1,309 @@
+["IHADSS visor, black-tinted"]
+nominative = "визор IHADSS с чёрным тонированием"
+genitive = "визора IHADSS с чёрным тонированием"
+dative = "визору IHADSS с чёрным тонированием"
+accusative = "визор IHADSS с чёрным тонированием"
+instrumental = "визором IHADSS с чёрным тонированием"
+prepositional = "визоре IHADSS с чёрным тонированием"
+gender = "male"
+tags = [ "halo",]
+
+["IHADSS visor, yellow-tinted"]
+nominative = "визор IHADSS с жёлтым тонированием"
+genitive = "визора IHADSS с жёлтым тонированием"
+dative = "визору IHADSS с жёлтым тонированием"
+accusative = "визор IHADSS с жёлтым тонированием"
+instrumental = "визором IHADSS с жёлтым тонированием"
+prepositional = "визоре IHADSS с жёлтым тонированием"
+gender = "male"
+tags = [ "halo",]
+
+["Oranj Soda"]
+nominative = "газировка Oranj"
+genitive = "газировки Oranj"
+dative = "газировке Oranj"
+accusative = "газировку Oranj"
+instrumental = "газировкой Oranj"
+prepositional = "газировке Oranj"
+gender = "female"
+tags = [ "halo",]
+
+["BLAST"]
+nominative = "BLAST"
+genitive = "BLAST"
+dative = "BLAST"
+accusative = "BLAST"
+instrumental = "BLAST"
+prepositional = "BLAST"
+gender = "male"
+tags = [ "halo",]
+
+["Watashi-Yorro Gold packet"]
+nominative = "пачка Watashi-Yorro Gold"
+genitive = "пачки Watashi-Yorro Gold"
+dative = "пачке Watashi-Yorro Gold"
+accusative = "пачку Watashi-Yorro Gold"
+instrumental = "пачкой Watashi-Yorro Gold"
+prepositional = "пачке Watashi-Yorro Gold"
+gender = "female"
+tags = [ "halo",]
+
+["Ludicrous Plaid packet"]
+nominative = "пачка Ludicrous Plaid"
+genitive = "пачки Ludicrous Plaid"
+dative = "пачке Ludicrous Plaid"
+accusative = "пачку Ludicrous Plaid"
+instrumental = "пачкой Ludicrous Plaid"
+prepositional = "пачке Ludicrous Plaid"
+gender = "female"
+tags = [ "halo",]
+
+["Arcadian Ace packet"]
+nominative = "пачка Arcadian Ace"
+genitive = "пачки Arcadian Ace"
+dative = "пачке Arcadian Ace"
+accusative = "пачку Arcadian Ace"
+instrumental = "пачкой Arcadian Ace"
+prepositional = "пачке Arcadian Ace"
+gender = "female"
+tags = [ "halo",]
+
+["Cupid's Delight packet"]
+nominative = "пачка Cupid's Delight"
+genitive = "пачки Cupid's Delight"
+dative = "пачке Cupid's Delight"
+accusative = "пачку Cupid's Delight"
+instrumental = "пачкой Cupid's Delight"
+prepositional = "пачке Cupid's Delight"
+gender = "female"
+tags = [ "halo",]
+
+["Model 52 Navy knife storage case"]
+nominative = "футляр для флотского ножа Model 52"
+genitive = "футляра для флотского ножа Model 52"
+dative = "футляру для флотского ножа Model 52"
+accusative = "футляр для флотского ножа Model 52"
+instrumental = "футляром для флотского ножа Model 52"
+prepositional = "футляре для флотского ножа Model 52"
+gender = "male"
+tags = [ "halo",]
+
+["M1 Combat Knife"]
+nominative = "боевой нож M1"
+genitive = "боевого ножа M1"
+dative = "боевому ножу M1"
+accusative = "боевой нож M1"
+instrumental = "боевым ножом M1"
+prepositional = "боевом ноже M1"
+gender = "male"
+tags = [ "halo",]
+
+["MK88 Ratio survival knife"]
+nominative = "нож выживания MK88 Ratio"
+genitive = "ножа выживания MK88 Ratio"
+dative = "ножу выживания MK88 Ratio"
+accusative = "нож выживания MK88 Ratio"
+instrumental = "ножом выживания MK88 Ratio"
+prepositional = "ноже выживания MK88 Ratio"
+gender = "male"
+tags = [ "halo",]
+
+["M11 combat knife"]
+nominative = "боевой нож M11"
+genitive = "боевого ножа M11"
+dative = "боевому ножу M11"
+accusative = "боевой нож M11"
+instrumental = "боевым ножом M11"
+prepositional = "боевом ноже M11"
+gender = "male"
+tags = [ "halo",]
+
+["Model 52 Navy knife"]
+nominative = "флотский нож Model 52"
+genitive = "флотского ножа Model 52"
+dative = "флотскому ножу Model 52"
+accusative = "флотский нож Model 52"
+instrumental = "флотским ножом Model 52"
+prepositional = "флотском ноже Model 52"
+gender = "male"
+tags = [ "halo",]
+
+["polarized sports shades"]
+nominative = "поляризованные спортивные очки"
+genitive = "поляризованных спортивных очков"
+dative = "поляризованным спортивным очкам"
+accusative = "поляризованные спортивные очки"
+instrumental = "поляризованными спортивными очками"
+prepositional = "поляризованных спортивных очках"
+gender = "plural"
+tags = [ "halo",]
+
+["tactical sports shades"]
+nominative = "тактические спортивные очки"
+genitive = "тактических спортивных очков"
+dative = "тактическим спортивным очкам"
+accusative = "тактические спортивные очки"
+instrumental = "тактическими спортивными очками"
+prepositional = "тактических спортивных очках"
+gender = "plural"
+tags = [ "halo",]
+
+["prototype polarized shooting glasses"]
+nominative = "прототип поляризованных стрелковых очков"
+genitive = "прототипа поляризованных стрелковых очков"
+dative = "прототипу поляризованных стрелковых очков"
+accusative = "прототип поляризованных стрелковых очков"
+instrumental = "прототипом поляризованных стрелковых очков"
+prepositional = "прототипе поляризованных стрелковых очков"
+gender = "male"
+tags = [ "halo",]
+
+["UNSC shooting shades"]
+nominative = "стрелковые очки ККОН"
+genitive = "стрелковых очков ККОН"
+dative = "стрелковым очкам ККОН"
+accusative = "стрелковые очки ККОН"
+instrumental = "стрелковыми очками ККОН"
+prepositional = "стрелковых очках ККОН"
+gender = "plural"
+tags = [ "halo",]
+
+["green UNSC operations cap"]
+nominative = "зелёная оперативная кепка ККОН"
+genitive = "зелёной оперативной кепки ККОН"
+dative = "зелёной оперативной кепке ККОН"
+accusative = "зелёную оперативную кепку ККОН"
+instrumental = "зелёной оперативной кепкой ККОН"
+prepositional = "зелёной оперативной кепке ККОН"
+gender = "female"
+tags = [ "halo",]
+
+["khaki UNSC operations cap"]
+nominative = "песочная оперативная кепка ККОН"
+genitive = "песочной оперативной кепки ККОН"
+dative = "песочной оперативной кепке ККОН"
+accusative = "песочную оперативную кепку ККОН"
+instrumental = "песочной оперативной кепкой ККОН"
+prepositional = "песочной оперативной кепке ККОН"
+gender = "female"
+tags = [ "halo",]
+
+["ushanka"]
+nominative = "ушанка"
+genitive = "ушанки"
+dative = "ушанке"
+accusative = "ушанку"
+instrumental = "ушанкой"
+prepositional = "ушанке"
+gender = "female"
+tags = [ "halo",]
+
+["Black Balaclava"]
+nominative = "чёрная балаклава"
+genitive = "чёрной балаклавы"
+dative = "чёрной балаклаве"
+accusative = "чёрную балаклаву"
+instrumental = "чёрной балаклавой"
+prepositional = "чёрной балаклаве"
+gender = "female"
+tags = [ "halo",]
+
+["vintage flak vest"]
+nominative = "винтажный противоосколочный жилет"
+genitive = "винтажного противоосколочного жилета"
+dative = "винтажному противоосколочному жилету"
+accusative = "винтажный противоосколочный жилет"
+instrumental = "винтажным противоосколочным жилетом"
+prepositional = "винтажном противоосколочном жилете"
+gender = "male"
+tags = [ "halo",]
+
+["skull armor paint"]
+nominative = "краска для брони с черепом"
+genitive = "краски для брони с черепом"
+dative = "краске для брони с черепом"
+accusative = "краску для брони с черепом"
+instrumental = "краской для брони с черепом"
+prepositional = "краске для брони с черепом"
+gender = "female"
+tags = [ "halo",]
+
+["heart armor paint"]
+nominative = "краска для брони с сердцем"
+genitive = "краски для брони с сердцем"
+dative = "краске для брони с сердцем"
+accusative = "краску для брони с сердцем"
+instrumental = "краской для брони с сердцем"
+prepositional = "краске для брони с сердцем"
+gender = "female"
+tags = [ "halo",]
+
+["target armor paint"]
+nominative = "краска для брони с мишенью"
+genitive = "краски для брони с мишенью"
+dative = "краске для брони с мишенью"
+accusative = "краску для брони с мишенью"
+instrumental = "краской для брони с мишенью"
+prepositional = "краске для брони с мишенью"
+gender = "female"
+tags = [ "halo",]
+
+["smileyface armor paint"]
+nominative = "краска для брони со смайликом"
+genitive = "краски для брони со смайликом"
+dative = "краске для брони со смайликом"
+accusative = "краску для брони со смайликом"
+instrumental = "краской для брони со смайликом"
+prepositional = "краске для брони со смайликом"
+gender = "female"
+tags = [ "halo",]
+
+["neutralface armor paint"]
+nominative = "краска для брони с нейтральным лицом"
+genitive = "краски для брони с нейтральным лицом"
+dative = "краске для брони с нейтральным лицом"
+accusative = "краску для брони с нейтральным лицом"
+instrumental = "краской для брони с нейтральным лицом"
+prepositional = "краске для брони с нейтральным лицом"
+gender = "female"
+tags = [ "halo",]
+
+["cross armor paint"]
+nominative = "краска для брони с крестом"
+genitive = "краски для брони с крестом"
+dative = "краске для брони с крестом"
+accusative = "краску для брони с крестом"
+instrumental = "краской для брони с крестом"
+prepositional = "краске для брони с крестом"
+gender = "female"
+tags = [ "halo",]
+
+["flames armor paint"]
+nominative = "краска для брони с пламенем"
+genitive = "краски для брони с пламенем"
+dative = "краске для брони с пламенем"
+accusative = "краску для брони с пламенем"
+instrumental = "краской для брони с пламенем"
+prepositional = "краске для брони с пламенем"
+gender = "female"
+tags = [ "halo",]
+
+["CMA M2 bayonet"]
+nominative = "штык CMA M2"
+genitive = "штыка CMA M2"
+dative = "штыку CMA M2"
+accusative = "штык CMA M2"
+instrumental = "штыком CMA M2"
+prepositional = "штыке CMA M2"
+gender = "male"
+tags = [ "halo",]
+
+["M5 combat knife"]
+nominative = "боевой нож M5"
+genitive = "боевого ножа M5"
+dative = "боевому ножу M5"
+accusative = "боевой нож M5"
+instrumental = "боевым ножом M5"
+prepositional = "боевом ноже M5"
+gender = "male"
+tags = [ "halo",]
