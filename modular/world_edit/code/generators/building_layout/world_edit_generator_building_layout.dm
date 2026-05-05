@@ -1,8 +1,8 @@
 #define WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS 512
 #define WORLD_EDIT_BUILDING_MAX_PREVIEW_OBJECT_SPECS 700
 #define WORLD_EDIT_BUILDING_MAX_HOVER_PREVIEW_OBJECT_SPECS 120
-#define WORLD_EDIT_BUILDING_MAX_INTERIOR_OBJECTS 24
-#define WORLD_EDIT_BUILDING_MAX_WINDOWS 48
+#define WORLD_EDIT_BUILDING_MAX_INTERIOR_OBJECTS 16
+#define WORLD_EDIT_BUILDING_MAX_WINDOWS 12
 
 /datum/world_edit_generator/building_layout
 	requires_preview_before_apply = TRUE
@@ -39,7 +39,10 @@
 	return list("colony", "uscm", "unsc", "neutral", "covenant")
 
 /datum/world_edit_generator/building_layout/proc/get_building_layout_options()
-	return list("living", "workshop", "office", "storage", "checkpoint", "courtyard")
+	return list("living", "workshop", "office", "storage", "checkpoint", "courtyard", "pillar", "monument", "platform")
+
+/datum/world_edit_generator/building_layout/proc/is_open_structure_layout(layout_variant)
+	return "[layout_variant]" in list("pillar", "monument", "platform")
 
 /datum/world_edit_generator/building_layout/proc/get_building_faction_catalog()
 	return list(
@@ -101,16 +104,18 @@
 		),
 		"covenant" = list(
 			"label" = "Covenant",
-			"wall_path" = "/turf/closed/wall/covenant",
-			"floor_path" = "/turf/open/floor/covenant/plating",
+			"wall_path" = "/turf/closed/wall/covenant/lights/hull",
+			"floor_path" = "/turf/open/floor/covenant/smooth_plating",
 			"door_path" = "/obj/structure/machinery/door/airlock/voi",
-			"window_path" = "/obj/structure/window/framed/shipwall/yellow/reinforced",
+			"window_path" = "/obj/structure/covenant_barricade",
 			"interior_paths" = list(
-				"table" = "/obj/structure/surface/table/reinforced/black",
-				"chair" = "/obj/structure/bed/chair/comfy/black",
-				"cabinet" = "/obj/structure/closet/cabinet",
-				"bed" = "/obj/structure/bed",
-				"rack" = "/obj/structure/surface/rack",
+				"table" = "/obj/structure/machinery/recharger/covenant",
+				"chair" = "/obj/structure/covenant_barricade",
+				"cabinet" = "/obj/structure/covenant_barricade",
+				"bed" = "/obj/structure/covenant_barricade",
+				"rack" = "/obj/structure/covenant_barricade",
+				"tech" = "/obj/structure/machinery/recharger/covenant",
+				"barrier" = "/obj/structure/covenant_barricade",
 			),
 		),
 	)
@@ -127,6 +132,12 @@
 		value = default_value
 	return clamp(round(value), min_value, max_value)
 
+/datum/world_edit_generator/building_layout/proc/ui_num_param(value, default_value, min_value, max_value)
+	var/num_value = text2num("[value]")
+	if(!isnum(num_value))
+		num_value = default_value
+	return clamp(round(num_value), min_value, max_value)
+
 /datum/world_edit_generator/building_layout/proc/resolve_building_type_path(path_text, expected_root)
 	var/resolved_path = text2path("[path_text]")
 	if(!ispath(resolved_path, expected_root))
@@ -139,10 +150,13 @@
 	config["layout_variant"] = resolve_building_option(islist(params) ? params["layout_variant"] : null, get_building_layout_options(), "living")
 	config["half_width"] = num_param(params, "half_width", 4, 2, 8)
 	config["half_depth"] = num_param(params, "half_depth", 4, 2, 8)
-	config["window_density"] = num_param(params, "window_density", 40, 10, 100)
+	var/default_core_radius = config["layout_variant"] == "monument" ? 1 : 0
+	config["core_radius"] = num_param(params, "core_radius", default_core_radius, 0, 3)
+	config["window_density"] = num_param(params, "window_density", 40, 0, 100)
 	config["interior_density"] = num_param(params, "interior_density", 60, 0, 100)
 	config["back_exit"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["back_exit"] : null) ? TRUE : FALSE
 	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
+	config["replace_blocked_turfs"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : FALSE
 
 	var/list/catalog = get_building_faction_catalog()
 	var/list/preset = catalog[config["faction_preset"]] || catalog["colony"]
@@ -187,6 +201,9 @@
 				list("label" = "Склад", "value" = "storage"),
 				list("label" = "КПП", "value" = "checkpoint"),
 				list("label" = "Двор", "value" = "courtyard"),
+				list("label" = "Pillar", "value" = "pillar"),
+				list("label" = "Monument", "value" = "monument"),
+				list("label" = "Platform", "value" = "platform"),
 			),
 		),
 		list(
@@ -212,12 +229,23 @@
 			"visible" = current_shape == WORLD_EDIT_SHAPE_POINT,
 		),
 		list(
+			"id" = "core_radius",
+			"label" = "Core radius",
+			"kind" = "number",
+			"group" = "Core",
+			"value" = config["core_radius"],
+			"min" = 0,
+			"max" = 3,
+			"step" = 1,
+			"visible" = is_open_structure_layout(config["layout_variant"]),
+		),
+		list(
 			"id" = "window_density",
 			"label" = "Окна",
 			"kind" = "number",
 			"group" = "Оболочка",
 			"value" = config["window_density"],
-			"min" = 10,
+			"min" = 0,
 			"max" = 100,
 			"step" = 10,
 		),
@@ -245,6 +273,13 @@
 			"group" = "Безопасность",
 			"value" = config["respect_blockers"],
 		),
+		list(
+			"id" = "replace_blocked_turfs",
+			"label" = "Заменять занятые клетки",
+			"kind" = "boolean",
+			"group" = "Безопасность",
+			"value" = config["replace_blocked_turfs"],
+		),
 	)
 
 /datum/world_edit_generator/building_layout/set_ui_param(mob/user, list/current_params, param_id, value)
@@ -257,14 +292,16 @@
 		if("layout_variant")
 			new_params[param_id] = resolve_building_option(value, get_building_layout_options(), "living")
 		if("half_width")
-			new_params[param_id] = clamp(round(text2num("[value]") || 4), 2, 8)
+			new_params[param_id] = ui_num_param(value, 4, 2, 8)
 		if("half_depth")
-			new_params[param_id] = clamp(round(text2num("[value]") || 4), 2, 8)
+			new_params[param_id] = ui_num_param(value, 4, 2, 8)
+		if("core_radius")
+			new_params[param_id] = ui_num_param(value, 0, 0, 3)
 		if("window_density")
-			new_params[param_id] = clamp(round(text2num("[value]") || 40), 10, 100)
+			new_params[param_id] = ui_num_param(value, 40, 0, 100)
 		if("interior_density")
-			new_params[param_id] = clamp(round(text2num("[value]") || 60), 0, 100)
-		if("back_exit", "respect_blockers")
+			new_params[param_id] = ui_num_param(value, 60, 0, 100)
+		if("back_exit", "respect_blockers", "replace_blocked_turfs")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
 		else
 			new_params[param_id] = value
@@ -272,11 +309,11 @@
 
 /datum/world_edit_generator/building_layout/get_params_short(list/params)
 	var/list/config = normalize_building_params(params)
-	return "faction=[config["faction_preset"]] layout=[config["layout_variant"]] width=[config["half_width"]] depth=[config["half_depth"]] windows=[config["window_density"]] interior=[config["interior_density"]] back=[config["back_exit"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "faction=[config["faction_preset"]] layout=[config["layout_variant"]] width=[config["half_width"]] depth=[config["half_depth"]] core=[config["core_radius"]] windows=[config["window_density"]] interior=[config["interior_density"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
 
 /datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config)
 	switch("[shape_id]")
-		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE, WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
+		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
 			return "Для построек используйте кистевой путь или пользовательскую маску вместо этой формы."
 		if(WORLD_EDIT_SHAPE_RING)
 			if(config["layout_variant"] != "courtyard")
@@ -284,6 +321,7 @@
 			return null
 		if(
 			WORLD_EDIT_SHAPE_POINT,
+			WORLD_EDIT_SHAPE_LINE,
 			WORLD_EDIT_SHAPE_RECTANGLE,
 			WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
 			WORLD_EDIT_SHAPE_CIRCLE,
@@ -292,6 +330,7 @@
 			WORLD_EDIT_SHAPE_TRIANGLE,
 			WORLD_EDIT_SHAPE_SECTOR,
 			WORLD_EDIT_SHAPE_POLYGON,
+			WORLD_EDIT_SHAPE_POLYLINE,
 			WORLD_EDIT_SHAPE_CUSTOM_MASK,
 			WORLD_EDIT_SHAPE_BRUSH_PATH
 		)
@@ -355,6 +394,26 @@
 			GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
 	return result
 
+/datum/world_edit_generator/building_layout/proc/inflate_turf_footprint(list/raw_turfs, radius = 1)
+	var/list/result = list()
+	var/list/result_lookup = list()
+	if(!islist(raw_turfs) || !length(raw_turfs))
+		return result
+	radius = max(round(radius), 0)
+	var/z_level = null
+	for(var/turf/source_turf as anything in raw_turfs)
+		if(!istype(source_turf))
+			continue
+		if(isnull(z_level))
+			z_level = source_turf.z
+		if(source_turf.z != z_level)
+			continue
+		for(var/dx in -radius to radius)
+			for(var/dy in -radius to radius)
+				var/turf/target_turf = locate(source_turf.x + dx, source_turf.y + dy, source_turf.z)
+				GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
+	return result
+
 /datum/world_edit_generator/building_layout/proc/resolve_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/config, list/params, list/placement_context)
 	var/list/result = list("footprint" = list())
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
@@ -379,6 +438,11 @@
 		return result
 
 	switch(shape_id)
+		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE)
+			var/list/metadata = shape_contract?.metadata
+			var/list/preview_layers = islist(metadata) ? metadata["preview_layers"] : null
+			var/list/line_turfs = islist(preview_layers) && length(preview_layers["edge_turfs"]) ? preview_layers["edge_turfs"] : raw_turfs
+			result["footprint"] = inflate_turf_footprint(line_turfs, 1)
 		if(WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)
 			result["footprint"] = fill_turf_bounds(raw_turfs)
 		if(WORLD_EDIT_SHAPE_POLYGON)
@@ -512,19 +576,68 @@
 		return abs(target_turf.x - center_x)
 	return abs(target_turf.y - center_y)
 
-/datum/world_edit_generator/building_layout/proc/select_boundary_turf_for_dir(list/boundary, center_x, center_y, direction, list/excluded_lookup = null)
+/datum/world_edit_generator/building_layout/proc/get_side_axis_positive_dir(direction)
+	if(direction in list(NORTH, SOUTH))
+		return EAST
+	return NORTH
+
+/datum/world_edit_generator/building_layout/proc/get_side_axis_negative_dir(direction)
+	if(direction in list(NORTH, SOUTH))
+		return WEST
+	return SOUTH
+
+/datum/world_edit_generator/building_layout/proc/boundary_turf_has_outside_dir(turf/target_turf, list/footprint_lookup, direction)
+	if(!istype(target_turf) || !islist(footprint_lookup))
+		return FALSE
+	var/turf/nearby_turf = get_step(target_turf, direction)
+	return !footprint_lookup[nearby_turf]
+
+/datum/world_edit_generator/building_layout/proc/get_side_run_length(turf/target_turf, list/side_lookup, direction)
+	if(!istype(target_turf) || !islist(side_lookup) || !side_lookup[target_turf])
+		return 0
+	var/run_length = 1
+	var/positive_dir = get_side_axis_positive_dir(direction)
+	var/negative_dir = get_side_axis_negative_dir(direction)
+	var/turf/check_turf = get_step(target_turf, positive_dir)
+	while(side_lookup[check_turf])
+		run_length++
+		check_turf = get_step(check_turf, positive_dir)
+	check_turf = get_step(target_turf, negative_dir)
+	while(side_lookup[check_turf])
+		run_length++
+		check_turf = get_step(check_turf, negative_dir)
+	return run_length
+
+/datum/world_edit_generator/building_layout/proc/select_boundary_turf_for_dir(list/boundary, center_x, center_y, direction, list/excluded_lookup = null, list/footprint_lookup = null)
+	var/list/side_lookup = list()
+	if(islist(footprint_lookup))
+		for(var/turf/boundary_turf as anything in boundary)
+			if(!istype(boundary_turf) || (islist(excluded_lookup) && excluded_lookup[boundary_turf]))
+				continue
+			if(boundary_turf_has_outside_dir(boundary_turf, footprint_lookup, direction))
+				side_lookup[boundary_turf] = TRUE
+
 	var/turf/best_turf = null
-	var/best_projection = -999999
-	var/best_lateral = 999999
+	var/best_score = -999999999
 	for(var/turf/boundary_turf as anything in boundary)
 		if(!istype(boundary_turf) || (islist(excluded_lookup) && excluded_lookup[boundary_turf]))
 			continue
 		var/projection = get_projection_for_dir(boundary_turf, center_x, center_y, direction)
 		var/lateral = get_lateral_distance_for_dir(boundary_turf, center_x, center_y, direction)
-		if(!istype(best_turf) || projection > best_projection || (projection == best_projection && lateral < best_lateral))
+		var/exact_side = side_lookup[boundary_turf]
+		var/run_length = exact_side ? get_side_run_length(boundary_turf, side_lookup, direction) : 0
+		var/score = (projection * 100) - (lateral * 10)
+		if(exact_side)
+			score += 100000
+		if(run_length >= 3)
+			score += 30000 + (min(run_length, 8) * 1000)
+		else if(run_length)
+			score += run_length * 500
+		if(islist(footprint_lookup) && is_corner_boundary_turf(boundary_turf, footprint_lookup))
+			score -= 20000
+		if(!istype(best_turf) || score > best_score)
 			best_turf = boundary_turf
-			best_projection = projection
-			best_lateral = lateral
+			best_score = score
 	return best_turf
 
 /datum/world_edit_generator/building_layout/proc/get_outward_dir(turf/target_turf, list/footprint_lookup, center_x, center_y, preferred_dir = NORTH)
@@ -558,40 +671,154 @@
 			outside_count++
 	return outside_count >= 2
 
-/datum/world_edit_generator/building_layout/proc/is_near_any_turf(turf/target_turf, list/other_turfs)
+/datum/world_edit_generator/building_layout/proc/is_within_distance_of_any_turf(turf/target_turf, list/other_turfs, max_distance = 1)
 	if(!istype(target_turf) || !islist(other_turfs))
 		return FALSE
 	for(var/turf/other_turf as anything in other_turfs)
 		if(!istype(other_turf))
 			continue
-		if(abs(target_turf.x - other_turf.x) + abs(target_turf.y - other_turf.y) <= 1)
+		if(abs(target_turf.x - other_turf.x) + abs(target_turf.y - other_turf.y) <= max_distance)
 			return TRUE
 	return FALSE
 
+/datum/world_edit_generator/building_layout/proc/is_near_any_turf(turf/target_turf, list/other_turfs)
+	return is_within_distance_of_any_turf(target_turf, other_turfs, 1)
+
+/datum/world_edit_generator/building_layout/proc/count_side_turf_candidates(list/candidates_by_key, list/side_dirs)
+	var/total = 0
+	if(!islist(candidates_by_key))
+		return total
+	for(var/side_dir in side_dirs)
+		var/list/side_candidates = candidates_by_key["[side_dir]"]
+		total += length(side_candidates)
+	return total
+
+/datum/world_edit_generator/building_layout/proc/append_unique_turf(list/target_list, list/target_lookup, turf/target_turf)
+	if(!istype(target_turf) || target_lookup[target_turf])
+		return FALSE
+	target_list += target_turf
+	target_lookup[target_turf] = TRUE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/select_window_seed_candidate(list/side_candidates, list/side_lookup, direction, center_x, center_y, list/used_lookup, list/existing_windows)
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	for(var/turf/window_candidate as anything in side_candidates)
+		if(!istype(window_candidate) || used_lookup[window_candidate])
+			continue
+		if(is_within_distance_of_any_turf(window_candidate, existing_windows, 2))
+			continue
+		var/run_length = get_side_run_length(window_candidate, side_lookup, direction)
+		var/lateral = get_lateral_distance_for_dir(window_candidate, center_x, center_y, direction)
+		var/score = (run_length * 1000) - (lateral * 25)
+		if(!istype(best_turf) || score > best_score)
+			best_turf = window_candidate
+			best_score = score
+	if(istype(best_turf))
+		return best_turf
+
+	for(var/turf/window_candidate as anything in side_candidates)
+		if(!istype(window_candidate) || used_lookup[window_candidate])
+			continue
+		var/run_length = get_side_run_length(window_candidate, side_lookup, direction)
+		var/lateral = get_lateral_distance_for_dir(window_candidate, center_x, center_y, direction)
+		var/score = (run_length * 1000) - (lateral * 25)
+		if(!istype(best_turf) || score > best_score)
+			best_turf = window_candidate
+			best_score = score
+	return best_turf
+
+/datum/world_edit_generator/building_layout/proc/append_window_group_for_side(list/windows, list/side_candidates, direction, center_x, center_y, target_count, list/used_lookup)
+	if(target_count <= 0 || !length(side_candidates))
+		return 0
+	var/list/side_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(side_candidates)
+	var/added_count = 0
+	while(added_count < target_count)
+		var/turf/seed_turf = select_window_seed_candidate(side_candidates, side_lookup, direction, center_x, center_y, used_lookup, windows)
+		if(!istype(seed_turf))
+			break
+		var/group_limit = min(target_count - added_count, 2)
+		var/group_added = 0
+		if(append_unique_turf(windows, used_lookup, seed_turf))
+			added_count++
+			group_added++
+		var/list/axis_dirs = list(get_side_axis_positive_dir(direction), get_side_axis_negative_dir(direction))
+		for(var/axis_dir in axis_dirs)
+			if(group_added >= group_limit)
+				break
+			var/turf/nearby_turf = get_step(seed_turf, axis_dir)
+			if(!side_lookup[nearby_turf] || used_lookup[nearby_turf])
+				continue
+			if(append_unique_turf(windows, used_lookup, nearby_turf))
+				added_count++
+				group_added++
+		if(!group_added)
+			break
+	return added_count
+
 /datum/world_edit_generator/building_layout/proc/select_window_turfs(list/boundary, list/door_turfs, list/footprint_lookup, center_x, center_y, window_density)
-	var/list/candidates = list()
-	var/list/fallback_candidates = list()
-	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(door_turfs)
-	for(var/turf/boundary_turf as anything in boundary)
-		if(!istype(boundary_turf) || door_lookup[boundary_turf] || is_near_any_turf(boundary_turf, door_turfs))
-			continue
-		if(is_corner_boundary_turf(boundary_turf, footprint_lookup))
-			fallback_candidates += boundary_turf
-			continue
-		candidates += boundary_turf
-	if(!length(candidates))
-		candidates = fallback_candidates
-	if(!length(candidates))
+	window_density = clamp(round(window_density), 0, 100)
+	if(window_density <= 0)
 		return list()
 
-	var/desired_count = max(round(length(candidates) * window_density / 100), 1)
-	desired_count = min(desired_count, length(candidates), WORLD_EDIT_BUILDING_MAX_WINDOWS)
-	var/stride = max(round(length(candidates) / desired_count), 1)
+	var/list/side_dirs = list(NORTH, EAST, SOUTH, WEST)
+	var/list/side_candidates_by_key = list()
+	var/list/fallback_candidates_by_key = list()
+	for(var/side_dir in side_dirs)
+		side_candidates_by_key["[side_dir]"] = list()
+		fallback_candidates_by_key["[side_dir]"] = list()
+	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(door_turfs)
+	for(var/turf/boundary_turf as anything in boundary)
+		if(!istype(boundary_turf) || door_lookup[boundary_turf] || is_within_distance_of_any_turf(boundary_turf, door_turfs, 2))
+			continue
+		var/side_dir = get_outward_dir(boundary_turf, footprint_lookup, center_x, center_y, NORTH)
+		if(!(side_dir in side_dirs))
+			continue
+		if(is_corner_boundary_turf(boundary_turf, footprint_lookup))
+			var/list/fallback_side_candidates = fallback_candidates_by_key["[side_dir]"]
+			fallback_side_candidates += boundary_turf
+			continue
+		var/list/side_candidates = side_candidates_by_key["[side_dir]"]
+		side_candidates += boundary_turf
+
+	var/total_candidates = count_side_turf_candidates(side_candidates_by_key, side_dirs)
+	var/list/active_candidates_by_key = side_candidates_by_key
+	if(!total_candidates)
+		active_candidates_by_key = fallback_candidates_by_key
+		total_candidates = count_side_turf_candidates(active_candidates_by_key, side_dirs)
+	if(!total_candidates)
+		return list()
+
+	var/desired_count = max(round(total_candidates * window_density / 300), 1)
+	desired_count = min(desired_count, total_candidates, WORLD_EDIT_BUILDING_MAX_WINDOWS)
 	var/list/windows = list()
-	var/index = 1
-	while(index <= length(candidates) && length(windows) < desired_count)
-		windows += candidates[index]
-		index += stride
+	var/list/used_lookup = list()
+	var/remaining_count = desired_count
+	for(var/side_dir in side_dirs)
+		if(remaining_count <= 0)
+			break
+		var/list/side_candidates = active_candidates_by_key["[side_dir]"]
+		if(!length(side_candidates))
+			continue
+		var/target_count = round(desired_count * length(side_candidates) / total_candidates)
+		if(target_count <= 0 && remaining_count > 0 && length(side_candidates) >= 2)
+			target_count = 1
+		target_count = min(target_count, remaining_count, length(side_candidates))
+		remaining_count -= append_window_group_for_side(windows, side_candidates, side_dir, center_x, center_y, target_count, used_lookup)
+
+	while(remaining_count > 0)
+		var/added_this_pass = 0
+		for(var/side_dir in side_dirs)
+			if(remaining_count <= 0)
+				break
+			var/list/side_candidates = active_candidates_by_key["[side_dir]"]
+			if(!length(side_candidates))
+				continue
+			var/added = append_window_group_for_side(windows, side_candidates, side_dir, center_x, center_y, 1, used_lookup)
+			added_this_pass += added
+			remaining_count -= added
+		if(!added_this_pass)
+			break
 	return windows
 
 /datum/world_edit_generator/building_layout/proc/build_turf_placement(kind, turf/target_turf, turf_path)
@@ -671,21 +898,88 @@
 		path_turf = previous[path_turf]
 	return reserved
 
-/datum/world_edit_generator/building_layout/proc/get_interior_slots(layout_variant)
+/datum/world_edit_generator/building_layout/proc/build_reserved_paths(list/door_turfs, turf/center_turf, list/floor_lookup)
+	var/list/reserved = list()
+	var/list/reserved_lookup = list()
+	if(!islist(door_turfs) || !istype(center_turf) || !islist(floor_lookup))
+		return reserved
+	for(var/turf/door_turf as anything in door_turfs)
+		if(!istype(door_turf))
+			continue
+		var/list/door_path = build_reserved_path(door_turf, center_turf, floor_lookup)
+		for(var/turf/path_turf as anything in door_path)
+			append_unique_turf(reserved, reserved_lookup, path_turf)
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(door_turf, check_dir)
+			if(floor_lookup[nearby_turf])
+				append_unique_turf(reserved, reserved_lookup, nearby_turf)
+	return reserved
+
+/datum/world_edit_generator/building_layout/proc/get_interior_slots(layout_variant, faction_preset = null)
+	if("[faction_preset]" == "covenant")
+		switch("[layout_variant]")
+			if("storage")
+				return list("barrier", "barrier", "tech", "barrier", "barrier", "tech", "barrier", "barrier", "tech", "barrier")
+			if("workshop", "checkpoint")
+				return list("tech", "barrier", "barrier", "tech", "barrier", "barrier", "tech", "barrier")
+			if("courtyard")
+				return list("barrier", "tech", "barrier", "barrier", "tech")
+			if("pillar", "monument", "platform")
+				return list("barrier", "tech", "barrier")
+		return list("tech", "barrier", "barrier", "tech", "barrier", "barrier", "tech", "barrier")
 	switch("[layout_variant]")
 		if("living")
-			return list("bed", "bed", "cabinet", "table", "chair")
+			return list("bed", "cabinet", "bed", "cabinet", "table", "chair", "chair", "rack", "bed", "cabinet", "table", "chair")
 		if("workshop")
-			return list("rack", "table", "rack", "cabinet", "chair")
+			return list("rack", "rack", "cabinet", "table", "chair", "rack", "table", "chair", "cabinet", "rack", "table", "chair")
 		if("office")
-			return list("table", "chair", "cabinet", "table", "chair")
+			return list("table", "chair", "cabinet", "table", "chair", "chair", "cabinet", "table", "chair", "rack")
 		if("storage")
-			return list("rack", "cabinet", "rack", "table")
+			return list("rack", "cabinet", "rack", "cabinet", "rack", "rack", "cabinet", "rack", "table", "chair", "rack", "cabinet", "rack", "rack")
 		if("checkpoint")
-			return list("table", "chair", "rack", "cabinet")
+			return list("table", "chair", "rack", "cabinet", "table", "chair", "rack", "cabinet")
 		if("courtyard")
-			return list("table", "chair", "cabinet", "rack")
+			return list("cabinet", "rack", "table", "chair", "cabinet", "rack")
+		if("pillar")
+			return list("cabinet", "rack")
+		if("monument")
+			return list("cabinet", "rack", "table")
+		if("platform")
+			return list("table", "chair", "cabinet")
 	return list("table", "chair", "cabinet")
+
+/datum/world_edit_generator/building_layout/proc/get_interior_motif_cap(layout_variant, faction_preset = null)
+	if("[faction_preset]" == "covenant")
+		switch("[layout_variant]")
+			if("storage", "workshop")
+				return 10
+			if("checkpoint")
+				return 8
+			if("courtyard")
+				return 5
+			if("pillar", "platform")
+				return 4
+			if("monument")
+				return 5
+		return 8
+	switch("[layout_variant]")
+		if("living")
+			return 12
+		if("workshop")
+			return 12
+		if("office")
+			return 10
+		if("storage")
+			return 14
+		if("checkpoint")
+			return 8
+		if("courtyard")
+			return 6
+		if("pillar", "platform")
+			return 4
+		if("monument")
+			return 5
+	return 8
 
 /datum/world_edit_generator/building_layout/proc/resolve_interior_obj_path(list/config, slot)
 	var/list/interior_paths = config["interior_paths"]
@@ -695,52 +989,256 @@
 		obj_path = resolve_building_type_path(islist(interior_paths) ? interior_paths["table"] : null, /obj)
 	return obj_path
 
+/datum/world_edit_generator/building_layout/proc/get_wall_adjacency_count(turf/target_turf, list/wall_lookup)
+	if(!istype(target_turf) || !islist(wall_lookup))
+		return 0
+	var/wall_count = 0
+	for(var/check_dir in GLOB.cardinals)
+		if(wall_lookup[get_step(target_turf, check_dir)])
+			wall_count++
+	return wall_count
+
+/datum/world_edit_generator/building_layout/proc/select_interior_candidate(list/candidates, slot, turf/center_turf, list/wall_lookup, list/object_lookup, list/reserved_lookup, prefer_wall = FALSE, prefer_open = FALSE)
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	for(var/turf/interior_candidate as anything in candidates)
+		if(!istype(interior_candidate) || object_lookup[interior_candidate] || reserved_lookup[interior_candidate])
+			continue
+		var/wall_count = get_wall_adjacency_count(interior_candidate, wall_lookup)
+		var/center_distance = istype(center_turf) ? (abs(interior_candidate.x - center_turf.x) + abs(interior_candidate.y - center_turf.y)) : 0
+		var/score = -center_distance
+		if(prefer_wall)
+			score += wall_count * 120
+			if(wall_count >= 2)
+				score += 80
+		else if(prefer_open)
+			score += (4 - wall_count) * 90
+			score -= center_distance * 8
+		else
+			score += wall_count * 35
+			score -= center_distance * 3
+		if(slot in list("bed", "cabinet", "rack", "barrier", "tech"))
+			score += wall_count * 55
+		if(slot == "table" && prefer_open)
+			score -= wall_count * 20
+		if(!istype(best_turf) || score > best_score)
+			best_turf = interior_candidate
+			best_score = score
+	return best_turf
+
+/datum/world_edit_generator/building_layout/proc/find_adjacent_interior_candidate(turf/source_turf, list/candidate_lookup, list/object_lookup, list/reserved_lookup, turf/center_turf, list/wall_lookup)
+	if(!istype(source_turf) || !islist(candidate_lookup))
+		return null
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(source_turf, check_dir)
+		if(!candidate_lookup[nearby_turf] || object_lookup[nearby_turf] || reserved_lookup[nearby_turf])
+			continue
+		var/wall_count = get_wall_adjacency_count(nearby_turf, wall_lookup)
+		var/center_distance = istype(center_turf) ? (abs(nearby_turf.x - center_turf.x) + abs(nearby_turf.y - center_turf.y)) : 0
+		var/score = ((4 - wall_count) * 80) - (center_distance * 4)
+		if(!istype(best_turf) || score > best_score)
+			best_turf = nearby_turf
+			best_score = score
+	return best_turf
+
 /datum/world_edit_generator/building_layout/proc/append_interior_placements(datum/world_edit_plan/plan, list/interior_turfs, list/wall_lookup, list/reserved_turfs, turf/center_turf, list/config, list/object_lookup)
 	if(!istype(plan) || !length(interior_turfs) || config["interior_density"] <= 0)
 		return 0
 
 	var/list/reserved_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(reserved_turfs)
-	var/list/preferred = list()
-	var/list/fallback = list()
+	var/list/near_wall = list()
+	var/list/open_floor = list()
+	var/list/candidates = list()
 	for(var/turf/interior_turf as anything in interior_turfs)
 		if(!istype(interior_turf) || reserved_lookup[interior_turf] || object_lookup[interior_turf])
 			continue
-		var/near_wall = FALSE
-		for(var/check_dir in GLOB.cardinals)
-			if(wall_lookup[get_step(interior_turf, check_dir)])
-				near_wall = TRUE
-				break
-		if(near_wall)
-			preferred += interior_turf
+		candidates += interior_turf
+		if(get_wall_adjacency_count(interior_turf, wall_lookup))
+			near_wall += interior_turf
 		else
-			fallback += interior_turf
+			open_floor += interior_turf
 
-	var/list/candidates = preferred + fallback
 	if(!length(candidates))
 		return 0
-	var/desired_count = round(length(candidates) * config["interior_density"] / 200)
+	var/list/candidate_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(candidates)
+	var/layout_variant = "[config["layout_variant"]]"
+	var/layout_cap = get_interior_motif_cap(layout_variant, config["faction_preset"])
+	var/desired_count = round(layout_cap * config["interior_density"] / 100)
 	if(config["interior_density"] > 0)
 		desired_count = max(desired_count, 1)
-	desired_count = min(desired_count, length(candidates), WORLD_EDIT_BUILDING_MAX_INTERIOR_OBJECTS)
-	var/stride = max(round(length(candidates) / desired_count), 1)
-	var/list/slots = get_interior_slots(config["layout_variant"])
+	desired_count = min(desired_count, length(candidates), layout_cap, WORLD_EDIT_BUILDING_MAX_INTERIOR_OBJECTS)
+	var/list/slots = get_interior_slots(config["layout_variant"], config["faction_preset"])
 	var/created_plan_count = 0
-	var/index = 1
 	var/slot_index = 1
-	while(index <= length(candidates) && created_plan_count < desired_count)
-		var/turf/target_turf = candidates[index]
+	var/turf/last_table_turf = null
+	var/attempts = 0
+	var/max_attempts = max(length(candidates) * 3, desired_count * max(length(slots), 1) * 3)
+	while(created_plan_count < desired_count && attempts < max_attempts)
+		attempts++
 		var/slot = slots[slot_index]
 		var/obj_path = resolve_interior_obj_path(config, slot)
 		if(obj_path)
-			var/dir_to_use = get_cardinal_dir_toward(target_turf, center_turf, SOUTH)
-			plan.placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
-			object_lookup[target_turf] = TRUE
-			created_plan_count++
+			var/turf/target_turf = null
+			if(slot == "chair" && istype(last_table_turf))
+				target_turf = find_adjacent_interior_candidate(last_table_turf, candidate_lookup, object_lookup, reserved_lookup, center_turf, wall_lookup)
+			if(!istype(target_turf))
+				var/prefer_wall = (slot in list("bed", "cabinet", "rack", "barrier", "tech")) || layout_variant == "courtyard" || (layout_variant == "storage" && slot != "chair")
+				var/prefer_open = (slot == "table" && !(layout_variant in list("storage", "workshop", "courtyard")))
+				var/list/selection_pool = prefer_wall ? (near_wall + open_floor) : (open_floor + near_wall)
+				target_turf = select_interior_candidate(selection_pool, slot, center_turf, wall_lookup, object_lookup, reserved_lookup, prefer_wall, prefer_open)
+			if(istype(target_turf))
+				var/dir_to_use = (slot == "chair" && istype(last_table_turf)) ? get_cardinal_dir_toward(target_turf, last_table_turf, SOUTH) : get_cardinal_dir_toward(target_turf, center_turf, SOUTH)
+				plan.placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
+				object_lookup[target_turf] = TRUE
+				if(slot == "table")
+					last_table_turf = target_turf
+				created_plan_count++
 		slot_index++
 		if(slot_index > length(slots))
 			slot_index = 1
-		index += stride
 	return created_plan_count
+
+/datum/world_edit_generator/building_layout/proc/collect_open_structure_core_turfs(list/footprint, turf/center_turf, list/config)
+	var/list/core_turfs = list()
+	var/list/core_lookup = list()
+	if(!is_open_structure_layout(config["layout_variant"]) || config["layout_variant"] == "platform" || !istype(center_turf))
+		return core_turfs
+	var/core_radius = round(config["core_radius"])
+	if(config["layout_variant"] == "monument")
+		core_radius = max(core_radius, 1)
+	for(var/turf/footprint_turf as anything in footprint)
+		if(!istype(footprint_turf))
+			continue
+		if(max(abs(footprint_turf.x - center_turf.x), abs(footprint_turf.y - center_turf.y)) > core_radius)
+			continue
+		append_unique_turf(core_turfs, core_lookup, footprint_turf)
+	if(!length(core_turfs))
+		append_unique_turf(core_turfs, core_lookup, center_turf)
+	return core_turfs
+
+/datum/world_edit_generator/building_layout/proc/build_open_structure_reserved_turfs(list/core_turfs, turf/center_turf, list/floor_lookup)
+	var/list/reserved = list()
+	var/list/reserved_lookup = list()
+	for(var/turf/core_turf as anything in core_turfs)
+		append_unique_turf(reserved, reserved_lookup, core_turf)
+	append_unique_turf(reserved, reserved_lookup, center_turf)
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(center_turf, check_dir)
+		if(floor_lookup[nearby_turf])
+			append_unique_turf(reserved, reserved_lookup, nearby_turf)
+	return reserved
+
+/datum/world_edit_generator/building_layout/proc/select_open_structure_candidate(list/candidates, turf/center_turf, target_dir, target_radius, list/object_lookup, list/reserved_lookup, list/used_lookup)
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	if(!istype(center_turf))
+		return null
+	for(var/turf/candidate_turf as anything in candidates)
+		if(!istype(candidate_turf) || object_lookup[candidate_turf] || reserved_lookup[candidate_turf] || used_lookup[candidate_turf])
+			continue
+		var/radius_distance = max(abs(candidate_turf.x - center_turf.x), abs(candidate_turf.y - center_turf.y))
+		var/score = -abs(radius_distance - target_radius) * 140
+		score += get_projection_for_dir(candidate_turf, center_turf.x, center_turf.y, target_dir) * 30
+		score -= get_lateral_distance_for_dir(candidate_turf, center_turf.x, center_turf.y, target_dir) * 8
+		if(!istype(best_turf) || score > best_score)
+			best_turf = candidate_turf
+			best_score = score
+	return best_turf
+
+/datum/world_edit_generator/building_layout/proc/append_open_structure_focus(datum/world_edit_plan/plan, turf/center_turf, list/config, list/object_lookup)
+	if(config["layout_variant"] != "platform" || !istype(center_turf))
+		return 0
+	var/focus_slot = config["faction_preset"] == "covenant" ? "tech" : "table"
+	var/obj_path = resolve_interior_obj_path(config, focus_slot)
+	if(!obj_path || object_lookup[center_turf])
+		return 0
+	plan.placements += list(build_object_placement("interior", center_turf, obj_path, SOUTH))
+	object_lookup[center_turf] = TRUE
+	return 1
+
+/datum/world_edit_generator/building_layout/proc/append_open_structure_accents(datum/world_edit_plan/plan, list/floor_turfs, turf/center_turf, list/reserved_turfs, list/config, list/object_lookup, placement_dir)
+	if(!istype(plan) || !length(floor_turfs) || config["interior_density"] <= 0)
+		return 0
+	var/list/reserved_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(reserved_turfs)
+	var/list/candidates = list()
+	for(var/turf/floor_turf as anything in floor_turfs)
+		if(!istype(floor_turf) || reserved_lookup[floor_turf] || object_lookup[floor_turf])
+			continue
+		candidates += floor_turf
+	if(!length(candidates))
+		return 0
+
+	var/accent_cap = get_interior_motif_cap(config["layout_variant"], config["faction_preset"])
+	var/desired_count = round(accent_cap * config["interior_density"] / 100)
+	if(config["interior_density"] > 0)
+		desired_count = max(desired_count, 1)
+	desired_count = min(desired_count, length(candidates), accent_cap)
+	var/list/slots = get_interior_slots(config["layout_variant"], config["faction_preset"])
+	var/list/direction_sequence = list(placement_dir, turn(placement_dir, 90), turn(placement_dir, -90), turn(placement_dir, 180))
+	var/list/used_lookup = list()
+	var/core_radius = config["layout_variant"] == "monument" ? max(config["core_radius"], 1) : config["core_radius"]
+	var/target_radius = max(core_radius + 2, 2)
+	var/created_count = 0
+	while(created_count < desired_count)
+		var/slot = slots[(created_count % length(slots)) + 1]
+		var/obj_path = resolve_interior_obj_path(config, slot)
+		if(!obj_path)
+			break
+		var/target_dir = direction_sequence[(created_count % length(direction_sequence)) + 1]
+		var/turf/target_turf = select_open_structure_candidate(candidates, center_turf, target_dir, target_radius, object_lookup, reserved_lookup, used_lookup)
+		if(!istype(target_turf))
+			break
+		var/dir_to_use = get_cardinal_dir_toward(target_turf, center_turf, SOUTH)
+		plan.placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
+		object_lookup[target_turf] = TRUE
+		used_lookup[target_turf] = TRUE
+		created_count++
+	return created_count
+
+/datum/world_edit_generator/building_layout/proc/finalize_open_structure_plan(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context, list/config, list/footprint, list/boundary, list/floor_turfs, list/core_turfs, turf/center_turf, interior_object_count)
+	plan.metadata["center_turf"] = center_turf
+	plan.metadata["entry_count"] = length(plan.placements)
+	plan.metadata["footprint_count"] = length(footprint)
+	plan.metadata["boundary_count"] = length(boundary)
+	plan.metadata["wall_count"] = length(core_turfs)
+	plan.metadata["floor_count"] = length(floor_turfs)
+	plan.metadata["door_count"] = 0
+	plan.metadata["window_count"] = 0
+	plan.metadata["interior_object_count"] = interior_object_count
+	plan.metadata["patterned_layout"] = TRUE
+	plan.metadata["open_structure"] = TRUE
+	plan.metadata["core_radius"] = config["core_radius"]
+	plan.metadata["faction_preset"] = config["faction_preset"]
+	plan.metadata["layout_variant"] = config["layout_variant"]
+	plan.metadata["generator_effect_turfs"] = footprint.Copy()
+	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
+	return plan
+
+/datum/world_edit_generator/building_layout/proc/build_open_structure_plan(datum/world_edit_plan/plan, datum/world_edit_shape_contract/shape_contract, list/placement_context, list/config, list/footprint, list/boundary, center_x, center_y, placement_dir)
+	var/turf/center_turf = select_center_floor_turf(footprint, center_x, center_y)
+	if(!istype(center_turf))
+		plan.metadata["error"] = "Could not select an open-structure center turf."
+		return plan
+
+	var/list/core_turfs = collect_open_structure_core_turfs(footprint, center_turf, config)
+	var/list/core_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(core_turfs)
+	var/list/floor_turfs = list()
+	for(var/turf/footprint_turf as anything in footprint)
+		if(core_lookup[footprint_turf])
+			plan.placements += list(build_turf_placement("wall", footprint_turf, config["wall_type"]))
+		else
+			plan.placements += list(build_turf_placement("floor", footprint_turf, config["floor_type"]))
+			floor_turfs += footprint_turf
+		plan.affected_turfs += footprint_turf
+
+	var/list/floor_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(floor_turfs)
+	var/list/reserved_turfs = build_open_structure_reserved_turfs(core_turfs, center_turf, floor_lookup)
+	var/list/object_lookup = list()
+	var/interior_object_count = append_open_structure_focus(plan, center_turf, config, object_lookup)
+	interior_object_count += append_open_structure_accents(plan, floor_turfs, center_turf, reserved_turfs, config, object_lookup, placement_dir)
+	return finalize_open_structure_plan(plan, shape_contract, placement_context, config, footprint, boundary, floor_turfs, core_turfs, center_turf, interior_object_count)
 
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
@@ -771,9 +1269,11 @@
 	var/placement_dir = text2num("[placement_context["direction"]]")
 	if(!(placement_dir in GLOB.cardinals))
 		placement_dir = manager?.get_effective_placement_dir() || NORTH
+	if(is_open_structure_layout(config["layout_variant"]))
+		return build_open_structure_plan(plan, shape_contract, placement_context, config, footprint, boundary, center_x, center_y, placement_dir)
 
 	var/list/door_turfs = list()
-	var/turf/front_door_turf = select_boundary_turf_for_dir(boundary, center_x, center_y, placement_dir)
+	var/turf/front_door_turf = select_boundary_turf_for_dir(boundary, center_x, center_y, placement_dir, null, footprint_lookup)
 	if(!istype(front_door_turf))
 		plan.metadata["error"] = "Не удалось выбрать место для двери."
 		return plan
@@ -781,7 +1281,7 @@
 	if(config["back_exit"])
 		var/list/front_door_lookup = list()
 		front_door_lookup[front_door_turf] = TRUE
-		var/turf/back_door_turf = select_boundary_turf_for_dir(boundary, center_x, center_y, turn(placement_dir, 180), front_door_lookup)
+		var/turf/back_door_turf = select_boundary_turf_for_dir(boundary, center_x, center_y, turn(placement_dir, 180), front_door_lookup, footprint_lookup)
 		if(istype(back_door_turf))
 			door_turfs += back_door_turf
 
@@ -815,7 +1315,7 @@
 		floor_turfs += floor_turf
 	var/turf/center_turf = select_center_floor_turf(floor_turfs, center_x, center_y) || front_door_turf
 	var/list/floor_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(floor_turfs)
-	var/list/reserved_path = build_reserved_path(front_door_turf, center_turf, floor_lookup)
+	var/list/reserved_path = build_reserved_paths(door_turfs, center_turf, floor_lookup)
 	var/list/object_lookup = list()
 	for(var/turf/object_turf as anything in door_turfs)
 		object_lookup[object_turf] = TRUE
@@ -832,6 +1332,7 @@
 	plan.metadata["door_count"] = length(door_turfs)
 	plan.metadata["window_count"] = length(window_turfs)
 	plan.metadata["interior_object_count"] = interior_object_count
+	plan.metadata["patterned_layout"] = TRUE
 	plan.metadata["faction_preset"] = config["faction_preset"]
 	plan.metadata["layout_variant"] = config["layout_variant"]
 	plan.metadata["generator_effect_turfs"] = footprint.Copy()
@@ -971,6 +1472,11 @@
 	var/z_value = text2num("[placement["z"]]")
 	return locate(x_value, y_value, z_value)
 
+/datum/world_edit_generator/building_layout/proc/placement_coord_key(list/placement)
+	if(!islist(placement))
+		return null
+	return "[placement["x"]],[placement["y"]],[placement["z"]]"
+
 /datum/world_edit_generator/building_layout/proc/has_runtime_object_blocker(turf/target_turf)
 	if(!istype(target_turf) || target_turf.density)
 		return TRUE
@@ -984,10 +1490,16 @@
 /datum/world_edit_generator/building_layout/proc/get_runtime_footprint_blocker_error(datum/world_edit_plan/plan)
 	if(!istype(plan))
 		return "Building plan is unavailable."
-	var/list/footprint = islist(plan.metadata) ? plan.metadata["generator_effect_turfs"] : null
-	if(!islist(footprint))
-		footprint = plan.affected_turfs
-	for(var/turf/check_turf as anything in footprint)
+	var/list/checked_lookup = list()
+	for(var/list/placement as anything in plan.placements)
+		var/kind = "[placement["kind"]]"
+		if(!(kind in list("floor", "wall", "door", "window", "interior")))
+			continue
+		var/key = placement_coord_key(placement)
+		if(checked_lookup[key])
+			continue
+		checked_lookup[key] = TRUE
+		var/turf/check_turf = runtime_target_turf(placement)
 		var/blocker_error = get_footprint_blocker_error(check_turf)
 		if(length("[blocker_error]"))
 			return blocker_error
@@ -1020,17 +1532,24 @@
 	var/changed_turf_count = 0
 	var/created_object_count = 0
 	var/skipped_runtime = 0
+	var/list/skipped_turf_lookup = list()
+	var/replace_blocked_turfs = config["replace_blocked_turfs"]
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
 		if(!(kind in list("floor", "wall")))
 			continue
 		var/turf/target_turf = runtime_target_turf(placement)
+		var/coord_key = placement_coord_key(placement)
 		var/turf_path = placement["turf_path"]
 		if(!istype(target_turf) || !ispath(turf_path, /turf))
 			skipped_runtime++
+			if(length("[coord_key]"))
+				skipped_turf_lookup[coord_key] = TRUE
 			continue
-		if(config["respect_blockers"] && get_footprint_blocker_error(target_turf))
+		if(!replace_blocked_turfs && get_footprint_blocker_error(target_turf))
 			skipped_runtime++
+			if(length("[coord_key]"))
+				skipped_turf_lookup[coord_key] = TRUE
 			continue
 		if(target_turf.type == turf_path)
 			continue
@@ -1048,11 +1567,15 @@
 		if(!(kind in list("door", "window", "interior")))
 			continue
 		var/turf/target_turf = runtime_target_turf(placement)
+		var/coord_key = placement_coord_key(placement)
 		var/obj_path = placement["obj_path"]
 		if(!istype(target_turf) || !ispath(obj_path, /obj))
 			skipped_runtime++
 			continue
-		if(config["respect_blockers"] && has_runtime_object_blocker(target_turf))
+		if(skipped_turf_lookup[coord_key])
+			skipped_runtime++
+			continue
+		if(has_runtime_object_blocker(target_turf))
 			skipped_runtime++
 			continue
 		var/obj/created_object = new obj_path(target_turf)
