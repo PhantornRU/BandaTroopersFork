@@ -323,7 +323,7 @@
 	var/list/new_params = current_params.Copy()
 	switch("[param_id]")
 		if("archetype_id")
-			new_params[param_id] = resolve_building_archetype_option(value, "living_small")
+			new_params[param_id] = resolve_building_archetype_option(value, "living")
 		if("faction_preset")
 			new_params[param_id] = resolve_building_option(value, get_building_faction_options(), "colony")
 		if("half_width")
@@ -460,10 +460,7 @@
 		if(!istype(seed_turf))
 			result["error"] = "Unable to resolve building center turf."
 			return result
-		var/width = (config["half_width"] * 2) + 1
-		var/height = (config["half_depth"] * 2) + 1
-		result["footprint"] = GLOB.world_edit_placement_shapes.world_edit_collect_centered_rectangle_turfs(seed_turf, width, height, TRUE)
-		return result
+		return build_point_building_footprint(seed_turf, config, placement_context)
 
 	if(!islist(raw_turfs) || !length(raw_turfs))
 		result["error"] = "Placement shape did not provide building footprint turfs."
@@ -486,6 +483,7 @@
 				result["footprint"] = fill_turf_bounds(raw_turfs)
 		else
 			result["footprint"] = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
+	config["footprint_family"] = "PLACEMENT_SHAPE"
 	return result
 
 /datum/world_edit_generator/building_layout/proc/validate_footprint(list/footprint, list/config)

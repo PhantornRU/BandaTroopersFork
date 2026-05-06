@@ -1,25 +1,3 @@
-/datum/world_edit_generator/building_layout/proc/get_building_cluster_primary_category(cluster_id)
-	switch("[cluster_id]")
-		if("bed_niche")
-			return "bed"
-		if("dining_pair", "side_table", "workbench_run", "central_assembly_table", "inspection_table", "checkpoint_counter", "treatment_table")
-			return "table"
-		if("personal_storage", "tool_storage", "security_storage", "med_side_storage")
-			return "cabinet"
-		if("window_seat", "inspection_chair", "visitor_chair", "waiting_chair", "triage_seating")
-			return "chair"
-		if("parts_rack_run", "rack_run")
-			return "rack"
-		if("operator_console")
-			return "console"
-		if("storage_loading_axis", "crate_stack", "parts_crate_stack", "staging_crate_pair")
-			return "crate"
-		if("triage_bed_cluster")
-			return "medical_bed"
-		if("med_storage_wall")
-			return "medical_storage"
-	return null
-
 /datum/world_edit_generator/building_layout/proc/validate_and_repair_building_layout_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
@@ -29,11 +7,10 @@
 
 	for(var/attempt in 1 to WORLD_EDIT_BUILDING_MAX_REPAIR_ATTEMPTS)
 		var/repaired_this_pass = FALSE
-		for(var/cluster_id as anything in state.archetype.major_clusters)
-			var/primary_category = get_building_cluster_primary_category(cluster_id)
-			if(length("[primary_category]") && (state.category_counts["[primary_category]"] || 0) > 0)
+		for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan?.get_cluster_specs("major"))
+			if((state.cluster_counts[cluster_spec.id] || 0) >= cluster_spec.min_count)
 				continue
-			if(place_building_cluster(state, "[cluster_id]", TRUE))
+			if(place_building_cluster_spec(state, cluster_spec, TRUE))
 				repaired_this_pass = TRUE
 		validate_building_layout_state(state)
 		if(!state.has_errors() || !repaired_this_pass)
@@ -44,26 +21,56 @@
 		return
 	state.errors.Cut()
 
-	if(!istype(state.archetype))
-		state.add_error("Building archetype is unavailable.")
+	if(!istype(state.archetype) || !istype(state.semantic_plan))
+		state.add_error("Building semantic program is unavailable.")
 		return
 	if(!length(state.footprint) || !length(state.floor_turfs))
 		state.add_error("Building layout has no usable footprint or floor turfs.")
 	if(!istype(state.front_door_turf) || !length(state.door_turfs))
 		state.add_error("Building layout has no entry door.")
 
-	for(var/zone_id as anything in state.archetype.mandatory_zones)
-		if(!length(state.get_zone_turfs(zone_id)))
-			state.add_error("Mandatory zone '[zone_id]' was not produced for archetype [state.archetype.id].")
-
+	validate_building_zone_requirements(state)
+	validate_building_adjacency_rules(state)
 	validate_building_door_buffers(state)
 	validate_building_windows(state)
 	validate_building_reserved_lanes(state)
+	validate_building_route_touch(state)
 	validate_building_fixture_surface(state)
 	validate_building_fixture_reachability(state)
 	validate_building_privacy_rules(state)
 	validate_building_major_clusters(state)
-	validate_building_archetype_specifics(state)
+	validate_building_density_rules(state)
+	validate_building_nested_room_rules(state)
+	validate_building_divider_rules(state)
+
+/datum/world_edit_generator/building_layout/proc/validate_building_zone_requirements(datum/world_edit_building_layout_state/state)
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!zone_spec.required)
+			continue
+		var/list/zone_turfs = state.get_zone_turfs(zone_spec.id)
+		if(length(zone_turfs) < zone_spec.min_area)
+			state.add_error("Required zone '[zone_spec.id]' has [length(zone_turfs)] tiles, expected at least [zone_spec.min_area].")
+
+/datum/world_edit_generator/building_layout/proc/build_building_zone_lookup(datum/world_edit_building_layout_state/state, zone_id)
+	var/list/lookup = list()
+	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+		lookup[zone_turf] = TRUE
+	return lookup
+
+/datum/world_edit_generator/building_layout/proc/building_zones_are_adjacent(datum/world_edit_building_layout_state/state, zone_a, zone_b)
+	var/list/zone_b_lookup = build_building_zone_lookup(state, zone_b)
+	for(var/turf/zone_a_turf as anything in state.get_zone_turfs(zone_a))
+		for(var/check_dir in GLOB.cardinals)
+			if(zone_b_lookup[get_step(zone_a_turf, check_dir)])
+				return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/validate_building_adjacency_rules(datum/world_edit_building_layout_state/state)
+	for(var/datum/world_edit_building_adjacency_rule/rule as anything in state.semantic_plan.adjacency_rules)
+		if(!rule.required)
+			continue
+		if(!building_zones_are_adjacent(state, rule.zone_a, rule.zone_b))
+			state.add_error("Required zone adjacency missing: [rule.zone_a] -> [rule.zone_b].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_door_buffers(datum/world_edit_building_layout_state/state)
 	for(var/turf/door_turf as anything in state.door_turfs)
@@ -72,9 +79,9 @@
 			continue
 		var/door_dir = state.door_dirs[door_turf] || get_outward_dir(door_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
 		var/turf/inward_turf = get_step(door_turf, turn(door_dir, 180))
-		if(!state.floor_lookup[inward_turf])
+		if(!state.floor_lookup[inward_turf] && door_turf == state.front_door_turf)
 			state.add_error("Door at [GLOB.world_edit_helpers.turf_to_text(door_turf)] has no interior buffer.")
-		if(state.fixture_lookup[inward_turf])
+		if(state.boundary_lookup[door_turf] && state.fixture_lookup[inward_turf])
 			state.add_error("Door buffer at [GLOB.world_edit_helpers.turf_to_text(inward_turf)] is blocked by a fixture.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_windows(datum/world_edit_building_layout_state/state)
@@ -86,6 +93,8 @@
 			state.add_error("Window placement overlaps a door.")
 		if(!boundary_turf_has_outside_dir(window_turf, state.footprint_lookup, get_outward_dir(window_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)))
 			state.add_error("Window placement has no exterior side.")
+		if(!can_place_building_window_for_boundary_turf(state, window_turf))
+			state.add_error("Window placement contradicts the adjacent semantic zone.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_reserved_lanes(datum/world_edit_building_layout_state/state)
 	for(var/turf/reserved_turf as anything in state.floor_turfs)
@@ -93,6 +102,24 @@
 			continue
 		if(state.fixture_lookup[reserved_turf])
 			state.add_error("Primary lane at [GLOB.world_edit_helpers.turf_to_text(reserved_turf)] is blocked by a fixture.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!zone_spec.required || !zone_spec.must_touch_route)
+			continue
+		var/route_touches_zone = FALSE
+		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
+			if(state.reserved_lookup[zone_turf])
+				route_touches_zone = TRUE
+				break
+			for(var/check_dir in GLOB.cardinals)
+				if(state.reserved_lookup[get_step(zone_turf, check_dir)])
+					route_touches_zone = TRUE
+					break
+			if(route_touches_zone)
+				break
+		if(!route_touches_zone)
+			state.add_error("Required zone '[zone_spec.id]' is not connected to the circulation graph.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_fixture_surface(datum/world_edit_building_layout_state/state)
 	for(var/list/placement as anything in state.object_placements)
@@ -112,7 +139,13 @@
 	if(!istype(state))
 		return reachable
 	var/list/queue = list()
+	var/list/start_doors = list()
 	for(var/turf/door_turf as anything in state.door_turfs)
+		if(state.boundary_lookup[door_turf])
+			start_doors += door_turf
+	if(!length(start_doors))
+		start_doors = state.door_turfs
+	for(var/turf/door_turf as anything in start_doors)
 		if(state.floor_lookup[door_turf])
 			queue += door_turf
 			reachable[door_turf] = TRUE
@@ -146,49 +179,52 @@
 			state.add_error("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_privacy_rules(datum/world_edit_building_layout_state/state)
-	if(state.archetype.id != "living_small")
-		return
-	for(var/turf/private_turf as anything in state.get_zone_turfs("sleep_privacy"))
-		if(state.has_anchor("door_cone", private_turf))
-			state.add_error("Living privacy zone overlaps an entry door cone.")
-		for(var/check_dir in GLOB.cardinals)
-			var/turf/nearby_turf = get_step(private_turf, check_dir)
-			if(state.has_anchor("door_cone", nearby_turf))
-				state.add_error("Living privacy zone is directly exposed to an entry door cone.")
-				break
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!zone_spec.privacy_sensitive)
+			continue
+		for(var/turf/private_turf as anything in state.get_zone_turfs(zone_spec.id))
+			if(state.has_anchor("door_cone", private_turf))
+				state.add_error("Privacy zone '[zone_spec.id]' overlaps an entry door cone.")
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/nearby_turf = get_step(private_turf, check_dir)
+				if(state.has_anchor("door_cone", nearby_turf))
+					state.add_error("Privacy zone '[zone_spec.id]' is directly exposed to an entry door cone.")
+					break
 
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
-	for(var/cluster_id as anything in state.archetype.major_clusters)
-		var/primary_category = get_building_cluster_primary_category(cluster_id)
-		if(!length("[primary_category]"))
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
+		if(!cluster_spec.required)
 			continue
-		if((state.category_counts["[primary_category]"] || 0) <= 0)
-			state.add_error("Major cluster '[cluster_id]' did not place required category '[primary_category]'.")
+		if((state.cluster_counts[cluster_spec.id] || 0) < cluster_spec.min_count)
+			state.add_error("Major cluster '[cluster_spec.id]' placed [state.cluster_counts[cluster_spec.id] || 0], expected at least [cluster_spec.min_count].")
 
-/datum/world_edit_generator/building_layout/proc/validate_building_archetype_specifics(datum/world_edit_building_layout_state/state)
-	switch(state.archetype.id)
-		if("living_small")
-			if((state.category_counts["bed"] || 0) < 1)
-				state.add_error("Living module requires at least one bed.")
-			if((state.category_counts["table"] || 0) < 1)
-				state.add_error("Living module requires a dining/work table.")
-		if("workshop_small")
-			if((state.category_counts["table"] || 0) < 1)
-				state.add_error("Workshop requires a workbench.")
-			if((state.category_counts["rack"] || 0) < 2)
-				state.add_error("Workshop requires a rack run.")
-		if("storage_small")
-			if((state.category_counts["rack"] || 0) < 2)
-				state.add_error("Storage requires a rack run.")
-			if((state.category_counts["crate"] || 0) < 1)
-				state.add_error("Storage requires a loading crate.")
-		if("checkpoint_small")
-			if((state.category_counts["table"] || 0) < 2)
-				state.add_error("Checkpoint requires a counter line.")
-			if((state.category_counts["console"] || 0) < 1)
-				state.add_error("Checkpoint requires an operator console.")
-		if("medbay_small")
-			if((state.category_counts["medical_bed"] || 0) < 1)
-				state.add_error("Medbay requires a treatment bed.")
-			if((state.category_counts["medical_storage"] || 0) < 1)
-				state.add_error("Medbay requires medical storage.")
+/datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
+	for(var/category as anything in state.semantic_plan.category_minimums)
+		var/minimum = round(text2num("[state.semantic_plan.category_minimums[category]]") || 0)
+		if((state.category_counts["[category]"] || 0) < minimum)
+			state.add_error("Program [state.archetype.id] requires [minimum] [category] fixtures.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
+	if(!length("[state.semantic_plan.nested_inner_zone]"))
+		return
+	if(!length(state.get_zone_turfs(state.semantic_plan.nested_inner_zone)))
+		return
+	if(!length(state.internal_wall_turfs))
+		state.add_error("Nested zone '[state.semantic_plan.nested_inner_zone]' exists without internal walls.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_divider_rules(datum/world_edit_building_layout_state/state)
+	for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.divider_plans)
+		if(!istype(divider_plan))
+			continue
+		if(length(divider_plan.wall_turfs) && !length(divider_plan.opening_turfs))
+			state.add_error("Divider '[divider_plan.id]' has walls without a controlled opening.")
+		for(var/turf/wall_turf as anything in divider_plan.wall_turfs)
+			if(state.reserved_lookup[wall_turf])
+				state.add_error("Divider '[divider_plan.id]' overlaps a primary route.")
+			if(!state.wall_lookup[wall_turf])
+				state.add_error("Divider '[divider_plan.id]' planned wall was not emitted as a wall.")
+		for(var/turf/opening_turf as anything in divider_plan.opening_turfs)
+			if(!state.door_dirs[opening_turf])
+				state.add_error("Divider '[divider_plan.id]' opening is missing a controlled door.")
+			if(state.wall_lookup[opening_turf])
+				state.add_error("Divider '[divider_plan.id]' opening overlaps a wall.")
