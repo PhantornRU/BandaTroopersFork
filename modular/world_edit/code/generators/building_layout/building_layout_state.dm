@@ -20,6 +20,8 @@
 	var/list/fixture_categories = list()
 	var/list/category_counts = list()
 	var/list/cluster_counts = list()
+	var/list/signature_counts = list()
+	var/list/signature_warnings = list()
 	var/list/major_fixture_turfs = list()
 	var/list/wall_fixture_turfs = list()
 	var/list/reserved_lookup = list()
@@ -43,6 +45,15 @@
 	var/usable_fixture_area = 0
 	var/fixture_count = 0
 	var/major_fixture_count = 0
+	var/signature_score = 0
+	var/signature_max_score = 0
+	var/empty_floor_ratio = 0
+	var/layout_candidate_score = 0
+	var/region_claim_count = 0
+	var/rectangular_region_candidate_count = 0
+	var/nested_room_count = 0
+	var/microvariation_count = 0
+	var/list/region_claim_reports = list()
 
 /datum/world_edit_building_layout_state/proc/add_error(message)
 	if(length(errors) >= WORLD_EDIT_BUILDING_MAX_VALIDATION_ERRORS)
@@ -187,6 +198,11 @@
 	if(!length("[cluster_id]") || placed_count <= 0)
 		return
 	cluster_counts["[cluster_id]"] = (cluster_counts["[cluster_id]"] || 0) + placed_count
+
+/datum/world_edit_building_layout_state/proc/register_signature(signature_id, placed_count)
+	if(!length("[signature_id]") || placed_count <= 0)
+		return
+	signature_counts["[signature_id]"] = (signature_counts["[signature_id]"] || 0) + placed_count
 
 /datum/world_edit_building_layout_state/proc/get_category_budget(category)
 	var/budget = category_budgets["[category]"]

@@ -12,6 +12,7 @@
 	add_building_service_patch_anchors(state, detail_budget)
 	add_building_wear_patch_anchors(state, detail_budget)
 	add_building_symmetric_ritual_hint_anchors(state)
+	place_building_microvariation_details(state, detail_budget)
 
 /datum/world_edit_generator/building_layout/proc/has_building_microvariation_anchors(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !islist(state.anchor_turfs))
@@ -28,6 +29,81 @@
 		return 0
 	var/detail_bias = clamp(round(text2num("[state.archetype?.detail_bias]") || detail_budget), 0, 100)
 	return round((detail_budget + detail_bias) / 2)
+
+/datum/world_edit_generator/building_layout/proc/get_building_microvariation_floor_path(datum/world_edit_building_layout_state/state)
+	switch(state?.archetype?.id)
+		if("storage", "security", "checkpoint", "workshop", "kitchen")
+			return "/obj/effect/decal/warning_stripes"
+		if("ritual_chamber", "chapel")
+			return "/obj/effect/decal/hefa_cult_decals"
+		if("hydroponics")
+			return "/obj/effect/decal/cleanable/dirt/greenglow"
+	return "/obj/effect/decal/strata_decals/grime/grime1"
+
+/datum/world_edit_generator/building_layout/proc/get_building_microvariation_wear_path(datum/world_edit_building_layout_state/state)
+	if("[state?.archetype?.suggested_shell_preset]" == "covenant" || state?.archetype?.id == "ritual_chamber")
+		return "/obj/effect/decal/hefa_cult_decals/d32"
+	return "/obj/effect/decal/strata_decals/grime/grime2"
+
+/datum/world_edit_generator/building_layout/proc/can_place_building_microvariation_detail(datum/world_edit_building_layout_state/state, turf/target_turf, wall_allowed = FALSE)
+	if(!istype(state) || !istype(target_turf))
+		return FALSE
+	if(state.door_dirs[target_turf] || state.fixture_lookup[target_turf])
+		return FALSE
+	if(wall_allowed && state.wall_lookup[target_turf])
+		return TRUE
+	return can_anchor_building_microvariation_floor(state, target_turf)
+
+/datum/world_edit_generator/building_layout/proc/get_building_microvariation_detail_dir(datum/world_edit_building_layout_state/state, turf/target_turf, anchor_id)
+	if(!istype(state) || !istype(target_turf))
+		return SOUTH
+	if(findtext("[anchor_id]", "facade"))
+		return get_outward_dir(target_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
+	if(findtext("[anchor_id]", "ritual"))
+		return get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, state.placement_dir)
+	if(state.request?.facade_rng?.chance(50))
+		return state.placement_dir
+	return turn(state.placement_dir, 90)
+
+/datum/world_edit_generator/building_layout/proc/place_building_microvariation_anchor_details(datum/world_edit_building_layout_state/state, anchor_id, path_value, max_count, list/used_lookup, wall_allowed = FALSE)
+	if(!istype(state) || !islist(used_lookup) || max_count <= 0)
+		return 0
+	var/obj_path = resolve_building_type_path(path_value, /obj)
+	if(!obj_path)
+		return 0
+	var/placed = 0
+	for(var/turf/target_turf as anything in state.get_anchor_turfs(anchor_id))
+		if(placed >= max_count)
+			break
+		if(!istype(target_turf) || used_lookup[target_turf])
+			continue
+		if(!can_place_building_microvariation_detail(state, target_turf, wall_allowed))
+			continue
+		if(state.request?.facade_rng && !state.request.facade_rng.chance(75))
+			continue
+		var/detail_dir = get_building_microvariation_detail_dir(state, target_turf, anchor_id)
+		state.object_placements += list(build_object_placement("microvariation", target_turf, obj_path, detail_dir))
+		state.microvariation_count++
+		used_lookup[target_turf] = TRUE
+		placed++
+	return placed
+
+/datum/world_edit_generator/building_layout/proc/place_building_microvariation_details(datum/world_edit_building_layout_state/state, detail_budget)
+	if(!istype(state) || detail_budget <= 0)
+		return
+	var/list/used_lookup = list()
+	var/floor_budget = min(14, max(1, round(detail_budget / 10)))
+	var/facade_budget = min(10, max(1, round(detail_budget / 14)))
+	var/service_budget = min(8, max(1, round(detail_budget / 16)))
+	var/wear_budget = min(10, max(1, round(detail_budget / 14)))
+	var/ritual_budget = min(7, max(1, round(detail_budget / 18)))
+	place_building_microvariation_anchor_details(state, "microvariation_ritual_focus_hint", "/obj/effect/decal/hefa_cult_decals/d96", ritual_budget, used_lookup)
+	place_building_microvariation_anchor_details(state, "microvariation_ritual_symmetric_pair", "/obj/effect/decal/hefa_cult_decals/d32", ritual_budget, used_lookup)
+	place_building_microvariation_anchor_details(state, "microvariation_ritual_axis", "/obj/effect/decal/cleanable/crayon", ritual_budget, used_lookup)
+	place_building_microvariation_anchor_details(state, "microvariation_facade_panel", "/obj/effect/decal/warning_stripes", facade_budget, used_lookup, TRUE)
+	place_building_microvariation_anchor_details(state, "microvariation_service_patch", "/obj/effect/decal/cleanable/dirt", service_budget, used_lookup)
+	place_building_microvariation_anchor_details(state, "microvariation_wear_patch", get_building_microvariation_wear_path(state), wear_budget, used_lookup)
+	place_building_microvariation_anchor_details(state, "microvariation_floor_rhythm", get_building_microvariation_floor_path(state), floor_budget, used_lookup)
 
 /datum/world_edit_generator/building_layout/proc/can_anchor_building_microvariation_floor(datum/world_edit_building_layout_state/state, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))

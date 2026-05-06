@@ -90,6 +90,21 @@
 	source_zone_id = "[_source_zone_id]"
 	orientation = "[_orientation]"
 
+/datum/world_edit_building_nested_room_spec
+	var/outer_zone_id = ""
+	var/inner_zone_id = ""
+	var/min_width = 9
+	var/min_height = 9
+	var/margin = 1
+
+/datum/world_edit_building_nested_room_spec/New(_outer_zone_id, _inner_zone_id, _min_width = 9, _min_height = 9, _margin = 1)
+	. = ..()
+	outer_zone_id = "[_outer_zone_id]"
+	inner_zone_id = "[_inner_zone_id]"
+	min_width = max(round(text2num("[_min_width]") || 1), 1)
+	min_height = max(round(text2num("[_min_height]") || 1), 1)
+	margin = max(round(text2num("[_margin]") || 1), 1)
+
 /datum/world_edit_building_adjacency_rule
 	var/zone_a = ""
 	var/zone_b = ""
@@ -114,6 +129,9 @@
 	var/chair_count = 0
 	var/priority = 50
 	var/required = TRUE
+	var/signature_id = ""
+	var/signature_weight = 0
+	var/signature_required = FALSE
 
 /datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE)
 	. = ..()
@@ -141,11 +159,15 @@
 	var/list/adjacency_rules = list()
 	var/list/cluster_specs = list()
 	var/list/category_minimums = list()
+	var/list/signature_minimums = list()
+	var/list/signature_weights = list()
 	var/list/mandatory_zones = list()
+	var/list/nested_room_specs = list()
 	var/nested_outer_zone = null
 	var/nested_inner_zone = null
 	var/nested_min_width = 9
 	var/nested_min_height = 9
+	var/min_signature_score = 70
 
 /datum/world_edit_building_semantic_plan/New(datum/world_edit_building_archetype/_archetype)
 	. = ..()
@@ -160,11 +182,15 @@
 	adjacency_rules = archetype.adjacency_rules.Copy()
 	cluster_specs = archetype.cluster_specs.Copy()
 	category_minimums = archetype.category_minimums.Copy()
+	signature_minimums = archetype.signature_minimums.Copy()
+	signature_weights = archetype.signature_weights.Copy()
 	mandatory_zones = archetype.mandatory_zones.Copy()
+	nested_room_specs = archetype.nested_room_specs.Copy()
 	nested_outer_zone = archetype.nested_outer_zone
 	nested_inner_zone = archetype.nested_inner_zone
 	nested_min_width = archetype.nested_min_width
 	nested_min_height = archetype.nested_min_height
+	min_signature_score = archetype.min_signature_score
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in zone_specs)
 		if(istype(zone_spec))
 			zone_specs_by_id[zone_spec.id] = zone_spec
@@ -192,15 +218,19 @@
 	var/list/adjacency_rules = list()
 	var/list/cluster_specs = list()
 	var/list/category_minimums = list()
+	var/list/signature_minimums = list()
+	var/list/signature_weights = list()
 	var/list/mandatory_zones = list()
 	var/list/object_budgets = list()
 	var/list/shell_overrides = list()
+	var/list/nested_room_specs = list()
 	var/window_bias = 40
 	var/detail_bias = 60
 	var/nested_outer_zone = null
 	var/nested_inner_zone = null
 	var/nested_min_width = 9
 	var/nested_min_height = 9
+	var/min_signature_score = 70
 
 /datum/world_edit_building_archetype/New()
 	. = ..()
@@ -209,9 +239,12 @@
 	adjacency_rules = list()
 	cluster_specs = list()
 	category_minimums = list()
+	signature_minimums = list()
+	signature_weights = list()
 	mandatory_zones = list()
 	object_budgets = list()
 	shell_overrides = list()
+	nested_room_specs = list()
 	build_definition()
 
 /datum/world_edit_building_archetype/proc/build_definition()
@@ -237,9 +270,25 @@
 	adjacency_rules += rule
 	return rule
 
+/datum/world_edit_building_archetype/proc/add_nested_room(outer_zone_id, inner_zone_id, min_width = 9, min_height = 9, margin = 1)
+	var/datum/world_edit_building_nested_room_spec/nested_room_spec = new(outer_zone_id, inner_zone_id, min_width, min_height, margin)
+	nested_room_specs += nested_room_spec
+	return nested_room_spec
+
 /datum/world_edit_building_archetype/proc/add_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, required = TRUE)
 	var/datum/world_edit_building_cluster_spec/cluster_spec = new(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required)
 	cluster_specs += cluster_spec
+	return cluster_spec
+
+/datum/world_edit_building_archetype/proc/add_signature_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, signature_id = null, signature_weight = 20, required = TRUE)
+	var/datum/world_edit_building_cluster_spec/cluster_spec = add_cluster(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required)
+	cluster_spec.signature_id = length("[signature_id]") ? "[signature_id]" : "[id]"
+	cluster_spec.signature_weight = max(round(text2num("[signature_weight]") || 0), 0)
+	cluster_spec.signature_required = required ? TRUE : FALSE
+	var/minimum = max(round(text2num("[min_count]") || 1), 1)
+	if(cluster_spec.signature_required)
+		signature_minimums[cluster_spec.signature_id] = max(round(text2num("[signature_minimums[cluster_spec.signature_id]]") || 0), minimum)
+		signature_weights[cluster_spec.signature_id] = max(round(text2num("[signature_weights[cluster_spec.signature_id]]") || 0), cluster_spec.signature_weight)
 	return cluster_spec
 
 /datum/world_edit_building_archetype/proc/build_semantic_plan()
@@ -268,9 +317,10 @@
 	add_adjacency("entry_buffer", "common")
 	add_adjacency("common", "sleep_privacy")
 	add_adjacency("common", "storage_service")
-	add_cluster("bed_niche", "major", "wall_object", "bed", "bed", list("sleep_privacy", "privacy_zone", "wall_anchor"), 1, 1, TRUE, 0, 100)
-	add_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90)
-	add_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "wall_anchor"), 2, 2, TRUE, 0, 80)
+	add_nested_room("common", "sleep_privacy", 7, 7, 1)
+	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35)
+	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90, "common_table", 20)
+	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 2, 2, TRUE, 0, 80, "personal_storage", 20)
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus"), 1, 1, FALSE, 1, 50, FALSE)
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common"), 1, 1, FALSE, 0, 40, FALSE)
 	object_budgets = list("bed" = 2, "table" = 3, "chair" = 5, "cabinet" = 3, "rack" = 2)
@@ -279,7 +329,7 @@
 /datum/world_edit_building_archetype/workshop
 	id = "workshop"
 	label = "Workshop"
-	suggested_shell_preset = "uscm"
+	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "COMPOUND")
 	primary_zone = "main_work"
 	hub_zone = "main_work"
@@ -289,8 +339,8 @@
 /datum/world_edit_building_archetype/workshop/build_definition()
 	add_zone("entry_buffer", "Entry buffer", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), TRUE)
 	add_zone("main_work", "Main work bay", "hub", 8, TRUE, TRUE, FALSE, list("main_work", "work_cluster", "focus_center"), TRUE)
-	add_zone("service_wall", "Service wall", "service", 4, TRUE, TRUE, FALSE, list("service_wall", "service_strip", "wall_anchor"), FALSE)
-	add_zone("parts_storage", "Parts storage", "storage", 4, TRUE, TRUE, FALSE, list("parts_storage", "service_strip", "wall_anchor"), FALSE)
+	add_zone("service_wall", "Service wall", "service", 4, TRUE, TRUE, FALSE, list("service_wall", "service_strip", "wall_anchor"), FALSE, "nook")
+	add_zone("parts_storage", "Parts storage", "storage", 4, TRUE, TRUE, FALSE, list("parts_storage", "service_strip", "wall_anchor"), FALSE, "nook")
 	add_region("entry_front", "entry_buffer", 0, 20, -35, 35, 100)
 	add_region("service_left", "service_wall", 18, 88, -100, -50, 90)
 	add_region("parts_back", "parts_storage", 68, 100, -20, 100, 80)
@@ -299,9 +349,10 @@
 	add_adjacency("entry_buffer", "main_work")
 	add_adjacency("main_work", "service_wall")
 	add_adjacency("main_work", "parts_storage")
-	add_cluster("workbench_run", "major", "run", "table", "table", list("service_wall", "service_strip", "wall_anchor"), 3, 4, TRUE, 0, 100)
-	add_cluster("parts_rack_run", "major", "run", "rack", "rack", list("parts_storage", "service_strip", "wall_anchor"), 3, 4, TRUE, 0, 95)
-	add_cluster("central_assembly_table", "major", "table_cluster", "table", "table", list("main_work", "work_cluster", "focus_center"), 1, 1, FALSE, 2, 90)
+	add_nested_room("main_work", "parts_storage", 9, 9, 1)
+	add_signature_cluster("workbench_machine_wall", "major", "signature_workshop_wall", "table", "table", list("service_wall", "machine_wall"), 4, 5, TRUE, 0, 100, "workbench_machine_wall", 35)
+	add_signature_cluster("parts_rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 95, "parts_rack_aisles", 25)
+	add_signature_cluster("central_assembly_table", "major", "table_cluster", "table", "table", list("main_work", "work_cluster", "focus_center"), 1, 1, FALSE, 2, 90, "assembly_table", 20)
 	add_cluster("operator_console", "secondary", "wall_object", "console", "console", list("service_wall", "wall_anchor", "observation"), 1, 1, TRUE, 0, 70, FALSE)
 	add_cluster("tool_storage", "secondary", "run", "cabinet", "cabinet", list("service_wall", "service_strip", "wall_anchor"), 1, 2, TRUE, 0, 60, FALSE)
 	add_cluster("parts_crate_stack", "detail", "run", "crate", "crate", list("parts_storage", "main_work"), 2, 3, FALSE, 0, 45, FALSE)
@@ -312,7 +363,7 @@
 /datum/world_edit_building_archetype/storage
 	id = "storage"
 	label = "Storage"
-	suggested_shell_preset = "uscm"
+	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "T")
 	primary_zone = "loading_axis"
 	hub_zone = "loading_axis"
@@ -322,7 +373,7 @@
 /datum/world_edit_building_archetype/storage/build_definition()
 	add_zone("entry_buffer", "Entry buffer", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), FALSE)
 	add_zone("loading_axis", "Loading axis", "route", 6, TRUE, TRUE, FALSE, list("loading_axis", "primary_lane", "staging"), FALSE)
-	add_zone("rack_zone", "Rack zone", "storage", 8, TRUE, TRUE, FALSE, list("rack_zone", "service_strip", "wall_anchor"), FALSE)
+	add_zone("rack_zone", "Rack zone", "storage", 8, TRUE, TRUE, FALSE, list("rack_zone", "service_strip", "wall_anchor"), FALSE, "nook")
 	add_zone("staging", "Staging/inspection", "staging", 3, TRUE, TRUE, FALSE, list("staging", "loading_axis"), FALSE)
 	add_region("entry_front", "entry_buffer", 0, 18, -30, 30, 100)
 	add_region("loading_spine", "loading_axis", 0, 100, -24, 24, 95)
@@ -333,9 +384,9 @@
 	add_adjacency("entry_buffer", "loading_axis")
 	add_adjacency("loading_axis", "rack_zone")
 	add_adjacency("loading_axis", "staging")
-	add_cluster("rack_run_left", "major", "run", "rack", "rack", list("rack_zone", "service_strip", "wall_anchor"), 4, 5, TRUE, 0, 100)
-	add_cluster("rack_run_right", "major", "run", "rack", "rack", list("rack_zone", "service_strip", "wall_anchor"), 3, 4, TRUE, 0, 95)
-	add_cluster("loading_crates", "major", "staging_group", "crate", "crate", list("staging", "loading_axis"), 2, 3, FALSE, 0, 80)
+	add_nested_room("loading_axis", "staging", 9, 9, 1)
+	add_signature_cluster("rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall"), 6, 8, TRUE, 0, 100, "rack_aisles", 45)
+	add_signature_cluster("loading_crates", "major", "staging_group", "crate", "crate", list("staging", "loading_axis"), 2, 3, FALSE, 0, 80, "loading_staging", 20)
 	add_cluster("inspection_table", "secondary", "table_cluster", "table", "table", list("staging", "loading_axis"), 1, 1, FALSE, 1, 55, FALSE)
 	add_cluster("crate_stack", "detail", "run", "crate", "crate", list("staging", "rack_zone"), 2, 3, FALSE, 0, 45, FALSE)
 	object_budgets = list("rack" = 9, "cabinet" = 4, "crate" = 7, "table" = 1, "chair" = 1)
@@ -344,7 +395,7 @@
 /datum/world_edit_building_archetype/checkpoint
 	id = "checkpoint"
 	label = "Checkpoint"
-	suggested_shell_preset = "uscm"
+	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "WEDGE")
 	primary_zone = "secure_side"
 	hub_zone = "counter_line"
@@ -353,9 +404,9 @@
 
 /datum/world_edit_building_archetype/checkpoint/build_definition()
 	add_zone("public_side", "Public approach", "public", 3, TRUE, TRUE, FALSE, list("public_side", "public_route", "entry_buffer"), TRUE)
-	add_zone("counter_line", "Counter/barrier", "choke", 3, TRUE, TRUE, FALSE, list("counter_line", "counter_front", "barrier_line"), FALSE)
-	add_zone("secure_side", "Secure side", "secure", 4, TRUE, TRUE, FALSE, list("secure_side", "counter_back", "work_cluster"), FALSE)
-	add_zone("observation", "Observation/storage", "support", 2, TRUE, TRUE, FALSE, list("observation", "wall_anchor", "service_strip"), FALSE)
+	add_zone("counter_line", "Counter/barrier", "choke", 3, TRUE, TRUE, FALSE, list("counter_line", "counter_front", "barrier_line"), FALSE, "nook")
+	add_zone("secure_side", "Secure side", "secure", 4, TRUE, TRUE, FALSE, list("secure_side", "counter_back", "work_cluster"), FALSE, "nook")
+	add_zone("observation", "Observation/storage", "support", 2, TRUE, TRUE, FALSE, list("observation", "wall_anchor", "service_strip"), FALSE, "nook")
 	add_region("public_front", "public_side", 0, 32, -100, 100, 95)
 	add_region("counter_band", "counter_line", 30, 50, -100, 100, 100)
 	add_region("observation_side", "observation", 50, 100, 42, 100, 80)
@@ -364,8 +415,9 @@
 	add_adjacency("public_side", "counter_line")
 	add_adjacency("counter_line", "secure_side")
 	add_adjacency("secure_side", "observation")
-	add_cluster("checkpoint_counter", "major", "counter_line", "table", "table", list("counter_line", "counter_front"), 3, 3, FALSE, 0, 100)
-	add_cluster("operator_console", "major", "wall_object", "console", "console", list("secure_side", "counter_back", "observation", "wall_anchor"), 1, 1, TRUE, 0, 95)
+	add_nested_room("secure_side", "observation", 8, 8, 1)
+	add_signature_cluster("checkpoint_control", "major", "signature_security_counter", "table", "table", list("counter_line", "counter_front", "counter_line_turf", "secure_side"), 4, 5, FALSE, 0, 100, "checkpoint_counter_control", 50)
+	add_cluster("operator_console", "secondary", "wall_object", "console", "console", list("secure_side", "counter_back", "observation", "wall_anchor"), 1, 1, TRUE, 0, 95, FALSE)
 	add_cluster("security_storage", "secondary", "wall_object", "cabinet", "cabinet", list("observation", "secure_side", "wall_anchor"), 1, 1, TRUE, 0, 65, FALSE)
 	add_cluster("visitor_chair", "secondary", "object", "chair", "chair", list("public_side", "public_route"), 1, 1, FALSE, 0, 45, FALSE)
 	add_cluster("barricade_line", "detail", "run", "barrier", "barrier", list("public_side", "barrier_line"), 2, 2, FALSE, 0, 35, FALSE)
@@ -375,7 +427,7 @@
 /datum/world_edit_building_archetype/medbay
 	id = "medbay"
 	label = "Medbay"
-	suggested_shell_preset = "uscm"
+	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "U", "NESTED")
 	primary_zone = "treatment"
 	hub_zone = "treatment"
@@ -388,8 +440,8 @@
 
 /datum/world_edit_building_archetype/medbay/build_definition()
 	add_zone("entry_buffer", "Entry/waiting", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), TRUE)
-	add_zone("triage", "Triage", "public_med", 4, TRUE, TRUE, FALSE, list("triage", "public_route", "window_band"), TRUE)
-	add_zone("treatment", "Treatment", "hub", 8, TRUE, TRUE, FALSE, list("treatment", "work_cluster", "focus_center"), TRUE)
+	add_zone("triage", "Triage", "public_med", 4, TRUE, TRUE, FALSE, list("triage", "public_route", "window_band"), TRUE, "nook")
+	add_zone("treatment", "Treatment", "hub", 8, TRUE, TRUE, FALSE, list("treatment", "work_cluster", "focus_center"), TRUE, "nook")
 	add_zone("med_storage", "Medical storage", "service", 3, TRUE, TRUE, FALSE, list("med_storage", "service_strip", "wall_anchor"), FALSE, "room")
 	add_zone("surgery_core", "Surgery core", "nested", 1, FALSE, TRUE, TRUE, list("surgery_core", "privacy_zone", "work_cluster"), FALSE)
 	add_region("entry_front", "entry_buffer", 0, 18, -40, 40, 100)
@@ -400,9 +452,10 @@
 	add_adjacency("entry_buffer", "triage")
 	add_adjacency("triage", "treatment")
 	add_adjacency("treatment", "med_storage")
-	add_cluster("triage_bed_cluster", "major", "run", "medical_bed", "medical_bed", list("treatment", "triage", "work_cluster"), 2, 2, FALSE, 0, 100)
-	add_cluster("med_storage_wall", "major", "run", "medical_storage", "medical_storage", list("med_storage", "service_strip", "wall_anchor"), 2, 3, TRUE, 0, 95)
-	add_cluster("treatment_table", "major", "table_cluster", "table", "table", list("treatment", "work_cluster", "focus_center"), 1, 1, FALSE, 1, 80)
+	add_nested_room("treatment", "surgery_core", 9, 9, 1)
+	add_signature_cluster("treatment_bay_signature", "major", "signature_treatment_bay", "medical_bed", "medical_bed", list("treatment_wall", "treatment_bay"), 3, 5, TRUE, 0, 100, "treatment_bay", 45)
+	add_signature_cluster("med_storage_wall", "major", "run", "medical_storage", "medical_storage", list("med_storage", "service_strip", "storage_wall", "treatment_wall"), 2, 3, TRUE, 0, 95, "medical_storage_wall", 25)
+	add_signature_cluster("triage_table", "major", "table_cluster", "table", "table", list("triage", "public_side", "focus_center"), 1, 1, FALSE, 1, 80, "triage_surface", 15)
 	add_cluster("waiting_chairs", "secondary", "run", "chair", "chair", list("triage", "entry_buffer", "public_route"), 2, 2, FALSE, 0, 55, FALSE)
 	add_cluster("med_side_storage", "secondary", "wall_object", "cabinet", "cabinet", list("med_storage", "wall_anchor", "service_strip"), 1, 1, TRUE, 0, 50, FALSE)
 	add_cluster("surgery_bed", "detail", "object", "medical_bed", "medical_bed", list("surgery_core", "privacy_zone"), 1, 1, FALSE, 0, 45, FALSE)

@@ -30,6 +30,7 @@
 		var/turf/zone_focus = state.zone_focus_turfs[zone_id]
 		if(istype(zone_focus))
 			state.add_anchor("[zone_id]_focus", zone_focus)
+	add_building_signature_anchors(state)
 
 /datum/world_edit_generator/building_layout/proc/get_adjacent_wall_dirs_for_state(datum/world_edit_building_layout_state/state, turf/target_turf)
 	var/list/wall_dirs = list()

@@ -33,6 +33,8 @@
 	var/placed = 0
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
 	switch(cluster_spec.pattern)
+		if("signature_workshop_wall", "signature_rack_aisles", "signature_hydro_rows", "signature_cook_line", "signature_bed_rows", "signature_treatment_bay", "signature_office_suite", "signature_security_counter", "signature_living_nook")
+			placed = place_building_signature_cluster(state, cluster_spec, target_count)
 		if("run", "counter_line", "staging_group")
 			placed = place_fixture_run(state, cluster_spec, target_count)
 		else
@@ -54,6 +56,8 @@
 				placed += unit_placed
 	if(placed > 0)
 		state.register_cluster(cluster_spec.id, placed)
+		if(length(cluster_spec.signature_id))
+			state.register_signature(cluster_spec.signature_id, placed)
 	return placed >= max(cluster_spec.min_count, 1)
 
 /datum/world_edit_generator/building_layout/proc/prepare_building_fixture_scale(datum/world_edit_building_layout_state/state)
@@ -89,6 +93,12 @@
 
 /datum/world_edit_generator/building_layout/proc/get_cluster_area_divisor(datum/world_edit_building_cluster_spec/cluster_spec)
 	switch(cluster_spec.pattern)
+		if("signature_hydro_rows", "signature_rack_aisles", "signature_bed_rows")
+			return 6
+		if("signature_workshop_wall", "signature_cook_line", "signature_security_counter")
+			return 7
+		if("signature_treatment_bay", "signature_office_suite", "signature_living_nook")
+			return 14
 		if("run")
 			return 8
 		if("counter_line")

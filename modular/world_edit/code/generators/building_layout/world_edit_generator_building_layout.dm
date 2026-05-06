@@ -58,6 +58,21 @@
 				"barrier" = "/obj/structure/barricade/metal",
 				"medical_bed" = "/obj/structure/bed/roller/hospital_empty",
 				"medical_storage" = "/obj/structure/closet/crate/medical",
+				"sleeper" = "/obj/structure/machinery/medical_pod/sleeper",
+				"medical_scanner" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"wall_monitor" = "/obj/structure/machinery/body_scanconsole",
+				"hydro_tray" = "/obj/structure/machinery/portable_atmospherics/hydroponics",
+				"seed_storage" = "/obj/structure/filingcabinet/seeds",
+				"water_tank" = "/obj/structure/reagent_dispensers/watertank",
+				"fridge" = "/obj/structure/machinery/smartfridge",
+				"microwave" = "/obj/structure/machinery/microwave",
+				"processor" = "/obj/structure/machinery/processor",
+				"sink" = "/obj/structure/sink/kitchen",
+				"filing" = "/obj/structure/filingcabinet",
+				"security_console" = "/obj/structure/machinery/computer/cameras",
+				"security_camera" = "/obj/structure/machinery/camera",
+				"brig_cell" = "/obj/structure/machinery/brig_cell",
+				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
 			),
 		),
 		"uscm" = list(
@@ -77,6 +92,21 @@
 				"barrier" = "/obj/structure/barricade/metal",
 				"medical_bed" = "/obj/structure/bed/roller/hospital_empty",
 				"medical_storage" = "/obj/structure/closet/medical_wall",
+				"sleeper" = "/obj/structure/machinery/medical_pod/sleeper",
+				"medical_scanner" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"wall_monitor" = "/obj/structure/machinery/body_scanconsole",
+				"hydro_tray" = "/obj/structure/machinery/portable_atmospherics/hydroponics",
+				"seed_storage" = "/obj/structure/filingcabinet/seeds",
+				"water_tank" = "/obj/structure/reagent_dispensers/watertank",
+				"fridge" = "/obj/structure/machinery/smartfridge",
+				"microwave" = "/obj/structure/machinery/microwave",
+				"processor" = "/obj/structure/machinery/processor",
+				"sink" = "/obj/structure/sink/kitchen",
+				"filing" = "/obj/structure/filingcabinet",
+				"security_console" = "/obj/structure/machinery/computer/cameras/almayer_brig",
+				"security_camera" = "/obj/structure/machinery/camera/autoname/almayer/brig",
+				"brig_cell" = "/obj/structure/machinery/brig_cell",
+				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
 			),
 		),
 		"unsc" = list(
@@ -96,6 +126,21 @@
 				"barrier" = "/obj/structure/barricade/metal",
 				"medical_bed" = "/obj/structure/bed/roller/hospital_empty",
 				"medical_storage" = "/obj/structure/closet/crate/medical",
+				"sleeper" = "/obj/structure/machinery/medical_pod/sleeper",
+				"medical_scanner" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"wall_monitor" = "/obj/structure/machinery/body_scanconsole",
+				"hydro_tray" = "/obj/structure/machinery/portable_atmospherics/hydroponics",
+				"seed_storage" = "/obj/structure/filingcabinet/seeds",
+				"water_tank" = "/obj/structure/reagent_dispensers/watertank",
+				"fridge" = "/obj/structure/machinery/smartfridge",
+				"microwave" = "/obj/structure/machinery/microwave",
+				"processor" = "/obj/structure/machinery/processor",
+				"sink" = "/obj/structure/sink/kitchen",
+				"filing" = "/obj/structure/filingcabinet",
+				"security_console" = "/obj/structure/machinery/computer/cameras",
+				"security_camera" = "/obj/structure/machinery/camera",
+				"brig_cell" = "/obj/structure/machinery/brig_cell",
+				"weapon_rack" = "/obj/structure/gun_rack/halo/armory/ma5c/empty",
 			),
 		),
 		"neutral" = list(
@@ -115,6 +160,21 @@
 				"barrier" = "/obj/structure/barricade/metal",
 				"medical_bed" = "/obj/structure/bed/roller/hospital_empty",
 				"medical_storage" = "/obj/structure/closet/crate/medical",
+				"sleeper" = "/obj/structure/machinery/medical_pod/sleeper",
+				"medical_scanner" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"wall_monitor" = "/obj/structure/machinery/body_scanconsole",
+				"hydro_tray" = "/obj/structure/machinery/portable_atmospherics/hydroponics",
+				"seed_storage" = "/obj/structure/filingcabinet/seeds",
+				"water_tank" = "/obj/structure/reagent_dispensers/watertank",
+				"fridge" = "/obj/structure/machinery/smartfridge",
+				"microwave" = "/obj/structure/machinery/microwave",
+				"processor" = "/obj/structure/machinery/processor",
+				"sink" = "/obj/structure/sink/kitchen",
+				"filing" = "/obj/structure/filingcabinet",
+				"security_console" = "/obj/structure/machinery/computer/cameras",
+				"security_camera" = "/obj/structure/machinery/camera",
+				"brig_cell" = "/obj/structure/machinery/brig_cell",
+				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
 			),
 		),
 		"covenant" = list(
@@ -134,6 +194,21 @@
 				"barrier" = "/obj/structure/covenant_barricade",
 				"medical_bed" = "/obj/structure/covenant_barricade",
 				"medical_storage" = "/obj/structure/covenant_barricade",
+				"sleeper" = "/obj/structure/covenant_barricade",
+				"medical_scanner" = "/obj/structure/covenant_barricade",
+				"wall_monitor" = "/obj/structure/machinery/recharger/covenant",
+				"hydro_tray" = "/obj/structure/covenant_barricade",
+				"seed_storage" = "/obj/structure/covenant_barricade",
+				"water_tank" = "/obj/structure/covenant_barricade",
+				"fridge" = "/obj/structure/covenant_barricade",
+				"microwave" = "/obj/structure/machinery/recharger/covenant",
+				"processor" = "/obj/structure/machinery/recharger/covenant",
+				"sink" = "/obj/structure/covenant_barricade",
+				"filing" = "/obj/structure/covenant_barricade",
+				"security_console" = "/obj/structure/machinery/recharger/covenant",
+				"security_camera" = "/obj/structure/machinery/recharger/covenant",
+				"brig_cell" = "/obj/structure/covenant_barricade",
+				"weapon_rack" = "/obj/structure/covenant_barricade",
 			),
 		),
 	)
@@ -218,7 +293,6 @@
 
 /datum/world_edit_generator/building_layout/get_ui_fields(list/current_params)
 	var/list/config = normalize_building_params(current_params)
-	var/current_shape = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT
 	return list(
 		list(
 			"id" = "archetype_id",
@@ -261,7 +335,6 @@
 			"min" = 2,
 			"max" = 8,
 			"step" = 1,
-			"visible" = current_shape == WORLD_EDIT_SHAPE_POINT,
 		),
 		list(
 			"id" = "half_depth",
@@ -272,7 +345,6 @@
 			"min" = 2,
 			"max" = 8,
 			"step" = 1,
-			"visible" = current_shape == WORLD_EDIT_SHAPE_POINT,
 		),
 		list(
 			"id" = "window_density",
@@ -446,6 +518,35 @@
 				GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
 	return result
 
+/datum/world_edit_generator/building_layout/proc/select_building_context_center_turf(list/raw_turfs)
+	if(!islist(raw_turfs) || !length(raw_turfs))
+		return null
+	var/min_x = null
+	var/max_x = null
+	var/min_y = null
+	var/max_y = null
+	var/z_level = null
+	for(var/turf/source_turf as anything in raw_turfs)
+		if(!istype(source_turf))
+			continue
+		if(isnull(z_level))
+			z_level = source_turf.z
+		if(source_turf.z != z_level)
+			continue
+		if(isnull(min_x) || source_turf.x < min_x)
+			min_x = source_turf.x
+		if(isnull(max_x) || source_turf.x > max_x)
+			max_x = source_turf.x
+		if(isnull(min_y) || source_turf.y < min_y)
+			min_y = source_turf.y
+		if(isnull(max_y) || source_turf.y > max_y)
+			max_y = source_turf.y
+	if(isnull(min_x) || isnull(min_y) || isnull(z_level))
+		return null
+	var/center_x = round((min_x + max_x) / 2)
+	var/center_y = round((min_y + max_y) / 2)
+	return locate(center_x, center_y, z_level)
+
 /datum/world_edit_generator/building_layout/proc/resolve_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/config, list/params, list/placement_context)
 	var/list/result = list("footprint" = list())
 	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
@@ -456,35 +557,13 @@
 
 	var/list/raw_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	var/turf/seed_turf = get_shape_placement_seed_turf(shape_contract, placement_context)
-	if(shape_id == WORLD_EDIT_SHAPE_POINT)
-		if(!istype(seed_turf))
-			result["error"] = "Unable to resolve building center turf."
-			return result
-		return build_point_building_footprint(seed_turf, config, placement_context)
-
-	if(!islist(raw_turfs) || !length(raw_turfs))
-		result["error"] = "Placement shape did not provide building footprint turfs."
+	if(shape_id != WORLD_EDIT_SHAPE_POINT)
+		seed_turf = select_building_context_center_turf(raw_turfs) || seed_turf
+	if(!istype(seed_turf))
+		result["error"] = "Unable to resolve building center turf."
 		return result
-
-	switch(shape_id)
-		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE)
-			var/list/metadata = shape_contract?.metadata
-			var/list/preview_layers = islist(metadata) ? metadata["preview_layers"] : null
-			var/list/line_turfs = islist(preview_layers) && length(preview_layers["edge_turfs"]) ? preview_layers["edge_turfs"] : raw_turfs
-			result["footprint"] = inflate_turf_footprint(line_turfs, 1)
-		if(WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)
-			result["footprint"] = fill_turf_bounds(raw_turfs)
-		if(WORLD_EDIT_SHAPE_POLYGON)
-			var/list/metadata = shape_contract?.metadata
-			var/list/points = islist(metadata) ? metadata["normalized_points"] : null
-			if(istype(seed_turf) && islist(points) && length(points) >= 3)
-				result["footprint"] = GLOB.world_edit_placement_shapes.world_edit_collect_polygon_turfs(seed_turf, points, TRUE)
-			else
-				result["footprint"] = fill_turf_bounds(raw_turfs)
-		else
-			result["footprint"] = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
-	config["footprint_family"] = "PLACEMENT_SHAPE"
-	return result
+	config["placement_shape_used_as_seed_only"] = TRUE
+	return build_point_building_footprint(seed_turf, config, placement_context)
 
 /datum/world_edit_generator/building_layout/proc/validate_footprint(list/footprint, list/config)
 	var/list/result = list()
@@ -813,11 +892,107 @@
 				path_value = interior_paths?["bed"]
 			if("medical_storage", "crate")
 				path_value = interior_paths?["cabinet"]
-			if("console")
+			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage")
+				path_value = interior_paths?["table"]
+			if("fridge", "filing")
+				path_value = interior_paths?["cabinet"]
+			if("wall_monitor", "security_console", "console")
 				path_value = interior_paths?["table"]
 			else
 				path_value = interior_paths?["table"]
 	return resolve_building_type_path(path_value, /obj)
+
+/datum/world_edit_generator/building_layout/proc/build_building_candidate_request(datum/world_edit_building_request/base_request, footprint_family, attempt_index)
+	var/datum/world_edit_building_request/request = new
+	request.config = base_request.config.Copy()
+	request.config["forced_footprint_family"] = uppertext("[footprint_family]")
+	request.config["layout_candidate_index"] = attempt_index
+	request.config["layout_candidate_family"] = uppertext("[footprint_family]")
+	request.archetype = base_request.archetype
+	request.effective_seed = base_request.effective_seed
+	var/candidate_seed = build_stage_seed(base_request.effective_seed, "candidate_[attempt_index]_[footprint_family]")
+	request.program_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "program"))
+	request.geometry_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "geometry"))
+	request.fixture_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "fixtures"))
+	request.facade_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "facade"))
+	return request
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_state(datum/world_edit_building_request/request, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
+	var/list/footprint_result = resolve_shape_footprint(shape_contract, request.config, params, placement_context)
+	if(footprint_result["error"])
+		request.config["layout_candidate_error"] = "[footprint_result["error"]]"
+		return null
+	var/list/validated = validate_footprint(footprint_result["footprint"], request.config)
+	if(validated["error"])
+		request.config["layout_candidate_error"] = "[validated["error"]]"
+		return null
+
+	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
+	extract_building_anchors(state)
+	place_building_fixtures(state)
+	apply_building_facade_rules(state)
+	validate_and_repair_building_layout_state(state)
+	apply_building_microvariation_if_available(state)
+	state.layout_candidate_score = score_building_layout_candidate(state)
+	return state
+
+/datum/world_edit_generator/building_layout/proc/score_building_layout_candidate(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return -999999999
+	var/score = 0
+	var/error_count = length(state.errors)
+	if(!error_count)
+		score += 50000
+	else
+		score -= error_count * 20000
+	score += state.signature_score * 120
+	if(state.signature_max_score > 0 && state.signature_score >= state.semantic_plan?.min_signature_score)
+		score += 2500
+	score += length(state.divider_plans) * 900
+	score += min(length(state.internal_wall_turfs), 32) * 90
+	score += length(state.solved_regions) * 120
+	score += min(state.region_claim_count, 80) * 45
+	score += min(state.rectangular_region_candidate_count, 80) * 22
+	score += state.nested_room_count * 800
+	score += min(state.microvariation_count, 24) * 20
+	score += round(text2num("[state.config["footprint_mask_score"]]") || 0)
+	score += length(state.primary_route_turfs) * 15
+	score -= state.empty_floor_ratio * 35
+	if("[state.config["footprint_family"]]" != "RECT")
+		score += 1800
+	if(state.empty_floor_ratio <= 60)
+		score += 800
+	var/list/major_specs = state.semantic_plan?.get_cluster_specs("major")
+	if(islist(major_specs) && state.major_fixture_count >= length(major_specs))
+		score += 1000
+	return score
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_report(datum/world_edit_building_layout_state/state, footprint_family, attempt_index, score_override = null, error_message = null)
+	var/list/report = list(
+		"attempt" = attempt_index,
+		"family" = uppertext("[footprint_family]"),
+		"score" = isnull(score_override) && istype(state) ? state.layout_candidate_score : score_override,
+	)
+	if(istype(state))
+		report["errors"] = state.errors.Copy()
+		report["error_count"] = length(state.errors)
+		report["signature_score"] = state.signature_score
+		report["empty_floor_ratio"] = state.empty_floor_ratio
+		report["divider_plan_count"] = length(state.divider_plans)
+		report["internal_wall_count"] = length(state.internal_wall_turfs)
+		report["semantic_region_claim_count"] = state.region_claim_count
+		report["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
+		report["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
+		report["nested_room_count"] = state.nested_room_count
+		report["microvariation_count"] = state.microvariation_count
+		report["footprint_mask_score"] = state.config["footprint_mask_score"]
+		report["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
+		report["major_fixture_count"] = state.major_fixture_count
+		report["footprint_count"] = length(state.footprint)
+	else
+		report["errors"] = list("[error_message]")
+		report["error_count"] = 1
+	return report
 
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
@@ -831,23 +1006,35 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/footprint_result = resolve_shape_footprint(shape_contract, request.config, params, placement_context)
-	if(footprint_result["error"])
-		plan.metadata["error"] = "[footprint_result["error"]]"
-		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
-		return plan
-	var/list/validated = validate_footprint(footprint_result["footprint"], request.config)
-	if(validated["error"])
-		plan.metadata["error"] = "[validated["error"]]"
+	var/list/candidate_families = get_ordered_building_footprint_candidate_families(request.config)
+	var/list/candidate_reports = list()
+	var/datum/world_edit_building_layout_state/best_state = null
+	var/best_score = -999999999
+	var/attempt_index = 0
+	for(var/footprint_family as anything in candidate_families)
+		attempt_index++
+		var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
+		var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
+		if(!istype(candidate_state))
+			var/error_message = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
+			candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
+			continue
+		candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
+		if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
+			best_state = candidate_state
+			best_score = candidate_state.layout_candidate_score
+
+	if(!istype(best_state))
+		plan.metadata["error"] = "Unable to build any building layout candidate."
+		plan.metadata["layout_candidate_reports"] = candidate_reports
+		plan.metadata["layout_candidate_count"] = length(candidate_reports)
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
-	extract_building_anchors(state)
-	place_building_fixtures(state)
-	apply_building_facade_rules(state)
-	validate_and_repair_building_layout_state(state)
-	return emit_building_layout_plan(state, shape_contract, placement_context)
+	best_state.config["layout_candidate_reports"] = candidate_reports
+	best_state.config["layout_candidate_count"] = length(candidate_reports)
+	best_state.config["layout_candidate_score"] = best_score
+	return emit_building_layout_plan(best_state, shape_contract, placement_context)
 
 /datum/world_edit_generator/building_layout/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
@@ -970,7 +1157,7 @@
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]]."
+	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)

@@ -20,6 +20,7 @@
 	if(!istype(state))
 		return
 	state.errors.Cut()
+	state.signature_warnings.Cut()
 
 	if(!istype(state.archetype) || !istype(state.semantic_plan))
 		state.add_error("Building semantic program is unavailable.")
@@ -40,6 +41,7 @@
 	validate_building_privacy_rules(state)
 	validate_building_major_clusters(state)
 	validate_building_density_rules(state)
+	validate_building_signature_rules(state)
 	validate_building_nested_room_rules(state)
 	validate_building_divider_rules(state)
 
@@ -204,13 +206,64 @@
 		if((state.category_counts["[category]"] || 0) < minimum)
 			state.add_error("Program [state.archetype.id] requires [minimum] [category] fixtures.")
 
+/datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
+	var/raw_score = 0
+	var/max_score = 0
+	if(islist(state.semantic_plan.signature_minimums))
+		for(var/signature_id as anything in state.semantic_plan.signature_minimums)
+			var/minimum = max(round(text2num("[state.semantic_plan.signature_minimums[signature_id]]") || 0), 0)
+			var/weight = max(round(text2num("[state.semantic_plan.signature_weights[signature_id]]") || 0), 1)
+			var/placed = round(text2num("[state.signature_counts[signature_id]]") || 0)
+			max_score += weight
+			if(placed >= minimum)
+				raw_score += weight
+				continue
+			var/message = "Program signature '[signature_id]' placed [placed], expected at least [minimum]."
+			state.signature_warnings += message
+			state.add_error(message)
+	state.signature_max_score = max_score > 0 ? 100 : 0
+	state.signature_score = max_score > 0 ? round(raw_score * 100 / max_score) : 100
+	if(max_score > 0 && state.signature_score < state.semantic_plan.min_signature_score)
+		state.add_error("Program [state.archetype.id] signature score [state.signature_score]/100 is below [state.semantic_plan.min_signature_score].")
+
+	var/open_floor = 0
+	var/relevant_floor = 0
+	for(var/turf/floor_turf as anything in state.floor_turfs)
+		if(!istype(floor_turf) || state.wall_lookup[floor_turf] || state.door_dirs[floor_turf])
+			continue
+		relevant_floor++
+		if(!state.fixture_lookup[floor_turf] && !state.reserved_lookup[floor_turf])
+			open_floor++
+	state.empty_floor_ratio = relevant_floor > 0 ? round(open_floor * 100 / relevant_floor) : 0
+	if(relevant_floor >= 24 && state.empty_floor_ratio > 72)
+		var/empty_message = "Program [state.archetype.id] leaves [state.empty_floor_ratio]% non-route floor empty after mandatory signatures."
+		state.signature_warnings += empty_message
+		if(!(empty_message in state.warnings))
+			state.add_warning(empty_message)
+
 /datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
-	if(!length("[state.semantic_plan.nested_inner_zone]"))
-		return
-	if(!length(state.get_zone_turfs(state.semantic_plan.nested_inner_zone)))
-		return
-	if(!length(state.internal_wall_turfs))
-		state.add_error("Nested zone '[state.semantic_plan.nested_inner_zone]' exists without internal walls.")
+	var/list/nested_specs = islist(state.semantic_plan?.nested_room_specs) ? state.semantic_plan.nested_room_specs.Copy() : list()
+	if(!length(nested_specs) && length("[state.semantic_plan?.nested_inner_zone]"))
+		nested_specs += new /datum/world_edit_building_nested_room_spec(state.semantic_plan.nested_outer_zone, state.semantic_plan.nested_inner_zone, state.semantic_plan.nested_min_width, state.semantic_plan.nested_min_height, 1)
+	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in nested_specs)
+		if(!istype(nested_spec) || !length(nested_spec.inner_zone_id))
+			continue
+		if((state.bounds["width"] || 0) < nested_spec.min_width || (state.bounds["height"] || 0) < nested_spec.min_height)
+			continue
+		if(!length(state.get_zone_turfs(nested_spec.inner_zone_id)))
+			continue
+		var/datum/world_edit_building_zone_spec/inner_zone_spec = state.semantic_plan.get_zone_spec(nested_spec.inner_zone_id)
+		if(istype(inner_zone_spec) && inner_zone_spec.role != "nested")
+			continue
+		var/nested_plan_found = FALSE
+		for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.divider_plans)
+			if(istype(divider_plan) && divider_plan.inner_zone_id == nested_spec.inner_zone_id && findtext("[divider_plan.id]", "nested_") == 1)
+				nested_plan_found = TRUE
+				break
+		if(!nested_plan_found)
+			state.add_error("Nested zone '[nested_spec.inner_zone_id]' exists without a data-driven nested room plan.")
+		else if(!length(state.internal_wall_turfs))
+			state.add_error("Nested zone '[nested_spec.inner_zone_id]' exists without internal walls.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_divider_rules(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.divider_plans)
