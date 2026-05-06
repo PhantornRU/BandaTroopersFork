@@ -934,8 +934,36 @@
 	apply_building_facade_rules(state)
 	validate_and_repair_building_layout_state(state)
 	apply_building_microvariation_if_available(state)
+	calculate_building_style_metrics(state)
 	state.layout_candidate_score = score_building_layout_candidate(state)
 	return state
+
+/datum/world_edit_generator/building_layout/proc/calculate_building_style_metrics(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	var/list/expected_categories = list()
+	if(islist(state.archetype?.object_budgets))
+		for(var/category as anything in state.archetype.object_budgets)
+			if((round(text2num("[state.archetype.object_budgets[category]]") || 0)) > 0)
+				expected_categories["[category]"] = TRUE
+	if(islist(state.semantic_plan?.category_minimums))
+		for(var/category as anything in state.semantic_plan.category_minimums)
+			if((round(text2num("[state.semantic_plan.category_minimums[category]]") || 0)) > 0)
+				expected_categories["[category]"] = TRUE
+
+	var/covered_categories = 0
+	for(var/category as anything in expected_categories)
+		if((state.category_counts["[category]"] || 0) > 0)
+			covered_categories++
+	state.category_coverage_score = length(expected_categories) ? round(covered_categories * 100 / length(expected_categories)) : 100
+
+	var/highest_category_count = 0
+	for(var/category as anything in state.category_counts)
+		highest_category_count = max(highest_category_count, round(text2num("[state.category_counts[category]]") || 0))
+	state.repeat_index = state.fixture_count > 0 ? round(highest_category_count * 100 / state.fixture_count) : 0
+
+	var/repeat_penalty = max(0, state.repeat_index - 55)
+	state.style_score = clamp(state.category_coverage_score - repeat_penalty, 0, 100)
 
 /datum/world_edit_generator/building_layout/proc/score_building_layout_candidate(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
@@ -947,6 +975,7 @@
 	else
 		score -= error_count * 20000
 	score += state.signature_score * 120
+	score += state.style_score * 45
 	if(state.signature_max_score > 0 && state.signature_score >= state.semantic_plan?.min_signature_score)
 		score += 2500
 	score += length(state.divider_plans) * 900
@@ -959,6 +988,8 @@
 	score += round(text2num("[state.config["footprint_mask_score"]]") || 0)
 	score += length(state.primary_route_turfs) * 15
 	score -= state.empty_floor_ratio * 35
+	if(state.repeat_index > 75)
+		score -= (state.repeat_index - 75) * 80
 	if("[state.config["footprint_family"]]" != "RECT")
 		score += 1800
 	if(state.empty_floor_ratio <= 60)
@@ -978,6 +1009,9 @@
 		report["errors"] = state.errors.Copy()
 		report["error_count"] = length(state.errors)
 		report["signature_score"] = state.signature_score
+		report["style_score"] = state.style_score
+		report["category_coverage_score"] = state.category_coverage_score
+		report["repeat_index"] = state.repeat_index
 		report["empty_floor_ratio"] = state.empty_floor_ratio
 		report["divider_plan_count"] = length(state.divider_plans)
 		report["internal_wall_count"] = length(state.internal_wall_turfs)

@@ -47,6 +47,9 @@
 	var/major_fixture_count = 0
 	var/signature_score = 0
 	var/signature_max_score = 0
+	var/category_coverage_score = 0
+	var/repeat_index = 0
+	var/style_score = 0
 	var/empty_floor_ratio = 0
 	var/layout_candidate_score = 0
 	var/region_claim_count = 0

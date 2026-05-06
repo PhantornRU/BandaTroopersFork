@@ -109,6 +109,9 @@
 	plan.metadata["signature_counts"] = state.signature_counts.Copy()
 	plan.metadata["signature_score"] = state.signature_score
 	plan.metadata["signature_max_score"] = state.signature_max_score
+	plan.metadata["style_score"] = state.style_score
+	plan.metadata["category_coverage_score"] = state.category_coverage_score
+	plan.metadata["repeat_index"] = state.repeat_index
 	plan.metadata["signature_warnings"] = state.signature_warnings.Copy()
 	plan.metadata["empty_floor_ratio"] = state.empty_floor_ratio
 	plan.metadata["program_signature_ok"] = state.signature_max_score <= 0 || state.signature_score >= state.semantic_plan?.min_signature_score
@@ -160,6 +163,9 @@
 	plan.metadata["fixture_category_counts"] = state.category_counts.Copy()
 	plan.metadata["cluster_counts"] = state.cluster_counts.Copy()
 	plan.metadata["signature_counts"] = state.signature_counts.Copy()
+	plan.metadata["style_score"] = state.style_score
+	plan.metadata["category_coverage_score"] = state.category_coverage_score
+	plan.metadata["repeat_index"] = state.repeat_index
 	plan.metadata["fixture_category_budgets"] = state.category_budgets.Copy()
 	plan.metadata["zone_count"] = length(state.zone_turfs)
 	plan.metadata["anchor_count"] = length(state.anchor_turfs)
