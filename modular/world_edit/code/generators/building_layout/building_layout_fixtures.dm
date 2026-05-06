@@ -33,9 +33,17 @@
 	if(!length(cluster_spec.macro_id))
 		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/placed = 0
+	var/template_placed = 0
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
+	if(length(cluster_spec.macro_id))
+		template_placed = place_building_template_chunk_for_cluster(state, cluster_spec, major)
+		if(template_placed >= max(cluster_spec.min_count, 1))
+			state.register_cluster(cluster_spec.id, template_placed)
+			if(length(cluster_spec.signature_id))
+				state.register_signature(cluster_spec.signature_id, template_placed)
+			return TRUE
 	switch(cluster_spec.pattern)
-		if("signature_workshop_wall", "signature_rack_aisles", "signature_hydro_rows", "signature_cook_line", "signature_bed_rows", "signature_treatment_bay", "signature_office_suite", "signature_security_counter", "signature_living_nook")
+		if("signature_workshop_wall", "signature_rack_aisles", "signature_hydro_rows", "signature_cook_line", "signature_bed_rows", "signature_treatment_bay", "signature_office_suite", "signature_security_counter", "signature_living_nook", "signature_engineering_bay", "signature_lab_bench")
 			placed = place_building_signature_cluster(state, cluster_spec, target_count)
 		if("run", "counter_line", "staging_group")
 			placed = place_fixture_run(state, cluster_spec, target_count)
@@ -56,6 +64,7 @@
 				if(unit_placed <= 0)
 					break
 				placed += unit_placed
+	placed += template_placed
 	if(placed > 0)
 		state.register_cluster(cluster_spec.id, placed)
 		if(length(cluster_spec.signature_id))
@@ -67,6 +76,16 @@
 		return ""
 	if(length(cluster_spec.macro_id))
 		return cluster_spec.macro_id
+	if(cluster_spec.category == "light")
+		return "infrastructure_light_chunk"
+	if(cluster_spec.category == "apc")
+		return "infrastructure_power_chunk"
+	if(cluster_spec.category == "air_alarm")
+		return "infrastructure_air_alarm_chunk"
+	if(cluster_spec.category == "fire_alarm")
+		return "infrastructure_fire_alarm_chunk"
+	if(cluster_spec.category == "light_switch")
+		return "infrastructure_switch_chunk"
 	switch(cluster_spec.pattern)
 		if("signature_workshop_wall")
 			return "workshop_wall_chunk"
@@ -76,6 +95,18 @@
 			return "bed_niche_chunk"
 		if("signature_security_counter", "counter_line")
 			return "checkpoint_counter_chunk"
+		if("signature_hydro_rows")
+			return "hydro_rows_chunk"
+		if("signature_cook_line")
+			return "cook_line_chunk"
+		if("signature_treatment_bay")
+			return "treatment_bay_chunk"
+		if("signature_office_suite")
+			return "office_suite_chunk"
+		if("signature_engineering_bay")
+			return "engineering_service_chunk"
+		if("signature_lab_bench")
+			return "lab_bench_chunk"
 		if("run")
 			if(cluster_spec.category in list("rack", "cabinet", "bed"))
 				return "[cluster_spec.category]_run_chunk"
@@ -424,7 +455,7 @@
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null)
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null)
 	if(!state.can_place_fixture(target_turf))
 		return FALSE
 	if(state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
@@ -459,6 +490,10 @@
 	object_placement["slot"] = "[slot]"
 	object_placement["category"] = "[category]"
 	object_placement["major"] = major ? TRUE : FALSE
+	if(length("[template_chunk_id]"))
+		object_placement["template_chunk_id"] = "[template_chunk_id]"
+	if("[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch"))
+		object_placement["infrastructure"] = TRUE
 	if(istype(cluster_spec))
 		var/count_cluster_id = length(cluster_spec.count_cluster_id) ? cluster_spec.count_cluster_id : cluster_spec.id
 		var/count_signature_id = length(cluster_spec.count_signature_id) ? cluster_spec.count_signature_id : cluster_spec.signature_id
@@ -479,4 +514,6 @@
 		object_placement["dir_mode"] = place_rule.dir_mode
 	state.object_placements += list(object_placement)
 	state.register_fixture(target_turf, category, major, wall_mounted)
+	if(object_placement["infrastructure"])
+		state.infrastructure_count++
 	return TRUE

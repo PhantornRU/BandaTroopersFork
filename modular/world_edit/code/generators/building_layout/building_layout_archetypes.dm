@@ -470,6 +470,35 @@
 	facade_rules += rule
 	return rule
 
+/datum/world_edit_building_archetype/proc/has_cluster_id(cluster_id)
+	if(!length("[cluster_id]"))
+		return FALSE
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
+		if(istype(cluster_spec) && cluster_spec.id == "[cluster_id]")
+			return TRUE
+	return FALSE
+
+/datum/world_edit_building_archetype/proc/ensure_default_infrastructure_contract()
+	var/list/common_wall_anchors = list("wall_anchor", "service_wall", "entry_buffer", primary_zone, hub_zone)
+	if(!has_cluster_id("infrastructure_lights"))
+		add_cluster("infrastructure_lights", "major", "run", "light", "light", common_wall_anchors, 2, 4, TRUE, 0, 95, TRUE, null, "infrastructure_light_chunk")
+	if(!has_cluster_id("infrastructure_apc"))
+		add_cluster("infrastructure_apc", "major", "wall_object", "apc", "apc", common_wall_anchors, 1, 1, TRUE, 0, 100, TRUE, null, "infrastructure_power_chunk")
+	if(!has_cluster_id("infrastructure_air_alarm"))
+		add_cluster("infrastructure_air_alarm", "major", "wall_object", "air_alarm", "air_alarm", common_wall_anchors, 1, 1, TRUE, 0, 100, TRUE, null, "infrastructure_air_alarm_chunk")
+	if(!has_cluster_id("infrastructure_light_switch"))
+		add_cluster("infrastructure_light_switch", "secondary", "wall_object", "light_switch", "light_switch", list("entry_buffer", "door_cone", "wall_anchor", primary_zone), 1, 1, TRUE, 0, 55, FALSE, null, "infrastructure_switch_chunk")
+	if(!has_cluster_id("infrastructure_fire_alarm"))
+		add_cluster("infrastructure_fire_alarm", "secondary", "wall_object", "fire_alarm", "fire_alarm", common_wall_anchors, 1, 1, TRUE, 0, 50, FALSE, null, "infrastructure_fire_alarm_chunk")
+	object_budgets["light"] = max(round(text2num("[object_budgets["light"]]") || 0), 4)
+	object_budgets["apc"] = max(round(text2num("[object_budgets["apc"]]") || 0), 1)
+	object_budgets["air_alarm"] = max(round(text2num("[object_budgets["air_alarm"]]") || 0), 1)
+	object_budgets["fire_alarm"] = max(round(text2num("[object_budgets["fire_alarm"]]") || 0), 1)
+	object_budgets["light_switch"] = max(round(text2num("[object_budgets["light_switch"]]") || 0), 1)
+	category_minimums["light"] = max(round(text2num("[category_minimums["light"]]") || 0), 2)
+	category_minimums["apc"] = max(round(text2num("[category_minimums["apc"]]") || 0), 1)
+	category_minimums["air_alarm"] = max(round(text2num("[category_minimums["air_alarm"]]") || 0), 1)
+
 /datum/world_edit_building_archetype/proc/finalize_declarative_definition()
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in zone_specs)
 		if(!istype(zone_spec))
@@ -508,6 +537,16 @@
 			"min_category_coverage" = 60,
 			"max_repeat_index" = 55,
 		)
+	if(isnull(style_budget["max_empty_floor_ratio"]))
+		style_budget["max_empty_floor_ratio"] = WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO
+	switch(id)
+		if("storage", "compound_colony")
+			style_budget["max_empty_floor_ratio"] = min(round(text2num("[style_budget["max_empty_floor_ratio"]]") || WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO), 68)
+		if("hydroponics", "kitchen", "dormitory", "workshop", "engineering", "laboratory")
+			style_budget["max_empty_floor_ratio"] = min(round(text2num("[style_budget["max_empty_floor_ratio"]]") || WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO), 60)
+		if("medbay", "security", "checkpoint")
+			style_budget["max_empty_floor_ratio"] = min(round(text2num("[style_budget["max_empty_floor_ratio"]]") || WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO), 58)
+	ensure_default_infrastructure_contract()
 	if(!islist(repeat_penalties))
 		repeat_penalties = list()
 	for(var/category as anything in object_budgets)

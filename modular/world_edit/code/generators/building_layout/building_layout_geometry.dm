@@ -295,6 +295,11 @@
 		if(!islist(zone_candidates))
 			zone_candidates = list()
 			candidates_by_zone[zone_spec.id] = zone_candidates
+		var/has_viable_candidate = FALSE
+		for(var/datum/world_edit_building_solved_region/region_candidate as anything in zone_candidates)
+			if(istype(region_candidate) && length(region_candidate.turfs) >= zone_spec.min_area)
+				has_viable_candidate = TRUE
+				break
 		var/datum/world_edit_building_solved_region/union_candidate = new("zone_union_[zone_spec.id]", zone_spec.id, -100)
 		var/list/union_lookup = list()
 		for(var/datum/world_edit_building_solved_region/region_candidate as anything in zone_candidates)
@@ -305,10 +310,26 @@
 				union_candidate.turfs += candidate_turf
 				extend_solved_region_bounds(union_candidate, candidate_turf)
 		if(!length(union_candidate.turfs))
+			union_candidate.priority = -900
 			for(var/turf/interior_turf as anything in state.interior)
 				union_candidate.turfs += interior_turf
 				extend_solved_region_bounds(union_candidate, interior_turf)
-		zone_candidates += union_candidate
+			state.degraded_region_fallback_count++
+			state.degraded_region_reports += list(list(
+				"zone" = zone_spec.id,
+				"reason" = "no_region_candidates",
+				"fallback_area" = length(union_candidate.turfs),
+			))
+		else if(!has_viable_candidate)
+			union_candidate.priority = -650
+			state.degraded_region_fallback_count++
+			state.degraded_region_reports += list(list(
+				"zone" = zone_spec.id,
+				"reason" = "union_only",
+				"fallback_area" = length(union_candidate.turfs),
+			))
+		if(length(union_candidate.turfs))
+			zone_candidates += union_candidate
 	return candidates_by_zone
 
 /datum/world_edit_generator/building_layout/proc/get_required_zone_specs_for_assignment(datum/world_edit_building_layout_state/state)
@@ -460,7 +481,7 @@
 	score += min(candidate_area, max(target_area, zone_spec.min_area) * 2) * 8
 	score += length(seed_turfs) * 45
 	if(findtext("[candidate.id]", "zone_union_"))
-		score -= 1800
+		score -= candidate.priority <= -650 ? 6500 : 4200
 	if(zone_spec.divider_mode == "room")
 		score += 450
 	if(zone_spec.divider_mode == "nook")
@@ -702,6 +723,11 @@
 		apply_required_zone_seed_assignments(state, assignments)
 		apply_required_zone_region_claims(state, region_assignments)
 	else
+		state.degraded_region_fallback_count++
+		state.degraded_region_reports += list(list(
+			"reason" = "backtracking_assignment_failed",
+			"required_zone_count" = length(required_zone_specs),
+		))
 		state.add_warning("Room region solver fell back to priority growth for one or more required zones.")
 	apply_region_candidate_growth(state, region_candidates)
 	repair_building_zone_coverage(state)
@@ -884,7 +910,56 @@
 		if(!divider_plan_keeps_floor_reachable(state, divider_plan))
 			continue
 		return divider_plan
-	return null
+	return build_zone_box_divider_plan(state, zone_spec)
+
+/datum/world_edit_generator/building_layout/proc/build_zone_box_divider_plan(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec)
+	var/list/zone_turfs = state.get_zone_turfs(zone_spec.id)
+	if(length(zone_turfs) < max(zone_spec.min_area + 2, 6))
+		return null
+	var/min_x = 999999
+	var/max_x = -999999
+	var/min_y = 999999
+	var/max_y = -999999
+	for(var/turf/zone_turf as anything in zone_turfs)
+		if(!istype(zone_turf))
+			continue
+		min_x = min(min_x, zone_turf.x)
+		max_x = max(max_x, zone_turf.x)
+		min_y = min(min_y, zone_turf.y)
+		max_y = max(max_y, zone_turf.y)
+	if((max_x - min_x) < 2 || (max_y - min_y) < 2)
+		return null
+	var/list/zone_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(zone_turfs)
+	var/list/perimeter = list()
+	var/list/inner_turfs = list()
+	for(var/turf/zone_turf as anything in zone_turfs)
+		if(!istype(zone_turf) || state.boundary_lookup[zone_turf] || state.door_dirs[zone_turf])
+			continue
+		if(zone_turf.x == min_x || zone_turf.x == max_x || zone_turf.y == min_y || zone_turf.y == max_y)
+			if(!state.reserved_lookup[zone_turf])
+				perimeter += zone_turf
+		else
+			inner_turfs += zone_turf
+	if(length(perimeter) < 3 || !length(inner_turfs))
+		return null
+	var/turf/opening_turf = select_divider_opening_turf(state, perimeter)
+	if(!istype(opening_turf))
+		return null
+	var/datum/world_edit_building_divider_plan/divider_plan = new("box_[zone_spec.id]_[length(state.divider_plans) + 1]", state.semantic_plan.primary_zone_id || state.semantic_plan.hub_zone_id, zone_spec.id)
+	divider_plan.opening_turfs += opening_turf
+	divider_plan.opening_dirs[opening_turf] = get_cardinal_dir_toward(opening_turf, state.semantic_hub_turf || state.front_door_turf || state.center_turf, state.placement_dir)
+	for(var/turf/perimeter_turf as anything in perimeter)
+		if(!istype(perimeter_turf) || perimeter_turf == opening_turf || !zone_lookup[perimeter_turf])
+			continue
+		divider_plan.wall_turfs += perimeter_turf
+	for(var/turf/inner_turf as anything in inner_turfs)
+		if(istype(inner_turf))
+			divider_plan.inner_turfs += inner_turf
+	if(length(divider_plan.wall_turfs) < 2)
+		return null
+	if(!divider_plan_keeps_floor_reachable(state, divider_plan))
+		return null
+	return divider_plan
 
 /datum/world_edit_generator/building_layout/proc/build_region_border_divider_runs(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec)
 	var/list/runs = list()
@@ -1090,49 +1165,46 @@
 			continue
 		if((state.bounds["width"] || 0) < nested_spec.min_width || (state.bounds["height"] || 0) < nested_spec.min_height)
 			continue
-		if(make_room_in_room(state, nested_spec.outer_zone_id, nested_spec.inner_zone_id, nested_spec.margin))
+		var/inner_width = max(3, round(nested_spec.min_width / 3))
+		var/inner_height = max(3, round(nested_spec.min_height / 3))
+		if(make_room_in_room(state, nested_spec.outer_zone_id, nested_spec.inner_zone_id, nested_spec.margin, inner_width, inner_height))
 			state.nested_room_count++
 
-/datum/world_edit_generator/building_layout/proc/make_room_in_room(datum/world_edit_building_layout_state/state, outer_zone_id, inner_zone_id, margin = 1)
+/datum/world_edit_generator/building_layout/proc/make_room_in_room(datum/world_edit_building_layout_state/state, outer_zone_id, inner_zone_id, margin = 1, min_room_width = 3, min_room_height = 3)
 	if(!istype(state) || !length("[outer_zone_id]") || !length("[inner_zone_id]"))
 		return null
 	var/list/outer_turfs = state.get_zone_turfs(outer_zone_id)
-	if(length(outer_turfs) < 9)
+	if(length(outer_turfs) < min_room_width * min_room_height)
 		return null
 	margin = max(round(text2num("[margin]") || 1), 1)
-	var/room_radius = select_room_in_room_radius(state, outer_turfs, margin)
-	if(room_radius < 1)
-		return null
-	var/turf/best_center = null
+	min_room_width = max(round(text2num("[min_room_width]") || 3), 3)
+	min_room_height = max(round(text2num("[min_room_height]") || 3), 3)
+	var/list/candidates = build_room_in_room_rect_candidates(state, outer_zone_id, outer_turfs, margin, min_room_width, min_room_height)
+	var/list/best_candidate = null
 	var/best_score = -999999999
-	for(var/turf/candidate as anything in outer_turfs)
-		if(!istype(candidate))
+	for(var/list/candidate as anything in candidates)
+		if(!islist(candidate))
 			continue
-		if(!room_in_room_can_fit_at(state, outer_zone_id, candidate, room_radius, margin))
-			continue
-		var/score = get_building_front_percent(state, candidate) + abs(get_building_lateral_percent(state, candidate)) / 4
-		if(state.reserved_lookup[candidate])
-			score -= 50
-		if(!istype(best_center) || score > best_score)
-			best_center = candidate
+		var/score = round(text2num("[candidate["score"]]") || 0)
+		if(!islist(best_candidate) || score > best_score)
+			best_candidate = candidate
 			best_score = score
-	if(!istype(best_center))
+	if(!islist(best_candidate))
 		return null
 
-	var/door_dir = get_cardinal_dir_toward(best_center, state.front_door_turf, state.placement_dir)
-	var/turf/internal_door_turf = best_center
-	for(var/door_step in 1 to room_radius)
-		internal_door_turf = get_step(internal_door_turf, door_dir)
+	var/list/wall_turfs = best_candidate["wall_turfs"]
+	var/list/inner_turfs = best_candidate["inner_turfs"]
+	var/turf/internal_door_turf = best_candidate["door_turf"]
+	var/door_dir = best_candidate["door_dir"] || state.placement_dir
+	if(!islist(wall_turfs) || !islist(inner_turfs) || !istype(internal_door_turf))
+		return null
 	var/datum/world_edit_building_divider_plan/divider_plan = new("nested_[inner_zone_id]", outer_zone_id, inner_zone_id)
-	for(var/dx in -room_radius to room_radius)
-		for(var/dy in -room_radius to room_radius)
-			var/turf/ring_turf = locate(best_center.x + dx, best_center.y + dy, best_center.z)
-			if(!istype(ring_turf) || ring_turf == internal_door_turf)
-				continue
-			if(abs(dx) == room_radius || abs(dy) == room_radius)
-				divider_plan.wall_turfs += ring_turf
-			else
-				divider_plan.inner_turfs += ring_turf
+	for(var/turf/wall_turf as anything in wall_turfs)
+		if(istype(wall_turf) && wall_turf != internal_door_turf)
+			divider_plan.wall_turfs += wall_turf
+	for(var/turf/inner_turf as anything in inner_turfs)
+		if(istype(inner_turf))
+			divider_plan.inner_turfs += inner_turf
 	divider_plan.opening_turfs += internal_door_turf
 	divider_plan.opening_dirs[internal_door_turf] = door_dir
 	if(!divider_plan_keeps_floor_reachable(state, divider_plan))
@@ -1140,36 +1212,94 @@
 	state.add_divider_plan(divider_plan)
 	return divider_plan
 
-/datum/world_edit_generator/building_layout/proc/select_room_in_room_radius(datum/world_edit_building_layout_state/state, list/outer_turfs, margin)
-	var/outer_count = length(outer_turfs)
-	if(outer_count >= 40 && (state.bounds["width"] || 0) >= 11 && (state.bounds["height"] || 0) >= 11)
-		return 2
-	if(outer_count >= 16)
-		return 1
-	return 0
+/datum/world_edit_generator/building_layout/proc/build_room_in_room_rect_candidates(datum/world_edit_building_layout_state/state, outer_zone_id, list/outer_turfs, margin, min_room_width, min_room_height)
+	var/list/candidates = list()
+	var/min_x = 999999
+	var/max_x = -999999
+	var/min_y = 999999
+	var/max_y = -999999
+	for(var/turf/outer_turf as anything in outer_turfs)
+		if(!istype(outer_turf))
+			continue
+		min_x = min(min_x, outer_turf.x)
+		max_x = max(max_x, outer_turf.x)
+		min_y = min(min_y, outer_turf.y)
+		max_y = max(max_y, outer_turf.y)
+	var/outer_width = (max_x - min_x) + 1
+	var/outer_height = (max_y - min_y) + 1
+	if(outer_width < min_room_width + margin || outer_height < min_room_height + margin)
+		return candidates
+	var/list/width_options = list(min_room_width)
+	var/list/height_options = list(min_room_height)
+	if(outer_width >= min_room_width + 2)
+		width_options += min(min_room_width + 1, outer_width - margin)
+	if(outer_height >= min_room_height + 2)
+		height_options += min(min_room_height + 1, outer_height - margin)
+	for(var/room_width as anything in width_options)
+		for(var/room_height as anything in height_options)
+			for(var/x1 in min_x to max_x - room_width + 1)
+				for(var/y1 in min_y to max_y - room_height + 1)
+					var/list/candidate = build_room_in_room_rect_candidate(state, outer_zone_id, x1, y1, x1 + room_width - 1, y1 + room_height - 1, margin)
+					if(islist(candidate))
+						candidates += list(candidate)
+	return candidates
 
-/datum/world_edit_generator/building_layout/proc/room_in_room_can_fit_at(datum/world_edit_building_layout_state/state, outer_zone_id, turf/center_turf, room_radius, margin)
-	if(!istype(state) || !istype(center_turf))
-		return FALSE
-	for(var/dx in -room_radius to room_radius)
-		for(var/dy in -room_radius to room_radius)
-			var/turf/check_turf = locate(center_turf.x + dx, center_turf.y + dy, center_turf.z)
-			if(!state.footprint_lookup[check_turf] || state.boundary_lookup[check_turf] || state.wall_lookup[check_turf])
-				return FALSE
+/datum/world_edit_generator/building_layout/proc/build_room_in_room_rect_candidate(datum/world_edit_building_layout_state/state, outer_zone_id, x1, y1, x2, y2, margin)
+	var/list/wall_turfs = list()
+	var/list/inner_turfs = list()
+	var/list/perimeter_turfs = list()
+	var/turf/door_turf = null
+	var/best_door_score = -999999999
+	for(var/x in x1 to x2)
+		for(var/y in y1 to y2)
+			var/turf/check_turf = locate(x, y, state.bounds["z"])
+			if(!state.footprint_lookup[check_turf] || state.boundary_lookup[check_turf] || state.wall_lookup[check_turf] || state.door_dirs[check_turf])
+				return null
 			if(state.get_zone(check_turf) != "[outer_zone_id]")
-				return FALSE
-			if(state.reserved_lookup[check_turf] && (abs(dx) == room_radius || abs(dy) == room_radius))
-				return FALSE
-	for(var/dx in -(room_radius + margin) to (room_radius + margin))
-		for(var/dy in -(room_radius + margin) to (room_radius + margin))
-			if(abs(dx) <= room_radius && abs(dy) <= room_radius)
+				return null
+			var/is_perimeter = (x == x1 || x == x2 || y == y1 || y == y2)
+			if(is_perimeter)
+				if(state.reserved_lookup[check_turf])
+					return null
+				perimeter_turfs += check_turf
+				var/score = 0
+				if(istype(state.front_door_turf))
+					score -= abs(check_turf.x - state.front_door_turf.x) + abs(check_turf.y - state.front_door_turf.y)
+				if(istype(state.semantic_hub_turf))
+					score -= round((abs(check_turf.x - state.semantic_hub_turf.x) + abs(check_turf.y - state.semantic_hub_turf.y)) / 2)
+				if(!istype(door_turf) || score > best_door_score)
+					door_turf = check_turf
+					best_door_score = score
+			else
+				inner_turfs += check_turf
+	for(var/x in (x1 - margin) to (x2 + margin))
+		for(var/y in (y1 - margin) to (y2 + margin))
+			if(x >= x1 && x <= x2 && y >= y1 && y <= y2)
 				continue
-			var/turf/margin_turf = locate(center_turf.x + dx, center_turf.y + dy, center_turf.z)
+			var/turf/margin_turf = locate(x, y, state.bounds["z"])
 			if(!istype(margin_turf) || !state.footprint_lookup[margin_turf])
 				continue
 			if(state.wall_lookup[margin_turf] || state.boundary_lookup[margin_turf])
-				return FALSE
-	return TRUE
+				return null
+	if(!istype(door_turf) || !length(perimeter_turfs) || !length(inner_turfs))
+		return null
+	for(var/turf/perimeter_turf as anything in perimeter_turfs)
+		if(perimeter_turf != door_turf)
+			wall_turfs += perimeter_turf
+	var/turf/center_turf = locate(round((x1 + x2) / 2), round((y1 + y2) / 2), state.bounds["z"])
+	var/door_dir = get_cardinal_dir_toward(door_turf, state.semantic_hub_turf || state.front_door_turf || center_turf, state.placement_dir)
+	var/score = 0
+	if(istype(center_turf))
+		score += get_building_front_percent(state, center_turf)
+		score += abs(get_building_lateral_percent(state, center_turf)) / 3
+	score += length(inner_turfs) * 8
+	return list(
+		"wall_turfs" = wall_turfs,
+		"inner_turfs" = inner_turfs,
+		"door_turf" = door_turf,
+		"door_dir" = door_dir,
+		"score" = score,
+	)
 
 /datum/world_edit_generator/building_layout/proc/build_building_walls_and_floors(datum/world_edit_building_layout_state/state)
 	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)

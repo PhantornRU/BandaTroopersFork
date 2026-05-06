@@ -73,6 +73,15 @@
 				"security_camera" = "/obj/structure/machinery/camera",
 				"brig_cell" = "/obj/structure/machinery/brig_cell",
 				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
+				"engineering_machine" = "/obj/structure/machinery/processor",
+				"power_console" = "/obj/structure/prop/server_equipment/laptop/on",
+				"lab_machine" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"sample_storage" = "/obj/structure/closet/crate/medical",
+				"light" = "/obj/structure/machinery/light/small",
+				"apc" = "/obj/structure/machinery/power/apc",
+				"air_alarm" = "/obj/structure/machinery/alarm",
+				"fire_alarm" = "/obj/structure/machinery/firealarm",
+				"light_switch" = "/obj/structure/machinery/light_switch",
 			),
 		),
 		"uscm" = list(
@@ -107,6 +116,15 @@
 				"security_camera" = "/obj/structure/machinery/camera/autoname/almayer/brig",
 				"brig_cell" = "/obj/structure/machinery/brig_cell",
 				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
+				"engineering_machine" = "/obj/structure/machinery/processor",
+				"power_console" = "/obj/structure/prop/server_equipment/laptop/on",
+				"lab_machine" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"sample_storage" = "/obj/structure/closet/medical_wall",
+				"light" = "/obj/structure/machinery/light/small/blue",
+				"apc" = "/obj/structure/machinery/power/apc/almayer",
+				"air_alarm" = "/obj/structure/machinery/alarm/almayer",
+				"fire_alarm" = "/obj/structure/machinery/firealarm",
+				"light_switch" = "/obj/structure/machinery/light_switch",
 			),
 		),
 		"unsc" = list(
@@ -141,6 +159,15 @@
 				"security_camera" = "/obj/structure/machinery/camera",
 				"brig_cell" = "/obj/structure/machinery/brig_cell",
 				"weapon_rack" = "/obj/structure/gun_rack/halo/armory/ma5c/empty",
+				"engineering_machine" = "/obj/structure/machinery/processor",
+				"power_console" = "/obj/structure/prop/server_equipment/laptop/on",
+				"lab_machine" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"sample_storage" = "/obj/structure/closet/crate/medical",
+				"light" = "/obj/structure/machinery/light/small/blue",
+				"apc" = "/obj/structure/machinery/power/apc",
+				"air_alarm" = "/obj/structure/machinery/alarm",
+				"fire_alarm" = "/obj/structure/machinery/firealarm",
+				"light_switch" = "/obj/structure/machinery/light_switch",
 			),
 		),
 		"neutral" = list(
@@ -175,6 +202,15 @@
 				"security_camera" = "/obj/structure/machinery/camera",
 				"brig_cell" = "/obj/structure/machinery/brig_cell",
 				"weapon_rack" = "/obj/structure/gun_rack/m41/empty",
+				"engineering_machine" = "/obj/structure/machinery/processor",
+				"power_console" = "/obj/structure/prop/server_equipment/laptop/on",
+				"lab_machine" = "/obj/structure/machinery/medical_pod/bodyscanner",
+				"sample_storage" = "/obj/structure/closet/crate/medical",
+				"light" = "/obj/structure/machinery/light/small",
+				"apc" = "/obj/structure/machinery/power/apc",
+				"air_alarm" = "/obj/structure/machinery/alarm",
+				"fire_alarm" = "/obj/structure/machinery/firealarm",
+				"light_switch" = "/obj/structure/machinery/light_switch",
 			),
 		),
 		"covenant" = list(
@@ -209,6 +245,15 @@
 				"security_camera" = "/obj/structure/machinery/recharger/covenant",
 				"brig_cell" = "/obj/structure/covenant_barricade",
 				"weapon_rack" = "/obj/structure/covenant_barricade",
+				"engineering_machine" = "/obj/structure/machinery/recharger/covenant",
+				"power_console" = "/obj/structure/machinery/recharger/covenant",
+				"lab_machine" = "/obj/structure/machinery/recharger/covenant",
+				"sample_storage" = "/obj/structure/covenant_barricade/wide",
+				"light" = "/obj/structure/machinery/recharger/covenant",
+				"apc" = "/obj/structure/machinery/recharger/covenant",
+				"air_alarm" = "/obj/structure/machinery/recharger/covenant",
+				"fire_alarm" = "/obj/structure/machinery/recharger/covenant",
+				"light_switch" = "/obj/structure/machinery/recharger/covenant",
 			),
 		),
 	)
@@ -892,12 +937,14 @@
 				path_value = interior_paths?["bed"]
 			if("medical_storage", "crate")
 				path_value = interior_paths?["cabinet"]
-			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage")
+			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage", "engineering_machine", "power_console", "lab_machine")
 				path_value = interior_paths?["table"]
-			if("fridge", "filing")
+			if("fridge", "filing", "sample_storage")
 				path_value = interior_paths?["cabinet"]
-			if("wall_monitor", "security_console", "console")
+			if("wall_monitor", "security_console", "console", "power_console")
 				path_value = interior_paths?["table"]
+			if("light", "apc", "air_alarm", "fire_alarm", "light_switch")
+				path_value = interior_paths?["[slot]"] || interior_paths?["console"] || interior_paths?["table"]
 			else
 				path_value = interior_paths?["table"]
 	return resolve_building_type_path(path_value, /obj)
@@ -931,6 +978,7 @@
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
 	extract_building_anchors(state)
 	place_building_fixtures(state)
+	place_building_infrastructure(state)
 	apply_building_facade_rules(state)
 	validate_and_repair_building_layout_state(state)
 	apply_building_microvariation_if_available(state)
@@ -1022,6 +1070,8 @@
 	score += min(state.region_claim_count, 80) * 45
 	score += min(state.rectangular_region_candidate_count, 80) * 22
 	score += state.nested_room_count * 800
+	score += state.template_chunk_count * 650
+	score += state.infrastructure_count * 220
 	score += min(state.microvariation_count, 24) * 20
 	score += round(text2num("[state.config["footprint_mask_score"]]") || 0)
 	score += length(state.primary_route_turfs) * 15
@@ -1031,6 +1081,7 @@
 	score -= state.privacy_violation_count * 1800
 	score -= state.reachability_failure_count * 1400
 	score -= state.repetition_conflict_count * 500
+	score -= state.degraded_region_fallback_count * 2500
 	score -= (state.fixture_conflict_count + state.route_conflict_count + state.window_conflict_count + state.facade_conflict_count) * 900
 	if("[state.config["footprint_family"]]" != "RECT")
 		score += 1800
@@ -1068,6 +1119,11 @@
 		report["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
 		report["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
 		report["nested_room_count"] = state.nested_room_count
+		report["template_chunk_count"] = state.template_chunk_count
+		report["template_chunk_cell_count"] = state.template_chunk_cell_count
+		report["infrastructure_count"] = state.infrastructure_count
+		report["degraded_region_fallback_count"] = state.degraded_region_fallback_count
+		report["degraded_region_reports"] = state.degraded_region_reports.Copy()
 		report["microvariation_count"] = state.microvariation_count
 		report["footprint_mask_score"] = state.config["footprint_mask_score"]
 		report["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
@@ -1241,7 +1297,7 @@
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
+	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)

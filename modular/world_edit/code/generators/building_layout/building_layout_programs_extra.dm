@@ -322,3 +322,79 @@
 	add_cluster("supply_crates", "detail", "staging_group", "crate", "crate", list("storage_service", "work_bay"), 1, 2, FALSE, 0, 40, FALSE)
 	object_budgets = list("bed" = 4, "table" = 5, "chair" = 5, "cabinet" = 4, "rack" = 4, "crate" = 3, "console" = 2, "medical_bed" = 1)
 	category_minimums = list("bed" = 2, "table" = 2, "rack" = 2)
+
+/datum/world_edit_building_archetype/engineering
+	id = "engineering"
+	label = "Engineering"
+	suggested_shell_preset = "colony"
+	footprint_families = list("RECT", "L", "T", "U", "COMPOUND")
+	primary_zone = "machine_bay"
+	hub_zone = "service_spine"
+	window_bias = 20
+	detail_bias = 85
+
+/datum/world_edit_building_archetype/engineering/build_definition()
+	add_zone("entry_buffer", "Entry buffer", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), TRUE)
+	add_zone("service_spine", "Service spine", "route", 5, TRUE, TRUE, FALSE, list("service_spine", "primary_lane", "work_cluster"), FALSE)
+	add_zone("machine_bay", "Machine bay", "hub", 8, TRUE, TRUE, FALSE, list("machine_bay", "engineering_bay", "machine_wall", "focus_center"), TRUE)
+	add_zone("power_control", "Power/control wall", "service", 4, TRUE, TRUE, FALSE, list("power_control", "engineering_wall", "service_strip", "wall_anchor"), FALSE, "nook")
+	add_zone("parts_storage", "Parts storage", "storage", 4, TRUE, TRUE, FALSE, list("parts_storage", "storage_wall", "service_strip", "wall_anchor"), FALSE, "room")
+	add_optional_zone("generator_nook", "Generator nook", "secure", 3, 60, TRUE, FALSE, list("generator_nook", "engineering_wall", "secure_storage", "wall_anchor"), FALSE, "room", "secure", 48)
+	add_region("entry_front", "entry_buffer", 0, 16, -35, 35, 100)
+	add_region("service_spine", "service_spine", 0, 100, -18, 18, 95)
+	add_region("control_left", "power_control", 22, 92, -100, -44, 88)
+	add_region("parts_right", "parts_storage", 42, 100, 44, 100, 82)
+	add_region("generator_back", "generator_nook", 66, 100, -38, 38, 72)
+	add_region("machine_core", "machine_bay", 24, 88, -42, 42, 85)
+	add_region("machine_fill", "machine_bay", 0, 100, -100, 100, 1)
+	add_adjacency("entry_buffer", "service_spine")
+	add_adjacency("service_spine", "machine_bay")
+	add_adjacency("machine_bay", "power_control")
+	add_adjacency("machine_bay", "parts_storage")
+	add_adjacency("machine_bay", "generator_nook", FALSE)
+	add_nested_room("machine_bay", "generator_nook", 9, 9, 1)
+	add_signature_cluster("engineering_service_wall", "major", "signature_engineering_bay", "engineering_machine", "engineering_machine", list("machine_bay", "engineering_bay", "engineering_wall", "machine_wall"), 4, 6, TRUE, 0, 100, "engineering_service_wall", 45, TRUE, null, "engineering_service_chunk")
+	add_signature_cluster("power_console_wall", "major", "run", "power_console", "console", list("power_control", "engineering_wall", "service_strip", "wall_anchor"), 2, 3, TRUE, 0, 95, "engineering_controls", 25)
+	add_signature_cluster("parts_racks", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 90, "engineering_parts_racks", 25)
+	add_cluster("cable_crates", "secondary", "staging_group", "crate", "crate", list("parts_storage", "service_spine"), 2, 3, FALSE, 0, 65, FALSE)
+	add_cluster("operator_chair", "detail", "object", "chair", "chair", list("power_control", "service_spine"), 1, 1, FALSE, 0, 35, FALSE)
+	object_budgets = list("engineering_machine" = 5, "console" = 3, "table" = 3, "rack" = 5, "crate" = 4, "chair" = 2, "cabinet" = 2)
+	category_minimums = list("engineering_machine" = 2, "console" = 1, "rack" = 2)
+
+/datum/world_edit_building_archetype/laboratory
+	id = "laboratory"
+	label = "Laboratory"
+	suggested_shell_preset = "colony"
+	footprint_families = list("RECT", "L", "T", "NESTED")
+	primary_zone = "analysis_core"
+	hub_zone = "clean_spine"
+	window_bias = 30
+	detail_bias = 85
+
+/datum/world_edit_building_archetype/laboratory/build_definition()
+	add_zone("entry_buffer", "Entry buffer", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), TRUE)
+	add_zone("clean_spine", "Clean spine", "route", 4, TRUE, TRUE, FALSE, list("clean_spine", "primary_lane", "work_cluster"), TRUE)
+	add_zone("analysis_core", "Analysis core", "hub", 7, TRUE, TRUE, FALSE, list("analysis_core", "lab_bench", "focus_center"), TRUE)
+	add_zone("lab_wall", "Lab bench wall", "service", 4, TRUE, TRUE, FALSE, list("lab_wall", "lab_wall", "service_strip", "wall_anchor"), FALSE, "nook")
+	add_zone("specimen_storage", "Specimen storage", "storage", 3, TRUE, TRUE, TRUE, list("specimen_storage", "sample_storage", "storage_wall", "wall_anchor"), FALSE, "room", "secure")
+	add_optional_zone("containment_nook", "Containment nook", "private", 3, 55, TRUE, TRUE, list("containment_nook", "privacy_zone", "lab_wall", "wall_anchor"), FALSE, "room", "private", 48)
+	add_region("entry_front", "entry_buffer", 0, 16, -35, 35, 100)
+	add_region("clean_spine", "clean_spine", 0, 100, -18, 18, 95)
+	add_region("lab_left", "lab_wall", 24, 92, -100, -42, 90)
+	add_region("specimen_right", "specimen_storage", 44, 100, 42, 100, 88)
+	add_region("containment_back", "containment_nook", 64, 100, -38, 38, 76)
+	add_region("analysis_core", "analysis_core", 26, 88, -40, 40, 85)
+	add_region("analysis_fill", "analysis_core", 0, 100, -100, 100, 1)
+	add_adjacency("entry_buffer", "clean_spine")
+	add_adjacency("clean_spine", "analysis_core")
+	add_adjacency("analysis_core", "lab_wall")
+	add_adjacency("analysis_core", "specimen_storage")
+	add_adjacency("analysis_core", "containment_nook", FALSE)
+	add_nested_room("analysis_core", "containment_nook", 9, 9, 1)
+	add_signature_cluster("lab_bench_signature", "major", "signature_lab_bench", "lab_machine", "lab_machine", list("lab_wall", "lab_bench", "lab_wall", "service_strip"), 4, 6, TRUE, 0, 100, "lab_bench_signature", 45, TRUE, null, "lab_bench_chunk")
+	add_signature_cluster("sample_storage_wall", "major", "run", "sample_storage", "sample_storage", list("specimen_storage", "storage_wall", "wall_anchor"), 2, 3, TRUE, 0, 95, "sample_storage_wall", 25)
+	add_signature_cluster("analysis_table", "major", "table_cluster", "table", "table", list("analysis_core", "lab_bench", "focus_center"), 1, 1, FALSE, 1, 80, "analysis_surface", 20)
+	add_cluster("research_console", "secondary", "wall_object", "console", "console", list("analysis_core", "lab_wall", "wall_anchor"), 1, 1, TRUE, 0, 65, FALSE)
+	add_cluster("specimen_crates", "detail", "staging_group", "crate", "crate", list("specimen_storage", "clean_spine"), 1, 2, FALSE, 0, 40, FALSE)
+	object_budgets = list("lab_machine" = 4, "sample_storage" = 4, "table" = 3, "chair" = 3, "console" = 2, "crate" = 2, "cabinet" = 2)
+	category_minimums = list("lab_machine" = 2, "sample_storage" = 2, "table" = 1)

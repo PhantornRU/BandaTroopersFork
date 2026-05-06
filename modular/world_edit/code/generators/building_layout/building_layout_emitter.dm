@@ -71,6 +71,16 @@
 		if("storage")
 			if(building_zone_matches_any_signature_token(state, zone_id, list("rack", "loading", "staging")))
 				floor_path = "/turf/open/floor/almayer/cargo"
+		if("engineering")
+			if(building_zone_matches_any_signature_token(state, zone_id, list("machine", "power", "engineering")))
+				floor_path = "/turf/open/floor/almayer/orange"
+			else if(building_zone_matches_any_signature_token(state, zone_id, list("parts", "storage")))
+				floor_path = "/turf/open/floor/almayer/cargo"
+		if("laboratory")
+			if(building_zone_matches_any_signature_token(state, zone_id, list("lab", "analysis", "clean")))
+				floor_path = "/turf/open/floor/prison/sterile_white"
+			else if(building_zone_matches_any_signature_token(state, zone_id, list("specimen", "containment")))
+				floor_path = "/turf/open/floor/prison/blue_plate"
 	if(!isnull(floor_path))
 		var/resolved_floor = resolve_building_type_path(floor_path, /turf)
 		if(resolved_floor)
@@ -97,6 +107,11 @@
 	plan.metadata["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
 	plan.metadata["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
 	plan.metadata["nested_room_count"] = state.nested_room_count
+	plan.metadata["template_chunk_count"] = state.template_chunk_count
+	plan.metadata["template_chunk_cell_count"] = state.template_chunk_cell_count
+	plan.metadata["infrastructure_count"] = state.infrastructure_count
+	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
+	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
 	plan.metadata["microvariation_count"] = state.microvariation_count
 	plan.metadata["footprint_mask_score"] = state.config["footprint_mask_score"]
 	plan.metadata["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
@@ -217,6 +232,11 @@
 	plan.metadata["microvariation_anchor_counts"] = build_building_anchor_type_counts(state, "microvariation_")
 	plan.metadata["microvariation_anchor_count"] = count_building_anchor_turfs(state, "microvariation_")
 	plan.metadata["microvariation_count"] = state.microvariation_count
+	plan.metadata["template_chunk_count"] = state.template_chunk_count
+	plan.metadata["template_chunk_cell_count"] = state.template_chunk_cell_count
+	plan.metadata["infrastructure_count"] = state.infrastructure_count
+	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
+	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
 	plan.metadata["layout_macros"] = state.layout_macros.Copy()
 	plan.metadata["layout_macro_counts"] = state.layout_macro_counts.Copy()
 	plan.metadata["layout_macro_count"] = length(state.layout_macros)

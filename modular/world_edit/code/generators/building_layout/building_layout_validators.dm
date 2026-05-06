@@ -18,7 +18,11 @@
 			refresh_building_semantic_anchors(state)
 		if(repair_building_fixture_conflicts(state))
 			repaired_this_pass = TRUE
+		if(place_building_infrastructure(state))
+			repaired_this_pass = TRUE
 		if(repair_building_missing_major_clusters(state))
+			repaired_this_pass = TRUE
+		if(repair_building_empty_space(state))
 			repaired_this_pass = TRUE
 		if(repaired_this_pass)
 			refresh_building_semantic_anchors(state)
@@ -113,6 +117,25 @@
 			repaired = TRUE
 	return repaired
 
+/datum/world_edit_generator/building_layout/proc/repair_building_empty_space(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	if(state.empty_floor_ratio <= get_building_max_empty_floor_ratio(state))
+		return FALSE
+	var/repaired = FALSE
+	for(var/phase_id as anything in list("secondary", "detail"))
+		for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs(phase_id))
+			if(!istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+				continue
+			if(place_building_cluster_spec(state, cluster_spec, FALSE))
+				repaired = TRUE
+			if(state.empty_floor_ratio <= get_building_max_empty_floor_ratio(state))
+				return repaired
+	if(!repaired && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+		var/datum/world_edit_building_cluster_spec/filler_spec = new("empty_space_filler", "detail", "staging_group", "crate", "crate", list(state.semantic_plan.primary_zone_id, state.semantic_plan.hub_zone_id, "storage_wall", "service_wall"), 2, 4, FALSE, 0, 25, FALSE, null, "empty_space_filler_chunk")
+		repaired = place_building_cluster_spec(state, filler_spec, FALSE)
+	return repaired
+
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
@@ -140,6 +163,7 @@
 	validate_building_privacy_rules(state)
 	validate_building_forbidden_rules(state)
 	validate_building_major_clusters(state)
+	validate_building_infrastructure_rules(state)
 	validate_building_density_rules(state)
 	validate_building_signature_rules(state)
 	validate_building_nested_room_rules(state)
@@ -372,6 +396,25 @@
 			state.signature_failure_count++
 			state.add_error("Program [state.archetype.id] requires [minimum] [category] fixtures.")
 
+/datum/world_edit_generator/building_layout/proc/validate_building_infrastructure_rules(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || length(state.floor_turfs) < 12)
+		return
+	if((state.category_counts["light"] || 0) < 2)
+		state.fixture_conflict_count++
+		state.add_error("SS13 infrastructure requires at least two light fixtures.")
+	if((state.category_counts["apc"] || 0) < 1)
+		state.fixture_conflict_count++
+		state.add_error("SS13 infrastructure requires an APC.")
+	if((state.category_counts["air_alarm"] || 0) < 1)
+		state.fixture_conflict_count++
+		state.add_error("SS13 infrastructure requires an air alarm.")
+	if((state.category_counts["light_switch"] || 0) < 1)
+		state.fixture_conflict_count++
+		state.add_error("SS13 infrastructure requires a light switch near entry/service wall.")
+	if(length(state.floor_turfs) >= 30 && (state.category_counts["fire_alarm"] || 0) < 1)
+		state.fixture_conflict_count++
+		state.add_error("SS13 infrastructure requires a fire alarm for medium/large buildings.")
+
 /datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
 	var/raw_score = 0
 	var/max_score = 0
@@ -403,11 +446,19 @@
 		if(!state.fixture_lookup[floor_turf] && !state.reserved_lookup[floor_turf])
 			open_floor++
 	state.empty_floor_ratio = relevant_floor > 0 ? round(open_floor * 100 / relevant_floor) : 0
-	if(relevant_floor >= 24 && state.empty_floor_ratio > 72)
+	var/max_empty_floor_ratio = get_building_max_empty_floor_ratio(state)
+	if(relevant_floor >= 24 && state.empty_floor_ratio > max_empty_floor_ratio)
 		var/empty_message = "Program [state.archetype.id] leaves [state.empty_floor_ratio]% non-route floor empty after mandatory signatures."
 		state.signature_warnings += empty_message
-		if(!(empty_message in state.warnings))
-			state.add_warning(empty_message)
+		state.signature_failure_count++
+		state.add_error("[empty_message] Maximum allowed is [max_empty_floor_ratio]%.")
+
+/datum/world_edit_generator/building_layout/proc/get_building_max_empty_floor_ratio(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO
+	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
+	var/threshold = round(text2num("[style_budget["max_empty_floor_ratio"]]") || WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
+	return clamp(threshold, 35, 78)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
 	var/list/nested_specs = islist(state.semantic_plan?.nested_room_specs) ? state.semantic_plan.nested_room_specs.Copy() : list()

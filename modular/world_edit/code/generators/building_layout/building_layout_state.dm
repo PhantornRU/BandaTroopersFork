@@ -71,6 +71,11 @@
 	var/rectangular_region_candidate_count = 0
 	var/nested_room_count = 0
 	var/microvariation_count = 0
+	var/template_chunk_count = 0
+	var/template_chunk_cell_count = 0
+	var/infrastructure_count = 0
+	var/degraded_region_fallback_count = 0
+	var/list/degraded_region_reports = list()
 	var/list/region_claim_reports = list()
 
 /datum/world_edit_building_layout_state/proc/add_error(message)
@@ -225,6 +230,8 @@
 	wall_fixture_turfs.Cut()
 	fixture_count = 0
 	major_fixture_count = 0
+	template_chunk_cell_count = 0
+	infrastructure_count = 0
 	for(var/list/object_placement as anything in object_placements)
 		if(!islist(object_placement) || "[object_placement["kind"]]" != "interior")
 			continue
@@ -241,6 +248,10 @@
 		var/signature_credit = round(text2num("[object_placement["signature_count_credit"]]") || 0)
 		if(signature_credit > 0 && length("[object_placement["signature_id"]]"))
 			register_signature(object_placement["signature_id"], signature_credit)
+		if(length("[object_placement["template_chunk_id"]]"))
+			template_chunk_cell_count++
+		if(GLOB.world_edit_helpers.parse_bool(object_placement["infrastructure"]))
+			infrastructure_count++
 
 /datum/world_edit_building_layout_state/proc/remove_fixture_at(turf/target_turf)
 	if(!istype(target_turf))
