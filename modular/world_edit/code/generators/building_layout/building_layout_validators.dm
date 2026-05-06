@@ -124,6 +124,7 @@
 			state.add_error("Required zone '[zone_spec.id]' is not connected to the circulation graph.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_fixture_surface(datum/world_edit_building_layout_state/state)
+	var/list/wall_fixture_placement_lookup = list()
 	for(var/list/placement as anything in state.object_placements)
 		var/turf/target_turf = placement["turf"]
 		if(!state.floor_lookup[target_turf])
@@ -132,9 +133,25 @@
 			state.add_error("Fixture placement overlaps a wall turf.")
 		if(state.door_dirs[target_turf])
 			state.add_error("Fixture placement overlaps a door turf.")
+		if(placement["wall_mounted"])
+			wall_fixture_placement_lookup[target_turf] = TRUE
+			var/wall_dir = text2num("[placement["wall_dir"]]")
+			var/dir_mode = text2num("[placement["dir_mode"]]")
+			var/dir_to_use = text2num("[placement["dir"]]")
+			if(!(wall_dir in GLOB.cardinals))
+				state.add_error("Wall fixture placement is missing its wall direction.")
+				continue
+			if(!state.wall_lookup[get_step(target_turf, wall_dir)])
+				state.add_error("Wall fixture placement does not point at an adjacent wall.")
+				continue
+			var/expected_dir = resolve_building_place_rule_dir(wall_dir, dir_mode)
+			if(expected_dir != dir_to_use)
+				state.add_error("Wall fixture placement dir does not match its wall rule.")
 	for(var/turf/wall_fixture_turf as anything in state.wall_fixture_turfs)
 		if(!length(get_adjacent_wall_dirs_for_state(state, wall_fixture_turf)))
 			state.add_error("Wall fixture has no adjacent wall.")
+		if(!wall_fixture_placement_lookup[wall_fixture_turf])
+			state.add_error("Wall fixture has no emitted object placement.")
 
 /datum/world_edit_generator/building_layout/proc/build_building_reachable_floor_lookup(datum/world_edit_building_layout_state/state)
 	var/list/reachable = list()

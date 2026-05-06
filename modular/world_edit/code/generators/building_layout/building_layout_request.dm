@@ -6,6 +6,7 @@
 	var/datum/world_edit_building_prng/geometry_rng
 	var/datum/world_edit_building_prng/fixture_rng
 	var/datum/world_edit_building_prng/facade_rng
+	var/datum/world_edit_building_prng/microvariation_rng
 
 /datum/world_edit_generator/building_layout/proc/build_building_request(list/params, datum/world_edit_shape_contract/shape_contract, list/placement_context)
 	var/list/config = normalize_building_params(params)
@@ -24,6 +25,7 @@
 	request.geometry_rng = new /datum/world_edit_building_prng(build_stage_seed(request.effective_seed, "geometry"))
 	request.fixture_rng = new /datum/world_edit_building_prng(build_stage_seed(request.effective_seed, "fixtures"))
 	request.facade_rng = new /datum/world_edit_building_prng(build_stage_seed(request.effective_seed, "facade"))
+	request.microvariation_rng = new /datum/world_edit_building_prng(build_stage_seed(request.effective_seed, "microvariation"))
 	config["effective_seed"] = request.effective_seed
 	config["archetype_label"] = request.archetype.label
 	return request

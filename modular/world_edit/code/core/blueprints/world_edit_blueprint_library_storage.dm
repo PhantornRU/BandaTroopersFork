@@ -151,11 +151,25 @@
 				var/list/member_attributes = model[2]
 				var/has_turf = FALSE
 				var/has_area = FALSE
+				var/has_real_turf_entry = FALSE
 				for(var/member_index in 1 to length(members))
 					var/atom_path = members[member_index]
 					if(ispath(atom_path, /turf))
 						if(atom_path != /turf/template_noop)
-							return world_edit_build_dmm_parse_error("DMM blueprint содержит неподдерживаемый turf '[atom_path]'.")
+							if(has_real_turf_entry)
+								return world_edit_build_dmm_parse_error("DMM blueprint contains multiple turf entries in one cell.")
+							if(!world_edit_get_blueprint_turf_rule(atom_path))
+								return world_edit_build_dmm_parse_error("DMM blueprint contains unsupported turf '[atom_path]'.")
+							raw_entries += list(list(
+								"kind" = "turf",
+								"type" = "[atom_path]",
+								"dx" = current_x - anchor_x,
+								"dy" = current_y - anchor_y,
+								"dz" = 0,
+								"dir" = SOUTH,
+								"vars" = list(),
+							))
+							has_real_turf_entry = TRUE
 						if(islist(member_attributes[member_index]) && length(member_attributes[member_index]))
 							return world_edit_build_dmm_parse_error("DMM blueprint содержит var edit на template turf.")
 						has_turf = TRUE
@@ -176,6 +190,7 @@
 					if(var_result["error"])
 						return var_result
 					raw_entries += list(list(
+						"kind" = "object",
 						"type" = "[atom_path]",
 						"dx" = current_x - anchor_x,
 						"dy" = current_y - anchor_y,
@@ -351,19 +366,25 @@
 	var/list/model_to_key = list()
 	var/list/model_lines = list()
 	var/list/grid_lines = list()
-	var/noop_model = "/turf/template_noop,/area/template_noop"
+	var/noop_area_model = "/area/template_noop"
 	for(var/y = dimensions["height"], y >= 1, y--)
 		var/line = ""
 		for(var/x = 1, x <= dimensions["width"], x++)
 			var/list/entries = cell_entries["[x],[y]"]
 			var/list/model_parts = list()
+			var/turf_model = "/turf/template_noop"
 			if(islist(entries))
 				for(var/list/entry as anything in entries)
+					var/atom_path = text2path("[entry["type"]]")
+					if(ispath(atom_path, /turf))
+						turf_model = "[atom_path]"
+						continue
 					var/object_model = world_edit_serialize_dmm_object_entry(entry)
 					if(!length(object_model))
 						return list("error" = "Не удалось сериализовать объект шаблона.")
 					model_parts += object_model
-			model_parts += noop_model
+			model_parts += turf_model
+			model_parts += noop_area_model
 			var/model_text = model_parts.Join(",")
 			var/model_key = model_to_key[model_text]
 			if(!length("[model_key]"))

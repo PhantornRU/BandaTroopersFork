@@ -107,12 +107,23 @@
 
 	var/list/specs = list()
 	for(var/list/entry as anything in entries)
-		var/obj/obj_path = text2path("[entry["type"]]")
-		if(!ispath(obj_path, /obj))
-			continue
-
 		var/dir_value = text2num("[entry["dir"]]") || SOUTH
-		var/list/spec = GLOB.world_edit_helpers.build_world_edit_atom_preview_appearance_spec(obj_path, dir_value, entry["vars"], 255)
+		var/atom_path = text2path("[entry["type"]]")
+		var/list/spec
+		if(ispath(atom_path, /turf))
+			var/turf/preview_turf = atom_path
+			spec = GLOB.world_edit_helpers.build_world_edit_preview_appearance_spec(
+				initial(preview_turf.icon),
+				length("[initial(preview_turf.icon_state)]") ? "[initial(preview_turf.icon_state)]" : null,
+				SOUTH,
+				initial(preview_turf.layer),
+				initial(preview_turf.plane),
+				0,
+				0,
+				255
+			)
+		else if(ispath(atom_path, /obj))
+			spec = GLOB.world_edit_helpers.build_world_edit_atom_preview_appearance_spec(atom_path, dir_value, entry["vars"], 255)
 		if(!islist(spec))
 			continue
 

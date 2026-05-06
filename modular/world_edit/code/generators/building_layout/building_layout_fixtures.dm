@@ -381,6 +381,13 @@
 	if(!obj_path)
 		state.add_warning("Unable to resolve fixture object '[slot]' for program [state.archetype.id].")
 		return FALSE
-	state.object_placements += list(build_object_placement("interior", target_turf, obj_path, dir_to_use))
+	var/list/object_placement = build_object_placement("interior", target_turf, obj_path, dir_to_use)
+	object_placement["slot"] = "[slot]"
+	object_placement["category"] = "[category]"
+	if(wall_mounted)
+		object_placement["wall_mounted"] = TRUE
+		object_placement["wall_dir"] = wall_dir
+		object_placement["dir_mode"] = place_rule.dir_mode
+	state.object_placements += list(object_placement)
 	state.register_fixture(target_turf, category, major, wall_mounted)
 	return TRUE

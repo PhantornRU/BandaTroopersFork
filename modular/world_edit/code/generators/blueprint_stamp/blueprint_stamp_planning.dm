@@ -19,6 +19,9 @@
 	if(!istype(target_turf))
 		return null
 
+	if("[placement["kind"]]" == "blueprint_turf")
+		return "turf:[target_turf.x],[target_turf.y],[target_turf.z]"
+
 	var/obj_path = placement["obj_path"]
 	if(ispath(obj_path, /obj/structure/barricade))
 		return GLOB.world_edit_helpers.build_turf_dir_slot_key(target_turf, placement["dir"])

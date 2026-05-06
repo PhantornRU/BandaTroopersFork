@@ -24,7 +24,11 @@ GLOBAL_DATUM_INIT(world_edit_blueprints, /datum/world_edit_blueprint_service, ne
 
 /datum/world_edit_blueprint_service
 	var/list/world_edit_blueprint_type_rules = list()
+	var/list/world_edit_blueprint_building_type_rules = list()
+	var/list/world_edit_blueprint_building_turf_rules = list()
 
 /datum/world_edit_blueprint_service/New()
 	. = ..()
 	world_edit_blueprint_type_rules = world_edit_build_blueprint_type_rules()
+	world_edit_blueprint_building_type_rules = world_edit_build_blueprint_building_type_rules()
+	world_edit_blueprint_building_turf_rules = world_edit_build_blueprint_building_turf_rules()

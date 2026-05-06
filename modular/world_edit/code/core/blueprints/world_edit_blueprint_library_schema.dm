@@ -15,9 +15,9 @@
 		var/dx = text2num("[entry["dx"]]")
 		var/dy = text2num("[entry["dy"]]")
 		var/dz = text2num("[entry["dz"]]")
-		var/obj_path = text2path("[entry["type"]]")
+		var/atom_path = text2path("[entry["type"]]")
 		var/dir_value = text2num("[entry["dir"]]")
-		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(obj_path, dir_value))
+		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(atom_path, dir_value))
 			if(!islist(offset) || length(offset) < 2)
 				continue
 			var/occupied_dx = dx + (text2num("[offset[1]]") || 0)
@@ -127,8 +127,9 @@
 		return list("error" = "Запись шаблона должна быть списком.")
 
 	var/type_text = "[raw_entry["type"]]"
-	var/obj_path = text2path(type_text)
-	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
+	var/atom_path = text2path(type_text)
+	var/is_turf_entry = ispath(atom_path, /turf)
+	var/list/rule = is_turf_entry ? world_edit_get_blueprint_turf_rule(atom_path) : world_edit_get_blueprint_type_rule(atom_path)
 	if(!rule)
 		return list("error" = "В шаблоне указан неразрешенный тип '[type_text]'.")
 
@@ -148,12 +149,26 @@
 		if(!(dir_value in GLOB.cardinals))
 			return list("error" = "В шаблоне указано некардинальное направление.")
 
-	var/list/vars_result = world_edit_validate_blueprint_entry_vars(obj_path, raw_entry["vars"])
+	if(is_turf_entry)
+		if(islist(raw_entry["vars"]) && length(raw_entry["vars"]))
+			return list("error" = "Blueprint turf entries do not support vars.")
+		return list("entry" = list(
+			"kind" = "turf",
+			"type" = "[atom_path]",
+			"dx" = dx,
+			"dy" = dy,
+			"dz" = dz,
+			"dir" = SOUTH,
+			"vars" = list(),
+		))
+
+	var/list/vars_result = world_edit_validate_blueprint_entry_vars(atom_path, raw_entry["vars"])
 	if(vars_result["error"])
 		return vars_result
 
 	return list("entry" = list(
-		"type" = "[obj_path]",
+		"kind" = "object",
+		"type" = "[atom_path]",
 		"dx" = dx,
 		"dy" = dy,
 		"dz" = dz,
@@ -395,8 +410,12 @@
 		if(entry_result["error"])
 			return entry_result
 		var/list/sanitized_entry = entry_result["entry"]
-		var/obj_path = text2path("[sanitized_entry["type"]]")
-		var/list/coord_keys = world_edit_build_blueprint_relative_slot_keys(obj_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
+		var/atom_path = text2path("[sanitized_entry["type"]]")
+		var/list/coord_keys = list()
+		if(ispath(atom_path, /turf))
+			coord_keys += "turf:[sanitized_entry["dx"]],[sanitized_entry["dy"]],[sanitized_entry["dz"]]"
+		else
+			coord_keys = world_edit_build_blueprint_relative_slot_keys(atom_path, sanitized_entry["dx"], sanitized_entry["dy"], sanitized_entry["dz"], sanitized_entry["dir"])
 		if(!length(coord_keys))
 			return list("error" = "В шаблоне указан недопустимый слот направленного размещения.")
 		for(var/coord_key as anything in coord_keys)
@@ -440,8 +459,14 @@
 			return 40
 		if("support_prop")
 			return 30
+		if("building_wall")
+			return 25
 		if("barricade")
 			return 20
+		if("building_object")
+			return 15
+		if("building_floor")
+			return 5
 	return 10
 
 /datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_preview_tone(category)
@@ -453,6 +478,12 @@
 		if("wire_object")
 			return "wire"
 		if("support_prop")
+			return "support"
+		if("building_wall")
+			return "wall"
+		if("building_floor")
+			return "floor"
+		if("building_object")
 			return "support"
 		if("barricade")
 			return "barricade"
@@ -475,8 +506,8 @@
 
 	var/list/cell_by_coord = list()
 	for(var/list/entry as anything in entries)
-		var/obj_path = text2path("[entry["type"]]")
-		var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
+		var/atom_path = text2path("[entry["type"]]")
+		var/list/rule = ispath(atom_path, /turf) ? world_edit_get_blueprint_turf_rule(atom_path) : world_edit_get_blueprint_type_rule(atom_path)
 		if(!islist(rule))
 			continue
 
@@ -486,7 +517,7 @@
 		var/dx = text2num("[entry["dx"]]")
 		var/dy = text2num("[entry["dy"]]")
 		var/dir_value = text2num("[entry["dir"]]") || SOUTH
-		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(obj_path, dir_value))
+		for(var/list/offset as anything in world_edit_get_blueprint_occupied_offsets(atom_path, dir_value))
 			if(!islist(offset) || length(offset) < 2)
 				continue
 			var/occupied_dx = dx + (text2num("[offset[1]]") || 0)

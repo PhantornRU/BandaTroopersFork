@@ -61,7 +61,7 @@
 		return get_outward_dir(target_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
 	if(findtext("[anchor_id]", "ritual"))
 		return get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, state.placement_dir)
-	if(state.request?.facade_rng?.chance(50))
+	if(state.request?.microvariation_rng?.chance(50))
 		return state.placement_dir
 	return turn(state.placement_dir, 90)
 
@@ -79,7 +79,7 @@
 			continue
 		if(!can_place_building_microvariation_detail(state, target_turf, wall_allowed))
 			continue
-		if(state.request?.facade_rng && !state.request.facade_rng.chance(75))
+		if(state.request?.microvariation_rng && !state.request.microvariation_rng.chance(75))
 			continue
 		var/detail_dir = get_building_microvariation_detail_dir(state, target_turf, anchor_id)
 		state.object_placements += list(build_object_placement("microvariation", target_turf, obj_path, detail_dir))
@@ -120,7 +120,7 @@
 
 /datum/world_edit_generator/building_layout/proc/add_building_floor_rhythm_anchors(datum/world_edit_building_layout_state/state, detail_budget)
 	var/stride = detail_budget >= 70 ? 2 : 3
-	var/phase = state.request?.facade_rng?.next_between(0, stride - 1) || 0
+	var/phase = state.request?.microvariation_rng?.next_between(0, stride - 1) || 0
 	var/target_count = min(48, max(4, round(length(state.floor_turfs) * detail_budget / 220)))
 	var/placed = 0
 	for(var/turf/floor_turf as anything in state.floor_turfs)
@@ -140,7 +140,7 @@
 	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)
 	var/list/window_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.window_turfs)
 	var/panel_stride = detail_budget >= 75 ? 2 : 3
-	var/phase = state.request?.facade_rng?.next_between(0, panel_stride - 1) || 0
+	var/phase = state.request?.microvariation_rng?.next_between(0, panel_stride - 1) || 0
 	var/center_x = (state.bounds["min_x"] + state.bounds["max_x"]) / 2
 	var/center_y = (state.bounds["min_y"] + state.bounds["max_y"]) / 2
 	for(var/turf/boundary_turf as anything in state.boundary)

@@ -147,21 +147,21 @@
 	return run_apply(user)
 
 /datum/world_edit_manager/proc/can_save_blueprint_from_current_plan()
-	if(current_definition?.id != "outpost_radius")
+	if(!("[current_definition?.id]" in list("outpost_radius", "building_layout")))
 		return FALSE
 	return is_preview_state_valid() && istype(get_current_preview_plan(), /datum/world_edit_plan)
 
 /datum/world_edit_manager/proc/save_blueprint_from_current_plan(mob/user)
 	if(!can_save_blueprint_from_current_plan())
-		return fail_blueprint_action(user, "Сначала выполните предпросмотр outpost_radius для сохранения шаблона.")
+		return fail_blueprint_action(user, "Run a supported generator preview before saving a DMM blueprint.")
 
 	var/datum/world_edit_plan/current_plan = get_current_preview_plan()
 	var/turf/anchor_turf = current_plan?.metadata["center_turf"]
 	if(!anchor_turf)
 		anchor_turf = get_turf(user)
 
-	var/default_name = "Форпостный шаблон"
-	var/raw_name = tgui_input_text(user, "Введите имя шаблона. Сохраняется только ограниченный план форпоста из текущего предпросмотра.", "Панель редактирования мира: сохранить шаблон", default_name, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN, FALSE, FALSE)
+	var/default_name = current_definition?.id == "building_layout" ? "building_layout_blueprint" : "outpost_blueprint"
+	var/raw_name = tgui_input_text(user, "Enter blueprint file name. The current preview plan will be saved as a DMM blueprint.", "World Edit: save DMM blueprint", default_name, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN, FALSE, FALSE)
 	if(isnull(raw_name))
 		return FALSE
 
@@ -169,7 +169,7 @@
 	if(!length(blueprint_name))
 		blueprint_name = default_name
 
-	var/list/export_result = GLOB.world_edit_blueprints.world_edit_export_blueprint_from_outpost_plan(current_plan, anchor_turf, blueprint_name, holder?.ckey)
+	var/list/export_result = GLOB.world_edit_blueprints.world_edit_export_blueprint_from_plan(current_definition?.id, current_plan, anchor_turf, blueprint_name, holder?.ckey)
 	if(export_result["error"])
 		return fail_blueprint_action(user, export_result["error"])
 

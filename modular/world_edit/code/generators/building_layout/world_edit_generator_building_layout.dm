@@ -915,6 +915,7 @@
 	request.geometry_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "geometry"))
 	request.fixture_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "fixtures"))
 	request.facade_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "facade"))
+	request.microvariation_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "microvariation"))
 	return request
 
 /datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_state(datum/world_edit_building_request/request, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
@@ -1097,7 +1098,7 @@
 		if(islist(turf_spec))
 			turf_spec["kind"] = kind
 		return turf_spec
-	if(kind in list("door", "window", "interior"))
+	if(kind in list("door", "window", "interior", "microvariation"))
 		var/obj_path = placement["obj_path"]
 		if(!ispath(obj_path, /obj))
 			return null
@@ -1190,7 +1191,7 @@
 	var/list/checked_lookup = list()
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
-		if(!(kind in list("floor", "wall", "door", "window", "interior")))
+		if(!(kind in list("floor", "wall", "door", "window", "interior", "microvariation")))
 			continue
 		var/key = placement_coord_key(placement)
 		if(checked_lookup[key])
@@ -1262,7 +1263,7 @@
 
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
-		if(!(kind in list("door", "window", "interior")))
+		if(!(kind in list("door", "window", "interior", "microvariation")))
 			continue
 		var/turf/target_turf = runtime_target_turf(placement)
 		var/coord_key = placement_coord_key(placement)
