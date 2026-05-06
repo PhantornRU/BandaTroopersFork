@@ -129,14 +129,16 @@
 	execution_mode = WORLD_EDIT_EXECUTION_BATCH
 	generator_type = /datum/world_edit_generator/building_layout
 	default_params = list(
+		"archetype_id" = "colony_living_small",
 		"faction_preset" = "colony",
-		"layout_variant" = "living",
+		"building_seed" = 0,
 		"half_width" = 4,
 		"half_depth" = 4,
 		"window_density" = 40,
-		"interior_density" = 60,
+		"detail_budget" = 60,
 		"back_exit" = FALSE,
 		"respect_blockers" = TRUE,
+		"replace_blocked_turfs" = FALSE,
 	)
 	status = WORLD_EDIT_STATUS_READY
 
