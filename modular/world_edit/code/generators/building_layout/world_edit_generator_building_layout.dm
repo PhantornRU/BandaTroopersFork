@@ -1175,8 +1175,10 @@
 		return null
 	return "[placement["x"]],[placement["y"]],[placement["z"]]"
 
-/datum/world_edit_generator/building_layout/proc/has_runtime_object_blocker(turf/target_turf)
-	if(!istype(target_turf) || target_turf.density)
+/datum/world_edit_generator/building_layout/proc/has_runtime_object_blocker(turf/target_turf, obj_path = null)
+	if(!istype(target_turf))
+		return TRUE
+	if(target_turf.density && !GLOB.world_edit_blueprints.world_edit_can_place_blueprint_wall_detail(target_turf, obj_path))
 		return TRUE
 	for(var/atom/movable/blocker as anything in target_turf)
 		if(ismob(blocker))
@@ -1274,7 +1276,7 @@
 		if(skipped_turf_lookup[coord_key])
 			skipped_runtime++
 			continue
-		if(has_runtime_object_blocker(target_turf))
+		if(has_runtime_object_blocker(target_turf, obj_path))
 			skipped_runtime++
 			continue
 		var/obj/created_object = new obj_path(target_turf)

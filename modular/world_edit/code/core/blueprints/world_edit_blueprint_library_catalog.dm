@@ -69,11 +69,14 @@
 		"label" = label,
 	)
 
-/datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_building_object_type(list/rules, path_value, label = "Building object")
+/datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_building_object_type(list/rules, path_value, label = "Building object", allow_wall_turf = FALSE)
 	var/obj_path = ispath(path_value, /obj) ? path_value : text2path("[path_value]")
 	if(!ispath(obj_path, /obj))
 		return
 	world_edit_register_blueprint_type(rules, obj_path, "building_object", label)
+	var/list/rule = rules["[obj_path]"]
+	if(islist(rule) && allow_wall_turf)
+		rule["allow_wall_turf"] = TRUE
 
 /datum/world_edit_blueprint_service/proc/world_edit_register_blueprint_building_turf_type(list/rules, path_value, category = "building_turf", label = "Building turf")
 	var/turf_path = ispath(path_value, /turf) ? path_value : text2path("[path_value]")
@@ -119,7 +122,7 @@
 		"/obj/effect/decal/strata_decals/grime/grime1",
 		"/obj/effect/decal/strata_decals/grime/grime2",
 	))
-		world_edit_register_blueprint_building_object_type(., path_value, "Building detail")
+		world_edit_register_blueprint_building_object_type(., path_value, "Building detail", TRUE)
 
 /datum/world_edit_blueprint_service/proc/world_edit_build_blueprint_building_turf_rules()
 	. = list()

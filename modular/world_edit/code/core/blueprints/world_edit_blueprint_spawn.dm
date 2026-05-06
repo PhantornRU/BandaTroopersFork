@@ -8,9 +8,20 @@
 /datum/world_edit_blueprint_service/proc/world_edit_has_dense_blocker_for_blueprint(turf/target_turf)
 	return GLOB.world_edit_helpers.has_dense_nonmob_blocker(target_turf)
 
+/datum/world_edit_blueprint_service/proc/world_edit_can_place_blueprint_wall_detail(turf/target_turf, obj_path, list/rule = null)
+	if(!istype(target_turf) || !target_turf.density)
+		return FALSE
+	if(!islist(rule))
+		rule = world_edit_get_blueprint_type_rule(obj_path)
+	if(!GLOB.world_edit_helpers.parse_bool(rule?["allow_wall_turf"]))
+		return FALSE
+	return !world_edit_has_dense_blocker_for_blueprint(target_turf)
+
 /datum/world_edit_blueprint_service/proc/world_edit_validate_blueprint_target_turf(turf/target_turf, obj_path, dir_value = SOUTH)
 	var/list/rule = world_edit_get_blueprint_type_rule(obj_path)
 	if(!world_edit_is_open_construction_turf_for_blueprint(target_turf))
+		if(world_edit_can_place_blueprint_wall_detail(target_turf, obj_path, rule))
+			return null
 		return "Blueprint target must be an open construction turf."
 
 	if(ispath(obj_path, /obj/structure/barricade) || (islist(rule) && "[rule["category"]]" == "barricade"))
