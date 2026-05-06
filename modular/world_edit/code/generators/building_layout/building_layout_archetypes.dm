@@ -2,26 +2,43 @@
 	var/id = ""
 	var/label = ""
 	var/role = ""
+	var/privacy_class = "public"
 	var/min_area = 1
 	var/required = TRUE
+	var/optional = FALSE
+	var/optional_weight = 60
+	var/optional_min_footprint = 0
 	var/must_touch_route = TRUE
 	var/privacy_sensitive = FALSE
 	var/window_allowed = TRUE
 	var/divider_mode = "none"
 	var/list/anchor_tags = list()
 
-/datum/world_edit_building_zone_spec/New(_id, _label, _role, _min_area = 1, _required = TRUE, _must_touch_route = TRUE, _privacy_sensitive = FALSE, list/_anchor_tags = null, _window_allowed = TRUE, _divider_mode = "none")
+/datum/world_edit_building_zone_spec/New(_id, _label, _role, _min_area = 1, _required = TRUE, _must_touch_route = TRUE, _privacy_sensitive = FALSE, list/_anchor_tags = null, _window_allowed = TRUE, _divider_mode = "none", _privacy_class = null, _optional = FALSE, _optional_weight = 60, _optional_min_footprint = 0)
 	. = ..()
 	id = "[_id]"
 	label = "[_label]"
 	role = "[_role]"
+	privacy_class = length("[_privacy_class]") ? "[_privacy_class]" : null
 	min_area = max(round(text2num("[_min_area]") || 1), 0)
 	required = _required ? TRUE : FALSE
+	optional = _optional || !required ? TRUE : FALSE
+	optional_weight = clamp(round(text2num("[_optional_weight]") || 60), 0, 100)
+	optional_min_footprint = max(round(text2num("[_optional_min_footprint]") || 0), 0)
 	must_touch_route = _must_touch_route ? TRUE : FALSE
 	privacy_sensitive = _privacy_sensitive ? TRUE : FALSE
 	window_allowed = _window_allowed ? TRUE : FALSE
 	divider_mode = length("[_divider_mode]") ? "[_divider_mode]" : "none"
 	anchor_tags = islist(_anchor_tags) ? _anchor_tags.Copy() : list()
+	if(!length("[privacy_class]") || privacy_class == "null")
+		if(privacy_sensitive)
+			privacy_class = "private"
+		else if(role in list("secure", "storage", "service", "support", "nested"))
+			privacy_class = "secure"
+		else if(role in list("entry", "public", "public_med", "choke", "route"))
+			privacy_class = "public"
+		else
+			privacy_class = "semi_private"
 
 /datum/world_edit_building_region_spec
 	var/id = ""
@@ -116,6 +133,42 @@
 	zone_b = "[_zone_b]"
 	required = _required ? TRUE : FALSE
 
+/datum/world_edit_building_forbidden_rule
+	var/id = ""
+	var/kind = "zone_anchor"
+	var/zone_id = ""
+	var/target_id = ""
+	var/severity = 100
+
+/datum/world_edit_building_forbidden_rule/New(_id, _kind, _zone_id, _target_id, _severity = 100)
+	. = ..()
+	id = "[_id]"
+	kind = length("[_kind]") ? "[_kind]" : "zone_anchor"
+	zone_id = "[_zone_id]"
+	target_id = "[_target_id]"
+	severity = max(round(text2num("[_severity]") || 100), 0)
+
+/datum/world_edit_building_facade_rule
+	var/id = ""
+	var/zone_id = ""
+	var/role = ""
+	var/privacy_class = ""
+	var/facade_role = "neutral_face"
+	var/window_weight = 50
+	var/window_allowed = TRUE
+	var/macro_id = "facade_panel"
+
+/datum/world_edit_building_facade_rule/New(_id, _zone_id = null, _role = null, _privacy_class = null, _facade_role = "neutral_face", _window_weight = 50, _window_allowed = TRUE, _macro_id = "facade_panel")
+	. = ..()
+	id = "[_id]"
+	zone_id = length("[_zone_id]") ? "[_zone_id]" : ""
+	role = length("[_role]") ? "[_role]" : ""
+	privacy_class = length("[_privacy_class]") ? "[_privacy_class]" : ""
+	facade_role = length("[_facade_role]") ? "[_facade_role]" : "neutral_face"
+	window_weight = clamp(round(text2num("[_window_weight]") || 50), 0, 220)
+	window_allowed = _window_allowed ? TRUE : FALSE
+	macro_id = length("[_macro_id]") ? "[_macro_id]" : "facade_panel"
+
 /datum/world_edit_building_cluster_spec
 	var/id = ""
 	var/phase = "major"
@@ -132,8 +185,12 @@
 	var/signature_id = ""
 	var/signature_weight = 0
 	var/signature_required = FALSE
+	var/optional_zone_id = ""
+	var/macro_id = ""
+	var/count_cluster_id = ""
+	var/count_signature_id = ""
 
-/datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE)
+/datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null)
 	. = ..()
 	id = "[_id]"
 	phase = "[_phase]"
@@ -147,6 +204,8 @@
 	chair_count = max(round(text2num("[_chair_count]") || 0), 0)
 	priority = round(text2num("[_priority]") || 0)
 	required = _required ? TRUE : FALSE
+	optional_zone_id = length("[_optional_zone_id]") ? "[_optional_zone_id]" : ""
+	macro_id = length("[_macro_id]") ? "[_macro_id]" : ""
 
 /datum/world_edit_building_semantic_plan
 	var/datum/world_edit_building_archetype/archetype
@@ -157,11 +216,22 @@
 	var/list/zone_specs_by_id = list()
 	var/list/region_specs = list()
 	var/list/adjacency_rules = list()
+	var/list/forbidden_rules = list()
 	var/list/cluster_specs = list()
+	var/list/object_budgets = list()
 	var/list/category_minimums = list()
 	var/list/signature_minimums = list()
 	var/list/signature_weights = list()
 	var/list/mandatory_zones = list()
+	var/list/optional_zones = list()
+	var/list/selected_optional_zones = list()
+	var/list/inactive_optional_zones = list()
+	var/list/privacy_classes = list()
+	var/list/door_policy = list()
+	var/list/window_policy = list()
+	var/list/facade_rules = list()
+	var/list/style_budget = list()
+	var/list/repeat_penalties = list()
 	var/list/nested_room_specs = list()
 	var/nested_outer_zone = null
 	var/nested_inner_zone = null
@@ -169,7 +239,7 @@
 	var/nested_min_height = 9
 	var/min_signature_score = 70
 
-/datum/world_edit_building_semantic_plan/New(datum/world_edit_building_archetype/_archetype)
+/datum/world_edit_building_semantic_plan/New(datum/world_edit_building_archetype/_archetype, datum/world_edit_building_request/_request = null)
 	. = ..()
 	archetype = _archetype
 	if(!istype(archetype))
@@ -177,23 +247,100 @@
 	entry_zone_id = archetype.entry_zone
 	hub_zone_id = archetype.hub_zone
 	primary_zone_id = archetype.primary_zone
-	zone_specs = archetype.zone_specs.Copy()
-	region_specs = archetype.region_specs.Copy()
-	adjacency_rules = archetype.adjacency_rules.Copy()
-	cluster_specs = archetype.cluster_specs.Copy()
+	var/footprint_area = round(text2num("[_request?.config?["validated_footprint_count"]]") || 0)
+	var/list/active_zone_lookup = list()
+	var/list/inactive_zone_lookup = list()
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in archetype.zone_specs)
+		if(!istype(zone_spec))
+			continue
+		if(zone_spec.optional && !should_select_optional_zone(zone_spec, _request, footprint_area))
+			inactive_optional_zones += zone_spec.id
+			inactive_zone_lookup[zone_spec.id] = TRUE
+			continue
+		zone_specs += zone_spec
+		active_zone_lookup[zone_spec.id] = TRUE
+		if(zone_spec.optional)
+			selected_optional_zones += zone_spec.id
+	for(var/datum/world_edit_building_region_spec/region_spec as anything in archetype.region_specs)
+		if(istype(region_spec) && active_zone_lookup[region_spec.zone_id])
+			region_specs += region_spec
+	for(var/datum/world_edit_building_adjacency_rule/rule as anything in archetype.adjacency_rules)
+		if(istype(rule) && active_zone_lookup[rule.zone_a] && active_zone_lookup[rule.zone_b])
+			adjacency_rules += rule
+	for(var/datum/world_edit_building_forbidden_rule/forbidden_rule as anything in archetype.forbidden_rules)
+		if(istype(forbidden_rule) && (!length(forbidden_rule.zone_id) || active_zone_lookup[forbidden_rule.zone_id]))
+			forbidden_rules += forbidden_rule
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in archetype.cluster_specs)
+		if(cluster_spec_is_active(cluster_spec, inactive_zone_lookup, active_zone_lookup))
+			cluster_specs += cluster_spec
 	category_minimums = archetype.category_minimums.Copy()
+	var/list/active_category_lookup = list()
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
+		if(istype(cluster_spec) && length(cluster_spec.category))
+			active_category_lookup[cluster_spec.category] = TRUE
+	for(var/category as anything in archetype.object_budgets)
+		if(active_category_lookup["[category]"] || category_minimums["[category]"])
+			object_budgets["[category]"] = archetype.object_budgets[category]
 	signature_minimums = archetype.signature_minimums.Copy()
 	signature_weights = archetype.signature_weights.Copy()
 	mandatory_zones = archetype.mandatory_zones.Copy()
-	nested_room_specs = archetype.nested_room_specs.Copy()
-	nested_outer_zone = archetype.nested_outer_zone
-	nested_inner_zone = archetype.nested_inner_zone
+	optional_zones = archetype.optional_zones.Copy()
+	privacy_classes = archetype.privacy_classes.Copy()
+	door_policy = archetype.door_policy.Copy()
+	window_policy = archetype.window_policy.Copy()
+	facade_rules = archetype.facade_rules.Copy()
+	style_budget = archetype.style_budget.Copy()
+	repeat_penalties = archetype.repeat_penalties.Copy()
+	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in archetype.nested_room_specs)
+		if(!istype(nested_spec))
+			continue
+		if(active_zone_lookup[nested_spec.outer_zone_id] && active_zone_lookup[nested_spec.inner_zone_id])
+			nested_room_specs += nested_spec
+	nested_outer_zone = active_zone_lookup["[archetype.nested_outer_zone]"] ? archetype.nested_outer_zone : null
+	nested_inner_zone = active_zone_lookup["[archetype.nested_inner_zone]"] ? archetype.nested_inner_zone : null
 	nested_min_width = archetype.nested_min_width
 	nested_min_height = archetype.nested_min_height
 	min_signature_score = archetype.min_signature_score
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in zone_specs)
 		if(istype(zone_spec))
 			zone_specs_by_id[zone_spec.id] = zone_spec
+
+/datum/world_edit_building_semantic_plan/proc/should_select_optional_zone(datum/world_edit_building_zone_spec/zone_spec, datum/world_edit_building_request/request = null, footprint_area = 0)
+	if(!istype(zone_spec))
+		return FALSE
+	if(!zone_spec.optional)
+		return TRUE
+	if(zone_spec.optional_min_footprint > 0 && footprint_area > 0 && footprint_area < zone_spec.optional_min_footprint)
+		return FALSE
+	var/weight = clamp(round(text2num("[zone_spec.optional_weight]") || 0), 0, 100)
+	if(weight >= 100)
+		return TRUE
+	if(weight <= 0)
+		return FALSE
+	var/datum/world_edit_building_prng/rng = request?.program_rng
+	if(istype(rng))
+		return rng.chance(weight)
+	return weight >= 50
+
+/datum/world_edit_building_semantic_plan/proc/cluster_spec_is_active(datum/world_edit_building_cluster_spec/cluster_spec, list/inactive_zone_lookup, list/active_zone_lookup = null)
+	if(!istype(cluster_spec))
+		return FALSE
+	if(!islist(inactive_zone_lookup) || !length(inactive_zone_lookup))
+		return TRUE
+	if(length(cluster_spec.optional_zone_id) && inactive_zone_lookup[cluster_spec.optional_zone_id])
+		return FALSE
+	var/has_zone_anchor = FALSE
+	var/has_active_zone_anchor = FALSE
+	for(var/anchor_id as anything in cluster_spec.anchors)
+		if(inactive_zone_lookup["[anchor_id]"])
+			has_zone_anchor = TRUE
+			continue
+		if(islist(active_zone_lookup) && active_zone_lookup["[anchor_id]"])
+			has_zone_anchor = TRUE
+			has_active_zone_anchor = TRUE
+	if(has_zone_anchor && !has_active_zone_anchor)
+		return FALSE
+	return TRUE
 
 /datum/world_edit_building_semantic_plan/proc/get_zone_spec(zone_id)
 	return zone_specs_by_id["[zone_id]"]
@@ -216,13 +363,21 @@
 	var/list/zone_specs = list()
 	var/list/region_specs = list()
 	var/list/adjacency_rules = list()
+	var/list/forbidden_rules = list()
 	var/list/cluster_specs = list()
 	var/list/category_minimums = list()
 	var/list/signature_minimums = list()
 	var/list/signature_weights = list()
 	var/list/mandatory_zones = list()
+	var/list/optional_zones = list()
 	var/list/object_budgets = list()
 	var/list/shell_overrides = list()
+	var/list/privacy_classes = list()
+	var/list/door_policy = list()
+	var/list/window_policy = list()
+	var/list/facade_rules = list()
+	var/list/style_budget = list()
+	var/list/repeat_penalties = list()
 	var/list/nested_room_specs = list()
 	var/window_bias = 40
 	var/detail_bias = 60
@@ -237,15 +392,24 @@
 	zone_specs = list()
 	region_specs = list()
 	adjacency_rules = list()
+	forbidden_rules = list()
 	cluster_specs = list()
 	category_minimums = list()
 	signature_minimums = list()
 	signature_weights = list()
 	mandatory_zones = list()
+	optional_zones = list()
 	object_budgets = list()
 	shell_overrides = list()
+	privacy_classes = list()
+	door_policy = list()
+	window_policy = list()
+	facade_rules = list()
+	style_budget = list()
+	repeat_penalties = list()
 	nested_room_specs = list()
 	build_definition()
+	finalize_declarative_definition()
 
 /datum/world_edit_building_archetype/proc/build_definition()
 	return
@@ -253,12 +417,17 @@
 /datum/world_edit_building_archetype/proc/build_option()
 	return list("label" = label, "value" = id)
 
-/datum/world_edit_building_archetype/proc/add_zone(id, label, role, min_area = 1, required = TRUE, must_touch_route = TRUE, privacy_sensitive = FALSE, list/anchors = null, window_allowed = TRUE, divider_mode = "none")
-	var/datum/world_edit_building_zone_spec/zone_spec = new(id, label, role, min_area, required, must_touch_route, privacy_sensitive, anchors, window_allowed, divider_mode)
+/datum/world_edit_building_archetype/proc/add_zone(id, label, role, min_area = 1, required = TRUE, must_touch_route = TRUE, privacy_sensitive = FALSE, list/anchors = null, window_allowed = TRUE, divider_mode = "none", privacy_class = null, optional_weight = 60, optional_min_footprint = 0)
+	var/datum/world_edit_building_zone_spec/zone_spec = new(id, label, role, min_area, required, must_touch_route, privacy_sensitive, anchors, window_allowed, divider_mode, privacy_class, !required, optional_weight, optional_min_footprint)
 	zone_specs += zone_spec
 	if(zone_spec.required)
 		mandatory_zones += zone_spec.id
+	else
+		optional_zones += zone_spec.id
 	return zone_spec
+
+/datum/world_edit_building_archetype/proc/add_optional_zone(id, label, role, min_area = 1, optional_weight = 60, must_touch_route = TRUE, privacy_sensitive = FALSE, list/anchors = null, window_allowed = TRUE, divider_mode = "none", privacy_class = null, optional_min_footprint = 0)
+	return add_zone(id, label, role, min_area, FALSE, must_touch_route, privacy_sensitive, anchors, window_allowed, divider_mode, privacy_class, optional_weight, optional_min_footprint)
 
 /datum/world_edit_building_archetype/proc/add_region(id, zone_id, front_min, front_max, lateral_min, lateral_max, priority = 0)
 	var/datum/world_edit_building_region_spec/region_spec = new(id, zone_id, front_min, front_max, lateral_min, lateral_max, priority)
@@ -270,18 +439,23 @@
 	adjacency_rules += rule
 	return rule
 
+/datum/world_edit_building_archetype/proc/add_forbidden_rule(id, kind, zone_id, target_id, severity = 100)
+	var/datum/world_edit_building_forbidden_rule/rule = new(id, kind, zone_id, target_id, severity)
+	forbidden_rules += rule
+	return rule
+
 /datum/world_edit_building_archetype/proc/add_nested_room(outer_zone_id, inner_zone_id, min_width = 9, min_height = 9, margin = 1)
 	var/datum/world_edit_building_nested_room_spec/nested_room_spec = new(outer_zone_id, inner_zone_id, min_width, min_height, margin)
 	nested_room_specs += nested_room_spec
 	return nested_room_spec
 
-/datum/world_edit_building_archetype/proc/add_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, required = TRUE)
-	var/datum/world_edit_building_cluster_spec/cluster_spec = new(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required)
+/datum/world_edit_building_archetype/proc/add_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, required = TRUE, optional_zone_id = null, macro_id = null)
+	var/datum/world_edit_building_cluster_spec/cluster_spec = new(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id)
 	cluster_specs += cluster_spec
 	return cluster_spec
 
-/datum/world_edit_building_archetype/proc/add_signature_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, signature_id = null, signature_weight = 20, required = TRUE)
-	var/datum/world_edit_building_cluster_spec/cluster_spec = add_cluster(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required)
+/datum/world_edit_building_archetype/proc/add_signature_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, signature_id = null, signature_weight = 20, required = TRUE, optional_zone_id = null, macro_id = null)
+	var/datum/world_edit_building_cluster_spec/cluster_spec = add_cluster(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id)
 	cluster_spec.signature_id = length("[signature_id]") ? "[signature_id]" : "[id]"
 	cluster_spec.signature_weight = max(round(text2num("[signature_weight]") || 0), 0)
 	cluster_spec.signature_required = required ? TRUE : FALSE
@@ -291,8 +465,71 @@
 		signature_weights[cluster_spec.signature_id] = max(round(text2num("[signature_weights[cluster_spec.signature_id]]") || 0), cluster_spec.signature_weight)
 	return cluster_spec
 
-/datum/world_edit_building_archetype/proc/build_semantic_plan()
-	return new /datum/world_edit_building_semantic_plan(src)
+/datum/world_edit_building_archetype/proc/add_facade_rule(id, zone_id = null, role = null, privacy_class = null, facade_role = "neutral_face", window_weight = 50, window_allowed = TRUE, macro_id = "facade_panel")
+	var/datum/world_edit_building_facade_rule/rule = new(id, zone_id, role, privacy_class, facade_role, window_weight, window_allowed, macro_id)
+	facade_rules += rule
+	return rule
+
+/datum/world_edit_building_archetype/proc/finalize_declarative_definition()
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in zone_specs)
+		if(!istype(zone_spec))
+			continue
+		if(zone_spec.required && !(zone_spec.id in mandatory_zones))
+			mandatory_zones += zone_spec.id
+		if(zone_spec.optional && !(zone_spec.id in optional_zones))
+			optional_zones += zone_spec.id
+		if(!length("[privacy_classes[zone_spec.id]]"))
+			privacy_classes[zone_spec.id] = zone_spec.privacy_class
+		if(zone_spec.privacy_sensitive)
+			add_forbidden_rule("privacy_[zone_spec.id]_door_cone", "zone_anchor", zone_spec.id, "door_cone", 100)
+	if(!islist(door_policy) || !length(door_policy))
+		door_policy = list(
+			"id" = "front_controlled_optional_back",
+			"front" = TRUE,
+			"allow_back_exit" = TRUE,
+			"max_exterior_doors" = 2,
+			"controlled_internal_doors" = TRUE,
+		)
+	if(!islist(window_policy) || !length(window_policy))
+		window_policy = list(
+			"id" = "semantic_public_weighted",
+			"public_weight" = max(window_bias + 45, 80),
+			"semi_private_weight" = max(window_bias, 35),
+			"service_weight" = max(round(window_bias / 2), 10),
+			"secure_weight" = max(round(window_bias / 3), 0),
+			"private_weight" = 0,
+			"privacy_windows" = FALSE,
+		)
+	if(!islist(style_budget) || !length(style_budget))
+		style_budget = list(
+			"min_fixture_density" = 18,
+			"ideal_fixture_density" = 38,
+			"max_fixture_density" = 68,
+			"min_category_coverage" = 60,
+			"max_repeat_index" = 55,
+		)
+	if(!islist(repeat_penalties))
+		repeat_penalties = list()
+	for(var/category as anything in object_budgets)
+		if(!islist(repeat_penalties["[category]"]))
+			var/soft_percent = 58
+			if("[category]" in list("rack", "bed", "hydro_tray", "chair", "barrier"))
+				soft_percent = 75
+			repeat_penalties["[category]"] = list(
+				"soft_percent" = soft_percent,
+				"hard_percent" = 90,
+				"penalty" = 8,
+			)
+	if(!length(facade_rules))
+		add_facade_rule("public_default", null, "public", "public", "public_face", window_policy["public_weight"] || 120, TRUE, "facade_public_panel")
+		add_facade_rule("entry_default", null, "entry", "public", "public_face", window_policy["public_weight"] || 120, TRUE, "door_node_chunk")
+		add_facade_rule("service_default", null, "service", "secure", "service_face", window_policy["service_weight"] || 25, TRUE, "facade_service_panel")
+		add_facade_rule("secure_default", null, "secure", "secure", "secure_face", window_policy["secure_weight"] || 15, FALSE, "facade_fortified_panel")
+		add_facade_rule("private_default", null, "private", "private", "private_face", window_policy["private_weight"] || 0, FALSE, "facade_privacy_panel")
+		add_facade_rule("neutral_default", null, null, null, "neutral_face", window_bias, TRUE, "facade_panel")
+
+/datum/world_edit_building_archetype/proc/build_semantic_plan(datum/world_edit_building_request/request = null)
+	return new /datum/world_edit_building_semantic_plan(src, request)
 
 /datum/world_edit_building_archetype/living
 	id = "living"
@@ -443,23 +680,35 @@
 	add_zone("triage", "Triage", "public_med", 4, TRUE, TRUE, FALSE, list("triage", "public_route", "window_band"), TRUE, "nook")
 	add_zone("treatment", "Treatment", "hub", 8, TRUE, TRUE, FALSE, list("treatment", "work_cluster", "focus_center"), TRUE, "nook")
 	add_zone("med_storage", "Medical storage", "service", 3, TRUE, TRUE, FALSE, list("med_storage", "service_strip", "wall_anchor"), FALSE, "room")
-	add_zone("surgery_core", "Surgery core", "nested", 1, FALSE, TRUE, TRUE, list("surgery_core", "privacy_zone", "work_cluster"), FALSE)
+	add_optional_zone("surgery_core", "Surgery core", "nested", 1, 70, TRUE, TRUE, list("surgery_core", "privacy_zone", "work_cluster"), FALSE, "room", "private", 48)
+	add_optional_zone("cryo_bay", "Cryo bay", "private", 3, 55, TRUE, TRUE, list("cryo_bay", "privacy_zone", "treatment_wall"), FALSE, "nook", "private", 40)
+	add_optional_zone("chem_nook", "Chemistry nook", "service", 3, 45, TRUE, FALSE, list("chem_nook", "service_strip", "wall_anchor"), FALSE, "nook", "service", 44)
+	add_optional_zone("morgue_nook", "Morgue nook", "private", 2, 35, TRUE, TRUE, list("morgue_nook", "privacy_zone", "storage_wall"), FALSE, "room", "private", 46)
 	add_region("entry_front", "entry_buffer", 0, 18, -40, 40, 100)
 	add_region("triage_front", "triage", 12, 42, -100, 100, 80)
 	add_region("med_storage_side", "med_storage", 38, 100, 48, 100, 90)
+	add_region("cryo_back_left", "cryo_bay", 58, 100, -100, -48, 85)
+	add_region("chem_back_right", "chem_nook", 55, 100, 42, 100, 78)
+	add_region("morgue_back", "morgue_nook", 72, 100, -38, 38, 76)
 	add_region("treatment_core", "treatment", 35, 100, -48, 48, 70)
 	add_region("treatment_fill", "treatment", 0, 100, -100, 100, 1)
 	add_adjacency("entry_buffer", "triage")
 	add_adjacency("triage", "treatment")
 	add_adjacency("treatment", "med_storage")
+	add_adjacency("treatment", "cryo_bay", FALSE)
+	add_adjacency("treatment", "chem_nook", FALSE)
+	add_adjacency("med_storage", "morgue_nook", FALSE)
 	add_nested_room("treatment", "surgery_core", 9, 9, 1)
 	add_signature_cluster("treatment_bay_signature", "major", "signature_treatment_bay", "medical_bed", "medical_bed", list("treatment_wall", "treatment_bay"), 3, 5, TRUE, 0, 100, "treatment_bay", 45)
 	add_signature_cluster("med_storage_wall", "major", "run", "medical_storage", "medical_storage", list("med_storage", "service_strip", "storage_wall", "treatment_wall"), 2, 3, TRUE, 0, 95, "medical_storage_wall", 25)
 	add_signature_cluster("triage_table", "major", "table_cluster", "table", "table", list("triage", "public_side", "focus_center"), 1, 1, FALSE, 1, 80, "triage_surface", 15)
 	add_cluster("waiting_chairs", "secondary", "run", "chair", "chair", list("triage", "entry_buffer", "public_route"), 2, 2, FALSE, 0, 55, FALSE)
 	add_cluster("med_side_storage", "secondary", "wall_object", "cabinet", "cabinet", list("med_storage", "wall_anchor", "service_strip"), 1, 1, TRUE, 0, 50, FALSE)
-	add_cluster("surgery_bed", "detail", "object", "medical_bed", "medical_bed", list("surgery_core", "privacy_zone"), 1, 1, FALSE, 0, 45, FALSE)
-	object_budgets = list("medical_bed" = 4, "medical_storage" = 3, "table" = 2, "chair" = 4, "cabinet" = 2)
+	add_cluster("surgery_bed", "detail", "object", "medical_bed", "medical_bed", list("surgery_core", "privacy_zone"), 1, 1, FALSE, 0, 45, FALSE, "surgery_core", "surgery_bed_chunk")
+	add_cluster("cryo_sleeper", "secondary", "wall_object", "sleeper", "medical_bed", list("cryo_bay", "privacy_zone", "treatment_wall"), 1, 1, TRUE, 0, 60, FALSE, "cryo_bay", "cryo_sleeper_chunk")
+	add_cluster("chem_storage", "secondary", "wall_object", "water_tank", "water_or_chem", list("chem_nook", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 55, FALSE, "chem_nook", "chem_storage_chunk")
+	add_cluster("morgue_storage", "secondary", "run", "medical_storage", "medical_storage", list("morgue_nook", "storage_wall", "privacy_zone"), 1, 2, TRUE, 0, 50, FALSE, "morgue_nook", "morgue_storage_chunk")
+	object_budgets = list("medical_bed" = 5, "medical_storage" = 4, "water_or_chem" = 1, "table" = 2, "chair" = 4, "cabinet" = 2)
 	category_minimums = list("medical_bed" = 2, "medical_storage" = 1, "table" = 1)
 
 /datum/world_edit_generator/building_layout/proc/get_building_archetype_catalog()

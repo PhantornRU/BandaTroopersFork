@@ -7,20 +7,118 @@
 
 	for(var/attempt in 1 to WORLD_EDIT_BUILDING_MAX_REPAIR_ATTEMPTS)
 		var/repaired_this_pass = FALSE
-		for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan?.get_cluster_specs("major"))
-			if((state.cluster_counts[cluster_spec.id] || 0) >= cluster_spec.min_count)
-				continue
-			if(place_building_cluster_spec(state, cluster_spec, TRUE))
-				repaired_this_pass = TRUE
+		var/anchors_dirty = FALSE
+		if(repair_building_privacy_conflicts(state))
+			repaired_this_pass = TRUE
+			anchors_dirty = TRUE
+		if(repair_building_window_conflicts(state))
+			repaired_this_pass = TRUE
+			anchors_dirty = TRUE
+		if(anchors_dirty)
+			refresh_building_semantic_anchors(state)
+		if(repair_building_fixture_conflicts(state))
+			repaired_this_pass = TRUE
+		if(repair_building_missing_major_clusters(state))
+			repaired_this_pass = TRUE
+		if(repaired_this_pass)
+			refresh_building_semantic_anchors(state)
 		validate_building_layout_state(state)
 		if(!state.has_errors() || !repaired_this_pass)
 			break
+
+/datum/world_edit_generator/building_layout/proc/repair_building_privacy_conflicts(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	var/repaired = FALSE
+	var/fallback_zone = state.semantic_plan.hub_zone_id || state.semantic_plan.primary_zone_id
+	if(!length("[fallback_zone]"))
+		return FALSE
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec) || !zone_spec.privacy_sensitive)
+			continue
+		for(var/turf/private_turf as anything in state.get_zone_turfs(zone_spec.id).Copy())
+			if(!istype(private_turf))
+				continue
+			var/exposed = state.has_anchor("door_cone", private_turf)
+			if(!exposed)
+				for(var/check_dir in GLOB.cardinals)
+					if(state.has_anchor("door_cone", get_step(private_turf, check_dir)))
+						exposed = TRUE
+						break
+			if(!exposed)
+				continue
+			state.add_zone(private_turf, fallback_zone)
+			repaired = TRUE
+	if(repaired)
+		repair_building_zone_coverage(state)
+	return repaired
+
+/datum/world_edit_generator/building_layout/proc/repair_building_window_conflicts(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return FALSE
+	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)
+	var/list/kept_windows = list()
+	var/list/kept_lookup = list()
+	var/repaired = FALSE
+	for(var/turf/window_turf as anything in state.window_turfs)
+		if(!istype(window_turf))
+			repaired = TRUE
+			continue
+		if(!state.boundary_lookup[window_turf] || door_lookup[window_turf] || !boundary_turf_has_outside_dir(window_turf, state.footprint_lookup, get_outward_dir(window_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)) || !can_place_building_window_for_boundary_turf(state, window_turf))
+			repaired = TRUE
+			continue
+		if(!kept_lookup[window_turf])
+			kept_windows += window_turf
+			kept_lookup[window_turf] = TRUE
+	state.window_turfs = kept_windows
+	if(repaired)
+		build_building_windows(state)
+	return repaired
+
+/datum/world_edit_generator/building_layout/proc/repair_building_fixture_conflicts(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return FALSE
+	var/list/remove_turfs = list()
+	var/list/remove_lookup = list()
+	for(var/list/placement as anything in state.object_placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		var/turf/target_turf = placement["turf"]
+		var/remove_fixture = FALSE
+		if(!state.floor_lookup[target_turf] || state.wall_lookup[target_turf] || state.door_dirs[target_turf] || state.reserved_lookup[target_turf])
+			remove_fixture = TRUE
+		if(!remove_fixture && placement["wall_mounted"])
+			var/wall_dir = text2num("[placement["wall_dir"]]")
+			if(!(wall_dir in GLOB.cardinals) || !state.wall_lookup[get_step(target_turf, wall_dir)])
+				remove_fixture = TRUE
+		if(remove_fixture && !remove_lookup[target_turf])
+			remove_turfs += target_turf
+			remove_lookup[target_turf] = TRUE
+	var/repaired = FALSE
+	for(var/turf/remove_turf as anything in remove_turfs)
+		if(state.remove_fixture_at(remove_turf))
+			repaired = TRUE
+	return repaired
+
+/datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	var/repaired = FALSE
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
+		if(!istype(cluster_spec) || !cluster_spec.required)
+			continue
+		if((state.cluster_counts[cluster_spec.id] || 0) >= cluster_spec.min_count)
+			continue
+		if(place_building_cluster_spec(state, cluster_spec, TRUE))
+			repaired = TRUE
+	return repaired
 
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
 	state.errors.Cut()
 	state.signature_warnings.Cut()
+	state.reset_validation_metrics()
 
 	if(!istype(state.archetype) || !istype(state.semantic_plan))
 		state.add_error("Building semantic program is unavailable.")
@@ -34,11 +132,13 @@
 	validate_building_adjacency_rules(state)
 	validate_building_door_buffers(state)
 	validate_building_windows(state)
+	validate_building_facade_policy(state)
 	validate_building_reserved_lanes(state)
 	validate_building_route_touch(state)
 	validate_building_fixture_surface(state)
 	validate_building_fixture_reachability(state)
 	validate_building_privacy_rules(state)
+	validate_building_forbidden_rules(state)
 	validate_building_major_clusters(state)
 	validate_building_density_rules(state)
 	validate_building_signature_rules(state)
@@ -82,27 +182,43 @@
 		var/door_dir = state.door_dirs[door_turf] || get_outward_dir(door_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
 		var/turf/inward_turf = get_step(door_turf, turn(door_dir, 180))
 		if(!state.floor_lookup[inward_turf] && door_turf == state.front_door_turf)
+			state.door_buffer_conflict_count++
 			state.add_error("Door at [GLOB.world_edit_helpers.turf_to_text(door_turf)] has no interior buffer.")
 		if(state.boundary_lookup[door_turf] && state.fixture_lookup[inward_turf])
+			state.door_buffer_conflict_count++
 			state.add_error("Door buffer at [GLOB.world_edit_helpers.turf_to_text(inward_turf)] is blocked by a fixture.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_windows(datum/world_edit_building_layout_state/state)
 	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)
 	for(var/turf/window_turf as anything in state.window_turfs)
 		if(!state.boundary_lookup[window_turf])
+			state.window_conflict_count++
 			state.add_error("Window placement must stay on exterior boundary.")
 		if(door_lookup[window_turf])
+			state.window_conflict_count++
 			state.add_error("Window placement overlaps a door.")
 		if(!boundary_turf_has_outside_dir(window_turf, state.footprint_lookup, get_outward_dir(window_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)))
+			state.window_conflict_count++
 			state.add_error("Window placement has no exterior side.")
 		if(!can_place_building_window_for_boundary_turf(state, window_turf))
+			state.window_conflict_count++
 			state.add_error("Window placement contradicts the adjacent semantic zone.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_facade_policy(datum/world_edit_building_layout_state/state)
+	for(var/turf/boundary_turf as anything in state.boundary)
+		if(!istype(boundary_turf) || !state.wall_lookup[boundary_turf])
+			continue
+		var/facade_role = get_building_facade_role_for_boundary_turf(state, boundary_turf)
+		if(!length("[facade_role]"))
+			state.facade_conflict_count++
+			state.add_error("Facade boundary has no resolved facade role.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_reserved_lanes(datum/world_edit_building_layout_state/state)
 	for(var/turf/reserved_turf as anything in state.floor_turfs)
 		if(!state.reserved_lookup[reserved_turf])
 			continue
 		if(state.fixture_lookup[reserved_turf])
+			state.route_conflict_count++
 			state.add_error("Primary lane at [GLOB.world_edit_helpers.turf_to_text(reserved_turf)] is blocked by a fixture.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
@@ -121,17 +237,23 @@
 			if(route_touches_zone)
 				break
 		if(!route_touches_zone)
+			state.reachability_failure_count++
 			state.add_error("Required zone '[zone_spec.id]' is not connected to the circulation graph.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_fixture_surface(datum/world_edit_building_layout_state/state)
 	var/list/wall_fixture_placement_lookup = list()
 	for(var/list/placement as anything in state.object_placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
 		var/turf/target_turf = placement["turf"]
 		if(!state.floor_lookup[target_turf])
+			state.fixture_conflict_count++
 			state.add_error("Fixture placement must target a floor turf.")
 		if(state.wall_lookup[target_turf])
+			state.fixture_conflict_count++
 			state.add_error("Fixture placement overlaps a wall turf.")
 		if(state.door_dirs[target_turf])
+			state.fixture_conflict_count++
 			state.add_error("Fixture placement overlaps a door turf.")
 		if(placement["wall_mounted"])
 			wall_fixture_placement_lookup[target_turf] = TRUE
@@ -139,18 +261,23 @@
 			var/dir_mode = text2num("[placement["dir_mode"]]")
 			var/dir_to_use = text2num("[placement["dir"]]")
 			if(!(wall_dir in GLOB.cardinals))
+				state.fixture_conflict_count++
 				state.add_error("Wall fixture placement is missing its wall direction.")
 				continue
 			if(!state.wall_lookup[get_step(target_turf, wall_dir)])
+				state.fixture_conflict_count++
 				state.add_error("Wall fixture placement does not point at an adjacent wall.")
 				continue
 			var/expected_dir = resolve_building_place_rule_dir(wall_dir, dir_mode)
 			if(expected_dir != dir_to_use)
+				state.fixture_conflict_count++
 				state.add_error("Wall fixture placement dir does not match its wall rule.")
 	for(var/turf/wall_fixture_turf as anything in state.wall_fixture_turfs)
 		if(!length(get_adjacent_wall_dirs_for_state(state, wall_fixture_turf)))
+			state.fixture_conflict_count++
 			state.add_error("Wall fixture has no adjacent wall.")
 		if(!wall_fixture_placement_lookup[wall_fixture_turf])
+			state.fixture_conflict_count++
 			state.add_error("Wall fixture has no emitted object placement.")
 
 /datum/world_edit_generator/building_layout/proc/build_building_reachable_floor_lookup(datum/world_edit_building_layout_state/state)
@@ -195,6 +322,7 @@
 				has_adjacent_reachable_floor = TRUE
 				break
 		if(!has_adjacent_reachable_floor)
+			state.reachability_failure_count++
 			state.add_error("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_privacy_rules(datum/world_edit_building_layout_state/state)
@@ -203,24 +331,45 @@
 			continue
 		for(var/turf/private_turf as anything in state.get_zone_turfs(zone_spec.id))
 			if(state.has_anchor("door_cone", private_turf))
+				state.privacy_violation_count++
 				state.add_error("Privacy zone '[zone_spec.id]' overlaps an entry door cone.")
 			for(var/check_dir in GLOB.cardinals)
 				var/turf/nearby_turf = get_step(private_turf, check_dir)
 				if(state.has_anchor("door_cone", nearby_turf))
+					state.privacy_violation_count++
 					state.add_error("Privacy zone '[zone_spec.id]' is directly exposed to an entry door cone.")
 					break
+
+/datum/world_edit_generator/building_layout/proc/validate_building_forbidden_rules(datum/world_edit_building_layout_state/state)
+	var/list/forbidden_rules = islist(state.semantic_plan?.forbidden_rules) ? state.semantic_plan.forbidden_rules : list()
+	for(var/datum/world_edit_building_forbidden_rule/rule as anything in forbidden_rules)
+		if(!istype(rule))
+			continue
+		switch(rule.kind)
+			if("zone_anchor")
+				for(var/turf/zone_turf as anything in state.get_zone_turfs(rule.zone_id))
+					if(state.has_anchor(rule.target_id, zone_turf))
+						state.privacy_violation_count++
+						state.add_error("Forbidden rule '[rule.id]' violated: zone '[rule.zone_id]' overlaps anchor '[rule.target_id]'.")
+						break
+			if("adjacency")
+				if(building_zones_are_adjacent(state, rule.zone_id, rule.target_id))
+					state.facade_conflict_count++
+					state.add_error("Forbidden rule '[rule.id]' violated: zones '[rule.zone_id]' and '[rule.target_id]' are adjacent.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!cluster_spec.required)
 			continue
 		if((state.cluster_counts[cluster_spec.id] || 0) < cluster_spec.min_count)
+			state.signature_failure_count++
 			state.add_error("Major cluster '[cluster_spec.id]' placed [state.cluster_counts[cluster_spec.id] || 0], expected at least [cluster_spec.min_count].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
 	for(var/category as anything in state.semantic_plan.category_minimums)
 		var/minimum = round(text2num("[state.semantic_plan.category_minimums[category]]") || 0)
 		if((state.category_counts["[category]"] || 0) < minimum)
+			state.signature_failure_count++
 			state.add_error("Program [state.archetype.id] requires [minimum] [category] fixtures.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
@@ -237,10 +386,12 @@
 				continue
 			var/message = "Program signature '[signature_id]' placed [placed], expected at least [minimum]."
 			state.signature_warnings += message
+			state.signature_failure_count++
 			state.add_error(message)
 	state.signature_max_score = max_score > 0 ? 100 : 0
 	state.signature_score = max_score > 0 ? round(raw_score * 100 / max_score) : 100
 	if(max_score > 0 && state.signature_score < state.semantic_plan.min_signature_score)
+		state.signature_failure_count++
 		state.add_error("Program [state.archetype.id] signature score [state.signature_score]/100 is below [state.semantic_plan.min_signature_score].")
 
 	var/open_floor = 0

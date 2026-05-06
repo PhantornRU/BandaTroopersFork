@@ -30,6 +30,8 @@
 /datum/world_edit_generator/building_layout/proc/place_building_cluster_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
+	if(!length(cluster_spec.macro_id))
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/placed = 0
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
 	switch(cluster_spec.pattern)
@@ -60,6 +62,43 @@
 			state.register_signature(cluster_spec.signature_id, placed)
 	return placed >= max(cluster_spec.min_count, 1)
 
+/datum/world_edit_generator/building_layout/proc/get_building_macro_id_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(cluster_spec))
+		return ""
+	if(length(cluster_spec.macro_id))
+		return cluster_spec.macro_id
+	switch(cluster_spec.pattern)
+		if("signature_workshop_wall")
+			return "workshop_wall_chunk"
+		if("signature_rack_aisles")
+			return "rack_run_chunk"
+		if("signature_bed_rows", "signature_living_nook")
+			return "bed_niche_chunk"
+		if("signature_security_counter", "counter_line")
+			return "checkpoint_counter_chunk"
+		if("run")
+			if(cluster_spec.category in list("rack", "cabinet", "bed"))
+				return "[cluster_spec.category]_run_chunk"
+		if("wall_object")
+			return "wall_fixture_chunk"
+	return ""
+
+/datum/world_edit_generator/building_layout/proc/inherit_building_cluster_count_context(datum/world_edit_building_cluster_spec/child_spec, datum/world_edit_building_cluster_spec/parent_spec)
+	if(!istype(child_spec) || !istype(parent_spec))
+		return child_spec
+	child_spec.count_cluster_id = length(parent_spec.count_cluster_id) ? parent_spec.count_cluster_id : parent_spec.id
+	child_spec.count_signature_id = length(parent_spec.count_signature_id) ? parent_spec.count_signature_id : parent_spec.signature_id
+	if(!length(child_spec.macro_id) && length(parent_spec.macro_id))
+		child_spec.macro_id = parent_spec.macro_id
+	return child_spec
+
+/datum/world_edit_generator/building_layout/proc/get_building_fixture_count_credit(datum/world_edit_building_cluster_spec/cluster_spec, slot, category)
+	if(!istype(cluster_spec))
+		return 0
+	if("[slot]" == "chair" && "[category]" == "chair" && cluster_spec.category != "chair")
+		return 0
+	return 1
+
 /datum/world_edit_generator/building_layout/proc/prepare_building_fixture_scale(datum/world_edit_building_layout_state/state)
 	state.usable_fixture_area = 0
 	for(var/turf/floor_turf as anything in state.floor_turfs)
@@ -67,8 +106,9 @@
 			state.usable_fixture_area++
 	state.category_budgets.Cut()
 	var/usable_area = max(state.usable_fixture_area, length(state.floor_turfs) - length(state.primary_route_turfs))
-	for(var/category as anything in state.archetype.object_budgets)
-		var/base_budget = round(text2num("[state.archetype.object_budgets[category]]") || 0)
+	var/list/object_budgets = islist(state.semantic_plan?.object_budgets) ? state.semantic_plan.object_budgets : state.archetype.object_budgets
+	for(var/category as anything in object_budgets)
+		var/base_budget = round(text2num("[object_budgets[category]]") || 0)
 		if(base_budget <= 0)
 			continue
 		var/area_bonus = max(0, round((usable_area - 24) / 14))
@@ -124,6 +164,8 @@
 	return min(area_cap, max(base_count, base_count + area_bonus))
 
 /datum/world_edit_generator/building_layout/proc/place_table_cluster(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/datum/world_edit_building_place_rule/table_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/table_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(table_turf))
@@ -134,7 +176,7 @@
 		return 0
 	var/dir_to_use = table_context["dir"] || fallback_dir
 	var/wall_dir = table_context["wall_dir"]
-	if(!place_fixture_at(state, table_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, table_rule, wall_dir))
+	if(!place_fixture_at(state, table_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, table_rule, wall_dir, cluster_spec))
 		return 0
 	var/placed_primary = 1
 	var/placed_chairs = 0
@@ -148,11 +190,13 @@
 		var/chair_dir = get_cardinal_dir_toward(chair_turf, table_turf, SOUTH)
 		if(!building_place_rule_allows_turf(state, chair_turf, chair_rule, chair_dir, null))
 			continue
-		if(place_fixture_at(state, chair_turf, "chair", chair_dir, "chair", FALSE, FALSE, chair_rule, null))
+		if(place_fixture_at(state, chair_turf, "chair", chair_dir, "chair", FALSE, FALSE, chair_rule, null, cluster_spec))
 			placed_chairs++
 	return placed_primary
 
 /datum/world_edit_generator/building_layout/proc/place_fixture_run(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, target_count)
+	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/placed = 0
 	var/attempts = 0
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
@@ -167,7 +211,7 @@
 			break
 		var/wall_dir = place_context["wall_dir"]
 		var/dir_to_use = place_context["dir"] || fallback_dir
-		if(!place_fixture_at(state, start_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major" && placed <= 0, cluster_spec.wall_required, place_rule, wall_dir))
+		if(!place_fixture_at(state, start_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major" && placed <= 0, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 			break
 		placed++
 		var/list/run_dirs = get_fixture_run_dirs(state, wall_dir)
@@ -208,7 +252,7 @@
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, primary_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir))
+	if(!place_fixture_at(state, primary_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 		return 0
 	var/placed = 1
 	var/target_count = clamp(cluster_spec.max_count, 2, 2)
@@ -233,7 +277,7 @@
 				best_pair_score = pair_score
 		if(!istype(best_pair_turf))
 			break
-		if(!place_fixture_at(state, best_pair_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir))
+		if(!place_fixture_at(state, best_pair_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 			break
 		placed++
 	return placed
@@ -267,12 +311,14 @@
 			break
 		if(!building_place_rule_allows_turf(state, current_turf, place_rule, dir_to_use, wall_dir))
 			break
-		if(!place_fixture_at(state, current_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir))
+		if(!place_fixture_at(state, current_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 			break
 		placed++
 	return placed
 
 /datum/world_edit_generator/building_layout/proc/place_wall_fixture(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, TRUE, cluster_spec)
 	if(!istype(target_turf))
@@ -283,11 +329,13 @@
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", TRUE, place_rule, wall_dir))
+	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", TRUE, place_rule, wall_dir, cluster_spec))
 		return 0
 	return 1
 
 /datum/world_edit_generator/building_layout/proc/place_fixture_object(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(target_turf))
@@ -298,7 +346,7 @@
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir))
+	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 		return 0
 	return 1
 
@@ -346,6 +394,7 @@
 		score += cluster_spec.priority
 		if(zone_id in cluster_spec.anchors)
 			score += 80
+		score -= get_building_repeat_penalty_score(state, cluster_spec.category)
 	score += place_rule.priority_bonus
 	var/clearance = 0
 	for(var/check_dir in GLOB.cardinals)
@@ -357,7 +406,25 @@
 		score -= abs(target_turf.x - state.semantic_hub_turf.x) + abs(target_turf.y - state.semantic_hub_turf.y)
 	return score
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null)
+/datum/world_edit_generator/building_layout/proc/get_building_repeat_penalty_score(datum/world_edit_building_layout_state/state, category)
+	if(!istype(state) || !length("[category]"))
+		return 0
+	var/list/repeat_penalties = state.semantic_plan?.repeat_penalties
+	var/list/repeat_rule = islist(repeat_penalties) && islist(repeat_penalties["[category]"]) ? repeat_penalties["[category]"] : list()
+	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
+	var/soft_percent = round(text2num("[style_budget["max_repeat_index"]]") || 55)
+	if(!isnull(repeat_rule["soft_percent"]))
+		soft_percent = round(text2num("[repeat_rule["soft_percent"]]") || soft_percent)
+	var/penalty = round(text2num("[repeat_rule["penalty"]]") || 8)
+	var/category_count = round(text2num("[state.category_counts["[category]"]]") || 0)
+	if(category_count <= 0 || state.fixture_count <= 0)
+		return 0
+	var/projected_percent = round((category_count + 1) * 100 / max(state.fixture_count + 1, 1))
+	if(projected_percent <= soft_percent)
+		return 0
+	return (projected_percent - soft_percent) * max(penalty, 1)
+
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null)
 	if(!state.can_place_fixture(target_turf))
 		return FALSE
 	if(state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
@@ -377,6 +444,13 @@
 	var/budget = state.get_category_budget(category)
 	if(isnum(budget) && budget > 0 && (state.category_counts["[category]"] || 0) >= budget)
 		return FALSE
+	var/list/repeat_penalties = state.semantic_plan?.repeat_penalties
+	var/list/repeat_rule = islist(repeat_penalties) && islist(repeat_penalties["[category]"]) ? repeat_penalties["[category]"] : list()
+	var/hard_percent = round(text2num("[repeat_rule["hard_percent"]]") || 0)
+	if(!major && hard_percent > 0 && state.fixture_count >= 4)
+		var/projected_percent = round(((state.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixture_count + 1, 1))
+		if(projected_percent > hard_percent)
+			return FALSE
 	var/obj_path = resolve_interior_obj_path(state.config, slot)
 	if(!obj_path)
 		state.add_warning("Unable to resolve fixture object '[slot]' for program [state.archetype.id].")
@@ -384,6 +458,21 @@
 	var/list/object_placement = build_object_placement("interior", target_turf, obj_path, dir_to_use)
 	object_placement["slot"] = "[slot]"
 	object_placement["category"] = "[category]"
+	object_placement["major"] = major ? TRUE : FALSE
+	if(istype(cluster_spec))
+		var/count_cluster_id = length(cluster_spec.count_cluster_id) ? cluster_spec.count_cluster_id : cluster_spec.id
+		var/count_signature_id = length(cluster_spec.count_signature_id) ? cluster_spec.count_signature_id : cluster_spec.signature_id
+		var/count_credit = get_building_fixture_count_credit(cluster_spec, slot, category)
+		object_placement["cluster_id"] = count_cluster_id
+		if(count_cluster_id != cluster_spec.id)
+			object_placement["cluster_source_id"] = cluster_spec.id
+		object_placement["cluster_pattern"] = cluster_spec.pattern
+		object_placement["cluster_count_credit"] = count_credit
+		if(length(count_signature_id))
+			object_placement["signature_id"] = count_signature_id
+			object_placement["signature_count_credit"] = count_credit
+		if(length(cluster_spec.macro_id))
+			object_placement["layout_macro"] = cluster_spec.macro_id
 	if(wall_mounted)
 		object_placement["wall_mounted"] = TRUE
 		object_placement["wall_dir"] = wall_dir

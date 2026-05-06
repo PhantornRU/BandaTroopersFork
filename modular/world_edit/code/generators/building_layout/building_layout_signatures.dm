@@ -99,8 +99,8 @@
 			return place_signature_dense_pattern(state, cluster_spec, max(target_count, 7), list("rack", "rack", "crate"), list("rack", "rack", "crate"), TRUE)
 		if("signature_hydro_rows")
 			var/placed_hydro = place_signature_dense_pattern(state, cluster_spec, max(target_count, 8), list("hydro_tray"), list("hydro_tray"), FALSE)
-			placed_hydro += place_signature_support_fixture(state, list("work_counter", "seed_storage", "service_wall", "storage_wall"), "water_tank", "water_or_chem", TRUE)
-			placed_hydro += place_signature_support_fixture(state, list("seed_storage", "storage_wall"), "seed_storage", "seed_storage", TRUE)
+			placed_hydro += place_signature_support_fixture(state, list("work_counter", "seed_storage", "service_wall", "storage_wall"), "water_tank", "water_or_chem", TRUE, cluster_spec)
+			placed_hydro += place_signature_support_fixture(state, list("seed_storage", "storage_wall"), "seed_storage", "seed_storage", TRUE, cluster_spec)
 			return placed_hydro
 		if("signature_cook_line")
 			return place_signature_slot_run(state, cluster_spec, max(target_count, 5), list("table", "microwave", "processor", "sink", "fridge"), list("table", "kitchen_machine", "kitchen_machine", "kitchen_machine", "cold_storage"), TRUE)
@@ -121,8 +121,9 @@
 		return 0
 	return place_signature_slot_run(state, cluster_spec, target_count, slots, categories, force_wall)
 
-/datum/world_edit_generator/building_layout/proc/place_signature_support_fixture(datum/world_edit_building_layout_state/state, list/anchors, slot, category, force_wall = FALSE)
+/datum/world_edit_generator/building_layout/proc/place_signature_support_fixture(datum/world_edit_building_layout_state/state, list/anchors, slot, category, force_wall = FALSE, datum/world_edit_building_cluster_spec/parent_spec = null)
 	var/datum/world_edit_building_cluster_spec/support_spec = new("support_[slot]_[category]", "major", "wall_object", slot, category, anchors, 1, 1, force_wall, 0, 70, TRUE)
+	inherit_building_cluster_count_context(support_spec, parent_spec)
 	if(force_wall)
 		return place_wall_fixture(state, support_spec)
 	return place_fixture_object(state, support_spec)
@@ -146,7 +147,7 @@
 			break
 		var/wall_dir = place_context["wall_dir"]
 		var/dir_to_use = place_context["dir"] || fallback_dir
-		if(!place_fixture_at(state, start_turf, start_slot, dir_to_use, start_category, cluster_spec.phase == "major" && placed <= 0, force_wall || cluster_spec.wall_required, start_rule, wall_dir))
+		if(!place_fixture_at(state, start_turf, start_slot, dir_to_use, start_category, cluster_spec.phase == "major" && placed <= 0, force_wall || cluster_spec.wall_required, start_rule, wall_dir, cluster_spec))
 			break
 		placed++
 		var/list/run_dirs = get_fixture_run_dirs(state, wall_dir)
@@ -176,12 +177,12 @@
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
 		if(!building_place_rule_allows_turf(state, current_turf, place_rule, dir_to_use, wall_dir))
 			break
-		if(!place_fixture_at(state, current_turf, slot, dir_to_use, category, FALSE, force_wall || cluster_spec.wall_required, place_rule, wall_dir))
+		if(!place_fixture_at(state, current_turf, slot, dir_to_use, category, FALSE, force_wall || cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
 			break
 		placed++
 	return placed
 
-/datum/world_edit_generator/building_layout/proc/place_signature_adjacent_fixture(datum/world_edit_building_layout_state/state, turf/source_turf, slot, category, preferred_dir = null, needs_wall = FALSE)
+/datum/world_edit_generator/building_layout/proc/place_signature_adjacent_fixture(datum/world_edit_building_layout_state/state, turf/source_turf, slot, category, preferred_dir = null, needs_wall = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null)
 	if(!istype(state) || !istype(source_turf))
 		return FALSE
 	var/list/check_dirs = list()
@@ -199,7 +200,7 @@
 		var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, needs_wall || place_rule.needs_wall)
 		if(!islist(place_context))
 			continue
-		if(place_fixture_at(state, target_turf, slot, place_context["dir"] || fallback_dir, category, FALSE, needs_wall || place_rule.needs_wall, place_rule, place_context["wall_dir"]))
+		if(place_fixture_at(state, target_turf, slot, place_context["dir"] || fallback_dir, category, FALSE, needs_wall || place_rule.needs_wall, place_rule, place_context["wall_dir"], cluster_spec))
 			return TRUE
 	return FALSE
 
@@ -207,17 +208,18 @@
 	var/placed = 0
 	var/bed_target = max(1, round(target_count / 2))
 	var/datum/world_edit_building_cluster_spec/bed_spec = new("[cluster_spec.id]_bed", cluster_spec.phase, "run", "sleeper", "medical_bed", cluster_spec.anchors, bed_target, bed_target, cluster_spec.wall_required, 0, cluster_spec.priority, TRUE)
+	inherit_building_cluster_count_context(bed_spec, cluster_spec)
 	placed += place_fixture_run(state, bed_spec, bed_target)
 	for(var/turf/bed_turf as anything in state.major_fixture_turfs.Copy())
 		if(placed >= target_count + 2)
 			break
 		if(state.fixture_categories[bed_turf] != "medical_bed")
 			continue
-		if(place_signature_adjacent_fixture(state, bed_turf, "medical_storage", "medical_storage", null, TRUE))
+		if(place_signature_adjacent_fixture(state, bed_turf, "medical_storage", "medical_storage", null, TRUE, cluster_spec))
 			placed++
-		if(place_signature_adjacent_fixture(state, bed_turf, "wall_monitor", "console", null, TRUE))
+		if(place_signature_adjacent_fixture(state, bed_turf, "wall_monitor", "console", null, TRUE, cluster_spec))
 			placed++
-		if(place_signature_adjacent_fixture(state, bed_turf, "medical_scanner", "medical_bed", null, FALSE))
+		if(place_signature_adjacent_fixture(state, bed_turf, "medical_scanner", "medical_bed", null, FALSE, cluster_spec))
 			placed++
 	return placed
 
@@ -226,14 +228,17 @@
 	if(placed <= 0)
 		return 0
 	var/datum/world_edit_building_cluster_spec/console_spec = new("[cluster_spec.id]_console", cluster_spec.phase, "wall_object", "console", "console", list("desk_core", "desk_anchor", "wall_anchor", "service_wall"), 1, 1, TRUE, 0, cluster_spec.priority, TRUE)
+	inherit_building_cluster_count_context(console_spec, cluster_spec)
 	placed += place_wall_fixture(state, console_spec)
 	var/datum/world_edit_building_cluster_spec/filing_spec = new("[cluster_spec.id]_filing", cluster_spec.phase, "wall_object", "filing", "cabinet", list("filing_wall", "filing_wall_anchor", "storage_wall", "wall_anchor"), 1, 1, TRUE, 0, cluster_spec.priority, TRUE)
+	inherit_building_cluster_count_context(filing_spec, cluster_spec)
 	placed += place_wall_fixture(state, filing_spec)
 	return min(placed, max(target_count, cluster_spec.min_count))
 
 /datum/world_edit_generator/building_layout/proc/place_signature_security_counter(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, target_count)
 	var/counter_count = max(2, min(target_count, 4))
 	var/datum/world_edit_building_cluster_spec/counter_spec = new("[cluster_spec.id]_counter", cluster_spec.phase, "counter_line", "table", "table", cluster_spec.anchors, counter_count, counter_count, FALSE, 0, cluster_spec.priority, TRUE)
+	inherit_building_cluster_count_context(counter_spec, cluster_spec)
 	var/placed = place_fixture_run(state, counter_spec, counter_count)
 	var/list/secure_turfs = state.get_anchor_turfs("secure_side")
 	for(var/turf/secure_turf as anything in secure_turfs)
@@ -246,22 +251,22 @@
 		var/list/place_context = build_building_fixture_place_context(state, secure_turf, console_rule, fallback_dir, TRUE)
 		if(!islist(place_context))
 			continue
-		if(place_fixture_at(state, secure_turf, "security_console", place_context["dir"] || fallback_dir, "console", TRUE, TRUE, console_rule, place_context["wall_dir"]))
+		if(place_fixture_at(state, secure_turf, "security_console", place_context["dir"] || fallback_dir, "console", TRUE, TRUE, console_rule, place_context["wall_dir"], cluster_spec))
 			placed++
 			place_signature_adjacent_fixture(state, secure_turf, "chair", "chair", turn(place_context["dir"] || fallback_dir, 180), FALSE)
 			break
 	for(var/turf/secure_turf as anything in secure_turfs)
 		if(placed >= target_count + 3)
 			break
-		if(place_signature_adjacent_fixture(state, secure_turf, "cabinet", "cabinet", null, TRUE))
+		if(place_signature_adjacent_fixture(state, secure_turf, "cabinet", "cabinet", null, TRUE, cluster_spec))
 			placed++
-		if(place_signature_adjacent_fixture(state, secure_turf, "security_camera", "security_camera", null, TRUE))
+		if(place_signature_adjacent_fixture(state, secure_turf, "security_camera", "security_camera", null, TRUE, cluster_spec))
 			placed++
-		if(place_signature_adjacent_fixture(state, secure_turf, "weapon_rack", "weapon_rack", null, TRUE))
+		if(place_signature_adjacent_fixture(state, secure_turf, "weapon_rack", "weapon_rack", null, TRUE, cluster_spec))
 			placed++
 	var/list/holding_turfs = state.get_anchor_turfs("holding_nook")
 	for(var/turf/holding_turf as anything in holding_turfs)
-		if(place_signature_adjacent_fixture(state, holding_turf, "brig_cell", "security_machine", null, TRUE))
+		if(place_signature_adjacent_fixture(state, holding_turf, "brig_cell", "security_machine", null, TRUE, cluster_spec))
 			placed++
 			break
 	return placed
@@ -270,5 +275,6 @@
 	var/placed = place_signature_slot_run(state, cluster_spec, max(1, target_count), list("bed", "cabinet"), list("bed", "cabinet"), TRUE)
 	if(placed > 0 && target_count > placed)
 		var/datum/world_edit_building_cluster_spec/table_spec = new("[cluster_spec.id]_table", cluster_spec.phase, "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 1, cluster_spec.priority, TRUE)
+		inherit_building_cluster_count_context(table_spec, cluster_spec)
 		placed += place_table_cluster(state, table_spec)
 	return placed

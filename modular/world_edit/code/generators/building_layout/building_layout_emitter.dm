@@ -112,6 +112,18 @@
 	plan.metadata["style_score"] = state.style_score
 	plan.metadata["category_coverage_score"] = state.category_coverage_score
 	plan.metadata["repeat_index"] = state.repeat_index
+	plan.metadata["privacy_violation_count"] = state.privacy_violation_count
+	plan.metadata["reachability_failure_count"] = state.reachability_failure_count
+	plan.metadata["repetition_conflict_count"] = state.repetition_conflict_count
+	plan.metadata["fixture_density_score"] = state.fixture_density_score
+	plan.metadata["connectivity_score"] = state.connectivity_score
+	plan.metadata["visibility_privacy_score"] = state.visibility_privacy_score
+	plan.metadata["space_distribution_score"] = state.space_distribution_score
+	plan.metadata["door_buffer_conflict_count"] = state.door_buffer_conflict_count
+	plan.metadata["window_conflict_count"] = state.window_conflict_count
+	plan.metadata["facade_conflict_count"] = state.facade_conflict_count
+	plan.metadata["fixture_conflict_count"] = state.fixture_conflict_count
+	plan.metadata["route_conflict_count"] = state.route_conflict_count
 	plan.metadata["signature_warnings"] = state.signature_warnings.Copy()
 	plan.metadata["empty_floor_ratio"] = state.empty_floor_ratio
 	plan.metadata["program_signature_ok"] = state.signature_max_score <= 0 || state.signature_score >= state.semantic_plan?.min_signature_score
@@ -123,27 +135,47 @@
 		return plan
 
 	apply_building_microvariation_if_available(state)
+	apply_building_layout_macro_overlays(state)
 
 	for(var/turf/footprint_turf as anything in state.footprint)
 		if(!istype(footprint_turf))
 			continue
+		var/list/turf_placement
 		if(state.wall_lookup[footprint_turf])
-			plan.placements += list(build_turf_placement("wall", footprint_turf, state.config["wall_type"]))
+			turf_placement = build_turf_placement("wall", footprint_turf, state.config["wall_type"])
+			var/wall_macro_id = get_building_layout_macro_id_for_turf(state, "facade", footprint_turf)
+			if(length(wall_macro_id))
+				turf_placement["layout_macro"] = wall_macro_id
+				turf_placement["template_overlay"] = TRUE
+				turf_placement["dmm_chunk"] = wall_macro_id
 		else
-			plan.placements += list(build_turf_placement("floor", footprint_turf, resolve_building_zone_floor_type(state, footprint_turf)))
+			turf_placement = build_turf_placement("floor", footprint_turf, resolve_building_zone_floor_type(state, footprint_turf))
+		plan.placements += list(turf_placement)
 		plan.affected_turfs += footprint_turf
 
 	for(var/turf/door_turf as anything in state.door_turfs)
 		if(!istype(door_turf))
 			continue
 		var/door_dir = state.door_dirs[door_turf] || state.placement_dir
-		plan.placements += list(build_object_placement("door", door_turf, state.config["door_type"], door_dir))
+		var/list/door_placement = build_object_placement("door", door_turf, state.config["door_type"], door_dir)
+		var/door_macro_id = get_building_layout_macro_id_for_turf(state, "door", door_turf)
+		if(length(door_macro_id))
+			door_placement["layout_macro"] = door_macro_id
+			door_placement["template_overlay"] = TRUE
+			door_placement["dmm_chunk"] = door_macro_id
+		plan.placements += list(door_placement)
 
 	for(var/turf/window_turf as anything in state.window_turfs)
 		if(!istype(window_turf))
 			continue
 		var/window_dir = get_outward_dir(window_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
-		plan.placements += list(build_object_placement("window", window_turf, state.config["window_type"], window_dir))
+		var/list/window_placement = build_object_placement("window", window_turf, state.config["window_type"], window_dir)
+		var/window_macro_id = get_building_layout_macro_id_for_turf(state, "window", window_turf)
+		if(length(window_macro_id))
+			window_placement["layout_macro"] = window_macro_id
+			window_placement["template_overlay"] = TRUE
+			window_placement["dmm_chunk"] = window_macro_id
+		plan.placements += list(window_placement)
 
 	for(var/list/object_placement as anything in state.object_placements)
 		if(islist(object_placement))
@@ -166,6 +198,18 @@
 	plan.metadata["style_score"] = state.style_score
 	plan.metadata["category_coverage_score"] = state.category_coverage_score
 	plan.metadata["repeat_index"] = state.repeat_index
+	plan.metadata["privacy_violation_count"] = state.privacy_violation_count
+	plan.metadata["reachability_failure_count"] = state.reachability_failure_count
+	plan.metadata["repetition_conflict_count"] = state.repetition_conflict_count
+	plan.metadata["fixture_density_score"] = state.fixture_density_score
+	plan.metadata["connectivity_score"] = state.connectivity_score
+	plan.metadata["visibility_privacy_score"] = state.visibility_privacy_score
+	plan.metadata["space_distribution_score"] = state.space_distribution_score
+	plan.metadata["door_buffer_conflict_count"] = state.door_buffer_conflict_count
+	plan.metadata["window_conflict_count"] = state.window_conflict_count
+	plan.metadata["facade_conflict_count"] = state.facade_conflict_count
+	plan.metadata["fixture_conflict_count"] = state.fixture_conflict_count
+	plan.metadata["route_conflict_count"] = state.route_conflict_count
 	plan.metadata["fixture_category_budgets"] = state.category_budgets.Copy()
 	plan.metadata["zone_count"] = length(state.zone_turfs)
 	plan.metadata["anchor_count"] = length(state.anchor_turfs)
@@ -173,6 +217,9 @@
 	plan.metadata["microvariation_anchor_counts"] = build_building_anchor_type_counts(state, "microvariation_")
 	plan.metadata["microvariation_anchor_count"] = count_building_anchor_turfs(state, "microvariation_")
 	plan.metadata["microvariation_count"] = state.microvariation_count
+	plan.metadata["layout_macros"] = state.layout_macros.Copy()
+	plan.metadata["layout_macro_counts"] = state.layout_macro_counts.Copy()
+	plan.metadata["layout_macro_count"] = length(state.layout_macros)
 	plan.metadata["semantic_region_count"] = length(state.solved_regions)
 	plan.metadata["primary_route_count"] = length(state.primary_route_turfs)
 	plan.metadata["internal_wall_count"] = length(state.internal_wall_turfs)

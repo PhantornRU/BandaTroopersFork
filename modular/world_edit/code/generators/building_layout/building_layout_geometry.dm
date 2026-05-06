@@ -40,7 +40,8 @@
 		state.add_error("Building footprint exceeds cap ([WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS]).")
 		return state
 
-	state.semantic_plan = state.archetype.build_semantic_plan()
+	state.request.config["validated_footprint_count"] = length(state.footprint)
+	state.semantic_plan = state.archetype.build_semantic_plan(state.request)
 	if(!istype(state.semantic_plan))
 		state.add_error("Unable to build semantic plan for [state.archetype.id].")
 		return state
@@ -60,6 +61,10 @@
 /datum/world_edit_generator/building_layout/proc/build_building_doors(datum/world_edit_building_layout_state/state)
 	var/center_x = (state.bounds["min_x"] + state.bounds["max_x"]) / 2
 	var/center_y = (state.bounds["min_y"] + state.bounds["max_y"]) / 2
+	var/list/door_policy = islist(state.semantic_plan?.door_policy) ? state.semantic_plan.door_policy : list()
+	if(("front" in door_policy) && !GLOB.world_edit_helpers.parse_bool(door_policy["front"]))
+		state.add_error("Door policy for [state.archetype.id] does not allow a front entry.")
+		return
 	var/turf/front_door_turf = select_boundary_turf_for_dir(state.boundary, center_x, center_y, state.placement_dir, null, state.footprint_lookup)
 	if(!istype(front_door_turf))
 		state.add_error("Unable to select a building entry door turf.")
@@ -68,7 +73,9 @@
 	state.append_unique_turf(state.door_turfs, front_door_turf)
 	state.door_dirs[front_door_turf] = get_outward_dir(front_door_turf, state.footprint_lookup, center_x, center_y, state.placement_dir)
 
-	if(state.config["back_exit"])
+	var/max_exterior_doors = max(round(text2num("[door_policy["max_exterior_doors"]]") || 2), 1)
+	var/allow_back_exit = isnull(door_policy["allow_back_exit"]) ? TRUE : GLOB.world_edit_helpers.parse_bool(door_policy["allow_back_exit"])
+	if(state.config["back_exit"] && allow_back_exit && max_exterior_doors >= 2)
 		var/list/front_lookup = list()
 		front_lookup[front_door_turf] = TRUE
 		var/turf/back_door_turf = select_boundary_turf_for_dir(state.boundary, center_x, center_y, turn(state.placement_dir, 180), front_lookup, state.footprint_lookup)

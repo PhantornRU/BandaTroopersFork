@@ -58,6 +58,7 @@
 #include "code/generators/building_layout/building_layout_fixtures.dm"
 #include "code/generators/building_layout/building_layout_validators.dm"
 #include "code/generators/building_layout/building_layout_microvariation.dm"
+#include "code/generators/building_layout/building_layout_macros.dm"
 #include "code/generators/building_layout/building_layout_emitter.dm"
 #include "code/generators/building_layout/world_edit_generator_building_layout.dm"
 #include "code/effects/world_edit_persistent_fire.dm"

@@ -32,6 +32,13 @@
 			state.add_anchor("[zone_id]_focus", zone_focus)
 	add_building_signature_anchors(state)
 
+/datum/world_edit_generator/building_layout/proc/refresh_building_semantic_anchors(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	state.clear_anchors()
+	extract_building_anchors(state)
+	apply_building_facade_rules(state)
+
 /datum/world_edit_generator/building_layout/proc/get_adjacent_wall_dirs_for_state(datum/world_edit_building_layout_state/state, turf/target_turf)
 	var/list/wall_dirs = list()
 	if(!istype(state) || !istype(target_turf))

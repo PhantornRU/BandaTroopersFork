@@ -34,6 +34,8 @@
 	var/list/primary_route_turfs = list()
 	var/list/internal_wall_turfs = list()
 	var/list/category_budgets = list()
+	var/list/layout_macros = list()
+	var/list/layout_macro_counts = list()
 	var/list/errors = list()
 	var/list/warnings = list()
 	var/turf/center_turf
@@ -51,6 +53,19 @@
 	var/repeat_index = 0
 	var/style_score = 0
 	var/empty_floor_ratio = 0
+	var/privacy_violation_count = 0
+	var/reachability_failure_count = 0
+	var/repetition_conflict_count = 0
+	var/fixture_density_score = 0
+	var/connectivity_score = 0
+	var/visibility_privacy_score = 0
+	var/space_distribution_score = 0
+	var/door_buffer_conflict_count = 0
+	var/window_conflict_count = 0
+	var/facade_conflict_count = 0
+	var/fixture_conflict_count = 0
+	var/route_conflict_count = 0
+	var/signature_failure_count = 0
 	var/layout_candidate_score = 0
 	var/region_claim_count = 0
 	var/rectangular_region_candidate_count = 0
@@ -129,6 +144,9 @@
 	var/list/turfs = get_anchor_turfs(anchor_id)
 	return istype(target_turf) && (target_turf in turfs)
 
+/datum/world_edit_building_layout_state/proc/clear_anchors()
+	anchor_turfs.Cut()
+
 /datum/world_edit_building_layout_state/proc/add_reserved(turf/target_turf)
 	if(istype(target_turf))
 		reserved_lookup[target_turf] = TRUE
@@ -197,6 +215,72 @@
 	if(wall_mounted)
 		append_unique_turf(wall_fixture_turfs, target_turf)
 
+/datum/world_edit_building_layout_state/proc/rebuild_fixture_indexes()
+	fixture_lookup.Cut()
+	fixture_categories.Cut()
+	category_counts.Cut()
+	cluster_counts.Cut()
+	signature_counts.Cut()
+	major_fixture_turfs.Cut()
+	wall_fixture_turfs.Cut()
+	fixture_count = 0
+	major_fixture_count = 0
+	for(var/list/object_placement as anything in object_placements)
+		if(!islist(object_placement) || "[object_placement["kind"]]" != "interior")
+			continue
+		var/turf/target_turf = object_placement["turf"]
+		if(!istype(target_turf))
+			continue
+		var/category = "[object_placement["category"] || ""]"
+		if(!length(category))
+			category = "object"
+		register_fixture(target_turf, category, GLOB.world_edit_helpers.parse_bool(object_placement["major"]), GLOB.world_edit_helpers.parse_bool(object_placement["wall_mounted"]))
+		var/cluster_credit = round(text2num("[object_placement["cluster_count_credit"]]") || 0)
+		if(cluster_credit > 0 && length("[object_placement["cluster_id"]]"))
+			register_cluster(object_placement["cluster_id"], cluster_credit)
+		var/signature_credit = round(text2num("[object_placement["signature_count_credit"]]") || 0)
+		if(signature_credit > 0 && length("[object_placement["signature_id"]]"))
+			register_signature(object_placement["signature_id"], signature_credit)
+
+/datum/world_edit_building_layout_state/proc/remove_fixture_at(turf/target_turf)
+	if(!istype(target_turf))
+		return FALSE
+	var/removed = FALSE
+	for(var/index = length(object_placements), index >= 1, index--)
+		var/list/object_placement = object_placements[index]
+		if(!islist(object_placement) || object_placement["turf"] != target_turf || "[object_placement["kind"]]" != "interior")
+			continue
+		object_placements.Cut(index, index + 1)
+		removed = TRUE
+	if(removed)
+		rebuild_fixture_indexes()
+	return removed
+
+/datum/world_edit_building_layout_state/proc/reset_validation_metrics()
+	privacy_violation_count = 0
+	reachability_failure_count = 0
+	repetition_conflict_count = 0
+	door_buffer_conflict_count = 0
+	window_conflict_count = 0
+	facade_conflict_count = 0
+	fixture_conflict_count = 0
+	route_conflict_count = 0
+	signature_failure_count = 0
+
+/datum/world_edit_building_layout_state/proc/register_layout_macro(macro_id, category, turf/anchor_turf, dir_value = SOUTH, list/covered_turfs = null, list/source_ids = null)
+	if(!length("[macro_id]") || !istype(anchor_turf))
+		return
+	var/list/macro = list(
+		"id" = "[macro_id]",
+		"category" = length("[category]") ? "[category]" : "generic",
+		"turf" = anchor_turf,
+		"dir" = dir_value,
+		"covered_turfs" = islist(covered_turfs) ? covered_turfs.Copy() : list(anchor_turf),
+		"source_ids" = islist(source_ids) ? source_ids.Copy() : list(),
+	)
+	layout_macros += list(macro)
+	layout_macro_counts["[macro_id]"] = (layout_macro_counts["[macro_id]"] || 0) + 1
+
 /datum/world_edit_building_layout_state/proc/register_cluster(cluster_id, placed_count)
 	if(!length("[cluster_id]") || placed_count <= 0)
 		return
@@ -209,6 +293,9 @@
 
 /datum/world_edit_building_layout_state/proc/get_category_budget(category)
 	var/budget = category_budgets["[category]"]
+	if(isnum(budget) && budget > 0)
+		return budget
+	budget = semantic_plan?.object_budgets["[category]"]
 	if(isnum(budget) && budget > 0)
 		return budget
 	budget = archetype?.object_budgets["[category]"]

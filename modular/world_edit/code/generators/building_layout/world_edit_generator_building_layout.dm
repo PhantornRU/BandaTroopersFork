@@ -934,6 +934,7 @@
 	apply_building_facade_rules(state)
 	validate_and_repair_building_layout_state(state)
 	apply_building_microvariation_if_available(state)
+	apply_building_layout_macro_overlays(state)
 	calculate_building_style_metrics(state)
 	state.layout_candidate_score = score_building_layout_candidate(state)
 	return state
@@ -942,9 +943,10 @@
 	if(!istype(state))
 		return
 	var/list/expected_categories = list()
-	if(islist(state.archetype?.object_budgets))
-		for(var/category as anything in state.archetype.object_budgets)
-			if((round(text2num("[state.archetype.object_budgets[category]]") || 0)) > 0)
+	var/list/object_budgets = islist(state.semantic_plan?.object_budgets) ? state.semantic_plan.object_budgets : state.archetype?.object_budgets
+	if(islist(object_budgets))
+		for(var/category as anything in object_budgets)
+			if((round(text2num("[object_budgets[category]]") || 0)) > 0)
 				expected_categories["[category]"] = TRUE
 	if(islist(state.semantic_plan?.category_minimums))
 		for(var/category as anything in state.semantic_plan.category_minimums)
@@ -962,8 +964,40 @@
 		highest_category_count = max(highest_category_count, round(text2num("[state.category_counts[category]]") || 0))
 	state.repeat_index = state.fixture_count > 0 ? round(highest_category_count * 100 / state.fixture_count) : 0
 
-	var/repeat_penalty = max(0, state.repeat_index - 55)
+	state.repetition_conflict_count = 0
+	var/list/repeat_penalties = islist(state.semantic_plan?.repeat_penalties) ? state.semantic_plan.repeat_penalties : list()
+	for(var/category as anything in repeat_penalties)
+		var/list/repeat_rule = islist(repeat_penalties[category]) ? repeat_penalties[category] : list()
+		var/soft_percent = round(text2num("[repeat_rule["soft_percent"]]") || 55)
+		var/category_count = round(text2num("[state.category_counts["[category]"]]") || 0)
+		if(state.fixture_count > 0 && category_count > 0 && round(category_count * 100 / state.fixture_count) > soft_percent)
+			state.repetition_conflict_count++
+
+	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
+	var/max_repeat_index = round(text2num("[style_budget["max_repeat_index"]]") || 55)
+	var/repeat_penalty = max(0, state.repeat_index - max_repeat_index)
 	state.style_score = clamp(state.category_coverage_score - repeat_penalty, 0, 100)
+	calculate_building_quality_metrics(state)
+
+/datum/world_edit_generator/building_layout/proc/calculate_building_quality_metrics(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
+	var/list/reachable = build_building_reachable_floor_lookup(state)
+	var/reachable_floor = 0
+	for(var/turf/floor_turf as anything in state.floor_turfs)
+		if(reachable[floor_turf])
+			reachable_floor++
+	state.connectivity_score = length(state.floor_turfs) ? round(reachable_floor * 100 / length(state.floor_turfs)) : 0
+
+	var/usable_area = max(state.usable_fixture_area, length(state.floor_turfs) - length(state.primary_route_turfs), 1)
+	var/fixture_density = round(state.fixture_count * 100 / usable_area)
+	var/ideal_density = round(text2num("[style_budget["ideal_fixture_density"]]") || 38)
+	var/max_density_delta = max(ideal_density, 1)
+	state.fixture_density_score = clamp(100 - round(abs(fixture_density - ideal_density) * 100 / max_density_delta), 0, 100)
+
+	state.visibility_privacy_score = clamp(100 - (state.privacy_violation_count * 18) - (state.window_conflict_count * 10) - (state.facade_conflict_count * 8), 0, 100)
+	state.space_distribution_score = clamp(100 - state.empty_floor_ratio + min(length(state.solved_regions), 8) * 4, 0, 100)
 
 /datum/world_edit_generator/building_layout/proc/score_building_layout_candidate(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
@@ -976,6 +1010,10 @@
 		score -= error_count * 20000
 	score += state.signature_score * 120
 	score += state.style_score * 45
+	score += state.connectivity_score * 35
+	score += state.fixture_density_score * 20
+	score += state.visibility_privacy_score * 25
+	score += state.space_distribution_score * 15
 	if(state.signature_max_score > 0 && state.signature_score >= state.semantic_plan?.min_signature_score)
 		score += 2500
 	score += length(state.divider_plans) * 900
@@ -990,6 +1028,10 @@
 	score -= state.empty_floor_ratio * 35
 	if(state.repeat_index > 75)
 		score -= (state.repeat_index - 75) * 80
+	score -= state.privacy_violation_count * 1800
+	score -= state.reachability_failure_count * 1400
+	score -= state.repetition_conflict_count * 500
+	score -= (state.fixture_conflict_count + state.route_conflict_count + state.window_conflict_count + state.facade_conflict_count) * 900
 	if("[state.config["footprint_family"]]" != "RECT")
 		score += 1800
 	if(state.empty_floor_ratio <= 60)
@@ -1012,6 +1054,13 @@
 		report["style_score"] = state.style_score
 		report["category_coverage_score"] = state.category_coverage_score
 		report["repeat_index"] = state.repeat_index
+		report["privacy_violation_count"] = state.privacy_violation_count
+		report["reachability_failure_count"] = state.reachability_failure_count
+		report["repetition_conflict_count"] = state.repetition_conflict_count
+		report["fixture_density_score"] = state.fixture_density_score
+		report["connectivity_score"] = state.connectivity_score
+		report["visibility_privacy_score"] = state.visibility_privacy_score
+		report["space_distribution_score"] = state.space_distribution_score
 		report["empty_floor_ratio"] = state.empty_floor_ratio
 		report["divider_plan_count"] = length(state.divider_plans)
 		report["internal_wall_count"] = length(state.internal_wall_turfs)
