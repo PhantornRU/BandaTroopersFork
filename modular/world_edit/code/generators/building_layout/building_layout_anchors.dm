@@ -30,6 +30,10 @@
 	add_window_band_anchors(state)
 	if(istype(state.center_turf))
 		state.add_anchor("focus_center", state.center_turf)
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/focus_turf = get_step(state.center_turf, check_dir)
+			if(state.floor_lookup[focus_turf] && !state.reserved_lookup[focus_turf])
+				state.add_anchor("focus_ring", focus_turf)
 
 /datum/world_edit_generator/building_layout/proc/get_adjacent_wall_dirs_for_state(datum/world_edit_building_layout_state/state, turf/target_turf)
 	var/list/wall_dirs = list()

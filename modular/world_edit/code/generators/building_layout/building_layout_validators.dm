@@ -2,17 +2,17 @@
 	switch("[cluster_id]")
 		if("bed_niche")
 			return "bed"
-		if("dining_pair", "workbench_run", "inspection_table", "checkpoint_counter", "treatment_table")
+		if("dining_pair", "side_table", "workbench_run", "central_assembly_table", "inspection_table", "checkpoint_counter", "treatment_table")
 			return "table"
-		if("personal_storage", "tool_storage", "security_storage")
+		if("personal_storage", "tool_storage", "security_storage", "med_side_storage")
 			return "cabinet"
-		if("window_seat", "visitor_chair", "waiting_chair")
+		if("window_seat", "inspection_chair", "visitor_chair", "waiting_chair", "triage_seating")
 			return "chair"
 		if("parts_rack_run", "rack_run")
 			return "rack"
 		if("operator_console")
 			return "console"
-		if("storage_loading_axis", "crate_stack")
+		if("storage_loading_axis", "crate_stack", "parts_crate_stack", "staging_crate_pair")
 			return "crate"
 		if("triage_bed_cluster")
 			return "medical_bed"
@@ -146,7 +146,7 @@
 			state.add_error("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_privacy_rules(datum/world_edit_building_layout_state/state)
-	if(state.archetype.id != "colony_living_small")
+	if(state.archetype.id != "living_small")
 		return
 	for(var/turf/private_turf as anything in state.get_zone_turfs("sleep_privacy"))
 		if(state.has_anchor("door_cone", private_turf))
@@ -167,22 +167,22 @@
 
 /datum/world_edit_generator/building_layout/proc/validate_building_archetype_specifics(datum/world_edit_building_layout_state/state)
 	switch(state.archetype.id)
-		if("colony_living_small")
+		if("living_small")
 			if((state.category_counts["bed"] || 0) < 1)
 				state.add_error("Living module requires at least one bed.")
 			if((state.category_counts["table"] || 0) < 1)
 				state.add_error("Living module requires a dining/work table.")
-		if("uscm_workshop_small")
+		if("workshop_small")
 			if((state.category_counts["table"] || 0) < 1)
 				state.add_error("Workshop requires a workbench.")
 			if((state.category_counts["rack"] || 0) < 2)
 				state.add_error("Workshop requires a rack run.")
-		if("uscm_storage_small")
+		if("storage_small")
 			if((state.category_counts["rack"] || 0) < 2)
 				state.add_error("Storage requires a rack run.")
 			if((state.category_counts["crate"] || 0) < 1)
 				state.add_error("Storage requires a loading crate.")
-		if("uscm_checkpoint_wedge")
+		if("checkpoint_small")
 			if((state.category_counts["table"] || 0) < 2)
 				state.add_error("Checkpoint requires a counter line.")
 			if((state.category_counts["console"] || 0) < 1)

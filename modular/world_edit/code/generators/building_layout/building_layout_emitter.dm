@@ -69,6 +69,7 @@
 	plan.metadata["interior_object_count"] = length(state.object_placements)
 	plan.metadata["major_fixture_count"] = state.major_fixture_count
 	plan.metadata["fixture_count"] = state.fixture_count
+	plan.metadata["fixture_category_counts"] = state.category_counts.Copy()
 	plan.metadata["zone_count"] = length(state.zone_turfs)
 	plan.metadata["anchor_count"] = length(state.anchor_turfs)
 	plan.metadata["patterned_layout"] = TRUE

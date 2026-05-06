@@ -11,7 +11,7 @@
 			continue
 		if(is_corner_boundary_turf(boundary_turf, state.footprint_lookup))
 			continue
-		if(boundary_turf_has_outside_dir(boundary_turf, state.footprint_lookup, state.placement_dir) && state.archetype.id in list("uscm_storage_small", "uscm_checkpoint_wedge"))
+		if(boundary_turf_has_outside_dir(boundary_turf, state.footprint_lookup, state.placement_dir) && state.archetype.id in list("storage_small", "checkpoint_small"))
 			continue
 		append_unique_turf(candidates, candidate_lookup, boundary_turf)
 

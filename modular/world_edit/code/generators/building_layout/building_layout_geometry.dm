@@ -84,28 +84,28 @@
 			zone_id = state.archetype.entry_zone
 		else
 			switch(state.archetype.id)
-				if("colony_living_small")
+				if("living_small")
 					if(depth >= max_depth - 1 && abs(lateral) >= 2)
 						zone_id = "sleep_privacy"
 					else if(abs(lateral) >= 2)
 						zone_id = "storage_service"
 					else
 						zone_id = "common"
-				if("uscm_workshop_small")
+				if("workshop_small")
 					if(abs(lateral) >= 2)
 						zone_id = "service_wall"
 					else if(depth >= max_depth - 1)
 						zone_id = "parts_storage"
 					else
 						zone_id = "main_work"
-				if("uscm_storage_small")
+				if("storage_small")
 					if(abs(lateral) <= 1)
 						zone_id = "loading_axis"
 					else if(depth >= max_depth - 1)
 						zone_id = "staging"
 					else
 						zone_id = "rack_zone"
-				if("uscm_checkpoint_wedge")
+				if("checkpoint_small")
 					if(depth <= 2)
 						zone_id = "public_side"
 					else if(depth <= 3)

@@ -186,10 +186,10 @@
 /datum/world_edit_generator/building_layout/proc/normalize_building_params(list/params)
 	var/list/config = list()
 	var/default_archetype_id = resolve_layout_variant_archetype_alias(params)
-	config["archetype_id"] = resolve_building_option(islist(params) ? params["archetype_id"] : null, get_building_archetype_ids(), default_archetype_id)
+	config["archetype_id"] = resolve_building_archetype_option(islist(params) ? params["archetype_id"] : null, default_archetype_id)
 	var/datum/world_edit_building_archetype/archetype = get_building_archetype(config["archetype_id"])
 	if(!istype(archetype))
-		config["error"] = "Unable to resolve building archetype '[config["archetype_id"]]'."
+		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
 
 	config["half_width"] = num_param(params, "half_width", 4, 2, 8)
@@ -201,10 +201,10 @@
 	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
 	config["replace_blocked_turfs"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : FALSE
 
-	var/default_faction = length("[archetype.default_faction]") ? archetype.default_faction : "colony"
-	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_faction)
+	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
+	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
 	var/list/catalog = get_building_faction_catalog()
-	var/list/base_preset = catalog[config["faction_preset"]] || catalog[default_faction] || catalog["colony"]
+	var/list/base_preset = catalog[config["faction_preset"]] || catalog[default_shell_preset] || catalog["colony"]
 	var/list/preset = merge_building_preset_overrides(base_preset, archetype)
 	config["preset"] = preset
 	config["wall_type"] = resolve_building_type_path(preset["wall_path"], /turf)
@@ -213,7 +213,7 @@
 	config["window_type"] = resolve_building_type_path(preset["window_path"], /obj)
 	config["interior_paths"] = islist(preset["interior_paths"]) ? preset["interior_paths"].Copy() : list()
 	if(!config["wall_type"] || !config["floor_type"] || !config["door_type"] || !config["window_type"])
-		config["error"] = "Unable to resolve one or more shell type paths for preset '[config["faction_preset"]]' and archetype '[config["archetype_id"]]'."
+		config["error"] = "Unable to resolve one or more shell type paths for preset '[config["faction_preset"]]' and building program '[config["archetype_id"]]'."
 	return config
 
 /datum/world_edit_generator/building_layout/get_ui_fields(list/current_params)
@@ -222,9 +222,9 @@
 	return list(
 		list(
 			"id" = "archetype_id",
-			"label" = "Archetype",
+			"label" = "Building program",
 			"kind" = "select",
-			"group" = "Building",
+			"group" = "Program",
 			"value" = config["archetype_id"],
 			"options" = get_building_archetype_options(),
 		),
@@ -232,7 +232,7 @@
 			"id" = "faction_preset",
 			"label" = "Shell preset",
 			"kind" = "select",
-			"group" = "Building",
+			"group" = "Shell",
 			"value" = config["faction_preset"],
 			"options" = list(
 				list("label" = "Colony", "value" = "colony"),
@@ -246,7 +246,7 @@
 			"id" = "building_seed",
 			"label" = "Seed",
 			"kind" = "number",
-			"group" = "Building",
+			"group" = "Program",
 			"value" = config["building_seed"],
 			"min" = 0,
 			"max" = 999999999,
@@ -323,7 +323,7 @@
 	var/list/new_params = current_params.Copy()
 	switch("[param_id]")
 		if("archetype_id")
-			new_params[param_id] = resolve_building_option(value, get_building_archetype_ids(), "colony_living_small")
+			new_params[param_id] = resolve_building_archetype_option(value, "living_small")
 		if("faction_preset")
 			new_params[param_id] = resolve_building_option(value, get_building_faction_options(), "colony")
 		if("half_width")
@@ -344,7 +344,7 @@
 
 /datum/world_edit_generator/building_layout/get_params_short(list/params)
 	var/list/config = normalize_building_params(params)
-	return "archetype=[config["archetype_id"]] faction=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
 
 /datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config)
 	switch("[shape_id]")
@@ -972,7 +972,7 @@
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Building preview ready: archetype=[plan.metadata["archetype_id"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]]."
+	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]]."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)
