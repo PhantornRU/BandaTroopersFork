@@ -158,6 +158,7 @@
 	validate_building_facade_policy(state)
 	validate_building_reserved_lanes(state)
 	validate_building_route_touch(state)
+	validate_building_room_first_rules(state)
 	validate_building_fixture_surface(state)
 	validate_building_fixture_reachability(state)
 	validate_building_privacy_rules(state)
@@ -269,6 +270,109 @@
 		if(!route_touches_zone)
 			state.reachability_failure_count++
 			state.add_error("Required zone '[zone_spec.id]' is not connected to the circulation graph.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_room_first_rules(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"]))
+		return
+	if(!length(state.corridor_turfs))
+		state.route_conflict_count++
+		state.add_error("Room-first layout has no reserved corridor from the entry.")
+	if(!length(state.solved_rooms))
+		state.space_distribution_score = 0
+		state.add_error("Room-first layout has no solved rooms.")
+	var/entry_connected = FALSE
+	if(state.corridor_lookup[state.front_door_turf])
+		entry_connected = TRUE
+	else if(istype(state.front_door_turf))
+		var/door_dir = state.door_dirs[state.front_door_turf] || state.placement_dir
+		if(state.corridor_lookup[get_step(state.front_door_turf, turn(door_dir, 180))])
+			entry_connected = TRUE
+	if(!entry_connected)
+		state.route_conflict_count++
+		state.add_error("Main corridor is not connected to the exterior entry door.")
+
+	for(var/turf/corridor_turf as anything in state.corridor_turfs)
+		if(!istype(corridor_turf))
+			continue
+		if(state.wall_lookup[corridor_turf])
+			state.route_conflict_count++
+			state.add_error("Main corridor is blocked by a wall at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
+		if(state.fixture_lookup[corridor_turf])
+			state.route_conflict_count++
+			state.add_error("Main corridor is blocked by a fixture at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
+
+	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
+		if(!istype(room))
+			continue
+		var/has_access = FALSE
+		for(var/turf/room_turf as anything in room.turfs)
+			if(!istype(room_turf))
+				continue
+			if(state.door_dirs[room_turf])
+				has_access = TRUE
+				break
+			for(var/check_dir in GLOB.cardinals)
+				if(state.corridor_lookup[get_step(room_turf, check_dir)])
+					has_access = TRUE
+					break
+			if(has_access)
+				break
+		if(!has_access)
+			state.reachability_failure_count++
+			state.add_error("Room '[room.id]' for zone '[room.zone_id]' has no door or corridor access.")
+		if(room.tiny && !(room.role in list("service", "storage", "private", "nested", "support")))
+			state.add_warning("Room '[room.id]' is a one-tile compact room outside a utility/private role.")
+
+	validate_building_wall_geometry_rules(state)
+
+/datum/world_edit_generator/building_layout/proc/building_wall_has_axis(datum/world_edit_building_layout_state/state, turf/wall_turf, axis)
+	if(!istype(state) || !istype(wall_turf))
+		return FALSE
+	if("[axis]" == "vertical")
+		return state.wall_lookup[get_step(wall_turf, NORTH)] || state.wall_lookup[get_step(wall_turf, SOUTH)]
+	if("[axis]" == "horizontal")
+		return state.wall_lookup[get_step(wall_turf, EAST)] || state.wall_lookup[get_step(wall_turf, WEST)]
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/validate_building_wall_geometry_rules(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	for(var/turf/wall_turf as anything in state.wall_lookup)
+		if(!istype(wall_turf) || state.door_dirs[wall_turf])
+			continue
+		var/vertical_wall = building_wall_has_axis(state, wall_turf, "vertical")
+		var/horizontal_wall = building_wall_has_axis(state, wall_turf, "horizontal")
+		if(vertical_wall)
+			for(var/check_dir in list(EAST, WEST))
+				var/turf/side_turf = get_step(wall_turf, check_dir)
+				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "vertical"))
+					state.fixture_conflict_count++
+					state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					break
+		if(horizontal_wall)
+			for(var/check_dir in list(NORTH, SOUTH))
+				var/turf/side_turf = get_step(wall_turf, check_dir)
+				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "horizontal"))
+					state.fixture_conflict_count++
+					state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					break
+		validate_building_wall_diagonal_pair(state, wall_turf, NORTHEAST, NORTH, EAST)
+		validate_building_wall_diagonal_pair(state, wall_turf, NORTHWEST, NORTH, WEST)
+		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHEAST, SOUTH, EAST)
+		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHWEST, SOUTH, WEST)
+
+/datum/world_edit_generator/building_layout/proc/validate_building_wall_diagonal_pair(datum/world_edit_building_layout_state/state, turf/wall_turf, diagonal_dir, ortho_a, ortho_b)
+	var/turf/diagonal_turf = get_step(wall_turf, diagonal_dir)
+	if(!state.wall_lookup[diagonal_turf])
+		return
+	var/turf/ortho_turf_a = get_step(wall_turf, ortho_a)
+	var/turf/ortho_turf_b = get_step(wall_turf, ortho_b)
+	if(state.wall_lookup[ortho_turf_a] || state.wall_lookup[ortho_turf_b])
+		return
+	if(!state.footprint_lookup[ortho_turf_a] || !state.footprint_lookup[ortho_turf_b])
+		return
+	state.fixture_conflict_count++
+	state.add_error("Wall geometry has a diagonal-only wall contact at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_fixture_surface(datum/world_edit_building_layout_state/state)
 	var/list/wall_fixture_placement_lookup = list()

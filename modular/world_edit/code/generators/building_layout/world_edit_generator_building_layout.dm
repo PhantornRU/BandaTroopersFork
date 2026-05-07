@@ -68,6 +68,7 @@
 				"microwave" = "/obj/structure/machinery/microwave",
 				"processor" = "/obj/structure/machinery/processor",
 				"sink" = "/obj/structure/sink/kitchen",
+				"toilet" = "/obj/structure/toilet",
 				"filing" = "/obj/structure/filingcabinet",
 				"security_console" = "/obj/structure/machinery/computer/cameras",
 				"security_camera" = "/obj/structure/machinery/camera",
@@ -111,6 +112,7 @@
 				"microwave" = "/obj/structure/machinery/microwave",
 				"processor" = "/obj/structure/machinery/processor",
 				"sink" = "/obj/structure/sink/kitchen",
+				"toilet" = "/obj/structure/toilet",
 				"filing" = "/obj/structure/filingcabinet",
 				"security_console" = "/obj/structure/machinery/computer/cameras/almayer_brig",
 				"security_camera" = "/obj/structure/machinery/camera/autoname/almayer/brig",
@@ -154,6 +156,7 @@
 				"microwave" = "/obj/structure/machinery/microwave",
 				"processor" = "/obj/structure/machinery/processor",
 				"sink" = "/obj/structure/sink/kitchen",
+				"toilet" = "/obj/structure/toilet",
 				"filing" = "/obj/structure/filingcabinet",
 				"security_console" = "/obj/structure/machinery/computer/cameras",
 				"security_camera" = "/obj/structure/machinery/camera",
@@ -197,6 +200,7 @@
 				"microwave" = "/obj/structure/machinery/microwave",
 				"processor" = "/obj/structure/machinery/processor",
 				"sink" = "/obj/structure/sink/kitchen",
+				"toilet" = "/obj/structure/toilet",
 				"filing" = "/obj/structure/filingcabinet",
 				"security_console" = "/obj/structure/machinery/computer/cameras",
 				"security_camera" = "/obj/structure/machinery/camera",
@@ -240,6 +244,7 @@
 				"microwave" = "/obj/structure/machinery/recharger/covenant",
 				"processor" = "/obj/structure/machinery/recharger/covenant",
 				"sink" = "/obj/structure/covenant_barricade",
+				"toilet" = "/obj/structure/covenant_barricade",
 				"filing" = "/obj/structure/covenant_barricade",
 				"security_console" = "/obj/structure/machinery/recharger/covenant",
 				"security_camera" = "/obj/structure/machinery/recharger/covenant",
@@ -607,8 +612,8 @@
 /datum/world_edit_generator/building_layout/proc/add_scatter_connection_turf(list/result, list/result_lookup, turf/source_turf, z_level)
 	if(!istype(source_turf) || isnull(z_level) || source_turf.z != z_level)
 		return
-	for(var/dx in -1 to 1)
-		for(var/dy in -1 to 1)
+	for(var/dx in -2 to 2)
+		for(var/dy in -2 to 2)
 			var/turf/target_turf = locate(source_turf.x + dx, source_turf.y + dy, source_turf.z)
 			GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
 
@@ -666,7 +671,7 @@
 				if(istype(origin_turf) && islist(points) && length(points) >= 3)
 					footprint = GLOB.world_edit_placement_shapes.world_edit_collect_polygon_turfs(origin_turf, points, TRUE)
 		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE)
-			footprint = inflate_turf_footprint(footprint, 1)
+			footprint = inflate_turf_footprint(footprint, 2)
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
 			footprint = build_scatter_compound_footprint(footprint)
 
@@ -1063,7 +1068,7 @@
 				path_value = interior_paths?["bed"]
 			if("medical_storage", "crate")
 				path_value = interior_paths?["cabinet"]
-			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage", "engineering_machine", "power_console", "lab_machine")
+			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "toilet", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage", "engineering_machine", "power_console", "lab_machine")
 				path_value = interior_paths?["table"]
 			if("fridge", "filing", "sample_storage")
 				path_value = interior_paths?["cabinet"]
@@ -1214,8 +1219,6 @@
 	score -= state.semantic_slot_fallback_count * 3500
 	score -= state.semantic_slot_reservation_conflict_count * 12000
 	score -= (state.fixture_conflict_count + state.route_conflict_count + state.window_conflict_count + state.facade_conflict_count) * 900
-	if("[state.config["footprint_family"]]" != "RECT")
-		score += 1800
 	if(state.empty_floor_ratio <= 60)
 		score += 800
 	var/list/major_specs = state.semantic_plan?.get_cluster_specs("major")
@@ -1246,6 +1249,9 @@
 		report["empty_floor_ratio"] = state.empty_floor_ratio
 		report["divider_plan_count"] = length(state.divider_plans)
 		report["internal_wall_count"] = length(state.internal_wall_turfs)
+		report["room_first_layout"] = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"])
+		report["room_count"] = length(state.solved_rooms)
+		report["corridor_turf_count"] = length(state.corridor_turfs)
 		report["semantic_region_claim_count"] = state.region_claim_count
 		report["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
 		report["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
@@ -1433,7 +1439,7 @@
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], shape=[plan.metadata["placement_shape_id"]], source=[plan.metadata["footprint_source"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, slots=[plan.metadata["semantic_slot_capacity_count"]] shortage=[plan.metadata["semantic_slot_shortage_count"]] fallback=[plan.metadata["semantic_slot_fallback_count"]], reservations=[plan.metadata["semantic_slot_reservation_count"]] conflicts=[plan.metadata["semantic_slot_reservation_conflict_count"]], rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
+	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], shape=[plan.metadata["placement_shape_id"]], source=[plan.metadata["footprint_source"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rooms=[plan.metadata["room_count"]], corridor=[plan.metadata["corridor_turf_count"]], slots=[plan.metadata["semantic_slot_capacity_count"]] shortage=[plan.metadata["semantic_slot_shortage_count"]] fallback=[plan.metadata["semantic_slot_fallback_count"]], reservations=[plan.metadata["semantic_slot_reservation_count"]] conflicts=[plan.metadata["semantic_slot_reservation_conflict_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)

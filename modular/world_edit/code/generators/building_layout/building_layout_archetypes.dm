@@ -76,6 +76,40 @@
 	zone_id = "[_zone_id]"
 	priority = round(text2num("[_priority]") || 0)
 
+/datum/world_edit_building_room
+	var/id = ""
+	var/zone_id = ""
+	var/role = ""
+	var/list/turfs = list()
+	var/turf/focus_turf
+	var/x1 = null
+	var/y1 = null
+	var/x2 = null
+	var/y2 = null
+	var/area = 0
+	var/tiny = FALSE
+
+/datum/world_edit_building_room/New(_id, _zone_id, _role = "")
+	. = ..()
+	id = "[_id]"
+	zone_id = "[_zone_id]"
+	role = "[_role]"
+
+/datum/world_edit_building_room/proc/add_turf(turf/target_turf)
+	if(!istype(target_turf) || target_turf in turfs)
+		return
+	turfs += target_turf
+	area = length(turfs)
+	if(isnull(x1) || target_turf.x < x1)
+		x1 = target_turf.x
+	if(isnull(x2) || target_turf.x > x2)
+		x2 = target_turf.x
+	if(isnull(y1) || target_turf.y < y1)
+		y1 = target_turf.y
+	if(isnull(y2) || target_turf.y > y2)
+		y2 = target_turf.y
+	tiny = area <= 1
+
 /datum/world_edit_building_divider_plan
 	var/id = ""
 	var/source_zone_id = ""
@@ -585,22 +619,27 @@
 	add_zone("common", "Common/social", "hub", 6, TRUE, TRUE, FALSE, list("common", "focus_center", "social_focus", "work_cluster"), TRUE)
 	add_zone("sleep_privacy", "Sleep privacy", "private", 3, TRUE, TRUE, TRUE, list("sleep_privacy", "privacy_zone", "wall_anchor"), FALSE, "room")
 	add_zone("storage_service", "Personal storage", "service", 2, TRUE, TRUE, FALSE, list("storage_service", "service_strip", "wall_anchor"), FALSE, "nook")
+	add_zone("sanitation", "Sanitation room", "service", 2, TRUE, TRUE, TRUE, list("sanitation", "service_strip", "wall_anchor"), FALSE, "room", "private")
 	add_region("entry_front", "entry_buffer", 0, 22, -45, 45, 100)
 	add_region("common_core", "common", 18, 76, -45, 45, 60)
 	add_region("sleep_back_left", "sleep_privacy", 58, 100, -100, -30, 90)
 	add_region("storage_back_right", "storage_service", 35, 100, 30, 100, 80)
+	add_region("sanitation_back", "sanitation", 62, 100, 30, 100, 88)
 	add_region("common_fill", "common", 0, 100, -100, 100, 1)
 	add_adjacency("entry_buffer", "common")
 	add_adjacency("common", "sleep_privacy")
 	add_adjacency("common", "storage_service")
+	add_adjacency("common", "sanitation")
 	add_nested_room("common", "sleep_privacy", 7, 7, 1)
 	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35)
 	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90, "common_table", 20)
 	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 1, 2, TRUE, 0, 80, "personal_storage", 20)
+	add_signature_cluster("sanitation_toilet", "major", "wall_object", "toilet", "sanitation", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 75, "sanitation_fixture", 12)
+	add_signature_cluster("sanitation_sink", "major", "wall_object", "sink", "kitchen_machine", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 70, "sanitation_sink", 8)
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus"), 1, 1, FALSE, 1, 50, FALSE)
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common"), 1, 1, FALSE, 0, 40, FALSE)
-	object_budgets = list("bed" = 2, "table" = 3, "chair" = 5, "cabinet" = 3, "rack" = 2)
-	category_minimums = list("bed" = 1, "table" = 1, "cabinet" = 1)
+	object_budgets = list("bed" = 2, "table" = 3, "chair" = 5, "cabinet" = 3, "rack" = 2, "sanitation" = 1, "kitchen_machine" = 1)
+	category_minimums = list("bed" = 1, "table" = 1, "cabinet" = 1, "sanitation" = 1)
 
 /datum/world_edit_building_archetype/workshop
 	id = "workshop"

@@ -108,6 +108,9 @@
 		"direction" = state.placement_dir,
 		"footprint_source" = state.config["footprint_source"],
 		"usable_area" = state.usable_fixture_area,
+		"room_first_layout" = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"]),
+		"room_count" = length(state.solved_rooms),
+		"corridor_turf_count" = length(state.corridor_turfs),
 		"semantic_requirement_minimums" = state.semantic_requirement_minimums.Copy(),
 		"semantic_requirement_counts" = state.semantic_requirement_counts.Copy(),
 		"reservation_count" = length(state.semantic_slot_reservation_by_turf),
@@ -263,11 +266,14 @@
 	plan.metadata["layout_macro_counts"] = state.layout_macro_counts.Copy()
 	plan.metadata["layout_macro_count"] = length(state.layout_macros)
 	plan.metadata["semantic_region_count"] = length(state.solved_regions)
+	plan.metadata["room_first_layout"] = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"])
+	plan.metadata["room_count"] = length(state.solved_rooms)
+	plan.metadata["corridor_turf_count"] = length(state.corridor_turfs)
 	plan.metadata["primary_route_count"] = length(state.primary_route_turfs)
 	plan.metadata["internal_wall_count"] = length(state.internal_wall_turfs)
 	plan.metadata["divider_plan_count"] = length(state.divider_plans)
 	plan.metadata["usable_fixture_area"] = state.usable_fixture_area
 	plan.metadata["patterned_layout"] = TRUE
-	plan.metadata["layout_contract"] = "semantic_region_cluster_rework"
+	plan.metadata["layout_contract"] = "room_first_corridor_pattern_rework"
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan

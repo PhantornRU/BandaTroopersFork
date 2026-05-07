@@ -32,6 +32,10 @@
 	var/list/anchor_lookup = list()
 	var/list/adjacent_wall_dirs_by_turf = list()
 	var/list/solved_regions = list()
+	var/list/solved_rooms = list()
+	var/list/room_by_turf = list()
+	var/list/corridor_turfs = list()
+	var/list/corridor_lookup = list()
 	var/list/divider_plans = list()
 	var/list/primary_route_turfs = list()
 	var/list/internal_wall_turfs = list()
@@ -187,6 +191,50 @@
 		return
 	append_unique_turf(primary_route_turfs, target_turf)
 	add_reserved(target_turf)
+
+/datum/world_edit_building_layout_state/proc/add_corridor_turf(turf/target_turf)
+	if(!istype(target_turf) || !footprint_lookup[target_turf])
+		return FALSE
+	if(!corridor_lookup[target_turf])
+		corridor_turfs += target_turf
+		corridor_lookup[target_turf] = TRUE
+	add_primary_route(target_turf)
+	return TRUE
+
+/datum/world_edit_building_layout_state/proc/add_solved_room(datum/world_edit_building_room/room)
+	if(!istype(room) || !length(room.turfs))
+		return FALSE
+	if(!(room in solved_rooms))
+		solved_rooms += room
+	for(var/turf/room_turf as anything in room.turfs)
+		if(!istype(room_turf) || !footprint_lookup[room_turf])
+			continue
+		room_by_turf[room_turf] = room
+		add_zone(room_turf, room.zone_id)
+	if(istype(room.focus_turf))
+		set_zone_focus(room.zone_id, room.focus_turf)
+	return TRUE
+
+/datum/world_edit_building_layout_state/proc/get_room_for_turf(turf/target_turf)
+	if(!istype(target_turf))
+		return null
+	return room_by_turf[target_turf]
+
+/datum/world_edit_building_layout_state/proc/clear_room_layout()
+	solved_rooms.Cut()
+	room_by_turf.Cut()
+	corridor_turfs.Cut()
+	corridor_lookup.Cut()
+	solved_regions.Cut()
+	divider_plans.Cut()
+	internal_wall_turfs.Cut()
+	primary_route_turfs.Cut()
+	reserved_lookup.Cut()
+	wall_lookup.Cut()
+	floor_turfs.Cut()
+	floor_lookup.Cut()
+	adjacent_wall_dirs_by_turf.Cut()
+	clear_zones()
 
 /datum/world_edit_building_layout_state/proc/add_internal_wall(turf/target_turf)
 	if(!istype(target_turf) || !footprint_lookup[target_turf])
