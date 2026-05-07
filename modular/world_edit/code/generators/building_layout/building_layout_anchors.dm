@@ -43,9 +43,13 @@
 	var/list/wall_dirs = list()
 	if(!istype(state) || !istype(target_turf))
 		return wall_dirs
+	var/list/cached_wall_dirs = state.adjacent_wall_dirs_by_turf[target_turf]
+	if(islist(cached_wall_dirs))
+		return cached_wall_dirs
 	for(var/check_dir in GLOB.cardinals)
 		if(state.wall_lookup[get_step(target_turf, check_dir)])
 			wall_dirs += check_dir
+	state.adjacent_wall_dirs_by_turf[target_turf] = wall_dirs
 	return wall_dirs
 
 /datum/world_edit_generator/building_layout/proc/is_corner_floor_anchor(datum/world_edit_building_layout_state/state, turf/target_turf)

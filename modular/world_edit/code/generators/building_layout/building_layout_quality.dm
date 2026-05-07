@@ -1,4 +1,74 @@
-/datum/world_edit_generator/building_layout/proc/run_building_quality_batch(turf/anchor_turf, list/program_ids = null, list/style_ids = null, seed_start = 1, seed_count = 8, half_width = 4, half_depth = 4)
+/datum/world_edit_generator/building_layout/proc/get_building_quality_shape_ids(list/shape_ids = null)
+	if(islist(shape_ids) && length(shape_ids))
+		return shape_ids.Copy()
+	return get_supported_placement_shapes()
+
+/datum/world_edit_generator/building_layout/proc/build_building_quality_shape_points(width = 8, height = 8, notch = FALSE)
+	var/list/points = list()
+	width = max(round(text2num("[width]") || 8), 3)
+	height = max(round(text2num("[height]") || 8), 3)
+	for(var/y in 0 to height - 1)
+		for(var/x in 0 to width - 1)
+			if(notch && x >= width - 2 && y >= height - 2)
+				continue
+			points += list(list("x" = x, "y" = y))
+	return GLOB.world_edit_placement_shapes.world_edit_format_shape_points(points)
+
+/datum/world_edit_generator/building_layout/proc/build_building_quality_shape_params(shape_id, seed_value = 0, half_width = 4, half_depth = 4)
+	var/width = max(round(text2num("[half_width]") || 4) * 2 + 1, 7)
+	var/height = max(round(text2num("[half_depth]") || 4) * 2 + 1, 7)
+	var/radius = max(min(width, height) / 2, 4)
+	var/list/params = list(
+		"shape_line_length" = max(width, height),
+		"shape_line_spacing" = 1,
+		"shape_rect_width" = width,
+		"shape_rect_height" = height,
+		"shape_radius" = radius,
+		"shape_thickness" = 2,
+		"shape_radius_x" = max(round(width / 2), 4),
+		"shape_radius_y" = max(round(height / 2), 3),
+		"shape_triangle_size" = max(width, height),
+		"shape_sector_angle" = 100,
+		"shape_brush_radius" = 1,
+		"shape_scatter_radius" = max(round(max(width, height) / 2), 4),
+		"shape_scatter_count" = 8,
+		"shape_scatter_seed" = seed_value,
+	)
+	switch("[shape_id]")
+		if(WORLD_EDIT_SHAPE_POLYGON)
+			params["shape_points_text"] = "0,0; [width - 1],0; [width - 1],[max(height - 3, 2)]; [round(width / 2)],[height - 1]; 0,[height - 1]"
+			params["shape_polygon_filled"] = TRUE
+		if(WORLD_EDIT_SHAPE_POLYLINE)
+			params["shape_points_text"] = "0,0; [round(width / 2)],0; [round(width / 2)],[height - 1]; [width - 1],[height - 1]"
+		if(WORLD_EDIT_SHAPE_CUSTOM_MASK)
+			params["shape_points_text"] = build_building_quality_shape_points(width, height, TRUE)
+		if(WORLD_EDIT_SHAPE_BRUSH_PATH)
+			params["shape_points_text"] = "0,0; [round(width / 2)],0; [round(width / 2)],[height - 1]; [width - 1],[height - 1]"
+	return params
+
+/datum/world_edit_generator/building_layout/proc/build_building_quality_shape_context(turf/anchor_turf, shape_id, list/shape_params)
+	if(!istype(anchor_turf))
+		return null
+	var/turf/end_turf = locate(anchor_turf.x + 8, anchor_turf.y + 8, anchor_turf.z)
+	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, anchor_turf, end_turf, shape_params, NORTH)
+	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || list(anchor_turf)
+	var/list/placement_context = list(
+		"mode" = "single",
+		"shape" = shape_id,
+		"shape_contract" = shape_contract,
+		"shape_metadata" = shape_contract?.copy_metadata() || list(),
+		"anchor_turfs" = anchor_turfs,
+		"start_turf" = anchor_turf,
+		"end_turf" = end_turf,
+		"shape_origin_turf" = anchor_turf,
+		"seed_turf" = anchor_turf,
+		"requested_end_turf" = end_turf,
+		"resolved_end_turf" = end_turf,
+		"direction" = NORTH,
+	)
+	return list("shape_contract" = shape_contract, "placement_context" = placement_context)
+
+/datum/world_edit_generator/building_layout/proc/run_building_quality_batch(turf/anchor_turf, list/program_ids = null, list/style_ids = null, seed_start = 1, seed_count = 8, half_width = 4, half_depth = 4, list/shape_ids = null, max_sample_count = 240)
 	var/list/result = list(
 		"sample_count" = 0,
 		"pass_count" = 0,
@@ -12,67 +82,78 @@
 		program_ids = get_building_archetype_ids()
 	if(!islist(style_ids) || !length(style_ids))
 		style_ids = get_building_faction_options()
+	shape_ids = get_building_quality_shape_ids(shape_ids)
+	result["shape_ids"] = shape_ids.Copy()
 	seed_count = clamp(round(text2num("[seed_count]") || 8), 1, 50)
-	var/list/placement_context = list(
-		"mode" = "single",
-		"shape" = WORLD_EDIT_SHAPE_POINT,
-		"anchor_turfs" = list(anchor_turf),
-		"start_turf" = anchor_turf,
-		"end_turf" = anchor_turf,
-		"shape_origin_turf" = anchor_turf,
-		"seed_turf" = anchor_turf,
-		"requested_end_turf" = anchor_turf,
-		"resolved_end_turf" = anchor_turf,
-		"direction" = NORTH,
-	)
-	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(WORLD_EDIT_SHAPE_POINT, list(anchor_turf), placement_context)
-	for(var/program_id as anything in program_ids)
-		for(var/style_id as anything in style_ids)
-			for(var/seed_offset in 0 to seed_count - 1)
-				var/seed_value = seed_start + seed_offset
-				var/list/params = list(
-					"archetype_id" = program_id,
-					"faction_preset" = style_id,
-					"building_seed" = seed_value,
-					"half_width" = half_width,
-					"half_depth" = half_depth,
-					"detail_budget" = 100,
-					"window_density" = 60,
-					"back_exit" = TRUE,
-				)
-				var/datum/world_edit_plan/plan = build_plan_from_shape_contract(null, shape_contract, params, placement_context)
-				var/list/sample = build_building_quality_sample(program_id, style_id, seed_value, plan)
-				result["samples"] += list(sample)
-				result["sample_count"] = result["sample_count"] + 1
-				if(sample["passed"])
-					result["pass_count"] = result["pass_count"] + 1
-				else
-					result["fail_count"] = result["fail_count"] + 1
+	max_sample_count = clamp(round(text2num("[max_sample_count]") || 240), 1, 2000)
+	for(var/seed_offset in 0 to seed_count - 1)
+		var/seed_value = seed_start + seed_offset
+		for(var/shape_id as anything in shape_ids)
+			var/list/shape_params = build_building_quality_shape_params(shape_id, seed_value, half_width, half_depth)
+			var/list/shape_context = build_building_quality_shape_context(anchor_turf, shape_id, shape_params)
+			var/datum/world_edit_shape_contract/shape_contract = islist(shape_context) ? shape_context["shape_contract"] : null
+			var/list/placement_context = islist(shape_context) ? shape_context["placement_context"] : null
+			for(var/program_id as anything in program_ids)
+				for(var/style_id as anything in style_ids)
+					if((round(text2num("[result["sample_count"]]") || 0)) >= max_sample_count)
+						result["capped"] = TRUE
+						return result
+					var/list/params = list(
+						"archetype_id" = program_id,
+						"faction_preset" = style_id,
+						"building_seed" = seed_value,
+						"half_width" = half_width,
+						"half_depth" = half_depth,
+						"detail_budget" = 100,
+						"window_density" = 60,
+						"back_exit" = TRUE,
+					)
+					for(var/shape_param as anything in shape_params)
+						params[shape_param] = shape_params[shape_param]
+					var/datum/world_edit_plan/plan = build_plan_from_shape_contract(null, shape_contract, params, placement_context)
+					var/list/sample = build_building_quality_sample(program_id, style_id, seed_value, shape_id, plan)
+					result["samples"] += list(sample)
+					result["sample_count"] = result["sample_count"] + 1
+					if(sample["passed"])
+						result["pass_count"] = result["pass_count"] + 1
+					else
+						result["fail_count"] = result["fail_count"] + 1
 	return result
 
-/datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, datum/world_edit_plan/plan)
+/datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, shape_id, datum/world_edit_plan/plan)
 	var/list/metadata = islist(plan?.metadata) ? plan.metadata : list()
 	var/passed = istype(plan) && !metadata["error"] && GLOB.world_edit_helpers.parse_bool(metadata["program_signature_ok"])
 	var/empty_floor_ratio = round(text2num("[metadata["empty_floor_ratio"]]") || 0)
 	var/template_chunk_count = round(text2num("[metadata["template_chunk_count"]]") || 0)
 	var/infrastructure_count = round(text2num("[metadata["infrastructure_count"]]") || 0)
+	var/semantic_slot_shortage_count = round(text2num("[metadata["semantic_slot_shortage_count"]]") || 0)
+	var/semantic_slot_reservation_conflict_count = round(text2num("[metadata["semantic_slot_reservation_conflict_count"]]") || 0)
 	if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
 		passed = FALSE
 	if(template_chunk_count <= 0)
 		passed = FALSE
 	if(infrastructure_count < 4)
 		passed = FALSE
+	if(semantic_slot_shortage_count > 0 || semantic_slot_reservation_conflict_count > 0)
+		passed = FALSE
 	return list(
 		"program" = "[program_id]",
 		"style" = "[style_id]",
+		"shape" = "[shape_id]",
 		"seed" = seed_value,
 		"passed" = passed ? TRUE : FALSE,
 		"error" = metadata["error"],
+		"footprint_source" = metadata["footprint_source"],
+		"placement_shape_used_as_seed_only" = metadata["placement_shape_used_as_seed_only"],
 		"signature_score" = metadata["signature_score"],
 		"empty_floor_ratio" = empty_floor_ratio,
 		"template_chunk_count" = template_chunk_count,
 		"infrastructure_count" = infrastructure_count,
 		"fixture_count" = metadata["fixture_count"],
+		"semantic_requirement_minimums" = metadata["semantic_requirement_minimums"],
+		"semantic_requirement_counts" = metadata["semantic_requirement_counts"],
+		"semantic_slot_shortage_count" = semantic_slot_shortage_count,
+		"semantic_slot_reservation_conflict_count" = semantic_slot_reservation_conflict_count,
 		"divider_plan_count" = metadata["divider_plan_count"],
 		"nested_room_count" = metadata["nested_room_count"],
 		"degraded_region_fallback_count" = metadata["degraded_region_fallback_count"],

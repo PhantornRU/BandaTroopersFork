@@ -63,7 +63,7 @@
 	return anchors
 
 /datum/world_edit_generator/building_layout/proc/place_building_infrastructure(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !istype(state.semantic_plan) || state.has_errors())
+	if(!istype(state) || !istype(state.semantic_plan) || !length(state.floor_turfs))
 		return FALSE
 	var/repaired = FALSE
 	var/list/anchors = build_infrastructure_anchor_list(state)
@@ -71,13 +71,15 @@
 		if(!islist(spec_data))
 			continue
 		var/category = "[spec_data["category"]]"
+		var/requirement_id = "[spec_data["id"]]"
 		var/minimum = max(round(text2num("[spec_data["minimum"]]") || 0), 0)
-		if(minimum <= 0 || (state.category_counts[category] || 0) >= minimum)
+		var/placed_count = round(text2num("[state.semantic_requirement_counts[requirement_id]]") || 0)
+		if(minimum <= 0 || placed_count >= minimum)
 			continue
-		var/needed = minimum - (state.category_counts[category] || 0)
+		var/needed = minimum - placed_count
 		var/maximum = max(round(text2num("[spec_data["maximum"]]") || minimum), minimum)
 		var/datum/world_edit_building_cluster_spec/cluster_spec = new(
-			"[spec_data["id"]]_topup",
+			requirement_id,
 			"major",
 			spec_data["pattern"],
 			spec_data["slot"],

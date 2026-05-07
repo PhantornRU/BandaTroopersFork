@@ -303,6 +303,46 @@
 		preset[key] = archetype.shell_overrides[key]
 	return preset
 
+/datum/world_edit_generator/building_layout/proc/add_building_required_slot(list/slots, list/slot_lookup, slot)
+	if(!islist(slots) || !islist(slot_lookup) || !length("[slot]"))
+		return
+	var/slot_key = "[slot]"
+	if(slot_lookup[slot_key])
+		return
+	slots += slot_key
+	slot_lookup[slot_key] = TRUE
+
+/datum/world_edit_generator/building_layout/proc/collect_building_required_slots(datum/world_edit_building_archetype/archetype)
+	var/list/slots = list()
+	var/list/slot_lookup = list()
+	if(!istype(archetype))
+		return slots
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in archetype.cluster_specs)
+		if(!istype(cluster_spec))
+			continue
+		add_building_required_slot(slots, slot_lookup, cluster_spec.slot)
+		var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
+		var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
+		if(!istype(chunk))
+			continue
+		for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
+			if(istype(cell))
+				add_building_required_slot(slots, slot_lookup, cell.slot)
+	for(var/infra_slot as anything in list("light", "apc", "air_alarm", "light_switch", "fire_alarm"))
+		add_building_required_slot(slots, slot_lookup, infra_slot)
+	return slots
+
+/datum/world_edit_generator/building_layout/proc/validate_building_preset_capabilities(list/config, datum/world_edit_building_archetype/archetype)
+	if(!islist(config) || !istype(archetype))
+		return null
+	var/list/missing_slots = list()
+	for(var/slot as anything in collect_building_required_slots(archetype))
+		if(!resolve_interior_obj_path(config, slot))
+			missing_slots += "[slot]"
+	if(length(missing_slots))
+		return "Shell preset '[config["faction_preset"]]' cannot resolve required building fixture slots for program '[archetype.id]': [english_list(missing_slots)]."
+	return null
+
 /datum/world_edit_generator/building_layout/proc/normalize_building_params(list/params)
 	var/list/config = list()
 	var/default_archetype_id = resolve_layout_variant_archetype_alias(params)
@@ -334,6 +374,8 @@
 	config["interior_paths"] = islist(preset["interior_paths"]) ? preset["interior_paths"].Copy() : list()
 	if(!config["wall_type"] || !config["floor_type"] || !config["door_type"] || !config["window_type"])
 		config["error"] = "Unable to resolve one or more shell type paths for preset '[config["faction_preset"]]' and building program '[config["archetype_id"]]'."
+	if(!config["error"])
+		config["error"] = validate_building_preset_capabilities(config, archetype)
 	return config
 
 /datum/world_edit_generator/building_layout/get_ui_fields(list/current_params)
@@ -465,8 +507,6 @@
 
 /datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config)
 	switch("[shape_id]")
-		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			return "Building layout requires a connected footprint; use brush path or custom mask instead of scatter cluster."
 		if(
 			WORLD_EDIT_SHAPE_POINT,
 			WORLD_EDIT_SHAPE_LINE,
@@ -481,7 +521,8 @@
 			WORLD_EDIT_SHAPE_POLYGON,
 			WORLD_EDIT_SHAPE_POLYLINE,
 			WORLD_EDIT_SHAPE_CUSTOM_MASK,
-			WORLD_EDIT_SHAPE_BRUSH_PATH
+			WORLD_EDIT_SHAPE_BRUSH_PATH,
+			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
 		)
 			return null
 	return "Placement shape '[shape_id]' is not supported by building layout."
@@ -563,6 +604,74 @@
 				GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
 	return result
 
+/datum/world_edit_generator/building_layout/proc/add_scatter_connection_turf(list/result, list/result_lookup, turf/source_turf, z_level)
+	if(!istype(source_turf) || isnull(z_level) || source_turf.z != z_level)
+		return
+	for(var/dx in -1 to 1)
+		for(var/dy in -1 to 1)
+			var/turf/target_turf = locate(source_turf.x + dx, source_turf.y + dy, source_turf.z)
+			GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
+
+/datum/world_edit_generator/building_layout/proc/add_scatter_connection_line(list/result, list/result_lookup, turf/start_turf, turf/end_turf, z_level)
+	if(!istype(start_turf) || !istype(end_turf) || isnull(z_level) || start_turf.z != z_level || end_turf.z != z_level)
+		return
+	var/current_x = start_turf.x
+	var/current_y = start_turf.y
+	var/safety = WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS
+	while(current_x != end_turf.x && safety-- > 0)
+		current_x += current_x < end_turf.x ? 1 : -1
+		add_scatter_connection_turf(result, result_lookup, locate(current_x, current_y, z_level), z_level)
+	while(current_y != end_turf.y && safety-- > 0)
+		current_y += current_y < end_turf.y ? 1 : -1
+		add_scatter_connection_turf(result, result_lookup, locate(current_x, current_y, z_level), z_level)
+
+/datum/world_edit_generator/building_layout/proc/build_scatter_compound_footprint(list/raw_turfs)
+	var/list/source_turfs = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
+	var/list/result = list()
+	var/list/result_lookup = list()
+	if(!length(source_turfs))
+		return result
+	var/z_level = null
+	var/turf/previous_turf = null
+	for(var/turf/source_turf as anything in source_turfs)
+		if(!istype(source_turf))
+			continue
+		if(isnull(z_level))
+			z_level = source_turf.z
+		if(source_turf.z != z_level)
+			continue
+		add_scatter_connection_turf(result, result_lookup, source_turf, z_level)
+		if(istype(previous_turf))
+			add_scatter_connection_line(result, result_lookup, previous_turf, source_turf, z_level)
+		previous_turf = source_turf
+	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(result)
+
+/datum/world_edit_generator/building_layout/proc/build_explicit_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/raw_turfs, list/placement_context)
+	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	var/list/footprint = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
+	if(!length(footprint))
+		return footprint
+
+	switch(shape_id)
+		if(WORLD_EDIT_SHAPE_RECTANGLE)
+			if(shape_contract?.is_closed && !shape_contract?.is_filled)
+				footprint = fill_turf_bounds(footprint)
+		if(WORLD_EDIT_SHAPE_POLYGON)
+			if(shape_contract?.is_closed && !shape_contract?.is_filled)
+				var/list/metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
+				if(!islist(metadata))
+					metadata = list()
+				var/list/points = metadata["normalized_points"]
+				var/turf/origin_turf = placement_context["shape_origin_turf"] || placement_context["start_turf"] || get_shape_placement_seed_turf(shape_contract, placement_context)
+				if(istype(origin_turf) && islist(points) && length(points) >= 3)
+					footprint = GLOB.world_edit_placement_shapes.world_edit_collect_polygon_turfs(origin_turf, points, TRUE)
+		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE)
+			footprint = inflate_turf_footprint(footprint, 1)
+		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
+			footprint = build_scatter_compound_footprint(footprint)
+
+	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(footprint)
+
 /datum/world_edit_generator/building_layout/proc/select_building_context_center_turf(list/raw_turfs)
 	if(!islist(raw_turfs) || !length(raw_turfs))
 		return null
@@ -602,12 +711,29 @@
 
 	var/list/raw_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
 	var/turf/seed_turf = get_shape_placement_seed_turf(shape_contract, placement_context)
-	if(shape_id != WORLD_EDIT_SHAPE_POINT)
-		seed_turf = select_building_context_center_turf(raw_turfs) || seed_turf
+	if(shape_id != WORLD_EDIT_SHAPE_POINT && !istype(seed_turf))
+		seed_turf = select_building_context_center_turf(raw_turfs)
 	if(!istype(seed_turf))
 		result["error"] = "Unable to resolve building center turf."
 		return result
+	if(shape_id != WORLD_EDIT_SHAPE_POINT)
+		var/list/explicit_footprint = build_explicit_shape_footprint(shape_contract, raw_turfs, placement_context)
+		if(!length(explicit_footprint))
+			result["error"] = "Unable to resolve explicit building shape footprint."
+			return result
+		config["placement_shape_used_as_seed_only"] = FALSE
+		config["explicit_placement_shape_footprint"] = TRUE
+		config["footprint_source"] = "explicit_shape"
+		config["placement_shape_id"] = shape_id
+		config["footprint_family"] = uppertext("[shape_id]")
+		config["footprint_mask_score"] = 0
+		config["footprint_mask_candidate_count"] = 1
+		result["footprint"] = explicit_footprint
+		result["footprint_family"] = uppertext("[shape_id]")
+		return result
 	config["placement_shape_used_as_seed_only"] = TRUE
+	config["footprint_source"] = "point_size"
+	config["placement_shape_id"] = shape_id
 	return build_point_building_footprint(seed_turf, config, placement_context)
 
 /datum/world_edit_generator/building_layout/proc/validate_footprint(list/footprint, list/config)
@@ -977,8 +1103,9 @@
 
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
 	extract_building_anchors(state)
-	place_building_fixtures(state)
+	run_building_semantic_slot_preflight(state)
 	place_building_infrastructure(state)
+	place_building_fixtures(state)
 	apply_building_facade_rules(state)
 	validate_and_repair_building_layout_state(state)
 	apply_building_microvariation_if_available(state)
@@ -1072,6 +1199,7 @@
 	score += state.nested_room_count * 800
 	score += state.template_chunk_count * 650
 	score += state.infrastructure_count * 220
+	score += min(state.semantic_slot_capacity_count, 80) * 35
 	score += min(state.microvariation_count, 24) * 20
 	score += round(text2num("[state.config["footprint_mask_score"]]") || 0)
 	score += length(state.primary_route_turfs) * 15
@@ -1082,6 +1210,9 @@
 	score -= state.reachability_failure_count * 1400
 	score -= state.repetition_conflict_count * 500
 	score -= state.degraded_region_fallback_count * 2500
+	score -= state.semantic_slot_shortage_count * 18000
+	score -= state.semantic_slot_fallback_count * 3500
+	score -= state.semantic_slot_reservation_conflict_count * 12000
 	score -= (state.fixture_conflict_count + state.route_conflict_count + state.window_conflict_count + state.facade_conflict_count) * 900
 	if("[state.config["footprint_family"]]" != "RECT")
 		score += 1800
@@ -1122,6 +1253,14 @@
 		report["template_chunk_count"] = state.template_chunk_count
 		report["template_chunk_cell_count"] = state.template_chunk_cell_count
 		report["infrastructure_count"] = state.infrastructure_count
+		report["semantic_slot_capacity_count"] = state.semantic_slot_capacity_count
+		report["semantic_slot_shortage_count"] = state.semantic_slot_shortage_count
+		report["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
+		report["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
+		report["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
+		report["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
+		report["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
+		report["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
 		report["degraded_region_fallback_count"] = state.degraded_region_fallback_count
 		report["degraded_region_reports"] = state.degraded_region_reports.Copy()
 		report["microvariation_count"] = state.microvariation_count
@@ -1146,7 +1285,8 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/candidate_families = get_ordered_building_footprint_candidate_families(request.config)
+	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	var/list/candidate_families = (shape_id != WORLD_EDIT_SHAPE_POINT) ? list(uppertext("[shape_id]")) : get_ordered_building_footprint_candidate_families(request.config)
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null
 	var/best_score = -999999999
@@ -1267,11 +1407,7 @@
 	return TRUE
 
 /datum/world_edit_generator/building_layout/should_build_hover_object_preview_plan(datum/world_edit_shape_contract/shape_contract, list/runtime_params = null, list/placement_context = null)
-	if(!istype(shape_contract) || length("[shape_contract.error]"))
-		return FALSE
-	if(!length(shape_contract.anchor_turfs))
-		return FALSE
-	return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/get_hover_object_preview_anchor_limit()
 	return 2
@@ -1297,7 +1433,7 @@
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
-	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
+	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], shape=[plan.metadata["placement_shape_id"]], source=[plan.metadata["footprint_source"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, slots=[plan.metadata["semantic_slot_capacity_count"]] shortage=[plan.metadata["semantic_slot_shortage_count"]] fallback=[plan.metadata["semantic_slot_fallback_count"]], reservations=[plan.metadata["semantic_slot_reservation_count"]] conflicts=[plan.metadata["semantic_slot_reservation_conflict_count"]], rects=[plan.metadata["rectangular_region_candidate_count"]], claims=[plan.metadata["semantic_region_claim_count"]], nested=[plan.metadata["nested_room_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)
@@ -1455,5 +1591,9 @@
 #undef WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS
 #undef WORLD_EDIT_BUILDING_MAX_VALIDATION_ERRORS
 #undef WORLD_EDIT_BUILDING_MAX_REPAIR_ATTEMPTS
+#undef WORLD_EDIT_BUILDING_MAX_REGION_ASSIGNMENT_STEPS
+#undef WORLD_EDIT_BUILDING_MAX_REGION_ASSIGNMENT_BRANCHES
+#undef WORLD_EDIT_BUILDING_MAX_DIVIDER_RUN_ATTEMPTS
+#undef WORLD_EDIT_BUILDING_MAX_ROOM_IN_ROOM_CANDIDATES
 #undef WORLD_EDIT_BUILDING_AUTO_SEED
 #undef WORLD_EDIT_BUILDING_HASH_MOD

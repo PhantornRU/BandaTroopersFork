@@ -1,7 +1,7 @@
 /datum/world_edit_generator/building_layout/proc/apply_building_microvariation(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || state.has_errors())
 		return
-	if(has_building_microvariation_anchors(state))
+	if(state.config["microvariation_applied"])
 		return
 	var/detail_budget = get_building_microvariation_budget(state)
 	if(detail_budget <= 0)
@@ -13,6 +13,7 @@
 	add_building_wear_patch_anchors(state, detail_budget)
 	add_building_symmetric_ritual_hint_anchors(state)
 	place_building_microvariation_details(state, detail_budget)
+	state.config["microvariation_applied"] = TRUE
 
 /datum/world_edit_generator/building_layout/proc/has_building_microvariation_anchors(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !islist(state.anchor_turfs))

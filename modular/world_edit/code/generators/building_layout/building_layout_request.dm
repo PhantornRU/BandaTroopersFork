@@ -28,4 +28,7 @@
 	request.microvariation_rng = new /datum/world_edit_building_prng(build_stage_seed(request.effective_seed, "microvariation"))
 	config["effective_seed"] = request.effective_seed
 	config["archetype_label"] = request.archetype.label
+	config["placement_shape_id"] = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	config["placement_direction"] = text2num("[placement_context["direction"]]")
+	config["footprint_source"] = config["placement_shape_id"] == WORLD_EDIT_SHAPE_POINT ? "point_size" : "explicit_shape"
 	return request

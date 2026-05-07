@@ -58,6 +58,16 @@
 	chunk.add_cell(3, 0, "rack", "rack", TRUE)
 	register_building_template_chunk(template_catalog, chunk)
 
+	chunk = new /datum/world_edit_building_template_chunk("cabinet_run_chunk", "storage")
+	chunk.add_cell(0, 0, "cabinet", "cabinet", TRUE)
+	chunk.add_cell(1, 0, "cabinet", "cabinet", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("bed_run_chunk", "sleep")
+	chunk.add_cell(0, 0, "bed", "bed", TRUE)
+	chunk.add_cell(1, 0, "bed", "bed", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
 	chunk = new /datum/world_edit_building_template_chunk("bed_niche_chunk", "sleep")
 	chunk.add_cell(0, 0, "bed", "bed", TRUE)
 	chunk.add_cell(1, 0, "cabinet", "cabinet", TRUE, FALSE)
@@ -156,15 +166,40 @@
 		result = get_step(result, dy >= 0 ? forward_dir : turn(forward_dir, 180))
 	return result
 
-/datum/world_edit_generator/building_layout/proc/build_template_chunk_candidate_turfs(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_template_chunk/chunk)
+/datum/world_edit_generator/building_layout/proc/can_place_building_template_chunk_at(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_template_chunk/chunk, turf/anchor_turf, dir_to_use, wall_dir)
+	if(!istype(state) || !istype(cluster_spec) || !istype(chunk) || !istype(anchor_turf))
+		return FALSE
+	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	var/list/planned_lookup = list()
+	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
+		if(!istype(cell))
+			continue
+		var/turf/cell_turf = get_template_offset_turf(anchor_turf, dir_to_use, cell.dx, cell.dy)
+		var/owner = state.get_semantic_slot_owner(cell_turf)
+		if(length(owner) && owner != requirement_id)
+			return FALSE
+		if(!state.can_place_fixture(cell_turf) || planned_lookup[cell_turf])
+			return FALSE
+		var/list/cell_context = resolve_template_cell_context(state, cell_turf, cell, dir_to_use, wall_dir, cluster_spec)
+		if(!islist(cell_context))
+			return FALSE
+		planned_lookup[cell_turf] = TRUE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/build_template_chunk_candidate_turfs(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_template_chunk/chunk, list/anchor_override = null)
 	var/list/candidates = list()
 	var/list/candidate_scores = list()
 	if(!istype(state) || !istype(cluster_spec) || !istype(chunk))
 		return list("turfs" = candidates, "scores" = candidate_scores)
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	var/list/anchor_ids = islist(anchor_override) ? anchor_override : get_cluster_preflight_anchor_ids(state, cluster_spec, cluster_spec.anchors)
+	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
+		var/owner = state.get_semantic_slot_owner(floor_turf)
+		if(length(owner) && owner != requirement_id)
+			continue
 		if(!state.can_place_fixture(floor_turf))
 			continue
-		if(!fixture_turf_matches_anchor(state, floor_turf, cluster_spec.anchors))
+		if(!fixture_turf_matches_anchor(state, floor_turf, anchor_ids))
 			continue
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 		var/effective_needs_wall = cluster_spec.wall_required || place_rule.needs_wall
@@ -172,7 +207,11 @@
 		var/list/place_context = build_building_fixture_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall)
 		if(!islist(place_context))
 			continue
-		var/score = score_fixture_turf(state, floor_turf, cluster_spec.anchors, effective_needs_wall, cluster_spec, place_rule)
+		if(!can_place_building_template_chunk_at(state, cluster_spec, chunk, floor_turf, place_context["dir"] || fallback_dir, place_context["wall_dir"]))
+			continue
+		var/score = score_fixture_turf(state, floor_turf, anchor_ids, effective_needs_wall, cluster_spec, place_rule)
+		if(cluster_turf_is_preflight_planned(state, cluster_spec, floor_turf))
+			score += 5000
 		score += length(chunk.cells) * 35
 		candidates += floor_turf
 		candidate_scores[floor_turf] = score
@@ -209,12 +248,16 @@
 /datum/world_edit_generator/building_layout/proc/try_place_building_template_chunk_at(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_template_chunk/chunk, turf/anchor_turf, dir_to_use, wall_dir, major)
 	if(!istype(state) || !istype(cluster_spec) || !istype(chunk) || !istype(anchor_turf))
 		return 0
+	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/planned_cells = list()
 	var/list/planned_lookup = list()
 	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
 		if(!istype(cell))
 			continue
 		var/turf/cell_turf = get_template_offset_turf(anchor_turf, dir_to_use, cell.dx, cell.dy)
+		var/owner = state.get_semantic_slot_owner(cell_turf)
+		if(length(owner) && owner != requirement_id)
+			return 0
 		if(!state.can_place_fixture(cell_turf) || planned_lookup[cell_turf])
 			return 0
 		var/list/cell_context = resolve_template_cell_context(state, cell_turf, cell, dir_to_use, wall_dir, cluster_spec)
@@ -225,20 +268,25 @@
 	if(!length(planned_cells))
 		return 0
 	var/placed = 0
+	var/credit_count = 0
 	var/list/covered_turfs = list()
+	var/template_chunk_instance_id = "[chunk.id]@[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]/[dir_to_use]/[state.template_chunk_count + 1]"
 	for(var/list/planned as anything in planned_cells)
 		var/datum/world_edit_building_template_cell/cell = planned["cell"]
 		var/turf/cell_turf = planned["turf"]
 		var/list/context = planned["context"]
-		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id))
-			continue
+		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id, template_chunk_instance_id))
+			for(var/turf/rollback_turf as anything in covered_turfs)
+				state.remove_fixture_at(rollback_turf)
+			return 0
 		covered_turfs += cell_turf
 		placed++
+		credit_count += get_building_fixture_count_credit(cluster_spec, cell.slot, cell.category)
 	if(placed > 0)
 		state.template_chunk_count++
 		state.template_chunk_cell_count += placed
 		state.register_layout_macro(chunk.id, chunk.category, anchor_turf, dir_to_use, covered_turfs, list(cluster_spec.id))
-	return placed
+	return credit_count
 
 /datum/world_edit_generator/building_layout/proc/place_building_template_chunk_for_cluster(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || !length(cluster_spec.macro_id))

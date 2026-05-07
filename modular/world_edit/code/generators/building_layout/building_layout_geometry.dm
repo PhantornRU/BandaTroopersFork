@@ -537,19 +537,25 @@
 			best_score = score
 	return best_candidate
 
-/datum/world_edit_generator/building_layout/proc/assign_required_zone_region_seeds(datum/world_edit_building_layout_state/state, list/zone_specs, list/candidates_by_zone, zone_index, list/claimed_lookup, list/assignments, list/region_assignments, recursion_budget = 64)
+/datum/world_edit_generator/building_layout/proc/assign_required_zone_region_seeds(datum/world_edit_building_layout_state/state, list/zone_specs, list/candidates_by_zone, zone_index, list/claimed_lookup, list/assignments, list/region_assignments, list/search_budget = null)
 	if(zone_index > length(zone_specs))
 		return TRUE
-	if(recursion_budget <= 0)
+	if(!islist(search_budget))
+		search_budget = list("remaining" = WORLD_EDIT_BUILDING_MAX_REGION_ASSIGNMENT_STEPS)
+	var/remaining_steps = round(text2num("[search_budget["remaining"]]") || 0)
+	if(remaining_steps <= 0)
 		return FALSE
+	search_budget["remaining"] = remaining_steps - 1
 	var/datum/world_edit_building_zone_spec/zone_spec = zone_specs[zone_index]
 	if(!istype(zone_spec))
-		return assign_required_zone_region_seeds(state, zone_specs, candidates_by_zone, zone_index + 1, claimed_lookup, assignments, region_assignments, recursion_budget - 1)
+		return assign_required_zone_region_seeds(state, zone_specs, candidates_by_zone, zone_index + 1, claimed_lookup, assignments, region_assignments, search_budget)
 	var/list/zone_candidates = candidates_by_zone[zone_spec.id]
 	if(!islist(zone_candidates) || !length(zone_candidates))
 		return FALSE
 	var/list/remaining_candidates = zone_candidates.Copy()
-	while(length(remaining_candidates))
+	var/branch_attempts = 0
+	while(length(remaining_candidates) && branch_attempts < WORLD_EDIT_BUILDING_MAX_REGION_ASSIGNMENT_BRANCHES)
+		branch_attempts++
 		var/datum/world_edit_building_solved_region/candidate = select_best_zone_region_candidate(state, zone_spec, remaining_candidates, claimed_lookup)
 		if(!istype(candidate))
 			break
@@ -561,7 +567,7 @@
 			claimed_lookup[seed_turf] = TRUE
 		assignments[zone_spec.id] = seed_turfs
 		region_assignments[zone_spec.id] = candidate
-		if(assign_required_zone_region_seeds(state, zone_specs, candidates_by_zone, zone_index + 1, claimed_lookup, assignments, region_assignments, recursion_budget - 1))
+		if(assign_required_zone_region_seeds(state, zone_specs, candidates_by_zone, zone_index + 1, claimed_lookup, assignments, region_assignments, search_budget))
 			return TRUE
 		for(var/turf/seed_turf as anything in seed_turfs)
 			claimed_lookup.Remove(seed_turf)
@@ -719,7 +725,8 @@
 	var/list/claimed_lookup = list()
 	var/list/assignments = list()
 	var/list/region_assignments = list()
-	if(assign_required_zone_region_seeds(state, required_zone_specs, candidates_by_zone, 1, claimed_lookup, assignments, region_assignments))
+	var/list/search_budget = list("remaining" = WORLD_EDIT_BUILDING_MAX_REGION_ASSIGNMENT_STEPS)
+	if(assign_required_zone_region_seeds(state, required_zone_specs, candidates_by_zone, 1, claimed_lookup, assignments, region_assignments, search_budget))
 		apply_required_zone_seed_assignments(state, assignments)
 		apply_required_zone_region_claims(state, region_assignments)
 	else
@@ -727,6 +734,8 @@
 		state.degraded_region_reports += list(list(
 			"reason" = "backtracking_assignment_failed",
 			"required_zone_count" = length(required_zone_specs),
+			"search_budget_remaining" = search_budget["remaining"],
+			"search_budget_exhausted" = (round(text2num("[search_budget["remaining"]]") || 0) <= 0),
 		))
 		state.add_warning("Room region solver fell back to priority growth for one or more required zones.")
 	apply_region_candidate_growth(state, region_candidates)
@@ -893,13 +902,17 @@
 				break
 			state.add_divider_plan(divider_plan)
 			built_dividers++
+			if(findtext("[divider_plan.id]", "box_") == 1)
+				break
 
 /datum/world_edit_generator/building_layout/proc/build_zone_edge_divider_plan(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec)
 	var/list/zone_turfs = state.get_zone_turfs(zone_spec.id)
 	if(length(zone_turfs) < zone_spec.min_area + 2)
 		return null
 	var/list/edge_runs = build_region_border_divider_runs(state, zone_spec)
-	while(length(edge_runs))
+	var/run_attempts = 0
+	while(length(edge_runs) && run_attempts < WORLD_EDIT_BUILDING_MAX_DIVIDER_RUN_ATTEMPTS)
+		run_attempts++
 		var/datum/world_edit_building_divider_edge_run/best_run = select_best_divider_edge_run(edge_runs)
 		if(!istype(best_run))
 			break
@@ -933,7 +946,7 @@
 	var/list/perimeter = list()
 	var/list/inner_turfs = list()
 	for(var/turf/zone_turf as anything in zone_turfs)
-		if(!istype(zone_turf) || state.boundary_lookup[zone_turf] || state.door_dirs[zone_turf])
+		if(!istype(zone_turf) || state.boundary_lookup[zone_turf] || state.door_dirs[zone_turf] || state.wall_lookup[zone_turf])
 			continue
 		if(zone_turf.x == min_x || zone_turf.x == max_x || zone_turf.y == min_y || zone_turf.y == max_y)
 			if(!state.reserved_lookup[zone_turf])
@@ -1032,14 +1045,16 @@
 	var/score = length(run.wall_turfs) * 30
 	var/turf/target_turf = state.semantic_hub_turf || state.front_door_turf || state.center_turf
 	var/turf/opening_turf = select_divider_opening_turf(state, run.wall_turfs)
-	if(istype(opening_turf) && istype(target_turf))
+	if(!istype(opening_turf))
+		score -= 10000
+	else if(istype(target_turf))
 		score -= (abs(opening_turf.x - target_turf.x) + abs(opening_turf.y - target_turf.y)) * 5
 	if(zone_spec.divider_mode == "room")
 		score += 45
 	else
 		score += 15
 	for(var/turf/run_turf as anything in run.wall_turfs)
-		if(state.primary_route_turfs.Find(run_turf) || state.reserved_lookup[run_turf])
+		if(state.primary_route_turfs.Find(run_turf) || state.reserved_lookup[run_turf] || state.wall_lookup[run_turf] || state.door_dirs[run_turf])
 			score -= 200
 		if(run_turf == state.front_door_turf)
 			score -= 1000
@@ -1070,7 +1085,7 @@
 		max_wall_count = min(max_wall_count, max(1, round(length(run.wall_turfs) * 2 / 3)))
 	var/placed_walls = 0
 	for(var/turf/run_turf as anything in run.wall_turfs)
-		if(!istype(run_turf) || run_turf == opening_turf || state.reserved_lookup[run_turf] || state.door_dirs[run_turf])
+		if(!istype(run_turf) || run_turf == opening_turf || state.reserved_lookup[run_turf] || state.door_dirs[run_turf] || state.wall_lookup[run_turf])
 			continue
 		if(placed_walls >= max_wall_count)
 			break
@@ -1128,6 +1143,9 @@
 /datum/world_edit_generator/building_layout/proc/divider_plan_keeps_floor_reachable(datum/world_edit_building_layout_state/state, datum/world_edit_building_divider_plan/divider_plan)
 	if(!istype(state) || !istype(divider_plan))
 		return FALSE
+	for(var/turf/opening_turf as anything in divider_plan.opening_turfs)
+		if(!istype(opening_turf) || state.wall_lookup[opening_turf] || state.boundary_lookup[opening_turf] || state.door_dirs[opening_turf])
+			return FALSE
 	var/list/floor_lookup = build_floor_lookup_after_divider_plan(state, divider_plan)
 	var/list/reachable = build_reachable_lookup_from_floor_lookup(state, floor_lookup)
 	for(var/turf/floor_turf as anything in floor_lookup)
@@ -1142,7 +1160,7 @@
 	var/best_score = -999999999
 	var/turf/target_turf = state.semantic_hub_turf || state.front_door_turf || state.center_turf
 	for(var/turf/candidate as anything in candidate_turfs)
-		if(!istype(candidate) || state.reserved_lookup[candidate])
+		if(!istype(candidate) || state.reserved_lookup[candidate] || state.wall_lookup[candidate] || state.boundary_lookup[candidate] || state.door_dirs[candidate])
 			continue
 		var/score = 0
 		if(istype(target_turf))
@@ -1242,6 +1260,8 @@
 					var/list/candidate = build_room_in_room_rect_candidate(state, outer_zone_id, x1, y1, x1 + room_width - 1, y1 + room_height - 1, margin)
 					if(islist(candidate))
 						candidates += list(candidate)
+						if(length(candidates) >= WORLD_EDIT_BUILDING_MAX_ROOM_IN_ROOM_CANDIDATES)
+							return candidates
 	return candidates
 
 /datum/world_edit_generator/building_layout/proc/build_room_in_room_rect_candidate(datum/world_edit_building_layout_state/state, outer_zone_id, x1, y1, x2, y2, margin)
@@ -1309,6 +1329,7 @@
 			state.wall_lookup[footprint_turf] = TRUE
 		else
 			state.append_unique_turf(state.floor_turfs, footprint_turf)
+	state.adjacent_wall_dirs_by_turf.Cut()
 	state.floor_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.floor_turfs)
 	var/center_x = (state.bounds["min_x"] + state.bounds["max_x"]) / 2
 	var/center_y = (state.bounds["min_y"] + state.bounds["max_y"]) / 2

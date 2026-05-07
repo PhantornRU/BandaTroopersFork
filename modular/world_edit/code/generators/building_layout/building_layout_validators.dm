@@ -111,10 +111,12 @@
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
 			continue
-		if((state.cluster_counts[cluster_spec.id] || 0) >= cluster_spec.min_count)
+		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+		if(placed_count >= get_effective_cluster_min_count(state, cluster_spec))
 			continue
 		if(place_building_cluster_spec(state, cluster_spec, TRUE))
-			repaired = TRUE
+			return TRUE
 	return repaired
 
 /datum/world_edit_generator/building_layout/proc/repair_building_empty_space(datum/world_edit_building_layout_state/state)
@@ -128,9 +130,7 @@
 			if(!istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 				continue
 			if(place_building_cluster_spec(state, cluster_spec, FALSE))
-				repaired = TRUE
-			if(state.empty_floor_ratio <= get_building_max_empty_floor_ratio(state))
-				return repaired
+				return TRUE
 	if(!repaired && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		var/datum/world_edit_building_cluster_spec/filler_spec = new("empty_space_filler", "detail", "staging_group", "crate", "crate", list(state.semantic_plan.primary_zone_id, state.semantic_plan.hub_zone_id, "storage_wall", "service_wall"), 2, 4, FALSE, 0, 25, FALSE, null, "empty_space_filler_chunk")
 		repaired = place_building_cluster_spec(state, filler_spec, FALSE)
@@ -162,6 +162,7 @@
 	validate_building_fixture_reachability(state)
 	validate_building_privacy_rules(state)
 	validate_building_forbidden_rules(state)
+	validate_building_semantic_slot_preflight(state)
 	validate_building_major_clusters(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_density_rules(state)
@@ -187,8 +188,13 @@
 	var/list/zone_b_lookup = build_building_zone_lookup(state, zone_b)
 	for(var/turf/zone_a_turf as anything in state.get_zone_turfs(zone_a))
 		for(var/check_dir in GLOB.cardinals)
-			if(zone_b_lookup[get_step(zone_a_turf, check_dir)])
+			var/turf/nearby_turf = get_step(zone_a_turf, check_dir)
+			if(zone_b_lookup[nearby_turf])
 				return TRUE
+			if(state.wall_lookup[nearby_turf] || state.door_dirs[nearby_turf])
+				var/turf/beyond_turf = get_step(nearby_turf, check_dir)
+				if(zone_b_lookup[beyond_turf])
+					return TRUE
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_adjacency_rules(datum/world_edit_building_layout_state/state)
@@ -381,37 +387,64 @@
 					state.facade_conflict_count++
 					state.add_error("Forbidden rule '[rule.id]' violated: zones '[rule.zone_id]' and '[rule.target_id]' are adjacent.")
 
+/datum/world_edit_generator/building_layout/proc/validate_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !islist(state.semantic_slot_reports))
+		return
+	for(var/list/report as anything in state.semantic_slot_reports)
+		if(!islist(report))
+			continue
+		var/shortage = max(round(text2num("[report["shortage"]]") || 0), 0)
+		if(shortage <= 0)
+			continue
+		state.signature_failure_count++
+		var/shape_label = "[state.config["footprint_family"] || state.config["placement_shape_id"] || "shape"]"
+		state.add_error("Program [state.archetype.id] in [shape_label] footprint cannot reserve required pattern '[report["id"]]': found [round(text2num("[report["best_capacity"]]") || 0)] slots, needs [round(text2num("[report["required"]]") || 0)].")
+
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!cluster_spec.required)
 			continue
-		if((state.cluster_counts[cluster_spec.id] || 0) < cluster_spec.min_count)
+		var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
+		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+		if(placed_count < effective_minimum)
 			state.signature_failure_count++
-			state.add_error("Major cluster '[cluster_spec.id]' placed [state.cluster_counts[cluster_spec.id] || 0], expected at least [cluster_spec.min_count].")
+			state.add_error("Program [state.archetype.id] required pattern '[requirement_id]' placed [placed_count], needs [effective_minimum].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
-	for(var/category as anything in state.semantic_plan.category_minimums)
-		var/minimum = round(text2num("[state.semantic_plan.category_minimums[category]]") || 0)
-		if((state.category_counts["[category]"] || 0) < minimum)
-			state.signature_failure_count++
-			state.add_error("Program [state.archetype.id] requires [minimum] [category] fixtures.")
+	return
+
+/datum/world_edit_generator/building_layout/proc/get_building_semantic_requirement_count(datum/world_edit_building_layout_state/state, requirement_id, cluster_id = null, signature_id = null)
+	if(!istype(state))
+		return 0
+	var/count = round(text2num("[state.semantic_requirement_counts["[requirement_id]"]]") || 0)
+	if(length("[cluster_id]"))
+		count = max(count, round(text2num("[state.semantic_requirement_counts["[cluster_id]"]]") || 0))
+	if(length("[signature_id]"))
+		count = max(count, round(text2num("[state.semantic_requirement_counts["[signature_id]"]]") || 0))
+	return count
+
+/datum/world_edit_generator/building_layout/proc/get_building_requirement_or_category_count(datum/world_edit_building_layout_state/state, requirement_id, category)
+	if(!istype(state))
+		return 0
+	return round(text2num("[state.semantic_requirement_counts["[requirement_id]"]]") || 0)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_infrastructure_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || length(state.floor_turfs) < 12)
 		return
-	if((state.category_counts["light"] || 0) < 2)
+	if(get_building_requirement_or_category_count(state, "infrastructure_lights", "light") < 2)
 		state.fixture_conflict_count++
 		state.add_error("SS13 infrastructure requires at least two light fixtures.")
-	if((state.category_counts["apc"] || 0) < 1)
+	if(get_building_requirement_or_category_count(state, "infrastructure_apc", "apc") < 1)
 		state.fixture_conflict_count++
 		state.add_error("SS13 infrastructure requires an APC.")
-	if((state.category_counts["air_alarm"] || 0) < 1)
+	if(get_building_requirement_or_category_count(state, "infrastructure_air_alarm", "air_alarm") < 1)
 		state.fixture_conflict_count++
 		state.add_error("SS13 infrastructure requires an air alarm.")
-	if((state.category_counts["light_switch"] || 0) < 1)
+	if(get_building_requirement_or_category_count(state, "infrastructure_light_switch", "light_switch") < 1)
 		state.fixture_conflict_count++
 		state.add_error("SS13 infrastructure requires a light switch near entry/service wall.")
-	if(length(state.floor_turfs) >= 30 && (state.category_counts["fire_alarm"] || 0) < 1)
+	if(length(state.floor_turfs) >= 30 && get_building_requirement_or_category_count(state, "infrastructure_fire_alarm", "fire_alarm") < 1)
 		state.fixture_conflict_count++
 		state.add_error("SS13 infrastructure requires a fire alarm for medium/large buildings.")
 
@@ -421,13 +454,14 @@
 	if(islist(state.semantic_plan.signature_minimums))
 		for(var/signature_id as anything in state.semantic_plan.signature_minimums)
 			var/minimum = max(round(text2num("[state.semantic_plan.signature_minimums[signature_id]]") || 0), 0)
+			minimum = get_effective_signature_min_count(state, signature_id, minimum)
 			var/weight = max(round(text2num("[state.semantic_plan.signature_weights[signature_id]]") || 0), 1)
-			var/placed = round(text2num("[state.signature_counts[signature_id]]") || 0)
+			var/placed = round(text2num("[state.semantic_requirement_counts["[signature_id]"]]") || 0)
 			max_score += weight
 			if(placed >= minimum)
 				raw_score += weight
 				continue
-			var/message = "Program signature '[signature_id]' placed [placed], expected at least [minimum]."
+			var/message = "Program [state.archetype.id] semantic signature '[signature_id]' placed [placed], needs [minimum]."
 			state.signature_warnings += message
 			state.signature_failure_count++
 			state.add_error(message)

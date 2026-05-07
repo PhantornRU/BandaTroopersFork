@@ -1,6 +1,8 @@
 /datum/world_edit_generator/building_layout/proc/apply_building_layout_macro_overlays(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
+	if(state.config["layout_macro_overlays_applied"])
+		return
 	state.layout_macros.Cut()
 	state.layout_macro_counts.Cut()
 
@@ -42,6 +44,7 @@
 		if(length("[object_placement["cluster_id"]]"))
 			sources += "[object_placement["cluster_id"]]"
 		state.register_layout_macro(macro_id, category, target_turf, dir_value, list(target_turf), sources)
+	state.config["layout_macro_overlays_applied"] = TRUE
 
 /datum/world_edit_generator/building_layout/proc/get_building_layout_macro_id_for_turf(datum/world_edit_building_layout_state/state, category, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))

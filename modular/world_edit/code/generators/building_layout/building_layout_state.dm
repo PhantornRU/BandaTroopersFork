@@ -29,6 +29,8 @@
 	var/list/zone_turfs = list()
 	var/list/zone_focus_turfs = list()
 	var/list/anchor_turfs = list()
+	var/list/anchor_lookup = list()
+	var/list/adjacent_wall_dirs_by_turf = list()
 	var/list/solved_regions = list()
 	var/list/divider_plans = list()
 	var/list/primary_route_turfs = list()
@@ -36,6 +38,15 @@
 	var/list/category_budgets = list()
 	var/list/layout_macros = list()
 	var/list/layout_macro_counts = list()
+	var/list/semantic_slot_reports = list()
+	var/list/semantic_slot_anchor_sets = list()
+	var/list/semantic_slot_selected_modes = list()
+	var/list/semantic_slot_turf_sets = list()
+	var/list/semantic_requirement_counts = list()
+	var/list/semantic_requirement_minimums = list()
+	var/list/semantic_requirement_reports = list()
+	var/list/semantic_slot_reservation_by_turf = list()
+	var/list/semantic_slot_reserved_turfs = list()
 	var/list/errors = list()
 	var/list/warnings = list()
 	var/turf/center_turf
@@ -75,6 +86,10 @@
 	var/template_chunk_cell_count = 0
 	var/infrastructure_count = 0
 	var/degraded_region_fallback_count = 0
+	var/semantic_slot_capacity_count = 0
+	var/semantic_slot_shortage_count = 0
+	var/semantic_slot_fallback_count = 0
+	var/semantic_slot_reservation_conflict_count = 0
 	var/list/degraded_region_reports = list()
 	var/list/region_claim_reports = list()
 
@@ -135,22 +150,33 @@
 /datum/world_edit_building_layout_state/proc/add_anchor(anchor_id, turf/target_turf)
 	if(!istype(target_turf) || !length("[anchor_id]"))
 		return
-	var/list/turfs = anchor_turfs["[anchor_id]"]
+	var/anchor_key = "[anchor_id]"
+	var/list/turfs = anchor_turfs[anchor_key]
 	if(!islist(turfs))
 		turfs = list()
-		anchor_turfs["[anchor_id]"] = turfs
-	append_unique_turf(turfs, target_turf)
+		anchor_turfs[anchor_key] = turfs
+	var/list/lookup = anchor_lookup[anchor_key]
+	if(!islist(lookup))
+		lookup = list()
+		anchor_lookup[anchor_key] = lookup
+	if(lookup[target_turf])
+		return
+	turfs += target_turf
+	lookup[target_turf] = TRUE
 
 /datum/world_edit_building_layout_state/proc/get_anchor_turfs(anchor_id)
 	var/list/turfs = anchor_turfs["[anchor_id]"]
 	return islist(turfs) ? turfs : list()
 
 /datum/world_edit_building_layout_state/proc/has_anchor(anchor_id, turf/target_turf)
-	var/list/turfs = get_anchor_turfs(anchor_id)
-	return istype(target_turf) && (target_turf in turfs)
+	if(!istype(target_turf))
+		return FALSE
+	var/list/lookup = anchor_lookup["[anchor_id]"]
+	return islist(lookup) && lookup[target_turf]
 
 /datum/world_edit_building_layout_state/proc/clear_anchors()
 	anchor_turfs.Cut()
+	anchor_lookup.Cut()
 
 /datum/world_edit_building_layout_state/proc/add_reserved(turf/target_turf)
 	if(istype(target_turf))
@@ -168,6 +194,7 @@
 	if(reserved_lookup[target_turf] || door_dirs[target_turf])
 		return FALSE
 	wall_lookup[target_turf] = TRUE
+	adjacent_wall_dirs_by_turf.Cut()
 	append_unique_turf(internal_wall_turfs, target_turf)
 	return TRUE
 
@@ -226,12 +253,15 @@
 	category_counts.Cut()
 	cluster_counts.Cut()
 	signature_counts.Cut()
+	semantic_requirement_counts.Cut()
 	major_fixture_turfs.Cut()
 	wall_fixture_turfs.Cut()
 	fixture_count = 0
 	major_fixture_count = 0
+	template_chunk_count = 0
 	template_chunk_cell_count = 0
 	infrastructure_count = 0
+	var/list/template_chunk_instance_lookup = list()
 	for(var/list/object_placement as anything in object_placements)
 		if(!islist(object_placement) || "[object_placement["kind"]]" != "interior")
 			continue
@@ -248,10 +278,24 @@
 		var/signature_credit = round(text2num("[object_placement["signature_count_credit"]]") || 0)
 		if(signature_credit > 0 && length("[object_placement["signature_id"]]"))
 			register_signature(object_placement["signature_id"], signature_credit)
+		var/requirement_credit = round(text2num("[object_placement["requirement_count_credit"]]") || 0)
+		if(requirement_credit > 0 && length("[object_placement["requirement_id"]]"))
+			register_requirement(object_placement["requirement_id"], requirement_credit)
 		if(length("[object_placement["template_chunk_id"]]"))
 			template_chunk_cell_count++
+			var/template_chunk_instance_id = "[object_placement["template_chunk_instance_id"]]"
+			if(!length(template_chunk_instance_id))
+				template_chunk_instance_id = "[object_placement["template_chunk_id"]]@[target_turf.x],[target_turf.y],[target_turf.z]"
+			if(!template_chunk_instance_lookup[template_chunk_instance_id])
+				template_chunk_instance_lookup[template_chunk_instance_id] = TRUE
+				template_chunk_count++
 		if(GLOB.world_edit_helpers.parse_bool(object_placement["infrastructure"]))
 			infrastructure_count++
+	reconcile_canonical_requirement_count("infrastructure_lights", "light")
+	reconcile_canonical_requirement_count("infrastructure_apc", "apc")
+	reconcile_canonical_requirement_count("infrastructure_air_alarm", "air_alarm")
+	reconcile_canonical_requirement_count("infrastructure_light_switch", "light_switch")
+	reconcile_canonical_requirement_count("infrastructure_fire_alarm", "fire_alarm")
 
 /datum/world_edit_building_layout_state/proc/remove_fixture_at(turf/target_turf)
 	if(!istype(target_turf))
@@ -301,6 +345,44 @@
 	if(!length("[signature_id]") || placed_count <= 0)
 		return
 	signature_counts["[signature_id]"] = (signature_counts["[signature_id]"] || 0) + placed_count
+
+/datum/world_edit_building_layout_state/proc/register_requirement(requirement_id, placed_count)
+	if(!length("[requirement_id]") || placed_count <= 0)
+		return
+	semantic_requirement_counts["[requirement_id]"] = (semantic_requirement_counts["[requirement_id]"] || 0) + placed_count
+
+/datum/world_edit_building_layout_state/proc/reconcile_canonical_requirement_count(requirement_id, category)
+	if(!length("[requirement_id]") || !length("[category]"))
+		return
+	var/current_count = round(text2num("[semantic_requirement_counts["[requirement_id]"]]") || 0)
+	var/category_count = round(text2num("[category_counts["[category]"]]") || 0)
+	if(category_count > current_count)
+		semantic_requirement_counts["[requirement_id]"] = category_count
+
+/datum/world_edit_building_layout_state/proc/clear_semantic_slot_reservations()
+	semantic_slot_reservation_by_turf.Cut()
+	semantic_slot_reserved_turfs.Cut()
+	semantic_slot_reservation_conflict_count = 0
+
+/datum/world_edit_building_layout_state/proc/reserve_semantic_slot(requirement_id, turf/target_turf)
+	if(!length("[requirement_id]") || !istype(target_turf))
+		return FALSE
+	var/owner = "[semantic_slot_reservation_by_turf[target_turf] || ""]"
+	if(length(owner) && owner != "[requirement_id]")
+		semantic_slot_reservation_conflict_count++
+		return FALSE
+	semantic_slot_reservation_by_turf[target_turf] = "[requirement_id]"
+	var/list/turfs = semantic_slot_reserved_turfs["[requirement_id]"]
+	if(!islist(turfs))
+		turfs = list()
+		semantic_slot_reserved_turfs["[requirement_id]"] = turfs
+	append_unique_turf(turfs, target_turf)
+	return TRUE
+
+/datum/world_edit_building_layout_state/proc/get_semantic_slot_owner(turf/target_turf)
+	if(!istype(target_turf))
+		return ""
+	return "[semantic_slot_reservation_by_turf[target_turf] || ""]"
 
 /datum/world_edit_building_layout_state/proc/get_category_budget(category)
 	var/budget = category_budgets["[category]"]

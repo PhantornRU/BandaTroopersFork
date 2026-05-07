@@ -98,7 +98,20 @@
 	plan.metadata["archetype_label"] = state.archetype?.label
 	plan.metadata["faction_preset"] = state.config["faction_preset"]
 	plan.metadata["footprint_family"] = state.config["footprint_family"]
+	plan.metadata["placement_shape_id"] = state.config["placement_shape_id"]
+	plan.metadata["footprint_source"] = state.config["footprint_source"]
 	plan.metadata["placement_shape_used_as_seed_only"] = state.config["placement_shape_used_as_seed_only"] ? TRUE : FALSE
+	plan.metadata["building_placement_contract"] = list(
+		"program_id" = state.archetype?.id,
+		"shell_preset" = state.config["faction_preset"],
+		"shape_id" = state.config["placement_shape_id"],
+		"direction" = state.placement_dir,
+		"footprint_source" = state.config["footprint_source"],
+		"usable_area" = state.usable_fixture_area,
+		"semantic_requirement_minimums" = state.semantic_requirement_minimums.Copy(),
+		"semantic_requirement_counts" = state.semantic_requirement_counts.Copy(),
+		"reservation_count" = length(state.semantic_slot_reservation_by_turf),
+	)
 	plan.metadata["layout_candidate_score"] = state.config["layout_candidate_score"] || state.layout_candidate_score
 	plan.metadata["layout_candidate_count"] = state.config["layout_candidate_count"] || 1
 	plan.metadata["layout_candidate_reports"] = islist(state.config["layout_candidate_reports"]) ? state.config["layout_candidate_reports"].Copy() : list()
@@ -110,6 +123,15 @@
 	plan.metadata["template_chunk_count"] = state.template_chunk_count
 	plan.metadata["template_chunk_cell_count"] = state.template_chunk_cell_count
 	plan.metadata["infrastructure_count"] = state.infrastructure_count
+	plan.metadata["semantic_slot_capacity_count"] = state.semantic_slot_capacity_count
+	plan.metadata["semantic_slot_shortage_count"] = state.semantic_slot_shortage_count
+	plan.metadata["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
+	plan.metadata["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
+	plan.metadata["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
+	plan.metadata["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
+	plan.metadata["semantic_requirement_reports"] = state.semantic_requirement_reports.Copy()
+	plan.metadata["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
+	plan.metadata["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
 	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
 	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
 	plan.metadata["microvariation_count"] = state.microvariation_count

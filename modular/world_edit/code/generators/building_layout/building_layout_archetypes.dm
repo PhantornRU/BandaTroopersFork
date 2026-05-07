@@ -596,7 +596,7 @@
 	add_nested_room("common", "sleep_privacy", 7, 7, 1)
 	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35)
 	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90, "common_table", 20)
-	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 2, 2, TRUE, 0, 80, "personal_storage", 20)
+	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 1, 2, TRUE, 0, 80, "personal_storage", 20)
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus"), 1, 1, FALSE, 1, 50, FALSE)
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common"), 1, 1, FALSE, 0, 40, FALSE)
 	object_budgets = list("bed" = 2, "table" = 3, "chair" = 5, "cabinet" = 3, "rack" = 2)
