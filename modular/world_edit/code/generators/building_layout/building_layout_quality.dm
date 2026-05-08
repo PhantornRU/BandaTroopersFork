@@ -122,27 +122,45 @@
 
 /datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, shape_id, datum/world_edit_plan/plan)
 	var/list/metadata = islist(plan?.metadata) ? plan.metadata : list()
-	var/passed = istype(plan) && !metadata["error"] && GLOB.world_edit_helpers.parse_bool(metadata["program_signature_ok"])
+	var/support_status = "[metadata["current_request_support_status"] || "FAILED"]"
+	var/clear_unsupported = support_status == "UNSUPPORTED_WITH_CLEAR_ERROR" && length("[metadata["error"] || metadata["user_facing_failure_reason"]]")
+	var/passed = istype(plan) && (clear_unsupported || (!metadata["error"] && support_status == "SUPPORTED_AND_VALIDATED" && GLOB.world_edit_helpers.parse_bool(metadata["program_signature_ok"])))
 	var/empty_floor_ratio = round(text2num("[metadata["empty_floor_ratio"]]") || 0)
 	var/template_chunk_count = round(text2num("[metadata["template_chunk_count"]]") || 0)
 	var/infrastructure_count = round(text2num("[metadata["infrastructure_count"]]") || 0)
 	var/semantic_slot_shortage_count = round(text2num("[metadata["semantic_slot_shortage_count"]]") || 0)
 	var/semantic_slot_reservation_conflict_count = round(text2num("[metadata["semantic_slot_reservation_conflict_count"]]") || 0)
-	if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
-		passed = FALSE
-	if(template_chunk_count <= 0)
-		passed = FALSE
-	if(infrastructure_count < 4)
-		passed = FALSE
-	if(semantic_slot_shortage_count > 0 || semantic_slot_reservation_conflict_count > 0)
-		passed = FALSE
+	var/mandatory_pattern_failure_count = round(text2num("[metadata["mandatory_pattern_failure_count"]]") || 0)
+	var/reserved_walk_blocked_count = round(text2num("[metadata["reserved_walk_blocked_count"]]") || 0)
+	var/semantic_credit_without_emitted_slots_count = round(text2num("[metadata["semantic_credit_without_emitted_slots_count"]]") || 0)
+	var/forbidden_fallback_count = round(text2num("[metadata["forbidden_fallback_count"]]") || 0)
+	var/post_emit_validation_error_count = round(text2num("[metadata["post_emit_validation_error_count"]]") || 0)
+	var/raw_category_credit_count = round(text2num("[metadata["raw_category_credit_count"]]") || 0)
+	var/scatter_signature_credit_count = round(text2num("[metadata["scatter_signature_credit_count"]]") || 0)
+	if(!clear_unsupported)
+		if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
+			passed = FALSE
+		if(template_chunk_count <= 0)
+			passed = FALSE
+		if(infrastructure_count < 4)
+			passed = FALSE
+		if(semantic_slot_shortage_count > 0 || semantic_slot_reservation_conflict_count > 0)
+			passed = FALSE
+		if(mandatory_pattern_failure_count > 0 || reserved_walk_blocked_count > 0 || semantic_credit_without_emitted_slots_count > 0)
+			passed = FALSE
+		if(forbidden_fallback_count > 0 || post_emit_validation_error_count > 0 || raw_category_credit_count > 0 || scatter_signature_credit_count > 0)
+			passed = FALSE
 	return list(
 		"program" = "[program_id]",
 		"style" = "[style_id]",
 		"shape" = "[shape_id]",
 		"seed" = seed_value,
 		"passed" = passed ? TRUE : FALSE,
+		"support_status" = support_status,
+		"user_facing_failure_reason" = metadata["user_facing_failure_reason"],
 		"error" = metadata["error"],
+		"layout_hash" = metadata["layout_hash"],
+		"pattern_credit_hash" = metadata["pattern_credit_hash"],
 		"footprint_source" = metadata["footprint_source"],
 		"placement_shape_used_as_seed_only" = metadata["placement_shape_used_as_seed_only"],
 		"signature_score" = metadata["signature_score"],
@@ -154,6 +172,13 @@
 		"semantic_requirement_counts" = metadata["semantic_requirement_counts"],
 		"semantic_slot_shortage_count" = semantic_slot_shortage_count,
 		"semantic_slot_reservation_conflict_count" = semantic_slot_reservation_conflict_count,
+		"mandatory_pattern_failure_count" = mandatory_pattern_failure_count,
+		"reserved_walk_blocked_count" = reserved_walk_blocked_count,
+		"semantic_credit_without_emitted_slots_count" = semantic_credit_without_emitted_slots_count,
+		"forbidden_fallback_count" = forbidden_fallback_count,
+		"post_emit_validation_error_count" = post_emit_validation_error_count,
+		"raw_category_credit_count" = raw_category_credit_count,
+		"scatter_signature_credit_count" = scatter_signature_credit_count,
 		"divider_plan_count" = metadata["divider_plan_count"],
 		"nested_room_count" = metadata["nested_room_count"],
 		"degraded_region_fallback_count" = metadata["degraded_region_fallback_count"],

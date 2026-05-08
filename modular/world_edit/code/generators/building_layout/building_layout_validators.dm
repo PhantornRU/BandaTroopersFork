@@ -107,7 +107,6 @@
 /datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
-	var/repaired = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
 			continue
@@ -115,32 +114,25 @@
 		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
 		if(placed_count >= get_effective_cluster_min_count(state, cluster_spec))
 			continue
-		if(place_building_cluster_spec(state, cluster_spec, TRUE))
-			return TRUE
-	return repaired
+		state.forbidden_fallback_count++
+		state.mandatory_pattern_failure_count++
+		state.add_warning("Repair refused to create missing mandatory pattern '[requirement_id]'.")
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/repair_building_empty_space(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
 	if(state.empty_floor_ratio <= get_building_max_empty_floor_ratio(state))
 		return FALSE
-	var/repaired = FALSE
-	for(var/phase_id as anything in list("secondary", "detail"))
-		for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs(phase_id))
-			if(!istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
-				continue
-			if(place_building_cluster_spec(state, cluster_spec, FALSE))
-				return TRUE
-	if(!repaired && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
-		var/datum/world_edit_building_cluster_spec/filler_spec = new("empty_space_filler", "detail", "staging_group", "crate", "crate", list(state.semantic_plan.primary_zone_id, state.semantic_plan.hub_zone_id, "storage_wall", "service_wall"), 2, 4, FALSE, 0, 25, FALSE, null, "empty_space_filler_chunk")
-		repaired = place_building_cluster_spec(state, filler_spec, FALSE)
-	return repaired
+	state.add_warning("Repair refused empty-space filler; empty floor must be solved by room/pattern planning.")
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
 	state.errors.Cut()
 	state.signature_warnings.Cut()
+	state.pattern_reports.Cut()
 	state.reset_validation_metrics()
 
 	if(!istype(state.archetype) || !istype(state.semantic_plan))
@@ -170,6 +162,7 @@
 	validate_building_signature_rules(state)
 	validate_building_nested_room_rules(state)
 	validate_building_divider_rules(state)
+	validate_building_acceptance_counters(state)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_zone_requirements(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
@@ -177,6 +170,9 @@
 			continue
 		var/list/zone_turfs = state.get_zone_turfs(zone_spec.id)
 		if(length(zone_turfs) < zone_spec.min_area)
+			state.mandatory_room_missing_count++
+			if(zone_spec.divider_mode == "room")
+				state.mandatory_room_no_bounds_count++
 			state.add_error("Required zone '[zone_spec.id]' has [length(zone_turfs)] tiles, expected at least [zone_spec.min_area].")
 
 /datum/world_edit_generator/building_layout/proc/build_building_zone_lookup(datum/world_edit_building_layout_state/state, zone_id)
@@ -214,9 +210,11 @@
 		var/turf/inward_turf = get_step(door_turf, turn(door_dir, 180))
 		if(!state.floor_lookup[inward_turf] && door_turf == state.front_door_turf)
 			state.door_buffer_conflict_count++
+			state.door_cone_blocked_count++
 			state.add_error("Door at [GLOB.world_edit_helpers.turf_to_text(door_turf)] has no interior buffer.")
 		if(state.boundary_lookup[door_turf] && state.fixture_lookup[inward_turf])
 			state.door_buffer_conflict_count++
+			state.door_cone_blocked_count++
 			state.add_error("Door buffer at [GLOB.world_edit_helpers.turf_to_text(inward_turf)] is blocked by a fixture.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_windows(datum/world_edit_building_layout_state/state)
@@ -250,6 +248,7 @@
 			continue
 		if(state.fixture_lookup[reserved_turf])
 			state.route_conflict_count++
+			state.reserved_walk_blocked_count++
 			state.add_error("Primary lane at [GLOB.world_edit_helpers.turf_to_text(reserved_turf)] is blocked by a fixture.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
@@ -296,9 +295,11 @@
 			continue
 		if(state.wall_lookup[corridor_turf])
 			state.route_conflict_count++
+			state.reserved_walk_blocked_count++
 			state.add_error("Main corridor is blocked by a wall at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
 		if(state.fixture_lookup[corridor_turf])
 			state.route_conflict_count++
+			state.reserved_walk_blocked_count++
 			state.add_error("Main corridor is blocked by a fixture at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
 
 	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
@@ -319,6 +320,7 @@
 				break
 		if(!has_access)
 			state.reachability_failure_count++
+			state.mandatory_room_no_access_count++
 			state.add_error("Room '[room.id]' for zone '[room.zone_id]' has no door or corridor access.")
 		if(room.tiny && !(room.role in list("service", "storage", "private", "nested", "support")))
 			state.add_warning("Room '[room.id]' is a one-tile compact room outside a utility/private role.")
@@ -347,6 +349,7 @@
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "vertical"))
 					state.fixture_conflict_count++
+					state.double_wall_error_count++
 					state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		if(horizontal_wall)
@@ -354,6 +357,7 @@
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "horizontal"))
 					state.fixture_conflict_count++
+					state.double_wall_error_count++
 					state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHEAST, NORTH, EAST)
@@ -372,6 +376,7 @@
 	if(!state.footprint_lookup[ortho_turf_a] || !state.footprint_lookup[ortho_turf_b])
 		return
 	state.fixture_conflict_count++
+	state.diagonal_only_contact_count++
 	state.add_error("Wall geometry has a diagonal-only wall contact at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_fixture_surface(datum/world_edit_building_layout_state/state)
@@ -396,22 +401,27 @@
 			var/dir_to_use = text2num("[placement["dir"]]")
 			if(!(wall_dir in GLOB.cardinals))
 				state.fixture_conflict_count++
+				state.wall_machinery_invalid_dir_count++
 				state.add_error("Wall fixture placement is missing its wall direction.")
 				continue
 			if(!state.wall_lookup[get_step(target_turf, wall_dir)])
 				state.fixture_conflict_count++
+				state.wall_machinery_no_wall_count++
 				state.add_error("Wall fixture placement does not point at an adjacent wall.")
 				continue
 			var/expected_dir = resolve_building_place_rule_dir(wall_dir, dir_mode)
 			if(expected_dir != dir_to_use)
 				state.fixture_conflict_count++
+				state.wall_machinery_invalid_dir_count++
 				state.add_error("Wall fixture placement dir does not match its wall rule.")
 	for(var/turf/wall_fixture_turf as anything in state.wall_fixture_turfs)
 		if(!length(get_adjacent_wall_dirs_for_state(state, wall_fixture_turf)))
 			state.fixture_conflict_count++
+			state.wall_machinery_no_wall_count++
 			state.add_error("Wall fixture has no adjacent wall.")
 		if(!wall_fixture_placement_lookup[wall_fixture_turf])
 			state.fixture_conflict_count++
+			state.emit_state_mismatch_count++
 			state.add_error("Wall fixture has no emitted object placement.")
 
 /datum/world_edit_generator/building_layout/proc/build_building_reachable_floor_lookup(datum/world_edit_building_layout_state/state)
@@ -457,6 +467,7 @@
 				break
 		if(!has_adjacent_reachable_floor)
 			state.reachability_failure_count++
+			state.mandatory_fixture_access_unreachable_count++
 			state.add_error("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_privacy_rules(datum/world_edit_building_layout_state/state)
@@ -511,8 +522,31 @@
 		var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
 		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+		var/semantic_credit = length(cluster_spec.semantic_credit) ? cluster_spec.semantic_credit : requirement_id
+		var/acceptance_counter = length(cluster_spec.acceptance_counter) ? cluster_spec.acceptance_counter : "[semantic_credit]_count"
+		var/credited = placed_count >= effective_minimum
+		state.pattern_reports += list(list(
+			"id" = requirement_id,
+			"cluster_id" = cluster_spec.id,
+			"status" = credited ? "credited" : "failed",
+			"pattern" = cluster_spec.pattern,
+			"slot" = cluster_spec.slot,
+			"category" = cluster_spec.category,
+			"semantic_credit" = semantic_credit,
+			"failure_severity" = cluster_spec.failure_severity,
+			"acceptance_counter" = acceptance_counter,
+			"required" = effective_minimum,
+			"placed" = placed_count,
+			"semantic_credit_granted" = credited,
+			"access_ok" = credited,
+			"clearance_ok" = credited,
+			"route_blocking" = FALSE,
+			"failure_reason" = credited ? "" : "Required pattern placed [placed_count], needs [effective_minimum].",
+		))
 		if(placed_count < effective_minimum)
 			state.signature_failure_count++
+			state.mandatory_pattern_failure_count++
+			state.mandatory_pattern_uncredited_count += max(effective_minimum - placed_count, 1)
 			state.add_error("Program [state.archetype.id] required pattern '[requirement_id]' placed [placed_count], needs [effective_minimum].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
@@ -538,18 +572,23 @@
 		return
 	if(get_building_requirement_or_category_count(state, "infrastructure_lights", "light") < 2)
 		state.fixture_conflict_count++
+		state.infrastructure_required_missing_count++
 		state.add_error("SS13 infrastructure requires at least two light fixtures.")
 	if(get_building_requirement_or_category_count(state, "infrastructure_apc", "apc") < 1)
 		state.fixture_conflict_count++
+		state.infrastructure_required_missing_count++
 		state.add_error("SS13 infrastructure requires an APC.")
 	if(get_building_requirement_or_category_count(state, "infrastructure_air_alarm", "air_alarm") < 1)
 		state.fixture_conflict_count++
+		state.infrastructure_required_missing_count++
 		state.add_error("SS13 infrastructure requires an air alarm.")
 	if(get_building_requirement_or_category_count(state, "infrastructure_light_switch", "light_switch") < 1)
 		state.fixture_conflict_count++
+		state.infrastructure_required_missing_count++
 		state.add_error("SS13 infrastructure requires a light switch near entry/service wall.")
 	if(length(state.floor_turfs) >= 30 && get_building_requirement_or_category_count(state, "infrastructure_fire_alarm", "fire_alarm") < 1)
 		state.fixture_conflict_count++
+		state.infrastructure_required_missing_count++
 		state.add_error("SS13 infrastructure requires a fire alarm for medium/large buildings.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
@@ -568,6 +607,7 @@
 			var/message = "Program [state.archetype.id] semantic signature '[signature_id]' placed [placed], needs [minimum]."
 			state.signature_warnings += message
 			state.signature_failure_count++
+			state.mandatory_pattern_failure_count++
 			state.add_error(message)
 	state.signature_max_score = max_score > 0 ? 100 : 0
 	state.signature_score = max_score > 0 ? round(raw_score * 100 / max_score) : 100
@@ -638,3 +678,17 @@
 				state.add_error("Divider '[divider_plan.id]' opening is missing a controlled door.")
 			if(state.wall_lookup[opening_turf])
 				state.add_error("Divider '[divider_plan.id]' opening overlaps a wall.")
+
+/datum/world_edit_generator/building_layout/proc/validate_building_acceptance_counters(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	if(state.forbidden_fallback_count > 0)
+		state.add_error("Forbidden fallback use is not accepted: forbidden_fallback_count=[state.forbidden_fallback_count].")
+	if(state.fallback_anchor_required_cluster_count > 0)
+		state.add_error("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.fallback_anchor_required_cluster_count].")
+	if(state.unsupported_shape_silent_fallback_count > 0)
+		state.add_error("Unsupported shape silent fallback is not accepted: unsupported_shape_silent_fallback_count=[state.unsupported_shape_silent_fallback_count].")
+	if(state.raw_category_credit_count > 0)
+		state.add_error("Raw category counts cannot satisfy semantic credit: raw_category_credit_count=[state.raw_category_credit_count].")
+	if(state.scatter_signature_credit_count > 0)
+		state.add_error("Scatter placement cannot satisfy program signature: scatter_signature_credit_count=[state.scatter_signature_credit_count].")

@@ -223,6 +223,9 @@
 	var/macro_id = ""
 	var/count_cluster_id = ""
 	var/count_signature_id = ""
+	var/semantic_credit = ""
+	var/failure_severity = "required"
+	var/acceptance_counter = ""
 
 /datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null)
 	. = ..()
@@ -238,8 +241,11 @@
 	chair_count = max(round(text2num("[_chair_count]") || 0), 0)
 	priority = round(text2num("[_priority]") || 0)
 	required = _required ? TRUE : FALSE
+	failure_severity = required ? "required" : "optional"
 	optional_zone_id = length("[_optional_zone_id]") ? "[_optional_zone_id]" : ""
 	macro_id = length("[_macro_id]") ? "[_macro_id]" : ""
+	semantic_credit = id
+	acceptance_counter = "[id]_count"
 
 /datum/world_edit_building_semantic_plan
 	var/datum/world_edit_building_archetype/archetype
@@ -493,6 +499,9 @@
 	cluster_spec.signature_id = length("[signature_id]") ? "[signature_id]" : "[id]"
 	cluster_spec.signature_weight = max(round(text2num("[signature_weight]") || 0), 0)
 	cluster_spec.signature_required = required ? TRUE : FALSE
+	cluster_spec.semantic_credit = cluster_spec.signature_id
+	cluster_spec.acceptance_counter = "[cluster_spec.signature_id]_count"
+	cluster_spec.failure_severity = required ? "required" : "optional"
 	var/minimum = max(round(text2num("[min_count]") || 1), 1)
 	if(cluster_spec.signature_required)
 		signature_minimums[cluster_spec.signature_id] = max(round(text2num("[signature_minimums[cluster_spec.signature_id]]") || 0), minimum)

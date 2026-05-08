@@ -17,6 +17,10 @@
 #define WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO 64
 #define WORLD_EDIT_BUILDING_AUTO_SEED 0
 #define WORLD_EDIT_BUILDING_HASH_MOD 1000000007
+#define WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED "SUPPORTED_AND_VALIDATED"
+#define WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED "UNSUPPORTED_WITH_CLEAR_ERROR"
+#define WORLD_EDIT_BUILDING_SUPPORT_DISABLED "DISABLED"
+#define WORLD_EDIT_BUILDING_SUPPORT_FAILED "FAILED"
 
 /datum/world_edit_building_prng
 	var/state = 1
@@ -72,3 +76,38 @@
 
 /datum/world_edit_generator/building_layout/proc/build_stage_seed(base_seed, stage_name)
 	return build_seed_from_text("[base_seed]|[stage_name]")
+
+/datum/world_edit_generator/building_layout/proc/build_building_hash_from_strings(list/values)
+	if(!islist(values) || !length(values))
+		return build_seed_from_text("")
+	var/list/sorted_values = sortList(values.Copy())
+	var/hash = 17
+	for(var/value as anything in sorted_values)
+		var/text_value = "[value]"
+		for(var/index in 1 to length(text_value))
+			hash = ((hash * 33) + text2ascii(text_value, index)) % WORLD_EDIT_BUILDING_HASH_MOD
+		hash = ((hash * 33) + 124) % WORLD_EDIT_BUILDING_HASH_MOD
+	return max(hash, 1)
+
+/datum/world_edit_generator/building_layout/proc/build_building_turf_list_hash(list/turfs)
+	var/list/values = list()
+	if(islist(turfs))
+		for(var/turf/target_turf as anything in turfs)
+			if(istype(target_turf))
+				values += "[target_turf.x],[target_turf.y],[target_turf.z]"
+	return build_building_hash_from_strings(values)
+
+/datum/world_edit_generator/building_layout/proc/build_building_turf_lookup_hash(list/lookup)
+	var/list/values = list()
+	if(islist(lookup))
+		for(var/turf/target_turf as anything in lookup)
+			if(istype(target_turf) && lookup[target_turf])
+				values += "[target_turf.x],[target_turf.y],[target_turf.z]"
+	return build_building_hash_from_strings(values)
+
+/datum/world_edit_generator/building_layout/proc/build_building_assoc_hash(list/assoc)
+	var/list/values = list()
+	if(islist(assoc))
+		for(var/key as anything in assoc)
+			values += "[key]=[assoc[key]]"
+	return build_building_hash_from_strings(values)

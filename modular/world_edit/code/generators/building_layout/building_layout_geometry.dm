@@ -26,35 +26,95 @@
 	state.request = request
 	state.config = request.config
 	state.archetype = request.archetype
+	state.root_seed = round(text2num("[state.config["root_seed"] || request.effective_seed]") || 0)
+	state.stage_seed_footprint = build_stage_seed(state.root_seed, "footprint")
+	state.stage_seed_rooms = round(text2num("[state.config["stage_seed_geometry"]]") || build_stage_seed(state.root_seed, "geometry"))
+	state.stage_seed_corridor = build_stage_seed(state.stage_seed_rooms, "corridor")
+	state.stage_seed_patterns = round(text2num("[state.config["stage_seed_fixtures"]]") || build_stage_seed(state.root_seed, "fixtures"))
+	state.stage_seed_details = round(text2num("[state.config["stage_seed_microvariation"]]") || build_stage_seed(state.root_seed, "microvariation"))
+	state.set_support_status(state.config["current_request_support_status"] || WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED, state.config["user_facing_failure_reason"] || "")
+	state.add_stage_report("state_init", "ok", null, list("root_seed" = state.root_seed))
 	state.footprint = validated["footprint"]
 	state.boundary = validated["boundary"]
 	state.interior = validated["interior"]
 	state.footprint_lookup = validated["footprint_lookup"]
 	state.bounds = validated["bounds"]
+	state.blocked_turf_conflict_count = round(text2num("[validated["blocked_turf_conflict_count"]]") || 0)
+	state.replace_blocked_turf_count = round(text2num("[validated["replace_blocked_turf_count"]]") || 0)
 	state.boundary_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.boundary)
 	state.placement_dir = text2num("[placement_context["direction"]]")
 	if(!(state.placement_dir in GLOB.cardinals))
 		state.placement_dir = manager?.get_effective_placement_dir() || NORTH
+	state.requested_direction = state.placement_dir
+	state.actual_entry_direction = state.placement_dir
 
 	if(length(state.footprint) > WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS)
 		state.add_error("Building footprint exceeds cap ([WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS]).")
+		state.add_stage_report("footprint", "failed", "footprint cap exceeded")
 		return state
 
 	state.request.config["validated_footprint_count"] = length(state.footprint)
+	state.footprint_hash = build_building_turf_list_hash(state.footprint)
+	state.add_stage_report("footprint", "ok", null, list(
+		"footprint_count" = length(state.footprint),
+		"footprint_hash" = state.footprint_hash,
+	))
 	state.semantic_plan = state.archetype.build_semantic_plan(state.request)
 	if(!istype(state.semantic_plan))
 		state.add_error("Unable to build semantic plan for [state.archetype.id].")
+		state.add_stage_report("semantic_plan", "failed", "semantic plan unavailable")
 		return state
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec) || !zone_spec.required)
+			continue
+		state.mandatory_zone_count++
+		if(zone_spec.divider_mode == "room")
+			state.mandatory_room_count++
+	state.add_stage_report("semantic_plan", "ok", null, list(
+		"program_id" = state.archetype.id,
+		"mandatory_room_count" = state.mandatory_room_count,
+		"mandatory_zone_count" = state.mandatory_zone_count,
+	))
 
 	build_building_doors(state)
 	if(state.has_errors())
+		state.add_stage_report("doors", "failed", format_building_messages(state.errors))
 		return state
+	state.actual_entry_direction = state.door_dirs[state.front_door_turf] || state.placement_dir
+	if(state.actual_entry_direction == state.requested_direction)
+		state.direction_honored_count = 1
+	else
+		state.direction_fallback_count = 1
+		state.direction_fallback_reason = "Selected footprint could not emit entry on requested direction."
+	state.add_stage_report("doors", "ok", null, list("door_count" = length(state.door_turfs)))
 	if(!build_building_room_first_layout(state))
 		if(!state.has_errors())
 			state.add_error("Selected building footprint cannot be decomposed into connected rooms and an entry corridor.")
+		state.add_stage_report("room_packing", "failed", format_building_messages(state.errors))
 		return state
+	state.room_graph_hash = build_building_turf_lookup_hash(state.room_by_turf)
+	state.route_hash = build_building_turf_list_hash(state.primary_route_turfs)
+	state.add_stage_report("room_packing", "ok", null, list(
+		"room_count" = length(state.solved_rooms),
+		"zone_count" = length(state.zone_turfs),
+		"room_graph_hash" = state.room_graph_hash,
+	))
+	state.add_stage_report("corridor", "ok", null, list(
+		"reserved_walk_count" = length(state.primary_route_turfs),
+		"route_hash" = state.route_hash,
+	))
 	build_building_windows(state)
 	build_building_walls_and_floors(state)
+	state.wall_hash = build_building_turf_lookup_hash(state.wall_lookup)
+	state.wall_report = list(
+		"wall_count" = length(state.wall_lookup),
+		"internal_wall_count" = length(state.internal_wall_turfs),
+		"wall_hash" = state.wall_hash,
+	)
+	state.add_stage_report("walls_doors", "ok", null, list(
+		"wall_count" = length(state.wall_lookup),
+		"wall_hash" = state.wall_hash,
+	))
 	build_building_reserved_lanes(state)
 	return state
 
@@ -126,6 +186,31 @@
 	state.config["room_first_layout"] = TRUE
 	state.config["room_count"] = length(state.solved_rooms)
 	state.config["corridor_turf_count"] = length(state.corridor_turfs)
+	state.room_reports.Cut()
+	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
+		if(!istype(room))
+			continue
+		state.room_reports += list(list(
+			"id" = room.id,
+			"zone_id" = room.zone_id,
+			"role" = room.role,
+			"area" = room.area,
+			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
+			"tiny" = room.tiny,
+		))
+	state.zone_reports.Cut()
+	for(var/zone_id as anything in state.zone_turfs)
+		var/list/zone_turfs = state.zone_turfs[zone_id]
+		state.zone_reports += list(list(
+			"id" = "[zone_id]",
+			"area" = islist(zone_turfs) ? length(zone_turfs) : 0,
+			"focus" = state.zone_focus_turfs[zone_id],
+		))
+	state.corridor_report = list(
+		"reserved_walk_count" = length(state.primary_route_turfs),
+		"corridor_turf_count" = length(state.corridor_turfs),
+		"front_door_turf" = state.front_door_turf,
+	)
 	return length(state.solved_rooms) > 0 && length(state.corridor_turfs) > 0
 
 /datum/world_edit_generator/building_layout/proc/select_room_first_corridor_zone_id(datum/world_edit_building_layout_state/state)

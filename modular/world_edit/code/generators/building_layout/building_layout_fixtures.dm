@@ -142,6 +142,9 @@
 		return child_spec
 	child_spec.count_cluster_id = length(parent_spec.count_cluster_id) ? parent_spec.count_cluster_id : parent_spec.id
 	child_spec.count_signature_id = length(parent_spec.count_signature_id) ? parent_spec.count_signature_id : parent_spec.signature_id
+	child_spec.semantic_credit = length(parent_spec.semantic_credit) ? parent_spec.semantic_credit : get_building_cluster_requirement_id(parent_spec)
+	child_spec.failure_severity = parent_spec.failure_severity
+	child_spec.acceptance_counter = length(parent_spec.acceptance_counter) ? parent_spec.acceptance_counter : "[child_spec.semantic_credit]_count"
 	if(!length(child_spec.macro_id) && length(parent_spec.macro_id))
 		child_spec.macro_id = parent_spec.macro_id
 	return child_spec
@@ -437,15 +440,10 @@
 	var/list/selected_anchor_ids = declared_anchor_ids
 	var/selected_mode = "declared"
 	var/fallback_capacity = 0
-	var/list/fallback_anchor_ids = list()
 	if(declared_capacity < required_count)
-		fallback_anchor_ids = build_required_cluster_fallback_anchor_ids(state, declared_anchor_ids, cluster_spec)
-		fallback_capacity = count_building_cluster_slot_capacity_for_anchors(state, cluster_spec, fallback_anchor_ids)
-		if(fallback_capacity > declared_capacity)
-			selected_anchor_ids = fallback_anchor_ids
-			selected_mode = "fallback"
-			state.semantic_slot_fallback_count++
-			state.add_warning("Required cluster '[cluster_spec.id]' uses fallback anchors: declared capacity [declared_capacity], fallback capacity [fallback_capacity], required [required_count].")
+		state.fallback_anchor_required_cluster_count++
+		state.forbidden_fallback_count++
+		state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], required [required_count].")
 	var/best_capacity = max(declared_capacity, fallback_capacity)
 	var/shortage = max(required_count - best_capacity, 0)
 	if(shortage > 0)
@@ -466,6 +464,9 @@
 		"pattern" = cluster_spec.pattern,
 		"slot" = cluster_spec.slot,
 		"category" = cluster_spec.category,
+		"semantic_credit" = length(cluster_spec.semantic_credit) ? cluster_spec.semantic_credit : requirement_id,
+		"failure_severity" = cluster_spec.failure_severity,
+		"acceptance_counter" = length(cluster_spec.acceptance_counter) ? cluster_spec.acceptance_counter : "[requirement_id]_count",
 		"required" = required_count,
 		"declared_capacity" = declared_capacity,
 		"fallback_capacity" = fallback_capacity,
@@ -775,10 +776,6 @@
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/anchor_sets = list()
 	anchor_sets += list(get_cluster_preflight_anchor_ids(state, cluster_spec, anchor_ids))
-	if(istype(cluster_spec) && cluster_spec.required)
-		var/list/fallback_anchor_ids = build_required_cluster_fallback_anchor_ids(state, anchor_ids, cluster_spec)
-		if(length(fallback_anchor_ids))
-			anchor_sets += list(fallback_anchor_ids)
 	for(var/list/effective_anchor_ids as anything in anchor_sets)
 		var/list/best_turfs = list()
 		var/best_score = -999999999

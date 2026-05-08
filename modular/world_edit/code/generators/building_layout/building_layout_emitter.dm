@@ -35,6 +35,76 @@
 		total += round(text2num("[counts[anchor_id]]") || 0)
 	return total
 
+/datum/world_edit_generator/building_layout/proc/validate_building_plan_post_emit(datum/world_edit_plan/plan, datum/world_edit_building_layout_state/state)
+	var/list/report = list(
+		"status" = "ok",
+		"missing_path_count" = 0,
+		"failed_object_count" = 0,
+		"state_mismatch_count" = 0,
+		"route_blocking_count" = 0,
+		"semantic_credit_without_emitted_slots_count" = 0,
+		"error_count" = 0,
+	)
+	if(!istype(plan) || !istype(state))
+		report["status"] = "failed"
+		report["error_count"] = 1
+		return report
+
+	var/wall_emit_count = 0
+	var/door_emit_count = 0
+	var/interior_emit_count = 0
+	var/list/emitted_requirement_counts = list()
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement))
+			continue
+		var/kind = "[placement["kind"]]"
+		var/turf/target_turf = placement["turf"]
+		switch(kind)
+			if("floor", "wall")
+				if(!istype(target_turf) || !ispath(placement["turf_path"], /turf))
+					report["missing_path_count"] = round(text2num("[report["missing_path_count"]]") || 0) + 1
+				if(kind == "wall")
+					wall_emit_count++
+			if("door", "window", "interior", "microvariation")
+				if(!istype(target_turf) || !ispath(placement["obj_path"], /obj))
+					report["missing_path_count"] = round(text2num("[report["missing_path_count"]]") || 0) + 1
+				if(kind == "door")
+					door_emit_count++
+				if(kind == "interior")
+					interior_emit_count++
+					if(state.reserved_lookup[target_turf])
+						report["route_blocking_count"] = round(text2num("[report["route_blocking_count"]]") || 0) + 1
+					var/requirement_credit = round(text2num("[placement["requirement_count_credit"]]") || 0)
+					var/requirement_id = "[placement["requirement_id"] || ""]"
+					if(requirement_credit > 0 && length(requirement_id))
+						emitted_requirement_counts[requirement_id] = round(text2num("[emitted_requirement_counts[requirement_id]]") || 0) + requirement_credit
+
+	if(wall_emit_count != length(state.wall_lookup))
+		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(wall_emit_count - length(state.wall_lookup))
+	if(door_emit_count != length(state.door_turfs))
+		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(door_emit_count - length(state.door_turfs))
+	if(interior_emit_count != length(state.object_placements))
+		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(interior_emit_count - length(state.object_placements))
+
+	for(var/requirement_id as anything in state.semantic_requirement_counts)
+		var/planned_count = round(text2num("[state.semantic_requirement_counts[requirement_id]]") || 0)
+		var/emitted_count = round(text2num("[emitted_requirement_counts[requirement_id]]") || 0)
+		if(planned_count > emitted_count)
+			report["semantic_credit_without_emitted_slots_count"] = round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0) + (planned_count - emitted_count)
+
+	var/error_count = round(text2num("[report["missing_path_count"]]") || 0) + round(text2num("[report["failed_object_count"]]") || 0) + round(text2num("[report["state_mismatch_count"]]") || 0) + round(text2num("[report["route_blocking_count"]]") || 0) + round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
+	report["error_count"] = error_count
+	if(error_count > 0)
+		report["status"] = "failed"
+		state.emit_missing_path_count = round(text2num("[report["missing_path_count"]]") || 0)
+		state.emit_failed_object_count = round(text2num("[report["failed_object_count"]]") || 0)
+		state.emit_state_mismatch_count = round(text2num("[report["state_mismatch_count"]]") || 0)
+		state.post_emit_validation_error_count = error_count
+		state.semantic_credit_without_emitted_slots_count = round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
+		state.add_error("Post-emit validation failed for building layout: [error_count] emitted/reserved-state errors.")
+	state.post_emit_validation_report = report
+	return report
+
 /datum/world_edit_generator/building_layout/proc/resolve_building_zone_floor_type(datum/world_edit_building_layout_state/state, turf/floor_turf)
 	if(!istype(state) || !istype(floor_turf))
 		return state?.config?["floor_type"]
@@ -101,6 +171,32 @@
 	plan.metadata["placement_shape_id"] = state.config["placement_shape_id"]
 	plan.metadata["footprint_source"] = state.config["footprint_source"]
 	plan.metadata["placement_shape_used_as_seed_only"] = state.config["placement_shape_used_as_seed_only"] ? TRUE : FALSE
+	plan.metadata["current_request_support_status"] = state.current_request_support_status
+	plan.metadata["user_facing_failure_reason"] = state.user_facing_failure_reason
+	plan.metadata["support_status_report"] = state.support_status_report.Copy()
+	plan.metadata["stage_reports"] = state.stage_reports.Copy()
+	plan.metadata["room_reports"] = state.room_reports.Copy()
+	plan.metadata["zone_reports"] = state.zone_reports.Copy()
+	plan.metadata["corridor_report"] = state.corridor_report.Copy()
+	plan.metadata["wall_report"] = state.wall_report.Copy()
+	plan.metadata["door_reports"] = state.door_reports.Copy()
+	plan.metadata["pattern_reports"] = state.pattern_reports.Copy()
+	plan.metadata["infrastructure_report"] = state.infrastructure_report.Copy()
+	plan.metadata["fallback_audit"] = state.fallback_audit.Copy()
+	plan.metadata["old_path_audit"] = state.old_path_audit.Copy()
+	plan.metadata["root_seed"] = state.root_seed
+	plan.metadata["stage_seed_footprint"] = state.stage_seed_footprint
+	plan.metadata["stage_seed_rooms"] = state.stage_seed_rooms
+	plan.metadata["stage_seed_corridor"] = state.stage_seed_corridor
+	plan.metadata["stage_seed_patterns"] = state.stage_seed_patterns
+	plan.metadata["stage_seed_details"] = state.stage_seed_details
+	plan.metadata["footprint_hash"] = state.footprint_hash
+	plan.metadata["room_graph_hash"] = state.room_graph_hash
+	plan.metadata["route_hash"] = state.route_hash
+	plan.metadata["wall_hash"] = state.wall_hash
+	plan.metadata["pattern_credit_hash"] = state.pattern_credit_hash
+	plan.metadata["layout_hash"] = state.layout_hash
+	plan.metadata["determinism_check_hash"] = state.determinism_check_hash
 	plan.metadata["building_placement_contract"] = list(
 		"program_id" = state.archetype?.id,
 		"shell_preset" = state.config["faction_preset"],
@@ -135,6 +231,44 @@
 	plan.metadata["semantic_requirement_reports"] = state.semantic_requirement_reports.Copy()
 	plan.metadata["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
 	plan.metadata["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
+	plan.metadata["mandatory_room_count"] = state.mandatory_room_count
+	plan.metadata["mandatory_zone_count"] = state.mandatory_zone_count
+	plan.metadata["mandatory_room_missing_count"] = state.mandatory_room_missing_count
+	plan.metadata["mandatory_room_no_bounds_count"] = state.mandatory_room_no_bounds_count
+	plan.metadata["mandatory_room_no_access_count"] = state.mandatory_room_no_access_count
+	plan.metadata["mandatory_pattern_missing_count"] = state.mandatory_pattern_missing_count
+	plan.metadata["mandatory_pattern_uncredited_count"] = state.mandatory_pattern_uncredited_count
+	plan.metadata["mandatory_pattern_failure_count"] = state.mandatory_pattern_failure_count
+	plan.metadata["reserved_walk_blocked_count"] = state.reserved_walk_blocked_count
+	plan.metadata["door_cone_blocked_count"] = state.door_cone_blocked_count
+	plan.metadata["mandatory_fixture_access_unreachable_count"] = state.mandatory_fixture_access_unreachable_count
+	plan.metadata["double_wall_error_count"] = state.double_wall_error_count
+	plan.metadata["diagonal_only_contact_count"] = state.diagonal_only_contact_count
+	plan.metadata["cutout_violation_count"] = state.cutout_violation_count
+	plan.metadata["unsupported_shape_silent_fallback_count"] = state.unsupported_shape_silent_fallback_count
+	plan.metadata["style_required_slot_missing_count"] = state.style_required_slot_missing_count
+	plan.metadata["raw_category_credit_count"] = state.raw_category_credit_count
+	plan.metadata["scatter_signature_credit_count"] = state.scatter_signature_credit_count
+	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
+	plan.metadata["forbidden_fallback_count"] = state.forbidden_fallback_count
+	plan.metadata["mandatory_room_patch_fallback_count"] = state.mandatory_room_patch_fallback_count
+	plan.metadata["fallback_anchor_required_cluster_count"] = state.fallback_anchor_required_cluster_count
+	plan.metadata["blocked_turf_conflict_count"] = state.blocked_turf_conflict_count
+	plan.metadata["blocked_route_conflict_count"] = state.blocked_route_conflict_count
+	plan.metadata["blocked_room_conflict_count"] = state.blocked_room_conflict_count
+	plan.metadata["blocked_wall_conflict_count"] = state.blocked_wall_conflict_count
+	plan.metadata["blocked_fixture_conflict_count"] = state.blocked_fixture_conflict_count
+	plan.metadata["replace_blocked_turf_count"] = state.replace_blocked_turf_count
+	plan.metadata["requested_direction"] = state.requested_direction
+	plan.metadata["requested_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.requested_direction)
+	plan.metadata["actual_entry_direction"] = state.actual_entry_direction
+	plan.metadata["actual_entry_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.actual_entry_direction)
+	plan.metadata["direction_honored"] = state.actual_entry_direction == state.requested_direction
+	plan.metadata["direction_honored_count"] = state.direction_honored_count
+	plan.metadata["direction_fallback_count"] = state.direction_fallback_count
+	plan.metadata["direction_fallback_reason"] = state.direction_fallback_reason
+	plan.metadata["counter_wrong_facing_count"] = state.counter_wrong_facing_count
+	plan.metadata["entry_face_mismatch_count"] = state.entry_face_mismatch_count
 	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
 	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
 	plan.metadata["microvariation_count"] = state.microvariation_count
@@ -173,9 +307,6 @@
 		plan.metadata["errors"] = state.errors.Copy()
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
-
-	apply_building_microvariation_if_available(state)
-	apply_building_layout_macro_overlays(state)
 
 	for(var/turf/footprint_turf as anything in state.footprint)
 		if(!istype(footprint_turf))
@@ -275,5 +406,15 @@
 	plan.metadata["usable_fixture_area"] = state.usable_fixture_area
 	plan.metadata["patterned_layout"] = TRUE
 	plan.metadata["layout_contract"] = "room_first_corridor_pattern_rework"
+	var/list/post_emit_report = validate_building_plan_post_emit(plan, state)
+	plan.metadata["post_emit_validation_report"] = post_emit_report
+	plan.metadata["post_emit_validation_error_count"] = state.post_emit_validation_error_count
+	plan.metadata["emit_missing_path_count"] = state.emit_missing_path_count
+	plan.metadata["emit_failed_object_count"] = state.emit_failed_object_count
+	plan.metadata["emit_state_mismatch_count"] = state.emit_state_mismatch_count
+	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
+	if(state.has_errors())
+		plan.metadata["error"] = format_building_messages(state.errors)
+		plan.metadata["errors"] = state.errors.Copy()
 	finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 	return plan

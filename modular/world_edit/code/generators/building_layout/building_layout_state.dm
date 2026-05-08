@@ -3,6 +3,8 @@
 	var/datum/world_edit_building_archetype/archetype
 	var/datum/world_edit_building_semantic_plan/semantic_plan
 	var/list/config = list()
+	var/current_request_support_status = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+	var/user_facing_failure_reason = ""
 	var/list/footprint = list()
 	var/list/boundary = list()
 	var/list/interior = list()
@@ -51,6 +53,19 @@
 	var/list/semantic_requirement_reports = list()
 	var/list/semantic_slot_reservation_by_turf = list()
 	var/list/semantic_slot_reserved_turfs = list()
+	var/list/stage_reports = list()
+	var/list/room_reports = list()
+	var/list/zone_reports = list()
+	var/list/corridor_report = list()
+	var/list/wall_report = list()
+	var/list/door_reports = list()
+	var/list/anchor_report = list()
+	var/list/pattern_reports = list()
+	var/list/infrastructure_report = list()
+	var/list/post_emit_validation_report = list()
+	var/list/support_status_report = list()
+	var/list/fallback_audit = list()
+	var/list/old_path_audit = list()
 	var/list/errors = list()
 	var/list/warnings = list()
 	var/turf/center_turf
@@ -94,6 +109,63 @@
 	var/semantic_slot_shortage_count = 0
 	var/semantic_slot_fallback_count = 0
 	var/semantic_slot_reservation_conflict_count = 0
+	var/mandatory_room_count = 0
+	var/mandatory_zone_count = 0
+	var/mandatory_room_missing_count = 0
+	var/mandatory_room_no_bounds_count = 0
+	var/mandatory_room_no_access_count = 0
+	var/mandatory_pattern_missing_count = 0
+	var/mandatory_pattern_uncredited_count = 0
+	var/mandatory_pattern_failure_count = 0
+	var/mandatory_anchor_missing_count = 0
+	var/mandatory_fixture_access_unreachable_count = 0
+	var/reserved_walk_blocked_count = 0
+	var/door_cone_blocked_count = 0
+	var/double_wall_error_count = 0
+	var/diagonal_only_contact_count = 0
+	var/cutout_violation_count = 0
+	var/unsupported_shape_silent_fallback_count = 0
+	var/style_required_slot_missing_count = 0
+	var/raw_category_credit_count = 0
+	var/scatter_signature_credit_count = 0
+	var/semantic_credit_without_emitted_slots_count = 0
+	var/forbidden_fallback_count = 0
+	var/mandatory_room_patch_fallback_count = 0
+	var/fallback_anchor_required_cluster_count = 0
+	var/emit_missing_path_count = 0
+	var/emit_failed_object_count = 0
+	var/emit_state_mismatch_count = 0
+	var/post_emit_validation_error_count = 0
+	var/replace_blocked_turf_count = 0
+	var/blocked_turf_conflict_count = 0
+	var/blocked_route_conflict_count = 0
+	var/blocked_room_conflict_count = 0
+	var/blocked_wall_conflict_count = 0
+	var/blocked_fixture_conflict_count = 0
+	var/direction_honored_count = 0
+	var/direction_fallback_count = 0
+	var/requested_direction = NORTH
+	var/actual_entry_direction = NORTH
+	var/direction_fallback_reason = ""
+	var/counter_wrong_facing_count = 0
+	var/entry_face_mismatch_count = 0
+	var/wall_machinery_invalid_dir_count = 0
+	var/wall_machinery_no_wall_count = 0
+	var/infrastructure_required_missing_count = 0
+	var/infrastructure_route_block_count = 0
+	var/root_seed = 0
+	var/stage_seed_footprint = 0
+	var/stage_seed_rooms = 0
+	var/stage_seed_corridor = 0
+	var/stage_seed_patterns = 0
+	var/stage_seed_details = 0
+	var/footprint_hash = 0
+	var/room_graph_hash = 0
+	var/route_hash = 0
+	var/wall_hash = 0
+	var/pattern_credit_hash = 0
+	var/layout_hash = 0
+	var/determinism_check_hash = 0
 	var/list/degraded_region_reports = list()
 	var/list/region_claim_reports = list()
 
@@ -104,6 +176,34 @@
 
 /datum/world_edit_building_layout_state/proc/add_warning(message)
 	warnings += "[message]"
+
+/datum/world_edit_building_layout_state/proc/set_support_status(status, reason = null)
+	current_request_support_status = length("[status]") ? "[status]" : WORLD_EDIT_BUILDING_SUPPORT_FAILED
+	if(!isnull(reason))
+		user_facing_failure_reason = "[reason]"
+	support_status_report = list(
+		"status" = current_request_support_status,
+		"reason" = user_facing_failure_reason,
+		"program_id" = archetype?.id,
+		"shape_id" = config["placement_shape_id"],
+		"style_id" = config["faction_preset"],
+		"size" = "[config["half_width"]]x[config["half_depth"]]",
+		"respect_blockers" = config["respect_blockers"] ? TRUE : FALSE,
+		"replace_blocked_turfs" = config["replace_blocked_turfs"] ? TRUE : FALSE,
+	)
+
+/datum/world_edit_building_layout_state/proc/add_stage_report(stage_id, status, reason = null, list/extra = null)
+	var/list/report = list(
+		"stage_id" = "[stage_id]",
+		"status" = "[status]",
+	)
+	if(!isnull(reason))
+		report["reason"] = "[reason]"
+	if(islist(extra))
+		for(var/key as anything in extra)
+			report[key] = extra[key]
+	stage_reports += list(report)
+	return report
 
 /datum/world_edit_building_layout_state/proc/has_errors()
 	return length(errors) > 0
@@ -369,6 +469,25 @@
 	fixture_conflict_count = 0
 	route_conflict_count = 0
 	signature_failure_count = 0
+	mandatory_room_missing_count = 0
+	mandatory_room_no_bounds_count = 0
+	mandatory_room_no_access_count = 0
+	mandatory_pattern_missing_count = 0
+	mandatory_pattern_uncredited_count = 0
+	mandatory_pattern_failure_count = 0
+	mandatory_anchor_missing_count = 0
+	mandatory_fixture_access_unreachable_count = 0
+	reserved_walk_blocked_count = 0
+	door_cone_blocked_count = 0
+	double_wall_error_count = 0
+	diagonal_only_contact_count = 0
+	raw_category_credit_count = 0
+	scatter_signature_credit_count = 0
+	semantic_credit_without_emitted_slots_count = 0
+	wall_machinery_invalid_dir_count = 0
+	wall_machinery_no_wall_count = 0
+	infrastructure_required_missing_count = 0
+	infrastructure_route_block_count = 0
 
 /datum/world_edit_building_layout_state/proc/register_layout_macro(macro_id, category, turf/anchor_turf, dir_value = SOUTH, list/covered_turfs = null, list/source_ids = null)
 	if(!length("[macro_id]") || !istype(anchor_turf))

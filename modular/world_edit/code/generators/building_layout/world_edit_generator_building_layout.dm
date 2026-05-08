@@ -510,27 +510,64 @@
 	var/list/config = normalize_building_params(params)
 	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
 
+/datum/world_edit_generator/building_layout/proc/build_building_context_support_result(shape_id, list/config, list/placement_context = null)
+	var/list/result = list(
+		"status" = WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED,
+		"reason" = "",
+		"requested_shape_id" = "[shape_id]",
+		"program_id" = "",
+		"style_id" = "",
+		"requested_direction" = islist(placement_context) ? placement_context["direction"] : null,
+		"respect_blockers" = FALSE,
+		"replace_blocked_turfs" = FALSE,
+	)
+	if(!islist(config))
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		result["reason"] = "Building request config is unavailable."
+		return result
+	result["program_id"] = "[config["archetype_id"] || ""]"
+	result["style_id"] = "[config["faction_preset"] || ""]"
+	result["respect_blockers"] = config["respect_blockers"] ? TRUE : FALSE
+	result["replace_blocked_turfs"] = config["replace_blocked_turfs"] ? TRUE : FALSE
+	if(config["error"])
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		result["reason"] = "[config["error"]]"
+		return result
+
+	var/shape_text = "[shape_id]"
+	if(!(shape_text in list(
+		WORLD_EDIT_SHAPE_POINT,
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_RECTANGLE,
+		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
+		WORLD_EDIT_SHAPE_CIRCLE,
+		WORLD_EDIT_SHAPE_RING,
+		WORLD_EDIT_SHAPE_ELLIPSE,
+		WORLD_EDIT_SHAPE_DIAMOND,
+		WORLD_EDIT_SHAPE_TRIANGLE,
+		WORLD_EDIT_SHAPE_SECTOR,
+		WORLD_EDIT_SHAPE_POLYGON,
+		WORLD_EDIT_SHAPE_POLYLINE,
+		WORLD_EDIT_SHAPE_CUSTOM_MASK,
+		WORLD_EDIT_SHAPE_BRUSH_PATH,
+		WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+	)))
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+		result["reason"] = "Placement shape '[shape_text]' is not supported by building layout."
+		return result
+
+	if(!(shape_text in list(WORLD_EDIT_SHAPE_POINT, WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)))
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+		result["reason"] = "Building layout currently supports only point/rectangle/filled rectangle contexts with validated room-capable envelopes. Shape '[shape_text]' requires its own feasibility planner before use."
+		return result
+
+	return result
+
 /datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config)
-	switch("[shape_id]")
-		if(
-			WORLD_EDIT_SHAPE_POINT,
-			WORLD_EDIT_SHAPE_LINE,
-			WORLD_EDIT_SHAPE_RECTANGLE,
-			WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
-			WORLD_EDIT_SHAPE_CIRCLE,
-			WORLD_EDIT_SHAPE_RING,
-			WORLD_EDIT_SHAPE_ELLIPSE,
-			WORLD_EDIT_SHAPE_DIAMOND,
-			WORLD_EDIT_SHAPE_TRIANGLE,
-			WORLD_EDIT_SHAPE_SECTOR,
-			WORLD_EDIT_SHAPE_POLYGON,
-			WORLD_EDIT_SHAPE_POLYLINE,
-			WORLD_EDIT_SHAPE_CUSTOM_MASK,
-			WORLD_EDIT_SHAPE_BRUSH_PATH,
-			WORLD_EDIT_SHAPE_SCATTER_CLUSTER
-		)
-			return null
-	return "Placement shape '[shape_id]' is not supported by building layout."
+	var/list/support_result = build_building_context_support_result(shape_id, config)
+	if("[support_result["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		return "[support_result["reason"]]"
+	return null
 
 /datum/world_edit_generator/building_layout/validate_params(mob/user, list/params)
 	var/list/config = normalize_building_params(params)
@@ -652,7 +689,7 @@
 	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(result)
 
 /datum/world_edit_generator/building_layout/proc/build_explicit_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/raw_turfs, list/placement_context)
-	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
+	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/footprint = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
 	if(!length(footprint))
 		return footprint
@@ -708,10 +745,16 @@
 
 /datum/world_edit_generator/building_layout/proc/resolve_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/config, list/params, list/placement_context)
 	var/list/result = list("footprint" = list())
-	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
-	var/shape_error = get_building_shape_error(shape_id, config)
-	if(length("[shape_error]"))
-		result["error"] = shape_error
+	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
+	var/list/support_result = build_building_context_support_result(shape_id, config, placement_context)
+	config["current_request_support_status"] = support_result["status"]
+	config["user_facing_failure_reason"] = support_result["reason"]
+	config["support_status_report"] = support_result
+	if("[support_result["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		result["support_status"] = support_result["status"]
+		result["user_facing_failure_reason"] = support_result["reason"]
+		result["support_status_report"] = support_result
+		result["error"] = "[support_result["reason"]]"
 		return result
 
 	var/list/raw_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
@@ -798,12 +841,29 @@
 		result["error"] = "Building footprint must be connected."
 		return result
 
-	if(config["respect_blockers"])
-		for(var/turf/check_turf as anything in footprint)
-			var/blocker_error = get_footprint_blocker_error(check_turf)
-			if(length("[blocker_error]"))
-				result["error"] = blocker_error
-				return result
+	var/blocked_turf_conflict_count = 0
+	var/first_blocker_error = null
+	for(var/turf/check_turf as anything in footprint)
+		var/blocker_error = get_footprint_blocker_error(check_turf)
+		if(!length("[blocker_error]"))
+			continue
+		blocked_turf_conflict_count++
+		if(isnull(first_blocker_error))
+			first_blocker_error = blocker_error
+		if(config["respect_blockers"] || !config["replace_blocked_turfs"])
+			result["blocked_turf_conflict_count"] = blocked_turf_conflict_count
+			result["replace_blocked_turf_count"] = 0
+			config["blocked_turf_conflict_count"] = blocked_turf_conflict_count
+			config["replace_blocked_turf_count"] = 0
+			config["first_blocked_turf_error"] = blocker_error
+			result["error"] = "Cannot build: [blocker_error]"
+			return result
+	result["blocked_turf_conflict_count"] = blocked_turf_conflict_count
+	result["replace_blocked_turf_count"] = config["replace_blocked_turfs"] ? blocked_turf_conflict_count : 0
+	config["blocked_turf_conflict_count"] = blocked_turf_conflict_count
+	config["replace_blocked_turf_count"] = config["replace_blocked_turfs"] ? blocked_turf_conflict_count : 0
+	if(blocked_turf_conflict_count > 0)
+		config["first_blocked_turf_error"] = first_blocker_error
 
 	var/list/boundary = GLOB.world_edit_placement_shapes.world_edit_collect_boundary_turfs(footprint)
 	if(length(boundary) < 3)
@@ -1089,11 +1149,22 @@
 	request.archetype = base_request.archetype
 	request.effective_seed = base_request.effective_seed
 	var/candidate_seed = build_stage_seed(base_request.effective_seed, "candidate_[attempt_index]_[footprint_family]")
-	request.program_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "program"))
-	request.geometry_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "geometry"))
-	request.fixture_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "fixtures"))
-	request.facade_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "facade"))
-	request.microvariation_rng = new /datum/world_edit_building_prng(build_stage_seed(candidate_seed, "microvariation"))
+	var/program_seed = build_stage_seed(candidate_seed, "program")
+	var/geometry_seed = build_stage_seed(candidate_seed, "geometry")
+	var/fixture_seed = build_stage_seed(candidate_seed, "fixtures")
+	var/facade_seed = build_stage_seed(candidate_seed, "facade")
+	var/microvariation_seed = build_stage_seed(candidate_seed, "microvariation")
+	request.program_rng = new /datum/world_edit_building_prng(program_seed)
+	request.geometry_rng = new /datum/world_edit_building_prng(geometry_seed)
+	request.fixture_rng = new /datum/world_edit_building_prng(fixture_seed)
+	request.facade_rng = new /datum/world_edit_building_prng(facade_seed)
+	request.microvariation_rng = new /datum/world_edit_building_prng(microvariation_seed)
+	request.config["candidate_seed"] = candidate_seed
+	request.config["stage_seed_program"] = program_seed
+	request.config["stage_seed_geometry"] = geometry_seed
+	request.config["stage_seed_fixtures"] = fixture_seed
+	request.config["stage_seed_facade"] = facade_seed
+	request.config["stage_seed_microvariation"] = microvariation_seed
 	return request
 
 /datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_state(datum/world_edit_building_request/request, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
@@ -1108,15 +1179,48 @@
 
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
 	extract_building_anchors(state)
+	state.anchor_report = build_building_anchor_type_counts(state)
+	state.add_stage_report("anchors", "ok", null, list("anchor_type_count" = length(state.anchor_report)))
 	run_building_semantic_slot_preflight(state)
+	state.add_stage_report("semantic_slots", state.semantic_slot_shortage_count > 0 || state.semantic_slot_reservation_conflict_count > 0 ? "failed" : "ok", null, list(
+		"semantic_slot_capacity_count" = state.semantic_slot_capacity_count,
+		"semantic_slot_shortage_count" = state.semantic_slot_shortage_count,
+		"semantic_slot_reservation_conflict_count" = state.semantic_slot_reservation_conflict_count,
+	))
 	place_building_infrastructure(state)
+	state.infrastructure_report = list(
+		"infrastructure_count" = state.infrastructure_count,
+		"semantic_requirement_counts" = state.semantic_requirement_counts.Copy(),
+	)
+	state.add_stage_report("infrastructure", "ok", null, state.infrastructure_report)
 	place_building_fixtures(state)
+	state.pattern_credit_hash = build_building_assoc_hash(state.semantic_requirement_counts)
+	state.add_stage_report("mandatory_patterns", state.signature_failure_count > 0 ? "failed" : "ok", null, list(
+		"major_fixture_count" = state.major_fixture_count,
+		"semantic_requirement_count" = length(state.semantic_requirement_counts),
+		"pattern_credit_hash" = state.pattern_credit_hash,
+	))
 	apply_building_facade_rules(state)
 	validate_and_repair_building_layout_state(state)
+	state.add_stage_report("validation", state.has_errors() ? "failed" : "ok", state.has_errors() ? format_building_messages(state.errors) : null, list(
+		"error_count" = length(state.errors),
+		"forbidden_fallback_count" = state.forbidden_fallback_count,
+	))
 	apply_building_microvariation_if_available(state)
+	state.add_stage_report("microvariation", "ok", null, list("microvariation_count" = state.microvariation_count))
 	apply_building_layout_macro_overlays(state)
+	state.add_stage_report("macros", "ok", null, list("layout_macro_count" = length(state.layout_macros)))
 	calculate_building_style_metrics(state)
 	state.layout_candidate_score = score_building_layout_candidate(state)
+	state.layout_hash = build_building_hash_from_strings(list(
+		"footprint=[state.footprint_hash]",
+		"rooms=[state.room_graph_hash]",
+		"route=[state.route_hash]",
+		"walls=[state.wall_hash]",
+		"patterns=[state.pattern_credit_hash]",
+		"objects=[build_building_turf_list_hash(state.major_fixture_turfs)]",
+	))
+	state.determinism_check_hash = state.layout_hash
 	return state
 
 /datum/world_edit_generator/building_layout/proc/calculate_building_style_metrics(datum/world_edit_building_layout_state/state)
@@ -1233,6 +1337,10 @@
 		"score" = isnull(score_override) && istype(state) ? state.layout_candidate_score : score_override,
 	)
 	if(istype(state))
+		report["current_request_support_status"] = state.current_request_support_status
+		report["user_facing_failure_reason"] = state.user_facing_failure_reason
+		report["support_status_report"] = state.support_status_report.Copy()
+		report["stage_reports"] = state.stage_reports.Copy()
 		report["errors"] = state.errors.Copy()
 		report["error_count"] = length(state.errors)
 		report["signature_score"] = state.signature_score
@@ -1265,8 +1373,36 @@
 		report["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
 		report["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
 		report["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
+		report["pattern_reports"] = state.pattern_reports.Copy()
 		report["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
 		report["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
+		report["mandatory_room_count"] = state.mandatory_room_count
+		report["mandatory_zone_count"] = state.mandatory_zone_count
+		report["mandatory_room_missing_count"] = state.mandatory_room_missing_count
+		report["mandatory_room_no_bounds_count"] = state.mandatory_room_no_bounds_count
+		report["mandatory_room_no_access_count"] = state.mandatory_room_no_access_count
+		report["mandatory_pattern_failure_count"] = state.mandatory_pattern_failure_count
+		report["reserved_walk_blocked_count"] = state.reserved_walk_blocked_count
+		report["door_cone_blocked_count"] = state.door_cone_blocked_count
+		report["double_wall_error_count"] = state.double_wall_error_count
+		report["diagonal_only_contact_count"] = state.diagonal_only_contact_count
+		report["forbidden_fallback_count"] = state.forbidden_fallback_count
+		report["raw_category_credit_count"] = state.raw_category_credit_count
+		report["scatter_signature_credit_count"] = state.scatter_signature_credit_count
+		report["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
+		report["unsupported_shape_silent_fallback_count"] = state.unsupported_shape_silent_fallback_count
+		report["blocked_turf_conflict_count"] = state.blocked_turf_conflict_count
+		report["replace_blocked_turf_count"] = state.replace_blocked_turf_count
+		report["requested_direction"] = state.requested_direction
+		report["actual_entry_direction"] = state.actual_entry_direction
+		report["direction_honored"] = state.actual_entry_direction == state.requested_direction
+		report["direction_fallback_reason"] = state.direction_fallback_reason
+		report["footprint_hash"] = state.footprint_hash
+		report["room_graph_hash"] = state.room_graph_hash
+		report["route_hash"] = state.route_hash
+		report["wall_hash"] = state.wall_hash
+		report["pattern_credit_hash"] = state.pattern_credit_hash
+		report["layout_hash"] = state.layout_hash
 		report["degraded_region_fallback_count"] = state.degraded_region_fallback_count
 		report["degraded_region_reports"] = state.degraded_region_reports.Copy()
 		report["microvariation_count"] = state.microvariation_count
@@ -1282,17 +1418,29 @@
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
 	var/datum/world_edit_building_request/request = build_building_request(params, shape_contract, placement_context)
+	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
+	var/list/support_result = build_building_context_support_result(shape_id, request.config, placement_context)
+	plan.metadata["current_request_support_status"] = support_result["status"]
+	plan.metadata["user_facing_failure_reason"] = support_result["reason"]
+	plan.metadata["support_status_report"] = support_result
 	if(request.config["error"])
 		plan.metadata["error"] = "[request.config["error"]]"
+		plan.metadata["current_request_support_status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		plan.metadata["user_facing_failure_reason"] = "[request.config["error"]]"
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 	if(shape_contract?.error)
 		plan.metadata["error"] = "[shape_contract.error]"
+		plan.metadata["current_request_support_status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		plan.metadata["user_facing_failure_reason"] = "[shape_contract.error]"
+		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
+		return plan
+	if("[support_result["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		plan.metadata["error"] = "[support_result["reason"]]"
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/shape_id = "[shape_contract?.shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]"
-	var/list/candidate_families = (shape_id != WORLD_EDIT_SHAPE_POINT) ? list(uppertext("[shape_id]")) : get_ordered_building_footprint_candidate_families(request.config)
+	var/list/candidate_families = (shape_id != WORLD_EDIT_SHAPE_POINT) ? list(uppertext("[shape_id]")) : list("RECT")
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null
 	var/best_score = -999999999
@@ -1306,12 +1454,16 @@
 			candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
 			continue
 		candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
+		if(candidate_state.has_errors())
+			continue
 		if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
 			best_state = candidate_state
 			best_score = candidate_state.layout_candidate_score
 
 	if(!istype(best_state))
 		plan.metadata["error"] = "Unable to build any building layout candidate."
+		plan.metadata["current_request_support_status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		plan.metadata["user_facing_failure_reason"] = "Unable to build any building layout candidate."
 		plan.metadata["layout_candidate_reports"] = candidate_reports
 		plan.metadata["layout_candidate_count"] = length(candidate_reports)
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
@@ -1580,6 +1732,12 @@
 	result.meta["changed_turf_count"] = changed_turf_count
 	result.meta["created_object_count"] = created_object_count
 	result.meta["skipped_runtime"] = skipped_runtime
+	result.meta["post_apply_validation_error_count"] = skipped_runtime
+	if(skipped_runtime > 0)
+		var/list/revert_report = GLOB.world_edit_changesets.revert_changeset(changeset)
+		result.meta["apply_revert_report"] = revert_report
+		result.message = "Building apply failed: emitted plan diverged at runtime, skipped=[skipped_runtime]. Reverted=[revert_report["reverted_count"]] skipped_revert=[revert_report["skipped_count"]]."
+		return result
 	if(changed_turf_count <= 0 && created_object_count <= 0)
 		result.message = "Building made no changes: runtime skipped=[skipped_runtime]."
 		return result
@@ -1603,3 +1761,7 @@
 #undef WORLD_EDIT_BUILDING_MAX_ROOM_IN_ROOM_CANDIDATES
 #undef WORLD_EDIT_BUILDING_AUTO_SEED
 #undef WORLD_EDIT_BUILDING_HASH_MOD
+#undef WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
+#undef WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+#undef WORLD_EDIT_BUILDING_SUPPORT_DISABLED
+#undef WORLD_EDIT_BUILDING_SUPPORT_FAILED
