@@ -73,7 +73,7 @@
 		var/category = "[spec_data["category"]]"
 		var/requirement_id = "[spec_data["id"]]"
 		var/minimum = max(round(text2num("[spec_data["minimum"]]") || 0), 0)
-		var/placed_count = round(text2num("[state.semantic_requirement_counts[requirement_id]]") || 0)
+		var/placed_count = round(text2num("[state.placed_requirement_counts[requirement_id]]") || 0)
 		if(minimum <= 0 || placed_count >= minimum)
 			continue
 		var/needed = minimum - placed_count

@@ -57,11 +57,11 @@
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/already_placed = round(text2num("[state.semantic_requirement_counts["[requirement_id]"]]") || 0)
+	var/already_placed = round(text2num("[state.placed_requirement_counts["[requirement_id]"]]") || 0)
 	if(length(cluster_spec.id))
-		already_placed = max(already_placed, round(text2num("[state.semantic_requirement_counts["[cluster_spec.id]"]]") || 0))
+		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.id]"]]") || 0))
 	if(length(cluster_spec.signature_id))
-		already_placed = max(already_placed, round(text2num("[state.semantic_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
+		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
 	if(effective_minimum > 0 && already_placed >= effective_minimum)
 		return TRUE
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
@@ -479,8 +479,8 @@
 	)
 	if(length(cluster_spec.signature_id))
 		report["signature_id"] = cluster_spec.signature_id
-	state.semantic_slot_reports += list(report)
-	state.semantic_requirement_reports += list(report.Copy())
+	state.add_semantic_slot_report(report)
+	state.add_semantic_requirement_report(report.Copy())
 
 /datum/world_edit_generator/building_layout/proc/run_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
@@ -926,7 +926,7 @@
 		var/requirement_id_to_count = get_building_cluster_requirement_id(cluster_spec)
 		var/requirement_credit = get_building_fixture_count_credit(cluster_spec, slot, category)
 		if(requirement_credit > 0)
-			state.register_requirement(requirement_id_to_count, requirement_credit)
+			state.register_placed_requirement(requirement_id_to_count, requirement_credit)
 	if(object_placement["infrastructure"])
 		state.infrastructure_count++
 	return TRUE

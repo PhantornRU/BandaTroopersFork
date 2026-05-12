@@ -1,3 +1,11 @@
+#ifndef WORLD_EDIT_BUILDING_MAX_QUALITY_SAMPLES_STORED
+#define WORLD_EDIT_BUILDING_MAX_QUALITY_SAMPLES_STORED 120
+#endif
+
+#ifndef WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES
+#define WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES 80
+#endif
+
 /datum/world_edit_generator/building_layout/proc/get_building_quality_shape_ids(list/shape_ids = null)
 	if(islist(shape_ids) && length(shape_ids))
 		return shape_ids.Copy()
@@ -68,12 +76,66 @@
 	)
 	return list("shape_contract" = shape_contract, "placement_context" = placement_context)
 
+/datum/world_edit_generator/building_layout/proc/get_building_metadata_counter(list/metadata, counter_name)
+	if(!islist(metadata) || !length("[counter_name]"))
+		return 0
+	return round(text2num("[metadata["[counter_name]"]]") || 0)
+
+/datum/world_edit_generator/building_layout/proc/build_building_metadata_hard_counter_report(list/metadata)
+	var/list/report = list()
+	for(var/counter_name as anything in get_building_hard_counter_names())
+		report["[counter_name]"] = get_building_metadata_counter(metadata, counter_name)
+	return report
+
+/datum/world_edit_generator/building_layout/proc/add_building_quality_hard_counter_totals(list/target, list/hard_counters)
+	if(!islist(target) || !islist(hard_counters))
+		return
+	for(var/counter_name as anything in hard_counters)
+		target["[counter_name]"] = round(text2num("[target["[counter_name]"]]") || 0) + round(text2num("[hard_counters[counter_name]]") || 0)
+
+/datum/world_edit_generator/building_layout/proc/update_building_quality_support_matrix(list/support_matrix, list/sample)
+	if(!islist(support_matrix) || !islist(sample))
+		return
+	var/matrix_key = "[sample["program"]]|[sample["shape"]]|[sample["style"]]|[sample["scenario"]]"
+	var/list/row = support_matrix[matrix_key]
+	if(!islist(row))
+		row = list(
+			"program" = sample["program"],
+			"shape" = sample["shape"],
+			"style" = sample["style"],
+			"scenario" = sample["scenario"],
+			"sample_count" = 0,
+			"pass_count" = 0,
+			"fail_count" = 0,
+			"status_counts" = list(),
+			"hard_counter_totals" = list(),
+			"failure_reasons" = list(),
+		)
+		support_matrix[matrix_key] = row
+	row["sample_count"] = row["sample_count"] + 1
+	if(sample["passed"])
+		row["pass_count"] = row["pass_count"] + 1
+	else
+		row["fail_count"] = row["fail_count"] + 1
+	var/list/status_counts = row["status_counts"]
+	var/status = "[sample["support_status"] || "FAILED"]"
+	status_counts[status] = round(text2num("[status_counts[status]]") || 0) + 1
+	add_building_quality_hard_counter_totals(row["hard_counter_totals"], sample["hard_counters"])
+	if(!sample["passed"])
+		var/list/failure_reasons = row["failure_reasons"]
+		if(length(failure_reasons) < WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES)
+			var/reason = "[sample["error"] || sample["user_facing_failure_reason"] || "quality sample failed"]"
+			failure_reasons += reason
+
 /datum/world_edit_generator/building_layout/proc/run_building_quality_batch(turf/anchor_turf, list/program_ids = null, list/style_ids = null, seed_start = 1, seed_count = 8, half_width = 4, half_depth = 4, list/shape_ids = null, max_sample_count = 240)
 	var/list/result = list(
 		"sample_count" = 0,
 		"pass_count" = 0,
 		"fail_count" = 0,
 		"samples" = list(),
+		"failure_samples" = list(),
+		"support_matrix" = list(),
+		"hard_counter_totals" = list(),
 	)
 	if(!istype(anchor_turf))
 		result["error"] = "Quality batch requires an anchor turf."
@@ -86,6 +148,11 @@
 	result["shape_ids"] = shape_ids.Copy()
 	seed_count = clamp(round(text2num("[seed_count]") || 8), 1, 50)
 	max_sample_count = clamp(round(text2num("[max_sample_count]") || 240), 1, 2000)
+	var/list/scenarios = list(
+		list("id" = "details_0", "detail_budget" = 0, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
+		list("id" = "details_100", "detail_budget" = 100, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
+		list("id" = "blockers_strict", "detail_budget" = 100, "respect_blockers" = TRUE, "replace_blocked_turfs" = FALSE),
+	)
 	for(var/seed_offset in 0 to seed_count - 1)
 		var/seed_value = seed_start + seed_offset
 		for(var/shape_id as anything in shape_ids)
@@ -95,32 +162,40 @@
 			var/list/placement_context = islist(shape_context) ? shape_context["placement_context"] : null
 			for(var/program_id as anything in program_ids)
 				for(var/style_id as anything in style_ids)
-					if((round(text2num("[result["sample_count"]]") || 0)) >= max_sample_count)
-						result["capped"] = TRUE
-						return result
-					var/list/params = list(
-						"archetype_id" = program_id,
-						"faction_preset" = style_id,
-						"building_seed" = seed_value,
-						"half_width" = half_width,
-						"half_depth" = half_depth,
-						"detail_budget" = 100,
-						"window_density" = 60,
-						"back_exit" = TRUE,
-					)
-					for(var/shape_param as anything in shape_params)
-						params[shape_param] = shape_params[shape_param]
-					var/datum/world_edit_plan/plan = build_plan_from_shape_contract(null, shape_contract, params, placement_context)
-					var/list/sample = build_building_quality_sample(program_id, style_id, seed_value, shape_id, plan)
-					result["samples"] += list(sample)
-					result["sample_count"] = result["sample_count"] + 1
-					if(sample["passed"])
-						result["pass_count"] = result["pass_count"] + 1
-					else
-						result["fail_count"] = result["fail_count"] + 1
+					for(var/list/scenario as anything in scenarios)
+						if((round(text2num("[result["sample_count"]]") || 0)) >= max_sample_count)
+							result["capped"] = TRUE
+							return result
+						var/list/params = list(
+							"archetype_id" = program_id,
+							"faction_preset" = style_id,
+							"building_seed" = seed_value,
+							"half_width" = half_width,
+							"half_depth" = half_depth,
+							"detail_budget" = scenario["detail_budget"],
+							"window_density" = 60,
+							"back_exit" = TRUE,
+							"respect_blockers" = scenario["respect_blockers"],
+							"replace_blocked_turfs" = scenario["replace_blocked_turfs"],
+						)
+						for(var/shape_param as anything in shape_params)
+							params[shape_param] = shape_params[shape_param]
+						var/datum/world_edit_plan/plan = build_plan_from_shape_contract(null, shape_contract, params, placement_context)
+						var/list/sample = build_building_quality_sample(program_id, style_id, seed_value, shape_id, plan, scenario["id"])
+						result["sample_count"] = result["sample_count"] + 1
+						if(length(result["samples"]) < WORLD_EDIT_BUILDING_MAX_QUALITY_SAMPLES_STORED)
+							result["samples"] += list(sample)
+						if(sample["passed"])
+							result["pass_count"] = result["pass_count"] + 1
+						else
+							result["fail_count"] = result["fail_count"] + 1
+							if(length(result["failure_samples"]) < WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES)
+								result["failure_samples"] += list(sample)
+						add_building_quality_hard_counter_totals(result["hard_counter_totals"], sample["hard_counters"])
+						update_building_quality_support_matrix(result["support_matrix"], sample)
 	return result
 
-/datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, shape_id, datum/world_edit_plan/plan)
+/datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, shape_id, datum/world_edit_plan/plan, scenario_id = "default")
 	var/list/metadata = islist(plan?.metadata) ? plan.metadata : list()
 	var/support_status = "[metadata["current_request_support_status"] || "FAILED"]"
 	var/clear_unsupported = support_status == "UNSUPPORTED_WITH_CLEAR_ERROR" && length("[metadata["error"] || metadata["user_facing_failure_reason"]]")
@@ -137,6 +212,7 @@
 	var/post_emit_validation_error_count = round(text2num("[metadata["post_emit_validation_error_count"]]") || 0)
 	var/raw_category_credit_count = round(text2num("[metadata["raw_category_credit_count"]]") || 0)
 	var/scatter_signature_credit_count = round(text2num("[metadata["scatter_signature_credit_count"]]") || 0)
+	var/list/hard_counters = build_building_metadata_hard_counter_report(metadata)
 	if(!clear_unsupported)
 		if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
 			passed = FALSE
@@ -154,6 +230,7 @@
 		"program" = "[program_id]",
 		"style" = "[style_id]",
 		"shape" = "[shape_id]",
+		"scenario" = "[scenario_id]",
 		"seed" = seed_value,
 		"passed" = passed ? TRUE : FALSE,
 		"support_status" = support_status,
@@ -179,6 +256,7 @@
 		"post_emit_validation_error_count" = post_emit_validation_error_count,
 		"raw_category_credit_count" = raw_category_credit_count,
 		"scatter_signature_credit_count" = scatter_signature_credit_count,
+		"hard_counters" = hard_counters,
 		"divider_plan_count" = metadata["divider_plan_count"],
 		"nested_room_count" = metadata["nested_room_count"],
 		"degraded_region_fallback_count" = metadata["degraded_region_fallback_count"],

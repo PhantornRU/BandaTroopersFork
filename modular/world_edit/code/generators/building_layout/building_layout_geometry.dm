@@ -119,6 +119,7 @@
 	return state
 
 /datum/world_edit_generator/building_layout/proc/build_building_doors(datum/world_edit_building_layout_state/state)
+	state.door_reports.Cut()
 	var/center_x = (state.bounds["min_x"] + state.bounds["max_x"]) / 2
 	var/center_y = (state.bounds["min_y"] + state.bounds["max_y"]) / 2
 	var/list/door_policy = islist(state.semantic_plan?.door_policy) ? state.semantic_plan.door_policy : list()
@@ -132,6 +133,12 @@
 	state.front_door_turf = front_door_turf
 	state.append_unique_turf(state.door_turfs, front_door_turf)
 	state.door_dirs[front_door_turf] = get_outward_dir(front_door_turf, state.footprint_lookup, center_x, center_y, state.placement_dir)
+	state.door_reports += list(list(
+		"turf" = front_door_turf,
+		"dir" = state.door_dirs[front_door_turf],
+		"kind" = "main_exit",
+		"requested_direction" = state.placement_dir,
+	))
 
 	var/max_exterior_doors = max(round(text2num("[door_policy["max_exterior_doors"]]") || 2), 1)
 	var/allow_back_exit = isnull(door_policy["allow_back_exit"]) ? TRUE : GLOB.world_edit_helpers.parse_bool(door_policy["allow_back_exit"])
@@ -142,6 +149,12 @@
 		if(istype(back_door_turf))
 			state.append_unique_turf(state.door_turfs, back_door_turf)
 			state.door_dirs[back_door_turf] = get_outward_dir(back_door_turf, state.footprint_lookup, center_x, center_y, turn(state.placement_dir, 180))
+			state.door_reports += list(list(
+				"turf" = back_door_turf,
+				"dir" = state.door_dirs[back_door_turf],
+				"kind" = "service_exit",
+				"requested_direction" = turn(state.placement_dir, 180),
+			))
 
 /datum/world_edit_generator/building_layout/proc/build_building_room_first_layout(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan) || length(state.interior) < 3)
@@ -170,6 +183,7 @@
 	state.center_turf = state.semantic_hub_turf
 	if(istype(state.semantic_hub_turf))
 		state.set_zone_focus(corridor_zone_id, state.semantic_hub_turf)
+	reserve_room_first_corridor_separator_lanes(state)
 
 	var/list/free_lookup = build_room_first_free_lookup(state)
 	if(!length(free_lookup))
@@ -195,6 +209,7 @@
 			"zone_id" = room.zone_id,
 			"role" = room.role,
 			"area" = room.area,
+			"useful_area" = length(room.turfs),
 			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
 			"tiny" = room.tiny,
 		))
@@ -209,6 +224,8 @@
 	state.corridor_report = list(
 		"reserved_walk_count" = length(state.primary_route_turfs),
 		"corridor_turf_count" = length(state.corridor_turfs),
+		"separator_lane_count" = length(state.separator_lane_turfs),
+		"door_transition_count" = length(state.door_reports),
 		"front_door_turf" = state.front_door_turf,
 	)
 	return length(state.solved_rooms) > 0 && length(state.corridor_turfs) > 0
@@ -301,10 +318,24 @@
 /datum/world_edit_generator/building_layout/proc/build_room_first_free_lookup(datum/world_edit_building_layout_state/state)
 	var/list/free_lookup = list()
 	for(var/turf/interior_turf as anything in state.interior)
-		if(!istype(interior_turf) || state.corridor_lookup[interior_turf] || state.boundary_lookup[interior_turf])
+		if(!istype(interior_turf) || state.corridor_lookup[interior_turf] || state.boundary_lookup[interior_turf] || state.separator_lane_lookup[interior_turf])
 			continue
 		free_lookup[interior_turf] = TRUE
 	return free_lookup
+
+/datum/world_edit_generator/building_layout/proc/reserve_room_first_corridor_separator_lanes(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	for(var/turf/corridor_turf as anything in state.corridor_turfs)
+		if(!istype(corridor_turf))
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/separator_turf = get_step(corridor_turf, check_dir)
+			if(!istype(separator_turf) || !state.interior.Find(separator_turf))
+				continue
+			if(state.corridor_lookup[separator_turf] || state.boundary_lookup[separator_turf] || state.door_dirs[separator_turf])
+				continue
+			state.add_separator_lane(separator_turf)
 
 /datum/world_edit_generator/building_layout/proc/build_room_first_rect_candidates(datum/world_edit_building_layout_state/state, list/free_lookup)
 	var/list/candidates = list()
@@ -522,6 +553,13 @@
 			continue
 		var/datum/world_edit_building_room/patch_room = build_room_first_patch_room(state, zone_spec, claimed_turfs)
 		if(istype(patch_room))
+			if(zone_spec.required)
+				state.mandatory_room_patch_fallback_count++
+				state.mandatory_room_missing_count++
+				if(zone_spec.divider_mode == "room")
+					state.mandatory_room_no_bounds_count++
+				state.add_error("Required zone '[zone_spec.id]' cannot be satisfied by compact patch-room fallback.")
+				continue
 			state.add_solved_room(patch_room)
 			for(var/turf/patch_turf as anything in patch_room.turfs)
 				claimed_turfs[patch_turf] = TRUE
@@ -649,17 +687,32 @@
 	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
 		if(!istype(room))
 			continue
+		var/datum/world_edit_building_zone_spec/room_zone_spec = state.semantic_plan?.get_zone_spec(room.zone_id)
+		var/room_needs_reserved_separator = istype(room_zone_spec) && room_zone_spec.required && (room_zone_spec.divider_mode == "room" || room_zone_spec.privacy_sensitive)
 		var/list/edge_turfs = list()
 		var/list/edge_dirs = list()
+		var/list/edge_lookup = list()
 		for(var/turf/room_turf as anything in room.turfs)
 			if(!istype(room_turf) || state.corridor_lookup[room_turf])
 				continue
 			for(var/check_dir in GLOB.cardinals)
-				if(state.corridor_lookup[get_step(room_turf, check_dir)])
-					edge_turfs += room_turf
-					edge_dirs[room_turf] = check_dir
+				var/turf/separator_turf = get_step(room_turf, check_dir)
+				if(!state.separator_lane_lookup[separator_turf] || edge_lookup[separator_turf])
+					continue
+				var/touches_corridor = FALSE
+				for(var/corridor_dir in GLOB.cardinals)
+					if(state.corridor_lookup[get_step(separator_turf, corridor_dir)])
+						touches_corridor = TRUE
+						break
+				if(touches_corridor)
+					edge_turfs += separator_turf
+					edge_dirs[separator_turf] = check_dir
+					edge_lookup[separator_turf] = TRUE
 					break
 		var/turf/opening_turf = select_room_first_internal_door_turf(state, edge_turfs, room)
+		if(room_needs_reserved_separator && !length(edge_turfs))
+			state.add_error("Required room '[room.zone_id]' has no reserved separator lane to the corridor.")
+			continue
 		for(var/turf/edge_turf as anything in edge_turfs)
 			if(!istype(edge_turf))
 				continue
@@ -667,6 +720,13 @@
 				state.append_unique_turf(state.door_turfs, edge_turf)
 				state.door_dirs[edge_turf] = edge_dirs[edge_turf] || get_cardinal_dir_toward(edge_turf, state.semantic_hub_turf || state.front_door_turf, state.placement_dir)
 				state.add_zone(edge_turf, room.zone_id)
+				state.door_reports += list(list(
+					"turf" = edge_turf,
+					"dir" = state.door_dirs[edge_turf],
+					"kind" = "internal_separator_opening",
+					"room_id" = room.id,
+					"zone_id" = room.zone_id,
+				))
 			else
 				state.add_internal_wall(edge_turf)
 	build_room_first_room_boundary_walls(state)
@@ -703,7 +763,25 @@
 			seen_edges[edge_key] = TRUE
 			if(state.reserved_lookup[floor_turf] || state.door_dirs[floor_turf])
 				continue
+			var/datum/world_edit_building_zone_spec/source_zone_spec = state.semantic_plan?.get_zone_spec(source_room.zone_id)
+			var/datum/world_edit_building_zone_spec/nearby_zone_spec = state.semantic_plan?.get_zone_spec(nearby_room.zone_id)
+			if((istype(source_zone_spec) && source_zone_spec.required) || (istype(nearby_zone_spec) && nearby_zone_spec.required))
+				if(!room_first_boundary_requires_separator(state, source_zone_spec, nearby_zone_spec))
+					continue
+				state.add_error("Required rooms '[source_room.zone_id]' and '[nearby_room.zone_id]' lack a reserved separator lane; refusing to convert solved room floor into wall.")
+				continue
 			state.add_internal_wall(floor_turf)
+
+/datum/world_edit_generator/building_layout/proc/room_first_boundary_requires_separator(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/source_zone_spec, datum/world_edit_building_zone_spec/nearby_zone_spec)
+	if(!istype(source_zone_spec) || !istype(nearby_zone_spec))
+		return FALSE
+	if(source_zone_spec.divider_mode == "room" || nearby_zone_spec.divider_mode == "room")
+		return TRUE
+	if(source_zone_spec.privacy_sensitive || nearby_zone_spec.privacy_sensitive)
+		return TRUE
+	if(length(source_zone_spec.privacy_class) || length(nearby_zone_spec.privacy_class))
+		return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/prepare_building_local_metrics(datum/world_edit_building_layout_state/state)
 	state.max_front_depth = 1
@@ -937,7 +1015,7 @@
 				union_candidate.turfs += interior_turf
 				extend_solved_region_bounds(union_candidate, interior_turf)
 			state.degraded_region_fallback_count++
-			state.degraded_region_reports += list(list(
+			state.add_degraded_region_report(list(
 				"zone" = zone_spec.id,
 				"reason" = "no_region_candidates",
 				"fallback_area" = length(union_candidate.turfs),
@@ -945,7 +1023,7 @@
 		else if(!has_viable_candidate)
 			union_candidate.priority = -650
 			state.degraded_region_fallback_count++
-			state.degraded_region_reports += list(list(
+			state.add_degraded_region_report(list(
 				"zone" = zone_spec.id,
 				"reason" = "union_only",
 				"fallback_area" = length(union_candidate.turfs),
@@ -1353,7 +1431,7 @@
 		apply_required_zone_region_claims(state, region_assignments)
 	else
 		state.degraded_region_fallback_count++
-		state.degraded_region_reports += list(list(
+		state.add_degraded_region_report(list(
 			"reason" = "backtracking_assignment_failed",
 			"required_zone_count" = length(required_zone_specs),
 			"search_budget_remaining" = search_budget["remaining"],

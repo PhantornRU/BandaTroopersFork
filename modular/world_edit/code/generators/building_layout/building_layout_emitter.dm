@@ -35,13 +35,93 @@
 		total += round(text2num("[counts[anchor_id]]") || 0)
 	return total
 
+/datum/world_edit_generator/building_layout/proc/add_building_emitted_requirement_count(list/emitted_requirement_counts, requirement_id, amount = 1)
+	if(!islist(emitted_requirement_counts) || !length("[requirement_id]"))
+		return
+	var/count = max(round(text2num("[amount]") || 0), 0)
+	if(count <= 0)
+		return
+	emitted_requirement_counts["[requirement_id]"] = round(text2num("[emitted_requirement_counts["[requirement_id]"]]") || 0) + count
+
+/datum/world_edit_generator/building_layout/proc/find_building_cluster_spec_for_emitted_ids(datum/world_edit_building_layout_state/state, requirement_id, cluster_id = null, signature_id = null)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return null
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.cluster_specs)
+		if(!istype(cluster_spec))
+			continue
+		if(length("[requirement_id]") && get_building_cluster_requirement_id(cluster_spec) == "[requirement_id]")
+			return cluster_spec
+		if(length("[cluster_id]") && cluster_spec.id == "[cluster_id]")
+			return cluster_spec
+		if(length("[signature_id]") && cluster_spec.signature_id == "[signature_id]")
+			return cluster_spec
+	return null
+
+/datum/world_edit_generator/building_layout/proc/add_building_route_pattern_emitted_credits(datum/world_edit_building_layout_state/state, list/emitted_requirement_counts)
+	if(!istype(state) || !islist(emitted_requirement_counts))
+		return
+	for(var/list/route_spec as anything in get_building_required_route_pattern_specs(state))
+		if(!islist(route_spec))
+			continue
+		var/pattern_id = "[route_spec["id"]]"
+		var/semantic_credit = "[route_spec["semantic_credit"] || pattern_id]"
+		var/acceptance_counter = "[route_spec["acceptance_counter"] || "[semantic_credit]_ok"]"
+		if(round(text2num("[state.semantic_requirement_counts["[pattern_id]"]]") || 0) <= 0 && round(text2num("[state.semantic_requirement_counts["[semantic_credit]"]]") || 0) <= 0)
+			continue
+		add_building_emitted_requirement_count(emitted_requirement_counts, pattern_id, 1)
+		if(semantic_credit != pattern_id)
+			add_building_emitted_requirement_count(emitted_requirement_counts, semantic_credit, 1)
+		add_building_emitted_requirement_count(emitted_requirement_counts, acceptance_counter, 1)
+
+/datum/world_edit_generator/building_layout/proc/increment_building_post_emit_report(list/report, key, amount = 1)
+	if(!islist(report) || !length("[key]"))
+		return
+	var/report_key = "[key]"
+	report[report_key] = round(text2num("[report[report_key]]") || 0) + max(round(text2num("[amount]") || 0), 0)
+
+/datum/world_edit_generator/building_layout/proc/build_building_emit_object_key(kind, turf/target_turf, obj_path)
+	if(!istype(target_turf))
+		return null
+	return "[kind]@[target_turf.x],[target_turf.y],[target_turf.z]:[obj_path]"
+
+/datum/world_edit_generator/building_layout/proc/add_building_emit_count(list/count_lookup, key, amount = 1)
+	if(!islist(count_lookup) || !length("[key]"))
+		return
+	var/count_key = "[key]"
+	count_lookup[count_key] = round(text2num("[count_lookup[count_key]]") || 0) + max(round(text2num("[amount]") || 0), 0)
+
+/datum/world_edit_generator/building_layout/proc/build_building_post_emit_reachable_lookup(list/walkable_lookup, turf/start_turf, list/limit_lookup)
+	var/list/reachable_lookup = list()
+	if(!islist(walkable_lookup) || !istype(start_turf) || !walkable_lookup[start_turf])
+		return reachable_lookup
+	var/list/open = list(start_turf)
+	reachable_lookup[start_turf] = TRUE
+	var/index = 1
+	while(index <= length(open))
+		var/turf/current_turf = open[index++]
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(current_turf, check_dir)
+			if(!istype(nearby_turf) || reachable_lookup[nearby_turf] || !walkable_lookup[nearby_turf])
+				continue
+			if(islist(limit_lookup) && length(limit_lookup) && !limit_lookup[nearby_turf])
+				continue
+			reachable_lookup[nearby_turf] = TRUE
+			open += nearby_turf
+	return reachable_lookup
+
 /datum/world_edit_generator/building_layout/proc/validate_building_plan_post_emit(datum/world_edit_plan/plan, datum/world_edit_building_layout_state/state)
 	var/list/report = list(
 		"status" = "ok",
 		"missing_path_count" = 0,
 		"failed_object_count" = 0,
 		"state_mismatch_count" = 0,
+		"wall_mismatch_count" = 0,
+		"door_mismatch_count" = 0,
+		"object_mismatch_count" = 0,
 		"route_blocking_count" = 0,
+		"route_unreachable_count" = 0,
+		"door_cone_blocking_count" = 0,
+		"microvariation_route_blocking_count" = 0,
 		"semantic_credit_without_emitted_slots_count" = 0,
 		"error_count" = 0,
 	)
@@ -52,7 +132,12 @@
 
 	var/wall_emit_count = 0
 	var/door_emit_count = 0
-	var/interior_emit_count = 0
+	var/object_emit_count = 0
+	var/list/emitted_floor_lookup = list()
+	var/list/emitted_wall_lookup = list()
+	var/list/emitted_door_lookup = list()
+	var/list/emitted_dense_lookup = list()
+	var/list/emitted_object_count_lookup = list()
 	var/list/emitted_requirement_counts = list()
 	for(var/list/placement as anything in plan.placements)
 		if(!islist(placement))
@@ -62,37 +147,117 @@
 		switch(kind)
 			if("floor", "wall")
 				if(!istype(target_turf) || !ispath(placement["turf_path"], /turf))
-					report["missing_path_count"] = round(text2num("[report["missing_path_count"]]") || 0) + 1
+					increment_building_post_emit_report(report, "missing_path_count")
+					continue
 				if(kind == "wall")
 					wall_emit_count++
+					emitted_wall_lookup[target_turf] = TRUE
+				else
+					emitted_floor_lookup[target_turf] = TRUE
 			if("door", "window", "interior", "microvariation")
 				if(!istype(target_turf) || !ispath(placement["obj_path"], /obj))
-					report["missing_path_count"] = round(text2num("[report["missing_path_count"]]") || 0) + 1
+					increment_building_post_emit_report(report, "missing_path_count")
+					continue
+				add_building_emit_count(emitted_object_count_lookup, build_building_emit_object_key(kind, target_turf, placement["obj_path"]))
 				if(kind == "door")
 					door_emit_count++
+					emitted_door_lookup[target_turf] = TRUE
+					emitted_floor_lookup[target_turf] = TRUE
+				if(kind in list("interior", "microvariation"))
+					object_emit_count++
 				if(kind == "interior")
-					interior_emit_count++
+					emitted_dense_lookup[target_turf] = TRUE
 					if(state.reserved_lookup[target_turf])
-						report["route_blocking_count"] = round(text2num("[report["route_blocking_count"]]") || 0) + 1
+						increment_building_post_emit_report(report, "route_blocking_count")
 					var/requirement_credit = round(text2num("[placement["requirement_count_credit"]]") || 0)
 					var/requirement_id = "[placement["requirement_id"] || ""]"
 					if(requirement_credit > 0 && length(requirement_id))
-						emitted_requirement_counts[requirement_id] = round(text2num("[emitted_requirement_counts[requirement_id]]") || 0) + requirement_credit
+						add_building_emitted_requirement_count(emitted_requirement_counts, requirement_id, requirement_credit)
+						var/cluster_id = "[placement["cluster_id"] || ""]"
+						var/signature_id = "[placement["signature_id"] || ""]"
+						add_building_emitted_requirement_count(emitted_requirement_counts, cluster_id, requirement_credit)
+						add_building_emitted_requirement_count(emitted_requirement_counts, signature_id, requirement_credit)
+						var/datum/world_edit_building_cluster_spec/source_cluster = find_building_cluster_spec_for_emitted_ids(state, requirement_id, cluster_id, signature_id)
+						for(var/list/alias_spec as anything in get_building_cluster_credit_alias_specs(source_cluster))
+							if(!islist(alias_spec))
+								continue
+							var/alias_credit = "[alias_spec["semantic_credit"]]"
+							var/alias_counter = "[alias_spec["acceptance_counter"] || "[alias_credit]_count"]"
+							add_building_emitted_requirement_count(emitted_requirement_counts, alias_credit, requirement_credit)
+							add_building_emitted_requirement_count(emitted_requirement_counts, alias_counter, requirement_credit)
+				else if(kind == "microvariation" && state.reserved_lookup[target_turf])
+					increment_building_post_emit_report(report, "route_blocking_count")
+					increment_building_post_emit_report(report, "microvariation_route_blocking_count")
+
+	add_building_route_pattern_emitted_credits(state, emitted_requirement_counts)
 
 	if(wall_emit_count != length(state.wall_lookup))
-		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(wall_emit_count - length(state.wall_lookup))
+		increment_building_post_emit_report(report, "wall_mismatch_count", abs(wall_emit_count - length(state.wall_lookup)))
+	for(var/turf/wall_turf as anything in state.wall_lookup)
+		if(state.wall_lookup[wall_turf] && !emitted_wall_lookup[wall_turf])
+			increment_building_post_emit_report(report, "wall_mismatch_count")
+	for(var/turf/emitted_wall_turf as anything in emitted_wall_lookup)
+		if(emitted_wall_lookup[emitted_wall_turf] && !state.wall_lookup[emitted_wall_turf])
+			increment_building_post_emit_report(report, "wall_mismatch_count")
 	if(door_emit_count != length(state.door_turfs))
-		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(door_emit_count - length(state.door_turfs))
-	if(interior_emit_count != length(state.object_placements))
-		report["state_mismatch_count"] = round(text2num("[report["state_mismatch_count"]]") || 0) + abs(interior_emit_count - length(state.object_placements))
+		increment_building_post_emit_report(report, "door_mismatch_count", abs(door_emit_count - length(state.door_turfs)))
+	for(var/turf/door_turf as anything in state.door_turfs)
+		if(!emitted_door_lookup[door_turf])
+			increment_building_post_emit_report(report, "door_mismatch_count")
+	for(var/turf/emitted_door_turf as anything in emitted_door_lookup)
+		if(emitted_door_lookup[emitted_door_turf] && !(emitted_door_turf in state.door_turfs))
+			increment_building_post_emit_report(report, "door_mismatch_count")
+	if(object_emit_count != length(state.object_placements))
+		increment_building_post_emit_report(report, "object_mismatch_count", abs(object_emit_count - length(state.object_placements)))
+	for(var/list/state_object_placement as anything in state.object_placements)
+		if(!islist(state_object_placement))
+			continue
+		var/state_object_key = build_building_emit_object_key(state_object_placement["kind"], state_object_placement["turf"], state_object_placement["obj_path"])
+		var/emitted_count = round(text2num("[emitted_object_count_lookup["[state_object_key]"]]") || 0)
+		if(emitted_count <= 0)
+			increment_building_post_emit_report(report, "object_mismatch_count")
+			continue
+		emitted_object_count_lookup["[state_object_key]"] = emitted_count - 1
+
+	var/list/emitted_walkable_lookup = list()
+	for(var/turf/walkable_floor_turf as anything in emitted_floor_lookup)
+		if(!emitted_wall_lookup[walkable_floor_turf] && !emitted_dense_lookup[walkable_floor_turf])
+			emitted_walkable_lookup[walkable_floor_turf] = TRUE
+	for(var/turf/walkable_door_turf as anything in emitted_door_lookup)
+		if(!emitted_wall_lookup[walkable_door_turf] && !emitted_dense_lookup[walkable_door_turf])
+			emitted_walkable_lookup[walkable_door_turf] = TRUE
+	var/turf/route_start_turf = state.front_door_turf
+	if(!emitted_walkable_lookup[route_start_turf] && length(state.primary_route_turfs))
+		route_start_turf = state.primary_route_turfs[1]
+	var/list/post_emit_reachable_lookup = build_building_post_emit_reachable_lookup(emitted_walkable_lookup, route_start_turf, state.footprint_lookup)
+	for(var/turf/route_turf as anything in state.primary_route_turfs)
+		if(!emitted_floor_lookup[route_turf] && !emitted_door_lookup[route_turf])
+			increment_building_post_emit_report(report, "route_blocking_count")
+		if(emitted_wall_lookup[route_turf] || emitted_dense_lookup[route_turf])
+			increment_building_post_emit_report(report, "route_blocking_count")
+		if(!post_emit_reachable_lookup[route_turf])
+			increment_building_post_emit_report(report, "route_unreachable_count")
+	for(var/turf/door_turf as anything in state.door_turfs)
+		var/door_dir = state.door_dirs[door_turf] || state.placement_dir
+		for(var/cone_dir as anything in list(door_dir, turn(door_dir, 180)))
+			var/turf/cone_turf = get_step(door_turf, cone_dir)
+			if(!state.floor_lookup[cone_turf])
+				continue
+			if(!emitted_floor_lookup[cone_turf] && !emitted_door_lookup[cone_turf])
+				increment_building_post_emit_report(report, "route_blocking_count")
+				increment_building_post_emit_report(report, "door_cone_blocking_count")
+			if(emitted_wall_lookup[cone_turf] || emitted_dense_lookup[cone_turf])
+				increment_building_post_emit_report(report, "route_blocking_count")
+				increment_building_post_emit_report(report, "door_cone_blocking_count")
 
 	for(var/requirement_id as anything in state.semantic_requirement_counts)
 		var/planned_count = round(text2num("[state.semantic_requirement_counts[requirement_id]]") || 0)
 		var/emitted_count = round(text2num("[emitted_requirement_counts[requirement_id]]") || 0)
 		if(planned_count > emitted_count)
-			report["semantic_credit_without_emitted_slots_count"] = round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0) + (planned_count - emitted_count)
+			increment_building_post_emit_report(report, "semantic_credit_without_emitted_slots_count", planned_count - emitted_count)
 
-	var/error_count = round(text2num("[report["missing_path_count"]]") || 0) + round(text2num("[report["failed_object_count"]]") || 0) + round(text2num("[report["state_mismatch_count"]]") || 0) + round(text2num("[report["route_blocking_count"]]") || 0) + round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
+	report["state_mismatch_count"] = round(text2num("[report["wall_mismatch_count"]]") || 0) + round(text2num("[report["door_mismatch_count"]]") || 0) + round(text2num("[report["object_mismatch_count"]]") || 0)
+	var/error_count = round(text2num("[report["missing_path_count"]]") || 0) + round(text2num("[report["failed_object_count"]]") || 0) + round(text2num("[report["state_mismatch_count"]]") || 0) + round(text2num("[report["route_blocking_count"]]") || 0) + round(text2num("[report["route_unreachable_count"]]") || 0) + round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
 	report["error_count"] = error_count
 	if(error_count > 0)
 		report["status"] = "failed"
@@ -214,6 +379,7 @@
 	plan.metadata["layout_candidate_score"] = state.config["layout_candidate_score"] || state.layout_candidate_score
 	plan.metadata["layout_candidate_count"] = state.config["layout_candidate_count"] || 1
 	plan.metadata["layout_candidate_reports"] = islist(state.config["layout_candidate_reports"]) ? state.config["layout_candidate_reports"].Copy() : list()
+	plan.metadata["selected_candidate_report"] = islist(state.config["selected_candidate_report"]) ? state.config["selected_candidate_report"].Copy() : list()
 	plan.metadata["layout_candidate_index"] = state.config["layout_candidate_index"] || 1
 	plan.metadata["semantic_region_claim_count"] = state.region_claim_count
 	plan.metadata["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
@@ -227,6 +393,7 @@
 	plan.metadata["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
 	plan.metadata["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
 	plan.metadata["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
+	plan.metadata["placed_requirement_counts"] = state.placed_requirement_counts.Copy()
 	plan.metadata["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
 	plan.metadata["semantic_requirement_reports"] = state.semantic_requirement_reports.Copy()
 	plan.metadata["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
@@ -251,6 +418,7 @@
 	plan.metadata["scatter_signature_credit_count"] = state.scatter_signature_credit_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
 	plan.metadata["forbidden_fallback_count"] = state.forbidden_fallback_count
+	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	plan.metadata["mandatory_room_patch_fallback_count"] = state.mandatory_room_patch_fallback_count
 	plan.metadata["fallback_anchor_required_cluster_count"] = state.fallback_anchor_required_cluster_count
 	plan.metadata["blocked_turf_conflict_count"] = state.blocked_turf_conflict_count
@@ -269,6 +437,7 @@
 	plan.metadata["direction_fallback_reason"] = state.direction_fallback_reason
 	plan.metadata["counter_wrong_facing_count"] = state.counter_wrong_facing_count
 	plan.metadata["entry_face_mismatch_count"] = state.entry_face_mismatch_count
+	plan.metadata["entry_face_readable"] = state.entry_face_readable
 	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
 	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
 	plan.metadata["microvariation_count"] = state.microvariation_count
@@ -296,6 +465,9 @@
 	plan.metadata["door_buffer_conflict_count"] = state.door_buffer_conflict_count
 	plan.metadata["window_conflict_count"] = state.window_conflict_count
 	plan.metadata["facade_conflict_count"] = state.facade_conflict_count
+	plan.metadata["invalid_window_count"] = state.invalid_window_count
+	plan.metadata["service_wall_window_violation_count"] = state.service_wall_window_violation_count
+	plan.metadata["secure_wall_window_violation_count"] = state.secure_wall_window_violation_count
 	plan.metadata["fixture_conflict_count"] = state.fixture_conflict_count
 	plan.metadata["route_conflict_count"] = state.route_conflict_count
 	plan.metadata["signature_warnings"] = state.signature_warnings.Copy()
@@ -379,6 +551,9 @@
 	plan.metadata["door_buffer_conflict_count"] = state.door_buffer_conflict_count
 	plan.metadata["window_conflict_count"] = state.window_conflict_count
 	plan.metadata["facade_conflict_count"] = state.facade_conflict_count
+	plan.metadata["invalid_window_count"] = state.invalid_window_count
+	plan.metadata["service_wall_window_violation_count"] = state.service_wall_window_violation_count
+	plan.metadata["secure_wall_window_violation_count"] = state.secure_wall_window_violation_count
 	plan.metadata["fixture_conflict_count"] = state.fixture_conflict_count
 	plan.metadata["route_conflict_count"] = state.route_conflict_count
 	plan.metadata["fixture_category_budgets"] = state.category_budgets.Copy()
@@ -413,6 +588,53 @@
 	plan.metadata["emit_failed_object_count"] = state.emit_failed_object_count
 	plan.metadata["emit_state_mismatch_count"] = state.emit_state_mismatch_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
+	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
+	plan.metadata["debug_stage_separation_report"] = list(
+		"planned_rooms" = list(
+			"mandatory_room_count" = state.mandatory_room_count,
+			"mandatory_zone_count" = state.mandatory_zone_count,
+			"semantic_zone_count" = length(state.semantic_plan?.zone_specs),
+		),
+		"solved_rooms" = list(
+			"room_count" = length(state.solved_rooms),
+			"zone_count" = length(state.zone_turfs),
+			"room_reports" = state.room_reports.Copy(),
+		),
+		"emitted_or_reserved_rooms" = list(
+			"floor_count" = length(state.floor_turfs),
+			"reservation_count" = length(state.semantic_slot_reservation_by_turf),
+			"primary_route_count" = length(state.primary_route_turfs),
+		),
+		"planned_patterns" = state.semantic_requirement_minimums.Copy(),
+		"placed_patterns" = state.placed_requirement_counts.Copy(),
+		"validator_credited_patterns" = state.semantic_requirement_counts.Copy(),
+		"planned_objects" = list(
+			"semantic_slot_capacity_count" = state.semantic_slot_capacity_count,
+			"pattern_report_count" = length(state.pattern_reports),
+		),
+		"reserved_objects" = list(
+			"semantic_slot_reservation_count" = length(state.semantic_slot_reservation_by_turf),
+			"semantic_slot_reservation_conflict_count" = state.semantic_slot_reservation_conflict_count,
+		),
+		"emitted_objects" = list(
+			"placement_count" = length(plan.placements),
+			"interior_object_count" = length(state.object_placements),
+			"emit_missing_path_count" = state.emit_missing_path_count,
+			"emit_failed_object_count" = state.emit_failed_object_count,
+			"emit_state_mismatch_count" = state.emit_state_mismatch_count,
+		),
+		"planned_route" = list(
+			"primary_route_count" = length(state.primary_route_turfs),
+			"door_count" = length(state.door_turfs),
+			"door_cone_blocked_count" = state.door_cone_blocked_count,
+		),
+		"emitted_walkable_route" = list(
+			"post_emit_status" = post_emit_report["status"],
+			"route_blocking_count" = post_emit_report["route_blocking_count"],
+			"route_unreachable_count" = post_emit_report["route_unreachable_count"],
+			"door_cone_blocking_count" = post_emit_report["door_cone_blocking_count"],
+		),
+	)
 	if(state.has_errors())
 		plan.metadata["error"] = format_building_messages(state.errors)
 		plan.metadata["errors"] = state.errors.Copy()

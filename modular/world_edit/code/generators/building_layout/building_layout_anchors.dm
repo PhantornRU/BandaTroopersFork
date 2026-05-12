@@ -66,15 +66,15 @@
 
 /datum/world_edit_generator/building_layout/proc/add_door_cone_anchors(datum/world_edit_building_layout_state/state)
 	for(var/turf/door_turf as anything in state.door_turfs)
-		if(!state.boundary_lookup[door_turf])
-			continue
 		var/outward_dir = state.door_dirs[door_turf] || get_outward_dir(door_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
-		var/inward_dir = turn(outward_dir, 180)
-		var/turf/cone_turf = door_turf
-		for(var/step_index in 1 to 2)
-			cone_turf = get_step(cone_turf, inward_dir)
+		if(state.floor_lookup[door_turf])
+			state.add_anchor("door_cone", door_turf)
+			state.add_anchor("primary_lane", door_turf)
+			state.add_reserved(door_turf)
+		for(var/cone_dir as anything in list(outward_dir, turn(outward_dir, 180)))
+			var/turf/cone_turf = get_step(door_turf, cone_dir)
 			if(!state.floor_lookup[cone_turf])
-				break
+				continue
 			state.add_anchor("door_cone", cone_turf)
 			state.add_anchor("primary_lane", cone_turf)
 			state.add_reserved(cone_turf)
