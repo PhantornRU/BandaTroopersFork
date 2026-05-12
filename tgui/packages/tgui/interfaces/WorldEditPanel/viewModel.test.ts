@@ -243,6 +243,36 @@ describe('WorldEditPanel view model', () => {
     expect(actions.placementAction?.disabled).toBe(true);
   });
 
+  it('disables preview/apply for request-level locks without hiding the shape row', () => {
+    const data = makeData({
+      placement_shape_supported: true,
+      placement_shape: 'point',
+      placement_shape_options: [
+        {
+          value: 'point',
+          label: 'point',
+          locked: false,
+          shape_locked: false,
+          request_locked: true,
+          can_preview: false,
+          can_apply: false,
+          lockReason: 'Selected area is too small.',
+        },
+      ],
+      placement_supported: true,
+      placement_supports_direction: true,
+    });
+    const actions = getToolbarActions(data);
+    const shared = getSharedModeViewModel(data, 'editor');
+
+    expect(shared.shapeOptions.map((option) => option.value)).toEqual([
+      'point',
+    ]);
+    expect(shared.selectedShape).toBe('point');
+    expect(actions.previewAction?.disabled).toBe(true);
+    expect(actions.placementAction?.disabled).toBe(true);
+  });
+
   it('normalizes shared mode shell state and keeps blueprint-specific extras', () => {
     const data = makeData({
       current_generator_id: 'blueprint_stamp',

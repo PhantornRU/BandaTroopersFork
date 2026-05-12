@@ -1,6 +1,8 @@
 /datum/world_edit_generator/building_layout/proc/validate_and_repair_building_layout_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
+	if(ensure_required_zone_route_access(state))
+		refresh_building_semantic_anchors(state)
 	validate_building_layout_state(state)
 	if(!state.has_errors())
 		return
@@ -26,6 +28,8 @@
 			repaired_this_pass = TRUE
 		if(repaired_this_pass)
 			refresh_building_semantic_anchors(state)
+			if(ensure_required_zone_route_access(state))
+				refresh_building_semantic_anchors(state)
 		validate_building_layout_state(state)
 		if(!state.has_errors() || !repaired_this_pass)
 			break
@@ -381,16 +385,97 @@
 			return TRUE
 	return FALSE
 
+/datum/world_edit_generator/building_layout/proc/building_zone_touches_circulation(datum/world_edit_building_layout_state/state, zone_id)
+	if(!istype(state) || !length("[zone_id]"))
+		return FALSE
+	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+		if(building_turf_touches_circulation(state, zone_turf))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/ensure_required_zone_route_access(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	var/changed = FALSE
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec) || !zone_spec.required || !zone_spec.must_touch_route)
+			continue
+		if(building_zone_touches_circulation(state, zone_spec.id))
+			continue
+		if(ensure_zone_has_circulation_door(state, zone_spec.id))
+			changed = TRUE
+			continue
+		if(ensure_zone_has_service_spur(state, zone_spec.id))
+			changed = TRUE
+			continue
+		state.add_warning("Required zone '[zone_spec.id]' could not be connected to the circulation graph during route access solving.")
+	return changed
+
+/datum/world_edit_generator/building_layout/proc/ensure_zone_has_circulation_door(datum/world_edit_building_layout_state/state, zone_id)
+	if(!istype(state) || !length("[zone_id]"))
+		return FALSE
+	var/list/zone_turfs = state.get_zone_turfs(zone_id)
+	if(!length(zone_turfs))
+		return FALSE
+	for(var/turf/zone_turf as anything in zone_turfs)
+		if(!istype(zone_turf))
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/door_turf = get_step(zone_turf, check_dir)
+			if(!istype(door_turf) || !state.footprint_lookup[door_turf])
+				continue
+			if(state.boundary_lookup[door_turf] || state.fixture_lookup[door_turf])
+				continue
+			if(!state.separator_lane_lookup[door_turf] && !state.wall_lookup[door_turf] && !state.door_dirs[door_turf])
+				continue
+			var/turf/route_turf = null
+			for(var/route_dir in GLOB.cardinals)
+				var/turf/check_turf = get_step(door_turf, route_dir)
+				if(check_turf == zone_turf)
+					continue
+				if(state.corridor_lookup[check_turf] || state.reserved_lookup[check_turf])
+					route_turf = check_turf
+					break
+			if(!istype(route_turf))
+				continue
+			state.wall_lookup -= door_turf
+			state.internal_wall_turfs -= door_turf
+			state.append_unique_turf(state.door_turfs, door_turf)
+			state.door_dirs[door_turf] = check_dir
+			state.add_zone(door_turf, zone_id)
+			state.add_primary_route(route_turf)
+			state.route_access_repair_count++
+			state.door_reports += list(list(
+				"turf" = door_turf,
+				"dir" = state.door_dirs[door_turf],
+				"kind" = "required_route_access",
+				"zone_id" = "[zone_id]",
+			))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/ensure_zone_has_service_spur(datum/world_edit_building_layout_state/state, zone_id)
+	if(!istype(state) || !length("[zone_id]"))
+		return FALSE
+	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+		if(!istype(zone_turf) || state.wall_lookup[zone_turf] || state.fixture_lookup[zone_turf])
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(zone_turf, check_dir)
+			if(!istype(nearby_turf) || !state.floor_lookup[nearby_turf])
+				continue
+			if(!state.corridor_lookup[nearby_turf] && !state.reserved_lookup[nearby_turf])
+				continue
+			state.add_primary_route(nearby_turf)
+			state.route_access_repair_count++
+			return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
 		if(!zone_spec.required || !zone_spec.must_touch_route)
 			continue
-		var/route_touches_zone = FALSE
-		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
-			if(building_turf_touches_circulation(state, zone_turf))
-				route_touches_zone = TRUE
-				break
-		if(!route_touches_zone)
+		if(!building_zone_touches_circulation(state, zone_spec.id))
 			state.reachability_failure_count++
 			state.add_error("Required zone '[zone_spec.id]' is not connected to the circulation graph.")
 

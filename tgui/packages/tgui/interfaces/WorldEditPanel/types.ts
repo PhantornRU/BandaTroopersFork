@@ -81,6 +81,8 @@ export type PlacementOption = {
   value: string;
   description?: string;
   locked?: boolean;
+  shape_locked?: boolean;
+  request_locked?: boolean;
   lockReason?: string;
   lock_code?: string;
   status?: string;

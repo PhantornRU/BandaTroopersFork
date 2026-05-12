@@ -337,7 +337,7 @@
 		add_building_required_slot(slots, slot_lookup, infra_slot)
 	return slots
 
-/datum/world_edit_generator/building_layout/proc/validate_building_preset_capabilities(list/config, datum/world_edit_building_archetype/archetype)
+/datum/world_edit_generator/building_layout/proc/validate_building_preset_capabilities_uncached(list/config, datum/world_edit_building_archetype/archetype)
 	if(!islist(config) || !istype(archetype))
 		return null
 	var/list/missing_slots = list()
@@ -352,10 +352,27 @@
 		return "Shell preset '[config["faction_preset"]]' is locked for program '[archetype.id]': missing functional providers for [english_list(missing_slots)]."
 	return null
 
+/datum/world_edit_generator/building_layout/proc/validate_building_preset_capabilities(list/config, datum/world_edit_building_archetype/archetype)
+	if(!islist(config) || !istype(archetype))
+		return null
+	var/cache_key = "[archetype.id]|[config["faction_preset"]]"
+	if(cache_key in GLOB.world_edit_building_preset_capability_cache)
+		var/cached_error = GLOB.world_edit_building_preset_capability_cache[cache_key]
+		return length("[cached_error]") ? "[cached_error]" : null
+	var/error = validate_building_preset_capabilities_uncached(config, archetype)
+	GLOB.world_edit_building_preset_capability_cache[cache_key] = error || ""
+	return error
+
 /datum/world_edit_generator/building_layout/proc/get_building_point_usable_area_for_half_size(half_width, half_depth)
 	var/outer_width = max(round(text2num("[half_width]") || 0) * 2 + 1, 0)
 	var/outer_height = max(round(text2num("[half_depth]") || 0) * 2 + 1, 0)
 	return max(outer_width - 2, 0) * max(outer_height - 2, 0)
+
+/datum/world_edit_generator/building_layout/proc/get_building_program_target_usable_area(datum/world_edit_building_archetype/archetype)
+	var/required_compact_area = get_building_program_required_compact_area(archetype)
+	if(required_compact_area <= 0)
+		return 0
+	return max(required_compact_area * 3, required_compact_area + 64, 121)
 
 /datum/world_edit_generator/building_layout/proc/apply_building_minimum_point_size(list/config, datum/world_edit_building_archetype/archetype)
 	if(!islist(config) || !istype(archetype))
@@ -363,7 +380,7 @@
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
 	if(required_compact_area <= 0)
 		return
-	var/target_usable_area = max(required_compact_area * 3, required_compact_area + 64, 121)
+	var/target_usable_area = get_building_program_target_usable_area(archetype)
 	var/current_half_width = round(text2num("[config["half_width"]]") || 4)
 	var/current_half_depth = round(text2num("[config["half_depth"]]") || 4)
 	if(get_building_point_usable_area_for_half_size(current_half_width, current_half_depth) >= target_usable_area)
@@ -401,15 +418,21 @@
 		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
 
+	var/explicit_half_width = has_building_param(params, "half_width")
+	var/explicit_half_depth = has_building_param(params, "half_depth")
+	var/explicit_size = explicit_half_width || explicit_half_depth
 	config["half_width"] = num_param(params, "half_width", 4, 2, 8)
 	config["half_depth"] = num_param(params, "half_depth", 4, 2, 8)
-	apply_building_minimum_point_size(config, archetype)
+	config["auto_size"] = explicit_size ? FALSE : TRUE
+	if(config["auto_size"])
+		apply_building_minimum_point_size(config, archetype)
 	config["window_density"] = num_param(params, "window_density", archetype.window_bias, 0, 100)
 	config["detail_budget"] = num_param(params, "detail_budget", has_building_param(params, "interior_density") ? num_param(params, "interior_density", archetype.detail_bias, 0, 100) : archetype.detail_bias, 0, 100)
 	config["building_seed"] = num_param(params, "building_seed", WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
 	config["back_exit"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["back_exit"] : null) ? TRUE : FALSE
 	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
 	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
+	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
 
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
@@ -524,6 +547,13 @@
 			"group" = "Safety",
 			"value" = config["replace_blocked_turfs"],
 		),
+		list(
+			"id" = "confirm_large_replacement",
+			"label" = "Confirm large replacement",
+			"kind" = "boolean",
+			"group" = "Safety",
+			"value" = config["confirm_large_replacement"],
+		),
 	)
 
 /datum/world_edit_generator/building_layout/set_ui_param(mob/user, list/current_params, param_id, value)
@@ -545,7 +575,7 @@
 			new_params[param_id] = ui_num_param(value, 60, 0, 100)
 		if("building_seed")
 			new_params[param_id] = ui_num_param(value, WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
-		if("back_exit", "respect_blockers", "replace_blocked_turfs")
+		if("back_exit", "respect_blockers", "replace_blocked_turfs", "confirm_large_replacement")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
 		else
 			new_params[param_id] = value
@@ -553,7 +583,7 @@
 
 /datum/world_edit_generator/building_layout/get_params_short(list/params)
 	var/list/config = normalize_building_params(params)
-	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] auto_size=[config["auto_size"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] large_replace=[config["confirm_large_replacement"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
 
 /datum/world_edit_generator/building_layout/proc/build_building_context_support_result(shape_id, list/config, list/placement_context = null)
 	var/list/result = list(
@@ -561,6 +591,8 @@
 		"reason" = "",
 		"visible" = TRUE,
 		"locked" = FALSE,
+		"shape_locked" = FALSE,
+		"request_locked" = FALSE,
 		"lock_code" = "",
 		"can_preview" = TRUE,
 		"can_apply" = TRUE,
@@ -573,10 +605,16 @@
 		"requested_direction" = islist(placement_context) ? placement_context["direction"] : null,
 		"respect_blockers" = FALSE,
 		"replace_blocked_turfs" = FALSE,
+		"will_replace_blocked_turfs" = FALSE,
+		"blocked_turf_conflict_count" = 0,
+		"replace_blocked_turf_count" = 0,
+		"default_max_replaced_blockers" = WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS,
+		"hard_max_replaced_blockers" = WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS,
 	)
 	if(!islist(config))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "Building request config is unavailable."
+		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -584,29 +622,50 @@
 	result["style_id"] = "[config["faction_preset"] || ""]"
 	result["respect_blockers"] = config["respect_blockers"] ? TRUE : FALSE
 	result["replace_blocked_turfs"] = config["replace_blocked_turfs"] ? TRUE : FALSE
-	if((result["respect_blockers"] || !result["replace_blocked_turfs"]) && islist(placement_context))
+	result["will_replace_blocked_turfs"] = result["replace_blocked_turfs"]
+	if(islist(placement_context))
 		var/list/context_turfs = placement_context["anchor_turfs"]
 		if(islist(context_turfs) && length(context_turfs))
+			var/context_blocked_count = 0
+			var/first_context_blocker_error = null
 			for(var/turf/context_turf as anything in context_turfs)
 				var/context_blocker_error = get_footprint_blocker_error(context_turf)
 				if(!length("[context_blocker_error]"))
 					continue
+				context_blocked_count++
+				if(isnull(first_context_blocker_error))
+					first_context_blocker_error = context_blocker_error
+			result["blocked_turf_conflict_count"] = context_blocked_count
+			result["replace_blocked_turf_count"] = result["replace_blocked_turfs"] ? context_blocked_count : 0
+			if(context_blocked_count > 0 && (result["respect_blockers"] || !result["replace_blocked_turfs"]))
 				result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
-				result["reason"] = "Cannot build: [context_blocker_error]"
+				result["reason"] = "Cannot build: [first_context_blocker_error]"
+				result["request_locked"] = TRUE
 				result["can_preview"] = FALSE
 				result["can_apply"] = FALSE
-				result["blocked_turf_conflict_count"] = 1
+				return result
+			if(result["replace_blocked_turfs"] && context_blocked_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
+				result["reason"] = "Building would replace [context_blocked_count] blocked turfs. Enable large replacement confirmation."
+				result["can_apply"] = FALSE
+			if(result["replace_blocked_turfs"] && context_blocked_count > WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS)
+				result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+				result["reason"] = "Building would replace [context_blocked_count] blocked turfs, above the hard cap of [WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS]."
+				result["request_locked"] = TRUE
+				result["can_preview"] = FALSE
+				result["can_apply"] = FALSE
 				return result
 	var/datum/world_edit_building_archetype/archetype = get_building_archetype_catalog()[result["program_id"]]
 	if(!istype(archetype))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_DISABLED
 		result["reason"] = "Building program '[result["program_id"]]' is not available in the archetype catalog."
+		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
 	if(config["error"])
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "[config["error"]]"
+		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -631,6 +690,8 @@
 	)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Placement shape '[shape_text]' is not supported by building layout."
+		result["shape_locked"] = TRUE
+		result["request_locked"] = TRUE
 		result["locked"] = TRUE
 		result["lock_code"] = "shape.unknown_for_building_layout"
 		result["can_preview"] = FALSE
@@ -640,6 +701,8 @@
 	if(!(shape_text in list(WORLD_EDIT_SHAPE_POINT, WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Building layout currently supports only point/rectangle/filled rectangle contexts with validated room-capable envelopes. Shape '[shape_text]' requires its own feasibility planner before use."
+		result["shape_locked"] = TRUE
+		result["request_locked"] = TRUE
 		result["locked"] = TRUE
 		result["lock_code"] = "shape.unsupported_for_building_layout"
 		result["can_preview"] = FALSE
@@ -648,12 +711,15 @@
 
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
 	var/estimated_usable_area = get_building_request_estimated_usable_area(config, shape_text == WORLD_EDIT_SHAPE_POINT ? null : placement_context)
+	var/required_usable_area = shape_text == WORLD_EDIT_SHAPE_POINT ? max(required_compact_area, get_building_program_target_usable_area(archetype)) : required_compact_area
 	result["required_compact_area"] = required_compact_area
+	result["required_usable_area"] = required_usable_area
 	result["estimated_usable_area"] = estimated_usable_area
-	result["size_policy"] = estimated_usable_area >= required_compact_area ? "compact_or_larger" : "too_small"
-	if(required_compact_area > 0 && estimated_usable_area < required_compact_area)
+	result["size_policy"] = estimated_usable_area >= required_usable_area ? "compact_or_larger" : "too_small"
+	if(required_usable_area > 0 && estimated_usable_area < required_usable_area)
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
-		result["reason"] = "Cannot build [archetype.id]: selected area is too small for compact required zones ([estimated_usable_area]/[required_compact_area] usable tiles)."
+		result["reason"] = "Cannot build [archetype.id]: selected area is too small for compact required zones ([estimated_usable_area]/[required_usable_area] usable tiles)."
+		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -663,8 +729,10 @@
 /datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
 	var/list/config = normalize_building_params(params)
 	var/list/report = build_building_context_support_result(shape_id, config, placement_context)
-	if("[report["lock_code"]]" != "shape.unsupported_for_building_layout" && "[report["lock_code"]]" != "shape.unknown_for_building_layout")
-		report["locked"] = FALSE
+	var/shape_locked = "[report["lock_code"]]" in list("shape.unsupported_for_building_layout", "shape.unknown_for_building_layout")
+	report["shape_locked"] = shape_locked ? TRUE : FALSE
+	report["request_locked"] = "[report["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
+	report["locked"] = report["shape_locked"] ? TRUE : FALSE
 	return report
 
 /datum/world_edit_generator/building_layout/proc/get_building_program_required_compact_area(datum/world_edit_building_archetype/archetype)
@@ -989,6 +1057,12 @@
 	config["replace_blocked_turf_count"] = config["replace_blocked_turfs"] ? blocked_turf_conflict_count : 0
 	if(blocked_turf_conflict_count > 0)
 		config["first_blocked_turf_error"] = first_blocker_error
+	if(config["replace_blocked_turfs"] && blocked_turf_conflict_count > WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS)
+		result["error"] = "Cannot build: footprint would replace [blocked_turf_conflict_count] blocked turfs, above the hard cap of [WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS]."
+		return result
+	if(config["replace_blocked_turfs"] && blocked_turf_conflict_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
+		config["large_replacement_requires_confirmation"] = TRUE
+		config["large_replacement_reason"] = "Building would replace [blocked_turf_conflict_count] blocked turfs. Enable large replacement confirmation before apply."
 
 	var/list/boundary = GLOB.world_edit_placement_shapes.world_edit_collect_boundary_turfs(footprint)
 	if(length(boundary) < 3)
@@ -1457,6 +1531,7 @@
 		"blocked_wall_conflict_count",
 		"blocked_fixture_conflict_count",
 		"replace_blocked_turf_count",
+		"route_access_repair_count",
 		"counter_wrong_facing_count",
 		"entry_face_mismatch_count",
 		"emit_missing_path_count",
@@ -1496,6 +1571,7 @@
 		if("blocked_wall_conflict_count") return state.blocked_wall_conflict_count
 		if("blocked_fixture_conflict_count") return state.blocked_fixture_conflict_count
 		if("replace_blocked_turf_count") return state.replace_blocked_turf_count
+		if("route_access_repair_count") return state.route_access_repair_count
 		if("counter_wrong_facing_count") return state.counter_wrong_facing_count
 		if("entry_face_mismatch_count") return state.entry_face_mismatch_count
 		if("emit_missing_path_count") return state.emit_missing_path_count
@@ -1901,6 +1977,8 @@
 		result.preview_images += GLOB.world_edit_helpers.build_preview_images_from_specs(build_plan_preview_object_specs(plan, params))
 	result.meta = plan.metadata.Copy()
 	result.message = "Building preview ready: program=[plan.metadata["archetype_id"]], shape=[plan.metadata["placement_shape_id"]], source=[plan.metadata["footprint_source"]], family=[plan.metadata["footprint_family"]], candidates=[plan.metadata["layout_candidate_count"]], score=[plan.metadata["layout_candidate_score"]], signature=[plan.metadata["signature_score"]]/100, rooms=[plan.metadata["room_count"]], corridor=[plan.metadata["corridor_turf_count"]], slots=[plan.metadata["semantic_slot_capacity_count"]] shortage=[plan.metadata["semantic_slot_shortage_count"]] fallback=[plan.metadata["semantic_slot_fallback_count"]], reservations=[plan.metadata["semantic_slot_reservation_count"]] conflicts=[plan.metadata["semantic_slot_reservation_conflict_count"]], chunks=[plan.metadata["template_chunk_count"]], infra=[plan.metadata["infrastructure_count"]], detail=[plan.metadata["microvariation_count"]], footprint=[plan.metadata["footprint_count"]], walls=[plan.metadata["wall_count"]], doors=[plan.metadata["door_count"]], windows=[plan.metadata["window_count"]], interior=[plan.metadata["interior_object_count"]], empty=[plan.metadata["empty_floor_ratio"]]%."
+	if(plan.metadata["will_replace_blocked_turfs"] && round(text2num("[plan.metadata["replace_blocked_turf_count"]]") || 0) > 0)
+		result.message += " Will replace blocked turfs: [plan.metadata["replace_blocked_turf_count"]]."
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)
@@ -1962,6 +2040,13 @@
 		if(length("[runtime_blocker_error]"))
 			result.message = "[runtime_blocker_error]"
 			return result
+	var/replaced_blocker_count = round(text2num("[plan.metadata["replace_blocked_turf_count"]]") || 0)
+	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS)
+		result.message = "Building apply blocked: would replace [replaced_blocker_count] blocked turfs, above the hard cap of [WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS]."
+		return result
+	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
+		result.message = "Building apply requires confirmation: would replace [replaced_blocker_count] blocked turfs. Enable large replacement confirmation."
+		return result
 
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "building_layout", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = plan.metadata["center_turf"],
@@ -2075,6 +2160,8 @@
 #undef WORLD_EDIT_BUILDING_MAX_CANDIDATE_REPORT_DETAILS
 #undef WORLD_EDIT_BUILDING_MAX_QUALITY_SAMPLES_STORED
 #undef WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES
+#undef WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS
+#undef WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS
 #undef WORLD_EDIT_BUILDING_AUTO_SEED
 #undef WORLD_EDIT_BUILDING_HASH_MOD
 #undef WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED

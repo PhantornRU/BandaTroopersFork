@@ -105,6 +105,8 @@
 		if(islist(support_report))
 			option["status"] = support_report["status"]
 			option["locked"] = support_report["locked"] ? TRUE : FALSE
+			option["shape_locked"] = support_report["shape_locked"] ? TRUE : FALSE
+			option["request_locked"] = support_report["request_locked"] ? TRUE : FALSE
 			option["lock_code"] = support_report["lock_code"] || support_report["reason_code"] || ""
 			option["lockReason"] = support_report["reason"] || support_report["lock_reason"] || ""
 			option["can_preview"] = support_report["can_preview"] ? TRUE : FALSE

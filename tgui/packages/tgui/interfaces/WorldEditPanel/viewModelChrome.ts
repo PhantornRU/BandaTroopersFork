@@ -86,7 +86,12 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const selectedShapeOption = (data.placement_shape_options || []).find(
     (option) => `${option.value}` === `${data.placement_shape || ''}`,
   );
-  const selectedShapeLocked = !!selectedShapeOption?.locked;
+  const selectedShapeLocked = !!(
+    selectedShapeOption?.locked || selectedShapeOption?.shape_locked
+  );
+  const selectedRequestLocked = !!selectedShapeOption?.request_locked;
+  const selectedCanPreview = selectedShapeOption?.can_preview !== false;
+  const selectedCanApply = selectedShapeOption?.can_apply !== false;
   const hasPlacementControls =
     data.placement_supported ||
     data.placement_shape_supported ||
@@ -96,17 +101,23 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     data.can_run_preview &&
     !data.click_mode_active &&
     !isToolBlocked &&
-    !selectedShapeLocked;
+    !selectedShapeLocked &&
+    !selectedRequestLocked &&
+    selectedCanPreview;
   const canApply =
     data.can_run_apply &&
     !data.click_mode_active &&
     !isToolBlocked &&
-    !selectedShapeLocked;
+    !selectedShapeLocked &&
+    !selectedRequestLocked &&
+    selectedCanApply;
   const canStartPlacement =
     data.can_start_placement_mode &&
     !data.click_mode_active &&
     !isToolBlocked &&
-    !selectedShapeLocked;
+    !selectedShapeLocked &&
+    !selectedRequestLocked &&
+    selectedCanPreview;
 
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview

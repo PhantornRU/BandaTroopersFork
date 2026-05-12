@@ -158,7 +158,7 @@ const ShapeOptionStrip = (props: {
         const label = getTranslatedShapeLabel(value);
         const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || '•';
         const isAvailable = availableValues.has(value);
-        const isLocked = !!option?.locked;
+        const isLocked = !!(option?.locked || option?.shape_locked);
         const isSelected = isAvailable && value === selected;
         const lockReason = `${option?.lockReason || option?.description || ''}`;
         const tooltip = isLocked && lockReason ? `${label}: ${lockReason}` : label;

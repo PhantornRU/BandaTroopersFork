@@ -149,6 +149,7 @@
 	var/blocked_room_conflict_count = 0
 	var/blocked_wall_conflict_count = 0
 	var/blocked_fixture_conflict_count = 0
+	var/route_access_repair_count = 0
 	var/direction_honored_count = 0
 	var/direction_fallback_count = 0
 	var/requested_direction = NORTH

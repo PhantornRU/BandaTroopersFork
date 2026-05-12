@@ -432,6 +432,13 @@
 	plan.metadata["blocked_wall_conflict_count"] = state.blocked_wall_conflict_count
 	plan.metadata["blocked_fixture_conflict_count"] = state.blocked_fixture_conflict_count
 	plan.metadata["replace_blocked_turf_count"] = state.replace_blocked_turf_count
+	plan.metadata["will_replace_blocked_turfs"] = state.config["replace_blocked_turfs"] ? TRUE : FALSE
+	plan.metadata["large_replacement_requires_confirmation"] = state.config["large_replacement_requires_confirmation"] ? TRUE : FALSE
+	plan.metadata["large_replacement_reason"] = state.config["large_replacement_reason"] || ""
+	plan.metadata["default_max_replaced_blockers"] = WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS
+	plan.metadata["hard_max_replaced_blockers"] = WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS
+	plan.metadata["auto_size"] = state.config["auto_size"] ? TRUE : FALSE
+	plan.metadata["route_access_repair_count"] = state.route_access_repair_count
 	plan.metadata["requested_direction"] = state.requested_direction
 	plan.metadata["requested_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.requested_direction)
 	plan.metadata["actual_entry_direction"] = state.actual_entry_direction
