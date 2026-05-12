@@ -154,10 +154,14 @@ const ShapeOptionStrip = (props: {
       }}
     >
       {orderedValues.map((value) => {
+        const option = options.find((entry) => `${entry.value}` === value);
         const label = getTranslatedShapeLabel(value);
         const glyph = PLACEMENT_SHAPE_GLYPHS[value]?.glyph || '•';
         const isAvailable = availableValues.has(value);
+        const isLocked = !!option?.locked;
         const isSelected = isAvailable && value === selected;
+        const lockReason = `${option?.lockReason || option?.description || ''}`;
+        const tooltip = isLocked && lockReason ? `${label}: ${lockReason}` : label;
 
         return (
           <Button
@@ -166,8 +170,8 @@ const ShapeOptionStrip = (props: {
             verticalAlignContent="middle"
             selected={isSelected}
             color={isSelected ? 'good' : undefined}
-            disabled={disabled || !isAvailable}
-            tooltip={label}
+            disabled={disabled || !isAvailable || isLocked}
+            tooltip={tooltip}
             onClick={() => onSelected(value)}
             style={{
               width: '100%',

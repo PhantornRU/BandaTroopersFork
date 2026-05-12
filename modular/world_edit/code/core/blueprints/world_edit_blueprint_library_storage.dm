@@ -412,8 +412,12 @@
 	var/blueprint_id = sanitize_filename("[blueprint["id"]]")
 	if(!length(blueprint_id))
 		return FALSE
+	var/blueprint_name = trim(sanitize_text("[blueprint["name"]]", ""))
+	if(!length(blueprint_name))
+		blueprint_name = blueprint_id
+	blueprint_name = copytext(blueprint_name, 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1)
 	blueprint["id"] = blueprint_id
-	blueprint["name"] = blueprint_id
+	blueprint["name"] = blueprint_name
 
 	var/file_path = world_edit_get_blueprint_file_path(blueprint_id)
 	if(!file_path)
@@ -480,15 +484,9 @@
 	if(fexists(new_path))
 		return list("error" = "DMM blueprint с таким именем уже существует.")
 
-	var/dmm_text = file2text(old_path)
-	var/list/load_result = world_edit_parse_blueprint_dmm_text(dmm_text, safe_new_id, safe_new_id, "server")
-	if(load_result["error"])
-		return load_result
-
-	var/saved_path = world_edit_save_blueprint_definition(load_result["blueprint"])
-	if(!saved_path)
-		return list("error" = "Не удалось записать DMM blueprint с новым именем.")
+	if(!fcopy(old_path, new_path))
+		return list("error" = "Unable to copy DMM blueprint to the new name.")
 	if(!fdel(old_path))
-		fdel(saved_path)
-		return list("error" = "Не удалось удалить старый DMM blueprint после rename.")
-	return list("blueprint_id" = safe_new_id, "file_path" = saved_path)
+		fdel(new_path)
+		return list("error" = "Unable to remove old DMM blueprint after rename.")
+	return list("blueprint_id" = safe_new_id, "file_path" = new_path)

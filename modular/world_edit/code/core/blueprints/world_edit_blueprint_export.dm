@@ -173,10 +173,14 @@
 	if(!length(blueprint_id))
 		blueprint_id = world_edit_build_blueprint_id()
 	blueprint_id = copytext(blueprint_id, 1, WORLD_EDIT_BLUEPRINT_ID_LEN + 1)
+	var/blueprint_display_name = trim(sanitize_text("[blueprint_name]", ""))
+	if(!length(blueprint_display_name))
+		blueprint_display_name = blueprint_id
+	blueprint_display_name = copytext(blueprint_display_name, 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1)
 
 	return list("blueprint" = list(
 		"id" = blueprint_id,
-		"name" = blueprint_id,
+		"name" = blueprint_display_name,
 		"created_at" = time_stamp(),
 		"created_by" = ckey("[actor_ckey]"),
 		"source" = "outpost_radius_plan",
@@ -261,10 +265,14 @@
 	if(!length(blueprint_id))
 		blueprint_id = world_edit_build_blueprint_id()
 	blueprint_id = copytext(blueprint_id, 1, WORLD_EDIT_BLUEPRINT_ID_LEN + 1)
+	var/blueprint_display_name = trim(sanitize_text("[blueprint_name]", ""))
+	if(!length(blueprint_display_name))
+		blueprint_display_name = blueprint_id
+	blueprint_display_name = copytext(blueprint_display_name, 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1)
 
 	var/list/validation_result = world_edit_validate_blueprint_definition(list(
 		"id" = blueprint_id,
-		"name" = blueprint_id,
+		"name" = blueprint_display_name,
 		"created_at" = time_stamp(),
 		"created_by" = ckey("[actor_ckey]"),
 		"source" = "building_layout_plan",

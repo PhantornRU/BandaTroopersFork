@@ -80,6 +80,12 @@ export type PlacementOption = {
   label: string;
   value: string;
   description?: string;
+  locked?: boolean;
+  lockReason?: string;
+  lock_code?: string;
+  status?: string;
+  can_preview?: boolean;
+  can_apply?: boolean;
 };
 
 export type PresetEntry = {

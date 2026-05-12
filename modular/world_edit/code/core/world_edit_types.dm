@@ -164,6 +164,18 @@
 /datum/world_edit_generator/proc/get_shape_support_error(shape_id, list/anchor_turfs, list/params, list/placement_context)
 	return null
 
+/datum/world_edit_generator/proc/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
+	return list(
+		"shape_id" = "[shape_id]",
+		"status" = "supported",
+		"visible" = TRUE,
+		"locked" = FALSE,
+		"lock_code" = "",
+		"reason" = "",
+		"can_preview" = TRUE,
+		"can_apply" = TRUE,
+	)
+
 /datum/world_edit_generator/proc/build_placement_plan(mob/user, list/params, list/placement_context)
 	return null
 

@@ -15,7 +15,8 @@
 			continue
 		var/existing_layer = text2num("[existing_spec["layer"]]")
 		if(new_layer < existing_layer)
-			specs.Insert(index, new_spec)
+			specs.Insert(index, null)
+			specs[index] = new_spec
 			return TRUE
 
 	specs += list(new_spec)
@@ -135,7 +136,10 @@
 		return null
 
 	var/drawn_count = 0
-	for(var/list/spec as anything in specs)
+	for(var/spec_entry as anything in specs)
+		var/list/spec = spec_entry
+		if(!islist(spec))
+			continue
 		var/base_x = ((text2num("[spec["dx"]]") - min_x) + padding_tiles) * pixel_size + 1
 		var/base_y = ((text2num("[spec["dy"]]") - min_y) + padding_tiles) * pixel_size + 1
 		if(world_edit_blend_preview_icon_spec(canvas, spec, base_x, base_y))

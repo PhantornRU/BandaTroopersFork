@@ -54,6 +54,7 @@
 #include "code/generators/building_layout/building_layout_anchors.dm"
 #include "code/generators/building_layout/building_layout_facade.dm"
 #include "code/generators/building_layout/building_layout_place_rules.dm"
+#include "code/generators/building_layout/building_layout_fixture_capabilities.dm"
 #include "code/generators/building_layout/building_layout_templates.dm"
 #include "code/generators/building_layout/building_layout_signatures.dm"
 #include "code/generators/building_layout/building_layout_fixtures.dm"

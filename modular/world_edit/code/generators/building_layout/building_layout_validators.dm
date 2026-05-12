@@ -336,20 +336,59 @@
 	if(state.config["respect_blockers"] || !state.config["replace_blocked_turfs"])
 		state.add_error("Cannot build: blockers intersect resolved building layout while blocker replacement is disabled.")
 
+/datum/world_edit_generator/building_layout/proc/building_separator_lane_touches_corridor(datum/world_edit_building_layout_state/state, turf/separator_turf)
+	if(!istype(state) || !istype(separator_turf))
+		return FALSE
+	if(state.corridor_lookup[separator_turf] || state.reserved_lookup[separator_turf])
+		return TRUE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(separator_turf, check_dir)
+		if(state.corridor_lookup[nearby_turf] || state.reserved_lookup[nearby_turf])
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_door_touches_circulation(datum/world_edit_building_layout_state/state, turf/door_turf)
+	if(!istype(state) || !istype(door_turf))
+		return FALSE
+	if(state.corridor_lookup[door_turf] || state.reserved_lookup[door_turf])
+		return TRUE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(door_turf, check_dir)
+		if(state.corridor_lookup[nearby_turf] || state.reserved_lookup[nearby_turf])
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_turf_touches_circulation(datum/world_edit_building_layout_state/state, turf/target_turf)
+	if(!istype(state) || !istype(target_turf))
+		return FALSE
+	if(state.corridor_lookup[target_turf] || state.reserved_lookup[target_turf])
+		return TRUE
+	if(state.door_dirs[target_turf] && building_door_touches_circulation(state, target_turf))
+		return TRUE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(target_turf, check_dir)
+		if(state.corridor_lookup[nearby_turf] || state.reserved_lookup[nearby_turf])
+			return TRUE
+		if(state.door_dirs[nearby_turf] && building_door_touches_circulation(state, nearby_turf))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_room_touches_circulation(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
+	if(!istype(state) || !istype(room))
+		return FALSE
+	for(var/turf/room_turf as anything in room.turfs)
+		if(building_turf_touches_circulation(state, room_turf))
+			return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
 		if(!zone_spec.required || !zone_spec.must_touch_route)
 			continue
 		var/route_touches_zone = FALSE
 		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
-			if(state.reserved_lookup[zone_turf])
+			if(building_turf_touches_circulation(state, zone_turf))
 				route_touches_zone = TRUE
-				break
-			for(var/check_dir in GLOB.cardinals)
-				if(state.reserved_lookup[get_step(zone_turf, check_dir)])
-					route_touches_zone = TRUE
-					break
-			if(route_touches_zone)
 				break
 		if(!route_touches_zone)
 			state.reachability_failure_count++
@@ -456,12 +495,8 @@
 	if(!istype(state) || !length("[zone_id]"))
 		return FALSE
 	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
-		if(state.reserved_lookup[zone_turf] || state.corridor_lookup[zone_turf])
+		if(building_turf_touches_circulation(state, zone_turf))
 			return TRUE
-		for(var/check_dir in GLOB.cardinals)
-			var/turf/nearby_turf = get_step(zone_turf, check_dir)
-			if(state.reserved_lookup[nearby_turf] || state.corridor_lookup[nearby_turf])
-				return TRUE
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/building_route_pattern_has_blocking_fixture(datum/world_edit_building_layout_state/state, route_zone_id)
@@ -511,20 +546,7 @@
 	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
 		if(!istype(room))
 			continue
-		var/has_access = FALSE
-		for(var/turf/room_turf as anything in room.turfs)
-			if(!istype(room_turf))
-				continue
-			if(state.door_dirs[room_turf])
-				has_access = TRUE
-				break
-			for(var/check_dir in GLOB.cardinals)
-				if(state.corridor_lookup[get_step(room_turf, check_dir)])
-					has_access = TRUE
-					break
-			if(has_access)
-				break
-		if(!has_access)
+		if(!building_room_touches_circulation(state, room))
 			state.reachability_failure_count++
 			state.mandatory_room_no_access_count++
 			state.add_error("Room '[room.id]' for zone '[room.zone_id]' has no door or corridor access.")

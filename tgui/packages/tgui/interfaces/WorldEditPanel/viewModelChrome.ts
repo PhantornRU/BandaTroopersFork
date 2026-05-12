@@ -83,17 +83,30 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   }
 
   const isToolBlocked = isBlueprintToolBlocked(data);
+  const selectedShapeOption = (data.placement_shape_options || []).find(
+    (option) => `${option.value}` === `${data.placement_shape || ''}`,
+  );
+  const selectedShapeLocked = !!selectedShapeOption?.locked;
   const hasPlacementControls =
     data.placement_supported ||
     data.placement_shape_supported ||
     data.placement_supports_direction;
   const hasVisiblePreview = !!data.preview_valid;
   const canPreview =
-    data.can_run_preview && !data.click_mode_active && !isToolBlocked;
+    data.can_run_preview &&
+    !data.click_mode_active &&
+    !isToolBlocked &&
+    !selectedShapeLocked;
   const canApply =
-    data.can_run_apply && !data.click_mode_active && !isToolBlocked;
+    data.can_run_apply &&
+    !data.click_mode_active &&
+    !isToolBlocked &&
+    !selectedShapeLocked;
   const canStartPlacement =
-    data.can_start_placement_mode && !data.click_mode_active && !isToolBlocked;
+    data.can_start_placement_mode &&
+    !data.click_mode_active &&
+    !isToolBlocked &&
+    !selectedShapeLocked;
 
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview

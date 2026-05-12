@@ -342,11 +342,55 @@
 		return null
 	var/list/missing_slots = list()
 	for(var/slot as anything in collect_building_required_slots(archetype))
-		if(!resolve_interior_obj_path(config, slot))
-			missing_slots += "[slot]"
+		var/datum/world_edit_building_fixture_provider/provider = resolve_fixture_provider(config, slot)
+		if(!istype(provider))
+			missing_slots += "[slot]: no provider"
+			continue
+		if(!provider.provides_required_slot(slot))
+			missing_slots += "[slot]: [provider.reason_if_not_functional || "provider is not functionally equivalent"]"
 	if(length(missing_slots))
-		return "Shell preset '[config["faction_preset"]]' cannot resolve required building fixture slots for program '[archetype.id]': [english_list(missing_slots)]."
+		return "Shell preset '[config["faction_preset"]]' is locked for program '[archetype.id]': missing functional providers for [english_list(missing_slots)]."
 	return null
+
+/datum/world_edit_generator/building_layout/proc/get_building_point_usable_area_for_half_size(half_width, half_depth)
+	var/outer_width = max(round(text2num("[half_width]") || 0) * 2 + 1, 0)
+	var/outer_height = max(round(text2num("[half_depth]") || 0) * 2 + 1, 0)
+	return max(outer_width - 2, 0) * max(outer_height - 2, 0)
+
+/datum/world_edit_generator/building_layout/proc/apply_building_minimum_point_size(list/config, datum/world_edit_building_archetype/archetype)
+	if(!islist(config) || !istype(archetype))
+		return
+	var/required_compact_area = get_building_program_required_compact_area(archetype)
+	if(required_compact_area <= 0)
+		return
+	var/target_usable_area = max(required_compact_area * 3, required_compact_area + 64, 121)
+	var/current_half_width = round(text2num("[config["half_width"]]") || 4)
+	var/current_half_depth = round(text2num("[config["half_depth"]]") || 4)
+	if(get_building_point_usable_area_for_half_size(current_half_width, current_half_depth) >= target_usable_area)
+		return
+
+	var/best_half_width = current_half_width
+	var/best_half_depth = current_half_depth
+	var/best_score = 999999
+	for(var/test_half_width in current_half_width to 8)
+		for(var/test_half_depth in current_half_depth to 8)
+			if(get_building_point_usable_area_for_half_size(test_half_width, test_half_depth) < target_usable_area)
+				continue
+			var/score = ((test_half_width - current_half_width) + (test_half_depth - current_half_depth)) * 100 + abs(test_half_width - test_half_depth)
+			if(score >= best_score)
+				continue
+			best_score = score
+			best_half_width = test_half_width
+			best_half_depth = test_half_depth
+	if(best_score >= 999999)
+		return
+	config["requested_half_width"] = current_half_width
+	config["requested_half_depth"] = current_half_depth
+	config["half_width"] = best_half_width
+	config["half_depth"] = best_half_depth
+	config["size_auto_adjusted"] = TRUE
+	config["required_compact_area"] = required_compact_area
+	config["target_usable_area"] = target_usable_area
 
 /datum/world_edit_generator/building_layout/proc/normalize_building_params(list/params)
 	var/list/config = list()
@@ -359,12 +403,13 @@
 
 	config["half_width"] = num_param(params, "half_width", 4, 2, 8)
 	config["half_depth"] = num_param(params, "half_depth", 4, 2, 8)
+	apply_building_minimum_point_size(config, archetype)
 	config["window_density"] = num_param(params, "window_density", archetype.window_bias, 0, 100)
 	config["detail_budget"] = num_param(params, "detail_budget", has_building_param(params, "interior_density") ? num_param(params, "interior_density", archetype.detail_bias, 0, 100) : archetype.detail_bias, 0, 100)
 	config["building_seed"] = num_param(params, "building_seed", WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
 	config["back_exit"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["back_exit"] : null) ? TRUE : FALSE
-	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
-	config["replace_blocked_turfs"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : FALSE
+	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
+	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
 
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
@@ -514,6 +559,11 @@
 	var/list/result = list(
 		"status" = WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED,
 		"reason" = "",
+		"visible" = TRUE,
+		"locked" = FALSE,
+		"lock_code" = "",
+		"can_preview" = TRUE,
+		"can_apply" = TRUE,
 		"requested_shape_id" = "[shape_id]",
 		"program_id" = "",
 		"style_id" = "",
@@ -527,6 +577,8 @@
 	if(!islist(config))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "Building request config is unavailable."
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 	result["program_id"] = "[config["archetype_id"] || ""]"
 	result["style_id"] = "[config["faction_preset"] || ""]"
@@ -541,16 +593,22 @@
 					continue
 				result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 				result["reason"] = "Cannot build: [context_blocker_error]"
+				result["can_preview"] = FALSE
+				result["can_apply"] = FALSE
 				result["blocked_turf_conflict_count"] = 1
 				return result
 	var/datum/world_edit_building_archetype/archetype = get_building_archetype_catalog()[result["program_id"]]
 	if(!istype(archetype))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_DISABLED
 		result["reason"] = "Building program '[result["program_id"]]' is not available in the archetype catalog."
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 	if(config["error"])
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "[config["error"]]"
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 
 	var/shape_text = "[shape_id]"
@@ -573,24 +631,41 @@
 	)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Placement shape '[shape_text]' is not supported by building layout."
+		result["locked"] = TRUE
+		result["lock_code"] = "shape.unknown_for_building_layout"
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 
 	if(!(shape_text in list(WORLD_EDIT_SHAPE_POINT, WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Building layout currently supports only point/rectangle/filled rectangle contexts with validated room-capable envelopes. Shape '[shape_text]' requires its own feasibility planner before use."
+		result["locked"] = TRUE
+		result["lock_code"] = "shape.unsupported_for_building_layout"
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
-	var/estimated_usable_area = get_building_request_estimated_usable_area(config, placement_context)
+	var/estimated_usable_area = get_building_request_estimated_usable_area(config, shape_text == WORLD_EDIT_SHAPE_POINT ? null : placement_context)
 	result["required_compact_area"] = required_compact_area
 	result["estimated_usable_area"] = estimated_usable_area
 	result["size_policy"] = estimated_usable_area >= required_compact_area ? "compact_or_larger" : "too_small"
 	if(required_compact_area > 0 && estimated_usable_area < required_compact_area)
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Cannot build [archetype.id]: selected area is too small for compact required zones ([estimated_usable_area]/[required_compact_area] usable tiles)."
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
 		return result
 
 	return result
+
+/datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
+	var/list/config = normalize_building_params(params)
+	var/list/report = build_building_context_support_result(shape_id, config, placement_context)
+	if("[report["lock_code"]]" != "shape.unsupported_for_building_layout" && "[report["lock_code"]]" != "shape.unknown_for_building_layout")
+		report["locked"] = FALSE
+	return report
 
 /datum/world_edit_generator/building_layout/proc/get_building_program_required_compact_area(datum/world_edit_building_archetype/archetype)
 	if(!istype(archetype))
@@ -613,8 +688,8 @@
 	var/outer_height = max(half_depth * 2 + 1, 0)
 	return max(outer_width - 2, 0) * max(outer_height - 2, 0)
 
-/datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config)
-	var/list/support_result = build_building_context_support_result(shape_id, config)
+/datum/world_edit_generator/building_layout/proc/get_building_shape_error(shape_id, list/config, list/placement_context = null)
+	var/list/support_result = build_building_context_support_result(shape_id, config, placement_context)
 	if("[support_result["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
 		return "[support_result["reason"]]"
 	return null
@@ -633,7 +708,7 @@
 	var/list/config = normalize_building_params(params)
 	if(config["error"])
 		return "[config["error"]]"
-	return get_building_shape_error(shape_id, config)
+	return get_building_shape_error(shape_id, config, placement_context)
 
 /datum/world_edit_generator/building_layout/proc/turf_coord_key(turf/target_turf)
 	if(!istype(target_turf))
@@ -1170,25 +1245,8 @@
 	return reserved
 
 /datum/world_edit_generator/building_layout/proc/resolve_interior_obj_path(list/config, slot)
-	var/list/interior_paths = islist(config) ? config["interior_paths"] : null
-	var/path_value = islist(interior_paths) ? interior_paths["[slot]"] : null
-	if(isnull(path_value))
-		switch("[slot]")
-			if("medical_bed")
-				path_value = interior_paths?["bed"]
-			if("medical_storage", "crate")
-				path_value = interior_paths?["cabinet"]
-			if("hydro_tray", "sleeper", "medical_scanner", "wall_monitor", "fridge", "microwave", "processor", "sink", "toilet", "security_console", "security_camera", "brig_cell", "weapon_rack", "water_tank", "seed_storage", "engineering_machine", "power_console", "lab_machine")
-				path_value = interior_paths?["table"]
-			if("fridge", "filing", "sample_storage")
-				path_value = interior_paths?["cabinet"]
-			if("wall_monitor", "security_console", "console", "power_console")
-				path_value = interior_paths?["table"]
-			if("light", "apc", "air_alarm", "fire_alarm", "light_switch")
-				path_value = interior_paths?["[slot]"] || interior_paths?["console"] || interior_paths?["table"]
-			else
-				path_value = interior_paths?["table"]
-	return resolve_building_type_path(path_value, /obj)
+	var/list/path_report = build_building_fixture_path_report(config, slot)
+	return path_report["path"]
 
 /datum/world_edit_generator/building_layout/proc/build_building_candidate_request(datum/world_edit_building_request/base_request, footprint_family, attempt_index)
 	var/datum/world_edit_building_request/request = new
@@ -1592,10 +1650,59 @@
 		report["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
 		report["major_fixture_count"] = state.major_fixture_count
 		report["footprint_count"] = length(state.footprint)
+		report["half_width"] = state.config["half_width"]
+		report["half_depth"] = state.config["half_depth"]
+		report["size_candidate_index"] = state.config["size_candidate_index"]
 	else
 		report["errors"] = list("[error_message]")
 		report["error_count"] = 1
 	return report
+
+/datum/world_edit_generator/building_layout/proc/add_building_point_size_candidate(list/candidates, list/seen, index, half_width, half_depth)
+	if(!islist(candidates) || !islist(seen))
+		return index
+	half_width = clamp(round(text2num("[half_width]") || 4), 2, 8)
+	half_depth = clamp(round(text2num("[half_depth]") || 4), 2, 8)
+	var/key = "[half_width]x[half_depth]"
+	if(seen[key])
+		return index
+	seen[key] = TRUE
+	index++
+	candidates += list(list(
+		"index" = index,
+		"half_width" = half_width,
+		"half_depth" = half_depth,
+	))
+	return index
+
+/datum/world_edit_generator/building_layout/proc/get_building_point_size_candidate_specs(list/config)
+	var/list/candidates = list()
+	if(!islist(config))
+		return candidates
+	var/start_half_width = clamp(round(text2num("[config["half_width"]]") || 4), 2, 8)
+	var/start_half_depth = clamp(round(text2num("[config["half_depth"]]") || 4), 2, 8)
+	var/index = 0
+	var/list/seen = list()
+	index = add_building_point_size_candidate(candidates, seen, index, start_half_width, start_half_depth)
+	for(var/delta in 1 to 3)
+		if(length(candidates) >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+			break
+		index = add_building_point_size_candidate(candidates, seen, index, start_half_width + delta, start_half_depth)
+		if(length(candidates) >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+			break
+		index = add_building_point_size_candidate(candidates, seen, index, start_half_width, start_half_depth + delta)
+		if(length(candidates) >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+			break
+		index = add_building_point_size_candidate(candidates, seen, index, start_half_width + delta, start_half_depth + delta)
+	if(length(candidates) < WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+		index = add_building_point_size_candidate(candidates, seen, index, 8, 8)
+	if(!length(candidates))
+		candidates += list(list(
+			"index" = 1,
+			"half_width" = start_half_width,
+			"half_depth" = start_half_depth,
+		))
+	return candidates
 
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
@@ -1623,35 +1730,47 @@
 		return plan
 
 	var/list/candidate_families = (shape_id != WORLD_EDIT_SHAPE_POINT) ? list(uppertext("[shape_id]")) : list("RECT")
+	var/list/size_candidates = shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null
 	var/best_score = -999999999
 	var/attempt_index = 0
 	var/first_candidate_error = null
-	for(var/footprint_family as anything in candidate_families)
-		attempt_index++
-		var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
-		var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
-		if(!istype(candidate_state))
-			var/error_message = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
-			if(isnull(first_candidate_error))
-				first_candidate_error = error_message
-			candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
-			continue
-		candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
-		if(candidate_state.has_errors())
-			if(isnull(first_candidate_error))
-				first_candidate_error = candidate_state.user_facing_failure_reason || (length(candidate_state.errors) ? candidate_state.errors[1] : "Building candidate failed validation.")
-			continue
-		if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
-			best_state = candidate_state
-			best_score = candidate_state.layout_candidate_score
-			best_state.config["layout_candidate_index"] = attempt_index
+	var/found_valid_candidate = FALSE
+	for(var/list/size_candidate as anything in size_candidates)
+		for(var/footprint_family as anything in candidate_families)
+			attempt_index++
+			var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
+			candidate_request.config["half_width"] = size_candidate["half_width"]
+			candidate_request.config["half_depth"] = size_candidate["half_depth"]
+			candidate_request.config["size_candidate_index"] = size_candidate["index"]
+			if(size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"])
+				candidate_request.config["size_auto_adjusted"] = TRUE
+			var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
+			if(!istype(candidate_state))
+				var/error_message = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
+				if(isnull(first_candidate_error))
+					first_candidate_error = error_message
+				candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
+				continue
+			candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
+			if(candidate_state.has_errors())
+				if(isnull(first_candidate_error))
+					first_candidate_error = candidate_state.user_facing_failure_reason || (length(candidate_state.errors) ? candidate_state.errors[1] : "Building candidate failed validation.")
+				continue
+			if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
+				best_state = candidate_state
+				best_score = candidate_state.layout_candidate_score
+				best_state.config["layout_candidate_index"] = attempt_index
+			found_valid_candidate = TRUE
+			break
+		if(found_valid_candidate)
+			break
 
 	if(!istype(best_state))
 		var/final_candidate_error = first_candidate_error || "Unable to build any building layout candidate."
 		plan.metadata["error"] = "[final_candidate_error]"
-		plan.metadata["current_request_support_status"] = length("[first_candidate_error]") ? WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED : WORLD_EDIT_BUILDING_SUPPORT_FAILED
+		plan.metadata["current_request_support_status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		plan.metadata["user_facing_failure_reason"] = "[final_candidate_error]"
 		plan.metadata["layout_candidate_reports"] = candidate_reports
 		plan.metadata["layout_candidate_count"] = length(candidate_reports)

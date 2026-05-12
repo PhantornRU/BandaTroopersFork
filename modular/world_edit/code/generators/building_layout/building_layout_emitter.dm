@@ -172,6 +172,11 @@
 					var/requirement_credit = round(text2num("[placement["requirement_count_credit"]]") || 0)
 					var/requirement_id = "[placement["requirement_id"] || ""]"
 					if(requirement_credit > 0 && length(requirement_id))
+						var/list/provided_slots = placement["provided_slots"]
+						var/requested_slot = "[placement["requested_slot"] || placement["slot"] || ""]"
+						if(!GLOB.world_edit_helpers.parse_bool(placement["functional"]) || !islist(provided_slots) || !(requested_slot in provided_slots))
+							increment_building_post_emit_report(report, "semantic_credit_without_emitted_slots_count", requirement_credit)
+							continue
 						add_building_emitted_requirement_count(emitted_requirement_counts, requirement_id, requirement_credit)
 						var/cluster_id = "[placement["cluster_id"] || ""]"
 						var/signature_id = "[placement["signature_id"] || ""]"

@@ -211,6 +211,38 @@ describe('WorldEditPanel view model', () => {
     });
   });
 
+  it('keeps locked shapes visible while disabling preview/apply actions', () => {
+    const data = makeData({
+      placement_shape_supported: true,
+      placement_shape: 'line',
+      placement_shape_options: [
+        {
+          value: 'point',
+          label: 'point',
+          locked: false,
+        },
+        {
+          value: 'line',
+          label: 'line',
+          locked: true,
+          lockReason: 'Building layout does not support line yet.',
+        },
+      ],
+      placement_supported: true,
+      placement_supports_direction: true,
+    });
+    const actions = getToolbarActions(data);
+    const shared = getSharedModeViewModel(data, 'editor');
+
+    expect(shared.shapeOptions.map((option) => option.value)).toEqual([
+      'point',
+      'line',
+    ]);
+    expect(shared.selectedShape).toBe('line');
+    expect(actions.previewAction?.disabled).toBe(true);
+    expect(actions.placementAction?.disabled).toBe(true);
+  });
+
   it('normalizes shared mode shell state and keeps blueprint-specific extras', () => {
     const data = makeData({
       current_generator_id: 'blueprint_stamp',

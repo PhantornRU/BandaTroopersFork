@@ -886,12 +886,25 @@
 		var/projected_percent = round(((state.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixture_count + 1, 1))
 		if(projected_percent > hard_percent)
 			return FALSE
-	var/obj_path = resolve_interior_obj_path(state.config, slot)
-	if(!obj_path)
+	var/datum/world_edit_building_fixture_provider/provider = resolve_fixture_provider(state.config, slot)
+	if(!istype(provider) || !provider.obj_path)
 		state.add_warning("Unable to resolve fixture object '[slot]' for program [state.archetype.id].")
 		return FALSE
+	if(!provider.provides_required_slot(slot))
+		var/provider_reason = provider.reason_if_not_functional || "provider is not functionally equivalent"
+		if(major || cluster_spec?.required)
+			state.add_error("Fixture provider for required slot '[slot]' is not functional: [provider_reason].")
+			state.semantic_credit_without_emitted_slots_count++
+		else
+			state.add_warning("Skipping non-functional fixture provider for slot '[slot]': [provider_reason].")
+		return FALSE
+	var/obj_path = provider.obj_path
 	var/list/object_placement = build_object_placement("interior", target_turf, obj_path, dir_to_use)
 	object_placement["slot"] = "[slot]"
+	object_placement["requested_slot"] = "[slot]"
+	object_placement["provided_slots"] = provider.provides_slots.Copy()
+	object_placement["fixture_provider_id"] = provider.id
+	object_placement["functional"] = provider.functional ? TRUE : FALSE
 	object_placement["category"] = "[category]"
 	object_placement["major"] = major ? TRUE : FALSE
 	if(length("[template_chunk_id]"))
