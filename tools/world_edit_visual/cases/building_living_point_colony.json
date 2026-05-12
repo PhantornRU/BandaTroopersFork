@@ -1,0 +1,40 @@
+{
+  "id": "building_living_point_colony",
+  "generator": "building_layout",
+  "seed": 1,
+  "canvas": {
+    "preset": "blank_96",
+    "width": 96,
+    "height": 96
+  },
+  "shape": {
+    "id": "point",
+    "anchors": [
+      { "x": 48, "y": 48 }
+    ]
+  },
+  "config": {
+    "program": "living",
+    "faction_preset": "colony",
+    "direction": "north",
+    "respect_blockers": false,
+    "replace_blocked_turfs": true
+  },
+  "expect": {
+    "status": "supported",
+    "known_unresolved": "E-WEV-002",
+    "post_emit_validation_error_count": 0,
+    "semantic_credit_without_emitted_slots_count": 0,
+    "reserved_walk_blocked_count": 0
+  },
+  "render": {
+    "semantic_png": true,
+    "after_dmm": false,
+    "debug_overlays": true
+  },
+  "profile": {
+    "enabled": true,
+    "include_stage_timings": true,
+    "include_loop_counters": true
+  }
+}

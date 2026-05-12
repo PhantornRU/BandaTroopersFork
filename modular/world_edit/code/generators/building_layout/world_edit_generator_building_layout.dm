@@ -746,10 +746,12 @@
 	return required_area
 
 /datum/world_edit_generator/building_layout/proc/get_building_request_estimated_usable_area(list/config, list/placement_context = null)
-	var/list/raw_turfs = islist(placement_context) ? placement_context["anchor_turfs"] : null
+	var/datum/world_edit_shape_contract/shape_contract = islist(placement_context) ? placement_context["shape_contract"] : null
+	var/list/raw_turfs = istype(shape_contract) ? shape_contract.copy_anchor_turfs() : (islist(placement_context) ? placement_context["anchor_turfs"] : null)
 	if(islist(raw_turfs) && length(raw_turfs))
-		var/list/boundary = GLOB.world_edit_placement_shapes.world_edit_collect_boundary_turfs(raw_turfs)
-		return max(length(raw_turfs) - length(boundary), 0)
+		var/list/footprint = istype(shape_contract) ? build_explicit_shape_footprint(shape_contract, raw_turfs, placement_context) : raw_turfs
+		var/list/boundary = GLOB.world_edit_placement_shapes.world_edit_collect_boundary_turfs(footprint)
+		return max(length(footprint) - length(boundary), 0)
 	var/half_width = max(round(text2num("[config?["half_width"]]") || 0), 0)
 	var/half_depth = max(round(text2num("[config?["half_depth"]]") || 0), 0)
 	var/outer_width = max(half_width * 2 + 1, 0)

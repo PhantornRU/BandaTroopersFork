@@ -27,6 +27,11 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	config.Load(params[OVERRIDE_CONFIG_DIRECTORY_PARAMETER])
 
+	// SS220 EDIT - START: world edit visual workbench early headless dev hook
+	if(world_edit_visual_should_start())
+		init_world_edit_visual_workbench()
+	// SS220 EDIT - END
+
 	SSdatabase.start_up()
 
 	SSentity_manager.start_up()
