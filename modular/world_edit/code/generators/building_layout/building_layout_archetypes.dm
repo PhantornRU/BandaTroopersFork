@@ -40,6 +40,24 @@
 		else
 			privacy_class = "semi_private"
 
+/datum/world_edit_building_zone_spec/proc/clone()
+	return new /datum/world_edit_building_zone_spec(
+		id,
+		label,
+		role,
+		min_area,
+		required,
+		must_touch_route,
+		privacy_sensitive,
+		anchor_tags,
+		window_allowed,
+		divider_mode,
+		privacy_class,
+		optional,
+		optional_weight,
+		optional_min_footprint
+	)
+
 /datum/world_edit_building_region_spec
 	var/id = ""
 	var/zone_id = ""
@@ -58,6 +76,9 @@
 	lateral_min = round(text2num("[_lateral_min]") || 0)
 	lateral_max = round(text2num("[_lateral_max]") || 0)
 	priority = round(text2num("[_priority]") || 0)
+
+/datum/world_edit_building_region_spec/proc/clone()
+	return new /datum/world_edit_building_region_spec(id, zone_id, front_min, front_max, lateral_min, lateral_max, priority)
 
 /datum/world_edit_building_solved_region
 	var/id = ""
@@ -156,6 +177,9 @@
 	min_height = max(round(text2num("[_min_height]") || 1), 1)
 	margin = max(round(text2num("[_margin]") || 1), 1)
 
+/datum/world_edit_building_nested_room_spec/proc/clone()
+	return new /datum/world_edit_building_nested_room_spec(outer_zone_id, inner_zone_id, min_width, min_height, margin)
+
 /datum/world_edit_building_adjacency_rule
 	var/zone_a = ""
 	var/zone_b = ""
@@ -166,6 +190,9 @@
 	zone_a = "[_zone_a]"
 	zone_b = "[_zone_b]"
 	required = _required ? TRUE : FALSE
+
+/datum/world_edit_building_adjacency_rule/proc/clone()
+	return new /datum/world_edit_building_adjacency_rule(zone_a, zone_b, required)
 
 /datum/world_edit_building_forbidden_rule
 	var/id = ""
@@ -181,6 +208,9 @@
 	zone_id = "[_zone_id]"
 	target_id = "[_target_id]"
 	severity = max(round(text2num("[_severity]") || 100), 0)
+
+/datum/world_edit_building_forbidden_rule/proc/clone()
+	return new /datum/world_edit_building_forbidden_rule(id, kind, zone_id, target_id, severity)
 
 /datum/world_edit_building_facade_rule
 	var/id = ""
@@ -202,6 +232,9 @@
 	window_weight = clamp(round(text2num("[_window_weight]") || 50), 0, 220)
 	window_allowed = _window_allowed ? TRUE : FALSE
 	macro_id = length("[_macro_id]") ? "[_macro_id]" : "facade_panel"
+
+/datum/world_edit_building_facade_rule/proc/clone()
+	return new /datum/world_edit_building_facade_rule(id, zone_id, role, privacy_class, facade_role, window_weight, window_allowed, macro_id)
 
 /datum/world_edit_building_cluster_spec
 	var/id = ""
@@ -247,6 +280,33 @@
 	semantic_credit = id
 	acceptance_counter = "[id]_count"
 
+/datum/world_edit_building_cluster_spec/proc/clone()
+	var/datum/world_edit_building_cluster_spec/copy = new /datum/world_edit_building_cluster_spec(
+		id,
+		phase,
+		pattern,
+		slot,
+		category,
+		anchors,
+		min_count,
+		max_count,
+		wall_required,
+		chair_count,
+		priority,
+		required,
+		optional_zone_id,
+		macro_id
+	)
+	copy.signature_id = signature_id
+	copy.signature_weight = signature_weight
+	copy.signature_required = signature_required
+	copy.count_cluster_id = count_cluster_id
+	copy.count_signature_id = count_signature_id
+	copy.semantic_credit = semantic_credit
+	copy.failure_severity = failure_severity
+	copy.acceptance_counter = acceptance_counter
+	return copy
+
 /datum/world_edit_building_semantic_plan
 	var/datum/world_edit_building_archetype/archetype
 	var/entry_zone_id = "entry_buffer"
@@ -266,6 +326,9 @@
 	var/list/optional_zones = list()
 	var/list/selected_optional_zones = list()
 	var/list/inactive_optional_zones = list()
+	var/list/compact_shed_zones = list()
+	var/list/compact_required_min_area = list()
+	var/compact_program = FALSE
 	var/list/privacy_classes = list()
 	var/list/door_policy = list()
 	var/list/window_policy = list()
@@ -288,31 +351,52 @@
 	hub_zone_id = archetype.hub_zone
 	primary_zone_id = archetype.primary_zone
 	var/footprint_area = round(text2num("[_request?.config?["validated_footprint_count"]]") || 0)
+	var/usable_area = round(text2num("[_request?.config?["validated_interior_count"]]") || footprint_area)
+	var/list/adaptive_required_min_area = build_adaptive_required_min_area(_request, usable_area)
+	if(islist(adaptive_required_min_area))
+		compact_program = TRUE
+		compact_required_min_area = adaptive_required_min_area.Copy()
 	var/list/active_zone_lookup = list()
 	var/list/inactive_zone_lookup = list()
-	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in archetype.zone_specs)
+	for(var/datum/world_edit_building_zone_spec/source_zone_spec as anything in archetype.zone_specs)
+		if(!istype(source_zone_spec))
+			continue
+		var/datum/world_edit_building_zone_spec/zone_spec = source_zone_spec.clone()
 		if(!istype(zone_spec))
 			continue
+		if(islist(adaptive_required_min_area) && source_zone_spec.required)
+			if(isnull(adaptive_required_min_area[source_zone_spec.id]))
+				compact_shed_zones += source_zone_spec.id
+				inactive_optional_zones += source_zone_spec.id
+				inactive_zone_lookup[source_zone_spec.id] = TRUE
+				continue
+			zone_spec.min_area = max(round(text2num("[adaptive_required_min_area[source_zone_spec.id]]") || 1), 1)
+			zone_spec.required = TRUE
+			zone_spec.optional = FALSE
 		if(zone_spec.optional && !should_select_optional_zone(zone_spec, _request, footprint_area))
 			inactive_optional_zones += zone_spec.id
 			inactive_zone_lookup[zone_spec.id] = TRUE
 			continue
 		zone_specs += zone_spec
 		active_zone_lookup[zone_spec.id] = TRUE
+		if(zone_spec.required)
+			mandatory_zones += zone_spec.id
+		else
+			optional_zones += zone_spec.id
 		if(zone_spec.optional)
 			selected_optional_zones += zone_spec.id
 	for(var/datum/world_edit_building_region_spec/region_spec as anything in archetype.region_specs)
 		if(istype(region_spec) && active_zone_lookup[region_spec.zone_id])
-			region_specs += region_spec
+			region_specs += region_spec.clone()
 	for(var/datum/world_edit_building_adjacency_rule/rule as anything in archetype.adjacency_rules)
 		if(istype(rule) && active_zone_lookup[rule.zone_a] && active_zone_lookup[rule.zone_b])
-			adjacency_rules += rule
+			adjacency_rules += rule.clone()
 	for(var/datum/world_edit_building_forbidden_rule/forbidden_rule as anything in archetype.forbidden_rules)
 		if(istype(forbidden_rule) && (!length(forbidden_rule.zone_id) || active_zone_lookup[forbidden_rule.zone_id]))
-			forbidden_rules += forbidden_rule
+			forbidden_rules += forbidden_rule.clone()
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in archetype.cluster_specs)
 		if(cluster_spec_is_active(cluster_spec, inactive_zone_lookup, active_zone_lookup))
-			cluster_specs += cluster_spec
+			cluster_specs += cluster_spec.clone()
 	category_minimums = archetype.category_minimums.Copy()
 	var/list/active_category_lookup = list()
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
@@ -323,27 +407,94 @@
 			object_budgets["[category]"] = archetype.object_budgets[category]
 	signature_minimums = archetype.signature_minimums.Copy()
 	signature_weights = archetype.signature_weights.Copy()
-	mandatory_zones = archetype.mandatory_zones.Copy()
-	optional_zones = archetype.optional_zones.Copy()
 	privacy_classes = archetype.privacy_classes.Copy()
 	door_policy = archetype.door_policy.Copy()
 	window_policy = archetype.window_policy.Copy()
-	facade_rules = archetype.facade_rules.Copy()
+	for(var/datum/world_edit_building_facade_rule/facade_rule as anything in archetype.facade_rules)
+		if(istype(facade_rule) && (!length(facade_rule.zone_id) || active_zone_lookup[facade_rule.zone_id]))
+			facade_rules += facade_rule.clone()
 	style_budget = archetype.style_budget.Copy()
 	repeat_penalties = archetype.repeat_penalties.Copy()
 	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in archetype.nested_room_specs)
 		if(!istype(nested_spec))
 			continue
 		if(active_zone_lookup[nested_spec.outer_zone_id] && active_zone_lookup[nested_spec.inner_zone_id])
-			nested_room_specs += nested_spec
+			nested_room_specs += nested_spec.clone()
 	nested_outer_zone = active_zone_lookup["[archetype.nested_outer_zone]"] ? archetype.nested_outer_zone : null
 	nested_inner_zone = active_zone_lookup["[archetype.nested_inner_zone]"] ? archetype.nested_inner_zone : null
 	nested_min_width = archetype.nested_min_width
 	nested_min_height = archetype.nested_min_height
 	min_signature_score = archetype.min_signature_score
+	if(compact_program)
+		apply_compact_object_budget(_request, usable_area)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in zone_specs)
 		if(istype(zone_spec))
 			zone_specs_by_id[zone_spec.id] = zone_spec
+
+/datum/world_edit_building_semantic_plan/proc/build_adaptive_required_min_area(datum/world_edit_building_request/request, usable_area)
+	if(!istype(request) || !GLOB.world_edit_helpers.parse_bool(request.config["program_shedding"]))
+		return null
+	usable_area = max(round(text2num("[usable_area]") || 0), 1)
+	var/list/result = list()
+	var/list/added = list()
+	var/degrade_level = "[request.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE]"
+	var/budget = max(round(usable_area * 0.75), 1)
+	var/list/priority_ids = degrade_level == WORLD_EDIT_BUILDING_DEGRADE_MICRO ? list(primary_zone_id, hub_zone_id, entry_zone_id) : list(entry_zone_id, primary_zone_id, hub_zone_id)
+	for(var/zone_id as anything in priority_ids)
+		if(!length("[zone_id]") || added["[zone_id]"])
+			continue
+		var/list/archetype_zone_lookup = archetype?.zone_specs_by_id
+		var/datum/world_edit_building_zone_spec/zone_spec = islist(archetype_zone_lookup) ? archetype_zone_lookup["[zone_id]"] : null
+		if(!istype(zone_spec))
+			continue
+		var/min_area = min(max(zone_spec.min_area, 1), max(budget, 1))
+		result[zone_spec.id] = min_area
+		added[zone_spec.id] = TRUE
+		budget -= min_area
+		if(degrade_level == WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+			return result
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in archetype.zone_specs)
+		if(!istype(zone_spec) || !zone_spec.required || added[zone_spec.id])
+			continue
+		var/min_required = zone_spec.divider_mode == "room" ? 2 : 1
+		if(budget < min_required)
+			continue
+		var/min_area = min(max(zone_spec.min_area, min_required), budget)
+		result[zone_spec.id] = min_area
+		added[zone_spec.id] = TRUE
+		budget -= min_area
+	return result
+
+/datum/world_edit_building_semantic_plan/proc/apply_compact_object_budget(datum/world_edit_building_request/request, usable_area)
+	usable_area = max(round(text2num("[usable_area]") || 0), 1)
+	var/detail_budget = clamp(round(text2num("[request?.config?["detail_budget"]]") || 0), 0, 100)
+	var/max_objects = max(round((usable_area * max(detail_budget, 20)) / 180), 1)
+	var/remaining = max_objects
+	for(var/category as anything in object_budgets)
+		if(remaining <= 0)
+			object_budgets[category] = 0
+			continue
+		var/current_budget = max(round(text2num("[object_budgets[category]]") || 0), 0)
+		var/new_budget = min(current_budget, remaining)
+		object_budgets[category] = new_budget
+		remaining -= new_budget
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
+		if(!istype(cluster_spec))
+			continue
+		var/category_budget = max(round(text2num("[object_budgets[cluster_spec.category]]") || 0), 0)
+		cluster_spec.required = FALSE
+		cluster_spec.signature_required = FALSE
+		cluster_spec.failure_severity = "optional"
+		if(category_budget <= 0)
+			cluster_spec.min_count = 0
+			cluster_spec.max_count = 0
+		else
+			cluster_spec.min_count = min(cluster_spec.min_count, category_budget)
+			cluster_spec.max_count = min(max(cluster_spec.max_count, cluster_spec.min_count), category_budget)
+	category_minimums.Cut()
+	signature_minimums.Cut()
+	signature_weights.Cut()
+	min_signature_score = 0
 
 /datum/world_edit_building_semantic_plan/proc/should_select_optional_zone(datum/world_edit_building_zone_spec/zone_spec, datum/world_edit_building_request/request = null, footprint_area = 0)
 	if(!istype(zone_spec))
@@ -401,6 +552,7 @@
 	var/entry_zone = "entry_buffer"
 	var/hub_zone = "main"
 	var/list/zone_specs = list()
+	var/list/zone_specs_by_id = list()
 	var/list/region_specs = list()
 	var/list/adjacency_rules = list()
 	var/list/forbidden_rules = list()
@@ -430,6 +582,7 @@
 /datum/world_edit_building_archetype/New()
 	. = ..()
 	zone_specs = list()
+	zone_specs_by_id = list()
 	region_specs = list()
 	adjacency_rules = list()
 	forbidden_rules = list()
@@ -460,6 +613,7 @@
 /datum/world_edit_building_archetype/proc/add_zone(id, label, role, min_area = 1, required = TRUE, must_touch_route = TRUE, privacy_sensitive = FALSE, list/anchors = null, window_allowed = TRUE, divider_mode = "none", privacy_class = null, optional_weight = 60, optional_min_footprint = 0)
 	var/datum/world_edit_building_zone_spec/zone_spec = new(id, label, role, min_area, required, must_touch_route, privacy_sensitive, anchors, window_allowed, divider_mode, privacy_class, !required, optional_weight, optional_min_footprint)
 	zone_specs += zone_spec
+	zone_specs_by_id[zone_spec.id] = zone_spec
 	if(zone_spec.required)
 		mandatory_zones += zone_spec.id
 	else
@@ -799,12 +953,14 @@
 	category_minimums = list("medical_bed" = 2, "medical_storage" = 1, "table" = 1)
 
 /datum/world_edit_generator/building_layout/proc/get_building_archetype_catalog()
-	. = list()
+	if(length(GLOB.world_edit_building_archetype_catalog))
+		return GLOB.world_edit_building_archetype_catalog
 	for(var/archetype_type in subtypesof(/datum/world_edit_building_archetype))
 		var/datum/world_edit_building_archetype/archetype = new archetype_type()
 		if(!length(archetype.id))
 			continue
-		.[archetype.id] = archetype
+		GLOB.world_edit_building_archetype_catalog[archetype.id] = archetype
+	return GLOB.world_edit_building_archetype_catalog
 
 /datum/world_edit_generator/building_layout/proc/get_building_archetype_options()
 	var/list/options = list()

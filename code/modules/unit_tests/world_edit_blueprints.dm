@@ -2,10 +2,10 @@
 	return "\"aaa\" = ([model_text])\n\n(1,1,[z_level]) = {\"\n[grid_text]\n\"}"
 
 /datum/unit_test/world_edit_dmm_blueprints/proc/build_noop_line(width)
-	var/line = ""
+	var/list/model_keys = list()
 	for(var/i in 1 to width)
-		line = "[line]aaa"
-	return line
+		model_keys += "aaa"
+	return model_keys.Join("")
 
 /datum/unit_test/world_edit_dmm_blueprints/proc/parse_dmm(dmm_text, blueprint_id = "unit_test_blueprint")
 	return GLOB.world_edit_blueprints.world_edit_parse_blueprint_dmm_text(dmm_text, blueprint_id, blueprint_id, "unit_test")

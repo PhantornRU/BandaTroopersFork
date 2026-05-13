@@ -30,8 +30,16 @@
 #define WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED "UNSUPPORTED_WITH_CLEAR_ERROR"
 #define WORLD_EDIT_BUILDING_SUPPORT_DISABLED "DISABLED"
 #define WORLD_EDIT_BUILDING_SUPPORT_FAILED "FAILED"
+#define WORLD_EDIT_BUILDING_SIZE_POLICY_AUTO "auto"
+#define WORLD_EDIT_BUILDING_SIZE_POLICY_EXPLICIT "explicit"
+#define WORLD_EDIT_BUILDING_SIZE_POLICY_ADAPTIVE "adaptive"
+#define WORLD_EDIT_BUILDING_DEGRADE_NONE "none"
+#define WORLD_EDIT_BUILDING_DEGRADE_COMPACT "compact"
+#define WORLD_EDIT_BUILDING_DEGRADE_MICRO "micro"
 
 GLOBAL_LIST_EMPTY(world_edit_building_preset_capability_cache)
+GLOBAL_LIST_EMPTY(world_edit_building_faction_catalog)
+GLOBAL_LIST_EMPTY(world_edit_building_archetype_catalog)
 
 /datum/world_edit_building_prng
 	var/state = 1

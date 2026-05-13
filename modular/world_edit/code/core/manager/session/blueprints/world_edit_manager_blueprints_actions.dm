@@ -165,8 +165,8 @@
 	if(isnull(raw_name))
 		return FALSE
 
-	var/blueprint_name = sanitize_filename(trim("[raw_name]"))
-	if(!length(blueprint_name))
+	var/blueprint_name = trim("[raw_name]")
+	if(!length(sanitize_filename(blueprint_name)))
 		blueprint_name = default_name
 
 	var/list/export_result = GLOB.world_edit_blueprints.world_edit_export_blueprint_from_plan(current_definition?.id, current_plan, anchor_turf, blueprint_name, holder?.ckey)

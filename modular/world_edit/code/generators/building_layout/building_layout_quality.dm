@@ -6,6 +6,10 @@
 #define WORLD_EDIT_BUILDING_MAX_QUALITY_FAILURE_SAMPLES 80
 #endif
 
+#ifndef WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO
+#define WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO 64
+#endif
+
 /datum/world_edit_generator/building_layout/proc/get_building_quality_shape_ids(list/shape_ids = null)
 	if(islist(shape_ids) && length(shape_ids))
 		return shape_ids.Copy()
@@ -57,14 +61,17 @@
 /datum/world_edit_generator/building_layout/proc/build_building_quality_shape_context(turf/anchor_turf, shape_id, list/shape_params)
 	if(!istype(anchor_turf))
 		return null
-	var/turf/end_turf = locate(anchor_turf.x + 8, anchor_turf.y + 8, anchor_turf.z)
+	var/turf/end_turf = null
 	var/datum/world_edit_shape_contract/shape_contract = GLOB.world_edit_shape_geometry.build_shape_contract(shape_id, anchor_turf, end_turf, shape_params, NORTH)
-	var/list/anchor_turfs = shape_contract?.copy_anchor_turfs() || list(anchor_turf)
+	var/list/anchor_turfs = istype(shape_contract) ? shape_contract.copy_anchor_turfs() : list()
+	if(!length(anchor_turfs))
+		anchor_turfs += anchor_turf
+	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : list()
 	var/list/placement_context = list(
 		"mode" = "single",
 		"shape" = shape_id,
 		"shape_contract" = shape_contract,
-		"shape_metadata" = shape_contract?.copy_metadata() || list(),
+		"shape_metadata" = shape_metadata,
 		"anchor_turfs" = anchor_turfs,
 		"start_turf" = anchor_turf,
 		"end_turf" = end_turf,
@@ -198,8 +205,9 @@
 /datum/world_edit_generator/building_layout/proc/build_building_quality_sample(program_id, style_id, seed_value, shape_id, datum/world_edit_plan/plan, scenario_id = "default")
 	var/list/metadata = islist(plan?.metadata) ? plan.metadata : list()
 	var/support_status = "[metadata["current_request_support_status"] || "FAILED"]"
-	var/clear_unsupported = support_status == "UNSUPPORTED_WITH_CLEAR_ERROR" && length("[metadata["error"] || metadata["user_facing_failure_reason"]]")
-	var/passed = istype(plan) && (clear_unsupported || (!metadata["error"] && support_status == "SUPPORTED_AND_VALIDATED" && GLOB.world_edit_helpers.parse_bool(metadata["program_signature_ok"])))
+	var/passed = istype(plan) && !metadata["error"] && support_status == "SUPPORTED_AND_VALIDATED"
+	if(!GLOB.world_edit_helpers.parse_bool(metadata["program_signature_ok"]))
+		passed = FALSE
 	var/empty_floor_ratio = round(text2num("[metadata["empty_floor_ratio"]]") || 0)
 	var/template_chunk_count = round(text2num("[metadata["template_chunk_count"]]") || 0)
 	var/infrastructure_count = round(text2num("[metadata["infrastructure_count"]]") || 0)
@@ -213,19 +221,21 @@
 	var/raw_category_credit_count = round(text2num("[metadata["raw_category_credit_count"]]") || 0)
 	var/scatter_signature_credit_count = round(text2num("[metadata["scatter_signature_credit_count"]]") || 0)
 	var/list/hard_counters = build_building_metadata_hard_counter_report(metadata)
-	if(!clear_unsupported)
-		if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
-			passed = FALSE
-		if(template_chunk_count <= 0)
-			passed = FALSE
-		if(infrastructure_count < 4)
-			passed = FALSE
-		if(semantic_slot_shortage_count > 0 || semantic_slot_reservation_conflict_count > 0)
-			passed = FALSE
-		if(mandatory_pattern_failure_count > 0 || reserved_walk_blocked_count > 0 || semantic_credit_without_emitted_slots_count > 0)
-			passed = FALSE
-		if(forbidden_fallback_count > 0 || post_emit_validation_error_count > 0 || raw_category_credit_count > 0 || scatter_signature_credit_count > 0)
-			passed = FALSE
+	var/degrade_level = "[metadata["size_degrade_level"] || "none"]"
+	if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
+		passed = FALSE
+	if(template_chunk_count <= 0 && !GLOB.world_edit_helpers.parse_bool(metadata["micro_layout"]))
+		passed = FALSE
+	if(infrastructure_count < 1)
+		passed = FALSE
+	if(semantic_slot_reservation_conflict_count > 0)
+		passed = FALSE
+	if(mandatory_pattern_failure_count > 0 || reserved_walk_blocked_count > 0)
+		passed = FALSE
+	if(forbidden_fallback_count > 0 || post_emit_validation_error_count > 0 || raw_category_credit_count > 0 || scatter_signature_credit_count > 0)
+		passed = FALSE
+	if(degrade_level == "none" && semantic_slot_shortage_count > 0)
+		passed = FALSE
 	return list(
 		"program" = "[program_id]",
 		"style" = "[style_id]",

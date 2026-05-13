@@ -54,6 +54,8 @@
 		return state
 
 	state.request.config["validated_footprint_count"] = length(state.footprint)
+	state.request.config["validated_interior_count"] = length(state.interior)
+	state.request.config["validated_boundary_count"] = length(state.boundary)
 	state.footprint_hash = build_building_turf_list_hash(state.footprint)
 	state.add_stage_report("footprint", "ok", null, list(
 		"footprint_count" = length(state.footprint),
@@ -149,16 +151,76 @@
 		if(istype(back_door_turf))
 			state.append_unique_turf(state.door_turfs, back_door_turf)
 			state.door_dirs[back_door_turf] = get_outward_dir(back_door_turf, state.footprint_lookup, center_x, center_y, turn(state.placement_dir, 180))
-			state.door_reports += list(list(
-				"turf" = back_door_turf,
-				"dir" = state.door_dirs[back_door_turf],
-				"kind" = "service_exit",
-				"requested_direction" = turn(state.placement_dir, 180),
-			))
+		state.door_reports += list(list(
+			"turf" = back_door_turf,
+			"dir" = state.door_dirs[back_door_turf],
+			"kind" = "service_exit",
+			"requested_direction" = turn(state.placement_dir, 180),
+		))
+
+/datum/world_edit_generator/building_layout/proc/build_building_micro_layout(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	state.clear_room_layout()
+	prepare_building_local_metrics(state)
+	var/primary_zone_id = state.semantic_plan.primary_zone_id
+	if(!length("[primary_zone_id]"))
+		primary_zone_id = state.semantic_plan.hub_zone_id
+	if(!length("[primary_zone_id]"))
+		primary_zone_id = state.semantic_plan.entry_zone_id
+	if(!length("[primary_zone_id]"))
+		primary_zone_id = "main"
+	var/list/micro_turfs = list()
+	for(var/turf/interior_turf as anything in state.interior)
+		if(istype(interior_turf))
+			micro_turfs += interior_turf
+	if(!length(micro_turfs) && istype(state.center_turf))
+		micro_turfs += state.center_turf
+	if(!length(micro_turfs))
+		state.add_error("Micro building layout has no usable tile.")
+		return FALSE
+	var/datum/world_edit_building_room/room = new("room_micro_main", primary_zone_id, "hub")
+	for(var/turf/micro_turf as anything in micro_turfs)
+		state.add_zone(micro_turf, primary_zone_id)
+		state.add_corridor_turf(micro_turf)
+		room.add_turf(micro_turf)
+	room.focus_turf = micro_turfs[1]
+	state.add_solved_room(room)
+	state.set_zone_focus(primary_zone_id, room.focus_turf)
+	state.semantic_hub_turf = room.focus_turf
+	state.center_turf = room.focus_turf
+	state.config["micro_layout"] = TRUE
+	state.config["room_first_layout"] = TRUE
+	state.config["room_count"] = 1
+	state.config["corridor_turf_count"] = length(state.corridor_turfs)
+	state.room_reports.Cut()
+	state.room_reports += list(list(
+		"id" = room.id,
+		"zone_id" = room.zone_id,
+		"role" = room.role,
+		"area" = length(room.turfs),
+		"useful_area" = length(room.turfs),
+		"tiny" = TRUE,
+	))
+	state.zone_reports.Cut()
+	state.zone_reports += list(list(
+		"id" = primary_zone_id,
+		"area" = length(room.turfs),
+		"focus" = room.focus_turf,
+	))
+	state.corridor_report = list(
+		"reserved_walk_count" = length(state.primary_route_turfs),
+		"corridor_turf_count" = length(state.corridor_turfs),
+		"front_door_turf" = state.front_door_turf,
+		"micro_layout" = TRUE,
+	)
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/build_building_room_first_layout(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !istype(state.semantic_plan) || length(state.interior) < 3)
+	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
+	if(length(state.interior) < 3 || "[state.config["size_degrade_level"]]" == WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+		return build_building_micro_layout(state)
 	state.clear_room_layout()
 	prepare_building_local_metrics(state)
 	var/list/corridor_path = build_room_first_corridor_path(state)
@@ -506,20 +568,23 @@
 	var/split_index = 1
 	while(length(candidates) < target_count)
 		var/list/largest = null
+		var/largest_index = null
 		var/largest_area = 0
-		for(var/list/candidate as anything in candidates)
+		for(var/index in 1 to length(candidates))
+			var/list/candidate = candidates[index]
 			if(!islist(candidate))
 				continue
 			var/area = round(text2num("[candidate["area"]]") || 0)
 			if(area > largest_area)
 				largest = candidate
+				largest_index = index
 				largest_area = area
-		if(!islist(largest) || largest_area < 6)
+		if(!islist(largest) || isnull(largest_index) || largest_area < 6)
 			break
 		var/list/split = split_room_first_candidate(state, largest, split_index++)
 		if(!islist(split) || length(split) < 2)
 			break
-		candidates -= largest
+		candidates.Cut(largest_index, largest_index + 1)
 		for(var/list/split_candidate as anything in split)
 			candidates += list(split_candidate)
 

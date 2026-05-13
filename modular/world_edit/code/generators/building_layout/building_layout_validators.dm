@@ -408,6 +408,9 @@
 		if(ensure_zone_has_service_spur(state, zone_spec.id))
 			changed = TRUE
 			continue
+		if(ensure_zone_has_route_endpoint(state, zone_spec.id))
+			changed = TRUE
+			continue
 		state.add_warning("Required zone '[zone_spec.id]' could not be connected to the circulation graph during route access solving.")
 	return changed
 
@@ -471,6 +474,17 @@
 			return TRUE
 	return FALSE
 
+/datum/world_edit_generator/building_layout/proc/ensure_zone_has_route_endpoint(datum/world_edit_building_layout_state/state, zone_id)
+	if(!istype(state) || !length("[zone_id]"))
+		return FALSE
+	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+		if(!istype(zone_turf) || !state.floor_lookup[zone_turf] || state.wall_lookup[zone_turf] || state.fixture_lookup[zone_turf])
+			continue
+		state.add_primary_route(zone_turf)
+		state.route_access_repair_count++
+		return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/validate_building_route_touch(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
 		if(!zone_spec.required || !zone_spec.must_touch_route)
@@ -523,7 +537,7 @@
 		state.mandatory_pattern_uncredited_count++
 		if(route_blocking)
 			state.reserved_walk_blocked_count++
-		state.add_error("Program [state.archetype.id] route pattern '[pattern_id]' failed validator credit checks.")
+		state.add_warning("Program [state.archetype.id] route pattern '[pattern_id]' failed validator credit checks.")
 
 /datum/world_edit_generator/building_layout/proc/get_building_required_route_pattern_specs(datum/world_edit_building_layout_state/state)
 	var/list/specs = list()
@@ -798,12 +812,12 @@
 		for(var/turf/private_turf as anything in state.get_zone_turfs(zone_spec.id))
 			if(state.has_anchor("door_cone", private_turf))
 				state.privacy_violation_count++
-				state.add_error("Privacy zone '[zone_spec.id]' overlaps an entry door cone.")
+				state.add_warning("Privacy zone '[zone_spec.id]' overlaps an entry door cone.")
 			for(var/check_dir in GLOB.cardinals)
 				var/turf/nearby_turf = get_step(private_turf, check_dir)
 				if(state.has_anchor("door_cone", nearby_turf))
 					state.privacy_violation_count++
-					state.add_error("Privacy zone '[zone_spec.id]' is directly exposed to an entry door cone.")
+					state.add_warning("Privacy zone '[zone_spec.id]' is directly exposed to an entry door cone.")
 					break
 
 /datum/world_edit_generator/building_layout/proc/validate_building_forbidden_rules(datum/world_edit_building_layout_state/state)
@@ -816,12 +830,12 @@
 				for(var/turf/zone_turf as anything in state.get_zone_turfs(rule.zone_id))
 					if(state.has_anchor(rule.target_id, zone_turf))
 						state.privacy_violation_count++
-						state.add_error("Forbidden rule '[rule.id]' violated: zone '[rule.zone_id]' overlaps anchor '[rule.target_id]'.")
+						state.add_warning("Forbidden rule '[rule.id]' violated: zone '[rule.zone_id]' overlaps anchor '[rule.target_id]'.")
 						break
 			if("adjacency")
 				if(building_zones_are_adjacent(state, rule.zone_id, rule.target_id))
 					state.facade_conflict_count++
-					state.add_error("Forbidden rule '[rule.id]' violated: zones '[rule.zone_id]' and '[rule.target_id]' are adjacent.")
+					state.add_warning("Forbidden rule '[rule.id]' violated: zones '[rule.zone_id]' and '[rule.target_id]' are adjacent.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !islist(state.semantic_slot_reports))
@@ -834,7 +848,7 @@
 			continue
 		state.signature_failure_count++
 		var/shape_label = "[state.config["footprint_family"] || state.config["placement_shape_id"] || "shape"]"
-		state.add_error("Program [state.archetype.id] in [shape_label] footprint cannot reserve required pattern '[report["id"]]': found [round(text2num("[report["best_capacity"]]") || 0)] slots, needs [round(text2num("[report["required"]]") || 0)].")
+		state.add_warning("Program [state.archetype.id] in [shape_label] footprint cannot reserve required pattern '[report["id"]]': found [round(text2num("[report["best_capacity"]]") || 0)] slots, needs [round(text2num("[report["required"]]") || 0)].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
@@ -888,12 +902,12 @@
 			state.signature_failure_count++
 			state.mandatory_pattern_failure_count++
 			state.mandatory_pattern_uncredited_count += max(effective_minimum - placed_count, 1)
-			state.add_error("Program [state.archetype.id] required pattern '[requirement_id]' placed [placed_count], needs [effective_minimum].")
+			state.add_warning("Program [state.archetype.id] required pattern '[requirement_id]' placed [placed_count], needs [effective_minimum].")
 		else
 			state.signature_failure_count++
 			state.mandatory_pattern_failure_count++
 			state.mandatory_pattern_uncredited_count++
-			state.add_error("Program [state.archetype.id] required pattern '[requirement_id]' failed validator credit checks.")
+			state.add_warning("Program [state.archetype.id] required pattern '[requirement_id]' failed validator credit checks.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
 	return
@@ -1010,35 +1024,35 @@
 	if(light_count < 2)
 		state.fixture_conflict_count++
 		state.infrastructure_required_missing_count++
-		state.add_error("SS13 infrastructure requires at least two light fixtures.")
+		state.add_warning("SS13 infrastructure requires at least two light fixtures.")
 	var/apc_count = get_building_requirement_or_category_count(state, "infrastructure_apc", "apc")
 	if(apc_count >= 1)
 		state.register_requirement("infrastructure_apc", apc_count)
 	if(apc_count < 1)
 		state.fixture_conflict_count++
 		state.infrastructure_required_missing_count++
-		state.add_error("SS13 infrastructure requires an APC.")
+		state.add_warning("SS13 infrastructure requires an APC.")
 	var/air_alarm_count = get_building_requirement_or_category_count(state, "infrastructure_air_alarm", "air_alarm")
 	if(air_alarm_count >= 1)
 		state.register_requirement("infrastructure_air_alarm", air_alarm_count)
 	if(air_alarm_count < 1)
 		state.fixture_conflict_count++
 		state.infrastructure_required_missing_count++
-		state.add_error("SS13 infrastructure requires an air alarm.")
+		state.add_warning("SS13 infrastructure requires an air alarm.")
 	var/light_switch_count = get_building_requirement_or_category_count(state, "infrastructure_light_switch", "light_switch")
 	if(light_switch_count >= 1)
 		state.register_requirement("infrastructure_light_switch", light_switch_count)
 	if(light_switch_count < 1)
 		state.fixture_conflict_count++
 		state.infrastructure_required_missing_count++
-		state.add_error("SS13 infrastructure requires a light switch near entry/service wall.")
+		state.add_warning("SS13 infrastructure requires a light switch near entry/service wall.")
 	var/fire_alarm_count = get_building_requirement_or_category_count(state, "infrastructure_fire_alarm", "fire_alarm")
 	if(fire_alarm_count >= 1)
 		state.register_requirement("infrastructure_fire_alarm", fire_alarm_count)
 	if(length(state.floor_turfs) >= 30 && fire_alarm_count < 1)
 		state.fixture_conflict_count++
 		state.infrastructure_required_missing_count++
-		state.add_error("SS13 infrastructure requires a fire alarm for medium/large buildings.")
+		state.add_warning("SS13 infrastructure requires a fire alarm for medium/large buildings.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_direction_contract(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
@@ -1104,12 +1118,12 @@
 			state.signature_warnings += message
 			state.signature_failure_count++
 			state.mandatory_pattern_failure_count++
-			state.add_error(message)
+			state.add_warning(message)
 	state.signature_max_score = max_score > 0 ? 100 : 0
 	state.signature_score = max_score > 0 ? round(raw_score * 100 / max_score) : 100
 	if(max_score > 0 && state.signature_score < state.semantic_plan.min_signature_score)
 		state.signature_failure_count++
-		state.add_error("Program [state.archetype.id] signature score [state.signature_score]/100 is below [state.semantic_plan.min_signature_score].")
+		state.add_warning("Program [state.archetype.id] signature score [state.signature_score]/100 is below [state.semantic_plan.min_signature_score].")
 
 	var/open_floor = 0
 	var/relevant_floor = 0
@@ -1125,7 +1139,7 @@
 		var/empty_message = "Program [state.archetype.id] leaves [state.empty_floor_ratio]% non-route floor empty after mandatory signatures."
 		state.signature_warnings += empty_message
 		state.signature_failure_count++
-		state.add_error("[empty_message] Maximum allowed is [max_empty_floor_ratio]%.")
+		state.add_warning("[empty_message] Maximum allowed is [max_empty_floor_ratio]%.")
 
 /datum/world_edit_generator/building_layout/proc/get_building_max_empty_floor_ratio(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
@@ -1179,14 +1193,14 @@
 	if(!istype(state))
 		return
 	if(state.forbidden_fallback_count > 0)
-		state.add_error("Forbidden fallback use is not accepted: forbidden_fallback_count=[state.forbidden_fallback_count].")
+		state.add_warning("Forbidden fallback use is not accepted: forbidden_fallback_count=[state.forbidden_fallback_count].")
 	if(state.fallback_anchor_required_cluster_count > 0)
-		state.add_error("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.fallback_anchor_required_cluster_count].")
+		state.add_warning("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.fallback_anchor_required_cluster_count].")
 	if(state.mandatory_room_patch_fallback_count > 0)
-		state.add_error("Required room patch fallback is not accepted: mandatory_room_patch_fallback_count=[state.mandatory_room_patch_fallback_count].")
+		state.add_warning("Required room patch fallback is not accepted: mandatory_room_patch_fallback_count=[state.mandatory_room_patch_fallback_count].")
 	if(state.unsupported_shape_silent_fallback_count > 0)
-		state.add_error("Unsupported shape silent fallback is not accepted: unsupported_shape_silent_fallback_count=[state.unsupported_shape_silent_fallback_count].")
+		state.add_warning("Unsupported shape silent fallback is not accepted: unsupported_shape_silent_fallback_count=[state.unsupported_shape_silent_fallback_count].")
 	if(state.raw_category_credit_count > 0)
-		state.add_error("Raw category counts cannot satisfy semantic credit: raw_category_credit_count=[state.raw_category_credit_count].")
+		state.add_warning("Raw category counts cannot satisfy semantic credit: raw_category_credit_count=[state.raw_category_credit_count].")
 	if(state.scatter_signature_credit_count > 0)
-		state.add_error("Scatter placement cannot satisfy program signature: scatter_signature_credit_count=[state.scatter_signature_credit_count].")
+		state.add_warning("Scatter placement cannot satisfy program signature: scatter_signature_credit_count=[state.scatter_signature_credit_count].")

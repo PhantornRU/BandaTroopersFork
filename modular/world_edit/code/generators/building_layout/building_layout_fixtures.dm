@@ -530,7 +530,9 @@
 /datum/world_edit_generator/building_layout/proc/get_effective_cluster_min_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec))
 		return 1
-	var/minimum = max(round(text2num("[cluster_spec.min_count]") || 0), 1)
+	var/minimum = max(round(text2num("[cluster_spec.min_count]") || 0), 0)
+	if(minimum <= 0)
+		return 0
 	if(!istype(state))
 		return minimum
 	var/anchor_area = get_cluster_anchor_area(state, cluster_spec)

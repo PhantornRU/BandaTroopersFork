@@ -1,5 +1,6 @@
 /datum/world_edit_generator/building_layout
 	requires_preview_before_apply = TRUE
+	var/current_plan_request_key = null
 
 /datum/world_edit_generator/building_layout/get_supported_placement_modes()
 	return list("single", "repeat")
@@ -40,7 +41,10 @@
 	return result
 
 /datum/world_edit_generator/building_layout/proc/get_building_faction_catalog()
-	return list(
+	if(length(GLOB.world_edit_building_faction_catalog))
+		return GLOB.world_edit_building_faction_catalog
+
+	GLOB.world_edit_building_faction_catalog = list(
 		"colony" = list(
 			"label" = "Colony",
 			"wall_path" = "/turf/closed/wall/kutjevo/colony",
@@ -262,6 +266,7 @@
 			),
 		),
 	)
+	return GLOB.world_edit_building_faction_catalog
 
 /datum/world_edit_generator/building_layout/proc/has_building_param(list/params, param_id)
 	return islist(params) && ("[param_id]" in params)
@@ -418,14 +423,17 @@
 		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
 
-	var/explicit_half_width = has_building_param(params, "half_width")
-	var/explicit_half_depth = has_building_param(params, "half_depth")
-	var/explicit_size = explicit_half_width || explicit_half_depth
-	config["half_width"] = num_param(params, "half_width", 4, 2, 8)
-	config["half_depth"] = num_param(params, "half_depth", 4, 2, 8)
-	config["auto_size"] = explicit_size ? FALSE : TRUE
+	var/auto_size = isnull(islist(params) ? params["auto_size"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["auto_size"])
+	config["half_width"] = num_param(params, "half_width", 4, 1, 8)
+	config["half_depth"] = num_param(params, "half_depth", 4, 1, 8)
+	config["requested_half_width"] = config["half_width"]
+	config["requested_half_depth"] = config["half_depth"]
+	config["auto_size"] = auto_size ? TRUE : FALSE
+	config["size_policy"] = config["auto_size"] ? WORLD_EDIT_BUILDING_SIZE_POLICY_AUTO : WORLD_EDIT_BUILDING_SIZE_POLICY_EXPLICIT
 	if(config["auto_size"])
 		apply_building_minimum_point_size(config, archetype)
+	config["final_half_width"] = config["half_width"]
+	config["final_half_depth"] = config["half_depth"]
 	config["window_density"] = num_param(params, "window_density", archetype.window_bias, 0, 100)
 	config["detail_budget"] = num_param(params, "detail_budget", has_building_param(params, "interior_density") ? num_param(params, "interior_density", archetype.detail_bias, 0, 100) : archetype.detail_bias, 0, 100)
 	config["building_seed"] = num_param(params, "building_seed", WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
@@ -487,12 +495,19 @@
 			"step" = 1,
 		),
 		list(
+			"id" = "auto_size",
+			"label" = "Auto fit size",
+			"kind" = "boolean",
+			"group" = "Size",
+			"value" = config["auto_size"],
+		),
+		list(
 			"id" = "half_width",
 			"label" = "Half width",
 			"kind" = "number",
 			"group" = "Size",
 			"value" = config["half_width"],
-			"min" = 2,
+			"min" = 1,
 			"max" = 8,
 			"step" = 1,
 		),
@@ -502,7 +517,7 @@
 			"kind" = "number",
 			"group" = "Size",
 			"value" = config["half_depth"],
-			"min" = 2,
+			"min" = 1,
 			"max" = 8,
 			"step" = 1,
 		),
@@ -565,10 +580,14 @@
 			new_params[param_id] = resolve_building_archetype_option(value, "living")
 		if("faction_preset")
 			new_params[param_id] = resolve_building_option(value, get_building_faction_options(), "colony")
+		if("auto_size")
+			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
 		if("half_width")
-			new_params[param_id] = ui_num_param(value, 4, 2, 8)
+			new_params[param_id] = ui_num_param(value, 4, 1, 8)
+			new_params["auto_size"] = FALSE
 		if("half_depth")
-			new_params[param_id] = ui_num_param(value, 4, 2, 8)
+			new_params[param_id] = ui_num_param(value, 4, 1, 8)
+			new_params["auto_size"] = FALSE
 		if("window_density")
 			new_params[param_id] = ui_num_param(value, 40, 0, 100)
 		if("detail_budget")
@@ -698,38 +717,32 @@
 		result["can_apply"] = FALSE
 		return result
 
-	if(!(shape_text in list(WORLD_EDIT_SHAPE_POINT, WORLD_EDIT_SHAPE_RECTANGLE, WORLD_EDIT_SHAPE_FILLED_RECTANGLE)))
-		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
-		result["reason"] = "Building layout currently supports only point/rectangle/filled rectangle contexts with validated room-capable envelopes. Shape '[shape_text]' requires its own feasibility planner before use."
-		result["shape_locked"] = TRUE
-		result["request_locked"] = TRUE
-		result["locked"] = TRUE
-		result["lock_code"] = "shape.unsupported_for_building_layout"
-		result["can_preview"] = FALSE
-		result["can_apply"] = FALSE
-		return result
-
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
 	var/estimated_usable_area = get_building_request_estimated_usable_area(config, shape_text == WORLD_EDIT_SHAPE_POINT ? null : placement_context)
 	var/required_usable_area = shape_text == WORLD_EDIT_SHAPE_POINT ? max(required_compact_area, get_building_program_target_usable_area(archetype)) : required_compact_area
+	var/degrade_level = get_building_size_degrade_level(estimated_usable_area, required_usable_area)
 	result["required_compact_area"] = required_compact_area
 	result["required_usable_area"] = required_usable_area
 	result["estimated_usable_area"] = estimated_usable_area
-	result["size_policy"] = estimated_usable_area >= required_usable_area ? "compact_or_larger" : "too_small"
-	if(required_usable_area > 0 && estimated_usable_area < required_usable_area)
+	result["degrade_level"] = degrade_level
+	result["program_shedding"] = degrade_level != WORLD_EDIT_BUILDING_DEGRADE_NONE
+	result["size_policy"] = degrade_level == WORLD_EDIT_BUILDING_DEGRADE_NONE ? WORLD_EDIT_BUILDING_SIZE_POLICY_ADAPTIVE : degrade_level
+	if(estimated_usable_area <= 0)
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
-		result["reason"] = "Cannot build [archetype.id]: selected area is too small for compact required zones ([estimated_usable_area]/[required_usable_area] usable tiles)."
+		result["reason"] = "Cannot build [archetype.id]: selected area has no usable tiles."
 		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
+	if(degrade_level != WORLD_EDIT_BUILDING_DEGRADE_NONE)
+		result["reason"] = "Building will use [degrade_level] layout: selected area has [estimated_usable_area]/[required_usable_area] usable tiles."
 
 	return result
 
 /datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
 	var/list/config = normalize_building_params(params)
 	var/list/report = build_building_context_support_result(shape_id, config, placement_context)
-	var/shape_locked = "[report["lock_code"]]" in list("shape.unsupported_for_building_layout", "shape.unknown_for_building_layout")
+	var/shape_locked = "[report["lock_code"]]" == "shape.unknown_for_building_layout"
 	report["shape_locked"] = shape_locked ? TRUE : FALSE
 	report["request_locked"] = "[report["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
 	report["locked"] = report["shape_locked"] ? TRUE : FALSE
@@ -744,6 +757,15 @@
 			continue
 		required_area += max(round(text2num("[zone_spec.min_area]") || 0), 0)
 	return required_area
+
+/datum/world_edit_generator/building_layout/proc/get_building_size_degrade_level(estimated_usable_area, required_usable_area)
+	estimated_usable_area = max(round(text2num("[estimated_usable_area]") || 0), 0)
+	required_usable_area = max(round(text2num("[required_usable_area]") || 0), 0)
+	if(required_usable_area <= 0 || estimated_usable_area >= required_usable_area)
+		return WORLD_EDIT_BUILDING_DEGRADE_NONE
+	if(estimated_usable_area >= max(round(required_usable_area * 0.45), 4))
+		return WORLD_EDIT_BUILDING_DEGRADE_COMPACT
+	return WORLD_EDIT_BUILDING_DEGRADE_MICRO
 
 /datum/world_edit_generator/building_layout/proc/get_building_request_estimated_usable_area(list/config, list/placement_context = null)
 	var/datum/world_edit_shape_contract/shape_contract = islist(placement_context) ? placement_context["shape_contract"] : null
@@ -821,6 +843,12 @@
 			GLOB.world_edit_placement_shapes.world_edit_add_turf_unique(result, result_lookup, target_turf, z_level)
 	return result
 
+/datum/world_edit_generator/building_layout/proc/fill_turf_bounds_capped(list/raw_turfs, max_turf_count = WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS)
+	var/list/filled = fill_turf_bounds(raw_turfs)
+	if(length(filled) > max(round(text2num("[max_turf_count]") || WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS), 1))
+		return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
+	return filled
+
 /datum/world_edit_generator/building_layout/proc/inflate_turf_footprint(list/raw_turfs, radius = 1)
 	var/list/result = list()
 	var/list/result_lookup = list()
@@ -883,6 +911,21 @@
 		previous_turf = source_turf
 	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(result)
 
+/datum/world_edit_generator/building_layout/proc/should_adapt_shape_to_building_envelope(shape_id)
+	switch("[shape_id]")
+		if(
+			WORLD_EDIT_SHAPE_CIRCLE,
+			WORLD_EDIT_SHAPE_RING,
+			WORLD_EDIT_SHAPE_ELLIPSE,
+			WORLD_EDIT_SHAPE_DIAMOND,
+			WORLD_EDIT_SHAPE_TRIANGLE,
+			WORLD_EDIT_SHAPE_SECTOR,
+			WORLD_EDIT_SHAPE_CUSTOM_MASK,
+			WORLD_EDIT_SHAPE_BRUSH_PATH
+		)
+			return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/build_explicit_shape_footprint(datum/world_edit_shape_contract/shape_contract, list/raw_turfs, list/placement_context)
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/footprint = GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(raw_turfs)
@@ -892,7 +935,7 @@
 	switch(shape_id)
 		if(WORLD_EDIT_SHAPE_RECTANGLE)
 			if(shape_contract?.is_closed && !shape_contract?.is_filled)
-				footprint = fill_turf_bounds(footprint)
+				footprint = fill_turf_bounds_capped(footprint)
 		if(WORLD_EDIT_SHAPE_POLYGON)
 			if(shape_contract?.is_closed && !shape_contract?.is_filled)
 				var/list/metadata = istype(shape_contract) ? shape_contract.copy_metadata() : placement_context["shape_metadata"]
@@ -903,9 +946,12 @@
 				if(istype(origin_turf) && islist(points) && length(points) >= 3)
 					footprint = GLOB.world_edit_placement_shapes.world_edit_collect_polygon_turfs(origin_turf, points, TRUE)
 		if(WORLD_EDIT_SHAPE_LINE, WORLD_EDIT_SHAPE_POLYLINE)
-			footprint = inflate_turf_footprint(footprint, 2)
+			footprint = fill_turf_bounds_capped(inflate_turf_footprint(footprint, 4))
 		if(WORLD_EDIT_SHAPE_SCATTER_CLUSTER)
-			footprint = build_scatter_compound_footprint(footprint)
+			footprint = fill_turf_bounds_capped(build_scatter_compound_footprint(footprint))
+
+	if(should_adapt_shape_to_building_envelope(shape_id))
+		footprint = fill_turf_bounds_capped(footprint)
 
 	return GLOB.world_edit_placement_shapes.world_edit_unique_turf_list(footprint)
 
@@ -952,9 +998,19 @@
 		result["error"] = "[support_result["reason"]]"
 		return result
 
-	var/list/raw_turfs = shape_contract?.copy_anchor_turfs() || placement_context["anchor_turfs"]
+	var/list/raw_turfs = null
+	if(istype(shape_contract))
+		raw_turfs = shape_contract.copy_anchor_turfs()
+	if((!islist(raw_turfs) || !length(raw_turfs)) && islist(placement_context))
+		raw_turfs = placement_context["anchor_turfs"]
 	var/turf/seed_turf = get_shape_placement_seed_turf(shape_contract, placement_context)
-	if(shape_id != WORLD_EDIT_SHAPE_POINT && !istype(seed_turf))
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["seed_turf"]
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["shape_origin_turf"]
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["start_turf"]
+	if(!istype(seed_turf))
 		seed_turf = select_building_context_center_turf(raw_turfs)
 	if(!istype(seed_turf))
 		result["error"] = "Unable to resolve building center turf."
@@ -1739,8 +1795,8 @@
 /datum/world_edit_generator/building_layout/proc/add_building_point_size_candidate(list/candidates, list/seen, index, half_width, half_depth)
 	if(!islist(candidates) || !islist(seen))
 		return index
-	half_width = clamp(round(text2num("[half_width]") || 4), 2, 8)
-	half_depth = clamp(round(text2num("[half_depth]") || 4), 2, 8)
+	half_width = clamp(round(text2num("[half_width]") || 4), 1, 8)
+	half_depth = clamp(round(text2num("[half_depth]") || 4), 1, 8)
 	var/key = "[half_width]x[half_depth]"
 	if(seen[key])
 		return index
@@ -1757,8 +1813,16 @@
 	var/list/candidates = list()
 	if(!islist(config))
 		return candidates
-	var/start_half_width = clamp(round(text2num("[config["half_width"]]") || 4), 2, 8)
-	var/start_half_depth = clamp(round(text2num("[config["half_depth"]]") || 4), 2, 8)
+	var/start_half_width = clamp(round(text2num("[config["half_width"]]") || 4), 1, 8)
+	var/start_half_depth = clamp(round(text2num("[config["half_depth"]]") || 4), 1, 8)
+	if(!GLOB.world_edit_helpers.parse_bool(config["auto_size"]))
+		candidates += list(list(
+			"index" = 1,
+			"half_width" = start_half_width,
+			"half_depth" = start_half_depth,
+			"explicit_size" = TRUE,
+		))
+		return candidates
 	var/index = 0
 	var/list/seen = list()
 	index = add_building_point_size_candidate(candidates, seen, index, start_half_width, start_half_depth)
@@ -1787,6 +1851,11 @@
 	var/datum/world_edit_building_request/request = build_building_request(params, shape_contract, placement_context)
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/support_result = build_building_context_support_result(shape_id, request.config, placement_context)
+	request.config["size_degrade_level"] = support_result["degrade_level"]
+	request.config["program_shedding"] = support_result["program_shedding"] ? TRUE : FALSE
+	request.config["estimated_usable_area"] = support_result["estimated_usable_area"]
+	request.config["required_usable_area"] = support_result["required_usable_area"]
+	request.config["required_compact_area"] = support_result["required_compact_area"]
 	plan.metadata["current_request_support_status"] = support_result["status"]
 	plan.metadata["user_facing_failure_reason"] = support_result["reason"]
 	plan.metadata["support_status_report"] = support_result
@@ -1821,8 +1890,10 @@
 			var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
 			candidate_request.config["half_width"] = size_candidate["half_width"]
 			candidate_request.config["half_depth"] = size_candidate["half_depth"]
+			candidate_request.config["final_half_width"] = size_candidate["half_width"]
+			candidate_request.config["final_half_depth"] = size_candidate["half_depth"]
 			candidate_request.config["size_candidate_index"] = size_candidate["index"]
-			if(size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"])
+			if(GLOB.world_edit_helpers.parse_bool(request.config["auto_size"]) && (size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"]))
 				candidate_request.config["size_auto_adjusted"] = TRUE
 			var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
 			if(!istype(candidate_state))
@@ -1834,7 +1905,10 @@
 			candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
 			if(candidate_state.has_errors())
 				if(isnull(first_candidate_error))
-					first_candidate_error = candidate_state.user_facing_failure_reason || (length(candidate_state.errors) ? candidate_state.errors[1] : "Building candidate failed validation.")
+					if(candidate_state.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.user_facing_failure_reason))
+						first_candidate_error = candidate_state.user_facing_failure_reason
+					else
+						first_candidate_error = length(candidate_state.errors) ? candidate_state.errors[1] : "Building candidate failed validation."
 				continue
 			if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
 				best_state = candidate_state
@@ -1855,8 +1929,12 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	best_state.config["layout_candidate_reports"] = candidate_reports
-	best_state.config["selected_candidate_report"] = build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], best_state.config["layout_candidate_index"] || 1, best_score, null, TRUE)
+	if(should_emit_detailed_building_reports(best_state.config))
+		best_state.config["layout_candidate_reports"] = candidate_reports
+		best_state.config["selected_candidate_report"] = build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], best_state.config["layout_candidate_index"] || 1, best_score, null, TRUE)
+	else
+		best_state.config["layout_candidate_reports"] = list()
+		best_state.config["selected_candidate_report"] = build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], best_state.config["layout_candidate_index"] || 1, best_score, null, FALSE)
 	best_state.config["layout_candidate_count"] = length(candidate_reports)
 	best_state.config["layout_candidate_score"] = best_score
 	return emit_building_layout_plan(best_state, shape_contract, placement_context)
@@ -1864,6 +1942,28 @@
 /datum/world_edit_generator/building_layout/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
 	return build_plan_from_shape_contract(user, shape_contract, params, placement_context)
+
+/datum/world_edit_generator/building_layout/proc/has_explicit_shape_params(list/params)
+	if(!islist(params))
+		return FALSE
+	for(var/key as anything in list(
+		"shape_rect_width",
+		"shape_rect_height",
+		"shape_radius",
+		"shape_radius_x",
+		"shape_radius_y",
+		"shape_points_text",
+		"shape_line_length",
+		"shape_triangle_size",
+		"shape_sector_angle",
+		"shape_scatter_count"
+	))
+		if(has_building_param(params, key))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/should_emit_detailed_building_reports(list/config)
+	return GLOB.world_edit_helpers.parse_bool(config?["debug_reports"])
 
 /datum/world_edit_generator/building_layout/build_plan(list/params)
 	var/turf/anchor_turf = manager?.placement_anchor_turf
@@ -1879,9 +1979,20 @@
 	var/placement_dir = manager?.get_effective_placement_dir() || NORTH
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, anchor_turf, null, params, placement_dir)
 	if(shape_result["error"])
-		error_plan = new
-		error_plan.metadata["error"] = "[shape_result["error"]]"
-		return error_plan
+		var/original_shape_error = "[shape_result["error"]]"
+		if(shape_id != WORLD_EDIT_SHAPE_POINT && !has_explicit_shape_params(params))
+			shape_id = WORLD_EDIT_SHAPE_POINT
+			shape_result = list(
+				"turfs" = list(anchor_turf),
+				"metadata" = list(
+					"building_shape_fallback" = TRUE,
+					"building_shape_fallback_reason" = original_shape_error,
+				),
+			)
+		else
+			error_plan = new
+			error_plan.metadata["error"] = original_shape_error
+			return error_plan
 	return build_placement_plan(manager?.holder?.mob, params, list(
 		"mode" = manager?.get_effective_placement_mode() || "single",
 		"shape" = shape_id,
@@ -1957,9 +2068,36 @@
 /datum/world_edit_generator/building_layout/get_hover_object_preview_anchor_limit()
 	return 2
 
+/datum/world_edit_generator/building_layout/clear_built_plan()
+	. = ..()
+	current_plan_request_key = null
+
+/datum/world_edit_generator/building_layout/proc/build_building_runtime_request_key(list/params)
+	var/list/config = normalize_building_params(params)
+	var/list/key_parts = list(
+		"archetype_id" = config["archetype_id"],
+		"faction_preset" = config["faction_preset"],
+		"half_width" = config["half_width"],
+		"half_depth" = config["half_depth"],
+		"auto_size" = config["auto_size"] ? TRUE : FALSE,
+		"window_density" = config["window_density"],
+		"detail_budget" = config["detail_budget"],
+		"building_seed" = config["building_seed"],
+		"back_exit" = config["back_exit"] ? TRUE : FALSE,
+		"respect_blockers" = config["respect_blockers"] ? TRUE : FALSE,
+		"replace_blocked_turfs" = config["replace_blocked_turfs"] ? TRUE : FALSE,
+		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
+		"dir" = manager?.get_effective_placement_dir() || NORTH,
+	)
+	var/turf/anchor_turf = manager?.placement_anchor_turf
+	if(istype(anchor_turf))
+		key_parts["anchor"] = "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
+	return "[build_building_assoc_hash(key_parts)]"
+
 /datum/world_edit_generator/building_layout/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new
 	clear_built_plan()
+	current_plan_request_key = null
 
 	var/datum/world_edit_plan/plan = build_plan(params)
 	if(!istype(plan))
@@ -1973,6 +2111,8 @@
 		return result
 
 	current_plan = plan
+	current_plan_request_key = build_building_runtime_request_key(params)
+	plan.metadata["request_key"] = current_plan_request_key
 	result.success = TRUE
 	if(!manager?.should_use_placement_layer_preview(plan))
 		result.preview_images = GLOB.world_edit_helpers.build_turf_preview_images(plan.affected_turfs)
@@ -1984,6 +2124,11 @@
 	return result
 
 /datum/world_edit_generator/building_layout/apply(mob/user, list/params)
+	var/current_key = build_building_runtime_request_key(params)
+	if(length("[current_plan_request_key]") && current_key != current_plan_request_key)
+		var/datum/world_edit_apply_result/result = new
+		result.message = "Building parameters changed after preview. Run preview again before apply."
+		return result
 	return apply_plan(user, params, current_plan)
 
 /datum/world_edit_generator/building_layout/proc/runtime_target_turf(list/placement)
@@ -2027,6 +2172,14 @@
 			return blocker_error
 	return null
 
+/datum/world_edit_generator/building_layout/proc/add_building_runtime_skip_reason(list/runtime_skip_reasons, reason)
+	if(!islist(runtime_skip_reasons) || !length("[reason]"))
+		return
+	if(length(runtime_skip_reasons) < 32)
+		runtime_skip_reasons += "[reason]"
+	else if(length(runtime_skip_reasons) == 32)
+		runtime_skip_reasons += "..."
+
 /datum/world_edit_generator/building_layout/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
@@ -2063,6 +2216,7 @@
 	var/created_object_count = 0
 	var/skipped_runtime = 0
 	var/list/skipped_turf_lookup = list()
+	var/list/runtime_skip_reasons = list()
 	var/replace_blocked_turfs = config["replace_blocked_turfs"]
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
@@ -2073,11 +2227,13 @@
 		var/turf_path = placement["turf_path"]
 		if(!istype(target_turf) || !ispath(turf_path, /turf))
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "invalid_turf_or_path:[coord_key]")
 			if(length("[coord_key]"))
 				skipped_turf_lookup[coord_key] = TRUE
 			continue
 		if(!replace_blocked_turfs && get_footprint_blocker_error(target_turf))
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "turf_blocked:[coord_key]")
 			if(length("[coord_key]"))
 				skipped_turf_lookup[coord_key] = TRUE
 			continue
@@ -2088,6 +2244,7 @@
 		var/turf/new_turf = target_turf.ChangeTurf(turf_path)
 		if(!istype(new_turf) || new_turf.type != turf_path)
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "change_turf_failed:[coord_key]")
 			continue
 		changed_turf_count++
 		changeset.add_changed_turf(new_turf, old_type, turf_path, old_baseturfs, list("kind" = kind))
@@ -2101,16 +2258,20 @@
 		var/obj_path = placement["obj_path"]
 		if(!istype(target_turf) || !ispath(obj_path, /obj))
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "invalid_turf_or_path:[coord_key]")
 			continue
 		if(skipped_turf_lookup[coord_key])
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "skipped_base_turf:[coord_key]")
 			continue
 		if(has_runtime_object_blocker(target_turf, obj_path))
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "object_blocked:[coord_key]:[obj_path]")
 			continue
 		var/obj/created_object = new obj_path(target_turf)
 		if(!created_object)
 			skipped_runtime++
+			add_building_runtime_skip_reason(runtime_skip_reasons, "object_create_failed:[coord_key]:[obj_path]")
 			continue
 		var/dir_to_use = text2num("[placement["dir"]]")
 		if(dir_to_use in GLOB.cardinals)
@@ -2128,19 +2289,26 @@
 	result.meta["changed_turf_count"] = changed_turf_count
 	result.meta["created_object_count"] = created_object_count
 	result.meta["skipped_runtime"] = skipped_runtime
+	result.meta["runtime_skip_reasons"] = runtime_skip_reasons
 	result.meta["post_apply_validation_error_count"] = skipped_runtime
 	if(skipped_runtime > 0)
 		var/list/revert_report = GLOB.world_edit_changesets.revert_changeset(changeset)
 		result.meta["apply_revert_report"] = revert_report
 		result.message = "Building apply failed: emitted plan diverged at runtime, skipped=[skipped_runtime]. Reverted=[revert_report["reverted_count"]] skipped_revert=[revert_report["skipped_count"]]."
+		current_plan = null
+		current_plan_request_key = null
 		return result
 	if(changed_turf_count <= 0 && created_object_count <= 0)
 		result.message = "Building made no changes: runtime skipped=[skipped_runtime]."
+		current_plan = null
+		current_plan_request_key = null
 		return result
 
 	result.success = TRUE
 	result.changeset = changeset
 	result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
+	current_plan = null
+	current_plan_request_key = null
 	return result
 
 #undef WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS
@@ -2170,3 +2338,9 @@
 #undef WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 #undef WORLD_EDIT_BUILDING_SUPPORT_DISABLED
 #undef WORLD_EDIT_BUILDING_SUPPORT_FAILED
+#undef WORLD_EDIT_BUILDING_SIZE_POLICY_AUTO
+#undef WORLD_EDIT_BUILDING_SIZE_POLICY_EXPLICIT
+#undef WORLD_EDIT_BUILDING_SIZE_POLICY_ADAPTIVE
+#undef WORLD_EDIT_BUILDING_DEGRADE_NONE
+#undef WORLD_EDIT_BUILDING_DEGRADE_COMPACT
+#undef WORLD_EDIT_BUILDING_DEGRADE_MICRO

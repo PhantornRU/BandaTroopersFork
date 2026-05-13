@@ -100,6 +100,16 @@
 
 /datum/world_edit_generator/building_layout/proc/build_point_building_footprint(turf/seed_turf, list/config, list/placement_context)
 	var/list/result = list("footprint" = list())
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["seed_turf"]
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["shape_origin_turf"]
+	if(!istype(seed_turf) && islist(placement_context))
+		seed_turf = placement_context["start_turf"]
+	if(!istype(seed_turf) && islist(placement_context))
+		var/list/anchor_turfs = placement_context["anchor_turfs"]
+		if(islist(anchor_turfs) && length(anchor_turfs))
+			seed_turf = anchor_turfs[1]
 	if(!istype(seed_turf))
 		result["error"] = "Unable to resolve building center turf."
 		return result

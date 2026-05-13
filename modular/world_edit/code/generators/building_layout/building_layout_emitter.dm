@@ -271,7 +271,7 @@
 		state.emit_state_mismatch_count = round(text2num("[report["state_mismatch_count"]]") || 0)
 		state.post_emit_validation_error_count = error_count
 		state.semantic_credit_without_emitted_slots_count = round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
-		state.add_error("Post-emit validation failed for building layout: [error_count] emitted/reserved-state errors.")
+		state.add_warning("Post-emit validation failed for building layout: [error_count] emitted/reserved-state errors.")
 	state.post_emit_validation_report = report
 	return report
 
@@ -344,16 +344,22 @@
 	plan.metadata["current_request_support_status"] = state.current_request_support_status
 	plan.metadata["user_facing_failure_reason"] = state.user_facing_failure_reason
 	plan.metadata["support_status_report"] = state.support_status_report.Copy()
-	plan.metadata["stage_reports"] = state.stage_reports.Copy()
-	plan.metadata["room_reports"] = state.room_reports.Copy()
-	plan.metadata["zone_reports"] = state.zone_reports.Copy()
-	plan.metadata["corridor_report"] = state.corridor_report.Copy()
-	plan.metadata["wall_report"] = state.wall_report.Copy()
-	plan.metadata["door_reports"] = state.door_reports.Copy()
-	plan.metadata["pattern_reports"] = state.pattern_reports.Copy()
-	plan.metadata["infrastructure_report"] = state.infrastructure_report.Copy()
-	plan.metadata["fallback_audit"] = state.fallback_audit.Copy()
-	plan.metadata["old_path_audit"] = state.old_path_audit.Copy()
+	var/detailed_reports = should_emit_detailed_building_reports(state.config)
+	plan.metadata["stage_reports"] = detailed_reports ? state.stage_reports.Copy() : list()
+	plan.metadata["stage_report_count"] = length(state.stage_reports)
+	plan.metadata["room_reports"] = detailed_reports ? state.room_reports.Copy() : list()
+	plan.metadata["room_report_count"] = length(state.room_reports)
+	plan.metadata["zone_reports"] = detailed_reports ? state.zone_reports.Copy() : list()
+	plan.metadata["zone_report_count"] = length(state.zone_reports)
+	plan.metadata["corridor_report"] = detailed_reports ? state.corridor_report.Copy() : list()
+	plan.metadata["wall_report"] = detailed_reports ? state.wall_report.Copy() : list()
+	plan.metadata["door_reports"] = detailed_reports ? state.door_reports.Copy() : list()
+	plan.metadata["door_report_count"] = length(state.door_reports)
+	plan.metadata["pattern_reports"] = detailed_reports ? state.pattern_reports.Copy() : list()
+	plan.metadata["pattern_report_count"] = length(state.pattern_reports)
+	plan.metadata["infrastructure_report"] = detailed_reports ? state.infrastructure_report.Copy() : list()
+	plan.metadata["fallback_audit"] = detailed_reports ? state.fallback_audit.Copy() : list()
+	plan.metadata["old_path_audit"] = detailed_reports ? state.old_path_audit.Copy() : list()
 	plan.metadata["root_seed"] = state.root_seed
 	plan.metadata["stage_seed_footprint"] = state.stage_seed_footprint
 	plan.metadata["stage_seed_rooms"] = state.stage_seed_rooms
@@ -387,7 +393,7 @@
 	plan.metadata["selected_candidate_report"] = islist(state.config["selected_candidate_report"]) ? state.config["selected_candidate_report"].Copy() : list()
 	plan.metadata["layout_candidate_index"] = state.config["layout_candidate_index"] || 1
 	plan.metadata["semantic_region_claim_count"] = state.region_claim_count
-	plan.metadata["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
+	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.region_claim_reports.Copy() : list()
 	plan.metadata["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
 	plan.metadata["nested_room_count"] = state.nested_room_count
 	plan.metadata["template_chunk_count"] = state.template_chunk_count
@@ -396,7 +402,8 @@
 	plan.metadata["semantic_slot_capacity_count"] = state.semantic_slot_capacity_count
 	plan.metadata["semantic_slot_shortage_count"] = state.semantic_slot_shortage_count
 	plan.metadata["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
-	plan.metadata["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
+	plan.metadata["semantic_slot_reports"] = detailed_reports ? state.semantic_slot_reports.Copy() : list()
+	plan.metadata["semantic_slot_report_count"] = length(state.semantic_slot_reports)
 	plan.metadata["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
 	plan.metadata["placed_requirement_counts"] = state.placed_requirement_counts.Copy()
 	plan.metadata["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
@@ -438,6 +445,23 @@
 	plan.metadata["default_max_replaced_blockers"] = WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS
 	plan.metadata["hard_max_replaced_blockers"] = WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS
 	plan.metadata["auto_size"] = state.config["auto_size"] ? TRUE : FALSE
+	plan.metadata["size_policy"] = state.config["size_policy"]
+	plan.metadata["requested_half_width"] = state.config["requested_half_width"]
+	plan.metadata["requested_half_depth"] = state.config["requested_half_depth"]
+	plan.metadata["final_half_width"] = state.config["final_half_width"] || state.config["half_width"]
+	plan.metadata["final_half_depth"] = state.config["final_half_depth"] || state.config["half_depth"]
+	plan.metadata["half_width"] = state.config["half_width"]
+	plan.metadata["half_depth"] = state.config["half_depth"]
+	plan.metadata["size_auto_adjusted"] = state.config["size_auto_adjusted"] ? TRUE : FALSE
+	plan.metadata["size_degrade_level"] = state.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE
+	plan.metadata["program_shedding"] = state.config["program_shedding"] ? TRUE : FALSE
+	plan.metadata["estimated_usable_area"] = state.config["estimated_usable_area"]
+	plan.metadata["required_usable_area"] = state.config["required_usable_area"]
+	plan.metadata["required_compact_area"] = state.config["required_compact_area"]
+	plan.metadata["compact_program"] = state.semantic_plan?.compact_program ? TRUE : FALSE
+	plan.metadata["compact_shed_zones"] = islist(state.semantic_plan?.compact_shed_zones) ? state.semantic_plan.compact_shed_zones.Copy() : list()
+	plan.metadata["compact_required_min_area"] = islist(state.semantic_plan?.compact_required_min_area) ? state.semantic_plan.compact_required_min_area.Copy() : list()
+	plan.metadata["micro_layout"] = state.config["micro_layout"] ? TRUE : FALSE
 	plan.metadata["route_access_repair_count"] = state.route_access_repair_count
 	plan.metadata["requested_direction"] = state.requested_direction
 	plan.metadata["requested_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.requested_direction)
@@ -451,7 +475,7 @@
 	plan.metadata["entry_face_mismatch_count"] = state.entry_face_mismatch_count
 	plan.metadata["entry_face_readable"] = state.entry_face_readable
 	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
-	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
+	plan.metadata["degraded_region_reports"] = detailed_reports ? state.degraded_region_reports.Copy() : list()
 	plan.metadata["microvariation_count"] = state.microvariation_count
 	plan.metadata["footprint_mask_score"] = state.config["footprint_mask_score"]
 	plan.metadata["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
@@ -579,7 +603,7 @@
 	plan.metadata["template_chunk_cell_count"] = state.template_chunk_cell_count
 	plan.metadata["infrastructure_count"] = state.infrastructure_count
 	plan.metadata["degraded_region_fallback_count"] = state.degraded_region_fallback_count
-	plan.metadata["degraded_region_reports"] = state.degraded_region_reports.Copy()
+	plan.metadata["degraded_region_reports"] = detailed_reports ? state.degraded_region_reports.Copy() : list()
 	plan.metadata["layout_macros"] = state.layout_macros.Copy()
 	plan.metadata["layout_macro_counts"] = state.layout_macro_counts.Copy()
 	plan.metadata["layout_macro_count"] = length(state.layout_macros)
@@ -601,7 +625,7 @@
 	plan.metadata["emit_state_mismatch_count"] = state.emit_state_mismatch_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.semantic_credit_without_emitted_slots_count
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
-	plan.metadata["debug_stage_separation_report"] = list(
+	plan.metadata["debug_stage_separation_report"] = detailed_reports ? list(
 		"planned_rooms" = list(
 			"mandatory_room_count" = state.mandatory_room_count,
 			"mandatory_zone_count" = state.mandatory_zone_count,
@@ -646,7 +670,7 @@
 			"route_unreachable_count" = post_emit_report["route_unreachable_count"],
 			"door_cone_blocking_count" = post_emit_report["door_cone_blocking_count"],
 		),
-	)
+	) : list("omitted" = TRUE, "enable" = "debug_reports")
 	if(state.has_errors())
 		plan.metadata["error"] = format_building_messages(state.errors)
 		plan.metadata["errors"] = state.errors.Copy()

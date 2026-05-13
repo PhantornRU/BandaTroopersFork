@@ -368,7 +368,7 @@
 	var/list/grid_lines = list()
 	var/noop_area_model = "/area/template_noop"
 	for(var/y = dimensions["height"], y >= 1, y--)
-		var/line = ""
+		var/list/line_keys = list()
 		for(var/x = 1, x <= dimensions["width"], x++)
 			var/list/entries = cell_entries["[x],[y]"]
 			var/list/model_parts = list()
@@ -391,8 +391,8 @@
 				model_key = world_edit_build_dmm_model_key(length(model_lines) + 1)
 				model_to_key[model_text] = model_key
 				model_lines += "\"[model_key]\" = ([model_text])"
-			line = "[line][model_key]"
-		grid_lines += line
+			line_keys += model_key
+		grid_lines += line_keys.Join("")
 
 	var/list/output = list()
 	output += model_lines
@@ -486,6 +486,8 @@
 
 	if(!fcopy(old_path, new_path))
 		return list("error" = "Unable to copy DMM blueprint to the new name.")
+	if(!fexists(new_path))
+		return list("error" = "Unable to verify copied DMM blueprint after rename.")
 	if(!fdel(old_path))
 		fdel(new_path)
 		return list("error" = "Unable to remove old DMM blueprint after rename.")

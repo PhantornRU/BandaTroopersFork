@@ -90,6 +90,7 @@
 #include "timer_sanity.dm"
 #include "tutorials.dm"
 #include "world_edit_blueprints.dm"
+#include "world_edit_building_layout.dm"
 #include "xeno_strains.dm"
 
 // Unit tests backend
