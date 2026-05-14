@@ -11,6 +11,24 @@
 			return test_turf
 	return null
 
+/datum/unit_test/world_edit_building_layout/proc/prepare_building_test_canvas(turf/anchor_turf, radius = 12)
+	TEST_ASSERT_NOTNULL(anchor_turf, "Missing test anchor turf.")
+	var/min_x = max(anchor_turf.x - radius, 1)
+	var/max_x = min(anchor_turf.x + radius, world.maxx)
+	var/min_y = max(anchor_turf.y - radius, 1)
+	var/max_y = min(anchor_turf.y + radius, world.maxy)
+	for(var/y in min_y to max_y)
+		for(var/x in min_x to max_x)
+			var/turf/target_turf = locate(x, y, anchor_turf.z)
+			if(!istype(target_turf))
+				continue
+			for(var/obj/target_object as anything in target_turf)
+				if(istype(target_object, /obj/effect/landmark))
+					continue
+				qdel(target_object)
+			if(!istype(target_turf, /turf/open))
+				target_turf.ChangeTurf(/turf/open/floor/plating)
+
 /datum/unit_test/world_edit_building_layout/Run()
 	return
 
@@ -55,6 +73,7 @@
 /datum/unit_test/world_edit_building_layout/proc/build_living_point_state(list/params)
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Building layout test could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf)
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/datum/world_edit_shape_contract/shape_contract = build_point_shape_contract(anchor_turf)
 	var/list/placement_context = build_point_context(shape_contract, anchor_turf)
@@ -65,6 +84,7 @@
 /datum/unit_test/world_edit_building_layout/proc/build_living_point_plan(list/params)
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Building layout test could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf)
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/datum/world_edit_shape_contract/shape_contract = build_point_shape_contract(anchor_turf)
 	return generator.build_plan_from_shape_contract(null, shape_contract, islist(params) ? params : list(), build_point_context(shape_contract, anchor_turf))
@@ -113,6 +133,7 @@
 	state.semantic_plan = request.archetype.build_semantic_plan(request)
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Sealed sanitation test could not resolve anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 4)
 	var/turf/other_turf = get_step(anchor_turf, EAST)
 	TEST_ASSERT_NOTNULL(other_turf, "Sealed sanitation test could not resolve second turf.")
 	state.floor_turfs += anchor_turf
@@ -142,6 +163,9 @@
 	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["half_width"]]") || 0), 2, "Explicit half_width changed.")
 	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["half_depth"]]") || 0), 2, "Explicit half_depth changed.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["size_auto_adjusted"]), "Explicit size was auto-adjusted.")
+	TEST_ASSERT("[plan.metadata["size_degrade_level"]]" in list("compact", "micro"), "Small explicit building did not report compact/micro degrade.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Small explicit building did not enable program shedding.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["compact_program"]), "Small explicit building did not build a compact semantic program.")
 	TEST_ASSERT(length(plan.placements) > 0, "Small explicit building emitted no placements.")
 
 /datum/unit_test/world_edit_building_layout/micro_size_emits_plan/Run()
@@ -160,11 +184,30 @@
 	TEST_ASSERT(!plan.metadata["error"], "Micro building failed: [plan.metadata["error"]]")
 	TEST_ASSERT(length(plan.placements) > 0, "Micro building emitted no placements.")
 	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["micro_layout"]) || "[plan.metadata["size_degrade_level"]]" == "micro", "Micro metadata was not set.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Micro building did not enable program shedding.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["compact_program"]), "Micro building did not build a compact semantic program.")
+
+/datum/unit_test/world_edit_building_layout/request_key_shape_params/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/key_a = generator.build_building_runtime_request_key(list(
+		"auto_size" = FALSE,
+		"half_width" = 4,
+		"half_depth" = 4,
+		"shape_radius" = 4,
+	))
+	var/key_b = generator.build_building_runtime_request_key(list(
+		"auto_size" = FALSE,
+		"half_width" = 4,
+		"half_depth" = 4,
+		"shape_radius" = 5,
+	))
+	TEST_ASSERT(key_a != key_b, "Building runtime request key should change when shape params change.")
 
 /datum/unit_test/world_edit_building_layout/locked_unsupported_shape/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Advertised shape test could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 16)
 	for(var/shape_id as anything in generator.get_supported_placement_shapes())
 		var/list/shape_params = generator.build_building_quality_shape_params(shape_id, 12345, 4, 4)
 		var/list/shape_context = generator.build_building_quality_shape_context(anchor_turf, shape_id, shape_params)

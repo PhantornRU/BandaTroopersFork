@@ -468,16 +468,19 @@
 /datum/world_edit_building_semantic_plan/proc/apply_compact_object_budget(datum/world_edit_building_request/request, usable_area)
 	usable_area = max(round(text2num("[usable_area]") || 0), 1)
 	var/detail_budget = clamp(round(text2num("[request?.config?["detail_budget"]]") || 0), 0, 100)
-	var/max_objects = max(round((usable_area * max(detail_budget, 20)) / 180), 1)
-	var/remaining = max_objects
+	var/max_optional_objects = detail_budget <= 0 ? 0 : max(round((usable_area * detail_budget) / 180), 1)
+	var/remaining_optional = max_optional_objects
 	for(var/category as anything in object_budgets)
-		if(remaining <= 0)
+		var/current_budget = max(round(text2num("[object_budgets[category]]") || 0), 0)
+		if(is_building_infrastructure_category(category))
+			object_budgets[category] = min(current_budget, max(round(usable_area / 16), 1))
+			continue
+		if(remaining_optional <= 0)
 			object_budgets[category] = 0
 			continue
-		var/current_budget = max(round(text2num("[object_budgets[category]]") || 0), 0)
-		var/new_budget = min(current_budget, remaining)
+		var/new_budget = min(current_budget, remaining_optional)
 		object_budgets[category] = new_budget
-		remaining -= new_budget
+		remaining_optional -= new_budget
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
 		if(!istype(cluster_spec))
 			continue
@@ -495,6 +498,9 @@
 	signature_minimums.Cut()
 	signature_weights.Cut()
 	min_signature_score = 0
+
+/datum/world_edit_building_semantic_plan/proc/is_building_infrastructure_category(category)
+	return "[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch")
 
 /datum/world_edit_building_semantic_plan/proc/should_select_optional_zone(datum/world_edit_building_zone_spec/zone_spec, datum/world_edit_building_request/request = null, footprint_area = 0)
 	if(!istype(zone_spec))

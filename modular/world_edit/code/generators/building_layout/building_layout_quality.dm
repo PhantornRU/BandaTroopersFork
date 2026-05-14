@@ -156,9 +156,10 @@
 	seed_count = clamp(round(text2num("[seed_count]") || 8), 1, 50)
 	max_sample_count = clamp(round(text2num("[max_sample_count]") || 240), 1, 2000)
 	var/list/scenarios = list(
-		list("id" = "details_0", "detail_budget" = 0, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
-		list("id" = "details_100", "detail_budget" = 100, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
-		list("id" = "blockers_strict", "detail_budget" = 100, "respect_blockers" = TRUE, "replace_blocked_turfs" = FALSE),
+		list("id" = "details_0", "auto_size" = FALSE, "detail_budget" = 0, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
+		list("id" = "details_100", "auto_size" = FALSE, "detail_budget" = 100, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
+		list("id" = "blockers_strict", "auto_size" = FALSE, "detail_budget" = 100, "respect_blockers" = TRUE, "replace_blocked_turfs" = FALSE),
+		list("id" = "auto_default", "auto_size" = TRUE, "detail_budget" = 60, "respect_blockers" = FALSE, "replace_blocked_turfs" = TRUE),
 	)
 	for(var/seed_offset in 0 to seed_count - 1)
 		var/seed_value = seed_start + seed_offset
@@ -177,6 +178,7 @@
 							"archetype_id" = program_id,
 							"faction_preset" = style_id,
 							"building_seed" = seed_value,
+							"auto_size" = scenario["auto_size"] ? TRUE : FALSE,
 							"half_width" = half_width,
 							"half_depth" = half_depth,
 							"detail_budget" = scenario["detail_budget"],

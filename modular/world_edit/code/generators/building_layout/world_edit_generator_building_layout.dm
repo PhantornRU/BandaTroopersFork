@@ -269,7 +269,7 @@
 	return GLOB.world_edit_building_faction_catalog
 
 /datum/world_edit_generator/building_layout/proc/has_building_param(list/params, param_id)
-	return islist(params) && ("[param_id]" in params)
+	return islist(params) && !isnull(params["[param_id]"])
 
 /datum/world_edit_generator/building_layout/proc/resolve_building_option(value, list/options, fallback)
 	var/value_text = "[value]"
@@ -643,7 +643,7 @@
 	result["replace_blocked_turfs"] = config["replace_blocked_turfs"] ? TRUE : FALSE
 	result["will_replace_blocked_turfs"] = result["replace_blocked_turfs"]
 	if(islist(placement_context))
-		var/list/context_turfs = placement_context["anchor_turfs"]
+		var/list/context_turfs = get_building_support_blocker_turfs(shape_id, config, placement_context)
 		if(islist(context_turfs) && length(context_turfs))
 			var/context_blocked_count = 0
 			var/first_context_blocker_error = null
@@ -767,11 +767,41 @@
 		return WORLD_EDIT_BUILDING_DEGRADE_COMPACT
 	return WORLD_EDIT_BUILDING_DEGRADE_MICRO
 
+/datum/world_edit_generator/building_layout/proc/apply_building_support_result_to_config(list/config, list/support_result)
+	if(!islist(config) || !islist(support_result))
+		return
+	config["current_request_support_status"] = support_result["status"]
+	config["user_facing_failure_reason"] = support_result["reason"]
+	config["support_status_report"] = support_result.Copy()
+	config["size_degrade_level"] = support_result["degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE
+	config["program_shedding"] = support_result["program_shedding"] ? TRUE : FALSE
+	config["estimated_usable_area"] = support_result["estimated_usable_area"]
+	config["required_usable_area"] = support_result["required_usable_area"]
+	config["required_compact_area"] = support_result["required_compact_area"]
+	if(length("[support_result["size_policy"]]"))
+		config["size_policy"] = support_result["size_policy"]
+
+/datum/world_edit_generator/building_layout/proc/get_building_support_blocker_turfs(shape_id, list/config, list/placement_context)
+	if(!islist(placement_context))
+		return null
+	var/datum/world_edit_shape_contract/shape_contract = placement_context["shape_contract"]
+	var/list/raw_turfs = null
+	if(istype(shape_contract))
+		raw_turfs = shape_contract.copy_anchor_turfs()
+	if(!islist(raw_turfs) || !length(raw_turfs))
+		raw_turfs = placement_context["anchor_turfs"]
+	if(!islist(raw_turfs) || !length(raw_turfs))
+		return null
+	if("[shape_id]" != WORLD_EDIT_SHAPE_POINT)
+		var/list/explicit_footprint = build_explicit_shape_footprint(shape_contract, raw_turfs, placement_context)
+		if(length(explicit_footprint))
+			return explicit_footprint
+	return raw_turfs
+
 /datum/world_edit_generator/building_layout/proc/get_building_request_estimated_usable_area(list/config, list/placement_context = null)
-	var/datum/world_edit_shape_contract/shape_contract = islist(placement_context) ? placement_context["shape_contract"] : null
-	var/list/raw_turfs = istype(shape_contract) ? shape_contract.copy_anchor_turfs() : (islist(placement_context) ? placement_context["anchor_turfs"] : null)
-	if(islist(raw_turfs) && length(raw_turfs))
-		var/list/footprint = istype(shape_contract) ? build_explicit_shape_footprint(shape_contract, raw_turfs, placement_context) : raw_turfs
+	var/shape_id = islist(placement_context) ? placement_context["shape"] : null
+	var/list/footprint = get_building_support_blocker_turfs(shape_id || WORLD_EDIT_SHAPE_POINT, config, placement_context)
+	if(islist(footprint) && length(footprint))
 		var/list/boundary = GLOB.world_edit_placement_shapes.world_edit_collect_boundary_turfs(footprint)
 		return max(length(footprint) - length(boundary), 0)
 	var/half_width = max(round(text2num("[config?["half_width"]]") || 0), 0)
@@ -988,9 +1018,7 @@
 	var/list/result = list("footprint" = list())
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/support_result = build_building_context_support_result(shape_id, config, placement_context)
-	config["current_request_support_status"] = support_result["status"]
-	config["user_facing_failure_reason"] = support_result["reason"]
-	config["support_status_report"] = support_result
+	apply_building_support_result_to_config(config, support_result)
 	if("[support_result["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
 		result["support_status"] = support_result["status"]
 		result["user_facing_failure_reason"] = support_result["reason"]
@@ -1851,11 +1879,7 @@
 	var/datum/world_edit_building_request/request = build_building_request(params, shape_contract, placement_context)
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/support_result = build_building_context_support_result(shape_id, request.config, placement_context)
-	request.config["size_degrade_level"] = support_result["degrade_level"]
-	request.config["program_shedding"] = support_result["program_shedding"] ? TRUE : FALSE
-	request.config["estimated_usable_area"] = support_result["estimated_usable_area"]
-	request.config["required_usable_area"] = support_result["required_usable_area"]
-	request.config["required_compact_area"] = support_result["required_compact_area"]
+	apply_building_support_result_to_config(request.config, support_result)
 	plan.metadata["current_request_support_status"] = support_result["status"]
 	plan.metadata["user_facing_failure_reason"] = support_result["reason"]
 	plan.metadata["support_status_report"] = support_result
@@ -2075,24 +2099,45 @@
 /datum/world_edit_generator/building_layout/proc/build_building_runtime_request_key(list/params)
 	var/list/config = normalize_building_params(params)
 	var/list/key_parts = list(
-		"archetype_id" = config["archetype_id"],
-		"faction_preset" = config["faction_preset"],
-		"half_width" = config["half_width"],
-		"half_depth" = config["half_depth"],
-		"auto_size" = config["auto_size"] ? TRUE : FALSE,
-		"window_density" = config["window_density"],
-		"detail_budget" = config["detail_budget"],
-		"building_seed" = config["building_seed"],
-		"back_exit" = config["back_exit"] ? TRUE : FALSE,
-		"respect_blockers" = config["respect_blockers"] ? TRUE : FALSE,
-		"replace_blocked_turfs" = config["replace_blocked_turfs"] ? TRUE : FALSE,
-		"shape" = manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT,
-		"dir" = manager?.get_effective_placement_dir() || NORTH,
+		"archetype_id=[config["archetype_id"]]",
+		"faction_preset=[config["faction_preset"]]",
+		"half_width=[config["half_width"]]",
+		"half_depth=[config["half_depth"]]",
+		"auto_size=[config["auto_size"] ? TRUE : FALSE]",
+		"window_density=[config["window_density"]]",
+		"detail_budget=[config["detail_budget"]]",
+		"building_seed=[config["building_seed"]]",
+		"back_exit=[config["back_exit"] ? TRUE : FALSE]",
+		"respect_blockers=[config["respect_blockers"] ? TRUE : FALSE]",
+		"replace_blocked_turfs=[config["replace_blocked_turfs"] ? TRUE : FALSE]",
+		"confirm_large_replacement=[config["confirm_large_replacement"] ? TRUE : FALSE]",
+		"shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT]",
+		"dir=[manager?.get_effective_placement_dir() || NORTH]",
 	)
+	for(var/shape_param as anything in list(
+		"shape_rect_width",
+		"shape_rect_height",
+		"shape_radius",
+		"shape_thickness",
+		"shape_radius_x",
+		"shape_radius_y",
+		"shape_points_text",
+		"shape_polygon_filled",
+		"shape_line_length",
+		"shape_line_spacing",
+		"shape_triangle_size",
+		"shape_sector_angle",
+		"shape_brush_radius",
+		"shape_scatter_radius",
+		"shape_scatter_count",
+		"shape_scatter_seed"
+	))
+		if(islist(params) && !isnull(params[shape_param]))
+			key_parts += "[shape_param]=[params[shape_param]]"
 	var/turf/anchor_turf = manager?.placement_anchor_turf
 	if(istype(anchor_turf))
-		key_parts["anchor"] = "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
-	return "[build_building_assoc_hash(key_parts)]"
+		key_parts += "anchor=[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
+	return sortList(key_parts.Copy()).Join("|")
 
 /datum/world_edit_generator/building_layout/preview(mob/user, list/params)
 	var/datum/world_edit_preview_result/result = new

@@ -61,6 +61,11 @@
 		"footprint_count" = length(state.footprint),
 		"footprint_hash" = state.footprint_hash,
 	))
+	var/list/support_report = state.config["support_status_report"]
+	if(!length("[state.config["size_degrade_level"]]"))
+		state.config["size_degrade_level"] = islist(support_report) ? (support_report["degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE) : WORLD_EDIT_BUILDING_DEGRADE_NONE
+	if(isnull(state.config["program_shedding"]))
+		state.config["program_shedding"] = islist(support_report) ? (support_report["program_shedding"] ? TRUE : FALSE) : FALSE
 	state.semantic_plan = state.archetype.build_semantic_plan(state.request)
 	if(!istype(state.semantic_plan))
 		state.add_error("Unable to build semantic plan for [state.archetype.id].")
