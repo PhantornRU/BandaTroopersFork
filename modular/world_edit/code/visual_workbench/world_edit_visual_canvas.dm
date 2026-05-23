@@ -105,7 +105,7 @@ GLOBAL_VAR(world_edit_visual_canvas_origin)
 				// case fall back to less predictable z acquisition.
 				if(istype(O, /obj/effect/landmark/world_edit_visual_canvas_origin))
 					continue
-				qdel(O)
+				world_edit_safe_qdel(O)
 			if(T.type != /turf/open/floor)
 				T.ChangeTurf(/turf/open/floor)
 

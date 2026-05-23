@@ -140,7 +140,7 @@ GLOBAL_DATUM_INIT(world_edit_changesets, /datum/world_edit_changeset_service, ne
 					skipped_count++
 					continue
 
-				qdel(target)
+				world_edit_safe_qdel(target)
 				reverted_count++
 
 			for(var/list/entry as anything in changeset.changed_turf_entries)
@@ -230,7 +230,7 @@ GLOBAL_DATUM_INIT(world_edit_changesets, /datum/world_edit_changeset_service, ne
 			skipped_count++
 			continue
 
-		qdel(effect_atom)
+		world_edit_safe_qdel(effect_atom)
 		removed_count++
 
 	var/outcome = "none"
