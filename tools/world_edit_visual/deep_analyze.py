@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Deep analysis of semantic.json for point_colony."""
 import json
 
-d = json.load(open('data/world_edit_visual/out/building_living_point_colony/semantic.json','r',encoding='utf-8-sig'))
+d = json.load(open('tools/world_edit_visual/out/building_living_point_colony/semantic.json','r',encoding='utf-8-sig'))
 tiles = d['tiles']
 
 walls = [t for t in tiles if t['flags'].get('wall')]

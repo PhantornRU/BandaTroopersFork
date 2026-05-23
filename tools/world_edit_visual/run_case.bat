@@ -6,4 +6,4 @@ if "%CASE_FILE%"=="" (
 )
 
 py -3 tools\world_edit_visual\prepare_cases.py "%CASE_FILE%"
-echo Case prepared in data\world_edit_visual. Ensure DreamDaemon is running with World Edit Visual Workbench enabled.
+echo Case prepared in tools\world_edit_visual. Ensure DreamDaemon is running with World Edit Visual Workbench enabled.

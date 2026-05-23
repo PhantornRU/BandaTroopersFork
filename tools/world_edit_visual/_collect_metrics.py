@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Collect key metrics from all report.json files into a CSV table."""
 import json, os, sys
 
-BASE = "data/world_edit_visual/out"
+BASE = "tools/world_edit_visual/out"
 cases = sorted(os.listdir(BASE))
 
 HEADERS = [

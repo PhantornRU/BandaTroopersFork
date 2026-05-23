@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 
-OUT_DIR = Path("data/world_edit_visual/out")
+OUT_DIR = Path("tools/world_edit_visual/out")
 
 
 class SemanticRenderWatcher:

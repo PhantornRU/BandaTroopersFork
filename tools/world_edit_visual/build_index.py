@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 
-OUT_DIR = Path("data/world_edit_visual/out")
+OUT_DIR = Path("tools/world_edit_visual/out")
 INDEX = Path("tools/world_edit_visual/index.md")
 
 
@@ -16,7 +16,7 @@ class WorkbenchIndexBuilder:
 
     The index is generated output, not source. Links are written relative to the
     index file because the sheet lives in `tools/world_edit_visual` while the
-    canonical DreamDaemon artifacts live under repo-root `data/world_edit_visual`.
+    canonical DreamDaemon artifacts live under repo-root `tools/world_edit_visual`.
     """
 
     def __init__(self, out_dir: Path = OUT_DIR, index_path: Path = INDEX) -> None:

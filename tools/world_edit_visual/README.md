@@ -1,4 +1,4 @@
-# World Edit Visual Workbench
+﻿# World Edit Visual Workbench
 
 World Edit Visual Workbench is a file-based developer harness for exercising the real World Edit `building_layout` generator in a running DM server. It reads JSON cases from a runtime inbox, applies them on a bounded visual canvas, and writes structured reports plus semantic render data that can be turned into PNG previews.
 
@@ -6,16 +6,16 @@ The workbench does not simulate generation in Python. Python tools only copy cas
 
 ## Runtime Paths
 
-Canonical runtime paths are repo-root paths:
+Canonical runtime paths are local tool paths:
 
-- `data/world_edit_visual/enabled.txt` enables the DM workbench at World Edit modpack initialization.
-- `data/world_edit_visual/inbox/*.json` is the case inbox watched by the running DM runtime.
-- `data/world_edit_visual/out/<case_id>/report.json` is the structured case report.
-- `data/world_edit_visual/out/<case_id>/semantic.json` is the semantic canvas export.
-- `data/world_edit_visual/out/<case_id>/semantic.png` is produced by the Python renderer, not by DM.
-- `data/world_edit_visual/out/<case_id>/external_profile.json` is produced by the watcher after rendering.
+- `tools/world_edit_visual/enabled.txt` enables the DM workbench at World Edit modpack initialization.
+- `tools/world_edit_visual/inbox/*.json` is the case inbox watched by the running DM runtime.
+- `tools/world_edit_visual/out/<case_id>/report.json` is the structured case report.
+- `tools/world_edit_visual/out/<case_id>/semantic.json` is the semantic canvas export.
+- `tools/world_edit_visual/out/<case_id>/semantic.png` is produced by the Python renderer, not by DM.
+- `tools/world_edit_visual/out/<case_id>/external_profile.json` is produced by the watcher after rendering.
 
-Do not treat `tools/world_edit_visual/data/...` as canonical runtime state. The runtime flag and inbox/out directories are under repo-root `data/world_edit_visual`.
+
 
 ## Setup
 
@@ -35,9 +35,9 @@ Run commands from the repository root.
    py -3 tools/world_edit_visual/prepare_cases.py tools/world_edit_visual/cases
    ```
 
-   `prepare_cases.py` creates `data/world_edit_visual/inbox`, `data/world_edit_visual/out`, `data/world_edit_visual/enabled.txt`, and per-case output folders, then copies case JSON files into the inbox.
+   `prepare_cases.py` creates `tools/world_edit_visual/inbox`, `tools/world_edit_visual/out`, `tools/world_edit_visual/enabled.txt`, and per-case output folders, then copies case JSON files into the inbox.
 
-3. Build and start the game runtime normally for this repo. The workbench starts only when `data/world_edit_visual/enabled.txt` exists before world initialization.
+3. Build and start the game runtime normally for this repo. The workbench starts only when `tools/world_edit_visual/enabled.txt` exists before world initialization.
 
 ## Running Cases
 
@@ -53,22 +53,36 @@ Copy all sample cases:
 tools\world_edit_visual\run_all.bat
 ```
 
-The batch files create `data/world_edit_visual/inbox`, `data/world_edit_visual/out`, and `data/world_edit_visual/enabled.txt` if needed, then copy cases into the inbox. They do not start DreamDaemon; keep a compatible DM runtime running separately.
+The batch files create `tools/world_edit_visual/inbox`, `tools/world_edit_visual/out`, and `tools/world_edit_visual/enabled.txt` if needed, then copy cases into the inbox. They do not start DreamDaemon; keep a compatible DM runtime running separately.
 
 The DM workbench polls the inbox and writes one output folder per case id:
 
 ```text
-data/world_edit_visual/out/<case_id>/
+tools/world_edit_visual/out/<case_id>/
   report.json
   semantic.json
 ```
 
 ## Rendering And Index
 
-Render one semantic export:
+You can quickly render a specific case using the provided batch files. They automatically find the JSON exports for a given case ID.
+
+Render a specific case as a PNG (requires Pillow):
 
 ```powershell
-py -3 tools/world_edit_visual/render_semantic.py --semantic-json data/world_edit_visual/out/building_living_rectangle_colony/semantic.json --report-json data/world_edit_visual/out/building_living_rectangle_colony/report.json --out data/world_edit_visual/out/building_living_rectangle_colony/semantic.png
+tools\world_edit_visual\render_case_png.bat building_living_rectangle_colony
+```
+
+Render a specific case directly in the terminal as an ASCII map:
+
+```powershell
+tools\world_edit_visual\render_case_ascii.bat building_living_rectangle_colony
+```
+
+Alternatively, you can manually render one semantic export:
+
+```powershell
+py -3 tools/world_edit_visual/render_semantic.py --semantic-json tools/world_edit_visual/out/building_living_rectangle_colony/semantic.json --report-json tools/world_edit_visual/out/building_living_rectangle_colony/report.json --out tools/world_edit_visual/out/building_living_rectangle_colony/semantic.png
 ```
 
 Watch outputs and render each new `semantic.json` once:
@@ -92,35 +106,31 @@ Source files that should remain reviewable:
 - `tools/world_edit_visual/*.py`
 - `tools/world_edit_visual/*.bat`
 - `tools/world_edit_visual/cases/*.json`
-- `tools/world_edit_visual/inbox/.gitkeep`
-- `tools/world_edit_visual/out/.gitkeep`
 - `tools/world_edit_visual/.gitignore`
 - this `README.md`
 
 Runtime files that are generated locally and should not be committed:
 
-- `data/world_edit_visual/enabled.txt`
-- `data/world_edit_visual/inbox/*.json`
-- `data/world_edit_visual/out/<case_id>/report.json`
-- `data/world_edit_visual/out/<case_id>/semantic.json`
-- `data/world_edit_visual/out/<case_id>/semantic.png`
-- `data/world_edit_visual/out/<case_id>/progress.json`
+- `tools/world_edit_visual/enabled.txt`
+- `tools/world_edit_visual/inbox/*.json`
+- `tools/world_edit_visual/out/<case_id>/report.json`
+- `tools/world_edit_visual/out/<case_id>/semantic.json`
+- `tools/world_edit_visual/out/<case_id>/semantic.png`
+- `tools/world_edit_visual/out/<case_id>/progress.json`
 - `tools/world_edit_visual/index.md`
 - `tools/world_edit_visual/__pycache__/`
-- accidental `tools/world_edit_visual/data/...` mirrors
 
-Why this split exists:
+Why this generated data lives here:
 
-- `data/world_edit_visual` is runtime state for DreamDaemon. It records the last local run, not stable source.
+- `tools/world_edit_visual/inbox` and `tools/world_edit_visual/out` are runtime states for DreamDaemon. They record the last local run, not stable source.
 - `tools/world_edit_visual/index.md` is a review sheet generated from runtime reports. Rebuild it with `py -3 tools/world_edit_visual/build_index.py` when needed.
-- `tools/world_edit_visual/inbox` and `tools/world_edit_visual/out` are only placeholder folders for convenience. The real DM runtime does not read from them.
-- `tools/world_edit_visual/data` is never canonical; if it appears, it is a local mistake or experiment and can be deleted.
 
 Safe cleanup command for Workbench-only generated files:
 
 ```powershell
-Remove-Item -Recurse -Force data/world_edit_visual -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force tools/world_edit_visual/data -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force tools/world_edit_visual/inbox -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force tools/world_edit_visual/out -ErrorAction SilentlyContinue
+Remove-Item -Force tools/world_edit_visual/enabled.txt -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force tools/world_edit_visual/__pycache__ -ErrorAction SilentlyContinue
 Remove-Item -Force tools/world_edit_visual/index.md -ErrorAction SilentlyContinue
 ```
@@ -243,8 +253,8 @@ The Workbench intentionally does not hide generator failures. It records them as
 
 No output appears:
 
-- Confirm the game runtime was started after `data/world_edit_visual/enabled.txt` was created.
-- Confirm cases were copied to `data/world_edit_visual/inbox`, not `tools/world_edit_visual/data/...`.
+- Confirm the game runtime was started after `tools/world_edit_visual/enabled.txt` was created.
+- Confirm cases were copied to `tools/world_edit_visual/inbox`.
 - Check that the case file has a `.json` suffix and a valid `id`.
 
 The report says `unsupported_visual_generator`:

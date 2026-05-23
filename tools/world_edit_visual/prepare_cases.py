@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 
-RUNTIME_ROOT = Path("data/world_edit_visual")
+RUNTIME_ROOT = Path("tools/world_edit_visual")
 SAFE_ID = re.compile(r"[^A-Za-z0-9_.-]+")
 
 

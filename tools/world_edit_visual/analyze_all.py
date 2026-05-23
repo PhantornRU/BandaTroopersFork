@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Quick analysis of all generated cases."""
 import json, os, sys
 
-BASE = "data/world_edit_visual/out"
+BASE = "tools/world_edit_visual/out"
 cases = sorted(os.listdir(BASE))
 
 def safe_get(m, key, default="?"):

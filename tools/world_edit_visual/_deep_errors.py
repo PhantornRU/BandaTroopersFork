@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Deep-dive into error cases: extract candidate report metrics."""
 import json, os
 
-BASE = "data/world_edit_visual/out"
+BASE = "tools/world_edit_visual/out"
 
 for case in sorted(os.listdir(BASE)):
     rp = os.path.join(BASE, case, "report.json")
