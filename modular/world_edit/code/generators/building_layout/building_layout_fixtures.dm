@@ -53,6 +53,7 @@
 		return FALSE
 	if(!length(cluster_spec.macro_id))
 		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
+	var/has_template_path = building_cluster_has_template_chunk(cluster_spec)
 	var/placed = 0
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
@@ -65,10 +66,22 @@
 	if(effective_minimum > 0 && already_placed >= effective_minimum)
 		return TRUE
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
-	if(length(cluster_spec.macro_id))
+	if(has_template_path)
 		template_placed = place_building_template_chunk_for_cluster(state, cluster_spec, major)
 		if(template_placed >= effective_minimum)
 			return TRUE
+		if(cluster_spec.required)
+			if(effective_minimum > 0 || target_count > 0)
+				state.forbidden_fallback_count++
+				state.add_warning("Template-first placement failed for required cluster '[cluster_spec.id]' with macro '[cluster_spec.macro_id]'.")
+			return FALSE
+		if(!cluster_spec.allow_single_object_fallback)
+			return FALSE
+	else if(!cluster_spec.allow_single_object_fallback)
+		if(cluster_spec.required)
+			state.forbidden_fallback_count++
+			state.add_warning("Required cluster '[cluster_spec.id]' lacks a macro and allow_single_object_fallback is not set.")
+		return FALSE
 	switch(cluster_spec.pattern)
 		if("signature_workshop_wall", "signature_rack_aisles", "signature_hydro_rows", "signature_cook_line", "signature_bed_rows", "signature_treatment_bay", "signature_office_suite", "signature_security_counter", "signature_living_nook", "signature_engineering_bay", "signature_lab_bench")
 			placed = place_building_signature_cluster(state, cluster_spec, target_count)
@@ -91,8 +104,18 @@
 				if(unit_placed <= 0)
 					break
 				placed += unit_placed
-	placed += template_placed
+	if(!has_template_path)
+		placed += template_placed
 	return placed > 0
+
+/datum/world_edit_generator/building_layout/proc/building_cluster_has_template_chunk(datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(cluster_spec))
+		return FALSE
+	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
+	if(!length(macro_id))
+		return FALSE
+	var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
+	return istype(chunk) && length(chunk.cells)
 
 /datum/world_edit_generator/building_layout/proc/get_building_macro_id_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec))
@@ -134,7 +157,27 @@
 			if(cluster_spec.category in list("rack", "cabinet", "bed"))
 				return "[cluster_spec.category]_run_chunk"
 		if("wall_object")
+			switch(cluster_spec.category)
+				if("cabinet", "medical_storage", "seed_storage", "sample_storage", "cold_storage")
+					return "wall_cabinet_chunk"
+				if("rack", "weapon_rack")
+					return "wall_rack_chunk"
+				if("console")
+					return "wall_console_chunk"
+				if("sanitation")
+					return "wall_toilet_chunk"
+				if("kitchen_machine")
+					return "wall_sink_chunk"
+				if("medical_bed")
+					return "clinic_bed_chunk"
 			return "wall_fixture_chunk"
+		if("table_cluster")
+			return "island_table_chunk"
+		if("object", "paired_object")
+			if(cluster_spec.category == "table")
+				return "island_table_chunk"
+			if(cluster_spec.category == "bed")
+				return "island_bed_chunk"
 	return ""
 
 /datum/world_edit_generator/building_layout/proc/inherit_building_cluster_count_context(datum/world_edit_building_cluster_spec/child_spec, datum/world_edit_building_cluster_spec/parent_spec)
@@ -207,6 +250,24 @@
 				candidate_lookup[anchor_turf] = TRUE
 	return candidates
 
+/datum/world_edit_generator/building_layout/proc/is_building_infrastructure_category(category)
+	return "[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch")
+
+/datum/world_edit_generator/building_layout/proc/is_building_compact_or_micro_state(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return FALSE
+	var/degrade_level = "[state.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE]"
+	return GLOB.world_edit_helpers.parse_bool(state.config["program_shedding"]) || degrade_level in list(WORLD_EDIT_BUILDING_DEGRADE_COMPACT, WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+
+/datum/world_edit_generator/building_layout/proc/can_building_cluster_use_broad_fallback_anchors(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(cluster_spec) || !cluster_spec.required)
+		return TRUE
+	if(is_building_infrastructure_category(cluster_spec.category))
+		return TRUE
+	if(is_building_compact_or_micro_state(state))
+		return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/add_building_fallback_anchor_id(list/anchor_ids, list/anchor_lookup, anchor_id)
 	if(!islist(anchor_ids) || !islist(anchor_lookup) || !length("[anchor_id]"))
 		return
@@ -223,6 +284,9 @@
 		for(var/anchor_id as anything in original_anchor_ids)
 			add_building_fallback_anchor_id(fallback_anchor_ids, fallback_lookup, anchor_id)
 	if(!istype(state) || !istype(cluster_spec))
+		return fallback_anchor_ids
+
+	if(!can_building_cluster_use_broad_fallback_anchors(state, cluster_spec))
 		return fallback_anchor_ids
 
 	add_building_fallback_anchor_id(fallback_anchor_ids, fallback_lookup, state.semantic_plan?.primary_zone_id)
@@ -299,6 +363,8 @@
 			continue
 		if(!fixture_turf_matches_anchor(state, floor_turf, anchor_ids))
 			continue
+		if(!building_fixture_matches_semantic_zone_contract(state, floor_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
+			continue
 		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
 		if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
 			continue
@@ -358,7 +424,7 @@
 				template_candidates -= anchor_turf
 				var/datum/world_edit_building_place_rule/template_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 				var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-				var/list/place_context = build_building_fixture_place_context(state, anchor_turf, template_rule, fallback_dir, cluster_spec.wall_required || template_rule.needs_wall)
+				var/list/place_context = build_building_fixture_place_context(state, anchor_turf, template_rule, fallback_dir, cluster_spec.wall_required || template_rule.needs_wall, cluster_spec, anchor_ids)
 				if(!islist(place_context))
 					continue
 				var/dir_to_use = place_context["dir"] || fallback_dir
@@ -402,6 +468,8 @@
 			if(effective_needs_wall && !length(get_adjacent_wall_dirs_for_state(state, candidate_turf)))
 				continue
 			if(!fixture_turf_matches_anchor(state, candidate_turf, anchor_ids))
+				continue
+			if(!building_fixture_matches_semantic_zone_contract(state, candidate_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 				continue
 			var/fallback_dir = get_cardinal_dir_toward(candidate_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
 			if(!fixture_turf_satisfies_place_rule(state, candidate_turf, place_rule, fallback_dir, effective_needs_wall))
@@ -591,12 +659,12 @@
 	if(!istype(table_turf))
 		return 0
 	var/fallback_dir = get_cardinal_dir_toward(table_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-	var/list/table_context = build_building_fixture_place_context(state, table_turf, table_rule, fallback_dir, cluster_spec.wall_required)
+	var/list/table_context = build_building_fixture_place_context(state, table_turf, table_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(table_context))
 		return 0
 	var/dir_to_use = table_context["dir"] || fallback_dir
 	var/wall_dir = table_context["wall_dir"]
-	if(!place_fixture_at(state, table_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, table_rule, wall_dir, cluster_spec))
+	if(!place_fixture_at(state, table_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, table_rule, wall_dir, cluster_spec, null, null, table_context["dir_source"]))
 		return 0
 	var/placed_primary = 1
 	var/placed_chairs = 0
@@ -610,7 +678,7 @@
 		var/chair_dir = get_cardinal_dir_toward(chair_turf, table_turf, SOUTH)
 		if(!building_place_rule_allows_turf(state, chair_turf, chair_rule, chair_dir, null))
 			continue
-		if(place_fixture_at(state, chair_turf, "chair", chair_dir, "chair", FALSE, FALSE, chair_rule, null, cluster_spec))
+		if(place_fixture_at(state, chair_turf, "chair", chair_dir, "chair", FALSE, FALSE, chair_rule, null, cluster_spec, null, null, "table_pair"))
 			placed_chairs++
 	return placed_primary
 
@@ -626,12 +694,12 @@
 		if(!istype(start_turf))
 			break
 		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, start_turf, place_rule, fallback_dir, cluster_spec.wall_required)
+		var/list/place_context = build_building_fixture_place_context(state, start_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			break
 		var/wall_dir = place_context["wall_dir"]
 		var/dir_to_use = place_context["dir"] || fallback_dir
-		if(!place_fixture_at(state, start_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major" && placed <= 0, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+		if(!place_fixture_at(state, start_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major" && placed <= 0, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, place_context["dir_source"]))
 			break
 		placed++
 		var/list/run_dirs = get_fixture_run_dirs(state, wall_dir)
@@ -640,6 +708,64 @@
 				break
 			placed = extend_fixture_run(state, start_turf, run_dir, cluster_spec, dir_to_use, wall_dir, place_rule, placed, target_count)
 	return placed
+
+/datum/world_edit_generator/building_layout/proc/add_building_fixture_semantic_zone_id(datum/world_edit_building_layout_state/state, list/zone_ids, list/zone_lookup, zone_id)
+	if(!istype(state) || !islist(zone_ids) || !islist(zone_lookup) || !length("[zone_id]"))
+		return
+	var/zone_key = "[zone_id]"
+	if(zone_lookup[zone_key])
+		return
+	if(!istype(state.semantic_plan))
+		return
+	var/datum/world_edit_building_zone_spec/zone_spec = state.semantic_plan.get_zone_spec(zone_key)
+	if(!istype(zone_spec))
+		return
+	zone_ids += zone_key
+	zone_lookup[zone_key] = TRUE
+
+/datum/world_edit_generator/building_layout/proc/get_building_fixture_semantic_zone_ids(datum/world_edit_building_layout_state/state, slot, category, datum/world_edit_building_cluster_spec/cluster_spec = null)
+	var/list/zone_ids = list()
+	var/list/zone_lookup = list()
+	if(!istype(state) || !istype(state.semantic_plan))
+		return zone_ids
+	if(istype(cluster_spec) && islist(cluster_spec.anchors))
+		for(var/anchor_id as anything in cluster_spec.anchors)
+			add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, anchor_id)
+	var/slot_text = lowertext("[slot]")
+	var/category_text = lowertext("[category]")
+	if(slot_text in list("bed", "sleeper") || category_text in list("bed", "medical_bed") || (istype(cluster_spec) && findtext(lowertext(cluster_spec.id), "sleep")))
+		add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, "sleep_privacy")
+	if(slot_text in list("toilet", "sink") || category_text == "sanitation" || (istype(cluster_spec) && findtext(lowertext(cluster_spec.id), "sanitation")))
+		add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, "sanitation")
+	if(slot_text in list("table", "chair") || category_text in list("table", "chair"))
+		add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, "common")
+	if(category_text in list("rack", "cabinet", "medical_storage", "seed_storage", "sample_storage", "cold_storage"))
+		add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, "storage_service")
+	return zone_ids
+
+/datum/world_edit_generator/building_layout/proc/building_fixture_matches_semantic_zone_contract(datum/world_edit_building_layout_state/state, turf/target_turf, slot, category, datum/world_edit_building_cluster_spec/cluster_spec = null)
+	if(!istype(state) || !istype(target_turf))
+		return FALSE
+	if(!istype(cluster_spec) || !cluster_spec.required)
+		return TRUE
+	if(is_building_infrastructure_category(category))
+		return TRUE
+	if(is_building_compact_or_micro_state(state))
+		return TRUE
+	var/list/zone_ids = get_building_fixture_semantic_zone_ids(state, slot, category, cluster_spec)
+	if(!length(zone_ids))
+		return TRUE
+	var/zone_id = state.get_zone(target_turf)
+	return zone_id in zone_ids
+
+/datum/world_edit_generator/building_layout/proc/get_building_fixture_anchor_id_for_turf(datum/world_edit_building_layout_state/state, turf/target_turf, list/anchor_ids)
+	if(!istype(state) || !istype(target_turf) || !islist(anchor_ids))
+		return ""
+	var/zone_id = state.get_zone(target_turf)
+	for(var/anchor_id as anything in anchor_ids)
+		if(state.has_anchor(anchor_id, target_turf) || zone_id == "[anchor_id]")
+			return "[anchor_id]"
+	return zone_id
 
 /datum/world_edit_generator/building_layout/proc/fixture_turf_matches_anchor(datum/world_edit_building_layout_state/state, turf/target_turf, list/anchor_ids)
 	if(!istype(state) || !istype(target_turf))
@@ -669,12 +795,12 @@
 	if(!istype(primary_turf))
 		return 0
 	var/fallback_dir = get_cardinal_dir_toward(primary_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-	var/list/place_context = build_building_fixture_place_context(state, primary_turf, place_rule, fallback_dir, cluster_spec.wall_required)
+	var/list/place_context = build_building_fixture_place_context(state, primary_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, primary_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+	if(!place_fixture_at(state, primary_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, place_context["dir_source"]))
 		return 0
 	var/placed = 1
 	var/target_count = clamp(cluster_spec.max_count, 2, 2)
@@ -699,7 +825,7 @@
 				best_pair_score = pair_score
 		if(!istype(best_pair_turf))
 			break
-		if(!place_fixture_at(state, best_pair_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+		if(!place_fixture_at(state, best_pair_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, "paired_run"))
 			break
 		placed++
 	return placed
@@ -733,7 +859,7 @@
 			break
 		if(!building_place_rule_allows_turf(state, current_turf, place_rule, dir_to_use, wall_dir))
 			break
-		if(!place_fixture_at(state, current_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+		if(!place_fixture_at(state, current_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, FALSE, cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, "run_extend"))
 			break
 		placed++
 	return placed
@@ -746,12 +872,12 @@
 	if(!istype(target_turf))
 		return 0
 	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, TRUE)
+	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, TRUE, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", TRUE, place_rule, wall_dir, cluster_spec))
+	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", TRUE, place_rule, wall_dir, cluster_spec, null, null, place_context["dir_source"]))
 		return 0
 	return 1
 
@@ -763,12 +889,12 @@
 	if(!istype(target_turf))
 		return 0
 	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, cluster_spec.wall_required)
+	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
 	var/wall_dir = place_context["wall_dir"]
 	var/dir_to_use = place_context["dir"] || fallback_dir
-	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+	if(!place_fixture_at(state, target_turf, cluster_spec.slot, dir_to_use, cluster_spec.category, cluster_spec.phase == "major", cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, place_context["dir_source"]))
 		return 0
 	return 1
 
@@ -790,6 +916,8 @@
 			if(effective_needs_wall && !length(get_adjacent_wall_dirs_for_state(state, floor_turf)))
 				continue
 			if(!fixture_turf_matches_anchor(state, floor_turf, effective_anchor_ids))
+				continue
+			if(!building_fixture_matches_semantic_zone_contract(state, floor_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 				continue
 			var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
 			if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
@@ -857,7 +985,7 @@
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null)
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null)
 	if(!state.can_place_fixture(target_turf))
 		return FALSE
 	var/reservation_owner = state.get_semantic_slot_owner(target_turf)
@@ -868,6 +996,8 @@
 		return FALSE
 	if(!istype(place_rule))
 		place_rule = resolve_building_place_rule(slot, category)
+	if(!building_fixture_matches_semantic_zone_contract(state, target_turf, slot, category, cluster_spec))
+		return FALSE
 	if(wall_mounted && isnull(wall_dir))
 		var/list/wall_dirs = get_adjacent_wall_dirs_for_state(state, target_turf)
 		for(var/check_wall_dir as anything in wall_dirs)
@@ -909,6 +1039,13 @@
 	object_placement["functional"] = provider.functional ? TRUE : FALSE
 	object_placement["category"] = "[category]"
 	object_placement["major"] = major ? TRUE : FALSE
+	object_placement["zone_id"] = state.get_zone(target_turf)
+	object_placement["anchor_id"] = istype(cluster_spec) ? get_building_fixture_anchor_id_for_turf(state, target_turf, cluster_spec.anchors) : object_placement["zone_id"]
+	object_placement["dir_label"] = GLOB.world_edit_helpers.dir_to_label(dir_to_use)
+	object_placement["dir_source"] = length("[dir_source]") ? "[dir_source]" : (wall_mounted ? "wall_context" : "fallback_face")
+	object_placement["dir_mode"] = place_rule.dir_mode
+	object_placement["front_dir"] = get_building_place_rule_front_dir(dir_to_use, wall_dir, place_rule)
+	object_placement["front_dir_label"] = GLOB.world_edit_helpers.dir_to_label(object_placement["front_dir"])
 	if(length("[template_chunk_id]"))
 		object_placement["template_chunk_id"] = "[template_chunk_id]"
 		object_placement["template_chunk_instance_id"] = length("[template_chunk_instance_id]") ? "[template_chunk_instance_id]" : "[template_chunk_id]@[target_turf.x],[target_turf.y],[target_turf.z]"
@@ -921,6 +1058,7 @@
 		var/count_credit = get_building_fixture_count_credit(cluster_spec, slot, category)
 		object_placement["cluster_id"] = count_cluster_id
 		object_placement["requirement_id"] = requirement_id
+		object_placement["semantic_requirement_id"] = requirement_id
 		object_placement["requirement_count_credit"] = count_credit
 		if(count_cluster_id != cluster_spec.id)
 			object_placement["cluster_source_id"] = cluster_spec.id
@@ -934,6 +1072,7 @@
 	if(wall_mounted)
 		object_placement["wall_mounted"] = TRUE
 		object_placement["wall_dir"] = wall_dir
+		object_placement["wall_dir_label"] = GLOB.world_edit_helpers.dir_to_label(wall_dir)
 		object_placement["dir_mode"] = place_rule.dir_mode
 	state.object_placements += list(object_placement)
 	state.register_fixture(target_turf, category, major, wall_mounted)

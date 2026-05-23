@@ -245,7 +245,7 @@
 	return list(
 		"ok" = TRUE,
 		"metadata" = plan.metadata.Copy(),
-		"rooms" = plan.metadata["room_reports"] || list(),
+		"rooms" = length(plan.metadata["room_reports"]) ? plan.metadata["room_reports"] : (plan.metadata["room_contract_report"] || list()),
 		"routes" = plan.metadata["corridor_report"] ? list(plan.metadata["corridor_report"]) : list(),
 		"placement_count" = length(plan.placements),
 	)

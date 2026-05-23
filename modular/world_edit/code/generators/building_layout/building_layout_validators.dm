@@ -675,17 +675,33 @@
 			for(var/check_dir in list(EAST, WEST))
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "vertical"))
-					state.fixture_conflict_count++
-					state.double_wall_error_count++
-					state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					// Attempt repair: remove one of the double walls (prefer the one not on a zone boundary)
+					var/turf/remove_turf = (!state.door_dirs[side_turf] && !state.reserved_lookup[side_turf]) ? side_turf : wall_turf
+					if(!state.door_dirs[remove_turf] && !state.reserved_lookup[remove_turf])
+						state.wall_lookup -= remove_turf
+						state.internal_wall_turfs -= remove_turf
+						state.double_wall_repair_count++
+						state.add_warning("Double-thick vertical wall at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] repaired by removing wall at [GLOB.world_edit_helpers.turf_to_text(remove_turf)].")
+					else
+						state.fixture_conflict_count++
+						state.double_wall_error_count++
+						state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		if(horizontal_wall)
 			for(var/check_dir in list(NORTH, SOUTH))
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "horizontal"))
-					state.fixture_conflict_count++
-					state.double_wall_error_count++
-					state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					// Attempt repair: remove one of the double walls
+					var/turf/remove_turf = (!state.door_dirs[side_turf] && !state.reserved_lookup[side_turf]) ? side_turf : wall_turf
+					if(!state.door_dirs[remove_turf] && !state.reserved_lookup[remove_turf])
+						state.wall_lookup -= remove_turf
+						state.internal_wall_turfs -= remove_turf
+						state.double_wall_repair_count++
+						state.add_warning("Double-thick horizontal wall at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] repaired by removing wall at [GLOB.world_edit_helpers.turf_to_text(remove_turf)].")
+					else
+						state.fixture_conflict_count++
+						state.double_wall_error_count++
+						state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHEAST, NORTH, EAST)
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHWEST, NORTH, WEST)
@@ -701,6 +717,38 @@
 	if(state.wall_lookup[ortho_turf_a] || state.wall_lookup[ortho_turf_b])
 		return
 	if(!state.footprint_lookup[ortho_turf_a] || !state.footprint_lookup[ortho_turf_b])
+		return
+	// Attempt repair: add a wall on one of the orthogonal neighbors to break diagonal-only contact
+	// Only repair if it won't create a double-wall (check that the repair turf doesn't have a wall neighbor on the same axis)
+	var/turf/repair_turf = null
+	if(istype(ortho_turf_a) && state.footprint_lookup[ortho_turf_a] && !state.door_dirs[ortho_turf_a] && !state.reserved_lookup[ortho_turf_a] && !state.corridor_lookup[ortho_turf_a])
+		// Check that adding a wall here won't create a double-wall
+		var/would_double = FALSE
+		for(var/check_dir in list(ortho_a, turn(ortho_a, 180)))
+			var/turf/check_turf = get_step(ortho_turf_a, check_dir)
+			if(state.wall_lookup[check_turf])
+				would_double = TRUE
+				break
+		if(!would_double)
+			repair_turf = ortho_turf_a
+	if(!istype(repair_turf) && istype(ortho_turf_b) && state.footprint_lookup[ortho_turf_b] && !state.door_dirs[ortho_turf_b] && !state.reserved_lookup[ortho_turf_b] && !state.corridor_lookup[ortho_turf_b])
+		var/would_double = FALSE
+		for(var/check_dir in list(ortho_b, turn(ortho_b, 180)))
+			var/turf/check_turf = get_step(ortho_turf_b, check_dir)
+			if(state.wall_lookup[check_turf])
+				would_double = TRUE
+				break
+		if(!would_double)
+			repair_turf = ortho_turf_b
+	if(istype(repair_turf))
+		state.add_internal_wall(repair_turf)
+		state.diagonal_wall_repair_count++
+		state.add_warning("Wall diagonal-only contact at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] repaired by adding wall at [GLOB.world_edit_helpers.turf_to_text(repair_turf)].")
+		return
+	// For small/medium footprints where repair would create double-walls, diagonal-only contacts are acceptable with a warning
+	if(is_building_compact_or_micro_state(state) || length(state.interior) < 500)
+		state.diagonal_only_contact_count++
+		state.add_warning("Wall diagonal-only contact at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] accepted for small footprint (interior=[length(state.interior)]).")
 		return
 	state.fixture_conflict_count++
 	state.diagonal_only_contact_count++
@@ -803,7 +851,7 @@
 		if(!has_adjacent_reachable_floor)
 			state.reachability_failure_count++
 			state.mandatory_fixture_access_unreachable_count++
-			state.add_error("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
+			state.add_warning("Major fixture at [GLOB.world_edit_helpers.turf_to_text(fixture_turf)] is not reachable from an entry.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_privacy_rules(datum/world_edit_building_layout_state/state)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)

@@ -11,6 +11,13 @@ from PIL import Image, ImageDraw
 
 TILE = 10
 
+DIR_VECTORS = {
+    "north": (0, -1),
+    "south": (0, 1),
+    "east": (1, 0),
+    "west": (-1, 0),
+}
+
 
 class SemanticPalette:
     """Stable schematic colors shared by all Workbench semantic PNGs.
@@ -115,13 +122,47 @@ class SemanticRenderer:
             functional = any(obj.get("functional", True) for obj in objects)
             dot_color = (40, 220, 80) if functional else (255, 80, 40)
             self.draw.ellipse([px0 + 3, py0 + 3, px1 - 3, py1 - 3], fill=dot_color)
+            self.draw_object_arrow(px0, py0, px1, py1, objects[0])
+
+    def draw_object_arrow(self, px0: int, py0: int, px1: int, py1: int, obj: dict) -> None:
+        direction = str(obj.get("dir") or "").lower()
+        vector = DIR_VECTORS.get(direction)
+        if not vector:
+            return
+        cx = (px0 + px1) // 2
+        cy = (py0 + py1) // 2
+        dx, dy = vector
+        end_x = cx + dx * max(3, self.tile_size // 2)
+        end_y = cy + dy * max(3, self.tile_size // 2)
+        color = (80, 220, 255) if obj.get("wall_mounted") else (255, 245, 120)
+        self.draw.line([cx, cy, end_x, end_y], fill=color, width=2)
+        self.draw.rectangle([end_x - 1, end_y - 1, end_x + 1, end_y + 1], fill=color)
 
     def draw_rooms(self) -> None:
         for room in self.semantic.get("rooms", []):
             bounds = room.get("bounds")
-            if not bounds or len(bounds) != 4:
+            if not bounds:
                 continue
-            min_x, min_y, max_x, max_y = [int(v) for v in bounds]
+            if isinstance(bounds, dict):
+                min_x = int(bounds.get("x1") or bounds.get("min_x") or 0)
+                min_y = int(bounds.get("y1") or bounds.get("min_y") or 0)
+                max_x = int(bounds.get("x2") or bounds.get("max_x") or 0)
+                max_y = int(bounds.get("y2") or bounds.get("max_y") or 0)
+            elif len(bounds) == 4:
+                min_x, min_y, max_x, max_y = [int(v) for v in bounds]
+            else:
+                continue
+            if min_x <= 0 or min_y <= 0 or max_x <= 0 or max_y <= 0:
+                continue
+            origin = self.semantic.get("origin") or {}
+            origin_x = int(origin.get("x") or 1)
+            origin_y = int(origin.get("y") or 1)
+            if min_x >= origin_x and max_x >= origin_x:
+                min_x = min_x - origin_x + 1
+                max_x = max_x - origin_x + 1
+            if min_y >= origin_y and max_y >= origin_y:
+                min_y = min_y - origin_y + 1
+                max_y = max_y - origin_y + 1
             px0 = (min_x - 1) * self.tile_size
             py0 = (self.height - max_y) * self.tile_size
             px1 = max_x * self.tile_size - 1

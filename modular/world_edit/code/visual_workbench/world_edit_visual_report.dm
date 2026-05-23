@@ -128,6 +128,8 @@
 			"semantic_credit_without_emitted_slots_count",
 			"mandatory_pattern_failure_count",
 			"post_emit_validation_error_count",
+			"counter_wrong_facing_count",
+			"direction_fallback_count",
 			"forbidden_fallback_count",
 			"raw_category_credit_count",
 			"scatter_signature_credit_count",

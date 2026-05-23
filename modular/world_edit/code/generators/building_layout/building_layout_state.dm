@@ -129,7 +129,9 @@
 	var/reserved_walk_blocked_count = 0
 	var/door_cone_blocked_count = 0
 	var/double_wall_error_count = 0
+	var/double_wall_repair_count = 0
 	var/diagonal_only_contact_count = 0
+	var/diagonal_wall_repair_count = 0
 	var/cutout_violation_count = 0
 	var/unsupported_shape_silent_fallback_count = 0
 	var/style_required_slot_missing_count = 0
@@ -532,7 +534,9 @@
 	reserved_walk_blocked_count = 0
 	door_cone_blocked_count = 0
 	double_wall_error_count = 0
+	double_wall_repair_count = 0
 	diagonal_only_contact_count = 0
+	diagonal_wall_repair_count = 0
 	raw_category_credit_count = 0
 	scatter_signature_credit_count = 0
 	semantic_credit_without_emitted_slots_count = 0

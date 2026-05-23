@@ -146,6 +146,92 @@
 	chunk.add_cell(0, 0, "fire_alarm", "fire_alarm", TRUE)
 	register_building_template_chunk(template_catalog, chunk)
 
+	chunk = new /datum/world_edit_building_template_chunk("wall_fixture_chunk", "wall_object")
+	chunk.add_cell(0, 0, "extinguisher", "wall_object", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("wall_cabinet_chunk", "storage")
+	chunk.add_cell(0, 0, "cabinet", "cabinet", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("wall_rack_chunk", "storage")
+	chunk.add_cell(0, 0, "rack", "rack", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("wall_console_chunk", "console")
+	chunk.add_cell(0, 0, "console", "console", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("wall_toilet_chunk", "sanitation")
+	chunk.add_cell(0, 0, "toilet", "sanitation", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("wall_sink_chunk", "sanitation")
+	chunk.add_cell(0, 0, "sink", "kitchen_machine", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("clinic_bed_chunk", "medbay")
+	chunk.add_cell(0, 0, "sleeper", "medical_bed", FALSE)
+	chunk.add_cell(0, 1, "wall_monitor", "console", TRUE, FALSE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("comms_console_chunk", "office")
+	chunk.add_cell(0, 0, "console", "console", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("island_table_chunk", "common")
+	chunk.add_cell(0, 0, "table", "table", FALSE)
+	chunk.add_cell(1, 0, "table", "table", FALSE)
+	chunk.add_cell(0, 1, "chair", "chair", FALSE, FALSE)
+	chunk.add_cell(1, 1, "chair", "chair", FALSE, FALSE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("island_bed_chunk", "sleep")
+	chunk.add_cell(0, 0, "bed", "bed", FALSE)
+	chunk.add_cell(1, 0, "bed", "bed", FALSE)
+	chunk.add_cell(0, 1, "cabinet", "cabinet", FALSE, FALSE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("office_private_storage_chunk", "storage")
+	chunk.add_cell(0, 0, "rack", "rack", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("office_records_terminal_chunk", "console")
+	chunk.add_cell(0, 0, "console", "console", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("holding_cell_chunk", "sleep")
+	chunk.add_cell(0, 0, "bed", "bed", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("armory_rack_chunk", "storage")
+	chunk.add_cell(0, 0, "weapon_rack", "weapon_rack", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("evidence_storage_chunk", "storage")
+	chunk.add_cell(0, 0, "cabinet", "cabinet", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("surgery_bed_chunk", "medbay")
+	chunk.add_cell(0, 0, "medical_bed", "medical_bed", FALSE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("cryo_sleeper_chunk", "medbay")
+	chunk.add_cell(0, 0, "sleeper", "medical_bed", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("chem_storage_chunk", "medbay")
+	chunk.add_cell(0, 0, "water_tank", "water_or_chem", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("morgue_storage_chunk", "medbay")
+	chunk.add_cell(0, 0, "medical_storage", "medical_storage", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("command_console_chunk", "office")
+	chunk.add_cell(0, 0, "console", "console", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
 	return template_catalog
 
 /datum/world_edit_generator/building_layout/proc/get_building_template_chunk(template_chunk_id)
@@ -180,6 +266,8 @@
 			return FALSE
 		if(!state.can_place_fixture(cell_turf) || planned_lookup[cell_turf])
 			return FALSE
+		if(!building_fixture_matches_semantic_zone_contract(state, cell_turf, cell.slot, cell.category, cluster_spec))
+			return FALSE
 		var/list/cell_context = resolve_template_cell_context(state, cell_turf, cell, dir_to_use, wall_dir, cluster_spec)
 		if(!islist(cell_context))
 			return FALSE
@@ -204,7 +292,7 @@
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 		var/effective_needs_wall = cluster_spec.wall_required || place_rule.needs_wall
 		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall)
+		var/list/place_context = build_building_fixture_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids)
 		if(!islist(place_context))
 			continue
 		if(!can_place_building_template_chunk_at(state, cluster_spec, chunk, floor_turf, place_context["dir"] || fallback_dir, place_context["wall_dir"]))
@@ -234,16 +322,20 @@
 	var/needs_wall = cell.wall_required || cluster_spec.wall_required || place_rule.needs_wall
 	var/cell_wall_dir = wall_dir
 	if(needs_wall && (isnull(cell_wall_dir) || !state.wall_lookup[get_step(cell_turf, cell_wall_dir)]))
-		cell_wall_dir = null
-		for(var/check_wall_dir as anything in get_adjacent_wall_dirs_for_state(state, cell_turf))
-			cell_wall_dir = check_wall_dir
-			break
+		var/list/wall_context = build_building_fixture_wall_context(state, cell_turf, place_rule, cluster_spec, cluster_spec?.anchors)
+		if(!islist(wall_context))
+			cell_wall_dir = null
+		else
+			cell_wall_dir = wall_context["wall_dir"]
+			var/context_dir = wall_context["dir"]
+			if(building_place_rule_allows_turf(state, cell_turf, place_rule, context_dir, cell_wall_dir))
+				return list("rule" = place_rule, "dir" = context_dir, "wall_dir" = cell_wall_dir, "wall_mounted" = TRUE, "dir_source" = wall_context["dir_source"])
 	if(needs_wall && isnull(cell_wall_dir))
 		return null
 	var/cell_dir = !isnull(cell_wall_dir) ? resolve_building_place_rule_dir(cell_wall_dir, place_rule.dir_mode) : dir_to_use
 	if(!building_place_rule_allows_turf(state, cell_turf, place_rule, cell_dir, cell_wall_dir))
 		return null
-	return list("rule" = place_rule, "dir" = cell_dir, "wall_dir" = cell_wall_dir, "wall_mounted" = needs_wall)
+	return list("rule" = place_rule, "dir" = cell_dir, "wall_dir" = cell_wall_dir, "wall_mounted" = needs_wall, "dir_source" = needs_wall ? "template_wall" : "template_parent")
 
 /datum/world_edit_generator/building_layout/proc/try_place_building_template_chunk_at(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_template_chunk/chunk, turf/anchor_turf, dir_to_use, wall_dir, major)
 	if(!istype(state) || !istype(cluster_spec) || !istype(chunk) || !istype(anchor_turf))
@@ -260,6 +352,8 @@
 			return 0
 		if(!state.can_place_fixture(cell_turf) || planned_lookup[cell_turf])
 			return 0
+		if(!building_fixture_matches_semantic_zone_contract(state, cell_turf, cell.slot, cell.category, cluster_spec))
+			return 0
 		var/list/cell_context = resolve_template_cell_context(state, cell_turf, cell, dir_to_use, wall_dir, cluster_spec)
 		if(!islist(cell_context))
 			return 0
@@ -275,7 +369,7 @@
 		var/datum/world_edit_building_template_cell/cell = planned["cell"]
 		var/turf/cell_turf = planned["turf"]
 		var/list/context = planned["context"]
-		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id, template_chunk_instance_id))
+		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id, template_chunk_instance_id, context["dir_source"]))
 			for(var/turf/rollback_turf as anything in covered_turfs)
 				state.remove_fixture_at(rollback_turf)
 			return 0
@@ -306,7 +400,7 @@
 		candidates -= anchor_turf
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 		var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, anchor_turf, place_rule, fallback_dir, cluster_spec.wall_required || place_rule.needs_wall)
+		var/list/place_context = build_building_fixture_place_context(state, anchor_turf, place_rule, fallback_dir, cluster_spec.wall_required || place_rule.needs_wall, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			continue
 		var/placed = try_place_building_template_chunk_at(state, cluster_spec, chunk, anchor_turf, place_context["dir"] || fallback_dir, place_context["wall_dir"], major)

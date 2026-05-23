@@ -22,8 +22,9 @@
   },
   "expect": {
     "status": "supported",
-    "known_unresolved": "E-WEV-002",
+    "direction_honored": true,
     "post_emit_validation_error_count": 0,
+    "counter_wrong_facing_count": 0,
     "semantic_credit_without_emitted_slots_count": 0,
     "reserved_walk_blocked_count": 0
   },

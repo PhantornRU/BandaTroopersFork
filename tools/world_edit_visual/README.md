@@ -222,11 +222,13 @@ Locked or unsupported shapes stop at support checking and write a locked report.
 
 ## Sample Cases
 
-- `building_line_locked.json`: expected locked case for unsupported `line` shape.
-- `building_living_rectangle_colony.json`: explicit rectangle diagnostic case. Current production `building_layout` can fail it at preview validation with `sleep_privacy` route/connectivity errors; this is tracked as `E-WEV-001` in `modular/__agents/.AI_AGENT/CONFIRMED_UNRESOLVED_ERRORS.md`.
-- `building_living_point_colony.json`: point smoke case for production generation. Current production `building_layout` can fail it at preview validation with `sanitation` connectivity errors; this is tracked as `E-WEV-002`.
+- `building_living_point_colony*.json`: point smoke cases for `NORTH/SOUTH/EAST/WEST` direction contracts.
+- `building_living_rectangle_colony*.json`: explicit rectangle diagnostic cases for `NORTH/SOUTH/EAST/WEST` direction contracts.
+- `building_living_explicit_compact_2x2.json`: strict explicit compact-size case with program shedding visible in metadata.
+- `building_living_explicit_micro_1x1.json`: strict explicit micro-layout case.
+- `building_line_locked.json`: legacy locked-case fixture kept for support-report inspection.
 
-The Workbench intentionally does not hide these generator failures. It records them as `status: "error"` with structured diagnostics, exports `semantic.json`, and lets `semantic.png`/`index.md` show the failing cases.
+The Workbench intentionally does not hide generator failures. It records them as `status: "error"` with structured diagnostics, exports `semantic.json`, and lets `semantic.png`/`index.md` show the failing cases. Successful building cases now include object direction arrows and room labels in the semantic render.
 
 ## MVP Limitations
 

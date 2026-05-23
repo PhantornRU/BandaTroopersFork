@@ -692,7 +692,6 @@
 	var/shape_text = "[shape_id]"
 	if(!(shape_text in list(
 		WORLD_EDIT_SHAPE_POINT,
-		WORLD_EDIT_SHAPE_LINE,
 		WORLD_EDIT_SHAPE_RECTANGLE,
 		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
 		WORLD_EDIT_SHAPE_CIRCLE,
@@ -702,10 +701,7 @@
 		WORLD_EDIT_SHAPE_TRIANGLE,
 		WORLD_EDIT_SHAPE_SECTOR,
 		WORLD_EDIT_SHAPE_POLYGON,
-		WORLD_EDIT_SHAPE_POLYLINE,
-		WORLD_EDIT_SHAPE_CUSTOM_MASK,
-		WORLD_EDIT_SHAPE_BRUSH_PATH,
-		WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+		WORLD_EDIT_SHAPE_CUSTOM_MASK
 	)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Placement shape '[shape_text]' is not supported by building layout."
@@ -713,6 +709,24 @@
 		result["request_locked"] = TRUE
 		result["locked"] = TRUE
 		result["lock_code"] = "shape.unknown_for_building_layout"
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
+		return result
+
+	// SS220 EDIT: Explicitly lock shapes that are declared in UI but not yet implemented.
+	// Design doc requires UNSUPPORTED_WITH_CLEAR_ERROR, not silent fallback to rectangle.
+	if(shape_text in list(
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_POLYLINE,
+		WORLD_EDIT_SHAPE_BRUSH_PATH,
+		WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+	))
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+		result["reason"] = "Shape '[shape_text]' is not yet implemented for building_layout. Use point or rectangle instead."
+		result["shape_locked"] = TRUE
+		result["request_locked"] = TRUE
+		result["locked"] = TRUE
+		result["lock_code"] = "shape.not_implemented_for_building_layout"
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -2187,11 +2201,13 @@
 		return null
 	return "[placement["x"]],[placement["y"]],[placement["z"]]"
 
-/datum/world_edit_generator/building_layout/proc/has_runtime_object_blocker(turf/target_turf, obj_path = null)
+/datum/world_edit_generator/building_layout/proc/has_runtime_object_blocker(turf/target_turf, obj_path = null, kind = null)
 	if(!istype(target_turf))
 		return TRUE
 	if(target_turf.density && !GLOB.world_edit_blueprints.world_edit_can_place_blueprint_wall_detail(target_turf, obj_path))
 		return TRUE
+	if(kind == "microvariation")
+		return FALSE
 	for(var/atom/movable/blocker as anything in target_turf)
 		if(ismob(blocker))
 			continue
@@ -2309,7 +2325,7 @@
 			skipped_runtime++
 			add_building_runtime_skip_reason(runtime_skip_reasons, "skipped_base_turf:[coord_key]")
 			continue
-		if(has_runtime_object_blocker(target_turf, obj_path))
+		if(has_runtime_object_blocker(target_turf, obj_path, kind))
 			skipped_runtime++
 			add_building_runtime_skip_reason(runtime_skip_reasons, "object_blocked:[coord_key]:[obj_path]")
 			continue

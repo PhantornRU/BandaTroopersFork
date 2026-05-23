@@ -159,12 +159,12 @@
 		var/start_category = categories[min(1, length(categories))]
 		var/datum/world_edit_building_place_rule/start_rule = resolve_building_place_rule(start_slot, start_category)
 		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, start_turf, start_rule, fallback_dir, force_wall || cluster_spec.wall_required)
+		var/list/place_context = build_building_fixture_place_context(state, start_turf, start_rule, fallback_dir, force_wall || cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			break
 		var/wall_dir = place_context["wall_dir"]
 		var/dir_to_use = place_context["dir"] || fallback_dir
-		if(!place_fixture_at(state, start_turf, start_slot, dir_to_use, start_category, cluster_spec.phase == "major" && placed <= 0, force_wall || cluster_spec.wall_required, start_rule, wall_dir, cluster_spec))
+		if(!place_fixture_at(state, start_turf, start_slot, dir_to_use, start_category, cluster_spec.phase == "major" && placed <= 0, force_wall || cluster_spec.wall_required, start_rule, wall_dir, cluster_spec, null, null, place_context["dir_source"]))
 			break
 		placed++
 		var/list/run_dirs = get_fixture_run_dirs(state, wall_dir)
@@ -194,7 +194,7 @@
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
 		if(!building_place_rule_allows_turf(state, current_turf, place_rule, dir_to_use, wall_dir))
 			break
-		if(!place_fixture_at(state, current_turf, slot, dir_to_use, category, FALSE, force_wall || cluster_spec.wall_required, place_rule, wall_dir, cluster_spec))
+		if(!place_fixture_at(state, current_turf, slot, dir_to_use, category, FALSE, force_wall || cluster_spec.wall_required, place_rule, wall_dir, cluster_spec, null, null, "signature_run"))
 			break
 		placed++
 	return placed
@@ -214,10 +214,10 @@
 			continue
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
 		var/fallback_dir = get_cardinal_dir_toward(target_turf, source_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, needs_wall || place_rule.needs_wall)
+		var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, needs_wall || place_rule.needs_wall, cluster_spec, cluster_spec?.anchors)
 		if(!islist(place_context))
 			continue
-		if(place_fixture_at(state, target_turf, slot, place_context["dir"] || fallback_dir, category, FALSE, needs_wall || place_rule.needs_wall, place_rule, place_context["wall_dir"], cluster_spec))
+		if(place_fixture_at(state, target_turf, slot, place_context["dir"] || fallback_dir, category, FALSE, needs_wall || place_rule.needs_wall, place_rule, place_context["wall_dir"], cluster_spec, null, null, place_context["dir_source"]))
 			return TRUE
 	return FALSE
 
@@ -265,10 +265,10 @@
 			continue
 		var/datum/world_edit_building_place_rule/console_rule = resolve_building_place_rule("security_console", "console")
 		var/fallback_dir = get_cardinal_dir_toward(secure_turf, state.front_door_turf || state.center_turf, SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, secure_turf, console_rule, fallback_dir, TRUE)
+		var/list/place_context = build_building_fixture_place_context(state, secure_turf, console_rule, fallback_dir, TRUE, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			continue
-		if(place_fixture_at(state, secure_turf, "security_console", place_context["dir"] || fallback_dir, "console", TRUE, TRUE, console_rule, place_context["wall_dir"], cluster_spec))
+		if(place_fixture_at(state, secure_turf, "security_console", place_context["dir"] || fallback_dir, "console", TRUE, TRUE, console_rule, place_context["wall_dir"], cluster_spec, null, null, place_context["dir_source"]))
 			placed++
 			place_signature_adjacent_fixture(state, secure_turf, "chair", "chair", turn(place_context["dir"] || fallback_dir, 180), FALSE)
 			break

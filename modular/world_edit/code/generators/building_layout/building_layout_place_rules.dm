@@ -169,20 +169,90 @@
 		return FALSE
 	return TRUE
 
-/datum/world_edit_generator/building_layout/proc/build_building_fixture_place_context(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, fallback_dir = SOUTH, force_wall = FALSE)
+/datum/world_edit_generator/building_layout/proc/score_building_fixture_wall_context(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, wall_dir, datum/world_edit_building_cluster_spec/cluster_spec = null, list/anchor_ids = null)
+	if(!istype(state) || !istype(target_turf) || !istype(place_rule) || !(wall_dir in GLOB.cardinals))
+		return null
+	var/dir_to_use = resolve_building_place_rule_dir(wall_dir, place_rule.dir_mode)
+	if(!building_place_rule_allows_turf(state, target_turf, place_rule, dir_to_use, wall_dir))
+		return null
+	var/front_dir = get_building_place_rule_front_dir(dir_to_use, wall_dir, place_rule)
+	var/turf/front_turf = front_dir ? get_step(target_turf, front_dir) : null
+	var/score = 1000 + place_rule.priority_bonus
+	if(building_place_rule_clearance_turf_is_open(state, front_turf))
+		score += 220
+	else
+		score -= 260
+	if(state.reserved_lookup[target_turf] || state.has_anchor("primary_lane", target_turf))
+		score -= 650
+	if(istype(front_turf) && (state.reserved_lookup[front_turf] || state.has_anchor("primary_lane", front_turf)))
+		score -= 260
+	var/zone_id = state.get_zone(target_turf)
+	if(islist(anchor_ids))
+		for(var/anchor_id as anything in anchor_ids)
+			if(state.has_anchor(anchor_id, target_turf) || zone_id == "[anchor_id]")
+				score += 140
+	if(istype(cluster_spec))
+		score += cluster_spec.priority
+		if(zone_id in cluster_spec.anchors)
+			score += 180
+		if(cluster_turf_is_preflight_planned(state, cluster_spec, target_turf))
+			score += 5000
+		if(state.get_semantic_slot_owner(target_turf) == get_building_cluster_requirement_id(cluster_spec))
+			score += 3000
+	var/side_clearance = 0
+	for(var/side_dir as anything in list(turn(front_dir, 90), turn(front_dir, -90)))
+		if(building_place_rule_clearance_turf_is_open(state, get_step(target_turf, side_dir)))
+			side_clearance++
+	score += side_clearance * 45
+	if(istype(state.semantic_hub_turf))
+		score -= abs(target_turf.x - state.semantic_hub_turf.x) + abs(target_turf.y - state.semantic_hub_turf.y)
+	return list(
+		"score" = score,
+		"dir" = dir_to_use,
+		"wall_dir" = wall_dir,
+		"front_dir" = front_dir,
+		"dir_mode" = place_rule.dir_mode,
+		"dir_source" = "scored_wall",
+	)
+
+/datum/world_edit_generator/building_layout/proc/build_building_fixture_wall_context(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, datum/world_edit_building_cluster_spec/cluster_spec = null, list/anchor_ids = null)
 	if(!istype(state) || !istype(target_turf))
 		return null
 	if(!istype(place_rule))
 		place_rule = resolve_building_place_rule(null, null)
-	var/list/wall_dirs = get_adjacent_wall_dirs_for_state(state, target_turf)
-	for(var/wall_dir as anything in wall_dirs)
-		var/dir_to_use = resolve_building_place_rule_dir(wall_dir, place_rule.dir_mode)
-		if(building_place_rule_allows_turf(state, target_turf, place_rule, dir_to_use, wall_dir))
-			return list("dir" = dir_to_use, "wall_dir" = wall_dir)
+	var/list/best_context = null
+	var/best_score = -999999999
+	for(var/wall_dir as anything in get_adjacent_wall_dirs_for_state(state, target_turf))
+		var/list/context = score_building_fixture_wall_context(state, target_turf, place_rule, wall_dir, cluster_spec, anchor_ids)
+		if(!islist(context))
+			continue
+		var/context_score = round(text2num("[context["score"]]") || 0)
+		if(!islist(best_context) || context_score > best_score)
+			best_context = context
+			best_score = context_score
+	return best_context
+
+/datum/world_edit_generator/building_layout/proc/build_building_fixture_place_context(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, fallback_dir = null, force_wall = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null, list/anchor_ids = null)
+	if(!istype(state) || !istype(target_turf))
+		return null
+	if(!istype(place_rule))
+		place_rule = resolve_building_place_rule(null, null)
+	var/list/wall_context = build_building_fixture_wall_context(state, target_turf, place_rule, cluster_spec, anchor_ids)
+	if(islist(wall_context))
+		return wall_context
 	if(force_wall || place_rule.needs_wall)
 		return null
+	if(isnull(fallback_dir))
+		fallback_dir = state.placement_dir || NORTH
 	if(building_place_rule_allows_turf(state, target_turf, place_rule, fallback_dir, null))
-		return list("dir" = fallback_dir, "wall_dir" = null)
+		return list(
+			"dir" = fallback_dir,
+			"wall_dir" = null,
+			"front_dir" = fallback_dir,
+			"dir_mode" = place_rule.dir_mode,
+			"dir_source" = "fallback_face",
+			"score" = 0,
+		)
 	return null
 
 /datum/world_edit_generator/building_layout/proc/fixture_turf_satisfies_place_rule(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, fallback_dir = SOUTH, force_wall = FALSE)

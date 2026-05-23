@@ -50,7 +50,7 @@
 	)
 	return shape_contract
 
-/datum/unit_test/world_edit_building_layout/proc/build_point_context(datum/world_edit_shape_contract/shape_contract, turf/anchor_turf)
+/datum/unit_test/world_edit_building_layout/proc/build_point_context(datum/world_edit_shape_contract/shape_contract, turf/anchor_turf, direction = NORTH)
 	var/list/shape_metadata = istype(shape_contract) ? shape_contract.copy_metadata() : list()
 	var/list/anchor_turfs = istype(shape_contract) ? shape_contract.copy_anchor_turfs() : list()
 	if(!length(anchor_turfs))
@@ -67,7 +67,7 @@
 		"seed_turf" = anchor_turf,
 		"requested_end_turf" = anchor_turf,
 		"resolved_end_turf" = anchor_turf,
-		"direction" = NORTH,
+		"direction" = direction,
 	)
 
 /datum/unit_test/world_edit_building_layout/proc/build_living_point_state(list/params)
@@ -81,13 +81,24 @@
 	var/datum/world_edit_building_request/candidate_request = generator.build_building_candidate_request(base_request, "RECT", 1)
 	return generator.build_building_layout_candidate_state(candidate_request, shape_contract, islist(params) ? params : list(), placement_context)
 
-/datum/unit_test/world_edit_building_layout/proc/build_living_point_plan(list/params)
+/datum/unit_test/world_edit_building_layout/proc/build_living_point_plan(list/params, direction = NORTH)
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Building layout test could not resolve an anchor turf.")
 	prepare_building_test_canvas(anchor_turf)
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/datum/world_edit_shape_contract/shape_contract = build_point_shape_contract(anchor_turf)
-	return generator.build_plan_from_shape_contract(null, shape_contract, islist(params) ? params : list(), build_point_context(shape_contract, anchor_turf))
+	return generator.build_plan_from_shape_contract(null, shape_contract, islist(params) ? params : list(), build_point_context(shape_contract, anchor_turf, direction))
+
+/datum/unit_test/world_edit_building_layout/proc/get_plan_placement_turf(list/placement)
+	if(!islist(placement))
+		return null
+	var/turf/placement_turf = placement["turf"]
+	if(istype(placement_turf))
+		return placement_turf
+	var/x = round(text2num("[placement["x"]]") || 0)
+	var/y = round(text2num("[placement["y"]]") || 0)
+	var/z = round(text2num("[placement["z"]]") || 0)
+	return locate(x, y, z)
 
 /datum/unit_test/world_edit_building_layout/proc/has_error_containing(datum/world_edit_building_layout_state/state, needle)
 	for(var/error_text as anything in state.errors)
@@ -107,6 +118,138 @@
 	TEST_ASSERT(!plan.metadata["error"], "[plan.metadata["error"]]")
 	TEST_ASSERT_EQUAL(plan.metadata["post_emit_validation_error_count"] || 0, 0, "Default living preview should pass post-emit validation.")
 	TEST_ASSERT_EQUAL(plan.metadata["reachability_failure_count"] || 0, 0, "Default living preview should have no route-touch failures.")
+
+/datum/unit_test/world_edit_building_layout/direction_matrix/Run()
+	for(var/requested_dir as anything in list(NORTH, SOUTH, EAST, WEST))
+		var/datum/world_edit_plan/plan = build_living_point_plan(list(
+			"archetype_id" = "living",
+			"faction_preset" = "colony",
+			"building_seed" = 11,
+			"detail_budget" = 40,
+			"replace_blocked_turfs" = TRUE,
+			"respect_blockers" = FALSE,
+		), requested_dir)
+		TEST_ASSERT_NOTNULL(plan, "Direction [requested_dir] did not create a plan.")
+		TEST_ASSERT(!plan.metadata["error"], "Direction [requested_dir] failed: [plan.metadata["error"]]")
+		TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["requested_direction"]]") || 0), requested_dir, "Requested direction was not recorded.")
+		TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["direction_honored"]), "Front door did not honor requested direction [requested_dir].")
+		TEST_ASSERT_EQUAL(plan.metadata["post_emit_validation_error_count"] || 0, 0, "Direction [requested_dir] failed post-emit validation.")
+
+/datum/unit_test/world_edit_building_layout/wall_fixture_direction_contract/Run()
+	var/datum/world_edit_plan/plan = build_living_point_plan(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"building_seed" = 12,
+		"detail_budget" = 60,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	))
+	TEST_ASSERT_NOTNULL(plan, "Wall fixture contract plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Wall fixture contract plan failed: [plan.metadata["error"]]")
+	var/list/wall_lookup = list()
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement) || "[placement["kind"]]" != "wall")
+			continue
+		var/turf/wall_turf = get_plan_placement_turf(placement)
+		if(istype(wall_turf))
+			wall_lookup[wall_turf] = TRUE
+	var/wall_fixture_count = 0
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior" || !GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
+			continue
+		wall_fixture_count++
+		var/turf/target_turf = get_plan_placement_turf(placement)
+		var/wall_dir = round(text2num("[placement["wall_dir"]]") || 0)
+		var/dir_to_use = round(text2num("[placement["dir"]]") || 0)
+		var/dir_mode = round(text2num("[placement["dir_mode"]]") || 0)
+		TEST_ASSERT(wall_dir in GLOB.cardinals, "Wall fixture [placement["slot"]] has invalid wall_dir.")
+		TEST_ASSERT(wall_lookup[get_step(target_turf, wall_dir)], "Wall fixture [placement["slot"]] has no adjacent wall at wall_dir.")
+		if(dir_mode == 1)
+			TEST_ASSERT_EQUAL(dir_to_use, wall_dir, "Attached-wall fixture [placement["slot"]] does not face the attached wall.")
+		if(dir_mode == 2)
+			TEST_ASSERT_EQUAL(dir_to_use, turn(wall_dir, 180), "Front-face fixture [placement["slot"]] does not face away from the wall.")
+		TEST_ASSERT(length("[placement["dir_source"]]"), "Wall fixture [placement["slot"]] did not record dir_source.")
+	TEST_ASSERT(wall_fixture_count > 0, "No wall fixtures were emitted for the direction contract test.")
+
+/datum/unit_test/world_edit_building_layout/living_semantic_object_contract/Run()
+	var/datum/world_edit_plan/plan = null
+	for(var/seed_value in 13 to 24)
+		var/datum/world_edit_plan/candidate_plan = build_living_point_plan(list(
+			"archetype_id" = "living",
+			"faction_preset" = "colony",
+			"building_seed" = seed_value,
+			"detail_budget" = 70,
+			"replace_blocked_turfs" = TRUE,
+			"respect_blockers" = FALSE,
+		))
+		if(!istype(candidate_plan) || candidate_plan.metadata["error"])
+			continue
+		var/candidate_bed_seen = FALSE
+		var/candidate_table_seen = FALSE
+		var/candidate_toilet_seen = FALSE
+		for(var/list/candidate_placement as anything in candidate_plan.placements)
+			if(!islist(candidate_placement) || "[candidate_placement["kind"]]" != "interior")
+				continue
+			var/candidate_slot = "[candidate_placement["requested_slot"] || candidate_placement["slot"]]"
+			var/candidate_category = "[candidate_placement["category"]]"
+			if(candidate_slot == "bed")
+				candidate_bed_seen = TRUE
+			if(candidate_slot == "table" && candidate_category == "table")
+				candidate_table_seen = TRUE
+			if(candidate_slot == "toilet" || candidate_category == "sanitation")
+				candidate_toilet_seen = TRUE
+		if(candidate_bed_seen && candidate_table_seen && candidate_toilet_seen)
+			plan = candidate_plan
+			break
+	TEST_ASSERT_NOTNULL(plan, "Living semantic object contract plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Living semantic object contract failed: [plan.metadata["error"]]")
+	var/bed_seen = FALSE
+	var/table_seen = FALSE
+	var/toilet_seen = FALSE
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		var/slot = "[placement["requested_slot"] || placement["slot"]]"
+		var/category = "[placement["category"]]"
+		var/zone_id = "[placement["zone_id"]]"
+		var/requirement_id = "[placement["semantic_requirement_id"] || placement["requirement_id"]]"
+		if(slot == "bed")
+			bed_seen = TRUE
+			TEST_ASSERT_EQUAL(zone_id, "sleep_privacy", "Bed was emitted outside sleep_privacy.")
+		if(slot == "cabinet" && findtext(requirement_id, "sleep"))
+			TEST_ASSERT_EQUAL(zone_id, "sleep_privacy", "Sleep cabinet was emitted outside sleep_privacy.")
+		if(slot == "toilet" || category == "sanitation")
+			toilet_seen = TRUE
+			TEST_ASSERT_EQUAL(zone_id, "sanitation", "Sanitation fixture was emitted outside sanitation.")
+		if(slot == "sink" && findtext(requirement_id, "sanitation"))
+			TEST_ASSERT_EQUAL(zone_id, "sanitation", "Sanitation sink was emitted outside sanitation.")
+		if(slot == "table" && category == "table")
+			table_seen = TRUE
+			TEST_ASSERT_EQUAL(zone_id, "common", "Living table was emitted outside common.")
+		if(slot == "chair" && category == "chair" && findtext(requirement_id, "common"))
+			TEST_ASSERT_EQUAL(zone_id, "common", "Living chair was emitted outside common.")
+	TEST_ASSERT(bed_seen, "Living layout did not emit a bed.")
+	TEST_ASSERT(table_seen, "Living layout did not emit a common table.")
+	TEST_ASSERT(toilet_seen, "Living layout did not emit a sanitation fixture.")
+
+/datum/unit_test/world_edit_building_layout/full_layout_no_required_fallback_credit/Run()
+	var/datum/world_edit_plan/plan = build_living_point_plan(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"building_seed" = 14,
+		"detail_budget" = 70,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	))
+	TEST_ASSERT_NOTNULL(plan, "Full layout fallback-credit contract plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Full layout fallback-credit contract failed: [plan.metadata["error"]]")
+	var/degrade_level = "[plan.metadata["size_degrade_level"]]"
+	if(!length(degrade_level))
+		degrade_level = "none"
+	TEST_ASSERT_EQUAL(degrade_level, "none", "Full layout unexpectedly degraded.")
+	TEST_ASSERT_EQUAL(plan.metadata["fallback_anchor_required_cluster_count"] || 0, 0, "Full layout used required-cluster fallback anchors.")
+	TEST_ASSERT_EQUAL(plan.metadata["raw_category_credit_count"] || 0, 0, "Full layout used raw category semantic credit.")
+	TEST_ASSERT_EQUAL(plan.metadata["semantic_credit_without_emitted_slots_count"] || 0, 0, "Full layout credited semantic slots without emitted objects.")
 
 /datum/unit_test/world_edit_building_layout/living_sanitation_connected/Run()
 	var/datum/world_edit_building_layout_state/state = build_living_point_state(list(

@@ -259,8 +259,9 @@
 	var/semantic_credit = ""
 	var/failure_severity = "required"
 	var/acceptance_counter = ""
+	var/allow_single_object_fallback = FALSE
 
-/datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null)
+/datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null, _allow_single_object_fallback = FALSE)
 	. = ..()
 	id = "[_id]"
 	phase = "[_phase]"
@@ -279,6 +280,7 @@
 	macro_id = length("[_macro_id]") ? "[_macro_id]" : ""
 	semantic_credit = id
 	acceptance_counter = "[id]_count"
+	allow_single_object_fallback = _allow_single_object_fallback ? TRUE : FALSE
 
 /datum/world_edit_building_cluster_spec/proc/clone()
 	var/datum/world_edit_building_cluster_spec/copy = new /datum/world_edit_building_cluster_spec(
@@ -295,7 +297,8 @@
 		priority,
 		required,
 		optional_zone_id,
-		macro_id
+		macro_id,
+		allow_single_object_fallback
 	)
 	copy.signature_id = signature_id
 	copy.signature_weight = signature_weight
@@ -649,13 +652,13 @@
 	nested_room_specs += nested_room_spec
 	return nested_room_spec
 
-/datum/world_edit_building_archetype/proc/add_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, required = TRUE, optional_zone_id = null, macro_id = null)
-	var/datum/world_edit_building_cluster_spec/cluster_spec = new(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id)
+/datum/world_edit_building_archetype/proc/add_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, required = TRUE, optional_zone_id = null, macro_id = null, allow_single_object_fallback = FALSE)
+	var/datum/world_edit_building_cluster_spec/cluster_spec = new(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id, allow_single_object_fallback)
 	cluster_specs += cluster_spec
 	return cluster_spec
 
-/datum/world_edit_building_archetype/proc/add_signature_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, signature_id = null, signature_weight = 20, required = TRUE, optional_zone_id = null, macro_id = null)
-	var/datum/world_edit_building_cluster_spec/cluster_spec = add_cluster(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id)
+/datum/world_edit_building_archetype/proc/add_signature_cluster(id, phase, pattern, slot, category, list/anchors, min_count = 1, max_count = 1, wall_required = FALSE, chair_count = 0, priority = 50, signature_id = null, signature_weight = 20, required = TRUE, optional_zone_id = null, macro_id = null, allow_single_object_fallback = FALSE)
+	var/datum/world_edit_building_cluster_spec/cluster_spec = add_cluster(id, phase, pattern, slot, category, anchors, min_count, max_count, wall_required, chair_count, priority, required, optional_zone_id, macro_id, allow_single_object_fallback)
 	cluster_spec.signature_id = length("[signature_id]") ? "[signature_id]" : "[id]"
 	cluster_spec.signature_weight = max(round(text2num("[signature_weight]") || 0), 0)
 	cluster_spec.signature_required = required ? TRUE : FALSE
@@ -800,11 +803,11 @@
 	add_adjacency("common", "storage_service")
 	add_adjacency("common", "sanitation")
 	add_nested_room("common", "sleep_privacy", 7, 7, 1)
-	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35)
-	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90, "common_table", 20)
-	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 1, 2, TRUE, 0, 80, "personal_storage", 20)
-	add_signature_cluster("sanitation_toilet", "major", "wall_object", "toilet", "sanitation", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 75, "sanitation_fixture", 12)
-	add_signature_cluster("sanitation_sink", "major", "wall_object", "sink", "kitchen_machine", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 70, "sanitation_sink", 8)
+	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35, TRUE, null, null, TRUE)
+	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 1, FALSE, 2, 90, "common_table", 20, TRUE, null, null, TRUE)
+	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 1, 2, TRUE, 0, 80, "personal_storage", 20, TRUE, null, null, TRUE)
+	add_signature_cluster("sanitation_toilet", "major", "wall_object", "toilet", "sanitation", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 75, "sanitation_fixture", 12, TRUE, null, null, TRUE)
+	add_signature_cluster("sanitation_sink", "major", "wall_object", "sink", "kitchen_machine", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 70, "sanitation_sink", 8, TRUE, null, null, TRUE)
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus"), 1, 1, FALSE, 1, 50, FALSE)
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common"), 1, 1, FALSE, 0, 40, FALSE)
 	object_budgets = list("bed" = 2, "table" = 3, "chair" = 5, "cabinet" = 3, "rack" = 2, "sanitation" = 1, "kitchen_machine" = 1)

@@ -1,23 +1,22 @@
 {
-  "id": "building_living_rectangle_colony",
+  "id": "building_living_point_colony_south",
   "generator": "building_layout",
-  "seed": 1001,
+  "seed": 3,
   "canvas": {
     "preset": "blank_96",
     "width": 96,
     "height": 96
   },
   "shape": {
-    "id": "rectangle",
+    "id": "point",
     "anchors": [
-      { "x": 20, "y": 20 },
-      { "x": 43, "y": 39 }
+      { "x": 48, "y": 48 }
     ]
   },
   "config": {
     "program": "living",
     "faction_preset": "colony",
-    "direction": "east",
+    "direction": "south",
     "respect_blockers": false,
     "replace_blocked_turfs": true
   },

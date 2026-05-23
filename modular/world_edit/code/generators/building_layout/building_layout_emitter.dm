@@ -35,6 +35,116 @@
 		total += round(text2num("[counts[anchor_id]]") || 0)
 	return total
 
+/datum/world_edit_generator/building_layout/proc/build_building_room_contract_report(datum/world_edit_building_layout_state/state)
+	var/list/report = list()
+	if(!istype(state) || !istype(state.semantic_plan))
+		return report
+	for(var/datum/world_edit_building_room/room as anything in state.solved_rooms)
+		if(!istype(room))
+			continue
+		var/datum/world_edit_building_zone_spec/zone_spec = state.semantic_plan.get_zone_spec(room.zone_id)
+		var/list/region_specs = get_room_first_region_specs_for_zone(state, room.zone_id)
+		var/best_region_id = ""
+		var/best_overlap = 0
+		var/best_priority = -999999999
+		for(var/datum/world_edit_building_region_spec/region_spec as anything in region_specs)
+			if(!istype(region_spec))
+				continue
+			var/overlap = 0
+			for(var/turf/room_turf as anything in room.turfs)
+				if(istype(room_turf) && region_spec_contains_turf(state, region_spec, room_turf))
+					overlap++
+			if(overlap > best_overlap || (overlap == best_overlap && region_spec.priority > best_priority))
+				best_region_id = region_spec.id
+				best_overlap = overlap
+				best_priority = region_spec.priority
+		report += list(list(
+			"id" = room.id,
+			"zone_id" = room.zone_id,
+			"role" = room.role,
+			"required" = istype(zone_spec) && zone_spec.required ? TRUE : FALSE,
+			"divider_mode" = istype(zone_spec) ? zone_spec.divider_mode : "",
+			"area" = room.area,
+			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
+			"route_access" = building_room_touches_circulation(state, room) ? TRUE : FALSE,
+			"region_match_id" = best_region_id,
+			"region_match_area" = best_overlap,
+			"region_contract_ok" = !length(region_specs) || best_overlap > 0 || is_building_compact_or_micro_state(state),
+		))
+	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_object_contract_report(datum/world_edit_building_layout_state/state)
+	var/list/report = list()
+	if(!istype(state))
+		return report
+	for(var/list/object_placement as anything in state.object_placements)
+		if(!islist(object_placement))
+			continue
+		report += list(list(
+			"slot" = object_placement["requested_slot"] || object_placement["slot"],
+			"category" = object_placement["category"],
+			"zone_id" = object_placement["zone_id"],
+			"anchor_id" = object_placement["anchor_id"],
+			"cluster_id" = object_placement["cluster_id"],
+			"semantic_requirement_id" = object_placement["semantic_requirement_id"] || object_placement["requirement_id"],
+			"dir" = object_placement["dir"],
+			"dir_label" = object_placement["dir_label"],
+			"dir_source" = object_placement["dir_source"],
+			"dir_mode" = object_placement["dir_mode"],
+			"wall_dir" = object_placement["wall_dir"],
+			"wall_dir_label" = object_placement["wall_dir_label"],
+			"wall_mounted" = object_placement["wall_mounted"] ? TRUE : FALSE,
+			"provider_id" = object_placement["fixture_provider_id"],
+			"functional" = isnull(object_placement["functional"]) ? TRUE : (object_placement["functional"] ? TRUE : FALSE),
+			"infrastructure" = object_placement["infrastructure"] ? TRUE : FALSE,
+		))
+	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_dir_contract_report(datum/world_edit_building_layout_state/state)
+	var/list/report = list()
+	if(!istype(state))
+		return report
+	var/list/doors = list()
+	for(var/list/door_report as anything in state.door_reports)
+		if(!islist(door_report))
+			continue
+		var/turf/door_turf = door_report["turf"]
+		var/door_dir = door_report["dir"] || (istype(door_turf) ? state.door_dirs[door_turf] : null)
+		doors += list(list(
+			"kind" = door_report["kind"],
+			"zone_id" = door_report["zone_id"],
+			"x" = istype(door_turf) ? door_turf.x : null,
+			"y" = istype(door_turf) ? door_turf.y : null,
+			"dir" = door_dir,
+			"dir_label" = GLOB.world_edit_helpers.dir_to_label(door_dir),
+		))
+	var/list/wall_fixtures = list()
+	for(var/list/object_placement as anything in state.object_placements)
+		if(!islist(object_placement) || !GLOB.world_edit_helpers.parse_bool(object_placement["wall_mounted"]))
+			continue
+		wall_fixtures += list(list(
+			"slot" = object_placement["requested_slot"] || object_placement["slot"],
+			"zone_id" = object_placement["zone_id"],
+			"dir" = object_placement["dir"],
+			"dir_label" = object_placement["dir_label"],
+			"wall_dir" = object_placement["wall_dir"],
+			"wall_dir_label" = object_placement["wall_dir_label"],
+			"front_dir" = object_placement["front_dir"],
+			"front_dir_label" = object_placement["front_dir_label"],
+			"dir_mode" = object_placement["dir_mode"],
+			"dir_source" = object_placement["dir_source"],
+		))
+	report["requested_direction"] = state.requested_direction
+	report["requested_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.requested_direction)
+	report["actual_entry_direction"] = state.actual_entry_direction
+	report["actual_entry_direction_label"] = GLOB.world_edit_helpers.dir_to_label(state.actual_entry_direction)
+	report["direction_honored"] = state.actual_entry_direction == state.requested_direction
+	report["direction_fallback_count"] = state.direction_fallback_count
+	report["direction_fallback_reason"] = state.direction_fallback_reason
+	report["doors"] = doors
+	report["wall_fixtures"] = wall_fixtures
+	return report
+
 /datum/world_edit_generator/building_layout/proc/add_building_emitted_requirement_count(list/emitted_requirement_counts, requirement_id, amount = 1)
 	if(!islist(emitted_requirement_counts) || !length("[requirement_id]"))
 		return
@@ -357,6 +467,9 @@
 	plan.metadata["door_report_count"] = length(state.door_reports)
 	plan.metadata["pattern_reports"] = detailed_reports ? state.pattern_reports.Copy() : list()
 	plan.metadata["pattern_report_count"] = length(state.pattern_reports)
+	plan.metadata["room_contract_report"] = build_building_room_contract_report(state)
+	plan.metadata["object_contract_report"] = build_building_object_contract_report(state)
+	plan.metadata["dir_contract_report"] = build_building_dir_contract_report(state)
 	plan.metadata["infrastructure_report"] = detailed_reports ? state.infrastructure_report.Copy() : list()
 	plan.metadata["fallback_audit"] = detailed_reports ? state.fallback_audit.Copy() : list()
 	plan.metadata["old_path_audit"] = detailed_reports ? state.old_path_audit.Copy() : list()

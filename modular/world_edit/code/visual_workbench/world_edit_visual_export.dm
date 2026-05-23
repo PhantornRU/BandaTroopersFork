@@ -87,6 +87,15 @@
 		out["slot"] = meta["requested_slot"] || meta["slot"]
 		out["provider_id"] = meta["fixture_provider_id"]
 		out["functional"] = isnull(meta["functional"]) ? TRUE : (meta["functional"] ? TRUE : FALSE)
+		out["category"] = meta["category"]
+		out["zone_id"] = meta["zone_id"]
+		out["anchor_id"] = meta["anchor_id"]
+		out["semantic_requirement_id"] = meta["semantic_requirement_id"] || meta["requirement_id"]
+		out["dir_source"] = meta["dir_source"]
+		out["dir_mode"] = meta["dir_mode"]
+		out["wall_dir"] = meta["wall_dir_label"] || (isnull(meta["wall_dir"]) ? null : GLOB.world_edit_helpers.dir_to_label(meta["wall_dir"]))
+		out["front_dir"] = meta["front_dir_label"] || (isnull(meta["front_dir"]) ? null : GLOB.world_edit_helpers.dir_to_label(meta["front_dir"]))
+		out["wall_mounted"] = meta["wall_mounted"] ? TRUE : FALSE
 	return out
 
 /datum/world_edit_visual_case/proc/lookup_object_placement_metadata(obj/O)
@@ -141,6 +150,8 @@
 /datum/world_edit_visual_case/proc/build_semantic_rooms()
 	var/list/rooms = list()
 	var/list/raw_rooms = last_plan?.metadata?["room_reports"]
+	if(!length(raw_rooms))
+		raw_rooms = last_plan?.metadata?["room_contract_report"]
 	if(islist(raw_rooms))
 		for(var/list/room as anything in raw_rooms)
 			if(islist(room))

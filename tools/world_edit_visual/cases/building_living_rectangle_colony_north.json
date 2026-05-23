@@ -1,7 +1,7 @@
 {
-  "id": "building_living_rectangle_colony",
+  "id": "building_living_rectangle_colony_north",
   "generator": "building_layout",
-  "seed": 1001,
+  "seed": 1002,
   "canvas": {
     "preset": "blank_96",
     "width": 96,
@@ -17,7 +17,7 @@
   "config": {
     "program": "living",
     "faction_preset": "colony",
-    "direction": "east",
+    "direction": "north",
     "respect_blockers": false,
     "replace_blocked_turfs": true
   },
