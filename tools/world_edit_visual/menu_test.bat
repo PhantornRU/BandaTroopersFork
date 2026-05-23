@@ -6,7 +6,6 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0\..\.."
 
 :main_menu
-cls
 echo ========================================================
 echo World Edit Visual Workbench - Главное меню
 echo ========================================================
@@ -28,19 +27,16 @@ if "%action%"=="4" goto exit_script
 goto main_menu
 
 :do_run_all
-cls
 call tools\world_edit_visual\bin\run_all.bat
 pause
 goto main_menu
 
 :do_render_all_png
-cls
 call tools\world_edit_visual\bin\render_all_png.bat
 pause
 goto main_menu
 
 :select_case
-cls
 echo ========================================================
 echo Выберите кейс:
 echo ========================================================
@@ -68,7 +64,6 @@ if "%selected_file%"=="" (
 )
 
 :case_action
-cls
 echo ========================================================
 echo Выбран кейс: %selected_file%
 echo ========================================================

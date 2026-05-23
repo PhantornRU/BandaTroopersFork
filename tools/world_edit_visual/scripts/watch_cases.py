@@ -55,7 +55,7 @@ class SemanticRenderWatcher:
         start = time.perf_counter()
         cmd = [
             sys.executable,
-            "tools/world_edit_visual/render_semantic.py",
+            "tools/world_edit_visual/scripts/render_semantic.py",
             "--semantic-json",
             str(semantic),
             "--out",
@@ -64,6 +64,18 @@ class SemanticRenderWatcher:
         if report.exists():
             cmd.extend(["--report-json", str(report)])
         subprocess.run(cmd, check=True)
+        
+        sprites_png = case_dir / "semantic_sprites.png"
+        cmd_sprites = [
+            sys.executable,
+            "tools/world_edit_visual/scripts/render_sprites.py",
+            "--semantic-json",
+            str(semantic),
+            "--output",
+            str(sprites_png),
+        ]
+        subprocess.run(cmd_sprites, check=True)
+
         duration_ms = int((time.perf_counter() - start) * 1000)
         (case_dir / "external_profile.json").write_text(
             json.dumps({"semantic_render_ms": duration_ms}, ensure_ascii=False, indent=2),

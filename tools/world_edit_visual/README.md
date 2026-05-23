@@ -13,6 +13,7 @@ Canonical runtime paths are local tool paths:
 - `tools/world_edit_visual/out/<case_id>/report.json` is the structured case report.
 - `tools/world_edit_visual/out/<case_id>/semantic.json` is the semantic canvas export.
 - `tools/world_edit_visual/out/<case_id>/semantic.png` is produced by the Python renderer, not by DM.
+- `tools/world_edit_visual/out/<case_id>/semantic_sprites.png` is produced by the Python sprite renderer for a tile-based layout view.
 - `tools/world_edit_visual/out/<case_id>/external_profile.json` is produced by the watcher after rendering.
 
 
@@ -32,7 +33,7 @@ Run commands from the repository root.
 2. Create runtime directories and enable the workbench:
 
    ```powershell
-   py -3 tools/world_edit_visual/prepare_cases.py tools/world_edit_visual/cases
+   py -3 tools/world_edit_visual/scripts/prepare_cases.py tools/world_edit_visual/cases
    ```
 
    `prepare_cases.py` creates `tools/world_edit_visual/inbox`, `tools/world_edit_visual/out`, `tools/world_edit_visual/enabled.txt`, and per-case output folders, then copies case JSON files into the inbox.
@@ -44,13 +45,13 @@ Run commands from the repository root.
 Copy one sample case to the inbox:
 
 ```powershell
-tools\world_edit_visual\run_case.bat tools\world_edit_visual\cases\building_living_rectangle_colony.json
+tools\world_edit_visual\bin\run_case.bat tools\world_edit_visual\cases\building_living_rectangle_colony.json
 ```
 
 Copy all sample cases:
 
 ```powershell
-tools\world_edit_visual\run_all.bat
+tools\world_edit_visual\bin\run_all.bat
 ```
 
 The batch files create `tools/world_edit_visual/inbox`, `tools/world_edit_visual/out`, and `tools/world_edit_visual/enabled.txt` if needed, then copy cases into the inbox. They do not start DreamDaemon; keep a compatible DM runtime running separately.
@@ -70,31 +71,37 @@ You can quickly render a specific case using the provided batch files. They auto
 Render a specific case as a PNG (requires Pillow):
 
 ```powershell
-tools\world_edit_visual\render_case_png.bat building_living_rectangle_colony
+tools\world_edit_visual\bin\render_case_png.bat building_living_rectangle_colony
+```
+
+Render a specific case using fake/real sprites for tiles (requires Pillow):
+
+```powershell
+tools\world_edit_visual\bin\render_case_sprites.bat building_living_rectangle_colony
 ```
 
 Render a specific case directly in the terminal as an ASCII map:
 
 ```powershell
-tools\world_edit_visual\render_case_ascii.bat building_living_rectangle_colony
+tools\world_edit_visual\bin\render_case_ascii.bat building_living_rectangle_colony
 ```
 
 Alternatively, you can manually render one semantic export:
 
 ```powershell
-py -3 tools/world_edit_visual/render_semantic.py --semantic-json tools/world_edit_visual/out/building_living_rectangle_colony/semantic.json --report-json tools/world_edit_visual/out/building_living_rectangle_colony/report.json --out tools/world_edit_visual/out/building_living_rectangle_colony/semantic.png
+py -3 tools/world_edit_visual/scripts/render_semantic.py --semantic-json tools/world_edit_visual/out/building_living_rectangle_colony/semantic.json --report-json tools/world_edit_visual/out/building_living_rectangle_colony/report.json --out tools/world_edit_visual/out/building_living_rectangle_colony/semantic.png
 ```
 
 Watch outputs and render each new `semantic.json` once:
 
 ```powershell
-py -3 tools/world_edit_visual/watch_cases.py
+py -3 tools/world_edit_visual/scripts/watch_cases.py
 ```
 
 Build the Markdown index:
 
 ```powershell
-py -3 tools/world_edit_visual/build_index.py
+py -3 tools/world_edit_visual/scripts/build_index.py
 ```
 
 The index is written to `tools/world_edit_visual/index.md` and links each reported case to `semantic.png` and `report.json`.
@@ -103,8 +110,9 @@ The index is written to `tools/world_edit_visual/index.md` and links each report
 
 Source files that should remain reviewable:
 
-- `tools/world_edit_visual/*.py`
-- `tools/world_edit_visual/*.bat`
+- `tools/world_edit_visual/scripts/*.py`
+- `tools/world_edit_visual/bin/*.bat`
+- `tools/world_edit_visual/menu.bat`
 - `tools/world_edit_visual/cases/*.json`
 - `tools/world_edit_visual/.gitignore`
 - this `README.md`
@@ -123,7 +131,7 @@ Runtime files that are generated locally and should not be committed:
 Why this generated data lives here:
 
 - `tools/world_edit_visual/inbox` and `tools/world_edit_visual/out` are runtime states for DreamDaemon. They record the last local run, not stable source.
-- `tools/world_edit_visual/index.md` is a review sheet generated from runtime reports. Rebuild it with `py -3 tools/world_edit_visual/build_index.py` when needed.
+- `tools/world_edit_visual/index.md` is a review sheet generated from runtime reports. Rebuild it with `py -3 tools/world_edit_visual/scripts/build_index.py` when needed.
 
 Safe cleanup command for Workbench-only generated files:
 
@@ -271,7 +279,7 @@ The report says `no_visual_test_z_available`:
 
 `semantic.png` is missing:
 
-- Run `py -3 tools/world_edit_visual/render_semantic.py ...` manually or keep `py -3 tools/world_edit_visual/watch_cases.py` running.
+- Run `py -3 tools/world_edit_visual/scripts/render_semantic.py ...` manually or keep `py -3 tools/world_edit_visual/scripts/watch_cases.py` running.
 - Install Pillow if Python raises `ModuleNotFoundError: No module named 'PIL'`.
 
 `after.dmm` is missing:
