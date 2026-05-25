@@ -2337,6 +2337,8 @@
 		var/dir_to_use = text2num("[placement["dir"]]")
 		if(dir_to_use in GLOB.cardinals)
 			created_object.setDir(dir_to_use)
+			if(GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
+				GLOB.world_edit_helpers.align_object_to_wall(created_object, dir_to_use)
 		created_object_count++
 		changeset.add_created(created_object, target_turf, list(
 			"kind" = kind,

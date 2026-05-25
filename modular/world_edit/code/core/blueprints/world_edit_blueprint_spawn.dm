@@ -103,12 +103,16 @@
 		var/obj/structure/support_object = new obj_path(target_turf)
 		if(istype(support_object))
 			support_object.setDir(dir_value)
+			if(GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
+				GLOB.world_edit_helpers.align_object_to_wall(support_object, dir_value)
 		return support_object
 
 	if(islist(rule) && "[rule["category"]]" == "building_object")
 		var/obj/building_object = new obj_path(target_turf)
 		if(istype(building_object))
 			building_object.setDir(dir_value)
+			if(GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
+				GLOB.world_edit_helpers.align_object_to_wall(building_object, dir_value)
 		return building_object
 
 	return null

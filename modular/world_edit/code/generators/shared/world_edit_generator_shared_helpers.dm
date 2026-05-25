@@ -2,6 +2,35 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 
 /datum/world_edit_helpers
 
+/// Безопасное удаление объектов World Edit (особенно неинициализированных).
+/// Защищает от runtimes в Destroy() объектов, которые были созданы и сразу удалены.
+/datum/world_edit_helpers/proc/safe_qdel(atom/target)
+	if(!target)
+		return
+	var/turf/current_turf = get_turf(target)
+	if(isobj(target) && current_turf)
+		if(("area" in target.vars) && isnull(target.vars["area"]))
+			target.vars["area"] = current_turf.loc
+		if(("alarm_area" in target.vars) && isnull(target.vars["alarm_area"]))
+			target.vars["alarm_area"] = current_turf.loc
+	qdel(target)
+
+/// Выравнивает настенный объект к стене, смещая его пиксельно.
+/// Объект спавнится на полу и визуально сдвигается на стену.
+/datum/world_edit_helpers/proc/align_object_to_wall(obj/target, direction)
+	if(!istype(target) || !(direction in GLOB.cardinals))
+		return
+	switch(direction)
+		if(NORTH)
+			target.pixel_y = 32
+		if(SOUTH)
+			target.pixel_y = -32
+		if(EAST)
+			target.pixel_x = 32
+		if(WEST)
+			target.pixel_x = -32
+
+
 /datum/world_edit_helpers/proc/parse_bool(value)
 	if(isnull(value))
 		return FALSE

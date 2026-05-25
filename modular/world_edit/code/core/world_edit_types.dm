@@ -251,16 +251,3 @@
 			if(!(key in plan.metadata))
 				plan.metadata[key] = shape_metadata[key]
 	return stamp_plan_shape_metadata(plan, shape_contract, placement_context)
-
-/// Безопасное удаление объектов World Edit (особенно неинициализированных).
-/// Защищает от runtimes в Destroy() объектов, которые были созданы и сразу удалены.
-/proc/world_edit_safe_qdel(atom/target)
-	if(!target)
-		return
-	var/turf/current_turf = get_turf(target)
-	if(isobj(target) && current_turf)
-		if(("area" in target.vars) && isnull(target.vars["area"]))
-			target.vars["area"] = current_turf.loc
-		if(("alarm_area" in target.vars) && isnull(target.vars["alarm_area"]))
-			target.vars["alarm_area"] = current_turf.loc
-	qdel(target)
