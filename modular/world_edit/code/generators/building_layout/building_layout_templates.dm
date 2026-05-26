@@ -63,9 +63,7 @@
 	chunk.add_cell(1, 0, "cabinet", "cabinet", TRUE)
 	register_building_template_chunk(template_catalog, chunk)
 
-	chunk = new /datum/world_edit_building_template_chunk("bed_run_chunk", "sleep")
-	chunk.add_cell(0, 0, "bed", "bed", TRUE)
-	chunk.add_cell(1, 0, "bed", "bed", TRUE)
+	chunk = load_building_template_chunk_from_dmm("maps/templates/world_edit/building_layout/bed_run_chunk.dmm", "bed_run_chunk", "sleep")
 	register_building_template_chunk(template_catalog, chunk)
 
 	chunk = new /datum/world_edit_building_template_chunk("bed_niche_chunk", "sleep")
@@ -104,11 +102,25 @@
 	chunk.add_cell(1, 1, "wall_monitor", "console", TRUE)
 	register_building_template_chunk(template_catalog, chunk)
 
+	chunk = new /datum/world_edit_building_template_chunk("treatment_screen_divider_chunk", "medbay")
+	chunk.add_cell(0, 0, "medical_storage", "medical_storage", TRUE)
+	chunk.add_cell(1, 0, "wall_monitor", "console", TRUE, FALSE)
+	chunk.add_cell(0, 1, "sleeper", "medical_bed", FALSE)
+	chunk.add_cell(1, 1, "chair", "chair", FALSE, FALSE)
+	register_building_template_chunk(template_catalog, chunk)
+
 	chunk = new /datum/world_edit_building_template_chunk("office_suite_chunk", "office")
 	chunk.add_cell(0, 0, "table", "table", FALSE)
 	chunk.add_cell(0, 1, "chair", "chair", FALSE, FALSE)
 	chunk.add_cell(1, 0, "console", "console", TRUE)
 	chunk.add_cell(2, 0, "filing", "cabinet", TRUE)
+	register_building_template_chunk(template_catalog, chunk)
+
+	chunk = new /datum/world_edit_building_template_chunk("office_glass_divider_chunk", "office")
+	chunk.add_cell(0, 0, "console", "console", TRUE)
+	chunk.add_cell(1, 0, "filing", "cabinet", TRUE)
+	chunk.add_cell(0, 1, "table", "table", FALSE)
+	chunk.add_cell(1, 1, "chair", "chair", FALSE, FALSE)
 	register_building_template_chunk(template_catalog, chunk)
 
 	chunk = new /datum/world_edit_building_template_chunk("large_office_suite_chunk", "office")

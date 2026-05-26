@@ -65,19 +65,48 @@
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/add_door_cone_anchors(datum/world_edit_building_layout_state/state)
+	var/list/door_cone_lateral_steps_by_depth = get_building_door_cone_profile(state)
 	for(var/turf/door_turf as anything in state.door_turfs)
 		var/outward_dir = state.door_dirs[door_turf] || get_outward_dir(door_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
-		if(state.floor_lookup[door_turf])
-			state.add_anchor("door_cone", door_turf)
-			state.add_anchor("primary_lane", door_turf)
-			state.add_reserved(door_turf)
-		for(var/cone_dir as anything in list(outward_dir, turn(outward_dir, 180)))
-			var/turf/cone_turf = get_step(door_turf, cone_dir)
-			if(!state.floor_lookup[cone_turf])
+		var/inward_dir = turn(outward_dir, 180)
+		for(var/depth_index in 0 to length(door_cone_lateral_steps_by_depth))
+			var/lateral_steps = round(text2num("[door_cone_lateral_steps_by_depth[depth_index + 1]]") || 0)
+			var/turf/base_turf = door_turf
+			if(depth_index > 0)
+				for(var/depth_step in 1 to depth_index)
+					base_turf = get_step(base_turf, inward_dir)
+					if(!istype(base_turf))
+						break
+			if(!state.floor_lookup[base_turf])
 				continue
-			state.add_anchor("door_cone", cone_turf)
-			state.add_anchor("primary_lane", cone_turf)
-			state.add_reserved(cone_turf)
+			state.add_anchor("door_cone", base_turf)
+			state.add_anchor("primary_lane", base_turf)
+			state.add_reserved(base_turf)
+			for(var/side_dir as anything in list(turn(inward_dir, 90), turn(inward_dir, -90)))
+				var/turf/side_turf = base_turf
+				for(var/side_step in 1 to lateral_steps)
+					side_turf = get_step(side_turf, side_dir)
+					if(!state.floor_lookup[side_turf])
+						break
+					state.add_anchor("door_cone", side_turf)
+					if(depth_index <= 1)
+						state.add_anchor("primary_lane", side_turf)
+					state.add_reserved(side_turf)
+		var/turf/exterior_buffer_turf = get_step(door_turf, outward_dir)
+		if(state.floor_lookup[exterior_buffer_turf])
+			state.add_anchor("door_cone", exterior_buffer_turf)
+			state.add_anchor("primary_lane", exterior_buffer_turf)
+			state.add_reserved(exterior_buffer_turf)
+
+/datum/world_edit_generator/building_layout/proc/get_building_door_cone_profile(datum/world_edit_building_layout_state/state)
+	if(is_building_compact_or_micro_state(state))
+		return list(1, 1, 0)
+	var/degrade_level = "[state?.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE]"
+	if(degrade_level == WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+		return list(1, 1, 0)
+	if(degrade_level == WORLD_EDIT_BUILDING_DEGRADE_COMPACT)
+		return list(1, 1, 0)
+	return list(1, 2, 2, 1, 0)
 
 /datum/world_edit_generator/building_layout/proc/add_window_band_anchors(datum/world_edit_building_layout_state/state)
 	for(var/turf/window_turf as anything in state.window_turfs)

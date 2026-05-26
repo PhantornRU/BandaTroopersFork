@@ -7,7 +7,7 @@ import json
 import os
 import math
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 TILE_SIZE = 32
 
@@ -48,6 +48,22 @@ COLORS = {
     "landmark": (0, 255, 255, 128),
 }
 
+REAL_ASSET_ALIASES = {
+    "floor": "floor",
+    "wall": "riveted",
+    "door": "door_closed",
+    "bed": "roller_down",
+    "table": "table",
+}
+
+OBJECT_CATEGORY_HINTS = [
+    ("roller", "bed"),
+    ("bed", "bed"),
+    ("table", "table"),
+    ("desk", "table"),
+    ("door", "door"),
+]
+
 class SpriteRenderer:
     def __init__(self, semantic: dict, output_path: str, assets_dir: str):
         self.semantic = semantic
@@ -65,21 +81,34 @@ class SpriteRenderer:
         self.image = Image.new("RGBA", (self.width * TILE_SIZE, self.height * TILE_SIZE), (0, 0, 0, 255))
         self.asset_cache = {}
 
+    def load_named_asset(self, name: str) -> Image.Image | None:
+        asset_file = self.assets_dir / f"{name}.png"
+        if not asset_file.exists():
+            return None
+        try:
+            img = Image.open(asset_file).convert("RGBA")
+            if img.size != (TILE_SIZE, TILE_SIZE):
+                img = img.resize((TILE_SIZE, TILE_SIZE), Image.NEAREST)
+            return img
+        except Exception as e:
+            print(f"Failed to load asset {asset_file}: {e}")
+            return None
+
     def get_asset(self, name: str, category: str = "default") -> Image.Image:
         if name in self.asset_cache:
             return self.asset_cache[name]
 
-        # Try to load from file
-        asset_file = self.assets_dir / f"{name}.png"
-        if asset_file.exists():
-            try:
-                img = Image.open(asset_file).convert("RGBA")
-                if img.size != (TILE_SIZE, TILE_SIZE):
-                    img = img.resize((TILE_SIZE, TILE_SIZE))
-                self.asset_cache[name] = img
-                return img
-            except Exception as e:
-                print(f"Failed to load asset {asset_file}: {e}")
+        img = self.load_named_asset(name)
+        if img is not None:
+            self.asset_cache[name] = img
+            return img
+
+        alias_name = REAL_ASSET_ALIASES.get(category)
+        if alias_name:
+            alias_img = self.load_named_asset(alias_name)
+            if alias_img is not None:
+                self.asset_cache[name] = alias_img
+                return alias_img
 
         # Generate fallback asset
         color = COLORS.get(category, COLORS["default"])
@@ -109,9 +138,18 @@ class SpriteRenderer:
             draw.text((8, 8), name[0].upper() if name else "?", fill=(255,255,255))
             
         self.asset_cache[name] = img
-        # Optionally save generated assets so user can replace them later
-        # img.save(asset_file) 
         return img
+
+    def classify_object_category(self, path: str, basename_lower: str) -> str:
+        if "landmark" in basename_lower:
+            return "landmark"
+        for needle, category in OBJECT_CATEGORY_HINTS:
+            if needle in basename_lower or needle in path.lower():
+                return category
+        for k in COLORS:
+            if k in basename_lower:
+                return k
+        return "default"
 
     def get_rotation(self, dir_val: str | int | None) -> int:
         if dir_val is None:
@@ -176,14 +214,7 @@ class SpriteRenderer:
                 basename_lower = basename.lower()
                 
                 # Determine category
-                category = "default"
-                if "landmark" in basename_lower:
-                    category = "landmark"
-                else:
-                    for k in COLORS:
-                        if k in basename_lower:
-                            category = k
-                            break
+                category = self.classify_object_category(path, basename_lower)
                             
                 obj_img = self.get_asset(basename_lower, category)
                 
