@@ -1,7 +1,7 @@
 {
   "id": "building_living_point_colony",
   "generator": "building_layout",
-  "seed": 1,
+  "seed": 1001,
   "canvas": {
     "preset": "blank_96",
     "width": 96,

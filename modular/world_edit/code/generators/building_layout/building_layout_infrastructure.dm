@@ -67,6 +67,7 @@
 		return FALSE
 	var/repaired = FALSE
 	var/list/anchors = build_infrastructure_anchor_list(state)
+	var/is_micro = is_building_compact_or_micro_state(state)
 	for(var/list/spec_data as anything in get_building_infrastructure_specs(state))
 		if(!islist(spec_data))
 			continue
@@ -78,6 +79,7 @@
 			continue
 		var/needed = minimum - placed_count
 		var/maximum = max(round(text2num("[spec_data["maximum"]]") || minimum), minimum)
+		var/required = !is_micro
 		var/datum/world_edit_building_cluster_spec/cluster_spec = new(
 			requirement_id,
 			"major",
@@ -90,7 +92,7 @@
 			TRUE,
 			0,
 			round(text2num("[spec_data["priority"]]") || 70),
-			TRUE,
+			required,
 			null,
 			spec_data["macro"]
 		)

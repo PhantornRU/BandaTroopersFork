@@ -20,6 +20,19 @@ GLOBAL_DATUM_INIT(world_edit_helpers, /datum/world_edit_helpers, new)
 /datum/world_edit_helpers/proc/align_object_to_wall(obj/target, direction)
 	if(!istype(target) || !(direction in GLOB.cardinals))
 		return
+	
+	var/should_align = FALSE
+	if(istype(target, /obj/structure/machinery/power/apc) || \
+		istype(target, /obj/structure/machinery/alarm) || \
+		istype(target, /obj/structure/machinery/firealarm) || \
+		istype(target, /obj/structure/machinery/light_switch) || \
+		istype(target, /obj/structure/machinery/light) || \
+		istype(target, /obj/item/device/radio/intercom))
+		should_align = TRUE
+
+	if(!should_align)
+		return
+
 	switch(direction)
 		if(NORTH)
 			target.pixel_y = 32

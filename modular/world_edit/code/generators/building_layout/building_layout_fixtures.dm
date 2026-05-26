@@ -52,8 +52,8 @@
 	if(!istype(state) || !istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
 	if(!length(cluster_spec.macro_id))
-		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
-	var/has_template_path = building_cluster_has_template_chunk(cluster_spec)
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
+	var/has_template_path = building_cluster_has_template_chunk(cluster_spec, state)
 	var/placed = 0
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
@@ -108,30 +108,35 @@
 		placed += template_placed
 	return placed > 0
 
-/datum/world_edit_generator/building_layout/proc/building_cluster_has_template_chunk(datum/world_edit_building_cluster_spec/cluster_spec)
+/datum/world_edit_generator/building_layout/proc/building_cluster_has_template_chunk(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_state/state = null)
 	if(!istype(cluster_spec))
 		return FALSE
-	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
+	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
 	if(!length(macro_id))
 		return FALSE
 	var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
 	return istype(chunk) && length(chunk.cells)
 
-/datum/world_edit_generator/building_layout/proc/get_building_macro_id_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec)
+/datum/world_edit_generator/building_layout/proc/get_building_macro_id_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_state/state = null)
 	if(!istype(cluster_spec))
 		return ""
 	if(length(cluster_spec.macro_id))
 		return cluster_spec.macro_id
+
+	var/is_micro = FALSE
+	if(istype(state) && is_building_compact_or_micro_state(state))
+		is_micro = TRUE
+
 	if(cluster_spec.category == "light")
-		return "infrastructure_light_chunk"
+		return is_micro ? "micro_light_chunk" : "infrastructure_light_chunk"
 	if(cluster_spec.category == "apc")
-		return "infrastructure_power_chunk"
+		return is_micro ? "micro_power_chunk" : "infrastructure_power_chunk"
 	if(cluster_spec.category == "air_alarm")
-		return "infrastructure_air_alarm_chunk"
+		return is_micro ? "micro_air_alarm_chunk" : "infrastructure_air_alarm_chunk"
 	if(cluster_spec.category == "fire_alarm")
-		return "infrastructure_fire_alarm_chunk"
+		return is_micro ? "micro_fire_alarm_chunk" : "infrastructure_fire_alarm_chunk"
 	if(cluster_spec.category == "light_switch")
-		return "infrastructure_switch_chunk"
+		return is_micro ? "micro_switch_chunk" : "infrastructure_switch_chunk"
 	switch(cluster_spec.pattern)
 		if("signature_workshop_wall")
 			return "workshop_wall_chunk"
@@ -146,16 +151,16 @@
 		if("signature_cook_line")
 			return "cook_line_chunk"
 		if("signature_treatment_bay")
-			return "treatment_bay_chunk"
+			return is_micro ? "micro_med_chunk" : "treatment_bay_chunk"
 		if("signature_office_suite")
-			return "office_suite_chunk"
+			return is_micro ? "micro_office_chunk" : "office_suite_chunk"
 		if("signature_engineering_bay")
 			return "engineering_service_chunk"
 		if("signature_lab_bench")
-			return "lab_bench_chunk"
+			return is_micro ? "micro_table_chunk" : "lab_bench_chunk"
 		if("run")
 			if(cluster_spec.category in list("rack", "cabinet", "bed"))
-				return "[cluster_spec.category]_run_chunk"
+				return is_micro ? "micro_[cluster_spec.category]_chunk" : "[cluster_spec.category]_run_chunk"
 		if("wall_object")
 			switch(cluster_spec.category)
 				if("cabinet", "medical_storage", "seed_storage", "sample_storage", "cold_storage")
@@ -172,12 +177,12 @@
 					return "clinic_bed_chunk"
 			return "wall_fixture_chunk"
 		if("table_cluster")
-			return "island_table_chunk"
+			return is_micro ? "micro_table_chunk" : "island_table_chunk"
 		if("object", "paired_object")
 			if(cluster_spec.category == "table")
-				return "island_table_chunk"
+				return is_micro ? "micro_table_chunk" : "island_table_chunk"
 			if(cluster_spec.category == "bed")
-				return "island_bed_chunk"
+				return is_micro ? "micro_bed_chunk" : "island_bed_chunk"
 	return ""
 
 /datum/world_edit_generator/building_layout/proc/inherit_building_cluster_count_context(datum/world_edit_building_cluster_spec/child_spec, datum/world_edit_building_cluster_spec/parent_spec)
@@ -214,10 +219,22 @@
 		var/area_bonus = max(0, round((usable_area - 24) / 14))
 		state.category_budgets["[category]"] = min(WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS, max(base_budget, base_budget + area_bonus))
 
+/datum/world_edit_generator/building_layout/proc/get_cluster_effective_needs_wall(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_place_rule/place_rule)
+	var/needs_wall = cluster_spec.wall_required || place_rule.needs_wall
+	if(!needs_wall)
+		return FALSE
+	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
+	if(findtext(macro_id, "island") || cluster_spec.pattern == "table_cluster")
+		return FALSE
+	// Allow micro chunks to bypass strict wall requirement to avoid forbidden_fallback errors in tiny rooms
+	if(findtext(macro_id, "micro") && is_building_compact_or_micro_state(state))
+		return FALSE
+	return TRUE
+
 /datum/world_edit_generator/building_layout/proc/get_cluster_anchor_area(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	var/area = 0
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-	var/effective_needs_wall = cluster_spec.wall_required || place_rule.needs_wall
+	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
 		if(!state.can_place_fixture(floor_turf))
 			continue
@@ -297,7 +314,7 @@
 	var/category = "[cluster_spec.category]"
 	var/slot = "[cluster_spec.slot]"
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
-	var/needs_wall = cluster_spec.wall_required || place_rule.needs_wall
+	var/needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	if(needs_wall)
 		for(var/anchor_id as anything in list("wall_anchor", "service_wall", "storage_wall", "machine_wall", "corner_anchor"))
 			add_building_fallback_anchor_id(fallback_anchor_ids, fallback_lookup, anchor_id)
@@ -352,7 +369,7 @@
 	var/capacity = 0
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-	var/effective_needs_wall = cluster_spec.wall_required || place_rule.needs_wall
+	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
@@ -424,7 +441,7 @@
 				template_candidates -= anchor_turf
 				var/datum/world_edit_building_place_rule/template_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 				var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
-				var/list/place_context = build_building_fixture_place_context(state, anchor_turf, template_rule, fallback_dir, cluster_spec.wall_required || template_rule.needs_wall, cluster_spec, anchor_ids)
+				var/list/place_context = build_building_fixture_place_context(state, anchor_turf, template_rule, fallback_dir, get_cluster_effective_needs_wall(state, cluster_spec, template_rule), cluster_spec, anchor_ids)
 				if(!islist(place_context))
 					continue
 				var/dir_to_use = place_context["dir"] || fallback_dir
@@ -453,7 +470,7 @@
 	var/list/candidates = get_fixture_candidate_turfs_for_anchors(state, anchor_ids)
 	var/list/planned_lookup = list()
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-	var/effective_needs_wall = cluster_spec.wall_required || place_rule.needs_wall
+	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	while(planned_credit_count < target_count && length(candidates))
 		var/turf/best_turf = null
 		var/best_score = -999999999
@@ -509,9 +526,15 @@
 	var/selected_mode = "declared"
 	var/fallback_capacity = 0
 	if(declared_capacity < required_count)
-		state.fallback_anchor_required_cluster_count++
-		state.forbidden_fallback_count++
-		state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], required [required_count].")
+		var/list/fallback_anchor_ids = build_required_cluster_fallback_anchor_ids(state, declared_anchor_ids, cluster_spec)
+		fallback_capacity = count_building_cluster_slot_capacity_for_anchors(state, cluster_spec, fallback_anchor_ids)
+		if(fallback_capacity >= required_count || fallback_capacity > declared_capacity)
+			selected_anchor_ids = fallback_anchor_ids
+			selected_mode = "fallback"
+		if(!can_building_cluster_use_broad_fallback_anchors(state, cluster_spec))
+			state.fallback_anchor_required_cluster_count++
+			state.forbidden_fallback_count++
+			state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], required [required_count].")
 	var/best_capacity = max(declared_capacity, fallback_capacity)
 	var/shortage = max(required_count - best_capacity, 0)
 	if(shortage > 0)
@@ -641,19 +664,22 @@
 
 /datum/world_edit_generator/building_layout/proc/get_scaled_cluster_target_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	var/base_count = max(cluster_spec.min_count, cluster_spec.max_count)
-	var/anchor_area = get_cluster_anchor_area(state, cluster_spec)
-	if(anchor_area <= 0)
+	var/room_area = length(state.floor_turfs)
+	if(room_area <= 0)
 		return base_count
 	var/divisor = max(get_cluster_area_divisor(cluster_spec), 1)
-	var/area_bonus = max(0, round((anchor_area - (base_count * 2)) / divisor))
+	
+	// SS220 EDIT: area_bonus now scales with the overall room area, not just valid anchor tiles, to fill hangars.
+	var/area_bonus = max(0, round((room_area - (base_count * divisor)) / divisor))
+	
 	if(cluster_spec.phase != "major")
 		area_bonus = round(area_bonus * clamp(round(text2num("[state.config["detail_budget"]]") || 0), 0, 100) / 100)
-	var/area_cap = max(cluster_spec.min_count, min(WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS, round(anchor_area / max(cluster_spec.pattern == "table_cluster" ? 5 : 2, 1))))
+	var/area_cap = max(cluster_spec.min_count, min(WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS, round(room_area / max(cluster_spec.pattern == "table_cluster" ? 5 : 2, 1))))
 	return min(area_cap, max(base_count, base_count + area_bonus))
 
 /datum/world_edit_generator/building_layout/proc/place_table_cluster(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
-		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
 	var/datum/world_edit_building_place_rule/table_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/table_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(table_turf))
@@ -684,7 +710,7 @@
 
 /datum/world_edit_generator/building_layout/proc/place_fixture_run(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, target_count)
 	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
-		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
 	var/placed = 0
 	var/attempts = 0
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
@@ -817,7 +843,7 @@
 				continue
 			if(!building_place_rule_allows_turf(state, pair_turf, place_rule, dir_to_use, wall_dir))
 				continue
-			var/pair_score = score_fixture_turf(state, pair_turf, cluster_spec.anchors, cluster_spec.wall_required || place_rule.needs_wall, cluster_spec, place_rule)
+			var/pair_score = score_fixture_turf(state, pair_turf, cluster_spec.anchors, get_cluster_effective_needs_wall(state, cluster_spec, place_rule), cluster_spec, place_rule)
 			if(check_dir == turn(dir_to_use, 90) || check_dir == turn(dir_to_use, -90))
 				pair_score += 40
 			if(!istype(best_pair_turf) || pair_score > best_pair_score)
@@ -866,7 +892,7 @@
 
 /datum/world_edit_generator/building_layout/proc/place_wall_fixture(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
-		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, TRUE, cluster_spec)
 	if(!istype(target_turf))
@@ -883,7 +909,7 @@
 
 /datum/world_edit_generator/building_layout/proc/place_fixture_object(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(istype(cluster_spec) && !length(cluster_spec.macro_id))
-		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec)
+		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(target_turf))
@@ -900,7 +926,7 @@
 
 /datum/world_edit_generator/building_layout/proc/select_fixture_turf(datum/world_edit_building_layout_state/state, list/anchor_ids, needs_wall = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null)
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec?.slot, cluster_spec?.category)
-	var/effective_needs_wall = needs_wall || place_rule.needs_wall
+	var/effective_needs_wall = needs_wall || (istype(cluster_spec) ? get_cluster_effective_needs_wall(state, cluster_spec, place_rule) : place_rule.needs_wall)
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/anchor_sets = list()
 	anchor_sets += list(get_cluster_preflight_anchor_ids(state, cluster_spec, anchor_ids))
