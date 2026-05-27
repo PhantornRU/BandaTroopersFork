@@ -9,7 +9,8 @@ import shutil
 from pathlib import Path
 
 
-RUNTIME_ROOT = Path("tools/world_edit_visual")
+SCRIPT_DIR = Path(__file__).resolve().parent
+RUNTIME_ROOT = SCRIPT_DIR.parent
 SAFE_ID = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
@@ -27,17 +28,40 @@ class CasePreparer:
         self.inbox_dir = runtime_root / "inbox"
         self.out_dir = runtime_root / "out"
 
-    def prepare(self, case_paths: list[Path]) -> None:
+    def prepare(self, case_paths: list[Path], workflow_run_id: str | None = None) -> None:
         self.ensure_runtime_dirs()
+        self.clear_inbox()
         for case_path in case_paths:
             case_id = self.case_id(case_path)
             (self.out_dir / case_id).mkdir(parents=True, exist_ok=True)
-            shutil.copy2(case_path, self.inbox_dir / case_path.name)
+            self.write_inbox_case(case_path, workflow_run_id)
 
     def ensure_runtime_dirs(self) -> None:
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         self.out_dir.mkdir(parents=True, exist_ok=True)
         (self.runtime_root / "enabled.txt").write_text("1", encoding="ascii")
+
+    def clear_inbox(self) -> None:
+        for case_path in self.inbox_dir.glob("*.json"):
+            if case_path.is_file():
+                case_path.unlink()
+
+    def write_inbox_case(self, case_path: Path, workflow_run_id: str | None) -> None:
+        target = self.inbox_dir / case_path.name
+        if not workflow_run_id:
+            shutil.copy2(case_path, target)
+            return
+        try:
+            with case_path.open("r", encoding="utf-8-sig") as handle:
+                data = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            shutil.copy2(case_path, target)
+            return
+        if not isinstance(data, dict):
+            shutil.copy2(case_path, target)
+            return
+        data["workflow_run_id"] = workflow_run_id
+        target.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     def case_id(self, case_path: Path) -> str:
         """Return the output folder name the DM runtime will expect.
@@ -62,7 +86,7 @@ def expand_cases(raw_paths: list[str]) -> list[Path]:
     for raw_path in raw_paths:
         path = Path(raw_path)
         if path.is_dir():
-            paths.extend(sorted(path.glob("*.json")))
+            paths.extend(sorted(path.rglob("*.json")))
         else:
             paths.append(path)
     return paths
@@ -70,10 +94,11 @@ def expand_cases(raw_paths: list[str]) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--workflow-run-id")
     parser.add_argument("cases", nargs="+")
     args = parser.parse_args()
 
-    CasePreparer().prepare(expand_cases(args.cases))
+    CasePreparer().prepare(expand_cases(args.cases), workflow_run_id=args.workflow_run_id)
     return 0
 
 

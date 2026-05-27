@@ -6,6 +6,9 @@
 # Keep that mirror out of git so `enabled.txt`, inbox cases, and generated
 # reports do not appear as review noise.
 /data/
+/enabled.txt
+/inbox/
+/out/
 
 # `build_index.py` regenerates this file from runtime reports.
 # Keep only the generator script in source control; the Markdown sheet reflects
@@ -14,3 +17,9 @@
 
 # Python bytecode is local cache.
 /__pycache__/
+
+# DMI frames extracted by render_sprites.py are generated local cache.
+/.cache/
+
+# Locally generated case wizard output is user/runtime state.
+/cases/generated/

@@ -1,107 +1,83 @@
 @echo off
-chcp 65001
 setlocal enabledelayedexpansion
-
-:: Переходим в корень проекта (BandaTroopers)
+chcp 65001 >nul
 cd /d "%~dp0\..\.."
 
 :main_menu
 cls
 echo ========================================================
-echo World Edit Visual Workbench - Главное меню
+echo World Edit Visual
 echo ========================================================
 echo.
-echo Доступные действия:
-echo [1] Отправить все кейсы в inbox (запуск генерации)
-echo [2] Сгенерировать PNG для всех готовых кейсов (из out/)
-echo [3] Выбрать конкретный кейс для действий
-echo [4] Выход
+echo [1] Render all cases
+echo [2] Render one case
+echo [3] Create case
+echo [4] Open output folder
+echo [0] Exit
 echo.
+set /p action="Choose action: "
 
-set /p action="Выберите действие (1-4): "
-
-if "%action%"=="1" goto do_run_all
-if "%action%"=="2" goto do_render_all_png
-if "%action%"=="3" goto select_case
-if "%action%"=="4" goto exit_script
-
+if "%action%"=="1" goto render_all
+if "%action%"=="2" goto select_case
+if "%action%"=="3" goto case_wizard
+if "%action%"=="4" goto open_output
+if "%action%"=="0" exit /b 0
 goto main_menu
 
-:do_run_all
+:render_all
 cls
-call tools\world_edit_visual\bin\run_all.bat
+echo Rendering all cases. DreamDaemon will be started or restarted if needed.
+echo.
+py -3 -u tools\world_edit_visual\scripts\render_workflow.py
+echo.
+echo Exit code: %ERRORLEVEL%
 pause
 goto main_menu
 
-:do_render_all_png
+:case_wizard
 cls
-call tools\world_edit_visual\bin\render_all_png.bat
+py -3 -u tools\world_edit_visual\scripts\case_wizard.py
+echo.
+echo Exit code: %ERRORLEVEL%
 pause
+goto main_menu
+
+:open_output
+if not exist "tools\world_edit_visual\out" mkdir "tools\world_edit_visual\out"
+start "" "tools\world_edit_visual\out"
 goto main_menu
 
 :select_case
 cls
 echo ========================================================
-echo Выберите кейс:
+echo Select Case
 echo ========================================================
+echo.
 set count=0
-for %%f in (tools\world_edit_visual\cases\*.json) do (
+for /r tools\world_edit_visual\cases %%f in (*.json) do (
     set /a count+=1
-    set "case_file[!count!]=%%~nxf"
-    set "case_name[!count!]=%%~nf"
-    echo [!count!] %%~nxf
+    set "case_path[!count!]=%%f"
+    echo [!count!] %%~nf
 )
 echo.
-echo [0] Назад в главное меню
+echo [0] Back
 echo.
-
-set /p case_choice="Выберите номер: "
+set /p case_choice="Choose case: "
 if "%case_choice%"=="0" goto main_menu
 
-set "selected_file=!case_file[%case_choice%]!"
-set "selected_name=!case_name[%case_choice%]!"
-
-if "%selected_file%"=="" (
-    echo Неверный выбор!
+set "selected_path=!case_path[%case_choice%]!"
+if "!selected_path!"=="" (
+    echo Invalid selection.
     pause
     goto select_case
 )
 
-:case_action
 cls
-echo ========================================================
-echo Выбран кейс: %selected_file%
-echo ========================================================
+echo Rendering selected case:
+echo !selected_path!
 echo.
-echo Доступные действия:
-echo [1] Отправить в inbox (запустить генерацию в игре)
-echo [2] Отрендерить ASCII (требует готовый результат в out/)
-echo [3] Отрендерить PNG (требует готовый результат в out/)
-echo [4] Выбрать другой кейс
-echo [0] Назад в главное меню
+py -3 -u tools\world_edit_visual\scripts\render_workflow.py --case-path "!selected_path!"
 echo.
-
-set /p action_choice="Выберите действие: "
-
-if "%action_choice%"=="1" (
-    call tools\world_edit_visual\bin\run_case.bat "tools\world_edit_visual\cases\!selected_file!"
-    pause
-    goto case_action
-)
-if "%action_choice%"=="2" (
-    call tools\world_edit_visual\bin\render_case_ascii.bat "!selected_name!"
-    pause
-    goto case_action
-)
-if "%action_choice%"=="3" (
-    call tools\world_edit_visual\bin\render_case_png.bat "!selected_name!"
-    pause
-    goto case_action
-)
-if "%action_choice%"=="4" goto select_case
-if "%action_choice%"=="0" goto main_menu
-
-goto case_action
-
-:exit_script
-exit /b 0
+echo Exit code: !ERRORLEVEL!
+pause
+goto main_menu

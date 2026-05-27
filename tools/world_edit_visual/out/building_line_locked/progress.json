@@ -1,1 +1,1 @@
-{"schema":"world_edit_visual_progress/v1","case_id":"building_line_locked","stage":"load_case","message":"context_ready","world_time":0}
+{"schema":"world_edit_visual_progress/v1","case_id":"building_line_locked","stage":"support_check","message":"Placement shape 'line' is not supported by building layout.","world_time":30.5,"workflow_run_id":"1779846703609-1af1f43148174cc88db601a7da2c1490"}

@@ -17,6 +17,7 @@
 	var/list/expect_config = list()
 	var/list/render_config = list()
 	var/list/profile_config = list()
+	var/workflow_run_id = ""
 	var/source_file = ""
 	var/out_dir = ""
 	var/datum/world_edit_visual_canvas/canvas
@@ -44,6 +45,7 @@
 	expect_config = islist(data["expect"]) ? data["expect"] : list()
 	render_config = islist(data["render"]) ? data["render"] : list()
 	profile_config = islist(data["profile"]) ? data["profile"] : list()
+	workflow_run_id = "[data["workflow_run_id"] || data["run_id"] || ""]"
 
 	if(!length(id))
 		return list("error" = "missing_case_id")
@@ -146,6 +148,8 @@
 		"message" = "[message]",
 		"world_time" = world.time,
 	)
+	if(length(workflow_run_id))
+		progress["workflow_run_id"] = workflow_run_id
 	write_json_file("[out_dir]/progress.json", progress)
 
 /datum/world_edit_visual_case/proc/build_generator_params()

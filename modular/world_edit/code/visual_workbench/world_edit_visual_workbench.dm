@@ -2,7 +2,7 @@
  * File-based orchestration for the World Edit Visual Workbench.
  *
  * This datum deliberately does only three things:
- *   1. poll the canonical runtime inbox under data/world_edit_visual/inbox,
+ *   1. poll the canonical runtime inbox under tools/world_edit_visual/inbox,
  *   2. deserialize each JSON file into a /datum/world_edit_visual_case,
  *   3. write a structured load-level error if the case cannot even be parsed.
  *
@@ -29,7 +29,7 @@ GLOBAL_DATUM_INIT(world_edit_visual_workbench, /datum/world_edit_visual_workbenc
 	ensure_runtime_directories()
 	running = TRUE
 	enabled = TRUE
-	spawn(0)
+	spawn(WORLD_EDIT_VISUAL_START_DELAY)
 		loop()
 
 /datum/world_edit_visual_workbench/proc/stop()

@@ -1,10 +1,9 @@
 /*
- * Semantic export for schematic rendering.
+ * Semantic export for visual review rendering.
  *
- * The Python renderer intentionally consumes semantic.json instead of parsing a
- * DMM file. This keeps the MVP independent from DMI icons and exposes exactly
- * the debugging information reviewers need: changed tiles, blockers, doors,
- * rooms, routes, objects, and structured errors.
+ * The Python renderers intentionally consume semantic.json instead of parsing a
+ * DMM file. DM owns the live atom appearance data; Python visualizes the
+ * exported semantic flags and DMI-backed icon/icon_state metadata.
  */
 /datum/world_edit_visual_case/proc/export_artifacts(list/apply_result, list/post_emit_result)
 	var/list/artifacts = list()
@@ -23,6 +22,8 @@
 
 	var/list/semantic = list(
 		"schema" = "world_edit_visual_semantic/v1",
+		"appearance_schema" = 1,
+		"features" = list("appearance" = TRUE),
 		"case_id" = id,
 		"width" = canvas.width,
 		"height" = canvas.height,
@@ -33,6 +34,8 @@
 		"markers" = build_semantic_markers(report_data),
 		"errors" = errors.Copy(),
 	)
+	if(length(workflow_run_id))
+		semantic["workflow_run_id"] = workflow_run_id
 	if(islist(report_data?["profile"]))
 		semantic["profile"] = report_data["profile"]
 
@@ -48,6 +51,8 @@
 	return path
 
 /datum/world_edit_visual_case/proc/serialize_semantic_tile(turf/T, x, y)
+	refresh_semantic_turf_appearance(T)
+
 	var/area/A = get_area(T)
 	var/list/tile = list(
 		"x" = x,
@@ -59,6 +64,7 @@
 		"density" = T.density ? TRUE : FALSE,
 		"opacity" = T.opacity ? TRUE : FALSE,
 	)
+	tile["appearance"] = serialize_semantic_appearance(T)
 	tile["flags"] = list(
 		// Flags are deliberately higher-level than raw type paths. They are the
 		// stable contract used by render_semantic.py and future CI review sheets.
@@ -72,16 +78,36 @@
 	)
 	var/list/objects = list()
 	for(var/obj/O as anything in T)
+		if(!should_export_semantic_obj(O))
+			continue
 		objects += list(serialize_semantic_obj(O))
 	tile["objects"] = objects
 	return tile
+
+/datum/world_edit_visual_case/proc/refresh_semantic_turf_appearance(turf/T)
+	if(!istype(T, /turf/closed/wall))
+		return
+	var/turf/closed/wall/W = T
+	W.update_connections(FALSE)
+	W.update_icon()
+
+/datum/world_edit_visual_case/proc/should_export_semantic_obj(obj/O)
+	if(!istype(O))
+		return FALSE
+	if(istype(O, /obj/effect/landmark/world_edit_visual_canvas_origin))
+		return FALSE
+	if(O.invisibility)
+		return FALSE
+	return TRUE
 
 /datum/world_edit_visual_case/proc/serialize_semantic_obj(obj/O)
 	var/list/out = list(
 		"path" = "[O.type]",
 		"density" = O.density ? TRUE : FALSE,
 		"dir" = GLOB.world_edit_helpers.dir_to_label(O.dir),
+		"invisibility" = O.invisibility,
 	)
+	out["appearance"] = serialize_semantic_appearance(O)
 	var/list/meta = lookup_object_placement_metadata(O)
 	if(islist(meta))
 		out["slot"] = meta["requested_slot"] || meta["slot"]
@@ -96,6 +122,87 @@
 		out["wall_dir"] = meta["wall_dir_label"] || (isnull(meta["wall_dir"]) ? null : GLOB.world_edit_helpers.dir_to_label(meta["wall_dir"]))
 		out["front_dir"] = meta["front_dir_label"] || (isnull(meta["front_dir"]) ? null : GLOB.world_edit_helpers.dir_to_label(meta["front_dir"]))
 		out["wall_mounted"] = meta["wall_mounted"] ? TRUE : FALSE
+		var/list/preview_appearance = null
+		if(islist(meta["appearance"]))
+			preview_appearance = meta["appearance"]
+		else if(islist(meta["preview_appearance"]))
+			preview_appearance = meta["preview_appearance"]
+		else if(islist(meta["appearance_spec"]))
+			preview_appearance = meta["appearance_spec"]
+		var/list/live_appearance = out["appearance"]
+		if(islist(preview_appearance) && islist(live_appearance))
+			var/list/overlay_specs = preview_appearance["overlays"]
+			if(islist(overlay_specs))
+				live_appearance["overlays"] = overlay_specs.Copy()
+	return out
+
+/datum/world_edit_visual_case/proc/serialize_semantic_appearance(appearance_source, include_overlays = TRUE)
+	if(!is_semantic_appearance_source(appearance_source))
+		return null
+	var/icon_path = get_icon_dmi_path(appearance_source)
+	var/base_icon_exists = icon_exists(appearance_source:icon, appearance_source:icon_state)
+	var/list/out = list(
+		"icon" = icon_path || (isnull(appearance_source:icon) ? null : "[appearance_source:icon]"),
+		"icon_state" = isnull(appearance_source:icon_state) ? "" : "[appearance_source:icon_state]",
+		"dir_value" = appearance_source:dir,
+		"dir" = GLOB.world_edit_helpers.dir_to_label(appearance_source:dir),
+		"pixel_x" = appearance_source:pixel_x,
+		"pixel_y" = appearance_source:pixel_y,
+		"layer" = appearance_source:layer,
+		"plane" = appearance_source:plane,
+		"alpha" = appearance_source:alpha,
+		"color" = isnull(appearance_source:color) ? null : "[appearance_source:color]",
+		"invisibility" = appearance_source:invisibility,
+		"base_icon_exists" = base_icon_exists ? TRUE : FALSE,
+	)
+	if(include_overlays)
+		var/list/overlay_specs = serialize_semantic_appearance_list(appearance_source:overlays)
+		if(!length(overlay_specs) && istype(appearance_source, /turf/closed/wall))
+			var/turf/closed/wall/W = appearance_source
+			overlay_specs = build_wall_semantic_overlay_specs(W)
+		if(length(overlay_specs))
+			out["overlays"] = overlay_specs
+	return out
+
+/datum/world_edit_visual_case/proc/is_semantic_appearance_source(value)
+	return isatom(value) || istype(value, /image) || istype(value, /mutable_appearance)
+
+/datum/world_edit_visual_case/proc/serialize_semantic_appearance_list(list/appearances)
+	var/list/out = list()
+	if(!islist(appearances))
+		return out
+	for(var/appearance_entry as anything in appearances)
+		var/list/appearance_spec = serialize_semantic_appearance(appearance_entry, FALSE)
+		if(islist(appearance_spec))
+			out += list(appearance_spec)
+	return out
+
+/datum/world_edit_visual_case/proc/build_wall_semantic_overlay_specs(turf/closed/wall/W)
+	var/list/out = list()
+	if(!istype(W) || W.special_icon || !W.density || !islist(W.wall_connections))
+		return out
+	var/icon_path = get_icon_dmi_path(W)
+	for(var/i = 1 to 4)
+		if(i > length(W.wall_connections))
+			break
+		var/state = "[W.walltype][W.wall_connections[i]]"
+		if(!icon_exists(W.icon, state))
+			continue
+		var/dir_to_use = 1 << (i - 1)
+		out += list(list(
+			"icon" = icon_path || (isnull(W.icon) ? null : "[W.icon]"),
+			"icon_state" = state,
+			"dir_value" = dir_to_use,
+			"dir" = GLOB.world_edit_helpers.dir_to_label(dir_to_use),
+			"pixel_x" = 0,
+			"pixel_y" = 0,
+			"layer" = W.layer,
+			"plane" = W.plane,
+			"alpha" = W.alpha,
+			"color" = isnull(W.color) ? null : "[W.color]",
+			"invisibility" = W.invisibility,
+			"base_icon_exists" = TRUE,
+		))
 	return out
 
 /datum/world_edit_visual_case/proc/lookup_object_placement_metadata(obj/O)

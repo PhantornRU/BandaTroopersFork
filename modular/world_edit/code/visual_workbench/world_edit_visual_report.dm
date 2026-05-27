@@ -44,6 +44,8 @@
 	var/list/profile = profiler?.to_json_list()
 	if(islist(profile))
 		out["profile"] = profile
+	if(length(workflow_run_id))
+		out["workflow_run_id"] = workflow_run_id
 	return out
 
 /datum/world_edit_visual_case/proc/write_json_file(path, list/value)

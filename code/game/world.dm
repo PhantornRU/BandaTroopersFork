@@ -27,9 +27,8 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	config.Load(params[OVERRIDE_CONFIG_DIRECTORY_PARAMETER])
 
-	// SS220 EDIT - START: world edit visual workbench early headless dev hook
-	if(world_edit_visual_should_start())
-		init_world_edit_visual_workbench()
+	// SS220 EDIT: world edit visual workbench keeps headless runtime awake for file polling
+	var/visual_workbench_enabled = world_edit_visual_should_start()
 	// SS220 EDIT - END
 
 	SSdatabase.start_up()
@@ -67,8 +66,8 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 	running_tests = TRUE
 	#endif
 	// SS220 EDIT - END
-	// Only do offline sleeping when the server isn't running unit tests or hosting a local dev test
-	sleep_offline = (!running_tests && !testing_locally)
+	// Only do offline sleeping when the server isn't running unit tests, hosting a local dev test, or running the visual workbench.
+	sleep_offline = (!running_tests && !testing_locally && !visual_workbench_enabled)
 
 	if(!GLOB.RoleAuthority)
 		GLOB.RoleAuthority = new /datum/authority/branch/role()
@@ -83,6 +82,11 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 	GLOB.timezoneOffset = text2num(time2text(10,"hh")) * 36000
 
 	Master.Initialize(10, FALSE, TRUE)
+
+	// SS220 EDIT - START: world edit visual workbench headless dev hook
+	if(visual_workbench_enabled)
+		init_world_edit_visual_workbench()
+	// SS220 EDIT - END
 
 	// SS220 EDIT - START: accidental UNIT_TESTS launches must stay in normal lobby flow
 	#ifdef UNIT_TESTS
