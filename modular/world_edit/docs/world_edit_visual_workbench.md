@@ -16,6 +16,7 @@ tools/world_edit_visual/out/<case_id>/semantic_sprites.error.json
 tools/world_edit_visual/out/<case_id>/workflow.error.txt
 tools/world_edit_visual/out/<case_id>/workflow.error.json
 tools/world_edit_visual/out/<case_id>/ascii_dump.txt
+tools/world_edit_visual/workflow.log
 tools/world_edit_visual/index.md
 ```
 
@@ -40,7 +41,13 @@ Run the full all-case workflow:
 tools\world_edit_visual\bin\run_all.bat
 ```
 
-`run_all.bat` and `render_all.bat` both prepare cases, stamp the selected batch with a workflow run id, restart DreamDaemon once with `-trusted` for a clean workbench run, wait for matching-run `semantic.json`, render review artifacts, and stop the managed DreamDaemon process when the workflow is done.
+`run_all.bat` and `render_all.bat` both prepare cases, stamp the selected batch with a workflow run id, restart DreamDaemon once with `-trusted` for a clean workbench run, wait for matching-run `semantic.json`, render cropped review artifacts, and stop the managed DreamDaemon process when the workflow is done.
+
+Normal menu/bin output is a compact user-facing status screen. Full runtime
+commands, DreamDaemon output, per-case renderer output, temporary paths, and
+process-stop details are written to `tools/world_edit_visual/workflow.log`.
+Use `render_workflow.py --verbose` only when that detail should also be printed
+to the console.
 
 ```bat
 tools\world_edit_visual\bin\render_all.bat
@@ -99,6 +106,11 @@ The full workflow clears stale success artifacts for the cases it is about to ru
 In normal batch mode, completed cases are still rendered even when another selected case times out; missing cases receive workflow error files.
 
 `render_all.py` writes sprite renders atomically once fresh semantic output exists. It replaces `semantic_sprites.png` only on success, writes `semantic_sprites.error.txt` and `semantic_sprites.error.json` when the current sprite render fails, and still updates schematic/debug outputs.
+
+`semantic.png`, `semantic_sprites.png`, and `ascii_dump.txt` are cropped by
+default around useful generated content plus padding. `semantic.json` remains the
+full exported canvas/source of truth. Use the explicit Python `--full-canvas`
+flag for diagnostic full-canvas renders.
 
 The explicit schematic fallback flag is a developer-only debug path and is not used by normal `bin` or menu flows.
 

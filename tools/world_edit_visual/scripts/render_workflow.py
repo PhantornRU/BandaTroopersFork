@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from crop_bounds import DEFAULT_CROP_PADDING
 from prepare_cases import CasePreparer, expand_cases
 
 
@@ -20,6 +21,7 @@ REPO_ROOT = SCRIPT_DIR.parents[2]
 DEFAULT_CASES_DIR = TOOL_ROOT / "cases"
 DEFAULT_OUT_DIR = TOOL_ROOT / "out"
 DEFAULT_RUNTIME_LOG = TOOL_ROOT / "runtime.log"
+DEFAULT_WORKFLOW_LOG = TOOL_ROOT / "workflow.log"
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
@@ -36,6 +38,9 @@ class RenderWorkflow:
         render_ascii: bool,
         dry_run_runtime: bool,
         isolated: bool,
+        full_canvas: bool,
+        crop_padding: int,
+        verbose: bool,
     ) -> None:
         self.case_paths = case_paths
         self.timeout_seconds = timeout_seconds
@@ -43,25 +48,36 @@ class RenderWorkflow:
         self.render_ascii = render_ascii
         self.dry_run_runtime = dry_run_runtime
         self.isolated = isolated
+        self.full_canvas = full_canvas
+        self.crop_padding = crop_padding
+        self.verbose = verbose
+        self.log_handle = None
         self.preparer = CasePreparer()
         self.workflow_run_id = ""
 
     def run(self) -> int:
-        if not self.case_paths:
-            print("No cases found.")
-            return 1
+        self.start_log()
+        try:
+            self.info("World Edit Visual render")
+            self.info(f"Details: {self.display_path(DEFAULT_WORKFLOW_LOG)}")
+            if not self.case_paths:
+                self.info("No cases found.")
+                return 1
 
-        case_paths = self.deduplicated_case_paths()
-        print(f"Rendering {len(case_paths)} case(s).")
-        if self.isolated:
-            return self.run_isolated(case_paths)
-        return self.run_batch(case_paths)
+            case_paths = self.deduplicated_case_paths()
+            self.info(f"Cases: {len(case_paths)}")
+            if self.isolated:
+                return self.run_isolated(case_paths)
+            return self.run_batch(case_paths)
+        finally:
+            self.close_log()
 
     def run_batch(self, case_paths: list[Path]) -> int:
         case_ids = [self.preparer.case_id(case_path) for case_path in case_paths]
         self.workflow_run_id = self.create_workflow_run_id()
-        print("Mode: batch (one DreamDaemon run for this selection).")
-        print(f"Workflow run id: {self.workflow_run_id}")
+        self.info("Mode: batch")
+        self.debug("Runtime: one DreamDaemon run for this selection.")
+        self.debug(f"Workflow run id: {self.workflow_run_id}")
 
         for case_id in case_ids:
             self.clear_case_artifacts(case_id)
@@ -87,8 +103,9 @@ class RenderWorkflow:
             return self.finish_summary(rendered, case_ids)
 
         processed, missing = self.wait_for_semantic(case_ids)
+        self.info(f"Semantic export: {len(processed)}/{len(case_ids)} ready")
         for case_id in missing:
-            print(f"Runtime did not produce matching semantic.json for {case_id}.")
+            self.info(f"Missing semantic export: {case_id}")
             self.write_workflow_error(
                 case_id,
                 kind="semantic_output_missing",
@@ -118,7 +135,8 @@ class RenderWorkflow:
         return self.finish_summary(rendered, failures)
 
     def run_isolated(self, case_paths: list[Path]) -> int:
-        print("Mode: isolated (restart DreamDaemon for each case).")
+        self.info("Mode: isolated")
+        self.debug("Runtime: restart DreamDaemon for each case.")
         failures: list[str] = []
         rendered = 0
         for index, case_path in enumerate(case_paths, start=1):
@@ -133,20 +151,22 @@ class RenderWorkflow:
         return self.finish_summary(rendered, failures)
 
     def finish_summary(self, rendered: int, failures: list[str]) -> int:
-        print(f"Render workflow complete: rendered={rendered} failures={len(failures)}")
+        self.info(f"Done: rendered={rendered}, failures={len(failures)}")
         if failures:
-            print("Failures:")
+            self.info("Failures:")
             for case_id in failures:
-                print(f"- {case_id}")
+                self.info(f"- {case_id}")
+            self.info(f"Read details: {self.display_path(DEFAULT_WORKFLOW_LOG)}")
             return 1
+        self.info(f"Index: {self.display_path(TOOL_ROOT / 'index.md')}")
         return 0
 
     def run_one_case(self, case_path: Path, index: int, total: int) -> int:
         case_id = self.preparer.case_id(case_path)
         self.workflow_run_id = self.create_workflow_run_id()
-        print("")
-        print(f"[{index}/{total}] Rendering case: {case_id}")
-        print(f"Workflow run id: {self.workflow_run_id}")
+        self.info("")
+        self.info(f"[{index}/{total}] Case: {case_id}")
+        self.debug(f"Workflow run id: {self.workflow_run_id}")
 
         self.clear_case_artifacts(case_id)
         self.preparer.prepare([case_path], workflow_run_id=self.workflow_run_id)
@@ -163,7 +183,7 @@ class RenderWorkflow:
 
         processed, missing = self.wait_for_semantic([case_id])
         if missing:
-            print(f"Runtime did not produce matching semantic.json for {case_id}.")
+            self.info(f"Missing semantic export: {case_id}")
             self.write_workflow_error(
                 case_id,
                 kind="semantic_output_missing",
@@ -204,9 +224,8 @@ class RenderWorkflow:
                 duplicates.append((case_id, previous, case_path))
             by_case_id[case_id] = case_path
         for case_id, previous, current in duplicates:
-            print(
-                f"[warn] Duplicate case id {case_id!r}: using {current} and skipping earlier {previous}."
-            )
+            self.info(f"Note: duplicate case id {case_id!r}; using {current.name}.")
+            self.debug(f"Duplicate details: using {current} and skipping earlier {previous}.")
         return list(by_case_id.values())
 
     def ensure_runtime(self) -> tuple[int, str]:
@@ -217,7 +236,7 @@ class RenderWorkflow:
         ]
         if self.dry_run_runtime:
             cmd.append("--dry-run")
-        print("Restarting DreamDaemon for a clean workbench run...")
+        self.info("Starting DreamDaemon...")
         completed = subprocess.run(
             cmd,
             cwd=REPO_ROOT,
@@ -227,23 +246,27 @@ class RenderWorkflow:
             encoding="utf-8",
             errors="replace",
         )
-        if completed.stdout:
-            print(completed.stdout.rstrip())
-        if completed.stderr:
-            print(completed.stderr.rstrip(), file=sys.stderr)
+        self.log_completed_process("runtime_manager", cmd, completed)
         return completed.returncode, (completed.stdout or "") + (completed.stderr or "")
 
     def stop_runtime(self) -> None:
         if self.dry_run_runtime:
             return
-        subprocess.run(
+        self.info("Stopping DreamDaemon...")
+        completed = subprocess.run(
             [
                 sys.executable,
                 str(SCRIPT_DIR / "runtime_manager.py"),
                 "--stop",
             ],
             cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors="replace",
         )
+        self.log_completed_process("runtime_manager --stop", [sys.executable, str(SCRIPT_DIR / "runtime_manager.py"), "--stop"], completed)
 
     @staticmethod
     def create_workflow_run_id() -> str:
@@ -253,7 +276,7 @@ class RenderWorkflow:
         deadline = time.monotonic() + self.timeout_seconds
         pending = set(case_ids)
         processed: set[str] = set()
-        print("Waiting for matching semantic.json output...")
+        self.info("Waiting for semantic export...")
         while pending and time.monotonic() < deadline:
             for case_id in list(pending):
                 semantic = DEFAULT_OUT_DIR / case_id / "semantic.json"
@@ -262,7 +285,7 @@ class RenderWorkflow:
                 if self.semantic_matches_workflow(semantic):
                     pending.remove(case_id)
                     processed.add(case_id)
-                    print(f"[ready] {case_id}")
+                    self.debug(f"[ready] {case_id}")
             if pending:
                 time.sleep(self.poll_seconds)
         return [case_id for case_id in case_ids if case_id in processed], [case_id for case_id in case_ids if case_id in pending]
@@ -287,15 +310,31 @@ class RenderWorkflow:
         return {}
 
     def render_cases(self, case_ids: list[str]) -> int:
+        self.info("Rendering review files...")
         cmd = [
             sys.executable,
             str(SCRIPT_DIR / "render_all.py"),
         ]
         if not self.render_ascii:
             cmd.append("--no-ascii")
+        cmd.extend(["--crop-padding", str(self.crop_padding)])
+        if self.full_canvas:
+            cmd.append("--full-canvas")
         for case_id in case_ids:
             cmd.extend(["--case", case_id])
-        return subprocess.run(cmd, cwd=REPO_ROOT).returncode
+        completed = subprocess.run(
+            cmd,
+            cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors="replace",
+        )
+        self.log_completed_process("render_all", cmd, completed)
+        if completed.returncode != 0:
+            self.info("Review rendering failed; see log and case error files.")
+        return completed.returncode
 
     def write_workflow_error(self, case_id: str, kind: str, message: str, details: dict | None = None) -> None:
         case_dir = DEFAULT_OUT_DIR / case_id
@@ -336,6 +375,57 @@ class RenderWorkflow:
             if path.exists():
                 path.unlink()
 
+    def start_log(self) -> None:
+        DEFAULT_WORKFLOW_LOG.parent.mkdir(parents=True, exist_ok=True)
+        self.log_handle = DEFAULT_WORKFLOW_LOG.open("w", encoding="utf-8", buffering=1)
+        self.log_line("World Edit Visual workflow log")
+        self.log_line(f"created_at: {datetime.now(timezone.utc).isoformat()}")
+        self.log_line(f"repo: {REPO_ROOT}")
+        self.log_line("")
+
+    def close_log(self) -> None:
+        if self.log_handle:
+            self.log_handle.close()
+            self.log_handle = None
+
+    def info(self, message: str = "") -> None:
+        print(message)
+        self.log_line(message)
+
+    def debug(self, message: str = "", stderr: bool = False) -> None:
+        self.log_line(message)
+        if self.verbose:
+            print(message, file=sys.stderr if stderr else sys.stdout)
+
+    def log_line(self, message: str = "") -> None:
+        if self.log_handle:
+            print(message, file=self.log_handle)
+
+    def log_completed_process(self, label: str, cmd: list[str], completed: subprocess.CompletedProcess) -> None:
+        self.log_line("")
+        self.log_line(f"--- {label} ---")
+        self.log_line("$ " + " ".join(cmd))
+        self.log_line(f"exit_code: {completed.returncode}")
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
+        if stdout:
+            self.log_line("stdout:")
+            self.log_line(stdout.rstrip())
+            if self.verbose:
+                print(stdout.rstrip())
+        if stderr:
+            self.log_line("stderr:")
+            self.log_line(stderr.rstrip())
+            if self.verbose:
+                print(stderr.rstrip(), file=sys.stderr)
+
+    @staticmethod
+    def display_path(path: Path) -> str:
+        try:
+            return str(path.relative_to(REPO_ROOT))
+        except ValueError:
+            return str(path)
+
     @staticmethod
     def workflow_error_text(payload: dict) -> str:
         lines = [
@@ -360,13 +450,20 @@ class RenderWorkflow:
                 error_file.unlink()
 
     def build_index(self) -> None:
-        subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPT_DIR / "build_index.py"),
-            ],
+        cmd = [
+            sys.executable,
+            str(SCRIPT_DIR / "build_index.py"),
+        ]
+        completed = subprocess.run(
+            cmd,
             cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors="replace",
         )
+        self.log_completed_process("build_index", cmd, completed)
 
 
 def resolve_case_paths(args: argparse.Namespace) -> list[Path]:
@@ -397,6 +494,9 @@ def main() -> int:
         action="store_true",
         help="Diagnostic mode: restart DreamDaemon per case instead of one batch run",
     )
+    parser.add_argument("--full-canvas", action="store_true", help="Render complete semantic canvases instead of cropped views")
+    parser.add_argument("--crop-padding", default=DEFAULT_CROP_PADDING, type=int, help="Tiles to keep around useful content")
+    parser.add_argument("--verbose", action="store_true", help="Print detailed child-process output to the console")
     args = parser.parse_args()
 
     workflow = RenderWorkflow(
@@ -406,6 +506,9 @@ def main() -> int:
         render_ascii=not args.no_ascii,
         dry_run_runtime=args.dry_run_runtime,
         isolated=args.isolated,
+        full_canvas=args.full_canvas,
+        crop_padding=args.crop_padding,
+        verbose=args.verbose,
     )
     return workflow.run()
 

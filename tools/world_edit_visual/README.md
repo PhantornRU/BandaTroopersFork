@@ -15,6 +15,7 @@
 - `tools/world_edit_visual/out/<case_id>/workflow.error.txt` explains why the prepare/runtime/wait workflow failed.
 - `tools/world_edit_visual/out/<case_id>/workflow.error.json` is the structured workflow failure record.
 - `tools/world_edit_visual/out/<case_id>/ascii_dump.txt` is the ASCII review dump.
+- `tools/world_edit_visual/workflow.log` is the detailed log for the last menu/bin render workflow.
 - `tools/world_edit_visual/index.md` is generated from local runtime reports.
 
 Runtime output, generated cases, DMI frame cache, and `index.md` are ignored local state.
@@ -27,7 +28,12 @@ Use the menu:
 tools\world_edit_visual\menu.bat
 ```
 
-Choose `Render all cases`. The workflow prepares cases, restarts DreamDaemon once for a clean trusted batch run, waits for fresh `semantic.json`, renders all review artifacts, and stops the managed DreamDaemon process when it is done.
+Choose `Render all cases`. The workflow prepares cases, restarts DreamDaemon once for a clean trusted batch run, waits for fresh `semantic.json`, renders cropped review artifacts, and stops the managed DreamDaemon process when it is done.
+
+Normal menu/bin output is intentionally short. Detailed runtime commands,
+per-case renderer output, temporary file paths, and DreamDaemon stop/start
+details are written to `tools/world_edit_visual/workflow.log`. Add `--verbose`
+to direct Python workflow commands when you want that detail in the console.
 
 For automation, run the same full workflow directly:
 
@@ -64,6 +70,12 @@ The wizard writes `tools/world_edit_visual/cases/generated/<safe_id>.json`. The 
 ## Renderers
 
 `render_semantic.py` draws the schematic debug PNG from semantic flags. It does not use DMI art.
+
+Human-facing artifacts are cropped by default around useful generated content
+with a small tile padding: `semantic.png`, `semantic_sprites.png`, and
+`ascii_dump.txt`. The machine-readable `semantic.json` remains the full exported
+canvas. Use `--full-canvas` on the Python render commands only when debugging the
+entire workbench canvas.
 
 `render_sprites.py` draws real project sprites. Its default contract is:
 
@@ -112,6 +124,18 @@ For diagnosis, `--isolated` keeps the slower restart-per-case behavior:
 py -3 tools\world_edit_visual\scripts\render_workflow.py --isolated
 ```
 
+Print detailed workflow logs to the console:
+
+```bat
+py -3 tools\world_edit_visual\scripts\render_workflow.py --verbose
+```
+
+Render complete canvases instead of cropped review artifacts:
+
+```bat
+py -3 tools\world_edit_visual\scripts\render_workflow.py --full-canvas
+```
+
 Render the committed appearance smoke fixture:
 
 ```bat
@@ -134,6 +158,7 @@ Generated/local:
 - `tools/world_edit_visual/inbox/`
 - `tools/world_edit_visual/out/`
 - `tools/world_edit_visual/index.md`
+- `tools/world_edit_visual/workflow.log`
 - `tools/world_edit_visual/.cache/`
 - `tools/world_edit_visual/cases/generated/`
 

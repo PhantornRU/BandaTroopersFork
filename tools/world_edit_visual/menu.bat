@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 chcp 65001 >nul
+title World Edit Visual
+mode con: cols=110 lines=35 >nul 2>nul
 cd /d "%~dp0\..\.."
 
 :main_menu
@@ -26,11 +28,19 @@ goto main_menu
 
 :render_all
 cls
-echo Rendering all cases. DreamDaemon will be started or restarted if needed.
+echo Rendering all cases.
+echo This window shows short status only.
 echo.
 py -3 -u tools\world_edit_visual\scripts\render_workflow.py
 echo.
-echo Exit code: %ERRORLEVEL%
+set "rc=%ERRORLEVEL%"
+if "%rc%"=="0" (
+    echo Render completed successfully.
+) else (
+    echo Render failed. Exit code: %rc%
+)
+echo Details: tools\world_edit_visual\workflow.log
+echo Index: tools\world_edit_visual\index.md
 pause
 goto main_menu
 
@@ -38,7 +48,12 @@ goto main_menu
 cls
 py -3 -u tools\world_edit_visual\scripts\case_wizard.py
 echo.
-echo Exit code: %ERRORLEVEL%
+set "rc=%ERRORLEVEL%"
+if "%rc%"=="0" (
+    echo Case wizard completed.
+) else (
+    echo Case wizard failed. Exit code: %rc%
+)
 pause
 goto main_menu
 
@@ -75,9 +90,17 @@ if "!selected_path!"=="" (
 cls
 echo Rendering selected case:
 echo !selected_path!
+echo This window shows short status only.
 echo.
 py -3 -u tools\world_edit_visual\scripts\render_workflow.py --case-path "!selected_path!"
 echo.
-echo Exit code: !ERRORLEVEL!
+set "rc=!ERRORLEVEL!"
+if "!rc!"=="0" (
+    echo Render completed successfully.
+) else (
+    echo Render failed. Exit code: !rc!
+)
+echo Details: tools\world_edit_visual\workflow.log
+echo Index: tools\world_edit_visual\index.md
 pause
 goto main_menu

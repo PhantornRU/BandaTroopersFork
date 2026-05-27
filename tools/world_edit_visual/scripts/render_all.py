@@ -9,6 +9,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from crop_bounds import DEFAULT_CROP_PADDING
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 TOOL_ROOT = SCRIPT_DIR.parent
@@ -32,6 +34,8 @@ class RenderAll:
         build_index: bool,
         index_path: Path,
         allow_schematic_fallback: bool,
+        full_canvas: bool,
+        crop_padding: int,
     ) -> None:
         self.out_dir = out_dir
         self.case_ids = case_ids
@@ -41,6 +45,8 @@ class RenderAll:
         self.build_index = build_index
         self.index_path = index_path
         self.allow_schematic_fallback = allow_schematic_fallback
+        self.full_canvas = full_canvas
+        self.crop_padding = crop_padding
         self.failures: list[str] = []
         self.rendered = 0
         self.skipped = 0
@@ -100,6 +106,7 @@ class RenderAll:
                 str(semantic),
                 "--out",
                 str(case_dir / "semantic.png"),
+                *self.crop_args(),
             ]
             if report.exists():
                 cmd.extend(["--report-json", str(report)])
@@ -114,6 +121,7 @@ class RenderAll:
                 str(SCRIPT_DIR / "render_ascii_map.py"),
                 "--semantic-json",
                 str(semantic),
+                *self.crop_args(),
             ]
             if report.exists():
                 cmd.extend(["--report-json", str(report)])
@@ -137,6 +145,7 @@ class RenderAll:
             str(semantic),
             "--output",
             str(temp_output),
+            *self.crop_args(),
         ]
         if self.allow_schematic_fallback:
             cmd.append("--allow-schematic-fallback")
@@ -208,6 +217,12 @@ class RenderAll:
         if completed.stderr:
             print(completed.stderr.rstrip(), file=sys.stderr)
         print(f"[sprites:ok] {case_dir.name}: {output}")
+
+    def crop_args(self) -> list[str]:
+        args = ["--crop-padding", str(self.crop_padding)]
+        if self.full_canvas:
+            args.append("--full-canvas")
+        return args
 
     def sprite_error_payload(
         self,
@@ -312,6 +327,8 @@ def main() -> int:
         action="store_true",
         help="Developer/debug only: pass placeholder fallback flag through to render_sprites.py",
     )
+    parser.add_argument("--full-canvas", action="store_true", help="Render complete semantic canvases instead of cropped views")
+    parser.add_argument("--crop-padding", default=DEFAULT_CROP_PADDING, type=int, help="Tiles to keep around useful content")
     args = parser.parse_args()
 
     runner = RenderAll(
@@ -323,6 +340,8 @@ def main() -> int:
         build_index=not args.no_index,
         index_path=args.index,
         allow_schematic_fallback=args.allow_schematic_fallback,
+        full_canvas=args.full_canvas,
+        crop_padding=args.crop_padding,
     )
     return runner.run()
 

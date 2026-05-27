@@ -8,6 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from crop_bounds import DEFAULT_CROP_PADDING, TileBounds, compute_crop_bounds, full_bounds, parse_rect
+
 
 TILE = 10
 
@@ -56,12 +58,20 @@ class SemanticRenderer:
     building generator.
     """
 
-    def __init__(self, semantic: dict, report: dict, tile_size: int = TILE) -> None:
+    def __init__(
+        self,
+        semantic: dict,
+        report: dict,
+        tile_size: int = TILE,
+        crop: TileBounds | None = None,
+    ) -> None:
         self.semantic = semantic
         self.report = report
         self.tile_size = tile_size
-        self.width = int(semantic["width"])
-        self.height = int(semantic["height"])
+        self.full_bounds = full_bounds(semantic)
+        self.crop = crop or compute_crop_bounds(semantic)
+        self.width = self.crop.width
+        self.height = self.crop.height
         self.overlay_h = 34
         self.image = Image.new(
             "RGB",
@@ -79,8 +89,8 @@ class SemanticRenderer:
         self.image.save(out_path)
 
     def tile_box(self, local_x: int, local_y: int) -> tuple[int, int, int, int]:
-        x = local_x - 1
-        y = self.height - local_y
+        x = local_x - self.crop.min_x
+        y = self.crop.max_y - local_y
         px0 = x * self.tile_size
         py0 = y * self.tile_size
         px1 = px0 + self.tile_size - 1
@@ -89,6 +99,8 @@ class SemanticRenderer:
 
     def draw_tiles(self) -> None:
         for tile in self.semantic.get("tiles", []):
+            if not self.crop.contains(int(tile.get("local_x", 0)), int(tile.get("local_y", 0))):
+                continue
             self.draw_tile(tile)
 
     def draw_tile(self, tile: dict) -> None:
@@ -143,30 +155,14 @@ class SemanticRenderer:
             bounds = room.get("bounds")
             if not bounds:
                 continue
-            if isinstance(bounds, dict):
-                min_x = int(bounds.get("x1") or bounds.get("min_x") or 0)
-                min_y = int(bounds.get("y1") or bounds.get("min_y") or 0)
-                max_x = int(bounds.get("x2") or bounds.get("max_x") or 0)
-                max_y = int(bounds.get("y2") or bounds.get("max_y") or 0)
-            elif len(bounds) == 4:
-                min_x, min_y, max_x, max_y = [int(v) for v in bounds]
-            else:
+            parsed = parse_rect(bounds, self.semantic, self.full_bounds)
+            if parsed is None:
                 continue
-            if min_x <= 0 or min_y <= 0 or max_x <= 0 or max_y <= 0:
+            clipped = self.crop.clamp_rect(*parsed)
+            if clipped is None:
                 continue
-            origin = self.semantic.get("origin") or {}
-            origin_x = int(origin.get("x") or 1)
-            origin_y = int(origin.get("y") or 1)
-            if min_x >= origin_x and max_x >= origin_x:
-                min_x = min_x - origin_x + 1
-                max_x = max_x - origin_x + 1
-            if min_y >= origin_y and max_y >= origin_y:
-                min_y = min_y - origin_y + 1
-                max_y = max_y - origin_y + 1
-            px0 = (min_x - 1) * self.tile_size
-            py0 = (self.height - max_y) * self.tile_size
-            px1 = max_x * self.tile_size - 1
-            py1 = (self.height - min_y + 1) * self.tile_size - 1
+            px0, _, _, py1 = self.tile_box(clipped.min_x, clipped.min_y)
+            _, py0, px1, _ = self.tile_box(clipped.max_x, clipped.max_y)
             outline = (40, 255, 80) if room.get("status", "ok") == "ok" else SemanticPalette.error
             self.draw.rectangle([px0, py0, px1, py1], outline=outline, width=2)
             self.draw.text(
@@ -213,11 +209,14 @@ def main() -> int:
     parser.add_argument("--semantic-json", required=True)
     parser.add_argument("--report-json")
     parser.add_argument("--out", required=True)
+    parser.add_argument("--full-canvas", action="store_true", help="Render the complete semantic canvas")
+    parser.add_argument("--crop-padding", default=DEFAULT_CROP_PADDING, type=int, help="Tiles to keep around useful content")
     args = parser.parse_args()
 
     semantic = load_json(args.semantic_json)
     report = load_json(args.report_json) if args.report_json else {}
-    SemanticRenderer(semantic, report).render(Path(args.out))
+    crop = compute_crop_bounds(semantic, padding=args.crop_padding, full_canvas=args.full_canvas)
+    SemanticRenderer(semantic, report, crop=crop).render(Path(args.out))
     return 0
 
 

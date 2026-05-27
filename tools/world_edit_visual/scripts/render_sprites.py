@@ -12,6 +12,8 @@ from typing import Any
 
 from PIL import Image, ImageDraw
 
+from crop_bounds import DEFAULT_CROP_PADDING, TileBounds, compute_crop_bounds
+
 
 TILE_SIZE = 32
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -196,6 +198,7 @@ class SpriteRenderer:
         output_path: Path,
         cache_dir: Path,
         allow_schematic_fallback: bool = False,
+        crop: TileBounds | None = None,
     ) -> None:
         self.semantic = semantic
         self.semantic_path = semantic_path
@@ -203,8 +206,9 @@ class SpriteRenderer:
         self.cache_dir = cache_dir
         self.allow_schematic_fallback = allow_schematic_fallback
         self.case_id = str(semantic.get("case_id") or output_path.parent.name or "unknown")
-        self.width = max(1, as_int(semantic.get("width"), 1))
-        self.height = max(1, as_int(semantic.get("height"), 1))
+        self.crop = crop or compute_crop_bounds(semantic)
+        self.width = self.crop.width
+        self.height = self.crop.height
         self.image = Image.new(
             "RGBA",
             (self.width * TILE_SIZE, self.height * TILE_SIZE),
@@ -359,15 +363,19 @@ class SpriteRenderer:
         return entries
 
     def tile_screen_info(self, tile: dict[str, Any]) -> tuple[int, int, int, int] | None:
-        x = as_int(tile.get("local_x"), 1) - 1
-        y_byond = as_int(tile.get("local_y"), 1) - 1
-        y = self.height - 1 - y_byond
+        local_x = as_int(tile.get("local_x"), 1)
+        local_y = as_int(tile.get("local_y"), 1)
+        if not self.crop.contains(local_x, local_y):
+            return None
+
+        x = local_x - self.crop.min_x
+        y = self.crop.max_y - local_y
         if not (0 <= x < self.width and 0 <= y < self.height):
             return None
 
         px = x * TILE_SIZE
         py = y * TILE_SIZE
-        return x, y_byond, px, py
+        return local_x, local_y, px, py
 
     @staticmethod
     def entry_sort_key(entry: dict[str, Any]) -> tuple[float, float, int, int, int, int]:
@@ -656,6 +664,8 @@ def main() -> int:
         action="store_true",
         help="Developer/debug only: allow placeholder rendering when appearance metadata is missing",
     )
+    parser.add_argument("--full-canvas", action="store_true", help="Render the complete semantic canvas")
+    parser.add_argument("--crop-padding", default=DEFAULT_CROP_PADDING, type=int, help="Tiles to keep around useful content")
     args = parser.parse_args()
 
     try:
@@ -670,6 +680,7 @@ def main() -> int:
         output_path=args.output,
         cache_dir=args.cache_dir,
         allow_schematic_fallback=args.allow_schematic_fallback,
+        crop=compute_crop_bounds(semantic, padding=args.crop_padding, full_canvas=args.full_canvas),
     )
     return 0 if renderer.render() else 1
 
