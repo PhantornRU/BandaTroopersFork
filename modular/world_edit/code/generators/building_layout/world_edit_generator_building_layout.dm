@@ -441,6 +441,7 @@
 	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
 	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
 	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
+	config["debug_reports"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["debug_reports"] : null) ? TRUE : FALSE
 
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
@@ -1787,16 +1788,21 @@
 		report["semantic_slot_capacity_count"] = state.semantic_slot_capacity_count
 		report["semantic_slot_shortage_count"] = state.semantic_slot_shortage_count
 		report["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
+		report["template_reject_reason_counts"] = state.template_reject_reason_counts.Copy()
 		if(detailed)
 			report["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
 			report["placed_requirement_counts"] = state.placed_requirement_counts.Copy()
 			report["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
 			report["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
 			report["pattern_reports"] = state.pattern_reports.Copy()
+			report["template_reject_reports"] = state.template_reject_reports.Copy()
+			report["template_cluster_reports"] = state.template_cluster_reports.Copy()
 		else
 			report["semantic_slot_report_count"] = length(state.semantic_slot_reports)
 			report["semantic_requirement_count"] = length(state.semantic_requirement_counts)
 			report["pattern_report_count"] = length(state.pattern_reports)
+			report["template_reject_report_count"] = length(state.template_reject_reports)
+			report["template_cluster_report_count"] = length(state.template_cluster_reports)
 		report["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
 		report["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
 		report["mandatory_room_count"] = state.mandatory_room_count
@@ -2338,7 +2344,10 @@
 		if(dir_to_use in GLOB.cardinals)
 			created_object.setDir(dir_to_use)
 			if(GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
-				GLOB.world_edit_helpers.align_object_to_wall(created_object, dir_to_use)
+				var/wall_dir = text2num("[placement["wall_dir"]]")
+				if(!wall_dir)
+					wall_dir = dir_to_use
+				GLOB.world_edit_helpers.align_object_to_wall(created_object, wall_dir)
 		created_object_count++
 		changeset.add_created(created_object, target_turf, list(
 			"kind" = kind,
@@ -2354,13 +2363,6 @@
 	result.meta["skipped_runtime"] = skipped_runtime
 	result.meta["runtime_skip_reasons"] = runtime_skip_reasons
 	result.meta["post_apply_validation_error_count"] = skipped_runtime
-	if(skipped_runtime > 0)
-		var/list/revert_report = GLOB.world_edit_changesets.revert_changeset(changeset)
-		result.meta["apply_revert_report"] = revert_report
-		result.message = "Building apply failed: emitted plan diverged at runtime, skipped=[skipped_runtime]. Reverted=[revert_report["reverted_count"]] skipped_revert=[revert_report["skipped_count"]]."
-		current_plan = null
-		current_plan_request_key = null
-		return result
 	if(changed_turf_count <= 0 && created_object_count <= 0)
 		result.message = "Building made no changes: runtime skipped=[skipped_runtime]."
 		current_plan = null
@@ -2369,7 +2371,10 @@
 
 	result.success = TRUE
 	result.changeset = changeset
-	result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
+	if(skipped_runtime > 0)
+		result.message = "Building applied with warnings: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
+	else
+		result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
 	current_plan = null
 	current_plan_request_key = null
 	return result

@@ -51,36 +51,85 @@
 /datum/world_edit_generator/building_layout/proc/place_building_cluster_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
+	var/list/cluster_report = list(
+		"cluster_id" = cluster_spec.id,
+		"pattern" = cluster_spec.pattern,
+		"slot" = cluster_spec.slot,
+		"category" = cluster_spec.category,
+		"phase" = cluster_spec.phase,
+		"required" = cluster_spec.required ? TRUE : FALSE,
+		"major" = major ? TRUE : FALSE,
+	)
 	if(!length(cluster_spec.macro_id))
 		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
+	cluster_report["macro_id"] = cluster_spec.macro_id
 	var/has_template_path = building_cluster_has_template_chunk(cluster_spec, state)
+	cluster_report["has_template_path"] = has_template_path ? TRUE : FALSE
 	var/placed = 0
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	cluster_report["requirement_id"] = requirement_id
+	cluster_report["effective_minimum"] = effective_minimum
 	var/already_placed = round(text2num("[state.placed_requirement_counts["[requirement_id]"]]") || 0)
 	if(length(cluster_spec.id))
 		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.id]"]]") || 0))
 	if(length(cluster_spec.signature_id))
 		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
 	if(effective_minimum > 0 && already_placed >= effective_minimum)
+		cluster_report["status"] = "already_satisfied"
+		cluster_report["already_placed"] = already_placed
+		state.add_template_cluster_report(cluster_report)
 		return TRUE
 	var/target_count = get_scaled_cluster_target_count(state, cluster_spec)
+	cluster_report["already_placed"] = already_placed
+	cluster_report["target_count"] = target_count
 	if(has_template_path)
 		template_placed = place_building_template_chunk_for_cluster(state, cluster_spec, major)
-		if(template_placed >= effective_minimum)
+		cluster_report["template_placed"] = template_placed
+		if(template_placed > 0)
+			state.add_warning("Template-first placement partially succeeded for cluster '[cluster_spec.id]'.")
+			placed += template_placed
+		if(placed >= effective_minimum)
+			cluster_report["status"] = "template_satisfied"
+			state.add_template_cluster_report(cluster_report)
 			return TRUE
-		if(cluster_spec.required)
+		if(cluster_spec.required && !cluster_spec.allow_single_object_fallback)
 			if(effective_minimum > 0 || target_count > 0)
 				state.forbidden_fallback_count++
-				state.add_warning("Template-first placement failed for required cluster '[cluster_spec.id]' with macro '[cluster_spec.macro_id]'.")
+				state.add_template_reject_reason("required_cluster_shortfall", list(
+					"scope" = "cluster",
+					"cluster_id" = cluster_spec.id,
+					"requirement_id" = requirement_id,
+					"template_placed" = template_placed,
+					"effective_minimum" = effective_minimum,
+					"target_count" = target_count,
+					"macro_id" = cluster_spec.macro_id,
+				))
+				state.add_warning("Template-first placement failed or was incomplete for required cluster '[cluster_spec.id]'.")
+			cluster_report["status"] = "required_cluster_shortfall"
+			state.add_template_cluster_report(cluster_report)
 			return FALSE
-		if(!cluster_spec.allow_single_object_fallback)
-			return FALSE
+		if(!cluster_spec.required && !cluster_spec.allow_single_object_fallback)
+			cluster_report["status"] = placed > 0 ? "template_partial_no_fallback" : "template_failed_no_fallback"
+			state.add_template_cluster_report(cluster_report)
+			return placed > 0
 	else if(!cluster_spec.allow_single_object_fallback)
 		if(cluster_spec.required)
 			state.forbidden_fallback_count++
+			state.add_template_reject_reason("required_cluster_shortfall", list(
+				"scope" = "cluster",
+				"cluster_id" = cluster_spec.id,
+				"requirement_id" = requirement_id,
+				"template_placed" = template_placed,
+				"effective_minimum" = effective_minimum,
+				"target_count" = target_count,
+				"macro_id" = cluster_spec.macro_id,
+				"detail" = "missing_template_macro_or_chunk",
+			))
 			state.add_warning("Required cluster '[cluster_spec.id]' lacks a macro and allow_single_object_fallback is not set.")
+		cluster_report["status"] = "missing_template_path_no_fallback"
+		state.add_template_cluster_report(cluster_report)
 		return FALSE
 	switch(cluster_spec.pattern)
 		if("signature_workshop_wall", "signature_rack_aisles", "signature_hydro_rows", "signature_cook_line", "signature_bed_rows", "signature_treatment_bay", "signature_office_suite", "signature_security_counter", "signature_living_nook", "signature_engineering_bay", "signature_lab_bench")
@@ -106,6 +155,9 @@
 				placed += unit_placed
 	if(!has_template_path)
 		placed += template_placed
+	cluster_report["placed"] = placed
+	cluster_report["status"] = placed > 0 ? "placed" : "failed"
+	state.add_template_cluster_report(cluster_report)
 	return placed > 0
 
 /datum/world_edit_generator/building_layout/proc/building_cluster_has_template_chunk(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_state/state = null)
@@ -160,6 +212,10 @@
 			return is_micro ? "micro_table_chunk" : "lab_bench_chunk"
 		if("run")
 			if(cluster_spec.category in list("rack", "cabinet", "bed"))
+				var/room_area = length(get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
+				var/use_island = ("focus_center" in cluster_spec.anchors) || (!cluster_spec.wall_required && room_area >= 20)
+				if(use_island && !is_micro)
+					return "island_[cluster_spec.category]_chunk"
 				return is_micro ? "micro_[cluster_spec.category]_chunk" : "[cluster_spec.category]_run_chunk"
 		if("wall_object")
 			switch(cluster_spec.category)
@@ -177,12 +233,17 @@
 					return "clinic_bed_chunk"
 			return "wall_fixture_chunk"
 		if("table_cluster")
+			var/room_area = length(get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
+			if(room_area >= 40 && !is_micro)
+				return "large_island_table_chunk"
 			return is_micro ? "micro_table_chunk" : "island_table_chunk"
 		if("object", "paired_object")
 			if(cluster_spec.category == "table")
 				return is_micro ? "micro_table_chunk" : "island_table_chunk"
 			if(cluster_spec.category == "bed")
 				return is_micro ? "micro_bed_chunk" : "island_bed_chunk"
+			if(cluster_spec.category == "chair")
+				return is_micro ? "micro_table_chunk" : "island_chair_group_chunk"
 	return ""
 
 /datum/world_edit_generator/building_layout/proc/inherit_building_cluster_count_context(datum/world_edit_building_cluster_spec/child_spec, datum/world_edit_building_cluster_spec/parent_spec)
@@ -217,6 +278,14 @@
 		if(base_budget <= 0)
 			continue
 		var/area_bonus = max(0, round((usable_area - 24) / 14))
+		if(state.archetype?.id == "living")
+			switch("[category]")
+				if("table")
+					area_bonus += max(0, round((usable_area - 18) / 10))
+				if("chair")
+					area_bonus += max(0, round((usable_area - 16) / 8))
+				if("cabinet")
+					area_bonus += max(0, round((usable_area - 28) / 18))
 		state.category_budgets["[category]"] = min(WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS, max(base_budget, base_budget + area_bonus))
 
 /datum/world_edit_generator/building_layout/proc/get_cluster_effective_needs_wall(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_place_rule/place_rule)
@@ -582,6 +651,9 @@
 	state.semantic_slot_turf_sets.Cut()
 	state.semantic_requirement_minimums.Cut()
 	state.semantic_requirement_reports.Cut()
+	state.template_reject_reason_counts.Cut()
+	state.template_reject_reports.Cut()
+	state.template_cluster_reports.Cut()
 	state.clear_semantic_slot_reservations()
 	state.semantic_slot_capacity_count = 0
 	state.semantic_slot_shortage_count = 0
@@ -664,12 +736,12 @@
 
 /datum/world_edit_generator/building_layout/proc/get_scaled_cluster_target_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	var/base_count = max(cluster_spec.min_count, cluster_spec.max_count)
-	var/room_area = length(state.floor_turfs)
+	var/room_area = length(get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
 	if(room_area <= 0)
 		return base_count
 	var/divisor = max(get_cluster_area_divisor(cluster_spec), 1)
 	
-	// SS220 EDIT: area_bonus now scales with the overall room area, not just valid anchor tiles, to fill hangars.
+	// SS220 EDIT: area_bonus scales with the semantic zone area, not just valid anchor tiles or the whole building, to properly fill rooms based on area.
 	var/area_bonus = max(0, round((room_area - (base_count * divisor)) / divisor))
 	
 	if(cluster_spec.phase != "major")
@@ -967,8 +1039,26 @@
 	for(var/anchor_id as anything in anchor_ids)
 		if(state.has_anchor(anchor_id, target_turf) || zone_id == "[anchor_id]")
 			score += 120
+	var/wall_count = length(get_adjacent_wall_dirs_for_state(state, target_turf))
 	if(needs_wall)
-		score += length(get_adjacent_wall_dirs_for_state(state, target_turf)) * 35
+		score += wall_count * 35
+	else
+		score -= wall_count * 500
+		var/focus_bonus = 0
+		var/turf/focus_turf = null
+		if(state.has_anchor("focus_center", target_turf))
+			focus_bonus += 1800
+		var/datum/world_edit_building_room/room = state.get_room_for_turf(target_turf)
+		if(istype(room) && istype(room.focus_turf))
+			focus_turf = room.focus_turf
+		else if(length(zone_id))
+			focus_turf = state.zone_focus_turfs[zone_id]
+		if(!istype(focus_turf))
+			focus_turf = state.zone_focus_turfs[state.semantic_plan?.hub_zone_id] || state.center_turf || state.semantic_hub_turf
+		if(istype(focus_turf))
+			var/dist_to_focus = abs(target_turf.x - focus_turf.x) + abs(target_turf.y - focus_turf.y)
+			focus_bonus += max(0, 12 - dist_to_focus) * 220
+			score += focus_bonus
 	if(state.has_anchor("door_cone", target_turf))
 		score -= 1000
 	if(state.reserved_lookup[target_turf])

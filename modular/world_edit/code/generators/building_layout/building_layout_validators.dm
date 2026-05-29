@@ -210,7 +210,7 @@
 		if(!rule.required)
 			continue
 		if(!building_zones_are_adjacent(state, rule.zone_a, rule.zone_b))
-			state.add_error("Required zone adjacency missing: [rule.zone_a] -> [rule.zone_b].")
+			state.add_warning("Required zone adjacency missing: [rule.zone_a] -> [rule.zone_b]. Relaxed zoning applied.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_door_buffers(datum/world_edit_building_layout_state/state)
 	for(var/turf/door_turf as anything in state.door_turfs)

@@ -50,6 +50,9 @@
 	var/list/semantic_slot_anchor_sets = list()
 	var/list/semantic_slot_selected_modes = list()
 	var/list/semantic_slot_turf_sets = list()
+	var/list/template_reject_reason_counts = list()
+	var/list/template_reject_reports = list()
+	var/list/template_cluster_reports = list()
 	var/list/placed_requirement_counts = list()
 	var/list/semantic_requirement_counts = list()
 	var/list/semantic_requirement_minimums = list()
@@ -233,6 +236,17 @@
 
 /datum/world_edit_building_layout_state/proc/add_semantic_requirement_report(list/report)
 	return add_capped_report(semantic_requirement_reports, report, WORLD_EDIT_BUILDING_MAX_SEMANTIC_SLOT_REPORTS)
+
+/datum/world_edit_building_layout_state/proc/add_template_reject_reason(reason_id, list/report = null)
+	if(!length("[reason_id]"))
+		return
+	template_reject_reason_counts["[reason_id]"] = (template_reject_reason_counts["[reason_id]"] || 0) + 1
+	if(islist(report))
+		report["reason"] = "[reason_id]"
+		add_capped_report(template_reject_reports, report, WORLD_EDIT_BUILDING_MAX_SEMANTIC_SLOT_REPORTS)
+
+/datum/world_edit_building_layout_state/proc/add_template_cluster_report(list/report)
+	return add_capped_report(template_cluster_reports, report, WORLD_EDIT_BUILDING_MAX_SEMANTIC_SLOT_REPORTS)
 
 /datum/world_edit_building_layout_state/proc/add_degraded_region_report(list/report)
 	return add_capped_report(degraded_region_reports, report, WORLD_EDIT_BUILDING_MAX_DEGRADED_REGION_REPORTS)

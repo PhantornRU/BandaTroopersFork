@@ -412,12 +412,12 @@ class RenderWorkflow:
             self.log_line("stdout:")
             self.log_line(stdout.rstrip())
             if self.verbose:
-                print(stdout.rstrip())
+                print(stdout.rstrip().encode("cp1251", errors="replace").decode("cp1251"))
         if stderr:
             self.log_line("stderr:")
             self.log_line(stderr.rstrip())
             if self.verbose:
-                print(stderr.rstrip(), file=sys.stderr)
+                print(stderr.rstrip().encode("cp1251", errors="replace").decode("cp1251"), file=sys.stderr)
 
     @staticmethod
     def display_path(path: Path) -> str:

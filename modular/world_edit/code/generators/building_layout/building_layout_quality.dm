@@ -223,6 +223,7 @@
 	var/raw_category_credit_count = round(text2num("[metadata["raw_category_credit_count"]]") || 0)
 	var/scatter_signature_credit_count = round(text2num("[metadata["scatter_signature_credit_count"]]") || 0)
 	var/list/hard_counters = build_building_metadata_hard_counter_report(metadata)
+	var/list/template_reject_reason_counts = islist(metadata["template_reject_reason_counts"]) ? metadata["template_reject_reason_counts"] : list()
 	var/degrade_level = "[metadata["size_degrade_level"] || "none"]"
 	if(empty_floor_ratio > WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
 		passed = FALSE
@@ -259,6 +260,9 @@
 		"fixture_count" = metadata["fixture_count"],
 		"semantic_requirement_minimums" = metadata["semantic_requirement_minimums"],
 		"semantic_requirement_counts" = metadata["semantic_requirement_counts"],
+		"template_reject_reason_counts" = template_reject_reason_counts,
+		"template_reject_report_count" = metadata["template_reject_report_count"],
+		"template_cluster_report_count" = metadata["template_cluster_report_count"],
 		"semantic_slot_shortage_count" = semantic_slot_shortage_count,
 		"semantic_slot_reservation_conflict_count" = semantic_slot_reservation_conflict_count,
 		"mandatory_pattern_failure_count" = mandatory_pattern_failure_count,

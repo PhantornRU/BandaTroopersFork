@@ -96,6 +96,8 @@
 	out["error"] = error
 	if(islist(details))
 		out["details"] = details
+		out["metrics"] = merge_metrics(details, null, null)
+		attach_building_diagnostics(out, details)
 	out["canvas_changed"] = canvas?.has_changed() ? TRUE : FALSE
 	mark_semantic_artifacts(out)
 	export_semantic_json(out)
@@ -110,11 +112,36 @@
 	out["direction"] = build_direction_report(preview)
 	out["rooms"] = preview?["rooms"] || list()
 	out["routes"] = preview?["routes"] || list()
+	attach_building_diagnostics(out, preview)
 	out["artifacts"] = islist(export_result?["artifacts"]) ? export_result["artifacts"] : list()
 	mark_semantic_artifacts(out)
 	export_semantic_json(out)
 	write_report(out)
 	return out
+
+/datum/world_edit_visual_case/proc/attach_building_diagnostics(list/report_data, list/source)
+	if(!islist(report_data))
+		return
+	var/list/meta = source?["metadata"]
+	if(!islist(meta))
+		return
+	var/list/diagnostics = list(
+		"template_chunk_count" = meta["template_chunk_count"] || 0,
+		"template_chunk_cell_count" = meta["template_chunk_cell_count"] || 0,
+		"template_reject_reason_counts" = islist(meta["template_reject_reason_counts"]) ? meta["template_reject_reason_counts"] : list(),
+		"template_reject_reports" = islist(meta["template_reject_reports"]) ? meta["template_reject_reports"] : list(),
+		"template_reject_report_count" = meta["template_reject_report_count"] || 0,
+		"template_cluster_reports" = islist(meta["template_cluster_reports"]) ? meta["template_cluster_reports"] : list(),
+		"template_cluster_report_count" = meta["template_cluster_report_count"] || 0,
+		"placed_requirement_counts" = islist(meta["placed_requirement_counts"]) ? meta["placed_requirement_counts"] : list(),
+		"semantic_requirement_counts" = islist(meta["semantic_requirement_counts"]) ? meta["semantic_requirement_counts"] : list(),
+		"semantic_requirement_minimums" = islist(meta["semantic_requirement_minimums"]) ? meta["semantic_requirement_minimums"] : list(),
+	)
+	report_data["building_diagnostics"] = diagnostics
+	report_data["template_reject_reports"] = diagnostics["template_reject_reports"]
+	report_data["template_cluster_reports"] = diagnostics["template_cluster_reports"]
+	report_data["placed_requirement_counts"] = diagnostics["placed_requirement_counts"]
+	report_data["semantic_requirement_counts"] = diagnostics["semantic_requirement_counts"]
 
 /datum/world_edit_visual_case/proc/merge_metrics(list/preview, list/apply, list/post_emit)
 	var/list/metrics = list()
@@ -138,6 +165,14 @@
 		)
 		for(var/key as anything in keys)
 			metrics[key] = meta[key] || 0
+		metrics["template_chunk_count"] = meta["template_chunk_count"] || 0
+		metrics["template_chunk_cell_count"] = meta["template_chunk_cell_count"] || 0
+		metrics["template_reject_reason_counts"] = islist(meta["template_reject_reason_counts"]) ? meta["template_reject_reason_counts"] : list()
+		metrics["template_reject_report_count"] = meta["template_reject_report_count"] || 0
+		metrics["template_cluster_report_count"] = meta["template_cluster_report_count"] || 0
+		metrics["placed_requirement_counts"] = islist(meta["placed_requirement_counts"]) ? meta["placed_requirement_counts"] : list()
+		metrics["semantic_requirement_counts"] = islist(meta["semantic_requirement_counts"]) ? meta["semantic_requirement_counts"] : list()
+		metrics["semantic_requirement_minimums"] = islist(meta["semantic_requirement_minimums"]) ? meta["semantic_requirement_minimums"] : list()
 		metrics["generated_turf_count"] = meta["footprint_count"] || 0
 		metrics["generated_object_count"] = (meta["door_count"] || 0) + (meta["window_count"] || 0) + (meta["interior_object_count"] || 0)
 	if(islist(apply))

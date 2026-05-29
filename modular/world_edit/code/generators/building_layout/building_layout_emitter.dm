@@ -521,6 +521,11 @@
 	plan.metadata["placed_requirement_counts"] = state.placed_requirement_counts.Copy()
 	plan.metadata["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
 	plan.metadata["semantic_requirement_reports"] = state.semantic_requirement_reports.Copy()
+	plan.metadata["template_reject_reason_counts"] = state.template_reject_reason_counts.Copy()
+	plan.metadata["template_reject_reports"] = detailed_reports ? state.template_reject_reports.Copy() : list()
+	plan.metadata["template_reject_report_count"] = length(state.template_reject_reports)
+	plan.metadata["template_cluster_reports"] = detailed_reports ? state.template_cluster_reports.Copy() : list()
+	plan.metadata["template_cluster_report_count"] = length(state.template_cluster_reports)
 	plan.metadata["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
 	plan.metadata["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
 	plan.metadata["mandatory_room_count"] = state.mandatory_room_count

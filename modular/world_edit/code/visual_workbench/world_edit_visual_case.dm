@@ -160,6 +160,11 @@
 		params["archetype_id"] = "[params["program"]]"
 	if(seed && !params["building_seed"])
 		params["building_seed"] = seed
+	// Workbench reports are diagnostic artifacts. Opt into the generator's
+	// existing detailed metadata only inside this adapter so gameplay/runtime
+	// defaults remain unchanged.
+	if(isnull(params["debug_reports"]))
+		params["debug_reports"] = TRUE
 	return params
 
 /datum/world_edit_visual_case/proc/build_placement_context()
@@ -251,6 +256,8 @@
 		"metadata" = plan.metadata.Copy(),
 		"rooms" = length(plan.metadata["room_reports"]) ? plan.metadata["room_reports"] : (plan.metadata["room_contract_report"] || list()),
 		"routes" = plan.metadata["corridor_report"] ? list(plan.metadata["corridor_report"]) : list(),
+		"template_reject_reports" = islist(plan.metadata["template_reject_reports"]) ? plan.metadata["template_reject_reports"] : list(),
+		"template_cluster_reports" = islist(plan.metadata["template_cluster_reports"]) ? plan.metadata["template_cluster_reports"] : list(),
 		"placement_count" = length(plan.placements),
 	)
 
