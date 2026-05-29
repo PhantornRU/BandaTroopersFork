@@ -1,96 +1,74 @@
-VIEW: cropped local=(39,39)..(57,80) size=19x42
+VIEW: cropped local=(45,45)..(54,80) size=10x36
 
 GEOMETRY (walls/doors/floors)   |   OBJECTS (furniture/decor)
-+-------------------+   |   +-------------------+
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |..........CCC......|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |..........CCC......|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...#.###.+######...|   |   |...:R:::RG::::::...|
-|...#...............|   |   |...:...........R...|
-|...#...........#...|   |   |...W...........:...|
-|...............#...|   |   |...R...........:...|
-|...#...........#...|   |   |...W...........:...|
-|...#...........#...|   |   |...:...........:...|
-|...#....+..+...#...|   |   |...W..G.G..G...:...|
-|...#....#......#...|   |   |...:...G:......:...|
-|...#####.......#...|   |   |...W::::G......:...|
-|...#....+......#...|   |   |...:GG.GG......:...|
-|...#....#......#...|   |   |...WG.G.:......:...|
-|...#....#......#...|   |   |...:.G.G:......:...|
-|...#############...|   |   |...:::::::::::::...|
-|...................|   |   |...................|
-|...................|   |   |...................|
-|...................|   |   |...................|
-+-------------------+   |   +-------------------+
++----------+   |   +----------+
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |....CCC...|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |....CCC...|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
+|..........|   |   |..........|
++----------+   |   +----------+
 
 === ROOMS LEGEND ===
-1. entry (Status: ok) | Bounds: {'x1': 43, 'y1': 49, 'x2': 47, 'y2': 53}
-2. hub (Status: ok) | Bounds: {'x1': 48, 'y1': 49, 'x2': 53, 'y2': 54}
-3. private (Status: ok) | Bounds: {'x1': 43, 'y1': 43, 'x2': 47, 'y2': 45}
-4. service (Status: ok) | Bounds: {'x1': 48, 'y1': 43, 'x2': 53, 'y2': 48}
-5. service (Status: ok) | Bounds: {'x1': 43, 'y1': 46, 'x2': 47, 'y2': 48}
+No rooms defined.
 
 === REPORT ===
-Status: supported
+Status: error
 Metrics:
-  footprint_count: 169
-  wall_count: 50
-  floor_count: 119
-  door_count: 4
-  interior_object_count: 21
+  footprint_count: 0
+  wall_count: 0
+  floor_count: 0
+  door_count: 0
+  interior_object_count: 0
   reserved_walk_blocked_count: 0
   semantic_credit_without_emitted_slots_count: 0
-  mandatory_pattern_failure_count: 15
+  mandatory_pattern_failure_count: 0
   post_emit_validation_error_count: 0
   counter_wrong_facing_count: 0
   direction_fallback_count: 0
-  forbidden_fallback_count: 8
+  forbidden_fallback_count: 0
   raw_category_credit_count: 0
   scatter_signature_credit_count: 0
   template_chunk_count: 0
   template_chunk_cell_count: 0
-  template_reject_reason_counts: {'required_cluster_shortfall': 5}
-  template_reject_report_count: 5
-  template_cluster_report_count: 5
+  template_reject_reason_counts: []
+  template_reject_report_count: 0
+  template_cluster_report_count: 0
   placed_requirement_counts: []
   semantic_requirement_counts: []
-  semantic_requirement_minimums: {'sleep_nook': 2, 'common_table': 1, 'living_social_core': 1, 'living_social_ring': 1, 'personal_storage': 1, 'sanitation_combined': 1, 'infrastructure_lights': 2, 'infrastructure_apc': 1, 'infrastructure_air_alarm': 1, 'infrastructure_light_switch': 1, 'infrastructure_fire_alarm': 1}
-  generated_turf_count: 169
-  generated_object_count: 29
-  changed_turf_count: 169
-  created_object_count: 29
-  missing_path_count: 0
-  failed_object_count: 0
-  state_mismatch_count: 0
-  wall_mismatch_count: 0
-  door_mismatch_count: 0
-  object_mismatch_count: 0
-  route_blocking_count: 0
-  route_unreachable_count: 0
-  door_cone_blocking_count: 0
-  microvariation_route_blocking_count: 0
-  error_count: 0
-Errors: None
+  semantic_requirement_minimums: []
+  generated_turf_count: 0
+  generated_object_count: 0
+Errors:
+  - Required zone 'entry_buffer' has 0 tiles, expected at least 2.: Required zone 'entry_buffer' has 0 tiles, expected at least 2. 

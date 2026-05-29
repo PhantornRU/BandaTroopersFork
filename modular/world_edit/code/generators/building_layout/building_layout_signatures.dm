@@ -26,23 +26,23 @@
 /datum/world_edit_generator/building_layout/proc/building_turf_touches_reserved_lane(datum/world_edit_building_layout_state/state, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))
 		return FALSE
-	if(state.reserved_lookup[target_turf])
+	if(state.geometry.reserved_lookup[target_turf])
 		return TRUE
 	for(var/check_dir in GLOB.cardinals)
-		if(state.reserved_lookup[get_step(target_turf, check_dir)])
+		if(state.geometry.reserved_lookup[get_step(target_turf, check_dir)])
 			return TRUE
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/add_building_signature_anchors(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(!istype(floor_turf))
 			continue
 		var/zone_id = state.get_zone(floor_turf)
 		var/has_wall = length(get_adjacent_wall_dirs_for_state(state, floor_turf)) > 0
 		var/touches_lane = building_turf_touches_reserved_lane(state, floor_turf)
-		if(state.reserved_lookup[floor_turf])
+		if(state.geometry.reserved_lookup[floor_turf])
 			state.add_anchor("main_aisle", floor_turf)
 			state.add_anchor("aisle", floor_turf)
 		else if(touches_lane)
@@ -150,7 +150,7 @@
 		return 0
 	var/placed = 0
 	var/attempts = 0
-	while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		attempts++
 		var/turf/start_turf = select_fixture_turf(state, cluster_spec.anchors, force_wall || cluster_spec.wall_required, cluster_spec)
 		if(!istype(start_turf))
@@ -158,7 +158,7 @@
 		var/start_slot = slots[1]
 		var/start_category = categories[min(1, length(categories))]
 		var/datum/world_edit_building_place_rule/start_rule = resolve_building_place_rule(start_slot, start_category)
-		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		var/list/place_context = build_building_fixture_place_context(state, start_turf, start_rule, fallback_dir, force_wall || cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			break
@@ -177,7 +177,7 @@
 /datum/world_edit_generator/building_layout/proc/extend_signature_slot_run(datum/world_edit_building_layout_state/state, turf/start_turf, run_dir, datum/world_edit_building_cluster_spec/cluster_spec, list/slots, list/categories, dir_to_use, wall_dir, placed, target_count, force_wall = FALSE)
 	var/turf/current_turf = start_turf
 	var/steps = 0
-	while(placed < target_count && steps < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	while(placed < target_count && steps < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		steps++
 		current_turf = get_step(current_turf, run_dir)
 		if(!state.can_place_fixture(current_turf))
@@ -186,7 +186,7 @@
 			break
 		if((force_wall || cluster_spec.wall_required) && isnull(wall_dir))
 			break
-		if(!isnull(wall_dir) && !state.wall_lookup[get_step(current_turf, wall_dir)])
+		if(!isnull(wall_dir) && !state.geometry.wall_lookup[get_step(current_turf, wall_dir)])
 			break
 		var/list_index = (placed % length(slots)) + 1
 		var/slot = slots[list_index]
@@ -227,10 +227,10 @@
 	var/datum/world_edit_building_cluster_spec/bed_spec = new("[cluster_spec.id]_bed", cluster_spec.phase, "run", "sleeper", "medical_bed", cluster_spec.anchors, bed_target, bed_target, cluster_spec.wall_required, 0, cluster_spec.priority, TRUE)
 	inherit_building_cluster_count_context(bed_spec, cluster_spec)
 	placed += place_fixture_run(state, bed_spec, bed_target)
-	for(var/turf/bed_turf as anything in state.major_fixture_turfs.Copy())
+	for(var/turf/bed_turf as anything in state.fixtures.major_fixture_turfs.Copy())
 		if(placed >= target_count + 2)
 			break
-		if(state.fixture_categories[bed_turf] != "medical_bed")
+		if(state.fixtures.fixture_categories[bed_turf] != "medical_bed")
 			continue
 		if(place_signature_adjacent_fixture(state, bed_turf, "medical_storage", "medical_storage", null, TRUE, cluster_spec))
 			placed++
@@ -264,7 +264,7 @@
 		if(!state.can_place_fixture(secure_turf))
 			continue
 		var/datum/world_edit_building_place_rule/console_rule = resolve_building_place_rule("security_console", "console")
-		var/fallback_dir = get_cardinal_dir_toward(secure_turf, state.front_door_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(secure_turf, state.geometry.front_door_turf || state.geometry.center_turf, SOUTH)
 		var/list/place_context = build_building_fixture_place_context(state, secure_turf, console_rule, fallback_dir, TRUE, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			continue

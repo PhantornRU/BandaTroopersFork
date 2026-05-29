@@ -1461,57 +1461,36 @@
 		return null
 
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
-	extract_building_anchors(state)
-	state.anchor_report = build_building_anchor_type_counts(state)
-	state.add_stage_report("anchors", "ok", null, list("anchor_type_count" = length(state.anchor_report)))
-	run_building_semantic_slot_preflight(state)
-	state.add_stage_report("semantic_slots", state.semantic_slot_shortage_count > 0 || state.semantic_slot_reservation_conflict_count > 0 ? "failed" : "ok", null, list(
-		"semantic_slot_capacity_count" = state.semantic_slot_capacity_count,
-		"semantic_slot_shortage_count" = state.semantic_slot_shortage_count,
-		"semantic_slot_reservation_conflict_count" = state.semantic_slot_reservation_conflict_count,
-	))
-	place_building_infrastructure(state)
-	state.infrastructure_report = list(
-		"infrastructure_count" = state.infrastructure_count,
-		"placed_requirement_counts" = state.placed_requirement_counts.Copy(),
+	if(!istype(state) || state.has_errors())
+		return state
+
+	var/datum/world_edit_generation_context/context = new(request, state, src)
+	var/list/pipeline = list(
+		new /datum/world_edit_generation_stage/layout_graph(),
+		new /datum/world_edit_generation_stage/spatial_partition(),
+		new /datum/world_edit_generation_stage/room_shapes(),
+		new /datum/world_edit_generation_stage/geometry(),
+		new /datum/world_edit_generation_stage/derived_walls(),
+		new /datum/world_edit_generation_stage/semantic_rooms(),
+		new /datum/world_edit_generation_stage/anchors(),
+		new /datum/world_edit_generation_stage/semantic_slots(),
+		new /datum/world_edit_generation_stage/infrastructure(),
+		new /datum/world_edit_generation_stage/interiors(),
+		new /datum/world_edit_generation_stage/fixtures(),
+		new /datum/world_edit_generation_stage/clutter_detailing(),
+		new /datum/world_edit_generation_stage/facade(),
+		new /datum/world_edit_generation_stage/validation(),
+		new /datum/world_edit_generation_stage/microvariation(),
+		new /datum/world_edit_generation_stage/macros(),
+		new /datum/world_edit_generation_stage/scoring()
 	)
-	state.add_stage_report("infrastructure", "ok", null, state.infrastructure_report)
-	place_building_fixtures(state)
-	state.pattern_credit_hash = build_building_assoc_hash(state.semantic_requirement_counts)
-	state.add_stage_report("mandatory_patterns", state.signature_failure_count > 0 ? "failed" : "ok", null, list(
-		"major_fixture_count" = state.major_fixture_count,
-		"semantic_requirement_count" = length(state.semantic_requirement_counts),
-		"pattern_credit_hash" = state.pattern_credit_hash,
-	))
-	apply_building_facade_rules(state)
-	validate_and_repair_building_layout_state(state)
-	state.pattern_credit_hash = build_building_assoc_hash(state.semantic_requirement_counts)
-	state.add_stage_report("validation", state.has_errors() ? "failed" : "ok", state.has_errors() ? format_building_messages(state.errors) : null, list(
-		"error_count" = length(state.errors),
-		"forbidden_fallback_count" = state.forbidden_fallback_count,
-		"pattern_credit_hash" = state.pattern_credit_hash,
-	))
-	apply_building_microvariation_if_available(state)
-	state.add_stage_report("microvariation", "ok", null, list("microvariation_count" = state.microvariation_count))
-	apply_building_layout_macro_overlays(state)
-	state.add_stage_report("macros", "ok", null, list("layout_macro_count" = length(state.layout_macros)))
-	calculate_building_style_metrics(state)
-	state.layout_candidate_score = score_building_layout_candidate(state)
-	state.clear_validation_cache()
-	var/object_placement_hash = build_building_object_placement_hash(state.object_placements)
-	var/door_hash = build_building_door_hash(state)
-	var/room_ownership_hash = build_building_room_ownership_hash(state)
-	state.layout_hash = build_building_hash_from_strings(list(
-		"footprint=[state.footprint_hash]",
-		"rooms=[state.room_graph_hash]",
-		"ownership=[room_ownership_hash]",
-		"route=[state.route_hash]",
-		"walls=[state.wall_hash]",
-		"doors=[door_hash]",
-		"patterns=[state.pattern_credit_hash]",
-		"objects=[object_placement_hash]",
-	))
-	state.determinism_check_hash = state.layout_hash
+
+	for(var/datum/world_edit_generation_stage/stage in pipeline)
+		if(!stage.execute(context))
+			break
+		if(context.has_errors() && stage.id != "validation") // Validation might record errors but should finish
+			break
+
 	return state
 
 /datum/world_edit_generator/building_layout/proc/calculate_building_style_metrics(datum/world_edit_building_layout_state/state)
@@ -1530,28 +1509,28 @@
 
 	var/covered_categories = 0
 	for(var/category as anything in expected_categories)
-		if((state.category_counts["[category]"] || 0) > 0)
+		if((state.fixtures.category_counts["[category]"] || 0) > 0)
 			covered_categories++
-	state.category_coverage_score = length(expected_categories) ? round(covered_categories * 100 / length(expected_categories)) : 100
+	state.validation.category_coverage_score = length(expected_categories) ? round(covered_categories * 100 / length(expected_categories)) : 100
 
 	var/highest_category_count = 0
-	for(var/category as anything in state.category_counts)
-		highest_category_count = max(highest_category_count, round(text2num("[state.category_counts[category]]") || 0))
-	state.repeat_index = state.fixture_count > 0 ? round(highest_category_count * 100 / state.fixture_count) : 0
+	for(var/category as anything in state.fixtures.category_counts)
+		highest_category_count = max(highest_category_count, round(text2num("[state.fixtures.category_counts[category]]") || 0))
+	state.validation.repeat_index = state.fixtures.fixture_count > 0 ? round(highest_category_count * 100 / state.fixtures.fixture_count) : 0
 
-	state.repetition_conflict_count = 0
+	state.validation.repetition_conflict_count = 0
 	var/list/repeat_penalties = islist(state.semantic_plan?.repeat_penalties) ? state.semantic_plan.repeat_penalties : list()
 	for(var/category as anything in repeat_penalties)
 		var/list/repeat_rule = islist(repeat_penalties[category]) ? repeat_penalties[category] : list()
 		var/soft_percent = round(text2num("[repeat_rule["soft_percent"]]") || 55)
-		var/category_count = round(text2num("[state.category_counts["[category]"]]") || 0)
-		if(state.fixture_count > 0 && category_count > 0 && round(category_count * 100 / state.fixture_count) > soft_percent)
-			state.repetition_conflict_count++
+		var/category_count = round(text2num("[state.fixtures.category_counts["[category]"]]") || 0)
+		if(state.fixtures.fixture_count > 0 && category_count > 0 && round(category_count * 100 / state.fixtures.fixture_count) > soft_percent)
+			state.validation.repetition_conflict_count++
 
 	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
 	var/max_repeat_index = round(text2num("[style_budget["max_repeat_index"]]") || 55)
-	var/repeat_penalty = max(0, state.repeat_index - max_repeat_index)
-	state.style_score = clamp(state.category_coverage_score - repeat_penalty, 0, 100)
+	var/repeat_penalty = max(0, state.validation.repeat_index - max_repeat_index)
+	state.validation.style_score = clamp(state.validation.category_coverage_score - repeat_penalty, 0, 100)
 	calculate_building_quality_metrics(state)
 
 /datum/world_edit_generator/building_layout/proc/calculate_building_quality_metrics(datum/world_edit_building_layout_state/state)
@@ -1560,19 +1539,19 @@
 	var/list/style_budget = islist(state.semantic_plan?.style_budget) ? state.semantic_plan.style_budget : list()
 	var/list/reachable = get_building_validation_reachable_floor_lookup(state)
 	var/reachable_floor = 0
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(reachable[floor_turf])
 			reachable_floor++
-	state.connectivity_score = length(state.floor_turfs) ? round(reachable_floor * 100 / length(state.floor_turfs)) : 0
+	state.validation.connectivity_score = length(state.geometry.floor_turfs) ? round(reachable_floor * 100 / length(state.geometry.floor_turfs)) : 0
 
-	var/usable_area = max(state.usable_fixture_area, length(state.floor_turfs) - length(state.primary_route_turfs), 1)
-	var/fixture_density = round(state.fixture_count * 100 / usable_area)
+	var/usable_area = max(state.fixtures.usable_fixture_area, length(state.geometry.floor_turfs) - length(state.geometry.primary_route_turfs), 1)
+	var/fixture_density = round(state.fixtures.fixture_count * 100 / usable_area)
 	var/ideal_density = round(text2num("[style_budget["ideal_fixture_density"]]") || 38)
 	var/max_density_delta = max(ideal_density, 1)
-	state.fixture_density_score = clamp(100 - round(abs(fixture_density - ideal_density) * 100 / max_density_delta), 0, 100)
+	state.validation.fixture_density_score = clamp(100 - round(abs(fixture_density - ideal_density) * 100 / max_density_delta), 0, 100)
 
-	state.visibility_privacy_score = clamp(100 - (state.privacy_violation_count * 18) - (state.window_conflict_count * 10) - (state.facade_conflict_count * 8), 0, 100)
-	state.space_distribution_score = clamp(100 - state.empty_floor_ratio + min(length(state.solved_regions), 8) * 4, 0, 100)
+	state.validation.visibility_privacy_score = clamp(100 - (state.validation.privacy_violation_count * 18) - (state.validation.window_conflict_count * 10) - (state.validation.facade_conflict_count * 8), 0, 100)
+	state.validation.space_distribution_score = clamp(100 - state.validation.empty_floor_ratio + min(length(state.geometry.solved_regions), 8) * 4, 0, 100)
 
 /datum/world_edit_generator/building_layout/proc/build_building_object_placement_hash(list/object_placements)
 	var/list/values = list()
@@ -1589,16 +1568,16 @@
 /datum/world_edit_generator/building_layout/proc/build_building_door_hash(datum/world_edit_building_layout_state/state)
 	var/list/values = list()
 	if(istype(state))
-		for(var/turf/door_turf as anything in state.door_turfs)
+		for(var/turf/door_turf as anything in state.geometry.door_turfs)
 			if(istype(door_turf))
-				values += "[door_turf.x],[door_turf.y],[door_turf.z]|dir=[state.door_dirs[door_turf] || 0]"
+				values += "[door_turf.x],[door_turf.y],[door_turf.z]|dir=[state.geometry.door_dirs[door_turf] || 0]"
 	return build_building_hash_from_strings(values)
 
 /datum/world_edit_generator/building_layout/proc/build_building_room_ownership_hash(datum/world_edit_building_layout_state/state)
 	var/list/values = list()
 	if(istype(state))
-		for(var/turf/room_turf as anything in state.room_by_turf)
-			var/datum/world_edit_building_room/room = state.room_by_turf[room_turf]
+		for(var/turf/room_turf as anything in state.geometry.room_by_turf)
+			var/datum/world_edit_building_room/room = state.geometry.room_by_turf[room_turf]
 			if(istype(room_turf) && istype(room))
 				values += "[room_turf.x],[room_turf.y],[room_turf.z]|room=[room.id]|zone=[room.zone_id]|role=[room.role]"
 	return build_building_hash_from_strings(values)
@@ -1645,40 +1624,40 @@
 	if(!istype(state))
 		return 0
 	switch("[counter_name]")
-		if("mandatory_room_missing_count") return state.mandatory_room_missing_count
-		if("mandatory_room_no_bounds_count") return state.mandatory_room_no_bounds_count
-		if("mandatory_room_no_access_count") return state.mandatory_room_no_access_count
-		if("mandatory_pattern_missing_count") return state.mandatory_pattern_missing_count
-		if("mandatory_pattern_uncredited_count") return state.mandatory_pattern_uncredited_count
-		if("mandatory_pattern_failure_count") return state.mandatory_pattern_failure_count
-		if("mandatory_room_patch_fallback_count") return state.mandatory_room_patch_fallback_count
-		if("fallback_anchor_required_cluster_count") return state.fallback_anchor_required_cluster_count
-		if("semantic_credit_without_emitted_slots_count") return state.semantic_credit_without_emitted_slots_count
-		if("raw_category_credit_count") return state.raw_category_credit_count
-		if("scatter_signature_credit_count") return state.scatter_signature_credit_count
-		if("reserved_walk_blocked_count") return state.reserved_walk_blocked_count
-		if("door_cone_blocked_count") return state.door_cone_blocked_count
-		if("mandatory_fixture_access_unreachable_count") return state.mandatory_fixture_access_unreachable_count
-		if("double_wall_error_count") return state.double_wall_error_count
-		if("diagonal_only_contact_count") return state.diagonal_only_contact_count
-		if("unsupported_shape_silent_fallback_count") return state.unsupported_shape_silent_fallback_count
-		if("cutout_violation_count") return state.cutout_violation_count
-		if("invalid_window_count") return state.invalid_window_count
-		if("service_wall_window_violation_count") return state.service_wall_window_violation_count
-		if("secure_wall_window_violation_count") return state.secure_wall_window_violation_count
-		if("blocked_turf_conflict_count") return state.blocked_turf_conflict_count
-		if("blocked_route_conflict_count") return state.blocked_route_conflict_count
-		if("blocked_room_conflict_count") return state.blocked_room_conflict_count
-		if("blocked_wall_conflict_count") return state.blocked_wall_conflict_count
-		if("blocked_fixture_conflict_count") return state.blocked_fixture_conflict_count
-		if("replace_blocked_turf_count") return state.replace_blocked_turf_count
-		if("route_access_repair_count") return state.route_access_repair_count
-		if("counter_wrong_facing_count") return state.counter_wrong_facing_count
-		if("entry_face_mismatch_count") return state.entry_face_mismatch_count
-		if("emit_missing_path_count") return state.emit_missing_path_count
-		if("emit_failed_object_count") return state.emit_failed_object_count
-		if("emit_state_mismatch_count") return state.emit_state_mismatch_count
-		if("post_emit_validation_error_count") return state.post_emit_validation_error_count
+		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
+		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
+		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
+		if("mandatory_pattern_missing_count") return state.validation.mandatory_pattern_missing_count
+		if("mandatory_pattern_uncredited_count") return state.validation.mandatory_pattern_uncredited_count
+		if("mandatory_pattern_failure_count") return state.validation.mandatory_pattern_failure_count
+		if("mandatory_room_patch_fallback_count") return state.validation.mandatory_room_patch_fallback_count
+		if("fallback_anchor_required_cluster_count") return state.validation.fallback_anchor_required_cluster_count
+		if("semantic_credit_without_emitted_slots_count") return state.validation.semantic_credit_without_emitted_slots_count
+		if("raw_category_credit_count") return state.validation.raw_category_credit_count
+		if("scatter_signature_credit_count") return state.validation.scatter_signature_credit_count
+		if("reserved_walk_blocked_count") return state.validation.reserved_walk_blocked_count
+		if("door_cone_blocked_count") return state.validation.door_cone_blocked_count
+		if("mandatory_fixture_access_unreachable_count") return state.validation.mandatory_fixture_access_unreachable_count
+		if("double_wall_error_count") return state.validation.double_wall_error_count
+		if("diagonal_only_contact_count") return state.validation.diagonal_only_contact_count
+		if("unsupported_shape_silent_fallback_count") return state.validation.unsupported_shape_silent_fallback_count
+		if("cutout_violation_count") return state.validation.cutout_violation_count
+		if("invalid_window_count") return state.validation.invalid_window_count
+		if("service_wall_window_violation_count") return state.validation.service_wall_window_violation_count
+		if("secure_wall_window_violation_count") return state.validation.secure_wall_window_violation_count
+		if("blocked_turf_conflict_count") return state.validation.blocked_turf_conflict_count
+		if("blocked_route_conflict_count") return state.validation.blocked_route_conflict_count
+		if("blocked_room_conflict_count") return state.validation.blocked_room_conflict_count
+		if("blocked_wall_conflict_count") return state.validation.blocked_wall_conflict_count
+		if("blocked_fixture_conflict_count") return state.validation.blocked_fixture_conflict_count
+		if("replace_blocked_turf_count") return state.validation.replace_blocked_turf_count
+		if("route_access_repair_count") return state.validation.route_access_repair_count
+		if("counter_wrong_facing_count") return state.validation.counter_wrong_facing_count
+		if("entry_face_mismatch_count") return state.validation.entry_face_mismatch_count
+		if("emit_missing_path_count") return state.validation.emit_missing_path_count
+		if("emit_failed_object_count") return state.validation.emit_failed_object_count
+		if("emit_state_mismatch_count") return state.validation.emit_state_mismatch_count
+		if("post_emit_validation_error_count") return state.validation.post_emit_validation_error_count
 	return 0
 
 /datum/world_edit_generator/building_layout/proc/build_building_state_hard_counter_report(datum/world_edit_building_layout_state/state)
@@ -1691,46 +1670,46 @@
 	if(!istype(state))
 		return -999999999
 	var/score = 0
-	var/error_count = length(state.errors)
+	var/error_count = length(state.validation.errors)
 	if(!error_count)
 		score += 50000
 	else
 		score -= error_count * 20000
-	score += state.signature_score * 120
-	score += state.style_score * 45
-	score += state.connectivity_score * 35
-	score += state.fixture_density_score * 20
-	score += state.visibility_privacy_score * 25
-	score += state.space_distribution_score * 15
-	if(state.signature_max_score > 0 && state.signature_score >= state.semantic_plan?.min_signature_score)
+	score += state.validation.signature_score * 120
+	score += state.validation.style_score * 45
+	score += state.validation.connectivity_score * 35
+	score += state.validation.fixture_density_score * 20
+	score += state.validation.visibility_privacy_score * 25
+	score += state.validation.space_distribution_score * 15
+	if(state.validation.signature_max_score > 0 && state.validation.signature_score >= state.semantic_plan?.min_signature_score)
 		score += 2500
-	score += length(state.divider_plans) * 900
-	score += min(length(state.internal_wall_turfs), 32) * 90
-	score += length(state.solved_regions) * 120
-	score += min(state.region_claim_count, 80) * 45
-	score += min(state.rectangular_region_candidate_count, 80) * 22
-	score += state.nested_room_count * 800
-	score += state.template_chunk_count * 650
-	score += state.infrastructure_count * 220
-	score += min(state.semantic_slot_capacity_count, 80) * 35
-	score += min(state.microvariation_count, 24) * 20
+	score += length(state.geometry.divider_plans) * 900
+	score += min(length(state.geometry.internal_wall_turfs), 32) * 90
+	score += length(state.geometry.solved_regions) * 120
+	score += min(state.validation.region_claim_count, 80) * 45
+	score += min(state.validation.rectangular_region_candidate_count, 80) * 22
+	score += state.validation.nested_room_count * 800
+	score += state.fixtures.template_chunk_count * 650
+	score += state.fixtures.infrastructure_count * 220
+	score += min(state.validation.semantic_slot_capacity_count, 80) * 35
+	score += min(state.validation.microvariation_count, 24) * 20
 	score += round(text2num("[state.config["footprint_mask_score"]]") || 0)
-	score += length(state.primary_route_turfs) * 15
-	score -= state.empty_floor_ratio * 35
-	if(state.repeat_index > 75)
-		score -= (state.repeat_index - 75) * 80
-	score -= state.privacy_violation_count * 1800
-	score -= state.reachability_failure_count * 1400
-	score -= state.repetition_conflict_count * 500
-	score -= state.degraded_region_fallback_count * 2500
-	score -= state.semantic_slot_shortage_count * 18000
-	score -= state.semantic_slot_fallback_count * 3500
-	score -= state.semantic_slot_reservation_conflict_count * 12000
-	score -= (state.fixture_conflict_count + state.route_conflict_count + state.window_conflict_count + state.facade_conflict_count) * 900
-	if(state.empty_floor_ratio <= 60)
+	score += length(state.geometry.primary_route_turfs) * 15
+	score -= state.validation.empty_floor_ratio * 35
+	if(state.validation.repeat_index > 75)
+		score -= (state.validation.repeat_index - 75) * 80
+	score -= state.validation.privacy_violation_count * 1800
+	score -= state.validation.reachability_failure_count * 1400
+	score -= state.validation.repetition_conflict_count * 500
+	score -= state.validation.degraded_region_fallback_count * 2500
+	score -= state.validation.semantic_slot_shortage_count * 18000
+	score -= state.validation.semantic_slot_fallback_count * 3500
+	score -= state.validation.semantic_slot_reservation_conflict_count * 12000
+	score -= (state.validation.fixture_conflict_count + state.validation.route_conflict_count + state.validation.window_conflict_count + state.validation.facade_conflict_count) * 900
+	if(state.validation.empty_floor_ratio <= 60)
 		score += 800
 	var/list/major_specs = state.semantic_plan?.get_cluster_specs("major")
-	if(islist(major_specs) && state.major_fixture_count >= length(major_specs))
+	if(islist(major_specs) && state.fixtures.major_fixture_count >= length(major_specs))
 		score += 1000
 	return score
 
@@ -1738,100 +1717,100 @@
 	var/list/report = list(
 		"attempt" = attempt_index,
 		"family" = uppertext("[footprint_family]"),
-		"score" = isnull(score_override) && istype(state) ? state.layout_candidate_score : score_override,
+		"score" = isnull(score_override) && istype(state) ? state.validation.layout_candidate_score : score_override,
 		"detailed" = detailed ? TRUE : FALSE,
 	)
 	if(istype(state))
-		report["current_request_support_status"] = state.current_request_support_status
-		report["user_facing_failure_reason"] = state.user_facing_failure_reason
-		report["support_status_report"] = detailed ? state.support_status_report.Copy() : list(
-			"status" = state.current_request_support_status,
-			"reason" = state.user_facing_failure_reason,
+		report["current_request_support_status"] = state.validation.current_request_support_status
+		report["user_facing_failure_reason"] = state.validation.user_facing_failure_reason
+		report["support_status_report"] = detailed ? state.validation.support_status_report.Copy() : list(
+			"status" = state.validation.current_request_support_status,
+			"reason" = state.validation.user_facing_failure_reason,
 			"program_id" = state.archetype?.id,
 			"shape_id" = state.config["placement_shape_id"],
 			"style_id" = state.config["faction_preset"],
 		)
 		if(detailed)
-			report["stage_reports"] = state.stage_reports.Copy()
-			report["errors"] = state.errors.Copy()
+			report["stage_reports"] = state.validation.stage_reports.Copy()
+			report["errors"] = state.validation.errors.Copy()
 		else
-			report["stage_report_count"] = length(state.stage_reports)
-			report["errors"] = length(state.errors) ? list(state.errors[1]) : list()
-		report["error_count"] = length(state.errors)
-		report["signature_score"] = state.signature_score
-		report["style_score"] = state.style_score
-		report["category_coverage_score"] = state.category_coverage_score
-		report["repeat_index"] = state.repeat_index
-		report["privacy_violation_count"] = state.privacy_violation_count
-		report["reachability_failure_count"] = state.reachability_failure_count
-		report["repetition_conflict_count"] = state.repetition_conflict_count
-		report["fixture_density_score"] = state.fixture_density_score
-		report["connectivity_score"] = state.connectivity_score
-		report["visibility_privacy_score"] = state.visibility_privacy_score
-		report["space_distribution_score"] = state.space_distribution_score
-		report["empty_floor_ratio"] = state.empty_floor_ratio
-		report["divider_plan_count"] = length(state.divider_plans)
-		report["internal_wall_count"] = length(state.internal_wall_turfs)
+			report["stage_report_count"] = length(state.validation.stage_reports)
+			report["errors"] = length(state.validation.errors) ? list(state.validation.errors[1]) : list()
+		report["error_count"] = length(state.validation.errors)
+		report["signature_score"] = state.validation.signature_score
+		report["style_score"] = state.validation.style_score
+		report["category_coverage_score"] = state.validation.category_coverage_score
+		report["repeat_index"] = state.validation.repeat_index
+		report["privacy_violation_count"] = state.validation.privacy_violation_count
+		report["reachability_failure_count"] = state.validation.reachability_failure_count
+		report["repetition_conflict_count"] = state.validation.repetition_conflict_count
+		report["fixture_density_score"] = state.validation.fixture_density_score
+		report["connectivity_score"] = state.validation.connectivity_score
+		report["visibility_privacy_score"] = state.validation.visibility_privacy_score
+		report["space_distribution_score"] = state.validation.space_distribution_score
+		report["empty_floor_ratio"] = state.validation.empty_floor_ratio
+		report["divider_plan_count"] = length(state.geometry.divider_plans)
+		report["internal_wall_count"] = length(state.geometry.internal_wall_turfs)
 		report["room_first_layout"] = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"])
-		report["room_count"] = length(state.solved_rooms)
-		report["corridor_turf_count"] = length(state.corridor_turfs)
-		report["semantic_region_claim_count"] = state.region_claim_count
+		report["room_count"] = length(state.geometry.solved_rooms)
+		report["corridor_turf_count"] = length(state.geometry.corridor_turfs)
+		report["semantic_region_claim_count"] = state.validation.region_claim_count
 		if(detailed)
-			report["semantic_region_claim_reports"] = state.region_claim_reports.Copy()
+			report["semantic_region_claim_reports"] = state.validation.region_claim_reports.Copy()
 		else
-			report["semantic_region_claim_report_count"] = length(state.region_claim_reports)
-		report["rectangular_region_candidate_count"] = state.rectangular_region_candidate_count
-		report["nested_room_count"] = state.nested_room_count
-		report["template_chunk_count"] = state.template_chunk_count
-		report["template_chunk_cell_count"] = state.template_chunk_cell_count
-		report["infrastructure_count"] = state.infrastructure_count
-		report["semantic_slot_capacity_count"] = state.semantic_slot_capacity_count
-		report["semantic_slot_shortage_count"] = state.semantic_slot_shortage_count
-		report["semantic_slot_fallback_count"] = state.semantic_slot_fallback_count
-		report["template_reject_reason_counts"] = state.template_reject_reason_counts.Copy()
+			report["semantic_region_claim_report_count"] = length(state.validation.region_claim_reports)
+		report["rectangular_region_candidate_count"] = state.validation.rectangular_region_candidate_count
+		report["nested_room_count"] = state.validation.nested_room_count
+		report["template_chunk_count"] = state.fixtures.template_chunk_count
+		report["template_chunk_cell_count"] = state.fixtures.template_chunk_cell_count
+		report["infrastructure_count"] = state.fixtures.infrastructure_count
+		report["semantic_slot_capacity_count"] = state.validation.semantic_slot_capacity_count
+		report["semantic_slot_shortage_count"] = state.validation.semantic_slot_shortage_count
+		report["semantic_slot_fallback_count"] = state.validation.semantic_slot_fallback_count
+		report["template_reject_reason_counts"] = state.validation.template_reject_reason_counts.Copy()
 		if(detailed)
-			report["semantic_slot_reports"] = state.semantic_slot_reports.Copy()
-			report["placed_requirement_counts"] = state.placed_requirement_counts.Copy()
-			report["semantic_requirement_counts"] = state.semantic_requirement_counts.Copy()
-			report["semantic_requirement_minimums"] = state.semantic_requirement_minimums.Copy()
-			report["pattern_reports"] = state.pattern_reports.Copy()
-			report["template_reject_reports"] = state.template_reject_reports.Copy()
-			report["template_cluster_reports"] = state.template_cluster_reports.Copy()
+			report["semantic_slot_reports"] = state.validation.semantic_slot_reports.Copy()
+			report["placed_requirement_counts"] = state.fixtures.placed_requirement_counts.Copy()
+			report["semantic_requirement_counts"] = state.fixtures.semantic_requirement_counts.Copy()
+			report["semantic_requirement_minimums"] = state.fixtures.semantic_requirement_minimums.Copy()
+			report["pattern_reports"] = state.validation.pattern_reports.Copy()
+			report["template_reject_reports"] = state.validation.template_reject_reports.Copy()
+			report["template_cluster_reports"] = state.validation.template_cluster_reports.Copy()
 		else
-			report["semantic_slot_report_count"] = length(state.semantic_slot_reports)
-			report["semantic_requirement_count"] = length(state.semantic_requirement_counts)
-			report["pattern_report_count"] = length(state.pattern_reports)
-			report["template_reject_report_count"] = length(state.template_reject_reports)
-			report["template_cluster_report_count"] = length(state.template_cluster_reports)
-		report["semantic_slot_reservation_count"] = length(state.semantic_slot_reservation_by_turf)
-		report["semantic_slot_reservation_conflict_count"] = state.semantic_slot_reservation_conflict_count
-		report["mandatory_room_count"] = state.mandatory_room_count
-		report["mandatory_zone_count"] = state.mandatory_zone_count
-		report["forbidden_fallback_count"] = state.forbidden_fallback_count
+			report["semantic_slot_report_count"] = length(state.validation.semantic_slot_reports)
+			report["semantic_requirement_count"] = length(state.fixtures.semantic_requirement_counts)
+			report["pattern_report_count"] = length(state.validation.pattern_reports)
+			report["template_reject_report_count"] = length(state.validation.template_reject_reports)
+			report["template_cluster_report_count"] = length(state.validation.template_cluster_reports)
+		report["semantic_slot_reservation_count"] = length(state.fixtures.semantic_slot_reservation_by_turf)
+		report["semantic_slot_reservation_conflict_count"] = state.validation.semantic_slot_reservation_conflict_count
+		report["mandatory_room_count"] = state.validation.mandatory_room_count
+		report["mandatory_zone_count"] = state.validation.mandatory_zone_count
+		report["forbidden_fallback_count"] = state.validation.forbidden_fallback_count
 		var/list/hard_counters = build_building_state_hard_counter_report(state)
 		report["hard_counters"] = hard_counters
 		for(var/counter_name as anything in hard_counters)
 			report[counter_name] = hard_counters[counter_name]
-		report["requested_direction"] = state.requested_direction
-		report["actual_entry_direction"] = state.actual_entry_direction
-		report["direction_honored"] = state.actual_entry_direction == state.requested_direction
-		report["direction_fallback_reason"] = state.direction_fallback_reason
-		report["footprint_hash"] = state.footprint_hash
-		report["room_graph_hash"] = state.room_graph_hash
-		report["route_hash"] = state.route_hash
-		report["wall_hash"] = state.wall_hash
-		report["pattern_credit_hash"] = state.pattern_credit_hash
-		report["layout_hash"] = state.layout_hash
-		report["degraded_region_fallback_count"] = state.degraded_region_fallback_count
+		report["requested_direction"] = state.geometry.requested_direction
+		report["actual_entry_direction"] = state.geometry.actual_entry_direction
+		report["direction_honored"] = state.geometry.actual_entry_direction == state.geometry.requested_direction
+		report["direction_fallback_reason"] = state.geometry.direction_fallback_reason
+		report["footprint_hash"] = state.geometry.footprint_hash
+		report["room_graph_hash"] = state.geometry.room_graph_hash
+		report["route_hash"] = state.geometry.route_hash
+		report["wall_hash"] = state.geometry.wall_hash
+		report["pattern_credit_hash"] = state.fixtures.pattern_credit_hash
+		report["layout_hash"] = state.geometry.layout_hash
+		report["degraded_region_fallback_count"] = state.validation.degraded_region_fallback_count
 		if(detailed)
-			report["degraded_region_reports"] = state.degraded_region_reports.Copy()
+			report["degraded_region_reports"] = state.validation.degraded_region_reports.Copy()
 		else
-			report["degraded_region_report_count"] = length(state.degraded_region_reports)
-		report["microvariation_count"] = state.microvariation_count
+			report["degraded_region_report_count"] = length(state.validation.degraded_region_reports)
+		report["microvariation_count"] = state.validation.microvariation_count
 		report["footprint_mask_score"] = state.config["footprint_mask_score"]
 		report["footprint_mask_candidate_count"] = state.config["footprint_mask_candidate_count"]
-		report["major_fixture_count"] = state.major_fixture_count
-		report["footprint_count"] = length(state.footprint)
+		report["major_fixture_count"] = state.fixtures.major_fixture_count
+		report["footprint_count"] = length(state.geometry.footprint)
 		report["half_width"] = state.config["half_width"]
 		report["half_depth"] = state.config["half_depth"]
 		report["size_candidate_index"] = state.config["size_candidate_index"]
@@ -1949,14 +1928,14 @@
 			candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
 			if(candidate_state.has_errors())
 				if(isnull(first_candidate_error))
-					if(candidate_state.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.user_facing_failure_reason))
-						first_candidate_error = candidate_state.user_facing_failure_reason
+					if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
+						first_candidate_error = candidate_state.validation.user_facing_failure_reason
 					else
-						first_candidate_error = length(candidate_state.errors) ? candidate_state.errors[1] : "Building candidate failed validation."
+						first_candidate_error = length(candidate_state.validation.errors) ? candidate_state.validation.errors[1] : "Building candidate failed validation."
 				continue
-			if(!istype(best_state) || candidate_state.layout_candidate_score > best_score)
+			if(!istype(best_state) || candidate_state.validation.layout_candidate_score > best_score)
 				best_state = candidate_state
-				best_score = candidate_state.layout_candidate_score
+				best_score = candidate_state.validation.layout_candidate_score
 				best_state.config["layout_candidate_index"] = attempt_index
 			found_valid_candidate = TRUE
 			break

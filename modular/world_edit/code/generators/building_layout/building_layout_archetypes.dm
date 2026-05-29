@@ -12,6 +12,9 @@
 	var/privacy_sensitive = FALSE
 	var/window_allowed = TRUE
 	var/divider_mode = "none"
+	var/faction = ""
+	var/danger = 0
+	var/clutter_density = 0
 	var/list/anchor_tags = list()
 
 /datum/world_edit_building_zone_spec/New(_id, _label, _role, _min_area = 1, _required = TRUE, _must_touch_route = TRUE, _privacy_sensitive = FALSE, list/_anchor_tags = null, _window_allowed = TRUE, _divider_mode = "none", _privacy_class = null, _optional = FALSE, _optional_weight = 60, _optional_min_footprint = 0)
@@ -556,6 +559,8 @@
 	var/id = ""
 	var/label = ""
 	var/suggested_shell_preset = "colony"
+	var/faction = "neutral"
+	var/danger = 0
 	var/list/footprint_families = list("RECT")
 	var/primary_zone = "main"
 	var/entry_zone = "entry_buffer"

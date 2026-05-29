@@ -5,14 +5,14 @@
 	var/list/window_policy = islist(state.semantic_plan?.window_policy) ? state.semantic_plan.window_policy : list()
 	var/policy_bias = round(text2num("[window_policy["density_bias"]]") || state.archetype.window_bias)
 	window_density = round((window_density + policy_bias) / 2)
-	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)
+	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.geometry.door_turfs)
 	var/list/candidates = list()
 	var/list/candidate_lookup = list()
 	var/list/weighted_candidates = list()
-	for(var/turf/boundary_turf as anything in state.boundary)
+	for(var/turf/boundary_turf as anything in state.geometry.boundary)
 		if(door_lookup[boundary_turf])
 			continue
-		if(is_corner_boundary_turf(boundary_turf, state.footprint_lookup))
+		if(is_corner_boundary_turf(boundary_turf, state.geometry.footprint_lookup))
 			continue
 		if(!can_place_building_window_for_boundary_turf(state, boundary_turf))
 			continue
@@ -29,21 +29,21 @@
 	var/stride = max(round(length(source_candidates) / max(target_count, 1)), 1)
 	var/index = state.request.facade_rng.next_between(1, min(stride, length(source_candidates)))
 	var/list/window_lookup = list()
-	for(var/turf/existing_window as anything in state.window_turfs)
+	for(var/turf/existing_window as anything in state.geometry.window_turfs)
 		window_lookup[existing_window] = TRUE
-	while(length(state.window_turfs) < target_count && index <= length(source_candidates))
+	while(length(state.geometry.window_turfs) < target_count && index <= length(source_candidates))
 		var/turf/window_turf = source_candidates[index]
 		if(!window_lookup[window_turf])
-			state.append_unique_turf(state.window_turfs, window_turf)
+			state.append_unique_turf(state.geometry.window_turfs, window_turf)
 			window_lookup[window_turf] = TRUE
 		index += stride
 
 /datum/world_edit_generator/building_layout/proc/get_building_window_interior_turf(datum/world_edit_building_layout_state/state, turf/boundary_turf)
-	if(!istype(state) || !istype(boundary_turf) || !state.boundary_lookup[boundary_turf])
+	if(!istype(state) || !istype(boundary_turf) || !state.geometry.boundary_lookup[boundary_turf])
 		return null
 	for(var/check_dir in GLOB.cardinals)
 		var/turf/nearby_turf = get_step(boundary_turf, check_dir)
-		if(state.footprint_lookup[nearby_turf] && !state.boundary_lookup[nearby_turf] && !state.wall_lookup[nearby_turf])
+		if(state.geometry.footprint_lookup[nearby_turf] && !state.geometry.boundary_lookup[nearby_turf] && !state.geometry.wall_lookup[nearby_turf])
 			return nearby_turf
 	return null
 
@@ -144,7 +144,7 @@
 	if(!istype(interior_turf))
 		for(var/check_dir in GLOB.cardinals)
 			var/turf/nearby_turf = get_step(boundary_turf, check_dir)
-			if(state.footprint_lookup[nearby_turf] && !state.wall_lookup[nearby_turf])
+			if(state.geometry.footprint_lookup[nearby_turf] && !state.geometry.wall_lookup[nearby_turf])
 				interior_turf = nearby_turf
 				break
 	var/zone_id = state.get_zone(interior_turf)
@@ -158,7 +158,7 @@
 	if(!istype(interior_turf))
 		for(var/check_dir in GLOB.cardinals)
 			var/turf/nearby_turf = get_step(boundary_turf, check_dir)
-			if(state.footprint_lookup[nearby_turf] && !state.wall_lookup[nearby_turf])
+			if(state.geometry.footprint_lookup[nearby_turf] && !state.geometry.wall_lookup[nearby_turf])
 				interior_turf = nearby_turf
 				break
 	var/datum/world_edit_building_facade_rule/facade_rule = get_building_facade_rule_for_zone(state, state.get_zone(interior_turf))
@@ -169,7 +169,7 @@
 /datum/world_edit_generator/building_layout/proc/apply_building_facade_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
-	for(var/turf/boundary_turf as anything in state.boundary)
-		if(state.wall_lookup[boundary_turf])
+	for(var/turf/boundary_turf as anything in state.geometry.boundary)
+		if(state.geometry.wall_lookup[boundary_turf])
 			state.add_anchor("facade_segment", boundary_turf)
 			state.add_anchor("facade_[get_building_facade_role_for_boundary_turf(state, boundary_turf)]", boundary_turf)

@@ -3,29 +3,29 @@
 		return
 	if(state.config["layout_macro_overlays_applied"])
 		return
-	state.layout_macros.Cut()
-	state.layout_macro_counts.Cut()
+	state.fixtures.layout_macros.Cut()
+	state.fixtures.layout_macro_counts.Cut()
 
-	for(var/turf/door_turf as anything in state.door_turfs)
+	for(var/turf/door_turf as anything in state.geometry.door_turfs)
 		if(!istype(door_turf))
 			continue
-		var/door_dir = state.door_dirs[door_turf] || state.placement_dir
+		var/door_dir = state.geometry.door_dirs[door_turf] || state.placement_dir
 		state.register_layout_macro("door_node_chunk", "door", door_turf, door_dir, list(door_turf), list("door_policy"))
 
-	for(var/turf/window_turf as anything in state.window_turfs)
+	for(var/turf/window_turf as anything in state.geometry.window_turfs)
 		if(!istype(window_turf))
 			continue
-		var/window_dir = get_outward_dir(window_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
+		var/window_dir = get_outward_dir(window_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 		state.register_layout_macro("window_panel_chunk", "window", window_turf, window_dir, list(window_turf), list("window_policy"))
 
-	for(var/turf/boundary_turf as anything in state.boundary)
-		if(!istype(boundary_turf) || !state.wall_lookup[boundary_turf])
+	for(var/turf/boundary_turf as anything in state.geometry.boundary)
+		if(!istype(boundary_turf) || !state.geometry.wall_lookup[boundary_turf])
 			continue
 		var/facade_macro = get_building_facade_macro_for_boundary_turf(state, boundary_turf)
-		var/facade_dir = get_outward_dir(boundary_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
+		var/facade_dir = get_outward_dir(boundary_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 		state.register_layout_macro(facade_macro, "facade", boundary_turf, facade_dir, list(boundary_turf), list("facade_rules"))
 
-	for(var/list/object_placement as anything in state.object_placements)
+	for(var/list/object_placement as anything in state.fixtures.object_placements)
 		if(!islist(object_placement))
 			continue
 		var/macro_id = "[object_placement["layout_macro"] || ""]"
@@ -49,7 +49,7 @@
 /datum/world_edit_generator/building_layout/proc/get_building_layout_macro_id_for_turf(datum/world_edit_building_layout_state/state, category, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))
 		return ""
-	for(var/list/macro as anything in state.layout_macros)
+	for(var/list/macro as anything in state.fixtures.layout_macros)
 		if(!islist(macro) || macro["turf"] != target_turf)
 			continue
 		if(length("[category]") && "[macro["category"]]" != "[category]")

@@ -115,9 +115,9 @@
 /datum/world_edit_generator/building_layout/proc/building_place_rule_clearance_turf_is_open(datum/world_edit_building_layout_state/state, turf/check_turf)
 	if(!istype(state) || !istype(check_turf))
 		return FALSE
-	if(!state.floor_lookup[check_turf])
+	if(!state.geometry.floor_lookup[check_turf])
 		return FALSE
-	if(state.wall_lookup[check_turf] || state.fixture_lookup[check_turf] || state.door_dirs[check_turf])
+	if(state.geometry.wall_lookup[check_turf] || state.fixtures.fixture_lookup[check_turf] || state.geometry.door_dirs[check_turf])
 		return FALSE
 	return TRUE
 
@@ -161,7 +161,7 @@
 		place_rule = resolve_building_place_rule(null, null)
 	if(place_rule.needs_wall && isnull(wall_dir))
 		return FALSE
-	if(!isnull(wall_dir) && !state.wall_lookup[get_step(target_turf, wall_dir)])
+	if(!isnull(wall_dir) && !state.geometry.wall_lookup[get_step(target_turf, wall_dir)])
 		return FALSE
 	if(building_place_rule_has_forbidden_anchor(state, target_turf, place_rule))
 		return FALSE
@@ -182,9 +182,9 @@
 		score += 220
 	else
 		score -= 260
-	if(state.reserved_lookup[target_turf] || state.has_anchor("primary_lane", target_turf))
+	if(state.geometry.reserved_lookup[target_turf] || state.has_anchor("primary_lane", target_turf))
 		score -= 650
-	if(istype(front_turf) && (state.reserved_lookup[front_turf] || state.has_anchor("primary_lane", front_turf)))
+	if(istype(front_turf) && (state.geometry.reserved_lookup[front_turf] || state.has_anchor("primary_lane", front_turf)))
 		score -= 260
 	var/zone_id = state.get_zone(target_turf)
 	if(islist(anchor_ids))
@@ -204,8 +204,8 @@
 		if(building_place_rule_clearance_turf_is_open(state, get_step(target_turf, side_dir)))
 			side_clearance++
 	score += side_clearance * 45
-	if(istype(state.semantic_hub_turf))
-		score -= abs(target_turf.x - state.semantic_hub_turf.x) + abs(target_turf.y - state.semantic_hub_turf.y)
+	if(istype(state.geometry.semantic_hub_turf))
+		score -= abs(target_turf.x - state.geometry.semantic_hub_turf.x) + abs(target_turf.y - state.geometry.semantic_hub_turf.y)
 	return list(
 		"score" = score,
 		"dir" = dir_to_use,

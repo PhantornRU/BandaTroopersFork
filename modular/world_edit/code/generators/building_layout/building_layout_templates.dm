@@ -182,7 +182,7 @@
 			continue
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 		var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
-		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		var/list/place_context = build_building_fixture_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids)
 		if(!islist(place_context))
 			state.add_template_reject_reason(effective_needs_wall ? "missing_wall_context" : "place_rule_failed", list(
@@ -220,7 +220,7 @@
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cell.slot, cell.category)
 	var/needs_wall = cell.wall_required || get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	var/cell_wall_dir = wall_dir
-	if(needs_wall && (isnull(cell_wall_dir) || !state.wall_lookup[get_step(cell_turf, cell_wall_dir)]))
+	if(needs_wall && (isnull(cell_wall_dir) || !state.geometry.wall_lookup[get_step(cell_turf, cell_wall_dir)]))
 		var/list/wall_context = build_building_fixture_wall_context(state, cell_turf, place_rule, cluster_spec, cluster_spec?.anchors)
 		if(!islist(wall_context))
 			cell_wall_dir = null
@@ -317,7 +317,7 @@
 	var/placed = 0
 	var/credit_count = 0
 	var/list/covered_turfs = list()
-	var/template_chunk_instance_id = "[chunk.id]@[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]/[dir_to_use]/[state.template_chunk_count + 1]"
+	var/template_chunk_instance_id = "[chunk.id]@[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]/[dir_to_use]/[state.fixtures.template_chunk_count + 1]"
 	for(var/list/planned as anything in planned_cells)
 		var/datum/world_edit_building_template_cell/cell = planned["cell"]
 		var/turf/cell_turf = planned["turf"]
@@ -328,8 +328,8 @@
 		placed++
 		credit_count += get_building_fixture_count_credit(cluster_spec, cell.slot, cell.category)
 	if(placed > 0)
-		state.template_chunk_count++
-		state.template_chunk_cell_count += placed
+		state.fixtures.template_chunk_count++
+		state.fixtures.template_chunk_cell_count += placed
 		state.register_layout_macro(chunk.id, chunk.category, anchor_turf, dir_to_use, covered_turfs, list(cluster_spec.id))
 	return credit_count
 
@@ -350,7 +350,7 @@
 			break
 		candidates -= anchor_turf
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-		var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		var/list/place_context = build_building_fixture_place_context(state, anchor_turf, place_rule, fallback_dir, get_cluster_effective_needs_wall(state, cluster_spec, place_rule), cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			continue

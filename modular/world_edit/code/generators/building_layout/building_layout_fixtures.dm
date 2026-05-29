@@ -49,7 +49,7 @@
 	return owner != get_building_cluster_requirement_id(cluster_spec)
 
 /datum/world_edit_generator/building_layout/proc/place_building_cluster_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
-	if(!istype(state) || !istype(cluster_spec) || state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	if(!istype(state) || !istype(cluster_spec) || state.fixtures.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
 	var/list/cluster_report = list(
 		"cluster_id" = cluster_spec.id,
@@ -71,11 +71,11 @@
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	cluster_report["requirement_id"] = requirement_id
 	cluster_report["effective_minimum"] = effective_minimum
-	var/already_placed = round(text2num("[state.placed_requirement_counts["[requirement_id]"]]") || 0)
+	var/already_placed = round(text2num("[state.fixtures.placed_requirement_counts["[requirement_id]"]]") || 0)
 	if(length(cluster_spec.id))
-		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.id]"]]") || 0))
+		already_placed = max(already_placed, round(text2num("[state.fixtures.placed_requirement_counts["[cluster_spec.id]"]]") || 0))
 	if(length(cluster_spec.signature_id))
-		already_placed = max(already_placed, round(text2num("[state.placed_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
+		already_placed = max(already_placed, round(text2num("[state.fixtures.placed_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
 	if(effective_minimum > 0 && already_placed >= effective_minimum)
 		cluster_report["status"] = "already_satisfied"
 		cluster_report["already_placed"] = already_placed
@@ -96,7 +96,7 @@
 			return TRUE
 		if(cluster_spec.required && !cluster_spec.allow_single_object_fallback)
 			if(effective_minimum > 0 || target_count > 0)
-				state.forbidden_fallback_count++
+				state.validation.forbidden_fallback_count++
 				state.add_template_reject_reason("required_cluster_shortfall", list(
 					"scope" = "cluster",
 					"cluster_id" = cluster_spec.id,
@@ -116,7 +116,7 @@
 			return placed > 0
 	else if(!cluster_spec.allow_single_object_fallback)
 		if(cluster_spec.required)
-			state.forbidden_fallback_count++
+			state.validation.forbidden_fallback_count++
 			state.add_template_reject_reason("required_cluster_shortfall", list(
 				"scope" = "cluster",
 				"cluster_id" = cluster_spec.id,
@@ -138,7 +138,7 @@
 			placed = place_fixture_run(state, cluster_spec, target_count)
 		else
 			var/attempts = 0
-			while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+			while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 				attempts++
 				var/unit_placed = 0
 				switch(cluster_spec.pattern)
@@ -266,12 +266,12 @@
 	return 1
 
 /datum/world_edit_generator/building_layout/proc/prepare_building_fixture_scale(datum/world_edit_building_layout_state/state)
-	state.usable_fixture_area = 0
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	state.fixtures.usable_fixture_area = 0
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(state.can_place_fixture(floor_turf))
-			state.usable_fixture_area++
-	state.category_budgets.Cut()
-	var/usable_area = max(state.usable_fixture_area, length(state.floor_turfs) - length(state.primary_route_turfs))
+			state.fixtures.usable_fixture_area++
+	state.fixtures.category_budgets.Cut()
+	var/usable_area = max(state.fixtures.usable_fixture_area, length(state.geometry.floor_turfs) - length(state.geometry.primary_route_turfs))
 	var/list/object_budgets = islist(state.semantic_plan?.object_budgets) ? state.semantic_plan.object_budgets : state.archetype.object_budgets
 	for(var/category as anything in object_budgets)
 		var/base_budget = round(text2num("[object_budgets[category]]") || 0)
@@ -286,7 +286,7 @@
 					area_bonus += max(0, round((usable_area - 16) / 8))
 				if("cabinet")
 					area_bonus += max(0, round((usable_area - 28) / 18))
-		state.category_budgets["[category]"] = min(WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS, max(base_budget, base_budget + area_bonus))
+		state.fixtures.category_budgets["[category]"] = min(WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS, max(base_budget, base_budget + area_bonus))
 
 /datum/world_edit_generator/building_layout/proc/get_cluster_effective_needs_wall(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_place_rule/place_rule)
 	var/needs_wall = cluster_spec.wall_required || place_rule.needs_wall
@@ -311,7 +311,7 @@
 			continue
 		if(!fixture_turf_matches_anchor(state, floor_turf, cluster_spec.anchors))
 			continue
-		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
 			continue
 		area++
@@ -321,7 +321,7 @@
 	if(!istype(state))
 		return list()
 	if(!islist(anchor_ids) || !length(anchor_ids))
-		return state.floor_turfs
+		return state.geometry.floor_turfs
 	var/list/candidates = list()
 	var/list/candidate_lookup = list()
 	for(var/anchor_id as anything in anchor_ids)
@@ -425,9 +425,9 @@
 /datum/world_edit_generator/building_layout/proc/get_cluster_preflight_anchor_ids(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/default_anchor_ids)
 	if(istype(state) && istype(cluster_spec))
 		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-		var/list/planned_anchor_ids = state.semantic_slot_anchor_sets[requirement_id]
+		var/list/planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[requirement_id]
 		if(!islist(planned_anchor_ids) || !length(planned_anchor_ids))
-			planned_anchor_ids = state.semantic_slot_anchor_sets[cluster_spec.id]
+			planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[cluster_spec.id]
 		if(islist(planned_anchor_ids) && length(planned_anchor_ids))
 			return planned_anchor_ids
 	return islist(default_anchor_ids) ? default_anchor_ids : list()
@@ -451,7 +451,7 @@
 			continue
 		if(!building_fixture_matches_semantic_zone_contract(state, floor_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 			continue
-		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
 			continue
 		capacity++
@@ -509,7 +509,7 @@
 					break
 				template_candidates -= anchor_turf
 				var/datum/world_edit_building_place_rule/template_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-				var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+				var/fallback_dir = get_cardinal_dir_toward(anchor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 				var/list/place_context = build_building_fixture_place_context(state, anchor_turf, template_rule, fallback_dir, get_cluster_effective_needs_wall(state, cluster_spec, template_rule), cluster_spec, anchor_ids)
 				if(!islist(place_context))
 					continue
@@ -557,7 +557,7 @@
 				continue
 			if(!building_fixture_matches_semantic_zone_contract(state, candidate_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 				continue
-			var/fallback_dir = get_cardinal_dir_toward(candidate_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+			var/fallback_dir = get_cardinal_dir_toward(candidate_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 			if(!fixture_turf_satisfies_place_rule(state, candidate_turf, place_rule, fallback_dir, effective_needs_wall))
 				continue
 			var/score = score_fixture_turf(state, candidate_turf, anchor_ids, effective_needs_wall, cluster_spec, place_rule)
@@ -577,9 +577,9 @@
 	if(!istype(state) || !istype(cluster_spec) || !istype(target_turf))
 		return FALSE
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/list/planned_turfs = state.semantic_slot_turf_sets[requirement_id]
+	var/list/planned_turfs = state.fixtures.semantic_slot_turf_sets[requirement_id]
 	if(!islist(planned_turfs))
-		planned_turfs = state.semantic_slot_turf_sets[cluster_spec.id]
+		planned_turfs = state.fixtures.semantic_slot_turf_sets[cluster_spec.id]
 	if(!islist(planned_turfs))
 		return FALSE
 	return target_turf in planned_turfs
@@ -601,21 +601,21 @@
 			selected_anchor_ids = fallback_anchor_ids
 			selected_mode = "fallback"
 		if(!can_building_cluster_use_broad_fallback_anchors(state, cluster_spec))
-			state.fallback_anchor_required_cluster_count++
-			state.forbidden_fallback_count++
+			state.validation.fallback_anchor_required_cluster_count++
+			state.validation.forbidden_fallback_count++
 			state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], required [required_count].")
 	var/best_capacity = max(declared_capacity, fallback_capacity)
 	var/shortage = max(required_count - best_capacity, 0)
 	if(shortage > 0)
-		state.semantic_slot_shortage_count += shortage
-	state.semantic_slot_capacity_count += min(best_capacity, required_count)
-	state.semantic_requirement_minimums[requirement_id] = max(round(text2num("[state.semantic_requirement_minimums[requirement_id]]") || 0), required_count)
+		state.validation.semantic_slot_shortage_count += shortage
+	state.validation.semantic_slot_capacity_count += min(best_capacity, required_count)
+	state.fixtures.semantic_requirement_minimums[requirement_id] = max(round(text2num("[state.fixtures.semantic_requirement_minimums[requirement_id]]") || 0), required_count)
 	if(length(selected_anchor_ids))
-		state.semantic_slot_anchor_sets[requirement_id] = selected_anchor_ids.Copy()
+		state.fixtures.semantic_slot_anchor_sets[requirement_id] = selected_anchor_ids.Copy()
 	var/list/planned_turfs = build_building_cluster_planned_slot_turfs(state, cluster_spec, selected_anchor_ids, min(best_capacity, required_count))
 	if(length(planned_turfs))
-		state.semantic_slot_turf_sets[requirement_id] = planned_turfs.Copy()
-	state.semantic_slot_selected_modes[requirement_id] = selected_mode
+		state.fixtures.semantic_slot_turf_sets[requirement_id] = planned_turfs.Copy()
+	state.fixtures.semantic_slot_selected_modes[requirement_id] = selected_mode
 	var/list/report = list(
 		"id" = requirement_id,
 		"cluster_id" = cluster_spec.id,
@@ -645,24 +645,24 @@
 /datum/world_edit_generator/building_layout/proc/run_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return
-	state.semantic_slot_reports.Cut()
-	state.semantic_slot_anchor_sets.Cut()
-	state.semantic_slot_selected_modes.Cut()
-	state.semantic_slot_turf_sets.Cut()
-	state.semantic_requirement_minimums.Cut()
-	state.semantic_requirement_reports.Cut()
-	state.template_reject_reason_counts.Cut()
-	state.template_reject_reports.Cut()
-	state.template_cluster_reports.Cut()
+	state.validation.semantic_slot_reports.Cut()
+	state.fixtures.semantic_slot_anchor_sets.Cut()
+	state.fixtures.semantic_slot_selected_modes.Cut()
+	state.fixtures.semantic_slot_turf_sets.Cut()
+	state.fixtures.semantic_requirement_minimums.Cut()
+	state.validation.semantic_requirement_reports.Cut()
+	state.validation.template_reject_reason_counts.Cut()
+	state.validation.template_reject_reports.Cut()
+	state.validation.template_cluster_reports.Cut()
 	state.clear_semantic_slot_reservations()
-	state.semantic_slot_capacity_count = 0
-	state.semantic_slot_shortage_count = 0
-	state.semantic_slot_fallback_count = 0
+	state.validation.semantic_slot_capacity_count = 0
+	state.validation.semantic_slot_shortage_count = 0
+	state.validation.semantic_slot_fallback_count = 0
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
 			continue
 		preflight_building_cluster_slots(state, cluster_spec, "program")
-	if(length(state.floor_turfs) >= 12)
+	if(length(state.geometry.floor_turfs) >= 12)
 		var/list/anchors = build_infrastructure_anchor_list(state)
 		for(var/list/spec_data as anything in get_building_infrastructure_specs(state))
 			if(!islist(spec_data))
@@ -756,7 +756,7 @@
 	var/turf/table_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(table_turf))
 		return 0
-	var/fallback_dir = get_cardinal_dir_toward(table_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+	var/fallback_dir = get_cardinal_dir_toward(table_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 	var/list/table_context = build_building_fixture_place_context(state, table_turf, table_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(table_context))
 		return 0
@@ -786,12 +786,12 @@
 	var/placed = 0
 	var/attempts = 0
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
-	while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	while(placed < target_count && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		attempts++
 		var/turf/start_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 		if(!istype(start_turf))
 			break
-		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+		var/fallback_dir = get_cardinal_dir_toward(start_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 		var/list/place_context = build_building_fixture_place_context(state, start_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			break
@@ -892,7 +892,7 @@
 	var/turf/primary_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(primary_turf))
 		return 0
-	var/fallback_dir = get_cardinal_dir_toward(primary_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+	var/fallback_dir = get_cardinal_dir_toward(primary_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 	var/list/place_context = build_building_fixture_place_context(state, primary_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
@@ -911,7 +911,7 @@
 				continue
 			if(!fixture_turf_matches_anchor(state, pair_turf, cluster_spec.anchors))
 				continue
-			if(cluster_spec.wall_required && (isnull(wall_dir) || !state.wall_lookup[get_step(pair_turf, wall_dir)]))
+			if(cluster_spec.wall_required && (isnull(wall_dir) || !state.geometry.wall_lookup[get_step(pair_turf, wall_dir)]))
 				continue
 			if(!building_place_rule_allows_turf(state, pair_turf, place_rule, dir_to_use, wall_dir))
 				continue
@@ -944,7 +944,7 @@
 /datum/world_edit_generator/building_layout/proc/extend_fixture_run(datum/world_edit_building_layout_state/state, turf/start_turf, run_dir, datum/world_edit_building_cluster_spec/cluster_spec, dir_to_use, wall_dir, datum/world_edit_building_place_rule/place_rule, placed, target_count)
 	var/turf/current_turf = start_turf
 	var/steps = 0
-	while(placed < target_count && steps < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	while(placed < target_count && steps < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		steps++
 		current_turf = get_step(current_turf, run_dir)
 		if(!state.can_place_fixture(current_turf))
@@ -953,7 +953,7 @@
 			break
 		if(cluster_spec.wall_required && isnull(wall_dir))
 			break
-		if(!isnull(wall_dir) && !state.wall_lookup[get_step(current_turf, wall_dir)])
+		if(!isnull(wall_dir) && !state.geometry.wall_lookup[get_step(current_turf, wall_dir)])
 			break
 		if(!building_place_rule_allows_turf(state, current_turf, place_rule, dir_to_use, wall_dir))
 			break
@@ -969,7 +969,7 @@
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, TRUE, cluster_spec)
 	if(!istype(target_turf))
 		return 0
-	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, TRUE, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
@@ -986,7 +986,7 @@
 	var/turf/target_turf = select_fixture_turf(state, cluster_spec.anchors, cluster_spec.wall_required, cluster_spec)
 	if(!istype(target_turf))
 		return 0
-	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+	var/fallback_dir = get_cardinal_dir_toward(target_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 	var/list/place_context = build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, cluster_spec.wall_required, cluster_spec, cluster_spec.anchors)
 	if(!islist(place_context))
 		return 0
@@ -1017,7 +1017,7 @@
 				continue
 			if(!building_fixture_matches_semantic_zone_contract(state, floor_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 				continue
-			var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.semantic_hub_turf || state.center_turf, SOUTH)
+			var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
 			if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
 				continue
 			var/score = score_fixture_turf(state, floor_turf, effective_anchor_ids, effective_needs_wall, cluster_spec, place_rule)
@@ -1052,16 +1052,16 @@
 		if(istype(room) && istype(room.focus_turf))
 			focus_turf = room.focus_turf
 		else if(length(zone_id))
-			focus_turf = state.zone_focus_turfs[zone_id]
+			focus_turf = state.geometry.zone_focus_turfs[zone_id]
 		if(!istype(focus_turf))
-			focus_turf = state.zone_focus_turfs[state.semantic_plan?.hub_zone_id] || state.center_turf || state.semantic_hub_turf
+			focus_turf = state.geometry.zone_focus_turfs[state.semantic_plan?.hub_zone_id] || state.geometry.center_turf || state.geometry.semantic_hub_turf
 		if(istype(focus_turf))
 			var/dist_to_focus = abs(target_turf.x - focus_turf.x) + abs(target_turf.y - focus_turf.y)
 			focus_bonus += max(0, 12 - dist_to_focus) * 220
 			score += focus_bonus
 	if(state.has_anchor("door_cone", target_turf))
 		score -= 1000
-	if(state.reserved_lookup[target_turf])
+	if(state.geometry.reserved_lookup[target_turf])
 		score -= 500
 	if(cluster_spec)
 		score += cluster_spec.priority
@@ -1076,11 +1076,11 @@
 	var/clearance = 0
 	for(var/check_dir in GLOB.cardinals)
 		var/turf/nearby_turf = get_step(target_turf, check_dir)
-		if(state.floor_lookup[nearby_turf] && !state.fixture_lookup[nearby_turf] && !state.wall_lookup[nearby_turf])
+		if(state.geometry.floor_lookup[nearby_turf] && !state.fixtures.fixture_lookup[nearby_turf] && !state.geometry.wall_lookup[nearby_turf])
 			clearance++
 	score += clearance * 8
-	if(istype(state.semantic_hub_turf))
-		score -= abs(target_turf.x - state.semantic_hub_turf.x) + abs(target_turf.y - state.semantic_hub_turf.y)
+	if(istype(state.geometry.semantic_hub_turf))
+		score -= abs(target_turf.x - state.geometry.semantic_hub_turf.x) + abs(target_turf.y - state.geometry.semantic_hub_turf.y)
 	return score
 
 /datum/world_edit_generator/building_layout/proc/get_building_repeat_penalty_score(datum/world_edit_building_layout_state/state, category)
@@ -1093,10 +1093,10 @@
 	if(!isnull(repeat_rule["soft_percent"]))
 		soft_percent = round(text2num("[repeat_rule["soft_percent"]]") || soft_percent)
 	var/penalty = round(text2num("[repeat_rule["penalty"]]") || 8)
-	var/category_count = round(text2num("[state.category_counts["[category]"]]") || 0)
-	if(category_count <= 0 || state.fixture_count <= 0)
+	var/category_count = round(text2num("[state.fixtures.category_counts["[category]"]]") || 0)
+	if(category_count <= 0 || state.fixtures.fixture_count <= 0)
 		return 0
-	var/projected_percent = round((category_count + 1) * 100 / max(state.fixture_count + 1, 1))
+	var/projected_percent = round((category_count + 1) * 100 / max(state.fixtures.fixture_count + 1, 1))
 	if(projected_percent <= soft_percent)
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
@@ -1108,7 +1108,7 @@
 	if(length(reservation_owner))
 		if(!istype(cluster_spec) || reservation_owner != get_building_cluster_requirement_id(cluster_spec))
 			return FALSE
-	if(state.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+	if(state.fixtures.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
 	if(!istype(place_rule))
 		place_rule = resolve_building_place_rule(slot, category)
@@ -1125,13 +1125,13 @@
 	if(!building_place_rule_allows_turf(state, target_turf, place_rule, dir_to_use, wall_dir))
 		return FALSE
 	var/budget = state.get_category_budget(category)
-	if(isnum(budget) && budget > 0 && (state.category_counts["[category]"] || 0) >= budget)
+	if(isnum(budget) && budget > 0 && (state.fixtures.category_counts["[category]"] || 0) >= budget)
 		return FALSE
 	var/list/repeat_penalties = state.semantic_plan?.repeat_penalties
 	var/list/repeat_rule = islist(repeat_penalties) && islist(repeat_penalties["[category]"]) ? repeat_penalties["[category]"] : list()
 	var/hard_percent = round(text2num("[repeat_rule["hard_percent"]]") || 0)
-	if(!major && hard_percent > 0 && state.fixture_count >= 4)
-		var/projected_percent = round(((state.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixture_count + 1, 1))
+	if(!major && hard_percent > 0 && state.fixtures.fixture_count >= 4)
+		var/projected_percent = round(((state.fixtures.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixtures.fixture_count + 1, 1))
 		if(projected_percent > hard_percent)
 			return FALSE
 	var/datum/world_edit_building_fixture_provider/provider = resolve_fixture_provider(state.config, slot)
@@ -1142,7 +1142,7 @@
 		var/provider_reason = provider.reason_if_not_functional || "provider is not functionally equivalent"
 		if(major || cluster_spec?.required)
 			state.add_error("Fixture provider for required slot '[slot]' is not functional: [provider_reason].")
-			state.semantic_credit_without_emitted_slots_count++
+			state.validation.semantic_credit_without_emitted_slots_count++
 		else
 			state.add_warning("Skipping non-functional fixture provider for slot '[slot]': [provider_reason].")
 		return FALSE
@@ -1190,7 +1190,7 @@
 		object_placement["wall_dir"] = wall_dir
 		object_placement["wall_dir_label"] = GLOB.world_edit_helpers.dir_to_label(wall_dir)
 		object_placement["dir_mode"] = place_rule.dir_mode
-	state.object_placements += list(object_placement)
+	state.fixtures.object_placements += list(object_placement)
 	state.register_fixture(target_turf, category, major, wall_mounted)
 	if(istype(cluster_spec))
 		var/requirement_id_to_count = get_building_cluster_requirement_id(cluster_spec)
@@ -1198,5 +1198,5 @@
 		if(requirement_credit > 0)
 			state.register_placed_requirement(requirement_id_to_count, requirement_credit)
 	if(object_placement["infrastructure"])
-		state.infrastructure_count++
+		state.fixtures.infrastructure_count++
 	return TRUE

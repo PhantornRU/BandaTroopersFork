@@ -8,7 +8,7 @@
 		"category" = "light",
 		"pattern" = "run",
 		"minimum" = max(round(text2num("[state.semantic_plan?.category_minimums["light"]]") || 0), 2),
-		"maximum" = max(3, round(length(state.floor_turfs) / 18)),
+		"maximum" = max(3, round(length(state.geometry.floor_turfs) / 18)),
 		"macro" = "infrastructure_light_chunk",
 		"priority" = 100,
 	))
@@ -63,7 +63,7 @@
 	return anchors
 
 /datum/world_edit_generator/building_layout/proc/place_building_infrastructure(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !istype(state.semantic_plan) || !length(state.floor_turfs))
+	if(!istype(state) || !istype(state.semantic_plan) || !length(state.geometry.floor_turfs))
 		return FALSE
 	var/repaired = FALSE
 	var/list/anchors = build_infrastructure_anchor_list(state)
@@ -74,7 +74,7 @@
 		var/category = "[spec_data["category"]]"
 		var/requirement_id = "[spec_data["id"]]"
 		var/minimum = max(round(text2num("[spec_data["minimum"]]") || 0), 0)
-		var/placed_count = round(text2num("[state.placed_requirement_counts[requirement_id]]") || 0)
+		var/placed_count = round(text2num("[state.fixtures.placed_requirement_counts[requirement_id]]") || 0)
 		if(minimum <= 0 || placed_count >= minimum)
 			continue
 		var/needed = minimum - placed_count

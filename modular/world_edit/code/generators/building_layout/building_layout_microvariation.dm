@@ -16,10 +16,10 @@
 	state.config["microvariation_applied"] = TRUE
 
 /datum/world_edit_generator/building_layout/proc/has_building_microvariation_anchors(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !islist(state.anchor_turfs))
+	if(!istype(state) || !islist(state.fixtures.anchor_turfs))
 		return FALSE
 	var/prefix = "microvariation_"
-	for(var/anchor_id as anything in state.anchor_turfs)
+	for(var/anchor_id as anything in state.fixtures.anchor_turfs)
 		if(copytext("[anchor_id]", 1, length(prefix) + 1) == prefix)
 			return TRUE
 	return FALSE
@@ -49,9 +49,9 @@
 /datum/world_edit_generator/building_layout/proc/can_place_building_microvariation_detail(datum/world_edit_building_layout_state/state, turf/target_turf, wall_allowed = FALSE)
 	if(!istype(state) || !istype(target_turf))
 		return FALSE
-	if(state.door_dirs[target_turf] || state.fixture_lookup[target_turf])
+	if(state.geometry.door_dirs[target_turf] || state.fixtures.fixture_lookup[target_turf])
 		return FALSE
-	if(wall_allowed && state.wall_lookup[target_turf])
+	if(wall_allowed && state.geometry.wall_lookup[target_turf])
 		return TRUE
 	return can_anchor_building_microvariation_floor(state, target_turf)
 
@@ -59,9 +59,9 @@
 	if(!istype(state) || !istype(target_turf))
 		return SOUTH
 	if(findtext("[anchor_id]", "facade"))
-		return get_outward_dir(target_turf, state.footprint_lookup, (state.bounds["min_x"] + state.bounds["max_x"]) / 2, (state.bounds["min_y"] + state.bounds["max_y"]) / 2, state.placement_dir)
+		return get_outward_dir(target_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 	if(findtext("[anchor_id]", "ritual"))
-		return get_cardinal_dir_toward(target_turf, state.semantic_hub_turf || state.center_turf, state.placement_dir)
+		return get_cardinal_dir_toward(target_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, state.placement_dir)
 	if(state.request?.microvariation_rng?.chance(50))
 		return state.placement_dir
 	return turn(state.placement_dir, 90)
@@ -83,8 +83,8 @@
 		if(state.request?.microvariation_rng && !state.request.microvariation_rng.chance(75))
 			continue
 		var/detail_dir = get_building_microvariation_detail_dir(state, target_turf, anchor_id)
-		state.object_placements += list(build_object_placement("microvariation", target_turf, obj_path, detail_dir))
-		state.microvariation_count++
+		state.fixtures.object_placements += list(build_object_placement("microvariation", target_turf, obj_path, detail_dir))
+		state.validation.microvariation_count++
 		used_lookup[target_turf] = TRUE
 		placed++
 	return placed
@@ -109,11 +109,11 @@
 /datum/world_edit_generator/building_layout/proc/can_anchor_building_microvariation_floor(datum/world_edit_building_layout_state/state, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))
 		return FALSE
-	if(!state.floor_lookup[target_turf])
+	if(!state.geometry.floor_lookup[target_turf])
 		return FALSE
-	if(state.wall_lookup[target_turf] || state.door_dirs[target_turf])
+	if(state.geometry.wall_lookup[target_turf] || state.geometry.door_dirs[target_turf])
 		return FALSE
-	if(state.reserved_lookup[target_turf] || state.fixture_lookup[target_turf])
+	if(state.geometry.reserved_lookup[target_turf] || state.fixtures.fixture_lookup[target_turf])
 		return FALSE
 	if(state.has_anchor("door_cone", target_turf))
 		return FALSE
@@ -122,15 +122,15 @@
 /datum/world_edit_generator/building_layout/proc/add_building_floor_rhythm_anchors(datum/world_edit_building_layout_state/state, detail_budget)
 	var/stride = detail_budget >= 70 ? 2 : 3
 	var/phase = state.request?.microvariation_rng?.next_between(0, stride - 1) || 0
-	var/target_count = min(48, max(4, round(length(state.floor_turfs) * detail_budget / 220)))
+	var/target_count = min(48, max(4, round(length(state.geometry.floor_turfs) * detail_budget / 220)))
 	var/placed = 0
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(placed >= target_count)
 			break
 		if(!can_anchor_building_microvariation_floor(state, floor_turf))
 			continue
-		var/front_depth = world_edit_building_front_depth(floor_turf, state.bounds, state.placement_dir)
-		var/lateral = round(world_edit_building_lateral_offset(floor_turf, state.bounds, state.placement_dir) + state.max_lateral_abs)
+		var/front_depth = world_edit_building_front_depth(floor_turf, state.geometry.bounds, state.placement_dir)
+		var/lateral = round(world_edit_building_lateral_offset(floor_turf, state.geometry.bounds, state.placement_dir) + state.geometry.max_lateral_abs)
 		if(((front_depth + lateral + phase) % stride) != 0)
 			continue
 		state.add_anchor("microvariation_floor_rhythm", floor_turf)
@@ -138,20 +138,20 @@
 		placed++
 
 /datum/world_edit_generator/building_layout/proc/add_building_facade_panel_anchors(datum/world_edit_building_layout_state/state, detail_budget)
-	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.door_turfs)
-	var/list/window_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.window_turfs)
+	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.geometry.door_turfs)
+	var/list/window_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.geometry.window_turfs)
 	var/panel_stride = detail_budget >= 75 ? 2 : 3
 	var/phase = state.request?.microvariation_rng?.next_between(0, panel_stride - 1) || 0
-	var/center_x = (state.bounds["min_x"] + state.bounds["max_x"]) / 2
-	var/center_y = (state.bounds["min_y"] + state.bounds["max_y"]) / 2
-	for(var/turf/boundary_turf as anything in state.boundary)
-		if(!istype(boundary_turf) || !state.wall_lookup[boundary_turf])
+	var/center_x = (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2
+	var/center_y = (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2
+	for(var/turf/boundary_turf as anything in state.geometry.boundary)
+		if(!istype(boundary_turf) || !state.geometry.wall_lookup[boundary_turf])
 			continue
 		if(door_lookup[boundary_turf] || window_lookup[boundary_turf])
 			continue
-		if(is_corner_boundary_turf(boundary_turf, state.footprint_lookup))
+		if(is_corner_boundary_turf(boundary_turf, state.geometry.footprint_lookup))
 			continue
-		var/outward_dir = get_outward_dir(boundary_turf, state.footprint_lookup, center_x, center_y, state.placement_dir)
+		var/outward_dir = get_outward_dir(boundary_turf, state.geometry.footprint_lookup, center_x, center_y, state.placement_dir)
 		var/side_coord = (outward_dir in list(NORTH, SOUTH)) ? boundary_turf.x : boundary_turf.y
 		if(((side_coord + phase) % panel_stride) != 0)
 			continue
@@ -161,9 +161,9 @@
 			state.add_anchor("microvariation_facade_window_panel", boundary_turf)
 
 /datum/world_edit_generator/building_layout/proc/add_building_service_patch_anchors(datum/world_edit_building_layout_state/state, detail_budget)
-	var/target_count = min(24, max(2, round(length(state.floor_turfs) * detail_budget / 320)))
+	var/target_count = min(24, max(2, round(length(state.geometry.floor_turfs) * detail_budget / 320)))
 	var/placed = 0
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(placed >= target_count)
 			break
 		if(!can_anchor_building_microvariation_floor(state, floor_turf))
@@ -176,9 +176,9 @@
 		placed++
 
 /datum/world_edit_generator/building_layout/proc/add_building_wear_patch_anchors(datum/world_edit_building_layout_state/state, detail_budget)
-	var/target_count = min(32, max(2, round(length(state.floor_turfs) * detail_budget / 280)))
+	var/target_count = min(32, max(2, round(length(state.geometry.floor_turfs) * detail_budget / 280)))
 	var/placed = 0
-	for(var/turf/floor_turf as anything in state.floor_turfs)
+	for(var/turf/floor_turf as anything in state.geometry.floor_turfs)
 		if(placed >= target_count)
 			break
 		if(!can_anchor_building_microvariation_floor(state, floor_turf))
@@ -194,7 +194,7 @@
 	var/ritual_zone_id = get_building_ritual_zone_id(state)
 	if(!length(ritual_zone_id))
 		return
-	var/turf/focus_turf = state.get_zone_focus(ritual_zone_id) || state.semantic_hub_turf || state.center_turf
+	var/turf/focus_turf = state.get_zone_focus(ritual_zone_id) || state.geometry.semantic_hub_turf || state.geometry.center_turf
 	if(!can_anchor_building_microvariation_floor(state, focus_turf))
 		return
 	state.add_anchor("microvariation_ritual_focus_hint", focus_turf)
@@ -259,7 +259,7 @@
 /datum/world_edit_generator/building_layout/proc/is_building_microvariation_wear_candidate(datum/world_edit_building_layout_state/state, turf/target_turf)
 	for(var/check_dir in GLOB.cardinals)
 		var/turf/nearby_turf = get_step(target_turf, check_dir)
-		if(state.fixture_lookup[nearby_turf] || state.wall_fixture_turfs.Find(nearby_turf))
+		if(state.fixtures.fixture_lookup[nearby_turf] || state.fixtures.wall_fixture_turfs.Find(nearby_turf))
 			return TRUE
 	if(length(get_adjacent_wall_dirs_for_state(state, target_turf)) >= 2)
 		return TRUE
