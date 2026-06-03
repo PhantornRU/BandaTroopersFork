@@ -208,6 +208,28 @@
 	new /obj/item/ammo_magazine/rifle/halo/ma5b(src)
 	new /obj/item/ammo_magazine/rifle/halo/ma5b(src)
 
+// PR #156: BR55 magazine webbing
+/obj/item/clothing/accessory/storage/webbing/m52b/mag/br55
+	hold = /obj/item/storage/internal/accessory/webbing/m52bmag/br55
+
+/obj/item/storage/internal/accessory/webbing/m52bmag/br55/fill_preset_inventory()
+	new /obj/item/ammo_magazine/rifle/halo/br55(src)
+	new /obj/item/ammo_magazine/rifle/halo/br55(src)
+	new /obj/item/ammo_magazine/rifle/halo/br55(src)
+	new /obj/item/ammo_magazine/rifle/halo/br55(src)
+	new /obj/item/ammo_magazine/rifle/halo/br55(src)
+
+// PR #156: Sniper magazine webbing
+/obj/item/clothing/accessory/storage/webbing/m52b/mag/sniper
+	hold = /obj/item/storage/internal/accessory/webbing/m52bmag/sniper
+
+/obj/item/storage/internal/accessory/webbing/m52bmag/sniper/fill_preset_inventory()
+	new /obj/item/ammo_magazine/rifle/halo/sniper(src)
+	new /obj/item/ammo_magazine/rifle/halo/sniper(src)
+	new /obj/item/ammo_magazine/rifle/halo/sniper(src)
+	new /obj/item/ammo_magazine/rifle/halo/sniper(src)
+	new /obj/item/ammo_magazine/rifle/halo/sniper(src)
+
 //===
 
 /obj/item/clothing/accessory/storage/webbing/m52b/shotgun
@@ -261,11 +283,32 @@
 	)
 
 /obj/item/clothing/accessory/storage/webbing/m52b/grenade/m9_frag
-	hold = /obj/item/storage/internal/accessory/black_vest/m52bgrenade/unsc
+	hold = /obj/item/storage/internal/accessory/black_vest/m52bgrenade/m9_frag
 
-/obj/item/storage/internal/accessory/black_vest/m52bgrenade/unsc/fill_preset_inventory()
+/obj/item/storage/internal/accessory/black_vest/m52bgrenade/m9_frag/fill_preset_inventory()
 	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
 	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
 	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
 	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
 	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
+
+// PR #156: Mixed grenade webbing
+/obj/item/clothing/accessory/storage/webbing/m52b/grenade/mix_nades
+	hold = /obj/item/storage/internal/accessory/black_vest/m52bgrenade/mix_nades
+
+/obj/item/storage/internal/accessory/black_vest/m52bgrenade/mix_nades/fill_preset_inventory()
+	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
+	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
+	new /obj/item/explosive/grenade/smokebomb/unsc(src)
+	new /obj/item/explosive/grenade/smokebomb/unsc(src)
+	new /obj/item/explosive/grenade/smokebomb/unsc(src)
+
+/obj/item/clothing/accessory/storage/webbing/m52b/grenade/mix_odst_nades
+	hold = /obj/item/storage/internal/accessory/black_vest/m52bgrenade/mix_odst_nades
+
+/obj/item/storage/internal/accessory/black_vest/m52bgrenade/mix_odst_nades/fill_preset_inventory()
+	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
+	new /obj/item/explosive/grenade/high_explosive/m15/unsc(src)
+	new /obj/item/explosive/grenade/high_explosive/pmc/unsc(src)
+	new /obj/item/explosive/grenade/smokebomb/unsc(src)
+	new /obj/item/explosive/grenade/smokebomb/unsc(src)

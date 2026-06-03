@@ -71,6 +71,28 @@
 /obj/item/ammo_box/magazine/misc/unsc/grenade/launchable/empty
 	empty = TRUE
 
+/obj/item/ammo_box/magazine/misc/unsc/grenade/smoke
+	name = "\improper UNSC storage crate - (Smoke Grenades x 9)"
+	desc = "Типовой ящик снабжения ККОН с дымовыми гранатами."
+	icon_state = "base_smoke"
+	magazine_type = /obj/item/explosive/grenade/smokebomb/unsc
+	num_of_magazines = 9
+	overlay_content = "_smoke"
+
+/obj/item/ammo_box/magazine/misc/unsc/grenade/smoke/empty
+	empty = TRUE
+
+/obj/item/ammo_box/magazine/misc/unsc/grenade/blast
+	name = "\improper UNSC storage crate - (Blast Grenades x 9)"
+	desc = "Типовой ящик снабжения ККОН с оборонительными гранатами."
+	icon_state = "base_defgre"
+	magazine_type = /obj/item/explosive/grenade/high_explosive/pmc/unsc
+	num_of_magazines = 9
+	overlay_content = "_defgre"
+
+/obj/item/ammo_box/magazine/misc/unsc/grenade/blast/empty
+	empty = TRUE
+
 /obj/item/ammo_box/magazine/misc/unsc/medical_packets
 	name = "\improper UNSC storage crate - (First Aid Packets x 10)"
 	desc = "Типовой ящик снабжения ККОН с полевыми медицинскими пакетами."
