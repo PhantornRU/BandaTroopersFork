@@ -958,6 +958,10 @@
 	faction = FACTION_TWE
 /obj/structure/machinery/computer/overwatch/freelance
 	faction = FACTION_FREELANCER
+// SS220 EDIT - START: HALO Minimap Fix - UNSC Overwatch Console
+/obj/structure/machinery/computer/overwatch/unsc
+	faction = FACTION_LIST_UNSC
+// SS220 EDIT - END
 
 /obj/structure/machinery/computer/overwatch/toc
 	name = "TOC Overwatch Console"

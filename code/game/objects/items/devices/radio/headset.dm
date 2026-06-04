@@ -476,6 +476,12 @@
 			marker_flags = MINIMAP_FLAG_CLF
 		else if(hud_type == MOB_HUD_FACTION_FIL)
 			marker_flags = MINIMAP_FLAG_CLF
+		// SS220 EDIT - START: HALO Minimap Fix - UNSC and Covenant minimap tracking
+		else if(hud_type == MOB_HUD_FACTION_UNSC)
+			marker_flags = MINIMAP_FLAG_UNSC
+		else if(hud_type == MOB_HUD_FACTION_COVENANT)
+			marker_flags = MINIMAP_FLAG_COVENANT
+		// SS220 EDIT - END
 
 	if(wearer.undefibbable)
 		set_undefibbable_on_minimap(z_level, marker_flags)

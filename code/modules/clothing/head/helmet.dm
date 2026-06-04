@@ -768,7 +768,14 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 
 /// Sets the action overlay to default hud sight up
 /datum/action/item_action/cycle_helmet_huds/proc/set_default_overlay()
-	action_icon_state = "hud_sight_up"
+	// SS220 EDIT - START - HALO VISR support
+	var/obj/item/clothing/head/helmet/marine/holder_helmet = holder_item
+	for(var/obj/item/device/helmet_visor/night_vision/halo/visr in holder_helmet)
+		if(!visr)
+			action_icon_state = "hud_sight_up"
+		else
+			action_icon_state = "visr_off"
+	// SS220 EDIT - END
 	button.overlays.Cut()
 	button.overlays += image('icons/obj/items/clothing/helmet_visors.dmi', button, action_icon_state)
 
@@ -1093,6 +1100,9 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	name = "\improper Mk16 tactical helmet"
 	desc = "Standard issue high molecular density polymer enclosed combat helmet of the RMC, though this one has been painted white for service with Weyland Yutani's elite tactical teams. Resistant to glancing hits from small arms and shrapnel, incorporates tactical camera, IFF signal transponder, and heads up display lens. Also features white/black hot IR viewing modes from the camera system."
 	icon_state = "pmc_helmet_enclosed"
+	// SS220 EDIT: CM-PVE #1287 Gas Mask Vision — vision impair + scope allowance for enclosed helmets
+	vision_impair = VISION_IMPAIR_WEAK
+	ignore_zoom_tint = TRUE
 	flags_armor_protection = BODY_FLAG_HEAD|BODY_FLAG_FACE|BODY_FLAG_EYES
 	flags_inventory = COVEREYES|COVERMOUTH|BLOCKSHARPOBJ|ALLOWINTERNALS|BLOCKGASEFFECT|ALLOWREBREATH|ALLOWCPR
 	flags_inv_hide = HIDEEARS|HIDEEYES|HIDEFACE|HIDEMASK|HIDEALLHAIR
@@ -1227,6 +1237,9 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	name = "\improper W-Y Mk17 Commando helmet"
 	desc = "A standard enclosed helmet utilized by Weyland-Yutani Commandos."
 	icon_state = "commando_helmet"
+	// SS220 EDIT: CM-PVE #1287 Gas Mask Vision — vision impair + scope allowance for enclosed helmets
+	vision_impair = VISION_IMPAIR_MED
+	ignore_zoom_tint = TRUE
 	flags_armor_protection = BODY_FLAG_HEAD|BODY_FLAG_FACE|BODY_FLAG_EYES
 	armor_melee = CLOTHING_ARMOR_HIGH
 	armor_bullet = CLOTHING_ARMOR_ULTRAHIGHPLUS
@@ -1450,6 +1463,9 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	name = "\improper 6B79 helmet"
 	desc = "EVA-capable enclosed helmet of the UPP's Naval Infantry. Despite offering a higher armor rating, this helmet's cumbersome design kept it from retaining a larger role in the equipment of the Naval Infantry, and instead is largely reserved for heavy weapons operators and other specialist roles."
 	icon_state = "upp_helmet_heavy"
+	// SS220 EDIT: CM-PVE #1287 Gas Mask Vision — vision impair + scope allowance for enclosed helmets
+	vision_impair = VISION_IMPAIR_WEAK
+	ignore_zoom_tint = TRUE
 	armor_melee = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_bullet = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_energy = CLOTHING_ARMOR_MEDIUM

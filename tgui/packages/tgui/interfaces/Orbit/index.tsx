@@ -361,6 +361,9 @@ const ObservableContent = () => {
     xenos = [],
     infected = [],
     ert_members = [],
+    army = [],
+    navy = [],
+    uacg = [],
     upp = [],
     clf = [],
     wy = [],
@@ -410,6 +413,21 @@ const ObservableContent = () => {
         color="light-grey"
         section={synthetics}
         title="Synthetics"
+      />
+      <ObservableSection
+        color="red"
+        section={army}
+        title="United States Army"
+      />
+      <ObservableSection
+        color="blue"
+        section={navy}
+        title="United States AeroSpace Force"
+      />
+      <ObservableSection
+        color="orange"
+        section={uacg}
+        title="United Americas Colonial Guard"
       />
       <ObservableSection
         color="green"

@@ -570,8 +570,12 @@
 	if(!istype(T))
 		return
 	var/datum/reagent/R = new /datum/reagent/napalm/ut()
-	if(burn_level >= BURN_LEVEL_TIER_7)
+// SS220 EDIT - START - Thermite Grenade handling
+	if(burn_level >= BURN_LEVEL_TIER_9)
+		R = new /datum/reagent/thermite
+	else if(burn_level >= BURN_LEVEL_TIER_7)
 		R = new /datum/reagent/napalm/blue()
+// SS220 EDIT - END
 	else if(burn_level <= BURN_LEVEL_TIER_2)
 		R = new /datum/reagent/napalm/green()
 

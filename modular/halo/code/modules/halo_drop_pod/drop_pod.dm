@@ -454,6 +454,10 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 	playsound(src, 'sound/effects/escape_pod_launch.ogg', 70)
 	sleep(1 SECONDS)
+	if(!(MODE_HAS_TOGGLEABLE_FLAG(MODE_DISABLE_INTRO_BLURB)))
+		if(SSticker?.mode && !(SSticker.mode.flags_round_type & MODE_DS_LANDED)) //Launching on first drop.
+			SSticker.mode.pod_first_drop(src)
+			SSticker.mode.flags_round_type |= MODE_DS_LANDED
 	reservation = SSmapping.request_turf_block_reservation(5, 5, 1, reservation_type = /datum/turf_reservation/transit/drop_pod)
 	if(!reservation)
 		to_chat(user, SPAN_WARNING("Error. No droppod transit corridor available."))

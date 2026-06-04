@@ -6,7 +6,7 @@
 #define GLOBAL_PROC "magic BS"
 
 //Game defining directives.
-#define MAIN_AI_SYSTEM "TITAN 1200" //Previously ARES v3.2
+#define MAIN_AI_SYSTEM "Voyager" //Previously "TITAN 1200" // ARES v3.2 // SS220 EDIT: HALO upstream PR #164 Titan→Voyager rename
 
 // Maploader bounds indices
 #define MAP_MINX 1

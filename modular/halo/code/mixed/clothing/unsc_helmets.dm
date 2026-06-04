@@ -41,6 +41,7 @@
 /obj/item/clothing/head/helmet/marine/unsc/odst
 	name = "\improper CH381 ODST helmet"
 	desc = "Культовый шлем, разработанный для бойцов Orbital Drop Shock Troopers корпуса морской пехоты ККОН."
+	built_in_visors = list(new /obj/item/device/helmet_visor/night_vision/halo/unsc)
 	icon_state = "odst"
 	item_state = "odst"
 	flags_inventory = COVEREYES|COVERMOUTH|BLOCKSHARPOBJ|BLOCKGASEFFECT

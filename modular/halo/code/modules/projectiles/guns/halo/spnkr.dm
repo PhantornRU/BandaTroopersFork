@@ -145,6 +145,8 @@
 				to_chat(current_mob, SPAN_HIGHDANGER("You see the [missile_name] arc directly into the aircraft, hitting it with a powerful explosion and sending it crashing down!"))
 				if(current_mob.client)
 					playsound_client(current_mob.client, 'sound/weapons/halo/spnkr_locking/spnkr_aa_crash.ogg', src, 25)
+			if(hit_type == "miss")
+				to_chat(current_mob, SPAN_HIGHDANGER("You see the [missile_name] miss its target!"))
 
 //
 
