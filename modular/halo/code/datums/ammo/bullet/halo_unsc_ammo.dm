@@ -83,6 +83,14 @@
 	scatter = SCATTER_AMOUNT_TIER_8
 	accuracy = HIT_ACCURACY_TIER_4
 
+/datum/ammo/bullet/smg/halo/m7
+	name = "5×23mm M443 FMJ"
+	penetration = 0
+	damage = 34
+	penetration = ARMOR_PENETRATION_TIER_1
+	scatter = SCATTER_AMOUNT_TIER_8
+	accuracy = HIT_ACCURACY_TIER_4
+
 // shotgun ammo
 
 /datum/ammo/bullet/shotgun/buckshot/unsc
@@ -217,6 +225,16 @@
 // pistol ammo
 
 /datum/ammo/bullet/pistol/magnum
+	name = "SAP-HE bullet"
+	headshot_state = HEADSHOT_OVERLAY_HEAVY
+	accuracy = HIT_ACCURACY_TIER_4
+	accuracy_var_low = PROJECTILE_VARIANCE_TIER_6
+	damage = 40
+	penetration= ARMOR_PENETRATION_TIER_2
+	shrapnel_chance = SHRAPNEL_CHANCE_TIER_2
+	shell_casing = /obj/effect/decal/ammo_casing/bullet/halo
+
+/datum/ammo/bullet/pistol/halo/m6
 	name = "SAP-HE bullet"
 	headshot_state = HEADSHOT_OVERLAY_HEAVY
 	accuracy = HIT_ACCURACY_TIER_4

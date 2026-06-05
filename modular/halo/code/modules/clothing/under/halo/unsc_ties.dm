@@ -10,6 +10,11 @@
 	flags_atom = NO_SNOW_TYPE
 	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
 
+/obj/item/clothing/accessory/pads/unsc/Initialize()
+	. = ..()
+	inv_overlay = image("icon" = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', "icon_state" = "[item_state? "[item_state]" : "[icon_state]"]")
+	flags_atom |= USES_HEARING
+
 /obj/item/clothing/accessory/pads/unsc/bracers
 	name = "\improper M52B Arm Bracers"
 	desc = "Пара композитных наручей, крепящихся к бронекомплекту M52B корпуса морской пехоты ККОН для защиты предплечий."
@@ -139,6 +144,11 @@
 	slot = ACCESSORY_SLOT_M3UTILITY
 	flags_atom = NO_SNOW_TYPE
 	accessory_icons = list(WEAR_BODY = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', WEAR_JACKET = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi')
+
+/obj/item/clothing/accessory/storage/webbing/m52b/Initialize()
+	. = ..()
+	inv_overlay = image("icon" = 'modular/halo/icons/halo/mob/humans/onmob/clothing/accessories/accessories.dmi', "icon_state" = "[item_state? "[item_state]" : "[icon_state]"]")
+	flags_atom |= USES_HEARING
 
 /obj/item/storage/internal/accessory/webbing/m52bgeneric
 	cant_hold = list(

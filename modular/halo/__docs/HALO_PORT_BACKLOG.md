@@ -49,7 +49,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
   - #178 Chemlights & Flares (379 lines)
   - #174 UNSC loose-ammo packets (326 lines)
   - #158 Fire Support Binos Support (543 lines)
-  - #157 UNSC Medals Enabled (688 lines)
+  - #157 UNSC Medals Enabled (688 lines) — PORTED (2026-06-05)
   - #150 Loadout selection changes (686 lines)
   - #160 Holy Redoubts (3300 lines, map templates)
 - **Dependencies**: Batch 2 complete
@@ -174,8 +174,8 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 | 3 | #166 | ODST VISR | 163 | High | PENDING |
 | 3 | #178 | Chemlights & Flares | 379 | High | PENDING |
 | 3 | #174 | UNSC loose-ammo packets | 326 | High | PENDING |
-| 3 | #158 | Fire Support Binos Support | 543 | High | PENDING |
-| 3 | #157 | UNSC Medals Enabled | 688 | High | PENDING |
+| 3 | #158 | Fire Support Binos Support | 543 | High | PORTED (2026-06-05) |
+| 3 | #157 | UNSC Medals Enabled | 688 | High | PORTED (2026-06-05) |
 | 3 | #150 | Loadout selection changes | 686 | High | PENDING |
 | 3 | #160 | Holy Redoubts | 3300 | Very High | PENDING |
 
