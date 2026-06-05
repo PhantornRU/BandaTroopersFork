@@ -6,12 +6,15 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Current merged BT master baseline: `upstream/master @ 5d2ad73b68727b88c7b02cf005a4af72f855babd`
 - Meaning of that baseline: merged BT `PR #96` (`[HALO] Sync follow-up main wave`)
+- **Comprehensive upstream sync baseline**: `halo-pve-update-batch1-3b @ 46915d6953a78c0e770fcca858888db2deed8e81` (PR #102, 2026-06-05)
+- Meaning of sync baseline: all 20 must-port PRs from CM-PVE-HALO and CM-PVE ported, validated, and documented
 - Current gameplay-completion branch: `halo_jackal_spartan_wave_apr2026`
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
 - Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
 
 ## Branch Scope
 - `PR #96` is already merged into BT master and is treated as the shared HALO base.
+- `PR #102` (`halo-pve-update-batch1-3b`) — comprehensive upstream sync: 20 must-port PRs across 4 batches.
 - This branch owns only the follow-up gameplay completion needed for `PR #94` after that merge.
 - Requested user-facing scope on this branch:
   - refresh `PR #94` from current master;
@@ -54,6 +57,17 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 
 ## Validation Snapshot
 - Last fully merged shared baseline validation belongs to BT `PR #96`.
+- **PR #102 comprehensive upstream sync validation (2026-06-05)**:
+  - **Compile**: `BUILD.cmd` — 0 errors, 0 warnings
+  - **git diff --check**: PASSED
+  - **modular_pve_halo/ path audit**: 0 occurrences in code/ and modular/
+  - **Root icons/halo/ path audit**: 0 occurrences (all use modular/halo/icons/halo/ prefix)
+  - **SS220 EDIT audit (code/)**: All 30 code/ files properly marked with START/END blocks
+  - **SS220 EDIT audit (modular/)**: Only 2 legacy occurrences, no new markers
+  - **maplint (PR #160 templates)**: All 14 map templates OK
+  - **Binary assets**: 12 .dmi icons + 9 .ogg sounds downloaded from upstream
+  - **Files changed**: 56 files, +4541/-312 lines
+  - **All 20 must-port PRs**: PORTED
 - Post-merge validation for the earlier `PR #94` gameplay-completion pass was complete before the 2026-04-28 asset modularity cleanup.
 - The 2026-04-28 asset modularity cleanup passed local compile/resource validation:
   - HALO root-path resource literal audit: no old `icons/halo/**`, root HALO voice, Warthog sound, Covenant mine, New Irvine flora, or New Irvine auto-turf references remain in DM/DME/DMM files.
