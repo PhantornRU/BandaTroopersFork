@@ -1,7 +1,7 @@
 /obj/item/tacmap_map
 	name = "\improper MC3 individual data/net terminal"
 	desc = "A handheld terminal manufactured by Misriah Armory, capable of linking to various UNSC database systems and battle-networks if the prerequisite software packages are installed. This one seems to have just a barebones GPS program available."
-	// icon = 'modular/halo/icons/halo/obj/items/devices.dmi' // ICON PENDING
+	icon = 'modular/halo/icons/halo/obj/items/devices.dmi'
 	icon_state = "tacpad"
 	item_state = "Cotablet"
 	w_class = SIZE_SMALL
@@ -9,7 +9,7 @@
 /obj/item/datapad
 	name = "\improper SC2 data-pad"
 	desc = "A civilian-market handheld terminal manufactured by Misriah Armory, capable of scheduling appointments, taking notes, storing contact information and much more besides."
-	// icon = 'modular/halo/icons/halo/obj/items/devices.dmi' // ICON PENDING
+	icon = 'modular/halo/icons/halo/obj/items/devices.dmi'
 	icon_state = "datapad"
 	item_state = "Cotablet"
 	w_class = SIZE_SMALL
