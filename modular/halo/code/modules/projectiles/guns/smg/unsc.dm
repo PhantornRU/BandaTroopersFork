@@ -23,9 +23,9 @@
 
 	fire_sound = "gun_m7"
 	fire_rattle = "gun_m7"
-	reload_sound = 'sound/weapons/halo/gun_m7_reload.ogg'
-	cocked_sound = 'sound/weapons/halo/gun_m7_cocked.ogg'
-	unload_sound = 'sound/weapons/halo/gun_m7_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/halo/gun_m7_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/halo/gun_m7_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/halo/gun_m7_unload.ogg'
 	empty_sound = null
 	w_class = SIZE_LARGE
 

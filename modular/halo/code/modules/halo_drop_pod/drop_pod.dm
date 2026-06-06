@@ -71,11 +71,11 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	icon_state = "pod_door"
 	layer = 5.8
 	anchored = 1
-	drop_sound = 'sound/effects/odst_pod/door_clang_1.ogg'
+	drop_sound = 'modular/halo/sound/effects/odst_pod/door_clang_1.ogg'
 
 /obj/item/drop_pod_door/launch_impact(hit_atom)
 	. = ..()
-	playsound(src, 'sound/effects/odst_pod/door_clang_1.ogg')
+	playsound(src, 'modular/halo/sound/effects/odst_pod/door_clang_1.ogg')
 
 /obj/structure/drop_pod_chute
 	name = "\improper M8823 HEV pod chute"
@@ -215,7 +215,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	if(closed)
 		if(user)
 			visible_message(SPAN_NOTICE("[user] pulls a lever and opens the [src]s door."), SPAN_NOTICE("You pull a lever and open the [src]s door."))
-		playsound(src, 'sound/effects/odst_pod/pod_door_open.ogg')
+		playsound(src, 'modular/halo/sound/effects/odst_pod/pod_door_open.ogg')
 		door_obj.icon_state = "pod_door_open"
 		var/open_time = 1 SECONDS
 		animate(door_obj, pixel_y = 24, time = open_time, easing = SINE_EASING)
@@ -228,7 +228,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	if(!closed)
 		if(user)
 			visible_message(SPAN_NOTICE("[user] pulls a lever and closes the [src]s door."), SPAN_NOTICE("You pull a lever and close the [src]s door."))
-		playsound(src, 'sound/effects/odst_pod/pod_door_close.ogg')
+		playsound(src, 'modular/halo/sound/effects/odst_pod/pod_door_close.ogg')
 		var/close_time = 1 SECONDS
 		animate(door_obj, pixel_y = 0, time = close_time, easing = SINE_EASING)
 		sleep(close_time+1)
@@ -440,7 +440,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	if(!launch_sequence_active || pod_state != POD_INFLIGHT)
 		return
 	if(occupant?.client)
-		playsound_client(occupant.client, 'sound/effects/odst_pod/drop_timer.ogg', src, 25)
+		playsound_client(occupant.client, 'modular/halo/sound/effects/odst_pod/drop_timer.ogg', src, 25)
 	addtimer(CALLBACK(src, PROC_REF(launch_pod), user), 3.5 SECONDS)
 
 
@@ -497,7 +497,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	rocket_image.pixel_y = -32
 	overlays += rocket_image
 	animate(src, pixel_z = 500, time = 4 SECONDS, easing = LINEAR_EASING)
-	playsound(src, 'sound/effects/odst_pod/pod_jet.ogg')
+	playsound(src, 'modular/halo/sound/effects/odst_pod/pod_jet.ogg')
 	sleep(4 SECONDS)
 	qdel(chute_obj)
 	handle_overlays(user)
@@ -534,7 +534,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 /obj/structure/halo_droppod/proc/complete_drop(mob/user)
 	launch_sequence_active = FALSE
 	locked = FALSE
-	playsound(src, 'sound/effects/odst_pod/door_kaboom.ogg')
+	playsound(src, 'modular/halo/sound/effects/odst_pod/door_kaboom.ogg')
 	addtimer(CALLBACK(src, PROC_REF(door_explode), user), 3 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(exit_pod), user), 4 SECONDS)
 
@@ -554,4 +554,4 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	new_door_obj.icon_state = "pod_door_floor"
 	sleep(0.8 SECONDS)
 
-	playsound(new_door_obj, 'sound/effects/odst_pod/door_clang_1.ogg')
+	playsound(new_door_obj, 'modular/halo/sound/effects/odst_pod/door_clang_1.ogg')
