@@ -527,15 +527,15 @@
 
 // SS220 EDIT - START: CM-PVE #1288 Anti Air GM Choice — looping sounds for AA lockon
 /datum/looping_sound/antiair_locking
-	start_sound = list('sound/weapons/fire_support/spnkr_aa_startlocking.ogg' = 1)
+	start_sound = list('modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_startlocking.ogg' = 1)
 	start_length = 0.2 SECONDS
-	mid_sounds = list('sound/weapons/fire_support/spnkr_aa_locking.ogg' = 1)
+	mid_sounds = list('modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_locking.ogg' = 1)
 	mid_length = 0.35 SECONDS
 	volume = 40
 	extra_range = 14
 
 /datum/looping_sound/antiair_lockon
-	mid_sounds = list('sound/weapons/fire_support/spnkr_aa_lockon.ogg' = 1)
+	mid_sounds = list('modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_lockon.ogg' = 1)
 	mid_length = 0.35 SECONDS
 	volume = 40
 	extra_range = 14
@@ -610,13 +610,13 @@
 /obj/item/weapon/gun/launcher/rocket/anti_air/proc/hit_announce(turf/sound_turf, hit_type, missile_name)
 	switch(hit_type)
 		if("crash")
-			playsound(sound_turf, 'sound/weapons/fire_support/spnkr_aa_crash.ogg', 100, FALSE, 40, 5, falloff = 5)
+			playsound(sound_turf, 'modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_crash.ogg', 100, FALSE, 40, 5, falloff = 5)
 			marine_announcement("SENSOR ALERT: Incoming hostile aircraft has been destroyed.", "Priority Alert", 'sound/effects/alert.ogg', logging = ARES_LOG_SECURITY)
 		if("damage")
-			playsound(sound_turf, 'sound/weapons/fire_support/spnkr_aa_damage.ogg', 100, FALSE, 40, 5, falloff = 5)
+			playsound(sound_turf, 'modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_damage.ogg', 100, FALSE, 40, 5, falloff = 5)
 			marine_announcement("SENSOR ALERT: Incoming hostile aircraft has been damaged.", "Priority Alert", 'sound/effects/alert.ogg', logging = ARES_LOG_SECURITY)
 		if("miss")
-			playsound(sound_turf, 'sound/weapons/fire_support/spnkr_aa_fail.ogg', 100, FALSE, 40, 5, falloff = 5)
+			playsound(sound_turf, 'modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_fail.ogg', 100, FALSE, 40, 5, falloff = 5)
 			marine_announcement("SENSOR ALERT: Incoming hostile aircraft has evaded our air defenses.", "Priority Alert", 'sound/effects/alert.ogg', logging = ARES_LOG_SECURITY)
 
 /obj/item/weapon/gun/launcher/rocket/anti_air/proc/get_firing_dir(mob/user)
@@ -655,7 +655,7 @@
 		cancel_sounds = FALSE // In case the user moves while while locking on
 		if(current_area.ceiling >= CEILING_PROTECTION_TIER_1)
 			to_chat(user, SPAN_DANGER("There's a ceiling above you...bad idea."))
-			playsound(user, 'sound/weapons/fire_support/spnkr_aa_fail.ogg')
+			playsound(user, 'modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_fail.ogg')
 			return
 		var/obj/item/weapon/twohanded/offhand/off_hand = user.get_inactive_hand()
 		if(!off_hand || !istype(off_hand))
@@ -672,7 +672,7 @@
 		addtimer(CALLBACK(src, PROC_REF(play_lockon)), 3 SECONDS)
 		if(!do_after(user, 5 SECONDS, show_busy_icon = BUSY_ICON_HOSTILE))
 			stop_loops()
-			playsound(user, 'sound/weapons/fire_support/spnkr_aa_fail.ogg')
+			playsound(user, 'modular/halo/sound/weapons/halo/spnkr_locking/spnkr_aa_fail.ogg')
 			to_chat(user, SPAN_WARNING("You interrupt the lockon sequence."))
 			cancel_sounds = TRUE
 			return

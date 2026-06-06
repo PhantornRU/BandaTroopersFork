@@ -6,8 +6,8 @@
 
 	hud_type = list(MOB_HUD_FACTION_UNSC, MOB_HUD_VISR)
 	lighting_alpha = 170 // originally 190
-	toggle_on_sound = 'sound/handling/visr_on.ogg'
-	toggle_off_sound = 'sound/handling/visr_off.ogg'
+	toggle_on_sound = 'modular/halo/sound/handling/visr_on.ogg'
+	toggle_off_sound = 'modular/halo/sound/handling/visr_off.ogg'
 	helmet_overlay = null
 	icon_state = "visr_chip"
 	action_icon_string = "visr_on"

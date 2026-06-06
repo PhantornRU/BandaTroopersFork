@@ -137,6 +137,13 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - Do not skip compile check after any batch
 - Do not replace path remapping with runtime translation
 
+## Known Technical Debt (from PR #102 review)
+
+| # | Item | Path | Severity | Plan |
+|---|------|------|----------|------|
+| T1 | HALO `cov` icon_state in shared root DMI | [`icons/turf/areas.dmi`](../../icons/turf/areas.dmi) | Medium | Extract to separate modular DMI per [`HALO_PORT_STATE.md:30`](HALO_PORT_STATE.md:30) — "HALO-only states must not be injected into existing generic root .dmi files" |
+| T2 | Legacy map imports use root `icons/turf/` | [`halo_imported_map_windows.dm`](../code/mixed/structures/halo_imported_map_windows.dm), [`halo_imported_map_turfs.dm`](../code/mixed/turfs/halo_imported_map_turfs.dm), [`halo_imported_map_walls.dm`](../code/mixed/turfs/halo_imported_map_walls.dm) | Low | New Varadero assets — not HALO-specific, shared with other maps. Migration requires cross-map coordination. |
+
 ## Remaining Root Glue To Watch
 - `code/game/sound.dm`: routes shared sound keys to modular HALO voice files
 - `code/modules/mob/living/carbon/human/{emote,human_attackhand,human_defense,human_helpers}.dm`: shared species/combat hooks
