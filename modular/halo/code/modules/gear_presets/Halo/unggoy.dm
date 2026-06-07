@@ -6,6 +6,7 @@
 	flags = EQUIPMENT_PRESET_EXTRA
 	paygrades = list(PAY_SHORT_COV_CIV = JOB_PLAYTIME_TIER_0)
 	faction = FACTION_UNGGOY
+	faction_group = FACTION_LIST_COVENANT
 	skills = /datum/skills/covenant/unggoy
 	languages = list(LANGUAGE_SANGHEILI, LANGUAGE_UNGGOY)
 	var/halo_unggoy_role = "minor"

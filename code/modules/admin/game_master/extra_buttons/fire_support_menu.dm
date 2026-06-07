@@ -1589,6 +1589,111 @@
 /datum/fire_support/custom/ob/coilgun_fire/do_impact(turf/target_turf)
 	cell_explosion(target_turf, 80, 20, EXPLOSION_FALLOFF_SHAPE_LINEAR, null, create_cause_data("Coilgun Battery"))
 
+// ============================ SERAPH ORDNANCE ============================ \\
+
+/datum/fire_support/custom/banshee_fuel_rod/seraph
+	name = "seraph fuel rod"
+	scatter_range = 2
+	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
+	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	warning_chat_message = "SERAPH"
+	delay_to_impact = 2 SECONDS
+	has_shadow = TRUE
+	impact_quantity = 2
+	radius = 2
+
+/datum/fire_support/custom/banshee_strafe/seraph
+	name = "seraph strafe"
+	impact_quantity = 45
+	impact_delay = 0.02 SECONDS
+	initiate_sound = 'sound/weapons/halo/fire_support/seraph_strafe.ogg'
+	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
+	warning_chat_message = "SERAPH"
+	scatter_range = 4
+
+/datum/fire_support/custom/banshee_flyby
+	name = "banshee flyby"
+	delay_to_impact = 0.4 SECONDS
+	start_visual = /obj/effect/temp_visual/flyby/banshee_flyby
+	has_shadow = FALSE
+	initiate_sound = null
+	start_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	warning_chat_message = "BANSHEE"
+
+/datum/fire_support/custom/banshee_flyby/do_impact(turf/target_turf)
+	return
+
+/datum/fire_support/custom/seraph_flyby
+	name = "seraph flyby"
+	delay_to_impact = 0.4 SECONDS
+	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
+	has_shadow = FALSE
+	initiate_sound = null
+	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	warning_chat_message = "SERAPH"
+
+/datum/fire_support/custom/seraph_flyby/do_impact(turf/target_turf)
+	return
+
+// ============================ DROPSHIP HOVERING ============================ \\
+
+/datum/fire_support/custom/pelican_hover
+	name = "pelican hover"
+	delay_to_impact = 0.4 SECONDS
+	start_visual = /obj/effect/temp_visual/dropship_hover/pelican
+	has_shadow = FALSE
+	initiate_sound = null
+	start_sound = null
+	warning_chat_message = "PELICAN"
+
+/datum/fire_support/custom/pelican_hover/do_impact(turf/target_turf)
+	return
+
+/datum/fire_support/custom/pelican_hover/armed
+	name = "pelican hover (rocket pods)"
+	start_visual = /obj/effect/temp_visual/dropship_hover/pelican
+	warning_chat_message = "ARMED PELICAN"
+
+/datum/fire_support/custom/pelican_hover/light
+	name = "pelican hover (light)"
+	start_visual = /obj/effect/temp_visual/dropship_hover/pelican
+	warning_chat_message = "PELICAN"
+
+/datum/fire_support/custom/phantom_hover
+	name = "phantom hover"
+	delay_to_impact = 0.4 SECONDS
+	start_visual = /obj/effect/temp_visual/dropship_hover/phantom
+	has_shadow = FALSE
+	initiate_sound = null
+	start_sound = null
+	warning_chat_message = "PHANTOM"
+
+/datum/fire_support/custom/phantom_hover/do_impact(turf/target_turf)
+	return
+
+/datum/fire_support/custom/phantom_hover/armed
+	name = "phantom hover (armed)"
+	start_visual = /obj/effect/temp_visual/dropship_hover/phantom
+	warning_chat_message = "ARMED PHANTOM"
+
+/datum/fire_support/custom/spirit_hover
+	name = "spirit hover"
+	delay_to_impact = 0.4 SECONDS
+	start_visual = /obj/effect/temp_visual/dropship_hover/spirit
+	has_shadow = FALSE
+	initiate_sound = null
+	start_sound = null
+	warning_chat_message = "SPIRIT"
+
+/datum/fire_support/custom/spirit_hover/do_impact(turf/target_turf)
+	return
+
+/datum/fire_support/custom/spirit_hover/armed
+	name = "spirit hover (armed)"
+	start_visual = /obj/effect/temp_visual/dropship_hover/spirit
+	warning_chat_message = "ARMED SPIRIT"
+
 #undef ORDNANCE_OPTIONS
 #undef COVENANT_ORDNANCE
 #undef UNSC_ORDNANCE

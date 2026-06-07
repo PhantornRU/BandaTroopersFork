@@ -104,6 +104,12 @@ GLOBAL_LIST_INIT(fire_support_points, list())
 #define FIRESUPPORT_TYPE_WRAITH_PLASMA "wraith_plasma"
 #define FIRESUPPORT_TYPE_BANSHEE_FUEL_ROD "banshee_fuel_rod"
 #define FIRESUPPORT_TYPE_BANSHEE_STRAFE "banshee_strafe"
+// SS220 EDIT - START: HALO banshee/seraph flyby type defines
+#define FIRESUPPORT_TYPE_BANSHEE_FLYBY "banshee_flyby"
+#define FIRESUPPORT_TYPE_SERAPH_FUEL_ROD "seraph_fuel_rod"
+#define FIRESUPPORT_TYPE_SERAPH_STRAFE "seraph_strafe"
+#define FIRESUPPORT_TYPE_SERAPH_FLYBY "seraph_flyby"
+// SS220 EDIT - END
 #define FIRESUPPORT_TYPE_GLASSING_BEAM "glassing_beam"
 #define FIRESUPPORT_TYPE_GLASSING_BEAM_FAST "glassing_beam_fast"
 #define FIRESUPPORT_TYPE_GLASSING_BEAM_WEAK "glassing_beam_weak"
@@ -138,6 +144,16 @@ GLOBAL_LIST_INIT(fire_support_points, list())
 #define FIRESUPPORT_TYPE_C709_MISSILE "c709_missile"
 #define FIRESUPPORT_TYPE_C709_INCENDIARY "c709_incendiary_bomb"
 #define FIRESUPPORT_TYPE_C709_FLYBY "c709_flyby"
+
+// SS220 EDIT - START: HALO dropship hover type defines
+#define FIRESUPPORT_TYPE_PELICAN_HOVER "pelican_hover"
+#define FIRESUPPORT_TYPE_PELICAN_HOVER_ARMED "pelican_hover_armed"
+#define FIRESUPPORT_TYPE_PELICAN_HOVER_LIGHT "pelican_hover_light"
+#define FIRESUPPORT_TYPE_PHANTOM_HOVER "phantom_hover"
+#define FIRESUPPORT_TYPE_PHANTOM_HOVER_ARMED "phantom_hover_armed"
+#define FIRESUPPORT_TYPE_SPIRIT_HOVER "spirit_hover"
+#define FIRESUPPORT_TYPE_SPIRIT_HOVER_ARMED "spirit_hover_armed"
+// SS220 EDIT - END
 
 #define FIRESUPPORT_TYPE_MAC "mac"
 #define FIRESUPPORT_TYPE_MAC_ATMOS "mac_atmospheric"
@@ -191,6 +207,10 @@ GLOBAL_LIST_INIT(fire_support_types, list(
 	FIRESUPPORT_TYPE_WRAITH_PLASMA = new /datum/fire_support/custom/wraith_plasma,
 	FIRESUPPORT_TYPE_BANSHEE_FUEL_ROD = new /datum/fire_support/custom/banshee_fuel_rod,
 	FIRESUPPORT_TYPE_BANSHEE_STRAFE = new /datum/fire_support/custom/banshee_strafe,
+	FIRESUPPORT_TYPE_BANSHEE_FLYBY = new /datum/fire_support/custom/banshee_flyby,
+	FIRESUPPORT_TYPE_SERAPH_FUEL_ROD = new /datum/fire_support/custom/banshee_fuel_rod/seraph,
+	FIRESUPPORT_TYPE_SERAPH_STRAFE = new /datum/fire_support/custom/banshee_strafe/seraph,
+	FIRESUPPORT_TYPE_SERAPH_FLYBY = new /datum/fire_support/custom/seraph_flyby,
 	FIRESUPPORT_TYPE_GLASSING_BEAM = new /datum/fire_support/custom/glassing_beam,
 	FIRESUPPORT_TYPE_GLASSING_BEAM_FAST = new /datum/fire_support/custom/glassing_beam/fast,
 	FIRESUPPORT_TYPE_GLASSING_BEAM_WEAK = new /datum/fire_support/custom/glassing_beam/weak,
@@ -222,4 +242,11 @@ GLOBAL_LIST_INIT(fire_support_types, list(
 	FIRESUPPORT_TYPE_MAC_ATMOS = new /datum/fire_support/custom/ob/mac_gun/in_atmosphere,
 	FIRESUPPORT_TYPE_MAC_ATMOS_CALL_IN = new /datum/fire_support/custom/ob/mac_gun/in_atmosphere/call_in,
 	FIRESUPPORT_TYPE_COILGUNS = new /datum/fire_support/custom/ob/coilgun_fire,
+	FIRESUPPORT_TYPE_PELICAN_HOVER = new /datum/fire_support/custom/pelican_hover,
+	FIRESUPPORT_TYPE_PELICAN_HOVER_ARMED = new /datum/fire_support/custom/pelican_hover/armed,
+	FIRESUPPORT_TYPE_PELICAN_HOVER_LIGHT = new /datum/fire_support/custom/pelican_hover/light,
+	FIRESUPPORT_TYPE_PHANTOM_HOVER = new /datum/fire_support/custom/phantom_hover,
+	FIRESUPPORT_TYPE_PHANTOM_HOVER_ARMED = new /datum/fire_support/custom/phantom_hover/armed,
+	FIRESUPPORT_TYPE_SPIRIT_HOVER = new /datum/fire_support/custom/spirit_hover,
+	FIRESUPPORT_TYPE_SPIRIT_HOVER_ARMED = new /datum/fire_support/custom/spirit_hover/armed,
 	))
