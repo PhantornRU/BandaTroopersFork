@@ -1,0 +1,324 @@
+diff --git a/code/__DEFINES/xeno.dm b/code/__DEFINES/xeno.dm
+index b1a2545361e..a9550995bc9 100644
+--- a/code/__DEFINES/xeno.dm
++++ b/code/__DEFINES/xeno.dm
+@@ -240,7 +240,9 @@
+ // Health bands
+ #define XENO_HEALTH_LARVA 45 * XENO_UNIVERSAL_HPMULT
+ #define XENO_HEALTH_LESSER_DRONE 160 * XENO_UNIVERSAL_HPMULT
+-#define XENO_HEALTH_RUNNER 230 * XENO_UNIVERSAL_HPMULT // Killed by 1 PB
++#define XENO_HEALTH_RUNNER 100 * XENO_UNIVERSAL_HPMULT // Killed by 1 PB
++#define XENO_HEALTH_DRONE 150 * XENO_UNIVERSAL_HPMULT
++#define XENO_HEALTH_SOLDIER 180 * XENO_UNIVERSAL_HPMULT
+ #define XENO_HEALTH_TIER_1 250 * XENO_UNIVERSAL_HPMULT
+ #define XENO_HEALTH_TIER_2 300 * XENO_UNIVERSAL_HPMULT
+ #define XENO_HEALTH_TIER_3 350 * XENO_UNIVERSAL_HPMULT
+@@ -322,6 +324,7 @@
+ #define XENO_SPEED_TIER_5 -0.4
+ #define XENO_SPEED_TIER_6 -0.6
+ #define XENO_SPEED_TIER_7 -0.8
++#define XENO_SPEED_RAPTOR -0.9
+ #define XENO_SPEED_HELLHOUND -1
+ #define XENO_SPEED_TIER_8 -1.4
+ #define XENO_SPEED_TIER_9 -1.6
+diff --git a/code/modules/mob/living/carbon/xenomorph/Abilities.dm b/code/modules/mob/living/carbon/xenomorph/Abilities.dm
+index 35b532136f9..f839a9e6780 100644
+--- a/code/modules/mob/living/carbon/xenomorph/Abilities.dm
++++ b/code/modules/mob/living/carbon/xenomorph/Abilities.dm
+@@ -171,7 +171,7 @@
+ 	ability_name = "gut"
+ 	macro_path = /datum/action/xeno_action/verb/verb_gut
+ 	action_type = XENO_ACTION_CLICK
+-	xeno_cooldown = 15 MINUTES
++	xeno_cooldown = 1 MINUTES
+ 	plasma_cost = 200
+ 	cooldown_message = "You feel your anger return. You are ready to gut again."
+ 
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Crusher.dm b/code/modules/mob/living/carbon/xenomorph/castes/Crusher.dm
+index d86f2972f85..e79af4e0182 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Crusher.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Crusher.dm
+@@ -2,14 +2,14 @@
+ 	caste_type = XENO_CASTE_CRUSHER
+ 	tier = 3
+ 
+-	melee_damage_lower = XENO_DAMAGE_TIER_5
+-	melee_damage_upper = XENO_DAMAGE_TIER_5
++	melee_damage_lower = XENO_DAMAGE_TIER_6
++	melee_damage_upper = XENO_DAMAGE_TIER_6
+ 	melee_vehicle_damage = XENO_DAMAGE_TIER_5 * 8
+-	max_health = XENO_HEALTH_IMMORTAL
++	max_health = XENO_HEALTH_QUEEN
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_7
+ 	plasma_max = XENO_PLASMA_TIER_8
+ 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_10
+-	armor_deflection = XENO_ARMOR_TIER_3
++	armor_deflection = XENO_ARMOR_TIER_5
+ 	evasion = XENO_EVASION_NONE
+ 	speed = XENO_SPEED_TIER_4
+ 	heal_standing = 0.66
+@@ -42,6 +42,9 @@
+ 	drag_delay = 6 //pulling a big dead xeno is hard
+ 	melee_sentry_damage_multiplier = 2
+ 
++	acid_blood_damage = 50
++	acid_blood_spatter = TRUE
++
+ 	small_explosives_stun = FALSE
+ 
+ 	mob_size = MOB_SIZE_IMMOBILE
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Drone.dm b/code/modules/mob/living/carbon/xenomorph/castes/Drone.dm
+index 6054b352833..a8cff61b273 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Drone.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Drone.dm
+@@ -1,14 +1,14 @@
+ /datum/caste_datum/drone
+ 	caste_type = XENO_CASTE_DRONE
+ 	tier = 1
+-	melee_damage_lower = XENO_DAMAGE_TIER_1
+-	melee_damage_upper = XENO_DAMAGE_TIER_2
+-	melee_vehicle_damage = XENO_DAMAGE_TIER_2
+-	max_health = 180
++	melee_damage_lower = XENO_DAMAGE_TIER_3
++	melee_damage_upper = XENO_DAMAGE_TIER_4
++	melee_vehicle_damage = XENO_DAMAGE_TIER_3
++	max_health = XENO_HEALTH_DRONE
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_8
+ 	plasma_max = XENO_PLASMA_TIER_10
+-	xeno_explosion_resistance = XENO_NO_EXPLOSIVE_ARMOR
+-	armor_deflection = XENO_NO_ARMOR
++	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
++	armor_deflection = XENO_ARMOR_TIER_2
+ 	evasion = XENO_EVASION_MEDIUM
+ 	speed = XENO_SPEED_TIER_7
+ 
+@@ -77,7 +77,7 @@
+ 	)
+ 	gib_chance = 100
+ 
+-	acid_blood_damage = 25 /// Stronger acid blood. "Should be a define in the future" per 32bitguy
++	acid_blood_damage = 40 /// Stronger acid blood. "Should be a define in the future" per 32bitguy
+ 
+ 	icon_xeno = 'icons/mob/xenos/drone.dmi'
+ 	icon_xenonid = 'icons/mob/xenonids/drone.dmi'
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Facehugger.dm b/code/modules/mob/living/carbon/xenomorph/castes/Facehugger.dm
+index 7824189a202..99bc6f69048 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Facehugger.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Facehugger.dm
+@@ -33,7 +33,7 @@
+ 	mob_flags = NOBIOSCAN
+ 	see_in_dark = 8
+ 	tier = 0  //Facehuggers don't count towards Pop limits
+-	acid_blood_damage = 5
++	acid_blood_damage = 15
+ 	crit_health = -25
+ 	crit_grace_time = 0
+ 	mob_size = MOB_SIZE_SMALL
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Lurker.dm b/code/modules/mob/living/carbon/xenomorph/castes/Lurker.dm
+index eb737249bae..99c3db94030 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Lurker.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Lurker.dm
+@@ -2,15 +2,15 @@
+ 	caste_type = XENO_CASTE_LURKER
+ 	tier = 2
+ 
+-	melee_damage_lower = XENO_DAMAGE_TIER_4
+-	melee_damage_upper = XENO_DAMAGE_TIER_4
++	melee_damage_lower = XENO_DAMAGE_TIER_5
++	melee_damage_upper = XENO_DAMAGE_TIER_5
+ 	melee_vehicle_damage = XENO_DAMAGE_TIER_4
+-	max_health = XENO_HEALTH_TIER_5
++	max_health = XENO_HEALTH_DRONE
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_8
+ 	plasma_max = XENO_PLASMA_TIER_4
+-	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
+-	armor_deflection = XENO_NO_ARMOR
+-	evasion = XENO_EVASION_NONE
++	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_4
++	armor_deflection = XENO_ARMOR_TIER_1
++	evasion = XENO_EVASION_MEDIUM
+ 	speed = XENO_SPEED_TIER_8
+ 
+ 	attack_delay = 2 // VERY high slash damage, but attacks relatively slowly
+@@ -57,6 +57,8 @@
+ 	tackle_min = 2
+ 	tackle_max = 6
+ 
++	acid_blood_damage = 35
++
+ 	icon_xeno = 'icons/mob/xenos/lurker.dmi'
+ 	icon_xenonid = 'icons/mob/xenonids/lurker.dmi'
+ 
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Queen.dm b/code/modules/mob/living/carbon/xenomorph/castes/Queen.dm
+index 9d400ec37ab..8135888c3c9 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Queen.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Queen.dm
+@@ -6,14 +6,14 @@
+ 	caste_type = XENO_CASTE_QUEEN
+ 	tier = 0
+ 
+-	melee_damage_lower = XENO_DAMAGE_TIER_5
+-	melee_damage_upper = XENO_DAMAGE_TIER_7
++	melee_damage_lower = XENO_DAMAGE_TIER_7
++	melee_damage_upper = XENO_DAMAGE_TIER_9
+ 	melee_vehicle_damage = XENO_DAMAGE_TIER_9 //Queen and Ravs have extra multiplier when dealing damage in multitile_interaction.dm
+ 	max_health = XENO_HEALTH_QUEEN * 5 // PVE boss edition
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_7
+ 	plasma_max = XENO_PLASMA_TIER_10 * 3 // PVE boss edition
+ 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_10
+-	armor_deflection = XENO_ARMOR_TIER_4
++	armor_deflection = XENO_ARMOR_TIER_5
+ 	evasion = XENO_EVASION_NONE
+ 	speed = XENO_SPEED_QUEEN
+ 
+@@ -274,6 +274,7 @@
+ 	pull_speed = 3 //screech/neurodragging is cancer, at the very absolute least get some runner to do it for teamwork
+ 	organ_value = 8000 // queen is expensive
+ 
++	acid_blood_spatter = TRUE
+ 	acid_blood_damage = 60 /// Strong acid blood. Don't get too close!
+ 
+ 	icon_xeno = 'icons/mob/xenos/queen.dmi'
+@@ -343,7 +344,7 @@
+ 		/datum/action/xeno_action/onclick/grow_ovipositor,
+ 		/datum/action/xeno_action/onclick/manage_hive,
+ 		/datum/action/xeno_action/activable/info_marker/queen,
+-		/datum/action/xeno_action/onclick/screech, //custom macro, Screech
++		/datum/action/xeno_action/onclick/screech/ai, //custom macro, Screech
+ 		/datum/action/xeno_action/activable/xeno_spit/queen_macro, //third macro
+ 		/datum/action/xeno_action/onclick/shift_spits,
+ 		//second macro
+@@ -351,7 +352,7 @@
+ 
+ 	// Abilities they get when they've successfully aged.
+ 	var/mobile_aged_abilities = list(
+-		/datum/action/xeno_action/onclick/screech, //custom macro, Screech
++		/datum/action/xeno_action/onclick/screech/ai, //custom macro, Screech
+ 		/datum/action/xeno_action/activable/xeno_spit/queen_macro, //third macro
+ 		/datum/action/xeno_action/onclick/shift_spits, //second macro
+ 	)
+@@ -361,6 +362,8 @@
+ 	var/queen_age_timer_id = TIMER_ID_NULL
+ 
+ 	bubble_icon = "alienroyal"
++	ai_range = 24
++	forced_retarget_time = (3 SECONDS)
+ 
+ /mob/living/carbon/xenomorph/queen/can_destroy_special()
+ 	return TRUE
+@@ -441,6 +444,14 @@
+ 	AddComponent(/datum/component/footstep, 2 , 35, 11, 4, "alien_footstep_large")
+ 	RegisterSignal(src, COMSIG_MOVABLE_PRE_MOVE, PROC_REF(check_block))
+ 
++	playsound(src, 'sound/voice/alien_queen_command.ogg', 100, TRUE, 30, falloff = 5)
++	if(!get_turf(src)) //autowiki compat, spawns in nullspace
++		return
++	for(var/mob/current_mob as anything in get_mobs_in_z_level_range(get_turf(src), 30) - src)
++		var/relative_dir = get_dir(current_mob, src)
++		var/final_dir = dir2text(relative_dir)
++		to_chat(current_mob, SPAN_HIGHDANGER("You hear a terrible roar coming from [final_dir ? "the [final_dir]" : "nearby"] as the ground shakes!"))
++
+ /mob/living/carbon/xenomorph/queen/proc/check_block(mob/queen, turf/new_loc)
+ 	SIGNAL_HANDLER
+ 	for(var/mob/living/carbon/xenomorph/xeno in new_loc.contents)
+@@ -788,7 +799,7 @@
+ 
+ 	visible_message(SPAN_XENOWARNING("[src] begins slowly lifting [victim] into the air."), \
+ 	SPAN_XENOWARNING("You begin focusing your anger as you slowly lift [victim] into the air."))
+-	if(do_after(src, 80, INTERRUPT_ALL, BUSY_ICON_HOSTILE, victim))
++	if(do_after(src, 30, INTERRUPT_ALL, BUSY_ICON_HOSTILE, victim))
+ 		if(!victim)
+ 			return FALSE
+ 		if(victim.loc != cur_loc)
+@@ -991,3 +1002,14 @@
+ 	point.color = "#a800a8"
+ 
+ 	visible_message("<b>[src]</b> points to [target_atom]", null, null, 5)
++
++
++/datum/action/xeno_action/onclick/screech/ai
++	default_ai_action = TRUE
++	ai_prob_chance = 70
++	xeno_cooldown = 30 SECONDS
++
++/datum/action/xeno_action/onclick/screech/ai/process_ai(mob/living/carbon/xenomorph/parent, delta_time)
++	/// Short-circuit. Will return the last thing checked or FALSE if it fails at any step.
++	/// We do not need to check for distance here as the tailstab itself will do that; that distance being 2.
++	return DT_PROB(ai_prob_chance, delta_time) && use_ability_async(parent.current_target) && (get_dist(parent, parent.current_target) <= 6)
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Runner.dm b/code/modules/mob/living/carbon/xenomorph/castes/Runner.dm
+index 2df0e9831f2..f23cb9f1f41 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Runner.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Runner.dm
+@@ -2,13 +2,13 @@
+ 	caste_type = XENO_CASTE_RUNNER
+ 	caste_desc = "A fast, four-legged terror, but weak in sustained combat."
+ 	tier = 1
+-	melee_damage_lower = XENO_DAMAGE_TIER_1
+-	melee_damage_upper = XENO_DAMAGE_TIER_2
++	melee_damage_lower = XENO_DAMAGE_TIER_2
++	melee_damage_upper = XENO_DAMAGE_TIER_3
+ 	melee_vehicle_damage = 0
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_1
+ 	plasma_max = XENO_NO_PLASMA
+-	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_1
+-	armor_deflection = XENO_NO_ARMOR
++	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
++	armor_deflection = XENO_ARMOR_TIER_1
+ 	max_health = XENO_HEALTH_RUNNER
+ 	evasion = XENO_EVASION_NONE
+ 	speed = XENO_SPEED_RUNNER
+@@ -49,6 +49,8 @@
+ 	viewsize = 9
+ 	organ_value = 500 //worthless
+ 
++	acid_blood_damage = 30
++
+ 	mob_size = MOB_SIZE_XENO_SMALL
+ 
+ 	base_actions = list(
+@@ -170,6 +172,7 @@
+ 
+ /mob/living/carbon/xenomorph/runner/acider
+ 	crit_health = 0
++	acid_blood_spatter = TRUE
+ 
+ /mob/living/carbon/xenomorph/runner/acider/Initialize(mapload, mob/living/carbon/xenomorph/oldXeno, h_number, ai_hard_off = FALSE)
+ 	. = ..()
+diff --git a/code/modules/mob/living/carbon/xenomorph/castes/Soldier.dm b/code/modules/mob/living/carbon/xenomorph/castes/Soldier.dm
+index 9c65ff1a564..33e1641b0c8 100644
+--- a/code/modules/mob/living/carbon/xenomorph/castes/Soldier.dm
++++ b/code/modules/mob/living/carbon/xenomorph/castes/Soldier.dm
+@@ -1,16 +1,16 @@
+ /datum/caste_datum/soldier
+ 	caste_type = XENO_CASTE_SOLDIER
+ 	tier = 2
+-	melee_damage_lower = XENO_DAMAGE_TIER_3
+-	melee_damage_upper = XENO_DAMAGE_TIER_4
++	melee_damage_lower = XENO_DAMAGE_TIER_4
++	melee_damage_upper = XENO_DAMAGE_TIER_5
+ 	melee_vehicle_damage = XENO_DAMAGE_TIER_3
+-	max_health = XENO_HEALTH_RUNNER
++	max_health = XENO_HEALTH_SOLDIER
+ 	plasma_gain = XENO_PLASMA_GAIN_TIER_8
+ 	plasma_max = XENO_PLASMA_TIER_10
+-	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_1
+-	armor_deflection = XENO_ARMOR_TIER_1
++	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_4
++	armor_deflection = XENO_ARMOR_TIER_3
+ 	evasion = XENO_EVASION_MEDIUM
+-	speed = XENO_SPEED_HELLHOUND //Faster than drones, slower than lurkers.
++	speed = XENO_SPEED_RAPTOR //Faster than drones, slower than lurkers.
+ 
+ 	caste_desc = "A warrior of the hive."
+ 	evolves_to = list(XENO_CASTE_QUEEN, XENO_CASTE_BURROWER, XENO_CASTE_CARRIER, XENO_CASTE_HIVELORD) //Add more here separated by commas
+@@ -37,8 +37,8 @@
+ 	claw_type = CLAW_TYPE_SHARP
+ 	pull_multiplier = 0.6 /// Pretty much no pull delay, for those quick drags. EDIT - slight increase to reduce the Soldier "Dance"
+ 
+-	acid_blood_damage = 35 /// Strong acid blood. Should be a define in the future.
+-	acid_blood_spatter = TRUE /// Testing variable, means that their blood can melt objects in the environment. Primarily barricades.
++	acid_blood_damage = 50 /// Strong acid blood. Should be a define in the future.
++	acid_blood_spatter = FALSE /// Testing variable, means that their blood can melt objects in the environment. Primarily barricades.
+ 
+ 	icon_xeno = 'icons/mob/xenos/soldier.dmi'
+ 	icon_xenonid = 'icons/mob/xenonids/drone.dmi'

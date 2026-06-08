@@ -1,0 +1,1311 @@
+diff --git a/code/__DEFINES/guns.dm b/code/__DEFINES/guns.dm
+index 207f8970652..c12ca85095c 100644
+--- a/code/__DEFINES/guns.dm
++++ b/code/__DEFINES/guns.dm
+@@ -57,3 +57,8 @@
+ #define CO_GUN_DEAGLE "Desert Eagle"
+ #define CO_GUN_MATEBA_COUNCIL "Colonel's Mateba"
+ #define CO_GUN_DEAGLE_COUNCIL "Golden Desert Eagle"
++
++//SHARP modes
++#define SHARP_DANGER_MODE "DANGER"
++#define SHARP_DIRECTED_MODE "DIRECTED"
++#define SHARP_SAFE_MODE "SAFE"
+diff --git a/code/datums/ammo/shrapnel.dm b/code/datums/ammo/shrapnel.dm
+index de12589f749..471bde8ab3b 100644
+--- a/code/datums/ammo/shrapnel.dm
++++ b/code/datums/ammo/shrapnel.dm
+@@ -25,6 +25,60 @@
+ 		B.health -= rand(2, 5)
+ 		B.update_health(1)
+ 
++/datum/ammo/bullet/shrapnel/landmine
++	name = "landmine shrapnel"
++	icon_state = "buckshot"
++	accurate_range_min = 0
++	flags_ammo_behavior = AMMO_BALLISTIC|AMMO_STOPPED_BY_COVER
++
++	accuracy = HIT_ACCURACY_TIER_2
++	accurate_range = 3
++	max_range = 6
++	damage = 10
++	damage_var_low = -PROJECTILE_VARIANCE_TIER_6
++	damage_var_high = PROJECTILE_VARIANCE_TIER_6
++	penetration = -ARMOR_PENETRATION_TIER_1
++	shell_speed = AMMO_SPEED_TIER_2
++	shrapnel_chance = 0
++
++/datum/ammo/bullet/shrapnel/landmine/strong
++	damage = 30
++	accuracy = HIT_ACCURACY_TIER_4
++	shrapnel_chance = 5
++
++//shrapnel for M5 boundmine
++/datum/ammo/bullet/shrapnel/landmine/bounding
++	name = "airburst shrapnel"
++	icon_state = "buckshot"
++	flags_ammo_behavior = AMMO_BALLISTIC|AMMO_STOPPED_BY_COVER|AMMO_PRONETARGET
++
++	accuracy = HIT_ACCURACY_TIER_3
++	accurate_range = 2
++	max_range = 5
++	damage = 10
++	damage_falloff = DAMAGE_FALLOFF_TIER_6
++	damage_var_low = -PROJECTILE_VARIANCE_TIER_6
++	damage_var_high = PROJECTILE_VARIANCE_TIER_6
++	penetration = 0
++	shell_speed = AMMO_SPEED_TIER_2
++	shrapnel_chance = 0
++
++/datum/ammo/bullet/shrapnel/landmine/bounding/strong
++	damage = 20
++	penetration = 0
++	shrapnel_chance = 5
++	flags_ammo_behavior = AMMO_BALLISTIC|AMMO_STOPPED_BY_COVER
++
++//shrapnel for TN13 mine
++/datum/ammo/bullet/shrapnel/landmine/light
++	name = "jagged landmine fragmentation"
++	damage = 5
++	penetration = -ARMOR_PENETRATION_TIER_1
++	shrapnel_chance = 0
++
++/datum/ammo/bullet/shrapnel/landmine/light/strong
++	damage = 15
++
+ /datum/ammo/bullet/shrapnel/rubber
+ 	name = "rubber pellets"
+ 	icon_state = "rubber_pellets"
+@@ -107,7 +161,8 @@
+ 
+ //player-given claymore shrapnel
+ /datum/ammo/bullet/shrapnel/claymore/strong
+-	damage = 35
++	damage = 40
++	damage_falloff = DAMAGE_FALLOFF_TIER_8
+ 	shrapnel_chance = 15
+ 
+ /datum/ammo/bullet/shrapnel/claymore/strong/on_hit_mob(mob/entity, obj/projectile/bullet)
+diff --git a/code/game/objects/items/explosives/mine.dm b/code/game/objects/items/explosives/mine.dm
+index 61f802f116c..8ff6278ec9e 100644
+--- a/code/game/objects/items/explosives/mine.dm
++++ b/code/game/objects/items/explosives/mine.dm
+@@ -31,8 +31,14 @@
+ 	var/triggered = FALSE
+ 	var/hard_iff_lock = FALSE
+ 	var/obj/effect/mine_tripwire/tripwire
++	var/base_disarm_fail_chance = 50
++	var/base_disarm_time = 45
+ 
+ 	var/map_deployed = FALSE
++	var/has_tripwire = TRUE //this should provide an easy way of just letting us configure this for alternative mines.
++	var/blast_tolerance = 15 //This represents the absolute minimum threshold of explosion damage necessary before the mine is disarmed. Meet or beat.
++	//var/blast_hardening = 0 //This is additional threshold, but also pseudohealth. Repeated explosions will eventually reduce it to the base blast_tolerance. Not yet implemented.
++	var/detonation_flavor = "cross in front of it!"
+ 
+ /obj/item/explosive/mine/Initialize()
+ 	. = ..()
+@@ -43,12 +49,13 @@
+ 	QDEL_NULL(tripwire)
+ 	. = ..()
+ 
+-/obj/item/explosive/mine/ex_act()
+-	prime() //We don't care about how strong the explosion was.
++/obj/item/explosive/mine/ex_act(severity)
++	if(severity >= blast_tolerance)
++		prime()
+ 
+ /obj/item/explosive/mine/emp_act()
+ 	. = ..()
+-	prime() //Same here. Don't care about the effect strength.
++	disarm() //breaks the thing instead of exploding it.
+ 
+ //checks for things that would prevent us from placing the mine.
+ /obj/item/explosive/mine/proc/check_for_obstacles(mob/living/user)
+@@ -76,7 +83,7 @@
+ 	user.visible_message(SPAN_NOTICE("[user] starts deploying [src]."),
+ 		SPAN_NOTICE("You start deploying [src]."))
+ 	if(!do_after(user, 40, INTERRUPT_NO_NEEDHAND, BUSY_ICON_HOSTILE))
+-		user.visible_message(SPAN_NOTICE("[user] stops deploying [src]."), \
++		user.visible_message(SPAN_NOTICE("[user] stops deploying the [src]."), \
+ 			SPAN_NOTICE("You stop deploying \the [src]."))
+ 		return
+ 
+@@ -86,8 +93,8 @@
+ 	if(check_for_obstacles(user))
+ 		return
+ 
+-	user.visible_message(SPAN_NOTICE("[user] finishes deploying [src]."), \
+-		SPAN_NOTICE("You finish deploying [src]."))
++	user.visible_message(SPAN_NOTICE("[user] finishes deploying the [src]."), \
++		SPAN_NOTICE("You finish deploying the [src]."))
+ 
+ 	deploy_mine(user)
+ 
+@@ -111,17 +118,43 @@
+ 			if(user.action_busy)
+ 				return
+ 			if(user.faction == iff_signal)
+-				user.visible_message(SPAN_NOTICE("[user] starts disarming [src]."), \
+-				SPAN_NOTICE("You start disarming [src]."))
++				user.visible_message(SPAN_NOTICE("[user] starts deactivating the [src]."), \
++				SPAN_NOTICE("You start deactivating [src]."))
+ 			else
+-				user.visible_message(SPAN_NOTICE("[user] starts fiddling with \the [src], trying to disarm it."), \
+-				SPAN_NOTICE("You start disarming [src], but you don't know its IFF data. This might end badly..."))
+-			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
+-				user.visible_message(SPAN_WARNING("[user] stops disarming [src]."), \
+-					SPAN_WARNING("You stop disarming [src]."))
++				user.visible_message(SPAN_NOTICE("[user] starts attempting to disarm \the [src], while being careful to not set it off."), \
++				SPAN_NOTICE("You start disarming the [src], handling it with care."))
++			//handles custom skill dependent disarm chances.
++			var/disarm_time = base_disarm_time
++			var/disarm_fail_chance = base_disarm_fail_chance
++			if(user.skills)
++				if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MASTER))
++					to_chat(user, SPAN_WARNING("Intelligent landmine, Claymore, M20. You pick out the right procedure and do it in seconds."))
++					disarm_time = 10
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
++					to_chat(user, SPAN_WARNING("You quickly and efficiently set to work disarming the [src]."))
++					disarm_time = 20
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
++					to_chat(user, SPAN_WARNING("You take stock. It's just like training. The LIDAR sensors are what you need to start with..."))
++					disarm_time = 30
++					disarm_fail_chance = 0
++
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_NOVICE))
++					to_chat(user, SPAN_WARNING("The manuals had a lot to say about the M20, but not much about how to disarm them, other than staying out of the front arc."))
++					disarm_time = 40
++					disarm_fail_chance = 20
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_UNTRAINED))
++					to_chat(user, SPAN_WARNING("You aren't trained in demining... This might be tricky."))
++					disarm_time = 50
++					disarm_fail_chance = 80
++
++			if(!do_after(user, disarm_time, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops disarming the [src]."), \
++					SPAN_WARNING("You stop disarming the [src]."))
+ 				return
+ 			if(user.faction != iff_signal) //ow!
+-				if(prob(5))
++				if(prob(disarm_fail_chance))
+ 					triggered = TRUE
+ 					if(tripwire)
+ 						var/direction = GLOB.reverse_dir[src.dir]
+@@ -130,8 +163,8 @@
+ 					prime()
+ 			if(!active)//someone beat us to it
+ 				return
+-			user.visible_message(SPAN_NOTICE("[user] finishes disarming [src]."), \
+-			SPAN_NOTICE("You finish disarming [src]."))
++			user.visible_message(SPAN_NOTICE("[user] finishes disarming the [src]."), \
++			SPAN_NOTICE("You finish disarming the [src]."))
+ 			disarm()
+ 
+ 	else
+@@ -150,7 +183,7 @@
+ 	if(active)
+ 		return
+ 
+-	if(!customizable)
++	if(!customizable && has_tripwire == TRUE)
+ 		set_tripwire()
+ 		return;
+ 
+@@ -171,7 +204,7 @@
+ 
+ 
+ /obj/item/explosive/mine/proc/set_tripwire()
+-	if(!active && !tripwire)
++	if(!active && !tripwire && has_tripwire == TRUE)
+ 		var/tripwire_loc = get_turf(get_step(loc, dir))
+ 		tripwire = new(tripwire_loc)
+ 		tripwire.linked_claymore = src
+@@ -203,8 +236,8 @@
+ 		return
+ 	if(HAS_TRAIT(L, TRAIT_ABILITY_BURROWED))
+ 		return
+-	L.visible_message(SPAN_DANGER("[icon2html(src, viewers(src))] The [name] clicks as [L] moves in front of it."), \
+-	SPAN_DANGER("[icon2html(src, L)] The [name] clicks as you move in front of it."), \
++	L.visible_message(SPAN_DANGER("[icon2html(src, viewers(src))] The [name] clicks as you see [L] [detonation_flavor]"), \
++	SPAN_DANGER("[icon2html(src, L)] The [name] clicks as you [detonation_flavor]"), \
+ 	SPAN_DANGER("You hear a click."))
+ 
+ 	triggered = TRUE
+@@ -254,9 +287,7 @@
+ 
+ /obj/item/explosive/mine/flamer_fire_act(damage, flame_cause_data) //adding mine explosions
+ 	cause_data = flame_cause_data
+-	prime()
+-	if(!QDELETED(src))
+-		disarm()
++	disarm()//insensitive explosives. but it destroys the electronics.
+ 
+ 
+ /obj/effect/mine_tripwire
+@@ -313,26 +344,43 @@
+ 	base_icon_state = "m20"
+ 	map_deployed = TRUE
+ 
++/obj/item/explosive/mine/strong/no_iff
++	iff_signal = null
++
++/obj/item/explosive/mine/strong/active/no_iff
++	iff_signal = null
++
+ /obj/item/explosive/mine/pmc
+-	name = "\improper M20P Claymore anti-personnel mine"
+-	desc = "The M20P Claymore is a directional anti-personnel smart mine modified for corporate PMC use. Generates 120 degree cone of shrapnel if a valid target crosses before or over it. On its face, it reads \"FRONT TOWARD ENEMY\"."
++	name = "\improper Mk.20 Claymore anti-personnel mine"
++	desc = "The Mk.20 claymore is the PMC adoption of the M20 claymore. Generates 120 degree cone of shrapnel if a valid target crosses before or over it. On its face, it reads \"FRONT TOWARD ENEMY\"."
+ 	icon_state = "m20p"
+ 	iff_signal = FACTION_PMC
+ 	hard_iff_lock = TRUE
+-	shrapnel_count = 50
++
+ 
+ /obj/item/explosive/mine/pmc/active
+ 	icon_state = "m20p_active"
+ 	base_icon_state = "m20p"
+ 	map_deployed = TRUE
+ 
++//secretly improved landmine... This should be given to players or deployed carefully.
+ /obj/item/explosive/mine/pmc/strong
+-	name = "\improper M20A2P Claymore anti-personnel mine"
+-	shrapnel_count = 60
++	name = "\improper Mk.20 Claymore anti-personnel mine"
+ 	shrapnel_type = /datum/ammo/bullet/shrapnel/claymore/strong
+ 	explosive_power = 90
+ 	explosive_falloff = 35
+ 
++//PMC claymore predeployed
++/obj/item/explosive/mine/pmc/active
++	icon_state = "m20p_active"
++	base_icon_state = "m20p"
++	map_deployed = TRUE
++
++/obj/item/explosive/mine/pmc/strong/active
++	icon_state = "m20p_active"
++	base_icon_state = "m20p"
++	map_deployed = TRUE
++
+ /obj/item/explosive/mine/custom
+ 	name = "custom mine"
+ 	desc = "A custom chemical mine built from an M20 casing."
+@@ -341,19 +389,617 @@
+ 	matter = list("metal" = 3750)
+ 	has_blast_wave_dampener = TRUE
+ 
++
++/obj/item/explosive/mine/m760ap
++	name = "M760 antipersonnel landmine"
++	desc = "A standard issue American antipersonnel landmine. Minimum metal and blast-resistant, with integrated anti-tamper features. Due to counter-demining design, it contains little primary fragmentation liner."
++	icon_state = "m760"
++	icon = 'icons/obj/structures/souto_land.dmi'
++	angle = 360
++	var/disarmed = FALSE
++	explosive_power = 60
++	explosive_falloff = 140
++	base_disarm_fail_chance = 70
++	base_disarm_time = 40
++	has_tripwire = FALSE
++	blast_tolerance = 85 //A C4 directly next to it will disarm the mine. Mostly for giving an option for disarming it.
++	detonation_flavor = "step on it!"
++
++/obj/item/explosive/mine/m760ap/check_for_obstacles(mob/living/user)
++	return FALSE
++
++/obj/item/explosive/mine/m760ap/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++/obj/item/explosive/mine/m760ap/attackby(obj/item/W, mob/user)
++	if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++		if(active)
++			if(user.action_busy)
++				return
++			if(user.faction == iff_signal)
++				user.visible_message(SPAN_NOTICE("[user] starts unearthing and deactivating the [src]."), \
++				SPAN_NOTICE("You start unearthing and deactivating the [src]."))
++			else
++				user.visible_message(SPAN_NOTICE("[user] starts attempting to disarm \the [src], while being careful to not set it off."), \
++				SPAN_NOTICE("You start disarming [src], handling it with care."))
++			//handles custom skill dependent disarm chances.
++			var/disarm_time = base_disarm_time
++			var/disarm_fail_chance = base_disarm_fail_chance
++			if(user.skills) //in reverse order. do not make the oldest if/else tree mistake in the book like I did.
++				if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MASTER))
++					to_chat(user, SPAN_WARNING("Landmine, M760. Antitamper can be defeated like so... And its fuze can be broken like this."))
++					disarm_time = 20
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
++					to_chat(user, SPAN_WARNING("You've done this a thousand times. It doesn't get any easier, but at least you've gotten faster."))
++					disarm_time = 30
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
++					to_chat(user, SPAN_WARNING("You take a moment to remember the manual for handling the M760, before setting to work."))
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_NOVICE))
++					to_chat(user, SPAN_WARNING("Even with the diagrams the M760 was painful to disarm in training. Careful..."))
++					disarm_time = 50
++					disarm_fail_chance = 20
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_UNTRAINED))
++					to_chat(user, SPAN_WARNING("You aren't trained in demining... This is almost impossible."))
++					disarm_time = 60
++					disarm_fail_chance = 80
++
++			if(!do_after(user, disarm_time, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops disarming the [src]."), \
++					SPAN_WARNING("You stop disarming the [src]."))
++				return
++			if(user.faction != iff_signal) //ow!
++				if(prob(disarm_fail_chance))
++					triggered = TRUE
++					if(tripwire)
++						var/direction = GLOB.reverse_dir[src.dir]
++						var/step_direction = get_step(src, direction)
++						tripwire.forceMove(step_direction)
++					prime()
++			if(!active)//someone beat us to it
++				return
++			user.visible_message(SPAN_NOTICE("[user] finishes disarming the [src]."), \
++			SPAN_NOTICE("You finish disarming the [src]."))
++			disarm()
++
++	else
++		return ..()
++
++/obj/item/explosive/mine/m760ap/disarm()
++	anchored = FALSE
++	active = FALSE
++	triggered = FALSE
++	QDEL_NULL(tripwire)
++	disarmed = TRUE
++	add_to_garbage(src)
++
++/obj/item/explosive/mine/m760ap/attack_self(mob/living/user)
++	if(disarmed)
++		return
++	. = ..()
++
++/obj/item/explosive/mine/m760ap/deploy_mine(mob/user)
++	if(disarmed)
++		return
++	if(!hard_iff_lock && user)
++		iff_signal = user.faction
++
++	cause_data = create_cause_data(initial(name), user)
++	anchored = TRUE
++	if(user)
++		user.drop_inv_item_on_ground(src)
++	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
++	activate_sensors()
++	update_icon()
++	for(var/mob/living/carbon/mob in range(1, src))
++		src.try_to_prime(mob)
++
++/obj/item/explosive/mine/m760ap/attack_alien()
++	if(disarmed)
++		..()
++	else
++		return
++
++//M760 but already active
++/obj/item/explosive/mine/m760ap/active
++	icon_state = "m760_active"
++	base_icon_state = "m760"
++	map_deployed = TRUE
++
++//M760 player version.
++/obj/item/explosive/mine/m760ap/strong
++	explosive_power = 300
++	explosive_falloff = 140
++
++/obj/item/explosive/mine/m760ap/strong/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++//M760 strong ver but already active
++/obj/item/explosive/mine/m760ap/strong/active
++	icon_state = "m760_active"
++	base_icon_state = "m760"
++	map_deployed = TRUE
++
++//M5A3 bounding landmine but shitty.
++/obj/item/explosive/mine/m5a3betty
++	name = "M5A2 bounding mine"
++	desc = "An intelligent blast-resistant bounding landmine with enhanced fragmentation."
++	icon = 'icons/obj/structures/souto_land.dmi'
++	icon_state = "m5"
++	angle = 360
++	var/disarmed = FALSE
++	explosive_power = 30
++	explosive_falloff = 30
++	base_disarm_time = 60 //innately sensitive...
++	base_disarm_fail_chance = 30 //...but lacks robust anti-tamper implementation.
++	blast_tolerance = 25 //Even at its furthest point, C4 will disarm the mine. Gives some form of counterplay.
++	has_tripwire = TRUE
++	detonation_flavor = "step in front of it and the mine jumps to chest height!"
++
++/obj/item/explosive/mine/m5a3betty/check_for_obstacles(mob/living/user)
++	return FALSE
++
++/obj/item/explosive/mine/m5a3betty/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 12, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++/obj/item/explosive/mine/m5a3betty/attackby(obj/item/W, mob/user)//technically this won't matter due to the omnidirectional tripwire.
++	if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++		if(active)
++			if(user.action_busy)
++				return
++			if(user.faction == iff_signal)
++				user.visible_message(SPAN_NOTICE("[user] starts unearthing and deactivating [src]."), \
++				SPAN_NOTICE("You start unearthing and deactivating [src]."))
++			else
++				user.visible_message(SPAN_NOTICE("[user] starts attempting to disarm \the [src], while being careful to not set it off."), \
++				SPAN_NOTICE("You start disarming [src], handling it with care."))
++			//handles custom skill dependent disarm chances.
++			var/disarm_time = base_disarm_time
++			var/disarm_fail_chance = base_disarm_fail_chance
++			if(user.skills)
++				if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MASTER))
++					to_chat(user, SPAN_WARNING("Landmine, bounding, M5. Trivial to break."))
++					disarm_time = 20
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
++					to_chat(user, SPAN_WARNING("This shouldn't be too hard. The M5's actually pretty easy to disarm, to your experience."))
++					disarm_time = 40
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
++					to_chat(user, SPAN_WARNING("Spoof the sensor like so, and start work on the mechanism. You've got this."))
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_NOVICE))
++					to_chat(user, SPAN_WARNING("You examine the mine and remember how sensitive even training versions were. Following procedure, you start disarming the [src]."))
++					disarm_fail_chance = 15
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_UNTRAINED))
++					to_chat(user, SPAN_WARNING("You ignore the lingering sense of dread and start tinkering with the landmine."))
++					disarm_fail_chance = 60
++
++			if(!do_after(user, disarm_time, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops disarming [src]."), \
++					SPAN_WARNING("You stop disarming [src]."))
++				return
++			if(user.faction != iff_signal) //ow!
++				if(prob(disarm_fail_chance))
++					triggered = TRUE
++					if(tripwire)
++						var/direction = GLOB.reverse_dir[src.dir]
++						var/step_direction = get_step(src, direction)
++						tripwire.forceMove(step_direction)
++					prime()
++			if(!active)//someone beat us to it
++				return
++			user.visible_message(SPAN_NOTICE("[user] finishes disarming [src]."), \
++			SPAN_NOTICE("You finish disarming [src]."))
++			disarm()
++
++
++/obj/item/explosive/mine/m5a3betty/disarm()
++	anchored = FALSE
++	active = FALSE
++	triggered = FALSE
++	QDEL_NULL(tripwire)
++	disarmed = TRUE
++	add_to_garbage(src)
++
++/obj/item/explosive/mine/m5a3betty/attack_self(mob/living/user)
++	if(disarmed)
++		return
++	. = ..()
++
++/obj/item/explosive/mine/m5a3betty/deploy_mine(mob/user)
++	if(disarmed)
++		return
++	if(!hard_iff_lock && user)
++		iff_signal = user.faction
++
++	cause_data = create_cause_data(initial(name), user)
++	anchored = TRUE
++	if(user)
++		user.drop_inv_item_on_ground(src)
++	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
++	activate_sensors()
++	update_icon()
++	for(var/mob/living/carbon/mob in range(1, src))
++		src.try_to_prime(mob)
++
++/obj/item/explosive/mine/m5a3betty/attack_alien()
++	if(disarmed)
++		..()
++	else
++		return
++
++//M5A3 prearmed
++/obj/item/explosive/mine/m5a3betty/active
++	icon_state = "m5_active"
++	base_icon_state = "m5"
++	map_deployed = TRUE
++
++//M5A3 player version true and real.
++/obj/item/explosive/mine/m5a3betty/strong
++	name = "M5A3 bounding mine"
++	explosive_power = 120
++	explosive_falloff = 70
++
++/obj/item/explosive/mine/m5a3betty/strong/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 54, dir, 360, /datum/ammo/bullet/shrapnel/landmine/bounding/strong, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++//M5A3 prearmed
++/obj/item/explosive/mine/m5a3betty/strong/active
++	icon_state = "m5_active"
++	base_icon_state = "m5"
++	map_deployed = TRUE
++
++/obj/item/explosive/mine/fzd91
++	name = "FZD-91 Landmine"
++	desc = "Regular issue area denial landmine for Union of Progressive Peoples' forces in the field. Powerful, with a strong fragmentation liner. Produced by Gruppo Meccanico Militare Vasella."
++	icon = 'icons/obj/structures/souto_land.dmi'
++	icon_state = "fzd91"
++	angle = 360
++	var/disarmed = FALSE
++	explosive_power = 40
++	explosive_falloff = 25
++	base_disarm_time = 45
++	base_disarm_fail_chance = 50
++	blast_tolerance = 95 //Will require a C4 directly on top of it...!
++	has_tripwire = FALSE
++	detonation_flavor = "step on it!"
++
++/obj/item/explosive/mine/fzd91/check_for_obstacles(mob/living/user)
++	return FALSE
++
++/obj/item/explosive/mine/fzd91/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 18, dir, 360, /datum/ammo/bullet/shrapnel/landmine, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++/obj/item/explosive/mine/fzd91/attackby(obj/item/W, mob/user)
++	if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++		if(active)
++			if(user.action_busy)
++				return
++			if(user.faction == iff_signal)
++				user.visible_message(SPAN_NOTICE("[user] starts unearthing and deactivating [src]."), \
++				SPAN_NOTICE("You start unearthing and deactivating [src]."))
++			else
++				user.visible_message(SPAN_NOTICE("[user] starts attempting to disarm \the [src], while being careful to not set it off."), \
++				SPAN_NOTICE("You start disarming [src], handling it with care."))
++			//handles custom skill dependent disarm chances.
++			var/disarm_time = base_disarm_time
++			var/disarm_fail_chance = base_disarm_fail_chance
++			if(user.skills)
++				if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MASTER))
++					to_chat(user, SPAN_WARNING("The FZD-91 is tamper resistant but its anti-handling features are outdated. You can make short work of it."))
++					disarm_time = 25
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
++					to_chat(user, SPAN_WARNING("Could be worse. Could be a lot worse, honestly. You start rapidly disarming and making safe the landmine."))
++					disarm_time = 35
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
++					to_chat(user, SPAN_WARNING("You examine the [src] for a moment. It's an FZD-91, not the hardest nut to crack."))
++					disarm_fail_chance = 0
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_NOVICE))
++					to_chat(user, SPAN_WARNING("You examine the mine. It's Union issue for sure. With some caution, you begin disarming the [src]."))
++					disarm_fail_chance = 15
++				else if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_UNTRAINED))
++					to_chat(user, SPAN_WARNING("It looks just like how they do on TV. Hopefully you have better luck than the stuntmen..."))
++
++			if(!do_after(user, disarm_time, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops disarming [src]."), \
++					SPAN_WARNING("You stop disarming [src]."))
++				return
++			if(user.faction != iff_signal) //ow!
++				if(prob(disarm_fail_chance))
++					triggered = TRUE
++					if(tripwire)
++						var/direction = GLOB.reverse_dir[src.dir]
++						var/step_direction = get_step(src, direction)
++						tripwire.forceMove(step_direction)
++					prime()
++			if(!active)//someone beat us to it
++				return
++			user.visible_message(SPAN_NOTICE("[user] finishes disarming [src]."), \
++			SPAN_NOTICE("You finish disarming [src]."))
++			disarm()
++
++/obj/item/explosive/mine/fzd91/disarm()
++	anchored = FALSE
++	active = FALSE
++	triggered = FALSE
++	QDEL_NULL(tripwire)
++	disarmed = TRUE
++	add_to_garbage(src)
++
++/obj/item/explosive/mine/fzd91/attack_self(mob/living/user)
++	if(disarmed)
++		return
++	. = ..()
++
++/obj/item/explosive/mine/fzd91/deploy_mine(mob/user)
++	if(disarmed)
++		return
++	if(!hard_iff_lock && user)
++		iff_signal = user.faction
++
++	cause_data = create_cause_data(initial(name), user)
++	anchored = TRUE
++	if(user)
++		user.drop_inv_item_on_ground(src)
++	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
++	activate_sensors()
++	update_icon()
++	for(var/mob/living/carbon/mob in range(1, src))
++		src.try_to_prime(mob)
++
++/obj/item/explosive/mine/fzd91/attack_alien()
++	if(disarmed)
++		..()
++	else
++		return
++
++//FZD-91 but already active
++/obj/item/explosive/mine/fzd91/active
++	icon_state = "fzd91_active"
++	base_icon_state = "fzd91"
++	map_deployed = TRUE
++
++//FZD-91 player version.
++/obj/item/explosive/mine/fzd91/strong
++	explosive_power = 210
++	explosive_falloff = 100
++
++/obj/item/explosive/mine/fzd91/strong/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine/strong, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++//FZD-91 player version but already active
++/obj/item/explosive/mine/fzd91/strong/active
++	icon_state = "fzd91_active"
++	base_icon_state = "fzd91"
++	map_deployed = TRUE
++
++/obj/item/explosive/mine/tn13
++	name = "TN-13"
++	desc = "A simple vintage landmine. It has no intelligent or electronic components, and is easily disarmed. Formerly produced by the Oberon Mechanical Concern's military ordinance division. While not in use anymore, vast stockpiles still exist."
++	icon = 'icons/obj/structures/souto_land.dmi'
++	icon_state = "tn13"
++	angle = 360
++	var/disarmed = FALSE
++	explosive_power = 50
++	explosive_falloff = 20
++	base_disarm_time = 30
++	base_disarm_fail_chance = 0
++	blast_tolerance = 0 //always goes off.
++	has_tripwire = FALSE
++	detonation_flavor = "step on it!"
++
++/obj/item/explosive/mine/tn13/check_for_obstacles(mob/living/user)
++	return FALSE
++
++/obj/item/explosive/mine/tn13/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 18, dir, 360, /datum/ammo/bullet/shrapnel/landmine/light, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++/obj/item/explosive/mine/tn13/disarm()
++	anchored = FALSE
++	active = FALSE
++	triggered = FALSE
++	QDEL_NULL(tripwire)
++	disarmed = TRUE
++	add_to_garbage(src)
++
++/obj/item/explosive/mine/tn13/attack_self(mob/living/user)
++	if(disarmed)
++		return
++	. = ..()
++
++/obj/item/explosive/mine/tn13/deploy_mine(mob/user)
++	if(disarmed)
++		return
++	if(!hard_iff_lock && user)
++		iff_signal = user.faction
++
++	cause_data = create_cause_data(initial(name), user)
++	anchored = TRUE
++	if(user)
++		user.drop_inv_item_on_ground(src)
++	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
++	activate_sensors()
++	update_icon()
++	for(var/mob/living/carbon/mob in range(1, src))
++		src.try_to_prime(mob)
++
++/obj/item/explosive/mine/tn13/attack_alien()
++	if(disarmed)
++		..()
++	else
++		return
++
++//guaranteed disarming.
++/obj/item/explosive/mine/tn13/attackby(obj/item/W, mob/user)
++	if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++		if(active)
++			if(user.action_busy)
++				return
++			if(user.faction == iff_signal)
++				user.visible_message(SPAN_NOTICE("[user] starts deactivating [src]."), \
++				SPAN_NOTICE("You start deactivating [src]."))
++			else
++				user.visible_message(SPAN_NOTICE("[user] starts working with \the [src], trying to disarm it."), \
++				SPAN_NOTICE("You start disarming [src], opening the case with care."))
++			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops disarming [src]."), \
++					SPAN_WARNING("You stop disarming [src]."))
++				return
++			if(!active)//someone beat us to it
++				return
++			user.visible_message(SPAN_NOTICE("[user] finishes disarming [src]. Whew."), \
++			SPAN_NOTICE("You finish disarming [src]."))
++			disarm()
++
++	else
++		return ..()
++
++//TN-13 but active.
++/obj/item/explosive/mine/tn13/active
++	icon_state = "tn13_active"
++	base_icon_state = "tn13"
++	map_deployed = TRUE
++
++//TN13 but... well, it's still mid.
++/obj/item/explosive/mine/tn13/strong
++	explosive_power = 75
++	explosive_falloff = 25
++
++/obj/item/explosive/mine/tn13/strong/prime(mob/user)
++	set waitfor = 0
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user)
++	create_shrapnel(loc, 36, dir, 360, /datum/ammo/bullet/shrapnel/landmine/light/strong, cause_data)
++	cell_explosion(loc, explosive_power, explosive_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	playsound(loc, 'sound/weapons/mine_tripped.ogg', 45)
++	qdel(src)
++
++//TN-13 but active.
++/obj/item/explosive/mine/tn13/strong/active
++	icon_state = "tn13_active"
++	base_icon_state = "tn13"
++	map_deployed = TRUE
++
+ /obj/item/explosive/mine/sharp
+ 	name = "\improper P9 SHARP explosive dart"
+ 	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
+-	icon_state = "sonicharpoon_g"
++	icon_state = "sharp_explosive_mine"
+ 	angle = 360
++	light_color = "#D75555"
++	light_range = 2
++	light_power = 1
++	var/lit = TRUE
+ 	var/disarmed = FALSE
+-	var/explosion_size = 200
++	var/explosion_strength = 200
+ 	var/explosion_falloff = 100
++	var/mine_mode = ""
++	var/rearm_desc
++
++/obj/item/explosive/mine/sharp/Initialize()
++	. = ..()
++	set_light_on(lit)
++
++/obj/item/explosive/mine/sharp/proc/update_brightness()
++	if(lit)
++		set_light_range(light_range)
++		set_light_color(light_color)
++		set_light_on(TRUE)
++	else
++		set_light_on(FALSE)
++
++/obj/item/explosive/mine/sharp/proc/set_mine_mode(mode)
++	mine_mode = mode
+ 
+ /obj/item/explosive/mine/sharp/check_for_obstacles(mob/living/user)
+ 	return FALSE
+ 
+ /obj/item/explosive/mine/sharp/attackby(obj/item/W, mob/user)
++	if(user.action_busy)
++		return
++	if(!disarmed)
++		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++			user.visible_message(SPAN_NOTICE("[user] starts adjusting [src]."), \
++			SPAN_NOTICE("You start adjusting the detonation mode of [src]."))
++			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops adjusting [src]."), \
++				SPAN_WARNING("You stop adjusting the detonation mode of [src]."))
++				return
++			if(!active)//someone beat us to it
++				return
++			var/mine_mode_notice = ""
++			switch(mine_mode)
++				if(SHARP_DANGER_MODE)
++					mine_mode = SHARP_DIRECTED_MODE
++					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
++				if(SHARP_SAFE_MODE)
++					mine_mode = SHARP_DANGER_MODE
++					mine_mode_notice += "The placed dart will concentrate the detonation on the target."
++				if(SHARP_DIRECTED_MODE)
++					mine_mode = SHARP_DANGER_MODE
++					mine_mode_notice += "The placed dart will detonate regularly."
++			user.visible_message(SPAN_NOTICE("[user] finishes adjusting [src]."), \
++			SPAN_NOTICE("You finish adjusting the detonation mode of[src]. It's now set to [mine_mode], [mine_mode_notice]."))
++	else
++		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
++			if(!skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MAX) && user.skills.get_skill_level(SKILL_ENGINEER) != SKILL_ENGINEER_TRAINED)
++				to_chat(user, SPAN_WARNING("You don't seem to know how to rearm \the [src]..."))
++				return
++			user.visible_message(SPAN_NOTICE("[user] starts rearming [src]."), \
++			SPAN_NOTICE("You start rearming [src]."))
++			if(!do_after(user, 30, INTERRUPT_NO_NEEDHAND, BUSY_ICON_FRIENDLY))
++				user.visible_message(SPAN_WARNING("[user] stops rearming [src]."), \
++				SPAN_WARNING("You stop rearming [src]."))
++				return
++			if(active)//someone beat us to it
++				return
++			user.visible_message(SPAN_NOTICE("[user] finishes rearming [src]."), \
++			SPAN_NOTICE("You finish rearming [src]."))
++			rearm(user)
+ 	return
+ 
+ /obj/item/explosive/mine/sharp/set_tripwire()
+@@ -364,11 +1010,21 @@
+ 			tripwire.linked_claymore = src
+ 			active = TRUE
+ 
++
+ /obj/item/explosive/mine/sharp/prime(mob/user)
+ 	set waitfor = 0
+ 	if(!cause_data)
+ 		cause_data = create_cause_data(initial(name), user)
+-	cell_explosion(loc, explosion_size, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
++	switch(mine_mode)
++		if(SHARP_DIRECTED_MODE)
++			explosion_falloff = (explosion_strength * 0.75)
++		if(SHARP_SAFE_MODE)
++			for(var/mob/living/carbon/human in range((explosion_strength / explosion_falloff), src))
++				if (human.get_target_lock(iff_signal))
++					disarm()
++					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
++					return
++	cell_explosion(loc, explosion_strength, explosion_falloff, EXPLOSION_FALLOFF_SHAPE_LINEAR, CARDINAL_ALL_DIRS, cause_data)
+ 	playsound(loc, 'sound/weapons/gun_sharp_explode.ogg', 45)
+ 	qdel(src)
+ 
+@@ -376,10 +1032,22 @@
+ 	anchored = FALSE
+ 	active = FALSE
+ 	triggered = FALSE
+-	icon_state = base_icon_state + "_disarmed"
++	icon_state = "sharp_mine_disarmed"
++	rearm_desc = desc
++	desc = "A disarmed P9 SHARP rifle dart. With the right training, it can potentially be rearmed with a security access tuner."
+ 	QDEL_NULL(tripwire)
+ 	disarmed = TRUE
+-	add_to_garbage(src)
++	lit = FALSE
++	update_brightness()
++	playsound(src, 'sound/weapons/smartgun_fail.ogg', src, 25)
++
++/obj/item/explosive/mine/sharp/proc/rearm(mob/user)
++	disarmed = FALSE
++	lit = TRUE
++	desc = rearm_desc
++	addtimer(CALLBACK(src, PROC_REF(disarm)), 10 MINUTES, TIMER_DELETE_ME)
++	update_brightness()
++	deploy_mine(user)
+ 
+ /obj/item/explosive/mine/sharp/attack_self(mob/living/user)
+ 	if(disarmed)
+@@ -393,7 +1061,7 @@
+ 		iff_signal = user.faction
+ 
+ 	cause_data = create_cause_data(initial(name), user)
+-	if(user)
++	if(user && user.get_held_item() == src)
+ 		user.drop_inv_item_on_ground(src)
+ 	setDir(user ? user.dir : dir) //The direction it is planted in is the direction the user faces at that time
+ 	activate_sensors()
+@@ -406,6 +1074,40 @@
+ 		..()
+ 	else
+ 		return
++
++/obj/item/explosive/mine/sharp/incendiary
++	name = "\improper P9 SHARP incendiary dart"
++	desc = "An experimental P9 SHARP proximity triggered explosive dart designed by Armat Systems for use by the United States Colonial Marines. This one has full 360 detection range."
++	icon_state = "sharp_incendiary_mine"
++	light_color = "#FFB400"
++
++/obj/item/explosive/mine/sharp/incendiary/prime(mob/user)
++	set waitfor = FALSE
++	var/datum/effect_system/smoke_spread/phosphorus/weak/smoke = new /datum/effect_system/smoke_spread/phosphorus/weak
++	var/datum/reagent/incendiary_reagent = new /datum/reagent/napalm/green
++	var/smoke_radius = 1
++	var/flame_radius = 2
++	if(!cause_data)
++		cause_data = create_cause_data(initial(name), user, src)
++	else if(user)
++		cause_data.weak_mob = WEAKREF(user)
++	playsound(loc, 'sound/weapons/gun_flamethrower3.ogg', 45)
++	switch(mine_mode)
++		if (SHARP_DIRECTED_MODE)
++			incendiary_reagent = new /datum/reagent/napalm/blue
++			flame_radius = 1
++			new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
++		if (SHARP_SAFE_MODE)
++			for(var/mob/living/carbon/human in range(smoke_radius, src))
++				if (human.get_target_lock(iff_signal))
++					disarm()
++					// to_chat(user, SPAN_WARNING("[src] recognized an IFF marked target and did not detonate!"))
++					return
++	new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
++	smoke.set_up(smoke_radius, 0, get_turf(src))
++	smoke.start()
++	qdel(src)
++
+ /obj/item/explosive/mine/sebb
+ 	name = "\improper G2 Electroshock grenade"
+ 	icon_state = "grenade_sebb_planted"
+diff --git a/code/game/objects/items/storage/boxes.dm b/code/game/objects/items/storage/boxes.dm
+index 0bc5c6cecca..f58062ceba5 100644
+--- a/code/game/objects/items/storage/boxes.dm
++++ b/code/game/objects/items/storage/boxes.dm
+@@ -623,7 +623,7 @@
+ 
+ /obj/item/storage/box/explosive_mines
+ 	name = "\improper M20A2 mine box"
+-	desc = "A secure box holding five M20 anti-personnel proximity mines."
++	desc = "A secure box holding five M20 proximity-fuzed intelligent claymores."
+ 	icon = 'icons/obj/items/storage/packets.dmi'
+ 	icon_state = "minebox"
+ 	w_class = SIZE_MEDIUM
+@@ -634,6 +634,58 @@
+ 	for(var/i in 1 to 5)
+ 		new /obj/item/explosive/mine/strong(src)
+ 
++/obj/item/storage/box/explosive_mines/m760ap
++	name = "\improper M760 landmine case"
++	desc = "A secure case holding five M760 anti-personnel landmines."
++	icon = 'icons/obj/items/storage/packets.dmi'
++	icon_state = "minebox"//fix this later. ask pandora?
++	w_class = SIZE_MEDIUM
++	max_storage_space = 10
++	can_hold = list(/obj/item/explosive/mine/m760ap)
++
++/obj/item/storage/box/explosive_mines/m760ap/fill_preset_inventory()
++	for(var/i in 1 to 5)
++		new /obj/item/explosive/mine/m760ap(src)
++
++/obj/item/storage/box/explosive_mines/m5a3betty
++	name = "\improper M5A3 bounding landmine box"
++	desc = "A secure case holding five M5A3 anti-personnel jumping mines."
++	icon = 'icons/obj/items/storage/packets.dmi'
++	icon_state = "minebox"
++	w_class = SIZE_MEDIUM
++	max_storage_space = 10
++	can_hold = list(/obj/item/explosive/mine/m5a3betty)
++
++/obj/item/storage/box/explosive_mines/m5a3betty/fill_preset_inventory()
++	for(var/i in 1 to 5)
++		new /obj/item/explosive/mine/m5a3betty(src)
++
++/obj/item/storage/box/explosive_mines/fzd91
++	name = "\improper FZD-91 landmine box"
++	desc = "A secure case holding five FZD-91 anti-personnel combined effects landmines."
++	icon = 'icons/obj/items/storage/packets.dmi'
++	icon_state = "minebox"
++	w_class = SIZE_MEDIUM
++	max_storage_space = 10
++	can_hold = list(/obj/item/explosive/mine/fzd91)
++
++/obj/item/storage/box/explosive_mines/fzd91/fill_preset_inventory()
++	for(var/i in 1 to 5)
++		new /obj/item/explosive/mine/fzd91(src)
++
++/obj/item/storage/box/explosive_mines/tn13
++	name = "\improper TN-13 landmine box"
++	desc = "A secure case holding five TN-13 anti-personnel landmines."
++	icon = 'icons/obj/items/storage/packets.dmi'
++	icon_state = "minebox"
++	w_class = SIZE_MEDIUM
++	max_storage_space = 10
++	can_hold = list(/obj/item/explosive/mine/tn13)
++
++/obj/item/storage/box/explosive_mines/tn13/fill_preset_inventory()
++	for(var/i in 1 to 5)
++		new /obj/item/explosive/mine/tn13(src)
++
+ /obj/item/storage/box/explosive_mines/pmc
+ 	name = "\improper M20A2P mine box"
+ 
+diff --git a/code/game/objects/structures/crates_lockers/largecrate_supplies.dm b/code/game/objects/structures/crates_lockers/largecrate_supplies.dm
+index 5b4d11201c5..b5dde81aa8d 100644
+--- a/code/game/objects/structures/crates_lockers/largecrate_supplies.dm
++++ b/code/game/objects/structures/crates_lockers/largecrate_supplies.dm
+@@ -251,10 +251,30 @@
+ 	icon_state = "case_double"
+ 
+ /obj/structure/largecrate/supply/explosives/mines
+-	name = "\improper M20A2 claymore case (x25)"
+-	desc = "A case containing five boxes of five M20A2 claymores."
++	name = "M20A2 claymore bulk crate (x25)"
++	desc = "A crate containing five cases of five M20A2 claymores."
+ 	supplies = list(/obj/item/storage/box/explosive_mines = 5)
+ 
++/obj/structure/largecrate/supply/explosives/mines/m760
++	name = "M760 landmine bulk crate (x25)"
++	desc = "A crate containing five cases of five M760 antipersonnel landmines."
++	supplies = list(/obj/item/storage/box/explosive_mines/m760ap = 5)
++
++/obj/structure/largecrate/supply/explosives/mines/m5a3betty
++	name = "M5A3 bounding mine bulk crate (x25)"
++	desc = "A crate containing five cases of five M5A3 antipersonnel landmines."
++	supplies = list(/obj/item/storage/box/explosive_mines/m5a3betty = 5)
++
++/obj/structure/largecrate/supply/explosives/mines/fzd91
++	name = "FZD-91 landmine bulk crate (x25)"
++	desc = "A crate containing five cases of five FZD-91 antipersonnel landmines."
++	supplies = list(/obj/item/storage/box/explosive_mines/fzd91 = 5)
++
++/obj/structure/largecrate/supply/explosives/mines/tn13
++	name = "TN-13 landmine bulk crate (x25)"
++	desc = "A crate containing five cases of five TN-13 antipersonnel landmines."
++	supplies = list(/obj/item/storage/box/explosive_mines/tn13 = 5)
++
+ /obj/structure/largecrate/supply/explosives/grenades
+ 	name = "\improper M40 HEDP grenade case (x50)"
+ 	desc = "A case containing two twenty-five M40 HEDP grenade boxes."
+diff --git a/code/modules/assembly/proximity.dm b/code/modules/assembly/proximity.dm
+index c7658d8b110..912f7b72402 100644
+--- a/code/modules/assembly/proximity.dm
++++ b/code/modules/assembly/proximity.dm
+@@ -34,6 +34,17 @@
+ 	update_icon()
+ 	return secured
+ 
++/obj/item/device/assembly/prox_sensor/active
++	name = "armed proximity sensor"
++	range = 3
++	anchored = TRUE
++
++/obj/item/device/assembly/prox_sensor/active/New()
++    ..()
++    secured = TRUE
++    scanning = TRUE
++    update_icon()
++    START_PROCESSING(SSobj, src)
+ 
+ /obj/item/device/assembly/prox_sensor/HasProximity(atom/movable/AM)
+ 	if((!holder && !secured) || !scanning || cooldown>0 || delaying)
+diff --git a/code/modules/clothing/suits/utility.dm b/code/modules/clothing/suits/utility.dm
+index 3b415cf0f9e..8aa442a352c 100644
+--- a/code/modules/clothing/suits/utility.dm
++++ b/code/modules/clothing/suits/utility.dm
+@@ -61,17 +61,17 @@
+  * Bomb protection
+  */
+ /obj/item/clothing/head/bomb_hood
+-	name = "bomb hood"
+-	desc = "Use in case of bomb."
++	name = "explosive ordinance disposal helmet"
++	desc = "Blast protective helmet with liquid armor sublayer and reinforced transparent composite visor. Internal cooling prevents overheating, but it still isn't comfortable."
+ 	icon_state = "bombsuit"
+-	armor_melee = CLOTHING_ARMOR_NONE
+-	armor_bullet = CLOTHING_ARMOR_NONE
++	armor_melee = CLOTHING_ARMOR_MEDIUM
++	armor_bullet = CLOTHING_ARMOR_MEDIUMLOW
+ 	armor_laser = CLOTHING_ARMOR_NONE
+ 	armor_energy = CLOTHING_ARMOR_NONE
+-	armor_bomb = CLOTHING_ARMOR_ULTRAHIGH
++	armor_bomb = CLOTHING_ARMOR_GIGAHIGHPLUS
+ 	armor_bio = CLOTHING_ARMOR_NONE
+ 	armor_rad = CLOTHING_ARMOR_NONE
+-	armor_internaldamage = CLOTHING_ARMOR_LOW
++	armor_internaldamage = CLOTHING_ARMOR_HIGHPLUS
+ 	flags_inventory = COVEREYES|COVERMOUTH
+ 	flags_inv_hide = HIDEFACE|HIDEMASK|HIDEEARS|HIDEALLHAIR
+ 	flags_armor_protection = BODY_FLAG_HEAD|BODY_FLAG_FACE|BODY_FLAG_EYES
+@@ -80,23 +80,23 @@
+ 
+ /obj/item/clothing/suit/bomb_suit
+ 	name = "bomb suit"
+-	desc = "A suit designed for safety when handling explosives."
++	desc = "A complete suit of venlar, shock-stiffening liquid armor, and rigid composite. An internal cooling system keeps working in it tolerable. Not bulletproof, but very resistant to concussive explosion or shrapnel impact."
+ 	icon_state = "bombsuit"
+ 	item_state = "bombsuit"
+ 	w_class = SIZE_LARGE//bulky item
+ 	gas_transfer_coefficient = 0.01
+ 	permeability_coefficient = 0.01
+ 	slowdown = 2
+-	armor_melee = CLOTHING_ARMOR_NONE
+-	armor_bullet = CLOTHING_ARMOR_NONE
++	armor_melee = CLOTHING_ARMOR_MEDIUM
++	armor_bullet = CLOTHING_ARMOR_MEDIUMLOW
+ 	armor_laser = CLOTHING_ARMOR_NONE
+ 	armor_energy = CLOTHING_ARMOR_NONE
+-	armor_bomb = CLOTHING_ARMOR_ULTRAHIGH
++	armor_bomb = CLOTHING_ARMOR_GIGAHIGHPLUS
+ 	armor_bio = CLOTHING_ARMOR_NONE
+ 	armor_rad = CLOTHING_ARMOR_NONE
+-	armor_internaldamage = CLOTHING_ARMOR_LOW
++	armor_internaldamage = CLOTHING_ARMOR_HIGHPLUS
+ 	flags_inv_hide = HIDEJUMPSUIT|HIDETAIL
+-	flags_heat_protection = BODY_FLAG_CHEST|BODY_FLAG_GROIN
++	flags_heat_protection = BODY_FLAG_CHEST|BODY_FLAG_GROIN|BODY_FLAG_ARMS|BODY_FLAG_HANDS|BODY_FLAG_FEET//mostly just for gameplay reasons.
+ 	max_heat_protection_temperature = HELMET_MAX_HEAT_PROT
+ 	siemens_coefficient = 0
+ 
+diff --git a/code/modules/mob/living/carbon/human/ai/defense_creator.dm b/code/modules/mob/living/carbon/human/ai/defense_creator.dm
+index 0d666b7fc91..b8223de4be0 100644
+--- a/code/modules/mob/living/carbon/human/ai/defense_creator.dm
++++ b/code/modules/mob/living/carbon/human/ai/defense_creator.dm
+@@ -301,23 +301,89 @@
+ 		defense.iff_signal = faction
+ 
+ /datum/human_ai_defense/mine/claymore
+-	name = "Claymore"
++	name = "Weak Claymore"
+ 	desc = /obj/item/explosive/mine/active::desc
+ 	icon_state = "claymore"
+ 	path_to_spawn = /obj/item/explosive/mine/active
+ 
++/datum/human_ai_defense/mine/claymore/strong
++	name = "Strong Claymore"
++	desc = /obj/item/explosive/mine/strong/active::desc
++	icon_state = "claymore"
++	path_to_spawn = /obj/item/explosive/mine/strong/active
++
+ /datum/human_ai_defense/mine/claymore/wy
+-	name = "Claymore - WY"
++	name = "Weak PMC Claymore"
+ 	desc = /obj/item/explosive/mine/pmc/active::desc
+ 	icon_state = "claymore_wy"
+ 	path_to_spawn = /obj/item/explosive/mine/pmc/active
+ 
++/datum/human_ai_defense/mine/claymore/wy
++	name = "Strong PMC Claymore"
++	desc = /obj/item/explosive/mine/pmc/strong/active::desc
++	icon_state = "claymore_wy"
++	path_to_spawn = /obj/item/explosive/mine/pmc/strong/active
++
+ /datum/human_ai_defense/mine/sebb
+ 	name = "G2 Electroshock"
+ 	desc = /obj/item/explosive/mine/sebb/active::desc
+ 	icon_state = "sebb"
+ 	path_to_spawn = /obj/item/explosive/mine/sebb/active
+ 
++/datum/human_ai_defense/mine/prox_sensor
++	name = "Proximity Sensor"
++	desc = /obj/item/device/assembly/prox_sensor::desc
++	icon_state = "prox"
++	path_to_spawn = /obj/item/device/assembly/prox_sensor/active
++
++/datum/human_ai_defense/mine/m760ap
++	name = "Weak M760 Blast Mine"
++	desc = /obj/item/explosive/mine/m760ap/active::desc
++	icon_state = "m760"
++	path_to_spawn = /obj/item/explosive/mine/m760ap/active
++
++/datum/human_ai_defense/mine/m760ap/strong
++	name = "Strong M760 Blast Mine"
++	desc = /obj/item/explosive/mine/m760ap/strong/active::desc
++	icon_state = "m760"
++	path_to_spawn = /obj/item/explosive/mine/m760ap/strong/active
++
++/datum/human_ai_defense/mine/m5a3betty
++	name = "Weak M5A3 Bounding Mine"
++	desc = /obj/item/explosive/mine/m5a3betty/active::desc
++	icon_state = "m5"
++	path_to_spawn = /obj/item/explosive/mine/m5a3betty/active
++
++/datum/human_ai_defense/mine/m5a3betty/strong
++	name = "Strong M5A3 Bounding Mine"
++	desc = /obj/item/explosive/mine/m5a3betty/strong/active::desc
++	icon_state = "m5"
++	path_to_spawn = /obj/item/explosive/mine/m5a3betty/strong/active
++
++/datum/human_ai_defense/mine/fzd91
++	name = "Weak FZD-91 Landmine"
++	desc = /obj/item/explosive/mine/fzd91/active::desc
++	icon_state = "fzd91"
++	path_to_spawn = /obj/item/explosive/mine/fzd91/active
++
++/datum/human_ai_defense/mine/fzd91/strong
++	name = "Strong FZD-91 Landmine"
++	desc = /obj/item/explosive/mine/fzd91/strong/active::desc
++	icon_state = "fzd91"
++	path_to_spawn = /obj/item/explosive/mine/fzd91/strong/active
++
++/datum/human_ai_defense/mine/tn13
++	name = "Weak TN-13 Landmine"
++	desc = /obj/item/explosive/mine/tn13/active::desc
++	icon_state = "tn13"
++	path_to_spawn = /obj/item/explosive/mine/tn13/active
++
++/datum/human_ai_defense/mine/tn13/strong
++	name = "Regular TN-13 Landmine"
++	desc = /obj/item/explosive/mine/tn13/strong/active::desc
++	icon_state = "tn13"
++	path_to_spawn = /obj/item/explosive/mine/tn13/strong/active
++
+ // Barricades
+ 
+ /datum/human_ai_defense/barricade
+@@ -374,7 +440,7 @@
+ 	name = "Metal Folding Barricade"
+ 	desc = /obj/structure/barricade/plasteel/metal::desc
+ 	icon_state = "metal_folding"
+-	path_to_spawn =/obj/structure/barricade/plasteel/metal
++	path_to_spawn = /obj/structure/barricade/plasteel/metal
+ 
+ /datum/human_ai_defense/barricade/metal_folding/spawn_object(turf/loc_to_spawn, dir_to_spawn, faction, turned_on)
+ 	var/obj/structure/barricade/plasteel/metal/defense = new path_to_spawn(loc_to_spawn)
+diff --git a/icons/obj/structures/souto_land.dmi b/icons/obj/structures/souto_land.dmi
+index 714b8a24b1c..4bf30b8e69e 100644
+Binary files a/icons/obj/structures/souto_land.dmi and b/icons/obj/structures/souto_land.dmi differ
