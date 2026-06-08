@@ -242,7 +242,7 @@
 
 /datum/squad/marine/upp/New()
 	. = ..()
-RegisterSignal(SSdcs, COMSIG_GLOB_PLATOON_NAME_CHANGE, PROC_REF(rename_platoon))
+	RegisterSignal(SSdcs, COMSIG_GLOB_PLATOON_NAME_CHANGE, PROC_REF(rename_platoon))
 
 // SS220 EDIT - START: PR #1283 Movie-ish Sections — UPP Movie squad
 /datum/squad/marine/upp/movie

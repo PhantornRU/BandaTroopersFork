@@ -1,0 +1,19 @@
+339f906cc1 cleanup: remove garbage artifacts and restore AI_AGENT files from master
+880ee5d064 Merge branch 'halo-pve-update-batch1-3b' of https://github.com/PhantornRU/BandaTroopersFork into halo-pve-update-batch1-3b
+f6dd535579 Cleanup: remove junk files from previous commit
+7edb6da787 Port PR #169, #172, #1265-#1284: TWE warcry sounds, new maps (arctic_valley, chapaev_movie, golden_arrow, jungle_delta, prospector_canyon, UPP/USCM bunkers), TWE tank vehicles, spider xenos, VAI undersuit, dog_war MRE, various fixes and improvements
+f8902ec69f Port PR #169, #172, #1265-#1284: TWE warcry sounds, new maps (arctic_valley, chapaev_movie, golden_arrow, jungle_delta, prospector_canyon, UPP/USCM bunkers), TWE tank vehicles, spider xenos, VAI undersuit, dog_war MRE, various fixes and improvements
+ec0b0edb9f Close tech debt T2: migrate New Varadero map assets to modular paths
+d562d585ee Close tech debt T1 (modular areas.dmi) + port PR #180 (covenant carbine scope)
+0cce29aac3 Complete merged PR porting: #118 Flavor Fixes, #120 Halo Firesupport, #129 Faction splitting
+b0eef27df2 Apply suggestion from @PhantornRU
+63436041a6 Fix review issues: remove root sound duplicates, remap sound refs to modular paths, document areas.dmi tech debt
+1852fcbde4 Restore AI_AGENT task-state files to baseline (origin/master)
+06801731c1 Migrate HALO sounds to modular path
+2052f2f38e Update HALO port documentation: all 20 PRs marked as PORTED
+8037d3e619 Add missing .dmi assets for PR #150 loadout items (devices, unsc_melee)
+521c50d4d2 Final upstream sync: all 20 must-port PRs complete (Batch 1-4 + deferred)
+23616b55ee Comprehensive upstream sync: Batch 1-4 (CM-PVE-HALO + CM-PVE)
+223d16472d Clean up duplicate .gitignore entries for AI_AGENT task-state files
+70f6a6d494 Update .gitignore
+44a127c767 HALO PVE Update: Batch 1-3B (PR #137, #153, #154, #170, #173, #162, #156 core)
