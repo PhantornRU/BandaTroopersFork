@@ -1,23 +1,28 @@
 # PLAN
 
 ## Active Task
-Порт PR #1277 (Movie-like Xeno Castes) — PVE xeno balance из cmss13-devs/cmss13-pve в BandaTroopers.
+Normalize repository AI-agent instructions so approved implementation plans cannot be replaced by small fixes, wrappers, or test-only closure.
 
 ## Goal
-Проверить и применить изменения из PR #1277 к BT-версиям файлов. Изменения затрагивают: xeno defines (health/speed), Abilities.dm (gut cooldown), caste datums (Runner, Drone, Soldier, Crusher, Lurker, Queen, Facehugger — damage/health/armor/speed/acid_blood), Queen screech/ai.
+- Remove contradictions between `AGENTS.md`, `.AI_AGENT/README.md`, `WORKFLOW_RULES.md`, and `POLICIES.md`.
+- Establish one execution order for approved plans: read-only discovery -> task-state contract -> plan-mapping challenge -> product-code/docs edits -> old-path audit -> task-state sync -> verification/final.
+- Preserve the existing repository preferences for `rg`, modular-first development, build tooling, UTF-8 docs, and non-destructive git behavior.
 
 ## Scope
-9 файлов из upstream diff.
-
-## Strategy
-1. Прочитать diff PR #1277
-2. Прочитать текущие BT-версии всех целевых файлов
-3. Сравнить построчно каждое изменение
-4. Если изменение уже присутствует — ALREADY PRESENT
-5. Если отсутствует — применить с SS220 EDIT маркерами
-6. Обновить task-state
+- Stable guidance files:
+  - `AGENTS.md`
+  - `modular/__agents/.AI_AGENT/README.md`
+  - `modular/__agents/.AI_AGENT/WORKFLOW_RULES.md`
+  - `modular/__agents/.AI_AGENT/POLICIES.md`
+- Active task-state files:
+  - `modular/__agents/.AI_AGENT/PLAN.md`
+  - `modular/__agents/.AI_AGENT/TODO.md`
+  - `modular/__agents/.AI_AGENT/DECISIONS.md`
+  - `modular/__agents/.AI_AGENT/EVIDENCE.md`
 
 ## Acceptance Criteria
-- Все изменения из diff проверены построчно
-- BT-specific content сохранён
-- Все новые `code/` изменения с SS220 EDIT маркерами (если нужны)
+- No rule still depends on "large task" when the user has given or approved a concrete plan.
+- Task-state edits are clearly separated from product-code/docs edits.
+- `PASS WITH RISKS`, `BLOCKED`, and test status cannot hide incomplete `MUST/KEEP/REJECT` items.
+- Subagents are only used when explicitly allowed by the user and current higher-priority instructions.
+- Docs stay concise UTF-8 Markdown with no mojibake.

@@ -1,14 +1,13 @@
 # DECISIONS
 
-## Active Decisions for PR #1277 Port
+## D-001: Use one normalized workflow instead of additive exceptions
+- Decision: rewrite the affected instruction sections so approved-plan execution has one order and one set of blocking statuses.
+- Why: adding extra warnings without removing old thresholds left escape hatches such as "small hotfix", "tests passed", and "not a large task".
 
-### D1: PR #1277 уже полностью портирован в BT
-**Decision**: Все 9 файлов из diff уже содержат все изменения. Никаких implementation-правок не требуется.
-**Result**: ALREADY PRESENT. ✅
+## D-002: Treat task-state edits as the allowed planning mutation
+- Decision: after read-only discovery, updating `PLAN/TODO/DECISIONS/EVIDENCE` is the only mutation allowed before implementation edits.
+- Why: the previous wording required task-state updates before mutating edits while also classifying every file edit as mutating.
 
-### D2: Queen screech/ai уже присутствует
-**Decision**: `/datum/action/xeno_action/onclick/screech/ai` уже определён в конце Queen.dm, используется в base_actions и mobile_aged_abilities. `/datum/action/xeno_action/activable/xeno_spit/queen_macro/ai` также присутствует.
-**Result**: ALREADY PRESENT. ✅
-
-### D3: Compile check
-**Result**: Не требуется — 0 implementation-изменений.
+## D-003: Verification is separate from plan fidelity
+- Decision: tests and compile checks remain expected evidence, but they cannot close `MUST/KEEP/REJECT` items by themselves.
+- Why: the user's current priority is adherence to approved plans; verification should not become a substitute for requested architecture work.
