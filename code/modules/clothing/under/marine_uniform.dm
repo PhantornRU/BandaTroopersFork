@@ -1443,6 +1443,15 @@
 		WEAR_BODY = 'icons/mob/humans/onmob/clothing/uniforms/uniforms_by_faction/groundside_military.dmi',
 	)
 
+// SS220 EDIT: Old USCM khakis for Dog War
+/obj/item/clothing/under/marine/standard/old
+	name = "\improper USCM khakis"
+	icon_state = "d_uscmboiler"
+	item_state = "d_uscmboiler"
+	worn_state = "d_uscmboiler"
+	desc = "Single-tone marine khakis."
+	flags_atom = NO_SNOW_TYPE|NO_NAME_OVERRIDE
+
 /obj/item/clothing/under/marine/veteran/fil
 	name = "\improper french combat uniform"
 	icon_state = "fil_jumpsuit"

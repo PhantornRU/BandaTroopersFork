@@ -1511,3 +1511,17 @@
 	item_state = "grenade_training"
 	caliber = "20mm"
 	explosion_power = 160
+
+// SS220 EDIT - START: Old M74 grenade for Dog War
+/obj/item/explosive/grenade/high_explosive/old
+	name = "\improper M74 20mm Grenade"
+	desc = "This grenade must be launched with a grenade launcher, and detonates once it reaches its destination."
+	icon_state = "grenade_m74_airburst_f"
+	item_state = "grenade_m74_airburst_f_active"
+	caliber = "20mm"
+	explosion_power = 30
+	shrapnel_count = 16
+	hand_throwable = FALSE
+	dual_purpose = FALSE
+	fuse_type = 1
+// SS220 EDIT - END

@@ -519,6 +519,21 @@
 	w_class = SIZE_MEDIUM
 	ammo_band_icon = "+m20a_band"
 	ammo_band_icon_empty = "+m20a_band_e"
+
+// SS220 EDIT - START: M20A HEAP/AP magazines for Dog War
+/obj/item/ammo_magazine/rifle/m20a/heap
+	name = "\improper M20A HEAP magazine (10x24mm)"
+	desc = "A 10mm high explosive armor piercing assault rifle magazine."
+	default_ammo = /datum/ammo/bullet/rifle/heap
+	ammo_band_color = AMMO_BAND_COLOR_HEAP
+
+/obj/item/ammo_magazine/rifle/m20a/ap
+	name = "\improper M20A AP magazine (10x24mm)"
+	desc = "A 10mm armor piercing assault rifle magazine."
+	default_ammo = /datum/ammo/bullet/rifle/ap
+	ammo_band_color = AMMO_BAND_COLOR_AP
+// SS220 EDIT - END
+
 //-------------------------------------------------------
 // NSG 23 ASSAULT RIFLE - PMC PRIMARY RIFLE
 

@@ -175,6 +175,11 @@
 	icon = 'icons/obj/vehicles/interiors/uppvan.dmi'
 	icon_state = "small_storage"
 
+// SS220 EDIT
+/obj/structure/vehicle_locker/tank/twe
+	icon = 'icons/obj/vehicles/interiors/twe_tank.dmi'
+	icon_state = "locker"
+
 /obj/structure/vehicle_locker/med/on_pocket_open(first_open)
 	if(first_open)
 		playsound(src.loc, 'sound/handling/hinge_squeak1.ogg', 25, TRUE, 3)

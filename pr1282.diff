@@ -1,0 +1,118 @@
+diff --git a/code/game/sound.dm b/code/game/sound.dm
+index 6fd371423ef..cbfbd356a14 100644
+--- a/code/game/sound.dm
++++ b/code/game/sound.dm
+@@ -503,6 +503,8 @@
+ 				sound = pick('sound/voice/warcry/male_go.ogg', 'sound/voice/warcry/male_attack.ogg', 'sound/voice/warcry/male_charge.ogg', 'sound/voice/warcry/male_charge2.ogg', 'sound/voice/warcry/warcry_male_1.ogg', 'sound/voice/warcry/warcry_male_2.ogg', 'sound/voice/warcry/warcry_male_3.ogg', 'sound/voice/warcry/warcry_male_4.ogg', 'sound/voice/warcry/warcry_male_5.ogg', 'sound/voice/warcry/warcry_male_6.ogg', 'sound/voice/warcry/warcry_male_7.ogg', 'sound/voice/warcry/warcry_male_8.ogg', 'sound/voice/warcry/warcry_male_9.ogg', 'sound/voice/warcry/warcry_male_10.ogg', 'sound/voice/warcry/warcry_male_11.ogg', 'sound/voice/warcry/warcry_male_12.ogg', 'sound/voice/warcry/warcry_male_13.ogg', 'sound/voice/warcry/warcry_male_14.ogg', 'sound/voice/warcry/warcry_male_15.ogg', 'sound/voice/warcry/warcry_male_16.ogg', 'sound/voice/warcry/warcry_male_17.ogg', 'sound/voice/warcry/warcry_male_18.ogg', 'sound/voice/warcry/warcry_male_19.ogg', 'sound/voice/warcry/warcry_male_20.ogg', 'sound/voice/warcry/warcry_male_21.ogg', 'sound/voice/warcry/warcry_male_22.ogg', 'sound/voice/warcry/warcry_male_23.ogg', 'sound/voice/warcry/warcry_male_24.ogg', 'sound/voice/warcry/warcry_male_25.ogg', 'sound/voice/warcry/warcry_male_26.ogg', 'sound/voice/warcry/warcry_male_27.ogg', 'sound/voice/warcry/warcry_male_28.ogg', 'sound/voice/warcry/warcry_male_29.ogg', 'sound/voice/warcry/warcry_male_30.ogg', 'sound/voice/warcry/warcry_male_31.ogg', 'sound/voice/warcry/warcry_male_32.ogg', 'sound/voice/warcry/warcry_male_33.ogg', 'sound/voice/warcry/warcry_male_34.ogg', 'sound/voice/warcry/warcry_male_35.ogg', 5;'sound/voice/warcry/warcry_male_rare_1.ogg', 5;'sound/voice/warcry/warcry_male_rare_2.ogg', 5;'sound/voice/warcry/warcry_male_rare_3.ogg', 5;'sound/voice/warcry/warcry_male_rare_4.ogg', 5;'sound/voice/warcry/warcry_male_rare_5.ogg')
+ 			if("male_upp_warcry")
+ 				sound = pick('sound/voice/upp_warcry/warcry_male_1.ogg', 'sound/voice/upp_warcry/warcry_male_2.ogg')
++			if("male_twe_warcry")
++				sound = pick('sound/voice/twe_warcry/warcry_male_1.ogg', 'sound/voice/twe_warcry/warcry_male_2.ogg','sound/voice/twe_warcry/warcry_male_3.ogg', 'sound/voice/twe_warcry/warcry_male_4.ogg', 'sound/voice/twe_warcry/warcry_male_5.ogg', 'sound/voice/twe_warcry/warcry_male_6.ogg', 'sound/voice/twe_warcry/warcry_male_7.ogg', 'sound/voice/twe_warcry/warcry_male_9.ogg', 'sound/voice/twe_warcry/warcry_male_10.ogg', 'sound/voice/twe_warcry/warcry_male_11.ogg', 'sound/voice/twe_warcry/warcry_male_12.ogg', 'sound/voice/twe_warcry/warcry_male_13.ogg', 'sound/voice/twe_warcry/warcry_male_14.ogg', 'sound/voice/twe_warcry/warcry_male_15.ogg')
+ 			if("female_scream")
+ 				sound = pick('sound/voice/human_female_scream_1.ogg','sound/voice/human_female_scream_2.ogg','sound/voice/human_female_scream_3.ogg','sound/voice/human_female_scream_4.ogg',5;'sound/voice/human_female_scream_5.ogg')
+ 			if("female_pain")
+@@ -513,6 +515,8 @@
+ 				sound = pick('sound/voice/warcry/female_charge.ogg', 'sound/voice/warcry/female_yell1.ogg', 'sound/voice/warcry/warcry_female_1.ogg', 'sound/voice/warcry/warcry_female_2.ogg', 'sound/voice/warcry/warcry_female_3.ogg', 'sound/voice/warcry/warcry_female_4.ogg', 'sound/voice/warcry/warcry_female_5.ogg', 'sound/voice/warcry/warcry_female_6.ogg', 'sound/voice/warcry/warcry_female_7.ogg', 'sound/voice/warcry/warcry_female_8.ogg', 'sound/voice/warcry/warcry_female_9.ogg', 'sound/voice/warcry/warcry_female_10.ogg', 'sound/voice/warcry/warcry_female_11.ogg', 'sound/voice/warcry/warcry_female_12.ogg', 'sound/voice/warcry/warcry_female_13.ogg', 'sound/voice/warcry/warcry_female_14.ogg', 'sound/voice/warcry/warcry_female_15.ogg', 'sound/voice/warcry/warcry_female_16.ogg', 'sound/voice/warcry/warcry_female_17.ogg', 'sound/voice/warcry/warcry_female_18.ogg', 'sound/voice/warcry/warcry_female_19.ogg', 'sound/voice/warcry/warcry_female_20.ogg')
+ 			if("female_upp_warcry")
+ 				sound = pick('sound/voice/upp_warcry/warcry_female_1.ogg', 'sound/voice/upp_warcry/warcry_female_2.ogg')
++			if("female_twe_warcry")
++				sound = pick('sound/voice/twe_warcry/warcry_female_1.ogg', 'sound/voice/twe_warcry/warcry_female_2.ogg', 'sound/voice/twe_warcry/warcry_female_3.ogg', 'sound/voice/twe_warcry/warcry_female_4.ogg', 'sound/voice/twe_warcry/warcry_female_5.ogg')
+ 			if("rtb_handset")
+ 				sound = pick('sound/machines/telephone/rtb_handset_1.ogg', 'sound/machines/telephone/rtb_handset_2.ogg', 'sound/machines/telephone/rtb_handset_3.ogg', 'sound/machines/telephone/rtb_handset_4.ogg', 'sound/machines/telephone/rtb_handset_5.ogg')
+ 			if("talk_phone")
+diff --git a/code/modules/mob/living/carbon/human/emote.dm b/code/modules/mob/living/carbon/human/emote.dm
+index a21b7c4c9d8..e1209aa58f2 100644
+--- a/code/modules/mob/living/carbon/human/emote.dm
++++ b/code/modules/mob/living/carbon/human/emote.dm
+@@ -363,11 +363,15 @@
+ 		if(user.gender == MALE)
+ 			if(user.faction == FACTION_UPP)
+ 				return get_sfx("male_upp_warcry")
++			if(user.faction == FACTION_TWE)
++				return get_sfx("male_twe_warcry")
+ 			else
+ 				return get_sfx("male_warcry")
+ 		else
+ 			if(user.faction == FACTION_UPP)
+ 				return get_sfx("female_upp_warcry")
++			if(user.faction == FACTION_TWE)
++				return get_sfx("female_twe_warcry")
+ 			else
+ 				return get_sfx("female_warcry")
+ 
+diff --git a/sound/voice/twe_warcry/warcry_female_1.ogg b/sound/voice/twe_warcry/warcry_female_1.ogg
+new file mode 100644
+index 00000000000..da8fbb3e794
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_female_1.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_female_2.ogg b/sound/voice/twe_warcry/warcry_female_2.ogg
+new file mode 100644
+index 00000000000..6f3b9b2a7cb
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_female_2.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_female_3.ogg b/sound/voice/twe_warcry/warcry_female_3.ogg
+new file mode 100644
+index 00000000000..67294c82aa1
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_female_3.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_female_4.ogg b/sound/voice/twe_warcry/warcry_female_4.ogg
+new file mode 100644
+index 00000000000..94115017402
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_female_4.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_female_5.ogg b/sound/voice/twe_warcry/warcry_female_5.ogg
+new file mode 100644
+index 00000000000..5711c41aa8f
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_female_5.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_1.ogg b/sound/voice/twe_warcry/warcry_male_1.ogg
+new file mode 100644
+index 00000000000..74ae7e7d914
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_1.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_10.ogg b/sound/voice/twe_warcry/warcry_male_10.ogg
+new file mode 100644
+index 00000000000..550b7621715
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_10.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_11.ogg b/sound/voice/twe_warcry/warcry_male_11.ogg
+new file mode 100644
+index 00000000000..8902c5123de
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_11.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_12.ogg b/sound/voice/twe_warcry/warcry_male_12.ogg
+new file mode 100644
+index 00000000000..cc08fc1deaf
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_12.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_13.ogg b/sound/voice/twe_warcry/warcry_male_13.ogg
+new file mode 100644
+index 00000000000..bbfa76ca6da
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_13.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_14.ogg b/sound/voice/twe_warcry/warcry_male_14.ogg
+new file mode 100644
+index 00000000000..c404611378b
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_14.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_15.ogg b/sound/voice/twe_warcry/warcry_male_15.ogg
+new file mode 100644
+index 00000000000..97b30901775
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_15.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_2.ogg b/sound/voice/twe_warcry/warcry_male_2.ogg
+new file mode 100644
+index 00000000000..7e0a59aab6e
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_2.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_3.ogg b/sound/voice/twe_warcry/warcry_male_3.ogg
+new file mode 100644
+index 00000000000..d717444f2e7
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_3.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_4.ogg b/sound/voice/twe_warcry/warcry_male_4.ogg
+new file mode 100644
+index 00000000000..395e2be49cd
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_4.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_5.ogg b/sound/voice/twe_warcry/warcry_male_5.ogg
+new file mode 100644
+index 00000000000..f5cbc94ed3a
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_5.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_6.ogg b/sound/voice/twe_warcry/warcry_male_6.ogg
+new file mode 100644
+index 00000000000..edde4f0586e
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_6.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_7.ogg b/sound/voice/twe_warcry/warcry_male_7.ogg
+new file mode 100644
+index 00000000000..de0ca9b6ef5
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_7.ogg differ
+diff --git a/sound/voice/twe_warcry/warcry_male_9.ogg b/sound/voice/twe_warcry/warcry_male_9.ogg
+new file mode 100644
+index 00000000000..20727be5758
+Binary files /dev/null and b/sound/voice/twe_warcry/warcry_male_9.ogg differ

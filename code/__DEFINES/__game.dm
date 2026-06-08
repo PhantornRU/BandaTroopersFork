@@ -56,6 +56,9 @@
 #define MAP_REDEMPTION_VALLEY "Redemption Valley" //valley with a military outpost and agricultural hamlet
 #define MAP_BINHAI_SUPPLY_STATION "Binhai Supply Station" //UPP asteroid base
 #define MAP_LV818_FEATURELESS_JUNGLE "LV818 Featureless Jungle"
+#define MAP_JUNGLE_DELTA "Jungle Delta" // SS220 EDIT: Featureless Jungle
+#define MAP_PROSPECTOR_CANYON "Prospector Canyon" // SS220 EDIT: Mostly Featureless Desert canyon
+#define MAP_ARCTIC_VALLEY "Arctic Valley" // SS220 EDIT: Featureless Arctic
 // SS220 EDIT - START
 #define MAP_LV_671 "LV-671 Ark Borealis"
 #define MAP_OIL_DEPOT "Oil Depot 276"
