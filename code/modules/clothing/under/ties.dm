@@ -2232,3 +2232,22 @@
 	desc = "A sturdy mess of synthcotton belts and buckles designed to attach to Weyland Yutani PMC armor. This webbing is fitted with loops for storing M40-hull grenades."
 	icon_state = "wy_webbing_m40"
 	hold = /obj/item/storage/internal/accessory/black_vest/m3grenade
+
+// SS220 EDIT - START: Old MACE webbing for Dog War
+/obj/item/clothing/accessory/storage/webbing/m3/old
+	name = "\improper MACE Webbing"
+	icon_state = "macenormal"
+	desc = "Outdated Modular Assault Carrying Equipment, designed to be worn over M59 series of flak vests."
+
+/obj/item/clothing/accessory/storage/webbing/m3/small/old
+	name = "\improper MACE Small Pouch Webbing"
+	icon_state = "macesmall"
+	desc = "An outdated Modular Assault Carrying Equipment, configured to carry a whole array of small items."
+
+/obj/item/clothing/accessory/storage/webbing/m3/drop
+	name = "\improper MACE Drop Pouch Webbing"
+	desc = "An unusual piece of kit, this Modular Assault Carrying Equipment webbing is configured to carry a single sizeable pouch."
+	icon_state = "macedrop"
+	hold = /obj/item/storage/internal/accessory/drop_pouch
+	slot = ACCESSORY_SLOT_M3UTILITY
+// SS220 EDIT - END

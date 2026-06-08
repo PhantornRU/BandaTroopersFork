@@ -1,0 +1,162 @@
+787d28227b fix upstream url for mapmerge (#177)
+91db435ec3 Automatic changelog compile [ci skip]
+59eafb2b46 Automatic changelog for PR #154 [ci skip]
+ea640406b5 New UNSC grenades (#154)
+a2198e63ab Automatic changelog for PR #161 [ci skip]
+60e049ea6a Sangheili Skills (#161)
+b1859ff2c7 Automatic changelog compile [ci skip]
+816291a9e5 Automatic changelog for PR #153 [ci skip]
+11c7d7b77b Adds a new check for covenant species (#153)
+e132cd1a12 Automatic changelog for PR #148 [ci skip]
+63a3db4d07 Sanghelli throwing it back plasma style (#148)
+fdb09bec45 Automatic changelog for PR #146 [ci skip]
+4f935e2960 Adds Motion Sensor HUD (#146)
+928d159a31 Automatic changelog compile [ci skip]
+230423ce8b Automatic changelog for PR #46 [ci skip]
+b4d7956dcc [MDB IGNORE] Karmac Map Pack #1 [OWP Mackay Station + ONI Digsite 451] (#46)
+6f8a258475 Automatic changelog for PR #53 [ci skip]
+3072485085 Ain't That a Kick in the Head (#53)
+958f68ab82 Automatic changelog compile [ci skip]
+d9252cc610 Automatic changelog for PR #120 [ci skip]
+74f3ac2d43 Get the Hell Off My Lawn! (Halo Firesupport) (#120)
+c4c725f6f3 Automatic changelog for PR #137 [ci skip]
+83b7da9d95 Modularization of weapons (#137)
+f5cb2c0c4b Automatic changelog compile [ci skip]
+b36ba5b8fe Automatic changelog for PR #151 [ci skip]
+c4d5dee072 Awaga (#151)
+9a9285051c Automatic changelog compile [ci skip]
+0245a7d85b Automatic changelog for PR #149 [ci skip]
+498f55a277 awaga (#149)
+f538769f80 Automatic changelog compile [ci skip]
+a4dcbc9dff Automatic changelog for PR #140 [ci skip]
+77376c17e2 More weapon sprites (#140)
+df7856c32b Automatic changelog for PR #143 [ci skip]
+867bf69353 BR55 Recoil (#143)
+a4943e1cd2 Automatic changelog compile [ci skip]
+2ec6b82a5b Automatic changelog for PR #144 [ci skip]
+d77fd4f044 Update CODEOWNERS (#144)
+33a011138b Automatic changelog compile [ci skip]
+a9856e9333 Automatic changelog for PR #142 [ci skip]
+d21ebe5d49 Update dropship_pelican.dmm (#142)
+d44d623b9b Automatic changelog compile [ci skip]
+a37579bee9 Automatic changelog for PR #138 [ci skip]
+a226791b5e covenant gear update (#138)
+9cefce46fc Automatic changelog for PR #101 [ci skip]
+82238f6a27 Cov defenses (#101)
+82bb8850ba Automatic changelog for PR #92 [ci skip]
+35113a85cb What if the Plasma Grenade was Real? (#92)
+380274aa8f Automatic changelog for PR #96 [ci skip]
+01f9ff6056 Pelican't (#96)
+a6ac80166a Automatic changelog compile [ci skip]
+366a266b0a CovenantAI rate of fire limits (#132)
+de3018e3d0 Code Commenting out. Cov Create HAI updates, faction splitting (#129)
+765e2a2f81 Automatic changelog for PR #118 [ci skip]
+e97363405e Flavor Fixes (#118)
+d0382dd859 Automatic changelog for PR #131 [ci skip]
+c445c80901 makes spnkr less cumbersome (#131)
+b85a88711c Automatic changelog for PR #115 [ci skip]
+ac866b93ea Residential Phone (#115)
+57d7aa4353 Automatic changelog for PR #128 [ci skip]
+9a164b3dc8 rifleman support weapons change (#128)
+3e34a778f2 Automatic changelog for PR #124 [ci skip]
+61f3d7621c fix pods (#124)
+9c701912c4 Automatic changelog for PR #125 [ci skip]
+9678b8fbd1 fixie fixie (#125)
+86fffb19c9 Automatic changelog for PR #122 [ci skip]
+c53e9be223 Fixes M6D Unloaded (#122)
+4af16c2cf8 Update maps_to_ignore.txt
+95a84ab9f5 Back to 8 days in run_unit_tests_weekly.yml
+b13358a5c0 Pass if run_unit_tests_weekly has no work
+7ef6269172 Automatic changelog for PR #113 [ci skip]
+919c3a3057 removes prime rolling (#113)
+440dc5db29 Automatic changelog for PR #112 [ci skip]
+5e1ea03a2c fixies (#112)
+0374927a36 Automatic changelog for PR #102 [ci skip]
+b349741743 Elite Shield Sprite and Effects (#102)
+2cd5d820e0 Automatic changelog for PR #59 [ci skip]
+ae257283d2 Odst pods (#59)
+c814f1f6d3 Automatic changelog for PR #103 [ci skip]
+696bad1e11 Weapons and bugfixes (#103)
+7e498b8056 Automatic changelog for PR #111 [ci skip]
+0eb2faa826 M90 + BR55 Icon touchups (#111)
+3ff607a89d Automatic changelog for PR #110 [ci skip]
+1c50b0241b [IDB Ignore] [MDB Ignore] Upstream merge to PVE main (#110)
+752f940da4 Automatic changelog for PR #104 [ci skip]
+f25df6f487 Chapter Titles Admin Notif (#104)
+1fb7babece Automatic changelog for PR #106 [ci skip]
+056b67a97c UNSC Crewmen uniform fixes (#106)
+93bf5a06de Automatic changelog for PR #86 [ci skip]
+bf175060bc Insurgent Cell Leader + ONI Foundations & Security Forces + UNSC Crew (#86)
+886fdcfc9c Automatic changelog for PR #99 [ci skip]
+668a6380b4 fix (#99)
+dc38691ffb Automatic changelog for PR #89 [ci skip]
+db758fe6b5 Covenant Projectiles Glow (#89)
+b46422aa24 Automatic changelog for PR #98 [ci skip]
+e7eeb5f5bb Chapter titles (#98)
+1bea42ec97 Automatic changelog for PR #39 [ci skip]
+d223ce4d09 Turfs Doors and Props Nuke (#39)
+cfc2ecb81d Automatic changelog for PR #90 [ci skip]
+e1b331b65a Covenant Fire Support Menu Options (#90)
+3989235815 Update TGS DMAPI (#95)
+4f16f5e9bb Automatic changelog for PR #93 [ci skip]
+8f1d80376e Merge pull request #93 from Drulikar/rust-g-update
+3da8d8ee97 Update rust_g 3.3.0 to 4.2.0 (#11327)
+392387333b Merge pull request #17 from cmss13-devs/tgs-dmapi-update
+acb9222d91 Update TGS DMAPI
+138e9df231 Automatic changelog for PR #82 [ci skip]
+6617abee96 Minor medical update (#82)
+8bd66ce971 Automatic changelog for PR #81 [ci skip]
+5031730525 rank pr (#81)
+a4003a3714 Automatic changelog for PR #48 [ci skip]
+9ac09482aa Cov armory update (#48)
+4365d28961 Automatic changelog for PR #80 [ci skip]
+50fbcb2b38 edit (#80)
+937cdc95d7 Automatic changelog for PR #77 [ci skip]
+9862c96afe Fuck knows (#77)
+33fb265357 Automatic changelog for PR #36 [ci skip]
+61033dbd22 [MBDIGNORE] Halo New Irvine (#36)
+9ddc56c232 Automatic changelog for PR #72 [ci skip]
+7a65711a2b Update boxes.dm (#72)
+eef640ca2d Automatic changelog for PR #69 [ci skip]
+a9ef8dc630 Update unsc_dark_was_the_night_odst.dmm (#69)
+85f5188315 Automatic changelog for PR #57 [ci skip]
+3825cfd207 ODST Squad Type (#57)
+d78e62e9ee Automatic changelog for PR #52 [ci skip]
+8ff66cdf53 idk (#52)
+beda11cae6 Automatic changelog for PR #56 [ci skip]
+21060cf8a9 Ammo economy rework (#56)
+58a9ee0b29 Automatic changelog for PR #35 [ci skip]
+915f1e75c9 The Insurgency | Mix of previous PRs + Additional content + Police (#35)
+801bb79027 Automatic changelog for PR #14 [ci skip]
+0bf825f5c8 UNSC Marine HAI (#14)
+5f7e7f63c2 Automatic changelog for PR #41 [ci skip]
+99a63dc1a9 Sangheili armor update (#41)
+c93fc47cf6 Automatic changelog for PR #42 [ci skip]
+5cb19d40ff Update halo_projectiles.dmi (#42)
+a457ba89ac Automatic changelog for PR #30 [ci skip]
+b55aa5851e Does some decalling on the UNSC ship (#30)
+90dba3a3e2 Correct repo urls (#40)
+ca0dc4c18e Automatic changelog for PR #22 [ci skip]
+33826f3b05 Grunts (#22)
+3945c405ae Automatic changelog for PR #31 [ci skip]
+a0062d267c Halo Icon reorg + pile of fixes + add medhud to corpsman vendor (#31)
+4b55fb42f7 Automatic changelog for PR #10 [ci skip]
+ed856ad060 Sangheili code stuff (#10)
+a35f00d244 Automatic changelog for PR #19 [ci skip]
+0d9a051078 Plasma weapon framework (#19)
+7585e9f990 bans ai slop from the repo
+5c43f827a7 Automatic changelog for PR #20 [ci skip]
+8d93a5207c Update title.dmi (#20)
+4381dacf89 gee i hope this works (upstream merge 2) (#9)
+baddbb4375 Automatic changelog for PR #8 [ci skip]
+8b24d6a58e UNSC Dark Was The Night (#8)
+ad5e01a96d Automatic changelog for PR #7 [ci skip]
+6da8751432 Basic gun stuff (#7)
+8ab9e49ce0 Automatic changelog for PR #4 [ci skip]
+f07ef52a69 BASIC Foundation for roles  (#4)
+553645fd65 Automatic changelog for PR #6 [ci skip]
+ccb5fbf8fb Basic apparel stuff (#6)
+4424dde47c Automatic changelog for PR #5 [ci skip]
+f082aee764 Merge pull request #5 from DexterDude/update-with-pve
+88a65e0d3e 2
+ed663b85c2 new thing

@@ -891,6 +891,16 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	flags_atom = NO_NAME_OVERRIDE|NO_SNOW_TYPE
 	flags_inventory = COVEREYES|COVERMOUTH|BLOCKSHARPOBJ|BLOCKGASEFFECT|ALLOWCPR
 
+// SS220 EDIT: Old M118 APPS helmet for Dog War
+/obj/item/clothing/head/helmet/marine/old
+	name = "\improper M118 APPS pattern helmet"
+	desc = "Advanced Personnel Protective System armored helmet designed by NAMCo. While durable and easy to produce, this helmet featured a simple night-vision capable shooting optic, basic radio microphone and rudimentary tactical camera."
+	icon_state = "old_helmet"
+	flags_atom = NO_SNOW_TYPE
+	specialty = "M4 pattern marine"
+	built_in_visors = list()
+	start_down_visor_type = null
+
 /obj/item/clothing/head/helmet/marine/grenadier
 	name = "\improper M12 grenadier helmet"
 	desc = "Strictly speaking, the M12 is more of an offshoot of the B-series armor systems, and is fully enclosed, with hearing protection and anti-impact liquid armor layers to cushion blast. USCMC assault teams sometimes use these in close combat, grenade heavy operations."

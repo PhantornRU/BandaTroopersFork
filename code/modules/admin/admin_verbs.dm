@@ -381,6 +381,7 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		add_verb(src, /client/proc/set_cooldown)
 		add_verb(src, /client/proc/toggle_portrait)
 		add_verb(src, /client/proc/toggle_intro)
+		add_verb(src, /client/proc/toggle_slot_preferences) // SS220 EDIT: Dog War slot preferences toggle
 		add_verb(src, /client/proc/game_master_rename_platoon)
 		add_verb(src, /client/proc/toggle_vehicle_blockers)
 		add_verb(src, /client/proc/toggle_ai_xeno_weeding)
@@ -443,6 +444,7 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 		/client/proc/disable_fire_support,
 		/client/proc/toggle_portrait,
 		/client/proc/toggle_intro,
+		/client/proc/toggle_slot_preferences, // SS220 EDIT: Dog War slot preferences toggle
 		/client/proc/gm_lighting,
 		/client/proc/toggle_droppod_menu, // SS220 EDIT: keep modular HALO droppod verb removable with the shared admin hide list
 		/client/proc/open_world_edit_panel, // SS220 EDIT: keep World Edit removable with the shared admin verb reset path
