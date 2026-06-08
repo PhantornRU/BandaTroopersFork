@@ -46,6 +46,7 @@
 #include "code/game/area/traxus_gamma_zone.dm"
 #include "code/game/area/unsc_stalwart_frigate.dm"
 #include "code/game/area/valorous_chant.dm"
+#include "code/game/area/covenant_area.dm"
 #include "code/game/machinery/vending/vendor_types/halo/misc.dm"
 #include "code/game/machinery/vending/vendor_types/squad_prep/halo/unsc_prep.dm"
 #include "code/game/objects/items/devices/halo_scanners.dm"

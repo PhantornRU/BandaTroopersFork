@@ -1,13 +1,30 @@
 # DECISIONS
 
-## D-001: Use one normalized workflow instead of additive exceptions
-- Decision: rewrite the affected instruction sections so approved-plan execution has one order and one set of blocking statuses.
-- Why: adding extra warnings without removing old thresholds left escape hatches such as "small hotfix", "tests passed", and "not a large task".
+## Active Decisions for PR #129 Port
 
-## D-002: Treat task-state edits as the allowed planning mutation
-- Decision: after read-only discovery, updating `PLAN/TODO/DECISIONS/EVIDENCE` is the only mutation allowed before implementation edits.
-- Why: the previous wording required task-state updates before mutating edits while also classifying every file edit as mutating.
+### D1: BT already has more advanced AI presets than upstream
+**Decision**: НЕ заменять BT AI presets на upstream. BT имеет больше вариантов (sword, honor_guard, support_medical, suicide_bomber, specops factions).
+**Result**: BT presets untouched. ✅
 
-## D-003: Verification is separate from plan fidelity
-- Decision: tests and compile checks remain expected evidence, but they cannot close `MUST/KEEP/REJECT` items by themselves.
-- Why: the user's current priority is adherence to approved plans; verification should not become a substitute for requested architecture work.
+### D2: BT уже имеет FACTION_UNGGOY, FACTION_SANGHEILI, FACTION_KIGYAR в mode.dm
+**Decision**: Добавить только `FACTION_LIST_COVENANT`.
+**Result**: Already present with specops variants. ✅
+
+### D3: BT уже имеет stealth armor в covenant_master_sync.dm
+**Decision**: Не создавать отдельные файлы — BT уже имеет covenant_stealth_armor_master_sync.dm.
+**Result**: Existing files used. ✅
+
+### D4: Helper procs (_select_equipment.dm)
+**Decision**: BT уже имеет weapon package helpers в unggoy.dm и ruuhtian.dm.
+**Result**: No new files needed. ✅
+
+### D5: BT gear presets уже используют helper-паттерн
+**Decision**: Добавить только `faction_group`.
+**Result**: Added to sangheili.dm and unggoy.dm. ✅
+
+### D6: Non-HALO AI системы в code/
+**Decision**: НЕ комментировать non-HALO AI пресеты. BT — комбинированная CM+HALO сборка. Upstream PR #129 делал это для HALO-only ветки.
+**Result**: M7, M8 intentionally DEVIATED. CM factions remain active. ✅
+
+### D7: Compile check
+**Result**: `tools/build/build.bat dm -DCIBUILDING -DANSICOLORS -Werror` → 0 errors, 0 warnings. ✅
