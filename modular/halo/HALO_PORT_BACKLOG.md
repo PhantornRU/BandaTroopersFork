@@ -9,9 +9,7 @@ Canonical baseline: [`__docs/HALO_PORT_STATE.md`](./__docs/HALO_PORT_STATE.md). 
 - **Status**: All must-port PRs PORTED. Review fixes applied. Clean build — 0 errors, 0 warnings.
 - **PR**: https://github.com/ss220club/BandaTroopers/pull/102
 
-## Ported PRs — CM-PVE
-
-Source: https://github.com/cmss13-devs/cmss13-pve
+### CM-PVE (https://github.com/cmss13-devs/cmss13-pve)
 
 | PR | Title | Status |
 |----|-------|--------|
@@ -72,11 +70,12 @@ Source: https://github.com/cmss13-devs/cmss13-pve-halo
 
 ## Summary
 
-| Status | Count | Notes |
-|--------|-------|-------|
-| **PORTED** | 16 (CM-PVE) + 20 (CM-PVE-HALO) | All must-port PRs successfully integrated |
-| **ALREADY PRESENT** | 4 (CM-PVE) + 2 (CM-PVE-HALO) | Functionality existed in BT master prior to sync |
-| **SKIP** | 11 (CM-PVE) + 2 (CM-PVE-HALO) | DNM, TMONLY, maps-only, or PVE-only LARP content |
+| Status | CM-PVE | CM-PVE-HALO | Total |
+|--------|--------|-------------|-------|
+| **PORTED** | 3 | 16 | 19 |
+| **ALREADY PRESENT** | 3 | 2 | 5 |
+| **SKIP** | 15 | 2 | 17 |
+| **Total** | 21 | 20 | 41 |
 
 ## Deferred Scope
 
@@ -84,7 +83,7 @@ Source: https://github.com/cmss13-devs/cmss13-pve-halo
 - **PR #97** (Kig-Yar tail) and **PR #100** (Spartan base) — deferred to `halo_jackal_spartan_wave_apr2026` branch.
 - **Broad HALO AI scenario parity** beyond requested ODST/HALO flow.
 - **Additional non-critical flavor drift** not affecting compile/playability.
-- **CM-PVE SKIPped PRs** (DNM/TMONLY/maps) — may need re-evaluation if upstream changes.
+- **CM-PVE SKIPped PRs** (DNM/TMONLY/maps/PVE-only LARP) — may need re-evaluation if upstream changes or if PVE-only content becomes relevant for CM-PVE-HALO cross-pollination.
 - **CM-PVE-HALO #172** (RTO-bag sprite issues) — SKIP (icons-only), may need re-evaluation.
 
 ## Next Sync Tasks
