@@ -9,32 +9,6 @@ Canonical baseline: [`__docs/HALO_PORT_STATE.md`](./__docs/HALO_PORT_STATE.md). 
 - **Status**: All must-port PRs PORTED. Review fixes applied. Clean build — 0 errors, 0 warnings.
 - **PR**: https://github.com/ss220club/BandaTroopers/pull/102
 
-### CM-PVE (https://github.com/cmss13-devs/cmss13-pve)
-
-| PR | Title | Status |
-|----|-------|--------|
-| #1289 | Observer Faction Categories | PORTED |
-| #1288 | Anti Air - GM Choice | PORTED |
-| #1287 | Gas Mask Vision Impairment | PORTED |
-| #1284 | Lazy Bunker Shipmaps | SKIP (DNM/maps) |
-| #1283 | Movie-ish Sections | SKIP (DNM/maps) |
-| #1282 | The Straya War | SKIP (DNM/TMONLY) |
-| #1280 | Dog war atomized | SKIP (maps) |
-| #1278 | Call ur hits | SKIP (PVE-only LARP) |
-| #1277 | Movie-like Xeno Castes | SKIP (DNM) |
-| #1276 | FV150 'Hobelar' | SKIP (DNM/TMONLY) |
-| #1275 | Vanguard's Arrow | SKIP (DNM/TMONLY) |
-| #1273 | Gibson & Kloos | SKIP (DNM) |
-| #1272 | Koishi's landmines | SKIP (TM ONLY) |
-| #1271 | Itsy Bitsy Buggers | SKIP (DNM) |
-| #1270 | Featueless | SKIP (TM Only/maps) |
-| #1269 | Snowman | ALREADY PRESENT |
-| #1268 | Active prox_sensor | ALREADY PRESENT |
-| #1267 | Wolfpack | SKIP (TM ONLY) |
-| #1266 | D66-44 | SKIP (TM) |
-| #1265 | Auriga's Folly | SKIP (DNM) |
-| #1264 | Shipmap lighting GM verb | ALREADY PRESENT |
-
 ## Ported PRs — CM-PVE-HALO
 
 Source: https://github.com/cmss13-devs/cmss13-pve-halo
@@ -70,12 +44,12 @@ Source: https://github.com/cmss13-devs/cmss13-pve-halo
 
 ## Summary
 
-| Status | CM-PVE | CM-PVE-HALO | Total |
-|--------|--------|-------------|-------|
-| **PORTED** | 3 | 16 | 19 |
-| **ALREADY PRESENT** | 3 | 2 | 5 |
-| **SKIP** | 15 | 2 | 17 |
-| **Total** | 21 | 20 | 41 |
+| Status | CM-PVE-HALO |
+|--------|-------------|
+| **PORTED** | 16 |
+| **ALREADY PRESENT** | 2 |
+| **SKIP** | 2 |
+| **Total** | 20 |
 
 ## Deferred Scope
 
@@ -83,7 +57,6 @@ Source: https://github.com/cmss13-devs/cmss13-pve-halo
 - **PR #97** (Kig-Yar tail) and **PR #100** (Spartan base) — deferred to `halo_jackal_spartan_wave_apr2026` branch.
 - **Broad HALO AI scenario parity** beyond requested ODST/HALO flow.
 - **Additional non-critical flavor drift** not affecting compile/playability.
-- **CM-PVE SKIPped PRs** (DNM/TMONLY/maps/PVE-only LARP) — may need re-evaluation if upstream changes or if PVE-only content becomes relevant for CM-PVE-HALO cross-pollination.
 - **CM-PVE-HALO #172** (RTO-bag sprite issues) — SKIP (icons-only), may need re-evaluation.
 
 ## Next Sync Tasks
