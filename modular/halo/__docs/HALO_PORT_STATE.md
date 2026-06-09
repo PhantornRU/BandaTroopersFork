@@ -3,18 +3,20 @@
 Canonical source of truth for the current HALO modular sync state on BandaTroopers.
 
 ## Active Baseline
+
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Current merged BT master baseline: `upstream/master @ 5d2ad73b68727b88c7b02cf005a4af72f855babd`
 - Meaning of that baseline: merged BT `PR #96` (`[HALO] Sync follow-up main wave`)
 - **Comprehensive upstream sync baseline**: `halo-pve-update-batch1-3b @ 5f1e274056` (PR #102, 2026-06-09)
-- Meaning of sync baseline: all 20 must-port PRs from CM-PVE-HALO and CM-PVE ported, validated, documented, and review-fixes applied
+- Meaning of sync baseline: all 27 must-port PRs from CM-PVE-HALO ported, validated, documented, and review-fixes applied
 - Current gameplay-completion branch: `halo_jackal_spartan_wave_apr2026`
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
 - Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
 
 ## Branch Scope
+
 - `PR #96` is already merged into BT master and is treated as the shared HALO base.
-- `PR #102` (`halo-pve-update-batch1-3b`) — comprehensive upstream sync: 20 must-port PRs across 4 batches.
+- `PR #102` (`halo-pve-update-batch1-3b`) — comprehensive upstream sync: 27 must-port CM-PVE-HALO PRs.
 - This branch owns only the follow-up gameplay completion needed for `PR #94` after that merge.
 - Requested user-facing scope on this branch:
   - refresh `PR #94` from current master;
@@ -22,6 +24,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
   - finish playable preset, HumanAI, and squad coverage for Kig-Yar, Sangheili, Unggoy, Spartan, and the remaining HALO combat families that still had exposure gaps.
 
 ## Ownership Rules
+
 - HALO content stays in `modular/halo/**` by default.
 - `code/**` keeps only minimal glue already required by merged BT master, such as Game Master menu entries and shared faction hooks.
 - `modular/squads/**` remains the owner of HALO job and platoon systems that were already split there.
@@ -31,6 +34,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Shared compile-time HALO constants that root glue must see live in `code/__DEFINES/bandamarines/halo_species_support.dm`; concrete species, presets, skills, pain, Warthog, and equipment content stay modular.
 
 ## 2026-04-28 Modularity Audit
+
 - Current `PR #94` branch assets were normalized so Ruuhtian/Kig-Yar, Spartan, Sangheili, Unggoy, Warthog, New Irvine, Covenant mine, and PR96 HALO icon assets are resolved from `modular/halo/**`.
 - Root `icons/halo/**`, `sound/voice/{sangheili,unggoy,ruuhtian}/`, `sound/vehicles/halo/`, `icons/mob/humans/template_64.dmi`, `icons/obj/items/weapons/covenant_mines.dmi`, and New Irvine root flora/auto-turf DMI copies are treated as migrated-out legacy paths.
 - The old root Warthog implementation was moved from `code/modules/vehicles/warthog/**` to `modular/halo/code/modules/vehicles/warthog/**`; the only remaining root Warthog reference is shared death/ejection glue.
@@ -39,12 +43,14 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Root `code/**` still contains integration hooks for typechecks, emotes/sounds, combat damage, gun skill effects, HumanAI menus, and unit-test normalization. Those are shared callsites and must stay explicitly marked as `SS220 EDIT` glue.
 
 ## Intentional Deviations From Upstream
+
 - Kig-Yar content remains under the BT `ruuhtian` layout instead of restoring upstream file names.
 - Spartan runtime stays modular through `modular/halo/**`; no HALO gameplay code is moved back into generic upstream gun or species trees.
 - Covenant split-faction behavior is preserved through BT modular faction surfaces even when upstream used a different file layout.
 - Public HALO equipment presets are allowed to carry split-faction ownership when that is required for `Create Humans`, `HumanAI Spawn`, or `Squad Spawner` parity.
 
 ## Current Compatibility Hotspots
+
 - `modular/halo/code/modules/gear_presets/Halo/{sangheili,unggoy,ruuhtian,spartan,covenant_master_sync}.dm`
 - `modular/halo/code/modules/mob/living/carbon/human/ai/ai_spawner/{ai_presets_ruuhtian,ai_presets_sangheili,ai_presets_unggoy,ai_presets_unsc,ai_presets_spartan}.dm`
 - `modular/halo/code/modules/mob/living/carbon/human/ai/squad_spawner/halo/{squad_covenant,squad_unsc,squad_spartan}.dm`
@@ -56,6 +62,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - `modular/halo/code/modules/unit_tests/halo_preset_coverage.dm`
 
 ## Validation Snapshot
+
 - Last fully merged shared baseline validation belongs to BT `PR #96`.
 - **PR #102 comprehensive upstream sync validation (2026-06-05)**:
   - **Compile**: `BUILD.cmd` — 0 errors, 0 warnings
@@ -67,7 +74,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
   - **maplint (PR #160 templates)**: All 14 map templates OK
   - **Binary assets**: 12 .dmi icons + 9 .ogg sounds downloaded from upstream
   - **Files changed**: 56 files, +4541/-312 lines
-  - **All 20 must-port PRs**: PORTED / REIMPLEMENTED
+  - **All 27 must-port CM-PVE-HALO PRs**: PORTED
   - **Review fixes applied** (commit `5f1e274056`):
     - C3: `.roo/` files removed from git index
     - M1: Duplicate `HALO_PORT_BACKLOG.md` removed from git index
@@ -96,69 +103,44 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
   - Runtime unit-test execution was not rerun in this cleanup pass; only the `UNIT_TESTS` compile target was rebuilt cleanly.
   - Windows-local `maplint` previously hit a decoding failure on `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm`, so that remaining check should be treated as an environment-specific follow-up unless CI reproduces it.
 
-## Update Protocol
-- If the HALO upstream baseline changes again, update this file in the same change.
-- If `PR #94` scope expands or contracts, record the decision here and mirror the work split in `HALO_PORT_BACKLOG.md`.
-- If this file disagrees with older port notes, this file wins.
-
 ## Ported PRs Reference
-
-### CM-PVE (https://github.com/cmss13-devs/cmss13-pve)
-
-| PR | Title | Status |
-|----|-------|--------|
-| #1289 | Observer Faction Categories | REIMPLEMENTED |
-| #1288 | Anti Air - GM Choice | REIMPLEMENTED |
-| #1287 | Gas Mask Vision Impairment | REIMPLEMENTED |
-| #1284 | Lazy Bunker Shipmaps | SKIP (DNM/maps) |
-| #1283 | Movie-ish Sections | SKIP (DNM/maps) |
-| #1282 | The Straya War | SKIP (DNM/TMONLY) |
-| #1280 | Dog war atomized | SKIP (maps) |
-| #1278 | Call ur hits | SKIP (PVE-only LARP) |
-| #1277 | Movie-like Xeno Castes | SKIP (DNM) |
-| #1276 | FV150 'Hobelar' | SKIP (DNM/TMONLY) |
-| #1275 | Vanguard's Arrow | SKIP (DNM/TMONLY) |
-| #1273 | Gibson & Kloos | SKIP (DNM) |
-| #1272 | Koishi's landmines | SKIP (TM ONLY) |
-| #1271 | Itsy Bitsy Buggers | SKIP (DNM) |
-| #1270 | Featueless | SKIP (TM Only/maps) |
-| #1269 | Snowman | ALREADY PRESENT |
-| #1268 | Active prox_sensor | ALREADY PRESENT |
-| #1267 | Wolfpack | SKIP (TM ONLY) |
-| #1266 | D66-44 | SKIP (TM) |
-| #1265 | Auriga's Folly | SKIP (DNM) |
-| #1264 | Shipmap lighting GM verb | ALREADY PRESENT |
 
 ### CM-PVE-HALO (https://github.com/cmss13-devs/cmss13-pve-halo)
 
-| PR | Title | Status |
-|----|-------|--------|
-| #180 | Wort wort wort, lohbaba! | PORTED |
-| #179 | CE-like uniforms | PORTED |
-| #178 | Chemlights & Flares | PORTED |
-| #176 | Thermite Grenades | PORTED |
-| #174 | UNSC loose-ammo packets | PORTED |
-| #173 | Plasma grenade loadouts for Unggoy | PORTED |
-| #172 | RTO-bag sprite issues | SKIP (icons-only) |
-| #171 | Shipmap lighting verb | PORTED |
-| #170 | New covenant squads | PORTED |
-| #169 | Featureless Biomes | SKIP (maps) |
-| #168 | Jumping and Leaping | ALREADY PRESENT |
-| #167 | Muzzle Flash Attach Fix | PORTED |
-| #166 | ODST VISR v0.1 | PORTED |
-| #165 | SPNKR A-A: Random Outcome | PORTED |
-| #164 | Titan rename to Voyager | PORTED |
-| #163 | Halo Minimap Fix | PORTED |
-| #162 | Elite "Hero" subtypes | PORTED |
-| #160 | Holy Redoubts | PORTED |
-| #159 | Shotgun & sniper ammo boxes | PORTED |
-| #158 | Fire Support Binos Support | PORTED |
-| #157 | UNSC Medals Enabled | PORTED |
-| #156 | Presets updates, Vendor tweaks | PORTED (core) |
-| #155 | ODST Drop Pod - Intro Blurb | PORTED |
-| #152 | Fences | PORTED |
-| #150 | Loadout selection changes | PORTED |
-| #145 | bumblebee | ALREADY PRESENT |
+| PR | Title | Status | Notes |
+|----|-------|--------|-------|
+| #182 | Featureless biomes | **PORTED** | 5 new featureless biome maps (Space, Barrens, Desert, Jungle, Arctic) |
+| #181 | SoutoATV renamed to mongoose | **PORTED** | Added `/obj/vehicle/souto/mongoose` subtype |
+| #180 | Wort wort wort, lohbaba! | **PORTED** | Covenant voice lines |
+| #179 | CE-like uniforms | **PORTED** | CE-style UNSC uniforms |
+| #178 | Chemlights & Flares | **PORTED** | Chemlight and flare items |
+| #176 | Thermite Grenades | **PORTED** | UNSC thermite grenades |
+| #174 | UNSC loose-ammo packets | **PORTED** | Loose ammo packets for UNSC |
+| #173 | Plasma grenade loadouts for Unggoy | **PORTED** | Unggoy plasma grenade loadouts |
+| #172 | RTO-bag sprite issues | **PORTED** | RTO bag sprite fixes |
+| #171 | Shipmap lighting verb | **PORTED** | GM shipmap lighting verb |
+| #170 | New covenant squads | **PORTED** | New Covenant squad types |
+| #169 | Featureless Biomes | **PORTED** | Featureless biome maps (Jungle Delta, Prospector Canyon, Arctic Valley) |
+| #168 | Jumping and Leaping | **ALREADY PRESENT** | Already in BT |
+| #167 | Muzzle Flash Attach Fix | **PORTED** | 1-line muzzle flash fix |
+| #166 | ODST VISR v0.1 | **PORTED** | ODST VISR system |
+| #165 | SPNKR A-A: Random Outcome | **PORTED** | SPNKR anti-air random outcome |
+| #164 | Titan rename to Voyager | **PORTED** | Titan → Voyager rename |
+| #163 | Halo Minimap Fix | **PORTED** | Minimap fixes for HALO |
+| #162 | Elite "Hero" subtypes | **PORTED** | Sangheili hero subtypes |
+| #160 | Holy Redoubts | **PORTED** | Map templates (14 templates) |
+| #159 | Shotgun & sniper ammo boxes | **PORTED** | Ammo boxes for shotguns/snipers |
+| #158 | Fire Support Binos Support | **PORTED** | Fire support binoculars |
+| #157 | UNSC Medals Enabled | **PORTED** | UNSC medal system |
+| #156 | Presets updates, Vendor tweaks | **PORTED** | Preset and vendor updates |
+| #155 | ODST Drop Pod - Intro Blurb | **PORTED** | ODST drop pod intro text |
+| #152 | Fences | **PORTED** | Fence structures |
+| #150 | Loadout selection changes | **PORTED** | Loadout UI changes |
+| #145 | bumblebee | **ALREADY PRESENT** | Bumblebee escape pod |
+
+### CM-PVE
+
+For CM-PVE PRs see [`CM_PVE_PORT_STATE.md`](../../__docs/CM_PVE_PORT_STATE.md).
 
 ### Branch Commit History
 
@@ -176,3 +158,11 @@ All commits on `halo-pve-update-batch1-3b` (in order):
 | `ed39ab4` | Update HALO port documentation: all PRs marked as PORTED |
 | `d7e2e7e` | Migrate HALO sounds to modular path |
 | `5f1e274` | fixup! PR #102 review fixes |
+
+## Update Protocol
+
+- If the HALO upstream baseline changes again, update this file in the same change.
+- If `PR #94` scope expands or contracts, record the decision here and mirror the work split in `HALO_PORT_BACKLOG.md`.
+- If this file disagrees with older port notes, this file wins.
+- For CM-PVE PRs, see [`CM_PVE_PORT_STATE.md`](../../__docs/CM_PVE_PORT_STATE.md).
+- For complete porting history, see [`VARIOUS_FIXES_PORTING_MAP.md`](../../__docs/VARIOUS_FIXES_PORTING_MAP.md).

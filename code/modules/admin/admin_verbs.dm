@@ -391,6 +391,8 @@ GLOBAL_LIST_INIT(roundstart_mod_verbs, list(
 // SS220 EDIT - START - HALO upstream PR #171 Shipmap Lighting Verb
 		add_verb(src, /client/proc/gm_shipmap_lighting)
 // SS220 EDIT - END
+		add_verb(src, /client/proc/play_chapter_title)
+		add_verb(src, /client/proc/send_tip)
 		add_verb(src, /client/proc/toggle_droppod_menu) // SS220 EDIT: expose modular HALO droppod GM verb through upstream admin rights gate
 	if(CLIENT_HAS_RIGHTS(src, R_SERVER))
 		add_verb(src, GLOB.admin_verbs_server)
