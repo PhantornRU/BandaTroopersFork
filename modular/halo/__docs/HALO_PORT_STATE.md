@@ -6,8 +6,8 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Source repository: `https://github.com/cmss13-devs/cmss13-pve-halo`
 - Current merged BT master baseline: `upstream/master @ 5d2ad73b68727b88c7b02cf005a4af72f855babd`
 - Meaning of that baseline: merged BT `PR #96` (`[HALO] Sync follow-up main wave`)
-- **Comprehensive upstream sync baseline**: `halo-pve-update-batch1-3b @ 46915d6953a78c0e770fcca858888db2deed8e81` (PR #102, 2026-06-05)
-- Meaning of sync baseline: all 20 must-port PRs from CM-PVE-HALO and CM-PVE ported, validated, and documented
+- **Comprehensive upstream sync baseline**: `halo-pve-update-batch1-3b @ 5f1e274056` (PR #102, 2026-06-09)
+- Meaning of sync baseline: all 20 must-port PRs from CM-PVE-HALO and CM-PVE ported, validated, documented, and review-fixes applied
 - Current gameplay-completion branch: `halo_jackal_spartan_wave_apr2026`
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
 - Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
@@ -68,6 +68,20 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
   - **Binary assets**: 12 .dmi icons + 9 .ogg sounds downloaded from upstream
   - **Files changed**: 56 files, +4541/-312 lines
   - **All 20 must-port PRs**: PORTED
+  - **Review fixes applied** (commit `5f1e274056`):
+    - C3: `.roo/` files removed from git index
+    - M1: Duplicate `HALO_PORT_BACKLOG.md` removed from git index
+    - C1: 42 root sound files removed from git index, migrated to `modular/halo/sound/`
+    - M2: Paths updated in `halo_dropship.dm`
+    - L1: Clean build — 0 errors, 0 warnings
+  - **Sound modularity migration stats** (review fix pass):
+    - 42 additional `.ogg` files migrated from root `sound/` to `modular/halo/sound/`:
+      - `sound/effects/halo/dropship_hover/` → `modular/halo/sound/effects/halo/dropship_hover/` (5 files)
+      - `sound/voice/twe_warcry/` → `modular/halo/sound/voice/twe_warcry/` (19 files)
+      - `sound/weapons/halo/pelican_gun/` → `modular/halo/sound/weapons/halo/pelican_gun/` (5 files)
+      - `sound/weapons/halo/phantom_gun/` → `modular/halo/sound/weapons/halo/phantom_gun/` (13 files)
+    - 2 `.dm` files updated with modular paths: `code/game/sound.dm`, `modular/halo/code/datums/looping_sounds/halo_dropship.dm`
+    - Total sound assets in modular path: 176 (original) + 42 (this pass) = **218**
 - Post-merge validation for the earlier `PR #94` gameplay-completion pass was complete before the 2026-04-28 asset modularity cleanup.
 - The 2026-04-28 asset modularity cleanup passed local compile/resource validation:
   - HALO root-path resource literal audit: no old `icons/halo/**`, root HALO voice, Warthog sound, Covenant mine, New Irvine flora, or New Irvine auto-turf references remain in DM/DME/DMM files.
@@ -86,3 +100,79 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - If the HALO upstream baseline changes again, update this file in the same change.
 - If `PR #94` scope expands or contracts, record the decision here and mirror the work split in `HALO_PORT_BACKLOG.md`.
 - If this file disagrees with older port notes, this file wins.
+
+## Ported PRs Reference
+
+### CM-PVE (https://github.com/cmss13-devs/cmss13-pve)
+
+| PR | Title | Status |
+|----|-------|--------|
+| #1289 | Observer Faction Categories | PORTED |
+| #1288 | Anti Air - GM Choice | PORTED |
+| #1287 | Gas Mask Vision Impairment | PORTED |
+| #1284 | Lazy Bunker Shipmaps | SKIP (DNM/maps) |
+| #1283 | Movie-ish Sections | SKIP (DNM/maps) |
+| #1282 | The Straya War | SKIP (DNM/TMONLY) |
+| #1280 | Dog war atomized | SKIP (maps) |
+| #1278 | Call ur hits | SKIP (PVE-only LARP) |
+| #1277 | Movie-like Xeno Castes | SKIP (DNM) |
+| #1276 | FV150 'Hobelar' | SKIP (DNM/TMONLY) |
+| #1275 | Vanguard's Arrow | SKIP (DNM/TMONLY) |
+| #1273 | Gibson & Kloos | SKIP (DNM) |
+| #1272 | Koishi's landmines | SKIP (TM ONLY) |
+| #1271 | Itsy Bitsy Buggers | SKIP (DNM) |
+| #1270 | Featueless | SKIP (TM Only/maps) |
+| #1269 | Snowman | ALREADY PRESENT |
+| #1268 | Active prox_sensor | ALREADY PRESENT |
+| #1267 | Wolfpack | SKIP (TM ONLY) |
+| #1266 | D66-44 | SKIP (TM) |
+| #1265 | Auriga's Folly | SKIP (DNM) |
+| #1264 | Shipmap lighting GM verb | ALREADY PRESENT |
+
+### CM-PVE-HALO (https://github.com/cmss13-devs/cmss13-pve-halo)
+
+| PR | Title | Status |
+|----|-------|--------|
+| #180 | Wort wort wort, lohbaba! | PORTED |
+| #179 | CE-like uniforms | PORTED |
+| #178 | Chemlights & Flares | PORTED |
+| #176 | Thermite Grenades | PORTED |
+| #174 | UNSC loose-ammo packets | PORTED |
+| #173 | Plasma grenade loadouts for Unggoy | PORTED |
+| #172 | RTO-bag sprite issues | SKIP (icons-only) |
+| #171 | Shipmap lighting verb | PORTED |
+| #170 | New covenant squads | PORTED |
+| #169 | Featureless Biomes | SKIP (maps) |
+| #168 | Jumping and Leaping | ALREADY PRESENT |
+| #167 | Muzzle Flash Attach Fix | PORTED |
+| #166 | ODST VISR v0.1 | PORTED |
+| #165 | SPNKR A-A: Random Outcome | PORTED |
+| #164 | Titan rename to Voyager | PORTED |
+| #163 | Halo Minimap Fix | PORTED |
+| #162 | Elite "Hero" subtypes | PORTED |
+| #160 | Holy Redoubts | PORTED |
+| #159 | Shotgun & sniper ammo boxes | PORTED |
+| #158 | Fire Support Binos Support | PORTED |
+| #157 | UNSC Medals Enabled | PORTED |
+| #156 | Presets updates, Vendor tweaks | PORTED (core) |
+| #155 | ODST Drop Pod - Intro Blurb | PORTED |
+| #152 | Fences | PORTED |
+| #150 | Loadout selection changes | PORTED |
+| #145 | bumblebee | ALREADY PRESENT |
+
+### Branch Commit History
+
+All commits on `halo-pve-update-batch1-3b` (in order):
+
+| Commit | Description |
+|--------|-------------|
+| `44a127c` | HALO PVE Update: Batch 1-3B (PR #137, #153, #154, #170, #173, #162, #163, #164, #165, #166, #167, #168, #169, #171, #172, #174, #175, #176, #177, #178) |
+| `70f6a6d` | Update .gitignore |
+| `bc1496f` | Restore AI_AGENT task-state files to baseline state (pre-PR #102) |
+| `a915711` | Clean up duplicate .gitignore entries for AI_AGENT task-state files |
+| `3cbef88` | Comprehensive upstream sync: Batch 1-4 (CM-PVE-HALO + CM-PVE) |
+| `ade8dd5` | Final upstream sync: all must-port PRs complete (Batch 1-4 + deferred items) |
+| `46915d6` | Add missing .dmi assets for PR #150 loadout items (devices, unsc_melee) |
+| `ed39ab4` | Update HALO port documentation: all PRs marked as PORTED |
+| `d7e2e7e` | Migrate HALO sounds to modular path |
+| `5f1e274` | fixup! PR #102 review fixes |

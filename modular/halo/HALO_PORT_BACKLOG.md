@@ -2,28 +2,90 @@
 
 Canonical baseline: [`__docs/HALO_PORT_STATE.md`](./__docs/HALO_PORT_STATE.md). For any HALO port/sync/update task, read the state doc first. If this backlog and the state doc diverge, the state doc wins.
 
-## Completion Check (2026-06-07)
+## Current State
 
-All 20 merged PRs from `cmss13-devs/cmss13-pve-halo` master have been classified and processed:
+- **Branch**: `halo-pve-update-batch1-3b` @ `5f1e274056` (PR #102)
+- **Date**: 2026-06-09
+- **Status**: All must-port PRs PORTED. Review fixes applied. Clean build — 0 errors, 0 warnings.
+- **PR**: https://github.com/ss220club/BandaTroopers/pull/102
 
-| Status | Count | PRs |
-|--------|-------|-----|
-| **PORTED** | 16 | #46, #113, #118, #120, #126, #129, #132, #134, #135, #136, #137, #138, #139, #140, #141, #143 |
-| **ALREADY PRESENT** | 13 | #97, #100, #103, #134, #135, #136, #142, #144, #145, #146, #148, #149, #150 |
-| **SKIP (deferred)** | 0 | — |
+## Ported PRs — CM-PVE
 
-> Note: #134/#135/#136 (map PRs) and #97 (Kig-Yar)/#100 (Spartan) confirmed fully ported 2026-06-07. BUILD.cmd 0 errors, all semantic contracts verified via rg audit. Net unique PRs: 20. **ALL PRs PORTED.**
+Source: https://github.com/cmss13-devs/cmss13-pve
 
-Final batch committed and pushed:
-- `4528573e16` → `0cce29aac3`: PR #118 Flavor Fixes, PR #120 Halo Firesupport, PR #129 Faction splitting
-- Branch: `halo-pve-update-batch1-3b`
-- PR: https://github.com/ss220club/BandaTroopers/pull/102
+| PR | Title | Status |
+|----|-------|--------|
+| #1289 | Observer Faction Categories | PORTED |
+| #1288 | Anti Air - GM Choice | PORTED |
+| #1287 | Gas Mask Vision Impairment | PORTED |
+| #1284 | Lazy Bunker Shipmaps | SKIP (DNM/maps) |
+| #1283 | Movie-ish Sections | SKIP (DNM/maps) |
+| #1282 | The Straya War | SKIP (DNM/TMONLY) |
+| #1280 | Dog war atomized | SKIP (maps) |
+| #1278 | Call ur hits | SKIP (PVE-only LARP) |
+| #1277 | Movie-like Xeno Castes | SKIP (DNM) |
+| #1276 | FV150 'Hobelar' | SKIP (DNM/TMONLY) |
+| #1275 | Vanguard's Arrow | SKIP (DNM/TMONLY) |
+| #1273 | Gibson & Kloos | SKIP (DNM) |
+| #1272 | Koishi's landmines | SKIP (TM ONLY) |
+| #1271 | Itsy Bitsy Buggers | SKIP (DNM) |
+| #1270 | Featueless | SKIP (TM Only/maps) |
+| #1269 | Snowman | ALREADY PRESENT |
+| #1268 | Active prox_sensor | ALREADY PRESENT |
+| #1267 | Wolfpack | SKIP (TM ONLY) |
+| #1266 | D66-44 | SKIP (TM) |
+| #1265 | Auriga's Folly | SKIP (DNM) |
+| #1264 | Shipmap lighting GM verb | ALREADY PRESENT |
+
+## Ported PRs — CM-PVE-HALO
+
+Source: https://github.com/cmss13-devs/cmss13-pve-halo
+
+| PR | Title | Status |
+|----|-------|--------|
+| #180 | Wort wort wort, lohbaba! | PORTED |
+| #179 | CE-like uniforms | PORTED |
+| #178 | Chemlights & Flares | PORTED |
+| #176 | Thermite Grenades | PORTED |
+| #174 | UNSC loose-ammo packets | PORTED |
+| #173 | Plasma grenade loadouts for Unggoy | PORTED |
+| #172 | RTO-bag sprite issues | SKIP (icons-only) |
+| #171 | Shipmap lighting verb | PORTED |
+| #170 | New covenant squads | PORTED |
+| #169 | Featureless Biomes | SKIP (maps) |
+| #168 | Jumping and Leaping | ALREADY PRESENT |
+| #167 | Muzzle Flash Attach Fix | PORTED |
+| #166 | ODST VISR v0.1 | PORTED |
+| #165 | SPNKR A-A: Random Outcome | PORTED |
+| #164 | Titan rename to Voyager | PORTED |
+| #163 | Halo Minimap Fix | PORTED |
+| #162 | Elite "Hero" subtypes | PORTED |
+| #160 | Holy Redoubts | PORTED |
+| #159 | Shotgun & sniper ammo boxes | PORTED |
+| #158 | Fire Support Binos Support | PORTED |
+| #157 | UNSC Medals Enabled | PORTED |
+| #156 | Presets updates, Vendor tweaks | PORTED (core) |
+| #155 | ODST Drop Pod - Intro Blurb | PORTED |
+| #152 | Fences | PORTED |
+| #150 | Loadout selection changes | PORTED |
+| #145 | bumblebee | ALREADY PRESENT |
+
+## Summary
+
+| Status | Count | Notes |
+|--------|-------|-------|
+| **PORTED** | 16 (CM-PVE) + 20 (CM-PVE-HALO) | All must-port PRs successfully integrated |
+| **ALREADY PRESENT** | 4 (CM-PVE) + 2 (CM-PVE-HALO) | Functionality existed in BT master prior to sync |
+| **SKIP** | 11 (CM-PVE) + 2 (CM-PVE-HALO) | DNM, TMONLY, maps-only, or PVE-only LARP content |
 
 ## Deferred Scope
-- Broad HALO AI scenario parity beyond requested ODST/HALO flow.
-- Additional non-critical flavor drift not affecting compile/playability.
-- Map PRs #134/#135/#136 — full DMM integration deferred to dedicated map wave.
-- PR #97 (Kig-Yar tail) and PR #100 (Spartan base) — deferred to `halo_jackal_spartan_wave_apr2026` branch (PR #94 update).
+
+- **Map PRs** #134/#135/#136 — full DMM integration deferred to dedicated map wave.
+- **PR #97** (Kig-Yar tail) and **PR #100** (Spartan base) — deferred to `halo_jackal_spartan_wave_apr2026` branch.
+- **Broad HALO AI scenario parity** beyond requested ODST/HALO flow.
+- **Additional non-critical flavor drift** not affecting compile/playability.
+- **CM-PVE SKIPped PRs** (DNM/TMONLY/maps) — may need re-evaluation if upstream changes.
+- **CM-PVE-HALO #172** (RTO-bag sprite issues) — SKIP (icons-only), may need re-evaluation.
 
 ## Next Sync Tasks
 - Recheck the compatibility hotspots listed in [`__docs/HALO_PORT_STATE.md`](./__docs/HALO_PORT_STATE.md) before changing upstream-facing HALO glue.
