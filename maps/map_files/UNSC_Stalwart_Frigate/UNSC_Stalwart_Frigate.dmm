@@ -1165,7 +1165,7 @@
 /turf/open/floor/almayer,
 /area/unsc_stalwart_frigate/armory)
 "acd" = (
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /obj/structure/platform,
 /turf/open/shuttle/escapepod/floor4,
 /area/unsc_stalwart_frigate/cryo_hall)
@@ -13796,7 +13796,7 @@
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/hangar)
 "boo" = (
-/obj/structure/fence{
+/obj/structure/fence/halo{
 	pixel_x = 0;
 	pixel_y = 18;
 	layer = 5
@@ -19532,7 +19532,7 @@
 /obj/structure/platform{
 	dir = 4
 	},
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod,
 /area/unsc_stalwart_frigate/upper_hallway/north)
 "iqT" = (
@@ -21079,7 +21079,7 @@
 /obj/structure/platform{
 	dir = 4
 	},
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod,
 /area/unsc_stalwart_frigate/cryo_hall)
 "ksg" = (
@@ -26517,7 +26517,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod,
 /area/unsc_stalwart_frigate/cryo_hall)
 "rEL" = (
@@ -27389,7 +27389,7 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod,
 /area/unsc_stalwart_frigate/upper_hallway/north)
 "sIe" = (
@@ -31599,7 +31599,7 @@
 /turf/open/floor/almayer/plate,
 /area/unsc_stalwart_frigate/supply)
 "xpS" = (
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod/floor4,
 /area/unsc_stalwart_frigate/cryo_hall)
 "xrk" = (

@@ -326,7 +326,8 @@ GLOBAL_LIST_INIT_TYPED(huds, /datum/mob_hud, flatten_numeric_alist(alist(
 //called when a human changes suit sensors
 /mob/living/carbon/human/proc/update_suit_sensors()
 	var/datum/mob_hud/medical/basic/B = GLOB.huds[MOB_HUD_MEDICAL_BASIC]
-	B.update_suit_sensors(src)
+	if(B)
+		B.update_suit_sensors(src)
 
 //called when a human changes health
 /mob/proc/med_hud_set_health()

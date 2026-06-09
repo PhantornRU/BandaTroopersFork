@@ -67,7 +67,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
   - **maplint (PR #160 templates)**: All 14 map templates OK
   - **Binary assets**: 12 .dmi icons + 9 .ogg sounds downloaded from upstream
   - **Files changed**: 56 files, +4541/-312 lines
-  - **All 20 must-port PRs**: PORTED
+  - **All 20 must-port PRs**: PORTED / REIMPLEMENTED
   - **Review fixes applied** (commit `5f1e274056`):
     - C3: `.roo/` files removed from git index
     - M1: Duplicate `HALO_PORT_BACKLOG.md` removed from git index
@@ -107,9 +107,9 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 
 | PR | Title | Status |
 |----|-------|--------|
-| #1289 | Observer Faction Categories | PORTED |
-| #1288 | Anti Air - GM Choice | PORTED |
-| #1287 | Gas Mask Vision Impairment | PORTED |
+| #1289 | Observer Faction Categories | REIMPLEMENTED |
+| #1288 | Anti Air - GM Choice | REIMPLEMENTED |
+| #1287 | Gas Mask Vision Impairment | REIMPLEMENTED |
 | #1284 | Lazy Bunker Shipmaps | SKIP (DNM/maps) |
 | #1283 | Movie-ish Sections | SKIP (DNM/maps) |
 | #1282 | The Straya War | SKIP (DNM/TMONLY) |

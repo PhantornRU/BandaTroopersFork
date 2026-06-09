@@ -385,7 +385,8 @@
 	else
 		for(var/type in hud_type)
 			var/datum/mob_hud/H = GLOB.huds[type]
-			H.add_hud_to(usr, src)
+			if(H)
+				H.add_hud_to(usr, src)
 
 /obj/item/device/radio/headset/proc/toggle_squadhud()
 	set name = "Toggle Headset HUD"
@@ -400,6 +401,8 @@
 		if(user.has_item_in_ears(src)) //worn
 			for(var/type in hud_type)
 				var/datum/mob_hud/H = GLOB.huds[type]
+				if(!H)
+					continue
 				if(headset_hud_on)
 					H.add_hud_to(usr, src)
 					if(user.mind && (misc_tracking || user.assigned_squad) && user.hud_used?.locate_leader)

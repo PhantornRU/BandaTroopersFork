@@ -12132,7 +12132,7 @@
 /turf/open/floor/almayer/mono,
 /area/dark_was_the_night/motor_pool/heavy)
 "Rq" = (
-/obj/structure/fence,
+/obj/structure/fence/halo,
 /turf/open/shuttle/escapepod/floor4,
 /area/dark_was_the_night/cryo_hall)
 "Rr" = (
@@ -12953,7 +12953,7 @@
 /turf/open/floor/almayer,
 /area/dark_was_the_night/supply)
 "VI" = (
-/obj/structure/fence{
+/obj/structure/fence/halo{
 	pixel_y = 18;
 	layer = 5
 	},

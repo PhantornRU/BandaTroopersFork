@@ -650,6 +650,7 @@
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi'
 	icon_state = "m38"
 	item_state = "m38"
+	base_gun_icon = "m60" // SS220 EDIT: Reuse M60 lineart for M38
 	fire_sound = 'sound/weapons/gun_hpr.ogg'
 	current_mag = /obj/item/ammo_magazine/m38
 	aim_slowdown = SLOWDOWN_ADS_LMG
