@@ -142,8 +142,8 @@
 				var/datum/mob_hud/H = GLOB.huds[type]
 				if(!H) continue
 				H.remove_hud_from(user, src)
-				user.glasses = null
-				user.update_inv_glasses()
+			user.glasses = null
+			user.update_inv_glasses()
 	user.update_sight()
 	return ..()
 
