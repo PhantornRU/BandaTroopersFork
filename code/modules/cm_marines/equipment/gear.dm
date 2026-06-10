@@ -504,6 +504,7 @@
 		camera.c_tag = mob.name
 		for(var/type in hud_type)
 			var/datum/mob_hud/MH = GLOB.huds[type]
+			if(!MH) continue
 			MH.add_hud_to(mob, src)
 	..()
 
@@ -513,6 +514,7 @@
 	if(hud_type)
 		for(var/type in hud_type)
 			var/datum/mob_hud/MH = GLOB.huds[type]
+			if(!MH) continue
 			MH.remove_hud_from(user, src)
 	..()
 
