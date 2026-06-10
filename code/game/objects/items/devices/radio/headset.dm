@@ -340,6 +340,8 @@
 		if(headset_hud_on)
 			for(var/type in hud_type)
 				var/datum/mob_hud/H = GLOB.huds[type]
+				if(!H)
+					continue
 				H.add_hud_to(user, src)
 			//squad leader locator is no longer invisible on our player HUD.
 			if(user.mind && (user.assigned_squad || misc_tracking) && user.hud_used && user.hud_used.locate_leader)
@@ -360,6 +362,8 @@
 	if(istype(user) && user.has_item_in_ears(src)) //dropped() is called before the inventory reference is update.
 		for(var/type in hud_type)
 			var/datum/mob_hud/H = GLOB.huds[type]
+			if(!H)
+				continue
 			H.remove_hud_from(user, src)
 		//squad leader locator is invisible again
 		if(user.hud_used && user.hud_used.locate_leader)

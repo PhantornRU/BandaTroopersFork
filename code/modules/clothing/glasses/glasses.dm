@@ -71,6 +71,8 @@
 			if(hud_type)
 				for(var/type in hud_type)
 					var/datum/mob_hud/MH = GLOB.huds[type]
+					if(!MH)
+						continue
 					if(active)
 						MH.add_hud_to(H, src)
 						playsound(H, 'sound/handling/hud_on.ogg', 25, 1)

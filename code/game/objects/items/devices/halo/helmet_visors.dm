@@ -29,6 +29,8 @@
 
 	for(var/type in hud_type)
 		var/datum/mob_hud/current_mob_hud = GLOB.huds[type]
+		if(!current_mob_hud)
+			continue
 		current_mob_hud.add_hud_to(user, attached_helmet)
 
 	if(visor_glows)
@@ -43,6 +45,8 @@
 
 	for(var/type in hud_type)
 		var/datum/mob_hud/current_mob_hud = GLOB.huds[type]
+		if(!current_mob_hud)
+			continue
 		current_mob_hud.remove_hud_from(user, attached_helmet)
 
 	if(visor_glows)
