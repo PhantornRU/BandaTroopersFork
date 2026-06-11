@@ -49,6 +49,19 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Covenant split-faction behavior is preserved through BT modular faction surfaces even when upstream used a different file layout.
 - Public HALO equipment presets are allowed to carry split-faction ownership when that is required for `Create Humans`, `HumanAI Spawn`, or `Squad Spawner` parity.
 
+### Resolved Deviations (2026-06-10)
+
+All 6 previously deferred intentional deviations from PR #102 comprehensive upstream sync have been ported:
+
+| PR | Title | Resolution |
+|----|-------|------------|
+| #163 | Halo Minimap Fix | PORTED — conditional faction/minimap logic in `code/modules/almayer/machinery.dm` and `code/modules/cm_marines/overwatch.dm`; new defines `MOB_HUD_FACTION_COVENANT`, `UNSC_COMMAND_ANNOUNCE`; covenant radio hud_type/minimap_type; headset marker_flags conditional |
+| #158 | Fire Support Binos Support | PORTED — full fire support restructure: new defines, type path restructuring, `ignore_availability` param, radial menu 48→72, new UNSC binoculars, ammo mix crates, GM faction changes (MARINE/UPP→UNSC/COVENANT), `icons/mob/radial.dmi` binary update |
+| #150 | Loadout selection changes | PORTED — loadout rework in `preferences_gear.dm`, new modular files (helmet_visors, helmetgarb, storage/fancy, storage/misc, clothing/head, clothing/masks, clothing/under/ties, equipment/maps), binary assets (devices.dmi, unsc_melee.dmi), map changes (tacmap_map items) |
+| #174 | UNSC loose-ammo packets | PORTED — MA5/BR55/M6/M7 ammo packet boxes, `packets.dmi` binary, map changes |
+| #159 | Shotgun & sniper ammo boxes | PORTED — shotgun/sniper handful boxes, `handful_state` updates, ammo crate changes, binary assets (boxes_and_lids.dmi, magazines.dmi, handful.dmi), map changes |
+| #157 | UNSC Medals Enabled | PORTED — medal name defines, `GLOBAL_LIST_INIT human_medals` expanded, "USCM"→"UNSC" text replacements, medal desc updates in `code/modules/clothing/under/ties.dm` |
+
 ## Current Compatibility Hotspots
 
 - `modular/halo/code/modules/gear_presets/Halo/{sangheili,unggoy,ruuhtian,spartan,covenant_master_sync}.dm`

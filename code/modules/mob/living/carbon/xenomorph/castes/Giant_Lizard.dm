@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1271 - Itsy Bitsy Buggers (Giant Lizard)
 /datum/caste_datum/giant_lizard //The jungle nightmare
 	caste_type = XENO_CASTE_GIANT_LIZARD //For when you want to hunt folks with lizards
 	tier = 1
@@ -11,6 +12,7 @@
 	armor_deflection = XENO_NO_ARMOR
 	evasion = XENO_EVASION_LOW
 	speed = XENO_SPEED_HELLHOUND
+// SS220 EDIT - END: PR1271
 	fire_vulnerability_mult = FIRE_MULTIPLIER_EXTREME //weak to fire
 
 	caste_desc = "A prowler of the jungles."

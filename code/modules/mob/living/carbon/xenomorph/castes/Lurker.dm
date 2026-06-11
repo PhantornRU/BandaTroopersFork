@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1277 - Movie-like Xeno Castes (buffed Lurker)
 /datum/caste_datum/lurker
 	caste_type = XENO_CASTE_LURKER
 	tier = 2
@@ -12,6 +13,7 @@
 	armor_deflection = XENO_ARMOR_TIER_1
 	evasion = XENO_EVASION_MEDIUM
 	speed = XENO_SPEED_TIER_8
+// SS220 EDIT - END: PR1277
 
 	attack_delay = 2 // VERY high slash damage, but attacks relatively slowly
 

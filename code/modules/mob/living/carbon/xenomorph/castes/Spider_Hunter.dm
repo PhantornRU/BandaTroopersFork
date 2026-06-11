@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1271 - Itsy Bitsy Buggers (Spider Hunter)
 /datum/caste_datum/spider_hunter //The sneaky ambusher
 	caste_type = XENO_CASTE_SPIDER_HUNTER //For when you want to hunt
 	tier = 1
@@ -11,6 +12,7 @@
 	armor_deflection = XENO_ARMOR_TIER_1
 	evasion = XENO_EVASION_MEDIUM
 	speed = XENO_SPEED_FASTSPIDER
+// SS220 EDIT - END: PR1271
 	fire_vulnerability_mult = FIRE_MULTIPLIER_DEADLY //v weak to fire
 
 	caste_desc = "An ambusher from the dark."

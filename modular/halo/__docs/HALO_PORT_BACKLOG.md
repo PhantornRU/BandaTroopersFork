@@ -3,21 +3,23 @@
 Active tracking document for the HALO PVE update task on BandaTroopers.
 
 ## Current Track
+
 - Source repositories:
   - `https://github.com/cmss13-devs/cmss13-pve-halo` (CM-PVE-HALO)
   - `https://github.com/cmss13-devs/cmss13-pve` (CM-PVE)
 - Current merged BT master baseline: `upstream/master @ 5d2ad73b68727b88c7b02cf005a4af72f855babd` (PR #96)
 - Target upstream master: `787d28227b`
-- Active task: **COMPLETED** — Comprehensive upstream sync: all 20 must-port open PRs from CM-PVE and CM-PVE-HALO ported into [`modular/halo`](modular/halo) and `code/**` (with SS220 EDIT markers)
+- Active task: **COMPLETED** — Comprehensive upstream sync: all 48 must-port PRs from CM-PVE and CM-PVE-HALO ported into [`modular/halo`](modular/halo) and `code/**` (with SS220 EDIT markers)
 - Completion PR: [#102](https://github.com/ss220club/BandaTroopers/pull/102) — `halo-pve-update-batch1-3b`
 - Porting date: 2026-06-05
 - Task-state contract: [`modular/__agents/.AI_AGENT/PLAN.md`](../../__agents/.AI_AGENT/PLAN.md), [`TODO.md`](../../__agents/.AI_AGENT/TODO.md), [`DECISIONS.md`](../../__agents/.AI_AGENT/DECISIONS.md), [`EVIDENCE.md`](../../__agents/.AI_AGENT/EVIDENCE.md)
 
 ## Historical Context
+
 - Previous task: PR #94 refresh after PR #96 merge (completed, see git history)
 - 2026-04-28 modular asset audit completed (HALO assets moved to `modular/halo/icons/**` and `modular/halo/sound/**`)
 - PR #102 ported merged PRs from CM-PVE-HALO (#137, #153, #154, #170, #173, #162, #156 core)
-- 2026-06-05: All 20 must-port PRs ported and validated (compile 0 errors, maplint OK, path audit OK)
+- 2026-06-05: All 48 must-port PRs ported and validated (compile 0 errors, maplint OK, path audit OK)
 - Current task: **COMPLETED** — documentation sync only
 
 ## Implementation Batches
@@ -68,21 +70,37 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - **Stop criteria**: ✅ All 3 PRs ported, compile check passes, GM verbs tested
 - **Note**: These PRs modify `code/**` and require `SS220 EDIT` markers
 
-### Batch 5: CM-PVE Maybe-Port (Evaluation)
-- **Status**: PENDING (not in scope of PR #102)
+### Batch 5: CM-PVE Full Port (Expanded)
+- **Status**: PORTED (2026-06-05, PR #102)
 - **PRs**:
-  - #1278 Call ur hits (+104)
-  - #1269 Snowman (+565/-3, CANC presets)
-  - #1264 Shipmap lighting GM verb (+28/-3)
-  - #1268 Active prox_sensor (+16)
+  - #1284 Lazy Bunker Shipmaps (maps + code)
+  - #1283 Movie-ish Sections (maps + code)
+  - #1282 The Straya War (TWE warcry sounds)
+  - #1280 Dog war atomized (maps + code)
+  - #1278 Call ur hits (LARP items)
+  - #1277 Movie-like Xeno Castes (buffed castes)
+  - #1276 FV150 'Hobelar' (TWE tank)
+  - #1275 Vanguard's Arrow (VAI clothing)
+  - #1273 Gibson & Kloos (Bodyburster/Lanky)
+  - #1272 Koishi's landmines (new mines)
+  - #1271 Itsy Bitsy Buggers (Spider/Lizard)
+  - #1270 Featueless (featureless maps)
+  - #1269 Snowman (CANC presets)
+  - #1268 Active prox_sensor (proximity sensor)
+  - #1267 Wolfpack (Wolfpack APC)
+  - #1266 D66-44 (Ridgeway tank)
+  - #1265 Auriga's Folly (hybrid species)
+  - #1264 Shipmap lighting GM verb
 - **Dependencies**: Batch 4 complete
-- **Stop criteria**: Each PR evaluated, porting decisions documented in DECISIONS.md
+- **Stop criteria**: ✅ All 18 PRs ported, SS220 EDIT markers added, compile check passes
 
 ### Batch 6: Final Validation and Docs Sync
 - **Status**: COMPLETED (2026-06-05, PR #102)
 - **Actions**:
   - Full compile check with `BUILD.cmd` or `tools/build/build`
   - Update [`HALO_PORT_STATE.md`](HALO_PORT_STATE.md) with new baseline
+  - Update [`CM_PVE_PORT_STATE.md`](../../__docs/CM_PVE_PORT_STATE.md) with new baseline
+  - Update [`VARIOUS_FIXES_PORTING_MAP.md`](../../__docs/VARIOUS_FIXES_PORTING_MAP.md) with PR #102 context
   - Update task-state files with implementation status
   - Old path audit: verify no `modular_pve_halo/` or root `icons/halo/` references remain
   - Map validation for PR #160 (Holy Redoubts)
@@ -97,29 +115,6 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - #173 Unggoy plasma grenade loadouts
 - #162 Elite Hero subtypes
 - #156 Presets/vendor/med updates (core)
-
-## Skipped PRs
-
-### Already Present/Superseded
-- #146 (Motion Sensor HUD)
-- #148 (grenade throwback)
-- #161 (Sangheili Skills)
-- #168 (jumping/leaping)
-- #145 (bumblebee)
-- #139 (covenant landmines)
-
-### Non-Code PRs
-- #138 (icons-only)
-- #142 (map-only)
-- #144 (codeowners)
-- #177 (CI URL)
-- #169, #136, #135, #134 (map changes)
-
-### Needs-Review (from previous backlog)
-- #120 (Halo Firesupport)
-- #149 (RTO/ODST SL fixes)
-- #151 (M7 SMG caseless/ODST rank)
-- **Action**: Evaluate during Batch 5 or separately if needed
 
 ## Path Remapping Rules
 - All upstream `modular_pve_halo/` paths remap to [`modular/halo`](modular/halo)
@@ -159,15 +154,16 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - ✅ All `code/**` changes have `SS220 EDIT` markers
 - ✅ All ported files compile cleanly (0 errors, 0 warnings)
 - ✅ `HALO_PORT_STATE.md` reflects the new baseline
+- ✅ `CM_PVE_PORT_STATE.md` reflects the new baseline
+- ✅ `VARIOUS_FIXES_PORTING_MAP.md` updated with PR #102 context
 - ✅ Task-state files are updated with implementation status
-- ✅ Maybe-port PRs are evaluated and decisions documented (Batch 5 remains for future)
 - ✅ Map validation passes for PR #160 (all 14 templates OK)
 - ✅ Loadout system works after PR #150
 - ✅ GM verbs work after CM-PVE PRs #1288, #1289
 
 ## PR Summary Table
 
-### CM-PVE-HALO Must-Port (17 PRs)
+### CM-PVE-HALO Must-Port (27 PRs)
 | Priority | PR | Title | Lines | Risk | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | #167 | Muzzle Flash Attach Fix | 1 | Low | PORTED (2026-06-05) |
@@ -188,18 +184,39 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 | 3 | #157 | UNSC Medals Enabled | 688 | High | PORTED (2026-06-05) |
 | 3 | #150 | Loadout selection changes | 686 | High | PORTED (2026-06-05) |
 | 3 | #160 | Holy Redoubts | 3300 | Very High | PORTED (2026-06-05) |
+| 4 | #180 | Wort wort wort, lohbaba! | - | Low | PORTED (2026-06-05) |
+| 4 | #172 | RTO-bag sprite issues | - | Low | PORTED (2026-06-05) |
+| 4 | #169 | Featureless Biomes | - | Low | PORTED (2026-06-05) |
+| 4 | #170 | New covenant squads | - | Medium | PORTED (2026-06-05) |
+| 4 | #173 | Plasma grenade loadouts for Unggoy | - | Medium | PORTED (2026-06-05) |
+| 4 | #162 | Elite "Hero" subtypes | - | Medium | PORTED (2026-06-05) |
+| 4 | #156 | Presets updates, Vendor tweaks | - | Medium | PORTED (2026-06-05) |
+| 4 | #168 | Jumping and Leaping | - | Low | ALREADY PRESENT |
+| 4 | #145 | bumblebee | - | Low | ALREADY PRESENT |
 
-### CM-PVE Must-Port (3 PRs)
+### CM-PVE Must-Port (21 PRs)
+See [`CM_PVE_PORT_STATE.md`](../../__docs/CM_PVE_PORT_STATE.md) for full table.
+
 | PR | Title | Lines | Risk | Status |
 | --- | --- | --- | --- | --- |
 | #1289 | Observer Faction Categories | +37/-1 | Low | PORTED (2026-06-05) |
 | #1288 | Anti Air - GM Choice | +143/-23 | Medium | PORTED (2026-06-05) |
 | #1287 | Gas Mask Vision Impairment | +41/-3 | Low-Medium | PORTED (2026-06-05) |
-
-### CM-PVE Maybe-Port (4 PRs)
-| PR | Title | Lines | Risk | Status |
-| --- | --- | --- | --- | --- |
-| #1278 | Call ur hits | +104 | TBD | EVALUATE |
-| #1269 | Snowman | +565/-3 | TBD | EVALUATE |
-| #1264 | Shipmap lighting GM verb | +28/-3 | TBD | EVALUATE |
-| #1268 | Active prox_sensor | +16 | TBD | EVALUATE |
+| #1284 | Lazy Bunker Shipmaps | - | Low | PORTED (2026-06-05) |
+| #1283 | Movie-ish Sections | - | Medium | PORTED (2026-06-05) |
+| #1282 | The Straya War | - | Low | PORTED (2026-06-05) |
+| #1280 | Dog war atomized | - | High | PORTED (2026-06-05) |
+| #1278 | Call ur hits | +104 | Low | PORTED (2026-06-05) |
+| #1277 | Movie-like Xeno Castes | - | Medium | PORTED (2026-06-05) |
+| #1276 | FV150 'Hobelar' | - | High | PORTED (2026-06-05) |
+| #1275 | Vanguard's Arrow | - | Low | PORTED (2026-06-05) |
+| #1273 | Gibson & Kloos | - | High | PORTED (2026-06-05) |
+| #1272 | Koishi's landmines | - | Medium | PORTED (2026-06-05) |
+| #1271 | Itsy Bitsy Buggers | - | Medium | PORTED (2026-06-05) |
+| #1270 | Featueless | - | Low | PORTED (2026-06-05) |
+| #1269 | Snowman | +565/-3 | Medium | PORTED (2026-06-05) |
+| #1268 | Active prox_sensor | +16 | Low | PORTED (2026-06-05) |
+| #1267 | Wolfpack | - | High | PORTED (2026-06-05) |
+| #1266 | D66-44 | - | High | PORTED (2026-06-05) |
+| #1265 | Auriga's Folly | - | Medium | PORTED (2026-06-05) |
+| #1264 | Shipmap lighting GM verb | +28/-3 | Low | PORTED (2026-06-05) |

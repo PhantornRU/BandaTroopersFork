@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1271 - Itsy Bitsy Buggers (Spider Guard)
 /datum/caste_datum/spider_guard //The basic spider enemy
 	caste_type = XENO_CASTE_SPIDER_GUARD //For when you want to send a horde of spiders
 	tier = 1
@@ -11,6 +12,7 @@
 	armor_deflection = XENO_ARMOR_TIER_1
 	evasion = XENO_EVASION_LOW
 	speed = XENO_SPEED_SPIDER
+// SS220 EDIT - END: PR1271
 	fire_vulnerability_mult = FIRE_MULTIPLIER_DEADLY //v weak to fire
 
 	caste_desc = "A guard of the cluster."

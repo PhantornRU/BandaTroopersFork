@@ -11,7 +11,9 @@
 
 /obj/item/storage/box/tear_packet/m7
 	name = "magazine packet (M7, x2)"
+	desc = "Пластиковый пакет с двумя магазинами для M7. На упаковке написано \"M443, 5x23mm, C-FMJ\"."
 	storage_slots = 2
+	w_class = SIZE_SMALL
 
 /obj/item/storage/box/tear_packet/m7/fill_preset_inventory()
 	new /obj/item/ammo_magazine/smg/halo/m7(src)

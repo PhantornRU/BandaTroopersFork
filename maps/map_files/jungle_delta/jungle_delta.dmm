@@ -1,4 +1,4 @@
-﻿//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "aa" = (
 /obj/structure/blocker/fog,
 /obj/structure/platform/kutjevo/rock{
@@ -214,8 +214,7 @@
 /area/lv624/ground/jungle/central_jungle)
 "oX" = (
 /turf/open/gm/coast{
-	dir = 5;
-	tag = "icon-beach (NORTHEAST)"
+	dir = 5
 	},
 /area/lv624/ground/jungle/central_jungle)
 "pj" = (

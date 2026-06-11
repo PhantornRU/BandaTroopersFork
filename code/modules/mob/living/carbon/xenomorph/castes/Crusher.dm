@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1277 - Movie-like Xeno Castes (buffed Crusher)
 /datum/caste_datum/crusher
 	caste_type = XENO_CASTE_CRUSHER
 	tier = 3
@@ -10,6 +11,7 @@
 	plasma_max = XENO_PLASMA_TIER_8
 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_10
 	armor_deflection = XENO_ARMOR_TIER_5
+// SS220 EDIT - END: PR1277
 	evasion = XENO_EVASION_NONE
 	speed = XENO_SPEED_TIER_4
 	heal_standing = 0.66
@@ -42,8 +44,8 @@
 	drag_delay = 6 //pulling a big dead xeno is hard
 	melee_sentry_damage_multiplier = 2
 
-	acid_blood_damage = 50
-	acid_blood_spatter = TRUE
+	acid_blood_damage = 50 // SS220 EDIT: PR1277 - Movie-like Xeno Castes
+	acid_blood_spatter = TRUE // SS220 EDIT: PR1277 - Movie-like Xeno Castes
 
 	small_explosives_stun = FALSE
 

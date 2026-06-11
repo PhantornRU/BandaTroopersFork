@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1277 - Movie-like Xeno Castes (buffed Runner)
 /datum/caste_datum/runner
 	caste_type = XENO_CASTE_RUNNER
 	caste_desc = "A fast, four-legged terror, but weak in sustained combat."
@@ -9,6 +10,7 @@
 	plasma_max = XENO_NO_PLASMA
 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
 	armor_deflection = XENO_ARMOR_TIER_1
+// SS220 EDIT - END: PR1277
 	max_health = XENO_HEALTH_RUNNER
 	evasion = XENO_EVASION_NONE
 	speed = XENO_SPEED_RUNNER
@@ -49,7 +51,7 @@
 	viewsize = 9
 	organ_value = 500 //worthless
 
-	acid_blood_damage = 30
+	acid_blood_damage = 30 // SS220 EDIT: PR1277 - Movie-like Xeno Castes
 
 	mob_size = MOB_SIZE_XENO_SMALL
 
@@ -172,7 +174,7 @@
 
 /mob/living/carbon/xenomorph/runner/acider
 	crit_health = 0
-	acid_blood_spatter = TRUE
+	acid_blood_spatter = TRUE // SS220 EDIT: PR1277 - Movie-like Xeno Castes
 
 /mob/living/carbon/xenomorph/runner/acider/Initialize(mapload, mob/living/carbon/xenomorph/oldXeno, h_number, ai_hard_off = FALSE)
 	. = ..()

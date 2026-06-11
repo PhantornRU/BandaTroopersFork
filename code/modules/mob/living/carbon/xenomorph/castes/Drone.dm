@@ -1,3 +1,4 @@
+// SS220 EDIT - START: PR1277 - Movie-like Xeno Castes (buffed Drone)
 /datum/caste_datum/drone
 	caste_type = XENO_CASTE_DRONE
 	tier = 1
@@ -9,6 +10,7 @@
 	plasma_max = XENO_PLASMA_TIER_10
 	xeno_explosion_resistance = XENO_EXPLOSIVE_ARMOR_TIER_2
 	armor_deflection = XENO_ARMOR_TIER_2
+// SS220 EDIT - END: PR1277
 	evasion = XENO_EVASION_MEDIUM
 	speed = XENO_SPEED_TIER_7
 

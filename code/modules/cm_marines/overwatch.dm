@@ -41,6 +41,12 @@
 	. = ..()
 
 	var/datum/squad/main_squad_path = GLOB.RoleAuthority?.get_active_ship_platoon_type() || MAIN_SHIP_PLATOON || text2path(MAIN_SHIP_DEFAULT_PLATOON) // SS220 EDIT: overwatch faction gate follows active ship platoon resolver with vanilla fallback
+	// SS220 EDIT - START
+	// Conditional faction/minimap override for HALO modes (PR #163 deviation)
+	if(main_squad_path::faction in FACTION_LIST_HALO)
+		faction = FACTION_LIST_UNSC
+		minimap_type = MINIMAP_FLAG_UNSC
+	// SS220 EDIT - END
 	if (faction == main_squad_path::faction)
 		tacmap = new /datum/tacmap/drawing(src, minimap_type)
 	else
