@@ -709,10 +709,16 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 				if(length(total_visors) > iterator)
 					var/obj/item/device/helmet_visor/next_visor = total_visors[iterator + 1]
 
-					if(!isnull(GLOB.huds[next_visor.hud_type]?.hudusers[user]))
-						iterator++
-						skipped_hud = TRUE
-						continue
+					if(length(next_visor.hud_type))
+						var/hud_already_active = FALSE
+						for(var/hud_key in next_visor.hud_type)
+							if(!isnull(GLOB.huds[hud_key]?.hudusers[user]))
+								hud_already_active = TRUE
+								break
+						if(hud_already_active)
+							iterator++
+							skipped_hud = TRUE
+							continue
 
 					if(!next_visor.can_toggle(user))
 						iterator++
@@ -730,8 +736,14 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 			iterator++
 
 	for(var/obj/item/device/helmet_visor/new_visor in total_visors)
-		if(!isnull(GLOB.huds[new_visor.hud_type]?.hudusers[user]))
-			continue
+		if(length(new_visor.hud_type))
+			var/hud_already_active = FALSE
+			for(var/hud_key in new_visor.hud_type)
+				if(!isnull(GLOB.huds[hud_key]?.hudusers[user]))
+					hud_already_active = TRUE
+					break
+			if(hud_already_active)
+				continue
 
 		if(!new_visor.can_toggle(user))
 			continue
@@ -1829,10 +1841,16 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 				if(length(total_visors) > iterator)
 					var/obj/item/device/helmet_visor/next_visor = total_visors[iterator + 1]
 
-					if(!isnull(GLOB.huds[next_visor.hud_type]?.hudusers[user]))
-						iterator++
-						skipped_hud = TRUE
-						continue
+					if(length(next_visor.hud_type))
+						var/hud_already_active = FALSE
+						for(var/hud_key in next_visor.hud_type)
+							if(!isnull(GLOB.huds[hud_key]?.hudusers[user]))
+								hud_already_active = TRUE
+								break
+						if(hud_already_active)
+							iterator++
+							skipped_hud = TRUE
+							continue
 
 					if(!next_visor.can_toggle(user))
 						iterator++
@@ -1850,8 +1868,14 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 			iterator++
 
 	for(var/obj/item/device/helmet_visor/new_visor in total_visors)
-		if(!isnull(GLOB.huds[new_visor.hud_type]?.hudusers[user]))
-			continue
+		if(length(new_visor.hud_type))
+			var/hud_already_active = FALSE
+			for(var/hud_key in new_visor.hud_type)
+				if(!isnull(GLOB.huds[hud_key]?.hudusers[user]))
+					hud_already_active = TRUE
+					break
+			if(hud_already_active)
+				continue
 
 		if(!new_visor.can_toggle(user))
 			continue
