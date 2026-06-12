@@ -11,9 +11,27 @@
 		WEAR_HEAD = 'modular/halo/icons/halo/mob/humans/onmob/clothing/hats/hats_by_faction/hat_unsc.dmi',
 	)
 
-/obj/item/clothing/head/helmet/marine/unsc/Initialize(mapload, list/new_protection)
+// SS220 EDIT START — /motion subtypes ported from CM-PVE-HALO PR #146 (visr-nvg)
+// These types are required by unsc_dark_was_the_night and unsc_dark_was_the_night_odst maps.
+// Motion sensor component is added ONLY to /motion subtypes, matching visr-nvg design.
+
+/obj/item/clothing/head/helmet/marine/unsc/motion
+	name = "\improper CH252-M helmet"
+	desc = "Улучшенный шлем корпуса морской пехоты ККОН со встроенным датчиком движения. Различные точки крепления позволяют устанавливать на него дополнительное оборудование."
+
+/obj/item/clothing/head/helmet/marine/unsc/motion/Initialize(mapload, list/new_protection)
 	. = ..()
 	AddComponent(/datum/component/halo_motion_sensor_manager)
+
+/obj/item/clothing/head/helmet/marine/unsc/oni/motion
+	name = "\improper ONI CH252-M helmet"
+	desc = "Улучшенный шлем корпуса морской пехоты ККОН со встроенным датчиком движения. Этот вариант используется силами безопасности ONI и отличается чёрной цветовой схемой."
+
+/obj/item/clothing/head/helmet/marine/unsc/oni/motion/Initialize(mapload, list/new_protection)
+	. = ..()
+	AddComponent(/datum/component/halo_motion_sensor_manager)
+
+// SS220 EDIT END
 
 /obj/item/clothing/head/helmet/marine/unsc/pilot
 	name = "\improper FH252 helmet"
@@ -51,3 +69,15 @@
 	armor_laser = CLOTHING_ARMOR_MEDIUMHIGH
 	armor_bomb = CLOTHING_ARMOR_MEDIUMLOW
 	armor_internaldamage = CLOTHING_ARMOR_HIGH
+
+// SS220 EDIT — /motion subtype ported from CM-PVE-HALO PR #146 (visr-nvg)
+// Required by unsc_dark_was_the_night_odst map.
+// Motion sensor component is added ONLY to /motion subtypes, matching visr-nvg design.
+
+/obj/item/clothing/head/helmet/marine/unsc/odst/motion
+	name = "\improper CH381-M ODST helmet"
+	desc = "Культовый шлем, разработанный для бойцов Orbital Drop Shock Troopers корпуса морской пехоты ККОН. Усовершенствованная версия со встроенным датчиком движения."
+
+/obj/item/clothing/head/helmet/marine/unsc/odst/motion/Initialize(mapload, list/new_protection)
+	. = ..()
+	AddComponent(/datum/component/halo_motion_sensor_manager)
