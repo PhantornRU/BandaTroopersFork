@@ -8,6 +8,7 @@ Canonical baseline: [`__docs/HALO_PORT_STATE.md`](./__docs/HALO_PORT_STATE.md). 
 - **Date**: 2026-06-09
 - **Status**: All must-port PRs PORTED. Review fixes applied. Clean build — 0 errors, 0 warnings.
 - **PR**: https://github.com/ss220club/BandaTroopers/pull/102
+- **Latest port batch**: PRs #185, #186, #183, #159 @ `10b1519718` (2026-06-12)
 
 ## Ported PRs — CM-PVE-HALO
 
@@ -33,7 +34,10 @@ Source: https://github.com/cmss13-devs/cmss13-pve-halo
 | #163 | Halo Minimap Fix | PORTED — conditional faction/minimap logic (CICmap, overwatch), new defines, covenant radio, headset marker_flags |
 | #162 | Elite "Hero" subtypes | PORTED |
 | #160 | Holy Redoubts | PORTED |
-| #159 | Shotgun & sniper ammo boxes | PORTED — shotgun/sniper handful boxes, handful_state updates, ammo crate changes, 3 binary assets, map changes |
+| #186 | UNSC headsets default tracks | PORTED @ `10b1519718` (2026-06-12) |
+| #185 | Specialist Stuff is indestructible | PORTED @ `10b1519718` (2026-06-12) |
+| #183 | UNSC & ODST Flags/Banners | PORTED @ `10b1519718` (2026-06-12) |
+| #159 | Shotgun & sniper ammo boxes | PORTED — shotgun/sniper handful boxes, handful_state updates, ammo crate changes, 3 binary assets, map changes; re-ported @ `10b1519718` (2026-06-12) |
 | #158 | Fire Support Binos Support | PORTED — full fire support restructure: new defines, type path restructuring, ignore_availability, radial menu, UNSC binoculars, ammo mix crates, GM faction changes |
 | #157 | UNSC Medals Enabled | PORTED — medal name defines, GLOBAL_LIST_INIT expanded, USCM→UNSC text, medal desc updates |
 | #156 | Presets updates, Vendor tweaks | PORTED (core) |
@@ -71,10 +75,10 @@ Post-PR #102 audit of new CM-PVE-HALO and CM-PVE PRs not in the original batch.
 
 | Status | CM-PVE-HALO | CM-PVE | Total |
 |--------|-------------|--------|-------|
-| **PORTED** | 18 | 0 | 18 |
+| **PORTED** | 21 | 0 | 21 |
 | **ALREADY PRESENT** | 4 | 2 | 6 |
 | **SKIP** | 0 | 8 | 8 |
-| **Total** | 22 | 10 | 32 |
+| **Total** | 25 | 10 | 35 |
 
 ## Deferred Scope
 
