@@ -133,6 +133,7 @@
 #include "code/mixed/structures/halo_unsc_reagent_dispensers.dm"
 #include "code/mixed/structures/halo_windows.dm"
 #include "code/game/objects/structures/fence.dm"
+#include "code/game/objects/structures/signs.dm" // SS220 EDIT
 #include "code/game/objects/structures/crates_lockers/halo_ordnance.dm"
 #include "code/mixed/turfs/halo_floors.dm"
 #include "code/mixed/turfs/halo_forerunner.dm"
