@@ -33,6 +33,27 @@
 
 // SS220 EDIT END
 
+// SS220 EDIT - START
+// USCM /motion шлем — портирован из CM-PVE-HALO PR #146 (visr-nvg)
+/obj/item/clothing/head/helmet/marine/motion
+	name = "\improper M10-M helmet"
+	desc = "A standard-issue USCM M10 helmet with an integrated motion sensor. Has a built-in camera and HUD."
+	icon_state = "helmet"
+	item_state = "helmet"
+	flags_inventory = COVEREYES|COVERMOUTH|BLOCKSHARPOBJ
+	flags_inv_hide = HIDEEARS|HIDEEYES|HIDEFACE|HIDEALLHAIR
+	flags_cold_protection = BODY_FLAG_HEAD
+	flags_heat_protection = BODY_FLAG_HEAD
+	min_cold_protection_temperature = HELMET_MIN_COLD_PROT
+	max_heat_protection_temperature = HELMET_MAX_HEAT_PROT
+	siemens_coefficient = 0.9
+	anti_hug = 6
+
+/obj/item/clothing/head/helmet/marine/motion/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/halo_motion_sensor_manager)
+// SS220 EDIT - END
+
 /obj/item/clothing/head/helmet/marine/unsc/pilot
 	name = "\improper FH252 helmet"
 	desc = "Типичный шлем большинства пилотов ККОН благодаря полностью закрытой конструкции. Особенно ценится в боевых условиях, когда кабина может оказаться разгерметизированной."
