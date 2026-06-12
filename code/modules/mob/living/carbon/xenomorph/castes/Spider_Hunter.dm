@@ -39,7 +39,7 @@
 	desc = "A giant arachnoid, furry and black. It makes you shudder to look at it. This one has glittering purple eyes."
 	icon = 'icons/mob/xenos/spider_hunter.dmi'
 	icon_size = 48
-	icon_state = "Spider Hunter Running"
+	icon_state = "Normal Spider Hunter Running"
 	plasma_types = list(PLASMA_CHITIN)
 	tier = 2
 

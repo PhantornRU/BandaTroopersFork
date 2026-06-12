@@ -37,7 +37,7 @@
 	desc = "A giant arachnoid, furry in a pale hue. It makes you shudder to look at it. This one has shimmering green eyes."
 	icon = 'icons/mob/xenos/spider_nurse.dmi'
 	icon_size = 48
-	icon_state = "Spider Nurse Running"
+	icon_state = "Normal Spider Nurse Running"
 	plasma_types = list(PLASMA_CHITIN)
 	tier = 2
 

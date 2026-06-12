@@ -37,7 +37,7 @@
 	desc = "A giant arachnoid, furry and brown. It makes you shudder to look at it. This one has deep red eyes."
 	icon = 'icons/mob/xenos/spider_guard.dmi'
 	icon_size = 48
-	icon_state = "Spider Guard Running"
+	icon_state = "Normal Spider Guard Running"
 	plasma_types = list(PLASMA_CHITIN)
 	tier = 1
 
