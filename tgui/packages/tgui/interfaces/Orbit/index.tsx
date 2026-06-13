@@ -66,7 +66,7 @@ const ObservableSearch = () => {
   const { act, data } = useBackend<OrbitData>();
   const { humans = [], marines = [], survivors = [], xenos = [] } = data;
 
-  let auto_observe = data.auto_observe;
+  const auto_observe = data.auto_observe;
 
   /** Gets a list of Observables, then filters the most relevant to orbit */
   const orbitMostRelevant = (searchQuery: string) => {

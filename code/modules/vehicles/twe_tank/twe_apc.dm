@@ -39,7 +39,7 @@
 		/obj/item/hardpoint/locomotion/treads,
 		/obj/item/hardpoint/locomotion/treads/robust,
 		/obj/item/hardpoint/secondary/m56cupola/twe_tank,
-		/obj/item/hardpoint/support/smoke_launcher/twe_tank,
+		/obj/item/hardpoint/support/smoke_launcher/twe_tank, // SS220 EDIT: trailing comma fix
 	)
 
 

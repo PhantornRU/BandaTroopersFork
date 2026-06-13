@@ -645,7 +645,7 @@
 	var/random_cover = rand(1,3)
 	switch(random_cover)
 		if(1 to 2)
-			new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD)
+			new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD) // SS220 EDIT: motion helmet
 			add_uscm_cover(new_human)
 		if(3)
 			new_human.equip_to_slot_or_del(new 	/obj/item/device/overwatch_camera(new_human), WEAR_R_EAR)
@@ -703,7 +703,7 @@
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/foxtrot(new_human), WEAR_L_EAR)
 	//head
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD) // SS220 EDIT: motion helmet
 	add_uscm_cover(new_human)
 	add_uscm_goggles(new_human)
 	//uniform
@@ -816,7 +816,7 @@
 	//face
 	new_human.equip_to_slot_or_del(new /obj/item/device/radio/headset/almayer/marine/solardevils/foxtrot(new_human), WEAR_L_EAR)
 	//head
-	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD)
+	new_human.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/marine/motion(new_human), WEAR_HEAD) // SS220 EDIT: motion helmet
 	add_uscm_cover(new_human)
 	add_uscm_goggles(new_human)
 	//uniform

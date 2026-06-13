@@ -1623,15 +1623,6 @@
 	},
 /turf/open/void,
 /area/desert_dam/exterior/valley/valley_wilderness)
-"Us" = (
-/obj/structure/platform/kutjevo/rock{
-	dir = 8
-	},
-/obj/structure/platform/kutjevo/rock{
-	dir = 8
-	},
-/turf/open/auto_turf/sand/layer1,
-/area/desert_dam/exterior/valley/valley_wilderness)
 "UE" = (
 /obj/structure/cable/green{
 	icon_state = "2-8"
@@ -42007,7 +41998,7 @@ JS
 JS
 wm
 wm
-Us
+wm
 wm
 ae
 mD

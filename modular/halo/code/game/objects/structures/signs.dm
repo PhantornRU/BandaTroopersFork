@@ -1,5 +1,5 @@
 /obj/structure/sign/banners/halo
-	icon = 'icons/halo/obj/structures/props/banners.dmi'
+	icon = 'modular/halo/icons/halo/obj/structures/props/banners.dmi'
 
 /obj/structure/sign/banners/halo/odst
 	name = "\improper 105th Shock Troops Division flag"
