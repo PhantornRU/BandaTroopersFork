@@ -62,23 +62,25 @@ Post-PR #102 audit of new CM-PVE-HALO and CM-PVE PRs not in the original batch.
 | PR | Title | Status |
 |----|-------|--------|
 | #1290 | Update README.md — fix badge | SKIP — CI-only, README badge fix |
-| #1263 | Super Secret Fragile PR [DNM] [TM Only] | SKIP — DNM, TM Only |
+| #1263 | Super Secret Fragile PR | PORTED — tape recorder color change (MAROON→GREEN); was SKIP in backlog, corrected per canonical CM_PVE_PORT_STATE.md |
 | #1262 | Alan's GM Mega-PR [DNM] [TM ONLY] [IDB IGNORE] | SKIP — DNM, TM Only |
 | #1261 | Alan Sandbox [DNM] [TM ONLY] [IDB IGNORE] | SKIP — DNM, TM Only |
-| #1258 | CANC presets & squad spawner tweak | ALREADY PRESENT — MAP_COLD checks, officer preset, heap MG, squad spawners |
-| #1257 | [IDB IGNORE] [DNM] OOC-2 | SKIP — DNM |
+| #1258 | CANC presets & squad spawner tweak | PORTED — cold weather scarf, new presets, paygrade fixes; was ALREADY PRESENT in backlog, corrected per canonical CM_PVE_PORT_STATE.md |
+| #1257 | OOC-2 | PORTED — Chapter Title GM verb, Send Tip GM verb, screen2_full.dmi; was SKIP in backlog, corrected per canonical CM_PVE_PORT_STATE.md |
 | #1256 | FSM - Flyby/Hover with SFX | ALREADY PRESENT + HALO extended — flyby ordnance, Cheyenne/Krokodil/Banshee/Seraph/Wombat/C712/C709 |
 | #1255 | UPP camouflage armor/clothes | PORTED — NO_SNOW_TYPE removed from combat UPP gear; select_gamemode_skin added; DMI sprites imported (2026-06-14) |
-| #1253 | [DMN] [TM Only] Tethered USS Rover | SKIP — DNM, TM Only |
+| #1253 | Tethered USS Rover | PORTED — new shipmap USS Rover Tethered for FORECON VBSS; was SKIP in backlog, corrected per canonical CM_PVE_PORT_STATE.md |
 
 ## Summary
 
 | Status | CM-PVE-HALO | CM-PVE | Total |
 |--------|-------------|--------|-------|
-| **PORTED** | 21 | 1 | 22 |
-| **ALREADY PRESENT** | 4 | 2 | 6 |
-| **SKIP** | 0 | 7 | 7 |
+| **PORTED** | 21 | 5 | 26 |
+| **ALREADY PRESENT** | 4 | 1 | 5 |
+| **SKIP** | 0 | 4 | 4 |
 | **Total** | 25 | 10 | 35 |
+
+**Note:** CM-PVE counts in this backlog reflect only PRs audited post-PR #102 (new PR audit section). For full CM-PVE canonical tracking (26 PORTED + 1 ALREADY PRESENT = 27), see [`CM_PVE_PORT_STATE.md`](../__docs/CM_PVE_PORT_STATE.md). The 5 PORTED here are the subset of CM-PVE PRs that were initially misclassified in the backlog and have been corrected to match the canonical source.
 
 ## Deferred Scope
 
