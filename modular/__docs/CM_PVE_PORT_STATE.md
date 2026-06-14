@@ -60,6 +60,34 @@ Canonical tracking document for PRs ported from CM-PVE upstream (https://github.
 - Некоторые PR требуют проверки компиляции из-за кросс-зависимостей между PR (например, #1273 Gibson & Kloos и #1277 Movie-like Xeno Castes используют одни и те же defines).
 - Для полной истории портирования см. [`VARIOUS_FIXES_PORTING_MAP.md`](VARIOUS_FIXES_PORTING_MAP.md).
 
+## Modular Migration Cleanup (2026-06-14)
+
+- **Status**: COMPLETE
+- **Action**: 8 non-glue files moved from `code/` to `modular/cm_pve/code/`, includes cleaned from `colonialmarines.dme` and `colonialmarines.test.dme`.
+- **Files moved**: `dog_war.dm`, `shipmap_light_change.dm`, `vai.dm`, `helmet_visors.dm` (halo), `heavy_autocannon.dm`, `twe_tank/interior.dm`, `twe_tank/twe_apc.dm`, `twe_tank/twe_tank.dm`.
+- **Kept in code/**: `halo_jobs.dm` (shared define contracts per Path Matrix rule 8), all `code/__DEFINES/bandamarines/*` (stable contracts).
+- **New module**: `modular/cm_pve/` with `_cm_pve.dme` + `_cm_pve.dm`, included in `modular/modular.dme` after HALO.
+- **Compile**: `BUILD.cmd` — 0 errors, 0 warnings.
+- **No content deleted**. Original files remain in `code/` as fallback until cleanup is validated.
+
+## HALO Modular Correction (2026-06-14)
+
+- **Status**: COMPLETE
+- **Action**: HALO-specific files incorrectly placed in `modular/cm_pve/` moved to `modular/halo/`.
+- **Files moved to `modular/halo/`**:
+  - `shipmap_light_change.dm` → `modular/halo/code/modules/admin/game_master/extra_buttons/shipmap_light_change.dm` (HALO upstream PR #171)
+  - `helmet_visors.dm` (VISR night vision) → merged into existing `modular/halo/code/game/objects/items/devices/helmet_visors.dm` (appended after IHADSS visor)
+- **Files kept in `modular/cm_pve/`** (pure CM-PVE, not HALO):
+  - `vai.dm` — VAI faction clothing (CM-PVE PR #1275)
+  - `dog_war.dm` — Dog War MRE food (CM-PVE PR #1280)
+  - `twe_tank/` — FV150 Hobelar tank/APC (CM-PVE PR #1276)
+  - `heavy_autocannon.dm` — 45mm L29A2 ammo (CM-PVE PR #1276)
+- **DME updates**:
+  - `modular/halo/_halo.dme`: added `#include` for `shipmap_light_change.dm`
+  - `modular/cm_pve/_cm_pve.dme`: removed `#include` for `helmet_visors.dm` and `shipmap_light_change.dm`
+- **`code/__DEFINES/halo_jobs.dm`**: kept in `code/` as required glue (used by `code/__DEFINES/mode.dm`, `code/game/jobs/job/marine/squads.dm`, `code/controllers/subsystem/communications.dm`)
+- **Compile**: `BUILD.cmd` — 0 errors, 0 warnings
+
 ## Update Protocol
 
 - When new CM-PVE PRs are ported, update this file in the same change.

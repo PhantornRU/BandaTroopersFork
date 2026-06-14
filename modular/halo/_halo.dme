@@ -243,3 +243,4 @@
 #include "code/modules/reagents/chemistry_reagents/halo.dm"
 #include "code/mixed/keybindings/halo_spartan_keybindings.dm"
 #include "code/modules/unit_tests/halo_preset_coverage.dm"
+#include "code/modules/admin/game_master/extra_buttons/shipmap_light_change.dm"

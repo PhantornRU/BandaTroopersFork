@@ -1252,7 +1252,6 @@
 #include "code\game\objects\items\devices\vulture_spotter.dm"
 #include "code\game\objects\items\devices\walkman.dm"
 #include "code\game\objects\items\devices\whistle.dm"
-#include "code\game\objects\items\devices\halo\helmet_visors.dm"
 #include "code\game\objects\items\devices\radio\beacon.dm"
 #include "code\game\objects\items\devices\radio\electropack.dm"
 #include "code\game\objects\items\devices\radio\encryptionkey.dm"
@@ -1315,7 +1314,6 @@
 #include "code\game\objects\items\reagent_containers\food\drinks\jar.dm"
 #include "code\game\objects\items\reagent_containers\food\mre_food\clf.dm"
 #include "code\game\objects\items\reagent_containers\food\mre_food\core_food.dm"
-#include "code\game\objects\items\reagent_containers\food\mre_food\dog_war.dm" // SS220 EDIT: Dog War MRE
 #include "code\game\objects\items\reagent_containers\food\mre_food\hdr.dm"
 #include "code\game\objects\items\reagent_containers\food\mre_food\mercenary.dm"
 #include "code\game\objects\items\reagent_containers\food\mre_food\twe.dm"
@@ -1564,7 +1562,6 @@
 #include "code\modules\admin\game_master\extra_buttons\rename_platoon.dm"
 #include "code\modules\admin\game_master\extra_buttons\screen_alert_menu.dm"
 #include "code\modules\admin\game_master\extra_buttons\send_tip.dm"
-#include "code\modules\admin\game_master\extra_buttons\shipmap_light_change.dm" // SS220 EDIT: HALO upstream PR #171 Shipmap Lighting Verb
 #include "code\modules\admin\game_master\extra_buttons\toggle_ai_xeno_weeding.dm"
 #include "code\modules\admin\game_master\extra_buttons\toggle_intro.dm"
 #include "code\modules\admin\game_master\extra_buttons\toggle_join_xeno.dm"
@@ -1763,7 +1760,6 @@
 #include "code\modules\clothing\under\shorts.dm"
 #include "code\modules\clothing\under\ties.dm"
 #include "code\modules\clothing\under\under.dm"
-#include "code\modules\clothing\under\vai.dm" // SS220 EDIT: VAI faction clothing — ported from PR #1275
 #include "code\modules\clothing\under\jobs\civilian.dm"
 #include "code\modules\clothing\under\jobs\engineering.dm"
 #include "code\modules\clothing\under\jobs\medsci.dm"
@@ -2683,8 +2679,6 @@
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\flare_launcher_ammo.dm"
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\gl_ammo.dm"
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\hardpoint_ammo.dm"
-// SS220 EDIT
-#include "code\modules\vehicles\hardpoints\hardpoint_ammo\heavy_autocannon.dm"
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\ltb_ammo.dm"
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\minigun_ammo.dm"
 #include "code\modules\vehicles\hardpoints\hardpoint_ammo\p17702.dm"
@@ -2759,11 +2753,6 @@
 #include "code\modules\vehicles\tank\aev.dm"
 #include "code\modules\vehicles\tank\interior.dm"
 #include "code\modules\vehicles\tank\tank.dm"
-// SS220 EDIT - START
-#include "code\modules\vehicles\twe_tank\interior.dm"
-#include "code\modules\vehicles\twe_tank\twe_apc.dm"
-#include "code\modules\vehicles\twe_tank\twe_tank.dm"
-// SS220 EDIT - END
 #include "code\modules\vehicles\uppapc\interior.dm"
 #include "code\modules\vehicles\uppapc\uppapc.dm"
 #include "code\modules\vehicles\upptank\interior.dm"

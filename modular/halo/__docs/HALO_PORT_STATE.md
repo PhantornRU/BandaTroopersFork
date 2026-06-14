@@ -116,6 +116,19 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
   - Runtime unit-test execution was not rerun in this cleanup pass; only the `UNIT_TESTS` compile target was rebuilt cleanly.
   - Windows-local `maplint` previously hit a decoding failure on `maps/map_files/UNSC_Stalwart_Frigate/UNSC_Stalwart_Frigate.dmm`, so that remaining check should be treated as an environment-specific follow-up unless CI reproduces it.
 
+## 2026-06-14 HALO Modular Correction
+
+- **Context**: Previous modular migration placed HALO-specific files (`helmet_visors.dm` VISR, `shipmap_light_change.dm`) into `modular/cm_pve/` instead of `modular/halo/`. This violated the "HALO has its own separate modular" rule.
+- **Correction**:
+  - `shipmap_light_change.dm` (HALO PR #171) moved to `modular/halo/code/modules/admin/game_master/extra_buttons/shipmap_light_change.dm`
+  - `helmet_visors.dm` VISR content merged into existing `modular/halo/code/game/objects/items/devices/helmet_visors.dm` (appended after IHADSS visor)
+  - `halo_jobs.dm` duplicate removed from `modular/cm_pve/` (defines already live in `code/__DEFINES/halo_jobs.dm` as required glue for `code/` consumers)
+- **DME updates**:
+  - `modular/halo/_halo.dme`: added `#include` for `shipmap_light_change.dm`
+  - `modular/cm_pve/_cm_pve.dme`: removed HALO-specific includes
+- **Compile**: `BUILD.cmd` — 0 errors, 0 warnings
+- **CM-PVE module** retains pure CM-PVE content: `vai.dm`, `dog_war.dm`, `twe_tank/`, `heavy_autocannon.dm`
+
 ## Ported PRs Reference
 
 ### CM-PVE-HALO (https://github.com/cmss13-devs/cmss13-pve-halo)

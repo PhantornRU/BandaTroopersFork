@@ -113,3 +113,18 @@ All 6 previously deferred intentional deviations from PR #102 have been ported:
 
 ## Open Caveats
 - Local monolithic invocation `tools/build/build dm --ci --define=ALL_MAPS --define=CIBUILDING` crashes DM process (`3221225477`) after map loading; staged CI-equivalent map compile remains the current acceptance signal.
+
+## Modular Migration Cleanup (2026-06-14)
+
+- **Status**: COMPLETE
+- **Action**: HALO non-glue files (`helmet_visors.dm`, `shipmap_light_change.dm`) moved from `code/` to `modular/cm_pve/code/`. `halo_jobs.dm` kept in `code/__DEFINES/` as shared define contract.
+- **Compile**: `BUILD.cmd` — 0 errors, 0 warnings.
+
+## HALO Modular Correction (2026-06-14)
+
+- **Status**: COMPLETE
+- **Action**: HALO-specific files moved from `modular/cm_pve/` to `modular/halo/` (correct modular).
+  - `shipmap_light_change.dm` → `modular/halo/code/modules/admin/game_master/extra_buttons/`
+  - `helmet_visors.dm` VISR content → merged into `modular/halo/code/game/objects/items/devices/helmet_visors.dm`
+- **DME**: `_halo.dme` updated, `_cm_pve.dme` cleaned of HALO includes.
+- **Compile**: `BUILD.cmd` — 0 errors, 0 warnings.
