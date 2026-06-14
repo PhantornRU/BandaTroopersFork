@@ -1906,7 +1906,7 @@
 /area/golden_arrow/engineering)
 "lk" = (
 /turf/closed/wall/rock/brown,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "ls" = (
 /obj/effect/decal/siding{
 	icon_state = "siding2"
@@ -2352,7 +2352,7 @@
 /area/golden_arrow/hangar)
 "nW" = (
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "nX" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "W";
@@ -3468,7 +3468,7 @@
 "to" = (
 /obj/structure/tunnel,
 /turf/open/auto_turf/sand_white/layer0,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "tq" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "door_warning"
@@ -3519,7 +3519,7 @@
 /area/golden_arrow/cryo_cells)
 "tA" = (
 /turf/open/auto_turf/sand_white/layer0,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "tB" = (
 /obj/structure/machinery/door/firedoor/border_only/almayer{
 	layer = 1.9
@@ -6524,7 +6524,7 @@
 	randpixel = 0
 	},
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "IQ" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -8263,7 +8263,7 @@
 	dir = 1
 	},
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "RD" = (
 /obj/effect/decal/warning_stripes{
 	icon_state = "N";
@@ -8470,7 +8470,7 @@
 	pixel_x = 10
 	},
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/uscm_bunker)
 "SB" = (
 /obj/structure/disposalpipe/segment{
 	dir = 8

@@ -4,7 +4,7 @@
 /area/golden_arrow/engineering)
 "ab" = (
 /turf/open/auto_turf/sand_white/layer0,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "ac" = (
 /obj/structure/disposalpipe/segment,
 /obj/structure/pipes/standard/simple/hidden/supply,
@@ -1503,7 +1503,7 @@
 	dir = 8
 	},
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "dn" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4;
@@ -3257,7 +3257,7 @@
 	dir = 4
 	},
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "hO" = (
 /obj/structure/machinery/light/small{
 	dir = 1;
@@ -3561,7 +3561,7 @@
 /area/golden_arrow/dorms)
 "iB" = (
 /turf/open/gm/dirt2,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "iC" = (
 /obj/structure/disposalpipe/segment,
 /obj/structure/sign/safety/galley{
@@ -4747,7 +4747,7 @@
 /area/golden_arrow/prep_hallway)
 "lT" = (
 /turf/closed/wall/rock/brown,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "lW" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4
@@ -5178,7 +5178,7 @@
 "mS" = (
 /obj/structure/tunnel,
 /turf/open/auto_turf/sand_white/layer0,
-/area/lv624/ground/caves/south_central_caves)
+/area/upp_bunker)
 "mT" = (
 /obj/structure/machinery/light/double{
 	light_color = "#e7c0a4";
