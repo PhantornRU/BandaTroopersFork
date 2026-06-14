@@ -199,7 +199,7 @@
 
 /obj/item/clothing/suit/marine/veteran/pmc/light
 	name = "\improper WY light tactical armor"
-	icon_state = "pmc_sniper"
+	icon_state = "pmc_vest"
 	armor_melee = CLOTHING_ARMOR_MEDIUMLOW
 	armor_bullet = CLOTHING_ARMOR_MEDIUM
 	armor_energy = CLOTHING_ARMOR_MEDIUMLOW
@@ -207,7 +207,7 @@
 	armor_rad = CLOTHING_ARMOR_MEDIUM
 	armor_internaldamage = CLOTHING_ARMOR_MEDIUMLOW
 	slowdown = SLOWDOWN_ARMOR_VERY_LIGHT
-	item_state_slots = list(WEAR_JACKET = "pmc_sniper")
+	item_state_slots = list(WEAR_JACKET = "pmc_vest")
 
 /obj/item/clothing/suit/marine/smartgunner/veteran/pmc
 	name = "\improper WY support gunner armor"
