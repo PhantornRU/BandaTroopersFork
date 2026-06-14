@@ -1546,6 +1546,7 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	attack_verb = list("whacked", "hit", "smacked", "beaten", "battered")
 	var/obj/structure/machinery/camera/camera
 	var/helmet_overlays[]
+	flags_atom = null
 	flags_inventory = BLOCKSHARPOBJ
 	flags_inv_hide = NONE
 	clothing_traits = list(TRAIT_EAR_PROTECTION)
@@ -1579,6 +1580,8 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 
 /obj/item/clothing/head/helmet/upp/Initialize(mapload, new_protection[] = list(MAP_ICE_COLONY = ICE_PLANET_MIN_COLD_PROT))
 	. = ..()
+	select_gamemode_skin(type)
+	update_icon()
 
 	helmet_overlays = list()
 
@@ -1900,6 +1903,7 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 		WEAR_HEAD = 'icons/mob/humans/onmob/head_1.dmi'
 	)
 	siemens_coefficient = 2
+	flags_atom = NO_SNOW_TYPE
 	flags_armor_protection = BODY_FLAG_HEAD
 	armor_melee = CLOTHING_ARMOR_VERYLOW
 	armor_bullet = CLOTHING_ARMOR_NONE
@@ -1913,68 +1917,85 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	min_cold_protection_temperature = ICE_PLANET_MIN_COLD_PROT
 	flags_inventory = null
 
+/obj/item/clothing/head/uppcap/Initialize(mapload, new_protection[] = list(MAP_ICE_COLONY = ICE_PLANET_MIN_COLD_PROT))
+	. = ..()
+	select_gamemode_skin(type)
+	update_icon()
+
 /obj/item/clothing/head/uppcap/civi
 	name = "\improper UL2c cap"
 	icon_state = "upp_cap_civi"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/boonie
 	name = "\improper UL5 hat"
 	desc = "Standard issue soft brimmed hat for Territorial Guard units stationed in areas with extreme heat."
 	icon = 'icons/obj/items/clothing/cm_hats.dmi'
 	icon_state = "upp_boonie"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/boonie/canc
 	name = "\improper boonie hat"
 	desc = "A boonie hat in CANC uniform colors."
 	icon_state = "canc_boonie"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/beret/naval
 	name = "\improper UL4 Naval Infantry beret"
 	desc = "A black beret worn by the UPP's Naval Infantry. Wear it with pride."
 	icon = 'icons/obj/items/clothing/cm_hats.dmi'
 	icon_state = "upp_beret_naval"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/beret/guerilla
 	name = "\improper red beret"
 	desc = "A red beret popular with communist revolutionaries."
 	icon = 'icons/obj/items/clothing/cm_hats.dmi'
 	icon_state = "upp_beret_revolution"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/beret
 	name = "\improper UL3 beret"
 	desc = "Standard issue beret of the UPP's military."
 	icon_state = "upp_beret"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/beret/para
 	name = "\improper UL6 Recon Infantry beret"
 	desc = "A red beret worn by the UPP-SOF \"Rozbòjnik\" Group. Wear it with pride."
 	icon = 'icons/obj/items/clothing/cm_hats.dmi'
 	icon_state = "upp_beret_revolution"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/peaked
 	name = "\improper UL3 peaked cap"
 	desc = "Standard issue peaked service cap of the UPP's military."
 	icon_state = "upp_peaked"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/peaked/police
 	name = "\improper UL3 PaP peaked cap"
 	desc = "Standard issue peaked cap of the People's Armed Police."
 	icon_state = "upp_peaked_police"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/peaked/mss
 	name = "\improper UL3 MSS peaked cap"
 	desc = "Standard issue peaked cap of the Ministry of Space Security."
 	icon_state = "upp_peaked_mss"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/peaked/canc
 	name = "\improper CANC peaked cap"
 	desc = "Standard issue peaked cap of the Chinese-Asian Nation Cooperative."
 	icon_state = "canc_peaked"
+	flags_atom = NO_SNOW_TYPE
 
 /obj/item/clothing/head/uppcap/ushanka
 	name = "\improper UL2 ushanka"
 	desc = "Standard issue cold weather hat of the UPP's military."
 	icon_state = "upp_ushanka"
+	flags_atom = NO_SNOW_TYPE
 	item_state = "upp_ushanka"
 	var/tied = FALSE
 	var/original_state = "upp_ushanka"

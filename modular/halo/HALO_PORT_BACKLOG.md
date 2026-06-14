@@ -68,16 +68,16 @@ Post-PR #102 audit of new CM-PVE-HALO and CM-PVE PRs not in the original batch.
 | #1258 | CANC presets & squad spawner tweak | ALREADY PRESENT — MAP_COLD checks, officer preset, heap MG, squad spawners |
 | #1257 | [IDB IGNORE] [DNM] OOC-2 | SKIP — DNM |
 | #1256 | FSM - Flyby/Hover with SFX | ALREADY PRESENT + HALO extended — flyby ordnance, Cheyenne/Krokodil/Banshee/Seraph/Wombat/C712/C709 |
-| #1255 | UPP camouflage armor/clothes (TM only) | SKIP — TM Only |
+| #1255 | UPP camouflage armor/clothes | PORTED — NO_SNOW_TYPE removed from combat UPP gear; select_gamemode_skin added; DMI sprites imported (2026-06-14) |
 | #1253 | [DMN] [TM Only] Tethered USS Rover | SKIP — DNM, TM Only |
 
 ## Summary
 
 | Status | CM-PVE-HALO | CM-PVE | Total |
 |--------|-------------|--------|-------|
-| **PORTED** | 21 | 0 | 21 |
+| **PORTED** | 21 | 1 | 22 |
 | **ALREADY PRESENT** | 4 | 2 | 6 |
-| **SKIP** | 0 | 8 | 8 |
+| **SKIP** | 0 | 7 | 7 |
 | **Total** | 25 | 10 | 35 |
 
 ## Deferred Scope

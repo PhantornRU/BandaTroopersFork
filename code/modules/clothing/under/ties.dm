@@ -1554,6 +1554,11 @@
 	item_state = "upp_arms"
 	slot = ACCESSORY_SLOT_DECORARMOR
 
+/obj/item/clothing/accessory/upppads/Initialize(mapload)
+	. = ..()
+	select_gamemode_skin(type)
+	update_icon()
+
 /obj/item/clothing/accessory/upppads/legs
 	name = "\improper 6B90 Leg Guards"
 	desc = "A set of leg greaves designed for the 6B90 armor system."
