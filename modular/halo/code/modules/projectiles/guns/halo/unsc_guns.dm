@@ -21,9 +21,9 @@
 	caliber = "7.62x51mm"
 
 	fire_sound = "gun_ma5c"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_ma5c_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_ma5c_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_ma5c_unload.ogg'
 	empty_click = "ma5b_dryfire"
 	empty_sound = null
 
@@ -81,9 +81,9 @@
 	fire_sound = "gun_ma5b"
 	fire_rattle = "gun_ma5b"
 	firesound_volume = 20
-	reload_sound = 'modular/halo/sound/weapons/halo/ma5b/gun_ma5b_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/ma5b/gun_ma5b_cock.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/ma5b/gun_ma5b_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/ma5b/gun_ma5b_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/ma5b/gun_ma5b_cock.ogg'
+	unload_sound = 'modular/halo/sound/weapons/ma5b/gun_ma5b_unload.ogg'
 	empty_click = "ma5b_dryfire"
 	empty_sound = null
 
@@ -138,9 +138,9 @@
 	caliber = "7.62x51mm"
 
 	fire_sound = "gun_ma5c"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_ma5c_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_ma5c_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_ma5c_unload.ogg'
 	empty_sound = null
 
 	flags_gun_features = GUN_AUTO_EJECT_CASINGS|GUN_CAN_POINTBLANK|GUN_AMMO_COUNTER
@@ -194,9 +194,9 @@
 	caliber = "6.5x48mm"
 
 	fire_sound = "gun_ma5c"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_ma5c_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_ma5c_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_ma5c_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_ma5c_unload.ogg'
 	empty_sound = null
 
 	flags_gun_features = GUN_AUTO_EJECT_CASINGS|GUN_CAN_POINTBLANK|GUN_AMMO_COUNTER
@@ -254,9 +254,9 @@
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/br55.dmi'
 
 	fire_sound = "gun_br55"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_br55_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_br55_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_br55_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_br55_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_br55_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_br55_unload.ogg'
 	empty_sound = null
 
 	flags_gun_features = GUN_AUTO_EJECT_CASINGS|GUN_CAN_POINTBLANK|GUN_AMMO_COUNTER
@@ -311,10 +311,10 @@
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/br55.dmi'
 
 	fire_sound = null
-	fire_sounds = list('modular/halo/sound/weapons/halo/gun_m392_1.ogg', 'modular/halo/sound/weapons/halo/gun_m392_2.ogg', 'modular/halo/sound/weapons/halo/gun_m392_3.ogg')
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_br55_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_br55_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_br55_unload.ogg'
+	fire_sounds = list('modular/halo/sound/weapons/gun_m392_1.ogg', 'modular/halo/sound/weapons/gun_m392_2.ogg', 'modular/halo/sound/weapons/gun_m392_3.ogg')
+	reload_sound = 'modular/halo/sound/weapons/gun_br55_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_br55_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_br55_unload.ogg'
 	empty_sound = null
 
 
@@ -379,9 +379,9 @@
 
 	fire_sound = "gun_m7"
 	fire_rattle = "gun_m7"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_m7_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_m7_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_m7_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_m7_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_m7_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_m7_unload.ogg'
 	empty_sound = null
 	w_class = SIZE_LARGE
 
@@ -458,8 +458,8 @@
 	icon_state = "m90"
 	item_state = "m90"
 	fire_sound = "gun_m90"
-	pump_sound = 'modular/halo/sound/weapons/halo/gun_m90_pump.ogg'
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_m90_reload.ogg'
+	pump_sound = 'modular/halo/sound/weapons/gun_m90_pump.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_m90_reload.ogg'
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/shotgun.dmi'
 	current_mag = /obj/item/ammo_magazine/internal/shotgun/m90
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90)
@@ -524,9 +524,9 @@
 	)
 
 	fire_sound = "gun_srs99"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_srs99_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_srs99_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_srs99_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_srs99_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_srs99_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_srs99_unload.ogg'
 	empty_sound = null
 
 	current_mag = /obj/item/ammo_magazine/rifle/halo/sniper
@@ -618,11 +618,11 @@
 		WEAR_R_HAND = 'modular/halo/icons/halo/mob/humans/onmob/items_righthand_halo.dmi'
 	)
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/magnum.dmi'
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_magnum_reload.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_magnum_unload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_magnum_cocked.ogg'
-	drop_sound = 'modular/halo/sound/items/halo/drop_lightweapon.ogg'
-	pickup_sound = 'modular/halo/sound/items/halo/grab_lightweapon.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_magnum_reload.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_magnum_unload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_magnum_cocked.ogg'
+	drop_sound = 'modular/halo/sound/items/drop_lightweapon.ogg'
+	pickup_sound = 'modular/halo/sound/items/grab_lightweapon.ogg'
 	flags_gun_features = GUN_AUTO_EJECT_CASINGS|GUN_CAN_POINTBLANK
 	empty_sound = null
 
@@ -734,10 +734,10 @@
 	current_mag = /obj/item/ammo_magazine/pistol/halo/m6d
 	attachable_allowed = list(/obj/item/attachable/scope/variable_zoom/m6d, /obj/item/attachable/flashlight/m6)
 	fire_sound = "gun_m6d"
-	unload_sound = 'modular/halo/sound/weapons/halo/m6d/gun_m6d_unload.ogg'
-	reload_sound = 'modular/halo/sound/weapons/halo/m6d/gun_m6d_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/m6d/gun_m6d_cock.ogg'
-	empty_click = 'modular/halo/sound/weapons/halo/m6d/gun_m6d_dryfire.ogg'
+	unload_sound = 'modular/halo/sound/weapons/m6d/gun_m6d_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/m6d/gun_m6d_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/m6d/gun_m6d_cock.ogg'
+	empty_click = 'modular/halo/sound/weapons/m6d/gun_m6d_dryfire.ogg'
 
 /obj/item/weapon/gun/pistol/halo/m6d/unloaded
 	current_mag = null

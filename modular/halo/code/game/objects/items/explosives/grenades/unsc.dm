@@ -69,7 +69,7 @@
 /obj/item/explosive/grenade/incendiary/unsc/prime(mob/living/user)
 	set waitfor = 0
 	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flame_radius), cause_data, radius, get_turf(src), flame_level, burn_level, flameshape, null, fire_type)
-	playsound(src.loc, 'modular/halo/sound/weapons/halo/gun_firebomb.ogg', 35, 1, 4)
+	playsound(src.loc, 'modular/halo/sound/weapons/gun_firebomb.ogg', 35, 1, 4)
 	qdel(src)
 
 // Spent grenade cases

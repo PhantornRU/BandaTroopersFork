@@ -116,7 +116,7 @@ Branch `halo_jackal_spartan_wave_apr2026`:
 
 ### Key Hotspots
 
-1. `modular/halo/code/modules/projectiles/guns/halo/unsc_guns.dm`
+1. `modular/halo/code/modules/projectiles/guns/unsc_guns.dm`
 2. `modular/halo/code/game/objects/items/weapons/halo_shields.dm`
 3. `modular/halo/code/modules/gear_presets/Halo/{ruuhtian,unggoy}.dm`
 4. `code/game/objects/items/explosives/mine.dm`

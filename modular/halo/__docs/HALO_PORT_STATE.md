@@ -36,7 +36,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 ## 2026-04-28 Modularity Audit
 
 - Current `PR #94` branch assets were normalized so Ruuhtian/Kig-Yar, Spartan, Sangheili, Unggoy, Warthog, New Irvine, Covenant mine, and PR96 HALO icon assets are resolved from `modular/halo/**`.
-- Root `icons/halo/**`, `sound/voice/{sangheili,unggoy,ruuhtian}/`, `sound/vehicles/halo/`, `icons/mob/humans/template_64.dmi`, `icons/obj/items/weapons/covenant_mines.dmi`, and New Irvine root flora/auto-turf DMI copies are treated as migrated-out legacy paths.
+- Root `icons/halo/**`, `sound/voice/{sangheili,unggoy,ruuhtian}/`, `sound/vehicles/`, `icons/mob/humans/template_64.dmi`, `icons/obj/items/weapons/covenant_mines.dmi`, and New Irvine root flora/auto-turf DMI copies are treated as migrated-out legacy paths.
 - The old root Warthog implementation was moved from `code/modules/vehicles/warthog/**` to `modular/halo/code/modules/vehicles/warthog/**`; the only remaining root Warthog reference is shared death/ejection glue.
 - Root generic `icons/obj/items/clothing/{gloves,shoes}.dmi` were reduced to a targeted removal of the old HALO `spartan` state only. The replacement states live in `modular/halo/icons/obj/items/clothing/spartan_{gloves,shoes}.dmi`.
 - PR96 generic root DMI candidates `icons/obj/structures/machinery/yautja_machines.dmi`, `icons/obj/structures/props/ground_map64.dmi`, and `icons/obj/structures/props/maptable.dmi` were compared against the pre-PR96 parent. They had no added, removed, or pixel-changed icon states, so no modular extraction was needed.
@@ -96,10 +96,10 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
     - L1: Clean build — 0 errors, 0 warnings
   - **Sound modularity migration stats** (review fix pass):
     - 42 additional `.ogg` files migrated from root `sound/` to `modular/halo/sound/`:
-      - `sound/effects/halo/dropship_hover/` → `modular/halo/sound/effects/halo/dropship_hover/` (5 files)
+      - `sound/effects/dropship_hover/` → `modular/halo/sound/effects/dropship_hover/` (5 files)
       - `sound/voice/twe_warcry/` → `modular/halo/sound/voice/twe_warcry/` (19 files)
-      - `sound/weapons/halo/pelican_gun/` → `modular/halo/sound/weapons/halo/pelican_gun/` (5 files)
-      - `sound/weapons/halo/phantom_gun/` → `modular/halo/sound/weapons/halo/phantom_gun/` (13 files)
+      - `modular/halo/sound/weapons/pelican_gun/` → `modular/halo/modular/halo/sound/weapons/pelican_gun/` (5 files)
+      - `modular/halo/sound/weapons/phantom_gun/` → `modular/halo/modular/halo/sound/weapons/phantom_gun/` (13 files)
     - 2 `.dm` files updated with modular paths: `code/game/sound.dm`, `modular/halo/code/datums/looping_sounds/halo_dropship.dm`
     - Total sound assets in modular path: 176 (original) + 42 (this pass) = **218**
 - Post-merge validation for the earlier `PR #94` gameplay-completion pass was complete before the 2026-04-28 asset modularity cleanup.

@@ -633,7 +633,7 @@
 			if("Banshee Flyby")
 				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
 				flyby_effect = /obj/effect/temp_visual/flyby/banshee_flyby
-				flyby_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+				flyby_sound = 'modular/halo/sound/weapons/fire_support/banshee_flyby.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
 				return TRUE
@@ -641,7 +641,7 @@
 			if("Seraph Flyby")
 				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
 				flyby_effect = /obj/effect/temp_visual/flyby/seraph_flyby
-				flyby_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+				flyby_sound = 'modular/halo/sound/weapons/fire_support/seraph_flyby.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
 				return TRUE
@@ -649,7 +649,7 @@
 			if("Wombat Flyby")
 				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
 				flyby_effect = /obj/effect/temp_visual/flyby/wombat_flyby
-				flyby_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
+				flyby_sound = 'modular/halo/sound/weapons/fire_support/wombat_flyover.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
 				return TRUE
@@ -657,7 +657,7 @@
 			if("C712 Flyby")
 				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
 				flyby_effect = /obj/effect/temp_visual/flyby/c712_longsword_flyby
-				flyby_sound = 'sound/weapons/halo/fire_support/c712_flyover.ogg'
+				flyby_sound = 'modular/halo/sound/weapons/fire_support/c712_flyover.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
 				return TRUE
@@ -665,7 +665,7 @@
 			if("C709 Flyby")
 				var/obj/effect/overlay/temp/blinking_laser/invis/target_lase = new(target_turf)
 				flyby_effect = /obj/effect/temp_visual/flyby/c709_longsword_flyby
-				flyby_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
+				flyby_sound = 'modular/halo/sound/weapons/fire_support/c709_flyover.ogg'
 				handle_flyby_initiate(target_turf)
 				QDEL_IN(target_lase, 1 SECONDS)
 				return TRUE
@@ -907,7 +907,7 @@
 /datum/fire_support/custom/wraith_plasma
 	name = "wraith plasma"
 	scatter_range = 0
-	initiate_sound = 'sound/weapons/halo/fire_support/wraith_plasma_whistle.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/wraith_plasma_whistle.ogg'
 	delay_to_impact = 1.5 SECONDS
 	impact_delay = 0.9 SECONDS
 	start_sound = null
@@ -930,7 +930,7 @@
 	name = "banshee fuel rod"
 	scatter_range = 0
 	start_visual = /obj/effect/temp_visual/flyby/banshee_flyby
-	start_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/banshee_flyby.ogg'
 	warning_chat_message = "BANSHEE"
 	delay_to_impact = 2 SECONDS
 	has_shadow = TRUE
@@ -954,8 +954,8 @@
 	impact_delay = 0.05 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/banshee_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/banshee_strafe.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/banshee_strafe.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/banshee_flyby.ogg'
 	warning_chat_message = "BANSHEE"
 
 /datum/fire_support/custom/banshee_strafe/do_impact(turf/target_turf)
@@ -982,8 +982,8 @@
 	name = "glassing beam"
 
 	scatter_range = 0
-	initiate_sound = 'sound/weapons/halo/fire_support/cruiser_overhead.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/glassing_beam.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/cruiser_overhead.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/glassing_beam.ogg'
 	delay_to_impact = 30 SECONDS
 	impact_delay = 1.7 SECONDS
 	warning_chat_message = "COVENANT SHIP"
@@ -1000,11 +1000,11 @@
 	var/fire_type = "white"
 
 /datum/fire_support/custom/glassing_beam/fast
-	initiate_sound = 'sound/weapons/halo/fire_support/cruiser_overhead_fast.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/cruiser_overhead_fast.ogg'
 	delay_to_impact = 4 SECONDS
 
 /datum/fire_support/custom/glassing_beam/weak
-	initiate_sound = 'sound/weapons/halo/fire_support/cruiser_overhead_fast.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/cruiser_overhead_fast.ogg'
 	delay_to_impact = 4 SECONDS
 	clear_power = 300
 	clear_falloff = 100
@@ -1064,7 +1064,7 @@
 	impact_delay = 0.05 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/wombat_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/wombat_flyover.ogg'
 	start_sound = 'sound/weapons/fire_support/casplane_flyby.ogg'
 	warning_chat_message = "WOMBAT"
 
@@ -1137,8 +1137,8 @@
 	impact_delay = 0.3 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/wombat_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/wombat_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/wombat_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/wombat_missile.ogg'
 	warning_chat_message = "WOMBAT"
 
 /datum/fire_support/custom/wombat/missile/call_in
@@ -1167,8 +1167,8 @@
 	impact_delay = 0.2 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/wombat_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/wombat_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/wombat_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/wombat_missile.ogg'
 	warning_chat_message = "WOMBAT"
 
 /datum/fire_support/custom/wombat/incendiary_missile/call_in
@@ -1215,7 +1215,7 @@
 	impact_delay = 0.3 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/wombat_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/wombat_flyover.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/wombat_flyover.ogg'
 	start_sound = 'sound/items/fulton.ogg'
 	///Thing the dropship delivers
 	var/enroute_tube = /obj/structure/closet/ordnance_canister/dropping/ammo_mix/basic
@@ -1283,8 +1283,8 @@
 	impact_delay = 0.1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c712_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c712_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/c712_coilgun.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c712_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/c712_coilgun.ogg'
 	warning_chat_message = "C712 LONGSWORD"
 
 /datum/fire_support/custom/c712/coilgun/call_in
@@ -1312,7 +1312,7 @@
 	impact_delay = 0.1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c712_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c712_flyover.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c712_flyover.ogg'
 	start_sound = null
 	warning_chat_message = "C712 LONGSWORD"
 
@@ -1346,8 +1346,8 @@
 	impact_delay = 1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c712_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c712_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/c712_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c712_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/c712_missile.ogg'
 	warning_chat_message = "C712 LONGSWORD"
 
 /datum/fire_support/custom/c712/missile/call_in
@@ -1394,8 +1394,8 @@
 	impact_delay = 1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c709_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/c712_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c709_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/c712_missile.ogg'
 	warning_chat_message = "C709 LONGSWORD"
 	warning_range = 35
 
@@ -1424,8 +1424,8 @@
 	impact_delay = 1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c709_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/c712_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c709_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/c712_missile.ogg'
 	warning_chat_message = "C709 LONGSWORD"
 	warning_range = 35
 
@@ -1454,8 +1454,8 @@
 	impact_delay = 1 SECONDS
 	start_visual = /obj/effect/temp_visual/flyby/c709_longsword_flyby
 	has_shadow = TRUE
-	initiate_sound = 'sound/weapons/halo/fire_support/c709_flyover.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/c712_missile.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/c709_flyover.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/c712_missile.ogg'
 	warning_chat_message = "C709 LONGSWORD"
 	warning_range = 35
 
@@ -1501,7 +1501,7 @@
 	delay_to_impact = 0 SECONDS
 	impact_delay = 0 SECONDS
 	impact_sound = null
-	start_sound = 'sound/weapons/halo/fire_support/frigate_mac.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/frigate_mac.ogg'
 	warning_chat_message = "MAC"
 	warning_range = 35
 
@@ -1542,7 +1542,7 @@
 /datum/fire_support/custom/ob/mac_gun/in_atmosphere
 	name = "MAC - Atmospheric"
 	delay_to_impact = 4 SECONDS
-	initiate_sound = 'sound/weapons/halo/fire_support/frigate_mac_in_atmos.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/frigate_mac_in_atmos.ogg'
 	start_sound = null
 
 /datum/fire_support/custom/ob/mac_gun/in_atmosphere/call_in
@@ -1570,7 +1570,7 @@
 	delay_to_impact = 8 SECONDS
 	impact_delay = 0.5 SECONDS
 	impact_sound = null
-	initiate_sound = 'sound/weapons/halo/fire_support/frigate_gunfire.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/frigate_gunfire.ogg'
 	warning_chat_message = "COILGUNS"
 	warning_range = 35
 
@@ -1595,7 +1595,7 @@
 	name = "seraph fuel rod"
 	scatter_range = 2
 	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
-	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/seraph_flyby.ogg'
 	warning_chat_message = "SERAPH"
 	delay_to_impact = 2 SECONDS
 	has_shadow = TRUE
@@ -1606,8 +1606,8 @@
 	name = "seraph strafe"
 	impact_quantity = 45
 	impact_delay = 0.02 SECONDS
-	initiate_sound = 'sound/weapons/halo/fire_support/seraph_strafe.ogg'
-	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	initiate_sound = 'modular/halo/sound/weapons/fire_support/seraph_strafe.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/seraph_flyby.ogg'
 	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
 	warning_chat_message = "SERAPH"
 	scatter_range = 4
@@ -1618,7 +1618,7 @@
 	start_visual = /obj/effect/temp_visual/flyby/banshee_flyby
 	has_shadow = FALSE
 	initiate_sound = null
-	start_sound = 'sound/weapons/halo/fire_support/banshee_flyby.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/banshee_flyby.ogg'
 	warning_chat_message = "BANSHEE"
 
 /datum/fire_support/custom/banshee_flyby/do_impact(turf/target_turf)
@@ -1630,7 +1630,7 @@
 	start_visual = /obj/effect/temp_visual/flyby/seraph_flyby
 	has_shadow = FALSE
 	initiate_sound = null
-	start_sound = 'sound/weapons/halo/fire_support/seraph_flyby.ogg'
+	start_sound = 'modular/halo/sound/weapons/fire_support/seraph_flyby.ogg'
 	warning_chat_message = "SERAPH"
 
 /datum/fire_support/custom/seraph_flyby/do_impact(turf/target_turf)

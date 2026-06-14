@@ -18,8 +18,8 @@
 	icon_state = "m90"
 	item_state = "m90"
 	fire_sound = "gun_m90"
-	pump_sound = 'modular/halo/sound/weapons/halo/gun_m90_pump.ogg'
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_m90_reload.ogg'
+	pump_sound = 'modular/halo/sound/weapons/gun_m90_pump.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_m90_reload.ogg'
 	mouse_pointer = 'modular/halo/icons/halo/effects/mouse_pointer/shotgun.dmi'
 	current_mag = /obj/item/ammo_magazine/internal/shotgun/m90
 	attachable_allowed = list(/obj/item/attachable/flashlight/m90)

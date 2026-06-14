@@ -20,9 +20,9 @@
 	)
 
 	fire_sound = "gun_srs99"
-	reload_sound = 'modular/halo/sound/weapons/halo/gun_srs99_reload.ogg'
-	cocked_sound = 'modular/halo/sound/weapons/halo/gun_srs99_cocked.ogg'
-	unload_sound = 'modular/halo/sound/weapons/halo/gun_srs99_unload.ogg'
+	reload_sound = 'modular/halo/sound/weapons/gun_srs99_reload.ogg'
+	cocked_sound = 'modular/halo/sound/weapons/gun_srs99_cocked.ogg'
+	unload_sound = 'modular/halo/sound/weapons/gun_srs99_unload.ogg'
 	empty_sound = null
 
 	current_mag = /obj/item/ammo_magazine/rifle/halo/sniper

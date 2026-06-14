@@ -108,6 +108,7 @@
 
 #define FLAG_EMBRYO_PREDATOR 1 // Useful for passing down flags from an egg to the very moment an embryo is in someone
 #define FLAG_EMBRYO_HYBRID 2 // SS220 EDIT: PR1273 - Gibson & Kloos Bodyburster hybrid embryo flag
+#define FLAG_EMBRYO_PATHOGEN 4// SS220 EDIT: PR1273
 
 #define XENO_STARTING_CRYSTAL 100 //How much building resource the queen gets to start with
 
