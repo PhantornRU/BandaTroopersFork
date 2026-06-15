@@ -10,14 +10,6 @@ GLOBAL_DATUM_INIT(droppod_panel, /datum/drop_pod_menu, new)
 
 	GLOB.droppod_panel.tgui_interact(mob)
 
-/client/proc/relaunch_ready_droppods()
-	set name = "Relaunch Ready Droppods"
-	set category = "Game Master.Extras"
-	if(!check_rights(R_ADMIN))
-		return
-
-	GLOB.droppod_panel.relaunch_ready_pods(mob)
-
 /datum/drop_pod_menu
 	var/droppod_click_intercept = FALSE
 	var/list/selected_launch_targets = list()
@@ -87,28 +79,6 @@ GLOBAL_DATUM_INIT(droppod_panel, /datum/drop_pod_menu, new)
 		var/list_index = ((start_index + i - 1) % target_count) + 1
 		. += selected_targets[list_index]
 	next_launch_target_index = (start_index % target_count) + 1
-
-/datum/drop_pod_menu/proc/relaunch_ready_pods(mob/user)
-	var/list/turf/selected_targets = get_selected_launch_targets()
-	if(!length(selected_targets))
-		to_chat(user, SPAN_WARNING("Select at least one droppod LZ first."))
-		return
-
-	var/launched_pods = 0
-	for(var/obj/structure/halo_droppod/pod in world)
-		if(pod.pod_state != POD_READY)
-			continue
-		if(!pod.can_start_launch())
-			continue
-		pod.set_launch_targets(get_rotated_launch_targets(selected_targets))
-		if(pod.start_launch_pod(user))
-			launched_pods++
-
-	if(!launched_pods)
-		to_chat(user, SPAN_WARNING("No ready droppods found (all may be INFLIGHT, LANDED, or unoccupied)."))
-	else
-		to_chat(user, SPAN_NOTICE("Launched [launched_pods] droppod(s)."))
-	message_admins("[key_name_admin(user)] relaunched [launched_pods] ready droppod(s).")
 
 /datum/drop_pod_menu/proc/InterceptClickOn(mob/user, params, atom/object)
 	var/list/modifiers = params2list(params)
@@ -206,10 +176,6 @@ GLOBAL_DATUM_INIT(droppod_panel, /datum/drop_pod_menu, new)
 			if(!launched_pods)
 				to_chat(ui.user, SPAN_WARNING("No ready occupied droppods were found."))
 			return TRUE
-		if("relaunch_ready_pods")
-			relaunch_ready_pods(ui.user)
-			return TRUE
-
 /datum/drop_pod_menu/ui_close(mob/user)
 	var/client/user_client = user.client
 	if(user_client?.click_intercept == src)

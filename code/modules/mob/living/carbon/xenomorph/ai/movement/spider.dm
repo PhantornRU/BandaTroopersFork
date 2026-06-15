@@ -1,4 +1,4 @@
-#define BLACKLIST_TURF_TIMEOUT (180 SECONDS)
+// #define BLACKLIST_TURF_TIMEOUT (180 SECONDS) // REDEFINES at DRONE code/modules/mob/living/carbon/xenomorph/ai/movement/drone.dm
 
 /datum/xeno_ai_movement/spider
 	var/last_home_turf

@@ -48,6 +48,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	COOLDOWN_DECLARE(door_cooldown)
 	var/datum/turf_reservation/reservation
 	var/launch_sequence_active = FALSE
+	var/finish_drop_retries = 0
 
 	var/image/pod_overlay
 	var/image/rocket_image
@@ -95,6 +96,10 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 /obj/structure/halo_droppod/Destroy()
 	release_landing_target()
 	QDEL_NULL(reservation)
+	if(occupant)
+		var/mob/living/evicted = occupant
+		occupant = null
+		evicted.forceMove(get_turf(src))
 	return ..()
 
 /obj/structure/halo_droppod/proc/handle_overlays(mob/living/user)
@@ -190,6 +195,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	launch_sequence_active = FALSE
 	locked = FALSE
 	release_landing_target()
+	finish_drop_retries = 0
 	if(reset_can_launch)
 		can_launch = TRUE
 	if(pod_state == POD_INFLIGHT)
@@ -453,10 +459,11 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 	playsound(src, 'sound/effects/escape_pod_launch.ogg', 70)
 	sleep(1 SECONDS)
-	if(!(MODE_HAS_TOGGLEABLE_FLAG(MODE_DISABLE_INTRO_BLURB)))
-		if(SSticker?.mode && !(SSticker.mode.flags_round_type & MODE_DS_LANDED)) //Launching on first drop.
-			SSticker.mode.pod_first_drop(src)
-			SSticker.mode.flags_round_type |= MODE_DS_LANDED
+	if(SSticker?.mode)
+		if(!(MODE_HAS_TOGGLEABLE_FLAG(MODE_DISABLE_INTRO_BLURB)))
+			if(!(SSticker.mode.flags_round_type & MODE_DS_LANDED)) //Launching on first drop.
+				SSticker.mode.pod_first_drop(src)
+				SSticker.mode.flags_round_type |= MODE_DS_LANDED
 	reservation = SSmapping.request_turf_block_reservation(5, 5, 1, reservation_type = /datum/turf_reservation/transit/drop_pod)
 	if(!reservation)
 		to_chat(user, SPAN_WARNING("Error. No droppod transit corridor available."))
@@ -511,10 +518,19 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 		if(targetturf)
 			set_planned_landing_target(targetturf)
 	if(!targetturf)
+		finish_drop_retries++
+		if(finish_drop_retries >= 30)
+			if(user)
+				to_chat(user, SPAN_DANGER("CRITICAL! NO LZ FOUND AFTER 30 ATTEMPTS! ABORTING DROP!"))
+			if(reservedturf)
+				forceMove(reservedturf)
+			reset_launch_state(TRUE)
+			return
 		if(user)
-			to_chat(user, SPAN_WARNING("WARNING! NO SAFE LZ AVAILABLE! HOLDING IN TRANSIT!"))
+			to_chat(user, SPAN_WARNING("WARNING! NO SAFE LZ AVAILABLE! HOLDING IN TRANSIT! (Attempt [finish_drop_retries]/30)"))
 		addtimer(CALLBACK(src, PROC_REF(finish_drop), user, reservedturf), 1 SECONDS)
 		return
+	finish_drop_retries = 0
 	forceMove(targetturf)
 	release_landing_target()
 	QDEL_NULL(reservation)
