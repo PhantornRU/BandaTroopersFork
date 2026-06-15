@@ -45,6 +45,17 @@ export const GameMasterDroppodPanel = (props, context) => {
             Launch Pods
           </Button>
         </Stack.Item>
+        <Stack.Item>
+          <Button
+            color="average"
+            disabled={!data.selected_launch_target_count}
+            onClick={() => {
+              act('relaunch_ready_pods');
+            }}
+          >
+            Relaunch Ready Pods
+          </Button>
+        </Stack.Item>
         {data.game_master_droppods && (
           <Stack.Item>
             <Collapsible title="Droppod LZ Points">

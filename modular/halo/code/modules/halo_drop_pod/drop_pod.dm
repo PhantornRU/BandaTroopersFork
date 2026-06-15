@@ -33,10 +33,6 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 	var/turf/planned_landing_turf
 	var/list/turf/launch_targets = list()
 
-// failure vars
-	var/failure_chance = 10
-	var/failure_type
-
 // other vars
 	var/image/occupant_image
 	var/image/door_image
@@ -98,6 +94,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 
 /obj/structure/halo_droppod/Destroy()
 	release_landing_target()
+	QDEL_NULL(reservation)
 	return ..()
 
 /obj/structure/halo_droppod/proc/handle_overlays(mob/living/user)
@@ -368,6 +365,8 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 /obj/structure/halo_droppod/proc/find_new_target(mob/user, list/candidate_targets = null, turf/ignore_reserved_turf = null)
 	var/list/turf/targets_to_check = candidate_targets ? candidate_targets : get_launch_target_list()
 	if(!length(targets_to_check))
+		if(user)
+			to_chat(user, SPAN_WARNING("No landing zones available."))
 		return null
 	for(var/turf/base_target in targets_to_check)
 		if(!base_target)
@@ -387,7 +386,7 @@ GLOBAL_LIST_EMPTY(active_droppod_landing_turfs)
 				continue
 			return attemptdrop
 	if(user)
-		to_chat(user, SPAN_WARNING("RECALCULATION FAILED!"))
+		to_chat(user, SPAN_WARNING("All landing zones are blocked or occupied."))
 	return null
 
 /obj/structure/halo_droppod/proc/start_launch_pod(mob/user)
