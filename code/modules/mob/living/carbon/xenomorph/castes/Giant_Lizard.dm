@@ -12,8 +12,8 @@
 	armor_deflection = XENO_NO_ARMOR
 	evasion = XENO_EVASION_LOW
 	speed = XENO_SPEED_HELLHOUND
-// SS220 EDIT - END: PR1271
 	fire_vulnerability_mult = FIRE_MULTIPLIER_EXTREME //weak to fire
+// SS220 EDIT - END: PR1271
 
 	caste_desc = "A prowler of the jungles."
 	evolves_to = list()

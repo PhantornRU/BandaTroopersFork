@@ -1,3 +1,4 @@
+// SS220 EDIT - START: CM-PVE #1257 OOC-2 — Chapter Title GM verb
 /atom/movable/screen/text/screen_text/chapter_title
 	maptext_height = 480
 	maptext_width = 480
@@ -79,3 +80,4 @@
 
 /client/proc/clear_chapter_title(mob/living/carbon/human/human)
 	human.clear_fullscreen("chapter_title", 1 SECONDS)
+// SS220 EDIT - END: CM-PVE #1257 OOC-2 — Chapter Title GM verb

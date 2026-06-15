@@ -140,7 +140,7 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 | #180 | Wort wort wort, lohbaba! | **PORTED** | Covenant voice lines |
 | #179 | CE-like uniforms | **PORTED** | CE-style UNSC uniforms |
 | #178 | Chemlights & Flares | **PORTED** | Chemlight and flare items |
-| #176 | Thermite Grenades | **PORTED** | UNSC thermite grenades |
+| #176 | Thermite Grenades | **PORTED** | UNSC thermite grenades. LOW: `prime()` не проверяет `IMPACT_FUSE` (родительский метод проверяет); upstream-паттерн, `dual_purpose = FALSE`, не блокирует. |
 | #174 | UNSC loose-ammo packets | **PORTED** | Loose ammo packets for UNSC |
 | #173 | Plasma grenade loadouts for Unggoy | **PORTED** | Unggoy plasma grenade loadouts |
 | #172 | RTO-bag sprite issues | **PORTED** | RTO bag sprite fixes |

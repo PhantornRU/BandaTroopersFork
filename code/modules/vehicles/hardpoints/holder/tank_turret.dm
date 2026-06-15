@@ -304,9 +304,11 @@
 	return data
 
 // Rideway turret
+// SS220 EDIT - START: PR #1266 D66-44 — translated name/desc to Russian
 /obj/item/hardpoint/holder/tank_turret/ridgeway
 	name = "\improper башня M40 Ridgeway"
 	desc = "Башня тяжёлого танка M40 Ridgeway. Значительный шаг вперёд по сравнению со старыми машинами: Ridgeway способен нести заметно более совершенное вооружение, защитные системы, оптику и датчики, не жертвуя бронёй и не набирая чрезмерный вес."
+// SS220 EDIT - END
 
 	icon = 'icons/obj/vehicles/ridgeway.dmi'
 	icon_state = "tank_turret_0"

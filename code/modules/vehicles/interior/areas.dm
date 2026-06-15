@@ -93,9 +93,11 @@
 	name = "\improper UPP van prisoner interior"
 	icon_state = "upp_van_prisoner"
 
+// SS220 EDIT - START: PR #1266 D66-44 — translated name to Russian
 /area/interior/vehicle/uppvan/ridgeway
 	name = "\improper интерьер Ridgeway"
 	icon_state = "ridgeway"
+// SS220 EDIT - END
 
 // SS220 EDIT - START
 /area/interior/vehicle/twe_tank

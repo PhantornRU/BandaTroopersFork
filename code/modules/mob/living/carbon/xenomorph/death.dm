@@ -1,6 +1,6 @@
 #define DELETE_TIME 1800
 
-/mob/living/carbon/xenomorph/death(cause, gibbed, deathmessage)
+/mob/living/carbon/xenomorph/death(cause, gibbed, deathmessage) // SS220 EDIT: PR1271 - Itsy Bitsy Buggers added deathmessage parameter for custom death messages
 	var/msg = deathmessage ? deathmessage : "lets out a waning guttural screech, green blood bubbling from its maw."
 	. = ..(cause, gibbed, msg)
 	if(!.)
@@ -79,9 +79,9 @@
 			playsound(loc,'sound/voice/predalien_death.ogg', 25, TRUE)
 		else if(isfacehugger(src))
 			playsound(loc, 'sound/voice/alien_facehugger_dies.ogg', 25, TRUE)
-		else if (isspider(src))
+		else if (isspider(src)) // SS220 EDIT: PR1271 - Itsy Bitsy Buggers spider death sound
 			playsound(loc, 'sound/voice/pred_click2.ogg', 25, TRUE)
-		else if (islizard(src))
+		else if (islizard(src)) // SS220 EDIT: PR1271 - Itsy Bitsy Buggers giant lizard death sound
 			playsound(loc, 'sound/effects/giant_lizard_death.ogg', 25, TRUE)
 		else
 			// SS220 EDIT START - Modular Arachnid injection: sound selection implemented in modular/arachnid/code/sound/arachnid_sound_hooks.dm

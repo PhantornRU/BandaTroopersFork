@@ -3514,7 +3514,7 @@ Defined in conflicts.dm of the #defines folder.
 	log_game("[key_name_admin(user)] used an underslung grenade launcher.")
 
 
-// canister nades explode immediately and don't leave the barrel of the weapon.
+// SS220 EDIT: CM-PVE PR #182 — canister nades explode immediately and don't leave the barrel of the weapon.
 	if(istype(G, /obj/item/explosive/grenade/high_explosive/airburst/canister))
 		var/obj/item/explosive/grenade/high_explosive/airburst/canister/canister_round = G
 		canister_round.canister_fire(user, target)
@@ -3666,7 +3666,7 @@ Defined in conflicts.dm of the #defines folder.
 	msg_admin_attack("[key_name_admin(user)] fired an underslung grenade launcher [ADMIN_JMP_USER(user)]")
 	log_game("[key_name_admin(user)] used an underslung grenade launcher.")
 
-// canister nades explode immediately and don't leave the barrel of the weapon.
+// SS220 EDIT: CM-PVE PR #182 — canister nades explode immediately and don't leave the barrel of the weapon.
 	if(istype(G, /obj/item/explosive/grenade/high_explosive/airburst/canister))
 		var/obj/item/explosive/grenade/high_explosive/airburst/canister/canister_round = G
 		canister_round.canister_fire(user, target)

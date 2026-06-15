@@ -95,6 +95,7 @@
 		/datum/equipment_preset/canc/remnant = 2,
 	)
 
+// SS220 EDIT - START: CM-PVE #1258 CANC presets & squad spawner tweak — new CANC squad presets
 /datum/human_ai_squad_preset/clf/canc/recruits
 	name = "CANC Rebel, Recruits"
 	ai_to_spawn = list(
@@ -122,3 +123,4 @@
 		/datum/equipment_preset/canc/at = 1,
 		/datum/equipment_preset/canc/remnant = 1,
 	)
+// SS220 EDIT - END: CM-PVE #1258 CANC presets & squad spawner tweak

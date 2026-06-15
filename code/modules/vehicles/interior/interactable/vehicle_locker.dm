@@ -134,9 +134,11 @@
 	icon = 'icons/obj/vehicles/interiors/tank.dmi'
 	icon_state = "locker"
 
+// SS220 EDIT - START: PR #1266 D66-44 — Ridgeway tank locker
 /obj/structure/vehicle_locker/tank/ridgeway
 	icon = 'icons/obj/vehicles/interiors/general.dmi'
 	icon_state = "rlocker"
+// SS220 EDIT - END
 
 /obj/structure/vehicle_locker/tank/upp
 	icon = 'icons/obj/vehicles/interiors/upptank.dmi'

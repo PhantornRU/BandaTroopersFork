@@ -1546,6 +1546,7 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 	attack_verb = list("whacked", "hit", "smacked", "beaten", "battered")
 	var/obj/structure/machinery/camera/camera
 	var/helmet_overlays[]
+	// SS220 EDIT: CM-PVE #1255 UPP camouflage — allow select_gamemode_skin
 	flags_atom = null
 	flags_inventory = BLOCKSHARPOBJ
 	flags_inv_hide = NONE
@@ -1580,7 +1581,9 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 
 /obj/item/clothing/head/helmet/upp/Initialize(mapload, new_protection[] = list(MAP_ICE_COLONY = ICE_PLANET_MIN_COLD_PROT))
 	. = ..()
-	select_gamemode_skin(type)
+	// SS220 EDIT: CM-PVE #1255 UPP camouflage — conditional gamemode skin
+	if(!(flags_atom & NO_SNOW_TYPE))
+		select_gamemode_skin(type)
 	update_icon()
 
 	helmet_overlays = list()
@@ -1919,7 +1922,9 @@ GLOBAL_LIST_INIT(allowed_helmet_items, list(
 
 /obj/item/clothing/head/uppcap/Initialize(mapload, new_protection[] = list(MAP_ICE_COLONY = ICE_PLANET_MIN_COLD_PROT))
 	. = ..()
-	select_gamemode_skin(type)
+	// SS220 EDIT: CM-PVE #1255 UPP camouflage — conditional gamemode skin
+	if(!(flags_atom & NO_SNOW_TYPE))
+		select_gamemode_skin(type)
 	update_icon()
 
 /obj/item/clothing/head/uppcap/civi

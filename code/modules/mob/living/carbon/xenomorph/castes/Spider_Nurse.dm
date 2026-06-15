@@ -12,8 +12,8 @@
 	armor_deflection = XENO_ARMOR_TIER_1
 	evasion = XENO_EVASION_LOW
 	speed = XENO_SPEED_SPIDER
-// SS220 EDIT - END: PR1271
 	fire_vulnerability_mult = FIRE_MULTIPLIER_EXTREME //weak to fire
+// SS220 EDIT - END: PR1271
 
 	caste_desc = "A ranger of the cluster."
 	evolves_to = list() //XENO_CASTE_SPIDER_NURSE, XENO_CASTE_SPIDER_HUNTER

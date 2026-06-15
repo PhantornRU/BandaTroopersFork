@@ -469,7 +469,7 @@
 
 /obj/item/weapon/gun/rifle/m41aMK1
 	name = "\improper M41A pulse rifle"
-	desc = "Pulse action 10x24mm caseless assault rifle of the USCMC, personal friend of any Marine. Features an integrated 30mm grenade launcher and ammo tube that can hold four grenades on backup."
+	desc = "Pulse action 10x24mm caseless assault rifle of the USCMC, personal friend of any Marine." // SS220 EDIT: CM-PVE PR #169 — desc update (removed grenade launcher mention for base MK1)
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/uscm.dmi'
 	icon_state = "m41amk1" //Placeholder.
 	item_state = "m41amk1" //Placeholder.
@@ -1095,7 +1095,7 @@
 
 /obj/item/weapon/gun/rifle/m16
 	name = "\improper M16 rifle"
-	desc = "The manufacturer claims that these are Classic 16 assault rifles. It's another one of the clonetypes you see on the Frontier since the AR-15 patent expired over a century ago. Chambered in 5.56x45mm, popular on the Frontier for home defense and hunting. The old cased rounds can also be used till they disintegrate, if you can be bothered to police the brass."
+	desc = "The manufacturer claims that these are Classic 16 assault rifles. It's another one of the clonetypes you see on the Frontier since the AR-15 patent expired over a century ago. Chambered in 5.56x45mm, popular on the Frontier for home defense and hunting. The old cased rounds can also be used till they disintegrate, if you can be bothered to police the brass." // SS220 EDIT: CM-PVE PR #169 — desc update
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
 	icon_state = "m16"
 	item_state = "m16"
@@ -1183,7 +1183,7 @@
 
 /obj/item/weapon/gun/rifle/m16/grenadier
 	name = "\improper M16 grenadier rifle"
-	desc = "The little worn and faded sticker on the lower receiver claims that this is a Mustang Special, Little Friend Edition. Point is, it's an M16 repro with an irremovable M203 underslung. 40mm, careful where you point it."
+	desc = "The little worn and faded sticker on the lower receiver claims that this is a Mustang Special, Little Friend Edition. Point is, it's an M16 repro with an irremovable M203 underslung. 40mm, careful where you point it." // SS220 EDIT: CM-PVE PR #169 — desc update
 	icon_state = "m16g"
 	item_state = "m16"
 	fire_sound = 'sound/weapons/gun_m16.ogg'
@@ -1231,8 +1231,8 @@
 //awesome vietnam era special forces carbine version of the M16
 
 /obj/item/weapon/gun/rifle/xm177
-	name = "\improper XM177 carbine"
-	desc = "5.56x45mm carbine. Either this is a really cheap replica of the old XM177, someone's crappy DIY modification, or somehow an actual genuine antique which probably is worth at least a couple grand to a museum. Who knows?"
+	name = "\improper XM177 carbine" // SS220 EDIT: CM-PVE PR #169 — name/desc update
+	desc = "5.56x45mm carbine. Either this is a really cheap replica of the old XM177, someone's crappy DIY modification, or somehow an actual genuine antique which probably is worth at least a couple grand to a museum. Who knows?" // SS220 EDIT: CM-PVE PR #169
 	icon = 'icons/obj/items/weapons/guns/guns_by_faction/colony.dmi'
 	icon_state = "xm177"
 	item_state = "m16"

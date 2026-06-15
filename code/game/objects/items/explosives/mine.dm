@@ -393,6 +393,7 @@
 /obj/item/explosive/mine/m760ap
 	name = "M760 antipersonnel landmine"
 	desc = "A standard issue American antipersonnel landmine. Minimum metal and blast-resistant, with integrated anti-tamper features. Due to counter-demining design, it contains little primary fragmentation liner."
+	icon = 'icons/obj/structures/souto_land.dmi'
 	icon_state = "m760"
 	angle = 360
 	var/disarmed = FALSE
@@ -535,6 +536,7 @@
 /obj/item/explosive/mine/m5a3betty
 	name = "M5A2 bounding mine"
 	desc = "An intelligent blast-resistant bounding landmine with enhanced fragmentation."
+	icon = 'icons/obj/structures/souto_land.dmi'
 	icon_state = "m5"
 	angle = 360
 	var/disarmed = FALSE
@@ -675,6 +677,7 @@
 /obj/item/explosive/mine/fzd91
 	name = "FZD-91 Landmine"
 	desc = "Regular issue area denial landmine for Union of Progressive Peoples' forces in the field. Powerful, with a strong fragmentation liner. Produced by Gruppo Meccanico Militare Vasella."
+	icon = 'icons/obj/structures/souto_land.dmi'
 	icon_state = "fzd91"
 	angle = 360
 	var/disarmed = FALSE
@@ -812,6 +815,7 @@
 /obj/item/explosive/mine/tn13
 	name = "TN-13"
 	desc = "A simple vintage landmine. It has no intelligent or electronic components, and is easily disarmed. Formerly produced by the Oberon Mechanical Concern's military ordinance division. While not in use anymore, vast stockpiles still exist."
+	icon = 'icons/obj/structures/souto_land.dmi'
 	icon_state = "tn13"
 	angle = 360
 	var/disarmed = FALSE
@@ -979,7 +983,7 @@
 					mine_mode = SHARP_DANGER_MODE
 					mine_mode_notice += "The placed dart will detonate regularly."
 			user.visible_message(SPAN_NOTICE("[user] finishes adjusting [src]."), \
-			SPAN_NOTICE("You finish adjusting the detonation mode of[src]. It's now set to [mine_mode], [mine_mode_notice]."))
+			SPAN_NOTICE("You finish adjusting the detonation mode of [src]. It's now set to [mine_mode], [mine_mode_notice]."))
 	else
 		if(HAS_TRAIT(W, TRAIT_TOOL_MULTITOOL))
 			if(!skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_MAX) && user.skills.get_skill_level(SKILL_ENGINEER) != SKILL_ENGINEER_TRAINED)
@@ -1034,7 +1038,7 @@
 	disarmed = TRUE
 	lit = FALSE
 	update_brightness()
-	playsound(src, 'sound/weapons/smartgun_fail.ogg', src, 25)
+	playsound(src, 'sound/weapons/smartgun_fail.ogg', 25)
 
 /obj/item/explosive/mine/sharp/proc/rearm(mob/user)
 	disarmed = FALSE
@@ -1092,7 +1096,6 @@
 		if(SHARP_DIRECTED_MODE)
 			incendiary_reagent = new /datum/reagent/napalm/blue
 			flame_radius = 1
-			new /obj/flamer_fire(get_turf(src), cause_data, incendiary_reagent, flame_radius)
 		if(SHARP_SAFE_MODE)
 			for(var/mob/living/carbon/human in range(smoke_radius, src))
 				if(human.get_target_lock(iff_signal))

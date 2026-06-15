@@ -1556,7 +1556,9 @@
 
 /obj/item/clothing/accessory/upppads/Initialize(mapload)
 	. = ..()
-	select_gamemode_skin(type)
+	// SS220 EDIT: CM-PVE #1255 UPP camouflage — conditional gamemode skin
+	if(!(flags_atom & NO_SNOW_TYPE))
+		select_gamemode_skin(type)
 	update_icon()
 
 /obj/item/clothing/accessory/upppads/legs

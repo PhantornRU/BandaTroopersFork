@@ -166,11 +166,12 @@
 	arm_sound = 'sound/weapons/pinpull.ogg'
 	falloff_mode = EXPLOSION_FALLOFF_SHAPE_LINEAR
 
+// SS220 EDIT - START: CM-PVE PR #182 — Canister Grenade (divergent from upstream: uses shrapnel instead of buckshot ammo)
 /*
-+//================================================
-+				Canister Grenade
-+//================================================
-+*/
+//================================================
+				Canister Grenade
+//================================================
+*/
 
 /obj/item/explosive/grenade/high_explosive/airburst/canister
 	name = "\improper M108 canister grenade"
@@ -198,6 +199,7 @@
 // canister has no impact explosion.
 /obj/item/explosive/grenade/high_explosive/airburst/canister/launch_impact(atom/hit_atom)
 	return
+// SS220 EDIT - END
 
 /*
 //================================================

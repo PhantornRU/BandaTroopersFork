@@ -1,3 +1,5 @@
+#define BLACKLIST_TURF_TIMEOUT (180 SECONDS)
+
 /datum/xeno_ai_movement/spider
 	var/last_home_turf
 	var/list/blacklisted_turfs = list()

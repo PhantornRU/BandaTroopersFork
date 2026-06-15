@@ -36,6 +36,7 @@
 	desc = "CANC Remnant Force rifleman, QYJ-72-I."
 	path = /datum/equipment_preset/canc/machinegunner
 
+// SS220 EDIT - START: CM-PVE #1258 CANC presets & squad spawner tweak — new AI presets
 /datum/human_ai_equipment_preset/canc/machinegunner/heap
 	name = "CANC Squad Machinegunner (HEAP)"
 	desc = "CANC Remnant Force rifleman, QYJ-72-I, HEAP"
@@ -60,6 +61,7 @@
 	name = "CANC Officer"
 	desc = "CANC Remnant Force officer, Random Rifle"
 	path = /datum/equipment_preset/canc/remnant/officer
+// SS220 EDIT - END: CM-PVE #1258 CANC presets & squad spawner tweak
 
 /datum/human_ai_equipment_preset/canc/marksman
 	name = "CANC Squad Marksman"

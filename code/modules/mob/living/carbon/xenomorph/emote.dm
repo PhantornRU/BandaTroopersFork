@@ -4,8 +4,8 @@
 	keybind_category = CATEGORY_XENO_EMOTE
 	var/predalien_sound
 	var/larva_sound
-	var/spider_sound
-	var/lizard_sound
+	var/spider_sound // SS220 EDIT: PR1271 - Itsy Bitsy Buggers spider emote sound
+	var/lizard_sound // SS220 EDIT: PR1271 - Itsy Bitsy Buggers giant lizard emote sound
 
 /datum/emote/living/carbon/xeno/get_sound(mob/living/user)
 	. = ..()
@@ -16,11 +16,13 @@
 	if(islarva(user) && larva_sound)
 		. = larva_sound
 
+// SS220 EDIT - START: PR1271 - Itsy Bitsy Buggers spider/lizard emote sounds
 	if(isspider(user) && spider_sound)
 		. = spider_sound
 
 	if(islizard(user) && lizard_sound)
 		. = lizard_sound
+// SS220 EDIT - END: PR1271
 
 /datum/emote/living/carbon/xeno/growl
 	key = "growl"
