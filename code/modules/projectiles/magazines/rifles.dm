@@ -548,7 +548,7 @@
 	desc = "A high-capacity drum magazine designed to fit the NSG 23 & L23A1 assault rifles."
 	caliber = "8.5x33mm"
 	default_ammo = /datum/ammo/bullet/rifle/twe
-	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/wy.dmi'
+	icon = 'icons/obj/items/weapons/guns/ammo_by_faction/WY/assault_rifles.dmi'
 	icon_state = "nsg23"
 	item_state = "nsg23"
 	bonus_overlay = "nsg23_mag_overlay" //needs to be an overlay, as the mag has a hole that would be filled over by the ext overlay
