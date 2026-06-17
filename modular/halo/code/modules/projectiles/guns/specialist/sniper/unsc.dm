@@ -76,8 +76,8 @@
 
 /obj/item/weapon/gun/rifle/sniper/halo/attackby(obj/item/subject, mob/user)
 	if(istype(subject, /obj/item/weapon/mateba_key/halo_sniper) && can_change_barrel)
-		if(attachments["muzzle"])
-			var/obj/item/attachable/attachment = attachments["special"]
+		var/obj/item/attachable/attachment = attachments["muzzle"]
+		if(attachment)
 			visible_message(SPAN_NOTICE("[user] begins stripping [attachment] from [src]."),
 			SPAN_NOTICE("You begin stripping [attachment] from [src]."), null, 4)
 
