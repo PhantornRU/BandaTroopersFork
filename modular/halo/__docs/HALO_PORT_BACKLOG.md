@@ -13,6 +13,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - Completion PR: [#102](https://github.com/ss220club/BandaTroopers/pull/102) — `halo-pve-update-batch1-3b`
 - Porting date: 2026-06-05
 - Task-state contract: [`modular/__agents/.AI_AGENT/PLAN.md`](../../__agents/.AI_AGENT/PLAN.md), [`TODO.md`](../../__agents/.AI_AGENT/TODO.md), [`DECISIONS.md`](../../__agents/.AI_AGENT/DECISIONS.md), [`EVIDENCE.md`](../../__agents/.AI_AGENT/EVIDENCE.md)
+- Current audit plans: [`HALO_PVE_PORT_AUDIT_PLAN.md`](HALO_PVE_PORT_AUDIT_PLAN.md) and [`CM_PVE_PORT_AUDIT_PLAN.md`](../../__docs/CM_PVE_PORT_AUDIT_PLAN.md)
 
 ## Historical Context
 

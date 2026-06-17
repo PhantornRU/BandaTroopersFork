@@ -7,6 +7,8 @@ Master porting map for all upstream PRs ported into BandaTroopers from CM-PVE an
 - [`CM_PVE_PORT_STATE.md`](CM_PVE_PORT_STATE.md) — canonical tracking for CM-PVE PRs (21 PRs, all PORTED)
 - [`HALO_PORT_STATE.md`](../halo/__docs/HALO_PORT_STATE.md) — canonical tracking for CM-PVE-HALO PRs (27 PRs, all PORTED)
 - [`HALO_PORT_BACKLOG.md`](../halo/__docs/HALO_PORT_BACKLOG.md) — implementation batches and backlog for HALO content
+- [`CM_PVE_PORT_AUDIT_PLAN.md`](CM_PVE_PORT_AUDIT_PLAN.md) — reproducible CM-PVE parity, asset, sound, map, and modularity audit plan
+- [`HALO_PVE_PORT_AUDIT_PLAN.md`](../halo/__docs/HALO_PVE_PORT_AUDIT_PLAN.md) — reproducible CM-PVE-HALO parity, asset, sound, map, and modularity audit plan
 - **This file** — historical context, split decisions, and cross-references
 
 ---

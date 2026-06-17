@@ -9,6 +9,7 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Meaning of that baseline: merged BT `PR #96` (`[HALO] Sync follow-up main wave`)
 - **Comprehensive upstream sync baseline**: `halo-pve-update-batch1-3b @ 5f1e274056` (PR #102, 2026-06-09)
 - Meaning of sync baseline: all 27 must-port PRs from CM-PVE-HALO ported, validated, documented, and review-fixes applied
+- Current PR #102 audit plan: [`HALO_PVE_PORT_AUDIT_PLAN.md`](HALO_PVE_PORT_AUDIT_PLAN.md)
 - Current gameplay-completion branch: `halo_jackal_spartan_wave_apr2026`
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
 - Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
@@ -98,8 +99,8 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
     - 42 additional `.ogg` files migrated from root `sound/` to `modular/halo/sound/`:
       - `sound/effects/dropship_hover/` → `modular/halo/sound/effects/dropship_hover/` (5 files)
       - `sound/voice/twe_warcry/` → `modular/halo/sound/voice/twe_warcry/` (19 files)
-      - `modular/halo/sound/weapons/pelican_gun/` → `modular/halo/modular/halo/sound/weapons/pelican_gun/` (5 files)
-      - `modular/halo/sound/weapons/phantom_gun/` → `modular/halo/modular/halo/sound/weapons/phantom_gun/` (13 files)
+      - `sound/weapons/halo/pelican_gun/` → `modular/halo/sound/weapons/pelican_gun/` (5 files)
+      - `sound/weapons/halo/phantom_gun/` → `modular/halo/sound/weapons/phantom_gun/` (13 files)
     - 2 `.dm` files updated with modular paths: `code/game/sound.dm`, `modular/halo/code/datums/looping_sounds/halo_dropship.dm`
     - Total sound assets in modular path: 176 (original) + 42 (this pass) = **218**
 - Post-merge validation for the earlier `PR #94` gameplay-completion pass was complete before the 2026-04-28 asset modularity cleanup.

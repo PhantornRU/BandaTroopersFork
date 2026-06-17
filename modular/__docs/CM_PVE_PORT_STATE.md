@@ -9,6 +9,7 @@ Canonical tracking document for PRs ported from CM-PVE upstream (https://github.
 - PR: https://github.com/ss220club/BandaTroopers/pull/102
 - Last sync commit: `5f1e274056` (fixup! PR #102 review fixes, 2026-06-09)
 - This file is the canonical source of truth for CM-PVE porting.
+- Current audit plan: [`CM_PVE_PORT_AUDIT_PLAN.md`](CM_PVE_PORT_AUDIT_PLAN.md).
 - For CM-PVE-HALO PRs see [`HALO_PORT_STATE.md`](../halo/__docs/HALO_PORT_STATE.md).
 - For complete porting history see [`VARIOUS_FIXES_PORTING_MAP.md`](VARIOUS_FIXES_PORTING_MAP.md).
 
