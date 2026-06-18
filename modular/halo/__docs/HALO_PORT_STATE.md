@@ -14,6 +14,11 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
 - Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
 
+## PR #156 Core Scope Note
+
+- The PR #156 core surface is the preset/vendor/med file set: `modular/halo/code/game/machinery/vending/vendor_types/squad_prep/halo/unsc_prep.dm`, `modular/halo/code/modules/clothing/under/halo/unsc_ties.dm`, `modular/halo/code/modules/gear_presets/Halo/{unsc_marines,spartan,ruuhtian,insurgent}.dm`, and `modular/halo/code/modules/mob/living/carbon/human/ai/{ai_spawner,squad_spawner}/halo/*.dm`.
+- This is item/code scope, not map scope.
+
 ## Branch Scope
 
 - `PR #96` is already merged into BT master and is treated as the shared HALO base.
@@ -60,7 +65,7 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 | #158 | Fire Support Binos Support | PORTED — full fire support restructure: new defines, type path restructuring, `ignore_availability` param, radial menu 48→72, new UNSC binoculars, ammo mix crates, GM faction changes (MARINE/UPP→UNSC/COVENANT), `icons/mob/radial.dmi` binary update |
 | #150 | Loadout selection changes | PORTED — loadout rework in `preferences_gear.dm`, new modular files (helmet_visors, helmetgarb, storage/fancy, storage/misc, clothing/head, clothing/masks, clothing/under/ties, equipment/maps), binary assets (devices.dmi, unsc_melee.dmi), map changes (tacmap_map items) |
 | #174 | UNSC loose-ammo packets | PORTED — MA5/BR55/M6/M7 ammo packet boxes, `packets.dmi` binary, map changes |
-| #159 | Shotgun & sniper ammo boxes | PORTED — shotgun/sniper handful boxes, `handful_state` updates, ammo crate changes, binary assets (boxes_and_lids.dmi, magazines.dmi, handful.dmi), map changes |
+| #159 | Shotgun & sniper ammo boxes | PORTED — shotgun/sniper handful boxes, `handful_state` updates, ammo crate changes, binary assets (boxes_and_lids.dmi, magazines.dmi, handful.dmi); current evidence is item/code-only in `modular/halo/code/mixed/ammo_boxes/halo_unsc_boxes.dm`, granular magazine files under `modular/halo/code/modules/projectiles/guns/magazines/`, `modular/halo/code/game/objects/structures/crates_lockers/halo_ordnance.dm`, and `modular/halo/code/mixed/compat/halo_fire_support_support.dm`. Legacy aggregate `modular/halo/code/modules/projectiles/guns/halo/unsc_magazines.dm` was removed because `_halo.dme` uses the granular files. |
 | #157 | UNSC Medals Enabled | PORTED — medal name defines, `GLOBAL_LIST_INIT human_medals` expanded, "USCM"→"UNSC" text replacements, medal desc updates in `code/modules/clothing/under/ties.dm` |
 
 ## Current Compatibility Hotspots
@@ -103,6 +108,7 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
       - `sound/weapons/halo/phantom_gun/` → `modular/halo/sound/weapons/phantom_gun/` (13 files)
     - 2 `.dm` files updated with modular paths: `code/game/sound.dm`, `modular/halo/code/datums/looping_sounds/halo_dropship.dm`
     - Total sound assets in modular path: 176 (original) + 42 (this pass) = **218**
+    - 2026-06-18 follow-up: remaining tracked root `sound/weapons/halo/**` files were deleted after a live-reference audit; only documentation mentions of the old root path remain.
 - Post-merge validation for the earlier `PR #94` gameplay-completion pass was complete before the 2026-04-28 asset modularity cleanup.
 - The 2026-04-28 asset modularity cleanup passed local compile/resource validation:
   - HALO root-path resource literal audit: no old `icons/halo/**`, root HALO voice, Warthog sound, Covenant mine, New Irvine flora, or New Irvine auto-turf references remain in DM/DME/DMM files.
@@ -159,7 +165,7 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 | #159 | Shotgun & sniper ammo boxes | **PORTED** | Ammo boxes for shotguns/snipers |
 | #158 | Fire Support Binos Support | **PORTED** | Fire support binoculars |
 | #157 | UNSC Medals Enabled | **PORTED** | UNSC medal system |
-| #156 | Presets updates, Vendor tweaks | **PORTED** | Preset and vendor updates |
+| #156 | Presets updates, Vendor tweaks | **PORTED** | Core preset/vendor/med files only |
 | #155 | ODST Drop Pod - Intro Blurb | **PORTED** | ODST drop pod intro text |
 | #152 | Fences | **PORTED** | Fence structures |
 | #150 | Loadout selection changes | **PORTED** | Loadout UI changes |

@@ -135,7 +135,8 @@ High-risk HALO asset groups:
 - #150: loadout items, `devices.dmi`, `unsc_melee.dmi`, VISR/loadout states.
 - #174: loose-ammo packets and `packets.dmi`.
 - #159: shotgun/sniper ammo boxes, `boxes_and_lids.dmi`,
-  `magazines.dmi`, `handful.dmi`, and `handful_state` values.
+  `magazines.dmi`, `handful.dmi`, and `handful_state` values; treat this as
+  item/code evidence unless a concrete map file is added to the audit.
 - #158: fire support radial/HUD/sound icon assets.
 - #160: Holy Redoubts map templates and template DMI references.
 - #179/#172/#166: uniforms, RTO bag, VISR states.
@@ -191,7 +192,8 @@ High-risk HALO map groups:
 
 - #160 Holy Redoubts templates.
 - #169/#182 featureless biomes.
-- #150/#174/#159 map placements if they were deferred or later ported.
+- #150/#174 map placements if they were deferred or later ported; do not carry
+  a deferred-map note for #159 without a concrete map file.
 - New Irvine/New Varadero imported map asset ownership.
 
 Acceptance:

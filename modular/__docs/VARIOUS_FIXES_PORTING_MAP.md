@@ -33,7 +33,7 @@ Master porting map for all upstream PRs ported into BandaTroopers from CM-PVE an
 | #1284 | Lazy Bunker Shipmaps | Maps | uscm_bunker, upp_bunker |
 | #1283 | Movie-ish Sections | Code + Maps | chapaev_movie, golden_arrow_movie, new roles |
 | #1282 | The Straya War | Code | TWE warcry sounds |
-| #1280 | Dog war atomized | Code + Maps | golden_arrow_dog_war, M38 ammo, dog war MRE |
+| #1280 | Dog war atomized | Code + Maps | golden_arrow_dog_war, M38 ammo, dog war MRE; local-fallback DMI states are documented in `CM_PVE_PORT_STATE.md` |
 | #1278 | Call ur hits | Code | LARP/airsoft items |
 | #1277 | Movie-like Xeno Castes | Code | Buffed Runner/Drone/Soldier/Lurker/Crusher |
 | #1276 | FV150 'Hobelar' | Code | TWE tank/APC |
@@ -118,7 +118,7 @@ Branch `halo_jackal_spartan_wave_apr2026`:
 
 ### Key Hotspots
 
-1. `modular/halo/code/modules/projectiles/guns/unsc_guns.dm`
+1. HALO UNSC guns/magazines are owned by granular files under `modular/halo/code/modules/projectiles/guns/{rifle,smg,pistol,shotgun,specialist,magazines}/`; legacy aggregate files were removed.
 2. `modular/halo/code/game/objects/items/weapons/halo_shields.dm`
 3. `modular/halo/code/modules/gear_presets/Halo/{ruuhtian,unggoy}.dm`
 4. `code/game/objects/items/explosives/mine.dm`

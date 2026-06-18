@@ -166,7 +166,7 @@
 	arm_sound = 'sound/weapons/pinpull.ogg'
 	falloff_mode = EXPLOSION_FALLOFF_SHAPE_LINEAR
 
-// SS220 EDIT - START: CM-PVE PR #182 — Canister Grenade (divergent from upstream: uses shrapnel instead of buckshot ammo)
+// SS220 EDIT - START: CM-PVE PR #182 — Canister Grenade
 /*
 //================================================
 				Canister Grenade
@@ -185,9 +185,9 @@
 	explosion_power = 0
 	explosion_falloff = 25
 	det_time = 0 //this should mean that it will explode instantly when fired and thus generate the shotshell effect.
-	shrapnel_count = 18
-	shrapnel_type = /datum/ammo/bullet/shrapnel/canister
-	dispersion_angle = 15 //hopefully this means the cone spread is pretty small
+	shrapnel_count = 20
+	shrapnel_type = /datum/ammo/bullet/shotgun/buckshot/canister
+	dispersion_angle = 20 //hopefully this means the cone spread is pretty small
 
 /obj/item/explosive/grenade/high_explosive/airburst/canister/proc/canister_fire(mob/living/user, target)
 	var/direction = Get_Compass_Dir(user, target)

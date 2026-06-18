@@ -149,15 +149,6 @@
 	overlay_icon_type = "hiam"
 	overlay_grenade_type = "hiam"
 
-/obj/item/ammo_box/magazine/nade_box/canister
-	name = "\improper M108 canister grenade box"
-	desc = "A secure box holding 25 M108 canister grenades. Flammable, don't store near the flamer fuel."
-	magazine_type = /obj/item/explosive/grenade/high_explosive/airburst/canister
-	allowed_magazines = list(/obj/item/explosive/grenade/high_explosive/airburst/canister)
-	overlay_model_type = "model_m108"
-	overlay_icon_type = "buck"
-	overlay_grenade_type = "buck"
-
 /obj/item/ammo_box/magazine/nade_box/foam
 	name = "\improper M42 MFHS grenade box"
 	desc = "A secure box holding 25 M42 Metal-Foam Hull-Sealant grenades. Flammable, don't store near the flamer fuel."

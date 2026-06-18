@@ -89,7 +89,7 @@
 	stamina_damage = 25
 	shrapnel_chance = 0
 
-// SS220 EDIT: CM-PVE PR #182 — Canister shrapnel ammo (divergent from upstream: uses shrapnel instead of buckshot)
+// SS220 EDIT: legacy 40mm canister shrapnel ammo. M108 uses shotgun buckshot canister ammo.
 /datum/ammo/bullet/shrapnel/canister
 	name = "low velocity canister shot"
 	icon_state = "buckshot"

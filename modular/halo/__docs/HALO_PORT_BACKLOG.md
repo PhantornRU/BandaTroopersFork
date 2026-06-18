@@ -19,7 +19,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 
 - Previous task: PR #94 refresh after PR #96 merge (completed, see git history)
 - 2026-04-28 modular asset audit completed (HALO assets moved to `modular/halo/icons/**` and `modular/halo/sound/**`)
-- PR #102 ported merged PRs from CM-PVE-HALO (#137, #153, #154, #170, #173, #162, #156 core)
+- PR #102 ported merged PRs from CM-PVE-HALO (#137, #153, #154, #170, #173, #162, #156 core preset/vendor/med file set)
 - 2026-06-05: All 48 must-port PRs ported and validated (compile 0 errors, maplint OK, path audit OK)
 - Current task: **COMPLETED** — documentation sync only
 
@@ -44,7 +44,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
   - #163 Halo Minimap Fix
   - #176 Thermite Grenades
   - #179 CE-like uniforms
-  - #159 Shotgun & sniper ammo boxes
+  - #159 Shotgun & sniper ammo boxes (item/code only)
 - **Dependencies**: Batch 1 complete
 - **Stop criteria**: ✅ All 6 PRs ported, compile check passes, gameplay balance reviewed
 
@@ -115,7 +115,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - #170 New covenant squads
 - #173 Unggoy plasma grenade loadouts
 - #162 Elite Hero subtypes
-- #156 Presets/vendor/med updates (core)
+- #156 Presets/vendor/med updates (core file set)
 
 ## Path Remapping Rules
 - All upstream `modular_pve_halo/` paths remap to [`modular/halo`](modular/halo)
@@ -177,7 +177,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 | 2 | #163 | Halo Minimap Fix | - | Medium | PORTED (2026-06-05) |
 | 2 | #176 | Thermite Grenades | - | Medium | PORTED (2026-06-05) |
 | 2 | #179 | CE-like uniforms | - | Medium | PORTED (2026-06-05) |
-| 2 | #159 | Shotgun & sniper ammo boxes | - | Medium | PORTED (2026-06-05) |
+| 2 | #159 | Shotgun & sniper ammo boxes (item/code only) | - | Medium | PORTED (2026-06-05) |
 | 3 | #166 | ODST VISR | 163 | High | PORTED (2026-06-05) |
 | 3 | #178 | Chemlights & Flares | 379 | High | PORTED (2026-06-05) |
 | 3 | #174 | UNSC loose-ammo packets | 326 | High | PORTED (2026-06-05) |
@@ -191,7 +191,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 | 4 | #170 | New covenant squads | - | Medium | PORTED (2026-06-05) |
 | 4 | #173 | Plasma grenade loadouts for Unggoy | - | Medium | PORTED (2026-06-05) |
 | 4 | #162 | Elite "Hero" subtypes | - | Medium | PORTED (2026-06-05) |
-| 4 | #156 | Presets updates, Vendor tweaks | - | Medium | PORTED (2026-06-05) |
+| 4 | #156 | Presets updates, Vendor tweaks (core file set) | - | Medium | PORTED (2026-06-05) |
 | 4 | #168 | Jumping and Leaping | - | Low | ALREADY PRESENT |
 | 4 | #145 | bumblebee | - | Low | ALREADY PRESENT |
 
