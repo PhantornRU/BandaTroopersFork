@@ -62,9 +62,23 @@
 	)
 	if(!length(cluster_spec.macro_id))
 		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
-	cluster_report["macro_id"] = cluster_spec.macro_id
+	var/requested_macro_id = "[cluster_spec.macro_id]"
+	cluster_report["macro_id"] = requested_macro_id
 	var/has_template_path = building_cluster_has_template_chunk(cluster_spec, state)
+	if(length(cluster_spec.macro_id) && cluster_spec.macro_id != requested_macro_id)
+		cluster_report["resolved_macro_id"] = cluster_spec.macro_id
 	cluster_report["has_template_path"] = has_template_path ? TRUE : FALSE
+	if(!has_template_path)
+		// Capture why template path is missing — the reason is already recorded via add_template_reject_reason()
+		// inside building_cluster_has_template_chunk(). Summarize the dominant reject reason for this cluster.
+		var/list/template_reject_reason_counts = state.validation.template_reject_reason_counts
+		var/best_reason = ""
+		var/best_count = 0
+		for(var/reason_id in template_reject_reason_counts)
+			if(template_reject_reason_counts[reason_id] > best_count)
+				best_reason = reason_id
+				best_count = template_reject_reason_counts[reason_id]
+		cluster_report["has_template_path_detail"] = length(best_reason) ? best_reason : "unknown"
 	var/placed = 0
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
@@ -85,13 +99,24 @@
 	cluster_report["already_placed"] = already_placed
 	cluster_report["target_count"] = target_count
 	if(has_template_path)
-		template_placed = place_building_template_chunk_for_cluster(state, cluster_spec, major)
+		var/template_goal = max(effective_minimum - already_placed, 0)
+		if(template_goal <= 0)
+			template_goal = 1
+		var/template_attempts = 0
+		while(placed < template_goal && template_attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+			template_attempts++
+			var/template_placed_now = place_building_template_chunk_for_cluster(state, cluster_spec, major && placed <= 0 && already_placed <= 0)
+			if(template_placed_now <= 0)
+				break
+			template_placed += template_placed_now
+			placed += template_placed_now
 		cluster_report["template_placed"] = template_placed
+		cluster_report["template_attempts"] = template_attempts
 		if(template_placed > 0)
 			state.add_warning("Template-first placement partially succeeded for cluster '[cluster_spec.id]'.")
-			placed += template_placed
-		if(placed >= effective_minimum)
+		if((effective_minimum <= 0 && placed > 0) || (already_placed + placed >= effective_minimum))
 			cluster_report["status"] = "template_satisfied"
+			cluster_report["total_placed"] = already_placed + placed
 			state.add_template_cluster_report(cluster_report)
 			return TRUE
 		if(cluster_spec.required && !cluster_spec.allow_single_object_fallback)
@@ -165,9 +190,43 @@
 		return FALSE
 	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
 	if(!length(macro_id))
+		if(istype(state))
+			state.add_template_reject_reason("template_macro_not_resolved", list(
+				"scope" = "has_template_chunk",
+				"cluster_id" = cluster_spec.id,
+				"pattern" = cluster_spec.pattern,
+				"slot" = cluster_spec.slot,
+				"category" = cluster_spec.category,
+			))
 		return FALSE
-	var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
-	return istype(chunk) && length(chunk.cells)
+	var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
+	var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
+	if(!istype(chunk))
+		if(istype(state))
+			state.add_template_reject_reason("template_chunk_not_found", list(
+				"scope" = "has_template_chunk",
+				"cluster_id" = cluster_spec.id,
+				"macro_id" = macro_id,
+				"resolved_macro_id" = resolved_macro_id,
+				"pattern" = cluster_spec.pattern,
+				"slot" = cluster_spec.slot,
+				"category" = cluster_spec.category,
+			))
+		return FALSE
+	if(!length(chunk.cells))
+		if(istype(state))
+			state.add_template_reject_reason("template_chunk_no_cells", list(
+				"scope" = "has_template_chunk",
+				"cluster_id" = cluster_spec.id,
+				"macro_id" = macro_id,
+				"resolved_macro_id" = resolved_macro_id,
+				"pattern" = cluster_spec.pattern,
+				"slot" = cluster_spec.slot,
+				"category" = cluster_spec.category,
+			))
+		return FALSE
+	cluster_spec.macro_id = resolved_macro_id
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/get_building_macro_id_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_state/state = null)
 	if(!istype(cluster_spec))
@@ -298,6 +357,18 @@
 	// Allow micro chunks to bypass strict wall requirement to avoid forbidden_fallback errors in tiny rooms
 	if(findtext(macro_id, "micro") && is_building_compact_or_micro_state(state))
 		return FALSE
+	// If the template chunk has no wall-required cells, placement should not demand an adjacent wall
+	if(length(macro_id))
+		var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
+		var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
+		if(istype(chunk) && length(chunk.cells))
+			var/all_cells_wall_optional = TRUE
+			for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
+				if(cell.wall_required)
+					all_cells_wall_optional = FALSE
+					break
+			if(all_cells_wall_optional)
+				return FALSE
 	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/get_cluster_anchor_area(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
@@ -343,7 +414,7 @@
 	if(!istype(state))
 		return FALSE
 	var/degrade_level = "[state.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE]"
-	return GLOB.world_edit_helpers.parse_bool(state.config["program_shedding"]) || degrade_level in list(WORLD_EDIT_BUILDING_DEGRADE_COMPACT, WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+	return GLOB.world_edit_helpers.parse_bool(state.config["program_shedding"]) || GLOB.world_edit_helpers.parse_bool(state.config["micro_layout"]) || degrade_level in list(WORLD_EDIT_BUILDING_DEGRADE_COMPACT, WORLD_EDIT_BUILDING_DEGRADE_MICRO)
 
 /datum/world_edit_generator/building_layout/proc/can_building_cluster_use_broad_fallback_anchors(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec) || !cluster_spec.required)
@@ -460,10 +531,13 @@
 /datum/world_edit_generator/building_layout/proc/count_building_cluster_template_capacity_for_anchors(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/anchor_ids)
 	if(!istype(state) || !istype(cluster_spec))
 		return 0
-	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
+	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
 	if(!length(macro_id))
 		return 0
-	var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
+	var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
+	if(length(resolved_macro_id))
+		cluster_spec.macro_id = resolved_macro_id
+	var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
 	if(!istype(chunk) || !length(chunk.cells))
 		return 0
 	var/list/candidate_data = build_template_chunk_candidate_turfs(state, cluster_spec, chunk, anchor_ids)
@@ -492,10 +566,13 @@
 	if(!istype(state) || !istype(cluster_spec) || target_count <= 0)
 		return planned_turfs
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
+	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
 	var/planned_credit_count = 0
 	if(length(macro_id))
-		var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
+		var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
+		if(length(resolved_macro_id))
+			cluster_spec.macro_id = resolved_macro_id
+		var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
 		if(istype(chunk) && length(chunk.cells))
 			var/chunk_credit_count = get_building_template_chunk_credit_count(cluster_spec, chunk)
 			var/list/candidate_data = build_template_chunk_candidate_turfs(state, cluster_spec, chunk, anchor_ids)
@@ -1101,8 +1178,8 @@
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null)
-	if(!state.can_place_fixture(target_turf))
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE)
+	if(!state.can_place_fixture(target_turf, allow_reserved))
 		return FALSE
 	var/reservation_owner = state.get_semantic_slot_owner(target_turf)
 	if(length(reservation_owner))

@@ -119,10 +119,43 @@
 	write_report(out)
 	return out
 
+/datum/world_edit_visual_case/proc/visual_metadata_has_building_metrics(list/meta)
+	if(!islist(meta))
+		return FALSE
+	return !isnull(meta["template_chunk_count"]) || !isnull(meta["footprint_count"]) || islist(meta["template_reject_reason_counts"])
+
+/datum/world_edit_visual_case/proc/select_visual_best_layout_candidate_report(list/candidate_reports)
+	if(!islist(candidate_reports) || !length(candidate_reports))
+		return null
+	var/list/best_report = null
+	var/best_score = -999999999
+	for(var/list/report as anything in candidate_reports)
+		if(!islist(report))
+			continue
+		var/score = round(text2num("[report["score"]]") || -999999999)
+		if(!islist(best_report) || score > best_score)
+			best_report = report
+			best_score = score
+	return best_report
+
+/datum/world_edit_visual_case/proc/get_visual_building_metric_source(list/source)
+	var/list/meta = source?["metadata"]
+	if(!islist(meta))
+		return null
+	if(visual_metadata_has_building_metrics(meta))
+		return meta
+	var/list/selected_report = meta["selected_candidate_report"]
+	if(islist(selected_report))
+		return selected_report
+	var/list/failed_diagnostics = meta["failed_candidate_diagnostics"]
+	if(islist(failed_diagnostics))
+		return failed_diagnostics
+	return select_visual_best_layout_candidate_report(meta["layout_candidate_reports"])
+
 /datum/world_edit_visual_case/proc/attach_building_diagnostics(list/report_data, list/source)
 	if(!islist(report_data))
 		return
-	var/list/meta = source?["metadata"]
+	var/list/meta = get_visual_building_metric_source(source)
 	if(!islist(meta))
 		return
 	var/list/diagnostics = list(
@@ -145,7 +178,7 @@
 
 /datum/world_edit_visual_case/proc/merge_metrics(list/preview, list/apply, list/post_emit)
 	var/list/metrics = list()
-	var/list/meta = preview?["metadata"]
+	var/list/meta = get_visual_building_metric_source(preview)
 	if(islist(meta))
 		var/list/keys = list(
 			"footprint_count",

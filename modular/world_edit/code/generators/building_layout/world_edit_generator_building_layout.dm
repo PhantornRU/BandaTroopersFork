@@ -332,7 +332,8 @@
 			continue
 		add_building_required_slot(slots, slot_lookup, cluster_spec.slot)
 		var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
-		var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(macro_id)
+		var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
+		var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
 		if(!istype(chunk))
 			continue
 		for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
@@ -1819,6 +1820,22 @@
 		report["error_count"] = 1
 	return report
 
+/datum/world_edit_generator/building_layout/proc/select_best_building_layout_candidate_report(list/candidate_reports)
+	if(!islist(candidate_reports) || !length(candidate_reports))
+		return null
+	var/list/best_report = null
+	var/best_score = -999999999
+	for(var/list/report as anything in candidate_reports)
+		if(!islist(report))
+			continue
+		var/score = round(text2num("[report["score"]]") || -999999999)
+		if(!islist(best_report) || score > best_score)
+			best_report = report
+			best_score = score
+	if(!islist(best_report))
+		return null
+	return best_report.Copy()
+
 /datum/world_edit_generator/building_layout/proc/add_building_point_size_candidate(list/candidates, list/seen, index, half_width, half_depth)
 	if(!islist(candidates) || !islist(seen))
 		return index
@@ -1904,6 +1921,10 @@
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null
 	var/best_score = -999999999
+	var/datum/world_edit_building_layout_state/best_failed_state = null
+	var/best_failed_score = -999999999
+	var/best_failed_family = null
+	var/best_failed_attempt = 0
 	var/attempt_index = 0
 	var/first_candidate_error = null
 	var/found_valid_candidate = FALSE
@@ -1927,6 +1948,11 @@
 				continue
 			candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
 			if(candidate_state.has_errors())
+				if(!istype(best_failed_state) || candidate_state.validation.layout_candidate_score > best_failed_score)
+					best_failed_state = candidate_state
+					best_failed_score = candidate_state.validation.layout_candidate_score
+					best_failed_family = footprint_family
+					best_failed_attempt = attempt_index
 				if(isnull(first_candidate_error))
 					if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
 						first_candidate_error = candidate_state.validation.user_facing_failure_reason
@@ -1949,6 +1975,14 @@
 		plan.metadata["user_facing_failure_reason"] = "[final_candidate_error]"
 		plan.metadata["layout_candidate_reports"] = candidate_reports
 		plan.metadata["layout_candidate_count"] = length(candidate_reports)
+		var/list/failed_candidate_report = null
+		if(istype(best_failed_state))
+			failed_candidate_report = build_building_layout_candidate_report(best_failed_state, best_failed_family, best_failed_attempt, best_failed_score, final_candidate_error, TRUE)
+		else
+			failed_candidate_report = select_best_building_layout_candidate_report(candidate_reports)
+		if(islist(failed_candidate_report))
+			plan.metadata["selected_candidate_report"] = failed_candidate_report.Copy()
+			plan.metadata["failed_candidate_diagnostics"] = failed_candidate_report.Copy()
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 

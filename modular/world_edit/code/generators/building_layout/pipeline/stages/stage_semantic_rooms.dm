@@ -3,8 +3,27 @@
 
 /datum/world_edit_generation_stage/semantic_rooms/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_building_layout_state/state = context.state
-	if(!istype(state) || !istype(state.geometry.room_graph))
+	if(!istype(state))
 		return FALSE
+
+	// For legacy room-first path, semantic zones are assigned by
+	// build_building_room_first_layout() -> assign_room_first_zone_rooms().
+	// The room_graph may exist (created by layout_graph before room_first_layout
+	// was set) but its nodes are not backed by solved_rooms; skip graph-based
+	// semantic annotation and let anchors/slots/fixtures use zone_turfs directly.
+	if(state.config["room_first_layout"])
+		context.state.add_stage_report("semantic_rooms", "ok", null, list(
+			"nodes_processed" = 0,
+			"note" = "room_first_layout active; legacy zone assignment in effect"
+		))
+		return TRUE
+
+	if(!istype(state.geometry.room_graph))
+		context.state.add_stage_report("semantic_rooms", "ok", null, list(
+			"nodes_processed" = 0,
+			"note" = "room_graph absent; nothing to annotate"
+		))
+		return TRUE
 
 	var/datum/world_edit_building_archetype/archetype = state.archetype
 	var/default_faction = archetype ? archetype.faction : "neutral"

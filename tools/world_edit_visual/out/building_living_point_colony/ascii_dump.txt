@@ -1,74 +1,96 @@
-VIEW: cropped local=(45,45)..(54,80) size=10x36
+VIEW: cropped local=(38,39)..(58,80) size=21x42
 
 GEOMETRY (walls/doors/floors)   |   OBJECTS (furniture/decor)
-+----------+   |   +----------+
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |....CCC...|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |....CCC...|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-|..........|   |   |..........|
-+----------+   |   +----------+
++---------------------+   |   +---------------------+
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |...........CCC.......|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |...........CCC.......|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|...####.##+##.####...|   |   |...::::R::G::R::::...|
+|.....................|   |   |...RTBfG.........R...|
+|...#.............#...|   |   |...WBGN..........:...|
+|...#.............#...|   |   |...:TNTNT........:...|
+|...#.............#...|   |   |...WBT...........:...|
+|...#.............#...|   |   |...:siTNaG.......:...|
+|...###+.#.+......#...|   |   |...W::Ga:sG......:...|
+|...#..++.#.......#...|   |   |...:GGGGt:B......:...|
+|...#..#..#.......#...|   |   |...WG.:..:G......:...|
+|...#..#..#.......#...|   |   |...:GB:..:.......:...|
+|...#..#..#.......#...|   |   |...WGB:.G:.......:...|
+|...#..#..#.......#...|   |   |...:.G:..:.....cc:...|
+|...###############...|   |   |...:::::::::::::::...|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
+|.....................|   |   |.....................|
++---------------------+   |   +---------------------+
 
 === ROOMS LEGEND ===
-No rooms defined.
+1. entry (Status: ok) | Bounds: {'x1': 48, 'y1': 49, 'x2': 54, 'y2': 54}
+2. hub (Status: ok) | Bounds: {'x1': 42, 'y1': 48, 'x2': 47, 'y2': 53}
+3. private (Status: ok) | Bounds: {'x1': 42, 'y1': 43, 'x2': 44, 'y2': 47}
+4. service (Status: ok) | Bounds: {'x1': 48, 'y1': 43, 'x2': 54, 'y2': 48}
+5. service (Status: ok) | Bounds: {'x1': 45, 'y1': 43, 'x2': 47, 'y2': 47}
 
 === REPORT ===
-Status: error
+Status: supported
 Metrics:
-  footprint_count: 0
-  wall_count: 0
-  floor_count: 0
-  door_count: 0
-  interior_object_count: 0
+  footprint_count: 195
+  wall_count: 59
+  floor_count: 136
+  door_count: 5
+  interior_object_count: 46
   reserved_walk_blocked_count: 0
   semantic_credit_without_emitted_slots_count: 0
   mandatory_pattern_failure_count: 0
-  post_emit_validation_error_count: 0
+  post_emit_validation_error_count: 5
   counter_wrong_facing_count: 0
   direction_fallback_count: 0
   forbidden_fallback_count: 0
   raw_category_credit_count: 0
   scatter_signature_credit_count: 0
-  template_chunk_count: 0
-  template_chunk_cell_count: 0
-  template_reject_reason_counts: []
-  template_reject_report_count: 0
-  template_cluster_report_count: 0
-  placed_requirement_counts: []
-  semantic_requirement_counts: []
-  semantic_requirement_minimums: []
-  generated_turf_count: 0
-  generated_object_count: 0
-Errors:
-  - Required zone 'entry_buffer' has 0 tiles, expected at least 2.: Required zone 'entry_buffer' has 0 tiles, expected at least 2. 
+  template_chunk_count: 12
+  template_chunk_cell_count: 17
+  template_reject_reason_counts: {'template_geometry_conflict': 1470, 'place_rule_failed': 124, 'semantic_reservation_conflict': 408, 'zone_contract_failed': 134, 'missing_wall_context': 920, 'template_no_candidates': 3}
+  template_reject_report_count: 96
+  template_cluster_report_count: 19
+  placed_requirement_counts: {'infrastructure_lights': 2, 'infrastructure_apc': 1, 'infrastructure_air_alarm': 1, 'infrastructure_light_switch': 1, 'infrastructure_fire_alarm': 1, 'sleep_nook': 2, 'common_table': 3, 'living_social_core': 2, 'living_social_ring': 2, 'personal_storage': 2, 'sanitation_combined': 1, 'side_table': 2, 'window_seat': 1}
+  semantic_requirement_counts: {'sleep_nook': 2, 'sleep_nook_signature': 2, 'common_table': 3, 'dining_pair': 3, 'living_social_core': 2, 'center_social_cluster': 2, 'living_social_ring': 2, 'ring_social_cluster': 2, 'personal_storage': 2, 'sanitation_combined': 1, 'infrastructure_lights': 4, 'infrastructure_apc': 2, 'infrastructure_air_alarm': 2, 'infrastructure_light_switch': 1, 'infrastructure_fire_alarm': 1}
+  semantic_requirement_minimums: {'sleep_nook': 2, 'common_table': 1, 'living_social_core': 1, 'living_social_ring': 1, 'personal_storage': 1, 'sanitation_combined': 1, 'infrastructure_lights': 2, 'infrastructure_apc': 1, 'infrastructure_air_alarm': 1, 'infrastructure_light_switch': 1, 'infrastructure_fire_alarm': 1}
+  generated_turf_count: 195
+  generated_object_count: 55
+  changed_turf_count: 195
+  created_object_count: 55
+  missing_path_count: 0
+  failed_object_count: 0
+  state_mismatch_count: 0
+  wall_mismatch_count: 0
+  door_mismatch_count: 0
+  object_mismatch_count: 0
+  route_blocking_count: 3
+  route_unreachable_count: 2
+  door_cone_blocking_count: 3
+  microvariation_route_blocking_count: 0
+  error_count: 5
+Errors: None

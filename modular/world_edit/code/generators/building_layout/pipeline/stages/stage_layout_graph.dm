@@ -3,13 +3,12 @@
 
 /datum/world_edit_generation_stage/layout_graph/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_building_layout_state/state = context.state
-	
-	// Create graph
-	state.geometry.room_graph = new /datum/world_edit_room_graph()
-	
-	// If fallback mode is enabled, we just leave it empty and let legacy handle it
+
+	// Room-first is the production authority for the hybrid repair pass.
 	if(state.config["room_first_layout"])
 		return TRUE
+
+	state.geometry.room_graph = new /datum/world_edit_room_graph()
 
 	// TODO: implement actual layout generation using archetypes
 	// For now, create a basic root node depending on the archetype

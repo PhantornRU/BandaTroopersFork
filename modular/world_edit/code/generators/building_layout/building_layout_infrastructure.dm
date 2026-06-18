@@ -67,7 +67,9 @@
 		return FALSE
 	var/repaired = FALSE
 	var/list/anchors = build_infrastructure_anchor_list(state)
-	var/is_micro = is_building_compact_or_micro_state(state)
+	var/is_micro = is_building_compact_or_micro_state(state) || GLOB.world_edit_helpers.parse_bool(state.config["micro_layout"])
+	if(!is_micro && istype(state.archetype))
+		is_micro = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
 	for(var/list/spec_data as anything in get_building_infrastructure_specs(state))
 		if(!islist(spec_data))
 			continue

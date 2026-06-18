@@ -20,6 +20,9 @@
 			refresh_building_semantic_anchors(state)
 		if(repair_building_fixture_conflicts(state))
 			repaired_this_pass = TRUE
+		if(repair_building_required_fixture_access(state))
+			repaired_this_pass = TRUE
+			anchors_dirty = TRUE
 		if(place_building_infrastructure(state))
 			repaired_this_pass = TRUE
 		if(repair_building_missing_major_clusters(state))
@@ -108,6 +111,125 @@
 			repaired = TRUE
 	return repaired
 
+/datum/world_edit_generator/building_layout/proc/repair_building_required_fixture_access(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	var/list/reachable = get_building_validation_reachable_floor_lookup(state)
+	var/repaired = FALSE
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
+		if(!istype(cluster_spec) || !cluster_spec.required)
+			continue
+		var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
+		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+		var/placed_count = get_building_placed_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+		if(placed_count < effective_minimum)
+			continue
+		if(building_required_cluster_has_reachable_fixture(state, cluster_spec))
+			continue
+		for(var/list/placement as anything in state.fixtures.object_placements)
+			if(!islist(placement) || "[placement["kind"]]" != "interior")
+				continue
+			if("[placement["requirement_id"]]" != requirement_id && "[placement["cluster_id"]]" != cluster_spec.id && "[placement["signature_id"]]" != cluster_spec.signature_id)
+				continue
+			var/turf/target_turf = placement["turf"]
+			if(!istype(target_turf) || building_turf_touches_reachable_floor(target_turf, reachable))
+				continue
+			var/zone_id = state.get_zone(target_turf)
+			var/datum/world_edit_building_room/room = state.get_room_for_turf(target_turf)
+			if(repair_building_zone_opening_to_reachable_floor(state, zone_id, room, reachable, target_turf, cluster_spec.id))
+				repaired = TRUE
+				state.clear_validation_cache()
+				reachable = build_building_reachable_floor_lookup(state)
+				break
+	return repaired
+
+/datum/world_edit_generator/building_layout/proc/building_turf_touches_reachable_floor(turf/target_turf, list/reachable)
+	if(!istype(target_turf) || !islist(reachable))
+		return FALSE
+	if(reachable[target_turf])
+		return TRUE
+	for(var/check_dir in GLOB.cardinals)
+		if(reachable[get_step(target_turf, check_dir)])
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/repair_building_zone_opening_to_reachable_floor(datum/world_edit_building_layout_state/state, zone_id, datum/world_edit_building_room/room, list/reachable, turf/focus_turf, cluster_id)
+	if(!istype(state) || !islist(reachable))
+		return FALSE
+	var/list/source_turfs = list()
+	var/list/source_lookup = list()
+	if(istype(room))
+		for(var/turf/room_turf as anything in room.turfs)
+			if(istype(room_turf) && !source_lookup[room_turf])
+				source_lookup[room_turf] = TRUE
+				source_turfs += room_turf
+	if(!length(source_turfs) && length("[zone_id]"))
+		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+			if(istype(zone_turf) && !source_lookup[zone_turf])
+				source_lookup[zone_turf] = TRUE
+				source_turfs += zone_turf
+	if(!length(source_turfs))
+		return FALSE
+	var/turf/best_opening_turf = null
+	var/turf/best_reachable_turf = null
+	var/best_dir = null
+	var/best_score = -999999999
+	for(var/turf/source_turf as anything in source_turfs)
+		if(!istype(source_turf) || state.geometry.reserved_lookup[source_turf] || state.geometry.door_dirs[source_turf])
+			continue
+		if(state.geometry.wall_lookup[source_turf])
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/nearby_turf = get_step(source_turf, check_dir)
+				if(!reachable[nearby_turf] || !state.geometry.floor_lookup[nearby_turf] || state.geometry.wall_lookup[nearby_turf])
+					continue
+				var/score = 1000
+				if(istype(focus_turf))
+					score -= get_dist(source_turf, focus_turf)
+				if(score > best_score)
+					best_opening_turf = source_turf
+					best_reachable_turf = nearby_turf
+					best_dir = check_dir
+					best_score = score
+			continue
+		if(!state.geometry.floor_lookup[source_turf])
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/wall_turf = get_step(source_turf, check_dir)
+			if(!istype(wall_turf) || state.geometry.reserved_lookup[wall_turf] || state.geometry.door_dirs[wall_turf] || !state.geometry.wall_lookup[wall_turf])
+				continue
+			var/turf/far_turf = get_step(wall_turf, check_dir)
+			if(!reachable[far_turf] || !state.geometry.floor_lookup[far_turf] || state.geometry.wall_lookup[far_turf])
+				continue
+			var/score = 500
+			if(istype(focus_turf))
+				score -= get_dist(source_turf, focus_turf)
+			if(score > best_score)
+				best_opening_turf = wall_turf
+				best_reachable_turf = far_turf
+				best_dir = check_dir
+				best_score = score
+	if(!istype(best_opening_turf))
+		return FALSE
+	state.geometry.wall_lookup -= best_opening_turf
+	state.geometry.internal_wall_turfs -= best_opening_turf
+	state.geometry.boundary_lookup[best_opening_turf] = FALSE
+	state.append_unique_turf(state.geometry.floor_turfs, best_opening_turf)
+	state.geometry.floor_lookup[best_opening_turf] = TRUE
+	state.append_unique_turf(state.geometry.door_turfs, best_opening_turf)
+	state.geometry.door_dirs[best_opening_turf] = best_dir || get_cardinal_dir_toward(best_opening_turf, best_reachable_turf, state.placement_dir)
+	if(length("[zone_id]"))
+		state.add_zone(best_opening_turf, zone_id)
+	state.add_primary_route(best_opening_turf)
+	state.validation.door_reports += list(list(
+		"turf" = best_opening_turf,
+		"dir" = state.geometry.door_dirs[best_opening_turf],
+		"kind" = "required_fixture_access_repair",
+		"zone_id" = "[zone_id]",
+		"cluster_id" = "[cluster_id]",
+	))
+	state.add_warning("Opened required fixture access for cluster '[cluster_id]' in zone '[zone_id]'.")
+	return TRUE
+
 /datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
@@ -118,9 +240,7 @@
 		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
 		if(placed_count >= get_effective_cluster_min_count(state, cluster_spec))
 			continue
-		state.validation.forbidden_fallback_count++
-		state.validation.mandatory_pattern_failure_count++
-		state.add_warning("Repair refused to create missing mandatory pattern '[requirement_id]'.")
+		state.add_warning("Repair refused to create missing mandatory pattern '[requirement_id]': placed=[placed_count], min=[get_effective_cluster_min_count(state, cluster_spec)].")
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/repair_building_empty_space(datum/world_edit_building_layout_state/state)
@@ -1240,15 +1360,33 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_acceptance_counters(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
+	var/hard_failure = FALSE
 	if(state.validation.forbidden_fallback_count > 0)
-		state.add_warning("Forbidden fallback use is not accepted: forbidden_fallback_count=[state.validation.forbidden_fallback_count].")
+		state.add_error("Forbidden fallback use is not accepted: forbidden_fallback_count=[state.validation.forbidden_fallback_count].")
+		hard_failure = TRUE
 	if(state.validation.fallback_anchor_required_cluster_count > 0)
-		state.add_warning("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.validation.fallback_anchor_required_cluster_count].")
+		state.add_error("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.validation.fallback_anchor_required_cluster_count].")
+		hard_failure = TRUE
 	if(state.validation.mandatory_room_patch_fallback_count > 0)
-		state.add_warning("Required room patch fallback is not accepted: mandatory_room_patch_fallback_count=[state.validation.mandatory_room_patch_fallback_count].")
+		state.add_error("Required room patch fallback is not accepted: mandatory_room_patch_fallback_count=[state.validation.mandatory_room_patch_fallback_count].")
+		hard_failure = TRUE
 	if(state.validation.unsupported_shape_silent_fallback_count > 0)
-		state.add_warning("Unsupported shape silent fallback is not accepted: unsupported_shape_silent_fallback_count=[state.validation.unsupported_shape_silent_fallback_count].")
+		state.add_error("Unsupported shape silent fallback is not accepted: unsupported_shape_silent_fallback_count=[state.validation.unsupported_shape_silent_fallback_count].")
+		hard_failure = TRUE
 	if(state.validation.raw_category_credit_count > 0)
-		state.add_warning("Raw category counts cannot satisfy semantic credit: raw_category_credit_count=[state.validation.raw_category_credit_count].")
+		state.add_error("Raw category counts cannot satisfy semantic credit: raw_category_credit_count=[state.validation.raw_category_credit_count].")
+		hard_failure = TRUE
 	if(state.validation.scatter_signature_credit_count > 0)
-		state.add_warning("Scatter placement cannot satisfy program signature: scatter_signature_credit_count=[state.validation.scatter_signature_credit_count].")
+		state.add_error("Scatter placement cannot satisfy program signature: scatter_signature_credit_count=[state.validation.scatter_signature_credit_count].")
+		hard_failure = TRUE
+	if(state.validation.mandatory_pattern_failure_count > 0)
+		state.add_error("Mandatory pattern failures detected: mandatory_pattern_failure_count=[state.validation.mandatory_pattern_failure_count].")
+		hard_failure = TRUE
+	if(state.validation.post_emit_validation_error_count > 0)
+		state.add_error("Post-emit validation errors detected: post_emit_validation_error_count=[state.validation.post_emit_validation_error_count].")
+		hard_failure = TRUE
+	if(state.validation.reachability_failure_count > 0)
+		state.add_error("Reachability failures detected: reachability_failure_count=[state.validation.reachability_failure_count].")
+		hard_failure = TRUE
+	if(hard_failure)
+		state.set_support_status(WORLD_EDIT_BUILDING_SUPPORT_FAILED, "Hard counter failures: forbidden_fallback=[state.validation.forbidden_fallback_count], mandatory_pattern_failure=[state.validation.mandatory_pattern_failure_count], post_emit_validation_error=[state.validation.post_emit_validation_error_count], reachability_failure=[state.validation.reachability_failure_count].")

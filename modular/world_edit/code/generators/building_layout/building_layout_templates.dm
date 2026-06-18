@@ -37,14 +37,39 @@
 		return
 	catalog[chunk.id] = chunk
 
+/datum/world_edit_generator/building_layout/proc/get_building_template_chunk_file_manifest()
+	return list(
+		"bed_niche_chunk.dmm",
+		"bed_run_chunk.dmm",
+		"cabinet_run_chunk.dmm",
+		"infrastructure_air_alarm_chunk.dmm",
+		"infrastructure_fire_alarm_chunk.dmm",
+		"infrastructure_light_chunk.dmm",
+		"infrastructure_power_chunk.dmm",
+		"infrastructure_switch_chunk.dmm",
+		"living_chair_group_chunk.dmm",
+		"living_dining_cluster_chunk.dmm",
+		"living_side_table_chunk.dmm",
+		"living_social_cluster_chunk.dmm",
+		"living_social_ring_chunk.dmm",
+		"living_window_seat_chunk.dmm",
+		"sanitation_combined_chunk.dmm",
+	)
+
 /datum/world_edit_generator/building_layout/proc/get_building_template_chunk_catalog()
 	var/static/list/template_catalog
 	if(islist(template_catalog))
 		return template_catalog
 	template_catalog = list()
 
+	var/list/file_lookup = list()
 	var/list/files = flist("maps/templates/world_edit/building_layout/")
+	for(var/manifest_file as anything in get_building_template_chunk_file_manifest())
+		file_lookup["[manifest_file]"] = TRUE
 	for(var/file in files)
+		if(length("[file]"))
+			file_lookup["[file]"] = TRUE
+	for(var/file as anything in file_lookup)
 		if(findtext(file, ".dmm"))
 			var/template_chunk_id = copytext(file, 1, length(file) - 3) // Remove .dmm
 			// Fallback category to generic, actual category could be derived or read from comments, but for now generic
@@ -58,6 +83,51 @@
 /datum/world_edit_generator/building_layout/proc/get_building_template_chunk(template_chunk_id)
 	var/list/catalog = get_building_template_chunk_catalog()
 	return catalog["[template_chunk_id]"]
+
+/// Secondary lookup for macro_ids that resolve to non-existent chunks but have
+/// an existing semantically compatible equivalent (same cell categories).
+/// Only aliases where the alias target has matching slot/category cells are added.
+/// This is a minimal contract-preserving fix for template_chunk_not_found.
+/datum/world_edit_generator/building_layout/proc/resolve_building_template_chunk_alias(macro_id)
+	var/static/list/alias_map = list(
+		// Micro infrastructure → existing infrastructure (same category, compatible cells)
+		"micro_light_chunk" = "infrastructure_light_chunk",
+		"micro_power_chunk" = "infrastructure_power_chunk",
+		"micro_air_alarm_chunk" = "infrastructure_air_alarm_chunk",
+		"micro_fire_alarm_chunk" = "infrastructure_fire_alarm_chunk",
+		"micro_switch_chunk" = "infrastructure_switch_chunk",
+
+		// Micro furniture → existing non-micro run chunks (same category, compatible cells)
+		"micro_cabinet_chunk" = "cabinet_run_chunk",
+		"island_cabinet_chunk" = "cabinet_run_chunk",
+		"wall_cabinet_chunk" = "cabinet_run_chunk",
+		"micro_bed_chunk" = "bed_niche_chunk",
+		"island_bed_chunk" = "bed_niche_chunk",
+		"wall_toilet_chunk" = "sanitation_combined_chunk",
+	)
+	return alias_map["[macro_id]"]
+
+/datum/world_edit_generator/building_layout/proc/resolve_existing_building_template_chunk_id(macro_id)
+	var/raw_id = "[macro_id]"
+	if(!length(raw_id))
+		return ""
+	var/list/catalog = get_building_template_chunk_catalog()
+	var/datum/world_edit_building_template_chunk/chunk = catalog[raw_id]
+	if(istype(chunk) && length(chunk.cells))
+		return raw_id
+	var/alias_id = resolve_building_template_chunk_alias(raw_id)
+	if(!length(alias_id))
+		return ""
+	chunk = catalog["[alias_id]"]
+	if(istype(chunk) && length(chunk.cells))
+		return "[alias_id]"
+	return ""
+
+/datum/world_edit_generator/building_layout/proc/get_existing_building_template_chunk(macro_id)
+	var/resolved_id = resolve_existing_building_template_chunk_id(macro_id)
+	if(!length(resolved_id))
+		return null
+	return get_building_template_chunk(resolved_id)
 
 /datum/world_edit_generator/building_layout/proc/get_template_offset_turf(turf/anchor_turf, dir_to_use, dx, dy)
 	if(!istype(anchor_turf))
@@ -78,7 +148,10 @@
 		return FALSE
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/planned_lookup = list()
-	var/is_micro = findtext(chunk.id, "micro") && is_building_compact_or_micro_state(state)
+	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
+	if(!degraded_tiny_layout && istype(state.archetype))
+		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
+	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
 	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
 		if(!istype(cell))
 			continue
@@ -104,7 +177,7 @@
 				"cell_turf" = "[cell_turf.x],[cell_turf.y],[cell_turf.z]",
 			))
 			return FALSE
-		if(!state.can_place_fixture(cell_turf, is_micro) || planned_lookup[cell_turf])
+		if(!state.can_place_fixture(cell_turf, allow_reserved_template) || planned_lookup[cell_turf])
 			state.add_template_reject_reason("template_geometry_conflict", list(
 				"scope" = "preflight",
 				"cluster_id" = cluster_spec.id,
@@ -148,7 +221,10 @@
 		return list("turfs" = candidates, "scores" = candidate_scores)
 	var/list/anchor_ids = islist(anchor_override) ? anchor_override : get_cluster_preflight_anchor_ids(state, cluster_spec, cluster_spec.anchors)
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/is_micro = findtext(chunk.id, "micro") && is_building_compact_or_micro_state(state)
+	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
+	if(!degraded_tiny_layout && istype(state.archetype))
+		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
+	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
@@ -161,7 +237,7 @@
 				"anchor_turf" = "[floor_turf.x],[floor_turf.y],[floor_turf.z]",
 			))
 			continue
-		if(!state.can_place_fixture(floor_turf, is_micro))
+		if(!state.can_place_fixture(floor_turf, allow_reserved_template))
 			state.add_template_reject_reason("template_geometry_conflict", list(
 				"scope" = "candidate",
 				"cluster_id" = cluster_spec.id,
@@ -242,7 +318,10 @@
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/planned_cells = list()
 	var/list/planned_lookup = list()
-	var/is_micro = findtext(chunk.id, "micro") && is_building_compact_or_micro_state(state)
+	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
+	if(!degraded_tiny_layout && istype(state.archetype))
+		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
+	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
 	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
 		if(!istype(cell))
 			continue
@@ -268,7 +347,7 @@
 				"cell_turf" = "[cell_turf.x],[cell_turf.y],[cell_turf.z]",
 			))
 			continue
-		if(!state.can_place_fixture(cell_turf, is_micro) || planned_lookup[cell_turf])
+		if(!state.can_place_fixture(cell_turf, allow_reserved_template) || planned_lookup[cell_turf])
 			state.add_template_reject_reason("template_geometry_conflict", list(
 				"scope" = "placement",
 				"cluster_id" = cluster_spec.id,
@@ -322,7 +401,7 @@
 		var/datum/world_edit_building_template_cell/cell = planned["cell"]
 		var/turf/cell_turf = planned["turf"]
 		var/list/context = planned["context"]
-		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id, template_chunk_instance_id, context["dir_source"]))
+		if(!place_fixture_at(state, cell_turf, cell.slot, context["dir"], cell.category, major && cell.major && placed <= 0, context["wall_mounted"], context["rule"], context["wall_dir"], cluster_spec, chunk.id, template_chunk_instance_id, context["dir_source"], allow_reserved_template))
 			continue
 		covered_turfs += cell_turf
 		placed++
@@ -336,12 +415,33 @@
 /datum/world_edit_generator/building_layout/proc/place_building_template_chunk_for_cluster(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || !length(cluster_spec.macro_id))
 		return 0
-	var/datum/world_edit_building_template_chunk/chunk = get_building_template_chunk(cluster_spec.macro_id)
+	var/requested_macro_id = "[cluster_spec.macro_id]"
+	var/resolved_macro_id = resolve_existing_building_template_chunk_id(requested_macro_id)
+	if(length(resolved_macro_id))
+		cluster_spec.macro_id = resolved_macro_id
+	var/datum/world_edit_building_template_chunk/chunk = length(resolved_macro_id) ? get_building_template_chunk(resolved_macro_id) : null
 	if(!istype(chunk) || !length(chunk.cells))
+		state.add_template_reject_reason("template_chunk_unavailable", list(
+			"scope" = "placement_entry",
+			"cluster_id" = cluster_spec.id,
+			"macro_id" = requested_macro_id,
+			"resolved_macro_id" = resolved_macro_id,
+			"chunk_found" = istype(chunk) ? TRUE : FALSE,
+			"chunk_has_cells" = istype(chunk) ? length(chunk.cells) > 0 : FALSE,
+		))
 		return 0
 	var/list/candidate_data = build_template_chunk_candidate_turfs(state, cluster_spec, chunk)
 	var/list/candidates = candidate_data["turfs"]
 	var/list/candidate_scores = candidate_data["scores"]
+	if(!length(candidates))
+		state.add_template_reject_reason("template_no_candidates", list(
+			"scope" = "placement_entry",
+			"cluster_id" = cluster_spec.id,
+			"macro_id" = cluster_spec.macro_id,
+			"chunk_id" = chunk.id,
+			"chunk_cell_count" = length(chunk.cells),
+		))
+		return 0
 	var/attempts = 0
 	while(length(candidates) && attempts < 10)
 		attempts++
@@ -357,4 +457,11 @@
 		var/placed = try_place_building_template_chunk_at(state, cluster_spec, chunk, anchor_turf, place_context["dir"] || fallback_dir, place_context["wall_dir"], major)
 		if(placed > 0)
 			return placed
+	state.add_template_reject_reason("template_all_candidates_exhausted", list(
+		"scope" = "placement_entry",
+		"cluster_id" = cluster_spec.id,
+		"macro_id" = cluster_spec.macro_id,
+		"chunk_id" = chunk.id,
+		"attempts" = attempts,
+	))
 	return 0

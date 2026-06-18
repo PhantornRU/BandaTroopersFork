@@ -101,10 +101,59 @@
 	return locate(x, y, z)
 
 /datum/unit_test/world_edit_building_layout/proc/has_error_containing(datum/world_edit_building_layout_state/state, needle)
-	for(var/error_text as anything in state.errors)
+	for(var/error_text as anything in state.validation.errors)
 		if(findtext("[error_text]", "[needle]"))
 			return TRUE
 	return FALSE
+
+/datum/unit_test/world_edit_building_layout/proc/assert_living_template_plan_contract(datum/world_edit_plan/plan)
+	TEST_ASSERT_NOTNULL(plan, "Living template contract did not return a plan.")
+	TEST_ASSERT(!plan.metadata["error"], "Living template contract failed: [plan.metadata["error"]]")
+	TEST_ASSERT(round(text2num("[plan.metadata["template_chunk_count"]]") || 0) > 0, "Living layout did not place any template chunks.")
+	var/list/reject_counts = plan.metadata["template_reject_reason_counts"]
+	var/template_not_found = islist(reject_counts) ? (reject_counts["template_chunk_not_found"] || 0) : 0
+	TEST_ASSERT_EQUAL(template_not_found, 0, "Living layout reported missing template chunks.")
+	TEST_ASSERT_EQUAL(plan.metadata["mandatory_pattern_failure_count"] || 0, 0, "Living layout left mandatory patterns unsatisfied.")
+	TEST_ASSERT_EQUAL(plan.metadata["forbidden_fallback_count"] || 0, 0, "Living layout used forbidden required-cluster fallback.")
+	TEST_ASSERT_EQUAL(plan.metadata["fallback_anchor_required_cluster_count"] || 0, 0, "Living layout used required-cluster fallback anchors.")
+
+/datum/unit_test/world_edit_building_layout/proc/living_plan_has_slot(datum/world_edit_plan/plan, slot_id, category_id = null)
+	if(!istype(plan))
+		return FALSE
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		var/slot = "[placement["requested_slot"] || placement["slot"]]"
+		var/category = "[placement["category"]]"
+		if(slot != "[slot_id]")
+			continue
+		if(!isnull(category_id) && category != "[category_id]")
+			continue
+		return TRUE
+	return FALSE
+
+/datum/unit_test/world_edit_building_layout/living_template_resolution_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("bed_niche_chunk"), "bed_niche_chunk", "Direct sleep template chunk did not resolve.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("micro_bed_chunk"), "bed_niche_chunk", "Micro bed template did not resolve to the living sleep chunk.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("island_bed_chunk"), "bed_niche_chunk", "Island bed template did not resolve to the living sleep chunk.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("cabinet_run_chunk"), "cabinet_run_chunk", "Direct storage template chunk did not resolve.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("micro_cabinet_chunk"), "cabinet_run_chunk", "Micro cabinet template did not resolve to the storage chunk.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("wall_toilet_chunk"), "sanitation_combined_chunk", "Sanitation wall object did not resolve to the sanitation chunk.")
+	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("missing_living_contract_chunk"), "", "Unknown chunks must not resolve through a generic fallback.")
+
+	var/datum/world_edit_plan/plan = build_living_point_plan(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"building_seed" = 13,
+		"detail_budget" = 80,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	))
+	assert_living_template_plan_contract(plan)
+	TEST_ASSERT(living_plan_has_slot(plan, "bed", "bed"), "Living template contract did not emit a bed.")
+	TEST_ASSERT(living_plan_has_slot(plan, "table", "table"), "Living template contract did not emit a table.")
+	TEST_ASSERT(living_plan_has_slot(plan, "toilet", "sanitation"), "Living template contract did not emit a toilet.")
 
 /datum/unit_test/world_edit_building_layout/default_living_preview/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
@@ -118,6 +167,7 @@
 	TEST_ASSERT(!plan.metadata["error"], "[plan.metadata["error"]]")
 	TEST_ASSERT_EQUAL(plan.metadata["post_emit_validation_error_count"] || 0, 0, "Default living preview should pass post-emit validation.")
 	TEST_ASSERT_EQUAL(plan.metadata["reachability_failure_count"] || 0, 0, "Default living preview should have no route-touch failures.")
+	assert_living_template_plan_contract(plan)
 
 /datum/unit_test/world_edit_building_layout/direction_matrix/Run()
 	for(var/requested_dir as anything in list(NORTH, SOUTH, EAST, WEST))
@@ -258,7 +308,7 @@
 		"building_seed" = 1,
 	))
 	TEST_ASSERT_NOTNULL(state, "Living layout state did not build.")
-	TEST_ASSERT(!state.has_errors(), length(state.errors) ? state.errors[1] : "Living layout state has errors.")
+	TEST_ASSERT(!state.has_errors(), length(state.validation.errors) ? state.validation.errors[1] : "Living layout state has errors.")
 	TEST_ASSERT(length(state.get_zone_turfs("sanitation")) >= 2, "Sanitation zone missing or too small.")
 	var/datum/world_edit_generator/building_layout/generator = new
 	TEST_ASSERT(generator.building_zone_touches_circulation(state, "sanitation"), "Sanitation is not connected to circulation.")
@@ -279,10 +329,10 @@
 	prepare_building_test_canvas(anchor_turf, 4)
 	var/turf/other_turf = get_step(anchor_turf, EAST)
 	TEST_ASSERT_NOTNULL(other_turf, "Sealed sanitation test could not resolve second turf.")
-	state.floor_turfs += anchor_turf
-	state.floor_turfs += other_turf
-	state.floor_lookup[anchor_turf] = TRUE
-	state.floor_lookup[other_turf] = TRUE
+	state.geometry.floor_turfs += anchor_turf
+	state.geometry.floor_turfs += other_turf
+	state.geometry.floor_lookup[anchor_turf] = TRUE
+	state.geometry.floor_lookup[other_turf] = TRUE
 	state.add_zone(anchor_turf, "sanitation")
 	state.add_zone(other_turf, "sanitation")
 
