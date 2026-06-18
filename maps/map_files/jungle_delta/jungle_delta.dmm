@@ -6,11 +6,6 @@
 	},
 /turf/open/gm/river/ocean/deep_water,
 /area/lv624/ground/jungle/central_jungle)
-"ae" = (
-/turf/open/gm/coast{
-	dir = 4
-	},
-/area/lv624/ground/jungle/central_jungle)
 "am" = (
 /obj/structure/blocker/invisible_wall/water,
 /obj/structure/platform/kutjevo/rock{
@@ -47,12 +42,6 @@
 /obj/structure/blocker/fog,
 /turf/open/gm/river/ocean/deep_water,
 /area/lv624/ground/jungle/central_jungle)
-"cy" = (
-/turf/open/gm/coast{
-	dir = 4;
-	icon_state = "beachcorner2"
-	},
-/area/lv624/ground/jungle/central_jungle)
 "cO" = (
 /obj/structure/platform/kutjevo/rock{
 	dir = 8
@@ -65,9 +54,7 @@
 /area/lv624/ground/jungle/central_jungle)
 "db" = (
 /obj/structure/blocker/fog,
-/turf/open/gm/coast{
-	dir = 4
-	},
+/turf/open/gm/coast/west,
 /area/lv624/ground/jungle/central_jungle)
 "dj" = (
 /obj/structure/platform/kutjevo/rock,
@@ -79,11 +66,6 @@
 	dir = 9
 	},
 /turf/open/auto_turf/strata_grass/layer0,
-/area/lv624/ground/jungle/central_jungle)
-"dP" = (
-/turf/open/gm/coast{
-	dir = 8
-	},
 /area/lv624/ground/jungle/central_jungle)
 "eo" = (
 /obj/structure/platform_decoration/kutjevo/rock{
@@ -160,12 +142,6 @@
 	},
 /turf/open/gm/river,
 /area/lv624/ground/jungle/central_jungle)
-"lB" = (
-/turf/open/gm/coast{
-	dir = 1;
-	icon_state = "beachcorner"
-	},
-/area/lv624/ground/jungle/central_jungle)
 "lH" = (
 /obj/structure/flora/jungle/vines/heavy,
 /turf/open/auto_turf/strata_grass/layer0_mud,
@@ -208,14 +184,10 @@
 /turf/open/gm/river,
 /area/lv624/ground/jungle/central_jungle)
 "nl" = (
-/turf/open/gm/coast{
-	dir = 1
-	},
+/turf/open/gm/coast/beachcorner/north_east,
 /area/lv624/ground/jungle/central_jungle)
 "oX" = (
-/turf/open/gm/coast{
-	dir = 5
-	},
+/turf/open/gm/coast/icon_beach_northeast/northeast,
 /area/lv624/ground/jungle/central_jungle)
 "pj" = (
 /obj/structure/blocker/fog,
@@ -234,12 +206,6 @@
 	},
 /obj/structure/platform/kutjevo/rock,
 /turf/open/gm/river,
-/area/lv624/ground/jungle/central_jungle)
-"qo" = (
-/turf/open/gm/coast{
-	icon_state = "beachcorner2";
-	dir = 8
-	},
 /area/lv624/ground/jungle/central_jungle)
 "qq" = (
 /obj/structure/platform/kutjevo/rock{
@@ -409,9 +375,7 @@
 /area/lv624/ground/jungle/central_jungle)
 "Cw" = (
 /obj/structure/blocker/fog,
-/turf/open/gm/coast{
-	dir = 1
-	},
+/turf/open/gm/coast/south,
 /area/lv624/ground/jungle/central_jungle)
 "CF" = (
 /obj/structure/blocker/fog,
@@ -429,16 +393,10 @@
 /turf/open/gm/river,
 /area/lv624/ground/jungle/central_jungle)
 "Dp" = (
-/turf/open/gm/coast{
-	dir = 8;
-	icon_state = "beachcorner"
-	},
+/turf/open/gm/coast/east,
 /area/lv624/ground/jungle/central_jungle)
 "Dq" = (
-/turf/open/gm/coast{
-	dir = 4;
-	icon_state = "beachcorner"
-	},
+/turf/open/gm/coast/west,
 /area/lv624/ground/jungle/central_jungle)
 "Ds" = (
 /obj/structure/platform/kutjevo/rock{
@@ -506,18 +464,13 @@
 	},
 /area/space)
 "HQ" = (
-/turf/open/gm/coast{
-	dir = 10
-	},
+/turf/open/gm/coast/southwest,
 /area/lv624/ground/jungle/central_jungle)
 "HR" = (
 /obj/structure/platform/kutjevo/rock{
 	dir = 8
 	},
-/turf/open/gm/coast{
-	dir = 4;
-	icon_state = "beachcorner"
-	},
+/turf/open/gm/coast/beachcorner/south_east,
 /area/lv624/ground/jungle/central_jungle)
 "Ib" = (
 /obj/structure/platform/kutjevo/rock,
@@ -534,9 +487,7 @@
 /turf/open/gm/river,
 /area/lv624/ground/jungle/central_jungle)
 "Jx" = (
-/turf/open/gm/coast{
-	icon_state = "beachcorner2"
-	},
+/turf/open/gm/coast/beachcorner2,
 /area/lv624/ground/jungle/central_jungle)
 "JI" = (
 /obj/structure/flora/bush/ausbushes/ausbush,
@@ -544,15 +495,11 @@
 /area/lv624/ground/jungle/central_jungle)
 "KV" = (
 /obj/structure/blocker/invisible_wall/water,
-/turf/open/gm/coast{
-	dir = 4
-	},
+/turf/open/gm/coast/west,
 /area/lv624/ground/jungle/central_jungle)
 "Mq" = (
 /obj/structure/blocker/invisible_wall/water,
-/turf/open/gm/coast{
-	dir = 1
-	},
+/turf/open/gm/coast/south,
 /area/lv624/ground/jungle/central_jungle)
 "Mz" = (
 /obj/structure/flora/jungle/vines/heavy,
@@ -567,9 +514,7 @@
 /obj/structure/platform/kutjevo/rock{
 	dir = 8
 	},
-/turf/open/gm/coast{
-	icon_state = "beachcorner2"
-	},
+/turf/open/gm/coast/beachcorner2,
 /area/lv624/ground/jungle/central_jungle)
 "Ol" = (
 /obj/structure/flora/grass/tallgrass/jungle/corner{
@@ -656,18 +601,13 @@
 /obj/structure/platform_decoration/kutjevo/rock{
 	dir = 1
 	},
-/turf/open/gm/coast{
-	icon_state = "beachcorner2";
-	dir = 8
-	},
+/turf/open/gm/coast/beachcorner2/south_east,
 /area/lv624/ground/jungle/central_jungle)
 "Ua" = (
 /obj/structure/platform_decoration/kutjevo/rock{
 	dir = 1
 	},
-/turf/open/gm/coast{
-	icon_state = "beachcorner"
-	},
+/turf/open/gm/coast/beachcorner,
 /area/lv624/ground/jungle/central_jungle)
 "VR" = (
 /obj/structure/platform_decoration/kutjevo/rock{
@@ -713,9 +653,7 @@
 /turf/open/auto_turf/strata_grass/layer1,
 /area/lv624/ground/jungle/central_jungle)
 "Zn" = (
-/turf/open/gm/coast{
-	icon_state = "beachcorner"
-	},
+/turf/open/gm/coast/beachcorner,
 /area/lv624/ground/jungle/central_jungle)
 "ZS" = (
 /obj/structure/platform/kutjevo/rock{
@@ -31017,7 +30955,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -31522,7 +31460,7 @@ xV
 xV
 xV
 oX
-ae
+Dq
 Dp
 jE
 AV
@@ -32026,7 +31964,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -33771,9 +33709,9 @@ AV
 jE
 jE
 Zn
-ae
-ae
-ae
+Dq
+Dq
+Dq
 Jx
 xV
 xV
@@ -34526,7 +34464,7 @@ AV
 jE
 jE
 jE
-lB
+nl
 HQ
 xV
 xV
@@ -34791,7 +34729,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 HQ
 xV
 xV
@@ -35042,9 +34980,9 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
-lB
+nl
 HQ
 xV
 xV
@@ -35297,7 +35235,7 @@ xV
 nl
 jE
 jE
-lB
+nl
 HQ
 xV
 xV
@@ -35550,7 +35488,7 @@ nl
 jE
 jE
 jE
-lB
+nl
 HQ
 xV
 xV
@@ -35786,7 +35724,7 @@ jE
 jE
 jE
 Zn
-ae
+Dq
 Jx
 xV
 xV
@@ -35797,7 +35735,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -36048,7 +35986,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -36551,7 +36489,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -36802,7 +36740,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -37296,7 +37234,7 @@ jE
 jE
 jE
 Zn
-ae
+Dq
 Jx
 xV
 xV
@@ -37809,7 +37747,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -38060,7 +37998,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -38075,7 +38013,7 @@ OO
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -39066,8 +39004,8 @@ xV
 xV
 xV
 xV
-qo
-dP
+Dp
+Dp
 Dq
 jE
 jE
@@ -39569,7 +39507,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -39588,7 +39526,7 @@ xV
 xV
 xV
 oX
-ae
+Dq
 Dp
 jE
 jE
@@ -39834,7 +39772,7 @@ iw
 AV
 jE
 jE
-lB
+nl
 HQ
 xV
 xV
@@ -40324,7 +40262,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -40819,7 +40757,7 @@ jE
 jE
 jE
 jE
-lB
+nl
 HQ
 xV
 xV
@@ -40828,7 +40766,7 @@ xV
 xV
 xV
 xV
-cy
+Dq
 Dp
 jE
 jE
@@ -41079,8 +41017,8 @@ xV
 xV
 xV
 xV
-qo
-dP
+Dp
+Dp
 Dq
 jE
 jE
@@ -41583,7 +41521,7 @@ xV
 xV
 xV
 xV
-cy
+Dq
 Dp
 jE
 jE
@@ -41835,7 +41773,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -42329,7 +42267,7 @@ jE
 jE
 jE
 Zn
-ae
+Dq
 Jx
 xV
 xV
@@ -42338,7 +42276,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -42564,11 +42502,11 @@ Hu
 Hu
 db
 KV
-ae
-ae
-ae
-ae
-ae
+Dq
+Dq
+Dq
+Dq
+Dq
 Dp
 jE
 jE
@@ -42576,10 +42514,10 @@ jE
 jE
 jE
 Zn
-ae
-ae
-ae
-ae
+Dq
+Dq
+Dq
+Dq
 Jx
 xV
 xV
@@ -42821,12 +42759,12 @@ xV
 xV
 xV
 xV
-cy
-ae
-ae
-ae
-ae
-ae
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
 Jx
 xV
 xV
@@ -42841,7 +42779,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -43092,7 +43030,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -43117,7 +43055,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -43847,7 +43785,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -45385,7 +45323,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -45611,7 +45549,7 @@ xV
 xV
 xV
 xV
-cy
+Dq
 Dp
 jE
 jE
@@ -45864,7 +45802,7 @@ xV
 xV
 xV
 xV
-cy
+Dq
 Dp
 jE
 jE
@@ -46117,7 +46055,7 @@ xV
 xV
 xV
 xV
-cy
+Dq
 Dp
 jE
 jE
@@ -46370,17 +46308,17 @@ xV
 xV
 xV
 xV
-cy
-ae
-ae
-ae
-ae
-ae
-ae
-ae
-ae
-ae
-ae
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
+Dq
 Jx
 xV
 xV
@@ -46644,7 +46582,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -46895,7 +46833,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -47398,7 +47336,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -47647,9 +47585,9 @@ xV
 xV
 xV
 xV
-qo
-dP
-dP
+Dp
+Dp
+Dp
 Dq
 jE
 jE
@@ -48402,7 +48340,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -48904,8 +48842,8 @@ xV
 xV
 xV
 xV
-qo
-dP
+Dp
+Dp
 Dq
 jE
 jE
@@ -49152,10 +49090,10 @@ xV
 xV
 xV
 xV
-qo
-dP
-dP
-dP
+Dp
+Dp
+Dp
+Dp
 Dq
 jE
 jE
@@ -49403,7 +49341,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -49654,7 +49592,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -49905,7 +49843,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -50156,7 +50094,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -50911,7 +50849,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -51414,7 +51352,7 @@ Dx
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -51917,7 +51855,7 @@ Dx
 Dx
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -52422,11 +52360,11 @@ Dx
 xV
 xV
 oX
-ae
+Dq
 Dp
 jE
 Zn
-ae
+Dq
 Dp
 jE
 jE
@@ -52675,8 +52613,8 @@ xV
 xV
 xV
 xV
-cy
-ae
+Dq
+Dq
 Jx
 xV
 nl
@@ -53182,7 +53120,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
@@ -54696,15 +54634,15 @@ xV
 xV
 xV
 oX
-ae
-ae
-ae
-ae
+Dq
+Dq
+Dq
+Dq
 Dp
 jE
 jE
 Zn
-ae
+Dq
 Dp
 jE
 jE
@@ -54952,9 +54890,9 @@ xV
 xV
 xV
 xV
-cy
-ae
-ae
+Dq
+Dq
+Dq
 Jx
 xV
 nl
@@ -55715,8 +55653,8 @@ xV
 xV
 xV
 oX
-ae
-ae
+Dq
+Dq
 Dp
 jE
 jE
@@ -55970,7 +55908,7 @@ xV
 xV
 xV
 oX
-ae
+Dq
 Dp
 jE
 jE
@@ -56477,7 +56415,7 @@ xV
 xV
 xV
 oX
-ae
+Dq
 Dp
 jE
 jE
@@ -56731,9 +56669,9 @@ xV
 xV
 xV
 oX
-ae
-ae
-ae
+Dq
+Dq
+Dq
 Dp
 jE
 jE
@@ -60011,7 +59949,7 @@ xV
 xV
 xV
 xV
-qo
+Dp
 Dq
 jE
 jE
