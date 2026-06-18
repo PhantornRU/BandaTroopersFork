@@ -11,7 +11,7 @@
 /obj/item/device/helmet_visor/night_vision/halo
 	name = "HALO NVG Module"
 	desc = "If you're seeing this, you probably shouldn't be."
-	icon = 'icons/obj/items/clothing/helmet_visors.dmi'
+	icon = 'modular/halo/icons/halo/obj/items/clothing/helmet_visors.dmi'
 
 	hud_type = list(MOB_HUD_FACTION_UNSC, MOB_HUD_VISR)
 	lighting_alpha = 170 // originally 190

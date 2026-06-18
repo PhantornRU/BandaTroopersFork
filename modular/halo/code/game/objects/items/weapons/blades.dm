@@ -7,12 +7,20 @@
 	icon = 'modular/halo/icons/halo/obj/items/weapons/melee_by_faction/unsc/unsc_melee.dmi'
 	icon_state = "unsc_machete"
 
+/obj/item/weapon/sword/machete/fil
+	icon = 'icons/obj/items/weapons/weapons.dmi'
+	icon_state = "csam"
+
 //UNSC knife
 /obj/item/weapon/knife/marine
 	name = "\improper M1 Combat Knife"
 	desc = "Standard UNSC cold weapon. 20cm high carbon steel blade with anti-flash carbide coating. Balanced for throwing and close quarters combat, though mostly intended as a multitool... Especially these days."
 	icon = 'modular/halo/icons/halo/obj/items/weapons/melee_by_faction/unsc/unsc_melee.dmi'
 	icon_state = "unsc_marine_knife"
+
+/obj/item/weapon/knife/marine/fil
+	icon = 'icons/obj/items/weapons/weapons.dmi'
+	icon_state = "knife_fmb51"
 
 /obj/item/weapon/knife/marine/kabar
 	name = "\improper MK88 Ratio survival knife"

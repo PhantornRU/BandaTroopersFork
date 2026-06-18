@@ -1,6 +1,7 @@
 /datum/ammo/energy/halo_plasma
 	name = "plasma bolt"
 	icon = 'modular/halo/icons/halo/obj/items/weapons/halo_projectiles.dmi'
+	icon_state = "plasma_blue"
 	shell_speed = AMMO_SPEED_TIER_3
 	flags_ammo_behavior = AMMO_BALLISTIC
 	sound_hit = "plasma_impact"

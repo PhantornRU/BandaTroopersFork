@@ -15,6 +15,8 @@
 	magazine_type = null
 	limit_per_tile = 1
 	num_of_magazines = 0
+	overlay_ammo_type = null
+	overlay_gun_type = null
 	overlay_content = null
 
 /obj/item/ammo_box/magazine/misc/unsc/mre
@@ -129,6 +131,7 @@
 	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base_ammoshell"
 	overlay_content = null
+	overlay_ammo_type = null
 	overlay_gun_type = null
 	handfuls_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 	limit_per_tile = 2
@@ -176,8 +179,8 @@
 	icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/boxes_and_lids.dmi'
 	icon_state = "base_ammoshell_srs99"
 	overlay_content = "_srs99"
-	overlay_ammo_type = "_blank"
-	overlay_gun_type = "_blank"
+	overlay_ammo_type = null
+	overlay_gun_type = null
 	handfuls_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 	limit_per_tile = 2
 	deployed_object = /obj/structure/magazine_box/unsc
@@ -206,6 +209,8 @@
 	icon_state = "base_ammo"
 	magazines_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/magazines.dmi'
 	text_markings_icon = 'modular/halo/icons/halo/obj/items/weapons/guns/ammo_boxes/text.dmi'
+	overlay_ammo_type = null
+	overlay_gun_type = null
 	limit_per_tile = 1
 	deployed_object = /obj/structure/magazine_box/unsc
 
@@ -306,6 +311,8 @@
 	num_of_magazines = 96
 	handfuls = TRUE
 	flags_equip_slot = SLOT_BACK
+	overlay_ammo_type = null
+	overlay_gun_type = null
 	overlay_content = null
 
 /obj/item/ammo_box/magazine/unsc/shotgun/update_icon()

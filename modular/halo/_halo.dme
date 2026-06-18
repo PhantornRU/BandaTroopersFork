@@ -82,6 +82,7 @@
 #include "code/mixed/components/supercombine.dm"
 #include "code/mixed/perf/halo_perf.dm"
 #include "code/mixed/effects/halo_ammo_casings.dm"
+#include "code/mixed/effects/halo_lighting_masks.dm"
 #include "code/mixed/effects/halo_temp_visuals.dm"
 #include "code/datums/looping_sounds/halo_dropship.dm"
 #include "code/mixed/effects/halo_unsc_decals.dm"

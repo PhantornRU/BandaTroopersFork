@@ -16,6 +16,7 @@
 
 /obj/item/ammo_magazine/handful/shotgun/buckshot_unsc
 	name = "handful of MAG 15P-00B (8g)"
+	icon = 'modular/halo/icons/obj/items/weapons/guns/handful.dmi'
 	icon_state = "8g_shell_6"
 	handful_state = "8g_shell"
 	caliber = "8g"
@@ -69,6 +70,7 @@
 
 /obj/item/ammo_magazine/handful/shotgun/halo
 	name = "handful of MAG 15P-00B shotgun shells"
+	icon = 'modular/halo/icons/obj/items/weapons/guns/handful.dmi'
 	icon_state = "8g_shell_6"
 	default_ammo = /datum/ammo/bullet/shotgun/buckshot/unsc
 	caliber = "8g"
