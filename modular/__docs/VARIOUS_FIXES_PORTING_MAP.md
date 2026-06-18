@@ -22,6 +22,7 @@ Master porting map for all upstream PRs ported into BandaTroopers from CM-PVE an
 - **Branch**: `halo-pve-update-batch1-3b`
 - **PR**: https://github.com/ss220club/BandaTroopers/pull/102
 - **Last sync commit**: `5f1e274056` (2026-06-09)
+- **Latest HALO upstream refresh**: `cmss13-devs/cmss13-pve-halo/master @ 60dd61b32df3c9f4b6ed0f646743ce8884399e43` (2026-06-18)
 
 ### CM-PVE PRs (21)
 
@@ -53,6 +54,12 @@ Master porting map for all upstream PRs ported into BandaTroopers from CM-PVE an
 
 See [`HALO_PORT_STATE.md`](../halo/__docs/HALO_PORT_STATE.md) for full table.
 
+2026-06-18 refresh:
+
+- Fresh post-`787d28227b` CM-PVE-HALO PRs #152, #159, #180, #162, #185, #170, #173, and #172 were rechecked against BT modular paths.
+- Residual gaps from #151 and #161 were fixed in BT.
+- `sound/weapons/halo/gun_plasmarifle_triplefire.ogg` was imported to `modular/halo/sound/weapons/gun_plasmarifle_triplefire.ogg` as a byte-exact upstream sound asset; it has no live reference at the time of import.
+
 ### Path Remapping Rules
 
 - All upstream `modular_pve_halo/` paths → `modular/halo/`
@@ -76,7 +83,8 @@ See [`HALO_PORT_STATE.md`](../halo/__docs/HALO_PORT_STATE.md) for full table.
 ### Source of Truth
 
 - Upstream repo: `https://github.com/cmss13-devs/cmss13-pve-halo`
-- Latest verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` (2026-04-27)
+- Latest historical PR94 verification fetch: `cm-pve-halo/master` at `2ec6b82a5b` (2026-04-27)
+- Latest PR102/HALO refresh fetch: `cm-pve-halo/master` at `60dd61b32df3c9f4b6ed0f646743ce8884399e43` (2026-06-18)
 - Merged BT baseline: `ss220club/BandaTroopers#93`
 - Base main-wave branch: `ss220club/master` at `66bf244f0ecf925736d9081053d35abb59fb6c6e`
 

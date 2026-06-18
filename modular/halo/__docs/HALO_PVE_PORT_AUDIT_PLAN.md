@@ -10,10 +10,11 @@ This document is a plan, not a completion record. The status source of truth is
 ## Audit Target
 
 - BandaTroopers PR: <https://github.com/ss220club/BandaTroopers/pull/102>
-- Current observed PR head: `37590aa0dd5da5317d833b90ef0a7946bf67bd2e`
+- Current observed local branch head before the 2026-06-18 refresh worktree edits:
+  `5454f313cc436822c605a8bbcc98cba1e6a8c85d`
 - HALO upstream: <https://github.com/cmss13-devs/cmss13-pve-halo>
 - Current HALO audit source from state doc:
-  `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
+  `cmss13-devs/cmss13-pve-halo/master @ 60dd61b32df3c9f4b6ed0f646743ce8884399e43`
 - Local branch: `halo-pve-update-batch1-3b`
 
 ## Non-Goals
@@ -51,6 +52,13 @@ Current known mismatch:
 - older docs describe 27 CM-PVE-HALO PRs;
 - the PR body now also mentions #183, #185, #186, and #159 as newly ported;
 - local commits after `5f1e274056` changed DMI/sound/modularity state.
+
+2026-06-18 refresh note:
+
+- upstream `cm-pve-halo/master` now resolves to `60dd61b32d`;
+- post-`787d28227b` PRs #152, #159, #180, #162, #185, #170, #173, and #172 were rechecked against modular BT paths;
+- residual implementation gaps from #151 and #161 were fixed in the refresh worktree;
+- upstream `sound/weapons/halo/gun_plasmarifle_triplefire.ogg` was imported to `modular/halo/sound/weapons/gun_plasmarifle_triplefire.ogg` as byte-exact parity, although no live DM/DMM/JSON reference currently uses it.
 
 ## Audit Phases
 

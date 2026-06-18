@@ -82,6 +82,7 @@
 	penetration = ARMOR_PENETRATION_TIER_1
 	scatter = SCATTER_AMOUNT_TIER_8
 	accuracy = HIT_ACCURACY_TIER_4
+	shell_casing = null
 
 /datum/ammo/bullet/smg/halo/m7
 	name = "5×23mm M443 FMJ"
@@ -90,6 +91,7 @@
 	penetration = ARMOR_PENETRATION_TIER_1
 	scatter = SCATTER_AMOUNT_TIER_8
 	accuracy = HIT_ACCURACY_TIER_4
+	shell_casing = null
 
 // shotgun ammo
 

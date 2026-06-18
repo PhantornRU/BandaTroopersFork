@@ -12,7 +12,18 @@ Canonical source of truth for the current HALO modular sync state on BandaTroope
 - Current PR #102 audit plan: [`HALO_PVE_PORT_AUDIT_PLAN.md`](HALO_PVE_PORT_AUDIT_PLAN.md)
 - Current gameplay-completion branch: `halo_jackal_spartan_wave_apr2026`
 - Pre-refresh PR94 branch head before the master update: `6760808e61a60c596784bde67a8b6a594f57c089`
-- Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ a4943e1cd28387b86e47ba282a8cd06e7b953c96`
+- Current upstream audit source for HALO content parity: `cmss13-devs/cmss13-pve-halo/master @ 60dd61b32df3c9f4b6ed0f646743ce8884399e43`
+
+## 2026-06-18 Upstream Refresh
+
+- `cm-pve-halo/master` was fetched from `787d28227b` to `60dd61b32d`.
+- Direct merge/cherry-pick is not valid for BT because the histories are layout-divergent; upstream HALO paths are audited and remapped into `modular/halo/**`.
+- Fresh post-`787d28227b` upstream PRs rechecked against BT modular paths: #152, #159, #180, #162, #185, #170, #173, #172.
+- Residual older gaps found and fixed in this refresh:
+  - #151: M7 is caseless in both M7 ammo datums, M7 SMG no longer auto-ejects casings, ODST rifleman rank options map to PFC/LCPL correctly.
+  - #161: Covenant base skills use `SKILL_MELEE_WEAPONS`, include police skill, and Sangheili receive the upstream expert/master skill package.
+- Asset parity follow-up: imported upstream `sound/weapons/halo/gun_plasmarifle_triplefire.ogg` to `modular/halo/sound/weapons/gun_plasmarifle_triplefire.ogg` as a byte-exact modular asset. There are no live references to this sound at the time of import.
+- Tooling divergence: upstream #177 points mapmerge at CM-PVE-HALO; BT intentionally keeps `tools/mapmerge2/fixup.py` pointed at `ss220club/BandaTroopers`.
 
 ## PR #156 Core Scope Note
 
@@ -142,6 +153,9 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 
 | PR | Title | Status | Notes |
 |----|-------|--------|-------|
+| #186 | UNSC headsets default tracks | **PORTED** | UNSC/ODST headset default tracking/options in `modular/halo/code/game/objects/items/devices/radio/halo_headset.dm` |
+| #185 | Specialist Stuff is indestructible | **PORTED** | SPNKR, sniper rifle, and specialist storage indestructible |
+| #183 | UNSC & ODST Flags/Banners | **PORTED** | Banner structures and `banners.dmi` under `modular/halo/**` |
 | #182 | Featureless biomes | **PORTED** | 5 new featureless biome maps (Space, Barrens, Desert, Jungle, Arctic) |
 | #181 | SoutoATV renamed to mongoose | **PORTED** | Added `/obj/vehicle/souto/mongoose` subtype |
 | #180 | Wort wort wort, lohbaba! | **PORTED** | Covenant voice lines |
@@ -161,6 +175,7 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 | #164 | Titan rename to Voyager | **PORTED** | Titan → Voyager rename |
 | #163 | Halo Minimap Fix | **PORTED** | Minimap fixes for HALO |
 | #162 | Elite "Hero" subtypes | **PORTED** | Sangheili hero subtypes |
+| #161 | Sangheili Skills | **PORTED** | Sangheili expert/master skill package and Covenant police skill |
 | #160 | Holy Redoubts | **PORTED** | Map templates (14 templates) |
 | #159 | Shotgun & sniper ammo boxes | **PORTED** | Ammo boxes for shotguns/snipers |
 | #158 | Fire Support Binos Support | **PORTED** | Fire support binoculars |
@@ -168,8 +183,18 @@ All 6 previously deferred intentional deviations from PR #102 comprehensive upst
 | #156 | Presets updates, Vendor tweaks | **PORTED** | Core preset/vendor/med files only |
 | #155 | ODST Drop Pod - Intro Blurb | **PORTED** | ODST drop pod intro text |
 | #152 | Fences | **PORTED** | Fence structures |
+| #151 | Awaga | **PORTED** | M7 caseless ammo/SMG behavior and ODST rifleman rank selection fix |
 | #150 | Loadout selection changes | **PORTED** | Loadout UI changes |
+| #149 | awaga | **PORTED** | ODST RTO rank selection and UNSC SL/RTO HUD mapping |
+| #148 | Sangheili throwback | **PORTED** | Covenant grenade throwback capability rules |
+| #146 | Motion Sensor HUD | **PORTED** | HALO motion sensor HUD component and modular HUD DMI |
 | #145 | bumblebee | **ALREADY PRESENT** | Bumblebee escape pod |
+| #143 | BR55 Recoil | **PORTED** | BR55 recoil set to upstream tier |
+| #140 | More weapon sprites | **PORTED** | Weapon/attachment/back sprites under modular HALO icon paths |
+| #137 | Modularization of weapons | **PORTED** | Upstream weapon modularization adapted to BT `modular/halo/**` layout |
+| #120 | Halo Firesupport | **PORTED** | HALO fire support sounds/effects remapped to modular assets |
+| #53 | Ain't That a Kick in the Head | **PORTED** | Sangheili kick action and AI integration |
+| #46 | Karmac Map Pack #1 | **PORTED** | Mackay Station and ONI Digsite maps/configs present in BT map paths |
 
 ### CM-PVE
 

@@ -8,7 +8,7 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
   - `https://github.com/cmss13-devs/cmss13-pve-halo` (CM-PVE-HALO)
   - `https://github.com/cmss13-devs/cmss13-pve` (CM-PVE)
 - Current merged BT master baseline: `upstream/master @ 5d2ad73b68727b88c7b02cf005a4af72f855babd` (PR #96)
-- Target upstream master: `787d28227b`
+- Target upstream master: `60dd61b32d`
 - Active task: **COMPLETED** — Comprehensive upstream sync: all 48 must-port PRs from CM-PVE and CM-PVE-HALO ported into [`modular/halo`](modular/halo) and `code/**` (with SS220 EDIT markers)
 - Completion PR: [#102](https://github.com/ss220club/BandaTroopers/pull/102) — `halo-pve-update-batch1-3b`
 - Porting date: 2026-06-05
@@ -21,7 +21,8 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - 2026-04-28 modular asset audit completed (HALO assets moved to `modular/halo/icons/**` and `modular/halo/sound/**`)
 - PR #102 ported merged PRs from CM-PVE-HALO (#137, #153, #154, #170, #173, #162, #156 core preset/vendor/med file set)
 - 2026-06-05: All 48 must-port PRs ported and validated (compile 0 errors, maplint OK, path audit OK)
-- Current task: **COMPLETED** — documentation sync only
+- Current task: **COMPLETED** — upstream refresh to `60dd61b32d` with targeted residual fixes and validation
+- 2026-06-18: Upstream refresh from `787d28227b` to `60dd61b32d`; post-target HALO PRs #152, #159, #180, #162, #185, #170, #173, and #172 rechecked. Residual gaps from #151 and #161 were fixed, and `gun_plasmarifle_triplefire.ogg` was imported as a byte-exact modular sound asset. `BUILD.cmd` passed with 0 errors and 0 warnings.
 
 ## Implementation Batches
 
@@ -112,6 +113,9 @@ Active tracking document for the HALO PVE update task on BandaTroopers.
 - #137 Weapon Modularization (split/adapt)
 - #153 `iscovenant` typecheck
 - #154 New UNSC grenades
+- #183 UNSC/ODST flags and banners
+- #185 Specialist items indestructible
+- #186 UNSC headsets default tracks
 - #170 New covenant squads
 - #173 Unggoy plasma grenade loadouts
 - #162 Elite Hero subtypes
