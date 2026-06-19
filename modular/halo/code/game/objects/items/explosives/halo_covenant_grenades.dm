@@ -217,7 +217,7 @@
 			var/mob/living/target = parent_atom
 			target.spin(5, 1)
 			target.KnockDown(1)
-		to_chat(parent, SPAN_HIGHDANGER("РўС‹ РѕС‚СЂС‹РІР°РµС€СЊ РѕС‚ СЃРµР±СЏ РїС‹Р»Р°СЋС‰РёР№ С€Р°СЂ СЃРІРµС‚Р°!"))
+		to_chat(parent, SPAN_HIGHDANGER("Ты отрываешь от себя пылающий шар света!"))
 		src.origin_nade.forceMove(parent_atom.loc)
 		src.origin_nade.attached = FALSE
 		addtimer(CALLBACK(src.origin_nade, TYPE_PROC_REF(/obj/item/explosive/grenade/high_explosive/covenant/plasma, prime)), det_time_after_unstuck)
@@ -233,7 +233,7 @@
 		var/mob/living/target = parent_atom
 		target.spin(5, 1)
 		target.KnockDown(1)
-	to_chat(parent, SPAN_HIGHDANGER("РќРµ РІС‹С…РѕРґРёС‚ СЃР±СЂРѕСЃРёС‚СЊ РїС‹Р»Р°СЋС‰РёР№ С€Р°СЂ СЃРІРµС‚Р°!"))
+	to_chat(parent, SPAN_HIGHDANGER("Не выходит сбросить пылающий шар света!"))
 
 /datum/component/status_effect/plasma_stuck/proc/update_vehicle_icon()
 	var/atom/movable/parent_atom = parent
