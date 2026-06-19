@@ -1172,14 +1172,17 @@
 				if(!islist(alias_spec))
 					continue
 				var/required_alias_capability = "[alias_spec["capability"] || ""]"
-				if(length(required_alias_capability) && !building_cluster_has_capability_placement(state, cluster_spec, required_alias_capability))
-					continue
+				var/alias_count = placed_count
+				if(length(required_alias_capability))
+					alias_count = get_building_cluster_capability_placement_count(state, cluster_spec, required_alias_capability)
+					if(alias_count <= 0)
+						continue
 				var/alias_credit = "[alias_spec["semantic_credit"]]"
 				var/alias_counter = "[alias_spec["acceptance_counter"] || "[alias_credit]_count"]"
 				if(length(alias_credit))
-					state.register_requirement(alias_credit, placed_count)
+					state.register_requirement(alias_credit, alias_count)
 				if(length(alias_counter))
-					state.register_requirement(alias_counter, placed_count)
+					state.register_requirement(alias_counter, alias_count)
 			continue
 		if(placed_count < effective_minimum)
 			state.validation.signature_failure_count++
@@ -1261,17 +1264,21 @@
 	return report
 
 /datum/world_edit_generator/building_layout/proc/building_cluster_has_capability_placement(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, required_capability)
+	return get_building_cluster_capability_placement_count(state, cluster_spec, required_capability) > 0
+
+/datum/world_edit_generator/building_layout/proc/get_building_cluster_capability_placement_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, required_capability)
 	if(!istype(state) || !istype(cluster_spec) || !length("[required_capability]"))
-		return FALSE
+		return 0
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	var/count = 0
 	for(var/list/placement as anything in state.fixtures.object_placements)
 		if(!islist(placement) || "[placement["kind"]]" != "interior")
 			continue
 		if("[placement["requirement_id"]]" != requirement_id && "[placement["cluster_id"]]" != cluster_spec.id && "[placement["signature_id"]]" != cluster_spec.signature_id)
 			continue
 		if(building_placement_provides_capability(placement, required_capability))
-			return TRUE
-	return FALSE
+			count += max(round(text2num("[placement["requirement_count_credit"]]") || 0), 1)
+	return count
 
 /datum/world_edit_generator/building_layout/proc/building_required_cluster_has_reachable_fixture(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(state) || !istype(cluster_spec))
@@ -1316,35 +1323,35 @@
 		return
 	var/light_count = get_building_requirement_or_category_count(state, "infrastructure_lights", "light")
 	if(light_count >= 2)
-		state.register_requirement("infrastructure_lights", light_count)
+		state.fixtures.semantic_requirement_counts["infrastructure_lights"] = light_count
 	if(light_count < 2)
 		state.validation.fixture_conflict_count++
 		state.validation.infrastructure_required_missing_count++
 		state.add_warning("SS13 infrastructure requires at least two light fixtures.")
 	var/apc_count = get_building_requirement_or_category_count(state, "infrastructure_apc", "apc")
 	if(apc_count >= 1)
-		state.register_requirement("infrastructure_apc", apc_count)
+		state.fixtures.semantic_requirement_counts["infrastructure_apc"] = apc_count
 	if(apc_count < 1)
 		state.validation.fixture_conflict_count++
 		state.validation.infrastructure_required_missing_count++
 		state.add_warning("SS13 infrastructure requires an APC.")
 	var/air_alarm_count = get_building_requirement_or_category_count(state, "infrastructure_air_alarm", "air_alarm")
 	if(air_alarm_count >= 1)
-		state.register_requirement("infrastructure_air_alarm", air_alarm_count)
+		state.fixtures.semantic_requirement_counts["infrastructure_air_alarm"] = air_alarm_count
 	if(air_alarm_count < 1)
 		state.validation.fixture_conflict_count++
 		state.validation.infrastructure_required_missing_count++
 		state.add_warning("SS13 infrastructure requires an air alarm.")
 	var/light_switch_count = get_building_requirement_or_category_count(state, "infrastructure_light_switch", "light_switch")
 	if(light_switch_count >= 1)
-		state.register_requirement("infrastructure_light_switch", light_switch_count)
+		state.fixtures.semantic_requirement_counts["infrastructure_light_switch"] = light_switch_count
 	if(light_switch_count < 1)
 		state.validation.fixture_conflict_count++
 		state.validation.infrastructure_required_missing_count++
 		state.add_warning("SS13 infrastructure requires a light switch near entry/service wall.")
 	var/fire_alarm_count = get_building_requirement_or_category_count(state, "infrastructure_fire_alarm", "fire_alarm")
 	if(fire_alarm_count >= 1)
-		state.register_requirement("infrastructure_fire_alarm", fire_alarm_count)
+		state.fixtures.semantic_requirement_counts["infrastructure_fire_alarm"] = fire_alarm_count
 	if(length(state.geometry.floor_turfs) >= 30 && fire_alarm_count < 1)
 		state.validation.fixture_conflict_count++
 		state.validation.infrastructure_required_missing_count++

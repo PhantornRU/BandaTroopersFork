@@ -450,6 +450,7 @@
 		var/emitted_count = round(text2num("[emitted_requirement_counts[requirement_id]]") || 0)
 		if(planned_count > emitted_count)
 			increment_building_post_emit_report(report, "semantic_credit_without_emitted_slots_count", planned_count - emitted_count)
+	report["emitted_requirement_counts"] = emitted_requirement_counts.Copy()
 
 	report["state_mismatch_count"] = round(text2num("[report["wall_mismatch_count"]]") || 0) + round(text2num("[report["door_mismatch_count"]]") || 0) + round(text2num("[report["object_mismatch_count"]]") || 0)
 	var/error_count = round(text2num("[report["missing_path_count"]]") || 0) + round(text2num("[report["failed_object_count"]]") || 0) + round(text2num("[report["state_mismatch_count"]]") || 0) + round(text2num("[report["route_blocking_count"]]") || 0) + round(text2num("[report["route_unreachable_count"]]") || 0) + round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
