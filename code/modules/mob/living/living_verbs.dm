@@ -197,9 +197,7 @@
 /mob/living/carbon/human/resist_plasma_nade()
 	var/list/all_components = datum_components[/datum/component]
 	for(var/datum/component/status_effect/plasma_stuck/component in all_components)
-		component.unstuck(delete_nade = FALSE)
-		KnockDown(1)
-		spin(5, 1)
+		component.unstuck()
 	return
 
 /mob/living/proc/resist_buckle()
