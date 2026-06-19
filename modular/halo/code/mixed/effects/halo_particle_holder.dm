@@ -7,7 +7,7 @@
 	layer = ABOVE_FLY_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	anchored = TRUE
-	/// Holds info about how this particle emitter works. See code/__DEFINES/particles.dm.
+	/// Holds info about how this particle emitter works. See modular/halo/code/__DEFINES/halo_particles.dm.
 	var/particle_flags = NONE
 	var/atom/parent
 

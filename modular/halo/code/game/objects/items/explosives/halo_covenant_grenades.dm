@@ -186,11 +186,12 @@
 		time_running -= 5
 	if(istype(parent_atom, /mob/living))
 		RegisterSignal(parent_atom, list(COMSIG_LIVING_REJUVENATED), PROC_REF(force_unstuck))
+		RegisterSignal(parent_atom, COMSIG_MOB_RESISTED, PROC_REF(unstuck))
 	START_PROCESSING(SSfastobj, src)
 
 /datum/component/status_effect/plasma_stuck/UnregisterFromParent()
 	STOP_PROCESSING(SSfastobj, src)
-	UnregisterSignal(parent, list(COMSIG_LIVING_REJUVENATED))
+	UnregisterSignal(parent, list(COMSIG_LIVING_REJUVENATED, COMSIG_MOB_RESISTED))
 
 	var/atom/movable/parent_atom = parent
 	if(parent_atom)
