@@ -3,10 +3,6 @@
 
 /datum/world_edit_generation_stage/spatial_partition/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_building_layout_state/state = context.state
-	
-	// If fallback mode is enabled, we just leave it empty and let legacy handle it
-	if(state.config["room_first_layout"])
-		return TRUE
 
 	var/bounds = state.geometry.bounds
 	if(!islist(bounds))

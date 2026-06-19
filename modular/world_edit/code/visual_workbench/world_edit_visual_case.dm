@@ -128,9 +128,18 @@
 
 	profiler.enter_stage(WORLD_EDIT_VISUAL_STAGE_EXPORT)
 	var/list/export_result = export_artifacts(apply_result, post_emit_result)
+	export_semantic_json(list(
+		"rooms" = preview_result?["rooms"] || list(),
+		"routes" = preview_result?["routes"] || list(),
+		"profile" = profiler?.to_json_list(),
+	))
 	profiler.leave_stage(WORLD_EDIT_VISUAL_STAGE_EXPORT, export_result)
 
-	var/list/final_report = finish_supported(preview_result, apply_result, post_emit_result, export_result)
+	profiler.enter_stage(WORLD_EDIT_VISUAL_STAGE_UNDO)
+	var/list/undo_result = run_undo_validation(apply_result_datum)
+	profiler.leave_stage(WORLD_EDIT_VISUAL_STAGE_UNDO, undo_result)
+
+	var/list/final_report = finish_supported(preview_result, apply_result, post_emit_result, export_result, undo_result)
 	report = final_report
 	return final_report
 
@@ -280,3 +289,19 @@
 	// the case is inspectable, but acceptance should treat this as incomplete.
 	add_warning("Generator has no post-emit validation entrypoint or report metadata.")
 	return list("warning" = "post_emit_validation_missing", "post_emit_validation_error_count" = -1)
+
+/datum/world_edit_visual_case/proc/run_undo_validation(datum/world_edit_apply_result/apply_result)
+	if(!istype(apply_result))
+		add_error("undo_apply_result_missing", "Cannot validate undo without a valid apply result.", WORLD_EDIT_VISUAL_STAGE_UNDO)
+		return list("status" = "failed", "restored" = FALSE, "error" = "undo_apply_result_missing")
+	if(!istype(apply_result.changeset))
+		add_error("undo_changeset_missing", "Apply result did not provide a changeset for undo validation.", WORLD_EDIT_VISUAL_STAGE_UNDO)
+		return list("status" = "failed", "restored" = FALSE, "error" = "undo_changeset_missing")
+	var/list/undo_result = GLOB.world_edit_changesets.revert_changeset(apply_result.changeset)
+	var/outcome = "[undo_result["outcome"] || "none"]"
+	var/restored = outcome == "full"
+	undo_result["status"] = restored ? "restored" : "failed"
+	undo_result["restored"] = restored ? TRUE : FALSE
+	if(!restored)
+		add_error("undo_not_restored", "Undo validation did not fully restore the applied changeset.", WORLD_EDIT_VISUAL_STAGE_UNDO, null, undo_result)
+	return undo_result

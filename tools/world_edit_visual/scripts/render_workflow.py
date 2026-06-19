@@ -10,6 +10,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 from crop_bounds import DEFAULT_CROP_PADDING
 from prepare_cases import CasePreparer, expand_cases
@@ -210,9 +211,34 @@ class RenderWorkflow:
             if (case_dir / "workflow.error.txt").exists() or (case_dir / "workflow.error.json").exists():
                 failures.append(case_id)
                 continue
+            report_failure = self.report_failure_reason(case_id)
+            if report_failure:
+                self.info(f"Acceptance failed for {case_id}: {report_failure}")
+                failures.append(case_id)
+                continue
             if (case_dir / "semantic_sprites.error.txt").exists() or (case_dir / "semantic_sprites.error.json").exists():
                 failures.append(case_id)
         return failures
+
+    def report_failure_reason(self, case_id: str) -> str:
+        report_path = DEFAULT_OUT_DIR / case_id / "report.json"
+        if not report_path.exists():
+            return "report_missing"
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError) as error:
+            return f"report_invalid_json:{error}"
+        if not isinstance(report, dict):
+            return "report_invalid_shape"
+        if report.get("passed") is True:
+            return ""
+        diff = report.get("expectation_diff")
+        if isinstance(diff, list) and diff:
+            return f"expectation_mismatch:{len(diff)}"
+        hard_error_count = report.get("hard_error_count")
+        if hard_error_count:
+            return f"hard_errors:{hard_error_count}"
+        return "report_not_passed"
 
     def deduplicated_case_paths(self) -> list[Path]:
         by_case_id: dict[str, Path] = {}
@@ -233,6 +259,12 @@ class RenderWorkflow:
             sys.executable,
             str(SCRIPT_DIR / "runtime_manager.py"),
             "--restart",
+            "--param",
+            "world_edit_acceptance=1",
+            "--param",
+            f"world_edit_acceptance_inbox={self.param_path(TOOL_ROOT / 'inbox')}",
+            "--param",
+            f"world_edit_acceptance_out={self.param_path(DEFAULT_OUT_DIR)}",
         ]
         if self.dry_run_runtime:
             cmd.append("--dry-run")
@@ -248,6 +280,14 @@ class RenderWorkflow:
         )
         self.log_completed_process("runtime_manager", cmd, completed)
         return completed.returncode, (completed.stdout or "") + (completed.stderr or "")
+
+    @staticmethod
+    def param_path(path: Path) -> str:
+        try:
+            text = str(path.relative_to(REPO_ROOT))
+        except ValueError:
+            text = str(path)
+        return quote(text.replace("\\", "/"), safe="/._-")
 
     def stop_runtime(self) -> None:
         if self.dry_run_runtime:

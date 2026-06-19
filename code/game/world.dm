@@ -27,10 +27,6 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	config.Load(params[OVERRIDE_CONFIG_DIRECTORY_PARAMETER])
 
-	// SS220 EDIT: world edit visual workbench keeps headless runtime awake for file polling
-	var/visual_workbench_enabled = world_edit_visual_should_start()
-	// SS220 EDIT - END
-
 	SSdatabase.start_up()
 
 	SSentity_manager.start_up()
@@ -60,14 +56,20 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	// SS220 EDIT - START: UNIT_TESTS should only enter automated test flow when run_tests is passed explicitly
 	var/testing_locally = (world.params && world.params["local_test"])
+	var/running_world_edit_acceptance = FALSE
+	#ifdef UNIT_TESTS
+	running_world_edit_acceptance = (world.params && world.params["world_edit_acceptance"])
+	#endif
 	var/running_tests = (world.params && world.params["run_tests"])
+	var/running_headless_automation = running_tests || running_world_edit_acceptance
 	#ifdef AUTOWIKI
 	// running_tests = TRUE
 	running_tests = TRUE
+	running_headless_automation = TRUE
 	#endif
 	// SS220 EDIT - END
-	// Only do offline sleeping when the server isn't running unit tests, hosting a local dev test, or running the visual workbench.
-	sleep_offline = (!running_tests && !testing_locally && !visual_workbench_enabled)
+	// Only do offline sleeping when the server isn't running unit tests or hosting a local dev test.
+	sleep_offline = (!running_headless_automation && !testing_locally)
 
 	if(!GLOB.RoleAuthority)
 		GLOB.RoleAuthority = new /datum/authority/branch/role()
@@ -83,15 +85,19 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	Master.Initialize(10, FALSE, TRUE)
 
-	// SS220 EDIT - START: world edit visual workbench headless dev hook
-	if(visual_workbench_enabled)
-		init_world_edit_visual_workbench()
-	// SS220 EDIT - END
-
 	// SS220 EDIT - START: accidental UNIT_TESTS launches must stay in normal lobby flow
 	#ifdef UNIT_TESTS
 	if(running_tests)
 		HandleTestRun()
+	#endif
+	// SS220 EDIT - END
+
+	// SS220 EDIT - START: explicit one-shot World Edit acceptance runner
+	#ifdef UNIT_TESTS
+	if(running_world_edit_acceptance)
+		run_world_edit_visual_acceptance_from_params()
+		shutdown()
+		return
 	#endif
 	// SS220 EDIT - END
 

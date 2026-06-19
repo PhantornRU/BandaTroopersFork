@@ -138,6 +138,55 @@
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("micro_bed_chunk"), "bed_niche_chunk", "Micro bed template did not resolve to the living sleep chunk.")
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("island_bed_chunk"), "bed_niche_chunk", "Island bed template did not resolve to the living sleep chunk.")
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("cabinet_run_chunk"), "cabinet_run_chunk", "Direct storage template chunk did not resolve.")
+
+/datum/unit_test/world_edit_building_layout/capability_provider_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/list/colony_config = generator.normalize_building_params(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+	))
+	TEST_ASSERT(!colony_config["error"], "Colony living style should have functional providers: [colony_config["error"]].")
+	var/list/colony_providers = colony_config["fixture_providers_by_slot"]
+	var/datum/world_edit_building_fixture_provider/colony_bed_provider = islist(colony_providers) ? colony_providers["bed"] : null
+	TEST_ASSERT(istype(colony_bed_provider), "Colony living style did not build a bed provider.")
+	TEST_ASSERT(generator.building_fixture_provider_satisfies_slot(colony_bed_provider, "bed"), "Colony bed provider did not satisfy sleep_surface capability.")
+
+	var/list/covenant_config = generator.normalize_building_params(list(
+		"archetype_id" = "living",
+		"faction_preset" = "covenant",
+	))
+	TEST_ASSERT(covenant_config["error"], "Covenant living style should be locked without functional living providers.")
+	TEST_ASSERT_EQUAL(covenant_config["error_code"], "style.missing_capability", "Covenant living style should fail with style.missing_capability.")
+	var/list/covenant_providers = covenant_config["fixture_providers_by_slot"]
+	var/datum/world_edit_building_fixture_provider/covenant_bed_provider = islist(covenant_providers) ? covenant_providers["bed"] : null
+	TEST_ASSERT(istype(covenant_bed_provider), "Covenant living style did not expose the rejected bed provider for diagnostics.")
+	TEST_ASSERT(!generator.building_fixture_provider_satisfies_slot(covenant_bed_provider, "bed"), "Covenant decorative bed provider should not satisfy sleep_surface capability.")
+
+/datum/unit_test/world_edit_building_layout/capability_matrix_payload_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/list/payload = generator.get_ui_payload(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+	))
+	var/list/building_payload = payload["building_layout"]
+	TEST_ASSERT(islist(building_payload), "Building layout UI payload did not include building_layout data.")
+	var/list/matrix = building_payload["capability_matrix"]
+	TEST_ASSERT(islist(matrix), "Building layout UI payload did not include a capability matrix.")
+	var/list/programs = matrix["programs"]
+	var/list/styles = matrix["styles"]
+	var/list/compatibility = matrix["compatibility"]
+	TEST_ASSERT(islist(programs) && islist(programs["living"]), "Capability matrix did not include the living program.")
+	TEST_ASSERT(islist(styles) && islist(styles["colony"]), "Capability matrix did not include the colony style.")
+	var/list/colony_style = styles["colony"]
+	var/list/colony_capabilities = colony_style["capabilities"]
+	TEST_ASSERT(islist(colony_capabilities) && ("sleep_surface" in colony_capabilities), "Colony style payload did not advertise sleep_surface capability.")
+	var/list/by_key = compatibility["by_key"]
+	TEST_ASSERT(islist(by_key), "Capability matrix did not include keyed program/style rows.")
+	var/list/colony_living = by_key["living|colony"]
+	var/list/covenant_living = by_key["living|covenant"]
+	TEST_ASSERT(islist(colony_living) && colony_living["supported"], "Capability matrix should mark living|colony as supported.")
+	TEST_ASSERT(islist(covenant_living) && !covenant_living["supported"], "Capability matrix should mark living|covenant as unsupported.")
+	TEST_ASSERT_EQUAL(covenant_living["lock_code"], "style.missing_capability", "Capability matrix should lock Covenant living with style.missing_capability.")
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("micro_cabinet_chunk"), "cabinet_run_chunk", "Micro cabinet template did not resolve to the storage chunk.")
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("wall_toilet_chunk"), "sanitation_combined_chunk", "Sanitation wall object did not resolve to the sanitation chunk.")
 	TEST_ASSERT_EQUAL(generator.resolve_existing_building_template_chunk_id("missing_living_contract_chunk"), "", "Unknown chunks must not resolve through a generic fallback.")
@@ -396,11 +445,26 @@
 	))
 	TEST_ASSERT(key_a != key_b, "Building runtime request key should change when shape params change.")
 
+/datum/unit_test/world_edit_building_layout/safe_blocker_defaults/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/list/config = generator.normalize_building_params(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+	))
+	TEST_ASSERT(!config["error"], "Default building config failed to normalize: [config["error"]]")
+	TEST_ASSERT(config["respect_blockers"], "Building layout must respect blockers by default.")
+	TEST_ASSERT(!config["replace_blocked_turfs"], "Building layout must not replace blocked turfs by default.")
+
 /datum/unit_test/world_edit_building_layout/locked_unsupported_shape/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/turf/anchor_turf = get_test_anchor_turf()
 	TEST_ASSERT_NOTNULL(anchor_turf, "Advertised shape test could not resolve an anchor turf.")
 	prepare_building_test_canvas(anchor_turf, 16)
+	var/list/supported_shapes = generator.get_supported_placement_shapes()
+	TEST_ASSERT_EQUAL(length(supported_shapes), 3, "Building layout must advertise exactly three supported shapes.")
+	TEST_ASSERT(WORLD_EDIT_SHAPE_POINT in supported_shapes, "Building layout must advertise point placement.")
+	TEST_ASSERT(WORLD_EDIT_SHAPE_RECTANGLE in supported_shapes, "Building layout must advertise rectangle placement.")
+	TEST_ASSERT(WORLD_EDIT_SHAPE_FILLED_RECTANGLE in supported_shapes, "Building layout must advertise filled rectangle placement.")
 	for(var/shape_id as anything in generator.get_supported_placement_shapes())
 		var/list/shape_params = generator.build_building_quality_shape_params(shape_id, 12345, 4, 4)
 		var/list/shape_context = generator.build_building_quality_shape_context(anchor_turf, shape_id, shape_params)
@@ -422,3 +486,23 @@
 		var/datum/world_edit_plan/plan = generator.build_plan_from_shape_contract(null, shape_contract, params, placement_context)
 		TEST_ASSERT_NOTNULL(plan, "Plan was null for shape [shape_id].")
 		TEST_ASSERT(!plan.metadata["error"], "Advertised shape [shape_id] failed: [plan.metadata["error"]]")
+	for(var/shape_id as anything in list(
+		WORLD_EDIT_SHAPE_LINE,
+		WORLD_EDIT_SHAPE_CIRCLE,
+		WORLD_EDIT_SHAPE_RING,
+		WORLD_EDIT_SHAPE_ELLIPSE,
+		WORLD_EDIT_SHAPE_DIAMOND,
+		WORLD_EDIT_SHAPE_TRIANGLE,
+		WORLD_EDIT_SHAPE_SECTOR,
+		WORLD_EDIT_SHAPE_POLYGON,
+		WORLD_EDIT_SHAPE_POLYLINE,
+		WORLD_EDIT_SHAPE_CUSTOM_MASK,
+		WORLD_EDIT_SHAPE_BRUSH_PATH,
+		WORLD_EDIT_SHAPE_SCATTER_CLUSTER
+	))
+		var/list/support = generator.get_placement_shape_support_report(shape_id, list(
+			"archetype_id" = "living",
+			"faction_preset" = "colony",
+		), null)
+		TEST_ASSERT(support["shape_locked"], "Unsupported shape [shape_id] should be shape-locked.")
+		TEST_ASSERT_EQUAL(support["lock_code"], "shape.unsupported_for_building_layout", "Unsupported shape [shape_id] returned the wrong lock code.")

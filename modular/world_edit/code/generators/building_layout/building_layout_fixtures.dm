@@ -48,6 +48,13 @@
 		return TRUE
 	return owner != get_building_cluster_requirement_id(cluster_spec)
 
+/datum/world_edit_generator/building_layout/proc/building_cluster_can_use_procedural_pattern(datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(cluster_spec) || !length(cluster_spec.pattern))
+		return FALSE
+	if(cluster_spec.required && cluster_spec.pattern == "object")
+		return FALSE
+	return TRUE
+
 /datum/world_edit_generator/building_layout/proc/place_building_cluster_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || state.fixtures.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
@@ -119,7 +126,7 @@
 			cluster_report["total_placed"] = already_placed + placed
 			state.add_template_cluster_report(cluster_report)
 			return TRUE
-		if(cluster_spec.required && !cluster_spec.allow_single_object_fallback)
+		if(cluster_spec.required && !building_cluster_can_use_procedural_pattern(cluster_spec))
 			if(effective_minimum > 0 || target_count > 0)
 				state.validation.forbidden_fallback_count++
 				state.add_template_reject_reason("required_cluster_shortfall", list(
@@ -135,11 +142,11 @@
 			cluster_report["status"] = "required_cluster_shortfall"
 			state.add_template_cluster_report(cluster_report)
 			return FALSE
-		if(!cluster_spec.required && !cluster_spec.allow_single_object_fallback)
-			cluster_report["status"] = placed > 0 ? "template_partial_no_fallback" : "template_failed_no_fallback"
+		if(!building_cluster_can_use_procedural_pattern(cluster_spec))
+			cluster_report["status"] = placed > 0 ? "template_partial_no_procedural_pattern" : "template_failed_no_procedural_pattern"
 			state.add_template_cluster_report(cluster_report)
 			return placed > 0
-	else if(!cluster_spec.allow_single_object_fallback)
+	else if(!building_cluster_can_use_procedural_pattern(cluster_spec))
 		if(cluster_spec.required)
 			state.validation.forbidden_fallback_count++
 			state.add_template_reject_reason("required_cluster_shortfall", list(
@@ -152,8 +159,8 @@
 				"macro_id" = cluster_spec.macro_id,
 				"detail" = "missing_template_macro_or_chunk",
 			))
-			state.add_warning("Required cluster '[cluster_spec.id]' lacks a macro and allow_single_object_fallback is not set.")
-		cluster_report["status"] = "missing_template_path_no_fallback"
+			state.add_warning("Required cluster '[cluster_spec.id]' lacks a template and cannot use a generic procedural object.")
+		cluster_report["status"] = "missing_template_path_no_procedural_pattern"
 		state.add_template_cluster_report(cluster_report)
 		return FALSE
 	switch(cluster_spec.pattern)
@@ -420,8 +427,6 @@
 	if(!istype(cluster_spec) || !cluster_spec.required)
 		return TRUE
 	if(is_building_infrastructure_category(cluster_spec.category))
-		return TRUE
-	if(is_building_compact_or_micro_state(state))
 		return TRUE
 	return FALSE
 
@@ -1215,11 +1220,11 @@
 	if(!istype(provider) || !provider.obj_path)
 		state.add_warning("Unable to resolve fixture object '[slot]' for program [state.archetype.id].")
 		return FALSE
-	if(!provider.provides_required_slot(slot))
+	if(!building_fixture_provider_satisfies_slot(provider, slot, category))
 		var/provider_reason = provider.reason_if_not_functional || "provider is not functionally equivalent"
 		if(major || cluster_spec?.required)
 			state.add_error("Fixture provider for required slot '[slot]' is not functional: [provider_reason].")
-			state.validation.semantic_credit_without_emitted_slots_count++
+			state.validation.style_required_slot_missing_count++
 		else
 			state.add_warning("Skipping non-functional fixture provider for slot '[slot]': [provider_reason].")
 		return FALSE
@@ -1227,7 +1232,9 @@
 	var/list/object_placement = build_object_placement("interior", target_turf, obj_path, dir_to_use)
 	object_placement["slot"] = "[slot]"
 	object_placement["requested_slot"] = "[slot]"
+	object_placement["required_capability"] = get_building_fixture_required_capability(slot, category)
 	object_placement["provided_slots"] = provider.provides_slots.Copy()
+	object_placement["provided_capabilities"] = provider.provides_capabilities.Copy()
 	object_placement["fixture_provider_id"] = provider.id
 	object_placement["functional"] = provider.functional ? TRUE : FALSE
 	object_placement["category"] = "[category]"

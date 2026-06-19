@@ -8,20 +8,8 @@
 /datum/world_edit_generator/building_layout/get_supported_placement_shapes()
 	return list(
 		WORLD_EDIT_SHAPE_POINT,
-		WORLD_EDIT_SHAPE_LINE,
 		WORLD_EDIT_SHAPE_RECTANGLE,
 		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
-		WORLD_EDIT_SHAPE_CIRCLE,
-		WORLD_EDIT_SHAPE_RING,
-		WORLD_EDIT_SHAPE_ELLIPSE,
-		WORLD_EDIT_SHAPE_DIAMOND,
-		WORLD_EDIT_SHAPE_TRIANGLE,
-		WORLD_EDIT_SHAPE_SECTOR,
-		WORLD_EDIT_SHAPE_POLYGON,
-		WORLD_EDIT_SHAPE_POLYLINE,
-		WORLD_EDIT_SHAPE_CUSTOM_MASK,
-		WORLD_EDIT_SHAPE_BRUSH_PATH,
-		WORLD_EDIT_SHAPE_SCATTER_CLUSTER,
 	)
 
 /datum/world_edit_generator/building_layout/supports_placement_direction()
@@ -330,6 +318,8 @@
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in archetype.cluster_specs)
 		if(!istype(cluster_spec))
 			continue
+		if(!cluster_spec.required)
+			continue
 		add_building_required_slot(slots, slot_lookup, cluster_spec.slot)
 		var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec)
 		var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
@@ -352,7 +342,7 @@
 		if(!istype(provider))
 			missing_slots += "[slot]: no provider"
 			continue
-		if(!provider.provides_required_slot(slot))
+		if(!building_fixture_provider_satisfies_slot(provider, slot))
 			missing_slots += "[slot]: [provider.reason_if_not_functional || "provider is not functionally equivalent"]"
 	if(length(missing_slots))
 		return "Shell preset '[config["faction_preset"]]' is locked for program '[archetype.id]': missing functional providers for [english_list(missing_slots)]."
@@ -439,8 +429,8 @@
 	config["detail_budget"] = num_param(params, "detail_budget", has_building_param(params, "interior_density") ? num_param(params, "interior_density", archetype.detail_bias, 0, 100) : archetype.detail_bias, 0, 100)
 	config["building_seed"] = num_param(params, "building_seed", WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
 	config["back_exit"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["back_exit"] : null) ? TRUE : FALSE
-	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
-	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
+	config["respect_blockers"] = isnull(islist(params) ? params["respect_blockers"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["respect_blockers"])
+	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
 	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
 	config["debug_reports"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["debug_reports"] : null) ? TRUE : FALSE
 
@@ -455,10 +445,13 @@
 	config["door_type"] = resolve_building_type_path(preset["door_path"], /obj)
 	config["window_type"] = resolve_building_type_path(preset["window_path"], /obj)
 	config["interior_paths"] = islist(preset["interior_paths"]) ? preset["interior_paths"].Copy() : list()
+	config["fixture_providers_by_slot"] = build_fixture_provider_registry(config)
 	if(!config["wall_type"] || !config["floor_type"] || !config["door_type"] || !config["window_type"])
 		config["error"] = "Unable to resolve one or more shell type paths for preset '[config["faction_preset"]]' and building program '[config["archetype_id"]]'."
 	if(!config["error"])
 		config["error"] = validate_building_preset_capabilities(config, archetype)
+		if(config["error"])
+			config["error_code"] = WORLD_EDIT_BUILDING_ERROR_STYLE_MISSING_CAPABILITY
 	return config
 
 /datum/world_edit_generator/building_layout/get_ui_fields(list/current_params)
@@ -570,6 +563,19 @@
 			"kind" = "boolean",
 			"group" = "Safety",
 			"value" = config["confirm_large_replacement"],
+		),
+	)
+
+/datum/world_edit_generator/building_layout/get_ui_payload(list/current_params)
+	var/list/config = normalize_building_params(current_params)
+	return list(
+		"building_layout" = list(
+			"schema_version" = 1,
+			"current_program_id" = "[config["archetype_id"] || ""]",
+			"current_style_id" = "[config["faction_preset"] || ""]",
+			"current_error" = "[config["error"] || ""]",
+			"current_error_code" = "[config["error_code"] || ""]",
+			"capability_matrix" = build_building_capability_matrix_payload(),
 		),
 	)
 
@@ -686,7 +692,9 @@
 	if(config["error"])
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "[config["error"]]"
+		result["lock_code"] = "[config["error_code"] || WORLD_EDIT_BUILDING_ERROR_HARD_VALIDATION_FAILED]"
 		result["request_locked"] = TRUE
+		result["locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -695,40 +703,14 @@
 	if(!(shape_text in list(
 		WORLD_EDIT_SHAPE_POINT,
 		WORLD_EDIT_SHAPE_RECTANGLE,
-		WORLD_EDIT_SHAPE_FILLED_RECTANGLE,
-		WORLD_EDIT_SHAPE_CIRCLE,
-		WORLD_EDIT_SHAPE_RING,
-		WORLD_EDIT_SHAPE_ELLIPSE,
-		WORLD_EDIT_SHAPE_DIAMOND,
-		WORLD_EDIT_SHAPE_TRIANGLE,
-		WORLD_EDIT_SHAPE_SECTOR,
-		WORLD_EDIT_SHAPE_POLYGON,
-		WORLD_EDIT_SHAPE_CUSTOM_MASK
+		WORLD_EDIT_SHAPE_FILLED_RECTANGLE
 	)))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Placement shape '[shape_text]' is not supported by building layout."
 		result["shape_locked"] = TRUE
 		result["request_locked"] = TRUE
 		result["locked"] = TRUE
-		result["lock_code"] = "shape.unknown_for_building_layout"
-		result["can_preview"] = FALSE
-		result["can_apply"] = FALSE
-		return result
-
-	// SS220 EDIT: Explicitly lock shapes that are declared in UI but not yet implemented.
-	// Design doc requires UNSUPPORTED_WITH_CLEAR_ERROR, not silent fallback to rectangle.
-	if(shape_text in list(
-		WORLD_EDIT_SHAPE_LINE,
-		WORLD_EDIT_SHAPE_POLYLINE,
-		WORLD_EDIT_SHAPE_BRUSH_PATH,
-		WORLD_EDIT_SHAPE_SCATTER_CLUSTER
-	))
-		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
-		result["reason"] = "Shape '[shape_text]' is not yet implemented for building_layout. Use point or rectangle instead."
-		result["shape_locked"] = TRUE
-		result["request_locked"] = TRUE
-		result["locked"] = TRUE
-		result["lock_code"] = "shape.not_implemented_for_building_layout"
+		result["lock_code"] = "shape.unsupported_for_building_layout"
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
@@ -758,7 +740,7 @@
 /datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
 	var/list/config = normalize_building_params(params)
 	var/list/report = build_building_context_support_result(shape_id, config, placement_context)
-	var/shape_locked = "[report["lock_code"]]" == "shape.unknown_for_building_layout"
+	var/shape_locked = report["shape_locked"] || "[report["lock_code"]]" == "shape.unsupported_for_building_layout"
 	report["shape_locked"] = shape_locked ? TRUE : FALSE
 	report["request_locked"] = "[report["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
 	report["locked"] = report["shape_locked"] ? TRUE : FALSE
@@ -1593,6 +1575,7 @@
 		"mandatory_pattern_failure_count",
 		"mandatory_room_patch_fallback_count",
 		"fallback_anchor_required_cluster_count",
+		"style_required_slot_missing_count",
 		"semantic_credit_without_emitted_slots_count",
 		"raw_category_credit_count",
 		"scatter_signature_credit_count",
@@ -1633,6 +1616,7 @@
 		if("mandatory_pattern_failure_count") return state.validation.mandatory_pattern_failure_count
 		if("mandatory_room_patch_fallback_count") return state.validation.mandatory_room_patch_fallback_count
 		if("fallback_anchor_required_cluster_count") return state.validation.fallback_anchor_required_cluster_count
+		if("style_required_slot_missing_count") return state.validation.style_required_slot_missing_count
 		if("semantic_credit_without_emitted_slots_count") return state.validation.semantic_credit_without_emitted_slots_count
 		if("raw_category_credit_count") return state.validation.raw_category_credit_count
 		if("scatter_signature_credit_count") return state.validation.scatter_signature_credit_count
@@ -1752,7 +1736,6 @@
 		report["empty_floor_ratio"] = state.validation.empty_floor_ratio
 		report["divider_plan_count"] = length(state.geometry.divider_plans)
 		report["internal_wall_count"] = length(state.geometry.internal_wall_turfs)
-		report["room_first_layout"] = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"])
 		report["room_count"] = length(state.geometry.solved_rooms)
 		report["corridor_turf_count"] = length(state.geometry.corridor_turfs)
 		report["semantic_region_claim_count"] = state.validation.region_claim_count
@@ -1916,7 +1899,7 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/candidate_families = (shape_id != WORLD_EDIT_SHAPE_POINT) ? list(uppertext("[shape_id]")) : list("RECT")
+	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[shape_id]"))
 	var/list/size_candidates = shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null
@@ -1927,9 +1910,10 @@
 	var/best_failed_attempt = 0
 	var/attempt_index = 0
 	var/first_candidate_error = null
-	var/found_valid_candidate = FALSE
 	for(var/list/size_candidate as anything in size_candidates)
 		for(var/footprint_family as anything in candidate_families)
+			if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+				break
 			attempt_index++
 			var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
 			candidate_request.config["half_width"] = size_candidate["half_width"]
@@ -1963,9 +1947,7 @@
 				best_state = candidate_state
 				best_score = candidate_state.validation.layout_candidate_score
 				best_state.config["layout_candidate_index"] = attempt_index
-			found_valid_candidate = TRUE
-			break
-		if(found_valid_candidate)
+		if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
 			break
 
 	if(!istype(best_state))
@@ -1994,30 +1976,13 @@
 		best_state.config["selected_candidate_report"] = build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], best_state.config["layout_candidate_index"] || 1, best_score, null, FALSE)
 	best_state.config["layout_candidate_count"] = length(candidate_reports)
 	best_state.config["layout_candidate_score"] = best_score
-	return emit_building_layout_plan(best_state, shape_contract, placement_context)
+	var/datum/world_edit_plan/final_plan = emit_building_layout_plan(best_state, shape_contract, placement_context)
+	stamp_building_target_state_metadata(final_plan)
+	return final_plan
 
 /datum/world_edit_generator/building_layout/build_placement_plan(mob/user, list/params, list/placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(placement_context["shape"], placement_context["anchor_turfs"], placement_context)
 	return build_plan_from_shape_contract(user, shape_contract, params, placement_context)
-
-/datum/world_edit_generator/building_layout/proc/has_explicit_shape_params(list/params)
-	if(!islist(params))
-		return FALSE
-	for(var/key as anything in list(
-		"shape_rect_width",
-		"shape_rect_height",
-		"shape_radius",
-		"shape_radius_x",
-		"shape_radius_y",
-		"shape_points_text",
-		"shape_line_length",
-		"shape_triangle_size",
-		"shape_sector_angle",
-		"shape_scatter_count"
-	))
-		if(has_building_param(params, key))
-			return TRUE
-	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/should_emit_detailed_building_reports(list/config)
 	return GLOB.world_edit_helpers.parse_bool(config?["debug_reports"])
@@ -2037,19 +2002,9 @@
 	var/list/shape_result = GLOB.world_edit_placement_shapes.world_edit_build_shape_turfs(shape_id, anchor_turf, null, params, placement_dir)
 	if(shape_result["error"])
 		var/original_shape_error = "[shape_result["error"]]"
-		if(shape_id != WORLD_EDIT_SHAPE_POINT && !has_explicit_shape_params(params))
-			shape_id = WORLD_EDIT_SHAPE_POINT
-			shape_result = list(
-				"turfs" = list(anchor_turf),
-				"metadata" = list(
-					"building_shape_fallback" = TRUE,
-					"building_shape_fallback_reason" = original_shape_error,
-				),
-			)
-		else
-			error_plan = new
-			error_plan.metadata["error"] = original_shape_error
-			return error_plan
+		error_plan = new
+		error_plan.metadata["error"] = original_shape_error
+		return error_plan
 	return build_placement_plan(manager?.holder?.mob, params, list(
 		"mode" = manager?.get_effective_placement_mode() || "single",
 		"shape" = shape_id,
@@ -2252,13 +2207,120 @@
 			return blocker_error
 	return null
 
-/datum/world_edit_generator/building_layout/proc/add_building_runtime_skip_reason(list/runtime_skip_reasons, reason)
-	if(!islist(runtime_skip_reasons) || !length("[reason]"))
+/datum/world_edit_generator/building_layout/proc/add_building_runtime_failure_reason(list/runtime_failure_reasons, reason)
+	if(!islist(runtime_failure_reasons) || !length("[reason]"))
 		return
-	if(length(runtime_skip_reasons) < 32)
-		runtime_skip_reasons += "[reason]"
-	else if(length(runtime_skip_reasons) == 32)
-		runtime_skip_reasons += "..."
+	if(length(runtime_failure_reasons) < 32)
+		runtime_failure_reasons += "[reason]"
+	else if(length(runtime_failure_reasons) == 32)
+		runtime_failure_reasons += "..."
+
+/datum/world_edit_generator/building_layout/proc/get_building_plan_target_turfs(datum/world_edit_plan/plan)
+	var/list/targets = list()
+	var/list/target_lookup = list()
+	if(!istype(plan))
+		return targets
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement))
+			continue
+		var/kind = "[placement["kind"]]"
+		if(!(kind in list("floor", "wall", "door", "window", "interior", "microvariation")))
+			continue
+		var/turf/target_turf = placement["turf"]
+		if(!istype(target_turf))
+			target_turf = runtime_target_turf(placement)
+		if(!istype(target_turf))
+			continue
+		var/key = "[target_turf.x],[target_turf.y],[target_turf.z]"
+		if(target_lookup[key])
+			continue
+		target_lookup[key] = TRUE
+		targets += target_turf
+	return targets
+
+/datum/world_edit_generator/building_layout/proc/build_building_target_state_hash(datum/world_edit_plan/plan)
+	var/list/values = list()
+	for(var/turf/target_turf as anything in get_building_plan_target_turfs(plan))
+		if(!istype(target_turf))
+			continue
+		values += "[target_turf.x],[target_turf.y],[target_turf.z]|turf=[target_turf.type]|density=[target_turf.density]"
+		for(var/atom/movable/existing_atom as anything in target_turf)
+			if(!istype(existing_atom) || ismob(existing_atom) || QDELETED(existing_atom))
+				continue
+			values += "[target_turf.x],[target_turf.y],[target_turf.z]|atom=[existing_atom.type]|dir=[existing_atom.dir]|density=[existing_atom.density]|anchored=[existing_atom.anchored]"
+	return build_building_hash_from_strings(values)
+
+/datum/world_edit_generator/building_layout/proc/stamp_building_target_state_metadata(datum/world_edit_plan/plan)
+	if(!istype(plan))
+		return null
+	if(!islist(plan.metadata))
+		plan.metadata = list()
+	plan.metadata["target_state_hash"] = build_building_target_state_hash(plan)
+	plan.metadata["target_state_turf_count"] = length(get_building_plan_target_turfs(plan))
+	plan.metadata["target_state_revision_time"] = world.time
+	return plan
+
+/datum/world_edit_generator/building_layout/proc/validate_building_apply_world_state(datum/world_edit_plan/plan)
+	var/list/report = list(
+		"status" = "ok",
+		"error_count" = 0,
+		"errors" = list(),
+	)
+	if(!istype(plan))
+		report["status"] = "failed"
+		report["error_count"] = 1
+		report["errors"] += "plan_missing"
+		return report
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement))
+			continue
+		var/kind = "[placement["kind"]]"
+		var/turf/target_turf = runtime_target_turf(placement)
+		var/coord_key = placement_coord_key(placement)
+		if(kind in list("floor", "wall"))
+			var/turf_path = placement["turf_path"]
+			if(!istype(target_turf) || !ispath(turf_path, /turf) || target_turf.type != turf_path)
+				add_building_runtime_failure_reason(report["errors"], "post_apply_turf_mismatch:[coord_key]")
+			continue
+		if(kind in list("door", "window", "interior", "microvariation"))
+			var/obj_path = placement["obj_path"]
+			var/dir_to_check = text2num("[placement["dir"]]")
+			var/found_object = FALSE
+			if(istype(target_turf) && ispath(obj_path, /obj))
+				for(var/obj/existing_object as anything in target_turf)
+					if(!istype(existing_object) || QDELETED(existing_object) || existing_object.type != obj_path)
+						continue
+					if((dir_to_check in GLOB.cardinals) && existing_object.dir != dir_to_check)
+						continue
+					found_object = TRUE
+					break
+			if(!found_object)
+				add_building_runtime_failure_reason(report["errors"], "post_apply_object_missing:[coord_key]:[obj_path]")
+	var/list/errors = report["errors"]
+	report["error_count"] = length(errors)
+	if(length(errors))
+		report["status"] = "failed"
+	return report
+
+/datum/world_edit_generator/building_layout/proc/fail_building_apply_transaction(datum/world_edit_apply_result/result, datum/world_edit_changeset/changeset, message, list/failures = null)
+	if(!istype(result))
+		result = new
+	if(!islist(result.meta))
+		result.meta = list()
+	result.success = FALSE
+	result.changeset = null
+	result.message = "[message]"
+	result.suppress_history = TRUE
+	result.meta["transaction_committed"] = FALSE
+	result.meta["suppress_history"] = TRUE
+	if(islist(failures))
+		result.meta["runtime_failure_reasons"] = failures.Copy()
+	if(istype(changeset) && !changeset.is_empty())
+		var/list/rollback_report = GLOB.world_edit_changesets.revert_changeset(changeset)
+		result.meta["rollback_report"] = rollback_report
+	current_plan = null
+	current_plan_request_key = null
+	return result
 
 /datum/world_edit_generator/building_layout/apply_plan(mob/user, list/params, datum/world_edit_plan/plan)
 	var/datum/world_edit_apply_result/result = new
@@ -2269,12 +2331,14 @@
 		result.message = "[plan.metadata["error"]]"
 		return result
 
+	result.center_turf = plan.metadata["center_turf"]
+	result.meta = islist(plan.metadata) ? plan.metadata.Copy() : list()
+
 	var/list/config = normalize_building_params(params)
 	if(config["respect_blockers"])
 		var/runtime_blocker_error = get_runtime_footprint_blocker_error(plan)
 		if(length("[runtime_blocker_error]"))
-			result.message = "[runtime_blocker_error]"
-			return result
+			return fail_building_apply_transaction(result, null, "[runtime_blocker_error]", list("runtime_blocker:[runtime_blocker_error]"))
 	var/replaced_blocker_count = round(text2num("[plan.metadata["replace_blocked_turf_count"]]") || 0)
 	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS)
 		result.message = "Building apply blocked: would replace [replaced_blocker_count] blocked turfs, above the hard cap of [WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS]."
@@ -2282,6 +2346,37 @@
 	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
 		result.message = "Building apply requires confirmation: would replace [replaced_blocker_count] blocked turfs. Enable large replacement confirmation."
 		return result
+
+	var/expected_target_hash = round(text2num("[plan.metadata["target_state_hash"]]") || 0)
+	var/current_target_hash = build_building_target_state_hash(plan)
+	result.meta["current_target_state_hash"] = current_target_hash
+	if(expected_target_hash <= 0)
+		return fail_building_apply_transaction(result, null, "Building apply blocked: preview plan is missing target state hash. Run preview again.")
+	if(current_target_hash != expected_target_hash)
+		return fail_building_apply_transaction(result, null, "Building apply blocked: target area changed after preview. Run preview again.", list("target_state_hash_mismatch:[expected_target_hash]->[current_target_hash]"))
+
+	var/list/preflight_failures = list()
+	var/replace_blocked_turfs = config["replace_blocked_turfs"]
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement))
+			continue
+		var/kind = "[placement["kind"]]"
+		var/turf/target_turf = runtime_target_turf(placement)
+		var/coord_key = placement_coord_key(placement)
+		if(kind in list("floor", "wall"))
+			var/turf_path = placement["turf_path"]
+			if(!istype(target_turf) || !ispath(turf_path, /turf))
+				add_building_runtime_failure_reason(preflight_failures, "invalid_turf_or_path:[coord_key]")
+				continue
+			if(!replace_blocked_turfs && get_footprint_blocker_error(target_turf))
+				add_building_runtime_failure_reason(preflight_failures, "turf_blocked:[coord_key]")
+			continue
+		if(kind in list("door", "window", "interior", "microvariation"))
+			var/obj_path = placement["obj_path"]
+			if(!istype(target_turf) || !ispath(obj_path, /obj))
+				add_building_runtime_failure_reason(preflight_failures, "invalid_turf_or_path:[coord_key]")
+	if(length(preflight_failures))
+		return fail_building_apply_transaction(result, null, "Building apply blocked before mutation: [preflight_failures[1]].", preflight_failures)
 
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "building_layout", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = plan.metadata["center_turf"],
@@ -2294,10 +2389,7 @@
 
 	var/changed_turf_count = 0
 	var/created_object_count = 0
-	var/skipped_runtime = 0
-	var/list/skipped_turf_lookup = list()
-	var/list/runtime_skip_reasons = list()
-	var/replace_blocked_turfs = config["replace_blocked_turfs"]
+	var/list/runtime_failures = list()
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
 		if(!(kind in list("floor", "wall")))
@@ -2306,28 +2398,25 @@
 		var/coord_key = placement_coord_key(placement)
 		var/turf_path = placement["turf_path"]
 		if(!istype(target_turf) || !ispath(turf_path, /turf))
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "invalid_turf_or_path:[coord_key]")
-			if(length("[coord_key]"))
-				skipped_turf_lookup[coord_key] = TRUE
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "invalid_turf_or_path:[coord_key]")
+			break
 		if(!replace_blocked_turfs && get_footprint_blocker_error(target_turf))
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "turf_blocked:[coord_key]")
-			if(length("[coord_key]"))
-				skipped_turf_lookup[coord_key] = TRUE
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "turf_blocked:[coord_key]")
+			break
 		if(target_turf.type == turf_path)
 			continue
 		var/old_type = target_turf.type
 		var/old_baseturfs = islist(target_turf.baseturfs) ? target_turf.baseturfs.Copy() : target_turf.baseturfs
 		var/turf/new_turf = target_turf.ChangeTurf(turf_path)
 		if(!istype(new_turf) || new_turf.type != turf_path)
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "change_turf_failed:[coord_key]")
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "change_turf_failed:[coord_key]")
+			break
 		changed_turf_count++
 		changeset.add_changed_turf(new_turf, old_type, turf_path, old_baseturfs, list("kind" = kind))
+	if(length(runtime_failures))
+		result.meta["changed_turf_count"] = changed_turf_count
+		result.meta["created_object_count"] = created_object_count
+		return fail_building_apply_transaction(result, changeset, "Building apply rolled back: [runtime_failures[1]].", runtime_failures)
 
 	for(var/list/placement as anything in plan.placements)
 		var/kind = "[placement["kind"]]"
@@ -2337,22 +2426,15 @@
 		var/coord_key = placement_coord_key(placement)
 		var/obj_path = placement["obj_path"]
 		if(!istype(target_turf) || !ispath(obj_path, /obj))
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "invalid_turf_or_path:[coord_key]")
-			continue
-		if(skipped_turf_lookup[coord_key])
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "skipped_base_turf:[coord_key]")
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "invalid_turf_or_path:[coord_key]")
+			break
 		if(has_runtime_object_blocker(target_turf, obj_path, kind))
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "object_blocked:[coord_key]:[obj_path]")
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "object_blocked:[coord_key]:[obj_path]")
+			break
 		var/obj/created_object = new obj_path(target_turf)
 		if(!created_object)
-			skipped_runtime++
-			add_building_runtime_skip_reason(runtime_skip_reasons, "object_create_failed:[coord_key]:[obj_path]")
-			continue
+			add_building_runtime_failure_reason(runtime_failures, "object_create_failed:[coord_key]:[obj_path]")
+			break
 		var/dir_to_use = text2num("[placement["dir"]]")
 		if(dir_to_use in GLOB.cardinals)
 			created_object.setDir(dir_to_use)
@@ -2367,27 +2449,35 @@
 			"obj_path" = obj_path,
 			"dir" = dir_to_use,
 		))
+	if(length(runtime_failures))
+		result.meta["changed_turf_count"] = changed_turf_count
+		result.meta["created_object_count"] = created_object_count
+		return fail_building_apply_transaction(result, changeset, "Building apply rolled back: [runtime_failures[1]].", runtime_failures)
 
-	result.center_turf = plan.metadata["center_turf"]
 	result.created_count = created_object_count
-	result.meta = islist(plan.metadata) ? plan.metadata.Copy() : list()
 	result.meta["changed_turf_count"] = changed_turf_count
 	result.meta["created_object_count"] = created_object_count
-	result.meta["skipped_runtime"] = skipped_runtime
-	result.meta["runtime_skip_reasons"] = runtime_skip_reasons
-	result.meta["post_apply_validation_error_count"] = skipped_runtime
 	if(changed_turf_count <= 0 && created_object_count <= 0)
-		result.message = "Building made no changes: runtime skipped=[skipped_runtime]."
+		result.message = "Building made no changes."
+		result.suppress_history = TRUE
+		result.meta["suppress_history"] = TRUE
 		current_plan = null
 		current_plan_request_key = null
 		return result
 
+	var/list/post_apply_report = validate_building_apply_world_state(plan)
+	result.meta["post_apply_validation_report"] = post_apply_report
+	result.meta["post_apply_validation_error_count"] = round(text2num("[post_apply_report["error_count"]]") || 0)
+	if(result.meta["post_apply_validation_error_count"] > 0)
+		var/list/post_apply_errors = post_apply_report["errors"]
+		var/post_apply_error = (islist(post_apply_errors) && length(post_apply_errors)) ? "[post_apply_errors[1]]" : "post_apply_validation_failed"
+		return fail_building_apply_transaction(result, changeset, "Building apply rolled back after world inspection: [post_apply_error].", post_apply_errors)
+
 	result.success = TRUE
 	result.changeset = changeset
-	if(skipped_runtime > 0)
-		result.message = "Building applied with warnings: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
-	else
-		result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count], skipped=[skipped_runtime]."
+	result.meta["transaction_committed"] = TRUE
+	result.meta["post_apply_target_state_hash"] = build_building_target_state_hash(plan)
+	result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count]."
 	current_plan = null
 	current_plan_request_key = null
 	return result

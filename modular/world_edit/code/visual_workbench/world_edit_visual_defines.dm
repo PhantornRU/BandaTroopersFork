@@ -10,11 +10,10 @@
 #define WORLD_EDIT_VISUAL_STAGE_APPLY "apply"
 #define WORLD_EDIT_VISUAL_STAGE_POST_EMIT_VALIDATE "post_emit_validation"
 #define WORLD_EDIT_VISUAL_STAGE_EXPORT "export"
+#define WORLD_EDIT_VISUAL_STAGE_UNDO "undo"
 
 #define WORLD_EDIT_VISUAL_DEFAULT_INBOX "tools/world_edit_visual/inbox"
 #define WORLD_EDIT_VISUAL_DEFAULT_OUT "tools/world_edit_visual/out"
-#define WORLD_EDIT_VISUAL_ENABLE_FLAG "tools/world_edit_visual/enabled.txt"
-#define WORLD_EDIT_VISUAL_START_DELAY 30
 #define WORLD_EDIT_VISUAL_FALLBACK_Z 1
 #define WORLD_EDIT_VISUAL_MAX_CANVAS_SIZE 128
 #define WORLD_EDIT_VISUAL_MIN_CANVAS_SIZE 16

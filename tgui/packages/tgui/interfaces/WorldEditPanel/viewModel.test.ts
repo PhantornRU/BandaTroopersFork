@@ -6,6 +6,7 @@ import {
   getBlueprintActionState,
   getBlueprintLibraryActions,
   getBlueprintPreviewMode,
+  getBuildingLayoutCapabilityStatus,
   getDestructionPreviewLegendItems,
   getDestructionWorkspaceViewModel,
   getHistoryMetrics,
@@ -61,6 +62,7 @@ const BASE_BACKEND_DATA: BackendData = {
   current_generator_supports_preview: true,
   requires_preview_before_apply: false,
   ui_fields: [],
+  generator_payload: {},
   placement_supported: true,
   placement_active: false,
   placement_mode: 'single',
@@ -271,6 +273,168 @@ describe('WorldEditPanel view model', () => {
     expect(shared.selectedShape).toBe('point');
     expect(actions.previewAction?.disabled).toBe(true);
     expect(actions.placementAction?.disabled).toBe(true);
+  });
+
+  it('uses the building layout capability matrix to block unsupported program/style rows', () => {
+    const data = makeData({
+      current_generator_id: 'building_layout',
+      placement_shape: 'point',
+      placement_shape_options: [
+        {
+          value: 'point',
+          label: 'point',
+          can_preview: true,
+          can_apply: true,
+        },
+      ],
+      generator_payload: {
+        building_layout: {
+          current_program_id: 'living',
+          current_style_id: 'covenant',
+          capability_matrix: {
+            compatibility: {
+              by_key: {
+                'living|covenant': {
+                  program_id: 'living',
+                  style_id: 'covenant',
+                  supported: false,
+                  lock_code: 'style.missing_capability',
+                  missing_capabilities: ['sleep_surface'],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const actions = getToolbarActions(data);
+    const status = getBuildingLayoutCapabilityStatus(data);
+
+    expect(status?.visible).toBe(true);
+    expect(status?.message).toContain('обязательные функции');
+    expect(status?.items).toContainEqual({
+      label: 'Нет функций',
+      value: 'sleep_surface',
+      color: 'bad',
+    });
+    expect(actions.previewAction?.disabled).toBe(true);
+    expect(actions.placementAction?.disabled).toBe(true);
+  });
+
+  it('does not block building layout actions when the capability matrix supports the row', () => {
+    const data = makeData({
+      current_generator_id: 'building_layout',
+      placement_shape: 'point',
+      placement_shape_options: [
+        {
+          value: 'point',
+          label: 'point',
+          can_preview: true,
+          can_apply: true,
+        },
+      ],
+      generator_payload: {
+        building_layout: {
+          current_program_id: 'living',
+          current_style_id: 'colony',
+          capability_matrix: {
+            compatibility: {
+              by_key: {
+                'living|colony': {
+                  program_id: 'living',
+                  style_id: 'colony',
+                  supported: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const actions = getToolbarActions(data);
+
+    expect(getBuildingLayoutCapabilityStatus(data)).toBeUndefined();
+    expect(actions.previewAction?.disabled).toBe(false);
+    expect(actions.placementAction?.disabled).toBe(false);
+  });
+
+  it('decorates building layout program and style options with capability locks', () => {
+    const model = buildWorldEditViewModel(
+      makeData({
+        current_generator_id: 'building_layout',
+        ui_fields: [
+          makeField({
+            id: 'archetype_id',
+            kind: 'select',
+            value: 'living',
+            options: [
+              { label: 'Living', value: 'living' },
+              { label: 'Medical', value: 'medical' },
+            ],
+          }),
+          makeField({
+            id: 'faction_preset',
+            kind: 'select',
+            value: 'covenant',
+            options: [
+              { label: 'Colony', value: 'colony' },
+              { label: 'Covenant', value: 'covenant' },
+            ],
+          }),
+        ],
+        generator_payload: {
+          building_layout: {
+            current_program_id: 'living',
+            current_style_id: 'covenant',
+            capability_matrix: {
+              compatibility: {
+                by_key: {
+                  'living|colony': {
+                    program_id: 'living',
+                    style_id: 'colony',
+                    supported: true,
+                  },
+                  'living|covenant': {
+                    program_id: 'living',
+                    style_id: 'covenant',
+                    supported: false,
+                    lock_code: 'style.missing_capability',
+                    missing_capabilities: ['sleep_surface'],
+                  },
+                  'medical|covenant': {
+                    program_id: 'medical',
+                    style_id: 'covenant',
+                    supported: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const programField = model.groupedFields['Основные'].find(
+      (field) => field.id === 'archetype_id',
+    );
+    const styleField = model.groupedFields['Основные'].find(
+      (field) => field.id === 'faction_preset',
+    );
+
+    expect(
+      programField?.options?.find((option) => option.value === 'medical')
+        ?.disabled,
+    ).not.toBe(true);
+    expect(
+      styleField?.options?.find((option) => option.value === 'covenant')
+        ?.disabled,
+    ).toBe(true);
+    expect(
+      styleField?.options?.find((option) => option.value === 'covenant')
+        ?.lockReason,
+    ).toContain('обязательные функции');
   });
 
   it('normalizes shared mode shell state and keeps blueprint-specific extras', () => {

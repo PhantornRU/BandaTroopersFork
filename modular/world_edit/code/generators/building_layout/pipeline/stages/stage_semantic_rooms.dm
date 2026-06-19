@@ -6,15 +6,10 @@
 	if(!istype(state))
 		return FALSE
 
-	// For legacy room-first path, semantic zones are assigned by
-	// build_building_room_first_layout() -> assign_room_first_zone_rooms().
-	// The room_graph may exist (created by layout_graph before room_first_layout
-	// was set) but its nodes are not backed by solved_rooms; skip graph-based
-	// semantic annotation and let anchors/slots/fixtures use zone_turfs directly.
-	if(state.config["room_first_layout"])
+	if(length(state.geometry.solved_rooms))
 		context.state.add_stage_report("semantic_rooms", "ok", null, list(
-			"nodes_processed" = 0,
-			"note" = "room_first_layout active; legacy zone assignment in effect"
+			"nodes_processed" = length(state.geometry.solved_rooms),
+			"source" = "solved_rooms"
 		))
 		return TRUE
 

@@ -3,9 +3,6 @@
 
 /datum/world_edit_generation_stage/room_shapes/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_building_layout_state/state = context.state
-	
-	if(state.config["room_first_layout"])
-		return TRUE
 
 	var/datum/world_edit_building_prng/prng = context.request.geometry_rng
 	var/deformations = 0

@@ -201,7 +201,20 @@ def start_runtime(
     return 0
 
 
-def ensure_runtime(dmb_path: Path, restart: bool = False, dry_run: bool = False) -> int:
+def dreamdaemon_args(runtime_params: list[str] | None = None) -> list[str]:
+    args = list(DEFAULT_DREAMDAEMON_ARGS)
+    for param in runtime_params or []:
+        if param:
+            args.extend(["-params", param])
+    return args
+
+
+def ensure_runtime(
+    dmb_path: Path,
+    restart: bool = False,
+    dry_run: bool = False,
+    runtime_params: list[str] | None = None,
+) -> int:
     processes = runtime_processes()
     managed_processes = select_runtime_processes(processes, dmb_path)
     if processes and not managed_processes:
@@ -217,11 +230,11 @@ def ensure_runtime(dmb_path: Path, restart: bool = False, dry_run: bool = False)
         result = stop_runtime(dry_run=dry_run, processes=managed_processes)
         if result != 0:
             return result
-        return start_runtime(dmb_path, dry_run=dry_run, preferred_exe=exe)
+        return start_runtime(dmb_path, dry_run=dry_run, preferred_exe=exe, extra_args=dreamdaemon_args(runtime_params))
     if managed_processes:
         print("DreamDaemon is already running and fresh enough.")
         return 0
-    return start_runtime(dmb_path, dry_run=dry_run)
+    return start_runtime(dmb_path, dry_run=dry_run, extra_args=dreamdaemon_args(runtime_params))
 
 
 def print_status(dmb_path: Path) -> int:
@@ -247,6 +260,7 @@ def main() -> int:
     parser.add_argument("--stop", action="store_true")
     parser.add_argument("--start", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--param", action="append", default=[], help="DreamDaemon -params assignment; may repeat")
     args = parser.parse_args()
 
     if sys.platform != "win32":
@@ -264,9 +278,9 @@ def main() -> int:
             return 1
         return stop_runtime(dry_run=args.dry_run, processes=managed_processes)
     if args.start:
-        return start_runtime(dmb_path, dry_run=args.dry_run)
+        return start_runtime(dmb_path, dry_run=args.dry_run, extra_args=dreamdaemon_args(args.param))
     if args.ensure or args.restart:
-        return ensure_runtime(dmb_path, restart=args.restart, dry_run=args.dry_run)
+        return ensure_runtime(dmb_path, restart=args.restart, dry_run=args.dry_run, runtime_params=args.param)
     return print_status(dmb_path)
 
 

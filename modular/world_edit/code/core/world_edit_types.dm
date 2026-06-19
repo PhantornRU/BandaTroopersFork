@@ -28,6 +28,8 @@
 	var/deleted_count = 0
 	var/turf/center_turf
 	var/list/meta = list()
+	/// Opt-in for failed/rolled-back results that should keep logs/chat but skip manager history.
+	var/suppress_history = FALSE
 	var/datum/world_edit_changeset/changeset
 
 /datum/world_edit_plan
@@ -89,6 +91,10 @@
 /// Возвращает описание полей для live inline-настройки в TGUI.
 /datum/world_edit_generator/proc/get_ui_fields(list/current_params)
 	return null
+
+/// Возвращает generator-specific payload для TGUI/acceptance.
+/datum/world_edit_generator/proc/get_ui_payload(list/current_params)
+	return list()
 
 /// Возвращает новые параметры после изменения одного поля через TGUI.
 /// По умолчанию выполняется простое присваивание.

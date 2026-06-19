@@ -10,6 +10,12 @@ export {
   getBlueprintLibraryActions,
   getBlueprintPreviewMode,
 } from './viewModelBlueprint';
+export type { BuildingLayoutCapabilityStatus } from './viewModelBuildingLayout';
+export {
+  decorateBuildingLayoutCapabilityFields,
+  getBuildingLayoutCapabilityStatus,
+  getBuildingLayoutCompatibilityRow,
+} from './viewModelBuildingLayout';
 export type {
   EditorChromeViewModel,
   SharedModeViewModel,

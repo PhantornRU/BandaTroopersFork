@@ -25,7 +25,6 @@
 	var/datum/world_edit_building_layout_state/state = new
 	state.request = request
 	state.config = request.config
-	state.config["room_first_layout"] = TRUE
 	state.archetype = request.archetype
 	state.root_seed = round(text2num("[state.config["root_seed"] || request.effective_seed]") || 0)
 	state.stage_seed_footprint = build_stage_seed(state.root_seed, "footprint")
@@ -248,6 +247,61 @@
 		"front_door_turf" = state.geometry.front_door_turf,
 	)
 	return length(state.geometry.solved_rooms) > 0 && length(state.geometry.corridor_turfs) > 0
+
+/datum/world_edit_generator/building_layout/proc/build_building_semantic_layout(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
+	if(length(state.geometry.interior) < 1)
+		state.add_error("Building semantic layout has no usable interior tile.")
+		return FALSE
+	state.clear_room_layout()
+	solve_building_semantic_regions(state)
+	if(!length(state.geometry.zone_turfs))
+		state.add_error("Building semantic region solver produced no zones.")
+		return FALSE
+	build_building_preliminary_circulation(state)
+	build_building_primary_routes(state)
+	build_building_zone_dividers(state)
+	build_building_nested_rooms(state)
+	build_building_rooms_from_zone_assignments(state)
+	if(!length(state.geometry.solved_rooms))
+		state.add_error("Building semantic region solver produced no solved rooms.")
+		return FALSE
+	if(!length(state.geometry.corridor_turfs))
+		state.add_error("Building semantic route solver produced no reserved route from the entry.")
+		return FALSE
+	state.config["room_count"] = length(state.geometry.solved_rooms)
+	state.config["corridor_turf_count"] = length(state.geometry.corridor_turfs)
+	state.validation.room_reports.Cut()
+	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
+		if(!istype(room))
+			continue
+		state.validation.room_reports += list(list(
+			"id" = room.id,
+			"zone_id" = room.zone_id,
+			"role" = room.role,
+			"area" = room.area,
+			"useful_area" = length(room.turfs),
+			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
+			"focus" = room.focus_turf,
+			"tiny" = room.tiny,
+		))
+	state.validation.zone_reports.Cut()
+	for(var/zone_id as anything in state.geometry.zone_turfs)
+		var/list/zone_turfs = state.geometry.zone_turfs[zone_id]
+		state.validation.zone_reports += list(list(
+			"id" = "[zone_id]",
+			"area" = islist(zone_turfs) ? length(zone_turfs) : 0,
+			"focus" = state.geometry.zone_focus_turfs[zone_id],
+		))
+	state.validation.corridor_report = list(
+		"reserved_walk_count" = length(state.geometry.primary_route_turfs),
+		"corridor_turf_count" = length(state.geometry.corridor_turfs),
+		"separator_lane_count" = length(state.geometry.separator_lane_turfs),
+		"door_transition_count" = length(state.validation.door_reports),
+		"front_door_turf" = state.geometry.front_door_turf,
+	)
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/build_room_first_candidate_adjacency_edges(datum/world_edit_building_layout_state/state, list/candidates)
 	var/list/edges = list()
@@ -2496,6 +2550,50 @@
 	state.geometry.center_turf = select_center_floor_turf(state.geometry.interior, center_x, center_y) || state.geometry.front_door_turf
 	refresh_building_zone_foci(state)
 	state.geometry.semantic_hub_turf = state.get_zone_focus(state.semantic_plan.hub_zone_id) || state.geometry.center_turf
+
+/datum/world_edit_generator/building_layout/proc/build_building_primary_routes(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return
+	var/turf/route_target = state.geometry.semantic_hub_turf || state.geometry.center_turf || state.geometry.front_door_turf
+	var/list/door_routes = build_reserved_paths(state.geometry.door_turfs, route_target, state.geometry.floor_lookup)
+	for(var/turf/route_turf as anything in door_routes)
+		state.add_corridor_turf(route_turf)
+	var/list/routed_lookup = list()
+	if(istype(route_target))
+		routed_lookup[route_target] = TRUE
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec) || !zone_spec.required || !zone_spec.must_touch_route)
+			continue
+		var/turf/focus_turf = state.get_zone_focus(zone_spec.id) || select_zone_focus_turf(state, zone_spec.id)
+		if(!istype(focus_turf) || routed_lookup[focus_turf])
+			continue
+		var/list/zone_route = build_reserved_path(focus_turf, route_target, state.geometry.floor_lookup)
+		for(var/turf/path_turf as anything in zone_route)
+			state.add_corridor_turf(path_turf)
+		routed_lookup[focus_turf] = TRUE
+
+/datum/world_edit_generator/building_layout/proc/build_building_rooms_from_zone_assignments(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return
+	state.geometry.solved_rooms.Cut()
+	state.geometry.room_by_turf.Cut()
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec))
+			continue
+		var/datum/world_edit_building_room/room = new("room_[zone_spec.id]_[length(state.geometry.solved_rooms) + 1]", zone_spec.id, zone_spec.role)
+		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
+			if(!istype(zone_turf) || state.geometry.boundary_lookup[zone_turf] || state.geometry.wall_lookup[zone_turf])
+				continue
+			room.add_turf(zone_turf)
+		if(!length(room.turfs))
+			if(zone_spec.required)
+				state.add_error("Required zone '[zone_spec.id]' has no walkable room turfs.")
+			continue
+		room.focus_turf = state.get_zone_focus(zone_spec.id) || select_zone_focus_turf(state, zone_spec.id) || room.turfs[1]
+		room.tiny = length(room.turfs) <= 1
+		state.add_solved_room(room)
+	refresh_building_zone_foci(state)
+	state.geometry.semantic_hub_turf = state.get_zone_focus(state.semantic_plan.hub_zone_id) || state.get_zone_focus(state.semantic_plan.primary_zone_id) || state.geometry.center_turf
 
 /datum/world_edit_generator/building_layout/proc/build_building_zone_dividers(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))

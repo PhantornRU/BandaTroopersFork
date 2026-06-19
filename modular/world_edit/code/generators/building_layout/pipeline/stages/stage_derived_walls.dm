@@ -4,29 +4,32 @@
 /datum/world_edit_generation_stage/derived_walls/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_building_layout_state/state = context.state
 	var/datum/world_edit_generator/building_layout/generator = context.generator
-	
-	if(state.config["room_first_layout"])
-		return TRUE
 
 	// Step 1: Collect walkable turfs
 	var/list/walkable = list()
 	state.geometry.room_by_turf.Cut()
 	state.geometry.floor_turfs.Cut()
 	
-	for(var/datum/world_edit_room_node/room_node as anything in state.geometry.room_graph.nodes)
-		for(var/turf/T as anything in room_node.turfs)
+	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
+		for(var/turf/T as anything in room.turfs)
+			if(!istype(T) || state.geometry.wall_lookup[T])
+				continue
 			walkable[T] = TRUE
-			state.geometry.room_by_turf[T] = room_node
+			state.geometry.room_by_turf[T] = room
 			state.append_unique_turf(state.geometry.floor_turfs, T)
 
 	for(var/turf/T as anything in state.geometry.primary_route_turfs)
+		if(!istype(T) || state.geometry.wall_lookup[T])
+			continue
 		if(!walkable[T])
 			walkable[T] = TRUE
 			state.append_unique_turf(state.geometry.floor_turfs, T)
 
 	// Step 2: Derive walls
 	var/list/walls = list()
-	state.geometry.wall_lookup.Cut()
+	for(var/turf/existing_wall_turf as anything in state.geometry.wall_lookup)
+		if(istype(existing_wall_turf))
+			walls[existing_wall_turf] = TRUE
 	
 	for(var/turf/W as anything in walkable)
 		for(var/dir in GLOB.alldirs)

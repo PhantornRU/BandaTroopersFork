@@ -18,6 +18,9 @@ export type UiFieldOption = {
   label: string;
   value: unknown;
   description?: string;
+  disabled?: boolean;
+  locked?: boolean;
+  lockReason?: string;
 };
 
 export type UiField = {
@@ -90,6 +93,61 @@ export type PlacementOption = {
   can_apply?: boolean;
 };
 
+export type BuildingLayoutCapabilityProgram = {
+  id: string;
+  label?: string;
+  suggested_style_id?: string;
+  required_slots?: string[];
+  required_capabilities?: string[];
+};
+
+export type BuildingLayoutCapabilityProvider = {
+  id: string;
+  label?: string;
+  slot_id?: string;
+  object_path?: string;
+  capabilities?: string[];
+};
+
+export type BuildingLayoutCapabilityStyle = {
+  id: string;
+  label?: string;
+  capabilities?: string[];
+  providers_by_capability?: Record<string, BuildingLayoutCapabilityProvider[]>;
+};
+
+export type BuildingLayoutCompatibilityRow = {
+  program_id: string;
+  style_id: string;
+  supported: boolean;
+  lock_code?: string;
+  missing_slots?: string[];
+  missing_capabilities?: string[];
+};
+
+export type BuildingLayoutCapabilityMatrix = {
+  programs?: Record<string, BuildingLayoutCapabilityProgram>;
+  styles?: Record<string, BuildingLayoutCapabilityStyle>;
+  compatibility?: {
+    rows?: BuildingLayoutCompatibilityRow[];
+    by_key?: Record<string, BuildingLayoutCompatibilityRow>;
+  };
+};
+
+export type BuildingLayoutGeneratorPayload = {
+  schema_version?: number;
+  current_program_id?: string;
+  current_style_id?: string;
+  current_error?: string;
+  current_error_code?: string;
+  capability_matrix?: BuildingLayoutCapabilityMatrix;
+};
+
+export type GeneratorPayload = {
+  building_layout?: BuildingLayoutGeneratorPayload;
+  [generatorId: string]: unknown;
+};
+
 export type PresetEntry = {
   id: string;
   name: string;
@@ -144,6 +202,7 @@ export type BackendData = {
   current_generator_supports_preview: boolean;
   requires_preview_before_apply: boolean;
   ui_fields: UiField[];
+  generator_payload?: GeneratorPayload;
   placement_supported: boolean;
   placement_active: boolean;
   placement_mode: string;
@@ -210,6 +269,7 @@ export type ChoiceOption = {
   value: string;
   displayText: string;
   tooltip?: string;
+  disabled?: boolean;
 };
 
 export type ShapeGlyphSpec = {

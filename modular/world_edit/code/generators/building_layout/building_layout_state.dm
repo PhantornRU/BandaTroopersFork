@@ -343,12 +343,6 @@
 				fixtures.template_chunk_count++
 		if(GLOB.world_edit_helpers.parse_bool(object_placement["infrastructure"]))
 			fixtures.infrastructure_count++
-	reconcile_canonical_requirement_count("infrastructure_lights", "light")
-	reconcile_canonical_requirement_count("infrastructure_apc", "apc")
-	reconcile_canonical_requirement_count("infrastructure_air_alarm", "air_alarm")
-	reconcile_canonical_requirement_count("infrastructure_light_switch", "light_switch")
-	reconcile_canonical_requirement_count("infrastructure_fire_alarm", "fire_alarm")
-
 /datum/world_edit_building_layout_state/proc/remove_fixture_at(turf/target_turf)
 	if(!istype(target_turf))
 		return FALSE
@@ -393,6 +387,7 @@
 	validation.raw_category_credit_count = 0
 	validation.scatter_signature_credit_count = 0
 	validation.semantic_credit_without_emitted_slots_count = 0
+	validation.style_required_slot_missing_count = 0
 	validation.wall_machinery_invalid_dir_count = 0
 	validation.wall_machinery_no_wall_count = 0
 	validation.infrastructure_required_missing_count = 0
@@ -436,14 +431,6 @@
 	if(!length("[requirement_id]") || placed_count <= 0)
 		return
 	fixtures.placed_requirement_counts["[requirement_id]"] = (fixtures.placed_requirement_counts["[requirement_id]"] || 0) + placed_count
-
-/datum/world_edit_building_layout_state/proc/reconcile_canonical_requirement_count(requirement_id, category)
-	if(!length("[requirement_id]") || !length("[category]"))
-		return
-	var/current_count = round(text2num("[fixtures.placed_requirement_counts["[requirement_id]"]]") || 0)
-	var/category_count = round(text2num("[fixtures.category_counts["[category]"]]") || 0)
-	if(category_count > current_count)
-		fixtures.placed_requirement_counts["[requirement_id]"] = category_count
 
 /datum/world_edit_building_layout_state/proc/clear_semantic_slot_reservations()
 	fixtures.semantic_slot_reservation_by_turf.Cut()

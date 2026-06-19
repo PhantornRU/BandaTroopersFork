@@ -21,6 +21,7 @@ import type {
   UiField,
   WorkspaceTabKey,
 } from './types';
+import { getBuildingLayoutCapabilityStatus } from './viewModelBuildingLayout';
 
 type EditorChromeViewModel = {
   toolbar: ToolbarActions;
@@ -92,6 +93,9 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const selectedRequestLocked = !!selectedShapeOption?.request_locked;
   const selectedCanPreview = selectedShapeOption?.can_preview !== false;
   const selectedCanApply = selectedShapeOption?.can_apply !== false;
+  const buildingCapabilityStatus = getBuildingLayoutCapabilityStatus(data);
+  const generatorRequestLocked = !!buildingCapabilityStatus?.locked;
+  const generatorRequestLockReason = buildingCapabilityStatus?.message;
   const hasPlacementControls =
     data.placement_supported ||
     data.placement_shape_supported ||
@@ -103,6 +107,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     !isToolBlocked &&
     !selectedShapeLocked &&
     !selectedRequestLocked &&
+    !generatorRequestLocked &&
     selectedCanPreview;
   const canApply =
     data.can_run_apply &&
@@ -110,6 +115,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     !isToolBlocked &&
     !selectedShapeLocked &&
     !selectedRequestLocked &&
+    !generatorRequestLocked &&
     selectedCanApply;
   const canStartPlacement =
     data.can_start_placement_mode &&
@@ -117,13 +123,17 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     !isToolBlocked &&
     !selectedShapeLocked &&
     !selectedRequestLocked &&
+    !generatorRequestLocked &&
     selectedCanPreview;
+  const requestLockTooltip = generatorRequestLocked
+    ? generatorRequestLockReason || 'Конфигурация постройки заблокирована'
+    : undefined;
 
   const previewAction: ToolbarAction | undefined =
     data.current_generator_supports_preview
       ? {
           label: 'Просм.',
-          tooltip: 'Показать предпросмотр',
+          tooltip: requestLockTooltip || 'Показать предпросмотр',
           action: 'run_preview',
           color: 'average',
           disabled: !canPreview,
@@ -136,12 +146,12 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     previewAction.disabled = hasVisiblePreview ? false : !canPreview;
     previewAction.tooltip = hasVisiblePreview
       ? 'Скрыть предпросмотр'
-      : 'Показать предпросмотр';
+      : requestLockTooltip || 'Показать предпросмотр';
   }
 
   const applyAction: ToolbarAction = {
     label: 'Прим.',
-    tooltip: 'Применить сразу',
+    tooltip: requestLockTooltip || 'Применить сразу',
     action: 'run_apply',
     color: 'good',
     disabled: !canApply,
@@ -152,7 +162,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
   const startPlacementAction: ToolbarAction | undefined = hasPlacementControls
     ? {
         label: 'Разм.',
-        tooltip: 'Запустить размещение',
+        tooltip: requestLockTooltip || 'Запустить размещение',
         action: 'start_placement_mode',
         color: 'good',
         disabled: !canStartPlacement,
@@ -163,7 +173,7 @@ const getToolbarActions = (data: BackendData): ToolbarActions => {
     hasPlacementControls && hasVisiblePreview
       ? {
           label: 'Разм.',
-          tooltip: 'Применить текущее превью',
+          tooltip: requestLockTooltip || 'Применить текущее превью',
           action: 'run_apply',
           color: 'good',
           disabled: !canApply,

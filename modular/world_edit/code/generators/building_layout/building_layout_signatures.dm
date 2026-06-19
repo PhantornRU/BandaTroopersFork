@@ -112,8 +112,8 @@
 			return place_signature_dense_pattern(state, cluster_spec, max(target_count, 7), list("rack", "rack", "crate"), list("rack", "rack", "crate"), TRUE)
 		if("signature_hydro_rows")
 			var/placed_hydro = place_signature_dense_pattern(state, cluster_spec, max(target_count, 8), list("hydro_tray"), list("hydro_tray"), FALSE)
-			placed_hydro += place_signature_support_fixture(state, list("work_counter", "seed_storage", "service_wall", "storage_wall"), "water_tank", "water_or_chem", TRUE, cluster_spec)
-			placed_hydro += place_signature_support_fixture(state, list("seed_storage", "storage_wall"), "seed_storage", "seed_storage", TRUE, cluster_spec)
+			place_signature_support_fixture(state, list("work_counter", "seed_storage", "service_wall", "storage_wall"), "water_tank", "water_or_chem", TRUE, cluster_spec)
+			place_signature_support_fixture(state, list("seed_storage", "storage_wall"), "seed_storage", "seed_storage", TRUE, cluster_spec)
 			return placed_hydro
 		if("signature_cook_line")
 			return place_signature_slot_run(state, cluster_spec, max(target_count, 5), list("table", "microwave", "processor", "sink", "fridge"), list("table", "kitchen_machine", "kitchen_machine", "kitchen_machine", "cold_storage"), TRUE)
@@ -140,7 +140,6 @@
 
 /datum/world_edit_generator/building_layout/proc/place_signature_support_fixture(datum/world_edit_building_layout_state/state, list/anchors, slot, category, force_wall = FALSE, datum/world_edit_building_cluster_spec/parent_spec = null)
 	var/datum/world_edit_building_cluster_spec/support_spec = new("support_[slot]_[category]", "major", "wall_object", slot, category, anchors, 1, 1, force_wall, 0, 70, TRUE)
-	inherit_building_cluster_count_context(support_spec, parent_spec)
 	if(force_wall)
 		return place_wall_fixture(state, support_spec)
 	return place_fixture_object(state, support_spec)

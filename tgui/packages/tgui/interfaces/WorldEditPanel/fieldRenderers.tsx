@@ -24,6 +24,8 @@ type FieldChoiceOption = {
   value: string;
   displayText: string;
   rawValue: unknown;
+  disabled?: boolean;
+  tooltip?: string;
 };
 
 type FieldControlOptions = {
@@ -49,13 +51,15 @@ const ChoiceStrip = (props: {
     <Flex wrap mx={-0.15}>
       {options.map((option) => {
         const isSelected = `${option.value}` === `${selected}`;
+        const isOptionDisabled = disabled || !!option.disabled;
         return (
           <Flex.Item key={option.value} grow basis={itemBasis} m={0.15}>
             <Button
               compact
               fluid
               selected={isSelected}
-              disabled={disabled}
+              disabled={isOptionDisabled}
+              tooltip={option.tooltip}
               onClick={() => onSelected(option.value)}
             >
               {option.displayText}
@@ -119,6 +123,8 @@ const getFieldChoiceOptions = (field?: UiField): FieldChoiceOption[] =>
       option.value,
     ),
     rawValue: option.value,
+    disabled: !!(option.disabled || option.locked),
+    tooltip: option.lockReason || option.description,
   }));
 
 const getSelectedFieldChoiceValue = (field?: UiField) =>
@@ -161,7 +167,8 @@ const ShapeOptionStrip = (props: {
         const isLocked = !!(option?.locked || option?.shape_locked);
         const isSelected = isAvailable && value === selected;
         const lockReason = `${option?.lockReason || option?.description || ''}`;
-        const tooltip = isLocked && lockReason ? `${label}: ${lockReason}` : label;
+        const tooltip =
+          isLocked && lockReason ? `${label}: ${lockReason}` : label;
 
         return (
           <Button
@@ -226,6 +233,7 @@ const CompactChoiceStrip = (props: {
     <Flex wrap mx={-0.12}>
       {options.map((option) => {
         const isSelected = `${option.value}` === `${selected}`;
+        const isOptionDisabled = disabled || !!option.disabled;
         return (
           <Flex.Item key={option.value} m={0.12}>
             <Button
@@ -233,7 +241,8 @@ const CompactChoiceStrip = (props: {
               verticalAlignContent="middle"
               selected={isSelected}
               color={isSelected ? 'good' : undefined}
-              disabled={disabled}
+              disabled={isOptionDisabled}
+              tooltip={option.tooltip}
               onClick={() => onSelected(option.value)}
               style={{
                 minWidth: buttonMinWidth,
@@ -331,6 +340,7 @@ const renderFieldControl = (
   if (field.kind === 'select') {
     const choiceOptions = getFieldChoiceOptions(field);
     const selected = getSelectedFieldChoiceValue(field);
+    const hasLockedOptions = choiceOptions.some((option) => option.disabled);
     const handleSelected = (selectedOptionValue: string) => {
       const selectedOption = choiceOptions.find(
         (option) => option.value === `${selectedOptionValue}`,
@@ -338,7 +348,7 @@ const renderFieldControl = (
       emitValue(selectedOption?.rawValue);
     };
 
-    return forceChoiceStrip ? (
+    return forceChoiceStrip || hasLockedOptions ? (
       <ChoiceStrip
         options={choiceOptions}
         selected={selected}

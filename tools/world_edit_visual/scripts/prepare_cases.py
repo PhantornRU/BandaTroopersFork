@@ -39,7 +39,6 @@ class CasePreparer:
     def ensure_runtime_dirs(self) -> None:
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        (self.runtime_root / "enabled.txt").write_text("1", encoding="ascii")
 
     def clear_inbox(self) -> None:
         for case_path in self.inbox_dir.glob("*.json"):

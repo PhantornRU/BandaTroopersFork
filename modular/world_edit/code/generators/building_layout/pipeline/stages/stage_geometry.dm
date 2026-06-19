@@ -15,9 +15,9 @@
 		context.state.geometry.direction_fallback_reason = "Selected footprint could not emit entry on requested direction."
 	context.state.add_stage_report("doors", "ok", null, list("door_count" = length(context.state.geometry.door_turfs)))
 
-	if(!generator.build_building_room_first_layout(context.state))
+	if(!generator.build_building_semantic_layout(context.state))
 		if(!context.has_errors())
-			context.state.add_error("Selected building footprint cannot be decomposed into connected rooms and an entry corridor.")
+			context.state.add_error("Selected building footprint cannot be decomposed into semantic regions and an entry route.")
 		context.state.add_stage_report("room_packing", "failed", generator.format_building_messages(context.state.validation.errors))
 		return FALSE
 	context.state.geometry.room_graph_hash = generator.build_building_turf_lookup_hash(context.state.geometry.room_by_turf)
@@ -32,16 +32,4 @@
 		"route_hash" = context.state.geometry.route_hash,
 	))
 	generator.build_building_windows(context.state)
-	
-	generator.build_building_walls_and_floors(context.state)
-	context.state.geometry.wall_hash = generator.build_building_turf_lookup_hash(context.state.geometry.wall_lookup)
-	context.state.validation.wall_report = list(
-		"wall_count" = length(context.state.geometry.wall_lookup),
-		"internal_wall_count" = length(context.state.geometry.internal_wall_turfs),
-		"wall_hash" = context.state.geometry.wall_hash,
-	)
-	context.state.add_stage_report("walls_doors", "ok", null, list(
-		"wall_count" = length(context.state.geometry.wall_lookup),
-		"wall_hash" = context.state.geometry.wall_hash,
-	))
 	return TRUE

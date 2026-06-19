@@ -152,8 +152,6 @@
 	var/forced_family = uppertext("[config["forced_footprint_family"] || ""]")
 	if(length(forced_family) && can_build_footprint_family(forced_family, width, depth))
 		return list(forced_family)
-	if("[config["footprint_source"]]" == "point_size")
-		return list("RECT")
 	var/list/eligible = get_eligible_building_footprint_families(config, width, depth)
 	var/list/non_rect = list()
 	var/has_rect = FALSE
@@ -179,8 +177,6 @@
 	var/forced_family = uppertext("[config["forced_footprint_family"] || ""]")
 	if(length(forced_family) && (forced_family in eligible))
 		return forced_family
-	if("[config["footprint_source"]]" == "point_size")
-		return "RECT"
 	var/list/non_rect_eligible = list()
 	for(var/family_id as anything in eligible)
 		if(family_id != "RECT")

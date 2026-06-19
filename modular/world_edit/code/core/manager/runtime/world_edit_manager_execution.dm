@@ -127,17 +127,18 @@
 		result_code,
 		params_short
 	)
-	add_history_entry(
-		current_definition.id,
-		result_code,
-		result.created_count,
-		result.deleted_count,
-		center_turf,
-		params_short,
-		result.message,
-		duration_ds * 100,
-		build_changeset_history_meta(changeset)
-	)
+	if(!result.suppress_history)
+		add_history_entry(
+			current_definition.id,
+			result_code,
+			result.created_count,
+			result.deleted_count,
+			center_turf,
+			params_short,
+			result.message,
+			duration_ds * 100,
+			build_changeset_history_meta(changeset)
+		)
 
 	last_apply_success = result.success ? TRUE : FALSE
 	last_apply_message = result.message

@@ -56,11 +56,87 @@
 /datum/world_edit_visual_case/proc/write_report(list/report_data)
 	report_data["errors"] = errors.Copy()
 	report_data["warnings"] = warnings.Copy()
+	apply_expectations_to_report(report_data)
 	if(!islist(report_data["artifacts"]))
 		report_data["artifacts"] = list()
 	report_data["artifacts"]["report_json"] = "report.json"
 	report_data["artifacts"]["progress_json"] = "progress.json"
 	write_json_file("[out_dir]/report.json", report_data)
+
+/datum/world_edit_visual_case/proc/apply_expectations_to_report(list/report_data)
+	if(!islist(report_data))
+		return
+	var/hard_error_count = compute_hard_error_count(report_data)
+	report_data["hard_error_count"] = hard_error_count
+
+	var/list/expected = islist(expect_config) ? expect_config.Copy() : list()
+	var/list/actual = list()
+	var/list/diff = list()
+	for(var/key as anything in expected)
+		var/actual_value = get_expectation_actual_value(key, report_data)
+		actual[key] = actual_value
+		if(!visual_expectation_values_equal(expected[key], actual_value))
+			diff += list(list(
+				"key" = "[key]",
+				"expected" = expected[key],
+				"actual" = actual_value,
+			))
+
+	report_data["expectations"] = list(
+		"expected" = expected,
+		"actual" = actual,
+		"diff" = diff,
+	)
+	report_data["expectation_diff"] = diff
+	report_data["passed"] = (!length(diff) && hard_error_count <= 0) ? TRUE : FALSE
+
+/datum/world_edit_visual_case/proc/compute_hard_error_count(list/report_data)
+	var/list/report_errors = islist(report_data?["errors"]) ? report_data["errors"] : list()
+	var/status = "[report_data?["status"] || ""]"
+	var/expected_status = "[expect_config?["status"] || ""]"
+	if(status == WORLD_EDIT_VISUAL_STATUS_LOCKED && expected_status == WORLD_EDIT_VISUAL_STATUS_LOCKED)
+		return 0
+	return length(report_errors)
+
+/datum/world_edit_visual_case/proc/get_expectation_actual_value(key, list/report_data)
+	switch("[key]")
+		if("status")
+			return report_data?["status"]
+		if("reason_code")
+			return report_data?["reason_code"] || report_data?["error"] || get_first_report_error_code(report_data)
+		if("canvas_changed")
+			return report_data?["canvas_changed"] ? TRUE : FALSE
+		if("direction_honored")
+			var/list/direction = report_data?["direction"]
+			return direction?["honored"] ? TRUE : FALSE
+		if("undo")
+			var/list/undo = report_data?["undo"]
+			return undo?["status"]
+		if("undo_restored")
+			var/list/undo = report_data?["undo"]
+			return undo?["restored"] ? TRUE : FALSE
+		if("hard_error_count")
+			return report_data?["hard_error_count"] || 0
+	var/list/metrics = report_data?["metrics"]
+	if(islist(metrics) && !isnull(metrics[key]))
+		return metrics[key]
+	return report_data?[key]
+
+/datum/world_edit_visual_case/proc/get_first_report_error_code(list/report_data)
+	var/list/report_errors = islist(report_data?["errors"]) ? report_data["errors"] : null
+	if(!islist(report_errors) || !length(report_errors))
+		return null
+	var/list/first_error = report_errors[1]
+	if(islist(first_error))
+		return first_error["code"]
+	return null
+
+/datum/world_edit_visual_case/proc/visual_expectation_values_equal(expected, actual)
+	if(isnull(expected) || isnull(actual))
+		return isnull(expected) && isnull(actual)
+	if(isnum(expected) || isnum(actual))
+		return round(text2num("[expected]") * 1000) == round(text2num("[actual]") * 1000)
+	return "[expected]" == "[actual]"
 
 /datum/world_edit_visual_case/proc/mark_semantic_artifacts(list/report_data)
 	if(!istype(canvas))
@@ -104,20 +180,28 @@
 	write_report(out)
 	return out
 
-/datum/world_edit_visual_case/proc/finish_supported(list/preview, list/apply, list/post_emit, list/export_result)
+/datum/world_edit_visual_case/proc/finish_supported(list/preview, list/apply, list/post_emit, list/export_result, list/undo_result = null)
 	profiler.end_total()
 	var/list/out = base_report(WORLD_EDIT_VISUAL_STATUS_SUPPORTED, WORLD_EDIT_VISUAL_STAGE_POST_EMIT_VALIDATE)
 	out["canvas_changed"] = canvas?.has_changed() ? TRUE : FALSE
 	out["metrics"] = merge_metrics(preview, apply, post_emit)
+	apply_undo_metrics(out["metrics"], undo_result)
 	out["direction"] = build_direction_report(preview)
+	out["undo"] = islist(undo_result) ? undo_result.Copy() : list("status" = "not_run", "restored" = FALSE)
 	out["rooms"] = preview?["rooms"] || list()
 	out["routes"] = preview?["routes"] || list()
 	attach_building_diagnostics(out, preview)
 	out["artifacts"] = islist(export_result?["artifacts"]) ? export_result["artifacts"] : list()
 	mark_semantic_artifacts(out)
-	export_semantic_json(out)
 	write_report(out)
 	return out
+
+/datum/world_edit_visual_case/proc/apply_undo_metrics(list/metrics, list/undo_result)
+	if(!islist(metrics) || !islist(undo_result))
+		return
+	metrics["undo_reverted_count"] = undo_result["reverted_count"] || 0
+	metrics["undo_skipped_count"] = undo_result["skipped_count"] || 0
+	metrics["undo_restored"] = undo_result["restored"] ? TRUE : FALSE
 
 /datum/world_edit_visual_case/proc/visual_metadata_has_building_metrics(list/meta)
 	if(!islist(meta))

@@ -1,63 +1,35 @@
 /*
- * File-based orchestration for the World Edit Visual Workbench.
+ * Explicit case orchestration for the World Edit Visual Workbench.
  *
- * This datum deliberately does only three things:
- *   1. poll the canonical runtime inbox under tools/world_edit_visual/inbox,
- *   2. deserialize each JSON file into a /datum/world_edit_visual_case,
- *   3. write a structured load-level error if the case cannot even be parsed.
+ * This datum deliberately does only two things:
+ *   1. deserialize JSON text into a /datum/world_edit_visual_case,
+ *   2. write a structured load-level error if the case cannot even be parsed.
  *
  * It does not create directories with shell calls. BYOND shell execution can be
  * unreliable during early headless DreamDaemon startup, and the tool-side
- * prepare_cases.py script owns creating parent directories before runtime.
+ * runner script owns creating parent directories before runtime.
  */
 /datum/world_edit_visual_workbench
-	var/enabled = FALSE
 	var/inbox_dir = WORLD_EDIT_VISUAL_DEFAULT_INBOX
 	var/out_dir = WORLD_EDIT_VISUAL_DEFAULT_OUT
-	var/poll_interval = 10
-	var/running = FALSE
-	var/list/processed_files = list()
 
 GLOBAL_DATUM_INIT(world_edit_visual_workbench, /datum/world_edit_visual_workbench, new)
 
-/proc/world_edit_visual_should_start()
-	return fexists(WORLD_EDIT_VISUAL_ENABLE_FLAG)
-
-/datum/world_edit_visual_workbench/proc/start()
-	if(running)
-		return
-	ensure_runtime_directories()
-	running = TRUE
-	enabled = TRUE
-	spawn(WORLD_EDIT_VISUAL_START_DELAY)
-		loop()
-
-/datum/world_edit_visual_workbench/proc/stop()
-	running = FALSE
-	enabled = FALSE
-
-/datum/world_edit_visual_workbench/proc/loop()
-	while(running)
-		process_inbox_once()
-		sleep(poll_interval)
-
 /datum/world_edit_visual_workbench/proc/process_inbox_once()
+	ensure_runtime_directories()
 	var/list/files = flist("[inbox_dir]/")
 	if(!islist(files))
-		return
+		return 0
+	var/processed_count = 0
 	for(var/file_name in files)
 		var/file_text = "[file_name]"
 		if(!is_json_case_file(file_text))
 			continue
 		var/path = "[inbox_dir]/[file_text]"
 		var/text = file2text(path)
-		// Re-run a case when the same filename is edited in place. This keeps
-		// the workbench useful for AI/user iteration without requiring restart.
-		var/signature = md5(text)
-		if(processed_files[file_text] == signature)
-			continue
 		process_case_file(file_text, text)
-		processed_files[file_text] = signature
+		processed_count++
+	return processed_count
 
 /datum/world_edit_visual_workbench/proc/ensure_runtime_directories()
 	world_edit_visual_ensure_directory(inbox_dir)
@@ -112,10 +84,16 @@ GLOBAL_DATUM_INIT(world_edit_visual_workbench, /datum/world_edit_visual_workbenc
 	fdel(path)
 	rustg_file_write(json_encode(error), path)
 
-/proc/init_world_edit_visual_workbench()
+/proc/run_world_edit_visual_acceptance_from_params()
 	if(!GLOB.world_edit_visual_workbench)
 		GLOB.world_edit_visual_workbench = new
-	GLOB.world_edit_visual_workbench.start()
+	var/datum/world_edit_visual_workbench/workbench = GLOB.world_edit_visual_workbench
+	if(world.params["world_edit_acceptance_inbox"])
+		workbench.inbox_dir = "[world.params["world_edit_acceptance_inbox"]]"
+	if(world.params["world_edit_acceptance_out"])
+		workbench.out_dir = "[world.params["world_edit_acceptance_out"]]"
+	var/processed_count = workbench.process_inbox_once()
+	log_world("World Edit Visual acceptance processed [processed_count] case(s).")
 
 /proc/world_edit_visual_ensure_directory(path)
 	var/clean_path = replacetext("[path]", "\\", "/")

@@ -279,7 +279,7 @@
 	validate_building_blocker_policy(state)
 	validate_building_route_touch(state)
 	validate_building_route_patterns(state)
-	validate_building_room_first_rules(state)
+	validate_building_semantic_room_access(state)
 	validate_building_fixture_surface(state)
 	validate_building_fixture_reachability(state)
 	validate_building_privacy_rules(state)
@@ -730,15 +730,15 @@
 				return TRUE
 	return FALSE
 
-/datum/world_edit_generator/building_layout/proc/validate_building_room_first_rules(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"]))
+/datum/world_edit_generator/building_layout/proc/validate_building_semantic_room_access(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
 		return
 	if(!length(state.geometry.corridor_turfs))
 		state.validation.route_conflict_count++
-		state.add_error("Room-first layout has no reserved corridor from the entry.")
+		state.add_error("Semantic layout has no reserved route from the entry.")
 	if(!length(state.geometry.solved_rooms))
 		state.validation.space_distribution_score = 0
-		state.add_error("Room-first layout has no solved rooms.")
+		state.add_error("Semantic layout has no solved rooms.")
 	var/entry_connected = FALSE
 	if(state.geometry.corridor_lookup[state.geometry.front_door_turf])
 		entry_connected = TRUE
@@ -748,7 +748,7 @@
 			entry_connected = TRUE
 	if(!entry_connected)
 		state.validation.route_conflict_count++
-		state.add_error("Main corridor is not connected to the exterior entry door.")
+		state.add_error("Main route is not connected to the exterior entry door.")
 
 	for(var/turf/corridor_turf as anything in state.geometry.corridor_turfs)
 		if(!istype(corridor_turf))
@@ -756,11 +756,11 @@
 		if(state.geometry.wall_lookup[corridor_turf])
 			state.validation.route_conflict_count++
 			state.validation.reserved_walk_blocked_count++
-			state.add_error("Main corridor is blocked by a wall at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
+			state.add_error("Main route is blocked by a wall at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
 		if(state.fixtures.fixture_lookup[corridor_turf])
 			state.validation.route_conflict_count++
 			state.validation.reserved_walk_blocked_count++
-			state.add_error("Main corridor is blocked by a fixture at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
+			state.add_error("Main route is blocked by a fixture at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
 
 	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
 		if(!istype(room))
@@ -1059,6 +1059,9 @@
 			for(var/list/alias_spec as anything in credit_alias_specs)
 				if(!islist(alias_spec))
 					continue
+				var/required_alias_capability = "[alias_spec["capability"] || ""]"
+				if(length(required_alias_capability) && !building_cluster_has_capability_placement(state, cluster_spec, required_alias_capability))
+					continue
 				var/alias_credit = "[alias_spec["semantic_credit"]]"
 				var/alias_counter = "[alias_spec["acceptance_counter"] || "[alias_credit]_count"]"
 				if(length(alias_credit))
@@ -1106,33 +1109,33 @@
 		return alias_specs
 	switch(cluster_spec.id)
 		if("loading_crates")
-			alias_specs += list(list("semantic_credit" = "crate_overflow", "acceptance_counter" = "crate_overflow_count"))
+			alias_specs += list(list("semantic_credit" = "crate_overflow", "acceptance_counter" = "crate_overflow_count", "capability" = "supply_storage"))
 		if("serving_counter")
-			alias_specs += list(list("semantic_credit" = "serving_surface", "acceptance_counter" = "serving_surface_count"))
+			alias_specs += list(list("semantic_credit" = "serving_surface", "acceptance_counter" = "serving_surface_count", "capability" = "work_surface"))
 		if("primary_desk_suite")
-			alias_specs += list(list("semantic_credit" = "office_work_surface", "acceptance_counter" = "office_work_surface_count"))
+			alias_specs += list(list("semantic_credit" = "office_work_surface", "acceptance_counter" = "office_work_surface_count", "capability" = "work_surface"))
 		if("locker_run")
-			alias_specs += list(list("semantic_credit" = "secure_storage", "acceptance_counter" = "secure_storage_count"))
-			alias_specs += list(list("semantic_credit" = "locker_or_armory_wall", "acceptance_counter" = "locker_or_armory_wall_count"))
+			alias_specs += list(list("semantic_credit" = "secure_storage", "acceptance_counter" = "secure_storage_count", "capability" = "storage"))
+			alias_specs += list(list("semantic_credit" = "locker_or_armory_wall", "acceptance_counter" = "locker_or_armory_wall_count", "capability" = "storage"))
 		if("security_storage")
-			alias_specs += list(list("semantic_credit" = "secure_storage", "acceptance_counter" = "secure_storage_count"))
+			alias_specs += list(list("semantic_credit" = "secure_storage", "acceptance_counter" = "secure_storage_count", "capability" = "storage"))
 		if("altar_focus")
-			alias_specs += list(list("semantic_credit" = "focal_object", "acceptance_counter" = "focal_object_count"))
+			alias_specs += list(list("semantic_credit" = "focal_object", "acceptance_counter" = "focal_object_count", "capability" = "work_surface"))
 		if("seating_left_rows", "seating_right_rows")
-			alias_specs += list(list("semantic_credit" = "seating_group", "acceptance_counter" = "seating_group_count"))
+			alias_specs += list(list("semantic_credit" = "seating_group", "acceptance_counter" = "seating_group_count", "capability" = "seating"))
 		if("ritual_centerpiece")
-			alias_specs += list(list("semantic_credit" = "focal_object", "acceptance_counter" = "focal_object_count"))
+			alias_specs += list(list("semantic_credit" = "focal_object", "acceptance_counter" = "focal_object_count", "capability" = "work_surface"))
 		if("axis_barriers")
-			alias_specs += list(list("semantic_credit" = "ritual_markers", "acceptance_counter" = "ritual_markers_count"))
+			alias_specs += list(list("semantic_credit" = "ritual_markers", "acceptance_counter" = "ritual_markers_count", "capability" = "barrier"))
 		if("power_console_wall")
-			alias_specs += list(list("semantic_credit" = "power_control_surface", "acceptance_counter" = "power_control_surface_count"))
+			alias_specs += list(list("semantic_credit" = "power_control_surface", "acceptance_counter" = "power_control_surface_count", "capability" = "power_control"))
 		if("sample_storage_wall")
-			alias_specs += list(list("semantic_credit" = "sample_storage", "acceptance_counter" = "sample_storage_count"))
+			alias_specs += list(list("semantic_credit" = "sample_storage", "acceptance_counter" = "sample_storage_count", "capability" = "sample_storage"))
 		if("analysis_table")
-			alias_specs += list(list("semantic_credit" = "data_surface", "acceptance_counter" = "data_surface_count"))
+			alias_specs += list(list("semantic_credit" = "data_surface", "acceptance_counter" = "data_surface_count", "capability" = "work_surface"))
 		if("cooking_run")
-			alias_specs += list(list("semantic_credit" = "sink_wash", "acceptance_counter" = "sink_wash_count"))
-			alias_specs += list(list("semantic_credit" = "kitchen_core", "acceptance_counter" = "kitchen_core_count"))
+			alias_specs += list(list("semantic_credit" = "sink_wash", "acceptance_counter" = "sink_wash_count", "capability" = "sink_wash"))
+			alias_specs += list(list("semantic_credit" = "kitchen_core", "acceptance_counter" = "kitchen_core_count", "capability" = "food_preparation"))
 	return alias_specs
 
 /datum/world_edit_generator/building_layout/proc/build_building_cluster_credit_alias_report(list/alias_specs)
@@ -1144,6 +1147,19 @@
 			continue
 		report += "[alias_spec["semantic_credit"]]"
 	return report
+
+/datum/world_edit_generator/building_layout/proc/building_cluster_has_capability_placement(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, required_capability)
+	if(!istype(state) || !istype(cluster_spec) || !length("[required_capability]"))
+		return FALSE
+	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	for(var/list/placement as anything in state.fixtures.object_placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		if("[placement["requirement_id"]]" != requirement_id && "[placement["cluster_id"]]" != cluster_spec.id && "[placement["signature_id"]]" != cluster_spec.signature_id)
+			continue
+		if(building_placement_provides_capability(placement, required_capability))
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/building_required_cluster_has_reachable_fixture(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(state) || !istype(cluster_spec))
@@ -1181,7 +1197,7 @@
 /datum/world_edit_generator/building_layout/proc/get_building_requirement_or_category_count(datum/world_edit_building_layout_state/state, requirement_id, category)
 	if(!istype(state))
 		return 0
-	return max(round(text2num("[state.fixtures.semantic_requirement_counts["[requirement_id]"]]") || 0), round(text2num("[state.fixtures.placed_requirement_counts["[requirement_id]"]]") || 0))
+	return round(text2num("[state.fixtures.placed_requirement_counts["[requirement_id]"]]") || 0)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_infrastructure_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || length(state.geometry.floor_turfs) < 12)
@@ -1367,6 +1383,9 @@
 	if(state.validation.fallback_anchor_required_cluster_count > 0)
 		state.add_error("Required pattern attempted fallback anchors: fallback_anchor_required_cluster_count=[state.validation.fallback_anchor_required_cluster_count].")
 		hard_failure = TRUE
+	if(state.validation.style_required_slot_missing_count > 0)
+		state.add_error("Required fixture capabilities are missing: style_required_slot_missing_count=[state.validation.style_required_slot_missing_count].")
+		hard_failure = TRUE
 	if(state.validation.mandatory_room_patch_fallback_count > 0)
 		state.add_error("Required room patch fallback is not accepted: mandatory_room_patch_fallback_count=[state.validation.mandatory_room_patch_fallback_count].")
 		hard_failure = TRUE
@@ -1389,4 +1408,4 @@
 		state.add_error("Reachability failures detected: reachability_failure_count=[state.validation.reachability_failure_count].")
 		hard_failure = TRUE
 	if(hard_failure)
-		state.set_support_status(WORLD_EDIT_BUILDING_SUPPORT_FAILED, "Hard counter failures: forbidden_fallback=[state.validation.forbidden_fallback_count], mandatory_pattern_failure=[state.validation.mandatory_pattern_failure_count], post_emit_validation_error=[state.validation.post_emit_validation_error_count], reachability_failure=[state.validation.reachability_failure_count].")
+		state.set_support_status(WORLD_EDIT_BUILDING_SUPPORT_FAILED, "Hard counter failures: forbidden_fallback=[state.validation.forbidden_fallback_count], style_required_slot_missing=[state.validation.style_required_slot_missing_count], mandatory_pattern_failure=[state.validation.mandatory_pattern_failure_count], post_emit_validation_error=[state.validation.post_emit_validation_error_count], reachability_failure=[state.validation.reachability_failure_count].")

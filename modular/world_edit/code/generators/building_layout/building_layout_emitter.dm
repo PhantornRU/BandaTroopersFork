@@ -284,7 +284,8 @@
 					if(requirement_credit > 0 && length(requirement_id))
 						var/list/provided_slots = placement["provided_slots"]
 						var/requested_slot = "[placement["requested_slot"] || placement["slot"] || ""]"
-						if(!GLOB.world_edit_helpers.parse_bool(placement["functional"]) || !islist(provided_slots) || !(requested_slot in provided_slots))
+						var/required_capability = "[placement["required_capability"] || get_building_fixture_required_capability(requested_slot, placement["category"])]"
+						if(!GLOB.world_edit_helpers.parse_bool(placement["functional"]) || !islist(provided_slots) || !(requested_slot in provided_slots) || !building_placement_provides_capability(placement, required_capability))
 							increment_building_post_emit_report(report, "semantic_credit_without_emitted_slots_count", requirement_credit)
 							continue
 						add_building_emitted_requirement_count(emitted_requirement_counts, requirement_id, requirement_credit)
@@ -295,6 +296,9 @@
 						var/datum/world_edit_building_cluster_spec/source_cluster = find_building_cluster_spec_for_emitted_ids(state, requirement_id, cluster_id, signature_id)
 						for(var/list/alias_spec as anything in get_building_cluster_credit_alias_specs(source_cluster))
 							if(!islist(alias_spec))
+								continue
+							var/required_alias_capability = "[alias_spec["capability"] || ""]"
+							if(length(required_alias_capability) && !building_placement_provides_capability(placement, required_alias_capability))
 								continue
 							var/alias_credit = "[alias_spec["semantic_credit"]]"
 							var/alias_counter = "[alias_spec["acceptance_counter"] || "[alias_credit]_count"]"
@@ -493,7 +497,6 @@
 		"direction" = state.placement_dir,
 		"footprint_source" = state.config["footprint_source"],
 		"usable_area" = state.fixtures.usable_fixture_area,
-		"room_first_layout" = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"]),
 		"room_count" = length(state.geometry.solved_rooms),
 		"corridor_turf_count" = length(state.geometry.corridor_turfs),
 		"semantic_requirement_minimums" = state.fixtures.semantic_requirement_minimums.Copy(),
@@ -726,7 +729,6 @@
 	plan.metadata["layout_macro_counts"] = state.fixtures.layout_macro_counts.Copy()
 	plan.metadata["layout_macro_count"] = length(state.fixtures.layout_macros)
 	plan.metadata["semantic_region_count"] = length(state.geometry.solved_regions)
-	plan.metadata["room_first_layout"] = GLOB.world_edit_helpers.parse_bool(state.config["room_first_layout"])
 	plan.metadata["room_count"] = length(state.geometry.solved_rooms)
 	plan.metadata["corridor_turf_count"] = length(state.geometry.corridor_turfs)
 	plan.metadata["primary_route_count"] = length(state.geometry.primary_route_turfs)
@@ -734,7 +736,7 @@
 	plan.metadata["divider_plan_count"] = length(state.geometry.divider_plans)
 	plan.metadata["usable_fixture_area"] = state.fixtures.usable_fixture_area
 	plan.metadata["patterned_layout"] = TRUE
-	plan.metadata["layout_contract"] = "room_first_corridor_pattern_rework"
+	plan.metadata["layout_contract"] = "semantic_region_solver"
 	var/list/post_emit_report = validate_building_plan_post_emit(plan, state)
 	plan.metadata["post_emit_validation_report"] = post_emit_report
 	plan.metadata["post_emit_validation_error_count"] = state.validation.post_emit_validation_error_count
