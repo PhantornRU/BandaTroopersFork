@@ -263,6 +263,7 @@
 	build_building_primary_routes(state)
 	build_building_zone_dividers(state)
 	build_building_nested_rooms(state)
+	build_building_requested_room_dividers(state)
 	build_building_rooms_from_zone_assignments(state)
 	if(!length(state.geometry.solved_rooms))
 		state.add_error("Building semantic region solver produced no solved rooms.")
@@ -2577,23 +2578,318 @@
 		return
 	state.geometry.solved_rooms.Cut()
 	state.geometry.room_by_turf.Cut()
+	var/use_component_rooms = (round(text2num("[state.config["target_room_count"]]") || 0) > 0)
 	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
 		if(!istype(zone_spec))
 			continue
-		var/datum/world_edit_building_room/room = new("room_[zone_spec.id]_[length(state.geometry.solved_rooms) + 1]", zone_spec.id, zone_spec.role)
-		for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
-			if(!istype(zone_turf) || state.geometry.boundary_lookup[zone_turf] || state.geometry.wall_lookup[zone_turf])
+		if(!use_component_rooms)
+			var/datum/world_edit_building_room/room = new("room_[zone_spec.id]_[length(state.geometry.solved_rooms) + 1]", zone_spec.id, zone_spec.role)
+			for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_spec.id))
+				if(!istype(zone_turf) || state.geometry.boundary_lookup[zone_turf] || state.geometry.wall_lookup[zone_turf])
+					continue
+				room.add_turf(zone_turf)
+			if(!length(room.turfs))
+				if(zone_spec.required)
+					state.add_error("Required zone '[zone_spec.id]' has no walkable room turfs.")
 				continue
-			room.add_turf(zone_turf)
-		if(!length(room.turfs))
+			room.focus_turf = state.get_zone_focus(zone_spec.id) || select_zone_focus_turf(state, zone_spec.id) || room.turfs[1]
+			room.tiny = length(room.turfs) <= 1
+			state.add_solved_room(room)
+			continue
+		var/list/components = build_building_room_components_for_zone(state, zone_spec.id)
+		if(!length(components))
 			if(zone_spec.required)
 				state.add_error("Required zone '[zone_spec.id]' has no walkable room turfs.")
 			continue
-		room.focus_turf = state.get_zone_focus(zone_spec.id) || select_zone_focus_turf(state, zone_spec.id) || room.turfs[1]
-		room.tiny = length(room.turfs) <= 1
-		state.add_solved_room(room)
+		for(var/list/component_turfs as anything in components)
+			if(!islist(component_turfs) || !length(component_turfs))
+				continue
+			var/datum/world_edit_building_room/room = new("room_[zone_spec.id]_[length(state.geometry.solved_rooms) + 1]", zone_spec.id, zone_spec.role)
+			for(var/turf/component_turf as anything in component_turfs)
+				if(istype(component_turf))
+					room.add_turf(component_turf)
+			if(!length(room.turfs))
+				continue
+			room.focus_turf = select_building_room_component_focus(state, zone_spec.id, room.turfs)
+			room.tiny = length(room.turfs) <= 1
+			state.add_solved_room(room)
 	refresh_building_zone_foci(state)
 	state.geometry.semantic_hub_turf = state.get_zone_focus(state.semantic_plan.hub_zone_id) || state.get_zone_focus(state.semantic_plan.primary_zone_id) || state.geometry.center_turf
+
+/datum/world_edit_generator/building_layout/proc/build_building_room_walkable_lookup_for_zone(datum/world_edit_building_layout_state/state, zone_id, list/planned_wall_lookup = null, list/planned_opening_lookup = null)
+	var/list/walkable_lookup = list()
+	if(!istype(state) || !length("[zone_id]"))
+		return walkable_lookup
+	for(var/turf/zone_turf as anything in state.get_zone_turfs(zone_id))
+		if(!istype(zone_turf) || state.geometry.boundary_lookup[zone_turf] || state.geometry.wall_lookup[zone_turf] || state.geometry.door_dirs[zone_turf])
+			continue
+		if(islist(planned_wall_lookup) && planned_wall_lookup[zone_turf])
+			continue
+		if(islist(planned_opening_lookup) && planned_opening_lookup[zone_turf])
+			continue
+		walkable_lookup[zone_turf] = TRUE
+	return walkable_lookup
+
+/datum/world_edit_generator/building_layout/proc/build_building_room_components_for_zone(datum/world_edit_building_layout_state/state, zone_id, list/planned_wall_lookup = null, list/planned_opening_lookup = null)
+	var/list/components = list()
+	var/list/walkable_lookup = build_building_room_walkable_lookup_for_zone(state, zone_id, planned_wall_lookup, planned_opening_lookup)
+	var/list/visited_lookup = list()
+	for(var/turf/start_turf as anything in walkable_lookup)
+		if(!istype(start_turf) || visited_lookup[start_turf])
+			continue
+		var/list/component = list()
+		var/list/queue = list(start_turf)
+		visited_lookup[start_turf] = TRUE
+		var/index = 1
+		while(index <= length(queue))
+			var/turf/current_turf = queue[index++]
+			if(!istype(current_turf))
+				continue
+			component += current_turf
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/nearby_turf = get_step(current_turf, check_dir)
+				if(!walkable_lookup[nearby_turf] || visited_lookup[nearby_turf])
+					continue
+				visited_lookup[nearby_turf] = TRUE
+				queue += nearby_turf
+		if(length(component))
+			components += list(component)
+	return components
+
+/datum/world_edit_generator/building_layout/proc/count_building_room_components(datum/world_edit_building_layout_state/state, list/planned_wall_lookup = null, list/planned_opening_lookup = null)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return 0
+	var/component_count = 0
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec))
+			continue
+		component_count += length(build_building_room_components_for_zone(state, zone_spec.id, planned_wall_lookup, planned_opening_lookup))
+	return component_count
+
+/datum/world_edit_generator/building_layout/proc/select_building_room_component_focus(datum/world_edit_building_layout_state/state, zone_id, list/component_turfs)
+	if(!istype(state) || !islist(component_turfs) || !length(component_turfs))
+		return null
+	var/turf/zone_focus = state.get_zone_focus(zone_id)
+	if(istype(zone_focus) && (zone_focus in component_turfs))
+		return zone_focus
+	var/turf/target_turf = zone_focus || state.geometry.semantic_hub_turf || state.geometry.center_turf || state.geometry.front_door_turf
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	for(var/turf/component_turf as anything in component_turfs)
+		if(!istype(component_turf))
+			continue
+		var/score = 0
+		if(istype(target_turf))
+			score -= abs(component_turf.x - target_turf.x) + abs(component_turf.y - target_turf.y)
+		if(state.geometry.corridor_lookup[component_turf])
+			score += 20
+		if(!istype(best_turf) || score > best_score)
+			best_turf = component_turf
+			best_score = score
+	return best_turf || component_turfs[1]
+
+/datum/world_edit_generator/building_layout/proc/build_building_requested_room_dividers(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return
+	var/target_room_count = round(text2num("[state.config["target_room_count"]]") || 0)
+	if(target_room_count <= 0)
+		return
+	state.validation.requested_room_count = target_room_count
+	var/current_room_count = count_building_room_components(state)
+	if(current_room_count >= target_room_count)
+		return
+	var/max_divider_count = min(target_room_count - current_room_count, 12)
+	var/built_divider_count = 0
+	var/attempt_count = 0
+	while(current_room_count < target_room_count && built_divider_count < max_divider_count && attempt_count < 24)
+		attempt_count++
+		var/datum/world_edit_building_divider_plan/divider_plan = select_requested_room_count_divider_plan(state, current_room_count, "requested_[attempt_count]")
+		if(!istype(divider_plan))
+			break
+		var/list/planned_wall_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(divider_plan.wall_turfs)
+		var/list/planned_opening_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(divider_plan.opening_turfs)
+		var/planned_room_count = count_building_room_components(state, planned_wall_lookup, planned_opening_lookup)
+		if(planned_room_count <= current_room_count)
+			break
+		state.add_divider_plan(divider_plan)
+		state.validation.room_count_divider_count++
+		built_divider_count++
+		current_room_count = count_building_room_components(state)
+
+/datum/world_edit_generator/building_layout/proc/select_requested_room_count_divider_plan(datum/world_edit_building_layout_state/state, current_room_count, sequence_id)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return null
+	var/datum/world_edit_building_divider_plan/best_plan = null
+	var/best_score = -999999999
+	for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+		if(!istype(zone_spec))
+			continue
+		var/datum/world_edit_building_divider_plan/candidate = build_requested_room_count_divider_plan_for_zone(state, zone_spec, current_room_count, sequence_id)
+		if(!istype(candidate))
+			continue
+		var/score = candidate.score || 0
+		if(!istype(best_plan) || score > best_score)
+			best_plan = candidate
+			best_score = score
+	return best_plan
+
+/datum/world_edit_generator/building_layout/proc/build_requested_room_count_divider_plan_for_zone(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec, current_room_count, sequence_id)
+	if(!istype(state) || !istype(zone_spec))
+		return null
+	if(!building_zone_allows_requested_room_count_divider(state, zone_spec))
+		return null
+	var/list/walkable_lookup = build_building_room_walkable_lookup_for_zone(state, zone_spec.id)
+	if(length(walkable_lookup) < max(8, zone_spec.min_area * 2))
+		return null
+	var/min_x = 999999
+	var/max_x = -999999
+	var/min_y = 999999
+	var/max_y = -999999
+	for(var/turf/walkable_turf as anything in walkable_lookup)
+		if(!istype(walkable_turf))
+			continue
+		min_x = min(min_x, walkable_turf.x)
+		max_x = max(max_x, walkable_turf.x)
+		min_y = min(min_y, walkable_turf.y)
+		max_y = max(max_y, walkable_turf.y)
+	var/datum/world_edit_building_divider_plan/best_plan = null
+	var/best_score = -999999999
+	var/list/orientations = list("vertical", "horizontal")
+	for(var/orientation as anything in orientations)
+		var/start_axis = orientation == "vertical" ? min_x + 2 : min_y + 2
+		var/end_axis = orientation == "vertical" ? max_x - 2 : max_y - 2
+		for(var/axis_value = start_axis, axis_value <= end_axis, axis_value++)
+			var/list/candidate_report = build_requested_room_count_divider_candidate(state, zone_spec, walkable_lookup, orientation, axis_value, min_x, max_x, min_y, max_y, current_room_count, sequence_id)
+			if(!islist(candidate_report))
+				continue
+			var/datum/world_edit_building_divider_plan/candidate_plan = candidate_report["plan"]
+			if(!istype(candidate_plan))
+				continue
+			var/score = round(text2num("[candidate_report["score"]]") || 0)
+			if(!istype(best_plan) || score > best_score)
+				best_plan = candidate_plan
+				best_score = score
+	if(istype(best_plan))
+		best_plan.score = best_score
+	return best_plan
+
+/datum/world_edit_generator/building_layout/proc/building_zone_allows_requested_room_count_divider(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec)
+	if(!istype(state) || !istype(zone_spec))
+		return FALSE
+	if(zone_spec.privacy_sensitive)
+		return FALSE
+	var/role = lowertext("[zone_spec.role]")
+	if(role in list("private", "service", "storage", "secure", "nested"))
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/build_requested_room_count_divider_candidate(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec, list/walkable_lookup, orientation, axis_value, min_x, max_x, min_y, max_y, current_room_count, sequence_id)
+	var/list/line_turfs = list()
+	var/list/side_a_turfs = list()
+	var/list/side_b_turfs = list()
+	var/line_min = 999999
+	var/line_max = -999999
+	for(var/turf/walkable_turf as anything in walkable_lookup)
+		if(!istype(walkable_turf))
+			continue
+		if(orientation == "vertical")
+			if(walkable_turf.x == axis_value)
+				line_turfs += walkable_turf
+				line_min = min(line_min, walkable_turf.y)
+				line_max = max(line_max, walkable_turf.y)
+			else if(walkable_turf.x < axis_value)
+				side_a_turfs += walkable_turf
+			else
+				side_b_turfs += walkable_turf
+		else
+			if(walkable_turf.y == axis_value)
+				line_turfs += walkable_turf
+				line_min = min(line_min, walkable_turf.x)
+				line_max = max(line_max, walkable_turf.x)
+			else if(walkable_turf.y < axis_value)
+				side_a_turfs += walkable_turf
+			else
+				side_b_turfs += walkable_turf
+	if(length(line_turfs) < 3 || length(side_a_turfs) < 3 || length(side_b_turfs) < 3)
+		return null
+	if((line_max - line_min + 1) != length(line_turfs))
+		return null
+	var/list/reserved_line_turfs = list()
+	for(var/turf/line_turf as anything in line_turfs)
+		if(state.geometry.reserved_lookup[line_turf])
+			reserved_line_turfs += line_turf
+	if(length(reserved_line_turfs) > 1)
+		return null
+	var/turf/opening_turf = null
+	if(length(reserved_line_turfs) == 1)
+		opening_turf = reserved_line_turfs[1]
+	else
+		opening_turf = select_requested_room_count_opening_turf(state, line_turfs, orientation)
+	if(!istype(opening_turf))
+		return null
+	var/list/wall_turfs = list()
+	for(var/turf/line_turf as anything in line_turfs)
+		if(!istype(line_turf) || line_turf == opening_turf)
+			continue
+		if(state.geometry.reserved_lookup[line_turf] || state.geometry.wall_lookup[line_turf] || state.geometry.door_dirs[line_turf])
+			return null
+		wall_turfs += line_turf
+	if(length(wall_turfs) < 2)
+		return null
+	var/datum/world_edit_building_divider_plan/divider_plan = new("roomcount_[zone_spec.id]_[sequence_id]", zone_spec.id, zone_spec.id)
+	for(var/turf/wall_turf as anything in wall_turfs)
+		divider_plan.wall_turfs += wall_turf
+	divider_plan.opening_turfs += opening_turf
+	divider_plan.opening_dirs[opening_turf] = get_requested_room_count_opening_dir(state, opening_turf, orientation)
+	if(!divider_plan_keeps_floor_reachable(state, divider_plan))
+		return null
+	var/list/planned_wall_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(divider_plan.wall_turfs)
+	var/list/planned_opening_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(divider_plan.opening_turfs)
+	var/planned_room_count = count_building_room_components(state, planned_wall_lookup, planned_opening_lookup)
+	if(planned_room_count <= current_room_count)
+		return null
+	var/balance_penalty = abs(length(side_a_turfs) - length(side_b_turfs))
+	var/score = min(length(side_a_turfs), length(side_b_turfs)) * 100 - balance_penalty * 6 + length(wall_turfs) * 3
+	if(state.geometry.reserved_lookup[opening_turf])
+		score += 120
+	if(zone_spec.id == state.semantic_plan?.primary_zone_id || zone_spec.id == state.semantic_plan?.hub_zone_id)
+		score += 2000
+	var/role = lowertext("[zone_spec.role]")
+	if(role in list("hub", "public", "public_med", "route", "entry", "staging"))
+		score += 500
+	divider_plan.score = score
+	return list("plan" = divider_plan, "score" = score)
+
+/datum/world_edit_generator/building_layout/proc/select_requested_room_count_opening_turf(datum/world_edit_building_layout_state/state, list/line_turfs, orientation)
+	var/turf/best_turf = null
+	var/best_score = -999999999
+	var/turf/target_turf = state.geometry.semantic_hub_turf || state.geometry.front_door_turf || state.geometry.center_turf
+	for(var/turf/line_turf as anything in line_turfs)
+		if(!istype(line_turf) || state.geometry.wall_lookup[line_turf] || state.geometry.door_dirs[line_turf] || state.geometry.boundary_lookup[line_turf])
+			continue
+		var/score = 0
+		if(istype(target_turf))
+			score -= abs(line_turf.x - target_turf.x) + abs(line_turf.y - target_turf.y)
+		if(state.geometry.corridor_lookup[line_turf])
+			score += 80
+		var/turf/side_a = get_step(line_turf, orientation == "vertical" ? WEST : SOUTH)
+		var/turf/side_b = get_step(line_turf, orientation == "vertical" ? EAST : NORTH)
+		if(!state.geometry.footprint_lookup[side_a] || !state.geometry.footprint_lookup[side_b])
+			score -= 1000
+		if(!istype(best_turf) || score > best_score)
+			best_turf = line_turf
+			best_score = score
+	return best_turf
+
+/datum/world_edit_generator/building_layout/proc/get_requested_room_count_opening_dir(datum/world_edit_building_layout_state/state, turf/opening_turf, orientation)
+	var/turf/target_turf = state.geometry.semantic_hub_turf || state.geometry.front_door_turf || state.geometry.center_turf
+	if(orientation == "vertical")
+		if(istype(target_turf) && target_turf.x < opening_turf.x)
+			return WEST
+		return EAST
+	if(istype(target_turf) && target_turf.y < opening_turf.y)
+		return SOUTH
+	return NORTH
 
 /datum/world_edit_generator/building_layout/proc/build_building_zone_dividers(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))

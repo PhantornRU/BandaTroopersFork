@@ -151,7 +151,7 @@
 	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
 	if(!degraded_tiny_layout && istype(state.archetype))
 		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
-	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
+	var/allow_reserved_template = degraded_tiny_layout && findtext(chunk.id, "micro")
 	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
 		if(!istype(cell))
 			continue
@@ -224,7 +224,7 @@
 	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
 	if(!degraded_tiny_layout && istype(state.archetype))
 		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
-	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
+	var/allow_reserved_template = degraded_tiny_layout && findtext(chunk.id, "micro")
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
@@ -321,7 +321,7 @@
 	var/degraded_tiny_layout = is_building_compact_or_micro_state(state)
 	if(!degraded_tiny_layout && istype(state.archetype))
 		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
-	var/allow_reserved_template = degraded_tiny_layout && (findtext(chunk.id, "micro") || is_building_infrastructure_category(cluster_spec.category))
+	var/allow_reserved_template = degraded_tiny_layout && findtext(chunk.id, "micro")
 	for(var/datum/world_edit_building_template_cell/cell as anything in chunk.cells)
 		if(!istype(cell))
 			continue

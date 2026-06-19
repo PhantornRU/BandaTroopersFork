@@ -230,7 +230,7 @@ class RenderWorkflow:
             return f"report_invalid_json:{error}"
         if not isinstance(report, dict):
             return "report_invalid_shape"
-        if report.get("passed") is True:
+        if report.get("passed") is True or report.get("passed") == 1:
             return ""
         diff = report.get("expectation_diff")
         if isinstance(diff, list) and diff:

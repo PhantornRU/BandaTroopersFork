@@ -191,6 +191,11 @@
 	out["rooms"] = preview?["rooms"] || list()
 	out["routes"] = preview?["routes"] || list()
 	attach_building_diagnostics(out, preview)
+	if(islist(post_emit))
+		if(islist(post_emit["route_blocking_samples"]))
+			out["route_blocking_samples"] = post_emit["route_blocking_samples"].Copy()
+		if(islist(post_emit["door_cone_blocking_samples"]))
+			out["door_cone_blocking_samples"] = post_emit["door_cone_blocking_samples"].Copy()
 	out["artifacts"] = islist(export_result?["artifacts"]) ? export_result["artifacts"] : list()
 	mark_semantic_artifacts(out)
 	write_report(out)
@@ -250,6 +255,8 @@
 		"template_reject_report_count" = meta["template_reject_report_count"] || 0,
 		"template_cluster_reports" = islist(meta["template_cluster_reports"]) ? meta["template_cluster_reports"] : list(),
 		"template_cluster_report_count" = meta["template_cluster_report_count"] || 0,
+		"route_blocking_samples" = islist(meta["route_blocking_samples"]) ? meta["route_blocking_samples"] : list(),
+		"door_cone_blocking_samples" = islist(meta["door_cone_blocking_samples"]) ? meta["door_cone_blocking_samples"] : list(),
 		"placed_requirement_counts" = islist(meta["placed_requirement_counts"]) ? meta["placed_requirement_counts"] : list(),
 		"semantic_requirement_counts" = islist(meta["semantic_requirement_counts"]) ? meta["semantic_requirement_counts"] : list(),
 		"semantic_requirement_minimums" = islist(meta["semantic_requirement_minimums"]) ? meta["semantic_requirement_minimums"] : list(),
@@ -270,6 +277,11 @@
 			"floor_count",
 			"door_count",
 			"interior_object_count",
+			"room_count",
+			"target_room_count",
+			"room_count_divider_count",
+			"room_count_satisfied",
+			"room_count_gap",
 			"reserved_walk_blocked_count",
 			"semantic_credit_without_emitted_slots_count",
 			"mandatory_pattern_failure_count",
@@ -292,6 +304,9 @@
 		metrics["semantic_requirement_minimums"] = islist(meta["semantic_requirement_minimums"]) ? meta["semantic_requirement_minimums"] : list()
 		metrics["generated_turf_count"] = meta["footprint_count"] || 0
 		metrics["generated_object_count"] = (meta["door_count"] || 0) + (meta["window_count"] || 0) + (meta["interior_object_count"] || 0)
+		metrics["has_interior_objects"] = round(text2num("[meta["interior_object_count"]]") || 0) > 0
+		metrics["has_template_chunks"] = round(text2num("[meta["template_chunk_count"]]") || 0) > 0
+		metrics["has_room_count_dividers"] = round(text2num("[meta["room_count_divider_count"]]") || 0) > 0
 	if(islist(apply))
 		metrics["changed_turf_count"] = apply["changed_turf_count"] || 0
 		metrics["created_object_count"] = apply["created_object_count"] || 0

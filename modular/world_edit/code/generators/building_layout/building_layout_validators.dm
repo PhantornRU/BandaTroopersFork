@@ -3,6 +3,9 @@
 		return
 	if(ensure_required_zone_route_access(state))
 		refresh_building_semantic_anchors(state)
+	reserve_building_immediate_door_cones(state)
+	if(repair_building_fixture_conflicts(state))
+		repair_building_missing_major_clusters(state)
 	validate_building_layout_state(state)
 	if(!state.has_errors())
 		return
@@ -18,8 +21,11 @@
 			anchors_dirty = TRUE
 		if(anchors_dirty)
 			refresh_building_semantic_anchors(state)
+		reserve_building_immediate_door_cones(state)
 		if(repair_building_fixture_conflicts(state))
 			repaired_this_pass = TRUE
+			if(repair_building_missing_major_clusters(state))
+				repaired_this_pass = TRUE
 		if(repair_building_required_fixture_access(state))
 			repaired_this_pass = TRUE
 			anchors_dirty = TRUE
@@ -33,9 +39,43 @@
 			refresh_building_semantic_anchors(state)
 			if(ensure_required_zone_route_access(state))
 				refresh_building_semantic_anchors(state)
+			reserve_building_immediate_door_cones(state)
+			if(repair_building_fixture_conflicts(state))
+				repair_building_missing_major_clusters(state)
 		validate_building_layout_state(state)
 		if(!state.has_errors() || !repaired_this_pass)
 			break
+
+/datum/world_edit_generator/building_layout/proc/reserve_building_immediate_door_cones(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return FALSE
+	var/changed = FALSE
+	for(var/turf/door_turf as anything in state.geometry.door_turfs)
+		if(!istype(door_turf))
+			continue
+		var/door_dir = state.geometry.door_dirs[door_turf] || state.placement_dir
+		if(!(door_dir in GLOB.cardinals))
+			continue
+		for(var/cone_dir as anything in list(door_dir, turn(door_dir, 180)))
+			var/turf/cone_turf = get_step(door_turf, cone_dir)
+			if(!istype(cone_turf) || !state.geometry.floor_lookup[cone_turf])
+				continue
+			if(!state.geometry.reserved_lookup[cone_turf])
+				changed = TRUE
+			state.add_anchor("door_cone", cone_turf)
+			state.add_anchor("primary_lane", cone_turf)
+			state.add_reserved(cone_turf)
+	return changed
+
+/datum/world_edit_generator/building_layout/proc/building_turf_has_dense_fixture(datum/world_edit_building_layout_state/state, turf/target_turf)
+	if(!istype(state) || !istype(target_turf))
+		return FALSE
+	for(var/list/placement as anything in state.fixtures.object_placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior" || placement["turf"] != target_turf)
+			continue
+		if(building_object_path_is_dense(placement["obj_path"]))
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/repair_building_privacy_conflicts(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
@@ -96,7 +136,8 @@
 			continue
 		var/turf/target_turf = placement["turf"]
 		var/remove_fixture = FALSE
-		if(!state.geometry.floor_lookup[target_turf] || state.geometry.wall_lookup[target_turf] || state.geometry.door_dirs[target_turf] || state.geometry.reserved_lookup[target_turf])
+		var/object_is_dense = building_object_path_is_dense(placement["obj_path"])
+		if(!state.geometry.floor_lookup[target_turf] || state.geometry.wall_lookup[target_turf] || state.geometry.door_dirs[target_turf] || (object_is_dense && state.geometry.reserved_lookup[target_turf]))
 			remove_fixture = TRUE
 		if(!remove_fixture && placement["wall_mounted"])
 			var/wall_dir = text2num("[placement["wall_dir"]]")
@@ -182,6 +223,8 @@
 				var/turf/nearby_turf = get_step(source_turf, check_dir)
 				if(!reachable[nearby_turf] || !state.geometry.floor_lookup[nearby_turf] || state.geometry.wall_lookup[nearby_turf])
 					continue
+				if(!building_door_cone_is_clear_for_validation(state, source_turf, check_dir))
+					continue
 				var/score = 1000
 				if(istype(focus_turf))
 					score -= get_dist(source_turf, focus_turf)
@@ -199,6 +242,8 @@
 				continue
 			var/turf/far_turf = get_step(wall_turf, check_dir)
 			if(!reachable[far_turf] || !state.geometry.floor_lookup[far_turf] || state.geometry.wall_lookup[far_turf])
+				continue
+			if(!building_door_cone_is_clear_for_validation(state, wall_turf, check_dir))
 				continue
 			var/score = 500
 			if(istype(focus_turf))
@@ -233,15 +278,21 @@
 /datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
+	var/repaired = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
 			continue
 		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 		var/placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
-		if(placed_count >= get_effective_cluster_min_count(state, cluster_spec))
+		var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
+		if(placed_count >= effective_minimum)
 			continue
-		state.add_warning("Repair refused to create missing mandatory pattern '[requirement_id]': placed=[placed_count], min=[get_effective_cluster_min_count(state, cluster_spec)].")
-	return FALSE
+		if(place_building_cluster_spec(state, cluster_spec, TRUE))
+			repaired = TRUE
+			placed_count = get_building_semantic_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+		if(placed_count < effective_minimum)
+			state.add_warning("Repair could not restore missing mandatory pattern '[requirement_id]': placed=[placed_count], min=[effective_minimum].")
+	return repaired
 
 /datum/world_edit_generator/building_layout/proc/repair_building_empty_space(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
@@ -343,7 +394,7 @@
 			state.validation.door_buffer_conflict_count++
 			state.validation.door_cone_blocked_count++
 			state.add_error("Door at [GLOB.world_edit_helpers.turf_to_text(door_turf)] has no interior buffer.")
-		if(state.geometry.boundary_lookup[door_turf] && state.fixtures.fixture_lookup[inward_turf])
+		if(state.geometry.boundary_lookup[door_turf] && building_turf_has_dense_fixture(state, inward_turf))
 			state.validation.door_buffer_conflict_count++
 			state.validation.door_cone_blocked_count++
 			state.add_error("Door buffer at [GLOB.world_edit_helpers.turf_to_text(inward_turf)] is blocked by a fixture.")
@@ -433,7 +484,7 @@
 	for(var/turf/reserved_turf as anything in state.geometry.floor_turfs)
 		if(!state.geometry.reserved_lookup[reserved_turf])
 			continue
-		if(state.fixtures.fixture_lookup[reserved_turf])
+		if(building_turf_has_dense_fixture(state, reserved_turf))
 			state.validation.route_conflict_count++
 			state.validation.reserved_walk_blocked_count++
 			state.add_error("Primary lane at [GLOB.world_edit_helpers.turf_to_text(reserved_turf)] is blocked by a fixture.")
@@ -481,6 +532,24 @@
 		if(state.geometry.corridor_lookup[nearby_turf] || state.geometry.reserved_lookup[nearby_turf])
 			return TRUE
 	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_door_cone_is_clear_for_validation(datum/world_edit_building_layout_state/state, turf/door_turf, door_dir)
+	if(!istype(state) || !istype(door_turf) || !(door_dir in GLOB.cardinals))
+		return FALSE
+	for(var/cone_dir in list(door_dir, turn(door_dir, 180)))
+		var/turf/cone_turf = get_step(door_turf, cone_dir)
+		if(!istype(cone_turf) || !state.geometry.floor_lookup[cone_turf])
+			return FALSE
+		if(building_turf_has_dense_fixture(state, cone_turf))
+			return FALSE
+		if(cone_turf.density)
+			return FALSE
+		for(var/atom/movable/blocker as anything in cone_turf)
+			if(ismob(blocker))
+				continue
+			if(blocker.density)
+				return FALSE
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/building_turf_touches_circulation(datum/world_edit_building_layout_state/state, turf/target_turf)
 	if(!istype(state) || !istype(target_turf))
@@ -560,6 +629,8 @@
 					route_turf = check_turf
 					break
 			if(!istype(route_turf))
+				continue
+			if(!building_door_cone_is_clear_for_validation(state, door_turf, check_dir))
 				continue
 			state.geometry.wall_lookup -= door_turf
 			state.geometry.internal_wall_turfs -= door_turf
@@ -722,11 +793,11 @@
 	if(!istype(state))
 		return TRUE
 	for(var/turf/route_turf as anything in state.geometry.primary_route_turfs)
-		if(state.fixtures.fixture_lookup[route_turf] || state.geometry.wall_lookup[route_turf])
+		if(building_turf_has_dense_fixture(state, route_turf) || state.geometry.wall_lookup[route_turf])
 			return TRUE
 	if(length("[route_zone_id]"))
 		for(var/turf/zone_turf as anything in state.get_zone_turfs(route_zone_id))
-			if((state.geometry.reserved_lookup[zone_turf] || state.geometry.corridor_lookup[zone_turf]) && (state.fixtures.fixture_lookup[zone_turf] || state.geometry.wall_lookup[zone_turf]))
+			if((state.geometry.reserved_lookup[zone_turf] || state.geometry.corridor_lookup[zone_turf]) && (building_turf_has_dense_fixture(state, zone_turf) || state.geometry.wall_lookup[zone_turf]))
 				return TRUE
 	return FALSE
 
@@ -757,7 +828,7 @@
 			state.validation.route_conflict_count++
 			state.validation.reserved_walk_blocked_count++
 			state.add_error("Main route is blocked by a wall at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
-		if(state.fixtures.fixture_lookup[corridor_turf])
+		if(building_turf_has_dense_fixture(state, corridor_turf))
 			state.validation.route_conflict_count++
 			state.validation.reserved_walk_blocked_count++
 			state.add_error("Main route is blocked by a fixture at [GLOB.world_edit_helpers.turf_to_text(corridor_turf)].")
@@ -786,6 +857,7 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_geometry_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
+	var/list/protected_wall_lookup = build_building_wall_repair_protection_lookup(state)
 	for(var/turf/wall_turf as anything in state.geometry.wall_lookup)
 		if(!istype(wall_turf) || state.geometry.door_dirs[wall_turf])
 			continue
@@ -796,8 +868,16 @@
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.geometry.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "vertical"))
 					// Attempt repair: remove one of the double walls (prefer the one not on a zone boundary)
-					var/turf/remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
-					if(!state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
+					var/turf/remove_turf = null
+					var/can_remove_side = !state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf] && !protected_wall_lookup[side_turf]
+					var/can_remove_wall = !state.geometry.door_dirs[wall_turf] && !state.geometry.reserved_lookup[wall_turf] && !protected_wall_lookup[wall_turf]
+					if(can_remove_side && !can_remove_wall)
+						remove_turf = side_turf
+					else if(!can_remove_side && can_remove_wall)
+						remove_turf = wall_turf
+					else if(can_remove_side && can_remove_wall)
+						remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
+					if(istype(remove_turf) && !state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
 						state.geometry.wall_lookup -= remove_turf
 						state.geometry.internal_wall_turfs -= remove_turf
 						state.validation.double_wall_repair_count++
@@ -812,8 +892,16 @@
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.geometry.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "horizontal"))
 					// Attempt repair: remove one of the double walls
-					var/turf/remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
-					if(!state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
+					var/turf/remove_turf = null
+					var/can_remove_side = !state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf] && !protected_wall_lookup[side_turf]
+					var/can_remove_wall = !state.geometry.door_dirs[wall_turf] && !state.geometry.reserved_lookup[wall_turf] && !protected_wall_lookup[wall_turf]
+					if(can_remove_side && !can_remove_wall)
+						remove_turf = side_turf
+					else if(!can_remove_side && can_remove_wall)
+						remove_turf = wall_turf
+					else if(can_remove_side && can_remove_wall)
+						remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
+					if(istype(remove_turf) && !state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
 						state.geometry.wall_lookup -= remove_turf
 						state.geometry.internal_wall_turfs -= remove_turf
 						state.validation.double_wall_repair_count++
@@ -918,6 +1006,30 @@
 			state.validation.fixture_conflict_count++
 			state.validation.emit_state_mismatch_count++
 			state.add_error("Wall fixture has no emitted object placement.")
+
+/datum/world_edit_generator/building_layout/proc/build_building_wall_repair_protection_lookup(datum/world_edit_building_layout_state/state)
+	var/list/protected = list()
+	if(!istype(state))
+		return protected
+	for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.geometry.divider_plans)
+		if(!istype(divider_plan))
+			continue
+		for(var/turf/wall_turf as anything in divider_plan.wall_turfs)
+			if(istype(wall_turf))
+				protected[wall_turf] = TRUE
+	for(var/list/placement as anything in state.fixtures.object_placements)
+		if(!islist(placement) || !GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
+			continue
+		var/turf/target_turf = placement["turf"]
+		if(!istype(target_turf))
+			continue
+		var/wall_dir = text2num("[placement["wall_dir"]]") || 0
+		if(!(wall_dir in GLOB.cardinals))
+			continue
+		var/turf/wall_turf = get_step(target_turf, wall_dir)
+		if(istype(wall_turf))
+			protected[wall_turf] = TRUE
+	return protected
 
 /datum/world_edit_generator/building_layout/proc/build_building_reachable_floor_lookup(datum/world_edit_building_layout_state/state)
 	var/list/reachable = list()

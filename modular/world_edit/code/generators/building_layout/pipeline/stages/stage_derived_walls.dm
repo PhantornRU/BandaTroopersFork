@@ -7,6 +7,7 @@
 
 	// Step 1: Collect walkable turfs
 	var/list/walkable = list()
+	var/list/explicit_walls = list()
 	state.geometry.room_by_turf.Cut()
 	state.geometry.floor_turfs.Cut()
 	
@@ -25,11 +26,22 @@
 			walkable[T] = TRUE
 			state.append_unique_turf(state.geometry.floor_turfs, T)
 
+	if((round(text2num("[state.config["target_room_count"]]") || 0)) > 0)
+		for(var/turf/T as anything in state.geometry.door_dirs)
+			if(!istype(T) || !state.geometry.footprint_lookup[T])
+				continue
+			state.geometry.wall_lookup -= T
+			state.geometry.internal_wall_turfs -= T
+			if(!walkable[T])
+				walkable[T] = TRUE
+				state.append_unique_turf(state.geometry.floor_turfs, T)
+
 	// Step 2: Derive walls
 	var/list/walls = list()
 	for(var/turf/existing_wall_turf as anything in state.geometry.wall_lookup)
 		if(istype(existing_wall_turf))
 			walls[existing_wall_turf] = TRUE
+			explicit_walls[existing_wall_turf] = TRUE
 	
 	for(var/turf/W as anything in walkable)
 		for(var/dir in GLOB.alldirs)
@@ -48,6 +60,8 @@
 	// Step 3: Cleanup isolated walls (acne / spikes)
 	var/removed = 0
 	for(var/turf/wall_turf as anything in walls)
+		if(explicit_walls[wall_turf])
+			continue
 		var/wall_neighbors = 0
 		for(var/dir in GLOB.alldirs)
 			var/turf/n = get_step(wall_turf, dir)

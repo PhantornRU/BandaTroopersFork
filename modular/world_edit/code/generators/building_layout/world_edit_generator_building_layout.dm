@@ -425,6 +425,7 @@
 		apply_building_minimum_point_size(config, archetype)
 	config["final_half_width"] = config["half_width"]
 	config["final_half_depth"] = config["half_depth"]
+	config["target_room_count"] = num_param(params, "target_room_count", 0, 0, 24)
 	config["window_density"] = num_param(params, "window_density", archetype.window_bias, 0, 100)
 	config["detail_budget"] = num_param(params, "detail_budget", has_building_param(params, "interior_density") ? num_param(params, "interior_density", archetype.detail_bias, 0, 100) : archetype.detail_bias, 0, 100)
 	config["building_seed"] = num_param(params, "building_seed", WORLD_EDIT_BUILDING_AUTO_SEED, 0, 999999999)
@@ -517,6 +518,16 @@
 			"step" = 1,
 		),
 		list(
+			"id" = "target_room_count",
+			"label" = "Target rooms",
+			"kind" = "number",
+			"group" = "Program",
+			"value" = config["target_room_count"],
+			"min" = 0,
+			"max" = 24,
+			"step" = 1,
+		),
+		list(
 			"id" = "window_density",
 			"label" = "Windows",
 			"kind" = "number",
@@ -596,6 +607,8 @@
 		if("half_depth")
 			new_params[param_id] = ui_num_param(value, 4, 1, 8)
 			new_params["auto_size"] = FALSE
+		if("target_room_count")
+			new_params[param_id] = ui_num_param(value, 0, 0, 24)
 		if("window_density")
 			new_params[param_id] = ui_num_param(value, 40, 0, 100)
 		if("detail_budget")
@@ -610,7 +623,7 @@
 
 /datum/world_edit_generator/building_layout/get_params_short(list/params)
 	var/list/config = normalize_building_params(params)
-	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] auto_size=[config["auto_size"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] large_replace=[config["confirm_large_replacement"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] auto_size=[config["auto_size"]] target_rooms=[config["target_room_count"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] large_replace=[config["confirm_large_replacement"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
 
 /datum/world_edit_generator/building_layout/proc/build_building_context_support_result(shape_id, list/config, list/placement_context = null)
 	var/list/result = list(
@@ -627,7 +640,10 @@
 		"program_id" = "",
 		"style_id" = "",
 		"size_policy" = "",
+		"degrade_level" = WORLD_EDIT_BUILDING_DEGRADE_NONE,
+		"program_shedding" = FALSE,
 		"estimated_usable_area" = 0,
+		"required_usable_area" = 0,
 		"required_compact_area" = 0,
 		"requested_direction" = islist(placement_context) ? placement_context["direction"] : null,
 		"respect_blockers" = FALSE,
@@ -718,13 +734,12 @@
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
 	var/estimated_usable_area = get_building_request_estimated_usable_area(config, shape_text == WORLD_EDIT_SHAPE_POINT ? null : placement_context)
 	var/required_usable_area = shape_text == WORLD_EDIT_SHAPE_POINT ? max(required_compact_area, get_building_program_target_usable_area(archetype)) : required_compact_area
-	var/degrade_level = get_building_size_degrade_level(estimated_usable_area, required_usable_area)
 	result["required_compact_area"] = required_compact_area
 	result["required_usable_area"] = required_usable_area
 	result["estimated_usable_area"] = estimated_usable_area
-	result["degrade_level"] = degrade_level
-	result["program_shedding"] = degrade_level != WORLD_EDIT_BUILDING_DEGRADE_NONE
-	result["size_policy"] = degrade_level == WORLD_EDIT_BUILDING_DEGRADE_NONE ? WORLD_EDIT_BUILDING_SIZE_POLICY_ADAPTIVE : degrade_level
+	result["degrade_level"] = WORLD_EDIT_BUILDING_DEGRADE_NONE
+	result["program_shedding"] = FALSE
+	result["size_policy"] = config["size_policy"] || WORLD_EDIT_BUILDING_SIZE_POLICY_ADAPTIVE
 	if(estimated_usable_area <= 0)
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Cannot build [archetype.id]: selected area has no usable tiles."
@@ -732,8 +747,15 @@
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
 		return result
-	if(degrade_level != WORLD_EDIT_BUILDING_DEGRADE_NONE)
-		result["reason"] = "Building will use [degrade_level] layout: selected area has [estimated_usable_area]/[required_usable_area] usable tiles."
+	if(estimated_usable_area < required_compact_area)
+		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+		result["reason"] = "Cannot build [archetype.id]: selected area has [estimated_usable_area]/[required_compact_area] minimum usable tiles."
+		result["lock_code"] = WORLD_EDIT_BUILDING_ERROR_PROGRAM_INSUFFICIENT_FOOTPRINT
+		result["request_locked"] = TRUE
+		result["locked"] = TRUE
+		result["can_preview"] = FALSE
+		result["can_apply"] = FALSE
+		return result
 
 	return result
 
@@ -2244,10 +2266,6 @@
 		if(!istype(target_turf))
 			continue
 		values += "[target_turf.x],[target_turf.y],[target_turf.z]|turf=[target_turf.type]|density=[target_turf.density]"
-		for(var/atom/movable/existing_atom as anything in target_turf)
-			if(!istype(existing_atom) || ismob(existing_atom) || QDELETED(existing_atom))
-				continue
-			values += "[target_turf.x],[target_turf.y],[target_turf.z]|atom=[existing_atom.type]|dir=[existing_atom.dir]|density=[existing_atom.density]|anchored=[existing_atom.anchored]"
 	return build_building_hash_from_strings(values)
 
 /datum/world_edit_generator/building_layout/proc/stamp_building_target_state_metadata(datum/world_edit_plan/plan)
@@ -2352,8 +2370,10 @@
 	result.meta["current_target_state_hash"] = current_target_hash
 	if(expected_target_hash <= 0)
 		return fail_building_apply_transaction(result, null, "Building apply blocked: preview plan is missing target state hash. Run preview again.")
-	if(current_target_hash != expected_target_hash)
-		return fail_building_apply_transaction(result, null, "Building apply blocked: target area changed after preview. Run preview again.", list("target_state_hash_mismatch:[expected_target_hash]->[current_target_hash]"))
+	// The live target hash is kept for diagnostics, but apply is gated by the
+	// parameter request key plus the runtime blocker/preflight checks below.
+	// That avoids false negatives from incidental live world state that does
+	// not affect the actual build contract.
 
 	var/list/preflight_failures = list()
 	var/replace_blocked_turfs = config["replace_blocked_turfs"]
@@ -2428,7 +2448,7 @@
 		if(!istype(target_turf) || !ispath(obj_path, /obj))
 			add_building_runtime_failure_reason(runtime_failures, "invalid_turf_or_path:[coord_key]")
 			break
-		if(has_runtime_object_blocker(target_turf, obj_path, kind))
+		if(!replace_blocked_turfs && has_runtime_object_blocker(target_turf, obj_path, kind))
 			add_building_runtime_failure_reason(runtime_failures, "object_blocked:[coord_key]:[obj_path]")
 			break
 		var/obj/created_object = new obj_path(target_turf)

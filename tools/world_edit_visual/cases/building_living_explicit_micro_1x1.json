@@ -26,12 +26,9 @@
     "replace_blocked_turfs": true
   },
   "expect": {
-    "status": "supported",
-    "program_shedding": true,
-    "micro_layout": true,
-    "post_emit_validation_error_count": 0,
-    "semantic_credit_without_emitted_slots_count": 0,
-    "reserved_walk_blocked_count": 0
+    "status": "locked",
+    "reason_code": "program.insufficient_footprint",
+    "canvas_changed": false
   },
   "render": {
     "semantic_png": true,

@@ -60,6 +60,7 @@
 #define WORLD_EDIT_BUILDING_ERROR_FOOTPRINT_DISCONNECTED "footprint.disconnected"
 #define WORLD_EDIT_BUILDING_ERROR_FOOTPRINT_NO_ENTRY_EDGE "footprint.no_entry_edge"
 #define WORLD_EDIT_BUILDING_ERROR_PROGRAM_GRAPH_INVALID "program.graph_invalid"
+#define WORLD_EDIT_BUILDING_ERROR_PROGRAM_INSUFFICIENT_FOOTPRINT "program.insufficient_footprint"
 #define WORLD_EDIT_BUILDING_ERROR_NO_SOLUTION "solver.no_solution"
 #define WORLD_EDIT_BUILDING_ERROR_HARD_VALIDATION_FAILED "validation.hard_error"
 #define WORLD_EDIT_BUILDING_ERROR_CATALOG_INVALID "catalog.invalid"

@@ -142,6 +142,7 @@
 	var/list/opening_turfs = list()
 	var/list/opening_dirs = list()
 	var/list/inner_turfs = list()
+	var/score = 0
 
 /datum/world_edit_building_divider_plan/New(_id, _source_zone_id, _inner_zone_id)
 	. = ..()

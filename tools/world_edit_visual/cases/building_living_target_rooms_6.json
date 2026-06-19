@@ -1,16 +1,16 @@
 {
-  "id": "building_living_explicit_compact_2x2",
+  "id": "building_living_target_rooms_6",
   "generator": "building_layout",
-  "seed": 2001,
+  "seed": 91,
   "canvas": {
-    "preset": "blank_64",
-    "width": 64,
-    "height": 64
+    "preset": "blank_96",
+    "width": 96,
+    "height": 96
   },
   "shape": {
     "id": "point",
     "anchors": [
-      { "x": 32, "y": 32 }
+      { "x": 48, "y": 48 }
     ]
   },
   "config": {
@@ -18,17 +18,19 @@
     "faction_preset": "colony",
     "direction": "north",
     "auto_size": false,
-    "half_width": 2,
-    "half_depth": 2,
-    "detail_budget": 0,
-    "window_density": 0,
+    "half_width": 8,
+    "half_depth": 8,
+    "target_room_count": 6,
+    "detail_budget": 75,
     "respect_blockers": false,
     "replace_blocked_turfs": true
   },
   "expect": {
-    "status": "locked",
-    "reason_code": "program.insufficient_footprint",
-    "canvas_changed": false
+    "status": "supported",
+    "direction_honored": true,
+    "post_emit_validation_error_count": 0,
+    "semantic_credit_without_emitted_slots_count": 0,
+    "reserved_walk_blocked_count": 0
   },
   "render": {
     "semantic_png": true,

@@ -30,6 +30,10 @@
 	var/region_claim_count = 0
 	var/rectangular_region_candidate_count = 0
 	var/nested_room_count = 0
+	var/requested_room_count = 0
+	var/room_count_divider_count = 0
+	var/room_fill_attempt_count = 0
+	var/room_fill_fixture_count = 0
 	var/microvariation_count = 0
 	var/degraded_region_fallback_count = 0
 	var/semantic_slot_capacity_count = 0

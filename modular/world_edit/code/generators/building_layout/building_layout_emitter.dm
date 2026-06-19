@@ -159,11 +159,11 @@
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.cluster_specs)
 		if(!istype(cluster_spec))
 			continue
-		if(length("[requirement_id]") && get_building_cluster_requirement_id(cluster_spec) == "[requirement_id]")
-			return cluster_spec
 		if(length("[cluster_id]") && cluster_spec.id == "[cluster_id]")
 			return cluster_spec
 		if(length("[signature_id]") && cluster_spec.signature_id == "[signature_id]")
+			return cluster_spec
+		if(length("[requirement_id]") && get_building_cluster_requirement_id(cluster_spec) == "[requirement_id]")
 			return cluster_spec
 	return null
 
@@ -188,6 +188,12 @@
 		return
 	var/report_key = "[key]"
 	report[report_key] = round(text2num("[report[report_key]]") || 0) + max(round(text2num("[amount]") || 0), 0)
+
+/datum/world_edit_generator/building_layout/proc/building_object_path_is_dense(obj_path)
+	if(!ispath(obj_path, /obj))
+		return FALSE
+	var/atom/spawn_atom = obj_path
+	return initial(spawn_atom.density) ? TRUE : FALSE
 
 /datum/world_edit_generator/building_layout/proc/build_building_emit_object_key(kind, turf/target_turf, obj_path)
 	if(!istype(target_turf))
@@ -249,6 +255,8 @@
 	var/list/emitted_dense_lookup = list()
 	var/list/emitted_object_count_lookup = list()
 	var/list/emitted_requirement_counts = list()
+	var/list/route_blocking_samples = list()
+	var/list/door_cone_blocking_samples = list()
 	for(var/list/placement as anything in plan.placements)
 		if(!islist(placement))
 			continue
@@ -276,9 +284,25 @@
 				if(kind in list("interior", "microvariation"))
 					object_emit_count++
 				if(kind == "interior")
-					emitted_dense_lookup[target_turf] = TRUE
-					if(state.geometry.reserved_lookup[target_turf])
+					var/object_is_dense = building_object_path_is_dense(placement["obj_path"])
+					if(object_is_dense)
+						emitted_dense_lookup[target_turf] = TRUE
+					if(object_is_dense && state.geometry.reserved_lookup[target_turf])
 						increment_building_post_emit_report(report, "route_blocking_count")
+						if(length(route_blocking_samples) < 12)
+							route_blocking_samples += list(list(
+								"kind" = kind,
+								"x" = istype(target_turf) ? target_turf.x : null,
+								"y" = istype(target_turf) ? target_turf.y : null,
+								"z" = istype(target_turf) ? target_turf.z : null,
+								"obj_path" = placement["obj_path"],
+								"slot" = placement["slot"],
+								"category" = placement["category"],
+								"cluster_id" = placement["cluster_id"],
+								"requirement_id" = placement["requirement_id"],
+								"wall_mounted" = GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]),
+								"dir" = placement["dir"],
+							))
 					var/requirement_credit = round(text2num("[placement["requirement_count_credit"]]") || 0)
 					var/requirement_id = "[placement["requirement_id"] || ""]"
 					if(requirement_credit > 0 && length(requirement_id))
@@ -304,9 +328,27 @@
 							var/alias_counter = "[alias_spec["acceptance_counter"] || "[alias_credit]_count"]"
 							add_building_emitted_requirement_count(emitted_requirement_counts, alias_credit, requirement_credit)
 							add_building_emitted_requirement_count(emitted_requirement_counts, alias_counter, requirement_credit)
-				else if(kind == "microvariation" && state.geometry.reserved_lookup[target_turf])
-					increment_building_post_emit_report(report, "route_blocking_count")
-					increment_building_post_emit_report(report, "microvariation_route_blocking_count")
+				else if(kind == "microvariation")
+					var/microvariation_is_dense = building_object_path_is_dense(placement["obj_path"])
+					if(microvariation_is_dense)
+						emitted_dense_lookup[target_turf] = TRUE
+					if(microvariation_is_dense && state.geometry.reserved_lookup[target_turf])
+						increment_building_post_emit_report(report, "route_blocking_count")
+						increment_building_post_emit_report(report, "microvariation_route_blocking_count")
+						if(length(route_blocking_samples) < 12)
+							route_blocking_samples += list(list(
+								"kind" = kind,
+								"x" = istype(target_turf) ? target_turf.x : null,
+								"y" = istype(target_turf) ? target_turf.y : null,
+								"z" = istype(target_turf) ? target_turf.z : null,
+								"obj_path" = placement["obj_path"],
+								"slot" = placement["slot"],
+								"category" = placement["category"],
+								"cluster_id" = placement["cluster_id"],
+								"requirement_id" = placement["requirement_id"],
+								"wall_mounted" = GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]),
+								"dir" = placement["dir"],
+							))
 
 	add_building_route_pattern_emitted_credits(state, emitted_requirement_counts)
 
@@ -352,8 +394,24 @@
 	for(var/turf/route_turf as anything in state.geometry.primary_route_turfs)
 		if(!emitted_floor_lookup[route_turf] && !emitted_door_lookup[route_turf])
 			increment_building_post_emit_report(report, "route_blocking_count")
+			if(length(route_blocking_samples) < 12)
+				route_blocking_samples += list(list(
+					"kind" = "route",
+					"reason" = "missing_floor_or_door",
+					"x" = istype(route_turf) ? route_turf.x : null,
+					"y" = istype(route_turf) ? route_turf.y : null,
+					"z" = istype(route_turf) ? route_turf.z : null,
+				))
 		if(emitted_wall_lookup[route_turf] || emitted_dense_lookup[route_turf])
 			increment_building_post_emit_report(report, "route_blocking_count")
+			if(length(route_blocking_samples) < 12)
+				route_blocking_samples += list(list(
+					"kind" = "route",
+					"reason" = "wall_or_dense",
+					"x" = istype(route_turf) ? route_turf.x : null,
+					"y" = istype(route_turf) ? route_turf.y : null,
+					"z" = istype(route_turf) ? route_turf.z : null,
+				))
 		if(!post_emit_reachable_lookup[route_turf])
 			increment_building_post_emit_report(report, "route_unreachable_count")
 	for(var/turf/door_turf as anything in state.geometry.door_turfs)
@@ -365,9 +423,27 @@
 			if(!emitted_floor_lookup[cone_turf] && !emitted_door_lookup[cone_turf])
 				increment_building_post_emit_report(report, "route_blocking_count")
 				increment_building_post_emit_report(report, "door_cone_blocking_count")
+				if(length(door_cone_blocking_samples) < 12)
+					door_cone_blocking_samples += list(list(
+						"x" = istype(cone_turf) ? cone_turf.x : null,
+						"y" = istype(cone_turf) ? cone_turf.y : null,
+						"z" = istype(cone_turf) ? cone_turf.z : null,
+						"door_turf" = istype(door_turf) ? "[door_turf.x],[door_turf.y],[door_turf.z]" : null,
+						"door_dir" = door_dir,
+						"cone_dir" = cone_dir,
+					))
 			if(emitted_wall_lookup[cone_turf] || emitted_dense_lookup[cone_turf])
 				increment_building_post_emit_report(report, "route_blocking_count")
 				increment_building_post_emit_report(report, "door_cone_blocking_count")
+				if(length(door_cone_blocking_samples) < 12)
+					door_cone_blocking_samples += list(list(
+						"x" = istype(cone_turf) ? cone_turf.x : null,
+						"y" = istype(cone_turf) ? cone_turf.y : null,
+						"z" = istype(cone_turf) ? cone_turf.z : null,
+						"door_turf" = istype(door_turf) ? "[door_turf.x],[door_turf.y],[door_turf.z]" : null,
+						"door_dir" = door_dir,
+						"cone_dir" = cone_dir,
+					))
 
 	for(var/requirement_id as anything in state.fixtures.semantic_requirement_counts)
 		var/planned_count = round(text2num("[state.fixtures.semantic_requirement_counts[requirement_id]]") || 0)
@@ -378,6 +454,10 @@
 	report["state_mismatch_count"] = round(text2num("[report["wall_mismatch_count"]]") || 0) + round(text2num("[report["door_mismatch_count"]]") || 0) + round(text2num("[report["object_mismatch_count"]]") || 0)
 	var/error_count = round(text2num("[report["missing_path_count"]]") || 0) + round(text2num("[report["failed_object_count"]]") || 0) + round(text2num("[report["state_mismatch_count"]]") || 0) + round(text2num("[report["route_blocking_count"]]") || 0) + round(text2num("[report["route_unreachable_count"]]") || 0) + round(text2num("[report["semantic_credit_without_emitted_slots_count"]]") || 0)
 	report["error_count"] = error_count
+	if(length(route_blocking_samples))
+		report["route_blocking_samples"] = route_blocking_samples
+	if(length(door_cone_blocking_samples))
+		report["door_cone_blocking_samples"] = door_cone_blocking_samples
 	if(error_count > 0)
 		report["status"] = "failed"
 		state.validation.emit_missing_path_count = round(text2num("[report["missing_path_count"]]") || 0)
@@ -498,6 +578,8 @@
 		"footprint_source" = state.config["footprint_source"],
 		"usable_area" = state.fixtures.usable_fixture_area,
 		"room_count" = length(state.geometry.solved_rooms),
+		"target_room_count" = state.config["target_room_count"] || 0,
+		"room_count_divider_count" = state.validation.room_count_divider_count,
 		"corridor_turf_count" = length(state.geometry.corridor_turfs),
 		"semantic_requirement_minimums" = state.fixtures.semantic_requirement_minimums.Copy(),
 		"semantic_requirement_counts" = state.fixtures.semantic_requirement_counts.Copy(),
@@ -512,6 +594,12 @@
 	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.validation.region_claim_reports.Copy() : list()
 	plan.metadata["rectangular_region_candidate_count"] = state.validation.rectangular_region_candidate_count
 	plan.metadata["nested_room_count"] = state.validation.nested_room_count
+	plan.metadata["target_room_count"] = state.config["target_room_count"] || state.validation.requested_room_count
+	plan.metadata["room_count_divider_count"] = state.validation.room_count_divider_count
+	plan.metadata["room_count_satisfied"] = !(round(text2num("[state.config["target_room_count"]]") || 0)) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0)
+	plan.metadata["room_count_gap"] = max(0, round(text2num("[state.config["target_room_count"]]") || 0) - length(state.geometry.solved_rooms))
+	plan.metadata["room_fill_attempt_count"] = state.validation.room_fill_attempt_count
+	plan.metadata["room_fill_fixture_count"] = state.validation.room_fill_fixture_count
 	plan.metadata["template_chunk_count"] = state.fixtures.template_chunk_count
 	plan.metadata["template_chunk_cell_count"] = state.fixtures.template_chunk_cell_count
 	plan.metadata["infrastructure_count"] = state.fixtures.infrastructure_count
@@ -730,6 +818,10 @@
 	plan.metadata["layout_macro_count"] = length(state.fixtures.layout_macros)
 	plan.metadata["semantic_region_count"] = length(state.geometry.solved_regions)
 	plan.metadata["room_count"] = length(state.geometry.solved_rooms)
+	plan.metadata["target_room_count"] = state.config["target_room_count"] || state.validation.requested_room_count
+	plan.metadata["room_count_divider_count"] = state.validation.room_count_divider_count
+	plan.metadata["room_count_satisfied"] = !(round(text2num("[state.config["target_room_count"]]") || 0)) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0)
+	plan.metadata["room_count_gap"] = max(0, round(text2num("[state.config["target_room_count"]]") || 0) - length(state.geometry.solved_rooms))
 	plan.metadata["corridor_turf_count"] = length(state.geometry.corridor_turfs)
 	plan.metadata["primary_route_count"] = length(state.geometry.primary_route_turfs)
 	plan.metadata["internal_wall_count"] = length(state.geometry.internal_wall_turfs)

@@ -350,6 +350,48 @@
 	TEST_ASSERT_EQUAL(plan.metadata["raw_category_credit_count"] || 0, 0, "Full layout used raw category semantic credit.")
 	TEST_ASSERT_EQUAL(plan.metadata["semantic_credit_without_emitted_slots_count"] || 0, 0, "Full layout credited semantic slots without emitted objects.")
 
+/datum/unit_test/world_edit_building_layout/large_layout_uses_room_purpose_fill/Run()
+	var/datum/world_edit_plan/plan = build_living_point_plan(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"auto_size" = FALSE,
+		"half_width" = 8,
+		"half_depth" = 8,
+		"building_seed" = 73,
+		"detail_budget" = 85,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	))
+	TEST_ASSERT_NOTNULL(plan, "Large living layout plan was not created.")
+	TEST_ASSERT(!plan.metadata["error"], "Large living layout failed: [plan.metadata["error"]]")
+	TEST_ASSERT(round(text2num("[plan.metadata["room_fill_fixture_count"]]") || 0) > 0, "Large layout did not place any room-purpose fill fixtures.")
+	TEST_ASSERT_EQUAL(plan.metadata["semantic_credit_without_emitted_slots_count"] || 0, 0, "Large layout credited semantic slots without emitted objects.")
+
+/datum/unit_test/world_edit_building_layout/target_room_count_uses_physical_dividers/Run()
+	var/list/base_params = list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"auto_size" = FALSE,
+		"half_width" = 8,
+		"half_depth" = 8,
+		"building_seed" = 91,
+		"detail_budget" = 75,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	)
+	var/datum/world_edit_plan/base_plan = build_living_point_plan(base_params.Copy())
+	TEST_ASSERT_NOTNULL(base_plan, "Base room-count layout plan was not created.")
+	TEST_ASSERT(!base_plan.metadata["error"], "Base room-count layout failed: [base_plan.metadata["error"]]")
+	var/base_room_count = round(text2num("[base_plan.metadata["room_count"]]") || 0)
+	var/list/target_params = base_params.Copy()
+	target_params["target_room_count"] = max(base_room_count + 1, 6)
+	var/datum/world_edit_plan/target_plan = build_living_point_plan(target_params)
+	TEST_ASSERT_NOTNULL(target_plan, "Target room-count layout plan was not created.")
+	TEST_ASSERT(!target_plan.metadata["error"], "Target room-count layout failed: [target_plan.metadata["error"]]")
+	TEST_ASSERT(round(text2num("[target_plan.metadata["room_count_divider_count"]]") || 0) > 0, "Target room-count layout did not create physical room-count dividers.")
+	TEST_ASSERT(round(text2num("[target_plan.metadata["room_count"]]") || 0) > base_room_count, "Target room-count layout did not increase solved room count.")
+	TEST_ASSERT(round(text2num("[target_plan.metadata["internal_wall_count"]]") || 0) > round(text2num("[base_plan.metadata["internal_wall_count"]]") || 0), "Target room-count layout did not add internal wall geometry.")
+
 /datum/unit_test/world_edit_building_layout/living_sanitation_connected/Run()
 	var/datum/world_edit_building_layout_state/state = build_living_point_state(list(
 		"archetype_id" = "living",
@@ -401,16 +443,18 @@
 		"respect_blockers" = FALSE,
 	))
 	TEST_ASSERT_NOTNULL(plan, "Small explicit building plan was not created.")
-	TEST_ASSERT(!plan.metadata["error"], "Small explicit building failed: [plan.metadata["error"]]")
+	TEST_ASSERT(plan.metadata["error"], "Small explicit building should be rejected instead of hidden compact/micro generation.")
 	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["half_width"]]") || 0), 2, "Explicit half_width changed.")
 	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["half_depth"]]") || 0), 2, "Explicit half_depth changed.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["size_auto_adjusted"]), "Explicit size was auto-adjusted.")
-	TEST_ASSERT("[plan.metadata["size_degrade_level"]]" in list("compact", "micro"), "Small explicit building did not report compact/micro degrade.")
-	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Small explicit building did not enable program shedding.")
-	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["compact_program"]), "Small explicit building did not build a compact semantic program.")
-	TEST_ASSERT(length(plan.placements) > 0, "Small explicit building emitted no placements.")
+	TEST_ASSERT_EQUAL(plan.metadata["current_request_support_status"], "UNSUPPORTED_WITH_CLEAR_ERROR", "Small explicit building returned the wrong support status.")
+	var/list/support_report = plan.metadata["support_status_report"]
+	TEST_ASSERT(islist(support_report), "Small explicit building did not include support diagnostics.")
+	TEST_ASSERT_EQUAL(support_report["lock_code"], "program.insufficient_footprint", "Small explicit building returned the wrong lock code.")
+	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Small explicit building enabled hidden program shedding.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 0, "Small explicit building emitted placements despite rejection.")
 
-/datum/unit_test/world_edit_building_layout/micro_size_emits_plan/Run()
+/datum/unit_test/world_edit_building_layout/micro_size_locked/Run()
 	var/datum/world_edit_plan/plan = build_living_point_plan(list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
@@ -423,11 +467,14 @@
 		"respect_blockers" = FALSE,
 	))
 	TEST_ASSERT_NOTNULL(plan, "Micro building plan was not created.")
-	TEST_ASSERT(!plan.metadata["error"], "Micro building failed: [plan.metadata["error"]]")
-	TEST_ASSERT(length(plan.placements) > 0, "Micro building emitted no placements.")
-	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["micro_layout"]) || "[plan.metadata["size_degrade_level"]]" == "micro", "Micro metadata was not set.")
-	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Micro building did not enable program shedding.")
-	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["compact_program"]), "Micro building did not build a compact semantic program.")
+	TEST_ASSERT(plan.metadata["error"], "Micro building should be rejected instead of hidden micro generation.")
+	TEST_ASSERT_EQUAL(plan.metadata["current_request_support_status"], "UNSUPPORTED_WITH_CLEAR_ERROR", "Micro building returned the wrong support status.")
+	var/list/support_report = plan.metadata["support_status_report"]
+	TEST_ASSERT(islist(support_report), "Micro building did not include support diagnostics.")
+	TEST_ASSERT_EQUAL(support_report["lock_code"], "program.insufficient_footprint", "Micro building returned the wrong lock code.")
+	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Micro building enabled hidden program shedding.")
+	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["micro_layout"]), "Micro building used hidden micro layout.")
+	TEST_ASSERT_EQUAL(length(plan.placements), 0, "Micro building emitted placements despite rejection.")
 
 /datum/unit_test/world_edit_building_layout/request_key_shape_params/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
