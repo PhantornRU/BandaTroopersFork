@@ -358,6 +358,8 @@
 		if(istype(human.loc, /obj/structure/machinery/cryopod))
 			human.spawn_cryopod = human.loc
 
+		GLOB.round_cinematics?.on_human_assigned_cryo(human, human.spawn_cryopod, "roundstart_job")
+
 		human.sec_hud_set_ID()
 		human.hud_set_squad()
 

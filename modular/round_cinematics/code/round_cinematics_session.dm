@@ -169,6 +169,10 @@
 	clear_fullscreens()
 	clear_static_chrome()
 	restore_hud()
+	// Ensure mob state is restored
+	if(isliving(owner))
+		var/mob/living/L = owner
+		L.sleeping = max(0, L.sleeping)
 	controller?.on_session_finished(src)
 
 /datum/round_cinematics_session/Destroy()

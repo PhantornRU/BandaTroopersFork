@@ -1,3 +1,20 @@
+/datum/round_cinematics_outcome_input
+	/// The game mode datum for context
+	var/datum/game_mode/mode
+	/// Explicit result string (e.g. from mode.round_finished)
+	var/explicit_result
+	/// Admin override outcome id (if set)
+	var/admin_override
+	/// Source description for logging
+	var/source = "unknown"
+
+/datum/round_cinematics_outcome_input/New(datum/game_mode/mode, explicit_result = null, admin_override = null, source = "unknown")
+	..()
+	src.mode = mode
+	src.explicit_result = explicit_result
+	src.admin_override = admin_override
+	src.source = source
+
 /datum/round_cinematics_outcome
 	var/id = ROUND_CINEMATICS_OUTCOME_AUTO
 	var/title = "AUTO"
@@ -83,6 +100,27 @@
 /proc/resolve_round_outcome(datum/game_mode/mode)
 	if(!mode)
 		return new /datum/round_cinematics_outcome(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE, FALSE)
+
+	// Huntergames: check mode.finished (1 = victory, 2 = defeat)
+	if(istype(mode, /datum/game_mode/huntergames))
+		var/datum/game_mode/huntergames/hg = mode
+		if(hg.finished == 1)
+			return round_cinematics_outcome_from_mode_result(1)
+		if(hg.finished == 2)
+			return round_cinematics_outcome_from_mode_result(2)
+		// fall through to round_finished
+
+	// Whiskey Outpost: check round_statistics.round_result
+	if(istype(mode, /datum/game_mode/whiskey_outpost))
+		if(GLOB.round_statistics?.round_result)
+			var/wo_result = GLOB.round_statistics.round_result
+			log_debug("round_cinematics: WO round_result=[wo_result]")
+			if(wo_result == 1)
+				return round_cinematics_outcome_from_mode_result(1)
+			if(wo_result == 2)
+				return round_cinematics_outcome_from_mode_result(2)
+		// fall through to round_finished
+
 	if(!mode.round_finished)
 		var/datum/round_cinematics_outcome/outcome = new(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE, FALSE)
 		outcome.title = "ROUND NOT FINISHED"

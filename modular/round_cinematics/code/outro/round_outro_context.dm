@@ -6,9 +6,10 @@
 	var/map_name = "НЕИЗВЕСТНАЯ ЛОКАЦИЯ"
 	var/operation_name = "НЕИЗВЕСТНАЯ ОПЕРАЦИЯ"
 	var/list/summary_lines = list()
-	var/list/participant_entries = list()
-	var/list/personnel_entries = list()
-	var/list/destruction_entries = list()
+	/// Typed records: list of /datum/round_cinematics_participant_record
+	var/list/participant_records = list()
+	/// Typed statistics: /datum/round_cinematics_statistics
+	var/datum/round_cinematics_statistics/statistics = null
 	var/list/report_pages = list()
 
 /datum/round_cinematics_outro_context/New(datum/game_mode/mode, datum/round_cinematics_outcome/outcome, preview = FALSE, client/preview_client = null)
@@ -31,54 +32,59 @@
 	)
 
 	build_participants()
+	build_statistics()
 	build_pages()
 	return src
 
 /datum/round_cinematics_outro_context/proc/build_participants()
-	participant_entries = list()
-	personnel_entries = list()
-	destruction_entries = list()
+	participant_records = list()
 	for(var/mob/living/carbon/human/player as anything in GLOB.human_mob_list)
 		if(!player || (!player.client && !player.mind))
 			continue
 
-		var/status = round_cinematics_mob_status_label(player)
-		var/role = round_cinematics_safe_text(round_cinematics_human_role(player), "НЕИЗВЕСТНО")
+		var/datum/round_cinematics_participant_record/record = new
+		record.name = round_cinematics_safe_text(player.real_name, "НЕИЗВЕСТНО")
+		record.rank = round_cinematics_human_rank(player)
+		record.role = round_cinematics_safe_text(round_cinematics_human_role(player), "НЕИЗВЕСТНО")
+		record.squad = round_cinematics_human_squad(player)
+		record.faction = round_cinematics_safe_text(player.faction, "UNKNOWN")
+		record.status = round_cinematics_mob_status_label(player)
+		record.death_reason = (player.stat == DEAD) ? round_cinematics_human_death_reason(player) : "НЕ ТРЕБУЕТСЯ"
+		record.has_client = !!player.client
+		record.has_mind = !!player.mind
+		record.is_player = !!(player.client && player.mind)
 
-		var/reason = "НЕ ТРЕБУЕТСЯ"
-		if(player.stat == DEAD)
-			reason = round_cinematics_human_death_reason(player)
+		participant_records += record
 
-		var/list/entry_lines = list(
-			"<b>[html_encode(round_cinematics_safe_text(player.real_name, "НЕИЗВЕСТНО"))]</b>",
-			"РОЛЬ: [html_encode(role)]",
-			"СОСТОЯНИЕ: [html_encode(status)]",
-			"ПРИЧИНА: [html_encode(reason)]"
-		)
-		var/entry_text = entry_lines.Join("<br>")
-		participant_entries += list(entry_text)
-
-		// Personnel: real players with client and mind (starting forces)
-		if(player.client && player.mind)
-			personnel_entries += list(entry_text)
-		else
-			// Destruction: NPCs, mindless carbons, late spawns, etc.
-			destruction_entries += list(entry_text)
+/datum/round_cinematics_outro_context/proc/build_statistics()
+	statistics = new /datum/round_cinematics_statistics
+	statistics.build_from_records(participant_records)
 
 /datum/round_cinematics_outro_context/proc/build_pages()
 	report_pages = list()
 	report_pages += list(round_cinematics_outro_render_summary_page(src))
 	report_pages += list(round_cinematics_outro_render_status_page(src))
 
+	// Split records into personnel and destruction
+	var/list/personnel_records = list()
+	var/list/destruction_records = list()
+	for(var/datum/round_cinematics_participant_record/record as anything in participant_records)
+		if(!istype(record))
+			continue
+		if(record.is_player)
+			personnel_records += record
+		else
+			destruction_records += record
+
 	// Personnel section
-	var/list/paginated_personnel = round_cinematics_paginate(personnel_entries, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
+	var/list/paginated_personnel = round_cinematics_paginate(personnel_records, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
 	var/personnel_page_count = length(paginated_personnel)
 	for(var/page_index = 1, page_index <= personnel_page_count, page_index++)
 		var/list/page_entries = paginated_personnel[page_index]
 		report_pages += list(round_cinematics_outro_render_personnel_page(page_entries, page_index, personnel_page_count))
 
 	// Destruction section
-	var/list/paginated_destruction = round_cinematics_paginate(destruction_entries, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
+	var/list/paginated_destruction = round_cinematics_paginate(destruction_records, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
 	var/destruction_page_count = length(paginated_destruction)
 	for(var/page_index = 1, page_index <= destruction_page_count, page_index++)
 		var/list/page_entries = paginated_destruction[page_index]

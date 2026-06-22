@@ -1,19 +1,46 @@
 /datum/round_cinematics_sequence/cryo_intro
+	/// Visual profile for colors and styling
+	var/datum/round_cinematics_visual_profile/profile
+
+/datum/round_cinematics_sequence/cryo_intro/execute(datum/round_cinematics_session/session)
+	if(!session || session.cleaned_up)
+		return
+
+	// Boot phase: power-on + flicker effects
+	session.effect_power_on(1 SECONDS)
+	session.effect_flicker(2, 0.5 SECONDS)
+
+	for(var/datum/round_cinematics_phase/phase as anything in phases)
+		if(session.cleaned_up)
+			break
+		phase.play(session)
+
+	// Finish: fade from black
+	session.effect_power_on(0.5 SECONDS)
 
 /datum/round_cinematics_sequence/cryo_intro/get_header_html()
-	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:10pt; color:#33FF33;'>"
+	var/color = profile?.header_color || "#33FF33"
+	var/logo = profile?.logo_text || "BW"
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[color];'>"
 	var/style_close = "</span>"
-	return "[style_open]┌ BW &#9608; CRYOGENIC REVIVAL SYSTEM v2.1.4 ┐<br>SECURE CHANNEL &#9608; ENCRYPTED[style_close]"
+	return "[style_open]┌ [logo] &#9608; CRYOGENIC REVIVAL SYSTEM v2.1.4 ┐<br>SECURE CHANNEL &#9608; ENCRYPTED[style_close]"
 
 /datum/round_cinematics_sequence/cryo_intro/get_footer_html()
-	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:9pt; color:#33FF33;'>"
+	var/color = profile?.accent_color || "#33FF33"
+	var/footer = profile?.footer_label || "READY"
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:9pt; color:[color];'>"
 	var/style_close = "</span>"
-	return "[style_open]└ > READY ┘<br>\[PWR: NOMINAL\] \[LIFE SUPPORT: ACTIVE\][style_close]"
+	return "[style_open]└ > [footer] ┘<br>\[PWR: NOMINAL\] \[LIFE SUPPORT: ACTIVE\][style_close]"
 
-/datum/round_cinematics_sequence/cryo_intro/New(datum/round_cinematics_intro_context/context)
+/datum/round_cinematics_sequence/cryo_intro/New(datum/round_cinematics_intro_context/context, datum/round_cinematics_visual_profile/visual_profile = null)
 	..()
 	if(!context)
 		return
+
+	profile = visual_profile
+	var/header_color = profile?.header_color || "#33FF33"
+	var/boot_sound = profile?.sound_boot || 'sound/effects/cryo_beep.ogg'
+	var/speed = profile?.typewriter_speed || ROUND_CINEMATICS_TEXT_DELAY
 
 	phases = list()
 
@@ -25,12 +52,12 @@
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)
 	)
-	boot.sound = 'sound/effects/cryo_beep.ogg'
+	boot.sound = boot_sound
 	boot.sound_volume = 45
 	boot.display_time = 2 SECONDS
 	boot.fade_out_time = 0.75 SECONDS
 	boot.letters_per_update = 3
-	boot.play_delay = 0.35
+	boot.play_delay = speed
 
 	phases += new /datum/round_cinematics_phase
 	var/datum/round_cinematics_phase/personal = phases[phases.len]
@@ -43,7 +70,7 @@
 	personal.display_time = 2 SECONDS
 	personal.fade_out_time = 0.75 SECONDS
 	personal.letters_per_update = 3
-	personal.play_delay = 0.35
+	personal.play_delay = speed
 
 	for(var/page_index = 1, page_index <= context.get_manifest_page_count(), page_index++)
 		phases += new /datum/round_cinematics_phase
@@ -57,13 +84,13 @@
 		manifest.display_time = 2 SECONDS
 		manifest.fade_out_time = 0.75 SECONDS
 		manifest.letters_per_update = 3
-		manifest.play_delay = 0.35
+		manifest.play_delay = speed
 
 	// Phase 4: deployment
 	phases += new /datum/round_cinematics_phase
 	var/datum/round_cinematics_phase/deployment = phases[phases.len]
 	deployment.name = "deployment"
-	deployment.raw_html = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:10pt; color:#44FF44;'>СТАТУС: ГОТОВ К РАЗВЁРТЫВАНИЮ</span>"
+	deployment.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[header_color];'>СТАТУС: ГОТОВ К РАЗВЁРТЫВАНИЮ</span>"
 	deployment.fullscreen_specs = list(
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)

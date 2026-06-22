@@ -663,6 +663,8 @@ I hope it's easier to tell what the heck this proc is even doing, unlike previou
 	if(istype(new_human.loc, /obj/structure/machinery/cryopod))
 		new_human.spawn_cryopod = new_human.loc
 
+	GLOB.round_cinematics?.on_human_assigned_cryo(new_human, new_human.spawn_cryopod, "roundstart")
+
 	new_human.sec_hud_set_ID()
 	new_human.hud_set_squad()
 

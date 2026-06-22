@@ -8,6 +8,8 @@
 #define ROUND_CINEMATICS_TEXT_DELAY 0.5
 #define ROUND_CINEMATICS_TEXT_HOLD 2 SECONDS
 
+#define ROUND_CINEMATICS_FONT_STACK "\"VCR OSD Mono\", \"Consolas\", \"Courier New\", monospace"
+
 #define ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK "round_cinematics_intro_black"
 #define ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT "round_cinematics_intro_crt"
 #define ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK "round_cinematics_outro_black"
@@ -37,4 +39,5 @@ GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
 	GLOB.round_cinematics?.cleanup_all("roundstart_reset")
 
 /datum/modpack/round_cinematics/proc/handle_roundend()
-	GLOB.round_cinematics?.try_start_round_outro()
+	var/datum/round_cinematics_outcome_input/input = new /datum/round_cinematics_outcome_input(SSticker?.mode, SSticker?.mode?.round_finished, null, "roundend")
+	GLOB.round_cinematics?.try_start_round_outro(input)

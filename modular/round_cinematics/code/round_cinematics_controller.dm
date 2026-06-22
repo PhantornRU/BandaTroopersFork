@@ -5,6 +5,20 @@
 	var/datum/round_cinematics_outcome/admin_outcome_override = null
 	var/outro_started = FALSE
 
+/// Called when a human is assigned to a cryopod (roundstart or latejoin).
+/// Validates the human, pod, and client before queuing a cryo intro.
+/datum/round_cinematics_controller/proc/on_human_assigned_cryo(mob/living/carbon/human/human, obj/structure/machinery/cryopod/pod, reason = "spawn")
+	if(!istype(human))
+		return
+	if(!istype(pod))
+		return
+	if(!human.client)
+		return
+	if(pod.occupant && pod.occupant != human)
+		return
+	log_debug("round_cinematics: on_human_assigned_cryo [human] pod=[pod] reason=[reason]")
+	queue_cryo_intro(human, pod, 5)
+
 /datum/round_cinematics_controller/proc/on_session_finished(datum/round_cinematics_session/session)
 	if(!session)
 		return
@@ -51,8 +65,12 @@
 	return TRUE
 
 /// Queue a cryo intro attempt. Retries up to max_attempts times with 1-second intervals.
-/datum/round_cinematics_controller/proc/queue_cryo_intro(mob/living/carbon/human/human, obj/structure/machinery/cryopod/pod, max_attempts = 5)
+/datum/round_cinematics_controller/proc/queue_cryo_intro(mob/living/carbon/human/human, obj/structure/machinery/cryopod/pod, max_attempts = 5, reason = "unknown")
 	if(!istype(human))
+		log_debug("round_cinematics: queue_cryo_intro skipped — reason: not a human")
+		return FALSE
+	if(!human.client)
+		log_debug("round_cinematics: queue_cryo_intro skipped for [human] — reason: no client")
 		return FALSE
 	if(get_intro_session(human))
 		log_debug("round_cinematics: queue_cryo_intro skipped for [human] — reason: already has intro session")
@@ -60,10 +78,11 @@
 	if(try_start_cryo_intro(human, FALSE, pod))
 		return TRUE
 	if(max_attempts <= 1)
-		log_debug("round_cinematics: queue_cryo_intro failed for [human] — reason: max attempts exhausted on first try")
+		log_debug("round_cinematics: queue_cryo_intro failed for [human] — reason: max attempts exhausted on first try, trigger=[reason]")
 		return FALSE
+	log_debug("round_cinematics: queue_cryo_intro queued retry for [human] attempts_left=[max_attempts - 1] trigger=[reason]")
 	addtimer(CALLBACK(src, PROC_REF(_queue_cryo_intro_tick), human, max_attempts - 1), 1 SECONDS)
-	return TRUE
+	return FALSE
 
 /datum/round_cinematics_controller/proc/_queue_cryo_intro_tick(mob/living/carbon/human/human, attempts_left)
 	if(!istype(human) || QDELETED(human) || !human.client)
@@ -146,12 +165,26 @@
 		targets += C
 	return targets
 
-/datum/round_cinematics_controller/proc/try_start_round_outro()
+/datum/round_cinematics_controller/proc/try_start_round_outro(datum/round_cinematics_outcome_input/input = null)
 	if(outro_started)
 		return FALSE
 
-	var/datum/round_cinematics_outro_context/context = build_outro_context()
+	// Build outcome from input if provided, otherwise resolve from mode
+	var/datum/round_cinematics_outcome/outcome
+	if(input?.admin_override)
+		outcome = new /datum/round_cinematics_outcome(input.admin_override, TRUE)
+	else if(input?.explicit_result)
+		outcome = round_cinematics_outcome_from_mode_result(input.explicit_result)
+	else if(input?.mode)
+		outcome = resolve_round_outcome(input.mode)
+	else
+		outcome = get_effective_outcome()
+
+	var/datum/round_cinematics_outro_context/context = new /datum/round_cinematics_outro_context(input?.mode || SSticker?.mode, outcome, FALSE, null)
+	context.build()
+	outro_context = context
 	admin_outcome_override = null
+
 	var/list/targets = get_outro_targets()
 	if(!length(targets))
 		outro_context = null

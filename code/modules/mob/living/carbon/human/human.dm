@@ -1689,6 +1689,9 @@
 /mob/living/carbon/human/proc/play_opening_sequence()
 	if(SSticker.intro_sequence)
 		// SS220 EDIT: delegate cryo intro to modular round cinematics
+		// Guard: skip if already has an active intro session
+		if(GLOB.round_cinematics?.get_intro_session(src))
+			return
 		var/obj/structure/machinery/cryopod/pod = spawn_cryopod
 		if(!pod)
 			pod = istype(loc, /obj/structure/machinery/cryopod) ? loc : null

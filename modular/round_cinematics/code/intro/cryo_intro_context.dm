@@ -7,6 +7,8 @@
 	var/display_role = "UNKWN"
 	var/display_squad = "НЕИЗВЕСТНО"
 	var/display_ship = "3rd Bat. 'Banda Troopers'"
+	/// Resolved affiliation for this intro
+	var/datum/round_cinematics_affiliation/affiliation = null
 	var/list/boot_lines = list()
 	var/list/personal_lines = list()
 	var/list/manifest_entries = list()
@@ -26,6 +28,9 @@
 	display_squad = round_cinematics_human_squad(subject)
 	display_ship = round_cinematics_human_ship_profile_label(subject)
 
+	// Resolve affiliation for faction-specific data
+	affiliation = resolve_affiliation(subject)
+
 	boot_lines = list(
 		"ПРОТОКОЛ ПРОБУЖДЕНИЯ АКТИВИРОВАН",
 		"СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ: ОНЛАЙН",
@@ -40,6 +45,13 @@
 		"ОТРЯД: [html_encode(display_squad)]",
 		"СЕГМЕНТ: [html_encode(display_ship)]"
 	)
+
+	// Add affiliation-specific lines if available
+	if(affiliation)
+		if(length(affiliation.ship_name))
+			personal_lines += "КОРАБЛЬ: [html_encode(affiliation.ship_name)]"
+		if(length(affiliation.operation_name))
+			personal_lines += "ОПЕРАЦИЯ: [html_encode(affiliation.operation_name)]"
 
 	build_manifest()
 

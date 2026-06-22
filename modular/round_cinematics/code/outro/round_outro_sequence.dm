@@ -5,17 +5,22 @@
 	var/cached_accent_color = "#88CCFF"
 	/// Кэшированная фраза исхода
 	var/cached_outcome_phrase = ""
+	/// Visual profile for colors and styling
+	var/datum/round_cinematics_visual_profile/profile
 
 /datum/round_cinematics_sequence/round_outro/get_header_html()
-	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:10pt; color:[cached_header_color];'>"
+	var/color = profile?.header_color || cached_header_color
+	var/logo = profile?.logo_text || "BW"
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[color];'>"
 	var/style_close = "</span>"
-	. = "[style_open]┌ BW &#9608; AFTER-ACTION REPORT ┐<br>CLASSIFIED &#9608; OPERATION SUMMARY"
+	. = "[style_open]┌ [logo] &#9608; AFTER-ACTION REPORT ┐<br>CLASSIFIED &#9608; OPERATION SUMMARY"
 	if(length(cached_outcome_phrase))
 		. += "<br><span style='font-size:10pt;font-weight:bold;'>[html_encode(cached_outcome_phrase)]</span>"
 	. += "[style_close]"
 
 /datum/round_cinematics_sequence/round_outro/get_footer_html()
-	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:9pt; color:[cached_accent_color];'>"
+	var/color = profile?.accent_color || cached_accent_color
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:9pt; color:[color];'>"
 	var/style_close = "</span>"
 	var/final_phrase = ""
 	if(length(cached_outcome_phrase))
@@ -33,10 +38,12 @@
 		. += "<br><span style='font-size:8pt;font-weight:bold;'>[html_encode(final_phrase)]</span>"
 	. += "[style_close]"
 
-/datum/round_cinematics_sequence/round_outro/New(datum/round_cinematics_outro_context/context)
+/datum/round_cinematics_sequence/round_outro/New(datum/round_cinematics_outro_context/context, datum/round_cinematics_visual_profile/visual_profile = null)
 	..()
 	if(!context)
 		return
+
+	profile = visual_profile
 
 	// Cache outcome colors for header/footer
 	if(context.outcome)
@@ -51,7 +58,7 @@
 		phases += new /datum/round_cinematics_phase
 		var/datum/round_cinematics_phase/glitch = phases[phases.len]
 		glitch.name = "glitch"
-		glitch.raw_html = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:14pt; color:#FF4444;'>█▓▒░ SIGNAL INTERFERENCE ░▒▓█<br><span style='font-size:8pt;'>&#91;TRANSMISSION CORRUPTED&#93;</span></span>"
+		glitch.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:14pt; color:#FF4444;'>█▓▒░ SIGNAL INTERFERENCE ░▒▓█<br><span style='font-size:8pt;'>\[TRANSMISSION CORRUPTED\]</span></span>"
 		glitch.fullscreen_specs = list(
 			list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 			list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)
@@ -81,7 +88,7 @@
 			else
 				splash_text = "ОПЕРАЦИЯ ЗАВЕРШЕНА"
 				splash_color = "#DCE6F6"
-	splash.raw_html = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:18pt; font-weight:bold; color:[splash_color];'>[html_encode(splash_text)]</span>"
+	splash.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:18pt; font-weight:bold; color:[splash_color];'>[html_encode(splash_text)]</span>"
 	splash.fullscreen_specs = list(
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)
@@ -115,3 +122,37 @@
 			else
 				page.sound = 'sound/machines/terminal_off.ogg'
 				page.sound_volume = 40
+
+/datum/round_cinematics_sequence/round_outro/execute(datum/round_cinematics_session/session)
+	if(!session || session.cleaned_up)
+		return
+
+	// Determine outcome type for effect selection
+	var/is_defeat = FALSE
+	var/is_victory = FALSE
+	var/is_inconclusive = FALSE
+	if(cached_outcome_phrase)
+		if(cached_outcome_phrase == "MARINE DEFEAT" || cached_outcome_phrase == "ПОРАЖЕНИЕ")
+			is_defeat = TRUE
+		else if(cached_outcome_phrase == "MARINE VICTORY" || cached_outcome_phrase == "ПОБЕДА")
+			is_victory = TRUE
+		else if(cached_outcome_phrase == "INCONCLUSIVE" || cached_outcome_phrase == "НЕОПРЕДЕЛЁННЫЙ ИСХОД")
+			is_inconclusive = TRUE
+
+	// Defeat: glitch before splash, flicker during report
+	if(is_defeat)
+		session.effect_glitch(0.4, 1 SECONDS)
+
+	for(var/datum/round_cinematics_phase/phase as anything in phases)
+		if(session.cleaned_up)
+			break
+
+		// Flicker effects during report phases
+		if(is_defeat && findtext(phase.name, "report_"))
+			session.effect_flicker(3, 0.5 SECONDS)
+		else if(is_victory && findtext(phase.name, "report_"))
+			session.effect_flicker(1, 0.3 SECONDS)
+		else if(is_inconclusive && findtext(phase.name, "report_"))
+			session.effect_flicker(2, 0.4 SECONDS)
+
+		phase.play(session)

@@ -19,7 +19,7 @@
 	var/fade_out_time = 0.75 SECONDS
 	var/play_delay = ROUND_CINEMATICS_TEXT_DELAY
 	var/letters_per_update = ROUND_CINEMATICS_TEXT_LETTERS
-	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:12pt;'>"
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", \"Consolas\", \"Courier New\", monospace; font-size:12pt;'>"
 	var/style_close = "</span>"
 	var/cancelled = FALSE
 

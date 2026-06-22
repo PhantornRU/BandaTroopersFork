@@ -6,7 +6,7 @@
 /proc/round_cinematics_html_block(title, body, color = "#33FF33")
 	var/list/chunks = list()
 	if(length("[title]"))
-		chunks += "<div style='color:[color];font-family:\"VCR OSD Mono\", monospace;font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
+		chunks += "<div style='color:[color];font-family:[ROUND_CINEMATICS_FONT_STACK];font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
 	if(length("[body]"))
 		chunks += body
 	return chunks.Join("<br>")
