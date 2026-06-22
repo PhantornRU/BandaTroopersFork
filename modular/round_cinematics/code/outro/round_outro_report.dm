@@ -87,35 +87,47 @@
 	return round_cinematics_outro_render_record_page(page_entries, page_index, page_count, "ЛИЧНЫЙ СОСТАВ")
 
 /proc/round_cinematics_outro_render_destruction_page(list/page_entries, page_index, page_count)
-	// Агрегированная статистика NPC вместо постраничного списка
+	// Фракционная агрегация NPC потерь
 	if(!islist(page_entries) || !length(page_entries))
 		return round_cinematics_html_block("ПРОЧИЕ ПОТЕРИ", "НЕТ ДАННЫХ", "#E4EAF8")
 
-	var/active_count = 0
-	var/dead_count = 0
-	var/incap_count = 0
-	var/missing_count = 0
+	// Группировка по faction
+	var/list/by_faction = list()
 	for(var/datum/round_cinematics_participant_record/record as anything in page_entries)
 		if(!istype(record))
 			continue
+		var/faction_key = record.faction || "НЕИЗВЕСТНАЯ ФРАКЦИЯ"
+		if(!by_faction[faction_key])
+			by_faction[faction_key] = list(
+				"total" = 0,
+				"active" = 0,
+				"incapacitated" = 0,
+				"dead" = 0,
+				"missing" = 0
+			)
+		var/list/faction_stats = by_faction[faction_key]
+		faction_stats["total"]++
 		switch(record.status)
 			if("active")
-				active_count++
-			if("dead")
-				dead_count++
+				faction_stats["active"]++
 			if("incapacitated")
-				incap_count++
+				faction_stats["incapacitated"]++
+			if("dead")
+				faction_stats["dead"]++
 			if("missing")
-				missing_count++
+				faction_stats["missing"]++
 
-	var/list/summary = list(
-		"ПРОЧИЕ ПОТЕРИ (НЕ-СТАРТОВЫЙ СОСТАВ)",
-		"ВСЕГО УЧТЕНО: [length(page_entries)]",
-		"В СТРОЮ: [active_count]",
-		"РАНЕНЫ: [incap_count]",
-		"ПОГИБЛИ: [dead_count]",
-		"НЕТ СИГНАЛА: [missing_count]"
-	)
+	var/list/summary = list("ПРОЧИЕ ПОТЕРИ (НЕ-СТАРТОВЫЙ СОСТАВ)")
+	for(var/faction_name in by_faction)
+		var/list/fs = by_faction[faction_name]
+		summary += ""
+		summary += "[uppertext(faction_name)]"
+		summary += "  ВСЕГО: [fs["total"]]"
+		summary += "  В СТРОЮ: [fs["active"]]"
+		summary += "  РАНЕНЫ: [fs["incapacitated"]]"
+		summary += "  ПОГИБЛИ: [fs["dead"]]"
+		summary += "  НЕТ СИГНАЛА: [fs["missing"]]"
+
 	return round_cinematics_html_block("ПРОЧИЕ ПОТЕРИ", round_cinematics_join_lines(summary), "#E4EAF8")
 
 /proc/round_cinematics_outro_render_participant_page(list/page_entries, page_index, page_count)

@@ -31,6 +31,7 @@ GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
 	SSticker.OnRoundend(CALLBACK(src, PROC_REF(handle_roundend)))
 
 /datum/modpack/round_cinematics/proc/handle_roundstart()
+	GLOB.round_cinematics?.reset_round_tracking()
 	GLOB.round_cinematics?.cleanup_all("roundstart_reset")
 
 /datum/modpack/round_cinematics/proc/handle_roundend()

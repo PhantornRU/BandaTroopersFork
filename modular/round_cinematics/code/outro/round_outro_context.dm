@@ -35,7 +35,7 @@
 		"ОПЕРАЦИОННЫЙ АРХИВ: [html_encode(operation_name)]",
 		"ОПЕРАЦИЯ: [html_encode(operation_name)]",
 		"ТЕАТР БОЕВЫХ ДЕЙСТВИЙ: [html_encode(map_name)]",
-		"РЕЖИМ: [html_encode(outcome?.is_override ? "АДМИН-ОВЕРРАЙД" : "АВТО")]",
+		"РЕЖИМ: [html_encode(outcome?.is_override ? "КОМАНДА АДМИНИСТРАТОРА" : "ОЦЕНКА РЕЖИМА")]",
 		"ИСХОД: [html_encode(outcome?.title || "НЕОПРЕДЕЛЕННЫЙ ИСХОД")]",
 		"ИСТОЧНИК ИСХОДА: [html_encode(outcome?.detail || "НЕОПРЕДЕЛЕННЫЙ ИСХОД")]",
 		"СОСТОЯНИЕ КАНАЛА: [html_encode(channel_state)]"

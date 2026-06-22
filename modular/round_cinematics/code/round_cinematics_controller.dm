@@ -7,6 +7,10 @@
 	/// Список референсов мобов, прошедших крио-интро (стартовый состав)
 	var/list/initial_crew_refs = list()
 
+/// Сброс трекинга стартового состава (вызывается на roundstart)
+/datum/round_cinematics_controller/proc/reset_round_tracking()
+	initial_crew_refs.Cut()
+
 /// Called when a human is assigned to a cryopod (roundstart or latejoin).
 /// Validates the human, pod, and client before queuing a cryo intro.
 /datum/round_cinematics_controller/proc/on_human_assigned_cryo(mob/living/carbon/human/human, obj/structure/machinery/cryopod/pod, reason = "spawn")
@@ -19,8 +23,8 @@
 	if(pod.occupant && pod.occupant != human)
 		return
 	log_debug("round_cinematics: on_human_assigned_cryo [human] pod=[pod] reason=[reason]")
-	// Запоминаем стартовый состав
-	if(!(human in initial_crew_refs))
+	// Запоминаем стартовый состав — только roundstart
+	if((reason == "roundstart" || reason == "roundstart_job") && !(human in initial_crew_refs))
 		initial_crew_refs += human
 	queue_cryo_intro(human, pod, 5)
 
@@ -113,7 +117,7 @@
 		return FALSE
 
 	if(human.client)
-		to_chat(human, SPAN_NOTICE("The hypersleep sequence is still calibrating."))
+		to_chat(human, SPAN_NOTICE("Последовательность пробуждения ещё калибруется."))
 	return TRUE
 
 /datum/round_cinematics_controller/proc/is_cryo_locked(mob/user)
@@ -142,9 +146,9 @@
 	else
 		admin_outcome_override = new /datum/round_cinematics_outcome(outcome, TRUE)
 
-	var/readable = admin_outcome_override ? admin_outcome_override.title : "AUTO"
+	var/readable = admin_outcome_override ? admin_outcome_override.title : "АВТО"
 	var/admin_name = admin ? key_name_admin(admin) : "system"
-	var/message = "[admin_name] set round outro outcome to [readable]."
+	var/message = "[admin_name] установил результат финальных титров: [readable]."
 	log_admin(message)
 	message_admins(message)
 	return TRUE
