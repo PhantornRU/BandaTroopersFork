@@ -219,6 +219,25 @@
 	session.begin()
 	return TRUE
 
+/datum/round_cinematics_controller/proc/get_visual_profile(id)
+	if(!id)
+		return null
+	switch(id)
+		if("intro_uscm")
+			return new /datum/round_cinematics_visual_profile/intro_uscm
+		if("intro_unsc")
+			return new /datum/round_cinematics_visual_profile/intro_unsc
+		if("intro_wy")
+			return new /datum/round_cinematics_visual_profile/intro_wy
+		if("outro_victory")
+			return new /datum/round_cinematics_visual_profile/outro_victory
+		if("outro_defeat")
+			return new /datum/round_cinematics_visual_profile/outro_defeat
+		if("outro_inconclusive")
+			return new /datum/round_cinematics_visual_profile/outro_inconclusive
+		else
+			return new /datum/round_cinematics_visual_profile
+
 /datum/round_cinematics_controller/proc/cleanup_all(reason)
 	for(var/mob/living/carbon/human/human in intro_sessions.Copy())
 		var/datum/round_cinematics_session/session = intro_sessions[human]

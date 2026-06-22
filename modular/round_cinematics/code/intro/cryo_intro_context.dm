@@ -46,10 +46,16 @@
 		"СЕГМЕНТ: [html_encode(display_ship)]"
 	)
 
-	// Add affiliation-specific lines if available
+	// P2.13: Add affiliation-specific lines if available
 	if(affiliation)
+		if(length(affiliation.display_code) && length(affiliation.display_name))
+			personal_lines += "ПОДРАЗДЕЛЕНИЕ: [html_encode(affiliation.display_code)] — [html_encode(affiliation.display_name)]"
+		if(length(affiliation.unit_name))
+			personal_lines += "ЧАСТЬ: [html_encode(affiliation.unit_name)]"
 		if(length(affiliation.ship_name))
 			personal_lines += "КОРАБЛЬ: [html_encode(affiliation.ship_name)]"
+		if(length(affiliation.ground_map_name))
+			personal_lines += "КАРТА ВЫСАДКИ: [html_encode(affiliation.ground_map_name)]"
 		if(length(affiliation.operation_name))
 			personal_lines += "ОПЕРАЦИЯ: [html_encode(affiliation.operation_name)]"
 

@@ -88,12 +88,12 @@
 
 /proc/round_cinematics_mob_status_label(mob/living/M)
 	if(!istype(M) || QDELETED(M))
-		return "MISSING"
+		return "missing"
 	if(M.stat == DEAD)
-		return "DEAD"
+		return "dead"
 	if(M.stat == UNCONSCIOUS || M.sleeping)
-		return "INCAPACITATED"
-	return "ACTIVE"
+		return "incapacitated"
+	return "active"
 
 /proc/round_cinematics_human_death_reason(mob/living/carbon/human/human)
 	if(!istype(human) || human.stat != DEAD)

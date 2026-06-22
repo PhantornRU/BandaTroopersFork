@@ -5,7 +5,8 @@
 	..(controller, owner, preview)
 	src.source_pod = source_pod
 	context = new /datum/round_cinematics_intro_context(owner, source_pod, preview)
-	sequence = new /datum/round_cinematics_sequence/cryo_intro(context)
+	var/datum/round_cinematics_visual_profile/profile = GLOB.round_cinematics?.get_visual_profile(context.affiliation?.visual_profile_id || "intro_uscm")
+	sequence = new /datum/round_cinematics_sequence/cryo_intro(context, profile)
 	completion_reason = "intro complete"
 	skip_allowed_at = world.time + (preview ? 0 : ROUND_CINEMATICS_INTRO_ALLOW_SKIP_AFTER)
 	hard_timeout_at = world.time + ROUND_CINEMATICS_INTRO_HARD_TIMEOUT

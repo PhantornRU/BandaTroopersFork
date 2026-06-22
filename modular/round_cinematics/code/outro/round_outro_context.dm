@@ -49,7 +49,7 @@
 		record.squad = round_cinematics_human_squad(player)
 		record.faction = round_cinematics_safe_text(player.faction, "UNKNOWN")
 		record.status = round_cinematics_mob_status_label(player)
-		record.death_reason = (player.stat == DEAD) ? round_cinematics_human_death_reason(player) : "НЕ ТРЕБУЕТСЯ"
+		record.death_reason = (player.stat == DEAD) ? round_cinematics_human_death_reason_extended_ru(player) : "НЕ ТРЕБУЕТСЯ"
 		record.has_client = !!player.client
 		record.has_mind = !!player.mind
 		record.is_player = !!(player.client && player.mind)

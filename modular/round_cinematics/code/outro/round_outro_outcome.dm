@@ -90,11 +90,13 @@
 	return clone
 
 /proc/round_cinematics_outcome_from_mode_result(result)
-	var/datum/round_cinematics_outcome/outcome = new(ROUND_CINEMATICS_OUTCOME_AUTO, FALSE)
+	var/classification_id = round_cinematics_round_finished_classification(result)
+	var/datum/round_cinematics_outcome/outcome = new(classification_id, FALSE)
 	outcome.raw_result = result
 	outcome.title = round_cinematics_round_finished_label(result)
 	outcome.detail = round_cinematics_safe_text(result, "UNDETERMINED OUTCOME")
-	outcome.classification = round_cinematics_round_finished_classification(result)
+	outcome.classification = classification_id
+	outcome.apply_outcome_profile()
 	return outcome
 
 /proc/resolve_round_outcome(datum/game_mode/mode)

@@ -3,8 +3,10 @@
 	var/cached_header_color = "#88CCFF"
 	/// Кэшированный цвет accent из outcome
 	var/cached_accent_color = "#88CCFF"
-	/// Кэшированная фраза исхода
+	/// Кэшированная фраза исхода (для header/footer отображения)
 	var/cached_outcome_phrase = ""
+	/// Кэшированный outcome id для выбора эффектов
+	var/cached_outcome_id = ROUND_CINEMATICS_OUTCOME_AUTO
 	/// Visual profile for colors and styling
 	var/datum/round_cinematics_visual_profile/profile
 
@@ -23,16 +25,15 @@
 	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:9pt; color:[color];'>"
 	var/style_close = "</span>"
 	var/final_phrase = ""
-	if(length(cached_outcome_phrase))
-		switch(cached_outcome_phrase)
-			if("MARINE VICTORY", "ПОБЕДА")
-				final_phrase = "ОПЕРАЦИЯ УСПЕШНО ЗАВЕРШЕНА. ВОЗВРАЩЕНИЕ НА БАЗУ."
-			if("MARINE DEFEAT", "ПОРАЖЕНИЕ")
-				final_phrase = "КРИТИЧЕСКИЕ ПОТЕРИ. ЭКСТРЕННАЯ ЭВАКУАЦИЯ."
-			if("INCONCLUSIVE", "НЕОПРЕДЕЛЁННЫЙ ИСХОД")
-				final_phrase = "СТАТУС НЕОПРЕДЕЛЁН. ОЖИДАНИЕ ДАЛЬНЕЙШИХ УКАЗАНИЙ."
-			else
-				final_phrase = "КОНЕЦ ПЕРЕДАЧИ."
+	switch(cached_outcome_id)
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+			final_phrase = "ОПЕРАЦИЯ УСПЕШНО ЗАВЕРШЕНА. ВОЗВРАЩЕНИЕ НА БАЗУ."
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+			final_phrase = "КРИТИЧЕСКИЕ ПОТЕРИ. ЭКСТРЕННАЯ ЭВАКУАЦИЯ."
+		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
+			final_phrase = "СТАТУС НЕОПРЕДЕЛЁН. ОЖИДАНИЕ ДАЛЬНЕЙШИХ УКАЗАНИЙ."
+		else
+			final_phrase = "КОНЕЦ ПЕРЕДАЧИ."
 	. = "[style_open]└ > END OF REPORT ┘<br>\[ARCHIVE: ACTIVE\] \[CHANNEL: SECURE\]"
 	if(length(final_phrase))
 		. += "<br><span style='font-size:8pt;font-weight:bold;'>[html_encode(final_phrase)]</span>"
@@ -45,11 +46,12 @@
 
 	profile = visual_profile
 
-	// Cache outcome colors for header/footer
+	// Cache outcome colors and id for header/footer and effects
 	if(context.outcome)
 		cached_header_color = context.outcome.header_color
 		cached_accent_color = context.outcome.accent_color
 		cached_outcome_phrase = context.outcome.outcome_phrase
+		cached_outcome_id = context.outcome.id
 
 	phases = list()
 
@@ -127,17 +129,10 @@
 	if(!session || session.cleaned_up)
 		return
 
-	// Determine outcome type for effect selection
-	var/is_defeat = FALSE
-	var/is_victory = FALSE
-	var/is_inconclusive = FALSE
-	if(cached_outcome_phrase)
-		if(cached_outcome_phrase == "MARINE DEFEAT" || cached_outcome_phrase == "ПОРАЖЕНИЕ")
-			is_defeat = TRUE
-		else if(cached_outcome_phrase == "MARINE VICTORY" || cached_outcome_phrase == "ПОБЕДА")
-			is_victory = TRUE
-		else if(cached_outcome_phrase == "INCONCLUSIVE" || cached_outcome_phrase == "НЕОПРЕДЕЛЁННЫЙ ИСХОД")
-			is_inconclusive = TRUE
+	// Determine outcome type for effect selection using cached_outcome_id
+	var/is_defeat = (cached_outcome_id == ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+	var/is_victory = (cached_outcome_id == ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+	var/is_inconclusive = (cached_outcome_id == ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
 
 	// Defeat: glitch before splash, flicker during report
 	if(is_defeat)

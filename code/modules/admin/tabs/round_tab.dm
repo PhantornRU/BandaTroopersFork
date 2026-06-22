@@ -148,6 +148,21 @@
 	if(!SSticker.mode)
 		return
 
+	// P1.10: Outcome choice for round cinematics
+	// NOTE: Using numeric constants (1=Victory, 2=Defeat, 3=Inconclusive) because
+	// ROUND_CINEMATICS_OUTCOME_* defines are in modular/_round_cinematics.dm which
+	// is included after this file in the .dme order.
+	var/outcome_choice = tgui_input_list(usr, "Select round outcome for cinematics:", "Round Outcome", list("Auto", "Victory", "Defeat", "Inconclusive"), default = "Auto")
+	if(!isnull(outcome_choice) && outcome_choice != "Auto")
+		if(GLOB.round_cinematics)
+			switch(outcome_choice)
+				if("Victory")
+					GLOB.round_cinematics.set_admin_outcome(1) // ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
+				if("Defeat")
+					GLOB.round_cinematics.set_admin_outcome(2) // ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
+				if("Inconclusive")
+					GLOB.round_cinematics.set_admin_outcome(3) // ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
+
 	SSticker.mode.round_finished = MODE_INFESTATION_DRAW_DEATH
 	message_admins("[key_name(usr)] has made the round end early.")
 	for(var/client/C in GLOB.admins)

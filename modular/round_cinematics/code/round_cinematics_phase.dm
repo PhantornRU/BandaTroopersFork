@@ -23,7 +23,8 @@
 
 /datum/round_cinematics_phase/proc/get_duration()
 	var/html = build_html()
-	var/steps = max(1, round((length(html) + letters_per_update - 1) / letters_per_update))
+	var/lpu = max(1, letters_per_update)
+	var/steps = max(1, round((length(html) + lpu - 1) / lpu))
 	var/typewriter_time = steps * play_delay
 	return max(display_time + fade_out_time, typewriter_time + display_time + fade_out_time)
 

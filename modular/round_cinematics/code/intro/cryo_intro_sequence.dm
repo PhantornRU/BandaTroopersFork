@@ -112,6 +112,6 @@
 	)
 	finish.display_time = 1 SECONDS
 	finish.fade_out_time = 0.5 SECONDS
-	finish.letters_per_update = 0
+	finish.letters_per_update = 1
 	finish.play_delay = 0
 

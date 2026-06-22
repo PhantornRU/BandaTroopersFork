@@ -20,6 +20,8 @@
 	var/start_time = 0
 	var/skip_allowed_at = 0
 	var/hard_timeout_at = 0
+	/// Saved sleeping value before session lock (P1.7)
+	var/saved_sleeping = 0
 
 /datum/round_cinematics_session/New(datum/round_cinematics_controller/controller, mob/owner, preview = FALSE)
 	..()
@@ -30,6 +32,12 @@
 
 /datum/round_cinematics_session/proc/begin()
 	start_time = world.time
+	// P1.7: Save sleeping before locking
+	if(isliving(owner))
+		var/mob/living/L = owner
+		saved_sleeping = L.sleeping
+		// P1.8: Lock player during intro session
+		L.sleeping = 11
 	RegisterSignal(owner, list(COMSIG_MOB_LOGOUT, COMSIG_PARENT_QDELETING), PROC_REF(handle_owner_signal))
 	if(source_pod && !preview)
 		RegisterSignal(source_pod, COMSIG_CRYOPOD_GO_OUT, PROC_REF(handle_pod_exit))
@@ -169,10 +177,10 @@
 	clear_fullscreens()
 	clear_static_chrome()
 	restore_hud()
-	// Ensure mob state is restored
+	// P1.7: Restore saved sleeping value
 	if(isliving(owner))
 		var/mob/living/L = owner
-		L.sleeping = max(0, L.sleeping)
+		L.sleeping = saved_sleeping
 	controller?.on_session_finished(src)
 
 /datum/round_cinematics_session/Destroy()
