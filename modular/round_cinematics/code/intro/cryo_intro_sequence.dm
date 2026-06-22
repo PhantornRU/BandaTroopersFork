@@ -102,7 +102,7 @@
 	phases += new /datum/round_cinematics_phase
 	var/datum/round_cinematics_phase/deployment = phases[phases.len]
 	deployment.name = "deployment"
-	deployment.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[header_color];'>СТАТУС: ГОТОВ К РАЗВЁРТЫВАНИЮ</span>"
+	deployment.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[header_color];'>[html_encode(context.affiliation?.final_intro_line || "СТАТУС: ГОТОВ К РАЗВЁРТЫВАНИЮ")]</span>"
 	deployment.fullscreen_specs = list(
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)

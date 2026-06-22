@@ -27,11 +27,11 @@
 	var/final_phrase = ""
 	switch(cached_outcome_id)
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
-			final_phrase = "ОПЕРАЦИЯ УСПЕШНО ЗАВЕРШЕНА. ВОЗВРАЩЕНИЕ НА БАЗУ."
+			final_phrase = "ОТЧЁТ ПЕРЕДАН В ШТАБ. СТАТУС КАНАЛА: ЗАВЕРШЕНО."
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
-			final_phrase = "КРИТИЧЕСКИЕ ПОТЕРИ. ЭКСТРЕННАЯ ЭВАКУАЦИЯ."
+			final_phrase = "ПОСЛЕДНИЙ ПАКЕТ ДАННЫХ ПЕРЕДАН. СТАТУС КАНАЛА: АВАРИЙНОЕ ЗАВЕРШЕНИЕ."
 		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
-			final_phrase = "СТАТУС НЕОПРЕДЕЛЁН. ОЖИДАНИЕ ДАЛЬНЕЙШИХ УКАЗАНИЙ."
+			final_phrase = "ОТЧЁТ СОХРАНЁН. СТАТУС КАНАЛА: ОЖИДАНИЕ ПОДТВЕРЖДЕНИЯ."
 		else
 			final_phrase = "КОНЕЦ ПЕРЕДАЧИ."
 	. = "[style_open]└ > END OF REPORT ┘<br>\[ARCHIVE: ACTIVE\] \[CHANNEL: SECURE\]"

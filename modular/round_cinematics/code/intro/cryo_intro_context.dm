@@ -34,10 +34,14 @@
 	var/terminal_name = affiliation?.header_label || "CRYOGENIC REVIVAL SYSTEM"
 
 	boot_lines = list(
-		"[html_encode(terminal_name)]: ПРОТОКОЛ ПРОБУЖДЕНИЯ АКТИВИРОВАН",
-		"СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ: ОНЛАЙН",
-		"СТАЗИС: ДЕАКТИВИРОВАН",
-		"ОПЕРАТОР: [html_encode(display_name)]"
+		"[html_encode(terminal_name)]: INITIALIZING...",
+		"LIFE SUPPORT: NOMINAL",
+		"THERMAL REGULATION: 36.6°C",
+		"NEURAL LINK: ESTABLISHED",
+		"BIOSIGNATURE: CONFIRMED",
+		"STASIS: DISENGAGED",
+		"ОПЕРАТОР: [html_encode(display_name)]",
+		"КАНАЛ: [html_encode(affiliation?.security_label || "SECURE CHANNEL")]"
 	)
 
 	personal_lines = list(
@@ -52,6 +56,9 @@
 	if(affiliation)
 		for(var/line in affiliation.build_intro_lines())
 			personal_lines += html_encode(line)
+
+	// Final access confirmation
+	personal_lines += "ДОСТУП: ПОДТВЕРЖДЁН"
 
 	build_manifest()
 
@@ -75,9 +82,10 @@
 			continue
 
 		var/list/entry_lines = list(
-			"<b>[html_encode(round_cinematics_safe_text(human.real_name, "НЕИЗВЕСТНО"))]</b>",
-			"РАНГ: [html_encode(round_cinematics_human_rank(human))] | РОЛЬ: [html_encode(round_cinematics_human_role(human))]",
-			"ОТРЯД: [html_encode(round_cinematics_human_squad(human))] | СОСТОЯНИЕ: [html_encode(round_cinematics_human_status(human))]"
+			"> [html_encode(round_cinematics_human_rank(human))] [html_encode(round_cinematics_safe_text(human.real_name, "НЕИЗВЕСТНО"))]",
+			"  РОЛЬ: [html_encode(round_cinematics_human_role(human))]",
+			"  ОТРЯД: [html_encode(round_cinematics_human_squad(human))]",
+			"  СТАТУС: [html_encode(round_cinematics_human_status(human))]"
 		)
 		manifest_entries += list(entry_lines.Join("<br>"))
 

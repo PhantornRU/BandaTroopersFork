@@ -10,17 +10,17 @@
 		if("EXPLOSION")
 			return "ВЗРЫВНАЯ ТРАВМА"
 		if("THERMAL DAMAGE")
-			return "ТЕРМИЧЕСКОЕ ВОЗДЕЙСТВИЕ"
+			return "ТЕРМИЧЕСКОЕ ПОРАЖЕНИЕ"
 		if("XENO AGGRESSION")
 			return "КСЕНОУГРОЗА"
 		if("CRUSHING TRAUMA")
-			return "ОКРУЖАЮЩАЯ СРЕДА"
+			return "ТРАВМА ОТ УДАРА/СДАВЛИВАНИЯ"
 		if("NOT REQUIRED")
 			return "НЕ ТРЕБУЕТСЯ"
 		if("UNKNOWN")
-			return "НЕИЗВЕСТНО"
+			return "ПРИЧИНА НЕ УСТАНОВЛЕНА"
 		else
-			return "НЕИЗВЕСТНО"
+			return "ПРИЧИНА НЕ УСТАНОВЛЕНА"
 
 /// Расширенная классификация причин смерти с категорией FRIENDLY FIRE.
 /proc/round_cinematics_human_death_reason_extended(mob/living/carbon/human/human)
@@ -61,16 +61,16 @@
 		if("EXPLOSION")
 			return "ВЗРЫВНАЯ ТРАВМА"
 		if("THERMAL DAMAGE")
-			return "ТЕРМИЧЕСКОЕ ВОЗДЕЙСТВИЕ"
+			return "ТЕРМИЧЕСКОЕ ПОРАЖЕНИЕ"
 		if("XENO AGGRESSION")
 			return "КСЕНОУГРОЗА"
 		if("CRUSHING TRAUMA")
-			return "ОКРУЖАЮЩАЯ СРЕДА"
+			return "ТРАВМА ОТ УДАРА/СДАВЛИВАНИЯ"
 		if("FRIENDLY FIRE")
 			return "ДРУЖЕСТВЕННЫЙ ОГОНЬ"
 		if("NOT REQUIRED")
 			return "НЕ ТРЕБУЕТСЯ"
 		if("UNKNOWN")
-			return "НЕИЗВЕСТНО"
+			return "ПРИЧИНА НЕ УСТАНОВЛЕНА"
 		else
-			return "НЕИЗВЕСТНО"
+			return "ПРИЧИНА НЕ УСТАНОВЛЕНА"

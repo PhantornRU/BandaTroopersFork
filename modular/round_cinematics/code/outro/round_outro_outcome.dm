@@ -41,16 +41,16 @@
 			detail = "AUTOMATIC DETERMINATION"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
-			title = "MARINE VICTORY"
-			detail = "ADMIN OR STRUCTURED ENDING INDICATED MARINE VICTORY"
+			title = "ОПЕРАЦИЯ ЗАВЕРШЕНА: УСПЕХ"
+			detail = "МОРСКАЯ ПЕХОТА СОХРАНИЛА КОНТРОЛЬ"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
-			title = "MARINE DEFEAT"
-			detail = "ADMIN OR STRUCTURED ENDING INDICATED MARINE DEFEAT"
+			title = "ОПЕРАЦИЯ ЗАВЕРШЕНА: ПОРАЖЕНИЕ"
+			detail = "БОЕВАЯ ГРУППА ПОТЕРЯЛА КОНТРОЛЬ"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
 		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
-			title = "INCONCLUSIVE"
-			detail = "MANUAL OR AUTOMATIC ENDING WITHOUT A CLEAR WINNER"
+			title = "ИСХОД ОПЕРАЦИИ НЕ ПОДТВЕРЖДЁН"
+			detail = "НЕДОСТАТОЧНО ДАННЫХ"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 	apply_outcome_profile()
 
@@ -60,22 +60,22 @@
 			header_color = "#44FF44"
 			accent_color = "#AAFFAA"
 			glitch_intensity = 0.05
-			outcome_phrase = "ОПЕРАЦИЯ ЗАВЕРШЕНА УСПЕШНО"
+			outcome_phrase = "ОТЧЁТ ПЕРЕДАН В ШТАБ. СТАТУС КАНАЛА: ЗАВЕРШЕНО."
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
 			header_color = "#FF4444"
 			accent_color = "#FFAAAA"
 			glitch_intensity = 0.4
-			outcome_phrase = "ОПЕРАЦИЯ ЗАВЕРШЕНА НЕУДАЧНО"
+			outcome_phrase = "ПОСЛЕДНИЙ ПАКЕТ ДАННЫХ ПЕРЕДАН. СТАТУС КАНАЛА: АВАРИЙНОЕ ЗАВЕРШЕНИЕ."
 		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
 			header_color = "#FFAA44"
 			accent_color = "#FFDDAA"
 			glitch_intensity = 0.15
-			outcome_phrase = "ИСХОД ОПЕРАЦИИ НЕОПРЕДЕЛЁН"
+			outcome_phrase = "ОТЧЁТ СОХРАНЁН. СТАТУС КАНАЛА: ОЖИДАНИЕ ПОДТВЕРЖДЕНИЯ."
 		else
 			header_color = "#88CCFF"
 			accent_color = "#DCE6F6"
 			glitch_intensity = 0
-			outcome_phrase = "ОТЧЁТ ОПЕРАЦИИ"
+			outcome_phrase = "КОНЕЦ ПЕРЕДАЧИ."
 
 /datum/round_cinematics_outcome/proc/copy()
 	var/datum/round_cinematics_outcome/clone = new(id, is_override)

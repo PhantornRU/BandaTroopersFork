@@ -27,6 +27,18 @@
 	var/header_label = "CRYOGENIC REVIVAL SYSTEM"
 	/// Footer label (e.g. "READY")
 	var/footer_label = "READY"
+	/// Boot sequence prefix (e.g. "USCM-TERMINAL")
+	var/boot_prefix = "SYS-TERMINAL"
+	/// Security classification label (e.g. "SECURE CHANNEL")
+	var/security_label = "SECURE CHANNEL"
+	/// Identity label for personal dossier (e.g. "USCM PERSONNEL FILE")
+	var/identity_label = "SYSTEM PERSONNEL FILE"
+	/// Manifest section label (e.g. "SQUAD MANIFEST")
+	var/manifest_label = "UNIT MANIFEST"
+	/// Deployment status line (e.g. "READY FOR DEPLOYMENT")
+	var/deployment_label = "AWAITING DEPLOYMENT"
+	/// Final intro line before fade-out (e.g. "SEMPER FI")
+	var/final_intro_line = "STANDBY"
 
 /// Build a universal, data-driven list of intro lines from affiliation fields.
 /// Returns a list of strings; each non-empty field produces one line.
@@ -67,6 +79,12 @@
 			aff.accent_color = "#33FF33"
 			aff.logo_text = "USCM"
 			aff.header_label = "UNITED STATES COLONIAL MARINE CORPS"
+			aff.boot_prefix = "USCM-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "USCM PERSONNEL FILE"
+			aff.manifest_label = "SQUAD MANIFEST"
+			aff.deployment_label = "READY FOR DEPLOYMENT"
+			aff.final_intro_line = "SEMPER FI"
 		if(FACTION_UNSC)
 			aff.display_code = "UNSC"
 			aff.display_name = "United Nations Space Command"
@@ -76,6 +94,12 @@
 			aff.accent_color = "#33CCFF"
 			aff.logo_text = "UNSC"
 			aff.header_label = "UNITED NATIONS SPACE COMMAND"
+			aff.boot_prefix = "UNSC-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "UNSC PERSONNEL FILE"
+			aff.manifest_label = "UNIT MANIFEST"
+			aff.deployment_label = "READY FOR DEPLOYMENT"
+			aff.final_intro_line = "PER ARDUA AD ASTRA"
 		if(FACTION_PMC)
 			aff.display_code = "W-Y"
 			aff.display_name = "Weyland-Yutani Corporation"
@@ -85,6 +109,12 @@
 			aff.accent_color = "#4488FF"
 			aff.logo_text = "W-Y"
 			aff.header_label = "WEYLAND-YUTANI CORPORATION"
+			aff.boot_prefix = "WY-TERMINAL"
+			aff.security_label = "ENCRYPTED CHANNEL"
+			aff.identity_label = "W-Y CONTRACTOR FILE"
+			aff.manifest_label = "TEAM MANIFEST"
+			aff.deployment_label = "CONTRACT ACTIVE"
+			aff.final_intro_line = "BUILDING BETTER WORLDS"
 		if(FACTION_UPP)
 			aff.display_code = "UPP"
 			aff.display_name = "UNION OF PROGRESSIVE PEOPLES"
@@ -94,6 +124,12 @@
 			aff.accent_color = "#FFAA44"
 			aff.logo_text = "UPP"
 			aff.header_label = "UNION OF PROGRESSIVE PEOPLES"
+			aff.boot_prefix = "UPP-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "UPP PERSONNEL FILE"
+			aff.manifest_label = "UNIT MANIFEST"
+			aff.deployment_label = "READY FOR DEPLOYMENT"
+			aff.final_intro_line = "FOR THE UNION"
 		if(FACTION_TWE)
 			aff.display_code = "TWE"
 			aff.display_name = "THREE WORLD EMPIRE"
@@ -103,6 +139,12 @@
 			aff.accent_color = "#FFAA44"
 			aff.logo_text = "TWE"
 			aff.header_label = "THREE WORLD EMPIRE"
+			aff.boot_prefix = "TWE-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "TWE PERSONNEL FILE"
+			aff.manifest_label = "UNIT MANIFEST"
+			aff.deployment_label = "READY FOR DEPLOYMENT"
+			aff.final_intro_line = "FOR THE EMPIRE"
 		else
 			aff.display_code = uppertext(human.faction) || "UNKNOWN"
 			aff.display_name = uppertext(human.faction) || "UNKNOWN FACTION"
@@ -112,6 +154,12 @@
 			aff.accent_color = "#FFAA44"
 			aff.logo_text = "SYS"
 			aff.header_label = "CRYOGENIC REVIVAL SYSTEM"
+			aff.boot_prefix = "SYS-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "SYSTEM PERSONNEL FILE"
+			aff.manifest_label = "UNIT MANIFEST"
+			aff.deployment_label = "AWAITING DEPLOYMENT"
+			aff.final_intro_line = "STANDBY"
 
 	// ODST override: check if squad/job indicates ODST
 	if(human.faction == FACTION_UNSC)
@@ -121,12 +169,24 @@
 			aff.unit_name = "ORBITAL DROP SHOCK TROOPERS"
 			aff.logo_text = "ODST"
 			aff.header_label = "ORBITAL DROP SHOCK TROOPERS"
+			aff.boot_prefix = "ODST-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "ODST PERSONNEL FILE"
+			aff.manifest_label = "SQUAD MANIFEST"
+			aff.deployment_label = "READY FOR DROP"
+			aff.final_intro_line = "FEET FIRST INTO HELL"
 		else if(human.job && findtext(lowertext(human.job), "odst"))
 			aff.display_code = "ODST"
 			aff.display_name = "Orbital Drop Shock Troopers"
 			aff.unit_name = "ORBITAL DROP SHOCK TROOPERS"
 			aff.logo_text = "ODST"
 			aff.header_label = "ORBITAL DROP SHOCK TROOPERS"
+			aff.boot_prefix = "ODST-TERMINAL"
+			aff.security_label = "SECURE CHANNEL"
+			aff.identity_label = "ODST PERSONNEL FILE"
+			aff.manifest_label = "SQUAD MANIFEST"
+			aff.deployment_label = "READY FOR DROP"
+			aff.final_intro_line = "FEET FIRST INTO HELL"
 
 	// Squad name
 	if(human.assigned_squad)

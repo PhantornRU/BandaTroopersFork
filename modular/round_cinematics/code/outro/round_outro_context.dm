@@ -23,12 +23,22 @@
 	map_name = SSmapping.configs[GROUND_MAP]?.map_name || SSmapping.configs[SHIP_MAP]?.map_name || "НЕИЗВЕСТНАЯ ЛОКАЦИЯ"
 	operation_name = round_cinematics_safe_text(mode?.name, "НЕИЗВЕСТНАЯ ОПЕРАЦИЯ")
 
+	var/channel_state = "ЧАСТИЧНЫЙ СИГНАЛ"
+	if(outcome)
+		switch(outcome.classification)
+			if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+				channel_state = "СТАБИЛЕН"
+			if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+				channel_state = "ПОВРЕЖДЁН"
+
 	summary_lines = list(
+		"ОПЕРАЦИОННЫЙ АРХИВ: [html_encode(operation_name)]",
 		"ОПЕРАЦИЯ: [html_encode(operation_name)]",
-		"ЛОКАЦИЯ: [html_encode(map_name)]",
+		"ТЕАТР БОЕВЫХ ДЕЙСТВИЙ: [html_encode(map_name)]",
+		"РЕЖИМ: [html_encode(outcome?.is_override ? "АДМИН-ОВЕРРАЙД" : "АВТО")]",
 		"ИСХОД: [html_encode(outcome?.title || "НЕОПРЕДЕЛЕННЫЙ ИСХОД")]",
-		"ДЕТАЛИ: [html_encode(outcome?.detail || "НЕОПРЕДЕЛЕННЫЙ ИСХОД")]",
-		"РЕЖИМ: [html_encode(outcome?.is_override ? "АДМИН-ОВЕРРАЙД" : "АВТО")]"
+		"ИСТОЧНИК ИСХОДА: [html_encode(outcome?.detail || "НЕОПРЕДЕЛЕННЫЙ ИСХОД")]",
+		"СОСТОЯНИЕ КАНАЛА: [html_encode(channel_state)]"
 	)
 
 	build_participants()
