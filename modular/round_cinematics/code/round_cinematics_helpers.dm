@@ -20,7 +20,7 @@
 /proc/cmp_participant_squad_asc(datum/round_cinematics_participant_record/a, datum/round_cinematics_participant_record/b)
 	return sorttext(a.squad, b.squad)
 
-/proc/round_cinematics_safe_text(value, fallback = "UNKNOWN")
+/proc/round_cinematics_safe_text(value, fallback = "НЕИЗВЕСТНО")
 	if(isnull(value) || !length("[value]"))
 		return fallback
 	return "[value]"
@@ -53,30 +53,30 @@
 
 /proc/round_cinematics_paygrade_prefix(obj/item/card/id/card)
 	if(!istype(card))
-		return "UNKWN"
+		return "Н/Д"
 	var/datum/paygrade/paygrade = GLOB.paygrades[card.paygrade]
-	return paygrade?.prefix || "UNKWN"
+	return paygrade?.prefix || "Н/Д"
 
 /proc/round_cinematics_human_rank(mob/living/carbon/human/human)
 	if(!istype(human))
-		return "UNKWN"
+		return "Н/Д"
 	var/obj/item/card/id/card = human.get_idcard()
 	return round_cinematics_paygrade_prefix(card)
 
 /proc/round_cinematics_human_role(mob/living/carbon/human/human)
 	if(!istype(human))
-		return "UNKWN"
+		return "НЕИЗВЕСТНО"
 	var/obj/item/card/id/card = human.get_idcard()
 	return round_cinematics_safe_text(card?.assignment || human.job)
 
 /proc/round_cinematics_human_squad(mob/living/carbon/human/human)
 	if(!istype(human))
-		return "UNKNOWN"
+		return "НЕИЗВЕСТНО"
 	return round_cinematics_safe_text(human.assigned_squad?.name)
 
 /proc/round_cinematics_human_ship_profile_label(mob/living/carbon/human/human)
 	if(!istype(human))
-		return "3rd Bat. 'Banda Troopers'"
+		return "3-й батальон «Banda Troopers»"
 
 	var/list/ship_profile = null
 	if(human.faction == FACTION_UNSC)
@@ -88,16 +88,16 @@
 	switch(human.faction)
 		if(FACTION_MARINE)
 			if(human.assigned_squad && human.assigned_squad.name == SQUAD_LRRP)
-				return "Snake Eaters"
-			return "3rd Bat. 'Banda Troopers'"
+				return "Пожиратели змей"
+			return "3-й батальон «Banda Troopers»"
 		if(FACTION_UPP)
-			return "Red Dawn"
+			return "Красный рассвет"
 		if(FACTION_PMC)
-			return "Azure-15"
+			return "АЗУР-15"
 		if(FACTION_TWE)
-			return "Gamma Troop"
+			return "Гамма-отряд"
 
-	return "3rd Bat. 'Banda Troopers'"
+	return "3-й батальон «Banda Troopers»"
 
 /proc/round_cinematics_human_status(mob/living/carbon/human/human)
 	if(!istype(human))
@@ -189,3 +189,18 @@
 	// Неизвестные строки (например, xenovsxeno: "The X hive has won.")
 	log_debug("round_cinematics: unknown round_finished value: [value]")
 	return ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
+
+/// Возвращает русское display-имя фракции по faction_id.
+/proc/round_cinematics_faction_display_name(faction)
+	switch(faction)
+		if(FACTION_MARINE)
+			return "Корпус Морской Пехоты США"
+		if(FACTION_UNSC)
+			return "Космическое Командование ООН"
+		if(FACTION_PMC)
+			return "Корпорация Вейланд-Ютани"
+		if(FACTION_UPP)
+			return "Союз Прогрессивных Народов"
+		if(FACTION_TWE)
+			return "Империя Трёх Миров"
+	return round_cinematics_safe_text(faction, "НЕИЗВЕСТНАЯ ФРАКЦИЯ")

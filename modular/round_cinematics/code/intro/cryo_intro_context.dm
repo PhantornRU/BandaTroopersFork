@@ -59,17 +59,6 @@
 		for(var/line in affiliation.build_intro_lines())
 			personal_lines += html_encode(line)
 
-	// Additional affiliation-driven fields
-	if(affiliation)
-		if(length(affiliation.unit_name))
-			personal_lines += "ПОДРАЗДЕЛЕНИЕ: [html_encode(affiliation.unit_name)]"
-		if(length(affiliation.ship_name))
-			personal_lines += "КОРАБЛЬ: [html_encode(affiliation.ship_name)]"
-		if(length(affiliation.ground_map_name))
-			personal_lines += "ЗОНА ОПЕРАЦИИ: [html_encode(affiliation.ground_map_name)]"
-		if(length(affiliation.operation_name))
-			personal_lines += "ОПЕРАЦИЯ: [html_encode(affiliation.operation_name)]"
-
 	// Final access confirmation
 	personal_lines += "ДОСТУП: ПОДТВЕРЖДЁН"
 

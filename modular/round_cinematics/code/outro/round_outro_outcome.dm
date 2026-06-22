@@ -42,15 +42,15 @@
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
 			title = "ПОБЕДА ОПЕРАЦИИ"
-			detail = "МОРСКАЯ ПЕХОТА СОХРАНИЛА КОНТРОЛЬ"
+			detail = "ОПЕРАТИВНЫЙ КОНТРОЛЬ СОХРАНЁН"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
 			title = "ПРОВАЛ ОПЕРАЦИИ"
-			detail = "БОЕВАЯ ГРУППА ПОТЕРЯЛА КОНТРОЛЬ"
+			detail = "ОПЕРАТИВНЫЙ КОНТРОЛЬ УТРАЧЕН"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
 		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
 			title = "ИСХОД НЕ ПОДТВЕРЖДЁН"
-			detail = "НЕДОСТАТОЧНО ДАННЫХ"
+			detail = "КОМАНДОВАНИЕ НЕ ПОЛУЧИЛО ПОЛНЫХ ДАННЫХ"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 	apply_outcome_profile()
 

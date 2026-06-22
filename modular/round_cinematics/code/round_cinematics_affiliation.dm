@@ -165,10 +165,10 @@
 	if(human.faction == FACTION_UNSC)
 		if(human.assigned_squad && findtext(lowertext(human.assigned_squad.name), "odst"))
 			aff.display_code = "ОДШВ"
-			aff.display_name = "Орбитальный Десант Шоковых Войск"
-			aff.unit_name = "ОРБИТАЛЬНЫЙ ДЕСАНТ ШОКОВЫХ ВОЙСК"
+			aff.display_name = "Орбитальные десантно-штурмовые войска"
+			aff.unit_name = "ОРБИТАЛЬНЫЕ ДЕСАНТНО-ШТУРМОВЫЕ ВОЙСКА"
 			aff.logo_text = "ОДШВ"
-			aff.header_label = "ОРБИТАЛЬНЫЙ ДЕСАНТ ШОКОВЫХ ВОЙСК"
+			aff.header_label = "ОРБИТАЛЬНЫЕ ДЕСАНТНО-ШТУРМОВЫЕ ВОЙСКА"
 			aff.boot_prefix = "ОДШВ-ТЕРМИНАЛ"
 			aff.security_label = "ЗАЩИЩЁННЫЙ КАНАЛ"
 			aff.identity_label = "ЛИЧНОЕ ДЕЛО ОДШВ"
@@ -177,10 +177,10 @@
 			aff.final_intro_line = "НОГАМИ ВПЕРЁД В АД"
 		else if(human.job && findtext(lowertext(human.job), "odst"))
 			aff.display_code = "ОДШВ"
-			aff.display_name = "Орбитальный Десант Шоковых Войск"
-			aff.unit_name = "ОРБИТАЛЬНЫЙ ДЕСАНТ ШОКОВЫХ ВОЙСК"
+			aff.display_name = "Орбитальные десантно-штурмовые войска"
+			aff.unit_name = "ОРБИТАЛЬНЫЕ ДЕСАНТНО-ШТУРМОВЫЕ ВОЙСКА"
 			aff.logo_text = "ОДШВ"
-			aff.header_label = "ОРБИТАЛЬНЫЙ ДЕСАНТ ШОКОВЫХ ВОЙСК"
+			aff.header_label = "ОРБИТАЛЬНЫЕ ДЕСАНТНО-ШТУРМОВЫЕ ВОЙСКА"
 			aff.boot_prefix = "ОДШВ-ТЕРМИНАЛ"
 			aff.security_label = "ЗАЩИЩЁННЫЙ КАНАЛ"
 			aff.identity_label = "ЛИЧНОЕ ДЕЛО ОДШВ"

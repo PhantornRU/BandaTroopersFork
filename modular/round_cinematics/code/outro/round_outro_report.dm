@@ -63,8 +63,8 @@
 		"ПОГИБЛИ: [stats.personnel_dead]",
 		"НЕТ СИГНАЛА: [stats.personnel_missing]",
 		"",
-		"УНИЧТОЖЕНИЕ",
-		"ВСЕГО: [stats.destruction_total]"
+		"ПРОЧИЕ КОНТАКТЫ",
+		"ВСЕГО УЧТЕНО: [stats.destruction_total]"
 	)
 	var/color = context.outcome?.accent_color || "#E4EAF8"
 	return round_cinematics_html_block("СВОДКА", round_cinematics_join_lines(summary_counts), color)
@@ -121,7 +121,7 @@
 	for(var/faction_name in by_faction)
 		var/list/fs = by_faction[faction_name]
 		summary += ""
-		summary += "[uppertext(faction_name)]"
+		summary += "[round_cinematics_faction_display_name(faction_name)]"
 		summary += "  ВСЕГО: [fs["total"]]"
 		summary += "  В СТРОЮ: [fs["active"]]"
 		summary += "  РАНЕНЫ: [fs["incapacitated"]]"
