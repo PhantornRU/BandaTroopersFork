@@ -48,6 +48,8 @@
 
 /datum/round_cinematics_outro_context/proc/build_participants()
 	participant_records = list()
+	/// Порядок фиксированный (не per-client): стартовый состав по отрядам → без отряда → прочие потери.
+	/// Сортировка выполняется в build_pages() через sort_personnel_records().
 	// Получаем список стартового состава из контроллера
 	var/list/initial_crew = list()
 	if(GLOB.round_cinematics)
