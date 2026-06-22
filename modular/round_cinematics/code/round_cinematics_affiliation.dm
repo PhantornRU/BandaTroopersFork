@@ -36,15 +36,15 @@
 	if(length(display_code))
 		lines += "[display_code] — [display_name]"
 	if(length(unit_name))
-		lines += "UNIT: [unit_name]"
+		lines += "ЧАСТЬ: [unit_name]"
 	if(length(squad_name))
-		lines += "SQUAD: [squad_name]"
+		lines += "ОТРЯД: [squad_name]"
 	if(length(ship_name))
-		lines += "SHIP: [ship_name]"
+		lines += "КОРАБЛЬ: [ship_name]"
 	if(length(ground_map_name))
-		lines += "AO: [ground_map_name]"
+		lines += "ЗОНА ОПЕРАЦИИ: [ground_map_name]"
 	if(length(operation_name))
-		lines += "OPERATION: [operation_name]"
+		lines += "ОПЕРАЦИЯ: [operation_name]"
 	return lines
 
 /// Resolve affiliation data for a human mob.
@@ -117,10 +117,16 @@
 	if(human.faction == FACTION_UNSC)
 		if(human.assigned_squad && findtext(lowertext(human.assigned_squad.name), "odst"))
 			aff.display_code = "ODST"
+			aff.display_name = "Orbital Drop Shock Troopers"
 			aff.unit_name = "ORBITAL DROP SHOCK TROOPERS"
+			aff.logo_text = "ODST"
+			aff.header_label = "ORBITAL DROP SHOCK TROOPERS"
 		else if(human.job && findtext(lowertext(human.job), "odst"))
 			aff.display_code = "ODST"
+			aff.display_name = "Orbital Drop Shock Troopers"
 			aff.unit_name = "ORBITAL DROP SHOCK TROOPERS"
+			aff.logo_text = "ODST"
+			aff.header_label = "ORBITAL DROP SHOCK TROOPERS"
 
 	// Squad name
 	if(human.assigned_squad)
