@@ -34,5 +34,6 @@ GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
 	GLOB.round_cinematics?.cleanup_all("roundstart_reset")
 
 /datum/modpack/round_cinematics/proc/handle_roundend()
-	var/datum/round_cinematics_outcome_input/input = new /datum/round_cinematics_outcome_input(SSticker?.mode, SSticker?.mode?.round_finished, null, "roundend")
+	var/admin_override = GLOB.round_cinematics?.admin_outcome_override?.id
+	var/datum/round_cinematics_outcome_input/input = new /datum/round_cinematics_outcome_input(SSticker?.mode, SSticker?.mode?.round_finished, admin_override, "roundend")
 	GLOB.round_cinematics?.try_start_round_outro(input)
