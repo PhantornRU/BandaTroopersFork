@@ -49,8 +49,7 @@
 		lines += "[display_code] — [display_name]"
 	if(length(unit_name))
 		lines += "ЧАСТЬ: [unit_name]"
-	if(length(squad_name))
-		lines += "ОТРЯД: [squad_name]"
+	// ОТРЯД убран — squad_name уже есть в базовом dossier
 	if(length(ship_name))
 		lines += "КОРАБЛЬ: [ship_name]"
 	if(length(ground_map_name))
@@ -72,7 +71,7 @@
 	switch(human.faction)
 		if(FACTION_MARINE)
 			aff.display_code = "КМП США"
-			aff.display_name = "Корпус Морской Пехоты США"
+			aff.display_name = "Корпус морской пехоты США"
 			aff.unit_name = "3-й Батальон 'Банда Десантников'"
 			aff.visual_profile_id = "intro_universal"
 			aff.header_color = "#33FF33"
@@ -84,10 +83,10 @@
 			aff.identity_label = "ЛИЧНОЕ ДЕЛО КМП США"
 			aff.manifest_label = "СОСТАВ ОТРЯДА"
 			aff.deployment_label = "ГОТОВ К РАЗВЁРТЫВАНИЮ"
-			aff.final_intro_line = "СЕМПЕР ФИ"
+			aff.final_intro_line = "КРИОЗАМОК СНЯТ. ОРУЖИЕ К БОЮ."
 		if(FACTION_UNSC)
 			aff.display_code = "КК ООН"
-			aff.display_name = "Космическое Командование ООН"
+			aff.display_name = "Космическое командование ООН"
 			aff.unit_name = "СИЛЫ КК ООН"
 			aff.visual_profile_id = "intro_universal"
 			aff.header_color = "#33CCFF"
@@ -117,7 +116,7 @@
 			aff.final_intro_line = "СТРОИМ ЛУЧШИЕ МИРЫ"
 		if(FACTION_UPP)
 			aff.display_code = "СПН"
-			aff.display_name = "Союз Прогрессивных Народов"
+			aff.display_name = "Союз прогрессивных народов"
 			aff.unit_name = "КРАСНЫЙ РАССВЕТ"
 			aff.visual_profile_id = "intro_universal"
 			aff.header_color = "#FFAA44"
@@ -129,10 +128,10 @@
 			aff.identity_label = "ЛИЧНОЕ ДЕЛО СПН"
 			aff.manifest_label = "СОСТАВ ПОДРАЗДЕЛЕНИЯ"
 			aff.deployment_label = "ГОТОВ К РАЗВЁРТЫВАНИЮ"
-			aff.final_intro_line = "ЗА СОЮЗ"
+			aff.final_intro_line = "СИСТЕМА ПРОБУЖДЕНИЯ ЗАВЕРШЕНА. ВЫПОЛНЯЙТЕ ПРИКАЗ."
 		if(FACTION_TWE)
 			aff.display_code = "ИТМ"
-			aff.display_name = "Империя Трёх Миров"
+			aff.display_name = "Империя трёх миров"
 			aff.unit_name = "ГАММА-ОТРЯД"
 			aff.visual_profile_id = "intro_universal"
 			aff.header_color = "#FFAA44"
@@ -144,7 +143,7 @@
 			aff.identity_label = "ЛИЧНОЕ ДЕЛО ИТМ"
 			aff.manifest_label = "СОСТАВ ПОДРАЗДЕЛЕНИЯ"
 			aff.deployment_label = "ГОТОВ К РАЗВЁРТЫВАНИЮ"
-			aff.final_intro_line = "ЗА ИМПЕРИЮ"
+			aff.final_intro_line = "ПРОБУЖДЕНИЕ ЗАВЕРШЕНО. СЛУЖБА ПРОДОЛЖАЕТСЯ."
 		else
 			aff.display_code = uppertext(human.faction) || "НЕИЗВ"
 			aff.display_name = uppertext(human.faction) || "НЕИЗВЕСТНАЯ ФРАКЦИЯ"

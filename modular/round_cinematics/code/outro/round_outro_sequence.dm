@@ -90,27 +90,32 @@
 		glitch.letters_per_update = 8
 		glitch.play_delay = 0.1
 
-	// Outcome splash phase
+	// Outcome splash phase — две строки: крупная первая + мелкая вторая
 	phases += new /datum/round_cinematics_phase
 	var/datum/round_cinematics_phase/splash = phases[phases.len]
 	splash.name = "outcome_splash"
-	var/splash_text = ""
+	var/splash_line1 = ""
+	var/splash_line2 = ""
 	var/splash_color = "#FFFFFF"
 	if(context.outcome)
 		switch(context.outcome.id)
 			if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
-				splash_text = "ОПЕРАЦИЯ ЗАВЕРШЕНА: ПОБЕДА"
+				splash_line1 = "ПОБЕДА ОПЕРАЦИИ"
+				splash_line2 = "ОПЕРАТИВНЫЙ КОНТРОЛЬ СОХРАНЁН"
 				splash_color = "#44FF44"
 			if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
-				splash_text = "ОПЕРАЦИЯ ЗАВЕРШЕНА: ПОРАЖЕНИЕ"
+				splash_line1 = "ПРОВАЛ ОПЕРАЦИИ"
+				splash_line2 = "ОПЕРАТИВНЫЙ КОНТРОЛЬ УТРАЧЕН"
 				splash_color = "#FF4444"
 			if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
-				splash_text = "ОПЕРАЦИЯ ЗАВЕРШЕНА: НЕОПРЕДЕЛЁННЫЙ ИСХОД"
+				splash_line1 = "ИСХОД НЕ ПОДТВЕРЖДЁН"
+				splash_line2 = "КОМАНДОВАНИЕ НЕ ПОЛУЧИЛО ПОЛНЫХ ДАННЫХ"
 				splash_color = "#FFAA44"
 			else
-				splash_text = "ОПЕРАЦИЯ ЗАВЕРШЕНА"
+				splash_line1 = "ОПЕРАЦИЯ ЗАВЕРШЕНА"
+				splash_line2 = ""
 				splash_color = "#DCE6F6"
-	splash.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:18pt; font-weight:bold; color:[splash_color];'>[html_encode(splash_text)]</span>"
+	splash.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; color:[splash_color];'><span style='font-size:14pt;font-weight:bold;'>[html_encode(splash_line1)]</span>[splash_line2 ? "<br><span style='font-size:10pt;'>[html_encode(splash_line2)]</span>" : ""]</span>"
 	splash.fullscreen_specs = list(
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 		list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)

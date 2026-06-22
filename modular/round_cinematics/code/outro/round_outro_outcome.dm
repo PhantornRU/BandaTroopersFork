@@ -94,7 +94,16 @@
 	var/datum/round_cinematics_outcome/outcome = new(classification_id, FALSE)
 	outcome.raw_result = result
 	outcome.title = round_cinematics_round_finished_label(result)
-	outcome.detail = round_cinematics_safe_text(result, "ИСХОД НЕ ОПРЕДЕЛЁН")
+	// detail выставляется по classification_id, а не из raw result
+	switch(classification_id)
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+			outcome.detail = "СОЮЗНЫЕ СИЛЫ СОХРАНИЛИ ОПЕРАТИВНЫЙ КОНТРОЛЬ"
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+			outcome.detail = "СОЮЗНЫЕ СИЛЫ УТРАТИЛИ ОПЕРАТИВНЫЙ КОНТРОЛЬ"
+		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
+			outcome.detail = "КОМАНДОВАНИЕ НЕ ПОЛУЧИЛО ДОСТАТОЧНО ДАННЫХ"
+		else
+			outcome.detail = "ИСХОД НЕ ПОДТВЕРЖДЁН"
 	outcome.classification = classification_id
 	outcome.apply_outcome_profile()
 	return outcome
