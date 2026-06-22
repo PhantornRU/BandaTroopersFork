@@ -32,9 +32,10 @@
 	affiliation = resolve_affiliation(subject)
 
 	var/terminal_name = affiliation?.header_label || "CRYOGENIC REVIVAL SYSTEM"
+	var/terminal_header = "[html_encode(terminal_name)]: ИНИЦИАЛИЗАЦИЯ..."
 
 	boot_lines = list(
-		"[html_encode(terminal_name)]: ИНИЦИАЛИЗАЦИЯ...",
+		terminal_header,
 		"ПИТАНИЕ: НОРМА",
 		"ЖИЗНЕОБЕСПЕЧЕНИЕ: НОРМА",
 		"ТЕРМОРЕГУЛЯЦИЯ: 36.6°C",
