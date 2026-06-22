@@ -31,7 +31,7 @@
 	// Resolve affiliation for faction-specific data
 	affiliation = resolve_affiliation(subject)
 
-	var/terminal_name = affiliation?.terminal_system_name || "CRYOGENIC REVIVAL SYSTEM"
+	var/terminal_name = affiliation?.header_label || "CRYOGENIC REVIVAL SYSTEM"
 
 	boot_lines = list(
 		"[html_encode(terminal_name)]: ПРОТОКОЛ ПРОБУЖДЕНИЯ АКТИВИРОВАН",
@@ -54,6 +54,9 @@
 			personal_lines += html_encode(line)
 
 	build_manifest()
+
+/datum/round_cinematics_intro_context/proc/get_accent_color()
+	return affiliation?.accent_color || "#33FF33"
 
 /datum/round_cinematics_intro_context/proc/build_manifest()
 	manifest_entries = list()

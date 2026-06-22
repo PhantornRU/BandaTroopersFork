@@ -15,8 +15,6 @@
 	var/ground_map_name = ""
 	/// Operation name from SSticker.mode
 	var/operation_name = ""
-	/// Terminal system name override (e.g. "CRYOGENIC REVIVAL SYSTEM")
-	var/terminal_system_name = ""
 	/// Logo text for header
 	var/logo_text = "BW"
 	/// Visual profile id to use

@@ -160,7 +160,8 @@
 				if("Inconclusive")
 					GLOB.round_cinematics.set_admin_outcome(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
 
-	SSticker.mode.round_finished = MODE_INFESTATION_DRAW_DEATH
+	if(!SSticker.mode.round_finished)
+		SSticker.mode.round_finished = MODE_INFESTATION_DRAW_DEATH
 	message_admins("[key_name(usr)] has made the round end early.")
 	for(var/client/C in GLOB.admins)
 		to_chat(C, {"
