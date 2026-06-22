@@ -1,5 +1,15 @@
 /datum/round_cinematics_sequence/cryo_intro
 
+/datum/round_cinematics_sequence/cryo_intro/get_header_html()
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:10pt; color:#33FF33;'>"
+	var/style_close = "</span>"
+	return "[style_open]┌ BW &#9608; CRYOGENIC REVIVAL SYSTEM v2.1.4 ┐<br>SECURE CHANNEL &#9608; ENCRYPTED[style_close]"
+
+/datum/round_cinematics_sequence/cryo_intro/get_footer_html()
+	var/style_open = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:9pt; color:#33FF33;'>"
+	var/style_close = "</span>"
+	return "[style_open]└ > READY ┘<br>\[PWR: NOMINAL\] \[LIFE SUPPORT: ACTIVE\][style_close]"
+
 /datum/round_cinematics_sequence/cryo_intro/New(datum/round_cinematics_intro_context/context)
 	..()
 	if(!context)
@@ -48,4 +58,33 @@
 		manifest.fade_out_time = 0.75 SECONDS
 		manifest.letters_per_update = 3
 		manifest.play_delay = 0.35
+
+	// Phase 4: deployment
+	phases += new /datum/round_cinematics_phase
+	var/datum/round_cinematics_phase/deployment = phases[phases.len]
+	deployment.name = "deployment"
+	deployment.raw_html = "<span class='langchat' style='text-align:center; font-family:\"VCR OSD Mono\", monospace; font-size:10pt; color:#44FF44;'>СТАТУС: ГОТОВ К РАЗВЁРТЫВАНИЮ</span>"
+	deployment.fullscreen_specs = list(
+		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
+		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)
+	)
+	deployment.sound = 'sound/effects/cryo_opening.ogg'
+	deployment.sound_volume = 50
+	deployment.display_time = 2 SECONDS
+	deployment.fade_out_time = 0.5 SECONDS
+	deployment.letters_per_update = 5
+	deployment.play_delay = 0.2
+
+	// Phase 5: finish (fade-out)
+	phases += new /datum/round_cinematics_phase
+	var/datum/round_cinematics_phase/finish = phases[phases.len]
+	finish.name = "finish"
+	finish.raw_html = ""
+	finish.fullscreen_specs = list(
+		list("category" = ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0)
+	)
+	finish.display_time = 1 SECONDS
+	finish.fade_out_time = 0.5 SECONDS
+	finish.letters_per_update = 0
+	finish.play_delay = 0
 

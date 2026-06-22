@@ -18,7 +18,7 @@
 
 	var/list/chunks = list()
 	if(length(title))
-		chunks += "<div style='color:[color];font-family:\"Courier New\", monospace;font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
+		chunks += "<div style='color:[color];font-family:\"VCR OSD Mono\", monospace;font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
 	return chunks.Join("<br>")
 
 /datum/round_cinematics_phase/proc/get_duration()

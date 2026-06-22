@@ -2,8 +2,8 @@
 #define ROUND_CINEMATICS_INTRO_HARD_TIMEOUT (20 SECONDS)
 #define ROUND_CINEMATICS_INTRO_PAGE_ROWS 6
 #define ROUND_CINEMATICS_OUTRO_PAGE_ROWS 6
-#define ROUND_CINEMATICS_TEXT_WIDTH 640
-#define ROUND_CINEMATICS_TEXT_HEIGHT 320
+#define ROUND_CINEMATICS_TEXT_WIDTH 800
+#define ROUND_CINEMATICS_TEXT_HEIGHT 480
 #define ROUND_CINEMATICS_TEXT_LETTERS 2
 #define ROUND_CINEMATICS_TEXT_DELAY 0.5
 #define ROUND_CINEMATICS_TEXT_HOLD 2 SECONDS
@@ -31,6 +31,10 @@ GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
 		return
 
 	SSticker.OnRoundstart(CALLBACK(src, PROC_REF(handle_roundstart)))
+	SSticker.OnRoundend(CALLBACK(src, PROC_REF(handle_roundend)))
 
 /datum/modpack/round_cinematics/proc/handle_roundstart()
 	GLOB.round_cinematics?.cleanup_all("roundstart_reset")
+
+/datum/modpack/round_cinematics/proc/handle_roundend()
+	GLOB.round_cinematics?.try_start_round_outro()

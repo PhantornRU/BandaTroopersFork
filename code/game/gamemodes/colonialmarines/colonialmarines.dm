@@ -483,7 +483,6 @@
 
 /datum/game_mode/colonialmarines/declare_completion()
 	announce_ending()
-	GLOB.round_cinematics?.try_start_round_outro()
 	var/musical_track
 	var/end_icon = "draw"
 	switch(round_finished)

@@ -3,10 +3,10 @@
 		return fallback
 	return "[value]"
 
-/proc/round_cinematics_html_block(title, body, color = "#DCE6F6")
+/proc/round_cinematics_html_block(title, body, color = "#33FF33")
 	var/list/chunks = list()
 	if(length("[title]"))
-		chunks += "<div style='color:[color];font-family:\"Courier New\", monospace;font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
+		chunks += "<div style='color:[color];font-family:\"VCR OSD Mono\", monospace;font-size:12pt;font-weight:bold;text-align:center;'>[html_encode(title)]</div>"
 	if(length("[body]"))
 		chunks += body
 	return chunks.Join("<br>")
@@ -118,6 +118,17 @@
 	return uppertext(cause.cause_name)
 
 /proc/round_cinematics_round_finished_label(value)
+	// Числовые значения (Whiskey Outpost: 1 = победа морпехов, 2 = поражение)
+	if(isnum(value))
+		switch(value)
+			if(1)
+				return "MARINE VICTORY"
+			if(2)
+				return "MARINE DEFEAT"
+			if(0)
+				return "INCONCLUSIVE"
+		return "UNDETERMINED OUTCOME ([value])"
+
 	switch(value)
 		if(MODE_INFESTATION_M_MAJOR, MODE_INFESTATION_M_MINOR)
 			return "MARINE VICTORY"
@@ -130,6 +141,19 @@
 	return round_cinematics_safe_text(value, "UNDETERMINED OUTCOME")
 
 /proc/round_cinematics_round_finished_classification(value)
+	// Числовые значения (Whiskey Outpost: 1 = победа морпехов, 2 = поражение)
+	if(isnum(value))
+		switch(value)
+			if(1)
+				return ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
+			if(2)
+				return ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
+			if(0)
+				return ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
+		log_debug("round_cinematics: unknown numeric round_finished value: [value]")
+		return ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
+
+	// Строковые значения
 	switch(value)
 		if(MODE_INFESTATION_M_MAJOR, MODE_INFESTATION_M_MINOR)
 			return ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
@@ -139,4 +163,7 @@
 			return ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 		if(MODE_INFECTION_ZOMBIE_WIN)
 			return ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
+
+	// Неизвестные строки (например, xenovsxeno: "The X hive has won.")
+	log_debug("round_cinematics: unknown round_finished value: [value]")
 	return ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE

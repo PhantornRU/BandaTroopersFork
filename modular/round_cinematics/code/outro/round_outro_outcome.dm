@@ -5,6 +5,14 @@
 	var/raw_result = null
 	var/classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 	var/is_override = FALSE
+	/// Цвет заголовка (header) аутро
+	var/header_color = "#88CCFF"
+	/// Цвет акцента / текста
+	var/accent_color = "#DCE6F6"
+	/// Интенсивность glitch-эффекта (0-1)
+	var/glitch_intensity = 0
+	/// Фраза под итогом
+	var/outcome_phrase = ""
 
 /datum/round_cinematics_outcome/New(id = ROUND_CINEMATICS_OUTCOME_AUTO, is_override = FALSE)
 	..()
@@ -27,6 +35,30 @@
 			title = "INCONCLUSIVE"
 			detail = "MANUAL OR AUTOMATIC ENDING WITHOUT A CLEAR WINNER"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
+	apply_outcome_profile()
+
+/datum/round_cinematics_outcome/proc/apply_outcome_profile()
+	switch(id)
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+			header_color = "#44FF44"
+			accent_color = "#AAFFAA"
+			glitch_intensity = 0.05
+			outcome_phrase = "ОПЕРАЦИЯ ЗАВЕРШЕНА УСПЕШНО"
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+			header_color = "#FF4444"
+			accent_color = "#FFAAAA"
+			glitch_intensity = 0.4
+			outcome_phrase = "ОПЕРАЦИЯ ЗАВЕРШЕНА НЕУДАЧНО"
+		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
+			header_color = "#FFAA44"
+			accent_color = "#FFDDAA"
+			glitch_intensity = 0.15
+			outcome_phrase = "ИСХОД ОПЕРАЦИИ НЕОПРЕДЕЛЁН"
+		else
+			header_color = "#88CCFF"
+			accent_color = "#DCE6F6"
+			glitch_intensity = 0
+			outcome_phrase = "ОТЧЁТ ОПЕРАЦИИ"
 
 /datum/round_cinematics_outcome/proc/copy()
 	var/datum/round_cinematics_outcome/clone = new(id, is_override)
@@ -34,6 +66,10 @@
 	clone.detail = detail
 	clone.raw_result = raw_result
 	clone.classification = classification
+	clone.header_color = header_color
+	clone.accent_color = accent_color
+	clone.glitch_intensity = glitch_intensity
+	clone.outcome_phrase = outcome_phrase
 	return clone
 
 /proc/round_cinematics_outcome_from_mode_result(result)

@@ -10,6 +10,7 @@
 	var/completion_reason = "cleanup"
 	var/list/active_texts = list()
 	var/list/active_fullscreens = list()
+	var/list/active_static_screens = list()
 	var/hud_hidden = FALSE
 	var/saved_hud_version = HUD_STYLE_STANDARD
 	var/saved_hud_shown = TRUE
@@ -33,6 +34,7 @@
 	if(source_pod && !preview)
 		RegisterSignal(source_pod, COMSIG_CRYOPOD_GO_OUT, PROC_REF(handle_pod_exit))
 	hide_hud()
+	apply_static_chrome()
 	INVOKE_ASYNC(src, PROC_REF(play_sequence))
 	if(hard_timeout_at > start_time)
 		addtimer(CALLBACK(controller, TYPE_PROC_REF(/datum/round_cinematics_controller, force_finish_for), owner, "hard timeout"), hard_timeout_at - start_time)
@@ -66,6 +68,8 @@
 		return null
 
 	screen.clear_with_screen = FALSE
+	screen.alpha = 0
+	animate(screen, alpha = initial(screen.alpha), time = 0.3 SECONDS)
 	if(!(category in active_fullscreens))
 		active_fullscreens += category
 	return screen
@@ -111,6 +115,44 @@
 		owner.clear_fullscreen(category, 0)
 	active_fullscreens.Cut()
 
+/datum/round_cinematics_session/proc/apply_static_chrome()
+	if(!client || cleaned_up)
+		return
+
+	// Header
+	var/atom/movable/screen/text/round_cinematics/header/header_screen = new
+	header_screen.player = client
+	header_screen.maptext = sequence?.get_header_html()
+	client.add_to_screen(header_screen)
+	active_static_screens += header_screen
+
+	// Footer
+	var/atom/movable/screen/text/round_cinematics/footer/footer_screen = new
+	footer_screen.player = client
+	footer_screen.maptext = sequence?.get_footer_html()
+	client.add_to_screen(footer_screen)
+	active_static_screens += footer_screen
+
+	// Scanline
+	var/atom/movable/screen/round_cinematics/scanline/scanline_screen = new
+	client.add_to_screen(scanline_screen)
+	active_static_screens += scanline_screen
+
+	// Vignette
+	var/atom/movable/screen/round_cinematics/vignette/vignette_screen = new
+	client.add_to_screen(vignette_screen)
+	active_static_screens += vignette_screen
+
+/datum/round_cinematics_session/proc/clear_static_chrome()
+	if(!length(active_static_screens))
+		return
+
+	for(var/atom/movable/screen/screen as anything in active_static_screens.Copy())
+		if(client)
+			client.remove_from_screen(screen)
+		qdel(screen)
+	active_static_screens.Cut()
+
 /datum/round_cinematics_session/proc/is_skip_allowed()
 	return skip_allowed_at && world.time >= skip_allowed_at
 
@@ -125,6 +167,7 @@
 		UnregisterSignal(source_pod, COMSIG_CRYOPOD_GO_OUT)
 	abort_texts()
 	clear_fullscreens()
+	clear_static_chrome()
 	restore_hud()
 	controller?.on_session_finished(src)
 

@@ -117,7 +117,6 @@
 
 /datum/game_mode/infection/declare_completion()
 	announce_ending()
-	GLOB.round_cinematics?.try_start_round_outro()
 	var/musical_track = pick('sound/theme/sad_loss1.ogg','sound/theme/sad_loss2.ogg')
 	world << musical_track
 

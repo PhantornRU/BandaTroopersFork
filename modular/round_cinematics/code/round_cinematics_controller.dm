@@ -28,23 +28,53 @@
 		return null
 	return intro_sessions[human]
 
-/datum/round_cinematics_controller/proc/try_start_cryo_intro(mob/living/carbon/human/human, preview = FALSE)
+/datum/round_cinematics_controller/proc/try_start_cryo_intro(mob/living/carbon/human/human, preview = FALSE, obj/structure/machinery/cryopod/pod = null)
 	if(!istype(human) || !human.client)
+		log_debug("round_cinematics: try_start_cryo_intro skipped for [human] — reason: no human or no client")
 		return FALSE
-	var/obj/structure/machinery/cryopod/pod = istype(human.loc, /obj/structure/machinery/cryopod) ? human.loc : null
 	if(!preview && !pod)
+		log_debug("round_cinematics: try_start_cryo_intro skipped for [human] — reason: no pod (not in cryopod and no pod passed)")
 		return FALSE
 	if(!preview && !SSticker?.intro_sequence)
+		log_debug("round_cinematics: try_start_cryo_intro skipped for [human] — reason: intro_sequence disabled")
 		return FALSE
 	if(human.stat == DEAD)
+		log_debug("round_cinematics: try_start_cryo_intro skipped for [human] — reason: dead")
 		return FALSE
 	if(get_intro_session(human))
+		log_debug("round_cinematics: try_start_cryo_intro skipped for [human] — reason: already has intro session")
 		return FALSE
 
 	var/datum/round_cinematics_session/intro/session = new /datum/round_cinematics_session/intro(src, human, pod, preview)
 	register_intro_session(session)
 	session.begin()
 	return TRUE
+
+/// Queue a cryo intro attempt. Retries up to max_attempts times with 1-second intervals.
+/datum/round_cinematics_controller/proc/queue_cryo_intro(mob/living/carbon/human/human, obj/structure/machinery/cryopod/pod, max_attempts = 5)
+	if(!istype(human))
+		return FALSE
+	if(get_intro_session(human))
+		log_debug("round_cinematics: queue_cryo_intro skipped for [human] — reason: already has intro session")
+		return FALSE
+	if(try_start_cryo_intro(human, FALSE, pod))
+		return TRUE
+	if(max_attempts <= 1)
+		log_debug("round_cinematics: queue_cryo_intro failed for [human] — reason: max attempts exhausted on first try")
+		return FALSE
+	addtimer(CALLBACK(src, PROC_REF(_queue_cryo_intro_tick), human, max_attempts - 1), 1 SECONDS)
+	return TRUE
+
+/datum/round_cinematics_controller/proc/_queue_cryo_intro_tick(mob/living/carbon/human/human, attempts_left)
+	if(!istype(human) || QDELETED(human) || !human.client)
+		return
+	var/obj/structure/machinery/cryopod/pod = human.spawn_cryopod
+	if(!pod)
+		pod = istype(human.loc, /obj/structure/machinery/cryopod) ? human.loc : null
+	if(try_start_cryo_intro(human, FALSE, pod))
+		return
+	if(attempts_left > 0)
+		addtimer(CALLBACK(src, PROC_REF(_queue_cryo_intro_tick), human, attempts_left - 1), 1 SECONDS)
 
 /datum/round_cinematics_controller/proc/handle_cryo_exit_attempt(obj/structure/machinery/cryopod/pod, mob/user)
 	if(!user)
@@ -80,7 +110,7 @@
 	return FALSE
 
 /datum/round_cinematics_controller/proc/preview_cryo_intro(mob/living/carbon/human/human)
-	return try_start_cryo_intro(human, TRUE)
+	return try_start_cryo_intro(human, TRUE, null)
 
 /datum/round_cinematics_controller/proc/set_admin_outcome(outcome, mob/admin)
 	if(outcome == ROUND_CINEMATICS_OUTCOME_AUTO)

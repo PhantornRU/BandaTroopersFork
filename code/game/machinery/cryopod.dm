@@ -452,8 +452,10 @@ GLOBAL_LIST_INIT(frozen_items, list(SQUAD_MARINE_1 = list(), SQUAD_MARINE_2 = li
 /obj/structure/machinery/cryopod/relaymove(mob/user)
 	if(user.is_mob_incapacitated(TRUE))
 		return
+	// SS220 EDIT - START
 	if(GLOB.round_cinematics?.handle_cryo_exit_attempt(src, user))
 		return
+	// SS220 EDIT - END
 	attempt_eject(user, FALSE, FALSE)
 
 /obj/structure/machinery/cryopod/proc/attempt_eject(mob/user, check_cinematics = TRUE, prompt_user = TRUE)
@@ -468,8 +470,10 @@ GLOBAL_LIST_INIT(frozen_items, list(SQUAD_MARINE_1 = list(), SQUAD_MARINE_2 = li
 	if(prompt_user && !silent_exit && alert(user, "Would you like eject out of the hypersleep chamber?", "Confirm", "Yes", "No") != "Yes")
 		return FALSE
 
+	// SS220 EDIT - START
 	if(check_cinematics && GLOB.round_cinematics?.handle_cryo_exit_attempt(src, user))
 		return FALSE
+	// SS220 EDIT - END
 
 	go_out() //Not adding a delay for this because for some reason it refuses to work. Not a big deal imo
 	add_fingerprint(user)

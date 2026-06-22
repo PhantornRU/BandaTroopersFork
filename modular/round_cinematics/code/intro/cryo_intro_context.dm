@@ -34,7 +34,6 @@
 	)
 
 	personal_lines = list(
-		"ЛИЧНОЕ ДЕЛО",
 		"ИМЯ: [html_encode(display_name)]",
 		"ЗВАНИЕ: [html_encode(display_rank)]",
 		"РОЛЬ: [html_encode(display_role)]",
@@ -56,6 +55,8 @@
 		if(is_ground_level(human.z))
 			continue
 		if(human.faction != subject.faction)
+			continue
+		if(human.assigned_squad != subject.assigned_squad)
 			continue
 
 		var/list/entry_lines = list(

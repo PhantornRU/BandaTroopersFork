@@ -1683,10 +1683,16 @@
 	INVOKE_ASYNC(target, TYPE_PROC_REF(/mob/living/carbon/human, update_hair))
 	INVOKE_ASYNC(target, TYPE_PROC_REF(/mob/living/carbon/human, play_opening_sequence))
 
+/// SS220 EDIT: cryopod reference captured at spawn for reliable cryo-intro start
+/mob/living/carbon/human/var/obj/structure/machinery/cryopod/spawn_cryopod = null
+
 /mob/living/carbon/human/proc/play_opening_sequence()
 	if(SSticker.intro_sequence)
 		// SS220 EDIT: delegate cryo intro to modular round cinematics
-		if(GLOB.round_cinematics?.try_start_cryo_intro(src))
+		var/obj/structure/machinery/cryopod/pod = spawn_cryopod
+		if(!pod)
+			pod = istype(loc, /obj/structure/machinery/cryopod) ? loc : null
+		if(GLOB.round_cinematics?.queue_cryo_intro(src, pod)) // SS220 EDIT
 			sleeping = 11
 		// SS220 EDIT - END
 
