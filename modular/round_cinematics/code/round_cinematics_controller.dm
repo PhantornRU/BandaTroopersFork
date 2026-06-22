@@ -223,12 +223,8 @@
 	if(!id)
 		return null
 	switch(id)
-		if("intro_uscm")
-			return new /datum/round_cinematics_visual_profile/intro_uscm
-		if("intro_unsc")
-			return new /datum/round_cinematics_visual_profile/intro_unsc
-		if("intro_wy")
-			return new /datum/round_cinematics_visual_profile/intro_wy
+		if("intro_universal")
+			return new /datum/round_cinematics_visual_profile/intro_universal
 		if("outro_victory")
 			return new /datum/round_cinematics_visual_profile/outro_victory
 		if("outro_defeat")

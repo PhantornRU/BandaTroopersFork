@@ -22,6 +22,8 @@
 	var/hard_timeout_at = 0
 	/// Saved sleeping value before session lock (P1.7)
 	var/saved_sleeping = 0
+	/// Whether to lock sleeping during this session (intro only)
+	var/should_lock_sleeping = FALSE
 
 /datum/round_cinematics_session/New(datum/round_cinematics_controller/controller, mob/owner, preview = FALSE)
 	..()
@@ -32,8 +34,8 @@
 
 /datum/round_cinematics_session/proc/begin()
 	start_time = world.time
-	// P1.7: Save sleeping before locking
-	if(isliving(owner))
+	// P1.7: Save sleeping before locking (only for intro sessions)
+	if(should_lock_sleeping && isliving(owner))
 		var/mob/living/L = owner
 		saved_sleeping = L.sleeping
 		// P1.8: Lock player during intro session
@@ -177,8 +179,8 @@
 	clear_fullscreens()
 	clear_static_chrome()
 	restore_hud()
-	// P1.7: Restore saved sleeping value
-	if(isliving(owner))
+	// P1.7: Restore saved sleeping value (only if we locked it)
+	if(should_lock_sleeping && isliving(owner))
 		var/mob/living/L = owner
 		L.sleeping = saved_sleeping
 	controller?.on_session_finished(src)

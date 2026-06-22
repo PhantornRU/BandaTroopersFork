@@ -136,7 +136,7 @@
 
 	// Defeat: glitch before splash, flicker during report
 	if(is_defeat)
-		session.effect_glitch(0.4, 1 SECONDS)
+		session.effect_glitch(0.4, 1 SECONDS, ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK)
 
 	for(var/datum/round_cinematics_phase/phase as anything in phases)
 		if(session.cleaned_up)
@@ -144,10 +144,10 @@
 
 		// Flicker effects during report phases
 		if(is_defeat && findtext(phase.name, "report_"))
-			session.effect_flicker(3, 0.5 SECONDS)
+			session.effect_flicker(3, 0.5 SECONDS, ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK)
 		else if(is_victory && findtext(phase.name, "report_"))
-			session.effect_flicker(1, 0.3 SECONDS)
+			session.effect_flicker(1, 0.3 SECONDS, ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK)
 		else if(is_inconclusive && findtext(phase.name, "report_"))
-			session.effect_flicker(2, 0.4 SECONDS)
+			session.effect_flicker(2, 0.4 SECONDS, ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK)
 
 		phase.play(session)

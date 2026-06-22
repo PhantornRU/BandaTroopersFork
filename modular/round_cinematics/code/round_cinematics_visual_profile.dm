@@ -30,40 +30,14 @@
 
 // --- Intro profiles ---
 
-/datum/round_cinematics_visual_profile/intro_uscm
-	id = "intro_uscm"
+/datum/round_cinematics_visual_profile/intro_universal
+	id = "intro_universal"
 	header_color = "#33FF33"
 	accent_color = "#33FF33"
 	background_color = "#000000"
 	warning_color = "#FF4444"
-	logo_text = "USCM"
-	header_label = "TERMINAL"
-	footer_label = "READY"
-	sound_boot = 'sound/effects/cryo_beep.ogg'
-	glitch_intensity = 0
-	flicker_count = 0
-
-/datum/round_cinematics_visual_profile/intro_unsc
-	id = "intro_unsc"
-	header_color = "#00CCCC"
-	accent_color = "#00AAAA"
-	background_color = "#000011"
-	warning_color = "#FF6644"
-	logo_text = "UNSC"
-	header_label = "TERMINAL"
-	footer_label = "READY"
-	sound_boot = 'sound/effects/cryo_beep.ogg'
-	glitch_intensity = 0
-	flicker_count = 0
-
-/datum/round_cinematics_visual_profile/intro_wy
-	id = "intro_wy"
-	header_color = "#4488FF"
-	accent_color = "#FFFFFF"
-	background_color = "#001122"
-	warning_color = "#FF4444"
-	logo_text = "W-Y"
-	header_label = "TERMINAL"
+	logo_text = "SYS"
+	header_label = "CRYOGENIC REVIVAL SYSTEM"
 	footer_label = "READY"
 	sound_boot = 'sound/effects/cryo_beep.ogg'
 	glitch_intensity = 0

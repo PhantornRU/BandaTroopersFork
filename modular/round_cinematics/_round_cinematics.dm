@@ -15,11 +15,6 @@
 #define ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK "round_cinematics_outro_black"
 #define ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT "round_cinematics_outro_crt"
 
-#define ROUND_CINEMATICS_OUTCOME_AUTO 0
-#define ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY 1
-#define ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT 2
-#define ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE 3
-
 GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
 
 /datum/modpack/round_cinematics

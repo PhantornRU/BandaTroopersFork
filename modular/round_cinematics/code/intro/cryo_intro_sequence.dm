@@ -38,6 +38,17 @@
 		return
 
 	profile = visual_profile
+
+	// Override profile visual fields from affiliation if available
+	if(context.affiliation)
+		var/datum/round_cinematics_affiliation/aff = context.affiliation
+		if(profile)
+			profile.header_color = aff.header_color
+			profile.accent_color = aff.accent_color
+			profile.logo_text = aff.logo_text
+			profile.header_label = aff.header_label
+			profile.footer_label = aff.footer_label
+
 	var/header_color = profile?.header_color || "#33FF33"
 	var/boot_sound = profile?.sound_boot || 'sound/effects/cryo_beep.ogg'
 	var/speed = profile?.typewriter_speed || ROUND_CINEMATICS_TEXT_DELAY

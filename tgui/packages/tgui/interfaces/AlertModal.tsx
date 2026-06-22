@@ -36,7 +36,7 @@ export function AlertModal(props) {
   const [selected, setSelected] = useState(0);
 
   // At least one of the buttons has a long text message
-  const isVerbose = buttons.some((button) => button.length > 14);
+  const isVerbose = buttons.some((button) => button.length > 10);
   const largeSpacing = isVerbose && large_buttons ? 20 : 15;
 
   // Dynamically sets window dimensions
@@ -46,7 +46,7 @@ export function AlertModal(props) {
     (message.length > 30 ? Math.ceil(message.length / 4) : 0) +
     (message.length && large_buttons ? 5 : 0);
 
-  const windowWidth = 360 + (buttons.length > 2 ? 55 : 0);
+  const windowWidth = 345 + (buttons.length > 2 ? 55 : 0);
 
   /** Changes button selection, etc */
   function keyDownHandler(event: KeyboardEvent<HTMLDivElement>) {
@@ -119,10 +119,10 @@ function HorizontalButtons(props: ButtonDisplayProps) {
       {buttons.map((button, index) => (
         <Stack.Item grow={large_buttons ? 1 : undefined} key={index}>
           <Button
-            ellipsis
             fluid={!!large_buttons}
-            minWidth={12}
+            minWidth={8}
             onClick={() => act('choose', { choice: button })}
+            overflowX="hidden"
             px={2}
             py={large_buttons ? 0.5 : 0}
             selected={selected === index}
@@ -161,10 +161,10 @@ function VerticalButtons(props: ButtonDisplayProps) {
           m={0}
         >
           <Button
-            ellipsis
             fluid
             minWidth={20}
             onClick={() => act('choose', { choice: button })}
+            overflowX="hidden"
             px={2}
             py={large_buttons ? 0.5 : 0}
             selected={selected === index}
