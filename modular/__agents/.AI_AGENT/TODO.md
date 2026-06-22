@@ -3,22 +3,18 @@
 ## Contract
 | ID | Type | Requirement | Status |
 | --- | --- | --- | --- |
-| D1 | MUST | Read the repo instructions and current cinematics code path. | DONE |
-| D2 | MUST | Rewrite PLAN, TODO, DECISIONS, and EVIDENCE for the round cinematics contract. | DONE |
-| D3 | MUST | Create `modular/round_cinematics/IMPLEMENTATION_NOTES.md`. | DONE |
-| D4 | MUST | Implement the new modular controller, session, sequence, and screen layer. | DONE |
-| D5 | MUST | Wire intro hooks from `human.dm` and cryo exit hooks from `cryopod.dm`. | DONE |
-| D6 | MUST | Wire round-end hooks from the active gamemode completion procs. | DONE |
-| D7 | MUST | Remove or retire the legacy `modular/fullscreen/**` and `modular/round_outro/**` implementations. | DONE |
-| D8 | MUST | Verify with `git diff --check` and the DM build. | DONE |
-| D9 | MUST | Wire the round-cinematics admin verbs into `code/modules/admin/admin_verbs.dm`. | DONE |
-| K1 | KEEP | Leave unrelated pre-existing dirty files alone unless the new flow truly depends on them. | DONE |
-| R1 | REJECT | Do not reintroduce HTML or TGUI as the v1 cinematic path. | DONE |
-| R2 | REJECT | Do not patch shared HUD or action systems if the module can hide and restore UI itself. | DONE |
-| C1 | CHECK | Record the discovery inventory and old-path audit in repo docs. | DONE |
+| M1 | MUST | Replace the ambiguous "large work" threshold with an approved-plan rule that applies before product-code/docs edits of any size. | DONE |
+| M2 | MUST | Define one ordered workflow: read-only discovery -> task-state contract -> challenge -> implementation -> audit/sync -> verification/final. | DONE |
+| M3 | MUST | Separate planning task-state edits from later product-code/docs mutating edits. | DONE |
+| M4 | MUST | Make `PASS WITH RISKS`, `BLOCKED`, and incomplete `MUST/KEEP/REJECT` statuses block false "done". | DONE |
+| M5 | MUST | Normalize test guidance so verification cannot replace plan fidelity when the user prioritizes plan implementation. | DONE |
+| M6 | MUST | Make subagent usage explicit: only when the user and higher-priority instructions allow it; otherwise self-challenge. | DONE |
+| K1 | KEEP | Keep modular-first, `rg`, build-tooling, UTF-8, and non-destructive git rules. | DONE |
+| R1 | REJECT | Do not add another overlapping rule layer that keeps old contradictions alive. | DONE |
+| C1 | CHECK | Run docs-level checks for diff whitespace and mojibake. | DONE |
 
-## Forbidden substitutions
-- Do not treat a browser wrapper as the new cinematic system.
-- Do not keep legacy outro reachable after the module rewrite.
-- Do not store long-lived cinematic state on `/mob/living/carbon/human`.
-- Do not spread the new logic across `code/**` when it can live in `modular/**`.
+## Forbidden Substitutions
+- Do not replace normalization with a small wording patch in only one file.
+- Do not keep "large task" as a gate for approved-plan contracts.
+- Do not make tests or compile checks the proof of plan fidelity.
+- Do not let old task-state about `outpost_radius` remain active for this docs task.
