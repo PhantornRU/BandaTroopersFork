@@ -20,18 +20,18 @@
 
 /datum/round_cinematics_sequence/cryo_intro/get_header_html()
 	var/color = profile?.header_color || "#33FF33"
-	var/logo = profile?.logo_text || "SYS"
-	var/label = profile?.header_label || "CRYOGENIC REVIVAL SYSTEM"
+	var/logo = profile?.logo_text || "СИСТ"
+	var/label = profile?.header_label || "СИСТЕМА КРИОГЕННОГО ПРОБУЖДЕНИЯ"
 	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[color];'>"
 	var/style_close = "</span>"
-	return "[style_open]┌ [html_encode(logo)] &#9608; [html_encode(label)] v2.1.4 ┐<br>SECURE CHANNEL &#9608; ENCRYPTED[style_close]"
+	return "[style_open]┌ [html_encode(logo)] █ [html_encode(label)] ┐<br>ЗАЩИЩЁННЫЙ КАНАЛ █ ДОСТУП ПОДТВЕРЖДЁН[style_close]"
 
 /datum/round_cinematics_sequence/cryo_intro/get_footer_html()
 	var/color = profile?.accent_color || "#33FF33"
-	var/footer = profile?.footer_label || "READY"
+	var/footer = profile?.footer_label || "ГОТОВ"
 	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:9pt; color:[color];'>"
 	var/style_close = "</span>"
-	return "[style_open]└ > [footer] ┘<br>\[PWR: NOMINAL\] \[LIFE SUPPORT: ACTIVE\][style_close]"
+	return "[style_open]└ > [footer] ┘<br>\[ПИТАНИЕ: НОРМА\] \[ЖИЗНЕОБЕСПЕЧЕНИЕ: АКТИВНО\][style_close]"
 
 /datum/round_cinematics_sequence/cryo_intro/New(datum/round_cinematics_intro_context/context, datum/round_cinematics_visual_profile/visual_profile = null)
 	..()

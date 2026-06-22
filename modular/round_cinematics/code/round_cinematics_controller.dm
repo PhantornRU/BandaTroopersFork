@@ -4,6 +4,8 @@
 	var/datum/round_cinematics_outro_context/outro_context = null
 	var/datum/round_cinematics_outcome/admin_outcome_override = null
 	var/outro_started = FALSE
+	/// Список референсов мобов, прошедших крио-интро (стартовый состав)
+	var/list/initial_crew_refs = list()
 
 /// Called when a human is assigned to a cryopod (roundstart or latejoin).
 /// Validates the human, pod, and client before queuing a cryo intro.
@@ -17,6 +19,9 @@
 	if(pod.occupant && pod.occupant != human)
 		return
 	log_debug("round_cinematics: on_human_assigned_cryo [human] pod=[pod] reason=[reason]")
+	// Запоминаем стартовый состав
+	if(!(human in initial_crew_refs))
+		initial_crew_refs += human
 	queue_cryo_intro(human, pod, 5)
 
 /datum/round_cinematics_controller/proc/on_session_finished(datum/round_cinematics_session/session)

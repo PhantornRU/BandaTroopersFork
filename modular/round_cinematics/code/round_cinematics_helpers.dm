@@ -1,3 +1,25 @@
+/// Сортировка записей персонала: по отряду (алфавит), без отряда в конец.
+/proc/sort_personnel_records(list/records)
+	if(!islist(records) || !length(records))
+		return records
+	var/list/sorted = list()
+	var/list/no_squad = list()
+	for(var/datum/round_cinematics_participant_record/record as anything in records)
+		if(!istype(record))
+			continue
+		if(length(record.squad) && record.squad != "НЕИЗВЕСТНО")
+			sorted += record
+		else
+			no_squad += record
+	// Сортировка по имени отряда
+	sortTim(sorted, /proc/cmp_participant_squad_asc)
+	// Без отряда — в конец
+	sorted += no_squad
+	return sorted
+
+/proc/cmp_participant_squad_asc(datum/round_cinematics_participant_record/a, datum/round_cinematics_participant_record/b)
+	return sorttext(a.squad, b.squad)
+
 /proc/round_cinematics_safe_text(value, fallback = "UNKNOWN")
 	if(isnull(value) || !length("[value]"))
 		return fallback
@@ -79,12 +101,12 @@
 
 /proc/round_cinematics_human_status(mob/living/carbon/human/human)
 	if(!istype(human))
-		return "UNKNOWN"
+		return "НЕИЗВЕСТНО"
 	if(human.stat == DEAD)
-		return "DEAD"
+		return "ПОГИБ"
 	if(human.stat == UNCONSCIOUS || human.sleeping)
-		return "INCAPACITATED"
-	return "ACTIVE"
+		return "РАНЕН"
+	return "В СТРОЮ"
 
 /proc/round_cinematics_mob_status_label(mob/living/M)
 	if(!istype(M) || QDELETED(M))

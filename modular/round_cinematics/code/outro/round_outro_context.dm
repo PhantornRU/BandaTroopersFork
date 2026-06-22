@@ -48,6 +48,11 @@
 
 /datum/round_cinematics_outro_context/proc/build_participants()
 	participant_records = list()
+	// Получаем список стартового состава из контроллера
+	var/list/initial_crew = list()
+	if(GLOB.round_cinematics)
+		initial_crew = GLOB.round_cinematics.initial_crew_refs
+
 	for(var/mob/living/carbon/human/player as anything in GLOB.human_mob_list)
 		if(!player || (!player.client && !player.mind))
 			continue
@@ -57,12 +62,13 @@
 		record.rank = round_cinematics_human_rank(player)
 		record.role = round_cinematics_safe_text(round_cinematics_human_role(player), "НЕИЗВЕСТНО")
 		record.squad = round_cinematics_human_squad(player)
-		record.faction = round_cinematics_safe_text(player.faction, "UNKNOWN")
+		record.faction = round_cinematics_safe_text(player.faction, "НЕИЗВЕСТНО")
 		record.status = round_cinematics_mob_status_label(player)
 		record.death_reason = (player.stat == DEAD) ? round_cinematics_human_death_reason_extended_ru(player) : "НЕ ТРЕБУЕТСЯ"
 		record.has_client = !!player.client
 		record.has_mind = !!player.mind
-		record.is_player = !!(player.client && player.mind)
+		// Стартовый состав = personnel, остальные = destruction/NPC
+		record.is_player = (player in initial_crew)
 
 		participant_records += record
 
@@ -72,7 +78,9 @@
 
 /datum/round_cinematics_outro_context/proc/build_pages()
 	report_pages = list()
+	// Страница 1: splash (сводка операции)
 	report_pages += list(round_cinematics_outro_render_summary_page(src))
+	// Страница 2: сводка (статистика)
 	report_pages += list(round_cinematics_outro_render_status_page(src))
 
 	// Split records into personnel and destruction
@@ -86,19 +94,19 @@
 		else
 			destruction_records += record
 
-	// Personnel section
+	// Сортировка personnel: по отряду (имя), без отряда в конец
+	personnel_records = sort_personnel_records(personnel_records)
+
+	// Страницы 3+: судьба персонала (personnel pages)
 	var/list/paginated_personnel = round_cinematics_paginate(personnel_records, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
 	var/personnel_page_count = length(paginated_personnel)
 	for(var/page_index = 1, page_index <= personnel_page_count, page_index++)
 		var/list/page_entries = paginated_personnel[page_index]
 		report_pages += list(round_cinematics_outro_render_personnel_page(page_entries, page_index, personnel_page_count))
 
-	// Destruction section
-	var/list/paginated_destruction = round_cinematics_paginate(destruction_records, ROUND_CINEMATICS_OUTRO_PAGE_ROWS)
-	var/destruction_page_count = length(paginated_destruction)
-	for(var/page_index = 1, page_index <= destruction_page_count, page_index++)
-		var/list/page_entries = paginated_destruction[page_index]
-		report_pages += list(round_cinematics_outro_render_destruction_page(page_entries, page_index, destruction_page_count))
+	// Последняя страница: неперсональная статистика (NPC destruction)
+	if(length(destruction_records))
+		report_pages += list(round_cinematics_outro_render_destruction_page(destruction_records, 1, 1))
 
 	if(!length(report_pages))
 		report_pages = list(round_cinematics_html_block("ОПЕРАЦИОННЫЙ ОТЧЕТ", "НЕТ ДАННЫХ", "#E4EAF8"))

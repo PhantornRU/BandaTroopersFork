@@ -34,14 +34,15 @@
 	var/terminal_name = affiliation?.header_label || "CRYOGENIC REVIVAL SYSTEM"
 
 	boot_lines = list(
-		"[html_encode(terminal_name)]: INITIALIZING...",
-		"LIFE SUPPORT: NOMINAL",
-		"THERMAL REGULATION: 36.6°C",
-		"NEURAL LINK: ESTABLISHED",
-		"BIOSIGNATURE: CONFIRMED",
-		"STASIS: DISENGAGED",
+		"[html_encode(terminal_name)]: ИНИЦИАЛИЗАЦИЯ...",
+		"ПИТАНИЕ: НОРМА",
+		"ЖИЗНЕОБЕСПЕЧЕНИЕ: НОРМА",
+		"ТЕРМОРЕГУЛЯЦИЯ: 36.6°C",
+		"НЕЙРООТКЛИК: УСТАНОВЛЕН",
+		"БИОСИГНАТУРА: ПОДТВЕРЖДЕНА",
+		"СТАЗИС-ЗАМОК: СНЯТ",
 		"ОПЕРАТОР: [html_encode(display_name)]",
-		"КАНАЛ: [html_encode(affiliation?.security_label || "SECURE CHANNEL")]"
+		"КАНАЛ: [html_encode(affiliation?.security_label || "ЗАЩИЩЁННЫЙ КАНАЛ")]"
 	)
 
 	personal_lines = list(
@@ -56,6 +57,17 @@
 	if(affiliation)
 		for(var/line in affiliation.build_intro_lines())
 			personal_lines += html_encode(line)
+
+	// Additional affiliation-driven fields
+	if(affiliation)
+		if(length(affiliation.unit_name))
+			personal_lines += "ПОДРАЗДЕЛЕНИЕ: [html_encode(affiliation.unit_name)]"
+		if(length(affiliation.ship_name))
+			personal_lines += "КОРАБЛЬ: [html_encode(affiliation.ship_name)]"
+		if(length(affiliation.ground_map_name))
+			personal_lines += "ЗОНА ОПЕРАЦИИ: [html_encode(affiliation.ground_map_name)]"
+		if(length(affiliation.operation_name))
+			personal_lines += "ОПЕРАЦИЯ: [html_encode(affiliation.operation_name)]"
 
 	// Final access confirmation
 	personal_lines += "ДОСТУП: ПОДТВЕРЖДЁН"

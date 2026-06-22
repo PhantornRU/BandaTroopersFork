@@ -149,15 +149,15 @@
 		return
 
 	// P1.10: Outcome choice for round cinematics
-	var/outcome_choice = tgui_input_list(usr, "Select round outcome for cinematics:", "Round Outcome", list("Auto", "Victory", "Defeat", "Inconclusive"), default = "Auto")
-	if(!isnull(outcome_choice) && outcome_choice != "Auto")
+	var/outcome_choice = tgui_input_list(usr, "Выберите исход операции для синематики:", "Исход раунда", list("Авто / определить по режиму", "Победа операции", "Провал операции", "Исход не подтверждён"), default = "Авто / определить по режиму")
+	if(!isnull(outcome_choice) && outcome_choice != "Авто / определить по режиму")
 		if(GLOB.round_cinematics)
 			switch(outcome_choice)
-				if("Victory")
+				if("Победа операции")
 					GLOB.round_cinematics.set_admin_outcome(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
-				if("Defeat")
+				if("Провал операции")
 					GLOB.round_cinematics.set_admin_outcome(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
-				if("Inconclusive")
+				if("Исход не подтверждён")
 					GLOB.round_cinematics.set_admin_outcome(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
 
 	if(!SSticker.mode.round_finished)

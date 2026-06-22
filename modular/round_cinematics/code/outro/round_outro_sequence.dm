@@ -13,15 +13,35 @@
 /datum/round_cinematics_sequence/round_outro/get_header_html()
 	var/color = profile?.header_color || cached_header_color
 	var/logo = profile?.logo_text || "BW"
+	var/archive_label = "ФРАГМЕНТ АРХИВА"
+	switch(cached_outcome_id)
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+			archive_label = "БОЕВОЙ АРХИВ"
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+			archive_label = "АВАРИЙНЫЙ АРХИВ"
+		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
+			archive_label = "ФРАГМЕНТ АРХИВА"
 	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:10pt; color:[color];'>"
 	var/style_close = "</span>"
-	. = "[style_open]┌ [logo] &#9608; AFTER-ACTION REPORT ┐<br>CLASSIFIED &#9608; OPERATION SUMMARY"
+	. = "[style_open]┌ [logo] █ [archive_label] ┐<br>ЗАСЕКРЕЧЕНО █ СВОДКА ОПЕРАЦИИ"
 	if(length(cached_outcome_phrase))
 		. += "<br><span style='font-size:10pt;font-weight:bold;'>[html_encode(cached_outcome_phrase)]</span>"
 	. += "[style_close]"
 
 /datum/round_cinematics_sequence/round_outro/get_footer_html()
 	var/color = profile?.accent_color || cached_accent_color
+	var/archive_footer = "НЕПОЛНЫЙ АРХИВ"
+	var/archive_status = "АРХИВ: ФРАГМЕНТИРОВАН"
+	switch(cached_outcome_id)
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
+			archive_footer = "АРХИВ ЗАКРЫТ"
+			archive_status = "АРХИВ: ЦЕЛОСТЕН"
+		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
+			archive_footer = "АВАРИЙНАЯ ЗАПИСЬ"
+			archive_status = "АРХИВ: ПОВРЕЖДЁН"
+		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
+			archive_footer = "НЕПОЛНЫЙ АРХИВ"
+			archive_status = "АРХИВ: ФРАГМЕНТИРОВАН"
 	var/style_open = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:9pt; color:[color];'>"
 	var/style_close = "</span>"
 	var/final_phrase = ""
@@ -34,7 +54,7 @@
 			final_phrase = "ОТЧЁТ СОХРАНЁН. СТАТУС КАНАЛА: ОЖИДАНИЕ ПОДТВЕРЖДЕНИЯ."
 		else
 			final_phrase = "КОНЕЦ ПЕРЕДАЧИ."
-	. = "[style_open]└ > END OF REPORT ┘<br>\[ARCHIVE: ACTIVE\] \[CHANNEL: SECURE\]"
+	. = "[style_open]└ > [archive_footer] ┘<br>\[[archive_status]\] \[КАНАЛ: ЗАЩИЩЁН\]"
 	if(length(final_phrase))
 		. += "<br><span style='font-size:8pt;font-weight:bold;'>[html_encode(final_phrase)]</span>"
 	. += "[style_close]"
@@ -60,7 +80,7 @@
 		phases += new /datum/round_cinematics_phase
 		var/datum/round_cinematics_phase/glitch = phases[phases.len]
 		glitch.name = "glitch"
-		glitch.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:14pt; color:#FF4444;'>█▓▒░ SIGNAL INTERFERENCE ░▒▓█<br><span style='font-size:8pt;'>\[TRANSMISSION CORRUPTED\]</span></span>"
+		glitch.raw_html = "<span class='langchat' style='text-align:center; font-family:[ROUND_CINEMATICS_FONT_STACK]; font-size:14pt; color:#FF4444;'>█▓▒░ ПОМЕХИ СИГНАЛА ░▒▓█<br><span style='font-size:8pt;'>\[ПЕРЕДАЧА ПОВРЕЖДЕНА\]</span></span>"
 		glitch.fullscreen_specs = list(
 			list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK, "type" = /atom/movable/screen/fullscreen/black, "severity" = 0),
 			list("category" = ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT, "type" = /atom/movable/screen/fullscreen/crt, "severity" = 0)

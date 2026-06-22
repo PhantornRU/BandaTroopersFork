@@ -17,8 +17,8 @@
 
 /datum/round_cinematics_outcome
 	var/id = ROUND_CINEMATICS_OUTCOME_AUTO
-	var/title = "AUTO"
-	var/detail = "UNDETERMINED OUTCOME"
+	var/title = "АВТООПРЕДЕЛЕНИЕ"
+	var/detail = "ИСХОД НЕ ПОДТВЕРЖДЁН"
 	var/raw_result = null
 	var/classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 	var/is_override = FALSE
@@ -37,19 +37,19 @@
 	src.is_override = is_override
 	switch(id)
 		if(ROUND_CINEMATICS_OUTCOME_AUTO)
-			title = "AUTO"
-			detail = "AUTOMATIC DETERMINATION"
+			title = "АВТООПРЕДЕЛЕНИЕ"
+			detail = "АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ИСХОДА"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY)
-			title = "ОПЕРАЦИЯ ЗАВЕРШЕНА: УСПЕХ"
+			title = "ПОБЕДА ОПЕРАЦИИ"
 			detail = "МОРСКАЯ ПЕХОТА СОХРАНИЛА КОНТРОЛЬ"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY
 		if(ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT)
-			title = "ОПЕРАЦИЯ ЗАВЕРШЕНА: ПОРАЖЕНИЕ"
+			title = "ПРОВАЛ ОПЕРАЦИИ"
 			detail = "БОЕВАЯ ГРУППА ПОТЕРЯЛА КОНТРОЛЬ"
 			classification = ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT
 		if(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE)
-			title = "ИСХОД ОПЕРАЦИИ НЕ ПОДТВЕРЖДЁН"
+			title = "ИСХОД НЕ ПОДТВЕРЖДЁН"
 			detail = "НЕДОСТАТОЧНО ДАННЫХ"
 			classification = ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE
 	apply_outcome_profile()
@@ -125,7 +125,7 @@
 
 	if(!mode.round_finished)
 		var/datum/round_cinematics_outcome/outcome = new(ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE, FALSE)
-		outcome.title = "ROUND NOT FINISHED"
-		outcome.detail = "THE ROUND HAS NOT REACHED AN END STATE"
+		outcome.title = "РАУНД НЕ ЗАВЕРШЁН"
+		outcome.detail = "РАУНД НЕ ДОСТИГ КОНЕЧНОГО СОСТОЯНИЯ"
 		return outcome
 	return round_cinematics_outcome_from_mode_result(mode.round_finished)
