@@ -36,6 +36,7 @@
 
 /datum/game_mode/extended/declare_completion()
 	announce_ending()
+	GLOB.round_cinematics?.try_start_round_outro()
 	var/musical_track = pick('sound/theme/neutral_hopeful1.ogg','sound/theme/neutral_hopeful2.ogg')
 	world << musical_track
 

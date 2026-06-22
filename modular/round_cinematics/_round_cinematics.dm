@@ -1,0 +1,36 @@
+#define ROUND_CINEMATICS_INTRO_ALLOW_SKIP_AFTER (5 SECONDS)
+#define ROUND_CINEMATICS_INTRO_HARD_TIMEOUT (20 SECONDS)
+#define ROUND_CINEMATICS_INTRO_PAGE_ROWS 6
+#define ROUND_CINEMATICS_OUTRO_PAGE_ROWS 6
+#define ROUND_CINEMATICS_TEXT_WIDTH 640
+#define ROUND_CINEMATICS_TEXT_HEIGHT 320
+#define ROUND_CINEMATICS_TEXT_LETTERS 2
+#define ROUND_CINEMATICS_TEXT_DELAY 0.5
+#define ROUND_CINEMATICS_TEXT_HOLD 2 SECONDS
+
+#define ROUND_CINEMATICS_FULLSCREEN_INTRO_BLACK "round_cinematics_intro_black"
+#define ROUND_CINEMATICS_FULLSCREEN_INTRO_CRT "round_cinematics_intro_crt"
+#define ROUND_CINEMATICS_FULLSCREEN_OUTRO_BLACK "round_cinematics_outro_black"
+#define ROUND_CINEMATICS_FULLSCREEN_OUTRO_CRT "round_cinematics_outro_crt"
+
+#define ROUND_CINEMATICS_OUTCOME_AUTO 0
+#define ROUND_CINEMATICS_OUTCOME_MARINE_VICTORY 1
+#define ROUND_CINEMATICS_OUTCOME_MARINE_DEFEAT 2
+#define ROUND_CINEMATICS_OUTCOME_INCONCLUSIVE 3
+
+GLOBAL_DATUM_INIT(round_cinematics, /datum/round_cinematics_controller, new)
+
+/datum/modpack/round_cinematics
+	name = "round cinematics modpack"
+	desc = "Modular intro and outro cinematics."
+	author = "Codex"
+
+/datum/modpack/round_cinematics/initialize()
+	. = ..()
+	if(!SSticker)
+		return
+
+	SSticker.OnRoundstart(CALLBACK(src, PROC_REF(handle_roundstart)))
+
+/datum/modpack/round_cinematics/proc/handle_roundstart()
+	GLOB.round_cinematics?.cleanup_all("roundstart_reset")

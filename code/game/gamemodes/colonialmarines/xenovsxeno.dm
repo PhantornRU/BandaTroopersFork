@@ -256,6 +256,7 @@
 //////////////////////////////////////////////////////////////////////
 /datum/game_mode/xenovs/declare_completion()
 	announce_ending()
+	GLOB.round_cinematics?.try_start_round_outro()
 	var/musical_track
 	musical_track = pick('sound/theme/neutral_melancholy1.ogg', 'sound/theme/neutral_melancholy2.ogg')
 

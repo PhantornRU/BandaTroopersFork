@@ -293,6 +293,8 @@
 		if(GLOB.round_statistics)
 			GLOB.round_statistics.round_result = MODE_INFESTATION_DRAW_DEATH
 
+	GLOB.round_cinematics?.try_start_round_outro()
+
 	if(GLOB.round_statistics)
 		GLOB.round_statistics.game_mode = name
 		GLOB.round_statistics.round_length = world.time

@@ -1,0 +1,11 @@
+/datum/round_cinematics_session/intro
+	var/datum/round_cinematics_intro_context/context
+
+/datum/round_cinematics_session/intro/New(datum/round_cinematics_controller/controller, mob/owner, obj/structure/machinery/cryopod/source_pod, preview = FALSE)
+	..(controller, owner, preview)
+	src.source_pod = source_pod
+	context = new /datum/round_cinematics_intro_context(owner, source_pod, preview)
+	sequence = new /datum/round_cinematics_sequence/cryo_intro(context)
+	completion_reason = "intro complete"
+	skip_allowed_at = world.time + (preview ? 0 : ROUND_CINEMATICS_INTRO_ALLOW_SKIP_AFTER)
+	hard_timeout_at = world.time + ROUND_CINEMATICS_INTRO_HARD_TIMEOUT

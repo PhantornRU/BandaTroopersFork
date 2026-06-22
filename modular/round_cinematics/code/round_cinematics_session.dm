@@ -1,0 +1,134 @@
+/datum/round_cinematics_session
+	var/datum/round_cinematics_controller/controller
+	var/mob/owner
+	var/client/client
+	var/datum/round_cinematics_sequence/sequence = null
+	var/obj/structure/machinery/cryopod/source_pod = null
+	var/preview = FALSE
+	var/cleaned_up = FALSE
+	var/cleanup_reason = null
+	var/completion_reason = "cleanup"
+	var/list/active_texts = list()
+	var/list/active_fullscreens = list()
+	var/hud_hidden = FALSE
+	var/saved_hud_version = HUD_STYLE_STANDARD
+	var/saved_hud_shown = TRUE
+	var/saved_inventory_shown = TRUE
+	var/saved_action_buttons_hidden = FALSE
+	var/saved_hotkey_ui_hidden = FALSE
+	var/start_time = 0
+	var/skip_allowed_at = 0
+	var/hard_timeout_at = 0
+
+/datum/round_cinematics_session/New(datum/round_cinematics_controller/controller, mob/owner, preview = FALSE)
+	..()
+	src.controller = controller
+	src.owner = owner
+	src.client = owner?.client
+	src.preview = preview
+
+/datum/round_cinematics_session/proc/begin()
+	start_time = world.time
+	RegisterSignal(owner, list(COMSIG_MOB_LOGOUT, COMSIG_PARENT_QDELETING), PROC_REF(handle_owner_signal))
+	if(source_pod && !preview)
+		RegisterSignal(source_pod, COMSIG_CRYOPOD_GO_OUT, PROC_REF(handle_pod_exit))
+	hide_hud()
+	INVOKE_ASYNC(src, PROC_REF(play_sequence))
+	if(hard_timeout_at > start_time)
+		addtimer(CALLBACK(controller, TYPE_PROC_REF(/datum/round_cinematics_controller, force_finish_for), owner, "hard timeout"), hard_timeout_at - start_time)
+
+/datum/round_cinematics_session/proc/play_sequence()
+	if(sequence)
+		sequence.execute(src)
+	if(!cleaned_up)
+		finish_session(completion_reason)
+
+/datum/round_cinematics_session/proc/handle_owner_signal(datum/source)
+	SIGNAL_HANDLER
+	finish_session("owner signal")
+
+/datum/round_cinematics_session/proc/handle_pod_exit(datum/source)
+	SIGNAL_HANDLER
+	finish_session("pod exit")
+
+/datum/round_cinematics_session/proc/track_text(atom/movable/screen/text/round_cinematics/text_box)
+	if(!text_box)
+		return
+	if(!(text_box in active_texts))
+		active_texts += text_box
+
+/datum/round_cinematics_session/proc/apply_fullscreen(category, type, severity = 0)
+	if(!owner || cleaned_up || !category || !type)
+		return null
+
+	var/atom/movable/screen/fullscreen/screen = owner.overlay_fullscreen(category, type, severity)
+	if(!screen)
+		return null
+
+	screen.clear_with_screen = FALSE
+	if(!(category in active_fullscreens))
+		active_fullscreens += category
+	return screen
+
+/datum/round_cinematics_session/proc/hide_hud()
+	if(hud_hidden || !owner?.hud_used)
+		return
+
+	hud_hidden = TRUE
+	saved_hud_version = owner.hud_used.hud_version
+	saved_hud_shown = owner.hud_used.hud_shown
+	saved_inventory_shown = owner.hud_used.inventory_shown
+	saved_action_buttons_hidden = owner.hud_used.action_buttons_hidden
+	saved_hotkey_ui_hidden = owner.hud_used.hotkey_ui_hidden
+	owner.hud_used.show_hud(HUD_STYLE_NOHUD, owner)
+
+/datum/round_cinematics_session/proc/restore_hud()
+	if(!hud_hidden || !owner?.hud_used)
+		return
+
+	owner.hud_used.hud_shown = saved_hud_shown
+	owner.hud_used.inventory_shown = saved_inventory_shown
+	owner.hud_used.action_buttons_hidden = saved_action_buttons_hidden
+	owner.hud_used.hotkey_ui_hidden = saved_hotkey_ui_hidden
+	owner.hud_used.show_hud(saved_hud_version, owner)
+	hud_hidden = FALSE
+
+/datum/round_cinematics_session/proc/abort_texts()
+	if(!length(active_texts))
+		return
+
+	for(var/atom/movable/screen/text/round_cinematics/text_box as anything in active_texts.Copy())
+		if(!text_box)
+			continue
+		text_box.abort_play()
+	active_texts.Cut()
+
+/datum/round_cinematics_session/proc/clear_fullscreens()
+	if(!owner || !length(active_fullscreens))
+		return
+
+	for(var/category in active_fullscreens.Copy())
+		owner.clear_fullscreen(category, 0)
+	active_fullscreens.Cut()
+
+/datum/round_cinematics_session/proc/is_skip_allowed()
+	return skip_allowed_at && world.time >= skip_allowed_at
+
+/datum/round_cinematics_session/proc/finish_session(reason = "cleanup")
+	if(cleaned_up)
+		return
+
+	cleaned_up = TRUE
+	cleanup_reason = reason
+	UnregisterSignal(owner, list(COMSIG_MOB_LOGOUT, COMSIG_PARENT_QDELETING))
+	if(source_pod)
+		UnregisterSignal(source_pod, COMSIG_CRYOPOD_GO_OUT)
+	abort_texts()
+	clear_fullscreens()
+	restore_hud()
+	controller?.on_session_finished(src)
+
+/datum/round_cinematics_session/Destroy()
+	if(!cleaned_up)
+		finish_session("destroy")
+	return ..()
