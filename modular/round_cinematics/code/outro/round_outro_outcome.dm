@@ -94,7 +94,7 @@
 	var/datum/round_cinematics_outcome/outcome = new(classification_id, FALSE)
 	outcome.raw_result = result
 	outcome.title = round_cinematics_round_finished_label(result)
-	outcome.detail = round_cinematics_safe_text(result, "UNDETERMINED OUTCOME")
+	outcome.detail = round_cinematics_safe_text(result, "ИСХОД НЕ ОПРЕДЕЛЁН")
 	outcome.classification = classification_id
 	outcome.apply_outcome_profile()
 	return outcome

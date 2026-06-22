@@ -144,23 +144,23 @@
 	if(isnum(value))
 		switch(value)
 			if(1)
-				return "MARINE VICTORY"
+				return "ПОБЕДА ОПЕРАЦИИ"
 			if(2)
-				return "MARINE DEFEAT"
+				return "ПРОВАЛ ОПЕРАЦИИ"
 			if(0)
-				return "INCONCLUSIVE"
-		return "UNDETERMINED OUTCOME ([value])"
+				return "ИСХОД НЕ ПОДТВЕРЖДЁН"
+		return "ИСХОД НЕ ОПРЕДЕЛЁН ([value])"
 
 	switch(value)
 		if(MODE_INFESTATION_M_MAJOR, MODE_INFESTATION_M_MINOR)
-			return "MARINE VICTORY"
+			return "ПОБЕДА ОПЕРАЦИИ"
 		if(MODE_INFESTATION_X_MAJOR, MODE_INFESTATION_X_MINOR)
-			return "MARINE DEFEAT"
+			return "ПРОВАЛ ОПЕРАЦИИ"
 		if(MODE_INFESTATION_DRAW_DEATH)
-			return "INCONCLUSIVE"
+			return "ИСХОД НЕ ПОДТВЕРЖДЁН"
 		if(MODE_INFECTION_ZOMBIE_WIN)
-			return "INFECTION VICTORY"
-	return round_cinematics_safe_text(value, "UNDETERMINED OUTCOME")
+			return "ПРОВАЛ ОПЕРАЦИИ"
+	return round_cinematics_safe_text(value, "ИСХОД НЕ ОПРЕДЕЛЁН")
 
 /proc/round_cinematics_round_finished_classification(value)
 	// Числовые значения (Whiskey Outpost: 1 = победа морпехов, 2 = поражение)
