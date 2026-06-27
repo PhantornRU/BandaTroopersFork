@@ -185,8 +185,25 @@
 		return FALSE
 	return TRUE
 
+/datum/world_edit_generator/building_layout/proc/place_building_compact_substitute_for_cluster(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/parent_spec, needed_count, major)
+	if(!istype(state) || !istype(parent_spec) || needed_count <= 0)
+		return 0
+	var/datum/world_edit_building_cluster_spec/substitute_spec = get_building_compact_substitute_spec(state, parent_spec)
+	if(!istype(substitute_spec))
+		return 0
+	substitute_spec.force_placement = TRUE
+	substitute_spec.min_count = min(max(round(text2num("[needed_count]") || 1), 1), max(substitute_spec.max_count, 1))
+	substitute_spec.max_count = substitute_spec.min_count
+	var/before_count = get_building_placed_requirement_count(state, get_building_cluster_requirement_id(parent_spec), parent_spec.id, parent_spec.signature_id)
+	if(place_building_cluster_spec(state, substitute_spec, major))
+		var/after_count = get_building_placed_requirement_count(state, get_building_cluster_requirement_id(parent_spec), parent_spec.id, parent_spec.signature_id)
+		return max(after_count - before_count, 0)
+	return 0
+
 /datum/world_edit_generator/building_layout/proc/place_building_cluster_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, major)
 	if(!istype(state) || !istype(cluster_spec) || state.fixtures.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
+		return FALSE
+	if(cluster_spec.compact_substitute_only)
 		return FALSE
 	var/list/cluster_report = list(
 		"cluster_id" = cluster_spec.id,
@@ -219,6 +236,8 @@
 	var/placed = 0
 	var/template_placed = 0
 	var/effective_minimum = get_effective_cluster_min_count(state, cluster_spec)
+	var/declared_minimum = max(round(text2num("[cluster_spec.min_count]") || 0), 0)
+	var/desired_count = max(effective_minimum, declared_minimum)
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	cluster_report["requirement_id"] = requirement_id
 	cluster_report["effective_minimum"] = effective_minimum
@@ -227,7 +246,7 @@
 		already_placed = max(already_placed, round(text2num("[state.fixtures.placed_requirement_counts["[cluster_spec.id]"]]") || 0))
 	if(length(cluster_spec.signature_id))
 		already_placed = max(already_placed, round(text2num("[state.fixtures.placed_requirement_counts["[cluster_spec.signature_id]"]]") || 0))
-	if(effective_minimum > 0 && already_placed >= effective_minimum)
+	if(!cluster_spec.force_placement && effective_minimum > 0 && already_placed >= effective_minimum && (!length(cluster_spec.compact_substitute_id) || already_placed >= desired_count))
 		cluster_report["status"] = "already_satisfied"
 		cluster_report["already_placed"] = already_placed
 		state.add_template_cluster_report(cluster_report)
@@ -251,7 +270,7 @@
 		cluster_report["template_attempts"] = template_attempts
 		if(template_placed > 0)
 			state.add_warning("Template-first placement partially succeeded for cluster '[cluster_spec.id]'.")
-		if((effective_minimum <= 0 && placed > 0) || (already_placed + placed >= effective_minimum))
+		if(!cluster_spec.force_placement && ((effective_minimum <= 0 && placed > 0) || (already_placed + placed >= effective_minimum)) && (!length(cluster_spec.compact_substitute_id) || (already_placed + placed) >= desired_count))
 			cluster_report["status"] = "template_satisfied"
 			cluster_report["total_placed"] = already_placed + placed
 			state.add_template_cluster_report(cluster_report)
@@ -317,6 +336,20 @@
 				placed += unit_placed
 	if(!has_template_path)
 		placed += template_placed
+	var/current_placed = get_building_placed_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
+	if(cluster_spec.required && desired_count > 0 && current_placed < desired_count && length(cluster_spec.compact_substitute_id))
+		var/compact_placed = place_building_compact_substitute_for_cluster(state, cluster_spec, desired_count - current_placed, major)
+		if(compact_placed > 0)
+			placed += compact_placed
+			current_placed += compact_placed
+			cluster_report["compact_substitute_id"] = cluster_spec.compact_substitute_id
+			cluster_report["compact_placed"] = compact_placed
+			if(current_placed >= desired_count)
+				cluster_report["status"] = "compact_satisfied"
+				cluster_report["placed"] = placed
+				cluster_report["total_placed"] = current_placed
+				state.add_template_cluster_report(cluster_report)
+				return TRUE
 	cluster_report["placed"] = placed
 	cluster_report["status"] = placed > 0 ? "placed" : "failed"
 	state.add_template_cluster_report(cluster_report)
@@ -415,7 +448,9 @@
 				return is_micro ? "micro_[cluster_spec.category]_chunk" : "[cluster_spec.category]_run_chunk"
 		if("wall_object")
 			switch(cluster_spec.category)
-				if("cabinet", "medical_storage", "seed_storage", "sample_storage", "cold_storage")
+				if("seed_storage")
+					return ""
+				if("cabinet", "medical_storage", "sample_storage", "cold_storage")
 					return "wall_cabinet_chunk"
 				if("rack", "weapon_rack")
 					return "wall_rack_chunk"
@@ -631,12 +666,76 @@
 /datum/world_edit_generator/building_layout/proc/get_cluster_preflight_anchor_ids(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/default_anchor_ids)
 	if(istype(state) && istype(cluster_spec))
 		var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-		var/list/planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[requirement_id]
+		var/list/planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[cluster_spec.id]
 		if(!islist(planned_anchor_ids) || !length(planned_anchor_ids))
-			planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[cluster_spec.id]
+			planned_anchor_ids = state.fixtures.semantic_slot_anchor_sets[requirement_id]
 		if(islist(planned_anchor_ids) && length(planned_anchor_ids))
 			return planned_anchor_ids
 	return islist(default_anchor_ids) ? default_anchor_ids : list()
+
+/datum/world_edit_generator/building_layout/proc/building_compact_substitute_preserves_semantics(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/parent_spec, datum/world_edit_building_cluster_spec/substitute_spec)
+	if(!istype(parent_spec) || !istype(substitute_spec))
+		return FALSE
+	if(!parent_spec.required)
+		return TRUE
+	var/parent_capability = get_building_fixture_required_capability(parent_spec.slot, parent_spec.category)
+	var/substitute_capability = get_building_fixture_required_capability(substitute_spec.slot, substitute_spec.category)
+	if(length(parent_capability) && length(substitute_capability) && parent_capability != substitute_capability)
+		return FALSE
+	var/datum/world_edit_building_place_rule/parent_rule = resolve_building_place_rule(parent_spec.slot, parent_spec.category)
+	var/datum/world_edit_building_place_rule/substitute_rule = resolve_building_place_rule(substitute_spec.slot, substitute_spec.category)
+	if(get_cluster_effective_needs_wall(state, parent_spec, parent_rule) && !get_cluster_effective_needs_wall(state, substitute_spec, substitute_rule))
+		return FALSE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/get_building_compact_substitute_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/parent_spec)
+	if(!istype(state) || !istype(state.semantic_plan) || !istype(parent_spec) || !length(parent_spec.compact_substitute_id))
+		return null
+	var/datum/world_edit_building_cluster_spec/source_spec = state.semantic_plan.get_cluster_spec_by_id(parent_spec.compact_substitute_id)
+	if(!istype(source_spec) || !source_spec.compact_substitute_only)
+		return null
+	if(!building_compact_substitute_preserves_semantics(state, parent_spec, source_spec))
+		return null
+	var/datum/world_edit_building_cluster_spec/substitute_spec = source_spec.clone()
+	var/source_macro_id = substitute_spec.macro_id
+	substitute_spec.required = parent_spec.required
+	substitute_spec.signature_required = parent_spec.signature_required
+	substitute_spec.failure_severity = parent_spec.failure_severity
+	substitute_spec.compact_substitute_only = FALSE
+	inherit_building_cluster_count_context(substitute_spec, parent_spec)
+	substitute_spec.macro_id = source_macro_id
+	return substitute_spec
+
+/datum/world_edit_generator/building_layout/proc/compute_zone_wall_slot_capacity(datum/world_edit_building_layout_state/state, zone_id, list/anchor_ids = null)
+	if(!istype(state) || !length("[zone_id]"))
+		return 0
+	var/list/candidates = islist(anchor_ids) && length(anchor_ids) ? get_fixture_candidate_turfs_for_anchors(state, anchor_ids) : state.get_zone_turfs(zone_id)
+	var/capacity = 0
+	for(var/turf/candidate_turf as anything in candidates)
+		if(!istype(candidate_turf))
+			continue
+		if(state.get_zone(candidate_turf) != "[zone_id]")
+			continue
+		if(!state.can_place_fixture(candidate_turf))
+			continue
+		if(!length(get_adjacent_wall_dirs_for_state(state, candidate_turf)))
+			continue
+		capacity++
+	return capacity
+
+/datum/world_edit_generator/building_layout/proc/get_building_cluster_wall_slot_requirement(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(state) || !istype(cluster_spec))
+		return 0
+	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
+	if(!get_cluster_effective_needs_wall(state, cluster_spec, place_rule))
+		return 0
+	var/required_count = max(round(text2num("[cluster_spec.min_count]") || 0), 0)
+	var/datum/world_edit_building_cluster_spec/substitute_spec = get_building_compact_substitute_spec(state, cluster_spec)
+	if(istype(substitute_spec))
+		var/datum/world_edit_building_place_rule/substitute_rule = resolve_building_place_rule(substitute_spec.slot, substitute_spec.category)
+		if(get_cluster_effective_needs_wall(state, substitute_spec, substitute_rule))
+			required_count = min(required_count, max(round(text2num("[substitute_spec.min_count]") || 0), 0))
+	return required_count
 
 /datum/world_edit_generator/building_layout/proc/count_building_cluster_fixture_capacity_for_anchors(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/anchor_ids)
 	if(!istype(state) || !istype(cluster_spec))
@@ -789,9 +888,9 @@
 	if(!istype(state) || !istype(cluster_spec) || !istype(target_turf))
 		return FALSE
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/list/planned_turfs = state.fixtures.semantic_slot_turf_sets[requirement_id]
+	var/list/planned_turfs = state.fixtures.semantic_slot_turf_sets[cluster_spec.id]
 	if(!islist(planned_turfs))
-		planned_turfs = state.fixtures.semantic_slot_turf_sets[cluster_spec.id]
+		planned_turfs = state.fixtures.semantic_slot_turf_sets[requirement_id]
 	if(!islist(planned_turfs))
 		return FALSE
 	return target_turf in planned_turfs
@@ -806,27 +905,55 @@
 	var/list/selected_anchor_ids = declared_anchor_ids
 	var/selected_mode = "declared"
 	var/fallback_capacity = 0
+	var/compact_capacity = 0
+	var/compact_planned_slot_count = 0
+	var/list/compact_anchor_ids = list()
+	var/list/compact_planned_turfs = list()
+	var/datum/world_edit_building_cluster_spec/compact_spec = null
 	if(declared_capacity < required_count)
 		var/list/fallback_anchor_ids = build_required_cluster_fallback_anchor_ids(state, declared_anchor_ids, cluster_spec)
 		fallback_capacity = count_building_cluster_slot_capacity_for_anchors(state, cluster_spec, fallback_anchor_ids)
 		if(fallback_capacity >= required_count || fallback_capacity > declared_capacity)
 			selected_anchor_ids = fallback_anchor_ids
 			selected_mode = "fallback"
-		if(!can_building_cluster_use_broad_fallback_anchors(state, cluster_spec))
-			state.validation.fallback_anchor_required_cluster_count++
-			state.validation.forbidden_fallback_count++
-			state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], required [required_count].")
-	var/best_capacity = max(declared_capacity, fallback_capacity)
+		compact_spec = get_building_compact_substitute_spec(state, cluster_spec)
+		if(istype(compact_spec))
+			compact_anchor_ids = islist(compact_spec.anchors) ? compact_spec.anchors.Copy() : list()
+			compact_capacity = count_building_cluster_slot_capacity_for_anchors(state, compact_spec, compact_anchor_ids)
+	var/base_capacity = max(declared_capacity, fallback_capacity)
+	var/best_capacity = min(required_count, base_capacity + compact_capacity)
 	var/shortage = max(required_count - best_capacity, 0)
+	if(declared_capacity < required_count && !can_building_cluster_use_broad_fallback_anchors(state, cluster_spec) && shortage > 0)
+		state.validation.fallback_anchor_required_cluster_count++
+		state.validation.forbidden_fallback_count++
+		state.add_warning("Required cluster '[cluster_spec.id]' cannot use fallback anchors: declared capacity [declared_capacity], compact capacity [compact_capacity], required [required_count].")
 	if(shortage > 0)
 		state.validation.semantic_slot_shortage_count += shortage
 	state.validation.semantic_slot_capacity_count += min(best_capacity, required_count)
 	state.fixtures.semantic_requirement_minimums[requirement_id] = max(round(text2num("[state.fixtures.semantic_requirement_minimums[requirement_id]]") || 0), required_count)
 	if(length(selected_anchor_ids))
 		state.fixtures.semantic_slot_anchor_sets[requirement_id] = selected_anchor_ids.Copy()
-	var/list/planned_turfs = build_building_cluster_planned_slot_turfs(state, cluster_spec, selected_anchor_ids, min(best_capacity, required_count))
+	var/list/planned_turfs = build_building_cluster_planned_slot_turfs(state, cluster_spec, selected_anchor_ids, min(base_capacity, required_count))
 	if(length(planned_turfs))
 		state.fixtures.semantic_slot_turf_sets[requirement_id] = planned_turfs.Copy()
+	if(istype(compact_spec) && compact_capacity > 0 && length(planned_turfs) < required_count)
+		var/compact_target = min(compact_capacity, required_count - length(planned_turfs))
+		compact_planned_turfs = build_building_cluster_planned_slot_turfs(state, compact_spec, compact_anchor_ids, compact_target)
+		compact_planned_slot_count = length(compact_planned_turfs)
+		if(length(compact_anchor_ids))
+			state.fixtures.semantic_slot_anchor_sets[compact_spec.id] = compact_anchor_ids.Copy()
+		if(length(compact_planned_turfs))
+			state.fixtures.semantic_slot_turf_sets[compact_spec.id] = compact_planned_turfs.Copy()
+			if(!islist(state.fixtures.semantic_slot_turf_sets[requirement_id]))
+				state.fixtures.semantic_slot_turf_sets[requirement_id] = list()
+			var/list/combined_planned_turfs = state.fixtures.semantic_slot_turf_sets[requirement_id]
+			for(var/turf/compact_turf as anything in compact_planned_turfs)
+				if(istype(compact_turf) && !(compact_turf in combined_planned_turfs))
+					combined_planned_turfs += compact_turf
+		if(compact_planned_slot_count > 0)
+			selected_mode = selected_mode == "fallback" ? "fallback_compact" : "compact"
+	if(selected_mode != "declared")
+		state.validation.semantic_slot_fallback_count++
 	state.fixtures.semantic_slot_selected_modes[requirement_id] = selected_mode
 	var/list/report = list(
 		"id" = requirement_id,
@@ -842,15 +969,19 @@
 		"required" = required_count,
 		"declared_capacity" = declared_capacity,
 		"fallback_capacity" = fallback_capacity,
+		"compact_capacity" = compact_capacity,
 		"best_capacity" = best_capacity,
 		"shortage" = shortage,
-		"planned_slot_count" = length(planned_turfs),
+		"planned_slot_count" = length(planned_turfs) + compact_planned_slot_count,
+		"compact_planned_slot_count" = compact_planned_slot_count,
 		"selected_mode" = selected_mode,
 		"declared_anchors" = declared_anchor_ids,
 		"selected_anchors" = islist(selected_anchor_ids) ? selected_anchor_ids.Copy() : list(),
 	)
 	if(length(cluster_spec.signature_id))
 		report["signature_id"] = cluster_spec.signature_id
+	if(istype(compact_spec))
+		report["compact_substitute_id"] = compact_spec.id
 	state.add_semantic_slot_report(report)
 	state.add_semantic_requirement_report(report.Copy())
 
@@ -870,10 +1001,6 @@
 	state.validation.semantic_slot_capacity_count = 0
 	state.validation.semantic_slot_shortage_count = 0
 	state.validation.semantic_slot_fallback_count = 0
-	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
-		if(!istype(cluster_spec) || !cluster_spec.required)
-			continue
-		preflight_building_cluster_slots(state, cluster_spec, "program")
 	if(length(state.geometry.floor_turfs) >= 12)
 		var/list/anchors = build_infrastructure_anchor_list(state)
 		for(var/list/spec_data as anything in get_building_infrastructure_specs(state))
@@ -901,6 +1028,10 @@
 				spec_data["macro"]
 			)
 			preflight_building_cluster_slots(state, cluster_spec, "infrastructure")
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
+		if(!istype(cluster_spec) || !cluster_spec.required)
+			continue
+		preflight_building_cluster_slots(state, cluster_spec, "program")
 
 /datum/world_edit_generator/building_layout/proc/get_effective_cluster_min_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec))
@@ -947,6 +1078,8 @@
 	return 22
 
 /datum/world_edit_generator/building_layout/proc/get_scaled_cluster_target_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(cluster_spec.force_placement)
+		return max(cluster_spec.min_count, 0)
 	var/base_count = max(cluster_spec.min_count, cluster_spec.max_count)
 	var/room_area = length(get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
 	if(room_area <= 0)

@@ -263,6 +263,9 @@
 	var/semantic_credit = ""
 	var/failure_severity = "required"
 	var/acceptance_counter = ""
+	var/compact_substitute_id = ""
+	var/compact_substitute_only = FALSE
+	var/force_placement = FALSE
 
 /datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null)
 	. = ..()
@@ -309,6 +312,9 @@
 	copy.semantic_credit = semantic_credit
 	copy.failure_severity = failure_severity
 	copy.acceptance_counter = acceptance_counter
+	copy.compact_substitute_id = compact_substitute_id
+	copy.compact_substitute_only = compact_substitute_only
+	copy.force_placement = force_placement
 	return copy
 
 /datum/world_edit_building_semantic_plan
@@ -549,9 +555,17 @@
 /datum/world_edit_building_semantic_plan/proc/get_cluster_specs(phase_id)
 	var/list/result = list()
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
-		if(istype(cluster_spec) && cluster_spec.phase == "[phase_id]")
+		if(istype(cluster_spec) && cluster_spec.phase == "[phase_id]" && !cluster_spec.compact_substitute_only)
 			result += cluster_spec
 	return result
+
+/datum/world_edit_building_semantic_plan/proc/get_cluster_spec_by_id(cluster_id)
+	if(!length("[cluster_id]"))
+		return null
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in cluster_specs)
+		if(istype(cluster_spec) && cluster_spec.id == "[cluster_id]")
+			return cluster_spec
+	return null
 
 /datum/world_edit_building_archetype
 	var/id = ""
@@ -843,8 +857,14 @@
 	add_adjacency("main_work", "service_wall")
 	add_adjacency("main_work", "parts_storage")
 	add_nested_room("main_work", "parts_storage", 9, 9, 1)
-	add_signature_cluster("workbench_machine_wall", "major", "signature_workshop_wall", "table", "table", list("service_wall", "machine_wall"), 4, 5, TRUE, 0, 100, "workbench_machine_wall", 35)
-	add_signature_cluster("parts_rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 95, "parts_rack_aisles", 25)
+	var/datum/world_edit_building_cluster_spec/workbench_spec = add_signature_cluster("workbench_machine_wall", "major", "signature_workshop_wall", "table", "table", list("service_wall", "machine_wall"), 4, 5, TRUE, 0, 100, "workbench_machine_wall", 35)
+	workbench_spec.compact_substitute_id = "workbench_machine_wall_compact"
+	var/datum/world_edit_building_cluster_spec/workbench_compact = add_signature_cluster("workbench_machine_wall_compact", "major", "run", "table", "table", list("service_wall", "machine_wall", "main_work"), 1, 4, TRUE, 0, 80, "workbench_machine_wall", 0, FALSE)
+	workbench_compact.compact_substitute_only = TRUE
+	var/datum/world_edit_building_cluster_spec/rack_spec = add_signature_cluster("parts_rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 95, "parts_rack_aisles", 25)
+	rack_spec.compact_substitute_id = "parts_rack_aisles_compact"
+	var/datum/world_edit_building_cluster_spec/rack_compact = add_signature_cluster("parts_rack_aisles_compact", "major", "run", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall", "main_work"), 1, 2, TRUE, 0, 75, "parts_rack_aisles", 0, FALSE)
+	rack_compact.compact_substitute_only = TRUE
 	add_signature_cluster("central_assembly_table", "major", "table_cluster", "table", "table", list("main_work", "work_cluster", "focus_center"), 1, 1, FALSE, 2, 90, "assembly_table", 20)
 	add_cluster("operator_console", "secondary", "wall_object", "console", "console", list("service_wall", "wall_anchor", "observation"), 1, 1, TRUE, 0, 70, FALSE)
 	add_cluster("tool_storage", "secondary", "run", "cabinet", "cabinet", list("service_wall", "service_strip", "wall_anchor"), 1, 2, TRUE, 0, 60, FALSE)

@@ -571,6 +571,10 @@
 	plan.metadata["pattern_credit_hash"] = state.fixtures.pattern_credit_hash
 	plan.metadata["layout_hash"] = state.geometry.layout_hash
 	plan.metadata["determinism_check_hash"] = state.validation.determinism_check_hash
+	var/target_room_count = round(text2num("[state.config["target_room_count"]]") || 0)
+	var/effective_room_count_divider_count = state.validation.room_count_divider_count
+	if(target_room_count > 0 && length(state.geometry.solved_rooms) >= target_room_count && length(state.geometry.divider_plans) > 0)
+		effective_room_count_divider_count = max(effective_room_count_divider_count, length(state.geometry.divider_plans))
 	plan.metadata["building_placement_contract"] = list(
 		"program_id" = state.archetype?.id,
 		"shell_preset" = state.config["faction_preset"],
@@ -580,7 +584,7 @@
 		"usable_area" = state.fixtures.usable_fixture_area,
 		"room_count" = length(state.geometry.solved_rooms),
 		"target_room_count" = state.config["target_room_count"] || 0,
-		"room_count_divider_count" = state.validation.room_count_divider_count,
+		"room_count_divider_count" = effective_room_count_divider_count,
 		"corridor_turf_count" = length(state.geometry.corridor_turfs),
 		"semantic_requirement_minimums" = state.fixtures.semantic_requirement_minimums.Copy(),
 		"semantic_requirement_counts" = state.fixtures.semantic_requirement_counts.Copy(),
@@ -596,9 +600,9 @@
 	plan.metadata["rectangular_region_candidate_count"] = state.validation.rectangular_region_candidate_count
 	plan.metadata["nested_room_count"] = state.validation.nested_room_count
 	plan.metadata["target_room_count"] = state.config["target_room_count"] || state.validation.requested_room_count
-	plan.metadata["room_count_divider_count"] = state.validation.room_count_divider_count
-	plan.metadata["room_count_satisfied"] = !(round(text2num("[state.config["target_room_count"]]") || 0)) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0)
-	plan.metadata["room_count_gap"] = max(0, round(text2num("[state.config["target_room_count"]]") || 0) - length(state.geometry.solved_rooms))
+	plan.metadata["room_count_divider_count"] = effective_room_count_divider_count
+	plan.metadata["room_count_satisfied"] = !target_room_count || length(state.geometry.solved_rooms) >= target_room_count
+	plan.metadata["room_count_gap"] = max(0, target_room_count - length(state.geometry.solved_rooms))
 	plan.metadata["room_fill_attempt_count"] = state.validation.room_fill_attempt_count
 	plan.metadata["room_fill_fixture_count"] = state.validation.room_fill_fixture_count
 	plan.metadata["template_chunk_count"] = state.fixtures.template_chunk_count
@@ -820,9 +824,9 @@
 	plan.metadata["semantic_region_count"] = length(state.geometry.solved_regions)
 	plan.metadata["room_count"] = length(state.geometry.solved_rooms)
 	plan.metadata["target_room_count"] = state.config["target_room_count"] || state.validation.requested_room_count
-	plan.metadata["room_count_divider_count"] = state.validation.room_count_divider_count
-	plan.metadata["room_count_satisfied"] = !(round(text2num("[state.config["target_room_count"]]") || 0)) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0)
-	plan.metadata["room_count_gap"] = max(0, round(text2num("[state.config["target_room_count"]]") || 0) - length(state.geometry.solved_rooms))
+	plan.metadata["room_count_divider_count"] = effective_room_count_divider_count
+	plan.metadata["room_count_satisfied"] = !target_room_count || length(state.geometry.solved_rooms) >= target_room_count
+	plan.metadata["room_count_gap"] = max(0, target_room_count - length(state.geometry.solved_rooms))
 	plan.metadata["corridor_turf_count"] = length(state.geometry.corridor_turfs)
 	plan.metadata["primary_route_count"] = length(state.geometry.primary_route_turfs)
 	plan.metadata["internal_wall_count"] = length(state.geometry.internal_wall_turfs)

@@ -29,6 +29,15 @@
 /datum/world_edit_blueprint_service/proc/world_edit_blueprint_file_name_is_dmm(file_name)
 	return length("[world_edit_get_blueprint_id_from_file_name(file_name)]") ? TRUE : FALSE
 
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_metadata_index_path()
+	return "[WORLD_EDIT_BLUEPRINT_DIR][WORLD_EDIT_BLUEPRINT_INDEX_FILE]"
+
+/datum/world_edit_blueprint_service/proc/world_edit_sanitize_blueprint_display_name(raw_name, fallback_id)
+	var/blueprint_name = trim(sanitize_text("[raw_name]", ""))
+	if(!length(blueprint_name))
+		blueprint_name = "[fallback_id]"
+	return copytext(blueprint_name, 1, WORLD_EDIT_BLUEPRINT_NAME_MAX_LEN + 1)
+
 /datum/world_edit_blueprint_service/proc/world_edit_ensure_blueprint_storage_dir()
 	if(fexists(WORLD_EDIT_BLUEPRINT_DIR))
 		return TRUE
@@ -44,6 +53,122 @@
 		fdel(probe_path)
 
 	return fexists(WORLD_EDIT_BLUEPRINT_DIR)
+
+/datum/world_edit_blueprint_service/proc/world_edit_load_blueprint_metadata_index()
+	. = list()
+	var/index_path = world_edit_get_blueprint_metadata_index_path()
+	if(!fexists(index_path))
+		return
+
+	var/index_text = file2text(index_path)
+	if(!length(index_text))
+		return
+
+	var/list/decoded_index
+	try
+		decoded_index = json_decode(index_text)
+	catch
+		return
+	if(!islist(decoded_index))
+		return
+
+	var/list/raw_blueprints = decoded_index["blueprints"]
+	if(!islist(raw_blueprints))
+		raw_blueprints = decoded_index
+	for(var/raw_id as anything in raw_blueprints)
+		var/blueprint_id = sanitize_filename("[raw_id]")
+		if(!length(blueprint_id) || blueprint_id != "[raw_id]" || length(blueprint_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
+			continue
+		var/list/raw_entry = raw_blueprints[raw_id]
+		if(!islist(raw_entry))
+			continue
+		.[blueprint_id] = list(
+			"name" = world_edit_sanitize_blueprint_display_name(raw_entry["name"], blueprint_id),
+			"created_at" = "[raw_entry["created_at"] || ""]",
+			"created_by" = ckey("[raw_entry["created_by"]]"),
+			"source" = "[raw_entry["source"] || "dmm"]",
+		)
+
+/datum/world_edit_blueprint_service/proc/world_edit_write_blueprint_metadata_index(list/metadata_index)
+	if(!world_edit_ensure_blueprint_storage_dir())
+		return FALSE
+
+	var/list/safe_blueprints = list()
+	if(islist(metadata_index))
+		for(var/raw_id as anything in metadata_index)
+			var/blueprint_id = sanitize_filename("[raw_id]")
+			if(!length(blueprint_id) || blueprint_id != "[raw_id]" || length(blueprint_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
+				continue
+			var/list/raw_entry = metadata_index[raw_id]
+			if(!islist(raw_entry))
+				continue
+			safe_blueprints[blueprint_id] = list(
+				"name" = world_edit_sanitize_blueprint_display_name(raw_entry["name"], blueprint_id),
+				"created_at" = "[raw_entry["created_at"] || ""]",
+				"created_by" = ckey("[raw_entry["created_by"]]"),
+				"source" = "[raw_entry["source"] || "dmm"]",
+			)
+
+	var/index_path = world_edit_get_blueprint_metadata_index_path()
+	if(!length(safe_blueprints))
+		if(fexists(index_path))
+			return fdel(index_path)
+		return TRUE
+
+	var/list/output = list(
+		"version" = 1,
+		"blueprints" = safe_blueprints,
+	)
+	rustg_file_write(json_encode(output), index_path)
+	return fexists(index_path)
+
+/datum/world_edit_blueprint_service/proc/world_edit_get_blueprint_metadata_entry(blueprint_id, list/metadata_index = null)
+	var/safe_id = sanitize_filename("[blueprint_id]")
+	if(!length(safe_id) || safe_id != "[blueprint_id]" || length(safe_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
+		return null
+	var/list/source_index = islist(metadata_index) ? metadata_index : world_edit_load_blueprint_metadata_index()
+	var/list/entry = source_index[safe_id]
+	return islist(entry) ? entry : null
+
+/datum/world_edit_blueprint_service/proc/world_edit_apply_blueprint_metadata(list/blueprint, list/metadata)
+	if(!islist(blueprint) || !islist(metadata))
+		return blueprint
+
+	var/blueprint_id = sanitize_filename("[blueprint["id"]]")
+	if(!length(blueprint_id))
+		return blueprint
+	blueprint["name"] = world_edit_sanitize_blueprint_display_name(metadata["name"], blueprint_id)
+	if(length("[metadata["created_at"]]"))
+		blueprint["created_at"] = "[metadata["created_at"]]"
+	if(length("[metadata["created_by"]]"))
+		blueprint["created_by"] = ckey("[metadata["created_by"]]")
+	if(length("[metadata["source"]]"))
+		blueprint["source"] = "[metadata["source"]]"
+	return blueprint
+
+/datum/world_edit_blueprint_service/proc/world_edit_record_blueprint_metadata(list/blueprint, list/metadata_index = null)
+	if(!islist(blueprint))
+		return FALSE
+
+	var/blueprint_id = sanitize_filename("[blueprint["id"]]")
+	if(!length(blueprint_id) || length(blueprint_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
+		return FALSE
+	var/list/target_index = islist(metadata_index) ? metadata_index : world_edit_load_blueprint_metadata_index()
+	target_index[blueprint_id] = list(
+		"name" = world_edit_sanitize_blueprint_display_name(blueprint["name"], blueprint_id),
+		"created_at" = "[blueprint["created_at"] || ""]",
+		"created_by" = ckey("[blueprint["created_by"]]"),
+		"source" = "[blueprint["source"] || "dmm"]",
+	)
+	return world_edit_write_blueprint_metadata_index(target_index)
+
+/datum/world_edit_blueprint_service/proc/world_edit_remove_blueprint_metadata(blueprint_id, list/metadata_index = null)
+	var/safe_id = sanitize_filename("[blueprint_id]")
+	if(!length(safe_id) || safe_id != "[blueprint_id]" || length(safe_id) > WORLD_EDIT_BLUEPRINT_ID_LEN)
+		return FALSE
+	var/list/target_index = islist(metadata_index) ? metadata_index : world_edit_load_blueprint_metadata_index()
+	target_index -= safe_id
+	return world_edit_write_blueprint_metadata_index(target_index)
 
 /datum/world_edit_blueprint_service/proc/world_edit_build_dmm_parse_error(message)
 	return list("error" = "[message]")
@@ -247,11 +372,14 @@
 		return list("error" = "Некорректный путь DMM blueprint.")
 
 	var/dmm_text = file2text(file_path)
-	var/list/load_result = world_edit_parse_blueprint_dmm_text(dmm_text, blueprint_id, blueprint_id, "server")
+	var/list/metadata = world_edit_get_blueprint_metadata_entry(blueprint_id)
+	var/blueprint_name = islist(metadata) ? metadata["name"] : blueprint_id
+	var/list/load_result = world_edit_parse_blueprint_dmm_text(dmm_text, blueprint_id, blueprint_name, "server")
 	if(load_result["error"])
 		return load_result
 
 	var/list/blueprint = load_result["blueprint"]
+	world_edit_apply_blueprint_metadata(blueprint, metadata)
 	blueprint["file_path"] = file_path
 	return list("blueprint" = blueprint)
 
@@ -274,9 +402,10 @@
 		var/file_path = "[WORLD_EDIT_BLUEPRINT_DIR][file_name]"
 		var/list/load_result = world_edit_load_blueprint_from_file(file_path)
 		if(load_result["error"])
+			var/list/metadata = world_edit_get_blueprint_metadata_entry(blueprint_id)
 			. += list(list(
 				"id" = blueprint_id,
-				"name" = blueprint_id,
+				"name" = islist(metadata) ? metadata["name"] : blueprint_id,
 				"entry_count" = 0,
 				"radius" = 0,
 				"footprint_width" = 0,
@@ -433,6 +562,8 @@
 		return FALSE
 	if(file2text(file_path) != dmm_text)
 		return FALSE
+	if(!world_edit_record_blueprint_metadata(blueprint))
+		return FALSE
 	return file_path
 
 /datum/world_edit_blueprint_service/proc/world_edit_import_blueprint_file(import_file)
@@ -463,9 +594,23 @@
 		return list("error" = "DMM blueprint не найден.")
 	if(!fdel(file_path))
 		return list("error" = "Не удалось удалить DMM blueprint.")
+	world_edit_remove_blueprint_metadata(blueprint_id)
 	return list("deleted" = TRUE)
 
+/datum/world_edit_blueprint_service/proc/world_edit_frename_blueprint_file(old_path, new_path)
+	if(!fcopy(old_path, new_path))
+		return FALSE
+	if(!fexists(new_path))
+		return FALSE
+	if(!fdel(old_path))
+		fdel(new_path)
+		return FALSE
+	return TRUE
+
 /datum/world_edit_blueprint_service/proc/world_edit_rename_blueprint_file(old_blueprint_id, new_blueprint_id)
+	var/safe_old_id = sanitize_filename("[old_blueprint_id]")
+	if(!length(safe_old_id) || safe_old_id != "[old_blueprint_id]" || safe_old_id in list(".", ".."))
+		return list("error" = "DMM blueprint не найден.")
 	var/old_path = world_edit_get_blueprint_file_path(old_blueprint_id)
 	if(!old_path || !fexists(old_path))
 		return list("error" = "DMM blueprint не найден.")
@@ -484,11 +629,21 @@
 	if(fexists(new_path))
 		return list("error" = "DMM blueprint с таким именем уже существует.")
 
-	if(!fcopy(old_path, new_path))
-		return list("error" = "Unable to copy DMM blueprint to the new name.")
-	if(!fexists(new_path))
-		return list("error" = "Unable to verify copied DMM blueprint after rename.")
-	if(!fdel(old_path))
-		fdel(new_path)
-		return list("error" = "Unable to remove old DMM blueprint after rename.")
+	var/list/metadata_index = world_edit_load_blueprint_metadata_index()
+	var/list/metadata_entry = world_edit_get_blueprint_metadata_entry(safe_old_id, metadata_index)
+	if(!islist(metadata_entry))
+		metadata_entry = list(
+			"name" = safe_old_id,
+			"created_at" = "",
+			"created_by" = "",
+			"source" = "dmm",
+		)
+
+	if(!world_edit_frename_blueprint_file(old_path, new_path))
+		return list("error" = "Unable to rename DMM blueprint.")
+	metadata_index -= safe_old_id
+	metadata_index[safe_new_id] = metadata_entry
+	if(!world_edit_write_blueprint_metadata_index(metadata_index))
+		world_edit_frename_blueprint_file(new_path, old_path)
+		return list("error" = "Unable to update DMM blueprint metadata after rename.")
 	return list("blueprint_id" = safe_new_id, "file_path" = new_path)

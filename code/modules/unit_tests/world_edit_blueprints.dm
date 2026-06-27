@@ -16,6 +16,31 @@
 		offsets["[entry["dx"]],[entry["dy"]]"] = TRUE
 	return offsets
 
+/datum/unit_test/world_edit_dmm_blueprints/proc/build_single_barricade_blueprint(blueprint_id, blueprint_name)
+	return list(
+		"id" = blueprint_id,
+		"name" = blueprint_name,
+		"created_at" = "unit-test-created",
+		"created_by" = "unit_test",
+		"source" = "unit_test",
+		"entries" = list(
+			list(
+				"type" = "/obj/structure/barricade/metal",
+				"dx" = 0,
+				"dy" = 0,
+				"dz" = 0,
+				"dir" = SOUTH,
+				"vars" = list(),
+			),
+		),
+	)
+
+/datum/unit_test/world_edit_dmm_blueprints/proc/cleanup_library_blueprint(blueprint_id)
+	var/file_path = GLOB.world_edit_blueprints.world_edit_get_blueprint_file_path(blueprint_id)
+	if(file_path && fexists(file_path))
+		fdel(file_path)
+	GLOB.world_edit_blueprints.world_edit_remove_blueprint_metadata(blueprint_id)
+
 /datum/unit_test/world_edit_dmm_blueprints/Run()
 	var/model_text = "/obj/structure/barricade/metal{dir = 2},/turf/template_noop,/area/template_noop"
 	var/list/parse_result = parse_dmm(build_dmm_text(model_text, "aaa"), "unit_valid")
@@ -100,3 +125,26 @@
 	TEST_ASSERT_NULL(GLOB.world_edit_blueprints.world_edit_get_blueprint_id_from_file_name("../bad.dmm"), "unsafe file name should reject")
 	TEST_ASSERT_NULL(GLOB.world_edit_blueprints.world_edit_get_blueprint_id_from_file_name("bad.json"), "non-DMM file should reject")
 	TEST_ASSERT_EQUAL(GLOB.world_edit_blueprints.world_edit_get_blueprint_file_path("safe_blueprint"), "data/world_edit/blueprints/safe_blueprint.dmm", "safe id should stay inside blueprint library")
+
+	var/test_suffix = copytext(md5("[world.realtime]-[world.time]-[rand(1, 999999)]"), 1, 7)
+	var/test_blueprint_id = "unit_meta_[test_suffix]"
+	var/renamed_blueprint_id = "unit_rename_[test_suffix]"
+	cleanup_library_blueprint(test_blueprint_id)
+	cleanup_library_blueprint(renamed_blueprint_id)
+
+	var/display_name = "Readable Unit Blueprint"
+	var/list/saved_blueprint = build_single_barricade_blueprint(test_blueprint_id, display_name)
+	var/saved_path = GLOB.world_edit_blueprints.world_edit_save_blueprint_definition(saved_blueprint)
+	TEST_ASSERT(saved_path, "blueprint save should create a DMM file")
+	var/list/saved_load_result = GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(saved_path)
+	TEST_ASSERT(!saved_load_result["error"], "saved DMM blueprint should load")
+	TEST_ASSERT_EQUAL(saved_load_result["blueprint"]["name"], display_name, "saved DMM blueprint should preserve display name through metadata")
+
+	var/list/rename_result = GLOB.world_edit_blueprints.world_edit_rename_blueprint_file(test_blueprint_id, renamed_blueprint_id)
+	TEST_ASSERT(!rename_result["error"], "DMM blueprint rename should succeed")
+	TEST_ASSERT(!fexists(saved_path), "DMM blueprint rename should remove old file path")
+	var/list/renamed_load_result = GLOB.world_edit_blueprints.world_edit_load_blueprint_from_file(rename_result["file_path"])
+	TEST_ASSERT(!renamed_load_result["error"], "renamed DMM blueprint should load")
+	TEST_ASSERT_EQUAL(renamed_load_result["blueprint"]["id"], renamed_blueprint_id, "renamed DMM blueprint should load from new file id")
+	TEST_ASSERT_EQUAL(renamed_load_result["blueprint"]["name"], display_name, "renaming file id should not change display name")
+	cleanup_library_blueprint(renamed_blueprint_id)

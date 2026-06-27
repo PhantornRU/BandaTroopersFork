@@ -601,7 +601,94 @@
 			changed = TRUE
 			continue
 		state.add_warning("Required zone '[zone_spec.id]' could not be connected to the circulation graph during route access solving.")
+	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
+		if(!istype(room) || !length(room.zone_id) || building_room_touches_circulation(state, room))
+			continue
+		var/datum/world_edit_building_zone_spec/room_zone_spec = state.semantic_plan.get_zone_spec(room.zone_id)
+		if(!istype(room_zone_spec) || !room_zone_spec.required || !room_zone_spec.must_touch_route)
+			continue
+		if(ensure_room_has_circulation_door(state, room))
+			changed = TRUE
+			continue
+		if(ensure_room_has_service_spur(state, room))
+			changed = TRUE
+			continue
+		if(ensure_room_has_route_endpoint(state, room))
+			changed = TRUE
+			continue
+		state.add_warning("Required room '[room.id]' for zone '[room.zone_id]' could not be connected to the circulation graph during route access solving.")
 	return changed
+
+/datum/world_edit_generator/building_layout/proc/ensure_room_has_circulation_door(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
+	if(!istype(state) || !istype(room) || !length(room.turfs))
+		return FALSE
+	for(var/turf/room_turf as anything in room.turfs)
+		if(!istype(room_turf))
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/door_turf = get_step(room_turf, check_dir)
+			if(!istype(door_turf) || !state.geometry.footprint_lookup[door_turf])
+				continue
+			if(state.geometry.boundary_lookup[door_turf] || state.fixtures.fixture_lookup[door_turf])
+				continue
+			if(!state.geometry.separator_lane_lookup[door_turf] && !state.geometry.wall_lookup[door_turf] && !state.geometry.door_dirs[door_turf])
+				continue
+			var/turf/route_turf = null
+			for(var/route_dir in GLOB.cardinals)
+				var/turf/check_turf = get_step(door_turf, route_dir)
+				if(check_turf == room_turf)
+					continue
+				if(state.geometry.corridor_lookup[check_turf] || state.geometry.reserved_lookup[check_turf])
+					route_turf = check_turf
+					break
+			if(!istype(route_turf))
+				continue
+			if(!building_door_cone_is_clear_for_validation(state, door_turf, check_dir))
+				continue
+			state.geometry.wall_lookup -= door_turf
+			state.geometry.internal_wall_turfs -= door_turf
+			state.append_unique_turf(state.geometry.door_turfs, door_turf)
+			state.geometry.door_dirs[door_turf] = check_dir
+			state.add_zone(door_turf, room.zone_id)
+			state.add_primary_route(route_turf)
+			state.validation.route_access_repair_count++
+			state.validation.door_reports += list(list(
+				"turf" = door_turf,
+				"dir" = state.geometry.door_dirs[door_turf],
+				"kind" = "required_room_route_access",
+				"zone_id" = "[room.zone_id]",
+				"room_id" = "[room.id]",
+			))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/ensure_room_has_service_spur(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
+	if(!istype(state) || !istype(room))
+		return FALSE
+	for(var/turf/room_turf as anything in room.turfs)
+		if(!istype(room_turf) || state.geometry.wall_lookup[room_turf] || state.fixtures.fixture_lookup[room_turf])
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(room_turf, check_dir)
+			if(!istype(nearby_turf) || !state.geometry.floor_lookup[nearby_turf])
+				continue
+			if(!state.geometry.corridor_lookup[nearby_turf] && !state.geometry.reserved_lookup[nearby_turf])
+				continue
+			state.add_primary_route(nearby_turf)
+			state.validation.route_access_repair_count++
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/ensure_room_has_route_endpoint(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
+	if(!istype(state) || !istype(room))
+		return FALSE
+	for(var/turf/room_turf as anything in room.turfs)
+		if(!istype(room_turf) || !state.geometry.floor_lookup[room_turf] || state.geometry.wall_lookup[room_turf] || state.fixtures.fixture_lookup[room_turf])
+			continue
+		state.add_primary_route(room_turf)
+		state.validation.route_access_repair_count++
+		return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/ensure_zone_has_circulation_door(datum/world_edit_building_layout_state/state, zone_id)
 	if(!istype(state) || !length("[zone_id]"))

@@ -28,12 +28,15 @@
 	add_nested_room("service_aisle", "seed_storage", 9, 9, 1)
 	add_signature_cluster("hydro_tray_rows", "major", "signature_hydro_rows", "hydro_tray", "hydro_tray", list("grow_rows", "hydro_row", "greenhouse_band"), 6, 10, FALSE, 0, 100, "hydro_tray_rows", 50)
 	add_signature_cluster("service_counter", "major", "run", "table", "table", list("work_counter", "service_strip", "service_wall"), 2, 3, TRUE, 0, 95, "hydro_service_counter", 20)
-	add_signature_cluster("seed_cabinets", "major", "run", "cabinet", "cabinet", list("seed_storage", "service_strip", "storage_wall"), 2, 3, TRUE, 0, 90, "seed_storage_wall", 20)
+	var/datum/world_edit_building_cluster_spec/seed_cabinet_spec = add_signature_cluster("seed_cabinets", "major", "run", "seed_storage", "seed_storage", list("seed_storage", "service_strip", "storage_wall"), 2, 3, TRUE, 0, 90, "seed_storage_wall", 20)
+	seed_cabinet_spec.compact_substitute_id = "seed_cabinets_compact"
+	var/datum/world_edit_building_cluster_spec/seed_cabinet_compact = add_signature_cluster("seed_cabinets_compact", "major", "wall_object", "seed_storage", "seed_storage", list("seed_storage", "work_counter", "service_aisle", "grow_rows", "storage_wall", "wall_anchor"), 1, 2, TRUE, 0, 70, "seed_storage_wall", 0, FALSE)
+	seed_cabinet_compact.compact_substitute_only = TRUE
 	add_cluster("fertilizer_crates", "secondary", "staging_group", "crate", "crate", list("seed_storage", "service_aisle"), 1, 2, FALSE, 0, 60, FALSE)
 	add_cluster("tool_rack", "secondary", "wall_object", "rack", "rack", list("work_counter", "seed_storage", "wall_anchor"), 1, 1, TRUE, 0, 55, FALSE)
 	add_cluster("grower_chair", "detail", "object", "chair", "chair", list("work_counter", "service_aisle"), 1, 1, FALSE, 0, 35, FALSE)
 	object_budgets = list("hydro_tray" = 12, "table" = 4, "chair" = 2, "cabinet" = 4, "rack" = 2, "crate" = 3)
-	category_minimums = list("hydro_tray" = 6, "cabinet" = 2)
+	category_minimums = list("hydro_tray" = 6, "seed_storage" = 2)
 
 /datum/world_edit_building_archetype/kitchen
 	id = "kitchen"
@@ -104,7 +107,10 @@
 	add_adjacency("sleep_bay", "locker_strip")
 	add_nested_room("sleep_bay", "locker_strip", 9, 9, 1)
 	add_signature_cluster("bed_wall_runs", "major", "signature_bed_rows", "bed", "bed", list("sleep_bay", "bunk_row", "bed_wall"), 4, 7, TRUE, 0, 100, "bunk_rows", 50)
-	add_signature_cluster("locker_wall", "major", "run", "cabinet", "cabinet", list("locker_strip", "service_strip", "storage_wall"), 3, 4, TRUE, 0, 95, "locker_wall", 25)
+	var/datum/world_edit_building_cluster_spec/locker_wall_spec = add_signature_cluster("locker_wall", "major", "run", "cabinet", "cabinet", list("locker_strip", "service_strip", "storage_wall"), 3, 4, TRUE, 0, 95, "locker_wall", 25)
+	locker_wall_spec.compact_substitute_id = "locker_wall_compact"
+	var/datum/world_edit_building_cluster_spec/locker_wall_compact = add_signature_cluster("locker_wall_compact", "major", "run", "cabinet", "cabinet", list("locker_strip", "storage_wall", "sleep_bay", "ready_area"), 1, 3, TRUE, 0, 75, "locker_wall", 0, FALSE)
+	locker_wall_compact.compact_substitute_only = TRUE
 	add_signature_cluster("ready_table", "major", "table_cluster", "table", "table", list("ready_area", "social_focus"), 1, 1, FALSE, 2, 60, "ready_area", 15)
 	add_cluster("personal_rack", "secondary", "wall_object", "rack", "rack", list("locker_strip", "sleep_bay", "wall_anchor"), 1, 1, TRUE, 0, 50, FALSE)
 	add_cluster("footlocker_crates", "detail", "staging_group", "crate", "crate", list("sleep_bay", "locker_strip"), 1, 2, FALSE, 0, 35, FALSE)

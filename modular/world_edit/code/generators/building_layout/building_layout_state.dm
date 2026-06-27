@@ -370,6 +370,7 @@
 	validation.fixture_conflict_count = 0
 	validation.route_conflict_count = 0
 	validation.signature_failure_count = 0
+	validation.divider_capacity_warning_count = 0
 	validation.mandatory_room_missing_count = 0
 	validation.mandatory_room_no_bounds_count = 0
 	validation.mandatory_room_no_access_count = 0

@@ -2928,6 +2928,46 @@
 		return divider_plan
 	return build_zone_box_divider_plan(state, zone_spec)
 
+/datum/world_edit_generator/building_layout/proc/get_required_wall_slots_for_divider_zone(datum/world_edit_building_layout_state/state, zone_id)
+	if(!istype(state) || !istype(state.semantic_plan) || !length("[zone_id]"))
+		return 0
+	var/required_slots = 0
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.cluster_specs)
+		if(!istype(cluster_spec) || cluster_spec.compact_substitute_only || !cluster_spec.required)
+			continue
+		if(!islist(cluster_spec.anchors) || !cluster_spec.anchors.Find("[zone_id]"))
+			continue
+		required_slots += get_building_cluster_wall_slot_requirement(state, cluster_spec)
+	return required_slots
+
+/datum/world_edit_generator/building_layout/proc/count_divider_plan_inner_wall_slots(datum/world_edit_building_layout_state/state, datum/world_edit_building_divider_plan/divider_plan)
+	if(!istype(state) || !istype(divider_plan))
+		return 0
+	var/list/planned_wall_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(divider_plan.wall_turfs)
+	var/capacity = 0
+	for(var/turf/inner_turf as anything in divider_plan.inner_turfs)
+		if(!istype(inner_turf) || planned_wall_lookup[inner_turf] || state.geometry.wall_lookup[inner_turf] || state.geometry.door_dirs[inner_turf] || state.geometry.reserved_lookup[inner_turf])
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(inner_turf, check_dir)
+			if(state.geometry.wall_lookup[nearby_turf] || planned_wall_lookup[nearby_turf])
+				capacity++
+				break
+	return capacity
+
+/datum/world_edit_generator/building_layout/proc/divider_plan_has_required_wall_capacity(datum/world_edit_building_layout_state/state, datum/world_edit_building_divider_plan/divider_plan)
+	if(!istype(state) || !istype(divider_plan))
+		return FALSE
+	var/required_slots = get_required_wall_slots_for_divider_zone(state, divider_plan.inner_zone_id)
+	if(required_slots <= 0)
+		return TRUE
+	var/capacity = count_divider_plan_inner_wall_slots(state, divider_plan)
+	if(capacity >= required_slots)
+		return TRUE
+	state.validation.divider_capacity_warning_count++
+	state.add_warning("Divider plan '[divider_plan.id]' for zone '[divider_plan.inner_zone_id]' has [capacity] wall slots, needs [required_slots].")
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/build_zone_box_divider_plan(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec)
 	var/list/zone_turfs = state.get_zone_turfs(zone_spec.id)
 	if(length(zone_turfs) < max(zone_spec.min_area + 2, 6))
@@ -2972,6 +3012,8 @@
 		if(istype(inner_turf))
 			divider_plan.inner_turfs += inner_turf
 	if(length(divider_plan.wall_turfs) < 2)
+		return null
+	if(!divider_plan_has_required_wall_capacity(state, divider_plan))
 		return null
 	if(!divider_plan_keeps_floor_reachable(state, divider_plan))
 		return null
@@ -3098,6 +3140,8 @@
 		if(!(zone_turf in divider_plan.wall_turfs) && zone_turf != opening_turf)
 			divider_plan.inner_turfs += zone_turf
 	if(!length(divider_plan.wall_turfs))
+		return null
+	if(!divider_plan_has_required_wall_capacity(state, divider_plan))
 		return null
 	return divider_plan
 
@@ -3228,6 +3272,8 @@
 			divider_plan.inner_turfs += inner_turf
 	divider_plan.opening_turfs += internal_door_turf
 	divider_plan.opening_dirs[internal_door_turf] = door_dir
+	if(!divider_plan_has_required_wall_capacity(state, divider_plan))
+		return null
 	if(!divider_plan_keeps_floor_reachable(state, divider_plan))
 		return null
 	state.add_divider_plan(divider_plan)
